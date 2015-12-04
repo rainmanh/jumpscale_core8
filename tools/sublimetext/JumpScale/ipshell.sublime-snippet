@@ -1,0 +1,11 @@
+<snippet>
+    <tabTrigger>ipshell</tabTrigger>
+    <scope>source.python</scope>
+    <description>IPShell</description>
+    <content><![CDATA[from IPython import embed
+print ("DEBUG NOW ${1:id}")
+embed()
+
+]]>
+    </content>
+</snippet>

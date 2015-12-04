@@ -1,0 +1,40 @@
+#!/usr/bin/env jspython
+from JumpScale import j
+from JumpScale.baselib import cmdutils
+import JumpScale.grid
+
+import sys,time
+
+j.application.start("jstest")
+
+parser = cmdutils.ArgumentParser()
+# parser.add_argument("action", choices=['reconfigure','testall'], help='Command to perform')
+# parser.add_argument("-n", '--nr', help='desktop nr')
+# parser.add_argument("-d", '--desktop', action='store_true', help='opendesktop')
+# parser.add_argument('--passwd', help='password for desktop')
+
+# parser.add_argument('--force',required=False, action='store_true',help='dont ask yes, do immediate')
+parser.add_argument('--debug',required=False, action='store_true', default=False, help='will stop on errors and show all relevant info')
+parser.add_argument('-p','--path',required=False, help='path to use e.g. for running tests')
+parser.add_argument('--noOsis',required=False, action='store_true',default=False,help='use this option to not send test results to osis')
+
+
+opts = parser.parse_args()
+
+
+import JumpScale.baselib.testengine
+
+if opts.path==None:
+    j.tools.testengineKds.paths=["%s/apps"%j.dirs.baseDir]
+else:
+    j.tools.testengineKds.paths=[opts.path]
+
+if not opts.noOsis:
+    j.core.grid.init()
+
+j.tools.testengineKds.initTests(noOsis=opts.noOsis)
+j.tools.testengineKds.runTests(debug=opts.debug)
+
+
+
+j.application.stop()

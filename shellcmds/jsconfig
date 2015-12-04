@@ -1,0 +1,34 @@
+#!/usr/bin/env jspython
+from JumpScale import j
+from JumpScale.baselib import cmdutils
+
+import sys,time
+
+j.application.start("jsconfig")
+
+parser = cmdutils.ArgumentParser()
+parser.add_argument("action", choices=['hrdset','hrdget','prefix'], help='Command to perform')
+
+group = parser.add_argument_group(title="hrd set&get")
+group.add_argument('-n','--name', required=False, help='key of var in hrd to set')
+group.add_argument('-v','--value',required=False, help='value')
+
+
+# parser.add_argument('-m','--message',required=False, action='store_true',help='commit message')
+
+opts = parser.parse_args()
+
+hrd=j.core.hrd.get("%s/hrd"%j.dirs.baseDir)
+
+if opts.action == "hrdset":
+    hrd.set(opts.name,opts.value)
+
+elif opts.action == "hrdget":    
+    print(hrd.get(opts.name))
+
+elif opts.action == "prefix":    
+	for item in hrd.prefix(opts.name):
+		print("%-30s %s"%(item,(hrd.get(item))))
+
+
+j.application.stop()

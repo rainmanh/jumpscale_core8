@@ -126,8 +126,8 @@ class Container(SALObject):
         # c.fabric.state.output["running"] = True
         # c.fabric.state.output["stdout"] = True
         # c.fabric.api.env['shell_env'] = {"JSBRANCH": branch, "AYSBRANCH": branch}
-        # c.run("cd /tmp;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core7/master/install/install.sh > install.sh;bash install.sh")
-        # c.run("cd /opt/code/github/jumpscale/jumpscale_core7;git remote set-url origin git@github.com:Jumpscale/jumpscale_core7.git")
+        # c.run("cd /tmp;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh")
+        # c.run("cd /opt/code/github/jumpscale/jumpscale_core8;git remote set-url origin git@github.com:Jumpscale/jumpscale_core8.git")
         # c.run("cd /opt/code/github/jumpscale/ays_jumpscale8;git remote set-url origin git@github.com:Jumpscale/ays_jumpscale8.git")
         # c.fabric.state.output["running"] = False
         # c.fabric.state.output["stdout"] = False
@@ -250,14 +250,14 @@ class Container(SALObject):
     #     #     c.file_upload(hrdf,hrdf)
     #     # c.fabric.state.output["running"]=True
     #     # c.fabric.state.output["stdout"]=True
-    #     # c.run("cd /opt/code/github/jumpscale/jumpscale_core7/install/ && bash install.sh")
+    #     # c.run("cd /opt/code/github/jumpscale/jumpscale_core8/install/ && bash install.sh")
     #     c=self.getSSH(name)
     #
     #     c.fabric.state.output["running"]=True
     #     c.fabric.state.output["stdout"]=True
     #     c.fabric.api.env['shell_env']={"JSBRANCH":branch,"AYSBRANCH":branch}
-    #     c.run("cd /tmp;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core7/master/install/install.sh > install.sh;bash install.sh")
-    #     c.run("cd /opt/code/github/jumpscale/jumpscale_core7;git remote set-url origin git@github.com:Jumpscale/jumpscale_core7.git")
+    #     c.run("cd /tmp;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh")
+    #     c.run("cd /opt/code/github/jumpscale/jumpscale_core8;git remote set-url origin git@github.com:Jumpscale/jumpscale_core8.git")
     #     c.run("cd /opt/code/github/jumpscale/ays_jumpscale8;git remote set-url origin git@github.com:Jumpscale/ays_jumpscale8.git")
     #     c.fabric.state.output["running"]=False
     #     c.fabric.state.output["stdout"]=False

@@ -19,7 +19,7 @@ class AtYourServiceSync():
         j.remote.ssh.fixsshConfigRemote(ipaddr,sshport=22)
 
         C="""
-        cd /tmp;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core7/master/install/install.sh > install.sh;bash install.sh        
+        cd /tmp;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh        
         """
 
         if docker:
@@ -38,13 +38,13 @@ class AtYourServiceSync():
         """
 
         #other way to do it
-        #git remote set-url origin git@github.com:Jumpscale/jumpscale_core7.git
+        #git remote set-url origin git@github.com:Jumpscale/jumpscale_core8.git
 
         C="""
         cd /opt/code/github/jumpscale
-        rm -rf jumpscale_core7/
-        git clone git@github.com:Jumpscale/jumpscale_core7.git
-        cd jumpscale_core7
+        rm -rf jumpscale_core8/
+        git clone git@github.com:Jumpscale/jumpscale_core8.git
+        cd jumpscale_core8
         git fetch origin $branchname:$branchname
         git checkout $branchname
         git branch --set-upstream-to=origin/$branchname $branchname        

@@ -12,7 +12,7 @@ set -ex
 # export GITHUBPASSWD=''
 #export SANDBOX=0
 #export JSBASE='/opt/jumpscale8'
-# export JSGIT='https://github.com/Jumpscale/jumpscale_core7.git'
+# export JSGIT='https://github.com/Jumpscale/jumpscale_core8.git'
 export JSBRANCH='python3_unstable'
 export PYTHONVERSION='3'
 export AYSGIT='https://github.com/Jumpscale/ays_jumpscale8'
@@ -57,6 +57,6 @@ export DEVELOP=1
 
 set -ex
 branch=${JSBRANCH-master}
-curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core7/$branch/install/web/bootstrap.py > $TMPDIR/bootstrap.py
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/web/bootstrap.py > $TMPDIR/bootstrap.py
 cd $TMPDIR
 python3.5 bootstrap.py

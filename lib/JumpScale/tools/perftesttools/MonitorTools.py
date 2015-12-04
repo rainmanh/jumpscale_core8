@@ -13,7 +13,7 @@ class MonitorClient(object):
     def __init__(self, redis):
         self.redis = redis
 
-        luapath = "/opt/code/github/jumpscale/jumpscale_core7/lib/JumpScale/lib/perftesttools/stat.lua"
+        luapath = "/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/lib/perftesttools/stat.lua"
         lua = j.system.fs.fileGetContents(luapath)
         self._sha = self.redis.script_load(lua)
 

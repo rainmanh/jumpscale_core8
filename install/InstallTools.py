@@ -1890,8 +1890,8 @@ class Installer():
 
 
     def installJS(self,base="",clean=False,insystem=True,GITHUBUSER="",GITHUBPASSWD="",CODEDIR="",\
-        JSGIT="https://github.com/Jumpscale/jumpscale_core7.git",JSBRANCH="python3_unstable",\
-        AYSGIT="https://github.com/Jumpscale/ays_jumpscale8",AYSBRANCH="python3_unstable",SANDBOX=0,EMAIL="",FULLNAME=""):
+        JSGIT="https://github.com/Jumpscale/jumpscale_core8.git",JSBRANCH="master",\
+        AYSGIT="https://github.com/Jumpscale/ays_jumpscale8",AYSBRANCH="master",SANDBOX=0,EMAIL="",FULLNAME=""):
         """
         @param pythonversion is 2 or 3 (3 no longer tested and prob does not work)
         if 3 and base not specified then base becomes /opt/jumpscale83
@@ -1982,7 +1982,7 @@ class Installer():
 
         print ("pull core")
         do.pullGitRepo(JSGIT,branch=JSBRANCH, depth=1)
-        src="%s/github/jumpscale/jumpscale_core7/lib/JumpScale"%do.CODEDIR
+        src="%s/github/jumpscale/jumpscale_core8/lib/JumpScale"%do.CODEDIR
         self.debug=False
 
         if do.TYPE.startswith("OSX"):
@@ -2013,13 +2013,13 @@ class Installer():
         do.symlinkFilesInDir(src, destjs, includeDirs=True)
 
         for item in ["InstallTools","ExtraTools"]:
-            src="%s/github/jumpscale/jumpscale_core7/install/%s.py"%(do.CODEDIR,item)
+            src="%s/github/jumpscale/jumpscale_core8/install/%s.py"%(do.CODEDIR,item)
             dest2="%s/%s.py"%(dest,item)
             do.symlink(src, dest2)
             dest2="%s/%s.py"%(destjs,item)
             do.symlink(src, dest2)
 
-        src="%s/github/jumpscale/jumpscale_core7/shellcmds"%do.CODEDIR
+        src="%s/github/jumpscale/jumpscale_core8/shellcmds"%do.CODEDIR
         desttest="/usr/local/bin/js"
         if insystem or not self.exists(desttest):
             dest="/usr/local/bin"

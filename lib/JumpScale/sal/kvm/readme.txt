@@ -1,5 +1,5 @@
 Details
-The extension is located under jumpscale_core7/lib/JumpScale/lib/kvm
+The extension is located under jumpscale_core8/lib/JumpScale/lib/kvm
 Images under /mnt/vmstor/kvm/images, and
 VMs to be created under /mnt/vmstor/kvm
 Each image comes with an hrd file named <image_name>.hrd and a fabric module responsible for configuring the vm after creation (pushing ssh keys, configure network, etc) there is also an hrd file created with every VM

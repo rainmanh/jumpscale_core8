@@ -90,7 +90,7 @@ class SQLAlchemyFactory(object):
     def getBaseClass(self):
         """
         complete example how to use sqlalchemy:
-        https://github.com/Jumpscale/jumpscale_core7/wiki/SQLAlchemy
+        https://github.com/Jumpscale/jumpscale_core8/wiki/SQLAlchemy
         """
         return Base
 

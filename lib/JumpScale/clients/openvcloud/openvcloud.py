@@ -144,7 +144,7 @@ class Openvclcoud(object):
             
             with cl.fabric.api.shell_env(JSBRANCH=self.branch, AYSBRANCH=self.branch):
                 cl.run('echo "[+] setup branch: $JSBRANCH, $AYSBRANCH"')
-                cl.run('curl https://raw.githubusercontent.com/Jumpscale/jumpscale_core7/master/install/install.sh > /tmp/js7.sh && bash /tmp/js7.sh')
+                cl.run('curl https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > /tmp/js7.sh && bash /tmp/js7.sh')
 
             # print "jumpscale installed"
 
@@ -341,7 +341,7 @@ metadata.openvcloud            =
             # install Jumpscale
             print("install jumpscale")
             with cl.fabric.api.shell_env(JSBRANCH=jsBranch, AYSBRANCH=jsBranch):
-                cl.run('curl https://raw.githubusercontent.com/Jumpscale/jumpscale_core7/master/install/install.sh > /tmp/js7.sh && bash /tmp/js7.sh')
+                cl.run('curl https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > /tmp/js7.sh && bash /tmp/js7.sh')
             print("jumpscale installed")
 
             print("add openvcloud domain to atyourservice")

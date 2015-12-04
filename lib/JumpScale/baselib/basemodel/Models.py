@@ -351,7 +351,7 @@ class ModelUser(ModelBase):
     authkeys = ListField(StringField())
 
 
-# @todo complete ASAP all from https://github.com/Jumpscale/jumpscale_core7/blob/master/apps/osis/logic/system/model.spec  (***)
+# @todo complete ASAP all from https://github.com/Jumpscale/jumpscale_core8/blob/master/apps/osis/logic/system/model.spec  (***)
 
 # o=ModelJob()
 # o.clean()

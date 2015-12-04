@@ -10,19 +10,19 @@ git.export.1                   =
     link:'True',
     nodirs:'True',
     source:'apps/osis/*',
-    url:'https://github.com/Jumpscale/jumpscale_core7/',
+    url:'https://github.com/Jumpscale/jumpscale_core8/',
 
 git.export.2                   =
     dest:'$(system.paths.base)/apps/osis/logic/',
     link:'True',
     source:'apps/osis/logic/*',
-    url:'https://github.com/Jumpscale/jumpscale_core7/',
+    url:'https://github.com/Jumpscale/jumpscale_core8/',
 
 git.export.3                   =
     dest:'$(system.paths.base)/apps/osis/tests/',
     link:'True',
     source:'apps/osis/tests/*',
-    url:'https://github.com/Jumpscale/jumpscale_core7/',
+    url:'https://github.com/Jumpscale/jumpscale_core8/',
 
 param.base                     = '$(system.paths.base)/apps/osis'
 

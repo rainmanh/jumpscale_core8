@@ -411,7 +411,7 @@ class ActionsBaseNode(object):
                         if wait:
                             if j.system.net.waitConnectionTest("localhost", port, timeout)==False:
                                 return False
-                        elif j.system.net.tcpPortConnectionTest('127.0.0.1', port) == False:
+                        elif j.sal.nettools.tcpPortConnectionTest('127.0.0.1', port) == False:
                                 return False
                 else:
                     # no ports defined

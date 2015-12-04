@@ -7,7 +7,7 @@ import time
 def retry(func):
     def wrapper(self, *args, **kwargs):
         try:
-            if j.system.net.tcpPortConnectionTest(*self._connection[:2]):
+            if j.sal.nettools.tcpPortConnectionTest(*self._connection[:2]):
                 clientfunc = getattr(self._client, func.__name__)
                 return clientfunc(*args, **kwargs)
         except:
@@ -35,7 +35,7 @@ class TCPHATransport(Transport):
         for attempt in range(2):
             for connection in sorted(self._connections, key=lambda c: c[-1]):
                 try:
-                    if j.system.net.tcpPortConnectionTest(*connection[:2]):
+                    if j.sal.nettools.tcpPortConnectionTest(*connection[:2]):
                         self._id = sessionid
                         ip, port, timestamp = connection
                         args = list(connection[:-1]) + list(self._args)

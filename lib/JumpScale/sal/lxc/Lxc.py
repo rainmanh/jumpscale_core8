@@ -421,7 +421,7 @@ ipaddr=
         print(("test ssh access to %s"%ipaddr))
         timeout=time.time()+10        
         while time.time()<timeout:  
-            if j.system.net.tcpPortConnectionTest(ipaddr,22):
+            if j.sal.nettools.tcpPortConnectionTest(ipaddr,22):
                 return
             time.sleep(0.1)
         raise RuntimeError("Could not connect to machine %s over port 22 (ssh)"%ipaddr)

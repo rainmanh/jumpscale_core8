@@ -63,7 +63,7 @@ class NetTools(SALObject):
         now=start
         remainingtime = (timeout - (now - start)) or 1
         while remainingtime > 0:
-            if j.system.net.tcpPortConnectionTest(ipaddr,port, remainingtime):
+            if j.sal.nettools.tcpPortConnectionTest(ipaddr,port, remainingtime):
                 return True
             time.sleep(0.1)
             now=j.base.time.getTimeEpoch()
@@ -82,7 +82,7 @@ class NetTools(SALObject):
         start=j.base.time.getTimeEpoch()
         now=start
         while now<start+timeout:
-            if j.system.net.tcpPortConnectionTest(ipaddr,port, 1)==False:
+            if j.sal.nettools.tcpPortConnectionTest(ipaddr,port, 1)==False:
                 return True
             now=j.base.time.getTimeEpoch()
         return False

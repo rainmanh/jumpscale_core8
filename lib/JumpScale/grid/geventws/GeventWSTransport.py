@@ -20,7 +20,7 @@ class GeventWSTransport(Transport):
         everwrite this method in implementation to init your connection to server (the transport layer)
         """
         self._id = sessionid
-        if j.system.net.tcpPortConnectionTest(self._addr,self._port)==False:
+        if j.sal.nettools.tcpPortConnectionTest(self._addr,self._port)==False:
             j.errorconditionhandler.raiseOperationalCritical("could not connect to server %s on port %s, is it running?"%(self._addr,self._port), category="transport.ws.gevent.init")        
 
     def close(self):

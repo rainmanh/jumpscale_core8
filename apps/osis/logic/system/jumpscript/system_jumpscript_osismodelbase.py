@@ -300,8 +300,8 @@ class system_jumpscript_osismodelbase(j.code.classGetJSRootModelBase()):
     @enabled.setter
     def enabled(self, value):
         if not isinstance(value, bool) and value is not None:
-            if isinstance(value, str) and j.basetype.boolean.checkString(value):
-                value = j.basetype.boolean.fromString(value)
+            if isinstance(value, str) and j.core.types.bool.checkString(value):
+                value = j.core.types.bool.fromString(value)
             else:
                 msg="property enabled input error, needs to be bool, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: jumpscript, value was:" + str(value)
                 raise TypeError(msg)
@@ -319,8 +319,8 @@ class system_jumpscript_osismodelbase(j.code.classGetJSRootModelBase()):
     @async.setter
     def async(self, value):
         if not isinstance(value, bool) and value is not None:
-            if isinstance(value, str) and j.basetype.boolean.checkString(value):
-                value = j.basetype.boolean.fromString(value)
+            if isinstance(value, str) and j.core.types.bool.checkString(value):
+                value = j.core.types.bool.fromString(value)
             else:
                 msg="property async input error, needs to be bool, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: jumpscript, value was:" + str(value)
                 raise TypeError(msg)
@@ -395,8 +395,8 @@ class system_jumpscript_osismodelbase(j.code.classGetJSRootModelBase()):
     @log.setter
     def log(self, value):
         if not isinstance(value, bool) and value is not None:
-            if isinstance(value, str) and j.basetype.boolean.checkString(value):
-                value = j.basetype.boolean.fromString(value)
+            if isinstance(value, str) and j.core.types.bool.checkString(value):
+                value = j.core.types.bool.fromString(value)
             else:
                 msg="property log input error, needs to be bool, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: jumpscript, value was:" + str(value)
                 raise TypeError(msg)

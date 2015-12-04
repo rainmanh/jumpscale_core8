@@ -20,7 +20,7 @@ class Specbase(j.code.classGetBase()):
         if type == 'int' and value:
             return int(value)
         elif type == 'bool' and value:
-            return j.basetype.boolean.fromString(value)
+            return j.core.types.bool.fromString(value)
         return value
 
 class SpecEnum(Specbase):

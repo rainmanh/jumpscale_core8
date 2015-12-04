@@ -300,8 +300,8 @@ class system_test_osismodelbase(j.code.classGetJSRootModelBase()):
     @enable.setter
     def enable(self, value):
         if not isinstance(value, bool) and value is not None:
-            if isinstance(value, str) and j.basetype.boolean.checkString(value):
-                value = j.basetype.boolean.fromString(value)
+            if isinstance(value, str) and j.core.types.bool.checkString(value):
+                value = j.core.types.bool.fromString(value)
             else:
                 msg="property enable input error, needs to be bool, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: test, value was:" + str(value)
                 raise TypeError(msg)

@@ -159,7 +159,7 @@ class LogHandler(object):
             self.connectRedis()
 
     def connectRedis(self):
-        # if j.system.net.tcpPortConnectionTest("localhost", 9999, timeout=None):
+        # if j.sal.nettools.tcpPortConnectionTest("localhost", 9999, timeout=None):
         if j.core.redis!=None:
             luapath="%s/core/logging/logs.lua"%j.dirs.jsLibDir
             if j.system.fs.exists(path=luapath):

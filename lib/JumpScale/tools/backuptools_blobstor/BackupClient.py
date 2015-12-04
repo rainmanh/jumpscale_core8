@@ -118,7 +118,7 @@ class BackupClient:
     def commitMD(self):
         print("commit to git")
         self.gitclient.commit("backup %s"%j.base.time.getLocalTimeHRForFilesystem())
-        if j.system.net.tcpPortConnectionTest(self.gitlab.addr,self.gitlab.port):
+        if j.sal.nettools.tcpPortConnectionTest(self.gitlab.addr,self.gitlab.port):
             #found gitlab
             print("push to git")
             self.gitclient.push(force=True)
@@ -127,7 +127,7 @@ class BackupClient:
 
     def pullMD(self):
         print("pull from git")        
-        if j.system.net.tcpPortConnectionTest(self.gitlab.addr,self.gitlab.port):
+        if j.sal.nettools.tcpPortConnectionTest(self.gitlab.addr,self.gitlab.port):
             #found gitlab
             self.gitclient.pull()        
         else:

@@ -113,7 +113,7 @@ class OSISCMDS(object):
         if not j.application.config.exists("rediskvs.master.addr"):
             return
         while True:
-            if j.system.net.tcpPortConnectionTest('127.0.0.1',port=7771):
+            if j.sal.nettools.tcpPortConnectionTest('127.0.0.1',port=7771):
                 try:
                     if rediscl==None:
                         rediscl = j.db.keyvaluestore.getRedisStore(namespace='', host='127.0.0.1', port=7771)

@@ -43,7 +43,7 @@ class ErrorConditionHandler():
 
     def _send2Redis(self,eco):
         if j.logger.enabled and self.redis==None:
-            if j.system.net.tcpPortConnectionTest("localhost", 9999, timeout=None):
+            if j.sal.nettools.tcpPortConnectionTest("localhost", 9999, timeout=None):
                 self.redis=j.clients.redis.getGeventRedisClient("localhost", 9999, fromcache=True, password='')
                 luapath="%s/core/errorhandling/eco.lua"%j.dirs.jsLibDir
                 if j.system.fs.exists(path=luapath):

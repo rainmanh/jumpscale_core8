@@ -469,7 +469,7 @@ class Text:
         elif isinstance(obj, bytes):
             obj=obj.decode("utf8")
             return obj
-        elif j.basetype.boolean.check(obj):
+        elif j.core.types.bool.check(obj):
             if obj==True:
                 obj="True"
             else:
@@ -681,7 +681,7 @@ class Text:
 
     @staticmethod
     def getBool(text):
-        if j.basetype.boolean.check(text):
+        if j.core.types.bool.check(text):
             return text
         if j.core.types.string.check(text):
             text=text.strip()

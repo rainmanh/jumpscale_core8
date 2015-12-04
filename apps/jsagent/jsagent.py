@@ -116,7 +116,7 @@ class ProcessManager():
         self.dir_hekadconfig=j.system.fs.joinPaths(self.dir_data,"dir_hekadconfig")
         self.dir_actions=j.system.fs.joinPaths(self.dir_data,"actions")
         j.system.fs.createDir(self.dir_data)
-        if j.system.net.tcpPortConnectionTest("localhost",9999)==False:
+        if j.sal.nettools.tcpPortConnectionTest("localhost",9999)==False:
             redisServices = j.atyourservice.findServices('jumpscale', 'redis', 'system')
             if len(redisServices) <= 0:
                 args = {'param.port': 9999,

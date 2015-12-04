@@ -112,8 +112,8 @@ class SerializerHRD():
             primitive = j.basetype.integer.fromString(value)
         elif j.basetype.float.checkString(value):
             primitive = j.basetype.float.fromString(value)
-        elif j.basetype.boolean.checkString(value):
-            primitive = j.basetype.boolean.fromString(value)
+        elif j.core.types.bool.checkString(value):
+            primitive = j.core.types.bool.fromString(value)
         else:
             j.core.types.string.fromString(value)
         return primitive

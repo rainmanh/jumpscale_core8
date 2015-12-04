@@ -271,7 +271,7 @@ class Docker2(SALObject):
         if ssh:
             if 22 not in portsdict:
                 for port in range(9022, 9190):
-                    if not j.system.net.tcpPortConnectionTest("localhost", port):
+                    if not j.sal.nettools.tcpPortConnectionTest("localhost", port):
                         portsdict[22] = port
                         print(("SSH PORT WILL BE ON:%s" % port))
                         break

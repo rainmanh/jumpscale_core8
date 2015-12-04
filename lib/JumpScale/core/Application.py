@@ -62,16 +62,16 @@ class Application:
         self.initWhoAmI()
 
         addr=None
-        if j.system.net.tcpPortConnectionTest("redis", 9999, timeout=None):
+        if j.sal.nettools.tcpPortConnectionTest("redis", 9999, timeout=None):
             addr="redis"
             port=9999
-        elif j.system.net.tcpPortConnectionTest("redis", 6379, timeout=None):
+        elif j.sal.nettools.tcpPortConnectionTest("redis", 6379, timeout=None):
             addr="redis"
             port=6379
-        elif j.system.net.tcpPortConnectionTest("localhost", 9999, timeout=None):
+        elif j.sal.nettools.tcpPortConnectionTest("localhost", 9999, timeout=None):
             addr="localhost"
             port=9999
-        elif j.system.net.tcpPortConnectionTest("localhost", 6379, timeout=None):
+        elif j.sal.nettools.tcpPortConnectionTest("localhost", 6379, timeout=None):
             addr="localhost"
             port=6379
         if addr!=None:
@@ -80,7 +80,7 @@ class Application:
         #@todo check login/passwd info from https://www.gitbook.com/book/gig/jumpscale/edit#/edit/master/Internals/jumpscaleconfigfiles.md (***)
 
         # #check influxdb
-        # if j.system.net.tcpPortConnectionTest("influxdb", 8086, timeout=None):
+        # if j.sal.nettools.tcpPortConnectionTest("influxdb", 8086, timeout=None):
         #     j.core.statsdb=j.clients.influxdb.get(host='influxdb', port=8086, username='root', password='root', database="stats")
         #     for key,val in j.core.statsdb.get_list_database():
         #         if val=="stats":
@@ -89,7 +89,7 @@ class Application:
         #         j.core.statsdb.query("CREATE DATABASE \"stats\"")
 
         # #check mongodb
-        # if j.system.net.tcpPortConnectionTest("mongo", 27017, timeout=None):
+        # if j.sal.nettools.tcpPortConnectionTest("mongo", 27017, timeout=None):
         #     j.core.realitydb_connection=j.clients.mongodb.get(host='mongo', port=27017) #@todo put login/passwd in & use jumpscaleconfig files (***)
         #     j.core.realitydb=j.core.realitydb_connection.get_database("local")
 
@@ -364,7 +364,7 @@ class Application:
         return macaddr[0]
 
     def _setWriteExitcodeOnExit(self, value):
-        if not j.basetype.boolean.check(value):
+        if not j.core.types.bool.check(value):
             raise TypeError
         self._writeExitcodeOnExit = value
 

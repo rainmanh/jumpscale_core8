@@ -347,9 +347,9 @@ class RouterOS(SALObject):
 
     def _getFtp(self):
         from ftplib import FTP
-        if j.system.net.tcpPortConnectionTest(self.host,21):
+        if j.sal.nettools.tcpPortConnectionTest(self.host,21):
             self.ftp=FTP(host=self.host, user=self.login, passwd=self.password)
-        elif j.system.net.tcpPortConnectionTest(self.host,9021):
+        elif j.sal.nettools.tcpPortConnectionTest(self.host,9021):
             self.ftp=FTP()
             self.ftp.connect(host="%s"%self.host,port=9021)
             self.ftp.login(user=self.login, passwd=self.password)

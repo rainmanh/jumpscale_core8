@@ -206,8 +206,8 @@ class system_vdisk_osismodelbase(j.code.classGetJSRootModelBase()):
     @active.setter
     def active(self, value):
         if not isinstance(value, bool) and value is not None:
-            if isinstance(value, str) and j.basetype.boolean.checkString(value):
-                value = j.basetype.boolean.fromString(value)
+            if isinstance(value, str) and j.core.types.bool.checkString(value):
+                value = j.core.types.bool.fromString(value)
             else:
                 msg="property active input error, needs to be bool, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: vdisk, value was:" + str(value)
                 raise TypeError(msg)
@@ -320,8 +320,8 @@ class system_vdisk_osismodelbase(j.code.classGetJSRootModelBase()):
     @backup.setter
     def backup(self, value):
         if not isinstance(value, bool) and value is not None:
-            if isinstance(value, str) and j.basetype.boolean.checkString(value):
-                value = j.basetype.boolean.fromString(value)
+            if isinstance(value, str) and j.core.types.bool.checkString(value):
+                value = j.core.types.bool.fromString(value)
             else:
                 msg="property backup input error, needs to be bool, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: vdisk, value was:" + str(value)
                 raise TypeError(msg)

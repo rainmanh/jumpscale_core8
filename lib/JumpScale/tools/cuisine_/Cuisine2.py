@@ -253,7 +253,7 @@ class OurCuisineFactory:
         or if used without executor then will be the local one
 
         """
-        
+
         if executor==None:
             executor=j.tools.executor.getLocal()
 
@@ -473,23 +473,31 @@ class OurCuisine():
             self.file_write(location,"",mode=mode,owner=owner,group=group,scp=scp)
 
 
-    def file_upload(self,local,remote):
+    def file_upload(self, local, remote):
         """Uploads the local file to the remote location only if the remote location does not
         exists or the content are different."""
-        from IPython import embed
-        print ("DEBUG NOW cuisine file upload")
-        embed()
-        p
-        #@todo (*1*) use sshftp
+        remote_md5 = self.file_md5(remote)
+        local_md5 = j.tools.hash.md5(local)
+        if remote_md5 == local_md5:
+            return
+
+        ftp = self.sshclient.getSFTP()
+        content = j.tools.path.get(local).text()
+        with ftp.open(remote, mode='w+') as f:
+            f.write(content)
 
     def file_download(self,remote, local):
-        """Uploads the local file to the remote location only if the remote location does not
+        """Downloads the remote file to localy only if the local location does not
         exists or the content are different."""
-        from IPython import embed
-        print ("DEBUG NOW cuisine file download")
-        embed()
-        p
-        #@todo (*1*)
+        f = j.tools.path.get(local)
+        if f.exists():
+            remote_md5 = self.file_md5(remote)
+            local_md5 = j.tools.hash.md5(local)
+            if remote_md5 == local_md5:
+                return
+
+        content = self.file_read(remote)
+        f.write_text(content)
 
 
     def file_update(self,location, updater=lambda x: x):
@@ -947,7 +955,7 @@ class OurCuisine():
             C+="%-20s %s\n"%(ipaddr,namestr)
 
         self.file_write('/etc/hosts',C)
-        
+
 
     def ns_get(self):
         file = self.file_read('/etc/resolv.conf')
@@ -1032,7 +1040,7 @@ class OurCuisine():
         if passwd.strip()=="":
             raise RuntimeError("passwd cannot be empty")
 
-        c="%s:%s" % (name, passwd)        
+        c="%s:%s" % (name, passwd)
         encoded_password = base64.b64encode(c.encode('ascii'))
         if encrypted_passwd:
             self.sudo("usermod -p '%s' %s" % (passwd,name))

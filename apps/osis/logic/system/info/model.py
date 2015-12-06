@@ -16,11 +16,11 @@ class Info(OsisBaseObject):
             self.nid=j.application.whoAmI.nid
             self.category=category
             self.content=""
-            self.epoch=j.base.time.getTimeEpoch()
+            self.epoch=j.tools.time.getTimeEpoch()
             self.getSetGuid()
 
     def getUniqueKey(self):
-        return j.base.idgenerator.generateGUID()
+        return j.tools.idgenerator.generateGUID()
 
     def getSetGuid(self):
         """

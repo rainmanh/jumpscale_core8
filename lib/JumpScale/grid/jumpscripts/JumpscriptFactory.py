@@ -34,15 +34,15 @@ class Jumpscript(object):
 
     def write(self):
         if not self.path:
-            jscriptdir = j.system.fs.joinPaths(j.dirs.tmpDir,"jumpscripts")
-            j.system.fs.createDir(jscriptdir)
-            self.path=j.system.fs.joinPaths(jscriptdir, "%s_%s.py" % (self.organization, self.name))
+            jscriptdir = j.sal.fs.joinPaths(j.dirs.tmpDir,"jumpscripts")
+            j.sal.fs.createDir(jscriptdir)
+            self.path=j.sal.fs.joinPaths(jscriptdir, "%s_%s.py" % (self.organization, self.name))
         content="""
 from JumpScale import j
 
 """
         content += self.source
-        j.system.fs.writeFile(filename=self.path, contents=content)
+        j.sal.fs.writeFile(filename=self.path, contents=content)
 
     def load(self):
         self._loaded = True
@@ -62,7 +62,7 @@ from JumpScale import j
     def loadAttributes(self):
         name = getattr(self.module, 'name', "")
         if name=="":
-            name=j.system.fs.getBaseName(self.path)
+            name=j.sal.fs.getBaseName(self.path)
             name=name.replace(".py","").lower()
 
         source = inspect.getsource(self.module)
@@ -180,7 +180,7 @@ class JumpscriptFactory:
     """
     """
     def __init__(self):
-        self.basedir = j.system.fs.joinPaths(j.dirs.baseDir, 'apps', 'processmanager')
+        self.basedir = j.sal.fs.joinPaths(j.dirs.baseDir, 'apps', 'processmanager')
 
     def getJSClass(self):
         return Jumpscript
@@ -199,7 +199,7 @@ class JumpscriptFactory:
             for jumpscript_type in types:
                 parent_path = '%s/apps/agentcontroller/%s' % (j.dirs.baseDir, jumpscript_type)
                 for allowed_filename_extension in ('py', 'lua'):
-                    for file_path in j.system.fs.walkExtended(parent_path, recurse=1, dirs=False,
+                    for file_path in j.sal.fs.walkExtended(parent_path, recurse=1, dirs=False,
                                                               filePattern='*.' + allowed_filename_extension):
                         path_in_archive = jumpscript_type + '/' + file_path.split(parent_path)[1]
                         tar.add(file_path, path_in_archive)
@@ -223,7 +223,7 @@ class JumpscriptFactory:
             if tarinfo.isfile():
                 print((tarinfo.name))
                 if tarinfo.name.find("processmanager/")==0:
-                    tar.extract(tarinfo.name, j.system.fs.getParent(self.basedir))
+                    tar.extract(tarinfo.name, j.sal.fs.getParent(self.basedir))
                 if tarinfo.name.find("jumpscripts/")==0:
                     tar.extract(tarinfo.name, self.basedir)
 

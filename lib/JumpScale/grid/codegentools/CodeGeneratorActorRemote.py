@@ -7,8 +7,8 @@ class CodeGeneratorActorRemote(CodeGeneratorBase):
 
     def __init__(self, spec, typecheck=True, dieInGenCode=True, instance=0, redis=False, wsclient=None, codepath=None):
         CodeGeneratorBase.__init__(self, spec, typecheck, dieInGenCode)
-        self.actorpath = j.system.fs.joinPaths(codepath, spec.appname, spec.actorname)
-        j.system.fs.createDir(self.actorpath)
+        self.actorpath = j.sal.fs.joinPaths(codepath, spec.appname, spec.actorname)
+        j.sal.fs.createDir(self.actorpath)
         self.type = "actorremote"
         self.instance = int(instance)
         self.redis = redis
@@ -65,7 +65,7 @@ class CodeGeneratorActorRemote(CodeGeneratorBase):
 if resultcode != 0:
     raise RuntimeError("error in calling webservice %s:%s:%s:%s" )
 else:
-    if j.basetype.dictionary.check(result) and result.has_key("result"):
+    if j.core.types.dict.check(result) and result.has_key("result"):
         return result["result"]
     else:
         return result

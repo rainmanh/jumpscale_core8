@@ -3,7 +3,7 @@ import os
 import sys
 from JumpScale import j
 
-from JumpScale.baselib import cmdutils
+from JumpScale.tools import cmdutils
 
 # import sys
 # import time
@@ -40,10 +40,10 @@ parser.add_argument('-o', '--onlychanges', required=False, action='store_true',
 opts = parser.parse_args()
 
 if opts.accounts is None and opts.name is None:
-    if j.system.fs.exists("%s/%s" % (j.system.fs.getcwd(), ".git")):
+    if j.sal.fs.exists("%s/%s" % (j.sal.fs.getcwd(), ".git")):
         # we are in repo
-        opts.name = j.system.fs.getBaseName(j.system.fs.getcwd())
-        opts.accounts = j.system.fs.getBaseName(j.system.fs.getParent(j.system.fs.getcwd()))
+        opts.name = j.sal.fs.getBaseName(j.sal.fs.getcwd())
+        opts.accounts = j.sal.fs.getBaseName(j.sal.fs.getParent(j.sal.fs.getcwd()))
 
 
 if opts.branch is not None and opts.action in ['status']:
@@ -80,7 +80,7 @@ Host *
 """
 
 if j.system.platformtype.isLinux():
-    path=j.system.fs.joinPaths(os.environ["HOME"],".ssh","config")
+    path=j.sal.fs.joinPaths(os.environ["HOME"],".ssh","config")
     if not j.do.exists(path):
         j.do.writeFile(path,C)
 

@@ -275,7 +275,7 @@ class Netconfig(SALOBJECT):
                     #remove ip addr from this interface
                     cmd="ip addr flush dev %s"%item["name"]
                     print(cmd)
-                    j.system.process.execute(cmd)
+                    j.sal.process.execute(cmd)
 
 
     def interface_configure_dhcp_waitdown(self,interface="eth0"):
@@ -309,7 +309,7 @@ class Netconfig(SALOBJECT):
                 print("waiting for interface:%s to go down"%interface)
 
             cmd="ip addr flush dev %s"%interface
-            j.system.process.execute(cmd)
+            j.sal.process.execute(cmd)
 
         
         self.interface_configure_dhcp(dev=interface,apply=True)
@@ -390,7 +390,7 @@ class Netconfig(SALOBJECT):
             br=pynetlinux.brctl.findbridge("brpub")
             br.down()
             cmd="brctl delbr brpub"
-            j.system.process.execute(cmd)
+            j.sal.process.execute(cmd)
 
         try:
             import netaddr
@@ -419,7 +419,7 @@ class Netconfig(SALOBJECT):
                     print("waiting for interface:%s to go down"%interface)
 
                 cmd="ip addr flush dev %s"%interface
-                j.system.process.execute(cmd)
+                j.sal.process.execute(cmd)
 
 
             j.do.execute("sudo stop network-manager",outputStdout=False,outputStderr=False,dieOnNonZeroExitCode=False)

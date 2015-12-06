@@ -26,7 +26,7 @@ def populate():
         obj.pid = random.randint(1,600)
         obj.jid = random.randint(1,600)
         obj.masterjid = random.randint(1,600)
-        obj.epoch= j.base.time.getTimeEpoch()
+        obj.epoch= j.tools.time.getTimeEpoch()
         obj.type=str('type')
         obj.state="NEW" #["NEW","ALERT","CLOSED"]
         obj.lasttime=0 #last time there was an error condition linked to this alert

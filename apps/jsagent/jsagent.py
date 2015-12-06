@@ -14,7 +14,7 @@ import os
 import select
 import subprocess
 import JumpScale.grid.processmanager
-from JumpScale.baselib import cmdutils
+from JumpScale.tools import cmdutils
 import JumpScale.grid.agentcontroller
 import socket
 
@@ -69,8 +69,8 @@ class Process():
 
     def _spawnProcess(self):   
         if self.logpath==None:
-            self.logpath=j.system.fs.joinPaths(j.dirs.logDir,"processmanager","logs","%s_%s_%s.log"%(self.domain,self.name,self.instance))
-            j.system.fs.createDir(j.system.fs.joinPaths(j.dirs.logDir,"processmanager","logs"))
+            self.logpath=j.sal.fs.joinPaths(j.dirs.logDir,"processmanager","logs","%s_%s_%s.log"%(self.domain,self.name,self.instance))
+            j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.logDir,"processmanager","logs"))
             stdout = open(self.logpath,'w')
         else:
             stdout=None
@@ -89,8 +89,8 @@ class Process():
         time.sleep(0.1)
         if self.is_running()==False:
             print(("could not execute:%s\n"%(self)))
-            if j.system.fs.exists(path=self.logpath):
-                log=j.system.fs.fileGetContents(self.logpath)
+            if j.sal.fs.exists(path=self.logpath):
+                log=j.sal.fs.fileGetContents(self.logpath)
                 print(("log:\n%s"%log))
 
     def do(self):
@@ -112,10 +112,10 @@ class ProcessManager():
         self.processes = list()
         self.services = list()
 
-        self.dir_data=j.system.fs.joinPaths(j.dirs.baseDir,"jsagent_data")
-        self.dir_hekadconfig=j.system.fs.joinPaths(self.dir_data,"dir_hekadconfig")
-        self.dir_actions=j.system.fs.joinPaths(self.dir_data,"actions")
-        j.system.fs.createDir(self.dir_data)
+        self.dir_data=j.sal.fs.joinPaths(j.dirs.baseDir,"jsagent_data")
+        self.dir_hekadconfig=j.sal.fs.joinPaths(self.dir_data,"dir_hekadconfig")
+        self.dir_actions=j.sal.fs.joinPaths(self.dir_data,"actions")
+        j.sal.fs.createDir(self.dir_data)
         if j.sal.nettools.tcpPortConnectionTest("localhost",9999)==False:
             redisServices = j.atyourservice.findServices('jumpscale', 'redis', 'system')
             if len(redisServices) <= 0:

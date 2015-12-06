@@ -34,7 +34,7 @@ class ErrorConditionObject():
             if len(btkis)>1:
                 self.backtrace=self.getBacktrace(btkis,filename0,linenr0,func0)
     
-            self.guid=j.base.idgenerator.generateGUID() #is for default case where there is no redis
+            self.guid=j.tools.idgenerator.generateGUID() #is for default case where there is no redis
             self.category=category #is category in dot notation
             self.errormessage=msg
             self.errormessagePub=msgpub
@@ -57,15 +57,15 @@ class ErrorConditionObject():
             self.appname=j.application.appname #name as used by application
             self.gid = j.application.whoAmI.gid
             self.nid = j.application.whoAmI.nid
-            if hasattr(j, 'core') and hasattr(j.core, 'grid') and hasattr(j.core.grid, 'aid'):
-                self.aid = j.core.grid.aid
+            # if hasattr(j, 'core') and hasattr(j.core, 'grid') and hasattr(j.core.grid, 'aid'):
+            #     self.aid = j.core.grid.aid
             self.pid = j.application.whoAmI.pid
             self.jid = 0
             self.masterjid = 0
 
             
 
-            self.epoch= j.base.time.getTimeEpoch()
+            self.epoch= j.tools.time.getTimeEpoch()
             self.type=str(type) #BUG,INPUT,MONITORING,OPERATIONS,PERFORMANCE,UNKNOWN  
             self.tb=tb  
 
@@ -126,12 +126,12 @@ class ErrorConditionObject():
         # if not self.type in types:
         #     j.events.inputerror_warning("Errorcondition was thrown with wrong type.\n%s"%str(self),"eco.check.type")
 
-        if not j.basetype.integer.check(self.level):
+        if not j.core.types.integer.check(self.level):
             try:
                 self.level=int(self.level)
             except:
                 pass
-            if not j.basetype.integer.check(param.level):
+            if not j.core.types.integer.check(param.level):
                 self.level=1
                 j.events.inputerror_warning("Errorcondition was thrown with wrong level, needs to be int.\n%s"%str(self),"eco.check.level")
 
@@ -167,8 +167,8 @@ class ErrorConditionObject():
         """
         write errorcondition to filesystem
         """
-        j.system.fs.createDir(j.system.fs.joinPaths(j.dirs.logDir,"errors",j.application.appname))
-        path=j.system.fs.joinPaths(j.dirs.logDir,"errors",j.application.appname,"backtrace_%s.log"%(j.base.time.getLocalTimeHRForFilesystem()))        
+        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.logDir,"errors",j.application.appname))
+        path=j.sal.fs.joinPaths(j.dirs.logDir,"errors",j.application.appname,"backtrace_%s.log"%(j.tools.time.getLocalTimeHRForFilesystem()))        
         msg="***ERROR BACKTRACE***\n"
         msg+="%s\n"%self.backtrace
         msg+="***ERROR MESSAGE***\n"
@@ -182,7 +182,7 @@ class ErrorConditionObject():
                 
         msg+="***END***\n"
         
-        j.system.fs.writeFile(path,msg)
+        j.sal.fs.writeFile(path,msg)
         return path    
     
     def getBacktrace(self,btkis=None,filename0=None,linenr0=None,func0=None):

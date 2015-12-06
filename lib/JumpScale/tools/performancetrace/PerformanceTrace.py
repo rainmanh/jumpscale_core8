@@ -19,8 +19,8 @@ class PerformanceTraceFactory():
         """
         import cProfile
         import pstats
-        path=j.system.fs.joinPaths(j.dirs.tmpDir,"perftest","%s.log"%j.base.idgenerator.generateRandomInt(1,10000))        
-        j.system.fs.createDir(j.system.fs.joinPaths(j.dirs.tmpDir,"perftest"))        
+        path=j.sal.fs.joinPaths(j.dirs.tmpDir,"perftest","%s.log"%j.tools.idgenerator.generateRandomInt(1,10000))        
+        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.tmpDir,"perftest"))        
         globs = {
             '__file__': "afile",
             '__name__': '__main__',
@@ -32,7 +32,7 @@ class PerformanceTraceFactory():
 
         # p1.strip_dirs().sort_stats('cum').print_stats(100)
         p1.strip_dirs().sort_stats('time').print_stats(100)
-        j.system.fs.removeDirTree(path)
+        j.sal.fs.removeDirTree(path)
         return p1
 
 

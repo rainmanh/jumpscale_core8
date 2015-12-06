@@ -26,7 +26,7 @@ class BackupClient:
         #     self.gitlab=None
 
         self.mdpath="/opt/backup/MD/%s"%self.backupname
-        if not j.system.fs.exists(path=self.mdpath):  
+        if not j.sal.fs.exists(path=self.mdpath):  
             # #init repo
             # if self.gitlab.passwd != "":              
             #     if not self.gitlab.existsProject(namespace=self.gitlab.loginName, name=self.key):
@@ -37,11 +37,11 @@ class BackupClient:
             #     embed()
                     
             #     url = 'git@%s:%s/%s.git' % (self.gitlab.addr,gitlabAccount,self.key)
-            #     j.system.fs.createDir(self.mdpath)
+            #     j.sal.fs.createDir(self.mdpath)
             #     def do(cmd):
             #         cmd="cd %s;%s"%(self.mdpath,cmd)
             #         print cmd
-            #         j.system.process.executeWithoutPipe(cmd)    
+            #         j.sal.process.executeWithoutPipe(cmd)    
             #     do("git init")                
             #     do("touch README")
             #     do("git add README")
@@ -53,7 +53,7 @@ class BackupClient:
             #     print "DEBUG NOW id"
             #     embed()
                 
-            j.system.fs.createDir(self.mdpath)
+            j.sal.fs.createDir(self.mdpath)
        
 
         
@@ -91,11 +91,11 @@ class BackupClient:
 
 
     def _clean(self):
-        for ddir in j.system.fs.listDirsInDir(self.mdpath,False,True,findDirectorySymlinks=False):
+        for ddir in j.sal.fs.listDirsInDir(self.mdpath,False,True,findDirectorySymlinks=False):
             if ddir.lower()!=".git":
-                j.system.fs.removeDirTree(j.system.fs.joinPaths(self.mdpath,ddir))
-        for ffile in j.system.fs.listFilesInDir(self.mdpath, recursive=False, followSymlinks=False):
-            j.system.fs.remove(ffile)
+                j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.mdpath,ddir))
+        for ffile in j.sal.fs.listFilesInDir(self.mdpath, recursive=False, followSymlinks=False):
+            j.sal.fs.remove(ffile)
         
 
     # def backupRecipe(self,recipe):
@@ -117,7 +117,7 @@ class BackupClient:
 
     def commitMD(self):
         print("commit to git")
-        self.gitclient.commit("backup %s"%j.base.time.getLocalTimeHRForFilesystem())
+        self.gitclient.commit("backup %s"%j.tools.time.getLocalTimeHRForFilesystem())
         if j.sal.nettools.tcpPortConnectionTest(self.gitlab.addr,self.gitlab.port):
             #found gitlab
             print("push to git")

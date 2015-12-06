@@ -15,14 +15,14 @@ class GitHubClient(object):
         self._branch = branch
         self._reponame = reponame
         self._url = "http://github.com/%s/%s/archive/%s.zip" % (self._account, self._reponame, branch)
-        self._accountdir = j.system.fs.joinPaths(j.dirs.codeDir, 'github', account)
-        self.basedir = j.system.fs.joinPaths(self._accountdir, "%s-%s" % (reponame, branch))
+        self._accountdir = j.sal.fs.joinPaths(j.dirs.codeDir, 'github', account)
+        self.basedir = j.sal.fs.joinPaths(self._accountdir, "%s-%s" % (reponame, branch))
         self.repokey = "github-%s-%s" % (self._account, self._reponame)
 
     def export(self):
-        if j.system.fs.exists(self.basedir):
-            j.system.fs.removeDirTree(self.basedir)
-        tmpfile = j.system.fs.getTempFileName()
+        if j.sal.fs.exists(self.basedir):
+            j.sal.fs.removeDirTree(self.basedir)
+        tmpfile = j.sal.fs.getTempFileName()
         j.system.net.download(self._url, tmpfile)
         zp = ZipFile(tmpfile)
         zp.extract(self._accountdir)

@@ -57,15 +57,15 @@ class TemplateEngine(object):
         self.__createFileFromTemplate(templatePath, targetPath)
         
     def getOutputFromTemplate(self,templatePath):
-        originalFile = j.system.fs.fileGetContents(templatePath)
+        originalFile = j.sal.fs.fileGetContents(templatePath)
         modifiedString = self.replace(originalFile, replaceCount=3)
         return modifiedString
         
     
     def __createFileFromTemplate(self, templatePath, targetPath, replaceCount = 3):
-        originalFile = j.system.fs.fileGetContents(templatePath)
+        originalFile = j.sal.fs.fileGetContents(templatePath)
         modifiedString = self.replace(originalFile, replaceCount)
-        j.system.fs.writeFile(targetPath, modifiedString)
+        j.sal.fs.writeFile(targetPath, modifiedString)
 
     def reset(self):
         self.replaceDict={}

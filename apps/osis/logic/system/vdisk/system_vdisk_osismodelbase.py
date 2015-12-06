@@ -35,8 +35,8 @@ class system_vdisk_osismodelbase(j.code.classGetJSRootModelBase()):
     @id.setter
     def id(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property id input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: vdisk, value was:" + str(value)
                 raise TypeError(msg)
@@ -54,8 +54,8 @@ class system_vdisk_osismodelbase(j.code.classGetJSRootModelBase()):
     @gid.setter
     def gid(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property gid input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: vdisk, value was:" + str(value)
                 raise TypeError(msg)
@@ -73,8 +73,8 @@ class system_vdisk_osismodelbase(j.code.classGetJSRootModelBase()):
     @nid.setter
     def nid(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property nid input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: vdisk, value was:" + str(value)
                 raise TypeError(msg)
@@ -130,8 +130,8 @@ class system_vdisk_osismodelbase(j.code.classGetJSRootModelBase()):
     @size.setter
     def size(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property size input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: vdisk, value was:" + str(value)
                 raise TypeError(msg)
@@ -149,8 +149,8 @@ class system_vdisk_osismodelbase(j.code.classGetJSRootModelBase()):
     @free.setter
     def free(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property free input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: vdisk, value was:" + str(value)
                 raise TypeError(msg)
@@ -168,8 +168,8 @@ class system_vdisk_osismodelbase(j.code.classGetJSRootModelBase()):
     @sizeondisk.setter
     def sizeondisk(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property sizeondisk input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: vdisk, value was:" + str(value)
                 raise TypeError(msg)
@@ -263,8 +263,8 @@ class system_vdisk_osismodelbase(j.code.classGetJSRootModelBase()):
     @machineid.setter
     def machineid(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property machineid input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: vdisk, value was:" + str(value)
                 raise TypeError(msg)
@@ -282,8 +282,8 @@ class system_vdisk_osismodelbase(j.code.classGetJSRootModelBase()):
     @order.setter
     def order(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property order input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: vdisk, value was:" + str(value)
                 raise TypeError(msg)
@@ -339,8 +339,8 @@ class system_vdisk_osismodelbase(j.code.classGetJSRootModelBase()):
     @backuptime.setter
     def backuptime(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property backuptime input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: vdisk, value was:" + str(value)
                 raise TypeError(msg)
@@ -358,8 +358,8 @@ class system_vdisk_osismodelbase(j.code.classGetJSRootModelBase()):
     @expiration.setter
     def expiration(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property expiration input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: vdisk, value was:" + str(value)
                 raise TypeError(msg)
@@ -415,8 +415,8 @@ class system_vdisk_osismodelbase(j.code.classGetJSRootModelBase()):
     @lastcheck.setter
     def lastcheck(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property lastcheck input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: vdisk, value was:" + str(value)
                 raise TypeError(msg)
@@ -453,8 +453,8 @@ class system_vdisk_osismodelbase(j.code.classGetJSRootModelBase()):
     @_meta.setter
     def _meta(self, value):
         if not isinstance(value, list) and value is not None:
-            if isinstance(value, str) and j.basetype.list.checkString(value):
-                value = j.basetype.list.fromString(value)
+            if isinstance(value, str) and j.core.types.list.checkString(value):
+                value = j.core.types.list.fromString(value)
             else:
                 msg="property _meta input error, needs to be list, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: vdisk, value was:" + str(value)
                 raise TypeError(msg)

@@ -1,5 +1,5 @@
 from JumpScale import j
-from JumpScale.baselib import cmdutils
+from JumpScale.tools import cmdutils
 
 import os
 import sys
@@ -108,8 +108,8 @@ def prepare_sqlapp(namespace, models, sqluri, from_spec_file=True):
     my_settings = copy.deepcopy(BASE_SETTINGS)
     parts = urllib.parse.urlparse(sqluri)
     if parts.scheme == 'sqlite':
-        j.system.fs.createDir(parts.path)
-        sqluri = j.system.fs.joinPaths(sqluri, '%s.sqlite' % namespace)
+        j.sal.fs.createDir(parts.path)
+        sqluri = j.sal.fs.joinPaths(sqluri, '%s.sqlite' % namespace)
     my_settings['SQLALCHEMY_DATABASE_URI'] = sqluri
     my_settings['SQLALCHEMY_ECHO'] = True
     my_settings['IF_MATCH'] = False

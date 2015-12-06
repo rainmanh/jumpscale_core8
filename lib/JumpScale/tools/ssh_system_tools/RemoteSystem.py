@@ -57,7 +57,7 @@ class RemoteSystem(object):
         @rtype: RemoteSystemConnection
         """
 
-        # if not j.basetype.ipaddress.check(ip):
+        # if not j.core.types.ipaddress.check(ip):
         #     raise InvalidIpAddressError("IP address is not a valid IPv4 address")
 
         key="%s_%s_%s_%s"%(ip,login,password,port)
@@ -323,7 +323,7 @@ class RemoteSystemFS(_remoteSystemObject):
         if filename is None:
             raise TypeError('File name is None in remotesystem.fs.fileGetContents')
 
-        localfile = j.system.fs.getTempFileName()
+        localfile = j.sal.fs.getTempFileName()
 
         sf = self._connection.open_sftp()
 
@@ -332,9 +332,9 @@ class RemoteSystemFS(_remoteSystemObject):
             try:
                 sf.get(filename, localfile)
                 j.logger.log('Saved %s file to %s' % (filename, localfile))
-                return j.system.fs.fileGetContents(localfile)
+                return j.sal.fs.fileGetContents(localfile)
             finally:
-                j.system.fs.remove(localfile)
+                j.sal.fs.remove(localfile)
         finally:
             sf.close()
 
@@ -356,11 +356,11 @@ class RemoteSystemFS(_remoteSystemObject):
         if not filename.startswith('/'):
             raise ValueError('Filename should be a full path!')
 
-        localfile = j.system.fs.getTempFileName()
+        localfile = j.sal.fs.getTempFileName()
 
         try:
             # Don't bother copying the file first - we're going to clobber it anyway
-            j.system.fs.writeFile(localfile, contents)
+            j.sal.fs.writeFile(localfile, contents)
             sf = self._connection.open_sftp()
 
             try:
@@ -369,7 +369,7 @@ class RemoteSystemFS(_remoteSystemObject):
             finally:
                 sf.close()
         finally:
-            j.system.fs.remove(localfile)
+            j.sal.fs.remove(localfile)
 
     def exists(self, path):
         """Check if the specified path exists
@@ -509,11 +509,11 @@ class RemoteSystemFS(_remoteSystemObject):
         ftp = self.getSFtpConnection()
         if removeNonRelevantFiles:
             self._removeRedundantFiles(source)
-        files = j.system.fs.listFilesInDir(source, recursive=True)
+        files = j.sal.fs.listFilesInDir(source, recursive=True)
         j.logger.log("Coppy %s files from %s to %s" % (len(files), source, destination), 2)
         for filepath in files:
-            dest = j.system.fs.joinPaths(destination, j.system.fs.pathRemoveDirPart(filepath, source))
-            destdir = j.system.fs.getDirName(dest)
+            dest = j.sal.fs.joinPaths(destination, j.sal.fs.pathRemoveDirPart(filepath, source))
+            destdir = j.sal.fs.getDirName(dest)
             if destdir not in dirs:
                 j.logger.log("Create dir %s" % (destdir))
                 # ftp.mkdir(destdir)

@@ -23,7 +23,7 @@ class Audit(OsisBaseObject):
             self.timestamp = time.time()
 
     def getUniqueKey(self):
-        return j.base.idgenerator.generateGUID()
+        return j.tools.idgenerator.generateGUID()
 
     def getSetGuid(self):
         """

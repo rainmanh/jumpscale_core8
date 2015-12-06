@@ -106,9 +106,9 @@ class Openvclcoud(object):
         print("[+] checking local ssh key")
 
         keypath = '/root/.ssh/id_rsa'
-        if not j.system.fs.exists(path=keypath):
+        if not j.sal.fs.exists(path=keypath):
             print("[+] generating local rsa key")
-            j.system.platform.ubuntu.generateLocalSSHKeyPair()
+            j.sal.ubuntu.sshkeys_generate()
 
         if len(recoverypasswd) < 6:
             j.events.inputerror_critical("[-] recovery passwd needs to be at least 6 chars")
@@ -187,8 +187,8 @@ metadata.openvcloud            =
         
         if self.actionCheck(gitlaburl, 'copyKeys') is False:
             keys = {
-                '/root/.ssh/id_rsa': j.system.fs.joinPaths(repopath, 'keys', 'git_root'),
-                '/root/.ssh/id_rsa.pub': j.system.fs.joinPaths(repopath, 'keys', 'git_root.pub'),
+                '/root/.ssh/id_rsa': j.sal.fs.joinPaths(repopath, 'keys', 'git_root'),
+                '/root/.ssh/id_rsa.pub': j.sal.fs.joinPaths(repopath, 'keys', 'git_root.pub'),
             }
 
             for source, dest in keys.items():
@@ -312,9 +312,9 @@ metadata.openvcloud            =
 
         print("check local ssh key exists")
         keypath='/root/.ssh/id_rsa'
-        if not j.system.fs.exists(path=keypath):
+        if not j.sal.fs.exists(path=keypath):
             print("generate local rsa key")
-            j.system.platform.ubuntu.generateLocalSSHKeyPair()
+            j.sal.ubuntu.sshkeys_generate()
 
         if self.actionCheck(spacesecret, "vnas_machinecreate") is False:
             # create ovc_git vm

@@ -999,7 +999,7 @@ def runScript(script, showOutput=False, captureOutput=True, maxSeconds=0,
 
     @see: jumpscale.system.process.run
     '''
-    if not j.system.fs.isFile(script):
+    if not j.sal.fs.isFile(script):
         raise ValueError('Unable to execute %s: not an existing file' % script)
 
     cmdline = '%s -u "%s"' % (sys.executable, script)
@@ -1079,10 +1079,10 @@ def runDaemon(commandline, stdout=None, stderr=None, user=None, group=None,
     cmd.extend(('-c', '\'from JumpScale.core.system.processhelper import main; main()\'', ))
 
     if stdout:
-        j.system.fs.createDir(os.path.dirname(stdout))
+        j.sal.fs.createDir(os.path.dirname(stdout))
         cmd.extend(('--stdout', '"%s"' % stdout, ))
     if stderr:
-        j.system.fs.createDir(os.path.dirname(stderr))
+        j.sal.fs.createDir(os.path.dirname(stderr))
         cmd.extend(('--stderr', '"%s"' % stderr, ))
 
     if uid is not None:
@@ -1429,7 +1429,7 @@ class SystemProcess(SALObject):
         cmd2="nohup %s > /dev/null 2>&1 &"%cmd
         cmd2=j.dirs.replaceTxtDirVars(cmd2)
         print(cmd2)
-        j.system.process.executeWithoutPipe(cmd2)
+        j.sal.process.executeWithoutPipe(cmd2)
 
     def executeScript(self, scriptName):
         """execute python script from shell/Interactive Window"""
@@ -1536,7 +1536,7 @@ class SystemProcess(SALObject):
 
     def getPidsByFilter(self,filterstr):
         cmd="ps ax | grep '%s'"%filterstr
-        rcode,out=j.system.process.execute(cmd)
+        rcode,out=j.sal.process.execute(cmd)
         # print out
         found=[]
         for line in out.split("\n"):
@@ -1597,7 +1597,7 @@ class SystemProcess(SALObject):
             # Need to set $COLUMNS such that we can grep full commandline
             # Note: apparently this does not work on solaris
             command = "env COLUMNS=300 ps -ef"
-            (exitcode, output) = j.system.process.execute(command, dieOnNonZeroExitCode=False, outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False, outputToStdout=False)
             pids = list()
             co = re.compile("\s*(?P<uid>[a-z]+)\s+(?P<pid>[0-9]+)\s+(?P<ppid>[0-9]+)\s+(?P<cpu>[0-9]+)\s+(?P<stime>\S+)\s+(?P<tty>\S+)\s+(?P<time>\S+)\s+(?P<cmd>.+)")
             for line in output.splitlines():
@@ -1637,7 +1637,7 @@ class SystemProcess(SALObject):
 
     def killUserProcesses(self,user):
         for pid in self.getProcessPidsFromUser(user):
-            j.system.process.kill(pid)
+            j.sal.process.kill(pid)
 
     def getSimularProcesses(self):
         import psutil
@@ -1682,7 +1682,7 @@ class SystemProcess(SALObject):
         j.logger.log('Checking whether process with PID %d is actually %s' % (pid, process), 7)
         if j.system.platformtype.isUnix():
             command = "ps -p %i"%pid
-            (exitcode, output) = j.system.process.execute(command, dieOnNonZeroExitCode=False, outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False, outputToStdout=False)
             i=0
             for line in output.splitlines():
                 if j.system.platformtype.isLinux() or j.system.platformtype.isESX():
@@ -1721,7 +1721,7 @@ class SystemProcess(SALObject):
         if name==None:
             return []
         # print "found name:'%s'"%name
-        pids=j.system.process.getProcessPid(name)
+        pids=j.sal.process.getProcessPid(name)
         # print pids
         return pids
 
@@ -1747,7 +1747,7 @@ class SystemProcess(SALObject):
             return None
         if j.system.platformtype.isLinux():
             command = "netstat -ntulp | grep ':%s '" % port
-            (exitcode, output) = j.system.process.execute(command, dieOnNonZeroExitCode=False,outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False,outputToStdout=False)
 
             # Not found if grep's exitcode  > 0
             if not exitcode == 0:
@@ -1777,7 +1777,7 @@ class SystemProcess(SALObject):
             # Need to set $COLUMNS such that we can grep full commandline
             # Note: apparently this does not work on solaris
             command = "env COLUMNS=300 ps -ef"
-            (exitcode, output) = j.system.process.execute(command, dieOnNonZeroExitCode=False, outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False, outputToStdout=False)
             co = re.compile("\s*(?P<uid>[a-z]+)\s+(?P<pid>[0-9]+)\s+(?P<ppid>[0-9]+)\s+(?P<cpu>[0-9]+)\s+(?P<stime>\S+)\s+(?P<tty>\S+)\s+(?P<time>\S+)\s+(?P<cmd>.+)")
             for line in output.splitlines():
                 match = co.search(line)
@@ -1803,7 +1803,7 @@ class SystemProcess(SALObject):
                         if port == portfound:
                             return process
             return None
-            # raise RuntimeError("This platform is not supported in j.system.process.getProcessByPort()")
+            # raise RuntimeError("This platform is not supported in j.sal.process.getProcessByPort()")
 
     run = staticmethod(run)
     runScript = staticmethod(runScript)
@@ -1819,7 +1819,7 @@ class SystemProcess(SALObject):
         return len(self.appGetPidsActive(appname))
 
     def getEnviron(self, pid):
-        environ = j.system.fs.fileGetContents('/proc/%s/environ' % pid)
+        environ = j.sal.fs.fileGetContents('/proc/%s/environ' % pid)
         env = dict()
         for line in environ.split('\0'):
             if '=' in line:
@@ -1842,7 +1842,7 @@ class SystemProcess(SALObject):
         return j.application.redis.hkeys("application")
 
     def getDefunctProcesses(self):
-        rc,out=j.system.process.execute("ps ax")
+        rc,out=j.sal.process.execute("ps ax")
         llist=[]
         for line in out.split("\n"):
             if line.strip()=="":

@@ -346,14 +346,14 @@ class SpecDirParser():
         self.actorname=actorname
         self.path=path
 
-        files=j.system.fs.listFilesInDir(self.path,True,"*.spec")
+        files=j.sal.fs.listFilesInDir(self.path,True,"*.spec")
 
         def sortFilesFollowingLength(files):
             r={}
             result=[]
             for item in ["actor","enum","model"]:
                 for p in files:
-                    pp=j.system.fs.getBaseName(p)
+                    pp=j.sal.fs.getBaseName(p)
                     if pp.find(item)==0:
                         result.append(p)
                         files.pop(files.index(p))
@@ -372,7 +372,7 @@ class SpecDirParser():
 
         self.specblocks={}
         for path in files:
-            if j.system.fs.getBaseName(path).find("example__")==0:
+            if j.sal.fs.getBaseName(path).find("example__")==0:
                 continue
             parser=j.core.specparser._getSpecFileParser(path,self.appname,self.actorname)
 
@@ -409,7 +409,7 @@ class SpecFileParser():
         if self.appname!=self.appname.lower().strip():
             emsg="appname %s for specs should be lowercase & no spaces" % self.appname
             raise RuntimeError(emsg+" {category:spec.nameerror}")
-        self.contentin=j.system.fs.fileGetContents(path)
+        self.contentin=j.sal.fs.fileGetContents(path)
         self.contentout=""
         self.specblocks={} #key is name
         state="start"
@@ -559,7 +559,7 @@ class SpecParserFactory():
         self.app_actornames={}
         self.modelnames={} #key = appname_actorname
         self.roles={} #key is appname_rolename
-        #self.codepath=j.system.fs.joinPaths( j.dirs.varDir,"actorscode")
+        #self.codepath=j.sal.fs.joinPaths( j.dirs.varDir,"actorscode")
 
     def getEnumerationSpec(self,app,actorname,name,die=True):
             key="enumeration_%s_%s_%s"%(app,actorname,name)
@@ -797,7 +797,7 @@ class SpecParserFactory():
         """
         @param specpath if empty will look for path specs in current dir
         """
-        if not j.system.fs.exists(specpath):
+        if not j.sal.fs.exists(specpath):
             raise RuntimeError("Cannot find specs on path %s"%specpath)
 
         SpecDirParser(specpath,appname,actorname=actorname)

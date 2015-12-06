@@ -64,8 +64,8 @@ def action():
             print("waiting for work")
             continue
         
-        # print "\ntimeout:%s %s %s"%(timeout,j.base.time.getEpochAgo(timeout),lastactive)
-        agoOK=now-int(j.base.time.getEpochAgo(timeout))
+        # print "\ntimeout:%s %s %s"%(timeout,j.tools.time.getEpochAgo(timeout),lastactive)
+        agoOK=now-int(j.tools.time.getEpochAgo(timeout))
         if  int(lastactive)<agoOK :
             if lastactive==0:
                 raise RuntimeError("BUG: lastactive cannot be 0.")
@@ -88,7 +88,7 @@ def action():
     #workers not ok based on watchdog or we don't know e.g. still working (busy)
 
     cmd="ps ax|grep 'python worker.py --nodeid=%s'"%(j.application.whoAmI.nid)
-    rc,out=j.system.process.execute(cmd)
+    rc,out=j.sal.process.execute(cmd)
     for line in out.split("\n"):        
         line=line.strip()
         if line.find("-wn ")!=-1:
@@ -101,7 +101,7 @@ def action():
                 # print "DEBUG NOW kill"
                 # embed()
                 
-                j.system.process.kill(pid)
+                j.sal.process.kill(pid)
                 j.events.opserror_critical("had to kill worker, there was timeout on:%s"%workerNameFound)
                 #@todo look for which job was running there and escalate this as well
                 start(workerNameFound,pid=pid)

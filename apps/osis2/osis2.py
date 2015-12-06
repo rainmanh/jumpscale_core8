@@ -1,6 +1,6 @@
 
 from JumpScale import j
-from JumpScale.baselib import cmdutils
+from JumpScale.tools import cmdutils
 
 import os
 import sys

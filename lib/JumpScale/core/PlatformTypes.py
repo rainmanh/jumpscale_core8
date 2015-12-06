@@ -184,14 +184,14 @@ class PlatformTypes():
     
     def isXen(self):
         '''Checks whether Xen support is enabled'''
-        return j.system.process.checkProcess('xen') == 0
+        return j.sal.process.checkProcess('xen') == 0
     
     def isVirtualBox(self):
         '''Check whether the system supports VirtualBox'''
         if self.isWindows():
             #@TODO P3 Implement proper check if VBox on Windows is supported
             return False
-        exitcode, stdout, stderr = j.system.process.run('lsmod |grep vboxdrv |grep -v grep', stopOnError=False)
+        exitcode, stdout, stderr = j.sal.process.run('lsmod |grep vboxdrv |grep -v grep', stopOnError=False)
         return exitcode == 0
     
     def isHyperV(self):

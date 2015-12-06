@@ -1,6 +1,6 @@
 #!/usr/bin/env jspython
 from JumpScale import j
-from JumpScale.baselib import cmdutils
+from JumpScale.tools import cmdutils
 import os
 
 try:
@@ -40,11 +40,11 @@ opts = parser.parse_args()
 
 if opts.action =='resetlocks':
     LOCKPATH = os.path.join(j.dirs.tmpDir, 'locks')
-    j.system.fs.removeDirTree(LOCKPATH)
+    j.sal.fs.removeDirTree(LOCKPATH)
 
     j.tools.startupmanager.startAll()
 
-    j.system.process.executeWithoutPipe("jsuser add -d admin:admin:admin::")
+    j.sal.process.executeWithoutPipe("jsuser add -d admin:admin:admin::")
 
     print("has set user admin with passwd admin, please change using command 'jsuser' if required.")
 
@@ -94,8 +94,8 @@ def purge(opts,action):
         if isinstance(time, int):
             return time
         if time.startswith('-'):
-            return j.base.time.getEpochAgo(time)
-        return j.base.time.getEpochFuture(time)
+            return j.tools.time.getEpochAgo(time)
+        return j.tools.time.getEpochFuture(time)
 
     esclient = j.clients.elasticsearch.get()
     query = dict()

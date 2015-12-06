@@ -7,7 +7,7 @@ import os
 from flask.ext.bootstrap import Bootstrap
 from flask import send_from_directory
 
-tmplDir = j.system.fs.joinPaths(j.system.fs.getDirName(__file__), 'templates')
+tmplDir = j.sal.fs.joinPaths(j.sal.fs.getDirName(__file__), 'templates')
 jinjaEnv = jinja2.Environment(
             loader=jinja2.FileSystemLoader(tmplDir),
         )

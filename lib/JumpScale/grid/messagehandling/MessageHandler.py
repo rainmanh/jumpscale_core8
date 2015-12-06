@@ -130,7 +130,7 @@ class MessageHandler:
         self._poll = zmq.Poller()
         self._poll.register(self._client, zmq.POLLIN)
 
-        self.start = j.base.time.getTimeEpoch()
+        self.start = j.tools.time.getTimeEpoch()
         self._silentRetry = False
 
         if not self.ping():
@@ -141,10 +141,10 @@ class MessageHandler:
                 self._monkeyPatch()
 
     def queueMessage(self, message):
-        path = j.system.fs.joinPaths(j.dirs.varDir, "messagequeue", j.application.appname)
-        j.system.fs.createDir(path)
-        path = "%s/%s.queue" % (path, int(round(j.base.time.getTimeEpoch() / 300, 0) * 300))
-        j.system.fs.writeFile(path, message, True)  # will append to file
+        path = j.sal.fs.joinPaths(j.dirs.varDir, "messagequeue", j.application.appname)
+        j.sal.fs.createDir(path)
+        path = "%s/%s.queue" % (path, int(round(j.tools.time.getTimeEpoch() / 300, 0) * 300))
+        j.sal.fs.writeFile(path, message, True)  # will append to file
 
     def resendQueue(self, applicationName=None):
         """
@@ -212,11 +212,11 @@ class MessageHandler:
         if self.ping():
             if applicationName == None:
                 applicationName = j.application.appname
-            path = j.system.fs.joinPaths(j.dirs.varDir, "messagequeue", applicationName)
-            if j.system.fs.exists(path):
-                for item in j.system.fs.listFilesInDir(path):
+            path = j.sal.fs.joinPaths(j.dirs.varDir, "messagequeue", applicationName)
+            if j.sal.fs.exists(path):
+                for item in j.sal.fs.listFilesInDir(path):
                     contentOut = ""
-                    content = j.system.fs.fileGetContents(path)
+                    content = j.sal.fs.fileGetContents(path)
                     while content != "":
                         length = struct.unpack("I", content[0:4])[0]
                         dtype = struct.unpack("B", content[21])[0]
@@ -227,9 +227,9 @@ class MessageHandler:
                     if removeWhenDone:
                         if contentOut == "":
                             # means all processed well
-                            j.system.fs.remove(path)
+                            j.sal.fs.remove(path)
                         else:
-                            j.system.fs.writeFile(path, contentOut)
+                            j.sal.fs.writeFile(path, contentOut)
 
     def ping(self):
         return self.sendMessage("ping", retries=1, queue=False)
@@ -244,7 +244,7 @@ class MessageHandler:
                 j.console.echo(msg, log=False)
 
         if self._client == None:  # if none means logserver is not available
-            if self.start + 60 < j.base.time.getTimeEpoch() or ignoreError == False:
+            if self.start + 60 < j.tools.time.getTimeEpoch() or ignoreError == False:
                 self.connect2localLogserver()  # every 60 sec retry to connect to logserver
                 if not self.ping():
                     self._client = None  # could still not connect

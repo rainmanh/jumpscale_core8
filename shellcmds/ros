@@ -1,6 +1,6 @@
 #!/usr/bin/env jspython
 from JumpScale import j
-from JumpScale.baselib import cmdutils
+from JumpScale.tools import cmdutils
 
 import sys,time
 
@@ -36,9 +36,9 @@ if opts.action =='deleteall':
     except:
         pass
 
-    path=j.system.fs.joinPaths(j.dirs.varDir,"db","ros")
+    path=j.sal.fs.joinPaths(j.dirs.varDir,"db","ros")
 
-    j.system.fs.removeDirTree(path)
+    j.sal.fs.removeDirTree(path)
 
     j.tools.startupmanager.restartProcess("jumpscale","ros")
     
@@ -90,8 +90,8 @@ if opts.action =='export':
     else:
         outputpath = opts.outputpath.strip()
 
-    if not j.system.fs.exists(outputpath):
-        j.system.fs.createDir(outputpath)
+    if not j.sal.fs.exists(outputpath):
+        j.sal.fs.createDir(outputpath)
 
     cl.export(namespace, category, outputpath)
 
@@ -105,15 +105,15 @@ if opts.action =='exportall':
     else:
         outputpath = opts.outputpath.strip()
 
-    if not j.system.fs.exists(outputpath):
-        j.system.fs.createDir(outputpath)
+    if not j.sal.fs.exists(outputpath):
+        j.sal.fs.createDir(outputpath)
 
     namespaces = cl.listNamespaces()
     for namespace in namespaces:
         categories = cl.listNamespaceCategories(namespace)
         for category in categories:
-            catpath = j.system.fs.joinPaths(outputpath, namespace, category)
-            j.system.fs.createDir(catpath)
+            catpath = j.sal.fs.joinPaths(outputpath, namespace, category)
+            j.sal.fs.createDir(catpath)
             try:
                 cl.export(namespace, category, catpath)
             except:
@@ -130,13 +130,13 @@ if opts.action =='importall':
     else:
         path = opts.path.strip()
 
-    namespaces = [j.system.fs.getBaseName(_dir) for _dir in j.system.fs.listDirsInDir(path)]
+    namespaces = [j.sal.fs.getBaseName(_dir) for _dir in j.sal.fs.listDirsInDir(path)]
     for namespace in namespaces:
         cl.createNamespace(namespace)
-        categories = [j.system.fs.getBaseName(_dir) for _dir in j.system.fs.listDirsInDir(j.system.fs.joinPaths(path, namespace))]
+        categories = [j.sal.fs.getBaseName(_dir) for _dir in j.sal.fs.listDirsInDir(j.sal.fs.joinPaths(path, namespace))]
         for category in categories:
             cl.createNamespaceCategory(namespace, category)
-            cl.importFromPath(namespace, category, j.system.fs.joinPaths(path, namespace, category))
+            cl.importFromPath(namespace, category, j.sal.fs.joinPaths(path, namespace, category))
 
 ############import
 if opts.action =='import':

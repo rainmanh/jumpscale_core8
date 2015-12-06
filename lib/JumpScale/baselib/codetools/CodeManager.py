@@ -75,10 +75,10 @@ class CodeManager():
         """
         self.rootpath=path
         files=[]
-        files.extend(j.system.fs.listFilesInDir(path,True,filter="*.py")) #@todo P1 this is not very nice, should be done in one go, also make sure we don't descend in .hg dirs
-        files.extend(j.system.fs.listFilesInDir(path,True,filter="*.txt"))
-        files.extend(j.system.fs.listFilesInDir(path,True,filter="*.md"))
-        files.extend(j.system.fs.listFilesInDir(path,True,filter="*.wiki"))
+        files.extend(j.sal.fs.listFilesInDir(path,True,filter="*.py")) #@todo P1 this is not very nice, should be done in one go, also make sure we don't descend in .hg dirs
+        files.extend(j.sal.fs.listFilesInDir(path,True,filter="*.txt"))
+        files.extend(j.sal.fs.listFilesInDir(path,True,filter="*.md"))
+        files.extend(j.sal.fs.listFilesInDir(path,True,filter="*.wiki"))
         for pathItem in files:
             if not self._pathIgnoreCheck(pathItem):
                 path2=pathItem.replace(path,"")
@@ -97,7 +97,7 @@ class CodeManagerFile():
         self.users=j.codetools.codemanager.users
         self.groups=j.codetools.codemanager.groups
         self.path=path
-        self.code=j.system.fs.fileGetContents(path)
+        self.code=j.sal.fs.fileGetContents(path)
         self.nrlines=len(self.code)
         self.codemanager=codemanager
 
@@ -372,8 +372,8 @@ class CodeManagerFile():
                 obj.model.goal=goal          
                 obj.model.id=id1
                 obj.model.company=company    
-                obj.model.deadline=int(j.base.time.HRDatetoEpoch(deadline.replace("-","/")))
-                obj.model.start=int(j.base.time.HRDatetoEpoch(start.replace("-","/")))
+                obj.model.deadline=int(j.tools.time.HRDatetoEpoch(deadline.replace("-","/")))
+                obj.model.start=int(j.tools.time.HRDatetoEpoch(start.replace("-","/")))
         
     def _strToArrayInt(self,items):
         if items=="":
@@ -429,8 +429,8 @@ class CodeManagerFile():
                 obj.model.goal=goal                         
                 obj.model.priority=int(priority)
                 obj.model.remarks=remarks
-                obj.model.releasedate_int=int(j.base.time.HRDatetoEpoch(releasedate_int.replace("-","/")))
-                obj.model.releasedate_pub=int(j.base.time.HRDatetoEpoch(releasedate_pub.replace("-","/")))
+                obj.model.releasedate_int=int(j.tools.time.HRDatetoEpoch(releasedate_int.replace("-","/")))
+                obj.model.releasedate_pub=int(j.tools.time.HRDatetoEpoch(releasedate_pub.replace("-","/")))
                 obj.model.featurerequests=self._strToArrayInt(featurerequests)
                 obj.model.bugs=self._strToArrayInt(bugs)
                 obj.model.company=company
@@ -516,7 +516,7 @@ class CodeManagerFile():
         return j.codetools.textToTitle(text,maxnrchars)
 
     def _getLinesAround(self,path,tofind,nrabove,nrbelow):
-        text=j.system.fs.fileGetContents(path)
+        text=j.sal.fs.fileGetContents(path)
         nr=0
         lines=text.split("\n")
         for line in lines:
@@ -537,7 +537,7 @@ class CodeManagerFile():
         line,id1=self.findId(line,fullPath)        
         if id1==0:
             #create unique id and put it in the file
-            id1=j.base.idgenerator.generateIncrID("%sid"%ttype,self.service) 
+            id1=j.tools.idgenerator.generateIncrID("%sid"%ttype,self.service) 
             #tfe=j.codetools.getTextFileEditor(fullPath)
             #tfe.addItemToFoundLineOnlyOnce(line," ((%s:%s))"%(ttype,id1),"\(id *: *\d* *\)",reset=True)
             tfe=j.codetools.getTextFileEditor(fullPath)

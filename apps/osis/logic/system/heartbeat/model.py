@@ -12,7 +12,7 @@ class heartbeat(OsisBaseObject):
         else:
             self.nid=j.application.whoAmI.nid
             self.gid=j.application.whoAmI.gid
-            self.lastcheck=j.base.time.getTimeEpoch()
+            self.lastcheck=j.tools.time.getTimeEpoch()
             self.getSetGuid()
 
     def getSetGuid(self):

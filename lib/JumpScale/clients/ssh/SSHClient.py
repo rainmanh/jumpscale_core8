@@ -10,10 +10,10 @@ class SSHClientFactory(object):
     def __init__(self):
         self.cache = {}
 
-    def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True):
+    def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True,allow_agent=True, look_for_keys=True):
         key = "%s_%s_%s" % (addr, port, login)
         if key not in self.cache:
-            self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent)
+            self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent,allow_agent=allow_agent,look_for_keys=look_for_keys)
         return self.cache[key]
 
     def close(self):
@@ -22,14 +22,19 @@ class SSHClientFactory(object):
 
 class SSHClient(object):
 
-    def __init__(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True):
+    def __init__(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True,allow_agent=True, look_for_keys=True):
         self.port = port
         self.addr = addr
         self.login = login
         self.passwd = passwd
         self.stdout = stdout
+        if passwd!=None:
+            self.forward_agent = False
+        else:
+            self.forward_agent = forward_agent
+        self.allow_agent=allow_agent
+        self.look_for_keys=look_for_keys
 
-        self.forward_agent = forward_agent
         # if self.forward_agent and not self._test_local_agent():
         #     raise RuntimeError("forward_agent is True but local ssh-agent is not reachable or no key is loaded")
 
@@ -59,7 +64,7 @@ class SSHClient(object):
         if self._client is None:
             self._client = paramiko.SSHClient()
             self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            self._client.connect(self.addr, self.port, username=self.login, password=self.passwd)
+            self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys)
         return self._client
 
     def reset(self):
@@ -70,10 +75,11 @@ class SSHClient(object):
         sftp = self.client.open_sftp()
         return sftp
 
-    def connectTest(self, cmd="ls /etc", timeout=2):
+    def connectTest(self, cmd="ls /etc", timeout=2,die=False):
         """
         will trying to connect over ssh & execute the specified command, timeout is in sec
-        error will be raised if not able to do
+        error will be raised if not able to do (unless if die set)\
+        return False if not ok
         """
 
         counter = 0
@@ -92,8 +98,11 @@ class SSHClient(object):
                 continue
 
         if rc > 0:
-            j.events.opserror_critical(
-                "Could not connect to ssh on localhost on port %s" % ssh_port)
+            if die:
+                j.events.opserror_critical("Could not connect to ssh on localhost on port %s" % ssh_port)
+            else:
+                return False
+        return True
 
     def execute(self, cmd, showout=True, die=True):
         """

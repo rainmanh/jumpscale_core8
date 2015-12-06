@@ -20,17 +20,17 @@ class CloudSystemFS:
         return src_fs.exists()
 
     def fileGetContents(self, url):
-        tempfile = j.system.fs.getTmpFilePath()
+        tempfile = j.sal.fs.getTmpFilePath()
         self.copyFile(url, 'file://' + tempfile)
-        content = j.system.fs.fileGetContents(tempfile)
-        j.system.fs.remove(tempfile)
+        content = j.sal.fs.fileGetContents(tempfile)
+        j.sal.fs.remove(tempfile)
         return content
 
     def writeFile(self, url, content):
-        tempfile = j.system.fs.getTmpFilePath()
-        j.system.fs.writeFile(tempfile, content)
+        tempfile = j.sal.fs.getTmpFilePath()
+        j.sal.fs.writeFile(tempfile, content)
         self.copyFile('file://' + tempfile, url)
-        j.system.fs.remove(tempfile)
+        j.sal.fs.remove(tempfile)
 
     """
     set of library actions which are used in cloud
@@ -261,12 +261,12 @@ class CloudSystemFS:
             destination = self._getDestinationHandler(destinationpath=destinationpath)
             CifsFS._connect(destination)
             directory = destination.mntpoint
-            if not j.system.fs.exists(directory):
-                j.system.fs.createDir(directory)
+            if not j.sal.fs.exists(directory):
+                j.sal.fs.createDir(directory)
             tmp_outputFileName = '%s/%s'%(directory,destination.filename)
             copy = False
         else:
-            tmp_outputFileName = j.system.fs.getTempFileName(tempdir)
+            tmp_outputFileName = j.sal.fs.getTempFileName(tempdir)
 
         j.logger.log("CloudSystemFS: exportVolume source [%s] to path [%s]" % (sourcepath, tmp_outputFileName))
 
@@ -280,7 +280,7 @@ class CloudSystemFS:
 
         if copy:
             self.copyFile(outputFileName,destinationpath,tempdir=tempdir)
-            j.system.fs.remove(tmp_outputFileName)
+            j.sal.fs.remove(tmp_outputFileName)
         else:
             destination.cleanup()
 
@@ -315,13 +315,13 @@ class CloudSystemFS:
             tmp_inputFileName = src_fs.download()
             j.logger.log("Source is a CIFS/SMB share, not running copyFile,using %s" %tmp_inputFileName)
         else:
-            tmp_inputFileName = j.system.fs.getTempFileName(tempdir)
+            tmp_inputFileName = j.sal.fs.getTempFileName(tempdir)
             self.copyFile(sourcepath, ''.join([prefix,tmp_inputFileName]),tempdir=tempdir)
 
         j.cmdtools.disktools.qemu_img.convert(tmp_inputFileName, format, destinationpath, 'raw', compressTargetImage=compressImage)
 
         if not protocol == "file" and not protocol == "smb" and not protocol == "cifs":
-            j.system.fs.remove(tmp_inputFileName)
+            j.sal.fs.remove(tmp_inputFileName)
         elif protocol == "smb" or protocol == "cifs":
             src_fs.cleanup()
 

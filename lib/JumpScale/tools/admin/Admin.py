@@ -41,24 +41,24 @@ class Admin():
 
         start=path
         self.startdir=path
-        while not j.system.fs.exists(path="%s/.git"%start):
+        while not j.sal.fs.exists(path="%s/.git"%start):
             start1up=start
-            start=j.system.fs.getParent(start)
+            start=j.sal.fs.getParent(start)
             if start.strip("/")=="":
-                j.events.inputerror_critical("Cannot find git root directory from %s"%j.system.fs.getcwd())
+                j.events.inputerror_critical("Cannot find git root directory from %s"%j.sal.fs.getcwd())
 
         self.root=start
-        self.name=j.system.fs.getDirName("%s/"%start1up,lastOnly=True)
+        self.name=j.sal.fs.getDirName("%s/"%start1up,lastOnly=True)
         
         self.git=j.clients.git.getClient(self.root)
         self.git.pull()
 
-        self.tmpdir=j.system.fs.getTmpDirPath()
+        self.tmpdir=j.sal.fs.getTmpDirPath()
 
         self.load()
 
     def load(self):
-        j.system.fs.copyDirTree("%s/jumpscripts"%self.root,"%s/jumpscripts"%self.tmpdir)
+        j.sal.fs.copyDirTree("%s/jumpscripts"%self.root,"%s/jumpscripts"%self.tmpdir)
 
         self.hrd=j.core.hrd.get(self.startdir,prefixWithName=True)
         self.hrd.applyOnDir(self.tmpdir)
@@ -199,7 +199,7 @@ class Admin():
         """
         sr=node.currentScriptRun
         jsname=jsname.lower()
-        now= j.base.time.getTimeEpoch()
+        now= j.tools.time.getTimeEpoch()
         do=True
         if once:
             for item in self.getScriptRunInfo():
@@ -245,30 +245,30 @@ class Admin():
         node=self.getNode(gridname,name)
         if name!="admin":
             path="/mnt/%s_%s_jsbox"%(node.gridname,node.name)
-            j.system.fs.createDir(path)
+            j.sal.fs.createDir(path)
             cmd="sshfs %s:/opt/jsbox /mnt/%s_%s_jsbox"%(node.ip,node.gridname,node.name)
             print(cmd)
-            j.system.process.executeWithoutPipe(cmd)
+            j.sal.process.executeWithoutPipe(cmd)
 
             path="/mnt/%s_%s_jsboxdata"%(node.gridname,node.name)
-            j.system.fs.createDir(path)
+            j.sal.fs.createDir(path)
             print(cmd)
             cmd="sshfs %s:/opt/jsbox_data /mnt/%s_%s_jsboxdata"%(node.ip,node.gridname,node.name)
-            j.system.process.executeWithoutPipe(cmd)
+            j.sal.process.executeWithoutPipe(cmd)
         else:
             path="/mnt/%s_%s_code"%(node.gridname,node.name)
-            j.system.fs.createDir(path)
+            j.sal.fs.createDir(path)
             cmd="sshfs %s:%s /mnt/%s_%s_code"%(node.ip,j.dirs.codeDir,node.gridname,node.name)
             print(cmd)
-            j.system.process.executeWithoutPipe(cmd)
+            j.sal.process.executeWithoutPipe(cmd)
             path="/mnt/%s_%s_jumpscale"%(node.gridname,node.name)
-            j.system.fs.createDir(path)
+            j.sal.fs.createDir(path)
             cmd="sshfs %s:/opt/jumpscale /mnt/%s_%s_jumpscale"%(node.ip,node.gridname,node.name)
             print(cmd)
-            j.system.process.executeWithoutPipe(cmd)
+            j.sal.process.executeWithoutPipe(cmd)
 
     def sshfsumount(self,gridname="",name=""):
-        rc,mount=j.system.process.execute("mount")
+        rc,mount=j.sal.process.execute("mount")
         
 
         def getMntPath(mntpath):
@@ -293,14 +293,14 @@ class Admin():
                 return None
                 
             cmd="umount %s"%(mntpath2)
-            rc,out=j.system.process.execute(cmd,False)
+            rc,out=j.sal.process.execute(cmd,False)
             if rc>0:
                 if out.find("device is busy")!=-1:
                     res=[]
                     print(("MOUNTPOINT %s IS BUSY WILL TRY TO FIND WHAT IS KEEPING IT BUSY"%mntpath))
                     cmd ="lsof -bn -u 0|grep '%s'"%mntpath  #only search for root processes
                     print(cmd)
-                    rc,out=j.system.process.execute(cmd,False)
+                    rc,out=j.sal.process.execute(cmd,False)
                     for line in out.split("\n"):
                         if line.find(mntpath)!=-1 and line.lower().find("avoiding")==-1 and line.lower().find("warning")==-1:
                             line=line.replace("  "," ")
@@ -326,12 +326,12 @@ class Admin():
 
     def createidentity(self):
         print("MAKE SURE YOU SELECT A GOOD PASSWD, select default destination!")
-        do=j.system.process.executeWithoutPipe
+        do=j.sal.process.executeWithoutPipe
         do("ssh-keygen -t dsa")
         keyloc="/root/.ssh/id_dsa.pub"
-        if not j.system.fs.exists(path=keyloc):
+        if not j.sal.fs.exists(path=keyloc):
             raise RuntimeError("cannot find path for key %s, was keygen well executed"%keyloc)
-        key=j.system.fs.fileGetContents(keyloc).strip()
+        key=j.sal.fs.fileGetContents(keyloc).strip()
         c=""
         login=j.console.askString("official loginname (e.g. despiegk)")
         c+="id.name=%s\n"%j.console.askString("fullname")
@@ -344,14 +344,14 @@ class Admin():
         idloc=self._getPath("identities/")
         if login=="":
             raise RuntimeError("login cannot be empty")
-        userloc=j.system.fs.joinPaths(idloc,login)
+        userloc=j.sal.fs.joinPaths(idloc,login)
         
-        j.system.fs.createDir(userloc)
-        hrdloc=j.system.fs.joinPaths(idloc,login,"id.hrd")
-        j.system.fs.writeFile(filename=hrdloc,contents=c)
+        j.sal.fs.createDir(userloc)
+        hrdloc=j.sal.fs.joinPaths(idloc,login,"id.hrd")
+        j.sal.fs.writeFile(filename=hrdloc,contents=c)
         for name in ["id_dsa","id_dsa.pub"]:
-            u = j.system.fs.joinPaths(self._basepath, 'identities','system',name)
-            j.system.fs.copyFile("/root/.ssh/%s"%name,u)
+            u = j.sal.fs.joinPaths(self._basepath, 'identities','system',name)
+            j.sal.fs.copyFile("/root/.ssh/%s"%name,u)
 
 
 
@@ -360,7 +360,7 @@ class Admin():
         gets hostnames from /etc/hosts
         """
         result={}
-        for line in j.system.fs.fileGetContents(hostfilePath).split("\n"):
+        for line in j.sal.fs.fileGetContents(hostfilePath).split("\n"):
             # print line
             line=line.strip()
             if line.find("########")==0:
@@ -443,11 +443,11 @@ ff02::2      ip6-allrouters
 
         out+="\n"
 
-        j.system.fs.writeFile(filename=hostfilePath,contents=out)
+        j.sal.fs.writeFile(filename=hostfilePath,contents=out)
 
 
     def getHostNamesKeys(self,gridNameSearch=""):
-        C=j.system.fs.fileGetContents("%s/admin/active.cfg"%j.dirs.cfgDir)
+        C=j.sal.fs.fileGetContents("%s/admin/active.cfg"%j.dirs.cfgDir)
 
         keys=[]
         gridname=""
@@ -501,17 +501,17 @@ ff02::2      ip6-allrouters
                 error+="#######################################################################\n\n"
 
 
-        j.system.fs.createDir("%s/admin"%j.dirs.varDir)
+        j.sal.fs.createDir("%s/admin"%j.dirs.varDir)
 
         if result!="":
             print("######################## RESULT ##################################")
             print(result)
-            j.system.fs.writeFile(filename="%s/admin/%s.result"%(j.dirs.varDir,sr.runid),contents=result)
+            j.sal.fs.writeFile(filename="%s/admin/%s.result"%(j.dirs.varDir,sr.runid),contents=result)
 
         if error!="":
             print("######################## ERROR ##################################")
             print(error)
-            j.system.fs.writeFile(filename="%s/admin/%s.error"%(j.dirs.varDir,sr.runid),contents=error)
+            j.sal.fs.writeFile(filename="%s/admin/%s.error"%(j.dirs.varDir,sr.runid),contents=error)
 
         if error!="":
             exitcode = 1

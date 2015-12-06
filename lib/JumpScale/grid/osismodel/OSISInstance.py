@@ -42,7 +42,7 @@ class OSISInstanceNoDB(object):
         Create new object from class & return
         """
         obj = self.modelclass()
-        obj.guid = j.base.idgenerator.generateGUID()
+        obj.guid = j.tools.idgenerator.generateGUID()
         return obj
 
 
@@ -104,7 +104,7 @@ class OSISInstance(OSISInstanceNoDB):
         """
         obj = self.modelclass()
         if guid == None:
-            obj.guid = j.base.idgenerator.generateGUID()
+            obj.guid = j.tools.idgenerator.generateGUID()
         else:
             obj.guid = guid
         if id != None:
@@ -122,7 +122,7 @@ class OSISInstance(OSISInstanceNoDB):
     def set(self, obj, index=False):
         data = self._getDict(obj)
         if 'guid' not in data or not data['guid']:
-            data['guid'] = j.base.idgenerator.generateGUID()
+            data['guid'] = j.tools.idgenerator.generateGUID()
         if 'id' not in data:
             data['id'] = data['_P_id']
         if self.exists(id=data['id']):
@@ -264,7 +264,7 @@ class OSISInstance(OSISInstanceNoDB):
 
     #     """
     #     result = []
-    #     if j.system.fs.exists(cfgpath):
+    #     if j.sal.fs.exists(cfgpath):
     #         ini = j.tools.inifile.open(cfgpath)
     #         for name in ini.getSections():
     #             if ini.checkParam(name, "create"):
@@ -298,7 +298,7 @@ class OSISInstance(OSISInstanceNoDB):
     #     """
     #     print "ini2object for cfgpath:%s and section:%s" % (cfgpath, section)
 
-    #     if j.system.fs.exists(cfgpath):
+    #     if j.sal.fs.exists(cfgpath):
     #         ini = j.tools.inifile.open(cfgpath)
     #     else:
     #         ini = j.tools.inifile.new(cfgpath)
@@ -421,7 +421,7 @@ class OSISInstance(OSISInstanceNoDB):
 
     #     if obj == None:
     #         obj = objnew
-    #         obj.guid = j.base.idgenerator.generateGUID()
+    #         obj.guid = j.tools.idgenerator.generateGUID()
     #         self.link(obj)
     #         self.set(obj)
     #         ini.setParam(section, "guid", obj.guid)
@@ -477,9 +477,9 @@ class OSISInstance(OSISInstanceNoDB):
             row = []
             for prop in self.listProps:
                 r = ob.__dict__["_P_%s" % prop]
-                if j.basetype.list.check(r):
+                if j.core.types.list.check(r):
                     r = ",".join(r)
-                if j.basetype.dictionary.check(r):
+                if j.core.types.dict.check(r):
                     for key in list(r.keys()):
                         r += "%s:%s," % (key, r[key])
                     r.rstrip(",")

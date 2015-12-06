@@ -23,8 +23,8 @@ class TEST(unittest.TestCase):
     def test_processmanager_restart(self):
         result = self.client.execute('jumpscale', 'echo', nid=j.application.whoAmI.nid, wait=True, **self.args)
         self.assertEqual(result, self.args['msg'])
-        j.system.platform.ubuntu.stopService('processmanager')
-        j.system.platform.ubuntu.startService('processmanager')
+        j.sal.ubuntu.stopService('processmanager')
+        j.sal.ubuntu.startService('processmanager')
         time.sleep(2)
 
         job = self.client.scheduleCmd(j.application.whoAmI.gid,j.application.whoAmI.nid, 'jumpscale', 'echo', args=self.args, queue="io", log=True, timeout=60, wait=True)

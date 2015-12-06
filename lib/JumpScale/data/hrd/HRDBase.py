@@ -78,7 +78,7 @@ class HRDBase():
             if lst=="":
                 return default
 
-        if j.basetype.list.check(lst):
+        if j.core.types.list.check(lst):
             return lst
         lst=str(lst)
         if j.core.types.string.check(lst):
@@ -89,7 +89,7 @@ class HRDBase():
 
     def getDict(self,key):
         ddict=self.get(key)
-        if j.basetype.dictionary.check(ddict):
+        if j.core.types.dict.check(ddict):
             for key,item in list(ddict.items()):
                 ddict[key]=j.tools.text.str2var(item)
             return ddict
@@ -192,7 +192,7 @@ class HRDBase():
                     checkval=str(ddict[key]).strip().strip(",")
                     if checkval=="":
                         ddict[key]={}
-                    elif j.basetype.dictionary.check(ddict[key]):
+                    elif j.core.types.dict.check(ddict[key]):
                         for key3,val3 in list(ddict[key].items()):
                             ddict[key][key3]=j.tools.text.machinetext2val(str(ddict[key][key3]))
                     else:
@@ -205,7 +205,7 @@ class HRDBase():
                     checkval=str(ddict[key]).strip().strip(",")
                     if checkval=="":
                         ddict[key]=[]
-                    elif j.basetype.list.check(ddict[key]):
+                    elif j.core.types.list.check(ddict[key]):
                         for val3 in ddict[key]:
                             val3=j.tools.text.machinetext2val(str(val3))
                     else:
@@ -253,12 +253,12 @@ class HRDBase():
         """
         j.data.hrd.log("hrd %s apply on dir:%s"%(self.name,path),category="apply")
 
-        items=j.system.fs.listFilesInDir( path, recursive=True, filter=filter, minmtime=minmtime, maxmtime=maxmtime, depth=depth)
+        items=j.sal.fs.listFilesInDir( path, recursive=True, filter=filter, minmtime=minmtime, maxmtime=maxmtime, depth=depth)
         for item in items:
             if changeFileName:
                 item2=self._replaceVarsInText(item,additionalArgs=additionalArgs)
                 if item2!=item:
-                     j.system.fs.renameFile(item,item2)
+                     j.sal.fs.renameFile(item,item2)
 
             if changeContent:
                 self.applyOnFile(item2,additionalArgs=additionalArgs)
@@ -269,9 +269,9 @@ class HRDBase():
         """
 
         j.data.hrd.log("hrd:%s apply on file:%s"%(self.path,path),category="apply")
-        content=j.system.fs.fileGetContents(path)
+        content=j.sal.fs.fileGetContents(path)
         content=self._replaceVarsInText(content,additionalArgs=additionalArgs)
-        j.system.fs.writeFile(path,content)
+        j.sal.fs.writeFile(path,content)
 
     def applyOnContent(self,content,additionalArgs={}):
         """

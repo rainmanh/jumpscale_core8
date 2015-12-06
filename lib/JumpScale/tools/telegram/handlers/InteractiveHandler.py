@@ -288,8 +288,8 @@ class InteractiveHandler:
         if lasthash!=self.lastactionshash:
             print("load actions")
             self.actions={}
-            for path in j.system.fs.listFilesInDir("actions",recursive=True,filter="*.py"):
-                name=j.system.fs.getBaseName(path)[:-3]
+            for path in j.sal.fs.listFilesInDir("actions",recursive=True,filter="*.py"):
+                name=j.sal.fs.getBaseName(path)[:-3]
                 if name[0]!="_":
                     mod = imp.load_source(name, path)
                     self.actions[name]=mod

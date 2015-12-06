@@ -76,7 +76,7 @@ def lock(lockname, locktimeout=60, reentry=False):
 def lock_(lockname, locktimeout=60, reentry=False):
     '''Take a system-wide interprocess exclusive lock.
 
-    Works similar to j.system.fs.lock but uses return values to denote lock
+    Works similar to j.sal.fs.lock but uses return values to denote lock
     success instead of raising fatal errors.
 
     This refactoring was mainly done to make the lock implementation easier
@@ -89,10 +89,10 @@ def lock_(lockname, locktimeout=60, reentry=False):
         _LOCKDICTIONARY[lockname] = _LOCKDICTIONARY.setdefault(lockname, 0) + 1
 
     if not islocked(lockname, reentry=reentry):
-        if not j.system.fs.exists(LOCKPATH):
-            j.system.fs.createDir(LOCKPATH)
+        if not j.sal.fs.exists(LOCKPATH):
+            j.sal.fs.createDir(LOCKPATH)
 
-        j.system.fs.writeFile(lockfile, str(os.getpid()))
+        j.sal.fs.writeFile(lockfile, str(os.getpid()))
         return True
     else:
         locked = False
@@ -116,7 +116,7 @@ def islocked(lockname, reentry=False):
 
     try:
         # read the pid from the lockfile
-        if j.system.fs.exists(lockfile):
+        if j.sal.fs.exists(lockfile):
             pid = open(lockfile,'rb').read()
         else:
             return False
@@ -132,9 +132,9 @@ def islocked(lockname, reentry=False):
             pid = int(pid)
             if reentry and pid == os.getpid():
                 return False
-        if j.system.fs.exists(lockfile) and (not pid or not j.system.process.isPidAlive(pid)):
+        if j.sal.fs.exists(lockfile) and (not pid or not j.sal.process.isPidAlive(pid)):
             #cleanup system, pid not active, remove the lockfile
-            j.system.fs.remove(lockfile)
+            j.sal.fs.remove(lockfile)
             isLocked = False
     return isLocked
 
@@ -149,7 +149,7 @@ def unlock(lockname):
 def unlock_(lockname):
     '''Unlock system-wide interprocess lock
 
-    Works similar to j.system.fs.unlock but uses return values to denote unlock
+    Works similar to j.sal.fs.unlock but uses return values to denote unlock
     success instead of raising fatal errors.
 
     This refactoring was mainly done to make the lock implementation easier
@@ -163,7 +163,7 @@ def unlock_(lockname):
             return
 
     # read the pid from the lockfile
-    if j.system.fs.exists(lockfile):
+    if j.sal.fs.exists(lockfile):
         try:
             pid = open(lockfile,'rb').read()
         except:
@@ -172,7 +172,7 @@ def unlock_(lockname):
             j.errorconditionhandler.raiseWarning("Lock %r not owned by this process" %lockname)
             return
 
-        j.system.fs.remove(lockfile)
+        j.sal.fs.remove(lockfile)
     # else:
     #     j.console.echo("Lock %r not found"%lockname)
 
@@ -239,7 +239,7 @@ class SystemFS(SALObject):
         
         if ((fileFrom is None) or (to is None)):
             raise TypeError("No parameters given to system.fs.copyFile from %s, to %s" % (fileFrom, to))
-        if j.system.fs.isFile(fileFrom):
+        if j.sal.fs.isFile(fileFrom):
             # Create target folder first, otherwise copy fails
             target_folder = os.path.dirname(to)
             if createDirIfNeeded:
@@ -273,7 +273,7 @@ class SystemFS(SALObject):
         self.log('Move file from %s to %s'% (source, destin),6)
         if ((source is None) or (destin is None)):
             raise TypeError("Not enough parameters given to system.fs.moveFile: move from %s, to %s" % (source, destin))
-        if not j.system.fs.isFile(source):
+        if not j.sal.fs.isFile(source):
             raise RuntimeError("The specified source path in system.fs.moveFile does not exist or is no file: %s" % source)
         try:
             self.move(source, destin)
@@ -347,7 +347,7 @@ class SystemFS(SALObject):
             self.log('Directory trying to create: [%s] already exists' % toStr(newdir), 8)
         else:
             head, tail = os.path.split(newdir)
-            if head and not j.system.fs.isDir(head):
+            if head and not j.sal.fs.isDir(head):
                 self.createDir(head)
             if tail:
                 try:
@@ -375,10 +375,10 @@ class SystemFS(SALObject):
         self.log('Copy directory tree from %s to %s'% (src, dst),6)
         if ((src is None) or (dst is None)):
             raise TypeError('Not enough parameters passed in system.fs.copyDirTree to copy directory from %s to %s '% (src, dst))
-        if j.system.fs.isDir(src):
+        if j.sal.fs.isDir(src):
             names = os.listdir(src)
  
-            if not j.system.fs.exists(dst):
+            if not j.sal.fs.exists(dst):
                 self.createDir(dst,skipProtectedDirs=skipProtectedDirs)
 
             errors = []
@@ -389,20 +389,20 @@ class SystemFS(SALObject):
                 else:
                     name2=name
 
-                srcname = j.system.fs.joinPaths(src, name)
-                dstname = j.system.fs.joinPaths(dst, name2)
+                srcname = j.sal.fs.joinPaths(src, name)
+                dstname = j.sal.fs.joinPaths(dst, name2)
                 if eraseDestination and self.exists( dstname ):
                     if self.isDir( dstname , False ) :
                         self.removeDirTree( dstname )
                     if self.isLink(dstname):
                         self.unlink( dstname )
 
-                if keepsymlinks and j.system.fs.isLink(srcname):
-                    linkto = j.system.fs.readlink(srcname)
-                    j.system.fs.symlink(linkto, dstname, overwriteFiles)
-                elif j.system.fs.isDir(srcname):
+                if keepsymlinks and j.sal.fs.isLink(srcname):
+                    linkto = j.sal.fs.readlink(srcname)
+                    j.sal.fs.symlink(linkto, dstname, overwriteFiles)
+                elif j.sal.fs.isDir(srcname):
                     #print "1:%s %s"%(srcname,dstname)
-                    j.system.fs.copyDirTree(srcname, dstname, keepsymlinks, eraseDestination,skipProtectedDirs=skipProtectedDirs,overwriteFiles=overwriteFiles,applyHrdOnDestPaths=applyHrdOnDestPaths )
+                    j.sal.fs.copyDirTree(srcname, dstname, keepsymlinks, eraseDestination,skipProtectedDirs=skipProtectedDirs,overwriteFiles=overwriteFiles,applyHrdOnDestPaths=applyHrdOnDestPaths )
                 else:
                     #print "2:%s %s"%(srcname,dstname)
                     self.copyFile(srcname, dstname ,createDirIfNeeded=False,skipProtectedDirs=skipProtectedDirs,overwriteFile=overwriteFiles)
@@ -420,7 +420,7 @@ class SystemFS(SALObject):
             self.remove(path)
         if path is None:
             raise ValueError('Path is None in system.fs.removeDir')
-        if(j.system.fs.exists(path)):
+        if(j.sal.fs.exists(path)):
             if(self.isDir(path)):
                 if onlyLogWarningOnRemoveError:
                     def errorHandler(shutilFunc, shutilPath, shutilExc_info):
@@ -442,8 +442,8 @@ class SystemFS(SALObject):
         self.log('Removing the directory with path: %s'%path,6)
         if path is None:
             raise TypeError('Path is None in system.fs.removeDir')
-        if(j.system.fs.exists(path)):
-            if(j.system.fs.isDir(path)):
+        if(j.sal.fs.exists(path)):
+            if(j.sal.fs.isDir(path)):
                 os.rmdir(path)
                 self.log('Directory with path: %s is successfully removed'%path)
             else:
@@ -458,8 +458,8 @@ class SystemFS(SALObject):
         self.log('Changing directory to: %s'%path,6)
         if path is None:
             raise TypeError('Path is not given in system.fs.changeDir')
-        if(j.system.fs.exists(path)):
-            if(j.system.fs.isDir(path)):
+        if(j.sal.fs.exists(path)):
+            if(j.sal.fs.isDir(path)):
                 os.chdir(path)
                 newcurrentPath = os.getcwd()
                 self.log('Directory successfully changed to %s'%path)
@@ -477,8 +477,8 @@ class SystemFS(SALObject):
         self.log('Moving directory from %s to %s'% (source, destin),6)
         if ((source is None) or (destin is None)):
             raise TypeError('Not enough passed parameters to moveDirectory from %s to %s in system.fs.moveDir '% (source, destin))
-        if(j.system.fs.isDir(source)):
-            j.system.fs.move(source, destin)
+        if(j.sal.fs.isDir(source)):
+            j.sal.fs.move(source, destin)
             self.log('Directory is successfully moved from %s to %s'% (source, destin))
         else:
             raise RuntimeError("Specified Source path: %s does not exist in system.fs.moveDir"% source)
@@ -627,7 +627,7 @@ class SystemFS(SALObject):
         """
         path=self.pathDirClean(path)
         if len(path.split(os.sep))>2:
-            return j.system.fs.getDirName(path,lastOnly=True,levelsUp=1) #go 1 level up to find name of parent
+            return j.sal.fs.getDirName(path,lastOnly=True,levelsUp=1) #go 1 level up to find name of parent
         else:
             return ""
 
@@ -734,7 +734,7 @@ class SystemFS(SALObject):
         if basedir specified that part of path will be removed
 
         example:
-        j.system.fs.parsePath("/opt/qbase3/apps/specs/myspecs/definitions/cloud/datacenter.txt","/opt/qbase3/apps/specs/myspecs/",existCheck=False)
+        j.sal.fs.parsePath("/opt/qbase3/apps/specs/myspecs/definitions/cloud/datacenter.txt","/opt/qbase3/apps/specs/myspecs/",existCheck=False)
         @param path is existing path to a file
         @param baseDir, is the absolute part of the path not required
         @return list of dirpath,filename,extension,priority
@@ -765,7 +765,7 @@ class SystemFS(SALObject):
             path=self.pathRemoveDirPart(path,baseDir)
 
         if name=="":
-            dirOrFilename=j.system.fs.getDirName(path,lastOnly=True)
+            dirOrFilename=j.sal.fs.getDirName(path,lastOnly=True)
         else:
             dirOrFilename=name
         #check for priority
@@ -815,9 +815,9 @@ class SystemFS(SALObject):
         if not self.exists(path):
             return
         items=self._listAllInDir(path=path, recursive=True, followSymlinks=False,listSymlinks=True)
-        items=[item for item in items[0] if j.system.fs.isLink(item)]
+        items=[item for item in items[0] if j.sal.fs.isLink(item)]
         for item in items:
-            j.system.fs.unlink(item)        
+            j.sal.fs.unlink(item)        
 
     def _listInDir(self, path,followSymlinks=True):
         """returns array with dirs & files in directory
@@ -825,8 +825,8 @@ class SystemFS(SALObject):
         """
         if path is None:
             raise TypeError('Path is not passed in system.fs.listDir')
-        if(j.system.fs.exists(path)):
-            if(j.system.fs.isDir(path)) or (followSymlinks and self.checkDirOrLink(path)):
+        if(j.sal.fs.exists(path)):
+            if(j.sal.fs.isDir(path)) or (followSymlinks and self.checkDirOrLink(path)):
                 names = os.listdir(path)
                 return names
             else:
@@ -1006,9 +1006,9 @@ class SystemFS(SALObject):
         self.log('List directories in directory with path: %s, recursive = %s' % (path, str(recursive)),9)
 
         #if recursive:
-            #if not j.system.fs.exists(path):
+            #if not j.sal.fs.exists(path):
                 #raise ValueError('Specified path: %s does not exist' % path)
-            #if not j.system.fs.isDir(path):
+            #if not j.sal.fs.isDir(path):
                 #raise ValueError('Specified path: %s is not a directory' % path)
             #result = []
             #os.path.walk(path, lambda a, d, f: a.append('%s%s' % (d, os.path.sep)), result)
@@ -1033,7 +1033,7 @@ class SystemFS(SALObject):
         @rtype: list
         """
         result = []
-        for file in j.system.fs.listFilesInDir(path,recursive=recursive, filter=filter):
+        for file in j.sal.fs.listFilesInDir(path,recursive=recursive, filter=filter):
             if file.endswith(".py"):
                 filename = file.split(os.sep)[-1]
                 scriptname = filename.rsplit(".", 1)[0]
@@ -1045,7 +1045,7 @@ class SystemFS(SALObject):
         @param source: string (If the specified source is a File....Calls moveFile function)
         (If the specified source is a Directory....Calls moveDir function)
         """
-        if not j.system.fs.exists(source):
+        if not j.sal.fs.exists(source):
             raise IOError('%s does not exist'%source)
         shutil.move(source, destin)
 
@@ -1089,9 +1089,9 @@ class SystemFS(SALObject):
             else:
                 self.remove(target)
 
-        dir = j.system.fs.getDirName(target)
-        if not j.system.fs.exists(dir):
-            j.system.fs.createDir(dir)
+        dir = j.sal.fs.getDirName(target)
+        if not j.sal.fs.exists(dir):
+            j.sal.fs.createDir(dir)
 
         if j.system.platformtype.isUnix():
             self.log(  "Creating link from %s to %s" %( path, target) )
@@ -1100,7 +1100,7 @@ class SystemFS(SALObject):
             path=path.replace("+",":")
             cmd="junction \"%s\" \"%s\"" % (self.pathNormalize(target).replace("\\","/"),self.pathNormalize(path).replace("\\","/"))
             print(cmd)
-            j.system.process.execute(cmd)
+            j.sal.process.execute(cmd)
 
     def hardlinkFile(self, source, destin):
         """Create a hard link pointing to source named destin. Availability: Unix.
@@ -1205,7 +1205,7 @@ class SystemFS(SALObject):
         if checkJunction and j.system.platformtype.isWindows():
             cmd="junction %s" % path
             try:
-                result=j.system.process.execute(cmd)
+                result=j.sal.process.execute(cmd)
             except Exception as e:
                 raise RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s."%cmd)
             if result[0]!=0:
@@ -1342,11 +1342,11 @@ class SystemFS(SALObject):
         """
         can be single path or multiple (then list)
         """
-        if  j.basetype.list.check(paths):
+        if  j.core.types.list.check(paths):
             for item in paths:
                 self.touch(item,overwrite=overwrite)
         path=paths
-        self.createDir(j.system.fs.getDirName(path))
+        self.createDir(j.sal.fs.getDirName(path))
         if overwrite:
             self.remove(path)
         if not self.exists(path=path):
@@ -1397,7 +1397,7 @@ class SystemFS(SALObject):
             pcl = pickle.dumps(obj)
         except Exception as e:
             raise Exception("Could not create pickle from the object \nError: %s" %(str(e)))
-        j.system.fs.writeFile(filelocation,pcl)
+        j.sal.fs.writeFile(filelocation,pcl)
         if not self.exists(filelocation):
             raise Exception("File isn't written to the filesystem")
 
@@ -1410,7 +1410,7 @@ class SystemFS(SALObject):
         if not filelocation:
             raise ValueError("You should provide a filelocation as a parameter")
         self.log("Opening file %s for reading" % filelocation,6)
-        contents = j.system.fs.fileGetContents(filelocation)
+        contents = j.sal.fs.fileGetContents(filelocation)
         self.log("creating object",9)
         try:
             obj = pickle.loads(contents)
@@ -1472,9 +1472,9 @@ class SystemFS(SALObject):
         * and ./folder1/subfolder/subsubfolder/small_test/test.rtt
 
         To find the first test you can use
-           j.system.fs.walkExtended('/tmp/', dirPattern="*tmp*", filePattern="*.rtt")
+           j.sal.fs.walkExtended('/tmp/', dirPattern="*tmp*", filePattern="*.rtt")
         To find only the second one you could use
-           j.system.fs.walkExtended('tmp', recurse=0, dirPattern="*small_test*", filePattern="*.rtt", dirs=False)
+           j.sal.fs.walkExtended('tmp', recurse=0, dirPattern="*small_test*", filePattern="*.rtt", dirs=False)
         """
         self.log('Scanning directory (walk) %s'%root,6)
         result = []
@@ -1516,7 +1516,7 @@ class SystemFS(SALObject):
 
         return result
 
-    #WalkExtended = deprecated('j.system.fs.WalkExtended','j.system.fs.walkExtended', '3.2')(walkExtended)
+    #WalkExtended = deprecated('j.sal.fs.WalkExtended','j.sal.fs.walkExtended', '3.2')(walkExtended)
 
     def walk(self, root, recurse=0, pattern='*', return_folders=0, return_files=1, followSoftlinks=True, str=False, depth=None):
         """This is to provide ScanDir similar function
@@ -1564,7 +1564,7 @@ class SystemFS(SALObject):
                     result = result + self.walk( fullname, recurse, pattern, return_folders, return_files, followSoftlinks, depth=depth)
         return result
 
-    #Walk = deprecated('j.system.fs.Walk', 'j.system.fs.walk', '3.2')(walk)
+    #Walk = deprecated('j.sal.fs.Walk', 'j.sal.fs.walk', '3.2')(walk)
 
     def convertFileDirnamesUnicodeToAscii(self,rootdir,spacesToUnderscore=False):
         os.path.supports_unicode_filenames=True
@@ -1579,17 +1579,17 @@ class SystemFS(SALObject):
                         dirname=dirname.replace(" ","_")
                         name2=name2.replace(" ","_")
                     if os.path.isdir(source):
-                        j.system.fs.renameDir(source,j.system.fs.joinPaths(dirname,name2))
+                        j.sal.fs.renameDir(source,j.sal.fs.joinPaths(dirname,name2))
                     if os.path.isfile(source):
                         #  #print "renamefile"
-                        j.system.fs.renameFile(source,j.system.fs.joinPaths(dirname,name2))
+                        j.sal.fs.renameFile(source,j.sal.fs.joinPaths(dirname,name2))
             if dirname2!=dirname:
                 #dirname not unicode
                 ##print "dirname not unicode"
                 if spacesToUnderscore:
                     dirname2=dirname2.replace(" ","_")
-                if j.system.fs.isDir(dirname):
-                    j.system.fs.renameDir(dirname,dirname2)
+                if j.sal.fs.isDir(dirname):
+                    j.sal.fs.renameDir(dirname,dirname2)
         arg={}
         os.path.walk(rootdir, visit,arg)
 
@@ -1598,8 +1598,8 @@ class SystemFS(SALObject):
             if dirname.find(" ")!=-1:
                 #dirname has space inside
                 dirname2=dirname.replace(" ","_")
-                if j.system.fs.isDir(dirname):
-                    j.system.fs.renameDir(dirname,dirname2)
+                if j.sal.fs.isDir(dirname):
+                    j.sal.fs.renameDir(dirname,dirname2)
         arg={}
         os.path.walk(rootdir, visit,arg)
 
@@ -1607,8 +1607,8 @@ class SystemFS(SALObject):
         """
         create a tmp dir name and makes sure the dir exists
         """
-        tmpdir=j.system.fs.joinPaths(j.dirs.tmpDir, str(j.base.idgenerator.generateRandomInt(1,100000000)))
-        j.system.fs.createDir(tmpdir)
+        tmpdir=j.sal.fs.joinPaths(j.dirs.tmpDir, str(j.tools.idgenerator.generateRandomInt(1,100000000)))
+        j.sal.fs.createDir(tmpdir)
         return tmpdir
 
 
@@ -1637,7 +1637,7 @@ class SystemFS(SALObject):
         @rtype: string representing the generated temp file path
         """
         if dir==None:
-            return j.system.fs.joinPaths(j.dirs.tmpDir,prefix+str(j.base.idgenerator.generateRandomInt(0,1000000000000))+".tmp")
+            return j.sal.fs.joinPaths(j.dirs.tmpDir,prefix+str(j.tools.idgenerator.generateRandomInt(0,1000000000000))+".tmp")
         else:
             dir = dir or j.dirs.tmpDir
             return tempfile.mktemp('', prefix, dir)
@@ -1788,7 +1788,7 @@ class SystemFS(SALObject):
         @type file: string
         '''
         self.log("fileConvertLineEndingCRLF "+file, 8)
-        content=j.system.fs.fileGetContents(file)
+        content=j.sal.fs.fileGetContents(file)
         lines=content.split("\n")
         out=""
         for line in lines:
@@ -1805,7 +1805,7 @@ class SystemFS(SALObject):
         @param fileregex: The regex pattern to match
         @type fileregex: string
         """
-        pwd = j.system.fs.getcwd()
+        pwd = j.sal.fs.getcwd()
         try:
             self.changeDir(startDir)
             import glob
@@ -1880,12 +1880,12 @@ class SystemFS(SALObject):
         import os.path
         import tarfile
 
-        if not j.system.fs.isDir(sourcepath):
+        if not j.sal.fs.isDir(sourcepath):
             raise RuntimeError("Cannot find file (exists but is not a file or dir) %s" % sourcepath)
 
         self.log("Compressing directory %s to %s"%(sourcepath, destinationpath))
-        if not j.system.fs.exists(j.system.fs.getDirName(destinationpath)):
-            j.system.fs.createDir(j.system.fs.getDirName(destinationpath))
+        if not j.sal.fs.exists(j.sal.fs.getDirName(destinationpath)):
+            j.sal.fs.createDir(j.sal.fs.getDirName(destinationpath))
         t = tarfile.open(name = destinationpath, mode = 'w:gz')
         if not(followlinks!=False or destInTar!="" or pathRegexIncludes!=['.*'] or pathRegexExcludes!=[] \
                or contentRegexIncludes!=[] or contentRegexExcludes!=[] or depths!=[]):
@@ -1894,9 +1894,9 @@ class SystemFS(SALObject):
             def addToTar(params,path):
                 tarfile=params["t"]
                 destInTar=params["destintar"]
-                destpath=j.system.fs.joinPaths(destInTar,j.system.fs.pathRemoveDirPart(path, sourcepath))
-                if j.system.fs.isLink(path) and followlinks:
-                    path=j.system.fs.readlink(path)
+                destpath=j.sal.fs.joinPaths(destInTar,j.sal.fs.pathRemoveDirPart(path, sourcepath))
+                if j.sal.fs.isLink(path) and followlinks:
+                    path=j.sal.fs.readlink(path)
                 self.log("fs.tar: add file %s to tar" % path,7)
                 # print "fstar: add file %s to tar" % path
                 if not (j.system.platformtype.isWindows() and j.system.windows.checkFileToIgnore(path)):
@@ -1916,7 +1916,7 @@ class SystemFS(SALObject):
                 for extrafile in extrafiles:
                     source=extrafile[0]
                     destpath=extrafile[1]
-                    t.add(source,j.system.fs.joinPaths(destInTar,destpath))
+                    t.add(source,j.sal.fs.joinPaths(destInTar,destpath))
         t.close()
 
 
@@ -1944,12 +1944,12 @@ class SystemFS(SALObject):
         @param destinationpath: path of to destiniation dir, sourcefile will end up uncompressed in destination dir
         """
         if removeDestinationdir:
-            j.system.fs.removeDirTree(destinationdir)
-        if not j.system.fs.exists(destinationdir):
-            j.system.fs.createDir(destinationdir)
+            j.sal.fs.removeDirTree(destinationdir)
+        if not j.sal.fs.exists(destinationdir):
+            j.sal.fs.createDir(destinationdir)
         import tarfile
-        if not j.system.fs.exists(destinationdir):
-            j.system.fs.createDir(destinationdir)
+        if not j.sal.fs.exists(destinationdir):
+            j.sal.fs.createDir(destinationdir)
 
         # The tar of python does not create empty directories.. this causes manny problem while installing so we choose to use the linux tar here
         if  j.system.platformtype.isWindows():
@@ -1959,4 +1959,4 @@ class SystemFS(SALObject):
             #todo find better alternative for windows
         else:
             cmd = "tar xzf '%s' -C '%s'" % (sourceFile, destinationdir)
-            j.system.process.execute(cmd)
+            j.sal.process.execute(cmd)

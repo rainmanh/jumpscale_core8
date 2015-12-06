@@ -97,7 +97,7 @@ class PostgresClient():
 
     def dump(self,path,tablesIgnore=[]):
         args=copy.copy(self.__dict__)
-        j.system.fs.createDir(path)
+        j.sal.fs.createDir(path)
         base,session=self.initsqlalchemy()
 
         args["path"]="%s/_schema.sql"%(path)
@@ -117,7 +117,7 @@ class PostgresClient():
             j.do.execute(cmd,outputStdout=False)
 
     def restore(self,path,tables=[],schema=True):
-        if not j.system.fs.exists(path=path):
+        if not j.sal.fs.exists(path=path):
             j.events.inputerror_critical("cannot find path %s to import from."%path)
         args=copy.copy(self.__dict__)
         if schema:
@@ -126,8 +126,8 @@ class PostgresClient():
             cmd="cd /opt/postgresql/bin;./psql -U %(login)s -h %(ipaddr)s -p %(port)s -d %(dbname)s < %(base)s/_schema.sql"%(args)
             j.do.execute(cmd,outputStdout=False)
 
-        for item in j.system.fs.listFilesInDir(path, recursive=False, filter="*.sql",followSymlinks=True, listSymlinks=True):
-            name=j.system.fs.getBaseName(item).replace(".sql","")
+        for item in j.sal.fs.listFilesInDir(path, recursive=False, filter="*.sql",followSymlinks=True, listSymlinks=True):
+            name=j.sal.fs.getBaseName(item).replace(".sql","")
             if name.find("_")==0:
                 continue
             if name in tables or tables==[]:
@@ -143,14 +143,14 @@ class PostgresClient():
         @param fieldRewriteRules is dict, with key the table & value is a function which converts the name of the field (when key=* then for all tables)
 
         """
-        j.system.fs.createDir(path)
+        j.sal.fs.createDir(path)
         base,session=self.initsqlalchemy()
         for name,obj in list(base.classes.items()):
             out=""  
             if name in tablesIgnore:
                 continue
             print("process table:%s"%name)
-            j.system.fs.createDir("%s/%s"%(path,name))          
+            j.sal.fs.createDir("%s/%s"%(path,name))          
             for record in session.query(obj):                
                 r=record.__dict__    
                 idfound=None            

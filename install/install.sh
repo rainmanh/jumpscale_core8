@@ -1,3 +1,5 @@
+rm -rf /opt/jumpscale7
+
 set -ex
 #known env variables
 
@@ -52,6 +54,7 @@ elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
     echo "CODE NOT COMPLETE FOR WINDOWS IN install.sh"
     exit
 fi
+
 
 set -ex
 branch=${JSBRANCH-master}

@@ -13,8 +13,8 @@ class ServiceState():
         if self.service.path == "" or self.service.path is None:
             raise RuntimeError("path cannot be empty")
 
-        self.path = j.system.fs.joinPaths(self.service.path, "state.hrd")
-        if not j.system.fs.exists(self.path):
+        self.path = j.sal.fs.joinPaths(self.service.path, "state.hrd")
+        if not j.sal.fs.exists(self.path):
             self.hrd = j.core.hrd.get(self.path)
             items = ["action_mgmt", "action_node", "action_tmpl"]
             for item in items:
@@ -40,12 +40,12 @@ class ServiceState():
         (self._checkTemplateHRDChangeState() or self._checkInstanceHRDChangeState())
 
     def _checkTemplateHRDChangeState(self):
-        if j.tools.hash.md5(j.system.fs.joinPaths(self.service.path, 'template.hrd')) != self.hrd.get("hash.template.hrd"):
+        if j.tools.hash.md5(j.sal.fs.joinPaths(self.service.path, 'template.hrd')) != self.hrd.get("hash.template.hrd"):
             return True
         return False
 
     def _checkInstanceHRDChangeState(self):
-        if j.tools.hash.md5(j.system.fs.joinPaths(self.service.path, 'instance.hrd')) != self.hrd.get("hash.instance.hrd"):
+        if j.tools.hash.md5(j.sal.fs.joinPaths(self.service.path, 'instance.hrd')) != self.hrd.get("hash.instance.hrd"):
             return True
         return False
 
@@ -53,8 +53,8 @@ class ServiceState():
         items = ["action_mgmt", "action_node", "action_tmpl"]
         for item in items:
             source = "%s/%s.py" % (self.service.path, item)
-            if j.system.fs.exists(source):
-                if j.tools.hash.md5(j.system.fs.joinPaths(self.service.path, '%s.py' % item)) != self.hrd.get("hash.%s.py" % item):
+            if j.sal.fs.exists(source):
+                if j.tools.hash.md5(j.sal.fs.joinPaths(self.service.path, '%s.py' % item)) != self.hrd.get("hash.%s.py" % item):
                     return True
         return False
 
@@ -76,10 +76,10 @@ class ServiceState():
         items = ["action_mgmt", "action_node", "action_tmpl"]
         for item in items:
             action_path = "%s.py" % item
-            if j.system.fs.exists(path=action_path):
-                self.hrd.set("hash.%s.py" % item, j.tools.hash.md5(j.system.fs.joinPaths(self.service.path, action_path)))
-        self.hrd.set("hash.template.hrd", j.tools.hash.md5(j.system.fs.joinPaths(self.service.path, 'template.hrd')))
-        self.hrd.set("hash.instance.hrd", j.tools.hash.md5(j.system.fs.joinPaths(self.service.path, 'instance.hrd')))
+            if j.sal.fs.exists(path=action_path):
+                self.hrd.set("hash.%s.py" % item, j.tools.hash.md5(j.sal.fs.joinPaths(self.service.path, action_path)))
+        self.hrd.set("hash.template.hrd", j.tools.hash.md5(j.sal.fs.joinPaths(self.service.path, 'template.hrd')))
+        self.hrd.set("hash.instance.hrd", j.tools.hash.md5(j.sal.fs.joinPaths(self.service.path, 'instance.hrd')))
 
     def commitHRDChange(self, oldHRD, newHRD):
         change = []

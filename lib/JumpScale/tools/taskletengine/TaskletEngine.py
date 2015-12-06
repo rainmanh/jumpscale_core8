@@ -39,7 +39,7 @@ class Tasklet:
         self.groupname = ""
 
     def checkExecute(self, j, params, service, tags):
-        if j.basetype.dictionary.check(params):
+        if j.core.types.dict.check(params):
             params = j.core.params.get(params)
         else:
             if not j.core.params.isParams(params):
@@ -83,11 +83,11 @@ class TaskletEngineGroup():
             self.addTasklets(path)
 
     def addTasklets(self, path):
-        taskletdirs = j.system.fs.listDirsInDir(path, False, True)
+        taskletdirs = j.sal.fs.listDirsInDir(path, False, True)
         nr=0
         for taskletgroupname in taskletdirs:
             # print "####%s######"%taskletgroupname
-            self.taskletEngines[taskletgroupname.lower().strip()] = TaskletEngine(j.system.fs.joinPaths(path, taskletgroupname))
+            self.taskletEngines[taskletgroupname.lower().strip()] = TaskletEngine(j.sal.fs.joinPaths(path, taskletgroupname))
 
     def hasGroup(self, name):
         """
@@ -136,17 +136,17 @@ class TaskletEngine():
 
         for prio, name, path2 in items:
             if name != "":
-                path2 = j.system.fs.joinPaths(path, "%s_%s" % (prio, name))
+                path2 = j.sal.fs.joinPaths(path, "%s_%s" % (prio, name))
             self._loadTaskletsFromStep(prio, name, path2)
 
     def _getDirItemsNaturalSorted(self, path, separator="_", strict=False, dirs=False):
         if dirs:
-            items = j.system.fs.listDirsInDir(path, recursive=False)
+            items = j.sal.fs.listDirsInDir(path, recursive=False)
         else:
-            items = j.system.fs.listFilesInDir(path, recursive=False)
+            items = j.sal.fs.listFilesInDir(path, recursive=False)
         prios = {}
         for item in items:
-            dirName = j.system.fs.getBaseName(item)
+            dirName = j.sal.fs.getBaseName(item)
             if not dirName.endswith(".py") and not dirs:
                 continue
             if not dirName.startswith("_") and not dirName.startswith("."):
@@ -187,9 +187,9 @@ class TaskletEngine():
     def _loadTaskletsFromStep(self, stepid, taskletstepname, path):
         items = self._getDirItemsNaturalSorted(path)
         for prio, name, item in items:
-            ppath = j.system.fs.joinPaths(path, item)
+            ppath = j.sal.fs.joinPaths(path, item)
             j.logger.log("Load tasklet %s" % ppath)
-            if j.system.fs.parsePath(ppath)[2].lower() == "py":
+            if j.sal.fs.parsePath(ppath)[2].lower() == "py":
                 tasklet = Tasklet()
                 tasklet.name = name.replace(".py", "")
                 tasklet.taskletsStepname = taskletstepname
@@ -256,7 +256,7 @@ class TaskletEngine():
         if len(self.tasklets) == 0:
             params.result = None
 
-        if j.basetype.dictionary.check(params):
+        if j.core.types.dict.check(params):
             params = j.core.params.get(params)
         else:
             if not j.core.params.isParams(params):

@@ -24,7 +24,7 @@ def parseBlock(block):
     return result
 
 def getNetworkInfo():
-    exitcode,output = j.system.process.execute("ip a", outputToStdout=False)
+    exitcode,output = j.sal.process.execute("ip a", outputToStdout=False)
     for m in IPBLOCKS.finditer(output):
         block = m.group('block')
         yield parseBlock(block)
@@ -59,14 +59,14 @@ class NetTools(SALObject):
         if ipaddr.strip()=="localhost":
             ipaddr="127.0.0.1"
         port=int(port)
-        start=j.base.time.getTimeEpoch()
+        start=j.tools.time.getTimeEpoch()
         now=start
         remainingtime = (timeout - (now - start)) or 1
         while remainingtime > 0:
             if j.sal.nettools.tcpPortConnectionTest(ipaddr,port, remainingtime):
                 return True
             time.sleep(0.1)
-            now=j.base.time.getTimeEpoch()
+            now=j.tools.time.getTimeEpoch()
             remainingtime = (timeout - (now - start)) or 1
         return False
 
@@ -79,12 +79,12 @@ class NetTools(SALObject):
         if ipaddr.strip()=="localhost":
             ipaddr="127.0.0.1"
         port=int(port)
-        start=j.base.time.getTimeEpoch()
+        start=j.tools.time.getTimeEpoch()
         now=start
         while now<start+timeout:
             if j.sal.nettools.tcpPortConnectionTest(ipaddr,port, 1)==False:
                 return True
-            now=j.base.time.getTimeEpoch()
+            now=j.tools.time.getTimeEpoch()
         return False
 
     def checkUrlReachable(self, url):
@@ -124,18 +124,18 @@ class NetTools(SALObject):
             # netstat: n == numeric, -t == tcp, -u = udp, l= only listening, p = program
             command = "netstat -ntulp | grep ':%s '" % port
             # raise RuntimeError("stop")
-            (exitcode, output) = j.system.process.execute(command, dieOnNonZeroExitCode=False,outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False,outputToStdout=False)
             return exitcode == 0
         elif j.system.platformtype.isSolaris() or j.system.platformtype.isDarwin():
             command = "netstat -an -f inet"
-            (exitcode, output) = j.system.process.execute(command, dieOnNonZeroExitCode=False,outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False,outputToStdout=False)
             for line in output.splitlines():
                 match = re.match(".*\.%s .*\..*LISTEN"%port, line)
                 if match:
                     return True
             # No ipv4? Then check ipv6
             command = "netstat -an -f inet6"
-            (exitcode, output) = j.system.process.execute(command, dieOnNonZeroExitCode=False,outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False,outputToStdout=False)
             for line in output.splitlines():
                 match = re.match(".*\.%s .*\..*LISTEN"%port, line)
                 if match:
@@ -206,7 +206,7 @@ class NetTools(SALObject):
         if j.system.platformtype.isUnix():
             nameserverlines = j.codetools.regex.findAll(
             "^\s*nameserver\s+(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\s*$",
-            j.system.fs.fileGetContents('/etc/resolv.conf'))
+            j.sal.fs.fileGetContents('/etc/resolv.conf'))
 
             if not nameserverlines:
                 raise RuntimeError('No nameserver found in /etc/resolv.conf')
@@ -253,13 +253,13 @@ class NetTools(SALObject):
         if j.system.platformtype.isLinux() or j.system.platformtype.isESX():
             return [nic['name'] for nic in getNetworkInfo()]
         elif j.system.platformtype.isSolaris():
-            exitcode,output = j.system.process.execute("ifconfig -a", outputToStdout=False)
+            exitcode,output = j.sal.process.execute("ifconfig -a", outputToStdout=False)
             if up:
                 regex = "^([\w:]+):\sflag.*<.*UP.*>.*$"
             else:
                 regex = "^([\w:]+):\sflag.*$"
             nics = set(re.findall(regex,output,re.MULTILINE))
-            exitcode,output = j.system.process.execute("dladm show-phys", outputToStdout=False)
+            exitcode,output = j.sal.process.execute("dladm show-phys", outputToStdout=False)
             lines = output.splitlines()
             for line in lines[1:]:
                 nic = line.split()
@@ -283,17 +283,17 @@ class NetTools(SALObject):
         """
         if j.system.platformtype.isLinux() or j.system.platformtype.isESX():
             output=''
-            if j.system.fs.exists("/sys/class/net/%s"%interface):
-                output = j.system.fs.fileGetContents("/sys/class/net/%s/type"%interface)
+            if j.sal.fs.exists("/sys/class/net/%s"%interface):
+                output = j.sal.fs.fileGetContents("/sys/class/net/%s/type"%interface)
             if output.strip() == "32":
                 return "INFINIBAND"
             else:
-                if j.system.fs.exists('/proc/net/vlan/%s'%(interface)):
+                if j.sal.fs.exists('/proc/net/vlan/%s'%(interface)):
                     return 'VLAN'
-                exitcode,output = j.system.process.execute("which ethtool", False, outputToStdout=False)
+                exitcode,output = j.sal.process.execute("which ethtool", False, outputToStdout=False)
                 if exitcode != 0:
                     raise RuntimeError("Ethtool is not installed on this system!")
-                exitcode,output = j.system.process.execute("ethtool -i %s"%(interface),False,outputToStdout=False)
+                exitcode,output = j.sal.process.execute("ethtool -i %s"%(interface),False,outputToStdout=False)
                 if exitcode !=0:
                     return 'VIRTUAL'
                 match = re.search("^driver:\s+(?P<driver>\w+)\s*$",output,re.MULTILINE)
@@ -304,13 +304,13 @@ class NetTools(SALObject):
                 return "ETHERNET_GB"
         elif j.system.platformtype.isSolaris():
             command = "ifconfig %s"%interface
-            exitcode,output = j.system.process.execute(command, outputToStdout=False, dieOnNonZeroExitCode=False)
+            exitcode,output = j.sal.process.execute(command, outputToStdout=False, dieOnNonZeroExitCode=False)
             if exitcode != 0:
                 # temporary plumb the interface to lookup its mac
                 j.logger.log("Interface %s is down. Temporarily plumbing it to be able to lookup its nic type" % interface, 1)
-                j.system.process.execute('%s plumb' % command, outputToStdout=False)
-                (exitcode, output) = j.system.process.execute(command, outputToStdout=False)
-                j.system.process.execute('%s unplumb' % command, outputToStdout=False)
+                j.sal.process.execute('%s plumb' % command, outputToStdout=False)
+                (exitcode, output) = j.sal.process.execute(command, outputToStdout=False)
+                j.sal.process.execute('%s unplumb' % command, outputToStdout=False)
             if output.find("ipib") >=0:
                 return "INFINIBAND"
             else:
@@ -356,13 +356,13 @@ class NetTools(SALObject):
         if j.system.platformtype.isLinux():
             #check if its a vlan
             vlanfile = '/proc/net/vlan/%s'%(interface)
-            if j.system.fs.exists(vlanfile):
+            if j.sal.fs.exists(vlanfile):
                 return j.system.net.getVlanTagFromInterface(interface)
             bridgefile = '/sys/class/net/%s/brif/'%(interface)
-            for brif in j.system.fs.listDirsInDir(bridgefile):
-                brif = j.system.fs.getBaseName(brif)
+            for brif in j.sal.fs.listDirsInDir(bridgefile):
+                brif = j.sal.fs.getBaseName(brif)
                 vlanfile = '/proc/net/vlan/%s'%(brif)
-                if j.system.fs.exists(vlanfile):
+                if j.sal.fs.exists(vlanfile):
                     return j.system.net.getVlanTagFromInterface(brif)
             return "0"
         elif j.system.platformtype.isSolaris() or j.system.platformtype.isWindows():
@@ -377,8 +377,8 @@ class NetTools(SALObject):
         """
         if j.system.platformtype.isLinux():
             vlanfile = '/proc/net/vlan/%s'%(interface)
-            if j.system.fs.exists(vlanfile):
-                content = j.system.fs.fileGetContents(vlanfile)
+            if j.sal.fs.exists(vlanfile):
+                content = j.sal.fs.fileGetContents(vlanfile)
                 match = re.search("^%s\s+VID:\s+(?P<vlantag>\d+)\s+.*$"%(interface),content,re.MULTILINE)
                 if match:
                     return match.group('vlantag')
@@ -482,7 +482,7 @@ class NetTools(SALObject):
         """Return a list of ip addresses and netmasks assigned to this interface"""
         if j.system.platformtype.isLinux() or j.system.platformtype.isESX():
             command = "ip a s %s" % interface
-            (exitcode, output) = j.system.process.execute(command, outputToStdout=False, dieOnNonZeroExitCode=False)
+            (exitcode, output) = j.sal.process.execute(command, outputToStdout=False, dieOnNonZeroExitCode=False)
             if exitcode != 0:
                 return []
             nicinfo = re.findall("^\s+inet\s+(.*)\/(\d+)\s(?:brd\s)?(\d+\.\d+\.\d+\.\d+)?\s?scope.*$",output,re.MULTILINE)
@@ -498,7 +498,7 @@ class NetTools(SALObject):
             return result
         elif j.system.platformtype.isSolaris():
             command = "ifconfig %s"%(interface)
-            (exitcode, output) = j.system.process.execute(command, outputToStdout=False, dieOnNonZeroExitCode=False)
+            (exitcode, output) = j.sal.process.execute(command, outputToStdout=False, dieOnNonZeroExitCode=False)
             if exitcode != 0:
                 return []
             result = []
@@ -534,11 +534,11 @@ class NetTools(SALObject):
         if not interface in self.getNics():
             raise LookupError("Interface %s not found on the system" % interface)
         if j.system.platformtype.isLinux() or j.system.platformtype.isESX():
-            if j.system.fs.exists("/sys/class/net"):
-                return j.system.fs.fileGetContents('/sys/class/net/%s/address' % interface.split('@')[0]).strip()
+            if j.sal.fs.exists("/sys/class/net"):
+                return j.sal.fs.fileGetContents('/sys/class/net/%s/address' % interface.split('@')[0]).strip()
             else:
                 command = "ifconfig %s | grep HWaddr| awk '{print $5}'"% interface
-                (exitcode,output)=j.system.process.execute(command, outputToStdout=False)
+                (exitcode,output)=j.sal.process.execute(command, outputToStdout=False)
                 return self.pm_formatMacAddress(output)
         elif j.system.platformtype.isSolaris():
             # check if interface is a logical inteface ex: bge0:1
@@ -546,13 +546,13 @@ class NetTools(SALObject):
             if len(tokens) > 1 :
                 interface = tokens[0]
             command = "ifconfig %s" % interface
-            (exitcode, output) = j.system.process.execute(command, outputToStdout=False, dieOnNonZeroExitCode=False)
+            (exitcode, output) = j.sal.process.execute(command, outputToStdout=False, dieOnNonZeroExitCode=False)
             if exitcode != 0:
                 # temporary plumb the interface to lookup its mac
                 j.logger.log("Interface %s is down. Temporarily plumbing it to be able to lookup its MAC address" % interface, 1)
-                j.system.process.execute('%s plumb' % command, outputToStdout=False)
-                (exitcode, output) = j.system.process.execute(command, outputToStdout=False, dieOnNonZeroExitCode=False)
-                j.system.process.execute('%s unplumb' % command, outputToStdout=False)
+                j.sal.process.execute('%s plumb' % command, outputToStdout=False)
+                (exitcode, output) = j.sal.process.execute(command, outputToStdout=False, dieOnNonZeroExitCode=False)
+                j.sal.process.execute('%s unplumb' % command, outputToStdout=False)
             if exitcode == 0:
                 match = re.search(r"^\s*(ipib|ether)\s*(?P<mac>\S*)", output, re.MULTILINE)
                 if match:
@@ -595,7 +595,7 @@ class NetTools(SALObject):
                 # We do not want hostnames to show up in the ARP output
                 args.append("-n")
 
-            return j.system.process.execute(
+            return j.sal.process.execute(
                 'arp %s %s' % (" ".join(args), ipaddress),
                 dieOnNonZeroExitCode=False,
                 outputToStdout=False
@@ -628,7 +628,7 @@ class NetTools(SALObject):
                     # On Linux the arp will not show local configured ip's in the table.
                     # That's why we try to find the ip with "ip a" and match for the mac there.
 
-                    output, stdout, stderr = j.system.process.run('ip a', stopOnError=False)
+                    output, stdout, stderr = j.sal.process.run('ip a', stopOnError=False)
                     if exitcode:
                         raise RuntimeError('Could not get the MAC address for [%s] because "ip" is not found'%s)
                     mo = re.search('\d:\s+\w+:\s+.*\n\s+.+\s+(?P<mac>([a-fA-F0-9]{2}[:|\-]?){6}).+\n\s+inet\s%s[^0-9]+'%ipaddress, stdout, re.MULTILINE)
@@ -646,10 +646,10 @@ class NetTools(SALObject):
     def isNicConnected(self,interface):
         if j.system.platformtype.isLinux():
             carrierfile = '/sys/class/net/%s/carrier'%(interface)
-            if not j.system.fs.exists(carrierfile):
+            if not j.sal.fs.exists(carrierfile):
                 return False
             try:
-                return int(j.system.fs.fileGetContents(carrierfile)) != 0
+                return int(j.sal.fs.fileGetContents(carrierfile)) != 0
             except IOError:
                 return False
         elif j.system.platformtype.isESX():
@@ -666,7 +666,7 @@ class NetTools(SALObject):
                 command = "dladm show-phys -p -o STATE %s" % interface
                 expectResults = ['up', 'unknown']
 
-            (exitcode, output) = j.system.process.execute(command, dieOnNonZeroExitCode=False, outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False, outputToStdout=False)
             if exitcode != 0:
                 return False
             output = output.strip()
@@ -684,11 +684,11 @@ class NetTools(SALObject):
         """
         if j.system.platformtype.isLinux() or j.system.platformtype.isESX():
             command = "ip r | grep 'default' | awk {'print $3'}"
-            (exitcode, output) = j.system.process.execute(command, outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, outputToStdout=False)
             return output.strip()
         elif j.system.platformtype.isSolaris():
             command = "netstat -rn | grep default | awk '{print $2}'"
-            (exitcode, output) = j.system.process.execute(command, outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, outputToStdout=False)
             return output.strip()
         else:
             raise RuntimeError("j.system.net.getDefaultRouter not supported on this platform")
@@ -742,16 +742,16 @@ class NetTools(SALObject):
             # if j.system.platformtype.isSolaris():
             #     #ping -c 1 IP 1
             #     #Last 1 is timeout in seconds
-            #     exitcode, output = j.system.process.execute(
+            #     exitcode, output = j.sal.process.execute(
             #                         'ping -c 1 %s 1' % ip, False, False)
             if j.system.platformtype.isLinux():
                 #ping -c 1 -W 1 IP
-                exitcode, output = j.system.process.execute(
+                exitcode, output = j.sal.process.execute(
                                     'ping -c 1 -W 1 -w 1 %s' % ip, False, False)
             elif j.system.platformtype.isUnix():
-                exitcode, output = j.system.process.execute('ping -c 1 %s'%ip, False, False)
+                exitcode, output = j.sal.process.execute('ping -c 1 %s'%ip, False, False)
             elif j.system.platformtype.isWindows():
-                exitcode, output = j.system.process.execute('ping -w %d %s'%(pingtimeout, ip), False, False)
+                exitcode, output = j.sal.process.execute('ping -w %d %s'%(pingtimeout, ip), False, False)
             else:
                 raise RuntimeError('Platform is not supported')
             if exitcode == 0:
@@ -770,7 +770,7 @@ class NetTools(SALObject):
         or if the target file checksum doesn't match the expected checksum.
         """
 
-        if j.system.fs.exists(destination_file_path):
+        if j.sal.fs.exists(destination_file_path):
 
             if md5_checksum:
 
@@ -779,7 +779,7 @@ class NetTools(SALObject):
                     return
 
                 # On invalid checksum, delete the local file
-                j.system.fs.remove(destination_file_path)
+                j.sal.fs.remove(destination_file_path)
 
             else:
                 # It exists but no checksum is provided so any existence of the local file suffices.
@@ -810,10 +810,10 @@ class NetTools(SALObject):
         filename = ''
         if localpath == '-':
             filename = '-'
-        if j.system.fs.isDir(localpath):
-            filename = j.system.fs.joinPaths(localpath, j.system.fs.getBaseName(url))
+        if j.sal.fs.isDir(localpath):
+            filename = j.sal.fs.joinPaths(localpath, j.sal.fs.getBaseName(url))
         else:
-            if j.system.fs.isDir(j.system.fs.getDirName(localpath)) and not j.system.fs.exists(localpath):
+            if j.sal.fs.isDir(j.sal.fs.getDirName(localpath)) and not j.sal.fs.exists(localpath):
                 filename = localpath
             else:
                 raise ValueError('Local path is an invalid path')
@@ -853,7 +853,7 @@ class NetTools(SALObject):
         if not cmd:
             raise PlatformNotSupportedError('Platform "%s" is not supported. Command is only supported on Linux and Solaris' % j.system.platformtype.name)
 
-        exitCode, domainName = j.system.process.execute(cmd, outputToStdout=False)
+        exitCode, domainName = j.sal.process.execute(cmd, outputToStdout=False)
 
         if not domainName:
             raise ValueError('Failed to retrieve domain name')

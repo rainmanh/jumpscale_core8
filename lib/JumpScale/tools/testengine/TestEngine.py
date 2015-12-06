@@ -171,14 +171,14 @@ class TestEngine():
     def runTests(self,testrunname=None,debug=False):
 
         if testrunname==None:
-            testrunname=j.base.time.getLocalTimeHRForFilesystem()
+            testrunname=j.tools.time.getLocalTimeHRForFilesystem()
 
         for path in self.paths:
             print(("scan dir: %s"%path))
-            if j.system.fs.isDir(path):
-                for item in j.system.fs.listFilesInDir(path,filter="*__test.py",recursive=True):
+            if j.sal.fs.isDir(path):
+                for item in j.sal.fs.listFilesInDir(path,filter="*__test.py",recursive=True):
                     self.testFile(testrunname, item)
-            elif j.system.fs.isFile(path):
+            elif j.sal.fs.isFile(path):
                 self.testFile(testrunname, path)
 
         priority={}
@@ -213,7 +213,7 @@ class TestEngine():
         else:
             testdb=self.osis.new()
 
-        name=j.system.fs.getBaseName(filepath).replace("__test.py","").lower()
+        name=j.sal.fs.getBaseName(filepath).replace("__test.py","").lower()
         testmod = imp.load_source(name, filepath)
         self._patchTest(testmod)
 
@@ -240,7 +240,7 @@ class TestEngine():
         test.db.priority=testmod.priority
         test.db.id=0
 
-        C=j.system.fs.fileGetContents(filepath)
+        C=j.sal.fs.fileGetContents(filepath)
         methods=j.codetools.regex.extractBlocks(C,["def test"])
         for method in methods:
             methodname=method.split("\n")[0][len("    def test_"):].split("(")[0]

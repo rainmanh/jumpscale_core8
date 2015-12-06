@@ -6,8 +6,8 @@ class CodeGeneratorActorClass(CodeGeneratorBase):
 
     def __init__(self, spec, typecheck=True, dieInGenCode=True, codepath=None, args={}):
         CodeGeneratorBase.__init__(self, spec, typecheck, dieInGenCode)
-        self.codepath = j.system.fs.joinPaths(codepath, "methodclass")
-        j.system.fs.createDir(self.codepath)
+        self.codepath = j.sal.fs.joinPaths(codepath, "methodclass")
+        j.sal.fs.createDir(self.codepath)
         self.type = "actorclass"
 
         self.tags = args["tags"]
@@ -214,15 +214,15 @@ self.appname="{appname}"
         #     self.addMethod(method)
 
         # # write class file        
-        # ppath = j.system.fs.joinPaths(self.codepath, "%s_%s_osis.py" % (self.spec.appname, self.spec.actorname))
-        # if j.system.fs.exists(path=ppath):
-        #     ppath = j.system.fs.joinPaths(self.codepath, "%s_%s_osis.gen.py" % (self.spec.appname, self.spec.actorname))
+        # ppath = j.sal.fs.joinPaths(self.codepath, "%s_%s_osis.py" % (self.spec.appname, self.spec.actorname))
+        # if j.sal.fs.exists(path=ppath):
+        #     ppath = j.sal.fs.joinPaths(self.codepath, "%s_%s_osis.gen.py" % (self.spec.appname, self.spec.actorname))
         # else:
         #     from IPython import embed
         #     print "DEBUG NOW opopop"
         #     embed()
             
-        # j.system.fs.writeFile(ppath, self.getContent())
+        # j.sal.fs.writeFile(ppath, self.getContent())
 
         # main methods
         self.initprops = ""
@@ -240,10 +240,10 @@ self.appname="{appname}"
             self.addMethod(method)
 
         # write class file
-        # ppath=j.system.fs.joinPaths(self.codepath,"%s_%s.py"%(self.spec.appname,self.spec.actorname))
-        # ppath2=j.system.fs.joinPaths(self.codepath,"%s_%s.gen.py"%(self.spec.appname,self.spec.actorname))
-        # if True or not j.system.fs.exists(ppath):
-        #     j.system.fs.writeFile(ppath,self.getContent())
-        # j.system.fs.writeFile(ppath2,self.getContent())
+        # ppath=j.sal.fs.joinPaths(self.codepath,"%s_%s.py"%(self.spec.appname,self.spec.actorname))
+        # ppath2=j.sal.fs.joinPaths(self.codepath,"%s_%s.gen.py"%(self.spec.appname,self.spec.actorname))
+        # if True or not j.sal.fs.exists(ppath):
+        #     j.sal.fs.writeFile(ppath,self.getContent())
+        # j.sal.fs.writeFile(ppath2,self.getContent())
 
         return self.getContent()

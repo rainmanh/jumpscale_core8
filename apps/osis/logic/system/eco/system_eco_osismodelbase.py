@@ -43,8 +43,8 @@ class system_eco_osismodelbase(j.code.classGetJSRootModelBase()):
     @id.setter
     def id(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property id input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: eco, value was:" + str(value)
                 raise TypeError(msg)
@@ -62,8 +62,8 @@ class system_eco_osismodelbase(j.code.classGetJSRootModelBase()):
     @gid.setter
     def gid(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property gid input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: eco, value was:" + str(value)
                 raise TypeError(msg)
@@ -81,8 +81,8 @@ class system_eco_osismodelbase(j.code.classGetJSRootModelBase()):
     @nid.setter
     def nid(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property nid input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: eco, value was:" + str(value)
                 raise TypeError(msg)
@@ -100,8 +100,8 @@ class system_eco_osismodelbase(j.code.classGetJSRootModelBase()):
     @aid.setter
     def aid(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property aid input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: eco, value was:" + str(value)
                 raise TypeError(msg)
@@ -119,8 +119,8 @@ class system_eco_osismodelbase(j.code.classGetJSRootModelBase()):
     @pid.setter
     def pid(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property pid input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: eco, value was:" + str(value)
                 raise TypeError(msg)
@@ -138,8 +138,8 @@ class system_eco_osismodelbase(j.code.classGetJSRootModelBase()):
     @jid.setter
     def jid(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property jid input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: eco, value was:" + str(value)
                 raise TypeError(msg)
@@ -157,8 +157,8 @@ class system_eco_osismodelbase(j.code.classGetJSRootModelBase()):
     @masterjid.setter
     def masterjid(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property masterjid input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: eco, value was:" + str(value)
                 raise TypeError(msg)
@@ -176,8 +176,8 @@ class system_eco_osismodelbase(j.code.classGetJSRootModelBase()):
     @epoch.setter
     def epoch(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property epoch input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: eco, value was:" + str(value)
                 raise TypeError(msg)
@@ -214,8 +214,8 @@ class system_eco_osismodelbase(j.code.classGetJSRootModelBase()):
     @level.setter
     def level(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property level input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: eco, value was:" + str(value)
                 raise TypeError(msg)
@@ -404,8 +404,8 @@ class system_eco_osismodelbase(j.code.classGetJSRootModelBase()):
     @funclinenr.setter
     def funclinenr(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property funclinenr input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: eco, value was:" + str(value)
                 raise TypeError(msg)
@@ -480,8 +480,8 @@ class system_eco_osismodelbase(j.code.classGetJSRootModelBase()):
     @lasttime.setter
     def lasttime(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property lasttime input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: eco, value was:" + str(value)
                 raise TypeError(msg)
@@ -499,8 +499,8 @@ class system_eco_osismodelbase(j.code.classGetJSRootModelBase()):
     @closetime.setter
     def closetime(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property closetime input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: eco, value was:" + str(value)
                 raise TypeError(msg)
@@ -518,8 +518,8 @@ class system_eco_osismodelbase(j.code.classGetJSRootModelBase()):
     @occurrences.setter
     def occurrences(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property occurrences input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: eco, value was:" + str(value)
                 raise TypeError(msg)
@@ -556,8 +556,8 @@ class system_eco_osismodelbase(j.code.classGetJSRootModelBase()):
     @_meta.setter
     def _meta(self, value):
         if not isinstance(value, list) and value is not None:
-            if isinstance(value, str) and j.basetype.list.checkString(value):
-                value = j.basetype.list.fromString(value)
+            if isinstance(value, str) and j.core.types.list.checkString(value):
+                value = j.core.types.list.fromString(value)
             else:
                 msg="property _meta input error, needs to be list, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: eco, value was:" + str(value)
                 raise TypeError(msg)

@@ -26,7 +26,14 @@ class AtYourServiceFactory():
         self.sync = AtYourServiceSync()
         self._reposDone = {}
         self.todo = []
-        self.debug=AtYourServiceDebugFactory()
+        self._debug=None
+
+
+    @property
+    def debug(self):
+        if self._debug==None:
+            self._debug=AtYourServiceDebugFactory()
+        return self._debug
 
     @property
     def type(self):
@@ -50,7 +57,7 @@ class AtYourServiceFactory():
 
             # j.do.debug=True
 
-            if j.system.fs.exists(path="/etc/my_init.d"):
+            if j.sal.fs.exists(path="/etc/my_init.d"):
                 self.indocker=True
 
             login=j.application.config.get("whoami.git.login").strip()
@@ -59,7 +66,7 @@ class AtYourServiceFactory():
             if self.type != "n":
                 configpath=j.dirs.amInAYSRepo()
                 # load service templates
-                self._domains.append((j.system.fs.getBaseName(configpath),"%s/servicetemplates/"%configpath))
+                self._domains.append((j.sal.fs.getBaseName(configpath),"%s/servicetemplates/"%configpath))
 
             # always load base domaim
             items=j.application.config.getDictFromPrefix("atyourservice.metadata")
@@ -179,7 +186,7 @@ class AtYourServiceFactory():
                 print("UPLOAD")
                 service._uploadToNode()
                 # service.state.installDoneOK()
-                # j.system.fs.copyFile("%s/instance.hrd"%service.path,"%s/instance_old.hrd"%service.path)
+                # j.sal.fs.copyFile("%s/instance.hrd"%service.path,"%s/instance_old.hrd"%service.path)
         self.todo = []
         step += 1
         self._findtodo()
@@ -232,12 +239,12 @@ class AtYourServiceFactory():
     def loadServices(self, reload=False):
         if self.services == [] or reload:
             self._doinit()
-            for instance_hrd_path in j.system.fs.listFilesInDir(j.dirs.ays, recursive=True, \
+            for instance_hrd_path in j.sal.fs.listFilesInDir(j.dirs.ays, recursive=True, \
                 filter="instance.hrd", case_sensitivity='os', followSymlinks=True, listSymlinks=False):
 
-                service_path = j.system.fs.getDirName(instance_hrd_path)
-                template_hrd_path = j.system.fs.joinPaths(service_path, 'template.hrd')
-                (domain, name, version, instance, role) = self.parseKey(j.system.fs.getBaseName(service_path))
+                service_path = j.sal.fs.getDirName(instance_hrd_path)
+                template_hrd_path = j.sal.fs.joinPaths(service_path, 'template.hrd')
+                (domain, name, version, instance, role) = self.parseKey(j.sal.fs.getBaseName(service_path))
 
                 hrd = j.core.hrd.get(instance_hrd_path, prefixWithName=False)
 
@@ -248,7 +255,7 @@ class AtYourServiceFactory():
                 self.services.append(service)
 
     def _loadTemplates(self, domain, path):
-        for servicepath in j.system.fs.listDirsInDir(path, recursive=False):
+        for servicepath in j.sal.fs.listDirsInDir(path, recursive=False):
             dirname = j.do.getBaseName(servicepath)
             # print "dirname:%s"%dirname
             if not (dirname.startswith(".")):
@@ -257,7 +264,7 @@ class AtYourServiceFactory():
         dirname = j.do.getBaseName(path)
         if dirname.startswith("_"):
             return
-        if j.system.fs.exists("%s/instance.hrd" % path) or j.system.fs.exists("%s/service.hrd" % path) or j.system.fs.exists("%s/actions.py" % path):
+        if j.sal.fs.exists("%s/instance.hrd" % path) or j.sal.fs.exists("%s/service.hrd" % path) or j.sal.fs.exists("%s/actions.py" % path):
             templ = ServiceTemplate(path, domain=domain)
             self.templates.append(templ)
 
@@ -322,7 +329,7 @@ class AtYourServiceFactory():
         for service in self.findServices(domain=domain, name=name, instance=instance, role=role):
             if service in self.services:
                 self.services.remove(service)
-            j.system.fs.removeDirTree(service.path)
+            j.sal.fs.removeDirTree(service.path)
 
     def getTemplate(self, domain="", name="", version="", first=True, die=True):
         if first:

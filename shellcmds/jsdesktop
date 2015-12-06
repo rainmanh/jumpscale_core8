@@ -1,6 +1,6 @@
 #!/usr/bin/env jspython
 from JumpScale import j
-from JumpScale.baselib import cmdutils
+from JumpScale.tools import cmdutils
 
 import sys,time
 
@@ -15,7 +15,7 @@ parser.add_argument("-p",'--passwd', help='password for desktop')
 ip=""
 
 def getChildren(pid,children):
-    process=j.system.process.getProcessObject(pid)
+    process=j.sal.process.getProcessObject(pid)
     children.append(process)
     for child in process.get_children():
         children=getChildren(child.pid,children)
@@ -23,7 +23,7 @@ def getChildren(pid,children):
 
 def llist():
     cmd="lxc-list"
-    resultcode,out=j.system.process.execute(cmd)
+    resultcode,out=j.sal.process.execute(cmd)
 
     stopped = []
     running = []
@@ -46,7 +46,7 @@ def llist():
 
 def getip(nr,fail=True):
     cmd="lxc-list"
-    resultcode,out=j.system.process.execute(cmd)
+    resultcode,out=j.sal.process.execute(cmd)
     name="desktop%s"%nr
     stopped = []
     running = []
@@ -72,7 +72,7 @@ def getip(nr,fail=True):
         return ""
 
 def getpid(nr,fail=True):
-    resultcode,out=j.system.process.execute("lxc-info -n desktop%s"%nr)
+    resultcode,out=j.sal.process.execute("lxc-info -n desktop%s"%nr)
     state=None
     pid=0
     for line in out.split("\n"):
@@ -143,9 +143,9 @@ if opts.action =='new':
     m=m+1
     name="desktop%s"%(m)
     cmd="lxc-clone --snapshot -B overlayfs -o base -n %s"%name
-    resultcode,out=j.system.process.execute(cmd)
+    resultcode,out=j.sal.process.execute(cmd)
     cmd="lxc-start -d -n %s"%name
-    resultcode,out=j.system.process.execute(cmd)
+    resultcode,out=j.sal.process.execute(cmd)
     start=time.time()
     now=start
     while now<start+10:    
@@ -206,11 +206,11 @@ if opts.action =='killall':
     alll=running+stopped
     for item in alll:
         cmd="lxc-destroy -n desktop%s -f"%item
-        resultcode,out=j.system.process.execute(cmd)
+        resultcode,out=j.sal.process.execute(cmd)
 
 if opts.action =='del':
     cmd="lxc-destroy -n desktop%s -f"%opts.nr
-    resultcode,out=j.system.process.execute(cmd)
+    resultcode,out=j.sal.process.execute(cmd)
 
 if opts.action =='userconfig':
     if opts.name==None:

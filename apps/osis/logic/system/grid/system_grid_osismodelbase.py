@@ -18,8 +18,8 @@ class system_grid_osismodelbase(j.code.classGetJSRootModelBase()):
     @id.setter
     def id(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property id input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: grid, value was:" + str(value)
                 raise TypeError(msg)
@@ -75,8 +75,8 @@ class system_grid_osismodelbase(j.code.classGetJSRootModelBase()):
     @nid.setter
     def nid(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property nid input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: grid, value was:" + str(value)
                 raise TypeError(msg)
@@ -113,8 +113,8 @@ class system_grid_osismodelbase(j.code.classGetJSRootModelBase()):
     @_meta.setter
     def _meta(self, value):
         if not isinstance(value, list) and value is not None:
-            if isinstance(value, str) and j.basetype.list.checkString(value):
-                value = j.basetype.list.fromString(value)
+            if isinstance(value, str) and j.core.types.list.checkString(value):
+                value = j.core.types.list.fromString(value)
             else:
                 msg="property _meta input error, needs to be list, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: grid, value was:" + str(value)
                 raise TypeError(msg)

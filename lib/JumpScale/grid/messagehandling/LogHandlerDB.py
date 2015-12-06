@@ -12,7 +12,7 @@ class LogHandlerDB:
     ARAKOON_CATEGORIES_KEY = 'log.category.entries'
 
     def __init__(self, baseLogDir=None):
-        self.baseLogDir = baseLogDir or j.system.fs.joinPaths(j.dirs.varDir,
+        self.baseLogDir = baseLogDir or j.sal.fs.joinPaths(j.dirs.varDir,
                                                               'messagehandler', 'lj.db')
 
         self._fileHandlers = {}
@@ -106,10 +106,10 @@ class LogHandlerDB:
 
             logDir = self.pm_getLogDir(gid, nid, pid)
 
-            if not j.system.fs.exists(logDir):
-                j.system.fs.createDir(logDir)
+            if not j.sal.fs.exists(logDir):
+                j.sal.fs.createDir(logDir)
 
-            logFile = j.system.fs.joinPaths(logDir, str(period) + '.lj.db')
+            logFile = j.sal.fs.joinPaths(logDir, str(period) + '.lj.db')
 
             if logFile not in self._fileHandlers[period]:
                 self._fileHandlers[period][logFile] = open(logFile, 'ab')
@@ -125,15 +125,15 @@ class LogHandlerDB:
         if gid != None and pid != None and nid != None:
             logDir = self.pm_getLogDir(gid, nid, pid)
 
-            if j.system.fs.exists(logDir):
+            if j.sal.fs.exists(logDir):
                 filteredLogDirs.add(logDir)
         elif gid == None and pid == None and nid == None:
-            return j.system.fs.listDirsInDir(self.baseLogDir)
+            return j.sal.fs.listDirsInDir(self.baseLogDir)
         else:
-            logDirs = j.system.fs.listDirsInDir(self.baseLogDir)
+            logDirs = j.sal.fs.listDirsInDir(self.baseLogDir)
 
             for logDir in logDirs:
-                logDirName = j.system.fs.getBaseName(logDir)
+                logDirName = j.sal.fs.getBaseName(logDir)
                 gid2, nid2, pid2 = self._extractIdsFromLogDirName(logDirName)
 
                 if (gid == None or gid == gid2) \
@@ -160,10 +160,10 @@ class LogHandlerDB:
         filteredLogFilePaths = set()
 
         for logDir in logDirs:
-            logFilePaths = j.system.fs.listFilesInDir(logDir)
+            logFilePaths = j.sal.fs.listFilesInDir(logDir)
 
             for logFilePath in logFilePaths:
-                logFileName = j.system.fs.getBaseName(logFilePath)
+                logFileName = j.sal.fs.getBaseName(logFilePath)
                 period = int(logFileName.split('.')[0])
                 periodInTimeWindow = self._periodInTimeWindow(period, fromEpoch,
                                                               toEpoch)
@@ -246,7 +246,7 @@ class LogHandlerDB:
 
     def pm_getLogDir(self, gid, nid, pid):
         logDirName = self.pm_getLogDirName(gid, nid, pid)
-        return j.system.fs.joinPaths(self.baseLogDir, logDirName)
+        return j.sal.fs.joinPaths(self.baseLogDir, logDirName)
 
     def _encodeLogEntry(self, epoch, level, category, message):
         return [epoch, level, category, message].join(',')

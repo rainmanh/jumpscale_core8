@@ -41,7 +41,7 @@ def action():
 
     log = None
     path = "%s/apps/processmanager/loghandling/"%j.dirs.baseDir
-    if j.system.fs.exists(path=path):
+    if j.sal.fs.exists(path=path):
         loghandlingTE = j.core.taskletengine.get(path)
         log=logqueue.get_nowait()
         # j.core.grid.logger.osis = OSISclientLogger
@@ -50,7 +50,7 @@ def action():
 
     ecoguid = None
     path = "%s/apps/processmanager/eventhandling"%j.dirs.baseDir
-    if j.system.fs.exists(path=path):
+    if j.sal.fs.exists(path=path):
         eventhandlingTE = j.core.taskletengine.get(path)
         ecoguid=ecoqueue.get_nowait()
     else:

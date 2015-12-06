@@ -1,7 +1,7 @@
 #!/usr/bin/env jspython
 from JumpScale import j
 
-from JumpScale.baselib import cmdutils
+from JumpScale.tools import cmdutils
 
 import JumpScale.baselib.bitbucket
 import JumpScale.baselib.mercurial
@@ -33,10 +33,10 @@ parser.add_argument('-d','--deletechanges',required=False, action='store_true',h
 opts = parser.parse_args()
 
 if opts.accounts==None and opts.repos==None:
-    if j.system.fs.exists("%s/%s"%(j.system.fs.getcwd(),".hg")):
+    if j.sal.fs.exists("%s/%s"%(j.sal.fs.getcwd(),".hg")):
         #we are in repo
-        opts.repos=j.system.fs.getBaseName(j.system.fs.getcwd())
-        opts.accounts=j.system.fs.getBaseName(j.system.fs.getParent(j.system.fs.getcwd()))
+        opts.repos=j.sal.fs.getBaseName(j.sal.fs.getcwd())
+        opts.accounts=j.sal.fs.getBaseName(j.sal.fs.getParent(j.sal.fs.getcwd()))
 
 
 if opts.branch!=None and opts.action in ['status']: 
@@ -46,22 +46,22 @@ def getRepos():
     result=[]
 
     if opts.accounts=="*":
-        accounts=j.system.fs.listDirsInDir("/opt/code", recursive=False, dirNameOnly=True, findDirectorySymlinks=True)
+        accounts=j.sal.fs.listDirsInDir("/opt/code", recursive=False, dirNameOnly=True, findDirectorySymlinks=True)
     elif opts.accounts!=None:
         accounts=[item.strip() for item in opts.accounts.split(",")]
     else:
-        accounts=j.system.fs.listDirsInDir("/opt/code", recursive=False, dirNameOnly=True, findDirectorySymlinks=True)
+        accounts=j.sal.fs.listDirsInDir("/opt/code", recursive=False, dirNameOnly=True, findDirectorySymlinks=True)
         accounts=j.console.askChoiceMultiple(accounts,"select bitbucketaccounts")
 
     for account in accounts:
         accountdir="/opt/code/%s"%account
-        if j.system.fs.exists(accountdir):
+        if j.sal.fs.exists(accountdir):
             if opts.repos==None:
-                reponames=j.system.fs.listDirsInDir(accountdir,recursive=False, dirNameOnly=True, findDirectorySymlinks=True)
+                reponames=j.sal.fs.listDirsInDir(accountdir,recursive=False, dirNameOnly=True, findDirectorySymlinks=True)
                 if  not opts.action in ['status']:
                     reponames=j.console.askChoiceMultiple(reponames,"select repos")
             elif opts.repos=="*":
-                reponames=j.system.fs.listDirsInDir(accountdir,recursive=False, dirNameOnly=True, findDirectorySymlinks=True)
+                reponames=j.sal.fs.listDirsInDir(accountdir,recursive=False, dirNameOnly=True, findDirectorySymlinks=True)
             else:
                 reponames=[item.strip() for item in opts.repos.split(",")]
 
@@ -74,7 +74,7 @@ def getRepos():
                 else:
                     raise RuntimeError("branch not specified in reponame.")
 
-                if not j.system.fs.exists(path=repodir):
+                if not j.sal.fs.exists(path=repodir):
                     raise RuntimeError("Could not find mercurial repo on %s"%repodir)
 
                 bitbucket = j.clients.bitbucket.getBitbucketRepoClient(account, reponame)
@@ -111,9 +111,9 @@ for bitbucket,account,reponame,branch,client,path in repos:
             if branch!=opts.branch:
                 print("set branch:%s"%opts.branch)
                 cmd="cd %s;hg branch %s"%(path,opts.branch)
-                j.system.process.execute(cmd,dieOnNonZeroExitCode=False, outputToStdout=True, useShell=True, ignoreErrorOutput=False)                
+                j.sal.process.execute(cmd,dieOnNonZeroExitCode=False, outputToStdout=True, useShell=True, ignoreErrorOutput=False)                
                 cmd="cd %s;hg update %s"%(path,opts.branch)
-                j.system.process.execute(cmd)
+                j.sal.process.execute(cmd)
                 print("updated to branch:%s"%opts.branch)
                 lrev,lid,ttype,branch,user,msg,ddate=client.client.tip()
                 branch=client.getbranchname()

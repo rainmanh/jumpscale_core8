@@ -7,27 +7,27 @@ class Dep():
     def __init__(self,name,path):
         self.name=name
         self.path=path
-        if j.system.fs.isLink(self.path):
-            link=j.system.fs.readlink(self.path)
-            if j.system.fs.exists(path=link):
+        if j.sal.fs.isLink(self.path):
+            link=j.sal.fs.readlink(self.path)
+            if j.sal.fs.exists(path=link):
                 self.path=link
                 return
             else:
-                base=j.system.fs.getDirName(self.path)
-                potpath=j.system.fs.joinPaths(base,link)
-                if j.system.fs.exists(potpath):
+                base=j.sal.fs.getDirName(self.path)
+                potpath=j.sal.fs.joinPaths(base,link)
+                if j.sal.fs.exists(potpath):
                     self.path=potpath
                     return
         else:
-            if j.system.fs.exists(self.path):
+            if j.sal.fs.exists(self.path):
                 return
         raise RuntimeError("could not find lib (dep): '%s'"%self.path)
 
     def copyTo(self,path):
-        dest=j.system.fs.joinPaths(path,self.name)
-        j.system.fs.createDir(j.system.fs.getDirName(dest))
+        dest=j.sal.fs.joinPaths(path,self.name)
+        j.sal.fs.createDir(j.sal.fs.getDirName(dest))
         if dest!=self.path:
-            j.system.fs.copyFile(self.path, dest)
+            j.sal.fs.copyFile(self.path, dest)
 
 
     def __str__(self):
@@ -46,13 +46,13 @@ class Sandboxer():
 
     def _ldd(self,path,result={}):
 
-        if j.system.fs.getFileExtension(path) in ["py","pyc","cfg","hrd","bak","txt","png","gif","css","js","wiki","spec","sh","jar"]:
+        if j.sal.fs.getFileExtension(path) in ["py","pyc","cfg","hrd","bak","txt","png","gif","css","js","wiki","spec","sh","jar"]:
             return result
 
         print(("check:%s"%path))
 
         cmd="ldd %s"%path
-        rc,out=j.system.process.execute(cmd,dieOnNonZeroExitCode=False)
+        rc,out=j.sal.process.execute(cmd,dieOnNonZeroExitCode=False)
         if rc>0:
             if out.find("not a dynamic executable")!=-1:
                 return result
@@ -92,10 +92,10 @@ class Sandboxer():
         return result
 
     def copyLibsTo(self,path,dest,recursive=False):
-        if j.system.fs.isDir(path):
+        if j.sal.fs.isDir(path):
             #do all files in dir
-            for item in j.system.fs.listFilesInDir( path, recursive=recursive, followSymlinks=True, listSymlinks=False):
-                if j.system.fs.isExecutable(item) or j.system.fs.getFileExtension(item)=="so":
+            for item in j.sal.fs.listFilesInDir( path, recursive=recursive, followSymlinks=True, listSymlinks=False):
+                if j.sal.fs.isExecutable(item) or j.sal.fs.getFileExtension(item)=="so":
                     self.copyLibsTo(item,dest,recursive=recursive)
         else:
             result=self.findLibs(path)
@@ -127,7 +127,7 @@ class Sandboxer():
 
         def callbackFile(src,args):
             path,dest=args
-            subpath=j.system.fs.pathRemoveDirPart(src,path)
+            subpath=j.sal.fs.pathRemoveDirPart(src,path)
             if subpath.startswith("dist-packages"):
                 subpath=subpath.replace("dist-packages/","")
             if subpath.startswith("site-packages"):
@@ -145,10 +145,10 @@ class Sandboxer():
 
     def dedupe(self, path, storpath, name, excludeFiltersExt=["pyc","bak"],append=False,reset=False,removePrefix=""):
         def _calculatePaths(src, removePrefix):
-            if j.system.fs.isLink(src):
-                srcReal = j.system.fs.readlink(src)
-                if not j.system.fs.isAbsolute(srcReal):
-                    srcReal = j.system.fs.joinPaths(j.system.fs.getParent(src), srcReal)
+            if j.sal.fs.isLink(src):
+                srcReal = j.sal.fs.readlink(src)
+                if not j.sal.fs.isAbsolute(srcReal):
+                    srcReal = j.sal.fs.joinPaths(j.sal.fs.getParent(src), srcReal)
             else:
                 srcReal = src
 
@@ -156,7 +156,7 @@ class Sandboxer():
             dest2 = "%s/%s/%s/%s" % (storpath2, md5[0], md5[1], md5)
             j.do.copyFile(srcReal, dest2)
 
-            stat = j.system.fs.statPath(srcReal)
+            stat = j.sal.fs.statPath(srcReal)
 
             if removePrefix != "":
                 if src.startswith(removePrefix):
@@ -169,19 +169,19 @@ class Sandboxer():
 
         if reset:
             j.do.delete(storpath)
-        storpath2 = j.system.fs.joinPaths(storpath, "files")
-        j.system.fs.createDir(storpath2)
-        j.system.fs.createDir(j.system.fs.joinPaths(storpath, "md"))
+        storpath2 = j.sal.fs.joinPaths(storpath, "files")
+        j.sal.fs.createDir(storpath2)
+        j.sal.fs.createDir(j.sal.fs.joinPaths(storpath, "md"))
         for i1 in "1234567890abcdef":
             for i2 in "1234567890abcdef":
                 j.do.createDir("%s/%s/%s" % (storpath2, i1, i2))
 
         print("DEDUPE: %s to %s" % (path, storpath))
 
-        plistfile = j.system.fs.joinPaths(storpath, "md", "%s.flist" % name)
+        plistfile = j.sal.fs.joinPaths(storpath, "md", "%s.flist" % name)
 
-        if append and j.system.fs.exists(path=plistfile):
-            out = j.system.fs.fileGetContents(plistfile)
+        if append and j.sal.fs.exists(path=plistfile):
+            out = j.sal.fs.fileGetContents(plistfile)
         else:
             j.do.delete(plistfile)
             out = ""
@@ -190,11 +190,11 @@ class Sandboxer():
         # for extregex in excludeFiltersExt:
         #     excludeFileRegex.append(re.compile(ur'(\.%s)$'%extregex))
 
-        if not j.system.fs.isDir(path):
+        if not j.sal.fs.isDir(path):
             out += _calculatePaths(path, removePrefix)
         else:
-            for src in j.system.fs.listFilesInDir(path, recursive=True, exclude=["*.pyc", "*.git*"], followSymlinks=True, listSymlinks=True):
+            for src in j.sal.fs.listFilesInDir(path, recursive=True, exclude=["*.pyc", "*.git*"], followSymlinks=True, listSymlinks=True):
                 out += _calculatePaths(src, removePrefix)
 
         out = j.tools.text.sort(out)
-        j.system.fs.writeFile(plistfile, out)
+        j.sal.fs.writeFile(plistfile, out)

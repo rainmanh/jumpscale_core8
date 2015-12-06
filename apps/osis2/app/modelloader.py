@@ -9,7 +9,7 @@ def find_model_specs(basepath):
         modelpath = os.path.join(modelbasepath, type_)
         specs = dict()
         if os.path.exists(modelpath):
-            for namespace in j.system.fs.listDirsInDir(modelpath, dirNameOnly=True):
+            for namespace in j.sal.fs.listDirsInDir(modelpath, dirNameOnly=True):
                 specpath = os.path.join(modelpath, namespace)
                 j.core.specparser.parseSpecs(specpath, 'osismodel', namespace)
                 modelnames = j.core.specparser.getModelNames('osismodel', namespace)
@@ -28,7 +28,7 @@ def find_model_files(basepath):
     modelpath = os.path.join(modelbasepath, 'sql')
     if os.path.exists(modelpath):
         result = {} 
-        for namespace in j.system.fs.listDirsInDir(modelpath, dirNameOnly=True):
+        for namespace in j.sal.fs.listDirsInDir(modelpath, dirNameOnly=True):
             namspacepath =  os.path.join(modelpath, namespace)
             modules = [path for path in os.listdir(namspacepath) if path.endswith('.py')]
             for module in modules:

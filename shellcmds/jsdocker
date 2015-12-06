@@ -1,6 +1,6 @@
 #!/usr/bin/env jspython
 from JumpScale import j
-from JumpScale.baselib import cmdutils
+from JumpScale.tools import cmdutils
 # import JumpScale.lib.docker
 # import JumpScale.lib.diskmanager
 import sys
@@ -63,7 +63,7 @@ if opts.action == 'pull':
     if opts.base is None:
         opts.base = "despiegk/mc"
     cmd = "docker pull %s" % opts.base
-    j.system.process.executeWithoutPipe(cmd)
+    j.sal.process.executeWithoutPipe(cmd)
 
 if opts.action == 'commit':
     if opts.name is None:
@@ -74,10 +74,10 @@ if opts.action == 'commit':
         sys.exit(1)
     cmd = "docker rmi %s" % opts.base
     print(cmd)
-    j.system.process.executeWithoutPipe(cmd, dieOnNonZeroExitCode=False)
+    j.sal.process.executeWithoutPipe(cmd, dieOnNonZeroExitCode=False)
     cmd = "docker commit %s %s" % (opts.name, opts.base)
     print(cmd)
-    j.system.process.executeWithoutPipe(cmd)
+    j.sal.process.executeWithoutPipe(cmd)
 
 if opts.action == 'new':
     if opts.base is None:

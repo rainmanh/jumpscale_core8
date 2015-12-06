@@ -63,7 +63,7 @@ def action():
     results["swap.percent"]=percent
 
 
-    stat = j.system.fs.fileGetContents('/proc/stat')
+    stat = j.sal.fs.fileGetContents('/proc/stat')
     stats = dict()
     for line in stat.splitlines():
         _, key, value = re.split("^(\w+)\s", line)

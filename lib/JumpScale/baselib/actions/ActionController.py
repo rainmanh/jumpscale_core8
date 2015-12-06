@@ -24,11 +24,11 @@ class ActionController(object):
         embed()
 
     def _getPathMD(self,action):
-        return j.system.fs.joinPaths(action.serviceObj.path,"state.json")
+        return j.sal.fs.joinPaths(action.serviceObj.path,"state.json")
 
     def getActionNamesDone(self,action):
         path=self._getPathMD(action)
-        if j.system.fs.exists(path):
+        if j.sal.fs.exists(path):
             return json.loads(j.do.readFile(path))
         else:
             return []
@@ -38,7 +38,7 @@ class ActionController(object):
         if action.name not in md:
             md.append(action.name)
             path=self._getPathMD(action)
-            j.system.fs.createDir(j.system.fs.getDirName(path))
+            j.sal.fs.createDir(j.sal.fs.getDirName(path))
             j.do.writeFile(path,json.dumps(md))
 
     def start(self, description="", cmds="",action=None,actionRecover=None,actionArgs={},category="unknown",name="unknown",\

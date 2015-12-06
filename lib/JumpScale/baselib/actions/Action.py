@@ -67,7 +67,7 @@ class Action:
                 if self.cmds!="":
                     # rcode,output,err=j.do.execute(self.cmds, outputStdout=self.stdOutput, outputStderr=self.stdOutput, useShell=True, log=True, cwd=None, timeout=600, captureout=True, dieOnNonZeroExitCode=False)
                     # output+=err
-                    rcode,output=j.system.process.execute(self.cmds, dieOnNonZeroExitCode=False, outputToStdout=self.stdOutput or self.errorOutput, useShell=False)
+                    rcode,output=j.sal.process.execute(self.cmds, dieOnNonZeroExitCode=False, outputToStdout=self.stdOutput or self.errorOutput, useShell=False)
                     if rcode>0 and self.retry>1 and i<self.retry:
                         time.sleep(0.1)
                         print("  RETRY, ERROR (%s/%s)"%(i+1,self.retry))

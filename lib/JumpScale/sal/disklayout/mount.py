@@ -10,7 +10,7 @@ class Mount(object):
         self._path = path
         self._autoClean = False
         if self._path is None:
-            self._path = j.tools.path.get('/tmp').joinpath(j.base.idgenerator.generateXCharID(8))
+            self._path = j.tools.path.get('/tmp').joinpath(j.tools.idgenerator.generateXCharID(8))
             self._autoClean = True
         self._options = options
 

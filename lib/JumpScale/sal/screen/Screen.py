@@ -38,8 +38,8 @@ class Screen(SALObject):
         print("DEBUG NOW sal screen")
         embed()
         
-        ppath = j.tools.path.get('/tmp').joinpath(j.base.idgenerator.generateXCharID).touch()
-        ppathscript = j.tools.path.get('/tmp').joinpath(j.base.idgenerator.generateXCharID).touch()
+        ppath = j.tools.path.get('/tmp').joinpath(j.tools.idgenerator.generateXCharID).touch()
+        ppathscript = j.tools.path.get('/tmp').joinpath(j.tools.idgenerator.generateXCharID).touch()
         script="""
 #!/bin/sh
 #set -x
@@ -120,7 +120,7 @@ rm -f %s
         return pexpect.spawn(scrcmd[0], scrcmd[1:]).wait()
 
     def listWindows(self, session, attemps=5):
-        tmpfolder = j.tools.path.get('/tmp').joinpath(j.base.idgenerator.generateXCharID).makedirs_p()
+        tmpfolder = j.tools.path.get('/tmp').joinpath(j.tools.idgenerator.generateXCharID).makedirs_p()
         fl = tmpfolder.joinpath('%n %t %W')
         self._do(session, ['log', 'off'])
         self._do(session, ['logfile', fl])
@@ -185,7 +185,7 @@ rm -f %s
         sessions=self.getSessions()
         for pid,name in sessions:
             try:
-                j.system.process.kill(int(pid))
+                j.sal.process.kill(int(pid))
             except:
                 j.console.echo("could not kill screen with pid %s" % pid)
         cmd="screen -wipe" 
@@ -198,12 +198,12 @@ rm -f %s
         for pid,name in sessions:
             if name.strip().lower()==sessionname.strip().lower():
                 try:
-                    j.system.process.kill(int(pid))
+                    j.sal.process.kill(int(pid))
                 except:
                     j.console.echo("could not kill screen with pid %s" % pid)
         cmd="screen -wipe" 
         self._local.execute(cmd, die=False) #todo checking
 
     def attachSession(self,sessionname):
-        #j.system.process.executeWithoutPipe("screen -d -r %s" % sessionname)
+        #j.sal.process.executeWithoutPipe("screen -d -r %s" % sessionname)
         self._local.execute("%s -d -r %s" % (self.screencmd,sessionname))

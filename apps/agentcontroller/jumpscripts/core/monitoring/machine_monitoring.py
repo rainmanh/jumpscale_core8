@@ -62,7 +62,7 @@ def action():
             machine.mem = int(xml.find('memory').text)
 
             machine.netaddr = netaddr
-            machine.lastcheck = j.base.time.getTimeEpoch()
+            machine.lastcheck = j.tools.time.getTimeEpoch()
             machine.state = stateMap.get(domain.state()[0], 'STOPPED')
             machine.cpucore = int(xml.find('vcpu').text)
 
@@ -82,7 +82,7 @@ def action():
                 vdisk.type = disk.find('driver').attrib['type']
                 vdisk.devicename = disk.find('target').attrib['dev']
                 vdisk.machineid = machine.guid
-                vdisk.active = j.system.fs.exists(path)
+                vdisk.active = j.sal.fs.exists(path)
                 if vdisk.active:
                     try:
                         diskinfo = j.sal.qemu_img.info(path)

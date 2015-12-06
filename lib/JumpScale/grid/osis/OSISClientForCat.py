@@ -32,14 +32,14 @@ class OSISClientForCat():
                                 return klass
                         raise RuntimeError("could not find: class $modelname(OsisBaseObject) in model class file, should always be there")
 
-                    pathdir=j.system.fs.joinPaths(j.dirs.varDir,"code","osis",self.namespace)
-                    path=j.system.fs.joinPaths(pathdir,"%s.py" % self.cat)
-                    if j.system.fs.exists(path):
+                    pathdir=j.sal.fs.joinPaths(j.dirs.varDir,"code","osis",self.namespace)
+                    path=j.sal.fs.joinPaths(pathdir,"%s.py" % self.cat)
+                    if j.sal.fs.exists(path):
                         if j.tools.hash.md5_string(content) != j.tools.hash.md5(path):
-                            j.system.fs.remove(path)
-                    if not j.system.fs.exists(path):
-                        j.system.fs.createDir(pathdir)
-                        j.system.fs.writeFile(filename=path,contents=content)
+                            j.sal.fs.remove(path)
+                    if not j.sal.fs.exists(path):
+                        j.sal.fs.createDir(pathdir)
+                        j.sal.fs.writeFile(filename=path,contents=content)
                     try:
                         module = imp.load_source('osis_model_%s_%s' % (self.namespace, self.cat), path)
                     except Exception as e:

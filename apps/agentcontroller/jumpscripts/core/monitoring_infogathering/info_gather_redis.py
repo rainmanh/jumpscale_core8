@@ -34,7 +34,7 @@ def action():
     result = dict()
     for instance, ports_val in ports.items():
         for port in ports_val:
-            pids = j.system.process.getPidsByPort(port)
+            pids = j.sal.process.getPidsByPort(port)
             if not pids:
                 result[port] = {'state': 'HALTED', 'memory_usage': 0, 'memory_max': 0}
             else:

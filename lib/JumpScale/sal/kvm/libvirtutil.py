@@ -23,7 +23,7 @@ class LibvirtUtil(object):
         atexit.register(self.close)
         self.basepath = '/mnt/vmstor/kvm'
         self.templatepath = '/mnt/vmstor/kvm/images'
-        self.env = Environment(loader=FileSystemLoader(j.system.fs.joinPaths(j.system.fs.getParent(__file__), 'templates')))
+        self.env = Environment(loader=FileSystemLoader(j.sal.fs.joinPaths(j.sal.fs.getParent(__file__), 'templates')))
 
     def open(self):
         uri = None
@@ -265,8 +265,8 @@ class LibvirtUtil(object):
 
     def _getLockFile(self, domainid):
         LOCKPATH = '%s/domain_locks'%j.dirs.varDir
-        if not j.system.fs.exists(LOCKPATH):
-            j.system.fs.createDir(LOCKPATH)
+        if not j.sal.fs.exists(LOCKPATH):
+            j.sal.fs.createDir(LOCKPATH)
         lockfile = '%s/%s.lock' % (LOCKPATH, domainid)
         return lockfile
 
@@ -274,17 +274,17 @@ class LibvirtUtil(object):
     def _lockDomain(self, domainid):
         if self.isLocked(domainid):
             return LOCKEXIST
-        j.system.fs.writeFile(self._getLockFile(domainid), str(time.time()))
+        j.sal.fs.writeFile(self._getLockFile(domainid), str(time.time()))
         return LOCKCREATED
 
     def _unlockDomain(self, domainid):
         if not self.isLocked(domainid):
             return NOLOCK
-        j.system.fs.remove(self._getLockFile(domainid))
+        j.sal.fs.remove(self._getLockFile(domainid))
         return LOCKREMOVED
 
     def isLocked(self, domainid):
-        if j.system.fs.exists(self._getLockFile(domainid)):
+        if j.sal.fs.exists(self._getLockFile(domainid)):
             return True
         else:
             return False
@@ -416,7 +416,7 @@ class LibvirtUtil(object):
             if not os.path.exists(poolpath):
                 os.makedirs(poolpath)
                 cmd = 'chattr +C %s ' % poolpath
-                j.system.process.execute(cmd, dieOnNonZeroExitCode=False, outputToStdout=False, useShell=False, ignoreErrorOutput=False)
+                j.sal.process.execute(cmd, dieOnNonZeroExitCode=False, outputToStdout=False, useShell=False, ignoreErrorOutput=False)
             pool = self.env.get_template('pool.xml').render(poolname=poolname, basepath=self.basepath)
             self.connection.storagePoolCreateXML(pool, 0)
         return True
@@ -486,20 +486,20 @@ class LibvirtUtil(object):
             return False
 
     def createVMStorSnapshot(self, name):
-        vmstor_snapshot_path = j.system.fs.joinPaths(self.basepath,'snapshots')
-        if not j.system.fs.exists(vmstor_snapshot_path):
+        vmstor_snapshot_path = j.sal.fs.joinPaths(self.basepath,'snapshots')
+        if not j.sal.fs.exists(vmstor_snapshot_path):
             j.system.btrfs.subvolumeCreate(self.basepath, 'snapshots')
-        vmstorsnapshotpath = j.system.fs.joinPaths(vmstor_snapshot_path, name)
+        vmstorsnapshotpath = j.sal.fs.joinPaths(vmstor_snapshot_path, name)
         j.system.btrfs.snapshotReadOnlyCreate(self.basepath, vmstorsnapshotpath)
         return True
 
     def deleteVMStorSnapshot(self, name):
-        vmstor_snapshot_path = j.system.fs.joinPaths(self.basepath,'snapshots')
+        vmstor_snapshot_path = j.sal.fs.joinPaths(self.basepath,'snapshots')
         j.system.btrfs.subvolumeDelete(vmstor_snapshot_path,name)
         return True
 
     def listVMStorSnapshots(self):
-        vmstor_snapshot_path = j.system.fs.joinPaths(self.basepath,'snapshots')
+        vmstor_snapshot_path = j.sal.fs.joinPaths(self.basepath,'snapshots')
         return j.system.btrfs.subvolumeList(vmstor_snapshot_path)
 
     def _generateRandomMacAddress(self):
@@ -524,14 +524,14 @@ class LibvirtUtil(object):
         #dnsmasq = DNSMasq()
         #nsid = '%04d' % networkid
         #namespace = 'ns-%s' % nsid
-        #config_path = j.system.fs.joinPaths(j.dirs.varDir, 'vxlan',nsid)
+        #config_path = j.sal.fs.joinPaths(j.dirs.varDir, 'vxlan',nsid)
         #dnsmasq.setConfigPath(nsid, config_path)
         #dnsmasq.addHost(macaddress, ipaddress,name)
 
     def _create_disk(self, vm_id, image_name, size=10, disk_role='base'):
         disktemplate = self.env.get_template("disk.xml")
         diskname = vm_id + '-' + disk_role + '.qcow2'
-        diskbasevolume = j.system.fs.joinPaths(self.templatepath, image_name, '%s.qcow2' % image_name)
+        diskbasevolume = j.sal.fs.joinPaths(self.templatepath, image_name, '%s.qcow2' % image_name)
         diskxml = disktemplate.render({'diskname': diskname, 'diskbasevolume':
                                        diskbasevolume, 'disksize': size})
         self.create_disk(diskxml, vm_id)

@@ -22,9 +22,9 @@ class ActionsBaseNode(object):
         key = "%s__%s" % (serviceObj.domain, serviceObj.name)
         flist = '%s.flist' % key
 
-        tmpDir = j.system.fs.getTmpDirPath()
-        j.system.fs.createDir(tmpDir)
-        mdPath = j.system.fs.joinPaths(tmpDir, flist)
+        tmpDir = j.sal.fs.getTmpDirPath()
+        j.sal.fs.createDir(tmpDir)
+        mdPath = j.sal.fs.joinPaths(tmpDir, flist)
 
         for client in j.atyourservice.findServices(role='ays_stor_client'):
             if client.name == 'ays_stor_client.http':
@@ -38,12 +38,12 @@ class ActionsBaseNode(object):
                     print("Can't download flist file from %s: %s" % (url, err))
                     continue # try from another client
 
-                content = j.system.fs.fileGetContents(mdPath)
+                content = j.sal.fs.fileGetContents(mdPath)
                 for line in content.splitlines():
                     path, hash, size = line.split("|")
-                    j.system.fs.createDir(j.system.fs.getParent(path))
+                    j.sal.fs.createDir(j.sal.fs.getParent(path))
 
-                    if j.system.fs.exists(path):
+                    if j.sal.fs.exists(path):
                         # don't donwload if we already have the file
                         if j.tools.hash.md5(path) == hash:
                             continue
@@ -66,12 +66,12 @@ class ActionsBaseNode(object):
                 src = '%s:%s/dedupe/md/%s' % (addr, root, flist)
                 j.do.copyTree(src, mdPath, deletefirst=True, overwriteFiles=True, ssh=True, sshport=port, recursive=False)
 
-                content = j.system.fs.fileGetContents(mdPath)
+                content = j.sal.fs.fileGetContents(mdPath)
                 for line in content.splitlines():
                     path, hash, size = line.split("|")
-                    j.system.fs.createDir(j.system.fs.getParent(path))
+                    j.sal.fs.createDir(j.sal.fs.getParent(path))
 
-                    if j.system.fs.exists(path):
+                    if j.sal.fs.exists(path):
                         # don't donwload if we already have the file
                         if j.tools.hash.md5(path) == hash:
                             continue
@@ -88,18 +88,18 @@ class ActionsBaseNode(object):
                 break
 
     def _installFromAysFS(self, serviceObj):
-        if j.system.fs.exists(ays_cfg):
+        if j.sal.fs.exists(ays_cfg):
             import pytoml
             key = "%s__%s" % (serviceObj.domain, serviceObj.name)
 
-            s = j.system.fs.fileGetContents('/etc/ays/aysfs.toml')
+            s = j.sal.fs.fileGetContents('/etc/ays/aysfs.toml')
             cfg = pytoml.loads(s)
             installed = [s['id'] for s in cfg['ays']]
 
             if key not in installed:
                 cfg['ays'].append({'id': key})
-                j.system.fs.writeFile(filename='/etc/ays/aysfs.toml', contents=pytoml.dumps(cfg))
-                j.system.process.killProcessByName('aysfs', 10)
+                j.sal.fs.writeFile(filename='/etc/ays/aysfs.toml', contents=pytoml.dumps(cfg))
+                j.sal.process.killProcessByName('aysfs', 10)
 
     def install(self, serviceObj):
         # nothing to install for this service
@@ -107,7 +107,7 @@ class ActionsBaseNode(object):
             return
 
         ays_cfg = '/etc/ays/aysfs.toml'
-        if j.system.fs.exists(ays_cfg):
+        if j.sal.fs.exists(ays_cfg):
             self._installFromAYSFS(serviceObj)
 
         elif len(j.atyourservice.findServices(role='ays_stor_client')) > 0:
@@ -128,7 +128,7 @@ class ActionsBaseNode(object):
             for src in serviceObj.hrd_template.getListFromPrefix("ubuntu.apt.source"):
                 src = src.replace(";", ":")
                 if src.strip() != "":
-                    j.system.platform.ubuntu.addSourceUri(src)
+                    j.sal.ubuntu.addSourceUri(src)
 
             for src in serviceObj.hrd_template.getListFromPrefix("ubuntu.apt.key.pub"):
                 src = src.replace(";", ":")
@@ -147,7 +147,7 @@ class ActionsBaseNode(object):
                 packages = serviceObj.hrd_template.getList("ubuntu.packages")
                 packages = [pkg.strip() for pkg in packages if pkg.strip() != ""]
                 if packages:
-                    j.system.platform.ubuntu.install(" ".join(packages))
+                    j.sal.ubuntu.install(" ".join(packages))
                     # j.do.execute("apt-get install -y -f %s" % " ".join(packages), dieOnNonZeroExitCode=True)
         return True
 
@@ -208,11 +208,11 @@ class ActionsBaseNode(object):
                 name = "%s.%d" % (name, i)
             log("Starting %s:%s" % (domain, name))
 
-            j.system.fs.remove(serviceObj.logPath)
+            j.sal.fs.remove(serviceObj.logPath)
 
             if startupmethod == 'upstart':
                 # check if we are in our docker image which uses myinit instead of upstart
-                if j.system.fs.exists(path="/etc/my_init.d/"):
+                if j.sal.fs.exists(path="/etc/my_init.d/"):
                     cmd2="%s %s"%(tcmd,targs)
                     extracmds=""
                     if cmd2.find(";")!=-1:
@@ -221,15 +221,15 @@ class ActionsBaseNode(object):
                         cmd2=parts[-1]
 
                     C="#!/bin/sh\nset -e\ncd %s\nrm -f /var/log/%s.log\n%s\nexec %s >>/var/log/%s.log 2>&1\n"%(cwd,name,extracmds,cmd2,name)
-                    j.system.fs.remove("/var/log/%s.log"%name)
-                    j.system.fs.createDir("/etc/service/%s"%name)
+                    j.sal.fs.remove("/var/log/%s.log"%name)
+                    j.sal.fs.createDir("/etc/service/%s"%name)
                     path2="/etc/service/%s/run"%name
-                    j.system.fs.writeFile(path2, C)
-                    j.system.fs.chmod(path2,0o770)
+                    j.sal.fs.writeFile(path2, C)
+                    j.sal.fs.chmod(path2,0o770)
                     j.do.execute("sv start %s"%name,dieOnNonZeroExitCode=False, outputStdout=False,outputStderr=False, captureout=False)
                 else:
-                    j.system.platform.ubuntu.serviceInstall(name, tcmd, pwd=cwd, env=env)
-                    j.system.platform.ubuntu.startService(name)
+                    j.sal.ubuntu.serviceInstall(name, tcmd, pwd=cwd, env=env)
+                    j.sal.ubuntu.startService(name)
 
             elif startupmethod=="tmux":
                 j.sal.screen.executeInScreen(domain,name,tcmd+" "+targs,cwd=cwd, env=env,user=tuser)#, newscr=True)
@@ -249,7 +249,7 @@ class ActionsBaseNode(object):
 
                 # if msg=="" and pids!=[]:
                 #     for pid in pids:
-                #         test=j.system.process.isPidAlive(pid)
+                #         test=j.sal.process.isPidAlive(pid)
                 #         if test==False:
                 #             msg="Could not start, pid:%s was not alive."%pid
 
@@ -276,8 +276,8 @@ class ActionsBaseNode(object):
 
         isrunning = self.check_up(serviceObj)
         if isrunning is False:
-            if j.system.fs.exists(path=serviceObj.logPath):
-                logc = j.system.fs.fileGetContents(serviceObj.logPath).strip()
+            if j.sal.fs.exists(path=serviceObj.logPath):
+                logc = j.sal.fs.fileGetContents(serviceObj.logPath).strip()
             else:
                 logc = ""
 
@@ -309,10 +309,10 @@ class ActionsBaseNode(object):
             for pid in self._get_pids(serviceObj,[process]):
                 if pid not in currentpids :
                     try:
-                        j.system.process.kill(-pid, signal.SIGTERM)
+                        j.sal.process.kill(-pid, signal.SIGTERM)
                     except Exception as e:
                         if e.message.find('Could not kill process with id %s.' % -pid) != -1:
-                            j.system.process.kill(pid, signal.SIGTERM)
+                            j.sal.process.kill(pid, signal.SIGTERM)
 
 
             startupmethod=process["startupmanager"]
@@ -321,12 +321,12 @@ class ActionsBaseNode(object):
             if nbr is not None:
                 name = "%s.%d" % (name, i)
 
-            if j.system.fs.exists(path="/etc/my_init.d/%s"%name):
+            if j.sal.fs.exists(path="/etc/my_init.d/%s"%name):
                 print("stop through myinitd:%s"%name)
                 j.do.execute("sv stop %s"%name,dieOnNonZeroExitCode=False, outputStdout=False,outputStderr=False, captureout=False)
             elif startupmethod == "upstart":
                 print("stop through upstart:%s"%name)
-                j.system.platform.ubuntu.stopService(name)
+                j.sal.ubuntu.stopService(name)
             elif startupmethod=="tmux":
                 print("stop tmux:%s %s"%(domain,name))
 
@@ -359,9 +359,9 @@ class ActionsBaseNode(object):
             processes = serviceObj.getProcessDicts()
         for process in processes:
             for port in serviceObj.getTCPPorts(process):
-                pids.update(j.system.process.getPidsByPort(port))
+                pids.update(j.sal.process.getPidsByPort(port))
             if process.get('filterstr', None):
-                pids.update(j.system.process.getPidsByFilter(process['filterstr']))
+                pids.update(j.sal.process.getPidsByFilter(process['filterstr']))
         return list(pids)
 
     def halt(self,serviceObj):
@@ -371,7 +371,7 @@ class ActionsBaseNode(object):
         currentpids = (os.getpid(), os.getppid())
         for pid in self._get_pids(serviceObj):
             if pid not in currentpids :
-                j.system.process.kill(pid, signal.SIGKILL)
+                j.sal.process.kill(pid, signal.SIGKILL)
         if not self.check_down_local(serviceObj):
             j.events.opserror_critical("could not halt:%s"%self,"service.halt")
         return True
@@ -388,7 +388,7 @@ class ActionsBaseNode(object):
                 if nbr is not None:
                     name = "%s.%d" % (name, i)
                 # check if we are in our docker image which uses myinit instead of upstart
-                if j.system.fs.exists(path="/etc/my_init.d/"):
+                if j.sal.fs.exists(path="/etc/my_init.d/"):
                     _, res, _ = j.do.execute("sv status %s" % name, dieOnNonZeroExitCode=False,
                                              outputStdout=False, outputStderr=False, captureout=True)
                     if res.startswith('ok'):
@@ -396,7 +396,7 @@ class ActionsBaseNode(object):
                     else:
                         return False
                 else:
-                    return j.system.platform.ubuntu.statusService(name)
+                    return j.sal.ubuntu.statusService(name)
             else:
                 ports = serviceObj.getTCPPorts()
                 timeout = process["timeout_start"]
@@ -420,12 +420,12 @@ class ActionsBaseNode(object):
                     if filterstr=="":
                         raise RuntimeError("Process filterstr cannot be empty.")
 
-                    start = j.base.time.getTimeEpoch()
+                    start = j.tools.time.getTimeEpoch()
                     now = start
                     while now <= start+timeout:
-                        if j.system.process.checkProcessRunning(filterstr):
+                        if j.sal.process.checkProcessRunning(filterstr):
                             return True
-                        now = j.base.time.getTimeEpoch()
+                        now = j.tools.time.getTimeEpoch()
                     return False
         processes = serviceObj.getProcessDicts()
         for i, process in enumerate(processes):
@@ -467,7 +467,7 @@ class ActionsBaseNode(object):
                 filterstr=process["filterstr"].strip()
                 if filterstr=="":
                     raise RuntimeError("Process filterstr cannot be empty.")
-                return j.system.process.checkProcessRunning(filterstr)==False
+                return j.sal.process.checkProcessRunning(filterstr)==False
 
         for process in serviceObj.getProcessDicts():
             result=do(process)

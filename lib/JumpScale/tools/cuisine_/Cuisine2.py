@@ -4,7 +4,7 @@ from JumpScale import j
 import copy
 
 
-# j.system.platform.ubuntu.check()
+# j.sal.ubuntu.check()
 
 
 # -*- coding: utf-8 -*-
@@ -234,13 +234,28 @@ def text_template(text, variables):
 
 
 class OurCuisineFactory:
-    def get(self,executor):
+    def __init__(self):
+        self._local=None
+
+    @property
+    def local(self):
+        if self._local==None:
+            self._local=OurCuisine(j.tools.executor.getLocal())
+        return self._local
+
+    def get(self,executor=None):
         """
         example:
         executor=j.tools.executor.getSSHBased(addr='localhost', port=22,login="root",passwd="1234)
         cuisine=j.tools.cuisine.get(executor)
         cuisine.upstart_ensure("apache2")
+
+        or if used without executor then will be the local one
+
         """
+        
+        if executor==None:
+            executor=j.tools.executor.getLocal()
 
         return OurCuisine(executor)
 
@@ -755,7 +770,7 @@ class OurCuisine():
         if content[-1]!="\n":
             content+="\n"
         content+="\necho **DONE**\n"
-        path="/tmp/%s.sh"%j.base.idgenerator.generateRandomInt(0,10000)
+        path="/tmp/%s.sh"%j.tools.idgenerator.generateRandomInt(0,10000)
         self.file_write(location=path, content=content, mode=0o770, owner="root", group="root")
         out=self.run("sh %s"%path)
         self.file_unlink(path)
@@ -861,7 +876,7 @@ class OurCuisine():
         execute a jumpscript (script as content) in a remote tmux command, the stdout will be returned
         """
         script=j.tools.text.lstrip(script)
-        path="/tmp/jumpscript_temp_%s.py"%j.base.idgenerator.generateRandomInt(1,10000)
+        path="/tmp/jumpscript_temp_%s.py"%j.tools.idgenerator.generateRandomInt(1,10000)
         self.connection.file_write(path,script)
         out=self.tmux_execute("jspython %s"%path)
         self.connection.file_unlink(path)
@@ -1023,7 +1038,7 @@ class OurCuisine():
         else:
             return None
 
-    def user_ensure(self,name, passwd=None, home=None, uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True):
+    def user_ensure(self,name, passwd=None, home=None, uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True,group=None):
         """Ensures that the given users exists, optionally updating their
         passwd/home/uid/gid/shell."""
         d = self.user_check(name)
@@ -1045,6 +1060,8 @@ class OurCuisine():
                 self.sudo("usermod %s '%s'" % (" ".join(options), name))
             if passwd:
                 self.user_passwd(name=name, passwd=passwd, encrypted_passwd=encrypted_passwd)
+        if group!=None:
+            self.group_user_add(group=group, user=name)
 
 
     def user_remove(self,name, rmhome=None):
@@ -1055,14 +1072,14 @@ class OurCuisine():
             options.append("-r")
         self.sudo("userdel %s '%s'" % (" ".join(options), name))
 
-    def group_create_linux(self,name, gid=None):
+    def group_create(self,name, gid=None):
         """Creates a group with the given name, and optionally given gid."""
         options = []
         if gid:
             options.append("-g '%s'" % (gid))
         self.sudo("groupadd %s '%s'" % (" ".join(options), name))
 
-    def group_check_linux(self,name):
+    def group_check(self,name):
         """Checks if there is a group defined with the given name,
         returning its information as:
         '{"name":<str>,"gid":<str>,"members":<list[str]>}'
@@ -1081,7 +1098,7 @@ class OurCuisine():
         else:
             return None
 
-    def group_ensure_linux(self,name, gid=None):
+    def group_ensure(self,name, gid=None):
         """Ensures that the group with the given name (and optional gid)
         exists."""
         d = self.group_check(name)
@@ -1091,7 +1108,7 @@ class OurCuisine():
             if gid != None and d.get("gid") != gid:
                 self.sudo("groupmod -g %s '%s'" % (gid, name))
 
-    def group_user_check_linux(self,group, user):
+    def group_user_check(self,group, user):
         """Checks if the given user is a member of the given group. It
         will return 'False' if the group does not exist."""
         d = self.group_check(group)
@@ -1100,13 +1117,13 @@ class OurCuisine():
         else:
             return user in d["members"]
 
-    def group_user_add_linux(self,group, user):
+    def group_user_add(self,group, user):
         """Adds the given user/list of users to the given group/groups."""
         assert self.group_check(group), "Group does not exist: %s" % (group)
         if not self.group_user_check(group, user):
             self.sudo("usermod -a -G '%s' '%s'" % (group, user))
 
-    def group_user_ensure_linux(self,group, user):
+    def group_user_ensure(self,group, user):
         """Ensure that a given user is a member of a given group."""
         d = self.group_check(group)
         if not d:
@@ -1115,7 +1132,7 @@ class OurCuisine():
         if user not in d["members"]:
             self.group_user_add(group, user)
 
-    def group_user_del_linux(self,group, user):
+    def group_user_del(self,group, user):
             """remove the given user from the given group."""
             assert self.group_check(group), "Group does not exist: %s" % (group)
             if self.group_user_check(group, user):
@@ -1125,7 +1142,7 @@ class OurCuisine():
                     else:
                             self.sudo("usermod -G '' '%s'" % (user))
 
-    def group_remove_linux(self,group=None, wipe=False):
+    def group_remove(self,group=None, wipe=False):
         """ Removes the given group, this implies to take members out the group
         if there are any.  If wipe=True and the group is a primary one,
         deletes its user as well.

@@ -15,4 +15,4 @@ roles = []
 log=False
 
 def action(cmd="hostname -a"):
-    return j.system.process.execute(cmd, dieOnNonZeroExitCode=False)
+    return j.sal.process.execute(cmd, dieOnNonZeroExitCode=False)

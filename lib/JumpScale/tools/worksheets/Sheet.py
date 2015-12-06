@@ -152,7 +152,7 @@ class Row(j.code.classGetBase()):
         variation = int(float(variation) * 100.0)
         roundd = self.ttype in ["perc", "int"]
         for x in range(start, stop + 1):
-            self.cells[x] = self.cells[x] - variation / 200 + float(j.base.idgenerator.generateRandomInt(1, variation)) / 100
+            self.cells[x] = self.cells[x] - variation / 200 + float(j.tools.idgenerator.generateRandomInt(1, variation)) / 100
             if roundd:
                 self.cells[x] = int(self.cells[x])
 
@@ -197,7 +197,7 @@ class Row(j.code.classGetBase()):
         variation = int(variation)
         changeMin = int(val - variation)
         changeMax = int(val + variation)
-        gd = j.base.idgenerator.generateRandomInt(changeMin, changeMax)
+        gd = j.tools.idgenerator.generateRandomInt(changeMin, changeMax)
         return gd
 
     def _getVariationPositive(self, change, variation):
@@ -209,7 +209,7 @@ class Row(j.code.classGetBase()):
             raise RuntimeError("Variation cannot be more than 1 and not less than 0.")
         changeMin = int(100.0 * (change - variation * change))
         changeMax = int(100.0 * (change + variation * change))
-        gd = float(j.base.idgenerator.generateRandomInt(changeMin, changeMax) / 100.0)
+        gd = float(j.tools.idgenerator.generateRandomInt(changeMin, changeMax) / 100.0)
         return gd
 
     def goDown(self, start, stop, godown, nrSteps, hvariation, vvariation, isActiveFunction=None):
@@ -406,7 +406,7 @@ class Row(j.code.classGetBase()):
             for x in range(0, standstill):
                 self.cells[x] = self.defval
 
-        if not j.basetype.list.check(data):
+        if not j.core.types.list.check(data):
             if data == None:
                 self.cells[0] = float(startval)
             elif str(data).find(",") == -1 and str(data).find(":") == -1:

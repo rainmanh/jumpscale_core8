@@ -41,7 +41,7 @@ def action():
         devs = device['devices'].split(',')
 
         if fstype == 'btrfs':
-            btrfsdata = j.system.process.execute('btrfs filesystem show').replace('\n', '')
+            btrfsdata = j.sal.process.execute('btrfs filesystem show').replace('\n', '')
             lines = btrfsdata.split('Label:')
             for line in lines:
                 if devs[0] in line:
@@ -51,7 +51,7 @@ def action():
                             break
 
         elif fstype.startswith('raid'):
-            mdstat = j.system.fs.fileGetContents('/proc/mdstat')
+            mdstat = j.sal.fs.fileGetContents('/proc/mdstat')
             if fstype not in mdstat:
                 j.tools.watchdog.client.send("disk.mirror", 'CRITICAL', -1)
             else:

@@ -46,8 +46,8 @@ class ErrorConditionHandler():
             if j.sal.nettools.tcpPortConnectionTest("localhost", 9999, timeout=None):
                 self.redis=j.clients.redis.getGeventRedisClient("localhost", 9999, fromcache=True, password='')
                 luapath="%s/core/errorhandling/eco.lua"%j.dirs.jsLibDir
-                if j.system.fs.exists(path=luapath):
-                    lua=j.system.fs.fileGetContents(luapath)
+                if j.sal.fs.exists(path=luapath):
+                    lua=j.sal.fs.fileGetContents(luapath)
                     self.escalateToRedis=self.redis.register_script(lua)
 
         if self.redis!=None and self.escalateToRedis!=None:
@@ -524,8 +524,8 @@ class ErrorConditionHandler():
                 #j.console.echo("THIS ONLY WORKS WHEN GEDIT IS INSTALLED")
                 editor = findEditorLinux()
             elif j.system.platformtype.isWindows():
-                editorPath = j.system.fs.joinPaths(j.dirs.baseDir,"apps","wscite","scite.exe")
-                if j.system.fs.exists(editorPath):
+                editorPath = j.sal.fs.joinPaths(j.dirs.baseDir,"apps","wscite","scite.exe")
+                if j.sal.fs.exists(editorPath):
                     editor = editorPath
             tracefile=errorConditionObject.log2filesystem()
             #print "EDITOR FOUND:%s" % editor            
@@ -547,9 +547,9 @@ class ErrorConditionHandler():
                     cmd="%s '%s'" % (editor,tracefile)
                     #print "EDITORCMD: %s" %cmd
                     if editor=="less":
-                        j.system.process.executeWithoutPipe(cmd,dieOnNonZeroExitCode=False)
+                        j.sal.process.executeWithoutPipe(cmd,dieOnNonZeroExitCode=False)
                     else:
-                        result,out=j.system.process.execute(cmd,dieOnNonZeroExitCode=False, outputToStdout=False)
+                        result,out=j.sal.process.execute(cmd,dieOnNonZeroExitCode=False, outputToStdout=False)
                     
                 j.logger.clear()
                 if res == "c":

@@ -32,7 +32,7 @@ class Job(OsisBaseObject):
             self.parent=None
             self.resultcode=None
             self.state="SCHEDULED" #SCHEDULED,STARTED,ERROR,OK,NOWORK
-            self.timeStart=j.base.time.getTimeEpoch()
+            self.timeStart=j.tools.time.getTimeEpoch()
             self.timeStop=0
             self.log=log
             self.errorreport=errorreport

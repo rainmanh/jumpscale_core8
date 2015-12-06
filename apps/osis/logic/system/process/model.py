@@ -28,7 +28,7 @@ class Process(OsisBaseObject):
                 self.systempids=[]
             self.guid = ""
             # self.sguid = None
-            self.epochstart = j.base.time.getTimeEpoch()
+            self.epochstart = j.tools.time.getTimeEpoch()
             self.epochstop = 0
             self.active = True
             self.lastcheck=0 #epoch of last time the info was checked from reality
@@ -67,7 +67,7 @@ class Process(OsisBaseObject):
         #     key=self.pname
 
         self.guid = "%s_%s" % (self.gid, self.id)
-        self.lastcheck=j.base.time.getTimeEpoch() 
+        self.lastcheck=j.tools.time.getTimeEpoch() 
         return self.guid
 
     def getContentKey(self):

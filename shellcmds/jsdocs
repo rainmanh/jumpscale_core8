@@ -1,5 +1,5 @@
 #!/usr/bin/env jspython
-from JumpScale.baselib import cmdutils
+from JumpScale.tools import cmdutils
 from JumpScale import j
 from html.parser import HTMLParser
 from xml.etree import cElementTree as etree
@@ -50,7 +50,7 @@ if args.action == 'generate':
     print("UPDATED")
 
     print("\nConverting Confluence to RST...")
-    j.system.process.execute("""cd /opt/code/github/jumpscale/jumpscale_prototypes/prototypes/confluence2rst; python confluence2rst.py""")
+    j.sal.process.execute("""cd /opt/code/github/jumpscale/jumpscale_prototypes/prototypes/confluence2rst; python confluence2rst.py""")
     print("Converted")
 
     gencl.addRemoveFiles()

@@ -43,7 +43,7 @@ class Alert(OsisBaseObject):
             self.load(ddict)
         else:
             if guid=="":
-                self.guid=j.base.idgenerator.generateGUID()
+                self.guid=j.tools.idgenerator.generateGUID()
             else:
                 self.guid=guid
             self.id = self.guid
@@ -109,7 +109,7 @@ class Alert(OsisBaseObject):
         use osis to define & set unique guid (sometimes also id)
         """
         if not self.guid:
-            self.guid = j.base.idgenerator.generateGUID()
+            self.guid = j.tools.idgenerator.generateGUID()
             self.id = self.guid
         return self.guid
 

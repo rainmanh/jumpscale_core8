@@ -23,11 +23,11 @@ class ServiceTemplate(object):
 
     def __init__(self, path, domain=""):
         self.path = path
-        # self._path_actions_py = j.system.fs.joinPaths(self.path, 'actions_tmpl.py')
-        self.path_hrd_template = j.system.fs.joinPaths(self.path, "service.hrd")
-        self.path_hrd_instance = j.system.fs.joinPaths(self.path, "instance.hrd")
+        # self._path_actions_py = j.sal.fs.joinPaths(self.path, 'actions_tmpl.py')
+        self.path_hrd_template = j.sal.fs.joinPaths(self.path, "service.hrd")
+        self.path_hrd_instance = j.sal.fs.joinPaths(self.path, "instance.hrd")
 
-        base = j.system.fs.getBaseName(path)
+        base = j.sal.fs.getBaseName(path)
 
         _, self. name, self.version, _, _ = j.atyourservice.parseKey(base)
         if base.find("__") != -1:
@@ -45,14 +45,14 @@ class ServiceTemplate(object):
         self.builder = ServiceTemplateBuilder()
 
     def _path_action(self, actionType):
-        return j.system.fs.joinPaths(self.path, "%s.py" % actionType)
+        return j.sal.fs.joinPaths(self.path, "%s.py" % actionType)
 
     @property
     def hrd_template(self):
         if self._hrd:
             return self._hrd
         hrdpath = self.path_hrd_template
-        if not j.system.fs.exists(hrdpath):
+        if not j.sal.fs.exists(hrdpath):
             # check if we can find it in other ays template
             if self.name.find(".") != -1:
                 name = self.name.split(".", 1)[0]
@@ -71,7 +71,7 @@ class ServiceTemplate(object):
         if self._hrd_instance:
             return self._hrd_instance
         hrdpath = self.path_hrd_instance
-        if not j.system.fs.exists(hrdpath):
+        if not j.sal.fs.exists(hrdpath):
             # check if we can find it in other ays instance
             if self.name.find(".") != -1:
                 name = self.name.split(".", 1)[0]
@@ -97,7 +97,7 @@ class ServiceTemplate(object):
     def path_actions_tmpl(self):
         return self._path_action("actions_tmpl")
         # actionPy = self._path_actions_py
-        # if j.system.fs.exists(actionPy):
+        # if j.sal.fs.exists(actionPy):
         #     self._path_actions_py = actionPy
         # else:
         #     # check if we can find it in other ays template
@@ -138,18 +138,18 @@ class ServiceTemplate(object):
             if path != "" and path is not None:
                 fullpath = path
             elif parent is not None:
-                fullpath = j.system.fs.joinPaths(parent.path, basename)
+                fullpath = j.sal.fs.joinPaths(parent.path, basename)
             else:
                 ppath = j.dirs.amInAYSRepo()
                 if ppath is None:
                     ppath = "/etc/ays/local/"
                 else:
                     ppath = "%s/services/" % (ppath)
-                fullpath = j.system.fs.joinPaths(ppath, basename)
+                fullpath = j.sal.fs.joinPaths(ppath, basename)
 
-            if j.system.fs.isDir(fullpath):
-                if j.system.fs.exists(path=j.system.fs.joinPaths(fullpath, "instance_.hrd")):
-                    j.system.fs.removeDirTree(fullpath)
+            if j.sal.fs.isDir(fullpath):
+                if j.sal.fs.exists(path=j.sal.fs.joinPaths(fullpath, "instance_.hrd")):
+                    j.sal.fs.removeDirTree(fullpath)
                 else:
                     j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (name9, instance, fullpath), category="ays.servicetemplate")
 
@@ -182,7 +182,7 @@ class ServiceTemplate(object):
         if self._actions is not None:
             return
         actionPy = self.path_actions_tmpl
-        if j.system.fs.exists(actionPy):
+        if j.sal.fs.exists(actionPy):
             self.hrd_template.applyOnFile(actionPy)
             j.application.config.applyOnFile(actionPy)
             modulename = "JumpScale.atyourservice.%s.%s" % (self.domain, self.name)
@@ -321,19 +321,19 @@ class ServiceTemplate(object):
                                  recipeitem['source'].lstrip('/'))
             dest = recipeitem['dest']
             dest = j.application.config.applyOnContent(dest)
-            destdir = j.system.fs.getDirName(dest)
-            j.system.fs.createDir(destdir)
+            destdir = j.sal.fs.getDirName(dest)
+            j.sal.fs.createDir(destdir)
             # validate md5sum
-            if recipeitem.get('checkmd5', 'false').lower() == 'true' and j.system.fs.exists(dest):
+            if recipeitem.get('checkmd5', 'false').lower() == 'true' and j.sal.fs.exists(dest):
                 remotemd5 = j.system.net.download(
                     '%s.md5sum' % fullurl, '-').split()[0]
                 localmd5 = j.tools.hash.md5(dest)
                 if remotemd5 != localmd5:
-                    j.system.fs.remove(dest)
+                    j.sal.fs.remove(dest)
                 else:
                     continue
-            elif j.system.fs.exists(dest):
-                j.system.fs.remove(dest)
+            elif j.sal.fs.exists(dest):
+                j.sal.fs.remove(dest)
             j.system.net.download(fullurl, dest)
 
         for recipeitem in self.hrd_template.getListFromPrefix("git.export"):
@@ -387,20 +387,20 @@ class ServiceTemplate(object):
                     dest = "/%s" % dest
                 else:
                     if link:
-                        if not j.system.fs.exists(dest):
-                            j.system.fs.createDir(j.do.getParent(dest))
+                        if not j.sal.fs.exists(dest):
+                            j.sal.fs.createDir(j.do.getParent(dest))
                             j.do.symlink(src, dest)
                         elif delete:
                             j.do.delete(dest)
                             j.do.symlink(src, dest)
                     else:
                         print(("copy: %s->%s" % (src, dest)))
-                        if j.system.fs.isDir(src):
-                            j.system.fs.createDir(j.system.fs.getParent(dest))
-                            j.system.fs.copyDirTree(
+                        if j.sal.fs.isDir(src):
+                            j.sal.fs.createDir(j.sal.fs.getParent(dest))
+                            j.sal.fs.copyDirTree(
                                 src, dest, eraseDestination=False, overwriteFiles=delete)
                         else:
-                            j.system.fs.copyFile(
+                            j.sal.fs.copyFile(
                                 src, dest, True, overwriteFile=delete)
                 out.append((src, dest))
                 dirList.extend(out)

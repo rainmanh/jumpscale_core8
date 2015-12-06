@@ -44,8 +44,8 @@ class JumpscriptsCmds():
         import JumpScale.grid.jumpscripts
         j.core.jumpscripts.loadFromAC(self.agentcontroller_client)
 
-        jspath = j.system.fs.joinPaths(j.dirs.baseDir, 'apps', 'processmanager', 'jumpscripts')
-        if not j.system.fs.exists(path=jspath):
+        jspath = j.sal.fs.joinPaths(j.dirs.baseDir, 'apps', 'processmanager', 'jumpscripts')
+        if not j.sal.fs.exists(path=jspath):
             raise RuntimeError("could not find jumpscript directory:%s"%jspath)
         self._loadFromPath(jspath)
 
@@ -67,7 +67,7 @@ class JumpscriptsCmds():
         self.startatboot = list()
         jumpscripts = self.agentcontroller_client.listJumpscripts()
         iddict = { (org, name): jsid for jsid, org, name in jumpscripts }
-        for jscriptpath in j.system.fs.listFilesInDir(path=path, recursive=True, filter="*.py", followSymlinks=True):
+        for jscriptpath in j.sal.fs.listFilesInDir(path=path, recursive=True, filter="*.py", followSymlinks=True):
             js = Jumpscript(path=jscriptpath)
             js.id = iddict.get((js.organization, js.name))
             # print "from local:",

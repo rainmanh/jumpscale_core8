@@ -1,5 +1,5 @@
 #!/usr/bin/env jspython
-from JumpScale.baselib import cmdutils
+from JumpScale.tools import cmdutils
 import sys
 
 parser = cmdutils.ArgumentParser()

@@ -182,7 +182,7 @@ class ControllerCMDS():
                 cmds.scheduleCmd(gid,nid,cmdcategory="pm",jscriptid=0,cmdname="restartWorkers",args={},queue="internal",log=False,timeout=60,roles=[],session=session)
 
     def _setJob(self, job, osis=False):
-        if not j.basetype.dictionary.check(job):
+        if not j.core.types.dict.check(job):
             raise RuntimeError("job needs to be dict")  
         # job guid needs to be unique accoress grid, structure $ac_gid _ $ac_nid _ $executor_gid _ $jobenum
         if not job['guid']:
@@ -284,7 +284,7 @@ class ControllerCMDS():
         node = self.nodeclient.get(nodeid)
         self.daemon.notifyOfNewNode(node, session.id)
         self._setRoles(node.roles, nodeid)
-        self.sessionsUpdateTime[nodeid]=j.base.time.getTimeEpoch()
+        self.sessionsUpdateTime[nodeid]=j.tools.time.getTimeEpoch()
         result = {'node': node.dump()}
         return result
 
@@ -294,7 +294,7 @@ class ControllerCMDS():
         if session.nid:
             node = self.nodeclient.get(nodeid)
             self._setRoles(node.roles, nodeid)
-            self.sessionsUpdateTime[nodeid]=j.base.time.getTimeEpoch()
+            self.sessionsUpdateTime[nodeid]=j.tools.time.getTimeEpoch()
             self._log("register done:%s"%nodeid)
             self._updateNetInfo(session.netinfo, node)
             self.nodeclient.set(node)
@@ -312,9 +312,9 @@ class ControllerCMDS():
         """
         lua_jumpscript_path = 'luajumpscripts'
         available_jumpscripts = list()
-        if j.system.fs.exists(lua_jumpscript_path):
+        if j.sal.fs.exists(lua_jumpscript_path):
             available_jumpscripts =\
-                j.system.fs.listFilesInDir(path=lua_jumpscript_path, recursive=True, filter='*.lua', followSymlinks=True)
+                j.sal.fs.listFilesInDir(path=lua_jumpscript_path, recursive=True, filter='*.lua', followSymlinks=True)
 
         for jumpscript_path in available_jumpscripts:
             jumpscript_metadata = j.core.jumpscripts.introspectLuaJumpscript(jumpscript_path)
@@ -329,9 +329,9 @@ class ControllerCMDS():
         if session!=None:
             self._adminAuth(session.user,session.passwd)
 
-        for path2 in j.system.fs.listFilesInDir(path=path, recursive=True, filter="*.py", followSymlinks=True):
+        for path2 in j.sal.fs.listFilesInDir(path=path, recursive=True, filter="*.py", followSymlinks=True):
 
-            if j.system.fs.getDirName(path2,True)[0]=="_": #skip dirs starting with _
+            if j.sal.fs.getDirName(path2,True)[0]=="_": #skip dirs starting with _
                 continue
 
             try:
@@ -346,7 +346,7 @@ class ControllerCMDS():
 
             name = getattr(script, 'name', "")
             if name=="":
-                name=j.system.fs.getBaseName(path2)
+                name=j.sal.fs.getBaseName(path2)
                 name=name.replace(".py","").lower()
 
             t=self.jumpscriptclient.new(name=name, action=script.module.action)
@@ -536,7 +536,7 @@ class ControllerCMDS():
         returns job as dict
         """
         nodeid = "%s_%s" % (session.gid, session.nid)
-        self.sessionsUpdateTime[nodeid]=j.base.time.getTimeEpoch()
+        self.sessionsUpdateTime[nodeid]=j.tools.time.getTimeEpoch()
         self._log("getwork %s" % session)
         q = self._getWorkQueue(session)
         jobstr=q.get(timeout=30)
@@ -557,7 +557,7 @@ class ControllerCMDS():
         job here is a dict
         """
         self._log("NOTIFY WORK COMPLETED: jobid:%s"%job["id"])
-        if not j.basetype.dictionary.check(job):
+        if not j.core.types.dict.check(job):
             raise RuntimeError("job needs to be dict")            
         saveinosis = job['log'] or job['state'] != 'OK'
         self._setJob(job, osis=saveinosis)
@@ -702,11 +702,11 @@ daemon = j.servers.geventws.getServer(port=port)
 daemon.addCMDsInterface(ControllerCMDS, category="agent")  # pass as class not as object !!! chose category if only 1 then can leave ""
 
 print("load processmanager cmds")
-# j.system.fs.changeDir("processmanager")
+# j.sal.fs.changeDir("processmanager")
 import sys
-sys.path.append(j.system.fs.joinPaths(j.system.fs.getcwd(),"processmanager"))
-for item in j.system.fs.listFilesInDir("processmanager/processmanagercmds",filter="*.py"):
-    name=j.system.fs.getBaseName(item).replace(".py","")
+sys.path.append(j.sal.fs.joinPaths(j.sal.fs.getcwd(),"processmanager"))
+for item in j.sal.fs.listFilesInDir("processmanager/processmanagercmds",filter="*.py"):
+    name=j.sal.fs.getBaseName(item).replace(".py","")
     if name[0]!="_":
         module = importlib.import_module('processmanagercmds.%s' % name)
         classs = getattr(module, name)
@@ -714,7 +714,7 @@ for item in j.system.fs.listFilesInDir("processmanager/processmanagercmds",filte
         tmp=classs()
         daemon.addCMDsInterface(classs, category="processmanager_%s" % tmp._name, proxy=True)
 
-# j.system.fs.changeDir("..")
+# j.sal.fs.changeDir("..")
 
 cmds=daemon.daemon.cmdsInterfaces["agent"]
 cmds.reloadjumpscripts()

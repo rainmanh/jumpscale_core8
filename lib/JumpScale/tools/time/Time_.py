@@ -1,6 +1,4 @@
 
-import time
-
 from JumpScale import j
 
 import struct
@@ -12,16 +10,24 @@ TIMES = {'s': 1,
  'w': 3600 * 24 * 7
 }
 
-from TimeInterval import TimeInterval
 
-class Time:
+import time
+
+from .TimeInterval import TimeInterval
+
+class Time_(object):
     """
     generic provider of time functions
-    lives at j.base.time
+    lives at j.tools.time
     """
 
     def __init__(self):
         self.timeinterval=TimeInterval
+
+    @property
+    def epoch(self):
+        return int(time.time())
+    
 
     def getTimeEpoch(self):
         '''

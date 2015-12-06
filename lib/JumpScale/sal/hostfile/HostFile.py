@@ -21,11 +21,11 @@ class HostFile(SALObject):
         @param ip: Ip of the machine to remove
         """
         # get content of hostsfile
-        filecontents = j.system.fs.fileGetContents(self.hostfilePath)
+        filecontents = j.sal.fs.fileGetContents(self.hostfilePath)
         searchObj = re.search('^%s\s.*\n' %ip, filecontents, re.MULTILINE)
         if searchObj:
             filecontents = filecontents.replace(searchObj.group(0), '')
-            j.system.fs.writeFile(self.hostfilePath, filecontents)
+            j.sal.fs.writeFile(self.hostfilePath, filecontents)
         else:
             j.logger.log('Ip address %s not found in hosts file' %ip, 1)
 
@@ -35,7 +35,7 @@ class HostFile(SALObject):
         @param ip: Ip of the machine to check
         """
         # get content of hostsfile
-        filecontents = j.system.fs.fileGetContents(self.hostfilePath)
+        filecontents = j.sal.fs.fileGetContents(self.hostfilePath)
         res = re.search('^%s\s' %ip, filecontents, re.MULTILINE)
         if res:
             return True
@@ -50,7 +50,7 @@ class HostFile(SALObject):
         """
 
         if self.hostExists( ip):
-            filecontents = j.system.fs.fileGetContents(self.hostfilePath)
+            filecontents = j.sal.fs.fileGetContents(self.hostfilePath)
             searchObj = re.search('^%s\s.*\n' %ip, filecontents, re.MULTILINE)
             hostnames = searchObj.group(0).strip().split()
             hostnames.pop(0)
@@ -66,7 +66,7 @@ class HostFile(SALObject):
         """
         if isinstance(hostname, str):
             hostname = hostname.split()
-        filecontents = j.system.fs.fileGetContents(self.hostfilePath)
+        filecontents = j.sal.fs.fileGetContents(self.hostfilePath)
         searchObj = re.search('^%s\s.*\n' %ip, filecontents, re.MULTILINE)
         
         hostnames = ' '.join(hostname)
@@ -75,6 +75,6 @@ class HostFile(SALObject):
         else:
             filecontents += '%s %s\n' %(ip, hostnames)
 
-        j.system.fs.writeFile(self.hostfilePath, filecontents)
+        j.sal.fs.writeFile(self.hostfilePath, filecontents)
 
 

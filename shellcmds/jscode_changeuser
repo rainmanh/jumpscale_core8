@@ -5,17 +5,17 @@ import JumpScale.baselib.mercurial
 import JumpScale.baselib.jsdeveltools
 
 j.develtools.installer.getCredentialsJumpScaleRepo()
-for item in j.system.fs.listDirsInDir("%s/jumpscale"%j.dirs.codeDir):
-    itembase=j.system.fs.getBaseName(item)
+for item in j.sal.fs.listDirsInDir("%s/jumpscale"%j.dirs.codeDir):
+    itembase=j.sal.fs.getBaseName(item)
     url=j.develtools.installer._getRemoteJSURL(itembase)
-    path=j.system.fs.joinPaths(item,".hg","hgrc")
+    path=j.sal.fs.joinPaths(item,".hg","hgrc")
     print("change login info for %s to user %s"%(item,j.develtools.installer.login))
     C="""
 [paths]
 default = $url
 """    
     C=C.replace("$url",url)
-    j.system.fs.writeFile(path,C)
+    j.sal.fs.writeFile(path,C)
 
 j.application.stop()
 

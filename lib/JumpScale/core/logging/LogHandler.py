@@ -104,7 +104,7 @@ class LogItem(object):
             self.jid = str(jid)
         self.parentjid = str(parentjid)
         self.masterjid = str(masterjid)
-        self.epoch = int(epoch) or j.base.time.getTimeEpoch()
+        self.epoch = int(epoch) or j.tools.time.getTimeEpoch()
         self.order = 0 #will be set by app which gets logs out of redis
         if private == True or int(private) == 1:
             self.private = 1
@@ -162,8 +162,8 @@ class LogHandler(object):
         # if j.sal.nettools.tcpPortConnectionTest("localhost", 9999, timeout=None):
         if j.core.redis!=None:
             luapath="%s/core/logging/logs.lua"%j.dirs.jsLibDir
-            if j.system.fs.exists(path=luapath):
-                lua=j.system.fs.fileGetContents(luapath)
+            if j.sal.fs.exists(path=luapath):
+                lua=j.sal.fs.fileGetContents(luapath)
                 self.redislogging=self.redis.register_script(lua)
 
     def _send2Redis(self,obj):
@@ -250,7 +250,7 @@ class LogHandler(object):
                     if log.category.find(consolecat)!=-1:
                         ccat=log.category
                         ccat=ccat[0:25]
-                        j.console.echo("%s - %-25s - %s"%(j.base.time.epoch2HRDateTime(log.epoch), ccat,log.message), log=False)
+                        j.console.echo("%s - %-25s - %s"%(j.tools.time.epoch2HRDateTime(log.epoch), ccat,log.message), log=False)
                         break
             else:
                 j.console.echo(str(log), log=False)

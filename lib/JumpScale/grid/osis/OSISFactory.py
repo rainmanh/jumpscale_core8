@@ -149,7 +149,7 @@ class OSISFactory:
         if isinstance(obj, str):
             obj = str(obj)
         if not j.core.types.string.check(obj):
-            if j.basetype.dictionary.check(obj):
+            if j.core.types.dict.check(obj):
                 val=obj
             else:
                 val=obj.__dict__
@@ -209,7 +209,7 @@ class OSISFactory:
         """
         return parent class for osis implementation (is the implementation from which each namespace & category inherits)
         """
-        implpath = j.system.fs.joinPaths("logic", namespacename, "OSIS_parent.py")
+        implpath = j.sal.fs.joinPaths("logic", namespacename, "OSIS_parent.py")
         classs = self._loadModuleClass(implpath)
         return classs
 
@@ -226,11 +226,11 @@ class OSISFactory:
         modelNames = j.core.specparser.getModelNames("osismodel", namespace)
 
         if classpath=="":
-            classpath=j.system.fs.joinPaths(j.dirs.varDir,"code","osismodel",namespace)
+            classpath=j.sal.fs.joinPaths(j.dirs.varDir,"code","osismodel",namespace)
 
-        extpath=j.system.fs.getDirName(inspect.getfile(j.clients.osis.get))
-        templpath=j.system.fs.joinPaths(extpath,"_templates","osiscomplextypes")
-        j.system.fs.copyDirTree(templpath, classpath, keepsymlinks=False, eraseDestination=False, \
+        extpath=j.sal.fs.getDirName(inspect.getfile(j.clients.osis.get))
+        templpath=j.sal.fs.joinPaths(extpath,"_templates","osiscomplextypes")
+        j.sal.fs.copyDirTree(templpath, classpath, keepsymlinks=False, eraseDestination=False, \
             skipProtectedDirs=False, overwriteFiles=False, applyHrdOnDestPaths=None)        
                 
         if len(modelNames) > 0:
@@ -258,17 +258,17 @@ class OSISFactory:
                 classnameNew2="%s_%s_osismodelbase"%(namespace,modelName)
                 code=code.replace(classnameGenerated,classnameNew2)
 
-                classpathForModel=j.system.fs.joinPaths(classpath,modelName)
-                j.system.fs.createDir(classpathForModel)
-                classpath3=j.system.fs.joinPaths(classpathForModel,"%s_osismodelbase.py"%classnameNew)
-                j.system.fs.writeFile(filename=classpath3,contents=code)
+                classpathForModel=j.sal.fs.joinPaths(classpath,modelName)
+                j.sal.fs.createDir(classpathForModel)
+                classpath3=j.sal.fs.joinPaths(classpathForModel,"%s_osismodelbase.py"%classnameNew)
+                j.sal.fs.writeFile(filename=classpath3,contents=code)
 
-                mpath=j.system.fs.joinPaths(classpathForModel,"model.py")
-                if not j.system.fs.exists(path=mpath):
-                    j.system.fs.copyFile(j.system.fs.joinPaths(classpath,"model_template.py"),mpath)
-                    content=j.system.fs.fileGetContents(mpath)
+                mpath=j.sal.fs.joinPaths(classpathForModel,"model.py")
+                if not j.sal.fs.exists(path=mpath):
+                    j.sal.fs.copyFile(j.sal.fs.joinPaths(classpath,"model_template.py"),mpath)
+                    content=j.sal.fs.fileGetContents(mpath)
                     content=content.replace("$modelbase","%s"%classnameNew)
-                    j.system.fs.writeFile(filename=mpath,contents=content)
+                    j.sal.fs.writeFile(filename=mpath,contents=content)
 
         return classpath
 
@@ -276,17 +276,17 @@ class OSISFactory:
         import JumpScale.baselib.codegentools
 
         if specpath=="":
-            specpath=j.system.fs.joinPaths("logic", namespace, "model.spec")
+            specpath=j.sal.fs.joinPaths("logic", namespace, "model.spec")
 
-        basepathspec=j.system.fs.getDirName(specpath)
+        basepathspec=j.sal.fs.getDirName(specpath)
 
 
-        if j.system.fs.exists(path=specpath):
+        if j.sal.fs.exists(path=specpath):
             self._generateOsisModelClassFromSpec(namespace,specpath=basepathspec,classpath=basepathspec)
 
     def getModelTemplate(self):
-        extpath=j.system.fs.getDirName(inspect.getfile(j.clients.osis.get))
-        return j.system.fs.joinPaths(extpath,"_templates","model_template.py")
+        extpath=j.sal.fs.getDirName(inspect.getfile(j.clients.osis.get))
+        return j.sal.fs.joinPaths(extpath,"_templates","model_template.py")
 
 
     def getOsisModelClass(self,namespace,category,specpath=""):
@@ -298,16 +298,16 @@ class OSISFactory:
         if key not in self.osisModels:
             # #need to check if there is a specfile or we go from model.py  
             if specpath=="":
-                specpath=j.system.fs.joinPaths("logic", namespace, "model.spec")            
+                specpath=j.sal.fs.joinPaths("logic", namespace, "model.spec")            
 
-            basepathspec=j.system.fs.getDirName(specpath)            
-            basepath=j.system.fs.joinPaths(basepathspec,category)            
-            modelpath=j.system.fs.joinPaths(basepath,"model.py")
+            basepathspec=j.sal.fs.getDirName(specpath)            
+            basepath=j.sal.fs.joinPaths(basepathspec,category)            
+            modelpath=j.sal.fs.joinPaths(basepath,"model.py")
 
-            if j.system.fs.exists(path=modelpath):
+            if j.sal.fs.exists(path=modelpath):
                 if  '__pycache__' in modelpath:
                     return
-                klass= j.system.fs.fileGetContents(modelpath)
+                klass= j.sal.fs.fileGetContents(modelpath)
                 name=""
                 for line in klass.split("\n"):
                     if line.find("(OsisBaseObject")!=-1 and line.find("class ")!=-1:

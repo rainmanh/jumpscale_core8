@@ -25,7 +25,7 @@ class HttpFS(object):
         Initialize connection
         """
         j.logger.log("HttpFS: connection information: server [%s] path [%s]" % (server,path))
-        self.filename = j.system.fs.getBaseName(path)
+        self.filename = j.sal.fs.getBaseName(path)
         self.tempdir=tempdir
 
         # Simple assumption
@@ -39,7 +39,7 @@ class HttpFS(object):
         Initialize connection
         """
         j.logger.log("HttpFS: connection information: server [%s] path [%s]" % (server,path))
-        self.filename = j.system.fs.getBaseName(path)
+        self.filename = j.sal.fs.getBaseName(path)
         self.tempdir=tempdir
 
         # Simple assumption
@@ -52,7 +52,7 @@ class HttpFS(object):
         self.server = server
 
     def _connect(self, suppressErrors=False):
-        if not hasattr(self, 'local_dir') or not self.local_dir: self.local_dir =  '/'.join([self.tempdir , j.base.idgenerator.generateGUID()])
+        if not hasattr(self, 'local_dir') or not self.local_dir: self.local_dir =  '/'.join([self.tempdir , j.tools.idgenerator.generateGUID()])
         self.local_file = '/'.join([self.local_dir , self.filename])
         self.local_dir = self.local_dir.replace('//', '/')
         self.local_file = self.local_file.replace('//', '/')
@@ -95,7 +95,7 @@ class HttpFS(object):
         Download file
         """
         self._connect()
-        j.system.fs.createDir(self.local_dir)
+        j.sal.fs.createDir(self.local_dir)
         j.logger.log("HttpFS: downloading file to local file [%s]" % self.local_file)
         file = open(self.local_file,'wb')
         rb = self.http_socket.read(CHUNKSIZE)
@@ -110,4 +110,4 @@ class HttpFS(object):
         """
         Cleanup http connection and temp file
         """
-        j.system.fs.removeDirTree(self.local_dir)
+        j.sal.fs.removeDirTree(self.local_dir)

@@ -10,8 +10,8 @@ class SystemFSWalker:
     def _checkDepth(path,depths,root=""):
         if depths==[]:
             return True
-        #path=j.system.fs.pathclean(path)
-        path=j.system.fs.pathRemoveDirPart(path,root)
+        #path=j.sal.fs.pathclean(path)
+        path=j.sal.fs.pathRemoveDirPart(path,root)
         for depth in depths:
             dname=os.path.dirname(path)
             split=dname.split(os.sep)
@@ -26,7 +26,7 @@ class SystemFSWalker:
     def _checkContent(path,contentRegexIncludes=[], contentRegexExcludes=[]):
         if contentRegexIncludes==[] and contentRegexExcludes==[]:
             return True
-        content=j.system.fs.fileGetContents(path)
+        content=j.sal.fs.fileGetContents(path)
         if j.codetools.regex.matchMultiple(patterns=contentRegexIncludes,text=content) and not j.codetools.regex.matchMultiple(patterns=contentRegexExcludes,text=content):
             return True
         return False
@@ -90,7 +90,7 @@ class SystemFSWalker:
         @param depths array of depth values e.g. only return depth 0 & 1 (would mean first dir depth and then 1 more deep) (array(int)) 
         
         '''
-        if not j.system.fs.isDir(root):
+        if not j.sal.fs.isDir(root):
             raise ValueError('Root path for walk should be a folder')
         if recursive==False:
             depths=[0]
@@ -125,9 +125,9 @@ class SystemFSWalker:
         pathRegexIncludes=[".*"],pathRegexExcludes=[], contentRegexIncludes=[], contentRegexExcludes=[],\
         depths=[],followlinks=True):
         
-        for path2 in j.system.fs.listFilesAndDirsInDir(path,followSymlinks=followlinks,listSymlinks=True):
+        for path2 in j.sal.fs.listFilesAndDirsInDir(path,followSymlinks=followlinks,listSymlinks=True):
 
-            if j.system.fs.isDir(path2, followlinks):
+            if j.sal.fs.isDir(path2, followlinks):
                 if includeFolders:
                     result=True
                     if j.codetools.regex.matchMultiple(patterns=pathRegexIncludes,text=path2) and \
@@ -141,7 +141,7 @@ class SystemFSWalker:
                 j.system.fswalker._walk(path2,callback,arg, includeFolders, pathRegexIncludes,pathRegexExcludes,\
                         contentRegexIncludes, contentRegexExcludes, depths,followlinks)
         
-            if j.system.fs.isFile(path2, followlinks):
+            if j.sal.fs.isFile(path2, followlinks):
                 if j.codetools.regex.matchMultiple(patterns=pathRegexIncludes,text=path2) and not j.codetools.regex.matchMultiple(patterns=pathRegexExcludes,text=path):
                     if FSWalker._checkDepth(path2,depths,path) and FSWalker._checkContent(path2,contentRegexIncludes, contentRegexExcludes):
                         callback(arg, path2)
@@ -185,7 +185,7 @@ class SystemFSWalker:
         #We want to work with full paths, even if a non-absolute path is provided
         root = os.path.abspath(root)
 
-        if not j.system.fs.isDir(root):
+        if not j.sal.fs.isDir(root):
             raise ValueError('Root path for walk should be a folder')
         
         # print "ROOT OF WALKER:%s"%root
@@ -194,9 +194,9 @@ class SystemFSWalker:
 
     @staticmethod
     def _walkFunctional(path,callbackFunctionFile=None, callbackFunctionDir=None,arg="", callbackForMatchDir=None,callbackForMatchFile=None):
-        for path2 in j.system.fs.listFilesAndDirsInDir(path,listSymlinks=True):
+        for path2 in j.sal.fs.listFilesAndDirsInDir(path,listSymlinks=True):
             # print "walker path:%s"% path2
-            if j.system.fs.isDir(path2, True):
+            if j.sal.fs.isDir(path2, True):
                 # print "walker dirpath:%s"% path2
                 if callbackForMatchDir==None or callbackForMatchDir(path2,arg):
                     #recurse
@@ -209,7 +209,7 @@ class SystemFSWalker:
                             # print "walker recurse:%s"% path2
                             j.system.fswalker._walkFunctional(path2,callbackFunctionFile, callbackFunctionDir,arg, callbackForMatchDir,callbackForMatchFile)
         
-            if j.system.fs.isFile(path2, True):
+            if j.sal.fs.isFile(path2, True):
                 # print "walker filepath:%s"% path2
                 if callbackForMatchFile==False:
                     continue

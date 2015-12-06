@@ -58,7 +58,7 @@ def restore(store, bucketname, restorepath, parts, compress=True):
             uncompressed_part_content = lz4.decompress(part_content)
         else:
             uncompressed_part_content = part_content
-        j.system.fs.writeFile(restorepath, uncompressed_part_content, append=True)
+        j.sal.fs.writeFile(restorepath, uncompressed_part_content, append=True)
 
 
 

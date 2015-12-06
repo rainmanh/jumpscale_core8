@@ -58,8 +58,8 @@ class KeyStor(SALObject):
             p1 = path.joinpath("priv.pem")
             p2 = path.joinpath("pub.pem")
         else:
-            p1 = '/tmp/_key_%s' % j.base.idgenerator.generateGUID()
-            p2 = '/tmp/_key_%s' % j.base.idgenerator.generateGUID()
+            p1 = '/tmp/_key_%s' % j.tools.idgenerator.generateGUID()
+            p2 = '/tmp/_key_%s' % j.tools.idgenerator.generateGUID()
 
         keys.save_key(p1, None)
         keys.save_pub_key(p2)
@@ -83,7 +83,7 @@ class KeyStor(SALObject):
                 return self.keys[cachekey].as_pem()
             else:
                 return self.keys[cachekey]
-        p1 = j.tools.path.get('/tmp/_key_%s' % j.base.idgenerator.generateGUID())
+        p1 = j.tools.path.get('/tmp/_key_%s' % j.tools.idgenerator.generateGUID())
         if keyoverrule:
             key = keyoverrule
         else:
@@ -130,13 +130,13 @@ class KeyStor(SALObject):
 
 
     def perftest(self,nrrounds=1000,sign=True):
-        j.base.timer.start()
+        j.tools.timer.start()
         org="myorg.com"
         print(("\n\nstart perftest for encryption, nrrounds:%s"%nrrounds))
         for i in range(nrrounds):
             msg,signature= self.encrypt(org,"alice","bob","this is a test message.",sign=sign)
             self.decrypt(org,"alice","bob",msg,signature)
-        j.base.timer.stop(nrrounds)
+        j.tools.timer.stop(nrrounds)
 
     def encrypt(self, orgsender, sender, orgreader, reader, message, sign=True, base64=True, pubkeyReader=""):
         """

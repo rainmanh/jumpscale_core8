@@ -8,8 +8,8 @@ class CodeGeneratorActorLocal(CodeGeneratorBase):
     def __init__(self, spec, typecheck=True, dieInGenCode=True):
         CodeGeneratorBase.__init__(self, spec, typecheck, dieInGenCode)
 
-        self.actorpath = j.system.fs.joinPaths(j.core.codegenerator.codepath, spec.appname, spec.actorname)
-        j.system.fs.createDir(self.actorpath)
+        self.actorpath = j.sal.fs.joinPaths(j.core.codegenerator.codepath, spec.appname, spec.actorname)
+        j.sal.fs.createDir(self.actorpath)
         self.type = "actorlocal"
 
     def addMethod(self, method):

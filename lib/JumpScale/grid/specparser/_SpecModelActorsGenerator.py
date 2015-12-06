@@ -117,17 +117,17 @@ class SpecModelActorsGenerator():
                 modelactorname=spec.name.replace(".","_")
                 modelactorname="%s_model_%s" % (spec.actorname,modelactorname)
                 filename=modelactorname+".spec"
-                specpath=j.system.fs.joinPaths(self.specpath,filename)
+                specpath=j.sal.fs.joinPaths(self.specpath,filename)
 
-                j.system.fs.createDir(j.system.fs.getDirName(specpath))
+                j.sal.fs.createDir(j.sal.fs.getDirName(specpath))
 
-                if j.system.fs.exists(specpath):
-                    content=j.system.fs.fileGetContents(specpath)
+                if j.sal.fs.exists(specpath):
+                    content=j.sal.fs.fileGetContents(specpath)
                     if content.find("##DONOTGENERATE##")!=-1:
-                        specpath=j.system.fs.joinPaths(self.specpath,spec.name.lower(),"_modelactors.spec")
+                        specpath=j.sal.fs.joinPaths(self.specpath,spec.name.lower(),"_modelactors.spec")
 
                 self.addModel(spec.name,modelactorname, spec)
 
-                j.system.fs.writeFile(specpath,self.content)
+                j.sal.fs.writeFile(specpath,self.content)
                 self.content=""
 

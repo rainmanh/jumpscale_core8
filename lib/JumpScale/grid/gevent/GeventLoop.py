@@ -19,9 +19,9 @@ class GeventLoop(object):
             self.now = int(time.time())
             # if lfmid<self.epoch-200:
             #     lfmid=self.epoch
-            #     self.fiveMinuteId=j.base.time.get5MinuteId(self.epoch)
-            #     self.hourId=j.base.time.getHourId(self.epoch)
-            #     self.dayId=j.base.time.getDayId(self.epoch)
+            #     self.fiveMinuteId=j.tools.time.get5MinuteId(self.epoch)
+            #     self.hourId=j.tools.time.getHourId(self.epoch)
+            #     self.dayId=j.tools.time.getDayId(self.epoch)
             # print "timer"
             gevent.sleep(1)
 

@@ -47,7 +47,7 @@ class Nic(OsisBaseObject):
         self.id = int(self.id)
 
         self.guid = "%s_%s_%s" % (self.gid,self.nid,self.id)
-        self.lastcheck=j.base.time.getTimeEpoch() 
+        self.lastcheck=j.tools.time.getTimeEpoch() 
 
         return self.guid
 

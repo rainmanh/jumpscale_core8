@@ -41,7 +41,7 @@ class test_complextype_group(OsisBaseObject,test_complextype_group_osismodelbase
 
     #     # self.sguid=struct.pack("<HH",self.gid,self.id)
     #     self.guid = "%s_%s" % (self.gid, self.id)
-    #     self.lastcheck=j.base.time.getTimeEpoch() 
+    #     self.lastcheck=j.tools.time.getTimeEpoch() 
 
     #     return self.guid
 

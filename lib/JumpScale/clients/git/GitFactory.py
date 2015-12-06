@@ -67,20 +67,20 @@ class GitFactory:
 
             """
             repos = []
-            for top in j.system.fs.listDirsInDir(codeDir, recursive=False,
+            for top in j.sal.fs.listDirsInDir(codeDir, recursive=False,
                                                  dirNameOnly=True, findDirectorySymlinks=True):
-                for account in j.system.fs.listDirsInDir("%s/%s" % (j.dirs.codeDir, top), recursive=False,
+                for account in j.sal.fs.listDirsInDir("%s/%s" % (j.dirs.codeDir, top), recursive=False,
                                                          dirNameOnly=True, findDirectorySymlinks=True):
                     if checkaccount(account):
                         accountdir = "%s/%s/%s" % (j.dirs.codeDir, top, account)
-                        if j.system.fs.exists(path="%s/.git" % accountdir):
+                        if j.sal.fs.exists(path="%s/.git" % accountdir):
                             raise RuntimeError("there should be no .git at %s level" % accountdir)
                         else:
-                            for reponame in j.system.fs.listDirsInDir("%s/%s/%s" % (j.dirs.codeDir, top, account),
+                            for reponame in j.sal.fs.listDirsInDir("%s/%s/%s" % (j.dirs.codeDir, top, account),
                                                                       recursive=False, dirNameOnly=True,
                                                                       findDirectorySymlinks=True):
                                 repodir = "%s/%s/%s/%s" % (j.dirs.codeDir, top, account, reponame)
-                                if j.system.fs.exists(path="%s/.git" % repodir):
+                                if j.sal.fs.exists(path="%s/.git" % repodir):
                                     if name.find("*") != -1:
                                         if name == "*" or reponame.startswith(name.replace("*", "")):
                                             repos.append([top, account, reponame, repodir])
@@ -91,9 +91,9 @@ class GitFactory:
                                         repos.append([top, account, reponame, repodir])
             return repos
 
-        j.system.fs.createDir(j.system.fs.joinPaths(os.getenv("HOME"), "code"))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(os.getenv("HOME"), "code"))
         repos = _getRepos(j.dirs.codeDir, account, name)
-        repos += _getRepos(j.system.fs.joinPaths(os.getenv("HOME"), "code"), account, name)
+        repos += _getRepos(j.sal.fs.joinPaths(os.getenv("HOME"), "code"), account, name)
 
         accounts.sort()
 

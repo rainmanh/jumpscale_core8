@@ -61,7 +61,7 @@ class MessageServerManager(object):
         self.echo = False
 
         pidFileName = 'message_server_%s.pid' % self._name
-        self._pidFile = j.system.fs.joinPaths(j.dirs.pidDir, pidFileName)
+        self._pidFile = j.sal.fs.joinPaths(j.dirs.pidDir, pidFileName)
 
     @classmethod
     def createFromConfig(cls, config):
@@ -91,7 +91,7 @@ class MessageServerManager(object):
 
         printInDebugMode('Starting message server with command: %s' % command)
 
-        j.system.process.runDaemon(command)
+        j.sal.process.runDaemon(command)
 
         remainingSeconds = self._START_TIMEOUT
         time.sleep(5)
@@ -121,7 +121,7 @@ class MessageServerManager(object):
 
         printInDebugMode('Stopping message server')
 
-        j.system.process.kill(pid, sig=stopSignal)
+        j.sal.process.kill(pid, sig=stopSignal)
 
         remainingSeconds = self._STOP_TIMEOUT
 
@@ -135,7 +135,7 @@ class MessageServerManager(object):
             if not remainingSeconds:
                 raise RuntimeError('Failed to stop message server')
 
-        j.system.fs.remove(self._pidFile)
+        j.sal.fs.remove(self._pidFile)
 
         printInDebugMode('Stopped message server')
 
@@ -153,7 +153,7 @@ class MessageServerManager(object):
                                % error)
             return False
 
-        status = j.system.process.checkProcessForPid(pid,
+        status = j.sal.process.checkProcessForPid(pid,
                                                      self._SCRIPT_PROCESS_NAME)
 
         # status == 0 => server running
@@ -162,14 +162,14 @@ class MessageServerManager(object):
 
     @property
     def pid(self):
-        if j.system.fs.exists(self._pidFile):
+        if j.sal.fs.exists(self._pidFile):
             return self._getPidFromPidFile()
         else:
             return None
 
     def _createStartCommand(self):
-        moduleFile = j.system.fs.getParent(__file__)
-        serverFile = j.system.fs.joinPaths(moduleFile, self._SCRIPT_FILE_NAME)
+        moduleFile = j.sal.fs.getParent(__file__)
+        serverFile = j.sal.fs.joinPaths(moduleFile, self._SCRIPT_FILE_NAME)
         pieces = [self._SCRIPT_PROCESS_NAME, serverFile]
 
         pieces.append('-a %s' % self._address)
@@ -187,7 +187,7 @@ class MessageServerManager(object):
 
     def _getPidFromPidFile(self, safe=False):
         try:
-            pidStr = j.system.fs.fileGetContents(self._pidFile)
+            pidStr = j.sal.fs.fileGetContents(self._pidFile)
         except IOError as error:
             if error.errno == errno.ENOENT:
                 raise IOError('Could\'t get message server pid, pid file'
@@ -210,7 +210,7 @@ class MessageServerManager(object):
 class MessageServerManagerFactory(object):
 
     _CONFIG_EXTENSION = 'cfg'
-    _CONFIG_BASE_DIR = j.system.fs.joinPaths(j.dirs.cfgDir, 'messageserver')
+    _CONFIG_BASE_DIR = j.sal.fs.joinPaths(j.dirs.cfgDir, 'messageserver')
 
     def create(self, name, address=None, forwardAddresses=None,
                storeLocally=False):
@@ -293,18 +293,18 @@ class MessageServerManagerFactory(object):
         @rtype: set()
         '''
 
-        if not j.system.fs.exists(self._CONFIG_BASE_DIR):
+        if not j.sal.fs.exists(self._CONFIG_BASE_DIR):
             return set()
 
         configFilter = '*.%s' % self._CONFIG_EXTENSION
-        configFiles = j.system.fs.listFilesInDir(self._CONFIG_BASE_DIR,
+        configFiles = j.sal.fs.listFilesInDir(self._CONFIG_BASE_DIR,
                                                  filter=configFilter)
 
         names = set()
         extensionLength = len(self._CONFIG_EXTENSION) + 1
 
         for configFile in configFiles:
-            fileName = j.system.fs.getBaseName(configFile)
+            fileName = j.sal.fs.getBaseName(configFile)
             fileName = fileName[:-extensionLength]
             names.add(fileName)
 
@@ -312,7 +312,7 @@ class MessageServerManagerFactory(object):
 
     def _deleteConfig(self, name):
         configPath = self._getConfigPath(name)
-        j.system.fs.remove(configPath)
+        j.sal.fs.remove(configPath)
 
     def _loadConfig(self, name):
         iniConfigPath = self._getConfigPath(name)
@@ -335,7 +335,7 @@ class MessageServerManagerFactory(object):
 
     def _getConfigPath(self, name):
         fileName = '%s.%s' % (name, self._CONFIG_EXTENSION)
-        return j.system.fs.joinPaths(self._CONFIG_BASE_DIR, fileName)
+        return j.sal.fs.joinPaths(self._CONFIG_BASE_DIR, fileName)
 
     def _storeConfig(self, config):
         iniConfigPath = self._getConfigPath(config.name)

@@ -172,8 +172,8 @@ class Service(object):
     def hrd(self):
         if self._hrd:
             return self._hrd
-        hrdpath = j.system.fs.joinPaths(self.path, "instance.hrd")
-        if not j.system.fs.exists(hrdpath):
+        hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
+        if not j.sal.fs.exists(hrdpath):
             self._apply()
         else:
             self._hrd = j.core.hrd.get(hrdpath, prefixWithName=False)
@@ -183,7 +183,7 @@ class Service(object):
     def hrd_template(self):
         if self._hrd_template:
             return self._hrd_template
-        path = j.system.fs.joinPaths(self.path, "template.hrd")
+        path = j.sal.fs.joinPaths(self.path, "template.hrd")
         self._hrd_template = j.core.hrd.get(path, prefixWithName=False)
         return self._hrd_template
 
@@ -199,8 +199,8 @@ class Service(object):
     @property
     def actions_tmpl(self):
         if self._actions_tmpl is None:
-            path = j.system.fs.joinPaths(self.path, "actions_tmpl.py")
-            if j.system.fs.exists(path=path):
+            path = j.sal.fs.joinPaths(self.path, "actions_tmpl.py")
+            if j.sal.fs.exists(path=path):
                 self._actions_tmpl = self._loadActions(path)
             else:
                 self._actions_tmpl = j.atyourservice.getActionsBaseClassTmpl()()
@@ -210,8 +210,8 @@ class Service(object):
     @property
     def actions_mgmt(self):
         if self._actions_mgmt is None:
-            path = j.system.fs.joinPaths(self.path, "actions_mgmt.py")
-            if j.system.fs.exists(path=path):
+            path = j.sal.fs.joinPaths(self.path, "actions_mgmt.py")
+            if j.sal.fs.exists(path=path):
                 self._actions_mgmt = self._loadActions(path)
             else:
                 self._actions_mgmt = j.atyourservice.getActionsBaseClassMgmt()()
@@ -221,8 +221,8 @@ class Service(object):
     @property
     def actions_node(self):
         if self._actions_node is None:
-            path = j.system.fs.joinPaths(self.path, "actions_node.py")
-            if j.system.fs.exists(path=path):
+            path = j.sal.fs.joinPaths(self.path, "actions_node.py")
+            if j.sal.fs.exists(path=path):
                 self._actions_node = self._loadActions(path)
             else:
                 self._actions_node = j.atyourservice.getActionsBaseClassNode()()
@@ -247,7 +247,7 @@ class Service(object):
     @property
     def logPath(self):
         if self._logPath is None:
-            self._logPath = j.system.fs.joinPaths(self.path, "log.txt")
+            self._logPath = j.sal.fs.joinPaths(self.path, "log.txt")
         return self._logPath
 
     @property
@@ -263,9 +263,9 @@ class Service(object):
         return self._recurring
 
     def _loadActions(self, path):
-        if j.system.fs.exists(path+'c'):
-            j.system.fs.remove(path+'c')
-        if j.system.fs.exists(path):
+        if j.sal.fs.exists(path+'c'):
+            j.sal.fs.remove(path+'c')
+        if j.sal.fs.exists(path):
             if self._hrd is not None:
                 self.hrd.applyOnFile(path)
             j.application.config.applyOnFile(path)
@@ -393,9 +393,9 @@ class Service(object):
     #     if not self.isInstalled():
     #         return False
     #     checksum = self.hrd.get('service.installed.checksum')
-    #     checksumpath = j.system.fs.joinPaths(self.path, "installed.version")
+    #     checksumpath = j.sal.fs.joinPaths(self.path, "installed.version")
     #     #@todo how can this ever be different, doesn't make sense to me? (despiegk)
-    #     installedchecksum = j.system.fs.fileGetContents(checksumpath).strip()
+    #     installedchecksum = j.sal.fs.fileGetContents(checksumpath).strip()
     #     if checksum != installedchecksum:
     #         return False
     #     for recipeitem in self.hrd.getListFromPrefix("git.export"):
@@ -411,10 +411,10 @@ class Service(object):
     #         _, _, _, _, dest, url = j.do.getGitRepoArgs(
     #             recipeurl, login=login, passwd=passwd)
 
-    #         current = j.system.process.execute(
+    #         current = j.sal.process.execute(
     #             'cd %s; git rev-parse HEAD --branch %s' % (dest, branch))
     #         current = current[1].split('--branch')[1].strip()
-    #         remote = j.system.process.execute(
+    #         remote = j.sal.process.execute(
     #             'git ls-remote %s refs/heads/%s' % (url, branch))
     #         remote = remote[1].split()[0]
 
@@ -475,8 +475,8 @@ class Service(object):
         items = ["actions_mgmt", "actions_node", "actions_tmpl"]
         for item in items:
             source = "%s/%s.py" % (self.template.path,item)
-            if j.system.fs.exists(source):
-                j.do.copyFile(source,  j.system.fs.joinPaths(self.path, "%s.py" % item))
+            if j.sal.fs.exists(source):
+                j.do.copyFile(source,  j.sal.fs.joinPaths(self.path, "%s.py" % item))
 
         source = self.template.path_hrd_template
         j.do.copyFile(source, "%s/template.hrd" % self.path)
@@ -494,7 +494,7 @@ class Service(object):
         path_instancehrd_old="%s/instance_old.hrd" % self.path
 
         # print path_instancehrd_old
-        if not j.system.fs.exists(path=path_instancehrd_new):
+        if not j.sal.fs.exists(path=path_instancehrd_new):
             path_instancehrd = "%s/instance_.hrd" % self.path
             source = self.template.path_hrd_instance
             j.do.copyFile(source, path_instancehrd)
@@ -538,7 +538,7 @@ class Service(object):
             hrd.applyOnFile(path_templatehrd)
             hrd.save()
 
-            j.system.fs.moveFile(path_instancehrd,path_instancehrd_new)
+            j.sal.fs.moveFile(path_instancehrd,path_instancehrd_new)
             path_instancehrd=path_instancehrd_new
 
             hrd.path=path_instancehrd
@@ -551,13 +551,13 @@ class Service(object):
         j.application.config.applyOnFile(path_templatehrd)
         tmpl_hrd = j.core.hrd.get(path_templatehrd, prefixWithName=False)
 
-        actionPy = j.system.fs.joinPaths(self.path, "actions_mgmt.py")
-        if j.system.fs.exists(path=actionPy):
+        actionPy = j.sal.fs.joinPaths(self.path, "actions_mgmt.py")
+        if j.sal.fs.exists(path=actionPy):
             hrd.applyOnFile(actionPy) #@todo somewhere hrd gets saved when doing apply (WHY???)
             tmpl_hrd.applyOnFile(actionPy)
             j.application.config.applyOnFile(actionPy)
-        actionPy = j.system.fs.joinPaths(self.path, "actions_node.py")
-        if j.system.fs.exists(path=actionPy):
+        actionPy = j.sal.fs.joinPaths(self.path, "actions_node.py")
+        if j.sal.fs.exists(path=actionPy):
             hrd.applyOnFile(actionPy) #@todo somewhere hrd gets saved when doing apply (WHY???)
             tmpl_hrd.applyOnFile(actionPy)
             j.application.config.applyOnFile(actionPy)
@@ -570,7 +570,7 @@ class Service(object):
 
         if change:
             #found changes in hrd or one of the actionfiles
-            oldhrd_exists=j.system.fs.exists(path=path_instancehrd_old)
+            oldhrd_exists=j.sal.fs.exists(path=path_instancehrd_old)
             if not oldhrd_exists:
                 j.do.writeFile(path_instancehrd_old,"")
 
@@ -580,7 +580,7 @@ class Service(object):
 
             # if not oldhrd_exists:
             #     #we don't want to overwrite the oldest known copy of the hrd
-            #     if j.system.fs.exists(path=hrdpathnew):
+            #     if j.sal.fs.exists(path=hrdpathnew):
             #         #can be there is not service.hrd yet
             #         j.do.copyFile(hrdpathnew, hrdpathold)
 
@@ -594,7 +594,7 @@ class Service(object):
         if "node" not in self.producers:
             return
         hrd_root = "/etc/ays/local/"
-        remotePath = j.system.fs.joinPaths(hrd_root, j.system.fs.getBaseName(self.path)).rstrip("/")+"/"
+        remotePath = j.sal.fs.joinPaths(hrd_root, j.sal.fs.getBaseName(self.path)).rstrip("/")+"/"
         print("uploading %s '%s'->'%s'" % (self.key,self.path,remotePath))
         self.executor.upload(self.path, remotePath,recursive=False)
 
@@ -604,7 +604,7 @@ class Service(object):
             return
 
         hrd_root = "/etc/ays/local/"
-        remotePath = j.system.fs.joinPaths(hrd_root, j.system.fs.getBaseName(self.path), 'instance.hrd')
+        remotePath = j.sal.fs.joinPaths(hrd_root, j.sal.fs.getBaseName(self.path), 'instance.hrd')
         dest = self.path.rstrip("/")+"/"+"instance.hrd"
         print("downloading %s '%s'->'%s'" % (self.key, remotePath, self.path))
         self.executor.download(remotePath, self.path)
@@ -637,18 +637,18 @@ class Service(object):
 
 
     def log(self, msg):
-        logpath = j.system.fs.joinPaths(self.path, "log.txt")
-        if not j.system.fs.exists(self.path):
-            j.system.fs.createDir(self.path)
+        logpath = j.sal.fs.joinPaths(self.path, "log.txt")
+        if not j.sal.fs.exists(self.path):
+            j.sal.fs.createDir(self.path)
         msg = "%s : %s\n" % (
-            j.base.time.formatTime(j.base.time.getTimeEpoch()), msg)
-        j.system.fs.writeFile(logpath, msg, append=True)
+            j.tools.time.formatTime(j.tools.time.getTimeEpoch()), msg)
+        j.sal.fs.writeFile(logpath, msg, append=True)
 
     def listChildren(self):
-        childDirs = j.system.fs.listDirsInDir(self.path)
+        childDirs = j.sal.fs.listDirsInDir(self.path)
         childs = {}
         for path in childDirs:
-            child = j.system.fs.getBaseName(path)
+            child = j.sal.fs.getBaseName(path)
             ss = child.split("__")
             name = ss[0]
             instance = ss[1]
@@ -761,9 +761,9 @@ class Service(object):
 
         # now we can remove changes of statefile & remove old hrd
         self.state.installDoneOK()
-        j.system.fs.copyFile(
-            j.system.fs.joinPaths(self.path, "instance.hrd"),
-            j.system.fs.joinPaths(self.path, "instance_old.hrd")
+        j.sal.fs.copyFile(
+            j.sal.fs.joinPaths(self.path, "instance.hrd"),
+            j.sal.fs.joinPaths(self.path, "instance_old.hrd")
         )
 
         if start:
@@ -772,7 +772,7 @@ class Service(object):
         if self.template.hrd_template.getBool("hrd.return", False):
             self._downloadFromNode()
             # need to reload the downloaded instance.hrd file
-            self._hrd = j.core.hrd.get(j.system.fs.joinPaths(self.path, 'instance.hrd'), prefixWithName=False)
+            self._hrd = j.core.hrd.get(j.sal.fs.joinPaths(self.path, 'instance.hrd'), prefixWithName=False)
 
 
     def _getDisabledProducers(self):
@@ -886,7 +886,7 @@ class Service(object):
         if self._executeOnNode("resetstate"):
             return
 
-        statePath = j.system.fs.joinPaths(self.path, 'state.toml')
+        statePath = j.sal.fs.joinPaths(self.path, 'state.toml')
         j.do.delete(statePath)
 
     def reset(self):
@@ -936,7 +936,7 @@ class Service(object):
             if "dest" not in recipeitem:
                 raise RuntimeError("could not find dest in hrditem for %s %s" % (recipeitem, self))
             dest = recipeitem['dest']
-            j.system.fs.removeDirTree(dest)
+            j.sal.fs.removeDirTree(dest)
 
         for recipeitem in self.hrd_template.getListFromPrefix("git.export"):
             if "platform" in recipeitem:
@@ -959,7 +959,7 @@ class Service(object):
             }
 
             src = recipeitem['source']
-            src = j.system.fs.joinPaths(srcdir, src)
+            src = j.sal.fs.joinPaths(srcdir, src)
 
             if "dest" not in recipeitem:
                 raise RuntimeError(
@@ -992,11 +992,11 @@ class Service(object):
                     dest = "/%s" % dest
                 else:
                     if link:
-                        if j.system.fs.exists(dest):
-                            j.system.fs.unlink(dest)
+                        if j.sal.fs.exists(dest):
+                            j.sal.fs.unlink(dest)
                     else:
                         print(("deleting: %s" % dest))
-                        j.system.fs.removeDirTree(dest)
+                        j.sal.fs.removeDirTree(dest)
 
     def uninstall(self):
         self._executeOnNode("uninstall")
@@ -1006,7 +1006,7 @@ class Service(object):
         self.disable()
         self._uninstall()
         self.actions_mgmt.uninstall(self)
-        j.system.fs.removeDirTree(self.path)
+        j.sal.fs.removeDirTree(self.path)
 
     def monitor(self):
         """

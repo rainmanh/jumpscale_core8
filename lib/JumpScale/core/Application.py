@@ -209,9 +209,9 @@ class Application:
 
         # # Write exitcode
         # if self.writeExitcodeOnExit:
-        #     exitcodefilename = j.system.fs.joinPaths(j.dirs.tmpDir, 'qapplication.%d.exitcode'%os.getpid())
+        #     exitcodefilename = j.sal.fs.joinPaths(j.dirs.tmpDir, 'qapplication.%d.exitcode'%os.getpid())
         #     j.logger.log("Writing exitcode to %s" % exitcodefilename, 5)
-        #     j.system.fs.writeFile(exitcodefilename, str(exitcode))
+        #     j.sal.fs.writeFile(exitcodefilename, str(exitcode))
 
         # was probably done like this so we dont end up in the _exithandler
         # os._exit(exitcode) Exit to the system with status n, without calling cleanup handlers, flushing stdio buffers, etc. Availability: Unix, Windows.
@@ -229,7 +229,7 @@ class Application:
         #     key = "%s_%s"%(j.application.whoAmI.gid,j.application.whoAmI.pid)
         #     if clientprocess.exists(key):
         #         obj=clientprocess.get(key)
-        #         obj.epochstop=j.base.time.getTimeEpoch()
+        #         obj.epochstop=j.tools.time.getTimeEpoch()
         #         obj.active=False
         #         clientprocess.set(obj)
         if stop:
@@ -255,7 +255,7 @@ class Application:
             path='%s/%s__%s__%s.hrd' % (j.dirs.getHrdDir(),domain,name,instance)
         else:
             path='%s/%s__%s.hrd' % (j.dirs.getHrdDir(),name,instance)
-        if not j.system.fs.exists(path=path):
+        if not j.sal.fs.exists(path=path):
             return False
         return True
 
@@ -295,12 +295,12 @@ class Application:
             if j.system.platformtype.isLinux():
                 command = "ps -o pcpu %d | grep -E --regex=\"[0.9]\""%pid
                 j.logger.log("getCPUusage on linux with: %s" % command, 8)
-                exitcode, output = j.system.process.execute(command, True, False)
+                exitcode, output = j.sal.process.execute(command, True, False)
                 return output
             elif j.system.platformtype.isSolaris():
                 command = 'ps -efo pcpu,pid |grep %d'%pid
                 j.logger.log("getCPUusage on linux with: %s" % command, 8)
-                exitcode, output = j.system.process.execute(command, True, False)
+                exitcode, output = j.sal.process.execute(command, True, False)
                 cpuUsage = output.split(' ')[1]
                 return cpuUsage
         except Exception:
@@ -320,12 +320,12 @@ class Application:
             elif j.system.platformtype.isLinux():
                 command = "ps -o pmem %d | grep -E --regex=\"[0.9]\""%pid
                 j.logger.log("getMemoryUsage on linux with: %s" % command, 8)
-                exitcode, output = j.system.process.execute(command, True, False)
+                exitcode, output = j.sal.process.execute(command, True, False)
                 return output
             elif j.system.platformtype.isSolaris():
                 command = "ps -efo pcpu,pid |grep %d"%pid
                 j.logger.log("getMemoryUsage on linux with: %s" % command, 8)
-                exitcode, output = j.system.process.execute(command, True, False)
+                exitcode, output = j.sal.process.execute(command, True, False)
                 memUsage = output.split(' ')[1]
                 return memUsage
         except Exception:

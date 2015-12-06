@@ -5,7 +5,7 @@ from JumpScale import j
 j.application.appname = "jumpscale:jsadmin"
 j.application.start()
 
-from JumpScale.baselib import cmdutils
+from JumpScale.tools import cmdutils
 
 import sys
 
@@ -42,7 +42,7 @@ args = parser.parse_args()
 args.local=False
 args.g=False
 
-do=j.system.process.executeWithoutPipe
+do=j.sal.process.executeWithoutPipe
 
 import JumpScale.baselib.remote
 import JumpScale.baselib.admin
@@ -59,8 +59,8 @@ elif args.action == "print":
     admin.printResult()
 
 elif args.action == "kill":
-    j.system.process.killProcessByName("jsexec")
-    j.system.process.killProcessByName("jsadmin")
+    j.sal.process.killProcessByName("jsexec")
+    j.sal.process.killProcessByName("jsadmin")
 
 elif args.action == "listnodes":
     admin.loadNodes(pprint=True)    

@@ -21,7 +21,7 @@ class InifileTool:
         @returns: Opened INI file object
         @rtype: jumpscale.inifile.IniFile.IniFile
         '''
-        if isinstance(filename, str) and not j.system.fs.exists(filename):
+        if isinstance(filename, str) and not j.sal.fs.exists(filename):
             if createIfNonExisting:
                 return InifileTool.new(filename)
             else:
@@ -40,7 +40,7 @@ class InifileTool:
         @returns: New INI file object
         @rtype: jumpscale.inifile.IniFile.IniFile
         '''
-        if isinstance(filename, str) and j.system.fs.exists(filename):
+        if isinstance(filename, str) and j.sal.fs.exists(filename):
             raise RuntimeError('Attempt to create existing INI file %s as a new file' % filename)
         return IniFile(filename, create=True)
 
@@ -74,10 +74,10 @@ class IniFile(object):
         if isinstance(iniFile, str): # iniFile is a filepath
             self.__inifilepath = iniFile
             if create:
-                j.system.fs.createDir(j.system.fs.getDirName(iniFile))
+                j.sal.fs.createDir(j.sal.fs.getDirName(iniFile))
                 j.logger.log("Create config file: "+iniFile,7)
-                j.system.fs.writeFile(iniFile, '')
-            if not j.system.fs.isFile(iniFile):
+                j.sal.fs.writeFile(iniFile, '')
+            if not j.sal.fs.isFile(iniFile):
                 raise RuntimeError("Inifile could not be found on location %s" %  iniFile)
         else: # iniFile is a file-like object
             self.__file = iniFile
@@ -92,10 +92,10 @@ class IniFile(object):
 
     def __del__(self):
         if self.__inifilepath and self.__removeWhenDereferenced:
-            j.system.fs.remove(self.__inifilepath)
+            j.sal.fs.remove(self.__inifilepath)
 
     def __readFile(self):
-        #content=j.system.fs.fileGetContents(self.__inifilepath)
+        #content=j.sal.fs.fileGetContents(self.__inifilepath)
         fp = None
         try:
             if self.__inifilepath:
@@ -275,18 +275,18 @@ class IniFile(object):
 
         try:
             if not fp:
-                j.system.fs.lock(filePath)
+                j.sal.fs.lock(filePath)
                 fp = open(filePath, 'w') # Completely overwrite the file.
             self.__configParser.write(fp)
             fp.flush()
             if closeFileHandler:
                 fp.close()
-                j.system.fs.unlock_(filePath)
+                j.sal.fs.unlock_(filePath)
 
         except Exception as err:
             if fp and closeFileHandler and not fp.closed:
                 fp.close()
-                j.system.fs.unlock_(filePath)
+                j.sal.fs.unlock_(filePath)
             raise RuntimeError("Failed to update the inifile at '%s'\nERROR: %s\n" % (filePath, str(err)))
 
     def getContent(self):

@@ -73,7 +73,7 @@ import urllib.parse
 
 class SwaggerGen(object):
     def __init__(self):
-        tmplDir = j.system.fs.joinPaths(j.system.fs.getDirName(__file__),'templates')
+        tmplDir = j.sal.fs.joinPaths(j.sal.fs.getDirName(__file__),'templates')
         self.jinjaEnv = jinja2.Environment(
             loader=jinja2.FileSystemLoader(tmplDir),
             trim_blocks=True,
@@ -95,7 +95,7 @@ class SwaggerGen(object):
         self.spec = json.loads(spec)
 
     def loadSpecFromFile(self, path):
-        content = j.system.fs.fileGetContents(path)
+        content = j.sal.fs.fileGetContents(path)
         self.loadSpecFromStr(content)
 
     def generate(self, baseURL, serverOuput, clientOutput):
@@ -107,7 +107,7 @@ class SwaggerGen(object):
         self.server['port'] = self._extractPort(self.spec)
         self.server['handlers'] = self._generateHandlers(self.spec)
         server = self._renderServer(self.server)
-        j.system.fs.writeFile(outputPath, server.strip())
+        j.sal.fs.writeFile(outputPath, server.strip())
 
     def generateActors(self, destpath):
         ActorGen(self).generate(destpath)
@@ -123,7 +123,7 @@ class SwaggerGen(object):
             'base_url': self.server['baseURL']
         }
         self.client['methods'] = self._clientMethods(self.server['handlers'])
-        j.system.fs.writeFile(outputPath, json.dumps(self.client, indent=4))
+        j.sal.fs.writeFile(outputPath, json.dumps(self.client, indent=4))
         return self.client
 
     def _clientMethods(self, handlers):

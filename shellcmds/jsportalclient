@@ -24,7 +24,7 @@ if __name__ == '__main__':
         cl = j.core.portal.getClient(opts.host, opts.port, newsecret)
     else:
         cl = j.core.portal.getByInstance(opts.portclientinstance)
-        portalcfgpath = j.system.fs.joinPaths(j.dirs.baseDir, 'apps', 'cloudbroker', 'cfg', 'portal')
+        portalcfgpath = j.sal.fs.joinPaths(j.dirs.baseDir, 'apps', 'cloudbroker', 'cfg', 'portal')
     j.apps = cl.actors
 
     cl.getActor('system', 'contentmanager')

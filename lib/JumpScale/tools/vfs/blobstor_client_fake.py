@@ -149,35 +149,35 @@ class BlobStorClientFake:
                     return
 
     def uploadDir(self,dirpath,compress=False):
-        name="backup_md_%s"%j.base.idgenerator.generateRandomInt(1,100000)
+        name="backup_md_%s"%j.tools.idgenerator.generateRandomInt(1,100000)
         tarpath="/tmp/%s.tar"%name
         if compress:
             cmd="cd %s;tar czf %s ."%(dirpath,tarpath)
         else:
             cmd="cd %s;tar cf %s ."%(dirpath,tarpath)
-        j.system.process.execute(cmd)
+        j.sal.process.execute(cmd)
         key=self.uploadFile(tarpath,compress=False)
-        j.system.fs.remove(tarpath)
+        j.sal.fs.remove(tarpath)
         return key
 
     def downloadDir(self,key,dest,repoid=0,compress=None):
-        j.system.fs.removeDirTree(dest)
-        j.system.fs.createDir(dest)
-        name="backup_md_%s"%j.base.idgenerator.generateRandomInt(1,100000)
+        j.sal.fs.removeDirTree(dest)
+        j.sal.fs.createDir(dest)
+        name="backup_md_%s"%j.tools.idgenerator.generateRandomInt(1,100000)
         tarpath="/tmp/%s.tar"%name
         self.downloadFile(key,tarpath,False,repoid=repoid)
         if compress:
             cmd="cd %s;tar xzf %s"%(dest,tarpath)
         else:
             cmd="cd %s;tar xf %s"%(dest,tarpath)
-        j.system.process.execute(cmd)
-        j.system.fs.remove(tarpath)
+        j.sal.process.execute(cmd)
+        j.sal.fs.remove(tarpath)
 
     def uploadFile(self,path,key="",repoid=0,compress=None):        
         if key=="":
             key=j.tools.hash.md5(path)
-        self.redis.rpush('files.%s' % key, j.system.fs.getBaseName(path))
-        if j.system.fs.statPath(path).st_size>self._MB4:
+        self.redis.rpush('files.%s' % key, j.sal.fs.getBaseName(path))
+        if j.sal.fs.statPath(path).st_size>self._MB4:
             #hashes=[]
             # print "upload file (>4MB) %s"%(path)
             for data in self._read_file(path):
@@ -204,13 +204,13 @@ class BlobStorClientFake:
 
         if self.cachepath != "":
             blob_path = self._getBlobCachePath(key)
-            if j.system.fs.exists(blob_path):
+            if j.sal.fs.exists(blob_path):
                 # Blob exists in cache, we can get it from there!
                 print "Blob FOUND in cache: %s" % blob_path
                 if link:
                     self._link(blob_path,dest)
                 else:
-                    j.system.fs.copyFile(blob_path, dest)
+                    j.sal.fs.copyFile(blob_path, dest)
                     os.chmod(dest, chmod)
                     os.chown(dest, chownuid, chowngid)
                 return
@@ -268,12 +268,12 @@ class BlobStorClientFake:
         if self.cachepath != "":
             blob_path = self._getBlobCachePath(key)
             self._restoreBlobToDest(blob_path, blob, chmod=chmod,chownuid=chownuid,chowngid=chowngid,serialization=serialization)
-            j.system.fs.createDir(j.system.fs.getDirName(dest))
+            j.sal.fs.createDir(j.sal.fs.getDirName(dest))
 
             if link:
                 self._link(blob_path,dest)
             else:
-                j.system.fs.copyFile(blob_path, dest)            
+                j.sal.fs.copyFile(blob_path, dest)            
                 os.chmod(dest, chmod) 
                 os.chown(dest, chownuid, chowngid) 
         else:
@@ -285,7 +285,7 @@ class BlobStorClientFake:
         Get the blob path in Cache dir
         """
         # Get the Intermediate path of a certain blob
-        storpath = j.system.fs.joinPaths(self.cachepath, key[0:2], key[2:4], key)
+        storpath = j.sal.fs.joinPaths(self.cachepath, key[0:2], key[2:4], key)
         return storpath
 
 
@@ -294,23 +294,23 @@ class BlobStorClientFake:
         Write blob to destination
         """
         check="##HASHLIST##"
-        j.system.fs.createDir(j.system.fs.getDirName(dest))
+        j.sal.fs.createDir(j.sal.fs.getDirName(dest))
         if blob.find(check)==0:
             # found hashlist
             # print "FOUND HASHLIST %s" % blob
             hashlist = blob[len(check) + 1:]            
-            j.system.fs.writeFile(dest,"")
+            j.sal.fs.writeFile(dest,"")
             for hashitem in hashlist.split("\n"):
                 if hashitem.strip() != "":
                     key,serialization,blob_block = self.get(hashitem)
                     if serialization=="L":
                          blob_block= lzma.decompress(blob_block)
-                    j.system.fs.writeFile(dest, blob_block, append=True)                        
+                    j.sal.fs.writeFile(dest, blob_block, append=True)                        
         else:
             # content is there
             if serialization=="L":
                 blob = lzma.decompress(blob)
-            j.system.fs.writeFile(dest, blob)
+            j.sal.fs.writeFile(dest, blob)
 
         # chmod/chown
         if chmod != 0:

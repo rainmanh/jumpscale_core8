@@ -13,7 +13,7 @@ class WinConsole():
         """
         if not  j.system.platformtype.isWindows():
             raise RuntimeError("Only supported on windows.")
-        self.configpath=j.system.fs.joinPaths(j.dirs.tmpDir,"consolecfg",str(j.base.idgenerator.generateRandomInt(1,1000))+".xml")
+        self.configpath=j.sal.fs.joinPaths(j.dirs.tmpDir,"consolecfg",str(j.tools.idgenerator.generateRandomInt(1,1000))+".xml")
         self.config="""
 
 <?xml version="1.0"?>
@@ -126,13 +126,13 @@ $tabs
         for tab in self.tabs:
             tabs+="%s\n"%tab
         config=self.config.replace("$tabs",tabs)
-        j.system.fs.createDir(j.system.fs.getDirName(self.configpath))
-        j.system.fs.writeFile(self.configpath,config)                
+        j.sal.fs.createDir(j.sal.fs.getDirName(self.configpath))
+        j.sal.fs.writeFile(self.configpath,config)                
 
     def addTab(self,name,startdir,cmd):
         if startdir=="":
             # startdir=j.dirs.baseDir
-            startdir=j.system.fs.getcwd()
+            startdir=j.sal.fs.getcwd()
 
         C="""
         <tab title="$name" use_default_icon="0">
@@ -154,17 +154,17 @@ $tabs
 
     def start(self):
         self.writeConfig()
-        cwd=j.system.fs.getcwd()
-        j.system.fs.changeDir(j.system.fs.joinPaths(j.dirs.baseDir,"appsbin","console"))
+        cwd=j.sal.fs.getcwd()
+        j.sal.fs.changeDir(j.sal.fs.joinPaths(j.dirs.baseDir,"appsbin","console"))
         cmd="start console.exe -c \"%s\"" % self.configpath.replace("\\\\","\\")
         for name,startdir,cmd2 in self.tabCmd:
             # startdir=startdir.replace("/","\\")
             # startdir=startdir.replace("\\\\","\\")
             cmd+=" -t %s "% (name)
 
-        # j.system.process.execute(cmd)
-        j.system.process.executeWithoutPipe(cmd)
-        j.system.fs.changeDir(cwd)
+        # j.sal.process.execute(cmd)
+        j.sal.process.executeWithoutPipe(cmd)
+        j.sal.fs.changeDir(cwd)
 
         
         

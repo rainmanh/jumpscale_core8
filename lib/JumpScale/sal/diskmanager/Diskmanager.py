@@ -135,7 +135,7 @@ class Diskmanager(SALObject):
 
     def mirrorsFind(self):
         cmd="cat /proc/mdstat"
-        rcode,out=j.system.process.execute(cmd)
+        rcode,out=j.sal.process.execute(cmd)
         return out
 
     def partitionsFind(self,mounted=None,ttype=None,ssd=None,prefix="sd",minsize=5,maxsize=5000,devbusy=None,\
@@ -187,7 +187,7 @@ class Diskmanager(SALObject):
                         if partfound==None and mounted!=True:
                             mountpoint="/mnt/tmp"
                             cmd="mount %s /mnt/tmp"%partition.path
-                            rcode,output=j.system.process.execute(cmd,ignoreErrorOutput=False,dieOnNonZeroExitCode=False,)
+                            rcode,output=j.sal.process.execute(cmd,ignoreErrorOutput=False,dieOnNonZeroExitCode=False,)
                             if rcode!=0:
                                 #mount did not work
                                 mountpoint==None
@@ -200,8 +200,8 @@ class Diskmanager(SALObject):
                             disko.mounted=True
 
                         pathssdcheck="/sys/block/%s/queue/rotational"%dev.path.replace("/dev/","").strip()
-                        if j.system.fs.exists(pathssdcheck):
-                            ssd0=int(j.system.fs.fileGetContents(pathssdcheck))==0
+                        if j.sal.fs.exists(pathssdcheck):
+                            ssd0=int(j.sal.fs.fileGetContents(pathssdcheck))==0
                         else:
                             ssd0 = False
                         disko.ssd=ssd0
@@ -220,13 +220,13 @@ class Diskmanager(SALObject):
                                     # print disko
                                     hrdpath="%s/disk.hrd"%mountpoint
 
-                                    if j.system.fs.exists(hrdpath):
+                                    if j.sal.fs.exists(hrdpath):
                                         hrd=j.core.hrd.get(hrdpath)
                                         partnr=hrd.getInt("diskinfo.partnr")
                                         if partnr==0 or forceinitialize:
-                                            j.system.fs.remove(hrdpath)
+                                            j.sal.fs.remove(hrdpath)
 
-                                    if not j.system.fs.exists(hrdpath) and initialize:
+                                    if not j.sal.fs.exists(hrdpath) and initialize:
                                         C="""
 diskinfo.partnr=
 diskinfo.gid=
@@ -235,13 +235,13 @@ diskinfo.type=
 diskinfo.epoch=
 diskinfo.description=
 """
-                                        j.system.fs.writeFile(filename=hrdpath,contents=C)
+                                        j.sal.fs.writeFile(filename=hrdpath,contents=C)
                                         hrd=j.core.hrd.get(hrdpath)
                                         hrd.set("diskinfo.description",j.console.askString("please give description for disk"))
                                         hrd.set("diskinfo.type",",".join(j.console.askChoiceMultiple(["BOOT","CACHE","TMP","DATA","OTHER"])))
                                         hrd.set("diskinfo.gid",j.application.whoAmI.gid)
                                         hrd.set("diskinfo.nid",j.application.whoAmI.nid)
-                                        hrd.set("diskinfo.epoch",j.base.time.getTimeEpoch())
+                                        hrd.set("diskinfo.epoch",j.tools.time.getTimeEpoch())
 
 
                                         client = j.clients.osis.getByInstance('main')
@@ -262,7 +262,7 @@ diskinfo.description=
                                         disk=client_disk.get(guid)
                                         diskid=disk.id
                                         hrd.set("diskinfo.partnr",diskid)
-                                    if j.system.fs.exists(hrdpath):
+                                    if j.sal.fs.exists(hrdpath):
                                         # hrd=j.core.hrd.get(hrdpath)
                                         disko.id=hrd.get("diskinfo.partnr")
                                         disko.type=hrd.get("diskinfo.type").split(",")
@@ -270,7 +270,7 @@ diskinfo.description=
                                         disko.description=hrd.get("diskinfo.description")
                                         print(("found disk:\n%s"%(disko)))
                                     cmd="umount /mnt/tmp"
-                                    j.system.process.execute(cmd,dieOnNonZeroExitCode=False)
+                                    j.sal.process.execute(cmd,dieOnNonZeroExitCode=False)
                                     if os.path.ismount("/mnt/tmp")==True:
                                         raise RuntimeError("/mnt/tmp should not be mounted")
 
@@ -287,16 +287,16 @@ diskinfo.description=
     def partitionsMount_Ext4Data(self):
         for path,gid,partnr,size,free,ssd in self.partitionsFind_Ext4Data():
             mntdir="/mnt/datadisks/%s"%partnr
-            j.system.fs.createDir(mntdir)
+            j.sal.fs.createDir(mntdir)
             cmd="mount %s %s"%(path,mntdir)
-            j.system.process.execute(cmd)
+            j.sal.process.execute(cmd)
 
     def partitionsUnmount_Ext4Data(self):
         partitions=self.partitionsGet_Ext4Data()
         for partid,size,free in partitions:
             mntdir="/mnt/datadisks/%s"%partnr
             cmd="umount %s"%(mntdir)
-            j.system.process.execute(cmd)
+            j.sal.process.execute(cmd)
 
     def partitionsGetMounted_Ext4Data(self):
         """

@@ -25,8 +25,8 @@ class ZipFileAction(BaseEnumeration):
 class ZipFile(BaseType):
     '''Handle zip files'''
 
-    path = j.basetype.filepath(doc='Path of the on-disk zip file')
-    action = j.basetype.enumeration(ZipFileAction,
+    path = j.core.types.filepath(doc='Path of the on-disk zip file')
+    action = j.core.types.enumeration(ZipFileAction,
                 doc='Access method of zip file')
 
     def __init__(self, path, action=ZipFileAction.READ):
@@ -37,10 +37,10 @@ class ZipFile(BaseType):
         @prarm action: Action to perform on the zip file
         @type action: ZipFileAction
         '''
-        if not j.basetype.filepath.check(path):
+        if not j.core.types.filepath.check(path):
             raise ValueError('Provided string %s is not a valid path' % path)
         if action is ZipFileAction.READ:
-            if not j.system.fs.isFile(path):
+            if not j.sal.fs.isFile(path):
                 raise ValueError(
                         'Provided path %s is not an existing file' % path)
             if not zipfile.is_zipfile(path):
@@ -87,9 +87,9 @@ class ZipFile(BaseType):
             dirname = os.path.dirname(f)
             basename = os.path.basename(f)
 
-            outdir = j.system.fs.joinPaths(destination_path, dirname)
-            j.system.fs.createDir(outdir)
-            outfile_path = j.system.fs.joinPaths(outdir, basename)
+            outdir = j.sal.fs.joinPaths(destination_path, dirname)
+            j.sal.fs.createDir(outdir)
+            outfile_path = j.sal.fs.joinPaths(outdir, basename)
 
             #On Windows we get some \ vs / in path issues. Check whether the
             #provided filename works, if not, retry replacing \ with /, and use

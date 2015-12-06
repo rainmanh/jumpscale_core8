@@ -62,7 +62,7 @@ class NumTools:
             tointerpolate = [0.0 for item in tointerpolate]
 
         for xpos in range(len(tointerpolate)):
-            if not tointerpolate[xpos] == None and not j.basetype.integer.check(tointerpolate[xpos]):
+            if not tointerpolate[xpos] == None and not j.core.types.integer.check(tointerpolate[xpos]):
                 isint = False
             if tointerpolate[xpos] == None:
                 x.append(xpos)
@@ -135,8 +135,8 @@ class NumTools:
 
     def _initCurrencies(self):
         if self.currencies == {}:
-            path = j.system.fs.joinPaths("cfg", "currencies.cfg")
-            if j.system.fs.exists(path):
+            path = j.sal.fs.joinPaths("cfg", "currencies.cfg")
+            if j.sal.fs.exists(path):
                 ini = j.tools.inifile.open(path)
                 if ini.checkSection("eur"):
                     for cur in list(ini.getSectionAsDict("eur").keys()):

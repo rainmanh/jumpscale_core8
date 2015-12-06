@@ -14,14 +14,14 @@ class ModelBase(Document):
 
     def clean(self):
         if self.guid == "":
-            self.guid = j.base.idgenerator.generateXCharID(6)
+            self.guid = j.tools.idgenerator.generateXCharID(6)
 
         if self.id == "":
             self.id = self.guid
 
 
         if self.epoch == 0:
-            self.epoch = j.base.time.getTimeEpoch()
+            self.epoch = j.tools.time.getTimeEpoch()
         if j.application.whoAmI != None:
             if self.gid == 0:
                 self.gid = j.application.whoAmI.gid
@@ -73,7 +73,7 @@ class ModelErrorCondition(ModelBase):
     def clean(self):
         ModelBase.clean(self)
         if self.lasttime == 0:
-            self.lasttime = j.base.time.getTimeEpoch()
+            self.lasttime = j.tools.time.getTimeEpoch()
         if self.state not in ["NEW", "ALERT", "CLOSED"]:
             raise ValidationError("State can only be NEW,ALERT or CLOSED")
         if self.type not in ["BUG", "PERF", "OPS", "UNKNOWN"]:
@@ -93,7 +93,7 @@ class ModelGroup(ModelBase):
     roles = ListField(StringField())
     active = BooleanField(default=1)
     description = StringField(default='master')
-    lastcheck = IntField(default=j.base.time.getTimeEpoch())
+    lastcheck = IntField(default=j.tools.time.getTimeEpoch())
     users = ListField(StringField())
 
 
@@ -113,7 +113,7 @@ class ModelJob(ModelBase):
     resultcode = StringField(default='')
     # SCHEDULED,STARTED,ERROR,OK,NOWORK
     state = StringField(default='SCHEDULED')
-    timeStart = IntField(default=j.base.time.getTimeEpoch())
+    timeStart = IntField(default=j.tools.time.getTimeEpoch())
     timeStop = IntField()
     log = BooleanField(default=1)
     errorreport = BooleanField(default=1)
@@ -156,7 +156,7 @@ class ModelDisk(ModelBase):
     description = StringField(default='')
     type = ListField(StringField())  # BOOT, DATA, ...
     # epoch of last time the info was checked from reality
-    lastcheck = IntField(default=j.base.time.getTimeEpoch())
+    lastcheck = IntField(default=j.tools.time.getTimeEpoch())
 
 
 class ModelAlert(ModelBase):
@@ -170,7 +170,7 @@ class ModelAlert(ModelBase):
     tags = StringField(default='')  # e.g. machine:2323
     state = StringField(default='')  # ["NEW","ALERT","CLOSED"]
     # first time there was an error condition linked to this alert
-    inittime = IntField(default=j.base.time.getTimeEpoch())
+    inittime = IntField(default=j.tools.time.getTimeEpoch())
     # last time there was an error condition linked to this alert
     lasttime = IntField()
     closetime = IntField()  # alert is closed, no longer active
@@ -192,7 +192,7 @@ class ModelHeartbeat(ModelBase):
     """
     nid = IntField()
     gid = IntField()
-    lastcheck = IntField(default=j.base.time.getTimeEpoch())
+    lastcheck = IntField(default=j.tools.time.getTimeEpoch())
 
 
 class ModelJumpscript(ModelBase):
@@ -234,7 +234,7 @@ class ModelMachine(ModelBase):
     otherid = StringField(default='')
     type = StringField(default='')  # VM,LXC
     # epoch of last time the info was checked from reality
-    lastcheck = IntField(default=j.base.time.getTimeEpoch())
+    lastcheck = IntField(default=j.tools.time.getTimeEpoch())
 
     def clean(self):
         ModelBase.clean(self)
@@ -250,7 +250,7 @@ class ModelNic(ModelBase):
     ipaddr = ListField(StringField())
     active = BooleanField(default=1)
     # poch of last time the info was checked from reality
-    lastcheck = IntField(default=j.base.time.getTimeEpoch())
+    lastcheck = IntField(default=j.tools.time.getTimeEpoch())
 
 
 class ModelNode(ModelBase):
@@ -266,7 +266,7 @@ class ModelNode(ModelBase):
     peer_log = IntField()
     peer_backup = IntField()  # node which has backups for this node
     description = StringField(default='')
-    lastcheck = IntField(default=j.base.time.getTimeEpoch())
+    lastcheck = IntField(default=j.tools.time.getTimeEpoch())
     # osisrootobj,$namespace,$category,$version
     _meta = ListField(StringField())
 
@@ -284,7 +284,7 @@ class ModelProcess(ModelBase):
     epochstart = IntField()
     epochstop = IntField()
     active = BooleanField()
-    lastcheck = IntField(default=j.base.time.getTimeEpoch())
+    lastcheck = IntField(default=j.tools.time.getTimeEpoch())
     cmd = StringField(default='')
     workingdir = StringField(default='')
     parent = StringField(default='')
@@ -319,7 +319,7 @@ class ModelTest(ModelBase):
     author = StringField(default='')
     version = IntField()
     categories = ListField(StringField())
-    starttime = IntField(default=j.base.time.getTimeEpoch())
+    starttime = IntField(default=j.tools.time.getTimeEpoch())
     endtime = IntField()
     enable = BooleanField()
     result = DictField()
@@ -344,7 +344,7 @@ class ModelUser(ModelBase):
     emails = ListField(StringField())
     xmpp = ListField(StringField())
     mobile = ListField(StringField())
-    lastcheck = IntField(default=j.base.time.getTimeEpoch())  # epoch of last time the info updated
+    lastcheck = IntField(default=j.tools.time.getTimeEpoch())  # epoch of last time the info updated
     groups = ListField(StringField())
     authkey = StringField(default='')
     data = StringField(default='')

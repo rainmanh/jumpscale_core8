@@ -93,9 +93,9 @@ class GeventWSServer():
         # lfmid = 0
 
         while True:
-            self.fiveMinuteId=j.base.time.get5MinuteId(self.now )
-            self.hourId=j.base.time.getHourId(self.now )
-            self.dayId=j.base.time.getDayId(self.now )
+            self.fiveMinuteId=j.tools.time.get5MinuteId(self.now )
+            self.hourId=j.tools.time.getHourId(self.now )
+            self.dayId=j.tools.time.getDayId(self.now )
             print("timer2")
             gevent.sleep(200)            
 

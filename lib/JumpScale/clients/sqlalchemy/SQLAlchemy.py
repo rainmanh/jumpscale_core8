@@ -133,7 +133,7 @@ class SQLAlchemy(object):
     def _initsql(self):
         if self.engine==None:
             if self.sqlitepath!="":
-                if not j.system.fs.exists(path=self.sqlitepath):
+                if not j.sal.fs.exists(path=self.sqlitepath):
                     self.engine=self.resetDB()
                 else:
                     self.engine = create_engine(self.connectionstring, echo=False)
@@ -156,8 +156,8 @@ class SQLAlchemy(object):
             data=target.getDataAsDict()
             out=contoml.dumps(data)
             path=target._tomlpath(self)
-            j.system.fs.createDir(j.system.fs.getDirName(path))
-            j.system.fs.writeFile(filename=path,contents=out)    
+            j.sal.fs.createDir(j.sal.fs.getDirName(path))
+            j.sal.fs.writeFile(filename=path,contents=out)    
 
     def removetoml(self,mapper, connection, target):
         if target._totoml and self.tomlpath!="":

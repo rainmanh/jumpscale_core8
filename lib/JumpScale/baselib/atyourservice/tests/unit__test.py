@@ -23,26 +23,26 @@ class AYSTestBase(unittest.TestCase):
         """
         creates a directory where we can run the test in isolation
         """
-        self.tmp_dir = j.system.fs.getTmpDirPath()
-        self.services_dir = j.system.fs.joinPaths(self.tmp_dir, 'services')
-        self.templates_dir = j.system.fs.joinPaths(self.tmp_dir, 'servicetemplates')
-        self.domain = j.system.fs.getBaseName(self.tmp_dir)
+        self.tmp_dir = j.sal.fs.getTmpDirPath()
+        self.services_dir = j.sal.fs.joinPaths(self.tmp_dir, 'services')
+        self.templates_dir = j.sal.fs.joinPaths(self.tmp_dir, 'servicetemplates')
+        self.domain = j.sal.fs.getBaseName(self.tmp_dir)
         # create ays directories
-        j.system.fs.createDir(self.tmp_dir)
-        j.system.fs.createDir(self.services_dir)
-        j.system.fs.createDir(self.templates_dir)
+        j.sal.fs.createDir(self.tmp_dir)
+        j.sal.fs.createDir(self.services_dir)
+        j.sal.fs.createDir(self.templates_dir)
 
         # copy templates fixtures in place
-        parent = j.system.fs.getParent(__file__)
-        src = j.system.fs.joinPaths(parent, 'fixtures')
-        j.system.fs.copyDirTree(src, self.templates_dir)
-        j.system.fs.changeDir(self.tmp_dir)
+        parent = j.sal.fs.getParent(__file__)
+        src = j.sal.fs.joinPaths(parent, 'fixtures')
+        j.sal.fs.copyDirTree(src, self.templates_dir)
+        j.sal.fs.changeDir(self.tmp_dir)
 
     @classmethod
     def tearDownClass(self):
-        if j.system.fs.exists(path=self.tmp_dir):
-            j.system.fs.removeDirTree(self.tmp_dir)
-            j.system.fs.changeDir("/opt")  # need to move in an existing folder otherwise unittest gives errors
+        if j.sal.fs.exists(path=self.tmp_dir):
+            j.sal.fs.removeDirTree(self.tmp_dir)
+            j.sal.fs.changeDir("/opt")  # need to move in an existing folder otherwise unittest gives errors
 
         # reset ays status
         j.atyourservice.services = []
@@ -57,7 +57,7 @@ class AYSNew(AYSTestBase):
         """
         executed before each test method.
         """
-        j.system.fs.changeDir(self.tmp_dir)
+        j.sal.fs.changeDir(self.tmp_dir)
 
     def tearDown(self):
         """
@@ -69,7 +69,7 @@ class AYSNew(AYSTestBase):
         test create new services
         """
         s = j.atyourservice.new(name='template1')
-        self.assertEqual(s.path, j.system.fs.joinPaths(self.services_dir, 'template1__main'))
+        self.assertEqual(s.path, j.sal.fs.joinPaths(self.services_dir, 'template1__main'))
         self.assertEqual(s.domain, self.domain)
         self.assertEqual(s.name, 'template1')
         self.assertEqual(s.instance, 'main')
@@ -105,7 +105,7 @@ class AYSParent(AYSTestBase):
         """
         executed before each test method.
         """
-        j.system.fs.changeDir(self.tmp_dir)
+        j.sal.fs.changeDir(self.tmp_dir)
 
     def tearDown(self):
         """
@@ -148,8 +148,8 @@ class AYSFindService(AYSTestBase):
         """
         executed after each test method.
         """
-        for path in j.system.fs.listDirsInDir(self.services_dir):
-            j.system.fs.removeDirTree(path)
+        for path in j.sal.fs.listDirsInDir(self.services_dir):
+            j.sal.fs.removeDirTree(path)
 
     def test_findService(self):
         """
@@ -177,8 +177,8 @@ class AYSKey(AYSTestBase):
         """
         executed after each test method.
         """
-        for path in j.system.fs.listDirsInDir(self.services_dir):
-            j.system.fs.removeDirTree(path)
+        for path in j.sal.fs.listDirsInDir(self.services_dir):
+            j.sal.fs.removeDirTree(path)
 
     def test_parseKey(self):
         """

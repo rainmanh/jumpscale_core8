@@ -5,14 +5,14 @@ class Avahi():
 
     # def __init__(self):
     #     raise RuntimeError("should not init auto")
-    #     j.system.platform.ubuntu.checkInstall(["avahi-utils"],"avahi-browse")
+    #     j.sal.ubuntu.checkInstall(["avahi-utils"],"avahi-browse")
 
     def _servicePath(self, servicename):
         path = "/etc/avahi/services"
-        if not j.system.fs.exists(path=path):
-            j.system.fs.createDir(path)
+        if not j.sal.fs.exists(path=path):
+            j.sal.fs.createDir(path)
         service = '%s.service' % servicename
-        return j.system.fs.joinPaths(path, service)
+        return j.sal.fs.joinPaths(path, service)
 
     def registerService(self, servicename, port, type='tcp'):
         content = """<?xml version=\"1.0\" standalone=\'no\'?>
@@ -33,22 +33,22 @@ class Avahi():
         content = content.replace("${port}", str(port))
         content = content.replace("${type}", type)
         path = self._servicePath(servicename)
-        j.system.fs.writeFile(path, content)
+        j.sal.fs.writeFile(path, content)
 
         cmd = "avahi-daemon --reload"
-        j.system.process.execute(cmd)
+        j.sal.process.execute(cmd)
 
     def removeService(self, servicename):
         path = self._servicePath(servicename)
-        if j.system.fs.exists(path=path):
-            j.system.fs.remove(path)
+        if j.sal.fs.exists(path=path):
+            j.sal.fs.remove(path)
 
         cmd = "avahi-daemon --reload"
-        j.system.process.execute(cmd)
+        j.sal.process.execute(cmd)
 
     def getServices(self):
         cmd = "avahi-browse -a -r -t"
-        result, output = j.system.process.execute(cmd, False, False)
+        result, output = j.sal.process.execute(cmd, False, False)
         if result > 0:
             raise RuntimeError(
                 "cannot use avahi command line to find services, please check avahi is installed on system (ubunutu apt-get install avahi-utils)\nCmd Used:%s" % cmd)
@@ -89,7 +89,7 @@ class Avahi():
         if not j.system.net.validateIpAddress(ipAddress):
             raise ValueError('Invalid Ip Address')
         cmd = 'avahi-resolve-address %s'
-        exitCode, output = j.system.process.execute(cmd % ipAddress, dieOnNonZeroExitCode=False, outputToStdout=False)
+        exitCode, output = j.sal.process.execute(cmd % ipAddress, dieOnNonZeroExitCode=False, outputToStdout=False)
         if exitCode or not output:  # if the ouput string is '' then something is wrong
             raise RuntimeError('Cannot resolve the hostname of ipaddress: %s' % ipAddress)
         output = output.strip()

@@ -76,8 +76,8 @@ class GitlabInstance():
 
     def downloadFile(self,group,project,path,dest):
         content=self.getFile(group,project,path)
-        j.system.fs.createDir(j.system.fs.getDirName(dest))
-        j.system.fs.writeFile(filename=dest,contents=content)
+        j.sal.fs.createDir(j.sal.fs.getDirName(dest))
+        j.sal.fs.writeFile(filename=dest,contents=content)
 
     def _getFromCache(self,key,renew=False):
         if renew:
@@ -167,9 +167,9 @@ class GitlabInstance():
             self.gitlab.createproject(name,public=public,namespace_id=group2['id'])
             proj=self.getProject(name, renew=True)
             j.do.delete(path, force=True)
-            j.system.fs.createDir(path)
+            j.sal.fs.createDir(path)
             def do(cmd):
-                j.system.process.executeWithoutPipe("cd %s;%s"%(path,cmd))
+                j.sal.process.executeWithoutPipe("cd %s;%s"%(path,cmd))
             do("git init")
             do("touch README")
             do("git add README")

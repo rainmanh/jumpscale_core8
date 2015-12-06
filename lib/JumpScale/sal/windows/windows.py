@@ -53,7 +53,7 @@ class WindowsSystem(SALObject):
     def checkFileToIgnore(self,path):
         if j.system.platformtype.isWindows():
             ignore = False
-            filename=j.system.fs.getBaseName(path)
+            filename=j.sal.fs.getBaseName(path)
             if filename[0:2]=="~$":
                 ignore = True
             return ignore
@@ -86,8 +86,8 @@ class WindowsSystem(SALObject):
 
         # Add shortcut to startmenu
         startmenu = self.getStartMenuProgramsPath()
-        if not j.system.fs.exists("%s\\%s" % (startmenu, startMenuSubdir)):
-            j.system.fs.createDir("%s\\%s" % (startmenu, startMenuSubdir))
+        if not j.sal.fs.exists("%s\\%s" % (startmenu, startMenuSubdir)):
+            j.sal.fs.createDir("%s\\%s" % (startmenu, startMenuSubdir))
 
         shortcut_startmenu = pythoncom.CoCreateInstance(shell.CLSID_ShellLink, None, pythoncom.CLSCTX_INPROC_SERVER, shell.IID_IShellLink)
         shortcut_startmenu.SetPath(executable)
@@ -99,8 +99,8 @@ class WindowsSystem(SALObject):
 
         if putInStartup:
             startupfolder = self.getStartupPath()
-            if not j.system.fs.exists(startupfolder):
-                j.system.fs.createDir(startupfolder)
+            if not j.sal.fs.exists(startupfolder):
+                j.sal.fs.createDir(startupfolder)
             shortcut_startup = pythoncom.CoCreateInstance(shell.CLSID_ShellLink, None, pythoncom.CLSCTX_INPROC_SERVER, shell.IID_IShellLink)
             shortcut_startup.SetPath(executable)
             shortcut_startup.SetDescription(description)
@@ -166,9 +166,9 @@ class WindowsSystem(SALObject):
 
         def _grantDir(dirpath, securityDescriptor):
             '''Set security on a folder'''
-            for dir in j.system.fs.listDirsInDir(dirpath):
+            for dir in j.sal.fs.listDirsInDir(dirpath):
                 _grantDir(dir, securityDescriptor)
-            for file in j.system.fs.listFilesInDir(dirpath):
+            for file in j.sal.fs.listFilesInDir(dirpath):
                 _grantFile(file, securityDescriptor)
             win32security.SetFileSecurity(dirpath, win32security.DACL_SECURITY_INFORMATION, securityDescriptor)
 
@@ -258,7 +258,7 @@ class WindowsSystem(SALObject):
 
     def getDesktopPath(self):
         """ Returns the windows "DESKTOP" folder in Unicode format. """
-        return j.system.fs.joinPaths(self.getUsersHomeDir(),"Desktop")
+        return j.sal.fs.joinPaths(self.getUsersHomeDir(),"Desktop")
         # return shell.SHGetFolderPath(0, shellcon.CSIDL_DESKTOP, 0, 0) + os.sep # See http://msdn2.microsoft.com/en-us/library/bb762181(VS.85).aspx for information about this function.
 
     def _getHiveAndKey(self, fullKey):
@@ -327,7 +327,7 @@ class WindowsSystem(SALObject):
         @type path: string
         """
 
-        fileContent = j.system.fs.fileGetContents(path)
+        fileContent = j.sal.fs.fileGetContents(path)
         self.importRegKeysFromString(fileContent)
 
     def exportRegKeysToString(self, key):
@@ -354,7 +354,7 @@ class WindowsSystem(SALObject):
         @param path: The path of the file to export to
         @type path: string
         """
-        j.system.fs.writeFile(path, self.exportRegKeysToString(key))
+        j.sal.fs.writeFile(path, self.exportRegKeysToString(key))
 
     def registryHasKey(self, key):
         """Check if the windows registry has the specified key
@@ -583,13 +583,13 @@ class WindowsSystem(SALObject):
         e.g creating a service for postgresql
         serviceName = 'pgsql-8.3'
         displayName = serviceName
-        binDir = j.system.fs.joinPaths(j.dirs.baseDir, 'apps','postgresql8', 'bin')
-        pgDataDir = j.system.fs.joinPathso.dirs.baseDir, 'apps','postgresql8', 'Data')
+        binDir = j.sal.fs.joinPaths(j.dirs.baseDir, 'apps','postgresql8', 'bin')
+        pgDataDir = j.sal.fs.joinPathso.dirs.baseDir, 'apps','postgresql8', 'Data')
         j.system.windows.createService(serviceName, displayName , '%s\\pg_ctl.exe','runservice -W -N %s -D %s'%(serviceName, pgDataDir))
         """
         j.logger.log('Creating Service %s'%serviceName, 6)
 
-        if not j.system.fs.isFile(binPath):
+        if not j.sal.fs.isFile(binPath):
             raise ValueError('binPath %s is not a valid file'%binPath)
 
         executableString = binPath
@@ -763,7 +763,7 @@ class WindowsSystem(SALObject):
         """
         j.logger.log('Listing Running processes names', 6)
 
-        # j.system.process.execute()
+        # j.sal.process.execute()
         processes = self._wmi.InstancesOf('Win32_Process')
         result = [[process.Properties_('Name').Value,process.Properties_("processid").Value,process.Properties_("Commandline").Value] for process in processes]
 
@@ -781,7 +781,7 @@ class WindowsSystem(SALObject):
             for item in tokill:
                 if j.core.types.string.check(item):
                     itemlist=[item]
-                elif j.basetype.list.check(item):
+                elif j.core.types.list.check(item):
                     itemlist=item
                 else:
                     raise RuntimeError("Can only process string or list")
@@ -790,7 +790,7 @@ class WindowsSystem(SALObject):
                     if cmdline.find(item2)==-1:
                         found=False
                 if found:
-                    j.system.process.kill(id)
+                    j.sal.process.kill(id)
 
     def checkProcessesExist(self,tocheck=[]):
         """
@@ -805,7 +805,7 @@ class WindowsSystem(SALObject):
             for item in tocheck:
                 if j.core.types.string.check(item):
                     itemlist=[item]
-                elif j.basetype.list.check(item):
+                elif j.core.types.list.check(item):
                     itemlist=item
                 else:
                     raise RuntimeError("Can only process string or list")
@@ -927,10 +927,10 @@ class WindowsSystem(SALObject):
         """
         j.logger.log('Granting access to Dir Tree %s'%dirPath, 6)
 
-        if j.system.fs.isDir(dirPath):
+        if j.sal.fs.isDir(dirPath):
             self.grantAccessToFile(dirPath, userName)
 
-            for subDir in j.system.fs.WalkExtended(dirPath, recurse=1):
+            for subDir in j.sal.fs.WalkExtended(dirPath, recurse=1):
                 self.grantAccessToFile(subDir, userName)
         else:
             j.logger.log('%s is not a valid directory'%dirPath, 6)
@@ -944,7 +944,7 @@ class WindowsSystem(SALObject):
         """
         j.logger.log('Granting access to file %s'%filePath, 6)
         import ntsecuritycon as con
-        if j.system.fs.isFile(filePath) or j.system.fs.isDir(filePath):
+        if j.sal.fs.isFile(filePath) or j.sal.fs.isDir(filePath):
 
             info = win32security.DACL_SECURITY_INFORMATION
             sd = win32security.GetFileSecurity(filePath, info)
@@ -965,11 +965,11 @@ class WindowsSystem(SALObject):
         @param dirPath: path of the dir
         @param force: boolean parameter indicating that folders containing hidden files will also be deleted
         """
-        if(j.system.fs.exists(dirPath)):
-            if j.system.fs.isDir(dirPath):
+        if(j.sal.fs.exists(dirPath)):
+            if j.sal.fs.isDir(dirPath):
                 if force:
                     fileMode = win32file.GetFileAttributesW(dirPath)
-                    for file in j.system.fs.Walk(dirPath,recurse=1):
+                    for file in j.sal.fs.Walk(dirPath,recurse=1):
                         j.logger.log('Changing attributes on %s'%file)
                         win32file.SetFileAttributesW(file, fileMode &  ~win32file.FILE_ATTRIBUTE_HIDDEN)
                 if errorHandler != None:
@@ -985,7 +985,7 @@ class WindowsSystem(SALObject):
         @return when 0 then ok, when 1 not found, when 2 an error but don't know what
         """
         try:
-            returncode,output=j.system.process.execute(programName)
+            returncode,output=j.sal.process.execute(programName)
         except Exception as inst:
             if inst.args[1].lower().find("cannot find the file specified")!=-1:
                 return 1

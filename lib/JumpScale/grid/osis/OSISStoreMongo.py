@@ -107,7 +107,7 @@ class OSISStoreMongo(OSISStore):
                     value['_ttl'] = datetime.datetime.utcnow()
 
 
-        if j.basetype.dictionary.check(value):
+        if j.core.types.dict.check(value):
             objInDB=None
 
             obj = self.getObject(value)
@@ -249,7 +249,7 @@ class OSISStoreMongo(OSISStore):
           means 3 days ago 3 hours ago
           if 0 or '' then is now
           also ok is +3m, ... (+ is for future)
-          (is using j.base.time.getEpochAgo & getEpochFuture)
+          (is using j.tools.time.getEpochAgo & getEpochFuture)
 
 
 
@@ -295,15 +295,15 @@ class OSISStoreMongo(OSISStore):
             for key, value in list(params.copy().items()):
                 if value.startswith('>'):
                     if 'm' in value or 'd' in value or 'h' in value:
-                        new_value = j.base.time.getEpochAgo(value[1:])
+                        new_value = j.tools.time.getEpochAgo(value[1:])
                     else:
-                        new_value = j.basetype.float.fromString(value[1:])
+                        new_value = j.core.types.float.fromString(value[1:])
                     params[key] = {'$gte': new_value}
                 elif value.startswith('<'):
                     if 'm' in value or 'd' in value or 'h' in value:
-                        new_value = j.base.time.getEpochFuture(value[1:])
+                        new_value = j.tools.time.getEpochFuture(value[1:])
                     else:
-                        new_value = j.basetype.float.fromString(value[1:])
+                        new_value = j.core.types.float.fromString(value[1:])
                     params[key] = {'$lte': new_value}
                 elif '*' in value:
                     params[key] = {'$regex': '/%s/i' % value.replace('*', ''), '$options': 'i'}
@@ -412,8 +412,8 @@ class OSISStoreMongo(OSISStore):
 
     def demodata(self, session=None):
         import JumpScale.baselib.redis2worker
-        path=j.system.fs.joinPaths(self.path,"demodata.py")
-        if j.system.fs.exists(path):
+        path=j.sal.fs.joinPaths(self.path,"demodata.py")
+        if j.sal.fs.exists(path):
             module = imp.load_source("%s_%s_demodata"%(self.namespace,self.categoryname), path)
             job=j.clients.redisworker.execFunction(module.populate,_organization=self.namespace,_category=self.categoryname,_timeout=60,_queue="io",_log=True,_sync=False)
 
@@ -436,8 +436,8 @@ class OSISStoreMongo(OSISStore):
 
     def rebuildindex(self, session):
         db, counter = self._getMongoDB(session)
-        path=j.system.fs.joinPaths(self.path,"index.py")
-        if j.system.fs.exists(path):
+        path=j.sal.fs.joinPaths(self.path,"index.py")
+        if j.sal.fs.exists(path):
             module = imp.load_source("%s_%sindex"%(self.namespace,self.categoryname), path)
             module.index(db)
 
@@ -446,22 +446,22 @@ class OSISStoreMongo(OSISStore):
         export all objects of a category to json format, optional query
         Placed in outputpath
         """
-        if not j.system.fs.isDir(outputpath):
-            j.system.fs.createDir(outputpath)
+        if not j.sal.fs.isDir(outputpath):
+            j.sal.fs.createDir(outputpath)
         ids = self.list(session=session)
         for id in ids:
             obj = self.get(id, session=session)
-            filename = j.system.fs.joinPaths(outputpath, id)
+            filename = j.sal.fs.joinPaths(outputpath, id)
             if isinstance(obj, dict):
                 obj = json.dumps(obj)
-            j.system.fs.writeFile(filename, obj)
+            j.sal.fs.writeFile(filename, obj)
 
     def importFromPath(self, path, session=None):
         '''Imports OSIS category from file system'''
-        if not j.system.fs.exists(path):
+        if not j.sal.fs.exists(path):
             raise RuntimeError("Can't find the specified path: %s" % path)
 
-        data_files = j.system.fs.listFilesInDir(path)
+        data_files = j.sal.fs.listFilesInDir(path)
         for data_file in data_files:
             with open(data_file) as f:
                 obj = json.load(f)

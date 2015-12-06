@@ -8,7 +8,7 @@ import plyvel
 class LevelDBInterface():
 
     def __init__(self,namespace,basedir):
-        j.system.fs.createDir(basedir)
+        j.sal.fs.createDir(basedir)
         self.path="%s/%s"%(basedir,namespace)
         self.db=plyvel.DB(self.path, create_if_missing=True, compression='snappy', bloom_filter_bits=10,lru_cache_size=100*1024*1024,write_buffer_size=1*1024*1024)
         #write_buffer_size=None, max_open_files=None, lru_cache_size=None, block_size=None, block_restart_interval=None

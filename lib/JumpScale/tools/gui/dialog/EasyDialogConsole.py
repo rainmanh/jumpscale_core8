@@ -20,10 +20,10 @@ class EasyDialogConsole(EasyDialogGeneric):
 
         filepath=""
         currentDir = startPath or "/"
-        if j.system.fs.isEmptyDir(currentDir):
+        if j.sal.fs.isEmptyDir(currentDir):
             raise RuntimeError('Startpath directory contains no files, please enter a non empty dir')
-        while(j.system.fs.isDir(currentDir)):
-            dirs = j.system.fs.walk(currentDir, return_folders = 1)
+        while(j.sal.fs.isDir(currentDir)):
+            dirs = j.sal.fs.walk(currentDir, return_folders = 1)
             if dirs:
                 previousDir = currentDir
                 currentDir = self.askChoice(message, dirs)
@@ -46,8 +46,8 @@ class EasyDialogConsole(EasyDialogGeneric):
 
         currentDir = startPath or "/"
         traverse = True
-        while(j.system.fs.isDir(currentDir) and traverse and not j.system.fs.isEmptyDir(currentDir)):
-            dirs = j.system.fs.walk(currentDir, return_folders = 1, return_files = 0)
+        while(j.sal.fs.isDir(currentDir) and traverse and not j.sal.fs.isEmptyDir(currentDir)):
+            dirs = j.sal.fs.walk(currentDir, return_folders = 1, return_files = 0)
             currentDir = self.askChoice(message, dirs)
             traverse = not self.askYesNo("To Choose Current folder [y/yes] to continue navigation [n/No]?", 'y')
         return currentDir

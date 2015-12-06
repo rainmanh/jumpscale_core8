@@ -25,12 +25,12 @@ class ActorGen(object):
             actors.setdefault((appname, actorname), list()).append(pathinfo)
 
         for (appname, actorname), methods in list(actors.items()):
-            actorfolder = j.system.fs.joinPaths(destpath, "%s__%s" % (appname, actorname))
-            specfolder = j.system.fs.joinPaths(actorfolder, "specs")
+            actorfolder = j.sal.fs.joinPaths(destpath, "%s__%s" % (appname, actorname))
+            specfolder = j.sal.fs.joinPaths(actorfolder, "specs")
             for folder in ('.actor', 'methodclass'):
-                magicfolder = j.system.fs.joinPaths(actorfolder, folder)
-                j.system.fs.createDir(magicfolder)
-            j.system.fs.createDir(specfolder)
-            specfile = j.system.fs.joinPaths(specfolder, 'actor.spec')
+                magicfolder = j.sal.fs.joinPaths(actorfolder, folder)
+                j.sal.fs.createDir(magicfolder)
+            j.sal.fs.createDir(specfolder)
+            specfile = j.sal.fs.joinPaths(specfolder, 'actor.spec')
             output = template.render(methods=methods, parammap=PARAMMAP)
-            j.system.fs.writeFile(specfile, output)
+            j.sal.fs.writeFile(specfile, output)

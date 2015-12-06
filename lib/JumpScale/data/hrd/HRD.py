@@ -83,7 +83,7 @@ class HRDItem():
         #     state="start"
         #     out=""
         #     found=False
-        #     for line in j.system.fs.fileGetContents(self.hrd.path).split("\n"):
+        #     for line in j.sal.fs.fileGetContents(self.hrd.path).split("\n"):
         #         if line.strip().startswith(name):                        
         #             state="found"
         #             continue
@@ -106,7 +106,7 @@ class HRDItem():
         #             out+="%s\n" % (self.comments)
         #         out+="%s = %s\n" % (name, self.getAsString())
 
-        #     j.system.fs.writeFile(filename=self.hrd.path,contents=out)
+        #     j.sal.fs.writeFile(filename=self.hrd.path,contents=out)
 
         if persistent:
             self.hrd.save()
@@ -204,7 +204,7 @@ class HRD(HRDBase):
     def __init__(self,path=None,tree=None,content="",prefixWithName=False,keepformat=True,args={},templates=[],istemplate=False):
         self.path=path
         if self.path is not None:
-            self.name=".".join(j.system.fs.getBaseName(self.path).split(".")[:-1])
+            self.name=".".join(j.sal.fs.getBaseName(self.path).split(".")[:-1])
         else:
             self.name = ""
         self.tree=tree
@@ -272,7 +272,7 @@ class HRD(HRDBase):
             out=str(self)
 
         if self.path != '' and self.path is not None:
-            j.system.fs.writeFile(self.path,out)
+            j.sal.fs.writeFile(self.path,out)
 
     def getHrd(self,key):
         #to keep common functions working
@@ -284,7 +284,7 @@ class HRD(HRDBase):
 
         out=""
 
-        for line in j.system.fs.fileGetContents(self.path).split("\n"):
+        for line in j.sal.fs.fileGetContents(self.path).split("\n"):
             delete=False
             line=line.strip()
             if line=="" or line[0]=="#":
@@ -307,12 +307,12 @@ class HRD(HRDBase):
 
         out = out.strip('\n') + '\n'
 
-        j.system.fs.writeFile(self.path,out)
+        j.sal.fs.writeFile(self.path,out)
 
     def read(self):
-        if not j.system.fs.exists(path=self.path) and self.path.strip()!="":
+        if not j.sal.fs.exists(path=self.path) and self.path.strip()!="":
             j.do.writeFile(self.path,"")
-        content=j.system.fs.fileGetContents(self.path)
+        content=j.sal.fs.fileGetContents(self.path)
         self.process(content)
 
     def _recognizeType(self,content):        
@@ -340,7 +340,7 @@ class HRD(HRDBase):
         if self.istemplate:
             return
 
-        if not j.basetype.list.check(templates):
+        if not j.core.types.list.check(templates):
             templates=[templates]
 
         if path!="":
@@ -455,7 +455,7 @@ class HRD(HRDBase):
 
     def process(self,content=""):
         if content=="":
-            content=j.system.fs.fileGetContents(self.path)  
+            content=j.sal.fs.fileGetContents(self.path)  
 
         if content!=""  and content[-1]!="\n":
             content+="\n"

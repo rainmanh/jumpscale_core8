@@ -1,6 +1,6 @@
 #!/usr/bin/env jspython
 from JumpScale import j
-from JumpScale.baselib import cmdutils
+from JumpScale.tools import cmdutils
 
 import sys,time
 
@@ -19,7 +19,7 @@ import JumpScale.baselib.redis2
 
 def timeago(t):
     t=float(t)
-    ago=j.base.time.getTimeEpoch()-int(t)
+    ago=j.tools.time.getTimeEpoch()-int(t)
     if ago>3600:
         return "%sh"%round(ago/3600,1)
     if ago>30:
@@ -43,7 +43,7 @@ elif opts.action =='checkall':
     j.clients.redis.checkAllInstances()
 
 elif opts.action =='apps':
-    j.system.process.appsGet()
+    j.sal.process.appsGet()
     items = redism.hgetall("application")
     items2=list(zip(items[0::2], items[1::2]))
     for name, val in items2:

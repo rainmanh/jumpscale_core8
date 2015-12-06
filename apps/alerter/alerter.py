@@ -7,7 +7,7 @@ monkey.patch_thread()
 monkey.patch_time()
 
 from JumpScale import j
-from JumpScale.baselib import cmdutils
+from JumpScale.tools import cmdutils
 from JumpScale.baselib.alerter.alerts_service import AlertService
 
 

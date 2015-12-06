@@ -12,7 +12,7 @@ class OSISBaseObjectComplexType(j.code.classGetJSRootModelBase()):
         if not hasattr(self,"guid"):
             self.guid=""
         if self.guid=="":
-            self.guid=j.base.idgenerator.generateGUID()
+            self.guid=j.tools.idgenerator.generateGUID()
             self.guid=self.guid.replace("-","")
         self._ckey=""
         self._meta=[namespace,category,int(version)] #$namespace,$category,$version
@@ -37,7 +37,7 @@ class OSISBaseObjectComplexType(j.code.classGetJSRootModelBase()):
             self.gid=j.application.whoAmI.gid
         # self.sguid=struct.pack("<HH",self.gid,self.id)
         # self.guid = "%s_%s" % (self.gid, self.id)
-        self.lastmod=j.base.time.getTimeEpoch() 
+        self.lastmod=j.tools.time.getTimeEpoch() 
         return self.guid        
 
     def getContentKey(self):

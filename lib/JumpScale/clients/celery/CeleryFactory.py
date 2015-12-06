@@ -21,8 +21,8 @@ class CeleryFactory:
 
     def _getCode(self,path):
         state="start"
-        C=j.system.fs.fileGetContents(path)
-        basename=j.system.fs.getBaseName(path)
+        C=j.sal.fs.fileGetContents(path)
+        basename=j.sal.fs.getBaseName(path)
         name=basename.replace(".py","").lower()
         out="class %s():\n"%name
         for line in C.split("\n"):
@@ -46,16 +46,16 @@ class CeleryFactory:
         return out
 
     def getCodeServer(self,path):
-        if not j.system.fs.exists(path=path):
+        if not j.sal.fs.exists(path=path):
             j.events.inputerror_critical("could not find actors path:%s"%path)
         code=""
-        for item in j.system.fs.listFilesInDir( path, filter="*.py",recursive=False,followSymlinks=True):            
+        for item in j.sal.fs.listFilesInDir( path, filter="*.py",recursive=False,followSymlinks=True):            
             code+=self._getCode(item)
         return code
 
     def getCodeClient(self,path,actorName):
         path2="%s/%s.py"%(path,actorName)
-        if not j.system.fs.exists(path=path2):
+        if not j.sal.fs.exists(path=path2):
             j.events.inputerror_critical("could not find actor path:%s"%path2)
         code=self._getCode(path2)
         return code

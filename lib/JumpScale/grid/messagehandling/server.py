@@ -68,7 +68,7 @@ class Stats():
 
 class MessageServer(object):
 
-    DEFAULT_PID_FILE = j.system.fs.joinPaths(j.dirs.pidDir, 'message_server.pid')
+    DEFAULT_PID_FILE = j.sal.fs.joinPaths(j.dirs.pidDir, 'message_server.pid')
     FORWARD_MESSAGES_BATCH_SIZE = 100
 
     def __init__(self, address, storeLocally, pidFile=None, echo=False):
@@ -183,7 +183,7 @@ pid file: %s''' % (self._address, storeLocallyStr, addressesStr, self._pid, self
 
     def _timer(self):
         while True:
-            self.epoch = j.base.time.getTimeEpoch()
+            self.epoch = j.tools.time.getTimeEpoch()
             j.core.messagehandler.epoch = self.epoch
             gevent.sleep(0.1)
 
@@ -250,16 +250,16 @@ pid file: %s''' % (self._address, storeLocallyStr, addressesStr, self._pid, self
             self._socket.send('1')
 
     def _removePidFile(self, *args):
-        if j.system.fs.exists(self._pidFile):
-            pidStr = j.system.fs.fileGetContents(self._pidFile)
+        if j.sal.fs.exists(self._pidFile):
+            pidStr = j.sal.fs.fileGetContents(self._pidFile)
             pid = int(pidStr)
 
             if pid == self._pid:
-                j.system.fs.remove(self._pidFile)
+                j.sal.fs.remove(self._pidFile)
 
     def _storePidInPidFile(self):
         pidStr = str(self._pid)
-        j.system.fs.writeFile(self._pidFile, pidStr)
+        j.sal.fs.writeFile(self._pidFile, pidStr)
 
     def raiseError(self, msg):
         print(msg)

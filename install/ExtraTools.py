@@ -88,7 +88,7 @@ class RegexTool():
 
     @staticmethod           
     def matchContent(path,contentRegexIncludes=[], contentRegexExcludes=[]):
-        content=j.system.fs.fileGetContents(path)
+        content=j.sal.fs.fileGetContents(path)
         if RegexTool.matchMultiple(patterns=contentRegexIncludes,text=content) and not RegexTool.matchMultiple(patterns=contentRegexExcludes,text=content):
             return True
         return False
@@ -153,7 +153,7 @@ class FSWalkerStats():
             self.duplicate[ttype]=0
 
     def callstop(self):
-        self.stop=j.base.time.getTimeEpoch()
+        self.stop=j.tools.time.getTimeEpoch()
         self._getTotals()
 
     def _getTotals(self):

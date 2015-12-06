@@ -11,7 +11,7 @@ class TextFileEditor:
     """
     def __init__(self,filepath):
         self.filepath=filepath
-        self.content=j.system.fs.fileGetContents(filepath)
+        self.content=j.sal.fs.fileGetContents(filepath)
         
     def getTextLineEditor(self):
         """
@@ -153,7 +153,7 @@ class TextFileEditor:
             lineEditor.replaceBlock("main","### %s\n%s\n###END %s\n"%(sectionName,content,sectionName))
 
         lineEditor.save()
-        self.content=j.system.fs.fileGetContents(self.filepath)
+        self.content=j.sal.fs.fileGetContents(self.filepath)
         
 
     def removeSection(self,sectionName):
@@ -166,7 +166,7 @@ class TextFileEditor:
         lineEditor.matchBlocks("main",["### %s"%sectionName],[],["###END %s"%sectionName],[])        
         lineEditor.deleteBlock("main")
         lineEditor.save()
-        self.content=j.system.fs.fileGetContents(self.filepath)
+        self.content=j.sal.fs.fileGetContents(self.filepath)
 
 
     def replace(self,regexFind,regexFindsubsetToReplace,replaceWith):
@@ -224,7 +224,7 @@ class TextFileEditor:
             filepath=self.filepath
         if filepath==None:
             raise RuntimeError("Cannot write the textfile because path is None")
-        j.system.fs.writeFile(filepath,self.content)            
+        j.sal.fs.writeFile(filepath,self.content)            
         
 
 

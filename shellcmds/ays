@@ -1,6 +1,6 @@
 #!/usr/bin/env jspython
 
-from JumpScale.baselib import cmdutils
+from JumpScale.tools import cmdutils
 import JumpScale.baselib.atyourservice
 import functools
 from JumpScale import j
@@ -246,8 +246,8 @@ elif args.action == 'hrdpath':
     print(j.dirs.ays)
 
 # elif args.action == 'makelocal':
-#     if args.tolocal and j.system.fs.exists(args.tolocal):
-#         servicefiles = j.system.fs.walk(args.tolocal, recurse=1, pattern='service.hrd', return_folders=0, return_files=1, followSoftlinks=False)
+#     if args.tolocal and j.sal.fs.exists(args.tolocal):
+#         servicefiles = j.sal.fs.walk(args.tolocal, recurse=1, pattern='service.hrd', return_folders=0, return_files=1, followSoftlinks=False)
 #         for servicefile in servicefiles:
 #             remotehrd = j.core.hrd.get(servicefile, prefixWithName=False)
 #             remotehrd.delete('producer.node')

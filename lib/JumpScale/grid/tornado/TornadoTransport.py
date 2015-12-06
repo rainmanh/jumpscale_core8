@@ -41,13 +41,13 @@ class TornadoTransport(Transport):
         """
         headers = {'content-type': 'application/text'}
         data2 = j.servers.base._serializeBinSend(category, cmd, data, sendformat, returnformat, self._id)
-        start=j.base.time.getTimeEpoch()
+        start=j.tools.time.getTimeEpoch()
         if self.timeout:
             timeout = self.timeout
         if retry:
             rcv=None
             while rcv==None:
-                now=j.base.time.getTimeEpoch()
+                now=j.tools.time.getTimeEpoch()
                 if now>start+timeout:
                     break
                 try:

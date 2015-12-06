@@ -126,8 +126,8 @@ class SMBShare(SALObject):
         config.write_text(sio.getvalue())
 
         # reload config
-        j.system.process.killProcessByName('smbd', signal.SIGHUP)
-        j.system.process.killProcessByName('nmbd', signal.SIGHUP)
+        j.sal.process.killProcessByName('smbd', signal.SIGHUP)
+        j.sal.process.killProcessByName('nmbd', signal.SIGHUP)
 
         return True
 

@@ -34,7 +34,7 @@ if sys.platform.startswith('sun') or sys.platform.startswith('linux'):
         print("did not find pexpect")
         j.system.platformtype.isLinux()
         try:
-            j.system.platform.ubuntu.install("python-pexpect")
+            j.sal.ubuntu.install("python-pexpect")
         except:
             pass
 
@@ -691,7 +691,7 @@ class Expect:
         """
         self.log("wait: %s sec" % timeoutval,category="wait")
         timeout=False
-        starttime=j.base.time.getTimeEpoch()
+        starttime=j.tools.time.getTimeEpoch()
         r="" #full return
         returnpart="" #one time return after receive
         done=False #status param
@@ -704,7 +704,7 @@ class Expect:
             #j.logger.log("tokenfound:%s"%tokenfound)
             returnpart=self._ignoreLinesBasedOnFilter(returnpart)
             r= r+returnpart
-            curtime=j.base.time.getTimeEpoch()
+            curtime=j.tools.time.getTimeEpoch()
             j.logger.log("TimeoutCheck on waitreceive: %s %s %s" % (curtime,starttime,timeoutval),8)
             if(curtime-starttime>timeoutval):
                 j.logger.log("WARNING: execute %s timed out (timeout was %s)" % (self._lastsend,timeoutval), 6)

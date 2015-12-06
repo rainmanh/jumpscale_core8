@@ -54,7 +54,7 @@ class CifsFS(object):
 
         self.username = re.escape(username)
         self.password = re.escape(password)
-        self.mntpoint = '/'.join(['/mnt',j.base.idgenerator.generateGUID()])
+        self.mntpoint = '/'.join(['/mnt',j.tools.idgenerator.generateGUID()])
         self.path     = '/'.join(self.path_components)
 
         print(('self.sharename:'       + str(self.sharename)))
@@ -62,7 +62,7 @@ class CifsFS(object):
         print(('self.path:'            + str(self.path)))
 
     def _connect(self, suppressErrors=False):
-        j.system.fs.createDir(self.mntpoint)
+        j.sal.fs.createDir(self.mntpoint)
 
         # Mount sharename
         if self.username == None and self.password == None:
@@ -70,13 +70,13 @@ class CifsFS(object):
         else:
             command = '%s //%s/%s %s -o username=%s,password=%s' % (self._command,self.server,self.sharename,self.mntpoint,self.username,self.password)
         j.logger.log("CifsFS: executing command [%s]" % command)
-        exitCode, output = j.system.process.execute(command,dieOnNonZeroExitCode=True, outputToStdout=False)
+        exitCode, output = j.sal.process.execute(command,dieOnNonZeroExitCode=True, outputToStdout=False)
 
         # create remote dir
-        j.system.fs.createDir(j.system.fs.joinPaths(self.mntpoint, self.path))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(self.mntpoint, self.path))
 
         self.orgmntpoint = self.mntpoint
-        self.mntpoint    = j.system.fs.joinPaths(self.mntpoint, self.path)
+        self.mntpoint    = j.sal.fs.joinPaths(self.mntpoint, self.path)
 
 
     def exists(self):
@@ -87,14 +87,14 @@ class CifsFS(object):
         self._connect()
 
         if self.subdir:
-            path = j.system.fs.joinPaths(self.mntpoint, self.subdir, self.filename)
+            path = j.sal.fs.joinPaths(self.mntpoint, self.subdir, self.filename)
         else:
             if self.is_dir:
                 path = self.mntpoint
             else:
-                path = j.system.fs.joinPaths(self.mntpoint, self.filename)
+                path = j.sal.fs.joinPaths(self.mntpoint, self.filename)
 
-        return j.system.fs.exists(path)
+        return j.sal.fs.exists(path)
 
 
     def upload(self,uploadPath):
@@ -105,38 +105,38 @@ class CifsFS(object):
         if self.Atype == "move":
             if self.is_dir:
                 if self.recursive:
-                    j.system.fs.moveDir(uploadPath,self.mntpoint)
+                    j.sal.fs.moveDir(uploadPath,self.mntpoint)
                 else:
                 # walk tree and move
-                    for file in j.system.fs.walk(uploadPath, recurse=0):
+                    for file in j.sal.fs.walk(uploadPath, recurse=0):
                         j.logger.log("FileFS: uploading directory -  Copying file [%s] to path [%s]" % (file,self.mntpoint))
-                        j.system.fs.moveFile(file,self.mntpoint)
+                        j.sal.fs.moveFile(file,self.mntpoint)
             else:
                 j.logger.log("CifsFS: uploading file - [%s] to [%s] filename [%s] (sub directory [%s])" % (uploadPath,self.mntpoint,self.filename,self.subdir))
                 if self.subdir:
-                    rfile = j.system.fs.joinPaths(self.subdir, self.filename)
+                    rfile = j.sal.fs.joinPaths(self.subdir, self.filename)
                     j.logger.log("CifsFS: moving to [%s]" % rfile)
-                    j.system.fs.moveFile(uploadPath,j.system.fs.joinPaths(self.mntpoint,rfile))
+                    j.sal.fs.moveFile(uploadPath,j.sal.fs.joinPaths(self.mntpoint,rfile))
                 else:
-                    j.system.fs.moveFile(uploadPath,j.system.fs.joinPaths(self.mntpoint,self.filename))
+                    j.sal.fs.moveFile(uploadPath,j.sal.fs.joinPaths(self.mntpoint,self.filename))
         else:
             if self.Atype == "copy":
                 if self.is_dir:
                     if self.recursive:
-                        j.system.fs.copyDirTree(uploadPath,self.mntpoint, update=True)
+                        j.sal.fs.copyDirTree(uploadPath,self.mntpoint, update=True)
                     else:
                     # walk tree and copy
-                        for file in j.system.fs.walk(uploadPath, recurse=0):
+                        for file in j.sal.fs.walk(uploadPath, recurse=0):
                             j.logger.log("FileFS: uploading directory -  Copying file [%s] to path [%s]" % (file,self.mntpoint))
-                            j.system.fs.copyFile(file,self.mntpoint)
+                            j.sal.fs.copyFile(file,self.mntpoint)
                 else:
                     j.logger.log("CifsFS: uploading file - [%s] to [%s] filename [%s] (sub directory [%s])" % (uploadPath,self.mntpoint,self.filename,self.subdir))
                     if self.subdir:
-                        rfile = j.system.fs.joinPaths(self.subdir, self.filename)
+                        rfile = j.sal.fs.joinPaths(self.subdir, self.filename)
                         j.logger.log("CifsFS: moving to [%s]" % rfile)
-                        j.system.fs.copyFile(uploadPath,j.system.fs.joinPaths(self.mntpoint,rfile))
+                        j.sal.fs.copyFile(uploadPath,j.sal.fs.joinPaths(self.mntpoint,rfile))
                     else:
-                        j.system.fs.copyFile(uploadPath,j.system.fs.joinPaths(self.mntpoint,self.filename))
+                        j.sal.fs.copyFile(uploadPath,j.sal.fs.joinPaths(self.mntpoint,self.filename))
 
     def download(self):
         """
@@ -145,16 +145,16 @@ class CifsFS(object):
         self._connect()
         if self.is_dir:
             if self.subdir:
-                pathname = j.system.fs.joinPaths(self.mntpoint,self.subdir,self.filename)
+                pathname = j.sal.fs.joinPaths(self.mntpoint,self.subdir,self.filename)
             else:
                 pathname = self.mntpoint
             j.logger.log("CifsFS: downloading from [%s]" % pathname)
             return pathname
         else:
             if self.subdir:
-                pathname =  j.system.fs.joinPaths(self.mntpoint,self.subdir,self.filename)
+                pathname =  j.sal.fs.joinPaths(self.mntpoint,self.subdir,self.filename)
             else:
-                pathname =  j.system.fs.joinPaths(self.mntpoint,self.filename)
+                pathname =  j.sal.fs.joinPaths(self.mntpoint,self.filename)
             j.logger.log("CifsFS: downloading from [%s] the file [%s]" % (pathname,self.filename))
             return pathname
 
@@ -166,12 +166,12 @@ class CifsFS(object):
         j.logger.log("CifsFS: Cleaning up and umounting the share")
         command = "umount %s" % self.orgmntpoint
 
-        exitCode, output = j.system.process.execute(command, dieOnNonZeroExitCode=False, outputToStdout=False)
+        exitCode, output = j.sal.process.execute(command, dieOnNonZeroExitCode=False, outputToStdout=False)
         if not exitCode == 0:
             raise RuntimeError('Failed to execute command %s'%command)
 
-        if j.system.fs.exists(self.orgmntpoint):
-            j.system.fs.removeDir(self.orgmntpoint)
+        if j.sal.fs.exists(self.orgmntpoint):
+            j.sal.fs.removeDir(self.orgmntpoint)
 
         self.is_mounted = False
 
@@ -190,7 +190,7 @@ class CifsFS(object):
             if os.path.isdir(self.path_components[0]):
                 os.chdir(self.path_components[0])
 
-        flist = j.system.fs.walk(os.curdir,return_folders=1,return_files=1)
+        flist = j.sal.fs.walk(os.curdir,return_folders=1,return_files=1)
         os.chdir(self.curdir)
         j.logger.log("list: Returning content of share [%s] which is tmp mounted under [%s]" % (self.share , self.mntpoint))
 

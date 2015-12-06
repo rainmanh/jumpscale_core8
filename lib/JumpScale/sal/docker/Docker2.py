@@ -23,7 +23,7 @@ class Docker2(SALObject):
     def _execute(self, command):
         env = os.environ.copy()
         env.pop('PYTHONPATH', None)
-        (exitcode, stdout, stderr) = j.system.process.run(command, showOutput=False, captureOutput=True, stopOnError=False, env=env)
+        (exitcode, stdout, stderr) = j.sal.process.run(command, showOutput=False, captureOutput=True, stopOnError=False, env=env)
         if exitcode != 0:
             raise RuntimeError("Failed to execute %s: Error: %s, %s" % (command, stdout, stderr))
         return stdout
@@ -31,16 +31,16 @@ class Docker2(SALObject):
 
     #
     # def copy(self, name, src, dest):
-    #     rndd = j.base.idgenerator.generateRandomInt(10, 1000000)
+    #     rndd = j.tools.idgenerator.generateRandomInt(10, 1000000)
     #     temp = "/var/docker/%s/%s" % (name, rndd)
-    #     j.system.fs.createDir(temp)
-    #     source_name = j.system.fs.getBaseName(src)
-    #     if j.system.fs.isDir(src):
-    #         j.do.copyTree(src, j.system.fs.joinPaths(temp, source_name))
+    #     j.sal.fs.createDir(temp)
+    #     source_name = j.sal.fs.getBaseName(src)
+    #     if j.sal.fs.isDir(src):
+    #         j.do.copyTree(src, j.sal.fs.joinPaths(temp, source_name))
     #     else:
-    #         j.do.copyFile(src, j.system.fs.joinPaths(temp, source_name))
+    #         j.do.copyFile(src, j.sal.fs.joinPaths(temp, source_name))
     #
-    #     ddir = j.system.fs.getDirName(dest)
+    #     ddir = j.sal.fs.getDirName(dest)
     #     cmd = "mkdir -p %s" % (ddir)
     #     self.run(name, cmd)
     #
@@ -95,22 +95,22 @@ class Docker2(SALObject):
         return self._basepath
 
     def _getChildren(self,pid,children):
-        process=j.system.process.getProcessObject(pid)
+        process=j.sal.process.getProcessObject(pid)
         children.append(process)
         for child in process.get_children():
             children=self._getChildren(child.pid,children)
         return children
 
     def _get_rootpath(self,name):
-        rootpath=j.system.fs.joinPaths(self.basepath, '%s%s' % (self._prefix, name), 'rootfs')
+        rootpath=j.sal.fs.joinPaths(self.basepath, '%s%s' % (self._prefix, name), 'rootfs')
         return rootpath
 
     def _getMachinePath(self,machinename,append=""):
         if machinename=="":
             raise RuntimeError("Cannot be empty")
-        base = j.system.fs.joinPaths( self.basepath,'%s%s' % (self._prefix, machinename))
+        base = j.sal.fs.joinPaths( self.basepath,'%s%s' % (self._prefix, machinename))
         if append!="":
-            base=j.system.fs.joinPaths(base,append)
+            base=j.sal.fs.joinPaths(base,append)
         return base
 
     def status(self):
@@ -151,7 +151,7 @@ class Docker2(SALObject):
         self.removeRedundantFiles(name)
         ipaddr=j.application.config.get("jssync.addr")
         path=self._getMachinePath(name)
-        if not j.system.fs.exists(path):
+        if not j.sal.fs.exists(path):
             raise RuntimeError("cannot find machine:%s"%path)
         if backupname[-1]!="/":
             backupname+="/"
@@ -159,15 +159,15 @@ class Docker2(SALObject):
             path+="/"
         cmd="rsync -a %s %s::upload/%s/images/%s --delete-after --modify-window=60 --compress --stats  --progress --exclude '.Trash*'"%(path,ipaddr,key,backupname)
         # print cmd
-        j.system.process.executeWithoutPipe(cmd)
+        j.sal.process.executeWithoutPipe(cmd)
 
     def removeRedundantFiles(self,name):
         raise RuntimeError("not implemented")
         basepath=self._getMachinePath(name)
-        j.system.fs.removeIrrelevantFiles(basepath,followSymlinks=False)
+        j.sal.fs.removeIrrelevantFiles(basepath,followSymlinks=False)
 
         toremove="%s/rootfs/var/cache/apt/archives/"%basepath
-        j.system.fs.removeDirTree(toremove)
+        j.sal.fs.removeDirTree(toremove)
 
     def importRsync(self,backupname,name,basename="",key="pub"):
         """
@@ -179,7 +179,7 @@ class Docker2(SALObject):
 
         self.btrfsSubvolNew(name)
 
-        # j.system.fs.createDir(path)
+        # j.sal.fs.createDir(path)
 
         if backupname[-1]!="/":
             backupname+="/"
@@ -190,39 +190,39 @@ class Docker2(SALObject):
             basepath=self._getMachinePath(basename)
             if basepath[-1]!="/":
                 basepath+="/"
-            if not j.system.fs.exists(basepath):
+            if not j.sal.fs.exists(basepath):
                 raise RuntimeError("cannot find base machine:%s"%basepath)
             cmd="rsync -av -v %s %s --delete-after --modify-window=60 --size-only --compress --stats  --progress"%(basepath,path)
             print(cmd)
-            j.system.process.executeWithoutPipe(cmd)
+            j.sal.process.executeWithoutPipe(cmd)
 
         cmd="rsync -av -v %s::download/%s/images/%s %s --delete-after --modify-window=60 --compress --stats  --progress"%(ipaddr,key,backupname,path)
         print(cmd)
-        j.system.process.executeWithoutPipe(cmd)
+        j.sal.process.executeWithoutPipe(cmd)
 
     def exportTgz(self,name,backupname):
         raise RuntimeError("not implemented")
         self.removeRedundantFiles(name)
         path=self._getMachinePath(name)
-        bpath= j.system.fs.joinPaths(self.basepath,"backups")
-        if not j.system.fs.exists(path):
+        bpath= j.sal.fs.joinPaths(self.basepath,"backups")
+        if not j.sal.fs.exists(path):
             raise RuntimeError("cannot find machine:%s"%path)
-        j.system.fs.createDir(bpath)
-        bpath= j.system.fs.joinPaths(bpath,"%s.tgz"%backupname)
+        j.sal.fs.createDir(bpath)
+        bpath= j.sal.fs.joinPaths(bpath,"%s.tgz"%backupname)
         cmd="cd %s;tar Szcf %s ."%(path,bpath)
-        j.system.process.executeWithoutPipe(cmd)
+        j.sal.process.executeWithoutPipe(cmd)
         return bpath
 
     def importTgz(self,backupname,name):
         raise RuntimeError("not implemented")
         path=self._getMachinePath(name)
-        bpath= j.system.fs.joinPaths(self.basepath,"backups","%s.tgz"%backupname)
-        if not j.system.fs.exists(bpath):
+        bpath= j.sal.fs.joinPaths(self.basepath,"backups","%s.tgz"%backupname)
+        if not j.sal.fs.exists(bpath):
             raise RuntimeError("cannot find import path:%s"%bpath)
-        j.system.fs.createDir(path)
+        j.sal.fs.createDir(path)
 
         cmd="cd %s;tar xzvf %s -C ."%(path,bpath)
-        j.system.process.executeWithoutPipe(cmd)
+        j.sal.process.executeWithoutPipe(cmd)
 
     def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1504", nameserver=["8.8.8.8"],
                replace=True, cpu=None, mem=0, jumpscale=False, ssh=True, myinit=True, sharecode=False,sshkeyname="",sshpubkey="",
@@ -283,16 +283,16 @@ class Docker2(SALObject):
                 key, val = item.split(":", 1)
                 volsdict[str(key).strip()] = str(val).strip()
 
-        j.system.fs.createDir("/var/jumpscale")
+        j.sal.fs.createDir("/var/jumpscale")
         if "/var/jumpscale" not in volsdict:
             volsdict["/var/jumpscale"] = "/var/docker/%s" % name
-        j.system.fs.createDir("/var/docker/%s" % name)
+        j.sal.fs.createDir("/var/docker/%s" % name)
 
         tmppath = "/tmp/dockertmp/%s" % name
-        j.system.fs.createDir(tmppath)
+        j.sal.fs.createDir(tmppath)
         volsdict[tmppath] = "/tmp"
 
-        if sharecode and j.system.fs.exists(path="/opt/code"):
+        if sharecode and j.sal.fs.exists(path="/opt/code"):
             print("share jumpscale code")
             if "/opt/code" not in volsdict:
                 volsdict["/opt/code"] = "/opt/code"
@@ -312,19 +312,19 @@ class Docker2(SALObject):
         volskeys = []  # is location in docker
 
         for key, path in list(volsdict.items()):
-            j.system.fs.createDir(path)  # create the path on hostname
+            j.sal.fs.createDir(path)  # create the path on hostname
             binds[path] = {"bind": key, "ro": False}
             volskeys.append(key)
 
         for key, path in list(volsdictro.items()):
-            j.system.fs.createDir(path)  # create the path on hostname
+            j.sal.fs.createDir(path)  # create the path on hostname
             binds[path] = {"bind": key, "ro": True}
             volskeys.append(key)
 
         if base not in self.getImages():
             print("download docker")
             cmd = "docker pull %s" % base
-            j.system.process.executeWithoutPipe(cmd)
+            j.sal.process.executeWithoutPipe(cmd)
 
         if myinit:
             cmd = "sh -c \"mkdir -p /var/run/screen;chmod 777 /var/run/screen; /var/run/screen;exec >/dev/tty 2>/dev/tty </dev/tty && /sbin/my_init -- /usr/bin/screen -s bash\""
@@ -390,7 +390,7 @@ class Docker2(SALObject):
     def destroyAll(self):
         self.destroyContainers()
 
-        rc,out=j.system.process.execute("mount")
+        rc,out=j.sal.process.execute("mount")
         mountpoints=[]
         for line in out.split("\n"):
             if line.find("type btrfs")!=-1:
@@ -407,6 +407,6 @@ class Docker2(SALObject):
 
     def pull(self,imagename):
         cmd="docker pull %s"%imagename
-        j.system.process.executeWithoutPipe(cmd)
+        j.sal.process.executeWithoutPipe(cmd)
     
 

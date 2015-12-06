@@ -59,7 +59,7 @@ def action():
     def loadFromSystemProcessInfo(process_key,cacheobj,pid):
         processinfo = None
         try:
-            cacheobj.p = j.system.process.getProcessObject(pid)
+            cacheobj.p = j.sal.process.getProcessObject(pid)
         except Exception as e:
             print(e)
             cacheobj.p = None

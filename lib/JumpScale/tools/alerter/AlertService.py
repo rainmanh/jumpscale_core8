@@ -103,7 +103,7 @@ class AlertService(object):
     def getStateTime(self, alert):
         key = "alerter.level%s.%s" % (alert['level'], alert['state'].lower())
         if j.application.config.exists(key):
-            return j.base.time.getDeltaTime(j.application.config.get(key))
+            return j.tools.time.getDeltaTime(j.application.config.get(key))
 
     def makeTimer(self, alert):
         greenlet = self.timers.get(alert['guid'])

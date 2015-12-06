@@ -33,8 +33,8 @@ class Lock:
         if j.system.platformtype.isUnix():
             # linux implementation
             lockfile = self._LOCKPATHLINUX + os.sep + self.cleanupString(lockname)
-            j.system.fs.createDir(Util._LOCKPATHLINUX)
-            j.system.fs.createEmptyFile(lockfile)
+            j.sal.fs.createDir(Util._LOCKPATHLINUX)
+            j.sal.fs.createEmptyFile(lockfile)
 
             # Do the locking
             lockAcquired = False

@@ -37,19 +37,19 @@ class SshFS(object):
 
 
         if not self.is_dir:
-            self.filename = j.system.fs.getBaseName(directory)
+            self.filename = j.sal.fs.getBaseName(directory)
             self.directory = os.path.dirname(self.share)
         else:
             self.directory = self.share
 
         self.username = re.escape(username)
         self.password = re.escape(password)
-        self.mntpoint = '/'.join(['/mnt',j.base.idgenerator.generateGUID()])
+        self.mntpoint = '/'.join(['/mnt',j.tools.idgenerator.generateGUID()])
         self.is_mounted = False
 
 
     def _connect(self):
-        j.system.fs.createDir(self.mntpoint)
+        j.sal.fs.createDir(self.mntpoint)
 
         j.logger.log("SshFS: mounting share [%s] from server [%s] with credentials login [%s] and password [%s]" % (self.directory,self.server,self.username,self.password))
 
@@ -57,7 +57,7 @@ class SshFS(object):
 
         j.logger.log("SshFS: executing command [%s]" % command)
 
-        exitCode, output = j.system.process.execute(command,dieOnNonZeroExitCode=False, outputToStdout=False)
+        exitCode, output = j.sal.process.execute(command,dieOnNonZeroExitCode=False, outputToStdout=False)
         if not exitCode == 0:
             raise RuntimeError('Failed to execute command %s'%command)
         else:
@@ -74,9 +74,9 @@ class SshFS(object):
         if self.is_dir:
             path = self.mntpoint
         else:
-            path = j.system.fs.joinPaths(self.mntpoint, self.filename)
+            path = j.sal.fs.joinPaths(self.mntpoint, self.filename)
 
-        return j.system.fs.exists(path)
+        return j.sal.fs.exists(path)
 
 
     def upload(self,uploadPath):
@@ -87,28 +87,28 @@ class SshFS(object):
         if self.Atype == "move":
             if self.is_dir:
                 if self.recursive:
-                    j.system.fs.moveDir(uploadPath,self.mntpoint)
+                    j.sal.fs.moveDir(uploadPath,self.mntpoint)
                 else:
                     # walk tree and move
-                    for file in j.system.fs.walk(uploadPath, recurse=0):
+                    for file in j.sal.fs.walk(uploadPath, recurse=0):
                         j.logger.log("SshFS: uploading directory -  Copying file [%s] to path [%s]" % (file,self.mntpoint))
-                        j.system.fs.moveFile(file,self.mntpoint)
+                        j.sal.fs.moveFile(file,self.mntpoint)
             else:
                 j.logger.log("SshFS: uploading file - [%s] to [%s]" % (uploadPath,self.mntpoint))
-                j.system.fs.moveFile(uploadPath,j.system.fs.joinPaths(self.mntpoint,self.filename))
+                j.sal.fs.moveFile(uploadPath,j.sal.fs.joinPaths(self.mntpoint,self.filename))
         else:
             if self.Atype == "copy":
                 if self.is_dir:
                     if self.recursive:
-                        j.system.fs.copyDirTree(uploadPath,self.mntpoint, update=True)
+                        j.sal.fs.copyDirTree(uploadPath,self.mntpoint, update=True)
                     else:
                     # walk tree and copy
-                        for file in j.system.fs.walk(uploadPath, recurse=0):
+                        for file in j.sal.fs.walk(uploadPath, recurse=0):
                             j.logger.log("SshFS: uploading directory -  Copying file [%s] to path [%s]" % (file,self.mntpoint))
-                            j.system.fs.copyFile(file,self.mntpoint)
+                            j.sal.fs.copyFile(file,self.mntpoint)
                 else:
                     j.logger.log("SshFS: uploading file - [%s] to [%s]" % (uploadPath,self.mntpoint))
-                    j.system.fs.copyFile(uploadPath,j.system.fs.joinPaths(self.mntpoint,self.filename))
+                    j.sal.fs.copyFile(uploadPath,j.sal.fs.joinPaths(self.mntpoint,self.filename))
 
     def download(self):
         """
@@ -119,7 +119,7 @@ class SshFS(object):
             j.logger.log("SshFS: downloading from [%s]" % self.mntpoint)
             return self.mntpoint
         else:
-            pathname =  j.system.fs.joinPaths(self.mntpoint,self.filename)
+            pathname =  j.sal.fs.joinPaths(self.mntpoint,self.filename)
             j.logger.log("SshFS: downloading from [%s]" % pathname)
             return pathname
 
@@ -130,11 +130,11 @@ class SshFS(object):
         j.logger.log("SshFS: cleaning up and umounting share")
         command = "umount %s" % self.mntpoint
 
-        exitCode, output = j.system.process.execute(command,dieOnNonZeroExitCode=False, outputToStdout=False)
+        exitCode, output = j.sal.process.execute(command,dieOnNonZeroExitCode=False, outputToStdout=False)
         if not exitCode == 0:
             raise RuntimeError('Failed to execute command %s'%command)
 
-        j.system.fs.removeDir(self.mntpoint)
+        j.sal.fs.removeDir(self.mntpoint)
         self.is_mounted = False
 
     def list(self):
@@ -153,7 +153,7 @@ class SshFS(object):
             if os.path.isdir(self.path_components[0]):
                 os.chdir(self.path_components[0])
 
-        flist = j.system.fs.walk(os.curdir,return_folders=1,return_files=1)
+        flist = j.sal.fs.walk(os.curdir,return_folders=1,return_files=1)
         os.chdir(self.curdir)
         j.logger.log("list: Returning content of SSH Mount [%s] which is tmp mounted under [%s]" % (self.share , self.mntpoint))
 

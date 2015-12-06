@@ -21,13 +21,13 @@ class FileSystemKeyValueStore(KeyValueStoreBase):
         KeyValueStoreBase.__init__(self, serializers)
 
         if not baseDir:
-            baseDir = j.system.fs.joinPaths(j.dirs.varDir, 'db')
+            baseDir = j.sal.fs.joinPaths(j.dirs.varDir, 'db')
 
         #self.id = j.application.getUniqueMachineId()
-        self.dbpath = j.system.fs.joinPaths(baseDir,namespace)
+        self.dbpath = j.sal.fs.joinPaths(baseDir,namespace)
 
-        #if not j.system.fs.exists(self.dbpath):
-            #j.system.fs.createDir(self.dbpath)
+        #if not j.sal.fs.exists(self.dbpath):
+            #j.sal.fs.createDir(self.dbpath)
 
     def fileGetContents(self,filename):
         fp = open(filename,"r")
@@ -64,16 +64,16 @@ class FileSystemKeyValueStore(KeyValueStoreBase):
     def destroy(self,category=""):
         if category!="":
             categoryDir = self._getCategoryDir(category)
-            j.system.fs.removeDirTree(categoryDir)
+            j.sal.fs.removeDirTree(categoryDir)
         else:
-            j.system.fs.removeDirTree(self.dbpath)
+            j.sal.fs.removeDirTree(self.dbpath)
 
     def delete(self, category, key):
         #self._assertExists(category, key)
 
         if self.exists(category, key):
             storePath = self._getStorePath(category, key)
-            j.system.fs.remove(storePath)
+            j.sal.fs.remove(storePath)
 
             # Remove all empty directories up to the base of the store being the
             # directory with the store name (4 deep).
@@ -83,10 +83,10 @@ class FileSystemKeyValueStore(KeyValueStoreBase):
             parentDir = storePath
 
             while depth > 0:
-                parentDir = j.system.fs.getParent(parentDir)
+                parentDir = j.sal.fs.getParent(parentDir)
 
-                if j.system.fs.isEmptyDir(parentDir):
-                    j.system.fs.removeDir(parentDir)
+                if j.sal.fs.isEmptyDir(parentDir):
+                    j.sal.fs.removeDir(parentDir)
 
                 depth -= 1
 
@@ -97,8 +97,8 @@ class FileSystemKeyValueStore(KeyValueStoreBase):
         if not self._categoryExists(category):
             return []
         categoryDir = self._getCategoryDir(category)
-        filePaths = j.system.fs.listFilesInDir(categoryDir, recursive=True)
-        fileNames = [j.system.fs.getBaseName(path) for path in filePaths]
+        filePaths = j.sal.fs.listFilesInDir(categoryDir, recursive=True)
+        fileNames = [j.sal.fs.getBaseName(path) for path in filePaths]
         fileNames = [ urllibparse.unquote(name) for name in fileNames ]
 
         if prefix:
@@ -107,14 +107,14 @@ class FileSystemKeyValueStore(KeyValueStoreBase):
         return fileNames
 
     def listCategories(self):
-        return j.system.fs.listDirsInDir(self.dbpath, dirNameOnly=True)
+        return j.sal.fs.listDirsInDir(self.dbpath, dirNameOnly=True)
 
     def _categoryExists(self, category):
         categoryDir = self._getCategoryDir(category)
-        return j.system.fs.exists(categoryDir)
+        return j.sal.fs.exists(categoryDir)
 
     def _getCategoryDir(self, category):
-        return j.system.fs.joinPaths(self.dbpath, category)
+        return j.sal.fs.joinPaths(self.dbpath, category)
 
     def _getStorePath(self, category, key,createIfNeeded=True):
         key = j.tools.text.toStr(key)

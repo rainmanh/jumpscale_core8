@@ -66,7 +66,7 @@ class Ubuntu:
         @param cmdname is cmd to check e.g. curl
         """
         self.check()
-        if j.basetype.list.check(packagenames):
+        if j.core.types.list.check(packagenames):
             for packagename in packagenames:
                 self.checkInstall(packagename,cmdname)
         else:

@@ -19,14 +19,14 @@ def action():
     import JumpScale.baselib.git
     import JumpScale.baselib.motherhip1_extensions
 
-    project = j.system.fs.joinPaths('/opt', 'code', 'git_incubaid')
-    project = j.system.fs.listDirsInDir(project)[0]
+    project = j.sal.fs.joinPaths('/opt', 'code', 'git_incubaid')
+    project = j.sal.fs.listDirsInDir(project)[0]
     
-    path =  j.system.fs.joinPaths(project, 'backup')
+    path =  j.sal.fs.joinPaths(project, 'backup')
     gitcl = j.clients.git.getClient(project)
 
     j.tools.exporter.exportAll(path)
 
-    message = '%s at %s' % (j.system.fs.getBaseName(project), j.base.time.getLocalTimeHRForFilesystem())
+    message = '%s at %s' % (j.sal.fs.getBaseName(project), j.tools.time.getLocalTimeHRForFilesystem())
     gitcl.commit(message)
     gitcl.push()

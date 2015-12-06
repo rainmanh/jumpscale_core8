@@ -33,8 +33,8 @@ class OSISStore(object):
 
         self.path = path
         self.te = None
-        taskletpath = j.system.fs.joinPaths(self.path, 'tasklets')
-        if j.system.fs.exists(taskletpath):
+        taskletpath = j.sal.fs.joinPaths(self.path, 'tasklets')
+        if j.sal.fs.exists(taskletpath):
             self.te = j.core.taskletengine.get(taskletpath)
 
         self.namespace = namespace
@@ -48,17 +48,17 @@ class OSISStore(object):
 
         self.buildlist = False
 
-        authpath=j.system.fs.joinPaths(path,"OSIS_auth.py")
+        authpath=j.sal.fs.joinPaths(path,"OSIS_auth.py")
         auth=None
         authparent=None
 
-        if j.system.fs.exists(authpath):
+        if j.sal.fs.exists(authpath):
             testmod = imp.load_source("auth_%s"%self.dbprefix, authpath)
             auth=testmod.AUTH()
             auth.load(self)
 
-        authpath=j.system.fs.joinPaths(j.system.fs.getParent(path),"OSIS_auth.py")
-        if j.system.fs.exists(authpath):
+        authpath=j.sal.fs.joinPaths(j.sal.fs.getParent(path),"OSIS_auth.py")
+        if j.sal.fs.exists(authpath):
             testmod = imp.load_source("auth_%s"%self.dbprefix, authpath)
             authparent=testmod.AUTH()
             authparent.load(self)
@@ -154,10 +154,10 @@ class OSISStore(object):
         value can be a dict or a raw value (seen as string)
         if raw value then will not try to index
         """
-        if j.basetype.dictionary.check(value):
+        if j.core.types.dict.check(value):
             #is probably an osis object
             obj=self.getObject(value)
-            if not j.basetype.dictionary.check(obj):
+            if not j.core.types.dict.check(obj):
                 new,changed,obj=self.setObjIds(obj)
                 key=obj.guid
                 if changed:                  
@@ -209,7 +209,7 @@ class OSISStore(object):
 
         index = self.getIndexName()
 
-        if j.basetype.dictionary.check(obj):
+        if j.core.types.dict.check(obj):
             data=copy.copy(obj)
             data=obj
         else:
@@ -362,22 +362,22 @@ class OSISStore(object):
         export all objects of a category to json format.
         Placed in outputpath
         """
-        if not j.system.fs.isDir(outputpath):
-            j.system.fs.createDir(outputpath)
+        if not j.sal.fs.isDir(outputpath):
+            j.sal.fs.createDir(outputpath)
         ids = self.list()
         for id in ids:
             obj = self.get(id)
-            filename = j.system.fs.joinPaths(outputpath, id)
+            filename = j.sal.fs.joinPaths(outputpath, id)
             if isinstance(obj, dict):
                 obj = json.dumps(obj)
-            j.system.fs.writeFile(filename, obj)
+            j.sal.fs.writeFile(filename, obj)
 
     def importFromPath(self, path, session=None):
         '''Imports OSIS category from file system'''
-        if not j.system.fs.exists(path):
+        if not j.sal.fs.exists(path):
             raise RuntimeError("Can't find the specified path: %s" % path)
 
-        data_files = j.system.fs.listFilesInDir(path)
+        data_files = j.sal.fs.listFilesInDir(path)
         for data_file in data_files:
             with open(data_file) as f:
                 obj = json.load(f)

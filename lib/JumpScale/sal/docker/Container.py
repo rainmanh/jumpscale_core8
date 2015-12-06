@@ -58,16 +58,16 @@ class Container(SALObject):
         self.run("chmod 770 %s;%s" % (path, path))
 
     def copy(self, src, dest):
-        rndd = j.base.idgenerator.generateRandomInt(10, 1000000)
+        rndd = j.tools.idgenerator.generateRandomInt(10, 1000000)
         temp = "/var/docker/%s/%s" % (self.name, rndd)
-        j.system.fs.createDir(temp)
-        source_name = j.system.fs.getBaseName(src)
-        if j.system.fs.isDir(src):
-            j.do.copyTree(src, j.system.fs.joinPaths(temp, source_name))
+        j.sal.fs.createDir(temp)
+        source_name = j.sal.fs.getBaseName(src)
+        if j.sal.fs.isDir(src):
+            j.do.copyTree(src, j.sal.fs.joinPaths(temp, source_name))
         else:
-            j.do.copyFile(src, j.system.fs.joinPaths(temp, source_name))
+            j.do.copyFile(src, j.sal.fs.joinPaths(temp, source_name))
 
-        ddir = j.system.fs.getDirName(dest)
+        ddir = j.sal.fs.getDirName(dest)
         cmd = "mkdir -p %s" % (ddir)
         self.run(name, cmd)
 
@@ -137,7 +137,7 @@ class Container(SALObject):
         #     StrictHostKeyChecking no
         # """
         # c.file_write("/root/.ssh/config", C)
-        # if not j.system.fs.exists(path="/root/.ssh/config"):
+        # if not j.sal.fs.exists(path="/root/.ssh/config"):
         #     j.do.writeFile("/root/.ssh/config", C)
         # C2 = """
         # apt-get install language-pack-en
@@ -180,12 +180,12 @@ class Container(SALObject):
         if keyname is not None and keyname != '':
             raise RuntimeError("Not implemented")
             # keypath = j.do.getSSHKeyFromAgent(keyname, die=True)
-            # key = j.system.fs.fileGetContents(keypath + ".pub")
+            # key = j.sal.fs.fileGetContents(keypath + ".pub")
             # if key == "":
             #     raise RuntimeError("Could not find key %s in ssh-agent"%keyname)
             # self.cuisine.ssh_authorize("root", key)
 
-        j.system.fs.writeFile(filename="/root/.ssh/known_hosts", contents="")
+        j.sal.fs.writeFile(filename="/root/.ssh/known_hosts", contents="")
         self.executor.execute("rm -rf /opt/jumpscale8/hrd/apps/*", showout=False)
         self.executor.execute("git config --global user.email \"ishouldhavebeenchanged@example.com\"", showout=False)
 
@@ -205,9 +205,9 @@ class Container(SALObject):
 
     def commit(self, imagename):
         cmd = "docker rmi %s" % imagename
-        j.system.process.execute(cmd, dieOnNonZeroExitCode=False)
+        j.sal.process.execute(cmd, dieOnNonZeroExitCode=False)
         cmd = "docker commit %s %s" % (self.name, imagename)
-        j.system.process.executeWithoutPipe(cmd)
+        j.sal.process.executeWithoutPipe(cmd)
 
     def uploadFile(self, source, dest):
         """
@@ -222,10 +222,10 @@ class Container(SALObject):
         """
         if not self.cuisine.file_exists(source):
             j.events.inputerror_critical(msg="%s not found in container" % source)
-        ddir = j.system.fs.getDirName(dest)
-        j.system.fs.createDir(ddir)
+        ddir = j.sal.fs.getDirName(dest)
+        j.sal.fs.createDir(ddir)
         content = self.cuisine.file_read(source)
-        j.system.fs.writeFile(dest, content)
+        j.sal.fs.writeFile(dest, content)
 
 
     def __str__(self):
@@ -245,7 +245,7 @@ class Container(SALObject):
     #     print("Install jumpscale8")
     #     # c=self.getSSH(name)
     #     # hrdf="/opt/jumpscale8/hrd/system/whoami.hrd"
-    #     # if j.system.fs.exists(path=hrdf):
+    #     # if j.sal.fs.exists(path=hrdf):
     #     #     c.dir_ensure("/opt/jumpscale8/hrd/system",True)
     #     #     c.file_upload(hrdf,hrdf)
     #     # c.fabric.state.output["running"]=True
@@ -267,7 +267,7 @@ class Container(SALObject):
     #         StrictHostKeyChecking no
     #     """
     #     c.file_write("/root/.ssh/config",C)
-    #     if not j.system.fs.exists(path="/root/.ssh/config"):
+    #     if not j.sal.fs.exists(path="/root/.ssh/config"):
     #         j.do.writeFile("/root/.ssh/config",C)
     #     C2="""
     #     apt-get install language-pack-en
@@ -308,7 +308,7 @@ class Container(SALObject):
     #     raise RuntimeError("not implemented")
     #     if not self.btrfsSubvolExists(nameFrom):
     #         raise RuntimeError("could not find vol for %s"%nameFrom)
-    #     if j.system.fs.exists(path="%s/%s"%(self.basepath,NameDest)):
+    #     if j.sal.fs.exists(path="%s/%s"%(self.basepath,NameDest)):
     #         raise RuntimeError("path %s exists, cannot copy to existing destination, destroy first."%nameFrom)
     #     cmd="subvolume snapshot %s/%s %s/%s"%(self.basepath,nameFrom,self.basepath,NameDest)
     #     self._btrfsExecute(cmd)
@@ -325,8 +325,8 @@ class Container(SALObject):
     #         cmd="subvolume delete %s/%s"%(self.basepath,name)
     #         self._btrfsExecute(cmd)
     #     path="%s/%s"%(self.basepath,name)
-    #     if j.system.fs.exists(path=path):
-    #         j.system.fs.removeDirTree(path)
+    #     if j.sal.fs.exists(path=path):
+    #         j.sal.fs.removeDirTree(path)
     #     if self.btrfsSubvolExists(name):
     #         raise RuntimeError("vol cannot exist:%s"%name)
 

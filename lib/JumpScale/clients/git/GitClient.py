@@ -5,7 +5,7 @@ class GitClient(object):
 
     def __init__(self, baseDir): # NOQA
         self._repo = None
-        if not j.system.fs.exists(path=baseDir):
+        if not j.sal.fs.exists(path=baseDir):
             j.events.inputerror_critical("git repo on %s not found." % baseDir)
 
         # split path to find parts
@@ -45,8 +45,8 @@ class GitClient(object):
         # Load git when we absolutly need it cause it does not work in gevent mode
         import git
         if not self._repo:
-            j.system.process.execute("git config --global http.sslVerify false")
-            if not j.system.fs.exists(self.baseDir):
+            j.sal.process.execute("git config --global http.sslVerify false")
+            if not j.sal.fs.exists(self.baseDir):
                 self._clone()
             else:
                 self._repo = git.Repo(self.baseDir)
@@ -73,7 +73,7 @@ class GitClient(object):
         result["R"] = []
 
         cmd = "cd %s;git status --porcelain" % self.baseDir
-        rc, out = j.system.process.execute(cmd)
+        rc, out = j.sal.process.execute(cmd)
         for item in out.split("\n"):
             item = item.strip()
             if item == '':
@@ -96,7 +96,7 @@ class GitClient(object):
 
     def addRemoveFiles(self):
         cmd = 'cd %s;git add -A :/' % self.baseDir
-        j.system.process.execute(cmd)
+        j.sal.process.execute(cmd)
         # result=self.getModifiedFiles()
         # self.removeFiles(result["D"])
         # self.addFiles(result["N"])
@@ -176,12 +176,12 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 '''
-        ignorefilepath = j.system.fs.joinPaths(self.baseDir, '.gitignore')
-        if not j.system.fs.exists(ignorefilepath):
-            j.system.fs.writeFile(ignorefilepath, gitignore)
+        ignorefilepath = j.sal.fs.joinPaths(self.baseDir, '.gitignore')
+        if not j.sal.fs.exists(ignorefilepath):
+            j.sal.fs.writeFile(ignorefilepath, gitignore)
         else:
             lines = gitignore.split('\n')
-            inn = j.system.fs.fileGetContents(ignorefilepath)
+            inn = j.sal.fs.fileGetContents(ignorefilepath)
             lines = inn.split('\n')
             linesout = []
             for line in lines:
@@ -192,4 +192,4 @@ docs/_build/
                     linesout.append(line)
             out = '\n'.join(linesout)
             if out.strip() != inn.strip():
-                j.system.fs.writeFile(ignorefilepath, out)
+                j.sal.fs.writeFile(ignorefilepath, out)

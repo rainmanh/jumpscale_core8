@@ -104,7 +104,7 @@ class SSHD(SALObject):
     #         sshkeypubcontent = sshkeypub.rsplit(' ', maxsplit=1)[0]
     #         # check if current priv key is in ssh-agent
     #         local = j.tools.executor.getLocal()
-    #         pids = j.system.process.getPidsByFilter('ssh-agent')
+    #         pids = j.sal.process.getPidsByFilter('ssh-agent')
     #         if not pids:
     #             j.events.opserror_critical(errormsg)
 

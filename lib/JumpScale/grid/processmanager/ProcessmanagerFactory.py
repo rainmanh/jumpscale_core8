@@ -39,7 +39,7 @@ class ProcessmanagerFactory:
     """
     def __init__(self):
         self.daemon = DummyDaemon()
-        self.basedir = j.system.fs.joinPaths(j.dirs.baseDir, 'apps', 'processmanager')
+        self.basedir = j.sal.fs.joinPaths(j.dirs.baseDir, 'apps', 'processmanager')
         j.system.platform.psutil = psutil
 
         if "processmanager" in j.__dict__ and "redis_queues" in j.processmanager.__dict__:
@@ -63,7 +63,7 @@ class ProcessmanagerFactory:
 
         self.redis.set("processmanager:startuptime",str(int(time.time())))
 
-        self.starttime=j.base.time.getTimeEpoch()
+        self.starttime=j.tools.time.getTimeEpoch()
 
         self.loadCmds()
 
@@ -74,7 +74,7 @@ class ProcessmanagerFactory:
     def _checkIsNFSMounted(self,check=""):
         if check=="":
             check=j.dirs.codeDir
-        rc,out=j.system.process.execute("mount")
+        rc,out=j.sal.process.execute("mount")
         found=False
         for line in out.split("\n"):
             if line.find(check)!=-1:
@@ -94,10 +94,10 @@ class ProcessmanagerFactory:
     def loadCmds(self):
         if self.basedir not in sys.path:
             sys.path.insert(0, self.basedir)
-        cmds=j.system.fs.listFilesInDir(j.system.fs.joinPaths(self.basedir,"processmanagercmds"),filter="*.py")
+        cmds=j.sal.fs.listFilesInDir(j.sal.fs.joinPaths(self.basedir,"processmanagercmds"),filter="*.py")
         cmds.sort()
         for item in cmds:
-            name=j.system.fs.getBaseName(item).replace(".py","")
+            name=j.sal.fs.getBaseName(item).replace(".py","")
             if name[0]!="_":
                 module = importlib.import_module('processmanagercmds.%s' % name)
                 classs = getattr(module, name)
@@ -124,8 +124,8 @@ class ProcessmanagerFactory:
         if self.basedir not in sys.path:
             sys.path.insert(0, self.basedir)
         self.monObjects=Dummy()
-        for item in j.system.fs.listFilesInDir(j.system.fs.joinPaths(self.basedir,"monitoringobjects"),filter="*.py"):
-            name=j.system.fs.getBaseName(item).replace(".py","")
+        for item in j.sal.fs.listFilesInDir(j.sal.fs.joinPaths(self.basedir,"monitoringobjects"),filter="*.py"):
+            name=j.sal.fs.getBaseName(item).replace(".py","")
             if name[0]!="_":
                 monmodule = importlib.import_module('monitoringobjects.%s' % name)
                 classs=getattr(monmodule, name)

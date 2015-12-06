@@ -206,17 +206,17 @@ class OSISCMDS(object):
         if incrementName:
             name += str(self._incrementNamespaceId())
 
-        if j.system.fs.exists(j.system.fs.joinPaths(self.path, name)):
+        if j.sal.fs.exists(j.sal.fs.joinPaths(self.path, name)):
             #check namespace exists, if yes just return True
             return True
 
         #namespace does not exist yet
-        j.system.fs.createDir(j.system.fs.joinPaths(self.path, name))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(self.path, name))
         if template != None:
-            j.system.fs.copyDirTree(j.system.fs.joinPaths(self.path, "_%s" % template), \
-                j.system.fs.joinPaths(self.path, name), overwriteFiles=False)
+            j.sal.fs.copyDirTree(j.sal.fs.joinPaths(self.path, "_%s" % template), \
+                j.sal.fs.joinPaths(self.path, name), overwriteFiles=False)
 
-        path = j.system.fs.joinPaths(self.path, name)
+        path = j.sal.fs.joinPaths(self.path, name)
 
         self._initDefaultContent( namespacename=name)
         self.init(path=self.path, namespacename=name, template=template)
@@ -229,13 +229,13 @@ class OSISCMDS(object):
         @return (3,"")  #could not find
         """
 
-        path=j.system.fs.joinPaths(self.path, namespace,categoryname,"model.py")
+        path=j.sal.fs.joinPaths(self.path, namespace,categoryname,"model.py")
         genclassname = "%s_%s_osismodelbase"%(namespace,categoryname)
-        osismodelpath=j.system.fs.joinPaths(self.path, namespace,categoryname,"%s.py"%(genclassname))
-        if j.system.fs.exists(path):
-            model = j.system.fs.fileGetContents(path)
-            if j.system.fs.exists(osismodelpath):
-                model = j.system.fs.fileGetContents(osismodelpath) + model
+        osismodelpath=j.sal.fs.joinPaths(self.path, namespace,categoryname,"%s.py"%(genclassname))
+        if j.sal.fs.exists(path):
+            model = j.sal.fs.fileGetContents(path)
+            if j.sal.fs.exists(osismodelpath):
+                model = j.sal.fs.fileGetContents(osismodelpath) + model
                 model = model.replace("from %s import %s" % (genclassname, genclassname), "")
             return 2, model
         else:
@@ -250,7 +250,7 @@ class OSISCMDS(object):
         
 
     def listNamespaces(self, prefix="",session=None):
-        ddirs = j.system.fs.listDirsInDir(self.path, dirNameOnly=True)
+        ddirs = j.sal.fs.listDirsInDir(self.path, dirNameOnly=True)
 
         ddirs = [item for item in ddirs if  not item.find("_") == 0]
 
@@ -261,7 +261,7 @@ class OSISCMDS(object):
 
 
     def listNamespaceCategories(self, namespacename,session=None):
-        ddirs = j.system.fs.listDirsInDir(j.system.fs.joinPaths(self.path,
+        ddirs = j.sal.fs.listDirsInDir(j.sal.fs.joinPaths(self.path,
                                                                 namespacename), dirNameOnly=True)
         return ddirs
 
@@ -270,11 +270,11 @@ class OSISCMDS(object):
         """
         if session!=None:
             self._authenticateAdmin(session)
-        namespacepath = j.system.fs.joinPaths(self.path, namespacename)
-        if not j.system.fs.exists(path=namespacepath):
+        namespacepath = j.sal.fs.joinPaths(self.path, namespacename)
+        if not j.sal.fs.exists(path=namespacepath):
             raise RuntimeError("Could not find namespace with name:%s"%namespacename)
         if removecode:
-            j.system.fs.removeDirTree(j.system.fs.joinPaths(namespacepath, name))
+            j.sal.fs.removeDirTree(j.sal.fs.joinPaths(namespacepath, name))
         key="%s_%s"%(namespacename,name)
         try:
             self.elasticsearch.delete_index(key)
@@ -288,37 +288,37 @@ class OSISCMDS(object):
         """
         if session!=None:
             self._authenticateAdmin(session)
-        namespacepath = j.system.fs.joinPaths(self.path, namespacename)
-        if not j.system.fs.exists(path=namespacepath):
+        namespacepath = j.sal.fs.joinPaths(self.path, namespacename)
+        if not j.sal.fs.exists(path=namespacepath):
             raise RuntimeError("Could not find namespace with name:%s"%namespacename)
 
-        j.system.fs.createDir(j.system.fs.joinPaths(namespacepath, name))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(namespacepath, name))
 
         self.init(path=self.path, overwriteImplementation=False, namespacename=namespacename)
 
     def _initDefaultContent(self,  namespacename=None):
         path = self.path
         if namespacename == None:
-            for namespacename in j.system.fs.listDirsInDir(path, dirNameOnly=True):
+            for namespacename in j.sal.fs.listDirsInDir(path, dirNameOnly=True):
                 self._initDefaultContent(namespacename=namespacename)
         else:
             templatespath = "_templates"
-            if j.system.fs.exists(path=templatespath):
+            if j.sal.fs.exists(path=templatespath):
                 
-                # if j.system.fs.exists(path):
-                templatespath_namespace = j.system.fs.joinPaths(templatespath, "namespace")
-                templatespath_category = j.system.fs.joinPaths(templatespath, "category")
-                namespacepath = j.system.fs.joinPaths(path, namespacename)
-                j.system.fs.copyDirTree(templatespath_namespace, namespacepath, overwriteFiles=False)
-                if namespacename[0] != "_" and j.system.fs.exists(path=j.system.fs.joinPaths(namespacepath, ".parentInTemplate")):  
+                # if j.sal.fs.exists(path):
+                templatespath_namespace = j.sal.fs.joinPaths(templatespath, "namespace")
+                templatespath_category = j.sal.fs.joinPaths(templatespath, "category")
+                namespacepath = j.sal.fs.joinPaths(path, namespacename)
+                j.sal.fs.copyDirTree(templatespath_namespace, namespacepath, overwriteFiles=False)
+                if namespacename[0] != "_" and j.sal.fs.exists(path=j.sal.fs.joinPaths(namespacepath, ".parentInTemplate")):  
                     # check if parent is coming from template
-                    j.system.fs.remove(j.system.fs.joinPaths(namespacepath, "OSIS_parent.py"))
-                    j.system.fs.remove(j.system.fs.joinPaths(namespacepath, "OSIS_parent.pyc"))
+                    j.sal.fs.remove(j.sal.fs.joinPaths(namespacepath, "OSIS_parent.py"))
+                    j.sal.fs.remove(j.sal.fs.joinPaths(namespacepath, "OSIS_parent.pyc"))
 
-                for catname in j.system.fs.listDirsInDir(namespacepath, dirNameOnly=True):
-                    catpath = j.system.fs.joinPaths(namespacepath, catname)
-                    j.system.fs.copyDirTree(templatespath_category, catpath, overwriteFiles=False)
-                    # j.system.fs.copyDirTree(templatespath_osistasklets,catpath,overwriteFiles=overwriteTasklets)
+                for catname in j.sal.fs.listDirsInDir(namespacepath, dirNameOnly=True):
+                    catpath = j.sal.fs.joinPaths(namespacepath, catname)
+                    j.sal.fs.copyDirTree(templatespath_category, catpath, overwriteFiles=False)
+                    # j.sal.fs.copyDirTree(templatespath_osistasklets,catpath,overwriteFiles=overwriteTasklets)
 
     def init(self, path="",overwriteImplementation=False, namespacename=None, template=None):
         
@@ -329,32 +329,32 @@ class OSISCMDS(object):
         j.logger.consoleloglevel = 7
 
         if namespacename == None:
-            for namespacename in j.system.fs.listDirsInDir(path, dirNameOnly=True):
+            for namespacename in j.sal.fs.listDirsInDir(path, dirNameOnly=True):
                 self.init(path, overwriteImplementation=overwriteImplementation, namespacename=namespacename)
         else:
-            # te=j.core.taskletengine.get(j.system.fs.joinPaths("systemtasklets","init"))
+            # te=j.core.taskletengine.get(j.sal.fs.joinPaths("systemtasklets","init"))
             # te.executeV2(osis=self) #will add db & elasticsearch w
             if namespacename[0] == "_":
                 return
 
             self._initDefaultContent(namespacename=namespacename)
 
-            namespacepath = j.system.fs.joinPaths(path, namespacename)
-            specpath=j.system.fs.joinPaths(path, namespacename, "model.spec")
+            namespacepath = j.sal.fs.joinPaths(path, namespacename)
+            specpath=j.sal.fs.joinPaths(path, namespacename, "model.spec")
 
             j.core.osis.generateOsisModelDefaults(namespacename,specpath)
 
-            for catname in j.system.fs.listDirsInDir(namespacepath, dirNameOnly=True):
-                catpath = j.system.fs.joinPaths(namespacepath, catname)
+            for catname in j.sal.fs.listDirsInDir(namespacepath, dirNameOnly=True):
+                catpath = j.sal.fs.joinPaths(namespacepath, catname)
 
 
                 #generate model class
-                modelfile = j.system.fs.joinPaths(catpath, "model.py")
-                if overwriteImplementation or not j.system.fs.exists(path=modelfile):
-                    fileFrom = j.system.fs.joinPaths(namespacepath, "model_template.py")
-                    if not j.system.fs.exists(fileFrom):
+                modelfile = j.sal.fs.joinPaths(catpath, "model.py")
+                if overwriteImplementation or not j.sal.fs.exists(path=modelfile):
+                    fileFrom = j.sal.fs.joinPaths(namespacepath, "model_template.py")
+                    if not j.sal.fs.exists(fileFrom):
                         fileFrom = j.core.osis.getModelTemplate()
-                    j.system.fs.copyFile(fileFrom, modelfile)
+                    j.sal.fs.copyFile(fileFrom, modelfile)
                     ed=j.codetools.getTextFileEditor(modelfile)
                     ed.replaceNonRegex("$categoryname",catname.capitalize())
                     ed.save()
@@ -364,10 +364,10 @@ class OSISCMDS(object):
 
                 # check if there is already an implfile
                 implfile = "OSIS_%s_impl.py" % catname
-                implpath = j.system.fs.joinPaths(catpath, implfile)
-                fileFrom = j.system.fs.joinPaths(namespacepath, "OSIS_category_template.py")
-                if overwriteImplementation or not j.system.fs.exists(path=implpath):
-                    j.system.fs.copyFile(fileFrom, implpath)
+                implpath = j.sal.fs.joinPaths(catpath, implfile)
+                fileFrom = j.sal.fs.joinPaths(namespacepath, "OSIS_category_template.py")
+                if overwriteImplementation or not j.sal.fs.exists(path=implpath):
+                    j.sal.fs.copyFile(fileFrom, implpath)
 
                 ed=j.codetools.getTextFileEditor(implpath)
                 ed.replaceNonRegex("$namespace",namespacename)

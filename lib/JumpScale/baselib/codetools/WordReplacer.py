@@ -124,7 +124,7 @@ class WordReplacer():
         ******
         @param addConfluenceLinkTags id True then replaced items will be surrounded by [] (Boolean)
         """
-        txt=j.system.fs.fileGetContents(path)
+        txt=j.sal.fs.fileGetContents(path)
         for line in txt.split("\n"):
             line=line.strip()
             if line!="" and line.find(":")!=-1:

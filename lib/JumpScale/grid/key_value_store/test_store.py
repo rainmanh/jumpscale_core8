@@ -21,13 +21,13 @@ def pathed_time(t):
     def fakeGetTimeEpoch():
         return ctx.time
 
-    origGetTimeEpoch = j.base.time.getTimeEpoch
-    j.base.time.getTimeEpoch = fakeGetTimeEpoch
+    origGetTimeEpoch = j.tools.time.getTimeEpoch
+    j.tools.time.getTimeEpoch = fakeGetTimeEpoch
     # Make sure we restore the original getTimeEpoch function
     try:
         yield ctx
     finally:
-        j.base.time.getTimeEpoch = origGetTimeEpoch
+        j.tools.time.getTimeEpoch = origGetTimeEpoch
 
 class KeyValueStoreTestCaseBase(object):
 
@@ -119,10 +119,10 @@ class KeyValueStoreTestCaseBase(object):
         info2 = "Attempting to take the lock a second time"
         timeout = 2
 
-        before = j.base.time.getTimeEpoch()
+        before = j.tools.time.getTimeEpoch()
         self._store.lock(lType, info, timeout=timeout, timeoutwait=0)
         self._store.lock(lType, info2, timeout=3, timeoutwait=10)
-        after = j.base.time.getTimeEpoch()
+        after = j.tools.time.getTimeEpoch()
         difference = after - before
         self.assert_(difference > (timeout - 1), "It seems like the original "
                 "lock was not held long enough")
@@ -174,11 +174,11 @@ class ArakoonKeyValueStoreTestCase(unittest.TestCase,
         cluster.tearDown()
         cluster.remove()
 
-        dbDir = j.system.fs.joinPaths(j.dirs.varDir, 'db', self.STORE_CLUSTER)
-        j.system.fs.removeDirTree(dbDir)
+        dbDir = j.sal.fs.joinPaths(j.dirs.varDir, 'db', self.STORE_CLUSTER)
+        j.sal.fs.removeDirTree(dbDir)
 
-        logDir = j.system.fs.joinPaths(j.dirs.logDir, self.STORE_CLUSTER)
-        j.system.fs.removeDirTree(logDir)
+        logDir = j.sal.fs.joinPaths(j.dirs.logDir, self.STORE_CLUSTER)
+        j.sal.fs.removeDirTree(logDir)
 
     def testFactory(self):
         storeA = j.db.keyvaluestore.getStore(KeyValueStoreType.ARAKOON,
@@ -194,7 +194,7 @@ class FileSystemKeyValueStoreTestCase(unittest.TestCase,
     KeyValueStoreTestCaseBase):
 
     def setUp(self):
-        self._storeBaseDir = j.system.fs.joinPaths(j.dirs.tmpDir)
+        self._storeBaseDir = j.sal.fs.joinPaths(j.dirs.tmpDir)
 
         self.cleanUp()
 
@@ -205,9 +205,9 @@ class FileSystemKeyValueStoreTestCase(unittest.TestCase,
         self.cleanUp()
 
     def cleanUp(self):
-        self._storeDir = j.system.fs.joinPaths(j.dirs.tmpDir, self.STORE_NAME,
+        self._storeDir = j.sal.fs.joinPaths(j.dirs.tmpDir, self.STORE_NAME,
             self.STORE_NAMESPACE)
-        j.system.fs.removeDirTree(self._storeDir)
+        j.sal.fs.removeDirTree(self._storeDir)
 
     def testFactory(self):
         storeA = j.db.keyvaluestore.getStore(KeyValueStoreType.FILE_SYSTEM,

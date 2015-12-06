@@ -33,7 +33,7 @@ class Console:
         when typing, char per char will be returned
         """
         if not sys.platform.startswith("win"):
-            j.system.platform.ubuntu.check()
+            j.sal.ubuntu.check()
             import termios
             fd = sys.stdin.fileno()
 

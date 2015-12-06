@@ -113,10 +113,10 @@ class CiscoSwitch(SALObject):
         return r        
         self.do("/system/backup/save", args={"name":name})
         path="%s.backup"%name
-        self.download(path, j.system.fs.joinPaths(destinationdir,path))
+        self.download(path, j.sal.fs.joinPaths(destinationdir,path))
         self.do("/export", args={"file":name})
         path="%s.rsc"%name
-        self.download(path, j.system.fs.joinPaths(destinationdir,path))
+        self.download(path, j.sal.fs.joinPaths(destinationdir,path))
 
     def download(self,path,dest):
         #@todo now sure how that works on cisco sw

@@ -14,7 +14,7 @@ class MonitorClient(object):
         self.redis = redis
 
         luapath = "/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/lib/perftesttools/stat.lua"
-        lua = j.system.fs.fileGetContents(luapath)
+        lua = j.sal.fs.fileGetContents(luapath)
         self._sha = self.redis.script_load(lua)
 
     def measure(self,key,measurement,tags,value,type="A",aggrkey=""):

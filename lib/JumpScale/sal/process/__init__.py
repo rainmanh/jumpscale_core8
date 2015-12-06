@@ -2,9 +2,9 @@ from JumpScale import j
 
 
 def cb():
-    from .SystemFS import SystemFS
-    return SystemFS()
+    from .SystemProcess import SystemProcess
+    return SystemProcess()
 
 
-j.sal._register('fs', cb)
+j.sal._register('process', cb)
 

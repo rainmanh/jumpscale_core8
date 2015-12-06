@@ -23,10 +23,10 @@ class OSISStoreES(OSISStore):
         value can be a dict or a raw value (seen as string)
         if raw value then will not try to index
         """
-        if j.basetype.dictionary.check(value):
+        if j.core.types.dict.check(value):
             #is probably an osis object
             # obj=self.getObject(value)
-            # if not j.basetype.dictionary.check(obj):
+            # if not j.core.types.dict.check(obj):
             # obj.getSetGuid()
             # key=obj.guid
             key=value["guid"]

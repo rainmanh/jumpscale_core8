@@ -45,7 +45,7 @@ class ECO(OsisBaseObject):
             self.masterjid = masterjid
 
             if epoch==0:
-                self.epoch= j.base.time.getTimeEpoch()
+                self.epoch= j.tools.time.getTimeEpoch()
             else:
                 self.epoch=epoch
 

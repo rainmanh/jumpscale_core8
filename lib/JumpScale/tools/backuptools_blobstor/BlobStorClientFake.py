@@ -149,25 +149,25 @@ class BlobStorClientFake:
                     return
 
     def uploadDir(self,dirpath,compress=False):
-        name="backup_md_%s"%j.base.idgenerator.generateRandomInt(1,100000)
+        name="backup_md_%s"%j.tools.idgenerator.generateRandomInt(1,100000)
         tarpath="/tmp/%s.tar"%name
         if compress:
             cmd="cd %s;tar czf %s ."%(dirpath,tarpath)
         else:
             cmd="cd %s;tar cf %s ."%(dirpath,tarpath)
-        j.system.process.execute(cmd)
+        j.sal.process.execute(cmd)
         key=self.uploadFile(tarpath,compress=False)
-        j.system.fs.remove(tarpath)
+        j.sal.fs.remove(tarpath)
         return key
 
     def downloadDir(self,key,dest,repoid=0,compress=None):
         tarpath = "/tmp/%s.tar" % key
         self.downloadFile(key, tarpath)
-        j.system.fs.removeDirTree(dest)
-        j.system.fs.createDir(dest)
+        j.sal.fs.removeDirTree(dest)
+        j.sal.fs.createDir(dest)
         cmd = "cd %s; tar xf %s" % (dest, tarpath)
-        j.system.process.execute(cmd)
-        j.system.fs.remove(tarpath)
+        j.sal.process.execute(cmd)
+        j.sal.fs.remove(tarpath)
 
     def uploadFile(self,path,key="",repoid=0,compress=None):        
         if key=="":
@@ -181,11 +181,11 @@ class BlobStorClientFake:
 
     def downloadFile(self,key,dest,link=False,repoid=0, chmod=0,chownuid=0,chowngid=0,sync=False,size=0):
         chunks_keys = self.redis.lrange('files:%s' % key, 0, -1)
-        j.system.fs.touch(dest)
+        j.sal.fs.touch(dest)
         for chunk_key in chunks_keys:
             wv = self.weed_master.get_volume(chunk_key)
             chunk_data = wv.get_file(chunk_key)
-            j.system.fs.writeFile(dest, chunk_data, True)
+            j.sal.fs.writeFile(dest, chunk_data, True)
             
     def _downloadFilePhase2(self,blob,dest,key,chmod,chownuid,chowngid,link,serialization):
         if key=="":
@@ -196,12 +196,12 @@ class BlobStorClientFake:
         if self.cachepath!="":
             blob_path = self._getBlobCachePath(key)
             self._restoreBlobToDest(blob_path, blob, chmod=chmod,chownuid=chownuid,chowngid=chowngid,serialization=serialization)
-            j.system.fs.createDir(j.system.fs.getDirName(dest))
+            j.sal.fs.createDir(j.sal.fs.getDirName(dest))
 
             if link:
                 self._link(blob_path,dest)
             else:
-                j.system.fs.copyFile(blob_path, dest)            
+                j.sal.fs.copyFile(blob_path, dest)            
                 os.chmod(dest, chmod) 
                 os.chown(dest, chownuid, chowngid) 
         else:
@@ -213,7 +213,7 @@ class BlobStorClientFake:
         Get the blob path in Cache dir
         """
         # Get the Intermediate path of a certain blob
-        storpath = j.system.fs.joinPaths(self.cachepath, key[0:2], key[2:4], key)
+        storpath = j.sal.fs.joinPaths(self.cachepath, key[0:2], key[2:4], key)
         return storpath
 
 
@@ -222,23 +222,23 @@ class BlobStorClientFake:
         Write blob to destination
         """
         check="##HASHLIST##"
-        j.system.fs.createDir(j.system.fs.getDirName(dest))
+        j.sal.fs.createDir(j.sal.fs.getDirName(dest))
         if blob.find(check)==0:
             # found hashlist
             # print "FOUND HASHLIST %s" % blob
             hashlist = blob[len(check) + 1:]            
-            j.system.fs.writeFile(dest,"")
+            j.sal.fs.writeFile(dest,"")
             for hashitem in hashlist.split("\n"):
                 if hashitem.strip() != "":
                     key,serialization,blob_block = self.get(hashitem)
                     if serialization=="L":
                          blob_block= lzma.decompress(blob_block)
-                    j.system.fs.writeFile(dest, blob_block, append=True)                        
+                    j.sal.fs.writeFile(dest, blob_block, append=True)                        
         else:
             # content is there
             if serialization=="L":
                 blob = lzma.decompress(blob)
-            j.system.fs.writeFile(dest, blob)
+            j.sal.fs.writeFile(dest, blob)
 
         # chmod/chown
         if chmod!=0:

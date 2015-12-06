@@ -88,16 +88,16 @@ class Dirs(object):
         return txt
 
     # def replaceFilesDirVars(self,path,recursive=True, filter=None,additionalArgs={}):
-    #     if j.system.fs.isFile(path):
+    #     if j.sal.fs.isFile(path):
     #         paths=[path]
     #     else:
-    #         paths=j.system.fs.listFilesInDir(path,recursive,filter)
+    #         paths=j.sal.fs.listFilesInDir(path,recursive,filter)
 
     #     for path in paths:
-    #         content=j.system.fs.fileGetContents(path)
+    #         content=j.sal.fs.fileGetContents(path)
     #         content2=self.replaceTxtDirVars(content,additionalArgs)
     #         if content2!=content:
-    #             j.system.fs.writeFile(filename=path,contents=content2)
+    #             j.sal.fs.writeFile(filename=path,contents=content2)
 
     def _createDir(self,path):
         try:
@@ -108,7 +108,7 @@ class Dirs(object):
 
     @property
     def hrd(self):
-        return j.system.fs.joinPaths(j.application.config.get("system.paths.hrd"),"system")
+        return j.sal.fs.joinPaths(j.application.config.get("system.paths.hrd"),"system")
 
     @property
     def ays(self):
@@ -116,10 +116,10 @@ class Dirs(object):
             return self._ays
         path=self.amInAYSRepo()
         if path!=None:
-            self._ays= j.system.fs.joinPaths(path,"services")
+            self._ays= j.sal.fs.joinPaths(path,"services")
         else:
             self._ays="/etc/ays/local/"        
-        j.system.fs.createDir(self._ays)
+        j.sal.fs.createDir(self._ays)
         return self._ays
 
     def init(self,reinit=False):
@@ -172,36 +172,36 @@ class Dirs(object):
         protectedDirsDir = os.path.join(self.cfgDir, 'debug', 'protecteddirs')
         if not os.path.exists(protectedDirsDir):
             self._createDir(protectedDirsDir)
-        _listOfCfgFiles = j.system.fs.listFilesInDir(protectedDirsDir, filter='*.cfg')
+        _listOfCfgFiles = j.sal.fs.listFilesInDir(protectedDirsDir, filter='*.cfg')
         _protectedDirsList = []
         for _cfgFile in _listOfCfgFiles:
             _cfg = open(_cfgFile, 'r')
             _dirs = _cfg.readlines()
             for _dir in _dirs:
                 _dir = _dir.replace('\n', '').strip()
-                if j.system.fs.isDir(_dir):
-                    # npath=j.system.fs.pathNormalize(_dir)
+                if j.sal.fs.isDir(_dir):
+                    # npath=j.sal.fs.pathNormalize(_dir)
                     if _dir not in _protectedDirsList:
                         _protectedDirsList.append(_dir)
         self.protectedDirs = _protectedDirsList
 
 
     def addProtectedDir(self,path,name="main"):
-        if j.system.fs.isDir(path):
-            path=j.system.fs.pathNormalize(path)
+        if j.sal.fs.isDir(path):
+            path=j.sal.fs.pathNormalize(path)
             configfile=os.path.join(self.cfgDir, 'debug', 'protecteddirs',"%s.cfg"%name)
-            if not j.system.fs.exists(configfile):
-                j.system.fs.writeFile(configfile,"")
-            content=j.system.fs.fileGetContents(configfile)
+            if not j.sal.fs.exists(configfile):
+                j.sal.fs.writeFile(configfile,"")
+            content=j.sal.fs.fileGetContents(configfile)
             if path not in content.split("\n"):
                 content+="%s\n"%path
-                j.system.fs.writeFile(configfile,content)
+                j.sal.fs.writeFile(configfile,content)
             self.loadProtectedDirs()
 
     def removeProtectedDir(self,path):
-        path=j.system.fs.pathNormalize(path)
+        path=j.sal.fs.pathNormalize(path)
         protectedDirsDir = os.path.join(self.cfgDir, 'debug', 'protecteddirs')
-        _listOfCfgFiles = j.system.fs.listFilesInDir(protectedDirsDir, filter='*.cfg')
+        _listOfCfgFiles = j.sal.fs.listFilesInDir(protectedDirsDir, filter='*.cfg')
         for _cfgFile in _listOfCfgFiles:
             _cfg = open(_cfgFile, 'r')
             _dirs = _cfg.readlines()
@@ -215,14 +215,14 @@ class Dirs(object):
                 else:
                     out+="%s\n"%_dir
             if found:
-                j.system.fs.writeFile(_cfgFile,out)
+                j.sal.fs.writeFile(_cfgFile,out)
                 self.loadProtectedDirs()
 
 
     def checkInProtectedDir(self,path):
         return
         #@todo reimplement if still required
-        path=j.system.fs.pathNormalize(path)
+        path=j.sal.fs.pathNormalize(path)
         for item in self.protectedDirs :
             if path.find(item)!=-1:
                 return True
@@ -231,9 +231,9 @@ class Dirs(object):
     def _AYSRepo(self, path):
         while path.strip("/") != "":
             # from ipdb import set_trace;set_trace()
-            if "servicetemplates" in j.system.fs.listDirsInDir(path, dirNameOnly=True):
+            if "servicetemplates" in j.sal.fs.listDirsInDir(path, dirNameOnly=True):
                 return path
-            path = j.system.fs.getParent(path)
+            path = j.sal.fs.getParent(path)
         return None
 
     def isAYSRepo(self,path):
@@ -245,13 +245,13 @@ class Dirs(object):
         """
         return parent path where .git is or None when not found
         """
-        path=j.system.fs.getcwd()
+        path=j.sal.fs.getcwd()
         return self._AYSRepo(path)
 
     def createAYSRepo(self,path):
-        j.system.fs.createDir(j.system.fs.joinPaths(path,"services"))
-        j.system.fs.createDir(j.system.fs.joinPaths(path,"servicetemplates"))
-        j.system.fs.createDir(j.system.fs.joinPaths(path,".git"))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(path,"services"))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(path,"servicetemplates"))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(path,".git"))
 
     def __str__(self):
         return str(self.__dict__) #@todo P3 implement (thisnis not working)

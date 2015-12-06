@@ -61,8 +61,8 @@ class Params():
         #############
         args=params.expandParamsAsDict(maxvalues=100,id=None,start="-3d",stop=None)
 
-        args["start"]=j.base.time.getEpochAgo(args["start"])
-        args["stop"]=j.base.time.getEpochFuture(args["stop"])
+        args["start"]=j.tools.time.getEpochAgo(args["start"])
+        args["stop"]=j.tools.time.getEpochFuture(args["stop"])
 
         params.result=j.apps.system.infomgr.extensions.infomgr.addInfo(**args)
 

@@ -57,7 +57,7 @@ class UnixSystem:
         @type var: string
         '''
         #@todo there are better ways of doing this
-        exitcode, output = j.system.process.execute(". %s > /dev/null && echo $%s"%(file,var))
+        exitcode, output = j.sal.process.execute(". %s > /dev/null && echo $%s"%(file,var))
         if exitcode !=0:
             return ""
         else:
@@ -73,7 +73,7 @@ class UnixSystem:
         cpumhz = 0
         nrcpu = 0
         if j.system.platformtype.isLinux() or j.system.platformtype.isESX():
-            memcontent = j.system.fs.fileGetContents("/proc/meminfo")
+            memcontent = j.sal.fs.fileGetContents("/proc/meminfo")
             match = re.search("^MemTotal\:\s+(\d+)\s+kB$",memcontent, re.MULTILINE)
             if match:
                 #algorithme to round the memory again
@@ -81,7 +81,7 @@ class UnixSystem:
                 percisions = 2 # means 1 / 2 GB precision
                 #we use ceil because we can only loose memory used by system
                 mem = int((math.ceil((mem_in_gb*percisions))/percisions)*1024)
-            cpucontent = j.system.fs.fileGetContents("/proc/cpuinfo")
+            cpucontent = j.sal.fs.fileGetContents("/proc/cpuinfo")
             matches = re.findall("^cpu\sMHz\s+:\s(\d+)\.\d+$", cpucontent, re.MULTILINE)
             if matches:
                 nrcpu = len(matches)
@@ -89,10 +89,10 @@ class UnixSystem:
             return mem,cpumhz,nrcpu
         elif j.system.platformtype.isSolaris():
             command = "prtconf | grep Memory | awk '{print $3}'"
-            (exitcoude, output) = j.system.process.execute(command)
+            (exitcoude, output) = j.sal.process.execute(command)
             mem = output.strip()
             command = "psrinfo -v | grep 'processor operates' | awk '{print $6}'"
-            (exitcoude, output) = j.system.process.execute(command)
+            (exitcoude, output) = j.sal.process.execute(command)
             tuples = output.strip().split("\n")
             nrcpu = len(tuples)
             cpumhz = int(tuples[0])
@@ -166,12 +166,12 @@ class UnixSystem:
             crontabOutputRedir = " >/dev/null"
         else:
             if not self.exists(self.getDirName(logFilePath)):
-                j.system.fs.createDir(self.getDirName(logFilePath))
+                j.sal.fs.createDir(self.getDirName(logFilePath))
             crontabOutputRedir = " >>" + logFilePath
         crontabOutputRedir = crontabOutputRedir + " 2>&1"
 
         # Check if command already present.
-        crontabLines = j.system.fs.fileGetContents(crontabFilePath).splitlines()
+        crontabLines = j.sal.fs.fileGetContents(crontabFilePath).splitlines()
         commandFoundInCrontab = -1
         for i in range(len(crontabLines)):
             if crontabLines[i].find(commandToExecute) > -1 and not crontabLines[i].lstrip().startswith("#"):
@@ -185,7 +185,7 @@ class UnixSystem:
             crontabLines[commandFoundInCrontab] = (crontabOptions + commandToExecute + crontabOutputRedir)
 
         # Backup old crontab file and write modifications new crontab file.
-        j.system.fs.copyFile(crontabFilePath, crontabFilePath + ".backup") # Create backup
+        j.sal.fs.copyFile(crontabFilePath, crontabFilePath + ".backup") # Create backup
         if j.system.platformtype.isSolaris():
             self.writeFile(crontabFilePath + "_new", "\n".join(crontabLines) + "\n")
             # On Solaris, we need to call the crontab command to activate the changes.
@@ -193,7 +193,7 @@ class UnixSystem:
             self.removeFile(crontabFilePath + "_new")
         elif j.system.platformtype.isLinux() or j.system.platformtype.isESX():
             # On Linux, we edit the system-wide crontab of Vixie Cron, so don't have to run the "crontab" command to be sure changes have effect.
-            j.system.fs.writeFile(crontabFilePath, "\n".join(crontabLines) + "\n")
+            j.sal.fs.writeFile(crontabFilePath, "\n".join(crontabLines) + "\n")
         else:
             raise RuntimeError("Platform not supported.")
 
@@ -232,7 +232,7 @@ class UnixSystem:
             gid=grp.getgrnam(group).gr_gid
         os.chown(path, uid, gid)
         if recursive:
-            files=j.system.fs.walk(path,return_folders=1,return_files=1,recurse=-1)
+            files=j.sal.fs.walk(path,return_folders=1,return_files=1,recurse=-1)
             for file in files:
                 os.chown(file,uid,gid)
 
@@ -242,10 +242,10 @@ class UnixSystem:
         Chmod based on system.fs.walk
         """
         j.logger.log('Chmod %s'%root,8)
-        if j.system.fs.isFile(root):
+        if j.sal.fs.isFile(root):
             os.chmod(root, mode)
         else:
-            items = j.system.fs.walkExtended( root = root, recurse = recurse, dirPattern = dirPattern, filePattern = filePattern, dirs = dirs, files = files)
+            items = j.sal.fs.walkExtended( root = root, recurse = recurse, dirPattern = dirPattern, filePattern = filePattern, dirs = dirs, files = files)
 
             for item in items:
                 os.chmod(item,mode)
@@ -257,7 +257,7 @@ class UnixSystem:
         be executed as some specific user. This requires the application which
         spawns the command to be running as root.
 
-        Next to this, it behaves exactly as C{j.system.process.execute},
+        Next to this, it behaves exactly as C{j.sal.process.execute},
         including the same named arguments.
 
         @param command: Command to execute
@@ -279,10 +279,10 @@ class UnixSystem:
         kwargs = kwargs.copy()
         kwargs['command'] = command
 
-        return j.system.process.execute(**kwargs)
+        return j.sal.process.execute(**kwargs)
 
     #@deprecated('j.system.unix.executeDaemonAsUser',
-    #            alternative='j.system.process.runDaemon', version='3.2')
+    #            alternative='j.sal.process.runDaemon', version='3.2')
     def executeDaemonAsUser(self, command, username, **kwargs):
         '''Execute a given command as a background process as a specific user
 
@@ -290,7 +290,7 @@ class UnixSystem:
         be executed as some specific user. This requires the application which
         spawns the command to be running as root.
 
-        Next to this, it behaves exactly as C{j.system.process.runDaemon},
+        Next to this, it behaves exactly as C{j.sal.process.runDaemon},
         including the same named arguments.
 
         @param command: Command to execute
@@ -312,7 +312,7 @@ class UnixSystem:
         kwargs = kwargs.copy()
         kwargs['commandline'] = command
 
-        return j.system.process.runDaemon(**kwargs)
+        return j.sal.process.runDaemon(**kwargs)
 
     def _prepareCommand(self, command, username):
         j.logger.log('Attempt to run %s as user %s' % (command, username), 6)
@@ -326,7 +326,7 @@ class UnixSystem:
 
         subin = '/bin/su'
 
-        if not j.system.fs.exists(subin):
+        if not j.sal.fs.exists(subin):
             raise RuntimeError('%s not found on this system, I need it there' % subin)
 
         command = '%s --login --command %s %s' % (subin, subprocess.mkarg(command), username)
@@ -339,7 +339,7 @@ class UnixSystem:
         @param path: Path to chroot() to
         @type path: string
         '''
-        if not path or not j.basetype.unixdirpath.check(path):
+        if not path or not j.core.types.unixdirpath.check(path):
             raise ValueError('Path %s is invalid' % path)
 
         j.logger.log('Change root to %s' % path, 5)
@@ -372,16 +372,16 @@ class UnixSystem:
                 options.append("-d '%s'" % homedir)
             command = "%s %s %s" % (command, " ".join(options), username)
             # print command
-            exitCode, stdout, stderr = j.system.process.run(command, stopOnError=False)
+            exitCode, stdout, stderr = j.sal.process.run(command, stopOnError=False)
 
             if exitCode:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
                 raise RuntimeError('Failed to add user %s, error: %s' % \
                                     (username,output))
             if homedir!=None:
-                j.system.fs.createDir(homedir)
-                j.system.fs.chown(homedir,username)
-                j.system.fs.chmod(homedir,0o700)
+                j.sal.fs.createDir(homedir)
+                j.sal.fs.chown(homedir,username)
+                j.sal.fs.chmod(homedir,0o700)
 
         else:
             j.logger.log("User %s already exists" % username, 4)
@@ -396,7 +396,7 @@ class UnixSystem:
         '''
         if not j.system.unix.unixGroupExists(groupname):
             j.logger.log("Group [%s] does not exist, creating an entry" %groupname, 5)
-            exitCode, stdout, stderr = j.system.process.run("groupadd %s" %groupname, stopOnError=False)
+            exitCode, stdout, stderr = j.sal.process.run("groupadd %s" %groupname, stopOnError=False)
 
             if exitCode:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
@@ -411,7 +411,7 @@ class UnixSystem:
         assert j.system.unix.unixGroupExists(groupname), \
             '"%s" group does not exist"' % groupname
 
-        j.system.process.execute(
+        j.sal.process.execute(
             'gpasswd -a {username} {groupname}'.format(
                 username=username,
                 groupname=groupname
@@ -459,7 +459,7 @@ class UnixSystem:
             raise ValueError("User [%s] does not exist, cannot disable user" % username)
         else:
             command = 'passwd %s -l' %username
-            exitCode, stdout, stderr = j.system.process.run(command, stopOnError=False)
+            exitCode, stdout, stderr = j.sal.process.run(command, stopOnError=False)
 
             if exitCode:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
@@ -477,7 +477,7 @@ class UnixSystem:
             raise ValueError("User [%s] does not exist, cannot enable user" % username)
         else:
             command = 'passwd %s -u' %username
-            exitCode, stdout, stderr = j.system.process.run(command, stopOnError=False)
+            exitCode, stdout, stderr = j.sal.process.run(command, stopOnError=False)
 
             if exitCode:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
@@ -499,7 +499,7 @@ class UnixSystem:
         else:
             removehome = "-r" if removehome else ""
             command = 'userdel %s %s' % (removehome, username)
-            exitCode, stdout, stderr = j.system.process.run(command, stopOnError=False)
+            exitCode, stdout, stderr = j.sal.process.run(command, stopOnError=False)
 
             if exitCode:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
@@ -520,7 +520,7 @@ class UnixSystem:
             raise ValueError("User [%s] does not exist, cannot set password" % username)
         else:
             command = "echo '%s:%s' | chpasswd" %(username, password)
-            exitCode, stdout, stderr = j.system.process.run(command, stopOnError=False)
+            exitCode, stdout, stderr = j.sal.process.run(command, stopOnError=False)
 
             if exitCode:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
@@ -644,7 +644,7 @@ class UnixSystem:
         """
         check if app is installed,  if yes return True
         """
-        result,out=j.system.process.execute("which %s" % appname,dieOnNonZeroExitCode=False)
+        result,out=j.sal.process.execute("which %s" % appname,dieOnNonZeroExitCode=False)
         if result==0 and len(out)>5:
             return True
         return False

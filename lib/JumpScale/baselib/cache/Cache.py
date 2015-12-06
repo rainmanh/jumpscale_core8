@@ -24,7 +24,7 @@ class Cache():
     def set(self,key,value):
         tostore={}
         tostore["val"]=value
-        tostore["expire"]=j.base.time.getTimeEpoch()+self.expiration
+        tostore["expire"]=j.tools.time.getTimeEpoch()+self.expiration
         data=json.dumps(tostore)
         if self.redis:
             self.db.set("cache", key, data)
@@ -40,7 +40,7 @@ class Cache():
         if data==None:
             return False,None
         data=json.loads(data)
-        if data["expire"]<j.base.time.getTimeEpoch():
+        if data["expire"]<j.tools.time.getTimeEpoch():
             self.db.delete("cache", key)
             return (True,data["val"])
         else:

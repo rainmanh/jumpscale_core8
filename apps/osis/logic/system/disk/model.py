@@ -52,6 +52,6 @@ class Disk(OsisBaseObject):
         #     self.guid = "%s_%s_%s" % (self.gid, self.nid, self.path[5:])
         # else:
         #     self.guid = "%s_%s_%s" % (self.gid, self.nid, j.tools.hash.md5_string(self.path))
-        self.lastcheck=j.base.time.getTimeEpoch()
+        self.lastcheck=j.tools.time.getTimeEpoch()
         return self.guid
 

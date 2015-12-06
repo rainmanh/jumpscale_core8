@@ -108,10 +108,10 @@ class SerializerHRD():
         values = {'{}': {}, '[]': [], 'None': None}
         if value in values:
             return values[value]
-        elif j.basetype.integer.checkString(value):
-            primitive = j.basetype.integer.fromString(value)
-        elif j.basetype.float.checkString(value):
-            primitive = j.basetype.float.fromString(value)
+        elif j.core.types.integer.checkString(value):
+            primitive = j.core.types.integer.fromString(value)
+        elif j.core.types.float.checkString(value):
+            primitive = j.core.types.float.fromString(value)
         elif j.core.types.bool.checkString(value):
             primitive = j.core.types.bool.fromString(value)
         else:

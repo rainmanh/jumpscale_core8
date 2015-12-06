@@ -391,7 +391,7 @@ class Text:
         or convert 1 string to python objects
         """
         try:
-            if j.basetype.list.check(string):
+            if j.core.types.list.check(string):
                 ttypes=[]
                 for item in string:
                     ttype,val=Text._str2var(item)
@@ -407,7 +407,7 @@ class Text:
                     result=[Text.getBool(item) for item in string]                
                 else:
                     result=[str(Text.machinetext2val(item)) for item in string]
-            elif j.basetype.dictionary.check(string):
+            elif j.core.types.dict.check(string):
                 ttypes=[]
                 result={}
                 for key,item in list(string.items()):
@@ -487,9 +487,9 @@ class Text:
                 else:
                     obj="%s"%obj.strip("'")
             return obj
-        elif j.basetype.integer.check(obj) or j.basetype.float.check(obj):
+        elif j.core.types.integer.check(obj) or j.core.types.float.check(obj):
             return str(obj)
-        elif j.basetype.list.check(obj):
+        elif j.core.types.list.check(obj):
             # if not canBeDict:
             #     raise RuntimeError("subitem cannot be list or dict for:%s"%obj)
             if multiline:
@@ -505,7 +505,7 @@ class Text:
 
             return resout
 
-        elif j.basetype.dictionary.check(obj):
+        elif j.core.types.dict.check(obj):
             if not canBeDict:
                 raise RuntimeError("subitem cannot be list or dict for:%s"%obj)            
             if multiline:

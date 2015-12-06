@@ -1,6 +1,6 @@
 #!/usr/bin/env jspython
 from JumpScale import j
-from JumpScale.baselib import cmdutils
+from JumpScale.tools import cmdutils
 import JumpScale.lib.kvm
 
 j.application.start("jskvm")
@@ -45,8 +45,8 @@ if opts.action == 'list':
         print("  machine: %-25s %s" % (item['name'], kvm.getIp(item['name'])))
     print("## stopped:")
     for item in stopped:
-        configpath = j.system.fs.joinPaths(kvm.vmpath, item['name'])
-        if j.system.fs.exists(path=configpath):
+        configpath = j.sal.fs.joinPaths(kvm.vmpath, item['name'])
+        if j.sal.fs.exists(path=configpath):
             print("  machine: %-25s" % item['name'])
 
 ##########init_network

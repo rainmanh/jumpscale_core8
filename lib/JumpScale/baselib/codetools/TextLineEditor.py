@@ -179,7 +179,7 @@ class TextLineEditor():
     def save(self):
         txt="\n".join([item.line for item in self.lines])
         
-        j.system.fs.writeFile(filename=self.path,contents=txt)
+        j.sal.fs.writeFile(filename=self.path,contents=txt)
         
     def getFirstLineNrForBlock(self,blockname,blocknr):
         for linenr in range(len(self.lines)):

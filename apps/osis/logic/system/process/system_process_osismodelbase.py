@@ -48,8 +48,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @id.setter
     def id(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property id input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -67,8 +67,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @gid.setter
     def gid(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property gid input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -86,8 +86,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @nid.setter
     def nid(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property nid input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -181,8 +181,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @ports.setter
     def ports(self, value):
         if not isinstance(value, list) and value is not None:
-            if isinstance(value, str) and j.basetype.list.checkString(value):
-                value = j.basetype.list.fromString(value)
+            if isinstance(value, str) and j.core.types.list.checkString(value):
+                value = j.core.types.list.fromString(value)
             else:
                 msg="property ports input error, needs to be list, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -219,8 +219,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @systempid.setter
     def systempid(self, value):
         if not isinstance(value, list) and value is not None:
-            if isinstance(value, str) and j.basetype.list.checkString(value):
-                value = j.basetype.list.fromString(value)
+            if isinstance(value, str) and j.core.types.list.checkString(value):
+                value = j.core.types.list.fromString(value)
             else:
                 msg="property systempid input error, needs to be list, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -238,8 +238,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @epochstart.setter
     def epochstart(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property epochstart input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -257,8 +257,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @epochstop.setter
     def epochstop(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property epochstop input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -295,8 +295,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @lastcheck.setter
     def lastcheck(self, value):
         if not isinstance(value, int) and value is not None:
-            if isinstance(value, str) and j.basetype.integer.checkString(value):
-                value = j.basetype.integer.fromString(value)
+            if isinstance(value, str) and j.core.types.integer.checkString(value):
+                value = j.core.types.integer.fromString(value)
             else:
                 msg="property lastcheck input error, needs to be int, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -409,8 +409,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @nr_file_descriptors.setter
     def nr_file_descriptors(self, value):
         if not isinstance(value, float) and value is not None:
-            if isinstance(value, str) and j.basetype.float.checkString(value):
-                value = j.basetype.float.fromString(value)
+            if isinstance(value, str) and j.core.types.float.checkString(value):
+                value = j.core.types.float.fromString(value)
             else:
                 msg="property nr_file_descriptors input error, needs to be float, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -428,8 +428,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @nr_ctx_switches_voluntary.setter
     def nr_ctx_switches_voluntary(self, value):
         if not isinstance(value, float) and value is not None:
-            if isinstance(value, str) and j.basetype.float.checkString(value):
-                value = j.basetype.float.fromString(value)
+            if isinstance(value, str) and j.core.types.float.checkString(value):
+                value = j.core.types.float.fromString(value)
             else:
                 msg="property nr_ctx_switches_voluntary input error, needs to be float, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -447,8 +447,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @nr_ctx_switches_involuntary.setter
     def nr_ctx_switches_involuntary(self, value):
         if not isinstance(value, float) and value is not None:
-            if isinstance(value, str) and j.basetype.float.checkString(value):
-                value = j.basetype.float.fromString(value)
+            if isinstance(value, str) and j.core.types.float.checkString(value):
+                value = j.core.types.float.fromString(value)
             else:
                 msg="property nr_ctx_switches_involuntary input error, needs to be float, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -466,8 +466,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @nr_threads.setter
     def nr_threads(self, value):
         if not isinstance(value, float) and value is not None:
-            if isinstance(value, str) and j.basetype.float.checkString(value):
-                value = j.basetype.float.fromString(value)
+            if isinstance(value, str) and j.core.types.float.checkString(value):
+                value = j.core.types.float.fromString(value)
             else:
                 msg="property nr_threads input error, needs to be float, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -485,8 +485,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @cpu_time_user.setter
     def cpu_time_user(self, value):
         if not isinstance(value, float) and value is not None:
-            if isinstance(value, str) and j.basetype.float.checkString(value):
-                value = j.basetype.float.fromString(value)
+            if isinstance(value, str) and j.core.types.float.checkString(value):
+                value = j.core.types.float.fromString(value)
             else:
                 msg="property cpu_time_user input error, needs to be float, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -504,8 +504,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @cpu_time_system.setter
     def cpu_time_system(self, value):
         if not isinstance(value, float) and value is not None:
-            if isinstance(value, str) and j.basetype.float.checkString(value):
-                value = j.basetype.float.fromString(value)
+            if isinstance(value, str) and j.core.types.float.checkString(value):
+                value = j.core.types.float.fromString(value)
             else:
                 msg="property cpu_time_system input error, needs to be float, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -523,8 +523,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @cpu_percent.setter
     def cpu_percent(self, value):
         if not isinstance(value, float) and value is not None:
-            if isinstance(value, str) and j.basetype.float.checkString(value):
-                value = j.basetype.float.fromString(value)
+            if isinstance(value, str) and j.core.types.float.checkString(value):
+                value = j.core.types.float.fromString(value)
             else:
                 msg="property cpu_percent input error, needs to be float, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -542,8 +542,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @mem_vms.setter
     def mem_vms(self, value):
         if not isinstance(value, float) and value is not None:
-            if isinstance(value, str) and j.basetype.float.checkString(value):
-                value = j.basetype.float.fromString(value)
+            if isinstance(value, str) and j.core.types.float.checkString(value):
+                value = j.core.types.float.fromString(value)
             else:
                 msg="property mem_vms input error, needs to be float, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -561,8 +561,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @mem_rss.setter
     def mem_rss(self, value):
         if not isinstance(value, float) and value is not None:
-            if isinstance(value, str) and j.basetype.float.checkString(value):
-                value = j.basetype.float.fromString(value)
+            if isinstance(value, str) and j.core.types.float.checkString(value):
+                value = j.core.types.float.fromString(value)
             else:
                 msg="property mem_rss input error, needs to be float, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -580,8 +580,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @io_read_count.setter
     def io_read_count(self, value):
         if not isinstance(value, float) and value is not None:
-            if isinstance(value, str) and j.basetype.float.checkString(value):
-                value = j.basetype.float.fromString(value)
+            if isinstance(value, str) and j.core.types.float.checkString(value):
+                value = j.core.types.float.fromString(value)
             else:
                 msg="property io_read_count input error, needs to be float, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -599,8 +599,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @io_write_count.setter
     def io_write_count(self, value):
         if not isinstance(value, float) and value is not None:
-            if isinstance(value, str) and j.basetype.float.checkString(value):
-                value = j.basetype.float.fromString(value)
+            if isinstance(value, str) and j.core.types.float.checkString(value):
+                value = j.core.types.float.fromString(value)
             else:
                 msg="property io_write_count input error, needs to be float, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -618,8 +618,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @io_read_bytes.setter
     def io_read_bytes(self, value):
         if not isinstance(value, float) and value is not None:
-            if isinstance(value, str) and j.basetype.float.checkString(value):
-                value = j.basetype.float.fromString(value)
+            if isinstance(value, str) and j.core.types.float.checkString(value):
+                value = j.core.types.float.fromString(value)
             else:
                 msg="property io_read_bytes input error, needs to be float, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -637,8 +637,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @io_write_bytes.setter
     def io_write_bytes(self, value):
         if not isinstance(value, float) and value is not None:
-            if isinstance(value, str) and j.basetype.float.checkString(value):
-                value = j.basetype.float.fromString(value)
+            if isinstance(value, str) and j.core.types.float.checkString(value):
+                value = j.core.types.float.fromString(value)
             else:
                 msg="property io_write_bytes input error, needs to be float, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -656,8 +656,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @nr_connections_in.setter
     def nr_connections_in(self, value):
         if not isinstance(value, float) and value is not None:
-            if isinstance(value, str) and j.basetype.float.checkString(value):
-                value = j.basetype.float.fromString(value)
+            if isinstance(value, str) and j.core.types.float.checkString(value):
+                value = j.core.types.float.fromString(value)
             else:
                 msg="property nr_connections_in input error, needs to be float, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -675,8 +675,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @nr_connections_out.setter
     def nr_connections_out(self, value):
         if not isinstance(value, float) and value is not None:
-            if isinstance(value, str) and j.basetype.float.checkString(value):
-                value = j.basetype.float.fromString(value)
+            if isinstance(value, str) and j.core.types.float.checkString(value):
+                value = j.core.types.float.fromString(value)
             else:
                 msg="property nr_connections_out input error, needs to be float, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)
@@ -713,8 +713,8 @@ class system_process_osismodelbase(j.code.classGetJSRootModelBase()):
     @_meta.setter
     def _meta(self, value):
         if not isinstance(value, list) and value is not None:
-            if isinstance(value, str) and j.basetype.list.checkString(value):
-                value = j.basetype.list.fromString(value)
+            if isinstance(value, str) and j.core.types.list.checkString(value):
+                value = j.core.types.list.fromString(value)
             else:
                 msg="property _meta input error, needs to be list, specfile: /opt/jumpscale8/apps/osis/logic/system/model.spec, name model: process, value was:" + str(value)
                 raise TypeError(msg)

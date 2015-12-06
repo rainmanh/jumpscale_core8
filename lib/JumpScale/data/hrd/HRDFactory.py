@@ -20,7 +20,7 @@ class HRDFactory:
         """        
         if templates=="":
             templates=[]
-        if path is not None and j.system.fs.isDir(path):
+        if path is not None and j.sal.fs.isDir(path):
             if content!="":
                 j.events.inputerror_critical("HRD of directory cannot be build with as input content (should be empty)")
             return HRDTree(path,prefixWithName=prefixWithName,keepformat=keepformat)

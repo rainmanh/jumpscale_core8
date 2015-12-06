@@ -25,8 +25,8 @@ class TarFileAction(BaseEnumeration):
 class TarFile(BaseType):
     '''Handle tar files'''
 
-    path = j.basetype.filepath(doc='Path of the on-disk tar file')
-    action = j.basetype.enumeration(TarFileAction,
+    path = j.core.types.filepath(doc='Path of the on-disk tar file')
+    action = j.core.types.enumeration(TarFileAction,
                 doc='Access method of tar file')
 
     def __init__(self, path, action=TarFileAction.READ):
@@ -37,10 +37,10 @@ class TarFile(BaseType):
         @prarm action: Action to perform on the tar file
         @type action: TarFileAction
         '''
-        if not j.basetype.filepath.check(path):
+        if not j.core.types.filepath.check(path):
             raise ValueError('Provided string "%s" is not a valid path' % path)
         if action is TarFileAction.READ:
-            if not j.system.fs.isFile(path):
+            if not j.sal.fs.isFile(path):
                 raise ValueError(
                         'Provided path "%s" is not an existing file' % path)
             if not tarfile.is_tarfile(path):
@@ -70,9 +70,9 @@ class TarFile(BaseType):
         if not self.action is TarFileAction.READ:
             raise RuntimeError('Can only extract archives opened for reading')
 
-        if not j.basetype.dirpath.check(destination_path):
+        if not j.core.types.dirpath.check(destination_path):
             raise ValueError('Not a valid folder name provided')
-        if not j.system.fs.exists(destination_path):
+        if not j.sal.fs.exists(destination_path):
             raise ValueError('Destination folder "%s" does not exist'
                     % destination_path)
 

@@ -118,9 +118,9 @@ class ClassDoc():
         return source,md.params
 
     def write(self,dest):
-        dest2=j.system.fs.joinPaths(dest, self.location.split(".")[1],"%s.md"%self.location)
-        destdir= j.system.fs.getDirName(dest2)
-        j.system.fs.createDir(destdir)
+        dest2=j.sal.fs.joinPaths(dest, self.location.split(".")[1],"%s.md"%self.location)
+        destdir= j.sal.fs.getDirName(dest2)
+        j.sal.fs.createDir(destdir)
         content=str(self)
         content=content.replace("\n\n\n","\n\n")
         content=content.replace("\n\n\n","\n\n")
@@ -134,7 +134,7 @@ class ClassDoc():
         content=content.replace("$%]","\}")
         content=content.replace("$%[","\{")
 
-        j.system.fs.writeFile(filename=dest2,contents=content)
+        j.sal.fs.writeFile(filename=dest2,contents=content)
         return dest2
         
         
@@ -174,19 +174,19 @@ class ObjectInspector():
     """
 
     def __init__(self):
-        # self.apiFileLocation = j.system.fs.joinPaths(j.dirs.cfgDir, "codecompletionapi", "jumpscale.api")
-        # j.system.fs.createDir(j.system.fs.joinPaths(j.dirs.cfgDir, "codecompletionapi"))
+        # self.apiFileLocation = j.sal.fs.joinPaths(j.dirs.cfgDir, "codecompletionapi", "jumpscale.api")
+        # j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.cfgDir, "codecompletionapi"))
         self.classDocs={}
         self.visited=[]  
 
     def importAllLibs(self,ignore=[],base="/opt/jumpscale8/lib/JumpScale/"):
         self.base=base
-        towalk=j.system.fs.listDirsInDir(base, recursive=False, dirNameOnly=True, findDirectorySymlinks=True)        
+        towalk=j.sal.fs.listDirsInDir(base, recursive=False, dirNameOnly=True, findDirectorySymlinks=True)        
         errors="### errors while trying to import libraries\n\n"
         for item in towalk:
             
             path="%s/%s"%(base,item)
-            for modname in j.system.fs.listDirsInDir(path,False,True,True):
+            for modname in j.sal.fs.listDirsInDir(path,False,True,True):
                 if modname not in ignore:
                     toexec="import JumpScale.%s.%s"%(item,modname)
                     print(toexec)
@@ -205,17 +205,17 @@ class ObjectInspector():
         errormsg=errormsg.strip("*")
         errormsg=errormsg.strip()
         errormsg="* %s\n"%errormsg
-        j.system.fs.writeFile(filename="%s/errors.md"%self.dest,contents=errormsg,append=True)
+        j.sal.fs.writeFile(filename="%s/errors.md"%self.dest,contents=errormsg,append=True)
 
     def generateDocs(self,dest,ignore=[]):
         self.dest=dest
         self.apiFileLocation="%s/jumpscale.api"%self.dest
-        j.system.fs.writeFile("%s/errors.md"%dest,"")
-        j.system.fs.createDir(self.dest)
+        j.sal.fs.writeFile("%s/errors.md"%dest,"")
+        j.sal.fs.createDir(self.dest)
         self.errors=self.importAllLibs(ignore=ignore)
         self.inspect()
-        j.system.fs.createDir(dest)
-        j.system.fs.writeFile(filename="%s/errors.md"%dest,contents=self.errors,append=True)
+        j.sal.fs.createDir(dest)
+        j.sal.fs.writeFile(filename="%s/errors.md"%dest,contents=self.errors,append=True)
         self.writeDocs(dest)
 
     def _processMethod(self, name,method,path,classobj):
@@ -302,7 +302,7 @@ class ObjectInspector():
             if objattributename.upper() == objattributename:
                 # is special type or constant
                 print("special type: %s" % objectLocationPath2)
-                j.system.fs.writeFile(self.apiFileLocation, "%s?7\n" % objectLocationPath2, True)
+                j.sal.fs.writeFile(self.apiFileLocation, "%s?7\n" % objectLocationPath2, True)
 
             elif objattributename=="_getFactoryEnabledClasses":
                 try:
@@ -320,7 +320,7 @@ class ObjectInspector():
                     
                                
             elif str(type(objattribute)).find("'instance'") != -1 or str(type(objattribute)).find("<class") != -1 or str(type(objattribute)).find("'classobj'") != -1:
-                j.system.fs.writeFile(self.apiFileLocation, "%s?8\n" % objectLocationPath2, True)
+                j.sal.fs.writeFile(self.apiFileLocation, "%s?8\n" % objectLocationPath2, True)
                 print("class or instance: %s" % objectLocationPath2)
                 self.inspect(objectLocationPath2,parent=objattribute)
 
@@ -335,14 +335,14 @@ class ObjectInspector():
                 
                 source, params = self._processMethod(objattributename,objattribute,objectLocationPath2,obj)
                 print("instancemethod: %s" % objectLocationPath2)
-                j.system.fs.writeFile(self.apiFileLocation, "%s?4(%s)\n" % (objectLocationPath2, params), True)
+                j.sal.fs.writeFile(self.apiFileLocation, "%s?4(%s)\n" % (objectLocationPath2, params), True)
 
             elif str(type(objattribute)).find("'str'") != -1 or str(type(objattribute)).find("'type'") != -1 or str(type(objattribute)).find("'list'") != -1\
                 or str(type(objattribute)).find("'bool'") != -1 or str(type(objattribute)).find("'int'") != -1 or str(type(objattribute)).find("'NoneType'") != -1\
                     or str(type(objattribute)).find("'dict'") != -1 or str(type(objattribute)).find("'property'") != -1 or str(type(objattribute)).find("'tuple'") != -1:
                 # is instancemethod
                 print("property: %s" % objectLocationPath2)
-                j.system.fs.writeFile(self.apiFileLocation, "%s?8\n" % objectLocationPath2, True)
+                j.sal.fs.writeFile(self.apiFileLocation, "%s?8\n" % objectLocationPath2, True)
 
             else:
                 pass
@@ -357,7 +357,7 @@ class ObjectInspector():
                 summary[key2]={}
             dest=doc.write(path)
             #remember gitbook info
-            summary[key2][key]=j.system.fs.pathRemoveDirPart(dest,self.dest)
+            summary[key2][key]=j.sal.fs.pathRemoveDirPart(dest,self.dest)
 
         summarytxt=""
         keys1=list(summary.keys())
@@ -369,6 +369,6 @@ class ObjectInspector():
             for key2 in keys2:
                 summarytxt+="    * [%s](%s)\n"%(key2,summary[key1][key2])
 
-        j.system.fs.writeFile(filename="%s/SUMMARY.md"%(self.dest),contents=summarytxt)
+        j.sal.fs.writeFile(filename="%s/SUMMARY.md"%(self.dest),contents=summarytxt)
         
 

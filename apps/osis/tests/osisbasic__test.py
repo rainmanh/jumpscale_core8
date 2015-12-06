@@ -27,7 +27,7 @@ import JumpScale.grid.osis
 class TEST(unittest.TestCase):
 
     def randomMAC(self):
-        return j.base.idgenerator.generateGUID().replace("-","")
+        return j.tools.idgenerator.generateGUID().replace("-","")
 
     def setUp(self):
         self.client = j.clients.osis.getByInstance('main')

@@ -102,17 +102,17 @@ class BindDNS(DNS,SALObject):
 
     def start(self):
         j.logger.log('STARTING BIND SERVICE', 2)
-        _, out = j.system.process.execute('service bind9 start', outputToStdout=True)
+        _, out = j.sal.process.execute('service bind9 start', outputToStdout=True)
         j.logger.log(out, 2)
         
     def stop(self):
         j.logger.log('STOPPING BIND SERVICE', 2)
-        _, out = j.system.process.execute('service bind9 stop', outputToStdout=True)
+        _, out = j.sal.process.execute('service bind9 stop', outputToStdout=True)
         j.logger.log(out, 2)
     
     def restart(self):
         j.logger.log('RESTSRTING BIND SERVICE', 2)
-        _, out = j.system.process.execute('service bind9 restart', outputToStdout=True)
+        _, out = j.sal.process.execute('service bind9 restart', outputToStdout=True)
         j.logger.log(out, 2)
 
     def updateHostIp(self, host, ip):

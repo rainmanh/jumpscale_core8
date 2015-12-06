@@ -20,8 +20,8 @@ class CodeGeneratorModel(CodeGeneratorBase):
 
         s = """
 if not isinstance(value, %(type)s) and value is not None:
-    if isinstance(value, basestring) and j.basetype.%(fulltype)s.checkString(value):
-        value = j.basetype.%(fulltype)s.fromString(value)
+    if isinstance(value, basestring) and j.core.types.%(fulltype)s.checkString(value):
+        value = j.core.types.%(fulltype)s.fromString(value)
     else:
         msg="property %(name)s input error, needs to be %(type)s, specfile: %(specfile)s, name model: %(modelname)s, value was:" + str(value)
         raise TypeError(msg)

@@ -16,15 +16,15 @@ import sys
 class CodeGenerator:
 
     def __init__(self):
-        self.codepath = j.system.fs.joinPaths(j.dirs.varDir, "code")
+        self.codepath = j.sal.fs.joinPaths(j.dirs.varDir, "code")
         self._target = 'server'
         self.generated = {}  # will have classname inside
         self.classes = {}  # key is name as generated in _getCodeLocation
-        j.system.fs.createDir(self.codepath)
+        j.sal.fs.createDir(self.codepath)
         if self.codepath not in sys.path:
             sys.path.append(self.codepath)
-        j.system.fs.writeFile(j.system.fs.joinPaths(self.codepath, "__init__.py"), "")
-        self.appdir = j.system.fs.getcwd()
+        j.sal.fs.writeFile(j.sal.fs.joinPaths(self.codepath, "__init__.py"), "")
+        self.appdir = j.sal.fs.getcwd()
 
     def setTarget(self, target):
         '''
@@ -222,13 +222,13 @@ class CodeGenerator:
         if classpath != None:
             path = classpath
 
-        if classpath != None and j.system.fs.exists(path):
+        if classpath != None and j.sal.fs.exists(path):
             pass
         else:
-            j.system.fs.writeFile(path, code)
+            j.sal.fs.writeFile(path, code)
 
         if makeCopy:
-            j.system.fs.writeFile(path.replace(".py", ".gen.py"), code)
+            j.sal.fs.writeFile(path.replace(".py", ".gen.py"), code)
 
         # if type.find("enum") != 0:
             # getclass=True
@@ -258,13 +258,13 @@ class CodeGenerator:
     def _getCodeLocation(self, type, appname, spectype, specactor, specname):
         specname = specname.replace(".", "_")
         name = "%s_%s_%s_%s_%s" % (type, appname, spectype, specactor, specname)
-        path = j.system.fs.joinPaths(self.codepath, name + ".py")
+        path = j.sal.fs.joinPaths(self.codepath, name + ".py")
         return name, path
 
     def _import(self, name, classname, codepath):
-        pp = j.system.fs.getDirName(j.system.fs.pathNormalize(codepath))
-        # curpath=j.system.fs.getcwd()
-        # j.system.fs.changeDir(pp)
+        pp = j.sal.fs.getDirName(j.sal.fs.pathNormalize(codepath))
+        # curpath=j.sal.fs.getcwd()
+        # j.sal.fs.changeDir(pp)
         if pp not in sys.path:
             sys.path.append(pp)
         ns = dict()
@@ -293,7 +293,7 @@ class CodeGenerator:
             print(e)
             raise
 
-        # j.system.fs.changeDir(curpath)
+        # j.sal.fs.changeDir(curpath)
 
         # else:
             # classs=None

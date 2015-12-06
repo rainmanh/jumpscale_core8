@@ -68,14 +68,14 @@ class KVM(SALObject):
         self.LibvirtUtil.basepath = self.vmpath
 
     def _getRootPath(self, name):
-        return j.system.fs.joinPaths(self.vmpath, name)
+        return j.sal.fs.joinPaths(self.vmpath, name)
 
     def loadImages(self):
         """
         walk over images & remember so we can use to create & manipulate machines
         """
-        for image in j.system.fs.listDirsInDir(self.imagepath, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
-            path = j.system.fs.joinPaths(self.imagepath, image, '%s.hrd' % image)
+        for image in j.sal.fs.listDirsInDir(self.imagepath, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+            path = j.sal.fs.joinPaths(self.imagepath, image, '%s.hrd' % image)
             hrd = j.core.hrd.get(path)
             self.images[image] = hrd
 
@@ -135,9 +135,9 @@ class KVM(SALObject):
     def initNattingRules(self):
         print('Initializing natting rule on the host on "brpub"...')
         cmd = "iptables -t nat -I POSTROUTING --out-interface brpub -j MASQUERADE"
-        j.system.process.execute(cmd)
+        j.sal.process.execute(cmd)
         cmd = "iptables -I FORWARD --in-interface brpub -j ACCEPT"
-        j.system.process.execute(cmd)
+        j.sal.process.execute(cmd)
 
     def list(self):
         """
@@ -146,7 +146,7 @@ class KVM(SALObject):
         """
         machines = self.LibvirtUtil.list_domains()
         running = [machine for machine in machines if machine['state'] == 1]
-        stopped = [machine for machine in machines if machine['state'] == 5 and j.system.fs.exists(j.system.fs.joinPaths(self.vmpath, machine['name']))]
+        stopped = [machine for machine in machines if machine['state'] == 5 and j.sal.fs.exists(j.sal.fs.joinPaths(self.vmpath, machine['name']))]
         return (running, stopped)
 
     def listSnapshots(self, name):
@@ -160,8 +160,8 @@ class KVM(SALObject):
             return machine_hrd.get("bootstrap.ip")
 
     def getConfig(self, name):
-        configpath = j.system.fs.joinPaths(self.vmpath, name, "main.hrd")
-        if not j.system.fs.exists(path=configpath):
+        configpath = j.sal.fs.joinPaths(self.vmpath, name, "main.hrd")
+        if not j.sal.fs.exists(path=configpath):
             print('Machine %s does not exist' % name)
             return
         return j.core.hrd.get(path=configpath)
@@ -179,7 +179,7 @@ class KVM(SALObject):
         return ips
 
     def _getAllVMs(self):
-        result = j.system.fs.listDirsInDir(self.vmpath, recursive=False, dirNameOnly=True, findDirectorySymlinks=True)
+        result = j.sal.fs.listDirsInDir(self.vmpath, recursive=False, dirNameOnly=True, findDirectorySymlinks=True)
         result.remove('images')
         return result
 
@@ -240,15 +240,15 @@ class KVM(SALObject):
         self.initLibvirtNetwork()
 
         if replace:
-            if j.system.fs.exists(self._getRootPath(name)):
+            if j.sal.fs.exists(self._getRootPath(name)):
                 print('Machine %s already exists, will destroy and recreate...' % name)
                 self.destroy(name)
-                j.system.fs.removeDirTree(self._getRootPath(name))
+                j.sal.fs.removeDirTree(self._getRootPath(name))
         else:
-            if j.system.fs.exists(self._getRootPath(name)):
+            if j.sal.fs.exists(self._getRootPath(name)):
                 print('Error creating machine "%s"' % name)
                 raise RuntimeError('Machine "%s" already exists, please explicitly specify replace=True(default) if you want to create a vmachine with the same name' % name)
-        j.system.fs.createDir(self._getRootPath(name))
+        j.sal.fs.createDir(self._getRootPath(name))
         print('Creating machine %s...' % name)
         try:
             self.LibvirtUtil.create_node(name, baseimage, size=size, memory=memory, cpu_count=cpu_count)
@@ -259,7 +259,7 @@ class KVM(SALObject):
         print('Wrtiting machine HRD config file...')
         domain = self.LibvirtUtil.connection.lookupByName(name)
         imagehrd = self.images[baseimage]
-        hrdfile = j.system.fs.joinPaths(self._getRootPath(name), 'main.hrd')
+        hrdfile = j.sal.fs.joinPaths(self._getRootPath(name), 'main.hrd')
         # assume that login and passwd are provided in the image hrd config file
         hrdcontents = '''id=%s
 name=%s
@@ -280,7 +280,7 @@ bootstrap.login=%s
 bootstrap.passwd=%s
 bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imagehrd.get('ostype'), imagehrd.get('arch'), imagehrd.get('version'), description, imagehrd.get('root.partitionnr', '1'),
         memory, size, cpu_count, imagehrd.get('shell', ''), imagehrd.get('fabric.module'), imagehrd.get('pub.ip'), imagehrd.get('bootstrap.ip'), imagehrd.get('bootstrap.login'), imagehrd.get('bootstrap.passwd'))
-        j.system.fs.writeFile(hrdfile, hrdcontents)
+        j.sal.fs.writeFile(hrdfile, hrdcontents)
         print('Waiting for SSH connection to be ready...')
         if not j.system.net.waitConnectionTest(imagehrd.get('bootstrap.ip'), 22, 300):
             print('Rolling back machine creation...')
@@ -318,7 +318,7 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
         except:
             pass
         finally:
-            j.system.fs.removeDirTree(self._getRootPath(name))
+            j.sal.fs.removeDirTree(self._getRootPath(name))
         
     def stop(self, name):
         print('Stopping machine "%s"' % name)
@@ -394,13 +394,13 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
         if snapshotname not in self.listSnapshots(name):
             raise RuntimeError('Machine "%s" does not have a snapshot named "%s"' % (name, snapshotname))
         print(('Mounting snapshot "%s" of mahcine "%s" on "%s"' % (snapshotname, name, location)))
-        if not j.system.fs.exists(location):
+        if not j.sal.fs.exists(location):
             print(('Location "%s" does not exist, it will be created' % location))
-            j.system.fs.createDir(location)
+            j.sal.fs.createDir(location)
         print(('Device %s will be used, freeing up first...' % dev))
-        j.system.process.execute('modprobe nbd max_part=8')
+        j.sal.process.execute('modprobe nbd max_part=8')
         self._cleanNbdMount(location, dev)
-        qcow2_images = j.system.fs.listFilesInDir(j.system.fs.joinPaths(self.vmpath, name), filter='*.qcow2')
+        qcow2_images = j.sal.fs.listFilesInDir(j.sal.fs.joinPaths(self.vmpath, name), filter='*.qcow2')
         snapshot_path = None
         for qi in qcow2_images:
             if snapshotname in qi:
@@ -408,10 +408,10 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
                 break
         if not snapshot_path:
             raise RuntimeError('Could not find snapshot "%s" path' % snapshotname)
-        j.system.process.execute('qemu-nbd --connect=%s %s' % (dev, snapshot_path))
+        j.sal.process.execute('qemu-nbd --connect=%s %s' % (dev, snapshot_path))
         if not partitionnr:
             partitionnr = machine_hrd.get('root.partitionnr', '1')
-        j.system.process.execute('mount %sp%s %s' % (dev, partitionnr, location))
+        j.sal.process.execute('mount %sp%s %s' % (dev, partitionnr, location))
         print(('Snapshot "%s" of mahcine "%s" was successfully mounted on "%s"' % (snapshotname, name, location)))
 
     def unmountSnapshot(self, location='/mnt/1', dev='/dev/nbd1'):
@@ -420,30 +420,30 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
     def _cleanNbdMount(self, location, dev):
         print(('Unmounting location "%s"' % location))
         try:
-            j.system.process.execute('umount %s' % location)
+            j.sal.process.execute('umount %s' % location)
         except:
             print(('location "%s" is already unmounted' % location))
         print(('Disconnecting dev "%s"' % dev))
-        j.system.process.execute('qemu-nbd -d %s' % dev)
+        j.sal.process.execute('qemu-nbd -d %s' % dev)
 
     def _getFabricModule(self, name):
         machine_hrd = self.getConfig(name)
         setipmodulename = machine_hrd.get('fabric.module')
-        setupmodulepath = j.system.fs.joinPaths(self.imagepath, machine_hrd.get('image'), 'fabric', '%s.py' % setipmodulename)
+        setupmodulepath = j.sal.fs.joinPaths(self.imagepath, machine_hrd.get('image'), 'fabric', '%s.py' % setipmodulename)
         return imp.load_source(setipmodulename, setupmodulepath)
 
     def pushSSHKey(self, name):
         print('Pushing SSH key to the guest...')
         privkeyloc="/root/.ssh/id_dsa"
         keyloc=privkeyloc + ".pub"
-        if not j.system.fs.exists(path=keyloc):
-            j.system.process.executeWithoutPipe("ssh-keygen -t dsa -f %s -N ''" % privkeyloc)
-            if not j.system.fs.exists(path=keyloc):
+        if not j.sal.fs.exists(path=keyloc):
+            j.sal.process.executeWithoutPipe("ssh-keygen -t dsa -f %s -N ''" % privkeyloc)
+            if not j.sal.fs.exists(path=keyloc):
                 raise RuntimeError("cannot find path for key %s, was keygen well executed"%keyloc)            
-        key=j.system.fs.fileGetContents(keyloc)
-        # j.system.fs.writeFile(filename=path,contents="%s\n"%content)
-        # path=j.system.fs.joinPaths(self._get_rootpath(name),"root",".ssh","known_hosts")
-        # j.system.fs.writeFile(filename=path,contents="")
+        key=j.sal.fs.fileGetContents(keyloc)
+        # j.sal.fs.writeFile(filename=path,contents="%s\n"%content)
+        # path=j.sal.fs.joinPaths(self._get_rootpath(name),"root",".ssh","known_hosts")
+        # j.sal.fs.writeFile(filename=path,contents="")
         c=j.remote.cuisine.api
         config = self.getConfig(name)
         c.fabric.api.env['password'] = config.get('bootstrap.passwd')

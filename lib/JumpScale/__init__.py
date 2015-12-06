@@ -14,14 +14,18 @@ if sys.platform.startswith("darwin"):
     for p in ["/Users/Shared/jumpscale/lib","/Users/Shared/jumpscale/lib/lib-dynload/","/Users/Shared/jumpscale/bin","/Users/Shared/jumpscale/lib/python.zip","/Users/Shared/jumpscale/lib/plat-x86_64-linux-gnu"]:
         if p not in sys.path:
             sys.path.append(p)
+    basevar="/Users/Shared/jumpscalevar"
 
 if 'VIRTUAL_ENV' in os.environ and not 'JSBASE' in os.environ:
     os.environ['JSBASE'] = os.environ['VIRTUAL_ENV']
     base="/opt/jumpscale8"
+    basevar="/optvar"
 elif 'JSBASE' in os.environ:
     base=os.environ['JSBASE']
+    basevar="/optvar"
 else:
     base="/opt/jumpscale8"
+    basevar="/optvar"
 
 
 sys.path.insert(0,"/opt/jumpscale8/lib")
@@ -150,7 +154,7 @@ loadSubModules(__file__)
 
 import core.types
 
-j.application.config = j.data.hrd.get(path="%s/hrd/system"%base)
+j.application.config = j.data.hrd.get(path="%s/hrd/system"%basevar)
 
 j.logger.enabled = j.application.config.getBool("system.logging",default=False)
 

@@ -20,30 +20,30 @@ def action():
     import tarfile
     """
     """
-    backuppath = j.system.fs.joinPaths(j.dirs.tmpDir, 'backup', 'osis')
-    timestamp = j.base.time.getTimeEpoch()
-    timestamp = j.base.time.formatTime(timestamp, "%Y%m%d_%H%M%S")
+    backuppath = j.sal.fs.joinPaths(j.dirs.tmpDir, 'backup', 'osis')
+    timestamp = j.tools.time.getTimeEpoch()
+    timestamp = j.tools.time.formatTime(timestamp, "%Y%m%d_%H%M%S")
     try:
         oscl = j.clients.osis.getByInstance('main')
         namespaces = oscl.listNamespaces()
-        if j.system.fs.exists(backuppath):
-            j.system.fs.removeDirTree(backuppath)
+        if j.sal.fs.exists(backuppath):
+            j.sal.fs.removeDirTree(backuppath)
         for namespace in namespaces:
             categories = oscl.listNamespaceCategories(namespace)
             for category in categories:
                 if namespace == 'system' and category in ['stats', 'log', 'sessioncache']:
                     continue
-                outputpath = j.system.fs.joinPaths(backuppath, namespace, category)
-                j.system.fs.createDir(outputpath)
+                outputpath = j.sal.fs.joinPaths(backuppath, namespace, category)
+                j.sal.fs.createDir(outputpath)
                 oscl.export(namespace, category, outputpath)
 
         #targz
-        backupdir = j.system.fs.joinPaths(j.dirs.varDir, 'backup', 'osis')
-        j.system.fs.createDir(backupdir)
-        outputpath = j.system.fs.joinPaths(backupdir, '%s.tar.gz' % timestamp)
+        backupdir = j.sal.fs.joinPaths(j.dirs.varDir, 'backup', 'osis')
+        j.sal.fs.createDir(backupdir)
+        outputpath = j.sal.fs.joinPaths(backupdir, '%s.tar.gz' % timestamp)
         with tarfile.open(outputpath, "w:gz") as tar:
             tar.add(backuppath)
-        j.system.fs.removeDirTree(backuppath)
+        j.sal.fs.removeDirTree(backuppath)
     except Exception:
         import JumpScale.baselib.mailclient
         import traceback

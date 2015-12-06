@@ -35,13 +35,13 @@ class PerfTestToolsFactory(object):
         self.monitorNodeIp=monitorNodeIp
         self.monitorNodeSSHPort=sshPort
         self.redispasswd=redispasswd
-        if sshkey is not None and j.system.fs.exists(path=sshkey):
-            sshkey=j.system.fs.fileGetContents(sshkey)
+        if sshkey is not None and j.sal.fs.exists(path=sshkey):
+            sshkey=j.sal.fs.fileGetContents(sshkey)
             self.sshkey=sshkey
 
             path="%s/.ssh/testevn"%os.environ["HOME"]
-            j.system.fs.writeFile(path,self.sshkey)
-            j.system.fs.chmod(path,0o600)
+            j.sal.fs.writeFile(path,self.sshkey)
+            j.sal.fs.chmod(path,0o600)
 
         j.do.loadSSHKeys()
 
@@ -71,11 +71,11 @@ class PerfTestToolsFactory(object):
         return n
 
     def getExampleScript(self,path=None):
-        dirpath=j.system.fs.getDirName(os.path.realpath(__file__))
+        dirpath=j.sal.fs.getDirName(os.path.realpath(__file__))
         path2="%s/exampleScriptexampleScript"%dirpath
-        C=j.system.fs.fileGetContents(path2)
+        C=j.sal.fs.fileGetContents(path2)
         if path!=None:
-            j.system.fs.writeFile(filename=path,contents=C)
+            j.sal.fs.writeFile(filename=path,contents=C)
         return C
 
     def monitor(self):

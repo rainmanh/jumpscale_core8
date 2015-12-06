@@ -4,9 +4,9 @@
         "completions":
         [
                 { "trigger": "tagGet", "contents": "j.core.tags.getObject(${1:tagstr})"},
-                { "trigger": "writeFile","contents":"j.system.fs.writeFile(filename=${1:path},contents=${2:content})"},
-                { "trigger": "joinPaths","contents":"j.system.fs.joinPaths(${1:pathpart},${2:pathpart})"},
-                { "trigger": "getFile","contents":"j.system.fs.fileGetContents(${1:filename})"},
+                { "trigger": "writeFile","contents":"j.sal.fs.writeFile(filename=${1:path},contents=${2:content})"},
+                { "trigger": "joinPaths","contents":"j.sal.fs.joinPaths(${1:pathpart},${2:pathpart})"},
+                { "trigger": "getFile","contents":"j.sal.fs.fileGetContents(${1:filename})"},
                 
                 { "trigger": "runtimeError","contents":"raise RuntimeError(\"$1\")"},
                 
@@ -14,7 +14,7 @@
                 
                 { "trigger": "jsimport","contents":"from JumpScale import j\n"},        
 
-                { "trigger": "exists","contents":"j.system.fs.exists(path=${1:path}))"}, 
+                { "trigger": "exists","contents":"j.sal.fs.exists(path=${1:path}))"}, 
                 
                 { "trigger": "raisebug","contents":"j.errorconditionhandler.raiseBug(message=${1:msg},category=${2:cat})"},
                 { "trigger": "raisebugDetailed","contents":"j.errorconditionhandler.raiseBug(message=${1:msg},category=\"\",pythonExceptionObject=None, pythonTraceBack=None, msgpub='')"},
@@ -25,7 +25,7 @@
                 { "trigger": "raisePerformanceError","contents":"j.errorconditionhandler.raisePerformanceError(msgpub=\"${1:msg}\",message=\"\",category=\"\")"},
 
                 { "trigger": "log","contents":"j.logger.log(\"${1:msg}\", level=5, category=\"\")"},
-                { "trigger": "createDir","contents":"j.system.fs.createDir(${1:path})"},
+                { "trigger": "createDir","contents":"j.sal.fs.createDir(${1:path})"},
                 { "trigger": "jsinit","contents":"from JumpScale import j\nj.application.start('${1:name}')\n#j.application.stop()\n"},
                 
                 "ninja"

@@ -8,7 +8,7 @@ except:
     import json
 import psutil
 import JumpScale.baselib.taskletengine
-from JumpScale.baselib import cmdutils
+from JumpScale.tools import cmdutils
 
 # Preload libraries
 j.system.platform.psutil=psutil
@@ -62,7 +62,7 @@ class Worker(object):
         return client
 
     def init(self):
-        j.system.fs.createDir(j.system.fs.joinPaths(j.dirs.tmpDir,"jumpscripts"))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.tmpDir,"jumpscripts"))
         self.redisw.redis.delete("workers:action:%s"%self.queuename)
 
     def processAction(self, action):
@@ -241,7 +241,7 @@ class Worker(object):
 
     def log(self, message, category='',level=5, time=None):
         if time is None:
-            time = j.base.time.getLocalTimeHR()
+            time = j.tools.time.getLocalTimeHR()
         msg = "%s:worker:%s:%s" % (time, self.queuename, message)
         try:
             print(msg)

@@ -48,7 +48,7 @@ class JSFileMgr():
         self.MDPath = MDPath
 
         self.storpath = storpath  # Intermediate link path!
-        j.system.fs.createDir(self.storpath)
+        j.sal.fs.createDir(self.storpath)
 
         passwd = j.application.config.get('grid.master.superadminpasswd')
         login="root"
@@ -56,7 +56,7 @@ class JSFileMgr():
         # self.blobstor = j.servers.zdaemon.getZDaemonClient("127.0.0.1",port=2345,user=login,passwd=passwd,ssl=False,sendformat='m', returnformat='m',category="blobserver")
         self.blobstor=j.clients.blobstor2.getClient(name=blobstorAccount,domain="backups",namespace=blobstorNamespace)
         self.blobstor.cachepath="/mnt/BLOBCACHEC"
-        j.system.fs.createDir(self.blobstor.cachepath)
+        j.sal.fs.createDir(self.blobstor.cachepath)
         self.blobstorMD=j.clients.blobstor2.getClient(name=blobstorAccount,domain="backups",namespace="md_%s"%blobstorNamespace)
         
         self.namespace=blobstorNamespace
@@ -89,33 +89,33 @@ class JSFileMgr():
         """
         # print "MD:%s "%path,
 
-        srcpart=j.system.fs.pathRemoveDirPart(path,prefix,True)                        
-        dest=j.system.fs.joinPaths(self.MDPath,"MD",destination,srcpart)
-        dest2=j.system.fs.joinPaths(destination,srcpart)
+        srcpart=j.sal.fs.pathRemoveDirPart(path,prefix,True)                        
+        dest=j.sal.fs.joinPaths(self.MDPath,"MD",destination,srcpart)
+        dest2=j.sal.fs.joinPaths(destination,srcpart)
         dest2=dest2.lstrip("/")
         change=False
 
         try:
             stat=os.lstat(path)
         except Exception as e:
-            if not j.system.fs.exists(path):
+            if not j.sal.fs.exists(path):
                 #can be link which does not exist
                 #or can be file which is deleted in mean time
                 self.doError(path,"could not find, so could not backup.") 
                 return (False,False,"",dest2)
 
         #next goes for all types
-        if j.system.fs.exists(path=dest):
+        if j.sal.fs.exists(path=dest):
             if ttype=="D":
                 dest+="/.meta"
             item=self.getMDObjectFromFs(dest)            
             mdchange=False
         elif ttype=="L":
-            dest=j.system.fs.joinPaths(self.MDPath,"LINKS",destination,srcpart)
-            if j.system.fs.exists(path=dest):
-                if j.system.fs.exists(j.system.fs.joinPaths(dest,".meta")):
+            dest=j.sal.fs.joinPaths(self.MDPath,"LINKS",destination,srcpart)
+            if j.sal.fs.exists(path=dest):
+                if j.sal.fs.exists(j.sal.fs.joinPaths(dest,".meta")):
                     #is dir
-                    dest=j.system.fs.joinPaths(dest,".meta")
+                    dest=j.sal.fs.joinPaths(dest,".meta")
                 item=self.getMDObjectFromFs(dest)
                 mdchange=False
             else:
@@ -163,22 +163,22 @@ class JSFileMgr():
             if ttype=="F":
                 item.size=stat.st_size
                 item.type="F"
-                j.system.fs.createDir(j.system.fs.getDirName(dest))
+                j.sal.fs.createDir(j.sal.fs.getDirName(dest))
             elif ttype=="D":
                 item.type="D"
-                dest=j.system.fs.joinPaths(self.MDPath,"MD",destination,srcpart,".meta")
-                j.system.fs.createDir(j.system.fs.getDirName(dest))
+                dest=j.sal.fs.joinPaths(self.MDPath,"MD",destination,srcpart,".meta")
+                j.sal.fs.createDir(j.sal.fs.getDirName(dest))
             elif ttype=="L":                
                 item.dest=linkdest
-                if j.system.fs.isDir(path):
-                    dest=j.system.fs.joinPaths(self.MDPath,"LINKS",destination,srcpart,".meta")
+                if j.sal.fs.isDir(path):
+                    dest=j.sal.fs.joinPaths(self.MDPath,"LINKS",destination,srcpart,".meta")
                     item.type="LD"
                 else:
-                    dest=j.system.fs.joinPaths(self.MDPath,"LINKS",destination,srcpart)
+                    dest=j.sal.fs.joinPaths(self.MDPath,"LINKS",destination,srcpart)
                     item.type="LF"
-                j.system.fs.createDir(j.system.fs.getDirName(dest))
+                j.sal.fs.createDir(j.sal.fs.getDirName(dest))
 
-            j.system.fs.writeFile(dest, str(item))
+            j.sal.fs.writeFile(dest, str(item))
 
         return (mdchange,change,item.hash,dest2)
 
@@ -187,7 +187,7 @@ class JSFileMgr():
         dest is where to restore to
         """
 
-        j.system.fs.removeDirTree(dest)
+        j.sal.fs.removeDirTree(dest)
         self.errors=[]
 
         # if src[0] == "/":
@@ -196,23 +196,23 @@ class JSFileMgr():
         #DIRS & FILES
         src2 = "%s/%s/%s" % (self.MDPath, "MD",src)
 
-        if not j.system.fs.exists(path=src2):
+        if not j.sal.fs.exists(path=src2):
             raise RuntimeError("Could not find MD source '%s'"%src2)
 
         #restore dirs
-        for item in j.system.fs.listFilesInDir(src2, True,filter=".meta"):
+        for item in j.sal.fs.listFilesInDir(src2, True,filter=".meta"):
             mdo=self.getMDObjectFromFs(item)
-            destpart=j.system.fs.pathRemoveDirPart(item, src2, True)
-            destfull=j.system.fs.joinPaths(dest, destpart)
-            destfull=j.system.fs.getDirName(destfull)
+            destpart=j.sal.fs.pathRemoveDirPart(item, src2, True)
+            destfull=j.sal.fs.joinPaths(dest, destpart)
+            destfull=j.sal.fs.getDirName(destfull)
             self.restore1dir(item, destfull)
 
         #restore files
-        for item in j.system.fs.listFilesInDir(src2, True):
-            if j.system.fs.getBaseName(item)==".meta":
+        for item in j.sal.fs.listFilesInDir(src2, True):
+            if j.sal.fs.getBaseName(item)==".meta":
                 continue
-            destpart=j.system.fs.pathRemoveDirPart(item, src2, True)
-            destfull=j.system.fs.joinPaths(dest, destpart)
+            destpart=j.sal.fs.pathRemoveDirPart(item, src2, True)
+            destfull=j.sal.fs.joinPaths(dest, destpart)
 
             self.restore1file(item, destfull,link=link,sync=False)
 
@@ -222,32 +222,32 @@ class JSFileMgr():
         #LINKS
         src2 = "%s/%s" % (self.MDPath, "LINKS")
 
-        if j.system.fs.exists(path=src2):
-            for item in j.system.fs.listFilesInDir(src2, True,filter=".meta"):
+        if j.sal.fs.exists(path=src2):
+            for item in j.sal.fs.listFilesInDir(src2, True,filter=".meta"):
                 mdo=self.getMDObjectFromFs(item)
-                destpart=j.system.fs.pathRemoveDirPart(item, src2, True)
-                destfull=j.system.fs.joinPaths(dest, destpart)
-                destfull=j.system.fs.getDirName(destfull)
-                destlink=j.system.fs.joinPaths(dest, mdo.dest)
+                destpart=j.sal.fs.pathRemoveDirPart(item, src2, True)
+                destfull=j.sal.fs.joinPaths(dest, destpart)
+                destfull=j.sal.fs.getDirName(destfull)
+                destlink=j.sal.fs.joinPaths(dest, mdo.dest)
                 # print "link %s to %s"%(destfull,destlink)
-                j.system.fs.symlink( destlink, destfull, overwriteTarget=True)
+                j.sal.fs.symlink( destlink, destfull, overwriteTarget=True)
                 #os.chmod(destfull,int(mdo.mode))
                 #os.chown(destfull,int(mdo.uid),int(mdo.gid))                         
 
-            for item in j.system.fs.listFilesInDir(src2, True):
-                if j.system.fs.getBaseName(item)==".meta":
+            for item in j.sal.fs.listFilesInDir(src2, True):
+                if j.sal.fs.getBaseName(item)==".meta":
                     continue
                 mdo=self.getMDObjectFromFs(item)
-                destpart=j.system.fs.pathRemoveDirPart(item, src2, True)
-                destfull=j.system.fs.joinPaths(dest, destpart)
-                destlink=j.system.fs.joinPaths(dest, mdo.dest)
+                destpart=j.sal.fs.pathRemoveDirPart(item, src2, True)
+                destfull=j.sal.fs.joinPaths(dest, destpart)
+                destlink=j.sal.fs.joinPaths(dest, mdo.dest)
                 # print "link %s to %s"%(destfull,destlink)
-                j.system.fs.symlink( destlink, destfull, overwriteTarget=True)
+                j.sal.fs.symlink( destlink, destfull, overwriteTarget=True)
                 #os.chmod(destfull,int(mdo.mode))
                 #os.chown(destfull,int(mdo.uid),int(mdo.gid))   
 
     def getMDObjectFromFs(self,path):
-        itemObj=Item(j.system.fs.fileGetContents(path))
+        itemObj=Item(j.sal.fs.fileGetContents(path))
         return itemObj
 
     def restore1file(self, src, dest,sync=True,link=False):
@@ -256,21 +256,21 @@ class JSFileMgr():
 
         print(("restore file: %s" % (dest)))
 
-        if j.system.fs.getBaseName(src).find("__dev")==0:
+        if j.sal.fs.getBaseName(src).find("__dev")==0:
             #restore device files
             itemObj=self.getMDObjectFromFs(src)
-            dest2=j.system.fs.getTmpFilePath()+".tgz"
+            dest2=j.sal.fs.getTmpFilePath()+".tgz"
             self.blobstor.downloadFile(key=itemObj.hash,dest=dest2,link=False,repoid=self.repoid,chmod=0,chownuid=0,chowngid=0,sync=True)
-            destDev=j.system.fs.getDirName(dest)
+            destDev=j.sal.fs.getDirName(dest)
             cmd="cd %s;tar xzvf %s -C ."%(destDev,dest2)
-            j.system.process.execute(cmd)
-            j.system.fs.remove(dest2)            
+            j.sal.process.execute(cmd)
+            j.sal.fs.remove(dest2)            
         else:
             itemObj=self.getMDObjectFromFs(src)
-            j.system.fs.createDir(j.system.fs.getDirName(dest))
+            j.sal.fs.createDir(j.sal.fs.getDirName(dest))
 
             if itemObj.hash.strip()=="":
-                j.system.fs.writeFile(dest,"")
+                j.sal.fs.writeFile(dest,"")
                 os.chmod(dest, int(itemObj.mode))
                 os.chown(dest, int(itemObj.uid), int(itemObj.gid))
                 return
@@ -281,7 +281,7 @@ class JSFileMgr():
         print(("restore dir: %s %s" % (src, dest)))
 
         itemObj=self.getMDObjectFromFs(src)
-        j.system.fs.createDir(dest)
+        j.sal.fs.createDir(dest)
         # chmod/chown
         os.chmod(dest,int(itemObj.mode))
         os.chown(dest,int(itemObj.uid),int(itemObj.gid))        
@@ -322,15 +322,15 @@ class JSFileMgr():
 
         #DEAL WITH DEV dirs
         print("SCAN for dev dirs")
-        # for ddir in j.system.fs.listDirsInDir( path=path, recursive=True, dirNameOnly=False, findDirectorySymlinks=False):
+        # for ddir in j.sal.fs.listDirsInDir( path=path, recursive=True, dirNameOnly=False, findDirectorySymlinks=False):
         w=j.base.fswalker.get()
         callbackMatchFunctions=w.getCallBackMatchFunctions(pathRegexIncludes={},pathRegexExcludes={},includeFolders=True,includeLinks=False)
 
         def processdir(path,stat,arg):
-            if j.system.fs.getDirName(path+"/", lastOnly=True, levelsUp=0)=="dev":
-                pathdev=j.system.fs.getDirName(path)
+            if j.sal.fs.getDirName(path+"/", lastOnly=True, levelsUp=0)=="dev":
+                pathdev=j.sal.fs.getDirName(path)
                 cmd="cd %s;tar Szcvf __dev.tgz dev"%pathdev
-                j.system.process.execute(cmd)
+                j.sal.process.execute(cmd)
 
         callbackFunctions={}
         callbackFunctions["D"]=processdir
@@ -341,12 +341,12 @@ class JSFileMgr():
         
         self.errors=[]
 
-        destMDClist=j.system.fs.joinPaths(self.storpath, "../TMP","plists",self.namespace,destination,".mdchanges")
-        destFClist=j.system.fs.joinPaths(self.storpath, "../TMP","plists",self.namespace,destination,".fchanges")
-        destFlist=j.system.fs.joinPaths(self.storpath, "../TMP","plists",self.namespace,destination,".found")
-        j.system.fs.createDir(j.system.fs.getDirName(destMDClist))
-        j.system.fs.createDir(j.system.fs.getDirName(destFClist))
-        j.system.fs.createDir(j.system.fs.getDirName(destFlist))
+        destMDClist=j.sal.fs.joinPaths(self.storpath, "../TMP","plists",self.namespace,destination,".mdchanges")
+        destFClist=j.sal.fs.joinPaths(self.storpath, "../TMP","plists",self.namespace,destination,".fchanges")
+        destFlist=j.sal.fs.joinPaths(self.storpath, "../TMP","plists",self.namespace,destination,".found")
+        j.sal.fs.createDir(j.sal.fs.getDirName(destMDClist))
+        j.sal.fs.createDir(j.sal.fs.getDirName(destFClist))
+        j.sal.fs.createDir(j.sal.fs.getDirName(destFlist))
         mdchanges = open(destMDClist, 'w')
         changes = open(destFClist, 'w')
         found = open(destFlist, 'w')
@@ -379,7 +379,7 @@ class JSFileMgr():
             path=src
             self=arg["self"]
             prefix=arg["prefix"]
-            destpart=j.system.fs.pathRemoveDirPart(dest,prefix,True)                                   
+            destpart=j.sal.fs.pathRemoveDirPart(dest,prefix,True)                                   
             mdchange,fchange,md5,path=self._handleMetadata(path,arg["destination"],prefix=prefix,ttype="L",linkdest=destpart)
             if mdchange:
                 arg["mdchanges"].write("%s\n"%path)
@@ -411,21 +411,21 @@ class JSFileMgr():
             out=""
             for path0,msg in self.errors:
                 out+="%s:%s\n"%(path0,msg)
-            epath=j.system.fs.joinPaths(self.MDPath,"ERRORS",destination,"ERRORS.LOG")
-            j.system.fs.createDir(j.system.fs.getDirName(epath))
-            j.system.fs.writeFile(epath,out)
+            epath=j.sal.fs.joinPaths(self.MDPath,"ERRORS",destination,"ERRORS.LOG")
+            j.sal.fs.createDir(j.sal.fs.getDirName(epath))
+            j.sal.fs.writeFile(epath,out)
 
         #now we need to find the deleted files
         #sort all found files when going over fs
         cmd="sort %s | uniq > %s_"%(destFlist,destFlist)
-        j.system.process.execute(cmd)
-        originalFiles=j.system.fs.joinPaths(self.storpath, "../TMP","plists",self.namespace,destination,".mdfound")
+        j.sal.process.execute(cmd)
+        originalFiles=j.sal.fs.joinPaths(self.storpath, "../TMP","plists",self.namespace,destination,".mdfound")
         cmd="sort %s | uniq > %s_"%(originalFiles,originalFiles)
-        j.system.process.execute(cmd)
-        deleted=j.system.fs.joinPaths(self.storpath, "../TMP","plists",self.namespace,destination,".deleted")
+        j.sal.process.execute(cmd)
+        deleted=j.sal.fs.joinPaths(self.storpath, "../TMP","plists",self.namespace,destination,".deleted")
         #now find the diffs
         cmd="diff %s_ %s_ -C 0 | grep ^'- ' > %s"%(originalFiles,destFlist,deleted)
-        rcode,result=j.system.process.execute(cmd,False)
+        rcode,result=j.sal.process.execute(cmd,False)
         # if not(rcode==1 and result.strip().replace("***ERROR***","")==""):
         #     raise RuntimeError("Could not diff : cmd:%s error: %s"%(cmd,result))
 
@@ -434,10 +434,10 @@ class JSFileMgr():
         for line in f:
             line=line.strip()
             path0=line.lstrip("- ")
-            dest=j.system.fs.joinPaths(self.MDPath,"MD",path0)
-            j.system.fs.removeDirTree(dest)
-            dest=j.system.fs.joinPaths(self.MDPath,"LINKS",path0)
-            j.system.fs.removeDirTree(dest)
+            dest=j.sal.fs.joinPaths(self.MDPath,"MD",path0)
+            j.sal.fs.removeDirTree(dest)
+            dest=j.sal.fs.joinPaths(self.MDPath,"LINKS",path0)
+            j.sal.fs.removeDirTree(dest)
         f.close()
         print(("SCAN DONE MD:%s"%path))
 
@@ -481,14 +481,14 @@ class JSFileMgr():
         return key
 
     def _createExistsList(self,dest):
-        # j.system.fs.pathRemoveDirPart(dest,prefix,True)
+        # j.sal.fs.pathRemoveDirPart(dest,prefix,True)
         print("Walk over MD, to create files which we already have found.")
-        destF=j.system.fs.joinPaths(self.storpath, "../TMP","plists",self.namespace,dest,".mdfound")
-        j.system.fs.createDir(j.system.fs.getDirName(destF))
+        destF=j.sal.fs.joinPaths(self.storpath, "../TMP","plists",self.namespace,dest,".mdfound")
+        j.sal.fs.createDir(j.sal.fs.getDirName(destF))
         fileF = open(destF, 'w')
 
         def processfile(path,stat,arg):
-            path2=j.system.fs.pathRemoveDirPart(path, arg["base"], True)
+            path2=j.sal.fs.pathRemoveDirPart(path, arg["base"], True)
             path2=path2.lstrip("/")
             if path2[0:2]=="MD":
                 path2=path2[3:]
@@ -499,8 +499,8 @@ class JSFileMgr():
             if path2[-5:]==".meta":
                 return
             # print "%s  :   %s"%(path,path2)
-            # if j.system.fs.isDir(path2):
-            #     path=j.system.fs.joinPaths(path,".meta")
+            # if j.sal.fs.isDir(path2):
+            #     path=j.sal.fs.joinPaths(path,".meta")
             # md=self.getMDObjectFromFs(path)
             # fileF.write("%s|%s|%s|%s\n"%(path2,md.size,md.mtime,md.hash))
             fileF.write("%s\n"%(path2))
@@ -514,11 +514,11 @@ class JSFileMgr():
         w=j.base.fswalker.get()
         callbackFunctions["F"]=processfile
 
-        wpath=j.system.fs.joinPaths(self.MDPath,"MD",dest)
-        if j.system.fs.exists(path=wpath):
+        wpath=j.sal.fs.joinPaths(self.MDPath,"MD",dest)
+        if j.sal.fs.exists(path=wpath):
             w.walk(wpath,callbackFunctions=callbackFunctions,arg=arg,childrenRegexExcludes=[])
-        wpath=j.system.fs.joinPaths(self.MDPath,"LINKS",dest)
-        if j.system.fs.exists(path=wpath):
+        wpath=j.sal.fs.joinPaths(self.MDPath,"LINKS",dest)
+        if j.sal.fs.exists(path=wpath):
             w.walk(wpath,callbackFunctions=callbackFunctions,arg=arg,childrenRegexExcludes=[])
 
         fileF.close()
@@ -536,16 +536,16 @@ class JSFileMgr():
     #     if src[0] != "/":
     #         src = "%s/%s" % (self.MDPath, src.strip())
 
-    #     if not j.system.fs.exists(path=src):
+    #     if not j.sal.fs.exists(path=src):
     #         raise RuntimeError("Could not find source (on mdstore)")
 
-    #     for item in j.system.fs.listFilesInDir(src, True):
+    #     for item in j.sal.fs.listFilesInDir(src, True):
     #         # Retrieve blob & blob_path in intermediate location
     #         blob_path = self._restoreBlob(item, namespace)
 
     #         # the hardlink destination
-    #         destpart = j.system.fs.pathRemoveDirPart(item, src, True)
-    #         destfull = j.system.fs.joinPaths(dest, destpart)
+    #         destpart = j.sal.fs.pathRemoveDirPart(item, src, True)
+    #         destfull = j.sal.fs.joinPaths(dest, destpart)
 
     #         # Now, make the link
     #         self._link(blob_path, destfull)

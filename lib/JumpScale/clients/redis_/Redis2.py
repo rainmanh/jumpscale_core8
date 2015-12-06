@@ -133,12 +133,12 @@ class RedisFactory:
     def checkAllInstances(self):
         for pd in [item for item in j.tools.startupmanager.getProcessDefs("jumpscale") if item.name.find("redis")==0]:
             pd.stop()
-            path=j.system.fs.joinPaths(j.dirs.varDir,"redis",pd.name,"db","appendonly.aof")
-            if j.system.fs.exists(path):
-                stats=j.system.fs.statPath(path)
+            path=j.sal.fs.joinPaths(j.dirs.varDir,"redis",pd.name,"db","appendonly.aof")
+            if j.sal.fs.exists(path):
+                stats=j.sal.fs.statPath(path)
                 if stats.st_size!=0:                    
                     cmd="%s/apps/redis/redis-check-aof --fix %s"%(j.dirs.baseDir,path)
-                    j.system.process.executeWithoutPipe(cmd)
+                    j.sal.process.executeWithoutPipe(cmd)
             pd.start()
 
     def emptyAllInstances(self):
@@ -146,17 +146,17 @@ class RedisFactory:
             if pd.name=="redism" or pd.name=="rediskvs":
                 continue #nothing to do
             pd.stop()
-            path=j.system.fs.joinPaths(j.dirs.varDir,"redis",pd.name,"db")
+            path=j.sal.fs.joinPaths(j.dirs.varDir,"redis",pd.name,"db")
             print(("remove:%s"%path))
-            j.system.fs.removeDirTree(path)
-            j.system.fs.createDir(path)
-            path=j.system.fs.joinPaths(j.dirs.varDir,"redis",pd.name,"redis.log")
-            j.system.fs.remove(path)
+            j.sal.fs.removeDirTree(path)
+            j.sal.fs.createDir(path)
+            path=j.sal.fs.joinPaths(j.dirs.varDir,"redis",pd.name,"redis.log")
+            j.sal.fs.remove(path)
             pd.start()
 
     def getPort(self, name):
         _, cpath = self._getPaths(name)
-        config = j.system.fs.fileGetContents(cpath)
+        config = j.sal.fs.fileGetContents(cpath)
         for line in config.split("\n"):
             if line.find("port") == 0:
                 port = int(line.split("port ")[1])
@@ -176,16 +176,16 @@ class RedisFactory:
             return False
 
     def _getPaths(self, name):
-        dpath = j.system.fs.joinPaths(j.dirs.varDir, 'redis', name)
-        return dpath, j.system.fs.joinPaths(dpath, "redis.conf")
+        dpath = j.sal.fs.joinPaths(j.dirs.varDir, 'redis', name)
+        return dpath, j.sal.fs.joinPaths(dpath, "redis.conf")
 
     def getProcessPids(self, name):
         if name == "":
             raise RuntimeError("name cannot be empty to start redis")
         _, cpath = self._getPaths(name)
-        if not j.system.fs.exists(path=cpath):
+        if not j.sal.fs.exists(path=cpath):
             raise RuntimeError("Cannot find redis instance on %s" % cpath)
-        pids = j.system.process.getProcessPid(name)
+        pids = j.sal.process.getProcessPid(name)
         if pids == None:
             return []
         if len(pids) > 0:
@@ -205,13 +205,13 @@ class RedisFactory:
     def deleteInstance(self, name):
         # self.stopInstance(name)
         dpath, _ = self._getPaths(name)
-        j.system.fs.removeDirTree(dpath)
+        j.sal.fs.removeDirTree(dpath)
 
     def emptyInstance(self, name):
         # self.stopInstance(name)
         dpath = "/opt/redis/%s/db" % name
-        j.system.fs.removeDirTree(dpath)
-        j.system.fs.createDir(dpath)
+        j.sal.fs.removeDirTree(dpath)
+        j.sal.fs.createDir(dpath)
         self.startInstance(name)
 
     def configureInstance(self, name, ip, port, maxram=200, appendonly=True,snapshot=False,slave=(),ismaster=False,passwd=None,unixsocket=False):
@@ -220,7 +220,7 @@ class RedisFactory:
         slave example: (192.168.10.10,8888,asecret)   (ip,port,secret)
         """
         cmd='sysctl vm.overcommit_memory=1'
-        j.system.process.execute(cmd, dieOnNonZeroExitCode=False, outputToStdout=False,ignoreErrorOutput=True)
+        j.sal.process.execute(cmd, dieOnNonZeroExitCode=False, outputToStdout=False,ignoreErrorOutput=True)
 
         C = """
 daemonize no
@@ -824,8 +824,8 @@ aof-rewrite-incremental-fsync yes
             C=C.replace("#appendfsync always","appendfsync always")
 
         dpath = "%s/redis/%s" % (j.dirs.varDir,name)
-        dbpath = j.system.fs.joinPaths(dpath, "db")
-        j.system.fs.createDir(dbpath)
-        cpath = j.system.fs.joinPaths(dpath, "redis.conf")
-        j.system.fs.writeFile(cpath, C)
+        dbpath = j.sal.fs.joinPaths(dpath, "db")
+        j.sal.fs.createDir(dbpath)
+        cpath = j.sal.fs.joinPaths(dpath, "redis.conf")
+        j.sal.fs.writeFile(cpath, C)
 

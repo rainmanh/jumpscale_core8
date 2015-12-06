@@ -16,8 +16,8 @@ class FileFS(object):
         self.Atype = Atype
         self.end_type = end_type
         self.path = path
-        self.local_file =  j.system.fs.getBaseName(self.path)
-        self.tmp_local_file=j.system.fs.getTempFileName(tempdir,'FileFS-')
+        self.local_file =  j.sal.fs.getBaseName(self.path)
+        self.tmp_local_file=j.sal.fs.getTempFileName(tempdir,'FileFS-')
         j.logger.log("FileFS: path [%s] file [%s]" % (self.path,self.local_file))
         self.is_dir = is_dir
         self.recursive = recursive
@@ -28,7 +28,7 @@ class FileFS(object):
         Checks file or directory existance
         """
 
-        return j.system.fs.exists(self.path)
+        return j.sal.fs.exists(self.path)
 
 
     def upload(self,uploadPath):
@@ -39,30 +39,30 @@ class FileFS(object):
             if self.is_dir:
                 if self.recursive:
                     j.logger.log("FileFS: (directory) Copying [%s] to path [%s] (recursively)" % (uploadPath,self.path))
-                    j.system.fs.moveDir(uploadPath,self.path)
+                    j.sal.fs.moveDir(uploadPath,self.path)
                 else:
                 # walk tree and move
-                    for file in j.system.fs.walk(uploadPath, recurse=0):
+                    for file in j.sal.fs.walk(uploadPath, recurse=0):
                         j.logger.log("FileFS: (directory) Copying file [%s] to path [%s]" % (file,self.path))
-                        j.system.fs.moveFile(file,self.path)
+                        j.sal.fs.moveFile(file,self.path)
             else:
-                j.system.fs.moveFile(uploadPath,self.path)
+                j.sal.fs.moveFile(uploadPath,self.path)
         else:
             if self.Atype == "copy":
                 if self.is_dir:
                     if self.recursive:
                         j.logger.log("FileFS: (directory) Copying [%s] to path [%s] (recursively)" % (uploadPath,self.path))
-                        if j.system.fs.isDir(uploadPath):
-                            j.system.fs.copyDirTree(uploadPath, self.path, update=True) # was copyDir !!
+                        if j.sal.fs.isDir(uploadPath):
+                            j.sal.fs.copyDirTree(uploadPath, self.path, update=True) # was copyDir !!
                         else:
-                            j.system.fs.copyFile(uploadPath, self.path) # was copyDir !!
+                            j.sal.fs.copyFile(uploadPath, self.path) # was copyDir !!
                     else:
                     # walk tree and copy
-                        for file in j.system.fs.walk(uploadPath, recurse=0):
+                        for file in j.sal.fs.walk(uploadPath, recurse=0):
                             j.logger.log("FileFS: (directory) Copying file [%s] to path [%s]" % (file,self.path))
-                            j.system.fs.copyFile(file,self.path)
+                            j.sal.fs.copyFile(file,self.path)
                 else:
-                    j.system.fs.copyFile(uploadPath,self.path)
+                    j.sal.fs.copyFile(uploadPath,self.path)
 
 
     def download(self):

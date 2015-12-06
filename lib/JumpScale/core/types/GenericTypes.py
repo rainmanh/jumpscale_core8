@@ -10,7 +10,7 @@ the same:
 ...
 >>> from JumpScale.core.baseclasses import BaseType
 >>> class MyClass(BaseType):
-...     mt = j.basetype.object(MyType)
+...     mt = j.core.types.object(MyType)
 ...
 >>> instance = MyClass()
 >>> print instance.mt
@@ -69,7 +69,7 @@ def Object(type_, **kwargs):
 
     return ObjectType(**kwargs)
 
-#qtypename should be set so we can hook on j.basetype.
+#qtypename should be set so we can hook on j.core.types.
 Object.qtypename = 'object'
 
 
@@ -148,5 +148,5 @@ def Enumeration(enumerationtype, **kwargs):
 
     return EnumerationType(**kwargs)
 
-#qtypename should be set so we can hook on j.basetype.
+#qtypename should be set so we can hook on j.core.types.
 Enumeration.qtypename = 'enumeration'

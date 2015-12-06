@@ -627,7 +627,7 @@ class SchedulerClient(object):
             if method:
                 content = self._simple._getFuncCode(method)
             elif path:
-                content = j.system.fs.fileGetContents(path)
+                content = j.sal.fs.fileGetContents(path)
 
             data = {
                 'content': content,
@@ -907,7 +907,7 @@ class SimpleClient(object):
             if method:
                 content = self._getFuncCode(method)
             elif path:
-                content = j.system.fs.fileGetContents(path)
+                content = j.sal.fs.fileGetContents(path)
 
             command = self._client.execute_jumpscript_content(
                 gid, nid, content, args=args, runargs=runargs, roles=roles, fanout=fanout, tags=tags

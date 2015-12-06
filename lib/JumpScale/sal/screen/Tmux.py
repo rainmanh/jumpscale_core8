@@ -32,7 +32,7 @@ class Tmux(SALObject):
             self.screencmd, sessionname, screens[0])
         if user is not None:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        # j.system.process.run(cmd, env=env)  #@todo does not work in python3
+        # j.sal.process.run(cmd, env=env)  #@todo does not work in python3
         self._local.execute(cmd)
         # now add the other screens to it
         if len(screens) > 1:
@@ -91,7 +91,7 @@ class Tmux(SALObject):
                 cmd2 = "tmux send-keys -t '%s' \"%s\" ENTER" % (pane, cmd)
             if tmuxuser is not None:
                 cmd2 = "sudo -u %s -i %s" % (tmuxuser, cmd2)
-            # j.system.process.run(cmd2, env=env)
+            # j.sal.process.run(cmd2, env=env)
             self._local.execute(cmd2)
 
             time.sleep(wait)

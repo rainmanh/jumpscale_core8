@@ -120,18 +120,21 @@ class InstallTools():
         #find generic prepend for full file
         minchars=9999
         prechars = 0
-        content=content.lstrip()
         for line in content.split("\n"):
+            if line.strip()=="":
+                continue
             if ignorecomments:
                 if line.strip().startswith('#') and not line.strip().startswith("#!"):
                     continue
             prechars=len(line)-len(line.lstrip())
+            # print ("'%s':%s:%s"%(line,prechars,minchars))
             if prechars<minchars:
                 minchars=prechars
 
-        if prechars>0:
+        if minchars>0:
             #remove the prechars
             content="\n".join([line[minchars:] for line in content.split("\n")])
+
 
         return content
 
@@ -1246,10 +1249,10 @@ class InstallTools():
         login will be ssh if ssh is used
         login & passwd is only for https
         """
-        path=j.system.fs.joinPaths(dest,".git","config")
-        if not j.system.fs.exists(path=path):
+        path=j.sal.fs.joinPaths(dest,".git","config")
+        if not j.sal.fs.exists(path=path):
             j.events.inputerror_critical("cannot find %s"%path)
-        config=j.system.fs.fileGetContents(path)
+        config=j.sal.fs.fileGetContents(path)
         state="start"
         for line in config.split("\n"):
             line2=line.lower().strip()
@@ -1400,7 +1403,7 @@ class InstallTools():
         if remoteothers==True: then other keys will be removed
         """
 
-        # cmd="scp %s %s@%s:~/%s"%(keypath,login,remoteipaddr,j.system.fs.getBaseName(keypath))
+        # cmd="scp %s %s@%s:~/%s"%(keypath,login,remoteipaddr,j.sal.fs.getBaseName(keypath))
         # j.do.executeInteractive(cmd)
 
 
@@ -1859,8 +1862,8 @@ class InstallTools():
         md5sum=j.tools.hash.md5_string(out)
         modulename = 'JumpScale.jumpscript_%s' % md5sum
 
-        codepath=j.system.fs.joinPaths(j.dirs.tmpDir,"jumpscripts","%s.py"%md5sum)
-        j.system.fs.writeFile(filename=codepath,contents=out)
+        codepath=j.sal.fs.joinPaths(j.dirs.tmpDir,"jumpscripts","%s.py"%md5sum)
+        j.sal.fs.writeFile(filename=codepath,contents=out)
 
         linecache.checkcache(codepath)
         self.module = imp.load_source(modulename, codepath)
@@ -2050,7 +2053,7 @@ class Installer():
             do.createDir(item)
 
         # if do.TYPE == "UBUNTU64":
-        #     j.system.platform.ubuntu.serviceEnableStartAtBoot("ays")
+        #     j.sal.ubuntu.serviceEnableStartAtBoot("ays")
 
         print("Get atYourService metadata.")
         do.pullGitRepo(AYSGIT, branch=AYSBRANCH, depth=1)
@@ -2059,39 +2062,46 @@ class Installer():
         # if pythonversion==2:
         print ("to use do 'js'")
 
-    def _writeenv(self,basedir,insystem=True,SANDBOX=1,CODEDIR=""):
+    def _writeenv(self,basedir="/opt/jumpscale8",insystem=True,SANDBOX=0,CODEDIR="/opt/code",vardir="/optvar"):
 
         if CODEDIR=="":
             CODEDIR=self.CODEDIR
 
-        do.createDir("%s/hrd/system/"%basedir)
-        do.createDir("%s/hrd/apps/"%basedir)
+        do.createDir("%s/hrd/system/"%vardir)
+        do.createDir("%s/hrd/apps/"%vardir)
+        do.createDir(vardir)
+        do.createDir("%s/cfg"%vardir)
+        do.delete("%s/cfg"%basedir)
+        do.delete("%s/hrd"%basedir)
+        do.delete("%s/var"%basedir)
 
         C="""
         paths.base=$base
-        paths.bin=$(paths.base)/bin
+        paths.bin=$base/bin
         paths.code=$CODEDIR
-        paths.lib=$(paths.base)/lib
+        paths.lib=$base/lib
 
         paths.python.lib.js=$(paths.lib)/JumpScale
         paths.python.lib.ext=$(paths.base)/libext
-        paths.app=$(paths.base)/apps
-        paths.var=$(paths.base)/var
-        paths.log=$(paths.var)/log
-        paths.pid=$(paths.var)/pid
+        paths.app=$base/apps
+        paths.var=$vardir/var
+        paths.log=$vardir/log
+        paths.pid=$vardir/pid
 
-        paths.cfg=$(paths.base)/cfg
-        paths.hrd=$(paths.base)/hrd
+        paths.cfg=$vardir/cfg
+        paths.hrd=$vardir/hrd
 
         system.logging = 1
         system.sandbox = $sandbox
 
         """
         C=C.replace("$base",basedir.rstrip("/"))
+        C=C.replace("$vardir",vardir.rstrip("/"))
         C=C.replace("$sandbox",str(SANDBOX))
         C=C.replace("$CODEDIR",CODEDIR)
 
-        do.writeFile("%s/hrd/system/system.hrd"%basedir,C)
+        do.writeFile("%s/hrd/system/system.hrd"%vardir,C)
+
 
         #         C="""
         # email                   = @ASK descr:'email as used for github'
@@ -2113,7 +2123,7 @@ class Installer():
 
         C=C.format(**os.environ)
 
-        hpath="%s/hrd/system/whoami.hrd"%basedir
+        hpath="%s/hrd/system/whoami.hrd"%vardir
         if not do.exists(path=hpath):
             do.writeFile(hpath,C)
 
@@ -2126,41 +2136,41 @@ class Installer():
         """
         C=C.format(**os.environ)
 
-        hpath="%s/hrd/system/atyourservice.hrd"%basedir
+        hpath="%s/hrd/system/atyourservice.hrd"%vardir
         if not do.exists(path=hpath):
             do.writeFile(hpath,C)
 
         C="""
-deactivate () {
-    export PATH=$_OLD_PATH
-    unset _OLD_PATH
-    export PYTHONPATH=$_OLD_PYTHONPATH
-    unset _OLD_PYTHONPATH
-    export LD_LIBRARY_PATH=$_OLD_LD_LIBRARY_PATH
-    unset _OLD_LD_LIBRARY_PATH
-    export PS1=$_OLD_PS1
-    unset _OLD_PS1
-    if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
-            hash -r 2>/dev/null
-    fi
-}
+        deactivate () {
+            export PATH=$_OLD_PATH
+            unset _OLD_PATH
+            export PYTHONPATH=$_OLD_PYTHONPATH
+            unset _OLD_PYTHONPATH
+            export LD_LIBRARY_PATH=$_OLD_LD_LIBRARY_PATH
+            unset _OLD_LD_LIBRARY_PATH
+            export PS1=$_OLD_PS1
+            unset _OLD_PS1
+            if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
+                    hash -r 2>/dev/null
+            fi
+        }
 
-if [[ "$JSBASE" == "$base" ]]; then
-    return 0
-fi
+        if [[ "$JSBASE" == "$base" ]]; then
+            return 0
+        fi
 
-export _OLD_PATH=$PATH
-export _OLD_PYTHONPATH=$PYTHONPATH
-export _OLD_LDLIBRARY_PATH=$LD_LIBRARY_PATH
-export _OLD_PS1=$PS1
-export PATH=$base/bin:$PATH
-export JSBASE=$base
-export PYTHONPATH=.:$base/lib:$base/lib/lib-dynload/:$base/bin:$base/lib/python.zip:$base/lib/plat-x86_64-linux-gnu
-export LD_LIBRARY_PATH=$base/bin
-export PS1="(JumpScale) $PS1"
-if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
-        hash -r 2>/dev/null
-fi
+        export _OLD_PATH=$PATH
+        export _OLD_PYTHONPATH=$PYTHONPATH
+        export _OLD_LDLIBRARY_PATH=$LD_LIBRARY_PATH
+        export _OLD_PS1=$PS1
+        export PATH=$base/bin:$PATH
+        export JSBASE=$base
+        export PYTHONPATH=.:$base/lib:$base/lib/lib-dynload/:$base/bin:$base/lib/python.zip:$base/lib/plat-x86_64-linux-gnu
+        export LD_LIBRARY_PATH=$base/bin
+        export PS1="(JumpScale) $PS1"
+        if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
+                hash -r 2>/dev/null
+        fi
         """
         C=C.replace("$base",basedir)
         envfile = "%s/env.sh"%basedir
@@ -2169,12 +2179,13 @@ fi
         # pythonversion = '3' if os.environ.get('PYTHONVERSION') == '3' else ''
 
 
-        C2="""#!/bin/bash
-# set -x
-source {env}
-#echo sandbox:{base}
-# echo $base/bin/python "$@"
-$base/bin/python "$@"
+        C2="""
+        #!/bin/bash
+        # set -x
+        source {env}
+        #echo sandbox:{base}
+        # echo $base/bin/python "$@"
+        $base/bin/python "$@"
         """
 
 

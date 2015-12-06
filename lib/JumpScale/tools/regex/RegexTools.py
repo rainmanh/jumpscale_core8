@@ -400,7 +400,7 @@ class RegexTools:
 
     
 if __name__ == '__main__':
-    content=j.system.fs.fileGetContents("examplecontent1.txt")
+    content=j.sal.fs.fileGetContents("examplecontent1.txt")
     rt=RegexTools()
     print((rt.getClassName("class iets(test):")))
     #content="class iets(test):"

@@ -128,11 +128,11 @@ class MS1(object):
     #     # create ssh port-forward rule
     #     for _ in range(30):
     #         machine = machines_actor.get(machine_id)
-    #         if j.basetype.ipaddress.check(machine['interfaces'][0]['ipAddress']):
+    #         if j.core.types.ipaddress.check(machine['interfaces'][0]['ipAddress']):
     #             break
     #         else:
     #             time.sleep(2)
-    #     if not j.basetype.ipaddress.check(machine['interfaces'][0]['ipAddress']):
+    #     if not j.core.types.ipaddress.check(machine['interfaces'][0]['ipAddress']):
     #         raise RuntimeError('Machine was created, but never got an IP address')
     #     cloudspace_forward_rules = portforwarding_actor.list(machine['cloudspaceid'])
     #     public_ports = [rule['publicPort'] for rule in cloudspace_forward_rules]
@@ -157,7 +157,7 @@ class MS1(object):
     #     # install ays there
     #     ssh_connection.sudo('ays mdupdate')
     #     if config:
-    #         ays_hrd_file = j.system.fs.joinPaths(j.dirs.hrdDir, '%s_%s' % (aysdomain, aysname))
+    #         ays_hrd_file = j.sal.fs.joinPaths(j.dirs.hrdDir, '%s_%s' % (aysdomain, aysname))
     #         ssh_connection.file_write(ays_hrd_file, config, sudo=True)
     #     if aysdomain and aysname:
     #         ssh_connection.sudo('ays install -n %s -d %s' % (aysname, aysdomain))
@@ -205,10 +205,10 @@ class MS1(object):
         self.vars = {}
 
         if sshkey!="":
-            if j.system.fs.exists(path=sshkey):
+            if j.sal.fs.exists(path=sshkey):
                 if sshkey.find(".pub")==-1:
                     j.events.inputerror_critical("public key path needs to have .pub at the end.")
-                sshkey=j.system.fs.fileGetContents(sshkey)
+                sshkey=j.sal.fs.fileGetContents(sshkey)
 
         ssdsize = int(ssdsize)
         try:
@@ -300,11 +300,11 @@ class MS1(object):
 
         for _ in range(60):
             machine = machines_actor.get(machine_id)
-            if j.basetype.ipaddress.check(machine['interfaces'][0]['ipAddress']):
+            if j.core.types.ipaddress.check(machine['interfaces'][0]['ipAddress']):
                 break
             else:
                 time.sleep(1)
-        if not j.basetype.ipaddress.check(machine['interfaces'][0]['ipAddress']):
+        if not j.core.types.ipaddress.check(machine['interfaces'][0]['ipAddress']):
             raise RuntimeError('E:Machine was created, but never got an IP address')
 
         self.vars["machine.ip.addr"] = machine['interfaces'][0]['ipAddress']
@@ -612,13 +612,13 @@ class MS1(object):
         if sshkey is None:
             keyloc = "/root/.ssh/id_rsa.pub"
 
-            if not j.system.fs.exists(path=keyloc):
-                j.system.process.executeWithoutPipe("ssh-keygen -t rsa")
-                if not j.system.fs.exists(path=keyloc):
+            if not j.sal.fs.exists(path=keyloc):
+                j.sal.process.executeWithoutPipe("ssh-keygen -t rsa")
+                if not j.sal.fs.exists(path=keyloc):
                     raise RuntimeError("cannot find path for key %s, was keygen well executed"%keyloc)
 
-            j.system.fs.chmod("/root/.ssh/id_rsa", 0o600)
-            key = j.system.fs.fileGetContents(keyloc)
+            j.sal.fs.chmod("/root/.ssh/id_rsa", 0o600)
+            key = j.sal.fs.fileGetContents(keyloc)
         else:
             key = sshkey
 

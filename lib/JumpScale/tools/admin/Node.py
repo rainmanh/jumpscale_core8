@@ -69,13 +69,13 @@ class Node():
         self.connectSSH()
         keyloc="/root/.ssh/id_dsa.pub"
         
-        if not j.system.fs.exists(path=keyloc):
+        if not j.sal.fs.exists(path=keyloc):
             if j.console.askYesNo("do you want to generate new local ssh key, if you have one please put it there manually!"):
-                do=j.system.process.executeWithoutPipe
+                do=j.sal.process.executeWithoutPipe
                 do("ssh-keygen -t dsa")
             else:
                 j.application.stop()
-        key=j.system.fs.fileGetContents(keyloc)
+        key=j.sal.fs.fileGetContents(keyloc)
         self.ssh.ssh_authorize("root",key)
 
     def aysStop(self,name,filterstr,die=True):
@@ -195,7 +195,7 @@ class Node():
         return "unknown"
 
     def check(self):
-        j.base.time.getTimeEpoch()
+        j.tools.time.getTimeEpoch()
 
     def connectSSH(self):
         ip=self.model["ip"]
@@ -212,37 +212,37 @@ class Node():
 
     def uploadFromcfgDir(self,ttype,dest,additionalArgs={}):
         dest=j.dirs.replaceTxtDirVars(dest)
-        cfgDir=j.system.fs.joinPaths(self._basepath, "cfgs/%s/%s"%(j.admin.args.cfgname,ttype))
+        cfgDir=j.sal.fs.joinPaths(self._basepath, "cfgs/%s/%s"%(j.admin.args.cfgname,ttype))
 
         additionalArgs["hostname"]=self.name
 
         cuapi=self.ssh
-        if j.system.fs.exists(path=cfgDir):
+        if j.sal.fs.exists(path=cfgDir):
             self.log("uploadcfg","upload from %s to %s"%(ttype,dest))
 
-            tmpcfgDir=j.system.fs.getTmpDirPath()
-            j.system.fs.copyDirTree(cfgDir,tmpcfgDir)
+            tmpcfgDir=j.sal.fs.getTmpDirPath()
+            j.sal.fs.copyDirTree(cfgDir,tmpcfgDir)
             j.dirs.replaceFilesDirVars(tmpcfgDir)
             j.application.config.applyOnDir(tmpcfgDir,additionalArgs=additionalArgs)
 
-            items=j.system.fs.listFilesInDir(tmpcfgDir,True)
+            items=j.sal.fs.listFilesInDir(tmpcfgDir,True)
             done=[]
             for item in items:
-                partpath=j.system.fs.pathRemoveDirPart(item,tmpcfgDir)
-                partpathdir=j.system.fs.getDirName(partpath).rstrip("/")
+                partpath=j.sal.fs.pathRemoveDirPart(item,tmpcfgDir)
+                partpathdir=j.sal.fs.getDirName(partpath).rstrip("/")
                 if partpathdir not in done:
                     cuapi.dir_ensure("%s/%s"%(dest,partpathdir), True)
                     done.append(partpathdir)
                 try:            
                     cuapi.file_upload("%s/%s"%(dest,partpath),item)#,True,True)  
                 except Exception as e:
-                    j.system.fs.removeDirTree(tmpcfgDir)
+                    j.sal.fs.removeDirTree(tmpcfgDir)
                     self.raiseError("uploadcfg","could not upload file %s to %s"%(ttype,dest))
-            j.system.fs.removeDirTree(tmpcfgDir)
+            j.sal.fs.removeDirTree(tmpcfgDir)
 
     def upload(self,source,dest):
         args=j.admin.args
-        if not j.system.fs.exists(path=source):
+        if not j.sal.fs.exists(path=source):
             self.raiseError("upload","could not find path:%s"%source)
         self.log("upload","upload %s to %s"%(source,dest))
         # from IPython import embed
@@ -250,8 +250,8 @@ class Node():
         # embed()
     
         for item in items:
-            partpath=j.system.fs.pathRemoveDirPart(item,cfgDir)
-            partpathdir=j.system.fs.getDirName(partpath).rstrip("/")
+            partpath=j.sal.fs.pathRemoveDirPart(item,cfgDir)
+            partpathdir=j.sal.fs.getDirName(partpath).rstrip("/")
             if partpathdir not in done:
                 print((cuapi.dir_ensure("%s/%s"%(dest,partpathdir), True)))
                 done.append(partpathdir)            

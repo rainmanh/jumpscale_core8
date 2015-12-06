@@ -19,7 +19,7 @@ class LoggerPatch(object):
     '''
 
     DEFAULT_ADDRESS = '127.0.0.1:7777'
-    CONFIG_PATH = j.system.fs.joinPaths(j.dirs.cfgDir, 'logger_patch.cfg')
+    CONFIG_PATH = j.sal.fs.joinPaths(j.dirs.cfgDir, 'logger_patch.cfg')
 
     def __init__(self):
         # TODO: Complete documentation.
@@ -38,7 +38,7 @@ class LoggerPatch(object):
         if not hasattr(j.application, 'whoAmIBytestr') or not j.application.whoAmIBytestr:
             j.application.whoAmIBytestr = 12 * '0'  # The whoAmIBytestr should be at least 12 bytes.
 
-        if not j.system.fs.exists(self.CONFIG_PATH):
+        if not j.sal.fs.exists(self.CONFIG_PATH):
             print('Logger patch not applied, config not available')
             return
 
@@ -68,7 +68,7 @@ class LoggerPatch(object):
     def configure(self, address=DEFAULT_ADDRESS):
         # TODO: Complete documentation.
 
-        if j.system.fs.exists(self.CONFIG_PATH):
+        if j.sal.fs.exists(self.CONFIG_PATH):
             config = j.tools.inifile.open(self.CONFIG_PATH)
         else:
             config = j.tools.inifile.new(self.CONFIG_PATH)

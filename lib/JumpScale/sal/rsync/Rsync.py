@@ -51,7 +51,7 @@ class RsyncServer(SALObject):
             # generate secret
             secret = self.secrets[name]
         if secret == "":
-            secret = j.base.idgenerator.generateGUID().replace("-", "")
+            secret = j.tools.idgenerator.generateGUID().replace("-", "")
 
         self.secrets[name.strip()] = secret.strip()
         self.pathsecrets.write_text(toml.dumps(self.secrets))
@@ -120,30 +120,30 @@ list = no
         # with bindmounts
         # cmd="mount | grep /tmp/server"
 
-        # rc,out=j.system.process.execute(cmd,dieOnNonZeroExitCode=False)
+        # rc,out=j.sal.process.execute(cmd,dieOnNonZeroExitCode=False)
         # if rc==0:
         #     for line in out.split("\n"):
         #         if line=="":
         #             continue
         #         cmd="umount %s"%line.split(" ",1)[0]
         #         # print cmd
-        #         j.system.process.execute(cmd)
+        #         j.sal.process.execute(cmd)
 
         # for name,passwd in self.secrets.iteritems():
         #     src="%s/download/%s"%(self.root,passwd)
         #     dest="%s/upload/%s"%(self.root,name)
-        #     j.system.fs.createDir(src)
-        #     j.system.fs.createDir(dest)
-        #     # j.system.fs.symlink(dest, src, overwriteTarget=True)
+        #     j.sal.fs.createDir(src)
+        #     j.sal.fs.createDir(dest)
+        #     # j.sal.fs.symlink(dest, src, overwriteTarget=True)
 
         #     cmd="mount --bind %s %s"%(src,dest)
-        #     j.system.process.execute(cmd)
+        #     j.sal.process.execute(cmd)
 
     def start(self, background=False):
         self.saveConfig()
         self.prepareroles()
 
-        j.system.process.killProcessByPort(self.port)
+        j.sal.process.killProcessByPort(self.port)
 
         if background:
             cmd = "rsync --daemon --config=/etc/rsync/rsyncd.conf"
@@ -164,12 +164,12 @@ list = no
                         destdir = self.rolesdir.joinpath(role, catpath.basename(), relpath)
                         print(("link: %s->%s" % (path, destdir)))
                         path.symlink(destdir)
-                        # j.system.fs.createDir(destdir)
-                        # for item in j.system.fs.listFilesInDir(path, recursive=False, exclude=["*.pyc",".roles"], followSymlinks=False, listSymlinks=False):
-                        #     relpath=j.system.fs.pathRemoveDirPart(item,path)
-                        #     destpathfile=j.system.fs.joinPaths(destdir,relpath)
-                        #     j.system.fs.createDir(j.system.fs.getDirName(destpathfile))
-                        #     j.system.fs.symlink(item, destpathfile, overwriteTarget=True)
+                        # j.sal.fs.createDir(destdir)
+                        # for item in j.sal.fs.listFilesInDir(path, recursive=False, exclude=["*.pyc",".roles"], followSymlinks=False, listSymlinks=False):
+                        #     relpath=j.sal.fs.pathRemoveDirPart(item,path)
+                        #     destpathfile=j.sal.fs.joinPaths(destdir,relpath)
+                        #     j.sal.fs.createDir(j.sal.fs.getDirName(destpathfile))
+                        #     j.sal.fs.symlink(item, destpathfile, overwriteTarget=True)
 
         from IPython import embed
         print("DEBUG NOW rsync prepareroles")

@@ -147,7 +147,7 @@ from sal.base.SALObject import SALObject
 class RouterOS(SALObject):
 
     def __init__(self, host, login,password):
-        # self.configPath = j.system.fs.joinPaths('/etc', 'RouterOS')
+        # self.configPath = j.sal.fs.joinPaths('/etc', 'RouterOS')
         # self.remoteApi = j.remote.cuisine.api
         # j.remote.cuisine.fabric.env['password'] = password
         # self.remoteApi.connect(host)
@@ -162,7 +162,7 @@ class RouterOS(SALObject):
         if res!=True:
             raise RuntimeError("Could not login into RouterOS: %s"%host)
         self.configpath="%s/apps/routeros/configs/default/"%j.dirs.baseDir
-        j.system.fs.createDir(j.system.fs.joinPaths(j.dirs.varDir,"routeros"))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.varDir,"routeros"))
         inputsentence = []
 
     def do(self,cmd,args={}):
@@ -310,10 +310,10 @@ class RouterOS(SALObject):
     def backup(self,name,destinationdir):
         self.do("/system/backup/save", args={"name":name})
         path="%s.backup"%name
-        self.download(path, j.system.fs.joinPaths(destinationdir,path))
+        self.download(path, j.sal.fs.joinPaths(destinationdir,path))
         self.do("/export", args={"file":name})
         path="%s.rsc"%name
-        self.download(path, j.system.fs.joinPaths(destinationdir,path))
+        self.download(path, j.sal.fs.joinPaths(destinationdir,path))
 
     def download(self,path,dest):
         if self.ftp==None:
@@ -366,7 +366,7 @@ class RouterOS(SALObject):
 
     def download(self,path,dest,raiseError=False):
         self._getFtp()
-        j.system.fs.createDir(j.system.fs.getDirName(dest))
+        j.sal.fs.createDir(j.sal.fs.getDirName(dest))
         if raiseError:
             self.ftp.retrbinary('RETR %s'%path, open(dest, 'wb').write)
         else:
@@ -381,7 +381,7 @@ class RouterOS(SALObject):
     def upload(self,path,dest):
         print(("upload: '%s' to '%s'"%(path,dest)))
         self._getFtp()
-        if not j.system.fs.exists(path=path):
+        if not j.sal.fs.exists(path=path):
             raise RuntimeError("Cannot find %s"%path)
         self.ftp.storbinary('STOR %s'%dest, open(path))
 
@@ -397,15 +397,15 @@ class RouterOS(SALObject):
         if srcpath=="":
             print(("EXECUTE SCRIPT:%s"%name))
             name=name+".rsc"
-            src=j.system.fs.joinPaths(self.configpath,name)
+            src=j.sal.fs.joinPaths(self.configpath,name)
         else:
             src=srcpath
 
-        content=j.system.fs.fileGetContents(src)
+        content=j.sal.fs.fileGetContents(src)
         for key,val in list(vars.items()):
             content=content.replace(key,val)
-        src=j.system.fs.joinPaths(j.dirs.tmpDir,j.system.fs.getTempFileName())
-        j.system.fs.writeFile(src,content)
+        src=j.sal.fs.joinPaths(j.dirs.tmpDir,j.sal.fs.getTempFileName())
+        j.sal.fs.writeFile(src,content)
 
         print("EXECUTE:")
         print(content)
@@ -415,7 +415,7 @@ class RouterOS(SALObject):
         self.do("/import", args={"file-name":name})
         self.delfile(name, raiseError=False)
 
-        j.system.fs.remove(src)
+        j.sal.fs.remove(src)
 
     def resetMac(self,interface):
         iterface=None
@@ -435,18 +435,18 @@ class RouterOS(SALObject):
     def executeScript(self,content):
         if content[0]!="/":
             content="/%s"%content
-        name="_tmp_%s"%j.base.idgenerator.generateRandomInt(1,10000)
-        src=j.system.fs.joinPaths(j.dirs.varDir,"routeros","%s.rsc"%name)
-        j.system.fs.writeFile(filename=src,contents=content)
+        name="_tmp_%s"%j.tools.idgenerator.generateRandomInt(1,10000)
+        src=j.sal.fs.joinPaths(j.dirs.varDir,"routeros","%s.rsc"%name)
+        j.sal.fs.writeFile(filename=src,contents=content)
         self.uploadExecuteScript(name=name,srcpath=src)
-        j.system.fs.remove(src)
+        j.sal.fs.remove(src)
 
     def uploadFilesFromDir(self,path,dest=""):       
-        for item in j.system.fs.listFilesInDir(j.system.fs.joinPaths(self.configpath,path),False):
+        for item in j.sal.fs.listFilesInDir(j.sal.fs.joinPaths(self.configpath,path),False):
             if dest!="":
-                dest2=j.system.fs.joinPaths(dest,j.system.fs.getBaseName(item))
+                dest2=j.sal.fs.joinPaths(dest,j.sal.fs.getBaseName(item))
             else:
-                dest2=j.system.fs.getBaseName(item)
+                dest2=j.sal.fs.getBaseName(item)
             self.upload(item,dest2)
 
     def addPortForwardRule(self, dstaddress,dstport, toaddress, toport, tags=None, protocol=None):

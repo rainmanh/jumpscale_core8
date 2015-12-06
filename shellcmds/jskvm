@@ -110,11 +110,11 @@ if opts.action == 'delete_snapshot':
 #     if ip=="":
 #         ip=getip(opts.nr)
 #     time.sleep(2)    
-#     j.system.net.waitConnectionTest(ip,3389,2)
+#     j.sal.nettools.waitConnectionTest(ip,3389,2)
 #     j.system.installtools.execute("rmachine %s -g 1600x900 -e & 2>&1 > /dev/null"%ip)
 
 if opts.action == 'destroy_all':
-    if j.console.askYesNo('Are you sure you want to destroy all vmachines?'):
+    if j.tools.console.askYesNo('Are you sure you want to destroy all vmachines?'):
         kvm.destroyAll()
     else:
         print('Rolled back')

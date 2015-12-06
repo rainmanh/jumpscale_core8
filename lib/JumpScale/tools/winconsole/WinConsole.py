@@ -11,7 +11,7 @@ class WinConsole():
     def __init__(self):
         """
         """
-        if not  j.system.platformtype.isWindows():
+        if not  j.core.platformtype.isWindows():
             raise RuntimeError("Only supported on windows.")
         self.configpath=j.sal.fs.joinPaths(j.dirs.tmpDir,"consolecfg",str(j.tools.idgenerator.generateRandomInt(1,1000))+".xml")
         self.config="""

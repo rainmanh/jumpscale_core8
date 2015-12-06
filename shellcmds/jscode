@@ -79,7 +79,7 @@ Host *
    UserKnownHostsFile=/dev/null
 """
 
-if j.system.platformtype.isLinux():
+if j.core.platformtype.isLinux():
     path=j.sal.fs.joinPaths(os.environ["HOME"],".ssh","config")
     if not j.do.exists(path):
         j.do.writeFile(path,C)
@@ -184,7 +184,7 @@ for provider, account, reponame, branch, client, path in repos:
     if opts.action in ['commit', 'update']:
         if nrmods > 0:
             if opts.message is None:
-                message = j.console.askString("commit message")
+                message = j.tools.console.askString("commit message")
             else:
                 message = opts.message
 

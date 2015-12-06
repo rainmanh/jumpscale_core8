@@ -59,8 +59,8 @@ class JumpScale(Loader):
 class Core(Loader):
     pass
 
-class System(Loader):
-    pass
+# class System(Loader):
+#     pass
 
 # class SystemFS(Loader):
     # pass
@@ -120,7 +120,7 @@ j.tools=Tools()
 j.core=Core()
 j.core.types=Types()
 j.sal=Sal()
-j.system=System()
+# j.system=System()
 # j.system.fs=SystemFS()
 j.servers=Servers()
 

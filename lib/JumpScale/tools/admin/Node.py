@@ -70,7 +70,7 @@ class Node():
         keyloc="/root/.ssh/id_dsa.pub"
         
         if not j.sal.fs.exists(path=keyloc):
-            if j.console.askYesNo("do you want to generate new local ssh key, if you have one please put it there manually!"):
+            if j.tools.console.askYesNo("do you want to generate new local ssh key, if you have one please put it there manually!"):
                 do=j.sal.process.executeWithoutPipe
                 do("ssh-keygen -t dsa")
             else:
@@ -203,7 +203,7 @@ class Node():
         passwd=self.model["passwd"]
         self.ssh=j.remote.cuisine.connect(ip,port,passwd)
 
-        # if j.system.net.pingMachine(self.args.remote,1):
+        # if j.sal.nettools.pingMachine(self.args.remote,1):
         #     self.ip=self.args.remote
         # else:
         #     j.events.opserror_critical("Could not ping node:'%s'"% self.args.remote)

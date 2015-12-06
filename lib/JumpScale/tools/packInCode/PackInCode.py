@@ -47,7 +47,7 @@ hrdtmp=\"\"\"
 $hrd
 \"\"\"
 hrdtmp=codegen.unserialize(hrdtmp)
-$name=j.core.hrd.get(content=hrdtmp)
+$name=j.data.hrd.get(content=hrdtmp)
 """
         C=C.replace("$name",name)
         C=C.replace("$hrd",self._serialize(str(hrd)))

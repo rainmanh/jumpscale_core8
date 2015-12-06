@@ -27,7 +27,7 @@ opts = parser.parse_args()
 #     if j.application.config.exists("grid.master.superadminpasswd"):
 #         opts.passwd=j.application.config.get("grid.master.superadminpasswd")
 #     else:
-#         opts.passwd=j.console.askString("please provide superadmin passwd for the grid.")
+#         opts.passwd=j.tools.console.askString("please provide superadmin passwd for the grid.")
 
 # if opts.addr==None:    
 #     addr=j.application.config.get("grid.master.ip")
@@ -46,8 +46,8 @@ if opts.action =='add':
             raise RuntimeError("error, format for param data needs to be: groupname:domain")
         name,domain=splitted
     else:
-        name=j.console.askString("name")
-        domain=j.console.askString("domain e.g. incubaid.com")
+        name=j.tools.console.askString("name")
+        domain=j.tools.console.askString("domain e.g. incubaid.com")
 
     if groupclient.exists(name):
         raise RuntimeError("group already exists")
@@ -76,7 +76,7 @@ if opts.action =='list':
 
 if opts.action =='delete':
     if opts.group==None:
-        opts.group=j.console.askString("group to delete")
+        opts.group=j.tools.console.askString("group to delete")
     group=groupclient.get("%s_%s"%(j.application.whoAmI.gid,opts.group))
     groupclient.delete(group.guid)
 

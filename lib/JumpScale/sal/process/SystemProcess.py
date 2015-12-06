@@ -23,7 +23,7 @@ def kill(pid, sig=None):
     @param sig: signal. If no signal is specified signal.SIGKILL is used
     """
     j.logger.log('Killing process %d' % pid, 7)
-    if j.system.platformtype.isUnix():
+    if j.core.platformtype.isUnix():
         try:
             if sig is None:
                 sig = signal.SIGKILL
@@ -33,7 +33,7 @@ def kill(pid, sig=None):
         except OSError as e:
             raise RuntimeError("Could not kill process with id %s.\n%s" % (pid,e))
         
-    elif j.system.platformtype.isWindows():
+    elif j.core.platformtype.isWindows():
         import win32api, win32process, win32con
         try:
             handle = win32api.OpenProcess(win32con.PROCESS_TERMINATE, False, pid)
@@ -69,7 +69,7 @@ else:
         #win32-specific fixes (see original subprocess.Popen)
         def communicate(self, input=None):
             #This is based on code in CPython 2.6.0, but including some extra
-            #checks to emulate 2.5 behaviour which didn't close stdout/err.
+            #checks to emulate 2.5 behavior which didn't close stdout/err.
             if [self.stdin, self.stdout, self.stderr].count(None) >= 2:
                 stdout = None
                 stderr = None
@@ -808,7 +808,7 @@ def _runWithEnv(commandline, showOutput=False, captureOutput=True, maxSeconds=0,
     elif not showOutput and not captureOutput:
         #There's no place like devnull
         fd = open(getattr(os, 'devnull', \
-                'nul' if j.system.platformtype.isWindows() else '/dev/null'),
+                'nul' if j.core.platformtype.isWindows() else '/dev/null'),
                 'rw')
         stdin = stdout = stderr = fd
 
@@ -826,7 +826,7 @@ def _runWithEnv(commandline, showOutput=False, captureOutput=True, maxSeconds=0,
         'env': env,
         'close_fds': True,
     }
-    if j.system.platformtype.isWindows():
+    if j.core.platformtype.isWindows():
         # Reset all signals before calling execlp but after forking. This
         # fixes Python issue 1652 (http://bugs.python.org/issue1652) and
         # jumpscale ticket 189
@@ -873,7 +873,7 @@ def _runWithEnv(commandline, showOutput=False, captureOutput=True, maxSeconds=0,
 
         if process.poll() is None:
             #Child is still running, kill it
-            if j.system.platformtype.isUnix():
+            if j.core.platformtype.isUnix():
                 #Soft and hard kill on Unix
                 try:
                     process.terminate()
@@ -901,7 +901,7 @@ def _runWithEnv(commandline, showOutput=False, captureOutput=True, maxSeconds=0,
             #fun).
 
             #Read out process streams, but don't block
-            if j.system.platformtype.isUnix():
+            if j.core.platformtype.isUnix():
                 def readout(stream):
                     #Non-blocking, safe UNIX-style stream readout
                     import fcntl
@@ -986,7 +986,7 @@ def runScript(script, showOutput=False, captureOutput=True, maxSeconds=0,
     This function executes a Python script, making sure the script output will
     not be buffered.
 
-    For an overview of the parameters and function behaviour, see the
+    For an overview of the parameters and function behavior, see the
     documentation of L{jumpscale.system.process.run}.
 
     @param script: Script to execute
@@ -1217,9 +1217,9 @@ class SystemProcess(SALObject):
         @return: If redirectStreams is true, this function returns a subprocess.Popen object representing the started process. Otherwise, it will return the pid-number of the started process.
         """
         if useShell == None: # The default value depends on which platform we're using.
-            if j.system.platformtype.isUnix():
+            if j.core.platformtype.isUnix():
                 useShell = True
-            elif j.system.platformtype.isWindows():
+            elif j.core.platformtype.isWindows():
                 useShell = False
             else:
                 raise RuntimeError("Platform not supported")
@@ -1228,7 +1228,7 @@ class SystemProcess(SALObject):
         if printCommandToStdout:
             print(("system.process.executeAsync [%s]" % command))
 
-        if j.system.platformtype.isWindows():
+        if j.core.platformtype.isWindows():
             if argsInCommand:                
                 cmd = subprocess.list2cmdline([command] + args)
             else:
@@ -1264,7 +1264,7 @@ class SystemProcess(SALObject):
                                                  sui)         # Startup Information
                 retVal = pid
 
-        elif j.system.platformtype.isUnix():
+        elif j.core.platformtype.isUnix():
             if useShell:
                 if argsInCommand:
                     cmd = command
@@ -1318,7 +1318,7 @@ class SystemProcess(SALObject):
         j.logger.log("exec:%s" % command)
         def _logentry(entry,loglevel=5):
             if outputToStdout:
-                j.console.echo(entry, loglevel)
+                j.tools.console.echo(entry, loglevel)
             else:
                 j.logger.log(entry,loglevel)
 
@@ -1367,7 +1367,7 @@ class SystemProcess(SALObject):
         j.logger.log("system.process.execute [%s]" % command, 8)
         try:
             import errno
-            if j.system.platformtype.isUnix():
+            if j.core.platformtype.isUnix():
                 import subprocess
                 import signal
                 try:
@@ -1378,7 +1378,7 @@ class SystemProcess(SALObject):
                 (output,error) = childprocess.communicate()
                 exitcode = childprocess.returncode
                 
-            elif j.system.platformtype.isWindows():
+            elif j.core.platformtype.isWindows():
                 import subprocess, win32pipe, msvcrt, pywintypes
 
                 # For some awkward reason you need to include the stdin pipe, or you get an error deep inside
@@ -1517,7 +1517,7 @@ class SystemProcess(SALObject):
            or pythonw.exe
         """
         j.logger.log('Checking whether process with PID %d is alive' % pid, 9)
-        if j.system.platformtype.isUnix():
+        if j.core.platformtype.isUnix():
             # Unix strategy: send signal SIGCONT to process pid
             # Achilles heal: another process which happens to have the same pid could be running
             # and incorrectly considered as this process
@@ -1529,7 +1529,7 @@ class SystemProcess(SALObject):
 
             return True
 
-        elif j.system.platformtype.isWindows():
+        elif j.core.platformtype.isWindows():
             return j.system.windows.isPidAlive(pid)
 
     kill = staticmethod(kill)
@@ -1593,7 +1593,7 @@ class SystemProcess(SALObject):
     def getProcessPid(self, process):
         if process==None:
             raise RuntimeError("process cannot be None")
-        if j.system.platformtype.isUnix():
+        if j.core.platformtype.isUnix():
             # Need to set $COLUMNS such that we can grep full commandline
             # Note: apparently this does not work on solaris
             command = "env COLUMNS=300 ps -ef"
@@ -1661,14 +1661,14 @@ class SystemProcess(SALObject):
         @return True if ok
         """
         j.logger.log('Checking whether at least %d processes %s are running' % (min, process), 8)
-        if j.system.platformtype.isUnix():
+        if j.core.platformtype.isUnix():
             pids = self.getProcessPid(process)
             if len(pids) >= min:
                 return True
             return False
 
         # Windows platform
-        elif j.system.platformtype.isWindows():
+        elif j.core.platformtype.isWindows():
 
             return j.system.windows.checkProcess(process, min)
 
@@ -1680,14 +1680,14 @@ class SystemProcess(SALObject):
         @return status: (int) 0 when ok, 1 when not ok.
         """
         j.logger.log('Checking whether process with PID %d is actually %s' % (pid, process), 7)
-        if j.system.platformtype.isUnix():
+        if j.core.platformtype.isUnix():
             command = "ps -p %i"%pid
             (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False, outputToStdout=False)
             i=0
             for line in output.splitlines():
-                if j.system.platformtype.isLinux() or j.system.platformtype.isESX():
+                if j.core.platformtype.isLinux() or j.core.platformtype.isESX():
                     match = re.match(".{23}.*(\s|\/)%s(\s|$).*" % process, line)
-                elif j.system.platformtype.isSolaris():
+                elif j.core.platformtype.isSolaris():
                     match = re.match(".{22}.*(\s|\/)%s(\s|$).*" % process, line)
                 if match :
                     i= i+1
@@ -1695,7 +1695,7 @@ class SystemProcess(SALObject):
                 return 0
             return 1
 
-        elif j.system.platformtype.isWindows():
+        elif j.core.platformtype.isWindows():
 
             return j.system.windows.checkProcessForPid(process, pid)
 
@@ -1745,7 +1745,7 @@ class SystemProcess(SALObject):
         """
         if port==0:
             return None
-        if j.system.platformtype.isLinux():
+        if j.core.platformtype.isLinux():
             command = "netstat -ntulp | grep ':%s '" % port
             (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False,outputToStdout=False)
 

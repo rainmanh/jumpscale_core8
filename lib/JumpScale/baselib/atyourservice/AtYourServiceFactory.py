@@ -71,8 +71,11 @@ class AtYourServiceFactory():
             # always load base domaim
             items=j.application.config.getDictFromPrefix("atyourservice.metadata")
             repos=j.do.getGitReposListLocal()
+            
             for domain in list(items.keys()):
                 url=items[domain]['url']
+                if url.strip()=="":
+                    raise RuntimeError("url cannot be empty")
                 branch=items[domain].get('branch', 'master')
                 reponame=url.rpartition("/")[-1]
                 if not reponame in list(repos.keys()):
@@ -246,7 +249,7 @@ class AtYourServiceFactory():
                 template_hrd_path = j.sal.fs.joinPaths(service_path, 'template.hrd')
                 (domain, name, version, instance, role) = self.parseKey(j.sal.fs.getBaseName(service_path))
 
-                hrd = j.core.hrd.get(instance_hrd_path, prefixWithName=False)
+                hrd = j.data.hrd.get(instance_hrd_path, prefixWithName=False)
 
                 parent = hrd.get("parent", "")
 

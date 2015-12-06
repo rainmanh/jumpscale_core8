@@ -1,6 +1,7 @@
 from JumpScale import j
 import netaddr
 
+#@todo (*1*)
 
 from sal.base.SALObject import SALObject
 
@@ -202,7 +203,7 @@ class Netconfig(SALOBJECT):
                     params += ":%s" % proxypassword
                 params += "@"
             params += proxyserver
-            if j.system.platformtype.isUnix():
+            if j.core.platformtype.isUnix():
                 os.environ['http_proxy'] = proxyserver
             proxy_support = urllib.request.ProxyHandler()
             opener = urllib.request.build_opener(proxy_support)
@@ -261,7 +262,7 @@ class Netconfig(SALOBJECT):
         print("interface:%s up"%interface)
 
         print("check can reach default gw:%s"%gw)
-        if not j.system.net.pingMachine(gw):
+        if not j.sal.nettools.pingMachine(gw):
             j.events.opserror_critical("Cannot get to default gw, network configuration did not succeed for %s %s/%s -> %s"%(interface,ipaddr,mask,gw))
         print("gw reachable")
 
@@ -269,7 +270,7 @@ class Netconfig(SALOBJECT):
         print("default gw up:%s"%gw)
 
     def interface_remove_ipaddr(self,network="192.168.1"):
-        for item in j.system.net.getNetworkInfo():
+        for item in j.sal.nettools.getNetworkInfo():
             for ip in item["ip"]:
                 if ip.startswith(network):
                     #remove ip addr from this interface
@@ -323,7 +324,7 @@ class Netconfig(SALOBJECT):
         print("interface:%s up"%interface)
 
         print("check can reach 8.8.8.8")
-        if not j.system.net.pingMachine("8.8.8.8"):
+        if not j.sal.nettools.pingMachine("8.8.8.8"):
             j.events.opserror_critical("Cannot get to public dns, network configuration did not succeed for %s (dhcp)"%(interface))
         print("8.8.8.8 reachable")
         print("network config done.")
@@ -350,7 +351,7 @@ class Netconfig(SALOBJECT):
 
         if interface=="brpub":
             gw=pynetlinux.route.get_default_gw()
-            if not j.system.net.pingMachine(gw,pingtimeout=2):
+            if not j.sal.nettools.pingMachine(gw,pingtimeout=2):
                 raise RuntimeError("cannot continue to execute on bridgeConfigResetPub, gw was not reachable.")
             #this means the default found interface is already brpub, so can leave here
             return
@@ -380,7 +381,7 @@ class Netconfig(SALOBJECT):
         if gw==None:
             raise RuntimeError("Did not find gw: %s"%gw)            
 
-        if not j.system.net.pingMachine(gw,pingtimeout=2):
+        if not j.sal.nettools.pingMachine(gw,pingtimeout=2):
             raise RuntimeError("cannot continue to execute on bridgeConfigResetPub, gw was not reachable.")
         print("gw can be reached")
 
@@ -435,7 +436,7 @@ class Netconfig(SALOBJECT):
 
         except Exception as e:
             print("error in bridgeConfigResetPub:'%s'"%e)            
-            j.system.net.setBasicNetConfiguration(interface,ipaddr,gw,mask,config=False)
+            j.sal.nettools.setBasicNetConfiguration(interface,ipaddr,gw,mask,config=False)
 
 
         return interface,ipaddr,mask,gw

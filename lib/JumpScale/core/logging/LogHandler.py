@@ -250,10 +250,10 @@ class LogHandler(object):
                     if log.category.find(consolecat)!=-1:
                         ccat=log.category
                         ccat=ccat[0:25]
-                        j.console.echo("%s - %-25s - %s"%(j.tools.time.epoch2HRDateTime(log.epoch), ccat,log.message), log=False)
+                        j.tools.console.echo("%s - %-25s - %s"%(j.tools.time.epoch2HRDateTime(log.epoch), ccat,log.message), log=False)
                         break
             else:
-                j.console.echo(str(log), log=False)
+                j.tools.console.echo(str(log), log=False)
         
         if self.nolog:
             return

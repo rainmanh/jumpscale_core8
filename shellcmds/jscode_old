@@ -51,7 +51,7 @@ def getRepos():
         accounts=[item.strip() for item in opts.accounts.split(",")]
     else:
         accounts=j.sal.fs.listDirsInDir("/opt/code", recursive=False, dirNameOnly=True, findDirectorySymlinks=True)
-        accounts=j.console.askChoiceMultiple(accounts,"select bitbucketaccounts")
+        accounts=j.tools.console.askChoiceMultiple(accounts,"select bitbucketaccounts")
 
     for account in accounts:
         accountdir="/opt/code/%s"%account
@@ -59,7 +59,7 @@ def getRepos():
             if opts.repos==None:
                 reponames=j.sal.fs.listDirsInDir(accountdir,recursive=False, dirNameOnly=True, findDirectorySymlinks=True)
                 if  not opts.action in ['status']:
-                    reponames=j.console.askChoiceMultiple(reponames,"select repos")
+                    reponames=j.tools.console.askChoiceMultiple(reponames,"select repos")
             elif opts.repos=="*":
                 reponames=j.sal.fs.listDirsInDir(accountdir,recursive=False, dirNameOnly=True, findDirectorySymlinks=True)
             else:
@@ -166,7 +166,7 @@ for bitbucket,account,reponame,branch,client,path in repos:
     if opts.action in ['commit','push','update']:
 
         if opts.message==None and nrmods>0:
-            opts.message=j.console.askString("commit message")
+            opts.message=j.tools.console.askString("commit message")
 
 
     if opts.update or opts.action =='update' or opts.action =='push':

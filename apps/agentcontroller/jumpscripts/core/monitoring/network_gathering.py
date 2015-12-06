@@ -21,7 +21,7 @@ log=False
 def action():
     ncl = j.clients.osis.getCategory(j.core.osis.client, "system", "nic")
     rediscl = j.clients.redis.getByInstance('system')
-    netinfo=j.system.net.getNetworkInfo()
+    netinfo=j.sal.nettools.getNetworkInfo()
     results = dict()
     pattern = None
     if j.application.config.exists('nic.pattern'):

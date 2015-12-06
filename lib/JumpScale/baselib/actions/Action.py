@@ -48,7 +48,7 @@ class Action:
     def execute(self):        
         print("* %-20s: %-15s %s"%(self.category,self.name,self.description))
         if self.stdOutput==False:
-            j.console.hideOutput()
+            j.tools.console.hideOutput()
         rcode=0
         output=""
         for i in range(self.retry+1):
@@ -74,9 +74,9 @@ class Action:
                         continue                     
                 break
         
-        j.console.enableOutput()
+        j.tools.console.enableOutput()
         if rcode>0:         
-            j.console.showOutput()
+            j.tools.console.showOutput()
             self.state="ERROR"
             if self.actionRecover!=None:
                 self.actionRecover(**actionArgs)

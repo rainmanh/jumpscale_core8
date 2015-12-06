@@ -34,7 +34,7 @@ if opts.action in ['disable','enable','stop','start','restart']:
             pdsDict[key]=pd
 
         pds=[]
-        res=j.console.askChoiceMultiple( choicearray, descr="choose processes to %s"%opts.action, sort=True)
+        res=j.tools.console.askChoiceMultiple( choicearray, descr="choose processes to %s"%opts.action, sort=True)
         for key in res:
             pd=pdsDict[key]
             pds.append(pd)

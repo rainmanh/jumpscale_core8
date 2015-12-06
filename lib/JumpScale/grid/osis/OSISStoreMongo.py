@@ -261,7 +261,7 @@ class OSISStoreMongo(OSISStore):
             size=200
         sortlist=[]
         if j.core.types.string.check(query):
-            tags=j.core.tags.getObject(query)
+            tags=j.data.tags.getObject(query)
             sort=None
             if tags.tagExists("@sort"):
                 sort=tags.tagGet("@sort")
@@ -391,7 +391,7 @@ class OSISStoreMongo(OSISStore):
         if not j.core.types.string.check(query):
             raise RuntimeError("not implemented")
         if j.core.types.string.check(update):
-            tags=j.core.tags.getObject(update)
+            tags=j.data.tags.getObject(update)
             update=tags.getDict()
         # self.db.find_and_modify(query,update=update)
         query+=' @fields:guid'

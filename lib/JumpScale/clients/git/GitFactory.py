@@ -101,13 +101,13 @@ class GitFactory:
             result = []
             if len(repos) > 20:
                 print("Select account to choose from, too many choices.")
-                accounts = j.console.askChoiceMultiple(accounts)
+                accounts = j.tools.console.askChoiceMultiple(accounts)
 
             repos = [item for item in repos if item[1] in accounts]
 
             # only ask if * in name or name not specified
             if name.find("*") == -1 or name is None:
-                repos = j.console.askArrayRow(repos)
+                repos = j.tools.console.askArrayRow(repos)
 
         result = []
         if returnGitClient:

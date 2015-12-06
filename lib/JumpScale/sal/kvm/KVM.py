@@ -76,7 +76,7 @@ class KVM(SALObject):
         """
         for image in j.sal.fs.listDirsInDir(self.imagepath, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
             path = j.sal.fs.joinPaths(self.imagepath, image, '%s.hrd' % image)
-            hrd = j.core.hrd.get(path)
+            hrd = j.data.hrd.get(path)
             self.images[image] = hrd
 
     def initPhysicalBridges(self, pubinterface="eth0"):
@@ -91,12 +91,12 @@ class KVM(SALObject):
             will be used for internal mgmt purposes
         """
         print('Creating physical bridges brpub, brmgmt and brtmp on the host...')
-        j.system.net.setBasicNetConfigurationBridgePub() #failsave method to introduce bridge to pub interface
+        j.sal.nettools.setBasicNetConfigurationBridgePub() #failsave method to introduce bridge to pub interface
         j.sal.netconfig.enableInterfaceBridgeStatic('brmgmt', ipaddr='192.168.66.254/24', start=True)
         j.sal.netconfig.enableInterfaceBridgeStatic('brtmp', start=True)
 
-        # j.system.net.setBasicNetConfigurationBridgePub()
-        if j.system.net.bridgeExists("brmgmt")==False:
+        # j.sal.nettools.setBasicNetConfigurationBridgePub()
+        if j.sal.nettools.bridgeExists("brmgmt")==False:
             pynetlinux.brctl.addbr("brmgmt")
         br=pynetlinux.brctl.findbridge("brmgmt")        
         ip=br.get_ip()
@@ -107,7 +107,7 @@ class KVM(SALObject):
             br.up()
 
         #tmp bridge
-        if j.system.net.bridgeExists("brtmp")==False:
+        if j.sal.nettools.bridgeExists("brtmp")==False:
             pynetlinux.brctl.addbr("brtmp")
         br=pynetlinux.brctl.findbridge("brtmp")
         if br.is_up()==False:
@@ -164,7 +164,7 @@ class KVM(SALObject):
         if not j.sal.fs.exists(path=configpath):
             print('Machine %s does not exist' % name)
             return
-        return j.core.hrd.get(path=configpath)
+        return j.data.hrd.get(path=configpath)
 
     def _getAllMachinesIps(self):
         """
@@ -282,7 +282,7 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
         memory, size, cpu_count, imagehrd.get('shell', ''), imagehrd.get('fabric.module'), imagehrd.get('pub.ip'), imagehrd.get('bootstrap.ip'), imagehrd.get('bootstrap.login'), imagehrd.get('bootstrap.passwd'))
         j.sal.fs.writeFile(hrdfile, hrdcontents)
         print('Waiting for SSH connection to be ready...')
-        if not j.system.net.waitConnectionTest(imagehrd.get('bootstrap.ip'), 22, 300):
+        if not j.sal.nettools.waitConnectionTest(imagehrd.get('bootstrap.ip'), 22, 300):
             print('Rolling back machine creation...')
             self.destroy(name)
             raise RuntimeError('SSH is not available after 5 minutes')
@@ -347,7 +347,7 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
         try:
             capi.fabric.api.execute(setupmodule.setupNetwork, ifaces={'eth0': (mgmtip, '255.255.255.0', None), 'eth1': (public_ip, '255.255.255.0', '10.0.0.1')})
         except:
-            if not j.system.net.waitConnectionTest(mgmtip, 22, 10):
+            if not j.sal.nettools.waitConnectionTest(mgmtip, 22, 10):
                 raise RuntimeError('Could not change machine ip address')
         finally:
             capi.fabric.network.disconnect_all()

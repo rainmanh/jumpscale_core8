@@ -1,4 +1,4 @@
-rm -rf /opt/jumpscale7
+rm -rf /opt/jumpscale8
 
 set -ex
 #known env variables

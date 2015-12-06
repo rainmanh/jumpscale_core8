@@ -5,7 +5,7 @@ ActionsBaseMgmt = j.atyourservice.getActionsBaseClassMgmt()
 
 class ActionsMgmt(ActionsBaseMgmt):
     """
-    implement methods of this class to change behaviour of lifecycle management of service for mgmt class which runs locally
+    implement methods of this class to change behavior of lifecycle management of service for mgmt class which runs locally
     """
     
     # def prepare(self,serviceObj):
@@ -25,7 +25,7 @@ class ActionsMgmt(ActionsBaseMgmt):
     # def start(self,serviceObj):
     #     """
     #     start happens because of info from main.hrd file but we can overrule this
-    #     make sure to also call ActionBase.start(serviceObj) in your implementation otherwise the default behaviour will not happen
+    #     make sure to also call ActionBase.start(serviceObj) in your implementation otherwise the default behavior will not happen
     #     """
     #     return True
 
@@ -39,7 +39,7 @@ class ActionsMgmt(ActionsBaseMgmt):
 
     # def halt(self,serviceObj):
     #     """
-    #     hard kill the app, std a linux kill is used, you can use this method to do something next to the std behaviour
+    #     hard kill the app, std a linux kill is used, you can use this method to do something next to the std behavior
     #     """
     #     return True
 
@@ -114,6 +114,6 @@ class ActionsMgmt(ActionsBaseMgmt):
 
     # def test(self,serviceObj):
     #     """
-    #     tests for the service to test its behaviour
+    #     tests for the service to test its behavior
     #     """
     #     return True

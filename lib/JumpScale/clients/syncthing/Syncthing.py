@@ -85,7 +85,7 @@ class SyncthingClient:
         res=self.executeBashScript(C)
 
         print("check if we can find syncthing on right port: %s:%s"%(self.addr,self.port))
-        if j.system.net.waitConnectionTest(self.addr,self.port,timeout=10)==False:
+        if j.sal.nettools.waitConnectionTest(self.addr,self.port,timeout=10)==False:
             raise RuntimeError("Could not find syncthing on %s:%s, tcp port test"%(self.addr,self.port))
 
         print(self.status_get())
@@ -100,7 +100,7 @@ class SyncthingClient:
         res= self.api_call("system/restart",get=False)
         print("wait for connection")
         time.sleep(0.5)
-        j.system.net.waitConnectionTest(self.addr,self.port,timeout=2)
+        j.sal.nettools.waitConnectionTest(self.addr,self.port,timeout=2)
         print("connection reestablished")
 
     def status_get(self):

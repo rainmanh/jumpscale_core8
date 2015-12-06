@@ -64,7 +64,7 @@ def getHRDData(args):
                     var, data = line.split("=", 1)
                     hrddata[var.strip()] = data.strip()
         else:
-            tags = j.core.tags.getObject(args.data)
+            tags = j.data.tags.getObject(args.data)
             hrddata = tags.getDict()
     return hrddata
 

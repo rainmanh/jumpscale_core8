@@ -91,7 +91,7 @@ class Lxc(SALObject):
 ipaddr=
 """
             j.sal.fs.writeFile(configpath,contents=content)
-        return j.core.hrd.get( path=configpath)
+        return j.data.hrd.get( path=configpath)
 
     def getPid(self,name,fail=True):
         out=self.execute("lxc-info -n %s%s -p"%(self._prefix,name))

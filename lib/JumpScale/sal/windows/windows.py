@@ -51,7 +51,7 @@ class WindowsSystem(SALObject):
         
 
     def checkFileToIgnore(self,path):
-        if j.system.platformtype.isWindows():
+        if j.core.platformtype.isWindows():
             ignore = False
             filename=j.sal.fs.getBaseName(path)
             if filename[0:2]=="~$":
@@ -119,7 +119,7 @@ class WindowsSystem(SALObject):
             shortcut_desktop.SetWorkingDirectory(workingDir)
             shortcut_desktop.QueryInterface(pythoncom.IID_IPersistFile).Save("%s\\%s.lnk" % (desktopfolder, description),0)
 
-        j.console.echo('Shortcuts created')
+        j.tools.console.echo('Shortcuts created')
 
     def isNTFSVolume(self, driveletter):
         """Boolean indicating whether a volume is NTFS

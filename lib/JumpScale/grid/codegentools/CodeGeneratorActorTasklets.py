@@ -205,7 +205,7 @@ class CodeGeneratorActorTasklets(CodeGeneratorBase):
 
                 if len(j.sal.fs.listFilesInDir(j.sal.fs.getDirName(path))) == 0:
                     templ = "default"
-                    tags = j.core.tags.getObject(method.tags)
+                    tags = j.data.tags.getObject(method.tags)
                     if tags.tagExists("tasklettemplate"):
                         templ = tags.tagGet("tasklettemplate").strip().lower()
                     if templ not in tasklets:

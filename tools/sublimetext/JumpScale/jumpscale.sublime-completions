@@ -3,14 +3,14 @@
 
         "completions":
         [
-                { "trigger": "tagGet", "contents": "j.core.tags.getObject(${1:tagstr})"},
+                { "trigger": "tagGet", "contents": "j.data.tags.getObject(${1:tagstr})"},
                 { "trigger": "writeFile","contents":"j.sal.fs.writeFile(filename=${1:path},contents=${2:content})"},
                 { "trigger": "joinPaths","contents":"j.sal.fs.joinPaths(${1:pathpart},${2:pathpart})"},
                 { "trigger": "getFile","contents":"j.sal.fs.fileGetContents(${1:filename})"},
                 
                 { "trigger": "runtimeError","contents":"raise RuntimeError(\"$1\")"},
                 
-                { "trigger": "hrdget","contents":"hrd=j.core.hrd.getHRDTree(path=${1:path})"},
+                { "trigger": "hrdget","contents":"hrd=j.data.hrd.getHRDTree(path=${1:path})"},
                 
                 { "trigger": "jsimport","contents":"from JumpScale import j\n"},        
 

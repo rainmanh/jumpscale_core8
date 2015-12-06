@@ -80,7 +80,7 @@ rm -f %s
             if resultcode>0:
                 raise RuntimeError("Could not execute %s in screen %s:%s, errorcode was %s" % (cmd,sessionname,screenname,resultcode))
         else:
-            j.console.echo("Execution of %s  did not return, maybe interactive, in screen %s:%s." % (cmd,sessionname,screenname))
+            j.tools.console.echo("Execution of %s  did not return, maybe interactive, in screen %s:%s." % (cmd,sessionname,screenname))
         if ppath.exists():
             ppath.remove_p()
         if ppathscript.exists():
@@ -187,7 +187,7 @@ rm -f %s
             try:
                 j.sal.process.kill(int(pid))
             except:
-                j.console.echo("could not kill screen with pid %s" % pid)
+                j.tools.console.echo("could not kill screen with pid %s" % pid)
         cmd="screen -wipe" 
         self._local.execute(cmd, die=False) #todo checking
         
@@ -200,7 +200,7 @@ rm -f %s
                 try:
                     j.sal.process.kill(int(pid))
                 except:
-                    j.console.echo("could not kill screen with pid %s" % pid)
+                    j.tools.console.echo("could not kill screen with pid %s" % pid)
         cmd="screen -wipe" 
         self._local.execute(cmd, die=False) #todo checking
 

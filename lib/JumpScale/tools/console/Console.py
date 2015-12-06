@@ -126,7 +126,7 @@ class Console:
         '''
         Display some text to the end-user, use this method instead of print
         @param indent std, will use indent from console object (same for all), this param allows to overrule
-                will only work when j.console.reformat==True
+                will only work when j.tools.console.reformat==True
 
         '''
         msg=str(msg)
@@ -323,7 +323,7 @@ class Console:
                 responseInt = int(response.strip())
                 if (minValue == None or responseInt >= minValue) and (maxValue == None or responseInt <= maxValue):
                     return responseInt
-            j.console.echo("Please insert a valid value!")
+            j.tools.console.echo("Please insert a valid value!")
             retryCount = retryCount - 1
 
         raise ValueError("Console.askInteger() failed: tried %d times but user didn't fill out a value that matches '%s'." % (retry, response))

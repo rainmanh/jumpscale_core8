@@ -5,7 +5,7 @@ ActionsBaseNode = j.atyourservice.getActionsBaseClassNode()
 
 class ActionsNode(ActionsBaseNode):
     """
-    implement methods of this class to change behaviour of lifecycle management of service
+    implement methods of this class to change behavior of lifecycle management of service
     """
     
     # def prepare(self):
@@ -25,7 +25,7 @@ class ActionsNode(ActionsBaseNode):
     # def start(self):
     #     """
     #     start happens because of info from main.hrd file but we can overrule this
-    #     make sure to also call ActionBase.start(serviceObj) in your implementation otherwise the default behaviour will not happen
+    #     make sure to also call ActionBase.start(serviceObj) in your implementation otherwise the default behavior will not happen
     #     """
     #     return True
 
@@ -39,7 +39,7 @@ class ActionsNode(ActionsBaseNode):
 
     # def halt(self):
     #     """
-    #     hard kill the app, std a linux kill is used, you can use this method to do something next to the std behaviour
+    #     hard kill the app, std a linux kill is used, you can use this method to do something next to the std behavior
     #     """
     #     return True
 
@@ -115,7 +115,7 @@ class ActionsNode(ActionsBaseNode):
 
     # def test(self):
     #     """
-    #     tests for the service to test its behaviour
+    #     tests for the service to test its behavior
     #     """
     #     return True
 

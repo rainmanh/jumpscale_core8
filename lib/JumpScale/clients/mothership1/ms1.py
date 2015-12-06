@@ -146,7 +146,7 @@ class MS1(object):
     #             ssh_port = str(int(ssh_port) + 1)
 
     #     # do an ssh connection to the machine
-    #     if not j.system.net.waitConnectionTest(cloudspace['publicipaddress'], int(ssh_port), 60):
+    #     if not j.sal.nettools.waitConnectionTest(cloudspace['publicipaddress'], int(ssh_port), 60):
     #         raise RuntimeError("Failed to connect to %s %s" % (cloudspace['publicipaddress'], ssh_port))
     #     ssh_connection = j.remote.cuisine.api
     #     username, password = machine['accounts'][0]['login'], machine['accounts'][0]['password']
@@ -167,7 +167,7 @@ class MS1(object):
     #     ssh_rule_id = [rule['id'] for rule in cloudspace_forward_rules if rule['publicPort'] == ssh_port][0]
     #     portforwarding_actor.delete(machine['cloudspaceid'], ssh_rule_id)
     #     if config:
-    #         hrd = j.core.hrd.get(content=config)
+    #         hrd = j.data.hrd.get(content=config)
     #         if hrd.exists('services_ports'):
     #             ports = hrd.getList('services_ports')
     #             for port in ports:
@@ -591,10 +591,10 @@ class MS1(object):
         connectionPort = tempport
         counter = 0
         while counter < 3:
-            if not j.system.net.waitConnectionTest(cloudspace['publicipaddress'], int(tempport), 5):
+            if not j.sal.nettools.waitConnectionTest(cloudspace['publicipaddress'], int(tempport), 5):
                 # if we can't connect with public IP, it probably means we try to access the vm from inside the cloudspace with another vm
                 # so we try to connect using the private ip
-                if not j.system.net.waitConnectionTest(local_ipaddr, 22, 5):
+                if not j.sal.nettools.waitConnectionTest(local_ipaddr, 22, 5):
                     if counter >=3:
                         # if still can't connect, then it's an error
                         raise RuntimeError("E:Failed to connect to %s" % (tempport))

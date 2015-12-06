@@ -72,7 +72,7 @@ class GitlabInstance():
 
     def getHRD(self,group,project,path):
         content=self.getFile(group,project,path)
-        return j.core.hrd.get(content=content)
+        return j.data.hrd.get(content=content)
 
     def downloadFile(self,group,project,path,dest):
         content=self.getFile(group,project,path)

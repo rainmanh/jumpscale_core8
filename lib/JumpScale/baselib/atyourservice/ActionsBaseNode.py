@@ -176,7 +176,7 @@ class ActionsBaseNode(object):
     def start(self, serviceObj):
         """
         start happens because of info from main.hrd file but we can overrule this
-        make sure to also call ActionBase.start(serviceObj) in your implementation otherwise the default behaviour will not happen
+        make sure to also call ActionBase.start(serviceObj) in your implementation otherwise the default behavior will not happen
 
         only use when you want to overrule
 
@@ -267,7 +267,7 @@ class ActionsBaseNode(object):
         for i, process in enumerate(processes):
 
             if "platform" in process:
-                if not j.system.platformtype.checkMatch(process["platform"]):
+                if not j.core.platformtype.checkMatch(process["platform"]):
                     continue
             if len(processes) > 1:
                 start2(process, nbr=i)
@@ -366,7 +366,7 @@ class ActionsBaseNode(object):
 
     def halt(self,serviceObj):
         """
-        hard kill the app, std a linux kill is used, you can use this method to do something next to the std behaviour
+        hard kill the app, std a linux kill is used, you can use this method to do something next to the std behavior
         """
         currentpids = (os.getpid(), os.getppid())
         for pid in self._get_pids(serviceObj):
@@ -409,7 +409,7 @@ class ActionsBaseNode(object):
                     for port in ports:
                         # need to do port checks
                         if wait:
-                            if j.system.net.waitConnectionTest("localhost", port, timeout)==False:
+                            if j.sal.nettools.waitConnectionTest("localhost", port, timeout)==False:
                                 return False
                         elif j.sal.nettools.tcpPortConnectionTest('127.0.0.1', port) == False:
                                 return False
@@ -460,7 +460,7 @@ class ActionsBaseNode(object):
                     timeout=2
                 for port in ports:
                     #need to do port checks
-                    if j.system.net.waitConnectionTestStopped("localhost", port, timeout)==False:
+                    if j.sal.nettools.waitConnectionTestStopped("localhost", port, timeout)==False:
                         return False
             else:
                 #no ports defined
@@ -528,6 +528,6 @@ class ActionsBaseNode(object):
 
     def test(self,serviceObj):
         """
-        test the service on appropriate behaviour
+        test the service on appropriate behavior
         """
         pass

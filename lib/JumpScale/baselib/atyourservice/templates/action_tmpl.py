@@ -5,7 +5,7 @@ ActionsBaseTmpl = j.atyourservice.getActionsBaseClassTmpl()
 
 class ActionsTmpl(ActionsBaseTmpl):
     """
-    implement methods of this class to change behaviour of lifecycle management of service
+    implement methods of this class to change behavior of lifecycle management of service
     """
     # def init(self,serviceObj):
     #     """

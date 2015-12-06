@@ -173,7 +173,7 @@ if opts.action =='configure':
         opts.passwd="rooter"
     
 
-    if j.system.net.waitConnectionTest(ip,22,5)==False:
+    if j.sal.nettools.waitConnectionTest(ip,22,5)==False:
         print("could not connect to port:%s on ip:%s"%(22,ip))
         j.application.stop(1)
 
@@ -185,7 +185,7 @@ if opts.action =='configure':
 
     nr=0
     
-    if j.system.net.waitConnectionTest(ip,3389,0.1)==False:
+    if j.sal.nettools.waitConnectionTest(ip,3389,0.1)==False:
         if nr==10:
             print("could not connect to rdp port:%s on ip:%s"%(3389,ip))
             j.application.stop(1)            
@@ -197,7 +197,7 @@ if opts.desktop==True or opts.action =='rdp':
     if ip=="":
         ip=getip(opts.nr)
     time.sleep(2)    
-    j.system.net.waitConnectionTest(ip,3389,2)
+    j.sal.nettools.waitConnectionTest(ip,3389,2)
     j.system.installtools.execute("rdesktop %s -g 1600x900 -e & 2>&1 > /dev/null"%ip)
 
 

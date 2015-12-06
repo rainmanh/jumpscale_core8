@@ -241,7 +241,7 @@ class MessageHandler:
 
         def echo2(msg):
             if self._silentRetry == False:
-                j.console.echo(msg, log=False)
+                j.tools.console.echo(msg, log=False)
 
         if self._client == None:  # if none means logserver is not available
             if self.start + 60 < j.tools.time.getTimeEpoch() or ignoreError == False:
@@ -305,7 +305,7 @@ class MessageHandler:
 
         try:
             if level < (j.logger.consoleloglevel + 1) and not dontprint and j.application.interactive:
-                j.console.echo(message, log=False)
+                j.tools.console.echo(message, log=False)
             if j.logger.nolog:
                 return
             if level < j.logger.maxlevel + 1:

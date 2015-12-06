@@ -50,14 +50,14 @@ class OSISBaseObjectComplexType(j.code.classGetJSRootModelBase()):
     def load(self, ddict):
         """
         load the object starting from dict of primitive types (dict, list, int, bool, str, long) and a combination of those
-        std behaviour is the __dict__ of the obj
+        std behavior is the __dict__ of the obj
         """
         j.code.dict2JSModelobject(self,ddict)
 
     def dump(self):
         """
         dump the object to a dict of primitive types (dict, list, int, bool, str, long) and a combination of those
-        std behaviour is the __dict__ of the obj
+        std behavior is the __dict__ of the obj
         """
         return j.code.object2dict(self,dieOnUnknown=True)
 

@@ -63,8 +63,8 @@ class GridFactory():
         j.logger.consoleloglevel = 5
 
     def getLocalIPAccessibleByGridMaster(self):
-        return j.system.net.getReachableIpAddress(self.config.get("grid.master.ip"), 5544)
+        return j.sal.nettools.getReachableIpAddress(self.config.get("grid.master.ip"), 5544)
 
     def isGridMasterLocal(self):
         broker = self.config.get("grid.master.ip")
-        return j.system.net.isIpLocal(broker)
+        return j.sal.nettools.isIpLocal(broker)

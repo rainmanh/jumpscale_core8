@@ -78,7 +78,7 @@ if opts.action in ['delete', 'enable', 'disable', 'addrole', 'list', 'deleterole
             for node in ncl.simpleSearch(query, size=0):
                 nodes[node['name']] = node
             choicearray = list(nodes.keys())
-            items = j.console.askChoiceMultiple(choicearray,"Select node")
+            items = j.tools.console.askChoiceMultiple(choicearray,"Select node")
         else:
             if opts.action == 'delete':
                 _deleteNode(opts.nid)
@@ -109,7 +109,7 @@ if opts.action in ['delete', 'enable', 'disable', 'addrole', 'list', 'deleterole
                         if role.lower().strip() not in r:
                             r.append(role)
                 else:
-                    roles = str(j.console.askString("Enter node roles (Seperated by ',')", defaultparam=','.join(node['roles'])))
+                    roles = str(j.tools.console.askString("Enter node roles (Seperated by ',')", defaultparam=','.join(node['roles'])))
                     for role in roles.split(","):
                         if role.lower().strip() not in r:
                             r.append(role)
@@ -123,7 +123,7 @@ if opts.action in ['delete', 'enable', 'disable', 'addrole', 'list', 'deleterole
                         if role.lower().strip() in r:
                             r.remove(role)
                 else:
-                    roles = j.console.askChoiceMultiple(r, "Choose which roles to remove")
+                    roles = j.tools.console.askChoiceMultiple(r, "Choose which roles to remove")
                     for role in roles:
                         if role.lower().strip() in r:
                             r.remove(role)

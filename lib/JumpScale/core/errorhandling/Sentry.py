@@ -92,7 +92,7 @@ def Sentry():
             if tags==None:
                 tags={}
             else:
-                tags=j.core.tags.getObject(tags)
+                tags=j.data.tags.getObject(tags)
                 tags=tags.getDict()
             tags['type'] = ttype
 

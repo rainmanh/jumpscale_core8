@@ -53,7 +53,7 @@ class ZDaemonTransport(Transport):
 
     def _init(self):
         j.logger.log("check server is reachable on %s on port %s" % (self._addr, self._port), level=4, category='zdaemon.client.init')
-        res = j.system.net.waitConnectionTest(self._addr, self._port, 10)
+        res = j.sal.nettools.waitConnectionTest(self._addr, self._port, 10)
 
         if res == False:
             msg = "Could not find a running server instance on %s:%s" % (self._addr, self._port)
@@ -67,7 +67,7 @@ class ZDaemonTransport(Transport):
 
         self._cmdchannel.setsockopt(self.zmq.IDENTITY, str(self._id))
 
-        # if self.port == 4444 and j.system.platformtype.isLinux():
+        # if self.port == 4444 and j.core.platformtype.isLinux():
         #     self.cmdchannel.connect("ipc:///tmp/cmdchannel_clientdaemon")
         #     print "IPC channel opened to client daemon"
         # else:

@@ -20,7 +20,7 @@ log=False
 
 
 def action(port):
-    return j.system.net.checkListenPort(int(port))
+    return j.sal.nettools.checkListenPort(int(port))
 
 if __name__ == '__main__':
     if not len(sys.argv) == 2:

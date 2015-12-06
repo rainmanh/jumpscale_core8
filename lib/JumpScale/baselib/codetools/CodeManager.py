@@ -595,7 +595,7 @@ class CodeManagerFile():
             linenr=self.findLineNr(item)
             [infoitems,timeitem,users,tags,descr]=self.parseBasics(item)
             tags=tags.lower()
-            tt=j.core.tags.getObject(tags)
+            tt=j.data.tags.getObject(tags)
             if tt.tagExists("line"):
                 linesfromto=tt.tagGet("line")
                 items=linesfromto.split(",")
@@ -618,7 +618,7 @@ class CodeManagerFile():
         
         
     def errorTrap(self,msg):
-        j.console.echo("ERROR: %s" % msg)   
+        j.tools.console.echo("ERROR: %s" % msg)   
 
     def __str__(self):
         ss=""

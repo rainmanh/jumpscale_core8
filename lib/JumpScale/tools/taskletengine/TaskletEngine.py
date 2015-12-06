@@ -62,7 +62,7 @@ class Tasklet:
     def checkExecute4method(self, args={}, params={}, actor=None, tags=None):
         if tags != None:
             if j.core.types.string.check(tags):
-                tags = j.core.tags.getObject(tags)
+                tags = j.data.tags.getObject(tags)
 
         args = j.core.params.get(args)
 
@@ -212,7 +212,7 @@ class TaskletEngine():
             params.result = None
 
         if j.core.types.string.check(tags):
-            tags = j.core.tags.getObject(tags)
+            tags = j.data.tags.getObject(tags)
         else:
             tags = tags
 
@@ -233,7 +233,7 @@ class TaskletEngine():
 
         if "tags" in args:
             if j.core.types.string.check(args["tags"]):
-                tags = j.core.tags.getObject(args["tags"])
+                tags = j.data.tags.getObject(args["tags"])
             else:
                 tags = args["tags"]
         else:

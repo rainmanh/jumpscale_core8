@@ -27,7 +27,7 @@ class MonitorClient(object):
 
         #LETS NOT DO TOTAL FOR NOW
         # if aggrkey!="":
-        #     tags=j.core.tags.getObject(tags)
+        #     tags=j.data.tags.getObject(tags)
         #     try:
         #         tags.tagDelete("node")
         #     except:

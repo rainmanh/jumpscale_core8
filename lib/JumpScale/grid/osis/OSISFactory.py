@@ -237,7 +237,7 @@ class OSISFactory:
 
             for modelName in modelNames:
                 modelspec = j.core.specparser.getModelSpec("osismodel", namespace, modelName)
-                modeltags = j.core.tags.getObject(modelspec.tags)
+                modeltags = j.data.tags.getObject(modelspec.tags)
 
                 # # will generate the tasklets
                 # modelHasTasklets = modeltags.labelExists("tasklets")
@@ -250,8 +250,8 @@ class OSISFactory:
                 code = j.core.codegenerator.getCodeJSModel("osismodel", namespace, modelName)
                 if modelspec.tags == None:
                     modelspec.tags = ""
-                index = j.core.tags.getObject(modelspec.tags).labelExists("index")
-                tags = j.core.tags.getObject(modelspec.tags)
+                index = j.data.tags.getObject(modelspec.tags).labelExists("index")
+                tags = j.data.tags.getObject(modelspec.tags)
 
                 classnameGenerated="JSModel_%s_%s_%s"%("osismodel", namespace, modelName)
                 classnameNew="%s_%s"%(namespace,modelName)

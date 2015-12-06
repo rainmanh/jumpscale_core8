@@ -79,7 +79,7 @@ class CodeGeneratorActorClass(CodeGeneratorBase):
         spec = self.spec
         s = "def %s({paramcodestr}, **kwargs):\n" % method.name
         descr = ""
-        methodtags = j.core.tags.getObject(method.tags)
+        methodtags = j.data.tags.getObject(method.tags)
         method.hasTasklets = methodtags.labelExists("tasklets")
 
         if method.description != "":

@@ -972,7 +972,11 @@ class OurCuisine():
 
     def user_passwd(self,name, passwd, encrypted_passwd=True):
         """Sets the given user password. Password is expected to be encrypted by default."""
-        encoded_password = base64.b64encode("%s:%s" % (name, passwd))
+        if passwd.strip()=="":
+            raise RuntimeError("passwd cannot be empty")
+
+        c="%s:%s" % (name, passwd)        
+        encoded_password = base64.b64encode(c.encode('ascii'))
         if encrypted_passwd:
             self.sudo("usermod -p '%s' %s" % (passwd,name))
         else:
@@ -992,7 +996,7 @@ class OurCuisine():
         if uid:
             options.append("-u '%s'" % (uid))
         #if group exists already but is not specified, useradd fails
-        if not gid and group_check(name):
+        if not gid and self.group_check(name):
             gid = name
         if gid:
             options.append("-g '%s'" % (gid))

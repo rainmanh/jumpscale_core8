@@ -11,9 +11,9 @@ parser = cmdutils.ArgumentParser()
 j.logger.enabled = True
 j.logger.consolelogCategories.append('atyourserviceAction')
 
-commands = ['init', 'install', 'list', 'stop', 'start', 'restart', 'build', 'prepare', "mdupdate", "update", "reset", "resetstate",
-            "removedata", "monitor", "configure", "cleanup", "export", "import", "uninstall", "push", "execute",
-            "status", "check","nodes", "console", "hrdpath", "makelocal", "apply", "applyprint"]
+commands = ['init', 'list', 'stop', 'start', 'restart', 'build', "mdupdate", "reset", "resetstate",
+            "removedata", "monitor", "configure", "cleanup", "export", "import", "uninstall",
+            "status", "check","nodes", "apply", "applyprint","hrdpath"]
 
 help = """
 ays commands:
@@ -26,10 +26,6 @@ ays commands:
     check:
     - walk over all known ays check the action & template files, see if change
     - check if instance files changed
-    install: (avoid doing this manually, apply will do this automatically)
-    - download all related git repo's (if not downloaded yet, otherwise update)
-    - prepare & copyfiles & configure
-    - start the app
     list:
     - list the ayses
     stop-start-restart
@@ -38,10 +34,6 @@ ays commands:
     - build happens to production dir
     mdupdate
     - update all git repo's which have services metadata
-    update
-    - go over all related repo's & do an update
-    - copy the files again
-    - restart the app
     reset
     - remove build repo's !!!
     - remove state of the app (same as resetstate) in jumpscale (the configuration info)
@@ -50,9 +42,6 @@ ays commands:
     - remove state of the app (same as resetstate) in jumpscale (the configuration info)
     removedata
     - remove data of app (e.g. database, e.g. vmachine when node ays)
-    execute
-    - execute cmd on service e.g. ssh cmd on node ays or sql statement on database ...
-    - use --cmd with to specify command to be execute
     monitor
     - do uptime check, local monitor & remote monitor check, if all ok return True
     configure (avoid doing this manually, apply will do this automatically)
@@ -67,8 +56,6 @@ ays commands:
     - display status of installed ayses (domain, name, priority, version, port)
     nodes
     - display all remote nodes available for ays remote execution
-    console
-    - connect thourgh ssh to remote node
     hrdpath
     - return the path to the hrd directory
 """
@@ -138,7 +125,7 @@ def getHRDData(args):
                     var, data = line.split("=", 1)
                     hrddata[var.strip()] = data.strip()
         else:
-            tags = j.core.tags.getObject(args.data)
+            tags = j.data.tags.getObject(args.data)
             hrddata = tags.getDict()
     return hrddata
 
@@ -249,7 +236,7 @@ elif args.action == 'hrdpath':
 #     if args.tolocal and j.sal.fs.exists(args.tolocal):
 #         servicefiles = j.sal.fs.walk(args.tolocal, recurse=1, pattern='service.hrd', return_folders=0, return_files=1, followSoftlinks=False)
 #         for servicefile in servicefiles:
-#             remotehrd = j.core.hrd.get(servicefile, prefixWithName=False)
+#             remotehrd = j.data.hrd.get(servicefile, prefixWithName=False)
 #             remotehrd.delete('producer.node')
 #             remotehrd.delete('service.parent')
 #             remotehrd.save()

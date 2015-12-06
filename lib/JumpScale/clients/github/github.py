@@ -23,7 +23,7 @@ class GitHubClient(object):
         if j.sal.fs.exists(self.basedir):
             j.sal.fs.removeDirTree(self.basedir)
         tmpfile = j.sal.fs.getTempFileName()
-        j.system.net.download(self._url, tmpfile)
+        j.sal.nettools.download(self._url, tmpfile)
         zp = ZipFile(tmpfile)
         zp.extract(self._accountdir)
 

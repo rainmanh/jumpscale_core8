@@ -370,7 +370,7 @@ class ErrorConditionHandler():
 
         # print "jumpscale EXCEPTIONHOOK"
         if self.inException:
-            print("ERROR IN EXCEPTION HANDLING ROUTINES, which causes recursive errorhandling behaviour.")
+            print("ERROR IN EXCEPTION HANDLING ROUTINES, which causes recursive errorhandling behavior.")
             print(pythonExceptionObject)
             return 
 
@@ -477,11 +477,11 @@ class ErrorConditionHandler():
         """
         return
         # if "action" in j.__dict__ and j.action.hasRunningActions():
-        #     j.console.echo("\n\n")
+        #     j.tools.console.echo("\n\n")
         #     j.action.printOutput()
-        #     j.console.echo("\n\n")
-        #     j.console.echo( "ERROR:\n%s\n" % j.action._runningActions[-1].errorMessage)
-        #     j.console.echo( "RESOLUTION:\n%s\n" % j.action._runningActions[-1].resolutionMessage)
+        #     j.tools.console.echo("\n\n")
+        #     j.tools.console.echo( "ERROR:\n%s\n" % j.action._runningActions[-1].errorMessage)
+        #     j.tools.console.echo( "RESOLUTION:\n%s\n" % j.action._runningActions[-1].resolutionMessage)
         #     j.action.clean()    
 
     def lastActionSet(self,lastActionDescription):
@@ -520,10 +520,10 @@ class ErrorConditionHandler():
                 #print "###END: BACKTRACE"                
 
             editor = None
-            if j.system.platformtype.isLinux():
-                #j.console.echo("THIS ONLY WORKS WHEN GEDIT IS INSTALLED")
+            if j.core.platformtype.isLinux():
+                #j.tools.console.echo("THIS ONLY WORKS WHEN GEDIT IS INSTALLED")
                 editor = findEditorLinux()
-            elif j.system.platformtype.isWindows():
+            elif j.core.platformtype.isWindows():
                 editorPath = j.sal.fs.joinPaths(j.dirs.baseDir,"apps","wscite","scite.exe")
                 if j.sal.fs.exists(editorPath):
                     editor = editorPath
@@ -533,13 +533,13 @@ class ErrorConditionHandler():
                 #print errorConditionObject.errormessagepublic   
                 if tb==None:
                     try:
-                        res = j.console.askString("\nAn error has occurred. Do you want do you want to do? (s=stop, c=continue, t=getTrace)")
+                        res = j.tools.console.askString("\nAn error has occurred. Do you want do you want to do? (s=stop, c=continue, t=getTrace)")
                     except:
                         #print "ERROR IN ASKSTRING TO SEE IF WE HAVE TO USE EDITOR"
                         res="s"
                 else:
                     try:
-                        res = j.console.askString("\nAn error has occurred. Do you want do you want to do? (s=stop, c=continue, t=getTrace, d=debug)")
+                        res = j.tools.console.askString("\nAn error has occurred. Do you want do you want to do? (s=stop, c=continue, t=getTrace, d=debug)")
                     except:
                         #print "ERROR IN ASKSTRING TO SEE IF WE HAVE TO USE EDITOR"
                         res="s"
@@ -555,19 +555,19 @@ class ErrorConditionHandler():
                 if res == "c":
                     return
                 elif res == "d":
-                    j.console.echo("Starting pdb, exit by entering the command 'q'")
+                    j.tools.console.echo("Starting pdb, exit by entering the command 'q'")
                     import pdb; pdb.post_mortem(tb)
                 elif res=="s":
                     #print errorConditionObject
                     j.application.stop(1)
             else:
                 #print errorConditionObject
-                res = j.console.askString("\nAn error has occurred. Do you want do you want to do? (s=stop, c=continue, d=debug)")
+                res = j.tools.console.askString("\nAn error has occurred. Do you want do you want to do? (s=stop, c=continue, d=debug)")
                 j.logger.clear()
                 if res == "c":
                     return
                 elif res == "d":
-                    j.console.echo("Starting pdb, exit by entering the command 'q'")
+                    j.tools.console.echo("Starting pdb, exit by entering the command 'q'")
                     import pdb; pdb.post_mortem()
                 elif res=="s":
                     #print eobject
@@ -577,7 +577,7 @@ class ErrorConditionHandler():
             #print "ERROR"
             #tracefile=eobject.log2filesystem()
             #print errorConditionObject
-            #j.console.echo( "Tracefile in %s" % tracefile)
+            #j.tools.console.echo( "Tracefile in %s" % tracefile)
             j.application.stop(1)
 
     def halt(self,msg, eco):

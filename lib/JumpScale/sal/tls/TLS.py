@@ -31,12 +31,12 @@ class TLS(SALObject):
         def validCountry(input):
             return False if len(input) > 2 else True
 
-        countrty = j.console.askString("Country", "AE")
-        location = j.console.askString("Location", "Dubai")
-        organisation = j.console.askString("Organisation", "GreenITGlobe")
-        orgUnit = j.console.askString('Organisation Unit', "0-complexity")
-        state = j.console.askString('State', "Dubai")
-        commonName = j.console.askString('CommonName')
+        countrty = j.tools.console.askString("Country", "AE")
+        location = j.tools.console.askString("Location", "Dubai")
+        organisation = j.tools.console.askString("Organisation", "GreenITGlobe")
+        orgUnit = j.tools.console.askString('Organisation Unit', "0-complexity")
+        state = j.tools.console.askString('State', "Dubai")
+        commonName = j.tools.console.askString('CommonName')
         return [{
             "C": countrty,
             "L": location,

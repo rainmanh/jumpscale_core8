@@ -15,7 +15,7 @@ class ServiceState():
 
         self.path = j.sal.fs.joinPaths(self.service.path, "state.hrd")
         if not j.sal.fs.exists(self.path):
-            self.hrd = j.core.hrd.get(self.path)
+            self.hrd = j.data.hrd.get(self.path)
             items = ["action_mgmt", "action_node", "action_tmpl"]
             for item in items:
                 self.hrd.set("hash.%s.py" % item, "")
@@ -27,9 +27,9 @@ class ServiceState():
             self.hrd.set("actions.changed", True)
             self.hrd.set("disabled", False)
         else:
-            self.hrd = j.core.hrd.get(self.path)
+            self.hrd = j.data.hrd.get(self.path)
 
-    def checkChangeState(self):
+    def check(self):
         if self._checkActionsChangeState():
             return True
         if self._checkHRDChangeState():
@@ -58,6 +58,7 @@ class ServiceState():
                     return True
         return False
 
+    @property
     def changed(self):
         if self.hrd.getBool("actions.changed") or \
            self.hrd.getBool("hrd.instance.changed") or \

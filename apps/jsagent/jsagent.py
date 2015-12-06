@@ -130,7 +130,7 @@ class ProcessManager():
             else:
                 redisService = redisServices[0]
                 redisService.start()
-            if j.system.net.waitConnectionTest("localhost",9999,10)==False:
+            if j.sal.nettools.waitConnectionTest("localhost",9999,10)==False:
                 j.events.opserror_critical("could not start redis on port 9999 inside processmanager",category="processmanager.redis.start")
 
         self.redis_mem=j.clients.redis.getByInstance('system')
@@ -181,7 +181,7 @@ class ProcessManager():
             acpasswd = acconfig.get("agentcontroller.client.passwd",default="")
 
             #processmanager enabled
-            while j.system.net.waitConnectionTest(acip,acport,2)==False:
+            while j.sal.nettools.waitConnectionTest(acip,acport,2)==False:
                 print(("cannot connect to agentcontroller, will retry forever: '%s:%s'"%(acip,acport)))
 
             #now register to agentcontroller

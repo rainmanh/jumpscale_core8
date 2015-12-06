@@ -22,7 +22,7 @@ class Grid(OsisBaseObject):
         """
         get ipaddr info & gid & nid from local config
         """
-        self.ipaddr=[item for item in j.system.net.getIpAddresses() if item !="127.0.0.1"]
+        self.ipaddr=[item for item in j.sal.nettools.getIpAddresses() if item !="127.0.0.1"]
         self.id= j.application.config.getInt("gridmaster.grid.id")
 
         if not j.application.config.exists("grid.node.id"):

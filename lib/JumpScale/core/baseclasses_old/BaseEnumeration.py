@@ -249,7 +249,7 @@ class BaseEnumerationMeta(type):
     obviously remove them from the parent BaseEnumeration class, but then, all at
     once, the method would be completely gone on _any_ subclass of BaseEnumeration
     as well, including unfinished enumerations. Which is not exactly the
-    desired behaviour.
+    desired behavior.
 
     How to solve this
     -----------------
@@ -282,7 +282,7 @@ class BaseEnumerationMeta(type):
 
             if not '_INTERMEDIATE_CLASS' in attrs:
                 #If the enumeration is sealed/finished, we still need to provide
-                #dummy behaviour, since registerItem etc can be re-called on it
+                #dummy behavior, since registerItem etc can be re-called on it
                 ret.registerItem = classmethod(lambda *args, **kwargs: None)
                 ret.finishItemRegistration = classmethod(generateFinishItemRegistration())
 

@@ -228,7 +228,7 @@ class RemoteSystemProcess(_remoteSystemObject):
         #@Todo: Timeout, outputToStdout, loglevel not used
         # are they usefull are simply there for backwards compatibility?
 
-        if j.system.platformtype.has_parent("unix"):
+        if j.core.platformtype.has_parent("unix"):
             exitcode, output, error = self._executeUnix(command, dieOnNonZeroExitCode)
         else:
 
@@ -278,7 +278,7 @@ class RemoteSystemProcess(_remoteSystemObject):
         command = 'kill -%(signum)s %(pid)s' % {'pid': pid, 'signum': signal.SIGTERM}
         exitCode, output = self.execute(command, dieOnNonZeroExitCode=False, outputToStdout=False)
         if exitCode:
-            j.console.echo('Failed to execute remote command %s. Reason %s' % (command, output))
+            j.tools.console.echo('Failed to execute remote command %s. Reason %s' % (command, output))
         return exitCode, output
 
 

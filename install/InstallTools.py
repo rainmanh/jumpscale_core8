@@ -88,7 +88,7 @@ class InstallTools():
 
         # print "jumpscale EXCEPTIONHOOK"
         # if self.inException:
-        #     print("ERROR IN EXCEPTION HANDLING ROUTINES, which causes recursive errorhandling behaviour.")
+        #     print("ERROR IN EXCEPTION HANDLING ROUTINES, which causes recursive errorhandling behavior.")
         #     print(pythonExceptionObject)
         #     return
 
@@ -1240,6 +1240,7 @@ class InstallTools():
             }
         if repository_name.endswith(".git"):
             repository_name=repository_name[:-4]
+        
         return protocol, repository_host, repository_account, repository_name, repository_url
 
     def parseGitConfig(self,repopath):
@@ -1566,7 +1567,7 @@ class InstallTools():
             branch (str): branch to be used
             ssh if auto will check if ssh-agent loaded, if True will be forced to use ssh for git
 
-        #### Process for finding authentication credentials:
+        #### Process for finding authentication credentials (NOT IMPLEMENTED YET)
 
         - first check there is an ssh-agent and there is a key attached to it, if yes then no login & passwd will be used & method will always be git
         - if not ssh-agent found
@@ -1596,8 +1597,10 @@ class InstallTools():
         """
 
         if url=="":
+            if dest==None:
+                raise RuntimeError("dest cannot be None (url is also '')")
             if not self.exists(dest):
-                j.events.inputerror_critical("Could not find git repo path:%s, url was not specified so git destination needs to be specified."%(dest))
+                raise RuntimeError("Could not find git repo path:%s, url was not specified so git destination needs to be specified."%(dest))
 
         if login==None and url.find("github.com/")!=-1:
             #can see if there if login & passwd in OS env
@@ -2134,6 +2137,10 @@ class Installer():
             branch:'{AYSBRANCH}',
 
         """
+        if "AYSGIT" not in os.environ or os.environ["AYSGIT"].strip()=="":
+            os.environ["AYSGIT"]="https://github.com/Jumpscale/ays_jumpscale8"
+        if "AYSBRANCH" not in os.environ or os.environ["AYSBRANCH"].strip()=="":
+            os.environ["AYSBRANCH"]="master"
         C=C.format(**os.environ)
 
         hpath="%s/hrd/system/atyourservice.hrd"%vardir

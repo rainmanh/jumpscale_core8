@@ -213,7 +213,7 @@ class PostgresClient():
                     embed()
                    
                 print("process record:%s"%r[idfound])
-                hrd=j.core.hrd.get(content=out,path="%s/%s/%s.hrd"%(path,name,str(r[idfound]).replace("/","==")))
+                hrd=j.data.hrd.get(content=out,path="%s/%s/%s.hrd"%(path,name,str(r[idfound]).replace("/","==")))
                 hrd.save()
                 
 

@@ -18,7 +18,7 @@ group.add_argument('-v','--value',required=False, help='value')
 
 opts = parser.parse_args()
 
-hrd=j.core.hrd.get("%s/hrd"%j.dirs.baseDir)
+hrd=j.data.hrd.get("%s/hrd"%j.dirs.baseDir)
 
 if opts.action == "hrdset":
     hrd.set(opts.name,opts.value)

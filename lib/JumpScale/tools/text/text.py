@@ -219,7 +219,7 @@ class Text:
             result="ERROR:UNKNOWN VAL FROM ASK"
 
             prefix,end=line.split("@ASK",1)
-            tags=j.core.tags.getObject(end.strip())
+            tags=j.data.tags.getObject(end.strip())
 
             if tags.tagExists("name"):
                 name=tags.tagGet("name")
@@ -280,16 +280,16 @@ class Text:
 
             # print "type:'%s'"%ttype
             if ttype=="str":
-                result=j.console.askString(question=descr, defaultparam=default, regex=regex, retry=retry)
+                result=j.tools.console.askString(question=descr, defaultparam=default, regex=regex, retry=retry)
 
             elif ttype=="list":
-                result=j.console.askString(question=descr, defaultparam=default, regex=regex, retry=retry)
+                result=j.tools.console.askString(question=descr, defaultparam=default, regex=regex, retry=retry)
 
             elif ttype=="multiline":
-                result=j.console.askMultiline(question=descr)
+                result=j.tools.console.askMultiline(question=descr)
 
             elif ttype=="float":
-                result=j.console.askString(question=descr, defaultparam=default, regex=None)
+                result=j.tools.console.askString(question=descr, defaultparam=default, regex=None)
                 #check getFloat
                 try:
                     result=float(result)
@@ -310,12 +310,12 @@ class Text:
 
                 if not default:
                     default=None
-                result=j.console.askInteger(question=descr,  defaultValue=default, minValue=minValue, maxValue=maxValue, retry=retry)
+                result=j.tools.console.askInteger(question=descr,  defaultValue=default, minValue=minValue, maxValue=maxValue, retry=retry)
 
             elif ttype=="bool":
                 if descr!="":
                     print(descr)
-                result=j.console.askYesNo()
+                result=j.tools.console.askYesNo()
                 if result:
                     result=1
                 else:
@@ -327,9 +327,9 @@ class Text:
                 else:
                     j.events.inputerror_critical("When type is dropdown in ask, then dropdownvals needs to be specified as well.")
                 choicearray=[item.strip() for item in dropdownvals.split(",")]
-                result=j.console.askChoice(choicearray, descr=descr, sort=True)
+                result=j.tools.console.askChoice(choicearray, descr=descr, sort=True)
             elif ttype == 'dict':
-                rawresult = j.console.askMultiline(question=descr)
+                rawresult = j.tools.console.askMultiline(question=descr)
                 result = "\n"
                 for line in rawresult.splitlines():
                     result += "    %s,\n" % line.strip().strip(',')

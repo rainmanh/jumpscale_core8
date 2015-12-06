@@ -12,7 +12,7 @@ def log(msg, level=2):
 
 class ActionsBaseMgmt(object):
     """
-    implement methods of this class to change behaviour of lifecycle management of service
+    implement methods of this class to change behavior of lifecycle management of service
     this one happens at central side from which we coordinate our efforts
     """
 
@@ -47,26 +47,16 @@ class ActionsBaseMgmt(object):
             if not exists(args, 'node.tcp.addr') or args['node.tcp.addr'].startswith('@ASK'):
                 if "ip" in args:
                     args['node.tcp.addr'] = args["ip"]
-                else:
-                    # is specified & empty see if we can find single ip address
-                    found = []
-                    for ipaddr in j.system.net.getIpAddresses():
-                        if not ipaddr.startswith("127"):
-                            found.append(ipaddr)
-                    if len(found) == 1:
-                        args['node.tcp.addr'] = found[0]
-                    else:
-                        args['node.tcp.addr'] = "localhost"
 
             if not exists(args, 'node.name'):
                 args['node.name'] = serviceObj.instance
 
-        # check if 1 of parents is of type node
-        for parent in serviceObj.parents:
-            if parent.role=="node":#.startswith("node"):
-                serviceObj.consume(serviceObj.parent)
-                args['tcp.addr'] = serviceObj.parent.hrd.get('node.tcp.addr')
-                break
+        # # check if 1 of parents is of type node
+        # for parent in serviceObj.parents:
+        #     if parent.role=="node":#.startswith("node"):
+        #         serviceObj.consume(serviceObj.parent)
+        #         args['tcp.addr'] = serviceObj.parent.hrd.get('node.tcp.addr')
+        #         break
 
         if serviceObj.template.hrd_template.getBool("ns.enable",default=False) and "ns" not in serviceObj._producers:
 
@@ -232,7 +222,7 @@ class ActionsBaseMgmt(object):
     #     gid = agent.hrd.get('gid')
     #     nid = agent.hrd.get('nid')
 
-    #     tags = j.core.tags.getTagString(labels={'ays', 'monitor'}, tags={'service': str(serviceObj)})
+    #     tags = j.data.tags.getTagString(labels={'ays', 'monitor'}, tags={'service': str(serviceObj)})
     #     client.scheduler.executeJumpscript(cron_id, cron, method=method, gid=gid, nid=nid, tags=tags)
 
     # def unschedule(self, serviceObj):
@@ -293,7 +283,7 @@ class ActionsBaseMgmt(object):
 
     def test(self,serviceObj):
         """
-        test the service on appropriate behaviour
+        test the service on appropriate behavior
         """
         pass
 

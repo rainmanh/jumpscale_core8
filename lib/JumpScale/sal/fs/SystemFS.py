@@ -22,10 +22,11 @@ from JumpScale import j
 # import JumpScale.baselib.codetools #requirement for parsePath
 # from .text import Text
 
-# toStr = Text.toStr
+toStr = j.tools.text.toStr
+
 #from JumpScale.core.decorators import deprecated
 
-# We do not use the j.system.platformtype here nor do we import the PlatformType as this would
+# We do not use the j.core.platformtype here nor do we import the PlatformType as this would
 # lead to circular imports and raise an exception
 
 if not sys.platform.startswith('win'):
@@ -174,7 +175,7 @@ def unlock_(lockname):
 
         j.sal.fs.remove(lockfile)
     # else:
-    #     j.console.echo("Lock %r not found"%lockname)
+    #     j.tools.console.echo("Lock %r not found"%lockname)
 
 
 class FileLock(object):
@@ -497,7 +498,7 @@ class SystemFS(SALObject):
         self.log('Join paths %s'%(str(args)),9)
         if args is None:
             raise TypeError('Not enough parameters %s'%(str(args)))
-        if j.system.platformtype.isWindows():
+        if j.core.platformtype.isWindows():
             args2=[]
             for item in args:
                 item=item.replace("/","\\")
@@ -560,7 +561,7 @@ class SystemFS(SALObject):
         @rtype: string
         """
         cleanedPath = os.path.normpath(path)
-        if j.system.platformtype.isWindows() and self.exists(cleanedPath):
+        if j.core.platformtype.isWindows() and self.exists(cleanedPath):
             # Only execute on existing paths, otherwise an error will be raised
             import win32api
             cleanedPath = win32api.GetShortPathName(cleanedPath)
@@ -800,12 +801,12 @@ class SystemFS(SALObject):
         self.log('Read link with path: %s'%path,8)
         if path is None:
             raise TypeError('Path is not passed in system.fs.readLink')
-        if j.system.platformtype.isUnix():
+        if j.core.platformtype.isUnix():
             try:
                 return os.readlink(path)
             except Exception as e:
                 raise RuntimeError('Failed to read link with path: %s \nERROR: %s'%(path, str(e)))
-        elif j.system.platformtype.isWindows():
+        elif j.core.platformtype.isWindows():
             raise RuntimeError('Cannot readLink on windows')
 
     def removeLinks(self,path):
@@ -1093,10 +1094,10 @@ class SystemFS(SALObject):
         if not j.sal.fs.exists(dir):
             j.sal.fs.createDir(dir)
 
-        if j.system.platformtype.isUnix():
+        if j.core.platformtype.isUnix():
             self.log(  "Creating link from %s to %s" %( path, target) )
             os.symlink(path, target)
-        elif j.system.platformtype.isWindows():
+        elif j.core.platformtype.isWindows():
             path=path.replace("+",":")
             cmd="junction \"%s\" \"%s\"" % (self.pathNormalize(target).replace("\\","/"),self.pathNormalize(path).replace("\\","/"))
             print(cmd)
@@ -1113,7 +1114,7 @@ class SystemFS(SALObject):
         if (source is None):
             raise TypeError('Source path is not passed in system.fs.hardlinkFile')
         try:
-            if j.system.platformtype.isUnix():
+            if j.core.platformtype.isUnix():
                 return os.link(source, destin)
             else:
                 raise RuntimeError('Cannot create a hard link on windows')
@@ -1202,7 +1203,7 @@ class SystemFS(SALObject):
         if ( path is None):
             raise TypeError('Link path is None in system.fs.isLink')
 
-        if checkJunction and j.system.platformtype.isWindows():
+        if checkJunction and j.core.platformtype.isWindows():
             cmd="junction %s" % path
             try:
                 result=j.sal.process.execute(cmd)
@@ -1836,7 +1837,7 @@ class SystemFS(SALObject):
         for item in array:
             path=path+os.sep+item
         path=path+os.sep
-        if j.system.platformtype.isUnix():
+        if j.core.platformtype.isUnix():
             path=path.replace("//","/")
             path=path.replace("//","/")
         return path
@@ -1899,7 +1900,7 @@ class SystemFS(SALObject):
                     path=j.sal.fs.readlink(path)
                 self.log("fs.tar: add file %s to tar" % path,7)
                 # print "fstar: add file %s to tar" % path
-                if not (j.system.platformtype.isWindows() and j.system.windows.checkFileToIgnore(path)):
+                if not (j.core.platformtype.isWindows() and j.system.windows.checkFileToIgnore(path)):
                     if self.isFile(path) or  self.isLink(path):
                         tarfile.add(path,destpath)
                     else:
@@ -1952,7 +1953,7 @@ class SystemFS(SALObject):
             j.sal.fs.createDir(destinationdir)
 
         # The tar of python does not create empty directories.. this causes manny problem while installing so we choose to use the linux tar here
-        if  j.system.platformtype.isWindows():
+        if  j.core.platformtype.isWindows():
             tar = tarfile.open(sourceFile)
             tar.extractall(destinationdir)
             tar.close()

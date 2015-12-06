@@ -72,7 +72,7 @@ class ActionController(object):
         j.logger.log('[ACTIONS] Clearing all actions', 5)
         self._actions = list()
         #TODO Get rid of this when reworking console handling properly
-        j.console.showOutput()
+        j.tools.console.showOutput()
 
     def hasRunningActions(self):
         '''Check whether actions are currently running

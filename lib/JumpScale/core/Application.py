@@ -103,7 +103,7 @@ class Application:
 
 
     def loadConfig(self):
-        self.config = j.core.hrd.get(path=j.dirs.hrd)
+        self.config = j.data.hrd.get(path=j.dirs.hrd)
 
     def initWhoAmI(self, reload=False):
         """
@@ -217,7 +217,7 @@ class Application:
         # os._exit(exitcode) Exit to the system with status n, without calling cleanup handlers, flushing stdio buffers, etc. Availability: Unix, Windows.
 
         self._calledexit = True  # exit will raise an exception, this will bring us to _exithandler
-                              # to remember that this is correct behaviour we set this flag
+                              # to remember that this is correct behavior we set this flag
 
         #tell gridmaster the process stopped
 
@@ -290,14 +290,14 @@ class Application:
         """
         try:
             pid = os.getpid()
-            if j.system.platformtype.isWindows():
+            if j.core.platformtype.isWindows():
                 return 0
-            if j.system.platformtype.isLinux():
+            if j.core.platformtype.isLinux():
                 command = "ps -o pcpu %d | grep -E --regex=\"[0.9]\""%pid
                 j.logger.log("getCPUusage on linux with: %s" % command, 8)
                 exitcode, output = j.sal.process.execute(command, True, False)
                 return output
-            elif j.system.platformtype.isSolaris():
+            elif j.core.platformtype.isSolaris():
                 command = 'ps -efo pcpu,pid |grep %d'%pid
                 j.logger.log("getCPUusage on linux with: %s" % command, 8)
                 exitcode, output = j.sal.process.execute(command, True, False)
@@ -314,15 +314,15 @@ class Application:
         """
         try:
             pid = os.getpid()
-            if j.system.platformtype.isWindows():
+            if j.core.platformtype.isWindows():
                 # Not supported on windows
                 return "0 K"
-            elif j.system.platformtype.isLinux():
+            elif j.core.platformtype.isLinux():
                 command = "ps -o pmem %d | grep -E --regex=\"[0.9]\""%pid
                 j.logger.log("getMemoryUsage on linux with: %s" % command, 8)
                 exitcode, output = j.sal.process.execute(command, True, False)
                 return output
-            elif j.system.platformtype.isSolaris():
+            elif j.core.platformtype.isSolaris():
                 command = "ps -efo pcpu,pid |grep %d"%pid
                 j.logger.log("getMemoryUsage on linux with: %s" % command, 8)
                 exitcode, output = j.sal.process.execute(command, True, False)
@@ -343,17 +343,17 @@ class Application:
             if machineguid.strip():
                 return machineguid
 
-        nics = j.system.net.getNics()
-        if j.system.platformtype.isWindows():
+        nics = j.sal.nettools.getNics()
+        if j.core.platformtype.isWindows():
             order = ["local area", "wifi"]
             for item in order:
                 for nic in nics:
                     if nic.lower().find(item) != -1:
-                        return j.system.net.getMacAddress(nic)
+                        return j.sal.nettools.getMacAddress(nic)
         macaddr = []
         for nic in nics:
             if nic.find("lo") == -1:
-                nicmac = j.system.net.getMacAddress(nic)
+                nicmac = j.sal.nettools.getMacAddress(nic)
                 macaddr.append(nicmac.replace(":", ""))
         macaddr.sort()
         if len(macaddr) < 1:

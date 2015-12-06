@@ -60,7 +60,7 @@ class Admin():
     def load(self):
         j.sal.fs.copyDirTree("%s/jumpscripts"%self.root,"%s/jumpscripts"%self.tmpdir)
 
-        self.hrd=j.core.hrd.get(self.startdir,prefixWithName=True)
+        self.hrd=j.data.hrd.get(self.startdir,prefixWithName=True)
         self.hrd.applyOnDir(self.tmpdir)
 
         from IPython import embed
@@ -144,7 +144,7 @@ class Admin():
         return node
 
         if gridname=="":
-            if j.system.net.pingMachine(name.strip("/").strip(),1):
+            if j.sal.nettools.pingMachine(name.strip("/").strip(),1):
                 node=JNode()
                 node.ip=name
                 node.hostname=name
@@ -213,7 +213,7 @@ class Admin():
             if jsname not in j.admin.js:
                 self.raiseError("executejs","cannot find js:%s"%jsname)
 
-            if sshtest and not j.system.net.waitConnectionTest(node.ip,22, self.args.timeout):
+            if sshtest and not j.sal.nettools.waitConnectionTest(node.ip,22, self.args.timeout):
                 self.raiseError("executejs","jscript:%s,COULD NOT check port (ssh)"%jsname)
                 return
             try:                
@@ -333,11 +333,11 @@ class Admin():
             raise RuntimeError("cannot find path for key %s, was keygen well executed"%keyloc)
         key=j.sal.fs.fileGetContents(keyloc).strip()
         c=""
-        login=j.console.askString("official loginname (e.g. despiegk)")
-        c+="id.name=%s\n"%j.console.askString("fullname")
-        c+="id.email=%s\n"%j.console.askString("email")
-        c+="id.mobile=%s\n"%j.console.askString("mobile")
-        c+="id.skype=%s\n"%j.console.askString("skype")
+        login=j.tools.console.askString("official loginname (e.g. despiegk)")
+        c+="id.name=%s\n"%j.tools.console.askString("fullname")
+        c+="id.email=%s\n"%j.tools.console.askString("email")
+        c+="id.mobile=%s\n"%j.tools.console.askString("mobile")
+        c+="id.skype=%s\n"%j.tools.console.askString("skype")
 
         c+="id.key.dsa.pub=%s\n"%key
 

@@ -86,7 +86,7 @@ class Avahi():
         @return: the hostname attached to the ip address
         """
         # do some validation
-        if not j.system.net.validateIpAddress(ipAddress):
+        if not j.sal.nettools.validateIpAddress(ipAddress):
             raise ValueError('Invalid Ip Address')
         cmd = 'avahi-resolve-address %s'
         exitCode, output = j.sal.process.execute(cmd % ipAddress, dieOnNonZeroExitCode=False, outputToStdout=False)

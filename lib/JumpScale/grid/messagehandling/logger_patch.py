@@ -11,7 +11,7 @@ def _doNothing(*args, **kwargs):
 class LoggerPatch(object):
 
     '''
-    This logger patch extension changes the log behaviour of Qshell. This is
+    This logger patch extension changes the log behavior of Qshell. This is
     done by monkey patching the logger which makes it forward all logging to
     a message server. Note that this patch is automatically applied when the
     extension is loaded. However, it will not if the necessary message server

@@ -10,7 +10,7 @@ class DiskManager(SALObject):
     def _loadhrd(self, mount):
         hrdpath = j.tools.path.get(mount).joinpath('.disk.hrd')
         if hrdpath.exists():
-            return j.core.hrd.get(hrdpath)
+            return j.data.hrd.get(hrdpath)
 
     def _loaddisks(self, blks):
         """

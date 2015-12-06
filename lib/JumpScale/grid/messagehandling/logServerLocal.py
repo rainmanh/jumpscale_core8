@@ -126,14 +126,14 @@ Retrying to forward message to %(address)s in %(interval)d seconds'''
 
 class MessageServer(object):
 
-    FORWARD_MESSAGES_BATCH_SIZE = 100  # @todo queues have been removed this introduced completely different behaviour
+    FORWARD_MESSAGES_BATCH_SIZE = 100  # @todo queues have been removed this introduced completely different behavior
 
     def __init__(self, address, storeLocally):
         self._address = 'tcp://%s' % address
         self._storeLocally = storeLocally
 
         self._socket = None
-        self._messages = Queue()  # @todo there were multiple queues for the 4 styles which is needed because different behaviour required
+        self._messages = Queue()  # @todo there were multiple queues for the 4 styles which is needed because different behavior required
         self._stats = {
             'received': 0,
             'processed': 0,

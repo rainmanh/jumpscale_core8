@@ -28,7 +28,7 @@ def processLogin(parser):
     #     if j.application.config.exists("grid.master.superadminpasswd"):
     #         opts.passwd=j.application.config.get("grid.master.superadminpasswd")
     #     else:
-    #         opts.passwd=j.console.askString("please provide superadmin passwd for the grid.")
+    #         opts.passwd=j.tools.console.askString("please provide superadmin passwd for the grid.")
 
     # if opts.addr==None:    
     #     opts.addr=j.application.config.get("grid.master.ip")

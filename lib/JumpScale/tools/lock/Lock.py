@@ -12,7 +12,7 @@ from JumpScale import j
 
 # THIS METHOD IS NOT THREADSAFE
 
-#TODO Fixup singleton-like behaviour
+#TODO Fixup singleton-like behavior
 class Lock:
 
     _LOCKPATHLINUX = "/tmp/run"
@@ -30,7 +30,7 @@ class Lock:
         if locktimeout < 0:
             raise RuntimeError("Cannot take lock [%s] with negative timeout [%d]" % (lockname, locktimeout))
 
-        if j.system.platformtype.isUnix():
+        if j.core.platformtype.isUnix():
             # linux implementation
             lockfile = self._LOCKPATHLINUX + os.sep + self.cleanupString(lockname)
             j.sal.fs.createDir(Util._LOCKPATHLINUX)
@@ -52,12 +52,12 @@ class Lock:
                 myfile.close()
                 raise RuntimeError("Cannot acquire lock [%s]" % (lockname))
 
-        elif j.system.platformtype.isWindows():
+        elif j.core.platformtype.isWindows():
             raise NotImplementedError
 
     def unlock(self, lockname):
         """ Unlock system-wide interprocess lock """
-        if j.system.platformtype.isUnix():
+        if j.core.platformtype.isUnix():
             try:
                 myfile = self.__LOCKDICTIONARY.pop(lockname)
                 fcntl.flock(myfile.fileno(), fcntl.LOCK_UN)
@@ -65,5 +65,5 @@ class Lock:
             except Exception as exc:
                 raise RuntimeError("Cannot unlock [%s] with ERROR:%s" % (lockname, str(exc)))
 
-        elif j.system.platformtype.isWindows():
+        elif j.core.platformtype.isWindows():
             raise NotImplementedError

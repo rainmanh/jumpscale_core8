@@ -63,7 +63,7 @@ class ServiceTemplate(object):
                     return self._hrd
             j.events.opserror_critical(msg="can't find %s." % hrdpath, category="ays load hrd template")
         else:
-            self._hrd = j.core.hrd.get(hrdpath, prefixWithName=False)
+            self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
         return self._hrd
 
     @property
@@ -82,7 +82,7 @@ class ServiceTemplate(object):
                     return self._hrd_instance
             j.events.opserror_critical(msg="can't find %s." % hrdpath, category="ays load hrd instance")
         else:
-            self._hrd_instance = j.core.hrd.get(hrdpath, prefixWithName=False)
+            self._hrd_instance = j.data.hrd.get(hrdpath, prefixWithName=False)
         return self._hrd_instance
 
     @property
@@ -325,7 +325,7 @@ class ServiceTemplate(object):
             j.sal.fs.createDir(destdir)
             # validate md5sum
             if recipeitem.get('checkmd5', 'false').lower() == 'true' and j.sal.fs.exists(dest):
-                remotemd5 = j.system.net.download(
+                remotemd5 = j.sal.nettools.download(
                     '%s.md5sum' % fullurl, '-').split()[0]
                 localmd5 = j.tools.hash.md5(dest)
                 if remotemd5 != localmd5:
@@ -334,11 +334,11 @@ class ServiceTemplate(object):
                     continue
             elif j.sal.fs.exists(dest):
                 j.sal.fs.remove(dest)
-            j.system.net.download(fullurl, dest)
+            j.sal.nettools.download(fullurl, dest)
 
         for recipeitem in self.hrd_template.getListFromPrefix("git.export"):
             if "platform" in recipeitem:
-                if not j.system.platformtype.checkMatch(recipeitem["platform"]):
+                if not j.core.platformtype.checkMatch(recipeitem["platform"]):
                     continue
 
             # pull the required repo

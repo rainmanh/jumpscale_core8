@@ -44,7 +44,7 @@ class TEST(unittest.TestCase):
         #start 5 agents, see that they sort of equally executed the tasks
         pass
 
-    def test_killbehaviour(self):
+    def test_killbehavior(self):
         #1 agent running
         #launch 2 jobs: wait of 5 sec test (put timeout inside of 6 sec, so if job not done after 6 sec we should be warned)
         #kill agent 

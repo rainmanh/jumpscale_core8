@@ -28,7 +28,7 @@ if opts.action =='deleteall':
     es = j.clients.elasticsearch.get()
 
     if opts.force==None:
-        if j.console.askString("Are you sure to delete full osis & elasticsearch indexes, type YES") != "YES":
+        if j.tools.console.askString("Are you sure to delete full osis & elasticsearch indexes, type YES") != "YES":
             print("did not see yes, will not continue")
             j.application.stop()
 
@@ -50,7 +50,7 @@ if opts.action =='deleteall':
     #     namespaces.pop(namespaces.index("logger"))
 
     # if opts.force==None:
-    #     namespaces=j.console.askChoiceMultiple(namespaces)
+    #     namespaces=j.tools.console.askChoiceMultiple(namespaces)
     # for namespace in namespaces:
     #     path="%s/apps/osis/logic/%s"%(j.dirs.baseDir,namespace)
     #     j.sal.fs.removeDirTree(path)
@@ -67,13 +67,13 @@ if opts.action =='delete':
 
     if opts.namespace==None:
         print("Namespace:")
-        namespace=j.console.askChoice(cl.listNamespaces())
+        namespace=j.tools.console.askChoice(cl.listNamespaces())
     else:
         namespace=opts.namespace.strip()
 
     if opts.model==None:
         print("Model:")
-        models=j.console.askChoiceMultiple(cl.listNamespaceCategories(namespace))
+        models=j.tools.console.askChoiceMultiple(cl.listNamespaceCategories(namespace))
     else:
         models=opts.model.split(",")
     
@@ -92,18 +92,18 @@ if opts.action =='export':
 
     if not opts.namespace:
         print("Namespace: ")
-        namespace = j.console.askChoice(cl.listNamespaces())
+        namespace = j.tools.console.askChoice(cl.listNamespaces())
     else:
         namespace = opts.namespace.strip()
 
     if not opts.category:
         print("Category: ")
-        category = j.console.askChoice(cl.listNamespaceCategories(namespace))
+        category = j.tools.console.askChoice(cl.listNamespaceCategories(namespace))
     else:
         category = opts.category.strip()
 
     if not opts.outputpath:
-        outputpath = j.console.askString("Output path")
+        outputpath = j.tools.console.askString("Output path")
     else:
         outputpath = opts.outputpath.strip()
 
@@ -119,7 +119,7 @@ if opts.action =='exportall':
     cl = j.core.osis.getByInstance('main')
 
     if not opts.outputpath:
-        outputpath = j.console.askString("Output path")
+        outputpath = j.tools.console.askString("Output path")
     else:
         outputpath = opts.outputpath.strip()
 
@@ -145,7 +145,7 @@ if opts.action =='importall':
     cl = j.core.osis.getByInstance('main')
 
     if not opts.path:
-        path = j.console.askString("Path")
+        path = j.tools.console.askString("Path")
     else:
         path = opts.path.strip()
 
@@ -164,18 +164,18 @@ if opts.action =='import':
 
     if not opts.namespace:
         print("Namespace: ")
-        namespace = j.console.askChoice(cl.listNamespaces())
+        namespace = j.tools.console.askChoice(cl.listNamespaces())
     else:
         namespace = opts.namespace.strip()
 
     if not opts.category:
         print("Category: ")
-        category = j.console.askChoice(cl.listNamespaceCategories(namespace))
+        category = j.tools.console.askChoice(cl.listNamespaceCategories(namespace))
     else:
         category = opts.category.strip()
 
     if not opts.path:
-        path = j.console.askString("Path to import from")
+        path = j.tools.console.askString("Path to import from")
     else:
         path = opts.path.strip()
 

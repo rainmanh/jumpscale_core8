@@ -135,7 +135,7 @@ class Dirs(object):
         if reinit==False and self.__initialized == True:
             return True
 
-        # if j.system.platformtype.isWindows() :
+        # if j.core.platformtype.isWindows() :
         #     self.codeDir=os.path.join(self.baseDir, 'code')
 
         self.loadProtectedDirs()

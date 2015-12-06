@@ -19,7 +19,7 @@ class OSISInstanceNoDB(object):
 
         self.listProps = ["id", "guid"]
         for propspec in self.spec.properties:
-            tags = j.core.tags.getObject(propspec.tags)
+            tags = j.data.tags.getObject(propspec.tags)
             if tags.labelExists("list"):
                 if propspec.name not in self.listProps:
                     self.listProps.append(propspec.name)

@@ -221,7 +221,7 @@ class Diskmanager(SALObject):
                                     hrdpath="%s/disk.hrd"%mountpoint
 
                                     if j.sal.fs.exists(hrdpath):
-                                        hrd=j.core.hrd.get(hrdpath)
+                                        hrd=j.data.hrd.get(hrdpath)
                                         partnr=hrd.getInt("diskinfo.partnr")
                                         if partnr==0 or forceinitialize:
                                             j.sal.fs.remove(hrdpath)
@@ -236,9 +236,9 @@ diskinfo.epoch=
 diskinfo.description=
 """
                                         j.sal.fs.writeFile(filename=hrdpath,contents=C)
-                                        hrd=j.core.hrd.get(hrdpath)
-                                        hrd.set("diskinfo.description",j.console.askString("please give description for disk"))
-                                        hrd.set("diskinfo.type",",".join(j.console.askChoiceMultiple(["BOOT","CACHE","TMP","DATA","OTHER"])))
+                                        hrd=j.data.hrd.get(hrdpath)
+                                        hrd.set("diskinfo.description",j.tools.console.askString("please give description for disk"))
+                                        hrd.set("diskinfo.type",",".join(j.tools.console.askChoiceMultiple(["BOOT","CACHE","TMP","DATA","OTHER"])))
                                         hrd.set("diskinfo.gid",j.application.whoAmI.gid)
                                         hrd.set("diskinfo.nid",j.application.whoAmI.nid)
                                         hrd.set("diskinfo.epoch",j.tools.time.getTimeEpoch())
@@ -263,7 +263,7 @@ diskinfo.description=
                                         diskid=disk.id
                                         hrd.set("diskinfo.partnr",diskid)
                                     if j.sal.fs.exists(hrdpath):
-                                        # hrd=j.core.hrd.get(hrdpath)
+                                        # hrd=j.data.hrd.get(hrdpath)
                                         disko.id=hrd.get("diskinfo.partnr")
                                         disko.type=hrd.get("diskinfo.type").split(",")
                                         disko.type.sort()

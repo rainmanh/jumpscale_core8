@@ -12,7 +12,7 @@ class ExecutorBase():
         if "code" not in self.dest_prefixes:
             self.dest_prefixes["code"]="/opt/code"
         if "var" not in self.dest_prefixes:
-            self.dest_prefixes["var"]="/opt/jumpscale7/var"
+            self.dest_prefixes["var"]="/opt/jumpscale8/var"
         if "images" not in self.dest_prefixes:
             self.dest_prefixes["images"]="/mnt/images"
         if "vm" not in self.dest_prefixes:
@@ -33,7 +33,7 @@ class ExecutorBase():
         check if certain platform is supported
         e.g. can do check on unix, or linux, will check all
         """
-        if name in j.system.platformtype.getParents(self.platformtype):
+        if name in j.core.platformtype.getParents(self.platformtype):
             return True
         return False
 
@@ -93,5 +93,7 @@ class ExecutorBase():
     def cuisine(self):
         if self._cuisine==None:
             self._cuisine=j.tools.cuisine.get(self)
+            self._cuisine.executor=self
+            self._cuisine.sshclient=self.sshclient
         return self._cuisine
         

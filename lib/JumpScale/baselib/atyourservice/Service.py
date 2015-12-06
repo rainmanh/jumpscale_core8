@@ -61,7 +61,7 @@ class Service(object):
         # self.processed = dict()
         if j.core.types.string.check(servicetemplate):
             # load from existing instance, get template data from template.hrd
-            tmpl_hrd = j.core.hrd.get(servicetemplate, prefixWithName=False)
+            tmpl_hrd = j.data.hrd.get(servicetemplate, prefixWithName=False)
             self.name = tmpl_hrd.getStr('name').lower()
             self.version = tmpl_hrd.getStr('version')
             self.domain = tmpl_hrd.getStr('domain').lower()
@@ -176,7 +176,7 @@ class Service(object):
         if not j.sal.fs.exists(hrdpath):
             self._apply()
         else:
-            self._hrd = j.core.hrd.get(hrdpath, prefixWithName=False)
+            self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
         return self._hrd
 
     @property
@@ -184,7 +184,7 @@ class Service(object):
         if self._hrd_template:
             return self._hrd_template
         path = j.sal.fs.joinPaths(self.path, "template.hrd")
-        self._hrd_template = j.core.hrd.get(path, prefixWithName=False)
+        self._hrd_template = j.data.hrd.get(path, prefixWithName=False)
         return self._hrd_template
 
     @property
@@ -192,7 +192,7 @@ class Service(object):
         if self._state:
             return self._state
         self._state = ServiceState(self)
-        if self._state.checkChangeState():
+        if self._state.check():
             self._state.saveState()
         return self._state
 
@@ -482,7 +482,7 @@ class Service(object):
         j.do.copyFile(source, "%s/template.hrd" % self.path)
 
         path_templatehrd = "%s/template.hrd" % self.path
-        tmpl_hrd = j.core.hrd.get(path_templatehrd, prefixWithName=False)
+        tmpl_hrd = j.data.hrd.get(path_templatehrd, prefixWithName=False)
 
         tmpl_hrd.set('domain', self.domain)
         tmpl_hrd.set('name', self.name)
@@ -499,7 +499,7 @@ class Service(object):
             source = self.template.path_hrd_instance
             j.do.copyFile(source, path_instancehrd)
 
-            hrd = j.core.hrd.get(path_instancehrd, prefixWithName=False)
+            hrd = j.data.hrd.get(path_instancehrd, prefixWithName=False)
             args0 = {}
             for key, item in self.template.hrd_instance.items.items():
                 if item.data.startswith("@ASK"):
@@ -517,7 +517,7 @@ class Service(object):
 
             for key,item in hrd.items.items():
                 if j.core.types.string.check(item.data) and item.data.find("@ASK") != -1:
-                    item.get() #SHOULD DO THE ASK
+                    item.get() #SHOULD DO THE ASK                    
 
             producers0={}
             for key, services in self._producers.items():#hrdnew.getDictFromPrefix("producer").iteritems():
@@ -544,12 +544,12 @@ class Service(object):
             hrd.path=path_instancehrd
 
         else:
-            hrd=j.core.hrd.get(path_instancehrd_new)
+            hrd=j.data.hrd.get(path_instancehrd_new)
             path_instancehrd=path_instancehrd_new
 
         hrd.applyOnFile(path_templatehrd)
         j.application.config.applyOnFile(path_templatehrd)
-        tmpl_hrd = j.core.hrd.get(path_templatehrd, prefixWithName=False)
+        tmpl_hrd = j.data.hrd.get(path_templatehrd, prefixWithName=False)
 
         actionPy = j.sal.fs.joinPaths(self.path, "actions_mgmt.py")
         if j.sal.fs.exists(path=actionPy):
@@ -566,7 +566,7 @@ class Service(object):
 
         # not sure this code is this code is still relevent here, cause the _apply()
         # method is now only called once at service init.
-        change=self.state.checkChangeState()
+        change=self.state.changed
 
         if change:
             #found changes in hrd or one of the actionfiles
@@ -574,15 +574,15 @@ class Service(object):
             if not oldhrd_exists:
                 j.do.writeFile(path_instancehrd_old,"")
 
-            hrdold=j.core.hrd.get(path_instancehrd_old)
+            hrdold=j.data.hrd.get(path_instancehrd_old)
 
             self.state.commitHRDChange(hrdold,hrd)
 
-            # if not oldhrd_exists:
-            #     #we don't want to overwrite the oldest known copy of the hrd
-            #     if j.sal.fs.exists(path=hrdpathnew):
-            #         #can be there is not service.hrd yet
-            #         j.do.copyFile(hrdpathnew, hrdpathold)
+            res=self.actions_mgmt.configure(self)
+            if res==False:
+                j.events.opserror_critical(msg="Could not configure %s (mgmt)" % self, category="ays.service.configure")
+
+            
 
         self._hrd=hrd
 
@@ -772,7 +772,21 @@ class Service(object):
         if self.template.hrd_template.getBool("hrd.return", False):
             self._downloadFromNode()
             # need to reload the downloaded instance.hrd file
-            self._hrd = j.core.hrd.get(j.sal.fs.joinPaths(self.path, 'instance.hrd'), prefixWithName=False)
+            self._hrd = j.data.hrd.get(j.sal.fs.joinPaths(self.path, 'instance.hrd'), prefixWithName=False)
+
+
+        res = self.actions_mgmt.install(self)
+        if res is False:
+            j.events.opserror_critical(msg="Could not install (mgmt) %s" % self, category="ays.service.install")
+
+        if res == "r":
+            restart = True
+        if res == 'nr':
+            retart = False
+        if restart:
+            self.restart()
+
+
 
 
     def _getDisabledProducers(self):
@@ -940,7 +954,7 @@ class Service(object):
 
         for recipeitem in self.hrd_template.getListFromPrefix("git.export"):
             if "platform" in recipeitem:
-                if not j.system.platformtype.checkMatch(recipeitem["platform"]):
+                if not j.core.platformtype.checkMatch(recipeitem["platform"]):
                     continue
 
             if "link" in recipeitem and str(recipeitem["link"]).lower() == 'true':
@@ -1035,15 +1049,12 @@ class Service(object):
         self.actions.data_export(url, self)
 
     def configure(self, restart=True):
-        self._executeOnNode("configure")
 
-        self.log("configure instance")
+        self.log("configure instance mgmt")
         res = self.actions_mgmt.configure(self)
         if res is False:
-            j.events.opserror_critical(msg="Could not configure %s" % self, category="ays.service.configure")
-        if res == "r":
-            restart = True
-        if res == 'nr':
-            retart = False
-        if restart:
-            self.restart()
+            j.events.opserror_critical(msg="Could not configure %s (mgmt)" % self, category="ays.service.configure")
+
+        self.log("configure instance on node")
+        self._executeOnNode("configure")
+

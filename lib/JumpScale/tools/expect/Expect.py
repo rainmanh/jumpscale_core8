@@ -32,7 +32,7 @@ if sys.platform.startswith('sun') or sys.platform.startswith('linux'):
         import pexpect
     except ImportError as e:
         print("did not find pexpect")
-        j.system.platformtype.isLinux()
+        j.core.platformtype.isLinux()
         try:
             j.sal.ubuntu.install("python-pexpect")
         except:
@@ -329,7 +329,7 @@ class Expect:
         
     #     If that still fails then we return False.
     #     """
-    #     if not j.system.platformtype.isLinux():
+    #     if not j.core.platformtype.isLinux():
     #         raise RuntimeError('pexpect/pxssh not supported on this platform')
 
     #     if not self._pxssh.login(ip, login, password, login_timeout=login_timeout):
@@ -348,12 +348,12 @@ class Expect:
         return stdout,stderror
         """
 
-        if j.system.platformtype.isWindows():
+        if j.core.platformtype.isWindows():
             out=self.receiveOut()
             err=self.receiveError()
             return out,err        
 
-        elif j.system.platformtype.isUnix() and self.pexpect:
+        elif j.core.platformtype.isUnix() and self.pexpect:
             
             if self.pexpect.match:
                 # out='%s%s'%(self.pexpect.after, self.pexpect.buffer)
@@ -365,7 +365,7 @@ class Expect:
                 before=self._cleanStr(before)
                 return str(before),""
 
-        elif j.system.platformtype.isLinux() and not self.pexpect:
+        elif j.core.platformtype.isLinux() and not self.pexpect:
 
             return str(self._pxssh).before,""
 
@@ -419,9 +419,9 @@ class Expect:
         out=self._ignoreLinesBasedOnFilter(self._lastOutput)
         error=self._lastError
         if(error!=""):
-            j.console.echo("%s/nerror:%s" % (out,error))
+            j.tools.console.echo("%s/nerror:%s" % (out,error))
         else:
-            j.console.echo(out)
+            j.tools.console.echo(out)
 
     # def _receive(self,checkError=False):
     #     #stdin=self._stdin
@@ -525,7 +525,7 @@ class Expect:
         self._lastOutput=""
         self._lastError=""
         
-        if j.system.platformtype.isUnix():
+        if j.core.platformtype.isUnix():
             if self.pexpect:
                 if newline:
                     data=data.rstrip("\n")
@@ -533,18 +533,18 @@ class Expect:
                 else:
                     return self.pexpect.send(data)
             
-        if j.system.platformtype.isWindows():
+        if j.core.platformtype.isWindows():
             data=data+"\r\n"
 
         p=self._p
 
         if len(data) != 0:
-            if j.system.platformtype.isWindows():
+            if j.core.platformtype.isWindows():
                 sent = p.send(data)
                 if sent is None:
                     raise Exception("ERROR: Data sent is none")
                 data = buffer(data, sent)
-            elif j.system.platformtype.isLinux():
+            elif j.core.platformtype.isLinux():
                 self._pxssh.sendline(data)
 
     # def read(self):
@@ -732,9 +732,9 @@ class Expect:
                 Expect.send('anotherPasswd')
                 
                 if Expect.expect('passwords do not match'):
-                    j.console.echo(Expect.receive())
+                    j.tools.console.echo(Expect.receive())
         else:
-            j.console.echo(Expect.receive())
+            j.tools.console.echo(Expect.receive())
         
         @return 'E' when error
 

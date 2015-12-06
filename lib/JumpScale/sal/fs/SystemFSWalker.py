@@ -99,7 +99,7 @@ class SystemFSWalker:
 
         # print "ROOT OF WALKER:%s"%root
         # print "followlinks:%s"%followlinks
-        j.system.fswalker._walk(root,callback,arg, includeFolders, pathRegexIncludes,pathRegexExcludes,\
+        j.sal.fs.walker._walk(root,callback,arg, includeFolders, pathRegexIncludes,pathRegexExcludes,\
             contentRegexIncludes, contentRegexExcludes, depths,followlinks=followlinks)
 
         # #if recursive:
@@ -138,7 +138,7 @@ class SystemFSWalker:
                     if result==False:
                         continue #do not recurse go to next dir
                 #recurse
-                j.system.fswalker._walk(path2,callback,arg, includeFolders, pathRegexIncludes,pathRegexExcludes,\
+                j.sal.fs.walker._walk(path2,callback,arg, includeFolders, pathRegexIncludes,pathRegexExcludes,\
                         contentRegexIncludes, contentRegexExcludes, depths,followlinks)
         
             if j.sal.fs.isFile(path2, followlinks):
@@ -190,7 +190,7 @@ class SystemFSWalker:
         
         # print "ROOT OF WALKER:%s"%root
 
-        j.system.fswalker._walkFunctional(root,callbackFunctionFile, callbackFunctionDir,arg, callbackForMatchDir,callbackForMatchFile)
+        j.sal.fs.walker._walkFunctional(root,callbackFunctionFile, callbackFunctionDir,arg, callbackForMatchDir,callbackForMatchFile)
 
     @staticmethod
     def _walkFunctional(path,callbackFunctionFile=None, callbackFunctionDir=None,arg="", callbackForMatchDir=None,callbackForMatchFile=None):
@@ -202,12 +202,12 @@ class SystemFSWalker:
                     #recurse
                     # print "walker matchdir:%s"% path2
                     if callbackFunctionDir==None:
-                        j.system.fswalker._walkFunctional(path2,callbackFunctionFile, callbackFunctionDir,arg, callbackForMatchDir,callbackForMatchFile)
+                        j.sal.fs.walker._walkFunctional(path2,callbackFunctionFile, callbackFunctionDir,arg, callbackForMatchDir,callbackForMatchFile)
                     else:
                         result=callbackFunctionDir(path2,arg)
                         if result!=False:
                             # print "walker recurse:%s"% path2
-                            j.system.fswalker._walkFunctional(path2,callbackFunctionFile, callbackFunctionDir,arg, callbackForMatchDir,callbackForMatchFile)
+                            j.sal.fs.walker._walkFunctional(path2,callbackFunctionFile, callbackFunctionDir,arg, callbackForMatchDir,callbackForMatchFile)
         
             if j.sal.fs.isFile(path2, True):
                 # print "walker filepath:%s"% path2

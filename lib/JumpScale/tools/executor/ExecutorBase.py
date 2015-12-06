@@ -41,7 +41,7 @@ class ExecutorBase():
         for key,val in self.dest_prefixes.items():
             self.execute("mkdir -p %s"%val)
 
-    def checkok(self,cmd,out):
+    def docheckok(self,cmd,out):
         
         if out.find("**OK**")==-1:
             raise RuntimeError("Error in:\n%s\n***\n%s"%(cmd,out))

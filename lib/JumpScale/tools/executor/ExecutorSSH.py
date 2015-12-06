@@ -44,7 +44,7 @@ class ExecutorSSH(ExecutorBase):
             retcode,out=self.sshclient.execute(cmds2,die=die,showout=showout)
 
         if checkok and die:
-            self.checkok(cmds,out)
+            self.docheckok(cmds,out)
 
         return (retcode,out)
 

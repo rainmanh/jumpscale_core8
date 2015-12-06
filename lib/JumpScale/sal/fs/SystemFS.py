@@ -1908,7 +1908,7 @@ class SystemFS(SALObject):
             params={}
             params["t"]=t
             params["destintar"]=destInTar
-            j.system.fswalker.walk(root=sourcepath, callback=addToTar, arg=params,\
+            j.sal.fs.walker.walk(root=sourcepath, callback=addToTar, arg=params,\
                                           recursive=True, includeFolders=False, \
                                           pathRegexIncludes=pathRegexIncludes, pathRegexExcludes=pathRegexExcludes, contentRegexIncludes=contentRegexIncludes, \
                                           contentRegexExcludes=contentRegexExcludes, depths=depths,followlinks=False)

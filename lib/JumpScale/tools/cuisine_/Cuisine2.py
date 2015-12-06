@@ -377,14 +377,14 @@ class OurCuisine():
     # =============================================================================
 
 
-    def file_local_read(self,location):
-        """Reads a *local* file from the given location, expanding '~' and
-        shell variables."""
-        p = os.path.expandvars(os.path.expanduser(location))
-        f = file(p, 'rb')
-        t = f.read()
-        f.close()
-        return t
+    # def file_local_read(self,location):
+    #     """Reads a *local* file from the given location, expanding '~' and
+    #     shell variables."""
+    #     p = os.path.expandvars(os.path.expanduser(location))
+    #     f = file(p, 'rb')
+    #     t = f.read()
+    #     f.close()
+    #     return t
 
 
 
@@ -455,7 +455,7 @@ class OurCuisine():
         content_base64=base64.b64encode(content2).decode()
 
         if sig != self.file_md5(location):
-            self.run('echo "%s" | openssl base64 -A -d >> %s' % (content_base64, shell_safe(location)))
+            self.run('echo "%s" | openssl base64 -A -d > %s' % (content_base64, shell_safe(location)))
 
             if check:
                 file_sig = self.file_md5(location)
@@ -473,14 +473,23 @@ class OurCuisine():
             self.file_write(location,"",mode=mode,owner=owner,group=group,scp=scp)
 
 
-    def file_upload(self,remote, local, scp=False):
+    def file_upload(self,local,remote):
         """Uploads the local file to the remote location only if the remote location does not
         exists or the content are different."""
         from IPython import embed
         print ("DEBUG NOW cuisine file upload")
         embed()
         p
+        #@todo (*1*) use sshftp
 
+    def file_download(self,remote, local):
+        """Uploads the local file to the remote location only if the remote location does not
+        exists or the content are different."""
+        from IPython import embed
+        print ("DEBUG NOW cuisine file download")
+        embed()
+        p
+        #@todo (*1*)
 
 
     def file_update(self,location, updater=lambda x: x):
@@ -541,9 +550,9 @@ class OurCuisine():
 
     def file_base64(self,location):
         """Returns the base64-encoded content of the file at the given location."""
-        return self.run("cat {0} | python -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read()))'".format(shell_safe((location))),debug=False,checkok=False)
+        return self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False)
         # else:
-        #     return self.run("cat {0} | openssl base64".format(shell_safe((location))))
+        # return self.run("cat {0} | openssl base64".format(shell_safe((location))))
 
 
     def file_sha256(self,location):
@@ -857,17 +866,25 @@ class OurCuisine():
     #
     # =============================================================================
 
-    def tmux_execute(self,cmd):
-        res=self.connection.run("tmux has-session -t cmd 2>&1 ;echo")
-        if not res.find("session not found")==-1:
-            self.connection.run("tmux new-session -s cmd -d")
-        self.connection.file_unlink("/tmp/tmuxout")
-        self.connection.run("tmux send -t cmd '%s > /tmp/tmuxout 2>&1;echo **DONE**>> /tmp/tmuxout 2>&1' ENTER"%cmd)
-        out=self.connection.file_read("/tmp/tmuxout")
-        self.connection.file_unlink("/tmp/tmuxout")
-        if out.find("**DONE**")==-1:
-            j.events.opserror_critical("Cannot execute %s on tmux on remote %s.\nError:\n%s"%(cmd,list(self.connection.fabric.state.connections.keys()),out))
-        out=out.replace("**DONE**","")
+    def tmux_execute(self,cmd,interactive=False):
+        #@todo (*1*) needs to be improved,should be able to specify names, kill 1 screen when interactive  (windowname)
+        res=self.run("tmux has-session -t cmd 2>&1 ;echo")
+        if not res.find("session not found")==-1 or res.find("Connection refused")!=-1:
+            self.run("tmux new-session -s cmd -d")
+        if interactive:
+            cmd0="tmux send -t cmd '%s' ENTER"%cmd
+            self.run(cmd0)
+            out=""
+        else:
+            self.file_unlink("/tmp/tmuxout")
+            cmd0="tmux send -t cmd '%s > /tmp/tmuxout 2>&1;echo **DONE**>> /tmp/tmuxout 2>&1' ENTER"%cmd
+            self.run(cmd0)
+            out=self.file_read("/tmp/tmuxout")
+            self.file_unlink("/tmp/tmuxout")
+            if out.find("**DONE**")==-1:
+                j.events.opserror_critical("Cannot execute %s on tmux on remote %s.\nError:\n%s"%(cmd,"anode",out))
+
+            out=out.replace("**DONE**","")
         return out
 
 
@@ -890,10 +907,50 @@ class OurCuisine():
     #
     # =============================================================================
 
+    def hostfile_get_ipv4(self,hostfile=""):
+        if hostfile=="":
+            hostfile = self.file_read('/etc/hosts')
+        result={}
+        for line in hostfile.split('\n'):
+            ipaddr_found = re.search(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b',line)
+            if ipaddr_found!=None:
+                ipaddr_found=ipaddr_found.group()
+                if ipaddr_found not in result:
+                    result[ipaddr_found]=[]
+                hosts=line.replace(ipaddr_found,"").strip().split(" ")
+                for host in hosts:
+                    if host.strip() not in result[ipaddr_found]:
+                        result[ipaddr_found].append(host)
+        return result
 
+
+    def hostfile_set(self,name,ipaddr):
+        hostfile = self.file_read('/etc/hosts')
+        C=""
+        result={}
+        for line in hostfile.split('\n'):
+            ipaddr_found = re.search(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b',line)
+            if ipaddr_found==None:
+                C+="%s\n"%line
+
+
+        res=self.hostfile_get_ipv4(hostfile)
+        if not ipaddr in res:
+            res[ipaddr]=[name]
+        else:
+            if name not in res[ipaddr]:
+                res[ipaddr].append(name)
+
+        C+="\n"
+        for ipaddr,names in res.items():
+            namestr=" ".join(names)
+            C+="%-20s %s\n"%(ipaddr,namestr)
+
+        self.file_write('/etc/hosts',C)
+        
 
     def ns_get(self):
-        file = self.manager.connection.file_read('/etc/resolv.conf')
+        file = self.file_read('/etc/resolv.conf')
         results = []
 
         for line in file.split('\n'):

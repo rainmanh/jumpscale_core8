@@ -139,7 +139,7 @@ class Sandboxer():
             j.do.copyFile(src,dest2)
 
 
-        j.system.fswalker.walkFunctional(path, callbackFunctionFile=callbackFile, callbackFunctionDir=None, arg=(path,dest), \
+        j.sal.fs.walker.walkFunctional(path, callbackFunctionFile=callbackFile, callbackFunctionDir=None, arg=(path,dest), \
             callbackForMatchDir=callbackForMatchDir, callbackForMatchFile=callbackForMatchFile)
 
 

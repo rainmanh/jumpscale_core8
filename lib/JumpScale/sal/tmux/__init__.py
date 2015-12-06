@@ -5,4 +5,4 @@ def cb():
     return Tmux()
 
 
-j.sal._register('screen', cb)
+j.sal._register('tmux', cb)

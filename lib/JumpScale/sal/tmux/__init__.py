@@ -1,8 +1,8 @@
 from JumpScale import j
 
 def cb():
-    from .Tmux import Tmux
-    return Tmux()
+    from .AppManager import AppManager
+    return AppManager()
 
 
-j.sal._register('tmux', cb)
+j._register('apps', cb)

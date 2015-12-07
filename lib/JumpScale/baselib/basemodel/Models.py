@@ -10,6 +10,7 @@ class ModelBase(Document):
     gid = IntField(default=0)
     nid = IntField(default=0)
     epoch = IntField(default=0)
+    _id = ObjectIdField()
     meta = {'allow_inheritance': True}
 
     def clean(self):
@@ -19,10 +20,9 @@ class ModelBase(Document):
         if self.id == "":
             self.id = self.guid
 
-
         if self.epoch == 0:
             self.epoch = j.tools.time.getTimeEpoch()
-        if j.application.whoAmI != None:
+        if j.application.whoAmI is not None:
             if self.gid == 0:
                 self.gid = j.application.whoAmI.gid
             if self.nid == 0:
@@ -31,14 +31,14 @@ class ModelBase(Document):
             #     self.pid = j.application.whoAmI.pid
 
     def to_dict(self):
-        d=json.loads(ModelBase.to_json(self))
-        d.pop("_id")
-        d.pop("_cls")
+        d = json.loads(ModelBase.to_json(self))
+        #d.pop("_id")
+        #d.pop("_cls")
         return d
 
     def save(self):
         j.core.models.set(self)
-        
+        return super(ModelBase, self).save()
 
     def __str__(self):
         return (json.dumps(json.loads(self.to_json()), sort_keys=True, indent=4))
@@ -88,6 +88,7 @@ class ModelGrid(ModelBase):
 
 
 class ModelGroup(ModelBase):
+    id = StringField(default='')
     domain = StringField(default='')
     gid = IntField(default=1)
     roles = ListField(StringField())
@@ -335,6 +336,7 @@ class ModelTest(ModelBase):
 
 
 class ModelUser(ModelBase):
+    id = StringField(default='')
     domain = StringField(default='')
     gid = IntField()
     passwd = StringField(default='')  # stored hashed
@@ -350,6 +352,14 @@ class ModelUser(ModelBase):
     data = StringField(default='')
     authkeys = ListField(StringField())
 
+
+class ModelSessionCache(ModelBase):
+    value = DictField()
+    createdat = IntField(default=j.tools.time.getTimeEpoch())
+    lastupdatedat = IntField(default=j.tools.time.getTimeEpoch())
+    meta = {'indexes': [
+            {'fields': ['epoch'], 'expireAfterSeconds': 432000}
+        ], 'allow_inheritance': True}
 
 # @todo complete ASAP all from https://github.com/Jumpscale/jumpscale_core8/blob/master/apps/osis/logic/system/model.spec  (***)
 

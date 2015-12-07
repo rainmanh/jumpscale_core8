@@ -1,10 +1,7 @@
 import inspect
 from JumpScale import j
 
-from .Appserver6GreenletScheduleBase import Appserver6GreenletScheduleBase
 from .ClassBase import ClassBase, JSModelBase, JSRootModelBase
-from .Appserver6GreenletBase import Appserver6GreenletBase
-from .Appserver6GreenletTaskletsBase import Appserver6GreenletTaskletsBase
 
 import json #ujson.dumps does not support some arguments like separators, indent ...etc
 

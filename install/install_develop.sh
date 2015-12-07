@@ -1,3 +1,5 @@
+rm -rf /opt/jumpscale8
+
 set -ex
 #known env variables
 
@@ -13,10 +15,10 @@ set -ex
 #export SANDBOX=0
 #export JSBASE='/opt/jumpscale8'
 # export JSGIT='https://github.com/Jumpscale/jumpscale_core8.git'
-export JSBRANCH='python3_unstable'
+export JSBRANCH='master'
 export PYTHONVERSION='3'
 export AYSGIT='https://github.com/Jumpscale/ays_jumpscale8'
-export AYSBRANCH='python3_unstable'
+export AYSBRANCH='master'
 
 if [ "$(uname)" == "Darwin" ]; then
     # Do something under Mac OS X platform   
@@ -32,7 +34,7 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     dist=`grep DISTRIB_ID /etc/*-release | awk -F '=' '{print $2}'`
     if [ "$dist" == "Ubuntu" ]; then
         echo "found ubuntu"
-        apt-get install mc curl git ssh python3.5 python-requests  -y
+        apt-get install mc curl git ssh python3.5 -y
         rm -f /usr/bin/python
         rm -f /usr/bin/python3
         ln -s /usr/bin/python3.5 /usr/bin/python

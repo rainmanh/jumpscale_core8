@@ -32,6 +32,7 @@ class Handler(object):
 class AlertService(object):
 
     def __init__(self):
+        self.__jslocation__ = "j.tools.alertservice"
         self.rediscl = j.clients.redis.getByInstance('system')
         self.alertqueue = self.rediscl.getQueue('alerts')
         self.alerts_client = j.clients.portal.getByInstance('main').actors.system.alerts

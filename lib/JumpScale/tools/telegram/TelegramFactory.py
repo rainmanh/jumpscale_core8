@@ -6,6 +6,8 @@ import os
 
 
 class TelegramFactory:
+    def __init__(self):
+        self.__jslocation__ = "j.tools.telegrambot"
 
     def _getFactoryEnabledClasses(self):
         return ([("","TelegramBot",TelegramBot())])  

@@ -2,6 +2,8 @@ from JumpScale import j
 
 
 class Avahi():
+    def __init__(self):
+        self.__jslocation__ = "j.tools.avahi"
 
     # def __init__(self):
     #     raise RuntimeError("should not init auto")

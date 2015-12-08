@@ -154,6 +154,7 @@ class FakeTestObj(object):
 
 class TestEngine():
     def __init__(self):
+        self.__jslocation__ = "j.tools.testengine"
         self.paths=[]
         self.tests=[]
         self.outputpath="%s/apps/gridportal/base/Tests/TestRuns/"%j.dirs.baseDir

@@ -1,4 +1,4 @@
-from JumpScale import j
+#from JumpScale import j
 
 #@todo (*3*) fix, make sure full openwrt is lazy loading
 

@@ -25,6 +25,7 @@ class Console:
     self.reformat=False #if True will make sure message fits nicely on screen
     """
     def __init__(self):
+        self.__jslocation__ = "j.tools.console"
         self.width=230
         self.indent=0 #current indentation of messages send to console
 

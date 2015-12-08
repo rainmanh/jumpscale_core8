@@ -5,6 +5,7 @@ import numpy
 class NumTools:
 
     def __init__(self):
+        self.__jslocation__ = "j.tools.numtools"
         self.currencies = {}
 
     def _getYearFromMonthId(self, monthid, startyear=0):

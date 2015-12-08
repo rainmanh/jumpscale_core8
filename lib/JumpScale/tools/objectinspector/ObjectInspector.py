@@ -174,6 +174,7 @@ class ObjectInspector():
     """
 
     def __init__(self):
+        self.__jslocation__ = "j.tools.objectinspector"
         # self.apiFileLocation = j.sal.fs.joinPaths(j.dirs.cfgDir, "codecompletionapi", "jumpscale.api")
         # j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.cfgDir, "codecompletionapi"))
         self.classDocs={}

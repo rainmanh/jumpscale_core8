@@ -6,6 +6,7 @@ import JumpScale.sal.tmux
 class JailFactory(object):
 
     def __init__(self):
+        self.__jslocation__ = "j.tools.jail"
         self.redis=j.clients.redis.getByInstance('system')
         self.base="/opt/jsbox"
         if not j.sal.fs.exists(path=self.base):

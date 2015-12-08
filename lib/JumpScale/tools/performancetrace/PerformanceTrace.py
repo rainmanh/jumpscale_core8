@@ -3,6 +3,8 @@ from JumpScale import j
 class PerformanceTraceFactory():
     """
     """
+    def __init__(self):
+        self.__jslocation__ = "j.tools.performancetrace"
     
     def profile(self,methodstatement, locals={},globals={}):
         """

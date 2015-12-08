@@ -73,6 +73,7 @@ class RedisFactory:
     """
 
     def __init__(self):
+        self.__jslocation__ = "j.clients.redis"
         self.gredis = {}
         self.redis = {}
         self.gredisq = {}

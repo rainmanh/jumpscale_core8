@@ -12,6 +12,7 @@ class MySQLFactory():
     """
 
     def __init__(self):
+        self.__jslocation__ = "j.clients.mysql"
         self.clients={}
 
 

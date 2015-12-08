@@ -49,7 +49,7 @@ class CodeGeneratorActorLocal(CodeGeneratorBase):
 
         self.content += "\n%s" % j.code.indent(s, 1)
 
-        s = "params=j.core.params.get()\n"
+        s = "params=j.data.params.get()\n"
 
         for var in method.vars:
             s += "params.%s=%s\n" % (var.name, var.name)

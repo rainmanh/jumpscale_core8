@@ -185,7 +185,7 @@ class Code():
         def toStr(obj,possibleList=True):
             if isinstance(obj, (str,int,float,bool)) or obj==None:
                 return str(obj)
-            elif possibleList==True and j.basetype.list.check(obj):
+            elif possibleList==True and j.core.types.list.check(obj):
                 r=""
                 for item in obj:
                     rr=toStr(obj,possibleList=False)
@@ -200,7 +200,7 @@ class Code():
                     key=key[3:]
                 elif key[0]=="_":
                     continue
-                if j.basetype.dictionary.check(value):
+                if j.core.types.dictionary.check(value):
                     for key2 in list(value.keys()):
                         r=toStr(value[key2])
                         if r!="":
@@ -213,7 +213,7 @@ class Code():
         
 
     def object2dict(self,obj,dieOnUnknown=False,ignoreKeys=[],ignoreUnderscoreKeys=False):
-        if j.basetype.dictionary.check(obj):
+        if j.core.types.dictionary.check(obj):
             return obj
         data={}
 

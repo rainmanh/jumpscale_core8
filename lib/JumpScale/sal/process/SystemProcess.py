@@ -1464,10 +1464,10 @@ class SystemProcess(SALObject):
     def executeCode(self,code,params=None):
         """
         execute a method (python code with def)
-        use params=j.core.params.get() as input
+        use params=j.data.params.get() as input
         """
         if params==None:
-            params=j.core.params.get()
+            params=j.data.params.get()
         codeLines = code.split("\n")        
         if "def " not in codeLines[0]:
             raise ValueError("code to execute needs to start with def")

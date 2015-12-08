@@ -153,9 +153,13 @@ class Loader(object):
 class Core(Loader):
     pass
 
+class Data(Loader):
+    pass
+
 class Types():
     pass
 
+j.data=Data()
 j.core=Core()
 j.core.types=Types()
 
@@ -250,16 +254,18 @@ if j.core.db.get("system.locations")==None:
 locations=json.loads(j.core.db.get("system.locations").decode())
 
 buildup={}
-
+buildup["j.core"]=j.core
+buildup["j.data"]=j.data
 for location,llist in locations.items():
     if location not in buildup:
         # for classfile,classname,item in llist:
         # loader=Loader()
         classname0=location.split(".")[-1]
-        if classname0!="core":
+        if classname0 not in ["core","data"]:
             cmd="class %s_(Loader):\n    pass\n%s=%s_()\nbuildup[\"%s\"]=%s"%(classname0,location,classname0,location,location)
-            # print (cmd)
+            print (cmd)
             exec(cmd)
+    print("location:%s"%location)
     loader=buildup[location]
     for classfile,classname,item in llist:
         loader._register(item,classfile,classname)

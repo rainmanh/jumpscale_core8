@@ -15,7 +15,7 @@ import re
 
 class CloudSystemFS:
     def __init__(self):
-        #self.__jslocation__ = "j.cloud.system.fs"
+        self.__jslocation__ = "j.sal.cloudfs"
         pass
 
     def sourcePathExists(self, sourcepath):

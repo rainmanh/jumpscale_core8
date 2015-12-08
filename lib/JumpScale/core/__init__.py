@@ -3,10 +3,10 @@ from JumpScale import j
 
 import os
 
-class Empty():
-    pass
+#class Empty():
+#    pass
 
-j.base=Empty()
+#j.base=Empty()
 
 # from . import LOADER
 # from . import BYTEPROCESSOR
@@ -214,14 +214,11 @@ except Exception as e:
 # Remove the no longer needed function
 del _setup_stacktrace_hook
 
-from . import logging
-from .Application import Application
+#from . import logging
 
 # from . import system
 
 # from . import enumerators
-
-j.application=Application()
 
 # from . import base
 # from . import baseclasses

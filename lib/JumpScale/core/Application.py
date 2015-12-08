@@ -21,6 +21,7 @@ WhoAmI = namedtuple('WhoAmI', 'gid nid pid')
 class Application:
 
     def __init__(self):
+        self.__jslocation__ = "j.application"
         self.state = "UNKNOWN"
         # self.state = None
         self.appname = 'starting'

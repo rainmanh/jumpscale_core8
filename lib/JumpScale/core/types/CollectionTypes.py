@@ -7,6 +7,9 @@ import types
 # from JumpScale.core.pmtypes.base import BaseType, NO_DEFAULT
 
 class Dictionary():
+    def __init__(self):
+        self.__jslocation__ = "j.core.types.dict"
+
     '''Generic dictionary type'''
     NAME = 'dictionary'
 
@@ -22,6 +25,9 @@ class Dictionary():
 
 
 class List():
+    def __init__(self):
+        self.__jslocation__ = "j.core.types.list"
+
     '''Generic list type'''
     NAME = 'list'
 
@@ -36,6 +42,9 @@ class List():
         return list(self._default)
 
 class Set():
+    def __init__(self):
+        self.__jslocation__ = "j.core.types.set"
+
     '''Generic set type'''
     NAME = 'set'
 

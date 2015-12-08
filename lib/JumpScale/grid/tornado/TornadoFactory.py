@@ -2,6 +2,8 @@ from JumpScale import j
 
 
 class TornadoFactory():
+    def __init__(self):
+        self.__jslocation__ = "j.servers.tornado"
 
     def getServer(self, port, sslorg=None, ssluser=None, sslkeyvaluestor=None):
         """

@@ -180,6 +180,7 @@ class JumpscriptFactory:
     """
     """
     def __init__(self):
+        self.__jslocation__ = "j.core.jumpscripts"
         self.basedir = j.sal.fs.joinPaths(j.dirs.baseDir, 'apps', 'processmanager')
 
     def getJSClass(self):

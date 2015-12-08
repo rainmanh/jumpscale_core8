@@ -44,6 +44,7 @@ class NameSpaceClient(object):
 
 class OSISClientFactory(object):
     def __init__(self):
+        self.__jslocation__ = "j.clients.osis"
         self._sysstdout = None
         self.osisConnections = {}
         self.osisConnectionsCat={}
@@ -140,6 +141,7 @@ class OSISFactory:
     """
 
     def __init__(self):
+        self.__jslocation__ = "j.core.osis"
         self.nodeguids={}
         self.osisModels={}
         self.namespacesInited={}

@@ -6,6 +6,8 @@ import struct
 
 
 class ServerBaseFactory():
+    def __init__(self):
+        self.__jslocation__ = "j.servers.base"
 
     def getDaemon(self, name="unknown", sslorg=None, ssluser=None, sslkeyvaluestor=None):
         """

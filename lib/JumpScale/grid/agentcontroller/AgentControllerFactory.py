@@ -6,6 +6,7 @@ PORT = 4444
 
 class AgentControllerFactory(object):
     def __init__(self):
+        self.__jslocation__ = "j.clients.agentcontroller"
         self._agentControllerClients = {}
         self._agentControllerProxyClients = {}
 

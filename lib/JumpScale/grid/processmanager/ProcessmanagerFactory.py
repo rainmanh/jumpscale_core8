@@ -38,6 +38,7 @@ class ProcessmanagerFactory:
     """
     """
     def __init__(self):
+        self.__jslocation__ = "j.core.processmanager"
         self.daemon = DummyDaemon()
         self.basedir = j.sal.fs.joinPaths(j.dirs.baseDir, 'apps', 'processmanager')
         j.system.platform.psutil = psutil

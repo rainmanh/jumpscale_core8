@@ -1,2 +1,0 @@
-from JumpScale import j
-

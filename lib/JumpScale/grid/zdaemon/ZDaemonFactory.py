@@ -5,6 +5,8 @@ import time
 
 
 class ZDaemonFactory():
+    def __init__(self):
+        self.__jslocation__ = "j.servers.zdaemon"
 
     def getZDaemon(self, port=4444, name="", nrCmdGreenlets=50, sslorg="", ssluser="", sslkeyvaluestor=None):
         """
@@ -12,7 +14,7 @@ class ZDaemonFactory():
         is a generic usable zmq daemon which has a data & cmd channel (data channel not completely implemented for now)
 
 
-        zd=j.core.zdaemon.getZDaemon(port=5651,nrCmdGreenlets=50)
+        zd=j.servers.zdaemon.getZDaemon(port=5651,nrCmdGreenlets=50)
 
         class MyCommands():
             def __init__(self,daemon):
@@ -42,7 +44,7 @@ class ZDaemonFactory():
         """
         example usage, see example for server at self.getZDaemon
 
-        client=j.core.zdaemon.getZDaemonClient(ipaddr="127.0.0.1",port=5651,login="root",passwd="1234",ssl=False)
+        client=j.servers.zdaemon.getZDaemonClient(ipaddr="127.0.0.1",port=5651,login="root",passwd="1234",ssl=False)
 
                 print client.echo("Hello World.")
 
@@ -58,7 +60,7 @@ class ZDaemonFactory():
         """
         example usage, see example for server at self.getZDaemon
 
-        client=j.core.zdaemon.getZDaemonHAClient([('127.0.0.1', 5544)],login="root",passwd="1234",ssl=False)
+        client=j.servers.zdaemon.getZDaemonHAClient([('127.0.0.1', 5544)],login="root",passwd="1234",ssl=False)
 
                 print client.echo("Hello World.")
         """
@@ -72,7 +74,7 @@ class ZDaemonFactory():
         """
         #example usage:
         import JumpScale.grid.zdaemon
-        class BlobStorTransport(j.core.zdaemon.getZDaemonTransportClass()):
+        class BlobStorTransport(j.servers.zdaemon.getZDaemonTransportClass()):
             def sendMsg(self,timeout=0, *args):
                 self._cmdchannel.send_multipart(args)
                 result=self._cmdchannel.recv_multipart()
@@ -87,7 +89,7 @@ class ZDaemonFactory():
         """
         example usage, see example for server at self.getZDaemon
 
-        agent=j.core.zdaemon.getZDaemonAgent(ipaddr="127.0.0.1",port=5651,login="root",passwd="1234",ssl=False,roles=["*"])
+        agent=j.servers.zdaemon.getZDaemonAgent(ipaddr="127.0.0.1",port=5651,login="root",passwd="1234",ssl=False,roles=["*"])
         agent.start()
 
         @param roles describes which roles the agent can execute e.g. node.1,hypervisor.virtualbox.1,*

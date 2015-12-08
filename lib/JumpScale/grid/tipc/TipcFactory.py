@@ -2,6 +2,8 @@ from JumpScale import j
 
 
 class TipcFactory(object):
+    def __init__(self):
+        self.__jslocation__ = "j.servers.tipc"
 
     def getServer(self, servaddr, sslorg=None, ssluser=None, sslkeyvaluestor=None):
         """

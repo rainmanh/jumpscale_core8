@@ -33,6 +33,7 @@ class HaltException(BaseException):
 class ErrorConditionHandler():
     
     def __init__(self,haltOnError=True,storeErrorConditionsLocal=True):
+        self.__jslocation__ = "j.errorconditionhandler"
         self._blacklist = None
         self.lastAction=""
         self.haltOnError=haltOnError     

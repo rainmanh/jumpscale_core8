@@ -83,6 +83,8 @@ class Base(Base0):
 
 
 class SQLAlchemyFactory(object):
+    def __init__(self):
+        self.__jslocation__ = "j.clients.sqlalchemy"
 
     def get(self, connectionstring="",sqlitepath="",tomlpath="../data"):
         return SQLAlchemy(connectionstring,sqlitepath,tomlpath)

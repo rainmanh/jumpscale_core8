@@ -3,7 +3,11 @@ import requests
 from requests.auth import HTTPBasicAuth
 import os
 
+
 class GrafanaFactory(object):
+    def __init__(self):
+        self.__jslocation__ = "j.clients.grafana"
+
     def get(self, url="http://localhost:3000", username="admin", password="admin"):
         return GrafanaClient(url, username, password)
 
@@ -18,6 +22,7 @@ class GrafanaFactory(object):
         username = hrd.get("param.username")
         password = hrd.get("param.password")
         return self.get(url, username, password)
+
 
 class GrafanaClient(object):
     def __init__(self, url, username, password):

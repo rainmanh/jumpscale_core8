@@ -16,6 +16,8 @@ import JumpScale.baselib.key_value_store
 from sal.base.SALObject import SALObject
 
 class SSL(SALObject):
+    def __init__(self):
+        self.__jslocation__ = "j.sal.ssl"
 
     def getSSLHandler(self,keyvaluestor=None):
         """

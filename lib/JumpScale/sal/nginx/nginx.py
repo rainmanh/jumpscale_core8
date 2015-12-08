@@ -2,6 +2,8 @@ from JumpScale import j
 
 
 class NginxFactory(object):
+    def __init__(self):
+        self.__jslocation__ = "j.sal.nginx"
 
     def get(self,path="/etc/nginx"):
         #@todo (*2*) let work on path

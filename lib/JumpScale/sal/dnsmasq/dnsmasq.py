@@ -9,6 +9,7 @@ from sal.base.SALObject import SALObject
 class DNSMasq(SALObject):
 
     def __init__(self):
+        self.__jslocation__ = "j.sal.dnsmasq"
         self._configured = False
         self._executor = j.tools.executor.getLocal()
 

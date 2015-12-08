@@ -20,7 +20,7 @@ class PerfTestToolsFactory(object):
 
     """
     def __init__(self):
-        self.__jslocation__="j.tools.perftest"          
+        self.__jslocation__="j.tools.perftesttools"          
         self.monitorNodeIp=None
         self.monitorNodeSSHPort=None
         self.redispasswd=""

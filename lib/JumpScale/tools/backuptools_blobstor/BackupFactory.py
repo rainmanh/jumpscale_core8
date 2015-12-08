@@ -6,6 +6,7 @@ from .BlobStorClientFake import BlobStorClientFake
 
 class BackupFactory:
     def __init__(self):
+        self.__jslocation__ = "j.tools.backup_blobstor"
         self.logenable=True
         self.loglevel=5
         self._cache={}

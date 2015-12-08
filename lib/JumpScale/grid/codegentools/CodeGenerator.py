@@ -16,6 +16,7 @@ import sys
 class CodeGenerator:
 
     def __init__(self):
+        self.__jslocation__ = "j.core.codegenerator"
         self.codepath = j.sal.fs.joinPaths(j.dirs.varDir, "code")
         self._target = 'server'
         self.generated = {}  # will have classname inside

@@ -8,6 +8,8 @@ class IDGenerator:
     generic provider of id's
     lives at j.idgenerator
     """
+    def __init__(self):
+        self.__jslocation__ = "j.tools.idgenerator"
 
     def generateRandomInt(self,fromInt,toInt):
         """

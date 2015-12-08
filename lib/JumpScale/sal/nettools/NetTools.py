@@ -34,6 +34,7 @@ from sal.base.SALObject import SALObject
 class NetTools(SALObject):
 
     def __init__(self):
+        self.__jslocation__ = "j.sal.nettools"
         self._windowsNetworkInfo = None
 
     def tcpPortConnectionTest(self,ipaddr,port, timeout=None):

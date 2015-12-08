@@ -6,6 +6,7 @@ from .Sheet import *
 class Sheets(j.code.classGetBase()):
 
     def __init__(self):
+        self.__jslocation__ = "j.tools.worksheets"
         self.sheets = {}
         self.sheetsByCategory = {}
         self.sheetNames = []

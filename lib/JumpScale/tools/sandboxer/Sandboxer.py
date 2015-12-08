@@ -41,6 +41,7 @@ class Sandboxer():
     """
 
     def __init__(self):
+        self.__jslocation__ = "j.tools.sandboxer"
         self._done=[]
         self.exclude=["libpthread.so","libltdl.so","libm.so","libresolv.so","libz.so","libgcc","librt","libstdc++","libapt","libdbus","libselinux"]
 

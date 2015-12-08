@@ -8,6 +8,7 @@ class KeyValueStoreFactory(object):
     '''
 
     def __init__(self):
+        self.__jslocation__ = "j.servers.keyvaluestore"
         self._cache = dict()
 
     # def getMongoDBStore(self, namespace='',serializers=[]):

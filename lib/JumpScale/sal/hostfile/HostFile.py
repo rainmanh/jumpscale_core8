@@ -11,6 +11,7 @@ from sal.base.SALObject import SALObject
 class HostFile(SALObject):
 
     def __init___(self):
+        self.__jslocation__ = "j.sal.hostsfile"
         self.hostfilePath="/etc/hosts"
 
 

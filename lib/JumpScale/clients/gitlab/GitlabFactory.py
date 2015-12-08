@@ -22,6 +22,7 @@ class GitlabFactory:
     """
 
     def __init__(self):
+        self.__jslocation__ = "j.clients.gitlab"
         self.connections={}
         j.logger.consolelogCategories.append("gitlab")
 

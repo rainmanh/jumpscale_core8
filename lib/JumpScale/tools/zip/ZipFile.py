@@ -37,6 +37,7 @@ class ZipFile(BaseType):
         @prarm action: Action to perform on the zip file
         @type action: ZipFileAction
         '''
+        self.__jslocation__ = "j.tools.zipfile"
         if not j.core.types.filepath.check(path):
             raise ValueError('Provided string %s is not a valid path' % path)
         if action is ZipFileAction.READ:

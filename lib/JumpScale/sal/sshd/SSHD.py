@@ -12,6 +12,9 @@ class SSHError(Exception):
 from sal.base.SALObject import SALObject
 
 class SSHD(SALObject):
+    def __init__(self):
+        self.__jslocation__ = "j.sal.sshd"
+
     SSH_ROOT = j.tools.path.get('/root/.ssh')
     SSH_AUTHORIZED_KEYS = j.tools.path.get(SSH_ROOT).joinpath('authorized_keys')
 

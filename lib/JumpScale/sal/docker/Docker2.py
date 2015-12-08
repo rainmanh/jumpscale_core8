@@ -14,6 +14,7 @@ from sal.base.SALObject import SALObject
 class Docker2(SALObject):
 
     def __init__(self):
+        self.__jslocation__ = "j.sal.docker"
         self._basepath = "/mnt/vmstor/docker"
         self._prefix = ""
         self.client = docker.Client(base_url='unix://var/run/docker.sock')

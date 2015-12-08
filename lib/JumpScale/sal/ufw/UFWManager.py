@@ -150,6 +150,7 @@ class UFWManager(SALObject):
     ACTION_REJECT_OUT = 'reject out'
 
     def __init__(self):
+        self.__jslocation__ = "j.sal.ufw"
         self._local = j.tools.executor.getLocal()
         self._rules = None
         self._enabled = None

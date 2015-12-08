@@ -22,6 +22,7 @@ class Time_(object):
     """
 
     def __init__(self):
+        self.__jslocation__ = "j.tools.time"
         self.timeinterval=TimeInterval
 
     @property

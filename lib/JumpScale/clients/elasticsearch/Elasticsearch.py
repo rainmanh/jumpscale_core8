@@ -3,6 +3,8 @@ from elasticsearch import Elasticsearch
 
 
 class ElasticsearchFactory:
+    def __init__(self):
+        self.__jslocation__ = "j.clients.elasticsearch"
 
     def get(self, ip="localhost", port=9200, timeout=60):
         j.logger.log("check elastic search reachable on %s on port %s" % (ip, port), level=4, category='osis.init')

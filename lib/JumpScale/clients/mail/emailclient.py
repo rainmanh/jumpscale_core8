@@ -11,6 +11,7 @@ from email.mime.text import MIMEText
 
 class EmailClient(object):
     def __init__(self):
+        self.__jslocation__ = "j.clients.email"
         hrd=j.application.getAppInstanceHRD("mailclient","main")
         self._server = hrd.getStr("instance.smtp.server",None)
         self._port = hrd.getInt("instance.smtp.port",None)

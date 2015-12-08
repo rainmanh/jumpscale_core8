@@ -12,6 +12,7 @@ from sal.base.SALObject import SALObject
 class Lxc(SALObject):
 
     def __init__(self):
+        self.__jslocation__ = "j.sal.lxc"
         self._prefix="" #no longer use prefixes
         self._basepath = None
 

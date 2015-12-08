@@ -16,6 +16,7 @@ from sal.base.SALObject import SALObject
 class UnixNetworkManager(SALObject):
 
     def __init__(self):
+        self.__jslocation__ = "j.sal.nic"
         self._executor = j.tools.executor.getLocal()
         self._nics = None
     

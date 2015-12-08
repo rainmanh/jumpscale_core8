@@ -14,6 +14,7 @@ from sal.base.SALObject import SALObject
 class NetConfigFactory(SALObject):
 
     def __init__(self):
+        self.__jslocation__ = "j.sal.openvswitch"
         self._layout=None
         self.PHYSMTU = 2000 # will fit all switches
         self._executor = j.tools.executor.getLocal()

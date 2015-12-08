@@ -145,6 +145,7 @@ class LogHandler(object):
         '''
         This empties the log targets
         '''
+        self.__jslocation__ = "j.logger"
         self.utils = LogUtils()
         self.reset()     
         self.maxlevel = 5

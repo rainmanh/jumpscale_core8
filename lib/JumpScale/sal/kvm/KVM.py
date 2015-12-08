@@ -57,6 +57,7 @@ class KVM(SALObject):
 
         each image needs to have ssh agent installed and needs to be booted when machine starts & be configured using the params as specified
         """
+        self.__jslocation__ = "j.sal.kvm"
         self.vmpath = "/mnt/vmstor/kvm"
         self.imagepath = "/mnt/vmstor/kvm/images"
         self.images = {}

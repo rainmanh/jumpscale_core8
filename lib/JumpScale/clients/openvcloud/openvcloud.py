@@ -4,6 +4,9 @@ import urllib.request, urllib.parse, urllib.error
 
 
 class OpenvcloudFactory(object):
+    def __init__(self):
+        self.__jslocation__ = "j.clients.openvcloud"
+
     def get(self, apiurl='www.mothership1.com', branch='master'):
         return Openvclcoud(apiurl, branch)
 

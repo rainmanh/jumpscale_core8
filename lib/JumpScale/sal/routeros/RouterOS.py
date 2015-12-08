@@ -4,6 +4,8 @@ import time
 from netaddr import EUI
 
 class RouterOSFactory(object):
+    def __init__(self):
+        self.__jslocation__ = "j.sal.routeros"
 
     def get(self, host, login,password):
         return RouterOS(host, login,password)

@@ -9,6 +9,9 @@ import pprint
 from JumpScale import j
 
 class Syncthing:
+    def __init__(self):
+        self.__jslocation__ = "j.clients.syncthing"
+
     def get(self,addr="localhost",port=22001,sshport=22,rootpasswd="js111js",apikey="js111js"):
         return SyncthingClient(addr,port,sshport,rootpasswd,apikey)
 

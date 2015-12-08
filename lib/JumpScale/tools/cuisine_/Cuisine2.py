@@ -235,6 +235,7 @@ def text_template(text, variables):
 
 class OurCuisineFactory:
     def __init__(self):
+        self.__jslocation__ = "j.tools.cuisine"
         self._local=None
 
     @property

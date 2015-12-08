@@ -5,7 +5,10 @@ from socket import gethostname
 
 from sal.base.SALObject import SALObject
 
+
 class SSLSigning(SALObject):
+    def __init__(self):
+        self.__jslocation__ = "j.sal.ssl_signing"
 
     def create_self_signed_ca_cert(self, cert_dir):
         """

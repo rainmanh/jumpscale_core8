@@ -552,6 +552,7 @@ class Role(j.code.classGetBase()):
 class SpecParserFactory():
 
     def __init__(self):
+        self.__jslocation__ = "j.core.specparser"
         self.specs={}
         self.childspecs={}
         self.appnames=[]

@@ -45,6 +45,7 @@ class RemoteSystem(object):
 
     exceptions = Exceptions
     def __init__(self):
+        self.__jslocation__ = "j.tools.ssh_remotesystem"
         self.connections={}
 
     def connect(self, ip, login="", password="", timeout=120.0, port=22):

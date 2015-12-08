@@ -62,6 +62,7 @@ class Disk(SALObject):
 
 class Diskmanager(SALObject):
     def __init__(self):
+        self.__jslocation__ = "j.sal.diskmanager"
         self._parted=None
 
     @property

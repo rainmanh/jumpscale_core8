@@ -21,6 +21,7 @@ class Lock:
     __shared_state = {}
 
     def __init__(self):
+        self.__jslocation__ = "j.tools.lock"
         self.__dict__ = self.__shared_state
         self._LOCKPATHWIN = os.getcwd()+os.sep+'tmp'+os.sep+'run'+os.sep
 

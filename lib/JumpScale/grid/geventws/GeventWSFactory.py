@@ -3,6 +3,7 @@ from JumpScale import j
 
 class GeventWSFactory():
     def __init__(self):
+        self.__jslocation__ = "j.servers.geventws"
         self.cache={}
         self.cachecat={}
 

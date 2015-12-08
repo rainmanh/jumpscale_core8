@@ -8,6 +8,7 @@ import socket
 class SSHClientFactory(object):
 
     def __init__(self):
+        self.__jslocation__ = "j.clients.ssh"
         self.cache = {}
 
     def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True,allow_agent=True, look_for_keys=True):

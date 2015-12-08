@@ -19,6 +19,7 @@ class PostgresqlFactory():
     """
 
     def __init__(self):
+        self.__jslocation__ = "j.clients.postgres"
         self.clients={}
 
     def getClient(self,ipaddr="localhost",port=5432,login="postgres",passwd="rooter",dbname="template"):

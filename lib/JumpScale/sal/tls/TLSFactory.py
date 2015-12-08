@@ -3,8 +3,11 @@ from .TLS import TLS
 
 from sal.base.SALObject import SALObject
 
+
 class TLSFactory(SALObject):
     """Factory class to deal with TLS, key and certificate generation"""
+    def __init__(self):
+        self.__jslocation__ = "j.tools.tls"
 
     # def getByInstance(self, instance='main'):
     #     """

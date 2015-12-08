@@ -10,6 +10,7 @@ class Netconfig(SALOBJECT):
     """
 
     def __init__(self):
+        self.__jslocation__ = "j.sal.netconfig"
         self.root = j.tools.path.get("/")
         self._executor = j.tools.executor.getLocal()
         self._interfaceChanged=False

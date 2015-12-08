@@ -196,6 +196,7 @@ class SMBSubShare(SALObject):
 
 class Samba(SALObject):
     def __init__(self):
+        self.__jslocation__ = "j.sal.samba"
         self._local = j.tools.executor.getLocal()
         self._users = SMBUser(True)
         self._shares = SMBShare()

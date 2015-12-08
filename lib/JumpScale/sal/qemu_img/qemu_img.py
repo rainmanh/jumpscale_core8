@@ -11,6 +11,8 @@ from sal.base.SALObject import SALObject
 
 
 class QemuImg(SALObject):
+    def __init__(self):
+        self.__jslocation__ = "j.sal.qemu_img"
 
     def create(self, fileName, diskImageFormat, size, baseImage=None, encryptTargetImage=False, useCompatibilityLevel6=False, isTargetImageTypeSCSI=False):
         """

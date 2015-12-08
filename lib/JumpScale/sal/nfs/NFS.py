@@ -18,6 +18,7 @@ from sal.base.SALObject import SALObject
 
 class NFSExport(SALObject):
     def __init__(self, path=None):
+        self.__jslocation__ = "j.sal.nfs"
         self._path = j.tools.path.get(path)
         self._clients = []
 

@@ -2,6 +2,7 @@ from JumpScale import j
 
 class Ubuntu:
     def __init__(self):
+        self.__jslocation__ = "j.sal.ubuntu"
         self._aptupdated = False
         self._checked = False
         self._cache=None

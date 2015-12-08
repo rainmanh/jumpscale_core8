@@ -5,6 +5,8 @@ import os.path
 from JumpScale import j
 
 class SystemFSWalker:
+    def __init__(self):
+        self.__jslocation__ = "j.sal.fswalker"
     
     @staticmethod
     def _checkDepth(path,depths,root=""):

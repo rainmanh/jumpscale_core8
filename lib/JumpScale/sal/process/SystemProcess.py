@@ -1180,6 +1180,8 @@ from sal.base.SALObject import SALObject
 
 
 class SystemProcess(SALObject):
+    def __init__(self):
+        self.__jslocation__ = "j.sal.process"
 
     def executeWithoutPipe(self, command, dieOnNonZeroExitCode = True, printCommandToStdout = False):
         """

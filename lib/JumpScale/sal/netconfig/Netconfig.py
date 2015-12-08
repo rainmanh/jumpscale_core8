@@ -64,7 +64,7 @@ class Netconfig(SALOBJECT):
 
     def interface_remove(self,dev,apply=True):
         path=self._getInterfacePath()
-        ed=j.codetools.getTextFileEditor(path)
+        ed=j.tools.code.getTextFileEditor(path)
         ed.removeSection(dev)
 
         if apply:
@@ -147,7 +147,7 @@ class Netconfig(SALOBJECT):
         # """
 
         path=self._getInterfacePath()
-        ed=j.codetools.getTextFileEditor(path)
+        ed=j.tools.code.getTextFileEditor(path)
         ed.setSection(dev,C)            
 
         ip = netaddr.IPNetwork(ipaddr)
@@ -158,7 +158,7 @@ class Netconfig(SALOBJECT):
         C=C.replace("$int",dev)
 
         path=self._getInterfacePath()
-        ed=j.codetools.getTextFileEditor(path)
+        ed=j.tools.code.getTextFileEditor(path)
         ed.setSection(devToApplyTo,C)
     
         if apply:

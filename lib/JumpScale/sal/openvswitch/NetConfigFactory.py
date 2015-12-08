@@ -143,7 +143,7 @@ iface $iname inet manual
         C=C.replace("$iname", interfacename)
         C=C.replace("$MTU", str(self.PHYSMTU))
 
-        ed=j.codetools.getTextFileEditor("/etc/network/interfaces")
+        ed=j.tools.code.getTextFileEditor("/etc/network/interfaces")
         ed.setSection(backplanename,C)
 
     def setBackplaneNoAddress(self,interfacename="eth0",backplanename=1):
@@ -166,7 +166,7 @@ iface $iname inet manual
         C=C.replace("$BPNAME", str(backplanename))
         C=C.replace("$iname", interfacename)
         C=C.replace("$MTU", str(self.PHYSMTU)) # strings here
-        ed=j.codetools.getTextFileEditor("/etc/network/interfaces")
+        ed=j.tools.code.getTextFileEditor("/etc/network/interfaces")
         ed.setSection(backplanename,C)
 
     def configureStaticAddress(self,interfacename="eth0",ipaddr="192.168.10.10/24",gw=None):
@@ -191,7 +191,7 @@ iface $interface inet static
         else:
             C=C.replace("$gw", "")
 
-        ed=j.codetools.getTextFileEditor("/etc/network/interfaces")
+        ed=j.tools.code.getTextFileEditor("/etc/network/interfaces")
         ed.setSection(interfacename,C)
         ed.save()
 
@@ -226,7 +226,7 @@ iface $bondname inet manual
         C=C.replace("$bondinterfaces" , interfaces)
         C=C.replace("$disable_ipv6" , disable_ipv6)
 
-        ed=j.codetools.getTextFileEditor("/etc/network/interfaces")
+        ed=j.tools.code.getTextFileEditor("/etc/network/interfaces")
         ed.setSection(backplanename,C)
         ed.save()
 
@@ -265,7 +265,7 @@ iface $iname inet manual
         else:
             C=C.replace("$gw", "")
 
-        ed=j.codetools.getTextFileEditor("/etc/network/interfaces")
+        ed=j.tools.code.getTextFileEditor("/etc/network/interfaces")
         ed.setSection(backplanename,C)
         ed.save()
 
@@ -310,7 +310,7 @@ iface $bondname inet manual
         C=C.replace("$bondinterfaces" , interfaces)
         C=C.replace("$disable_ipv6" , disable_ipv6)
 
-        ed=j.codetools.getTextFileEditor("/etc/network/interfaces")
+        ed=j.tools.code.getTextFileEditor("/etc/network/interfaces")
         ed.setSection(backplanename,C)
         ed.save()
 

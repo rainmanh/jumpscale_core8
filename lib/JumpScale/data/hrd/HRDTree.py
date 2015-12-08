@@ -1,9 +1,9 @@
 from JumpScale import j
 # import JumpScale.baselib.codeexecutor
 
-from .HRDBase import HRDBase
+from HRDBase import HRDBase
 
-from .HRD import HRD
+from HRD import HRD
 
 
 class HRDTree(HRDBase):

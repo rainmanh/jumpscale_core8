@@ -1,6 +1,6 @@
 
 from JumpScale import j
-from . import PropertyDef
+import PropertyDef
 
 class ClassDef:
     

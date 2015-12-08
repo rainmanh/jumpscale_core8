@@ -29,7 +29,7 @@ def action():
 
     disks = j.system.platform.diskmanager.partitionsFind(mounted=True, prefix='', minsize=0, maxsize=None)
     for disk in disks:
-        if pattern and j.codetools.regex.match(pattern, disk.path) == True:
+        if pattern and j.tools.code.regex.match(pattern, disk.path) == True:
             # pattern is a blacklist, continue if match
             continue
         result[disk.path] = {'free': disk.free, 'size': disk.size}

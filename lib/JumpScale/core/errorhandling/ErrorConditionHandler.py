@@ -288,7 +288,7 @@ class ErrorConditionHandler():
             message2=str(pythonExceptionObject)
             
         if message2.find("((")!=-1:
-            tag=j.codetools.regex.findOne("\(\(.*\)\)",message2)         
+            tag=j.tools.code.regex.findOne("\(\(.*\)\)",message2)         
         else:
             tag=""
             

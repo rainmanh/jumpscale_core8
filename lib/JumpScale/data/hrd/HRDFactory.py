@@ -1,10 +1,11 @@
 from JumpScale import j
 # import JumpScale.baselib.codeexecutor
-from .HRD import HRD
-from .HRDTree import HRDTree
+from HRD import HRD
+from HRDTree import HRDTree
 
 class HRDFactory:
     def __init__(self):
+        self.__jslocation__="j.data.hrd"
         self.logenable=False
         self.loglevel=5
 

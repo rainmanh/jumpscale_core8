@@ -1,12 +1,12 @@
 from JumpScale import j
 
-from .Models import *
+from Models import *
 
 
 class BaseModelFactory():
 
     def __init__(self):
-        pass
+        self.__jslocation__="j.core.models"
 
     def getBaseModel(self):
         return ModelBase

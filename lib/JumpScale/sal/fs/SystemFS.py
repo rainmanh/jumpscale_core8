@@ -12,7 +12,7 @@ import codecs
 import pickle as pickle
 import stat
 from stat import ST_MTIME
-from .SystemFSWalker import *
+from SystemFSWalker import *
 
 
 # We import only jumpscale as the j.system.fs is used before jumpscale is initialized. Thus the q cannot be imported yet
@@ -215,6 +215,7 @@ class SystemFS(SALObject):
     exceptions = Exceptions
 
     def __init__(self):
+        self.__jslocation__="j.sal.fs"          
         self.logenable=False
         self.loglevel=5
         self.walker=SystemFSWalker()
@@ -757,10 +758,10 @@ class SystemFS(SALObject):
             path=self.getDirName(path)
             #find extension
             regexToFindExt="\.\w*$"
-            if j.codetools.regex.match(regexToFindExt,name):
-                extension=j.codetools.regex.findOne(regexToFindExt,name).replace(".","")
+            if j.tools.code.regex.match(regexToFindExt,name):
+                extension=j.tools.code.regex.findOne(regexToFindExt,name).replace(".","")
                 #remove extension from name
-                name=j.codetools.regex.replace(regexToFindExt,regexFindsubsetToReplace=regexToFindExt, replaceWith="", text=name)
+                name=j.tools.code.regex.replace(regexToFindExt,regexFindsubsetToReplace=regexToFindExt, replaceWith="", text=name)
 
         if baseDir!="":
             path=self.pathRemoveDirPart(path,baseDir)
@@ -771,11 +772,11 @@ class SystemFS(SALObject):
             dirOrFilename=name
         #check for priority
         regexToFindPriority="^\d*_"
-        if j.codetools.regex.match(regexToFindPriority,dirOrFilename):
+        if j.tools.code.regex.match(regexToFindPriority,dirOrFilename):
             #found priority in path
-            priority=j.codetools.regex.findOne(regexToFindPriority,dirOrFilename).replace("_","")
+            priority=j.tools.code.regex.findOne(regexToFindPriority,dirOrFilename).replace("_","")
             #remove priority from path
-            name=j.codetools.regex.replace(regexToFindPriority,regexFindsubsetToReplace=regexToFindPriority, replaceWith="", text=name)
+            name=j.tools.code.regex.replace(regexToFindPriority,regexFindsubsetToReplace=regexToFindPriority, replaceWith="", text=name)
         else:
             priority=0
 
@@ -990,7 +991,7 @@ class SystemFS(SALObject):
         """
         apply templateengine to list of found files
         @param templateengine =te  #example below
-            te=j.codetools.templateengine.new()
+            te=j.tools.code.templateengine.new()
             te.add("name",self.a.name)
             te.add("description",self.ayses.description)
             te.add("version",self.ayses.version)

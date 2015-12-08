@@ -84,6 +84,8 @@ class Zone(object):
     
 class BindDNS(DNS,SALObject):
 
+    self.__jslocation__="j.sal.bind"   
+
     @property
     def zones(self):
         res = []

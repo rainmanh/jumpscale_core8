@@ -204,7 +204,7 @@ class NetTools(SALObject):
         @raise RuntimeError: No nameserver could be found in /etc/resolv.conf
         """
         if j.core.platformtype.isUnix():
-            nameserverlines = j.codetools.regex.findAll(
+            nameserverlines = j.tools.code.regex.findAll(
             "^\s*nameserver\s+(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\s*$",
             j.sal.fs.fileGetContents('/etc/resolv.conf'))
 

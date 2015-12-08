@@ -463,6 +463,56 @@ class Service(object):
     #                 chain.append(dep)
     #     return chain
 
+
+    def _findMethod(self,templatepath,methodname):
+        methodname=methodname.strip()
+        if not j.sal.fs.exists(path=templatepath):
+            raise RuntimeError("Cannot find template:%s, as I need it to find inheritance for %s"%(templatepath,self))
+        C2=j.do.readFile(templatepath)
+        out=""
+        state="start"
+        for line in C2.split("\n"):
+            line=line.replace("\t","    ")
+
+            if state=="found" and line.startswith("    def"):
+                break
+
+            if line.startswith("    def %s"%methodname):
+                state="found"
+
+            if state=="found":
+                out+="%s\n"%line
+
+        if out.strip()=="":
+            raise RuntimeError("Cannot find template:%s method %s, as I need it to find inheritance for %s"%(templpath2,methodname,self))
+
+                        
+        return out.rstrip()
+
+
+    def _processInheritance(self,templatepath,outpath):
+        C=j.do.readFile(templatepath)
+        found=False
+        if C.find("@INHERIT")!=-1:
+            out=""
+            for line in C.split("\n"):
+                if line.find("@INHERIT")!=-1:
+                    nothing,templatename,methodnames=line.split(":",2)
+                    templ=j.atyourservice.getTemplate(name=templatename)
+                    templpath2=templ.path+"/"+j.sal.fs.getBaseName(templatepath)
+                    for methodname in methodnames.split(","):
+                        C3=self._findMethod(templpath2,methodname)
+                        out+="\n\n%s\n\n"%C3
+                        found=True
+                    continue
+
+                out+="%s\n"%line
+            j.do.writeFile(outpath,out)
+
+        return found
+        
+
+
     def _apply(self):
         # log("apply")
         j.do.createDir(self.path)
@@ -476,7 +526,9 @@ class Service(object):
         for item in items:
             source = "%s/%s.py" % (self.template.path,item)
             if j.sal.fs.exists(source):
-                j.do.copyFile(source,  j.sal.fs.joinPaths(self.path, "%s.py" % item))
+                dest4= j.sal.fs.joinPaths(self.path, "%s.py" % item)
+                if not self._processInheritance(source,dest4):
+                    j.do.copyFile(source, dest4)
 
         source = self.template.path_hrd_template
         j.do.copyFile(source, "%s/template.hrd" % self.path)

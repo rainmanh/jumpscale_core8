@@ -1,3 +1,5 @@
+
+# from JumpScale.baselib.codeexecutor.CodeExecutor import CodeExecutor
 import inspect
 from JumpScale import j
 
@@ -17,13 +19,82 @@ class Struct(object):
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 
-class Code():
+
+
+class CodeTools:
 
     def __init__(self):
-        #print "HELLO"
-        #@todo P2 is not lazy loading why not
-        pass
+        self.__jslocation__="j.tools.code"  
+        self._templateengine=None
+        # self.executor = CodeExecutor()
+        self._regex = None
+        self._wordreplacer=None
+        self._codemanager=None
+        self._texteditor=None
 
+    @property
+    def codemanager(self):
+        if self._codemanager==None:
+            from CodeManager import CodeManager
+            self._codemanager=CodeManager()
+        return self._codemanager
+
+    @property
+    def regex(self):
+        if self._regex==None:
+            from JumpScale.tools.regex.RegexTools import RegexTools
+            self._regex=RegexTools()
+        return self._regex
+
+    @property
+    def templateengine(self):
+        if self._templateengine==None:
+            from TemplateEngineWrapper import TemplateEngineWrapper
+            self._templateengine=TemplateEngineWrapper()
+        return self._templateengine
+
+    @property
+    def texteditor(self):
+        if self._texteditor==None:
+            from TextFileEditor import TextFileEditor
+            self._texteditor=TextFileEditor()
+        return self._texteditor
+
+    @property
+    def wordreplacer(self):
+        if self._wordreplacer==None:
+            from WordReplacer import WordReplacer
+            self._wordreplacer=WordReplacer()
+        return self._wordreplacer
+    
+    def textToTitle(self,text,maxnrchars=60):
+        """
+        try to create a title out of text, ignoring irrelevant words and making lower case and removing 
+        not needed chars
+        """
+        ignore="for in yes no after up down the"
+        ignoreitems=ignore.split(" ")
+        keepchars="abcdefghijklmnopqrstuvwxyz1234567890 "
+        out=""
+        text=text.lower().strip()
+        for char in text:
+            if char in keepchars:
+                out+=char
+        text=out
+        text=text.replace("  ","")
+        text=text.replace("  ","")
+        out=""
+        nr=0
+        for item in text.split(" "):
+            if item not in ignoreitems:
+                nr+=len(item)
+                if nr<maxnrchars:		    
+                    out+=item+" "
+        if len(text.split(" "))>0:
+            text=out.strip()	
+        if len(text)>maxnrchars:
+            text=text[:maxnrchars]
+        return text
 
     def classInfoPrint(self,classs):
         """

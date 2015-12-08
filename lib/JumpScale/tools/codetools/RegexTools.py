@@ -192,7 +192,7 @@ class RegexTools:
         return RegexMatches  (is array of RegexMatch)
         """
         if pattern=="" or text=="":
-            raise RuntimeError("Cannot do j.codetools.regex.getRegexMatches when pattern or text parameter is empty")
+            raise RuntimeError("Cannot do j.tools.code.regex.getRegexMatches when pattern or text parameter is empty")
         pattern=self._patternFix(pattern)
         rm=RegexMatches()
         for match in re.finditer(pattern, text, flags):
@@ -204,7 +204,7 @@ class RegexTools:
             witch would improve the performance of the search function.
         """
         if pattern=="" or text=="":
-            raise RuntimeError("Cannot do j.codetools.regex.getRegexMatches when pattern or text parameter is empty")
+            raise RuntimeError("Cannot do j.tools.code.regex.getRegexMatches when pattern or text parameter is empty")
         pattern=self._patternFix(pattern)
         
         for match in re.finditer(pattern, text, flags):
@@ -228,7 +228,7 @@ class RegexTools:
         @return RegexMatch object, or None if didn't match any.
         """
         if pattern == "" or text == "":
-            raise RuntimeError("Cannot do j.codetools.regex.getRegexMatches when pattern or text parameter is empty")
+            raise RuntimeError("Cannot do j.tools.code.regex.getRegexMatches when pattern or text parameter is empty")
         pattern = self._patternFix(pattern)
         match = re.match(pattern, text, flags)
         if match:
@@ -246,7 +246,7 @@ class RegexTools:
         remove lines based on pattern  
         """
         if pattern=="" or text=="":
-            raise RuntimeError("Cannot do j.codetools.regex.removeLines when pattern or text parameter is empty")
+            raise RuntimeError("Cannot do j.tools.code.regex.removeLines when pattern or text parameter is empty")
         pattern=self._patternFix(pattern)
         return self.processLines(text,excludes=[pattern])
 

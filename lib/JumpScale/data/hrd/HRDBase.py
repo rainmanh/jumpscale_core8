@@ -285,7 +285,7 @@ class HRDBase():
         if content=="":
             return content
 
-        items=j.codetools.regex.findAll(r"\$\([\w.]*\)",content)
+        items=j.tools.code.regex.findAll(r"\$\([\w.]*\)",content)
         j.data.hrd.log("replace vars in hrd:%s"%self.path,"replacevar",7)
         if len(items)>0:
             for item in items:

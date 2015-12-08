@@ -27,7 +27,7 @@ class SystemFSWalker:
         if contentRegexIncludes==[] and contentRegexExcludes==[]:
             return True
         content=j.sal.fs.fileGetContents(path)
-        if j.codetools.regex.matchMultiple(patterns=contentRegexIncludes,text=content) and not j.codetools.regex.matchMultiple(patterns=contentRegexExcludes,text=content):
+        if j.tools.code.regex.matchMultiple(patterns=contentRegexIncludes,text=content) and not j.tools.code.regex.matchMultiple(patterns=contentRegexExcludes,text=content):
             return True
         return False
 
@@ -108,14 +108,14 @@ class SystemFSWalker:
         #     if includeFolders:
         #         for dirname in dirnames:
         #             path = os.path.join(dirpath, dirname)
-        #             if j.codetools.regex.matchMultiple(patterns=pathRegexIncludes,text=path) and \
-        #                     not j.codetools.regex.matchMultiple(patterns=pathRegexExcludes,text=path):
+        #             if j.tools.code.regex.matchMultiple(patterns=pathRegexIncludes,text=path) and \
+        #                     not j.tools.code.regex.matchMultiple(patterns=pathRegexExcludes,text=path):
         #                 if FSWalker._checkDepth(path,depths,root) and \
         #                         FSWalker._checkContent(path,contentRegexIncludes, contentRegexExcludes):
         #                     result=callback(arg, path)
         #     for filename in filenames:
         #         path = os.path.join(dirpath, filename)
-        #         if j.codetools.regex.matchMultiple(patterns=pathRegexIncludes,text=path) and not j.codetools.regex.matchMultiple(patterns=pathRegexExcludes,text=path):
+        #         if j.tools.code.regex.matchMultiple(patterns=pathRegexIncludes,text=path) and not j.tools.code.regex.matchMultiple(patterns=pathRegexExcludes,text=path):
         #             if FSWalker._checkDepth(path,depths,root) and FSWalker._checkContent(path,contentRegexIncludes, contentRegexExcludes):
         #                 callback(arg, path)
                 
@@ -130,8 +130,8 @@ class SystemFSWalker:
             if j.sal.fs.isDir(path2, followlinks):
                 if includeFolders:
                     result=True
-                    if j.codetools.regex.matchMultiple(patterns=pathRegexIncludes,text=path2) and \
-                            not j.codetools.regex.matchMultiple(patterns=pathRegexExcludes,text=path2):
+                    if j.tools.code.regex.matchMultiple(patterns=pathRegexIncludes,text=path2) and \
+                            not j.tools.code.regex.matchMultiple(patterns=pathRegexExcludes,text=path2):
                         if FSWalker._checkDepth(path2,depths,path) and \
                                 FSWalker._checkContent(path2,contentRegexIncludes, contentRegexExcludes):
                             result=callback(arg, path2)
@@ -142,7 +142,7 @@ class SystemFSWalker:
                         contentRegexIncludes, contentRegexExcludes, depths,followlinks)
         
             if j.sal.fs.isFile(path2, followlinks):
-                if j.codetools.regex.matchMultiple(patterns=pathRegexIncludes,text=path2) and not j.codetools.regex.matchMultiple(patterns=pathRegexExcludes,text=path):
+                if j.tools.code.regex.matchMultiple(patterns=pathRegexIncludes,text=path2) and not j.tools.code.regex.matchMultiple(patterns=pathRegexExcludes,text=path):
                     if FSWalker._checkDepth(path2,depths,path) and FSWalker._checkContent(path2,contentRegexIncludes, contentRegexExcludes):
                         callback(arg, path2)
 

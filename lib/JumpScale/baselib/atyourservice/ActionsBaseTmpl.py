@@ -1,5 +1,5 @@
 from JumpScale import j
-import JumpScale.sal.screen
+import JumpScale.sal.tmux
 import os
 import signal
 import inspect

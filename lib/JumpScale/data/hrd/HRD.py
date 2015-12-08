@@ -1,7 +1,7 @@
 from JumpScale import j
 
 # import JumpScale.tools.regex
-from .HRDBase import HRDBase
+from HRDBase import HRDBase
 import binascii
 import copy
 
@@ -117,7 +117,7 @@ class HRDItem():
         # print "process:%s |%s|"%(self,data)
         #check if link to other value $(...)
         if data.find("$(")!=-1:
-            items=j.codetools.regex.findAll(r"\$\([\w.]*\)",data)
+            items=j.tools.code.regex.findAll(r"\$\([\w.]*\)",data)
             if len(items)>0:
                 for item in items:
                     partial = True

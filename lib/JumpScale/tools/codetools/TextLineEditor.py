@@ -56,7 +56,7 @@ class TextLineEditor():
                     self._processLine(lineObject,blockname)  #add last line
                 return
 
-            if state=="foundblock" and j.codetools.regex.matchMultiple(blockStopPatterns,line) and not j.codetools.regex.matchMultiple(blockStopPatternsNegative,line):
+            if state=="foundblock" and j.tools.code.regex.matchMultiple(blockStopPatterns,line) and not j.tools.code.regex.matchMultiple(blockStopPatternsNegative,line):
                 #found end of block
                 state="scan" #can continue to scan for next line
                 self._processLine(lineObject,blockname)
@@ -65,7 +65,7 @@ class TextLineEditor():
             if state=="foundblock": #still in found block so add the last line
                 self._processLine(lineObject,blockname)  #add last line                            
 
-            if j.codetools.regex.matchMultiple(blockStartPatterns,line) and not j.codetools.regex.matchMultiple(blockStartPatternsNegative,line):
+            if j.tools.code.regex.matchMultiple(blockStartPatterns,line) and not j.tools.code.regex.matchMultiple(blockStartPatternsNegative,line):
                 #found beginning of block
                 state="foundblock"
                 self._processLine(lineObject,blockname,next=True)

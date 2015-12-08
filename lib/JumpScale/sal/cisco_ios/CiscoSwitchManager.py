@@ -14,6 +14,8 @@ class CiscoSwitch(SALObject):
 
     def __init__(self, host, login,password):
 
+        self.__jslocation__="j.sal.ciscoswitch"           
+
         R1 = Router(hostname=host, logfile='cisco.log')
         login_cmd = 'telnet ' + host
         login_expect = '#'#.format(hostname)  #@TODO NEEDS TO BE ADJUSTED

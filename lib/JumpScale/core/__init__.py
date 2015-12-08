@@ -8,7 +8,7 @@ class Empty():
 
 j.base=Empty()
 
-from . import LOADER
+# from . import LOADER
 # from . import BYTEPROCESSOR
 
 def _setup_stacktrace_hook():

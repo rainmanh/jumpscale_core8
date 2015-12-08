@@ -38,13 +38,13 @@ class TextCharEditor():
         will only work on text which is not part of known blocks yet
         example to find comments which are full line based startpattern='^[ \t]*%%'  stoppattern="\n"
         """
-        result=j.codetools.regex.getRegexMatches(startpattern,self.getText())
+        result=j.tools.code.regex.getRegexMatches(startpattern,self.getText())
         if len(result.matches)==0:
             pass
         for match in result.matches:    
             start=match.start
             textToInvestigate=string.join([char[0] for char in self.chars[match.start:]],"")
-            result2=j.codetools.regex.getRegexMatches(stoppattern,textToInvestigate)     
+            result2=j.tools.code.regex.getRegexMatches(stoppattern,textToInvestigate)     
             if len(result2.matches)==0:
                 raise RuntimeError("could not find stoppattern %s"%stoppattern)
             end=result2.matches[0].end
@@ -67,7 +67,7 @@ class TextCharEditor():
         will only work on text which is not part of known blocks yet
         @startpattern example to find '{listen,'  startpattern="^[ \t]*{[ \r\n\t]*listen[ \r\n\t]*,"   #note the way how we allow tabs,newlines and spaces
         """
-        result=j.codetools.regex.getRegexMatches(startpattern,self.getText())
+        result=j.tools.code.regex.getRegexMatches(startpattern,self.getText())
         if len(result.matches)==0:
             pass
         for match in result.matches:

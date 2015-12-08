@@ -52,7 +52,7 @@ class Avahi():
         if result > 0:
             raise RuntimeError(
                 "cannot use avahi command line to find services, please check avahi is installed on system (ubunutu apt-get install avahi-utils)\nCmd Used:%s" % cmd)
-        items = j.codetools.regex.extractBlocks(output, ["^= .*"])
+        items = j.tools.code.regex.extractBlocks(output, ["^= .*"])
         avahiservices = AvahiServices()
         for item in items:
             s = AvahiService()
@@ -69,10 +69,10 @@ class Avahi():
             if len(lineitemsout) < 2 or len(lineitemsout) > 3:
                 s.servicename = lineitemsout[0]
 
-            s.hostname = j.codetools.regex.getINIAlikeVariableFromText(" *hostname *", item).replace("[", "").replace("]", "").strip()
-            s.address = j.codetools.regex.getINIAlikeVariableFromText(" *address *", item).replace("[", "").replace("]", "").strip()
-            s.port = j.codetools.regex.getINIAlikeVariableFromText(" *port *", item).replace("[", "").replace("]", "").strip()
-            s.txt = j.codetools.regex.getINIAlikeVariableFromText(" *txt *", item).replace("[", "").replace("]", "").strip()
+            s.hostname = j.tools.code.regex.getINIAlikeVariableFromText(" *hostname *", item).replace("[", "").replace("]", "").strip()
+            s.address = j.tools.code.regex.getINIAlikeVariableFromText(" *address *", item).replace("[", "").replace("]", "").strip()
+            s.port = j.tools.code.regex.getINIAlikeVariableFromText(" *port *", item).replace("[", "").replace("]", "").strip()
+            s.txt = j.tools.code.regex.getINIAlikeVariableFromText(" *txt *", item).replace("[", "").replace("]", "").strip()
             avahiservices._add(s)
         return avahiservices
 

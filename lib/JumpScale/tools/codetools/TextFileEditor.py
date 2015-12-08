@@ -1,6 +1,6 @@
 from JumpScale import j
-from .TextLineEditor import TextLineEditor
-from .TextCharEditor import TextCharEditor
+from TextLineEditor import TextLineEditor
+from TextCharEditor import TextCharEditor
 
         
 class TextFileEditor:
@@ -29,7 +29,7 @@ class TextFileEditor:
         """
         if not self.content:
             return False        
-        return j.codetools.regex.findOne(pattern,self.content)!=""
+        return j.tools.code.regex.findOne(pattern,self.content)!=""
                 
     
     def find1Line(self,includes="",excludes=""):
@@ -47,7 +47,7 @@ class TextFileEditor:
         if excludes=="":
             excludes=[]  #match none
         for line in self.content.split("\n"):
-            if j.codetools.regex.matchMultiple(includes,line) and not j.codetools.regex.matchMultiple(excludes,line):
+            if j.tools.code.regex.matchMultiple(includes,line) and not j.tools.code.regex.matchMultiple(excludes,line):
                 result.append(line)
                 linenrfound=linenr
                 linefound=line
@@ -70,7 +70,7 @@ class TextFileEditor:
         
         """   
         #@todo add good logging statements everywhere   (id:49)
-        self.content=j.codetools.regex.replaceLines(replaceFunction,argument, self.content,includes,excludes)
+        self.content=j.tools.code.regex.replaceLines(replaceFunction,argument, self.content,includes,excludes)
         self.save()
 
     def replace1LineFromFunction(self,replaceFunction,argument,includes="",excludes=""):
@@ -110,7 +110,7 @@ class TextFileEditor:
         """
         remove lines which match the pattern (regex) (only 1 pattern)
         """
-        self.content=j.codetools.regex.removeLines(pattern,self.content)
+        self.content=j.tools.code.regex.removeLines(pattern,self.content)
         self.save()
         
     def appendReplaceLine(self,pattern,line):
@@ -179,7 +179,7 @@ class TextFileEditor:
         @param regexFindsubsetToReplace: The subset within regexFind that you want to replace
         @param replacewith: The replacement
         """        
-        self.content=j.codetools.regex.replace(regexFind,regexFindsubsetToReplace,replaceWith,self.content)
+        self.content=j.tools.code.regex.replace(regexFind,regexFindsubsetToReplace,replaceWith,self.content)
         self.save()
                 
     def replaceNonRegex(self,tofind,replaceWith):
@@ -198,12 +198,12 @@ class TextFileEditor:
         for line in self.content.split("\n"):
             if reset  and done==False and line.find(tofind)!=-1 and ignoreRegex!=None:
                 #found right line
-                line=j.codetools.regex.replace(ignoreRegex, ignoreRegex, "", line).rstrip()
+                line=j.tools.code.regex.replace(ignoreRegex, ignoreRegex, "", line).rstrip()
                 line=line+add
                 print(("CH:%s" % line))
                 done=True
             if done==False and line.find(tofind)!=-1 and  \
-               (ignoreRegex!=None and not j.codetools.regex.match(ignoreRegex,line)):
+               (ignoreRegex!=None and not j.tools.code.regex.match(ignoreRegex,line)):
                 #found line we can change
                 line=line.replace(tofind,tofind+add)
                 done=True
@@ -213,7 +213,7 @@ class TextFileEditor:
             
         
     def getRegexMatches(self, pattern):
-        result= j.codetools.regex.getRegexMatches(pattern, self.content)
+        result= j.tools.code.regex.getRegexMatches(pattern, self.content)
         return result
             
     def save(self,filepath=None):

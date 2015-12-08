@@ -11,27 +11,29 @@ from builtins import str
 
 class Text:
 
-    @staticmethod
-    def decodeUnicode2Asci(text):
-        return unicodedata.normalize('NFKD', text.decode("utf-8")).encode('ascii','ignore')
+    def __init__(self):
+            
+
+    def decodeUnicode2Asci(self,text):
+        return unicodedata.normalize('NFKD', self.decode("utf-8")).encode('ascii','ignore')
     
-    @staticmethod
-    def toolStripNonAsciFromText(text):    
+    
+    def toolStripNonAsciFromText(self,text):    
         return "".join([char for char in str(text) if ((ord(char)>31 and ord(char)<127) or ord(char)==10)])
     
 
-    @staticmethod
-    def toStr(value, codec='utf-8'):
+    
+    def toStr(self,value, codec='utf-8'):
         if isinstance(value, bytes):
             value.decode(codec)
         return value
 
-    @staticmethod
-    def toSafePath(txt,maxlen=0):
+    
+    def toSafePath(self,txt,maxlen=0):
         """
         process string so it can be used in a path on windows or linux
         """
-        txt=Text.toAscii(txt)
+        txt=self.toAscii(txt)
         txt=txt.lower().strip().strip(" .-_'")
         txt=txt.replace("/","").replace(","," ").replace("*","").replace("(","").replace(")","").replace("\"","").replace("?","").replace("'","").replace(":"," ")
         while txt.find("  ")!=-1:
@@ -40,8 +42,8 @@ class Text:
             txt=txt[0:maxlen]
         return txt.strip()
 
-    @staticmethod
-    def toAscii(value,maxlen=0):
+    
+    def toAscii(self,value,maxlen=0):
         out=""
         for item in value:
             if ord(item)>127:
@@ -58,8 +60,8 @@ class Text:
                
         return out
 
-    @staticmethod
-    def toUnicode(value, codec='utf-8'):
+    
+    def toUnicode(self,value, codec='utf-8'):
         if isinstance(value, str):
             return value.decode(codec)
         elif isinstance(value, str):
@@ -67,34 +69,34 @@ class Text:
         else:
             return str(value)
 
-    @staticmethod
-    def strip(content):
+    
+    def strip(self,content):
         return j.do.textstrip(content)
 
-    @staticmethod
-    def sort(txt):
+    
+    def sort(self,txt):
         """
         removes all empty lines & does a sort
         """
         return "\n".join([item for item in sorted(txt.split("\n")) if item!=""])+"\n"
 
-    @staticmethod
-    def prefix(prefix,txt):
+    
+    def prefix(self,prefix,txt):
         out=""
         txt=txt.rstrip("\n")
         for line in txt.split("\n"):
             out+="%s%s\n"%(prefix,line)
         return out
 
-    @staticmethod
-    def wrap(txt,length=80):
+    
+    def wrap(self,txt,length=80):
         out=""
         for line in txt.split("\n"):
             out+=textwrap.fill(line,length,subsequent_indent="    ")+"\n"
         return out
 
-    @staticmethod
-    def prefix_remove(prefix,txt,onlyPrefix=False):
+    
+    def prefix_remove(self,prefix,txt,onlyPrefix=False):
         """
         @param onlyPrefix if True means only when prefix found will be returned, rest discarded
         """
@@ -108,8 +110,8 @@ class Text:
                 out+="%s\n"%(line)
         return out
 
-    @staticmethod
-    def prefix_remove_withtrailing(prefix,txt,onlyPrefix=False):
+    
+    def prefix_remove_withtrailing(self,prefix,txt,onlyPrefix=False):
         """
         there can be chars for prefix (e.g. '< :*: aline'  and this function looking for :*: would still work and ignore '< ')
         @param onlyPrefix if True means only when prefix found will be returned, rest discarded
@@ -124,13 +126,13 @@ class Text:
                 out+="%s\n"%(line)        
         return out
 
-    @staticmethod
-    def addCmd(out,entity,cmd):
+    
+    def addCmd(self,out,entity,cmd):
         out+="!%s.%s\n"%(entity,cmd)
         return out
 
-    @staticmethod
-    def addTimeHR(line,epoch,start=50):
+    
+    def addTimeHR(self,line,epoch,start=50):
         if int(epoch)==0:
             return line
         while len(line)<start:
@@ -138,8 +140,8 @@ class Text:
         line+="# "+time.strftime('%Y/%m/%d %H:%M:%S',time.localtime(int(epoch)))
         return line
 
-    @staticmethod
-    def addVal(out,name,val,addtimehr=False):            
+    
+    def addVal(self,out,name,val,addtimehr=False):            
         if isinstance( val, int ):
             val=str(val)
         while len(val)>0 and val[-1]=="\n":
@@ -152,16 +154,16 @@ class Text:
         else:
             line="%s=%s"%(name,val)
             if addtimehr:
-                line=Text.addTimeHR(line,val)
+                line=self.addTimeHR(line,val)
             out+="%s\n"%line
         return out
 
-    @staticmethod
-    def isNumeric(txt):        
+    
+    def isNumeric(self,txt):        
         return re_nondigit.search(txt)==None
 
-    @staticmethod   
-    def lstrip(content):
+       
+    def lstrip(self,content):
         """
         remove all spaces at beginning & end of line when relevant
         """
@@ -178,8 +180,8 @@ class Text:
             content="\n".join([line[minchars:] for line in content.split("\n")])       
         return content 
 
-    @staticmethod
-    def ask(content,name=None,args={}, ask=True):
+    
+    def ask(self,content,name=None,args={}, ask=True):
         """
         look for @ASK statements in text, where found replace with input from user
 
@@ -200,7 +202,7 @@ class Text:
         @return type,content
 
         """        
-        content=Text.eval(content)
+        content=self.eval(content)
         if content.strip()=="":
             return None, content
 
@@ -294,7 +296,7 @@ class Text:
                 try:
                     result=float(result)
                 except:
-                    j.events.inputerror_critical("Please provide float.","system.text.ask.neededfloat")
+                    j.events.inputerror_critical("Please provide float.","system.self.ask.neededfloat")
                 result=str(result)
             
             elif ttype=="int":
@@ -343,8 +345,8 @@ class Text:
         out=out[:-1]
         return ttype, out
 
-    @staticmethod
-    def getMacroCandidates( txt):
+    
+    def getMacroCandidates( self,txt):
         """
         look for \{\{\}\} return as list
         """
@@ -357,8 +359,8 @@ class Text:
                     result.append("{{%s}}" % item)
         return result
 
-    @staticmethod
-    def _str2var(string):
+    
+    def _str2var(self,string):
         """
         try to check int or float or bool
         """
@@ -382,10 +384,10 @@ class Text:
         if match!=None and match.start()==0 and match.end()==len(string2):
             return "f",float(string2)
 
-        return "s",Text.machinetext2str(string)
+        return "s",self.machinetext2str(string)
 
-    @staticmethod
-    def str2var(string):
+    
+    def str2var(self,string):
         """
         convert list, dict of strings 
         or convert 1 string to python objects
@@ -394,55 +396,55 @@ class Text:
             if j.core.types.list.check(string):
                 ttypes=[]
                 for item in string:
-                    ttype,val=Text._str2var(item)
+                    ttype,val=self._str2var(item)
                     if ttype not in ttypes:
                         ttypes.append(ttype)
                 if "s" in ttypes:
-                    result=[str(Text.machinetext2val(item))  for item in string]
+                    result=[str(self.machinetext2val(item))  for item in string]
                 elif "f" in ttypes and "b" not in ttypes:
-                    result=[Text.getFloat(item) for item in string]
+                    result=[self.getFloat(item) for item in string]
                 elif "i" in ttypes and "b" not in ttypes:
-                    result=[Text.getInt(item) for item in string]
+                    result=[self.getInt(item) for item in string]
                 elif "b" == ttypes:
-                    result=[Text.getBool(item) for item in string]                
+                    result=[self.getBool(item) for item in string]                
                 else:
-                    result=[str(Text.machinetext2val(item)) for item in string]
+                    result=[str(self.machinetext2val(item)) for item in string]
             elif j.core.types.dict.check(string):
                 ttypes=[]
                 result={}
                 for key,item in list(string.items()):
-                    ttype,val=Text._str2var(item)
+                    ttype,val=self._str2var(item)
                     if ttype not in ttypes:
                         ttypes.append(ttype)
                 if "s" in ttypes:                        
                     for key,item in list(string.items()):
-                        result[key]=str(Text.machinetext2val(item)) 
+                        result[key]=str(self.machinetext2val(item)) 
                 elif "f" in ttypes and "b" not in ttypes:
                     for key,item in list(string.items()):
-                        result[key]=Text.getFloat(item)
+                        result[key]=self.getFloat(item)
                 elif "i" in ttypes and "b" not in ttypes:
                     for key,item in list(string.items()):
-                        result[key]=Text.getInt(item)
+                        result[key]=self.getInt(item)
                 elif "b" == ttypes:
                     for key,item in list(string.items()):
-                        result[key]=Text.getBool(item)
+                        result[key]=self.getBool(item)
                 else:
                     for key,item in list(string.items()):
-                        result[key]=str(Text.machinetext2val(item)) 
+                        result[key]=str(self.machinetext2val(item)) 
             elif isinstance(string,str) or isinstance(string,float) or isinstance(string,int):
-                ttype,result=Text._str2var(j.tools.text.toStr(string))
+                ttype,result=self._str2var(j.tools.self.toStr(string))
             else:
-                j.events.inputerror_critical("Could not convert '%s' to basetype, input was %s. Expected string, dict or list."%(string, type(string)),"text.str2var")    
+                j.events.inputerror_critical("Could not convert '%s' to basetype, input was %s. Expected string, dict or list."%(string, type(string)),"self.str2var")    
             return result
         except Exception as e:
-            j.events.inputerror_critical("Could not convert '%s' to basetype, error was %s"%(string,e),"text.str2var")
+            j.events.inputerror_critical("Could not convert '%s' to basetype, error was %s"%(string,e),"self.str2var")
 
-    @staticmethod
-    def eval(code):
+    
+    def eval(self,code):
         """
         look for {{}} in code and evaluate as python result is converted back to str
         """
-        candidates = Text.getMacroCandidates(code)
+        candidates = self.getMacroCandidates(code)
         for item in candidates:
             if "{{" and "}}" in item:
                 item = item.strip("{{").strip("}}")
@@ -450,17 +452,17 @@ class Text:
                 result = eval(item)
             except Exception as e:
                 raise RuntimeError("Could not execute code in j.tools.text,%s\n%s. Error was:%s" % (item, code, e))
-            result = Text.pythonObjToStr(result, multiline=False).strip()
+            result = self.pythonObjToStr(result, multiline=False).strip()
             code = code.replace(item, result)
         return code
 
 
-    @staticmethod
-    def pythonObjToStr1line(obj):
-        return Text.pythonObjToStr(obj,False,canBeDict=False)
+    
+    def pythonObjToStr1line(self,obj):
+        return self.pythonObjToStr(obj,False,canBeDict=False)
 
-    @staticmethod
-    def pythonObjToStr(obj,multiline=True,canBeDict=True,partial=False):
+    
+    def pythonObjToStr(self,obj,multiline=True,canBeDict=True,partial=False):
         """
         try to convert a python object to string representation works for None, bool, integer, float, dict, list
         """
@@ -480,7 +482,7 @@ class Text:
             if obj.strip()=="":
                 return ""
             if obj.find("\n")!=-1 and multiline:
-                obj="\n%s"%Text.prefix("    ",obj.strip())
+                obj="\n%s"%self.prefix("    ",obj.strip())
             elif not isdict or obj.find(" ")!=-1 or obj.find("/")!=-1 or obj.find(",")!=-1:
                 if not partial:
                     obj="'%s'"%obj.strip("'")
@@ -495,12 +497,12 @@ class Text:
             if multiline:
                 resout="\n"
                 for item in obj:
-                    resout+="    %s,\n"%Text.pythonObjToStr1line(item)
+                    resout+="    %s,\n"%self.pythonObjToStr1line(item)
                 resout=resout.rstrip().strip(",")+",\n"
             else:
                 resout='['
                 for item in obj:
-                    resout+="%s,"%Text.pythonObjToStr1line(item)
+                    resout+="%s,"%self.pythonObjToStr1line(item)
                 resout=resout.rstrip().strip(",")+"]"
 
             return resout
@@ -514,9 +516,9 @@ class Text:
                 keys.sort()
                 for key in keys:
                     val=obj[key]
-                    val=Text.pythonObjToStr1line(val)
+                    val=self.pythonObjToStr1line(val)
                     # resout+="%s:%s, "%(key,val)
-                    resout+="    %s:%s,\n"%(key,Text.pythonObjToStr1line(val))
+                    resout+="    %s:%s,\n"%(key,self.pythonObjToStr1line(val))
                 resout=resout.rstrip().rstrip(",")+",\n"            
             else:
                 resout=""
@@ -524,7 +526,7 @@ class Text:
                 keys.sort()
                 for key in keys:
                     val=obj[key]
-                    val=Text.pythonObjToStr1line(val)
+                    val=self.pythonObjToStr1line(val)
                     resout+="%s:%s,"%(key,val)
                 resout=resout.rstrip().rstrip(",")+","
             return resout
@@ -532,8 +534,8 @@ class Text:
         else:   
             raise RuntimeError("Could not convert %s to string"%obj)
 
-    @staticmethod
-    def hrd2machinetext(value,onlyone=False):
+    
+    def hrd2machinetext(self,value,onlyone=False):
         """
         'something ' removes ''
         all spaces & commas & : inside ' '  are converted
@@ -556,14 +558,14 @@ class Text:
                 return item2
         return value
 
-    @staticmethod
-    def replaceQuotes(value,replacewith):
+    
+    def replaceQuotes(self,value,replacewith):
         for item in re.findall(matchquote, value):
             value=value.replace(item,replacewith)
         return value
 
-    @staticmethod
-    def machinetext2val(value):
+    
+    def machinetext2val(self,value):
         """
         do reverse of:
              SPACE -> \\S
@@ -590,10 +592,10 @@ class Text:
             for item in value2.split(","):
                 if item.strip()=="":
                     continue
-                if Text.isInt(item):                
-                    item=Text.getInt(item)
-                elif  Text.isFloat(item):
-                    item=Text.getFloat(item)
+                if self.isInt(item):                
+                    item=self.getInt(item)
+                elif  self.isFloat(item):
+                    item=self.getFloat(item)
                 res.append(item)
             return res
             
@@ -605,16 +607,16 @@ class Text:
                 
             except socket.error:
 
-                # if Text.contains(
-                if Text.isInt(value2):
-                    return Text.getInt(value2)
-                elif  Text.isFloat(value2):
-                    return Text.getFloat(value2)
+                # if self.contains(
+                if self.isInt(value2):
+                    return self.getInt(value2)
+                elif  self.isFloat(value2):
+                    return self.getFloat(value2)
         # value2=value2.replace("\n","\\n")
         return value2
 
-    @staticmethod
-    def machinetext2str(value):
+    
+    def machinetext2str(self,value):
         """
         do reverse of:
              SPACE -> \\S
@@ -631,11 +633,11 @@ class Text:
         value=value.replace("\\n","\n")
         return value
 
-    @staticmethod
-    def getInt(text):        
+    
+    def getInt(self,text):        
         if j.core.types.string.check(text):
-            text=text.strip()
-            if text.lower()=="none":
+            text=self.strip()
+            if self.lower()=="none":
                 return 0
             elif text==None:
                 return 0             
@@ -647,11 +649,11 @@ class Text:
             text=int(text)
         return text
     
-    @staticmethod
-    def getFloat(text):
+    
+    def getFloat(self,text):
         if j.core.types.string.check(text):
-            text=text.strip()
-            if text.lower()=="none":
+            text=self.strip()
+            if self.lower()=="none":
                 return 0.0
             elif text==None:
                 return 0.0
@@ -663,10 +665,10 @@ class Text:
             text=float(text)
         return text
 
-    @staticmethod
-    def isFloat(text):
-        text=text.strip(",").strip()
-        if not text.find(".")==1:
+    
+    def isFloat(self,text):
+        text=self.strip(",").strip()
+        if not self.find(".")==1:
             return False
         try:
             float(text)
@@ -674,95 +676,95 @@ class Text:
         except ValueError:
             return False
 
-    @staticmethod
-    def isInt(text):
-        text=text.strip(",").strip()
-        return text.isdigit()
+    
+    def isInt(self,text):
+        text=self.strip(",").strip()
+        return self.isdigit()
 
-    @staticmethod
-    def getBool(text):
+    
+    def getBool(self,text):
         if j.core.types.bool.check(text):
             return text
         if j.core.types.string.check(text):
-            text=text.strip()
-            if text.lower()=="none":
+            text=self.strip()
+            if self.lower()=="none":
                 return False
             elif text==None:
                 return False
             elif text=="":
                 return False
-            elif text.lower() == 'true':
+            elif self.lower() == 'true':
                 return True
             else:
                 return False
         else:
             raise RuntimeError("input needs to be string")
 
-    @staticmethod
-    def dealWithQuote(text):
+    
+    def dealWithQuote(self,text):
         """
         look for 'something,else' the comma needs to be converted to \k
         """
         for item in re.findall(matchquote, text):
             item2=item.replace(",","\\K")
-            text=text.replace(item,item2)
+            text=self.replace(item,item2)
         return text
 
-    @staticmethod
-    def dealWithList(text):
+    
+    def dealWithList(self,text):
         """
         look for [something,2] the comma needs to be converted to \k 
         """
         for item in re.findall(matchlist, text):
             item2=item.replace(",","\\K")
-            text=text.replace(item,item2)
+            text=self.replace(item,item2)
         return text
 
-    @staticmethod
-    def getList(text,ttype=None,deserialize=False):
+    
+    def getList(self,text,ttype=None,deserialize=False):
         """
         @type can be int,bool or float (otherwise its always str)
         """
-        if text.strip()=="":
+        if self.strip()=="":
             return []        
-        text=Text.dealWithQuote(text)        
-        text=text.split(",")
+        text=self.dealWithQuote(text)        
+        text=self.split(",")
         text=[item.strip() for item in text]
         if ttype!=None:
             ttype=ttype.lower()
             if ttype=="int":
-                text=[Text.getInt(item) for item in text]
+                text=[self.getInt(item) for item in text]
             elif ttype=="bool":
-                text=[Text.getBool(item) for item in text]
+                text=[self.getBool(item) for item in text]
             elif ttype=="float":
-                text=[Text.getFloat(item) for item in text]
+                text=[self.getFloat(item) for item in text]
             else:
-                j.events.inputerror_critical("type needs to be: int,bool or float","text.getlist.type")
+                j.events.inputerror_critical("type needs to be: int,bool or float","self.getlist.type")
 
         if deserialize:
             text=[item for item in text]
 
         return text
 
-    @staticmethod
-    def getDict(text,ttype=None,deserialize=False):
+    
+    def getDict(self,text,ttype=None,deserialize=False):
         """
         keys are always treated as string
         @type can be int,bool or float (otherwise its always str)
         """   
-        if text.strip()=="" or text.strip()=="{}":
+        if self.strip()=="" or self.strip()=="{}":
             return {} 
-        text=Text.dealWithList(text)
-        text=Text.dealWithQuote(text)
+        text=self.dealWithList(text)
+        text=self.dealWithQuote(text)
         res2={}
-        for item in text.split(","):
+        for item in self.split(","):
             if item.strip()!="":
                 if item.find(":")==-1:
                     raise RuntimeError("Could not find : in %s, cannot get dict out of it."%text)
                     
                 key,val=item.split(":",1)
                 if val.find("[")!=-1:
-                    val=Text.machinetext2val(val)
+                    val=self.machinetext2val(val)
                 else:
                     val=val.replace("\k",",")
                     key=key.strip()
@@ -770,8 +772,8 @@ class Text:
                 res2[key]=val
         return res2
 
-    @staticmethod
-    def getTemplateVars(text):
+    
+    def getTemplateVars(self,text):
         """
         template vars are in form of $(something)
         @return [("something1","$(Something)"),...
@@ -782,8 +784,8 @@ class Text:
         res2=[(item.strip("$").strip("()").lower(),item) for item in res if item not in res]
         return res2
 
-    @staticmethod
-    def existsTemplateVars(text):
+    
+    def existsTemplateVars(self,text):
         """
         return True if they exist
         """
@@ -792,17 +794,17 @@ class Text:
         res=re.findall(p,text)
         return len(res)>0
 
-    @staticmethod
-    def replaceTemplateVars(text,args={}):
+    
+    def replaceTemplateVars(self,text,args={}):
         """
         @return changes,text
         changes = {key:newval, ...}
         """
         changes={}
-        for key,match in Text.getTemplateVars(text):
+        for key,match in self.getTemplateVars(text):
             
             if key in args:
-                text=text.replace(match,args[key])
+                text=self.replace(match,args[key])
                 changes[key]=args[key]
         return changes,text
 

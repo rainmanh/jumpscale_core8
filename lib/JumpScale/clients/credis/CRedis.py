@@ -17,6 +17,7 @@ class CRedisFactory:
     """
 
     def __init__(self):
+        self.__jslocation__ = "j.clients.credis"
         self.redis = {}
         self.redisq = {}
 

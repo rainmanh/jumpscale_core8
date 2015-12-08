@@ -165,8 +165,12 @@ class Connection(object):
         if resp.code not in (STATUS_OK):
             raise Exception('unexpected HTTP response status %s: %s'%resp.code, resp)
         return resp
-    
+
+
 class HttpClient(object):
+    def __init__(self):
+        self.__jslocation__ = "j.clients.http"
+
     def getConnection(self):
         connection = Connection()
         return connection

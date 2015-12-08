@@ -14,6 +14,7 @@ from .AtYourServiceSync import AtYourServiceSync
 class AtYourServiceFactory():
 
     def __init__(self):
+        self.__jslocation__ = "j.atyourservice"
 
         self._init = False
         self._domains = []

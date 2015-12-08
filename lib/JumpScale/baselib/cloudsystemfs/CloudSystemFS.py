@@ -14,6 +14,9 @@ from JumpScale import j
 import re
 
 class CloudSystemFS:
+    def __init__(self):
+        #self.__jslocation__ = "j.cloud.system.fs"
+        pass
 
     def sourcePathExists(self, sourcepath):
         src_fs = self._getSourceHandler(sourcepath)

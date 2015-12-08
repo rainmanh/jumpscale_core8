@@ -5,6 +5,7 @@ import os
 
 class GitFactory:
     def __init__(self):
+        self.__jslocation__ = "j.clients.git"
         j.logger.consolelogCategories.append("git")
 
     def get(self, basedir):

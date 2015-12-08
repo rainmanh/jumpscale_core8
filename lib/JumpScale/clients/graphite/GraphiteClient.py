@@ -13,8 +13,7 @@ except:
 
 class GraphiteClient():
     def __init__(self):
-
-
+        self.__jslocation__ = "j.clients.graphite"
         self._SERVER = '127.0.0.1'
         self._CARBON_PORT = 2003
         self._GRAPHITE_PORT = 8081

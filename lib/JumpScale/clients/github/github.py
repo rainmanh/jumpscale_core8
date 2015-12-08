@@ -1,9 +1,10 @@
 from JumpScale import j
 from JumpScale.core.system.ZipFile import ZipFile
 
+
 class GitHubFactory(object):
     def __init__(self):
-        pass
+        self.__jslocation__ = "j.clients.github"
 
     def getClient(self, account, reponame):
         return GitHubClient(account, reponame)
@@ -33,6 +34,3 @@ class GitHubClient(object):
     def pullupdate(self):
         # TODO implement this for real
         self.export()
-
-
-        

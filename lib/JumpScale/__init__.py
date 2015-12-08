@@ -171,6 +171,8 @@ import importlib
 
 def redisinit():
     import redis
+    if not os.path.exists('/tmp/redis.sock'):
+        open('/tmp/redis.sock', 'a').close()
     j.core.db=redis.Redis(unix_socket_path='/tmp/redis.sock')
     try:
         j.core.db.set("internal.last",0)

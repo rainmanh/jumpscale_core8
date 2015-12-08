@@ -71,7 +71,7 @@ class AtYourServiceFactory():
             # always load base domaim
             items=j.application.config.getDictFromPrefix("atyourservice.metadata")
             repos=j.do.getGitReposListLocal()
-            
+
             for domain in list(items.keys()):
                 url=items[domain]['url']
                 if url.strip()=="":
@@ -198,7 +198,7 @@ class AtYourServiceFactory():
         for service in self.findServices():
             producersWaiting = service.getProducersWaitingApply(set())
 
-            if len(producersWaiting)==0 and service.state.changed():
+            if len(producersWaiting)==0 and service.state.changed:
                 print("%s waiting for install" % service)
                 self.todo.append(service)
             # elif service in producersWaiting and len(producersWaiting)==1 and service.state.changed():

@@ -1,6 +1,7 @@
 from JumpScale import j
 
 import paramiko
+from paramiko.ssh_exception import SSHException
 import time
 import io
 import socket
@@ -15,6 +16,12 @@ class SSHClientFactory(object):
         if key not in self.cache:
             self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent,allow_agent=allow_agent,look_for_keys=look_for_keys)
         return self.cache[key]
+
+    def removeFromCache(self, client):
+        key = "%s_%s_%s" % (client.addr, client.port, client.login)
+        client.close()
+        if key in self.cache:
+            self.cache.pop(key)
 
     def close(self):
         for key, client in self.cache.iteritems():
@@ -55,8 +62,9 @@ class SSHClient(object):
 
     @property
     def transport(self):
-        if self._transport is None:
-            self._transport = self.client.get_transport()
+        # if self._transport is None:
+            # self._transport = self.client.get_transport()
+        self._transport = self.client.get_transport()
         return self._transport
 
     @property
@@ -75,17 +83,16 @@ class SSHClient(object):
         sftp = self.client.open_sftp()
         return sftp
 
-    def connectTest(self, cmd="ls /etc", timeout=2,die=False):
+    def connectTest(self, cmd="ls /etc", timeout=2, die=False):
         """
         will trying to connect over ssh & execute the specified command, timeout is in sec
         error will be raised if not able to do (unless if die set)\
         return False if not ok
         """
-
         counter = 0
         time.sleep(0.5)
-        rc = 0
-        maxcounter = (10 * timeout)
+        rc = 1
+        maxcounter = timeout
         while counter < maxcounter and rc != 0:
             try:
                 counter += 0.1
@@ -94,10 +101,15 @@ class SSHClient(object):
                 # print (rc)
             except Exception as e:
                 print(e)
+                if str(e).find('No authentication methods available') != -1 or \
+                   str(e).find('Authentication failed') != -1:
+                    rc = 1
+                    break
                 time.sleep(0.1)
                 continue
 
         if rc > 0:
+            j.clients.ssh.removeFromCache(self)
             if die:
                 j.events.opserror_critical("Could not connect to ssh on localhost on port %s" % ssh_port)
             else:
@@ -109,7 +121,7 @@ class SSHClient(object):
         run cmd & return
         return: (retcode,out_err)
         """
-        ch = self.transport.open_session()
+        ch = self.transport.open_session(timeout=0.5)
         ch.set_combine_stderr(True)
         if self.forward_agent:
             paramiko.agent.AgentRequestHandler(ch)

@@ -2,6 +2,7 @@
 import sys
 import os
 import socket
+import time
 
 
 if sys.platform.startswith("darwin"):
@@ -72,7 +73,7 @@ class JumpScale():
     #         self._sal=pickle.loads(jj)
     #     return self._sal
 
-    
+
 
 
 
@@ -131,7 +132,7 @@ class Loader(object):
     def __getattr__(self, attr):
         if attr not in self._extensions:
             raise AttributeError("%s is not loaded, did your forget an import?" % attr)
-        
+
         classfile,classname=self._extensions[attr]
         modpath=j.do.getDirName(classfile)
         sys.path.append(modpath)
@@ -186,18 +187,23 @@ if j.core.db==None:
     cmd="chmod 550 /opt/jumpscale8/bin/redis;/opt/jumpscale8/bin/redis --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"
     print ("start redis in background")
     os.system(cmd)
+    # Wait until redis is up
     redisinit()
+    while j.core.db==None:
+        redisinit()
+        time.sleep(1)
+
 
 def findjumpscalelocation(path):
     C=j.do.readFile(path)
     for line in C.split("\n"):
         if line.startswith("class "):
             classname=line.replace("class ","").split(":")[0].split("(",1)[0].strip()
-        if line.find("self.__jslocation__")!=-1: 
-            location=line.split("=",1)[1].replace("\"","").replace("'","").strip()   
+        if line.find("self.__jslocation__")!=-1:
+            location=line.split("=",1)[1].replace("\"","").replace("'","").strip()
             return classname,location
     return None,None
-            
+
 import json
 
 def findModules():
@@ -223,7 +229,7 @@ def findModules():
                 if str(basename[0])!=str(basename[0].upper()):#look for files starting with Capital
                     # print ("SKIP_file_upper:%s (%s)"%(classfile,basename))
                     continue
-                                    
+
                 classname,location=findjumpscalelocation(classfile)
 
                 if classname!=None:
@@ -276,5 +282,3 @@ from .core import errorhandling
 print (2)
 j.application.init()
 print (3)
-
-

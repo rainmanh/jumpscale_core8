@@ -7,6 +7,8 @@ class ParamsFactory():
     """
     This factory can create new Params objects
     """
+    def __init__(self):
+        self.__jslocation__ = "j.data.params"
 
     def get(self, dictObject={}):
         """

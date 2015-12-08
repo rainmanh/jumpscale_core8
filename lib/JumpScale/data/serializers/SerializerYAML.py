@@ -3,8 +3,12 @@ import yaml
 
 
 class SerializerYAML(object):
+    def __init__(self):
+        self.__jslocation__ = "j.data.serializer.yaml"
+
     def dumps(self,obj):
         return yaml.dump(obj)
+
     def loads(self,s):
         # out=cStringIO.StringIO(s)
         return yaml.load(s)

@@ -10,7 +10,7 @@ class Master(object):
 
     def getSNMPTrapRecvIP(self, portnumber=0):  # pylint: disable=W0613
         ipaddress = self._parent.client.getAttribute(self._moduleID, "F00624000040000000001")
-        return 0, "%d.%d.%d.%d" % (ord(ipaddress[0]), ord(ipaddress[1]), ord(ipaddress[2]), ord(ipaddress[3]))
+        return 0, "%d.%d.%d.%d" % (ipaddress[0], ipaddress[1], ipaddress[2], ipaddress[3])
 
 
 class Power(object):
@@ -21,7 +21,7 @@ class Power(object):
     def getMaxCurrentOff(self, portnumber=1):
         guid = "F%05d000040000000001" % (398 + (portnumber * 2))
         raw = self._parent.client.getAttribute(self._moduleID, guid)
-        value = (ord(raw[1]) * 256) + ord(raw[0])
+        value = (raw[1] * 256) + ord(raw[0])
         value /= 1000.0
         return 0, value
 
@@ -41,7 +41,7 @@ class Power(object):
         for char in raw:
             count += 1
             if count >= portnumber and count < portnumber + length:
-                result.append(ord(char))
+                result.append(char)
         return 0, result
 
     def setCurrentPriorOff(self, value, portnumber):
@@ -70,12 +70,12 @@ class Power(object):
         def getValue(raw, size=2):
             value = 0
             for i in range(0, size):
-                value += ord(raw[i]) * pow(256, i)
+                value += raw[i] * pow(256, i)
             return value
 
         def convertMeasurement(raw, factor, size=2):
             values = []
-            for i in range(0, len(raw) / size):
+            for i in range(0, int(len(raw) / size)):
                 value = getValue(raw[i * size:], size) / factor
                 values.append(value)
             return values if len(values) > 1 else values[0]

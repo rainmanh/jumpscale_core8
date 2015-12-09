@@ -13,7 +13,7 @@ def monkey_patch_test_suite():
     Monkey patches parts of pyzmq's test suite to run them with gevent-zeromq.
     """
     zmqtests = __import__('zmq.tests', fromlist=['*', 'test_device', 'test_monqueue'])
-    # import ipdb; ipdb.set_trace()
+    # import ipdb; 
 
     import sys
     try:

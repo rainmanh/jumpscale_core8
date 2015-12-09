@@ -8,7 +8,7 @@ the same:
 
 >>> class MyType: pass
 ...
->>> from JumpScale.core.baseclasses import BaseType
+>>> from JumpScale.core.baseclasses_old import BaseType
 >>> class MyClass(BaseType):
 ...     mt = j.core.types.object(MyType)
 ...
@@ -25,7 +25,7 @@ Traceback (most recent call last):
 '''
 import inspect
 
-from JumpScale.core.pmtypes.base import BaseType as TypeBaseType, NO_DEFAULT
+from JumpScale.core.types.base import BaseType as TypeBaseType, NO_DEFAULT
 
 OBJECT_DESCRIPTOR_CACHE = dict()
 def Object(type_, **kwargs):
@@ -89,7 +89,7 @@ def Enumeration(enumerationtype, **kwargs):
 
     @see: L{jumpscale.pmtypes.base.BaseType.__init__}
     '''
-    from JumpScale.core.baseclasses import BaseEnumeration
+    from JumpScale.core.baseclasses_old import BaseEnumeration
     if not issubclass(enumerationtype, BaseEnumeration):
         raise TypeError('enumerationtype parameter of Object should be of type type or class')
 

@@ -1981,7 +1981,7 @@ class Installer():
         self.debug=True
 
         # import ipdb
-        # ipdb.set_trace()
+        # 
         
 
         self.prepare(SANDBOX=SANDBOX,base= os.environ["JSBASE"])

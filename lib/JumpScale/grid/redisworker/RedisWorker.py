@@ -3,7 +3,7 @@ try:
     import ujson as json
 except:
     import json
-
+import ExtraTools
 import JumpScale.baselib.hash
 import JumpScale.grid.osis
 import JumpScale.baselib.redis2
@@ -71,7 +71,7 @@ class Job(OsisBaseObject):
         """
         self.gid = int(self.gid)
         self.id = int(self.id)
-        self.guid = j.base.byteprocessor.hashTiger160(self.getContentKey())  # need to make sure roles & source cannot be changed
+        self.guid = ExtraTools.ByteProcessor.hashTiger160(self.getContentKey())  # need to make sure roles & source cannot be changed
 
         return self.guid
 

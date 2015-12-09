@@ -72,12 +72,12 @@ class SerializersFactory():
         if type not in self.types:
             if type=="m":
                 from .SerializerMSGPack import SerializerMSGPack
-                j.db.serializers.msgpack = SerializerMSGPack()
-                self.types[type]=j.db.serializers.msgpack
+                j.data.serializer.serializers.msgpack = SerializerMSGPack()
+                self.types[type]=j.data.serializer.serializers.msgpack
             elif type=="c":
                 from .SerializerBlosc import SerializerBlosc
-                j.db.serializers.blosc = SerializerBlosc()
-                self.types[type]=j.db.serializers.blosc
+                j.data.serializer.serializers.blosc = SerializerBlosc()
+                self.types[type]=j.data.serializer.serializers.blosc
 
             elif type=="b":
                 from .SerializerBlowfish import SerializerBlowfish
@@ -85,31 +85,31 @@ class SerializersFactory():
 
             elif type=="s":
                 from .SerializerSnappy import SerializerSnappy
-                j.db.serializers.snappy = SerializerSnappy()
-                self.types[type]=j.db.serializers.snappy
+                j.data.serializer.serializers.snappy = SerializerSnappy()
+                self.types[type]=j.data.serializer.serializers.snappy
 
             elif type=="j":
                 from .SerializerUJson import SerializerUJson
-                j.db.serializers.ujson = SerializerUJson()
-                self.types[type]=j.db.serializers.ujson
+                j.data.serializer.serializers.ujson = SerializerUJson()
+                self.types[type]=j.data.serializer.serializers.ujson
 
             elif type=="d":
                 from .SerializerDict import SerializerDict
-                j.db.serializers.dict = SerializerDict()
-                self.types[type]=j.db.serializers.dict
+                j.data.serializer.serializers.dict = SerializerDict()
+                self.types[type]=j.data.serializer.serializers.dict
 
             elif type=="l":
                 from .SerializerLZMA import SerializerLZMA
-                j.db.serializers.lzma = SerializerLZMA()
-                self.types[type]=j.db.serializers.lzma
+                j.data.serializer.serializers.lzma = SerializerLZMA()
+                self.types[type]=j.data.serializer.serializers.lzma
 
             elif type=="p":
                 from .SerializerPickle import SerializerPickle
-                j.db.serializers.pickle = SerializerPickle()
-                self.types[type]=j.db.serializers.pickle
+                j.data.serializer.serializers.pickle = SerializerPickle()
+                self.types[type]=j.data.serializer.serializers.pickle
 
             elif type=="6":
-                self.types[type]=j.db.serializers.base64
+                self.types[type]=j.data.serializer.serializers.base64
 
         return self.types[type]
 
@@ -119,14 +119,14 @@ class Serializer():
         self.serializationstr=serializationstr
         self.key=key
         for k in self.serializationstr:
-            j.db.serializers.getSerializerType(k,self.key)
+            j.data.serializer.serializers.getSerializerType(k,self.key)
 
     def dumps(self,val):
         if self.serializationstr=="":
             return val
         for key in self.serializationstr:
             # print "dumps:%s"%key
-            val=j.db.serializers.types[key].dumps(val)
+            val=j.data.serializer.serializers.types[key].dumps(val)
         return val
 
     def loads(self,data):
@@ -135,6 +135,6 @@ class Serializer():
 
         for key in reversed(self.serializationstr):
             # print "loads:%s"%key
-            data=j.db.serializers.types[key].loads(data)
+            data=j.data.serializer.serializers.types[key].loads(data)
         return data
 

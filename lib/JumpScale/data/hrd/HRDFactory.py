@@ -29,7 +29,7 @@ class HRDFactory:
 
 
     def getHRDFromOsisObject(self,osisobj,prefixRootObjectType=True):
-        txt=j.db.serializers.hrd.dumps(osisobj.obj2dict())
+        txt=j.data.serializer.serializers.hrd.dumps(osisobj.obj2dict())
         prefix=osisobj._P__meta[2]
         out=""
         for line in txt.split("\n"):

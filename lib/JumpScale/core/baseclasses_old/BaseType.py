@@ -3,7 +3,7 @@
 from JumpScale import j
 
 from JumpScale import j
-from JumpScale.core.pmtypes.base import BaseType as TypeBaseType
+from JumpScale.core.types.base import BaseType as TypeBaseType
 
 def generate_init_properties(cls, attrs):
     '''Generate a class __init_properties__ method

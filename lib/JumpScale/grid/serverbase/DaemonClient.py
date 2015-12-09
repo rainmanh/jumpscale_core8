@@ -126,7 +126,7 @@ class DaemonClient(object):
 
         session = Session(id=self._id, organization=self.org, user=self.user, passwd=passwd,
                           encrkey=encrkey, netinfo=j.sal.nettools.getNetworkInfo(), roles=self.roles)
-        # ser=j.db.serializers.getMessagePack()
+        # ser=j.data.serializer.serializers.getMessagePack()
         # sessiondictstr=ser.dumps(session.__dict__)
         self.key = session.encrkey
         self.sendcmd(category="core", cmd="registersession", sessiondata=session.__dict__, ssl=ssl, returnformat="")
@@ -139,7 +139,7 @@ class DaemonClient(object):
         data is any to be serialized data
 
         formatstring is right order of formats e.g. mc means messagepack & then compress
-        formats see: j.db.serializers.get(?
+        formats see: j.data.serializer.serializers.get(?
 
         return is always multipart message [$resultcode(0=no error,1=autherror),$formatstr,$data]
 
@@ -157,7 +157,7 @@ class DaemonClient(object):
             returnformat = self.defaultSerialization
         rawdata = data
         if sendformat != "":
-            ser = j.db.serializers.get(sendformat, key=self.key)
+            ser = j.data.serializer.serializers.get(sendformat, key=self.key)
             data = ser.dumps(data)
         
         # data = data.decode('utf-8', 'replace')
@@ -179,7 +179,7 @@ class DaemonClient(object):
         if str(returncode) != returnCodes.OK:
             # if isinstance(rreturnformat, bytes):
             #     rreturnformat = rreturnformat.decode('utf-8', 'ignore')
-            s = j.db.serializers.get(rreturnformat)
+            s = j.data.serializer.serializers.get(rreturnformat)
             # print "*** error in client to zdaemon ***"
             ecodict = s.loads(returndata)
             if cmd == "logeco":
@@ -198,7 +198,7 @@ class DaemonClient(object):
         if returnformat != "":
             # if isinstance(rreturnformat, bytes):
             #     rreturnformat = rreturnformat.decode('utf-8', 'ignore')
-            ser = j.db.serializers.get(rreturnformat, key=self.key)
+            ser = j.data.serializer.serializers.get(rreturnformat, key=self.key)
             res = self.decrypt(returndata)
             result = ser.loads(res)
         else:
@@ -273,7 +273,7 @@ class Klass(object):
     def sendcmd(self, cmd, sendformat=None, returnformat=None, category=None,transporttimeout=5,**args):
         """
         formatstring is right order of formats e.g. mc means messagepack & then compress
-        formats see: j.db.serializers.get(?
+        formats see: j.data.serializer.serializers.get(?
 
         return is the deserialized data object
         """

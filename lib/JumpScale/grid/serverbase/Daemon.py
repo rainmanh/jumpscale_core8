@@ -50,7 +50,7 @@ class DaemonCMDS(object):
         """
         @param sessiondata is encrypted data (SSL)
         """
-        # ser=j.db.serializers.getMessagePack()
+        # ser=j.data.serializer.serializers.getMessagePack()
         # sessiondictstr=ser.loads(data)
         print(("register session:%s "%session))
         # for k, v in list(sessiondata.items()):
@@ -116,7 +116,7 @@ class Daemon(object):
         self._now = 0
         self.sessions = {}
         self.key = ""
-        self.errorconditionserializer = j.db.serializers.getSerializerType("m")
+        self.errorconditionserializer = j.data.serializer.serializers.getSerializerType("m")
         self.addCMDsInterface(DaemonCMDS, "core")
 
     def getTime(self):
@@ -287,7 +287,7 @@ class Daemon(object):
             if informat != "":
                 # if isinstance(informat, bytes):
                 #     informat = informat.decode('utf-8', 'ignore')
-                ser = j.db.serializers.get(informat, key=self.key)
+                ser = j.data.serializer.serializers.get(informat, key=self.key)
                 data = ser.loads(data)
         except Exception as e:
             eco=j.errorconditionhandler.parsePythonErrorObject(e)
@@ -299,7 +299,7 @@ class Daemon(object):
         # if isinstance(returnformat, bytes):
         #     returnformat = returnformat.decode('utf-8', 'ignore')
         if returnformat != "":  # is
-            returnser = j.db.serializers.get(returnformat, key=session.encrkey)
+            returnser = j.data.serializer.serializers.get(returnformat, key=session.encrkey)
             error=0
             try:
                 data = self.encrypt(returnser.dumps(parts[2]), session)

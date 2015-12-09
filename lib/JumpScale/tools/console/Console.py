@@ -2,7 +2,7 @@
 import re
 import sys
 from JumpScale import j
-# from JumpScale.core.pmtypes import IPv4Address, IPv4Range
+# from JumpScale.core.types import IPv4Address, IPv4Range
 import textwrap
 import string
 import collections

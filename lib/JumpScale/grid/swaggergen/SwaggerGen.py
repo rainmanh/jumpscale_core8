@@ -254,7 +254,7 @@ class SwaggerGen(object):
         # from IPython import embed;embed()
         location = bodyParam['in']
         if 'schema' in bodyParam:
-            # import ipdb;ipdb.set_trace()
+            # import ipdb;
             if 'items' in bodyParam['schema']:
                 schema = bodyParam['schema']['items']
             else:

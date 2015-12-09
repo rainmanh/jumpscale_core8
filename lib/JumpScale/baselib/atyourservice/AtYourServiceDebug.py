@@ -32,36 +32,35 @@ class ModelDebug(j.core.models.getBaseModel()):
 
     port=IntField(default=22)
 
+    populate_host_cache=BooleanField(default=False)
+    populate_grid_cache=BooleanField(default=False)
+    populate_master_cache=BooleanField(default=False)
+
+
+
     # def save(self):
     #     j.core.models.set(self)
 
 
 class AtYourServiceDebug():
-    """
-    example usage:
-    ```
-    d=j.atyourservice.debug.get("mytest")
-    d.setHost("192.168.0.140")
-    d.addPath("/opt/jumpscale8/lib")
-    d.upload()
-    ```
 
-    next time you can do
-    ```
-    js 'j.atyourservice.debug.upload("mytest")'
-    ```
-
-    """
 
     def __init__(self,name="main"):
         self.model=j.core.models.load(ModelDebug(id=name))
         self._cl=None
+        self._clcache=None
 
     @property
-    def cuisine(self):
+    def cuisine_host(self):
         if self._cl==None:
             self._cl=j.clients.ssh.get(self.model.host,self.model.port).cuisine
         return self._cl
+
+    @property
+    def cuisine_cache(self):
+        if self._clcache==None:
+            self._clcache=j.clients.ssh.get(self.model.cache,22).cuisine
+        return self._clcache
 
     def addPath(self,path):
         if path not in self.model.paths:
@@ -99,74 +98,162 @@ class AtYourServiceDebug():
             self.model.restart.append(name)        
         self.model.save()
 
+    def enableHostCacheUpdate(self):
+        self.model.populate_host_cache=True
+        self.model.save()
+
+    def enableGridCacheUpdate(self):
+        self.model.populate_grid_cache=True
+        self.model.save()
+
+    def enableMasterCacheUpdate(self):
+        self.model.populate_master_cache=True
+        self.model.save()
+
+    def resetCaches(self):
+        self.cuisine_host.run("rm -rf /mnt/ays/cachelocal/dedupe;mkdir -p /mnt/ays/cachelocal/dedupe")
+        self.cuisine_cache.run("rm -rf /mnt/ays/cache/dedupe/;mkdir -p /mnt/ays/cache/dedupe/")
+
 
     def installAYSFS(self):
         """
         install AYSFS on host
         """
-        self.cuisine.hostfile_set("ayscache",self.model.cache)        
-        self.cuisine.run("umount -fl /opt;echo")
-        self.cuisine.run("pkill tmux;echo")
-        cmd = "cd /usr/local/bin;rm -f aysfs;wget http://stor.jumpscale.org/ays/bin/aysfs"
-        self.cuisine.run(cmd,checkok=True)
-        cmd = "cd /usr/local/bin;rm -f js8;wget http://stor.jumpscale.org/ays/bin/js8"
-        self.cuisine.run(cmd,checkok=True)
-        self.cuisine.run("chmod 550 /usr/local/bin/aysfs;chmod 550 /usr/local/bin/js8",checkok=True)
-        cmd= "aysfs -auto /opt"
-        self.cuisine.tmux_execute(cmd,interactive=True)
+        if self.model.host!="":
+            self.cuisine_host.run("mkdir -p /mnt/ays/cachelocal/dedupe;mkdir -p /etc/ays/local")
+            self.cuisine_host.hostfile_set("ayscache",self.model.cache)  #put in hostfile      
+            self.cuisine_host.run("umount -fl /opt;echo")
+            self.cuisine_host.run("pkill tmux;echo")
+            cmd = "cd /usr/local/bin;rm -f aysfs;wget http://stor.jumpscale.org/ays/bin/aysfs"
+            self.cuisine_host.run(cmd,checkok=True)
+            cmd = "cd /usr/local/bin;rm -f js8;wget http://stor.jumpscale.org/ays/bin/js8"
+            self.cuisine_host.run(cmd,checkok=True)
+            self.cuisine_host.run("chmod 550 /usr/local/bin/aysfs;chmod 550 /usr/local/bin/js8",checkok=True)
+            cmd= "aysfs -auto /opt"
+            self.cuisine_host.tmux_execute(cmd,interactive=True)
 
-    def upload(self,tocache=False,copyconfig=True,bootstrap=False):
+    def _upload(self,desthost,destpath):
+        if desthost=="":
+            return
+        cmd ="rsync  -rlptgo --partial --exclude '*.egg-info*/' --exclude '*.dist-info*/' --exclude '*.egg-info*' "
+        cmd +="--exclude '*.pyc' --exclude '*.bak' --exclude '*__pycache__*'  -e 'ssh -o StrictHostKeyChecking=no -p 22' "
+        cmd +="'/tmp/aysfs/files/' 'root@%s:%s'"%(desthost,destpath)
+        print (cmd)
+        j.do.execute(cmd)
+
+
+    def buildUpload(self,sandbox=True):
         """
         tell the ays filesystem about this directory which will be uploaded to ays filesystem
         """
-        self.reset()
+        # self.reset()
+
+        def sandbox1():
+            paths=[]
+            paths.append("/usr/lib/python3.5/")
+            paths.append("/usr/local/lib/python3.5/dist-packages")
+
+            excludeFileRegex=["/xml/","-tk/","/xml","/lib2to3"]
+            excludeDirRegex=["/JumpScale","\.dist-info","config-x86_64-linux-gnu"]
+
+            dest = "/opt/jumpscale8/lib"
+
+            for path in paths:
+                j.tools.sandboxer.copyTo(path,dest,excludeFileRegex=excludeFileRegex,excludeDirRegex=excludeDirRegex)
+
+            try:
+                j.do.copyFile("/usr/bin/python3.5","/opt/jumpscale8/bin/python")
+            except Exception as e:
+                print (e)
+
+            try:
+                j.do.copyFile("/usr/bin/python3.5","/opt/jumpscale8/bin/python3")
+            except Exception as e:
+                print (e)
+
+            j.tools.sandboxer.copyLibsTo(dest,"/opt/jumpscale8/bin/",recursive=True)
+            print ("SANDBOXING DONE")
+
+        if sandbox:
+            sandbox1()
+
         for path in self.model.paths:
             print ("DEDUPE:%s"%path)
             j.tools.sandboxer.dedupe(path, storpath=self.model.storpath, name="0", reset=False, append=True)
 
-        self.cuisine.run("mkdir -p /mnt/ays/cachelocal/dedupe;mkdir -p /etc/ays/local")
-        # j.do.copyTree(self.model.storpath+"/files/", "root@%s:/mnt/ays/cachelocal/%s"%(self.model.host,self.model.namespace), \
-        #     keepsymlinks=False, deletefirst=False, overwriteFiles=False, rsync=True, ssh=True, sshport=self.model.port, recursive=True)
-
-        if tocache:
-            dest="/mnt/ays/cache/dedupe/"
-            desthost=self.model.cache
-        else:
-            dest="/mnt/ays/cachelocal/dedupe/"
-            desthost=self.model.host
-
-        cmd ="rsync  -rlptgo --partial --exclude '*.egg-info*/' --exclude '*.dist-info*/' --exclude '*.egg-info*' "
-        cmd +="--exclude '*.pyc' --exclude '*.bak' --exclude '*__pycache__*'  -e 'ssh -o StrictHostKeyChecking=no -p 22' "
-        cmd +="'/tmp/aysfs/files/' 'root@%s:%s'"%(desthost,dest)
-        print (cmd)
-        j.do.execute(cmd)
-
-        if not bootstrap:
-            j.do.copyTree(self.model.storpath+"/md/0.flist","root@%s:/etc/ays/local/"%(self.model.host),overwriteFiles=True, rsync=True, ssh=True, sshport=self.model.port)
+        if self.model.host!="":
             try:
-                pid=self.cuisine.run("pgrep aysfs")
+                #check if we can find aysfs, if not install
+                self.cuisine_host.run("which aysfs")
             except:
                 self.installAYSFS()
-                pid=self.cuisine.run("pgrep aysfs")
+            
+            # j.do.copyTree(self.model.storpath+"/files/", "root@%s:/mnt/ays/cachelocal/%s"%(self.model.host,self.model.namespace), \
+            #     keepsymlinks=False, deletefirst=False, overwriteFiles=False, rsync=True, ssh=True, sshport=self.model.port, recursive=True)
 
-            self.cuisine.run("kill -s sigusr1 %s"%pid)
-        else:
-            self.cuisine.run("pkill aysfs;echo")
-            self.cuisine.run("umount -fl /opt;echo")
-            self.cuisine.file_unlink("/etc/ays/local/md/0.flist")
+        if self.model.populate_grid_cache:
+            self._upload(self.model.cache,"/mnt/ays/cache/dedupe/")
+
+        if self.model.populate_host_cache:
+            self._upload(self.model.host,"/mnt/ays/cachelocal/dedupe/")
+
+        if self.model.populate_master_cache:
+            self._upload("37.59.7.72","/mnt/Storage/openvcloud/ftp/ays/master")
+
+        if self.model.host!="":
+        #     j.do.copyTree(self.model.storpath+"/md/0.flist","root@%s:/etc/ays/local/"%(self.model.host),overwriteFiles=True, rsync=True, ssh=True, sshport=self.model.port)
+        #     try:
+        #         pid=self.cuisine_host.run("pgrep aysfs")
+        #     except:
+        #         self.installAYSFS()
+        #         pid=self.cuisine_host.run("pgrep aysfs")
+
+        #     self.cuisine_host.run("kill -s sigusr1 %s"%pid)
+        # else:
+            self.cuisine_host.run("pkill aysfs;echo")
+            self.cuisine_host.run("umount -fl /opt;echo")
+            self.cuisine_host.file_unlink("/etc/ays/local/md/0.flist")
             j.do.copyTree(self.model.storpath+"/md/0.flist","root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
 
-
-        if copyconfig:
-            self.cuisine.run("mkdir -p /optvar/hrd/system")
+            self.cuisine_host.run("mkdir -p /optvar/hrd/system")
             cmd ="rsync  -rlptgo --partial --exclude '*.egg-info*/' --exclude '*.dist-info*/' --exclude '*.egg-info*' "
             cmd +="--exclude '*.pyc' --exclude '*.bak' --exclude '*__pycache__*'  -e 'ssh -o StrictHostKeyChecking=no -p 22' "
             cmd +="'/optvar/hrd/system/' 'root@%s:/optvar/hrd/system/'"%(self.model.host)
             print (cmd)
-            j.do.execute(cmd)            
+            j.do.execute(cmd)       
+
+    def __str__(self):     
+        return str(self.model)
+    __repr__=__str__
 
 class AtYourServiceDebugFactory():
+    """
+    example usage:
+    ```
+    #ALL IN ONE to only update master
+    d=j.atyourservice.debug.get("master")
+    d.buildUpload()
 
+    #INSTALL AYS FS
+    d=j.atyourservice.debug.get("ahost")
+    d.setHost("192.168.0.105")
+    d.installAYSFS()
+
+    #DETAIL
+    d=j.atyourservice.debug.get("main")
+    d.setHost("192.168.0.105")
+    d.setCache("192.168.0.140")
+    d.enableMasterCacheUpdate()
+    d.addPath("/opt/jumpscale8")
+    d.upload()
+    ```
+
+    next time you can do
+    ```
+    js 'j.atyourservice.debug.upload("mytest")'
+    ```
+
+    """
 
     def get(self,name="main"):
         """
@@ -174,14 +261,26 @@ class AtYourServiceDebugFactory():
         d=AtYourServiceDebug(name=name)
         return d
 
+    def build_js_upload(self,name="main"):
+
+        j.do.createDir("/usr/local/lib/python3.5/site-packages")
+        j.do.symlink("/opt/jumpscale8/lib/JumpScale/","/usr/local/lib/python3.5/site-packages/JumpScale/")
+        j.do.symlink("/opt/jumpscale8/lib/JumpScale/","/root/.ipython/JumpScale/")
+
+        d=self.get(name)
+        d.model.paths=[]
+        # d.setNamespace("dedupe")
+        d.addPath("/opt/jumpscale8/")
+        d.enableMasterCacheUpdate()
+        d.buildUpload()
+
+    def install_cache(self,name):
+        d=self.get(name)
+        d.installAYSFS()        
+
     def upload(self,name="main"):
         d=self.get(name=name)
         d.upload()  
 
-
-        # if j.do.checkInstalled("sshfs")==False:
-        #     j.do.execute("apt-get install sshfs")
-        # cmd="sshfs root@%s:/mnt/ays/cachelocal /mnt/ays/cachelocal"%host
-        # j.do.execute(cmd)
 
 

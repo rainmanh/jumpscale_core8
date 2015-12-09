@@ -1,3 +1,7 @@
+#docker run -p 0.0.0.0:2222:22 --privileged --rm -e ROOT_PASS="1234" tutum/ubuntu:trusty
+#apt-get install tmux fuse -y;cd /usr/bin;rm -f js8;wget http://stor.jumpscale.org/ays/bin/js8;chmod -x js8;cd /;js8
+#rsync -LK -avz -e ssh  /opt/jumpscale8/ root@192.168.0.250:/opt/jumpscale8/
+
 
 import sys
 import os
@@ -16,6 +20,7 @@ if sys.platform.startswith("darwin"):
     for p in ["/Users/Shared/jumpscale/lib","/Users/Shared/jumpscale/lib/lib-dynload/","/Users/Shared/jumpscale/bin","/Users/Shared/jumpscale/lib/python.zip","/Users/Shared/jumpscale/lib/plat-x86_64-linux-gnu"]:
         if p not in sys.path:
             sys.path.append(p)
+
     basevar="/Users/Shared/jumpscalevar"
 
 if 'VIRTUAL_ENV' in os.environ and not 'JSBASE' in os.environ:
@@ -29,7 +34,22 @@ else:
     base="/opt/jumpscale8"
     basevar="/optvar"
 
-sys.path.insert(0,"/opt/jumpscale8/lib")
+import os.path
+
+if not os.path.isfile("%s/lib/lsb_release.py"%base):
+    sys.path.insert(0,"%s/lib"%base)
+    sys.path.insert(0,"%s/bin"%base)
+    sys.path.insert(0,"%s/lib/JumpScale"%base)
+    sys.path.insert(0,"%s/lib/lib-dynload"%base)
+
+else:
+    # print ("sandbox")
+    sys.path=[]
+    sys.path.append("%s/lib"%base)
+    sys.path.append("%s/bin"%base)
+    sys.path.append("%s/lib/JumpScale"%base)
+    sys.path.append("%s/lib/lib-dynload"%base)
+
 
 class Loader(object):
     def __init__(self,name):
@@ -106,7 +126,7 @@ if j.core.db==None:
     url="http://stor.jumpscale.org:8000/public/redis-server"
     j.do.download(url, to='/opt/jumpscale8/bin/redis', overwrite=False, retry=3)
     import subprocess
-    cmd="chmod 550 /opt/jumpscale8/bin/redis;/opt/jumpscale8/bin/redis --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"
+    cmd="chmod 550 /opt/jumpscale8/bin/redis > 2&>1;/opt/jumpscale8/bin/redis --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"
     print ("start redis in background")
     os.system(cmd)
     # Wait until redis is up
@@ -131,7 +151,15 @@ import json
 
 def findModules():
     result={}
-    superroot = j.do.getDirName(__file__)
+    if os.path.isdir("/opt/jumpscale8"):
+        superroot="/opt/jumpscale8/lib/JumpScale"
+    else:
+        if j.core.db.get("system.superroot")==None:  
+            superroot = j.do.getDirName(__file__)
+            j.core.db.set("system.superroot",superroot)
+        superroot=j.core.db.get("system.superroot").decode()
+
+    print ("FINDMODULES in %s"%superroot)
     for rootfolder in j.do.listDirsInDir(superroot,False,True):
         fullpath0=os.path.join(superroot, rootfolder)            
         if rootfolder.startswith("_"):
@@ -157,18 +185,26 @@ def findModules():
                     # print("classfile:%s"%classfile)
                     if classname!=None:
                         loc=".".join(location.split(".")[:-1])
-                        # print ("location:%s"%(location))
+                        print ("location:%s"%(location))
                         item=location.split(".")[-1]
                         if loc not in result:
                             result[loc]=[]
                         result[loc].append((classfile,classname,item))
 
     j.core.db.set("system.locations",json.dumps(result))
+    j.do.writeFile("/opt/jumpscale8/bin/metadata.db",json.dumps(result))
 
-if j.core.db.get("system.locations")==None:
-    res=findModules()
+data=j.core.db.get("system.locations")
+if data==None:
+    if not j.do.exists(path="/opt/jumpscale8/bin/metadata.db"):        
+        res=findModules()
+    else:
+        data=j.do.readFile("/opt/jumpscale8/bin/metadata.db")
+        # print ("data from readfile")
+else:
+    data=data.decode()
 
-locations=json.loads(j.core.db.get("system.locations").decode())
+locations=json.loads(data)
 # print ("LEN:%s"%len(locations))
 
 for locationbase,llist in locations.items():  #locationbase is e.g. j.sal
@@ -178,11 +214,13 @@ for locationbase,llist in locations.items():  #locationbase is e.g. j.sal
         # print (" - %s|%s|%s"%(item,classfile,classname))
         loader._register(item,classfile,classname)
 
+if not j.do.exists("%s/hrd/system/system.hrd"%basevar):
+    j.do.installer.writeenv()
 
 j.application.config = j.data.hrd.get(path="%s/hrd/system"%basevar)
 
 j.logger.enabled = j.application.config.getBool("system.logging",default=False)
 
 j.application.init()
-print (1)
+
 

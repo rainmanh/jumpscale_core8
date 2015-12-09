@@ -9,6 +9,7 @@ from AtYourServiceDebug import AtYourServiceDebugFactory
 # import AYSdb
 import json
 from AtYourServiceSync import AtYourServiceSync
+import os
 
 
 class AtYourServiceFactory():
@@ -53,6 +54,11 @@ class AtYourServiceFactory():
         return self._domains
 
     def _doinit(self):
+        # if we don't have write permissin on /opt don't try do download service templates
+        opt = j.tools.path.get('/opt')
+        if not opt.access(os.W_OK):
+            self._init = True
+
         if self._init is False:
             j.logger.consolelogCategories.append("AYS")
 
@@ -255,6 +261,7 @@ class AtYourServiceFactory():
                 parent = hrd.get("parent", "")
 
                 service = Service(servicetemplate=template_hrd_path, instance=instance,path=service_path, args=None, parent=parent)
+                service.init()
 
                 self.services.append(service)
 

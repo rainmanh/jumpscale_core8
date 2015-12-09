@@ -190,4 +190,51 @@ class Power(object):
         for pointer in pointerMap:
             if not pointer[2] and len(pointer) > 3 and pointer[3]:
                 result[pointer[0]] = pointer[3](result)
+
+        return result
+
+    def getPower(self):
+        powerPointers = self.getPowerPointer()
+        pointerMeaning = {
+            1: "GeneralModuleStatus",
+            2: "SpecificModuleStatus",
+            3: "CurrentTime",
+            4: "Voltage",
+            5: "Frequency",
+            6: "Current",
+            7: "Power",
+            8: "StatePortCur",
+            9: "ActiveEnergy",
+            10: "ApparentEnergy",
+            11: "Temperature",
+            15: "ApparentPower",
+            16: "PowerFactor",
+            17: "TotalCurrent",
+            18: "TotalRealPower",
+            19: "TotalApparentPower",
+            20: "TotalActiveEnergy",
+            21: "TotalApparentEnergy",
+            22: "TotalPowerFactor",
+            24: "TimeOnline",
+            5000: "MaxCurrent",
+            5001: "MaxPower",
+            5002: "MaxTotalCurrent",
+            5003: "MaxTotalPower",
+            5004: "MaxVoltage",
+            5005: "MinVoltage",
+            5006: "MinTemperature",
+            5007: "MaxTemperature",
+            5010: "MinCurrent",
+            5011: "MinPower",
+            5012: "MinPowerFactor",
+            5013: "MaxPowerFactor",
+            5014: "MinTotalCurrent",
+            5015: "MinTotalPower",
+            5016: "MinTotalPowerFactor",
+            5017: "MaxTotalPowerFactor",
+        }
+        result = dict()
+        for key, value in powerPointers.items():
+            result[pointerMeaning[key]] = value
+
         return result

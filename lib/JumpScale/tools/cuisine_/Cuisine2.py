@@ -528,9 +528,10 @@ class OurCuisine():
     def file_append(self,location, content, mode=None, owner=None, group=None):
         """Appends the given content to the remote file at the given
         location, optionally updating its mode/owner/group."""
-        # TODO: Make sure this openssl command works everywhere, maybe we should use a text_base64_decode?
-        self.run('echo "%s" | openssl base64 -A -d >> %s' % (base64.b64encode(content.encode()), shell_safe(location)))
-        self.file_attribs(location, mode, owner, group)
+        content2 = content.encode('utf-8')
+        content_base64=base64.b64encode(content2).decode()
+        self.run('echo "%s" | openssl base64 -A -d >> %s' % (content_base64, shell_safe(location)))
+        self.file_attribs(location, mode=mode, owner=owner, group=group)
 
 
     def file_unlink(self,path):

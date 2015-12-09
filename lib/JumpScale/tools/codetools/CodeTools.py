@@ -3,7 +3,7 @@
 import inspect
 from JumpScale import j
 
-from .ClassBase import ClassBase, JSModelBase, JSRootModelBase
+from ClassBase import ClassBase, JSModelBase, JSRootModelBase
 
 import json #ujson.dumps does not support some arguments like separators, indent ...etc
 

@@ -1,11 +1,10 @@
 
-import struct
+# import struct
 
 
 class SerializerCRC(object):
     def __init__(self):
-        pass
-        #self.__jslocation__ = "j.data.serializer.crc"
+        self.__jslocation__ = "j.data.serializer.crc"
 
     def dumps(self,obj):
         j.tools.hash.crc32_string(obj)

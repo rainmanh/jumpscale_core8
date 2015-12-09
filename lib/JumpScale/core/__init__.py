@@ -3,13 +3,6 @@ from JumpScale import j
 
 import os
 
-#class Empty():
-#    pass
-
-#j.base=Empty()
-
-# from . import LOADER
-# from . import BYTEPROCESSOR
 
 def _setup_stacktrace_hook():
     '''Set up SIGUSR2 signal handler which dumps stack traces of all threads'''
@@ -206,24 +199,13 @@ def _setup_stacktrace_hook():
     # Set up handler
     old = signal.signal(sig, handler)
 
-# Set up our signal handler
 try:
     _setup_stacktrace_hook()
 except Exception as e:
+    print ("could not install stacktrace hook")
     pass
 # Remove the no longer needed function
 del _setup_stacktrace_hook
-
-#from . import logging
-
-# from . import system
-
-# from . import enumerators
-
-# from . import base
-# from . import baseclasses
-
-
 
 
 

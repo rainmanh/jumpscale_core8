@@ -19,6 +19,7 @@ def _useELFtrick(file):
 class PlatformTypes():
 
     def __init__(self):
+        self.__jslocation__ = "j.core.platformtype"        
         self.myplatform=self._getPlatform()        
         self.platformParents={}
         self.addPlatform("unknown",parent="")

@@ -1,6 +1,6 @@
 from JumpScale import j
 import JumpScale.grid.osis
-import JumpScale.baselib.stataggregator
+# import JumpScale.baselib.stataggregator
 import JumpScale.grid.jumpscripts
 import sys
 import psutil

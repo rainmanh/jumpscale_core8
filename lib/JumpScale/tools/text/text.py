@@ -12,7 +12,7 @@ from builtins import str
 class Text:
 
     def __init__(self):
-            
+        self.__jslocation__ = "j.tools.text"            
 
     def decodeUnicode2Asci(self,text):
         return unicodedata.normalize('NFKD', self.decode("utf-8")).encode('ascii','ignore')

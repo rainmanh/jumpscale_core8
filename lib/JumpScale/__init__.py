@@ -4,7 +4,6 @@ import os
 import socket
 import time
 
-
 if sys.platform.startswith("darwin"):
     os.environ['JSBASE']='/Users/Shared/jumpscale/'
     if not 'APPDATA' in os.environ:
@@ -28,99 +27,12 @@ else:
     base="/opt/jumpscale8"
     basevar="/optvar"
 
-
 sys.path.insert(0,"/opt/jumpscale8/lib")
 
-
-# class Loader(object):
-#     def __init__(self):
-#         self._extensions = {}
-#         self.__members__ = []
-
-#     def _register(self, name, callback):
-#         # print ("register:%s"%name)
-#         self._extensions[name] = callback
-#         self.__members__.append(name)
-
-#     def __getattr__(self, attr):
-#         print (self._extensions)
-#         if attr not in self._extensions:
-#             raise AttributeError("%s is not loaded, did your forget an import?" % attr)
-#         obj = self._extensions[attr]()
-#         setattr(self, attr, obj)
-#         return obj
-
-#     def __dir__(self):
-#         first_list=object.__dir__(self)
-#         resulting_list = first_list + [i for i in self.__members__ if i not in first_list]
-#         return resulting_list
-
-class JumpScale():
-    pass
-
-    # def __init__(self):
-    #     # self._sal=None
-    #     pass
-
-    # def _listLibDirs(self):
-    #     pass
-
-    # @property
-    # def sal(self):
-    #     path="sal2"
-    #     if self._sal==None:
-    #         jj=j.core.db.get("system.serialized.sal")
-    #         self._sal=pickle.loads(jj)
-    #     return self._sal
-
-
-
-
-
-class EventsTemp():
-    def inputerror_critical(self,msg,category=""):
-        print(("ERROR IN BOOTSTRAP:%s"%category))
-        print(msg)
-        sys.exit(1)
-
-# def loadSubModules(filepath, prefix='JumpScale'):
-#     rootfolder = os.path.dirname(filepath)
-#     for module in os.listdir(rootfolder):
-#         if module.startswith("_"):
-#             # print ("SKIP_:%s"%(os.path.join(rootfolder, module)))
-#             continue
-#         moduleload = '%s.%s' % (prefix, module)
-#         if not os.path.isdir(os.path.join(rootfolder, module)):
-#             # print ("SKIP:%s"%(os.path.join(rootfolder, module)))
-#             continue
-#         try:
-#             __import__(moduleload, locals(), globals())
-#             # print ("imported:%s"%moduleload)
-#         except ImportError as e:
-#             # print ("COULD NOT IMPORT:%s \n%s"%(moduleload,e))
-#             pass
-
-
-
-j = JumpScale()
-
-# j.data.serializer=Serializer()
-# j.core.types=Types()
-
-j.events=EventsTemp()
-
-print (1)
-from .InstallTools import InstallTools
-from .InstallTools import Installer
-j.do=InstallTools()
-j.do.installer=Installer()
-
-from . import core
-
-from .core.PlatformTypes import PlatformTypes
-
 class Loader(object):
-    def __init__(self,):
+    def __init__(self,name):
+        self.__doc__=name
+        locationbases[name]=self
         self._extensions = {}
         self.__members__ = []
 
@@ -131,7 +43,7 @@ class Loader(object):
 
     def __getattr__(self, attr):
         if attr not in self._extensions:
-            raise AttributeError("%s is not loaded, did your forget an import?" % attr)
+            raise AttributeError("%s.%s is not loaded, BUG, needs to be registered in init of jumpscale?" % (self.__doc__,attr))
 
         classfile,classname=self._extensions[attr]
         modpath=j.do.getDirName(classfile)
@@ -148,30 +60,34 @@ class Loader(object):
         resulting_list = first_list + [i for i in self.__members__ if i not in first_list]
         return resulting_list
 
+    def __str__(self):
+        return "loader: %s"%self.__doc__
 
+    __repr__=__str__
 
-class Core(Loader):
-    pass
+locationbases={}
+j = Loader("j")
+j.events=Loader("j.events")
+j.data=Loader("j.data")
+j.core=Loader("j.core")
+j.core.types=Loader("j.core.types")
+j.sal=Loader("j.sal")
+j.tools=Loader("j.tools")
+j.clients=Loader("j.clients")
+j.data.serializer=Loader("j.data.serializer")
+j.servers=Loader("j.servers")
+j.grid=Loader("j.grid")
 
-class Data(Loader):
-    pass
+from .InstallTools import InstallTools
+from .InstallTools import Installer
+j.do=InstallTools()
+j.do.installer=Installer()
 
-class Types():
-    pass
-
-j.data=Data()
-j.core=Core()
-j.core.types=Types()
-
-j.core.platformtype=PlatformTypes()
-
+from . import core
 
 sys.path.append('/opt/jumpscale8/lib/JumpScale')
 
 import importlib
-
-
-
 
 def redisinit():
     import redis
@@ -200,15 +116,16 @@ if j.core.db==None:
         time.sleep(1)
 
 
-def findjumpscalelocation(path):
+def findjumpscalelocations(path):
+    res=[]
     C=j.do.readFile(path)
     for line in C.split("\n"):
         if line.startswith("class "):
             classname=line.replace("class ","").split(":")[0].split("(",1)[0].strip()
         if line.find("self.__jslocation__")!=-1:
             location=line.split("=",1)[1].replace("\"","").replace("'","").strip()
-            return classname,location
-    return None,None
+            res.append((classname,location))
+    return res
 
 import json
 
@@ -216,7 +133,11 @@ def findModules():
     result={}
     superroot = j.do.getDirName(__file__)
     for rootfolder in j.do.listDirsInDir(superroot,False,True):
-        fullpath0=os.path.join(superroot,superroot, rootfolder)
+        fullpath0=os.path.join(superroot, rootfolder)
+        if fullpath0.find("Event")!=-1:
+            import ipdb
+            ipdb.set_trace()
+            
         if rootfolder.startswith("_"):
             # print ("SKIP__:%s"%fullpath0)
             continue
@@ -236,45 +157,37 @@ def findModules():
                     # print ("SKIP_file_upper:%s (%s)"%(classfile,basename))
                     continue
 
-                classname,location=findjumpscalelocation(classfile)
+                for (classname,location) in findjumpscalelocations(classfile):
+                    print("classfile:%s"%classfile)
+                    if classname!=None:
+                        loc=".".join(location.split(".")[:-1])
+                        print ("location:%s"%(location))
+                        item=location.split(".")[-1]
+                        if loc not in result:
+                            result[loc]=[]
+                        result[loc].append((classfile,classname,item))
 
-                if classname!=None:
-                    print ("location:%s"%location)
-                    loc=".".join(location.split(".")[:-1])
-                    item=location.split(".")[-1]
-                    if loc not in result:
-                        result[loc]=[]
-                    result[loc].append((classfile,classname,item))
-                    #load the class, bytecompiled & remember in redis
     j.core.db.set("system.locations",json.dumps(result))
 
 if j.core.db.get("system.locations")==None:
     res=findModules()
 
 locations=json.loads(j.core.db.get("system.locations").decode())
+print ("LEN:%s"%len(locations))
 
-buildup={}
-buildup["j.core"]=j.core
-buildup["j.data"]=j.data
-for location,llist in locations.items():
-    if location not in buildup:
-        # for classfile,classname,item in llist:
-        # loader=Loader()
-        classname0=location.split(".")[-1]
-        if classname0 not in ["core","data"]:
-            cmd="class %s_(Loader):\n    pass\n%s=%s_()\nbuildup[\"%s\"]=%s"%(classname0,location,classname0,location,location)
-            print (cmd)
-            exec(cmd)
-    print("location:%s"%location)
-    loader=buildup[location]
+for locationbase,llist in locations.items():  #locationbase is e.g. j.sal
+    print (locationbase)
+    loader=locationbases[locationbase]
     for classfile,classname,item in llist:
+        print (" - %s|%s|%s"%(item,classfile,classname))
         loader._register(item,classfile,classname)
 
-print (locations)
+# print (locations)
 
-import core.types
+
 
 from IPython import embed
+print(999)
 embed()
 
 j.application.config = j.data.hrd.get(path="%s/hrd/system"%basevar)

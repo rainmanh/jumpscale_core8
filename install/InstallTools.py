@@ -925,7 +925,7 @@ class InstallTools():
             self.execute("scp -P %s %s root@%s:%s "%(sshport,path2,remote,tmppathdest),dieOnNonZeroExitCode=die)
             res=self.execute("ssh -A -p %s root@%s 'sh %s'"%(sshport,remote,tmppathdest),dieOnNonZeroExitCode=die)
         else:
-            res=self.execute("sh %s"%path2,dieOnNonZeroExitCode=die,  outputStdout=outputStdout, outputStderr=outputStderr)
+            res=self.execute("bash %s"%path2,dieOnNonZeroExitCode=die,  outputStdout=outputStdout, outputStderr=outputStderr)
         return res
 
     def executeCmds(self,cmdstr, outputStdout=True, outputStderr=True,useShell = True,log=True,cwd=None,timeout=120,errors=[],ok=[],captureout=True,dieOnNonZeroExitCode=True):
@@ -1240,7 +1240,7 @@ class InstallTools():
             }
         if repository_name.endswith(".git"):
             repository_name=repository_name[:-4]
-        
+
         return protocol, repository_host, repository_account, repository_name, repository_url
 
     def parseGitConfig(self,repopath):
@@ -1936,7 +1936,7 @@ class Installer():
         # if pythonversion==3:
         #     os.environ["JSBASE"]+="3"            #add nr 3 to path when python 3
 
-        
+
         PYTHONVERSION="3.5"
 
         if CODEDIR=="":
@@ -1982,7 +1982,7 @@ class Installer():
 
         # import ipdb
         # ipdb.set_trace()
-        
+
 
         self.prepare(SANDBOX=SANDBOX,base= os.environ["JSBASE"])
 
@@ -2264,7 +2264,7 @@ class Installer():
             sudo stop redisc
             killall redis-server
             rm -rf /opt/redis/
-            """ 
+            """
             do.executeCmds(CMDS,outputStdout=False, outputStderr=False,useShell = True,log=False,cwd=None,timeout=60,errors=[],ok=[],captureout=False,dieOnNonZeroExitCode=False)
 
             for PYTHONVERSION in ["3.5","3.4","3.3","2.7",""]:
@@ -2352,7 +2352,7 @@ class Installer():
         CMDS="""
         apt-get install mc git ssh openssl ca-certificates -y
         apt-get install byobu tmux libmhash2 -y
-        #libpython-all-dev python-redis python-hiredis 
+        #libpython-all-dev python-redis python-hiredis
         apt-get install libpython3.5-dev python3.5-dev libffi-dev gcc build-essential autoconf libtool pkg-config libpq-dev -f
         apt-get install libsqlite3-dev -f
         apt-get install net-tools sudo -f
@@ -2413,7 +2413,7 @@ class Installer():
         pip install pytz
         pip install requests
         pip install sqlalchemy
-        pip install urllib3 
+        pip install urllib3
         # pip install zmq
         pip install pyyaml
         pip install websocket

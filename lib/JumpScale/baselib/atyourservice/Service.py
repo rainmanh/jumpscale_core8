@@ -1,7 +1,7 @@
 from JumpScale import j
 import JumpScale.baselib.actions
 # import JumpScale.baselib.packInCode
-# 
+#
 from collections import OrderedDict
 
 # import pytoml
@@ -311,6 +311,9 @@ class Service(object):
                     prodSet = set(self._producers[service.role])
                     prodSet.add(service)
                     self._producers[service.role] = list(prodSet)
+            elif j.core.types.list.check(input):
+                for serv in input:
+                    self.consume(serv)
             else:
                 entities = input.split(",")
                 for entry in entities:
@@ -340,7 +343,7 @@ class Service(object):
         check if template file changed with local
         """
         self._apply()
-        if self.state.changed():
+        if self.state.changed:
             if self.state.hrd.getBool("hrd.instance.changed"):
                 print("%s hrd.instance.changed" % self)
             if self.state.hrd.getBool("hrd.template.changed"):
@@ -360,7 +363,7 @@ class Service(object):
         return list of producers which are waiting to be deployed
         """
         for producer in self.getProducersRecursive(set(), set()):
-                if producer.state.changed():
+                if producer.state.changed:
                     producersChanged.add(producer)
         return producersChanged
 
@@ -569,7 +572,7 @@ class Service(object):
 
             for key,item in hrd.items.items():
                 if j.core.types.string.check(item.data) and item.data.find("@ASK") != -1:
-                    item.get() #SHOULD DO THE ASK                    
+                    item.get() #SHOULD DO THE ASK
 
             producers0={}
             for key, services in self._producers.items():#hrdnew.getDictFromPrefix("producer").iteritems():
@@ -630,11 +633,9 @@ class Service(object):
 
             self.state.commitHRDChange(hrdold,hrd)
 
-            res=self.actions_mgmt.configure(self)
-            if res==False:
-                j.events.opserror_critical(msg="Could not configure %s (mgmt)" % self, category="ays.service.configure")
-
-            
+            # res=self.actions_mgmt.configure(self)
+            # if res==False:
+                # j.events.opserror_critical(msg="Could not configure %s (mgmt)" % self, category="ays.service.configure")
 
         self._hrd=hrd
 
@@ -800,7 +801,7 @@ class Service(object):
                 self.actions_mgmt.consume(self, producer)
         self._apply()
 
-        if self.state.changed():
+        if self.state.changed:
             self._uploadToNode()
 
         self._executeOnNode('install')
@@ -831,10 +832,9 @@ class Service(object):
         if res is False:
             j.events.opserror_critical(msg="Could not install (mgmt) %s" % self, category="ays.service.install")
 
+        restart = False
         if res == "r":
             restart = True
-        if res == 'nr':
-            retart = False
         if restart:
             self.restart()
 
@@ -1109,4 +1109,3 @@ class Service(object):
 
         self.log("configure instance on node")
         self._executeOnNode("configure")
-

@@ -1,0 +1,4 @@
+from ..common.Master_0_0_4_20 import Model as ModelClass
+
+class Model(ModelClass):
+    pass

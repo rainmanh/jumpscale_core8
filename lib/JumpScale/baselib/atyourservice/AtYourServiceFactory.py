@@ -261,7 +261,6 @@ class AtYourServiceFactory():
                 parent = hrd.get("parent", "")
 
                 service = Service(servicetemplate=template_hrd_path, instance=instance,path=service_path, args=None, parent=parent)
-                service.init()
 
                 self.services.append(service)
 

@@ -3,6 +3,8 @@ import sys
 import os
 import socket
 import time
+import importlib
+import importlib.machinery
 
 if sys.platform.startswith("darwin"):
     os.environ['JSBASE']='/Users/Shared/jumpscale/'
@@ -167,13 +169,13 @@ if j.core.db.get("system.locations")==None:
     res=findModules()
 
 locations=json.loads(j.core.db.get("system.locations").decode())
-print ("LEN:%s"%len(locations))
+# print ("LEN:%s"%len(locations))
 
 for locationbase,llist in locations.items():  #locationbase is e.g. j.sal
-    print (locationbase)
+    # print (locationbase)
     loader=locationbases[locationbase]
     for classfile,classname,item in llist:
-        print (" - %s|%s|%s"%(item,classfile,classname))
+        # print (" - %s|%s|%s"%(item,classfile,classname))
         loader._register(item,classfile,classname)
 
 
@@ -181,12 +183,6 @@ j.application.config = j.data.hrd.get(path="%s/hrd/system"%basevar)
 
 j.logger.enabled = j.application.config.getBool("system.logging",default=False)
 
-from core.Dirs import Dirs
-j.dirs=Dirs()
-
-from core import errorhandling
-
-
-print (2)
 j.application.init()
-print (3)
+print (1)
+

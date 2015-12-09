@@ -146,9 +146,10 @@ class AtYourServiceDebug():
         """
         tell the ays filesystem about this directory which will be uploaded to ays filesystem
         """
-        # self.reset()
+        self.reset()
 
         def sandbox1():
+            print ("START SANDBOX")
             paths=[]
             paths.append("/usr/lib/python3.5/")
             paths.append("/usr/local/lib/python3.5/dist-packages")
@@ -222,6 +223,19 @@ class AtYourServiceDebug():
             print (cmd)
             j.do.execute(cmd)       
 
+    def buildUpload_JS(self,name="main"):
+
+        j.do.createDir("/usr/local/lib/python3.5/site-packages")
+        j.do.symlink("/opt/jumpscale8/lib/JumpScale/","/usr/local/lib/python3.5/site-packages/JumpScale/")
+        j.do.symlink("/opt/jumpscale8/lib/JumpScale/","/root/.ipython/JumpScale/")
+
+        self.model.paths=[]
+        # d.setNamespace("dedupe")
+        self.addPath("/opt/jumpscale8/")
+        self.enableMasterCacheUpdate()
+        self.buildUpload()
+
+
     def __str__(self):     
         return str(self.model)
     __repr__=__str__
@@ -237,7 +251,7 @@ class AtYourServiceDebugFactory():
     #INSTALL AYS FS
     d=j.atyourservice.debug.get("ahost")
     d.setHost("192.168.0.105")
-    d.installAYSFS()
+    d.buildUpload_JS()
 
     #DETAIL
     d=j.atyourservice.debug.get("main")
@@ -260,23 +274,6 @@ class AtYourServiceDebugFactory():
         """
         d=AtYourServiceDebug(name=name)
         return d
-
-    def build_js_upload(self,name="main"):
-
-        j.do.createDir("/usr/local/lib/python3.5/site-packages")
-        j.do.symlink("/opt/jumpscale8/lib/JumpScale/","/usr/local/lib/python3.5/site-packages/JumpScale/")
-        j.do.symlink("/opt/jumpscale8/lib/JumpScale/","/root/.ipython/JumpScale/")
-
-        d=self.get(name)
-        d.model.paths=[]
-        # d.setNamespace("dedupe")
-        d.addPath("/opt/jumpscale8/")
-        d.enableMasterCacheUpdate()
-        d.buildUpload()
-
-    def install_cache(self,name):
-        d=self.get(name)
-        d.installAYSFS()        
 
     def upload(self,name="main"):
         d=self.get(name=name)

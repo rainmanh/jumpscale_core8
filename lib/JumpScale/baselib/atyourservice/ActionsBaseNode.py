@@ -88,26 +88,11 @@ class ActionsBaseNode(object):
                 break
 
     def _installFromAysFS(self, serviceObj):
-        if j.sal.fs.exists(ays_cfg):
-            import pytoml
-            key = "%s__%s" % (serviceObj.domain, serviceObj.name)
-
-            s = j.sal.fs.fileGetContents('/etc/ays/aysfs.toml')
-            cfg = pytoml.loads(s)
-            installed = [s['id'] for s in cfg['ays']]
-
-            if key not in installed:
-                cfg['ays'].append({'id': key})
-                j.sal.fs.writeFile(filename='/etc/ays/aysfs.toml', contents=pytoml.dumps(cfg))
-                j.sal.process.killProcessByName('aysfs', 10)
+        j.sal.process.killProcessByName('aysfs', 10)
 
     def install(self, serviceObj):
-        # nothing to install for this service
-        if len(serviceObj.hrd_template.getDictFromPrefix('git.export')) <= 0:
-            return
 
-        ays_cfg = '/etc/ays/aysfs.toml'
-        if j.sal.fs.exists(ays_cfg):
+        if j.sal.process.checkProcessRunning('aysfs'):
             self._installFromAYSFS(serviceObj)
 
         elif len(j.atyourservice.findServices(role='ays_stor_client')) > 0:

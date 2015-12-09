@@ -152,16 +152,6 @@ class ActionsBaseNode(object):
         return True
 
 
-    def configure(self,serviceObj):
-        """
-        this gets executed after the files are installed
-        this step is used to do configuration steps to the platform
-        after this step the system will try to start the service if anything needs to be started
-
-        @return if you return "r" then system will restart after configure, otherwise return True if ok. False if not.
-
-        """
-        return True
 
     def _getDomainName(self, serviceObj, process):
         domain = serviceObj.domain

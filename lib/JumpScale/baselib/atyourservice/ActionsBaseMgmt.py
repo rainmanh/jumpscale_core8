@@ -125,15 +125,21 @@ class ActionsBaseMgmt(object):
         """
         pass
 
+    def install(self, serviceObj):
+        """
+        This is the last step of an installation.
+        @return
+            if you return "r" then service will restart
+            if you return "nr" then service will not restart
+            otherwise return True if ok. False if not.
+        """
+        return True
 
     def configure(self,serviceObj):
         """
         this gets executed after the files are installed
         this step is used to do configuration steps to the platform
         after this step the system will try to start the service if anything needs to be started
-
-        @return if you return "r" then system will restart after configure, otherwise return True if ok. False if not.
-
         """
 
         if "ns" != serviceObj.role and not serviceObj.name.startswith("ns."):
@@ -286,5 +292,3 @@ class ActionsBaseMgmt(object):
         test the service on appropriate behavior
         """
         pass
-
-

@@ -6,6 +6,8 @@ import tarfile
 
 from JumpScale import j
 from JumpScale.core.baseclasses import BaseEnumeration, BaseType
+# @TODO JumpScale.core.baseclasses doesn't exists anymore
+
 
 #NOTE: We use this enumeration so we can add tar file creation and others
 #later on. This enumeration is used when constructing a new TarFile object,
@@ -92,4 +94,3 @@ class TarFile(BaseType):
     def close(self):
         '''Close the backing tar file'''
         self._tar.close()
-

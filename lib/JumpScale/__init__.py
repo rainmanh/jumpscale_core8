@@ -37,14 +37,13 @@ class Loader(object):
         self.__members__ = []
 
     def _register(self, name,classfile,classname):
-        print ("register:%s"%name)
+        # print ("%s   register:%s"%(self.__doc__,name))
         self._extensions[name] = (classfile,classname)
         self.__members__.append(name)
 
     def __getattr__(self, attr):
         if attr not in self._extensions:
             raise AttributeError("%s.%s is not loaded, BUG, needs to be registered in init of jumpscale?" % (self.__doc__,attr))
-
         classfile,classname=self._extensions[attr]
         modpath=j.do.getDirName(classfile)
         sys.path.append(modpath)
@@ -67,7 +66,6 @@ class Loader(object):
 
 locationbases={}
 j = Loader("j")
-j.events=Loader("j.events")
 j.data=Loader("j.data")
 j.core=Loader("j.core")
 j.core.types=Loader("j.core.types")
@@ -133,11 +131,7 @@ def findModules():
     result={}
     superroot = j.do.getDirName(__file__)
     for rootfolder in j.do.listDirsInDir(superroot,False,True):
-        fullpath0=os.path.join(superroot, rootfolder)
-        if fullpath0.find("Event")!=-1:
-            import ipdb
-            ipdb.set_trace()
-            
+        fullpath0=os.path.join(superroot, rootfolder)            
         if rootfolder.startswith("_"):
             # print ("SKIP__:%s"%fullpath0)
             continue
@@ -158,10 +152,10 @@ def findModules():
                     continue
 
                 for (classname,location) in findjumpscalelocations(classfile):
-                    print("classfile:%s"%classfile)
+                    # print("classfile:%s"%classfile)
                     if classname!=None:
                         loc=".".join(location.split(".")[:-1])
-                        print ("location:%s"%(location))
+                        # print ("location:%s"%(location))
                         item=location.split(".")[-1]
                         if loc not in result:
                             result[loc]=[]
@@ -182,13 +176,6 @@ for locationbase,llist in locations.items():  #locationbase is e.g. j.sal
         print (" - %s|%s|%s"%(item,classfile,classname))
         loader._register(item,classfile,classname)
 
-# print (locations)
-
-
-
-from IPython import embed
-print(999)
-embed()
 
 j.application.config = j.data.hrd.get(path="%s/hrd/system"%basevar)
 

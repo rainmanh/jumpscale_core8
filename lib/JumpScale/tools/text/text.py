@@ -432,7 +432,7 @@ class Text:
                     for key,item in list(string.items()):
                         result[key]=str(self.machinetext2val(item)) 
             elif isinstance(string,str) or isinstance(string,float) or isinstance(string,int):
-                ttype,result=self._str2var(j.tools.self.toStr(string))
+                ttype,result=self._str2var(j.tools.text.toStr(string))
             else:
                 j.events.inputerror_critical("Could not convert '%s' to basetype, input was %s. Expected string, dict or list."%(string, type(string)),"self.str2var")    
             return result

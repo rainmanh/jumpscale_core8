@@ -320,7 +320,7 @@ class Service(object):
                     print("get service for consumption:%s" % entry.strip())
                     service = j.atyourservice.getServiceFromKey(entry.strip())
                     if service.role not in self._producers:
-                        self._producers[service.role] = [service]
+                        self._producers[service.role] =  [service]
                     else:
                         prodSet = set(self._producers[service.role])
                         prodSet.add(service)
@@ -335,6 +335,13 @@ class Service(object):
 
             if self._hrd is not None:
                 self.hrd.set("producer.%s" % key, producers)
+
+        if self.state._checkTemplateHRDChangeState():
+            self._apply()
+
+        #walk over the producers
+        for producer in services:
+            self.actions_mgmt.consume(self, producer)
 
         print("consumption done")
 
@@ -513,8 +520,6 @@ class Service(object):
             j.do.writeFile(outpath,out)
 
         return found
-        
-
 
     def _apply(self):
         # log("apply")
@@ -565,7 +570,7 @@ class Service(object):
 
             # here the args can be manipulated
             if self.actions_mgmt != None:
-                self.actions_mgmt.init(self, args0)
+                self.actions_mgmt.input(self, args0)
             self._actions_mgmt = None  # force to reload later with new value of hrd
 
             hrd.setArgs(args0)
@@ -574,20 +579,23 @@ class Service(object):
                 if j.core.types.string.check(item.data) and item.data.find("@ASK") != -1:
                     item.get() #SHOULD DO THE ASK
 
-            producers0={}
-            for key, services in self._producers.items():#hrdnew.getDictFromPrefix("producer").iteritems():
-            #     producers0[key]=[j.atyourservice.getServiceFromKey(item.strip()) for item in item.split(",")]
+            # producers0={}
+            # for key, services in self._producers.items():#hrdnew.getDictFromPrefix("producer").iteritems():
+            # #     producers0[key]=[j.atyourservice.getServiceFromKey(item.strip()) for item in item.split(",")]
 
-            # for role,services in producers0.iteritems():
-                producers=[]
-                for service in services:
-                    key0=j.atyourservice.getKey(service)
-                    if key0 not in producers:
-                        producers.append(key0)
-                hrd.set("producer.%s"%key,producers)
+            # # for role,services in producers0.iteritems():
+            #     producers=[]
+            #     for service in services:
+            #         key0=j.atyourservice.getKey(service)
+            #         if key0 not in producers:
+            #             producers.append(key0)
+            #     hrd.set("producer.%s"%key,producers)
 
             if self.parent or self._parentkey != '':
                 hrd.set('parent', self._parentkey)
+
+            if self.actions_mgmt != None:
+                self.actions_mgmt.hrd(self)
 
             j.application.config.applyOnFile(path_instancehrd)
             hrd.applyOnFile(path_templatehrd)
@@ -796,10 +804,10 @@ class Service(object):
 
         log("INSTALL:%s" % self)
         # do the consume
-        for key, producers in self.producers.items():
-            for producer in producers:
-                self.actions_mgmt.consume(self, producer)
-        self._apply()
+        # for key, producers in self.producers.items():
+        #     for producer in producers:
+                # self.actions_mgmt.consume(self, producer)
+        # self._apply()
 
         if self.state.changed:
             self._uploadToNode()

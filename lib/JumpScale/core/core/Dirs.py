@@ -25,6 +25,7 @@ class Dirs(object):
 
     def __init__(self):
         '''jumpscale sandbox base folder'''
+        self.__jslocation__ = "j.dirs"
         self.__initialized = False ##bool
 
         import sys

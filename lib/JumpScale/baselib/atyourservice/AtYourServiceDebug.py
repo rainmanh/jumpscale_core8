@@ -1,13 +1,13 @@
 from JumpScale import j
-from .ServiceTemplate import ServiceTemplate
-from .Service import Service, getProcessDicts
+from ServiceTemplate import ServiceTemplate
+from Service import Service, getProcessDicts
 import re
-from .ActionsBaseMgmt import ActionsBaseMgmt
-from .ActionsBaseTmpl import ActionsBaseTmpl
-from .ActionsBaseNode import ActionsBaseNode
+from ActionsBaseMgmt import ActionsBaseMgmt
+from ActionsBaseTmpl import ActionsBaseTmpl
+from ActionsBaseNode import ActionsBaseNode
 # import AYSdb
 import json
-from .AtYourServiceSync import AtYourServiceSync
+from AtYourServiceSync import AtYourServiceSync
 
 
 # class ModelDebugPath(j.core.models.getBaseModel()):

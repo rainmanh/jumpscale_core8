@@ -5,7 +5,7 @@ import JumpScale.lib.diskmanager
 import os
 import JumpScale.baselib.netconfig
 import netaddr
-from .libvirtutil import LibvirtUtil
+from libvirtutil import LibvirtUtil
 import imp
 import JumpScale.baselib.remote
 import pynetlinux

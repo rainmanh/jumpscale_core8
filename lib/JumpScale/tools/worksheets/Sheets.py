@@ -1,6 +1,6 @@
 
 from JumpScale import j
-from .Sheet import *
+from Sheet import *
 
 
 class Sheets(j.code.classGetBase()):

@@ -1,11 +1,11 @@
 __author__ = 'delandtj'
 
-from .utils import *
+from utils import *
 import fcntl
 import time
 import re
 from netaddr import *
-from .utils import *
+from utils import *
 
 
 def acquire_lock(path):

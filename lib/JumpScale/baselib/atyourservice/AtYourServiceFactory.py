@@ -1,14 +1,14 @@
 from JumpScale import j
-from .ServiceTemplate import ServiceTemplate
-from .Service import Service, getProcessDicts
+from ServiceTemplate import ServiceTemplate
+from Service import Service, getProcessDicts
 import re
-from .ActionsBaseMgmt import ActionsBaseMgmt
-from .ActionsBaseTmpl import ActionsBaseTmpl
-from .ActionsBaseNode import ActionsBaseNode
-from .AtYourServiceDebug import AtYourServiceDebugFactory
+from ActionsBaseMgmt import ActionsBaseMgmt
+from ActionsBaseTmpl import ActionsBaseTmpl
+from ActionsBaseNode import ActionsBaseNode
+from AtYourServiceDebug import AtYourServiceDebugFactory
 # import AYSdb
 import json
-from .AtYourServiceSync import AtYourServiceSync
+from AtYourServiceSync import AtYourServiceSync
 
 
 class AtYourServiceFactory():

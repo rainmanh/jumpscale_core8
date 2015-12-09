@@ -13,7 +13,7 @@ TIMES = {'s': 1,
 
 import time
 
-from .TimeInterval import TimeInterval
+from TimeInterval import TimeInterval
 
 class Time_(object):
     """

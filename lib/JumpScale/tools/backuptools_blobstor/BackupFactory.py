@@ -1,7 +1,7 @@
 from JumpScale import j
 
 
-from .BlobStorClientFake import BlobStorClientFake
+from BlobStorClientFake import BlobStorClientFake
 
 
 class BackupFactory:

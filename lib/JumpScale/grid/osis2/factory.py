@@ -1,5 +1,5 @@
 from JumpScale import j
-from .client import Client
+from client import Client
 
 
 class ClientFactory(object):

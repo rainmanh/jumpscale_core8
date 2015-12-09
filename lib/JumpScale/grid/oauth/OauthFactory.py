@@ -7,7 +7,7 @@ except:
     
 from JumpScale import j
 from JumpScale.core.baseclasses import BaseEnumeration
-from .OauthInstance import *
+from OauthInstance import *
 
 class OauthFactory(object):
 

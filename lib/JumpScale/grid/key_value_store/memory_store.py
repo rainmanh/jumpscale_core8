@@ -1,4 +1,4 @@
-from .store import KeyValueStoreBase
+from store import KeyValueStoreBase
 
 NAMESPACES = dict()
 

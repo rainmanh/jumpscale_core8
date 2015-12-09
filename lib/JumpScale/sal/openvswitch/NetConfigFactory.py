@@ -3,9 +3,9 @@ import netaddr
 import pprint
 
 from JumpScale import j
-from .VXNet import vxlan as vxlan
-from .VXNet import netclasses as netcl
-from .VXNet.utils import *
+from VXNet import vxlan as vxlan
+from VXNet import netclasses as netcl
+from VXNet.utils import *
 import JumpScale.baselib.codetools
 
 from sal.base.SALObject import SALObject

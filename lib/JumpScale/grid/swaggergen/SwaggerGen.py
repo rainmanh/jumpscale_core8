@@ -1,5 +1,5 @@
 from JumpScale import j
-from .actorgen import ActorGen
+from actorgen import ActorGen
 import json as json
 import jinja2
 import urllib.parse

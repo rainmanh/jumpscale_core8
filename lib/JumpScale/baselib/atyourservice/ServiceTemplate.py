@@ -7,9 +7,9 @@ import os
 
 import JumpScale.baselib.actions
 
-from .Service import *
+from Service import *
 
-from .ServiceTemplateBuilder import *
+from ServiceTemplateBuilder import *
 
 
 def loadmodule(name, path):

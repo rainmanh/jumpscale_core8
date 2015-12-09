@@ -1,6 +1,6 @@
 from JumpScale import j
 
-from ._MonObjectBaseFactory import MonObjectBaseFactory, MonObjectBase
+from _MonObjectBaseFactory import MonObjectBaseFactory, MonObjectBase
 
 class VDiskObjectFactory(MonObjectBaseFactory):
     def __init__(self,host,classs):

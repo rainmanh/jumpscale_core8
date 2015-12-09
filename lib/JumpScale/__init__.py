@@ -37,7 +37,7 @@ class Loader(object):
         self.__members__ = []
 
     def _register(self, name,classfile,classname):
-        # print ("register:%s"%name)
+        print ("register:%s"%name)
         self._extensions[name] = (classfile,classname)
         self.__members__.append(name)
 
@@ -194,10 +194,10 @@ j.application.config = j.data.hrd.get(path="%s/hrd/system"%basevar)
 
 j.logger.enabled = j.application.config.getBool("system.logging",default=False)
 
-from .core.Dirs import Dirs
+from core.Dirs import Dirs
 j.dirs=Dirs()
 
-from .core import errorhandling
+from core import errorhandling
 
 
 print (2)

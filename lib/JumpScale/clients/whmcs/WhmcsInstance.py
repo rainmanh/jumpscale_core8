@@ -4,9 +4,9 @@ except:
     import json
 from JumpScale import j
 
-from .whmcsusers import whmcsusers
-from .whmcstickets import whmcstickets
-from .whmcsorders import whmcsorders
+from whmcsusers import whmcsusers
+from whmcstickets import whmcstickets
+from whmcsorders import whmcsorders
 
 class WhmcsInstance(object):
     def __init__(self,

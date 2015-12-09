@@ -20,7 +20,7 @@ from SystemFSWalker import *
 
 from JumpScale import j
 # import JumpScale.baselib.codetools #requirement for parsePath
-# from .text import Text
+# from text import Text
 
 toStr = j.tools.text.toStr
 

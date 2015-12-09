@@ -1,7 +1,7 @@
 
 from io import StringIO
 
-from .base import BaseService
+from base import BaseService
 
 
 class DNSError(Exception):

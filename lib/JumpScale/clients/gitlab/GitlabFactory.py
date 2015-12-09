@@ -12,7 +12,7 @@ from JumpScale.core.baseclasses import BaseEnumeration
 # from . import gitlab
 import os
 
-from .GitlabInstance import *
+from GitlabInstance import *
 
 # INFOCACHE = dict()
 

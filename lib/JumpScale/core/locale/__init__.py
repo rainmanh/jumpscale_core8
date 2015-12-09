@@ -3,7 +3,7 @@ __LOCALIZERS = {}
 __lock = __threading.RLock()
 
 def getlocalizer(id, path):
-    from .locale import Localizer
+    from locale import Localizer
     if id in __LOCALIZERS:
         return __LOCALIZERS[id]
     else:

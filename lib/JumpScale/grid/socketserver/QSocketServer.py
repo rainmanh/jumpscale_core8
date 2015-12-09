@@ -15,7 +15,7 @@ except:
 
 import select
 
-from .QSocketServerClient import *
+from QSocketServerClient import *
 
 
 class QSocketServerHandler(socketserver.BaseRequestHandler):

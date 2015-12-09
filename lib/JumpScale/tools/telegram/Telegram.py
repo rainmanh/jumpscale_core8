@@ -15,7 +15,7 @@ from gevent import monkey
 # monkey.patch_all()
 # monkey.patch_all(socket=True, dns=True, time=False, select=True, thread=False, os=True, ssl=False, httplib=False, subprocess=False, sys=False, aggressive=False, Event=False)
 
-from .Models import Message
+from Models import Message
 import os
 import sys
 try:

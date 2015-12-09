@@ -1,4 +1,4 @@
-from .store import KeyValueStoreBase
+from store import KeyValueStoreBase
 from JumpScale import j
 import JumpScale.baselib.redis2
 

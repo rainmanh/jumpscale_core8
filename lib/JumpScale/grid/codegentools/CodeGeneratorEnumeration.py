@@ -1,6 +1,6 @@
 from JumpScale import j
 
-from .CodeGeneratorBase import CodeGeneratorBase
+from CodeGeneratorBase import CodeGeneratorBase
 
 
 class CodeGeneratorEnumeration(CodeGeneratorBase):

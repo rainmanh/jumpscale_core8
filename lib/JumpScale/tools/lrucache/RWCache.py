@@ -3,7 +3,7 @@ import time
 from heapq import heappush, heappop, heapify
 
 from JumpScale import j
-from .LRUCache import LRUCache
+from LRUCache import LRUCache
 
 from operator import itemgetter, attrgetter
 

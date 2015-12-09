@@ -28,7 +28,7 @@ class GeventWSFactory():
         daemon.start()
 
         """
-        from .GeventWSServer import GeventWSServer
+        from GeventWSServer import GeventWSServer
         return GeventWSServer('', port, ssluser=ssluser, sslorg=sslorg, sslkeyvaluestor=sslkeyvaluestor)
 
     def getClient(self, addr, port, category="core", org="myorg", user="root", passwd="passwd", ssl=False, roles=[],id=None,timeout=60):
@@ -42,7 +42,7 @@ class GeventWSFactory():
         if False and key in self.cache:
             cl=self.cache[key]
         else:
-            from .GeventWSTransport import GeventWSTransport
+            from GeventWSTransport import GeventWSTransport
             from JumpScale.grid.serverbase.DaemonClient import DaemonClient
             trans = GeventWSTransport(addr, port, timeout)
             cl = DaemonClient(org=org, user=user, passwd=passwd, ssl=ssl, transport=trans,id=id)
@@ -62,7 +62,7 @@ class GeventWSFactory():
         if False and key in self.cache:
             cl=self.cache[key]
         else:
-            from .GeventWSTransport import GeventWSHATransport
+            from GeventWSTransport import GeventWSHATransport
             from JumpScale.grid.serverbase.DaemonClient import DaemonClient
             trans = GeventWSHATransport(connections, timeout)
             cl = DaemonClient(org=org, user=user, passwd=passwd, ssl=ssl, transport=trans,id=id)

@@ -8,7 +8,7 @@ class CiscoSwitchManager(object):
         return CiscoSwitch(host, login,password)
 #!/usr/bin/python
 
-from .Router import Router
+from Router import Router
 
 class CiscoSwitch(SALObject):
 

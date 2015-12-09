@@ -1,5 +1,5 @@
-from .LRUCache import LRUCache
-from .RWCache import RWCache
+from LRUCache import LRUCache
+from RWCache import RWCache
 
 class LRUCacheFactory():
     def __init__(self):

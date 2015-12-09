@@ -1,5 +1,5 @@
 from JumpScale import j
-from .manager import Samba
+from manager import Samba
 
 s = j.ssh.samba.get(j.ssh.connect())
 

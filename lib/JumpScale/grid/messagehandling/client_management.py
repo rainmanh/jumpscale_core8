@@ -2,8 +2,8 @@ import gevent
 
 from gevent import Timeout
 from gevent.queue import Queue
-from .gevent_zeromq import zmq
-from .utils import printInDebugMode
+from gevent_zeromq import zmq
+from utils import printInDebugMode
 
 
 class MessageServerClient(object):

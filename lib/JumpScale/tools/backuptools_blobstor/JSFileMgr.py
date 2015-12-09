@@ -34,7 +34,7 @@ class Item():
 
     __str__=__repr__
 
-from .BlobStorClientFake import BlobStorClientFake
+from BlobStorClientFake import BlobStorClientFake
 
 class JSFileMgr():
     def __init__(self, MDPath,backupname,blobstorAccount,blobstorNamespace,repoid=0,compress=True,fullcheck=False,servercheck=True,storpath="/mnt/STOR"):

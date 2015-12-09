@@ -1,5 +1,5 @@
 from JumpScale import j
-from .ExecutorBase import *
+from ExecutorBase import *
 
 
 class ExecutorSSH(ExecutorBase):

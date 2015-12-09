@@ -1,10 +1,10 @@
 from JumpScale import j
 
-from .NodeNas import NodeNas
-from .NodeHost import NodeHost
-from .NodeMonitor import NodeMonitor
-from .MonitorTools import *
-from .InfluxDumper import *
+from NodeNas import NodeNas
+from NodeHost import NodeHost
+from NodeMonitor import NodeMonitor
+from MonitorTools import *
+from InfluxDumper import *
 
 import os
 

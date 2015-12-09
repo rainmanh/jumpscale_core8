@@ -1,5 +1,5 @@
 from JumpScale import j
-from .store import KeyValueStoreBase
+from store import KeyValueStoreBase
 
 import JumpScale.grid.tlog
 

@@ -3,10 +3,10 @@ import gevent
 import os
 import signal
 
-from .client_management import MessageServerClient
+from client_management import MessageServerClient
 from gevent import Greenlet
 from gevent.queue import Queue
-from .gevent_zeromq import zmq
+from gevent_zeromq import zmq
 from JumpScale import j
 
 

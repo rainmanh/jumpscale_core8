@@ -1,7 +1,7 @@
 from JumpScale import j
 import redis
 # from JumpScale.baselib.credis.CRedis import CRedis
-from .RedisQueue import RedisQueue
+from RedisQueue import RedisQueue
 import itertools
 
 try:

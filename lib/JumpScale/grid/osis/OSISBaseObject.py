@@ -1,7 +1,7 @@
 from JumpScale import j
 import JumpScale.baselib.hash
 
-from .OSISBaseObjectComplexType import OSISBaseObjectComplexType
+from OSISBaseObjectComplexType import OSISBaseObjectComplexType
 
 class OSISBaseObject(OSISBaseObjectComplexType):
 

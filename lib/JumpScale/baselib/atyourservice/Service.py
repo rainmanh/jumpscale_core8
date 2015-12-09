@@ -9,8 +9,8 @@ import json
 import imp
 import sys
 from functools import wraps
-from .ServiceState import *
-from .Recurring import Recurring
+from ServiceState import *
+from Recurring import Recurring
 
 def log(msg, level=2):
     j.logger.log(msg, level=level, category='AYS')

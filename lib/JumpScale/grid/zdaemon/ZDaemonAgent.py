@@ -2,7 +2,7 @@ from JumpScale import j
 
 import JumpScale.grid.zdaemon
 
-from .ZDaemonClient import ZDaemonCmdClient
+from ZDaemonClient import ZDaemonCmdClient
 import JumpScale.grid.socketserver
 
 j.logger.consoleloglevel = 5

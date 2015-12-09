@@ -3,7 +3,7 @@
 #@todo (*3*) fix, make sure full openwrt is lazy loading
 
 # def cb():
-#     from .TLSFactory import TLSFactory
+#     from TLSFactory import TLSFactory
 #     return TLSFactory()
 
 

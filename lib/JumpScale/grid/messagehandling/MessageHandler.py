@@ -2,7 +2,7 @@
 import sys
 
 from JumpScale import j
-from .LogHandlerDB import LogHandlerDB
+from LogHandlerDB import LogHandlerDB
 
 import sys
 import simplejson

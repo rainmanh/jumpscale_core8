@@ -44,7 +44,7 @@ except:
 
 from JumpScale import j
 
-from .EasyDialogGeneric import EasyDialogGeneric
+from EasyDialogGeneric import EasyDialogGeneric
 
 def dialogmessage(func):
     @functools.wraps(func)

@@ -1,7 +1,7 @@
 from JumpScale import j
 
 
-from ._MonObjectBaseFactory import *
+from _MonObjectBaseFactory import *
 
 class ProcessObjectFactory(MonObjectBaseFactory):
     def __init__(self,host,classs):

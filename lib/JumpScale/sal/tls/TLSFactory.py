@@ -1,5 +1,5 @@
 from JumpScale import j
-from .TLS import TLS
+from TLS import TLS
 
 from sal.base.SALObject import SALObject
 

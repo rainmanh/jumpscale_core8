@@ -1,7 +1,7 @@
 from JumpScale import j
 
-from .ExecutorSSH import *
-from .ExecutorLocal import *
+from ExecutorSSH import *
+from ExecutorLocal import *
 # from ExecutorAgent2 import *
 
 class ExecutorFactory():

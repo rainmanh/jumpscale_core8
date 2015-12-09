@@ -1,13 +1,13 @@
 from JumpScale import j
-from .CodeGeneratorModel import CodeGeneratorModel
-from .CodeGeneratorEnumeration import CodeGeneratorEnumeration
-from .CodeGeneratorActorLocal import CodeGeneratorActorLocal
-from .CodeGeneratorActorRemote import CodeGeneratorActorRemote
+from CodeGeneratorModel import CodeGeneratorModel
+from CodeGeneratorEnumeration import CodeGeneratorEnumeration
+from CodeGeneratorActorLocal import CodeGeneratorActorLocal
+from CodeGeneratorActorRemote import CodeGeneratorActorRemote
 # from CodeGeneratorActorMethodGreenlet import CodeGeneratorActorMethodGreenlet
 # from CodeGeneratorWhoosh import CodeGeneratorWhoosh
-from .CodeGeneratorActorTasklets import CodeGeneratorActorTasklets
-from .CodeGeneratorActorClass import CodeGeneratorActorClass
-from .CodeGeneratorEveModel import CodeGeneratorEveModel
+from CodeGeneratorActorTasklets import CodeGeneratorActorTasklets
+from CodeGeneratorActorClass import CodeGeneratorActorClass
+from CodeGeneratorEveModel import CodeGeneratorEveModel
 # from CodeGeneratorOSISTasklets import CodeGeneratorOSISTasklets
 import imp
 import sys

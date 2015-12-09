@@ -1,7 +1,7 @@
 from JumpScale import j
 
 def cb():
-    from .ProcessmanagerFactory import ProcessmanagerFactory
+    from ProcessmanagerFactory import ProcessmanagerFactory
     return ProcessmanagerFactory()
 
 

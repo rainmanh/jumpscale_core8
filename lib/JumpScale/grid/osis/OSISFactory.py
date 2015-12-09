@@ -1,8 +1,8 @@
 from JumpScale import j
-from .OSISCMDS import OSISCMDS
-from .OSISClientForCat import OSISClientForCat
-from .OSISBaseObject import OSISBaseObject
-from .OSISBaseObjectComplexType import OSISBaseObjectComplexType
+from OSISCMDS import OSISCMDS
+from OSISClientForCat import OSISClientForCat
+from OSISBaseObject import OSISBaseObject
+from OSISBaseObjectComplexType import OSISBaseObjectComplexType
 import JumpScale.baselib.codegentools
 import JumpScale.baselib.codetools
 

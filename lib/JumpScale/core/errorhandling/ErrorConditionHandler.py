@@ -10,7 +10,7 @@ except ImportError:
     import json
 
 from JumpScale import j
-from .ErrorConditionObject import ErrorConditionObject, LEVELMAP
+from ErrorConditionObject import ErrorConditionObject, LEVELMAP
 
 
 class BaseException(Exception):

@@ -228,7 +228,7 @@ class HRDBase():
         @param template is example hrd content block, which will be used to check against,
         if params not found will be added to existing hrd
         """
-        from .HRD import HRD
+        from HRD import HRD
         hrdtemplate=HRD(content=template)
         for key in list(hrdtemplate.items.keys()):
             if key not in self.items:

@@ -1,13 +1,13 @@
 from JumpScale import j
 
-from .SerializerInt import SerializerInt
-from .SerializerTime import SerializerTime
-from .SerializerBase64 import SerializerBase64
-from .SerializerHRD import SerializerHRD
-from .SerializerDict import SerializerDict
-from .SerializerBlowfish import SerializerBlowfish
-from .SerializerUJson import SerializerUJson
-from .SerializerYAML import SerializerYAML
+from SerializerInt import SerializerInt
+from SerializerTime import SerializerTime
+from SerializerBase64 import SerializerBase64
+from SerializerHRD import SerializerHRD
+from SerializerDict import SerializerDict
+from SerializerBlowfish import SerializerBlowfish
+from SerializerUJson import SerializerUJson
+from SerializerYAML import SerializerYAML
 
 class SerializersFactory():
 
@@ -72,40 +72,40 @@ class SerializersFactory():
         """
         if type not in self.types:
             if type=="m":
-                from .SerializerMSGPack import SerializerMSGPack
+                from SerializerMSGPack import SerializerMSGPack
                 j.db.serializers.msgpack = SerializerMSGPack()
                 self.types[type]=j.db.serializers.msgpack
             elif type=="c":
-                from .SerializerBlosc import SerializerBlosc
+                from SerializerBlosc import SerializerBlosc
                 j.db.serializers.blosc = SerializerBlosc()
                 self.types[type]=j.db.serializers.blosc
 
             elif type=="b":
-                from .SerializerBlowfish import SerializerBlowfish
+                from SerializerBlowfish import SerializerBlowfish
                 self.types[type]=SerializerBlowfish(key)
 
             elif type=="s":
-                from .SerializerSnappy import SerializerSnappy
+                from SerializerSnappy import SerializerSnappy
                 j.db.serializers.snappy = SerializerSnappy()
                 self.types[type]=j.db.serializers.snappy
 
             elif type=="j":
-                from .SerializerUJson import SerializerUJson
+                from SerializerUJson import SerializerUJson
                 j.db.serializers.ujson = SerializerUJson()
                 self.types[type]=j.db.serializers.ujson
 
             elif type=="d":
-                from .SerializerDict import SerializerDict
+                from SerializerDict import SerializerDict
                 j.db.serializers.dict = SerializerDict()
                 self.types[type]=j.db.serializers.dict
 
             elif type=="l":
-                from .SerializerLZMA import SerializerLZMA
+                from SerializerLZMA import SerializerLZMA
                 j.db.serializers.lzma = SerializerLZMA()
                 self.types[type]=j.db.serializers.lzma
 
             elif type=="p":
-                from .SerializerPickle import SerializerPickle
+                from SerializerPickle import SerializerPickle
                 j.db.serializers.pickle = SerializerPickle()
                 self.types[type]=j.db.serializers.pickle
 

@@ -5,11 +5,11 @@ except:
     import urllib.parse as urllib
 
 
-from .CifsFS import *
-from .FtpFS import *
-from .FileFS import *
-from .HttpFS import *
-from .SshFS import *
+from CifsFS import *
+from FtpFS import *
+from FileFS import *
+from HttpFS import *
+from SshFS import *
 from JumpScale import j
 import re
 

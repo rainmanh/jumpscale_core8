@@ -16,9 +16,9 @@ from werkzeug.serving import run_simple
 import flask.ext.sqlalchemy as flask_sqlalchemy
 from . import modelloader
 from . import api
-from .converters import osis2mongo
-from .converters import osis2sqlalchemy
-from .sqlalchemy import common
+from converters import osis2mongo
+from converters import osis2sqlalchemy
+from sqlalchemy import common
 import urllib.parse
 import importlib
 

@@ -1,7 +1,7 @@
 from JumpScale import j
 
 
-from .MonitorTools import *
+from MonitorTools import *
 
 
 class NodeBase(MonitorTools):

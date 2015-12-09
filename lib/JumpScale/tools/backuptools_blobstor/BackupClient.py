@@ -2,7 +2,7 @@ from JumpScale import j
 import JumpScale.baselib.gitlab
 import os
 
-from .JSFileMgr import JSFileMgr
+from JSFileMgr import JSFileMgr
 
 class BackupClient:
     """

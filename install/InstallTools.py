@@ -1850,7 +1850,7 @@ class InstallTools():
                 self.download(url,"/tmp/ExtraTools.py")
                 if "/tmp" not in sys.path:
                     sys.path.append("/tmp")
-            from .ExtraTools import extra
+            from ExtraTools import extra
             self.extra=extra
         self._extratools=True
 

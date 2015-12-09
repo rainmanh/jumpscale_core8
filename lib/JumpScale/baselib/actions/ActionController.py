@@ -5,7 +5,7 @@
 # import operator
 
 from JumpScale import j
-from .Action import *
+from Action import *
 
 import ujson as json
 

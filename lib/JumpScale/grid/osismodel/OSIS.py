@@ -1,5 +1,5 @@
 from JumpScale import j
-from .OSISInstance import *
+from OSISInstance import *
 
 
 class OSIS:

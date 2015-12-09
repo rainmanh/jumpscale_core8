@@ -35,7 +35,7 @@ class ZDaemonFactory():
         use self.getZDaemonClientClass as client to this daemon
 
         """
-        from .ZDaemon import ZDaemon
+        from ZDaemon import ZDaemon
         zd = ZDaemon(port=port, name=name, nrCmdGreenlets=nrCmdGreenlets, sslorg=sslorg, ssluser=ssluser, sslkeyvaluestor=sslkeyvaluestor)
         return zd
 
@@ -49,7 +49,7 @@ class ZDaemonFactory():
                 print client.echo("Hello World.")
 
         """
-        from .ZDaemonTransport import ZDaemonTransport
+        from ZDaemonTransport import ZDaemonTransport
         from JumpScale.grid.serverbase.DaemonClient import DaemonClient
         trans = ZDaemonTransport(addr, port,gevent=gevent)
         cl = DaemonClient(org=org, user=user, passwd=passwd, ssl=ssl, transport=trans)
@@ -64,7 +64,7 @@ class ZDaemonFactory():
 
                 print client.echo("Hello World.")
         """
-        from .ZDaemonTransport import ZDaemonHATransport
+        from ZDaemonTransport import ZDaemonHATransport
         from JumpScale.grid.serverbase.DaemonClient import DaemonClient
         trans = ZDaemonHATransport(connections,gevent=gevent)
         cl = DaemonClient(org=org, user=user, passwd=passwd, ssl=ssl, transport=trans)
@@ -81,7 +81,7 @@ class ZDaemonFactory():
                 return result
         transp=BlobStorTransport(addr=ipaddr,port=port,gevent=True)        
         """
-        from .ZDaemonTransport import ZDaemonTransport
+        from ZDaemonTransport import ZDaemonTransport
         return ZDaemonTransport
 
 
@@ -96,7 +96,7 @@ class ZDaemonFactory():
             * means all
 
         """
-        from .ZDaemonAgent import ZDaemonAgent
+        from ZDaemonAgent import ZDaemonAgent
         cl = ZDaemonAgent(ipaddr=ipaddr, port=port, org=org, user=user, passwd=passwd, ssl=ssl, reset=reset, roles=roles)
 
         return cl

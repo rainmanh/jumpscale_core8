@@ -26,11 +26,11 @@ class TornadoFactory():
         daemon.start()
 
         """
-        from .TornadoServer import TornadoServer
+        from TornadoServer import TornadoServer
         return TornadoServer('', port, ssluser=ssluser, sslorg=sslorg, sslkeyvaluestor=sslkeyvaluestor)
 
     def getClient(self, addr, port, category="core", org="myorg", user="root", passwd="passwd", ssl=False, roles=[]):
-        from .TornadoTransport import TornadoTransport
+        from TornadoTransport import TornadoTransport
         from JumpScale.grid.serverbase.DaemonClient import DaemonClient
         trans = TornadoTransport(addr, port)
         cl = DaemonClient(org=org, user=user, passwd=passwd, ssl=ssl, transport=trans)
@@ -38,7 +38,7 @@ class TornadoFactory():
 
 
     def getHAClient(self, connections, category="core", org="myorg", user="root", passwd="passwd", ssl=False, roles=[],id=None,timeout=60, reconnect=False):
-        from .TornadoTransport import TornadoHATransport
+        from TornadoTransport import TornadoHATransport
         from JumpScale.grid.serverbase.DaemonClient import DaemonClient
         trans = TornadoHATransport(connections, timeout)
         cl = DaemonClient(org=org, user=user, passwd=passwd, ssl=ssl, transport=trans)

@@ -1,7 +1,7 @@
 from JumpScale import j
 
 
-from .BackupClient import BackupClient
+from BackupClient import BackupClient
 
 class BackupFactory:
     def __init__(self):

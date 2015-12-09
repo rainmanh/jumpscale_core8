@@ -1,6 +1,6 @@
 
 from JumpScale import j
-from .Sheets import *
+from Sheets import *
 
 
 class Row(j.code.classGetBase()):

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from .Container import Container
+from Container import Container
 
 from JumpScale import j
 import JumpScale.sal.diskmanager

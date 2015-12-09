@@ -1,6 +1,6 @@
 from JumpScale import j
 
-from .NodeBase import NodeBase
+from NodeBase import NodeBase
 
 
 class NodeMonitor(NodeBase):

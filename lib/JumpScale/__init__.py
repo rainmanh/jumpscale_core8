@@ -1,7 +1,3 @@
-#docker run -p 0.0.0.0:2222:22 --privileged --rm -e ROOT_PASS="1234" tutum/ubuntu:trusty
-#apt-get install tmux fuse -y;cd /usr/bin;rm -f js8;wget http://stor.jumpscale.org/ays/bin/js8;chmod -x js8;cd /;js8
-#rsync -LK -avz -e ssh  /opt/jumpscale8/ root@192.168.0.250:/opt/jumpscale8/
-
 
 import sys
 import os
@@ -29,6 +25,7 @@ else:
     basevar="/optvar"
 
 import os.path
+
 
 if not os.path.isfile("%s/lib/lsb_release.py"%base):
     sys.path.insert(0,"%s/lib"%base)
@@ -96,6 +93,7 @@ from .InstallTools import InstallTools
 from .InstallTools import Installer
 j.do=InstallTools()
 j.do.installer=Installer()
+
 
 from . import core
 
@@ -188,16 +186,25 @@ def findModules():
     j.core.db.set("system.locations",json.dumps(result))
     j.do.writeFile("%s/bin/metadata.db"%j.do.BASE,json.dumps(result))
 
+forcereload=False
+if base !="/opt/jumpscale8":
+    mdpath="%s/bin/metadata.md"%base
+    if j.do.exists(mdpath):
+        forcereload=True
+    j.do.delete(mdpath)
+    
+
 data=j.core.db.get("system.locations")
-if data==None:
+if forcereload or data==None:
     if not j.do.exists(path="%s/bin/metadata.db"%j.do.BASE):        
         res=findModules()
+        data=j.core.db.get("system.locations")
     else:
         data=j.do.readFile("%s/bin/metadata.db"%j.do.BASE)
         # print ("data from readfile")
 else:
     data=data.decode()
-
+    
 locations=json.loads(data)
 # print ("LEN:%s"%len(locations))
 

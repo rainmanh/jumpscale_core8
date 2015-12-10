@@ -791,7 +791,7 @@ class OurCuisine():
         content+="\necho **DONE**\n"
         path="/tmp/%s.sh"%j.tools.idgenerator.generateRandomInt(0,10000)
         self.file_write(location=path, content=content, mode=0o770, owner="root", group="root")
-        out=self.run("sh %s"%path)
+        out=self.run("bash %s"%path)
         self.file_unlink(path)
         lastline=out.split("\n")[-1]
         if lastline.find("**DONE**")==-1:

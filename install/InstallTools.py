@@ -1930,7 +1930,7 @@ class Installer():
         if base!="":
             os.environ["JSBASE"]=base
         else:
-            os.environ["JSBASE"]=self.BASE
+            os.environ["JSBASE"]=do.BASE
 
         if sys.platform.startswith('win'):
             raise RuntimeError("Cannot find JSBASE, needs to be set as env var")

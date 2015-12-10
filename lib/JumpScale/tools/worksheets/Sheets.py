@@ -3,7 +3,7 @@ from JumpScale import j
 from Sheet import *
 
 
-class Sheets(j.code.classGetBase()):
+class Sheets(j.tools.code.classGetBase()):
 
     def __init__(self):
         self.__jslocation__ = "j.tools.worksheets"

@@ -1,6 +1,5 @@
-from store import KeyValueStoreBase
+from JumpScale.grid.key_value_store.store import KeyValueStoreBase
 from JumpScale import j
-import JumpScale.baselib.redis2
 
 import ujson as json
 import time

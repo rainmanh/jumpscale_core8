@@ -32,7 +32,7 @@ class CodeGeneratorActorLocal(CodeGeneratorBase):
             descr += "result %s %s\n" % (method.result.type, self.descrTo1Line(method.result.description))
 
         if descr != "":
-            s += j.code.indent("\"\"\"\n%s\n\"\"\"\n" % descr, 1)
+            s += j.tools.code.indent("\"\"\"\n%s\n\"\"\"\n" % descr, 1)
 
         paramCodeStr = ","
         for param in method.vars:
@@ -47,7 +47,7 @@ class CodeGeneratorActorLocal(CodeGeneratorBase):
         else:
             s = s.replace("{paramcodestr}", "")
 
-        self.content += "\n%s" % j.code.indent(s, 1)
+        self.content += "\n%s" % j.tools.code.indent(s, 1)
 
         s = "params=j.core.params.get()\n"
 
@@ -67,7 +67,7 @@ else:
         #@todo need to complete the code for te.execute(self, params, service=None, job=None, tags=None, groupname='main')
         s = s.replace("{key}", key)
 
-        self.content += j.code.indent(s, 2)
+        self.content += j.tools.code.indent(s, 2)
         return
 
     def addInitExtras(self):
@@ -83,7 +83,7 @@ actorObject.dbredis=self.dbclientFactory.get(self.appName,actorName,"REDIS")
 actorObject.name=actorName
 actorObject.appname=self.appName
 """
-        # self.initprops+=j.code.indent(s,2)
+        # self.initprops+=j.tools.code.indent(s,2)
 
     def generate(self):
         self.addClass()

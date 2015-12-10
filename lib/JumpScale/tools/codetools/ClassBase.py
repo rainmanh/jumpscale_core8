@@ -9,13 +9,13 @@ class ClassBase(object):
         #"""
         #print info like source code of class
         #"""               
-        #j.code.classInfoPrint(self)
+        #j.tools.code.classInfoPrint(self)
 
     #def classCodeEdit(self):
         #"""
         #edit this source code in Geany
         #"""               
-        #j.code.classEditGeany(self)
+        #j.tools.code.classEditGeany(self)
         
     def obj2dict(self):
         return j.code.object2dict(self)

@@ -101,7 +101,7 @@ class CodeGeneratorActorClass(CodeGeneratorBase):
             descr += "\n"
 
         if descr != "":
-            s += j.code.indent("\"\"\"\n%s\n\"\"\"\n" % descr.strip('\n'), 1)
+            s += j.tools.code.indent("\"\"\"\n%s\n\"\"\"\n" % descr.strip('\n'), 1)
 
         params = ['self']
         paramsd = list()
@@ -112,25 +112,25 @@ class CodeGeneratorActorClass(CodeGeneratorBase):
                 params.append(param.name)
         params.extend(paramsd)
         s = s.format(paramcodestr=", ".join(params))
-        self.content += "\n%s" % j.code.indent(s, 1)
+        self.content += "\n%s" % j.tools.code.indent(s, 1)
 
         # BODY OF METHOD
         # if method.name.find("model_") == 0:
         #     if self.spec.hasTasklets:
         #         s = self.getCodeTaskletExecute(method)
-        #         self.content += j.code.indent(s, 2)
+        #         self.content += j.tools.code.indent(s, 2)
         #     else:
         #         s = self.getCodeOsisExecute(method)
-        #         self.content += j.code.indent(s, 2)
+        #         self.content += j.tools.code.indent(s, 2)
         # else:
         if method.hasTasklets or self.spec.hasTasklets:
             s = self.getCodeTaskletExecute(method)
-            self.content += j.code.indent(s, 2)
+            self.content += j.tools.code.indent(s, 2)
         else:
             # generate when no tasklets
             s = "#put your code here to implement this method\n"
             s += "raise NotImplementedError (\"not implemented method %s\")" % method.name
-            self.content += j.code.indent(s, 2)
+            self.content += j.tools.code.indent(s, 2)
 
         return
 
@@ -144,7 +144,7 @@ self.appname="{appname}"
 """
         s = s.replace("{appname}", self.spec.appname)
         s = s.replace("{actorname}", self.spec.actorname)
-        self.initprops += j.code.indent(s, 2)
+        self.initprops += j.tools.code.indent(s, 2)
 
     def addInitModel(self):
 
@@ -187,7 +187,7 @@ self.appname="{appname}"
 
         s = s.replace("{appname}", self.spec.appname)
         s = s.replace("{actorname}", self.spec.actorname)
-        self.initprops += j.code.indent(s, 2)
+        self.initprops += j.tools.code.indent(s, 2)
 
     def generate(self):
 

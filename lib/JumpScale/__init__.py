@@ -198,7 +198,7 @@ data=j.core.db.get("system.locations")
 if forcereload or data==None:
     if not j.do.exists(path="%s/bin/metadata.db"%j.do.BASE):        
         res=findModules()
-        data=j.core.db.get("system.locations")
+        data=j.core.db.get("system.locations").decode()
     else:
         data=j.do.readFile("%s/bin/metadata.db"%j.do.BASE)
         # print ("data from readfile")

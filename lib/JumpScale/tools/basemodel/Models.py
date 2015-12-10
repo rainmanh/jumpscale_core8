@@ -37,7 +37,9 @@ class ModelBase(Document):
         return d
 
     def save(self):
+        self.clean()
         j.core.models.set(self)
+        return super(ModelBase, self).save()
         
 
     def __str__(self):
@@ -88,6 +90,7 @@ class ModelGrid(ModelBase):
 
 
 class ModelGroup(ModelBase):
+    id = StringField(default='')
     domain = StringField(default='')
     gid = IntField(default=1)
     roles = ListField(StringField())
@@ -335,6 +338,7 @@ class ModelTest(ModelBase):
 
 
 class ModelUser(ModelBase):
+    id = StringField(default='')
     domain = StringField(default='')
     gid = IntField()
     passwd = StringField(default='')  # stored hashed

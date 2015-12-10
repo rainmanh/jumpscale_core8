@@ -42,7 +42,7 @@ class %s(BaseEnumeration):
             descr += "%s:%s\n" % (enum, nr)
 
         descr = "\"\"\"\n%s\n\"\"\"\n" % descr
-        descr = j.code.indent(descr, 1)
+        descr = j.tools.code.indent(descr, 1)
         s = s.replace("{descr}\n", descr)
         self.content += s
 

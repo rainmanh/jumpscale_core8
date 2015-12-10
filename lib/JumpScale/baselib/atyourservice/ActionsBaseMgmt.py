@@ -52,9 +52,9 @@ class ActionsBaseMgmt(object):
                 args['node.name'] = serviceObj.instance
 
         # # check if 1 of parents is of type node
-        # for parent in serviceObj.parents:
-        #     if parent.role=="node":#.startswith("node"):
-        #         serviceObj.consume(serviceObj.parent)
+        for parent in serviceObj.parents:
+            if parent.role=="os":#.startswith("node"):
+                serviceObj.consume(serviceObj.parent)
         #         args['tcp.addr'] = serviceObj.parent.hrd.get('node.tcp.addr')
         #         break
 

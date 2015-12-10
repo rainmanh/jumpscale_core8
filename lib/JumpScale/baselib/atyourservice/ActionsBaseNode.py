@@ -92,14 +92,14 @@ class ActionsBaseNode(object):
 
     def install(self, serviceObj):
 
-        if j.sal.process.checkProcessRunning('aysfs'):
-            self._installFromAysFS(serviceObj)
+        # if j.sal.process.checkProcessRunning('aysfs'):
+        #     self._installFromAysFS(serviceObj)
 
-        elif len(j.atyourservice.findServices(role='ays_stor_client')) > 0:
+        if len(j.atyourservice.findServices(role='ays_stor_client')) > 0:
             self._installFromStore(serviceObj)
 
-        else:
-            j.events.opserror_critical("Can't find any means to install the service. Please enable AYSFS or consume a store_client")
+        # else:
+            # j.events.opserror_critical("Can't find any means to install the service. Please enable AYSFS or consume a store_client")
 
     def prepare(self, serviceObj):
         """

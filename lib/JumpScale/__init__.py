@@ -23,7 +23,8 @@ if sys.platform.startswith("darwin"):
     basevar="/Users/Shared/jumpscalevar"
 else:
     if "JSBASE" not in os.environ:
-        raise RuntimeError("Cannot load jumpscale, please specify JSBASE as env variable.")
+        os.environ["JSBASE"]="/opt/jumpscale8"
+        # raise RuntimeError("Cannot load jumpscale, please specify JSBASE as env variable.")
     base=os.environ["JSBASE"]
     basevar="/optvar"
 
@@ -144,7 +145,7 @@ import json
 
 def findModules():
     result={}
-    if os.path.isdir(j.dirs.base):
+    if os.path.isdir(j.do.base):
         superroot="%s/lib/JumpScale"%j.do.BASE
     else:
         if j.core.db.get("system.superroot")==None:  

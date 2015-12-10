@@ -336,8 +336,8 @@ class Service(object):
             if self._hrd is not None:
                 self.hrd.set("producer.%s" % key, producers)
 
-        if self.state._checkTemplateHRDChangeState():
-            self._apply()
+        # if self.state._checkTemplateHRDChangeState():
+            # self._apply()
 
         #walk over the producers
         for producer in services:
@@ -496,7 +496,7 @@ class Service(object):
         if out.strip()=="":
             raise RuntimeError("Cannot find template:%s method %s, as I need it to find inheritance for %s"%(templpath2,methodname,self))
 
-                        
+
         return out.rstrip()
 
 
@@ -594,6 +594,18 @@ class Service(object):
             if self.parent or self._parentkey != '':
                 hrd.set('parent', self._parentkey)
 
+            actionPy = j.sal.fs.joinPaths(self.path, "actions_mgmt.py")
+            if j.sal.fs.exists(path=actionPy):
+                hrd.applyOnFile(actionPy) #@todo somewhere hrd gets saved when doing apply (WHY???)
+                tmpl_hrd.applyOnFile(actionPy)
+                j.application.config.applyOnFile(actionPy)
+            actionPy = j.sal.fs.joinPaths(self.path, "actions_node.py")
+            if j.sal.fs.exists(path=actionPy):
+                hrd.applyOnFile(actionPy) #@todo somewhere hrd gets saved when doing apply (WHY???)
+                tmpl_hrd.applyOnFile(actionPy)
+                j.application.config.applyOnFile(actionPy)
+
+            self._hrd = hrd
             if self.actions_mgmt != None:
                 self.actions_mgmt.hrd(self)
 
@@ -652,7 +664,7 @@ class Service(object):
 
     def _uploadToNode(self):
         # ONLY UPLOAD THE SERVICE ITSELF, INIT NEEDS TO BE FIRST STEP, NO IMMEDIATE INSTALL
-        if "node" not in self.producers:
+        if "os" not in self.producers:
             return
         hrd_root = "/etc/ays/local/"
         remotePath = j.sal.fs.joinPaths(hrd_root, j.sal.fs.getBaseName(self.path)).rstrip("/")+"/"
@@ -661,7 +673,7 @@ class Service(object):
 
 
     def _downloadFromNode(self):
-        if 'node' not in self.producers or self.executor is None:
+        if 'os' not in self.producers or self.executor is None:
             return
 
         hrd_root = "/etc/ays/local/"
@@ -671,12 +683,12 @@ class Service(object):
         self.executor.download(remotePath, self.path)
 
     def _getExecutor(self):
-        if 'node' in self.producers and len(self.producers["node"]) > 1:
+        if 'os' in self.producers and len(self.producers["os"]) > 1:
             raise RuntimeError("found more then 1 executor for %s" % self)
 
         executor = None
-        if 'node' in self.producers and self.producers.get('node'):
-            node = self.producers["node"][0]
+        if 'os' in self.producers and self.producers.get('os'):
+            node = self.producers["os"][0]
             if '"agentcontroller2' in node.producers:
                 # this means an agentcontroller is responsible for the node which hosts this service
                 agentcontroller = node.producers["agentcontroller2"][0]
@@ -695,7 +707,6 @@ class Service(object):
             raise RuntimeError("cannot find executor")
 
         return executor
-
 
     def log(self, msg):
         logpath = j.sal.fs.joinPaths(self.path, "log.txt")
@@ -759,11 +770,11 @@ class Service(object):
 
     # ACTIONS
     def _executeOnNode(self, actionName, cmd=None, reinstall=False):
-        if 'node' not in self.producers or self.executor is None:
+        if 'os' not in self.producers or self.executor is None:
             return False
 
         cmd2 = ' -d %s -n %s -i %s' % (self.domain, self.name, self.instance)
-        execCmd = 'aysexec -a %s %s' % (actionName, cmd2)
+        execCmd = 'source /opt/jumpscale8/env.sh\naysexec -a %s %s' % (actionName, cmd2)
 
         executor = self.executor
         executor.execute(execCmd, die=True)
@@ -809,42 +820,52 @@ class Service(object):
                 # self.actions_mgmt.consume(self, producer)
         # self._apply()
 
+        # if self.state.changed:
+        #     self._uploadToNode()
+        #
+        # self._executeOnNode('install')
+        #
+        # self.stop()
+        # self.prepare()
+        #
+        # # self._install()
+        # self.configure()
+        #
+        # # now we can remove changes of statefile & remove old hrd
+        # self.state.installDoneOK()
+        # j.sal.fs.copyFile(
+        #     j.sal.fs.joinPaths(self.path, "instance.hrd"),
+        #     j.sal.fs.joinPaths(self.path, "instance_old.hrd")
+        # )
+        #
+        # if start:
+        #     self.start()
+        #
+        # if self.template.hrd_template.getBool("hrd.return", False):
+        #     self._downloadFromNode()
+        #     # need to reload the downloaded instance.hrd file
+        #     self._hrd = j.data.hrd.get(j.sal.fs.joinPaths(self.path, 'instance.hrd'), prefixWithName=False)
+        import ipdb; ipdb.set_trace()
+
+        self.actions_mgmt.install_pre(self)
         if self.state.changed:
             self._uploadToNode()
-
         self._executeOnNode('install')
-
-        self.stop()
-        self.prepare()
-
-        # self._install()
-        self.configure()
-
-        # now we can remove changes of statefile & remove old hrd
+        self.actions_mgmt.install_post(self)
+        # # now we can remove changes of statefile & remove old hrd
         self.state.installDoneOK()
         j.sal.fs.copyFile(
             j.sal.fs.joinPaths(self.path, "instance.hrd"),
             j.sal.fs.joinPaths(self.path, "instance_old.hrd")
         )
-
-        if start:
-            self.start()
-
-        if self.template.hrd_template.getBool("hrd.return", False):
-            self._downloadFromNode()
-            # need to reload the downloaded instance.hrd file
-            self._hrd = j.data.hrd.get(j.sal.fs.joinPaths(self.path, 'instance.hrd'), prefixWithName=False)
-
-
-        res = self.actions_mgmt.install(self)
-        if res is False:
-            j.events.opserror_critical(msg="Could not install (mgmt) %s" % self, category="ays.service.install")
-
-        restart = False
-        if res == "r":
-            restart = True
-        if restart:
-            self.restart()
+        # if res is False:
+        #     j.events.opserror_critical(msg="Could not install (mgmt) %s" % self, category="ays.service.install")
+        #
+        # restart = False
+        # if res == "r":
+        #     restart = True
+        # if restart:
+        #     self.restart()
 
 
 

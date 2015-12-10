@@ -24,7 +24,7 @@ import importlib
 
 import copy
 
-STATIC_PATH = '/opt/jumpscale8/jslib/swagger/'
+STATIC_PATH = '%s/jslib/swagger/'%j.dirs.base
 
 HOOKSMAP = {'on_insert_%s': 'pre_create',
             'on_inserted_%s': 'post_create',

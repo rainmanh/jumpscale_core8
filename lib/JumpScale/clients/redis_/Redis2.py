@@ -138,7 +138,7 @@ class RedisFactory:
             if j.sal.fs.exists(path):
                 stats=j.sal.fs.statPath(path)
                 if stats.st_size!=0:                    
-                    cmd="%s/apps/redis/redis-check-aof --fix %s"%(j.dirs.baseDir,path)
+                    cmd="%s/apps/redis/redis-check-aof --fix %s"%(j.dirs.base,path)
                     j.sal.process.executeWithoutPipe(cmd)
             pd.start()
 

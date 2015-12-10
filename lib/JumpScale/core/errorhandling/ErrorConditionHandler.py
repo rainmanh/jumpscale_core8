@@ -525,7 +525,7 @@ class ErrorConditionHandler():
                 #j.tools.console.echo("THIS ONLY WORKS WHEN GEDIT IS INSTALLED")
                 editor = findEditorLinux()
             elif j.core.platformtype.isWindows():
-                editorPath = j.sal.fs.joinPaths(j.dirs.baseDir,"apps","wscite","scite.exe")
+                editorPath = j.sal.fs.joinPaths(j.dirs.base,"apps","wscite","scite.exe")
                 if j.sal.fs.exists(editorPath):
                     editor = editorPath
             tracefile=errorConditionObject.log2filesystem()

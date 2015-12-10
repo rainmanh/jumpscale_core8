@@ -68,19 +68,19 @@ class BaseModelFactory():
 
     def get(self,model):
         hsetkey,key=self.getKeys(model)
-        modelraw=j.core.redis.hget(hsetkey,key).decode()
+        modelraw=j.core.db.hget(hsetkey,key).decode()
         model=model.from_json(modelraw)
         return model
 
     def set(self,model):
         hsetkey,key=self.getKeys(model)
         modelraw=json.dumps(model.to_dict())
-        j.core.redis.hset(hsetkey,key,modelraw)
+        j.core.db.hset(hsetkey,key,modelraw)
 
     def load(self,model):
         hsetkey,key=self.getKeys(model)
         
-        if j.core.redis.hexists(hsetkey,key):
+        if j.core.db.hexists(hsetkey,key):
             model = self.get(model)
         else:
             self.set(model)

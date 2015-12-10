@@ -17,8 +17,9 @@ import threading
 from threading import Thread, Lock
 import queue
 import os
-import smtplib
+# import smtplib
 import re
+import inspect
 
 # from JumpScale import j
 
@@ -39,10 +40,11 @@ class InstallTools():
             self.TYPE="OSX"
             self.BASE="/Users/Shared/jumpscale"
         elif sys.platform.startswith("linux"):
-            self.BASE="/opt"
-            self.TYPE=platform.linux_distribution(full_distribution_name=0)[0].upper()
-            if self.TYPE!="UBUNTU":
-                raise RuntimeError("Jumpscale only supports windows 7+, macosx, ubuntu 12+")
+            self.BASE="/opt/jumpscale8"
+            self.TYPE="LINUX"
+            # self.TYPE=platform.linux_distribution(full_distribution_name=0)[0].upper()
+            # if self.TYPE!="UBUNTU":
+            #     raise RuntimeError("Jumpscale only supports windows 7+, macosx, ubuntu 12+")
         else:
             raise RuntimeError("Jumpscale only supports windows 7+, macosx, ubuntu 12+")
 
@@ -66,37 +68,34 @@ class InstallTools():
             self.BASE=self.BASE[:-1]
         self.BASE+="/"
 
-        #why was this needed ? (despiegk)
-        # self.debug=False
-        # self.createDir("%s/jumpscaleinstall"%(self.TMP))
         self.debug=debug
 
         self._extratools=False
 
-        if str(sys.excepthook).find("apport_excepthook")!=-1:
+        # if str(sys.excepthook).find("apport_excepthook")!=-1:
             #if we get here it means is std python excepthook (I hope)
             # print ("OUR OWN EXCEPTHOOK")
-            sys.excepthook = self.excepthook
+            # sys.excepthook = self.excepthook
 
-        self._initSSH_ENV()
+        # self._initSSH_ENV()
 
 
-    def excepthook(self, ttype, pythonExceptionObject, tb):
+    # def excepthook(self, ttype, pythonExceptionObject, tb):
 
-        # if isinstance(pythonExceptionObject, HaltException):
-        #     sys.exit(1)
+    #     # if isinstance(pythonExceptionObject, HaltException):
+    #     #     sys.exit(1)
 
-        # print "jumpscale EXCEPTIONHOOK"
-        # if self.inException:
-        #     print("ERROR IN EXCEPTION HANDLING ROUTINES, which causes recursive errorhandling behavior.")
-        #     print(pythonExceptionObject)
-        #     return
+    #     # print "jumpscale EXCEPTIONHOOK"
+    #     # if self.inException:
+    #     #     print("ERROR IN EXCEPTION HANDLING ROUTINES, which causes recursive errorhandling behavior.")
+    #     #     print(pythonExceptionObject)
+    #     #     return
 
-        print ("WE ARE IN EXCEPTHOOL OF INSTALLTOOLS, DEVELOP THIS FURTHER")
-        from IPython import embed
-        print((44))
-        embed()
-        #@todo not working yet
+    #     print ("WE ARE IN EXCEPTHOOL OF INSTALLTOOLS, DEVELOP THIS FURTHER")
+    #     from IPython import embed
+    #     print((44))
+    #     embed()
+    #     #@todo not working yet
 
     def log(self,msg, level=None):
         if self.debug:
@@ -315,6 +314,8 @@ class InstallTools():
     def createDir(self,path):
         if self.debug:
             print(("createDir: %s" % path))
+        # if os.path.exists(path) and  os.path.isfile(path):
+        #     self.delete(path)
         if not os.path.exists(path) and not os.path.islink(path):
             os.makedirs(path)
 
@@ -1250,10 +1251,10 @@ class InstallTools():
         login will be ssh if ssh is used
         login & passwd is only for https
         """
-        path=j.sal.fs.joinPaths(dest,".git","config")
-        if not j.sal.fs.exists(path=path):
-            j.events.inputerror_critical("cannot find %s"%path)
-        config=j.sal.fs.fileGetContents(path)
+        path=self.joinPaths(dest,".git","config")
+        if not self.exists(path=path):
+            raise RuntimeError("cannot find %s"%path)
+        config=self.fileGetContents(path)
         state="start"
         for line in config.split("\n"):
             line2=line.lower().strip()
@@ -1404,7 +1405,7 @@ class InstallTools():
         if remoteothers==True: then other keys will be removed
         """
 
-        # cmd="scp %s %s@%s:~/%s"%(keypath,login,remoteipaddr,j.sal.fs.getBaseName(keypath))
+        # cmd="scp %s %s@%s:~/%s"%(keypath,login,remoteipaddr,self.getBaseName(keypath))
         # j.do.executeInteractive(cmd)
 
 
@@ -1862,11 +1863,11 @@ class InstallTools():
         print(("load jumpscript: %s"%path))
         source = self.readFile(path)
         out,tags=self._preprocess(source)
-        md5sum=j.tools.hash.md5_string(out)
+        md5sum=j.tools.hash.md5_string(out)  #@todo (*3*) cannot use j.... refactor
         modulename = 'JumpScale.jumpscript_%s' % md5sum
 
-        codepath=j.sal.fs.joinPaths(j.dirs.tmpDir,"jumpscripts","%s.py"%md5sum)
-        j.sal.fs.writeFile(filename=codepath,contents=out)
+        codepath=self.joinPaths(self.getTmpPath(),"jumpscripts","%s.py"%md5sum)
+        self.writeFile(filename=codepath,contents=out)
 
         linecache.checkcache(codepath)
         self.module = imp.load_source(modulename, codepath)
@@ -1889,6 +1890,9 @@ class InstallTools():
 do=InstallTools()
 
 class Installer():
+
+    def __init__(self):
+        self._readonly=None
 
     def installJSDocs(self,ssh=True):
         print("install jsdocs")
@@ -1926,7 +1930,7 @@ class Installer():
         if base!="":
             os.environ["JSBASE"]=base
         else:
-            os.environ["JSBASE"]="/opt/jumpscale8"
+            os.environ["JSBASE"]=do.BASE
 
         if sys.platform.startswith('win'):
             raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
@@ -1976,7 +1980,7 @@ class Installer():
 
         if clean:
             self.cleanSystem()
-            do.delete("/opt/jumpscale8")
+            do.delete(self.BASE)
 
         self.debug=True
 
@@ -2043,20 +2047,13 @@ class Installer():
             do.symlink(src, "/usr/bin/python")
 
 
-        self._writeenv(basedir=base,insystem=insystem,SANDBOX=SANDBOX,CODEDIR=CODEDIR)
+        self.writeenv(basedir=base,insystem=insystem,CODEDIR=CODEDIR)
 
         if not insystem:
             sys.path=[]
         sys.path.insert(0,"%s/lib"%base)
 
         from JumpScale import j
-
-        #make sure all configured paths are created
-        for item in j.application.config.getListFromPrefix("system.paths"):
-            do.createDir(item)
-
-        # if do.TYPE == "UBUNTU64":
-        #     j.sal.ubuntu.serviceEnableStartAtBoot("ays")
 
         print("Get atYourService metadata.")
         do.pullGitRepo(AYSGIT, branch=AYSBRANCH, depth=1)
@@ -2065,18 +2062,51 @@ class Installer():
         # if pythonversion==2:
         print ("to use do 'js'")
 
-    def _writeenv(self,basedir="/opt/jumpscale8",insystem=True,SANDBOX=0,CODEDIR="/opt/code",vardir="/optvar"):
+    @property
+    def readonly(self):
+        if self._readonly==None:
+            ppath="%s/bin/_writetest"%do.BASE
+            try:
+                do.writeFile(ppath,"")
+                self._readonly=False
+            except:
+                self._readonly=True
+            do.delete(ppath)
+        return self._readonly
+
+
+    def writeenv(self,basedir="",insystem=False,CODEDIR="/opt/code",vardir="/optvar",die=True):
+        if basedir=="":
+            # self.BASE
+            try:
+                basedir=do.getParent(do.getParent(do.getParent(inspect.getabsfile(do.executeCmds))))
+            except Exception as e:
+                raise RuntimeError("Please specify basedir, can not find.")
+
+        if basedir=="":
+            raise RuntimeError("basedir cannot be empty")
+
+        print ("WRITENV TO:%s"%basedir)
 
         if CODEDIR=="":
             CODEDIR=self.CODEDIR
 
-        do.createDir("%s/hrd/system/"%vardir)
-        do.createDir("%s/hrd/apps/"%vardir)
-        do.createDir(vardir)
-        do.createDir("%s/cfg"%vardir)
-        do.delete("%s/cfg"%basedir)
-        do.delete("%s/hrd"%basedir)
-        do.delete("%s/var"%basedir)
+        try:
+            do.createDir(vardir)
+            do.createDir("%s/hrd/system/"%vardir)
+            do.createDir("%s/hrd/apps/"%vardir)
+            do.createDir("%s/cfg"%vardir)
+        except:
+            do.delete("%s/hrd/"%vardir)
+            do.createDir(vardir)
+            do.createDir("%s/hrd/system/"%vardir)
+            do.createDir("%s/hrd/apps/"%vardir)
+            do.createDir("%s/cfg"%vardir)
+
+        if self.readonly==False or die==True:
+            do.delete("%s/cfg"%basedir)
+            do.delete("%s/hrd"%basedir)
+            do.delete("%s/var"%basedir)
 
         C="""
         paths.base=$base
@@ -2084,8 +2114,8 @@ class Installer():
         paths.code=$CODEDIR
         paths.lib=$base/lib
 
-        paths.python.lib.js=$(paths.lib)/JumpScale
-        paths.python.lib.ext=$(paths.base)/libext
+        paths.python.lib.js=$base/lib/JumpScale
+        paths.python.lib.ext=$base/libext
         paths.app=$base/apps
         paths.var=$vardir/var
         paths.log=$vardir/log
@@ -2094,13 +2124,13 @@ class Installer():
         paths.cfg=$vardir/cfg
         paths.hrd=$vardir/hrd
 
-        system.logging = 1
-        system.sandbox = $sandbox
+        system.logging = 0
+        system.sandbox = 1
 
         """
         C=C.replace("$base",basedir.rstrip("/"))
         C=C.replace("$vardir",vardir.rstrip("/"))
-        C=C.replace("$sandbox",str(SANDBOX))
+        # C=C.replace("$sandbox",str(SANDBOX))
         C=C.replace("$CODEDIR",CODEDIR)
 
         do.writeFile("%s/hrd/system/system.hrd"%vardir,C)
@@ -2147,98 +2177,112 @@ class Installer():
         if not do.exists(path=hpath):
             do.writeFile(hpath,C)
 
+
+        # deactivate () {
+        #     export PATH=$_OLD_PATH
+        #     unset _OLD_PATH
+        #     export PYTHONPATH=$_OLD_PYTHONPATH
+        #     unset _OLD_PYTHONPATH
+        #     export LD_LIBRARY_PATH=$_OLD_LD_LIBRARY_PATH
+        #     unset _OLD_LD_LIBRARY_PATH
+        #     export PS1=$_OLD_PS1
+        #     unset _OLD_PS1
+        #     if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
+        #             hash -r 2>/dev/null
+        #     fi
+        # }
+
+        #if [[ "$JSBASE" == "$base" ]]; then
+        #    return 0
+        #fi
+
+        # export _OLD_PATH=$PATH
+        # export _OLD_PYTHONPATH=$PYTHONPATH
+        # export _OLD_LDLIBRARY_PATH=$LD_LIBRARY_PATH
+        # export _OLD_PS1=$PS1
+
         C="""
-        deactivate () {
-            export PATH=$_OLD_PATH
-            unset _OLD_PATH
-            export PYTHONPATH=$_OLD_PYTHONPATH
-            unset _OLD_PYTHONPATH
-            export LD_LIBRARY_PATH=$_OLD_LD_LIBRARY_PATH
-            unset _OLD_LD_LIBRARY_PATH
-            export PS1=$_OLD_PS1
-            unset _OLD_PS1
-            if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
-                    hash -r 2>/dev/null
-            fi
-        }
-
-        if [[ "$JSBASE" == "$base" ]]; then
-            return 0
-        fi
-
-        export _OLD_PATH=$PATH
-        export _OLD_PYTHONPATH=$PYTHONPATH
-        export _OLD_LDLIBRARY_PATH=$LD_LIBRARY_PATH
-        export _OLD_PS1=$PS1
-        export PATH=$base/bin:$PATH
         export JSBASE=$base
-        export PYTHONPATH=.:$base/lib:$base/lib/lib-dynload/:$base/bin:$base/lib/python.zip:$base/lib/plat-x86_64-linux-gnu
-        export LD_LIBRARY_PATH=$base/bin
-        export PS1="(JumpScale) $PS1"
+
+        export PATH=$JSBASE/bin:$PATH
+        export PYTHONHOME=$JSBASE/bin
+
+        export PYTHONPATH=.:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu
+        export LD_LIBRARY_PATH=$JSBASE/bin
+        export PS1="JS8: "
         if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
                 hash -r 2>/dev/null
         fi
         """
         C=C.replace("$base",basedir)
         envfile = "%s/env.sh"%basedir
-        do.writeFile(envfile,C)
+
+        if self.readonly==False or die==True:
+            do.writeFile(envfile,C)
+
 
         # pythonversion = '3' if os.environ.get('PYTHONVERSION') == '3' else ''
 
 
-        C2="""
-        #!/bin/bash
-        # set -x
-        source {env}
-        #echo sandbox:{base}
-        # echo $base/bin/python "$@"
-        $base/bin/python "$@"
+#         C2="""#!/bin/bash
+# # set -x
+# source {env}
+# # echo $base/bin/python "$@"
+# {base}/bin/python -q -B -s -S "$@"
+#         """
+
+
+        C2="""#!/bin/bash
+# set -x
+source $JSBASE/env.sh
+# echo $base/bin/python "$@"
+$JSBASE/bin/python -q -B -s -S "$@"
         """
 
 
-        C2=C2.format(base=basedir, env=envfile)
-        C2=C2.replace("$base",basedir)
-        dest="%s/bin/jspython"%basedir
-        do.delete(dest)
-        do.writeFile(dest,C2)
-        do.chmod(dest, 0o770)
-
-        if insystem:
-            #             C2="""
-            # #!/bin/bash
-            # set -ex
-            # #export PYTHONPATH=$base/lib:$base/lib/lib-dynload/:$base/bin:$base/lib/python.zip:$base/lib/plat-x86_64-linux-gnu:$PYTHONPATH
-            # /usr/bin/python "$@"
-            # """
-            # C2=C2.replace("$base",basedir)
-            dest="/usr/local/bin/jspython"
-            do.delete(dest)#to remove link
-
+        # C2=C2.format(base=basedir, env=envfile)
+        if self.readonly==False or die==True:
+            dest="%s/bin/jspython"%basedir
+            do.delete(dest)
             do.writeFile(dest,C2)
             do.chmod(dest, 0o770)
 
-            dest="/usr/bin/jspython"
-            do.delete(dest)
+            if insystem:
+                #             C2="""
+                # #!/bin/bash
+                # set -ex
+                # #export PYTHONPATH=$base/lib:$base/lib/lib-dynload/:$base/bin:$base/lib/python.zip:$base/lib/plat-x86_64-linux-gnu:$PYTHONPATH
+                # /usr/bin/python "$@"
+                # """
+                # C2=C2.replace("$base",basedir)
+                dest="/usr/local/bin/jspython"
+                do.delete(dest)#to remove link
+
+                do.writeFile(dest,C2)
+                do.chmod(dest, 0o770)
+
+                dest="/usr/bin/jspython"
+                do.delete(dest)
 
 
-        #change site.py file
-        def changesite(path):
-            if do.exists(path=path):
-                C=do.readFile(path)
-                out=""
-                for line in C.split("\n"):
-                    if line.find("ENABLE_USER_SITE")==0:
-                        line="ENABLE_USER_SITE = False"
-                    if line.find("USER_SITE")==0:
-                        line="USER_SITE = False"
-                    if line.find("USER_BASE")==0:
-                        line="USER_BASE = False"
+            #change site.py file
+            def changesite(path):
+                if do.exists(path=path):
+                    C=do.readFile(path)
+                    out=""
+                    for line in C.split("\n"):
+                        if line.find("ENABLE_USER_SITE")==0:
+                            line="ENABLE_USER_SITE = False"
+                        if line.find("USER_SITE")==0:
+                            line="USER_SITE = False"
+                        if line.find("USER_BASE")==0:
+                            line="USER_BASE = False"
 
-                    out+="%s\n"%line
-                do.writeFile(path,out)
-        changesite("%s/lib/site.py"%basedir)
-        # if insystem:
-        #     changesite("/usr/local/lib/python3/dist-packages/site.py"%basedir)
+                        out+="%s\n"%line
+                    do.writeFile(path,out)
+            changesite("%s/lib/site.py"%basedir)
+            # if insystem:
+            #     changesite("/usr/local/lib/python3/dist-packages/site.py"%basedir)
 
 
 
@@ -2256,7 +2300,7 @@ class Installer():
             rm /usr/local/bin/js*
             rm /usr/local/bin/ays*
             rm /usr/local/bin/osis*
-            rm -rf /opt/jumpscale8/lib/JumpScale
+            rm -rf $base/lib/JumpScale
             rm -rf /opt/sentry/
             sudo stop redisac
             sudo stop redisp
@@ -2265,6 +2309,7 @@ class Installer():
             killall redis-server
             rm -rf /opt/redis/
             """
+            CMDS=CMDS.replace("$base",self.BASE)
             do.executeCmds(CMDS,outputStdout=False, outputStderr=False,useShell = True,log=False,cwd=None,timeout=60,errors=[],ok=[],captureout=False,dieOnNonZeroExitCode=False)
 
             for PYTHONVERSION in ["3.5","3.4","3.3","2.7",""]:
@@ -2304,10 +2349,11 @@ class Installer():
             cmd="cd %s;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python get-pip.py"%do.TMP
             do.execute(cmd)
 
-    def prepare(self,SANDBOX=0,base="/opt/jumpscale8"):
+    def prepare(self,SANDBOX=0,base=""):
         SANDBOX=int(SANDBOX)
         print ("prepare (sandbox:%s)"%SANDBOX)
-
+        if base=="":
+            base=self.BASE
         if do.TYPE!=("UBUNTU64"):
             SANDBOX=0
 

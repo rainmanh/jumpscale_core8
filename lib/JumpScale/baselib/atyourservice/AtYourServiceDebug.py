@@ -62,6 +62,12 @@ class AtYourServiceDebug():
             self._clcache=j.clients.ssh.get(self.model.cache,22).cuisine
         return self._clcache
 
+    @property
+    def cuisine_master(self):
+        if self._clcache==None:
+            self._clcache=j.clients.ssh.get("stor.jumpscale.org",22).cuisine
+        return self._clcache
+
     def addPath(self,path):
         if path not in self.model.paths:
             self.model.paths.append(path)        
@@ -142,37 +148,43 @@ class AtYourServiceDebug():
         j.do.execute(cmd)
 
 
-    def buildUpload(self,sandbox=True):
+    def buildJumpscaleMetadata(self):
+        from JumpScale import findModules   
+        findModules()     
+
+    def buildUpload(self,sandbox=False):
         """
         tell the ays filesystem about this directory which will be uploaded to ays filesystem
         """
         self.reset()
+        self.buildJumpscaleMetadata()
 
         def sandbox1():
             print ("START SANDBOX")
             paths=[]
             paths.append("/usr/lib/python3.5/")
             paths.append("/usr/local/lib/python3.5/dist-packages")
+            paths.append("/usr/lib/python3/dist-packages")
 
-            excludeFileRegex=["/xml/","-tk/","/xml","/lib2to3"]
-            excludeDirRegex=["/JumpScale","\.dist-info","config-x86_64-linux-gnu"]
+            excludeFileRegex=["/xml/","-tk/","/xml","/lib2to3","-34m-",".egg-info"]
+            excludeDirRegex=["/JumpScale","\.dist-info","config-x86_64-linux-gnu","pygtk"]
 
-            dest = "/opt/jumpscale8/lib"
+            dest = "%s/lib"%j.do.BASE
 
             for path in paths:
                 j.tools.sandboxer.copyTo(path,dest,excludeFileRegex=excludeFileRegex,excludeDirRegex=excludeDirRegex)
 
             try:
-                j.do.copyFile("/usr/bin/python3.5","/opt/jumpscale8/bin/python")
+                j.do.copyFile("/usr/bin/python3.5","%s/bin/python"%j.do.BASE)
             except Exception as e:
                 print (e)
 
             try:
-                j.do.copyFile("/usr/bin/python3.5","/opt/jumpscale8/bin/python3")
+                j.do.copyFile("/usr/bin/python3.5","%s/bin/python3"%j.do.BASE)
             except Exception as e:
                 print (e)
 
-            j.tools.sandboxer.copyLibsTo(dest,"/opt/jumpscale8/bin/",recursive=True)
+            j.tools.sandboxer.copyLibsTo(dest,"%s/bin/"%j.do.BASE,recursive=True)
             print ("SANDBOXING DONE")
 
         if sandbox:
@@ -197,9 +209,13 @@ class AtYourServiceDebug():
 
         if self.model.populate_host_cache:
             self._upload(self.model.host,"/mnt/ays/cachelocal/dedupe/")
+            #@todo ....
+            j.do.copyTree(self.model.storpath+"/md/0.flist","root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)            
 
         if self.model.populate_master_cache:
-            self._upload("37.59.7.72","/mnt/Storage/openvcloud/ftp/ays/master")
+            self._upload("37.59.7.72","/mnt/Storage/openvcloud/ftp/ays/master/dedupe/")
+            j.do.copyTree(self.model.storpath+"/md/0.flist","root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
+
 
         if self.model.host!="":
         #     j.do.copyTree(self.model.storpath+"/md/0.flist","root@%s:/etc/ays/local/"%(self.model.host),overwriteFiles=True, rsync=True, ssh=True, sshport=self.model.port)
@@ -214,26 +230,24 @@ class AtYourServiceDebug():
             self.cuisine_host.run("pkill aysfs;echo")
             self.cuisine_host.run("umount -fl /opt;echo")
             self.cuisine_host.file_unlink("/etc/ays/local/md/0.flist")
-            j.do.copyTree(self.model.storpath+"/md/0.flist","root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
+        
 
-            self.cuisine_host.run("mkdir -p /optvar/hrd/system")
-            cmd ="rsync  -rlptgo --partial --exclude '*.egg-info*/' --exclude '*.dist-info*/' --exclude '*.egg-info*' "
-            cmd +="--exclude '*.pyc' --exclude '*.bak' --exclude '*__pycache__*'  -e 'ssh -o StrictHostKeyChecking=no -p 22' "
-            cmd +="'/optvar/hrd/system/' 'root@%s:/optvar/hrd/system/'"%(self.model.host)
-            print (cmd)
-            j.do.execute(cmd)       
 
-    def buildUpload_JS(self,name="main"):
+
+        self.cuisine_master.run("chown -R ays:root /mnt/Storage/openvcloud/ftp/ays/master/dedupe/")
+   
+
+    def buildUpload_JS(self,sandbox=False,name="main"):
 
         j.do.createDir("/usr/local/lib/python3.5/site-packages")
-        j.do.symlink("/opt/jumpscale8/lib/JumpScale/","/usr/local/lib/python3.5/site-packages/JumpScale/")
-        j.do.symlink("/opt/jumpscale8/lib/JumpScale/","/root/.ipython/JumpScale/")
+        # j.do.symlink("%s/lib/JumpScale/"%j.do.BASE,"/usr/local/lib/python3.5/site-packages/JumpScale/")
+        # j.do.symlink("%s/lib/JumpScale/"%j.do.BASE,"/root/.ipython/JumpScale/")
 
         self.model.paths=[]
         # d.setNamespace("dedupe")
-        self.addPath("/opt/jumpscale8/")
+        self.addPath(j.dirs.base)
         self.enableMasterCacheUpdate()
-        self.buildUpload()
+        self.buildUpload(sandbox)
 
 
     def __str__(self):     
@@ -241,7 +255,10 @@ class AtYourServiceDebug():
     __repr__=__str__
 
 class AtYourServiceDebugFactory():
-    """
+
+    @property
+    def doc(self):
+        D="""
     example usage:
     ```
     #ALL IN ONE to only update master
@@ -258,7 +275,7 @@ class AtYourServiceDebugFactory():
     d.setHost("192.168.0.105")
     d.setCache("192.168.0.140")
     d.enableMasterCacheUpdate()
-    d.addPath("/opt/jumpscale8")
+    d.addPath(j.dirs.base)
     d.upload()
     ```
 
@@ -268,6 +285,7 @@ class AtYourServiceDebugFactory():
     ```
 
     """
+        print(D)
 
     def get(self,name="main"):
         """

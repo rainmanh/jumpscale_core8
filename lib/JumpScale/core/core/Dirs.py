@@ -3,6 +3,7 @@ import sys, os, inspect
 import tempfile
 
 from JumpScale import j
+import json
 
 def pathToUnicode(path):
     """
@@ -30,47 +31,59 @@ class Dirs(object):
 
         import sys
 
-        self.baseDir=j.application.config.get("system.paths.base")
-        self.appDir = j.application.config.get("system.paths.app")
-        self.varDir = j.application.config.get("system.paths.var")
-        self.cfgDir = j.application.config.get("system.paths.cfg")
-        self.libDir = j.application.config.get("system.paths.lib")
-        self.jsLibDir = j.application.config.get("system.paths.python.lib.js")
-        self.logDir = j.application.config.get("system.paths.log")
-        self.pidDir = j.application.config.get("system.paths.pid")
-        self.codeDir = j.application.config.get("system.paths.code")
-        self.libExtDir = j.application.config.get("system.paths.python.lib.ext")
+        # self.base=j.application.config.get("system.paths.base")
+        self.base = j.do.BASE
+        if j.core.db!=None:
+            data=j.core.db.get("system.dirs.%s"%self.base)
+            if data!=None:
+                self.__dict__=json.loads(data.decode())
+            else:
+                print ("load dirs")
+                self.appDir = j.application.config.get("system.paths.app")
+                self.varDir = j.application.config.get("system.paths.var")
+                self.cfgDir = j.application.config.get("system.paths.cfg")
+                self.libDir = self._getLibPath()
+                #j.application.config.get("system.paths.lib")
+                self.jsLibDir = os.path.join(self.libDir,"JumpScale")
+                #j.application.config.get("system.paths.python.lib.js")
+                self.logDir = j.application.config.get("system.paths.log")
+                self.pidDir = j.application.config.get("system.paths.pid")
+                self.codeDir = j.application.config.get("system.paths.code")
+                self.libExtDir = j.application.config.get("system.paths.python.lib.ext")
+                self.tmpDir = tempfile.gettempdir()
+                self.hrd =  os.path.join(j.application.config.get("system.paths.hrd"),"system")
 
-        self.tmpDir = tempfile.gettempdir()
+                self._ays=None
 
-        self._ays=None
+                self._createDir(os.path.join(self.base,"libext"))
 
-        self._createDir(os.path.join(self.baseDir,"libext"))
+                if self.libDir in sys.path:
+                    sys.path.pop(sys.path.index(self.libDir))
+                sys.path.insert(0,self.libDir)
 
-        if self.libDir in sys.path:
-            sys.path.pop(sys.path.index(self.libDir))
-        sys.path.insert(0,self.libDir)
+                pythonzip = os.path.join(self.libDir, 'python.zip')
+                if os.path.exists(pythonzip):
+                    if pythonzip in sys.path:
+                        sys.path.pop(sys.path.index(pythonzip))
+                    sys.path.insert(0,pythonzip)
 
-        pythonzip = os.path.join(self.libDir, 'python.zip')
-        if os.path.exists(pythonzip):
-            if pythonzip in sys.path:
-                sys.path.pop(sys.path.index(pythonzip))
-            sys.path.insert(0,pythonzip)
+                if self.libExtDir in sys.path:
+                    sys.path.pop(sys.path.index(self.libExtDir))
+                sys.path.insert(2,self.libExtDir)
 
-        if self.libExtDir in sys.path:
-            sys.path.pop(sys.path.index(self.libExtDir))
-        sys.path.insert(2,self.libExtDir)
+                if 'JSBASE' in os.environ:
+                    self.binDir = os.path.join(self.base, 'bin')
+                else:
+                    self.binDir = j.application.config.get("system.paths.bin")
 
-        if 'JSBASE' in os.environ:
-            self.binDir = os.path.join(self.baseDir, 'bin')
-        else:
-            self.binDir = j.application.config.get("system.paths.bin")
+                data=json.dumps(self.__dict__)
+                j.core.db.set("system.dirs.%s"%self.base,data)
 
     def replaceTxtDirVars(self,txt,additionalArgs={}):
         """
         replace $base,$vardir,$cfgDir,$bindir,$codedir,$tmpdir,$logdir,$appdir with props of this class
         """
-        txt=txt.replace("$base",self.baseDir)
+        txt=txt.replace("$base",self.base)
         txt=txt.replace("$appdir",self.appDir)
         txt=txt.replace("$codedir",self.codeDir)
         txt=txt.replace("$vardir",self.varDir)
@@ -107,9 +120,6 @@ class Dirs(object):
         except:
             pass
 
-    @property
-    def hrd(self):
-        return j.sal.fs.joinPaths(j.application.config.get("system.paths.hrd"),"system")
 
     @property
     def ays(self):
@@ -123,26 +133,6 @@ class Dirs(object):
         j.sal.fs.createDir(self._ays)
         return self._ays
 
-    def init(self,reinit=False):
-        """Initializes all the configured directories if needed
-
-        If a folder attribute is None, set its value to the corresponding
-        default path.
-
-        @returns: Initialization success
-        @rtype: bool
-        """
-
-        if reinit==False and self.__initialized == True:
-            return True
-
-        # if j.core.platformtype.isWindows() :
-        #     self.codeDir=os.path.join(self.baseDir, 'code')
-
-        self.loadProtectedDirs()
-
-        self.__initialized = True
-        return True
 
     def _getParent(self, path):
         """
@@ -168,66 +158,66 @@ class Dirs(object):
     def getPathOfRunningFunction(self,function):
         return inspect.getfile(function)
 
-    def loadProtectedDirs(self):
-        return
-        protectedDirsDir = os.path.join(self.cfgDir, 'debug', 'protecteddirs')
-        if not os.path.exists(protectedDirsDir):
-            self._createDir(protectedDirsDir)
-        _listOfCfgFiles = j.sal.fs.listFilesInDir(protectedDirsDir, filter='*.cfg')
-        _protectedDirsList = []
-        for _cfgFile in _listOfCfgFiles:
-            _cfg = open(_cfgFile, 'r')
-            _dirs = _cfg.readlines()
-            for _dir in _dirs:
-                _dir = _dir.replace('\n', '').strip()
-                if j.sal.fs.isDir(_dir):
-                    # npath=j.sal.fs.pathNormalize(_dir)
-                    if _dir not in _protectedDirsList:
-                        _protectedDirsList.append(_dir)
-        self.protectedDirs = _protectedDirsList
+    # def loadProtectedDirs(self):
+    #     return
+    #     protectedDirsDir = os.path.join(self.cfgDir, 'debug', 'protecteddirs')
+    #     if not os.path.exists(protectedDirsDir):
+    #         self._createDir(protectedDirsDir)
+    #     _listOfCfgFiles = j.sal.fs.listFilesInDir(protectedDirsDir, filter='*.cfg')
+    #     _protectedDirsList = []
+    #     for _cfgFile in _listOfCfgFiles:
+    #         _cfg = open(_cfgFile, 'r')
+    #         _dirs = _cfg.readlines()
+    #         for _dir in _dirs:
+    #             _dir = _dir.replace('\n', '').strip()
+    #             if j.sal.fs.isDir(_dir):
+    #                 # npath=j.sal.fs.pathNormalize(_dir)
+    #                 if _dir not in _protectedDirsList:
+    #                     _protectedDirsList.append(_dir)
+    #     self.protectedDirs = _protectedDirsList
 
 
-    def addProtectedDir(self,path,name="main"):
-        if j.sal.fs.isDir(path):
-            path=j.sal.fs.pathNormalize(path)
-            configfile=os.path.join(self.cfgDir, 'debug', 'protecteddirs',"%s.cfg"%name)
-            if not j.sal.fs.exists(configfile):
-                j.sal.fs.writeFile(configfile,"")
-            content=j.sal.fs.fileGetContents(configfile)
-            if path not in content.split("\n"):
-                content+="%s\n"%path
-                j.sal.fs.writeFile(configfile,content)
-            self.loadProtectedDirs()
+    # def addProtectedDir(self,path,name="main"):
+    #     if j.sal.fs.isDir(path):
+    #         path=j.sal.fs.pathNormalize(path)
+    #         configfile=os.path.join(self.cfgDir, 'debug', 'protecteddirs',"%s.cfg"%name)
+    #         if not j.sal.fs.exists(configfile):
+    #             j.sal.fs.writeFile(configfile,"")
+    #         content=j.sal.fs.fileGetContents(configfile)
+    #         if path not in content.split("\n"):
+    #             content+="%s\n"%path
+    #             j.sal.fs.writeFile(configfile,content)
+    #         self.loadProtectedDirs()
 
-    def removeProtectedDir(self,path):
-        path=j.sal.fs.pathNormalize(path)
-        protectedDirsDir = os.path.join(self.cfgDir, 'debug', 'protecteddirs')
-        _listOfCfgFiles = j.sal.fs.listFilesInDir(protectedDirsDir, filter='*.cfg')
-        for _cfgFile in _listOfCfgFiles:
-            _cfg = open(_cfgFile, 'r')
-            _dirs = _cfg.readlines()
-            out=""
-            found=False
-            for _dir in _dirs:
-                _dir = _dir.replace('\n', '').strip()
-                if _dir==path:
-                    #found, need to remove
-                    found=True
-                else:
-                    out+="%s\n"%_dir
-            if found:
-                j.sal.fs.writeFile(_cfgFile,out)
-                self.loadProtectedDirs()
+    # def removeProtectedDir(self,path):
+    #     path=j.sal.fs.pathNormalize(path)
+    #     protectedDirsDir = os.path.join(self.cfgDir, 'debug', 'protecteddirs')
+    #     _listOfCfgFiles = j.sal.fs.listFilesInDir(protectedDirsDir, filter='*.cfg')
+    #     for _cfgFile in _listOfCfgFiles:
+    #         _cfg = open(_cfgFile, 'r')
+    #         _dirs = _cfg.readlines()
+    #         out=""
+    #         found=False
+    #         for _dir in _dirs:
+    #             _dir = _dir.replace('\n', '').strip()
+    #             if _dir==path:
+    #                 #found, need to remove
+    #                 found=True
+    #             else:
+    #                 out+="%s\n"%_dir
+    #         if found:
+    #             j.sal.fs.writeFile(_cfgFile,out)
+    #             self.loadProtectedDirs()
 
 
-    def checkInProtectedDir(self,path):
-        return
-        #@todo reimplement if still required
-        path=j.sal.fs.pathNormalize(path)
-        for item in self.protectedDirs :
-            if path.find(item)!=-1:
-                return True
-        return False
+    # def checkInProtectedDir(self,path):
+    #     return
+    #     #@todo reimplement if still required
+    #     path=j.sal.fs.pathNormalize(path)
+    #     for item in self.protectedDirs :
+    #         if path.find(item)!=-1:
+    #             return True
+    #     return False
 
     def _AYSRepo(self, path):
         while path.strip("/") != "":

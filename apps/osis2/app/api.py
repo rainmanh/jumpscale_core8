@@ -12,7 +12,7 @@ jinjaEnv = jinja2.Environment(
             loader=jinja2.FileSystemLoader(tmplDir),
         )
 
-STATIC_PATH = '/opt/jumpscale8/jslib/swagger/'
+STATIC_PATH = '%s/jslib/swagger/'%j.dirs.base
 
 def register_api(namespaces):
     app = Flask('API')

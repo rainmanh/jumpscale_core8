@@ -40,7 +40,7 @@ class ProcessmanagerFactory:
     def __init__(self):
         self.__jslocation__ = "j.core.processmanager"
         self.daemon = DummyDaemon()
-        self.basedir = j.sal.fs.joinPaths(j.dirs.baseDir, 'apps', 'processmanager')
+        self.basedir = j.sal.fs.joinPaths(j.dirs.base, 'apps', 'processmanager')
         j.system.platform.psutil = psutil
 
         if "processmanager" in j.__dict__ and "redis_queues" in j.processmanager.__dict__:

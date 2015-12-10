@@ -10,7 +10,7 @@ class OSISCMDS(object):
         self.daemon = daemon
         self.osisInstances = {}  # key is namespace_categoryname
         self.db = None  # default db
-        self.path="%s/apps/osis/logic"%j.dirs.baseDir
+        self.path="%s/apps/osis/logic"%j.dirs.base
 
     def authenticate(self, namespace, categoryname, name,passwd, session=None):
         """

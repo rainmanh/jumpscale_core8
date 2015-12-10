@@ -169,22 +169,22 @@ class AtYourServiceDebug():
             excludeFileRegex=["/xml/","-tk/","/xml","/lib2to3","-34m-",".egg-info"]
             excludeDirRegex=["/JumpScale","\.dist-info","config-x86_64-linux-gnu","pygtk"]
 
-            dest = "/opt/jumpscale8/lib"
+            dest = "%s/lib"%j.do.BASE
 
             for path in paths:
                 j.tools.sandboxer.copyTo(path,dest,excludeFileRegex=excludeFileRegex,excludeDirRegex=excludeDirRegex)
 
             try:
-                j.do.copyFile("/usr/bin/python3.5","/opt/jumpscale8/bin/python")
+                j.do.copyFile("/usr/bin/python3.5","%s/bin/python"%j.do.BASE)
             except Exception as e:
                 print (e)
 
             try:
-                j.do.copyFile("/usr/bin/python3.5","/opt/jumpscale8/bin/python3")
+                j.do.copyFile("/usr/bin/python3.5","%s/bin/python3"%j.do.BASE)
             except Exception as e:
                 print (e)
 
-            j.tools.sandboxer.copyLibsTo(dest,"/opt/jumpscale8/bin/",recursive=True)
+            j.tools.sandboxer.copyLibsTo(dest,"%s/bin/"%j.do.BASE,recursive=True)
             print ("SANDBOXING DONE")
 
         if sandbox:
@@ -240,12 +240,12 @@ class AtYourServiceDebug():
     def buildUpload_JS(self,sandbox=False,name="main"):
 
         j.do.createDir("/usr/local/lib/python3.5/site-packages")
-        j.do.symlink("/opt/jumpscale8/lib/JumpScale/","/usr/local/lib/python3.5/site-packages/JumpScale/")
-        j.do.symlink("/opt/jumpscale8/lib/JumpScale/","/root/.ipython/JumpScale/")
+        # j.do.symlink("%s/lib/JumpScale/"%j.do.BASE,"/usr/local/lib/python3.5/site-packages/JumpScale/")
+        # j.do.symlink("%s/lib/JumpScale/"%j.do.BASE,"/root/.ipython/JumpScale/")
 
         self.model.paths=[]
         # d.setNamespace("dedupe")
-        self.addPath("/opt/jumpscale8/")
+        self.addPath(j.dirs.base)
         self.enableMasterCacheUpdate()
         self.buildUpload(sandbox)
 
@@ -275,7 +275,7 @@ class AtYourServiceDebugFactory():
     d.setHost("192.168.0.105")
     d.setCache("192.168.0.140")
     d.enableMasterCacheUpdate()
-    d.addPath("/opt/jumpscale8")
+    d.addPath(j.dirs.base)
     d.upload()
     ```
 

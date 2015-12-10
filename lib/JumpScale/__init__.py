@@ -20,18 +20,11 @@ if sys.platform.startswith("darwin"):
     for p in ["/Users/Shared/jumpscale/lib","/Users/Shared/jumpscale/lib/lib-dynload/","/Users/Shared/jumpscale/bin","/Users/Shared/jumpscale/lib/python.zip","/Users/Shared/jumpscale/lib/plat-x86_64-linux-gnu"]:
         if p not in sys.path:
             sys.path.append(p)
-
     basevar="/Users/Shared/jumpscalevar"
-
-if 'VIRTUAL_ENV' in os.environ and not 'JSBASE' in os.environ:
-    os.environ['JSBASE'] = os.environ['VIRTUAL_ENV']
-    base="/opt/jumpscale8"
-    basevar="/optvar"
-elif 'JSBASE' in os.environ:
-    base=os.environ['JSBASE']
-    basevar="/optvar"
 else:
-    base="/opt/jumpscale8"
+    if "JSBASE" not in os.environ:
+        raise RuntimeError("Cannot load jumpscale, please specify JSBASE as env variable.")
+    base=os.environ["JSBASE"]
     basevar="/optvar"
 
 import os.path
@@ -105,7 +98,7 @@ j.do.installer=Installer()
 
 from . import core
 
-sys.path.append('/opt/jumpscale8/lib/JumpScale')
+sys.path.append('%s/lib/JumpScale'%j.do.BASE)
 
 import importlib
 
@@ -124,9 +117,9 @@ import os
 redisinit()
 if j.core.db==None:
     url="http://stor.jumpscale.org:8000/public/redis-server"
-    j.do.download(url, to='/opt/jumpscale8/bin/redis', overwrite=False, retry=3)
+    j.do.download(url, to='%s/bin/redis'%j.do.BASE, overwrite=False, retry=3)
     import subprocess
-    cmd="chmod 550 /opt/jumpscale8/bin/redis > 2&>1;/opt/jumpscale8/bin/redis --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"
+    cmd="chmod 550 %s/bin/redis > 2&>1;%s/bin/redis --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"%(j.do.BASE,j.do.BASE)
     print ("start redis in background")
     os.system(cmd)
     # Wait until redis is up
@@ -151,8 +144,8 @@ import json
 
 def findModules():
     result={}
-    if os.path.isdir("/opt/jumpscale8"):
-        superroot="/opt/jumpscale8/lib/JumpScale"
+    if os.path.isdir(j.dirs.base):
+        superroot="%s/lib/JumpScale"%j.do.BASE
     else:
         if j.core.db.get("system.superroot")==None:  
             superroot = j.do.getDirName(__file__)
@@ -192,14 +185,14 @@ def findModules():
                         result[loc].append((classfile,classname,item))
 
     j.core.db.set("system.locations",json.dumps(result))
-    j.do.writeFile("/opt/jumpscale8/bin/metadata.db",json.dumps(result))
+    j.do.writeFile("%s/bin/metadata.db"%j.do.BASE,json.dumps(result))
 
 data=j.core.db.get("system.locations")
 if data==None:
-    if not j.do.exists(path="/opt/jumpscale8/bin/metadata.db"):        
+    if not j.do.exists(path="%s/bin/metadata.db"%j.do.BASE):        
         res=findModules()
     else:
-        data=j.do.readFile("/opt/jumpscale8/bin/metadata.db")
+        data=j.do.readFile("%s/bin/metadata.db"%j.do.BASE)
         # print ("data from readfile")
 else:
     data=data.decode()
@@ -215,11 +208,12 @@ for locationbase,llist in locations.items():  #locationbase is e.g. j.sal
         loader._register(item,classfile,classname)
 
 if not j.do.exists("%s/hrd/system/system.hrd"%basevar):
-    j.do.installer.writeenv()
+    j.do.installer.writeenv(die=False)
 
-j.application.config = j.data.hrd.get(path="%s/hrd/system"%basevar)
 
-j.logger.enabled = j.application.config.getBool("system.logging",default=False)
+data=j.core.db.get("system.dirs.%s"%j.do.BASE)
+if data==None:
+    j.application._config = j.data.hrd.get(path="%s/hrd/system"%basevar)
 
 j.application.init()
 

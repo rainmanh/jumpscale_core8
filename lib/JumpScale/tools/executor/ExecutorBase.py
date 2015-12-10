@@ -12,7 +12,7 @@ class ExecutorBase():
         if "code" not in self.dest_prefixes:
             self.dest_prefixes["code"]="/opt/code"
         if "var" not in self.dest_prefixes:
-            self.dest_prefixes["var"]="/opt/jumpscale8/var"
+            self.dest_prefixes["var"]="%s/var"%j.do.BASE
         if "images" not in self.dest_prefixes:
             self.dest_prefixes["images"]="/mnt/images"
         if "vm" not in self.dest_prefixes:

@@ -583,7 +583,7 @@ class WindowsSystem(SALObject):
         e.g creating a service for postgresql
         serviceName = 'pgsql-8.3'
         displayName = serviceName
-        binDir = j.sal.fs.joinPaths(j.dirs.baseDir, 'apps','postgresql8', 'bin')
+        binDir = j.sal.fs.joinPaths(j.dirs.base, 'apps','postgresql8', 'bin')
         pgDataDir = j.sal.fs.joinPathso.dirs.baseDir, 'apps','postgresql8', 'Data')
         j.system.windows.createService(serviceName, displayName , '%s\\pg_ctl.exe','runservice -W -N %s -D %s'%(serviceName, pgDataDir))
         """

@@ -156,7 +156,7 @@ class Openvclcoud(object):
 metadata.openvcloud            =
     url:'https://git.aydo.com/0-complexity/openvcloud_ays',
 """
-            cl.file_append('/opt/jumpscale8/hrd/system/atyourservice.hrd', content)
+            cl.file_append('%s/hrd/system/atyourservice.hrd'%j.do.BASE, content)
             self.actionDone(gitlaburl, "jumpscale")
 
         if self.actionCheck(gitlaburl, "gitcredentials") is False:
@@ -352,7 +352,7 @@ metadata.openvcloud            =
 metadata.openvcloud            =
     url:'https://git.aydo.com/0-complexity/openvcloud_ays',
 """
-            cl.file_append('/opt/jumpscale8/hrd/system/atyourservice.hrd', content)
+            cl.file_append('%s/hrd/system/atyourservice.hrd'%j.do.BASE, content)
             self.actionDone(spacesecret, "vnas_jumpscale")
 
         if self.actionCheck(gitlaburl, "vnas-gitlabclone") is False:

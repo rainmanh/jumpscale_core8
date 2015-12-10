@@ -2,7 +2,6 @@ from JumpScale import j
 import os,sys
 import atexit
 import struct
-# from JumpScale.core.enumerators import AppStatusType
 from collections import namedtuple
 
 try:
@@ -11,12 +10,6 @@ except ImportError:
     import json
 
 WhoAmI = namedtuple('WhoAmI', 'gid nid pid')
-
-#@todo Need much more protection: cannot change much of the state (e.g. dirs) once the app is running!
-#@todo Need to think through - when do we update the jpidfile (e.g. only when app is started ?)
-#@todo can we make this a singleton? Then need to change __init__ to avoid clearing the content
-#@todo need to implement QApplication.getVar()
-
 
 class Application:
 
@@ -30,10 +23,11 @@ class Application:
         self.skipTraceback = False
         self._debug = True
 
-        self.whoAmIBytestr = None
-        self.whoAmI = WhoAmI(0,0,0)
+        self._config = None
 
-        self.config = None
+        self._systempid=None
+        self._whoAmiBytestr=None
+        self._whoAmi=None
 
         self.gridInitialized=False
         self.noremote = False
@@ -57,75 +51,50 @@ class Application:
         j.do.debug = value
 
     def init(self):
-
-
-
-        self.initWhoAmI()
-
-        addr=None
-        if j.sal.nettools.tcpPortConnectionTest("redis", 9999, timeout=None):
-            addr="redis"
-            port=9999
-        elif j.sal.nettools.tcpPortConnectionTest("redis", 6379, timeout=None):
-            addr="redis"
-            port=6379
-        elif j.sal.nettools.tcpPortConnectionTest("localhost", 9999, timeout=None):
-            addr="localhost"
-            port=9999
-        elif j.sal.nettools.tcpPortConnectionTest("localhost", 6379, timeout=None):
-            addr="localhost"
-            port=6379
-        if addr!=None:
-            j.core.redis=j.clients.redis.getGeventRedisClient(addr, port, fromcache=True, password='')        
-
-        #@todo check login/passwd info from https://www.gitbook.com/book/gig/jumpscale/edit#/edit/master/Internals/jumpscaleconfigfiles.md (***)
-
-        # #check influxdb
-        # if j.sal.nettools.tcpPortConnectionTest("influxdb", 8086, timeout=None):
-        #     j.core.statsdb=j.clients.influxdb.get(host='influxdb', port=8086, username='root', password='root', database="stats")
-        #     for key,val in j.core.statsdb.get_list_database():
-        #         if val=="stats":
-        #             found=True
-        #     if found=False:
-        #         j.core.statsdb.query("CREATE DATABASE \"stats\"")
-
-        # #check mongodb
-        # if j.sal.nettools.tcpPortConnectionTest("mongo", 27017, timeout=None):
-        #     j.core.realitydb_connection=j.clients.mongodb.get(host='mongo', port=27017) #@todo put login/passwd in & use jumpscaleconfig files (***)
-        #     j.core.realitydb=j.core.realitydb_connection.get_database("local")
-
-
         if j.logger.enabled:
-            j.logger.init()
+            j.logger.init()        
 
-        if j.logger.enabled:
-            j.logger.init()
-        
+    @property
+    def config(self):
+        if self._config==None:
+            self._config = j.data.hrd.get(path=j.dirs.hrd)
+        return self._config
+
+    @property
+    def whoAmiBytestr(self):
+        if self._whoAmi==None:
+            self._initWhoAmI()
+        return self._whoAmiBytestr
+
+    @property
+    def whoAmI(self):
+        if self._whoAmi==None:
+            self._initWhoAmI()
+        return self._whoAmi
+
+    @property
+    def systempid(self):
+        if self._systempid==None:
+            self._systempid=os.getpid()
+        return self._systempid
 
 
-    def loadConfig(self):
-        self.config = j.data.hrd.get(path=j.dirs.hrd)
-
-    def initWhoAmI(self, reload=False):
+    def _initWhoAmI(self, reload=False):
         """
         when in grid:
             is gid,nid,pid
         """
-        if not self.whoAmIBytestr or reload:
+        if self.config != None and self.config.exists('grid.node.id'):
+            nodeid = self.config.getInt("grid.node.id")
+            gridid = self.config.getInt("grid.id")
+            j.logger.log("gridid:%s,nodeid:%s"%(gridid, nodeid), level=3, category="application.startup")
+        else:
+            gridid = 0
+            nodeid = 0
 
-            if self.config != None and self.config.exists('grid.node.id'):
-                nodeid = self.config.getInt("grid.node.id")
-                gridid = self.config.getInt("grid.id")
-                j.logger.log("gridid:%s,nodeid:%s"%(gridid, nodeid), level=3, category="application.startup")
-            else:
-                gridid = 0
-                nodeid = 0
+        self._whoAmI = WhoAmI(gid=gridid, nid=nodeid, pid=0)
 
-            self.systempid=os.getpid()
-
-            self.whoAmI = WhoAmI(gid=gridid, nid=nodeid, pid=0)
-
-            self.whoAmIBytestr = struct.pack("<hhh", self.whoAmI.pid, self.whoAmI.nid, self.whoAmI.gid)
+        self._whoAmiBytestr = struct.pack("<hhh", self.whoAmI.pid, self.whoAmI.nid, self.whoAmI.gid)
 
 
     def initGrid(self):
@@ -163,19 +132,17 @@ class Application:
 
         j.dirs.appDir=appdir
 
-        j.dirs.init(reinit=True)
+        # if hasattr(self, 'config'):
+        #     self.debug = j.application.config.getBool('system.debug', default=True)
 
-        if hasattr(self, 'config'):
-            self.debug = j.application.config.getBool('system.debug', default=True)
-
-        if j.core.redis!=None:
-            if j.core.redis.hexists("application",self.appname):
-                pids=json.loads(j.core.redis.hget("application",self.appname))
+        if j.core.db!=None:
+            if j.core.db.hexists("application",self.appname):
+                pids=json.loads(j.core.db.hget("application",self.appname))
             else:
                 pids=[]
             if self.systempid not in pids:
                 pids.append(self.systempid)
-            j.core.redis.hset("application",self.appname,json.dumps(pids))
+            j.core.db.hset("application",self.appname,json.dumps(pids))
 
         # Set state
         self.state = "RUNNING"

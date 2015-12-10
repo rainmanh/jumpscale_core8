@@ -168,7 +168,7 @@ class ActionsBaseNode(object):
 
             tcmd=process["cmd"]
             if tcmd=="jspython":
-                tcmd="source %s/env.sh;jspython"%(j.dirs.baseDir)
+                tcmd="source %s/env.sh;jspython"%(j.dirs.base)
 
             targs=process["args"]
             tuser=process["user"]

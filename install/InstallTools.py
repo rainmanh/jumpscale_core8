@@ -2178,31 +2178,33 @@ class Installer():
             do.writeFile(hpath,C)
 
 
-        # deactivate () {
-        #     export PATH=$_OLD_PATH
-        #     unset _OLD_PATH
-        #     export PYTHONPATH=$_OLD_PYTHONPATH
-        #     unset _OLD_PYTHONPATH
-        #     export LD_LIBRARY_PATH=$_OLD_LD_LIBRARY_PATH
-        #     unset _OLD_LD_LIBRARY_PATH
-        #     export PS1=$_OLD_PS1
-        #     unset _OLD_PS1
-        #     if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
-        #             hash -r 2>/dev/null
-        #     fi
-        # }
 
-        #if [[ "$JSBASE" == "$base" ]]; then
-        #    return 0
-        #fi
-
-        # export _OLD_PATH=$PATH
-        # export _OLD_PYTHONPATH=$PYTHONPATH
-        # export _OLD_LDLIBRARY_PATH=$LD_LIBRARY_PATH
-        # export _OLD_PS1=$PS1
 
         C="""
         export JSBASE=$base
+
+        deactivate () {
+            export PATH=$_OLD_PATH
+            unset _OLD_PATH
+            export PYTHONPATH=$_OLD_PYTHONPATH
+            unset _OLD_PYTHONPATH
+            export LD_LIBRARY_PATH=$_OLD_LD_LIBRARY_PATH
+            unset _OLD_LD_LIBRARY_PATH
+            export PS1=$_OLD_PS1
+            unset _OLD_PS1
+            if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
+                    hash -r 2>/dev/null
+            fi
+        }
+
+        # if [[ "$JSBASE" == "$base" ]]; then
+        #    return 0
+        # fi
+
+        export _OLD_PATH=$PATH
+        export _OLD_PYTHONPATH=$PYTHONPATH
+        export _OLD_LDLIBRARY_PATH=$LD_LIBRARY_PATH
+        export _OLD_PS1=$PS1        
 
         export PATH=$JSBASE/bin:$PATH
         export PYTHONHOME=$JSBASE/bin

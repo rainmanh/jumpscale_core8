@@ -84,6 +84,7 @@ class Application:
         when in grid:
             is gid,nid,pid
         """
+        return #@todo (*3*)
         if self.config != None and self.config.exists('grid.node.id'):
             nodeid = self.config.getInt("grid.node.id")
             gridid = self.config.getInt("grid.id")

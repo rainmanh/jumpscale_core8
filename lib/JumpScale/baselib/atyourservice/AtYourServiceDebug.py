@@ -156,7 +156,7 @@ class AtYourServiceDebug():
         """
         tell the ays filesystem about this directory which will be uploaded to ays filesystem
         """
-        self.reset()
+        # self.reset()
         self.buildJumpscaleMetadata()
 
         def sandbox1():
@@ -248,6 +248,10 @@ class AtYourServiceDebug():
         self.addPath(j.dirs.base)
         self.enableMasterCacheUpdate()
         self.buildUpload(sandbox)
+
+    def destroyfileserver(self):
+        self.cuisine_master.run("rm -rf /mnt/Storage/openvcloud/ftp/ays/master/;mkdir -p /mnt/Storage/openvcloud/ftp/ays/master/dedupe/")
+
 
 
     def __str__(self):     

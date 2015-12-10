@@ -145,7 +145,7 @@ import json
 
 def findModules():
     result={}
-    if os.path.isdir(j.do.base):
+    if os.path.isdir(j.do.BASE):
         superroot="%s/lib/JumpScale"%j.do.BASE
     else:
         if j.core.db.get("system.superroot")==None:  

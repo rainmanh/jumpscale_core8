@@ -2047,7 +2047,7 @@ class Installer():
             do.symlink(src, "/usr/bin/python")
 
 
-        self.writeenv(basedir=base,insystem=insystem,SANDBOX=SANDBOX,CODEDIR=CODEDIR)
+        self.writeenv(basedir=base,insystem=insystem,CODEDIR=CODEDIR)
 
         if not insystem:
             sys.path=[]

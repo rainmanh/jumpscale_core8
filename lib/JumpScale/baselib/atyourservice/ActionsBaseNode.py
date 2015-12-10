@@ -93,7 +93,7 @@ class ActionsBaseNode(object):
     def install(self, serviceObj):
 
         if j.sal.process.checkProcessRunning('aysfs'):
-            self._installFromAYSFS(serviceObj)
+            self._installFromAysFS(serviceObj)
 
         elif len(j.atyourservice.findServices(role='ays_stor_client')) > 0:
             self._installFromStore(serviceObj)

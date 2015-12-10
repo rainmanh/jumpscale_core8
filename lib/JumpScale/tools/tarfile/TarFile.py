@@ -5,7 +5,7 @@
 import tarfile
 
 from JumpScale import j
-from JumpScale.core.baseclasses import BaseEnumeration, BaseType
+from JumpScale.core.types.BaseEnumeration import BaseEnumeration, BaseType
 # @TODO JumpScale.core.baseclasses doesn't exists anymore
 
 

@@ -7,7 +7,7 @@ import os.path
 import zipfile
 
 from JumpScale import j
-from JumpScale.core.baseclasses import BaseEnumeration, BaseType
+from JumpScale.core.types.BaseEnumeration import BaseEnumeration, BaseType
 
 #NOTE: We use this enumeration so we can add zip file creation and others
 #later on. This enumeration is used when constructing a new ZipFile object,

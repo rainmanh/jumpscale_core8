@@ -6,7 +6,7 @@ except:
 import time
 from abc import ABCMeta, abstractmethod
 from JumpScale import j
-from JumpScale.core.baseclasses import BaseEnumeration
+from JumpScale.core.types.BaseEnumeration import BaseEnumeration
 import collections
 
 

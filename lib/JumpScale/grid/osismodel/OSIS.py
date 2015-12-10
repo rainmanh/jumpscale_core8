@@ -9,7 +9,7 @@ class OSIS:
 
     def __init__(self):
         self.__jslocation__ = "j.core.osismodel"
-        self.dict2object = j.code.dict2JSModelobject  # was dict2object
+        #self.dict2object = j.code.dict2JSModelobject  # was dict2object
         self.osisInstances = {}
 
     def get(self, appname, actorname, modelname, modelClass=None, db=None, index=False, indexer=None):

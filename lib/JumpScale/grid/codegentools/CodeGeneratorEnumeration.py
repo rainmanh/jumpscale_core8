@@ -15,7 +15,7 @@ class CodeGeneratorEnumeration(CodeGeneratorBase):
     def addClass(self):
         spec = self.spec
         s = """
-from JumpScale.core.baseclasses import BaseEnumeration
+from JumpScale.core.types.BaseEnumeration import BaseEnumeration
 
 class %s(BaseEnumeration):
 {descr}

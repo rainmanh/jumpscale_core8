@@ -157,6 +157,7 @@ class AtYourServiceDebug():
         tell the ays filesystem about this directory which will be uploaded to ays filesystem
         """
         self.reset()
+        self.buildJumpscaleMetadata()
 
         def sandbox1():
             print ("START SANDBOX")
@@ -208,9 +209,13 @@ class AtYourServiceDebug():
 
         if self.model.populate_host_cache:
             self._upload(self.model.host,"/mnt/ays/cachelocal/dedupe/")
+            #@todo ....
+            j.do.copyTree(self.model.storpath+"/md/0.flist","root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)            
 
         if self.model.populate_master_cache:
             self._upload("37.59.7.72","/mnt/Storage/openvcloud/ftp/ays/master/dedupe/")
+            j.do.copyTree(self.model.storpath+"/md/0.flist","root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
+
 
         if self.model.host!="":
         #     j.do.copyTree(self.model.storpath+"/md/0.flist","root@%s:/etc/ays/local/"%(self.model.host),overwriteFiles=True, rsync=True, ssh=True, sshport=self.model.port)
@@ -227,16 +232,10 @@ class AtYourServiceDebug():
             self.cuisine_host.file_unlink("/etc/ays/local/md/0.flist")
         
 
-        j.do.copyTree(self.model.storpath+"/md/0.flist","root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
 
 
         self.cuisine_master.run("chown -R ays:root /mnt/Storage/openvcloud/ftp/ays/master/dedupe/")
-            # self.cuisine_host.run("mkdir -p /optvar/hrd/system")
-            # cmd ="rsync  -rlptgo --partial --exclude '*.egg-info*/' --exclude '*.dist-info*/' --exclude '*.egg-info*' "
-            # cmd +="--exclude '*.pyc' --exclude '*.bak' --exclude '*__pycache__*'  -e 'ssh -o StrictHostKeyChecking=no -p 22' "
-            # cmd +="'/optvar/hrd/system/' 'root@%s:/optvar/hrd/system/'"%(self.model.host)
-            # print (cmd)
-            # j.do.execute(cmd)       
+   
 
     def buildUpload_JS(self,sandbox=False,name="main"):
 
@@ -256,7 +255,10 @@ class AtYourServiceDebug():
     __repr__=__str__
 
 class AtYourServiceDebugFactory():
-    """
+
+    @property
+    def doc(self):
+        D="""
     example usage:
     ```
     #ALL IN ONE to only update master
@@ -283,6 +285,7 @@ class AtYourServiceDebugFactory():
     ```
 
     """
+        print(D)
 
     def get(self,name="main"):
         """

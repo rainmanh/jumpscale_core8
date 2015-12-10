@@ -15,7 +15,7 @@ from subprocess import Popen, PIPE
 import os, io
 import threading
 from threading import Thread, Lock
-# import queue
+import queue
 import os
 # import smtplib
 import re

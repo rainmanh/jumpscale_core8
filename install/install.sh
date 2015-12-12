@@ -22,8 +22,8 @@ export AYSBRANCH='master'
 
 if [ "$(uname)" == "Darwin" ]; then
     # Do something under Mac OS X platform   
-    echo 'install brew'     
-    ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    #echo 'install brew'     
+    #ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     brew install curl
     brew install python3
     brew install git

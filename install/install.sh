@@ -28,8 +28,8 @@ if [ "$(uname)" == "Darwin" ]; then
     brew install python3
     brew install git
     pip3 install --upgrade pip setuptools
-    export TMPDIR = $(~/tmp)
-    export JSBASE = '/opt/jumpscale8'
+    export TMPDIR=$(~/tmp)
+    export JSBASE='/opt/jumpscale8'
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     dist=''
     dist=`grep DISTRIB_ID /etc/*-release | awk -F '=' '{print $2}'`

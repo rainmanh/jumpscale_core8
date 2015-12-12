@@ -25,10 +25,11 @@ if [ "$(uname)" == "Darwin" ]; then
     echo 'install brew'     
     ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     brew install curl
-    brew install python3.5
+    brew install python3
     brew install git
+    pip3 install --upgrade pip setuptools
     TMPDIR = $(~/tmp)
-    export JSBASE = '/Users/Shared/jumpscale'
+    export JSBASE = '/opt/jumpscale8'
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     dist=''
     dist=`grep DISTRIB_ID /etc/*-release | awk -F '=' '{print $2}'`

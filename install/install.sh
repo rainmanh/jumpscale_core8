@@ -28,7 +28,7 @@ if [ "$(uname)" == "Darwin" ]; then
     brew install python3
     brew install git
     pip3 install --upgrade pip setuptools
-    export TMPDIR=$(~/tmp)
+    #export TMPDIR=$(~/tmp)
     export JSBASE='/opt/jumpscale8'
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     dist=''

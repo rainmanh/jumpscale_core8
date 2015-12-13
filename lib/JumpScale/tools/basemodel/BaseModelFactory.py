@@ -65,30 +65,37 @@ class BaseModelFactory():
     def getSessionCacheModel(self):
         return ModelSessionCache
 
-    def getKeys(self, modelname, id):
+    def getKeys(self, modelname):
         """
         @return hsetkey,key
         """
         ttype = modelname.split(".")[-1].replace("Model", "").lower()
         hsetkey = "models.%s" % ttype
-        return (hsetkey, id)
+        return hsetkey
 
     def get(self, modelclass, id):
         modelname = modelclass._class_name
-        hsetkey = self.getKeys(modelname, id)
-        modelraw = j.core.db.hget(hsetkey, id).decode()
+        hsetkey = self.getKeys(modelname)
+        modelraw = j.core.db.hget(hsetkey, id)
+        if modelraw:
+            modelraw = modelraw.decode()
+        else:
+            try:
+                modelclass.objects.get(id=id)
+            except DoesNotExist:
+                return None
         model = model.from_json(modelraw)
         return model
 
     def set(self, modelobject):
-        hsetkey, key = self.getKeys(modelobject._class_name, modelobject.id)
+        hsetkey = self.getKeys(modelobject._class_name)
         modelraw = json.dumps(modelobject.to_dict())
-        j.core.db.hset(hsetkey, key, modelraw)
+        j.core.db.hset(hsetkey, modelobject.id, modelraw)
 
     def load(self, modelobject):
-        hsetkey, key = self.getKeys(modelobject._class_name, modelobject.id)
+        hsetkey = self.getKeys(modelobject._class_name)
 
-        if j.core.db.hexists(hsetkey, key):
+        if j.core.db.hexists(hsetkey, modelobject.id):
             model = self.get(modelobject)
         else:
             self.set(modelobject)
@@ -96,3 +103,22 @@ class BaseModelFactory():
 
     def find(self, model, query):
         return model.objects(__raw__=query)
+
+    def remove(self, model, key):
+        pass
+
+    def exists(self, model, key):
+        modelname = modelclass._class_name
+        hsetkey = self.getKeys(modelname)
+        if j.core.db.hexists(hsetkey, id):
+            return True
+        try:
+            modelclass.objects.get(id=id)
+        except DoesNotExist:
+            return False
+
+    def authenticate(self, username, passwd):
+        um = self.getUserModel()
+        if um.objects(__raw__={'name': username, 'passwd': {'$in': [passwd, j.tools.hash.md5_string(passwd)]}}):
+            return True
+        return False

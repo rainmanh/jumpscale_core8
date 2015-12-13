@@ -62,6 +62,9 @@ class BaseModelFactory():
     def getUserModel(self):
         return ModelUser
 
+    def getSessionCacheModel(self):
+        return ModelSessionCache
+
     def getKeys(self, modelname, id):
         """
         @return hsetkey,key

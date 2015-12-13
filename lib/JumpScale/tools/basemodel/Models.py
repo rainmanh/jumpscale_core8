@@ -355,6 +355,15 @@ class ModelUser(ModelBase):
     authkeys = ListField(StringField())
 
 
+class ModelSessionCache(ModelBase):
+    value = DictField(default='')
+    createdat = IntField(default=j.tools.time.getTimeEpoch())
+    lastupdatedat = IntField(default=j.tools.time.getTimeEpoch())
+    meta = {'indexes': [
+                {'fields': ['epoch'], 'expireAfterSeconds': 432000}
+        ], 'allow_inheritance': True}
+
+
 # @todo complete ASAP all from https://github.com/Jumpscale/jumpscale_core8/blob/master/apps/osis/logic/system/model.spec  (***)
 
 # o=ModelJob()

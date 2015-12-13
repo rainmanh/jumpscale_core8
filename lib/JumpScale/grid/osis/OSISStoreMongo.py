@@ -78,7 +78,7 @@ class OSISStoreMongo(OSISStore):
 
     def runTasklet(self, action, value, session):
         if self.te:
-            params = j.core.params.get()
+            params = j.data.params.get()
             params.value = value
             params.session = session
             params.action = action

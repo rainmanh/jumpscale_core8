@@ -43,9 +43,9 @@ class Tasklet:
 
     def checkExecute(self, j, params, service, tags):
         if j.core.types.dict.check(params):
-            params = j.core.params.get(params)
+            params = j.data.params.get(params)
         else:
-            if not j.core.params.isParams(params):
+            if not j.data.params.isParams(params):
                 raise RuntimeError("Params need to be a params object, cannot execute tasklet: %s" % self.path)
         if not hasattr(self.module, 'match') or self.module.match(j, params, service, tags, self):
             params = self.module.main(j, params, service, tags, self)
@@ -67,7 +67,7 @@ class Tasklet:
             if j.core.types.string.check(tags):
                 tags = j.data.tags.getObject(tags)
 
-        args = j.core.params.get(args)
+        args = j.data.params.get(args)
 
         if not hasattr(self.module, 'match') or self.module.match(j, args, params, actor, tags, self):
             params = self.module.main(j, args, params, actor, tags, self)
@@ -207,10 +207,10 @@ class TaskletEngine():
 
     def execute(self, params, service=None, tags=None):
         """
-        @param params is params object like from j.core.params.get() or a dict
+        @param params is params object like from j.data.params.get() or a dict
         @param service is an object which want to give to the tasklets, it will also be called service there
         """
-        # params are of type j.core.params.get() !!!
+        # params are of type j.data.params.get() !!!
         if len(self.tasklets) == 0:
             params.result = None
 
@@ -242,9 +242,9 @@ class TaskletEngine():
         else:
             tags = None
 
-        args = j.core.params.get(args)
+        args = j.data.params.get(args)
 
-        params = j.core.params.get({})
+        params = j.data.params.get({})
         params.result = None
 
         for tasklet in self.tasklets:
@@ -260,9 +260,9 @@ class TaskletEngine():
             params.result = None
 
         if j.core.types.dict.check(params):
-            params = j.core.params.get(params)
+            params = j.data.params.get(params)
         else:
-            if not j.core.params.isParams(params):
+            if not j.data.params.isParams(params):
                 raise RuntimeError("Params need to be a params object, cannot execute tasklet: %s" % self.path)
 
         if 'result' not in params:

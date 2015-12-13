@@ -143,6 +143,9 @@ class Popen(subprocess.Popen):
 
 
 class ExpectTool:
+    def __init__(self):
+        self.__jslocation__ = "j.tools.expect"
+
     @staticmethod
     def new(cmd=None):
 	'''Create a new Expect session

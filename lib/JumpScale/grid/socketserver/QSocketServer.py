@@ -15,7 +15,7 @@ except:
 
 import select
 
-from .QSocketServerClient import *
+from QSocketServerClient import *
 
 
 class QSocketServerHandler(socketserver.BaseRequestHandler):
@@ -136,6 +136,8 @@ class QSocketServer():
 
 
 class QSocketServerFactory():
+    def __init__(self):
+        self.__jslocation__ = "j.servers.socketserver"
 
     def get(self, port, key, datahandler):
         return QSocketServer('', port, key, datahandler)

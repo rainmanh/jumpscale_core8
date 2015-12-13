@@ -4,7 +4,7 @@ from datetime import date
 
 from JumpScale import j
 
-from .EasyDialogGeneric import EasyDialogGeneric
+from EasyDialogGeneric import EasyDialogGeneric
 
 class EasyDialogConsole(EasyDialogGeneric):
 

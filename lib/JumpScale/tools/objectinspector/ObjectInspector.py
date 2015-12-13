@@ -174,12 +174,13 @@ class ObjectInspector():
     """
 
     def __init__(self):
+        self.__jslocation__ = "j.tools.objectinspector"
         # self.apiFileLocation = j.sal.fs.joinPaths(j.dirs.cfgDir, "codecompletionapi", "jumpscale.api")
         # j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.cfgDir, "codecompletionapi"))
         self.classDocs={}
         self.visited=[]  
 
-    def importAllLibs(self,ignore=[],base="/opt/jumpscale8/lib/JumpScale/"):
+    def importAllLibs(self,ignore=[],base="%s/lib/JumpScale/"%j.do.BASE):
         self.base=base
         towalk=j.sal.fs.listDirsInDir(base, recursive=False, dirNameOnly=True, findDirectorySymlinks=True)        
         errors="### errors while trying to import libraries\n\n"

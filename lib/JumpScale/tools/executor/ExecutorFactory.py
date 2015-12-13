@@ -1,13 +1,13 @@
 from JumpScale import j
 
-from .ExecutorSSH import *
-from .ExecutorLocal import *
+from ExecutorSSH import *
+from ExecutorLocal import *
 # from ExecutorAgent2 import *
 
 class ExecutorFactory():
 
     def __init__(self):
-        pass
+        self.__jslocation__ = "j.tools.executor"
 
     def getLocal(self,jumpscale=True,debug=False,checkok=False):
         return ExecutorLocal(debug=debug,checkok=debug)

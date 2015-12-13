@@ -1,7 +1,7 @@
 from JumpScale import j
 # from SpecModelActorsGenerator import SpecModelActorsGenerator
 
-class Specbase(j.code.classGetBase()):
+class Specbase(j.tools.code.classGetBase()):
     def __init__(self,linenr):
         self.name=""
         self.description=""
@@ -542,7 +542,7 @@ class SpecFileParser():
     def raiseError(self, msg,line="",linenr=0):
         j.errorconditionhandler.raiseInputError("Cannot parse file %s\nError on line:%s\n%s\n%s\n" % (self.path,linenr,line,msg),"specparser.input")
 
-class Role(j.code.classGetBase()):
+class Role(j.tools.code.classGetBase()):
     def __init__(self,name,actors=[]):
         self.actors=actors
         self.name=name
@@ -552,6 +552,7 @@ class Role(j.code.classGetBase()):
 class SpecParserFactory():
 
     def __init__(self):
+        self.__jslocation__ = "j.core.specparser"
         self.specs={}
         self.childspecs={}
         self.appnames=[]

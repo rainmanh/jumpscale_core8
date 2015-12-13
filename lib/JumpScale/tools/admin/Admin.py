@@ -17,9 +17,12 @@ import time
 
 redis=j.clients.redis.getRedisClient("127.0.0.1", 9999)
 
-from .Node import Node
+from Node import Node
 
 class AdminFactory:
+    def __init__(self):
+        self.__jslocation__ = "j.tools.admin"
+
     def get(self,path,args,failWhenNotExist=False):
         return Admin(path,args,failWhenNotExist)
 

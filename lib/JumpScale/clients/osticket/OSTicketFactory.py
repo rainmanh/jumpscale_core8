@@ -8,6 +8,7 @@ class OSTicketFactory():
     """
 
     def __init__(self):
+        self.__jslocation__ = "j.clients.osticket"
         self.clients={}
 
 

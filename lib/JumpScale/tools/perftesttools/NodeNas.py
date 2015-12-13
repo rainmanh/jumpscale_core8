@@ -1,10 +1,10 @@
 from JumpScale import j
 
-from .NodeBase import NodeBase
-from .MonitorTools import MonitorTools
-from .PerfTestTools import *
-from .MonitorTools import *
-from .Disk import *
+from NodeBase import NodeBase
+from MonitorTools import MonitorTools
+from PerfTestTools import *
+from MonitorTools import *
+from Disk import *
 
 
 class NodeNas(NodeBase):

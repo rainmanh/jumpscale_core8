@@ -32,8 +32,8 @@
 # </License>
 
 from JumpScale import j
-from .EasyDialogWizardServer import WizardActions
-from .EasyDialogWizardServer import EasyDialogWizardServer
+from EasyDialogWizardServer import WizardActions
+from EasyDialogWizardServer import EasyDialogWizardServer
 
 try:
     import ujson as json

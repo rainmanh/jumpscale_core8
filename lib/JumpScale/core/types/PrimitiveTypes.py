@@ -4,6 +4,9 @@
 
 
 class Boolean():
+    def __init__(self):
+        self.__jslocation__ = "j.core.types.bool"
+
     '''Generic boolean type'''
     NAME = 'boolean'
 
@@ -38,6 +41,9 @@ class Boolean():
         return value is True or value is False
 
 class Integer():
+    def __init__(self):
+        self.__jslocation__ = "j.core.types.integer"
+
     '''Generic integer type'''
     NAME = 'integer'
 
@@ -52,6 +58,9 @@ class Integer():
         return isinstance(value, int)
 
 class Float():
+    def __init__(self):
+        self.__jslocation__ = "j.core.types.float"
+
     '''Generic float type'''
     NAME = 'float'
 
@@ -69,6 +78,9 @@ class Float():
         return isinstance(value, float)
 
 class String():
+    def __init__(self):
+        self.__jslocation__ = "j.core.types.string"
+
     '''Generic string type'''
     NAME = 'string'
 

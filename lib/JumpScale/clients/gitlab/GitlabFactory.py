@@ -12,7 +12,7 @@ from JumpScale.core.baseclasses_old import BaseEnumeration
 # from . import gitlab
 import os
 
-from .GitlabInstance import *
+from GitlabInstance import *
 
 # INFOCACHE = dict()
 
@@ -22,6 +22,7 @@ class GitlabFactory:
     """
 
     def __init__(self):
+        self.__jslocation__ = "j.clients.gitlab"
         self.connections={}
         j.logger.consolelogCategories.append("gitlab")
 

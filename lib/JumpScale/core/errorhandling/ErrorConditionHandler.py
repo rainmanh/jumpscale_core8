@@ -10,7 +10,7 @@ except ImportError:
     import json
 
 from JumpScale import j
-from .ErrorConditionObject import ErrorConditionObject, LEVELMAP
+from JumpScale.core.errorhandling import ErrorConditionObject #, LEVELMAP
 
 
 class BaseException(Exception):
@@ -33,6 +33,7 @@ class HaltException(BaseException):
 class ErrorConditionHandler():
     
     def __init__(self,haltOnError=True,storeErrorConditionsLocal=True):
+        self.__jslocation__ = "j.errorconditionhandler"
         self._blacklist = None
         self.lastAction=""
         self.haltOnError=haltOnError     
@@ -288,7 +289,7 @@ class ErrorConditionHandler():
             message2=str(pythonExceptionObject)
             
         if message2.find("((")!=-1:
-            tag=j.codetools.regex.findOne("\(\(.*\)\)",message2)         
+            tag=j.tools.code.regex.findOne("\(\(.*\)\)",message2)         
         else:
             tag=""
             
@@ -524,7 +525,7 @@ class ErrorConditionHandler():
                 #j.tools.console.echo("THIS ONLY WORKS WHEN GEDIT IS INSTALLED")
                 editor = findEditorLinux()
             elif j.core.platformtype.isWindows():
-                editorPath = j.sal.fs.joinPaths(j.dirs.baseDir,"apps","wscite","scite.exe")
+                editorPath = j.sal.fs.joinPaths(j.dirs.base,"apps","wscite","scite.exe")
                 if j.sal.fs.exists(editorPath):
                     editor = editorPath
             tracefile=errorConditionObject.log2filesystem()

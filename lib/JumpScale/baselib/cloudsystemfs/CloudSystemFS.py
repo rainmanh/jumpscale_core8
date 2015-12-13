@@ -5,15 +5,18 @@ except:
     import urllib.parse as urllib
 
 
-from .CifsFS import *
-from .FtpFS import *
-from .FileFS import *
-from .HttpFS import *
-from .SshFS import *
+from CifsFS import *
+from FtpFS import *
+from FileFS import *
+from HttpFS import *
+from SshFS import *
 from JumpScale import j
 import re
 
 class CloudSystemFS:
+    def __init__(self):
+        self.__jslocation__ = "j.sal.cloudfs"
+        pass
 
     def sourcePathExists(self, sourcepath):
         src_fs = self._getSourceHandler(sourcepath)

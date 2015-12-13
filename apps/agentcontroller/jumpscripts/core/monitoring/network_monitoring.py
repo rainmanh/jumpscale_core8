@@ -28,7 +28,7 @@ def action():
         pattern = j.application.config.getStr('gridmonitoring.nic.pattern')
 
     for nic, stat in counters.items():
-        if pattern and j.codetools.regex.match(pattern,nic) == False:
+        if pattern and j.tools.code.regex.match(pattern,nic) == False:
             continue
 
         result = dict()

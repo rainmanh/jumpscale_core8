@@ -1,12 +1,15 @@
 from JumpScale import j
 
-from .Rsync import *
+from Rsync import *
 
 from sal.base.SALObject import SALObject
 
 class RsyncFactory(SALObject):
     """
     """
+    def __init__(self):
+        self.__jslocation__ = "j.sal.rsync"
+
     def getServer(self,root):
         return RsyncServer(root)
 

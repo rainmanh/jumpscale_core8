@@ -16,15 +16,15 @@ from werkzeug.serving import run_simple
 import flask.ext.sqlalchemy as flask_sqlalchemy
 from . import modelloader
 from . import api
-from .converters import osis2mongo
-from .converters import osis2sqlalchemy
-from .sqlalchemy import common
+from converters import osis2mongo
+from converters import osis2sqlalchemy
+from sqlalchemy import common
 import urllib.parse
 import importlib
 
 import copy
 
-STATIC_PATH = '/opt/jumpscale8/jslib/swagger/'
+STATIC_PATH = '%s/jslib/swagger/'%j.dirs.base
 
 HOOKSMAP = {'on_insert_%s': 'pre_create',
             'on_inserted_%s': 'post_create',

@@ -70,6 +70,7 @@ class VDisk(object):
 
 class AOEManager(SALObject):
     def __init__(self):
+        self.__jslocation__="j.sal.aoe"           
         self._local = j.tools.executor.getLocal()
 
     def list(self, storpath="/mnt/disktargets/"):

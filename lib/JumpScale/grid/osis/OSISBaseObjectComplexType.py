@@ -6,7 +6,7 @@ import JumpScale.baselib.code
 
 
 
-class OSISBaseObjectComplexType(j.code.classGetJSRootModelBase()):
+class OSISBaseObjectComplexType(j.tools.code.classGetJSRootModelBase()):
 
     def init(self,namespace,category,version):
         if not hasattr(self,"guid"):

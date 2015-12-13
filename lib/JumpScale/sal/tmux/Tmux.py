@@ -7,6 +7,7 @@ from sal.base.SALObject import SALObject
 class Tmux(SALObject):
 
     def __init__(self):
+        self.__jslocation__ = "j.sal.tmux"
         self.screencmd = "tmux"
         self._local = j.tools.executor.getLocal()
 

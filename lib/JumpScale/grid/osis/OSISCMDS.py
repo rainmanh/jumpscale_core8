@@ -10,7 +10,7 @@ class OSISCMDS(object):
         self.daemon = daemon
         self.osisInstances = {}  # key is namespace_categoryname
         self.db = None  # default db
-        self.path="%s/apps/osis/logic"%j.dirs.baseDir
+        self.path="%s/apps/osis/logic"%j.dirs.base
 
     def authenticate(self, namespace, categoryname, name,passwd, session=None):
         """
@@ -355,7 +355,7 @@ class OSISCMDS(object):
                     if not j.sal.fs.exists(fileFrom):
                         fileFrom = j.core.osis.getModelTemplate()
                     j.sal.fs.copyFile(fileFrom, modelfile)
-                    ed=j.codetools.getTextFileEditor(modelfile)
+                    ed=j.tools.code.getTextFileEditor(modelfile)
                     ed.replaceNonRegex("$categoryname",catname.capitalize())
                     ed.save()
 
@@ -369,7 +369,7 @@ class OSISCMDS(object):
                 if overwriteImplementation or not j.sal.fs.exists(path=implpath):
                     j.sal.fs.copyFile(fileFrom, implpath)
 
-                ed=j.codetools.getTextFileEditor(implpath)
+                ed=j.tools.code.getTextFileEditor(implpath)
                 ed.replaceNonRegex("$namespace",namespacename)
                 ed.save()
 

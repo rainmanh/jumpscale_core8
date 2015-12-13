@@ -12,7 +12,7 @@ import codecs
 import pickle as pickle
 import stat
 from stat import ST_MTIME
-from .SystemFSWalker import *
+from SystemFSWalker import *
 
 
 # We import only jumpscale as the j.system.fs is used before jumpscale is initialized. Thus the q cannot be imported yet
@@ -20,7 +20,7 @@ from .SystemFSWalker import *
 
 from JumpScale import j
 # import JumpScale.baselib.codetools #requirement for parsePath
-# from .text import Text
+# from text import Text
 
 toStr = j.tools.text.toStr
 
@@ -215,6 +215,7 @@ class SystemFS(SALObject):
     exceptions = Exceptions
 
     def __init__(self):
+        self.__jslocation__="j.sal.fs"          
         self.logenable=False
         self.loglevel=5
         self.walker=SystemFSWalker()
@@ -224,7 +225,7 @@ class SystemFS(SALObject):
         if level<self.loglevel+1 and self.logenable:
             j.logger.log(msg,category="system.fs.%s"%category,level=level)
 
-    def copyFile(self, fileFrom, to ,createDirIfNeeded=False,skipProtectedDirs=False,overwriteFile=True):
+    def copyFile(self, fileFrom, to ,createDirIfNeeded=False,overwriteFile=True):
         """Copy file
 
         Copies the file from C{fileFrom} to the file or directory C{to}.
@@ -254,10 +255,6 @@ class SystemFS(SALObject):
                     return
             elif self.isFile(to):
                 self.remove(to) # overwriting some open  files is frustrating and may not work due to locking [delete/copy is a better strategy]
-            if skipProtectedDirs:
-                if j.dirs.checkInProtectedDir(to):
-                    raise RuntimeError("did not copyFile from:%s to:%s because in protected dir"%(fileFrom,to))
-                    return
             try:
                 shutil.copy(fileFrom, to)                
                 self.log("Copied file from %s to %s" % (fileFrom,to),6)
@@ -325,7 +322,7 @@ class SystemFS(SALObject):
         except Exception:
             raise RuntimeError("Failed to create an empty file with the specified filename: %s"%filename)
 
-    def createDir(self, newdir,skipProtectedDirs=False):
+    def createDir(self, newdir):
         """Create new Directory
         @param newdir: string (Directory path/name)
         if newdir was only given as a directory name, the new directory will be created on the default path,
@@ -334,9 +331,6 @@ class SystemFS(SALObject):
         if newdir.find("file://")!=-1:
             raise RuntimeError("Cannot use file notation here")
         self.log('Creating directory if not exists %s' % toStr(newdir), 8)
-        if skipProtectedDirs and j.dirs.checkInProtectedDir(newdir):
-            raise RuntimeError("did not create dir:%s because in protected dir"%newdir)
-            return
 
         if newdir == '' or newdir == None:
             raise TypeError('The newdir-parameter of system.fs.createDir() is None or an empty string.')
@@ -757,10 +751,10 @@ class SystemFS(SALObject):
             path=self.getDirName(path)
             #find extension
             regexToFindExt="\.\w*$"
-            if j.codetools.regex.match(regexToFindExt,name):
-                extension=j.codetools.regex.findOne(regexToFindExt,name).replace(".","")
+            if j.tools.code.regex.match(regexToFindExt,name):
+                extension=j.tools.code.regex.findOne(regexToFindExt,name).replace(".","")
                 #remove extension from name
-                name=j.codetools.regex.replace(regexToFindExt,regexFindsubsetToReplace=regexToFindExt, replaceWith="", text=name)
+                name=j.tools.code.regex.replace(regexToFindExt,regexFindsubsetToReplace=regexToFindExt, replaceWith="", text=name)
 
         if baseDir!="":
             path=self.pathRemoveDirPart(path,baseDir)
@@ -771,11 +765,11 @@ class SystemFS(SALObject):
             dirOrFilename=name
         #check for priority
         regexToFindPriority="^\d*_"
-        if j.codetools.regex.match(regexToFindPriority,dirOrFilename):
+        if j.tools.code.regex.match(regexToFindPriority,dirOrFilename):
             #found priority in path
-            priority=j.codetools.regex.findOne(regexToFindPriority,dirOrFilename).replace("_","")
+            priority=j.tools.code.regex.findOne(regexToFindPriority,dirOrFilename).replace("_","")
             #remove priority from path
-            name=j.codetools.regex.replace(regexToFindPriority,regexFindsubsetToReplace=regexToFindPriority, replaceWith="", text=name)
+            name=j.tools.code.regex.replace(regexToFindPriority,regexFindsubsetToReplace=regexToFindPriority, replaceWith="", text=name)
         else:
             priority=0
 
@@ -990,7 +984,7 @@ class SystemFS(SALObject):
         """
         apply templateengine to list of found files
         @param templateengine =te  #example below
-            te=j.codetools.templateengine.new()
+            te=j.tools.code.templateengine.new()
             te.add("name",self.a.name)
             te.add("description",self.ayses.description)
             te.add("version",self.ayses.version)

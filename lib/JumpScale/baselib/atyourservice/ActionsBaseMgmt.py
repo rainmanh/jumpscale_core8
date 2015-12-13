@@ -1,5 +1,5 @@
 from JumpScale import j
-import JumpScale.sal.screen
+import JumpScale.sal.tmux
 import os
 import signal
 import inspect
@@ -16,7 +16,7 @@ class ActionsBaseMgmt(object):
     this one happens at central side from which we coordinate our efforts
     """
 
-    def init(self, serviceObj, args):
+    def input(self, serviceObj, args):
         """
         gets executed before init happens of this ays
         use this method to manipulate the arguments which are given or already part of ays instance
@@ -52,9 +52,9 @@ class ActionsBaseMgmt(object):
                 args['node.name'] = serviceObj.instance
 
         # # check if 1 of parents is of type node
-        # for parent in serviceObj.parents:
-        #     if parent.role=="node":#.startswith("node"):
-        #         serviceObj.consume(serviceObj.parent)
+        for parent in serviceObj.parents:
+            if parent.role=="os":#.startswith("node"):
+                serviceObj.consume(serviceObj.parent)
         #         args['tcp.addr'] = serviceObj.parent.hrd.get('node.tcp.addr')
         #         break
 
@@ -118,24 +118,10 @@ class ActionsBaseMgmt(object):
 
         return toconsume
 
-    def consume(self, serviceObj, producer):
+    def hrd(self, serviceObj):
         """
-        gets executed just before we do install
-        this allows hrd's to be influeced
+        manipulate the hrd's after processing of the @ASK statements
         """
-        pass
-
-
-    def configure(self,serviceObj):
-        """
-        this gets executed after the files are installed
-        this step is used to do configuration steps to the platform
-        after this step the system will try to start the service if anything needs to be started
-
-        @return if you return "r" then system will restart after configure, otherwise return True if ok. False if not.
-
-        """
-
         if "ns" != serviceObj.role and not serviceObj.name.startswith("ns."):
             # means we are not a nameservice ourselves (otherwise chicken & the egg issue)
             serv = j.atyourservice.findServices(role="ns")
@@ -143,21 +129,43 @@ class ActionsBaseMgmt(object):
                 serv = serv[0]
                 instance = serviceObj.instance
                 name = serviceObj.name.split(".")[0]
-                serv.actions.register(serv, "%s.%s" % (instance, name))
-
+                serv.actions_mgmt.register(serv, "%s.%s" % (instance, name))
         return True
 
+    def _searchDep(self, serviceObj, depkey,die=True):
+        if serviceObj._producers != {} and depkey in serviceObj._producers:
+            dep = serviceObj._producers[depkey]
+        else:
+            dep = j.atyourservice.findServices(role=depkey)
 
-    # def _getDomainName(self, serviceObj, process):
-    #     domain=serviceObj.domain
-    #     if process["name"]!="":
-    #         name=process["name"]
-    #     else:
-    #         name=serviceObj.name
-    #         if serviceObj.instance!="main":
-    #             name+="__%s"%serviceObj.instance
-    #     return domain, name
+        if len(dep)==0 and die==False:
+            return None
+        if len(dep)>1 and die==False:
+            return None
+        if len(dep) == 0:
+            j.events.inputerror_critical("Could not find dependency, please install.\nI am %s, I am trying to depend on %s" % (serviceObj, depkey))
+        elif len(dep) > 1:
+            j.events.inputerror_critical("Found more than 1 dependent ays, please specify, cannot fullfil dependency requirement.\nI am %s, I am trying to depend on %s" % (serviceObj, depkey))
+        else:
+            serv = dep[0]
+        return serv
 
+    def consume(self, serviceObj, producer):
+        """
+        gets executed just before we do install
+        this allows hrd's to be influeced
+        """
+        pass
+
+    def install_pre(self, serviceObj):
+        """
+        """
+        return True
+
+    def install_post(self, serviceObj):
+        """
+        """
+        return True
 
     def start(self,serviceObj):
         """
@@ -286,5 +294,3 @@ class ActionsBaseMgmt(object):
         test the service on appropriate behavior
         """
         pass
-
-

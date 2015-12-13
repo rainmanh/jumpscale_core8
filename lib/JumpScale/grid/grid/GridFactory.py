@@ -18,6 +18,7 @@ import time
 class GridFactory():
 
     def __init__(self):
+        self.__jslocation__ = "j.core.grid"
         self.brokerClient = None
         # self.zobjects = ZCoreModelsFactory()
         self.id = None

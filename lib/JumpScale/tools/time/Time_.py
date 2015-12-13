@@ -13,7 +13,7 @@ TIMES = {'s': 1,
 
 import time
 
-from .TimeInterval import TimeInterval
+from TimeInterval import TimeInterval
 
 class Time_(object):
     """
@@ -22,6 +22,7 @@ class Time_(object):
     """
 
     def __init__(self):
+        self.__jslocation__ = "j.tools.time"
         self.timeinterval=TimeInterval
 
     @property

@@ -1,6 +1,6 @@
 
 
-from .base import BaseService, BaseServiceSection
+from base import BaseService, BaseServiceSection
 
 
 class NetworkError(Exception):

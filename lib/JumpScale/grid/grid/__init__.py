@@ -2,7 +2,7 @@ from JumpScale import j
 
 def cb():
     d
-    from .GridFactory import GridFactory
+    from GridFactory import GridFactory
     return GridFactory()
 
 

@@ -3,12 +3,12 @@ from io import StringIO
 
 
 
-from .uci import UCI
-from .dns import DNS
-from .dhcp import DHCP
-from .pureftp import PureFTP
-from .network import Network
-from .firewall import Firewall
+from uci import UCI
+from dns import DNS
+from dhcp import DHCP
+from pureftp import PureFTP
+from network import Network
+from firewall import Firewall
 
 from JumpScale import j
 

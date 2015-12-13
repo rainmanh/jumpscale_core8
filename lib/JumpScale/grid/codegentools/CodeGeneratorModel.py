@@ -1,6 +1,6 @@
 from JumpScale import j
 
-from .CodeGeneratorBase import CodeGeneratorBase
+from CodeGeneratorBase import CodeGeneratorBase
 
 
 class CodeGeneratorModel(CodeGeneratorBase):
@@ -52,8 +52,8 @@ if not isinstance(value, %(type)s) and value is not None:
                 init += "self._P_%s=classs()" % name
             else:
                 s = ""
-        s = j.code.indent(s[1:], indent)
-        self.initprops += j.code.indent(init, 2)
+        s = j.tools.code.indent(s[1:], indent)
+        self.initprops += j.tools.code.indent(init, 2)
         return s, value
 
     def addProperty(self, propertyname, type, default, description):
@@ -90,7 +90,7 @@ if not isinstance(value, %(type)s) and value is not None:
             s = "def new_%s(self,value=None):\n" % propname2
         else:
             s = "def new_%s(self,key,value=None):\n" % propname2
-        self.content += "\n%s" % j.code.indent(s, 1)
+        self.content += "\n%s" % j.tools.code.indent(s, 1)
         s = ""
 
         if spec not in ["int", "bool", "float", "str", "list", "dict"]:
@@ -129,7 +129,7 @@ return self._P_{name}[-1]\n
             s += "self._P_%s[key]=value2\n" % propname
             s += "return self._P_%s[key]\n" % propname
 
-        self.content += "\n%s" % j.code.indent(s, 2)
+        self.content += "\n%s" % j.tools.code.indent(s, 2)
 
 
     def addInitExtras(self):
@@ -140,13 +140,13 @@ return self._P_{name}[-1]\n
             s = s.replace("{actorname}", self.spec.actorname)
             s = s.replace("{modelname}", self.spec.name)
             s = s.replace("{version}", "1")
-            self.initprops += j.code.indent(s, 2)
+            self.initprops += j.tools.code.indent(s, 2)
 
     def generate(self):
         if self.spec.rootobject:
-            self.addClass(baseclass="j.code.classGetJSRootModelBase()")
+            self.addClass(baseclass="j.tools.code.classGetJSRootModelBase()")
         else:
-            self.addClass(baseclass="j.code.classGetJSModelBase()")
+            self.addClass(baseclass="j.tools.code.classGetJSModelBase()")
 
         for prop in self.spec.properties:
             self.addProperty(propertyname=prop.name, type=prop.type, default=prop.default, description=prop.description)

@@ -2,7 +2,7 @@
 import sys
 
 from JumpScale import j
-from .LogHandlerDB import LogHandlerDB
+from LogHandlerDB import LogHandlerDB
 
 import sys
 import simplejson
@@ -32,7 +32,7 @@ class MessageHandler:
         self._silentRetry = False
         self.queue = False  # when true will queue to local FS
         self.loghandlerdb = LogHandlerDB()
-        if len(j.application.whoAmIBytestr) != 6:
+        if len(j.application.whoAmiBytestr) != 6:
             raise RuntimeError("Cannot start messagehandler, the whoAmiBytestr on j.application should be 6 bytes")
 
     def data2Message(self, ttype, data):
@@ -46,7 +46,7 @@ class MessageHandler:
         @return 4byte_sizepacket,4byte_epoch,4byte_grid_id,4byte_nodeid,4byte_pid,1byteDataType,crcOfData,data
         """
         # print len(data)
-        # print "who:%s" % len(j.application.whoAmIBytestr)
+        # print "who:%s" % len(j.application.whoAmiBytestr)
         # print "crc:%s" % zlib.crc32(data)
         dataLength = len(data)
         if dataLength == 0:
@@ -55,7 +55,7 @@ class MessageHandler:
         crc = zlib.crc32(data)
         # 25 is length of everything before the data
         msg = struct.pack("I", dataLength + 25) + struct.pack("I", 0) +\
-            j.application.whoAmIBytestr + ttype + struct.pack("i", crc) + data
+            j.application.whoAmiBytestr + ttype + struct.pack("i", crc) + data
 
         return msg
 

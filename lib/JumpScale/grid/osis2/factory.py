@@ -1,7 +1,11 @@
 from JumpScale import j
-from .client import Client
+from client import Client
+
 
 class ClientFactory(object):
+    def __init__(self):
+        self.__jslocation__ = "j.clients.osis2"
+
     def get(self, instance='main', ip='', user='', passwd=''):
         hrd = j.application.getAppInstanceHRD(name="osis2_client",instance=instance)
         host = hrd.get('instance.param.osis2.client.addr')

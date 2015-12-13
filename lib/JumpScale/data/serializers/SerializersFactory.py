@@ -1,17 +1,18 @@
 from JumpScale import j
 
-from .SerializerInt import SerializerInt
-from .SerializerTime import SerializerTime
-from .SerializerBase64 import SerializerBase64
-from .SerializerHRD import SerializerHRD
-from .SerializerDict import SerializerDict
-from .SerializerBlowfish import SerializerBlowfish
-from .SerializerUJson import SerializerUJson
-from .SerializerYAML import SerializerYAML
+from SerializerInt import SerializerInt
+from SerializerTime import SerializerTime
+from SerializerBase64 import SerializerBase64
+from SerializerHRD import SerializerHRD
+from SerializerDict import SerializerDict
+from SerializerBlowfish import SerializerBlowfish
+from SerializerUJson import SerializerUJson
+from SerializerYAML import SerializerYAML
 
 class SerializersFactory():
 
     def __init__(self):
+        self.__jslocation__ = "j.data.serializer.serializers"
         self.types={}
         self._cache={}
         self.int = SerializerInt()
@@ -80,7 +81,7 @@ class SerializersFactory():
                 self.types[type]=j.data.serializer.serializers.blosc
 
             elif type=="b":
-                from .SerializerBlowfish import SerializerBlowfish
+                from SerializerBlowfish import SerializerBlowfish
                 self.types[type]=SerializerBlowfish(key)
 
             elif type=="s":

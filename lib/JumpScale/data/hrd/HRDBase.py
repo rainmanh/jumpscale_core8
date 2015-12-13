@@ -228,7 +228,7 @@ class HRDBase():
         @param template is example hrd content block, which will be used to check against,
         if params not found will be added to existing hrd
         """
-        from .HRD import HRD
+        from HRD import HRD
         hrdtemplate=HRD(content=template)
         for key in list(hrdtemplate.items.keys()):
             if key not in self.items:
@@ -285,7 +285,7 @@ class HRDBase():
         if content=="":
             return content
 
-        items=j.codetools.regex.findAll(r"\$\([\w.]*\)",content)
+        items=j.tools.code.regex.findAll(r"\$\([\w.]*\)",content)
         j.data.hrd.log("replace vars in hrd:%s"%self.path,"replacevar",7)
         if len(items)>0:
             for item in items:

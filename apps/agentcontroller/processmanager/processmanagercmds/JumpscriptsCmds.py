@@ -44,7 +44,7 @@ class JumpscriptsCmds():
         import JumpScale.grid.jumpscripts
         j.core.jumpscripts.loadFromAC(self.agentcontroller_client)
 
-        jspath = j.sal.fs.joinPaths(j.dirs.baseDir, 'apps', 'processmanager', 'jumpscripts')
+        jspath = j.sal.fs.joinPaths(j.dirs.base, 'apps', 'processmanager', 'jumpscripts')
         if not j.sal.fs.exists(path=jspath):
             raise RuntimeError("could not find jumpscript directory:%s"%jspath)
         self._loadFromPath(jspath)

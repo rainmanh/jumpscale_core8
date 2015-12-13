@@ -110,7 +110,7 @@ def Sentry():
             data["extra"]=extra
 
             if tb!=None:
-                from .stacks import iter_traceback_frames,get_stack_info
+                from stacks import iter_traceback_frames,get_stack_info
                 frames=iter_traceback_frames(tb)
                 data.update({
                     'sentry.interfaces.Stacktrace': {

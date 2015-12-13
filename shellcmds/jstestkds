@@ -25,7 +25,7 @@ opts = parser.parse_args()
 import JumpScale.baselib.testengine
 
 if opts.path==None:
-    j.tools.testengineKds.paths=["%s/apps"%j.dirs.baseDir]
+    j.tools.testengineKds.paths=["%s/apps"%j.dirs.base]
 else:
     j.tools.testengineKds.paths=[opts.path]
 

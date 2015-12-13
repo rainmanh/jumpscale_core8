@@ -1,7 +1,7 @@
 from JumpScale import j
 import redis
 # from JumpScale.baselib.credis.CRedis import CRedis
-from .RedisQueue import RedisQueue
+from RedisQueue import RedisQueue
 import itertools
 
 try:
@@ -73,6 +73,7 @@ class RedisFactory:
     """
 
     def __init__(self):
+        self.__jslocation__ = "j.clients.redis"
         self.gredis = {}
         self.redis = {}
         self.gredisq = {}
@@ -137,7 +138,7 @@ class RedisFactory:
             if j.sal.fs.exists(path):
                 stats=j.sal.fs.statPath(path)
                 if stats.st_size!=0:                    
-                    cmd="%s/apps/redis/redis-check-aof --fix %s"%(j.dirs.baseDir,path)
+                    cmd="%s/apps/redis/redis-check-aof --fix %s"%(j.dirs.base,path)
                     j.sal.process.executeWithoutPipe(cmd)
             pd.start()
 

@@ -1,6 +1,6 @@
 from JumpScale import j
 
-from .CodeGeneratorBase import CodeGeneratorBase
+from CodeGeneratorBase import CodeGeneratorBase
 
 
 class CodeGeneratorActorRemote(CodeGeneratorBase):
@@ -38,7 +38,7 @@ class CodeGeneratorActorRemote(CodeGeneratorBase):
             descr += "result %s %s\n" % (method.result.type, self.descrTo1Line(method.result.description))
 
         if descr != "":
-            s += j.code.indent("\"\"\"\n%s\n\"\"\"\n" % descr, 1)
+            s += j.tools.code.indent("\"\"\"\n%s\n\"\"\"\n" % descr, 1)
 
         paramCodeStr = ","
         for param in method.vars:
@@ -50,7 +50,7 @@ class CodeGeneratorActorRemote(CodeGeneratorBase):
         else:
             s = s.replace("{paramcodestr}", "")
 
-        self.content += "\n%s" % j.code.indent(s, 1)
+        self.content += "\n%s" % j.tools.code.indent(s, 1)
 
         params = ""
         for var in method.vars:
@@ -75,7 +75,7 @@ else:
         s += "ipshell()\n"
 
         #key="%s_%s_%s" % (spec.appname,spec.actorname,method.name)
-        self.content += "\n%s" % j.code.indent(s, 2)
+        self.content += "\n%s" % j.tools.code.indent(s, 2)
 
         return
 
@@ -83,7 +83,7 @@ else:
         self.addClass()
 
         s = "self._appserverclient=j.clients.portal._portalClients[\"%s_%s_%s\"]" % (self.ip, self.port, self.secret)
-        self.initprops += j.code.indent(s, 2)
+        self.initprops += j.tools.code.indent(s, 2)
 
         for method in self.spec.methods:
             self.addMethod(method)

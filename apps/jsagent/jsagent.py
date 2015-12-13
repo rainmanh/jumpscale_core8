@@ -112,7 +112,7 @@ class ProcessManager():
         self.processes = list()
         self.services = list()
 
-        self.dir_data=j.sal.fs.joinPaths(j.dirs.baseDir,"jsagent_data")
+        self.dir_data=j.sal.fs.joinPaths(j.dirs.base,"jsagent_data")
         self.dir_hekadconfig=j.sal.fs.joinPaths(self.dir_data,"dir_hekadconfig")
         self.dir_actions=j.sal.fs.joinPaths(self.dir_data,"actions")
         j.sal.fs.createDir(self.dir_data)
@@ -232,7 +232,7 @@ class ProcessManager():
         j.core.processmanager.start()
 
     def _workerStart(self):
-        pwd = '/opt/jumpscale8/apps/jsagent/lib'
+        pwd = '%a/apps/jsagent/lib'%j.dirs.base
         for qname in ["default","io","process","hypervisor"]:
             p = Process()
             p.domain = 'workers'

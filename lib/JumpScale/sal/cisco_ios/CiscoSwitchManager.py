@@ -8,11 +8,13 @@ class CiscoSwitchManager(object):
         return CiscoSwitch(host, login,password)
 #!/usr/bin/python
 
-from .Router import Router
+from Router import Router
 
 class CiscoSwitch(SALObject):
 
     def __init__(self, host, login,password):
+
+        self.__jslocation__="j.sal.ciscoswitch"           
 
         R1 = Router(hostname=host, logfile='cisco.log')
         login_cmd = 'telnet ' + host

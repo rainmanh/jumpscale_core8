@@ -22,13 +22,14 @@ export AYSBRANCH='master'
 
 if [ "$(uname)" == "Darwin" ]; then
     # Do something under Mac OS X platform   
-    echo 'install brew'     
-    ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    #echo 'install brew'     
+    #ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     brew install curl
-    brew install python3.5
+    brew install python3
     brew install git
-    TMPDIR = $(~/tmp)
-    export JSBASE = '/Users/Shared/jumpscale'
+    pip3 install --upgrade pip setuptools
+    export TMPDIR=~/tmp
+    export JSBASE='~/opt/jumpscale8'
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     dist=''
     dist=`grep DISTRIB_ID /etc/*-release | awk -F '=' '{print $2}'`

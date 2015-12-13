@@ -50,8 +50,8 @@ from JumpScale.core.Shell import *
 #import win32gui
 #from win32com.shell import shell, shellcon
 import EasyDialogs
-from .EasyDialogGeneric import EasyDialogGeneric
-from .EasyDialogConsole import EasyDialogConsole
+from EasyDialogGeneric import EasyDialogGeneric
+from EasyDialogConsole import EasyDialogConsole
 
 class EasyDialogWin32(EasyDialogGeneric):
 

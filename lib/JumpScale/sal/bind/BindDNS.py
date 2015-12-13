@@ -5,7 +5,7 @@ from dns.zone import NoSOA
 from dns.name import Name
 import dns.rdatatype
 from dns.rdtypes.IN.A import A
-from .base import DNS
+from base import DNS
 from JumpScale import j
 
 from sal.base.SALObject import SALObject
@@ -83,6 +83,8 @@ class Zone(object):
         return res
     
 class BindDNS(DNS,SALObject):
+
+    self.__jslocation__="j.sal.bind"   
 
     @property
     def zones(self):

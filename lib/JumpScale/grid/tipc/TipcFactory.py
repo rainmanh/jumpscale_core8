@@ -2,6 +2,8 @@ from JumpScale import j
 
 
 class TipcFactory(object):
+    def __init__(self):
+        self.__jslocation__ = "j.servers.tipc"
 
     def getServer(self, servaddr, sslorg=None, ssluser=None, sslkeyvaluestor=None):
         """
@@ -24,11 +26,11 @@ class TipcFactory(object):
         daemon.start()
 
         """
-        from .TipcServer import TipcServer
+        from TipcServer import TipcServer
         return TipcServer(servaddr, ssluser=ssluser, sslorg=sslorg, sslkeyvaluestor=sslkeyvaluestor)
 
     def getClient(self, servaddr, category="core", org="myorg", user="root", passwd="passwd", ssl=False, roles=[]):
-        from .TipcTransport import TipcTransport
+        from TipcTransport import TipcTransport
         from JumpScale.grid.serverbase.DaemonClient import DaemonClient
         trans = TipcTransport(servaddr)
         cl = DaemonClient(org=org, user=user, passwd=passwd, ssl=ssl, transport=trans)

@@ -1,17 +1,18 @@
 from JumpScale import j
 # import JumpScale.baselib.codeexecutor
-from .HRD import HRD
-from .HRDTree import HRDTree
+from HRD import HRD
+from HRDTree import HRDTree
 
 class HRDFactory:
     def __init__(self):
+        self.__jslocation__="j.data.hrd"
         self.logenable=False
         self.loglevel=5
 
     def log(self,msg,category="",level=5):
-        if "logger" not in j.__dict__:
-            print(msg)
-        elif level<self.loglevel+1 and self.logenable:
+        # if "logger" not in j.__dict__:
+        #     print(msg)
+        if level<self.loglevel+1 and self.logenable:
             j.logger.log(msg,category="hrd.%s"%category,level=level)
 
     def get(self,path=None,content="",prefixWithName=True,keepformat=False,args={},templates=[]):

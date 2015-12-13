@@ -26,6 +26,7 @@ class DummyWhmcs(object):
 class WhmcsFactory(object):
 
     def __init__(self):
+        self.__jslocation__ = "j.clients.whmcs"
         j.logger.consolelogCategories.append('whmcs')
 
     def get(self,

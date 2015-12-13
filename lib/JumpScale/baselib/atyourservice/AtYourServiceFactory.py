@@ -1,19 +1,21 @@
 from JumpScale import j
-from .ServiceTemplate import ServiceTemplate
-from .Service import Service, getProcessDicts
+from ServiceTemplate import ServiceTemplate
+from Service import Service, getProcessDicts
 import re
-from .ActionsBaseMgmt import ActionsBaseMgmt
-from .ActionsBaseTmpl import ActionsBaseTmpl
-from .ActionsBaseNode import ActionsBaseNode
-from .AtYourServiceDebug import AtYourServiceDebugFactory
+from ActionsBaseMgmt import ActionsBaseMgmt
+from ActionsBaseTmpl import ActionsBaseTmpl
+from ActionsBaseNode import ActionsBaseNode
+from AtYourServiceDebug import AtYourServiceDebugFactory
 # import AYSdb
 import json
-from .AtYourServiceSync import AtYourServiceSync
+from AtYourServiceSync import AtYourServiceSync
+import os
 
 
 class AtYourServiceFactory():
 
     def __init__(self):
+        self.__jslocation__ = "j.atyourservice"
 
         self._init = False
         self._domains = []
@@ -52,6 +54,11 @@ class AtYourServiceFactory():
         return self._domains
 
     def _doinit(self):
+        # if we don't have write permissin on /opt don't try do download service templates
+        opt = j.tools.path.get('/opt')
+        if not opt.access(os.W_OK):
+            self._init = True
+
         if self._init is False:
             j.logger.consolelogCategories.append("AYS")
 
@@ -71,7 +78,7 @@ class AtYourServiceFactory():
             # always load base domaim
             items=j.application.config.getDictFromPrefix("atyourservice.metadata")
             repos=j.do.getGitReposListLocal()
-            
+
             for domain in list(items.keys()):
                 url=items[domain]['url']
                 if url.strip()=="":
@@ -198,7 +205,7 @@ class AtYourServiceFactory():
         for service in self.findServices():
             producersWaiting = service.getProducersWaitingApply(set())
 
-            if len(producersWaiting)==0 and service.state.changed():
+            if len(producersWaiting)==0 and service.state.changed:
                 print("%s waiting for install" % service)
                 self.todo.append(service)
             # elif service in producersWaiting and len(producersWaiting)==1 and service.state.changed():

@@ -7,9 +7,9 @@ import os
 
 import JumpScale.baselib.actions
 
-from .Service import *
+from Service import *
 
-from .ServiceTemplateBuilder import *
+from ServiceTemplateBuilder import *
 
 
 def loadmodule(name, path):
@@ -161,7 +161,11 @@ class ServiceTemplate(object):
             service.init()
 
             if consume != "":
-                service.consume(consume)
+                if j.core.types.list.check(consume):
+                    for serv in consume:
+                        service.consume(serv)
+                else:
+                    service.consume(consume)
 
         return service
 

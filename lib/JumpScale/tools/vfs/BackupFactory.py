@@ -1,10 +1,11 @@
 from JumpScale import j
 
 
-from .BackupClient import BackupClient
+from BackupClient import BackupClient
 
 class BackupFactory:
     def __init__(self):
+        self.__jslocation__ = "j.tools.backup_vfs"
         self.logenable=True
         self.loglevel=5
         self._cache={}

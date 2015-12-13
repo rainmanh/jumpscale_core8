@@ -9,6 +9,9 @@ except:
 #@todo UGLY, validation should not happen on object (file) where you read from but on file where you populate values (kds)
 
 class InifileTool:
+    def __init__(self):
+        self.__jslocation__ = "j.tools.inifile"
+
     @staticmethod
     def open(filename,createIfNonExisting=True):
         '''Open an existing INI file

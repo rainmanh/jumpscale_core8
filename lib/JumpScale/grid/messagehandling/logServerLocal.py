@@ -5,7 +5,7 @@ import struct
 
 from gevent import Greenlet, Timeout
 from gevent.queue import Queue
-from .gevent_zeromq import zmq
+from gevent_zeromq import zmq
 from JumpScale.core.InitBase import *
 from zmj.core.error import ZMQError
 import time

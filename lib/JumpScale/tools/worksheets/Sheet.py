@@ -1,9 +1,9 @@
 
 from JumpScale import j
-from .Sheets import *
+from Sheets import *
 
 
-class Row(j.code.classGetBase()):
+class Row(j.tools.code.classGetBase()):
 
     def __init__(self, name="", ttype="float", nrcols=72, aggregate="T", description="", groupname="", groupdescr="",
                  format="", defval="default", nrfloat=None):
@@ -556,7 +556,7 @@ class Row(j.code.classGetBase()):
         return self
 
 
-class Sheet(j.code.classGetBase()):
+class Sheet(j.tools.code.classGetBase()):
 
     def __init__(self, name, nrcols=72, headers=[], period="M"):
         """

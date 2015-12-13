@@ -1,11 +1,13 @@
 from JumpScale import j
 
-from .Daemon import Daemon
+from Daemon import Daemon
 import time
 import struct
 
 
 class ServerBaseFactory():
+    def __init__(self):
+        self.__jslocation__ = "j.servers.base"
 
     def getDaemon(self, name="unknown", sslorg=None, ssluser=None, sslkeyvaluestor=None):
         """
@@ -88,7 +90,7 @@ class ServerBaseFactory():
         print client.echo("atest")
 
         """
-        from .DaemonClient import DaemonClient
+        from DaemonClient import DaemonClient
         return DaemonClient
 
     def _serializeBinSend(self, category, cmd, data, sendformat, returnformat, sessionid):

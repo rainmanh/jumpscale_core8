@@ -37,6 +37,7 @@ class TarFile(BaseType):
         @prarm action: Action to perform on the tar file
         @type action: TarFileAction
         '''
+        self.__jslocation__ = "j.tools.tarfile"
         if not j.core.types.filepath.check(path):
             raise ValueError('Provided string "%s" is not a valid path' % path)
         if action is TarFileAction.READ:
@@ -91,4 +92,3 @@ class TarFile(BaseType):
     def close(self):
         '''Close the backing tar file'''
         self._tar.close()
-

@@ -1,10 +1,11 @@
-from .GitClient import GitClient
+from GitClient import GitClient
 from JumpScale import j
 import os
 
 
 class GitFactory:
     def __init__(self):
+        self.__jslocation__ = "j.clients.git"
         j.logger.consolelogCategories.append("git")
 
     def get(self, basedir):

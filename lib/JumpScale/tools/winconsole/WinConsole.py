@@ -11,6 +11,7 @@ class WinConsole():
     def __init__(self):
         """
         """
+        self.__jslocation__ = "j.tools.winconsole"
         if not  j.core.platformtype.isWindows():
             raise RuntimeError("Only supported on windows.")
         self.configpath=j.sal.fs.joinPaths(j.dirs.tmpDir,"consolecfg",str(j.tools.idgenerator.generateRandomInt(1,1000))+".xml")
@@ -114,7 +115,7 @@ $tabs
 
 
         """
-        self.config=self.config.replace("$base",j.dirs.baseDir)
+        self.config=self.config.replace("$base",j.dirs.base)
         self.tabs=[]
         self.tabCmd=[]
         self.addTab("console","","")
@@ -131,7 +132,7 @@ $tabs
 
     def addTab(self,name,startdir,cmd):
         if startdir=="":
-            # startdir=j.dirs.baseDir
+            # startdir=j.dirs.base
             startdir=j.sal.fs.getcwd()
 
         C="""
@@ -155,7 +156,7 @@ $tabs
     def start(self):
         self.writeConfig()
         cwd=j.sal.fs.getcwd()
-        j.sal.fs.changeDir(j.sal.fs.joinPaths(j.dirs.baseDir,"appsbin","console"))
+        j.sal.fs.changeDir(j.sal.fs.joinPaths(j.dirs.base,"appsbin","console"))
         cmd="start console.exe -c \"%s\"" % self.configpath.replace("\\\\","\\")
         for name,startdir,cmd2 in self.tabCmd:
             # startdir=startdir.replace("/","\\")

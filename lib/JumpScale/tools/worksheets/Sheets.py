@@ -1,11 +1,12 @@
 
 from JumpScale import j
-from .Sheet import *
+from Sheet import *
 
 
-class Sheets(j.code.classGetBase()):
+class Sheets(j.tools.code.classGetBase()):
 
     def __init__(self):
+        self.__jslocation__ = "j.tools.worksheets"
         self.sheets = {}
         self.sheetsByCategory = {}
         self.sheetNames = []

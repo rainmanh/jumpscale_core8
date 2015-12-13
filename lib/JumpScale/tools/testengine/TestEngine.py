@@ -154,9 +154,10 @@ class FakeTestObj(object):
 
 class TestEngine():
     def __init__(self):
+        self.__jslocation__ = "j.tools.testengine"
         self.paths=[]
         self.tests=[]
-        self.outputpath="%s/apps/gridportal/base/Tests/TestRuns/"%j.dirs.baseDir
+        self.outputpath="%s/apps/gridportal/base/Tests/TestRuns/"%j.dirs.base
 
     def initTests(self,noOsis, osisip="127.0.0.1",login="",passwd=""): #@todo implement remote osis
         self.noOsis = noOsis
@@ -241,7 +242,7 @@ class TestEngine():
         test.db.id=0
 
         C=j.sal.fs.fileGetContents(filepath)
-        methods=j.codetools.regex.extractBlocks(C,["def test"])
+        methods=j.tools.code.regex.extractBlocks(C,["def test"])
         for method in methods:
             methodname=method.split("\n")[0][len("    def test_"):].split("(")[0]
             methodsource="\n".join([item.strip() for item in method.split("\n")[1:] if item.strip()!=""])

@@ -12,6 +12,7 @@ from sal.base.SALObject import SALObject
 class Lxc(SALObject):
 
     def __init__(self):
+        self.__jslocation__ = "j.sal.lxc"
         self._prefix="" #no longer use prefixes
         self._basepath = None
 
@@ -458,7 +459,7 @@ fi
 
         j.system.unix.chmod(machine_ovs_file, 0o755)
 
-        ed=j.codetools.getTextFileEditor(machine_cfg_file)
+        ed=j.tools.code.getTextFileEditor(machine_cfg_file)
         ed.setSection(netname,config)
 
         j.sal.netconfig.setRoot(self._get_rootpath(machinename)) #makes sure the network config is done on right spot

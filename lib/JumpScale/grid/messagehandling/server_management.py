@@ -3,8 +3,8 @@ import signal
 import time
 
 from JumpScale import j
-from .utils import printInDebugMode
-from .server import MessageServer
+from utils import printInDebugMode
+from server import MessageServer
 
 
 class MessageServerConfig(object):

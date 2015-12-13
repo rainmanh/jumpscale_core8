@@ -35,8 +35,8 @@ class LoggerPatch(object):
             print('Logger patch already applied')
             return
 
-        if not hasattr(j.application, 'whoAmIBytestr') or not j.application.whoAmIBytestr:
-            j.application.whoAmIBytestr = 12 * '0'  # The whoAmIBytestr should be at least 12 bytes.
+        if not hasattr(j.application, 'whoAmiBytestr') or not j.application.whoAmiBytestr:
+            j.application.whoAmiBytestr = 12 * '0'  # The whoAmiBytestr should be at least 12 bytes.
 
         if not j.sal.fs.exists(self.CONFIG_PATH):
             print('Logger patch not applied, config not available')

@@ -5,7 +5,10 @@ from . import disks
 
 from sal.base.SALObject import SALObject
 
+
 class DiskManager(SALObject):
+    def __init__(self):
+        self.__jslocation__ = "j.sal.disklayout"
 
     def _loadhrd(self, mount):
         hrdpath = j.tools.path.get(mount).joinpath('.disk.hrd')

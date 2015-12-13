@@ -4,6 +4,7 @@ import uuid
 
 class SerializerHRD():
     def __init__(self):
+        self.__jslocation__ = "j.data.serializer.hrd"
         self._primitiveTypes = (int, str, float, bool)
         self.__escape = str(uuid.uuid1())
 

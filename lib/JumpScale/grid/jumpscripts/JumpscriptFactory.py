@@ -180,7 +180,8 @@ class JumpscriptFactory:
     """
     """
     def __init__(self):
-        self.basedir = j.sal.fs.joinPaths(j.dirs.baseDir, 'apps', 'processmanager')
+        self.__jslocation__ = "j.core.jumpscripts"
+        self.basedir = j.sal.fs.joinPaths(j.dirs.base, 'apps', 'processmanager')
 
     def getJSClass(self):
         return Jumpscript
@@ -197,7 +198,7 @@ class JumpscriptFactory:
         fp = io.StringIO()
         with tarfile.open(fileobj=fp, mode='w:bz2' if bz2_compressed else 'w') as tar:
             for jumpscript_type in types:
-                parent_path = '%s/apps/agentcontroller/%s' % (j.dirs.baseDir, jumpscript_type)
+                parent_path = '%s/apps/agentcontroller/%s' % (j.dirs.base, jumpscript_type)
                 for allowed_filename_extension in ('py', 'lua'):
                     for file_path in j.sal.fs.walkExtended(parent_path, recurse=1, dirs=False,
                                                               filePattern='*.' + allowed_filename_extension):

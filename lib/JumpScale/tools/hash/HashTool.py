@@ -4,6 +4,9 @@ from JumpScale import j
 
 import hashlib
 class HashTool:
+    def __init__(self):
+        self.__jslocation__ = "j.tools.hash"
+
     def hashDir(self,rootpath):
         """
         walk over all files, calculate md5 and of sorted list also calc md5 this is the resulting hash for the dir independant from time and other metadata (appart from path)

@@ -1,6 +1,6 @@
 from JumpScale import j
 import JumpScale.grid.osis
-import JumpScale.baselib.stataggregator
+# import JumpScale.baselib.stataggregator
 import JumpScale.grid.jumpscripts
 import sys
 import psutil
@@ -38,8 +38,9 @@ class ProcessmanagerFactory:
     """
     """
     def __init__(self):
+        self.__jslocation__ = "j.core.processmanager"
         self.daemon = DummyDaemon()
-        self.basedir = j.sal.fs.joinPaths(j.dirs.baseDir, 'apps', 'processmanager')
+        self.basedir = j.sal.fs.joinPaths(j.dirs.base, 'apps', 'processmanager')
         j.system.platform.psutil = psutil
 
         if "processmanager" in j.__dict__ and "redis_queues" in j.processmanager.__dict__:

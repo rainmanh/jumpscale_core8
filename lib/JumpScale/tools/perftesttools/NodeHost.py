@@ -5,7 +5,7 @@ from JumpScale import j
 # import json
 # import os
 # import psutil
-from .NodeBase import NodeBase
+from NodeBase import NodeBase
 
 
 

@@ -9,6 +9,7 @@ from sal.base.SALObject import SALObject
 class DNSMasq(SALObject):
 
     def __init__(self):
+        self.__jslocation__ = "j.sal.dnsmasq"
         self._configured = False
         self._executor = j.tools.executor.getLocal()
 
@@ -55,7 +56,7 @@ class DNSMasq(SALObject):
             raise Exception('Please run first setConfigPath to select the correct paths')
         """Adds a dhcp-host entry to dnsmasq.conf file"""
         self._checkFile(self._hosts)
-        te = j.codetools.getTextFileEditor(self._hosts)
+        te = j.tools.code.getTextFileEditor(self._hosts)
         contents = '%s' % macaddress
         if name:
             contents += ',%s' % name
@@ -69,7 +70,7 @@ class DNSMasq(SALObject):
         if not self._configured:
             raise Exception('Please run first setConfigPath to select the correct paths')
         self._checkFile(self._hosts)
-        te = j.codetools.getTextFileEditor(self._hosts)
+        te = j.tools.code.getTextFileEditor(self._hosts)
         te.deleteLines('.*%s.*' % macaddress)
         te.save()
         self.reload()

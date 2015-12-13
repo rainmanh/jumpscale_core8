@@ -1,11 +1,13 @@
 from JumpScale import j
 
-from .TelegramBot import *
+from TelegramBot import *
 import os
 
 
 
 class TelegramFactory:
+    def __init__(self):
+        self.__jslocation__ = "j.tools.telegrambot"
 
     def _getFactoryEnabledClasses(self):
         return ([("","TelegramBot",TelegramBot())])  
@@ -46,7 +48,7 @@ class TelegramFactory:
         
         """
         tg=j.tools.telegrambot.get()
-        from .handlers.DemoHandlerMS1 import *
+        from handlers.DemoHandlerMS1 import *
         handler = DemoHandlerMS1()
         tg.api.add_handler(handler)
         tg.start() 

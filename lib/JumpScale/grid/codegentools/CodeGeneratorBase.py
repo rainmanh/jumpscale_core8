@@ -31,7 +31,7 @@ class CodeGeneratorBase:
             self.content += "from JumpScale import j\n"
 
         if baseclass == "":
-            baseclass = "j.code.classGetBase()"
+            baseclass = "j.tools.code.classGetBase()"
         if className == "":
             className = self.getClassName()
 
@@ -47,7 +47,7 @@ class %s({baseclass}):
 """ % className
         self.content = self.content.replace("{baseclass}", baseclass)
         if self.spec.description != "":
-            self.content = self.content.replace("{descr}\n", j.code.indent('"""\n%s"""\n' % self.spec.description, 1))
+            self.content = self.content.replace("{descr}\n", j.tools.code.indent('"""\n%s"""\n' % self.spec.description, 1))
         else:
             self.content = self.content.replace("{descr}\n", "")
 

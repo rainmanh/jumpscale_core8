@@ -5,7 +5,7 @@
 # import operator
 
 from JumpScale import j
-from .Action import *
+from Action import *
 
 import ujson as json
 
@@ -13,7 +13,7 @@ import ujson as json
 class ActionController(object):
     '''Manager controlling actions'''
     def __init__(self, _output=None, _width=70):
-        pass
+        self.__jslocation__ = "j.actions"
         # self._actions = list()
         # self._width = _width
         self.rememberDone=False

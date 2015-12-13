@@ -5,7 +5,7 @@ import JumpScale.lib.diskmanager
 import os
 import JumpScale.baselib.netconfig
 import netaddr
-from .libvirtutil import LibvirtUtil
+from libvirtutil import LibvirtUtil
 import imp
 import JumpScale.baselib.remote
 import pynetlinux
@@ -57,6 +57,7 @@ class KVM(SALObject):
 
         each image needs to have ssh agent installed and needs to be booted when machine starts & be configured using the params as specified
         """
+        self.__jslocation__ = "j.sal.kvm"
         self.vmpath = "/mnt/vmstor/kvm"
         self.imagepath = "/mnt/vmstor/kvm/images"
         self.images = {}

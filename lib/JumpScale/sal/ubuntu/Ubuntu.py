@@ -2,6 +2,7 @@ from JumpScale import j
 
 class Ubuntu:
     def __init__(self):
+        self.__jslocation__ = "j.sal.ubuntu"
         self._aptupdated = False
         self._checked = False
         self._cache=None
@@ -140,7 +141,7 @@ class Ubuntu:
         """
         rc, out = self._local.execute("dpkg -L %s" % pkgname)
         if regex!="":
-            return j.codetools.regex.findAll(regex, out)
+            return j.tools.code.regex.findAll(regex, out)
         else:
             return out.split("\n")
 

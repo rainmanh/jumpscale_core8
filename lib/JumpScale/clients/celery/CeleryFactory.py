@@ -5,6 +5,7 @@ from JumpScale import j
 class CeleryFactory:
 
     def __init__(self):
+        self.__jslocation__ = "j.clients.celery"
         self.actors={}
         self.app=None
 

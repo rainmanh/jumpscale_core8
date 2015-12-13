@@ -7,11 +7,12 @@ except:
     
 from JumpScale import j
 from JumpScale.core.baseclasses_old import BaseEnumeration
-from .OauthInstance import *
+from OauthInstance import *
 
 class OauthFactory(object):
 
     def __init__(self):
+        self.__jslocation__ = "j.clients.oauth"
         j.logger.consolelogCategories.append('oauth')
 
     def get(self, addr='', accesstokenaddr='', id='', secret='', scope='', redirect_url='', user_info_url='', logout_url='', instance='github'):        

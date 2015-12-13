@@ -8,7 +8,7 @@ print("IMAGELIB LOAD")
 class ImageLib:
 
     def __init__(self):
-        pass
+        self.__jslocation__ = "j.tools.imagelib"
 
     #     self._initted=False
 

@@ -1,6 +1,8 @@
 from JumpScale import j
 
 class EventHandler(object):
+    def __init__(self):
+        self.__jslocation__ = "j.events"
 
     def bug_critical(self,msg,category="",jobid=0,e=None):
         """

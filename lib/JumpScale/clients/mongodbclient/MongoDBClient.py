@@ -3,6 +3,8 @@ from JumpScale import j
 from pymongo import MongoClient, MongoReplicaSetClient
 
 class MongoDBClient:
+    def __init__(self):
+        self.__jslocation__ = "j.clients.mongodb"
 
     def get(self, host='localhost', port=27017, ssl=False):
         """

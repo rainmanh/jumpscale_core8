@@ -140,19 +140,33 @@ class LogItemFromDict(LogItem):
     def __init__(self,ddict):
         self.__dict__=ddict
 
+class LogHandlerArgs():
+    def __init__(self):
+        if j.core.db!=None:
+            data=j.core.db.get("system.logging.%s"%j.do.BASE)
+            if data!=None:
+                self.__dict__=json.loads(data.decode())
+                return
+        print ("INITLOGS")
+        self.maxlevel = 5
+        self.consoleloglevel = 2
+        self.consolelogCategories=[]
+        self.enabled = j.application.config.getBool("system.logging",default=False)
+        data=json.dumps(self.__dict__)
+        j.core.db.set("system.logging.%s"%j.do.BASE,data)        
+
 class LogHandler(object):
     def __init__(self):
         '''
         This empties the log targets
         '''
+        self.__jslocation__ = "j.logger"
         self.utils = LogUtils()
         self.reset()     
-        self.maxlevel = 5
-        self.consoleloglevel = 2
-        self.consolelogCategories=[]
         self.lastmessage = ""
-        # self.lastloglevel=0
-        self.enabled = False   
+
+        self.__dict__.update(LogHandlerArgs().__dict__)
+
 
     def init(self):
         if self.enabled:
@@ -160,7 +174,7 @@ class LogHandler(object):
 
     def connectRedis(self):
         # if j.sal.nettools.tcpPortConnectionTest("localhost", 9999, timeout=None):
-        if j.core.redis!=None:
+        if j.core.db!=None:
             luapath="%s/core/logging/logs.lua"%j.dirs.jsLibDir
             if j.sal.fs.exists(path=luapath):
                 lua=j.sal.fs.fileGetContents(luapath)
@@ -168,7 +182,7 @@ class LogHandler(object):
 
     def _send2Redis(self,obj):
         return #@todo (***)
-        if j.core.redis!=None:# and self.redislogging!=None:
+        if j.core.db!=None:# and self.redislogging!=None:
             data=obj.toJson()
             return self.redislogging(keys=["logs.queue"],args=[data])
         else:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from .Container import Container
+from Container import Container
 
 from JumpScale import j
 import JumpScale.sal.diskmanager
@@ -14,6 +14,7 @@ from sal.base.SALObject import SALObject
 class Docker2(SALObject):
 
     def __init__(self):
+        self.__jslocation__ = "j.sal.docker"
         self._basepath = "/mnt/vmstor/docker"
         self._prefix = ""
         self.client = docker.Client(base_url='unix://var/run/docker.sock')
@@ -224,7 +225,7 @@ class Docker2(SALObject):
         cmd="cd %s;tar xzvf %s -C ."%(path,bpath)
         j.sal.process.executeWithoutPipe(cmd)
 
-    def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1504", nameserver=["8.8.8.8"],
+    def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1510", nameserver=["8.8.8.8"],
                replace=True, cpu=None, mem=0, jumpscale=False, ssh=True, myinit=True, sharecode=False,sshkeyname="",sshpubkey="",
                setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master"):
 
@@ -352,7 +353,13 @@ class Docker2(SALObject):
             publish_all_ports=False, links=None, privileged=False, dns=nameserver, dns_search=None, volumes_from=None, network_mode=None)
 
         container = Container(name,id, self.client)
+        
+        time.sleep(2)
+
         container.sshclient.connectTest(timeout=10)
+        
+        
+        
         if ssh:
             # time.sleep(0.5)  # give time to docker to start
             container.pushSSHKey(keyname=sshkeyname, sshpubkey=sshpubkey)

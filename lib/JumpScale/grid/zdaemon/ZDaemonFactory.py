@@ -5,6 +5,8 @@ import time
 
 
 class ZDaemonFactory():
+    def __init__(self):
+        self.__jslocation__ = "j.servers.zdaemon"
 
     def getZDaemon(self, port=4444, name="", nrCmdGreenlets=50, sslorg="", ssluser="", sslkeyvaluestor=None):
         """
@@ -12,7 +14,7 @@ class ZDaemonFactory():
         is a generic usable zmq daemon which has a data & cmd channel (data channel not completely implemented for now)
 
 
-        zd=j.core.zdaemon.getZDaemon(port=5651,nrCmdGreenlets=50)
+        zd=j.servers.zdaemon.getZDaemon(port=5651,nrCmdGreenlets=50)
 
         class MyCommands():
             def __init__(self,daemon):
@@ -33,7 +35,7 @@ class ZDaemonFactory():
         use self.getZDaemonClientClass as client to this daemon
 
         """
-        from .ZDaemon import ZDaemon
+        from ZDaemon import ZDaemon
         zd = ZDaemon(port=port, name=name, nrCmdGreenlets=nrCmdGreenlets, sslorg=sslorg, ssluser=ssluser, sslkeyvaluestor=sslkeyvaluestor)
         return zd
 
@@ -42,12 +44,12 @@ class ZDaemonFactory():
         """
         example usage, see example for server at self.getZDaemon
 
-        client=j.core.zdaemon.getZDaemonClient(ipaddr="127.0.0.1",port=5651,login="root",passwd="1234",ssl=False)
+        client=j.servers.zdaemon.getZDaemonClient(ipaddr="127.0.0.1",port=5651,login="root",passwd="1234",ssl=False)
 
                 print client.echo("Hello World.")
 
         """
-        from .ZDaemonTransport import ZDaemonTransport
+        from ZDaemonTransport import ZDaemonTransport
         from JumpScale.grid.serverbase.DaemonClient import DaemonClient
         trans = ZDaemonTransport(addr, port,gevent=gevent)
         cl = DaemonClient(org=org, user=user, passwd=passwd, ssl=ssl, transport=trans)
@@ -58,11 +60,11 @@ class ZDaemonFactory():
         """
         example usage, see example for server at self.getZDaemon
 
-        client=j.core.zdaemon.getZDaemonHAClient([('127.0.0.1', 5544)],login="root",passwd="1234",ssl=False)
+        client=j.servers.zdaemon.getZDaemonHAClient([('127.0.0.1', 5544)],login="root",passwd="1234",ssl=False)
 
                 print client.echo("Hello World.")
         """
-        from .ZDaemonTransport import ZDaemonHATransport
+        from ZDaemonTransport import ZDaemonHATransport
         from JumpScale.grid.serverbase.DaemonClient import DaemonClient
         trans = ZDaemonHATransport(connections,gevent=gevent)
         cl = DaemonClient(org=org, user=user, passwd=passwd, ssl=ssl, transport=trans)
@@ -72,14 +74,14 @@ class ZDaemonFactory():
         """
         #example usage:
         import JumpScale.grid.zdaemon
-        class BlobStorTransport(j.core.zdaemon.getZDaemonTransportClass()):
+        class BlobStorTransport(j.servers.zdaemon.getZDaemonTransportClass()):
             def sendMsg(self,timeout=0, *args):
                 self._cmdchannel.send_multipart(args)
                 result=self._cmdchannel.recv_multipart()
                 return result
         transp=BlobStorTransport(addr=ipaddr,port=port,gevent=True)        
         """
-        from .ZDaemonTransport import ZDaemonTransport
+        from ZDaemonTransport import ZDaemonTransport
         return ZDaemonTransport
 
 
@@ -87,14 +89,14 @@ class ZDaemonFactory():
         """
         example usage, see example for server at self.getZDaemon
 
-        agent=j.core.zdaemon.getZDaemonAgent(ipaddr="127.0.0.1",port=5651,login="root",passwd="1234",ssl=False,roles=["*"])
+        agent=j.servers.zdaemon.getZDaemonAgent(ipaddr="127.0.0.1",port=5651,login="root",passwd="1234",ssl=False,roles=["*"])
         agent.start()
 
         @param roles describes which roles the agent can execute e.g. node.1,hypervisor.virtualbox.1,*
             * means all
 
         """
-        from .ZDaemonAgent import ZDaemonAgent
+        from ZDaemonAgent import ZDaemonAgent
         cl = ZDaemonAgent(ipaddr=ipaddr, port=port, org=org, user=user, passwd=passwd, ssl=ssl, reset=reset, roles=roles)
 
         return cl

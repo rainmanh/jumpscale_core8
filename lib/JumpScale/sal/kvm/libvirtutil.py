@@ -5,7 +5,7 @@ import os
 import time
 import shutil
 import random
-from .qcow2 import Qcow2
+from qcow2 import Qcow2
 from JumpScale import j
 from JumpScale.lib.btrfs import *
 import atexit

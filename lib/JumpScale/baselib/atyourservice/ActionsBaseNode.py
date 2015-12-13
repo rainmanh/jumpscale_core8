@@ -1,5 +1,5 @@
 from JumpScale import j
-import JumpScale.sal.screen
+import JumpScale.sal.tmux
 import os
 import signal
 import inspect
@@ -88,33 +88,18 @@ class ActionsBaseNode(object):
                 break
 
     def _installFromAysFS(self, serviceObj):
-        if j.sal.fs.exists(ays_cfg):
-            import pytoml
-            key = "%s__%s" % (serviceObj.domain, serviceObj.name)
-
-            s = j.sal.fs.fileGetContents('/etc/ays/aysfs.toml')
-            cfg = pytoml.loads(s)
-            installed = [s['id'] for s in cfg['ays']]
-
-            if key not in installed:
-                cfg['ays'].append({'id': key})
-                j.sal.fs.writeFile(filename='/etc/ays/aysfs.toml', contents=pytoml.dumps(cfg))
-                j.sal.process.killProcessByName('aysfs', 10)
+        j.sal.process.killProcessByName('aysfs', 10)
 
     def install(self, serviceObj):
-        # nothing to install for this service
-        if len(serviceObj.hrd_template.getDictFromPrefix('git.export')) <= 0:
-            return
 
-        ays_cfg = '/etc/ays/aysfs.toml'
-        if j.sal.fs.exists(ays_cfg):
-            self._installFromAYSFS(serviceObj)
+        # if j.sal.process.checkProcessRunning('aysfs'):
+        #     self._installFromAysFS(serviceObj)
 
-        elif len(j.atyourservice.findServices(role='ays_stor_client')) > 0:
+        if len(j.atyourservice.findServices(role='ays_stor_client')) > 0:
             self._installFromStore(serviceObj)
 
-        else:
-            j.events.opserror_critical("Can't find any means to install the service. Please enable AYSFS or consume a store_client")
+        # else:
+            # j.events.opserror_critical("Can't find any means to install the service. Please enable AYSFS or consume a store_client")
 
     def prepare(self, serviceObj):
         """
@@ -152,16 +137,6 @@ class ActionsBaseNode(object):
         return True
 
 
-    def configure(self,serviceObj):
-        """
-        this gets executed after the files are installed
-        this step is used to do configuration steps to the platform
-        after this step the system will try to start the service if anything needs to be started
-
-        @return if you return "r" then system will restart after configure, otherwise return True if ok. False if not.
-
-        """
-        return True
 
     def _getDomainName(self, serviceObj, process):
         domain = serviceObj.domain
@@ -193,7 +168,7 @@ class ActionsBaseNode(object):
 
             tcmd=process["cmd"]
             if tcmd=="jspython":
-                tcmd="source %s/env.sh;jspython"%(j.dirs.baseDir)
+                tcmd="source %s/env.sh;jspython"%(j.dirs.base)
 
             targs=process["args"]
             tuser=process["user"]

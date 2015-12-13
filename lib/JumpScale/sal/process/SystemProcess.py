@@ -741,7 +741,7 @@ def run(commandline, showOutput=False, captureOutput=True, maxSeconds=0,
         # variables can be passed to processhelper.py with only a slight
         # chance of things going wrong in there
 
-        jumpscale_path = os.path.join(j.dirs.baseDir, 'lib', 'jumpscale', 'core')
+        jumpscale_path = os.path.join(j.dirs.base, 'lib', 'jumpscale', 'core')
 
         cmd = list()
         cmd.append(sys.executable)
@@ -1071,7 +1071,7 @@ def runDaemon(commandline, stdout=None, stderr=None, user=None, group=None,
     # variables can be passed to processhelper.py with only a slight chance of
     # things going wrong in there
 
-    jumpscale_path = os.path.join(j.dirs.baseDir, 'lib', 'jumpscale', 'core')
+    jumpscale_path = os.path.join(j.dirs.base, 'lib', 'jumpscale', 'core')
 
     cmd = list()
     cmd.append(sys.executable)
@@ -1180,6 +1180,8 @@ from sal.base.SALObject import SALObject
 
 
 class SystemProcess(SALObject):
+    def __init__(self):
+        self.__jslocation__ = "j.sal.process"
 
     def executeWithoutPipe(self, command, dieOnNonZeroExitCode = True, printCommandToStdout = False):
         """
@@ -1483,7 +1485,7 @@ class SystemProcess(SALObject):
             out = "\n".join(map(unindent, codeLines))
             code = out
 
-        if len(j.codetools.regex.findAll("^def",code))!=1:
+        if len(j.tools.code.regex.findAll("^def",code))!=1:
             server.raiseError("Cannot find 1 def method in code to execute, code submitted was \n%s" % code)
 
         code2=""

@@ -4,6 +4,8 @@ import time
 from netaddr import EUI
 
 class RouterOSFactory(object):
+    def __init__(self):
+        self.__jslocation__ = "j.sal.routeros"
 
     def get(self, host, login,password):
         return RouterOS(host, login,password)
@@ -161,7 +163,7 @@ class RouterOS(SALObject):
         self.ftp=None
         if res!=True:
             raise RuntimeError("Could not login into RouterOS: %s"%host)
-        self.configpath="%s/apps/routeros/configs/default/"%j.dirs.baseDir
+        self.configpath="%s/apps/routeros/configs/default/"%j.dirs.base
         j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.varDir,"routeros"))
         inputsentence = []
 

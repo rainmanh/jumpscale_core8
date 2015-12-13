@@ -1,5 +1,5 @@
 __author__ = 'delandtj'
-from .vxlan import *
+from vxlan import *
 from netaddr import *
 
 def rebuildVXLan():

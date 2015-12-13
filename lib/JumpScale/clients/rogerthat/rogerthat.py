@@ -3,6 +3,8 @@ import ujson
 import urllib.request, urllib.error, urllib.parse
 
 class RogerthatFactory(object):
+    def __init__(self):
+        self.__jslocation__ = "j.clients.rogerthat"
 
     def get(self, api_key):
         return Rogerthat(api_key)

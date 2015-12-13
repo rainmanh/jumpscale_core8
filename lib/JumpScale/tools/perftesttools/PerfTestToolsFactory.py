@@ -1,10 +1,10 @@
 from JumpScale import j
 
-from .NodeNas import NodeNas
-from .NodeHost import NodeHost
-from .NodeMonitor import NodeMonitor
-from .MonitorTools import *
-from .InfluxDumper import *
+from NodeNas import NodeNas
+from NodeHost import NodeHost
+from NodeMonitor import NodeMonitor
+from MonitorTools import *
+from InfluxDumper import *
 
 import os
 
@@ -20,6 +20,7 @@ class PerfTestToolsFactory(object):
 
     """
     def __init__(self):
+        self.__jslocation__="j.tools.perftesttools"          
         self.monitorNodeIp=None
         self.monitorNodeSSHPort=None
         self.redispasswd=""

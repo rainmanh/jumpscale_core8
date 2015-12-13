@@ -1,10 +1,10 @@
 from JumpScale import j
 
-from .Telegram import Telegram
+from Telegram import Telegram
 
-from .handlers.loggerHandler import LoggerHandler
-from .handlers.DemoHandler import DemoHandler
-from .handlers.InteractiveHandler import InteractiveHandler
+from handlers.loggerHandler import LoggerHandler
+from handlers.DemoHandler import DemoHandler
+from handlers.InteractiveHandler import InteractiveHandler
 
 import gevent
 

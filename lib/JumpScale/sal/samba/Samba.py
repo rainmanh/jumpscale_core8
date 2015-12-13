@@ -4,7 +4,7 @@ from io import StringIO
 
 from JumpScale import j
 # from samba.netcmd.main import cmd_sambatool
-from .sambaparser import SambaConfigParser
+from sambaparser import SambaConfigParser
 
 CONFIG_FILE = '/etc/samba/smb.conf'
 EXCEPT_SHARES = ['global', 'printers', 'homes']
@@ -196,6 +196,7 @@ class SMBSubShare(SALObject):
 
 class Samba(SALObject):
     def __init__(self):
+        self.__jslocation__ = "j.sal.samba"
         self._local = j.tools.executor.getLocal()
         self._users = SMBUser(True)
         self._shares = SMBShare()

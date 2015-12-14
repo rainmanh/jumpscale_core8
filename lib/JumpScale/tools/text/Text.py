@@ -25,7 +25,7 @@ class Text:
     
     def toStr(self,value, codec='utf-8'):
         if isinstance(value, bytes):
-            value.decode(codec)
+            value = value.decode(codec)
         return value
 
     

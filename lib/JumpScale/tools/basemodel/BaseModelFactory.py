@@ -70,35 +70,39 @@ class BaseModelFactory():
         @return hsetkey,key
         """
         ttype = modelname.split(".")[-1].replace("Model", "").lower()
-        hsetkey = "models.%s" % ttype
-        return hsetkey
+        key = "models.%s" % ttype
+        return key
 
     def get(self, modelclass, id):
         modelname = modelclass._class_name
-        hsetkey = self.getKeys(modelname)
-        modelraw = j.core.db.hget(hsetkey, id)
+        key = self.getKeys(modelname)
+        modelraw = j.core.db.get('%s_%s' % (key, id))
         if modelraw:
             modelraw = modelraw.decode()
+            model = modelclass.from_json(modelraw)
+            return model
         else:
             try:
-                modelclass.objects.get(id=id)
+                return modelclass.objects.get(guid=id)
             except DoesNotExist:
                 return None
-        model = model.from_json(modelraw)
-        return model
 
     def set(self, modelobject):
-        hsetkey = self.getKeys(modelobject._class_name)
+        key = self.getKeys(modelobject._class_name)
+        key = '%s_%s' % (key, modelobject.id)
+        expirey = modelobject._meta['indexes'][0].get('expireAfterSeconds', None)
         modelraw = json.dumps(modelobject.to_dict())
-        j.core.db.hset(hsetkey, modelobject.id, modelraw)
+        j.core.db.set(key, modelraw)
+        if expirey:
+            j.core.db.expire(key, expirey)
 
     def load(self, modelobject):
-        hsetkey = self.getKeys(modelobject._class_name)
+        key = self.getKeys(modelobject._class_name)
 
-        if j.core.db.hexists(hsetkey, modelobject.id):
+        if j.core.db.exists('%s_%s' % (key, modelobject.id)):
             model = self.get(modelobject)
         else:
-            self.set(modelobject)
+            model = self.set(modelobject)
         return model
 
     def find(self, model, query):
@@ -109,8 +113,8 @@ class BaseModelFactory():
 
     def exists(self, model, key):
         modelname = modelclass._class_name
-        hsetkey = self.getKeys(modelname)
-        if j.core.db.hexists(hsetkey, id):
+        key = self.getKeys(modelname)
+        if j.core.db.exists('%s_%s' % (key, id)):
             return True
         try:
             modelclass.objects.get(id=id)

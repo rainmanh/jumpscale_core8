@@ -34,7 +34,7 @@ if not os.path.exists(path):
     print("overwrite")
     r=random.randint(1, 10000)#to make sure caching does not work on internet
     os.popen("curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/%s/install/InstallTools.py?%s > %s"%(branch,r,path))
-    time.sleep(1)
+    time.sleep(2)
 
 InstallTools = __import__('InstallTools')
 do = InstallTools.do

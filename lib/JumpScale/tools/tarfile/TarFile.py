@@ -5,7 +5,7 @@
 import tarfile
 
 from JumpScale import j
-from JumpScale.core.baseclasses_old import BaseEnumeration, BaseType
+from JumpScale.core.types import BaseEnumeration, BaseType
 
 #NOTE: We use this enumeration so we can add tar file creation and others
 #later on. This enumeration is used when constructing a new TarFile object,

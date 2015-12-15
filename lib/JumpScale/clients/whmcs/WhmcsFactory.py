@@ -6,7 +6,7 @@ except:
     import json
     
 from JumpScale import j
-from JumpScale.core.baseclasses_old import BaseEnumeration
+from JumpScale.core.types import BaseEnumeration
 from .WhmcsInstance import WhmcsInstance
 
 class Dummy(object):

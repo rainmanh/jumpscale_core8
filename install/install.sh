@@ -26,8 +26,13 @@ if [ "$(uname)" == "Darwin" ]; then
     #ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     brew install curl
     brew install python3
-    brew install git
+    # brew install git
     pip3 install --upgrade pip setuptools
+    pip3 install ipdb
+    pip3 install requests
+    pip3 install paramiko
+    pip3 install watchdog
+    
     export TMPDIR=~/tmp
     export JSBASE='~/opt/jumpscale8'
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then

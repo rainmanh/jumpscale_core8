@@ -106,7 +106,7 @@ class DebugFactory():
 
     def help():
         H="""
-        example to use
+        example to use #@todo change python3... to js... (but not working on osx yet)
         python3 -c 'from JumpScale import j;j.tools.debug.init("ovh4,ovh3")'
         python3 -c 'from JumpScale import j;j.tools.debug.installJSSandbox(rw=True)' #will install overlay sandbox wich can be editted
         python3 -c 'from JumpScale import j;j.tools.debug.syncCode(True)'

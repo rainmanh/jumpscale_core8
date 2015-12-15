@@ -10,7 +10,7 @@ except ImportError:
     import json
 
 from JumpScale import j
-from JumpScale.core.errorhandling import ErrorConditionObject #, LEVELMAP
+from JumpScale.core.errorhandling.ErrorConditionObject import ErrorConditionObject, LEVELMAP
 
 
 class BaseException(Exception):
@@ -233,7 +233,7 @@ class ErrorConditionHandler():
         @data is dict with fields of errorcondition obj
         returns only ErrorConditionObject which should be used in jumpscale to define an errorcondition (or potential error condition)
         
-        """                
+        """
         errorconditionObject= ErrorConditionObject(ddict=ddict,msg=msg,msgpub=msgpub,level=level,category=category,type=type,tb=tb)                
         return errorconditionObject        
   

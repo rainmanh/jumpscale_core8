@@ -2,31 +2,20 @@
 from mongoengine import *
 from JumpScale import j
 import json
-import bson
+import uuid
 
 
 class ModelBase(Document):
-    guid = StringField(default="")
-    id = StringField()
-    _id = StringField()
+    guid = StringField(default=uuid.uuid4().hex)
     gid = IntField(default=0)
     nid = IntField(default=0)
-    epoch = IntField(default=0)
+    epoch = IntField(default=j.tools.time.getTimeEpoch())
     meta = {'allow_inheritance': True}
 
     def clean(self):
-        if self.guid == "":
-            self.guid = str(bson.ObjectId())
-
-        if not self.id:
-            self.id = self.guid
-
-        if not self._id:
-            self._id = self.guid
-
         if self.epoch == 0:
             self.epoch = j.tools.time.getTimeEpoch()
-        if j.application.whoAmI != None:
+        if j.application.whoAmI is not None:
             if self.gid == 0:
                 self.gid = j.application.whoAmI.gid
             if self.nid == 0:
@@ -42,8 +31,9 @@ class ModelBase(Document):
 
     def save(self):
         self.clean()
-        j.core.models.set(self)
-        return super(ModelBase, self).save()
+        obj = super(ModelBase, self).save()
+        j.core.models.set(obj)
+        return obj
         
 
     def __str__(self):
@@ -360,9 +350,9 @@ class ModelUser(ModelBase):
 
 
 class ModelSessionCache(ModelBase):
-    value = DictField(default='')
-    createdat = IntField(default=j.tools.time.getTimeEpoch())
-    lastupdatedat = IntField(default=j.tools.time.getTimeEpoch())
+    user = StringField()
+    _creation_time = IntField(default=j.tools.time.getTimeEpoch())
+    _accessed_time = IntField(default=j.tools.time.getTimeEpoch())
     meta = {'indexes': [
                 {'fields': ['epoch'], 'expireAfterSeconds': 432000}
         ], 'allow_inheritance': True}

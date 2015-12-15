@@ -795,7 +795,7 @@ class OurCuisine():
         self.file_unlink(path)
         lastline=out.split("\n")[-1]
         if lastline.find("**DONE**")==-1:
-            raise self.runtimeError("Could not execute bash script.\n%s\nout:%s\n"%(content,out))
+            raise Exception("Could not execute bash script.\n%s\nout:%s\n"%(content,out))
         return "\n".join(out.split("\n")[:-1])
 
 

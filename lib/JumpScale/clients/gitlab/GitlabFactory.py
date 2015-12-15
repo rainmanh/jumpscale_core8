@@ -4,7 +4,7 @@ except:
     import json
     
 from JumpScale import j
-from JumpScale.core.types import BaseEnumeration
+from JumpScale.core.types.BaseEnumeration import BaseEnumeration
 
 # import urllib
 # import requests

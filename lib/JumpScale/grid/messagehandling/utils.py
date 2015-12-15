@@ -1,5 +1,5 @@
 from JumpScale import j
-from JumpScale.core.types import BaseEnumeration
+from JumpScale.core.types.BaseEnumeration import BaseEnumeration
 
 
 IN_DEBUG_MODE = j.application.shellconfig.debug

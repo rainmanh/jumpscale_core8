@@ -62,34 +62,67 @@ class BaseModelFactory():
     def getUserModel(self):
         return ModelUser
 
-    def getKeys(self, modelname, id):
+    def getSessionCacheModel(self):
+        return ModelSessionCache
+
+    def getKeys(self, modelname):
         """
         @return hsetkey,key
         """
         ttype = modelname.split(".")[-1].replace("Model", "").lower()
-        hsetkey = "models.%s" % ttype
-        return (hsetkey, id)
+        key = "models.%s" % ttype
+        return key
 
     def get(self, modelclass, id):
         modelname = modelclass._class_name
-        hsetkey = self.getKeys(modelname, id)
-        modelraw = j.core.db.hget(hsetkey, id).decode()
-        model = model.from_json(modelraw)
-        return model
+        key = self.getKeys(modelname)
+        modelraw = j.core.db.get('%s_%s' % (key, id))
+        if modelraw:
+            modelraw = modelraw.decode()
+            model = modelclass.from_json(modelraw)
+            return model
+        else:
+            try:
+                return modelclass.objects.get(guid=id)
+            except DoesNotExist:
+                return None
 
     def set(self, modelobject):
-        hsetkey, key = self.getKeys(modelobject._class_name, modelobject.id)
+        key = self.getKeys(modelobject._class_name)
+        key = '%s_%s' % (key, modelobject.id)
+        expirey = modelobject._meta['indexes'][0].get('expireAfterSeconds', None)
         modelraw = json.dumps(modelobject.to_dict())
-        j.core.db.hset(hsetkey, key, modelraw)
+        j.core.db.set(key, modelraw)
+        if expirey:
+            j.core.db.expire(key, expirey)
 
     def load(self, modelobject):
-        hsetkey, key = self.getKeys(modelobject._class_name, modelobject.id)
+        key = self.getKeys(modelobject._class_name)
 
-        if j.core.db.hexists(hsetkey, key):
+        if j.core.db.exists('%s_%s' % (key, modelobject.id)):
             model = self.get(modelobject)
         else:
-            self.set(modelobject)
+            model = self.set(modelobject)
         return model
 
     def find(self, model, query):
         return model.objects(__raw__=query)
+
+    def remove(self, model, key):
+        pass
+
+    def exists(self, model, key):
+        modelname = modelclass._class_name
+        key = self.getKeys(modelname)
+        if j.core.db.exists('%s_%s' % (key, id)):
+            return True
+        try:
+            modelclass.objects.get(id=id)
+        except DoesNotExist:
+            return False
+
+    def authenticate(self, username, passwd):
+        um = self.getUserModel()
+        if um.objects(__raw__={'name': username, 'passwd': {'$in': [passwd, j.tools.hash.md5_string(passwd)]}}):
+            return True
+        return False

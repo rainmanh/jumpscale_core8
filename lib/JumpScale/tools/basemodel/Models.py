@@ -2,11 +2,13 @@
 from mongoengine import *
 from JumpScale import j
 import json
+import bson
 
 
 class ModelBase(Document):
     guid = StringField(default="")
-    id = StringField(default="")
+    id = StringField()
+    _id = StringField()
     gid = IntField(default=0)
     nid = IntField(default=0)
     epoch = IntField(default=0)
@@ -14,11 +16,13 @@ class ModelBase(Document):
 
     def clean(self):
         if self.guid == "":
-            self.guid = j.tools.idgenerator.generateXCharID(6)
+            self.guid = str(bson.ObjectId())
 
-        if self.id == "":
+        if not self.id:
             self.id = self.guid
 
+        if not self._id:
+            self._id = self.guid
 
         if self.epoch == 0:
             self.epoch = j.tools.time.getTimeEpoch()
@@ -32,8 +36,8 @@ class ModelBase(Document):
 
     def to_dict(self):
         d=json.loads(ModelBase.to_json(self))
-        d.pop("_id")
-        d.pop("_cls")
+        #d.pop("_id")
+        #d.pop("_cls")
         return d
 
     def save(self):
@@ -90,7 +94,7 @@ class ModelGrid(ModelBase):
 
 
 class ModelGroup(ModelBase):
-    id = StringField(default='')
+    name = StringField(default='')
     domain = StringField(default='')
     gid = IntField(default=1)
     roles = ListField(StringField())
@@ -134,7 +138,7 @@ class ModelAudit(ModelBase):
     user = StringField(default='')
     result = StringField(default='')
     call = StringField(default='')
-    statuscode = StringField(default='')
+    status_code = StringField(default='')
     args = StringField(default='')
     kwargs = StringField(default='')
     timestamp = StringField(default='')
@@ -338,7 +342,7 @@ class ModelTest(ModelBase):
 
 
 class ModelUser(ModelBase):
-    id = StringField(default='')
+    name = StringField(default='')
     domain = StringField(default='')
     gid = IntField()
     passwd = StringField(default='')  # stored hashed
@@ -353,6 +357,15 @@ class ModelUser(ModelBase):
     authkey = StringField(default='')
     data = StringField(default='')
     authkeys = ListField(StringField())
+
+
+class ModelSessionCache(ModelBase):
+    value = DictField(default='')
+    createdat = IntField(default=j.tools.time.getTimeEpoch())
+    lastupdatedat = IntField(default=j.tools.time.getTimeEpoch())
+    meta = {'indexes': [
+                {'fields': ['epoch'], 'expireAfterSeconds': 432000}
+        ], 'allow_inheritance': True}
 
 
 # @todo complete ASAP all from https://github.com/Jumpscale/jumpscale_core8/blob/master/apps/osis/logic/system/model.spec  (***)

@@ -11,7 +11,7 @@ except:
     import json
 
 from JumpScale import j
-from JumpScale.core.baseclasses_old.dirtyflaggingmixin import \
+from JumpScale.core.types.dirtyflaggingmixin import \
         DIRTY_PROPERTIES_ATTRIBUTE, DIRTY_AFTER_LAST_SAVE_ATTRIBUTE
 
 #Needed to handle default values

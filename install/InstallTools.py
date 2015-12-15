@@ -38,10 +38,13 @@ class InstallTools():
 
         elif sys.platform.startswith("darwin"):
             self.TYPE="OSX"
-            self.BASE="/Users/Shared/jumpscale"
+            self.BASE="%s/opt/jumpscale8"%os.environ["HOME"]
+            self.VARDIR="%s/optvar"%os.environ["HOME"]
+
         elif sys.platform.startswith("linux"):
             self.BASE="/opt/jumpscale8"
             self.TYPE="LINUX"
+            self.VARDIR="/optvar/"
             # self.TYPE=platform.linux_distribution(full_distribution_name=0)[0].upper()
             # if self.TYPE!="UBUNTU":
             #     raise RuntimeError("Jumpscale only supports windows 7+, macosx, ubuntu 12+")
@@ -60,7 +63,7 @@ class InstallTools():
                 raise RuntimeError("todo")
                 self.CODEDIR="/opt/code"
             elif self.TYPE.startswith("OSX"):
-                self.CODEDIR="/Users/Shared/code"
+                self.CODEDIR="%s/opt/code"%os.environ["HOME"]
             else:
                 self.CODEDIR="/opt/code"
 
@@ -500,6 +503,9 @@ class InstallTools():
         """
         check if path is dir or link to a dir
         """
+        if fullpath==None or fullpath.strip=="":
+            raise RuntimeError("path cannot be empty")
+
         if not self.isLink(fullpath) and os.path.isdir(fullpath):
             return True
         if self.isLink(fullpath):
@@ -545,13 +551,12 @@ class InstallTools():
         # self.log('Read link with path: %s'%path,8)
         if path is None:
             raise TypeError('Path is not passed in system.fs.readLink')
-        if self.isUnix():
-            try:
-                return os.readlink(path)
-            except Exception as e:
-                raise RuntimeError('Failed to read link with path: %s \nERROR: %s'%(path, str(e)))
-        elif self.isWindows():
+        if self.isWindows():
             raise RuntimeError('Cannot readLink on windows')
+        try:
+            return os.readlink(path)
+        except Exception as e:
+            raise RuntimeError('Failed to read link with path: %s \nERROR: %s'%(path, str(e)))
 
     def removeLinks(self,path):
         """
@@ -594,7 +599,8 @@ class InstallTools():
             #result = []
             #os.path.walk(path, lambda a, d, f: a.append('%s%s' % (d, os.path.sep)), result)
             #return result
-
+        if path==None or path.strip=="":
+            raise RuntimeError("path cannot be empty")
         files=self._listInDir(path,followSymlinks=True)
         filesreturn=[]
         for file in files:
@@ -1932,25 +1938,16 @@ class Installer():
         else:
             os.environ["JSBASE"]=do.BASE
 
+        if CODEDIR!="":
+            os.environ["CODEDIR"]=CODEDIR
+        else:
+            os.environ["CODEDIR"]=do.CODEDIR
+
         if sys.platform.startswith('win'):
             raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
-        elif sys.platform.startswith('darwin'):
-            os.environ["JSBASE"]="/Users/Shared/jumpscale/"
-
-        # if pythonversion==3:
-        #     os.environ["JSBASE"]+="3"            #add nr 3 to path when python 3
 
 
         PYTHONVERSION="3.5"
-
-        if CODEDIR=="":
-            if sys.platform.startswith('win'):
-                raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
-            elif sys.platform.startswith('darwin'):
-                CODEDIR="/Users/Shared/code"
-            else:
-                #for all linux versions
-                CODEDIR="/opt/code"
 
         print(("Install Jumpscale in %s"%os.environ["JSBASE"]))
 
@@ -1972,7 +1969,6 @@ class Installer():
         os.environ["JSGIT"]=JSGIT
         os.environ["JSBRANCH"]=JSBRANCH
         os.environ["AYSGIT"]=AYSGIT
-        os.environ["CODEDIR"]=CODEDIR
         os.environ["SANDBOX"]=str(SANDBOX)
 
         if EMAIL!="":
@@ -1984,10 +1980,6 @@ class Installer():
 
         self.debug=True
 
-        # import ipdb
-        # 
-        
-
         self.prepare(SANDBOX=SANDBOX,base= os.environ["JSBASE"])
 
         print ("pull core")
@@ -1997,6 +1989,8 @@ class Installer():
 
         if do.TYPE.startswith("OSX"):
             destjs="/usr/local/lib/python2.7/site-packages/JumpScale"
+            do.delete(destjs)
+            destjs="/usr/local/lib/python3.5/site-packages/JumpScale"
             do.delete(destjs)
             do.createDir(destjs)
         elif do.TYPE.startswith("WIN"):
@@ -2014,8 +2008,8 @@ class Installer():
 
         do.createDir("%s/lib"%base)
         do.createDir("%s/bin"%base)
-        do.createDir("%s/hrd/system"%base)
-        do.createDir("%s/hrd/apps"%base)
+        # do.createDir("%s/hrd/system"%base)
+        # do.createDir("%s/hrd/apps"%base)
 
         dest="%s/lib/JumpScale"%base
         do.createDir(dest)
@@ -2042,10 +2036,16 @@ class Installer():
         src="/usr/bin/python3.5"
         if do.exists(src):
             do.delete("/usr/bin/python")
+            if not do.TYPE.startswith("OSX"):
+                do.symlink(src, "%s/bin/python"%base)
+                do.symlink(src, "%s/bin/python3"%base)
+                do.symlink(src, "/usr/bin/python")
+
+        if do.TYPE.startswith("OSX"):
+            src="/usr/local/bin/python3"
             do.symlink(src, "%s/bin/python"%base)
             do.symlink(src, "%s/bin/python3"%base)
-            do.symlink(src, "/usr/bin/python")
-
+            do.symlink(src, "%s/bin/python3.5"%base)
 
         self.writeenv(basedir=base,insystem=insystem,CODEDIR=CODEDIR)
 
@@ -2075,7 +2075,7 @@ class Installer():
         return self._readonly
 
 
-    def writeenv(self,basedir="",insystem=False,CODEDIR="/opt/code",vardir="/optvar",die=True):
+    def writeenv(self,basedir="",insystem=False,CODEDIR="",vardir="",die=True):
         if basedir=="":
             # self.BASE
             try:
@@ -2089,7 +2089,10 @@ class Installer():
         print ("WRITENV TO:%s"%basedir)
 
         if CODEDIR=="":
-            CODEDIR=self.CODEDIR
+            CODEDIR=do.CODEDIR
+
+        if vardir=="":
+            vardir=do.VARDIR
 
         try:
             do.createDir(vardir)
@@ -2181,7 +2184,6 @@ class Installer():
 
 
         C="""
-        export JSBASE=$base
 
         deactivate () {
             export PATH=$_OLD_PATH
@@ -2197,9 +2199,11 @@ class Installer():
             fi
         }
 
-        # if [[ "$JSBASE" == "$base" ]]; then
-        #    return 0
-        # fi
+        if [[ "$JSBASE" == "$base" ]]; then
+           return 0
+        fi
+
+        export JSBASE=$base
 
         export _OLD_PATH=$PATH
         export _OLD_PYTHONPATH=$PYTHONPATH
@@ -2209,7 +2213,7 @@ class Installer():
         export PATH=$JSBASE/bin:$PATH
         export PYTHONHOME=$JSBASE/bin
 
-        export PYTHONPATH=.:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu
+        export PYTHONPATH=$pythonpath
         export LD_LIBRARY_PATH=$JSBASE/bin
         export PS1="JS8: "
         if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
@@ -2217,6 +2221,10 @@ class Installer():
         fi
         """
         C=C.replace("$base",basedir)
+        if do.TYPE.startswith("OSX"):
+            C=C.replace("$pythonpath",".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/plat-x86_64-linux-gnu:/usr/local/lib/python3.5/site-packages:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/plat-darwin:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload")
+        else:
+            C=C.replace("$pythonpath",".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu")
         envfile = "%s/env.sh"%basedir
 
         if self.readonly==False or die==True:
@@ -2375,7 +2383,7 @@ $JSBASE/bin/python -q -B -s -S "$@"
                 cmds="""
                 brew install tmux
                 brew install psutils
-                pip install redis
+                pip3 install redis
                 """
                 do.executeCmds(cmds)
 

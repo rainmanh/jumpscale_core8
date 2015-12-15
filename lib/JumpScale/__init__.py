@@ -7,16 +7,19 @@ import importlib
 import importlib.machinery
 
 if sys.platform.startswith("darwin"):
-    os.environ['JSBASE']='/Users/Shared/jumpscale/'
+
+    base="%s/opt/jumpscale8"%os.environ["HOME"]
+    basevar="%s/optvar"%os.environ["HOME"]
+
+    # os.environ['JSBASE']='/Users/Shared/jumpscale/'
     if not 'APPDATA' in os.environ:
-        os.environ['APPDATA']='/Users/Shared/jumpscale/var'
+        os.environ['APPDATA']=basevar
     if not 'TMP' in os.environ:
         os.environ['TMP']=  os.environ['TMPDIR']+"jumpscale/"
 
-    for p in ["/Users/Shared/jumpscale/lib","/Users/Shared/jumpscale/lib/lib-dynload/","/Users/Shared/jumpscale/bin","/Users/Shared/jumpscale/lib/python.zip","/Users/Shared/jumpscale/lib/plat-x86_64-linux-gnu"]:
-        if p not in sys.path:
-            sys.path.append(p)
-    basevar="/Users/Shared/jumpscalevar"
+    # for p in ["%s/lib"%base,"%s/lib/lib-dynload/"%base,"%s/bin"%base,"%s/lib/plat-x86_64-linux-gnu"%base]:
+    #     if p not in sys.path:
+    #         sys.path.append(p)
 else:
     if "JSBASE" not in os.environ:
         os.environ["JSBASE"]="/opt/jumpscale8"
@@ -115,10 +118,13 @@ def redisinit():
 import os
 redisinit()
 if j.core.db==None:
-    url="http://stor.jumpscale.org:8000/public/redis-server"
-    j.do.download(url, to='%s/bin/redis'%j.do.BASE, overwrite=False, retry=3)
-    import subprocess
-    cmd="chmod 550 %s/bin/redis > 2&>1;%s/bin/redis --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"%(j.do.BASE,j.do.BASE)
+    if j.do.TYPE.startswith("OSX"):
+        cmd="redis-server --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"
+    else:
+        url="http://stor.jumpscale.org:8000/public/redis-server"
+        j.do.download(url, to='%s/bin/redis'%j.do.BASE, overwrite=False, retry=3)
+        import subprocess
+        cmd="chmod 550 %s/bin/redis > 2&>1;%s/bin/redis --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"%(j.do.BASE,j.do.BASE)
     print ("start redis in background")
     os.system(cmd)
     # Wait until redis is up
@@ -184,7 +190,8 @@ def findModules():
                         result[loc].append((classfile,classname,item))
 
     j.core.db.set("system.locations",json.dumps(result))
-    j.do.writeFile("%s/bin/metadata.db"%j.do.BASE,json.dumps(result))
+    if base =="/opt/jumpscale8":
+        j.do.writeFile("%s/bin/metadata.db"%j.do.BASE,json.dumps(result))
 
 forcereload=False
 if base !="/opt/jumpscale8":

@@ -41,6 +41,10 @@ class Application:
 
         self.interactive=True
 
+    def reload(self):
+        from JumpScale import findModules
+        findModules()
+
     @property
     def debug(self):
         return self._debug

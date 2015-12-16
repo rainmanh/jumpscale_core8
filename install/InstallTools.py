@@ -2246,7 +2246,7 @@ class Installer():
 # set -x
 source $JSBASE/env.sh
 # echo $base/bin/python "$@"
-$JSBASE/bin/python -q -B -s -S "$@"
+exec $JSBASE/bin/python "$@"
         """
 
 

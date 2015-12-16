@@ -1967,7 +1967,7 @@ class Installer():
         os.environ["GITHUBUSER"]=GITHUBUSER
         os.environ["GITHUBPASSWD"]=GITHUBPASSWD
         os.environ["JSGIT"]=JSGIT
-        os.environ["JSBRANCH"] = JSBRANCH if os.environ.get('JSBRANCH', None) else os.environ['JSBRANCH']
+        os.environ["JSBRANCH"]=JSBRANCH
         os.environ["AYSGIT"]=AYSGIT
         os.environ["SANDBOX"]=str(SANDBOX)
 
@@ -2188,8 +2188,6 @@ class Installer():
         deactivate () {
             export PATH=$_OLD_PATH
             unset _OLD_PATH
-            export PYTHONPATH=$_OLD_PYTHONPATH
-            unset _OLD_PYTHONPATH
             export LD_LIBRARY_PATH=$_OLD_LD_LIBRARY_PATH
             unset _OLD_LD_LIBRARY_PATH
             export PS1=$_OLD_PS1
@@ -2206,14 +2204,11 @@ class Installer():
         export JSBASE=$base
 
         export _OLD_PATH=$PATH
-        export _OLD_PYTHONPATH=$PYTHONPATH
         export _OLD_LDLIBRARY_PATH=$LD_LIBRARY_PATH
         export _OLD_PS1=$PS1        
 
         export PATH=$JSBASE/bin:$PATH
-        export PYTHONHOME=$JSBASE/bin
 
-        export PYTHONPATH=$pythonpath
         export LD_LIBRARY_PATH=$JSBASE/bin
         export PS1="JS8: "
         if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
@@ -2241,7 +2236,6 @@ class Installer():
 # {base}/bin/python -q -B -s -S "$@"
 #         """
 
-
         C2="""#!/bin/bash
 # set -x
 source $JSBASE/env.sh
@@ -2254,6 +2248,7 @@ exec $JSBASE/bin/python "$@"
         if self.readonly==False or die==True:
             dest="%s/bin/jspython"%basedir
             do.delete(dest)
+            C2 = C2.replace('$JSBASE', os.environ['JSBASE'])
             do.writeFile(dest,C2)
             do.chmod(dest, 0o770)
 

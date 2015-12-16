@@ -36,7 +36,8 @@ if not os.path.exists(path):
     os.popen("curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/%s/install/InstallTools.py?%s > %s"%(branch,r,path))
     time.sleep(1)
 
-from InstallTools import *
+InstallTools = __import__('InstallTools')
+do = InstallTools.do
 
 
 #look at methods in https://github.com/Jumpscale/jumpscale_core8/blob/master/install/InstallTools.py to see what can be used

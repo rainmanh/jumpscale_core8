@@ -1967,7 +1967,7 @@ class Installer():
         os.environ["GITHUBUSER"]=GITHUBUSER
         os.environ["GITHUBPASSWD"]=GITHUBPASSWD
         os.environ["JSGIT"]=JSGIT
-        os.environ["JSBRANCH"]=JSBRANCH
+        os.environ["JSBRANCH"] = JSBRANCH if os.environ.get('JSBRANCH', None) else os.environ['JSBRANCH']
         os.environ["AYSGIT"]=AYSGIT
         os.environ["SANDBOX"]=str(SANDBOX)
 

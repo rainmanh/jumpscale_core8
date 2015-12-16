@@ -15,7 +15,6 @@ set -ex
 #export SANDBOX=0
 #export JSBASE='/opt/jumpscale8'
 # export JSGIT='https://github.com/Jumpscale/jumpscale_core8.git'
-export JSBRANCH='master'
 export PYTHONVERSION='3'
 export AYSGIT='https://github.com/Jumpscale/ays_jumpscale8'
 export AYSBRANCH='master'

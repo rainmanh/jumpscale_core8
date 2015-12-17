@@ -113,13 +113,13 @@ class BaseModelFactory():
     def remove(self, model, key):
         pass
 
-    def exists(self, model, key):
-        modelname = modelclass._class_name
+    def exists(self, model, id):
+        modelname = model._class_name
         key = self.getKeys(modelname)
         if j.core.db.exists('%s_%s' % (key, id)):
             return True
         try:
-            modelclass.objects.get(id=id)
+            model.objects.get(guiid=id)
         except DoesNotExist:
             return False
 

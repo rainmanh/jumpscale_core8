@@ -51,17 +51,17 @@ class ModelErrorCondition(ModelBase):
     level = StringField(default="CRITICAL")
     type = StringField(default="UNKNOWN")
     state = StringField(default="NEW")  # ["NEW","ALERT","CLOSED"]:
-    errormessage = MultiLineStringField()
-    errormessagePub = MultiLineStringField()
+    errormessage = StringField()  # StringField() <--- available starting version 0.9
+    errormessagePub = StringField()  # StringField()
     category = StringField(default="")
     tags = StringField(default="")
-    code = MultiLineStringField()
+    code = StringField()
     funcname = StringField(default="")
     funcfilename = StringField(default="")
     funclinenr = IntField(default=0)
-    backtrace = MultiLineStringField()
-    backtraceDetailed = MultiLineStringField()
-    extra = MultiLineStringField()
+    backtrace = StringField()
+    backtraceDetailed = StringField()
+    extra = StringField()
     lasttime = IntField(default=0)
     closetime = IntField(default=0)
     occurrences = IntField(default=0)
@@ -159,6 +159,7 @@ class ModelDisk(ModelBase):
 class ModelAlert(ModelBase):
     gid = IntField()
     nid = IntField()
+    username = StringField(default='')
     description = StringField(default='')
     descriptionpub = StringField(default='')
     level = IntField()  # 1:critical, 2:warning, 3:info
@@ -166,6 +167,7 @@ class ModelAlert(ModelBase):
     category = StringField(default='')
     tags = StringField(default='')  # e.g. machine:2323
     state = StringField(default='')  # ["NEW","ALERT","CLOSED"]
+    history = ListField(DictField())
     # first time there was an error condition linked to this alert
     inittime = IntField(default=j.tools.time.getTimeEpoch())
     # last time there was an error condition linked to this alert

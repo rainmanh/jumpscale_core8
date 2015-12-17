@@ -66,13 +66,13 @@ class TornadoTransport(Transport):
         if rcv==None:
             eco=j.errorconditionhandler.getErrorConditionObject(msg='timeout on request to %s'%self.url, msgpub='', \
                 category='tornado.transport')
-            s = j.db.serializers.get('j')
+            s = j.data.serializer.serializers.get('j')
             return "4","j",s.dumps(eco.__dict__)
                     
         if rcv.ok==False:
             eco=j.errorconditionhandler.getErrorConditionObject(msg='error 500 from webserver on %s'%self.url, msgpub='', \
                 category='tornado.transport')
-            s = j.db.serializers.get('j')
+            s = j.data.serializer.serializers.get('j')
             return "6","j",s.dumps(eco.__dict__)
 
         content = rcv.content.decode('utf-8')

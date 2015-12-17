@@ -159,13 +159,13 @@ class OSISFactory:
         else:
             val = obj
         val=lz4.dumps(val)
-        val=j.db.serializers.blowfish.dumps(val,self.key)
+        val=j.data.serializer.serializers.blowfish.dumps(val,self.key)
         return val
 
     def decrypt(self,val,json=False):
         if not j.core.types.string.check(val):
             raise RuntimeError("needs to be string")
-        val=j.db.serializers.blowfish.loads(val,self.key)
+        val=j.data.serializer.serializers.blowfish.loads(val,self.key)
         val=lz4.loads(val)
         if json:
             val=ujson.loads(val)

@@ -29,7 +29,7 @@ class OSISStore(object):
         self.objectclass=None
 
     def _init_auth(self, path, namespace, categoryname, db=False):
-        self.json=j.db.serializers.getSerializerType("j")
+        self.json=j.data.serializer.serializers.getSerializerType("j")
 
         self.path = path
         self.te = None

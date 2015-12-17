@@ -225,7 +225,7 @@ class SystemFS(SALObject):
         if level<self.loglevel+1 and self.logenable:
             j.logger.log(msg,category="system.fs.%s"%category,level=level)
 
-    def copyFile(self, fileFrom, to ,createDirIfNeeded=False,overwriteFile=True):
+    def copyFile(self, fileFrom, to, createDirIfNeeded=False, overwriteFile=True):
         """Copy file
 
         Copies the file from C{fileFrom} to the file or directory C{to}.
@@ -374,7 +374,7 @@ class SystemFS(SALObject):
             names = os.listdir(src)
  
             if not j.sal.fs.exists(dst):
-                self.createDir(dst,skipProtectedDirs=skipProtectedDirs)
+                self.createDir(dst)
 
             errors = []
             for name in names:
@@ -400,7 +400,7 @@ class SystemFS(SALObject):
                     j.sal.fs.copyDirTree(srcname, dstname, keepsymlinks, eraseDestination,skipProtectedDirs=skipProtectedDirs,overwriteFiles=overwriteFiles,applyHrdOnDestPaths=applyHrdOnDestPaths )
                 else:
                     #print "2:%s %s"%(srcname,dstname)
-                    self.copyFile(srcname, dstname ,createDirIfNeeded=False,skipProtectedDirs=skipProtectedDirs,overwriteFile=overwriteFiles)
+                    self.copyFile(srcname, dstname, createDirIfNeeded=False, overwriteFile=overwriteFiles)
         else:
             raise RuntimeError('Source path %s in system.fs.copyDirTree is not a directory'% src)
 

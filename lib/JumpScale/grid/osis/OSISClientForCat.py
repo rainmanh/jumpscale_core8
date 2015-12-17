@@ -3,7 +3,7 @@ import imp
 import inspect
 from JumpScale.core.system.fs import FileLock
 
-json=j.db.serializers.getSerializerType("j")
+json=j.data.serializer.serializers.getSerializerType("j")
 
 OBJECTCLASSES = dict()
 

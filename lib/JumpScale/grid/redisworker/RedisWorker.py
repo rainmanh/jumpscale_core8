@@ -4,15 +4,12 @@ try:
 except:
     import json
 
-import JumpScale.baselib.hash
-import JumpScale.grid.osis
-import JumpScale.baselib.redis2
+
 OsisBaseObject=j.core.osis.getOsisBaseObjectClass()
 import time
 import inspect
 
 # if j.application.config.exists("agentcontroller.webdiskey"):
-import JumpScale.grid.jumpscripts
 Jumpscript=j.core.jumpscripts.getJSClass()
 # else:
     # Jumpscript=None

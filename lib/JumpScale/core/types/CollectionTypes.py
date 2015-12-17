@@ -4,7 +4,7 @@
 
 import types
 
-# from JumpScale.core.pmtypes.base import BaseType, NO_DEFAULT
+# from JumpScale.core.types.base import BaseType, NO_DEFAULT
 
 class Dictionary():
     def __init__(self):

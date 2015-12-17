@@ -7,7 +7,7 @@ except:
     
 from JumpScale import j
 from JumpScale.core.types.BaseEnumeration import BaseEnumeration
-from WhmcsInstance import WhmcsInstance
+from .WhmcsInstance import WhmcsInstance
 
 class Dummy(object):
     def __getattribute__(self, attr, *args, **kwargs):

@@ -2,7 +2,6 @@
 
 '''Definition of several primitive type properties (integer, string,...)'''
 
-# from JumpScale.core.pmtypes.base import BaseType
 
 class Boolean():
     def __init__(self):

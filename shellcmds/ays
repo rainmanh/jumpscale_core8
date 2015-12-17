@@ -322,7 +322,7 @@ elif args.action == 'build':
 
 
 elif args.action == 'uninstall':
-    import ipdb;ipdb.set_trace()
+    import ipdb;
     for service in sorted(services, key=functools.cmp_to_key(sorter)):
         service.uninstall()
 

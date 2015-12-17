@@ -317,7 +317,7 @@ class ObjectInspector():
                 except Exception as e:
                     print("the _getFactoryEnabledClasses gives error")
                     import ipdb
-                    ipdb.set_trace()
+                    
                     
                                
             elif str(type(objattribute)).find("'instance'") != -1 or str(type(objattribute)).find("<class") != -1 or str(type(objattribute)).find("'classobj'") != -1:

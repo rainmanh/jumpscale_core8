@@ -106,7 +106,7 @@ class ErrorConditionObject():
                 except Exception as e2:
                     print("BUG in toascii in ErrorConditionObject")
                     import ipdb
-                    ipdb.set_trace()
+                    
                                                 
         self.errormessage=_toAscii(self.errormessage)
         self.errormessagePub=_toAscii(self.errormessagePub)

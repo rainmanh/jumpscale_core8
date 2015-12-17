@@ -2188,8 +2188,6 @@ class Installer():
         deactivate () {
             export PATH=$_OLD_PATH
             unset _OLD_PATH
-            export PYTHONPATH=$_OLD_PYTHONPATH      
-            unset _OLD_PYTHONPATH
             export LD_LIBRARY_PATH=$_OLD_LD_LIBRARY_PATH
             unset _OLD_LD_LIBRARY_PATH
             export PS1=$_OLD_PS1
@@ -2207,13 +2205,11 @@ class Installer():
         export JSBASE=$base
 
         export _OLD_PATH=$PATH
-        export _OLD_PYTHONPATH=$PYTHONPATH
         export _OLD_LDLIBRARY_PATH=$LD_LIBRARY_PATH
         export _OLD_PS1=$PS1        
 
         export PATH=$JSBASE/bin:$PATH
 
-        export PYTHONPATH=$pythonpath
         export LD_LIBRARY_PATH=$JSBASE/bin
         export PS1="(JS8) $PS1"
         if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
@@ -2224,7 +2220,7 @@ class Installer():
         if do.TYPE.startswith("OSX"):
             C=C.replace("$pythonpath",".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/plat-x86_64-linux-gnu:/usr/local/lib/python3.5/site-packages:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/plat-darwin:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload")
         else:
-            C=C.replace("$pythonpath",".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu")
+            C=C.replace("$pythonpath",".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu:$_OLD_PYTHONPATH")
         envfile = "%s/env.sh"%basedir
 
         if self.readonly==False or die==True:

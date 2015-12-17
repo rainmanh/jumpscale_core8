@@ -3,8 +3,6 @@ try:
     import ujson as json
 except:
     import json
-
-
 OsisBaseObject=j.core.osis.getOsisBaseObjectClass()
 import time
 import inspect

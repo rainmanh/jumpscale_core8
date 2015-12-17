@@ -5,6 +5,7 @@ from JumpScale import j
 
 j.application.start("jsshell")
 
+import sys
 if len(sys.argv)==2:
     toexec=sys.argv[1]
     toexec=toexec.strip("'\" ").strip("'\" ")    

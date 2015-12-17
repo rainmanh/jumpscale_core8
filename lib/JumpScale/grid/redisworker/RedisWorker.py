@@ -3,16 +3,11 @@ try:
     import ujson as json
 except:
     import json
-import ExtraTools
-import JumpScale.baselib.hash
-import JumpScale.grid.osis
-import JumpScale.baselib.redis2
 OsisBaseObject=j.core.osis.getOsisBaseObjectClass()
 import time
 import inspect
 
 # if j.application.config.exists("agentcontroller.webdiskey"):
-import JumpScale.grid.jumpscripts
 Jumpscript=j.core.jumpscripts.getJSClass()
 # else:
     # Jumpscript=None
@@ -71,7 +66,7 @@ class Job(OsisBaseObject):
         """
         self.gid = int(self.gid)
         self.id = int(self.id)
-        self.guid = ExtraTools.ByteProcessor.hashTiger160(self.getContentKey())  # need to make sure roles & source cannot be changed
+        self.guid = j.base.byteprocessor.hashTiger160(self.getContentKey())  # need to make sure roles & source cannot be changed
 
         return self.guid
 

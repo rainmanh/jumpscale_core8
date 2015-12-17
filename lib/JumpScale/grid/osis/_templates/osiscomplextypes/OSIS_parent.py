@@ -1,6 +1,6 @@
 from JumpScale import j
 from JumpScale.grid.osis.OSISStore import OSISStore
-ujson = j.data.serializer.serializers
+ujson = j.data.serializer.serializers.getSerializerType('j')
 
 
 class mainclass(OSISStore):

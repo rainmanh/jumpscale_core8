@@ -2,31 +2,20 @@
 from mongoengine import *
 from JumpScale import j
 import json
-import bson
+import uuid
 
 
 class ModelBase(Document):
-    guid = StringField(default="")
-    id = StringField()
-    _id = StringField()
+    guid = StringField(default=uuid.uuid4().hex)
     gid = IntField(default=0)
     nid = IntField(default=0)
-    epoch = IntField(default=0)
+    epoch = IntField(default=j.tools.time.getTimeEpoch())
     meta = {'allow_inheritance': True}
 
     def clean(self):
-        if self.guid == "":
-            self.guid = str(bson.ObjectId())
-
-        if not self.id:
-            self.id = self.guid
-
-        if not self._id:
-            self._id = self.guid
-
         if self.epoch == 0:
             self.epoch = j.tools.time.getTimeEpoch()
-        if j.application.whoAmI != None:
+        if j.application.whoAmI is not None:
             if self.gid == 0:
                 self.gid = j.application.whoAmI.gid
             if self.nid == 0:
@@ -42,8 +31,9 @@ class ModelBase(Document):
 
     def save(self):
         self.clean()
-        j.core.models.set(self)
-        return super(ModelBase, self).save()
+        obj = super(ModelBase, self).save()
+        j.core.models.set(obj)
+        return obj
         
 
     def __str__(self):
@@ -61,17 +51,17 @@ class ModelErrorCondition(ModelBase):
     level = StringField(default="CRITICAL")
     type = StringField(default="UNKNOWN")
     state = StringField(default="NEW")  # ["NEW","ALERT","CLOSED"]:
-    errormessage = MultiLineStringField()
-    errormessagePub = MultiLineStringField()
+    errormessage = StringField()  # StringField() <--- available starting version 0.9
+    errormessagePub = StringField()  # StringField()
     category = StringField(default="")
     tags = StringField(default="")
-    code = MultiLineStringField()
+    code = StringField()
     funcname = StringField(default="")
     funcfilename = StringField(default="")
     funclinenr = IntField(default=0)
-    backtrace = MultiLineStringField()
-    backtraceDetailed = MultiLineStringField()
-    extra = MultiLineStringField()
+    backtrace = StringField()
+    backtraceDetailed = StringField()
+    extra = StringField()
     lasttime = IntField(default=0)
     closetime = IntField(default=0)
     occurrences = IntField(default=0)
@@ -169,6 +159,7 @@ class ModelDisk(ModelBase):
 class ModelAlert(ModelBase):
     gid = IntField()
     nid = IntField()
+    username = StringField(default='')
     description = StringField(default='')
     descriptionpub = StringField(default='')
     level = IntField()  # 1:critical, 2:warning, 3:info
@@ -176,6 +167,7 @@ class ModelAlert(ModelBase):
     category = StringField(default='')
     tags = StringField(default='')  # e.g. machine:2323
     state = StringField(default='')  # ["NEW","ALERT","CLOSED"]
+    history = ListField(DictField())
     # first time there was an error condition linked to this alert
     inittime = IntField(default=j.tools.time.getTimeEpoch())
     # last time there was an error condition linked to this alert
@@ -360,9 +352,9 @@ class ModelUser(ModelBase):
 
 
 class ModelSessionCache(ModelBase):
-    value = DictField(default='')
-    createdat = IntField(default=j.tools.time.getTimeEpoch())
-    lastupdatedat = IntField(default=j.tools.time.getTimeEpoch())
+    user = StringField()
+    _creation_time = IntField(default=j.tools.time.getTimeEpoch())
+    _accessed_time = IntField(default=j.tools.time.getTimeEpoch())
     meta = {'indexes': [
                 {'fields': ['epoch'], 'expireAfterSeconds': 432000}
         ], 'allow_inheritance': True}

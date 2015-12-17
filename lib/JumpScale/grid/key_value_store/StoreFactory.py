@@ -44,7 +44,7 @@ class KeyValueStoreFactory(object):
         '''
         from JumpScale.grid.key_value_store.arakoon_store import ArakoonKeyValueStore
         if serializers==[]:
-            serializers=[j.db.serializers.getSerializerType('j')]
+            serializers=[j.data.serializer.serializers.getSerializerType('j')]
         key = '%s_%s' % ("arakoon", namespace)
         if key not in self._cache:
             if namespace=="":
@@ -70,7 +70,7 @@ class KeyValueStoreFactory(object):
         '''
         from JumpScale.grid.key_value_store.file_system_store import FileSystemKeyValueStore
         if serializers==[]:
-            serializers=[j.db.serializers.getMessagePack()]
+            serializers=[j.data.serializer.serializers.getMessagePack()]
 
         key = '%s_%s' % ("fs", namespace)
         if key not in self._cache:

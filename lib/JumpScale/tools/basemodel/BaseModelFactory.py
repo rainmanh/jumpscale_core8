@@ -76,7 +76,8 @@ class BaseModelFactory():
     def get(self, modelclass, id):
         modelname = modelclass._class_name
         key = self.getKeys(modelname)
-        modelraw = j.core.db.get('%s_%s' % (key, id))
+        key = '%s_%s' % (key, id)
+        modelraw = j.core.db.get(key.encode('utf-8'))
         if modelraw:
             modelraw = modelraw.decode()
             model = modelclass.from_json(modelraw)
@@ -89,8 +90,9 @@ class BaseModelFactory():
 
     def set(self, modelobject):
         key = self.getKeys(modelobject._class_name)
-        key = '%s_%s' % (key, modelobject.id)
-        expirey = modelobject._meta['indexes'][0].get('expireAfterSeconds', None)
+        key = '%s_%s' % (key, modelobject.guid)
+        meta = modelobject._meta['indexes']
+        expirey = meta[0].get('expireAfterSeconds', None) if meta else None
         modelraw = json.dumps(modelobject.to_dict())
         j.core.db.set(key, modelraw)
         if expirey:
@@ -99,7 +101,7 @@ class BaseModelFactory():
     def load(self, modelobject):
         key = self.getKeys(modelobject._class_name)
 
-        if j.core.db.exists('%s_%s' % (key, modelobject.id)):
+        if j.core.db.exists('%s_%s' % (key, modelobject.guid)):
             model = self.get(modelobject)
         else:
             model = self.set(modelobject)
@@ -111,13 +113,13 @@ class BaseModelFactory():
     def remove(self, model, key):
         pass
 
-    def exists(self, model, key):
-        modelname = modelclass._class_name
+    def exists(self, model, id):
+        modelname = model._class_name
         key = self.getKeys(modelname)
         if j.core.db.exists('%s_%s' % (key, id)):
             return True
         try:
-            modelclass.objects.get(id=id)
+            model.objects.get(guiid=id)
         except DoesNotExist:
             return False
 

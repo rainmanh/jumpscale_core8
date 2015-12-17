@@ -21,7 +21,7 @@ class LevelDBInterface():
 
     def set(self,key,value):
         # print "set:%s"%key
-        val=j.db.serializers.getSerializerType('j').dumps(value)
+        val=j.data.serializer.serializers.getSerializerType('j').dumps(value)
         self.setb(key,val)
 
     def getb(self,key):
@@ -34,7 +34,7 @@ class LevelDBInterface():
         value=self.getb(key)        
         if value==None:
             raise RuntimeError("Cannot find object in db with key:%s"%key)
-        val=j.db.serializers.getSerializerType('j').loads(value)
+        val=j.data.serializer.serializers.getSerializerType('j').loads(value)
         return val
 
     def exists(self,key):

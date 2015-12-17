@@ -1,5 +1,5 @@
 from JumpScale import j
-from JumpScale.core.system.ZipFile import ZipFile
+from JumpScale.tools.zip.ZipFile import ZipFile
 
 
 class GitHubFactory(object):

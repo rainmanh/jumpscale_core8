@@ -2192,6 +2192,7 @@ class Installer():
             unset _OLD_LD_LIBRARY_PATH
             export PS1=$_OLD_PS1
             unset _OLD_PS1
+            unset JSBASE
             if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
                     hash -r 2>/dev/null
             fi
@@ -2210,7 +2211,7 @@ class Installer():
         export PATH=$JSBASE/bin:$PATH
 
         export LD_LIBRARY_PATH=$JSBASE/bin
-        export PS1="JS8: "
+        export PS1="(JS8) $PS1"
         if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
                 hash -r 2>/dev/null
         fi
@@ -2238,9 +2239,9 @@ class Installer():
 
         C2="""#!/bin/bash
 # set -x
-source $JSBASE/env.sh
+source $base/env.sh
 # echo $base/bin/python "$@"
-exec $JSBASE/bin/python "$@"
+exec $base/bin/python "$@"
         """
 
 
@@ -2248,7 +2249,7 @@ exec $JSBASE/bin/python "$@"
         if self.readonly==False or die==True:
             dest="%s/bin/jspython"%basedir
             do.delete(dest)
-            C2 = C2.replace('$JSBASE', os.environ['JSBASE'])
+            C2 = C2.replace('$base', basedir)
             do.writeFile(dest,C2)
             do.chmod(dest, 0o770)
 

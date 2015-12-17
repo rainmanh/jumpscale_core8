@@ -39,7 +39,6 @@ if not os.path.exists(path):
 InstallTools = __import__('InstallTools')
 do = InstallTools.do
 
-
 #look at methods in https://github.com/Jumpscale/jumpscale_core8/blob/master/install/InstallTools.py to see what can be used
 #there are some easy methods to allow git manipulation, copy of files, execution of items
 

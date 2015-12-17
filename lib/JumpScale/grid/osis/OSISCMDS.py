@@ -116,7 +116,7 @@ class OSISCMDS(object):
             if j.sal.nettools.tcpPortConnectionTest('127.0.0.1',port=7771):
                 try:
                     if rediscl==None:
-                        rediscl = j.db.keyvaluestore.getRedisStore(namespace='', host='127.0.0.1', port=7771)
+                        rediscl = j.servers.keyvaluestore.getRedisStore(namespace='', host='127.0.0.1', port=7771)
                     rediscl.checkChangeLog()
                 except Exception as e:
                     j.errorconditionhandler.processPythonExceptionObject(e)

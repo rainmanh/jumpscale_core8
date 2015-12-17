@@ -2,12 +2,9 @@ import requests
 from requests.exceptions import SSLError
 import time
 from JumpScale import j
-import JumpScale.portal
 # import JumpScale.lib.cloudrobots
 
-import JumpScale.baselib.remote
 # import JumpScale.baselib.redis2
-import JumpScale.portal
 import ujson as json
 import sys
 
@@ -42,6 +39,9 @@ class Output(object):
 
 
 class MS1Factory(object):
+    def __init__(self):
+        self.__jslocation__ = "j.clients.ms1"
+
     def get(self, apiURL='www.mothership1.com', port=443):
         return MS1(apiURL, port)
 
@@ -59,7 +59,7 @@ class MS1(object):
         self.stdout.prevout=sys.stdout
         self.action=None
         self.vars={}
-        self.db=j.db.keyvaluestore.getFileSystemStore("/tmp/ms1.db")
+        self.db = j.servers.keyvaluestore.getFileSystemStore("/tmp/ms1.db")
 
 
     def getCloudspaceObj(self, space_secret,**args):
@@ -291,7 +291,7 @@ class MS1(object):
             except Exception as e:
                 if str(e).find("Selected name already exists") != -1:
                    j.events.inputerror_critical("Could not create machine it does already exist.","ms1.createmachine.exists")
-                raise RuntimeError("E:Could not create machine, unknown error : %s", e.message)
+                raise RuntimeError("E:Could not create machine, unknown error : %s", e.httperror.message)
 
         self.vars["machine.id"] = machine_id
 

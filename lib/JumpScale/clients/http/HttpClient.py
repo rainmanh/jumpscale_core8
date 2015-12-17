@@ -46,14 +46,15 @@ class Connection(object):
         
     def simpleAuth(self, url, username, password):
         req = urllib.request.Request(url)
-        base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
+        auth = '%s:%s' % (username, password)
+        base64string = base64.encodebytes(auth.encode())[:-1]
         req.add_header("Authorization", "Basic %s" % base64string)
 
         try:
             handle = urllib.request.urlopen(req)
             return handle 
         except IOError as e:
-            j.logger.log(e)
+            print(e)
             
             
     def get(self, url, data=None, headers=None, **params):
@@ -148,6 +149,10 @@ class Connection(object):
     
     def _http_request(self, url, data=None, headers=None, method=None, **kwargs):
         url = self._updateUrlParams(url, **kwargs)
+        data = data or kwargs.get('data', None)
+        if data and isinstance(data, (dict, list)):
+            data = urllib.parse.urlencode(data)
+            data = data.encode('utf-8')
         request = urllib.request.Request(url, data=data)
         if headers:
             for key, value in list(headers.items()):

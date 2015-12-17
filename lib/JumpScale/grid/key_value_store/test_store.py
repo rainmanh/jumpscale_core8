@@ -181,10 +181,10 @@ class ArakoonKeyValueStoreTestCase(unittest.TestCase,
         j.sal.fs.removeDirTree(logDir)
 
     def testFactory(self):
-        storeA = j.db.keyvaluestore.getStore(KeyValueStoreType.ARAKOON,
+        storeA = j.servers.keyvaluestore.getStore(KeyValueStoreType.ARAKOON,
             self.STORE_CLUSTER, self.STORE_NAMESPACE)
 
-        storeB = j.db.keyvaluestore.getArakoonStore(self.STORE_CLUSTER,
+        storeB = j.servers.keyvaluestore.getArakoonStore(self.STORE_CLUSTER,
             self.STORE_NAMESPACE)
 
         self.assertEquals(storeA, storeB)
@@ -210,10 +210,10 @@ class FileSystemKeyValueStoreTestCase(unittest.TestCase,
         j.sal.fs.removeDirTree(self._storeDir)
 
     def testFactory(self):
-        storeA = j.db.keyvaluestore.getStore(KeyValueStoreType.FILE_SYSTEM,
+        storeA = j.servers.keyvaluestore.getStore(KeyValueStoreType.FILE_SYSTEM,
             self.STORE_NAME, self.STORE_NAMESPACE)
 
-        storeB = j.db.keyvaluestore.getFileSystemStore(self.STORE_NAME,
+        storeB = j.servers.keyvaluestore.getFileSystemStore(self.STORE_NAME,
             self.STORE_NAMESPACE)
 
         self.assertEquals(storeA, storeB)
@@ -224,10 +224,10 @@ class MemoryKeyValueStoreTestCase(unittest.TestCase, KeyValueStoreTestCaseBase):
         self._store = MemoryKeyValueStore()
 
     def testFactory(self):
-        storeA = j.db.keyvaluestore.getStore(KeyValueStoreType.MEMORY,
+        storeA = j.servers.keyvaluestore.getStore(KeyValueStoreType.MEMORY,
             self.STORE_NAME, self.STORE_NAMESPACE)
 
-        storeB = j.db.keyvaluestore.getMemoryStore(self.STORE_NAME,
+        storeB = j.servers.keyvaluestore.getMemoryStore(self.STORE_NAME,
             self.STORE_NAMESPACE)
 
         self.assertEquals(storeA, storeB)

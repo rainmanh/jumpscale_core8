@@ -30,7 +30,7 @@ class FileSystemKeyValueStore(KeyValueStoreBase):
             #j.sal.fs.createDir(self.dbpath)
 
     def fileGetContents(self,filename):
-        fp = open(filename,"r")
+        fp = open(filename,"rb")
         data = fp.read()
         fp.close()
         return data

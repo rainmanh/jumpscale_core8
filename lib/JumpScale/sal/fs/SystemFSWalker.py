@@ -40,7 +40,7 @@ class SystemFSWalker:
     @staticmethod    
     def find(root, recursive=True, includeFolders=False, pathRegexIncludes=[".*"],pathRegexExcludes=[], contentRegexIncludes=[], contentRegexExcludes=[],depths=[]):
         listfiles=[]
-        FSWalker.walk(root, FSWalker._findhelper, listfiles, recursive, includeFolders, pathRegexIncludes,pathRegexExcludes, contentRegexIncludes, contentRegexExcludes,depths)
+        SystemFSWalker.walk(root, SystemFSWalker._findhelper, listfiles, recursive, includeFolders, pathRegexIncludes,pathRegexExcludes, contentRegexIncludes, contentRegexExcludes,depths)
         return listfiles
     
     @staticmethod
@@ -61,7 +61,7 @@ class SystemFSWalker:
         >>> def my_print(arg, path):
         ...     print arg, path
         ...
-        >>> FSWalker.walk('/foo', my_print, 'test:')
+        >>> SystemFSWalker.walk('/foo', my_print, 'test:')
         test: /foo/file1
         test: /foo/file2
         test: /foo/file3
@@ -74,7 +74,7 @@ class SystemFSWalker:
         ...     arg.append(path)
         ...
         >>> paths = list()
-        >>> FSWalker.walk('/foo', dirlister, paths, recursive=False, includeFolders=True)
+        >>> SystemFSWalker.walk('/foo', dirlister, paths, recursive=False, includeFolders=True)
         /foo/file1
         /foo/file2
         /foo/file3
@@ -112,13 +112,13 @@ class SystemFSWalker:
         #             path = os.path.join(dirpath, dirname)
         #             if j.tools.code.regex.matchMultiple(patterns=pathRegexIncludes,text=path) and \
         #                     not j.tools.code.regex.matchMultiple(patterns=pathRegexExcludes,text=path):
-        #                 if FSWalker._checkDepth(path,depths,root) and \
-        #                         FSWalker._checkContent(path,contentRegexIncludes, contentRegexExcludes):
+        #                 if SystemFSWalker._checkDepth(path,depths,root) and \
+        #                         SystemFSWalker._checkContent(path,contentRegexIncludes, contentRegexExcludes):
         #                     result=callback(arg, path)
         #     for filename in filenames:
         #         path = os.path.join(dirpath, filename)
         #         if j.tools.code.regex.matchMultiple(patterns=pathRegexIncludes,text=path) and not j.tools.code.regex.matchMultiple(patterns=pathRegexExcludes,text=path):
-        #             if FSWalker._checkDepth(path,depths,root) and FSWalker._checkContent(path,contentRegexIncludes, contentRegexExcludes):
+        #             if SystemFSWalker._checkDepth(path,depths,root) and SystemFSWalker._checkContent(path,contentRegexIncludes, contentRegexExcludes):
         #                 callback(arg, path)
                 
 
@@ -134,8 +134,8 @@ class SystemFSWalker:
                     result=True
                     if j.tools.code.regex.matchMultiple(patterns=pathRegexIncludes,text=path2) and \
                             not j.tools.code.regex.matchMultiple(patterns=pathRegexExcludes,text=path2):
-                        if FSWalker._checkDepth(path2,depths,path) and \
-                                FSWalker._checkContent(path2,contentRegexIncludes, contentRegexExcludes):
+                        if SystemFSWalker._checkDepth(path2,depths,path) and \
+                                SystemFSWalker._checkContent(path2,contentRegexIncludes, contentRegexExcludes):
                             result=callback(arg, path2)
                     if result==False:
                         continue #do not recurse go to next dir
@@ -145,7 +145,7 @@ class SystemFSWalker:
         
             if j.sal.fs.isFile(path2, followlinks):
                 if j.tools.code.regex.matchMultiple(patterns=pathRegexIncludes,text=path2) and not j.tools.code.regex.matchMultiple(patterns=pathRegexExcludes,text=path):
-                    if FSWalker._checkDepth(path2,depths,path) and FSWalker._checkContent(path2,contentRegexIncludes, contentRegexExcludes):
+                    if SystemFSWalker._checkDepth(path2,depths,path) and SystemFSWalker._checkContent(path2,contentRegexIncludes, contentRegexExcludes):
                         callback(arg, path2)
 
 
@@ -174,7 +174,7 @@ class SystemFSWalker:
         ...     return True #means will match all
         ...
 
-        >>> FSWalker.walkFunctional('/foo', my_print,my_print, 'test:',matchDirOrFile,matchDirOrFile)
+        >>> SystemFSWalker.walkFunctional('/foo', my_print,my_print, 'test:',matchDirOrFile,matchDirOrFile)
         test: /foo/file1
         test: /foo/file2
         test: /foo/file3

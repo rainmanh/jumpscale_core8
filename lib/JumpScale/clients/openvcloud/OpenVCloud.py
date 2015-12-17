@@ -15,8 +15,8 @@ class Openvclcoud(object):
     def __init__(self, apiurl, branch='master'):
         self._spacesecret = None
         self.apiURL = apiurl
-        self.api = j.tools.ms1.get(apiurl)
-        self.db = j.db.keyvaluestore.getFileSystemStore("aysgit")
+        self.api = j.clients.ms1.get(apiurl, 80)
+        self.db = j.servers.keyvaluestore.getFileSystemStore("aysgit")
         self.reset = False
         self.branch = branch
 

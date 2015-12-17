@@ -2188,6 +2188,8 @@ class Installer():
         deactivate () {
             export PATH=$_OLD_PATH
             unset _OLD_PATH
+            export PYTHONPATH=$_OLD_PYTHONPATH      
+            unset _OLD_PYTHONPATH
             export LD_LIBRARY_PATH=$_OLD_LD_LIBRARY_PATH
             unset _OLD_LD_LIBRARY_PATH
             export PS1=$_OLD_PS1
@@ -2204,11 +2206,14 @@ class Installer():
         export JSBASE=$base
 
         export _OLD_PATH=$PATH
+        export _OLD_PYTHONPATH=$PYTHONPATH
         export _OLD_LDLIBRARY_PATH=$LD_LIBRARY_PATH
         export _OLD_PS1=$PS1        
 
         export PATH=$JSBASE/bin:$PATH
+        export PYTHONHOME=$JSBASE/bin
 
+        export PYTHONPATH=$pythonpath
         export LD_LIBRARY_PATH=$JSBASE/bin
         export PS1="JS8: "
         if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
@@ -2238,9 +2243,9 @@ class Installer():
 
         C2="""#!/bin/bash
 # set -x
-source $JSBASE/env.sh
+source $base/env.sh
 # echo $base/bin/python "$@"
-exec $JSBASE/bin/python "$@"
+exec $base/bin/python "$@"
         """
 
 

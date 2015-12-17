@@ -1,13 +1,11 @@
 #!/usr/bin/env jspython
 
-import sys
-for path in ['/opt/jumpscale8//lib/JumpScale', '/opt/code/github/jumpscale/jumpscale_core8/shellcmds', '/opt/jumpscale8/bin', '/opt/jumpscale8/lib/JumpScale', '/opt/jumpscale8/libext', '/opt/jumpscale8/lib/lib-dynload', '/opt/jumpscale8/lib']:
-    sys.path.insert(0, path)
 
 from JumpScale import j
 
 j.application.start("jsshell")
 
+import sys
 if len(sys.argv)==2:
     toexec=sys.argv[1]
     toexec=toexec.strip("'\" ").strip("'\" ")    

@@ -120,14 +120,18 @@ redisinit()
 if j.core.db==None:
     if j.do.TYPE.startswith("OSX"):
         cmd="redis-server --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"
+        print ("start redis in background")
+        os.system(cmd)
     else:
         url="http://stor.jumpscale.org:8000/public/redis-server"
         if 'redis' not in os.listdir(path='/opt/jumpscale8/bin/'): 
             j.do.download(url, to='%s/bin/redis'%j.do.BASE, overwrite=False, retry=3)
         import subprocess
-        cmd = "chmod 550 %sbin/redis > 2&>1;%sbin/redis --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"%(j.do.BASE,j.do.BASE)
-    print ("start redis in background")
-    os.system(cmd)
+        cmd1 = "chmod 550 %sbin/redis > 2&>1"%j.do.BASE
+        cmd2 = "%sbin/redis --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"%j.do.BASE
+        print ("start redis in background")
+        os.system(cmd1)
+        os.system(cmd2)        
     # Wait until redis is up
     redisinit()
     while j.core.db==None:

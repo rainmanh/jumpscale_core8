@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 from JumpScale import j
 import sys
-import JumpScale.lib.diskmanager
+import JumpScale.sal.diskmanager
 import os
-import JumpScale.baselib.netconfig
+import JumpScale.sal.netconfig
 import netaddr
 from libvirtutil import LibvirtUtil
 import imp
@@ -14,7 +14,7 @@ import pynetlinux
 HRDIMAGE format
 id=
 name=
-ostype = 
+ostype =
 arch=
 version=
 description=
@@ -42,7 +42,7 @@ class KVM(SALObject):
         - names of bridges are brmgmt & brpub & brtmp(and are predefined)
         - brpub will be connected to e.g. eth0 on host and is for public traffic
         - brtmp is not connected to any physical device
-        - brmgmt is not connected to physical device, it is being used for mgmt of vm 
+        - brmgmt is not connected to physical device, it is being used for mgmt of vm
 
         images are always 2 files:
          $anyname.qcow2
@@ -85,7 +85,7 @@ class KVM(SALObject):
         - names of bridges are brmgmt & brpub & brtmp(and are predefined)
         - brpub will be connected to e.g. eth0 on host and is for public traffic
         - brtmp is not connected to any physical device
-        - brmgmt is not connected to physical device, it is being used for mgmt of vm 
+        - brmgmt is not connected to physical device, it is being used for mgmt of vm
 
         brmgmt is not connected to anything
             give static ip range 192.168.66.254/24 to bridge brmgmt (see self.ip_mgmt_range)
@@ -99,7 +99,7 @@ class KVM(SALObject):
         # j.sal.nettools.setBasicNetConfigurationBridgePub()
         if j.sal.nettools.bridgeExists("brmgmt")==False:
             pynetlinux.brctl.addbr("brmgmt")
-        br=pynetlinux.brctl.findbridge("brmgmt")        
+        br=pynetlinux.brctl.findbridge("brmgmt")
         ip=br.get_ip()
         if ip!="192.168.66.254":  #there seems to be bug in this lib, will always be 0 the br.get_ip()
             br.set_ip("192.168.66.254")
@@ -170,7 +170,7 @@ class KVM(SALObject):
     def _getAllMachinesIps(self):
         """
         walk over all vm's, get config & read ip addr
-        put them in dict      
+        put them in dict
         """
         ips = dict()
         for name in self._getAllVMs():
@@ -188,7 +188,7 @@ class KVM(SALObject):
         return self._findFreePubIP(name)
 
     def _findFreePubIP(self, name, pub=False):
-        """        
+        """
         find first ip addr which is free
         """
         ips=self._getAllMachinesIps()
@@ -198,7 +198,7 @@ class KVM(SALObject):
                 addr.append(int(ip[1].split(".")[-1].strip()))
             else:
                 addr.append(int(ip[0].split(".")[-1].strip()))
-        
+
         for i in range(2,252):
             if i not in addr:
                 if pub:
@@ -218,7 +218,7 @@ class KVM(SALObject):
         naming convention
         $vmpath/$name/tmp.qcow2
             $vmpath/$name/data1.qcow2
-            $vmpath/$name/data2.qcow2            
+            $vmpath/$name/data2.qcow2
         one is for all data other is for tmp
 
         when attaching to KVM: disk0=bootdisk, disk1=tmpdisk, disk2=datadisk1, disk3=datadisk2
@@ -320,7 +320,7 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
             pass
         finally:
             j.sal.fs.removeDirTree(self._getRootPath(name))
-        
+
     def stop(self, name):
         print('Stopping machine "%s"' % name)
         try:
@@ -440,7 +440,7 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
         if not j.sal.fs.exists(path=keyloc):
             j.sal.process.executeWithoutPipe("ssh-keygen -t dsa -f %s -N ''" % privkeyloc)
             if not j.sal.fs.exists(path=keyloc):
-                raise RuntimeError("cannot find path for key %s, was keygen well executed"%keyloc)            
+                raise RuntimeError("cannot find path for key %s, was keygen well executed"%keyloc)
         key=j.sal.fs.fileGetContents(keyloc)
         # j.sal.fs.writeFile(filename=path,contents="%s\n"%content)
         # path=j.sal.fs.joinPaths(self._get_rootpath(name),"root",".ssh","known_hosts")
@@ -458,7 +458,7 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
             c.fabric.api.execute(setupmodule.pushSshKey, sshkey=key)
         else:
             c.ssh_authorize("root", key)
-        
+
         c.fabric.state.output["running"]=True
         c.fabric.state.output["stdout"]=True
         return key

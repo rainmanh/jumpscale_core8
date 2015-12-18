@@ -122,7 +122,7 @@ class SSHClient(object):
         run cmd & return
         return: (retcode,out_err)
         """
-        ch = self.transport.open_session(timeout=0.5)
+        ch = self.transport.open_session(timeout=2)
         ch.set_combine_stderr(True)
         if self.forward_agent:
             paramiko.agent.AgentRequestHandler(ch)

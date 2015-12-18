@@ -930,7 +930,7 @@ class InstallTools():
         if remote!=None:
             tmppathdest="/tmp/do.sh"
             self.execute("scp -P %s %s root@%s:%s "%(sshport,path2,remote,tmppathdest),dieOnNonZeroExitCode=die)
-            res=self.execute("ssh -A -p %s root@%s 'sh %s'"%(sshport,remote,tmppathdest),dieOnNonZeroExitCode=die)
+            res=self.execute("ssh -A -p %s root@%s 'bash %s'"%(sshport,remote,tmppathdest),dieOnNonZeroExitCode=die)
         else:
             res=self.execute("bash %s"%path2,dieOnNonZeroExitCode=die,  outputStdout=outputStdout, outputStderr=outputStderr)
         return res
@@ -2206,7 +2206,7 @@ class Installer():
 
         export _OLD_PATH=$PATH
         export _OLD_LDLIBRARY_PATH=$LD_LIBRARY_PATH
-        export _OLD_PS1=$PS1        
+        export _OLD_PS1=$PS1
 
         export PATH=$JSBASE/bin:$PATH
 

@@ -618,6 +618,10 @@ class Service(object):
 
             hrd.path=path_instancehrd
 
+            # check if 1 of parents is of type node
+            if self.parent and self.parent.role == "os":
+                self.consume(self.parent)
+
         else:
             hrd=j.data.hrd.get(path_instancehrd_new)
             path_instancehrd=path_instancehrd_new
@@ -850,6 +854,7 @@ class Service(object):
         self.actions_mgmt.install_pre(self)
         if self.state.changed:
             self._uploadToNode()
+        self._executeOnNode('prepare')
         self._executeOnNode('install')
         self.actions_mgmt.install_post(self)
         # # now we can remove changes of statefile & remove old hrd

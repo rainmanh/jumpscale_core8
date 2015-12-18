@@ -118,11 +118,13 @@ def redisinit():
 import os
 redisinit()
 if j.core.db==None:
+
     if j.do.TYPE.startswith("OSX"):
         cmd="redis-server --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"
         print ("start redis in background")
         os.system(cmd)
     else:
+
         url="http://stor.jumpscale.org:8000/public/redis-server"
         if 'redis' not in os.listdir(path='/opt/jumpscale8/bin/'): 
             j.do.download(url, to='%s/bin/redis'%j.do.BASE, overwrite=False, retry=3)
@@ -157,14 +159,14 @@ def findModules():
     if os.path.isdir(j.do.BASE):
         superroot="%s/lib/JumpScale"%j.do.BASE
     else:
-        if j.core.db.get("system.superroot")==None:  
+        if j.core.db.get("system.superroot")==None:
             superroot = j.do.getDirName(__file__)
             j.core.db.set("system.superroot",superroot)
         superroot=j.core.db.get("system.superroot").decode()
 
     print ("FINDMODULES in %s"%superroot)
     for rootfolder in j.do.listDirsInDir(superroot,False,True):
-        fullpath0=os.path.join(superroot, rootfolder)            
+        fullpath0=os.path.join(superroot, rootfolder)
         if rootfolder.startswith("_"):
             # print ("SKIP__:%s"%fullpath0)
             continue
@@ -204,11 +206,11 @@ if base !="/opt/jumpscale8":
     if j.do.exists(mdpath):
         forcereload=True
     j.do.delete(mdpath)
-    
+
 
 data=j.core.db.get("system.locations")
 if forcereload or data==None:
-    if not j.do.exists(path="%s/bin/metadata.db"%j.do.BASE):        
+    if not j.do.exists(path="%s/bin/metadata.db"%j.do.BASE):
         res=findModules()
         data=j.core.db.get("system.locations").decode()
     else:
@@ -216,7 +218,7 @@ if forcereload or data==None:
         # print ("data from readfile")
 else:
     data=data.decode()
-    
+
 locations=json.loads(data)
 # print ("LEN:%s"%len(locations))
 
@@ -236,5 +238,3 @@ if data==None:
     j.application._config = j.data.hrd.get(path="%s/hrd/system"%basevar)
 
 j.application.init()
-
-

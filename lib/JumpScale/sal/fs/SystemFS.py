@@ -215,7 +215,7 @@ class SystemFS(SALObject):
     exceptions = Exceptions
 
     def __init__(self):
-        self.__jslocation__="j.sal.fs"          
+        self.__jslocation__="j.sal.fs"
         self.logenable=False
         self.loglevel=5
         self.walker=SystemFSWalker()
@@ -238,7 +238,7 @@ class SystemFS(SALObject):
         @param to: Destination file or folder path name
         @type to: string
         """
-        
+
         if ((fileFrom is None) or (to is None)):
             raise TypeError("No parameters given to system.fs.copyFile from %s, to %s" % (fileFrom, to))
         if j.sal.fs.isFile(fileFrom):
@@ -256,10 +256,10 @@ class SystemFS(SALObject):
             elif self.isFile(to):
                 self.remove(to) # overwriting some open  files is frustrating and may not work due to locking [delete/copy is a better strategy]
             try:
-                shutil.copy(fileFrom, to)                
+                shutil.copy(fileFrom, to)
                 self.log("Copied file from %s to %s" % (fileFrom,to),6)
             except Exception as e:
-                raise RuntimeError("Could not copy file from %s to %s, error %s" % (fileFrom,to,e))                
+                raise RuntimeError("Could not copy file from %s to %s, error %s" % (fileFrom,to,e))
         else:
             raise RuntimeError("Can not copy file, file: %s does not exist in system.fs.copyFile" % ( fileFrom ) )
 
@@ -297,7 +297,7 @@ class SystemFS(SALObject):
         """
         self.log('Remove file with path: %s'%path,6)
         if len(path)>0 and path[-1]==os.sep:
-            path=path[:-1]        
+            path=path[:-1]
         if path is None:
             raise TypeError('Not enough parameters passed to system.fs.removeFile: %s'%path)
         if os.path.islink(path):
@@ -351,10 +351,10 @@ class SystemFS(SALObject):
                 except OSError as e:
                     if e.errno != os.errno.EEXIST: #File exists
                         raise
-                    
+
             self.log('Created the directory [%s]' % toStr(newdir), 8)
 
-    def copyDirTree(self, src, dst, keepsymlinks = False, eraseDestination = False, skipProtectedDirs=False, overwriteFiles=True,applyHrdOnDestPaths=None):
+    def copyDirTree(self, src, dst, keepsymlinks = False, eraseDestination=False, overwriteFiles=True,applyHrdOnDestPaths=None):
         """Recursively copy an entire directory tree rooted at src.
         The dst directory may already exist; if not,
         it will be created as well as missing parent directories
@@ -372,7 +372,7 @@ class SystemFS(SALObject):
             raise TypeError('Not enough parameters passed in system.fs.copyDirTree to copy directory from %s to %s '% (src, dst))
         if j.sal.fs.isDir(src):
             names = os.listdir(src)
- 
+
             if not j.sal.fs.exists(dst):
                 self.createDir(dst)
 
@@ -397,10 +397,10 @@ class SystemFS(SALObject):
                     j.sal.fs.symlink(linkto, dstname, overwriteFiles)
                 elif j.sal.fs.isDir(srcname):
                     #print "1:%s %s"%(srcname,dstname)
-                    j.sal.fs.copyDirTree(srcname, dstname, keepsymlinks, eraseDestination,skipProtectedDirs=skipProtectedDirs,overwriteFiles=overwriteFiles,applyHrdOnDestPaths=applyHrdOnDestPaths )
+                    j.sal.fs.copyDirTree(srcname, dstname, keepsymlinks, eraseDestination,overwriteFiles=overwriteFiles,applyHrdOnDestPaths=applyHrdOnDestPaths )
                 else:
                     #print "2:%s %s"%(srcname,dstname)
-                    self.copyFile(srcname, dstname, createDirIfNeeded=False, overwriteFile=overwriteFiles)
+                    self.copyFile(srcname, dstname ,createDirIfNeeded=False,overwriteFile=overwriteFiles)
         else:
             raise RuntimeError('Source path %s in system.fs.copyDirTree is not a directory'% src)
 
@@ -425,7 +425,7 @@ class SystemFS(SALObject):
                 else:
                     self.log('Trying to remove Directory tree with path: %s' % path)
                     shutil.rmtree(path)
-                    
+
                 self.log('Directory tree with path: %s is successfully removed' % path)
             else:
                 raise ValueError("Specified path: %s is not a Directory in system.fs.removeDirTree" % path)
@@ -672,7 +672,7 @@ class SystemFS(SALObject):
         return ext
 
     def chown(self,path,user,group=None):
-        from pwd import getpwnam  
+        from pwd import getpwnam
         from grp import getgrnam
         getpwnam(user)[2]
         uid=getpwnam(user).pw_uid
@@ -681,14 +681,14 @@ class SystemFS(SALObject):
         else:
             gid=getpwnam(user).pw_gid
         os.chown(path, uid, gid)
-        for root, dirs, files in os.walk(path):  
-            for ddir in dirs:  
+        for root, dirs, files in os.walk(path):
+            for ddir in dirs:
                 path = os.path.join(root, ddir)
                 try:
                     os.chown(path, uid, gid)
                 except Exception as e:
                     if str(e).find("No such file or directory")==-1:
-                        raise RuntimeError("%s"%e)                
+                        raise RuntimeError("%s"%e)
             for file in files:
                 path = os.path.join(root, file)
                 try:
@@ -702,15 +702,15 @@ class SystemFS(SALObject):
         @param permissions e.g. 0o660 (USE OCTAL !!!)
         """
         os.chmod(path,permissions)
-        for root, dirs, files in os.walk(path):  
-            for ddir in dirs:  
+        for root, dirs, files in os.walk(path):
+            for ddir in dirs:
                 path = os.path.join(root, ddir)
                 try:
                     os.chmod(path,permissions)
                 except Exception as e:
                     if str(e).find("No such file or directory")==-1:
                         raise RuntimeError("%s"%e)
-                    
+
             for file in files:
                 path = os.path.join(root, file)
                 try:
@@ -812,7 +812,7 @@ class SystemFS(SALObject):
         items=self._listAllInDir(path=path, recursive=True, followSymlinks=False,listSymlinks=True)
         items=[item for item in items[0] if j.sal.fs.isLink(item)]
         for item in items:
-            j.sal.fs.unlink(item)        
+            j.sal.fs.unlink(item)
 
     def _listInDir(self, path,followSymlinks=True):
         """returns array with dirs & files in directory
@@ -903,7 +903,7 @@ class SystemFS(SALObject):
 
         for direntry in dircontent:
             fullpath = self.joinPaths(path, direntry)
-                
+
 
             # if followSymlinks:
             #     if self.isLink(fullpath):
@@ -925,9 +925,9 @@ class SystemFS(SALObject):
                             if matcher(direntry, excludeItem):
                                 includeFile=False
                     if includeFile:
-                        filesreturn.append(fullpath)                    
+                        filesreturn.append(fullpath)
             elif self.isDir(fullpath):
-                if "d" in type:                                                                 
+                if "d" in type:
                     # if not(listSymlinks==False and self.isLink(fullpath)):
                     filesreturn.append(fullpath)
                 if recursive:
@@ -939,13 +939,13 @@ class SystemFS(SALObject):
                             for excludeItem in exclude:
                                 if matcher(fullpath, excludeItem):
                                     exclmatch=True
-                        if exclmatch==False:            
+                        if exclmatch==False:
                             if not(followSymlinks==False and self.isLink(fullpath)):
                                 r,depth = self._listAllInDir(fullpath, recursive, filter, minmtime, maxmtime,depth=depth,type=type,exclude=exclude,followSymlinks=followSymlinks,listSymlinks=listSymlinks)
-                                if len(r) > 0: 
+                                if len(r) > 0:
                                     filesreturn.extend(r)
             elif self.isLink(fullpath):# and followSymlinks==False and listSymlinks:
-                filesreturn.append(fullpath)                
+                filesreturn.append(fullpath)
 
         return filesreturn,depth
 
@@ -1209,7 +1209,7 @@ class SystemFS(SALObject):
                 return True
             else:
                 return False
-            
+
         if(os.path.islink(path)):
             self.log('path %s is a link'%path,8)
             return True
@@ -1283,7 +1283,7 @@ class SystemFS(SALObject):
         except:
             raise OSError('Failed to unlink the specified file path: [%s] in system.ds.unlink' % filename)
 
-    def fileGetContents(self, filename): 
+    def fileGetContents(self, filename):
         """Read a file and get contents of that file
         @param filename: string (filename to open for reading )
         @rtype: string representing the file contents
@@ -1297,7 +1297,7 @@ class SystemFS(SALObject):
         self.log('File %s is closed after reading'%filename,9)
         return data
 
-    def fileGetUncommentedContents(self, filename): 
+    def fileGetUncommentedContents(self, filename):
         """Read a file and get uncommented contents of that file
         @param filename: string (filename to open for reading )
         @rtype: list of lines of uncommented file contents
@@ -1346,7 +1346,7 @@ class SystemFS(SALObject):
             self.remove(path)
         if not self.exists(path=path):
             self.writeFile(path,"")
-        
+
 
     def writeFile(self,filename, contents, append=False):
         """
@@ -1361,7 +1361,7 @@ class SystemFS(SALObject):
         else:
             fp = open(filename,"ab")
         self.log('Writing contents in file %s'%filename,9)
-        fp.write(bytes(contents, 'UTF-8')) 
+        fp.write(bytes(contents, 'UTF-8'))
         # fp.write(contents)
         fp.close()
 

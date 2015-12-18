@@ -125,4 +125,3 @@ class KeyValueStoreFactory(object):
         if key not in self._cache:
             self._cache[key] = LevelDBKeyValueStore(namespace=namespace,basedir=basedir,serializers=serializers)
         return self._cache[key]
-

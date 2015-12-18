@@ -51,13 +51,6 @@ class ActionsBaseMgmt(object):
             if not exists(args, 'node.name'):
                 args['node.name'] = serviceObj.instance
 
-        # # check if 1 of parents is of type node
-        for parent in serviceObj.parents:
-            if parent.role=="os":#.startswith("node"):
-                serviceObj.consume(serviceObj.parent)
-        #         args['tcp.addr'] = serviceObj.parent.hrd.get('node.tcp.addr')
-        #         break
-
         if serviceObj.template.hrd_template.getBool("ns.enable",default=False) and "ns" not in serviceObj._producers:
 
             if "ns" != serviceObj.role and not serviceObj.name.startswith("ns."):

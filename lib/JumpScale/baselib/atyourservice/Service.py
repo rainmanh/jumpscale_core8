@@ -376,7 +376,7 @@ class Service(object):
 
     def getNode(self):
         for parent in self.parents:
-            if 'node' == parent.role:
+            if 'os' == parent.role:
                 return parent
         return None
 
@@ -619,8 +619,8 @@ class Service(object):
             hrd.path=path_instancehrd
 
             # check if 1 of parents is of type node
-            if self.parent and self.parent.role == "os":
-                self.consume(self.parent)
+            # if self.parent and self.parent.role == "os":
+                # self.consume(self.parent)
 
         else:
             hrd=j.data.hrd.get(path_instancehrd_new)
@@ -668,7 +668,8 @@ class Service(object):
 
     def _uploadToNode(self):
         # ONLY UPLOAD THE SERVICE ITSELF, INIT NEEDS TO BE FIRST STEP, NO IMMEDIATE INSTALL
-        if "os" not in self.producers:
+        if not self.parent or self.parent.role != 'os':
+        # if "os" not in self.producers:
             return
         hrd_root = "/etc/ays/local/"
         remotePath = j.sal.fs.joinPaths(hrd_root, j.sal.fs.getBaseName(self.path)).rstrip("/")+"/"
@@ -677,7 +678,8 @@ class Service(object):
 
 
     def _downloadFromNode(self):
-        if 'os' not in self.producers or self.executor is None:
+        # if 'os' not in self.producers or self.executor is None:
+        if not self.parent or self.parent.role != 'os':
             return
 
         hrd_root = "/etc/ays/local/"
@@ -687,12 +689,15 @@ class Service(object):
         self.executor.download(remotePath, self.path)
 
     def _getExecutor(self):
-        if 'os' in self.producers and len(self.producers["os"]) > 1:
-            raise RuntimeError("found more then 1 executor for %s" % self)
+        # if not self.parent or self.parent.role != 'os':
+        # if 'os' in self.producers and len(self.producers["os"]) > 1:
+            # raise RuntimeError("found more then 1 executor for %s" % self)
 
         executor = None
-        if 'os' in self.producers and self.producers.get('os'):
-            node = self.producers["os"][0]
+        if self.parent and self.parent.role == 'os':
+        # if 'os' in self.producers and self.producers.get('os'):
+            node = self.parent
+            # node = self.producers["os"][0]
             if '"agentcontroller2' in node.producers:
                 # this means an agentcontroller is responsible for the node which hosts this service
                 agentcontroller = node.producers["agentcontroller2"][0]
@@ -774,11 +779,12 @@ class Service(object):
 
     # ACTIONS
     def _executeOnNode(self, actionName, cmd=None, reinstall=False):
-        if 'os' not in self.producers or self.executor is None:
+        if not self.parent or self.parent.role != 'os':
+        # if 'os' not in self.producers or self.executor is None:
             return False
 
         cmd2 = ' -d %s -n %s -i %s' % (self.domain, self.name, self.instance)
-        execCmd = 'source /opt/jumpscale8/env.sh\naysexec -a %s %s' % (actionName, cmd2)
+        execCmd = 'aysexec -a %s %s' % (actionName, cmd2)
 
         executor = self.executor
         executor.execute(execCmd, die=True)
@@ -845,11 +851,6 @@ class Service(object):
         # if start:
         #     self.start()
         #
-        # if self.template.hrd_template.getBool("hrd.return", False):
-        #     self._downloadFromNode()
-        #     # need to reload the downloaded instance.hrd file
-        #     self._hrd = j.data.hrd.get(j.sal.fs.joinPaths(self.path, 'instance.hrd'), prefixWithName=False)
-        import ipdb; ipdb.set_trace()
 
         self.actions_mgmt.install_pre(self)
         if self.state.changed:
@@ -857,7 +858,13 @@ class Service(object):
         self._executeOnNode('prepare')
         self._executeOnNode('install')
         self.actions_mgmt.install_post(self)
-        # # now we can remove changes of statefile & remove old hrd
+
+        if self.template.hrd_template.getBool("hrd.return", False):
+            self._downloadFromNode()
+            # need to reload the downloaded instance.hrd file
+            self._hrd = j.data.hrd.get(j.sal.fs.joinPaths(self.path, 'instance.hrd'), prefixWithName=False)
+
+        # now we can remove changes of statefile & remove old hrd
         self.state.installDoneOK()
         j.sal.fs.copyFile(
             j.sal.fs.joinPaths(self.path, "instance.hrd"),

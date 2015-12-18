@@ -20,6 +20,12 @@ class Docker2(SALObject):
         self.client = docker.Client(base_url='unix://var/run/docker.sock')
         self._containers=[]
         self._names=[]
+        self.remote = {'host': 'localhost', 'port': 0}
+
+    def connectRemoteTCP(self, address, port):
+        url = '%s:%s' % (address, port)
+        self.client = docker.Client(base_url=url)
+        self.remote = {'host': address, 'port': port}
 
     def _execute(self, command):
         env = os.environ.copy()
@@ -238,7 +244,7 @@ class Docker2(SALObject):
         print(("create:%s" % name))
 
         running = [item.name for item in self.containersRunning]
-        
+
         if not replace:
             if name in self.containerNamesRunning:
                 j.events.opserror_critical("Cannot create machine with name %s, because it does already exists.")
@@ -272,7 +278,7 @@ class Docker2(SALObject):
         if ssh:
             if 22 not in portsdict:
                 for port in range(9022, 9190):
-                    if not j.sal.nettools.tcpPortConnectionTest("localhost", port):
+                    if not j.sal.nettools.tcpPortConnectionTest(self.remote['host'], port):
                         portsdict[22] = port
                         print(("SSH PORT WILL BE ON:%s" % port))
                         break
@@ -352,14 +358,8 @@ class Docker2(SALObject):
         res = self.client.start(container=id, binds=binds, port_bindings=portsdict, lxc_conf=None, \
             publish_all_ports=False, links=None, privileged=False, dns=nameserver, dns_search=None, volumes_from=None, network_mode=None)
 
-        container = Container(name,id, self.client)
-        
-        time.sleep(2)
+        container = Container(name,id, self.client, self.remote['host'])
 
-        container.sshclient.connectTest(timeout=10)
-        
-        
-        
         if ssh:
             # time.sleep(0.5)  # give time to docker to start
             container.pushSSHKey(keyname=sshkeyname, sshpubkey=sshpubkey)
@@ -415,5 +415,3 @@ class Docker2(SALObject):
     def pull(self,imagename):
         cmd="docker pull %s"%imagename
         j.sal.process.executeWithoutPipe(cmd)
-    
-

@@ -7,10 +7,11 @@ from sal.base.SALObject import SALObject
 class Container(SALObject):
     """Docker Container"""
 
-    def __init__(self, name, id, client):
+    def __init__(self, name, id, client, host="localhost"):
 
         self.client = client
 
+        self.host = host
         self.name = name
         self.id=id
 
@@ -36,7 +37,7 @@ class Container(SALObject):
     @property
     def executor(self):
         if self._executor is None:
-            self._executor = j.tools.executor.getSSHBased(addr='localhost', port=self.ssh_port, login='root', passwd="gig1234")
+            self._executor = j.tools.executor.getSSHBased(addr=self.host, port=self.ssh_port, login='root', passwd="gig1234")
             self._executor.sshclient.connectTest(timeout=10)
         return self._executor
 
@@ -153,7 +154,7 @@ class Container(SALObject):
         self.cuisine.sudo("echo %s >> /etc/hosts" % hostname)
 
     def getPubPortForInternalPort(self, port):
-        
+
         for key,portsDict in self.info["NetworkSettings"]["Ports"].items():
             if key.startswith(str(port)):
                 # if "PublicPort" not in port2:
@@ -163,9 +164,10 @@ class Container(SALObject):
                     return portsfound[0]
 
         j.events.inputerror_critical("cannot find publicport for ssh?")
-        
+
 
     def pushSSHKey(self, keyname="", sshpubkey="", local=True):
+        print(sshpubkey)
         key = None
         if local:
             templates = ['.']
@@ -186,8 +188,10 @@ class Container(SALObject):
             # self.cuisine.ssh_authorize("root", key)
 
         j.sal.fs.writeFile(filename="/root/.ssh/known_hosts", contents="")
-        self.executor.execute("rm -rf /opt/jumpscale8/hrd/apps/*", showout=False)
-        self.executor.execute("git config --global user.email \"ishouldhavebeenchanged@example.com\"", showout=False)
+        # self.executor.execute("rm -rf /opt/jumpscale8/hrd/apps/*", showout=False)
+        # self.executor.execute("git config --global user.email \"ishouldhavebeenchanged@example.com\"", showout=False)
+        if key is None or key == '':
+            raise RuntimeError("sshkey is empty")
 
         self.cuisine.ssh_authorize("root", key)
 
@@ -276,7 +280,7 @@ class Container(SALObject):
     #     echo "installation done" > /tmp/ok
     #     """
     #     ssh_port=self.getPubPortForInternalPort(name,22)
-    #     j.do.executeBashScript(content=C2, remote="localhost", sshport=ssh_port)        
+    #     j.do.executeBashScript(content=C2, remote="localhost", sshport=ssh_port)
 
 
     # def _btrfsExecute(self,cmd):
@@ -329,4 +333,3 @@ class Container(SALObject):
     #         j.sal.fs.removeDirTree(path)
     #     if self.btrfsSubvolExists(name):
     #         raise RuntimeError("vol cannot exist:%s"%name)
-

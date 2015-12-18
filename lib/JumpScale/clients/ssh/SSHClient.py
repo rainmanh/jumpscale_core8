@@ -1,7 +1,7 @@
 from JumpScale import j
 
 import paramiko
-from paramiko.ssh_exception import SSHException
+from paramiko.ssh_exception import SSHException, BadHostKeyException, AuthenticationException
 import time
 import io
 import socket
@@ -94,18 +94,23 @@ class SSHClient(object):
         time.sleep(0.5)
         rc = 1
         maxcounter = timeout
+
         while counter < maxcounter and rc != 0:
             try:
                 counter += 0.1
-                print("connect ssh2.")
+                # print("connect ssh2.")
                 rc, out = self.execute(cmd, showout=False)
                 # print (rc)
-            except Exception as e:
+            except (BadHostKeyException, AuthenticationException) as e:
+                # cant' recover, no point to wait. exit now
                 print(e)
-                if str(e).find('No authentication methods available') != -1 or \
-                   str(e).find('Authentication failed') != -1:
-                    rc = 1
-                    break
+                rc = 1
+                break
+            except (SSHException, socket.error) as e:
+                print(e)
+                j.clients.ssh.removeFromCache(self)
+                self._client = None
+                self._transport = None
                 time.sleep(0.1)
                 continue
 

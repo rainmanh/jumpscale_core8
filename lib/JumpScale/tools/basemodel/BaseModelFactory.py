@@ -119,7 +119,7 @@ class BaseModelFactory():
         if j.core.db.exists('%s_%s' % (key, id)):
             return True
         try:
-            model.objects.get(guiid=id)
+            model.objects.get(guid=id)
         except DoesNotExist:
             return False
 

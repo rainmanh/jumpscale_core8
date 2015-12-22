@@ -1,4 +1,4 @@
-JumpScale 7
+JumpScale 8
 ===========
 
 [![Build Status](http://ci.codescalers.com/buildStatus/icon?job=jumpscale8-build)](http://ci.codescalers.com/job/jumpscale8-build/)

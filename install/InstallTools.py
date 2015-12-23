@@ -1951,6 +1951,8 @@ class Installer():
 
         print(("Install Jumpscale in %s"%os.environ["JSBASE"]))
 
+        SANDBOX=0
+
         #this means if env var's are set they get priority
         args2=["GITHUBUSER","GITHUBPASSWD","JSGIT","JSBRANCH","AYSGIT","AYSBRANCH","CODEDIR","SANDBOX","EMAIL","FULLNAME","JSBASE","PYTHONVERSION"]
         #walk over all var's & set defaults or get them from env
@@ -1962,7 +1964,6 @@ class Installer():
                 print (eval("%s"%var))
 
         # if do.TYPE!=("UBUNTU64"):
-        SANDBOX=0
 
         os.environ["GITHUBUSER"]=GITHUBUSER
         os.environ["GITHUBPASSWD"]=GITHUBPASSWD
@@ -2047,7 +2048,7 @@ class Installer():
             do.symlink(src, "%s/bin/python3"%base)
             do.symlink(src, "%s/bin/python3.5"%base)
 
-        self.writeenv(basedir=base,insystem=insystem,CODEDIR=CODEDIR)
+        self.writeenv(basedir=base,insystem=insystem,CODEDIR=CODEDIR, SANDBOX=SANDBOX)
 
         if not insystem:
             sys.path=[]
@@ -2075,7 +2076,7 @@ class Installer():
         return self._readonly
 
 
-    def writeenv(self,basedir="",insystem=False,CODEDIR="",vardir="",die=True):
+    def writeenv(self,basedir="",insystem=False,CODEDIR="",vardir="",die=True, SANDBOX=0):
         if basedir=="":
             # self.BASE
             try:
@@ -2214,7 +2215,7 @@ class Installer():
 
         export PATH=$JSBASE/bin:$PATH
 
-        export PYTHONHOME=$JSBASE/bin
+        $pythonhome
         export PYTHONPATH=$pythonpath
 
         export LD_LIBRARY_PATH=$JSBASE/bin
@@ -2224,6 +2225,12 @@ class Installer():
         fi
         """
         C=C.replace("$base",basedir)
+
+        if SANDBOX:
+            C = C.replace('$pythonhome', 'export PYTHONHOME=$JSBASE/bin')
+        else:
+            C = C.replace('$pythonhome', '')
+
         if do.TYPE.startswith("OSX"):
             C=C.replace("$pythonpath",".:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/plat-x86_64-linux-gnu:/usr/local/lib/python3.5/site-packages:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/plat-darwin:/usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload")
         else:
@@ -2247,17 +2254,11 @@ class Installer():
         C2="""#!/bin/bash
 # set -x
 source $base/env.sh
-exec $JSBASE/bin/python -q -B -s -S "$@"
+exec $JSBASE/bin/python -q "$@"
         """
-
-        C2_insystem="""#!/bin/bash
-# set -x
-exec python -q -B -s -S "$@"
-"""
 
         # C2=C2.format(base=basedir, env=envfile)
         if self.readonly==False or die==True:
-
             
             do.delete("/usr/bin/jspython")#to remove link
             do.delete("%s/bin/jspython"%basedir)

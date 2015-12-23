@@ -2254,9 +2254,6 @@ class Installer():
         C2="""#!/bin/bash
 # set -x
 source $base/env.sh
-# echo $base/bin/python "$@"
-# exec $base/bin/python "$@"
-#DO NOT HARDCODE TO $base on next line, needs to use env.sh args
 exec $JSBASE/bin/python -q "$@"
         """
 

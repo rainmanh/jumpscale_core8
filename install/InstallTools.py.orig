@@ -2247,6 +2247,9 @@ class Installer():
         C2="""#!/bin/bash
 # set -x
 source $base/env.sh
+# echo $base/bin/python "$@"
+# exec $base/bin/python "$@"
+<<<<<<< HEAD
 exec $JSBASE/bin/python -q -B -s -S "$@"
         """
 
@@ -2255,6 +2258,14 @@ exec $JSBASE/bin/python -q -B -s -S "$@"
 exec python -q -B -s -S "$@"
 """
 
+
+
+=======
+#DO NOT HARDCODE TO $base on next line, needs to use env.sh args
+exec $JSBASE/bin/python -q "$@"
+        """
+
+>>>>>>> 52c44c5ac1769a24712ddef7de9ba96b5ab7f03e
         # C2=C2.format(base=basedir, env=envfile)
         if self.readonly==False or die==True:
             dest="%s/bin/jspython"%basedir
@@ -2271,14 +2282,20 @@ exec python -q -B -s -S "$@"
                 # /usr/bin/python "$@"
                 # """
                 # C2=C2.replace("$base",basedir)
-
-                do.delete("/usr/bin/jspython")#to remove link
-
+<<<<<<< HEAD
                 dest="/usr/local/bin/jspython"
                 do.delete(dest)#to remove link
 
                 do.writeFile(dest,C2_insystem)
                 do.chmod(dest, 0o770)
+
+                dest="/usr/bin/jspython"
+                do.delete(dest)
+=======
+                self.symlink(dest, "/usr/local/bin/jspython", delete=True)
+                self.symlink(dest, "/usr/bin/jspython", delete=True)
+>>>>>>> 52c44c5ac1769a24712ddef7de9ba96b5ab7f03e
+
 
             #change site.py file
             def changesite(path):

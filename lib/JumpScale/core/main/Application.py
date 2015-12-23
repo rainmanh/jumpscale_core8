@@ -56,7 +56,27 @@ class Application:
 
     def init(self):
         if j.logger.enabled:
-            j.logger.init()        
+            j.logger.init()  
+
+    def useCurrentDirAsHome(self):
+        """
+        use current directory as home for JumpScale
+        e.g. /optrw/jumpscale8
+        there needs to be a env.sh in that dir
+        will also empty redis
+        """
+        if not j.do.exists("env.sh"):
+            raise RuntimeError("Could not find env.sh in current directory, please go to root of jumpscale e.g. /optrw/jumpscale8")
+        # C=j.do.readFile("env.sh")
+        # C2=""
+        # for line in C.split("\n"):
+        #     if line.startswith("export JSBASE"):
+        #         line="export JSBASE=/optrw/jumpscale8"
+        #     C2+="%s\n"%line
+        # j.do.readFile("env.sh",C2)
+        j.core.db.flushall()
+        j.do.installer.writeenv(base=j.sal.fs.getcwd())
+        j.core.db.flushall()
 
     @property
     def config(self):

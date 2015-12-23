@@ -14,10 +14,13 @@ class MyFSEventHandler(FileSystemEventHandler):
             changedfile = event.src_path
             for node in j.tools.debug.nodes:
                 sep = "jumpscale_core8/lib/JumpScale/"
+                sep_cmds = "jumpscale_core8/shellcmds/"
                 if changedfile.find(sep) != -1:
                     dest0 = changedfile.split(sep)[1]
-                    dest = "root@%s:/optrw/jumpscale8/lib/JumpScale/%s" % (node.addr, dest0)
                     dest = "/optrw/jumpscale8/lib/JumpScale/%s" % (dest0)
+                elif changedfile.find(sep_cmds) != -1:
+                    dest0 = changedfile.split(sep_cmds)[1]
+                    dest = "/optrw/jumpscale8/bin/%s" % (dest0)
                 elif changedfile.find("/.git/") != -1:
                     return
                 elif changedfile.find("/__pycache__/") != -1:
@@ -43,6 +46,7 @@ class MyFSEventHandler(FileSystemEventHandler):
 
     def on_modified(self, event):
         self.catch_all_handler(event)
+
 
 
 class DebugSSHNode():
@@ -141,6 +145,7 @@ class DebugFactory():
         format="localhost,ovh4,anode:2222,192.168.6.5:23"
         this will be remembered in local redis for further usage
         """
+        self._nodes=[]
         j.core.db.set("debug.nodes", nodes)
 
     @property
@@ -164,12 +169,15 @@ class DebugFactory():
                 self._nodes.append(DebugSSHNode(addr, sshport))
         return self._nodes
 
-    def installJSSandbox(self, rw=False, synclocalcode=False):
+    def installJSSandbox(self, rw=False, synclocalcode=True,reset=True,monitor=True):
         """
         install jumpscale, will be done as sandbox over fuse layer for linux
         otherwise will try to install jumpscale inside OS
 
         @input rw, if True will put overlay filesystem on top of /opt -> /optrw which will allow you to manipulate/debug the install
+        @input synclocalcode, sync the local github code to the node (jumpscale) (only when in rw mode)
+        @input reset, remove old code (only used when rw mode)
+        @input monitor detect local changes & sync (only used when rw mode)
         """
         C = """
         set +ex
@@ -192,16 +200,19 @@ class DebugFactory():
 
         for node in self.nodes:
             node.cuisine.run_script(C)
+
         if rw:
-            self.overlaySandox()
+            self.overlaySandbox()
 
-        if synclocalcode:
-            self.syncCode()
+            if synclocalcode:
+                self.syncCode(reset,monitor)
 
-    def overlaySandox(self):
+    def overlaySandbox(self):
         C = """
         set +ex
         umount -f /optrw
+        umount -f /optrw
+        apt-get remove redis-server -y
         rm -rf /overlay/js_upper
         rm -rf /overlay/js_work
         rm -rf /optrw
@@ -213,8 +224,25 @@ class DebugFactory():
         mkdir -p /optrw/jumpscale8/lib/JumpScale/
         mkdir -p /optrw/code/
         """
+        NEWENV="""
+        export JSBASE=/optrw/jumpscale8
+
+        export PATH=$JSBASE/bin:$PATH
+        export PYTHONHOME=$JSBASE/bin
+
+        export PYTHONPATH=.:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu
+        export LD_LIBRARY_PATH=$JSBASE/bin
+        export PS1="JS8: "
+        if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
+                hash -r 2>/dev/null
+        fi
+        """
         for node in self.nodes:
             node.cuisine.run_script(C)
+            node.cuisine.file_write("/optrw/jumpscale8/env.sh", NEWENV,check=True)
+            # node.cuisine.run("cd /optrw/jumpscale8;source env.sh;js 'j.application.useCurrentDirAsHome()'")
+
+        print ("login to machine & do\ncd /optrw/jumpscale8;source env.sh;js")
 
     def syncCode(self, reset=False, monitor=True):
         if reset or j.core.db.get("debug.codepaths") == None:
@@ -259,6 +287,8 @@ class DebugFactory():
         """
         event_handler = MyFSEventHandler()
         observer = Observer()
+        if j.core.db.get("debug.codepaths") == None:
+            self.syncCode(monitor=False)
         codepaths = j.core.db.get("debug.codepaths").decode().split(",")
         for source in codepaths:
             print("monitor:%s" % source)

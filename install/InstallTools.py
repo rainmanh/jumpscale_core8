@@ -2190,9 +2190,12 @@ class Installer():
             unset _OLD_PATH
             export LD_LIBRARY_PATH=$_OLD_LD_LIBRARY_PATH
             unset _OLD_LD_LIBRARY_PATH
+            export PYTHONPATH=$_OLD_PYTHONPATH     
+            unset _OLD_PYTHONPATH            
             export PS1=$_OLD_PS1
             unset _OLD_PS1
             unset JSBASE
+            unset PYTHONHOME
             if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
                     hash -r 2>/dev/null
             fi
@@ -2207,8 +2210,12 @@ class Installer():
         export _OLD_PATH=$PATH
         export _OLD_LDLIBRARY_PATH=$LD_LIBRARY_PATH
         export _OLD_PS1=$PS1
+        export _OLD_PYTHONPATH=$PYTHONPATH
 
         export PATH=$JSBASE/bin:$PATH
+        
+        export PYTHONHOME=$JSBASE/bin
+        export PYTHONPATH=$pythonpath
 
         export LD_LIBRARY_PATH=$JSBASE/bin
         export PS1="(JS8) $PS1"
@@ -2241,8 +2248,11 @@ class Installer():
 # set -x
 source $base/env.sh
 # echo $base/bin/python "$@"
-exec $base/bin/python "$@"
+# exec $base/bin/python "$@"
+#DO NOT HARDCODE TO $base on next line, needs to use env.sh args
+exec $JSBASE/bin/python -q -B -s -S "$@"
         """
+
 
 
         # C2=C2.format(base=basedir, env=envfile)

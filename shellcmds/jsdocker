@@ -10,7 +10,7 @@ j.application.start("jsmachine_docker")
 parser = cmdutils.ArgumentParser()
 # 'mountdisks','unmountdisks'
 parser.add_argument("action",
-                    choices=['ps', 'new', 'pull', 'commit', 'list', 'destroyall','destroycontainers', 'destroy', 'cmd', 'ssh',
+                    choices=['ps', 'new', 'pull', 'commit', 'list', 'destroyall','resetdocker', 'destroy', 'cmd', 'ssh',
                              'start', 'stop', 'restart', 'getip', 'exportTGZ', 'importTGZ', 'exportR',
                              'importR'],
                     help='Command to perform')
@@ -35,7 +35,6 @@ parser.add_argument("-g", '--gw', help='set ip gateway of machine (192.168.1.1)'
 parser.add_argument('--start', help='start after creation', action='store_true', default=False)
 parser.add_argument('--sshkeyname', help='ssh-agent keyname to be used to push into machine')
 parser.add_argument('--jsbranch', help='jumpscale branch to be used')
-
 
 opts = parser.parse_args()
 
@@ -178,8 +177,8 @@ if opts.action == 'rdp':
 if opts.action == 'destroyall':
     j.sal.docker.destroyAll()
 
-if opts.action == 'destroycontainers':
-    j.sal.docker.destroyAll()
+if opts.action == 'resetDocker':
+    j.sal.docker.resetDocker()
 
 if opts.action == 'destroy':
     if opts.name is None:

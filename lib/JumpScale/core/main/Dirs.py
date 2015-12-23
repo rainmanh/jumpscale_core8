@@ -38,45 +38,47 @@ class Dirs(object):
             if data!=None:
                 self.__dict__=json.loads(data.decode())
             else:
-                print ("load dirs")
-                self.appDir = j.application.config.get("system.paths.app")
-                self.varDir = j.application.config.get("system.paths.var")
-                self.cfgDir = j.application.config.get("system.paths.cfg")
-                self.libDir = j.application.config.get("system.paths.lib")
-                self.jsLibDir = os.path.join(self.libDir,"JumpScale")
-                #j.application.config.get("system.paths.python.lib.js")
-                self.logDir = j.application.config.get("system.paths.log")
-                self.pidDir = j.application.config.get("system.paths.pid")
-                self.codeDir = j.application.config.get("system.paths.code")
-                self.libExtDir = j.application.config.get("system.paths.python.lib.ext")
-                self.tmpDir = tempfile.gettempdir()
-                self.hrd =  os.path.join(j.application.config.get("system.paths.hrd"),"system")
+                self.init()
+    def init(self):
+        print ("load dirs")       
+        self.appDir = j.application.config.get("system.paths.app")
+        self.varDir = j.application.config.get("system.paths.var")
+        self.cfgDir = j.application.config.get("system.paths.cfg")
+        self.libDir = j.application.config.get("system.paths.lib")
+        self.jsLibDir = os.path.join(self.libDir,"JumpScale")
+        #j.application.config.get("system.paths.python.lib.js")
+        self.logDir = j.application.config.get("system.paths.log")
+        self.pidDir = j.application.config.get("system.paths.pid")
+        self.codeDir = j.application.config.get("system.paths.code")
+        self.libExtDir = j.application.config.get("system.paths.python.lib.ext")
+        self.tmpDir = tempfile.gettempdir()
+        self.hrd =  os.path.join(j.application.config.get("system.paths.hrd"),"system")
 
-                self._ays=None
+        self._ays=None
 
-                self._createDir(os.path.join(self.base,"libext"))
+        self._createDir(os.path.join(self.base,"libext"))
 
-                if self.libDir in sys.path:
-                    sys.path.pop(sys.path.index(self.libDir))
-                sys.path.insert(0,self.libDir)
+        if self.libDir in sys.path:
+            sys.path.pop(sys.path.index(self.libDir))
+        sys.path.insert(0,self.libDir)
 
-                pythonzip = os.path.join(self.libDir, 'python.zip')
-                if os.path.exists(pythonzip):
-                    if pythonzip in sys.path:
-                        sys.path.pop(sys.path.index(pythonzip))
-                    sys.path.insert(0,pythonzip)
+        pythonzip = os.path.join(self.libDir, 'python.zip')
+        if os.path.exists(pythonzip):
+            if pythonzip in sys.path:
+                sys.path.pop(sys.path.index(pythonzip))
+            sys.path.insert(0,pythonzip)
 
-                if self.libExtDir in sys.path:
-                    sys.path.pop(sys.path.index(self.libExtDir))
-                sys.path.insert(2,self.libExtDir)
+        if self.libExtDir in sys.path:
+            sys.path.pop(sys.path.index(self.libExtDir))
+        sys.path.insert(2,self.libExtDir)
 
-                if 'JSBASE' in os.environ:
-                    self.binDir = os.path.join(self.base, 'bin')
-                else:
-                    self.binDir = j.application.config.get("system.paths.bin")
+        if 'JSBASE' in os.environ:
+            self.binDir = os.path.join(self.base, 'bin')
+        else:
+            self.binDir = j.application.config.get("system.paths.bin")
 
-                data=json.dumps(self.__dict__)
-                j.core.db.set("system.dirs.%s"%self.base,data)
+        data=json.dumps(self.__dict__)
+        j.core.db.set("system.dirs.%s"%self.base,data)
 
     def replaceTxtDirVars(self,txt,additionalArgs={}):
         """

@@ -390,11 +390,11 @@ class Docker2(SALObject):
             if tag in item["RepoTags"]:
                 self.client.remove_image(item["Id"])
 
-    def destroyContainers(self):
+    def destroyAll(self):
         for container in self.containers:
             container.destroy()
 
-    def destroyAll(self):
+    def resetDocker(self):
         self.destroyContainers()
 
         rc,out=j.sal.process.execute("mount")
@@ -407,9 +407,9 @@ class Docker2(SALObject):
         for mountpoint in mountpoints:
             j.sal.btrfs.subvolumesDelete(mountpoint,"/docker/")
 
-        j.do.execute("apt-get remove docker-engine")
-        j.do.execute("rm /var/lib/docker")
-        j.do.execute("apt-get install docker-engine")
+        j.do.execute("apt-get remove docker-engine -y")
+        j.do.execute("rm -rf /var/lib/docker")
+        j.do.execute("apt-get install docker-engine -y")
 
 
     def pull(self,imagename):

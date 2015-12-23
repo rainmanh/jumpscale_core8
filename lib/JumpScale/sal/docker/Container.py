@@ -188,7 +188,6 @@ class Container(SALObject):
             # self.cuisine.ssh_authorize("root", key)
 
         j.sal.fs.writeFile(filename="/root/.ssh/known_hosts", contents="")
-        # self.executor.execute("rm -rf /opt/jumpscale8/hrd/apps/*", showout=False)
         # self.executor.execute("git config --global user.email \"ishouldhavebeenchanged@example.com\"", showout=False)
         if key is None or key == '':
             raise RuntimeError("sshkey is empty")
@@ -198,8 +197,16 @@ class Container(SALObject):
         return key
 
     def destroy(self):
-        self.client.kill(self.id)
-        self.client.remove_container(self.id)
+        
+        try:
+            self.client.kill(self.id)
+        except Exception as e:
+            print ("could not kill:%s"%self.id)
+        try:
+            self.client.remove_container(self.id)
+        except Exception as e:
+            print ("could not kill:%s"%self.id)
+    
 
     def stop(self):
         self.client.kill(self.id)

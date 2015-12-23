@@ -200,13 +200,22 @@ def findModules():
     if base =="/opt/jumpscale8":
         j.do.writeFile("%s/bin/metadata.db"%j.do.BASE,json.dumps(result))
 
+
 forcereload=False
+
+
 if base !="/opt/jumpscale8":
-    mdpath="%s/bin/metadata.md"%base
+    mdpath="%s/bin/metadata.db"%base
     if j.do.exists(mdpath):
         forcereload=True
-    j.do.delete(mdpath)
-
+        j.do.delete(mdpath)
+        #make sure redis is empty
+        if j.core.db!=None:
+            j.core.db.flushall()
+        if base =="/optrw/jumpscale8":
+            j.do.installer.writeenv(basedir=base, insystem=False, CODEDIR='/optrw/code')            
+        print ("force metadata reload")
+                        
 
 data=j.core.db.get("system.locations")
 if forcereload or data==None:

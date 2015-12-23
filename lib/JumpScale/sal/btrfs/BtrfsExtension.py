@@ -40,7 +40,7 @@ class BtrfsExtension(SALObject):
         if code:
             raise RuntimeError(out)
 
-        return out.decode()
+        return out
 
     def snapshotReadOnlyCreate(self, path, dest):
         """

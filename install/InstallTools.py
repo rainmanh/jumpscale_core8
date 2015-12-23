@@ -2053,7 +2053,7 @@ class Installer():
             sys.path=[]
         sys.path.insert(0,"%s/lib"%base)
 
-        from JumpScale import j
+        #from JumpScale import j
 
         print("Get atYourService metadata.")
         do.pullGitRepo(AYSGIT, branch=AYSBRANCH, depth=1)
@@ -2190,8 +2190,8 @@ class Installer():
             unset _OLD_PATH
             export LD_LIBRARY_PATH=$_OLD_LD_LIBRARY_PATH
             unset _OLD_LD_LIBRARY_PATH
-            export PYTHONPATH=$_OLD_PYTHONPATH     
-            unset _OLD_PYTHONPATH            
+            export PYTHONPATH=$_OLD_PYTHONPATH
+            unset _OLD_PYTHONPATH
             export PS1=$_OLD_PS1
             unset _OLD_PS1
             unset JSBASE
@@ -2213,7 +2213,7 @@ class Installer():
         export _OLD_PYTHONPATH=$PYTHONPATH
 
         export PATH=$JSBASE/bin:$PATH
-        
+
         export PYTHONHOME=$JSBASE/bin
         export PYTHONPATH=$pythonpath
 

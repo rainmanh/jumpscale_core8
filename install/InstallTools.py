@@ -2257,6 +2257,11 @@ source $base/env.sh
 exec $JSBASE/bin/python -q "$@"
         """
 
+        C2_insystem="""#!/bin/bash
+# set -x
+exec python -q "$@"
+        """
+
         # C2=C2.format(base=basedir, env=envfile)
         if self.readonly==False or die==True:
             

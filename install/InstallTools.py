@@ -2257,28 +2257,21 @@ exec python -q -B -s -S "$@"
 
         # C2=C2.format(base=basedir, env=envfile)
         if self.readonly==False or die==True:
-            dest="%s/bin/jspython"%basedir
-            do.delete(dest)
-            C2 = C2.replace('$base', basedir)
-            do.writeFile(dest,C2)
-            do.chmod(dest, 0o770)
 
-            if insystem:
-                #             C2="""
-                # #!/bin/bash
-                # set -ex
-                # #export PYTHONPATH=$base/lib:$base/lib/lib-dynload/:$base/bin:$base/lib/python.zip:$base/lib/plat-x86_64-linux-gnu:$PYTHONPATH
-                # /usr/bin/python "$@"
-                # """
-                # C2=C2.replace("$base",basedir)
+            
+            do.delete("/usr/bin/jspython")#to remove link
+            do.delete("%s/bin/jspython"%basedir)
+            do.delete("/usr/local/bin/jspython")
 
-                do.delete("/usr/bin/jspython")#to remove link
-
+            if not insystem:
+                dest="%s/bin/jspython"%basedir
+                C2 = C2.replace('$base', basedir)
+                do.writeFile(dest,C2)
+            else:
+                #in system
                 dest="/usr/local/bin/jspython"
-                do.delete(dest)#to remove link
-
                 do.writeFile(dest,C2_insystem)
-                do.chmod(dest, 0o770)
+            do.chmod(dest, 0o770)
 
             #change site.py file
             def changesite(path):

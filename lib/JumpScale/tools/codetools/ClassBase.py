@@ -18,20 +18,20 @@ class ClassBase(object):
         #j.tools.code.classEditGeany(self)
         
     def obj2dict(self):
-        return j.code.object2dict(self)
+        return j.tools.code.object2dict(self)
     
     def dict2obj(self,data):
-        j.code.dict2object(self,data)
+        j.tools.code.dict2object(self,data)
 
         
     def __str__(self):
-        return j.code.object2json(self,True)
+        return j.tools.code.object2json(self,True)
                 
     __repr__=__str__
 
 class JSModelBase(ClassBase):
     def dict2obj(self,data):
-        j.code.dict2JSModelobject(self,data)    
+        j.tools.code.dict2JSModelobject(self,data)    
 
 
 class JSRootModelBase(JSModelBase):

@@ -636,8 +636,8 @@ class Text:
     
     def getInt(self,text):        
         if j.core.types.string.check(text):
-            text=self.strip()
-            if self.lower()=="none":
+            text=self.strip(text)
+            if text.lower()=="none":
                 return 0
             elif text==None:
                 return 0             
@@ -725,10 +725,10 @@ class Text:
         """
         @type can be int,bool or float (otherwise its always str)
         """
-        if self.strip()=="":
+        if self.strip(text)=="":
             return []        
         text=self.dealWithQuote(text)        
-        text=self.split(",")
+        text=text.split(",")
         text=[item.strip() for item in text]
         if ttype!=None:
             ttype=ttype.lower()

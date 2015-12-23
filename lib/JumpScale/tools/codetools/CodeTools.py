@@ -271,7 +271,7 @@ class CodeTools:
                     key=key[3:]
                 elif key[0]=="_":
                     continue
-                if j.core.types.dictionary.check(value):
+                if j.core.types.dict.check(value):
                     for key2 in list(value.keys()):
                         r=toStr(value[key2])
                         if r!="":
@@ -284,7 +284,7 @@ class CodeTools:
         
 
     def object2dict(self,obj,dieOnUnknown=False,ignoreKeys=[],ignoreUnderscoreKeys=False):
-        if j.core.types.dictionary.check(obj):
+        if j.core.types.dict.check(obj):
             return obj
         data={}
 

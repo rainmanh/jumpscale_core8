@@ -592,7 +592,7 @@ class Sheet(j.tools.code.classGetBase()):
         slf.period = dict["period"]
         for key in list(dict["rows"].keys()):
             item = dict["rows"][key]
-            row = j.code.dict2object(Row(), item)
+            row = j.tools.code.dict2object(Row(), item)
             self.rows[row.name] = row
 
     def addRow(self, name, ttype="float", aggregate="T", description="", groupname="", groupdescr="", nrcols=None, format="", values=[],

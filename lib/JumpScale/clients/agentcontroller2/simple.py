@@ -7,7 +7,7 @@ from io import StringIO
 import collections
 from JumpScale import j
 
-from . import acclient
+acclient = __import__('acclient')
 
 
 STATE_UNKNOWN = 'UNKNOWN'

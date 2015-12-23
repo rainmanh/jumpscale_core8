@@ -1,7 +1,6 @@
 from JumpScale import j
 import JumpScale.grid.agentcontroller
-import JumpScale.grid.osis
-import JumpScale.baselib.units
+#import JumpScale.baselib.units
 import gevent
 
 class GridHealthChecker(object):

@@ -2250,10 +2250,8 @@ source $base/env.sh
 # echo $base/bin/python "$@"
 # exec $base/bin/python "$@"
 #DO NOT HARDCODE TO $base on next line, needs to use env.sh args
-exec $JSBASE/bin/python -q -B -s -S "$@"
+exec $JSBASE/bin/python -q "$@"
         """
-
-
 
         # C2=C2.format(base=basedir, env=envfile)
         if self.readonly==False or die==True:
@@ -2271,14 +2269,8 @@ exec $JSBASE/bin/python -q -B -s -S "$@"
                 # /usr/bin/python "$@"
                 # """
                 # C2=C2.replace("$base",basedir)
-                dest="/usr/local/bin/jspython"
-                do.delete(dest)#to remove link
-
-                do.writeFile(dest,C2)
-                do.chmod(dest, 0o770)
-
-                dest="/usr/bin/jspython"
-                do.delete(dest)
+                self.symlink(dest, "/usr/local/bin/jspython", delete=True)
+                self.symlink(dest, "/usr/bin/jspython", delete=True)
 
 
             #change site.py file

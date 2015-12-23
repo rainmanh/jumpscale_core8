@@ -2215,7 +2215,7 @@ class Installer():
 
         export PATH=$JSBASE/bin:$PATH
 
-        export PYTHONHOME=$pythonhome
+        $pythonhome
         export PYTHONPATH=$pythonpath
 
         export LD_LIBRARY_PATH=$JSBASE/bin
@@ -2227,7 +2227,7 @@ class Installer():
         C=C.replace("$base",basedir)
 
         if SANDBOX:
-            C = C.replace('$pythonhome', '$JSBASE/bin')
+            C = C.replace('$pythonhome', 'export PYTHONHOME=$JSBASE/bin')
         else:
             C = C.replace('$pythonhome', '')
 

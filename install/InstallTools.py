@@ -2249,9 +2249,13 @@ class Installer():
 source $base/env.sh
 # echo $base/bin/python "$@"
 # exec $base/bin/python "$@"
-#DO NOT HARDCODE TO $base on next line, needs to use env.sh args
 exec $JSBASE/bin/python -q -B -s -S "$@"
         """
+
+        C2_insystem="""#!/bin/bash
+# set -x
+exec python -q -B -s -S "$@"
+"""
 
 
 
@@ -2274,7 +2278,7 @@ exec $JSBASE/bin/python -q -B -s -S "$@"
                 dest="/usr/local/bin/jspython"
                 do.delete(dest)#to remove link
 
-                do.writeFile(dest,C2)
+                do.writeFile(dest,C2_insystem)
                 do.chmod(dest, 0o770)
 
                 dest="/usr/bin/jspython"

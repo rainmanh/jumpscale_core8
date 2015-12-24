@@ -44,7 +44,7 @@ class OSISBaseObjectComplexType(j.tools.code.classGetJSRootModelBase()):
         """
         is like returning the hash, is used to see if object changed
         """
-        dd=j.code.object2json(self,True,ignoreKeys=["guid","id","sguid","moddate"],ignoreUnderscoreKeys=True)
+        dd=j.tools.code.object2json(self,True,ignoreKeys=["guid","id","sguid","moddate"],ignoreUnderscoreKeys=True)
         return j.tools.hash.md5_string(str(dd))
 
     def load(self, ddict):
@@ -52,20 +52,20 @@ class OSISBaseObjectComplexType(j.tools.code.classGetJSRootModelBase()):
         load the object starting from dict of primitive types (dict, list, int, bool, str, long) and a combination of those
         std behavior is the __dict__ of the obj
         """
-        j.code.dict2JSModelobject(self,ddict)
+        j.tools.code.dict2JSModelobject(self,ddict)
 
     def dump(self):
         """
         dump the object to a dict of primitive types (dict, list, int, bool, str, long) and a combination of those
         std behavior is the __dict__ of the obj
         """
-        return j.code.object2dict(self,dieOnUnknown=True)
+        return j.tools.code.object2dict(self,dieOnUnknown=True)
 
     def getDictForIndex(self,ignoreKeys=[]):
         """
         get dict of object without passwd and props starting with _
         """
-        return j.code.object2dict(self,ignoreKeys=ignoreKeys+["passwd","password","secret"],ignoreUnderscoreKeys=True)
+        return j.tools.code.object2dict(self,ignoreKeys=ignoreKeys+["passwd","password","secret"],ignoreUnderscoreKeys=True)
 
     def __eq__(self,other):
         if not hasattr(other, "__dict__"):

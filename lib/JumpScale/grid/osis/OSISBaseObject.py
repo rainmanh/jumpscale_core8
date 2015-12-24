@@ -18,7 +18,7 @@ class OSISBaseObject(OSISBaseObjectComplexType):
         self.__dict__.update(ddict)
 
     def __str__(self):
-        return j.code.object2json(self,True)
+        return j.tools.code.object2json(self,True)
                 
     __repr__=__str__
         

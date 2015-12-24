@@ -154,7 +154,6 @@ class AtYourServiceDebug():
 
     def buildUpload(self,sandbox=False):
         """
-        tell the ays filesystem about this directory which will be uploaded to ays filesystem
         """
         # self.reset()
         self.buildJumpscaleMetadata()
@@ -266,8 +265,7 @@ class AtYourServiceDebugFactory():
     example usage:
     ```
     #ALL IN ONE to only update master
-    d=j.atyourservice.debug.get("master")
-    d.buildUpload()
+    d=j.atyourservice.debug.buildUpload_master()
 
     #INSTALL AYS FS
     d=j.atyourservice.debug.get("ahost")
@@ -297,9 +295,11 @@ class AtYourServiceDebugFactory():
         d=AtYourServiceDebug(name=name)
         return d
 
-    def upload(self,name="main"):
+    def buildUpload(self,name="main"):
         d=self.get(name=name)
-        d.upload()  
+        d.buildUpload()  
 
 
-
+    def buildUpload_master(self,name="master"):
+        d=self.get(name=name)
+        d.buildUpload_JS()  

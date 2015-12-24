@@ -178,7 +178,7 @@ class InstallTools():
 
     def copyTree(self, source, dest, keepsymlinks = False, deletefirst = False, \
         overwriteFiles=True,ignoredir=[".egg-info",".dist-info"],ignorefiles=[".egg-info"],rsync=True,\
-        ssh=False,sshport=22,recursive=True):
+        ssh=False,sshport=22,recursive=True,rsyncdelete=False):
         """
         if ssh format of source or dest is: remoteuser@remotehost:/remote/dir
         """
@@ -223,6 +223,8 @@ class InstallTools():
                 cmd += " --exclude \"*/\""
             if self.debug:
                 cmd += ' --progress'
+            if rsyncdelete:
+                cmd += " --delete"
             if ssh:
                 cmd += " -e 'ssh -o StrictHostKeyChecking=no -p %s'" % sshport
             cmd += " '%s' '%s'" % (source, dest)

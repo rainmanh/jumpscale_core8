@@ -33,7 +33,12 @@ class MyFSEventHandler(FileSystemEventHandler):
                     dest = "/optrw/code/%s" % destpart
 
                 print("copy: %s %s:%s" % (changedfile, node, dest))
-                node.ftpclient.put(changedfile, dest)
+                try:
+                    node.ftpclient.put(changedfile, dest)
+                except Exception as e:
+                    print(e)
+                    j.tools.debug.syncCode()
+                    
 
     def on_moved(self, event):
         self.catch_all_handler(event)
@@ -244,7 +249,7 @@ class DebugFactory():
 
         print ("login to machine & do\ncd /optrw/jumpscale8;source env.sh;js")
 
-    def syncCode(self, reset=False, monitor=True):
+    def syncCode(self, reset=False, monitor=False):
         if reset or j.core.db.get("debug.codepaths") == None:
             path = j.dirs.codeDir + "/github/jumpscale"
             if j.do.exists(path):
@@ -261,7 +266,7 @@ class DebugFactory():
                     if destpart == "jumpscale_core8":
                         dest = "root@%s:/optrw/jumpscale8/lib/JumpScale/" % node.addr
                         source2 = source + "/lib/JumpScale/"
-                        j.do.copyTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True)
+                        j.do.copyTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True,rsyncdelete=True)
 
                         source2 = source + "/install/InstallTools.py"
                         dest = "root@%s:/optrw/jumpscale8/lib/JumpScale/InstallTools.py" % node.addr
@@ -272,8 +277,8 @@ class DebugFactory():
                         j.do.copyTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=False)
 
                     else:
-                        node.ftpclient.mkdir("/optrw/code/%s" % destpart)
-                        j.do.copyTree(source, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True)
+                        node.cuisine.run("mkdir -p /optrw/code/%s" % destpart)
+                        j.do.copyTree(source, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True,rsyncdelete=True)
                 else:
                     # symlink into codetree
                     import ipdb
@@ -281,13 +286,13 @@ class DebugFactory():
         if monitor:
             self.monitorChanges()
 
-    def monitorChanges(self):
+    def monitorChanges(self,sync=True):
         """
         look for changes in directories which are being pushed & if found push to remote nodes
         """
         event_handler = MyFSEventHandler()
         observer = Observer()
-        if j.core.db.get("debug.codepaths") == None:
+        if sync or j.core.db.get("debug.codepaths") == None:
             self.syncCode(monitor=False)
         codepaths = j.core.db.get("debug.codepaths").decode().split(",")
         for source in codepaths:

@@ -218,7 +218,11 @@ class InstallTools():
                     self.createDir(self.getParent(dest))
 
             cmd = "rsync "
-            cmd += " -rlptgo --partial %s" % excl
+            if keepsymlinks:
+                #-l is keep symlinks, -L follow
+                cmd += " -rlptgo --partial %s" % excl
+            else:
+                cmd += " -rLptgo --partial %s" % excl
             if not recursive:
                 cmd += " --exclude \"*/\""
             if self.debug:

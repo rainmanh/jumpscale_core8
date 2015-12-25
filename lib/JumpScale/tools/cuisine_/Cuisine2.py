@@ -720,7 +720,7 @@ class OurCuisine():
         if contentsearch!="":
             cmd+=" -print0 | xargs -r -0 grep -l '%s'"%contentsearch
 
-        out=self.connection.run(cmd)
+        out=self.run(cmd)
 
         paths=[item.strip() for item in out.split("\n")]
 
@@ -903,12 +903,26 @@ class OurCuisine():
         execute a jumpscript (script as content) in a remote tmux command, the stdout will be returned
         """
         script=j.tools.text.lstrip(script)
+        if script.find("from JumpScale import j")==-1:
+            script="from JumpScale import j\n\n%s"%script
         path="/tmp/jumpscript_temp_%s.py"%j.tools.idgenerator.generateRandomInt(1,10000)
-        self.connection.file_write(path,script)
+        self.file_write(path,script)
         out=self.tmux_execute("jspython %s"%path)
-        self.connection.file_unlink(path)
+        self.file_unlink(path)
         return out
 
+    def execute_jumpscript(self,script):
+        """
+        execute a jumpscript (script as content) in a remote tmux command, the stdout will be returned
+        """
+        script=j.tools.text.lstrip(script)
+        if script.find("from JumpScale import j")==-1:
+            script="from JumpScale import j\n\n%s"%script        
+        path="/tmp/jumpscript_temp_%s.py"%j.tools.idgenerator.generateRandomInt(1,10000)
+        self.file_write(path,script)
+        out=self.run("jspython %s"%path)
+        self.file_unlink(path)
+        return out
 
 
     # =============================================================================

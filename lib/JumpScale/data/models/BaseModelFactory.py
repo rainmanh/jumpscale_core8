@@ -65,57 +65,68 @@ class BaseModelFactory():
     def getSessionCacheModel(self):
         return ModelSessionCache
 
-    def getKeys(self, modelname):
+    def getKey(self, modelname,guid):
         """
         @return hsetkey,key
         """
         ttype = modelname.split(".")[-1].replace("Model", "").lower()
         key = "models.%s" % ttype
+        key = '%s_%s' % (key, guid)  
+        key = key.encode('utf-8')
         return key
 
-    def get(self, modelclass, id,redis=True):
+    def get(self, model, guid=None,redis=True,returnObjWhenNonExist=False):
         """
         default needs to be in redis, need to mention if not
         """
-        #modelclass is not a class its really the object
-        modelname = modelclass._class_name
-        key = self.getKeys(modelname)
-        key = '%s_%s' % (key, id)
-        if redis==False:
-            try:
-                return modelclass.objects.get(guid=id)
-            except DoesNotExist:
-                return None
-        else:
-            modelraw = j.core.db.get(key.encode('utf-8'))
+        #model is not a class its really the object
+
+        if redis:
+            if guid==None:
+                guid=model.guid   
+            modelraw = j.core.db.get(self.getKey(model._class_name,guid))
             if modelraw:
                 modelraw = modelraw.decode()
-                model = modelclass.from_json(modelraw)
+                model = model.from_json(modelraw)
+                model._redis=True
                 return model
             else:
-                return None
+                res = None
+        else:
+            if guid==None:
+                raise RuntimeError("guid cannot be None")            
+            try:
+                res = model.objects.get(guid=guid)
+            except DoesNotExist:
+                res = None
+
+        if returnObjWhenNonExist and res==None:
+            return model
+        return res
+
 
     def set(self, modelobject,redis=True):
-        key = self.getKeys(modelobject._class_name)
-        key = '%s_%s' % (key, modelobject.guid)
-        meta = modelobject._meta['indexes']
-        expirey = meta[0].get('expireAfterSeconds', None) if meta else None
-        modelraw = json.dumps(modelobject.to_dict())
         if redis:
+            key = self.getKey(modelobject._class_name,modelobject.guid)
+            meta = modelobject._meta['indexes']
+            expirey = meta[0].get('expireAfterSeconds', None) if meta else None
+            modelraw = json.dumps(modelobject.to_dict())            
             j.core.db.set(key, modelraw)
             if expirey:
                 j.core.db.expire(key, expirey)
+            return modelobject
         else:
-            raise RuntimeError("not implemented")
+            obj = super(ModelBase, self).save()
+            return obj
 
-    def load(self, modelobject,redis=True):
-        key = self.getKeys(modelobject._class_name)
+    def getset(self, modelobject,redis=True):
+        key = self.getKey(modelobject._class_name,modelobject.guid)
         if redis:
-            if j.core.db.exists('%s_%s' % (key, modelobject.guid)):
-                model = self.get(modelobject)
-            else:
-                self.set(modelobject)
+            model = self.get(modelobject,redis=True)
+            if model==None:
+                self.set(modelobject,redis=True)
                 model=modelobject
+            model._redis=True
             return model
         else:
             raise RuntimeError("not implemented")
@@ -130,17 +141,21 @@ class BaseModelFactory():
         raise RuntimeError("not implemented")
         pass
 
-    def exists(self, model, id,redis=True):
-        modelname = model._class_name
-        key = self.getKeys(modelname)
+    def exists(self, model, guid=None,redis=True):
         if redis:
-            if j.core.db.exists('%s_%s' % (key, id)):
+            if guid==None:
+                guid=model.guid            
+            modelname = model._class_name
+            key = self.getKey(modelname,guid)
+            if j.core.db.exists('%s_%s' % (key, guid)):
                 return True
             else:
                 return False
         else:
+            if guid==None:
+                raise RuntimeError("guid cannot be None")
             try:
-                model.objects.get(guid=id)
+                model.objects.get(guid=guid)
             except DoesNotExist:
                 return False
 

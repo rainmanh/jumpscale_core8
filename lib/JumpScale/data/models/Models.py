@@ -25,19 +25,22 @@ class ModelBase(Document):
 
     def to_dict(self):
         d=json.loads(ModelBase.to_json(self))
-        #d.pop("_id")
-        #d.pop("_cls")
+        d.pop("_id")
+        d.pop("_cls")
+        if "_redis" in d:
+            d.pop("_redis")
         return d
 
     def save(self):
         self.clean()
-        obj = super(ModelBase, self).save()
-        j.data.models.set(obj)
-        return obj
-        
+        if "_redis" in self.__dict__:
+            redis=True
+        else:
+            redis=False            
+        return j.data.models.set(self,redis=redis)
 
     def __str__(self):
-        return (json.dumps(json.loads(self.to_json()), sort_keys=True, indent=4))
+        return (json.dumps(self.to_dict(), sort_keys=True, indent=4))
 
     __repr__ = __str__
 

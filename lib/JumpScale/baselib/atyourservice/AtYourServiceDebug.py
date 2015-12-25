@@ -35,7 +35,7 @@ class AtYourServiceDebug():
 
 
     def __init__(self,name="main"):
-        self.model=j.data.models.load(ModelDebug(id=name))
+        self.model=j.data.models.getset(ModelDebug(id=name))
         self._cl=None
         self._clcache=None
 

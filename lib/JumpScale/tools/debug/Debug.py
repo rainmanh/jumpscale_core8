@@ -249,7 +249,7 @@ class DebugFactory():
 
         print ("login to machine & do\ncd /optrw/jumpscale8;source env.sh;js")
 
-    def syncCode(self, reset=False, monitor=False):
+    def syncCode(self, reset=False, monitor=False,rsyncdelete=True):
         if reset or j.core.db.get("debug.codepaths") == None:
             path = j.dirs.codeDir + "/github/jumpscale"
             if j.do.exists(path):
@@ -266,7 +266,7 @@ class DebugFactory():
                     if destpart == "jumpscale_core8":
                         dest = "root@%s:/optrw/jumpscale8/lib/JumpScale/" % node.addr
                         source2 = source + "/lib/JumpScale/"
-                        j.do.copyTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True,rsyncdelete=True)
+                        j.do.copyTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True,rsyncdelete=rsyncdelete)
 
                         source2 = source + "/install/InstallTools.py"
                         dest = "root@%s:/optrw/jumpscale8/lib/JumpScale/InstallTools.py" % node.addr
@@ -278,7 +278,7 @@ class DebugFactory():
 
                     else:
                         node.cuisine.run("mkdir -p /optrw/code/%s" % destpart)
-                        j.do.copyTree(source, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True,rsyncdelete=True)
+                        j.do.copyTree(source, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True,rsyncdelete=rsyncdelete)
                 else:
                     # symlink into codetree
                     import ipdb
@@ -293,7 +293,7 @@ class DebugFactory():
         event_handler = MyFSEventHandler()
         observer = Observer()
         if sync or j.core.db.get("debug.codepaths") == None:
-            self.syncCode(monitor=False)
+            self.syncCode(monitor=False,rsyncdelete=False)
         codepaths = j.core.db.get("debug.codepaths").decode().split(",")
         for source in codepaths:
             print("monitor:%s" % source)

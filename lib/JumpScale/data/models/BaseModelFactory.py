@@ -73,7 +73,7 @@ class BaseModelFactory():
         key = "models.%s" % ttype
         return key
 
-    def get(self, modelclass, id):
+    def get(self, modelclass, id,returnEmptyObject=False):
         """
         """
         #modelclass is not a class its really the object
@@ -87,9 +87,13 @@ class BaseModelFactory():
             return model
         else:
             try:
-                return modelclass.objects.get(guid=id)
+                res= modelclass.objects.get(guid=id)
             except DoesNotExist:
-                return modelclass #need to return the object if nothing found, is new then
+                res=None
+        if res==None and returnEmptyObject:
+            return modelclass #need to return the object if nothing found, is new then
+        else:
+            return res
 
     def set(self, modelobject):
         key = self.getKeys(modelobject._class_name)
@@ -105,9 +109,10 @@ class BaseModelFactory():
         key = self.getKeys(modelobject._class_name)
 
         if j.core.db.exists('%s_%s' % (key, modelobject.guid)):
-            model = self.get(modelobject)
+            model = self.get(modelobject,returnEmptyObject=True)
         else:
-            model = self.set(modelobject)
+            self.set(modelobject)
+            model=modelobject
         return model
 
     def find(self, model, query):

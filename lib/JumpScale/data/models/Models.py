@@ -25,8 +25,9 @@ class ModelBase(Document):
 
     def to_dict(self):
         d=json.loads(ModelBase.to_json(self))
-        d.pop("_id")
         d.pop("_cls")
+        if "_id" in d:
+            d.pop("_id")
         if "_redis" in d:
             d.pop("_redis")
         return d

@@ -25,10 +25,13 @@ class Dep():
 
     def copyTo(self,path):
         dest=j.sal.fs.joinPaths(path,self.name)
+        dest=dest.replace("//","/")
         j.sal.fs.createDir(j.sal.fs.getDirName(dest))
-        if dest!=self.path:
-            j.sal.fs.copyFile(self.path, dest)
-
+        if dest!=self.path: #don't copy to myself
+            print ("DEPCOPY: %s %s"%(self.path,dest))
+            if not j.do.exists(dest):
+                j.sal.fs.copyFile(self.path, dest)
+            j.tools.sandboxer._done.append(dest)
 
     def __str__(self):
         return "%-40s %s"%(self.name,self.path)
@@ -49,57 +52,69 @@ class Sandboxer():
 
     def _ldd(self,path,result={}):
 
-        if j.sal.fs.getFileExtension(path) in ["py","pyc","cfg","hrd","bak","txt","png","gif","css","js","wiki","spec","sh","jar"]:
+        if j.sal.fs.getFileExtension(path) in ["py","pyc","cfg","hrd","bak","txt","png","gif","css","js","wiki","spec","sh","jar","xml","lua"]:
             return result
 
-        print(("check:%s"%path))
+        if path not in self._done:
+            print(("check:%s"%path))
 
-        cmd="ldd %s"%path
-        rc,out=j.sal.process.execute(cmd,dieOnNonZeroExitCode=False)
-        if rc>0:
-            if out.find("not a dynamic executable")!=-1:
-                return result
-        for line in out.split("\n"):
-            line=line.strip()
-            if line=="":
-                continue
-            if line.find('=>')==-1:
-                continue
+            cmd="ldd %s"%path
+            rc,out=j.sal.process.execute(cmd,dieOnNonZeroExitCode=False)
+            if rc>0:
+                if out.find("not a dynamic executable")!=-1:
+                    return result
+            for line in out.split("\n"):
+                line=line.strip()
+                if line=="":
+                    continue
+                if line.find('=>')==-1:
+                    continue
 
-            name,lpath=line.split("=>")
-            name=name.strip().strip("\t")
-            name=name.replace("\\t","")
-            lpath=lpath.split("(")[0]
-            lpath=lpath.strip()
-            if lpath=="":
-                continue
-            if name.find("libc.so")!=0 and name.lower().find("libx")!=0 and name not in self._done \
-                and name.find("libdl.so")!=0:
-                excl=False
-                for toexeclude in self.exclude:
-                    if name.lower().find(toexeclude.lower())!=-1:
-                        excl=True
-                if not excl:
-                    print(("found:%s"%name))
-                    try:
-                        result[name]=Dep(name,lpath)
-                        self._done.append(name)
-                        result=self._ldd(lpath,result)
-                    except Exception as e:
-                        print (e)
+                name,lpath=line.split("=>")
+                name=name.strip().strip("\t")
+                name=name.replace("\\t","")
+                lpath=lpath.split("(")[0]
+                lpath=lpath.strip()
+                if lpath=="":
+                    continue
+                if name.find("libc.so")!=0 and name.lower().find("libx")!=0 and name not in self._done \
+                    and name.find("libdl.so")!=0:
+                    excl=False
+                    for toexeclude in self.exclude:
+                        if name.lower().find(toexeclude.lower())!=-1:
+                            excl=True
+                    if not excl:
+                        print(("found:%s"%name))
+                        try:
+                            result[name]=Dep(name,lpath)
+                            self._done.append(name)
+                            result=self._ldd(lpath,result)
+                        except Exception as e:
+                            print (e)
 
+        self._done.append(path)
         return result
 
     def findLibs(self,path):
         result=self._ldd(path)
         return result
 
-    def copyLibsTo(self,path,dest,recursive=False):
+    def sandboxLibs(self,path,dest=None,recursive=False):
+        """
+        find binaries on path and look for supporting libs, copy the libs to dest
+        default dest = '%s/bin/'%j.do.BASE
+        """
+        if dest==None:
+            dest="%s/bin/"%j.do.BASE
         if j.sal.fs.isDir(path):
             #do all files in dir
             for item in j.sal.fs.listFilesInDir( path, recursive=recursive, followSymlinks=True, listSymlinks=False):
                 if j.sal.fs.isExecutable(item) or j.sal.fs.getFileExtension(item)=="so":
-                    self.copyLibsTo(item,dest,recursive=recursive)
+                    self.sandboxLibs(item,dest,recursive=False)
+            if recursive:
+                for item in j.sal.fs.listDirsInDir( path,recursive=False):
+                    self.sandboxLibs(item,dest,recursive)
+
         else:
             result=self.findLibs(path)
             for name,deb in list(result.items()):
@@ -144,7 +159,6 @@ class Sandboxer():
 
         j.sal.fs.walker.walkFunctional(path, callbackFunctionFile=callbackFile, callbackFunctionDir=None, arg=(path,dest), \
             callbackForMatchDir=callbackForMatchDir, callbackForMatchFile=callbackForMatchFile)
-
 
     def dedupe(self, path, storpath, name, excludeFiltersExt=["pyc","bak"],append=False,reset=False,removePrefix="",compress=True,delete=False,verify=True):
         def _calculatePaths(src, removePrefix):

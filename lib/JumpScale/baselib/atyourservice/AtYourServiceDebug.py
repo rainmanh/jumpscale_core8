@@ -12,14 +12,14 @@ from AtYourServiceSync import AtYourServiceSync
 from mongoengine import *
 
 class ModelDebug(j.data.models.getBaseModel()):
-    id = StringField(default='')
+    guid = StringField(default='')
     host = StringField(default='')
     cache = StringField(default='')
+    sandboxpaths = ListField(StringField())
     paths = ListField(StringField())
     cmd_pre = ListField(StringField())
     cmd_post = ListField(StringField())
     restart = ListField(StringField())
-
 
     storpath=StringField(default="/tmp/aysfs")
     namespace=StringField(default="dedupe")
@@ -30,12 +30,16 @@ class ModelDebug(j.data.models.getBaseModel()):
     populate_grid_cache=BooleanField(default=False)
     populate_master_cache=BooleanField(default=False)
 
+    # def clean(self):
+    #     ModelBase.clean(self)
+
+
 
 class AtYourServiceDebug():
 
 
     def __init__(self,name="main"):
-        self.model=j.data.models.getset(ModelDebug(id=name))
+        self.model=j.data.models.getset(ModelDebug(guid=name))
         self._cl=None
         self._clcache=None
 
@@ -57,7 +61,21 @@ class AtYourServiceDebug():
             self._clcache=j.clients.ssh.get("stor.jumpscale.org",22).cuisine
         return self._clcache
 
+    def addSandboxSource(self,sourcepath,filter=None,dest="jumpscale8/bin"):
+        """
+        sourcepath can be directory or file
+        filter can only be used when sourcepath is directory
+        filter e.g. *.py or something*something or start*.*
+        """
+        path="%s___%s___%s"%(sourcepath,filter,dest)                    
+        if path not in self.model.sandboxpaths:
+            self.model.sandboxpaths.append(path)        
+        self.model.save()
+
     def addPath(self,path):
+        """
+        path to upload to remote aysfs
+        """
         if path not in self.model.paths:
             self.model.paths.append(path)        
         self.model.save()
@@ -109,23 +127,22 @@ class AtYourServiceDebug():
         self.cuisine_host.run("rm -rf /mnt/ays/cachelocal/dedupe;mkdir -p /mnt/ays/cachelocal/dedupe")
         self.cuisine_cache.run("rm -rf /mnt/ays/cache/dedupe/;mkdir -p /mnt/ays/cache/dedupe/")
 
-
-    def installAYSFS(self):
-        """
-        install AYSFS on host
-        """
-        if self.model.host!="":
-            self.cuisine_host.run("mkdir -p /mnt/ays/cachelocal/dedupe;mkdir -p /etc/ays/local")
-            self.cuisine_host.hostfile_set("ayscache",self.model.cache)  #put in hostfile      
-            self.cuisine_host.run("umount -fl /opt;echo")
-            self.cuisine_host.run("pkill tmux;echo")
-            cmd = "cd /usr/local/bin;rm -f aysfs;wget http://stor.jumpscale.org/ays/bin/aysfs"
-            self.cuisine_host.run(cmd,checkok=True)
-            cmd = "cd /usr/local/bin;rm -f js8;wget http://stor.jumpscale.org/ays/bin/js8"
-            self.cuisine_host.run(cmd,checkok=True)
-            self.cuisine_host.run("chmod 550 /usr/local/bin/aysfs;chmod 550 /usr/local/bin/js8",checkok=True)
-            cmd= "aysfs -auto /opt"
-            self.cuisine_host.tmux_execute(cmd,interactive=True)
+    # def installAYSFS(self):
+    #     """
+    #     install AYSFS on host
+    #     """
+    #     if self.model.host!="":
+    #         self.cuisine_host.run("mkdir -p /mnt/ays/cachelocal/dedupe;mkdir -p /etc/ays/local")
+    #         self.cuisine_host.hostfile_set("ayscache",self.model.cache)  #put in hostfile      
+    #         self.cuisine_host.run("umount -fl /opt;echo")
+    #         self.cuisine_host.run("pkill tmux;echo")
+    #         cmd = "cd /usr/local/bin;rm -f aysfs;wget http://stor.jumpscale.org/ays/bin/aysfs"
+    #         self.cuisine_host.run(cmd,checkok=True)
+    #         cmd = "cd /usr/local/bin;rm -f js8;wget http://stor.jumpscale.org/ays/bin/js8"
+    #         self.cuisine_host.run(cmd,checkok=True)
+    #         self.cuisine_host.run("chmod 550 /usr/local/bin/aysfs;chmod 550 /usr/local/bin/js8",checkok=True)
+    #         cmd= "aysfs -auto /opt"
+    #         self.cuisine_host.tmux_execute(cmd,interactive=True)
 
     def _upload(self,desthost,destpath):
         if desthost=="":
@@ -136,19 +153,16 @@ class AtYourServiceDebug():
         print (cmd)
         j.do.execute(cmd)
 
-
     def buildJumpscaleMetadata(self):
         from JumpScale import findModules   
-        findModules()     
+        findModules()    
 
-    def buildUpload(self,sandbox=False):
+    def sandbox(self,python=True): 
         """
+        look for all files in self.paths and copy to the sandbox 
         """
-        # self.reset()
-        self.buildJumpscaleMetadata()
-
-        def sandbox1():
-            print ("START SANDBOX")
+        print ("START SANDBOX")
+        if python:
             paths=[]
             paths.append("/usr/lib/python3.5/")
             paths.append("/usr/local/lib/python3.5/dist-packages")
@@ -162,18 +176,29 @@ class AtYourServiceDebug():
             for path in paths:
                 j.tools.sandboxer.copyTo(path,dest,excludeFileRegex=excludeFileRegex,excludeDirRegex=excludeDirRegex)
 
-            try:
+            if not j.do.exists("%s/bin/python"%j.do.BASE):
                 j.do.copyFile("/usr/bin/python3.5","%s/bin/python"%j.do.BASE)
-            except Exception as e:
-                print (e)
 
-            try:
-                j.do.copyFile("/usr/bin/python3.5","%s/bin/python3"%j.do.BASE)
-            except Exception as e:
-                print (e)
+        for item in self.model.paths:
+            sourcepath,filter,dest=item.split("___")
+            if j.sal.fs.isDir(sourcepath):
+                if filter!=None:
+                    for item in j.sal.fs.listFilesInDir(sourcepath,filter=filter):
+                        j.sal.fs.copyFile(item,dest)
+                else:
+                    j.sal.fs.copyDirTree(sourcepath,dest)
+            else:
+                j.sal.fs.copyFile(sourcepath,dest)
 
-            j.tools.sandboxer.copyLibsTo(dest,"%s/bin/"%j.do.BASE,recursive=True)
-            print ("SANDBOXING DONE")
+        j.tools.sandboxer.sandboxLibs("%s/lib"%j.do.BASE,recursive=True)
+        j.tools.sandboxer.sandboxLibs("%s/bin"%j.do.BASE,recursive=True)
+        print ("SANDBOXING DONE, ALL OK IF TILL HERE, A Segfault can happen because we have overwritten ourselves.")
+
+    def buildUpload(self,sandbox=True):
+        """
+        """
+        # self.reset()
+        self.buildJumpscaleMetadata()
 
         if sandbox:
             sandbox1()
@@ -256,7 +281,7 @@ class AtYourServiceDebugFactory():
     #ALL IN ONE to only update master
     d=j.atyourservice.debug.buildUpload_master()
 
-    #INSTALL AYS FS
+    #DEBUG TO LOCAL HOST FO DEBUG PURPOSES
     d=j.atyourservice.debug.get("ahost")
     d.setHost("192.168.0.105")
     d.buildUpload_JS()
@@ -268,6 +293,13 @@ class AtYourServiceDebugFactory():
     d.enableMasterCacheUpdate()
     d.addPath(j.dirs.base)
     d.upload()
+
+    #SANDBOXING
+    d=j.atyourservice.debug.get("main")
+    d.addSandboxSource("/usr/bin/rsync")
+    d.addSandboxSource("/usr/local/bin/","afile*","myapp/") #will look for files starting with afile and then copy to myapp in /optrw/... or /opt/
+    d.sandbox()
+
     ```
 
     next time you can do

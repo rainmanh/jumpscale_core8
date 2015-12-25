@@ -9,15 +9,9 @@ from ActionsBaseNode import ActionsBaseNode
 import json
 from AtYourServiceSync import AtYourServiceSync
 
-
-# class ModelDebugPath(j.core.models.getBaseModel()):
-#     name = StringField(default='')
-#     host = StringField(default='')
-
-
 from mongoengine import *
 
-class ModelDebug(j.core.models.getBaseModel()):
+class ModelDebug(j.data.models.getBaseModel()):
     id = StringField(default='')
     host = StringField(default='')
     cache = StringField(default='')
@@ -37,16 +31,11 @@ class ModelDebug(j.core.models.getBaseModel()):
     populate_master_cache=BooleanField(default=False)
 
 
-
-    # def save(self):
-    #     j.core.models.set(self)
-
-
 class AtYourServiceDebug():
 
 
     def __init__(self,name="main"):
-        self.model=j.core.models.load(ModelDebug(id=name))
+        self.model=j.data.models.load(ModelDebug(id=name))
         self._cl=None
         self._clcache=None
 

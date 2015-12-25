@@ -12,7 +12,7 @@ except:
 class BaseModelFactory():
 
     def __init__(self):
-        self.__jslocation__ = "j.core.models"
+        self.__jslocation__ = "j.data.models"
 
     def getBaseModel(self):
         return ModelBase
@@ -74,6 +74,9 @@ class BaseModelFactory():
         return key
 
     def get(self, modelclass, id):
+        """
+        """
+        #modelclass is not a class its really the object
         modelname = modelclass._class_name
         key = self.getKeys(modelname)
         key = '%s_%s' % (key, id)
@@ -86,7 +89,7 @@ class BaseModelFactory():
             try:
                 return modelclass.objects.get(guid=id)
             except DoesNotExist:
-                return None
+                return modelclass #need to return the object if nothing found, is new then
 
     def set(self, modelobject):
         key = self.getKeys(modelobject._class_name)

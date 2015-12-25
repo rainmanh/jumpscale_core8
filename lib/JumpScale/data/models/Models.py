@@ -32,7 +32,7 @@ class ModelBase(Document):
     def save(self):
         self.clean()
         obj = super(ModelBase, self).save()
-        j.core.models.set(obj)
+        j.data.models.set(obj)
         return obj
         
 

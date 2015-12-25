@@ -73,63 +73,76 @@ class BaseModelFactory():
         key = "models.%s" % ttype
         return key
 
-    def get(self, modelclass, id,returnEmptyObject=False):
+    def get(self, modelclass, id,redis=True):
         """
+        default needs to be in redis, need to mention if not
         """
         #modelclass is not a class its really the object
         modelname = modelclass._class_name
         key = self.getKeys(modelname)
         key = '%s_%s' % (key, id)
-        modelraw = j.core.db.get(key.encode('utf-8'))
-        if modelraw:
-            modelraw = modelraw.decode()
-            model = modelclass.from_json(modelraw)
-            return model
-        else:
+        if redis==False:
             try:
-                res= modelclass.objects.get(guid=id)
+                return modelclass.objects.get(guid=id)
             except DoesNotExist:
-                res=None
-        if res==None and returnEmptyObject:
-            return modelclass #need to return the object if nothing found, is new then
+                return None
         else:
-            return res
+            modelraw = j.core.db.get(key.encode('utf-8'))
+            if modelraw:
+                modelraw = modelraw.decode()
+                model = modelclass.from_json(modelraw)
+                return model
+            else:
+                return None
 
-    def set(self, modelobject):
+    def set(self, modelobject,redis=True):
         key = self.getKeys(modelobject._class_name)
         key = '%s_%s' % (key, modelobject.guid)
         meta = modelobject._meta['indexes']
         expirey = meta[0].get('expireAfterSeconds', None) if meta else None
         modelraw = json.dumps(modelobject.to_dict())
-        j.core.db.set(key, modelraw)
-        if expirey:
-            j.core.db.expire(key, expirey)
-
-    def load(self, modelobject):
-        key = self.getKeys(modelobject._class_name)
-
-        if j.core.db.exists('%s_%s' % (key, modelobject.guid)):
-            model = self.get(modelobject,returnEmptyObject=True)
+        if redis:
+            j.core.db.set(key, modelraw)
+            if expirey:
+                j.core.db.expire(key, expirey)
         else:
-            self.set(modelobject)
-            model=modelobject
-        return model
+            raise RuntimeError("not implemented")
 
-    def find(self, model, query):
-        return model.objects(__raw__=query)
+    def load(self, modelobject,redis=True):
+        key = self.getKeys(modelobject._class_name)
+        if redis:
+            if j.core.db.exists('%s_%s' % (key, modelobject.guid)):
+                model = self.get(modelobject)
+            else:
+                self.set(modelobject)
+                model=modelobject
+            return model
+        else:
+            raise RuntimeError("not implemented")
 
-    def remove(self, model, key):
+    def find(self, model, query,redis=True):
+        if redis:
+            raise RuntimeError("not implemented")
+        else:
+            return model.objects(__raw__=query)
+
+    def delete(self, model, key,redis=True):
+        raise RuntimeError("not implemented")
         pass
 
-    def exists(self, model, id):
+    def exists(self, model, id,redis=True):
         modelname = model._class_name
         key = self.getKeys(modelname)
-        if j.core.db.exists('%s_%s' % (key, id)):
-            return True
-        try:
-            model.objects.get(guid=id)
-        except DoesNotExist:
-            return False
+        if redis:
+            if j.core.db.exists('%s_%s' % (key, id)):
+                return True
+            else:
+                return False
+        else:
+            try:
+                model.objects.get(guid=id)
+            except DoesNotExist:
+                return False
 
     def authenticate(self, username, passwd):
         um = self.getUserModel()

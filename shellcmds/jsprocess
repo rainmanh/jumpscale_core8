@@ -68,7 +68,7 @@ if opts.action in ('attach', 'logs'):
         print('Could not find exactly one running process %s %s' % (opts.domain, opts.name))
         j.application.stop(1)
     elif opts.action == 'attach':
-        j.sal.screen.attachSession(pds[0].domain, pds[0].name)
+        j.sal.tmux.attachSession(pds[0].domain, pds[0].name)
     elif opts.action == 'logs':
         pds[0].showLogs()
     j.application.stop(0)

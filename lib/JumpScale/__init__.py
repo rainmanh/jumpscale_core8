@@ -91,6 +91,7 @@ j.clients=Loader("j.clients")
 j.data.serializer=Loader("j.data.serializer")
 j.servers=Loader("j.servers")
 j.grid=Loader("j.grid")
+j.tools.units = Loader('j.tools.units')
 
 from .InstallTools import InstallTools
 from .InstallTools import Installer
@@ -215,7 +216,6 @@ if base !="/opt/jumpscale8":
         if base =="/optrw/jumpscale8":
             j.do.installer.writeenv(basedir=base, insystem=False, CODEDIR='/optrw/code')            
         print ("force metadata reload")
-                        
 
 data=j.core.db.get("system.locations")
 if forcereload or data==None:
@@ -233,6 +233,8 @@ locations=json.loads(data)
 
 for locationbase,llist in locations.items():  #locationbase is e.g. j.sal
     # print (locationbase)
+    if not locationbase in locationbases:
+        import ipdb;ipdb.set_trace()
     loader=locationbases[locationbase]
     for classfile,classname,item in llist:
         # print (" - %s|%s|%s"%(item,classfile,classname))

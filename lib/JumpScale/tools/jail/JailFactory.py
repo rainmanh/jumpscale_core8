@@ -87,7 +87,7 @@ class JailFactory(object):
         
 
     def listSessions(self,user):
-        return j.sal.screen.getSessions(user="user1")
+        return j.sal.tmux.getSessions(user="user1")
         # res=[]
         # try:
         #     rc,out=j.sal.process.execute("sudo -i -u %s tmux list-sessions"%user)

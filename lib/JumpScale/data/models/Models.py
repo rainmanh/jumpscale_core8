@@ -95,7 +95,7 @@ class ModelGroup(ModelBase):
     domain = StringField(default='')
     gid = IntField(default=1)
     roles = ListField(StringField())
-    active = BooleanField(default=1)
+    active = BooleanField(default=True)
     description = StringField(default='master')
     lastcheck = IntField(default=j.tools.time.getTimeEpoch())
     users = ListField(StringField())
@@ -106,7 +106,7 @@ class ModelJob(ModelBase):
     nid = IntField()
     gid = IntField()
     cmd = StringField(default='')
-    wait = BooleanField(default=1)
+    wait = BooleanField(default=True)
     category = StringField(default='')
     roles = ListField(StringField())
     args = StringField(default='')
@@ -119,8 +119,8 @@ class ModelJob(ModelBase):
     state = StringField(default='SCHEDULED')
     timeStart = IntField(default=j.tools.time.getTimeEpoch())
     timeStop = IntField()
-    log = BooleanField(default=1)
-    errorreport = BooleanField(default=1)
+    log = BooleanField(default=True)
+    errorreport = BooleanField(default=True)
     meta = {'indexes': [
         {'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}
     ], 'allow_inheritance': True}
@@ -258,7 +258,7 @@ class ModelNic(ModelBase):
     name = StringField(default='')
     mac = StringField(default='')
     ipaddr = ListField(StringField())
-    active = BooleanField(default=1)
+    active = BooleanField(default=True)
     # poch of last time the info was checked from reality
     lastcheck = IntField(default=j.tools.time.getTimeEpoch())
 

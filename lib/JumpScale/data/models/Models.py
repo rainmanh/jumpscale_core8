@@ -340,7 +340,6 @@ class ModelTest(ModelBase):
 class ModelUser(ModelBase):
     name = StringField(default='')
     domain = StringField(default='')
-    gid = IntField()
     passwd = StringField(default='')  # stored hashed
     roles = ListField(StringField())
     active = BooleanField()

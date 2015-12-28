@@ -17,7 +17,7 @@ import JumpScale.tools.hash
 
 LEVELMAP = {1: 'CRITICAL', 2: 'WARNING', 3: 'INFO', 4: 'DEBUG'}
 
-class ErrorConditionObject():
+class ErrorConditionObject(BaseException):
     """
     @param type #BUG,INPUT,MONITORING,OPERATIONS,PERFORMANCE,UNKNOWN  
     @param level #1:critical, 2:warning, 3:info see j.enumerators.ErrorConditionLevel

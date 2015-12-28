@@ -26,6 +26,12 @@ LEVELS = list(range(1, 10)) + list(range(20, 24)) + [30]
 LEVEL_JSON = 20
 
 
+def jsonLoads(x):
+    if isinstance(x, bytes):
+        x = x.decode('utf-8')
+    return json.loads(x)
+
+
 class AgentException(Exception):
     pass
 
@@ -288,7 +294,9 @@ class Job(Base):
     @property
     def streams(self):
         self._update()
-        return self._jobdata.get('streams', ['', ''])
+        default = ['', '']
+        streams = self._jobdata.get('streams', default)
+        return streams or default
 
     @property
     def critical(self):
@@ -324,7 +332,7 @@ class Job(Base):
         if result is None:
             raise ResultTimeout('Timedout while waiting for job %s' % self)
 
-        return self._set_job(json.loads(result))
+        return self._set_job(jsonLoads(result))
 
     def kill(self):
         """
@@ -345,7 +353,7 @@ class Job(Base):
             raise AgentException(stats.data)
 
         # TODO: parsing data should be always based on the level
-        result = json.loads(stats.data)
+        result = jsonLoads(stats.data)
         return result
 
     def get_msgs(self, levels='*', limit=20):
@@ -706,7 +714,7 @@ class Client(object):
         if result.state == 'SUCCESS':
             if result.level != LEVEL_JSON:
                 raise AgentException("Expected json data got response level '%d'" % result.level)
-            return json.loads(result.data)
+            return jsonLoads(result.data)
         else:
             error = result.data or result.streams[1]
             raise AgentException(
@@ -764,7 +772,7 @@ class Client(object):
         :rtype: dict of :class:`acclient.Job`
         """
         def wrap_jobs(jobresult):
-            result = json.loads(jobresult)
+            result = jsonLoads(jobresult)
             return (result['gid'], result['nid']), Job(self, result)
 
         # wait until we make sure all jobs were queued
@@ -881,11 +889,11 @@ class Client(object):
         assert count > 0, "Invalid count, must be greater than 0"
 
         def _rmap(r):
-            r = json.loads(r)
+            r = jsonLoads(r)
             return Job(self, r)
 
         def _map(s):
-            j = json.loads(s)
+            j = jsonLoads(s)
             result = self._redis.hgetall('jobresult:%s' % j['id'])
 
             j['jobs'] = list(map(_rmap, list(result.values())))

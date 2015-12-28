@@ -529,9 +529,9 @@ class SchedulerClient(object):
         Lists all scheduled tasks.
         """
         table = dict()
-        for key, entrystr in self._client.schedule_list().items():
-            entry = acclient.jsonLoads(entrystr)
-            table[key] = entry['cron']
+        for item in self._client.schedule_list():
+            _id = item.pop('id')
+            table[_id] = item
         return table
 
     def execute(self, id, cron, cmd, path=None, gid=None, nid=None, roles=[], allnodes=True, timeout=5,

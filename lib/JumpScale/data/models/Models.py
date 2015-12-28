@@ -24,7 +24,7 @@ class ModelBase(Document):
             #     self.pid = j.application.whoAmI.pid
 
     def to_dict(self):
-        d=json.loads(ModelBase.to_json(self))
+        d = json.loads(ModelBase.to_json(self))
         d.pop("_cls")
         if "_id" in d:
             d.pop("_id")
@@ -35,10 +35,11 @@ class ModelBase(Document):
     def save(self):
         self.clean()
         if "_redis" in self.__dict__:
-            redis=True
+            redis = True
+            return j.data.models.set(self, redis=redis)
         else:
-            redis=False            
-        return j.data.models.set(self,redis=redis)
+            redis = False
+            return super(ModelBase, self).save()
 
     def __str__(self):
         return (json.dumps(self.to_dict(), sort_keys=True, indent=4))
@@ -55,7 +56,8 @@ class ModelErrorCondition(ModelBase):
     level = StringField(default="CRITICAL")
     type = StringField(default="UNKNOWN")
     state = StringField(default="NEW")  # ["NEW","ALERT","CLOSED"]:
-    errormessage = StringField()  # StringField() <--- available starting version 0.9
+    # StringField() <--- available starting version 0.9
+    errormessage = StringField()
     errormessagePub = StringField()  # StringField()
     category = StringField(default="")
     tags = StringField(default="")
@@ -79,7 +81,8 @@ class ModelErrorCondition(ModelBase):
         if self.type not in ["BUG", "PERF", "OPS", "UNKNOWN"]:
             raise ValidationError("State can only be NEW,ALERT or CLOSED")
         if self.level not in ["CRITICAL", "MAJOR", "WARNING", "INFO"]:
-            raise ValidationError("State can only be CRITICAL,MAJOR,WARNING,INFO")
+            raise ValidationError(
+                "State can only be CRITICAL,MAJOR,WARNING,INFO")
 
 
 class ModelGrid(ModelBase):
@@ -92,7 +95,7 @@ class ModelGroup(ModelBase):
     domain = StringField(default='')
     gid = IntField(default=1)
     roles = ListField(StringField())
-    active = BooleanField(default=1)
+    active = BooleanField(default=True)
     description = StringField(default='master')
     lastcheck = IntField(default=j.tools.time.getTimeEpoch())
     users = ListField(StringField())
@@ -103,7 +106,7 @@ class ModelJob(ModelBase):
     nid = IntField()
     gid = IntField()
     cmd = StringField(default='')
-    wait = BooleanField(default=1)
+    wait = BooleanField(default=True)
     category = StringField(default='')
     roles = ListField(StringField())
     args = StringField(default='')
@@ -116,16 +119,17 @@ class ModelJob(ModelBase):
     state = StringField(default='SCHEDULED')
     timeStart = IntField(default=j.tools.time.getTimeEpoch())
     timeStop = IntField()
-    log = BooleanField(default=1)
-    errorreport = BooleanField(default=1)
+    log = BooleanField(default=True)
+    errorreport = BooleanField(default=True)
     meta = {'indexes': [
-                {'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}
-           ], 'allow_inheritance': True}
+        {'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}
+    ], 'allow_inheritance': True}
 
     def clean(self):
         ModelBase.clean(self)
         if self.state not in ["SCHEDULED", "STARTED", "ERROR", "OK", "NOWORK"]:
-            raise ValidationError("State can only be SCHEDULED, STARTED, ERROR, OK or NOWORK")
+            raise ValidationError(
+                "State can only be SCHEDULED, STARTED, ERROR, OK or NOWORK")
 
 
 class ModelAudit(ModelBase):
@@ -137,8 +141,8 @@ class ModelAudit(ModelBase):
     kwargs = StringField(default='')
     timestamp = StringField(default='')
     meta = {'indexes': [
-                {'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}
-        ], 'allow_inheritance': True}
+        {'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}
+    ], 'allow_inheritance': True}
 
 
 class ModelDisk(ModelBase):
@@ -184,9 +188,11 @@ class ModelAlert(ModelBase):
     def clean(self):
         ModelBase.clean(self)
         if self.level not in [1, 2, 3]:
-            raise ValidationError("Level can only be 1(critical), 2(warning) or 3(info)")
+            raise ValidationError(
+                "Level can only be 1(critical), 2(warning) or 3(info)")
         if self.state not in ["NEW", "ALERT", "CLOSED"]:
-            raise ValidationError('State can only be "NEW","ALERT" or "CLOSED"')
+            raise ValidationError(
+                'State can only be "NEW","ALERT" or "CLOSED"')
 
 
 class ModelHeartbeat(ModelBase):
@@ -242,7 +248,8 @@ class ModelMachine(ModelBase):
     def clean(self):
         ModelBase.clean(self)
         if self.state not in ["STARTED", "STOPPED", "RUNNING", "FROZEN", "CONFIGURED", "DELETED"]:
-            raise ValidationError('State can only be "STARTED", "STOPPED", "RUNNING", "FROZEN", "CONFIGURED" or "DELETED"')
+            raise ValidationError(
+                'State can only be "STARTED", "STOPPED", "RUNNING", "FROZEN", "CONFIGURED" or "DELETED"')
 
 
 class ModelNic(ModelBase):
@@ -251,7 +258,7 @@ class ModelNic(ModelBase):
     name = StringField(default='')
     mac = StringField(default='')
     ipaddr = ListField(StringField())
-    active = BooleanField(default=1)
+    active = BooleanField(default=True)
     # poch of last time the info was checked from reality
     lastcheck = IntField(default=j.tools.time.getTimeEpoch())
 
@@ -347,7 +354,8 @@ class ModelUser(ModelBase):
     emails = ListField(StringField())
     xmpp = ListField(StringField())
     mobile = ListField(StringField())
-    lastcheck = IntField(default=j.tools.time.getTimeEpoch())  # epoch of last time the info updated
+    # epoch of last time the info updated
+    lastcheck = IntField(default=j.tools.time.getTimeEpoch())
     groups = ListField(StringField())
     authkey = StringField(default='')
     data = StringField(default='')
@@ -359,8 +367,8 @@ class ModelSessionCache(ModelBase):
     _creation_time = IntField(default=j.tools.time.getTimeEpoch())
     _accessed_time = IntField(default=j.tools.time.getTimeEpoch())
     meta = {'indexes': [
-                {'fields': ['epoch'], 'expireAfterSeconds': 432000}
-        ], 'allow_inheritance': True}
+        {'fields': ['epoch'], 'expireAfterSeconds': 432000}
+    ], 'allow_inheritance': True}
 
 
 # @todo complete ASAP all from https://github.com/Jumpscale/jumpscale_core8/blob/master/apps/osis/logic/system/model.spec  (***)

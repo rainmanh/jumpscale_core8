@@ -267,7 +267,7 @@ class OurCuisine():
     def __init__(self,executor):
         self.cd="/"
         self.executor=executor
-
+        self.sudomode = False 
     # =============================================================================
     #
     # UPSTART
@@ -578,14 +578,14 @@ class OurCuisine():
         #     return self.run('openssl dgst -sha256 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
 
 
-    def file_md5(self,location):
+    def file_md5(self, location):
         """Returns the MD5 sum (as a hex string) for the remote file at the given location."""
         # NOTE: In some cases, self.sudo can output errors in here -- but the errors will
         # appear before the result, so we simply split and get the last line to
         # be on the safe side.
         # if cuisine_env[OPTION_HASH] == "python":
         if self.file_exists(location):
-            return self.run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.md5(sys.stdin.read().encode(\"utf-8\")).hexdigest())'".format(shell_safe((location))),debug=False,checkok=False)
+            return self.run("md5sum {0} | cut -f 1 -d ' '".format(shell_safe((location))),debug=False,checkok=False)
         else:
             return None
         # else:
@@ -757,19 +757,22 @@ class OurCuisine():
     # CORE
     # -----------------------------------------------------------------------------
 
-
-    def sudo(self,cmd,warn_only=False):
-        cmd="sudo -s %s"%cmd
-        return self.run(cmd,warn_only)
+    def sudo(self, cmd, warn_only=False):
+        passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
+        cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
+        return self.run(cmd, warn_only)
 
     def run(self,cmd,warn_only=False,debug=None,checkok=False):
+        if self.sudomode:
+            passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
+            cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
         self.executor.curpath=self.cd
         # print ("CMD:'%s'"%cmd)
         if debug!=None:
             debugremember=copy.copy(debug)
             self.executor.debug=debug
 
-        rc,out=self.executor.execute(cmd,checkok=checkok)
+        rc,out=self.executor.execute(cmd,checkok=checkok, die=warn_only==True, combinestdr=False)
 
         if debug!=None:
             self.executor.debug=debugremember

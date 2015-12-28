@@ -122,13 +122,13 @@ class SSHClient(object):
                 return False
         return True
 
-    def execute(self, cmd, showout=True, die=True):
+    def execute(self, cmd, showout=True, die=True, combinestdr=True):
         """
         run cmd & return
         return: (retcode,out_err)
         """
-        ch = self.transport.open_session(timeout=2)
-        ch.set_combine_stderr(True)
+        ch = self.transport.open_session()
+        ch.set_combine_stderr(combinestdr)
         if self.forward_agent:
             paramiko.agent.AgentRequestHandler(ch)
 

@@ -5,7 +5,7 @@ import re
 
 from JumpScale.core.types import PrimitiveTypes
 from JumpScale.core.types.base import BaseType
-from JumpScale.core.types import IPv4Range, IPv4Address
+from JumpScale.core.types.IPAddress import IPv4Range, IPv4Address
 GUID_RE = re.compile('^[0-9a-fA-F]{8}[-:][0-9a-fA-F]{4}[-:][0-9a-fA-F]{4}[-:][0-9a-fA-F]{4}[-:][0-9a-fA-F]{12}$')
 class Guid(PrimitiveTypes.String):
     '''Generic GUID type'''
@@ -128,6 +128,9 @@ class WindowsFilePath(FilePath):
 class IPAddress(PrimitiveTypes.String):
     '''Generic IPv4 address type'''
     NAME = 'ipaddress'
+
+    def __init__(self):
+        self.__jslocation__ = "j.core.types.ipaddress"
 
     @staticmethod
     def check(value):

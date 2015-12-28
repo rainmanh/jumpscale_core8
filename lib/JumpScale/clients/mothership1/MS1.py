@@ -186,11 +186,11 @@ class MS1(object):
         self.db.set("ms1", "ms1:cache:%s:sizes"%spacesecret,json.dumps(sizes))
         return sizes
 
-    def createMachine(self, spacesecret, name, memsize=1, ssdsize=40, vsansize=0, description='',
+    def createMachine(self, spacesecret, name, memsize=1024, ssdsize=None, vsansize=0, description='',
                       imagename="ubuntu.14.04.x64",delete=False, sshkey=None, hostname="", stackId=None,datadisks=None,**args):
         """
-        memsize  #size is 0.5,1,2,4,8,16 in GB
-        ssdsize  #10,20,30,40,100 in GB
+        memsize  # size is 512, 1024, 2048, 4096, 8192, 16384
+        ssdsize  # if not passed along, will get the first size of the image's supported sizes
         imagename= fedora,windows,ubuntu.13.10,ubuntu.12.04,windows.essentials,ubuntu.14.04.x64
                    zentyal,debian.7,arch,fedora,centos,opensuse,gitlab,ubuntu.jumpscale
 
@@ -206,58 +206,60 @@ class MS1(object):
 
         if sshkey:
             if j.sal.fs.exists(path=sshkey):
-                if sshkey.find(".pub")==-1:
+                if sshkey.find(".pub") == -1:
                     j.events.inputerror_critical("public key path needs to have .pub at the end.")
-                sshkey=j.sal.fs.fileGetContents(sshkey)
+                sshkey = j.sal.fs.fileGetContents(sshkey)
 
-        ssdsize = int(ssdsize)
+        api = self.getApiConnection(spacesecret)
+        cloudspace_id = self.getCloudspaceId(spacesecret)
+        images = self.listImages(spacesecret)
+
+        if imagename not in list(images.keys()):
+            j.events.inputerror_critical("Imagename '%s' not in available images: '%s'" % (imagename, images))
+
+        sizes = self.getMachineSizes(spacesecret, cloudspace_id)
+        ssdsizes = {s: size['id'] for size in sizes for s in size['disks']}
+        memsizes = set([size['memory'] for size in sizes])
+
+        if not ssdsize:
+            minsize = images[imagename][2]
+            for size in ssdsizes.keys():
+                if size >= minsize:
+                    ssdsize = size
+                    break
+        else:
+            ssdsize = int(ssdsize)
+
+        if not ssdsize:
+            j.events.inputerror_critical("No supported size found")
+
         try:
             memsize = int(memsize)
         except:
             # support for 0.5 memsize
             memsize = float(memsize)
-        ssdsizes = {}
-        ssdsizes[10] = 10
-        ssdsizes[20] = 20
-        ssdsizes[30] = 30
-        ssdsizes[40] = 40
-        ssdsizes[100] = 100
-        memsizes = {}
-        memsizes[0.5] = 512
-        memsizes[1] = 1024
-        memsizes[2] = 2048
-        memsizes[4] = 4096
-        memsizes[8] = 8192
-        memsizes[16] = 16384
-        if memsize not in memsizes:
-            raise RuntimeError("E: supported memory sizes are 0.5,1,2,4,8,16 (is in GB), you specified:%s"%memsize)
-        if ssdsize not in ssdsizes:
-            raise RuntimeError("E: supported ssd sizes are 10,20,30,40,100  (is in GB), you specified:%s"%memsize)
 
-        # get actors
-        api = self.getApiConnection(spacesecret)
+        if memsize not in memsizes:
+            raise RuntimeError("E: supported memory sizes are %s, you specified:%s" % (', '.join(memsizes), memsize))
+        if ssdsize not in ssdsizes:
+            raise RuntimeError("E: supported ssd sizes are %s (is in GB), you specified:%s" % (', '.join(ssdsizes), ssdsize))
+
+        size_id = None
+        for size in sizes:
+            if size['memory'] == memsize:
+                size_id = size['id']
+                break
+
+        if not size_id:
+            raise RuntimeError('E:Could not find a matching memory size %s' % memsize)
+
         if stackId is not None:
             machine_cb_actor = api.cloudbroker.machine
-        cloudspace_id = self.getCloudspaceId(spacesecret)
-
         self.vars["cloudspace.id"] = cloudspace_id
         self.vars["machine.name"] = name
 
-        memsize2 = memsizes[memsize]
-        size_ids = [size['id'] for size in self.getMachineSizes(spacesecret, cloudspace_id) if size['memory'] == int(memsize2)]
-        if len(size_ids)==0:
-            raise RuntimeError('E:Could not find a matching memory size %s'% memsize2)
-
-        ssdsize2=ssdsizes[ssdsize]
-
-        images=self.listImages(spacesecret)
-
-        if not imagename in list(images.keys()):
-            j.events.inputerror_critical("Imagename '%s' not in available images: '%s'"%(imagename,images))
-
-        templateid=images[imagename][0]
-
-        self.sendUserMessage("create machine: %s"%(name))
+        templateid = images[imagename][0]
+        self.sendUserMessage("create machine: %s" % (name))
 
         if stackId and machine_cb_actor:
             # we want to deploy on a specific stack
@@ -279,13 +281,13 @@ class MS1(object):
 
             if valid():
                 try:
-                    machine_id = machine_cb_actor.createOnStack(cloudspaceId=cloudspace_id, name=name, description=description, sizeId=size_ids[0], imageId=templateid, disksize=int(ssdsize2), stackid=stackId, datadisks=datadisks)
+                    machine_id = machine_cb_actor.createOnStack(cloudspaceId=cloudspace_id, name=name, description=description, sizeId=size_ids[0], imageId=templateid, disksize=int(ssdsize), stackid=stackId, datadisks=datadisks)
                 except Exception as e:
                     j.events.opserror_critical("Could not create machine on stack %s, unknown error : %s." % (stackId, e.message), "ms1.createmachine.exists")
         else:
             try:
                 machine_id = api.cloudapi.machines.create(cloudspaceId=cloudspace_id, name=name, description=description, \
-                    sizeId=size_ids[0], imageId=templateid, disksize=int(ssdsize2), datadisks=datadisks)
+                    sizeId=size_id, imageId=templateid, disksize=int(ssdsize), datadisks=datadisks)
             except Exception as e:
                 if str(e).find("Selected name already exists") != -1:
                    j.events.inputerror_critical("Could not create machine it does already exist.","ms1.createmachine.exists")
@@ -309,15 +311,14 @@ class MS1(object):
 
         # push initial key
         self.sendUserMessage("push initial ssh key")
-        ssh = self._getSSHConnection(spacesecret, name, sshkey=sshkey, **args)
+        self._getSSHConnection(spacesecret, name, sshkey=sshkey, **args)
 
         self.sendUserMessage("machine active & reachable")
 
         self.sendUserMessage("to connect from outise cloudspace do: 'ssh %s -p %s'" % (self.vars["space.ip.pub"], self.vars["machine.last.tcp.port"]))
         self.sendUserMessage("to connect from inside cloudspace do: 'ssh %s -p %s'" % (self.vars["machine.ip.addr"], 22))
 
-        ss = ssh.host().split(':')
-        return machine_id, ss[0], (ss[1] if ss[1] else 22)
+        return machine_id, self.vars["space.ip.pub"], (int(self.vars["machine.last.tcp.port"]) if self.vars["machine.last.tcp.port"] else 22)
 
     def getMachineObject(self,spacesecret, name,**args):
         api, machine_id, cloudspace_id = self._getMachineApiActorId(spacesecret, name)
@@ -338,8 +339,8 @@ class MS1(object):
             namelower=name.lower()
             for imagetype in imagetypes:
                 if namelower.find(imagetype) != -1:
-                    result[imagetype]=[image["id"],image["name"]]
-            result[image['name']]=[image["id"],image["name"]]
+                    result[imagetype]=[image["id"],image["name"], image['size']]
+            result[image['name']]=[image["id"],image["name"], image['size']]
 
         self.db.set("ms1", "ms1:cache:%s:images"%spacesecret,json.dumps(result))
         return result
@@ -426,7 +427,7 @@ class MS1(object):
         self._deletePortForwardRule(spacesecret, name, pubip, pubipport, 'tcp')
         api.cloudapi.portforwarding.create(cloudspaceid=cloudspace_id, publicIp=pubip,
                                            publicPort=str(pubipport), vmid=machine_id,
-                                           localPort=str(machineport), pubipport=protocol)
+                                           localPort=str(machineport), protocol=protocol)
 
         return "OK"
 
@@ -607,19 +608,16 @@ class MS1(object):
 
         rloc = "/root/.ssh/authorized_keys"
 
-        ssh_connection = j.remote.cuisine.api
-
-        ssh_connection.mode_sudo()
-
         username, password = machine['accounts'][0]['login'], machine['accounts'][0]['password']
-        ssh_connection.fabric.api.env['password'] = password
-        ssh_connection.fabric.api.env['connection_attempts'] = 5
-        ssh_connection.connect('%s:%s' % (connectionAddr, connectionPort), username)
 
-        name = name.replace('_', '').replace(' ','-')
-        ssh_connection.run('echo "%s" > /etc/hostname' % name)
-        ssh_connection.run('hostname %s' % name)
-        ssh_connection.run('echo "127.0.0.1 %s" >> /etc/hosts' % name)
+        executor = j.tools.executor.getSSHBased(addr=connectionAddr, port=connectionPort, login=username, passwd=password)
+        ssh_connection = j.tools.cuisine.get(executor)
+
+        name = name.replace('_', '').replace(' ', '-')
+        ssh_connection.sudomode = True
+        ssh_connection.run('echo %s > /etc/hostname' % name, warn_only=True)
+        ssh_connection.run('hostname %s' % name, warn_only=True)
+        ssh_connection.run('echo "127.0.0.1 %s" >> /etc/hosts' % name, warn_only=True)
 
         # will overwrite all old keys
         ssh_connection.file_write(rloc, key)

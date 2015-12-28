@@ -135,7 +135,7 @@ class BaseModelFactory():
         if redis:
             raise RuntimeError("not implemented")
         else:
-            return model.objects.as_pymongo(query)
+            return model.objects(__raw__=query)
 
     def delete(self, model, key, redis=True):
         raise RuntimeError("not implemented")

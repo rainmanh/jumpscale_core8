@@ -105,7 +105,7 @@ class BaseModelFactory():
         key = key.encode('utf-8')
         return key
 
-    def get(self, model, guid=None, redis=True, returnObjWhenNonExist=False):
+    def get(self, model, guid=None, redis=False, returnObjWhenNonExist=False):
         """
         default needs to be in redis, need to mention if not
         """

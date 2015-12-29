@@ -21,6 +21,13 @@ class ModelBase(Document):
             d.pop("_redis")
         return d
 
+    @classmethod
+    def find(cls, query, redis=False):
+        if redis:
+            raise RuntimeError("not implemented")
+        else:
+            return cls.objects(__raw__=query)
+
     def save(self):
         self.clean()
         if "_redis" in self.__dict__:

@@ -19,55 +19,76 @@ class BaseModelFactory():
     def __init__(self):
         self.__jslocation__ = "j.data.models"
 
-    def getBaseModel(self):
-        return ModelBase
-
-    def getErrorConditionModel(self):
-        return ModelErrorCondition
-
-    def getGridModel(self):
-        return ModelGrid
-
-    def getGroupModel(self):
-        return ModelGroup
-
-    def getJobModel(self):
-        return ModelJob
-
-    def getAuditModel(self):
-        return ModelAudit
-
-    def getDiskModel(self):
-        return ModelDisk
-
-    def getAlertModel(self):
-        return ModelAlert
-
-    def getHeartbeatModel(self):
-        return ModelHeartbeat
-
-    def getJumpscriptModel(self):
-        return ModelJumpscript
-
-    def getMachineModel(self):
+    @property
+    def Machine(self):
         return ModelMachine
 
-    def getNicModel(self):
+    @property
+    def Base(self):
+        return ModelBase
+
+    @property
+    def ErrorCondition(self):
+        return ModelErrorCondition
+
+    @property
+    def Grid(self):
+        return ModelGrid
+
+    @property
+    def Group(self):
+        return ModelGroup
+
+    @property
+    def Job(self):
+        return ModelJob
+
+    @property
+    def Audit(self):
+        return ModelAudit
+
+    @property
+    def Disk(self):
+        return ModelDisk
+
+    @property
+    def Alert(self):
+        return ModelAlert
+
+    @property
+    def Heartbeat(self):
+        return ModelHeartbeat
+
+    @property
+    def Jumpscript(self):
+        return ModelJumpscript
+
+    @property
+    def Machine(self):
+        return ModelMachine
+
+    @property
+    def Nic(self):
         return ModelNic
 
-    def getNodeModel(self):
+    @property
+    def Node(self):
         return ModelNode
 
-    def getProcessModel(self):
+    @property
+    def Process(self):
         return ModelProcess
 
-    def getTestModel(self):
+    @property
+    def Test(self):
         return ModelTest
 
-    def getUserModel(self):
+    @property
+    def User(self):
         return ModelUser
 
-    def getSessionCacheModel(self):
+    @property
+    def SessionCache(self):
         return ModelSessionCache
 
     def getKey(self, modelname, guid):
@@ -160,7 +181,7 @@ class BaseModelFactory():
                 return False
 
     def authenticate(self, username, passwd):
-        um = self.getUserModel()
+        um = self.getUser()
         if um.objects(__raw__={'name': username, 'passwd': {'$in': [passwd, j.tools.hash.md5_string(passwd)]}}):
             return True
         return False

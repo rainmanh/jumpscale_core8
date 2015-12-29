@@ -19,6 +19,8 @@ class BaseModelFactory():
     def __init__(self):
         self.__jslocation__ = "j.data.models"
 
+    DoesNotExist = DoesNotExist
+
     @property
     def Machine(self):
         return ModelMachine

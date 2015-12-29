@@ -48,12 +48,9 @@ class ModelErrorCondition(ModelBase):
     jid = IntField(default=0)
     masterjid = IntField(default=0)
     appname = StringField(default="")
-    level_choices = ("CRITICAL","MAJOR","WARNING","INFO")
-    type_choices = ("BUG","PERF","OPS","UNKNOWN")
-    state_choices = ("NEW","ALERT","CLOSED")
-    level = StringField(choices=level_choices, default="CRITICAL", required=True)
-    type = StringField(choices=type_choices, default="UNKNOWN", required=True)
-    state = StringField(choices=state_choices, default="NEW", required=True)
+    level = StringField(choices=("CRITICAL","MAJOR","WARNING","INFO"), default="CRITICAL", required=True)
+    type = StringField(choices=("BUG","PERF","OPS","UNKNOWN"), default="UNKNOWN", required=True)
+    state = StringField(choices=("NEW","ALERT","CLOSED"), default="NEW", required=True)
     # StringField() <--- available starting version 0.9
     errormessage = StringField()
     errormessagePub = StringField()  # StringField()
@@ -159,8 +156,7 @@ class ModelAlert(ModelBase):
     # dot notation e.g. machine.start.failed
     category = StringField(default='')
     tags = StringField(default='')  # e.g. machine:2323
-    state_choices = ("NEW","ALERT","CLOSED")
-    state = StringField(choices=state_choices, default='NEW', required=True)
+    state = StringField(choices=("NEW","ALERT","CLOSED"), default='NEW', required=True)
     history = ListField(DictField())
     # first time there was an error condition linked to this alert
     inittime = IntField(default=j.tools.time.getTimeEpoch())
@@ -213,8 +209,7 @@ class ModelMachine(ModelBase):
     ipaddr = ListField(StringField())
     active = BooleanField()
     # STARTED,STOPPED,RUNNING,FROZEN,CONFIGURED,DELETED
-    state_choices = ("STARTED","STOPPED","RUNNING","FROZEN","CONFIGURED","DELETED")
-    state = StringField(choices=state_choices, default='', required=True)
+    state = StringField(choices=("STARTED","STOPPED","RUNNING","FROZEN","CONFIGURED","DELETED"), default='', required=True)
     mem = IntField()  # $in MB
     cpucore = IntField()
     description = StringField(default='')
@@ -295,8 +290,7 @@ class ModelTest(ModelBase):
     name = StringField(default='')
     testrun = StringField(default='')
     path = StringField(default='')
-    state_choices = ("OK","ERROR","DISABLED")
-    state = StringField(choices=state_choices, default='', required=True)
+    state = StringField(choices=("OK","ERROR","DISABLED"), default='', required=True)
     priority = IntField()  # lower is highest priority
     organization = StringField(default='')
     author = StringField(default='')

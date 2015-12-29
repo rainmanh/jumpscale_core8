@@ -29,7 +29,6 @@ class ModelBase(Document):
             return cls.objects(__raw__=query)
 
     def save(self):
-        self.clean()
         if "_redis" in self.__dict__:
             redis = True
             return j.data.models.set(self, redis=redis)

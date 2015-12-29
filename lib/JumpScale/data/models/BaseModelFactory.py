@@ -44,6 +44,10 @@ class BaseModelFactory():
         return ModelJob
 
     @property
+    def Command(self):
+        return ModelCommand
+
+    @property
     def Audit(self):
         return ModelAudit
 

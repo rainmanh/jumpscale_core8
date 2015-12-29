@@ -11,7 +11,7 @@ from AtYourServiceSync import AtYourServiceSync
 
 from mongoengine import *
 
-class ModelDebug(j.data.models.getBaseModel()):
+class ModelDebug(j.data.models.Base):
     guid = StringField(default='')
     host = StringField(default='')
     cache = StringField(default='')

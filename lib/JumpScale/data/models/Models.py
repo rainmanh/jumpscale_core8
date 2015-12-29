@@ -87,30 +87,35 @@ class ModelGroup(ModelBase):
     users = ListField(StringField())
 
 
-class ModelJob(ModelBase):
-    sessionid = IntField()
-    nid = IntField()
-    gid = IntField()
-    cmd = StringField(default='')
-    wait = BooleanField(default=True)
-    category = StringField(default='')
+class ModelJob(EmbeddedDocument):
+    nid = IntField(required=True)
+    gid = IntField(required=True)
+    data = StringField(default='')
+    streams = ListField(StringField())
+    level = IntField()
+    state = StringField(required=True, choices=('SUCCESS', 'ERROR', 'TIMEOUT', 'KILLED', 'QUEUED', 'RUNNING'))
+    starttime = IntField()
+    time = IntField()
+    tags = StringField()
+    critical = StringField()
+
+    meta = {
+        'indexes': [{'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}],
+        'allow_inheritance': True
+    }
+
+
+class ModelCommand(ModelBase):
+    gid = IntField(default=0)
+    nid = IntField(default=0)
+    cmd = StringField()
     roles = ListField(StringField())
-    args = StringField(default='')
-    queue = StringField(default='')
-    timeout = IntField()
-    result = StringField(default='')
-    parent = IntField()
-    resultcode = StringField(default='')
-    # SCHEDULED,STARTED,ERROR,OK,NOWORK
-    state_choices = ("SCHEDULED","STARTED","ERROR","OK","NOWORK")
-    state = StringField(choices=state_choices, default='SCHEDULED', required=True)
-    timeStart = IntField(default=j.tools.time.getTimeEpoch())
-    timeStop = IntField()
-    log = BooleanField(default=True)
-    errorreport = BooleanField(default=True)
-    meta = {'indexes': [
-        {'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}
-    ], 'allow_inheritance': True}
+    fanout = BooleanField(default=False)
+    args = DictField()
+    data = StringField()
+    tags = StringField()
+    starttime = IntField()
+    jobs = ListField(EmbeddedDocumentField(ModelJob))
 
 
 class ModelAudit(ModelBase):
@@ -124,7 +129,6 @@ class ModelAudit(ModelBase):
     meta = {'indexes': [
         {'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}
     ], 'allow_inheritance': True}
-
 
 class ModelDisk(ModelBase):
     partnr = IntField()

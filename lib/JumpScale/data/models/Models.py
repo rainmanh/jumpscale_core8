@@ -6,10 +6,10 @@ import uuid
 
 
 class ModelBase(Document):
-    guid = StringField(default=uuid.uuid4().hex)
+    guid = StringField(default=lambda: uuid.uuid4().hex)
     gid = IntField(default=0)
     nid = IntField(default=0)
-    epoch = IntField(default=j.tools.time.getTimeEpoch())
+    epoch = IntField(default=j.tools.time.getTimeEpoch)
     meta = {'allow_inheritance': True}
 
     def clean(self):

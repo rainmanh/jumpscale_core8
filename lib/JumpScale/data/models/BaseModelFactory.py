@@ -181,7 +181,7 @@ class BaseModelFactory():
                 return False
 
     def authenticate(self, username, passwd):
-        um = self.getUser()
+        um = self.User
         if um.objects(__raw__={'name': username, 'passwd': {'$in': [passwd, j.tools.hash.md5_string(passwd)]}}):
             return True
         return False

@@ -51,7 +51,7 @@ class RsyncServer(SALObject):
             # generate secret
             secret = self.secrets[name]
         if secret == "":
-            secret = j.tools.idgenerator.generateGUID().replace("-", "")
+            secret = j.data.idgenerator.generateGUID().replace("-", "")
 
         self.secrets[name.strip()] = secret.strip()
         self.pathsecrets.write_text(toml.dumps(self.secrets))

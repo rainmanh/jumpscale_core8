@@ -258,5 +258,5 @@ class Sandboxer():
             for src in j.sal.fs.listFilesInDir(path, recursive=True, exclude=["*.pyc", "*.git*"], followSymlinks=True, listSymlinks=True):
                 out += _calculatePaths(src, removePrefix)
 
-        out = j.tools.text.sort(out)
+        out = j.data.text.sort(out)
         j.sal.fs.writeFile(plistfile, out)

@@ -59,7 +59,7 @@ class Container(SALObject):
         self.run("chmod 770 %s;%s" % (path, path))
 
     def copy(self, src, dest):
-        rndd = j.tools.idgenerator.generateRandomInt(10, 1000000)
+        rndd = j.data.idgenerator.generateRandomInt(10, 1000000)
         temp = "/var/docker/%s/%s" % (self.name, rndd)
         j.sal.fs.createDir(temp)
         source_name = j.sal.fs.getBaseName(src)

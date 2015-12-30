@@ -17,9 +17,9 @@ class TemplateEngine(object):
         #System ##System
 
     def add(self, search, replace,variants=False):
-        if not j.core.types.string.check(search):
+        if not j.data.types.string.check(search):
             raise RuntimeError("only strings can be searched for when using template engine, param search is not a string")
-        if not j.core.types.string.check(replace):
+        if not j.data.types.string.check(replace):
             raise RuntimeError("can only replace with strings when using template engine, param replace is not a string")        
         self.replaceDict[search] = replace
         if variants:

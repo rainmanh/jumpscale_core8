@@ -12,7 +12,7 @@ from builtins import str
 class Text:
 
     def __init__(self):
-        self.__jslocation__ = "j.tools.text"            
+        self.__jslocation__ = "j.data.text"            
 
     def decodeUnicode2Asci(self,text):
         return unicodedata.normalize('NFKD', self.decode("utf-8")).encode('ascii','ignore')
@@ -161,7 +161,6 @@ class Text:
     
     def isNumeric(self,txt):        
         return re_nondigit.search(txt)==None
-
        
     def lstrip(self,content):
         """
@@ -190,12 +189,11 @@ class Text:
 
             descr, default & regex can be between '' if spaces inside
 
-            types are: str,float,int,bool,dropdown,multiline
-            the multiline will open joe as editor
+            types are: str,float,int,bool,multiline,list
 
             retry means will keep on retrying x times until ask is done properly
 
-            dropdownvals is comma separated list of values to ask for when type dropdown
+            dropdownvals is comma separated list of values to ask for
 
         @ASK can be at any position in the text
 
@@ -319,9 +317,9 @@ class Text:
                     print(descr)
                 result=j.tools.console.askYesNo()
                 if result:
-                    result=1
+                    result=True
                 else:
-                    result=0
+                    result=False
 
             elif ttype=="dropdown":
                 if tags.tagExists("dropdownvals"):
@@ -393,7 +391,7 @@ class Text:
         or convert 1 string to python objects
         """
         try:
-            if j.core.types.list.check(string):
+            if j.data.types.list.check(string):
                 ttypes=[]
                 for item in string:
                     ttype,val=self._str2var(item)
@@ -409,7 +407,7 @@ class Text:
                     result=[self.getBool(item) for item in string]                
                 else:
                     result=[str(self.machinetext2val(item)) for item in string]
-            elif j.core.types.dict.check(string):
+            elif j.data.types.dict.check(string):
                 ttypes=[]
                 result={}
                 for key,item in list(string.items()):
@@ -432,7 +430,7 @@ class Text:
                     for key,item in list(string.items()):
                         result[key]=str(self.machinetext2val(item)) 
             elif isinstance(string,str) or isinstance(string,float) or isinstance(string,int):
-                ttype,result=self._str2var(j.tools.text.toStr(string))
+                ttype,result=self._str2var(j.data.text.toStr(string))
             else:
                 j.events.inputerror_critical("Could not convert '%s' to basetype, input was %s. Expected string, dict or list."%(string, type(string)),"self.str2var")    
             return result
@@ -451,7 +449,7 @@ class Text:
             try:
                 result = eval(item)
             except Exception as e:
-                raise RuntimeError("Could not execute code in j.tools.text,%s\n%s. Error was:%s" % (item, code, e))
+                raise RuntimeError("Could not execute code in j.data.text,%s\n%s. Error was:%s" % (item, code, e))
             result = self.pythonObjToStr(result, multiline=False).strip()
             code = code.replace(item, result)
         return code
@@ -471,13 +469,13 @@ class Text:
         elif isinstance(obj, bytes):
             obj=obj.decode("utf8")
             return obj
-        elif j.core.types.bool.check(obj):
+        elif j.data.types.bool.check(obj):
             if obj==True:
                 obj="True"
             else:
                 obj="False"
             return obj
-        elif j.core.types.string.check(obj):
+        elif j.data.types.string.check(obj):
             isdict = canBeDict and obj.find(":")!=-1
             if obj.strip()=="":
                 return ""
@@ -489,9 +487,9 @@ class Text:
                 else:
                     obj="%s"%obj.strip("'")
             return obj
-        elif j.core.types.integer.check(obj) or j.core.types.float.check(obj):
+        elif j.data.types.int.check(obj) or j.data.types.float.check(obj):
             return str(obj)
-        elif j.core.types.list.check(obj):
+        elif j.data.types.list.check(obj):
             # if not canBeDict:
             #     raise RuntimeError("subitem cannot be list or dict for:%s"%obj)
             if multiline:
@@ -507,7 +505,7 @@ class Text:
 
             return resout
 
-        elif j.core.types.dict.check(obj):
+        elif j.data.types.dict.check(obj):
             if not canBeDict:
                 raise RuntimeError("subitem cannot be list or dict for:%s"%obj)            
             if multiline:
@@ -557,7 +555,6 @@ class Text:
             if onlyone:
                 return item2
         return value
-
     
     def replaceQuotes(self,value,replacewith):
         for item in re.findall(matchquote, value):
@@ -600,14 +597,10 @@ class Text:
             return res
             
             # Check if it's not an ip address
-            # because int/float test fails on "1.1.1.1" for exemple
+            # because int/float test fails on "1.1.1.1" for example
             try:
-    
                 socket.inet_aton(value2)
-                
             except socket.error:
-
-                # if self.contains(
                 if self.isInt(value2):
                     return self.getInt(value2)
                 elif  self.isFloat(value2):
@@ -635,7 +628,7 @@ class Text:
 
     
     def getInt(self,text):        
-        if j.core.types.string.check(text):
+        if j.data.types.string.check(text):
             text=self.strip(text)
             if text.lower()=="none":
                 return 0
@@ -648,12 +641,11 @@ class Text:
         else:
             text=int(text)
         return text
-    
-    
+     
     def getFloat(self,text):
-        if j.core.types.string.check(text):
-            text=self.strip()
-            if self.lower()=="none":
+        if j.data.types.string.check(text):
+            text=text.strip()
+            if text.lower()=="none":
                 return 0.0
             elif text==None:
                 return 0.0
@@ -664,8 +656,7 @@ class Text:
         else:
             text=float(text)
         return text
-
-    
+ 
     def isFloat(self,text):
         text=self.strip(",").strip()
         if not self.find(".")==1:
@@ -675,7 +666,6 @@ class Text:
             return True
         except ValueError:
             return False
-
     
     def isInt(self,text):
         text=self.strip(",").strip()
@@ -683,79 +673,88 @@ class Text:
 
     
     def getBool(self,text):
-        if j.core.types.bool.check(text):
+        if j.data.types.bool.check(text):
             return text
-        if j.core.types.string.check(text):
-            text=self.strip()
-            if self.lower()=="none":
+        elif j.data.types.int.check(text):
+            if text==1:
+                return True
+            else:
+                return False
+        elif j.data.types.string.check(text):
+            text=text.strip()
+            if text.lower()=="none":
                 return False
             elif text==None:
                 return False
             elif text=="":
                 return False
-            elif self.lower() == 'true':
+            elif text.lower() == 'true':
+                return True
+            elif text == '1':
                 return True
             else:
                 return False
         else:
-            raise RuntimeError("input needs to be string")
+            raise RuntimeError("input needs to be None, string, bool or int")
 
     
-    def dealWithQuote(self,text):
+    def _dealWithQuote(self,text):
         """
         look for 'something,else' the comma needs to be converted to \k
         """
         for item in re.findall(matchquote, text):
             item2=item.replace(",","\\K")
-            text=self.replace(item,item2)
+            text=text.replace(item,item2)
         return text
-
-    
-    def dealWithList(self,text):
+ 
+    def _dealWithList(self,text):
         """
         look for [something,2] the comma needs to be converted to \k 
         """
         for item in re.findall(matchlist, text):
             item2=item.replace(",","\\K")
-            text=self.replace(item,item2)
+            text=text.replace(item,item2)
         return text
 
-    
-    def getList(self,text,ttype=None,deserialize=False):
+    def getList(self,text,ttype="str"):
         """
         @type can be int,bool or float (otherwise its always str)
         """
         if self.strip(text)=="":
             return []        
-        text=self.dealWithQuote(text)        
+        text=self._dealWithQuote(text)        
         text=text.split(",")
         text=[item.strip() for item in text]
         if ttype!=None:
-            ttype=ttype.lower()
             if ttype=="int":
                 text=[self.getInt(item) for item in text]
+            elif ttype=="str" or ttype==j.data.types.string:
+                text=[j.data.types.string.fromString(item) for item in text]
+                text=[item.replace("\\K",",").replace("'","") for item in text]
             elif ttype=="bool":
                 text=[self.getBool(item) for item in text]
             elif ttype=="float":
                 text=[self.getFloat(item) for item in text]
             else:
-                j.events.inputerror_critical("type needs to be: int,bool or float","self.getlist.type")
+                text=[ttype.fromString(item) for item in text]
 
-        if deserialize:
-            text=[item for item in text]
+            # else:
+            #     j.events.inputerror_critical("type needs to be: int,bool or float","self.getlist.type")
+
+        
 
         return text
 
     
-    def getDict(self,text,ttype=None,deserialize=False):
+    def getDict(self,text,ttype=None):
         """
         keys are always treated as string
         @type can be int,bool or float (otherwise its always str)
         """   
         if self.strip()=="" or self.strip()=="{}":
             return {} 
-        text=self.dealWithList(text)
-        text=self.dealWithQuote(text)
+        text=self._dealWithList(text)
+        text=self._dealWithQuote(text)
         res2={}
         for item in self.split(","):
             if item.strip()!="":

@@ -411,7 +411,7 @@ class Console:
         if isinstance(choicearray, (tuple, list)):
             isstr=True
             for item in choicearray:
-                if not j.core.types.string.check(item):
+                if not j.data.types.string.check(item):
                     isstr=False
             if isstr==False:
                 choicearrayNew={}

@@ -256,7 +256,7 @@ class CodeTools:
         def toStr(obj,possibleList=True):
             if isinstance(obj, (str,int,float,bool)) or obj==None:
                 return str(obj)
-            elif possibleList==True and j.core.types.list.check(obj):
+            elif possibleList==True and j.data.types.list.check(obj):
                 r=""
                 for item in obj:
                     rr=toStr(obj,possibleList=False)
@@ -271,7 +271,7 @@ class CodeTools:
                     key=key[3:]
                 elif key[0]=="_":
                     continue
-                if j.core.types.dict.check(value):
+                if j.data.types.dict.check(value):
                     for key2 in list(value.keys()):
                         r=toStr(value[key2])
                         if r!="":
@@ -284,7 +284,7 @@ class CodeTools:
         
 
     def object2dict(self,obj,dieOnUnknown=False,ignoreKeys=[],ignoreUnderscoreKeys=False):
-        if j.core.types.dict.check(obj):
+        if j.data.types.dict.check(obj):
             return obj
         data={}
 

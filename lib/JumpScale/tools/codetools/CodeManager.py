@@ -537,7 +537,7 @@ class CodeManagerFile():
         line,id1=self.findId(line,fullPath)        
         if id1==0:
             #create unique id and put it in the file
-            id1=j.tools.idgenerator.generateIncrID("%sid"%ttype,self.service) 
+            id1=j.data.idgenerator.generateIncrID("%sid"%ttype,self.service) 
             #tfe=j.tools.code.getTextFileEditor(fullPath)
             #tfe.addItemToFoundLineOnlyOnce(line," ((%s:%s))"%(ttype,id1),"\(id *: *\d* *\)",reset=True)
             tfe=j.tools.code.getTextFileEditor(fullPath)

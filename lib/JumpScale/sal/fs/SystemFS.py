@@ -22,7 +22,7 @@ from JumpScale import j
 # import JumpScale.baselib.codetools #requirement for parsePath
 # from text import Text
 
-toStr = j.tools.text.toStr
+toStr = j.data.text.toStr
 
 #from JumpScale.core.decorators import deprecated
 
@@ -1337,7 +1337,7 @@ class SystemFS(SALObject):
         """
         can be single path or multiple (then list)
         """
-        if  j.core.types.list.check(paths):
+        if  j.data.types.list.check(paths):
             for item in paths:
                 self.touch(item,overwrite=overwrite)
         path=paths
@@ -1602,7 +1602,7 @@ class SystemFS(SALObject):
         """
         create a tmp dir name and makes sure the dir exists
         """
-        tmpdir=j.sal.fs.joinPaths(j.dirs.tmpDir, str(j.tools.idgenerator.generateRandomInt(1,100000000)))
+        tmpdir=j.sal.fs.joinPaths(j.dirs.tmpDir, str(j.data.idgenerator.generateRandomInt(1,100000000)))
         j.sal.fs.createDir(tmpdir)
         return tmpdir
 
@@ -1632,7 +1632,7 @@ class SystemFS(SALObject):
         @rtype: string representing the generated temp file path
         """
         if dir==None:
-            return j.sal.fs.joinPaths(j.dirs.tmpDir,prefix+str(j.tools.idgenerator.generateRandomInt(0,1000000000000))+".tmp")
+            return j.sal.fs.joinPaths(j.dirs.tmpDir,prefix+str(j.data.idgenerator.generateRandomInt(0,1000000000000))+".tmp")
         else:
             dir = dir or j.dirs.tmpDir
             return tempfile.mktemp('', prefix, dir)

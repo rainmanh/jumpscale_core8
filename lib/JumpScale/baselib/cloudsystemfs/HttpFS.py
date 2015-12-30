@@ -52,7 +52,7 @@ class HttpFS(object):
         self.server = server
 
     def _connect(self, suppressErrors=False):
-        if not hasattr(self, 'local_dir') or not self.local_dir: self.local_dir =  '/'.join([self.tempdir , j.tools.idgenerator.generateGUID()])
+        if not hasattr(self, 'local_dir') or not self.local_dir: self.local_dir =  '/'.join([self.tempdir , j.data.idgenerator.generateGUID()])
         self.local_file = '/'.join([self.local_dir , self.filename])
         self.local_dir = self.local_dir.replace('//', '/')
         self.local_file = self.local_file.replace('//', '/')

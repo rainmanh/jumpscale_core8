@@ -154,10 +154,10 @@ class OSISStore(object):
         value can be a dict or a raw value (seen as string)
         if raw value then will not try to index
         """
-        if j.core.types.dict.check(value):
+        if j.data.types.dict.check(value):
             #is probably an osis object
             obj=self.getObject(value)
-            if not j.core.types.dict.check(obj):
+            if not j.data.types.dict.check(obj):
                 new,changed,obj=self.setObjIds(obj)
                 key=obj.guid
                 if changed:                  
@@ -209,7 +209,7 @@ class OSISStore(object):
 
         index = self.getIndexName()
 
-        if j.core.types.dict.check(obj):
+        if j.data.types.dict.check(obj):
             data=copy.copy(obj)
             data=obj
         else:

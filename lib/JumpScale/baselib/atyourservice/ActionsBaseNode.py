@@ -49,7 +49,7 @@ class ActionsBaseNode(object):
                             continue
 
                     url = "%s/dedupe/files/%s/%s/%s" %(addr, hash[0], hash[1], hash)
-                    value, unit = j.tools.units.bytes.converToBestUnit(int(size))
+                    value, unit = j.data.units.bytes.converToBestUnit(int(size))
                     print("downloading %s (%s %s)" % (path, value, unit))
                     unit = unit if unit != '' else 'B'
                     conn.download(url, path)
@@ -77,7 +77,7 @@ class ActionsBaseNode(object):
                             continue
 
                     src = "%s:%s/dedupe/files/%s/%s/%s" % (addr, root, hash[0], hash[1], hash)
-                    value, unit = j.tools.units.bytes.converToBestUnit(int(size))
+                    value, unit = j.data.units.bytes.converToBestUnit(int(size))
                     unit = unit if unit != '' else 'B'
                     print("downloading %s (%s %s)" % (path, value, unit))
                     j.do.copyTree(src, path, deletefirst=False, overwriteFiles=False, ssh=True, sshport=port, recursive=False)

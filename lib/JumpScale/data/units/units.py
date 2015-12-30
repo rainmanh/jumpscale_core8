@@ -3,7 +3,7 @@ order = ['','K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
 class Sizes(object):
     _BASE = 1000.
     def __init__(self):
-        self.__jslocation__ = "j.tools.units.sizes"
+        self.__jslocation__ = "j.data.units.sizes"
 
     def toSize(self, value, input='', output='K'):
         """
@@ -29,4 +29,4 @@ class Bytes(Sizes):
     _BASE = 1024.
 
     def __init__(self):
-        self.__jslocation__ = "j.tools.units.bytes"
+        self.__jslocation__ = "j.data.units.bytes"

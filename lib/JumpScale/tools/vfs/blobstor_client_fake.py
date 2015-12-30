@@ -149,7 +149,7 @@ class BlobStorClientFake:
                     return
 
     def uploadDir(self,dirpath,compress=False):
-        name="backup_md_%s"%j.tools.idgenerator.generateRandomInt(1,100000)
+        name="backup_md_%s"%j.data.idgenerator.generateRandomInt(1,100000)
         tarpath="/tmp/%s.tar"%name
         if compress:
             cmd="cd %s;tar czf %s ."%(dirpath,tarpath)
@@ -163,7 +163,7 @@ class BlobStorClientFake:
     def downloadDir(self,key,dest,repoid=0,compress=None):
         j.sal.fs.removeDirTree(dest)
         j.sal.fs.createDir(dest)
-        name="backup_md_%s"%j.tools.idgenerator.generateRandomInt(1,100000)
+        name="backup_md_%s"%j.data.idgenerator.generateRandomInt(1,100000)
         tarpath="/tmp/%s.tar"%name
         self.downloadFile(key,tarpath,False,repoid=repoid)
         if compress:

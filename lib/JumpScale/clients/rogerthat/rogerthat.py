@@ -38,7 +38,7 @@ class Rogerthat(object):
         self._url = 'https://rogerth.at/api/1'
 
     def _raw_request(self, method, params):
-        data = {'id': j.tools.idgenerator.generateGUID(), 'method': method, 'params': params}
+        data = {'id': j.data.idgenerator.generateGUID(), 'method': method, 'params': params}
         json_data = ujson.dumps(data)
         headers = {'Content-Type': 'application/json-rpc; charset=utf-8', 'X-Nuntiuz-API-key': self._api_key}
         request = urllib.request.Request(self._url, json_data, headers)

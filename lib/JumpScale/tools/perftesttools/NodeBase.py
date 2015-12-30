@@ -67,7 +67,7 @@ class NodeBase(MonitorTools):
 
 
     def startMonitor(self,cpu=1,disks=[],net=1):
-        if not j.core.types.list.check(disks):
+        if not j.data.types.list.check(disks):
             disks = [disks]
         disks=[str(disk) for disk in disks]
         self.prepareTmux("mon%s"%self.role,["monitor"])

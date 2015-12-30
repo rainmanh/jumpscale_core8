@@ -785,11 +785,11 @@ class OurCuisine():
         return self.cd
 
     def run_script(self,content):
-        content=j.tools.text.lstrip(content)
+        content=j.data.text.lstrip(content)
         if content[-1]!="\n":
             content+="\n"
         content+="\necho **DONE**\n"
-        path="/tmp/%s.sh"%j.tools.idgenerator.generateRandomInt(0,10000)
+        path="/tmp/%s.sh"%j.data.idgenerator.generateRandomInt(0,10000)
         self.file_write(location=path, content=content, mode=0o770, owner="root", group="root")
         out=self.run("bash %s"%path)
         self.file_unlink(path)
@@ -902,10 +902,10 @@ class OurCuisine():
         """
         execute a jumpscript (script as content) in a remote tmux command, the stdout will be returned
         """
-        script=j.tools.text.lstrip(script)
+        script=j.data.text.lstrip(script)
         if script.find("from JumpScale import j")==-1:
             script="from JumpScale import j\n\n%s"%script
-        path="/tmp/jumpscript_temp_%s.py"%j.tools.idgenerator.generateRandomInt(1,10000)
+        path="/tmp/jumpscript_temp_%s.py"%j.data.idgenerator.generateRandomInt(1,10000)
         self.file_write(path,script)
         out=self.tmux_execute("jspython %s"%path)
         self.file_unlink(path)
@@ -915,10 +915,10 @@ class OurCuisine():
         """
         execute a jumpscript (script as content) in a remote tmux command, the stdout will be returned
         """
-        script=j.tools.text.lstrip(script)
+        script=j.data.text.lstrip(script)
         if script.find("from JumpScale import j")==-1:
             script="from JumpScale import j\n\n%s"%script        
-        path="/tmp/jumpscript_temp_%s.py"%j.tools.idgenerator.generateRandomInt(1,10000)
+        path="/tmp/jumpscript_temp_%s.py"%j.data.idgenerator.generateRandomInt(1,10000)
         self.file_write(path,script)
         out=self.run("jspython %s"%path)
         self.file_unlink(path)

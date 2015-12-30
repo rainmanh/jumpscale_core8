@@ -63,7 +63,7 @@ class NumTools:
             tointerpolate = [0.0 for item in tointerpolate]
 
         for xpos in range(len(tointerpolate)):
-            if not tointerpolate[xpos] == None and not j.core.types.integer.check(tointerpolate[xpos]):
+            if not tointerpolate[xpos] == None and not j.data.types.int.check(tointerpolate[xpos]):
                 isint = False
             if tointerpolate[xpos] == None:
                 x.append(xpos)
@@ -152,7 +152,7 @@ class NumTools:
         e.g.: 10EUR or 10 EUR (spaces are stripped)
         e.g.: 0.1mEUR or 0.1m EUR or 100k EUR or 100000 EUR        
         """
-        if not j.core.types.string(value):
+        if not j.data.types.string(value):
             raise RuntimeError("value needs to be string in text2val, here: %s" % value)
         if value.lower().find("eur") != -1:
             value = value.replace("eur", "").strip()

@@ -35,7 +35,7 @@ class MongoDBKeyValueStore(KeyValueStoreBase):
         """
         @param expire is in seconds when value will expire
         """
-        if j.core.types.dict.check(value):
+        if j.data.types.dict.check(value):
             if "guid" in value:
                 guid=value.pop("guid")
                 value["_id"]=guid

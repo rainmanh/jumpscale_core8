@@ -60,8 +60,8 @@ class KeyStor(SALObject):
             p1 = path.joinpath("priv.pem")
             p2 = path.joinpath("pub.pem")
         else:
-            p1 = '/tmp/_key_%s' % j.tools.idgenerator.generateGUID()
-            p2 = '/tmp/_key_%s' % j.tools.idgenerator.generateGUID()
+            p1 = '/tmp/_key_%s' % j.data.idgenerator.generateGUID()
+            p2 = '/tmp/_key_%s' % j.data.idgenerator.generateGUID()
 
         keys.save_key(p1, None)
         keys.save_pub_key(p2)
@@ -85,7 +85,7 @@ class KeyStor(SALObject):
                 return self.keys[cachekey].as_pem()
             else:
                 return self.keys[cachekey]
-        p1 = j.tools.path.get('/tmp/_key_%s' % j.tools.idgenerator.generateGUID())
+        p1 = j.tools.path.get('/tmp/_key_%s' % j.data.idgenerator.generateGUID())
         if keyoverrule:
             key = keyoverrule
         else:

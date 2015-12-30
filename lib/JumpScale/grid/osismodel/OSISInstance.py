@@ -42,7 +42,7 @@ class OSISInstanceNoDB(object):
         Create new object from class & return
         """
         obj = self.modelclass()
-        obj.guid = j.tools.idgenerator.generateGUID()
+        obj.guid = j.data.idgenerator.generateGUID()
         return obj
 
 
@@ -104,7 +104,7 @@ class OSISInstance(OSISInstanceNoDB):
         """
         obj = self.modelclass()
         if guid == None:
-            obj.guid = j.tools.idgenerator.generateGUID()
+            obj.guid = j.data.idgenerator.generateGUID()
         else:
             obj.guid = guid
         if id != None:
@@ -122,7 +122,7 @@ class OSISInstance(OSISInstanceNoDB):
     def set(self, obj, index=False):
         data = self._getDict(obj)
         if 'guid' not in data or not data['guid']:
-            data['guid'] = j.tools.idgenerator.generateGUID()
+            data['guid'] = j.data.idgenerator.generateGUID()
         if 'id' not in data:
             data['id'] = data['_P_id']
         if self.exists(id=data['id']):
@@ -421,7 +421,7 @@ class OSISInstance(OSISInstanceNoDB):
 
     #     if obj == None:
     #         obj = objnew
-    #         obj.guid = j.tools.idgenerator.generateGUID()
+    #         obj.guid = j.data.idgenerator.generateGUID()
     #         self.link(obj)
     #         self.set(obj)
     #         ini.setParam(section, "guid", obj.guid)
@@ -477,9 +477,9 @@ class OSISInstance(OSISInstanceNoDB):
             row = []
             for prop in self.listProps:
                 r = ob.__dict__["_P_%s" % prop]
-                if j.core.types.list.check(r):
+                if j.data.types.list.check(r):
                     r = ",".join(r)
-                if j.core.types.dict.check(r):
+                if j.data.types.dict.check(r):
                     for key in list(r.keys()):
                         r += "%s:%s," % (key, r[key])
                     r.rstrip(",")

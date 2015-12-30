@@ -152,7 +152,7 @@ class Row(j.tools.code.classGetBase()):
         variation = int(float(variation) * 100.0)
         roundd = self.ttype in ["perc", "int"]
         for x in range(start, stop + 1):
-            self.cells[x] = self.cells[x] - variation / 200 + float(j.tools.idgenerator.generateRandomInt(1, variation)) / 100
+            self.cells[x] = self.cells[x] - variation / 200 + float(j.data.idgenerator.generateRandomInt(1, variation)) / 100
             if roundd:
                 self.cells[x] = int(self.cells[x])
 
@@ -197,7 +197,7 @@ class Row(j.tools.code.classGetBase()):
         variation = int(variation)
         changeMin = int(val - variation)
         changeMax = int(val + variation)
-        gd = j.tools.idgenerator.generateRandomInt(changeMin, changeMax)
+        gd = j.data.idgenerator.generateRandomInt(changeMin, changeMax)
         return gd
 
     def _getVariationPositive(self, change, variation):
@@ -209,7 +209,7 @@ class Row(j.tools.code.classGetBase()):
             raise RuntimeError("Variation cannot be more than 1 and not less than 0.")
         changeMin = int(100.0 * (change - variation * change))
         changeMax = int(100.0 * (change + variation * change))
-        gd = float(j.tools.idgenerator.generateRandomInt(changeMin, changeMax) / 100.0)
+        gd = float(j.data.idgenerator.generateRandomInt(changeMin, changeMax) / 100.0)
         return gd
 
     def goDown(self, start, stop, godown, nrSteps, hvariation, vvariation, isActiveFunction=None):
@@ -406,7 +406,7 @@ class Row(j.tools.code.classGetBase()):
             for x in range(0, standstill):
                 self.cells[x] = self.defval
 
-        if not j.core.types.list.check(data):
+        if not j.data.types.list.check(data):
             if data == None:
                 self.cells[0] = float(startval)
             elif str(data).find(",") == -1 and str(data).find(":") == -1:
@@ -894,7 +894,7 @@ class Sheet(j.tools.code.classGetBase()):
         @param rownames is list of rows to add specified by list or rownames
         @param newRow is the row where the result will be stored (can also be the name of the new row then row will be looked for)
         """
-        if j.core.types.string.check(newRow):
+        if j.data.types.string.check(newRow):
             newRow = self.getRow(newRow)
 
         def summ(values, params):
@@ -911,7 +911,7 @@ class Sheet(j.tools.code.classGetBase()):
         @param rownames is list of rows to add specified by list or rownames
         @param newRow is the row where the result will be stored (can also be the name of the new row then row will be looked for)
         """
-        if j.core.types.string.check(newRow):
+        if j.data.types.string.check(newRow):
             newRow = self.getRow(newRow)
 
         def mult(values, params):

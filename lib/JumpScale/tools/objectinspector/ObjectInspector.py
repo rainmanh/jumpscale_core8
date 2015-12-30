@@ -41,7 +41,7 @@ class MethodDoc():
         for param in inspected.args:
             if inspected.defaults!=None and counter>-1:
                 defval=inspected.defaults[counter]     
-                if j.core.types.string.check(defval):
+                if j.data.types.string.check(defval):
                     defval="'%s'"%defval
             else:
                 defval=None
@@ -58,8 +58,8 @@ class MethodDoc():
         self.comments=inspect.getdoc(method)
         if self.comments==None:
             self.comments=""        
-        self.comments=j.tools.text.strip(self.comments)
-        self.comments=j.tools.text.wrap(self.comments,90)
+        self.comments=j.data.text.strip(self.comments)
+        self.comments=j.data.text.wrap(self.comments,90)
 
         self.linenr=inspect.getsourcelines(method)[1]
         self.name=name
@@ -158,7 +158,7 @@ class ClassDoc():
             method=self.methods[key]
             C2=str(method)
             C+=C2
-            # C+=j.tools.text.prefix("    ",C2)
+            # C+=j.data.text.prefix("    ",C2)
 
         
         return C

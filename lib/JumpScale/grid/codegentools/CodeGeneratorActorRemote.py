@@ -65,7 +65,7 @@ class CodeGeneratorActorRemote(CodeGeneratorBase):
 if resultcode != 0:
     raise RuntimeError("error in calling webservice %s:%s:%s:%s" )
 else:
-    if j.core.types.dict.check(result) and result.has_key("result"):
+    if j.data.types.dict.check(result) and result.has_key("result"):
         return result["result"]
     else:
         return result

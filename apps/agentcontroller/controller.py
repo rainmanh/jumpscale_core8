@@ -182,7 +182,7 @@ class ControllerCMDS():
                 cmds.scheduleCmd(gid,nid,cmdcategory="pm",jscriptid=0,cmdname="restartWorkers",args={},queue="internal",log=False,timeout=60,roles=[],session=session)
 
     def _setJob(self, job, osis=False):
-        if not j.core.types.dict.check(job):
+        if not j.data.types.dict.check(job):
             raise RuntimeError("job needs to be dict")  
         # job guid needs to be unique accoress grid, structure $ac_gid _ $ac_nid _ $executor_gid _ $jobenum
         if not job['guid']:
@@ -557,7 +557,7 @@ class ControllerCMDS():
         job here is a dict
         """
         self._log("NOTIFY WORK COMPLETED: jobid:%s"%job["id"])
-        if not j.core.types.dict.check(job):
+        if not j.data.types.dict.check(job):
             raise RuntimeError("job needs to be dict")            
         saveinosis = job['log'] or job['state'] != 'OK'
         self._setJob(job, osis=saveinosis)

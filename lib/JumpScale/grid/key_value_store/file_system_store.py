@@ -117,7 +117,7 @@ class FileSystemKeyValueStore(KeyValueStoreBase):
         return j.sal.fs.joinPaths(self.dbpath, category)
 
     def _getStorePath(self, category, key,createIfNeeded=True):
-        key = j.tools.text.toStr(key)
+        key = j.data.text.toStr(key)
         key = urllib.parse.quote(key, SAFECHARS)
         origkey = key
         if len(key)<4:

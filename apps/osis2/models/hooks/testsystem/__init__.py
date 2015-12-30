@@ -12,7 +12,7 @@ def pre_create(items):
     """
     for item in items:
         if not item.get('guid'):
-            item['guid'] = j.tools.idgenerator.generateGUID()
+            item['guid'] = j.data.idgenerator.generateGUID()
         item['lastupdatedat'] = datetime.datetime.now()
 
 def post_create(items):

@@ -218,9 +218,9 @@ class GridHealthChecker(object):
                 if eshealth==None:
                     self._addError(self.masternid,"elasticsearch did not return info for healthcheck","elasticsearch")
                     return self._status, self._errors
-                size, unit = j.tools.units.bytes.converToBestUnit(eshealth['size'])
+                size, unit = j.data.units.bytes.converToBestUnit(eshealth['size'])
                 eshealth['size'] = '%.2f %sB' % (size, unit)
-                size, unit = j.tools.units.bytes.converToBestUnit(eshealth['memory_usage'])
+                size, unit = j.data.units.bytes.converToBestUnit(eshealth['memory_usage'])
                 eshealth['memory_usage'] = '%.2f %sB' % (size, unit)
 
                 if eshealth['health']['status'] in ['red']:
@@ -289,8 +289,8 @@ class GridHealthChecker(object):
             redis = dict()
 
         for port, result in list(redis.items()):
-            size, unit = j.tools.units.bytes.converToBestUnit(result['memory_usage'])
-            msize, munit = j.tools.units.bytes.converToBestUnit(result['memory_max'])
+            size, unit = j.data.units.bytes.converToBestUnit(result['memory_usage'])
+            msize, munit = j.data.units.bytes.converToBestUnit(result['memory_max'])
             result['memory_usage'] = '%.2f %sB' % (size, unit)
             result['memory_max'] = '%.2f %sB' % (msize, munit)
             result['port'] = port
@@ -482,7 +482,7 @@ class GridHealthChecker(object):
                 errormessage.append('Disk %(path)s is %(state)s. %(message)s.' % disk)
             else:
                 if disk['free']:
-                    size, unit = j.tools.units.bytes.converToBestUnit(disk['free'], 'M')
+                    size, unit = j.data.units.bytes.converToBestUnit(disk['free'], 'M')
                     disk['message'] = '%.2f %siB free space available' % (size, unit)
 
                 else:

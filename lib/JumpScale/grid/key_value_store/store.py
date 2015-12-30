@@ -86,7 +86,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
         ttime=j.tools.time.getTimeEpoch()
         value=[ttime+expirationInSecondsFromNow,value]
         if key=="":
-            key=j.tools.idgenerator.generateGUID()
+            key=j.data.idgenerator.generateGUID()
         self.set("cache", key, value)
         return key
         # if nrMinutesExpiration>0:            
@@ -349,7 +349,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
             data2=modfunction(data)
             if self.settest(category, key, data2):
                 break  #go out  of loop, could store well
-            time.time.sleep(float(j.tools.idgenerator.generateRandomInt(1,10))/50)
+            time.time.sleep(float(j.data.idgenerator.generateRandomInt(1,10))/50)
             counter+=1
         return data2
 

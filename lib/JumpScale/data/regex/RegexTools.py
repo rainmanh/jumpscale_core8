@@ -63,7 +63,7 @@ class RegexMatch:
 class RegexTools:
     #@todo doe some propper error handling with re, now obscure errors  (id:21)
     def __init__(self):
-        self.__jslocation__="j.tools.regex"           
+        self.__jslocation__="j.data.regex"           
         self.templates=Empty()
         self.templates.lines=RegexTemplates_FindLines()
 

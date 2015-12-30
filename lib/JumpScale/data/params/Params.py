@@ -131,7 +131,7 @@ class Params():
             return default
         tags = tags.getDict()
         tag = tags.get(name)
-        if tag and j.tools.text.toStr(tag).startswith('$$'):
+        if tag and j.data.text.toStr(tag).startswith('$$'):
             return default
         if not tag:
             return default

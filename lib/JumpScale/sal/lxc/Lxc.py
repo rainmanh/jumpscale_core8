@@ -273,7 +273,7 @@ ipaddr=
         if name=="":
             nr=0#max
             for m in machines:
-                if j.core.types.integer.checkString(m):
+                if j.data.types.int.checkString(m):
                     if int(m) > nr:
                         nr=int(m)
             nr += 1

@@ -1,15 +1,31 @@
 from JumpScale import j
 from ServiceTemplate import ServiceTemplate
+from ServiceRecipe import ServiceRecipe
 from Service import Service, getProcessDicts
 import re
 from ActionsBaseMgmt import ActionsBaseMgmt
-from ActionsBaseTmpl import ActionsBaseTmpl
 from ActionsBaseNode import ActionsBaseNode
-from AtYourServiceDebug import AtYourServiceDebugFactory
 # import AYSdb
 import json
 from AtYourServiceSync import AtYourServiceSync
 import os
+
+class AYSDB():
+    """
+    @todo 
+    """
+
+    def __init__(self):
+        self.db=j.core.db
+
+    def index(self,category,key,data):
+        self.db.hset("ays.index.%s"%category,key,data)
+
+    def reset(self):
+        self.db.delete("ays.domains")
+        self.db.delete("ays.index.service")
+        self.db.delete("ays.index.recipe")
+        self.db.delete("ays.index.template")
 
 
 class AtYourServiceFactory():
@@ -22,17 +38,23 @@ class AtYourServiceFactory():
         self.hrd = None
         self._justinstalled = []
         self._type = None
-        self.services = []
-        self.templates = []
+        self._services = []
+        self._templates = []
+        self._recipes = []
         self.indocker = False
         self.sync = AtYourServiceSync()
         self._reposDone = {}
         self.todo = []
         self._debug=None
 
+        self._db=AYSDB()
+
+    def reload(self):
+        self._db.reload()
 
     @property
     def debug(self):
+        from AtYourServiceDebug import AtYourServiceDebugFactory
         if self._debug==None:
             self._debug=AtYourServiceDebugFactory()
         return self._debug
@@ -53,6 +75,64 @@ class AtYourServiceFactory():
         self._doinit()
         return self._domains
 
+    @property
+    def templates(self):
+
+        def load(domain, path,llist):
+            for servicepath in j.sal.fs.listDirsInDir(path, recursive=False):
+                dirname = j.do.getBaseName(servicepath)
+                # print "dirname:%s"%dirname
+                if not (dirname.startswith(".")):
+                    load(domain,servicepath,llist)
+            # print path
+            dirname = j.do.getBaseName(path)
+            if dirname.startswith("_"):
+                return
+            if j.sal.fs.exists("%s/schema.hrd" % path) or j.sal.fs.exists("%s/service.hrd" % path) or j.sal.fs.exists("%s/actions_mgmt.py" % path):
+                templ = ServiceTemplate(path, domain=domain)
+                llist.append(templ)
+
+        if self._templates==[]:
+            self._doinit()
+            for domain, domainpath in self.domains:
+                # print "load template domain:%s"%domainpath
+                load(domain, domainpath,self._templates)
+        
+        #load the local service templates
+        aysrepopath=j.dirs.amInAYSRepo()
+        if aysrepopath!=None:
+            # load local templates
+            path=j.sal.fs.joinPaths(aysrepopath,"%s/servicetemplates/"%aysrepopath)                
+            load("ays",path,self._templates)
+
+        return self._templates
+
+    @property
+    def recipes(self):
+        if self._recipes==[]:
+            self._doinit()
+            aysrepopath=j.dirs.amInAYSRepo()
+            if aysrepopath!=None:
+                # load local templates
+                domainpath=j.sal.fs.joinPaths(aysrepopath,"%s/recipes/"%aysrepopath)
+                d=j.tools.path.get(domainpath)
+                for item in d.walkfiles("state.hrd"):
+                    recipepath=j.do.getDirName(item)
+                    self._recipes.append(ServiceRecipe(recipepath))
+        return self._recipes
+        
+    @property
+    def services(self):
+        if self._services==[]:
+
+            for state_hrd_path in j.sal.fs.listFilesInDir(j.dirs.ays, recursive=True, \
+                filter="state.hrd", case_sensitivity='os', followSymlinks=True, listSymlinks=False):
+                service_path = j.sal.fs.getDirName(state_hrd_path)
+                service = Service(path=service_path, args=None)
+                self._services.append(service)            
+
+        return self._services
+
     def _doinit(self):
         # if we don't have write permissin on /opt don't try do download service templates
         opt = j.tools.path.get('/opt')
@@ -70,10 +150,10 @@ class AtYourServiceFactory():
             login=j.application.config.get("whoami.git.login").strip()
             passwd=j.application.config.getStr("whoami.git.passwd").strip()
 
-            if self.type != "n":
-                configpath=j.dirs.amInAYSRepo()
-                # load service templates
-                self._domains.append((j.sal.fs.getBaseName(configpath),"%s/servicetemplates/"%configpath))
+            # if self.type != "n": #are not on node
+                # configpath=j.dirs.amInAYSRepo()
+                # # load service templates
+                # self._domains.append((j.sal.fs.getBaseName(configpath),"%s/servicetemplates/"%configpath))
 
             # always load base domaim
             items=j.application.config.getDictFromPrefix("atyourservice.metadata")
@@ -100,7 +180,7 @@ class AtYourServiceFactory():
 
         self._init=True
 
-    def _getRepo(self, url, recipeitem=None, dest=None):
+    def _getGitRepo(self, url, recipeitem=None, dest=None):
         if url in self._reposDone:
             return self._reposDone[url]
 
@@ -154,9 +234,6 @@ class AtYourServiceFactory():
         for repo in repos:
             branch = repo['branch'] if 'branch' in repo else 'master'
             j.do.pullGitRepo(url=repo['url'], branch=branch)
-
-    def getActionsBaseClassTmpl(self):
-        return ActionsBaseTmpl
 
     def getActionsBaseClassNode(self):
         return ActionsBaseNode
@@ -222,9 +299,8 @@ class AtYourServiceFactory():
         for service in self.services:
             service.state.saveRevisions()
 
-    def findTemplates(self, domain="", name="", version="", first=False, role=''):
+    def findTemplates(self, name="", version="",domain="", first=False, role=''):
         res = []
-        self.loadTemplates()
         for template in self.templates:
             if not(name == "" or template.name == name):
                 # no match continue
@@ -246,51 +322,34 @@ class AtYourServiceFactory():
             return res[0]
         return res
 
-    def loadServices(self, reload=False):
-        if self.services == [] or reload:
-            self._doinit()
-            for instance_hrd_path in j.sal.fs.listFilesInDir(j.dirs.ays, recursive=True, \
-                filter="instance.hrd", case_sensitivity='os', followSymlinks=True, listSymlinks=False):
+    def findRecipes(self, name="", version="", role='',one=False):
+        res = []
+        domain="ays"
+        for template in self.recipes:
+            if not(name == "" or template.name == name):
+                # no match continue
+                continue
+            if not(domain == "" or template.domain == domain):
+                # no match continue
+                continue
+            if not(version == "" or template.version == version):
+                # no match continue
+                continue
+            if not (role == '' or template.role == role):
+                # no match continue
+                continue
+            res.append(template)
 
-                service_path = j.sal.fs.getDirName(instance_hrd_path)
-                template_hrd_path = j.sal.fs.joinPaths(service_path, 'template.hrd')
-                (domain, name, version, instance, role) = self.parseKey(j.sal.fs.getBaseName(service_path))
+        if one:
+            if len(res) == 0:
+                j.events.inputerror_critical("cannot find ays recipes %s|%s (%s)" % (domain, name, version), "ays.findRecipes")
+            if len(res) > 1:
+                j.events.inputerror_critical("found 2+ ays recipes %s|%s (%s)" % (domain, name, version), "ays.findRecipes")
+            return res[0]
 
-                hrd = j.data.hrd.get(instance_hrd_path, prefixWithName=False)
+        return res
 
-                parent = hrd.get("parent", "")
-
-                service = Service(servicetemplate=template_hrd_path, instance=instance,path=service_path, args=None, parent=parent)
-
-                self.services.append(service)
-
-    def _loadTemplates(self, domain, path):
-        for servicepath in j.sal.fs.listDirsInDir(path, recursive=False):
-            dirname = j.do.getBaseName(servicepath)
-            # print "dirname:%s"%dirname
-            if not (dirname.startswith(".")):
-                self._loadTemplates(domain,servicepath)
-        # print path
-        dirname = j.do.getBaseName(path)
-        if dirname.startswith("_"):
-            return
-        if j.sal.fs.exists("%s/instance.hrd" % path) or j.sal.fs.exists("%s/service.hrd" % path) or j.sal.fs.exists("%s/actions.py" % path):
-            templ = ServiceTemplate(path, domain=domain)
-            self.templates.append(templ)
-
-    def loadTemplates(self, domain="", path="", reload=False):
-        if path == "":
-            if self.templates == [] or reload:
-                self._doinit()
-                for domain, domainpath in self.domains:
-                    # print "load template domain:%s"%domainpath
-                    self._loadTemplates(domain, domainpath)
-        else:
-            self._loadTemplates(domain, path)
-        return self.templates
-
-    def findServices(self, name="", instance="", domain="", parent=None, version="", first=False, role="", node=None, include_disabled=False):
-        self.loadServices()
+    def findServices(self, name="", instance="",version="", domain="", parent=None, first=False, role="", node=None, include_disabled=False):
         res = []
 
         for service in self.services:
@@ -322,7 +381,7 @@ class AtYourServiceFactory():
             if producercategory in item.categories:
                 return item
 
-    def new(self, domain="", name="", instance="main",path=None, parent=None, args={},version="",consume=""):
+    def new(self,  name="", instance="main",version="",domain="",path=None, parent=None, args={},consume=""):
         """
         will create a new service from template
 
@@ -331,17 +390,17 @@ class AtYourServiceFactory():
                 format $role/$domain|$name!$instance,$role2/$domain2|$name2!$instance2
 
         """
-        templ = self.findTemplates(domain, name,version,first=True)
-        obj = templ.newInstance(instance=instance, path=path, parent=parent, args=args, consume=consume)
+        recipe = self.getRecipe(name,domain,version)
+        obj = recipe.newInstance(instance=instance, path=path, parent=parent, args=args, consume=consume)
         return obj
 
-    def remove(self, domain="", name="", instance="", role=""):
+    def remove(self,  name="", instance="",domain="", role=""):
         for service in self.findServices(domain=domain, name=name, instance=instance, role=role):
             if service in self.services:
                 self.services.remove(service)
             j.sal.fs.removeDirTree(service.path)
 
-    def getTemplate(self, domain="", name="", version="", first=True, die=True):
+    def getTemplate(self,  name="", version="",domain="", first=True, die=True):
         if first:
             return self.findTemplates(domain=domain, name=name, version=version, first=first)
         else:
@@ -358,13 +417,16 @@ class AtYourServiceFactory():
                     return
             return res[0]
 
-    def getService(self, domain="", name="", version="", instance="", parent=None, first=False, role="", die=True, node=None, include_disabled=False):
+    def getRecipe(self, name="",version="", domain=""):
+        template = self.getTemplate(domain=domain,name=name, version=version)
+        return template.recipe
+
+    def getService(self,  role="",instance="main"):
         """
         Return service indentifier by domain,name and instance
         throw error if service is not found or if more than one service is found
         """
-        res = self.findServices(domain=domain, name=name, instance=instance, version=version, parent=parent,
-                                first=first, role=role, node=node, include_disabled=include_disabled)
+        res = self.findServices(role=role, instance=instance)
         if first:
             return res
         else:

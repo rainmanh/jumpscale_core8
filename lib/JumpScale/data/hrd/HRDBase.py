@@ -41,7 +41,7 @@ class HRDBase():
         if default!=None:
             default=int(default)
         res=self.get(key,default=default)
-        return j.tools.text.getInt(res)
+        return j.data.text.getInt(res)
 
     def getStr(self,key,default=None):
         if default!=None:
@@ -53,7 +53,7 @@ class HRDBase():
                 res2 += '%s:%s ' % (k, v)
             res = res2
         else:
-            res=j.tools.text.pythonObjToStr(res,multiline=False, canBeDict=False)
+            res=j.data.text.pythonObjToStr(res,multiline=False, canBeDict=False)
         res=res.strip().strip("'")
         return res
 
@@ -65,7 +65,7 @@ class HRDBase():
 
     def getFloat(self,key):
         res=self.get(key)
-        return j.tools.text.getFloat(res)
+        return j.data.text.getFloat(res)
 
     def exists(self,key):
         return key in self.items
@@ -78,10 +78,10 @@ class HRDBase():
             if lst=="":
                 return default
 
-        if j.core.types.list.check(lst):
+        if j.data.types.list.check(lst):
             return lst
         lst=str(lst)
-        if j.core.types.string.check(lst):
+        if j.data.types.string.check(lst):
             items=[item.strip() for item in lst.split(",")]
             items=[item for item in items if item!=""]
             return items
@@ -89,9 +89,9 @@ class HRDBase():
 
     def getDict(self,key):
         ddict=self.get(key)
-        if j.core.types.dict.check(ddict):
+        if j.data.types.dict.check(ddict):
             for key,item in list(ddict.items()):
-                ddict[key]=j.tools.text.str2var(item)
+                ddict[key]=j.data.text.str2var(item)
             return ddict
         if ddict.strip()=="":
             return {}
@@ -128,7 +128,7 @@ class HRDBase():
         for key in keys:
             if key.count(".")==1:
                 keyparts=key.split(".")
-                if j.tools.text.isNumeric(keyparts[1]):
+                if j.data.text.isNumeric(keyparts[1]):
                     if keyparts[0] not in list(ddict.keys()):
                         ddict[keyparts[0]]=[]
                     val = self.get(key)
@@ -137,7 +137,7 @@ class HRDBase():
                     ddict.pop(key)
             elif key.count(".")==2:
                 keyparts=key.split(".")
-                if j.tools.text.isNumeric(keyparts[1]):
+                if j.data.text.isNumeric(keyparts[1]):
                     if keyparts[0] not in list(ddict.keys()):
                         ddict[keyparts[0]]=[]
                     newkey="%s_%s"%(keyparts[0],keyparts[1])
@@ -179,42 +179,42 @@ class HRDBase():
                     if ddict[key]=="":
                         ddict[key]=0
                     else:
-                        ddict[key]=j.tools.text.getInt(ddict[key])
+                        ddict[key]=j.data.text.getInt(ddict[key])
 
                 elif key in arebool:
                     ddict[key]=str(ddict[key]).strip().strip(",")
                     if ddict[key]=="":
                         ddict[key]=False
                     else:
-                        ddict[key]=j.tools.text.getBool(ddict[key])
+                        ddict[key]=j.data.text.getBool(ddict[key])
 
                 elif key in aredict:
                     checkval=str(ddict[key]).strip().strip(",")
                     if checkval=="":
                         ddict[key]={}
-                    elif j.core.types.dict.check(ddict[key]):
+                    elif j.data.types.dict.check(ddict[key]):
                         for key3,val3 in list(ddict[key].items()):
-                            ddict[key][key3]=j.tools.text.machinetext2val(str(ddict[key][key3]))
+                            ddict[key][key3]=j.data.text.machinetext2val(str(ddict[key][key3]))
                     else:
-                        # ddict[key]=j.tools.text.machinetext2val(ddict[key])
-                        ddict[key]=j.tools.text.getDict(checkval)
+                        # ddict[key]=j.data.text.machinetext2val(ddict[key])
+                        ddict[key]=j.data.text.getDict(checkval)
                         for key3,val3 in list(ddict[key].items()):
-                            ddict[key][key3]=j.tools.text.str2var(str(ddict[key][key3]))
+                            ddict[key][key3]=j.data.text.str2var(str(ddict[key][key3]))
 
                 elif key in arelist:
                     checkval=str(ddict[key]).strip().strip(",")
                     if checkval=="":
                         ddict[key]=[]
-                    elif j.core.types.list.check(ddict[key]):
+                    elif j.data.types.list.check(ddict[key]):
                         for val3 in ddict[key]:
-                            val3=j.tools.text.machinetext2val(str(val3))
+                            val3=j.data.text.machinetext2val(str(val3))
                     else:
-                        # ddict[key]=j.tools.text.machinetext2val(str(ddict[key]))
-                        ddict[key]=j.tools.text.getList(checkval)
-                        ddict[key]=[j.tools.text.str2var(item) for item in ddict[key]]
+                        # ddict[key]=j.data.text.machinetext2val(str(ddict[key]))
+                        ddict[key]=j.data.text.getList(checkval)
+                        ddict[key]=[j.data.text.str2var(item) for item in ddict[key]]
 
                 else:
-                    ddict[key]=j.tools.text.machinetext2val(str(ddict[key]))
+                    ddict[key]=j.data.text.machinetext2val(str(ddict[key]))
 
             return ddict
 
@@ -298,7 +298,7 @@ class HRDBase():
                     content=content.replace(item,newcontent)
                 else:
                     if self.exists(item2):
-                        replacewith=j.tools.text.pythonObjToStr(self.get(item2),multiline=True).strip("'")
+                        replacewith=j.data.text.pythonObjToStr(self.get(item2),multiline=True).strip("'")
                         content=content.replace(item,replacewith)
         return content
 

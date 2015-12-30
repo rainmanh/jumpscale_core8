@@ -54,7 +54,7 @@ class CifsFS(object):
 
         self.username = re.escape(username)
         self.password = re.escape(password)
-        self.mntpoint = '/'.join(['/mnt',j.tools.idgenerator.generateGUID()])
+        self.mntpoint = '/'.join(['/mnt',j.data.idgenerator.generateGUID()])
         self.path     = '/'.join(self.path_components)
 
         print(('self.sharename:'       + str(self.sharename)))

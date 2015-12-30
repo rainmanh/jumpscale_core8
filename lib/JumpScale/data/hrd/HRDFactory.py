@@ -2,6 +2,7 @@ from JumpScale import j
 # import JumpScale.baselib.codeexecutor
 from HRD import HRD
 from HRDTree import HRDTree
+from HRDSchema import HRDSchema
 
 class HRDFactory:
     def __init__(self):
@@ -14,6 +15,13 @@ class HRDFactory:
         #     print(msg)
         if level<self.loglevel+1 and self.logenable:
             j.logger.log(msg,category="hrd.%s"%category,level=level)
+
+    def getSchema(self,path=None,content=""):
+        if path!=None:
+            content=j.do.readFile(path)
+        if content=="":
+            j.events.inputerror_critical("Content needs to be provided if path is empty")
+        return HRDSchema(content)
 
     def get(self,path=None,content="",prefixWithName=True,keepformat=False,args={},templates=[]):
         """

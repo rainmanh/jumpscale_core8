@@ -149,7 +149,7 @@ class BlobStorClientFake:
                     return
 
     def uploadDir(self,dirpath,compress=False):
-        name="backup_md_%s"%j.tools.idgenerator.generateRandomInt(1,100000)
+        name="backup_md_%s"%j.data.idgenerator.generateRandomInt(1,100000)
         tarpath="/tmp/%s.tar"%name
         if compress:
             cmd="cd %s;tar czf %s ."%(dirpath,tarpath)

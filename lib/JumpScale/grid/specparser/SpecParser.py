@@ -15,12 +15,12 @@ class Specbase(j.tools.code.classGetBase()):
     def getDefaultValue(self, type, value):
         if value.strip()=="" or value.strip() == "None":
             return None
-        elif j.core.types.string.check(value):
+        elif j.data.types.string.check(value):
             value = value.strip("\"")  
         if type == 'int' and value:
             return int(value)
         elif type == 'bool' and value:
-            return j.core.types.bool.fromString(value)
+            return j.data.types.bool.fromString(value)
         return value
 
 class SpecEnum(Specbase):

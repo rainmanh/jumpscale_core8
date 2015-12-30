@@ -26,8 +26,8 @@ class TarFileAction(BaseEnumeration):
 class TarFile(BaseType):
     '''Handle tar files'''
 
-    path = j.core.types.filepath(doc='Path of the on-disk tar file')
-    action = j.core.types.enumeration(TarFileAction,
+    path = j.data.types.filepath(doc='Path of the on-disk tar file')
+    action = j.data.types.enumeration(TarFileAction,
                 doc='Access method of tar file')
 
     def __init__(self, path, action=TarFileAction.READ):
@@ -39,7 +39,7 @@ class TarFile(BaseType):
         @type action: TarFileAction
         '''
         self.__jslocation__ = "j.tools.tarfile"
-        if not j.core.types.filepath.check(path):
+        if not j.data.types.filepath.check(path):
             raise ValueError('Provided string "%s" is not a valid path' % path)
         if action is TarFileAction.READ:
             if not j.sal.fs.isFile(path):
@@ -72,7 +72,7 @@ class TarFile(BaseType):
         if not self.action is TarFileAction.READ:
             raise RuntimeError('Can only extract archives opened for reading')
 
-        if not j.core.types.dirpath.check(destination_path):
+        if not j.data.types.dirpath.check(destination_path):
             raise ValueError('Not a valid folder name provided')
         if not j.sal.fs.exists(destination_path):
             raise ValueError('Destination folder "%s" does not exist'

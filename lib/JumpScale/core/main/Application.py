@@ -360,7 +360,7 @@ class Application:
         return macaddr[0]
 
     def _setWriteExitcodeOnExit(self, value):
-        if not j.core.types.bool.check(value):
+        if not j.data.types.bool.check(value):
             raise TypeError
         self._writeExitcodeOnExit = value
 

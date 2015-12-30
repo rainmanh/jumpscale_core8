@@ -437,7 +437,7 @@ class RouterOS(SALObject):
     def executeScript(self,content):
         if content[0]!="/":
             content="/%s"%content
-        name="_tmp_%s"%j.tools.idgenerator.generateRandomInt(1,10000)
+        name="_tmp_%s"%j.data.idgenerator.generateRandomInt(1,10000)
         src=j.sal.fs.joinPaths(j.dirs.varDir,"routeros","%s.rsc"%name)
         j.sal.fs.writeFile(filename=src,contents=content)
         self.uploadExecuteScript(name=name,srcpath=src)

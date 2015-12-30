@@ -16,6 +16,7 @@ class ActionsBaseMgmt(object):
     this one happens at central side from which we coordinate our efforts
     """
 
+    
     def input(self, serviceObj, args):
         """
         gets executed before init happens of this ays
@@ -287,3 +288,10 @@ class ActionsBaseMgmt(object):
         test the service on appropriate behavior
         """
         pass
+
+    def build(self, serviceObj):
+        folders = serviceObj.installRecipe()
+
+        for src, dest in folders:
+            serviceObj.upload2AYSfs(dest)
+

@@ -14,7 +14,7 @@ class mainclass(OSISStore):
     #     value can be a dict or a raw value (seen as string)
     #     if raw value then will not try to index
     #     """
-    #     if j.core.types.dict.check(value):
+    #     if j.data.types.dict.check(value):
     #         #is probably an osis object
     #         if value.has_key("_meta") and  value.has_key("_ckey"):
     #             #is an osis object

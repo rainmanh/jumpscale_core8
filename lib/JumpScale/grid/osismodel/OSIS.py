@@ -81,7 +81,7 @@ class OSIS:
         list gets checked, if all str, then returnformat=2
         @return (returnformat,list)
         """
-        if j.core.types.string.check(param):
+        if j.data.types.string.check(param):
             param=[item.strip() for item in param.split(",")]
 
         try:

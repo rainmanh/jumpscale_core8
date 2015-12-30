@@ -107,7 +107,7 @@ class OSISStoreMongo(OSISStore):
                     value['_ttl'] = datetime.datetime.utcnow()
 
 
-        if j.core.types.dict.check(value):
+        if j.data.types.dict.check(value):
             objInDB=None
 
             obj = self.getObject(value)
@@ -154,7 +154,7 @@ class OSISStoreMongo(OSISStore):
     def get(self, key, full=False, session=None):
         self.runTasklet('get', key, session)
         db, counter = self._getMongoDB(session)
-        if j.core.types.string.check(key):
+        if j.data.types.string.check(key):
             key=key.replace("-","")
             res=db.find_one({"guid":key})
         else:
@@ -177,7 +177,7 @@ class OSISStoreMongo(OSISStore):
         """
         self.runTasklet('exists', key, session)
         db, counter = self._getMongoDB(session)
-        if j.core.types.string.check(key) or isinstance(key, str):
+        if j.data.types.string.check(key) or isinstance(key, str):
             key = key.replace('-', '')
             return not db.find_one({"guid":key})==None
         else:
@@ -260,7 +260,7 @@ class OSISStoreMongo(OSISStore):
         if size==None:
             size=200
         sortlist=[]
-        if j.core.types.string.check(query):
+        if j.data.types.string.check(query):
             tags=j.data.tags.getObject(query)
             sort=None
             if tags.tagExists("@sort"):
@@ -297,13 +297,13 @@ class OSISStoreMongo(OSISStore):
                     if 'm' in value or 'd' in value or 'h' in value:
                         new_value = j.tools.time.getEpochAgo(value[1:])
                     else:
-                        new_value = j.core.types.float.fromString(value[1:])
+                        new_value = j.data.types.float.fromString(value[1:])
                     params[key] = {'$gte': new_value}
                 elif value.startswith('<'):
                     if 'm' in value or 'd' in value or 'h' in value:
                         new_value = j.tools.time.getEpochFuture(value[1:])
                     else:
-                        new_value = j.core.types.float.fromString(value[1:])
+                        new_value = j.data.types.float.fromString(value[1:])
                     params[key] = {'$lte': new_value}
                 elif '*' in value:
                     params[key] = {'$regex': '/%s/i' % value.replace('*', ''), '$options': 'i'}
@@ -388,9 +388,9 @@ class OSISStoreMongo(OSISStore):
         dict e.g. {"name":aname,nr:1}  these fields will be updated then
         text e.g. name:aname nr:1
         """
-        if not j.core.types.string.check(query):
+        if not j.data.types.string.check(query):
             raise RuntimeError("not implemented")
-        if j.core.types.string.check(update):
+        if j.data.types.string.check(update):
             tags=j.data.tags.getObject(update)
             update=tags.getDict()
         # self.db.find_and_modify(query,update=update)

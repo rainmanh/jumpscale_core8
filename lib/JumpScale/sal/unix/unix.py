@@ -339,7 +339,7 @@ class UnixSystem:
         @param path: Path to chroot() to
         @type path: string
         '''
-        if not path or not j.core.types.unixdirpath.check(path):
+        if not path or not j.data.types.unixdirpath.check(path):
             raise ValueError('Path %s is invalid' % path)
 
         j.logger.log('Change root to %s' % path, 5)

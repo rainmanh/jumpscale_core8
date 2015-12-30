@@ -35,7 +35,7 @@ class Tags():
         @type tagstring: string        
         """
 
-        tagstring=j.tools.text.hrd2machinetext(tagstring)
+        tagstring=j.data.text.hrd2machinetext(tagstring)
 
         if not tagstring:
             return
@@ -47,11 +47,11 @@ class Tags():
                 key = tag.split(':',1)[0]
                 value = tag.split(':',1)[1]
                 key=unquote(key)
-                value = unquote(str(j.tools.text.machinetext2val(value)))
+                value = unquote(str(j.data.text.machinetext2val(value)))
                 self.tags[key.lower()] = value
                 self.tags[key] = value
             else:
-                self.labels.add(unquote(str(j.tools.text.machinetext2val(tag))))
+                self.labels.add(unquote(str(j.data.text.machinetext2val(tag))))
 
         self.tagstring=tagstring
         

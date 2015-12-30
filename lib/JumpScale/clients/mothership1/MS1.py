@@ -128,11 +128,11 @@ class MS1(object):
     #     # create ssh port-forward rule
     #     for _ in range(30):
     #         machine = machines_actor.get(machine_id)
-    #         if j.core.types.ipaddress.check(machine['interfaces'][0]['ipAddress']):
+    #         if j.data.types.ipaddress.check(machine['interfaces'][0]['ipAddress']):
     #             break
     #         else:
     #             time.sleep(2)
-    #     if not j.core.types.ipaddress.check(machine['interfaces'][0]['ipAddress']):
+    #     if not j.data.types.ipaddress.check(machine['interfaces'][0]['ipAddress']):
     #         raise RuntimeError('Machine was created, but never got an IP address')
     #     cloudspace_forward_rules = portforwarding_actor.list(machine['cloudspaceid'])
     #     public_ports = [rule['publicPort'] for rule in cloudspace_forward_rules]
@@ -300,11 +300,11 @@ class MS1(object):
 
         for _ in range(60):
             machine = machines_actor.get(machine_id)
-            if j.core.types.ipaddress.check(machine['interfaces'][0]['ipAddress']):
+            if j.data.types.ipaddress.check(machine['interfaces'][0]['ipAddress']):
                 break
             else:
                 time.sleep(1)
-        if not j.core.types.ipaddress.check(machine['interfaces'][0]['ipAddress']):
+        if not j.data.types.ipaddress.check(machine['interfaces'][0]['ipAddress']):
             raise RuntimeError('E:Machine was created, but never got an IP address')
 
         self.vars["machine.ip.addr"] = machine['interfaces'][0]['ipAddress']

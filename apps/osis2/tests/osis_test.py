@@ -34,7 +34,7 @@ class RosTest(object):
   
     def test_set(self, name='My Name'):
         user = self.bucket.new()
-        user.guid = j.tools.idgenerator.generateGUID()
+        user.guid = j.data.idgenerator.generateGUID()
         user.id = name
         user.data = 'some random data'
         user.domain = 'mydomain'
@@ -64,7 +64,7 @@ class RosTest(object):
         self.assertFalse(self.bucket.exists('ranomdid'))
     
     def test_search(self):
-        randomname = j.tools.idgenerator.generateGUID()
+        randomname = j.data.idgenerator.generateGUID()
         self.test_set(name=randomname)
         results = self.bucket.search({'id': randomname})
         self.assertIsInstance(results, list)

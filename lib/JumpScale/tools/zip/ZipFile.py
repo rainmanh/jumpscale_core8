@@ -26,8 +26,8 @@ class ZipFileAction(BaseEnumeration):
 class ZipFile(BaseType):
     '''Handle zip files'''
 
-    path = j.core.types.filepath(doc='Path of the on-disk zip file')
-    action = j.core.types.enumeration(ZipFileAction,
+    path = j.data.types.filepath(doc='Path of the on-disk zip file')
+    action = j.data.types.enumeration(ZipFileAction,
                 doc='Access method of zip file')
 
     def __init__(self, path, action=ZipFileAction.READ):
@@ -39,7 +39,7 @@ class ZipFile(BaseType):
         @type action: ZipFileAction
         '''
         self.__jslocation__ = "j.tools.zipfile"
-        if not j.core.types.filepath.check(path):
+        if not j.data.types.filepath.check(path):
             raise ValueError('Provided string %s is not a valid path' % path)
         if action is ZipFileAction.READ:
             if not j.sal.fs.isFile(path):

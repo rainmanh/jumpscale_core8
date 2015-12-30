@@ -191,11 +191,11 @@ class QemuImg(SALObject):
                 key = match.group('key')
                 if key == 'virtual size':
                     value = virtualsizerec.search(value).group('size')
-                    value = j.tools.units.bytes.toSize(int(value), '', unit)
+                    value = j.data.units.bytes.toSize(int(value), '', unit)
                 else:
                     sizematch = sizerec.match(value)
                     if sizematch:
-                        value = j.tools.units.bytes.toSize(float(sizematch.group('size')), sizematch.group('unit'), unit)
+                        value = j.data.units.bytes.toSize(float(sizematch.group('size')), sizematch.group('unit'), unit)
                 result[match.group('key')] = value
             return result
 

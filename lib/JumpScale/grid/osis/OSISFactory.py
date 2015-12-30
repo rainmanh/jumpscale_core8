@@ -150,8 +150,8 @@ class OSISFactory:
     def encrypt(self,obj):
         if isinstance(obj, str):
             obj = str(obj)
-        if not j.core.types.string.check(obj):
-            if j.core.types.dict.check(obj):
+        if not j.data.types.string.check(obj):
+            if j.data.types.dict.check(obj):
                 val=obj
             else:
                 val=obj.__dict__
@@ -163,7 +163,7 @@ class OSISFactory:
         return val
 
     def decrypt(self,val,json=False):
-        if not j.core.types.string.check(val):
+        if not j.data.types.string.check(val):
             raise RuntimeError("needs to be string")
         val=j.data.serializer.serializers.blowfish.loads(val,self.key)
         val=lz4.loads(val)

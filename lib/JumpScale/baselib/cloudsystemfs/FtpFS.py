@@ -29,7 +29,7 @@ class FtpFS(object):
         #self.path = path.rstrip(self.filename).lstrip('/')
         self.path = os.path.dirname(path).lstrip('/')
         #j.logger.log("FtpFS: path is %s" % self.path)
-        self.local_dir =  j.sal.fs.joinPaths(tempdir , j.tools.idgenerator.generateGUID())
+        self.local_dir =  j.sal.fs.joinPaths(tempdir , j.data.idgenerator.generateGUID())
         self.local_file = j.sal.fs.joinPaths(self.local_dir , self.filename)
         self.tempdir=tempdir
         j.sal.fs.createDir(self.local_dir)

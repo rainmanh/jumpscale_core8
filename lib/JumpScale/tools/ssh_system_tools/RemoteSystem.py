@@ -58,7 +58,7 @@ class RemoteSystem(object):
         @rtype: RemoteSystemConnection
         """
 
-        # if not j.core.types.ipaddress.check(ip):
+        # if not j.data.types.ipaddress.check(ip):
         #     raise InvalidIpAddressError("IP address is not a valid IPv4 address")
 
         key="%s_%s_%s_%s"%(ip,login,password,port)

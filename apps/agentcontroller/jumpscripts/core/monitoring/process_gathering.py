@@ -48,7 +48,7 @@ def action():
 
         aggrkey="n%s.process.%s.%s.%s"%(j.application.whoAmI.nid,cat,process_key,key)
 
-        j.system.stataggregator.set(aggrkey,value,ttype=ttype,remember=True,memonly=not(j.core.types.string.check(process_key)),percent=percent)
+        j.system.stataggregator.set(aggrkey,value,ttype=ttype,remember=True,memonly=not(j.data.types.string.check(process_key)),percent=percent)
         if avg:
             a,m=j.system.stataggregator.getAvgMax(aggrkey)
         else:
@@ -196,7 +196,7 @@ def action():
                 result[process_key]=cacheobj
                 
     for process_key,cacheobj in result.items():
-        if j.core.types.string.check(process_key):
+        if j.data.types.string.check(process_key):
             cacheobj.db.systempids.sort()
             newKey=cacheobj.db.getContentKey()
             if newKey != cacheobj.ckeyOld:                    
@@ -211,7 +211,7 @@ def action():
         #result is all found processobject in this run (needs to be str otherwise child obj)
         if process_key and process_key not in result:
                     
-            if j.core.types.string.check(process_key):
+            if j.data.types.string.check(process_key):
                 #no longer active
                 print("NO LONGER ACTIVE:%s"%cacheobj.db.pname)
                 cacheobj=j.core.processmanager.monObjects.processobject.get(process_key) #is cached so low overhead

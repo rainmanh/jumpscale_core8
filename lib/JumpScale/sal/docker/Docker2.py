@@ -38,7 +38,7 @@ class Docker2(SALObject):
 
     #
     # def copy(self, name, src, dest):
-    #     rndd = j.tools.idgenerator.generateRandomInt(10, 1000000)
+    #     rndd = j.data.idgenerator.generateRandomInt(10, 1000000)
     #     temp = "/var/docker/%s/%s" % (name, rndd)
     #     j.sal.fs.createDir(temp)
     #     source_name = j.sal.fs.getBaseName(src)

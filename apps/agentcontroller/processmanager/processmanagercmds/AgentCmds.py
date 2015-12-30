@@ -151,6 +151,6 @@ class AgentCmds():
                 info[key] = value
         size = info['used_memory']
         maxsize = 50 * 1024 * 1024
-        if j.core.types.float.fromString(size) < maxsize:
+        if j.data.types.float.fromString(size) < maxsize:
             return True
         return False

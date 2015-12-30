@@ -9,11 +9,11 @@ class IDGenerator:
     lives at j.idgenerator
     """
     def __init__(self):
-        self.__jslocation__ = "j.tools.idgenerator"
+        self.__jslocation__ = "j.data.idgenerator"
 
     def generateRandomInt(self,fromInt,toInt):
         """
-        how to use:  j.tools.idgenerator.generateRandomInt(0,10)
+        how to use:  j.data.idgenerator.generateRandomInt(0,10)
         """
         return random.randint(fromInt,toInt)
         
@@ -21,7 +21,7 @@ class IDGenerator:
         """
         type is like agent, job, jobstep
         needs to be a unique type, can only work if application service is known
-        how to use:  j.tools.idgenerator.generateIncrID("agent")
+        how to use:  j.data.idgenerator.generateIncrID("agent")
         @reset if True means restart from 1
         """
         key="incrementor_%s"%incrTypeId
@@ -50,7 +50,7 @@ class IDGenerator:
     def generateGUID(self):
         """
         generate unique guid
-        how to use:  j.tools.idgenerator.generateGUID()
+        how to use:  j.data.idgenerator.generateGUID()
         """        
         import uuid
         return str(uuid.uuid4())

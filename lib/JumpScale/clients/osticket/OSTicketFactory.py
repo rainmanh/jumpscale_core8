@@ -99,32 +99,32 @@ WHERE (((ost_ticket.closed) Is Null));
             if currentsubject!=item["subject"]:
                 currentsubject=item["subject"]
                 out+= "\n##################################\n"
-                out=j.tools.text.addCmd(out,"ticket","new")
-                out=j.tools.text.addVal(out,"subject",item["subject"])
-                out=j.tools.text.addVal(out,"status",item["status"])
-                out=j.tools.text.addVal(out,"body",item["threadbody"])
-                out=j.tools.text.addVal(out,"priority",item["priority"].lower())
-                out=j.tools.text.addVal(out,"id_osticket",item["ticketid"])
-                out=j.tools.text.addVal(out,"isanswered",self._boolToInt(item["isanswered"]))
-                out=j.tools.text.addVal(out,"from_email",item["email"])
-                out=j.tools.text.addVal(out,"from_username",item["username"])
-                out=j.tools.text.addVal(out,"duedate",item["duedate"],addtimehr=True)
-                out=j.tools.text.addVal(out,"time_created",item["threadcreated"],addtimehr=True)
-                out=j.tools.text.addVal(out,"time_lastmessage",item["lastmessage"],addtimehr=True)
-                out=j.tools.text.addVal(out,"time_lastresponse",item["lastresponse"],addtimehr=True)
+                out=j.data.text.addCmd(out,"ticket","new")
+                out=j.data.text.addVal(out,"subject",item["subject"])
+                out=j.data.text.addVal(out,"status",item["status"])
+                out=j.data.text.addVal(out,"body",item["threadbody"])
+                out=j.data.text.addVal(out,"priority",item["priority"].lower())
+                out=j.data.text.addVal(out,"id_osticket",item["ticketid"])
+                out=j.data.text.addVal(out,"isanswered",self._boolToInt(item["isanswered"]))
+                out=j.data.text.addVal(out,"from_email",item["email"])
+                out=j.data.text.addVal(out,"from_username",item["username"])
+                out=j.data.text.addVal(out,"duedate",item["duedate"],addtimehr=True)
+                out=j.data.text.addVal(out,"time_created",item["threadcreated"],addtimehr=True)
+                out=j.data.text.addVal(out,"time_lastmessage",item["lastmessage"],addtimehr=True)
+                out=j.data.text.addVal(out,"time_lastresponse",item["lastresponse"],addtimehr=True)
                 if int(item["assignee"]) in staff:
                     st=staff[int(item["assignee"])]
-                    out=j.tools.text.addVal(out,"assignee",st["email"])
+                    out=j.data.text.addVal(out,"assignee",st["email"])
                     
                 if item["closed"]!=0:
-                    out=j.tools.text.addVal(out,"time_closed",item["closed"])
+                    out=j.data.text.addVal(out,"time_closed",item["closed"])
             else:
                 #add thread
                 if item["threadtitle"]!=currentsubject:
                     out+="\n###\n!ticket.thread\n"
-                    out=j.tools.text.addVal(out,"id_osticket",item["ticketid"])
-                    out=j.tools.text.addVal(out,"subject",item["threadtitle"])
-                    out=j.tools.text.addVal(out,"body",item["threadbody"])
-                    out=j.tools.text.addVal(out,"time_created",item["threadcreated"],addtimehr=True)
+                    out=j.data.text.addVal(out,"id_osticket",item["ticketid"])
+                    out=j.data.text.addVal(out,"subject",item["threadtitle"])
+                    out=j.data.text.addVal(out,"body",item["threadbody"])
+                    out=j.data.text.addVal(out,"time_created",item["threadcreated"],addtimehr=True)
 
         return out

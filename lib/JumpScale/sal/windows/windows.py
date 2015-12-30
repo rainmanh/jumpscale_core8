@@ -779,9 +779,9 @@ class WindowsSystem(SALObject):
                 cmdline=""
             cmdline=cmdline.lower().replace("  ","").replace("  ","")
             for item in tokill:
-                if j.core.types.string.check(item):
+                if j.data.types.string.check(item):
                     itemlist=[item]
-                elif j.core.types.list.check(item):
+                elif j.data.types.list.check(item):
                     itemlist=item
                 else:
                     raise RuntimeError("Can only process string or list")
@@ -803,9 +803,9 @@ class WindowsSystem(SALObject):
             cmdline=cmdline.lower().replace("  ","").replace("  ","")
             foundmaster=False
             for item in tocheck:
-                if j.core.types.string.check(item):
+                if j.data.types.string.check(item):
                     itemlist=[item]
-                elif j.core.types.list.check(item):
+                elif j.data.types.list.check(item):
                     itemlist=item
                 else:
                     raise RuntimeError("Can only process string or list")

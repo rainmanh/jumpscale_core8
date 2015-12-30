@@ -34,7 +34,7 @@ class ErrorConditionObject():
             if len(btkis)>1:
                 self.backtrace=self.getBacktrace(btkis,filename0,linenr0,func0)
     
-            self.guid=j.tools.idgenerator.generateGUID() #is for default case where there is no redis
+            self.guid=j.data.idgenerator.generateGUID() #is for default case where there is no redis
             self.category=category #is category in dot notation
             self.errormessage=msg
             self.errormessagePub=msgpub
@@ -126,12 +126,12 @@ class ErrorConditionObject():
         # if not self.type in types:
         #     j.events.inputerror_warning("Errorcondition was thrown with wrong type.\n%s"%str(self),"eco.check.type")
 
-        if not j.core.types.integer.check(self.level):
+        if not j.data.types.int.check(self.level):
             try:
                 self.level=int(self.level)
             except:
                 pass
-            if not j.core.types.integer.check(param.level):
+            if not j.data.types.int.check(param.level):
                 self.level=1
                 j.events.inputerror_warning("Errorcondition was thrown with wrong level, needs to be int.\n%s"%str(self),"eco.check.level")
 

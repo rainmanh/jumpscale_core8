@@ -79,18 +79,18 @@ class MS1(object):
         baseURL = "%s:%s" % (self.apiURL,self.apiPort)
         params = {'username': login, 'password': password}
         try:
-            response = requests.post('https://%s/restmachine/cloudapi/users/authenticate' % baseURL, params)
+            response = requests.post('https://%s/restmachine/cloudapi/users/authenticate' % baseURL, params=params)
         except SSLError:
-            response = requests.post('http://%s/restmachine/cloudapi/users/authenticate' % baseURL, params)
+            response = requests.post('http://%s/restmachine/cloudapi/users/authenticate' % baseURL, params=params)
 
         if response.status_code != 200:
             raise RuntimeError("E:Could not authenticate user %s" % login)
         auth_key = response.json()
         params = {'authkey': auth_key}
         try:
-            response = requests.post('https://%s/restmachine/cloudapi/cloudspaces/list' % baseURL, params)
+            response = requests.post('https://%s/restmachine/cloudapi/cloudspaces/list' % baseURL, params=params)
         except SSLError:
-            response = requests.post('http://%s/restmachine/cloudapi/cloudspaces/list' % baseURL, params)
+            response = requests.post('http://%s/restmachine/cloudapi/cloudspaces/list' % baseURL, params=params)
 
         cloudspaces = response.json()
 
@@ -113,7 +113,7 @@ class MS1(object):
     def getApiConnection(self, space_secret,**args):
         # host = self.apiURL # if cs["location"] == 'ca1' else '%s.mothership1.com' % cs["location"]
         try:
-            api=j.clients.portal.get(self.apiURL, self.apiPort, space_secret)
+            api=j.clients.portal.get2(self.apiURL, self.apiPort, space_secret)
         except Exception as e:
             raise RuntimeError("E:Could not login to MS1 API.")
 
@@ -178,19 +178,19 @@ class MS1(object):
         if self.db.exists("ms1", "ms1:cache:%s:sizes"%spacesecret):
             return json.loads(self.db.get('ms1', "ms1:cache:%s:sizes"%spacesecret))
         api = self.getApiConnection(spacesecret)
-        sizes_actor = api.getActor('cloudapi', 'sizes')
+        #sizes_actor = api.getActor('cloudapi', 'sizes')
         try:
-            sizes=sizes_actor.list(cloudspaceId=cloudspaceId)
+            sizes = api.cloudapi.sizes.list(cloudspaceId=cloudspaceId)
         except TypeError:
-            sizes=sizes_actor.list()
+            sizes = api.cloudapi.sizes.list()
         self.db.set("ms1", "ms1:cache:%s:sizes"%spacesecret,json.dumps(sizes))
         return sizes
 
-    def createMachine(self, spacesecret, name, memsize=1, ssdsize=40, vsansize=0, description='',
+    def createMachine(self, spacesecret, name, memsize=1024, ssdsize=None, vsansize=0, description='',
                       imagename="ubuntu.14.04.x64",delete=False, sshkey=None, hostname="", stackId=None,datadisks=None,**args):
         """
-        memsize  #size is 0.5,1,2,4,8,16 in GB
-        ssdsize  #10,20,30,40,100 in GB
+        memsize  # size is 512, 1024, 2048, 4096, 8192, 16384
+        ssdsize  # if not passed along, will get the first size of the image's supported sizes
         imagename= fedora,windows,ubuntu.13.10,ubuntu.12.04,windows.essentials,ubuntu.14.04.x64
                    zentyal,debian.7,arch,fedora,centos,opensuse,gitlab,ubuntu.jumpscale
 
@@ -204,62 +204,62 @@ class MS1(object):
 
         self.vars = {}
 
-        if sshkey!="":
+        if sshkey:
             if j.sal.fs.exists(path=sshkey):
-                if sshkey.find(".pub")==-1:
+                if sshkey.find(".pub") == -1:
                     j.events.inputerror_critical("public key path needs to have .pub at the end.")
-                sshkey=j.sal.fs.fileGetContents(sshkey)
+                sshkey = j.sal.fs.fileGetContents(sshkey)
 
-        ssdsize = int(ssdsize)
+        api = self.getApiConnection(spacesecret)
+        cloudspace_id = self.getCloudspaceId(spacesecret)
+        images = self.listImages(spacesecret)
+
+        if imagename not in list(images.keys()):
+            j.events.inputerror_critical("Imagename '%s' not in available images: '%s'" % (imagename, images))
+
+        sizes = self.getMachineSizes(spacesecret, cloudspace_id)
+        ssdsizes = {s: size['id'] for size in sizes for s in size['disks']}
+        memsizes = set([size['memory'] for size in sizes])
+
+        if not ssdsize:
+            minsize = images[imagename][2]
+            for size in ssdsizes.keys():
+                if size >= minsize:
+                    ssdsize = size
+                    break
+        else:
+            ssdsize = int(ssdsize)
+
+        if not ssdsize:
+            j.events.inputerror_critical("No supported size found")
+
         try:
             memsize = int(memsize)
         except:
             # support for 0.5 memsize
             memsize = float(memsize)
-        ssdsizes = {}
-        ssdsizes[10] = 10
-        ssdsizes[20] = 20
-        ssdsizes[30] = 30
-        ssdsizes[40] = 40
-        ssdsizes[100] = 100
-        memsizes = {}
-        memsizes[0.5] = 512
-        memsizes[1] = 1024
-        memsizes[2] = 2048
-        memsizes[4] = 4096
-        memsizes[8] = 8192
-        memsizes[16] = 16384
+
         if memsize not in memsizes:
-            raise RuntimeError("E: supported memory sizes are 0.5,1,2,4,8,16 (is in GB), you specified:%s"%memsize)
+            raise RuntimeError("E: supported memory sizes are %s, you specified:%s" % (', '.join(memsizes), memsize))
         if ssdsize not in ssdsizes:
-            raise RuntimeError("E: supported ssd sizes are 10,20,30,40,100  (is in GB), you specified:%s"%memsize)
+            raise RuntimeError("E: supported ssd sizes are %s (is in GB), you specified:%s" % (', '.join(ssdsizes), ssdsize))
 
-        # get actors
-        api = self.getApiConnection(spacesecret)
-        cloudspaces_actor = api.getActor('cloudapi', 'cloudspaces')
-        machines_actor = api.getActor('cloudapi', 'machines')
+        size_id = None
+        for size in sizes:
+            if size['memory'] == memsize:
+                size_id = size['id']
+                break
+
+        if not size_id:
+            raise RuntimeError('E:Could not find a matching memory size %s' % memsize)
+
         if stackId is not None:
-            machine_cb_actor = api.getActor('cloudbroker', 'machine')
-        cloudspace_id = self.getCloudspaceId(spacesecret)
-
+            machine_cb_actor = api.cloudbroker.machine
         self.vars["cloudspace.id"] = cloudspace_id
         self.vars["machine.name"] = name
 
-        memsize2 = memsizes[memsize]
-        size_ids = [size['id'] for size in self.getMachineSizes(spacesecret, cloudspace_id) if size['memory'] == int(memsize2)]
-        if len(size_ids)==0:
-            raise RuntimeError('E:Could not find a matching memory size %s'% memsize2)
-
-        ssdsize2=ssdsizes[ssdsize]
-
-        images=self.listImages(spacesecret)
-
-        if not imagename in list(images.keys()):
-            j.events.inputerror_critical("Imagename '%s' not in available images: '%s'"%(imagename,images))
-
-        templateid=images[imagename][0]
-
-        self.sendUserMessage("create machine: %s"%(name))
+        templateid = images[imagename][0]
+        self.sendUserMessage("create machine: %s" % (name))
 
         if stackId and machine_cb_actor:
             # we want to deploy on a specific stack
@@ -273,7 +273,7 @@ class MS1(object):
                     j.events.inputerror_critical("Could not create machine it does already exist.","ms1.createmachine.exists")
 
                     return False
-                cloudspaceObj = cloudspaces_actor.get(cloudspace_id)
+                cloudspaceObj = api.cloudapi.cloudspaces.get(cloudspaceId=cloudspace_id)
                 if cloudspaceObj['status'] not in ['DEPLOYED', 'VIRTUAL']:
                     j.events.inputerror_critical("Could not create machine it does already exist.","ms1.createmachine.exists")
                     return False
@@ -281,17 +281,17 @@ class MS1(object):
 
             if valid():
                 try:
-                    machine_id = machine_cb_actor.createOnStack(cloudspaceId=cloudspace_id, name=name, description=description, sizeId=size_ids[0], imageId=templateid, disksize=int(ssdsize2), stackid=stackId, datadisks=datadisks)
+                    machine_id = machine_cb_actor.createOnStack(cloudspaceId=cloudspace_id, name=name, description=description, sizeId=size_ids[0], imageId=templateid, disksize=int(ssdsize), stackid=stackId, datadisks=datadisks)
                 except Exception as e:
                     j.events.opserror_critical("Could not create machine on stack %s, unknown error : %s." % (stackId, e.message), "ms1.createmachine.exists")
         else:
             try:
-                machine_id = machines_actor.create(cloudspaceId=cloudspace_id, name=name, description=description, \
-                    sizeId=size_ids[0], imageId=templateid, disksize=int(ssdsize2), datadisks=datadisks)
+                machine_id = api.cloudapi.machines.create(cloudspaceId=cloudspace_id, name=name, description=description, \
+                    sizeId=size_id, imageId=templateid, disksize=int(ssdsize), datadisks=datadisks)
             except Exception as e:
                 if str(e).find("Selected name already exists") != -1:
                    j.events.inputerror_critical("Could not create machine it does already exist.","ms1.createmachine.exists")
-                raise RuntimeError("E:Could not create machine, unknown error : %s", e.httperror.message)
+                raise RuntimeError("E:Could not create machine, unknown error : %s", e.response.content)
 
         self.vars["machine.id"] = machine_id
 
@@ -299,7 +299,7 @@ class MS1(object):
         self.sendUserMessage("find free ipaddr & tcp port")
 
         for _ in range(60):
-            machine = machines_actor.get(machine_id)
+            machine = api.cloudapi.machines.get(machineId=machine_id)
             if j.data.types.ipaddress.check(machine['interfaces'][0]['ipAddress']):
                 break
             else:
@@ -311,19 +311,18 @@ class MS1(object):
 
         # push initial key
         self.sendUserMessage("push initial ssh key")
-        ssh = self._getSSHConnection(spacesecret, name, sshkey=sshkey, **args)
+        self._getSSHConnection(spacesecret, name, sshkey=sshkey, **args)
 
         self.sendUserMessage("machine active & reachable")
 
         self.sendUserMessage("to connect from outise cloudspace do: 'ssh %s -p %s'" % (self.vars["space.ip.pub"], self.vars["machine.last.tcp.port"]))
         self.sendUserMessage("to connect from inside cloudspace do: 'ssh %s -p %s'" % (self.vars["machine.ip.addr"], 22))
 
-        ss = ssh.host().split(':')
-        return machine_id, ss[0], (ss[1] if ss[1] else 22)
+        return machine_id, self.vars["space.ip.pub"], (int(self.vars["machine.last.tcp.port"]) if self.vars["machine.last.tcp.port"] else 22)
 
     def getMachineObject(self,spacesecret, name,**args):
-        api,machines_actor,machine_id,cloudspace_id=self._getMachineApiActorId(spacesecret,name)
-        machine = machines_actor.get(machine_id)
+        api, machine_id, cloudspace_id = self._getMachineApiActorId(spacesecret, name)
+        machine = api.cloudapi.machines.get(machineId=machine_id)
         return machine
 
     def listImages(self,spacesecret,**args):
@@ -332,19 +331,16 @@ class MS1(object):
             return json.loads(self.db.get('ms1', "ms1:cache:%s:images"%spacesecret))
 
         api = self.getApiConnection(spacesecret)
-        cloudspaces_actor = api.getActor('cloudapi', 'cloudspaces')
-        images_actor = api.getActor('cloudapi', 'images')
         result={}
-        alias={}
         imagetypes=["ubuntu.jumpscale","fedora","windows","ubuntu.13.10","ubuntu.12.04","windows.essentials","ubuntu.14.04.x64","ubuntu 14.04 x64",\
             "zentyal","debian.7","arch","fedora","centos","opensuse","gitlab"]
-        for image in images_actor.list():
+        for image in api.cloudapi.images.list():
             name=image["name"]
             namelower=name.lower()
             for imagetype in imagetypes:
                 if namelower.find(imagetype) != -1:
-                    result[imagetype]=[image["id"],image["name"]]
-            result[image['name']]=[image["id"],image["name"]]
+                    result[imagetype]=[image["id"],image["name"], image['size']]
+            result[image['name']]=[image["id"],image["name"], image['size']]
 
         self.db.set("ms1", "ms1:cache:%s:images"%spacesecret,json.dumps(result))
         return result
@@ -352,27 +348,24 @@ class MS1(object):
     def listMachinesInSpace(self, spacesecret,**args):
         # get actors
         api = self.getApiConnection(spacesecret)
-        machines_actor = api.getActor('cloudapi', 'machines')
         cloudspace_id = self.getCloudspaceId(spacesecret)
         # list machines
-        machines = machines_actor.list(cloudspaceId=cloudspace_id)
+        machines = api.cloudapi.machines.list(cloudspaceId=cloudspace_id)
         return machines
 
     def _getMachineApiActorId(self, spacesecret, name,**args):
         api=self.getApiConnection(spacesecret)
         cloudspace_id = self.getCloudspaceId(spacesecret)
-        machines_actor = api.getActor('cloudapi', 'machines')
-        machine_id = [machine['id'] for machine in machines_actor.list(cloudspace_id) if machine['name'] == name]
+        machine_id = [machine['id'] for machine in api.cloudapi.machines.list(cloudspaceId=cloudspace_id) if machine['name'] == name]
         if len(machine_id)==0:
             raise RuntimeError("E:Could not find machine with name:%s, cannot continue action."%name)
         machine_id = machine_id[0]
-        actor=api.getActor('cloudapi', 'machines')
-        return (api,actor,machine_id,cloudspace_id)
+        return (api, machine_id, cloudspace_id)
 
     def deleteMachine(self, spacesecret, name,**args):
         self.sendUserMessage("delete machine: %s"%(name))
         try:
-            api,machines_actor,machine_id,cloudspace_id=self._getMachineApiActorId(spacesecret,name)
+            api, machine_id, cloudspace_id = self._getMachineApiActorId(spacesecret, name)
         except Exception as e:
             if str(e).find("Could not find machine")!=-1:
                 return "NOTEXIST"
@@ -380,32 +373,32 @@ class MS1(object):
                 return "E:SPACE SECRET IS NOT CORRECT"
             raise RuntimeError(e)
         try:
-            machines_actor.delete(machine_id)
+            api.cloudapi.machines.delete(machineId=machine_id)
         except Exception as e:
             print(e)
             raise RuntimeError("E:could not delete machine %s"%name)
         return "OK"
 
     def startMachine(self, spacesecret, name,**args):
-        api,machines_actor,machine_id,cloudspace_id=self._getMachineApiActorId(spacesecret,name)
+        api, machine_id, cloudspace_id = self._getMachineApiActorId(spacesecret, name)
         try:
-            machines_actor.start(machine_id)
+            api.cloudapi.machines.start(machineId=machine_id)
         except Exception as e:
             raise RuntimeError("E:could not start machine.")
         return "OK"
 
     def stopMachine(self, spacesecret, name,**args):
-        api,machines_actor,machine_id,cloudspace_id=self._getMachineApiActorId(spacesecret,name)
+        api, machine_id, cloudspace_id = self._getMachineApiActorId(spacesecret, name)
         try:
-            machines_actor.stop(machine_id)
+            api.cloudapi.machines.stop(machineId=machine_id)
         except Exception as e:
             raise RuntimeError("E:could not stop machine.")
         return "OK"
 
     def snapshotMachine(self, spacesecret, name, snapshotname,**args):
-        api,machines_actor,machine_id,cloudspace_id=self._getMachineApiActorId(spacesecret,name)
+        api, machine_id, cloudspace_id = self._getMachineApiActorId(spacesecret, name)
         try:
-            machines_actor.snapshot(machine_id,snapshotname)
+            api.cloudapi.machines.snapshot(machineId=machine_id, name=snapshotname)
         except Exception as e:
             raise RuntimeError("E:could not stop machine.")
         return "OK"
@@ -425,16 +418,16 @@ class MS1(object):
 
     def _createPortForwardRule(self, spacesecret, name, machineport, pubip, pubipport, protocol):
         # self.sendUserMessage("Create PFW rule:%s %s %s"%(pubip,pubipport,protocol),args=args)
-        api,machines_actor,machine_id,cloudspace_id=self._getMachineApiActorId(spacesecret,name)
-        portforwarding_actor = api.getActor('cloudapi', 'portforwarding')
+        api, machine_id, cloudspace_id = self._getMachineApiActorId(spacesecret, name)
         if pubip=="":
-            cloudspaces_actor = api.getActor('cloudapi', 'cloudspaces')
-            cloudspace = cloudspaces_actor.get(cloudspace_id)
+            cloudspace = api.cloudapi.cloudspaces.get(cloudspaceId=cloudspace_id)
             pubip=cloudspace['publicipaddress']
 
         self.vars["space.ip.pub"]=pubip
         self._deletePortForwardRule(spacesecret, name, pubip, pubipport, 'tcp')
-        portforwarding_actor.create(cloudspace_id, pubip, str(pubipport), machine_id, str(machineport), protocol)
+        api.cloudapi.portforwarding.create(cloudspaceid=cloudspace_id, publicIp=pubip,
+                                           publicPort=str(pubipport), vmid=machine_id,
+                                           localPort=str(machineport), protocol=protocol)
 
         return "OK"
 
@@ -457,48 +450,44 @@ class MS1(object):
         if int(size) < 1:
             j.events.inputerror_critical('min size is 1 GB')
 
-        api, machines_actor, machine_id, cloudspace_id = self._getMachineApiActorId(spaceSecret, vmName)
+        api, machine_id, cloudspace_id = self._getMachineApiActorId(spaceSecret, vmName)
 
-        vmStatus = machines_actor.get(machine_id)
+        vmStatus = api.cloudapi.machines.get(machineId=machine_id)
         if vmStatus['status'] != 'HALTED':
             j.events.opserror_critical('The VM should be alted to add a disk', category='')
 
         self.sendUserMessage('creation of the disk %s (%s GB)' % (diskName, size))
-        machines_actor.addDisk(machineId=machine_id, diskName=diskName, description=description, size=size, type=type)
+        api.cloudapi.machines.addDisk(machineId=machine_id, diskName=diskName, description=description,
+                                      size=size, type=type)
 
     def _deletePortForwardRule(self, spacesecret, name,pubip,pubipport, protocol):
         # self.sendUserMessage("Delete PFW rule:%s %s %s"%(pubip,pubipport,protocol),args=args)
-        api,machines_actor,machine_id,cloudspace_id=self._getMachineApiActorId(spacesecret,name)
-        portforwarding_actor = api.getActor('cloudapi', 'portforwarding')
+        api, machine_id, cloudspace_id = self._getMachineApiActorId(spacesecret, name)
         if pubip=="":
-            cloudspaces_actor = api.getActor('cloudapi', 'cloudspaces')
-            cloudspace = cloudspaces_actor.get(cloudspace_id)
+            cloudspace = api.cloudapi.cloudspaces.get(cloudspaceId=cloudspace_id)
             pubip=cloudspace['publicipaddress']
 
-        for item in portforwarding_actor.list(cloudspace_id):
+        for item in api.cloudapi.portforwarding.list(cloudspaceid=cloudspace_id):
             if int(item["publicPort"])==int(pubipport) and item['publicIp']==pubip:
                 print(("delete portforward: %s "%item["id"]))
-                portforwarding_actor.delete(cloudspace_id,item["id"])
+                api.cloudapi.portforwarding.delete(cloudspaceid=cloudspace_id, id=item["id"])
 
         return "OK"
 
     def getFreeIpPort(self,spacesecret,mmin=90,mmax=1000,**args):
         api=self.getApiConnection(spacesecret)
         cloudspace_id = self.getCloudspaceId(spacesecret)
-        cloudspaces_actor = api.getActor('cloudapi', 'cloudspaces')
 
-        space=cloudspaces_actor.get(cloudspace_id)
+        space = api.cloudapi.cloudspaces.get(cloudspaceId=cloudspace_id)
 
         self.vars["space.free.tcp.addr"]=space["publicipaddress"]
         self.vars["space.ip.pub"]=space["publicipaddress"]
 
         pubip=space["publicipaddress"]
 
-        portforwarding_actor = api.getActor('cloudapi', 'portforwarding')
-
         tcpports={}
         udpports={}
-        for item in portforwarding_actor.list(cloudspace_id):
+        for item in api.cloudapi.portforwarding.list(cloudspaceid=cloudspace_id):
             if item['publicIp']==pubip:
                 if item['protocol']=="tcp":
                     tcpports[int(item['publicPort'])]=True
@@ -519,15 +508,13 @@ class MS1(object):
         return self.vars
 
     def listPortforwarding(self,spacesecret, name,**args):
-        api,machines_actor,machine_id,cloudspace_id=self._getMachineApiActorId(spacesecret,name)
-        cloudspaces_actor = api.getActor('cloudapi', 'cloudspaces')
+        api, machine_id, cloudspace_id = self._getMachineApiActorId(spacesecret, name)
 
-        machine = machines_actor.get(machine_id)
+        machine = api.cloudapi.machines.get(machineId=machine_id)
         if machine['cloudspaceid'] != cloudspace_id:
             return 'Machine %s does not belong to cloudspace whose secret is given' % name
 
-        portforwarding_actor = api.getActor('cloudapi', 'portforwarding')
-        items=portforwarding_actor.list(cloudspace_id)
+        items = api.cloudapi.portforwarding.list(cloudspaceid=cloudspace_id)
 
         if len(machine["interfaces"])>0:
             local_ipaddr=machine["interfaces"][0]['ipAddress'].strip()
@@ -535,24 +522,21 @@ class MS1(object):
             raise RuntimeError("cannot find local ip addr")
 
         items=[]
-        for item in portforwarding_actor.list(cloudspace_id):
+        for item in api.cloudapi.portforwarding.list(cloudspaceid=cloudspace_id):
             if item['localIp']==local_ipaddr:
                 items.append(item)
         return items
 
     def _getSSHConnection(self, spacesecret, name, sshkey=None, **args):
-        api,machines_actor,machine_id,cloudspace_id=self._getMachineApiActorId(spacesecret,name)
+        api, machine_id, cloudspace_id = self._getMachineApiActorId(spacesecret, name)
 
-        cloudspaces_actor = api.getActor('cloudapi', 'cloudspaces')
-
-        machine = machines_actor.get(machine_id)
+        machine = api.cloudapi.machines.get(machineId=machine_id)
         if machine['cloudspaceid'] != cloudspace_id:
             return 'Machine %s does not belong to cloudspace whose secret is given' % name
 
 
         print("RECREATE SSH CONNECTION")
-        portforwarding_actor = api.getActor('cloudapi', 'portforwarding')
-        items=portforwarding_actor.list(cloudspace_id)
+        items=api.cloudapi.portforwarding.list(cloudspaceid=cloudspace_id)
 
         if len(machine["interfaces"])>0:
             local_ipaddr=machine["interfaces"][0]['ipAddress'].strip()
@@ -564,7 +548,7 @@ class MS1(object):
             if item['localIp'].strip()==local_ipaddr and int(item['localPort'])==22:
                 self.sendUserMessage("Delete existing PFW rule:%s %s"%(item['localIp'],22),args=args)
                 try:
-                    portforwarding_actor.delete(cloudspace_id,item["id"])
+                    api.cloudapi.portforwarding.delete(cloudspaceid=cloudspace_id, id=item["id"])
                 except Exception as e:
                     self.sendUserMessage("Warning: could not delete.",args=args)
 
@@ -575,7 +559,7 @@ class MS1(object):
         localIP=machine["interfaces"][0]["ipAddress"]
         while localIP=="" or localIP.lower()=="undefined":
             print("NO IP YET")
-            machine = machines_actor.get(machine_id)
+            machine = api.cloudapi.machines.get(machineId=machine_id)
             counter+=1
             time.sleep(0.5)
             if counter>100:
@@ -584,7 +568,7 @@ class MS1(object):
 
         self.createTcpPortForwardRule(spacesecret, name, 22, pubipport=tempport,**args)
 
-        cloudspace = cloudspaces_actor.get(cloudspace_id)
+        cloudspace = api.cloudapi.cloudspaces.get(cloudspaceId=cloudspace_id)
         pubip=cloudspace['publicipaddress']
 
         connectionAddr = cloudspace['publicipaddress']
@@ -624,19 +608,16 @@ class MS1(object):
 
         rloc = "/root/.ssh/authorized_keys"
 
-        ssh_connection = j.remote.cuisine.api
-
-        ssh_connection.mode_sudo()
-
         username, password = machine['accounts'][0]['login'], machine['accounts'][0]['password']
-        ssh_connection.fabric.api.env['password'] = password
-        ssh_connection.fabric.api.env['connection_attempts'] = 5
-        ssh_connection.connect('%s:%s' % (connectionAddr, connectionPort), username)
 
-        name = name.replace('_', '').replace(' ','-')
-        ssh_connection.run('echo "%s" > /etc/hostname' % name)
-        ssh_connection.run('hostname %s' % name)
-        ssh_connection.run('echo "127.0.0.1 %s" >> /etc/hosts' % name)
+        executor = j.tools.executor.getSSHBased(addr=connectionAddr, port=connectionPort, login=username, passwd=password)
+        ssh_connection = j.tools.cuisine.get(executor)
+
+        name = name.replace('_', '').replace(' ', '-')
+        ssh_connection.sudomode = True
+        ssh_connection.run('echo %s > /etc/hostname' % name, warn_only=True)
+        ssh_connection.run('hostname %s' % name, warn_only=True)
+        ssh_connection.run('echo "127.0.0.1 %s" >> /etc/hosts' % name, warn_only=True)
 
         # will overwrite all old keys
         ssh_connection.file_write(rloc, key)

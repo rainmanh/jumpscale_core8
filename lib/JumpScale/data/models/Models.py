@@ -6,25 +6,14 @@ import uuid
 
 
 class ModelBase(Document):
-    guid = StringField(default=uuid.uuid4().hex)
-    gid = IntField(default=0)
-    nid = IntField(default=0)
-    epoch = IntField(default=j.tools.time.getTimeEpoch())
+    guid = StringField(default=lambda: str(uuid.uuid4()))
+    gid = IntField(default=lambda: j.application.whoAmI.gid if j.application.whoAmI else 0)
+    nid = IntField(default=lambda: j.application.whoAmI.nid if j.application.whoAmI else 0)
+    epoch = IntField(default=j.tools.time.getTimeEpoch)
     meta = {'allow_inheritance': True}
 
-    def clean(self):
-        if self.epoch == 0:
-            self.epoch = j.tools.time.getTimeEpoch()
-        if j.application.whoAmI is not None:
-            if self.gid == 0:
-                self.gid = j.application.whoAmI.gid
-            if self.nid == 0:
-                self.nid = j.application.whoAmI.nid
-            # if self.pid == 0:
-            #     self.pid = j.application.whoAmI.pid
-
     def to_dict(self):
-        d=json.loads(ModelBase.to_json(self))
+        d = json.loads(ModelBase.to_json(self))
         d.pop("_cls")
         if "_id" in d:
             d.pop("_id")
@@ -32,13 +21,20 @@ class ModelBase(Document):
             d.pop("_redis")
         return d
 
-    def save(self):
-        self.clean()
-        if "_redis" in self.__dict__:
-            redis=True
+    @classmethod
+    def find(cls, query, redis=False):
+        if redis:
+            raise RuntimeError("not implemented")
         else:
-            redis=False            
-        return j.data.models.set(self,redis=redis)
+            return cls.objects(__raw__=query)
+
+    def save(self):
+        if "_redis" in self.__dict__:
+            redis = True
+            return j.data.models.set(self, redis=redis)
+        else:
+            redis = False
+            return super(ModelBase, self).save()
 
     def __str__(self):
         return (json.dumps(self.to_dict(), sort_keys=True, indent=4))
@@ -52,10 +48,11 @@ class ModelErrorCondition(ModelBase):
     jid = IntField(default=0)
     masterjid = IntField(default=0)
     appname = StringField(default="")
-    level = StringField(default="CRITICAL")
-    type = StringField(default="UNKNOWN")
-    state = StringField(default="NEW")  # ["NEW","ALERT","CLOSED"]:
-    errormessage = StringField()  # StringField() <--- available starting version 0.9
+    level = StringField(choices=("CRITICAL","MAJOR","WARNING","INFO"), default="CRITICAL", required=True)
+    type = StringField(choices=("BUG","PERF","OPS","UNKNOWN"), default="UNKNOWN", required=True)
+    state = StringField(choices=("NEW","ALERT","CLOSED"), default="NEW", required=True)
+    # StringField() <--- available starting version 0.9
+    errormessage = StringField()
     errormessagePub = StringField()  # StringField()
     category = StringField(default="")
     tags = StringField(default="")
@@ -70,17 +67,6 @@ class ModelErrorCondition(ModelBase):
     closetime = IntField(default=0)
     occurrences = IntField(default=0)
 
-    def clean(self):
-        ModelBase.clean(self)
-        if self.lasttime == 0:
-            self.lasttime = j.tools.time.getTimeEpoch()
-        if self.state not in ["NEW", "ALERT", "CLOSED"]:
-            raise ValidationError("State can only be NEW,ALERT or CLOSED")
-        if self.type not in ["BUG", "PERF", "OPS", "UNKNOWN"]:
-            raise ValidationError("State can only be NEW,ALERT or CLOSED")
-        if self.level not in ["CRITICAL", "MAJOR", "WARNING", "INFO"]:
-            raise ValidationError("State can only be CRITICAL,MAJOR,WARNING,INFO")
-
 
 class ModelGrid(ModelBase):
     name = StringField(default='master')
@@ -92,40 +78,41 @@ class ModelGroup(ModelBase):
     domain = StringField(default='')
     gid = IntField(default=1)
     roles = ListField(StringField())
-    active = BooleanField(default=1)
+    active = BooleanField(default=True)
     description = StringField(default='master')
     lastcheck = IntField(default=j.tools.time.getTimeEpoch())
     users = ListField(StringField())
 
 
-class ModelJob(ModelBase):
-    sessionid = IntField()
-    nid = IntField()
-    gid = IntField()
-    cmd = StringField(default='')
-    wait = BooleanField(default=1)
-    category = StringField(default='')
-    roles = ListField(StringField())
-    args = StringField(default='')
-    queue = StringField(default='')
-    timeout = IntField()
-    result = StringField(default='')
-    parent = IntField()
-    resultcode = StringField(default='')
-    # SCHEDULED,STARTED,ERROR,OK,NOWORK
-    state = StringField(default='SCHEDULED')
-    timeStart = IntField(default=j.tools.time.getTimeEpoch())
-    timeStop = IntField()
-    log = BooleanField(default=1)
-    errorreport = BooleanField(default=1)
-    meta = {'indexes': [
-                {'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}
-           ], 'allow_inheritance': True}
+class ModelJob(EmbeddedDocument):
+    nid = IntField(required=True)
+    gid = IntField(required=True)
+    data = StringField(default='')
+    streams = ListField(StringField())
+    level = IntField()
+    state = StringField(required=True, choices=('SUCCESS', 'ERROR', 'TIMEOUT', 'KILLED', 'QUEUED', 'RUNNING'))
+    starttime = IntField()
+    time = IntField()
+    tags = StringField()
+    critical = StringField()
 
-    def clean(self):
-        ModelBase.clean(self)
-        if self.state not in ["SCHEDULED", "STARTED", "ERROR", "OK", "NOWORK"]:
-            raise ValidationError("State can only be SCHEDULED, STARTED, ERROR, OK or NOWORK")
+    meta = {
+        'indexes': [{'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}],
+        'allow_inheritance': True
+    }
+
+
+class ModelCommand(ModelBase):
+    gid = IntField(default=0)
+    nid = IntField(default=0)
+    cmd = StringField()
+    roles = ListField(StringField())
+    fanout = BooleanField(default=False)
+    args = DictField()
+    data = StringField()
+    tags = StringField()
+    starttime = IntField()
+    jobs = ListField(EmbeddedDocumentField(ModelJob))
 
 
 class ModelAudit(ModelBase):
@@ -137,9 +124,8 @@ class ModelAudit(ModelBase):
     kwargs = StringField(default='')
     timestamp = StringField(default='')
     meta = {'indexes': [
-                {'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}
-        ], 'allow_inheritance': True}
-
+        {'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}
+    ], 'allow_inheritance': True}
 
 class ModelDisk(ModelBase):
     partnr = IntField()
@@ -166,11 +152,11 @@ class ModelAlert(ModelBase):
     username = StringField(default='')
     description = StringField(default='')
     descriptionpub = StringField(default='')
-    level = IntField()  # 1:critical, 2:warning, 3:info
+    level = IntField(min_value=1, max_value=3)
     # dot notation e.g. machine.start.failed
     category = StringField(default='')
     tags = StringField(default='')  # e.g. machine:2323
-    state = StringField(default='')  # ["NEW","ALERT","CLOSED"]
+    state = StringField(choices=("NEW","ALERT","CLOSED"), default='NEW', required=True)
     history = ListField(DictField())
     # first time there was an error condition linked to this alert
     inittime = IntField(default=j.tools.time.getTimeEpoch())
@@ -180,13 +166,6 @@ class ModelAlert(ModelBase):
     # $nr of times this error condition happened
     nrerrorconditions = IntField()
     errorconditions = ListField(IntField())  # ids of errorconditions
-
-    def clean(self):
-        ModelBase.clean(self)
-        if self.level not in [1, 2, 3]:
-            raise ValidationError("Level can only be 1(critical), 2(warning) or 3(info)")
-        if self.state not in ["NEW", "ALERT", "CLOSED"]:
-            raise ValidationError('State can only be "NEW","ALERT" or "CLOSED"')
 
 
 class ModelHeartbeat(ModelBase):
@@ -230,7 +209,7 @@ class ModelMachine(ModelBase):
     ipaddr = ListField(StringField())
     active = BooleanField()
     # STARTED,STOPPED,RUNNING,FROZEN,CONFIGURED,DELETED
-    state = StringField(default='')
+    state = StringField(choices=("STARTED","STOPPED","RUNNING","FROZEN","CONFIGURED","DELETED"), default='', required=True)
     mem = IntField()  # $in MB
     cpucore = IntField()
     description = StringField(default='')
@@ -239,11 +218,6 @@ class ModelMachine(ModelBase):
     # epoch of last time the info was checked from reality
     lastcheck = IntField(default=j.tools.time.getTimeEpoch())
 
-    def clean(self):
-        ModelBase.clean(self)
-        if self.state not in ["STARTED", "STOPPED", "RUNNING", "FROZEN", "CONFIGURED", "DELETED"]:
-            raise ValidationError('State can only be "STARTED", "STOPPED", "RUNNING", "FROZEN", "CONFIGURED" or "DELETED"')
-
 
 class ModelNic(ModelBase):
     gid = IntField()
@@ -251,7 +225,7 @@ class ModelNic(ModelBase):
     name = StringField(default='')
     mac = StringField(default='')
     ipaddr = ListField(StringField())
-    active = BooleanField(default=1)
+    active = BooleanField(default=True)
     # poch of last time the info was checked from reality
     lastcheck = IntField(default=j.tools.time.getTimeEpoch())
 
@@ -316,7 +290,7 @@ class ModelTest(ModelBase):
     name = StringField(default='')
     testrun = StringField(default='')
     path = StringField(default='')
-    state = StringField(default='')  # OK, ERROR, DISABLED
+    state = StringField(choices=("OK","ERROR","DISABLED"), default='', required=True)
     priority = IntField()  # lower is highest priority
     organization = StringField(default='')
     author = StringField(default='')
@@ -331,16 +305,10 @@ class ModelTest(ModelBase):
     license = StringField(default='')
     source = DictField(default='')
 
-    def clean(self):
-        ModelBase.clean(self)
-        if self.state not in ["OK", "ERROR", "DISABLED"]:
-            raise ValidationError('State can only be OK, ERROR or DISABLED')
-
 
 class ModelUser(ModelBase):
     name = StringField(default='')
     domain = StringField(default='')
-    gid = IntField()
     passwd = StringField(default='')  # stored hashed
     roles = ListField(StringField())
     active = BooleanField()
@@ -348,7 +316,8 @@ class ModelUser(ModelBase):
     emails = ListField(StringField())
     xmpp = ListField(StringField())
     mobile = ListField(StringField())
-    lastcheck = IntField(default=j.tools.time.getTimeEpoch())  # epoch of last time the info updated
+    # epoch of last time the info updated
+    lastcheck = IntField(default=j.tools.time.getTimeEpoch())
     groups = ListField(StringField())
     authkey = StringField(default='')
     data = StringField(default='')
@@ -360,8 +329,8 @@ class ModelSessionCache(ModelBase):
     _creation_time = IntField(default=j.tools.time.getTimeEpoch())
     _accessed_time = IntField(default=j.tools.time.getTimeEpoch())
     meta = {'indexes': [
-                {'fields': ['epoch'], 'expireAfterSeconds': 432000}
-        ], 'allow_inheritance': True}
+        {'fields': ['epoch'], 'expireAfterSeconds': 432000}
+    ], 'allow_inheritance': True}
 
 
 # @todo complete ASAP all from https://github.com/Jumpscale/jumpscale_core8/blob/master/apps/osis/logic/system/model.spec  (***)

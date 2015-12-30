@@ -6,8 +6,7 @@ import textwrap
 from io import StringIO
 import collections
 from JumpScale import j
-
-acclient = __import__('acclient')
+import acclient
 
 
 STATE_UNKNOWN = 'UNKNOWN'
@@ -181,7 +180,7 @@ class Result(object):
         if self.state != STATE_SUCCESS:
             raise ValueError("Job in %s" % self.state)
         if self._job.level == RESULT_JSON:
-            return json.loads(self._job.data)
+            return acclient.jsonLoads(self._job.data)
         return self._job.data
 
     @property
@@ -197,7 +196,7 @@ class Result(object):
         eco = None
 
         if critical:
-            d = json.loads(critical)
+            d = acclient.jsonLoads(critical)
             eco = j.errorconditionhandler.getErrorConditionObject(d)
         elif self.state == STATE_TIMEDOUT:
             eco = j.errorconditionhandler.getErrorConditionObject(msg='Timedout waiting for job')
@@ -530,9 +529,9 @@ class SchedulerClient(object):
         Lists all scheduled tasks.
         """
         table = dict()
-        for key, entrystr in self._client.schedule_list().items():
-            entry = json.loads(entrystr)
-            table[key] = entry['cron']
+        for item in self._client.schedule_list():
+            _id = item.pop('id')
+            table[_id] = item
         return table
 
     def execute(self, id, cron, cmd, path=None, gid=None, nid=None, roles=[], allnodes=True, timeout=5,

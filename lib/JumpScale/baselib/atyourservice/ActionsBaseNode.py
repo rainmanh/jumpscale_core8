@@ -207,10 +207,10 @@ class ActionsBaseNode(object):
                     j.sal.ubuntu.startService(name)
 
             elif startupmethod=="tmux":
-                j.sal.screen.executeInScreen(domain,name,tcmd+" "+targs,cwd=cwd, env=env,user=tuser)#, newscr=True)
+                j.sal.tmux.executeInScreen(domain,name,tcmd+" "+targs,cwd=cwd, env=env,user=tuser)#, newscr=True)
 
                 if tlog:
-                    j.sal.screen.logWindow(domain,name,serviceObj.logPath)
+                    j.sal.tmux.logWindow(domain,name,serviceObj.logPath)
 
             else:
                 raise RuntimeError("startup method not known or disabled:'%s'"%startupmethod)
@@ -305,10 +305,10 @@ class ActionsBaseNode(object):
             elif startupmethod=="tmux":
                 print("stop tmux:%s %s"%(domain,name))
 
-                for tmuxkey,tmuxname in list(j.sal.screen.getWindows(domain).items()):
+                for tmuxkey,tmuxname in list(j.sal.tmux.getWindows(domain).items()):
                     if tmuxname==name:
                         print("tmux kill:%s %s"%(tmuxkey,tmuxname))
-                        j.sal.screen.killWindow(domain,name)
+                        j.sal.tmux.killWindow(domain,name)
                         # print "killdone"
 
         if serviceObj.name == 'redis':

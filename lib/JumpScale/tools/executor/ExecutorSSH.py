@@ -23,7 +23,7 @@ class ExecutorSSH(ExecutorBase):
             self._sshclient=j.clients.ssh.get(self.addr,self.port,login=self.login,passwd=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys)
         return self._sshclient
 
-    def execute(self, cmds, die=True,checkok=None,showout=True):
+    def execute(self, cmds, die=True,checkok=None,showout=True, combinestdr=True):
         """
         @param naked means will not manipulate cmd's to show output in different way
         return (rc,out,err)
@@ -41,7 +41,7 @@ class ExecutorSSH(ExecutorBase):
             if showout:
                 print("EXECUTE %s:%s: %s"%(self.addr,self.port,cmds))
             # return j.do.execute("ssh -A -p %s root@%s '%s'"%(self.port,self.addr,cmds),dieOnNonZeroExitCode=die)
-            retcode,out=self.sshclient.execute(cmds2,die=die,showout=showout)
+            retcode,out=self.sshclient.execute(cmds2,die=die,showout=showout, combinestdr=combinestdr)
 
         if checkok and die:
             self.docheckok(cmds,out)

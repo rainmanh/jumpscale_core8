@@ -26,6 +26,12 @@ LEVELS = list(range(1, 10)) + list(range(20, 24)) + [30]
 LEVEL_JSON = 20
 
 
+def jsonLoads(x):
+    if isinstance(x, bytes):
+        x = x.decode('utf-8')
+    return json.loads(x)
+
+
 class AgentException(Exception):
     pass
 
@@ -288,7 +294,9 @@ class Job(Base):
     @property
     def streams(self):
         self._update()
-        return self._jobdata.get('streams', ['', ''])
+        default = ['', '']
+        streams = self._jobdata.get('streams', default)
+        return streams or default
 
     @property
     def critical(self):
@@ -324,7 +332,7 @@ class Job(Base):
         if result is None:
             raise ResultTimeout('Timedout while waiting for job %s' % self)
 
-        return self._set_job(json.loads(result))
+        return self._set_job(jsonLoads(result))
 
     def kill(self):
         """
@@ -345,7 +353,7 @@ class Job(Base):
             raise AgentException(stats.data)
 
         # TODO: parsing data should be always based on the level
-        result = json.loads(stats.data)
+        result = jsonLoads(stats.data)
         return result
 
     def get_msgs(self, levels='*', limit=20):
@@ -596,15 +604,16 @@ class Client(object):
         Note: Other params are exeactly as :func:`acclient.Client.cmd`
         """
         cmd = self._build_cmd(gid=gid, nid=nid, cmd=cmd, args=args,
-                              data=data, id='-', roles=roles, fanout=fanout, tags=tags).dump()
+                              data=data, id='', roles=roles, fanout=fanout, tags=tags).dump()
 
         data = {
             'cron': cron,
-            'cmd': cmd
+            'cmd': cmd,
+            'id': str(id),
         }
 
         cmd = self.cmd(0, 0, 'controller', RunArgs(name='scheduler_add'),
-                       data=json.dumps(data), id=id, roles=['*'])
+                       data=json.dumps(data), roles=['*'])
         if validate_queued:
             result = cmd.get_next_result(GET_INFO_TIMEOUT)
             return self._load_json_or_die(result)
@@ -615,13 +624,14 @@ class Client(object):
         """
         cmd = self.cmd(0, 0, 'controller', RunArgs(name='scheduler_list'), roles=['*'])
         result = cmd.get_next_result(GET_INFO_TIMEOUT)
+
         return self._load_json_or_die(result)
 
     def schedule_remove(self, id, validate_queued=False):
         """
         Remove a scheduled job by ID
         """
-        cmd = self.cmd(0, 0, 'controller', RunArgs(name='scheduler_remove'), id=id, roles=['*'])
+        cmd = self.cmd(0, 0, 'controller', RunArgs(name='scheduler_remove'), data=json.dumps(str(id)), roles=['*'])
         if validate_queued:
             result = cmd.get_next_result(GET_INFO_TIMEOUT)
             return self._load_json_or_die(result)
@@ -630,7 +640,7 @@ class Client(object):
         """
         Remove a scheduled job by ID
         """
-        cmd = self.cmd(0, 0, 'controller', RunArgs(name='scheduler_remove_prefix'), id=prefix, roles=['*'])
+        cmd = self.cmd(0, 0, 'controller', RunArgs(name='scheduler_remove_prefix'), data=json.dumps(str(id)), roles=['*'])
         if validate_queued:
             result = cmd.get_next_result(GET_INFO_TIMEOUT)
             return self._load_json_or_die(result)
@@ -706,7 +716,7 @@ class Client(object):
         if result.state == 'SUCCESS':
             if result.level != LEVEL_JSON:
                 raise AgentException("Expected json data got response level '%d'" % result.level)
-            return json.loads(result.data)
+            return jsonLoads(result.data)
         else:
             error = result.data or result.streams[1]
             raise AgentException(
@@ -764,7 +774,7 @@ class Client(object):
         :rtype: dict of :class:`acclient.Job`
         """
         def wrap_jobs(jobresult):
-            result = json.loads(jobresult)
+            result = jsonLoads(jobresult)
             return (result['gid'], result['nid']), Job(self, result)
 
         # wait until we make sure all jobs were queued
@@ -881,11 +891,11 @@ class Client(object):
         assert count > 0, "Invalid count, must be greater than 0"
 
         def _rmap(r):
-            r = json.loads(r)
+            r = jsonLoads(r)
             return Job(self, r)
 
         def _map(s):
-            j = json.loads(s)
+            j = jsonLoads(s)
             result = self._redis.hgetall('jobresult:%s' % j['id'])
 
             j['jobs'] = list(map(_rmap, list(result.values())))

@@ -6,17 +6,17 @@ class RecurringItem():
         self.service = service
         self.name = name
         self.period = period
-        self.periodSec = j.tools.time.getDeltaTime(self.period)
+        self.periodSec = j.data.time.getDeltaTime(self.period)
         self.last = last
 
     def __repr__(self):
         if self.last != 0:
-            return str("|%-20s | %-10s | %-10s | %-30s|\n" % (self.name,self.period,self.last,j.tools.time.epoch2HRDateTime(self.last)))
+            return str("|%-20s | %-10s | %-10s | %-30s|\n" % (self.name,self.period,self.last,j.data.time.epoch2HRDateTime(self.last)))
         else:
             return str("|%-20s | %-10s | %-10s | %-30s|\n" % (self.name,self.period,self.last,""))
 
     def check(self):
-        now=j.tools.time.getTimeEpoch()
+        now=j.data.time.getTimeEpoch()
         if self.last<now-self.periodSec:
             #need to execute
             #

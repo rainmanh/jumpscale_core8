@@ -94,8 +94,8 @@ def purge(opts,action):
         if isinstance(time, int):
             return time
         if time.startswith('-'):
-            return j.tools.time.getEpochAgo(time)
-        return j.tools.time.getEpochFuture(time)
+            return j.data.time.getEpochAgo(time)
+        return j.data.time.getEpochFuture(time)
 
     esclient = j.clients.elasticsearch.get()
     query = dict()

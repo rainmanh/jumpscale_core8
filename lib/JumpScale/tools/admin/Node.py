@@ -195,7 +195,7 @@ class Node():
         return "unknown"
 
     def check(self):
-        j.tools.time.getTimeEpoch()
+        j.data.time.getTimeEpoch()
 
     def connectSSH(self):
         ip=self.model["ip"]

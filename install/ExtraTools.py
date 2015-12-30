@@ -153,7 +153,7 @@ class FSWalkerStats():
             self.duplicate[ttype]=0
 
     def callstop(self):
-        self.stop=j.tools.time.getTimeEpoch()
+        self.stop=j.data.time.getTimeEpoch()
         self._getTotals()
 
     def _getTotals(self):

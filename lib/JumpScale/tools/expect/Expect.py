@@ -694,7 +694,7 @@ class Expect:
         """
         self.log("wait: %s sec" % timeoutval,category="wait")
         timeout=False
-        starttime=j.tools.time.getTimeEpoch()
+        starttime=j.data.time.getTimeEpoch()
         r="" #full return
         returnpart="" #one time return after receive
         done=False #status param
@@ -707,7 +707,7 @@ class Expect:
             #j.logger.log("tokenfound:%s"%tokenfound)
             returnpart=self._ignoreLinesBasedOnFilter(returnpart)
             r= r+returnpart
-            curtime=j.tools.time.getTimeEpoch()
+            curtime=j.data.time.getTimeEpoch()
             j.logger.log("TimeoutCheck on waitreceive: %s %s %s" % (curtime,starttime,timeoutval),8)
             if(curtime-starttime>timeoutval):
                 j.logger.log("WARNING: execute %s timed out (timeout was %s)" % (self._lastsend,timeoutval), 6)

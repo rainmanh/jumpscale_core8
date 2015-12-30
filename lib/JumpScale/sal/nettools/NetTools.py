@@ -60,14 +60,14 @@ class NetTools(SALObject):
         if ipaddr.strip()=="localhost":
             ipaddr="127.0.0.1"
         port=int(port)
-        start=j.tools.time.getTimeEpoch()
+        start=j.data.time.getTimeEpoch()
         now=start
         remainingtime = (timeout - (now - start)) or 1
         while remainingtime > 0:
             if j.sal.nettools.tcpPortConnectionTest(ipaddr,port, remainingtime):
                 return True
             time.sleep(0.1)
-            now=j.tools.time.getTimeEpoch()
+            now=j.data.time.getTimeEpoch()
             remainingtime = (timeout - (now - start)) or 1
         return False
 
@@ -80,12 +80,12 @@ class NetTools(SALObject):
         if ipaddr.strip()=="localhost":
             ipaddr="127.0.0.1"
         port=int(port)
-        start=j.tools.time.getTimeEpoch()
+        start=j.data.time.getTimeEpoch()
         now=start
         while now<start+timeout:
             if j.sal.nettools.tcpPortConnectionTest(ipaddr,port, 1)==False:
                 return True
-            now=j.tools.time.getTimeEpoch()
+            now=j.data.time.getTimeEpoch()
         return False
 
     def checkUrlReachable(self, url):

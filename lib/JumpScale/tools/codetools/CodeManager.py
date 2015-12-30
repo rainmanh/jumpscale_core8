@@ -372,8 +372,8 @@ class CodeManagerFile():
                 obj.model.goal=goal          
                 obj.model.id=id1
                 obj.model.company=company    
-                obj.model.deadline=int(j.tools.time.HRDatetoEpoch(deadline.replace("-","/")))
-                obj.model.start=int(j.tools.time.HRDatetoEpoch(start.replace("-","/")))
+                obj.model.deadline=int(j.data.time.HRDatetoEpoch(deadline.replace("-","/")))
+                obj.model.start=int(j.data.time.HRDatetoEpoch(start.replace("-","/")))
         
     def _strToArrayInt(self,items):
         if items=="":
@@ -429,8 +429,8 @@ class CodeManagerFile():
                 obj.model.goal=goal                         
                 obj.model.priority=int(priority)
                 obj.model.remarks=remarks
-                obj.model.releasedate_int=int(j.tools.time.HRDatetoEpoch(releasedate_int.replace("-","/")))
-                obj.model.releasedate_pub=int(j.tools.time.HRDatetoEpoch(releasedate_pub.replace("-","/")))
+                obj.model.releasedate_int=int(j.data.time.HRDatetoEpoch(releasedate_int.replace("-","/")))
+                obj.model.releasedate_pub=int(j.data.time.HRDatetoEpoch(releasedate_pub.replace("-","/")))
                 obj.model.featurerequests=self._strToArrayInt(featurerequests)
                 obj.model.bugs=self._strToArrayInt(bugs)
                 obj.model.company=company

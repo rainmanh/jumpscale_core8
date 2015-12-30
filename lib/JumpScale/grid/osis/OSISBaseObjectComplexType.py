@@ -37,7 +37,7 @@ class OSISBaseObjectComplexType(j.tools.code.classGetJSRootModelBase()):
             self.gid=j.application.whoAmI.gid
         # self.sguid=struct.pack("<HH",self.gid,self.id)
         # self.guid = "%s_%s" % (self.gid, self.id)
-        self.lastmod=j.tools.time.getTimeEpoch() 
+        self.lastmod=j.data.time.getTimeEpoch() 
         return self.guid        
 
     def getContentKey(self):

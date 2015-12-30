@@ -265,7 +265,7 @@ class OSISInstance(OSISInstanceNoDB):
     #     """
     #     result = []
     #     if j.sal.fs.exists(cfgpath):
-    #         ini = j.tools.inifile.open(cfgpath)
+    #         ini = j.data.inifile.open(cfgpath)
     #         for name in ini.getSections():
     #             if ini.checkParam(name, "create"):
     #                 create = ini.getIntValue(name, "create") == 1
@@ -299,9 +299,9 @@ class OSISInstance(OSISInstanceNoDB):
     #     print "ini2object for cfgpath:%s and section:%s" % (cfgpath, section)
 
     #     if j.sal.fs.exists(cfgpath):
-    #         ini = j.tools.inifile.open(cfgpath)
+    #         ini = j.data.inifile.open(cfgpath)
     #     else:
-    #         ini = j.tools.inifile.new(cfgpath)
+    #         ini = j.data.inifile.new(cfgpath)
     #     if section != "main":
     #         id = section
     #     else:

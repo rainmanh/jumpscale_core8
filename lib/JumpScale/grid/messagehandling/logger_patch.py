@@ -42,7 +42,7 @@ class LoggerPatch(object):
             print('Logger patch not applied, config not available')
             return
 
-        config = j.tools.inifile.open(self.CONFIG_PATH)
+        config = j.data.inifile.open(self.CONFIG_PATH)
 
         if not config.checkSection('main')\
                 or not config.checkParam('main', 'address'):
@@ -69,9 +69,9 @@ class LoggerPatch(object):
         # TODO: Complete documentation.
 
         if j.sal.fs.exists(self.CONFIG_PATH):
-            config = j.tools.inifile.open(self.CONFIG_PATH)
+            config = j.data.inifile.open(self.CONFIG_PATH)
         else:
-            config = j.tools.inifile.new(self.CONFIG_PATH)
+            config = j.data.inifile.new(self.CONFIG_PATH)
 
         if not config.checkSection('main'):
             config.addSection('main')

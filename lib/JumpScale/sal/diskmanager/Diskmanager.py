@@ -242,7 +242,7 @@ diskinfo.description=
                                         hrd.set("diskinfo.type",",".join(j.tools.console.askChoiceMultiple(["BOOT","CACHE","TMP","DATA","OTHER"])))
                                         hrd.set("diskinfo.gid",j.application.whoAmI.gid)
                                         hrd.set("diskinfo.nid",j.application.whoAmI.nid)
-                                        hrd.set("diskinfo.epoch",j.tools.time.getTimeEpoch())
+                                        hrd.set("diskinfo.epoch",j.data.time.getTimeEpoch())
 
 
                                         client = j.clients.osis.getByInstance('main')

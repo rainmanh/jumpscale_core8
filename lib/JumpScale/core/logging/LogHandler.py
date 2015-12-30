@@ -104,7 +104,7 @@ class LogItem(object):
             self.jid = str(jid)
         self.parentjid = str(parentjid)
         self.masterjid = str(masterjid)
-        self.epoch = int(epoch) or j.tools.time.getTimeEpoch()
+        self.epoch = int(epoch) or j.data.time.getTimeEpoch()
         self.order = 0 #will be set by app which gets logs out of redis
         if private == True or int(private) == 1:
             self.private = 1
@@ -264,7 +264,7 @@ class LogHandler(object):
                     if log.category.find(consolecat)!=-1:
                         ccat=log.category
                         ccat=ccat[0:25]
-                        j.tools.console.echo("%s - %-25s - %s"%(j.tools.time.epoch2HRDateTime(log.epoch), ccat,log.message), log=False)
+                        j.tools.console.echo("%s - %-25s - %s"%(j.data.time.epoch2HRDateTime(log.epoch), ccat,log.message), log=False)
                         break
             else:
                 j.tools.console.echo(str(log), log=False)

@@ -83,7 +83,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
 
     def cacheSet(self,key,value,expirationInSecondsFromNow=60):
         #time in minutes for expiration
-        ttime=j.tools.time.getTimeEpoch()
+        ttime=j.data.time.getTimeEpoch()
         value=[ttime+expirationInSecondsFromNow,value]
         if key=="":
             key=j.data.idgenerator.generateGUID()
@@ -91,11 +91,11 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
         return key
         # if nrMinutesExpiration>0:            
         #     self.set("cache", key, value)
-        #     tt=j.tools.time.getMinuteId()
+        #     tt=j.data.time.getMinuteId()
         #     actor.dbmem.set("mcache_%s"%tt, key, "")
         # elif nrHoursExpiration>0:            
         #     self.set("cache", key, value)
-        #     tt=j.tools.time.getHourId()
+        #     tt=j.data.time.getHourId()
         #     actor.dbmem.set("hcache_%s"%tt, key, "")
 
     def cacheGet(self,key,deleteAfterGet=False):
@@ -119,7 +119,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
             return []
 
     def cacheExpire(self):
-        now=j.tools.time.getTimeEpoch()
+        now=j.data.time.getTimeEpoch()
         for key in self.list():
             expiretime,val=self.get(key)
             if expiretime>now:
@@ -212,7 +212,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
         if not lockfree:
             if force==False:
                 raise RuntimeError("Cannot lock %s %s"%(locktype, info))
-        value = [self.id, j.tools.time.getTimeEpoch() + timeout, info]
+        value = [self.id, j.data.time.getTimeEpoch() + timeout, info]
         encodedValue = json.dumps(value)
         self.settest(category, locktype, encodedValue)
 
@@ -230,7 +230,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
                 j.logger.exception("Failed to decode lock value")
                 raise ValueError("Invalid lock type %s" % locktype)
 
-            if j.tools.time.getTimeEpoch() > lockEnd:
+            if j.data.time.getTimeEpoch() > lockEnd:
                 self.delete("lock",locktype)
                 return False,0,0,""
             value = [True, id, lockEnd, info]
@@ -245,13 +245,13 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
         """
         locked,id, lockEnd,info=self.lockCheck(locktype)
         if locked:
-            start=j.tools.time.getTimeEpoch()
+            start=j.data.time.getTimeEpoch()
             if lockEnd + timeoutwait < start:
                 #the lock was already timed out so is free
                 return True
 
             while True:
-                now=j.tools.time.getTimeEpoch()
+                now=j.data.time.getTimeEpoch()
                 if now>start+timeoutwait:
                     return False
                 if now > lockEnd:
@@ -334,7 +334,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
         if j.core.appserver6.runningAppserver!= None:
             return j.core.appserver6.runningAppserver.time
         else:
-            return j.tools.time.getTimeEpoch()
+            return j.data.time.getTimeEpoch()
 
     def getModifySet(self,category,key,modfunction,**kwargs):
         """

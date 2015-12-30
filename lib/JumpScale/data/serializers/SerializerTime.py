@@ -7,7 +7,7 @@ class SerializerTime(object):
         self.__jslocation__ = "j.data.serializer.time"
 
     def dumps(self,obj):
-        struct.pack('<i',j.tools.time.getTimeEpoch())
+        struct.pack('<i',j.data.time.getTimeEpoch())
         return obj
 
     def loads(self,s):

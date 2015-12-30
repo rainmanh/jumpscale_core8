@@ -27,6 +27,6 @@ def action():
 
     j.tools.exporter.exportAll(path)
 
-    message = '%s at %s' % (j.sal.fs.getBaseName(project), j.tools.time.getLocalTimeHRForFilesystem())
+    message = '%s at %s' % (j.sal.fs.getBaseName(project), j.data.time.getLocalTimeHRForFilesystem())
     gitcl.commit(message)
     gitcl.push()

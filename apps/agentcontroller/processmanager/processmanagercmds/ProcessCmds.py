@@ -46,9 +46,9 @@ class ProcessCmds():
 
         hearbeat = j.core.processmanager.monObjects.heartbeatobject.get('%s_%s' % (gid, nid))
         lastchecked = hearbeat.lastcheck
-        now = j.tools.time.getTimeEpoch()
+        now = j.data.time.getTimeEpoch()
 
-        if  now - j.tools.time.getEpochAgo('-2m') > now - lastchecked:
+        if  now - j.data.time.getEpochAgo('-2m') > now - lastchecked:
             return True
         return False
 

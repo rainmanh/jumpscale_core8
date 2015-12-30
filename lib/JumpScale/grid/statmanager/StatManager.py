@@ -24,7 +24,7 @@ class StatManager():
         if self.fiveMinuteId!=None:
             return self.fiveMinuteId
         else:
-            return j.tools.time.get5MinuteId()
+            return j.data.time.get5MinuteId()
 
     def getHourId(self):
         if self.hourId!=None:
@@ -67,7 +67,7 @@ class StatManager():
 
     def save(self, force=False):
         self.hourId=self.base.time.getHourId()
-        self.fiveMinuteId=j.tools.time.get5MinuteId()
+        self.fiveMinuteId=j.data.time.get5MinuteId()
 
         ttime = self.getEpoch()
         now5min = j.core.portal.active.fiveMinuteId
@@ -133,7 +133,7 @@ class StatManager():
         if self.now!=None:
             return self.now
         else:
-            return j.tools.time.getTimeEpoch()
+            return j.data.time.getTimeEpoch()
 
     def getHistoryObject(self, id):
         if id in self.historyObjs:
@@ -148,7 +148,7 @@ class StatManager():
         # if obj.month_5min=={}:
         #     for i in range(8928):
         # nrsecondsago=i*5*60 #(every 5 min)
-        #         key=j.tools.time.get5MinuteId(now-nrsecondsago)
+        #         key=j.data.time.get5MinuteId(now-nrsecondsago)
         #         obj.month_5min[key]=0
         self.historyObjs[id] = obj
         self.historyObjsLastSave[id] = self.getEpoch()
@@ -157,14 +157,14 @@ class StatManager():
 
     def _getKey5min(self, epoch):
         # nrsecondsago=5*60
-        return j.tools.time.get5MinuteId(epoch)
+        return j.data.time.get5MinuteId(epoch)
 
     def addInfoLine2HistoryObj(self, id, value, epoch=None):
         if epoch == None:
             epoch = self.getEpoch()
         obj = self.getHistoryObject(id)
-        key = j.tools.time.get5MinuteId(epoch)
-        key2 = j.tools.time.getHourId(epoch)
+        key = j.data.time.get5MinuteId(epoch)
+        key2 = j.data.time.getHourId(epoch)
 
         # store 5min value
         obj.month_5min[key] = value
@@ -269,8 +269,8 @@ class StatManager():
     def getHeaders(self, start, stop):
         start = self.getTimeStamp(start)
         stop = self.getTimeStamp(stop)
-        start2 = j.tools.time.get5MinuteId(start)
-        stop2 = j.tools.time.get5MinuteId(stop) - start2
+        start2 = j.data.time.get5MinuteId(start)
+        stop2 = j.data.time.get5MinuteId(stop) - start2
         start2 = 0
         hoursecs = 60 * 60 / 5
         r = []
@@ -290,7 +290,7 @@ class StatManager():
 
     def getTimeStamp(self, timestamp):
         if isinstance(timestamp, str):
-            timestamp = j.tools.time.getEpochAgo(timestamp)
+            timestamp = j.data.time.getEpochAgo(timestamp)
         return timestamp
 
     def getInfo5MinFromTo(self, id, start, stop):
@@ -303,8 +303,8 @@ class StatManager():
         
         """
         obj = self.getHistoryObject(id)
-        start2 = j.tools.time.get5MinuteId(self.getTimeStamp(start))
-        stop2 = j.tools.time.get5MinuteId(self.getTimeStamp(stop))
+        start2 = j.data.time.get5MinuteId(self.getTimeStamp(start))
+        stop2 = j.data.time.get5MinuteId(self.getTimeStamp(stop))
         r = []
         for i in range(start2, stop2 + 1):
             if i in obj.month_5min:
@@ -341,15 +341,15 @@ class StatManager():
         if start == 0:
             start2 = min(obj.month_5min.keys())
         else:
-            start2 = j.tools.time.get5MinuteId(start)
+            start2 = j.data.time.get5MinuteId(start)
         if stop == 0:
             stop2 = max(obj.month_5min.keys())
         else:
-            stop2 = j.tools.time.get5MinuteId(stop)
+            stop2 = j.data.time.get5MinuteId(stop)
         for key in range(stop2, start2, -1):
-            epoch = j.tools.time.fiveMinuteIdToEpoch(key)
+            epoch = j.data.time.fiveMinuteIdToEpoch(key)
             if epoch2human:
-                epoch = j.tools.time.epoch2HRDateTime(epoch)
+                epoch = j.data.time.epoch2HRDateTime(epoch)
             result.append([epoch, obj.month_5min[key]])
         return result
 

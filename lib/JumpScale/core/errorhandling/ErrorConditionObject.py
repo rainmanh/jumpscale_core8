@@ -65,7 +65,7 @@ class ErrorConditionObject(BaseException):
 
             
 
-            self.epoch= j.tools.time.getTimeEpoch()
+            self.epoch= j.data.time.getTimeEpoch()
             self.type=str(type) #BUG,INPUT,MONITORING,OPERATIONS,PERFORMANCE,UNKNOWN  
             self.tb=tb  
 
@@ -168,7 +168,7 @@ class ErrorConditionObject(BaseException):
         write errorcondition to filesystem
         """
         j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.logDir,"errors",j.application.appname))
-        path=j.sal.fs.joinPaths(j.dirs.logDir,"errors",j.application.appname,"backtrace_%s.log"%(j.tools.time.getLocalTimeHRForFilesystem()))        
+        path=j.sal.fs.joinPaths(j.dirs.logDir,"errors",j.application.appname,"backtrace_%s.log"%(j.data.time.getLocalTimeHRForFilesystem()))        
         msg="***ERROR BACKTRACE***\n"
         msg+="%s\n"%self.backtrace
         msg+="***ERROR MESSAGE***\n"

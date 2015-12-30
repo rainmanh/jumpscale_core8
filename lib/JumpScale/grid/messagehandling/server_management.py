@@ -316,7 +316,7 @@ class MessageServerManagerFactory(object):
 
     def _loadConfig(self, name):
         iniConfigPath = self._getConfigPath(name)
-        iniConfig = j.tools.inifile.open(iniConfigPath)
+        iniConfig = j.data.inifile.open(iniConfigPath)
 
         address = iniConfig.getValue('main', 'address')
 
@@ -339,7 +339,7 @@ class MessageServerManagerFactory(object):
 
     def _storeConfig(self, config):
         iniConfigPath = self._getConfigPath(config.name)
-        iniConfig = j.tools.inifile.new(iniConfigPath)
+        iniConfig = j.data.inifile.new(iniConfigPath)
 
         iniConfig.addSection('main')
         iniConfig.setParam('main', 'address', config.address)

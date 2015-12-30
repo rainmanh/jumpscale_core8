@@ -64,7 +64,7 @@ class ProcessmanagerFactory:
 
         self.redis.set("processmanager:startuptime",str(int(time.time())))
 
-        self.starttime=j.tools.time.getTimeEpoch()
+        self.starttime=j.data.time.getTimeEpoch()
 
         self.loadCmds()
 

@@ -9,7 +9,7 @@ class ModelBase(Document):
     guid = StringField(default=lambda: str(uuid.uuid4()))
     gid = IntField(default=lambda: j.application.whoAmI.gid if j.application.whoAmI else 0)
     nid = IntField(default=lambda: j.application.whoAmI.nid if j.application.whoAmI else 0)
-    epoch = IntField(default=j.tools.time.getTimeEpoch)
+    epoch = IntField(default=j.data.time.getTimeEpoch)
     meta = {'allow_inheritance': True}
 
     def to_dict(self):
@@ -80,7 +80,7 @@ class ModelGroup(ModelBase):
     roles = ListField(StringField())
     active = BooleanField(default=True)
     description = StringField(default='master')
-    lastcheck = IntField(default=j.tools.time.getTimeEpoch())
+    lastcheck = IntField(default=j.data.time.getTimeEpoch())
     users = ListField(StringField())
 
 
@@ -143,7 +143,7 @@ class ModelDisk(ModelBase):
     description = StringField(default='')
     type = ListField(StringField())  # BOOT, DATA, ...
     # epoch of last time the info was checked from reality
-    lastcheck = IntField(default=j.tools.time.getTimeEpoch())
+    lastcheck = IntField(default=j.data.time.getTimeEpoch())
 
 
 class ModelAlert(ModelBase):
@@ -159,7 +159,7 @@ class ModelAlert(ModelBase):
     state = StringField(choices=("NEW","ALERT","CLOSED"), default='NEW', required=True)
     history = ListField(DictField())
     # first time there was an error condition linked to this alert
-    inittime = IntField(default=j.tools.time.getTimeEpoch())
+    inittime = IntField(default=j.data.time.getTimeEpoch())
     # last time there was an error condition linked to this alert
     lasttime = IntField()
     closetime = IntField()  # alert is closed, no longer active
@@ -174,7 +174,7 @@ class ModelHeartbeat(ModelBase):
     """
     nid = IntField()
     gid = IntField()
-    lastcheck = IntField(default=j.tools.time.getTimeEpoch())
+    lastcheck = IntField(default=j.data.time.getTimeEpoch())
 
 
 class ModelJumpscript(ModelBase):
@@ -216,7 +216,7 @@ class ModelMachine(ModelBase):
     otherid = StringField(default='')
     type = StringField(default='')  # VM,LXC
     # epoch of last time the info was checked from reality
-    lastcheck = IntField(default=j.tools.time.getTimeEpoch())
+    lastcheck = IntField(default=j.data.time.getTimeEpoch())
 
 
 class ModelNic(ModelBase):
@@ -227,7 +227,7 @@ class ModelNic(ModelBase):
     ipaddr = ListField(StringField())
     active = BooleanField(default=True)
     # poch of last time the info was checked from reality
-    lastcheck = IntField(default=j.tools.time.getTimeEpoch())
+    lastcheck = IntField(default=j.data.time.getTimeEpoch())
 
 
 class ModelNode(ModelBase):
@@ -243,7 +243,7 @@ class ModelNode(ModelBase):
     peer_log = IntField()
     peer_backup = IntField()  # node which has backups for this node
     description = StringField(default='')
-    lastcheck = IntField(default=j.tools.time.getTimeEpoch())
+    lastcheck = IntField(default=j.data.time.getTimeEpoch())
     # osisrootobj,$namespace,$category,$version
     _meta = ListField(StringField())
 
@@ -261,7 +261,7 @@ class ModelProcess(ModelBase):
     epochstart = IntField()
     epochstop = IntField()
     active = BooleanField()
-    lastcheck = IntField(default=j.tools.time.getTimeEpoch())
+    lastcheck = IntField(default=j.data.time.getTimeEpoch())
     cmd = StringField(default='')
     workingdir = StringField(default='')
     parent = StringField(default='')
@@ -296,7 +296,7 @@ class ModelTest(ModelBase):
     author = StringField(default='')
     version = IntField()
     categories = ListField(StringField())
-    starttime = IntField(default=j.tools.time.getTimeEpoch())
+    starttime = IntField(default=j.data.time.getTimeEpoch())
     endtime = IntField()
     enable = BooleanField()
     result = DictField()
@@ -317,7 +317,7 @@ class ModelUser(ModelBase):
     xmpp = ListField(StringField())
     mobile = ListField(StringField())
     # epoch of last time the info updated
-    lastcheck = IntField(default=j.tools.time.getTimeEpoch())
+    lastcheck = IntField(default=j.data.time.getTimeEpoch())
     groups = ListField(StringField())
     authkey = StringField(default='')
     data = StringField(default='')
@@ -326,8 +326,8 @@ class ModelUser(ModelBase):
 
 class ModelSessionCache(ModelBase):
     user = StringField()
-    _creation_time = IntField(default=j.tools.time.getTimeEpoch())
-    _accessed_time = IntField(default=j.tools.time.getTimeEpoch())
+    _creation_time = IntField(default=j.data.time.getTimeEpoch())
+    _accessed_time = IntField(default=j.data.time.getTimeEpoch())
     meta = {'indexes': [
         {'fields': ['epoch'], 'expireAfterSeconds': 432000}
     ], 'allow_inheritance': True}

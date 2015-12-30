@@ -249,7 +249,7 @@ class OSISStoreMongo(OSISStore):
           means 3 days ago 3 hours ago
           if 0 or '' then is now
           also ok is +3m, ... (+ is for future)
-          (is using j.tools.time.getEpochAgo & getEpochFuture)
+          (is using j.data.time.getEpochAgo & getEpochFuture)
 
 
 
@@ -295,13 +295,13 @@ class OSISStoreMongo(OSISStore):
             for key, value in list(params.copy().items()):
                 if value.startswith('>'):
                     if 'm' in value or 'd' in value or 'h' in value:
-                        new_value = j.tools.time.getEpochAgo(value[1:])
+                        new_value = j.data.time.getEpochAgo(value[1:])
                     else:
                         new_value = j.data.types.float.fromString(value[1:])
                     params[key] = {'$gte': new_value}
                 elif value.startswith('<'):
                     if 'm' in value or 'd' in value or 'h' in value:
-                        new_value = j.tools.time.getEpochFuture(value[1:])
+                        new_value = j.data.time.getEpochFuture(value[1:])
                     else:
                         new_value = j.data.types.float.fromString(value[1:])
                     params[key] = {'$lte': new_value}

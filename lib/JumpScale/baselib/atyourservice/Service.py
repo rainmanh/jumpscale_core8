@@ -721,7 +721,7 @@ class Service(object):
         if not j.sal.fs.exists(self.path):
             j.sal.fs.createDir(self.path)
         msg = "%s : %s\n" % (
-            j.tools.time.formatTime(j.tools.time.getTimeEpoch()), msg)
+            j.data.time.formatTime(j.data.time.getTimeEpoch()), msg)
         j.sal.fs.writeFile(logpath, msg, append=True)
 
     def listChildren(self):

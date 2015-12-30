@@ -19,7 +19,7 @@ import JumpScale.baselib.redis2
 
 def timeago(t):
     t=float(t)
-    ago=j.tools.time.getTimeEpoch()-int(t)
+    ago=j.data.time.getTimeEpoch()-int(t)
     if ago>3600:
         return "%sh"%round(ago/3600,1)
     if ago>30:

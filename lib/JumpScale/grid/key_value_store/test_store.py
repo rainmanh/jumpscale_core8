@@ -21,13 +21,13 @@ def pathed_time(t):
     def fakeGetTimeEpoch():
         return ctx.time
 
-    origGetTimeEpoch = j.tools.time.getTimeEpoch
-    j.tools.time.getTimeEpoch = fakeGetTimeEpoch
+    origGetTimeEpoch = j.data.time.getTimeEpoch
+    j.data.time.getTimeEpoch = fakeGetTimeEpoch
     # Make sure we restore the original getTimeEpoch function
     try:
         yield ctx
     finally:
-        j.tools.time.getTimeEpoch = origGetTimeEpoch
+        j.data.time.getTimeEpoch = origGetTimeEpoch
 
 class KeyValueStoreTestCaseBase(object):
 
@@ -119,10 +119,10 @@ class KeyValueStoreTestCaseBase(object):
         info2 = "Attempting to take the lock a second time"
         timeout = 2
 
-        before = j.tools.time.getTimeEpoch()
+        before = j.data.time.getTimeEpoch()
         self._store.lock(lType, info, timeout=timeout, timeoutwait=0)
         self._store.lock(lType, info2, timeout=3, timeoutwait=10)
-        after = j.tools.time.getTimeEpoch()
+        after = j.data.time.getTimeEpoch()
         difference = after - before
         self.assert_(difference > (timeout - 1), "It seems like the original "
                 "lock was not held long enough")

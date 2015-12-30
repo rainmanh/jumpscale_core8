@@ -62,7 +62,7 @@ def action():
             machine.mem = int(xml.find('memory').text)
 
             machine.netaddr = netaddr
-            machine.lastcheck = j.tools.time.getTimeEpoch()
+            machine.lastcheck = j.data.time.getTimeEpoch()
             machine.state = stateMap.get(domain.state()[0], 'STOPPED')
             machine.cpucore = int(xml.find('vcpu').text)
 

@@ -117,7 +117,7 @@ class BackupClient:
 
     def commitMD(self):
         print("commit to git")
-        self.gitclient.commit("backup %s"%j.tools.time.getLocalTimeHRForFilesystem())
+        self.gitclient.commit("backup %s"%j.data.time.getLocalTimeHRForFilesystem())
         if j.sal.nettools.tcpPortConnectionTest(self.gitlab.addr,self.gitlab.port):
             #found gitlab
             print("push to git")

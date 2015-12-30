@@ -64,8 +64,8 @@ def action():
             print("waiting for work")
             continue
         
-        # print "\ntimeout:%s %s %s"%(timeout,j.tools.time.getEpochAgo(timeout),lastactive)
-        agoOK=now-int(j.tools.time.getEpochAgo(timeout))
+        # print "\ntimeout:%s %s %s"%(timeout,j.data.time.getEpochAgo(timeout),lastactive)
+        agoOK=now-int(j.data.time.getEpochAgo(timeout))
         if  int(lastactive)<agoOK :
             if lastactive==0:
                 raise RuntimeError("BUG: lastactive cannot be 0.")

@@ -25,7 +25,7 @@ def action():
         lastactive = rediscl.hget('workers:heartbeat', queue) or 0
         timeout = timemap.get(queue)
         stats = {'lastactive': lastactive}
-        if j.tools.time.getEpochAgo(timeout) < lastactive:
+        if j.data.time.getEpochAgo(timeout) < lastactive:
             stats['state'] = 'RUNNING'
         else:
             stats['state'] = 'HALTED'

@@ -241,7 +241,7 @@ class Worker(object):
 
     def log(self, message, category='',level=5, time=None):
         if time is None:
-            time = j.tools.time.getLocalTimeHR()
+            time = j.data.time.getLocalTimeHR()
         msg = "%s:worker:%s:%s" % (time, self.queuename, message)
         try:
             print(msg)

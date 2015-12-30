@@ -225,7 +225,7 @@ class Application:
         #     key = "%s_%s"%(j.application.whoAmI.gid,j.application.whoAmI.pid)
         #     if clientprocess.exists(key):
         #         obj=clientprocess.get(key)
-        #         obj.epochstop=j.tools.time.getTimeEpoch()
+        #         obj.epochstop=j.data.time.getTimeEpoch()
         #         obj.active=False
         #         clientprocess.set(obj)
         if stop:

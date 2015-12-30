@@ -41,7 +41,7 @@ class Job(OsisBaseObject):
             self.parent=None
             self.resultcode=None
             self.state="SCHEDULED" #SCHEDULED,STARTED,ERROR,OK,NOWORK
-            self.timeStart=j.tools.time.getTimeEpoch()
+            self.timeStart=j.data.time.getTimeEpoch()
             self.timeStop=0
             self.log=log
             self.internal = internal
@@ -328,11 +328,11 @@ class RedisWorkerFactory(object):
     def getJobLine(self,job=None,jobid=None):
         if jobid!=None:
             job=self.getJob(jobid)
-        start=j.tools.time.epoch2HRDateTime(job['timeStart'])
+        start=j.data.time.epoch2HRDateTime(job['timeStart'])
         if job['timeStop']==0:
             stop="N/A"
         else:
-            stop=j.tools.time.epoch2HRDateTime(job['timeStop'])
+            stop=j.data.time.epoch2HRDateTime(job['timeStop'])
         jobid = '[%s|/grid/job?id=%s]' % (job['id'], job['id'])
         line="|%s|%s|%s|%s|%s|%s|%s|%s|" % (jobid, job['state'], job['queue'], job['category'], job['cmd'], job['jscriptid'], start, stop)
         return line
@@ -367,14 +367,14 @@ class RedisWorkerFactory(object):
                 jobs.remove(job)
 
         if hoursago:
-            epochago = j.tools.time.getEpochAgo(str(hoursago))
+            epochago = j.data.time.getEpochAgo(str(hoursago))
             for job in jobs:
                 if job['timeStart'] <= epochago:
                     jobs.remove(job)
         return jobs
 
     def removeJobs(self, hoursago=48, failed=False):
-        epochago = j.tools.time.getEpochAgo(hoursago)
+        epochago = j.data.time.getEpochAgo(hoursago)
         for q in ('io', 'hypervisor', 'default'):
             jobs = dict()
             jobsjson = self.redis.hgetall('queues:workers:work:%s' % q)

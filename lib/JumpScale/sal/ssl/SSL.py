@@ -132,13 +132,13 @@ class KeyStor(SALObject):
 
 
     def perftest(self,nrrounds=1000,sign=True):
-        j.tools.timer.start()
+        j.data.timer.start()
         org="myorg.com"
         print(("\n\nstart perftest for encryption, nrrounds:%s"%nrrounds))
         for i in range(nrrounds):
             msg,signature= self.encrypt(org,"alice","bob","this is a test message.",sign=sign)
             self.decrypt(org,"alice","bob",msg,signature)
-        j.tools.timer.stop(nrrounds)
+        j.data.timer.stop(nrrounds)
 
     def encrypt(self, orgsender, sender, orgreader, reader, message, sign=True, base64=True, pubkeyReader=""):
         """

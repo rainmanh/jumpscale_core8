@@ -183,7 +183,7 @@ pid file: %s''' % (self._address, storeLocallyStr, addressesStr, self._pid, self
 
     def _timer(self):
         while True:
-            self.epoch = j.tools.time.getTimeEpoch()
+            self.epoch = j.data.time.getTimeEpoch()
             j.core.messagehandler.epoch = self.epoch
             gevent.sleep(0.1)
 

@@ -202,7 +202,7 @@ class Admin():
         """
         sr=node.currentScriptRun
         jsname=jsname.lower()
-        now= j.tools.time.getTimeEpoch()
+        now= j.data.time.getTimeEpoch()
         do=True
         if once:
             for item in self.getScriptRunInfo():

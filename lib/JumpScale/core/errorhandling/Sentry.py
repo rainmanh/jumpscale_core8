@@ -127,7 +127,7 @@ def Sentry():
 
             url2="%s/api/%s/store/"%(url,default)
 
-            auth="Sentry sentry_version=5, sentry_timestamp=%s,"%j.tools.time.getTimeEpoch()
+            auth="Sentry sentry_version=5, sentry_timestamp=%s,"%j.data.time.getTimeEpoch()
             auth+="sentry_key=%s, sentry_client=raven-python/1.0,"%pub
             auth+="sentry_secret=%s"%secret
 

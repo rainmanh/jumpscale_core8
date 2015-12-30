@@ -21,8 +21,8 @@ def action():
     """
     """
     backuppath = j.sal.fs.joinPaths(j.dirs.tmpDir, 'backup', 'osis')
-    timestamp = j.tools.time.getTimeEpoch()
-    timestamp = j.tools.time.formatTime(timestamp, "%Y%m%d_%H%M%S")
+    timestamp = j.data.time.getTimeEpoch()
+    timestamp = j.data.time.formatTime(timestamp, "%Y%m%d_%H%M%S")
     try:
         oscl = j.clients.osis.getByInstance('main')
         namespaces = oscl.listNamespaces()

@@ -284,7 +284,7 @@ class ControllerCMDS():
         node = self.nodeclient.get(nodeid)
         self.daemon.notifyOfNewNode(node, session.id)
         self._setRoles(node.roles, nodeid)
-        self.sessionsUpdateTime[nodeid]=j.tools.time.getTimeEpoch()
+        self.sessionsUpdateTime[nodeid]=j.data.time.getTimeEpoch()
         result = {'node': node.dump()}
         return result
 
@@ -294,7 +294,7 @@ class ControllerCMDS():
         if session.nid:
             node = self.nodeclient.get(nodeid)
             self._setRoles(node.roles, nodeid)
-            self.sessionsUpdateTime[nodeid]=j.tools.time.getTimeEpoch()
+            self.sessionsUpdateTime[nodeid]=j.data.time.getTimeEpoch()
             self._log("register done:%s"%nodeid)
             self._updateNetInfo(session.netinfo, node)
             self.nodeclient.set(node)
@@ -536,7 +536,7 @@ class ControllerCMDS():
         returns job as dict
         """
         nodeid = "%s_%s" % (session.gid, session.nid)
-        self.sessionsUpdateTime[nodeid]=j.tools.time.getTimeEpoch()
+        self.sessionsUpdateTime[nodeid]=j.data.time.getTimeEpoch()
         self._log("getwork %s" % session)
         q = self._getWorkQueue(session)
         jobstr=q.get(timeout=30)

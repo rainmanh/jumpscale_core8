@@ -395,12 +395,12 @@ class ActionsBaseNode(object):
                     if filterstr=="":
                         raise RuntimeError("Process filterstr cannot be empty.")
 
-                    start = j.tools.time.getTimeEpoch()
+                    start = j.data.time.getTimeEpoch()
                     now = start
                     while now <= start+timeout:
                         if j.sal.process.checkProcessRunning(filterstr):
                             return True
-                        now = j.tools.time.getTimeEpoch()
+                        now = j.data.time.getTimeEpoch()
                     return False
         processes = serviceObj.getProcessDicts()
         for i, process in enumerate(processes):

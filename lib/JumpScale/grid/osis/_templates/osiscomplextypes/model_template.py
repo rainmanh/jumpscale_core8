@@ -40,7 +40,7 @@ class $modelbase(OsisBaseObject,$modelbase_osismodelbase):
 
     #     # self.sguid=struct.pack("<HH",self.gid,self.id)
     #     self.guid = "%s_%s" % (self.gid, self.id)
-    #     self.lastcheck=j.tools.time.getTimeEpoch() 
+    #     self.lastcheck=j.data.time.getTimeEpoch() 
 
     #     return self.guid
 

@@ -95,11 +95,11 @@ class GridHealthChecker(object):
             if nid not in self._nidsNonActive:
                 if nid in nid2hb:
                     lastchecked = nid2hb[nid]
-                    if j.tools.time.getEpochAgo('-2m') < lastchecked:
+                    if j.data.time.getEpochAgo('-2m') < lastchecked:
                         # print "%s"%nid,
                         self._runningnids.append(nid)
                     else:                        
-                        hago = round(float(j.tools.time.getTimeEpoch()-lastchecked)/3600,1)
+                        hago = round(float(j.data.time.getTimeEpoch()-lastchecked)/3600,1)
                         name = self._nodenames[nid]
                         gid = self._nodegids[nid]
                         self._addError(nid, "On node:'%s' (%s) on grid %s. Processmanager is not responding, last heartbeat %s hours ago" % (name, nid, gid, hago), "heartbeat")    
@@ -333,7 +333,7 @@ class GridHealthChecker(object):
                 results.append((nid, stats, 'workers'))
             else:
                 statsmod = stats.copy()
-                statsmod['lastactive'] = j.tools.time.epoch2HRDateTime(stats['lastactive']) if stats['lastactive'] else 'never'
+                statsmod['lastactive'] = j.data.time.epoch2HRDateTime(stats['lastactive']) if stats['lastactive'] else 'never'
                 errormessage.append('%(name)s is %(state)s. Last active: %(lastactive)s.' % statsmod)
                 errors.append((nid, stats, 'workers'))
         if errormessage:
@@ -378,8 +378,8 @@ class GridHealthChecker(object):
             if nid not in self._nidsNonActive:
                 if nid in nid2hb:
                     lastchecked = nid2hb[nid]
-                    hago = j.tools.time.getSecondsInHR(j.tools.time.getTimeEpoch()-lastchecked)
-                    if not j.tools.time.getEpochAgo('-2m') < lastchecked:
+                    hago = j.data.time.getSecondsInHR(j.data.time.getTimeEpoch()-lastchecked)
+                    if not j.data.time.getEpochAgo('-2m') < lastchecked:
                         self._addError(nid, "Last heartbeat %s ago" % hago,"heartbeat")
                     else:
                         self._addResult(nid, "Last heartbeat %s ago" % hago,"heartbeat")
@@ -398,7 +398,7 @@ class GridHealthChecker(object):
         if self._heartbeatcl.exists('%s_%s' % (gid, nid)):
             heartbeat = self._heartbeatcl.get('%s_%s' % (gid, nid))
             lastchecked = heartbeat.lastcheck
-            if  j.tools.time.getEpochAgo('-2m') < lastchecked:
+            if  j.data.time.getEpochAgo('-2m') < lastchecked:
                 self._addResult(nid, {'state': 'RUNNING'}, 'processmanager')
             else:
                 self._addError(nid, {'state': 'HALTED'}, 'processmanager')

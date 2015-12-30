@@ -21,7 +21,7 @@ log = False
 
 def action():
     
-    for path in j.sal.fs.listFilesInDir( path=j.dirs.logDir, recursive=True,  minmtime=None, maxmtime=j.tools.time.getEpochAgo("-3d"), followSymlinks=True):
+    for path in j.sal.fs.listFilesInDir( path=j.dirs.logDir, recursive=True,  minmtime=None, maxmtime=j.data.time.getEpochAgo("-3d"), followSymlinks=True):
         j.sal.fs.remove(path)
 
     

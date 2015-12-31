@@ -390,6 +390,54 @@ class Text:
         convert list, dict of strings 
         or convert 1 string to python objects
         """
+
+
+        if j.data.types.list.check(string):
+            ttypes=[]
+            for item in string:
+                ttype,val=self._str2var(item)
+                if ttype not in ttypes:
+                    ttypes.append(ttype)
+            if "s" in ttypes:
+                result=[str(self.machinetext2val(item))  for item in string]
+            elif "f" in ttypes and "b" not in ttypes:
+                result=[self.getFloat(item) for item in string]
+            elif "i" in ttypes and "b" not in ttypes:
+                result=[self.getInt(item) for item in string]
+            elif "b" == ttypes:
+                result=[self.getBool(item) for item in string]                
+            else:
+                result=[str(self.machinetext2val(item)) for item in string]
+        elif j.data.types.dict.check(string):
+            ttypes=[]
+            result={}
+            for key,item in list(string.items()):
+                ttype,val=self._str2var(item)
+                if ttype not in ttypes:
+                    ttypes.append(ttype)
+            if "s" in ttypes:                        
+                for key,item in list(string.items()):
+                    result[key]=str(self.machinetext2val(item)) 
+            elif "f" in ttypes and "b" not in ttypes:
+                for key,item in list(string.items()):
+                    result[key]=self.getFloat(item)
+            elif "i" in ttypes and "b" not in ttypes:
+                for key,item in list(string.items()):
+                    result[key]=self.getInt(item)
+            elif "b" == ttypes:
+                for key,item in list(string.items()):
+                    result[key]=self.getBool(item)
+            else:
+                for key,item in list(string.items()):
+                    result[key]=str(self.machinetext2val(item)) 
+        elif isinstance(string,str) or isinstance(string,float) or isinstance(string,int):
+            ttype,result=self._str2var(j.data.text.toStr(string))
+        else:
+            j.events.inputerror_critical("Could not convert '%s' to basetype, input was %s. Expected string, dict or list."%(string, type(string)),"self.str2var")    
+        return result
+
+
+
         try:
             if j.data.types.list.check(string):
                 ttypes=[]

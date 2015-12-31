@@ -6,11 +6,13 @@ from JumpScale import j
 class String():
 
     '''Generic string type'''
-    NAME = 'string'
-    BASETYPE = 'string'
+    def __init__(self):
 
-    @staticmethod
-    def fromString(s):
+        self.NAME = 'string'
+        self.BASETYPE = 'string'
+
+    
+    def fromString(self,s):
         """
         return string from a string (is basically no more than a check)
         """
@@ -19,19 +21,19 @@ class String():
         s=str(s)
         return s
 
-    @staticmethod
-    def toString(v):
-        if String.check(v):
+    
+    def toString(self,v):
+        if self.check(v):
             return str(v)
         else:
             raise ValueError("Could not convert to string:%s"%v)
 
-    @staticmethod
-    def check(value):
+    
+    def check(self,value):
         '''Check whether provided value is a string'''
         return isinstance(value, str)
 
-    @staticmethod
+    
     def get_default():
         return ""
 
@@ -39,11 +41,12 @@ class String():
 class Boolean():
 
     '''Generic boolean type'''
-    NAME = 'boolean'
-    BASETYPE = 'boolean'
+    def __init__(self):
+        self.NAME = 'boolean'
+        self.BASETYPE = 'boolean'
 
-    @staticmethod
-    def fromString(s):
+    
+    def fromString(self,s):
         if isinstance(s, bool):
             return s
         s = str(s)
@@ -54,27 +57,27 @@ class Boolean():
         else:
             raise ValueError("Invalid value for boolean: '%s'" % s)
 
-    @staticmethod
-    def checkString(s):
+    
+    def checkString(self,s):
         try:
-            Boolean.fromString(s)
+            self.fromString(s)
             return True
         except ValueError:
             return False
 
-    @staticmethod
-    def toString(boolean):
-        if Boolean.check(s):
+    
+    def toString(self,boolean):
+        if self.check(s):
             return str(boolean)
         else:
             raise ValueError("Invalid value for boolean: '%s'" % boolean)
 
-    @staticmethod
-    def check(value):
+    
+    def check(self,value):
         '''Check whether provided value is a boolean'''
         return value is True or value is False
 
-    @staticmethod
+    
     def get_default():
         return True
     
@@ -82,66 +85,68 @@ class Boolean():
 class Integer():
 
     '''Generic integer type'''
-    NAME = 'integer'
-    BASETYPE = 'integer'
+    def __init__(self):
+        self.NAME = 'integer'
+        self.BASETYPE = 'integer'
 
-    @staticmethod
-    def checkString(s):
+    
+    def checkString(self,s):
         return s.isdigit()
 
-    @staticmethod
-    def check(value):
+    
+    def check(self,value):
         '''Check whether provided value is an integer'''
         return isinstance(value, int)
 
-    @staticmethod
-    def toString(value):
-        if Integer.check(value):
+    
+    def toString(self,value):
+        if self.check(value):
             return str(value)
         else:
             raise ValueError("Invalid value for integer: '%s'" % value)
 
-    @staticmethod
-    def fromString(s):
+    
+    def fromString(self,s):
         return j.data.text.getInt(s)
 
-    @staticmethod
-    def get_default():
+    
+    def get_default(self):
         return 0
 
 
 class Float():
 
     '''Generic float type'''
-    NAME = 'float'
-    BASETYPE = 'float'
+    def __init__(self):
+        self.NAME = 'float'
+        self.BASETYPE = 'float'
 
-    @staticmethod
-    def checkString(value):
+    
+    def checkString(self,value):
         try:
             float(value)
             return True
         except ValueError:
             return False
 
-    @staticmethod
-    def check(value):
+    
+    def check(self,value):
         '''Check whether provided value is a float'''
         return isinstance(value, float)
 
-    @staticmethod
-    def toString(value):
-        if Float.check(value):
+    
+    def toString(self,value):
+        if self.check(value):
             return str(value)
         else:
             raise ValueError("Invalid value for float: '%s'" % value)
 
-    @staticmethod
-    def fromString(s):
+    
+    def fromString(self,s):
         return j.data.text.getFloat(s)
 
-    @staticmethod
-    def get_default():
+    
+    def get_default(self):
         return 0.0
 
 

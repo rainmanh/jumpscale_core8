@@ -42,7 +42,7 @@ class CodeTools:
     @property
     def regex(self):
         if self._regex==None:
-            from JumpScale.tools.regex.RegexTools import RegexTools
+            from JumpScale.data.regex.RegexTools import RegexTools
             self._regex=RegexTools()
         return self._regex
 

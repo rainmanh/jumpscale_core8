@@ -94,6 +94,7 @@ class ServiceRecipe(ServiceTemplate):
 
         else:
             basename = "%s!%s" % (self.role, instance)
+
             if path != "" and path is not None:
                 fullpath = path
             elif parent is not None:
@@ -107,12 +108,11 @@ class ServiceRecipe(ServiceTemplate):
                 fullpath = j.sal.fs.joinPaths(ppath, basename)
 
             if j.sal.fs.isDir(fullpath):
-                # if j.sal.fs.exists(path=j.sal.fs.joinPaths(fullpath, "instance_.hrd")):
-                #     j.sal.fs.removeDirTree(fullpath)
-                # else:
-                j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (name9, instance, fullpath), category="ays.servicetemplate")
+                j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (self.role, instance, fullpath), category="ays.servicetemplate")
 
             service = Service(self, instance=instance, args=args, path=fullpath, parent=parent,originator=originator)
+
+
             if service not in j.atyourservice.services:
                 j.atyourservice.services.append(service)
 

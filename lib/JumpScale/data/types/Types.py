@@ -9,22 +9,22 @@ from PrimitiveTypes import *
 class Types():
     def __init__(self):
         self.__jslocation__ = "j.data.types"
-        self.dict=Dictionary
-        self.list=List
-        self.guid=Guid
-        self.path=Path
-        self.bool=Boolean
-        self.int=Integer
-        self.float=Float
-        self.string=String
-        self.set=Set
-        self.ipaddr=IPAddress
-        self.iprange=IPRange
-        self.ipport=IPPort
-        self.duration=Duration
-        self.tel=Tel
-        self.email=Email
-        self.date=Date
+        self.dict=Dictionary()
+        self.list=List()
+        self.guid=Guid()
+        self.path=Path()
+        self.bool=Boolean()
+        self.int=Integer()
+        self.float=Float()
+        self.string=String()
+        self.set=Set()
+        self.ipaddr=IPAddress()
+        self.iprange=IPRange()
+        self.ipport=IPPort()
+        self.duration=Duration()
+        self.tel=Tel()
+        self.email=Email()
+        self.date=Date()
 
     def getTypeClass(self,ttype):
         """

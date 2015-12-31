@@ -17,25 +17,24 @@ class ActionsBaseMgmt(object):
     """
 
     
-    def input(self, serviceObj, args):
+    def input(self, serviceObj):
         """
         gets executed before init happens of this ays
         use this method to manipulate the arguments which are given or already part of ays instance
-        this is done as first action on an ays, even at central location
+        this is done as first action on an ays, at central location
 
         example how to use
 
         ```
         #call parent, to make sure std init_post is executed
-        ActionsBase.init(self,serviceObj,hrd,args)
+        ActionsBase.init(self,serviceObj)
         if serviceObj.name.startswith("node"):
             args["something"]=111
 
         ```
-        important: only modify the hrd & the args !!!
 
         """
-        # print "init:%s"%serviceObj
+        print ("init:%s"%serviceObj)
 
         toconsume=[]
 
@@ -45,14 +44,14 @@ class ActionsBaseMgmt(object):
 
         if serviceObj.name.startswith("node"):
             # set service name & ip addr
-            if not exists(args, 'node.tcp.addr') or args['node.tcp.addr'].startswith('@ASK'):
+            if not exists(args, 'node.tcp.addr') or args['node.tcp.addr'].find('@ask')!=-1:
                 if "ip" in args:
                     args['node.tcp.addr'] = args["ip"]
 
             if not exists(args, 'node.name'):
                 args['node.name'] = serviceObj.instance
 
-        if serviceObj.template.hrd_template.getBool("ns.enable",default=False) and "ns" not in serviceObj._producers:
+        if serviceObj.recipe.hrd.getBool("ns.enable",default=False) and "ns" not in serviceObj._producers:
 
             if "ns" != serviceObj.role and not serviceObj.name.startswith("ns."):
                 # means we are not a nameservice ourselves (otherwise chicken & the egg issue)
@@ -68,7 +67,7 @@ class ActionsBaseMgmt(object):
                         args["instance.dns"] = []
                     args["instance.dns"].append("%s.%s.%s" % (nsinstance, nsname, nsdomain))
 
-        for depkey in serviceObj.template.hrd_template.getList("dependencies.node", default=[]):
+        for depkey in serviceObj.recipe.hrd.getList("dependencies.node", default=[]):
 
             # they need to be deployed in host or local (set consumptions)
             node = serviceObj.getNode()
@@ -91,7 +90,7 @@ class ActionsBaseMgmt(object):
 
             serviceObj.consume(serv)
 
-        for depkey in serviceObj.template.hrd_template.getList("dependencies.global", default=[]):
+        for depkey in serviceObj.recipe.hrd.getList("dependencies.global", default=[]):
             if depkey.find("@")!=0:
                 depkey="@"+depkey
             if serviceObj.originator is not None and serviceObj.originator._producers != {} and depkey in serviceObj.originator._producers:

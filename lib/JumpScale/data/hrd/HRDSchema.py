@@ -108,6 +108,7 @@ class HRDSchema():
                 raise ValueError("Hrd schema not properly formatted, should have =, see '%s'"%line)
 
             name,tagstr=line.split("=",1)
+            name=name.strip()
             tagstr=tagstr.lower()
 
             tags=j.data.tags.getObject(tagstr)
@@ -157,10 +158,10 @@ class HRDSchema():
 
                 
             if tags.tagExists("minval"):
-                hrdtype.minVal = hrdtype.typeclass.from_string(tags.tagGet("minval"))
+                hrdtype.minVal = hrdtype.typeclass.fromString(tags.tagGet("minval"))
 
             if tags.tagExists("maxval"):
-                hrdtype.maxVal = hrdtype.typeclass.from_string(tags.tagGet("maxval"))
+                hrdtype.maxVal = hrdtype.typeclass.fromString(tags.tagGet("maxval"))
             
             if tags.tagExists("multichoice"):
                 hrdtype.multichoice = j.data.types.list.fromString(tags.tagGet("multichoice"),"str")
@@ -183,16 +184,29 @@ class HRDSchema():
         if hrd==None:
             hrd=j.data.hrd.get(content="",prefixWithName=False)
         for key,ttype in self.items.items():
+            val=None
             if ttype.name in args:
                 val=args[ttype.name]
             else:
                 if not hrd.exists(ttype.name):
                     if ttype.doAsk==False:
                         val=ttype.default
-                    else:
+                    else:                        
                         val=ttype.ask()
-                    # ttype.validate(val)
-                    hrd.set(ttype.name,val)
+                else:
+                    continue #no need to further process, already exists in hrd
+            if ttype.list:
+                val=j.data.types.list.fromString(val, ttype=ttype.typeclass)
+            else:
+                if j.data.types.string.check(val):
+                    while val[0] in [" ['"] or val[-1] in ["' ]"]:
+                        val=val.strip()
+                        val=val.strip("[]")
+                        val=val.strip("'")
+                val=ttype.typeclass.fromString(val)
+                if j.data.types.list.check(val) and len(val)==1:
+                    val=val[0] #this to resolve some customer types or yaml inconsistencies, if only 1 member we can use as a non list
+            hrd.set(ttype.name,val)
         return hrd
 
     def __repr__(self):

@@ -6,100 +6,82 @@ import re
 from PrimitiveTypes import *
 
 
-GUID_RE = re.compile('^[0-9a-fA-F]{8}[-:][0-9a-fA-F]{4}[-:][0-9a-fA-F]{4}[-:][0-9a-fA-F]{4}[-:][0-9a-fA-F]{12}$')
+
 class Guid(String):
     '''Generic GUID type'''
-    NAME = 'guid'
 
-    @staticmethod
-    def check(value):
+    def __init__(self):
+        self.NAME = 'guid'
+        self._RE = re.compile('^[0-9a-fA-F]{8}[-:][0-9a-fA-F]{4}[-:][0-9a-fA-F]{4}[-:][0-9a-fA-F]{4}[-:][0-9a-fA-F]{12}$')
+
+    def check(self,value):
         '''Check whether provided value is a valid GUID string'''
-        if not String.check(value):
+        if not j.data.types.string.check(value):
             return False
-        return GUID_RE.match(value) is not None
+        return self._RE.match(value) is not None
 
-    @staticmethod
-    def get_default():
+    def get_default(self):
         return j.data.idgenerator.generateGUID()
 
-    @staticmethod
-    def fromString(v):
-        if not String.check(v):
+    def fromString(self,v):
+        if not j.data.types.string.check(v):
             raise ValueError("Input needs to be string:%s"%v)
-        if Guid.check(s):
+        if self.check(s):
             return s
         else:
-            raise ValueError("%s not properly formatted."%self.NAME)        
+            raise ValueError("%s not properly formatted: '%s'"%(Guid.NAME,v))         
 
     toString=fromString
-
-
-class Path(String):
-    '''Generic path type'''
-    NAME = 'path'
-
-    @staticmethod
-    def check(value):
-        '''Check whether provided value is a valid path
-
-        This checks whether value is a valid string only.
-        '''
-        return String.check(value)
-
-    @staticmethod
-    def fromString(v):
-        if not String.check(v):
-            raise ValueError("Input needs to be string:%s"%v)
-        if Guid.check(s):
-            return s
-        else:
-            raise ValueError("%s not properly formatted."%self.NAME)       
-
-    toString=fromString
-
-    @staticmethod
-    def get_default():
-        return ""
 
 
 #@todo (*1*) need better regex
 class Email(String):
     """
     """
-    NAME = 'email'
-    _RE = re.compile('^[0-9a-z.@_\-]*')
+    def __init__(self):
+        self.NAME = 'email'
+        self._RE = re.compile('^[0-9a-z.@_\-]*')
 
-    @staticmethod
-    def check(value):
+    
+    def check(self,value):
         '''
         Check whether provided value is a valid tel nr
         '''
-        if not String.check(value):
+        if not j.data.types.string.check(value):
             return False
-        value=Email.clean(value)
-        return Email._RE.fullmatch(value) is not None
+        value=self.clean(value)
+        return self._RE.fullmatch(value) is not None
 
-    @staticmethod
-    def clean(v):
-        if not String.check(v):
+    
+    def clean(self,v):
+        if not j.data.types.string.check(v):
             raise ValueError("Input needs to be string:%s"%v)
         v=v.lower()
         v.strip()
         return v
 
-    @staticmethod
-    def fromString(v):
-        v=Email.clean(v)
-        if Email.check(v):
+    
+    def fromString(self,v):
+        v=self.clean(v)
+        if self.check(v):
             return v
         else:
-            raise ValueError("%s not properly formatted."%self.NAME)        
+            raise ValueError("%s not properly formatted: '%s'"%(self.NAME,v))        
 
     toString=fromString
 
-    @staticmethod
-    def get_default():
+    
+    def get_default(self):
         return "changeme@example.com"
+
+class Path(Email):
+    '''Generic path type'''
+    def __init__(self):
+        self.NAME = 'path'
+        self._RE = re.compile('.*')
+
+    def get_default():
+        return ""
 
 class Tel(Email):
     """
@@ -107,21 +89,20 @@ class Tel(Email):
     only requirement is it needs to start with +
     the. & , and spaces will not be remembered
     """
-    NAME = 'tel'
-    _RE = re.compile('\+[0-9]*')
+    def __init__(self):
+        self.NAME = 'tel'
+        self._RE = re.compile('\+[0-9]*')
 
-    @staticmethod
-    def clean(v):
-        if not String.check(v):
+    def clean(self,v):
+        if j.data.types.string.check(v):
             raise ValueError("Input needs to be string:%s"%v)
         v=v.replace(".","")
         v=v.replace(",","")
         v=v.replace(" ","")
         v.strip()
         return v
-
-    @staticmethod
-    def get_default():
+    
+    def get_default(self):
         return "+32 475.99.99.99"
 
 
@@ -129,37 +110,38 @@ class Tel(Email):
 class IPRange(Email):
     """
     """
-    NAME = 'IPRANGE'
-    _RE = re.compile('.*')
+    def __init__(self):
+        self.NAME = 'IPRANGE'
+        self._RE = re.compile('.*')
 
-    @staticmethod
-    def get_default():
+    def get_default(self):
         return "changeme@example.com"
 
 #@todo (*1*) need better regex
 class IPAddress(Email):
     """
     """
-    NAME = 'IPRANGE'
-    _RE = re.compile('.*')
-
-    @staticmethod
-    def get_default():
+    def __init__(self):
+        self.NAME = 'IPRANGE'
+        self._RE = re.compile('.*')
+    
+    def get_default(self):
         return "192.168.1.1"
 
 class IPPort(Integer):
     '''Generic IP port type'''
-    NAME = 'ipport'
-    BASETYPE = 'string'
+    def __init__(self):
+        self.NAME = 'ipport'
+        self.BASETYPE = 'string'
     
-    @staticmethod
-    def check(value):
+    
+    def check(self,value):
         '''
         Check if the value is a valid port
         We just check if the value a single port or a range
         Values must be between 0 and 65535
         '''
-        if not Integer.check(value):
+        if not Integer.check(self,value):
             return False        
         if 0 < value <= 65535:
             return True            
@@ -172,32 +154,21 @@ class Date(Email):
     0 is now
     +1 is indefinite in future
     '''
-    NAME = 'ipport'
-    _RE = re.compile('.*\:.*\:.*') #@todo (*1*) better regex
+    def __init__(self):
+        self.NAME = 'ipport'
+        self._RE = re.compile('.*\:.*\:.*') #@todo (*1*) better regex
     
-    @staticmethod
-    def get_default():
+    def get_default(self):
         return "-1"
-
-    @staticmethod
-    def check(value):
-        '''
-        Check whether provided value is a valid tel nr
-        '''
-        if not String.check(value):
-            return False
-        value=Date.clean(value)
-        return Date._RE.fullmatch(value) is not None
-
-    @staticmethod
-    def clean(v):
+    
+    def clean(self,v):
         if v==-1:
             v="-1"
         elif v==1:
             v="+1"
         elif v==0:
             v=="0"
-        elif not String.check(v):
+        elif not j.data.types.string.check(v):
             raise ValueError("Input needs to be string:%s"%v)
         return v
 
@@ -219,22 +190,23 @@ class Duration(Email):
     -1 is infinite
 
     '''
-    NAME = 'duration'
-    _RE = re.compile('^(\d+)([wdhms]?)$')
+    def __init__(self):
+        self.NAME = 'duration'
+        self._RE = re.compile('^(\d+)([wdhms]?)$')
 
-    @staticmethod
-    def check(value):
+    
+    def check(self,value):
         if isinstance(value, int):
             if value == -1:
                 return True
             elif value >= 0:
                 return True
         elif isinstance(value, str):
-            if DURATION_RE.fullmatch(value):
+            if self.fullmatch(value):
                 return True
         return False
 
-    @staticmethod
+    
     def convertToSeconds(value):
         """Translate a string representation of a duration to an int
         representing the amount of seconds.
@@ -280,7 +252,7 @@ class Duration(Email):
 #     '''Generic folder path type'''
 #     NAME = 'dirpath'
 
-#     @staticmethod
+#     
 #     def check(value):
 #         '''Check whether provided value is a valid directory path
 
@@ -292,7 +264,7 @@ class Duration(Email):
 #     '''Generic file path type'''
 #     NAME = 'filepath'
 
-#     @staticmethod
+#     
 #     def check(value):
 #         '''Check whether provided value is a valid file path
 
@@ -304,7 +276,7 @@ class Duration(Email):
 #     '''Generic Unix folder path type'''
 #     NAME = 'unixdirpath'
 
-#     @staticmethod
+#     
 #     def check(value):
 #         '''Check whether provided value is a valid UNIX directory path
 
@@ -319,7 +291,7 @@ class Duration(Email):
 #     '''Generic Unix file path type'''
 #     NAME = 'unixfilepath'
 
-#     @staticmethod
+#     
 #     def check(value):
 #         '''Check whether provided value is a valid UNIX file path
 
@@ -335,7 +307,7 @@ class Duration(Email):
 #     '''Generic Windows folder path type'''
 #     NAME = 'windowsdirpath'
 
-#     @staticmethod
+#     
 #     def check(value):
 #         '''Check whether provided value is a valid Windows directory path
 
@@ -355,7 +327,7 @@ class Duration(Email):
 #     '''Generic Windows file path type'''
 #     NAME = 'windowsfilepath'
 
-#     @staticmethod
+#     
 #     def check(value):
 #         '''Check whether provided value is a valid Windows file path
 

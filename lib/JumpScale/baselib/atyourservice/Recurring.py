@@ -48,9 +48,9 @@ class Recurring():
 
     def start(self):
 
-        for item in self.service.template.hrd_template.prefix("recurring"):
+        for item in self.service.recipe.hrd.prefix("recurring"):
             name = item.split(".")[1].lower()
-            self.add(name, self.service.template.hrd_template.getStr(item).strip("\""))
+            self.add(name, self.service.recipe.hrd.getStr(item).strip("\""))
 
         for item in self.service.hrd.prefix("recurring"):
             name = item.split(".")[1].lower()

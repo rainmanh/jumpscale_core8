@@ -8,16 +8,17 @@ from PrimitiveTypes import *
 
 class Dictionary():
     '''Generic dictionary type'''
-    NAME = 'dictionary'
-    BASETYPE = 'dictionary'
+    def __init__(self):
+        self.NAME = 'dictionary'
+        self.BASETYPE = 'dictionary'
 
-    @staticmethod
-    def check(value):
+    
+    def check(self,value):
         '''Check whether provided value is a dict'''
         return isinstance(value, dict)
 
-    @staticmethod
-    def get_default():
+    
+    def get_default(self):
         return dict()
         # if self._default is NO_DEFAULT:
         #     return dict()
@@ -27,29 +28,40 @@ class Dictionary():
 class List():
 
     '''Generic list type'''
-    NAME = 'list'
-    BASETYPE = 'list'
 
-    @staticmethod
-    def check(value):
+    def __init__(self):
+        self.NAME = 'list'
+        self.BASETYPE = 'list'
+
+    
+    def check(self,value):
         '''Check whether provided value is a list'''
         return isinstance(value, list)
     
-    @staticmethod
-    def get_default():
+    
+    def get_default(self):
         return list()
 
-    @staticmethod
-    def clean(v,ttype="str"):
-        if not String.check(v):
-            raise ValueError("Input needs to be string:%s"%v)
-        v=j.data.text.getList(v,ttype)
+    
+    def clean(self,v,ttype="str"):
+        if j.data.types.string.check(ttype):
+            ttype=j.data.types.getTypeClass(ttype)
+        if not j.data.types.string.check(v):
+            if not j.data.types.list.check(v):
+                raise ValueError("Input needs to be string or list:%s"%v)
+            out=[]
+            for item in v:
+                item=ttype.fromString(item)                    
+                out.append(item)
+            v=out
+        else:
+            v=j.data.text.getList(v,ttype)
         return v
 
-    @staticmethod
-    def fromString(v,ttype="str"):
-        v=List.clean(v,ttype)
-        if List.check(v):
+    
+    def fromString(self,v,ttype="str"):
+        v=self.clean(v,ttype)
+        if self.check(v):
             return v
         else:
             raise ValueError("List not properly formatted.")        
@@ -60,14 +72,15 @@ class List():
 class Set():
 
     '''Generic set type'''
-    NAME = 'set'
-    BASETYPE = 'set'
+    def __init__(self):
+        self.NAME = 'set'
+        self.BASETYPE = 'set'
 
-    @staticmethod
-    def check(value):
+    
+    def check(self,value):
         '''Check whether provided value is a set'''
         return isinstance(value, set)
 
-    @staticmethod
-    def get_default():
+    
+    def get_default(self):
         return list()

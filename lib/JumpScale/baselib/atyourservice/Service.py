@@ -194,10 +194,7 @@ class Service(object):
     def hrd(self):
         if self._hrd==None:
             hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
-            if not j.sal.fs.exists(hrdpath):
-                self.init()
-            else:
-                self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
+            self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
         return self._hrd
 
     # @property
@@ -240,6 +237,7 @@ class Service(object):
         if j.sal.fs.exists(path+'c'):
             j.sal.fs.remove(path+'c')
         if j.sal.fs.exists(path):
+            j.do.createDir(j.do.getDirName(path))
             path2=j.do.joinPaths(self.path,j.do.getBaseName(path))
             j.do.copyFile(path,path2)
             if self._hrd is not None:
@@ -289,17 +287,14 @@ class Service(object):
 
     def init(self):
         if self._init is False:
+            self.actions_mgmt.input(self)  #we now init the full service object and can be fully manipulated there even changing the hrd
             j.do.createDir(self.path)
             hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
-            new=False
-            if not j.sal.fs.exists(hrdpath):
-                j.sal.fs.writeFile(filename=hrdpath,contents="") #empty hrd (is empty file)
-                new=True
             self._hrd=self.recipe.schema.hrdGet(hrd=self.hrd,args=self.args)
-            if new:
-                self.hrd.set("service.name",self.name)
-                self.hrd.set("service.version",self.version)
-                self.hrd.set("service.domain",self.domain)
+            self.hrd.set("service.name",self.name)
+            self.hrd.set("service.version",self.version)
+            self.hrd.set("service.domain",self.domain)
+            self.actions_mgmt.hrd(self)
             self.state.check()
             
         self._init = True

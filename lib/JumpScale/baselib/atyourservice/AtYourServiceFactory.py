@@ -5,6 +5,7 @@ from Service import Service, getProcessDicts
 import re
 from ActionsBaseMgmt import ActionsBaseMgmt
 from ActionsBaseNode import ActionsBaseNode
+from Blueprint import Blueprint
 # import AYSdb
 import json
 from AtYourServiceSync import AtYourServiceSync
@@ -132,6 +133,19 @@ class AtYourServiceFactory():
                 self._services.append(service)            
 
         return self._services
+
+    def getBlueprint(self,path=""):
+        """
+        @input path, if empty will look for .yaml in current directy and only if 1 that one will be selected
+        """
+        if path==None or path=="":
+            paths=j.do.listFilesInDir(j.sal.fs.getcwd(),filter="*.yaml")
+            if len(paths)==1:
+                path=paths[0]
+            else:
+                raise RuntimeError("path needs to be specified")
+            
+        return Blueprint(path)
 
     def _doinit(self):
         # if we don't have write permissin on /opt don't try do download service templates

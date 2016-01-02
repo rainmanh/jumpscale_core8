@@ -35,6 +35,7 @@ if [ "$(uname)" == "Darwin" ]; then
     
     export TMPDIR=~/tmp
     export JSBASE='~/opt/jumpscale8'
+    cd $TMPDIR
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     dist=''
     dist=`grep DISTRIB_ID /etc/*-release | awk -F '=' '{print $2}'`

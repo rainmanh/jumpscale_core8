@@ -26,7 +26,10 @@ overwrite=True #set on False for development or debugging
 
 if overwrite and os.path.exists(path):
     os.remove(path)
-    # os.remove(path+"c")
+    try:
+        os.remove(path+"c")
+    except:
+        pass
 
 import random
 
@@ -34,7 +37,7 @@ if not os.path.exists(path):
     print("overwrite")
     r=random.randint(1, 10000)#to make sure caching does not work on internet
     os.popen("curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/%s/install/InstallTools.py?%s > %s"%(branch,r,path))
-    time.sleep(2)
+    time.sleep(3)
 
 InstallTools = __import__('InstallTools')
 do = InstallTools.do

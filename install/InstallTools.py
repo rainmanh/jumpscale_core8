@@ -2042,17 +2042,17 @@ class Installer():
         #link python
         src="/usr/bin/python3.5"
         if do.exists(src):
-            do.delete("/usr/bin/python")
+            # do.delete("/usr/bin/python")
             if not do.TYPE.startswith("OSX"):
-                do.symlink(src, "%s/bin/python"%base)
+                # do.symlink(src, "%s/bin/python"%base)
                 do.symlink(src, "%s/bin/python3"%base)
-                do.symlink(src, "/usr/bin/python")
+                # do.symlink(src, "/usr/bin/python")
 
-        if do.TYPE.startswith("OSX"):
-            src="/usr/local/bin/python3"
-            do.symlink(src, "%s/bin/python"%base)
-            do.symlink(src, "%s/bin/python3"%base)
-            do.symlink(src, "%s/bin/python3.5"%base)
+        # if do.TYPE.startswith("OSX"):
+        #     src="/usr/local/bin/python3"
+        #     do.symlink(src, "%s/bin/python"%base)
+        #     do.symlink(src, "%s/bin/python3"%base)
+        #     do.symlink(src, "%s/bin/python3.5"%base)
 
         self.writeenv(basedir=base,insystem=insystem,CODEDIR=CODEDIR, SANDBOX=SANDBOX)
 
@@ -2260,12 +2260,12 @@ class Installer():
         C2="""#!/bin/bash
 # set -x
 source $base/env.sh
-exec $JSBASE/bin/python -q "$@"
+exec $JSBASE/bin/python3 -q "$@"
         """
 
         C2_insystem="""#!/bin/bash
 # set -x
-exec python -q "$@"
+exec python3 -q "$@"
         """
 
         # C2=C2.format(base=basedir, env=envfile)

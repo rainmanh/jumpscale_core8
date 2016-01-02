@@ -39,6 +39,7 @@ if not os.path.exists(path):
     os.popen("curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/%s/install/InstallTools.py?%s > %s"%(branch,r,path))    
 
 done=""
+counter=0
 while done!="OK" and counter<100:
     try:
         InstallTools = __import__('InstallTools')

@@ -38,6 +38,7 @@ if not os.path.exists(path):
     r=random.randint(1, 10000)#to make sure caching does not work on internet
     os.popen("curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/%s/install/InstallTools.py?%s > %s"%(branch,r,path))    
 
+done=""
 while done!="OK" and counter<100:
     try:
         InstallTools = __import__('InstallTools')

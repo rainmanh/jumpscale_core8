@@ -46,12 +46,12 @@ class TEST(unittest.TestCase):
 
     def test_3_getFailedJobs(self): 
         qjobs = self.workercmds.getFailedJobs(queue='test', _agentid=j.application.whoAmI.nid)
-        original = len(json.loads(qjobs))
+        original = len(j.data.serializer.json.loads(qjobs))
         job = {'args': {}, 'category':  'jumpscript', 'cmd':  'jumpscale/loghandling', 'id': 112, 'jscriptid': 32, 'log': False, 'nid': 1, 'parent': None, 'queue':  'test', 'roles': [], 'state':  'ERROR'}
         self.redis.rpush("queues:workers:work:test", json.dumps(job))
         qjobs = self.workercmds.getFailedJobs(queue='test', _agentid=j.application.whoAmI.nid)
 
-        self.assertEqual(len(json.loads(qjobs)), original + 1)
+        self.assertEqual(len(j.data.serializer.json.loads(qjobs)), original + 1)
 
     # def test_4_resubmitJob(self):
     #     self.workercmds.resubmitJob(jobid=111, _agentid=j.application.whoAmI.nid)

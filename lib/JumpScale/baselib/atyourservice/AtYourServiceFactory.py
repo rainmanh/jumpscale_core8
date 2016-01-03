@@ -9,6 +9,7 @@ from Blueprint import Blueprint
 # import AYSdb
 
 from AtYourServiceSync import AtYourServiceSync
+from AtYourServiceDebug import AtYourServiceDebugFactory
 import os
 
 class AYSDB():
@@ -55,11 +56,7 @@ class AtYourServiceFactory():
 
     @property
     def debug(self):
-        from IPython import embed
-        print (111)
-        embed()
         
-        from AtYourServiceDebug import AtYourServiceDebugFactory
         if self._debug==None:
             self._debug=AtYourServiceDebugFactory()
         return self._debug

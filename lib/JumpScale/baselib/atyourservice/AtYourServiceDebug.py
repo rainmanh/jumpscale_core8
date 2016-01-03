@@ -3,7 +3,6 @@ from ServiceTemplate import ServiceTemplate
 from Service import Service, getProcessDicts
 import re
 from ActionsBaseMgmt import ActionsBaseMgmt
-from ActionsBaseTmpl import ActionsBaseTmpl
 from ActionsBaseNode import ActionsBaseNode
 # import AYSdb
 

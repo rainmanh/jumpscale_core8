@@ -78,6 +78,18 @@ class ModelBase(Document):
         else:
             return super(ModelBase, self).save()
 
+    def delete(self):
+        redis = getattr(self, '__redis__', False)
+        if redis:
+            key = self._getKey(self.guid)
+            j.core.db.delete(key)
+        else:
+            return super(ModelBase, self).delete()
+
+    @classmethod
+    def exists(cls, guid):
+        return bool(cls.get(guid=guid))
+
     def getset(cls, redis=True):
         raise NotImplementedError
         #key = cls._getKey(cls.guid)

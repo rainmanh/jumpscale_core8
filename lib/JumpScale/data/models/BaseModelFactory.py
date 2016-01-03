@@ -104,29 +104,6 @@ class BaseModelFactory():
     def SessionCache(self):
         return ModelSessionCache
 
-
-    def delete(self, model, key, redis=True):
-        raise RuntimeError("not implemented")
-        pass
-
-    def exists(self, model, guid=None, redis=True):
-        if redis:
-            if guid == None:
-                guid = model.guid
-            modelname = model._class_name
-            key = self.getKey(modelname, guid)
-            if j.core.db.exists('%s_%s' % (key, guid)):
-                return True
-            else:
-                return False
-        else:
-            if guid == None:
-                raise RuntimeError("guid cannot be None")
-            try:
-                model.objects.get(guid=guid)
-            except DoesNotExist:
-                return False
-
     def authenticate(self, username, passwd):
         um = self.User
         if um.objects(__raw__={'name': username, 'passwd': {'$in': [passwd, j.tools.hash.md5_string(passwd)]}}):

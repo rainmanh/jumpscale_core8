@@ -3,10 +3,7 @@ import JumpScale.baselib.remote
 import sys
 # import importlib
 import imp
-try:
-    import ujson as json
-except:
-    import json
+
 
 import JumpScale.baselib.redis2
 import copy

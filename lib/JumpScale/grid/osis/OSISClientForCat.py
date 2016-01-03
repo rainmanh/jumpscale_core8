@@ -95,7 +95,7 @@ class OSISClientForCat():
         value = self.client.get(namespace=self.namespace, categoryname=self.cat, key=key)
         if isinstance(value, str):
             try:
-                value=json.loads(value)
+                value=j.data.serializer.json.loads(value)
             except:
                 pass # might be normal string/data aswell
         if isinstance(value, dict):

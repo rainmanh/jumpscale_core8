@@ -6,7 +6,7 @@ from pymongo import MongoClient
 
 
 
-import ujson as json
+
 import time
 
 def chunks(l, n):
@@ -39,7 +39,7 @@ class MongoDBKeyValueStore(KeyValueStoreBase):
             if "guid" in value:
                 guid=value.pop("guid")
                 value["_id"]=guid
-            # value = json.dumps(value)
+            # value = j.data.serializer.json.dumps(value)
             categoryKey = self._getCategoryKey(category, key)
             # from IPython import embed
             # print "DEBUG NOW set"

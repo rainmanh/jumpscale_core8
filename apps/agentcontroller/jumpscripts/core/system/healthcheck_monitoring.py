@@ -22,10 +22,7 @@ def action(nid=None):
     import JumpScale.grid.gridhealthchecker
     import JumpScale.baselib.redis2
     import time
-    try:
-        import ujson as json
-    except:
-        import json
+    
 
     rediscl = j.clients.redis.getByInstance('system')
     if nid is None:
@@ -35,8 +32,8 @@ def action(nid=None):
         rediscl.hset('healthcheck:monitoring', 'lastcheck', time.time())
     else:
         results, errors = j.core.grid.healthchecker.runAllOnNode(nid)
-        rresults = json.loads(rediscl.hget('healthcheck:monitoring', 'results'))
-        rerrors = json.loads(rediscl.hget('healthcheck:monitoring', 'errors'))
+        rresults = j.data.serializer.json.loads(rediscl.hget('healthcheck:monitoring', 'results'))
+        rerrors = j.data.serializer.json.loads(rediscl.hget('healthcheck:monitoring', 'errors'))
         rresults.pop(str(nid), None)
         rerrors.pop(str(nid), None)
         rresults.update(results)

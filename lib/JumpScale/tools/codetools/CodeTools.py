@@ -5,7 +5,7 @@ from JumpScale import j
 
 from ClassBase import ClassBase, JSModelBase, JSRootModelBase
 
-import json #ujson.dumps does not support some arguments like separators, indent ...etc
+ #ujson.dumps does not support some arguments like separators, indent ...etc
 
 def isPrimAttribute(obj, key):
     if key[-1]=="s":
@@ -344,9 +344,9 @@ class CodeTools:
     def object2json(self,obj,pretty=False,skiperrors=False,ignoreKeys=[],ignoreUnderscoreKeys=False):
         obj=self.object2dict(obj,dieOnUnknown=not skiperrors,ignoreKeys=ignoreKeys,ignoreUnderscoreKeys=ignoreUnderscoreKeys)
         if pretty:            
-            return json.dumps(obj, skipkeys=skiperrors, ensure_ascii=False, check_circular=True, indent=2, separators=(", ",": "), default=None, sort_keys=True)
+            return j.data.serializer.json.dumps(obj, skipkeys=skiperrors, ensure_ascii=False, check_circular=True, indent=2, separators=(", ",": "), default=None, sort_keys=True)
         else:
-            return json.dumps(obj)
+            return j.data.serializer.json.dumps(obj)
 
     def pprint(self,obj):
         result=self.object2yaml(obj)

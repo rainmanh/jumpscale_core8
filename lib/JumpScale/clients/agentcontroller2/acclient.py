@@ -1,5 +1,5 @@
 import redis
-import json
+
 import uuid
 
 GENERIC_TIMEOUT = 5
@@ -29,7 +29,7 @@ LEVEL_JSON = 20
 def jsonLoads(x):
     if isinstance(x, bytes):
         x = x.decode('utf-8')
-    return json.loads(x)
+    return j.data.serializer.json.loads(x)
 
 
 class AgentException(Exception):
@@ -338,7 +338,7 @@ class Job(Base):
         """
         Kills this command on agent (if it's running)
         """
-        return self._client.cmd(self._gid, self._nid, 'kill', RunArgs(), data=json.dumps({'id': self._id}))
+        return self._client.cmd(self._gid, self._nid, 'kill', RunArgs(), data=j.data.serializer.json.dumps({'id': self._id}))
 
     def get_stats(self):
         """
@@ -348,7 +348,7 @@ class Job(Base):
         if self.state != 'RUNNING':
             raise AgentException('Can only get stats on running jobs')
         stats = self._client.cmd(self._gid, self._nid, 'get_process_stats',
-                                 RunArgs(), data=json.dumps({'id': self._id})).get_next_result(GET_INFO_TIMEOUT)
+                                 RunArgs(), data=j.data.serializer.json.dumps({'id': self._id})).get_next_result(GET_INFO_TIMEOUT)
         if stats.state != 'SUCCESS':
             raise AgentException(stats.data)
 
@@ -565,7 +565,7 @@ class Client(object):
         cmd = self._build_cmd(gid=gid, nid=nid, cmd=cmd, args=args, data=data,
                               id=id, roles=roles, fanout=fanout, tags=tags)
 
-        payload = json.dumps(cmd.dump())
+        payload = j.data.serializer.json.dumps(cmd.dump())
         self._redis.rpush(QUEUE_CMDS_MAIN, payload)
         return cmd
 
@@ -613,7 +613,7 @@ class Client(object):
         }
 
         cmd = self.cmd(0, 0, 'controller', RunArgs(name='scheduler_add'),
-                       data=json.dumps(data), roles=['*'])
+                       data=j.data.serializer.json.dumps(data), roles=['*'])
         if validate_queued:
             result = cmd.get_next_result(GET_INFO_TIMEOUT)
             return self._load_json_or_die(result)
@@ -631,7 +631,7 @@ class Client(object):
         """
         Remove a scheduled job by ID
         """
-        cmd = self.cmd(0, 0, 'controller', RunArgs(name='scheduler_remove'), data=json.dumps(str(id)), roles=['*'])
+        cmd = self.cmd(0, 0, 'controller', RunArgs(name='scheduler_remove'), data=j.data.serializer.json.dumps(str(id)), roles=['*'])
         if validate_queued:
             result = cmd.get_next_result(GET_INFO_TIMEOUT)
             return self._load_json_or_die(result)
@@ -640,7 +640,7 @@ class Client(object):
         """
         Remove a scheduled job by ID
         """
-        cmd = self.cmd(0, 0, 'controller', RunArgs(name='scheduler_remove_prefix'), data=json.dumps(str(id)), roles=['*'])
+        cmd = self.cmd(0, 0, 'controller', RunArgs(name='scheduler_remove_prefix'), data=j.data.serializer.json.dumps(str(id)), roles=['*'])
         if validate_queued:
             result = cmd.get_next_result(GET_INFO_TIMEOUT)
             return self._load_json_or_die(result)
@@ -702,7 +702,7 @@ class Client(object):
         }
         runargs = RunArgs().update(runargs)
         return self.cmd(gid=gid, nid=nid, cmd=CMD_EXECUTE_JUMPSCRIPT_CONTENT, args=runargs,
-                        data=json.dumps(data), roles=roles, fanout=fanout, tags=tags)
+                        data=j.data.serializer.json.dumps(data), roles=roles, fanout=fanout, tags=tags)
 
     def get_by_id(self, gid, nid, id):
         """

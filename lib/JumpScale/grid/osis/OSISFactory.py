@@ -9,7 +9,7 @@ import JumpScale.baselib.codetools
 import inspect
 import imp
 import sys
-import ujson
+
 import lz4
 
 
@@ -155,7 +155,7 @@ class OSISFactory:
                 val=obj
             else:
                 val=obj.__dict__
-            val=ujson.dumps(val)
+            val=j.data.serializer.json.dumps(val)
         else:
             val = obj
         val=lz4.dumps(val)
@@ -168,7 +168,7 @@ class OSISFactory:
         val=j.data.serializer.serializers.blowfish.loads(val,self.key)
         val=lz4.loads(val)
         if json:
-            val=ujson.loads(val)
+            val=j.data.serializer.json.loads(val)
         return val
 
     def getLocal(self, path="", overwriteHRD=False, overwriteImplementation=False, namespacename=None):

@@ -1,7 +1,7 @@
 
 from JumpScale import j
 
-import json as json
+ as json
 
 class packInCodeFactory():
     def __init__(self):
@@ -41,7 +41,7 @@ $block
 
 
     def addDict(self,name,ddict):
-        code=json.dumps(obj=ddict, sort_keys=True,indent=4, separators=(',', ': '))
+        code=j.data.serializer.json.dumps(obj=ddict, sort_keys=True,indent=4, separators=(',', ': '))
         self.code+="%s=\"\"\"\n%s\n\"\"\"\n\n"%(name,code)
 
     def addHRD(self,name,hrd):

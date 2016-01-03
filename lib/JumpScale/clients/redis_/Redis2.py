@@ -4,10 +4,7 @@ import redis
 from RedisQueue import RedisQueue
 import itertools
 
-try:
-    import ujson as json
-except ImportError:
-    import json
+
 
 
 class RedisDict(dict):
@@ -17,10 +14,10 @@ class RedisDict(dict):
 
     def __getitem__(self, key):
         value = self._client.hget(self._key, key)
-        return json.loads(value)
+        return j.data.serializer.json.loads(value)
 
     def __setitem__(self, key, value):
-        value = json.dumps(value)
+        value = j.data.serializer.json.dumps(value)
         self._client.hset(self._key, key, value)
 
     def __contains__(self, key):
@@ -33,13 +30,13 @@ class RedisDict(dict):
         result = dict()
         allkeys = self._client.hgetalldict(self._key)
         for key, value in list(allkeys.items()):
-            result[key] = json.loads(value)
+            result[key] = j.data.serializer.json.loads(value)
         return result
 
     def pop(self, key):
         value = self._client.hget(self._key, key)
         self._client.hdel(self._key, key)
-        return json.loads(value)
+        return j.data.serializer.json.loads(value)
 
     def keys(self):
         return self._client.hkeys(self._key)

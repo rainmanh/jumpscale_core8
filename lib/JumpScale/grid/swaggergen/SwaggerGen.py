@@ -1,6 +1,6 @@
 from JumpScale import j
 from actorgen import ActorGen
-import json as json
+ as json
 import jinja2
 import urllib.parse
 
@@ -92,7 +92,7 @@ class SwaggerGen(object):
         self.client = {}
 
     def loadSpecFromStr(self, spec):
-        self.spec = json.loads(spec)
+        self.spec = j.data.serializer.json.loads(spec)
 
     def loadSpecFromFile(self, path):
         content = j.sal.fs.fileGetContents(path)

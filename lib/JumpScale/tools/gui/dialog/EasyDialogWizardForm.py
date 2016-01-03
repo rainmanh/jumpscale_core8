@@ -35,10 +35,7 @@ from JumpScale import j
 from EasyDialogWizardServer import WizardActions
 from EasyDialogWizardServer import EasyDialogWizardServer
 
-try:
-    import ujson as json
-except:
-    import json
+
 
 class EasyDialogWizardForm(object):
 
@@ -90,7 +87,7 @@ class WizardForm(object):
 
         if not isinstance(data, dict):
             if isinstance(data, str):
-                data = json.loads(data)
+                data = j.data.serializer.json.loads(data)
             else:
                 raise RuntimeError('Unknown data format. Data type: %s, Data: %s' % (type(data), data))
 

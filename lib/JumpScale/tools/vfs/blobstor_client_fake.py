@@ -2,10 +2,7 @@ from JumpScale import j
 import lzma
 import msgpack
 import os
-try:
-    import ujson as json
-except:
-    import json
+
 from weed.volume import WeedVolume
 import requests
 import JumpScale.baselib.redis2
@@ -62,7 +59,7 @@ class BlobStorClientFake:
             j.logger.log("Could not post file. Exception is: %s" % e)
             return None
         # weed-fs returns a 200 but the content may contain an error
-        result = json.loads(r.content)
+        result = j.data.serializer.json.loads(r.content)
         if r.status_code == 200:
             if 'error' in result:
                 j.logger.log(result['error'])

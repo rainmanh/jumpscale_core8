@@ -4,10 +4,7 @@ import unicodedata
 from JumpScale import j
 import traceback
 
-try:
-    import ujson as json
-except ImportError:
-    import json
+
 
 
 
@@ -147,7 +144,7 @@ class ErrorConditionObject(BaseException):
     def toJson(self):
         data = self.__dict__.copy()
         data.pop('tb', None)
-        return json.dumps(data)
+        return j.data.serializer.json.dumps(data)
 
 
     def __str__(self):

@@ -1,7 +1,4 @@
-try:
-    import ujson as json
-except ImportError:
-    import json
+
 
 
 class SerializerUJson(object):
@@ -9,7 +6,9 @@ class SerializerUJson(object):
         self.__jslocation__ = "j.data.serializer.json"
 
     def dumps(self,obj):
-        return json.dumps(obj, ensure_ascii=False)
+        return j.data.serializer.json.dumps(obj, ensure_ascii=False)
 
     def loads(self,s):
-        return json.loads(s)
+        if isinstance(s,bytes):
+            s=s.decode('utf-8')
+        return j.data.serializer.json.loads(s)

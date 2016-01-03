@@ -1,8 +1,5 @@
 from JumpScale import j
-try:
-    import ujson as json
-except:
-    import json
+
 OsisBaseObject=j.core.osis.getOsisBaseObjectClass()
 import time
 import inspect
@@ -122,7 +119,7 @@ class RedisWorkerFactory(object):
     def getJob(self,jobid):
         jobdict=self.redis.get("workers:jobs:%s" % jobid)
         if jobdict:
-            jobdict=json.loads(jobdict)
+            jobdict=j.data.serializer.json.loads(jobdict)
         else:
             raise KeyError("cannot find job with id:%s"%jobid)
         return jobdict
@@ -131,7 +128,7 @@ class RedisWorkerFactory(object):
     def getJumpscriptFromId(self,jscriptid):
         jsdict=self.redis.hget("workers:jumpscripts:id",jscriptid)
         if jsdict:
-            jsdict=json.loads(jsdict)
+            jsdict=j.data.serializer.json.loads(jsdict)
         else:
             return None
         
@@ -153,7 +150,7 @@ class RedisWorkerFactory(object):
         key="%s__%s"%(organization,name)
         jsdict=self.redis.hget("workers:jumpscripts:name",key)
         if jsdict:
-            jsdict=json.loads(jsdict)
+            jsdict=j.data.serializer.json.loads(jsdict)
         else:
             return None
         return Jumpscript(ddict=jsdict)        
@@ -188,11 +185,11 @@ class RedisWorkerFactory(object):
 
         if self.redis.hexists("workers:jumpscripthashes",key):
             js.id=self.redis.hget("workers:jumpscripthashes",key)
-            # js=Jumpscript(ddict=json.loads(jumpscript_data))
+            # js=Jumpscript(ddict=j.data.serializer.json.loads(jumpscript_data))
         else:
             #jumpscript does not exist yet
             js.id=self.redis.incr("workers:jumpscriptlastid")
-            jumpscript_data=json.dumps(js.__dict__)
+            jumpscript_data=j.data.serializer.json.dumps(js.__dict__)
             self.redis.hset("workers:jumpscripts:id",js.id, jumpscript_data)
             if js.organization!="" and js.name!="":
                 self.redis.hset("workers:jumpscripts:name","%s__%s"%(js.organization,js.name), jumpscript_data)            
@@ -284,7 +281,7 @@ class RedisWorkerFactory(object):
             return "action", result[1]
         else:
             jobdict = result[1]
-            jobdict=json.loads(jobdict)
+            jobdict=j.data.serializer.json.loads(jobdict)
             return "job", Job(ddict=jobdict)
 
     def waitJob(self,job,timeout=600):

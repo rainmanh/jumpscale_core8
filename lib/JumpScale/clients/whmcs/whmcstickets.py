@@ -1,6 +1,6 @@
 from JumpScale import j
 import requests, base64, phpserialize
-import json
+
 import xml.etree.cElementTree as et
 
 SSL_VERIFY = False
@@ -49,7 +49,7 @@ class whmcstickets():
                     )
         
         response = self._call_whmcs_api(create_ticket_request_params)
-        content = json.loads(response.content)
+        content = j.data.serializer.json.loads(response.content)
         ticketid = content.get('id', None)
         if not ticketid:
             j.events.opserror_critical('Failed to create ticket. Error: %s' % response.content, category='whmcs')
@@ -80,7 +80,7 @@ class whmcstickets():
         ticket_request_params['skipvalidation'] = True
         
         response = self._call_whmcs_api(ticket_request_params)
-        content = json.loads(response.content)
+        content = j.data.serializer.json.loads(response.content)
         if content.pop('result') == 'error':
             j.events.opserror_warning('Failed to update ticket %s. Error: %s' % (ticketid, response.content), category='whmcs')
         return response
@@ -99,7 +99,7 @@ class whmcstickets():
                     )
         
         response = self._call_whmcs_api(ticket_request_params)
-        content = json.loads(response.content)
+        content = j.data.serializer.json.loads(response.content)
         if content.pop('result') == 'error':
             j.events.opserror_warning('Failed to close ticket %s. Error: %s' % (ticketid, response.content), category='whmcs')
         return response.ok
@@ -113,7 +113,7 @@ class whmcstickets():
                     ticketid = ticketid,
                     )
         xs = self._call_whmcs_api(ticket_request_params).content
-        if json.loads(xs).get('result') == 'error':
+        if j.data.serializer.json.loads(xs).get('result') == 'error':
             j.events.opserror_warning('Failed to get ticket %s. Error: %s' % (ticketid, xs), category='whmcs')
         ticket = dict((attr.tag, attr.text) for attr in et.fromstring(xs))
         return ticket
@@ -127,7 +127,7 @@ class whmcstickets():
             )
 
         response = self._call_whmcs_api(ticket_request_params)
-        content = json.loads(response.content)
+        content = j.data.serializer.json.loads(response.content)
         if content.pop('result') == 'error':
             j.events.opserror_warning('Failed to add note to ticket %s. Error: %s' % (ticketid, response.content), category='whmcs')
         return response.ok

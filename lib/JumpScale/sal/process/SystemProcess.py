@@ -9,10 +9,7 @@ import subprocess
 import signal
 from subprocess import Popen
 
-try:
-    import ujson as json
-except ImportError:
-    import json
+
 
 from JumpScale import j
 
@@ -1835,7 +1832,7 @@ class SystemProcess(SALObject):
         if not j.application.redis.hexists("application",appname):
             return list()
         else:
-            pids=json.loads(j.application.redis.hget("application",appname))
+            pids=j.data.serializer.json.loads(j.application.redis.hget("application",appname))
             return pids
 
     def appsGetNames(self):

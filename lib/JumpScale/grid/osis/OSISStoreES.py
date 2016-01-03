@@ -1,7 +1,7 @@
 from JumpScale import j
 import copy
 import imp
-import ujson as json
+
 import time
 #is osisstor for elasticsearch only
 

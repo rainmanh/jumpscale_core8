@@ -2,10 +2,7 @@
 from JumpScale import j
 import sys
 import time
-try:
-    import ujson as json
-except:
-    import json
+
 import psutil
 import JumpScale.baselib.taskletengine
 from JumpScale.tools import cmdutils

@@ -3,10 +3,7 @@ from JumpScale import j
 from JumpScale.tools import cmdutils
 import os
 
-try:
-    import ujson as json
-except:
-    import json
+
 
 import sys,time
 

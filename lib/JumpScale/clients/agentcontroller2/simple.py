@@ -1,5 +1,5 @@
 import shlex
-import json
+
 import re
 import inspect
 import textwrap
@@ -408,7 +408,7 @@ class SyncClient(object):
 
     def _get_ingore(self, gid, nid, path):
         runargs = acclient.RunArgs(name='get_share_ignore', max_time=SyncClient.API_TIMEOUT)
-        command = self._client.cmd(gid, nid, 'sync', args=runargs, data=json.dumps({'path': path}))
+        command = self._client.cmd(gid, nid, 'sync', args=runargs, data=j.data.serializer.json.dumps({'path': path}))
         job = command.get_next_result(SyncClient.API_TIMEOUT)
         return self._client._load_json_or_die(job).get('ignore', []) or []
 
@@ -421,7 +421,7 @@ class SyncClient(object):
 
     def _get_need(self, gid, nid, folder_id):
         runargs = acclient.RunArgs(name='get_share_need', max_time=SyncClient.API_TIMEOUT)
-        command = self._client.cmd(gid, nid, 'sync', args=runargs, data=json.dumps({'name': folder_id}))
+        command = self._client.cmd(gid, nid, 'sync', args=runargs, data=j.data.serializer.json.dumps({'name': folder_id}))
         job = command.get_next_result(SyncClient.API_TIMEOUT)
         return self._client._load_json_or_die(job)
 
@@ -432,7 +432,7 @@ class SyncClient(object):
         }
 
         runargs = acclient.RunArgs(name='add_device', max_time=SyncClient.API_TIMEOUT)
-        command = self._client.cmd(gid, nid, 'sync', args=runargs, data=json.dumps(data))
+        command = self._client.cmd(gid, nid, 'sync', args=runargs, data=j.data.serializer.json.dumps(data))
         job = command.get_next_result(SyncClient.API_TIMEOUT)
         folder = self._client._load_json_or_die(job)
         return Share(gid, nid, folder, self)
@@ -444,7 +444,7 @@ class SyncClient(object):
         }
 
         runargs = acclient.RunArgs(name='add_device_to_share', max_time=SyncClient.API_TIMEOUT)
-        command = self._client.cmd(gid, nid, 'sync', args=runargs, data=json.dumps(data))
+        command = self._client.cmd(gid, nid, 'sync', args=runargs, data=j.data.serializer.json.dumps(data))
         job = command.get_next_result(SyncClient.API_TIMEOUT)
         return self._client._load_json_or_die(job)
 
@@ -464,7 +464,7 @@ class SyncClient(object):
         }
 
         runargs = acclient.RunArgs(name='scan_share', max_time=SyncClient.API_TIMEOUT)
-        command = self._client.cmd(gid, nid, 'sync', args=runargs, data=json.dumps(data))
+        command = self._client.cmd(gid, nid, 'sync', args=runargs, data=j.data.serializer.json.dumps(data))
         job = command.get_next_result(SyncClient.API_TIMEOUT)
         self._client._load_json_or_die(job)
 
@@ -489,7 +489,7 @@ class SyncClient(object):
         }
 
         runargs = acclient.RunArgs(name='create_share', max_time=SyncClient.API_TIMEOUT)
-        command = self._client.cmd(gid, nid, 'sync', args=runargs, data=json.dumps(data))
+        command = self._client.cmd(gid, nid, 'sync', args=runargs, data=j.data.serializer.json.dumps(data))
         job = command.get_next_result(SyncClient.API_TIMEOUT)
         folder = self._client._load_json_or_die(job)
         return Share(gid, nid, folder, self)
@@ -620,7 +620,7 @@ class SchedulerClient(object):
         if domain is not None:
             runargs = runargs.update({'domain': domain, 'name': name})
             return self._client.schedule_add(id, cron, gid=gid, nid=nid, cmd=acclient.CMD_EXECUTE_JUMPSCRIPT,
-                                             args=runargs, data=json.dumps(args), roles=roles, fanout=fanout, tags=tags)
+                                             args=runargs, data=j.data.serializer.json.dumps(args), roles=roles, fanout=fanout, tags=tags)
         else:
             # call the unexposed jumpscript_content extension manually
             if method:
@@ -634,7 +634,7 @@ class SchedulerClient(object):
             }
 
             return self._client.schedule_add(id, cron, gid=gid, nid=nid, cmd=acclient.CMD_EXECUTE_JUMPSCRIPT_CONTENT,
-                                             args=runargs, data=json.dumps(data), roles=roles, fanout=fanout, tags=tags)
+                                             args=runargs, data=j.data.serializer.json.dumps(data), roles=roles, fanout=fanout, tags=tags)
 
     def unschedule(self, id):
         """

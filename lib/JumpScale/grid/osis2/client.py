@@ -1,7 +1,7 @@
 import requests
 import urllib.request, urllib.parse, urllib.error
 import os
-import json
+
 
 class RemoteError(Exception):
     def __init__(self, msg, statuscode=None):
@@ -146,7 +146,7 @@ class ObjectClient(object):
     def _parse_response(self, response):
         if response.status_code >= 300:
             try:
-                res = json.loads(response.text)
+                res = j.data.serializer.json.loads(response.text)
                 msg = res['_error']['message']
                 if '_issues' in res:
                     msg = '%s : %s' % (msg, res['_issues'])

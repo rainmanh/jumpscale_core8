@@ -5,7 +5,7 @@ from JumpScale import j
 # import JumpScale.lib.cloudrobots
 
 # import JumpScale.baselib.redis2
-import ujson as json
+
 import sys
 
 class Output(object):
@@ -65,7 +65,7 @@ class MS1(object):
     def getCloudspaceObj(self, space_secret,**args):
         if not self.db.exists('cloudrobot:cloudspaces:secrets', space_secret):
             raise RuntimeError("E:Space secret does not exist, cannot continue (END)")
-        space=json.loads(self.db.get('cloudrobot:cloudspaces:secrets', space_secret))
+        space=j.data.serializer.json.loads(self.db.get('cloudrobot:cloudspaces:secrets', space_secret))
         return space
 
     def getCloudspaceId(self, space_secret):
@@ -176,7 +176,7 @@ class MS1(object):
 
     def getMachineSizes(self,spacesecret, cloudspaceId):
         if self.db.exists("ms1", "ms1:cache:%s:sizes"%spacesecret):
-            return json.loads(self.db.get('ms1', "ms1:cache:%s:sizes"%spacesecret))
+            return j.data.serializer.json.loads(self.db.get('ms1', "ms1:cache:%s:sizes"%spacesecret))
         api = self.getApiConnection(spacesecret)
         #sizes_actor = api.getActor('cloudapi', 'sizes')
         try:
@@ -328,7 +328,7 @@ class MS1(object):
     def listImages(self,spacesecret,**args):
 
         if self.db.exists("ms1", "ms1:cache:%s:images"%spacesecret):
-            return json.loads(self.db.get('ms1', "ms1:cache:%s:images"%spacesecret))
+            return j.data.serializer.json.loads(self.db.get('ms1', "ms1:cache:%s:images"%spacesecret))
 
         api = self.getApiConnection(spacesecret)
         result={}

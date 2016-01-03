@@ -1,7 +1,4 @@
-try:
-    import ujson as json
-except:
-    import json
+
     
 from JumpScale import j
 from JumpScale.core.types.BaseEnumeration import BaseEnumeration

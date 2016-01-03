@@ -228,7 +228,7 @@ if forcereload or data==None:
 else:
     data=data.decode()
 
-locations=json.loads(data)
+locations=j.data.serializer.json.loads(data)
 # print ("LEN:%s"%len(locations))
 
 for locationbase,llist in locations.items():  #locationbase is e.g. j.sal

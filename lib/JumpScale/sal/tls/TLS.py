@@ -1,5 +1,5 @@
 from JumpScale import j
-import json
+
 
 from sal.base.SALObject import SALObject
 

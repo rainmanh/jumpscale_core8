@@ -22,10 +22,7 @@ def action():
     import JumpScale.grid.gridhealthchecker
     import JumpScale.baselib.redis2
     import time
-    try:
-        import ujson as json
-    except:
-        import json
+    
 
     rediscl = j.clients.credis.getRedisClient('127.0.0.1', 9999)
     results, errors = j.core.grid.healthchecker.runAll()

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-import json
+
 from JumpScale import j
 
 class DemoHandlerMS1:
@@ -18,7 +18,7 @@ class DemoHandlerMS1:
         # markup={}
         # markup["force_reply"]=True
 
-        # tg.send_message(message.chat.id, "this is me",reply_to_message_id=None,reply_markup=json.dumps(markup))               
+        # tg.send_message(message.chat.id, "this is me",reply_to_message_id=None,reply_markup=j.data.serializer.json.dumps(markup))               
 
         markup={}
         markup["keyboard"]=[["yes"],["no"],["1","2","3"],["stop"]]
@@ -27,7 +27,7 @@ class DemoHandlerMS1:
 
         if not message.text=="stop":
 
-            tg.send_message(message.chat.id, "Please fill in",reply_to_message_id=None,reply_markup=json.dumps(markup))                    
+            tg.send_message(message.chat.id, "Please fill in",reply_to_message_id=None,reply_markup=j.data.serializer.json.dumps(markup))                    
 
 
         

@@ -5,7 +5,7 @@ from JumpScale.core.errorhandling.ErrorConditionHandler import BaseException
 import inspect
 import copy
 import time
-import ujson
+
 
 
 class Session():
@@ -219,7 +219,7 @@ class Daemon(object):
                         if not jobr:
                             eco = j.errorconditionhandler.getErrorConditionObject(msg="Command %s.%s with args: %s timeout" % (category2, cmd, data))
                             return returnCodes.ERROR,returnformat,eco.__dict__
-                        jobr=ujson.loads(jobr)
+                        jobr=j.data.serializer.json.loads(jobr)
                         if jobr["state"]!="OK":
                             return jobr["resultcode"],returnformat,jobr["result"]
                         else:

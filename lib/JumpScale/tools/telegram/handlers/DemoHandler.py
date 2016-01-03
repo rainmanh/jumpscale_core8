@@ -1,6 +1,6 @@
 from datetime import datetime
 
-import json
+
 from JumpScale import j
 
 AUDIOFILE = "https://ia802508.us.archive.org/5/items/testmp3testfile/mpthreetest.mp3"
@@ -39,7 +39,7 @@ class DemoHandler:
         if message.text=="send sound":
             print(tg.send_audio(message.chat.id, self.sound,reply_to_message_id="", reply_markup=""))
         elif not message.text=="stop":
-            print(tg.send_message(message.chat.id, "Please fill in",reply_to_message_id=None,reply_markup=json.dumps(markup)))
+            print(tg.send_message(message.chat.id, "Please fill in",reply_to_message_id=None,reply_markup=j.data.serializer.json.dumps(markup)))
 
 
         

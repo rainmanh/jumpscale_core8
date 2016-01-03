@@ -1,9 +1,6 @@
 from JumpScale import j
 import unittest
-try:
-    import ujson as json
-except:
-    import json
+
 import time
 
 

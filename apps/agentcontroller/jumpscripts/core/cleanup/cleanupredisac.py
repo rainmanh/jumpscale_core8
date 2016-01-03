@@ -23,10 +23,7 @@ def action():
     import time
     EXTRATIME = 120
     now = time.time()
-    try:
-        import ujson as json
-    except:
-        import json
+    
 
     import JumpScale.grid.agentcontroller
     acl = j.clients.agentcontroller.get()
@@ -37,7 +34,7 @@ def action():
             continue
         jobs = rcl.hgetall(jobkey)
         for jobguid, jobstring in jobs.items():
-            job = json.loads(jobstring)
+            job = j.data.serializer.json.loads(jobstring)
             if job['state'] in ['OK', 'ERROR', 'TIMEOUT']:
                 rcl.hdel(jobkey, jobguid)
             elif job['timeStart'] + job['timeout'] + EXTRATIME < now:
@@ -48,7 +45,7 @@ def action():
                 eco.tb = None
                 eco.jid = job['guid']
                 eco.type = str(eco.type)
-                job['result'] = json.dumps(eco.__dict__)
+                job['result'] = j.data.serializer.json.dumps(eco.__dict__)
                 acl.saveJob(job)
 
 if __name__ == '__name__':

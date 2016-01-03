@@ -32,6 +32,8 @@ if [ "$(uname)" == "Darwin" ]; then
     pip3 install paramiko
     pip3 install watchdog
     pip3 install mongoengine
+    pip3 install hiredis
+    pip3 install dulwich
     
     export TMPDIR=~/tmp
     export JSBASE='~/opt/jumpscale8'

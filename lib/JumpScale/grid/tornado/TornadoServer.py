@@ -5,7 +5,7 @@ import tornado.ioloop
 import tornado.web
 import JumpScale.grid.serverbase
 import time
-import json
+
 from JumpScale.grid.serverbase import returnCodes
 
 
@@ -42,7 +42,7 @@ class MainHandlerRPC(tornado.web.RequestHandler):
         data = self.request.body
         data = data.decode('utf-8')
 
-        payload = json.loads(data)
+        payload = j.data.serializer.json.loads(data)
 
         try:
             method_name = payload['method']

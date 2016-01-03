@@ -11,7 +11,7 @@ roles = []
 
 def action(domain="", name="", category="", reload=False):
     import re
-    import json
+    
 
     def _getTemplates():
         templates = rcl.hgetalldict("ays:templates")

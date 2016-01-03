@@ -4,10 +4,7 @@ import os
 import string
 import random
 
-try:
-    import ujson as json
-except:
-    import json
+
 from JumpScale import j
 
 

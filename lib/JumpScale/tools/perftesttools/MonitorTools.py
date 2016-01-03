@@ -3,7 +3,7 @@ from JumpScale import j
 import statsd
 import sys
 import time
-import json
+
 import os
 import psutil
 from JumpScale.lib.perftesttools import InfluxDumper

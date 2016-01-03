@@ -9,7 +9,7 @@ from gevent.pywsgi import WSGIServer
 import JumpScale.grid.serverbase
 from JumpScale.grid.serverbase import returnCodes
 import time
-import json
+
 import gevent
 
 
@@ -17,7 +17,7 @@ def jsonrpc(func):
 
     def wrapper(s, environ, start_response):
 
-        payload = json.loads(environ['wsgi.input'].read())
+        payload = j.data.serializer.json.loads(environ['wsgi.input'].read())
 
         try:
             method_name = payload['method']

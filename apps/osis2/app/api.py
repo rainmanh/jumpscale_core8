@@ -2,7 +2,7 @@ from JumpScale import j
 import jinja2
 
 from flask import Flask
-import json
+
 import os
 from flask.ext.bootstrap import Bootstrap
 from flask import send_from_directory
@@ -22,7 +22,7 @@ def register_api(namespaces):
     @app.route('/namespace', methods=['GET'])
     def list_namespaces():
         print(namespaces)
-        return json.dumps(namespaces)
+        return j.data.serializer.json.dumps(namespaces)
     
     @app.route('/', methods=['GET'])
     def home():

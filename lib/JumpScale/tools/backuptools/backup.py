@@ -1,4 +1,4 @@
-import ujson
+
 from JumpScale import j
 import lz4
 import time
@@ -36,7 +36,7 @@ def store_metadata(store, mdbucketname, backupname, backupmetadata):
 
 def read_metadata(store, mdbucketname, backupname):
     data = store.get_object(mdbucketname, backupname)
-    return ujson.loads(data)
+    return j.data.serializer.json.loads(data)
 
 def backup(store, bucketname, f, compress=True):
     global objects

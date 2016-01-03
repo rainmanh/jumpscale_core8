@@ -5,10 +5,7 @@ import os
 import requests
 import JumpScale.baselib.redis2
 from weed.master import WeedMaster
-try:
-    import ujson as json
-except:
-    import json
+
     
 # import 
 

@@ -2,7 +2,7 @@ from JumpScale import j
 # import JumpScale.baselib.actions
 
 # import pytoml
-import json
+
 import imp
 import sys
 from functools import wraps

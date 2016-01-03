@@ -1,7 +1,7 @@
 from JumpScale.grid.key_value_store.store import KeyValueStoreBase
 from JumpScale import j
 
-import ujson as json
+
 import time
 
 def chunks(l, n):

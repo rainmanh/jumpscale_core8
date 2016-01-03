@@ -1,8 +1,8 @@
 from datetime import datetime
 import gevent
-import json
+
 from JumpScale import j
-import json
+
 
 import imp
 
@@ -39,7 +39,7 @@ class Session:
             markup2["resize_keyboard"]=True
             markup2["one_time_keyboard"]=True 
             markup2["keyboard"]=markup
-            return json.dumps(markup2)
+            return j.data.serializer.json.dumps(markup2)
         return markup
 
     def getArgument(self,key,descr="",global_=False,markup=None,presetvalue=None):

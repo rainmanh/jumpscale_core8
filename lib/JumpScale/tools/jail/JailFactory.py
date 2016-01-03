@@ -1,6 +1,6 @@
 from JumpScale import j
 import JumpScale.baselib.redis2
-import ujson as json
+
 import JumpScale.sal.tmux
 
 class JailFactory(object):
@@ -114,7 +114,7 @@ class JailFactory(object):
             user2,session=key.split("__")
             if user==user2.strip():
                 data=self.redis.hget("robot:sessions",key)
-                session=json.loads(data)
+                session=j.data.serializer.json.loads(data)
                 for pid in session["pids"]:
                     if j.sal.process.isPidAlive(pid):
                         j.sal.process.kill(pid)

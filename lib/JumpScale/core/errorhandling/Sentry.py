@@ -34,10 +34,7 @@ def Sentry():
 
         if j.application.config.exists("%s.server" % hrdprefix):
             import requests
-            try:
-                import ujson as json
-            except:
-                import json
+            
             import uuid
             import datetime
             server=j.application.config.get("%s.server" %hrdprefix)
@@ -134,7 +131,7 @@ def Sentry():
             headers = {'X-Sentry-Auth': auth}
 
             try:
-                r = requests.post(url2,data=json.dumps(data), headers=headers, timeout=1)
+                r = requests.post(url2,data=j.data.serializer.json.dumps(data), headers=headers, timeout=1)
             except Exception as e:  
                 pass              
                 # print "COULD NOT SEND \n%s \nTO SENTRY.\nReason:%s"%(data,e)

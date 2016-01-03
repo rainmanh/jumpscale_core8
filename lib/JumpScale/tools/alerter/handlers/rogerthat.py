@@ -1,7 +1,7 @@
 from JumpScale import j
 from JumpScale.lib.rogerthat.rogerthatservice import GeventWSServer
 from JumpScale.baselib.alerter.alerts_service import Handler
-import json
+
 import gevent
 
 class RogerThatAlerter(Handler):

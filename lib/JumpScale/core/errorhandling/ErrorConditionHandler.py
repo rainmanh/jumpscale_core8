@@ -4,10 +4,7 @@ import string
 import inspect
 import imp
 
-try:
-    import ujson as json
-except ImportError:
-    import json
+
 
 from JumpScale import j
 from JumpScale.core.errorhandling.ErrorConditionObject import ErrorConditionObject, LEVELMAP
@@ -58,7 +55,7 @@ class ErrorConditionHandler():
             res=self.escalateToRedis(keys=["queues:eco","eco:incr","eco:occurrences","eco:objects","eco:last"],args=[key,data])
             # print "redisreturn: '%s'"%res
             # j.application.stop()
-            res= json.loads(res)            
+            res= j.data.serializer.json.loads(res)            
             return res
         else:
             return None
@@ -308,16 +305,11 @@ class ErrorConditionHandler():
         
 
         errorobject=self.getErrorConditionObject(msg=message,msgpub="",level=level,tb=tb)      
-
-        try:
-            import ujson as json
-        except:
-            import json
         
         if "message" in pythonExceptionObject.__dict__:
-            errorobject.exceptioninfo = json.dumps({'message': pythonExceptionObject.message})
+            errorobject.exceptioninfo = j.data.serializer.json.dumps({'message': pythonExceptionObject.message})
         else:
-            errorobject.exceptioninfo = json.dumps({'message': str(pythonExceptionObject)})
+            errorobject.exceptioninfo = j.data.serializer.json.dumps({'message': str(pythonExceptionObject)})
 
         errorobject.exceptionclassname = pythonExceptionObject.__class__.__name__
 
@@ -347,7 +339,6 @@ class ErrorConditionHandler():
         return errorobject        
 
     def reRaiseECO(self, eco):
-        import json
         if eco.exceptionmodule:
             mod = imp.load_package(eco.exceptionmodule, eco.exceptionmodule)
         else:

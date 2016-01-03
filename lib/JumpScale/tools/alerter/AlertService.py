@@ -4,10 +4,7 @@ import JumpScale.baselib.redis2
 import JumpScale.lib.rogerthat
 import JumpScale.portal
 
-try:
-    import ujson as json
-except ImportError:
-    import json
+
 import time
 import sys
 import os
@@ -150,7 +147,7 @@ class AlertService(object):
             if alert['state'] == 'ALERT':
                 self.escalate(alert=alert)
             elif oldalert:
-                oldalert = json.loads(oldalert)
+                oldalert = j.data.serializer.json.loads(oldalert)
                 if oldalert['state'] == 'ALERT' and alert['state'] == 'ACCEPTED':
                     alert['message_id'] = oldalert['message_id']
                     self.updateState(alert)

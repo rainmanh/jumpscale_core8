@@ -22,7 +22,7 @@ class Nginx(SALObject):
 
     def configure(self, fwObject):
         json = j.data.serializer.serializers.getSerializerType('j')
-        fwDict = json.loads(fwObject)
+        fwDict = j.data.serializer.json.loads(fwObject)
         wsForwardRules = fwDict.get('wsForwardRules')
         configfile = self.configPath.joinpath('%s.conf' % fwDict['name'])
         config = ''

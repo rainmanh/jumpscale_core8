@@ -10,7 +10,7 @@ roles = []
 
 
 def action(reload=False):
-    import json
+    
 
     rcl = j.clients.redis.getByInstance("system")
 

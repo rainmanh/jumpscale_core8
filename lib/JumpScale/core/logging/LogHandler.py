@@ -9,10 +9,7 @@ from datetime import datetime
 
 from io import BytesIO
 
-try:
-    import ujson as json
-except ImportError:
-    import json
+
 
 
 
@@ -124,7 +121,7 @@ class LogItem(object):
         return self.guid
 
     def toJson(self):
-        return json.dumps(self.__dict__)
+        return j.data.serializer.json.dumps(self.__dict__)
 
     def __str__(self):
         if self.category!="":
@@ -145,14 +142,14 @@ class LogHandlerArgs():
         if j.core.db!=None:
             data=j.core.db.get("system.logging.%s"%j.do.BASE)
             if data!=None:
-                self.__dict__=json.loads(data.decode())
+                self.__dict__=j.data.serializer.json.loads(data.decode())
                 return
         print ("INITLOGS")
         self.maxlevel = 5
         self.consoleloglevel = 2
         self.consolelogCategories=[]
         self.enabled = j.application.config.getBool("system.logging",default=False)
-        data=json.dumps(self.__dict__)
+        data=j.data.serializer.json.dumps(self.__dict__)
         j.core.db.set("system.logging.%s"%j.do.BASE,data)        
 
 class LogHandler(object):

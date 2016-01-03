@@ -4,10 +4,7 @@ import atexit
 import struct
 from collections import namedtuple
 
-try:
-    import ujson as json
-except ImportError:
-    import json
+
 
 WhoAmI = namedtuple('WhoAmI', 'gid nid pid')
 
@@ -165,7 +162,7 @@ class Application:
 
         if j.core.db!=None:
             if j.core.db.hexists("application",self.appname):
-                pids=json.loads(j.core.db.hget("application",self.appname))
+                pids=j.data.serializer.json.loads(j.core.db.hget("application",self.appname))
             else:
                 pids=[]
             if self.systempid not in pids:

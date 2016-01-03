@@ -1,5 +1,5 @@
 from copy import copy
-import json
+
 
 from JumpScale.clients.racktivity.energyswitch.common import convert
 from JumpScale.clients.racktivity.energyswitch.common.GUIDTable import Value
@@ -35,7 +35,7 @@ class Model(BaseModule):
 
     def getModules(self):
         data = self._parent.client.getModList()
-        return json.loads(data)
+        return j.data.serializer.json.loads(data)
 
     # Temperature
     def getTemperature(self):

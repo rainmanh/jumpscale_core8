@@ -11,7 +11,7 @@ roles = []
 
 def action(domain="", name="", instance="", reload=False):
     import re
-    import json
+    
 
     def _getServices():
         services = rcl.hgetalldict("ays:services")

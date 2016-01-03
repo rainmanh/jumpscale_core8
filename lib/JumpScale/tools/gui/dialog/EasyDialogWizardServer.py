@@ -37,10 +37,7 @@ import sys
 import os
 import functools
 
-try:
-    import ujson as json
-except:
-    import json
+
 
 from JumpScale import j
 
@@ -193,7 +190,7 @@ class WizardActions(object):
 
         @return:        JSON encoded string of the action
         """
-        return json.dumps(action)
+        return j.data.serializer.json.dumps(action)
 
     def getClearAction(self):
         """

@@ -3,7 +3,7 @@ import sys, os, inspect
 import tempfile
 
 from JumpScale import j
-import json
+
 
 def pathToUnicode(path):
     """
@@ -36,7 +36,7 @@ class Dirs(object):
         if j.core.db!=None:
             data=j.core.db.get("system.dirs.%s"%self.base)
             if data!=None:
-                self.__dict__=json.loads(data.decode())
+                self.__dict__=j.data.serializer.json.loads(data.decode())
             else:
                 self.init()
     def init(self):
@@ -77,7 +77,7 @@ class Dirs(object):
         else:
             self.binDir = j.application.config.get("system.paths.bin")
 
-        data=json.dumps(self.__dict__)
+        data=j.data.serializer.json.dumps(self.__dict__)
         j.core.db.set("system.dirs.%s"%self.base,data)
 
     def replaceTxtDirVars(self,txt,additionalArgs={}):

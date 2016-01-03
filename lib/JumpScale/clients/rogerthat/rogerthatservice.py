@@ -6,10 +6,7 @@ import JumpScale.baselib.redis2
 import time
 import JumpScale.lib.rogerthat
 
-try:
-    import ujson as json
-except ImportError:
-    import json
+
 
 def jsonrpc(func):
     def wrapper(s, environ, start_response):
@@ -23,7 +20,7 @@ def jsonrpc(func):
         data = environ['wsgi.input'].read()
         msg = dict()
         try:
-            msg = json.loads(data)
+            msg = j.data.serializer.json.loads(data)
         except Exception as e:
             print(e)
             result = s.invalidRequest()
@@ -37,7 +34,7 @@ def jsonrpc(func):
                 result = s.invalidRequest()
 
         statuscode = '500 Internal Server Error' if result.get('error') else '200 OK'
-        result = json.dumps(result)
+        result = j.data.serializer.json.dumps(result)
         start_response(statuscode, (('Content-type', 'application/json-rpc'),))
         return result
     return wrapper

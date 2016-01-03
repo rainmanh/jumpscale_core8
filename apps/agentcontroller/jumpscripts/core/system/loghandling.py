@@ -19,10 +19,7 @@ queue ='process'
 log = False
 roles = []
 
-try:
-    import ujson as json
-except:
-    import json
+
 
 import time
 import JumpScale.baselib.redis2
@@ -71,7 +68,7 @@ def action():
         OSISclientLogger.set(out)
 
     while ecoguid!=None:
-        eco = json.loads(rediscl.hget('eco:objects', ecoguid))
+        eco = j.data.serializer.json.loads(rediscl.hget('eco:objects', ecoguid))
         if not eco.get('epoch'):
             eco["epoch"] = int(time.time())
         ecoobj = j.errorconditionhandler.getErrorConditionObject(ddict=eco)

@@ -1,7 +1,4 @@
-try:
-    import ujson as json
-except:
-    import json
+
 #import JSModel
 import time
 from abc import ABCMeta, abstractmethod
@@ -213,7 +210,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
             if force==False:
                 raise RuntimeError("Cannot lock %s %s"%(locktype, info))
         value = [self.id, j.data.time.getTimeEpoch() + timeout, info]
-        encodedValue = json.dumps(value)
+        encodedValue = j.data.serializer.json.dumps(value)
         self.settest(category, locktype, encodedValue)
 
     def lockCheck(self,locktype):
@@ -225,7 +222,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
         if self.exists("lock",locktype):
             encodedValue = self.get("lock", locktype)
             try:
-                id, lockEnd, info = json.loads(encodedValue)
+                id, lockEnd, info = j.data.serializer.json.loads(encodedValue)
             except ValueError:
                 j.logger.exception("Failed to decode lock value")
                 raise ValueError("Invalid lock type %s" % locktype)

@@ -3,10 +3,7 @@ import JumpScale.baselib.remote
 import sys
 # import importlib
 
-try:
-    import ujson as json
-except:
-    import json
+
 
 import JumpScale.baselib.redis2
 import copy
@@ -416,7 +413,7 @@ ff02::2      ip6-allrouters
             data=self.redis.hget("admin:nodes","%s:%s"%(gridname,name))
             node=JNode()
             try:
-                node.__dict__=json.loads(data)
+                node.__dict__=j.data.serializer.json.loads(data)
             except Exception as e:
                 raise RuntimeError("could not decode node: '%s/%s'"%(gridname,name))
             n=node.name
@@ -475,7 +472,7 @@ ff02::2      ip6-allrouters
             gridname,nodename,jscriptid=hkey.split(":")
             if jscriptid==str(self.runid):
                 sr=ScriptRun()
-                sr.__dict__=json.loads(self.redis.hget("admin:scriptruns",hkey))
+                sr.__dict__=j.data.serializer.json.loads(self.redis.hget("admin:scriptruns",hkey))
                 res.append(sr)
         return res
 

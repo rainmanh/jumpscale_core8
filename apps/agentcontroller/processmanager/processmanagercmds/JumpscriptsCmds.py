@@ -1,6 +1,6 @@
 from JumpScale import j
 import gevent
-import ujson
+
 # from rq import Queue
 # import JumpScale.baselib.redis2worker
 from JumpScale.baselib.redisworker.RedisWorker import RedisWorkerFactory

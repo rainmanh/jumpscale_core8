@@ -1,7 +1,7 @@
 from JumpScale import j
 import copy
 import imp
-import ujson as json
+
 import time
 import JumpScale.baselib.taskletengine
 
@@ -369,7 +369,7 @@ class OSISStore(object):
             obj = self.get(id)
             filename = j.sal.fs.joinPaths(outputpath, id)
             if isinstance(obj, dict):
-                obj = json.dumps(obj)
+                obj = j.data.serializer.json.dumps(obj)
             j.sal.fs.writeFile(filename, obj)
 
     def importFromPath(self, path, session=None):

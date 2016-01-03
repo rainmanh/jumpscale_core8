@@ -30,10 +30,7 @@ def action():
     import JumpScale.grid.gridhealthchecker
     import JumpScale.grid.processmanager
     import JumpScale.baselib.watchdog.client
-    try:
-        import ujson as json
-    except:
-        import json
+    
 
     rediscl = j.clients.redis.getGeventRedisClient('127.0.0.1', j.application.config.get('redis.port.redisp'))
     # results, errors = j.core.grid.healthchecker.runAll()
@@ -56,7 +53,7 @@ def action():
 
     if check==False:
         j.tools.watchdog.client.send("grid.healthcheck","CRITICAL", gid=j.application.whoAmI.gid, nid=j.application.whoAmI.nid,value="watchdog check did not run in time.")
-    errors=json.loads(rediscl.hget('healthcheck:monitoring', 'errors'))
+    errors=j.data.serializer.json.loads(rediscl.hget('healthcheck:monitoring', 'errors'))
 
 
     colormap = {'RUNNING': 'green', 'HALTED': 'red', 'UNKNOWN': 'orange',

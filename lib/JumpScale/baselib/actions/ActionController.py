@@ -7,7 +7,7 @@
 from JumpScale import j
 from Action import *
 
-import ujson as json
+
 
 
 class ActionController(object):
@@ -29,7 +29,7 @@ class ActionController(object):
     def getActionNamesDone(self,action):
         path=self._getPathMD(action)
         if j.sal.fs.exists(path):
-            return json.loads(j.do.readFile(path))
+            return j.data.serializer.json.loads(j.do.readFile(path))
         else:
             return []
 

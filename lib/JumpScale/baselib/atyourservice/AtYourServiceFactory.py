@@ -7,7 +7,7 @@ from ActionsBaseMgmt import ActionsBaseMgmt
 from ActionsBaseNode import ActionsBaseNode
 from Blueprint import Blueprint
 # import AYSdb
-import json
+
 from AtYourServiceSync import AtYourServiceSync
 import os
 
@@ -55,6 +55,10 @@ class AtYourServiceFactory():
 
     @property
     def debug(self):
+        from IPython import embed
+        print (111)
+        embed()
+        
         from AtYourServiceDebug import AtYourServiceDebugFactory
         if self._debug==None:
             self._debug=AtYourServiceDebugFactory()
@@ -486,7 +490,7 @@ class AtYourServiceFactory():
                             ports.append(tcpportsql)
                         processsql.ports = ports
                     elif key == 'env':
-                        processsql.env = json.dumps(value)
+                        processsql.env = j.data.serializer.json.dumps(value)
                     else:
                         processsql.__setattr__(key, value)
                     sql.session.add(processsql)
@@ -494,7 +498,7 @@ class AtYourServiceFactory():
                 elif key.startswith('git.export') or key.startswith('service.web.export'):
                     recipesql = AYSdb.RecipeItem()
                     recipesql.order = key.split('export.', 1)[1]
-                    recipesql.recipe = json.dumps(value)
+                    recipesql.recipe = j.data.serializer.json.dumps(value)
                     sql.session.add(recipesql)
                     recipes.append(recipesql)
                 elif key.startswith("service.dependencies") or key.startswith('dependencies'):
@@ -506,13 +510,13 @@ class AtYourServiceFactory():
                         dependencysql.domain = val.get('domain', '')
                         dependencysql.name = val.get('name', '')
                         dependencysql.instance = val.get('instance', '')
-                        dependencysql.args = json.dumps(val.get('args', '{}'))
+                        dependencysql.args = j.data.serializer.json.dumps(val.get('args', '{}'))
                         sql.session.add(dependencysql)
                         dependencies.append(dependencysql)
                 else:
                     hrdsql = AYSdb.HRDItem()
                     hrdsql.key = key
-                    hrdsql.value = json.dumps(value)
+                    hrdsql.value = j.data.serializer.json.dumps(value)
                     hrdsql.isTemplate = True
                     sql.session.add(hrdsql)
                     hrds.append(hrdsql)
@@ -591,7 +595,7 @@ class AtYourServiceFactory():
                             ports.append(tcpportsql)
                         processsql.ports = ports
                     elif key == 'env':
-                        processsql.env = json.dumps(value)
+                        processsql.env = j.data.serializer.json.dumps(value)
                     else:
                         processsql.__setattr__(key, value)
                 sql.session.add(processsql)

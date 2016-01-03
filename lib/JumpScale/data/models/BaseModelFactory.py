@@ -140,7 +140,7 @@ class BaseModelFactory():
         key = self.getKey(modelobject._class_name, modelobject.guid)
         meta = modelobject._meta['indexes']
         expirey = meta[0].get('expireAfterSeconds', None) if meta else None
-        modelraw = json.dumps(modelobject.to_dict())
+        modelraw = j.data.serializer.json.dumps(modelobject.to_dict())
         j.core.db.set(key, modelraw)
         if expirey:
             j.core.db.expire(key, expirey)

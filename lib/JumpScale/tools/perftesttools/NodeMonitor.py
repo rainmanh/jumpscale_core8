@@ -48,7 +48,7 @@ class NodeMonitor(NodeBase):
         data=self.redis.hget("stats:%s"%node,key)
         if data==None:
             return {"val":None}
-        data=json.loads(data)
+        data=j.data.serializer.json.loads(data)
         return data
 
     def loopPrintStatus(self):

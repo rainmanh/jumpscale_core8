@@ -7,7 +7,7 @@ import sys
 import os
 import docker
 import time
-import json
+
 
 from sal.base.SALObject import SALObject
 

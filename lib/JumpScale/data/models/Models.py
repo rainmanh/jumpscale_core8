@@ -1,7 +1,7 @@
 
 from mongoengine import *
 from JumpScale import j
-import json
+
 import uuid
 
 
@@ -13,7 +13,7 @@ class ModelBase(Document):
     meta = {'allow_inheritance': True}
 
     def to_dict(self):
-        d = json.loads(ModelBase.to_json(self))
+        d = j.data.serializer.json.loads(ModelBase.to_json(self))
         d.pop("_cls")
         if "_id" in d:
             d.pop("_id")

@@ -13,10 +13,7 @@ import importlib
 import sys
 import copy
 import os
-try:
-    import ujson as json
-except:
-    import json
+
 import time
 
 import JumpScale.grid.jumpscripts   # To make j.core.jumpscripts available
@@ -128,7 +125,7 @@ class ControllerCMDS():
         saveinosis = True if nid and log else False
         jobdict = job.dump()
         self._setJob(jobdict, osis=saveinosis)
-        jobs=json.dumps(jobdict)
+        jobs=j.data.serializer.json.dumps(jobdict)
         
         self._log("getqueue")
         role = roles[0] if roles else None
@@ -150,7 +147,7 @@ class ControllerCMDS():
         for qname in queues:
             jobstrings = self.redis.lrange(qname, 0, -1)
             for jobstring in jobstrings:
-                job = json.loads(jobstring)
+                job = j.data.serializer.json.loads(jobstring)
                 timeout = job['timeout'] or expiretime
                 if job['state'] == 'SCHEDULED' and job['timeStart'] + timeout < now:
                     self.redis.lrem(qname, jobstring)
@@ -187,7 +184,7 @@ class ControllerCMDS():
         # job guid needs to be unique accoress grid, structure $ac_gid _ $ac_nid _ $executor_gid _ $jobenum
         if not job['guid']:
             job["guid"]="%s_%s_%s"%(self.acuniquekey, job["gid"],job["id"])
-        jobs=json.dumps(job)            
+        jobs=j.data.serializer.json.dumps(job)            
         self.redis.hset("jobs:%s"%job["gid"], job["guid"], jobs)
         if osis:
             # we need to make sure that job['result'] is always of the same type hence we serialize
@@ -197,10 +194,10 @@ class ControllerCMDS():
     def saveJob(self, job, session=None):
         job = copy.deepcopy(job)
         if 'result' in job and not isinstance(job["result"],str):
-            job['result'] = json.dumps(job['result'])
+            job['result'] = j.data.serializer.json.dumps(job['result'])
         for key in ('args', 'kwargs'):
             if key in job:
-                job[key] = json.dumps(job[key])
+                job[key] = j.data.serializer.json.dumps(job[key])
         self.jobclient.set(job)
 
     def _deleteJobFromCache(self, job):
@@ -212,7 +209,7 @@ class ControllerCMDS():
         gid = jobguid.split("_")[1]
         jobstring = self.redis.hget("jobs:%s" % gid, jobguid)
         if jobstring:
-            return json.loads(jobstring)
+            return j.data.serializer.json.loads(jobstring)
         else:
             return None
 
@@ -493,7 +490,7 @@ class ControllerCMDS():
             job = self._getJobFromRedis(jobguid)
             if not job:
                 # job = self.jobclient.get(jobguid).__dict__
-                # job['result'] = json.loads(job['result'])
+                # job['result'] = j.data.serializer.json.loads(job['result'])
                 raise RuntimeError("Cannot find job in redis.")
         if job['state'] != 'SCHEDULED':
             return job
@@ -509,7 +506,7 @@ class ControllerCMDS():
         self._deleteJobFromCache(job)
         q.set_expire(5)  #@todo ????
         if res!=None:
-            return json.loads(res)
+            return j.data.serializer.json.loads(res)
         else:
             job["resultcode"]=1
             job["state"]="TIMEOUT"
@@ -525,7 +522,7 @@ class ControllerCMDS():
     def _deletelJobFromQueue(self, job):
         cmdqueue = self._getCmdQueue(job['gid'], job['nid'])
         for jobqueue in self.redis.lrange(cmdqueue.key, 0, -1):
-            qjob = json.loads(jobqueue)
+            qjob = j.data.serializer.json.loads(jobqueue)
             if qjob['guid'] == job['guid']:
                 self.redis.lrem(cmdqueue.key, jobqueue)
                 return
@@ -543,7 +540,7 @@ class ControllerCMDS():
         if jobstr==None:
             self._log("NO WORK")
             return None
-        job=json.loads(jobstr)
+        job=j.data.serializer.json.loads(jobstr)
         if job!=None:
             job['nid'] = session.nid
             saveinosis = job['log']
@@ -582,7 +579,7 @@ class ControllerCMDS():
         #         if parentjob.db.state != 'ERROR':
         #             parentjob.db.state = "OK"
         #         if not parentjob.db.result:
-        #             parentjob.db.result = json.dumps(None)
+        #             parentjob.db.result = j.data.serializer.json.dumps(None)
         #         parentjob.save()
         #         parentjob.done()
 
@@ -621,7 +618,7 @@ class ControllerCMDS():
         for qname in queues:
             jobstrings = self.redis.lrange(qname, 0, -1)
             for jobstring in jobstrings:
-                job = json.loads(jobstring)
+                job = j.data.serializer.json.loads(jobstring)
                 job['acqueue'] = qname[22:]
                 jobs.append(job)
         return jobs

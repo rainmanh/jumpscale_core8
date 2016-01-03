@@ -64,7 +64,7 @@ class MainHandlerRPC(tornado.web.RequestHandler):
         self.set_status(statuscode, statusmessage)
         self.set_header('Content-Type', 'application/json')
 
-        self.write(json.dumps(result))
+        self.write(j.data.serializer.json.dumps(result))
         self.flush()
 
 class TornadoServer():

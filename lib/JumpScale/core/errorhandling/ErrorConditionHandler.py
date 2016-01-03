@@ -345,7 +345,7 @@ class ErrorConditionHandler():
             import builtins as mod
         Klass = getattr(mod, eco.exceptionclassname, RuntimeError)
         exc = Klass(eco.errormessage)
-        for key, value in list(json.loads(eco.exceptioninfo).items()):
+        for key, value in list(j.data.serializer.json.loads(eco.exceptioninfo).items()):
             setattr(exc, key, value)
         raise exc
 

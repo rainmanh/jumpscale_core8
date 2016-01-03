@@ -342,7 +342,7 @@ class RedisWorkerFactory(object):
             queue = self.queue[quename]
             jobs = self.redis.lrange(queue.key, 0, -1)
             for jobstring in jobs:
-                result.append(json.loads(jobstring))
+                result.append(j.data.serializer.json.loads(jobstring))
         if asWikiTable:
             out=""
             for job in result:
@@ -356,7 +356,7 @@ class RedisWorkerFactory(object):
         for q in queues:
             jobsjson = self.redis.lrange('queues:workers:work:%s' % q, 0, -1)
             for jobstring in jobsjson:
-                jobs.append(json.loads(jobstring))
+                jobs.append(j.data.serializer.json.loads(jobstring))
 
         #get failed jobs
         for job in jobs:
@@ -376,7 +376,7 @@ class RedisWorkerFactory(object):
             jobs = dict()
             jobsjson = self.redis.hgetall('queues:workers:work:%s' % q)
             if jobsjson:
-                jobs.update(json.loads(jobsjson))
+                jobs.update(j.data.serializer.json.loads(jobsjson))
                 for k, job in list(jobs.items()):
                     if job['timeStart'] >= epochago:
                         jobs.pop(k)

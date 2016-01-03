@@ -167,7 +167,7 @@ class Application:
                 pids=[]
             if self.systempid not in pids:
                 pids.append(self.systempid)
-            j.core.db.hset("application",self.appname,json.dumps(pids))
+            j.core.db.hset("application",self.appname,j.data.serializer.json.dumps(pids))
 
         # Set state
         self.state = "RUNNING"

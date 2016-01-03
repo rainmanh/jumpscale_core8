@@ -44,7 +44,7 @@ class RedisDict(dict):
     def iteritems(self):
         allkeys = self._client.hgetalldict(self._key)
         for key, value in list(allkeys.items()):
-            yield key, json.loads(value)
+            yield key ,j.data.serializer.json.loads(value)
 
 class Redis(redis.Redis):
     hgetalldict = redis.Redis.hgetall

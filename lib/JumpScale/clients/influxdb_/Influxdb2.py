@@ -1,5 +1,5 @@
 from JumpScale import j
-import redis
+
 from influxdb import client as influxdb
 import requests
 from requests.auth import HTTPBasicAuth

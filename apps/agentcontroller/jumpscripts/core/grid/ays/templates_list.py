@@ -38,5 +38,5 @@ def action(domain="", name="", category="", reload=False):
             tdict[field] = getattr(template, field)
         tdict["instances"] = template.listInstances()
         rcl.hset("ays:templates", "%(domain)s_%(name)s" %
-                 tdict, json.dumps(tdict))
+                 tdict,j.data.serializer.json.dumps(tdict))
     return _getTemplates()

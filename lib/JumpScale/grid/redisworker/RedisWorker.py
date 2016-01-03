@@ -289,7 +289,7 @@ class RedisWorkerFactory(object):
         if result==None:            
             job.state="TIMEOUT"
             job.timeStop=int(time.time())
-            self.redis.set("workers:jobs%s" % job.id, json.dumps(job.__dict__), ex=60)
+            self.redis.set("workers:jobs%s" % job.id,j.data.serializer.json.dumps(job.__dict__), ex=60)
             j.events.opserror("timeout on job:%s"%job, category='workers.job.wait.timeout', e=None)
         else:
             job=self.getJob(job.id)
@@ -315,7 +315,7 @@ class RedisWorkerFactory(object):
         queue=self.queue[qname]
 
         # if not self.jobExistsInQueue(qname,job):
-        self.redis.set("workers:jobs:%s" % job.id, json.dumps(job.__dict__))
+        self.redis.set("workers:jobs:%s" % job.id,j.data.serializer.json.dumps(job.__dict__))
         queue.put(job)
 
     def scheduleJob(self, job):

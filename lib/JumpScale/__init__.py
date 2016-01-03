@@ -199,7 +199,7 @@ def findModules():
 
     j.core.db.set("system.locations",json.dumps(result))
     if base =="/opt/jumpscale8":
-        j.do.writeFile("%s/bin/metadata.db"%j.do.BASE,json.dumps(result))
+        j.do.writeFile("%s/bin/metadata.db"%j.do.BASE,j.data.serializer.json.dumps(result))
 
 
 forcereload=False
@@ -228,7 +228,7 @@ if forcereload or data==None:
 else:
     data=data.decode()
 
-locations=j.data.serializer.json.loads(data)
+locations=json.loads(data)
 # print ("LEN:%s"%len(locations))
 
 for locationbase,llist in locations.items():  #locationbase is e.g. j.sal

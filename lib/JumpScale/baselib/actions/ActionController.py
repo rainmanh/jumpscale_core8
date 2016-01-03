@@ -39,7 +39,7 @@ class ActionController(object):
             md.append(action.name)
             path=self._getPathMD(action)
             j.sal.fs.createDir(j.sal.fs.getDirName(path))
-            j.do.writeFile(path,json.dumps(md))
+            j.do.writeFile(path,j.data.serializer.json.dumps(md))
 
     def start(self, description="", cmds="",action=None,actionRecover=None,actionArgs={},category="unknown",name="unknown",\
             errorMessage="", resolutionMessage="", loglevel=1,die=True,stdOutput=True,errorOutput=True,retry=1,serviceObj=None):

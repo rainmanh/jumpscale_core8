@@ -49,5 +49,5 @@ def action(domain="", name="", instance="", reload=False):
         tdict['logPath'] = service.getLogPath()
         tdict['isLatest'] = service.isLatest()
         tdict['hrd'] = str(service.hrd)
-        rcl.hset("ays:services", "%(domain)s_%(name)s_%(instance)s" % tdict, json.dumps(tdict))
+        rcl.hset("ays:services", "%(domain)s_%(name)s_%(instance)s" % tdict,j.data.serializer.json.dumps(tdict))
     return _getServices()

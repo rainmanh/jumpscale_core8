@@ -28,4 +28,4 @@ def action(reload=False):
         isrunning = service.actions.check_up_local(service,wait=False)
         tdict['status'] = 'RUNNING' if isrunning else 'HALTED'
 
-        rcl.hset("ays:services:status", "%(domain)s_%(name)s_%(instance)s" % tdict, json.dumps(tdict))
+        rcl.hset("ays:services:status", "%(domain)s_%(name)s_%(instance)s" % tdict,j.data.serializer.json.dumps(tdict))

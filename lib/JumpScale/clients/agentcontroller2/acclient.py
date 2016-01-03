@@ -1,4 +1,4 @@
-import redis
+
 
 import uuid
 
@@ -516,10 +516,9 @@ class Client(object):
     :param port: Redis port
     :param password: (optional) redis password
     """
-    def __init__(self, address='localhost', port=6379, password=None, db=0):
+    def __init__(self, address='localhost', port=6379, password=None):
         # Initializing redis client
-        self._redis = redis.StrictRedis(host=address, port=port, password=password, db=db)
-
+        self._redis=j.clients.redis.getRedisClient(ipaddr=address, port=port, password=password, fromcache=True)
         # Check the connectivity
         self._redis.ping()
 
@@ -692,7 +691,7 @@ class Client(object):
         :param fanout: Fanout job to all agents with given role (only effective if role is set)
         """
         runargs = RunArgs().update(runargs).update({'domain': domain, 'name': name})
-        return self.cmd(gid, nid, CMD_EXECUTE_JUMPSCRIPT, runargs, json.dumps(args), roles=roles,
+        return self.cmd(gid, nid, CMD_EXECUTE_JUMPSCRIPT, runargs,j.data.serializer.json.dumps(args), roles=roles,
                         fanout=fanout, tags=tags)
 
     def execute_jumpscript_content(self, gid, nid, content, args={}, runargs=None, roles=None, fanout=False, tags=None):

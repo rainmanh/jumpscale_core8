@@ -1881,7 +1881,7 @@ class SystemProcess(SALObject):
                     todelete.append(pid)
         for item in todelete:
             pids.remove(item)
-        j.application.redis.hset("application",appname,json.dumps(pids))
+        j.application.redis.hset("application",appname,j.data.serializer.json.dumps(pids))
 
         return pids
 

@@ -207,7 +207,7 @@ class Worker(object):
 
         if job.internal:
             #means is internal job
-            self.redisw.redis.set("workers:jobs:%s" % job.id, json.dumps(job.__dict__), ex=60)
+            self.redisw.redis.set("workers:jobs:%s" % job.id,j.data.serializer.json.dumps(job.__dict__), ex=60)
             self.redisw.redis.rpush("workers:return:%s"%job.id,time.time())
             self.redisw.redis.expire("workers:return:%s"%job.id, 60)
         else:

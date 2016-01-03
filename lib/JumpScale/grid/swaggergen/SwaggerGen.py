@@ -123,7 +123,7 @@ class SwaggerGen(object):
             'base_url': self.server['baseURL']
         }
         self.client['methods'] = self._clientMethods(self.server['handlers'])
-        j.sal.fs.writeFile(outputPath, json.dumps(self.client, indent=4))
+        j.sal.fs.writeFile(outputPath,j.data.serializer.json.dumps(self.client, indent=4))
         return self.client
 
     def _clientMethods(self, handlers):

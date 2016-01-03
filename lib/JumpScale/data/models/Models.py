@@ -28,16 +28,76 @@ class ModelBase(Document):
         else:
             return cls.objects(__raw__=query)
 
-    def save(self):
-        if "_redis" in self.__dict__:
+    @classmethod
+    def _getKey(cls, guid):
+        """
+        @return hsetkey,key
+        """
+        ttype = cls._class_name.split(".")[-1]
+        key = "models.%s" % ttype
+        key = '%s_%s' % (key, guid)
+        key = key.encode('utf-8')
+        return key
+
+    @classmethod
+    def get(cls, guid, redis=False, returnObjWhenNonExist=False):
+        """
+        default needs to be in redis, need to mention if not
+        """
+        # model is not a class its really the object
+        if redis:
+            modelraw = j.core.db.get(cls._getKey(guid))
+            if modelraw:
+                modelraw = modelraw.decode()
+                model = cls.from_json(modelraw)
+                model._redis = True
+                return model
+            else:
+                res = None
+        else:
+            try:
+                res = cls.objects.get(guid=guid)
+            except DoesNotExist:
+                res = None
+
+        #if returnObjWhenNonExist and res is None:
+        #    return model
+        return res
+
+    def save(cls):
+        if "_redis" in cls.__dict__:
             redis = True
-            return j.data.models.set(self, redis=redis)
+            return cls.set(redis=redis)
         else:
             redis = False
-            return super(ModelBase, self).save()
+            return super(ModelBase, cls).save()
+
+    @classmethod
+    def set(cls, redis=True):
+        key = cls._getKey(cls.guid)
+        meta = cls._meta['indexes']
+        expirey = meta[0].get('expireAfterSeconds', None) if meta else None
+        modelraw = j.data.serializer.json.dumps(cls.to_dict())
+        j.core.db.set(key, modelraw)
+        if expirey:
+            j.core.db.expire(key, expirey)
+        return cls
+
+    def getset(cls, redis=True):
+        raise NotImplementedError
+        #key = cls._getKey(cls.guid)
+        #if redis:
+        #    model = self.get(cls.guid, redis=True)
+        #    if model == None:
+        #        self.set(modelobject, redis=True)
+        #        model = modelobject
+        #    model._redis = True
+        #    return model
+        #else:
+        #    raise RuntimeError("not implemented")
 
     def __str__(self):
-        return (json.dumps(self.to_dict(), sort_keys=True, indent=4))
+        return j.data.serializer.json.dumps(self.to_dict())
 
     __repr__ = __str__
 

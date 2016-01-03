@@ -17,12 +17,11 @@ class ModelBase(Document):
         d.pop("_cls")
         if "_id" in d:
             d.pop("_id")
-        if "_redis" in d:
-            d.pop("_redis")
         return d
 
     @classmethod
-    def find(cls, query, redis=False):
+    def find(cls, query):
+        redis = getattr(cls, '__redis__', False)
         if redis:
             raise RuntimeError("not implemented")
         else:

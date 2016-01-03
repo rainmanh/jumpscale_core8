@@ -126,6 +126,32 @@ class GitClient(object):
         else:
             self.repo.git.push('--all')
 
+    def getChangedFiles(self,fromref="",fromepoch="",author=None,paths=[],toref=""):
+        """
+        list all changed files since ref & epoch (use both)
+        @param fromref = comittref to start from 
+        @param author if limited to author
+        @param path if only list changed files in paths
+        """
+        #@todo (*1*) can use git library like https://www.dulwich.io/ or the std python lib
+        pass
+
+    def getCommitRefs(self,fromref="",fromepoch="",author=None,paths=[]):
+        """
+        @return [$epoch,$ref,$author]
+        """
+        #@todo (*1*) 
+        pass
+
+    def getFileChanges(self,path):
+        """
+        @return lines which got changed
+        format:
+        @todo what is best format to return difs which are easy to read & process by machine
+        needs to happen per path and need to know who changed which line when
+        """
+        pass
+
     def getUntrackedFiles(self):
         return self.repo.untracked_files
 

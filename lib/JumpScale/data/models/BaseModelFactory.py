@@ -2,16 +2,17 @@ from JumpScale import j
 
 from Models import *
 
-import mongoengine
-
-if not j.sal.process.checkProcessRunning('mongod'):
-    j.sal.process.execute(
-        "mongod --fork --logpath /opt/jumpscale8/var/mongodb.log")
-
 try:
-    mongoengine.connection.get_connection()
+    import mongoengine
 except:
-    mongoengine.connect(db='jumpscale_system')
+    pass
+
+
+#@this is not ok, we should never run any service automatically, only exception is 
+# if not j.sal.process.checkProcessRunning('mongod'):
+#     j.sal.process.execute(
+#         "mongod --fork --logpath /opt/jumpscale8/var/mongodb.log")
+
 
 
 class BaseModelFactory():
@@ -20,6 +21,16 @@ class BaseModelFactory():
         self.__jslocation__ = "j.data.models"
 
     DoesNotExist = DoesNotExist
+
+    def connect2mongo(self,addr, port, db):
+        """
+        @todo (*2*)
+        """
+        try:
+            mongoengine.connection.get_connection()
+        except:
+            mongoengine.connect(db='jumpscale_system')
+                
 
     @property
     def Machine(self):

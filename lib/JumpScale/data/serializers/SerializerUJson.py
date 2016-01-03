@@ -8,8 +8,8 @@ class SerializerUJson(object):
     def __init__(self):
         self.__jslocation__ = "j.data.serializer.json"
 
-    def dumps(self,obj):
-        return json.dumps(obj, ensure_ascii=False)
+    def dumps(self,obj,sort_keys=False,indent=False):
+        return json.dumps(obj, ensure_ascii=False,sort_keys=sort_keys,indent=indent)
 
     def loads(self,s):
         if isinstance(s,bytes):

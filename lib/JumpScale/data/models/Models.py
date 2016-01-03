@@ -37,7 +37,7 @@ class ModelBase(Document):
             return super(ModelBase, self).save()
 
     def __str__(self):
-        return (json.dumps(self.to_dict(), sort_keys=True, indent=4))
+        return (j.data.serializer.json.dumps(self.to_dict(), sort_keys=True, indent=4))
 
     __repr__ = __str__
 

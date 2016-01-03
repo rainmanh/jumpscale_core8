@@ -560,7 +560,7 @@ class ControllerCMDS():
         self._setJob(job, osis=saveinosis)
         if job['wait']:
             q=self._getJobQueue(job["guid"])
-            q.put(json.dumps(job))
+            q.put(j.data.serializer.json.dumps(job))
             q.set_expire(60) # if result is not fetched in 60 seconds we can delete this
         else:
             self._deleteJobFromCache(job)
@@ -609,7 +609,7 @@ class ControllerCMDS():
         qname = 'queues:commands:queue:%s:%s' % (session.gid, agentid)
         jobstrings = self.redis.lrange(qname, 0, -1)
         for jobstring in jobstrings:
-            jobs.append(json.loads(jobstring))
+            jobs.append(j.data.serializer.json.loads(jobstring))
         return jobs
 
     def getActiveJobs(self, session=None):

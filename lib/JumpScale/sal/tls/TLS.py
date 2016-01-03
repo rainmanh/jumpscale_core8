@@ -77,7 +77,7 @@ class TLS(SALObject):
         }
         ca_csr_path = self.cwd.joinpath('ca-csr.json')
         ca_cert_path = self.cwd.joinpath('root-ca')
-        ca_csr_path.write_text(json.dumps(csr, indent=4))
+        ca_csr_path.write_text(j.data.serializer.json.dumps(csr, indent=4))
 
         cmd = 'cfssl gencert -initca %s | cfssljson -bare %s' % (ca_csr_path, ca_cert_path)
         self._local.execute(cmd)
@@ -119,7 +119,7 @@ class TLS(SALObject):
             'names': subjects
         }
         csr_json_path = self.cwd.joinpath('%s.json' % name)
-        csr_json_path.write_text(json.dumps(csr, indent=4))
+        csr_json_path.write_text(j.data.serializer.json.dumps(csr, indent=4))
 
         output_path = self.cwd.joinpath(name)
         cmd = 'cfssl genkey %s | cfssljson -bare %s' % (csr_json_path, output_path)
@@ -184,7 +184,7 @@ class TLS(SALObject):
             'names': subjects
         }
         csr_json_path = self.cwd.joinpath('%s.json' % name)
-        csr_json_path.write_text(json.dumps(csr, indent=4))
+        csr_json_path.write_text(j.data.serializer.json.dumps(csr, indent=4))
 
         output_path = self.cwd.joinpath(name)
         cmd = 'cfssl gencert -ca %s -ca-key %s %s | cfssljson -bare %s' % (ca, ca_key, csr_json_path, output_path)

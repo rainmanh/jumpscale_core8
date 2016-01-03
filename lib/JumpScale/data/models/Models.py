@@ -40,18 +40,18 @@ class ModelBase(Document):
         return key
 
     @classmethod
-    def get(cls, guid, redis=False, returnObjWhenNonExist=False):
+    def get(cls, guid, returnObjWhenNonExist=False):
         """
         default needs to be in redis, need to mention if not
         """
-        # model is not a class its really the object
+        redis = getattr(cls, '__redis__', False)
+
         if redis:
             modelraw = j.core.db.get(cls._getKey(guid))
             if modelraw:
                 modelraw = modelraw.decode()
-                model = cls.from_json(modelraw)
-                model._redis = True
-                return model
+                obj = cls.from_json(modelraw)
+                return obj
             else:
                 res = None
         else:
@@ -59,29 +59,25 @@ class ModelBase(Document):
                 res = cls.objects.get(guid=guid)
             except DoesNotExist:
                 res = None
-
-        #if returnObjWhenNonExist and res is None:
-        #    return model
         return res
 
-    def save(cls):
-        if "_redis" in cls.__dict__:
-            redis = True
-            return cls.set(redis=redis)
-        else:
-            redis = False
-            return super(ModelBase, cls).save()
-
     @classmethod
-    def set(cls, redis=True):
-        key = cls._getKey(cls.guid)
+    def _save_redis(cls, obj):
+        key = cls._getKey(obj.guid)
         meta = cls._meta['indexes']
-        expirey = meta[0].get('expireAfterSeconds', None) if meta else None
-        modelraw = j.data.serializer.json.dumps(cls.to_dict())
-        j.core.db.set(key, modelraw)
-        if expirey:
-            j.core.db.expire(key, expirey)
-        return cls
+        expire = meta[0].get('expireAfterSeconds', None) if meta else None
+        raw = j.data.serializer.json.dumps(obj.to_dict())
+        j.core.db.set(key, raw)
+        if expire:
+            j.core.db.expire(key, expire)
+        return obj
+
+    def save(self):
+        redis = getattr(self, '__redis__', False)
+        if redis:
+            return self._save_redis(self)
+        else:
+            return super(ModelBase, self).save()
 
     def getset(cls, redis=True):
         raise NotImplementedError
@@ -385,6 +381,8 @@ class ModelUser(ModelBase):
 
 
 class ModelSessionCache(ModelBase):
+    __redis__ = True
+
     user = StringField()
     _creation_time = IntField(default=j.data.time.getTimeEpoch())
     _accessed_time = IntField(default=j.data.time.getTimeEpoch())

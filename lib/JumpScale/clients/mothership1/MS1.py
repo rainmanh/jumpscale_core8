@@ -8,6 +8,7 @@ from JumpScale import j
 
 import sys
 
+
 class Output(object):
     def __init__(self):
         self.out=""
@@ -59,7 +60,7 @@ class MS1(object):
         self.stdout.prevout=sys.stdout
         self.action=None
         self.vars={}
-        self.db = j.servers.keyvaluestore.getFileSystemStore("/tmp/ms1.db")
+        self.db = j.servers.kvs.getFSStore("/tmp/ms1.db")
 
 
     def getCloudspaceObj(self, space_secret,**args):

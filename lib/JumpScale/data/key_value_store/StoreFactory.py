@@ -8,7 +8,7 @@ class KeyValueStoreFactory(object):
     '''
 
     def __init__(self):
-        self.__jslocation__ = "j.servers.keyvaluestore"
+        self.__jslocation__ = "j.servers.kvs"
         self._cache = dict()
 
     # def getMongoDBStore(self, namespace='',serializers=[]):
@@ -42,7 +42,7 @@ class KeyValueStoreFactory(object):
         @return: key value store
         @rtype: ArakoonKeyValueStore
         '''
-        from JumpScale.grid.key_value_store.arakoon_store import ArakoonKeyValueStore
+        from JumpScale.data.key_value_store.arakoon_store import ArakoonKeyValueStore
         if serializers==[]:
             serializers=[j.data.serializer.serializers.getSerializerType('j')]
         key = '%s_%s' % ("arakoon", namespace)
@@ -52,7 +52,7 @@ class KeyValueStoreFactory(object):
             self._cache[key] = ArakoonKeyValueStore(namespace,serializers=serializers)
         return self._cache[key]
 
-    def getFileSystemStore(self, namespace='', baseDir=None,serializers=[]):
+    def getFSStore(self, namespace='', baseDir=None,serializers=[]):
         '''
         Gets a file system key value store.
 
@@ -68,7 +68,7 @@ class KeyValueStoreFactory(object):
         @return: key value store
         @rtype: FileSystemKeyValueStore
         '''
-        from JumpScale.grid.key_value_store.file_system_store import FileSystemKeyValueStore
+        from JumpScale.data.key_value_store.fs_store import FileSystemKeyValueStore
         if serializers==[]:
             serializers=[j.data.serializer.serializers.getMessagePack()]
 
@@ -86,7 +86,7 @@ class KeyValueStoreFactory(object):
         @return: key value store
         @rtype: MemoryKeyValueStore
         '''
-        from JumpScale.grid.key_value_store.memory_store import MemoryKeyValueStore
+        from JumpScale.data.key_value_store.memory_store import MemoryKeyValueStore
         return MemoryKeyValueStore(namespace)
 
     def getRedisStore(self, namespace='',host='localhost',port=9999,db=0,password='',serializers=None,masterdb=None,changelog=True):
@@ -102,7 +102,7 @@ class KeyValueStoreFactory(object):
         @return: key value store
         @rtype: MemoryKeyValueStore
         '''
-        from JumpScale.grid.key_value_store.redis_store import RedisKeyValueStore
+        from JumpScale.data.key_value_store.redis_store import RedisKeyValueStore
         key = '%s_%s_%s' % ("redis", port, namespace)
         if key not in self._cache:
             self._cache[key] = RedisKeyValueStore(namespace=namespace,host=host,port=port,db=db,password=password,serializers=serializers,masterdb=masterdb, changelog=changelog)
@@ -120,7 +120,7 @@ class KeyValueStoreFactory(object):
 
         @return: key value store
         '''
-        from JumpScale.grid.key_value_store.leveldb_store import LevelDBKeyValueStore
+        from JumpScale.data.key_value_store.leveldb_store import LevelDBKeyValueStore
         key = '%s_%s' % ("leveldb", namespace)
         if key not in self._cache:
             self._cache[key] = LevelDBKeyValueStore(namespace=namespace,basedir=basedir,serializers=serializers)

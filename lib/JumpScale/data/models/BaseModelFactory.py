@@ -22,14 +22,13 @@ class BaseModelFactory():
 
     DoesNotExist = DoesNotExist
 
-    def connect2mongo(self, addr='localhost', port=27017, db='jumpscale'):
+    def connect2mongo(self, host='localhost', port=27017, db='jumpscale_system'):
         """
-        @todo (*2*)
         """
         try:
             mongoengine.connection.get_connection()
         except:
-            mongoengine.connect(db='jumpscale_system')
+            mongoengine.connect(db=db, host=host, port=port)
                 
 
     @property

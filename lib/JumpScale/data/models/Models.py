@@ -152,6 +152,8 @@ class ModelGroup(ModelBase):
 
 
 class ModelJob(EmbeddedDocument):
+    nid = IntField(required=True)
+    gid = IntField(required=True)
     data = StringField(default='')
     streams = ListField(StringField())
     level = IntField()

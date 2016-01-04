@@ -13,7 +13,7 @@ class OSISStore(object):
     def __init__(self, dbconnections):
         self.dbconnections = dbconnections
         self.elasticsearch = dbconnections.get("elasticsearch_main")
-        self.db = j.servers.keyvaluestore.getFileSystemStore("osis")
+        self.db = j.servers.kvs.getFSStore("osis")
 
     def init(self, path, namespace,categoryname):
         """

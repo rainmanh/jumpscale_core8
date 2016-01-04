@@ -11,7 +11,6 @@ def empty_callback():
 
 #howto used from http://e1ven.com/2011/04/06/how-to-use-m2crypto-tutorial/
 
-import JumpScale.baselib.key_value_store
 
 from sal.base.SALObject import SALObject
 
@@ -21,11 +20,11 @@ class SSL(SALObject):
 
     def getSSLHandler(self,keyvaluestor=None):
         """
-        default keyvaluestor=j.servers.keyvaluestore.getFileSystemStore("sslkeys", serializers=[])  #make sure to use no serializers
+        default keyvaluestor=j.servers.kvs.getFSStore("sslkeys", serializers=[])  #make sure to use no serializers
         pass another keyvaluestor if required (first do 'import JumpScale.baselib.key_value_store')
         """
         if keyvaluestor==None:
-            keyvaluestor=j.servers.keyvaluestore.getFileSystemStore("sslkeys", serializers=[])
+            keyvaluestor=j.servers.kvs.getFSStore("sslkeys", serializers=[])
         return KeyStor(keyvaluestor)
 
 

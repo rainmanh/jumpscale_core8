@@ -1,11 +1,11 @@
 from contextlib import contextmanager
 import unittest
 
-from JumpScale.grid.key_value_store.arakoon_store import ArakoonKeyValueStore
-from JumpScale.grid.key_value_store.file_system_store import FileSystemKeyValueStore
-from JumpScale.grid.key_value_store.memory_store import MemoryKeyValueStore
+from JumpScale.data.key_value_store.arakoon_store import ArakoonKeyValueStore
+from JumpScale.data.key_value_store.fs_store import FileSystemKeyValueStore
+from JumpScale.data.key_value_store.memory_store import MemoryKeyValueStore
 from JumpScale import j
-from JumpScale.grid.key_value_store.store import KeyValueStoreType
+from JumpScale.data.key_value_store.store import KeyValueStoreType
 
 if not q._init_called:
     from JumpScale.core.InitBase import q
@@ -181,10 +181,10 @@ class ArakoonKeyValueStoreTestCase(unittest.TestCase,
         j.sal.fs.removeDirTree(logDir)
 
     def testFactory(self):
-        storeA = j.servers.keyvaluestore.getStore(KeyValueStoreType.ARAKOON,
+        storeA = j.servers.kvs.getStore(KeyValueStoreType.ARAKOON,
             self.STORE_CLUSTER, self.STORE_NAMESPACE)
 
-        storeB = j.servers.keyvaluestore.getArakoonStore(self.STORE_CLUSTER,
+        storeB = j.servers.kvs.getArakoonStore(self.STORE_CLUSTER,
             self.STORE_NAMESPACE)
 
         self.assertEquals(storeA, storeB)
@@ -210,10 +210,10 @@ class FileSystemKeyValueStoreTestCase(unittest.TestCase,
         j.sal.fs.removeDirTree(self._storeDir)
 
     def testFactory(self):
-        storeA = j.servers.keyvaluestore.getStore(KeyValueStoreType.FILE_SYSTEM,
+        storeA = j.servers.kvs.getStore(KeyValueStoreType.FS,
             self.STORE_NAME, self.STORE_NAMESPACE)
 
-        storeB = j.servers.keyvaluestore.getFileSystemStore(self.STORE_NAME,
+        storeB = j.servers.kvs.getFSStore(self.STORE_NAME,
             self.STORE_NAMESPACE)
 
         self.assertEquals(storeA, storeB)
@@ -224,10 +224,10 @@ class MemoryKeyValueStoreTestCase(unittest.TestCase, KeyValueStoreTestCaseBase):
         self._store = MemoryKeyValueStore()
 
     def testFactory(self):
-        storeA = j.servers.keyvaluestore.getStore(KeyValueStoreType.MEMORY,
+        storeA = j.servers.kvs.getStore(KeyValueStoreType.MEMORY,
             self.STORE_NAME, self.STORE_NAMESPACE)
 
-        storeB = j.servers.keyvaluestore.getMemoryStore(self.STORE_NAME,
+        storeB = j.servers.kvs.getMemoryStore(self.STORE_NAME,
             self.STORE_NAMESPACE)
 
         self.assertEquals(storeA, storeB)

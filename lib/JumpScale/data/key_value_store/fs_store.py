@@ -1,4 +1,4 @@
-from JumpScale.grid.key_value_store.store import KeyValueStoreBase
+from JumpScale.data.key_value_store.store import KeyValueStoreBase
 from JumpScale import j
 import os
 # import urllib.request, urllib.parse, urllib.error

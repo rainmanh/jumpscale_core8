@@ -1,7 +1,6 @@
 
     
 from JumpScale import j
-from JumpScale.core.types.BaseEnumeration import BaseEnumeration
 
 # import urllib
 # import requests

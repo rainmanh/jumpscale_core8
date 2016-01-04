@@ -1,5 +1,5 @@
 from JumpScale import j
-from JumpScale.grid.key_value_store.store import KeyValueStoreBase
+from JumpScale.data.key_value_store.store import KeyValueStoreBase
 
 
 import plyvel

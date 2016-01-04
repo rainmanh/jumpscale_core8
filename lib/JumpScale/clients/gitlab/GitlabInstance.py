@@ -52,7 +52,7 @@ class GitlabInstance():
         # self.isLoggedIn = False
 
         #will be default 5 min
-        self.cache=j.db.cache.get(j.servers.keyvaluestore.getRedisStore(namespace="cache"))
+        self.cache=j.db.cache.get(j.servers.kvs.getRedisStore(namespace="cache"))
 
     def getFile(self,group,project,path):
         """

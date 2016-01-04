@@ -1,6 +1,5 @@
 from JumpScale import j
 from CodeGeneratorModel import CodeGeneratorModel
-from CodeGeneratorEnumeration import CodeGeneratorEnumeration
 from CodeGeneratorActorLocal import CodeGeneratorActorLocal
 from CodeGeneratorActorRemote import CodeGeneratorActorRemote
 # from CodeGeneratorActorMethodGreenlet import CodeGeneratorActorMethodGreenlet

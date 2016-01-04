@@ -127,7 +127,7 @@ class GitClient(object):
         else:
             self.repo.git.push('--all')
 
-    def getChangedFiles(self, fromref=None, toref=None, fromepoch=None, toepoch=None, author=None, paths=[]):
+    def getChangedFiles(self, fromref='', toref='', fromepoch=None, toepoch=None, author=None, paths=[]):
         """
         list all changed files since ref & epoch (use both)
         @param fromref = commit ref to start from

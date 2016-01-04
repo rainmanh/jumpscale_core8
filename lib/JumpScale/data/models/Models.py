@@ -104,7 +104,7 @@ class ModelBase(Document):
         #    raise RuntimeError("not implemented")
 
     def __str__(self):
-        return j.data.serializer.json.dumps(self.to_dict())
+        return j.data.serializer.json.dumps(self.to_dict(), indent=2)
 
     __repr__ = __str__
 
@@ -112,12 +112,12 @@ class ModelBase(Document):
 class ModelErrorCondition(ModelBase):
     aid = IntField(default=0)
     pid = IntField(default=0)
-    jid = IntField(default=0)
+    jid = StringField(default='')
     masterjid = IntField(default=0)
     appname = StringField(default="")
-    level = StringField(choices=("CRITICAL","MAJOR","WARNING","INFO"), default="CRITICAL", required=True)
-    type = StringField(choices=("BUG","PERF","OPS","UNKNOWN"), default="UNKNOWN", required=True)
-    state = StringField(choices=("NEW","ALERT","CLOSED"), default="NEW", required=True)
+    level = IntField(default=1, required=True)
+    type = StringField(choices=("BUG", "PERF", "OPS", "UNKNOWN"), default="UNKNOWN", required=True)
+    state = StringField(choices=("NEW", "ALERT", "CLOSED"), default="NEW", required=True)
     # StringField() <--- available starting version 0.9
     errormessage = StringField()
     errormessagePub = StringField()  # StringField()

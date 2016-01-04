@@ -22,7 +22,7 @@ class BaseModelFactory():
 
     DoesNotExist = DoesNotExist
 
-    def connect2mongo(self,addr, port, db):
+    def connect2mongo(self, addr='localhost', port=27017, db='jumpscale'):
         """
         @todo (*2*)
         """

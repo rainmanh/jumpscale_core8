@@ -6,11 +6,11 @@ class ACFactory(object):
     def __init__(self):
         self.__jslocation__ = "j.clients.ac"
 
-    def getAdvanced(self, address='localhost', port=9999, password=None, db=0):
-        return acclient.Client(address, port, password, db)
+    def getAdvanced(self, address='localhost', port=6379, password=None):
+        return acclient.Client(address, port, password)
 
-    def get(self, address='localhost', port=9999, password=None, db=0):
-        return simple.SimpleClient(self.getAdvanced(address=address, port=port, password=password, db=db))
+    def get(self, address='localhost', port=6379, password=None):
+        return simple.SimpleClient(self.getAdvanced(address=address, port=port, password=password))
 
     def getRunArgs(self, domain=None, name=None, max_time=0, max_restart=0, recurring_period=0, stats_interval=0,
                    args=None, loglevels='*', loglevels_db=None, loglevels_ac=None, queue=None):

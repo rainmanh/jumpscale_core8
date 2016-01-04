@@ -196,8 +196,6 @@ class ModelAudit(ModelBase):
 
 class ModelDisk(ModelBase):
     partnr = IntField()
-    gid = IntField()
-    nid = IntField()
     path = StringField(default='')
     size = IntField()
     free = IntField()
@@ -214,8 +212,6 @@ class ModelDisk(ModelBase):
 
 
 class ModelAlert(ModelBase):
-    gid = IntField()
-    nid = IntField()
     username = StringField(default='')
     description = StringField(default='')
     descriptionpub = StringField(default='')
@@ -239,14 +235,11 @@ class ModelHeartbeat(ModelBase):
 
     """
     """
-    nid = IntField()
-    gid = IntField()
     lastcheck = IntField(default=j.data.time.getTimeEpoch())
 
 
 class ModelJumpscript(ModelBase):
     id = IntField()
-    gid = IntField()
     name = StringField(default='')
     descr = StringField(default='')
     category = StringField(default='')
@@ -268,8 +261,6 @@ class ModelJumpscript(ModelBase):
 
 
 class ModelMachine(ModelBase):
-    gid = IntField()
-    nid = IntField()
     name = StringField(default='')
     roles = ListField(StringField())
     netaddr = StringField(default='')
@@ -287,8 +278,6 @@ class ModelMachine(ModelBase):
 
 
 class ModelNic(ModelBase):
-    gid = IntField()
-    nid = IntField()
     name = StringField(default='')
     mac = StringField(default='')
     ipaddr = ListField(StringField())
@@ -298,7 +287,6 @@ class ModelNic(ModelBase):
 
 
 class ModelNode(ModelBase):
-    gid = IntField()
     name = StringField(default='')
     roles = ListField(StringField())
     netaddr = StringField(default='')
@@ -316,8 +304,6 @@ class ModelNode(ModelBase):
 
 
 class ModelProcess(ModelBase):
-    gid = IntField()
-    nid = IntField()
     aysdomain = StringField(default='')
     aysname = StringField(default='')
     pname = StringField(default='')  # process name
@@ -352,8 +338,6 @@ class ModelProcess(ModelBase):
 
 
 class ModelTest(ModelBase):
-    gid = IntField()
-    nid = IntField()
     name = StringField(default='')
     testrun = StringField(default='')
     path = StringField(default='')

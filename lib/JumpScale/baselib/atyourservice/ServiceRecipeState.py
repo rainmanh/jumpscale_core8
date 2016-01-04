@@ -27,7 +27,7 @@ class ServiceRecipeState():
             self.hrd.set("disabled", False)
             self.hrd.set("template.name",self.recipe.parent.name)
             self.hrd.set("template.domain",self.recipe.parent.domain)
-            self.hrd.set("template.version",self.recipe.parent.version) 
+            self.hrd.set("template.version",self.recipe.parent.version)
         else:
             self.hrd = j.data.hrd.get(self.path)
 
@@ -35,8 +35,8 @@ class ServiceRecipeState():
         for item in self.hrd.prefix("hash."):
             #lists the different has entries
             item2=item.replace("hash.","")
-            path=j.do.joinPaths(self._recipeOrService.path,item2)
-            if j.do.exists(path):
+            path=j.sal.fs.joinPaths(self._recipeOrService.path,item2)
+            if j.sal.fs.exists(path):
                 md5=j.tools.hash.md5(path)
                 if md5!=self.hrd.get(item,md5):
                     self.hrd.set("ischanged.%s"%item2,True)
@@ -54,8 +54,8 @@ class ServiceRecipeState():
         for item in self.hrd.prefix("hash."):
             #lists the different has entries
             item2=item.replace("hash.","")
-            path=j.do.joinPaths(self._recipeOrService.path,item2)
-            if j.do.exists(path):
+            path=j.sal.fs.joinPaths(self._recipeOrService.path,item2)
+            if j.sal.fs.exists(path):
                 md5=j.tools.hash.md5(path)
                 self.hrd.set(item,md5)
 
@@ -94,7 +94,7 @@ class ServiceRecipeState():
 
     #     for item in change:
     #         name = item["name"]
-    #         self.hrd.set("hrd.changes.%s" % name, item["type"])                
+    #         self.hrd.set("hrd.changes.%s" % name, item["type"])
 
     def __repr__(self):
         return str(self.hrd)

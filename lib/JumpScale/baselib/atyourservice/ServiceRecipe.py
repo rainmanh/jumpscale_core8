@@ -22,7 +22,7 @@ class ServiceRecipe(ServiceTemplate):
             raise RuntimeError("A service instance can only be used when used from a ays repo")
 
         if path!="":
-            if not j.do.exists(path):
+            if not j.sal.fs.exists(path):
                 raise RuntimeError("Could not find path for recipe")
             self.path=path
             name=self.state.hrd.get("template.name")
@@ -41,17 +41,17 @@ class ServiceRecipe(ServiceTemplate):
             j.sal.fs.createDir(self.path)
         else:
             firstime=False
-            
+
         self._init()
 
-        if j.do.exists(self.parent.path_hrd_template):
-            j.do.copyFile(self.parent.path_hrd_template,self.path_hrd_template)
-        if j.do.exists(self.parent.path_hrd_schema):
-            j.do.copyFile(self.parent.path_hrd_schema,self.path_hrd_schema)
-        if j.do.exists(self.parent.path_actions_mgmt):
-            j.do.copyFile(self.parent.path_actions_mgmt,self.path_actions_mgmt)
-        if j.do.exists(self.parent.path_actions_node):
-            j.do.copyFile(self.parent.path_actions_node,self.path_actions_node)            
+        if j.sal.fs.exists(self.parent.path_hrd_template):
+            j.sal.fs.copyFile(self.parent.path_hrd_template,self.path_hrd_template)
+        if j.sal.fs.exists(self.parent.path_hrd_schema):
+            j.sal.fs.copyFile(self.parent.path_hrd_schema,self.path_hrd_schema)
+        if j.sal.fs.exists(self.parent.path_actions_mgmt):
+            j.sal.fs.copyFile(self.parent.path_actions_mgmt,self.path_actions_mgmt)
+        if j.sal.fs.exists(self.parent.path_actions_node):
+            j.sal.fs.copyFile(self.parent.path_actions_node,self.path_actions_node)
 
         if firstime:
             self.state.save()
@@ -67,7 +67,7 @@ class ServiceRecipe(ServiceTemplate):
         """
         if self._state is None:
             self._state=ServiceRecipeState(self)
-        return self._state        
+        return self._state
 
     def newInstance(self, instance="main", args={}, path='', parent=None, consume="",originator=None):
         """
@@ -190,13 +190,13 @@ class ServiceRecipe(ServiceTemplate):
                 else:
                     nodirs = False
 
-                items = j.do.listFilesInDir(
+                items = j.sal.fs.listFilesInDir(
                     path=src, recursive=False, followSymlinks=False, listSymlinks=False)
                 if nodirs is False:
-                    items += j.do.listDirsInDir(
+                    items += j.sal.fs.listDirsInDir(
                         path=src, recursive=False, dirNameOnly=False, findDirectorySymlinks=False)
 
-                items = [(item, "%s/%s" % (dest, j.do.getBaseName(item)), link)
+                items = [(item, "%s/%s" % (dest, j.sal.fs.getBaseName(item)), link)
                          for item in items]
             else:
                 items = [(src, dest, link)]
@@ -212,11 +212,11 @@ class ServiceRecipe(ServiceTemplate):
                 else:
                     if link:
                         if not j.sal.fs.exists(dest):
-                            j.sal.fs.createDir(j.do.getParent(dest))
-                            j.do.symlink(src, dest)
+                            j.sal.fs.createDir(j.sal.fs.getParent(dest))
+                            j.sal.fs.symlink(src, dest)
                         elif delete:
-                            j.do.delete(dest)
-                            j.do.symlink(src, dest)
+                            j.sal.fs.remove(dest)
+                            j.sal.fs.symlink(src, dest)
                     else:
                         print(("copy: %s->%s" % (src, dest)))
                         if j.sal.fs.isDir(src):
@@ -246,5 +246,3 @@ class ServiceRecipe(ServiceTemplate):
 
     def __repr__(self):
         return "Recipe: %-15s (%s)" % (self.name,self.parent.version)
-
-

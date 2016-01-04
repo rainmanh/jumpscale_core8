@@ -12,7 +12,7 @@ class Blueprint(object):
     """
 
     def __init__(self, path):
-        self.model=j.data.serializer.yaml.loads(j.do.readFile(path))
+        self.model=j.data.serializer.yaml.loads(j.sal.fs.fileGetContents(path))
 
         self.process()
 

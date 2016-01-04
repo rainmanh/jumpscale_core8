@@ -11,7 +11,7 @@ class String():
         self.NAME = 'string'
         self.BASETYPE = 'string'
 
-    
+
     def fromString(self,s):
         """
         return string from a string (is basically no more than a check)
@@ -21,20 +21,20 @@ class String():
         s=str(s)
         return s
 
-    
+
     def toString(self,v):
         if self.check(v):
             return str(v)
         else:
             raise ValueError("Could not convert to string:%s"%v)
 
-    
+
     def check(self,value):
         '''Check whether provided value is a string'''
         return isinstance(value, str)
 
-    
-    def get_default():
+
+    def get_default(self):
         return ""
 
 
@@ -45,7 +45,7 @@ class Boolean():
         self.NAME = 'boolean'
         self.BASETYPE = 'boolean'
 
-    
+
     def fromString(self,s):
         if isinstance(s, bool):
             return s
@@ -57,7 +57,7 @@ class Boolean():
         else:
             raise ValueError("Invalid value for boolean: '%s'" % s)
 
-    
+
     def checkString(self,s):
         try:
             self.fromString(s)
@@ -65,22 +65,22 @@ class Boolean():
         except ValueError:
             return False
 
-    
+
     def toString(self,boolean):
         if self.check(s):
             return str(boolean)
         else:
             raise ValueError("Invalid value for boolean: '%s'" % boolean)
 
-    
+
     def check(self,value):
         '''Check whether provided value is a boolean'''
         return value is True or value is False
 
-    
-    def get_default():
+
+    def get_default(self):
         return True
-    
+
 
 class Integer():
 
@@ -89,27 +89,27 @@ class Integer():
         self.NAME = 'integer'
         self.BASETYPE = 'integer'
 
-    
+
     def checkString(self,s):
         return s.isdigit()
 
-    
+
     def check(self,value):
         '''Check whether provided value is an integer'''
         return isinstance(value, int)
 
-    
+
     def toString(self,value):
         if self.check(value):
             return str(value)
         else:
             raise ValueError("Invalid value for integer: '%s'" % value)
 
-    
+
     def fromString(self,s):
         return j.data.text.getInt(s)
 
-    
+
     def get_default(self):
         return 0
 
@@ -121,7 +121,7 @@ class Float():
         self.NAME = 'float'
         self.BASETYPE = 'float'
 
-    
+
     def checkString(self,value):
         try:
             float(value)
@@ -129,24 +129,22 @@ class Float():
         except ValueError:
             return False
 
-    
+
     def check(self,value):
         '''Check whether provided value is a float'''
         return isinstance(value, float)
 
-    
+
     def toString(self,value):
         if self.check(value):
             return str(value)
         else:
             raise ValueError("Invalid value for float: '%s'" % value)
 
-    
+
     def fromString(self,s):
         return j.data.text.getFloat(s)
 
-    
+
     def get_default(self):
         return 0.0
-
-

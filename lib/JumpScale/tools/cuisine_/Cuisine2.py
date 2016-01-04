@@ -419,16 +419,16 @@ class OurCuisine():
 
     def file_exists(self,location):
         """Tests if there is a *remote* file at the given location."""
-        return is_ok(self.run('test -e %s && echo **OK** ; true' % (shell_safe(location))))
+        return is_ok(self.run('test -e %s && echo **OK** ; true' % (shell_safe(location)),showout=False))
 
     def file_is_file(self,location):
-        return is_ok(self.run("test -f %s && echo **OK** ; true" % (shell_safe(location))))
+        return is_ok(self.run("test -f %s && echo **OK** ; true" % (shell_safe(location)),showout=False))
 
     def file_is_dir(self,location):
-        return is_ok(self.run("test -d %s && echo **OK** ; true" % (shell_safe(location))))
+        return is_ok(self.run("test -d %s && echo **OK** ; true" % (shell_safe(location)),showout=False))
 
     def file_is_link(self,location):
-        return is_ok(self.run("test -L %s && echo **OK** ; true" % (shell_safe(location))))
+        return is_ok(self.run("test -L %s && echo **OK** ; true" % (shell_safe(location)),showout=False))
 
 
     def file_attribs(self,location, mode=None, owner=None, group=None):
@@ -443,20 +443,21 @@ class OurCuisine():
         otherwise.
         """
         if self.file_exists(location):
-            fs_check = self.run('stat %s %s' % (shell_safe(location), '--format="%a %U %G"'))
+            fs_check = self.run('stat %s %s' % (shell_safe(location), '--format="%a %U %G"'),showout=False)
             (mode, owner, group) = fs_check.split(' ')
             return {'mode': mode, 'owner': owner, 'group': group}
         else:
             return None
 
     def file_write(self,location, content, mode=None, owner=None, group=None, check=True):
+        print ("filewrite: %s"%location)
         content2 = content.encode('utf-8')
         sig = hashlib.md5(content2).hexdigest()
 
         content_base64=base64.b64encode(content2).decode()
 
         if sig != self.file_md5(location):
-            self.run('echo "%s" | openssl base64 -A -d > %s' % (content_base64, shell_safe(location)))
+            self.run('echo "%s" | openssl base64 -A -d > %s' % (content_base64, shell_safe(location)),showout=False)
 
             if check:
                 file_sig = self.file_md5(location)
@@ -530,7 +531,7 @@ class OurCuisine():
         location, optionally updating its mode/owner/group."""
         content2 = content.encode('utf-8')
         content_base64=base64.b64encode(content2).decode()
-        self.run('echo "%s" | openssl base64 -A -d >> %s' % (content_base64, shell_safe(location)))
+        self.run('echo "%s" | openssl base64 -A -d >> %s' % (content_base64, shell_safe(location)),showout=False)
         self.file_attribs(location, mode=mode, owner=owner, group=group)
 
 
@@ -560,7 +561,7 @@ class OurCuisine():
 
     def file_base64(self,location):
         """Returns the base64-encoded content of the file at the given location."""
-        return self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False)
+        return self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
         # else:
         # return self.run("cat {0} | openssl base64".format(shell_safe((location))))
 
@@ -571,7 +572,7 @@ class OurCuisine():
         # appear before the result, so we simply split and get the last line to
         # be on the safe side.
         if self.file_exists(location):
-            return self.run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(shell_safe((location))),debug=False,checkok=False)
+            return self.run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
         else:
             return None
         # else:
@@ -585,7 +586,7 @@ class OurCuisine():
         # be on the safe side.
         # if cuisine_env[OPTION_HASH] == "python":
         if self.file_exists(location):
-            return self.run("md5sum {0} | cut -f 1 -d ' '".format(shell_safe((location))),debug=False,checkok=False)
+            return self.run("md5sum {0} | cut -f 1 -d ' '".format(shell_safe((location))),debug=False,checkok=False,showout=False)
         else:
             return None
         # else:
@@ -642,26 +643,29 @@ class OurCuisine():
 
     def dir_attribs(self,location, mode=None, owner=None, group=None, recursive=False):
         """Updates the mode/owner/group for the given remote directory."""
+        print ("set dir attributes:%s"%location)
         recursive = recursive and "-R " or ""
         if mode:
-            self.run('chmod %s %s %s' % (recursive, mode,  shell_safe(location)))
+            self.run('chmod %s %s %s' % (recursive, mode,  shell_safe(location)),showout=False)
         if owner:
-            self.run('chown %s %s %s' % (recursive, owner, shell_safe(location)))
+            self.run('chown %s %s %s' % (recursive, owner, shell_safe(location)),showout=False)
         if group:
-            self.run('chgrp %s %s %s' % (recursive, group, shell_safe(location)))
+            self.run('chgrp %s %s %s' % (recursive, group, shell_safe(location)),showout=False)
 
     def dir_exists(self,location):
         """Tells if there is a remote directory at the given location."""
-        return is_ok(self.run('test -d %s && echo **OK** ; true' % (shell_safe(location))))
+        print ("dir exists:%s"%location)
+        return is_ok(self.run('test -d %s && echo **OK** ; true' % (shell_safe(location)),showout=False))
 
 
     def dir_remove(self,location, recursive=True):
         """ Removes a directory """
+        print ("dir remove:%s"%location)
         flag = ''
         if recursive:
             flag = 'r'
         if self.dir_exists(location):
-            return self.run('rm -%sf %s && echo **OK** ; true' % (flag, shell_safe(location)))
+            return self.run('rm -%sf %s && echo **OK** ; true' % (flag, shell_safe(location)),showout=False)
 
     def dir_ensure(self,location, recursive=False, mode=None, owner=None, group=None):
         """Ensures that there is a remote directory at the given location,
@@ -762,7 +766,7 @@ class OurCuisine():
         cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
         return self.run(cmd, warn_only)
 
-    def run(self,cmd,warn_only=False,debug=None,checkok=False):
+    def run(self,cmd,warn_only=False,debug=None,checkok=False,showout=True):
         if self.sudomode:
             passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
             cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
@@ -772,7 +776,7 @@ class OurCuisine():
             debugremember=copy.copy(debug)
             self.executor.debug=debug
 
-        rc,out=self.executor.execute(cmd,checkok=checkok, die=warn_only==True, combinestdr=False)
+        rc,out=self.executor.execute(cmd,checkok=checkok, die=warn_only==True, combinestdr=True,showout=False)
 
         if debug!=None:
             self.executor.debug=debugremember
@@ -794,11 +798,14 @@ class OurCuisine():
         content+="\necho **DONE**\n"
         path="/tmp/%s.sh"%j.data.idgenerator.generateRandomInt(0,10000)
         self.file_write(location=path, content=content, mode=0o770, owner="root", group="root")
-        out=self.run("bash %s"%path)
+        out=self.run("bash %s"%path,showout=True)
         self.file_unlink(path)
+
+        
         lastline=out.split("\n")[-1]
         if lastline.find("**DONE**")==-1:
-            raise Exception("Could not execute bash script.\n%s\nout:%s\n"%(content,out))
+            raise Exception("Could not execute bash script.\n%s\n"%(content))
+            # raise Exception("Could not execute bash script.\n%s\nout:%s\n"%(content,out))
         return "\n".join(out.split("\n")[:-1])
 
 

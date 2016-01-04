@@ -370,10 +370,10 @@ class Docker2(SALObject):
             if setrootrndpasswd:
                 if rootpasswd is None or rootpasswd == '':
                     print("set default root passwd (gig1234)")
-                    container.executor.execute("echo \"root:gig1234\"|chpasswd")
+                    container.executor.execute("echo \"root:gig1234\"|chpasswd",showout=False)
                 else:
                     print("set root passwd to %s" % rootpasswd)
-                    container.cexecutor.execute("echo \"root:%s\"|chpasswd" % rootpasswd)
+                    container.cexecutor.execute("echo \"root:%s\"|chpasswd" % rootpasswd,showout=False)
 
             container.setHostName(name)
         return container

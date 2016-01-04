@@ -4,7 +4,7 @@ import simple
 
 class ACFactory(object):
     def __init__(self):
-        self.__jslocation__ = "j.clients.ac"
+        self.__jslocation__ = "j.clients.agentcontroller"
 
     def getAdvanced(self, address='localhost', port=6379, password=None):
         return acclient.Client(address, port, password)

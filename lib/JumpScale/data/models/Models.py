@@ -17,27 +17,94 @@ class ModelBase(Document):
         d.pop("_cls")
         if "_id" in d:
             d.pop("_id")
-        if "_redis" in d:
-            d.pop("_redis")
         return d
 
     @classmethod
-    def find(cls, query, redis=False):
+    def find(cls, query):
+        redis = getattr(cls, '__redis__', False)
         if redis:
             raise RuntimeError("not implemented")
         else:
             return cls.objects(__raw__=query)
 
-    def save(self):
-        if "_redis" in self.__dict__:
-            redis = True
-            return j.data.models.set(self, redis=redis)
+    @classmethod
+    def _getKey(cls, guid):
+        """
+        @return hsetkey,key
+        """
+        ttype = cls._class_name.split(".")[-1]
+        key = "models.%s" % ttype
+        key = '%s_%s' % (key, guid)
+        key = key.encode('utf-8')
+        return key
+
+    @classmethod
+    def get(cls, guid, returnObjWhenNonExist=False):
+        """
+        default needs to be in redis, need to mention if not
+        """
+        redis = getattr(cls, '__redis__', False)
+
+        if redis:
+            modelraw = j.core.db.get(cls._getKey(guid))
+            if modelraw:
+                modelraw = modelraw.decode()
+                obj = cls.from_json(modelraw)
+                return obj
+            else:
+                res = None
         else:
-            redis = False
+            try:
+                res = cls.objects.get(guid=guid)
+            except DoesNotExist:
+                res = None
+        return res
+
+    @classmethod
+    def _save_redis(cls, obj):
+        key = cls._getKey(obj.guid)
+        meta = cls._meta['indexes']
+        expire = meta[0].get('expireAfterSeconds', None) if meta else None
+        raw = j.data.serializer.json.dumps(obj.to_dict())
+        j.core.db.set(key, raw)
+        if expire:
+            j.core.db.expire(key, expire)
+        return obj
+
+    def save(self):
+        redis = getattr(self, '__redis__', False)
+        if redis:
+            return self._save_redis(self)
+        else:
             return super(ModelBase, self).save()
 
+    def delete(self):
+        redis = getattr(self, '__redis__', False)
+        if redis:
+            key = self._getKey(self.guid)
+            j.core.db.delete(key)
+        else:
+            return super(ModelBase, self).delete()
+
+    @classmethod
+    def exists(cls, guid):
+        return bool(cls.get(guid=guid))
+
+    def getset(cls, redis=True):
+        raise NotImplementedError
+        #key = cls._getKey(cls.guid)
+        #if redis:
+        #    model = self.get(cls.guid, redis=True)
+        #    if model == None:
+        #        self.set(modelobject, redis=True)
+        #        model = modelobject
+        #    model._redis = True
+        #    return model
+        #else:
+        #    raise RuntimeError("not implemented")
+
     def __str__(self):
-        return (j.data.serializer.json.dumps(self.to_dict(), sort_keys=True, indent=4))
+        return j.data.serializer.json.dumps(self.to_dict())
 
     __repr__ = __str__
 
@@ -325,6 +392,8 @@ class ModelUser(ModelBase):
 
 
 class ModelSessionCache(ModelBase):
+    __redis__ = True
+
     user = StringField()
     _creation_time = IntField(default=j.data.time.getTimeEpoch())
     _accessed_time = IntField(default=j.data.time.getTimeEpoch())

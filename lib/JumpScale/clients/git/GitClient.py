@@ -3,13 +3,14 @@ from JumpScale import j
 
 class GitClient(object):
 
-    def __init__(self, baseDir): # NOQA
+    def __init__(self, baseDir):  # NOQA
         self._repo = None
         if not j.sal.fs.exists(path=baseDir):
             j.events.inputerror_critical("git repo on %s not found." % baseDir)
 
         # split path to find parts
-        baseDir = baseDir.replace("\\", "/") # NOQA
+        baseDir = baseDir.replace("\\", "/")  # NOQA
+        baseDir = baseDir.rstrip("/")
         if baseDir.find("/code/") == -1:
             j.events.inputerror_critical(
                 "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
@@ -55,7 +56,7 @@ class GitClient(object):
     def init(self):
         self.repo
 
-    def switchBranch(self, branchName, create=True): # NOQA
+    def switchBranch(self, branchName, create=True):  # NOQA
         if create:
             import git
             try:
@@ -110,7 +111,7 @@ class GitClient(object):
             self.repo.index.remove(files)
 
     def pull(self):
-        self.repo.git.pull(self.branchName)
+        self.repo.git.pull()
 
     def fetch(self):
         self.repo.git.fetch()
@@ -126,31 +127,53 @@ class GitClient(object):
         else:
             self.repo.git.push('--all')
 
-    def getChangedFiles(self,fromref="",fromepoch="",author=None,paths=[],toref=""):
+    def getChangedFiles(self, fromref=None, toref=None, fromepoch=None, toepoch=None, author=None, paths=[]):
         """
         list all changed files since ref & epoch (use both)
-        @param fromref = comittref to start from 
+        @param fromref = commit ref to start from
+        @param toref = commit ref to end at
         @param author if limited to author
         @param path if only list changed files in paths
+        @param fromepoch = starting epoch
+        @param toepoch = ending epoch
         """
-        #@todo (*1*) can use git library like https://www.dulwich.io/ or the std python lib
-        pass
+        commits = self.getCommitRefs(fromref=fromref, toref=toref, fromepoch=fromepoch, toepoch=toepoch, author=author, paths=paths)
+        files = [f for commit in commits for f in commit[3]]
+        return list(set(files))
 
-    def getCommitRefs(self,fromref="",fromepoch="",author=None,paths=[]):
+    def getCommitRefs(self, fromref='', toref='', fromepoch=None, toepoch=None, author=None, paths=None):
         """
-        @return [$epoch,$ref,$author]
+        @return [$epoch, $ref, $author, $files]
         """
-        #@todo (*1*) 
-        pass
+        kwargs = {'branches': [self.branchName]}
+        if fromepoch:
+            kwargs["max-age"] = fromepoch
+        if toepoch:
+            kwargs['min-age'] = toepoch
+        if fromref or toref:
+            if fromref:
+                kwargs['rev'] = '%s..%s' % (fromref, toref)
+        if author:
+            kwargs['author'] = author
+        commits = list()
+        for commit in list(self.repo.iter_commits(paths=paths, **kwargs)):
+            commits.append((commit.authored_date, commit.hexsha, commit.author.name, list(commit.stats.files.keys())))
+        return commits
 
-    def getFileChanges(self,path):
+    def getFileChanges(self, path):
         """
         @return lines which got changed
         format:
-        @todo what is best format to return difs which are easy to read & process by machine
-        needs to happen per path and need to know who changed which line when
+        {'line': [{'commit sha': '', 'author': 'author'}]}
         """
-        pass
+        # TODO (*3*) limit to max number?
+        diffs = dict()
+        blame = self.repo.blame(self.branchName, 'lib/JumpScale/grid/gridhealthchecker/gridhealthchecker.py')
+        for commit, lines in blame:
+            for line in lines:
+                diffs[line] = list() if line not in diffs else diffs[line]
+                diffs[line].append({'author': commit.author.name, 'commit': commit.hexsha})
+        return diffs
 
     def getUntrackedFiles(self):
         return self.repo.untracked_files

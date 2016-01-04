@@ -436,32 +436,21 @@ class AtYourServiceFactory():
         template = self.getTemplate(domain=domain,name=name, version=version)
         return template.recipe
 
-    def getService(self,  role="",instance="main"):
+    def getService(self,  role='', instance='main', die=True):
         """
         Return service indentifier by domain,name and instance
         throw error if service is not found or if more than one service is found
         """
         res = self.findServices(role=role, instance=instance)
-        if first:
-            return res
-        else:
-            if len(res) > 1:
-                if die:
-                    if role != "":
-                        j.events.inputerror_critical("Cannot get ays service '%s|%s!%s@%s', found more than 1" % (domain, name, instance, role), "ays.getservice")
-                    else:
-                        j.events.inputerror_critical("Cannot get ays service '%s|%s!%s (%s)', found more than 1" % (domain, name, instance, version), "ays.getservice")
-                else:
-                    return None
-            if len(res) == 0:
-                if die:
-                    if role != "":
-                        j.events.inputerror_critical("Cannot get ays service '%s|%s!%s@%s', did not find" % (domain, name, instance, role), "ays.getservice")
-                    else:
-                        j.events.inputerror_critical("Cannot get ays service '%s|%s!%s (%s)', did not find" % (domain, name, instance, version), "ays.getservice")
-                else:
-                    return None
-            return res[0]
+
+        if len(res) != 1:
+            if die:
+                j.events.inputerror_critical("Cannot get ays service '%s', found %s services" % (role, len(res)),
+                                             "ays.getservice")
+            else:
+                return None
+
+        return res[0]
 
     def loadServicesInSQL(self):
         """

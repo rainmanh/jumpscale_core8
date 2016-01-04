@@ -118,10 +118,11 @@ class AtYourServiceFactory():
             if aysrepopath != None:
                 # load local templates
                 domainpath = j.sal.fs.joinPaths(aysrepopath, "recipes")
-                d = j.tools.path.get(domainpath)
-                for item in d.walkfiles("state.hrd"):
-                    recipepath = j.sal.fs.getDirName(item)
-                    self._recipes.append(ServiceRecipe(recipepath))
+                if j.sal.fs.exists(domainpath):
+                    d = j.tools.path.get(domainpath)
+                    for item in d.walkfiles("state.hrd"):
+                        recipepath = j.sal.fs.getDirName(item)
+                        self._recipes.append(ServiceRecipe(recipepath))
         return self._recipes
 
     @property

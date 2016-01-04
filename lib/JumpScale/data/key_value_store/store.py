@@ -10,14 +10,10 @@ class KeyValueStoreType(str):
 
     def __init__(self, value=None):
         self.value = value
-
-    @classmethod
-    def _initItems(cls):
-        cls.registerItem('arakoon')
-        cls.registerItem('fs')
-        cls.registerItem('memory')
-        cls.registerItem('redis')
-        cls.finishItemRegistration()
+        self.ARAKOON = 'arakoon'
+        self.FS = 'fs'
+        self.MEMORY = 'memory'
+        self.REDIS = 'redis'
 
 
 class KeyValueStoreBase(object):#, metaclass=ABCMeta):

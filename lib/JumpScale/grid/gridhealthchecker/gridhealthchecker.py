@@ -84,7 +84,7 @@ class GridHealthChecker(object):
         print('CHECKING HEARTBEATS...')
         self._runningnids = list()
         print("\tget all heartbeats (just query from OSIS):")
-        heartbeats = self._heartbeatcl.simpleSearch({})
+        heartbeats = self._heartbeatcl.find({})
         print("OK")
         for heartbeat in heartbeats:
             if heartbeat['nid'] not in self._nids and  heartbeat['nid']  not in self._nidsNonActive:
@@ -125,16 +125,16 @@ class GridHealthChecker(object):
         if heartbeat nodes found not in gridnodes -> error
         all the ones found in self._nids (return if populated)
         """
-        nodes = self._nodecl.simpleSearch({})
+        nodes = self._nodecl.find({})
         self._nids = []
         self._nidsNonActive=[]
         for node in nodes:
-            self._nodenames[node['id']] = node['name']
-            self._nodegids[node['id']] = node['gid']
+            self._nodenames[node['guid']] = node['name']
+            self._nodegids[node['guid']] = node['gid']
             if node["active"]==True:
-                self._nids.append(node['id'])
+                self._nids.append(node['guid'])
             else:
-                self._nidsNonActive.append(node['id'])
+                self._nidsNonActive.append(node['guid'])
         if activecheck:
             self.pingAllNodesSync(clean=True)
             self._checkRunningNIDsFromPing()
@@ -368,7 +368,7 @@ class GridHealthChecker(object):
         query = {}
         if nid:
             query['nid'] = nid
-        heartbeats = self._heartbeatcl.simpleSearch(query)
+        heartbeats = self._heartbeatcl.find(query)
         for heartbeat in heartbeats:
             if heartbeat['nid'] not in self._nids and  heartbeat['nid']  not in self._nidsNonActive:
                 self._addError(heartbeat['nid'], "found heartbeat node '%s' when not in grid nodes." % heartbeat['nid'],"heartbeat")
@@ -395,8 +395,8 @@ class GridHealthChecker(object):
         if clean:
             self._clean()
         gid = self.getGID(nid)
-        if self._heartbeatcl.exists('%s_%s' % (gid, nid)):
-            heartbeat = self._heartbeatcl.get('%s_%s' % (gid, nid))
+        if self._heartbeatcl.find({'gid':gid,'nid':nid}):
+            heartbeat = self._heartbeatcl.find({'gid':gid,'nid':nid})[0]
             lastchecked = heartbeat.lastcheck
             if  j.data.time.getEpochAgo('-2m') < lastchecked:
                 self._addResult(nid, {'state': 'RUNNING'}, 'processmanager')

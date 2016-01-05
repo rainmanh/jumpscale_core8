@@ -44,6 +44,10 @@ class BaseModelFactory():
         return ModelErrorCondition
 
     @property
+    def Log(self):
+        return ModelLog
+
+    @property
     def Grid(self):
         return ModelGrid
 

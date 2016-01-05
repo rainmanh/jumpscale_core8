@@ -17,6 +17,10 @@ class HRDType():
         self.alias = ""
         self.doAsk = False
         self.retry = 5
+        self.consume_link = ""  # link to other service I require, described with name of role
+        self.consume_nr_min = 0  # min amount we require
+        self.consume_nr_max = 0  # max amount we require
+        self.parent = ""
 
     def validate(self, value):
         if self.typeclass.check(value) == False:
@@ -157,26 +161,26 @@ class HRDSchema():
                 hrdtype.description = hrdtype.description.replace("\\n", "\n")
 
             if tags.tagExists("consume"):
-                c=tags.tagGet("consume")
+                c = tags.tagGet("consume")
                 for item in c.split(","):
-                    item=item.strip().lower()
-                    items=item.split(":")
-                    if len(items)==2:
-                        #min defined
-                        hrdtype.consume_nr_min=items[1]
-                    elif len(items)==3:
-                        #also max defined
-                        hrdtype.consume_nr_min=items[1]
-                        hrdtype.consume_nr_max=items[2]
-                    hrdtype.consume_link=items[0]
+                    item = item.strip().lower()
+                    items = item.split(":")
+                    if len(items) == 2:
+                        # min defined
+                        hrdtype.consume_nr_min = items[1]
+                    elif len(items) == 3:
+                        # also max defined
+                        hrdtype.consume_nr_min = items[1]
+                        hrdtype.consume_nr_max = items[2]
+                    hrdtype.consume_link = items[0]
 
             if tags.tagExists("parent"):
-                c=tags.tagGet("parent")
-                hrdtype.consume_nr_min=1
-                hrdtype.consume_nr_max=1
-                hrdtype.consume_link=c
-                hrdtype.parent=c
-                
+                c = tags.tagGet("parent")
+                hrdtype.consume_nr_min = 1
+                hrdtype.consume_nr_max = 1
+                hrdtype.consume_link = c
+                hrdtype.parent = c
+
             if tags.tagExists("minval"):
                 hrdtype.minVal = hrdtype.typeclass.fromString(tags.tagGet("minval"))
 
@@ -219,32 +223,32 @@ class HRDSchema():
                     continue  # no need to further process, already exists in hrd
             if ttype.list:
                 try:
-                    val=j.data.types.list.fromString(val, ttype=ttype.typeclass)
+                    val = j.data.types.list.fromString(val, ttype=ttype.typeclass)
                 except Exception as e:
                     from IPython import embed
                     print(9933)
-                    embed()                    
+                    embed()
             else:
 
-                if j.data.types.list.check(val) and len(val)==1:
-                    val=val[0] #this to resolve some customer types or yaml inconsistencies, if only 1 member we can use as a non list
+                if j.data.types.list.check(val) and len(val) == 1:
+                    val = val[0]  # this to resolve some customer types or yaml inconsistencies, if only 1 member we can use as a non list
 
                 if j.data.types.string.check(val):
                     while val[0] in [" ['"] or val[-1] in ["' ]"]:
-                        val=val.strip()
-                        val=val.strip("[]")
-                        val=val.strip("'")
+                        val = val.strip()
+                        val = val.strip("[]")
+                        val = val.strip("'")
 
                 try:
-                    val=ttype.typeclass.fromString(val)
+                    val = ttype.typeclass.fromString(val)
                 except Exception as e:
                     from IPython import embed
                     print(9922)
                     embed()
-                    
-                if j.data.types.list.check(val) and len(val)==1:
-                    val=val[0] #this to resolve some customer types or yaml inconsistencies, if only 1 member we can use as a non list
-            hrd.set(ttype.name,val)
+
+                if j.data.types.list.check(val) and len(val) == 1:
+                    val = val[0]  # this to resolve some customer types or yaml inconsistencies, if only 1 member we can use as a non list
+            hrd.set(ttype.name, val)
         return hrd
 
     def __repr__(self):

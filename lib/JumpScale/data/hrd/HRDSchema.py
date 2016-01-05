@@ -16,6 +16,10 @@ class HRDType():
         self.alias=""
         self.doAsk=False
         self.retry=5
+        self.consume_link="" #link to other service I require, described with name of role
+        self.consume_nr_min = 0 #min amount we require
+        self.consume_nr_max = 0 #max amount we require 
+        self.parent=""
 
     def validate(self,value):
         if self.typeclass.check(value)==False:
@@ -156,6 +160,26 @@ class HRDSchema():
                 hrdtype.description=hrdtype.description.replace("__"," ")
                 hrdtype.description=hrdtype.description.replace("\\n","\n")
 
+            if tags.tagExists("consume"):
+                c=tags.tagGet("consume")
+                for item in c.split(","):
+                    item=item.strip().lower()
+                    items=item.split(":")
+                    if len(items)==2:
+                        #min defined
+                        hrdtype.consume_nr_min=items[1]
+                    elif len(items)==3:
+                        #also max defined
+                        hrdtype.consume_nr_min=items[1]
+                        hrdtype.consume_nr_max=items[2]
+                    hrdtype.consume_link=items[0]
+
+            if tags.tagExists("parent"):
+                c=tags.tagGet("parent")
+                hrdtype.consume_nr_min=1
+                hrdtype.consume_nr_max=1
+                hrdtype.consume_link=c
+                hrdtype.parent=c
                 
             if tags.tagExists("minval"):
                 hrdtype.minVal = hrdtype.typeclass.fromString(tags.tagGet("minval"))

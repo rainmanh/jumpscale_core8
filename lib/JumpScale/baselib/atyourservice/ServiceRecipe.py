@@ -5,15 +5,12 @@ from JumpScale import j
 # import JumpScale.baselib.actions
 
 from ServiceTemplate import ServiceTemplate
-from ServiceRecipeState import ServiceRecipeState
 from Service import Service
 
 
 class ServiceRecipe(ServiceTemplate):
 
     def __init__(self, path="",template=None,aysrepopath=""):
-
-        self._state=None
 
         if aysrepopath=="" or aysrepopath==None:
             aysrepopath=j.dirs.amInAYSRepo()
@@ -56,8 +53,6 @@ class ServiceRecipe(ServiceTemplate):
         if firstime:
             self.state.save()
 
-        self.state.check()
-
         self.domain=self.parent.domain
 
 
@@ -66,7 +61,7 @@ class ServiceRecipe(ServiceTemplate):
         """
         """
         if self._state is None:
-            self._state=ServiceRecipeState(self)
+            self._state=None
         return self._state        
 
     def newInstance(self, instance="main", args={}, path='', parent=None, consume="",originator=None):

@@ -12,23 +12,22 @@ from AtYourServiceSync import AtYourServiceSync
 from AtYourServiceDebug import AtYourServiceDebugFactory
 import os
 
+# class AYSDB():
+#     """
+#     @todo 
+#     """
 
-class AYSDB():
-    """
-    @todo
-    """
+#     def __init__(self):
+#         self.db=j.core.db
 
-    def __init__(self):
-        self.db = j.core.db
+#     def index(self,category,key,data):
+#         self.db.hset("ays.index.%s"%category,key,data)
 
-    def index(self, category, key, data):
-        self.db.hset("ays.index.%s" % category, key, data)
-
-    def reset(self):
-        self.db.delete("ays.domains")
-        self.db.delete("ays.index.service")
-        self.db.delete("ays.index.recipe")
-        self.db.delete("ays.index.template")
+#     def reset(self):
+#         self.db.delete("ays.domains")
+#         self.db.delete("ays.index.service")
+#         self.db.delete("ays.index.recipe")
+#         self.db.delete("ays.index.template")
 
 
 class AtYourServiceFactory():
@@ -50,10 +49,16 @@ class AtYourServiceFactory():
         self.todo = []
         self._debug = None
 
-        self._db = AYSDB()
+        # self._db=AYSDB()
 
-    def reload(self):
-        self._db.reload()
+    def reset(self):
+        # self._db.reload()
+        self._services = []
+        self._templates = []
+        self._recipes = []
+        self._reposDone = {}
+        self.todo = []
+
 
     @property
     def debug(self):
@@ -97,17 +102,19 @@ class AtYourServiceFactory():
 
         if self._templates == []:
             self._doinit()
+
+            #load the local service templates
+            aysrepopath=j.dirs.amInAYSRepo()
+            if aysrepopath!=None:
+                # load local templates
+                path=j.sal.fs.joinPaths(aysrepopath,"%s/servicetemplates/"%aysrepopath)                
+                load("ays",path,self._templates)
+
+
             for domain, domainpath in self.domains:
                 # print "load template domain:%s"%domainpath
-                load(domain, domainpath, self._templates)
-
-        # load the local service templates
-        aysrepopath = j.dirs.amInAYSRepo()
-        if aysrepopath != None:
-            # load local templates
-            path = j.sal.fs.joinPaths(aysrepopath, "%s/servicetemplates/" % aysrepopath)
-            load("ays", path, self._templates)
-
+                load(domain, domainpath,self._templates)
+        
         return self._templates
 
     @property

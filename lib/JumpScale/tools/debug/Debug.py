@@ -143,6 +143,7 @@ class DebugFactory():
         ```
 
         """
+        print (H)
 
     def init(self, nodes="localhost"):
         """
@@ -226,6 +227,8 @@ class DebugFactory():
         mkdir -p /overlay/js_work
         mkdir -p /optrw
         mount -t overlay overlay -olowerdir=/opt,upperdir=/overlay/js_upper,workdir=/overlay/js_work /optrw
+        set +ex
+        rm -rf /optrw/jumpscale8/lib/JumpScale/
         mkdir -p /optrw/jumpscale8/lib/JumpScale/
         mkdir -p /optrw/code/
         """
@@ -249,13 +252,25 @@ class DebugFactory():
 
         print ("login to machine & do\ncd /optrw/jumpscale8;source env.sh;js")
 
-    def syncCode(self, reset=False, monitor=False,rsyncdelete=True):
-        if reset or j.core.db.get("debug.codepaths") == None:
+    def syncCode(self, reset=False, ask=False,monitor=False,rsyncdelete=False):
+        """
+        sync all code to the remote destinations
+
+        @param reset=True, means we remove the destination first
+        @param ask=True means ask which repo's to sync (will get remembered in redis)
+
+        """
+        if ask or j.core.db.get("debug.codepaths") == None:
             path = j.dirs.codeDir + "/github/jumpscale"
             if j.do.exists(path):
                 items = j.do.listDirsInDir(path)
             chosen = j.tools.console.askChoiceMultiple(items)
             j.core.db.set("debug.codepaths", ",".join(chosen))
+
+
+        if reset:
+            self.overlaySandbox()
+
         codepaths = j.core.db.get("debug.codepaths").decode().split(",")
         for source in codepaths:
             destpart = source.split("jumpscale/", 1)[-1]
@@ -286,14 +301,14 @@ class DebugFactory():
         if monitor:
             self.monitorChanges()
 
-    def monitorChanges(self,sync=True):
+    def monitorChanges(self,sync=True,reset=False):
         """
         look for changes in directories which are being pushed & if found push to remote nodes
         """
         event_handler = MyFSEventHandler()
         observer = Observer()
         if sync or j.core.db.get("debug.codepaths") == None:
-            self.syncCode(monitor=False,rsyncdelete=False)
+            self.syncCode(monitor=False,rsyncdelete=False,reset=reset)
         codepaths = j.core.db.get("debug.codepaths").decode().split(",")
         for source in codepaths:
             print("monitor:%s" % source)

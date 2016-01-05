@@ -233,8 +233,6 @@ locations=json.loads(data)
 
 for locationbase,llist in locations.items():  #locationbase is e.g. j.sal
     # print (locationbase)
-    if not locationbase in locationbases:
-        import ipdb;ipdb.set_trace()
     loader=locationbases[locationbase]
     for classfile,classname,item in llist:
         # print (" - %s|%s|%s"%(item,classfile,classname))

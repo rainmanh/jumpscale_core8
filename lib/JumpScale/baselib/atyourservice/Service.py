@@ -6,7 +6,6 @@ from JumpScale import j
 import imp
 import sys
 from functools import wraps
-from ServiceState import *
 from Recurring import Recurring
 
 
@@ -201,10 +200,8 @@ class Service(object):
 
     @property
     def state(self):
-        if self._state is None:
-            self._state = ServiceState(self)
-            if self._state.hrd.get("hash.instance.hrd") == "":
-                self._state.check()
+        if self._state==None:
+            self._state=None
         return self._state
 
     @property

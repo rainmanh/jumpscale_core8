@@ -61,12 +61,13 @@ ays commands:
 """
 
 parser.add_argument("action", choices=commands, help='Command to perform\n')
-parser.add_argument("--noremote", required=False, action='store_true', help='bypass the @remote wrapper\n', default=False)
+# parser.add_argument("--noremote", required=False, action='store_true', help='bypass the @remote wrapper\n', default=False)
 
 group = parser.add_argument_group(title="Service Selection")
 group.add_argument('-q', '--quiet', required=False, action='store_true', help='Put in quiet mode')
 group.add_argument('-n', '--name', required=False, help='Name of ays to be installed', default="")
 group.add_argument('-d', '--domain', required=False, help='Name of ays domain to be installed', default="")
+group.add_argument('-v', '--version', required=False, help='Version of ays to be installed', default="")
 group.add_argument('-i', '--instance', required=False, help='Instance of ays (default main)', default="")
 group.add_argument('--role', required=False, help='Role of ays', default="")
 group.add_argument('-f', '--force', required=False, action='store_true', help='auto answer yes on every question')
@@ -137,18 +138,18 @@ def getParent(args):
     return j.atyourservice.getServiceFromKey(args.parent)
 
 def getTarget(args):
-    return j.atyourservice.get(name=(args.targettype or ''), instance=(args.targetname or ''),
+    return j.atyourservice.getService(name=(args.targettype or ''), instance=(args.targetname or ''),
                                parent=getParent(args))
 
 def getServices(args, filterRemote=False, onlyRemote=False):
     res = []
     services = j.atyourservice.findServices(domain=args.domain, name=args.name, instance=args.instance, role=args.role, parent=getParent(args))
-    if args.noremote:
-        # means we are installing over ssh, so we need to tell service to do everything local
-        for service in services:
-            service.noremote = True
-            service.hrd.delete('producer.node')
-            service.hrd.save()
+    # if args.noremote:
+    #     # means we are installing over ssh, so we need to tell service to do everything local
+    #     for service in services:
+    #         service.noremote = True
+    #         service.hrd.delete('producer.node')
+    #         service.hrd.save()
     if args.cmd:
         for service in services:
             service.cmd = args.cmd
@@ -170,16 +171,6 @@ if '--help' in sys.argv or '-h' in sys.argv:
 args = parser.parse_args()
 args.deps = not args.nodeps
 
-# aysargs = {}
-# if args.node!=None:
-#     aysargs["node2execute"]=args.node
-# if args.lua!=None:
-#     aysargs["lua"]=args.lua
-
-# if args.cmd is not None:
-    # aysargs['cmd'] = args.cmd.strip()
-
-
 j.application.debug = args.verbose
 
 if args.quiet:
@@ -199,25 +190,17 @@ elif args.action=="install" or args.action == 'init':
 
     if args.instance == "":
         args.instance = 'main'
-
-    if args.noremote:
-        service = j.atyourservice.getService(domain=args.domain, name=args.name, instance=args.instance)
-        service.noremote = args.noremote
-        j.application.noremote = args.noremote
-        if service.hrd.exists('instance.producer.node'):
-            service.hrd.delete('instance.producer.node')
-        service.args = getHRDData(args)
-    else:
-        tmpls = j.atyourservice.findTemplates(domain=args.domain, name=args.name)
-        if len(tmpls) > 1:
-            print(tmpls)
-            raise RuntimeError("multiple templates found for %s__%s. Be more precise please" % (args.domain,args.name))
-        if len(tmpls) <= 0:
-            raise RuntimeError("no templates found for %s__%s. Be more precise please" % (args.domain, args.name))
-
-        service = tmpls[0].newInstance(instance=args.instance, args=getHRDData(args), parent=getParent(args),consume=args.consume)
-
-        service.init()
+    #
+    # if args.noremote:
+    #     service = j.atyourservice.getService(domain=args.domain, name=args.name, instance=args.instance)
+    #     service.noremote = args.noremote
+    #     j.application.noremote = args.noremote
+    #     if service.hrd.exists('instance.producer.node'):
+    #         service.hrd.delete('instance.producer.node')
+    #     service.args = getHRDData(args)
+    # else:
+    recipe = j.atyourservice.getRecipe(domain=args.domain, name=args.name, version=args.version)
+    service = recipe.newInstance(instance=args.instance, parent=getParent(args), args=getHRDData(args), consume=args.consume)
 
 elif args.action == 'console':
     target = getTarget(args)

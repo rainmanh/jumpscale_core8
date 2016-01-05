@@ -38,11 +38,11 @@ class ServiceTemplate(object):
     def _init(self):
         self.path_hrd_template = j.sal.fs.joinPaths(self.path, "template.hrd")
         self.path_hrd_schema = j.sal.fs.joinPaths(self.path, "schema.hrd")
-        self.path_actions_mgmt = j.sal.fs.joinPaths(self.path, "actions_mgmt.py") 
-        self.path_actions_node = j.sal.fs.joinPaths(self.path, "actions_node.py") 
+        self.path_actions_mgmt = j.sal.fs.joinPaths(self.path, "actions_mgmt.py")
+        self.path_actions_node = j.sal.fs.joinPaths(self.path, "actions_node.py")
 
         self.role = self.name.split('.')[0]
-        
+
         self._hrd = None
         self._schema = None
         self._actions = None
@@ -89,7 +89,7 @@ class ServiceTemplate(object):
     @property
     def actions(self):
         if self._actions is None:
-            if j.do.exists(self.path_actions_mgmt):
+            if j.sal.fs.exists(self.path_actions_mgmt):
                 if self.domain=="ays":
                     self.hrd.applyOnFile(self.path_actions_mgmt)
                     j.application.config.applyOnFile(self.path_actions_mgmt)

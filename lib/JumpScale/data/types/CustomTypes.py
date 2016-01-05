@@ -29,7 +29,7 @@ class Guid(String):
         if self.check(s):
             return s
         else:
-            raise ValueError("%s not properly formatted: '%s'"%(Guid.NAME,v))         
+            raise ValueError("%s not properly formatted: '%s'"%(Guid.NAME,v))
 
     toString=fromString
 
@@ -42,7 +42,7 @@ class Email(String):
         self.NAME = 'email'
         self._RE = re.compile('^[0-9a-z.@_\-]*')
 
-    
+
     def check(self,value):
         '''
         Check whether provided value is a valid tel nr
@@ -52,7 +52,7 @@ class Email(String):
         value=self.clean(value)
         return self._RE.fullmatch(value) is not None
 
-    
+
     def clean(self,v):
         if not j.data.types.string.check(v):
             raise ValueError("Input needs to be string:%s"%v)
@@ -60,17 +60,17 @@ class Email(String):
         v.strip()
         return v
 
-    
+
     def fromString(self,v):
         v=self.clean(v)
         if self.check(v):
             return v
         else:
-            raise ValueError("%s not properly formatted: '%s'"%(self.NAME,v))        
+            raise ValueError("%s not properly formatted: '%s'"%(self.NAME,v))
 
     toString=fromString
 
-    
+
     def get_default(self):
         return "changeme@example.com"
 
@@ -94,14 +94,14 @@ class Tel(Email):
         self._RE = re.compile('\+[0-9]*')
 
     def clean(self,v):
-        if j.data.types.string.check(v):
+        if not j.data.types.string.check(v):
             raise ValueError("Input needs to be string:%s"%v)
         v=v.replace(".","")
         v=v.replace(",","")
         v=v.replace(" ","")
         v.strip()
         return v
-    
+
     def get_default(self):
         return "+32 475.99.99.99"
 
@@ -122,9 +122,9 @@ class IPAddress(Email):
     """
     """
     def __init__(self):
-        self.NAME = 'IPRANGE'
+        self.NAME = 'IPADDRESS'
         self._RE = re.compile('.*')
-    
+
     def get_default(self):
         return "192.168.1.1"
 
@@ -133,8 +133,8 @@ class IPPort(Integer):
     def __init__(self):
         self.NAME = 'ipport'
         self.BASETYPE = 'string'
-    
-    
+
+
     def check(self,value):
         '''
         Check if the value is a valid port
@@ -142,9 +142,9 @@ class IPPort(Integer):
         Values must be between 0 and 65535
         '''
         if not Integer.check(self,value):
-            return False        
+            return False
         if 0 < value <= 65535:
-            return True            
+            return True
         return False
 
 class Date(Email):
@@ -155,12 +155,12 @@ class Date(Email):
     +1 is indefinite in future
     '''
     def __init__(self):
-        self.NAME = 'ipport'
+        self.NAME = 'date'
         self._RE = re.compile('.*\:.*\:.*') #@todo (*1*) better regex
-    
+
     def get_default(self):
         return "-1"
-    
+
     def clean(self,v):
         if v==-1:
             v="-1"
@@ -194,7 +194,7 @@ class Duration(Email):
         self.NAME = 'duration'
         self._RE = re.compile('^(\d+)([wdhms]?)$')
 
-    
+
     def check(self,value):
         if isinstance(value, int):
             if value == -1:
@@ -206,7 +206,7 @@ class Duration(Email):
                 return True
         return False
 
-    
+
     def convertToSeconds(value):
         """Translate a string representation of a duration to an int
         representing the amount of seconds.
@@ -252,7 +252,7 @@ class Duration(Email):
 #     '''Generic folder path type'''
 #     NAME = 'dirpath'
 
-#     
+#
 #     def check(value):
 #         '''Check whether provided value is a valid directory path
 
@@ -264,7 +264,7 @@ class Duration(Email):
 #     '''Generic file path type'''
 #     NAME = 'filepath'
 
-#     
+#
 #     def check(value):
 #         '''Check whether provided value is a valid file path
 
@@ -276,7 +276,7 @@ class Duration(Email):
 #     '''Generic Unix folder path type'''
 #     NAME = 'unixdirpath'
 
-#     
+#
 #     def check(value):
 #         '''Check whether provided value is a valid UNIX directory path
 
@@ -291,7 +291,7 @@ class Duration(Email):
 #     '''Generic Unix file path type'''
 #     NAME = 'unixfilepath'
 
-#     
+#
 #     def check(value):
 #         '''Check whether provided value is a valid UNIX file path
 
@@ -307,7 +307,7 @@ class Duration(Email):
 #     '''Generic Windows folder path type'''
 #     NAME = 'windowsdirpath'
 
-#     
+#
 #     def check(value):
 #         '''Check whether provided value is a valid Windows directory path
 
@@ -327,7 +327,7 @@ class Duration(Email):
 #     '''Generic Windows file path type'''
 #     NAME = 'windowsfilepath'
 
-#     
+#
 #     def check(value):
 #         '''Check whether provided value is a valid Windows file path
 
@@ -341,4 +341,3 @@ class Duration(Email):
 #         if not WINDOWS_FILE_RE.match(value):
 #             return False
 #         return not value.endswith(('\\', '/', ))
-

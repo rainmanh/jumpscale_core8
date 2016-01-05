@@ -12,22 +12,22 @@ from AtYourServiceSync import AtYourServiceSync
 from AtYourServiceDebug import AtYourServiceDebugFactory
 import os
 
-class AYSDB():
-    """
-    @todo 
-    """
+# class AYSDB():
+#     """
+#     @todo 
+#     """
 
-    def __init__(self):
-        self.db=j.core.db
+#     def __init__(self):
+#         self.db=j.core.db
 
-    def index(self,category,key,data):
-        self.db.hset("ays.index.%s"%category,key,data)
+#     def index(self,category,key,data):
+#         self.db.hset("ays.index.%s"%category,key,data)
 
-    def reset(self):
-        self.db.delete("ays.domains")
-        self.db.delete("ays.index.service")
-        self.db.delete("ays.index.recipe")
-        self.db.delete("ays.index.template")
+#     def reset(self):
+#         self.db.delete("ays.domains")
+#         self.db.delete("ays.index.service")
+#         self.db.delete("ays.index.recipe")
+#         self.db.delete("ays.index.template")
 
 
 class AtYourServiceFactory():
@@ -47,18 +47,24 @@ class AtYourServiceFactory():
         self.sync = AtYourServiceSync()
         self._reposDone = {}
         self.todo = []
-        self._debug=None
+        self._debug = None
 
-        self._db=AYSDB()
+        # self._db=AYSDB()
 
-    def reload(self):
-        self._db.reload()
+    def reset(self):
+        # self._db.reload()
+        self._services = []
+        self._templates = []
+        self._recipes = []
+        self._reposDone = {}
+        self.todo = []
+
 
     @property
     def debug(self):
-        
-        if self._debug==None:
-            self._debug=AtYourServiceDebugFactory()
+
+        if self._debug == None:
+            self._debug = AtYourServiceDebugFactory()
         return self._debug
 
     @property
@@ -80,72 +86,75 @@ class AtYourServiceFactory():
     @property
     def templates(self):
 
-        def load(domain, path,llist):
+        def load(domain, path, llist):
             for servicepath in j.sal.fs.listDirsInDir(path, recursive=False):
-                dirname = j.do.getBaseName(servicepath)
+                dirname = j.sal.fs.getBaseName(servicepath)
                 # print "dirname:%s"%dirname
                 if not (dirname.startswith(".")):
-                    load(domain,servicepath,llist)
+                    load(domain, servicepath, llist)
             # print path
-            dirname = j.do.getBaseName(path)
+            dirname = j.sal.fs.getBaseName(path)
             if dirname.startswith("_"):
                 return
             if j.sal.fs.exists("%s/schema.hrd" % path) or j.sal.fs.exists("%s/service.hrd" % path) or j.sal.fs.exists("%s/actions_mgmt.py" % path):
                 templ = ServiceTemplate(path, domain=domain)
                 llist.append(templ)
 
-        if self._templates==[]:
+        if self._templates == []:
             self._doinit()
+
+            #load the local service templates
+            aysrepopath=j.dirs.amInAYSRepo()
+            if aysrepopath!=None:
+                # load local templates
+                path=j.sal.fs.joinPaths(aysrepopath,"%s/servicetemplates/"%aysrepopath)                
+                load("ays",path,self._templates)
+
+
             for domain, domainpath in self.domains:
                 # print "load template domain:%s"%domainpath
                 load(domain, domainpath,self._templates)
         
-        #load the local service templates
-        aysrepopath=j.dirs.amInAYSRepo()
-        if aysrepopath!=None:
-            # load local templates
-            path=j.sal.fs.joinPaths(aysrepopath,"%s/servicetemplates/"%aysrepopath)                
-            load("ays",path,self._templates)
-
         return self._templates
 
     @property
     def recipes(self):
-        if self._recipes==[]:
+        if self._recipes == []:
             self._doinit()
-            aysrepopath=j.dirs.amInAYSRepo()
-            if aysrepopath!=None:
+            aysrepopath = j.dirs.amInAYSRepo()
+            if aysrepopath != None:
                 # load local templates
-                domainpath=j.sal.fs.joinPaths(aysrepopath,"%s/recipes/"%aysrepopath)
-                d=j.tools.path.get(domainpath)
-                for item in d.walkfiles("state.hrd"):
-                    recipepath=j.do.getDirName(item)
-                    self._recipes.append(ServiceRecipe(recipepath))
+                domainpath = j.sal.fs.joinPaths(aysrepopath, "recipes")
+                if j.sal.fs.exists(domainpath):
+                    d = j.tools.path.get(domainpath)
+                    for item in d.walkfiles("state.hrd"):
+                        recipepath = j.sal.fs.getDirName(item)
+                        self._recipes.append(ServiceRecipe(recipepath))
         return self._recipes
-        
+
     @property
     def services(self):
-        if self._services==[]:
+        if self._services == []:
 
-            for state_hrd_path in j.sal.fs.listFilesInDir(j.dirs.ays, recursive=True, \
-                filter="state.hrd", case_sensitivity='os', followSymlinks=True, listSymlinks=False):
+            for state_hrd_path in j.sal.fs.listFilesInDir(j.dirs.ays, recursive=True,
+                                                          filter="state.hrd", case_sensitivity='os', followSymlinks=True, listSymlinks=False):
                 service_path = j.sal.fs.getDirName(state_hrd_path)
                 service = Service(path=service_path, args=None)
-                self._services.append(service)            
+                self._services.append(service)
 
         return self._services
 
-    def getBlueprint(self,path=""):
+    def getBlueprint(self, path=""):
         """
         @input path, if empty will look for .yaml in current directy and only if 1 that one will be selected
         """
-        if path==None or path=="":
-            paths=j.do.listFilesInDir(j.sal.fs.getcwd(),filter="*.yaml")
-            if len(paths)==1:
-                path=paths[0]
+        if path == None or path == "":
+            paths = j.sal.fs.listFilesInDir(j.sal.fs.getcwd(), filter="*.yaml")
+            if len(paths) == 1:
+                path = paths[0]
             else:
                 raise RuntimeError("path needs to be specified")
-            
+
         return Blueprint(path)
 
     def _doinit(self):
@@ -157,43 +166,41 @@ class AtYourServiceFactory():
         if self._init is False:
             j.logger.consolelogCategories.append("AYS")
 
-            # j.do.debug=True
-
             if j.sal.fs.exists(path="/etc/my_init.d"):
-                self.indocker=True
+                self.indocker = True
 
-            login=j.application.config.get("whoami.git.login").strip()
-            passwd=j.application.config.getStr("whoami.git.passwd").strip()
+            login = j.application.config.get("whoami.git.login").strip()
+            passwd = j.application.config.getStr("whoami.git.passwd").strip()
 
             # if self.type != "n": #are not on node
-                # configpath=j.dirs.amInAYSRepo()
-                # # load service templates
-                # self._domains.append((j.sal.fs.getBaseName(configpath),"%s/servicetemplates/"%configpath))
+            # configpath=j.dirs.amInAYSRepo()
+            # # load service templates
+            # self._domains.append((j.sal.fs.getBaseName(configpath),"%s/servicetemplates/"%configpath))
 
             # always load base domaim
-            items=j.application.config.getDictFromPrefix("atyourservice.metadata")
-            repos=j.do.getGitReposListLocal()
+            items = j.application.config.getDictFromPrefix("atyourservice.metadata")
+            repos = j.do.getGitReposListLocal()
 
             for domain in list(items.keys()):
-                url=items[domain]['url']
-                if url.strip()=="":
+                url = items[domain]['url']
+                if url.strip() == "":
                     raise RuntimeError("url cannot be empty")
-                branch=items[domain].get('branch', 'master')
-                reponame=url.rpartition("/")[-1]
+                branch = items[domain].get('branch', 'master')
+                reponame = url.rpartition("/")[-1]
                 if not reponame in list(repos.keys()):
                     # means git has not been pulled yet
-                    if login!="":
-                        dest=j.do.pullGitRepo(url,dest=None,login=login,passwd=passwd,depth=1,ignorelocalchanges=False,reset=False,branch=branch)
+                    if login != "":
+                        dest = j.do.pullGitRepo(url, dest=None, login=login, passwd=passwd, depth=1, ignorelocalchanges=False, reset=False, branch=branch)
                     else:
-                        dest=j.do.pullGitRepo(url,dest=None,depth=1,ignorelocalchanges=False,reset=False,branch=branch)
+                        dest = j.do.pullGitRepo(url, dest=None, depth=1, ignorelocalchanges=False, reset=False, branch=branch)
 
-                repos=j.do.getGitReposListLocal()
+                repos = j.do.getGitReposListLocal()
 
-                dest=repos[reponame]
+                dest = repos[reponame]
                 # print "init %s" % domain
-                self._domains.append((domain,dest))
+                self._domains.append((domain, dest))
 
-        self._init=True
+        self._init = True
 
     def _getGitRepo(self, url, recipeitem=None, dest=None):
         if url in self._reposDone:
@@ -297,7 +304,7 @@ class AtYourServiceFactory():
         for service in self.findServices():
             producersWaiting = service.getProducersWaitingApply(set())
 
-            if len(producersWaiting)==0 and service.state.changed:
+            if len(producersWaiting) == 0 and service.state.changed:
                 print("%s waiting for install" % service)
                 self.todo.append(service)
             # elif service in producersWaiting and len(producersWaiting)==1 and service.state.changed():
@@ -314,7 +321,7 @@ class AtYourServiceFactory():
         for service in self.services:
             service.state.saveRevisions()
 
-    def findTemplates(self, name="", version="",domain="", first=False, role=''):
+    def findTemplates(self, name="", version="", domain="", first=False, role=''):
         res = []
         for template in self.templates:
             if not(name == "" or template.name == name):
@@ -337,9 +344,9 @@ class AtYourServiceFactory():
             return res[0]
         return res
 
-    def findRecipes(self, name="", version="", role='',one=False):
+    def findRecipes(self, name="", version="", role='', one=False):
         res = []
-        domain="ays"
+        domain = "ays"
         for template in self.recipes:
             if not(name == "" or template.name == name):
                 # no match continue
@@ -364,7 +371,7 @@ class AtYourServiceFactory():
 
         return res
 
-    def findServices(self, name="", instance="",version="", domain="", parent=None, first=False, role="", node=None, include_disabled=False):
+    def findServices(self, name="", instance="", version="", domain="", parent=None, first=False, role="", node=None, include_disabled=False):
         res = []
 
         for service in self.services:
@@ -396,7 +403,7 @@ class AtYourServiceFactory():
             if producercategory in item.categories:
                 return item
 
-    def new(self,  name="", instance="main",version="",domain="",path=None, parent=None, args={},consume=""):
+    def new(self,  name="", instance="main", version="", domain="", path=None, parent=None, args={}, consume=""):
         """
         will create a new service from template
 
@@ -405,17 +412,17 @@ class AtYourServiceFactory():
                 format $role/$domain|$name!$instance,$role2/$domain2|$name2!$instance2
 
         """
-        recipe = self.getRecipe(name,domain,version)
+        recipe = self.getRecipe(name, domain, version)
         obj = recipe.newInstance(instance=instance, path=path, parent=parent, args=args, consume=consume)
         return obj
 
-    def remove(self,  name="", instance="",domain="", role=""):
+    def remove(self,  name="", instance="", domain="", role=""):
         for service in self.findServices(domain=domain, name=name, instance=instance, role=role):
             if service in self.services:
                 self.services.remove(service)
             j.sal.fs.removeDirTree(service.path)
 
-    def getTemplate(self,  name="", version="",domain="", first=True, die=True):
+    def getTemplate(self,  name="", version="", domain="", first=True, die=True):
         if first:
             return self.findTemplates(domain=domain, name=name, version=version, first=first)
         else:
@@ -432,8 +439,8 @@ class AtYourServiceFactory():
                     return
             return res[0]
 
-    def getRecipe(self, name="",version="", domain=""):
-        template = self.getTemplate(domain=domain,name=name, version=version)
+    def getRecipe(self, name="", version="", domain=""):
+        template = self.getTemplate(domain=domain, name=name, version=version)
         return template.recipe
 
     def getService(self,  role='', instance='main', die=True):
@@ -512,7 +519,7 @@ class AtYourServiceFactory():
             objectsql.recipes = recipes
             objectsql.dependencies = dependencies
 
-        sql = j.db.sqlalchemy.get(sqlitepath=j.dirs.varDir+"/AYS.db",tomlpath=None,connectionstring='')
+        sql = j.db.sqlalchemy.get(sqlitepath=j.dirs.varDir + "/AYS.db", tomlpath=None, connectionstring='')
 
         if not self._init:
             self._doinit()

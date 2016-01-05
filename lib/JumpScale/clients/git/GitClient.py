@@ -24,8 +24,8 @@ class GitClient(object):
 
         self.baseDir = baseDir
 
-        if len(self.repo.remotes) != 1:
-            j.events.inputerror_critical("git repo on %s is corrupt could not find remote url" % baseDir)
+        # if len(self.repo.remotes) != 1:
+        #     j.events.inputerror_critical("git repo on %s is corrupt could not find remote url" % baseDir)
 
     def __repr__(self):
         return str(self.__dict__)
@@ -136,14 +136,17 @@ class GitClient(object):
         @param path if only list changed files in paths
         @param fromepoch = starting epoch
         @param toepoch = ending epoch
+        @return 
         """
-        commits = self.getCommitRefs(fromref=fromref, toref=toref, fromepoch=fromepoch, toepoch=toepoch, author=author, paths=paths)
+        commits = self.getCommitRefs(fromref=fromref, toref=toref, fromepoch=fromepoch, toepoch=toepoch, author=author, paths=paths,files=True)
         files = [f for commit in commits for f in commit[3]]
         return list(set(files))
 
-    def getCommitRefs(self, fromref='', toref='', fromepoch=None, toepoch=None, author=None, paths=None):
+    def getCommitRefs(self, fromref='', toref='', fromepoch=None, toepoch=None, author=None, paths=None,files=False):
         """
-        @return [$epoch, $ref, $author, $files]
+        @return [[$epoch, $ref, $author]] if no files (default)
+        @return [[$epoch, $ref, $author, $files]] if files
+        @param files = True means will list the files
         """
         kwargs = {'branches': [self.branchName]}
         if fromepoch:
@@ -157,7 +160,10 @@ class GitClient(object):
             kwargs['author'] = author
         commits = list()
         for commit in list(self.repo.iter_commits(paths=paths, **kwargs)):
-            commits.append((commit.authored_date, commit.hexsha, commit.author.name, list(commit.stats.files.keys())))
+            if files:
+                commits.append((commit.authored_date, commit.hexsha, commit.author.name, list(commit.stats.files.keys())))
+            else:
+                commits.append((commit.authored_date, commit.hexsha, commit.author.name))
         return commits
 
     def getFileChanges(self, path):

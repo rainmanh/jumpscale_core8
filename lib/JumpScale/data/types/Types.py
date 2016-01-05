@@ -79,7 +79,7 @@ class Types():
         elif ttype =="date":
             return self.date
 
-        raise RuntimeError("did not find type:%s"%ttype)
+        raise RuntimeError("did not find type:'%s'"%ttype)
 
     def get(self,ttype,val):
         """

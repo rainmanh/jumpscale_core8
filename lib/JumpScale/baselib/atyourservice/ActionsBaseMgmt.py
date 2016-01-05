@@ -35,6 +35,7 @@ class ActionsBaseMgmt(object):
 
         """
         print ("init:%s"%serviceObj)
+        args=serviceObj.args
 
         toconsume=[]
 

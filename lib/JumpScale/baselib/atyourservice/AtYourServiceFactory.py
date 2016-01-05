@@ -100,19 +100,22 @@ class AtYourServiceFactory():
                 templ = ServiceTemplate(path, domain=domain)
                 llist.append(templ)
 
+
         if self._templates==[]:
             self._doinit()
+
+            #load the local service templates
+            aysrepopath=j.dirs.amInAYSRepo()
+            if aysrepopath!=None:
+                # load local templates
+                path=j.sal.fs.joinPaths(aysrepopath,"%s/servicetemplates/"%aysrepopath)                
+                load("ays",path,self._templates)
+
+
             for domain, domainpath in self.domains:
                 # print "load template domain:%s"%domainpath
                 load(domain, domainpath,self._templates)
         
-        #load the local service templates
-        aysrepopath=j.dirs.amInAYSRepo()
-        if aysrepopath!=None:
-            # load local templates
-            path=j.sal.fs.joinPaths(aysrepopath,"%s/servicetemplates/"%aysrepopath)                
-            load("ays",path,self._templates)
-
         return self._templates
 
     @property

@@ -50,8 +50,9 @@ class ServiceRecipe(ServiceTemplate):
         if j.do.exists(self.parent.path_actions_node):
             j.do.copyFile(self.parent.path_actions_node,self.path_actions_node)            
 
-        if firstime:
-            self.state.save()
+        self._state=None
+        # if firstime:
+        #     self.state.save()
 
         self.domain=self.parent.domain
 

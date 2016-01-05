@@ -215,6 +215,9 @@ class Service(object):
         if self._actions_mgmt is None:
             if j.sal.fs.exists(path=self.recipe.path_actions_mgmt):
                 self._actions_mgmt = self._loadActions(self.recipe.path_actions_mgmt,"mgmt")
+                import ipdb
+                ipdb.set_trace()
+                
             else:
                 self._actions_mgmt = j.atyourservice.getActionsBaseClassMgmt()()
 

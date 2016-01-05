@@ -14,7 +14,7 @@ class Types():
         self.guid=Guid()
         self.path=Path()
         self.bool=Boolean()
-        self.integer=Integer()
+        self.int=Integer()
         self.float=Float()
         self.string=String()
         self.set=Set()

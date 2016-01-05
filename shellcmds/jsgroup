@@ -2,22 +2,18 @@
 from JumpScale import j
 from JumpScale.tools import cmdutils
 
-import sys,time
-
 j.application.start("jsgroup")
 
 parser = cmdutils.ArgumentParser()
-parser.add_argument("action", choices=['add','delete','list'], help='Command to perform')
-parser.add_argument("-d",'--data', help='add group as groupname:domain')
-parser.add_argument("-gl",'--group', help='groupname')
-parser.add_argument("-gd",'--domain', help='domain for group to list')
+parser.add_argument("action", choices=['add', 'delete', 'list'], help='Command to perform')
+parser.add_argument("-d", '--data', help='add group as groupname:domain')
+parser.add_argument("-gl", '--group', help='groupname')
+parser.add_argument("-gd", '--domain', help='domain for group to list')
 
 #parser.add_argument('--force',required=False, action='store_true',help='dont ask yes, do immediate')
 #parser.add_argument('--debug',required=False, action='store_true',help='will stop on errors and show all relevant info')
 
-import JumpScale.grid.osis
-
-opts=cmdutils.processLogin(parser)
+opts = cmdutils.processLogin(parser)
 
 
 opts = parser.parse_args()
@@ -29,55 +25,54 @@ opts = parser.parse_args()
 #     else:
 #         opts.passwd=j.tools.console.askString("please provide superadmin passwd for the grid.")
 
-# if opts.addr==None:    
+# if opts.addr==None:
 #     addr=j.application.config.get("grid.master.ip")
 # else:
 #     addr=opts.addr
 
-osis=j.clients.osis.getByInstance('main')
-userclient=j.clients.osis.getCategory(osis,"system","user")
-groupclient=j.clients.osis.getCategory(osis,"system","group")
+# TODO (*1*) ---> Get MongoEngine connection from AYS
+j.data.models.connect2mongo()
 
-############ADD
-if opts.action =='add':
-    if opts.data != None:
-        splitted=opts.data.split(":")
+# ADD
+if opts.action == 'add':
+    if opts.data is not None:
+        splitted = opts.data.split(":")
         if len(splitted) != 2:
             raise RuntimeError("error, format for param data needs to be: groupname:domain")
-        name,domain=splitted
+        name, domain = splitted
     else:
-        name=j.tools.console.askString("name")
-        domain=j.tools.console.askString("domain e.g. incubaid.com")
+        name = j.tools.console.askString("name")
+        domain = j.tools.console.askString("domain e.g. incubaid.com")
 
-    if groupclient.exists(name):
+    if j.data.models.Group.find({'name': name}):
         raise RuntimeError("group already exists")
 
-    group=groupclient.new()
-    group.id=name
-    group.domain=domain
+    group = j.data.models.Group()
+    group.name = name
+    group.domain = domain
 
-    guid,a,b=groupclient.set(group)
-
-    group=groupclient.get(guid)
+    group.save()
 
     print(group)
 
 
-if opts.action =='list':
-    out=""
-    print("\n%-20s %-25s %s"%("name","domain","users"))
+if opts.action == 'list':
+    out = ""
+    print("\n%-20s %-25s %s" % ("name", "domain", "users"))
     print("="*80)
-    for item in groupclient.simpleSearch({"domain":opts.domain}):
-        out+="%-20s %-25s %s\n"%(item["id"],item["domain"],",".join(item["users"]))
-    out=out.split("\n")
+    for item in j.data.models.Group.find({"domain": opts.domain}):
+        out += "%-20s %-25s %s\n" % (item["name"], item["domain"], ",".join(item["users"]))
+    out = out.split("\n")
     out.sort()
-    out="\n".join(out)
+    out = "\n".join(out)
     print(out)
 
-if opts.action =='delete':
-    if opts.group==None:
-        opts.group=j.tools.console.askString("group to delete")
-    group=groupclient.get("%s_%s"%(j.application.whoAmI.gid,opts.group))
-    groupclient.delete(group.guid)
+if opts.action == 'delete':
+    if opts.group is None:
+        opts.group = j.tools.console.askString("group to delete")
+    group = j.data.models.Group.find({'name': opts.group})
+    if group:
+        group = group[0]
+        j.data.models.Group.delete(group.guid)
 
 j.application.stop()

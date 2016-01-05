@@ -8,10 +8,12 @@ class GitFactory:
         self.__jslocation__ = "j.clients.git"
         j.logger.consolelogCategories.append("git")
 
-    def get(self, basedir):
+    def get(self, basedir=""):
         """
         PLEASE USE SSH, see http://gig.gitbooks.io/jumpscale/content/Howto/how_to_use_git.html for more details
         """
+        if basedir=="":
+            basedir=j.sal.fs.getcwd()
         return GitClient(basedir)
 
     def log(self, msg, category="", level=5):

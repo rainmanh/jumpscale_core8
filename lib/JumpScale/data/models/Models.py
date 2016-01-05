@@ -135,18 +135,20 @@ class ModelErrorCondition(ModelBase):
     occurrences = IntField(default=0)
 
 class ModelLog(ModelBase):
+    aid = IntField(default=0)
     pid = IntField(default=0)
     jid = StringField(default='')
     masterjid = IntField(default=0)
     appname = StringField(default="")
     level = IntField(default=1, required=True)
-    message = StringField()
+    message = StringField(default='')
     type = StringField(choices=("BUG", "PERF", "OPS", "UNKNOWN"), default="UNKNOWN", required=True)
     state = StringField(choices=("NEW", "ALERT", "CLOSED"), default="NEW", required=True)
     # StringField() <--- available starting version 0.9
     category = StringField(default="")
     tags = StringField(default="")
     epoch = IntField(default=j.data.time.getTimeEpoch())
+
 
 
 class ModelGrid(ModelBase):

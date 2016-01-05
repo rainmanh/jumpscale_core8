@@ -7,41 +7,34 @@ import os.path
 import zipfile
 
 from JumpScale import j
-from JumpScale.core.types.BaseEnumeration import BaseEnumeration
-from JumpScale.core.types.base import BaseType
-
-#NOTE: We use this enumeration so we can add zip file creation and others
-#later on. This enumeration is used when constructing a new ZipFile object,
-#which allows us to do (eg) 'exists' checking when a zip file should be read.
-class ZipFileAction(BaseEnumeration):
-    '''Enumeration of zip file access methods'''
-    @classmethod
-    def _initItems(cls):
-        '''Register enumeration items'''
-        cls.registerItem('read')
-
-        cls.finishItemRegistration()
 
 
-class ZipFile(BaseType):
+class ZipFileFactory(object):
+    READ = 'r'
+    WRIATE = 'w'
+    APPEND = 'a'
+
+    def __init__(self):
+        self.__jslocation__ = 'j.tools.zipfile'
+
+    def get(self, path, mode=READ):
+        return ZipFile(path, mode)
+
+
+class ZipFile(object):
     '''Handle zip files'''
-
-    path = j.data.types.filepath(doc='Path of the on-disk zip file')
-    action = j.data.types.enumeration(ZipFileAction,
-                doc='Access method of zip file')
-
-    def __init__(self, path, action=ZipFileAction.READ):
+    def __init__(self, path, mode=ZipFileFactory.READ):
         '''Create a new ZipFile object
 
         @param path: Path to target zip file
         @type path: string
-        @prarm action: Action to perform on the zip file
-        @type action: ZipFileAction
+        @prarm mode: Action to perform on the zip file
+        @type mode: ZipFileFactory Action
         '''
-        self.__jslocation__ = "j.tools.zipfile"
-        if not j.data.types.filepath.check(path):
+
+        if not j.data.types.path.check(path):
             raise ValueError('Provided string %s is not a valid path' % path)
-        if action is ZipFileAction.READ:
+        if mode is ZipFileFactory.READ:
             if not j.sal.fs.isFile(path):
                 raise ValueError(
                         'Provided path %s is not an existing file' % path)
@@ -56,10 +49,10 @@ class ZipFile(BaseType):
                         result)
 
         else:
-            raise ValueError('Invalid action')
+            raise ValueError('Invalid mode')
 
         self.path = path
-        self.action = action
+        self.mode = mode
 
     def extract(self, destination_path, files=None, folder=None):
         '''Extract all or some files from the archive to destination_path

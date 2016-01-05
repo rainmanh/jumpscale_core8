@@ -34,12 +34,10 @@
 # </License>
 
 from JumpScale import j
-from JumpScale.core.baseclasses_old.BaseEnumeration import BaseEnumeration
 
-class DialogType(BaseEnumeration):    
-    @classmethod
-    def _initItems(cls):
-        cls.registerItem('console')
-        cls.registerItem('win32')
-        cls.registerItem('wizardserver')
-        cls.finishItemRegistration()
+
+class DialogType(object):
+    def __init__(self):
+        self.CONSOLE = 'console'
+        self.WIN32 = 'win32'
+        self.WIZARDSERVER = 'wizardserver'

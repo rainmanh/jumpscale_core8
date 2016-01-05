@@ -104,7 +104,7 @@ class ModelBase(Document):
         #    raise RuntimeError("not implemented")
 
     def __str__(self):
-        return j.data.serializer.json.dumps(self.to_dict())
+        return j.data.serializer.json.dumps(self.to_dict(), indent=2)
 
     __repr__ = __str__
 
@@ -112,12 +112,12 @@ class ModelBase(Document):
 class ModelErrorCondition(ModelBase):
     aid = IntField(default=0)
     pid = IntField(default=0)
-    jid = IntField(default=0)
+    jid = StringField(default='')
     masterjid = IntField(default=0)
     appname = StringField(default="")
-    level = StringField(choices=("CRITICAL","MAJOR","WARNING","INFO"), default="CRITICAL", required=True)
-    type = StringField(choices=("BUG","PERF","OPS","UNKNOWN"), default="UNKNOWN", required=True)
-    state = StringField(choices=("NEW","ALERT","CLOSED"), default="NEW", required=True)
+    level = IntField(default=1, required=True)
+    type = StringField(choices=("BUG", "PERF", "OPS", "UNKNOWN"), default="UNKNOWN", required=True)
+    state = StringField(choices=("NEW", "ALERT", "CLOSED"), default="NEW", required=True)
     # StringField() <--- available starting version 0.9
     errormessage = StringField()
     errormessagePub = StringField()  # StringField()
@@ -196,8 +196,6 @@ class ModelAudit(ModelBase):
 
 class ModelDisk(ModelBase):
     partnr = IntField()
-    gid = IntField()
-    nid = IntField()
     path = StringField(default='')
     size = IntField()
     free = IntField()
@@ -214,8 +212,6 @@ class ModelDisk(ModelBase):
 
 
 class ModelAlert(ModelBase):
-    gid = IntField()
-    nid = IntField()
     username = StringField(default='')
     description = StringField(default='')
     descriptionpub = StringField(default='')
@@ -239,14 +235,11 @@ class ModelHeartbeat(ModelBase):
 
     """
     """
-    nid = IntField()
-    gid = IntField()
     lastcheck = IntField(default=j.data.time.getTimeEpoch())
 
 
 class ModelJumpscript(ModelBase):
     id = IntField()
-    gid = IntField()
     name = StringField(default='')
     descr = StringField(default='')
     category = StringField(default='')
@@ -268,8 +261,6 @@ class ModelJumpscript(ModelBase):
 
 
 class ModelMachine(ModelBase):
-    gid = IntField()
-    nid = IntField()
     name = StringField(default='')
     roles = ListField(StringField())
     netaddr = StringField(default='')
@@ -287,8 +278,6 @@ class ModelMachine(ModelBase):
 
 
 class ModelNic(ModelBase):
-    gid = IntField()
-    nid = IntField()
     name = StringField(default='')
     mac = StringField(default='')
     ipaddr = ListField(StringField())
@@ -298,7 +287,6 @@ class ModelNic(ModelBase):
 
 
 class ModelNode(ModelBase):
-    gid = IntField()
     name = StringField(default='')
     roles = ListField(StringField())
     netaddr = StringField(default='')
@@ -316,8 +304,6 @@ class ModelNode(ModelBase):
 
 
 class ModelProcess(ModelBase):
-    gid = IntField()
-    nid = IntField()
     aysdomain = StringField(default='')
     aysname = StringField(default='')
     pname = StringField(default='')  # process name
@@ -352,8 +338,6 @@ class ModelProcess(ModelBase):
 
 
 class ModelTest(ModelBase):
-    gid = IntField()
-    nid = IntField()
     name = StringField(default='')
     testrun = StringField(default='')
     path = StringField(default='')

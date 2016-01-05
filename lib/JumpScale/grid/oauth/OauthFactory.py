@@ -3,7 +3,6 @@ import os
 
     
 from JumpScale import j
-from JumpScale.core.types.BaseEnumeration import BaseEnumeration
 from OauthInstance import *
 
 class OauthFactory(object):

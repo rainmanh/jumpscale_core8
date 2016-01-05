@@ -1,6 +1,5 @@
 from JumpScale import j
 from CodeGeneratorModel import CodeGeneratorModel
-from CodeGeneratorEnumeration import CodeGeneratorEnumeration
 from CodeGeneratorActorLocal import CodeGeneratorActorLocal
 from CodeGeneratorActorRemote import CodeGeneratorActorRemote
 # from CodeGeneratorActorMethodGreenlet import CodeGeneratorActorMethodGreenlet
@@ -187,22 +186,10 @@ class CodeGenerator:
         name, path = self._getCodeLocation(type, spec.appname, spec.type, spec.actorname, spec.name)
         # path is location in a var dir where code will be generated, is always overwritten
         # if not self.generated.has_key(name):
-        if spec.type == "model" and type == "JSModel":
-            # writeForm = self._target == 'server' #we dont generate forms any more
-            cg = CodeGeneratorModel(spec, typecheck, dieInGenCode)
-        elif spec.type == "model" and type == "EveModel":
-            cg = CodeGeneratorEveModel(spec, typecheck, dieInGenCode, codepath=codepath)
-        # elif spec.type=="model" and type=="whoosh":
-        #     cg=CodeGeneratorWhoosh(spec,typecheck,dieInGenCode)
-        elif spec.type == "enumeration":
-            cg = CodeGeneratorEnumeration(spec, typecheck, dieInGenCode)
-            self.classes[name] = "j.enumerators.%s" % cg.getClassName()
-        elif spec.type == "actor" and type == "actorlocal":
+        if spec.type == "actor" and type == "actorlocal":
             cg = CodeGeneratorActorLocal(spec, typecheck, dieInGenCode)
         elif spec.type == "actor" and type == "actorclass":
             cg = CodeGeneratorActorClass(spec, typecheck, dieInGenCode, codepath=codepath, args=args)
-        # elif spec.type == "model" and type == "osis":
-        #     cg = CodeGeneratorOSISTasklets(spec, typecheck, dieInGenCode, codepath=codepath, args=args)
         elif spec.type == "actor" and type == "actorremote":
             cg = CodeGeneratorActorRemote(spec, typecheck, dieInGenCode, instance=instance, redis=redis, wsclient=wsclient, codepath=codepath)
         elif spec.type == "actor" and type == "tasklet":

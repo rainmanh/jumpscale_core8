@@ -3,22 +3,17 @@
 import time
 from abc import ABCMeta, abstractmethod
 from JumpScale import j
-from JumpScale.core.types.BaseEnumeration import BaseEnumeration
 import collections
 
 
-class KeyValueStoreType(BaseEnumeration):
+class KeyValueStoreType(str):
 
     def __init__(self, value=None):
         self.value = value
-
-    @classmethod
-    def _initItems(cls):
-        cls.registerItem('arakoon')
-        cls.registerItem('file_system')
-        cls.registerItem('memory')
-        cls.registerItem('redis')
-        cls.finishItemRegistration()
+        self.ARAKOON = 'arakoon'
+        self.FS = 'fs'
+        self.MEMORY = 'memory'
+        self.REDIS = 'redis'
 
 
 class KeyValueStoreBase(object):#, metaclass=ABCMeta):

@@ -16,7 +16,7 @@ class Openvclcoud(object):
         self._spacesecret = None
         self.apiURL = apiurl
         self.api = j.clients.ms1.get(apiurl, 443)
-        self.db = j.servers.keyvaluestore.getFileSystemStore("aysgit")
+        self.db = j.servers.kvs.getFSStore("aysgit")
         self.reset = False
         self.branch = branch
 

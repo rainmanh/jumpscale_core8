@@ -157,19 +157,19 @@ self.appname="{appname}"
             dbtypes = [item.lower() for item in self.tags.tagGet("dbtype").split(",")]
             ok = False
             if "arakoon" in dbtypes:
-                s += """self.dbarakoon=j.servers.keyvaluestore.getArakoonStore("main", namespace="{appname}_{actorname},serializers=[j.data.serializer.serializers.getSerializerType('j')]")\n"""
+                s += """self.dbarakoon=j.servers.kvs.getArakoonStore("main", namespace="{appname}_{actorname},serializers=[j.data.serializer.serializers.getSerializerType('j')]")\n"""
                 if dbtypes.index("arakoon") == 0:
                     ok = True
                     s += "self.db=self.dbarakoon\n"
 
-            s += "self.dbmem=j.servers.keyvaluestore.getMemoryStore()\n"
+            s += "self.dbmem=j.servers.kvs.getMemoryStore()\n"
             if "mem" in dbtypes:
                 if dbtypes.index("mem") == 0:
                     ok = True
                     s += "self.db=self.dbmem\n"
 
             if "fs" in dbtypes:
-                s += "self.dbfs=j.servers.keyvaluestore.getFileSystemStore(namespace=\"{actorname}\", baseDir=None,serializers=[j.data.serializer.serializers.getSerializerType('j')])\n"
+                s += "self.dbfs=j.servers.kvs.getFSStore(namespace=\"{actorname}\", baseDir=None,serializers=[j.data.serializer.serializers.getSerializerType('j')])\n"
                 if dbtypes.index("fs") == 0:
                     ok = True
                     s += "self.db=self.dbfs\n"
@@ -180,7 +180,7 @@ self.appname="{appname}"
             if False:  # "redis" in dbtypes: #@todo
                 if j.core.portal.active.rediscfg != None and appname != "system":
                     redisip, redisport, redisdb, rediskey = j.core.portal.active.startConnectRedisServer(appname, actorname)
-                    actorobject.dbredis = j.servers.keyvaluestore.getRedisStore(namespace="", host=redisip, port=redisport, db=redisdb, key=rediskey)
+                    actorobject.dbredis = j.servers.kvs.getRedisStore(namespace="", host=redisip, port=redisport, db=redisdb, key=rediskey)
                     actorobject.dbredis.getQueue = actorobject.dbredis.redisclient.getQueue
                 if dbtypes.index("redis") == 0:
                     actorobject.db = actorobject.dbredis

@@ -1,6 +1,7 @@
-
-
 import uuid
+
+from JumpScale import j
+
 
 GENERIC_TIMEOUT = 5
 GET_INFO_TIMEOUT = 5
@@ -518,7 +519,7 @@ class Client(object):
     """
     def __init__(self, address='localhost', port=6379, password=None):
         # Initializing redis client
-        self._redis=j.clients.redis.getRedisClient(ipaddr=address, port=port, password=password, fromcache=True)
+        self._redis = j.clients.redis.getRedisClient(ipaddr=address, port=port, password=password, fromcache=True)
         # Check the connectivity
         self._redis.ping()
 
@@ -798,7 +799,7 @@ class Client(object):
                           nid,
                           CMD_GET_PROCESSES_STATS,
                           RunArgs(),
-                          json.dumps(data)).get_next_result(GET_INFO_TIMEOUT)
+                          j.data.serializer.json.dumps(data)).get_next_result(GET_INFO_TIMEOUT)
 
         return self._load_json_or_die(result)
 
@@ -819,7 +820,7 @@ class Client(object):
             'levels': levels,
         }
 
-        result = self.cmd(gid, nid, CMD_GET_MSGS, RunArgs(), json.dumps(query)).get_next_result()
+        result = self.cmd(gid, nid, CMD_GET_MSGS, RunArgs(), j.data.serializer.json.dumps(query)).get_next_result()
         return self._load_json_or_die(result)
 
     def tunnel_open(self, gid, nid, local, gateway, ip, remote):
@@ -848,7 +849,7 @@ class Client(object):
             'remote': int(remote)
         }
 
-        result = self.cmd(gid, nid, CMD_TUNNEL_OPEN, RunArgs(), json.dumps(request)).get_next_result(GET_INFO_TIMEOUT)
+        result = self.cmd(gid, nid, CMD_TUNNEL_OPEN, RunArgs(), j.data.serializer.json.dumps(request)).get_next_result(GET_INFO_TIMEOUT)
         return self._load_json_or_die(result)
 
     def tunnel_close(self, gid, nid, local, gateway, ip, remote):
@@ -866,7 +867,7 @@ class Client(object):
             'remote': int(remote)
         }
 
-        result = self.cmd(gid, nid, CMD_TUNNEL_CLOSE, RunArgs(), json.dumps(request)).get_next_result(GET_INFO_TIMEOUT)
+        result = self.cmd(gid, nid, CMD_TUNNEL_CLOSE, RunArgs(), j.data.serializer.json.dumps(request)).get_next_result(GET_INFO_TIMEOUT)
         if result.state != 'SUCCESS':
             raise AgentException(result.data)
 

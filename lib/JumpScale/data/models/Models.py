@@ -111,7 +111,7 @@ class ModelBase(object):
     __repr__ = __str__
 
 
-class ErrorCondition(ModelBase, Document):
+class Errorcondition(ModelBase, Document):
     aid = IntField(default=0)
     pid = IntField(default=0)
     jid = StringField(default='')

@@ -15,7 +15,7 @@ class ModelBase(object):
     meta = {'allow_inheritance': True, "db_alias": DB}
 
     def to_dict(self):
-        d = j.data.serializer.json.loads(ModelBase.to_json(self))
+        d = j.data.serializer.json.loads(Document.to_json(self))
         d.pop("_cls")
         if "_id" in d:
             d.pop("_id")
@@ -136,6 +136,7 @@ class ErrorCondition(ModelBase, Document):
     closetime = IntField(default=0)
     occurrences = IntField(default=0)
 
+
 class ModelLog(ModelBase):
     aid = IntField(default=0)
     pid = IntField(default=0)
@@ -152,13 +153,12 @@ class ModelLog(ModelBase):
     epoch = IntField(default=j.data.time.getTimeEpoch())
 
 
-
-class Grid(Document, ModelBase):
+class Grid(ModelBase, Document):
     name = StringField(default='master')
     #  id = IntField(default=1)
 
 
-class Group(Document, ModelBase):
+class Group(ModelBase, Document):
     name = StringField(default='')
     domain = StringField(default='')
     gid = IntField(default=1)
@@ -188,7 +188,7 @@ class Job(EmbeddedDocument):
     }
 
 
-class Command(Document, ModelBase):
+class Command(ModelBase, Document):
     gid = IntField(default=0)
     nid = IntField(default=0)
     cmd = StringField()
@@ -201,7 +201,7 @@ class Command(Document, ModelBase):
     jobs = ListField(EmbeddedDocumentField(Job))
 
 
-class Audit(Document, ModelBase):
+class Audit(ModelBase, Document):
     user = StringField(default='')
     result = StringField(default='')
     call = StringField(default='')
@@ -216,7 +216,7 @@ class Audit(Document, ModelBase):
     ], 'allow_inheritance': True, "db_alias": DB}
 
 
-class Disk(Document, ModelBase):
+class Disk(ModelBase, Document):
     partnr = IntField()
     path = StringField(default='')
     size = IntField(default=0)
@@ -233,7 +233,7 @@ class Disk(Document, ModelBase):
     lastcheck = IntField(default=j.data.time.getTimeEpoch())
 
 
-class Alert(Document, ModelBase):
+class Alert(ModelBase, Document):
     username = StringField(default='')
     description = StringField(default='')
     descriptionpub = StringField(default='')
@@ -253,14 +253,14 @@ class Alert(Document, ModelBase):
     errorconditions = ListField(IntField())  # ids of errorconditions
 
 
-class Heartbeat(Document, ModelBase):
+class Heartbeat(ModelBase, Document):
 
     """
     """
     lastcheck = IntField(default=j.data.time.getTimeEpoch())
 
 
-class Jumpscript(Document, ModelBase):
+class Jumpscript(ModelBase, Document):
     id = IntField()
     name = StringField(default='')
     descr = StringField(default='')
@@ -282,7 +282,7 @@ class Jumpscript(Document, ModelBase):
     log = BooleanField()
 
 
-class Machine(Document, ModelBase):
+class Machine(ModelBase, Document):
     name = StringField(default='')
     roles = ListField(StringField())
     netaddr = StringField(default='')
@@ -299,7 +299,7 @@ class Machine(Document, ModelBase):
     lastcheck = IntField(default=j.data.time.getTimeEpoch())
 
 
-class Nic(Document, ModelBase):
+class Nic(ModelBase, Document):
     name = StringField(default='')
     mac = StringField(default='')
     ipaddr = ListField(StringField())
@@ -308,7 +308,7 @@ class Nic(Document, ModelBase):
     lastcheck = IntField(default=j.data.time.getTimeEpoch())
 
 
-class Node(Document, ModelBase):
+class Node(ModelBase, Document):
     name = StringField(default='')
     roles = ListField(StringField())
     netaddr = StringField(default='')
@@ -325,7 +325,7 @@ class Node(Document, ModelBase):
     _meta = ListField(StringField())
 
 
-class Process(Document, ModelBase):
+class Process(ModelBase, Document):
     aysdomain = StringField(default='')
     aysname = StringField(default='')
     pname = StringField(default='')  # process name
@@ -359,7 +359,7 @@ class Process(Document, ModelBase):
     nr_connections_out = FloatField()
 
 
-class Test(Document, ModelBase):
+class Test(ModelBase, Document):
     name = StringField(default='')
     testrun = StringField(default='')
     path = StringField(default='')
@@ -379,7 +379,7 @@ class Test(Document, ModelBase):
     source = DictField(default='')
 
 
-class User(Document, ModelBase):
+class User(ModelBase, Document):
     name = StringField(default='')
     domain = StringField(default='')
     passwd = StringField(default='')  # stored hashed
@@ -402,7 +402,7 @@ class User(Document, ModelBase):
         return False
 
 
-class SessionCache(Document, ModelBase):
+class SessionCache(ModelBase, Document):
     __redis__ = True
 
     user = StringField()
@@ -411,16 +411,3 @@ class SessionCache(Document, ModelBase):
     meta = {'indexes': [
         {'fields': ['epoch'], 'expireAfterSeconds': 432000}
     ], 'allow_inheritance': True, "db_alias": DB}
-
-
-# @todo complete ASAP all from https://github.com/Jumpscale/jumpscale_core8/blob/master/apps/osis/logic/system/model.spec  (***)
-
-# o=ModelJob()
-# o.clean()
-
-# from IPython import embed
-# embed()
-
-# pi
-
-# o.save()

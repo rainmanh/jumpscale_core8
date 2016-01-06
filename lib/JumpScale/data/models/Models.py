@@ -137,7 +137,7 @@ class ErrorCondition(ModelBase, Document):
     occurrences = IntField(default=0)
 
 
-class ModelLog(ModelBase):
+class Log(ModelBase, Document):
     aid = IntField(default=0)
     pid = IntField(default=0)
     jid = StringField(default='')

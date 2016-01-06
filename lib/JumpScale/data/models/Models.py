@@ -119,8 +119,8 @@ class ModelErrorCondition(ModelBase):
     type = StringField(choices=("BUG", "PERF", "OPS", "UNKNOWN"), default="UNKNOWN", required=True)
     state = StringField(choices=("NEW", "ALERT", "CLOSED"), default="NEW", required=True)
     # StringField() <--- available starting version 0.9
-    errormessage = StringField()
-    errormessagePub = StringField()  # StringField()
+    errormessage = StringField(default="")
+    errormessagePub = StringField(default="")  # StringField()
     category = StringField(default="")
     tags = StringField(default="")
     code = StringField()
@@ -205,7 +205,9 @@ class ModelAudit(ModelBase):
     status_code = StringField(default='')
     args = StringField(default='')
     kwargs = StringField(default='')
-    timestamp = StringField(default='')
+    timestamp = IntField(default=j.data.time.getTimeEpoch())
+
+
     meta = {'indexes': [
         {'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}
     ], 'allow_inheritance': True}
@@ -213,7 +215,7 @@ class ModelAudit(ModelBase):
 class ModelDisk(ModelBase):
     partnr = IntField()
     path = StringField(default='')
-    size = IntField()
+    size = IntField(default=0)
     free = IntField()
     ssd = IntField()
     fs = StringField(default='')

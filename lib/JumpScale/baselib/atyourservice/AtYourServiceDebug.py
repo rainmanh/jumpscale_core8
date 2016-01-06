@@ -39,7 +39,7 @@ class AtYourServiceDebug():
 
 
     def __init__(self,name="main"):
-        self.model=j.data.models.getset(ModelDebug(guid=name))
+        self.model=j.data.models.system.getset(ModelDebug(guid=name))
         self._cl=None
         self._clcache=None
 

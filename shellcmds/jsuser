@@ -42,7 +42,7 @@ opts = cmdutils.processLogin(parser)
 
 #osis = j.clients.osis.getByInstance(clients[0].instance)
 # TODO (*2*) --> Get config through AYS. For now, connect locally
-j.data.models.connect2mongo()
+j.data.models.system.connect2mongo()
 
 xmpp = []
 mobile = []
@@ -57,7 +57,7 @@ def getPasswd(password):
 
 
 def getUserGUID(username):
-    results = j.data.models.User.find({'name': username})
+    results = j.data.models.system.User.find({'name': username})
     if results:
         return results[0]['guid']
     print("Could not find user with name %s" % username)
@@ -70,7 +70,7 @@ if opts.action == 'auth':
     if opts.userpasswd is None:
         opts.userpasswd = j.tools.console.askString("passwd for user to check")
 
-    result = j.data.models.authenticate(name=opts.userlogin, passwd=opts.userpasswd)
+    result = j.data.models.system.User.authenticate(username=opts.userlogin, passwd=opts.userpasswd)
     for key, val in list(result.items()):
         print("%-20s %s" % (key, val))
 
@@ -81,19 +81,19 @@ if opts.action == 'passwd':
         opts.userpasswd = j.tools.console.askPassword("passwd")
 
     userguid = getUserGUID(opts.userlogin)
-    user = j.data.models.User.get(userguid)
+    user = j.data.models.system.User.get(userguid)
     user.passwd = getPasswd(opts.userpasswd)
     user.save()
 
 if opts.action == 'delete':
     if opts.userlogin is None:
         opts.userlogin = j.tools.console.askString("user to delete")
-    if j.data.models.User.find({'name': opts.userlogin}) == []:
+    if j.data.models.system.User.find({'name': opts.userlogin}) == []:
         print("user not found, no need to delete")
         j.application.stop()
     userguid = getUserGUID(opts.userlogin)
 
-    user = j.data.models.User.get(userguid)
+    user = j.data.models.system.User.get(userguid)
     user.delete()
 
 if opts.action == 'add' or opts.action == 'set':
@@ -138,13 +138,13 @@ if opts.action == 'add' or opts.action == 'set':
         if j.tools.console.askYesNo("do you want to define new groups."):
             groups = j.tools.console.askString("comma separated list of groups").split(",")
         else:
-            groups = [item["name"] for item in j.data.models.group.find({"name": gid})]
+            groups = [item["name"] for item in j.data.models.system.group.find({"name": gid})]
             groups = j.tools.console.askChoiceMultiple(groups, "select groups", True)
 
         emails = j.tools.console.askString(
             "comma separated list of emails").split(',')
 
-    if opts.action == 'add' and j.data.models.User.exists("%s_%s" % (j.application.whoAmI.gid, name)):
+    if opts.action == 'add' and j.data.models.system.User.exists("%s_%s" % (j.application.whoAmI.gid, name)):
         j.errorconditionhandler.raiseOperationalCritical(
             message='user already exists', category="jsuser.add.exists")
 
@@ -152,7 +152,7 @@ if opts.action == 'add' or opts.action == 'set':
         j.errorconditionhandler.raiseOperationalCritical(
             message='Username name may not exceed 20 characters and may only contain a-z and 0-9', category="jsuser.add.invalid")
 
-    user = j.data.models.User()
+    user = j.data.models.system.User()
     user.name = name
     user.groups = groups
     user.emails = emails
@@ -176,7 +176,7 @@ if opts.action == 'addgroup' or opts.action == 'delgroup':
     if not userguid:
         j.errorconditionhandler.raiseOperationalCritical(
             message='cannot find user:%s' % opts.user, category="jsuser.add.exists")
-    user = j.data.models.User.get(userguid)
+    user = j.data.models.system.User.get(userguid)
 
     if opts.action == 'delgroup':
         print("del group:%s from %s" % (opts.groupgroup, opts.groupuser))
@@ -198,7 +198,7 @@ if opts.action == 'list':
     out = ""
     print("\n%-20s %-25s %s" % ("name", "domain", "groups"))
     print("=" * 80)
-    for item in j.data.models.User.find({"domain": opts.domain}):
+    for item in j.data.models.system.User.find({"domain": opts.domain}):
         out += "%-20s %-25s %s\n" % (item["id"], item["domain"], ",".join(item["groups"]))
     out = out.split("\n")
     out.sort()

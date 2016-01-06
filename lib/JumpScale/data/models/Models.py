@@ -4,13 +4,15 @@ from JumpScale import j
 
 import uuid
 
+DB = 'jumpcale_system'
 
-class ModelBase(Document):
+
+class ModelBase(object):
     guid = StringField(default=lambda: str(uuid.uuid4()))
     gid = IntField(default=lambda: j.application.whoAmI.gid if j.application.whoAmI else 0)
     nid = IntField(default=lambda: j.application.whoAmI.nid if j.application.whoAmI else 0)
     epoch = IntField(default=j.data.time.getTimeEpoch)
-    meta = {'allow_inheritance': True}
+    meta = {'allow_inheritance': True, "db_alias": DB}
 
     def to_dict(self):
         d = j.data.serializer.json.loads(ModelBase.to_json(self))
@@ -109,7 +111,7 @@ class ModelBase(Document):
     __repr__ = __str__
 
 
-class ModelErrorCondition(ModelBase):
+class ErrorCondition(ModelBase, Document):
     aid = IntField(default=0)
     pid = IntField(default=0)
     jid = StringField(default='')
@@ -135,12 +137,12 @@ class ModelErrorCondition(ModelBase):
     occurrences = IntField(default=0)
 
 
-class ModelGrid(ModelBase):
+class Grid(Document, ModelBase):
     name = StringField(default='master')
     #  id = IntField(default=1)
 
 
-class ModelGroup(ModelBase):
+class Group(Document, ModelBase):
     name = StringField(default='')
     domain = StringField(default='')
     gid = IntField(default=1)
@@ -151,7 +153,7 @@ class ModelGroup(ModelBase):
     users = ListField(StringField())
 
 
-class ModelJob(EmbeddedDocument):
+class Job(EmbeddedDocument):
     nid = IntField(required=True)
     gid = IntField(required=True)
     data = StringField(default='')
@@ -165,11 +167,12 @@ class ModelJob(EmbeddedDocument):
 
     meta = {
         'indexes': [{'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}],
-        'allow_inheritance': True
+        'allow_inheritance': True,
+        "db_alias": DB
     }
 
 
-class ModelCommand(ModelBase):
+class Command(Document, ModelBase):
     gid = IntField(default=0)
     nid = IntField(default=0)
     cmd = StringField()
@@ -179,10 +182,10 @@ class ModelCommand(ModelBase):
     data = StringField()
     tags = StringField()
     starttime = IntField()
-    jobs = ListField(EmbeddedDocumentField(ModelJob))
+    jobs = ListField(EmbeddedDocumentField(Job))
 
 
-class ModelAudit(ModelBase):
+class Audit(Document, ModelBase):
     user = StringField(default='')
     result = StringField(default='')
     call = StringField(default='')
@@ -192,9 +195,10 @@ class ModelAudit(ModelBase):
     timestamp = StringField(default='')
     meta = {'indexes': [
         {'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}
-    ], 'allow_inheritance': True}
+    ], 'allow_inheritance': True, "db_alias": DB}
 
-class ModelDisk(ModelBase):
+
+class Disk(Document, ModelBase):
     partnr = IntField()
     path = StringField(default='')
     size = IntField()
@@ -211,7 +215,7 @@ class ModelDisk(ModelBase):
     lastcheck = IntField(default=j.data.time.getTimeEpoch())
 
 
-class ModelAlert(ModelBase):
+class Alert(Document, ModelBase):
     username = StringField(default='')
     description = StringField(default='')
     descriptionpub = StringField(default='')
@@ -231,14 +235,14 @@ class ModelAlert(ModelBase):
     errorconditions = ListField(IntField())  # ids of errorconditions
 
 
-class ModelHeartbeat(ModelBase):
+class Heartbeat(Document, ModelBase):
 
     """
     """
     lastcheck = IntField(default=j.data.time.getTimeEpoch())
 
 
-class ModelJumpscript(ModelBase):
+class Jumpscript(Document, ModelBase):
     id = IntField()
     name = StringField(default='')
     descr = StringField(default='')
@@ -260,7 +264,7 @@ class ModelJumpscript(ModelBase):
     log = BooleanField()
 
 
-class ModelMachine(ModelBase):
+class Machine(Document, ModelBase):
     name = StringField(default='')
     roles = ListField(StringField())
     netaddr = StringField(default='')
@@ -277,7 +281,7 @@ class ModelMachine(ModelBase):
     lastcheck = IntField(default=j.data.time.getTimeEpoch())
 
 
-class ModelNic(ModelBase):
+class Nic(Document, ModelBase):
     name = StringField(default='')
     mac = StringField(default='')
     ipaddr = ListField(StringField())
@@ -286,7 +290,7 @@ class ModelNic(ModelBase):
     lastcheck = IntField(default=j.data.time.getTimeEpoch())
 
 
-class ModelNode(ModelBase):
+class Node(Document, ModelBase):
     name = StringField(default='')
     roles = ListField(StringField())
     netaddr = StringField(default='')
@@ -303,7 +307,7 @@ class ModelNode(ModelBase):
     _meta = ListField(StringField())
 
 
-class ModelProcess(ModelBase):
+class Process(Document, ModelBase):
     aysdomain = StringField(default='')
     aysname = StringField(default='')
     pname = StringField(default='')  # process name
@@ -337,11 +341,11 @@ class ModelProcess(ModelBase):
     nr_connections_out = FloatField()
 
 
-class ModelTest(ModelBase):
+class Test(Document, ModelBase):
     name = StringField(default='')
     testrun = StringField(default='')
     path = StringField(default='')
-    state = StringField(choices=("OK","ERROR","DISABLED"), default='', required=True)
+    state = StringField(choices=("OK", "ERROR", "DISABLED"), default='', required=True)
     priority = IntField()  # lower is highest priority
     organization = StringField(default='')
     author = StringField(default='')
@@ -357,7 +361,7 @@ class ModelTest(ModelBase):
     source = DictField(default='')
 
 
-class ModelUser(ModelBase):
+class User(Document, ModelBase):
     name = StringField(default='')
     domain = StringField(default='')
     passwd = StringField(default='')  # stored hashed
@@ -374,8 +378,13 @@ class ModelUser(ModelBase):
     data = StringField(default='')
     authkeys = ListField(StringField())
 
+    def authenticate(self, username, passwd):
+        if self.objects(__raw__={'name': username, 'passwd': {'$in': [passwd, j.tools.hash.md5_string(passwd)]}}):
+            return True
+        return False
 
-class ModelSessionCache(ModelBase):
+
+class SessionCache(Document, ModelBase):
     __redis__ = True
 
     user = StringField()
@@ -383,7 +392,7 @@ class ModelSessionCache(ModelBase):
     _accessed_time = IntField(default=j.data.time.getTimeEpoch())
     meta = {'indexes': [
         {'fields': ['epoch'], 'expireAfterSeconds': 432000}
-    ], 'allow_inheritance': True}
+    ], 'allow_inheritance': True, "db_alias": DB}
 
 
 # @todo complete ASAP all from https://github.com/Jumpscale/jumpscale_core8/blob/master/apps/osis/logic/system/model.spec  (***)

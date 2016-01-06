@@ -31,7 +31,7 @@ opts = parser.parse_args()
 #     addr=opts.addr
 
 # TODO (*1*) ---> Get MongoEngine connection from AYS
-j.data.models.connect2mongo()
+j.data.models.sytem.connect2mongo()
 
 # ADD
 if opts.action == 'add':
@@ -44,10 +44,10 @@ if opts.action == 'add':
         name = j.tools.console.askString("name")
         domain = j.tools.console.askString("domain e.g. incubaid.com")
 
-    if j.data.models.Group.find({'name': name}):
+    if j.data.models.sytem.Group.find({'name': name}):
         raise RuntimeError("group already exists")
 
-    group = j.data.models.Group()
+    group = j.data.models.sytem.Group()
     group.name = name
     group.domain = domain
 
@@ -60,7 +60,7 @@ if opts.action == 'list':
     out = ""
     print("\n%-20s %-25s %s" % ("name", "domain", "users"))
     print("="*80)
-    for item in j.data.models.Group.find({"domain": opts.domain}):
+    for item in j.data.models.sytem.Group.find({"domain": opts.domain}):
         out += "%-20s %-25s %s\n" % (item["name"], item["domain"], ",".join(item["users"]))
     out = out.split("\n")
     out.sort()
@@ -70,9 +70,9 @@ if opts.action == 'list':
 if opts.action == 'delete':
     if opts.group is None:
         opts.group = j.tools.console.askString("group to delete")
-    group = j.data.models.Group.find({'name': opts.group})
+    group = j.data.models.sytem.Group.find({'name': opts.group})
     if group:
         group = group[0]
-        j.data.models.Group.delete(group.guid)
+        j.data.models.sytem.Group.delete(group.guid)
 
 j.application.stop()

@@ -1,9 +1,4 @@
 from JumpScale import j
-import JumpScale.grid.osis
-import JumpScale.baselib.redis2
-import JumpScale.lib.rogerthat
-import JumpScale.portal
-
 
 import time
 import sys
@@ -33,17 +28,18 @@ class AlertService(object):
         self.rediscl = j.clients.redis.getByInstance('system')
         self.alertqueue = self.rediscl.getQueue('alerts')
         self.alerts_client = j.clients.portal.getByInstance('main').actors.system.alerts
-        self.scl = j.core.osis.getNamespace('system')
         self.handlers = list()
         self.timers = dict()
         self.loadHandlers()
+        # TODO (*1*) ---> get mongoengine connection from AYS
+        j.data.models.sytem.connect2mongo()
 
     def log(self, message, level=1):
         j.logger.log(message, level, 'alerter')
 
     def getUsersForLevel(self, level):
         groupname = "level%s" % level
-        users = self.scl.user.search({'groups': {'$all': [groupname, 'alert']}, 'active': True})[1:]
+        users = j.data.models.sytem.User.find({'groups': {'$all': [groupname, 'alert']}, 'active': True})
         return users
 
     def getUserEmails(self, user):
@@ -76,7 +72,7 @@ class AlertService(object):
             handler.updateState(alert)
 
     def getAlert(self, id):
-        return self.scl.alert.get(id).dump()
+        return j.data.models.sytem.Alert.get(id)
 
     def escalateHigher(self, alert):
         self.timers.pop(alert['guid'], None)

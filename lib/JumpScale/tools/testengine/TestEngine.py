@@ -2,7 +2,6 @@ import sys
 from JumpScale import j
 import imp
 import time
-import JumpScale.grid.osis
 import unittest
 import new
 from io import BytesIO

@@ -245,9 +245,9 @@ diskinfo.description=
 
 
                                         # TODO (*1*) ---> get connection from AYS
-                                        j.data.models.sytem.connect2mongo()
+                                        j.data.models.system.connect2mongo()
 
-                                        disk = j.data.models.sytem.Disk()
+                                        disk = j.data.models.system.Disk()
                                         for key,val in list(disko.__dict__.items()):
                                             disk.__dict__[key]=val
 

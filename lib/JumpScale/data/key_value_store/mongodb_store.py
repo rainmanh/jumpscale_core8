@@ -14,8 +14,6 @@ def chunks(l, n):
         yield l[i:i+n]
 
 class MongoDBKeyValueStore(KeyValueStoreBase):
-    osis = dict()
-
     def __init__(self,namespace="",host='localhost',port=7771,db=0,password='', serializers=[],masterdb=None, changelog=True):
         raise RuntimeError("not implemented")
         self.namespace = namespace

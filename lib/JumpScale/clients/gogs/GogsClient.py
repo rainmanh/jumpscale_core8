@@ -43,31 +43,32 @@ class GogsClient(object):
         # modify gogs if have to to get API to do what we want (seems to be
         # incomplete)
 
-    def organization_create(self, name, full_name=None, description=None, website=None, location=None):
+    def organization_create(self, org_name, full_name=None, user_name=None, description=None, website=None, location=None):
         pass
         """
         create an organization by user with name 
         """
+        if not user_name:
+            user_name = self._login
         if not full_name:
-            full_name = name
+            full_name = org_name
 
         body = {
-            "username": name,
+            "username": org_name,
             "full_name": full_name,
             "description": description,
             "website": website,
             "location": location
         }
         try:
-            self.organization_get(name)
-            response_set = self.session.patch('%s/admin/users/%s/orgs/' % (self.base_url, self._login), data=body)
+            self.organization_get(org_name)
+            response_set = self.session.patch('%s/orgs/%s' % (self.base_url, org_name), json=body)
         except NotFoundException:
-            response_set = self.session.post('%s/admin/users' % (self.base_url), data=body)
-
+            response_set = self.session.post('%s/admin/users/%s/orgs' % (self.base_url, user_name), json=body)
+                                                 #admin/users/abdu/orgs
         if response_set.status_code == 201:
-            return response_set.json()[0]
+            return response_set.json()
         elif response_set.status_code == 422:
-            import ipdb;ipdb.set_trace()
             raise DataErrorException("%s is missing or already exists"%response_set.json()[0]['message'])
         elif response_set.status_code == 403:
             raise AdminRequiredException('Admin access Required')
@@ -117,7 +118,7 @@ class GogsClient(object):
             return self.organizations_list()
         response_org = self.session.get('%s/orgs/%s' % (self.base_url, org_name))
         if response_org.status_code == 200:
-            return response_org.json()[0]
+            return response_org.json()
         else:
             raise NotFoundException()
 
@@ -141,15 +142,15 @@ class GogsClient(object):
 
         if pubkey:
             data = {"title": pubkey_name(), "key": pubkey}
-            response_pubk = self.session.post('%s/user/keys/'%(self.base_url), data=data)
+            response_pubk = self.session.post('%s/user/keys/'%(self.base_url), json=data)
             if response_pubk.status_code == 422:
                 raise DataErrorException('pubkey exists or is invalid')
 
         try:
             self.user_get(name)
-            response_set = self.session.patch('%s/admin/users/%s' % (self.base_url, name), data=body)
+            response_set = self.session.patch('%s/admin/users/%s' % (self.base_url, name), json=body)
         except NotFoundException:
-            response_set = self.session.post('%s/admin/users' % (self.base_url), data=body)
+            response_set = self.session.post('%s/admin/users' % (self.base_url), json=body)
 
         if response_set.status_code == 201:
             return True
@@ -211,11 +212,11 @@ class GogsClient(object):
             raise DataErrorException('user_name and organization are mutually exclusive')
         if user_name:
             if organization:
-                response_set = self.session.post('%s/admin/users/%s/repos'%(self.base_url, organization), data=body)
+                response_set = self.session.post('%s/admin/users/%s/repos'%(self.base_url, organization), json=body)
             else:
-                response_set = self.session.post('%s/admin/users/%s/repos'%(self.base_url, user_name), data=body)
+                response_set = self.session.post('%s/admin/users/%s/repos'%(self.base_url, user_name), json=body)
         else:        
-            response_set = self.session.post('%s/user/repos'%(self.base_url), data=body)
+            response_set = self.session.post('%s/user/repos'%(self.base_url), json=body)
         
         if response_set.status_code == 200:
             return response_set.json()[0]

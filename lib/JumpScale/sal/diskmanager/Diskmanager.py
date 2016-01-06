@@ -146,7 +146,6 @@ class Diskmanager(SALObject):
         return [[$partpath,$size,$free,$ssd]]
         @param ssd if None then ssd and other
         """
-        import JumpScale.grid.osis
         import psutil
         result=[]
         mounteddevices = psutil.disk_partitions()
@@ -245,10 +244,10 @@ diskinfo.description=
                                         hrd.set("diskinfo.epoch",j.data.time.getTimeEpoch())
 
 
-                                        client = j.clients.osis.getByInstance('main')
-                                        client_disk=j.clients.osis.getCategory(client,"system","disk")
+                                        # TODO (*1*) ---> get connection from AYS
+                                        j.data.models.system.connect2mongo()
 
-                                        disk=client_disk.new()
+                                        disk = j.data.models.system.Disk()
                                         for key,val in list(disko.__dict__.items()):
                                             disk.__dict__[key]=val
 
@@ -259,9 +258,8 @@ diskinfo.description=
                                         disk.gid=j.application.whoAmI.gid
 
 
-                                        guid,new,changed=client_disk.set(disk)
-                                        disk=client_disk.get(guid)
-                                        diskid=disk.id
+                                        disk.save()
+                                        diskid = disk.guid
                                         hrd.set("diskinfo.partnr",diskid)
                                     if j.sal.fs.exists(hrdpath):
                                         # hrd=j.data.hrd.get(hrdpath)

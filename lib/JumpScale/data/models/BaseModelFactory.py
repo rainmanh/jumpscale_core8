@@ -1,6 +1,7 @@
 from JumpScale import j
 
-from Models import *
+import Models
+import inspect
 
 try:
     import mongoengine
@@ -13,102 +14,29 @@ except:
 #     j.sal.process.execute(
 #         "mongod --fork --logpath /opt/jumpscale8/var/mongodb.log")
 
+class NameSpaceLoader():
+    def __init__(self, modelsmodule):
+        self._module = modelsmodule
+        mongoengine.register_connection(self._module.DB, self._module.DB)
+        self._getModels()
 
+    def _getModels(self):
+        self._models = list()
+        for name, mem in inspect.getmembers(self._module, inspect.isclass):
+            if mongoengine.document.Document and Models.ModelBase in inspect.getmro(mem):
+                self._models.append(name)
+                self.__dict__[name] = mem
 
-class BaseModelFactory():
-
-    def __init__(self):
-        self.__jslocation__ = "j.data.models"
-
-    DoesNotExist = DoesNotExist
+    def listModels(self):
+        return self._models
 
     def connect2mongo(self, host='localhost', port=27017, db='jumpscale_system'):
         """
         """
-        try:
-            mongoengine.connection.get_connection()
-        except:
-            mongoengine.connect(db=db, host=host, port=port)
-                
+        mongoengine.connect(db=db, host=host, port=port)
 
-    @property
-    def Machine(self):
-        return ModelMachine
 
-    @property
-    def Base(self):
-        return ModelBase
-
-    @property
-    def ErrorCondition(self):
-        return ModelErrorCondition
-
-    @property
-    def Log(self):
-        return ModelLog
-
-    @property
-    def Grid(self):
-        return ModelGrid
-
-    @property
-    def Group(self):
-        return ModelGroup
-
-    @property
-    def Job(self):
-        return ModelJob
-
-    @property
-    def Command(self):
-        return ModelCommand
-
-    @property
-    def Audit(self):
-        return ModelAudit
-
-    @property
-    def Disk(self):
-        return ModelDisk
-
-    @property
-    def Alert(self):
-        return ModelAlert
-
-    @property
-    def Heartbeat(self):
-        return ModelHeartbeat
-
-    @property
-    def Jumpscript(self):
-        return ModelJumpscript
-
-    @property
-    def Nic(self):
-        return ModelNic
-
-    @property
-    def Node(self):
-        return ModelNode
-
-    @property
-    def Process(self):
-        return ModelProcess
-
-    @property
-    def Test(self):
-        return ModelTest
-
-    @property
-    def User(self):
-        return ModelUser
-
-    @property
-    def SessionCache(self):
-        return ModelSessionCache
-
-    def authenticate(self, username, passwd):
-        um = self.User
-        if um.objects(__raw__={'name': username, 'passwd': {'$in': [passwd, j.tools.hash.md5_string(passwd)]}}):
-            return True
-        return False
+class System(NameSpaceLoader):
+    def __init__(self):
+        self.__jslocation__ = "j.data.models.system"
+        super(System, self).__init__(Models)

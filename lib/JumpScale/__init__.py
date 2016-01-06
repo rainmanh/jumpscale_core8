@@ -92,6 +92,7 @@ j.data.serializer=Loader("j.data.serializer")
 j.servers=Loader("j.servers")
 j.grid=Loader("j.grid")
 j.data.units = Loader('j.data.units')
+j.data.models = Loader('j.data.models')
 
 from .InstallTools import InstallTools
 from .InstallTools import Installer

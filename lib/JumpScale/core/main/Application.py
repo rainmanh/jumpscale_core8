@@ -106,10 +106,7 @@ class Application:
             is gid,nid,pid
         """
         self._whoAmi = WhoAmI(gid=0, nid=0, pid=0)
-
-        self._whoAmiBytestr = struct.pack("<hhh", 0, 0, 0)
-        return #@todo (*3*)
-        if self.config != None and self.config.exists('grid.node.id'):
+        if self.config is not None and self.config.exists('grid.node.id'):
             nodeid = self.config.getInt("grid.node.id")
             gridid = self.config.getInt("grid.id")
             j.logger.log("gridid:%s,nodeid:%s"%(gridid, nodeid), level=3, category="application.startup")
@@ -117,14 +114,12 @@ class Application:
             gridid = 0
             nodeid = 0
 
-        self._whoAmI = WhoAmI(gid=gridid, nid=nodeid, pid=0)
-
+        self._whoAmi = WhoAmI(gid=gridid, nid=nodeid, pid=0)
         self._whoAmiBytestr = struct.pack("<hhh", self.whoAmI.pid, self.whoAmI.nid, self.whoAmI.gid)
 
 
     def initGrid(self):
         if not self.gridInitialized:
-            import JumpScale.grid
             j.core.grid.init()
             self.gridInitialized=True
 

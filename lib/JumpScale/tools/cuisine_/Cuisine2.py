@@ -1063,13 +1063,13 @@ class OurCuisine():
 
     def user_passwd(self,name, passwd, encrypted_passwd=True):
         """Sets the given user password. Password is expected to be encrypted by default."""
-        if passwd.strip()=="":
-            raise RuntimeError("passwd cannot be empty")
+        #if passwd.strip()=="":
+            #raise RuntimeError("passwd cannot be empty")
 
         c="%s:%s" % (name, passwd)
         encoded_password = base64.b64encode(c.encode('ascii'))
         if encrypted_passwd:
-            self.sudo("usermod -p '%s' %s" % (passwd,name))
+            self.sudo("usermod -p '%s' %s" % (encoded_password.decode(), name))
         else:
             # NOTE: We use base64 here in case the password contains special chars
             # TODO: Make sure this openssl command works everywhere, maybe we should use a text_base64_decode?

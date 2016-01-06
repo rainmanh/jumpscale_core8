@@ -9,8 +9,8 @@ class GridHealthChecker(object):
         with j.logger.nostdout():
             self._client = j.clients.ac.get()
             #self._osiscl = j.clients.osis.getByInstance()
-        self._heartbeatcl = j.data.models.Heartbeat
-        self._nodecl = j.data.models.Node
+        self._heartbeatcl = j.data.models.system.Heartbeat
+        self._nodecl = j.data.models.system.Node
         self._runningnids = list()
         self._nids = list()
         self._nodenames = dict()

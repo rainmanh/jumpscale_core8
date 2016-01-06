@@ -34,7 +34,7 @@ class String():
         return isinstance(value, str)
 
     
-    def get_default():
+    def get_default(self):
         return ""
 
 
@@ -78,7 +78,7 @@ class Boolean():
         return value is True or value is False
 
     
-    def get_default():
+    def get_default(self):
         return True
     
 

@@ -46,8 +46,11 @@ class AtYourServiceFactory():
         self.indocker = False
         self.sync = AtYourServiceSync()
         self._reposDone = {}
-        self.todo = []
+        self._todo = []
         self._debug=None
+        self._basepath=None
+        self._git=None
+        self._blueprints=[]
 
         # self._db=AYSDB()
 
@@ -57,12 +60,45 @@ class AtYourServiceFactory():
         self._templates = []
         self._recipes = []
         self._reposDone = {}
-        self.todo = []
-
+        self._todo = []
+        self._git=None
+        self._blueprints=[]
 
     @property
-    def debug(self):
-        
+    def basepath(self): 
+        if self._basepath==None:
+            self.basepath=j.sal.fs.getcwd()
+        return self._basepath
+
+    @basepath.setter
+    def basepath(self,val): 
+        self.reset()
+
+        while ".ays" not in j.do.listDirsInDir(baseDir, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+            baseDir=j.do.getParent(baseDir)
+
+        baseDir=baseDir.rstrip("/")
+
+        if baseDir.strip()=="":
+            raise RuntimeError("could not find basepath for .ays in %s"%baseDir)
+
+        self._basepath=git.baseDir
+        found=False
+        for item in j.do.listDirsInDir(self._basepath,False,True):
+            if item in ["blueprints","recipes","services","servicetemplates"]:
+                found=True
+        for item in ["blueprints","recipes","services","servicetemplates"]:
+            #make sure basic dirs exist
+            j.sal.fs.createDir(j.sal.fs.joinPaths(self._basepath,item))
+
+    @property
+    def git(self): 
+        if self._git==None:
+            self._git=j.clients.git.get(basedir=self.basepath)
+        return self._git
+
+    @property
+    def debug(self): 
         if self._debug==None:
             self._debug=AtYourServiceDebugFactory()
         return self._debug
@@ -85,7 +121,7 @@ class AtYourServiceFactory():
 
     @property
     def templates(self):
-
+        self._doinit()
         def load(domain, path,llist):
             for servicepath in j.sal.fs.listDirsInDir(path, recursive=False):
                 dirname = j.do.getBaseName(servicepath)
@@ -120,6 +156,7 @@ class AtYourServiceFactory():
 
     @property
     def recipes(self):
+        self._doinit()
         if self._recipes==[]:
             self._doinit()
             aysrepopath=j.dirs.amInAYSRepo()
@@ -134,28 +171,26 @@ class AtYourServiceFactory():
         
     @property
     def services(self):
+        self._doinit()
         if self._services==[]:
-
-            for state_hrd_path in j.sal.fs.listFilesInDir(j.dirs.ays, recursive=True, \
-                filter="state.hrd", case_sensitivity='os', followSymlinks=True, listSymlinks=False):
-                service_path = j.sal.fs.getDirName(state_hrd_path)
+            for hrd_path in j.sal.fs.listFilesInDir(j.dirs.ays, recursive=True, \
+                filter="instance.hrd", case_sensitivity='os', followSymlinks=True, listSymlinks=False):
+                service_path = j.sal.fs.getDirName(hrd_path)
                 service = Service(path=service_path, args=None)
                 self._services.append(service)            
 
         return self._services
 
-    def getBlueprint(self,path=""):
+    @property
+    def blueprints(self):
         """
-        @input path, if empty will look for .yaml in current directy and only if 1 that one will be selected
         """
-        if path==None or path=="":
-            paths=j.do.listFilesInDir(j.sal.fs.getcwd(),filter="*.yaml")
-            if len(paths)==1:
-                path=paths[0]
-            else:
-                raise RuntimeError("path needs to be specified")
-            
-        return Blueprint(path)
+        if self._blueprints==[]:
+            items=j.do.listDirsInDir(self.basepath+"/blueprints")
+            items.sort()
+            for item in items:            
+                self._blueprints.append(Blueprint(path))
+        return self._blueprints
 
     def _doinit(self):
         # if we don't have write permissin on /opt don't try do download service templates
@@ -204,44 +239,17 @@ class AtYourServiceFactory():
 
         self._init=True
 
-    def _getGitRepo(self, url, recipeitem=None, dest=None):
-        if url in self._reposDone:
-            return self._reposDone[url]
+    def init(self):
+        #look for .git
+        for bp in self.blueprints:
+            bp.execute()            
+            self.git.commit(message='ays blueprint:\n%s'%bp.content, addremove=True)
+        
+        from IPython import embed
+        embed()
+        
 
-        login = None
-        passwd = None
-        if recipeitem is not None and "login" in recipeitem:
-            login = recipeitem["login"]
-            if login == "anonymous" or login.lower() == "none" or login == "" or login.lower() == "guest":
-                login = "guest"
-        if recipeitem is not None and "passwd" in recipeitem:
-            passwd = recipeitem["passwd"]
-
-        branch = None  # let branch be selected automatily
-        if recipeitem is not None and "branch" in recipeitem:
-            branch = recipeitem["branch"]
-
-        revision = None
-        if recipeitem is not None and "revision" in recipeitem:
-            revision = recipeitem["revision"]
-
-        depth = 1
-        if recipeitem is not None and "depth" in recipeitem:
-            depth = recipeitem["depth"]
-            if isinstance(depth, str) and depth.lower() == "all":
-                depth = None
-            else:
-                depth = int(depth)
-
-        login = j.application.config.get("whoami.git.login").strip()
-        passwd = j.application.config.getStr("whoami.git.passwd").strip()
-
-        dest = j.do.pullGitRepo(url=url, login=login, passwd=passwd,
-                                depth=depth, branch=branch, revision=revision, dest=dest)
-        self._reposDone[url] = dest
-        return dest
-
-    def updateTemplatesRepo(self, repos=[]):
+    def updateTemplatesRepos(self, repos=[]):
         """
         update the git repo that contains the service templates
         args:
@@ -268,7 +276,7 @@ class AtYourServiceFactory():
     def apply(self):
         self.check()
         if self.todo == []:
-            self._findtodo()
+            self.findtodo()
         step = 1
         while self.todo != []:
             print("execute state changes, nr services to process: %s in step:%s" % (len(self.todo), step))
@@ -278,7 +286,7 @@ class AtYourServiceFactory():
 
             self.todo = []
             step += 1
-            self._findtodo()
+            self.findtodo()
 
     def check(self):
         for service in self.findServices():
@@ -286,9 +294,9 @@ class AtYourServiceFactory():
         # for service in self.findServices():
         #     service.recurring.check()
 
-    def applyprint(self):
+    def applyprint(self,path=""):
         if self.todo == []:
-            self._findtodo()
+            self.findtodo(path)
         step = 1
         print("execute state changes, nr services to process: %s in step:%s" % (len(self.todo), step))
         for i in range(len(self.todo)):
@@ -300,10 +308,11 @@ class AtYourServiceFactory():
                 # j.sal.fs.copyFile("%s/instance.hrd"%service.path,"%s/instance_old.hrd"%service.path)
         self.todo = []
         step += 1
-        self._findtodo()
+        self.findtodo()
 
-    def _findtodo(self):
-        for service in self.findServices():
+    @property
+    def todo(self):
+        for service in self.services:
             producersWaiting = service.getProducersWaitingApply(set())
 
             if len(producersWaiting)==0 and service.state.changed:
@@ -685,3 +694,41 @@ class AtYourServiceFactory():
 
     def __str__(self):
         return self.__repr__()
+
+
+    # def _getGitRepo(self, url, recipeitem=None, dest=None):
+    #     if url in self._reposDone:
+    #         return self._reposDone[url]
+
+    #     login = None
+    #     passwd = None
+    #     if recipeitem is not None and "login" in recipeitem:
+    #         login = recipeitem["login"]
+    #         if login == "anonymous" or login.lower() == "none" or login == "" or login.lower() == "guest":
+    #             login = "guest"
+    #     if recipeitem is not None and "passwd" in recipeitem:
+    #         passwd = recipeitem["passwd"]
+
+    #     branch = None  # let branch be selected automatily
+    #     if recipeitem is not None and "branch" in recipeitem:
+    #         branch = recipeitem["branch"]
+
+    #     revision = None
+    #     if recipeitem is not None and "revision" in recipeitem:
+    #         revision = recipeitem["revision"]
+
+    #     depth = 1
+    #     if recipeitem is not None and "depth" in recipeitem:
+    #         depth = recipeitem["depth"]
+    #         if isinstance(depth, str) and depth.lower() == "all":
+    #             depth = None
+    #         else:
+    #             depth = int(depth)
+
+    #     login = j.application.config.get("whoami.git.login").strip()
+    #     passwd = j.application.config.getStr("whoami.git.passwd").strip()
+
+    #     dest = j.do.pullGitRepo(url=url, login=login, passwd=passwd,
+    #                             depth=depth, branch=branch, revision=revision, dest=dest)
+    #     self._reposDone[url] = dest
+    #     return dest        

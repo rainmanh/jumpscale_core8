@@ -85,6 +85,8 @@ class ServiceRecipe(ServiceTemplate):
             services[0]._recipe = self
             service = services[0]
 
+            service.init()
+
         elif len(services) > 1:
             raise RuntimeError("Found too many ays'es for %s!%s for parent %s "%(self.name,instance,parent))
 

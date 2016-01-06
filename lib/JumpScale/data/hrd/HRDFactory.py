@@ -17,11 +17,7 @@ class HRDFactory:
             j.logger.log(msg,category="hrd.%s"%category,level=level)
 
     def getSchema(self,path=None,content=""):
-        if path!=None:
-            content=j.do.readFile(path)
-        if content=="":
-            j.events.inputerror_critical("Content needs to be provided if path is empty")
-        return HRDSchema(content)
+        return HRDSchema(path=path,content=content)
 
     def get(self,path=None,content="",prefixWithName=True,keepformat=False,args={},templates=[]):
         """

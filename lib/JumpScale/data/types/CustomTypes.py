@@ -11,6 +11,7 @@ class Guid(String):
     '''Generic GUID type'''
 
     def __init__(self):
+        String.__init__(self)
         self.NAME = 'guid'
         self._RE = re.compile('^[0-9a-fA-F]{8}[-:][0-9a-fA-F]{4}[-:][0-9a-fA-F]{4}[-:][0-9a-fA-F]{4}[-:][0-9a-fA-F]{12}$')
 
@@ -39,6 +40,7 @@ class Email(String):
     """
     """
     def __init__(self):
+        String.__init__(self)
         self.NAME = 'email'
         self._RE = re.compile('^[0-9a-z.@_\-]*')
 
@@ -77,6 +79,7 @@ class Email(String):
 class Path(Email):
     '''Generic path type'''
     def __init__(self):
+        Email.__init__(self)
         self.NAME = 'path'
         self._RE = re.compile('.*')
 
@@ -90,11 +93,12 @@ class Tel(Email):
     the. & , and spaces will not be remembered
     """
     def __init__(self):
+        Email.__init__(self)
         self.NAME = 'tel'
         self._RE = re.compile('\+[0-9]*')
 
     def clean(self,v):
-        if j.data.types.string.check(v):
+        if not j.data.types.string.check(v):
             raise ValueError("Input needs to be string:%s"%v)
         v=v.replace(".","")
         v=v.replace(",","")
@@ -111,7 +115,8 @@ class IPRange(Email):
     """
     """
     def __init__(self):
-        self.NAME = 'IPRANGE'
+        Email.__init__(self)
+        self.NAME = 'iprange'
         self._RE = re.compile('.*')
 
     def get_default(self):
@@ -122,7 +127,8 @@ class IPAddress(Email):
     """
     """
     def __init__(self):
-        self.NAME = 'IPRANGE'
+        Email.__init__(self)
+        self.NAME = 'ipaddress'
         self._RE = re.compile('.*')
     
     def get_default(self):
@@ -131,6 +137,7 @@ class IPAddress(Email):
 class IPPort(Integer):
     '''Generic IP port type'''
     def __init__(self):
+        Email.__init__(self)
         self.NAME = 'ipport'
         self.BASETYPE = 'string'
     
@@ -155,13 +162,29 @@ class Date(Email):
     +1 is indefinite in future
     '''
     def __init__(self):
-        self.NAME = 'ipport'
+        Email.__init__(self)
+        self.NAME = 'date'
         self._RE = re.compile('.*\:.*\:.*') #@todo (*1*) better regex
     
     def get_default(self):
         return "-1"
     
+    def check(self,value):
+        '''
+        Check whether provided value is a valid tel nr
+        '''
+        if not j.data.types.string.check(value):
+            return False
+        value=self.clean(value)
+        if value in ["-1","+1","0"]:
+            return True
+        return self._RE.fullmatch(value) is not None
+
     def clean(self,v):
+        if j.data.types.string.check(v):
+            if v.count("-")>1:
+                v=v.replace("-",":")
+        
         if v==-1:
             v="-1"
         elif v==1:
@@ -191,9 +214,9 @@ class Duration(Email):
 
     '''
     def __init__(self):
+        Email.__init__(self)
         self.NAME = 'duration'
         self._RE = re.compile('^(\d+)([wdhms]?)$')
-
     
     def check(self,value):
         if isinstance(value, int):

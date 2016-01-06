@@ -78,29 +78,22 @@ class Service(object):
 
         self.instance = self.instance.lower()
 
-        self._parentkey = None
+
         self._parent = None
         self._parentChain = None
-
 
         self.path = path.rstrip("/")
 
         self._hrd = None
+
+        if parent!=None:
+            self.path=j.sal.fs.joinPaths(parent.path,"%s!%s"%(self.role,self.instance))
+            self.hrd.set("parent",parent)
+
         self._actions_mgmt = None
         self._actions_node = None
 
         self._dnsNames = []
-
-        if parent is not None and parent != "":
-            if j.data.types.string.check(parent):
-                self._parentkey = parent
-                self._parent = None
-            else:
-                self._parentkey = parent.key
-                self._parent = parent
-
-        if self._parentkey is None:
-            self._parentkey = ""
 
         self.args = args or {}
         self._producers = {}
@@ -171,23 +164,20 @@ class Service(object):
 
     @property
     def parents(self):
-        if self._parentChain is not None:
-            return self._parentChain
-        chain = []
-        parent = self.parent
-        while parent is not None:
-            chain.append(parent)
-            parent = parent.parent
-        self._parentChain = chain
-        return chain
+        if self._parentChain ==[]:
+            chain = []
+            parent = self.parent
+            while parent is not None:
+                chain.append(parent)
+                parent = parent.parent
+            self._parentChain = chain
+        return self._parentChain
 
     @property
     def parent(self):
-        if self._parent is not None:
-            return self._parent
-        if self._parentkey != "":
-            self._parent = j.atyourservice.getServiceFromKey(self._parentkey)
-            return self._parent
+        if self._parent ==None:
+            self._parent = j.atyourservice.getServiceFromKey(self.hrd.get("parent"))
+        return self._parent
 
     @property
     def hrd(self):
@@ -214,10 +204,7 @@ class Service(object):
     def actions_mgmt(self):
         if self._actions_mgmt is None:
             if j.sal.fs.exists(path=self.recipe.path_actions_mgmt):
-                self._actions_mgmt = self._loadActions(self.recipe.path_actions_mgmt,"mgmt")
-                import ipdb
-                ipdb.set_trace()
-                
+                self._actions_mgmt = self._loadActions(self.recipe.path_actions_mgmt,"mgmt")                
             else:
                 self._actions_mgmt = j.atyourservice.getActionsBaseClassMgmt()()
 
@@ -250,6 +237,7 @@ class Service(object):
         mod = loadmodule(modulename, path2)
         #is only there temporary don't want to keep it there
         j.do.delete(path2)
+        j.do.delete(j.do.joinPaths(self.path,"__pycache__"))
         return mod.Actions()        
 
     @property
@@ -287,15 +275,22 @@ class Service(object):
 
     def init(self):
         if self._init is False:
-            self.actions_mgmt.input(self)  #we now init the full service object and can be fully manipulated there even changing the hrd
+            print ("init:%s"%self)
             j.do.createDir(self.path)
+            self.actions_mgmt.input(self)  #we now init the full service object and can be fully manipulated there even changing the hrd
             hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
             self._hrd=self.recipe.schema.hrdGet(hrd=self.hrd,args=self.args)
             self.hrd.set("service.name",self.name)
             self.hrd.set("service.version",self.version)
             self.hrd.set("service.domain",self.domain)
             self.actions_mgmt.hrd(self)
-            self.state.check()
+
+            if self._parent!=None:
+                path=j.sal.fs.joinPaths(self.parent.path,"%s!%s"%(self.role,self.instance))
+                if self.path!=path:
+                    j.sal.fs.moveDir(self.path,path)
+                    self.path=path
+
             
         self._init = True
 
@@ -473,8 +468,8 @@ class Service(object):
                     if key0 not in producers:
                         producers.append(key0)
 
-            if self._hrd is not None:
-                self.hrd.set("producer.%s" % key, producers)
+            # if self._hrd is not None:
+            self.hrd.set("producer.%s" % key, producers)
 
         #walk over the producers
         for producer in services:

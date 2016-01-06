@@ -20,6 +20,7 @@ class HRDType():
         self.consume_nr_min = 0 #min amount we require
         self.consume_nr_max = 0 #max amount we require 
         self.parent=""
+        self.parentauto=False
 
     def validate(self,value):
         if self.typeclass.check(value)==False:
@@ -96,12 +97,25 @@ class HRDType():
     __repr__=__str__
 
 class HRDSchema():
-    def __init__(self,content=""):
+    def __init__(self,path="",content=""):
+        if path!=None:
+            content=j.do.readFile(path)
+        if content=="":
+            j.events.inputerror_critical("Content needs to be provided if path is empty")
+        self.path=path
+        self.content=content
         self.items={} 
         self.items_with_alias={}
         self.content=content
         if content!="":
             self.process(content)
+
+    def _raiseError(self,msg):
+        if self.path!="":
+            print ("ERROR in schema:%s"%self.path)
+        else:
+            print ("ERROR in schema:\n%s"%self.content)
+        raise RuntimeError(msg)
 
     def process(self,content):
         for line in content.split("\n"):
@@ -152,7 +166,12 @@ class HRDSchema():
                 else:
                     hrdtype.default=hrdtype.typeclass.fromString(tags.tagGet("default"))
             else:
-                hrdtype.default=hrdtype.typeclass.get_default()
+                try:
+                    hrdtype.default=hrdtype.typeclass.get_default()
+                except:
+                    import ipdb
+                    ipdb.set_trace()
+                    
 
 
             if tags.tagExists("descr"):
@@ -180,7 +199,10 @@ class HRDSchema():
                 hrdtype.consume_nr_max=1
                 hrdtype.consume_link=c
                 hrdtype.parent=c
-                
+
+            if tags.labelExists("parentauto"):
+                hrdtype.parentauto = True
+
             if tags.tagExists("minval"):
                 hrdtype.minVal = hrdtype.typeclass.fromString(tags.tagGet("minval"))
 
@@ -210,7 +232,7 @@ class HRDSchema():
         for key,ttype in self.items.items():
             val=None
             if ttype.name in args:
-                val=args[ttype.name]
+                val=args[ttype.name]                    
             else:
                 if not hrd.exists(ttype.name):
                     if ttype.doAsk==False:
@@ -223,16 +245,15 @@ class HRDSchema():
                 try:
                     val=j.data.types.list.fromString(val, ttype=ttype.typeclass)
                 except Exception as e:
-                    from IPython import embed
-                    print(9933)
-                    embed()                    
+                    msg="Type '%s' check failed for LIST of values '%s'.\nError:%s"%(ttype.typeclass.NAME,val,e)
+                    self._raiseError(msg)
             else:
 
                 if j.data.types.list.check(val) and len(val)==1:
                     val=val[0] #this to resolve some customer types or yaml inconsistencies, if only 1 member we can use as a non list
 
                 if j.data.types.string.check(val):
-                    while val[0] in [" ['"] or val[-1] in ["' ]"]:
+                    while len(val)>0 and (val[0] in [" ['"] or val[-1] in ["' ]"]):
                         val=val.strip()
                         val=val.strip("[]")
                         val=val.strip("'")
@@ -240,14 +261,34 @@ class HRDSchema():
                 try:
                     val=ttype.typeclass.fromString(val)
                 except Exception as e:
-                    from IPython import embed
-                    print(9922)
-                    embed()
+                    msg="Type '%s' check failed for value '%s'.\nError:%s"%(ttype.typeclass.NAME,val,e)
+                    self._raiseError(msg)
                     
                 if j.data.types.list.check(val) and len(val)==1:
                     val=val[0] #this to resolve some customer types or yaml inconsistencies, if only 1 member we can use as a non list
             hrd.set(ttype.name,val)
         return hrd
+
+    def parentSchemaItemGet(self):
+        """
+        checks if one of the items of the scheme represents a parent, if no return none, otherwise return the item
+        """
+        for key,schemaItem in self.items.items():
+            if schemaItem.parent!="":
+                return schemaItem
+        return None
+
+    def consumeSchemaItemsGet(self):
+        """
+        checks if one of the items of the scheme represents a parent, if no return [], otherwise return the items
+
+        """
+        result=[]
+        for key,schemaItem in self.items.items():
+            if schemaItem.consume_link!="" and schemaItem.parent=="":
+                result.append(schemaItem)
+        return result
+
 
     def __repr__(self):
         return self.content.strip()

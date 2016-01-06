@@ -768,6 +768,8 @@ class Text:
         """
         @type can be int,bool or float (otherwise its always str)
         """
+        if j.data.types.list.check(text):
+            return text
         if self.strip(text)=="":
             return []        
         text=self._dealWithQuote(text)        

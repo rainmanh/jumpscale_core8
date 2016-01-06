@@ -11,6 +11,15 @@ class GitClient(object):
         # split path to find parts
         baseDir = baseDir.replace("\\", "/")  # NOQA
         baseDir = baseDir.rstrip("/")
+
+        while ".git" not in j.do.listDirsInDir(baseDir, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+            baseDir=j.do.getParent(baseDir)
+
+        baseDir=baseDir.rstrip("/")
+
+        if baseDir.strip()=="":
+            raise RuntimeError("could not find basepath for .git in %s"%baseDir)
+
         if baseDir.find("/code/") == -1:
             j.events.inputerror_critical(
                 "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
@@ -20,9 +29,12 @@ class GitClient(object):
             j.events.inputerror_critical(
                 "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
 
-        self.type, self.account, self.name = base.split("/")
 
-        self.baseDir = baseDir
+        self.type, self.account, self.name = base.split("/",2)
+
+        self.baseDir=baseDir
+
+        # self.baseDir = baseDir.split("/code/")[0]+"/code/%s/%s/%s/"%(self.type, self.account, self.name)
 
         # if len(self.repo.remotes) != 1:
         #     j.events.inputerror_critical("git repo on %s is corrupt could not find remote url" % baseDir)

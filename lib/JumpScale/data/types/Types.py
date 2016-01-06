@@ -17,6 +17,7 @@ class Types():
         self.int=Integer()
         self.float=Float()
         self.string=String()
+        self.multiline=String()
         self.set=Set()
         self.ipaddr=IPAddress()
         self.iprange=IPRange()

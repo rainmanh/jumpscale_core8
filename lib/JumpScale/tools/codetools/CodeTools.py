@@ -343,8 +343,8 @@ class CodeTools:
 
     def object2json(self,obj,pretty=False,skiperrors=False,ignoreKeys=[],ignoreUnderscoreKeys=False):
         obj=self.object2dict(obj,dieOnUnknown=not skiperrors,ignoreKeys=ignoreKeys,ignoreUnderscoreKeys=ignoreUnderscoreKeys)
-        if pretty:            
-            return j.data.serializer.json.dumps(obj, skipkeys=skiperrors, ensure_ascii=False, check_circular=True, indent=2, separators=(", ",": "), default=None, sort_keys=True)
+        if pretty:
+            return j.data.serializer.json.dumps(obj, indent=2, sort_keys=True)
         else:
             return j.data.serializer.json.dumps(obj)
 

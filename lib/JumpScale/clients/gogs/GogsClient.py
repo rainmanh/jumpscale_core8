@@ -65,9 +65,10 @@ class GogsClient(object):
             response_set = self.session.post('%s/admin/users' % (self.base_url), data=body)
 
         if response_set.status_code == 201:
-            return response_set.json()
+            return response_set.json()[0]
         elif response_set.status_code == 422:
-            raise DataErrorException("%s is required or already exists"%response_set.json()['message'])
+            import ipdb;ipdb.set_trace()
+            raise DataErrorException("%s is missing or already exists"%response_set.json()[0]['message'])
         elif response_set.status_code == 403:
             raise AdminRequiredException('Admin access Required')
 
@@ -115,11 +116,10 @@ class GogsClient(object):
         if not org_name:
             return self.organizations_list()
         response_org = self.session.get('%s/orgs/%s' % (self.base_url, org_name))
-        import ipdb;ipdb.set_trace()
         if response_org.status_code == 200:
-            return response_org.json()
+            return response_org.json()[0]
         else:
-            raise GogsBaseException()
+            raise NotFoundException()
 
 
     def user_set(self, name, email, pubkey=None, **args):
@@ -154,7 +154,7 @@ class GogsClient(object):
         if response_set.status_code == 201:
             return True
         elif response_set.status_code == 422:
-            raise DataErrorException("%s is required or already exists"%response_set.json()['message'])
+            raise DataErrorException("%s is required or already exists"%response_set.json()[0]['message'])
         elif response_set.status_code == 403:
             raise AdminRequiredException('Admin access Required')
 
@@ -193,24 +193,32 @@ class GogsClient(object):
 
         response_user = self.session.get('%s/users/%s'%(self.base_url, name))
         if response_user.status_code == 200:
-            return response_user.json()
+            return response_user.json()[0]
         else:
             raise NotFoundException()
 
-    def repository_create(self, organization, name, description="", private=True, readme=True):
+    def repository_create(self, repo_name, organization=None,  user_name=None, description="", private=True, readme=True):
         """
-        create repository using specified username 
+        create repository logged in  username 
         """
         body = {
-            "name": name,
+            "name": repo_name,
             "description": description,
             "private": private,
             "readme": "default"
                 }
-
-        response_set = self.session.post('%s/user/repos'%(self.base_url), data=body)
+        if user_name and organization:
+            raise DataErrorException('user_name and organization are mutually exclusive')
+        if user_name:
+            if organization:
+                response_set = self.session.post('%s/admin/users/%s/repos'%(self.base_url, organization), data=body)
+            else:
+                response_set = self.session.post('%s/admin/users/%s/repos'%(self.base_url, user_name), data=body)
+        else:        
+            response_set = self.session.post('%s/user/repos'%(self.base_url), data=body)
+        
         if response_set.status_code == 200:
-            return response_set.json()
+            return response_set.json()[0]
         elif response_set.status_code == 422:
             raise DataErrorException("%s is required or already exists"%response_set.json()['message'])
         elif response_set.status_code == 403:
@@ -240,7 +248,7 @@ class GogsClient(object):
         repos = list()
         response_repos = self.session.get('%s/user/repos' % (self.base_url))
         if response_repos.status_code == 200:
-            for repo in response_repos.json['data']:
+            for repo in response_repos.json():
                 repos.append([repo['id'], repo['full_name'], repo['ssh_url']])
             return repos
         else:

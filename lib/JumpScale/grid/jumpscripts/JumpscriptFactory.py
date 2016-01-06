@@ -207,10 +207,11 @@ class JumpscriptFactory:
         return fp.getvalue()
 
     def loadFromAC(self, acl=None):
-        if acl is None:
-            acl = j.clients.agentcontroller.getByInstance()
-        tar = base64.decodestring(acl.getJumpscripts())
-        self.loadFromTar(tar, 'bz2')
+        raise NotImplementedError()
+        # if acl is None:
+        #     acl = j.clients.agentcontroller.getByInstance()
+        # tar = base64.decodestring(acl.getJumpscripts())
+        # self.loadFromTar(tar, 'bz2')
 
     def loadFromTar(self, tarcontent, type):
         import tarfile

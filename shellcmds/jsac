@@ -7,39 +7,24 @@ import sys,time
 j.application.start("jsac")
 
 parser = cmdutils.ArgumentParser()
-parser.add_argument("action", choices=['reload', 'exec', 'listsessions'], help='Command to perform')
+parser.add_argument("action", choices=['exec'], help='Command to perform (currently only supports exec)')
 parser.add_argument('-nid', '--nodeid', dest='nid', required=False, type=int, help='Use for exec')
 parser.add_argument('-gid', '--gridid', dest='gid', required=False, type=int, help='Use for exec')
-parser.add_argument('-r', '--role', required=False, help='Use for exec')
-parser.add_argument('-n', '--name', required=False, help='Use for exec')
-parser.add_argument('-o', '--organization', required=False, help='Use for exec')
-parser.add_argument('-a', '--arguments', required=False, default="", help='Use for exec, eg. msg:test')
-parser.add_argument('-q', '--queue', required=False, default=None, help='Specify queue to execute tas on')
+parser.add_argument('-c', '--command', required=False, help='Use for exec')
+parser.add_argument('-r', '--role', required=False, default='', help='Use for exec')
 
 opts = parser.parse_args()
 
-import JumpScale.grid.agentcontroller
 with j.logger.nostdout():
-    ac = j.clients.agentcontroller.getByInstance('main')
+    ac = j.clients.agentcontroller.get()
 
-if opts.action == 'reload':
-    print('Reloading Jumpscripts')
-    ac.reloadjumpscripts()
-elif opts.action == 'listsessions':
-    import yaml
-    sessions = ac.listSessions()
-    print('Sessions:\n\n %s' % yaml.dump(sessions))
-elif opts.action == 'exec':
-    import yaml
-    args = dict()
-    argss = opts.arguments.split(',')
-    for arg in argss:
-        if ':' in arg:
-            key, value = arg.split(':')
-            if value.isdigit():
-                value = int(value)
-            args[key] = value
-    job = ac.executeJumpscript(opts.organization, opts.name, nid=opts.nid, gid=opts.gid, role=opts.role, args=args, queue=opts.queue)
-    print("Job:\n\n: %s" % yaml.dump(job).replace('!!python/unicode ', ''))
+if opts.action == 'exec':
+    command = opts.command
+    if not command:
+        print('Missing required -c option')
+        j.application.stop(1)
 
-j.application.stop()
+    roles = [] if not opts.role else opts.role.split(',')
+    print(ac.execute(command, gid=opts.gid, nid=opts.nid, roles=roles, die=False))
+
+j.application.stop(0)

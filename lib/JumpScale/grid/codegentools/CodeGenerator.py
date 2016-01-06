@@ -7,7 +7,6 @@ from CodeGeneratorActorRemote import CodeGeneratorActorRemote
 from CodeGeneratorActorTasklets import CodeGeneratorActorTasklets
 from CodeGeneratorActorClass import CodeGeneratorActorClass
 from CodeGeneratorEveModel import CodeGeneratorEveModel
-# from CodeGeneratorOSISTasklets import CodeGeneratorOSISTasklets
 import imp
 import sys
 

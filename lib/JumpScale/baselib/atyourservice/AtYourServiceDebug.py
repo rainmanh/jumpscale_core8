@@ -9,8 +9,9 @@ from ActionsBaseNode import ActionsBaseNode
 from AtYourServiceSync import AtYourServiceSync
 
 from mongoengine import *
+from JumpScale.data.models.Models import ModelBase
 
-class ModelDebug(j.data.models.Base):
+class ModelDebug(ModelBase):
     guid = StringField(default='')
     host = StringField(default='')
     cache = StringField(default='')
@@ -38,7 +39,7 @@ class AtYourServiceDebug():
 
 
     def __init__(self,name="main"):
-        self.model=j.data.models.getset(ModelDebug(guid=name))
+        self.model=j.data.models.system.getset(ModelDebug(guid=name))
         self._cl=None
         self._clcache=None
 

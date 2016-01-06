@@ -1,10 +1,5 @@
 from JumpScale import j
-
-# from CoreModel.ModelObject import ModelObject
-import JumpScale.grid.osis
-#from ZBrokerClient import ZBrokerClient
 from collections import namedtuple
-import JumpScale.grid.geventws
 from  JumpScale.grid.gridhealthchecker.gridhealthchecker import GridHealthChecker
 import time
 

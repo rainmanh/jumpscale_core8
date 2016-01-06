@@ -2319,7 +2319,6 @@ exec python3 -q "$@"
             killall redis-server
             rm /usr/local/bin/js*
             rm /usr/local/bin/ays*
-            rm /usr/local/bin/osis*
             rm -rf $base/lib/JumpScale
             rm -rf /opt/sentry/
             sudo stop redisac

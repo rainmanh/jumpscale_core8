@@ -59,7 +59,7 @@ class Recurring():
         self.write()
 
     def stop(self):
-        j.do.delete(self.path)
+        j.sal.fs.remove(self.path)
 
     def _read(self):
         pastHeader = False

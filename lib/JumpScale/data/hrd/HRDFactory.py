@@ -33,9 +33,9 @@ class HRDFactory:
             return HRD(path=path,content=content,prefixWithName=prefixWithName,keepformat=keepformat,args=args,templates=templates)
 
 
-    def getHRDFromOsisObject(self,osisobj,prefixRootObjectType=True):
-        txt=j.data.serializer.serializers.hrd.dumps(osisobj.obj2dict())
-        prefix=osisobj._P__meta[2]
+    def getHRDFromMongoObject(self, mongoObject, prefixRootObjectType=True):
+        txt = j.data.serializer.serializers.hrd.dumps(mongoObject.to_dict())
+        prefix = mongoObject._P__meta[2]
         out=""
         for line in txt.split("\n"):
             if line.strip()=="":

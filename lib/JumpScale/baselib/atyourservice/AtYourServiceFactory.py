@@ -9,7 +9,10 @@ from Blueprint import Blueprint
 # import AYSdb
 
 from AtYourServiceSync import AtYourServiceSync
-from AtYourServiceDebug import AtYourServiceDebugFactory
+try:
+    from AtYourServiceDebug import AtYourServiceDebugFactory
+except:
+    pass
 import os
 
 # class AYSDB():
@@ -74,22 +77,19 @@ class AtYourServiceFactory():
     def basepath(self,val): 
         self.reset()
 
+        baseDir=val
         while ".ays" not in j.do.listDirsInDir(baseDir, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
             baseDir=j.do.getParent(baseDir)
 
-        baseDir=baseDir.rstrip("/")
+            baseDir=baseDir.rstrip("/")
 
-        if baseDir.strip()=="":
-            raise RuntimeError("could not find basepath for .ays in %s"%baseDir)
+            if baseDir.strip()=="":
+                raise RuntimeError("could not find basepath for .ays in %s"%val)
 
-        self._basepath=git.baseDir
-        found=False
-        for item in j.do.listDirsInDir(self._basepath,False,True):
-            if item in ["blueprints","recipes","services","servicetemplates"]:
-                found=True
+        self._basepath=baseDir
         for item in ["blueprints","recipes","services","servicetemplates"]:
             #make sure basic dirs exist
-            j.sal.fs.createDir(j.sal.fs.joinPaths(self._basepath,item))
+            j.sal.fs.createDir(j.sal.fs.joinPaths(self._basepath,item))        
 
     @property
     def git(self): 
@@ -186,9 +186,9 @@ class AtYourServiceFactory():
         """
         """
         if self._blueprints==[]:
-            items=j.do.listDirsInDir(self.basepath+"/blueprints")
+            items=j.do.listFilesInDir(self.basepath+"/blueprints")
             items.sort()
-            for item in items:            
+            for path in items:            
                 self._blueprints.append(Blueprint(path))
         return self._blueprints
 
@@ -243,10 +243,11 @@ class AtYourServiceFactory():
         #look for .git
         for bp in self.blueprints:
             bp.execute()            
-            self.git.commit(message='ays blueprint:\n%s'%bp.content, addremove=True)
+            # self.git.commit(message='ays blueprint:\n%s'%bp.content, addremove=True)
         
-        from IPython import embed
-        embed()
+        # from IPython import embed
+        # print (99999)
+        # embed()
         
 
     def updateTemplatesRepos(self, repos=[]):

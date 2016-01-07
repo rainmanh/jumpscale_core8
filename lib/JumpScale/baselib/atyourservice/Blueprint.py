@@ -60,4 +60,9 @@ class Blueprint(object):
         
         self.models.append(model)
 
+    def __str__(self):
+        return str(self.models)
+
+    __repr__=__str__
+
 

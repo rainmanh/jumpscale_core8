@@ -1,13 +1,11 @@
 from JumpScale import j
-import JumpScale.grid.agentcontroller
-#import JumpScale.baselib.units
 import gevent
 
 class GridHealthChecker(object):
 
     def __init__(self):
         with j.logger.nostdout():
-            self._client = j.clients.ac.get()
+            self._client = j.clients.agentcontroller.get()
             #self._osiscl = j.clients.osis.getByInstance()
         self._heartbeatcl = j.data.models.system.Heartbeat
         self._nodecl = j.data.models.system.Node

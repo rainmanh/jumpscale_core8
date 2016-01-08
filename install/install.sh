@@ -34,6 +34,7 @@ if [ "$(uname)" == "Darwin" ]; then
     pip3 install mongoengine
     pip3 install hiredis
     pip3 install dulwich
+    pip3 install gitpython
     
     export TMPDIR=~/tmp
     export JSBASE='~/opt/jumpscale8'

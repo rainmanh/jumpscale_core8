@@ -36,18 +36,33 @@ import random
 if not os.path.exists(path):
     print("overwrite")
     r=random.randint(1, 10000)#to make sure caching does not work on internet
-    os.popen("curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/%s/install/InstallTools.py?%s > %s"%(branch,r,path))    
+    cmd="curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/%s/install/InstallTools.py?%s > %s"%(branch,r,path)
+    # print (cmd)
+    os.system(cmd)    
 
-done=""
-counter=0
-while done!="OK" and counter<100:
-    try:
-        InstallTools = __import__('InstallTools')
-        done="OK"        
-    except:
-        print ("import again")
-        counter+=1
-        time.sleep(1)
+from importlib import util
+spec=util.spec_from_file_location("InstallTools",path)
+InstallTools=spec.loader.load_module()
+# module=importlib.util.module_from_spec(spec)
+
+
+# from IPython import embed
+# embed()
+
+
+# done=""
+# counter=0
+# while done!="OK" and counter<10:
+#     try:
+#         import InstallTools
+#         # from InstallTools import InstallTools
+#         # InstallTools = __import__('InstallTools')
+#         done="OK"        
+#     except Exception as e:
+#         print (e)   
+#         print ("import again")
+#         counter+=1
+#         time.sleep(1)
 
 do = InstallTools.do
 

@@ -2,10 +2,9 @@
     <tabTrigger>ipdb</tabTrigger>
     <scope>source.python</scope>
     <description>IPShell</description>
-    <content><![CDATA[import ipdb
-print "DEBUG NOW ${1:id}"
-
-
+    <content>
+<![CDATA[import ipdb
+ipdb.set_trace()
 ]]>
     </content>
 </snippet>

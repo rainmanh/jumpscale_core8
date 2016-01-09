@@ -1,0 +1,12 @@
+<snippet>
+    <tabTrigger>shell</tabTrigger>
+    <scope>source.python</scope>
+    <description>shell</description>
+    <content>
+<![CDATA[
+from ptpython.repl import embed
+embed(globals(), locals())
+
+]]>
+    </content>
+</snippet>

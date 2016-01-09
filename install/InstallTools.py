@@ -2524,7 +2524,33 @@ exec python3 -q "$@"
                     self.symlink("%s/utils/sitecustomize.py"%self.BASE,path)
             print("walk over /usr to find sitecustomize and link to new one")
             os.path.walk("/usr", do,"")
-            os.path.walk("/etc", do,"")
+            os.path.walk("/etc", do,"")            
+
+
+    def develtools(self):
+
+        do.pullGitRepo("https://github.com/vinta/awesome-python")
+
+        for item in ["pyvim","ptpython","python-prompt-toolkit","jedi","ptpdb","ipython","pymux","click"]:
+            do.pullGitRepo("git@github.com:Jumpscale/%s.git"%item)
+            path=j.sal.fs.joinPaths(j.dirs.codeDir,"github","jumpscale",item)
+            cmd="cd %s;python3 setup.py.install"
+            j.do.execute()
+
+
+        
+
+        if do.TYPE.startswith("OSX"):
+            dest="%s/Library/Application Support/Sublime Text 3/Packages"%os.environ["HOME"]
+            src="%s/opt/code/github/jumpscale/jumpscale_core8/tools/sublimetext/"%os.environ["HOME"]
+        else:
+            print ("implement")
+            import ipdb
+            ipdb.set_trace()
+        if do.exists(src) and do.exists(dest):
+            do.copyTree(src,dest)
+
+
 
 
 do.installer=Installer()

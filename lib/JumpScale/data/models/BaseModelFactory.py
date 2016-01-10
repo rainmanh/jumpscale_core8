@@ -14,7 +14,7 @@ except:
 #     j.sal.process.execute(
 #         "mongod --fork --logpath /opt/jumpscale8/var/mongodb.log")
 
-class NameSpaceLoader():
+class NameSpaceLoader(object):
     def __init__(self, modelsmodule):
         self._module = modelsmodule
         mongoengine.register_connection(self._module.DB, self._module.DB)
@@ -23,7 +23,7 @@ class NameSpaceLoader():
     def _getModels(self):
         self._models = list()
         for name, mem in inspect.getmembers(self._module, inspect.isclass):
-            if mongoengine.document.Document and Models.ModelBase in inspect.getmro(mem):
+            if issubclass(mem, mongoengine.base.document.BaseDocument):
                 self._models.append(name)
                 self.__dict__[name] = mem
 

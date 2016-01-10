@@ -8,6 +8,8 @@ DB = 'jumpcale_system'
 
 
 class ModelBase(object):
+    DoesNotExist = DoesNotExist
+
     guid = StringField(default=lambda: str(uuid.uuid4()))
     gid = IntField(default=lambda: j.application.whoAmI.gid if j.application.whoAmI else 0)
     nid = IntField(default=lambda: j.application.whoAmI.nid if j.application.whoAmI else 0)

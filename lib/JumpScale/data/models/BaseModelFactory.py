@@ -9,12 +9,7 @@ except:
     pass
 
 
-#@this is not ok, we should never run any service automatically, only exception is 
-# if not j.sal.process.checkProcessRunning('mongod'):
-#     j.sal.process.execute(
-#         "mongod --fork --logpath /opt/jumpscale8/var/mongodb.log")
-
-class NameSpaceLoader(object):
+class NameSpaceLoader():
     def __init__(self, modelsmodule):
         self._module = modelsmodule
         mongoengine.register_connection(self._module.DB, self._module.DB)
@@ -23,7 +18,7 @@ class NameSpaceLoader(object):
     def _getModels(self):
         self._models = list()
         for name, mem in inspect.getmembers(self._module, inspect.isclass):
-            if issubclass(mem, mongoengine.base.document.BaseDocument):
+            if issubclass(mem, mongoengine.base.document.BaseDocument) and issubclass(mem, Models.ModelBase):
                 self._models.append(name)
                 self.__dict__[name] = mem
 

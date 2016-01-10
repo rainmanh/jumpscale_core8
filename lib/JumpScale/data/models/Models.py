@@ -4,7 +4,7 @@ from JumpScale import j
 
 import uuid
 
-DB = 'jumpcale_system'
+DB = 'jumpscale_system'
 
 
 class ModelBase(object):
@@ -75,12 +75,22 @@ class ModelBase(object):
             j.core.db.expire(key, expire)
         return obj
 
-    def save(self):
+    def validate(self, clean):
+        return Document.validate(self, clean)
+
+
+    def _datatomodel(self, data):
+        for key, value in data.items():
+            setattr(self, key, value)
+
+    def save(self, data=None):
         redis = getattr(self, '__redis__', False)
+        if data:
+            self._datatomodel(data)
         if redis:
             return self._save_redis(self)
         else:
-            return super(ModelBase, self).save()
+            return Document.save(self)
 
     def delete(self):
         redis = getattr(self, '__redis__', False)
@@ -291,7 +301,7 @@ class Machine(ModelBase, Document):
     ipaddr = ListField(StringField())
     active = BooleanField()
     # STARTED,STOPPED,RUNNING,FROZEN,CONFIGURED,DELETED
-    state = StringField(choices=("STARTED","STOPPED","RUNNING","FROZEN","CONFIGURED","DELETED"), default='', required=True)
+    state = StringField(choices=("STARTED","STOPPED","RUNNING","FROZEN","CONFIGURED","DELETED"), default='CONFIGURED', required=True)
     mem = IntField()  # $in MB
     cpucore = IntField()
     description = StringField(default='')
@@ -365,7 +375,7 @@ class Test(ModelBase, Document):
     name = StringField(default='')
     testrun = StringField(default='')
     path = StringField(default='')
-    state = StringField(choices=("OK", "ERROR", "DISABLED"), default='', required=True)
+    state = StringField(choices=("OK", "ERROR", "DISABLED"), default='OK', required=True)
     priority = IntField()  # lower is highest priority
     organization = StringField(default='')
     author = StringField(default='')
@@ -375,10 +385,10 @@ class Test(ModelBase, Document):
     endtime = IntField()
     enable = BooleanField()
     result = DictField()
-    output = DictField(default='')
-    eco = DictField(default='')
+    output = DictField(default={})
+    eco = DictField(default={})
     license = StringField(default='')
-    source = DictField(default='')
+    source = DictField(default={})
 
 
 class User(ModelBase, Document):

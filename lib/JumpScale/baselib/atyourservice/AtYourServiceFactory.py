@@ -241,13 +241,16 @@ class AtYourServiceFactory():
 
     def init(self):
         #look for .git
+        commitc=""
         for bp in self.blueprints:
-            bp.execute()            
-            # self.git.commit(message='ays blueprint:\n%s'%bp.content, addremove=True)
-        
-        # from IPython import embed
-        # print (99999)
-        # embed()
+            bp.execute()       
+            commitc+="\nBlueprint:%s\n"%bp.path     
+            commitc+=bp.content+"\n"
+
+        self.git.commit(message='ays blueprint:\n%s'%commitc, addremove=True)
+
+        lastref=self.git.getCommitRefs()[-1][1]
+        return self.git.getChangedFiles(lastref)
         
 
     def updateTemplatesRepos(self, repos=[]):

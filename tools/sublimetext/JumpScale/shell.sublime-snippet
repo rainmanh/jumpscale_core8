@@ -5,6 +5,7 @@
     <content>
 <![CDATA[
 from ptpython.repl import embed
+print ("DEBUG NOW ${1:id}")
 embed(globals(), locals())
 
 ]]>

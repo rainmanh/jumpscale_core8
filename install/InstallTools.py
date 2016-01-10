@@ -104,6 +104,12 @@ class InstallTools():
         if self.debug:
             print(msg)
 
+    def getBinDirSystem(self):
+        return "/usr/local/bin/"
+
+    def getPythonLibSystem(self):
+        return "/usr/local/lib/python3.5/site-packages/"
+
     def readFile(self,filename):
         """Read a file and get contents of that file
         @param filename: string (filename to open for reading )
@@ -304,7 +310,7 @@ class InstallTools():
         else:
             raise RuntimeError('Source path %s in system.fs.copyTree is not a directory'% src)
 
-    def copyFile(self,source,dest,deletefirst=False,skipIfExists=False):
+    def copyFile(self,source,dest,deletefirst=False,skipIfExists=False,makeExecutable=False):
         """
         """
         if self.isDir(dest):
@@ -318,7 +324,11 @@ class InstallTools():
             self.delete(dest)
         if self.debug:
             print(("copy %s %s" % (source,dest)))
+
         shutil.copy(source,dest)
+
+        if makeExecutable:
+            self.chmod(dest,0o770)
 
     def createDir(self,path):
         if self.debug:
@@ -2529,22 +2539,38 @@ exec python3 -q "$@"
 
     def develtools(self):
 
-        do.pullGitRepo("https://github.com/vinta/awesome-python")
+        [do.delete(item) for item in do.listDirsInDir(do.getPythonLibSystem()) if item.find(".egg-info")!=-1]
+        # [do.delete(item) for item in do.listDirsInDir(do.getPythonLibSystem()) if item.find(".dist-info")!=-1]
+        [do.delete(item) for item in do.listDirsInDir(do.getPythonLibSystem()) if item.find(".egg")!=-1]
 
-        for item in ["pyvim","ptpython","python-prompt-toolkit","jedi","ptpdb","ipython","pymux","click"]:
+        do.execute("rm -rf %s/pip*"%do.getPythonLibSystem())
+        do.execute("rm -rf %s/pip*"%do.getBinDirSystem())
+
+        # do.pullGitRepo("https://github.com/pypa/pip")
+        # do.execute("cd %s;python3 setup.py install"%do.getGitRepoArgs("https://github.com/pypa/pip")[4])
+
+        "https://bootstrap.pypa.io/get-pip.py"
+        tmpfile=do.download("https://bootstrap.pypa.io/get-pip.py")
+        do.execute("python3 %s"%tmpfile)
+        do.execute("pip3 install --upgrade setuptools")
+
+
+        #"pyvim"
+        items=["jedi","python-prompt-toolkit","ipython","ptpython","ptpdb","pymux","click"]
+        for item in items:
             do.pullGitRepo("git@github.com:Jumpscale/%s.git"%item)
-            path=j.sal.fs.joinPaths(j.dirs.codeDir,"github","jumpscale",item)
-            cmd="cd %s;python3 setup.py.install"
-            j.do.execute()
+            path=do.joinPaths(do.CODEDIR,"github","jumpscale",item)
+            cmd="cd %s;python3 jsinstall.py"%path
+            print (cmd)
+            do.execute(cmd)
 
-
-        
+        do.pullGitRepo("https://github.com/vinta/awesome-python")        
 
         if do.TYPE.startswith("OSX"):
             dest="%s/Library/Application Support/Sublime Text 3/Packages"%os.environ["HOME"]
             src="%s/opt/code/github/jumpscale/jumpscale_core8/tools/sublimetext/"%os.environ["HOME"]
         else:
-            print ("implement")
+            print ("implement develtools")
             import ipdb
             ipdb.set_trace()
         if do.exists(src) and do.exists(dest):

@@ -186,11 +186,16 @@ class GitClient(object):
         """
         # TODO (*3*) limit to max number?
         diffs = dict()
-        blame = self.repo.blame(self.branchName, 'lib/JumpScale/grid/gridhealthchecker/gridhealthchecker.py')
+        blame = self.repo.blame(self.branchName, path)
         for commit, lines in blame:
             for line in lines:
                 diffs[line] = list() if line not in diffs else diffs[line]
                 diffs[line].append({'author': commit.author.name, 'commit': commit.hexsha})
+                from ptpython.repl import embed
+                print ("DEBUG NOW filechange")
+                d
+                embed(globals(), locals())
+                
         return diffs
 
     def getUntrackedFiles(self):

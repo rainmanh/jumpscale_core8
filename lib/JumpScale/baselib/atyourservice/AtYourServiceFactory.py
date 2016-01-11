@@ -6,6 +6,7 @@ import re
 from ActionsBaseMgmt import ActionsBaseMgmt
 from ActionsBaseNode import ActionsBaseNode
 from Blueprint import Blueprint
+from ALog import *
 # import AYSdb
 
 from AtYourServiceSync import AtYourServiceSync
@@ -54,6 +55,8 @@ class AtYourServiceFactory():
         self._basepath=None
         self._git=None
         self._blueprints=[]
+        self._alog=None
+        self._runcategory=""
 
         # self._db=AYSDB()
 
@@ -66,6 +69,26 @@ class AtYourServiceFactory():
         self._todo = []
         self._git=None
         self._blueprints=[]
+        self._alog=None
+
+    @property
+    def runcategory(self):
+        if self._runcategory=="":
+            self._runcategory="deploy"
+        return self._runcategory
+
+    @runcategory.setter
+    def runcategory(self,val): 
+        if val!=self._runcategory:
+            self.reset()
+            self._runcategory=val
+
+    @property
+    def alog(self):
+        if self._alog==None: 
+            self._alog=ALog(self.runcategory)
+            self._alog.getNewRun()
+        return self._alog
 
     @property
     def basepath(self): 
@@ -239,18 +262,24 @@ class AtYourServiceFactory():
 
         self._init=True
 
-    def init(self):
+    def init(self,newrun=True):
         #look for .git
+        print("init runid:%s"%self.alog.currentRunId)
         commitc=""
         for bp in self.blueprints:
             bp.execute()       
             commitc+="\nBlueprint:%s\n"%bp.path     
             commitc+=bp.content+"\n"
 
-        self.git.commit(message='ays blueprint:\n%s'%commitc, addremove=True)
+        repo=self.git.commit(message='ays blueprint:\n%s'%commitc, addremove=True)
+        githash=repo.hexsha
 
-        lastref=self.git.getCommitRefs()[-1][1]
-        return self.git.getChangedFiles(lastref)
+        self.alog.setGitCommit("init",githash)
+
+        print ("init done")
+
+        # lastref=self.git.getCommitRefs()[-1][1]
+        # return self.git.getChangedFiles(lastref)
         
 
     def updateTemplatesRepos(self, repos=[]):
@@ -277,7 +306,13 @@ class AtYourServiceFactory():
     def getActionsBaseClassMgmt(self):
         return ActionsBaseMgmt
 
-    def apply(self):
+    def apply(self,category="deploy",newrun=True):
+
+        from IPython import embed
+        print ("DEBUG NOW apply")
+        embed()
+        p
+        
         self.check()
         if self.todo == []:
             self.findtodo()
@@ -635,7 +670,7 @@ class AtYourServiceFactory():
             key += " (%s)" % service.version
         return key.lower()
 
-    def getServiceFromKey(self, key, node=None, die=True, include_disabled=False):
+    def getServiceFromKey(self, key):
         """
         key in format $domain|$name!$instance@role ($version)
 
@@ -655,8 +690,7 @@ class AtYourServiceFactory():
 
         """
         domain, name, version, instance, role = self.parseKey(key)
-        return self.getService(domain=domain, name=name, instance=instance, version=version,
-                               role=role, die=die, node=node, include_disabled=include_disabled)
+        return self.getService(instance=instance,role=role, die=True)
 
     def parseKey(self, key):
         """

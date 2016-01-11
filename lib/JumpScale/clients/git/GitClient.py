@@ -131,7 +131,7 @@ class GitClient(object):
     def commit(self, message='', addremove=True):
         if addremove:
             self.addRemoveFiles()
-        self.repo.index.commit(message)
+        return self.repo.index.commit(message)
 
     def push(self, force=False):
         if force:

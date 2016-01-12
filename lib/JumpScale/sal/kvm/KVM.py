@@ -1,14 +1,7 @@
 #!/usr/bin/env python
 from JumpScale import j
-import sys
-import JumpScale.sal.diskmanager
-import os
-import JumpScale.sal.netconfig
-import netaddr
 from libvirtutil import LibvirtUtil
-import imp
-import JumpScale.baselib.remote
-import pynetlinux
+
 
 """
 HRDIMAGE format
@@ -62,9 +55,6 @@ class KVM(SALObject):
         self.imagepath = "/mnt/vmstor/kvm/images"
         self.images = {}
         self.loadImages()
-        self.ip_mgmt_range = "192.168.66.0/24" #used on brmgmt
-        self.nameserver = "8.8.8.8"
-        #self.gateway = "192.168.1.1"
         self.LibvirtUtil = LibvirtUtil()
         self.LibvirtUtil.basepath = self.vmpath
 
@@ -80,66 +70,6 @@ class KVM(SALObject):
             hrd = j.data.hrd.get(path)
             self.images[image] = hrd
 
-    def initPhysicalBridges(self, pubinterface="eth0"):
-        """
-        - names of bridges are brmgmt & brpub & brtmp(and are predefined)
-        - brpub will be connected to e.g. eth0 on host and is for public traffic
-        - brtmp is not connected to any physical device
-        - brmgmt is not connected to physical device, it is being used for mgmt of vm
-
-        brmgmt is not connected to anything
-            give static ip range 192.168.66.254/24 to bridge brmgmt (see self.ip_mgmt_range)
-            will be used for internal mgmt purposes
-        """
-        print('Creating physical bridges brpub, brmgmt and brtmp on the host...')
-        j.sal.nettools.setBasicNetConfigurationBridgePub() #failsave method to introduce bridge to pub interface
-        j.sal.netconfig.enableInterfaceBridgeStatic('brmgmt', ipaddr='192.168.66.254/24', start=True)
-        j.sal.netconfig.enableInterfaceBridgeStatic('brtmp', start=True)
-
-        # j.sal.nettools.setBasicNetConfigurationBridgePub()
-        if j.sal.nettools.bridgeExists("brmgmt")==False:
-            pynetlinux.brctl.addbr("brmgmt")
-        br=pynetlinux.brctl.findbridge("brmgmt")
-        ip=br.get_ip()
-        if ip!="192.168.66.254":  #there seems to be bug in this lib, will always be 0 the br.get_ip()
-            br.set_ip("192.168.66.254")
-            br.set_netmask(24)
-        if br.is_up()==False:
-            br.up()
-
-        #tmp bridge
-        if j.sal.nettools.bridgeExists("brtmp")==False:
-            pynetlinux.brctl.addbr("brtmp")
-        br=pynetlinux.brctl.findbridge("brtmp")
-        if br.is_up()==False:
-            br.up()
-
-    def initLibvirtNetwork(self):
-        for brname in ("brmgmt", "brtmp", "brpub"):
-            br=pynetlinux.brctl.findbridge(brname)
-            if br.is_up()==False:
-                br.up()
-
-        print('Creating libvirt networks brpub, brmgmt and brtmp...')
-        networks = ('brmgmt', 'brpub', 'brtmp')
-        for network in networks:
-            if not self.LibvirtUtil.checkNetwork(network):
-                j.sal.kvm.LibvirtUtil.createNetwork(network, network)
-            else:
-                print('Virtual network "%s" is already there' % network)
-
-        for brname in ("brmgmt", "brtmp", "brpub"):
-            br=pynetlinux.brctl.findbridge(brname)
-            if br.is_up()==False:
-                br.up()
-
-    def initNattingRules(self):
-        print('Initializing natting rule on the host on "brpub"...')
-        cmd = "iptables -t nat -I POSTROUTING --out-interface brpub -j MASQUERADE"
-        j.sal.process.execute(cmd)
-        cmd = "iptables -I FORWARD --in-interface brpub -j ACCEPT"
-        j.sal.process.execute(cmd)
-
     def list(self):
         """
         names of running & stopped machines
@@ -152,7 +82,7 @@ class KVM(SALObject):
 
     def listSnapshots(self, name):
         machine_hrd = self.getConfig(name)
-        return [s['name'] for s in self.LibvirtUtil.listSnapshots(machine_hrd.get('id'))]
+        return [s['name'] for s in self.LibvirtUtil.listSnapshots(machine_hrd.get('name'))]
 
     def getIp(self, name):
         #info will be fetched from hrd in vm directory
@@ -209,7 +139,7 @@ class KVM(SALObject):
         j.events.opserror_critical("could not find free ip addr for KVM in 192.168.66.0/24 range","kvm.ipaddr.find")
 
 
-    def create(self, name, baseimage, replace=True, description='', size=10, memory=512, cpu_count=1):
+    def create(self, name, baseimage, replace=True, description='', size=10, memory=512, cpu_count=1, bridges=None):
         """
         create a KVM machine which inherits from a qcow2 image (so no COPY)
 
@@ -238,8 +168,7 @@ class KVM(SALObject):
 
         when replace then remove original image
         """
-        self.initLibvirtNetwork()
-
+        bridges = bridges or []
         if replace:
             if j.sal.fs.exists(self._getRootPath(name)):
                 print('Machine %s already exists, will destroy and recreate...' % name)
@@ -252,8 +181,8 @@ class KVM(SALObject):
         j.sal.fs.createDir(self._getRootPath(name))
         print('Creating machine %s...' % name)
         try:
-            self.LibvirtUtil.create_node(name, baseimage, size=size, memory=memory, cpu_count=cpu_count)
-        except:
+            self.LibvirtUtil.create_node(name, baseimage, bridges=bridges, size=size, memory=memory, cpu_count=cpu_count)
+        except Exception as e:
             print('Error creating machine "%s"' % name)
             print('Rolling back machine creation...')
             return self.destroy(name)
@@ -282,26 +211,14 @@ bootstrap.passwd=%s
 bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imagehrd.get('ostype'), imagehrd.get('arch'), imagehrd.get('version'), description, imagehrd.get('root.partitionnr', '1'),
         memory, size, cpu_count, imagehrd.get('shell', ''), imagehrd.get('fabric.module'), imagehrd.get('pub.ip'), imagehrd.get('bootstrap.ip'), imagehrd.get('bootstrap.login'), imagehrd.get('bootstrap.passwd'))
         j.sal.fs.writeFile(hrdfile, hrdcontents)
-        print('Waiting for SSH connection to be ready...')
-        if not j.sal.nettools.waitConnectionTest(imagehrd.get('bootstrap.ip'), 22, 300):
-            print('Rolling back machine creation...')
-            self.destroy(name)
-            raise RuntimeError('SSH is not available after 5 minutes')
-        try:
-            self.pushSSHKey(name)
-        except:
-            print('Rolling back machine creation...')
-            self.destroy(name)
-            raise RuntimeError("Couldn't push SSH key to the guest")
-        print('Setting network configuration on the guest, this might take some time...')
-        try:
-            self.setNetworkInfo(name)
-        except:
-            print('Rolling back machine creation...')
-            self.destroy(name)
-            raise RuntimeError("Couldn't configure guest network")
         print('Machine %s created successfully' % name)
-        mgmt_ip = self.getIp(name)
+
+        mgmt_ip = self._findFreeIP(name)
+        machine_hrd = self.getConfig(name)
+        machine_hrd.set('bootstrap.ip', mgmt_ip)
+        public_ip = self._findFreePubIP(name, True)
+        machine_hrd.set('pub.ip', public_ip)
+
         print('Machine IP address is: %s' % mgmt_ip)
         return mgmt_ip
 
@@ -337,25 +254,23 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
         except:
             pass
 
-    def setNetworkInfo(self, name):
-        mgmtip = self._findFreeIP(name)
-        public_ip = self._findFreePubIP(name, True)
-        capi = self._getSshConnection(name)
-        machine_hrd = self.getConfig(name)
-        setupmodule = self._getFabricModule(name)
-        machine_hrd.set('bootstrap.ip', mgmtip)
-        machine_hrd.set('pub.ip', public_ip)
+    def pause(self, name):
+        print('Pausing machine "%s"' % name)
         try:
-            capi.fabric.api.execute(setupmodule.setupNetwork, ifaces={'eth0': (mgmtip, '255.255.255.0', None), 'eth1': (public_ip, '255.255.255.0', '10.0.0.1')})
+            self.LibvirtUtil.suspend(name)
+            print('Done')
         except:
-            if not j.sal.nettools.waitConnectionTest(mgmtip, 22, 10):
-                raise RuntimeError('Could not change machine ip address')
-        finally:
-            capi.fabric.network.disconnect_all()
+            pass
 
-    def networkSetPrivateVXLan(self, name, vxlanid, ipaddresses):
-        #not to do now, phase 2
-        raise RuntimeError("not implemented")
+    def resume(self, name):
+        print('Resuming machine "%s"' % name)
+        try:
+            self.LibvirtUtil.resume(name)
+            print('Done')
+        except:
+            pass
+
+
 
     def snapshot(self, name, snapshotname, disktype='all', snapshottype='external'):
         """
@@ -366,11 +281,12 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
         print('Creating snapshot %s for machine %s' % (snapshotname, name))
         machine_hrd = self.getConfig(name)
         try:
-            self.LibvirtUtil.snapshot(machine_hrd.get('id'), snapshotname, snapshottype=snapshottype)
+            self.LibvirtUtil.snapshot(machine_hrd.get('name'), snapshotname, snapshottype=snapshottype)
             print('Done')
         except:
             pass
 
+    # def deleteSnapsho is not working properly .. has to do with libvirtutil itself .. todo
     def deleteSnapshot(self, name, snapshotname):
         '''
         deletes a vmachine snapshot
@@ -399,7 +315,9 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
             print(('Location "%s" does not exist, it will be created' % location))
             j.sal.fs.createDir(location)
         print(('Device %s will be used, freeing up first...' % dev))
-        j.sal.process.execute('modprobe nbd max_part=8')
+        exitcode, modules = j.sal.process.execute('lsmod')
+        if 'nbd' not in modules:
+            j.sal.process.execute('modprobe nbd max_part=8')
         self._cleanNbdMount(location, dev)
         qcow2_images = j.sal.fs.listFilesInDir(j.sal.fs.joinPaths(self.vmpath, name), filter='*.qcow2')
         snapshot_path = None
@@ -427,57 +345,5 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
         print(('Disconnecting dev "%s"' % dev))
         j.sal.process.execute('qemu-nbd -d %s' % dev)
 
-    def _getFabricModule(self, name):
-        machine_hrd = self.getConfig(name)
-        setipmodulename = machine_hrd.get('fabric.module')
-        setupmodulepath = j.sal.fs.joinPaths(self.imagepath, machine_hrd.get('image'), 'fabric', '%s.py' % setipmodulename)
-        return imp.load_source(setipmodulename, setupmodulepath)
 
-    def pushSSHKey(self, name):
-        print('Pushing SSH key to the guest...')
-        privkeyloc="/root/.ssh/id_dsa"
-        keyloc=privkeyloc + ".pub"
-        if not j.sal.fs.exists(path=keyloc):
-            j.sal.process.executeWithoutPipe("ssh-keygen -t dsa -f %s -N ''" % privkeyloc)
-            if not j.sal.fs.exists(path=keyloc):
-                raise RuntimeError("cannot find path for key %s, was keygen well executed"%keyloc)
-        key=j.sal.fs.fileGetContents(keyloc)
-        # j.sal.fs.writeFile(filename=path,contents="%s\n"%content)
-        # path=j.sal.fs.joinPaths(self._get_rootpath(name),"root",".ssh","known_hosts")
-        # j.sal.fs.writeFile(filename=path,contents="")
-        c=j.remote.cuisine.api
-        config = self.getConfig(name)
-        c.fabric.api.env['password'] = config.get('bootstrap.passwd')
-        c.fabric.api.env['connection_attempts'] = 5
-        c.fabric.state.output["running"]=False
-        c.fabric.state.output["stdout"]=False
-        c.connect(config.get('bootstrap.ip'), config.get('bootstrap.login'))
 
-        setupmodule = self._getFabricModule(name)
-        if hasattr(setupmodule, 'pushSshKey'):
-            c.fabric.api.execute(setupmodule.pushSshKey, sshkey=key)
-        else:
-            c.ssh_authorize("root", key)
-
-        c.fabric.state.output["running"]=True
-        c.fabric.state.output["stdout"]=True
-        return key
-
-    def _getSshConnection(self, name):
-        capi = j.remote.cuisine.api
-        capi.connect(self.getIp(name))
-        return capi
-
-    def execute(self, name, cmd, sudo=False):
-        rapi = self._getSshConnection(name)
-        machine_hrd = self.getConfig(name)
-        if machine_hrd:
-            shell = machine_hrd.get('shell', '/bin/bash -l -c')
-            user = machine_hrd.get('bootstrap.login', 'root')
-            with rapi.fabric.api.settings(shell=shell, user=user):
-                if not sudo:
-                    return rapi.run(cmd, shell=shell)
-                else:
-                    return rapi.sudo(cmd, shell=shell)
-        else:
-            raise RuntimeError('Machine "%s" does not exist' % name)

@@ -292,8 +292,7 @@ class Service(object):
                     self.path = path
                     hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
                     self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
-                    if self._parent is not None:
-                        self.consume(self._parent)
+                    self.consume(self._parent)
 
         self._init = True
 

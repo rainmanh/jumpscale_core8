@@ -349,12 +349,11 @@ class AtYourServiceFactory():
         step += 1
         self.findtodo()
 
-    @property
-    def todo(self):
+    def findtodo(self,category="deploy"):
         for service in self.services:
-            producersWaiting = service.getProducersWaitingApply(set())
+            producersWaiting = service.getProducersWaiting(category,set())
 
-            if len(producersWaiting)==0 and service.state.changed:
+            if len(producersWaiting)==0:
                 print("%s waiting for install" % service)
                 self.todo.append(service)
             # elif service in producersWaiting and len(producersWaiting)==1 and service.state.changed():

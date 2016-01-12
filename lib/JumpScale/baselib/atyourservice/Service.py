@@ -497,12 +497,13 @@ class Service(object):
                 producers = producer.getProducersRecursive(producers, callers=callers)
         return producers.symmetric_difference(callers)
 
-    def getProducersWaitingApply(self, producersChanged=set()):
+    def getProducersWaiting(self, category="deploy",producersChanged=set()):
         """
         return list of producers which are waiting to be deployed
         """
+        changed,changes=j.atyourservice.alog.getChangedAtYourservices(category=category)
         for producer in self.getProducersRecursive(set(), set()):
-                if producer.state.changed:
+                if producer in changed:
                     producersChanged.add(producer)
         return producersChanged
 

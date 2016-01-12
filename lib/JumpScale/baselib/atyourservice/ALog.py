@@ -106,6 +106,8 @@ class ALog():
 
         self.read()
 
+        self.changecache={}
+
     def getNewRun(self):
         self.currentRunId+=1
         self._append("R | %-3s | %-8s |%s"%(self.currentRunId,j.data.time.getTimeEpoch(),j.data.time.getLocalTimeHR()))
@@ -157,6 +159,9 @@ class ALog():
         changed is list of all changed aysi or ays 
 
         """
+        if category in self.changecache:
+            return self.changecache[category]
+
         changed=[]
         changes={}
         for path in self.getChangedFiles(category):
@@ -185,6 +190,8 @@ class ALog():
                     changes[basename].append(aysi)
                     if aysi not in changed:
                         changed.append(aysi)
+
+        self.changecache[category]=(changed,changes)
     
         return changed,changes
 

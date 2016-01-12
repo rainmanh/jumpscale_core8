@@ -214,8 +214,11 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
         print('Machine %s created successfully' % name)
 
         mgmt_ip = self._findFreeIP(name)
-        hrd = self.getConfig(name)
-        hrd.set('bootstrap.ip', mgmt_ip)
+        machine_hrd = self.getConfig(name)
+        machine_hrd.set('bootstrap.ip', mgmt_ip)
+        public_ip = self._findFreePubIP(name, True)
+        machine_hrd.set('pub.ip', public_ip)
+
         print('Machine IP address is: %s' % mgmt_ip)
         return mgmt_ip
 

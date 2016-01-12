@@ -18,7 +18,7 @@ import os
 
 # class AYSDB():
 #     """
-#     @todo 
+#     @todo
 #     """
 
 #     def __init__(self):
@@ -167,14 +167,14 @@ class AtYourServiceFactory():
             aysrepopath=j.dirs.amInAYSRepo()
             if aysrepopath!=None:
                 # load local templates
-                path=j.sal.fs.joinPaths(aysrepopath,"%s/servicetemplates/"%aysrepopath)                
+                path=j.sal.fs.joinPaths(aysrepopath,"%s/servicetemplates/"%aysrepopath)
                 load("ays",path,self._templates)
 
 
             for domain, domainpath in self.domains:
                 # print "load template domain:%s"%domainpath
                 load(domain, domainpath,self._templates)
-        
+
         return self._templates
 
     @property
@@ -389,7 +389,10 @@ class AtYourServiceFactory():
 
         if first:
             if len(res) == 0:
-                j.events.inputerror_critical("cannot find service template %s|%s (%s)" % (domain, name, version), "ays.findTemplates")
+                if die:
+                    j.events.inputerror_critical("cannot find service template %s|%s (%s)" % (domain, name, version), "ays.findTemplates")
+                else:
+                    return res
             return res[0]
         return res
 
@@ -471,22 +474,19 @@ class AtYourServiceFactory():
                 self.services.remove(service)
             j.sal.fs.removeDirTree(service.path)
 
-    def getTemplate(self,  name="", version="",domain="", first=True, die=True):
-        if first:
-            return self.findTemplates(domain=domain, name=name, version=version, first=first)
-        else:
-            res = self.findTemplates(domain=domain, name=name, version=version, first=first)
-            if len(res) > 1:
-                if die:
-                    j.events.inputerror_critical("Cannot get ays template '%s|%s (%s)', found more than 1" % (domain, name, version), "ays.gettemplate")
-                else:
-                    return
-            if len(res) == 0:
-                if die:
-                    j.events.inputerror_critical("Cannot get ays template '%s|%s (%s)', did not find" % (domain, name, version), "ays.gettemplate")
-                else:
-                    return
-            return res[0]
+    def getTemplate(self,  name="", version="", domain="", die=True):
+        res = self.findTemplates(domain=domain, name=name, version=version, first=False, die=die)
+        if len(res) > 1:
+            if die:
+                j.events.inputerror_critical("Cannot get ays template '%s|%s (%s)', found more than 1" % (domain, name, version), "ays.gettemplate")
+            else:
+                return None
+        if len(res) == 0:
+            if die:
+                j.events.inputerror_critical("Cannot get ays template '%s|%s (%s)', did not find" % (domain, name, version), "ays.gettemplate")
+            else:
+                return None
+        return res[0]
 
     def getRecipe(self, name="",version="", domain=""):
         template = self.getTemplate(domain=domain,name=name, version=version)

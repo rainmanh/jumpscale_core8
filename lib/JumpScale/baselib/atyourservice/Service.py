@@ -51,7 +51,7 @@ class Service(object):
         @param consume is in format $role!$instance,$role2!$instance2
         """
         self.originator = originator
-                        
+
         if path!="" and j.do.exists(path):
             self.role,self.instance=j.sal.fs.getBaseName(path).split("!")
             self._name=None
@@ -204,7 +204,7 @@ class Service(object):
     def actions_mgmt(self):
         if self._actions_mgmt is None:
             if j.sal.fs.exists(path=self.recipe.path_actions_mgmt):
-                self._actions_mgmt = self._loadActions(self.recipe.path_actions_mgmt,"mgmt")                
+                self._actions_mgmt = self._loadActions(self.recipe.path_actions_mgmt,"mgmt")
             else:
                 self._actions_mgmt = j.atyourservice.getActionsBaseClassMgmt()()
 
@@ -238,7 +238,7 @@ class Service(object):
         #is only there temporary don't want to keep it there
         j.do.delete(path2)
         j.do.delete(j.do.joinPaths(self.path,"__pycache__"))
-        return mod.Actions()        
+        return mod.Actions()
 
     @property
     def producers(self):
@@ -275,7 +275,7 @@ class Service(object):
 
     def init(self):
         if self._init is False:
-            print ("init:%s"%self)
+            print("init:%s" % self)
             j.do.createDir(self.path)
             self.actions_mgmt.input(self)  #we now init the full service object and can be fully manipulated there even changing the hrd
             hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
@@ -285,13 +285,16 @@ class Service(object):
             self.hrd.set("service.domain",self.domain)
             self.actions_mgmt.hrd(self)
 
-            if self._parent!=None:
-                path=j.sal.fs.joinPaths(self.parent.path,"%s!%s"%(self.role,self.instance))
-                if self.path!=path:
-                    j.sal.fs.moveDir(self.path,path)
-                    self.path=path
+            if self._parent is not None:
+                path = j.sal.fs.joinPaths(self.parent.path, "%s!%s" % (self.role, self.instance))
+                if self.path != path:
+                    j.sal.fs.moveDir(self.path, path)
+                    self.path = path
+                    hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
+                    self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
+                    if self._parent is not None:
+                        self.consume(self._parent)
 
-            
         self._init = True
 
     # def _apply(self):
@@ -414,11 +417,11 @@ class Service(object):
         # self._hrd=hrd
 
         # if self.state.changed:
-        #     self.state.saveState()        
+        #     self.state.saveState()
 
     def consume(self, input):
         """
-        @input is comma separate list of ayskeys or a ays object
+        @input is comma separate list of ayskeys or a Service object or list of Service object
 
         ayskeys in format $domain|$name:$instance@role ($version)
 
@@ -435,45 +438,41 @@ class Service(object):
         emsg = "consume format is: ayskey,ayskey"
         print("consume from %s:%s" % (self, input))
         if input is not None and input is not '':
+            toConsume = set()
+            if j.data.types.string.check(input):
+                entities = input.split(",")
+                for entry in entities:
+                    print("get service for consumption:%s" % entry.strip())
+                    service = j.atyourservice.getServiceFromKey(entry.strip())
+                    toConsume.add(service)
 
-            # if hasattr(input, "name"):
-            if isinstance(input, Service):
-                # is a service object
-                service = input
+            elif j.data.types.list.check(input):
+                for service in input:
+                    toConsume.add(service)
+
+            elif isinstance(input, Service):
+                toConsume.add(input)
+            else:
+                j.events.inputerror_critical("Type of input to consume not valid. Only support list, string or Service object", category='AYS.consume', msgpub='Type of input to consume not valid. Only support list, string or Service object')
+
+            for service in toConsume:
                 if service.role not in self._producers:
                     self._producers[service.role] = [service]
                 else:
                     prodSet = set(self._producers[service.role])
                     prodSet.add(service)
                     self._producers[service.role] = list(prodSet)
-            elif j.data.types.list.check(input):
-                for serv in input:
-                    self.consume(serv)
-            else:
-                entities = input.split(",")
-                for entry in entities:
-                    print("get service for consumption:%s" % entry.strip())
-                    service = j.atyourservice.getServiceFromKey(entry.strip())
-                    if service.role not in self._producers:
-                        self._producers[service.role] =  [service]
-                    else:
-                        prodSet = set(self._producers[service.role])
-                        prodSet.add(service)
-                        self._producers[service.role] = list(prodSet)
 
             for key, services in self._producers.items():
-                producers = []
+                producers = set()
                 for service in services:
-                    key0 = j.atyourservice.getKey(service)
-                    if key0 not in producers:
-                        producers.append(key0)
+                    key = j.atyourservice.getKey(service)
+                    producers.add(key)
+                self.hrd.set("producer.%s" % key, list(producers))
 
-            # if self._hrd is not None:
-            self.hrd.set("producer.%s" % key, producers)
-
-        #walk over the producers
-        for producer in services:
-            self.actions_mgmt.consume(self, producer)
+            # walk over the producers
+            for producer in toConsume:
+                self.actions_mgmt.consume(self, producer)
 
         print("consumption done")
 

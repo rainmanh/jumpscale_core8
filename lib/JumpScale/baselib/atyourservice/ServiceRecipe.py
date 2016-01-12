@@ -63,7 +63,7 @@ class ServiceRecipe(ServiceTemplate):
         """
         if self._state is None:
             self._state=None
-        return self._state        
+        return self._state
 
     def newInstance(self, instance="main", args={}, path='', parent=None, consume="",originator=None):
         """
@@ -115,13 +115,7 @@ class ServiceRecipe(ServiceTemplate):
                 j.atyourservice.services.append(service)
 
             service.init()
-
-            if consume != "":
-                if j.data.types.list.check(consume):
-                    for serv in consume:
-                        service.consume(serv)
-                else:
-                    service.consume(consume)
+            service.consume(consume)
 
         return service
 

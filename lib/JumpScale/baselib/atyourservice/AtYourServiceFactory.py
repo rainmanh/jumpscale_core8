@@ -78,26 +78,26 @@ class AtYourServiceFactory():
         return self._runcategory
 
     @runcategory.setter
-    def runcategory(self,val): 
+    def runcategory(self,val):
         if val!=self._runcategory:
             self.reset()
             self._runcategory=val
 
     @property
     def alog(self):
-        if self._alog==None: 
+        if self._alog==None:
             self._alog=ALog(self.runcategory)
             self._alog.getNewRun()
         return self._alog
 
     @property
-    def basepath(self): 
+    def basepath(self):
         if self._basepath==None:
             self.basepath=j.sal.fs.getcwd()
         return self._basepath
 
     @basepath.setter
-    def basepath(self,val): 
+    def basepath(self,val):
         self.reset()
 
         baseDir=val
@@ -112,16 +112,16 @@ class AtYourServiceFactory():
         self._basepath=baseDir
         for item in ["blueprints","recipes","services","servicetemplates"]:
             #make sure basic dirs exist
-            j.sal.fs.createDir(j.sal.fs.joinPaths(self._basepath,item))        
+            j.sal.fs.createDir(j.sal.fs.joinPaths(self._basepath,item))
 
     @property
-    def git(self): 
+    def git(self):
         if self._git==None:
             self._git=j.clients.git.get(basedir=self.basepath)
         return self._git
 
     @property
-    def debug(self): 
+    def debug(self):
         if self._debug==None:
             self._debug=AtYourServiceDebugFactory()
         return self._debug
@@ -191,7 +191,7 @@ class AtYourServiceFactory():
                     recipepath=j.do.getDirName(item)
                     self._recipes.append(ServiceRecipe(recipepath))
         return self._recipes
-        
+
     @property
     def services(self):
         self._doinit()
@@ -200,7 +200,7 @@ class AtYourServiceFactory():
                 filter="instance.hrd", case_sensitivity='os', followSymlinks=True, listSymlinks=False):
                 service_path = j.sal.fs.getDirName(hrd_path)
                 service = Service(path=service_path, args=None)
-                self._services.append(service)            
+                self._services.append(service)
 
         return self._services
 
@@ -211,7 +211,7 @@ class AtYourServiceFactory():
         if self._blueprints==[]:
             items=j.do.listFilesInDir(self.basepath+"/blueprints")
             items.sort()
-            for path in items:            
+            for path in items:
                 self._blueprints.append(Blueprint(path))
         return self._blueprints
 
@@ -267,8 +267,8 @@ class AtYourServiceFactory():
         print("init runid:%s"%self.alog.currentRunId)
         commitc=""
         for bp in self.blueprints:
-            bp.execute()       
-            commitc+="\nBlueprint:%s\n"%bp.path     
+            bp.execute()
+            commitc+="\nBlueprint:%s\n"%bp.path
             commitc+=bp.content+"\n"
 
         repo=self.git.commit(message='ays blueprint:\n%s'%commitc, addremove=True)
@@ -280,7 +280,7 @@ class AtYourServiceFactory():
 
         # lastref=self.git.getCommitRefs()[-1][1]
         # return self.git.getChangedFiles(lastref)
-        
+
 
     def updateTemplatesRepos(self, repos=[]):
         """
@@ -312,7 +312,7 @@ class AtYourServiceFactory():
         print ("DEBUG NOW apply")
         embed()
         p
-        
+
         self.check()
         if self.todo == []:
             self.findtodo()
@@ -389,10 +389,7 @@ class AtYourServiceFactory():
 
         if first:
             if len(res) == 0:
-                if die:
-                    j.events.inputerror_critical("cannot find service template %s|%s (%s)" % (domain, name, version), "ays.findTemplates")
-                else:
-                    return res
+                j.events.inputerror_critical("cannot find service template %s|%s (%s)" % (domain, name, version), "ays.findTemplates")
             return res[0]
         return res
 
@@ -474,19 +471,22 @@ class AtYourServiceFactory():
                 self.services.remove(service)
             j.sal.fs.removeDirTree(service.path)
 
-    def getTemplate(self,  name="", version="", domain="", die=True):
-        res = self.findTemplates(domain=domain, name=name, version=version, first=False, die=die)
-        if len(res) > 1:
-            if die:
-                j.events.inputerror_critical("Cannot get ays template '%s|%s (%s)', found more than 1" % (domain, name, version), "ays.gettemplate")
-            else:
-                return None
-        if len(res) == 0:
-            if die:
-                j.events.inputerror_critical("Cannot get ays template '%s|%s (%s)', did not find" % (domain, name, version), "ays.gettemplate")
-            else:
-                return None
-        return res[0]
+    def getTemplate(self,  name="", version="",domain="", first=True, die=True):
+        if first:
+            return self.findTemplates(domain=domain, name=name, version=version, first=first)
+        else:
+            res = self.findTemplates(domain=domain, name=name, version=version, first=first)
+            if len(res) > 1:
+                if die:
+                    j.events.inputerror_critical("Cannot get ays template '%s|%s (%s)', found more than 1" % (domain, name, version), "ays.gettemplate")
+                else:
+                    return
+            if len(res) == 0:
+                if die:
+                    j.events.inputerror_critical("Cannot get ays template '%s|%s (%s)', did not find" % (domain, name, version), "ays.gettemplate")
+                else:
+                    return
+            return res[0]
 
     def getRecipe(self, name="",version="", domain=""):
         template = self.getTemplate(domain=domain,name=name, version=version)
@@ -768,4 +768,4 @@ class AtYourServiceFactory():
     #     dest = j.do.pullGitRepo(url=url, login=login, passwd=passwd,
     #                             depth=depth, branch=branch, revision=revision, dest=dest)
     #     self._reposDone[url] = dest
-    #     return dest        
+    #     return dest

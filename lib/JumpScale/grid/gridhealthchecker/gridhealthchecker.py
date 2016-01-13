@@ -139,6 +139,7 @@ class GridHealthChecker(object):
         if activecheck and nodes:
             self.pingAllNodesSync(clean=True)
             self._checkRunningNIDsFromPing()
+
     def getErrorsAndCheckTime(self, data):
         errors = dict()
         oldestdate = None
@@ -489,7 +490,7 @@ class GridHealthChecker(object):
         if clean:
             self._clean()
         if self._nids==[]:
-            self.getNodes()
+            self.getNodes(activecheck=False)
         print(("PROCESS MANAGER PING TO ALL (%s) NODES..." % len(self._nids)))
         self._parallelize(self.ping, False, 'processmanagerping')
         return self._status, self._errors

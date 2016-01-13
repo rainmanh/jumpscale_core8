@@ -98,7 +98,7 @@ class ModelBase(object):
             key = self._getKey(self.guid)
             j.core.db.delete(key)
         else:
-            return super(ModelBase, self).delete()
+            return Document.delete(self)
 
     @classmethod
     def exists(cls, guid):

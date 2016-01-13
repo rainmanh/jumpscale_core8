@@ -30,7 +30,7 @@ class GridHealthChecker(object):
         self._errors.setdefault(nid, {})
         self._errors[nid].setdefault(category, list())
         if isinstance(result, str):
-            self._errors[nid][category].append({'errormessage': result})
+            self._errors[nid][category].append({'message': result})
         else:
             self._errors[nid][category].append(result)
 
@@ -207,7 +207,7 @@ class GridHealthChecker(object):
             for category, errors in list(checks.items()):
                 for error in errors:
                     defaultvalue = 'processmanager is unreachable by ping' if category == 'processmanager' else None
-                    errormessage = error.get('errormessage', defaultvalue)
+                    errormessage = error.get('message', defaultvalue)
                     if errormessage is None:
                         continue
                     for message in errormessage.split(','):
@@ -270,7 +270,7 @@ class GridHealthChecker(object):
             dbhealth = dbhealth['result']
         if dbhealth == None:
             self._addError(nid, {'state': 'UNKNOWN'}, 'databases')
-            errormessage = 'Database statuses UNKNOWN'
+            errormessage = 'Database status UNKNOWN'
         else:
             for dbname, status in list(dbhealth.items()):
                 if status:

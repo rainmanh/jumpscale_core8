@@ -273,7 +273,6 @@ class Heartbeat(ModelBase, Document):
 
 
 class Jumpscript(ModelBase, Document):
-    id = IntField()
     name = StringField(default='')
     descr = StringField(default='')
     category = StringField(default='')

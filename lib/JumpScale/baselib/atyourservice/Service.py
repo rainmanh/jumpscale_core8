@@ -476,18 +476,6 @@ class Service(object):
 
         print("consumption done")
 
-    def check(self):
-        """
-        check if template file changed with local
-        """
-        self._apply()
-        if self.state.changed:
-            if self.state.hrd.getBool("hrd.instance.changed"):
-                print("%s hrd.instance.changed" % self)
-            if self.state.hrd.getBool("hrd.template.changed"):
-                print("%s hrd.template.changed" % self)
-            if self.state.hrd.getBool("actions.changed"):
-                print("%s actions.changed" % self)
 
     def getProducersRecursive(self, producers=set(), callers=set()):
         for role, producers2 in self.producers.items():
@@ -496,15 +484,23 @@ class Service(object):
                 producers = producer.getProducersRecursive(producers, callers=callers)
         return producers.symmetric_difference(callers)
 
-    def getProducersWaiting(self, category="deploy",producersChanged=set()):
+    def getProducersWaiting(self, action="install",producersChanged=set()):
         """
         return list of producers which are waiting to be deployed
         """
-        changed,changes=j.atyourservice.alog.getChangedAtYourservices(category=category)
+        changed,changes=j.atyourservice.alog.getChangedAtYourservices(action=action)
+        changed=[item for item in changed if item.getState(action)!="OK"]
         for producer in self.getProducersRecursive(set(), set()):
                 if producer in changed:
                     producersChanged.add(producer)
         return producersChanged
+
+    def getState(self,action):
+        key="%s!%s"%(self.role,self.instance)
+        if key not in j.atyourservice.alog.latest:
+            return "INIT"
+        return j.atyourservice.alog.latest[key][action].state
+
 
     def getNode(self):
         for parent in self.parents:

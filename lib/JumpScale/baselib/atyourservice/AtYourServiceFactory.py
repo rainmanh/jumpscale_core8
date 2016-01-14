@@ -87,7 +87,7 @@ class AtYourServiceFactory():
     def alog(self):
         if self._alog==None:
             self._alog=ALog(self.runcategory)
-            self._alog.getNewRun()
+            # self._alog.getNewRun()
         return self._alog
 
     @property
@@ -306,7 +306,7 @@ class AtYourServiceFactory():
     def getActionsBaseClassMgmt(self):
         return ActionsBaseMgmt
 
-    def apply(self,category="deploy",newrun=True):
+    def apply(self,action="install"):
 
         from IPython import embed
         print ("DEBUG NOW apply")
@@ -315,7 +315,7 @@ class AtYourServiceFactory():
 
         self.check()
         if self.todo == []:
-            self.findtodo()
+            self.findtodo(action=action)
         step = 1
         while self.todo != []:
             print("execute state changes, nr services to process: %s in step:%s" % (len(self.todo), step))
@@ -349,9 +349,9 @@ class AtYourServiceFactory():
         step += 1
         self.findtodo()
 
-    def findtodo(self,category="deploy"):
+    def findTodo(self,action="install"):
         for service in self.services:
-            producersWaiting = service.getProducersWaiting(category,set())
+            producersWaiting = service.getProducersWaiting(action,set())
 
             if len(producersWaiting)==0:
                 print("%s waiting for install" % service)

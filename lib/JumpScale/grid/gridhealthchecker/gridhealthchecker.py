@@ -176,77 +176,10 @@ class GridHealthChecker(object):
     def fetchMonitoringOnAllNodes(self):
         self._clean()
         self.getNodes()
+        return self._status
         for nid in self._nids:
-            self.fetchMonitoringOnNode(nid, clean=False)
-        return self._status
-
-    def fetchMonitoringOnNode(self, nid, clean=True):
-        results = list()
-        now = time.time()
-        if clean:
-            self._clean()
-        self.checkHeartbeat(nid=nid, clean=False)
-        jumpscripts = self.getHealthCheckJumpScripts()
-
-        def getJumpScript(organization, name):
-            for js in jumpscripts:
-                if js.name == name and js.organization == organization:
-                    return js
-
-        domains = list({js.organization for js in jumpscripts})
-        names = list({js.name for js in jumpscripts})
-        query = [{'$match': {'nid': nid, 'cmd': {'$in': names}, 'category': {'$in': domains}}},
-                 {'$sort': {'timeStop': 1}},
-                 {'$group': {'_id': '$cmd', 'result': {'$last': '$result'},
-                                            'jobstatus': {'$last': '$state'},
-                                            'guid': {'$last': '$guid'},
-                                            'category': {'$last': '$category'},
-                                            'lastchecked': {'$last': '$timeStop'},
-                                            'started': {'$last': '$timeStart'}}}]
-
-        jobsresults = self._jobcl.aggregate(query)
-        if isinstance(jobsresults, list):
-            for jobresult in jobsresults:
-                jumpscript = getJumpScript(jobresult['category'], jobresult['_id'])
-                jobstate = jobresult.get('jobstatus', 'ERROR')
-                lastchecked = jobresult.get('lastchecked', 0)
-                lastchecked = int(lastchecked) if lastchecked and int(lastchecked) else jobresult.get('started', 0)
-                result = json.loads(jobresult.get('result', '[{"message":""}]')) or {}
-                interval = 0
-                if jumpscript.period:
-                    if isinstance(jumpscript.period, int):
-                        interval = jumpscript.period
-                    else:
-                        cron = crontab.CronTab(jumpscript.period)
-                        interval = cron.next() - cron.previous()
-                if jobstate == 'OK':
-                    for data in result:
-                        state = data.get('state', '')
-                        if jumpscript.period:
-                            if isinstance(jumpscript.period, int):
-                                interval = jumpscript.period
-                            else:
-                                cron = crontab.CronTab(jumpscript.period)
-                                interval = cron.next() - cron.previous()
-                            if interval and now - lastchecked > (interval * 1.1):
-                                if state != 'ERROR':
-                                    state = 'EXPIRED'
-                        resdata = {'message': data.get('message', ''),
-                                   'state': state,
-                                   'interval': interval,
-                                   'guid': jobresult['guid'],
-                                   'lastchecked': lastchecked}
-                        results.append((nid, resdata, data.get('category', jobresult.get('_id'))))
-                    if not result:
-                        results.append((nid, {'message': '', 'interval': interval, 'state': 'UNKNOWN', 'lastchecked': lastchecked}, jobresult.get('_id')))
-                else:
-                    results.append((nid, {'message': 'Error in Monitor', 'interval': interval, 'state': 'UNKNOWN', 'lastchecked': lastchecked, 'guid': jobresult['guid']}, jobresult.get('_id')))
-
-        self._returnResults(results)
-
-        if self._tostdout:
-            self._printResults()
-        return self._status
+            self.runAllOnNode(nid)
+        return self._status, self._errors
 
 
     def runAllOnNode(self, nid):
@@ -286,6 +219,10 @@ class GridHealthChecker(object):
                         print((form % nodedata))
 
 
+    def getHealthCheckJumpScripts(self):
+        return [j.data.models.system.Jumpscript.get(js.guid) for js in j.data.models.system.Jumpscript.find({'category':'monitor.healthcheck'})]
+
+
     def checkElasticSearch(self, clean=True):
         return True
         if self._nids==[]:
@@ -301,7 +238,7 @@ class GridHealthChecker(object):
             eshealth = None
 
             if self._client:
-                eshealth = self._client.executeJumpscript( 'info_gather_elasticsearch', nid=self.masternid, timeout=5)
+                eshealth = self._client.executeJumpscript('info_gather_elasticsearch', nid=self.masternid, timeout=5)
             if eshealth['state'] == 'TIMEOUT':
                 self._addError(self.masternid, {'state': 'TIMEOUT'}, 'elasticsearch')
                 errormessage = 'ElasticSearch status TIMEOUT'
@@ -390,7 +327,7 @@ class GridHealthChecker(object):
         result = None
 
         if self._client:
-            result = self._client.executeJumpscript( 'healthcheck_redis', nid=nid, gid=self._nodegids[nid], timeout=5)
+            result = self._client.executeJumpscript('healthcheck_redis', nid=nid, gid=self._nodegids[nid], timeout=5)
             redis = result['result']
         if result['state'] != 'OK' or not redis:
             errors.append((nid, {'state': 'UNKNOWN'}, 'redis'))
@@ -488,7 +425,7 @@ class GridHealthChecker(object):
             if nid not in self._nidsNonActive:
                 if nid in nid2hb:
                     lastchecked = nid2hb[nid]
-                    if not j.base.time.getEpochAgo('-2m') < lastchecked:
+                    if not j.data.time.getEpochAgo('-2m') < lastchecked:
                         state = 'ERROR'
                     else:
                         state = 'OK'
@@ -583,7 +520,7 @@ class GridHealthChecker(object):
         result = None
 
         if self._client:
-            result = self._client.executeJumpscript( 'system_echo_sync', args={"msg":"ping"}, nid=nid, gid=self._nodegids[nid], timeout=5)
+            result = self._client.executeJumpscript('system_echo_sync', args={"msg":"ping"}, nid=nid, gid=self._nodegids[nid], timeout=5)
         if not result["result"]=="ping":
             errors.append((nid, {'ping': 'down'}, 'processmanagerping'))
             errors.append((nid, 'cannot ping processmanager', 'processmanagerping'))
@@ -598,7 +535,7 @@ class GridHealthChecker(object):
         result = None
 
         if self._client:
-            result = self._client.executeJumpscript( 'system_echo_async', args={"msg":"ping"}, nid=nid, gid=self._nodegids[nid], timeout=5)
+            result = self._client.executeJumpscript('system_echo_async', args={"msg":"ping"}, nid=nid, gid=self._nodegids[nid], timeout=5)
         if not result["result"]=="ping":
             errors.append((nid, {'ping': 'down'}, 'workerping'))
             errors.append((nid, 'cannot ping workers', 'workerping'))
@@ -614,7 +551,7 @@ class GridHealthChecker(object):
         result = None
 
         if self._client:
-            result = self._client.executeJumpscript( 'healthcheck_disks', nid=nid, gid=self._nodegids[nid], timeout=30)
+            result = self._client.executeJumpscript('healthcheck_disks', nid=nid, gid=self._nodegids[nid], timeout=30)
             disks = result['result']
         if result['state'] != 'OK':
             errors.append((nid, {'state': 'UNKNOWN'}, 'disks'))

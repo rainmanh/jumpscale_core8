@@ -20,7 +20,7 @@ class Populate():
                     if default:
                         continue
                     if attr.__class__ == mongoengine.fields.StringField:
-                        setattr(new, attrname, '%s_%s' % (mem.__class__, attrname))
+                        setattr(new, attrname, '%s_%s' % (name, attrname))
                     elif attr.__class__ == mongoengine.fields.IntField:
                         setattr(new, attrname, 2)
                     elif attr.__class__ == mongoengine.fields.BooleanField:

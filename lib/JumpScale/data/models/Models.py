@@ -7,7 +7,7 @@ import uuid
 DB = 'jumpscale_system'
 
 
-class ModelBase(object):
+class ModelBase():
     DoesNotExist = DoesNotExist
 
     guid = StringField(default=lambda: str(uuid.uuid4()))
@@ -77,7 +77,6 @@ class ModelBase(object):
 
     def validate(self, clean):
         return Document.validate(self, clean)
-
 
     def _datatomodel(self, data):
         for key, value in data.items():
@@ -323,7 +322,7 @@ class Nic(ModelBase, Document):
 class Node(ModelBase, Document):
     name = StringField(default='')
     roles = ListField(StringField())
-    netaddr = StringField(default='')
+    netaddr = DictField(default={})
     machineguid = StringField(default='')
     ipaddr = ListField(StringField())
     active = BooleanField()

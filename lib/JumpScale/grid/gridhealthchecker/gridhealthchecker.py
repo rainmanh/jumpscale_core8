@@ -1,5 +1,7 @@
 from JumpScale import j
 import gevent
+import time
+import crontab
 
 class GridHealthChecker(object):
 
@@ -177,6 +179,75 @@ class GridHealthChecker(object):
         for nid in self._nids:
             self.fetchMonitoringOnNode(nid, clean=False)
         return self._status
+
+    def fetchMonitoringOnNode(self, nid, clean=True):
+        results = list()
+        now = time.time()
+        if clean:
+            self._clean()
+        self.checkHeartbeat(nid=nid, clean=False)
+        jumpscripts = self.getHealthCheckJumpScripts()
+
+        def getJumpScript(organization, name):
+            for js in jumpscripts:
+                if js.name == name and js.organization == organization:
+                    return js
+
+        domains = list({js.organization for js in jumpscripts})
+        names = list({js.name for js in jumpscripts})
+        query = [{'$match': {'nid': nid, 'cmd': {'$in': names}, 'category': {'$in': domains}}},
+                 {'$sort': {'timeStop': 1}},
+                 {'$group': {'_id': '$cmd', 'result': {'$last': '$result'},
+                                            'jobstatus': {'$last': '$state'},
+                                            'guid': {'$last': '$guid'},
+                                            'category': {'$last': '$category'},
+                                            'lastchecked': {'$last': '$timeStop'},
+                                            'started': {'$last': '$timeStart'}}}]
+
+        jobsresults = self._jobcl.aggregate(query)
+        if isinstance(jobsresults, list):
+            for jobresult in jobsresults:
+                jumpscript = getJumpScript(jobresult['category'], jobresult['_id'])
+                jobstate = jobresult.get('jobstatus', 'ERROR')
+                lastchecked = jobresult.get('lastchecked', 0)
+                lastchecked = int(lastchecked) if lastchecked and int(lastchecked) else jobresult.get('started', 0)
+                result = json.loads(jobresult.get('result', '[{"message":""}]')) or {}
+                interval = 0
+                if jumpscript.period:
+                    if isinstance(jumpscript.period, int):
+                        interval = jumpscript.period
+                    else:
+                        cron = crontab.CronTab(jumpscript.period)
+                        interval = cron.next() - cron.previous()
+                if jobstate == 'OK':
+                    for data in result:
+                        state = data.get('state', '')
+                        if jumpscript.period:
+                            if isinstance(jumpscript.period, int):
+                                interval = jumpscript.period
+                            else:
+                                cron = crontab.CronTab(jumpscript.period)
+                                interval = cron.next() - cron.previous()
+                            if interval and now - lastchecked > (interval * 1.1):
+                                if state != 'ERROR':
+                                    state = 'EXPIRED'
+                        resdata = {'message': data.get('message', ''),
+                                   'state': state,
+                                   'interval': interval,
+                                   'guid': jobresult['guid'],
+                                   'lastchecked': lastchecked}
+                        results.append((nid, resdata, data.get('category', jobresult.get('_id'))))
+                    if not result:
+                        results.append((nid, {'message': '', 'interval': interval, 'state': 'UNKNOWN', 'lastchecked': lastchecked}, jobresult.get('_id')))
+                else:
+                    results.append((nid, {'message': 'Error in Monitor', 'interval': interval, 'state': 'UNKNOWN', 'lastchecked': lastchecked, 'guid': jobresult['guid']}, jobresult.get('_id')))
+
+        self._returnResults(results)
+
+        if self._tostdout:
+            self._printResults()
+        return self._status
+
 
     def runAllOnNode(self, nid):
         self._clean()

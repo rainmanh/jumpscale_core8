@@ -78,7 +78,7 @@ class ALog():
 
     L stands for Log
 
-    G stands for GIT action with cat e.g. init, ...
+    G stands for GIT action with cat e.g. init, deploy, ...
 
     multiline messages are possible, they will just reuse their id
 
@@ -218,8 +218,9 @@ class ALog():
 
             if cat =="G":
                 gitcat,epoch,githash,remaining=[item.strip() for item in line1.split("|",3)]
-                if gitcat!="init":
-                    self.gitActionInitLast=self.gitActions["init"]
+                # if gitcat!="init":
+                #     if not gitcat in self.gitActionInitLast:
+                #     self.gitActionInitLast[gitcat]=self.gitActions["init"][1] #hash only
                 if gitcat=="init" and self.gitActionInitLast=="":
                     self.gitActionInitLast=githash
                 self.gitActions[gitcat]=(epoch,githash)

@@ -355,13 +355,14 @@ class AtYourServiceFactory():
 
             if len(producersWaiting)==0:
                 print("%s waiting for install" % service)
-                self.todo.append(service)
+                self._todo.append(service)
             # elif service in producersWaiting and len(producersWaiting)==1 and service.state.changed():
             # elif service.state.changed():
             #     print "%s waiting for install (mutual)" % service
             #     self.todo.append(service)
             elif j.application.debug:
                 print("%s no change in producers" % service)
+        return self._todo
 
     def checkRevisions(self):
         if len(self.services) == 0:

@@ -8,8 +8,8 @@ import sys
 from functools import wraps
 from Recurring import Recurring
 
-def log(msg, level=2):
-    j.logger.log(msg, level=level, category='AYS')
+# def log(msg, level=2):
+#     j.logger.log(msg, level=level, category='AYS')
 
 def loadmodule(name, path):
     parentname = ".".join(name.split(".")[:-1])
@@ -220,6 +220,9 @@ class Service(object):
 
         return self._actions_node
 
+    def getALogAction(self,actionName="init"):
+        return j.atyourservice.alog.setNewAction(self.role,self.instance,actionName)
+
     def _loadActions(self, path,ttype):
         if j.sal.fs.exists(path+'c'):
             j.sal.fs.remove(path+'c')
@@ -255,11 +258,6 @@ class Service(object):
 
         return self._producers
 
-    @property
-    def logPath(self):
-        if self._logPath is None:
-            self._logPath = j.sal.fs.joinPaths(self.path, "log.txt")
-        return self._logPath
 
     @property
     def executor(self):
@@ -275,149 +273,33 @@ class Service(object):
 
     def init(self):
         if self._init is False:
-            print("init:%s" % self)
-            j.do.createDir(self.path)
-            self.actions_mgmt.input(self)  #we now init the full service object and can be fully manipulated there even changing the hrd
-            hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
-            self._hrd=self.recipe.schema.hrdGet(hrd=self.hrd,args=self.args)
-            self.hrd.set("service.name",self.name)
-            self.hrd.set("service.version",self.version)
-            self.hrd.set("service.domain",self.domain)
-            self.actions_mgmt.hrd(self)
+            changed,changes=j.atyourservice.alog.getChangedAtYourservices("init")
+            if self in changed:
+                print ("INIT:%s"%self)
+                action=self.getALogAction("init")
+                j.do.createDir(self.path)
+                self.actions_mgmt.input(self)  #we now init the full service object and can be fully manipulated there even changing the hrd
+                hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
+                self._hrd=self.recipe.schema.hrdGet(hrd=self.hrd,args=self.args)
+                self.hrd.set("service.name",self.name)
+                self.hrd.set("service.version",self.version)
+                self.hrd.set("service.domain",self.domain)
+                self.actions_mgmt.hrd(self)
 
-            if self._parent is not None:
-                path = j.sal.fs.joinPaths(self.parent.path, "%s!%s" % (self.role, self.instance))
-                if self.path != path:
-                    j.sal.fs.moveDir(self.path, path)
-                    self.path = path
-                    hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
-                    self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
-                    if self._parent is not None:
-                        self.consume(self._parent)
+                if self._parent is not None:
+                    path = j.sal.fs.joinPaths(self.parent.path, "%s!%s" % (self.role, self.instance))
+                    if self.path != path:
+                        j.sal.fs.moveDir(self.path, path)
+                        self.path = path
+                        hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
+                        self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
+                        if self._parent is not None:
+                            self.consume(self._parent)
+
+                action.setOk()
 
         self._init = True
 
-    # def _apply(self):
-        # log("apply")
-        # j.do.createDir(self.path)
-
-        # make sure they are loaded (properties), otherwise paths will be wrong
-        # self.recipe.hrd #still required?
-
-        # source = self.recipe.path_hrd_template
-        # j.do.copyFile(source, "%s/template.hrd" % self.path)
-
-        # path_templatehrd = "%s/template.hrd" % self.path
-        # tmpl_hrd = j.data.hrd.get(path_templatehrd, prefixWithName=False)
-
-        # tmpl_hrd.set('domain', self.domain)
-        # tmpl_hrd.set('name', self.name)
-        # tmpl_hrd.set('version', self.version)
-        # tmpl_hrd.set('instance', self.instance)
-        # tmpl_hrd.process()  # force replacement of $() inside the file itself
-
-        # path_instancehrd_new="%s/instance.hrd" % self.path
-        # path_instancehrd_old="%s/instance_old.hrd" % self.path
-
-        # # print path_instancehrd_old
-        # if not j.sal.fs.exists(path=path_instancehrd_new):
-        #     path_instancehrd = "%s/instance_.hrd" % self.path
-        #     source = self.recipe.path_hrd_instance
-        #     j.do.copyFile(source, path_instancehrd)
-
-        #     hrd = j.data.hrd.get(path_instancehrd, prefixWithName=False)
-        #     args0 = {}
-        #     for key, item in self.recipe.hrd_instance.items.items():
-        #         if item.data.startswith("@ASK"):
-        #             args0[key] = item.data
-        #         else:
-        #             args0[key] = item.get()
-        #     args0.update(self.args)
-
-        #     # here the args can be manipulated
-        #     if self.actions_mgmt != None:
-        #         self.actions_mgmt.input(self, args0)
-        #     self._actions_mgmt = None  # force to reload later with new value of hrd
-
-        #     hrd.setArgs(args0)
-
-        #     for key,item in hrd.items.items():
-        #         if j.data.types.string.check(item.data) and item.data.find("@ASK") != -1:
-        #             item.get() #SHOULD DO THE ASK
-
-        #     # producers0={}
-        #     # for key, services in self._producers.items():#hrdnew.getDictFromPrefix("producer").iteritems():
-        #     # #     producers0[key]=[j.atyourservice.getServiceFromKey(item.strip()) for item in item.split(",")]
-
-        #     # # for role,services in producers0.iteritems():
-        #     #     producers=[]
-        #     #     for service in services:
-        #     #         key0=j.atyourservice.getKey(service)
-        #     #         if key0 not in producers:
-        #     #             producers.append(key0)
-        #     #     hrd.set("producer.%s"%key,producers)
-
-        #     if self.parent or self._parentkey != '':
-        #         hrd.set('parent', self._parentkey)
-
-        #     self._hrd = hrd
-
-        #     j.application.config.applyOnFile(path_instancehrd)
-        #     # hrd.applyOnFile(path_templatehrd)
-        #     # hrd.save()
-
-        #     j.sal.fs.moveFile(path_instancehrd,path_instancehrd_new)
-        #     path_instancehrd=path_instancehrd_new
-
-        #     hrd.path=path_instancehrd
-
-        #     # check if 1 of parents is of type node
-        #     # if self.parent and self.parent.role == "os":
-        #         # self.consume(self.parent)
-
-        # else:
-        #     hrd=j.data.hrd.get(path_instancehrd_new)
-        #     path_instancehrd=path_instancehrd_new
-
-        # hrd.applyOnFile(path_templatehrd)
-        # j.application.config.applyOnFile(path_templatehrd)
-        # tmpl_hrd = j.data.hrd.get(path_templatehrd, prefixWithName=False)
-
-        # actionPy = j.sal.fs.joinPaths(self.path, "actions_mgmt.py")
-        # if j.sal.fs.exists(path=actionPy):
-        #     hrd.applyOnFile(actionPy) #@todo somewhere hrd gets saved when doing apply (WHY???)
-        #     tmpl_hrd.applyOnFile(actionPy)
-        #     j.application.config.applyOnFile(actionPy)
-        # actionPy = j.sal.fs.joinPaths(self.path, "actions_node.py")
-        # if j.sal.fs.exists(path=actionPy):
-        #     hrd.applyOnFile(actionPy) #@todo somewhere hrd gets saved when doing apply (WHY???)
-        #     tmpl_hrd.applyOnFile(actionPy)
-        #     j.application.config.applyOnFile(actionPy)
-
-        # self._state=ServiceState(self)
-
-        # # not sure this code is this code is still relevent here, cause the _apply()
-        # # method is now only called once at service init.
-        # change=self.state.changed
-
-        # if change:
-        #     #found changes in hrd or one of the actionfiles
-        #     oldhrd_exists=j.sal.fs.exists(path=path_instancehrd_old)
-        #     if not oldhrd_exists:
-        #         j.do.writeFile(path_instancehrd_old,"")
-
-        #     hrdold=j.data.hrd.get(path_instancehrd_old)
-
-        #     self.state.commitHRDChange(hrdold,hrd)
-
-        #     # res=self.actions_mgmt.configure(self)
-        #     # if res==False:
-        #         # j.events.opserror_critical(msg="Could not configure %s (mgmt)" % self, category="ays.service.configure")
-
-        # self._hrd=hrd
-
-        # if self.state.changed:
-        #     self.state.saveState()
 
     def consume(self, input):
         """
@@ -436,13 +318,13 @@ class Service(object):
             return
 
         emsg = "consume format is: ayskey,ayskey"
-        print("consume from %s:%s" % (self, input))
+        self.log("consume from %s:%s" % (self, input))
         if input is not None and input is not '':
             toConsume = set()
             if j.data.types.string.check(input):
                 entities = input.split(",")
                 for entry in entities:
-                    print("get service for consumption:%s" % entry.strip())
+                    self.log("get service for consumption:%s" % entry.strip())
                     service = j.atyourservice.getServiceFromKey(entry.strip())
                     toConsume.add(service)
 
@@ -474,7 +356,7 @@ class Service(object):
             for producer in toConsume:
                 self.actions_mgmt.consume(self, producer)
 
-        print("consumption done")
+        self.log("consumption done")
 
 
     def getProducersRecursive(self, producers=set(), callers=set()):
@@ -514,52 +396,6 @@ class Service(object):
             return False
         return mynode.key == node.key
 
-    def isInstalled(self):
-        #@todo lets first debug like this and then later do the rest
-        #will be use the ServiceState (kds will do this, first everything else needs to work again)
-        return False
-
-    # def isLatest(self):
-    #     #@todo lets first debug like this and then later do the rest
-    #     return False
-
-    #     #@todo rework
-    #     from IPython import embed
-    #     print "DEBUG NOW isLatest"
-    #     embed()
-
-    #     if not self.isInstalled():
-    #         return False
-    #     checksum = self.hrd.get('service.installed.checksum')
-    #     checksumpath = j.sal.fs.joinPaths(self.path, "installed.version")
-    #     #@todo how can this ever be different, doesn't make sense to me? (despiegk)
-    #     installedchecksum = j.sal.fs.fileGetContents(checksumpath).strip()
-    #     if checksum != installedchecksum:
-    #         return False
-    #     for recipeitem in self.hrd.getListFromPrefix("git.export"):
-    #         if not recipeitem:
-    #             continue
-    #         branch = recipeitem.get('branch', 'master') or 'master'
-    #         recipeurl = recipeitem['url']
-    #         if recipeurl in self._reposDone:
-    #             continue
-
-    #         login = j.application.config.get("whoami.git.login").strip()
-    #         passwd = j.application.config.getStr("whoami.git.passwd").strip()
-    #         _, _, _, _, dest, url = j.do.getGitRepoArgs(
-    #             recipeurl, login=login, passwd=passwd)
-
-    #         current = j.sal.process.execute(
-    #             'cd %s; git rev-parse HEAD --branch %s' % (dest, branch))
-    #         current = current[1].split('--branch')[1].strip()
-    #         remote = j.sal.process.execute(
-    #             'git ls-remote %s refs/heads/%s' % (url, branch))
-    #         remote = remote[1].split()[0]
-
-    #         if current != remote:
-    #             return False
-    #         self._reposDone[recipeurl] = dest
-    #     return True
 
     def getTCPPorts(self, processes=None, *args, **kwargs):
         ports = set()
@@ -658,7 +494,7 @@ class Service(object):
             return
         hrd_root = "/etc/ays/local/"
         remotePath = j.sal.fs.joinPaths(hrd_root, j.sal.fs.getBaseName(self.path)).rstrip("/")+"/"
-        print("uploading %s '%s'->'%s'" % (self.key,self.path,remotePath))
+        self.log("uploading %s '%s'->'%s'" % (self.key,self.path,remotePath))
         self.executor.upload(self.path, remotePath,recursive=False)
 
 
@@ -670,7 +506,7 @@ class Service(object):
         hrd_root = "/etc/ays/local/"
         remotePath = j.sal.fs.joinPaths(hrd_root, j.sal.fs.getBaseName(self.path), 'instance.hrd')
         dest = self.path.rstrip("/")+"/"+"instance.hrd"
-        print("downloading %s '%s'->'%s'" % (self.key, remotePath, self.path))
+        self.log("downloading %s '%s'->'%s'" % (self.key, remotePath, self.path))
         self.executor.download(remotePath, self.path)
 
     def _getExecutor(self):
@@ -703,12 +539,11 @@ class Service(object):
         return executor
 
     def log(self, msg):
-        logpath = j.sal.fs.joinPaths(self.path, "log.txt")
-        if not j.sal.fs.exists(self.path):
-            j.sal.fs.createDir(self.path)
-        msg = "%s : %s\n" % (
-            j.data.time.formatTime(j.data.time.getTimeEpoch()), msg)
-        j.sal.fs.writeFile(logpath, msg, append=True)
+        from IPython import embed
+        print ("DEBUG NOW log")
+        embed()
+        
+
 
     def listChildren(self):
         childDirs = j.sal.fs.listDirsInDir(self.path)
@@ -912,7 +747,7 @@ class Service(object):
         # Check that all dependencies are enabled
 
         if not self._canBeEnabled():
-            print("%s cannot be enabled because one or more of its producers is disabled" % self)
+            self.log("%s cannot be enabled because one or more of its producers is disabled" % self)
             return
 
         self.state.hrd.set('disabled', False)
@@ -1087,7 +922,7 @@ class Service(object):
                         if j.sal.fs.exists(dest):
                             j.sal.fs.unlink(dest)
                     else:
-                        print(("deleting: %s" % dest))
+                        self.log(("deleting: %s" % dest))
                         j.sal.fs.removeDirTree(dest)
 
     def uninstall(self):

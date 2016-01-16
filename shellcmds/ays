@@ -34,9 +34,9 @@ def init():
     the changes with before (last time you did an init) will be shown
     """
     chfiles=j.atyourservice.init()
-    chfiles.sort()
-    for item in chfiles:
-        print ("- %s"%item)
+    # chfiles.sort()
+    # for item in chfiles:
+    #     print ("- %s"%item)
 
 
 @click.command()

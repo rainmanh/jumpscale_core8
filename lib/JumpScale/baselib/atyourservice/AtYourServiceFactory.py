@@ -263,18 +263,34 @@ class AtYourServiceFactory():
         self._init=True
 
     def init(self,newrun=True):
-        #look for .git
-        print("init runid:%s"%self.alog.currentRunId)
+
+        self.reset()
+
+        #make sure the recipe's are loaded & initted
+        for bp in self.blueprints:
+            bp.loadrecipes()
+
+        #start from clean sheet
+        self.reset()
+
+        if len(self.git.getModifiedFiles(True,ignore=["/alog/"]))>0:
+            print("changes in ays repo, will commit")
+            repo=self.git.commit(message='ays changed, commit changed files before deploy of blueprints', addremove=True)
+
+        print("init runid:%s"%self.alog.latestRunId)
         commitc=""
         for bp in self.blueprints:
             bp.execute()
             commitc+="\nBlueprint:%s\n"%bp.path
             commitc+=bp.content+"\n"
 
-        repo=self.git.commit(message='ays blueprint:\n%s'%commitc, addremove=True)
-        githash=repo.hexsha
+        if len(self.git.getModifiedFiles(True,ignore=["/alog/"]))>0:
+            print("init made changes")
+            repo=self.git.commit(message='ays blueprint:\n%s'%commitc, addremove=True)
 
-        self.alog.setGitCommit("init",githash)
+            githash=repo.hexsha
+
+            self.alog.setGitCommit("init",githash)
 
         print ("init done")
 

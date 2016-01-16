@@ -78,8 +78,8 @@ class ServiceRecipe(ServiceTemplate):
         services = j.atyourservice.findServices(role=self.role, instance=instance)
 
         if len(services) == 1:
-            if j.application.debug:
-                print("Service instance %s!%s  exists." % (self.name, instance))
+            # if j.application.debug:
+            #     print("Service instance %s!%s  exists." % (self.name, instance))
 
             services[0].args.update(args)  # needed to get the new args in
             services[0]._recipe = self

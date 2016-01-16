@@ -78,12 +78,30 @@ class GitClient(object):
                 pass
         self.repo.git.checkout(branchName)
 
-    def getModifiedFiles(self):
+    def checkFilesWaitingForCommit(self):
+        res=self.getModifiedFiles()
+        if res["D"]!=[]:
+            return True
+        if res["M"]!=[]:
+            return True
+        if res["N"]!=[]:
+            return True
+        if res["R"]!=[]:
+            return True
+
+    def getModifiedFiles(self,collapse=False,ignore=[]):
         result = {}
         result["D"] = []
         result["N"] = []
         result["M"] = []
         result["R"] = []
+
+        def checkignore(ignore,path):
+            for item in ignore:
+                if path.find(item)!=-1:
+                    return True
+            return False            
+
 
         cmd = "cd %s;git status --porcelain" % self.baseDir
         rc, out = j.sal.process.execute(cmd)
@@ -93,10 +111,14 @@ class GitClient(object):
                 continue
             state, _, _file = item.partition(" ")
             if state == '??':
+                if checkignore(ignore,_file):
+                    continue
                 result["N"].append(_file)
 
         for diff in self.repo.index.diff(None):
             path = diff.a_blob.path
+            if checkignore(ignore,path):
+                continue
             if diff.deleted_file:
                 result["D"].append(path)
             elif diff.new_file:
@@ -105,7 +127,13 @@ class GitClient(object):
                 result["R"].append(path)
             else:
                 result["M"].append(path)
+
+        if collapse:
+            result=result["N"]+result["M"]+result["R"]
         return result
+
+    def getUntrackedFiles(self):
+        return self.repo.untracked_files
 
     def addRemoveFiles(self):
         cmd = 'cd %s;git add -A :/' % self.baseDir
@@ -198,8 +226,7 @@ class GitClient(object):
                 
         return diffs
 
-    def getUntrackedFiles(self):
-        return self.repo.untracked_files
+
 
     def patchGitignore(self):
         gitignore = '''# Byte-compiled / optimized / DLL files

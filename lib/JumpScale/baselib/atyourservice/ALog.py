@@ -1,7 +1,7 @@
 from JumpScale import j
 
 class Action():
-    def __init__(self,alog,runid,epoch,role,instance,name,state="START"):
+    def __init__(self,alog,runid,epoch,role,instance,name,state="START",new=False):
         self.key="%s_%s"%(runid,role)
         self.alog=alog
         self.runid=int(runid)
@@ -12,12 +12,16 @@ class Action():
         self.error=False
         self.done=False
         self.state=state
-        if state=="START":
-            self.alog._append("A | %-8s | %-25s | %s | %s"%(self.role,self.instance,self.name,self.state))
+        if new:
+            self._setLog()
+
+    def _setLog(self):
+        self.alog._append("A | %-10s | %-15s | %-25s | %s | %s"%(self.epoch,self.role,self.instance,self.name,self.state))
 
     def setOk(self):
         self.state="DONE"
-        self.alog._append("A | %-8s | %-25s | %s | %s"%(self.role,self.instance,self.name,self.state))
+        self._setLog()
+        
 
     def getLogs(self):
         args={"logs":[]}
@@ -69,7 +73,7 @@ class ALog():
     RUN
     ===
     R | $id | $epoch | $hrtime
-    A | $id | $role  | $instance | $actionname 
+    A | $id | $epoch | $role  | $instance | $actionname 
     L | $level $cat   | $msg 
     L | $cat   | $msg 
 
@@ -91,11 +95,9 @@ class ALog():
         if category.strip()=="":
             raise RuntimeError("category cannot be empty")
         self.category=category
-        self.path=j.do.joinPaths(j.atyourservice.basepath,"alog","%s.log"%category)
+        self.path=j.do.joinPaths(j.atyourservice.basepath,"alog","%s.alog"%category)
         j.sal.fs.createDir(j.do.joinPaths(j.atyourservice.basepath,"alog"))
 
-        if not j.do.exists(self.path):
-            j.do.writeFile(self.path,"")
 
         self.latest={}  #key = $role!$instance
                         #value = {$actionname:$actionobject}
@@ -108,9 +110,15 @@ class ALog():
 
         self.gitActionInitLast=""
 
-        self.read()
-
         self.changecache={}
+
+        if not j.do.exists(self.path):
+            j.do.writeFile(self.path,"")
+            self.setNewRun()
+        else:        
+            self.read()
+
+        
 
     def setNewRun(self):
         self.latestRunId+=1
@@ -130,7 +138,7 @@ class ALog():
         key="%s!%s"%(role.lower().strip(),instance.lower().strip())
         if key not in self.latest:
             self.latest[key]={}
-        self.latest[key][actionname]=Action(self,self.latestRunId,j.data.time.getTimeEpoch(),role,instance,actionname,"START")
+        self.latest[key][actionname]=Action(self,self.latestRunId,j.data.time.getTimeEpoch(),role,instance,actionname,"START",new=True)
         
         return self.latest[key][actionname]
 
@@ -143,17 +151,20 @@ class ALog():
 
     def getLastRef(self,action="install"):
         if action in self.gitActions:
-            lastref=self.gitActions[action]
+            lastref=self.gitActions[action][1]
         else:
             lastref=self.gitActionInitLast
-        if lastref=="":
-            raise RuntimeError("could not find lastref for action:%s"%action)
-
+        
+        # if lastref=="":
+        #     raise RuntimeError("could not find lastref for action:%s"%action)
         return lastref
 
     def getChangedFiles(self,action="install"):
         git=j.clients.git.get()
-        return git.getChangedFiles(fromref=self.getLastRef(action))
+        changes=git.getChangedFiles(fromref=self.getLastRef(action))
+        changes=[item for item in changes if j.do.exists(j.do.joinPaths(git.baseDir,item))]  #we will have to do something for deletes here
+        changes.sort()
+        return changes
 
     def getChangedAtYourservices(self,action="install"):
         """
@@ -184,8 +195,9 @@ class ALog():
                     keys=[]
                     for aysi in j.atyourservice.findServices(role=key):
                         keys.append(aysi.key)
-                    
+
                 for key in keys:
+                    # print ("get changed ays for key:%s"%key)
                     aysi=j.atyourservice.getServiceFromKey(key)
                     if basename not in changes:
                         changes[basename]=[]
@@ -230,8 +242,8 @@ class ALog():
 
             if cat=="A":
                 line1.split("|")
-                role,instance,name,state=[item.strip() for item in line1.split("|")]
-                action=Action(self,run[0],run[1],role,instance,name=name,state=state)
+                epoch,role,instance,name,state=[item.strip() for item in line1.split("|")]
+                action=Action(self,run[0],epoch,role,instance,name=name,state=state)
 
                 if actionhandler!=None:
                     actionhandler(action,args)

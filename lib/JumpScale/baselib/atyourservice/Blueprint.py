@@ -47,7 +47,7 @@ class Blueprint(object):
     def execute(self):
         for model in self.models:
             for key,item in model.items():
-                print ("blueprint model execute:%s"%item)
+                # print ("blueprint model execute:%s %s"%(key,item))
                 aysname,aysinstance=key.split("_",1)
                 r=j.atyourservice.getRecipe(name=aysname)
                 r.newInstance(instance=aysinstance,args=item)

@@ -1,67 +1,69 @@
 from JumpScale import j
 
-class Action():
-    def __init__(self,alog,runid,epoch,role,instance,name,state="START",new=False):
-        self.key="%s_%s"%(runid,role)
-        self.alog=alog
-        self.runid=int(runid)
-        self.epoch=int(epoch)
-        self.role=role
-        self.instance=instance
-        self.name=name
-        self.error=False
-        self.done=False
-        self.state=state
-        if new:
-            self._setLog()
+# class Action():
+#     def __init__(self,alog,runid,epoch,role,instance,name):
+#         self.alog=alog
+#         self.runid=int(runid)
+#         self.epoch=int(epoch)
+#         self.role=role
+#         self.instance=instance
+#         self.name=name
+#         self.cat=cat
+#         self.error=False
+#         self.done=False
+#         self.state={}
+#         if new:
+#             self._setLog()
 
-    def _setLog(self):
-        self.alog._append("A | %-10s | %-15s | %-25s | %s | %s"%(self.epoch,self.role,self.instance,self.name,self.state))
+#         self.alog.currentActions["%s!%s"%(self.role,self.instance)]=self
 
-    def setOk(self):
-        self.state="DONE"
-        self._setLog()
+#     def _setLog(self):
+#         self.alog._append("A | %-10s | %-15s | %-25s | %-15s | %-5s | %s"%(self.epoch,self.role,self.instance,self.name,self.cat,self.state))
+
+#     def setOk(self):
+#         self.state="DONE"
+#         self._setLog()
         
 
-    def getLogs(self):
-        args={"logs":[]}
+#     def getLogs(self):
+#         args={"logs":[]}
 
-        def loghandler(action,lcat,msg,args):
-            if action.key==self.key:
-                args["logs"].append((lcat,msg))
+#         def loghandler(action,lcat,msg,args):
+#             if action.key==self.key:
+#                 args["logs"].append((lcat,msg))
 
-        self.alog.process(loghandler=loghandler,args=args)
+#         self.alog.process(loghandler=loghandler,args=args)
 
-        return args["logs"]
+#         return args["logs"]
 
-    def getErrors(self):
-        logs=self.getLogs()
-        from IPython import embed
-        print ("DEBUG NOW logs geterrors")
-        embed()
+#     def getErrors(self):
+#         logs=self.getLogs()
+#         from IPython import embed
+#         print ("DEBUG NOW logs geterrors")
+#         embed()
         
 
 
-        return args["logs"]
+#         return args["logs"]
 
-    def log(self,msg,cat="",level=0):
-        msg=msg.strip()
-        msg=msg.replace("|","§§")
+#     def log(self,msg,cat="",level=0):
+#         msg=msg.strip()
+#         msg=msg.replace("|","§§")
 
-        if level!=0:
-            cat="%s %s"%(level,cat)
+#         if level!=0:
+#             cat="%s %s"%(level,cat)
 
-        out="L | %15s | %s"%(cat,msg)
-        self.alog._append(out)
+#         out="L | %11s | %s"%(cat,msg)
+#         self.alog._append(out)
 
-    def error(self,msg):
-        self.log(msg,cat="ERROR",level=0)
+#     def error(self,msg):
+#         self.log(msg,cat="ERROR",level=0)
 
 
-    def __str__(self):
-        return "%-4s | %-10s | %-10s | %-35s | %-10s | %s "%(self.runid,self.epoch,self.role,self.instance,self.name,self.state)
+#     def __str__(self):
+#         return "%-4s | %-10s | %-10s | %-35s |  %-5s | %-10s | %s "%(self.runid,self.epoch,self.role,self.instance,self.cat,self.name,self.state.lower())
 
-    __repr__=__str__
+#     __repr__=__str__
 
 class ALog():
     """
@@ -72,12 +74,11 @@ class ALog():
 
     RUN
     ===
-    R | $id | $epoch | $hrtime
-    A | $id | $epoch | $role  | $instance | $actionname 
-    L | $level $cat   | $msg 
-    L | $cat   | $msg 
-
-    G | $cat | $epoch | $githash | $hrtime   
+    R | $epoch | $runid | $hrtime 
+    A | $epoch | $role!$instance | $actionname | $state
+    G | $epoch | $cat   | $githash  
+    L | $epoch | $level $cat | $msg 
+    L | $epoch | $cat   | $msg 
 
     R stands for RUN & has unique id
     each action has id
@@ -98,65 +99,57 @@ class ALog():
         self.path=j.do.joinPaths(j.atyourservice.basepath,"alog","%s.alog"%category)
         j.sal.fs.createDir(j.do.joinPaths(j.atyourservice.basepath,"alog"))
 
-
-        self.latest={}  #key = $role!$instance
-                        #value = {$actionname:$actionobject}
-
-        self.latestRunId=0
-        self.latestActionId={} #key=runid
-        # self.currentRunId=0
-
-        self.gitActions={} #key is the aysi action e.g. init or install
-
-        self.gitActionInitLast=""
+        self.lastGitRef={} #key = action used to log the git hash
+        self.lastRunId=0
+        self.lastRunEpoch=0
 
         self.changecache={}
+        
 
         if not j.do.exists(self.path):
             j.do.writeFile(self.path,"")
-            self.setNewRun()
+            self.newRun()
         else:        
             self.read()
 
-        
 
-    def setNewRun(self):
-        self.latestRunId+=1
-        self._append("R | %-3s | %-8s |%s"%(self.latestRunId,j.data.time.getTimeEpoch(),j.data.time.getLocalTimeHR()))
-        return self.latestRunId
 
-    def setGitCommit(self,action,githash=""):
+    def newRun(self):
+        self.lastRunId+=1
+        self._append("R | %-8s | %-8s |%s"%(j.data.time.getTimeEpoch(),self.lastRunId,j.data.time.getLocalTimeHR()))
+        return self.lastRunId
+
+    def newGitCommit(self,action,githash=""):
         if githash=="":
             git=j.clients.git.get()
             githash=git.getCommitRefs()[0][1]
-            
-        self._append("G | %-3s | %-8s | %s |%s"%(action,j.data.time.getTimeEpoch(),githash,j.data.time.getLocalTimeHR()))
+        self._append("G | %-8s | %-8s | %s"%(j.data.time.getTimeEpoch(),action,githash))
 
-    def setNewAction(self,role,instance,actionname):
-        if self.latestRunId==0:
-            raise RuntimeError("latestRunId should not be 0.")
-        key="%s!%s"%(role.lower().strip(),instance.lower().strip())
-        if key not in self.latest:
-            self.latest[key]={}
-        self.latest[key][actionname]=Action(self,self.latestRunId,j.data.time.getTimeEpoch(),role,instance,actionname,"START",new=True)
-        
-        return self.latest[key][actionname]
+    def newAction(self,service,action,state="INIT",logonly=False):
+        self._append("A | %-8s | %-20s | %-8s | %s"%(j.data.time.getTimeEpoch(),service.shortkey,action,state),logonly=logonly)
 
-    def _append(self,msg):
+
+    def log(self,msg,level=5,cat=""):
+        for item in  msg.strip().split("\n"):
+            self._append("L | %-8s | %-8s | %s"%(j.data.time.getTimeEpoch(),level,item),logonly=True)
+
+    def _append(self,msg,logonly=False):
         msg=msg.strip()
         if len(msg)==0:
             return
-        msg=msg+"\n"
-        j.sal.fs.writeFile(self.path, msg, append=True)  
+        line=msg+"\n"
+        j.sal.fs.writeFile(self.path, line, append=True)  
+        if not logonly:
+            self._processLine(line=msg)
 
     def getLastRef(self,action="install"):
-        if action in self.gitActions:
-            lastref=self.gitActions[action][1]
+        if action in self.lastGitRef:
+            lastref=self.lastGitRef[action]
         else:
-            lastref=self.gitActionInitLast
-        
-        # if lastref=="":
-        #     raise RuntimeError("could not find lastref for action:%s"%action)
+            # if action!="init":
+            #     lastref=self.getLastRef("init")
+            # else:
+            lastref=""
         return lastref
 
     def getChangedFiles(self,action="install"):
@@ -194,11 +187,12 @@ class ALog():
                 else:
                     keys=[]
                     for aysi in j.atyourservice.findServices(role=key):
-                        keys.append(aysi.key)
+                        keys.append(aysi.shortkey)
 
                 for key in keys:
                     # print ("get changed ays for key:%s"%key)
-                    aysi=j.atyourservice.getServiceFromKey(key)
+                    role,instance=key.split("!")
+                    aysi=j.atyourservice.getService(role,instance)
                     if basename not in changes:
                         changes[basename]=[]
                     changes[basename].append(aysi)
@@ -209,7 +203,30 @@ class ALog():
     
         return changed,changes
 
-    def read(self,actionhandler=None,loghandlers=[],args={}):
+    def _processLine(self,line):
+        cat,line1=line.split("|",1)
+        cat=cat.strip()
+        if cat=="R":
+            epoch,runid,remaining=line1.split("|",2)
+            self.lastRunId=int(runid)
+            self.lastRunEpoch=int(epoch)
+            return
+
+        if cat =="G":
+            epoch,gitcat,githash=[item.strip() for item in line1.split("|",3)]
+            self.lastGitRef[gitcat]=githash
+            return
+
+        if cat=="A":
+            line1.split("|")
+            epoch,servicekey,action,state=[item.strip() for item in line1.split("|")]
+            role,instance=servicekey.split("!")
+            service=j.atyourservice.getService(role=role, instance=instance)
+            service._setAction(name=action,epoch=int(epoch),state=state,log=False)
+            return
+
+
+    def read(self):
 
         C=j.do.readFile(self.path)
 
@@ -219,59 +236,20 @@ class ALog():
             if line.strip()=="RUN" or line.strip()=="" or line.startswith("=="):
                 continue
 
-            cat,line1=line.split("|",1)
-            cat=cat.strip()
-            if cat=="R":
-                id,epoch,remaining=line1.split("|",2)
-                run=(int(id),int(epoch))
+            self._processLine(line)
 
-                if run[0]>self.latestRunId:
-                    self.latestRunId=run[0]
+            # if logmsg!="" or cat=="L":
+            #     if cat=="L":
+            #         lcat,msg0=line1.split("|",1)
+            #         logmsg+="%s\n"%msg0
+            #         if msg0.strip()[-1]=="\\":
+            #             #go to next line there is enter at end of line
+            #             continue
 
-                continue
-
-            if cat =="G":
-                gitcat,epoch,githash,remaining=[item.strip() for item in line1.split("|",3)]
-                # if gitcat!="init":
-                #     if not gitcat in self.gitActionInitLast:
-                #     self.gitActionInitLast[gitcat]=self.gitActions["init"][1] #hash only
-                if gitcat=="init" and self.gitActionInitLast=="":
-                    self.gitActionInitLast=githash
-                self.gitActions[gitcat]=(epoch,githash)
-                continue
-
-            if cat=="A":
-                line1.split("|")
-                epoch,role,instance,name,state=[item.strip() for item in line1.split("|")]
-                action=Action(self,run[0],epoch,role,instance,name=name,state=state)
-
-                if actionhandler!=None:
-                    actionhandler(action,args)
-
-                #remember latest action per instance
-                key="%s!%s"%(role,instance)
-                if key not in self.latest:
-                    self.latest[key]={}
-                self.latest[key][name]=action
-
-                logmsg=""
-                lcat=""
-
-                continue
-
-
-            if logmsg!="" or cat=="L":
-                if cat=="L":
-                    lcat,msg0=line1.split("|",1)
-                    logmsg+="%s\n"%msg0
-                    if msg0.strip()[-1]=="\\":
-                        #go to next line there is enter at end of line
-                        continue
-
-                for loghandler in loghandlers:
-                    loghandler(action,lcat,logmsg.strip(),args)  #process log
-                logmsg=""
-                lcat=""
+            #     for loghandler in loghandlers:
+            #         loghandler(action,lcat,logmsg.strip(),args)  #process log
+            #     logmsg=""
+            #     lcat=""
 
 
 

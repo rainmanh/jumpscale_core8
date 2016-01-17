@@ -40,15 +40,43 @@ def init():
 
 
 @click.command()
-def apply():
-    j.atyourservice.apply()
+@click.argument('action')
+@click.option('--printonly', default=False, help='if set will not really execute, only show what would have been done')
+def do(action,printonly=False):
+    j.atyourservice.do(action,printonly=printonly)
 
 
 cli.add_command(new)
 cli.add_command(init)
-cli.add_command(apply)
+cli.add_command(do)
+
+@click.command()
+@click.argument('role')
+@click.argument('instance')
+def showproducers(role,instance):
+    print ("producers:")
+    ays=j.atyourservice.getService(role,instance)
+    ays.printProducersRecursive()
+
+@click.command()
+@click.argument('role')
+@click.argument('instance')
+def showparents(role,instance):
+    ays=j.atyourservice.getService(role,instance)
+    out="parents:\n"
+    for parent in ays.parents:
+        out+="- %s\n"%parent
+    print (out)
+
+
+cli.add_command(new)
+cli.add_command(init)
+cli.add_command(do)
+cli.add_command(showproducers)
+cli.add_command(showparents)
 
 if __name__ == '__main__':
+    j.atyourservice.debug=True
     cli()
 
 # j.application.stop()

@@ -136,8 +136,6 @@ class ActionsBaseNode(object):
                     # j.do.execute("apt-get install -y -f %s" % " ".join(packages), dieOnNonZeroExitCode=True)
         return True
 
-
-
     def _getDomainName(self, serviceObj, process):
         domain = serviceObj.domain
         if process["name"] != "":

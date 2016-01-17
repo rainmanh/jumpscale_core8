@@ -2,7 +2,8 @@ from JumpScale import j
 # import JumpScale.baselib.actions
 
 # import pytoml
-
+from contextlib import redirect_stdout
+import io
 import imp
 import sys
 from functools import wraps
@@ -44,6 +45,83 @@ def getProcessDicts(hrd, args={}):
 
     return procs
 
+class ActionRun():
+
+    def __init__(self,service,name,epoch=0,state="INIT",mgmt=True):
+        """
+        @param state: INIT, START, OK, ERROR
+        """
+        self.service=service
+        self.name=name
+        self._method=""
+        self.epoch=epoch
+        if self.epoch==0:
+            self.epoch=j.data.time.getTimeEpoch()
+        self._state=state
+        self.mgmt=mgmt
+
+    def setState(self,state):
+        if state !=self.state:
+            j.atyourservice.alog.newAction(self.service,self.name,state=state,logonly=True)
+
+    @property
+    def state(self):
+        return self._state
+
+
+    @property
+    def method(self):
+        if self._method==   "":
+            if self.mgmt:
+                self._method=self.service.getActionMethodMgmt(self.name)
+            else:
+                self._method=self.service.getActionMethodNode(self.name)
+        return self._method
+
+    def log(self,msg):
+        j.atyourservice.alog.log(msg)
+
+    def run(self):
+        if self.method!=None:
+            self.setState("START")
+            print ("RUN:%s"%self)
+            if j.atyourservice.debug:         
+                try:
+                    res=self.method(self.service)
+                except Exception as e:
+                    self.setState("ERROR")
+                    self.log("Exception:%s"%e)    
+                    raise RuntimeError(e)
+                self.setState("OK")
+            else:
+                f = io.StringIO()
+                print(1)
+                with redirect_stdout(f):
+                    ok=False
+                    try:
+                        res=self.method(self.service)
+                        print ("sdsdsds")
+                        raise RuntimeError("1111")
+                        ok=True
+                        self.setState("OK")
+                    except Exception as e:
+                        pass
+                print(2)
+                # self.setState("ERROR")
+                # self.log("STDOUT:")
+                # self.log(f.getvalue())
+
+                from IPython import embed
+                print ("DEBUG NOW ays run")
+                embed()
+                p
+            
+    def __str__(self):
+        return ("%s -> do: %s (%s)"%(self.service,self.name,self.state))
+
+    __repr__=__str__
+    
+
 class Service(object):
 
     def __init__(self, servicerecipe=None,instance=None, path="", args=None, parent=None, originator=None):
@@ -75,11 +153,10 @@ class Service(object):
             self._recipe = servicerecipe
             self.role = self.name.split(".")[0]
 
-
         self.instance = self.instance.lower()
 
 
-        self._parent = None
+        self._parent = ""
         self._parentChain = None
 
         self.path = path.rstrip("/")
@@ -96,7 +173,7 @@ class Service(object):
         self._dnsNames = []
 
         self.args = args or {}
-        self._producers = {}
+        self._producers = None
         self.cmd = None
         self._logPath = None
 
@@ -111,12 +188,19 @@ class Service(object):
 
         self._recurring = None
 
-        if not j.do.exists(self.path):
-            self.init()
+        self._actionlog={} #key=actionname with _pre _post ... value = ActionRun
+
+        self.action_current=None
+
 
     @property
     def key(self):
         return j.atyourservice.getKey(self)
+
+    @property
+    def shortkey(self):
+        return "%s!%s"%(self.role,self.instance)
+
 
     @property
     def name(self):
@@ -143,19 +227,6 @@ class Service(object):
             self._recipe=j.atyourservice.getRecipe(domain=self.domain, name=self.name, version=self.version)
         return self._recipe
 
-
-    # @property
-    # def template(self):
-    #     if self._recipe is None:
-    #         self._recipe=j.atyourservice.getTemplate(domain=self.domain, name=self.name, version=self.version)
-    #     return self._recipe
-
-    @property
-    def recipe(self):
-        if self._recipe is None:
-            self._recipe=j.atyourservice.getRecipe(domain=self.domain, name=self.name, version=self.version)
-        return self._recipe
-
     @property
     def dnsNames(self):
         if self._dnsNames == []:
@@ -164,7 +235,7 @@ class Service(object):
 
     @property
     def parents(self):
-        if self._parentChain ==[]:
+        if self._parentChain ==None:
             chain = []
             parent = self.parent
             while parent is not None:
@@ -175,8 +246,13 @@ class Service(object):
 
     @property
     def parent(self):
-        if self._parent ==None:
-            self._parent = j.atyourservice.getServiceFromKey(self.hrd.get("parent"))
+        if self._parent =="":
+            # print ("parent cache miss")
+            if self.hrd.exists("parent"):
+                role,instance=self.hrd.get("parent").split("!")
+                self._parent = j.atyourservice.getService(role,instance)
+            else:
+                self._parent=None
         return self._parent
 
     @property
@@ -220,8 +296,53 @@ class Service(object):
 
         return self._actions_node
 
-    def getALogAction(self,actionName="init"):
-        return j.atyourservice.alog.setNewAction(self.role,self.instance,actionName)
+    def _setAction(self,name,epoch=0,state="INIT",log=True,mgmt=True):
+        if name not in self._actionlog:
+            self._actionlog[name]=ActionRun(self,name=name,epoch=epoch,state=state,mgmt=mgmt)
+            if log:
+                self._actionlog[name].setState(state)
+
+        else:
+            print("state exists:%s"%name)
+            actionrun=self._actionlog[name]
+            if epoch!=0:
+                actionrun.epoch=epoch
+            if log:
+                actionrun.setState(state)
+            else:
+                actionrun._state=state
+
+    def getAction(self,name,mgmt=True):
+        if name not in self._actionlog:
+            self._setAction(name,mgmt=mgmt)
+        action=self._actionlog[name]
+        self.action_current=action
+        return action
+
+
+    def runAction(self,name,mgmt=True):
+        action=self.getAction(name,mgmt=mgmt)
+        action.run()
+        return action
+        
+
+    def getActionMethodMgmt(self,action):
+        try:
+            method=eval("self.actions_mgmt.%s"%action)
+        except Exception as e:
+            if str(e).find("has no attribute")!=-1:
+                return None
+            raise RuntimeError(e)
+        return method
+
+    def getActionMethodNode(self,action):
+        try:
+            method=eval("self.actions_node.%s"%action)
+        except Exception as e:
+            if str(e).find("has no attribute")!=-1:
+                return None
+            raise RuntimeError(e)
+        return method
 
     def _loadActions(self, path,ttype):
         if j.sal.fs.exists(path+'c'):
@@ -245,16 +366,19 @@ class Service(object):
 
     @property
     def producers(self):
-        if self._producers != {}:
-            return self._producers
+        if self._producers ==None:
+            self._producers={}
+            for key, items in self.hrd.getDictFromPrefix("producer").items():
+                producerSet = set()
+                for item in items:
+                    role,instance=item.split("!")
+                    service = j.atyourservice.getService(role,instance)
+                    producerSet.add(service)
 
-        for key, items in self.hrd.getDictFromPrefix("producer").items():
-            producerSet = set()
-            for item in items:
-                service = j.atyourservice.getServiceFromKey(item.strip())
-                producerSet.add(service)
+                self._producers[key] = list(producerSet)
 
-            self._producers[key] = list(producerSet)
+            if self.parent!=None:
+                self._producers[self.parent.role]=[self.parent]
 
         return self._producers
 
@@ -273,20 +397,27 @@ class Service(object):
 
     def init(self):
         if self._init is False:
-            changed,changes=j.atyourservice.alog.getChangedAtYourservices("init")
-            if self in changed:
+            do=False
+            if not j.do.exists(j.sal.fs.joinPaths(self.path, "instance.hrd")):
+                do=True
+            else:
+                changed,changes=j.atyourservice.alog.getChangedAtYourservices("init")
+                if self in changed:
+                    do=True
+            if do:
                 print ("INIT:%s"%self)
-                action=self.getALogAction("init")
                 j.do.createDir(self.path)
-                self.actions_mgmt.input(self)  #we now init the full service object and can be fully manipulated there even changing the hrd
+                self.runAction("input")
                 hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
                 self._hrd=self.recipe.schema.hrdGet(hrd=self.hrd,args=self.args)
                 self.hrd.set("service.name",self.name)
                 self.hrd.set("service.version",self.version)
                 self.hrd.set("service.domain",self.domain)
-                self.actions_mgmt.hrd(self)
 
-                if self._parent is not None:
+                self.runAction("hrd")
+                # self.actions_mgmt.hrd(self)
+
+                if self.parent is not None:
                     path = j.sal.fs.joinPaths(self.parent.path, "%s!%s" % (self.role, self.instance))
                     if self.path != path:
                         j.sal.fs.moveDir(self.path, path)
@@ -295,8 +426,6 @@ class Service(object):
                         self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
                         if self._parent is not None:
                             self.consume(self._parent)
-
-                action.setOk()
 
         self._init = True
 
@@ -313,7 +442,7 @@ class Service(object):
         ```
 
         """
-
+        return
         if str(input).strip() == "":
             return
 
@@ -354,7 +483,11 @@ class Service(object):
 
             # walk over the producers
             for producer in toConsume:
-                self.actions_mgmt.consume(self, producer)
+                method=self.getActionMethodMgmt("consume")
+                if method!=None:
+                    j.atyourservice.alog.setNewAction(self.role, self.instance, "mgmt","consume")
+                    self.actions_mgmt.consume(self, producer)
+                    j.atyourservice.alog.setNewAction(self.role, self.instance, "mgmt","consume","OK")
 
         self.log("consumption done")
 
@@ -366,22 +499,25 @@ class Service(object):
                 producers = producer.getProducersRecursive(producers, callers=callers)
         return producers.symmetric_difference(callers)
 
+    def printProducersRecursive(self,prefix=""):
+        for role, producers2 in self.producers.items():
+            # print ("%s%s"%(prefix,role))
+            for producer in producers2:
+                print ("%s- %s"%(prefix,producer))
+                producer.printProducersRecursive(prefix+"  ")
+
+
     def getProducersWaiting(self, action="install",producersChanged=set()):
         """
         return list of producers which are waiting to be deployed
         """
         changed,changes=j.atyourservice.alog.getChangedAtYourservices(action=action)
-        changed=[item for item in changed if item.getState(action)!="OK"]
+        
+        changed=[item for item in changed if item.getAction(action).state!="OK"]
         for producer in self.getProducersRecursive(set(), set()):
                 if producer in changed:
                     producersChanged.add(producer)
         return producersChanged
-
-    def getState(self,action):
-        key="%s!%s"%(self.role,self.instance)
-        if key not in j.atyourservice.alog.latest:
-            return "INIT"
-        return j.atyourservice.alog.latest[key][action].state
 
 
     def getNode(self):
@@ -438,54 +574,6 @@ class Service(object):
     #     return chain
 
 
-    def _findMethod(self,templatepath,methodname):
-        methodname=methodname.strip()
-        if not j.sal.fs.exists(path=templatepath):
-            raise RuntimeError("Cannot find template:%s, as I need it to find inheritance for %s"%(templatepath,self))
-        C2=j.do.readFile(templatepath)
-        out=""
-        state="start"
-        for line in C2.split("\n"):
-            line=line.replace("\t","    ")
-
-            if state=="found" and line.startswith("    def"):
-                break
-
-            if line.startswith("    def %s"%methodname):
-                state="found"
-
-            if state=="found":
-                out+="%s\n"%line
-
-        if out.strip()=="":
-            raise RuntimeError("Cannot find template:%s method %s, as I need it to find inheritance for %s"%(templpath2,methodname,self))
-
-
-        return out.rstrip()
-
-
-    def _processInheritance(self,templatepath,outpath):
-        C=j.do.readFile(templatepath)
-        found=False
-        if C.find("@INHERIT")!=-1:
-            out=""
-            for line in C.split("\n"):
-                if line.find("@INHERIT")!=-1:
-                    nothing,templatename,methodnames=line.split(":",2)
-                    templ=j.atyourservice.getTemplate(name=templatename)
-                    templpath2=templ.path+"/"+j.sal.fs.getBaseName(templatepath)
-                    for methodname in methodnames.split(","):
-                        C3=self._findMethod(templpath2,methodname)
-                        out+="\n\n%s\n\n"%C3
-                        found=True
-                    continue
-
-                out+="%s\n"%line
-            j.do.writeFile(outpath,out)
-
-        return found
-
-
 
     def _uploadToNode(self):
         # ONLY UPLOAD THE SERVICE ITSELF, INIT NEEDS TO BE FIRST STEP, NO IMMEDIATE INSTALL
@@ -538,12 +626,8 @@ class Service(object):
 
         return executor
 
-    def log(self, msg):
-        from IPython import embed
-        print ("DEBUG NOW log")
-        embed()
-        
-
+    def log(self, msg,level=0):
+        self.action_current.log(msg)
 
     def listChildren(self):
         childDirs = j.sal.fs.listDirsInDir(self.path)
@@ -592,7 +676,8 @@ class Service(object):
       return hash((self.domain, self.name, self.instance, self.role, self.version))
 
     def __repr__(self):
-        return '%s|%s!%s(%s)' % (self.domain, self.name, self.instance, self.version)
+        # return '%s|%s!%s(%s)' % (self.domain, self.name, self.instance, self.version)
+        return self.shortkey
 
     def __str__(self):
         return self.__repr__()
@@ -644,33 +729,6 @@ class Service(object):
         """
 
         log("INSTALL:%s" % self)
-        # do the consume
-        # for key, producers in self.producers.items():
-        #     for producer in producers:
-                # self.actions_mgmt.consume(self, producer)
-        # self._apply()
-
-        # if self.state.changed:
-        #     self._uploadToNode()
-        #
-        # self._executeOnNode('install')
-        #
-        # self.stop()
-        # self.prepare()
-        #
-        # # self._install()
-        # self.configure()
-        #
-        # # now we can remove changes of statefile & remove old hrd
-        # self.state.installDoneOK()
-        # j.sal.fs.copyFile(
-        #     j.sal.fs.joinPaths(self.path, "instance.hrd"),
-        #     j.sal.fs.joinPaths(self.path, "instance_old.hrd")
-        # )
-        #
-        # if start:
-        #     self.start()
-        #
 
         self.actions_mgmt.install_pre(self)
         if self.state.changed:
@@ -690,17 +748,6 @@ class Service(object):
             j.sal.fs.joinPaths(self.path, "instance.hrd"),
             j.sal.fs.joinPaths(self.path, "instance_old.hrd")
         )
-        # if res is False:
-        #     j.events.opserror_critical(msg="Could not install (mgmt) %s" % self, category="ays.service.install")
-        #
-        # restart = False
-        # if res == "r":
-        #     restart = True
-        # if restart:
-        #     self.restart()
-
-
-
 
     def _getDisabledProducers(self):
         producers = dict()
@@ -805,16 +852,16 @@ class Service(object):
 
         self.restart()
 
-    def resetstate(self):
-        """
-        remove state of a service.
-        """
-        raise RuntimeError("not implemented")
-        if self._executeOnNode("resetstate"):
-            return
+    # def resetstate(self):
+    #     """
+    #     remove state of a service.
+    #     """
+    #     raise RuntimeError("not implemented")
+    #     if self._executeOnNode("resetstate"):
+    #         return
 
-        statePath = j.sal.fs.joinPaths(self.path, 'state.toml')
-        j.do.delete(statePath)
+    #     statePath = j.sal.fs.joinPaths(self.path, 'state.toml')
+    #     j.do.delete(statePath)
 
     def reset(self):
         """

@@ -11,7 +11,7 @@ from ALog import *
 
 from AtYourServiceSync import AtYourServiceSync
 try:
-    from AtYourServiceDebug import AtYourServiceDebugFactory
+    from AtYourServiceSandboxer import *
 except:
     pass
 import os
@@ -44,25 +44,26 @@ class AtYourServiceFactory():
         self.hrd = None
         self._justinstalled = []
         self._type = None
-        self._services = []
+        self._services = {}
         self._templates = []
         self._recipes = []
         self.indocker = False
         self.sync = AtYourServiceSync()
         self._reposDone = {}
         self._todo = []
-        self._debug=None
+        self.debug=False
         self._basepath=None
         self._git=None
         self._blueprints=[]
         self._alog=None
         self._runcategory=""
+        self._sandboxer=None
 
         # self._db=AYSDB()
 
     def reset(self):
         # self._db.reload()
-        self._services = []
+        self._services = {}
         self._templates = []
         self._recipes = []
         self._reposDone = {}
@@ -121,10 +122,10 @@ class AtYourServiceFactory():
         return self._git
 
     @property
-    def debug(self):
-        if self._debug==None:
-            self._debug=AtYourServiceDebugFactory()
-        return self._debug
+    def sandboxer(self):
+        if self._sandboxer==None:
+            self._sandboxer=AtYourServiceSandboxer()
+        return self._sandboxer
 
     @property
     def type(self):
@@ -195,13 +196,12 @@ class AtYourServiceFactory():
     @property
     def services(self):
         self._doinit()
-        if self._services==[]:
+        if self._services=={}:
             for hrd_path in j.sal.fs.listFilesInDir(j.dirs.ays, recursive=True, \
                 filter="instance.hrd", case_sensitivity='os', followSymlinks=True, listSymlinks=False):
                 service_path = j.sal.fs.getDirName(hrd_path)
                 service = Service(path=service_path, args=None)
-                self._services.append(service)
-
+                self._services[service.shortkey]=service
         return self._services
 
     @property
@@ -277,7 +277,7 @@ class AtYourServiceFactory():
             print("changes in ays repo, will commit")
             repo=self.git.commit(message='ays changed, commit changed files before deploy of blueprints', addremove=True)
 
-        print("init runid:%s"%self.alog.latestRunId)
+        print("init runid:%s"%self.alog.lastRunId)
         commitc=""
         for bp in self.blueprints:
             bp.execute()
@@ -289,8 +289,8 @@ class AtYourServiceFactory():
             repo=self.git.commit(message='ays blueprint:\n%s'%commitc, addremove=True)
 
             githash=repo.hexsha
-
-            self.alog.setGitCommit("init",githash)
+            
+            self.alog.newGitCommit("init",githash)
 
         print ("init done")
 
@@ -322,51 +322,69 @@ class AtYourServiceFactory():
     def getActionsBaseClassMgmt(self):
         return ActionsBaseMgmt
 
-    def apply(self,action="install"):
+    def install(self):
+        self.alog
+        #start from clean sheet
+        self.init()
 
-        from IPython import embed
-        print ("DEBUG NOW apply")
-        embed()
-        p
+        if len(self.git.getModifiedFiles(True,ignore=["/alog/"]))>0:
+            print("changes in ays repo, will commit")
+            repo=self.git.commit(message='ays changed, commit changed files before deploy of blueprints', addremove=True)
 
-        self.check()
-        if self.todo == []:
-            self.findtodo(action=action)
+
+
+    def do(self,action="install",printonly=False):
+        self.alog
+
+        latestrun=self.alog.newRun()
+
+        todo=self.findTodo(action=action,printonly=printonly)
         step = 1
-        while self.todo != []:
-            print("execute state changes, nr services to process: %s in step:%s" % (len(self.todo), step))
-            for i in range(len(self.todo)):
-                service = self.todo[i]
-                service.install()
+        while todo != []:
+            print("execute state changes, nr services to process: %s in step:%s" % (len(todo), step))
+            for i in range(len(todo)):
+                service = todo[i]
 
-            self.todo = []
+                node1=None
+                if service.parent!=None:
+                    if service.role=="os" or service.parent.role=="os":
+                        #can only execute on OS
+                        node1=service.getActionMethodNode(action)
+
+                mgmt1=service.getActionMethodMgmt(action+"_pre")
+                mgmt2=service.getActionMethodMgmt(action)
+                mgmt3=service.getActionMethodMgmt(action+"_post")
+
+
+                if mgmt1!=None:
+                    service.runAction(action+"_pre")
+                if node1!=None:
+                    service.runAction(action,mgmt=False)
+                if mgmt2!=None:
+                    service.runAction(action)
+                if mgmt3!=None:
+                    service.runAction(action+"_post")
+
+            
+
+            if printonly:
+                # print ("DO: %-4s %-50s %s"%(step,service,action))
+                from IPython import embed
+                print ("DEBUG NOW sdsdsdfsdfsdf")
+                embed()
+                p
+                
+
+            todo = []
             step += 1
-            self.findtodo()
+            todo=self.findTodo()
 
-    def check(self):
-        for service in self.findServices():
-            service.check()
-        # for service in self.findServices():
-        #     service.recurring.check()
 
-    def applyprint(self,path=""):
-        if self.todo == []:
-            self.findtodo(path)
-        step = 1
-        print("execute state changes, nr services to process: %s in step:%s" % (len(self.todo), step))
-        for i in range(len(self.todo)):
-            service = self.todo[i]
-            if service.state.changed():
-                print("UPLOAD")
-                service._uploadToNode()
-                # service.state.installDoneOK()
-                # j.sal.fs.copyFile("%s/instance.hrd"%service.path,"%s/instance_old.hrd"%service.path)
-        self.todo = []
-        step += 1
-        self.findtodo()
 
-    def findTodo(self,action="install"):
-        for service in self.services:
+
+    def findTodo(self,action="install",printonly=False):
+        self.alog
+        for key,service in self.services.items():
             producersWaiting = service.getProducersWaiting(action,set())
 
             if len(producersWaiting)==0:
@@ -440,7 +458,7 @@ class AtYourServiceFactory():
     def findServices(self, name="", instance="",version="", domain="", parent=None, first=False, role="", node=None, include_disabled=False):
         res = []
 
-        for service in self.services:
+        for shortkey,service in self.services.items():
             if service._state and service._state.hrd.getBool('disabled', False) and not include_disabled:
                 continue
             if not(name == "" or service.name == name):
@@ -514,14 +532,13 @@ class AtYourServiceFactory():
         Return service indentifier by domain,name and instance
         throw error if service is not found or if more than one service is found
         """
-        res = self.findServices(role=role, instance=instance)
-
-        if len(res) != 1:
-            if die:
-                j.events.inputerror_critical("Cannot get ays service '%s', found %s services" % (role, len(res)),
-                                             "ays.getservice")
-            else:
-                return None
+        shortkey="%s!%s"%(role,instance)
+        if shortkey in self.services:
+            return self.services[shortkey]
+        if die:
+            j.events.inputerror_critical("Cannot get ays service '%s', did not find" % shortkey,"ays.getservice")
+        else:
+            return None
 
         return res[0]
 

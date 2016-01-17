@@ -129,7 +129,7 @@ class GitClient(object):
                 result["M"].append(path)
 
         if collapse:
-            result=result["N"]+result["M"]+result["R"]
+            result=result["N"]+result["M"]+result["R"]+result["D"]
         return result
 
     def getUntrackedFiles(self):

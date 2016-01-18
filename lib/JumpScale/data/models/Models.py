@@ -1,5 +1,6 @@
 
-from mongoengine import *
+from mongoengine.fields import *
+from mongoengine import DoesNotExist, EmbeddedDocument, Document
 from JumpScale import j
 
 import uuid
@@ -400,3 +401,5 @@ class SessionCache(ModelBase, Document):
     meta = {'indexes': [
         {'fields': ['epoch'], 'expireAfterSeconds': 432000}
     ], 'allow_inheritance': True, "db_alias": DB}
+
+del EmbeddedDocument, DoesNotExist

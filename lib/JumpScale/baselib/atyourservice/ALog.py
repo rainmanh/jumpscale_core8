@@ -225,15 +225,37 @@ class ALog():
             service._setAction(name=action,epoch=int(epoch),state=state,log=False)
             return
 
+    def removeLastRun(self):
+        self.removeRun(self.lastRunId)
+
+    def removeRun(self,id):
+
+        C=j.do.readFile(self.path)
+        path2=self.path+"_"
+        j.sal.fs.writeFile(path2,"")
+        for line in C.split("\n"):
+            if line.strip()=="" or line.startswith("=="):
+                continue
+            cat,line1=line.split("|",1)
+            cat=cat.strip()
+            if cat=="R":
+                epoch,runid,remaining=line1.split("|",2)
+                if int(runid)==id:
+                    #found end
+                    j.sal.fs.moveFile(path2,self.path)
+                    return
+
+            j.sal.fs.writeFile(path2,line+"\n",append=True)
+
+
 
     def read(self):
 
         C=j.do.readFile(self.path)
 
-        run = (0,0) #2nd is epoch
         for line in C.split("\n"):
 
-            if line.strip()=="RUN" or line.strip()=="" or line.startswith("=="):
+            if line.strip()=="" or line.startswith("=="):
                 continue
 
             self._processLine(line)

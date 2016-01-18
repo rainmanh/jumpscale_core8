@@ -38,10 +38,27 @@ def init():
     # for item in chfiles:
     #     print ("- %s"%item)
 
+@click.command()
+def showactions():
+    """
+    shows all services with relevant actions
+    """
+    j.atyourservice.alog
+    for key,service in j.atyourservice.services.items():
+        print ("%s"%service)
+        for key,action in service.actions.items():
+            print ("- %-20s %s"%(key,action))
+
+@click.command()
+def removelastrun():
+    """
+    remove last runid from the actionlog
+    """
+    j.atyourservice.alog.removeLastRun()
 
 @click.command()
 @click.argument('action')
-@click.option('--printonly', default=False, help='if set will not really execute, only show what would have been done')
+@click.option('--printonly', default=False,  is_flag=True,help='if set will not really execute, only show what would have been done')
 def do(action,printonly=False):
     j.atyourservice.do(action,printonly=printonly)
 
@@ -74,6 +91,8 @@ cli.add_command(init)
 cli.add_command(do)
 cli.add_command(showproducers)
 cli.add_command(showparents)
+cli.add_command(showactions)
+cli.add_command(removelastrun)
 
 if __name__ == '__main__':
     j.atyourservice.debug=True

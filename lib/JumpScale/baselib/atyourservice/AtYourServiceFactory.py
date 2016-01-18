@@ -338,65 +338,34 @@ class AtYourServiceFactory():
 
         latestrun=self.alog.newRun()
 
-        todo=self.findTodo(action=action,printonly=printonly)
+        todo=self.findTodo(action=action)
+        
         step = 1
         while todo != []:
             print("execute state changes, nr services to process: %s in step:%s" % (len(todo), step))
             for i in range(len(todo)):
                 service = todo[i]
-
-                node1=None
-                if service.parent!=None:
-                    if service.role=="os" or service.parent.role=="os":
-                        #can only execute on OS
-                        node1=service.getActionMethodNode(action)
-
-                mgmt1=service.getActionMethodMgmt(action+"_pre")
-                mgmt2=service.getActionMethodMgmt(action)
-                mgmt3=service.getActionMethodMgmt(action+"_post")
-
-
-                if mgmt1!=None:
-                    service.runAction(action+"_pre")
-                if node1!=None:
-                    service.runAction(action,mgmt=False)
-                if mgmt2!=None:
-                    service.runAction(action)
-                if mgmt3!=None:
-                    service.runAction(action+"_post")
-
-            
-
-            if printonly:
-                # print ("DO: %-4s %-50s %s"%(step,service,action))
-                from IPython import embed
-                print ("DEBUG NOW sdsdsdfsdfsdf")
-                embed()
-                p
-                
-
-            todo = []
+                service.runAction(name=action,printonly=printonly)
             step += 1
-            todo=self.findTodo()
+            todo=self.findTodo(action=action)
+
+        if printonly:
+            self.alog.removeLastRun()
 
 
-
-
-    def findTodo(self,action="install",printonly=False):
+    def findTodo(self,action="install"):
         self.alog
+        todo=[]
         for key,service in self.services.items():
-            producersWaiting = service.getProducersWaiting(action,set())
-
-            if len(producersWaiting)==0:
-                print("%s waiting for install" % service)
-                self._todo.append(service)
-            # elif service in producersWaiting and len(producersWaiting)==1 and service.state.changed():
-            # elif service.state.changed():
-            #     print "%s waiting for install (mutual)" % service
-            #     self.todo.append(service)
-            elif j.application.debug:
-                print("%s no change in producers" % service)
-        return self._todo
+            actionrunobj=service.getAction(action)
+            if actionrunobj.state!="OK":
+                producersWaiting = service.getProducersWaiting(action,set())
+                if len(producersWaiting)==0:
+                    print("%s waiting for install" % service)
+                    todo.append(service)
+                elif j.application.debug:
+                    print("%s no change in producers" % service)
+        return todo
 
     def checkRevisions(self):
         if len(self.services) == 0:

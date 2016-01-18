@@ -1,6 +1,5 @@
 from JumpScale import j
 from actorgen import ActorGen
- as json
 import jinja2
 import urllib.parse
 
@@ -73,6 +72,7 @@ import urllib.parse
 
 class SwaggerGen(object):
     def __init__(self):
+        self.__jslocation__ = "j.tools.swaggerGen"
         tmplDir = j.sal.fs.joinPaths(j.sal.fs.getDirName(__file__),'templates')
         self.jinjaEnv = jinja2.Environment(
             loader=jinja2.FileSystemLoader(tmplDir),

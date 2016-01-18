@@ -143,8 +143,8 @@ class Errorcondition(ModelBase, Document):
     backtrace = StringField()
     backtraceDetailed = StringField()
     extra = StringField()
-    lasttime = IntField(default=0)
-    closetime = IntField(default=0)
+    lasttime = IntField(default=j.data.time.getTimeEpoch())
+    closetime = IntField(default=j.data.time.getTimeEpoch())
     occurrences = IntField(default=0)
 
 
@@ -269,27 +269,6 @@ class Heartbeat(ModelBase, Document):
     """
     """
     lastcheck = IntField(default=j.data.time.getTimeEpoch())
-
-
-class Jumpscript(ModelBase, Document):
-    name = StringField(default='')
-    descr = StringField(default='')
-    category = StringField(default='')
-    organization = StringField(default='')
-    author = StringField(default='')
-    license = StringField(default='')
-    version = StringField(default='')
-    roles = ListField(StringField())
-    action = StringField(default='')
-    source = StringField(default='')
-    path = StringField(default='')
-    args = ListField(StringField())
-    enabled = BooleanField()
-    async = BooleanField()
-    period = IntField()
-    order = IntField()
-    queue = StringField(default='')
-    log = BooleanField()
 
 
 class Machine(ModelBase, Document):

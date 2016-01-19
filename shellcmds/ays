@@ -60,10 +60,11 @@ def removelastrun():
 @click.argument('action')
 @click.option('--printonly', default=False,  is_flag=True,help='if set will not really execute, only show what would have been done')
 @click.option('--all', default=False,  is_flag=True,help='don\'t look for changed services, execute on all')
-def do(action,printonly=False,allservices=False):
+def do(action,printonly=False,all=False):
     """
     call an action
     """
+    allservices=all
     j.atyourservice.do(action,printonly=printonly,allservices=allservices)
 
 @click.command()

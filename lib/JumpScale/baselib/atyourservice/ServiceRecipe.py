@@ -41,8 +41,8 @@ class ServiceRecipe(ServiceTemplate):
 
         self._init()
 
-        if j.sal.fs.exists(self.parent.path_hrd_template):
-            j.sal.fs.copyFile(self.parent.path_hrd_template,self.path_hrd_template)
+        # if j.sal.fs.exists(self.parent.path_hrd_template):
+            # j.sal.fs.copyFile(self.parent.path_hrd_template,self.path_hrd_template)
         if j.sal.fs.exists(self.parent.path_hrd_schema):
             j.sal.fs.copyFile(self.parent.path_hrd_schema,self.path_hrd_schema)
         if j.sal.fs.exists(self.parent.path_actions_mgmt):

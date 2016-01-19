@@ -104,18 +104,18 @@ class ModelBase():
     def exists(cls, guid):
         return bool(cls.get(guid=guid))
 
-    def getset(cls, redis=True):
-        raise NotImplementedError
-        #key = cls._getKey(cls.guid)
-        #if redis:
-        #    model = self.get(cls.guid, redis=True)
-        #    if model == None:
-        #        self.set(modelobject, redis=True)
-        #        model = modelobject
-        #    model._redis = True
-        #    return model
-        #else:
-        #    raise RuntimeError("not implemented")
+    def getset(cls):
+        redis = getattr(cls, '__redis__', False)
+        key = cls._getKey(cls.guid)
+        if redis:
+            model = cls.get(key)
+            if model is None:
+                model = cls.save()
+            return model
+        else:
+            if not cls.get(cls.guid):
+                cls.save()
+            return cls.get(cls.guid)
 
     def __str__(self):
         return j.data.serializer.json.dumps(self.to_dict(), indent=2)
@@ -402,4 +402,4 @@ class SessionCache(ModelBase, Document):
         {'fields': ['epoch'], 'expireAfterSeconds': 432000}
     ], 'allow_inheritance': True, "db_alias": DB}
 
-del EmbeddedDocument, DoesNotExist
+del EmbeddedDocument

@@ -102,7 +102,7 @@ class AtYourServiceFactory():
         self.reset()
 
         baseDir=val
-        while ".ays" not in j.do.listDirsInDir(baseDir, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+        while j.sal.fs.joinPaths(baseDir, ".ays") not in j.sal.fs.listFilesInDir(baseDir, recursive=False):
             baseDir=j.do.getParent(baseDir)
 
             baseDir=baseDir.rstrip("/")

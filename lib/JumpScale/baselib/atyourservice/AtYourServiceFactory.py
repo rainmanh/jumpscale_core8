@@ -273,8 +273,8 @@ class AtYourServiceFactory():
         #start from clean sheet
         self.reset()
 
-        self.alog        
-        self.commitGitChanges(action="init_pre",msg='ays changed, commit changed files before deploy of blueprints',precheck=True)        
+        self.alog
+        self.commitGitChanges(action="init_pre",msg='ays changed, commit changed files before deploy of blueprints',precheck=True)
 
         latestrun=self.alog.newRun(action="init")
 
@@ -340,13 +340,13 @@ class AtYourServiceFactory():
 
 
     def do(self,action="install",printonly=False,remember=True,allservices=False):
-        
+
         self.alog
         self.commitGitChanges(action=action+"_pre",precheck=True)
         latestrun=self.alog.newRun(action=action)
 
         if not allservices:
-            #we need to find change since last time & make sure that 
+            #we need to find change since last time & make sure that
             #find all services with action with this name and put back on init
             changed,changes=self.alog.getChangedAtYourservices(action=action)
             for service in changed:
@@ -356,7 +356,7 @@ class AtYourServiceFactory():
 
 
         else:
-            todo=[item[1] for item in self.services.items()]            
+            todo=[item[1] for item in self.services.items()]
             for service in todo:
                 actionobj=service.getAction(action)
                 if remember==False or printonly:
@@ -377,7 +377,7 @@ class AtYourServiceFactory():
                 except Exception as e:
                     print ("***ERROR %s***\n%s\n"%(service,e))
                     error=True
-                    
+
             step += 1
             if error:
                 #don't do other levels, because error on this level
@@ -392,7 +392,7 @@ class AtYourServiceFactory():
             #revert git
             base=j.dirs.amInAYSRepo()
             self.git.checkout("%s/services/"%base)
-            self.git.checkout("%s/recipes/"%base)        
+            self.git.checkout("%s/recipes/"%base)
         else:
             #this will make sure we will have remembered the last state of this action
             self.commitGitChanges(action=action)

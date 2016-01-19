@@ -16,7 +16,7 @@ class ActionsBaseMgmt(object):
     this one happens at central side from which we coordinate our efforts
     """
 
-    
+
     def input(self, serviceObj):
         """
         gets executed before init happens of this ays
@@ -33,7 +33,7 @@ class ActionsBaseMgmt(object):
 
         ```
 
-        """        
+        """
         args=serviceObj.args
 
         toconsume=[]
@@ -94,7 +94,7 @@ class ActionsBaseMgmt(object):
                     else:
                         raise RuntimeError("Cannot find parent with role '%s' for service '%s, there is none, please make sure the service exists."%(role,serviceObj))
 
-            #check we can find 
+            #check we can find
             ays_s=j.atyourservice.findServices(role=role,instance=rolearg)
             if len(ays_s)==1:
                 pass
@@ -112,7 +112,7 @@ class ActionsBaseMgmt(object):
 
 
         if consumes!=[]:
-            
+
             for consumeitem in consumes:
                 #parent exists
                 role=consumeitem.consume_link
@@ -126,8 +126,8 @@ class ActionsBaseMgmt(object):
                 else:
                     ays_s=[]
                     serviceObj.args[consumename]=j.data.text.getList(serviceObj.args[consumename])
-                    for instancename in serviceObj.args[consumename]:                        
-                        service=j.atyourservice.getService(role=role,instance=instancename)  
+                    for instancename in serviceObj.args[consumename]:
+                        service=j.atyourservice.getService(role=role,instance=instancename)
                         if service not in ays_s:
                             ays_s.append(service)
 
@@ -144,7 +144,7 @@ class ActionsBaseMgmt(object):
                         serviceObj._producers[role]=[]
                     if ays not in serviceObj._producers[role]:
                         serviceObj._producers[role].append(ays)
-            
+
 
             for key, services in serviceObj._producers.items():
                 producers = []
@@ -163,12 +163,12 @@ class ActionsBaseMgmt(object):
         #     from IPython import embed
         #     print ("DEBUG NOW 222")
         #     embed()
-            
+
         #     p
 
         # from IPython import embed
         # embed()
-        
+
 
         # for depkey in serviceObj.recipe.hrd.getList("dependencies.node", default=[]):
 
@@ -400,4 +400,3 @@ class ActionsBaseMgmt(object):
 
     #     for src, dest in folders:
     #         serviceObj.upload2AYSfs(dest)
-

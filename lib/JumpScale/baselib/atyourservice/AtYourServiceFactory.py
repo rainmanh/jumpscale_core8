@@ -354,25 +354,40 @@ class AtYourServiceFactory():
                     actionobj=service.actions[action]
                     actionobj.setState("CHANGED")
 
-            todo=self.findTodo(action=action)
-
-            step = 1
-            while todo != []:
-                print("execute state changes, nr services to process: %s in step:%s" % (len(todo), step))
-                for i in range(len(todo)):
-                    service = todo[i]
-                    service.runAction(name=action,printonly=printonly)
-                step += 1
-                todo=self.findTodo(action=action)
 
         else:
             todo=[item[1] for item in self.services.items()]            
+            for service in todo:
+                actionobj=service.getAction(action)
+                if remember==False or printonly:
+                    actionobj._state="START"
+                else:
+                    actionobj.setState("START")
+
+        todo=self.findTodo(action=action)
+
+        step = 1
+        error=False
+        while todo != []:
+            print("execute state changes, nr services to process: %s in step:%s" % (len(todo), step))
             for i in range(len(todo)):
                 service = todo[i]
-                service.runAction(name=action,printonly=printonly)
-            todo=[]
+                try:
+                    service.runAction(name=action,printonly=printonly)
+                except Exception as e:
+                    print ("***ERROR %s***\n%s\n"%(service,e))
+                    error=True
+                    
+            step += 1
+            if error:
+                #don't do other levels, because error on this level
+                todo=[]
+            else:
+                todo=self.findTodo(action=action)
 
-        if printonly or remember==False:
+        if printonly:
+            remember=False
+        if remember==False and error==False:
             self.alog.removeLastRun()
             #revert git
             base=j.dirs.amInAYSRepo()
@@ -381,7 +396,6 @@ class AtYourServiceFactory():
         else:
             #this will make sure we will have remembered the last state of this action
             self.commitGitChanges(action=action)
-
 
 
     def findTodo(self,action="install"):

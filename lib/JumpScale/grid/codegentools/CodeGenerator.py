@@ -41,11 +41,11 @@ class CodeGenerator:
                 # print("remove code generated class %s from memory" % key
                 j.core.codegenerator.classes.pop(key2)
 
-        for key2 in list(j.core.portal.active.taskletengines.keys()):
+        for key2 in list(j.portal.active.taskletengines.keys()):
             app, item, remaining = key2.split("_", 2)
             if app == appname and item.find(actor) == 0:
                 # print("remove tasklets %s from memory" % key
-                j.core.portal.active.taskletengines.pop(key2)
+                j.portal.active.taskletengines.pop(key2)
 
     def resetMemNonSystem(self):
         for key2 in list(j.core.codegenerator.classes.keys()):
@@ -53,10 +53,10 @@ class CodeGenerator:
             if app != "system":
                 j.core.codegenerator.classes.pop(key2)
 
-        for key2 in list(j.core.portal.active.taskletengines.keys()):
+        for key2 in list(j.portal.active.taskletengines.keys()):
             app, item, remaining = key2.split("_", 2)
             if app != "system":
-                j.core.portal.active.taskletengines.pop(key2)
+                j.portal.active.taskletengines.pop(key2)
 
     def getClassActorLocal(self, appname, actor, typecheck=True, dieInGenCode=True):
         """

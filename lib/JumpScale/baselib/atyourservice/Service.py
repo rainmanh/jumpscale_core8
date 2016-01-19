@@ -117,6 +117,8 @@ class ActionRun():
             if self.method_mgmt_post!=None:
                 res.append(self.method_mgmt_post)
             self._methods=res
+
+        print('######## node', self.method_node, 'mgmt', self.method_mgmt)
         return self._methods
 
 
@@ -131,7 +133,7 @@ class ActionRun():
             print ("RUN:%s"%self)
             for method in self.methods:
                 if not self.printonly:
-                    if j.atyourservice.debug:   
+                    if j.atyourservice.debug:
                         # print (method)      
                         try:
                             res=method(self.service)
@@ -147,7 +149,6 @@ class ActionRun():
                             ok=False
                             try:
                                 res=self.method(self.service)
-                                print ("sdsdsds")
                                 raise RuntimeError("1111")
                                 ok=True
                             except Exception as e:
@@ -335,7 +336,7 @@ class Service(object):
     def action_methods_node(self):
         if self._action_methods_node is None:
             if j.sal.fs.exists(path=self.recipe.path_actions_node):
-                self._action_methods_mgmt = self._loadActions(self.recipe.path_actions_node,"node")
+                self._action_methods_node = self._loadActions(self.recipe.path_actions_node,"node")
             else:
                 self._action_methods_node = j.atyourservice.getActionsBaseClassNode()()
 

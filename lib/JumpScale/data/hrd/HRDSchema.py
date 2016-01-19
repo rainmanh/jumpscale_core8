@@ -64,7 +64,7 @@ class HRDType():
                     maxValue=self.maxValue, retry=self.retry,validate=self.typeclass.check)
                 result=self.typeclass.fromString(result)
 
-            elif ttype=="bool":
+            elif ttype=="boolean":
                 if descr!="":
                     print(descr)
                 result=j.tools.console.askYesNo()

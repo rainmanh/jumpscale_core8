@@ -1,101 +1,26 @@
 #!/usr/bin/env jspython
 
-from JumpScale.tools import cmdutils
-import JumpScale.baselib.atyourservice
 from JumpScale import j
-import sys
-import functools
-j.application.start('ays')
-
-parser = cmdutils.ArgumentParser()
-j.logger.enabled = True
-j.logger.consolelogCategories.append('atyourserviceAction')
-
-help = """
-ays executer
-
-how to use: aysexec $action_name  -n $service_key --data '$args=$value,$args=$value'
-"""
-
-group = parser.add_argument_group(title="Execute")
-group.add_argument('--data', required=False, help='use this to pass hrd information to ays e.g. \'redis.name:system redis.port:9999 redis.disk:0\'')
-group.add_argument('-a', '--action', required=True, help='action to execute')
-
-group = parser.add_argument_group(title="Service Selection")
-group.add_argument('-q', '--quiet', required=False, action='store_true', help='Put in quiet mode')
-group.add_argument('-n', '--name', required=False, help='Name of ays to be executed', default="")
-group.add_argument('-d', '--domain', required=False, help='Name of ays domain to be executed', default="")
-group.add_argument('-i', '--instance', required=False, help='Instance of ays (default main)', default="")
-group.add_argument('--parent', required=False, default='', help='parent service ($domain|$name!$instance@role).')
-group.add_argument('--role', required=False, help='Role of ays', default="")
-
-group = parser.add_argument_group(title="Options")
-group.add_argument('-f', '--force', required=False, action='store_true', help='auto answer yes on every question')
-group.add_argument('--nodeps', required=False, action='store_true', help='Don\'t perfomr action on dependencies, default False', default=False)
-group.add_argument('--verbose', required=False, action='store_true', default=False, help='Verbose output.')
-
-# install
+import click
 
 
-# list
-# group = parser.add_argument_group(title="List")
-# group.add_argument('--installed', required=False, action='store_true', default=None, help='List installed ayses')
-
-# group = parser.add_argument_group(title="Make Local")
-# group.add_argument('--tolocal', required=False, help='Comma-seperated list of services to be localized')
+@click.group()
+def cli():
+    pass
 
 
-def sorter(ays1, ays2):
-    prio1 = ays1.getPriority()
-    prio2 = ays2.getPriority()
-    if prio1 != prio2:
-        return (prio1 > prio2) - (prio1 < prio2) 
-    else:
-        key1 = "%s_%s" % (ays1.domain, ays2.name)
-        key2 = "%s_%s" % (ays2.domain, ays2.name)
-        return (key1 > key2) - (key1 < key2) 
+@click.command()
+@click.argument('action')
+@click.argument('role')
+@click.argument('instance')
+@click.option('--debug', default=True, help='enable debug', type=bool)
+def do(action, role, instance, debug):
+    j.atyourservice.debug = debug
 
-def getHRDData(args):
-    hrddata = {}
-    if args.data is not None:
-        if args.data.find("#") != -1:
-            for line in args.data.split("#"):
-                if line.find("=") != -1:
-                    var, data = line.split("=", 1)
-                    hrddata[var.strip()] = data.strip()
-        else:
-            tags = j.data.tags.getObject(args.data)
-            hrddata = tags.getDict()
-    return hrddata
+    service = j.atyourservice.getService(role=role, instance=instance, die=True)
+    eval("service.action_methods_node.%s(service)" % action)
 
-def getParent(args):
-    if args.parent is None or (isinstance(args.parent, str) is True and args.parent == ''):
-        return None
-    if not isinstance(args.parent, str):
-        return args.parent
-    return j.atyourservice.getServiceFromKey(args.parent)
+cli.add_command(do)
 
-def getServices(args):
-    services = j.atyourservice.findServices(domain=args.domain, name=args.name, instance=args.instance, role=args.role, parent=getParent(args))
-    return services
-
-if '--help' in sys.argv or '-h' in sys.argv:
-    print(help)
-
-args = parser.parse_args()
-args.deps = not args.nodeps
-
-j.application.debug = args.verbose
-
-if args.quiet:
-    class NullDevice():
-
-        def write(self, s):
-            pass
-    sys.stdout = NullDevice()
-
-for service in sorted(getServices(args), key=functools.cmp_to_key(sorter)):
-    eval("service.actions_node.%s(service)" % args.action)
-
-j.application.stop()
-j.logger.enabled = False
+if __name__ == '__main__':
+    cli()

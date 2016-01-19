@@ -2402,7 +2402,7 @@ exec python3 -q "$@"
         else:
             self.installpip()
             # cmds="""
-            # pip install ipython
+            # pip3 install ipython
             # """
             # do.executeCmds(cmds)
 
@@ -2452,91 +2452,92 @@ exec python3 -q "$@"
         """
         do.executeCmds(CMDS)
 
-    def prepareUbuntu15Development(self,js=True,updateUbuntu=True):
-        self.cleanSystem()
-        print("prepare ubuntu for development")
 
-        if updateUbuntu:
-            self.updateUpgradeUbuntu()
+    # def prepareUbuntu15Development(self,js=True,updateUbuntu=True):
+    #     self.cleanSystem()
+    #     print("prepare ubuntu for development")
 
-
-        CMDS="""
-        apt-get install mc git ssh openssl ca-certificates -y
-        apt-get install byobu tmux libmhash2 -y
-        #libpython-all-dev python-redis python-hiredis
-        apt-get install libpython3.5-dev python3.5-dev libffi-dev gcc build-essential autoconf libtool pkg-config libpq-dev -f
-        apt-get install libsqlite3-dev -f
-        apt-get install net-tools sudo -f
-        """
-        do.executeCmds(CMDS)
+    #     if updateUbuntu:
+    #         self.updateUpgradeUbuntu()
 
 
-        print("INSTALLPIP")
-        self.installpip()
+    #     CMDS="""
+    #     apt-get install mc git ssh openssl ca-certificates -y
+    #     apt-get install byobu tmux libmhash2 -y
+    #     #libpython-all-dev python-redis python-hiredis
+    #     apt-get install libpython3.5-dev python3.5-dev libffi-dev gcc build-essential autoconf libtool pkg-config libpq-dev -f
+    #     apt-get install libsqlite3-dev -f
+    #     apt-get install net-tools sudo -f
+    #     """
+    #     do.executeCmds(CMDS)
 
-        print("install python parts")
 
-        CMDS="""
-        rm -f /usr/bin/python
-        rm -f /usr/bin/python3
-        ln -s /usr/bin/python3.5 /usr/bin/python
-        ln -s /usr/bin/python3.5 /usr/bin/python3
+    #     print("INSTALLPIP")
+    #     self.installpip()
 
-        #pip install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
+    #     print("install python parts")
 
-        pip install paramiko
+    #     CMDS="""
+    #     rm -f /usr/bin/python
+    #     rm -f /usr/bin/python3
+    #     ln -s /usr/bin/python3.5 /usr/bin/python
+    #     ln -s /usr/bin/python3.5 /usr/bin/python3
 
-        pip install msgpack-python
-        pip install redis
-        pip install credis
-        pip install aioredis
+    #     #pip3 install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
 
-        pip install mongoengine
+    #     pip3 install paramiko
 
-        pip install bcrypt
-        pip install blosc
-        pip install bson
-        pip install certifi
-        pip install docker-py
+    #     pip3 install msgpack-python
+    #     pip3 install redis
+    #     pip3 install credis
+    #     pip3 install aioredis
 
-        pip install gitlab3
-        pip install gitpython
-        pip install html2text
+    #     pip3 install mongoengine
 
-        # pip install pysqlite
+    #     pip3 install bcrypt
+    #     pip3 install blosc
+    #     pip3 install bson
+    #     pip3 install certifi
+    #     pip3 install docker-py
 
-        pip install influxdb
-        pip install ipdb
-        pip install ipython --upgrade
-        pip install jinja2
-        pip install netaddr
+    #     pip3 install gitlab3
+    #     pip3 install gitpython
+    #     pip3 install html2text
 
-        #pip install numpy
+    #     # pip3 install pysqlite
 
-        pip install reparted
-        pip install pytoml
-        pip install pystache
-        pip install pymongo
-        pip install psycopg2
-        pip install pathtools
-        pip install psutil
+    #     pip3 install influxdb
+    #     pip3 install ipdb
+    #     pip3 install ipython --upgrade
+    #     pip3 install jinja2
+    #     pip3 install netaddr
 
-        pip install pytz
-        pip install requests
-        pip install sqlalchemy
-        pip install urllib3
-        # pip install zmq
-        pip install pyyaml
-        pip install websocket
-        pip install marisa-trie
-        pip install pylzma
-        pip install ujson
-        """
-        do.executeCmds(CMDS)
+    #     #pip3 install numpy
 
-        if js:
-            self.installJS(clean=False)
-        print("done")
+    #     pip3 install reparted
+    #     pip3 install pytoml
+    #     pip3 install pystache
+    #     pip3 install pymongo
+    #     pip3 install psycopg2
+    #     pip3 install pathtools
+    #     pip3 install psutil
+
+    #     pip3 install pytz
+    #     pip3 install requests
+    #     pip3 install sqlalchemy
+    #     pip3 install urllib3
+    #     # pip3 install zmq
+    #     pip3 install pyyaml
+    #     pip3 install websocket
+    #     pip3 install marisa-trie
+    #     pip3 install pylzma
+    #     pip3 install ujson
+    #     """
+    #     do.executeCmds(CMDS)
+
+    #     if js:
+    #         self.installJS(clean=False)
+    #     print("done")
 
 
 

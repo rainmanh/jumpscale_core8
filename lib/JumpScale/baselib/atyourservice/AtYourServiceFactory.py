@@ -11,7 +11,7 @@ from ALog import *
 
 from AtYourServiceSync import AtYourServiceSync
 try:
-    from AtYourServiceDebug import AtYourServiceDebugFactory
+    from AtYourServiceSandboxer import *
 except:
     pass
 import os
@@ -44,25 +44,26 @@ class AtYourServiceFactory():
         self.hrd = None
         self._justinstalled = []
         self._type = None
-        self._services = []
+        self._services = {}
         self._templates = []
         self._recipes = []
         self.indocker = False
         self.sync = AtYourServiceSync()
         self._reposDone = {}
         self._todo = []
-        self._debug=None
+        self.debug=False
         self._basepath=None
         self._git=None
         self._blueprints=[]
         self._alog=None
         self._runcategory=""
+        self._sandboxer=None
 
         # self._db=AYSDB()
 
     def reset(self):
         # self._db.reload()
-        self._services = []
+        self._services = {}
         self._templates = []
         self._recipes = []
         self._reposDone = {}
@@ -87,7 +88,7 @@ class AtYourServiceFactory():
     def alog(self):
         if self._alog==None:
             self._alog=ALog(self.runcategory)
-            self._alog.getNewRun()
+            # self._alog.getNewRun()
         return self._alog
 
     @property
@@ -121,10 +122,10 @@ class AtYourServiceFactory():
         return self._git
 
     @property
-    def debug(self):
-        if self._debug==None:
-            self._debug=AtYourServiceDebugFactory()
-        return self._debug
+    def sandboxer(self):
+        if self._sandboxer==None:
+            self._sandboxer=AtYourServiceSandboxer()
+        return self._sandboxer
 
     @property
     def type(self):
@@ -195,13 +196,12 @@ class AtYourServiceFactory():
     @property
     def services(self):
         self._doinit()
-        if self._services==[]:
+        if self._services=={}:
             for hrd_path in j.sal.fs.listFilesInDir(j.dirs.ays, recursive=True, \
                 filter="instance.hrd", case_sensitivity='os', followSymlinks=True, listSymlinks=False):
                 service_path = j.sal.fs.getDirName(hrd_path)
                 service = Service(path=service_path, args=None)
-                self._services.append(service)
-
+                self._services[service.shortkey]=service
         return self._services
 
     @property
@@ -263,23 +263,31 @@ class AtYourServiceFactory():
         self._init=True
 
     def init(self,newrun=True):
-        #look for .git
-        print("init runid:%s"%self.alog.currentRunId)
+
+        self.reset()
+
+        #make sure the recipe's are loaded & initted
+        for bp in self.blueprints:
+            bp.loadrecipes()
+
+        #start from clean sheet
+        self.reset()
+
+        self.alog        
+        self.commitGitChanges(action="init_pre",msg='ays changed, commit changed files before deploy of blueprints',precheck=True)        
+
+        latestrun=self.alog.newRun(action="init")
+
+        print("init runid:%s"%self.alog.lastRunId)
         commitc=""
         for bp in self.blueprints:
             bp.execute()
             commitc+="\nBlueprint:%s\n"%bp.path
             commitc+=bp.content+"\n"
 
-        repo=self.git.commit(message='ays blueprint:\n%s'%commitc, addremove=True)
-        githash=repo.hexsha
-
-        self.alog.setGitCommit("init",githash)
+        self.commitGitChanges(action="init")
 
         print ("init done")
-
-        # lastref=self.git.getCommitRefs()[-1][1]
-        # return self.git.getChangedFiles(lastref)
 
 
     def updateTemplatesRepos(self, repos=[]):
@@ -306,62 +314,103 @@ class AtYourServiceFactory():
     def getActionsBaseClassMgmt(self):
         return ActionsBaseMgmt
 
-    def apply(self,category="deploy",newrun=True):
+    def install(self,printonly=False,remember=True):
+        self.alog
+        #start from clean sheet
+        self.init()
+        self.do(action="install",printonly=printonly,remember=remember)
+        if printonly or remember==False:
+            self.alog.removeLastRun()
 
-        from IPython import embed
-        print ("DEBUG NOW apply")
-        embed()
-        p
 
-        self.check()
-        if self.todo == []:
-            self.findtodo()
+    def commitGitChanges(self,action="unknown",msg="",precheck=False):
+        if len(self.git.getModifiedFiles(True,ignore=["/alog/"]))>0:
+            if msg=="":
+                msg='ays changed, commit changed files for action:%s'%action
+            print(msg)
+            repo=self.git.commit(message=msg, addremove=True)
+            self.alog.newGitCommit(action=action,githash=repo.hexsha)
+        else:
+            #@todo will create duplicates will have to fix that
+            #git hash is current state
+            if not precheck:
+                #only do this when no precheck, means we are not cleaning up past
+                self.alog.newGitCommit(action=action,githash="")
+
+
+
+    def do(self,action="install",printonly=False,remember=True,allservices=False):
+        
+        self.alog
+        self.commitGitChanges(action=action+"_pre",precheck=True)
+        latestrun=self.alog.newRun(action=action)
+
+        if not allservices:
+            #we need to find change since last time & make sure that 
+            #find all services with action with this name and put back on init
+            changed,changes=self.alog.getChangedAtYourservices(action=action)
+            for service in changed:
+                if action in service.actions:
+                    actionobj=service.actions[action]
+                    actionobj.setState("CHANGED")
+
+
+        else:
+            todo=[item[1] for item in self.services.items()]            
+            for service in todo:
+                actionobj=service.getAction(action)
+                if remember==False or printonly:
+                    actionobj._state="START"
+                else:
+                    actionobj.setState("START")
+
+        todo=self.findTodo(action=action)
+
         step = 1
-        while self.todo != []:
-            print("execute state changes, nr services to process: %s in step:%s" % (len(self.todo), step))
-            for i in range(len(self.todo)):
-                service = self.todo[i]
-                service.install()
-
-            self.todo = []
+        error=False
+        while todo != []:
+            print("execute state changes, nr services to process: %s in step:%s" % (len(todo), step))
+            for i in range(len(todo)):
+                service = todo[i]
+                try:
+                    service.runAction(name=action,printonly=printonly)
+                except Exception as e:
+                    print ("***ERROR %s***\n%s\n"%(service,e))
+                    error=True
+                    
             step += 1
-            self.findtodo()
+            if error:
+                #don't do other levels, because error on this level
+                todo=[]
+            else:
+                todo=self.findTodo(action=action)
 
-    def check(self):
-        for service in self.findServices():
-            service.check()
-        # for service in self.findServices():
-        #     service.recurring.check()
+        if printonly:
+            remember=False
+        if remember==False and error==False:
+            self.alog.removeLastRun()
+            #revert git
+            base=j.dirs.amInAYSRepo()
+            self.git.checkout("%s/services/"%base)
+            self.git.checkout("%s/recipes/"%base)        
+        else:
+            #this will make sure we will have remembered the last state of this action
+            self.commitGitChanges(action=action)
 
-    def applyprint(self,path=""):
-        if self.todo == []:
-            self.findtodo(path)
-        step = 1
-        print("execute state changes, nr services to process: %s in step:%s" % (len(self.todo), step))
-        for i in range(len(self.todo)):
-            service = self.todo[i]
-            if service.state.changed():
-                print("UPLOAD")
-                service._uploadToNode()
-                # service.state.installDoneOK()
-                # j.sal.fs.copyFile("%s/instance.hrd"%service.path,"%s/instance_old.hrd"%service.path)
-        self.todo = []
-        step += 1
-        self.findtodo()
 
-    def findtodo(self,category="deploy"):
-        for service in self.services:
-            producersWaiting = service.getProducersWaiting(category,set())
-
-            if len(producersWaiting)==0:
-                print("%s waiting for install" % service)
-                self.todo.append(service)
-            # elif service in producersWaiting and len(producersWaiting)==1 and service.state.changed():
-            # elif service.state.changed():
-            #     print "%s waiting for install (mutual)" % service
-            #     self.todo.append(service)
-            elif j.application.debug:
-                print("%s no change in producers" % service)
+    def findTodo(self,action="install"):
+        self.alog
+        todo=[]
+        for key,service in self.services.items():
+            actionrunobj=service.getAction(action)
+            if actionrunobj.state!="OK":
+                producersWaiting = service.getProducersWaiting(action,set())
+                if len(producersWaiting)==0:
+                    print("%s waiting for install" % service)
+                    todo.append(service)
+                elif j.application.debug:
+                    print("%s no change in producers" % service)
+        return todo
 
     def checkRevisions(self):
         if len(self.services) == 0:
@@ -423,7 +472,7 @@ class AtYourServiceFactory():
     def findServices(self, name="", instance="",version="", domain="", parent=None, first=False, role="", node=None, include_disabled=False):
         res = []
 
-        for service in self.services:
+        for shortkey,service in self.services.items():
             if service._state and service._state.hrd.getBool('disabled', False) and not include_disabled:
                 continue
             if not(name == "" or service.name == name):
@@ -497,14 +546,13 @@ class AtYourServiceFactory():
         Return service indentifier by domain,name and instance
         throw error if service is not found or if more than one service is found
         """
-        res = self.findServices(role=role, instance=instance)
-
-        if len(res) != 1:
-            if die:
-                j.events.inputerror_critical("Cannot get ays service '%s', found %s services" % (role, len(res)),
-                                             "ays.getservice")
-            else:
-                return None
+        shortkey="%s!%s"%(role,instance)
+        if shortkey in self.services:
+            return self.services[shortkey]
+        if die:
+            j.events.inputerror_critical("Cannot get ays service '%s', did not find" % shortkey,"ays.getservice")
+        else:
+            return None
 
         return res[0]
 

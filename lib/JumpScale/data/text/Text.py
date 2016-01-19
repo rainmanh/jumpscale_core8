@@ -362,6 +362,8 @@ class Text:
         """
         try to check int or float or bool
         """
+        if not isinstance(string, str):
+            string = str(string)
         if string.lower()=="empty":
             return "n",None
         if string.lower()=="none":

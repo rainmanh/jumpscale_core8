@@ -75,45 +75,36 @@ class ServiceRecipe(ServiceTemplate):
 
         instance = instance.lower()
 
-        services = j.atyourservice.findServices(role=self.role, instance=instance)
+        service = j.atyourservice.getService(role=self.role, instance=instance,die=False)
 
-        if len(services) == 1:
-            if j.application.debug:
-                print("Service instance %s!%s  exists." % (self.name, instance))
+        if service!=None:
+            # if j.application.debug:
+            #     print("Service instance %s!%s  exists." % (self.name, instance))
 
-            services[0].args.update(args)  # needed to get the new args in
-            services[0]._recipe = self
-            service = services[0]
-
+            service.args.update(args)  # needed to get the new args in
+            service._recipe = self
             service.init()
 
-        elif len(services) > 1:
-            raise RuntimeError("Found too many ays'es for %s!%s for parent %s "%(self.name,instance,parent))
-
         else:
-            basename = "%s!%s" % (self.role, instance)
+            shortkey = "%s!%s" % (self.role, instance)
 
             if path != "" and path is not None:
                 fullpath = path
             elif parent is not None:
-                fullpath = j.sal.fs.joinPaths(parent.path, basename)
+                fullpath = j.sal.fs.joinPaths(parent.path, shortkey)
             else:
                 ppath = j.dirs.amInAYSRepo()
                 if ppath is None:
                     ppath = "/etc/ays/local/"
                 else:
                     ppath = "%s/services/" % (ppath)
-                fullpath = j.sal.fs.joinPaths(ppath, basename)
+                fullpath = j.sal.fs.joinPaths(ppath, shortkey)
 
             if j.sal.fs.isDir(fullpath):
                 j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (self.role, instance, fullpath), category="ays.servicetemplate")
 
             service = Service(self, instance=instance, args=args, path=fullpath, parent=parent,originator=originator)
-
-
-            if service not in j.atyourservice.services:
-                j.atyourservice.services.append(service)
-
+            j.atyourservice._services[service.shortkey]=service
             service.init()
             service.consume(consume)
 
@@ -188,7 +179,7 @@ class ServiceRecipe(ServiceTemplate):
                     items += j.sal.fs.listDirsInDir(
                         path=src, recursive=False, dirNameOnly=False, findDirectorySymlinks=False)
 
-                items = [(item, "%s/%s" % (dest, j.sal.fs.getBaseName(item)), link)
+                items = [(item, "%s/%s" % (dest, j.sal.fs.getshortkey(item)), link)
                          for item in items]
             else:
                 items = [(src, dest, link)]

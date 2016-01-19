@@ -104,11 +104,13 @@ class ActionsBaseMgmt(object):
             else:
                 raise RuntimeError("Cannot find parent '%s:%s' for service '%s:%s', please make sure the service exists."%(role,rolearg,serviceObj))
 
-            serviceObj.hrd.set("parent",ays_s[0].key)
+            serviceObj.hrd.set("parent",ays_s[0].shortkey)
             serviceObj._parent=ays_s[0]
 
-
+        #manipulate the HRD's to mention the consume's to producers
         consumes=serviceObj.recipe.schema.consumeSchemaItemsGet()
+
+
         if consumes!=[]:
             
             for consumeitem in consumes:
@@ -116,8 +118,8 @@ class ActionsBaseMgmt(object):
                 role=consumeitem.consume_link
                 consumename=consumeitem.name
 
-                if consumename=="parent":
-                    continue
+                # if consumename=="parent":
+                #     continue
 
                 if not consumename in serviceObj.args:
                     ays_s=[]
@@ -125,11 +127,9 @@ class ActionsBaseMgmt(object):
                     ays_s=[]
                     serviceObj.args[consumename]=j.data.text.getList(serviceObj.args[consumename])
                     for instancename in serviceObj.args[consumename]:                        
-                        services=j.atyourservice.findServices(role=role,instance=instancename)  
-                        if len(services)==0:
-                            raise RuntimeError("Cannot find producer '%s:%s' for service '%s', please make sure the service exists."%(role,rolearg,serviceObj))
-                        if services[0] not in ays_s:
-                            ays_s.append(services[0])
+                        service=j.atyourservice.getService(role=role,instance=instancename)  
+                        if service not in ays_s:
+                            ays_s.append(service)
 
                 if len(ays_s)>int(consumeitem.consume_nr_max):
                     raise RuntimeError("Found too many services with role '%s' which we are relying upon for service '%s, max:'%s'"%(role,serviceObj,consumeitem.consume_nr_max))
@@ -140,21 +140,31 @@ class ActionsBaseMgmt(object):
                     raise RuntimeError(msg)
 
                 for ays in ays_s:
-                    if role not in  serviceObj._producers:
+                    if role not in  serviceObj.producers:
                         serviceObj._producers[role]=[]
                     if ays not in serviceObj._producers[role]:
                         serviceObj._producers[role].append(ays)
-
+            
 
             for key, services in serviceObj._producers.items():
                 producers = []
                 for service in services:
                     if service.key not in producers:
-                        producers.append(service.key)
+                        producers.append(service.shortkey)
 
                 serviceObj.hrd.set("producer.%s" % key, producers)
 
 
+
+
+
+
+        # if serviceObj.parent!=None:
+        #     from IPython import embed
+        #     print ("DEBUG NOW 222")
+        #     embed()
+            
+        #     p
 
         # from IPython import embed
         # embed()
@@ -204,6 +214,10 @@ class ActionsBaseMgmt(object):
 
         return toconsume
 
+    # def consume(self,serviceObj,producer):
+    #     pass
+
+
     def hrd(self, serviceObj):
         """
         manipulate the hrd's after processing of the @ASK statements
@@ -236,58 +250,58 @@ class ActionsBaseMgmt(object):
             serv = dep[0]
         return serv
 
-    def consume(self, serviceObj, producer):
-        """
-        gets executed just before we do install
-        this allows hrd's to be influeced
-        """
-        pass
+    # def consume(self, serviceObj, producer):
+    #     """
+    #     gets executed just before we do install
+    #     this allows hrd's to be influeced
+    #     """
+    #     pass
 
-    def install_pre(self, serviceObj):
-        """
-        """
-        return True
+    # def install_pre(self, serviceObj):
+    #     """
+    #     """
+    #     return True
 
-    def install_post(self, serviceObj):
-        """
-        """
-        return True
+    # def install_post(self, serviceObj):
+    #     """
+    #     """
+    #     return True
 
-    def start(self,serviceObj):
-        """
-        """
-        return True
+    # def start(self,serviceObj):
+    #     """
+    #     """
+    #     return True
 
-    def stop(self, serviceObj):
-        """
-        """
-        return True
+    # def stop(self, serviceObj):
+    #     """
+    #     """
+    #     return True
 
-    def halt(self,serviceObj):
-        """
-        hard kill the app
-        """
-        return True
+    # def halt(self,serviceObj):
+    #     """
+    #     hard kill the app
+    #     """
+    #     return True
 
-    def check_up(self, serviceObj, wait=True):
-        """
-        do checks to see if process(es) is (are) running.
-        """
-        return True
+    # def check_up(self, serviceObj, wait=True):
+    #     """
+    #     do checks to see if process(es) is (are) running.
+    #     """
+    #     return True
 
-    def check_down(self, serviceObj, wait=True):
-        """
-        do checks to see if process(es) is down.
-        """
-        return True
+    # def check_down(self, serviceObj, wait=True):
+    #     """
+    #     do checks to see if process(es) is down.
+    #     """
+    #     return True
 
 
-    def check_requirements(self,serviceObj):
-        """
-        do checks if requirements are met to install this app
-        e.g. can we connect to database, is this the right platform, ...
-        """
-        return True
+    # def check_requirements(self,serviceObj):
+    #     """
+    #     do checks if requirements are met to install this app
+    #     e.g. can we connect to database, is this the right platform, ...
+    #     """
+    #     return True
 
     # def schedule(self, serviceObj, cron, method):
     #     """
@@ -332,58 +346,58 @@ class ActionsBaseMgmt(object):
     #     prefix = 'ays.{name}.'.format(name=str(serviceObj))
     #     client.scheduler.unschedule_prefix(prefix)
 
-    def monitor(self, serviceObj):
-        """
-        monitoring actions
-        do not forget to schedule in your service.hrd or instance.hrd
-        """
-        return True
+    # def monitor(self, serviceObj):
+    #     """
+    #     monitoring actions
+    #     do not forget to schedule in your service.hrd or instance.hrd
+    #     """
+    #     return True
 
-    def cleanup(self,serviceObj):
-        """
-        regular cleanup of env e.g. remove logfiles, ...
-        is just to keep the system healthy
-        do not forget to schedule in your service.hrd or instance.hrd
-        """
-        return True
+    # def cleanup(self,serviceObj):
+    #     """
+    #     regular cleanup of env e.g. remove logfiles, ...
+    #     is just to keep the system healthy
+    #     do not forget to schedule in your service.hrd or instance.hrd
+    #     """
+    #     return True
 
-    def data_export(self,serviceObj):
-        """
-        export data of app to a central location (configured in hrd under whatever chosen params)
-        return the location where to restore from (so that the restore action knows how to restore)
-        we remember in $name.export the backed up events (epoch,$id,$state,$location)  $state is OK or ERROR
-        """
-        return False
+    # def data_export(self,serviceObj):
+    #     """
+    #     export data of app to a central location (configured in hrd under whatever chosen params)
+    #     return the location where to restore from (so that the restore action knows how to restore)
+    #     we remember in $name.export the backed up events (epoch,$id,$state,$location)  $state is OK or ERROR
+    #     """
+    #     return False
 
-    def data_import(self,id,serviceObj):
-        """
-        import data of app to local location
-        if specifies which retore to do, id corresponds with line item in the $name.export file
-        """
-        return False
+    # def data_import(self,id,serviceObj):
+    #     """
+    #     import data of app to local location
+    #     if specifies which retore to do, id corresponds with line item in the $name.export file
+    #     """
+    #     return False
 
-    def uninstall(self,serviceObj):
-        """
-        uninstall the apps, remove relevant files
-        """
-        pass
+    # def uninstall(self,serviceObj):
+    #     """
+    #     uninstall the apps, remove relevant files
+    #     """
+    #     pass
 
-    def removedata(self,serviceObj):
-        """
-        remove all data from the app (called when doing a reset)
-        """
-        pass
+    # def removedata(self,serviceObj):
+    #     """
+    #     remove all data from the app (called when doing a reset)
+    #     """
+    #     pass
 
 
-    def test(self,serviceObj):
-        """
-        test the service on appropriate behavior
-        """
-        pass
+    # def test(self,serviceObj):
+    #     """
+    #     test the service on appropriate behavior
+    #     """
+    #     pass
 
-    def build(self, serviceObj):
-        folders = serviceObj.installRecipe()
+    # def build(self, serviceObj):
+    #     folders = serviceObj.installRecipe()
 
-        for src, dest in folders:
-            serviceObj.upload2AYSfs(dest)
+    #     for src, dest in folders:
+    #         serviceObj.upload2AYSfs(dest)
 

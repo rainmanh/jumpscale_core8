@@ -1,5 +1,6 @@
 
-from mongoengine import *
+from mongoengine.fields import *
+from mongoengine import DoesNotExist, EmbeddedDocument, Document
 from JumpScale import j
 
 import uuid
@@ -7,7 +8,7 @@ import uuid
 DB = 'jumpscale_system'
 
 
-class ModelBase(object):
+class ModelBase():
     DoesNotExist = DoesNotExist
 
     guid = StringField(default=lambda: str(uuid.uuid4()))
@@ -78,7 +79,6 @@ class ModelBase(object):
     def validate(self, clean):
         return Document.validate(self, clean)
 
-
     def _datatomodel(self, data):
         for key, value in data.items():
             setattr(self, key, value)
@@ -98,24 +98,24 @@ class ModelBase(object):
             key = self._getKey(self.guid)
             j.core.db.delete(key)
         else:
-            return super(ModelBase, self).delete()
+            return Document.delete(self)
 
     @classmethod
     def exists(cls, guid):
         return bool(cls.get(guid=guid))
 
-    def getset(cls, redis=True):
-        raise NotImplementedError
-        #key = cls._getKey(cls.guid)
-        #if redis:
-        #    model = self.get(cls.guid, redis=True)
-        #    if model == None:
-        #        self.set(modelobject, redis=True)
-        #        model = modelobject
-        #    model._redis = True
-        #    return model
-        #else:
-        #    raise RuntimeError("not implemented")
+    def getset(cls):
+        redis = getattr(cls, '__redis__', False)
+        key = cls._getKey(cls.guid)
+        if redis:
+            model = cls.get(key)
+            if model is None:
+                model = cls.save()
+            return model
+        else:
+            if not cls.get(cls.guid):
+                cls.save()
+            return cls.get(cls.guid)
 
     def __str__(self):
         return j.data.serializer.json.dumps(self.to_dict(), indent=2)
@@ -144,8 +144,8 @@ class Errorcondition(ModelBase, Document):
     backtrace = StringField()
     backtraceDetailed = StringField()
     extra = StringField()
-    lasttime = IntField(default=0)
-    closetime = IntField(default=0)
+    lasttime = IntField(default=j.data.time.getTimeEpoch())
+    closetime = IntField(default=j.data.time.getTimeEpoch())
     occurrences = IntField(default=0)
 
 
@@ -272,28 +272,6 @@ class Heartbeat(ModelBase, Document):
     lastcheck = IntField(default=j.data.time.getTimeEpoch())
 
 
-class Jumpscript(ModelBase, Document):
-    id = IntField()
-    name = StringField(default='')
-    descr = StringField(default='')
-    category = StringField(default='')
-    organization = StringField(default='')
-    author = StringField(default='')
-    license = StringField(default='')
-    version = StringField(default='')
-    roles = ListField(StringField())
-    action = StringField(default='')
-    source = StringField(default='')
-    path = StringField(default='')
-    args = ListField(StringField())
-    enabled = BooleanField()
-    async = BooleanField()
-    period = IntField()
-    order = IntField()
-    queue = StringField(default='')
-    log = BooleanField()
-
-
 class Machine(ModelBase, Document):
     name = StringField(default='')
     roles = ListField(StringField())
@@ -323,7 +301,7 @@ class Nic(ModelBase, Document):
 class Node(ModelBase, Document):
     name = StringField(default='')
     roles = ListField(StringField())
-    netaddr = StringField(default='')
+    netaddr = DictField(default={})
     machineguid = StringField(default='')
     ipaddr = ListField(StringField())
     active = BooleanField()
@@ -423,3 +401,5 @@ class SessionCache(ModelBase, Document):
     meta = {'indexes': [
         {'fields': ['epoch'], 'expireAfterSeconds': 432000}
     ], 'allow_inheritance': True, "db_alias": DB}
+
+del EmbeddedDocument

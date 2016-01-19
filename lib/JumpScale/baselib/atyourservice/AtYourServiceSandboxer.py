@@ -36,7 +36,7 @@ class ModelDebug(ModelBase):
 
 
 
-class AtYourServiceDebug():
+class AtYourServiceSandboxer():
 
 
     def __init__(self,name="main"):

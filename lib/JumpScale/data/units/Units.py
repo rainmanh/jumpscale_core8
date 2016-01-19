@@ -1,7 +1,9 @@
-order = ['','K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+order = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+
 
 class Sizes(object):
     _BASE = 1000.
+
     def __init__(self):
         self.__jslocation__ = "j.data.units.sizes"
 
@@ -15,15 +17,16 @@ class Sizes(object):
         return value * (self._BASE ** factor)
 
     def converToBestUnit(self, value, input=''):
-        devider = len(str(int(self._BASE))) - 1
-        output = (len(str(value)) -2) / devider
+        divider = len(str(int(self._BASE))) - 1
+        output = (len(str(value)) - 2) / divider
         output += order.index(input)
         if output > len(order):
             output = len(order) - 1
         elif output < 0:
             output = 0
-        output = order[output]
+        output = order[int(output)]
         return self.toSize(value, input, output), output
+
 
 class Bytes(Sizes):
     _BASE = 1024.

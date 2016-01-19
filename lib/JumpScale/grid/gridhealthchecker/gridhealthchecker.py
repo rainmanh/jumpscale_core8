@@ -1,12 +1,17 @@
 from JumpScale import j
 import gevent
+import time
+import crontab
 
 class GridHealthChecker(object):
 
     def __init__(self):
         with j.logger.nostdout():
-            self._client = j.clients.agentcontroller.get()
-            #self._osiscl = j.clients.osis.getByInstance()
+            self._client = None
+            installedagent = j.application.getAppHRDInstanceNames('agentcontroller2_client')
+            if installedagent:
+                self._client = j.clients.ac.getByInstance(installedagent[0])
+
         self._heartbeatcl = j.data.models.system.Heartbeat
         self._nodecl = j.data.models.system.Node
         self._runningnids = list()
@@ -27,7 +32,7 @@ class GridHealthChecker(object):
         self._errors.setdefault(nid, {})
         self._errors[nid].setdefault(category, list())
         if isinstance(result, str):
-            self._errors[nid][category].append({'errormessage': result})
+            self._errors[nid][category].append({'message': result})
         else:
             self._errors[nid][category].append(result)
 
@@ -127,16 +132,29 @@ class GridHealthChecker(object):
         self._nids = []
         self._nidsNonActive=[]
         for node in nodes:
-            self._nodenames[node['guid']] = node['name']
-            self._nodegids[node['guid']] = node['gid']
+            self._nodenames[node['nid']] = node['name']
+            self._nodegids[node['nid']] = node['gid']
             if node["active"]==True:
-                self._nids.append(node['guid'])
+                self._nids.append(node['nid'])
             else:
-                self._nidsNonActive.append(node['guid'])
-        if activecheck:
+                self._nidsNonActive.append(node['nid'])
+        if activecheck and nodes:
             self.pingAllNodesSync(clean=True)
             self._checkRunningNIDsFromPing()
 
+    def getErrorsAndCheckTime(self, data):
+        errors = dict()
+        oldestdate = None
+        for nid, result in data.items():
+            for category, categorydata in result.items():
+                for dataitem in categorydata:
+                    if dataitem.get('state') != 'OK':
+                        errors.setdefault(nid, set())
+                        errors[nid].add(category)
+                    checktime = dataitem.get('lastchecked')
+                    if oldestdate is None or (checktime is not None and checktime < oldestdate):
+                        oldestdate = checktime
+        return errors, oldestdate
     def runAll(self):
         self._clean()
         self.getNodes()
@@ -154,6 +172,15 @@ class GridHealthChecker(object):
         if self._tostdout:
             self._printResults()
         return self._status, self._errors
+
+    def fetchMonitoringOnAllNodes(self):
+        self._clean()
+        self.getNodes()
+        return self._status
+        for nid in self._nids:
+            self.runAllOnNode(nid)
+        return self._status, self._errors
+
 
     def runAllOnNode(self, nid):
         self._clean()
@@ -184,12 +211,16 @@ class GridHealthChecker(object):
             for category, errors in list(checks.items()):
                 for error in errors:
                     defaultvalue = 'processmanager is unreachable by ping' if category == 'processmanager' else None
-                    errormessage = error.get('errormessage', defaultvalue)
+                    errormessage = error.get('message', defaultvalue)
                     if errormessage is None:
                         continue
                     for message in errormessage.split(','):
                         nodedata={'gid': '', 'nid': '', 'name': '', 'status': '', 'issues': '- %s' % message}
                         print((form % nodedata))
+
+
+    def getHealthCheckJumpScripts(self):
+        return [j.data.models.system.Jumpscript.get(js.guid) for js in j.data.models.system.Jumpscript.find({'category':'monitor.healthcheck'})]
 
 
     def checkElasticSearch(self, clean=True):
@@ -204,7 +235,10 @@ class GridHealthChecker(object):
             self._addError(self.masternid, {'state': 'UNKNOWN'}, 'elasticsearch')
             errormessage = 'ElasticSearch status UNKNOWN'
         else:
-            eshealth = self._client.executeJumpscript('jumpscale', 'info_gather_elasticsearch', nid=self.masternid, timeout=5)
+            eshealth = None
+
+            if self._client:
+                eshealth = self._client.executeJumpscript('info_gather_elasticsearch', nid=self.masternid, timeout=5)
             if eshealth['state'] == 'TIMEOUT':
                 self._addError(self.masternid, {'state': 'TIMEOUT'}, 'elasticsearch')
                 errormessage = 'ElasticSearch status TIMEOUT'
@@ -238,11 +272,13 @@ class GridHealthChecker(object):
             self._clean()
         errormessage = ''
         nid = j.application.whoAmI.nid
-        dbhealth = self._client.executeJumpscript('jumpscale', 'healthcheck_db', nid=nid, gid=self._nodegids[nid], timeout=5)
-        dbhealth = dbhealth['result']
+        dbhealth = None
+        if self._client:
+            dbhealth = self._client.executeJumpscript('healthcheck_db', nid=nid, gid=self._nodegids[nid], timeout=5)
+            dbhealth = dbhealth['result']
         if dbhealth == None:
             self._addError(nid, {'state': 'UNKNOWN'}, 'databases')
-            errormessage = 'Database statuses UNKNOWN'
+            errormessage = 'Database status UNKNOWN'
         else:
             for dbname, status in list(dbhealth.items()):
                 if status:
@@ -267,6 +303,15 @@ class GridHealthChecker(object):
         self._parallelize(self.checkRedis, False, 'redis')
         if clean:
             return self._status, self._errors
+    def runOnAllNodes(self, sync=True):
+        self._clean()
+        self.getNodes()
+        self._clean()
+        self.checkHeartbeat(clean=False)
+        self.checkProcessManagerAllNodes(clean=False)
+        results = list()
+        greens = list()
+
 
     def getWikiStatus(self, status):
         colormap = {'RUNNING': 'green', 'HALTED': 'red', 'UNKNOWN': 'orange',
@@ -279,8 +324,11 @@ class GridHealthChecker(object):
         results = list()
         errors = list()
         errormessage = list()
-        result = self._client.executeJumpscript('jumpscale', 'healthcheck_redis', nid=nid, gid=self._nodegids[nid], timeout=5)
-        redis = result['result']
+        result = None
+
+        if self._client:
+            result = self._client.executeJumpscript('healthcheck_redis', nid=nid, gid=self._nodegids[nid], timeout=5)
+            redis = result['result']
         if result['state'] != 'OK' or not redis:
             errors.append((nid, {'state': 'UNKNOWN'}, 'redis'))
             errormessage.append('Redis state UNKNOWN')
@@ -318,8 +366,12 @@ class GridHealthChecker(object):
         results = list()
         errors = list()
         errormessage = list()
-        result = self._client.executeJumpscript('jumpscale', 'workerstatus', nid=nid, gid=self._nodegids[nid], timeout=30)
-        workers = result['result']
+        workers = None
+        result = None
+
+        if self._client:
+            result = self._client.executeJumpscript('workerstatus', nid=nid, gid=self._nodegids[nid], timeout=30)
+            workers = result['result']
         if result['state'] != 'OK' or not workers:
             errors.append((nid, {'state':'UNKNOWN', 'mem': '0 B'}, 'workers'))
             errormessage.append('Workers status UNKNOWN')
@@ -353,7 +405,35 @@ class GridHealthChecker(object):
             self._addResult(nid, {'state': 'RUNNING'}, 'processmanager')
         if clean:
             return self._status, self._errors
+    def checkHeartbeat(self, clean=True, nid=None):
+        if clean:
+            self._clean()
+        if self._nids==[]:
+            self.getNodes()
+        print('CHECKING HEARTBEATS...')
+        print("\tget all heartbeats (just query from OSIS):")
+        print("OK")
+        heartbeats = self._heartbeatcl.find({'nid':nid})
+        for heartbeat in heartbeats:
+            if heartbeat['nid'] not in self._nids and heartbeat['nid'] not in self._nidsNonActive:
+                self._addResult(heartbeat['nid'], {'message': "Found heartbeat node '%s' when not in grid nodes." % heartbeat['nid'],
+                                'state': 'ERROR'}, "JSAgent")
 
+        nid2hb = dict([(x['nid'], x['lastcheck']) for x in heartbeats])
+        nids = [nid] if nid else self._nids
+        for nid in nids:
+            if nid not in self._nidsNonActive:
+                if nid in nid2hb:
+                    lastchecked = nid2hb[nid]
+                    if not j.data.time.getEpochAgo('-2m') < lastchecked:
+                        state = 'ERROR'
+                    else:
+                        state = 'OK'
+                    self._addResult(nid, {'message': "Heartbeat", 'state': state, 'lastchecked': lastchecked}, "JSAgent")
+                else:
+                    self._addResult(nid, {'message': "Found heartbeat node when not in grid nodes.", 'state':'ERROR'}, "JSAgent")
+        if clean:
+            return self._status
 
     def checkHeartbeatsAllNodes(self, clean=True, nid=None):
         if clean:
@@ -418,7 +498,7 @@ class GridHealthChecker(object):
         if clean:
             self._clean()
         if self._nids==[]:
-            self.getNodes()
+            self.getNodes(activecheck=False)
         print(("PROCESS MANAGER PING TO ALL (%s) NODES..." % len(self._nids)))
         self._parallelize(self.ping, False, 'processmanagerping')
         return self._status, self._errors
@@ -437,7 +517,10 @@ class GridHealthChecker(object):
             self._clean()
         results = list()
         errors = list()
-        result = self._client.executeJumpscript('jumpscale', 'system_echo_sync', args={"msg":"ping"}, nid=nid, gid=self._nodegids[nid], timeout=5)
+        result = None
+
+        if self._client:
+            result = self._client.executeJumpscript('system_echo_sync', args={"msg":"ping"}, nid=nid, gid=self._nodegids[nid], timeout=5)
         if not result["result"]=="ping":
             errors.append((nid, {'ping': 'down'}, 'processmanagerping'))
             errors.append((nid, 'cannot ping processmanager', 'processmanagerping'))
@@ -449,7 +532,10 @@ class GridHealthChecker(object):
             self._clean()
         results = list()
         errors = list()
-        result = self._client.executeJumpscript('jumpscale', 'system_echo_async', args={"msg":"ping"}, nid=nid, gid=self._nodegids[nid], timeout=5)
+        result = None
+
+        if self._client:
+            result = self._client.executeJumpscript('system_echo_async', args={"msg":"ping"}, nid=nid, gid=self._nodegids[nid], timeout=5)
         if not result["result"]=="ping":
             errors.append((nid, {'ping': 'down'}, 'workerping'))
             errors.append((nid, 'cannot ping workers', 'workerping'))
@@ -462,8 +548,11 @@ class GridHealthChecker(object):
         results = list()
         errors = list()
         errormessage = list()
-        result = self._client.executeJumpscript('jumpscale', 'healthcheck_disks', nid=nid, gid=self._nodegids[nid], timeout=30)
-        disks = result['result']
+        result = None
+
+        if self._client:
+            result = self._client.executeJumpscript('healthcheck_disks', nid=nid, gid=self._nodegids[nid], timeout=30)
+            disks = result['result']
         if result['state'] != 'OK':
             errors.append((nid, {'state': 'UNKNOWN'}, 'disks'))
             errormessage.append('Disks status UNKNOWN.')

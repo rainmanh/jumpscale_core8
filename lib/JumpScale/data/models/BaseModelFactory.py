@@ -17,9 +17,11 @@ class NameSpaceLoader():
 
     def _getModels(self):
         self._models = list()
+        self._modelspecs = dict()
         for name, mem in inspect.getmembers(self._module, inspect.isclass):
-            if issubclass(mem, mongoengine.base.document.BaseDocument) and issubclass(mem, Models.ModelBase):
+            if issubclass(mem, mongoengine.base.document.BaseDocument) and mongoengine.Document != inspect.getmro(mem)[0]:
                 self._models.append(name)
+                self._modelspecs[name] = mem
                 self.__dict__[name] = mem
 
     def listModels(self):

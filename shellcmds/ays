@@ -34,21 +34,90 @@ def init():
     the changes with before (last time you did an init) will be shown
     """
     chfiles=j.atyourservice.init()
-    chfiles.sort()
-    for item in chfiles:
-        print ("- %s"%item)
+    # chfiles.sort()
+    # for item in chfiles:
+    #     print ("- %s"%item)
+
+@click.command()
+def showactions():
+    """
+    shows all services with relevant actions
+    """
+    j.atyourservice.alog
+    for key,service in j.atyourservice.services.items():
+        print ("%s"%service)
+        for key,action in service.actions.items():
+            print ("- %-20s %s"%(key,action))
+
+@click.command()
+def removelastrun():
+    """
+    remove last runid from the actionlog
+    """
+    j.atyourservice.alog.removeLastRun()
+
+@click.command()
+@click.argument('action')
+@click.option('--printonly', default=False,  is_flag=True,help='if set will not really execute, only show what would have been done')
+@click.option('--all', default=False,  is_flag=True,help='don\'t look for changed services, execute on all')
+def do(action,printonly=False,all=False):
+    """
+    call an action
+    """
+    allservices=all
+    j.atyourservice.do(action,printonly=printonly,allservices=allservices)
+
+@click.command()
+@click.argument('action')
+@click.option('--changesonly', default=False,  is_flag=True,help='only execute on ays with changes since last time')
+@click.option('--remember', default=False,  is_flag=True,help='remember the 1 time run in the alog, default false')
+def do0(action,remember=False,changesonly=False):
+    """
+    call an action but don't remember the consequences
+    """
+    allservices=not changesonly
+    j.atyourservice.do(action,remember=remember,allservices=allservices)
+
+@click.command()
+@click.option('--printonly', default=False,  is_flag=True,help='if set will not really execute, only show what would have been done')
+def install(printonly=False):
+    """
+    make it reality
+    """
+    j.atyourservice.install(printonly=printonly)
 
 
 @click.command()
-def apply():
-    j.atyourservice.apply()
+@click.argument('role')
+@click.argument('instance')
+def showproducers(role,instance):
+    print ("producers:")
+    ays=j.atyourservice.getService(role,instance)
+    ays.printProducersRecursive()
+
+@click.command()
+@click.argument('role')
+@click.argument('instance')
+def showparents(role,instance):
+    ays=j.atyourservice.getService(role,instance)
+    out="parents:\n"
+    for parent in ays.parents:
+        out+="- %s\n"%parent
+    print (out)
 
 
 cli.add_command(new)
 cli.add_command(init)
-cli.add_command(apply)
+cli.add_command(install)
+cli.add_command(do)
+cli.add_command(do0)
+cli.add_command(showproducers)
+cli.add_command(showparents)
+cli.add_command(showactions)
+cli.add_command(removelastrun)
 
 if __name__ == '__main__':
+    j.atyourservice.debug=True
     cli()
 
 # j.application.stop()

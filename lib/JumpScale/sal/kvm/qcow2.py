@@ -11,7 +11,7 @@ class Qcow2():
     def __init__(self, filename):
         qcow2header = struct.Struct(">IIQIIQIIQQIIQ")
         data = self._read_data(filename, qcow2header.size)
-        if (len(data) < qcow2header.size) or not data.startswith('QFI'):
+        if (len(data) < qcow2header.size) or not data.startswith(b'QFI'):
            raise 'Invalid header this is not a correct qcow2 file.'
         unpackeddata = qcow2header.unpack(data)
         self.path = filename
@@ -29,10 +29,12 @@ class Qcow2():
         self.nb_snapshots = unpackeddata[11]
         self.snapshots_offset = unpackeddata[12]
 
-        self.backing_file_path = self._read_data(filename, self.backing_file_size, self.backing_file_offset)
+        path = self._read_data(filename, self.backing_file_size, self.backing_file_offset)
+        self.backing_file_path = path.decode()
+
 
     def _read_data(self, filename, size, offset=0):
-        f = open(filename, 'r')
+        f = open(filename, 'rb')
         try:
             f.seek(offset)
             data = f.read(size)

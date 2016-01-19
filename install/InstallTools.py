@@ -2449,6 +2449,8 @@ exec python3 -q "$@"
 
         if start:
             do.execute("cd %s; jspython portal_no_ays.py" % exampleportaldir)
+        else:
+            print('To run your portal, navigate to "%s" and do "jspython portal_no_ays.py"' % exampleportaldir)
 
 
 

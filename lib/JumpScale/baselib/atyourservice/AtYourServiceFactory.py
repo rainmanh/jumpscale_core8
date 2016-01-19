@@ -102,7 +102,7 @@ class AtYourServiceFactory():
         self.reset()
 
         baseDir=val
-        while ".ays" not in j.do.listDirsInDir(baseDir, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+        while j.sal.fs.joinPaths(baseDir, ".ays") not in j.sal.fs.listFilesInDir(baseDir, recursive=False):
             baseDir=j.do.getParent(baseDir)
 
             baseDir=baseDir.rstrip("/")
@@ -419,7 +419,7 @@ class AtYourServiceFactory():
         for service in self.services:
             service.state.saveRevisions()
 
-    def findTemplates(self, name="", version="",domain="", first=False, role=''):
+    def findTemplates(self, name="", version="",domain="", role='', first=False):
         res = []
         for template in self.templates:
             if not(name == "" or template.name == name):
@@ -520,11 +520,11 @@ class AtYourServiceFactory():
                 self.services.remove(service)
             j.sal.fs.removeDirTree(service.path)
 
-    def getTemplate(self,  name="", version="",domain="", first=True, die=True):
+    def getTemplate(self,  name="", version="",domain="", role="", first=True, die=True):
         if first:
-            return self.findTemplates(domain=domain, name=name, version=version, first=first)
+            return self.findTemplates(domain=domain, name=name, version=version, role=role, first=first)
         else:
-            res = self.findTemplates(domain=domain, name=name, version=version, first=first)
+            res = self.findTemplates(domain=domain, name=name, version=version, role=role, first=first)
             if len(res) > 1:
                 if die:
                     j.events.inputerror_critical("Cannot get ays template '%s|%s (%s)', found more than 1" % (domain, name, version), "ays.gettemplate")
@@ -537,8 +537,8 @@ class AtYourServiceFactory():
                     return
             return res[0]
 
-    def getRecipe(self, name="",version="", domain=""):
-        template = self.getTemplate(domain=domain,name=name, version=version)
+    def getRecipe(self, name="",version="", domain="", role=""):
+        template = self.getTemplate(domain=domain,name=name, version=version, role=role)
         return template.recipe
 
     def getService(self,  role='', instance='main', die=True):

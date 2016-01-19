@@ -776,7 +776,7 @@ class OurCuisine():
             debugremember=copy.copy(debug)
             self.executor.debug=debug
 
-        rc,out=self.executor.execute(cmd,checkok=checkok, die=warn_only==True, combinestdr=True,showout=False)
+        rc,out=self.executor.execute(cmd,checkok=checkok, die=warn_only==True, combinestdr=True,showout=showout)
 
         if debug!=None:
             self.executor.debug=debugremember

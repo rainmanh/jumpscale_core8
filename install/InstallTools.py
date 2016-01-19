@@ -107,8 +107,23 @@ class InstallTools():
     def getBinDirSystem(self):
         return "/usr/local/bin/"
 
-    def getPythonLibSystem(self):
-        return "/usr/local/lib/python3.5/site-packages/"
+    def getPythonLibSystem(self,jumpscale=False):
+        do=self
+        if do.TYPE.startswith("OSX"):
+            destjs="/usr/local/lib/python3.5/site-packages"
+        elif do.TYPE.startswith("WIN"):
+            raise RuntimeError("do")
+        else:
+            if PYTHONVERSION == '2':
+                destjs ="/usr/local/lib/python/dist-packages"
+            else:
+                destjs ="/usr/local/lib/python3.5/dist-packages"
+
+        if jumpscale:
+            destjs+="/JumpScale/"
+
+        self.createDir(destjs)
+        return destjs
 
     def readFile(self,filename):
         """Read a file and get contents of that file
@@ -2004,20 +2019,15 @@ class Installer():
         src="%s/github/jumpscale/jumpscale_core8/lib/JumpScale"%do.CODEDIR
         self.debug=False
 
+
         if do.TYPE.startswith("OSX"):
-            destjs="/usr/local/lib/python2.7/site-packages/JumpScale"
-            do.delete(destjs)
-            destjs="/usr/local/lib/python3.5/site-packages/JumpScale"
-            do.delete(destjs)
+            do.delete("/usr/local/lib/python2.7/site-packages/JumpScale")
+            do.delete("/usr/local/lib/python3.5/site-packages/JumpScale")
             do.createDir(destjs)
         elif do.TYPE.startswith("WIN"):
             raise RuntimeError("do")
-        else:
-            if PYTHONVERSION == '2':
-                destjs ="/usr/local/lib/python/dist-packages/JumpScale"
-            else:
-                destjs ="/usr/local/lib/python3.5/dist-packages/JumpScale"
 
+        destjs=do.getPythonLibSystem(jumpscale=True)
         do.delete(destjs)
         do.createDir(destjs)
 
@@ -2392,7 +2402,7 @@ exec python3 -q "$@"
         else:
             self.installpip()
             # cmds="""
-            # pip install ipython
+            # pip3 install ipython
             # """
             # do.executeCmds(cmds)
 
@@ -2407,6 +2417,32 @@ exec python3 -q "$@"
                 do.executeCmds(cmds)
 
 
+    def installportal(self,start=True):
+        do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
+        destjslib=do.getPythonLibSystem(jumpscale=True)
+        j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal"%j.do.CODEDIR, "%s/portal/"%destjslib, delete=False)
+        j.application.reload()
+
+        C="""                
+        param.mongoengine.connection=host:localhost, port:27017
+        param.portal.rootpasswd = 'admin'
+
+        param.cfg.ipaddr = '127.0.0.1'
+        param.cfg.port= '82'
+        param.cfg.appdir = /opt/jumpscale8/apps/portals/portalbase
+        param.cfg.filesroot = /opt/jumpscale8/var/portal/files
+        param.cfg.defaultspace = 'home'
+        param.cfg.admingroups = 'admin,'
+        param.cfg.authentication.method='me' #Empty for minimal portal which doesn't authenticate
+        param.cfg.gitlab.connection='main'
+        param.cfg.force_oauth_instance=''
+
+        param.cfg.contentdirs = ''
+        """
+        do.writeFile()
+
+
+
     def updateUpgradeUbuntu(self):
         CMDS="""
         apt-get update
@@ -2416,91 +2452,92 @@ exec python3 -q "$@"
         """
         do.executeCmds(CMDS)
 
-    def prepareUbuntu15Development(self,js=True,updateUbuntu=True):
-        self.cleanSystem()
-        print("prepare ubuntu for development")
 
-        if updateUbuntu:
-            self.updateUpgradeUbuntu()
+    # def prepareUbuntu15Development(self,js=True,updateUbuntu=True):
+    #     self.cleanSystem()
+    #     print("prepare ubuntu for development")
 
-
-        CMDS="""
-        apt-get install mc git ssh openssl ca-certificates -y
-        apt-get install byobu tmux libmhash2 -y
-        #libpython-all-dev python-redis python-hiredis
-        apt-get install libpython3.5-dev python3.5-dev libffi-dev gcc build-essential autoconf libtool pkg-config libpq-dev -f
-        apt-get install libsqlite3-dev -f
-        apt-get install net-tools sudo -f
-        """
-        do.executeCmds(CMDS)
+    #     if updateUbuntu:
+    #         self.updateUpgradeUbuntu()
 
 
-        print("INSTALLPIP")
-        self.installpip()
+    #     CMDS="""
+    #     apt-get install mc git ssh openssl ca-certificates -y
+    #     apt-get install byobu tmux libmhash2 -y
+    #     #libpython-all-dev python-redis python-hiredis
+    #     apt-get install libpython3.5-dev python3.5-dev libffi-dev gcc build-essential autoconf libtool pkg-config libpq-dev -f
+    #     apt-get install libsqlite3-dev -f
+    #     apt-get install net-tools sudo -f
+    #     """
+    #     do.executeCmds(CMDS)
 
-        print("install python parts")
 
-        CMDS="""
-        rm -f /usr/bin/python
-        rm -f /usr/bin/python3
-        ln -s /usr/bin/python3.5 /usr/bin/python
-        ln -s /usr/bin/python3.5 /usr/bin/python3
+    #     print("INSTALLPIP")
+    #     self.installpip()
 
-        #pip install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
+    #     print("install python parts")
 
-        pip install paramiko
+    #     CMDS="""
+    #     rm -f /usr/bin/python
+    #     rm -f /usr/bin/python3
+    #     ln -s /usr/bin/python3.5 /usr/bin/python
+    #     ln -s /usr/bin/python3.5 /usr/bin/python3
 
-        pip install msgpack-python
-        pip install redis
-        pip install credis
-        pip install aioredis
+    #     #pip3 install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
 
-        pip install mongoengine
+    #     pip3 install paramiko
 
-        pip install bcrypt
-        pip install blosc
-        pip install bson
-        pip install certifi
-        pip install docker-py
+    #     pip3 install msgpack-python
+    #     pip3 install redis
+    #     pip3 install credis
+    #     pip3 install aioredis
 
-        pip install gitlab3
-        pip install gitpython
-        pip install html2text
+    #     pip3 install mongoengine
 
-        # pip install pysqlite
+    #     pip3 install bcrypt
+    #     pip3 install blosc
+    #     pip3 install bson
+    #     pip3 install certifi
+    #     pip3 install docker-py
 
-        pip install influxdb
-        pip install ipdb
-        pip install ipython --upgrade
-        pip install jinja2
-        pip install netaddr
+    #     pip3 install gitlab3
+    #     pip3 install gitpython
+    #     pip3 install html2text
 
-        #pip install numpy
+    #     # pip3 install pysqlite
 
-        pip install reparted
-        pip install pytoml
-        pip install pystache
-        pip install pymongo
-        pip install psycopg2
-        pip install pathtools
-        pip install psutil
+    #     pip3 install influxdb
+    #     pip3 install ipdb
+    #     pip3 install ipython --upgrade
+    #     pip3 install jinja2
+    #     pip3 install netaddr
 
-        pip install pytz
-        pip install requests
-        pip install sqlalchemy
-        pip install urllib3
-        # pip install zmq
-        pip install pyyaml
-        pip install websocket
-        pip install marisa-trie
-        pip install pylzma
-        pip install ujson
-        """
-        do.executeCmds(CMDS)
+    #     #pip3 install numpy
 
-        if js:
-            self.installJS(clean=False)
-        print("done")
+    #     pip3 install reparted
+    #     pip3 install pytoml
+    #     pip3 install pystache
+    #     pip3 install pymongo
+    #     pip3 install psycopg2
+    #     pip3 install pathtools
+    #     pip3 install psutil
+
+    #     pip3 install pytz
+    #     pip3 install requests
+    #     pip3 install sqlalchemy
+    #     pip3 install urllib3
+    #     # pip3 install zmq
+    #     pip3 install pyyaml
+    #     pip3 install websocket
+    #     pip3 install marisa-trie
+    #     pip3 install pylzma
+    #     pip3 install ujson
+    #     """
+    #     do.executeCmds(CMDS)
+
+    #     if js:
+    #         self.installJS(clean=False)
+    #     print("done")
 
 
 

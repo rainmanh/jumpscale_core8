@@ -65,7 +65,7 @@ class ServiceRecipe(ServiceTemplate):
             self._state=None
         return self._state
 
-    def newInstance(self, instance="main", args={}, path='', parent=None, consume="",originator=None):
+    def newInstance(self, instance="main", role='', args={}, path='', parent=None, consume="",originator=None):
         """
         """
         self.actions  # DO NOT REMOVE

@@ -2425,9 +2425,12 @@ exec python3 -q "$@"
         portaldir = '%s/apps/portals/' % do.BASE
         exampleportaldir = '%smain' % portaldir
         do.createDir(exampleportaldir)
-        do.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % do.CODEDIR, portaldir)
+        do.createDir('%s/base/home/.space' % exampleportaldir)
+        do.copyTree("%s/github/jumpscale/jumpscale_portal8/jslib" % do.CODEDIR, '%s/jslib' % portaldir)
         do.copyTree("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % do.CODEDIR,  '%s/portalbase' % portaldir)
         do.copyFile("%s/portalbase/portal_no_ays.py" % portaldir, exampleportaldir)
+        do.copyFile("%s/portalbase/config.hrd" % portaldir, exampleportaldir)
+        do.copyTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
 
         if start:
             do.execute("cd %s; jspython portal_no_ays.py" % exampleportaldir)

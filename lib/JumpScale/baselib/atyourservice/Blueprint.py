@@ -42,7 +42,8 @@ class Blueprint(object):
         for model in self.models:
             for key,item in model.items():                
                 aysname,aysinstance=key.split("_",1)
-                r=j.atyourservice.getRecipe(name=aysname)
+                aysrole, _ = aysname.split(".", 1)
+                j.atyourservice.getRecipe(name=aysname, role=aysrole)
 
     def execute(self):
         for model in self.models:
@@ -50,7 +51,8 @@ class Blueprint(object):
                 # print ("blueprint model execute:%s %s"%(key,item))
                 aysname,aysinstance=key.split("_",1)
                 r=j.atyourservice.getRecipe(name=aysname)
-                r.newInstance(instance=aysinstance,args=item)
+                aysrole, _ = aysname.split(".", 1)
+                r.newInstance(instance=aysinstance, args=item, role=aysrole)
 
 
     def _add2models(self,content,nr):

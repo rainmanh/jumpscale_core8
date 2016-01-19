@@ -2422,30 +2422,12 @@ exec python3 -q "$@"
         destjslib = do.getPythonLibSystem(jumpscale=True)
         do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % do.CODEDIR, "%s/" % destjslib, delete=False)
         do.execute("redis-cli FLUSHALL")
-
-        portalconfig = """
-        param.mongoengine.connection=host:localhost, port:27017
-        param.portal.rootpasswd = 'admin'
-
-        param.cfg.ipaddr = '127.0.0.1'
-        param.cfg.port= '82'
-        param.cfg.appdir = /opt/jumpscale8/apps/portals/portalbase
-        param.cfg.filesroot = /opt/jumpscale8/var/portal/files
-        param.cfg.defaultspace = 'home'
-        param.cfg.admingroups = 'admin,'
-        param.cfg.authentication.method='me' #Empty for minimal portal which doesn't authenticate
-        param.cfg.gitlab.connection='main'
-        param.cfg.force_oauth_instance=''
-
-        param.cfg.contentdirs = ''
-        """
         portaldir = '%s/apps/portals/' % do.BASE
         exampleportaldir = '%smain' % portaldir
         do.createDir(exampleportaldir)
         do.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % do.CODEDIR, portaldir)
         do.copyTree("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % do.CODEDIR,  '%s/portalbase' % portaldir)
         do.copyFile("%s/portalbase/portal_no_ays.py" % portaldir, exampleportaldir)
-        do.writeFile('%s/config.hrd' % exampleportaldir, portalconfig)
 
         if start:
             do.execute("cd %s; jspython portal_no_ays.py" % exampleportaldir)

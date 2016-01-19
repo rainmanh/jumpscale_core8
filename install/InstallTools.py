@@ -108,6 +108,7 @@ class InstallTools():
         return "/usr/local/bin/"
 
     def getPythonLibSystem(self,jumpscale=False):
+        PYTHONVERSION = os.environ.get('PYTHONVERSION', '3.5')
         do=self
         if do.TYPE.startswith("OSX"):
             destjs="/usr/local/lib/python3.5/site-packages"
@@ -2416,30 +2417,23 @@ exec python3 -q "$@"
                 """
                 do.executeCmds(cmds)
 
-
-    def installportal(self,start=True):
+    def installportal(self, start=True):
         do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
-        destjslib=do.getPythonLibSystem(jumpscale=True)
-        j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal"%j.do.CODEDIR, "%s/portal/"%destjslib, delete=False)
-        j.application.reload()
+        destjslib = do.getPythonLibSystem(jumpscale=True)
+        do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % do.CODEDIR, "%s/" % destjslib, delete=False)
+        do.execute("redis-cli FLUSHALL")
+        portaldir = '%s/apps/portals/' % do.BASE
+        exampleportaldir = '%smain' % portaldir
+        do.createDir(exampleportaldir)
+        do.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % do.CODEDIR, portaldir)
+        do.copyTree("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % do.CODEDIR,  '%s/portalbase' % portaldir)
+        do.copyFile("%s/portalbase/portal_no_ays.py" % portaldir, exampleportaldir)
 
-        C="""                
-        param.mongoengine.connection=host:localhost, port:27017
-        param.portal.rootpasswd = 'admin'
+        if start:
+            do.execute("cd %s; jspython portal_no_ays.py" % exampleportaldir)
+        else:
+            print('To run your portal, navigate to "%s" and do "jspython portal_no_ays.py"' % exampleportaldir)
 
-        param.cfg.ipaddr = '127.0.0.1'
-        param.cfg.port= '82'
-        param.cfg.appdir = /opt/jumpscale8/apps/portals/portalbase
-        param.cfg.filesroot = /opt/jumpscale8/var/portal/files
-        param.cfg.defaultspace = 'home'
-        param.cfg.admingroups = 'admin,'
-        param.cfg.authentication.method='me' #Empty for minimal portal which doesn't authenticate
-        param.cfg.gitlab.connection='main'
-        param.cfg.force_oauth_instance=''
-
-        param.cfg.contentdirs = ''
-        """
-        do.writeFile()
 
 
 

@@ -107,8 +107,23 @@ class InstallTools():
     def getBinDirSystem(self):
         return "/usr/local/bin/"
 
-    def getPythonLibSystem(self):
-        return "/usr/local/lib/python3.5/site-packages/"
+    def getPythonLibSystem(self,jumpscale=False):
+        do=self
+        if do.TYPE.startswith("OSX"):
+            destjs="/usr/local/lib/python3.5/site-packages"
+        elif do.TYPE.startswith("WIN"):
+            raise RuntimeError("do")
+        else:
+            if PYTHONVERSION == '2':
+                destjs ="/usr/local/lib/python/dist-packages"
+            else:
+                destjs ="/usr/local/lib/python3.5/dist-packages"
+
+        if jumpscale:
+            destjs+="/JumpScale/"
+
+        self.createDir(destjs)
+        return destjs
 
     def readFile(self,filename):
         """Read a file and get contents of that file
@@ -2004,20 +2019,15 @@ class Installer():
         src="%s/github/jumpscale/jumpscale_core8/lib/JumpScale"%do.CODEDIR
         self.debug=False
 
+
         if do.TYPE.startswith("OSX"):
-            destjs="/usr/local/lib/python2.7/site-packages/JumpScale"
-            do.delete(destjs)
-            destjs="/usr/local/lib/python3.5/site-packages/JumpScale"
-            do.delete(destjs)
+            do.delete("/usr/local/lib/python2.7/site-packages/JumpScale")
+            do.delete("/usr/local/lib/python3.5/site-packages/JumpScale")
             do.createDir(destjs)
         elif do.TYPE.startswith("WIN"):
             raise RuntimeError("do")
-        else:
-            if PYTHONVERSION == '2':
-                destjs ="/usr/local/lib/python/dist-packages/JumpScale"
-            else:
-                destjs ="/usr/local/lib/python3.5/dist-packages/JumpScale"
 
+        destjs=do.getPythonLibSystem(jumpscale=True)
         do.delete(destjs)
         do.createDir(destjs)
 
@@ -2405,6 +2415,32 @@ exec python3 -q "$@"
                 pip3 install redis
                 """
                 do.executeCmds(cmds)
+
+
+    def installportal(self,start=True):
+        do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
+        destjslib=do.getPythonLibSystem(jumpscale=True)
+        j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal"%j.do.CODEDIR, "%s/portal/"%destjslib, delete=False)
+        j.application.reload()
+
+        C="""                
+        param.mongoengine.connection=host:localhost, port:27017
+        param.portal.rootpasswd = 'admin'
+
+        param.cfg.ipaddr = '127.0.0.1'
+        param.cfg.port= '82'
+        param.cfg.appdir = /opt/jumpscale8/apps/portals/portalbase
+        param.cfg.filesroot = /opt/jumpscale8/var/portal/files
+        param.cfg.defaultspace = 'home'
+        param.cfg.admingroups = 'admin,'
+        param.cfg.authentication.method='me' #Empty for minimal portal which doesn't authenticate
+        param.cfg.gitlab.connection='main'
+        param.cfg.force_oauth_instance=''
+
+        param.cfg.contentdirs = ''
+        """
+        do.writeFile()
+
 
 
     def updateUpgradeUbuntu(self):

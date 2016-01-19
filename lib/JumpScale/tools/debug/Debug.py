@@ -112,9 +112,9 @@ class DebugFactory():
     def help(self):
         H = """
         example to use #@todo change python3... to js... (but not working on osx yet)
-        python3 -c 'from JumpScale import j;j.tools.debug.init("ovh4,ovh3")'
-        python3 -c 'from JumpScale import j;j.tools.debug.installJSSandbox(rw=True)' #will install overlay sandbox wich can be editted
-        python3 -c 'from JumpScale import j;j.tools.debug.syncCode(True)'
+        js 'j.tools.debug.init("ovh4,ovh3")'
+        js 'j.tools.debug.installJSSandbox(rw=True)' #will install overlay sandbox wich can be editted
+        js 'j.tools.debug.syncCode(True)'
         if you now go onto e.g. ovh4 you will see on /optrw/... all changes reflected which you make locally
 
         example output:
@@ -175,7 +175,7 @@ class DebugFactory():
                 self._nodes.append(DebugSSHNode(addr, sshport))
         return self._nodes
 
-    def installJSSandbox(self, rw=False, synclocalcode=True,reset=True,monitor=True):
+    def installJSSandbox(self, rw=False, synclocalcode=True,reset=True,monitor=False):
         """
         install jumpscale, will be done as sandbox over fuse layer for linux
         otherwise will try to install jumpscale inside OS
@@ -205,6 +205,7 @@ class DebugFactory():
         """
 
         for node in self.nodes:
+
             node.cuisine.run_script(C)
 
         if rw:
@@ -226,7 +227,7 @@ class DebugFactory():
         mkdir -p /overlay/js_upper
         mkdir -p /overlay/js_work
         mkdir -p /optrw
-        mount -t overlay overlay -olowerdir=/opt,upperdir=/overlay/js_upper,workdir=/overlay/js_work /optrw
+        mount -t overlay overlay -o lowerdir=/opt,upperdir=/overlay/js_upper,workdir=/overlay/js_work /optrw
         set +ex
         rm -rf /optrw/jumpscale8/lib/JumpScale/
         mkdir -p /optrw/jumpscale8/lib/JumpScale/

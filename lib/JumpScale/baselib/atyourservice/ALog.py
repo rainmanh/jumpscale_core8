@@ -114,9 +114,9 @@ class ALog():
 
 
 
-    def newRun(self):
+    def newRun(self,action="unknown"):
         self.lastRunId+=1
-        self._append("R | %-8s | %-8s |%s"%(j.data.time.getTimeEpoch(),self.lastRunId,j.data.time.getLocalTimeHR()))
+        self._append("R | %-8s | %-8s | %-10s | %s"%(j.data.time.getTimeEpoch(),self.lastRunId,action,j.data.time.getLocalTimeHR()))
         return self.lastRunId
 
     def newGitCommit(self,action,githash=""):

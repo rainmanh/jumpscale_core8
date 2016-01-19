@@ -135,6 +135,10 @@ class GitClient(object):
     def getUntrackedFiles(self):
         return self.repo.untracked_files
 
+    def checkout(self,path):
+        cmd = 'cd %s;git checkout %s' % (self.baseDir,path)
+        j.sal.process.execute(cmd)                
+
     def addRemoveFiles(self):
         cmd = 'cd %s;git add -A :/' % self.baseDir
         j.sal.process.execute(cmd)

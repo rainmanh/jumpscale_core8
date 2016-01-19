@@ -273,9 +273,10 @@ class AtYourServiceFactory():
         #start from clean sheet
         self.reset()
 
-        if len(self.git.getModifiedFiles(True,ignore=["/alog/"]))>0:
-            print("changes in ays repo, will commit")
-            repo=self.git.commit(message='ays changed, commit changed files before deploy of blueprints', addremove=True)
+        self.alog        
+        self.commitGitChanges(action="init_pre",msg='ays changed, commit changed files before deploy of blueprints',precheck=True)        
+
+        latestrun=self.alog.newRun(action="init")
 
         print("init runid:%s"%self.alog.lastRunId)
         commitc=""
@@ -284,18 +285,9 @@ class AtYourServiceFactory():
             commitc+="\nBlueprint:%s\n"%bp.path
             commitc+=bp.content+"\n"
 
-        if len(self.git.getModifiedFiles(True,ignore=["/alog/"]))>0:
-            print("init made changes")
-            repo=self.git.commit(message='ays blueprint:\n%s'%commitc, addremove=True)
-
-            githash=repo.hexsha
-            
-            self.alog.newGitCommit("init",githash)
+        self.commitGitChanges(action="init")
 
         print ("init done")
-
-        # lastref=self.git.getCommitRefs()[-1][1]
-        # return self.git.getChangedFiles(lastref)
 
 
     def updateTemplatesRepos(self, repos=[]):
@@ -322,35 +314,74 @@ class AtYourServiceFactory():
     def getActionsBaseClassMgmt(self):
         return ActionsBaseMgmt
 
-    def install(self):
+    def install(self,printonly=False,remember=True):
         self.alog
         #start from clean sheet
         self.init()
+        self.do(action="install",printonly=printonly,remember=remember)
+        if printonly or remember==False:
+            self.alog.removeLastRun()
 
+
+    def commitGitChanges(self,action="unknown",msg="",precheck=False):
         if len(self.git.getModifiedFiles(True,ignore=["/alog/"]))>0:
-            print("changes in ays repo, will commit")
-            repo=self.git.commit(message='ays changed, commit changed files before deploy of blueprints', addremove=True)
+            if msg=="":
+                msg='ays changed, commit changed files for action:%s'%action
+            print(msg)
+            repo=self.git.commit(message=msg, addremove=True)
+            self.alog.newGitCommit(action=action,githash=repo.hexsha)
+        else:
+            #@todo will create duplicates will have to fix that
+            #git hash is current state
+            if not precheck:
+                #only do this when no precheck, means we are not cleaning up past
+                self.alog.newGitCommit(action=action,githash="")
 
 
 
-    def do(self,action="install",printonly=False):
-        self.alog
-
-        latestrun=self.alog.newRun()
-
-        todo=self.findTodo(action=action)
+    def do(self,action="install",printonly=False,remember=True,allservices=False):
         
-        step = 1
-        while todo != []:
-            print("execute state changes, nr services to process: %s in step:%s" % (len(todo), step))
+        self.alog
+        self.commitGitChanges(action=action+"_pre",precheck=True)
+        latestrun=self.alog.newRun(action=action)
+
+        if not allservices:
+            #we need to find change since last time & make sure that 
+            #find all services with action with this name and put back on init
+            changed,changes=self.alog.getChangedAtYourservices(action=action)
+            for service in changed:
+                if action in service.actions:
+                    actionobj=service.actions[action]
+                    actionobj.setState("CHANGED")
+
+            todo=self.findTodo(action=action)
+
+            step = 1
+            while todo != []:
+                print("execute state changes, nr services to process: %s in step:%s" % (len(todo), step))
+                for i in range(len(todo)):
+                    service = todo[i]
+                    service.runAction(name=action,printonly=printonly)
+                step += 1
+                todo=self.findTodo(action=action)
+
+        else:
+            todo=[item[1] for item in self.services.items()]            
             for i in range(len(todo)):
                 service = todo[i]
                 service.runAction(name=action,printonly=printonly)
-            step += 1
-            todo=self.findTodo(action=action)
+            todo=[]
 
-        if printonly:
+        if printonly or remember==False:
             self.alog.removeLastRun()
+            #revert git
+            base=j.dirs.amInAYSRepo()
+            self.git.checkout("%s/services/"%base)
+            self.git.checkout("%s/recipes/"%base)        
+        else:
+            #this will make sure we will have remembered the last state of this action
+            self.commitGitChanges(action=action)
+
 
 
     def findTodo(self,action="install"):

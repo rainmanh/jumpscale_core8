@@ -1668,14 +1668,14 @@ class InstallTools():
 
         return repository_host, repository_type, repository_account, repository_name, dest, repository_url
 
-    def pullGitRepo(self,url="",dest=None,login=None,passwd=None,depth=1,ignorelocalchanges=False,reset=False,branch=None,revision=None):
+    def pullGitRepo(self,url="",dest=None,login=None,passwd=None,depth=1,ignorelocalchanges=False,reset=False,branch=None,revision=None, ssh="auto"):
         """
         will clone or update repo
         if dest == None then clone underneath: /opt/code/$type/$account/$repo
         will ignore changes !!!!!!!!!!!
         """
 
-        base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset)
+        base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh)
 
 
         if dest is None and branch is None:
@@ -2291,7 +2291,7 @@ exec python3 -q "$@"
 
         # C2=C2.format(base=basedir, env=envfile)
         if self.readonly==False or die==True:
-            
+
             do.delete("/usr/bin/jspython")#to remove link
             do.delete("%s/bin/jspython"%basedir)
             do.delete("/usr/local/bin/jspython")
@@ -2568,7 +2568,7 @@ exec python3 -q "$@"
                     self.symlink("%s/utils/sitecustomize.py"%self.BASE,path)
             print("walk over /usr to find sitecustomize and link to new one")
             os.path.walk("/usr", do,"")
-            os.path.walk("/etc", do,"")            
+            os.path.walk("/etc", do,"")
 
 
     def develtools(self):
@@ -2598,7 +2598,7 @@ exec python3 -q "$@"
             print (cmd)
             do.execute(cmd)
 
-        do.pullGitRepo("https://github.com/vinta/awesome-python")        
+        do.pullGitRepo("https://github.com/vinta/awesome-python")
 
         if do.TYPE.startswith("OSX"):
             dest="%s/Library/Application Support/Sublime Text 3/Packages"%os.environ["HOME"]

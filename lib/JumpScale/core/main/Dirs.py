@@ -126,11 +126,8 @@ class Dirs(object):
     def ays(self):
         if self._ays!=None:
             return self._ays
-        path=self.amInAYSRepo()
-        if path!=None:
-            self._ays= j.sal.fs.joinPaths(path,"services")
-        else:
-            self._ays="/etc/ays/local/"        
+        path = j.atyourservice.basepath
+        self._ays= j.sal.fs.joinPaths(path,"services")    
         j.sal.fs.createDir(self._ays)
         return self._ays
 
@@ -219,31 +216,6 @@ class Dirs(object):
     #         if path.find(item)!=-1:
     #             return True
     #     return False
-
-    def _AYSRepo(self, path):
-        while path.strip("/") != "":
-            # from ipdb import set_trace;set_trace()
-            if "servicetemplates" in j.sal.fs.listDirsInDir(path, dirNameOnly=True):
-                return path
-            path = j.sal.fs.getParent(path)
-        return None
-
-    def isAYSRepo(self,path):
-        if self._AYSRepo(path) != None:
-            return True
-        return False
-
-    def amInAYSRepo(self):
-        """
-        return parent path where .git is or None when not found
-        """
-        path=j.sal.fs.getcwd()
-        return self._AYSRepo(path)
-
-    def createAYSRepo(self,path):
-        j.sal.fs.createDir(j.sal.fs.joinPaths(path,"services"))
-        j.sal.fs.createDir(j.sal.fs.joinPaths(path,"servicetemplates"))
-        j.sal.fs.createDir(j.sal.fs.joinPaths(path,".git"))
 
     def __str__(self):
         return str(self.__dict__) #@todo P3 implement (thisnis not working)

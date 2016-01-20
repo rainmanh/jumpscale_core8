@@ -2016,7 +2016,7 @@ class Installer():
         self.prepare(SANDBOX=SANDBOX,base= os.environ["JSBASE"])
 
         print ("pull core")
-        do.pullGitRepo(JSGIT,branch=JSBRANCH, depth=1)
+        do.pullGitRepo(JSGIT,branch=JSBRANCH, depth=1, ssh=False)
         src="%s/github/jumpscale/jumpscale_core8/lib/JumpScale"%do.CODEDIR
         self.debug=False
 

@@ -108,7 +108,8 @@ class AtYourServiceFactory():
             baseDir=baseDir.rstrip("/")
 
             if baseDir.strip()=="":
-                raise RuntimeError("could not find basepath for .ays in %s"%val)
+                baseDir = "/etc/ays/local"
+                break
 
         self._basepath=baseDir
         for item in ["blueprints","recipes","services","servicetemplates"]:
@@ -133,8 +134,7 @@ class AtYourServiceFactory():
             return self._type
         self._type = "n"  # n from normal
         # check if we are in a git directory, if so we will use $thatdir/services as base for the metadata
-        configpath = j.dirs.amInAYSRepo()
-        if configpath is not None:
+        if self.basepath is not None:
             self._type = "c"
         return self._type
 
@@ -160,36 +160,31 @@ class AtYourServiceFactory():
                 templ = ServiceTemplate(path, domain=domain)
                 llist.append(templ)
 
-
-        if self._templates==[]:
+        if not self._templates:
             self._doinit()
 
-            #load the local service templates
-            aysrepopath=j.dirs.amInAYSRepo()
-            if aysrepopath!=None:
-                # load local templates
-                path=j.sal.fs.joinPaths(aysrepopath,"%s/servicetemplates/"%aysrepopath)
-                load("ays",path,self._templates)
-
+            # load local templates
+            path = j.sal.fs.joinPaths(self.basepath, "servicetemplates/")
+            load("ays", path, self._templates)
 
             for domain, domainpath in self.domains:
                 # print "load template domain:%s"%domainpath
-                load(domain, domainpath,self._templates)
+                load(domain, domainpath, self._templates)
 
         return self._templates
 
     @property
     def recipes(self):
         self._doinit()
-        if self._recipes==[]:
+        if not self._recipes:
             self._doinit()
-            aysrepopath=j.dirs.amInAYSRepo()
-            if aysrepopath!=None:
+            aysrepopath = self.basepath
+            if aysrepopath is not None:
                 # load local templates
-                domainpath=j.sal.fs.joinPaths(aysrepopath,"%s/recipes/"%aysrepopath)
-                d=j.tools.path.get(domainpath)
+                domainpath = j.sal.fs.joinPaths(aysrepopath, "%s/recipes/" % aysrepopath)
+                d = j.tools.path.get(domainpath)
                 for item in d.walkfiles("state.hrd"):
-                    recipepath=j.do.getDirName(item)
+                    recipepath = j.do.getDirName(item)
                     self._recipes.append(ServiceRecipe(recipepath))
         return self._recipes
 
@@ -231,11 +226,6 @@ class AtYourServiceFactory():
 
             login=j.application.config.get("whoami.git.login").strip()
             passwd=j.application.config.getStr("whoami.git.passwd").strip()
-
-            # if self.type != "n": #are not on node
-                # configpath=j.dirs.amInAYSRepo()
-                # # load service templates
-                # self._domains.append((j.sal.fs.getBaseName(configpath),"%s/servicetemplates/"%configpath))
 
             # always load base domaim
             items=j.application.config.getDictFromPrefix("atyourservice.metadata")
@@ -386,15 +376,14 @@ class AtYourServiceFactory():
                 todo=self.findTodo(action=action)
 
         if printonly:
-            remember=False
-        if remember==False and error==False:
+            remember = False
+        if remember is False and error is False:
             self.alog.removeLastRun()
-            #revert git
-            base=j.dirs.amInAYSRepo()
-            self.git.checkout("%s/services/"%base)
-            self.git.checkout("%s/recipes/"%base)
+            # revert git
+            self.git.checkout("%s/services/" % self.basepath)
+            self.git.checkout("%s/recipes/" % self.basepath)
         else:
-            #this will make sure we will have remembered the last state of this action
+            # this will make sure we will have remembered the last state of this action
             self.commitGitChanges(action=action)
 
 

@@ -1,8 +1,4 @@
 from JumpScale import j
-import JumpScale.sal.tmux
-import os
-import signal
-import inspect
 
 CATEGORY = "atyourserviceActionNode"
 
@@ -145,7 +141,6 @@ class ActionsBaseMgmt(object):
                     if ays not in serviceObj._producers[role]:
                         serviceObj._producers[role].append(ays)
 
-
             for key, services in serviceObj._producers.items():
                 producers = []
                 for service in services:
@@ -233,7 +228,7 @@ class ActionsBaseMgmt(object):
         return True
 
     def _searchDep(self, serviceObj, depkey,die=True):
-        if serviceObj._producers != {} and depkey in serviceObj._producers:
+        if serviceObj._producers and depkey in serviceObj._producers:
             dep = serviceObj._producers[depkey]
         else:
             dep = j.atyourservice.findServices(role=depkey)

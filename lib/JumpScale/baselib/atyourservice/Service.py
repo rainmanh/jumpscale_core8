@@ -80,7 +80,7 @@ class ActionRun():
     def method_node(self):
         if self._method_node == "":
             if self.service.parent != None:
-                if self.service.role == "ssh" or self.service.parent.role == "ssh":
+                if self.service.parent.role == "ssh":
                     self._method_node = self.service._getActionMethodNode(self.name)
                     return self._method_node
             self._method_node=None
@@ -226,7 +226,7 @@ class Service(object):
         self._dnsNames = []
 
         self.args = args or {}
-        self._producers = None
+        self._producers = {}
         self.cmd = None
         self._logPath = None
 
@@ -653,8 +653,10 @@ class Service(object):
         # if "os" not in self.producers:
             return
         hrd_root = "/etc/ays/local/"
-        remotePath = j.sal.fs.joinPaths(hrd_root, j.sal.fs.getBaseName(self.path)).rstrip("/")+"/"
+        remotePath = j.sal.fs.joinPaths(hrd_root, 'services', j.sal.fs.getBaseName(self.path)).rstrip("/")+"/"
         self.log("uploading %s '%s'->'%s'" % (self.key,self.path,remotePath))
+        templatepath = j.sal.fs.joinPaths(hrd_root, 'servicetemplates', j.sal.fs.getBaseName(self.recipe.path).rstrip("/"))
+        self.executor.upload(self.recipe.path, templatepath)
         self.executor.upload(self.path, remotePath,recursive=False)
 
 
@@ -760,9 +762,9 @@ class Service(object):
         if not self.parent or self.parent.role != 'ssh':
         # if 'os' not in self.producers or self.executor is None:
             return False
+        self._uploadToNode()
 
-        cmd2 = ' -d %s -n %s -i %s' % (self.domain, self.name, self.instance)
-        execCmd = 'aysexec -a %s %s' % (actionName, cmd2)
+        execCmd = 'aysexec do %s %s %s' % (actionName, self.role, self.instance)
 
         executor = self.executor
         executor.execute(execCmd, die=True)

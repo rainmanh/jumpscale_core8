@@ -2084,7 +2084,7 @@ class Installer():
         #from JumpScale import j
 
         print("Get atYourService metadata.")
-        do.pullGitRepo(AYSGIT, branch=AYSBRANCH, depth=1)
+        do.pullGitRepo(AYSGIT, branch=AYSBRANCH, depth=1, ssh=False)
 
         print ("install was successfull")
         # if pythonversion==2:

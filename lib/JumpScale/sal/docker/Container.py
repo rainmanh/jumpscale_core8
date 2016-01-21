@@ -197,7 +197,7 @@ class Container(SALObject):
         return key
 
     def destroy(self):
-        
+
         try:
             self.client.kill(self.id)
         except Exception as e:
@@ -206,7 +206,7 @@ class Container(SALObject):
             self.client.remove_container(self.id)
         except Exception as e:
             print ("could not kill:%s"%self.id)
-    
+
 
     def stop(self):
         self.client.kill(self.id)
@@ -214,11 +214,17 @@ class Container(SALObject):
     def restart(self):
         self.client.restart(self.id)
 
-    def commit(self, imagename):
-        cmd = "docker rmi %s" % imagename
-        j.sal.process.execute(cmd, dieOnNonZeroExitCode=False)
-        cmd = "docker commit %s %s" % (self.name, imagename)
-        j.sal.process.executeWithoutPipe(cmd)
+    def commit(self, imagename, msg="", delete=True, force=False):
+        """
+        imagename: name of the image to commit. e.g: jumpscale/myimage
+        delete: bool, delete current image before doing commit
+        force: bool, force delete
+        """
+        if delete:
+            res = j.sal.docker.client.images(imagename)
+            if len(res) > 0:
+                self.client.remove_image(imagename, force=force)
+        self.client.commit(self.id, imagename, message=msg)
 
     def uploadFile(self, source, dest):
         """

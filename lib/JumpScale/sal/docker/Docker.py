@@ -375,9 +375,6 @@ class Docker2(SALObject):
             container.setHostName(name)
         return container
 
-
-
-
     def getImages(self):
         images=[str(item["RepoTags"][0]).replace(":latest","") for item in self.client.images()]
         return images
@@ -408,7 +405,47 @@ class Docker2(SALObject):
         j.do.execute("rm -rf /var/lib/docker")
         j.do.execute("apt-get install docker-engine -y")
 
+    def pull(self, imagename):
+        self.client.import_image_from_image(imagename)
 
-    def pull(self,imagename):
-        cmd="docker pull %s"%imagename
-        j.sal.process.executeWithoutPipe(cmd)
+    def push(self, image, output=True):
+        """
+        image: str, name of the image
+        output: print progress as it pushes
+        """
+
+        out = []
+        for l in j.sal.docker.client.push(image, stream=True):
+            line = j.data.serializer.json.loads(l)
+            id = line['id'] if 'id' in line else ''
+            s = "%s " % id
+            if 'status' in line:
+                s += line['status']
+            elif 'progress' in line:
+                detail = line['progressDetail']
+                progress = line['progress']
+                s = "%50s" % progress
+            if output:
+                print(s)
+            out.append(s)
+
+        return "\n".join(out)
+
+    def build(self, path, tag, output=True):
+        """
+        path: path of the directory that contains the docker file
+        tag: tag to give to the image. e.g: 'jumpscale/myimage'
+        output: print output as it builds
+
+        return: strint containing the stdout
+        """
+        out = []
+        for l in self.client.build(path=path, tag=tag):
+            line = j.data.serializer.json.loads(l)
+            if 'stream' in line:
+                line = line['stream'].strip()
+                if output:
+                    print(line)
+                out.append(line)
+
+        return "\n".join(out)

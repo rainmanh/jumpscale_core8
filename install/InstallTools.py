@@ -2417,26 +2417,6 @@ exec python3 -q "$@"
                 """
                 do.executeCmds(cmds)
 
-    def installportal(self, start=True):
-        do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
-        destjslib = do.getPythonLibSystem(jumpscale=True)
-        do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % do.CODEDIR, "%s/" % destjslib, delete=False)
-        do.execute("redis-cli FLUSHALL")
-        portaldir = '%s/apps/portals/' % do.BASE
-        exampleportaldir = '%smain' % portaldir
-        do.createDir(exampleportaldir)
-        do.createDir('%s/base/home/.space' % exampleportaldir)
-        do.copyTree("%s/github/jumpscale/jumpscale_portal8/jslib" % do.CODEDIR, '%s/jslib' % portaldir)
-        do.copyTree("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % do.CODEDIR,  '%s/portalbase' % portaldir)
-        do.copyFile("%s/portalbase/portal_no_ays.py" % portaldir, exampleportaldir)
-        do.copyFile("%s/portalbase/config.hrd" % portaldir, exampleportaldir)
-        do.copyTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
-
-        if start:
-            do.execute("cd %s; jspython portal_no_ays.py" % exampleportaldir)
-        else:
-            print('To run your portal, navigate to "%s" and do "jspython portal_no_ays.py"' % exampleportaldir)
-
 
 
 

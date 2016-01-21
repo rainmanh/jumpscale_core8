@@ -363,3 +363,145 @@ class DevelopToolsFactory():
                 time.sleep(0.1)
         except KeyboardInterrupt:
             pass
+
+    def installportal(self, start=True):
+
+        def upgradePip():
+            j.do.execute("pip3 install --upgrade pip")
+
+        j.actions.start(upgradePip, runid="portal_pip")
+
+
+        def installDeps():
+            """
+            make sure new env arguments are understood on platform
+            """
+            deps="""
+            setuptools
+            aioredis
+            # argh
+            bcrypt
+            Beaker
+            blinker
+            blosc
+            # Cerberus
+            # certifi
+            # cffi
+            # click
+            # credis
+            # crontab
+            # Cython
+            decorator
+            # docker-py
+            # dominate
+            # ecdsa
+            Eve
+            Eve-docs
+            Eve-Mongoengine
+            # Events
+            # Flask
+            # Flask-Bootstrap
+            # Flask-PyMongo
+            gevent==1.1b5
+            # gitdb
+            # gitlab3
+            # GitPython
+            greenlet
+            # hiredis
+            html2text
+            # influxdb
+            # ipdb
+            # ipython
+            # ipython-genutils
+            itsdangerous
+            Jinja2
+            # marisa-trie
+            MarkupSafe
+            mimeparse
+            mongoengine
+            msgpack-python
+            netaddr
+            # paramiko
+            # path.py
+            pathtools
+            # pexpect
+            # pickleshare
+            psutil
+            # psycopg2
+            # ptyprocess
+            # pycparser
+            # pycrypto
+            pycurl
+            # pygo
+            # pygobject
+            pylzma
+            pymongo
+            pystache
+            # python-apt
+            python-dateutil
+            pytoml
+            pytz
+            PyYAML
+            # pyzmq
+            # redis
+            # reparted
+            requests
+            simplegeneric
+            simplejson
+            six
+            # smmap
+            # SQLAlchemy
+            traitlets
+            ujson
+            # unattended-upgrades
+            urllib3
+            visitor
+            # watchdog
+            websocket
+            websocket-client
+            Werkzeug
+            wheel
+            # zmq
+            """
+
+
+            def installPip(name):
+                j.do.execute("pip3 install %s --upgrade"%name)
+            
+            for dep in deps.split("\n"):
+                dep=dep.strip()
+                if dep.strip()=="":
+                    continue
+                if dep.strip()[0]=="#":
+                    continue
+                dep=dep.split("=",1)[0]
+                j.actions.start(installPip, args={"name":dep},retry=2,runid="portal_pip",name="pip_%s"%dep)
+
+
+        installDeps()
+
+        j.do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
+        destjslib = j.do.getPythonLibSystem(jumpscale=True)
+        j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/" % destjslib, delete=False)
+        # j.do.execute("redis-cli FLUSHALL")
+        
+        j.application.reload()
+
+        portaldir = '%s/apps/portals/' % j.do.BASE
+        exampleportaldir = '%smain' % portaldir
+        j.do.createDir(exampleportaldir)
+        j.do.createDir('%s/base/home/.space' % exampleportaldir)
+        j.do.copyTree("%s/github/jumpscale/jumpscale_portal8/jslib" % j.do.CODEDIR, '%s/jslib' % portaldir)
+        j.do.copyTree("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % j.do.CODEDIR,  '%s/portalbase' % portaldir)
+        j.do.copyFile("%s/portalbase/portal_no_ays.py" % portaldir, exampleportaldir)
+        j.do.copyFile("%s/portalbase/config.hrd" % portaldir, exampleportaldir)
+        j.do.copyTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
+
+
+
+        if start:
+            j.do.execute("cd %s; jspython portal_no_ays.py" % exampleportaldir)
+        else:
+            print('To run your portal, navigate to "%s" and do "jspython portal_no_ays.py"' % exampleportaldir)
+
+

@@ -27,12 +27,14 @@ class ActionController(object):
             self.reset(item.split(".",1)[1])
 
 
-    def start(self, action,runid=0,actionRecover=None,args={},die=True,stdOutput=False,errorOutput=True,retry=1,serviceObj=None):
+    def start(self, action,runid=0,actionRecover=None,args={},die=True,stdOutput=False,errorOutput=True,retry=1,serviceObj=None,name=""):
         '''
         self.doc is in doc string of method
         specify recover actions in the description
 
         name is name of method
+
+        @param name if you want to overrule the name
 
         @param id is unique id which allows finding back of action
         @param loglevel: Message level
@@ -46,7 +48,7 @@ class ActionController(object):
             self._lastid[runid]=0
         self._lastid[runid]+=1
         id=self._lastid[runid]
-        action=Action(action,runid=runid,actionRecover=actionRecover,args=args,die=die,stdOutput=stdOutput,errorOutput=errorOutput,retry=retry,serviceObj=serviceObj,id=id)
+        action=Action(action,runid=runid,actionRecover=actionRecover,args=args,die=die,stdOutput=stdOutput,errorOutput=errorOutput,retry=retry,serviceObj=serviceObj,id=id,name=name)
         action.execute()
 
         

@@ -4,12 +4,14 @@ import time
 import inspect
 
 class Action:    
-    def __init__(self, action,runid=0,actionRecover=None,args={},die=True,stdOutput=True,errorOutput=True,retry=1,serviceObj=None,id=0):
+    def __init__(self, action,runid=0,actionRecover=None,args={},die=True,stdOutput=True,errorOutput=True,retry=1,serviceObj=None,id=0,name=""):
         '''
         self.doc is in doc string of method
         specify recover actions in the description
 
         name is name of method
+
+        @param name if you want to overrule the name
 
         @param id is unique id which allows finding back of action
         @param loglevel: Message level
@@ -32,7 +34,7 @@ class Action:
         self.die=die
         self.result=None
 
-        self._name=""
+        self._name=name
         self._path=""
         self._source=""
         self._doc=""
@@ -77,9 +79,10 @@ class Action:
             keys=j.core.db.hkeys("actions.%s"%self.runid)
             keys.sort()
             for key in keys:
+                key=key.decode()
                 nameinredis=key.split(".")[1]
                 idinredis=int(key.split(".")[0])
-                if name==self.name:
+                if nameinredis==self.name:
                     if idinredis!=self.id:
                         self.removeActionsStartingWithMe()
                         data2["state"]="CHANGED"
@@ -123,6 +126,8 @@ class Action:
     def doc(self):
         if self._doc=="":
             self._doc=inspect.getdoc(self.method)
+            if self._doc==None:
+                self._doc=""
             if self._doc!="" and self._doc[-1]!="\n":
                 self._doc+="\n"
         return self._doc

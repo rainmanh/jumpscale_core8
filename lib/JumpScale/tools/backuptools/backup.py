@@ -18,7 +18,7 @@ def _read_file(path, block_size=0):
 def _dump2stor(store, bucketname, data, compress):
         if len(data)==0:
             return ""       
-        key = j.tools.hash.md5_string(data)
+        key = j.data.hash.md5_string(data)
         if not key in objects or not key in new_objects:
             if compress:
                 data = lz4.compress(data)

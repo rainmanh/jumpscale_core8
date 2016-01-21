@@ -59,6 +59,17 @@ class DebugSSHNode():
     def __init__(self, addr="localhost", sshport=22):
         self.addr = addr
         self.port = sshport
+
+        #lets test tcp on 22 if not then 9022 which are our defaults
+        test=j.sal.nettools.tcpPortConnectionTest(self.addr,self.port,2)
+        if test==False:
+            if self.port==22:
+                test= j.sal.nettools.tcpPortConnectionTest(self.addr,9022,1)
+                if test:
+                    self.port=9022
+        if test==False:
+            raise RuntimeError("Cannot connect to %s:%s"%(self.addr,self.port))
+
         self._platformType = None
         self._sshclient = None
         self._ftpclient = None
@@ -103,10 +114,10 @@ class DebugSSHNode():
     __repr__ = __str__
 
 
-class DebugFactory():
+class DevelopToolsFactory():
 
     def __init__(self):
-        self.__jslocation__ = "j.tools.debug"
+        self.__jslocation__ = "j.tools.develop"
         self._nodes = []
 
     def help(self):
@@ -165,7 +176,8 @@ class DebugFactory():
                 if item.find(":") != -1:
                     addr, sshport = item.split(":")
                     addr = addr.strip()
-                    sshport = int(sshport)
+                    sshport = int(sshport)                    
+
                 else:
                     addr = item.strip()
                     if addr != "localhost":
@@ -175,7 +187,7 @@ class DebugFactory():
                 self._nodes.append(DebugSSHNode(addr, sshport))
         return self._nodes
 
-    def installJSSandbox(self, rw=False, synclocalcode=True,reset=True,monitor=False):
+    def installJSSandbox(self, rw=False,resetstate=False):
         """
         install jumpscale, will be done as sandbox over fuse layer for linux
         otherwise will try to install jumpscale inside OS
@@ -185,73 +197,104 @@ class DebugFactory():
         @input reset, remove old code (only used when rw mode)
         @input monitor detect local changes & sync (only used when rw mode)
         """
-        C = """
-        set +ex
-        pskill redis-server #will now kill too many redis'es, should only kill the one not in docker
-        pskill redis #will now kill too many redis'es, should only kill the one not in docker
-        umount -fl /optrw
-        js8 stop
-        pskill js8
-        umount -f /opt
-        set -ex
-        #apt-get install tmux fuse -y
-        cd /usr/bin
-        rm -f js8
-        wget http://stor.jumpscale.org/ays/bin/js8
-        chmod +x js8
-        cd /
-        mkdir -p /opt
-        js8
-        """
 
-        for node in self.nodes:
+        if resetstate:
+            j.actions.reset("develop")
 
+        def cleanNode(node):
+            """
+            make node clean e.g. remove redis, install tmux, stop js8, unmount js8
+            """
+            C = """
+            set +ex
+            pskill redis-server #will now kill too many redis'es, should only kill the one not in docker
+            pskill redis #will now kill too many redis'es, should only kill the one not in docker
+            umount -fl /optrw
+            apt-get remove redis-server -y
+            rm -rf /overlay/js_upper
+            rm -rf /overlay/js_work
+            rm -rf /optrw
+            js8 stop
+            pskill js8
+            umount -f /opt
+            apt-get install tmux fuse -y
+            """
             node.cuisine.run_script(C)
 
+        def installJS8SB(node,rw=False):
+            """
+            install jumpscale8 sandbox in read or readwrite mode
+            """
+            C = """
+            set -ex
+            cd /usr/bin
+            rm -f js8
+            wget http://stor.jumpscale.org/ays/bin/js8
+            chmod +x js8
+            cd /
+            mkdir -p /opt
+
+            js8
+            """
+            node.cuisine.run_script(C)            
+
+        for node in self.nodes:
+            j.actions.start(cleanNode, args={"node":node},retry=2,runid="develop")
+            j.actions.start(installJS8SB, args={"node":node,"rw":rw},retry=2,runid="develop")
+            
         if rw:
             self.overlaySandbox()
 
-            if synclocalcode:
-                self.syncCode(reset,monitor)
+    def resetState(self):
+        j.actions.reset("develop")
 
     def overlaySandbox(self):
-        C = """
-        set +ex
-        umount -f /optrw
-        umount -f /optrw
-        apt-get remove redis-server -y
-        rm -rf /overlay/js_upper
-        rm -rf /overlay/js_work
-        rm -rf /optrw
-        set -ex
-        mkdir -p /overlay/js_upper
-        mkdir -p /overlay/js_work
-        mkdir -p /optrw
-        mount -t overlay overlay -o lowerdir=/opt,upperdir=/overlay/js_upper,workdir=/overlay/js_work /optrw
-        set +ex
-        rm -rf /optrw/jumpscale8/lib/JumpScale/
-        mkdir -p /optrw/jumpscale8/lib/JumpScale/
-        mkdir -p /optrw/code/
-        """
-        NEWENV="""
-        export JSBASE=/optrw/jumpscale8
 
-        export PATH=$JSBASE/bin:$PATH
-        export PYTHONHOME=$JSBASE/bin
+        def overlaySandbox(node):
+            """
+            create overlay on top of sandbox
+            """        
+            C = """
+            set -ex
+            mkdir -p /overlay/js_upper
+            mkdir -p /overlay/js_work
+            mkdir -p /optrw
+            mount -t overlay overlay -o lowerdir=/opt,upperdir=/overlay/js_upper,workdir=/overlay/js_work /optrw
+            set +ex
+            rm -rf /optrw/jumpscale8/lib/JumpScale/
+            mkdir -p /optrw/jumpscale8/lib/JumpScale/
+            mkdir -p /optrw/code/
+            """
+            node.cuisine.run_script(C)   
+    
 
-        export PYTHONPATH=.:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu
-        export LD_LIBRARY_PATH=$JSBASE/bin
-        export PS1="JS8: "
-        if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
-                hash -r 2>/dev/null
-        fi
-        """
-        for node in self.nodes:
-            node.cuisine.run_script(C)
+
+        def overlaySandboxSetEnv(node):
+            """
+            make sure new env arguments are understood on platform
+            """
+            NEWENV="""
+            export JSBASE=/optrw/jumpscale8
+
+            export PATH=$JSBASE/bin:$PATH
+            export PYTHONHOME=$JSBASE/bin
+
+
+            export PYTHONPATH=.:$JSBASE/lib:$JSBASE/lib/lib-dynload/:$JSBASE/bin:$JSBASE/lib/python.zip:$JSBASE/lib/plat-x86_64-linux-gnu
+            export LD_LIBRARY_PATH=$JSBASE/bin
+            export PS1="JS8: "
+            if [ -n "$BASH" -o -n "$ZSH_VERSION" ] ; then
+                    hash -r 2>/dev/null
+            fi
+
+            """
             node.cuisine.file_write("/optrw/jumpscale8/env.sh", NEWENV,check=True)
-            # node.cuisine.run("cd /optrw/jumpscale8;source env.sh;js 'j.application.useCurrentDirAsHome()'")
 
-        print ("login to machine & do\ncd /optrw/jumpscale8;source env.sh;js")
+        for node in self.nodes:
+            j.actions.start(overlaySandbox, args={"node":node},retry=2,runid="develop")
+            j.actions.start(overlaySandboxSetEnv, args={"node":node},retry=2,runid="develop")
+
+        print ("\nlogin to machine & do\ncd /optrw/jumpscale8;source env.sh;js")
 
     def syncCode(self, reset=False, ask=False,monitor=False,rsyncdelete=False):
         """

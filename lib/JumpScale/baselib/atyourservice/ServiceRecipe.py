@@ -134,7 +134,7 @@ class ServiceRecipe(ServiceTemplate):
             if recipeitem.get('checkmd5', 'false').lower() == 'true' and j.sal.fs.exists(dest):
                 remotemd5 = j.sal.nettools.download(
                     '%s.md5sum' % fullurl, '-').split()[0]
-                localmd5 = j.tools.hash.md5(dest)
+                localmd5 = j.data.hash.md5(dest)
                 if remotemd5 != localmd5:
                     j.sal.fs.remove(dest)
                 else:

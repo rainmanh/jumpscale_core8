@@ -122,7 +122,7 @@ class BlobStorClientFake:
         if len(data)==0:
             return ""
         if key=="":
-            key = j.tools.hash.md5_string(data)
+            key = j.data.hash.md5_string(data)
         if compress==True or (len(data)>self._compressMin and self.compress):
             compress=self.compress
             # print "compress"
@@ -172,7 +172,7 @@ class BlobStorClientFake:
 
     def uploadFile(self,path,key="",repoid=0,compress=None):        
         if key=="":
-            key=j.tools.hash.md5(path)
+            key=j.data.hash.md5(path)
         self.redis.rpush('files.%s' % key, j.sal.fs.getBaseName(path))
         if j.sal.fs.statPath(path).st_size>self._MB4:
             #hashes=[]

@@ -46,7 +46,7 @@ from JumpScale import j
 
     def load(self):
         self._loaded = True
-        md5sum = j.tools.hash.md5_string(self.path)
+        md5sum = j.data.hash.md5_string(self.path)
         modulename = 'JumpScale.jumpscript_%s' % md5sum
         linecache.checkcache(self.path)
         self.module = imp.load_source(modulename, self.path)

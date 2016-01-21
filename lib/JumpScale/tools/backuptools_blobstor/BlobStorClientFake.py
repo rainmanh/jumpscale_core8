@@ -116,7 +116,7 @@ class BlobStorClientFake:
         if len(data)==0:
             return ""
         if key=="":
-            key = j.tools.hash.sha1_string(data)
+            key = j.data.hash.sha1_string(data)
         if compress==True or (len(data)>self._compressMin and self.compress):
             compress=self.compress
             # print "compress"
@@ -168,7 +168,7 @@ class BlobStorClientFake:
 
     def uploadFile(self,path,key="",repoid=0,compress=None):        
         if key=="":
-            key=j.tools.hash.md5(path)
+            key=j.data.hash.md5(path)
         if not self.exists(key):
             for data in self._read_file(path):
                 self._dump2stor(data,repoid=repoid,compress=compress,parent=key)

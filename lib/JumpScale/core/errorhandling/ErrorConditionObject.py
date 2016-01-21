@@ -84,7 +84,7 @@ class ErrorConditionObject(BaseException):
             C= "%s_%s_%s_%s_%s_%s_%s_%s"%(self.gid,self.nid,self.category,self.level,self.funcname,self.funcfilename,self.appname,self.type)
         else:
             C= "%s_%s_%s_%s_%s_%s_%s_%s"%(self.gid,self.nid,self.errormessage,self.level,self.funcname,self.funcfilename,self.appname,self.type)
-        self.uniquekey=j.tools.hash.md5_string(C)
+        self.uniquekey=j.data.hash.md5_string(C)
         return self.uniquekey
 
     def toAscii(self):
@@ -342,4 +342,4 @@ class ErrorConditionObject(BaseException):
             dd.pop("guid")
         if "sguid" in dd:
             dd.pop("sguid")
-        return j.tools.hash.md5_string(str(dd))
+        return j.data.hash.md5_string(str(dd))

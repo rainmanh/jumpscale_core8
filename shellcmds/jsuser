@@ -52,7 +52,7 @@ authkeys = []
 
 def getPasswd(password):
     if len(password) != 32:
-        password = j.tools.hash.md5_string(password)
+        password = j.data.hash.md5_string(password)
     return password
 
 

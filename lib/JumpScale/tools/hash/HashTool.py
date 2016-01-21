@@ -5,7 +5,7 @@ from JumpScale import j
 import hashlib
 class HashTool:
     def __init__(self):
-        self.__jslocation__ = "j.tools.hash"
+        self.__jslocation__ = "j.data.hash"
 
     def hashDir(self,rootpath):
         """
@@ -26,7 +26,7 @@ class HashTool:
             realpath=j.sal.fs.joinPaths(rootpath,path2)
             if not j.core.platformtype.isWindows() or not j.system.windows.checkFileToIgnore(realpath):
 #                print "realpath %s %s" % (rootpath,path2)
-                hhash=j.tools.hash.md5(realpath)
+                hhash=j.data.hash.md5(realpath)
                 out+="%s|%s\n"%(hhash,path2)
                 import hashlib
         if isinstance(out, str):

@@ -775,7 +775,7 @@ class NetTools(SALObject):
 
             if md5_checksum:
 
-                if j.tools.hash.md5(destination_file_path) == md5_checksum:
+                if j.data.hash.md5(destination_file_path) == md5_checksum:
                     # File exists locally and its checksum checks out!
                     return
 
@@ -790,7 +790,7 @@ class NetTools(SALObject):
         self.download(url, localpath=destination_file_path, username=http_auth_username, passwd=http_auth_password)
 
         # Now check if the downloaded file matches the provided checksum
-        if md5_checksum and not j.tools.hash.md5(destination_file_path) == md5_checksum:
+        if md5_checksum and not j.data.hash.md5(destination_file_path) == md5_checksum:
             raise RuntimeError('The provided MD5 checksum did not match that of a freshly-downloaded file!')
 
     def download(self, url, localpath, username=None, passwd=None):

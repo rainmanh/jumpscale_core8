@@ -364,7 +364,7 @@ class LibvirtUtil(object):
 
 
     def _getImageId(self, path):
-        return j.tools.hash.sha1(path)
+        return j.data.hash.sha1(path)
 
     def exportToTemplate(self, id, name, clonefrom):
         if self.isCurrentStorageAction(id):

@@ -479,7 +479,7 @@ class OurCuisine():
         """Uploads the local file to the remote location only if the remote location does not
         exists or the content are different."""
         remote_md5 = self.file_md5(remote)
-        local_md5 = j.tools.hash.md5(local)
+        local_md5 = j.data.hash.md5(local)
         if remote_md5 == local_md5:
             return
 
@@ -494,7 +494,7 @@ class OurCuisine():
         f = j.tools.path.get(local)
         if f.exists():
             remote_md5 = self.file_md5(remote)
-            local_md5 = j.tools.hash.md5(local)
+            local_md5 = j.data.hash.md5(local)
             if remote_md5 == local_md5:
                 return
 

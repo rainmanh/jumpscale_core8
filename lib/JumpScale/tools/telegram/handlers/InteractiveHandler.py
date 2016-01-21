@@ -284,7 +284,7 @@ class InteractiveHandler:
 
     def maintenance(self):
         print("1")
-        lasthash=j.tools.hash.md5_string(str( j.tools.hash.hashDir("actions")))
+        lasthash=j.data.hash.md5_string(str( j.data.hash.hashDir("actions")))
         if lasthash!=self.lastactionshash:
             print("load actions")
             self.actions={}

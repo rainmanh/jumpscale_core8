@@ -45,7 +45,7 @@ class ActionsBaseNode(object):
 
                     if j.sal.fs.exists(path):
                         # don't donwload if we already have the file
-                        if j.tools.hash.md5(path) == hash:
+                        if j.data.hash.md5(path) == hash:
                             continue
 
                     url = "%s/dedupe/files/%s/%s/%s" %(addr, hash[0], hash[1], hash)
@@ -73,7 +73,7 @@ class ActionsBaseNode(object):
 
                     if j.sal.fs.exists(path):
                         # don't donwload if we already have the file
-                        if j.tools.hash.md5(path) == hash:
+                        if j.data.hash.md5(path) == hash:
                             continue
 
                     src = "%s:%s/dedupe/files/%s/%s/%s" % (addr, root, hash[0], hash[1], hash)

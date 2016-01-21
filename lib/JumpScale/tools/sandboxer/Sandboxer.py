@@ -169,7 +169,7 @@ class Sandboxer():
             else:
                 srcReal = src
 
-            md5 = j.tools.hash.md5(srcReal)
+            md5 = j.data.hash.md5(srcReal)
             dest2 = "%s/%s/%s/%s" % (storpath2, md5[0], md5[1], md5)
             dest2verify = "%s/%s/%s/%s_" % (storpath2, md5[0], md5[1], md5)
             dest2_bro = "%s/%s/%s/%s.bro_" % (storpath2, md5[0], md5[1], md5)
@@ -209,7 +209,7 @@ class Sandboxer():
                         j.do.delete(dest2verify)
                         cmd="bro --decompress --quality 10 --input '%s' --output %s"%(dest2_bro,dest2verify)
                         j.do.execute(cmd)
-                        hhash=j.tools.hash.md5(dest2verify)
+                        hhash=j.data.hash.md5(dest2verify)
                         if hhash!=md5:
                             raise RuntimeError("error in compression:%s"%cmd)
                         j.do.delete(dest2verify)

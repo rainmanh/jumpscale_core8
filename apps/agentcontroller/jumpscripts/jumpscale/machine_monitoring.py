@@ -28,7 +28,7 @@ except:
 
 def getContentKey(obj):
     dd=j.code.object2json(obj, True, ignoreKeys=["guid","id","sguid","moddate", 'lastcheck'], ignoreUnderscoreKeys=True)
-    return j.tools.hash.md5_string(str(dd))
+    return j.data.hash.md5_string(str(dd))
 
 def action():
     syscl = j.clients.osis.getNamespace('system')

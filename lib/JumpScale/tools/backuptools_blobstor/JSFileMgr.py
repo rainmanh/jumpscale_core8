@@ -135,7 +135,7 @@ class JSFileMgr():
             sizeFromFS=int(stat.st_size)
             if self.fullcheck or item.mtime!=str(int(stat.st_mtime)) or item.size!=str(sizeFromFS):
                 if sizeFromFS!=0:
-                    newMD5=j.tools.hash.md5(path)
+                    newMD5=j.data.hash.md5(path)
                     if item.hash!=newMD5:                        
                         change=True
                         item.hash=newMD5

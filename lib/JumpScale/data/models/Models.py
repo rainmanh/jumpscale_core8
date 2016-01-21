@@ -387,7 +387,7 @@ class User(ModelBase, Document):
     authkeys = ListField(StringField())
 
     def authenticate(username, passwd):
-        if User.objects(__raw__={'name': username, 'passwd': {'$in': [passwd, j.tools.hash.md5_string(passwd)]}}):
+        if User.objects(__raw__={'name': username, 'passwd': {'$in': [passwd, j.data.hash.md5_string(passwd)]}}):
             return True
         return False
 

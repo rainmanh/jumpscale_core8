@@ -239,6 +239,8 @@ class Application:
         """
         returns hrd for specific appname & instance name (default domain=jumpscale or not used when inside a config git repo)
         """
+        return False
+        #@todo fix
         if j.atyourservice.type!="c":
             path='%s/%s__%s__%s.hrd' % (j.dirs.getHrdDir(),domain,name,instance)
         else:
@@ -251,6 +253,8 @@ class Application:
         """
         returns hrd for specific domain,name and & instance name
         """
+        return j.application.config
+        #@todo fix
         service = j.atyourservice.getService(domain=domain, name=name, instance=instance)
         return service.hrd
 
@@ -258,6 +262,7 @@ class Application:
         """
         returns list of hrd instances for specified app
         """
+        #@todo fix
         res=[]
         for instance in self.getAppHRDInstanceNames(name,domain):
             res.append(self.getAppInstanceHRD(name,instance,domain))
@@ -267,6 +272,7 @@ class Application:
         """
         returns hrd instance names for specific appname (default domain=jumpscale)
         """
+        #@todo fix
         names = [item.instance for item in j.atyourservice.findServices(domain=domain, name=name)]
         names.sort()
         return names

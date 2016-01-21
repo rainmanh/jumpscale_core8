@@ -364,7 +364,7 @@ class DevelopToolsFactory():
         except KeyboardInterrupt:
             pass
 
-    def installportal(self, start=True):
+    def installportal(self, start=True,mongodbip=127.0.0.1,mongoport=27017,login="",passwd=""):
 
         def upgradePip():
             j.do.execute("pip3 install --upgrade pip")
@@ -402,9 +402,9 @@ class DevelopToolsFactory():
             # Flask
             # Flask-Bootstrap
             # Flask-PyMongo
-            gevent==1.1b5
+            gevent==1.1rc2
             # gitdb
-            # gitlab3
+            gitlab3
             # GitPython
             greenlet
             # hiredis
@@ -478,30 +478,41 @@ class DevelopToolsFactory():
                 j.actions.start(installPip, args={"name":dep},retry=2,runid="portal_pip",name="pip_%s"%dep)
 
 
-        installDeps()
+        # installDeps()
 
-        j.do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
-        destjslib = j.do.getPythonLibSystem(jumpscale=True)
-        j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/" % destjslib, delete=False)
-        # j.do.execute("redis-cli FLUSHALL")
+        # j.do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
+        # destjslib = j.do.getPythonLibSystem(jumpscale=True)
+
+        # j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % destjslib, delete=False)
+        # j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % j.dirs.jsLibDir, delete=False)
         
-        j.application.reload()
+        
+        # j.application.reload()
 
         portaldir = '%s/apps/portals/' % j.do.BASE
-        exampleportaldir = '%smain' % portaldir
+        exampleportaldir = '%sexample' % portaldir
         j.do.createDir(exampleportaldir)
+        j.do.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % j.do.CODEDIR, '%s/jslib' % portaldir)
+        j.do.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % j.do.CODEDIR,  '%s/portalbase' % portaldir)
         j.do.createDir('%s/base/home/.space' % exampleportaldir)
-        j.do.copyTree("%s/github/jumpscale/jumpscale_portal8/jslib" % j.do.CODEDIR, '%s/jslib' % portaldir)
-        j.do.copyTree("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % j.do.CODEDIR,  '%s/portalbase' % portaldir)
         j.do.copyFile("%s/portalbase/portal_no_ays.py" % portaldir, exampleportaldir)
         j.do.copyFile("%s/portalbase/config.hrd" % portaldir, exampleportaldir)
+        j.dirs.replaceFilesDirVars("%s/config.hrd"%exampleportaldir)
         j.do.copyTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
 
-
+        #2to3 -f all -w /usr/local/lib/python3.5/site-packages/eve_docs/config.py
+        #@todo
 
         if start:
             j.do.execute("cd %s; jspython portal_no_ays.py" % exampleportaldir)
         else:
             print('To run your portal, navigate to "%s" and do "jspython portal_no_ays.py"' % exampleportaldir)
 
+        #cd /usr/local/Cellar/mongodb/3.2.1/bin/;./mongod --dbpath /Users/kristofdespiegeleer1/optvar/mongodb
 
+
+        #@todo install gridportal as well
+        #@link example spaces
+        #@eve issue
+        #@explorer issue
+        

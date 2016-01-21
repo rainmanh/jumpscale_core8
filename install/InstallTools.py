@@ -108,6 +108,7 @@ class InstallTools():
         return "/usr/local/bin/"
 
     def getPythonLibSystem(self,jumpscale=False):
+        PYTHONVERSION = os.environ.get('PYTHONVERSION', '3.5')
         do=self
         if do.TYPE.startswith("OSX"):
             destjs="/usr/local/lib/python3.5/site-packages"
@@ -1667,14 +1668,14 @@ class InstallTools():
 
         return repository_host, repository_type, repository_account, repository_name, dest, repository_url
 
-    def pullGitRepo(self,url="",dest=None,login=None,passwd=None,depth=1,ignorelocalchanges=False,reset=False,branch=None,revision=None):
+    def pullGitRepo(self,url="",dest=None,login=None,passwd=None,depth=1,ignorelocalchanges=False,reset=False,branch=None,revision=None, ssh="auto"):
         """
         will clone or update repo
         if dest == None then clone underneath: /opt/code/$type/$account/$repo
         will ignore changes !!!!!!!!!!!
         """
 
-        base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset)
+        base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh)
 
 
         if dest is None and branch is None:
@@ -2015,7 +2016,7 @@ class Installer():
         self.prepare(SANDBOX=SANDBOX,base= os.environ["JSBASE"])
 
         print ("pull core")
-        do.pullGitRepo(JSGIT,branch=JSBRANCH, depth=1)
+        do.pullGitRepo(JSGIT,branch=JSBRANCH, depth=1, ssh=False)
         src="%s/github/jumpscale/jumpscale_core8/lib/JumpScale"%do.CODEDIR
         self.debug=False
 
@@ -2083,7 +2084,7 @@ class Installer():
         #from JumpScale import j
 
         print("Get atYourService metadata.")
-        do.pullGitRepo(AYSGIT, branch=AYSBRANCH, depth=1)
+        do.pullGitRepo(AYSGIT, branch=AYSBRANCH, depth=1, ssh=False)
 
         print ("install was successfull")
         # if pythonversion==2:
@@ -2290,7 +2291,7 @@ exec python3 -q "$@"
 
         # C2=C2.format(base=basedir, env=envfile)
         if self.readonly==False or die==True:
-            
+
             do.delete("/usr/bin/jspython")#to remove link
             do.delete("%s/bin/jspython"%basedir)
             do.delete("/usr/local/bin/jspython")
@@ -2416,30 +2417,26 @@ exec python3 -q "$@"
                 """
                 do.executeCmds(cmds)
 
-
-    def installportal(self,start=True):
+    def installportal(self, start=True):
         do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
-        destjslib=do.getPythonLibSystem(jumpscale=True)
-        j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal"%j.do.CODEDIR, "%s/portal/"%destjslib, delete=False)
-        j.application.reload()
+        destjslib = do.getPythonLibSystem(jumpscale=True)
+        do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % do.CODEDIR, "%s/" % destjslib, delete=False)
+        do.execute("redis-cli FLUSHALL")
+        portaldir = '%s/apps/portals/' % do.BASE
+        exampleportaldir = '%smain' % portaldir
+        do.createDir(exampleportaldir)
+        do.createDir('%s/base/home/.space' % exampleportaldir)
+        do.copyTree("%s/github/jumpscale/jumpscale_portal8/jslib" % do.CODEDIR, '%s/jslib' % portaldir)
+        do.copyTree("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % do.CODEDIR,  '%s/portalbase' % portaldir)
+        do.copyFile("%s/portalbase/portal_no_ays.py" % portaldir, exampleportaldir)
+        do.copyFile("%s/portalbase/config.hrd" % portaldir, exampleportaldir)
+        do.copyTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
 
-        C="""                
-        param.mongoengine.connection=host:localhost, port:27017
-        param.portal.rootpasswd = 'admin'
+        if start:
+            do.execute("cd %s; jspython portal_no_ays.py" % exampleportaldir)
+        else:
+            print('To run your portal, navigate to "%s" and do "jspython portal_no_ays.py"' % exampleportaldir)
 
-        param.cfg.ipaddr = '127.0.0.1'
-        param.cfg.port= '82'
-        param.cfg.appdir = /opt/jumpscale8/apps/portals/portalbase
-        param.cfg.filesroot = /opt/jumpscale8/var/portal/files
-        param.cfg.defaultspace = 'home'
-        param.cfg.admingroups = 'admin,'
-        param.cfg.authentication.method='me' #Empty for minimal portal which doesn't authenticate
-        param.cfg.gitlab.connection='main'
-        param.cfg.force_oauth_instance=''
-
-        param.cfg.contentdirs = ''
-        """
-        do.writeFile()
 
 
 
@@ -2571,7 +2568,7 @@ exec python3 -q "$@"
                     self.symlink("%s/utils/sitecustomize.py"%self.BASE,path)
             print("walk over /usr to find sitecustomize and link to new one")
             os.path.walk("/usr", do,"")
-            os.path.walk("/etc", do,"")            
+            os.path.walk("/etc", do,"")
 
 
     def develtools(self):
@@ -2601,7 +2598,7 @@ exec python3 -q "$@"
             print (cmd)
             do.execute(cmd)
 
-        do.pullGitRepo("https://github.com/vinta/awesome-python")        
+        do.pullGitRepo("https://github.com/vinta/awesome-python")
 
         if do.TYPE.startswith("OSX"):
             dest="%s/Library/Application Support/Sublime Text 3/Packages"%os.environ["HOME"]

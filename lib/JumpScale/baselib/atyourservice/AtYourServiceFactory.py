@@ -108,7 +108,8 @@ class AtYourServiceFactory():
             baseDir=baseDir.rstrip("/")
 
             if baseDir.strip()=="":
-                raise RuntimeError("could not find basepath for .ays in %s"%val)
+                baseDir = "/etc/ays/local"
+                break
 
         self._basepath=baseDir
         for item in ["blueprints","recipes","services","servicetemplates"]:
@@ -133,8 +134,7 @@ class AtYourServiceFactory():
             return self._type
         self._type = "n"  # n from normal
         # check if we are in a git directory, if so we will use $thatdir/services as base for the metadata
-        configpath = j.dirs.amInAYSRepo()
-        if configpath is not None:
+        if self.basepath is not None:
             self._type = "c"
         return self._type
 
@@ -160,36 +160,31 @@ class AtYourServiceFactory():
                 templ = ServiceTemplate(path, domain=domain)
                 llist.append(templ)
 
-
-        if self._templates==[]:
+        if not self._templates:
             self._doinit()
 
-            #load the local service templates
-            aysrepopath=j.dirs.amInAYSRepo()
-            if aysrepopath!=None:
-                # load local templates
-                path=j.sal.fs.joinPaths(aysrepopath,"%s/servicetemplates/"%aysrepopath)
-                load("ays",path,self._templates)
-
+            # load local templates
+            path = j.sal.fs.joinPaths(self.basepath, "servicetemplates/")
+            load("ays", path, self._templates)
 
             for domain, domainpath in self.domains:
                 # print "load template domain:%s"%domainpath
-                load(domain, domainpath,self._templates)
+                load(domain, domainpath, self._templates)
 
         return self._templates
 
     @property
     def recipes(self):
         self._doinit()
-        if self._recipes==[]:
+        if not self._recipes:
             self._doinit()
-            aysrepopath=j.dirs.amInAYSRepo()
-            if aysrepopath!=None:
+            aysrepopath = self.basepath
+            if aysrepopath is not None:
                 # load local templates
-                domainpath=j.sal.fs.joinPaths(aysrepopath,"%s/recipes/"%aysrepopath)
-                d=j.tools.path.get(domainpath)
+                domainpath = j.sal.fs.joinPaths(aysrepopath, "%s/recipes/" % aysrepopath)
+                d = j.tools.path.get(domainpath)
                 for item in d.walkfiles("state.hrd"):
-                    recipepath=j.do.getDirName(item)
+                    recipepath = j.do.getDirName(item)
                     self._recipes.append(ServiceRecipe(recipepath))
         return self._recipes
 
@@ -232,11 +227,6 @@ class AtYourServiceFactory():
             login=j.application.config.get("whoami.git.login").strip()
             passwd=j.application.config.getStr("whoami.git.passwd").strip()
 
-            # if self.type != "n": #are not on node
-                # configpath=j.dirs.amInAYSRepo()
-                # # load service templates
-                # self._domains.append((j.sal.fs.getBaseName(configpath),"%s/servicetemplates/"%configpath))
-
             # always load base domaim
             items=j.application.config.getDictFromPrefix("atyourservice.metadata")
             repos=j.do.getGitReposListLocal()
@@ -273,8 +263,8 @@ class AtYourServiceFactory():
         #start from clean sheet
         self.reset()
 
-        self.alog        
-        self.commitGitChanges(action="init_pre",msg='ays changed, commit changed files before deploy of blueprints',precheck=True)        
+        self.alog
+        self.commitGitChanges(action="init_pre",msg='ays changed, commit changed files before deploy of blueprints',precheck=True)
 
         latestrun=self.alog.newRun(action="init")
 
@@ -340,13 +330,13 @@ class AtYourServiceFactory():
 
 
     def do(self,action="install",printonly=False,remember=True,allservices=False):
-        
+
         self.alog
         self.commitGitChanges(action=action+"_pre",precheck=True)
         latestrun=self.alog.newRun(action=action)
 
         if not allservices:
-            #we need to find change since last time & make sure that 
+            #we need to find change since last time & make sure that
             #find all services with action with this name and put back on init
             changed,changes=self.alog.getChangedAtYourservices(action=action)
             for service in changed:
@@ -356,7 +346,7 @@ class AtYourServiceFactory():
 
 
         else:
-            todo=[item[1] for item in self.services.items()]            
+            todo=[item[1] for item in self.services.items()]
             for service in todo:
                 actionobj=service.getAction(action)
                 if remember==False or printonly:
@@ -377,7 +367,7 @@ class AtYourServiceFactory():
                 except Exception as e:
                     print ("***ERROR %s***\n%s\n"%(service,e))
                     error=True
-                    
+
             step += 1
             if error:
                 #don't do other levels, because error on this level
@@ -386,15 +376,14 @@ class AtYourServiceFactory():
                 todo=self.findTodo(action=action)
 
         if printonly:
-            remember=False
-        if remember==False and error==False:
+            remember = False
+        if remember is False and error is False:
             self.alog.removeLastRun()
-            #revert git
-            base=j.dirs.amInAYSRepo()
-            self.git.checkout("%s/services/"%base)
-            self.git.checkout("%s/recipes/"%base)        
+            # revert git
+            self.git.checkout("%s/services/" % self.basepath)
+            self.git.checkout("%s/recipes/" % self.basepath)
         else:
-            #this will make sure we will have remembered the last state of this action
+            # this will make sure we will have remembered the last state of this action
             self.commitGitChanges(action=action)
 
 
@@ -419,7 +408,7 @@ class AtYourServiceFactory():
         for service in self.services:
             service.state.saveRevisions()
 
-    def findTemplates(self, name="", version="",domain="", first=False, role=''):
+    def findTemplates(self, name="", version="",domain="", role='', first=False):
         res = []
         for template in self.templates:
             if not(name == "" or template.name == name):
@@ -520,11 +509,11 @@ class AtYourServiceFactory():
                 self.services.remove(service)
             j.sal.fs.removeDirTree(service.path)
 
-    def getTemplate(self,  name="", version="",domain="", first=True, die=True):
+    def getTemplate(self,  name="", version="",domain="", role="", first=True, die=True):
         if first:
-            return self.findTemplates(domain=domain, name=name, version=version, first=first)
+            return self.findTemplates(domain=domain, name=name, version=version, role=role, first=first)
         else:
-            res = self.findTemplates(domain=domain, name=name, version=version, first=first)
+            res = self.findTemplates(domain=domain, name=name, version=version, role=role, first=first)
             if len(res) > 1:
                 if die:
                     j.events.inputerror_critical("Cannot get ays template '%s|%s (%s)', found more than 1" % (domain, name, version), "ays.gettemplate")
@@ -537,8 +526,8 @@ class AtYourServiceFactory():
                     return
             return res[0]
 
-    def getRecipe(self, name="",version="", domain=""):
-        template = self.getTemplate(domain=domain,name=name, version=version)
+    def getRecipe(self, name="",version="", domain="", role=""):
+        template = self.getTemplate(domain=domain,name=name, version=version, role=role)
         return template.recipe
 
     def getService(self,  role='', instance='main', die=True):

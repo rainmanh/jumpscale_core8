@@ -24,7 +24,7 @@ class Blueprint(object):
                 continue
             if content=="" and line.strip()=="":
                 continue
-                
+
             line=line.replace("\t","    ")
             nr+=1
             if len(content)>0 and (len(line)>0 and line[0]!=" "):
@@ -35,14 +35,14 @@ class Blueprint(object):
 
         self._add2models(content,nr)
         self._contentblocks=[]
-        
+
         self.content=content0
 
     def loadrecipes(self):
         for model in self.models:
-            for key,item in model.items():                
+            for key,item in model.items():
                 aysname,aysinstance=key.split("_",1)
-                r=j.atyourservice.getRecipe(name=aysname)
+                j.atyourservice.getRecipe(name=aysname)
 
     def execute(self):
         for model in self.models:
@@ -50,7 +50,7 @@ class Blueprint(object):
                 # print ("blueprint model execute:%s %s"%(key,item))
                 aysname,aysinstance=key.split("_",1)
                 r=j.atyourservice.getRecipe(name=aysname)
-                r.newInstance(instance=aysinstance,args=item)
+                r.newInstance(instance=aysinstance, args=item)
 
 
     def _add2models(self,content,nr):
@@ -63,12 +63,10 @@ class Blueprint(object):
         except Exception as e:
             msg="Could not process blueprint: '%s', line: '%s', content '%s'\nerror:%s"%(self.path,nr,content,e)
             raise RuntimeError(msg)
-        
+
         self.models.append(model)
 
     def __str__(self):
         return str(self.models)
 
     __repr__=__str__
-
-

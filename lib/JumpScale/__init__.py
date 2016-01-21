@@ -127,15 +127,15 @@ if j.core.db==None:
         os.system(cmd)
     else:
 
-        url="http://stor.jumpscale.org:8000/public/redis-server"
-        if 'redis' not in os.listdir(path='/opt/jumpscale8/bin/'): 
+        url="http://stor.jumpscale.org/public/redis-server"
+        if 'redis' not in os.listdir(path='/opt/jumpscale8/bin/'):
             j.do.download(url, to='%s/bin/redis'%j.do.BASE, overwrite=False, retry=3)
         import subprocess
         cmd1 = "chmod 550 %sbin/redis > 2&>1"%j.do.BASE
         cmd2 = "%sbin/redis --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"%j.do.BASE
         print ("start redis in background")
         os.system(cmd1)
-        os.system(cmd2)        
+        os.system(cmd2)
     # Wait until redis is up
     redisinit()
     while j.core.db==None:
@@ -215,7 +215,7 @@ if base !="/opt/jumpscale8":
         if j.core.db!=None:
             j.core.db.flushall()
         if base =="/optrw/jumpscale8":
-            j.do.installer.writeenv(basedir=base, insystem=False, CODEDIR='/optrw/code')            
+            j.do.installer.writeenv(basedir=base, insystem=False, CODEDIR='/optrw/code')
         print ("force metadata reload")
 
 data=j.core.db.get("system.locations")

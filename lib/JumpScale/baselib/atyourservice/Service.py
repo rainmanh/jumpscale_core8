@@ -61,7 +61,7 @@ class ActionRun():
         self.epoch=epoch
         if self.epoch==0:
             self.epoch=j.data.time.getTimeEpoch()
-        self._state=state        
+        self._state=state
         self.printonly=printonly
         if self.state=="":
             raise RuntimeError("state cannot be empty")
@@ -78,10 +78,10 @@ class ActionRun():
 
     @property
     def method_node(self):
-        if self._method_node=="":
-            if self.service.parent!=None:
-                if self.service.role=="os" or self.service.parent.role=="os":            
-                    self._method_node=self.service._getActionMethodNode(self.name)
+        if self._method_node == "":
+            if self.service.parent != None:
+                if self.service.parent.role == "ssh":
+                    self._method_node = self.service._getActionMethodNode(self.name)
                     return self._method_node
             self._method_node=None
         return self._method_node
@@ -102,23 +102,23 @@ class ActionRun():
     def method_mgmt_post(self):
         if self._method_mgmt_post=="":
             self._method_mgmt_post=self.service._getActionMethodMgmt(self.name+"_post")
-        return self._method_mgmt_post        
+        return self._method_mgmt_post
 
     @property
     def methods(self):
+
         if self._methods=="":
             res=[]
             if self.method_mgmt_pre!=None:
                 res.append(self.method_mgmt_pre)
             if self.method_node!=None:
-                res.append(self.method_node)
+                res.append("node")
             if self.method_mgmt!=None:
                 res.append(self.method_mgmt)
             if self.method_mgmt_post!=None:
                 res.append(self.method_mgmt_post)
             self._methods=res
 
-        print('######## node', self.method_node, 'mgmt', self.method_mgmt)
         return self._methods
 
 
@@ -134,12 +134,15 @@ class ActionRun():
             for method in self.methods:
                 if not self.printonly:
                     if j.atyourservice.debug:
-                        # print (method)      
+                        # print (method)
                         try:
-                            res=method(self.service)
+                            if method == "node":
+                                res = self.service._executeOnNode(self.name)
+                            else:
+                                res = method(self.service)
                         except Exception as e:
                             self.setState("ERROR")
-                            self.log("Exception:%s"%e)    
+                            self.log("Exception:%s"%e)
                             print ("ERROR")
                             raise RuntimeError(e)
                     else:
@@ -148,7 +151,11 @@ class ActionRun():
                         with redirect_stdout(f):
                             ok=False
                             try:
-                                res=self.method(self.service)
+                                if method == "node":
+                                    res = self.service._executeOnNode(self.name)
+                                else:
+                                    res = method(self.service)
+                                print ("sdsdsds")
                                 raise RuntimeError("1111")
                                 ok=True
                             except Exception as e:
@@ -161,12 +168,12 @@ class ActionRun():
             print ("NO METHODS FOR: %s"%self)
 
         self.setState("OK")
-            
+
     def __str__(self):
         return ("%-20s -> do: %-30s (%s)"%(self.service,self.name,self.state))
 
     __repr__=__str__
-    
+
 
 class Service(object):
 
@@ -219,7 +226,7 @@ class Service(object):
         self._dnsNames = []
 
         self.args = args or {}
-        self._producers = None
+        self._producers = {}
         self.cmd = None
         self._logPath = None
 
@@ -380,7 +387,7 @@ class Service(object):
         action=self.getAction(name,printonly=printonly)
         action.run()
         return action
-        
+
 
     def _getActionMethodMgmt(self,action):
         try:
@@ -454,7 +461,7 @@ class Service(object):
     def init(self):
         if self._init is False:
             do=False
-            if not j.do.exists(j.sal.fs.joinPaths(self.path, "instance.hrd")):
+            if not j.sal.fs.exists(j.sal.fs.joinPaths(self.path, "instance.hrd")):
                 do=True
             else:
                 changed,changes=j.atyourservice.alog.getChangedAtYourservices("init")
@@ -568,7 +575,7 @@ class Service(object):
         return list of producers which are waiting to be executing the action
         """
         # changed,changes=j.atyourservice.alog.getChangedAtYourservices(action=action)
-        
+
         # changed2=[]
         # for item in changed:
         #     # print (item.actions)
@@ -583,11 +590,11 @@ class Service(object):
             if actionrunobj.state!="OK":
                 producersChanged.add(producer)
         return producersChanged
-        
+
 
     def getNode(self):
         for parent in self.parents:
-            if 'os' == parent.role:
+            if 'ssh' == parent.role:
                 return parent
         return None
 
@@ -642,18 +649,20 @@ class Service(object):
 
     def _uploadToNode(self):
         # ONLY UPLOAD THE SERVICE ITSELF, INIT NEEDS TO BE FIRST STEP, NO IMMEDIATE INSTALL
-        if not self.parent or self.parent.role != 'os':
+        if not self.parent or self.parent.role != 'ssh':
         # if "os" not in self.producers:
             return
         hrd_root = "/etc/ays/local/"
-        remotePath = j.sal.fs.joinPaths(hrd_root, j.sal.fs.getBaseName(self.path)).rstrip("/")+"/"
+        remotePath = j.sal.fs.joinPaths(hrd_root, 'services', j.sal.fs.getBaseName(self.path)).rstrip("/")+"/"
         self.log("uploading %s '%s'->'%s'" % (self.key,self.path,remotePath))
+        templatepath = j.sal.fs.joinPaths(hrd_root, 'servicetemplates', j.sal.fs.getBaseName(self.recipe.path).rstrip("/"))
+        self.executor.upload(self.recipe.path, templatepath)
         self.executor.upload(self.path, remotePath,recursive=False)
 
 
     def _downloadFromNode(self):
         # if 'os' not in self.producers or self.executor is None:
-        if not self.parent or self.parent.role != 'os':
+        if not self.parent or self.parent.role != 'ssh':
             return
 
         hrd_root = "/etc/ays/local/"
@@ -668,7 +677,7 @@ class Service(object):
             # raise RuntimeError("found more then 1 executor for %s" % self)
 
         executor = None
-        if self.parent and self.parent.role == 'os':
+        if self.parent and self.parent.role == 'ssh':
         # if 'os' in self.producers and self.producers.get('os'):
             node = self.parent
             # node = self.producers["os"][0]
@@ -748,71 +757,72 @@ class Service(object):
         return self.__repr__()
 
     # ACTIONS
-    def _executeOnNode(self, actionName, cmd=None, reinstall=False):
-        if not self.parent or self.parent.role != 'os':
+    # def _executeOnNode(self, actionName, cmd=None, reinstall=False):
+    def _executeOnNode(self, actionName):
+        if not self.parent or self.parent.role != 'ssh':
         # if 'os' not in self.producers or self.executor is None:
             return False
+        self._uploadToNode()
 
-        cmd2 = ' -d %s -n %s -i %s' % (self.domain, self.name, self.instance)
-        execCmd = 'aysexec -a %s %s' % (actionName, cmd2)
+        execCmd = 'aysexec do %s %s %s' % (actionName, self.role, self.instance)
 
         executor = self.executor
         executor.execute(execCmd, die=True)
 
         return True
 
-    def stop(self):
-        self.log("stop instance")
-        self._executeOnNode("stop")
-        self.recurring.stop()
-        self.action_methods_mgmt.stop(self)
+    # def stop(self):
+    #     self.log("stop instance")
+    #     self._executeOnNode("stop")
+    #     self.recurring.stop()
+    #     self.action_methods_mgmt.stop(self)
+    #
+    #     if not self.action_methods_mgmt.check_down(self):
+    #         self.action_methods_mgmt.halt(self)
+    #         self._executeOnNode("halt")
 
-        if not self.action_methods_mgmt.check_down(self):
-            self.action_methods_mgmt.halt(self)
-            self._executeOnNode("halt")
+    # def start(self):
+    #     self.log("start instance")
+    #     self._executeOnNode("start")
+    #     self.recurring.start()
+    #     self.action_methods_mgmt.start(self)
+    #
+    # def restart(self):
+    #     self.stop()
+    #     self.start()
+    #
+    # def prepare(self):
+    #     self._executeOnNode("prepare")
 
-    def start(self):
-        self.log("start instance")
-        self._executeOnNode("start")
-        self.recurring.start()
-        self.action_methods_mgmt.start(self)
-
-    def restart(self):
-        self.stop()
-        self.start()
-
-    def prepare(self):
-        self._executeOnNode("prepare")
-
-    def install(self, start=True):
-        """
-        Install Service.
-
-        Keyword arguments:
-        start     -- whether Service should start after install (default True)
-        reinstall -- reinstall if already installed (default False)
-        """
-
-        log("INSTALL:%s" % self)
-
-        self.action_methods_mgmt.install_pre(self)
-        if self.state.changed:
-            self._uploadToNode()
-        self._executeOnNode('prepare')
-        self._executeOnNode('install')
-        self.action_methods_mgmt.install_post(self)
-
-        if self.recipe.hrd.getBool("hrd.return", False):
-            self._downloadFromNode()
-            # need to reload the downloaded instance.hrd file
-            self._hrd = j.data.hrd.get(j.sal.fs.joinPaths(self.path, 'instance.hrd'), prefixWithName=False)
-
-        # now we can remove changes of statefile & remove old hrd
-        self.state.installDoneOK()
-        j.sal.fs.copyFile(
-            j.sal.fs.joinPaths(self.path, "instance.hrd"),
-            j.sal.fs.joinPaths(self.path, "instance_old.hrd")
-        )
+    # def install(self, start=True):
+    #     """
+    #     Install Service.
+    #
+    #     Keyword arguments:
+    #     start     -- whether Service should start after install (default True)
+    #     reinstall -- reinstall if already installed (default False)
+    #     """
+    #
+    #     log("INSTALL:%s" % self)
+    #
+    #     self.action_methods_mgmt.install_pre(self)
+    #     if self.state.changed:
+    #         self._uploadToNode()
+    #     self._executeOnNode('prepare')
+    #     self._executeOnNode('install')
+    #     self.action_methods_mgmt.install_post(self)
+    #
+    #     if self.recipe.hrd.getBool("hrd.return", False):
+    #         self._downloadFromNode()
+    #         # need to reload the downloaded instance.hrd file
+    #         self._hrd = j.data.hrd.get(j.sal.fs.joinPaths(self.path, 'instance.hrd'), prefixWithName=False)
+    #
+    #     # now we can remove changes of statefile & remove old hrd
+    #     self.state.installDoneOK()
+    #     j.sal.fs.copyFile(
+    #         j.sal.fs.joinPaths(self.path, "instance.hrd"),
+    #         j.sal.fs.joinPaths(self.path, "instance_old.hrd")
+    #     )
 
     def _getDisabledProducers(self):
         producers = dict()
@@ -873,49 +883,49 @@ class Service(object):
 
         # self.configure()
 
-    def publish(self):
-        """
-        check which repo's are used & push the info
-        this does not use the build repo's
-        """
-        if self._executeOnNode("publish"):
-            return
+    # def publish(self):
+    #     """
+    #     check which repo's are used & push the info
+    #     this does not use the build repo's
+    #     """
+    #     if self._executeOnNode("publish"):
+    #         return
+    #
+    #     self.log("publish instance")
+    #     self.action_methods_mgmt.publish(self)
+    #
+    # def package(self):
+    #     """
+    #     """
+    #     if self._executeOnNode("package"):
+    #         return
+    #
+    #     self.action_methods_mgmt.package(self)
 
-        self.log("publish instance")
-        self.action_methods_mgmt.publish(self)
 
-    def package(self):
-        """
-        """
-        if self._executeOnNode("package"):
-            return
-
-        self.action_methods_mgmt.package(self)
-
-
-    def update(self):
-        """
-        - go over all related repo's & do an update
-        - copy the files again
-        - restart the app
-        """
-        if self._executeOnNode("update"):
-            return
-
-        self.log("update instance")
-        for recipeitem in self.hrd.getListFromPrefix("git.export"):
-            # pull the required repo
-            j.atyourservice._getRepo(recipeitem['url'], recipeitem=recipeitem)
-
-        for recipeitem in self.hrd.getListFromPrefix("git.build"):
-            # print recipeitem
-            # pull the required repo
-            name = recipeitem['url'].replace(
-                "https://", "").replace("http://", "").replace(".git", "")
-            dest = "/opt/build/%s/%s" % name
-            j.do.pullGitRepo(dest=dest, ignorelocalchanges=True)
-
-        self.restart()
+    # def update(self):
+    #     """
+    #     - go over all related repo's & do an update
+    #     - copy the files again
+    #     - restart the app
+    #     """
+    #     if self._executeOnNode("update"):
+    #         return
+    #
+    #     self.log("update instance")
+    #     for recipeitem in self.hrd.getListFromPrefix("git.export"):
+    #         # pull the required repo
+    #         j.atyourservice._getRepo(recipeitem['url'], recipeitem=recipeitem)
+    #
+    #     for recipeitem in self.hrd.getListFromPrefix("git.build"):
+    #         # print recipeitem
+    #         # pull the required repo
+    #         name = recipeitem['url'].replace(
+    #             "https://", "").replace("http://", "").replace(".git", "")
+    #         dest = "/opt/build/%s/%s" % name
+    #         j.do.pullGitRepo(dest=dest, ignorelocalchanges=True)
+    #
+    #     self.restart()
 
     # def resetstate(self):
     #     """
@@ -928,157 +938,157 @@ class Service(object):
     #     statePath = j.sal.fs.joinPaths(self.path, 'state.toml')
     #     j.do.delete(statePath)
 
-    def reset(self):
-        """
-        - remove build repo's !!!
-        - remove state of the app (same as resetstate) in jumpscale (the configuration info)
-        - remove data of the app
-        """
-        if self._executeOnNode("reset"):
-            return
+    # def reset(self):
+    #     """
+    #     - remove build repo's !!!
+    #     - remove state of the app (same as resetstate) in jumpscale (the configuration info)
+    #     - remove data of the app
+    #     """
+    #     if self._executeOnNode("reset"):
+    #         return
+    #
+    #     self.log("reset instance")
+    #     # remove build repo's
+    #     for recipeitem in self.hrd.getListFromPrefix("git.build"):
+    #         name = recipeitem['url'].replace(
+    #             "https://", "").replace("http://", "").replace(".git", "")
+    #         dest = "/opt/build/%s" % name
+    #         j.do.delete(dest)
+    #
+    #     self.action_methods_mgmt.removedata(self)
+    #     j.atyourservice.remove(self)
 
-        self.log("reset instance")
-        # remove build repo's
-        for recipeitem in self.hrd.getListFromPrefix("git.build"):
-            name = recipeitem['url'].replace(
-                "https://", "").replace("http://", "").replace(".git", "")
-            dest = "/opt/build/%s" % name
-            j.do.delete(dest)
+    # def removedata(self):
+    #     """
+    #     - remove build repo's !!!
+    #     - remove state of the app (same as resetstate) in jumpscale (the configuration info)
+    #     - remove data of the app
+    #     """
+    #     self._executeOnNode("removedata")
+    #
+    #     self.log("removedata instance")
+    #     self.action_methods_mgmt.removedata(self)
+    #
+    # def execute(self, cmd=None):
+    #     """
+    #     execute cmd on service
+    #     """
+    #     if self._executeOnNode("execute", cmd=cmd):
+    #         return
+    #
+    #     if cmd is None:
+    #         cmd = self.cmd
+    #     self.action_methods_mgmt.execute(self, cmd=cmd)
 
-        self.action_methods_mgmt.removedata(self)
-        j.atyourservice.remove(self)
+    # def _uninstall(self):
+    #     for recipeitem in self.recipe.hrd.getListFromPrefix("web.export"):
+    #         if "dest" not in recipeitem:
+    #             raise RuntimeError("could not find dest in hrditem for %s %s" % (recipeitem, self))
+    #         dest = recipeitem['dest']
+    #         j.sal.fs.removeDirTree(dest)
+    #
+    #     for recipeitem in self.recipe.hrd.getListFromPrefix("git.export"):
+    #         if "platform" in recipeitem:
+    #             if not j.core.platformtype.checkMatch(recipeitem["platform"]):
+    #                 continue
+    #
+    #         if "link" in recipeitem and str(recipeitem["link"]).lower() == 'true':
+    #             # means we need to only list files & one by one link them
+    #             link = True
+    #         else:
+    #             link = False
+    #
+    #         repository_type, repository_account, repository_name = recipeitem['url'].strip('http://').strip('https://').split('/', 3) #'http://git.aydo.com/binary/mongodb',
+    #         repository_type = repository_type.split('.')[0]
+    #         srcdir = '%(codedir)s/%(type)s/%(account)s/%(repo_name)s' % {
+    #             'codedir': j.dirs.codeDir,
+    #             'type': repository_type.lower(),
+    #             'account': repository_account.lower(),
+    #             'repo_name': repository_name,
+    #         }
+    #
+    #         src = recipeitem['source']
+    #         src = j.sal.fs.joinPaths(srcdir, src)
+    #
+    #         if "dest" not in recipeitem:
+    #             raise RuntimeError(
+    #                 "could not find dest in hrditem for %s %s" % (recipeitem, self))
+    #         dest = recipeitem['dest']
+    #
+    #         if src[-1] == "*":
+    #             src = src.replace("*", "")
+    #             if "nodirs" in recipeitem and str(recipeitem["nodirs"]).lower() == 'true':
+    #                 # means we need to only list files & one by one link them
+    #                 nodirs = True
+    #             else:
+    #                 nodirs = False
+    #
+    #             items = j.do.listFilesInDir(
+    #                 path=src, recursive=False, followSymlinks=False, listSymlinks=False)
+    #             if nodirs is False:
+    #                 items += j.do.listDirsInDir(
+    #                     path=src, recursive=False, dirNameOnly=False, findDirectorySymlinks=False)
+    #
+    #             items = [(item, "%s/%s" % (dest, j.do.getBaseName(item)), link)
+    #                      for item in items]
+    #         else:
+    #             items = [(src, dest, link)]
+    #
+    #         for src, dest, link in items:
+    #             if dest.strip() == "":
+    #                 raise RuntimeError("a dest in coderecipe cannot be empty for %s" % self)
+    #             if dest[0] != "/":
+    #                 dest = "/%s" % dest
+    #             else:
+    #                 if link:
+    #                     if j.sal.fs.exists(dest):
+    #                         j.sal.fs.unlink(dest)
+    #                 else:
+    #                     self.log(("deleting: %s" % dest))
+    #                     j.sal.fs.removeDirTree(dest)
 
-    def removedata(self):
-        """
-        - remove build repo's !!!
-        - remove state of the app (same as resetstate) in jumpscale (the configuration info)
-        - remove data of the app
-        """
-        self._executeOnNode("removedata")
+    # def uninstall(self):
+    #     self._executeOnNode("uninstall")
+    #
+    #
+    #     self.log("uninstall instance")
+    #     self.disable()
+    #     self._uninstall()
+    #     self.action_methods_mgmt.uninstall(self)
+    #     j.sal.fs.removeDirTree(self.path)
+    #
+    # def monitor(self):
+    #     """
+    #     Schedule the monitor local and monitor remote methods
+    #     """
+    #     if self._executeOnNode("monitor"):
+    #         res = self.action_methods_mgmt.check_up_local(self)
+    #         res = res and self.action_methods_mgmt.schedule_monitor_local(self)
+    #         res = res and self.action_methods_mgmt.schedule_monitor_remote(self)
+    #         return res
+    #
+    #     return True
 
-        self.log("removedata instance")
-        self.action_methods_mgmt.removedata(self)
-
-    def execute(self, cmd=None):
-        """
-        execute cmd on service
-        """
-        if self._executeOnNode("execute", cmd=cmd):
-            return
-
-        if cmd is None:
-            cmd = self.cmd
-        self.action_methods_mgmt.execute(self, cmd=cmd)
-
-    def _uninstall(self):
-        for recipeitem in self.recipe.hrd.getListFromPrefix("web.export"):
-            if "dest" not in recipeitem:
-                raise RuntimeError("could not find dest in hrditem for %s %s" % (recipeitem, self))
-            dest = recipeitem['dest']
-            j.sal.fs.removeDirTree(dest)
-
-        for recipeitem in self.recipe.hrd.getListFromPrefix("git.export"):
-            if "platform" in recipeitem:
-                if not j.core.platformtype.checkMatch(recipeitem["platform"]):
-                    continue
-
-            if "link" in recipeitem and str(recipeitem["link"]).lower() == 'true':
-                # means we need to only list files & one by one link them
-                link = True
-            else:
-                link = False
-
-            repository_type, repository_account, repository_name = recipeitem['url'].strip('http://').strip('https://').split('/', 3) #'http://git.aydo.com/binary/mongodb',
-            repository_type = repository_type.split('.')[0]
-            srcdir = '%(codedir)s/%(type)s/%(account)s/%(repo_name)s' % {
-                'codedir': j.dirs.codeDir,
-                'type': repository_type.lower(),
-                'account': repository_account.lower(),
-                'repo_name': repository_name,
-            }
-
-            src = recipeitem['source']
-            src = j.sal.fs.joinPaths(srcdir, src)
-
-            if "dest" not in recipeitem:
-                raise RuntimeError(
-                    "could not find dest in hrditem for %s %s" % (recipeitem, self))
-            dest = recipeitem['dest']
-
-            if src[-1] == "*":
-                src = src.replace("*", "")
-                if "nodirs" in recipeitem and str(recipeitem["nodirs"]).lower() == 'true':
-                    # means we need to only list files & one by one link them
-                    nodirs = True
-                else:
-                    nodirs = False
-
-                items = j.do.listFilesInDir(
-                    path=src, recursive=False, followSymlinks=False, listSymlinks=False)
-                if nodirs is False:
-                    items += j.do.listDirsInDir(
-                        path=src, recursive=False, dirNameOnly=False, findDirectorySymlinks=False)
-
-                items = [(item, "%s/%s" % (dest, j.do.getBaseName(item)), link)
-                         for item in items]
-            else:
-                items = [(src, dest, link)]
-
-            for src, dest, link in items:
-                if dest.strip() == "":
-                    raise RuntimeError("a dest in coderecipe cannot be empty for %s" % self)
-                if dest[0] != "/":
-                    dest = "/%s" % dest
-                else:
-                    if link:
-                        if j.sal.fs.exists(dest):
-                            j.sal.fs.unlink(dest)
-                    else:
-                        self.log(("deleting: %s" % dest))
-                        j.sal.fs.removeDirTree(dest)
-
-    def uninstall(self):
-        self._executeOnNode("uninstall")
-
-
-        self.log("uninstall instance")
-        self.disable()
-        self._uninstall()
-        self.action_methods_mgmt.uninstall(self)
-        j.sal.fs.removeDirTree(self.path)
-
-    def monitor(self):
-        """
-        Schedule the monitor local and monitor remote methods
-        """
-        if self._executeOnNode("monitor"):
-            res = self.action_methods_mgmt.check_up_local(self)
-            res = res and self.action_methods_mgmt.schedule_monitor_local(self)
-            res = res and self.action_methods_mgmt.schedule_monitor_remote(self)
-            return res
-
-        return True
-
-    def iimport(self, url):
-        if self._executeOnNode("import"):
-            return
-
-        self.log("import instance data")
-        self.action_methods_mgmt.data_import(url, self)
-
-    def export(self, url):
-        if self._executeOnNode("export"):
-            return
-
-        self.log("export instance data")
-        self.actions.data_export(url, self)
-
-    def configure(self, restart=True):
-
-        self.log("configure instance mgmt")
-        res = self.action_methods_mgmt.configure(self)
-        if res is False:
-            j.events.opserror_critical(msg="Could not configure %s (mgmt)" % self, category="ays.service.configure")
-
-        self.log("configure instance on node")
-        self._executeOnNode("configure")
+    # def iimport(self, url):
+    #     if self._executeOnNode("import"):
+    #         return
+    #
+    #     self.log("import instance data")
+    #     self.action_methods_mgmt.data_import(url, self)
+    #
+    # def export(self, url):
+    #     if self._executeOnNode("export"):
+    #         return
+    #
+    #     self.log("export instance data")
+    #     self.actions.data_export(url, self)
+    #
+    # def configure(self, restart=True):
+    #
+    #     self.log("configure instance mgmt")
+    #     res = self.action_methods_mgmt.configure(self)
+    #     if res is False:
+    #         j.events.opserror_critical(msg="Could not configure %s (mgmt)" % self, category="ays.service.configure")
+    #
+    #     self.log("configure instance on node")
+    #     self._executeOnNode("configure")

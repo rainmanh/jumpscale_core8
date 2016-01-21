@@ -36,7 +36,7 @@ class ServiceTemplate(object):
         self.key = j.atyourservice.getKey(self)
 
     def _init(self):
-        self.path_hrd_template = j.sal.fs.joinPaths(self.path, "template.hrd")
+        # self.path_hrd_template = j.sal.fs.joinPaths(self.path, "template.hrd")
         self.path_hrd_schema = j.sal.fs.joinPaths(self.path, "schema.hrd")
         self.path_actions_mgmt = j.sal.fs.joinPaths(self.path, "actions_mgmt.py")
         self.path_actions_node = j.sal.fs.joinPaths(self.path, "actions_node.py")
@@ -51,12 +51,12 @@ class ServiceTemplate(object):
     def hrd(self):
         if self._hrd:
             return self._hrd
-        hrdpath = self.path_hrd_template
+        hrdpath = self.path_hrd_schema
         if not j.sal.fs.exists(hrdpath):
             # check if we can find it in other ays template
             if self.name.find(".") != -1:
                 name = self.name.split(".", 1)[0]
-                templ = j.atyourservice.getTemplate(self.domain, name, die=False)
+                templ = j.atyourservice.getTemplate(domain=self.domain, name=name, die=False)
                 if templ is not None:
                     self._hrd = templ.hrd_template
                     self.path_hrd_template = templ.path_hrd_template
@@ -90,9 +90,9 @@ class ServiceTemplate(object):
     def actions(self):
         if self._actions is None:
             if j.sal.fs.exists(self.path_actions_mgmt):
-                if self.domain=="ays":
-                    self.hrd.applyOnFile(self.path_actions_mgmt)
-                    j.application.config.applyOnFile(self.path_actions_mgmt)
+                # if self.domain=="ays":
+                    # self.hrd.applyOnFile(self.path_actions_mgmt)
+                    # j.application.config.applyOnFile(self.path_actions_mgmt)
                 modulename = "JumpScale.atyourservice.%s.%s.template" % (self.domain, self.name)
                 mod = loadmodule(modulename, self.path_actions_mgmt)
                 self._actions = mod.Actions()

@@ -2,11 +2,8 @@
 from Container import Container
 
 from JumpScale import j
-import JumpScale.sal.diskmanager
-import sys
 import os
 import docker
-import time
 
 
 from sal.base.SALObject import SALObject

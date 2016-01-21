@@ -42,7 +42,7 @@ class CodeGeneratorActorTasklets(CodeGeneratorBase):
             if j.sal.fs.exists(path):
                 # content=j.sal.fs.fileGetContents(path)
                 # if content.find(NOTGENSTR) != -1:
-                    # path=j.sal.fs.joinPaths(j.core.portal.active.codepath,spec.appname,spec.actorname,method.name,"_5_main.py")
+                    # path=j.sal.fs.joinPaths(j.portal.active.codepath,spec.appname,spec.actorname,method.name,"_5_main.py")
                 path = None
 
             if path != None and str(path) != "":

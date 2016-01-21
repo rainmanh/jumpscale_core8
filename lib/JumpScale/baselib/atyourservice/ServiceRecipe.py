@@ -12,13 +12,11 @@ class ServiceRecipe(ServiceTemplate):
 
     def __init__(self, path="",template=None,aysrepopath=""):
 
-        if aysrepopath=="" or aysrepopath==None:
-            aysrepopath=j.dirs.amInAYSRepo()
-
-        if aysrepopath=="" or aysrepopath==None:
+        aysrepopath = j.atyourservice.basepath
+        if not aysrepopath:
             raise RuntimeError("A service instance can only be used when used from a ays repo")
 
-        if path!="":
+        if path != "":
             if not j.sal.fs.exists(path):
                 raise RuntimeError("Could not find path for recipe")
             self.path=path
@@ -41,8 +39,8 @@ class ServiceRecipe(ServiceTemplate):
 
         self._init()
 
-        if j.sal.fs.exists(self.parent.path_hrd_template):
-            j.sal.fs.copyFile(self.parent.path_hrd_template,self.path_hrd_template)
+        # if j.sal.fs.exists(self.parent.path_hrd_template):
+            # j.sal.fs.copyFile(self.parent.path_hrd_template,self.path_hrd_template)
         if j.sal.fs.exists(self.parent.path_hrd_schema):
             j.sal.fs.copyFile(self.parent.path_hrd_schema,self.path_hrd_schema)
         if j.sal.fs.exists(self.parent.path_actions_mgmt):
@@ -65,7 +63,7 @@ class ServiceRecipe(ServiceTemplate):
             self._state=None
         return self._state
 
-    def newInstance(self, instance="main", args={}, path='', parent=None, consume="",originator=None):
+    def newInstance(self, instance="main", role='', args={}, path='', parent=None, consume="",originator=None):
         """
         """
         self.actions  # DO NOT REMOVE
@@ -93,11 +91,7 @@ class ServiceRecipe(ServiceTemplate):
             elif parent is not None:
                 fullpath = j.sal.fs.joinPaths(parent.path, shortkey)
             else:
-                ppath = j.dirs.amInAYSRepo()
-                if ppath is None:
-                    ppath = "/etc/ays/local/"
-                else:
-                    ppath = "%s/services/" % (ppath)
+                ppath = j.sal.fs.joinPaths(j.atyourservice.basepath, "services")
                 fullpath = j.sal.fs.joinPaths(ppath, shortkey)
 
             if j.sal.fs.isDir(fullpath):

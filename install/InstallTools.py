@@ -917,7 +917,7 @@ class InstallTools():
                 cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s"%(url,to,user,minsp,retry,timeout)
                 rc, out = self.execute(cmd, dieOnNonZeroExitCode=False)
             if rc > 0:
-                raise RuntimeError("Could not download:{}.\nErrorcode: {} Error:\n {}".format(url, rc, err))
+                raise RuntimeError("Could not download:{}.\nErrorcode: {}".format(url, rc))
             else:
                 self.touch("%s.downloadok"%to)
         elif multithread:

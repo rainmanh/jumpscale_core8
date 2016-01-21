@@ -108,7 +108,10 @@ class AtYourServiceFactory():
             baseDir=baseDir.rstrip("/")
 
             if baseDir.strip()=="":
-                baseDir = "/etc/ays/local"
+                if j.do.TYPE.startswith("OSX"):
+                    baseDir = "%s/ays/"%j.dirs.cfgDir
+                else:
+                    baseDir = "/etc/ays/local"
                 break
 
         self._basepath=baseDir

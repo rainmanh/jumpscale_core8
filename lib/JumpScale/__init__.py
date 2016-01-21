@@ -108,8 +108,6 @@ import importlib
 
 def redisinit():
     import redis
-    if not os.path.exists('/tmp/redis.sock'):
-        open('/tmp/redis.sock', 'a').close()
     j.core.db=redis.Redis(unix_socket_path='/tmp/redis.sock')
     try:
         j.core.db.set("internal.last",0)
@@ -200,7 +198,7 @@ def findModules():
 
     j.core.db.set("system.locations",json.dumps(result))
     if base =="/opt/jumpscale8":
-        j.do.writeFile("%s/bin/metadata.db"%j.do.BASE,j.data.serializer.json.dumps(result))
+        j.do.writeFile("%s/bin/metadata.db"%j.do.BASE,json.dumps(result))
 
 
 forcereload=False

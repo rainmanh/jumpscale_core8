@@ -8,6 +8,8 @@ from JumpScale import j
 from Action import *
 
 
+
+
 class ActionController(object):
     '''Manager controlling actions'''
     def __init__(self, _output=None, _width=70):
@@ -18,20 +20,21 @@ class ActionController(object):
         self._lastid={}
 
     def reset(self,runid=None):
-        if runid is not None:
+        if runid!=None:
             j.core.db.delete("actions.%s"%runid)
             return
         for item in j.core.db.keys("actions.*"):
-            item = item.decode()
             self.reset(item.split(".",1)[1])
 
 
-    def start(self, action,runid=0,actionRecover=None,args={},die=True,stdOutput=False,errorOutput=True,retry=1,serviceObj=None):
+    def start(self, action,runid=0,actionRecover=None,args={},die=True,stdOutput=False,errorOutput=True,retry=1,serviceObj=None,name=""):
         '''
         self.doc is in doc string of method
         specify recover actions in the description
 
         name is name of method
+
+        @param name if you want to overrule the name
 
         @param id is unique id which allows finding back of action
         @param loglevel: Message level
@@ -40,14 +43,12 @@ class ActionController(object):
         @param args is dict with arguments
         @param serviceObj: service, will be used to get category filled in
         '''
-
         runid=str(runid)
         if runid not in self._lastid:
-            self._lastid[runid] = 0
-        else:
-            self._lastid[runid] += 1
-        id = self._lastid[runid]
-        action = Action(action,runid=runid,actionRecover=actionRecover,args=args,die=die,stdOutput=stdOutput,errorOutput=errorOutput,retry=retry,serviceObj=serviceObj,id=id)
+            self._lastid[runid]=0
+        self._lastid[runid]+=1
+        id=self._lastid[runid]
+        action=Action(action,runid=runid,actionRecover=actionRecover,args=args,die=die,stdOutput=stdOutput,errorOutput=errorOutput,retry=retry,serviceObj=serviceObj,id=id,name=name)
         action.execute()
 
 

@@ -102,17 +102,17 @@ class Dirs(object):
             txt=txt.replace("$%s"%key,str(value))
         return txt
 
-    # def replaceFilesDirVars(self,path,recursive=True, filter=None,additionalArgs={}):
-    #     if j.sal.fs.isFile(path):
-    #         paths=[path]
-    #     else:
-    #         paths=j.sal.fs.listFilesInDir(path,recursive,filter)
+    def replaceFilesDirVars(self,path,recursive=True, filter=None,additionalArgs={}):
+        if j.sal.fs.isFile(path):
+            paths=[path]
+        else:
+            paths=j.sal.fs.listFilesInDir(path,recursive,filter)
 
-    #     for path in paths:
-    #         content=j.sal.fs.fileGetContents(path)
-    #         content2=self.replaceTxtDirVars(content,additionalArgs)
-    #         if content2!=content:
-    #             j.sal.fs.writeFile(filename=path,contents=content2)
+        for path in paths:
+            content=j.sal.fs.fileGetContents(path)
+            content2=self.replaceTxtDirVars(content,additionalArgs)
+            if content2!=content:
+                j.sal.fs.writeFile(filename=path,contents=content2)
 
     def _createDir(self,path):
         try:

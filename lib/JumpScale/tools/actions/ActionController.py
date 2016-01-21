@@ -8,8 +8,6 @@ from JumpScale import j
 from Action import *
 
 
-
-
 class ActionController(object):
     '''Manager controlling actions'''
     def __init__(self, _output=None, _width=70):
@@ -20,10 +18,11 @@ class ActionController(object):
         self._lastid={}
 
     def reset(self,runid=None):
-        if runid!=None:
+        if runid is not None:
             j.core.db.delete("actions.%s"%runid)
             return
         for item in j.core.db.keys("actions.*"):
+            item = item.decode()
             self.reset(item.split(".",1)[1])
 
 
@@ -41,15 +40,17 @@ class ActionController(object):
         @param args is dict with arguments
         @param serviceObj: service, will be used to get category filled in
         '''
+
         runid=str(runid)
         if runid not in self._lastid:
-            self._lastid[runid]=0
-        self._lastid[runid]+=1
-        id=self._lastid[runid]
-        action=Action(action,runid=runid,actionRecover=actionRecover,args=args,die=die,stdOutput=stdOutput,errorOutput=errorOutput,retry=retry,serviceObj=serviceObj,id=id)
+            self._lastid[runid] = 0
+        else:
+            self._lastid[runid] += 1
+        id = self._lastid[runid]
+        action = Action(action,runid=runid,actionRecover=actionRecover,args=args,die=die,stdOutput=stdOutput,errorOutput=errorOutput,retry=retry,serviceObj=serviceObj,id=id)
         action.execute()
 
-        
+
 
     # def hasRunningActions(self):
     #     '''Check whether actions are currently running

@@ -811,21 +811,21 @@ class Client(object):
             'domain': domain,
             'name': name
         }
-        data_response = dict()
+        all_jobs = list()
 
-        result = self.cmd(None,
-                          None,
-                          CMD_GET_PROCESSES_STATS,
-                          RunArgs(),
-                          j.data.serializer.json.dumps(data),
-                          fanout=True,
-                          roles=['*'])
+        cmd = self.cmd(None,
+                       None,
+                       CMD_GET_PROCESSES_STATS,
+                       RunArgs(),
+                       j.data.serializer.json.dumps(data),
+                       fanout=True,
+                       roles=['*'])
 
-        for job in result.iter_results():
-            # not sure if this condition is correct  if job.state == "RUNNING":
-            data_response.update(self._load_json_or_die(job)[0])
+        for job in cmd.iter_results():
+            data = self._load_json_or_die(job)
+            all_jobs += data
 
-        return data_response
+        return all_jobs
 
 
 

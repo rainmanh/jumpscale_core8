@@ -108,6 +108,8 @@ class DebugSSHNode():
             embed()
         return self._platformType
 
+
+
     def __str__(self):
         return "debugnode:%s" % self.addr
 
@@ -119,6 +121,7 @@ class DevelopToolsFactory():
     def __init__(self):
         self.__jslocation__ = "j.tools.develop"
         self._nodes = []
+        self.installer=Installer()
 
     def help(self):
         H = """
@@ -364,7 +367,83 @@ class DevelopToolsFactory():
         except KeyboardInterrupt:
             pass
 
-    def installportal(self, start=True,mongodbip=127.0.0.1,mongoport=27017,login="",passwd=""):
+
+class Installer():
+
+    def installAgentcontroller(self):
+        """
+        config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
+        """
+
+        def agent():
+            cmd="go get github.com/Jumpscale/agent2"
+            j.do.execute(cmd)
+
+        def agentcontroller(self):
+            cmd="go get github.com/Jumpscale/agentcontroller2"
+            j.do.execute(cmd)
+
+        j.actions.start(agent, runid="agentcontroller")
+        j.actions.start(agentcontroller, runid="agentcontroller")
+
+        # GOPATH
+
+        CONFIG="""
+        [main]
+        gid = 1
+        nid = 10
+        message_id_file = "./.mid"
+        history_file = "./.history"
+        roles = []
+
+        [controllers]
+            [controllers.main]
+            url = "http://localhost:8966"
+                [controllers.main.security]
+                # UNCOMMENT THE FOLLOWING LINES TO USE SSL
+                #client_certificate = "/path/to/client-test.crt"
+                #client_certificate_key = "/path/to/client-test.key"
+
+                # defines an extra CA to trust (used in case of server self-signed certs)
+                # should be empty string otherwise.
+
+                #certificate_authority = "/path/to/server.crt"
+
+        [cmds]
+            [cmds.execute_js_py]
+            binary = "python2.7"
+            cwd = "./python"
+
+        [channel]
+        cmds = ["main"] # long polling from agent 'main'
+
+        [logging]
+            [logging.db]
+            type = "DB"
+            log_dir = "./logs"
+            levels = []  # empty for all
+
+            [logging.ac]
+            type = "AC"
+            flush_int = 300 # seconds (5min)
+            batch_size = 1000 # max batch size, force flush if reached this count.
+            controllers = [] # to all agents
+            levels = [2]
+
+            [logging.console]
+            type = "console"
+            levels = [2, 4, 7, 8, 9]
+
+        [stats]
+        interval = 60 # seconds
+        controllers = []
+        """
+
+        from IPython import embed
+        print ("DEBUG NOW sss")
+        embed()
+
+    def installportal(self, start=True,mongodbip="127.0.0.1",mongoport=27017,login="",passwd=""):
 
         def upgradePip():
             j.do.execute("pip3 install --upgrade pip")
@@ -516,3 +595,13 @@ class DevelopToolsFactory():
         #@eve issue
         #@explorer issue
         
+
+    def multidownload(self,path,dest):
+
+        for item in self.cuisine.fs_find("/mnt/pub",extendinfo=True):
+            path,sizeinkb,epochmod=item
+            from IPython import embed
+            print ("DEBUG NOW sdsd")
+            embed()
+            p
+            

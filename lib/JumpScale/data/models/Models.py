@@ -245,6 +245,29 @@ class Disk(ModelBase, Document):
     lastcheck = IntField(default=j.data.time.getTimeEpoch())
 
 
+class Vdisk(ModelBase, Document):
+    machineguid = StringField(required=True)
+    diskid = IntField()
+    fs = StringField()
+    sizeFrom = DictField()
+    sizeTo = DictField()
+    freeFrom = DictField()
+    freeTo = DictField()
+    sizeondiskFrom = DictField()
+    sizeondiskTo = DictField()
+    mounted = BooleanField()
+    path = StringField()
+    description = StringField()
+    mountpoint = StringField()
+    role = ListField(StringField())
+    type = ListField(StringField())
+    order = IntField()
+    devicename = StringField(default='') #if known device name in vmachine
+    backup = BooleanField()
+    backuplocation = StringField()
+    backuptime  = IntField(default=j.data.time.getTimeEpoch())
+    backupexpiration = IntField()
+    
 class Alert(ModelBase, Document):
     username = StringField(default='')
     description = StringField(default='')

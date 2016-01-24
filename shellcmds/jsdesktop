@@ -217,7 +217,6 @@ if opts.action =='userconfig':
         raise RuntimeError("please specify name")
     if opts.passwd==None:
         raise RuntimeError("please specify passwd")        
-    import JumpScale.grid.agentcontroller
     client=j.clients.agentcontroller
     client.execute("jumpscale", "desktopcreate", "master", timeout=60, wait=True, lock='desktopcreate', username=opts.name,passwd=opts.passwd)
 

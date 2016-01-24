@@ -364,7 +364,7 @@ class DevelopToolsFactory():
         except KeyboardInterrupt:
             pass
 
-    def installportal(self, start=True,mongodbip=127.0.0.1,mongoport=27017,login="",passwd=""):
+    def installportal(self, start=True,mongodbip='127.0.0.1',mongoport=27017,login="",passwd=""):
 
         def upgradePip():
             j.do.execute("pip3 install --upgrade pip")
@@ -490,15 +490,22 @@ class DevelopToolsFactory():
         # j.application.reload()
 
         portaldir = '%s/apps/portals/' % j.do.BASE
-        exampleportaldir = '%sexample' % portaldir
-        j.do.createDir(exampleportaldir)
-        j.do.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % j.do.CODEDIR, '%s/jslib' % portaldir)
-        j.do.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % j.do.CODEDIR,  '%s/portalbase' % portaldir)
-        j.do.createDir('%s/base/home/.space' % exampleportaldir)
-        j.do.copyFile("%s/portalbase/portal_no_ays.py" % portaldir, exampleportaldir)
-        j.do.copyFile("%s/portalbase/config.hrd" % portaldir, exampleportaldir)
+        j.sal.fs.createDir(portaldir)
+        j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % j.do.CODEDIR,   '%s/jslib' % portaldir)
+        j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/system" % j.do.CODEDIR,  '%s/portalbase/system' %portaldir)
+        j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki" % j.do.CODEDIR, '%s/portalbase/wiki' % portaldir)
+        j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/macros" % j.do.CODEDIR, '%s/portalbase/macros' % portaldir)
+        j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/templates" % j.do.CODEDIR, '%s/portalbase/templates' % portaldir)
+
+
+
+
+        exampleportaldir = '%sexample/base/home/.space/' % portaldir
+        j.sal.fs.createDir(exampleportaldir)
+        j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/portal_no_ays.py" % j.do.CODEDIR, exampleportaldir)
+        j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd" % j.do.CODEDIR, exampleportaldir)
         j.dirs.replaceFilesDirVars("%s/config.hrd"%exampleportaldir)
-        j.do.copyTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
+        j.sal.fs.copyDirTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
 
         #2to3 -f all -w /usr/local/lib/python3.5/site-packages/eve_docs/config.py
         #@todo

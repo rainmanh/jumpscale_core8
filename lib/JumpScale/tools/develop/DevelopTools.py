@@ -38,7 +38,7 @@ class MyFSEventHandler(FileSystemEventHandler):
                 except Exception as e:
                     print(e)
                     j.tools.debug.syncCode()
-                    
+
 
     def on_moved(self, event):
         self.catch_all_handler(event)
@@ -176,7 +176,7 @@ class DevelopToolsFactory():
                 if item.find(":") != -1:
                     addr, sshport = item.split(":")
                     addr = addr.strip()
-                    sshport = int(sshport)                    
+                    sshport = int(sshport)
 
                 else:
                     addr = item.strip()
@@ -236,12 +236,12 @@ class DevelopToolsFactory():
 
             js8
             """
-            node.cuisine.run_script(C)            
+            node.cuisine.run_script(C)
 
         for node in self.nodes:
             j.actions.start(cleanNode, args={"node":node},retry=2,runid="develop")
             j.actions.start(installJS8SB, args={"node":node,"rw":rw},retry=2,runid="develop")
-            
+
         if rw:
             self.overlaySandbox()
 
@@ -253,7 +253,7 @@ class DevelopToolsFactory():
         def overlaySandbox(node):
             """
             create overlay on top of sandbox
-            """        
+            """
             C = """
             set -ex
             mkdir -p /overlay/js_upper
@@ -265,8 +265,8 @@ class DevelopToolsFactory():
             mkdir -p /optrw/jumpscale8/lib/JumpScale/
             mkdir -p /optrw/code/
             """
-            node.cuisine.run_script(C)   
-    
+            node.cuisine.run_script(C)
+
 
 
         def overlaySandboxSetEnv(node):
@@ -364,7 +364,7 @@ class DevelopToolsFactory():
         except KeyboardInterrupt:
             pass
 
-    def installportal(self, start=True,mongodbip=127.0.0.1,mongoport=27017,login="",passwd=""):
+    def installportal(self, start=True,mongodbip="127.0.0.1",mongoport=27017,login="",passwd=""):
 
         def upgradePip():
             j.do.execute("pip3 install --upgrade pip")
@@ -467,7 +467,7 @@ class DevelopToolsFactory():
 
             def installPip(name):
                 j.do.execute("pip3 install %s --upgrade"%name)
-            
+
             for dep in deps.split("\n"):
                 dep=dep.strip()
                 if dep.strip()=="":
@@ -485,8 +485,8 @@ class DevelopToolsFactory():
 
         # j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % destjslib, delete=False)
         # j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % j.dirs.jsLibDir, delete=False)
-        
-        
+
+
         # j.application.reload()
 
         portaldir = '%s/apps/portals/' % j.do.BASE
@@ -515,4 +515,3 @@ class DevelopToolsFactory():
         #@link example spaces
         #@eve issue
         #@explorer issue
-        

@@ -246,10 +246,7 @@ class Disk(ModelBase, Document):
 
 
 class Vdisk(ModelBase, Document):
-    machineid = StringField(required=True)
-    guid = StringField(required=True)
-    gid = IntField()
-    nid = IntField()
+    machineguid = StringField(required=True)
     diskid = IntField()
     fs = StringField()
     sizeFrom = DictField()

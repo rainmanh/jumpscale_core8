@@ -421,10 +421,10 @@ class Docker2(SALObject):
             s = "%s " % id
             if 'status' in line:
                 s += line['status']
-            elif 'progress' in line:
+            if 'progress' in line:
                 detail = line['progressDetail']
                 progress = line['progress']
-                s = "%50s" % progress
+                s += " %50s " % progress
             if output:
                 print(s)
             out.append(s)

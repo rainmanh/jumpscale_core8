@@ -2,9 +2,9 @@ try:
     import ujson as json
 except:
     import json
+from SerializerBase import *
 
-
-class SerializerUJson(object):
+class SerializerUJson(SerializerBase):
     def __init__(self):
         self.__jslocation__ = "j.data.serializer.json"
 

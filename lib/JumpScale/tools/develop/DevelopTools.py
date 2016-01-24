@@ -242,8 +242,8 @@ class DevelopToolsFactory():
             node.cuisine.run_script(C)            
 
         for node in self.nodes:
-            j.actions.start(cleanNode, args={"node":node},retry=2,runid="develop")
-            j.actions.start(installJS8SB, args={"node":node,"rw":rw},retry=2,runid="develop")
+            j.actions.add(cleanNode, args={"node":node},retry=2,runid="develop")
+            j.actions.add(installJS8SB, args={"node":node,"rw":rw},retry=2,runid="develop")
             
         if rw:
             self.overlaySandbox()
@@ -294,8 +294,8 @@ class DevelopToolsFactory():
             node.cuisine.file_write("/optrw/jumpscale8/env.sh", NEWENV,check=True)
 
         for node in self.nodes:
-            j.actions.start(overlaySandbox, args={"node":node},retry=2,runid="develop")
-            j.actions.start(overlaySandboxSetEnv, args={"node":node},retry=2,runid="develop")
+            j.actions.add(overlaySandbox, args={"node":node},retry=2,runid="develop")
+            j.actions.add(overlaySandboxSetEnv, args={"node":node},retry=2,runid="develop")
 
         print ("\nlogin to machine & do\ncd /optrw/jumpscale8;source env.sh;js")
 
@@ -370,88 +370,126 @@ class DevelopToolsFactory():
 
 class Installer():
 
-    def installAgentcontroller(self):
+    def installAgentcontroller(self,start=True):
         """
         config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
         """
+        j.actions.setRunId("installAgentController")
 
-        def agent():
-            cmd="go get github.com/Jumpscale/agent2"
-            j.do.execute(cmd)
-
-        def agentcontroller(self):
-            cmd="go get github.com/Jumpscale/agentcontroller2"
-            j.do.execute(cmd)
-
-        j.actions.start(agent, runid="agentcontroller")
-        j.actions.start(agentcontroller, runid="agentcontroller")
-
-        # GOPATH
-
-        CONFIG="""
-        [main]
-        gid = 1
-        nid = 10
-        message_id_file = "./.mid"
-        history_file = "./.history"
-        roles = []
-
-        [controllers]
-            [controllers.main]
-            url = "http://localhost:8966"
-                [controllers.main.security]
-                # UNCOMMENT THE FOLLOWING LINES TO USE SSL
-                #client_certificate = "/path/to/client-test.crt"
-                #client_certificate_key = "/path/to/client-test.key"
-
-                # defines an extra CA to trust (used in case of server self-signed certs)
-                # should be empty string otherwise.
-
-                #certificate_authority = "/path/to/server.crt"
-
-        [cmds]
-            [cmds.execute_js_py]
-            binary = "python2.7"
-            cwd = "./python"
-
-        [channel]
-        cmds = ["main"] # long polling from agent 'main'
-
-        [logging]
-            [logging.db]
-            type = "DB"
-            log_dir = "./logs"
-            levels = []  # empty for all
-
-            [logging.ac]
-            type = "AC"
-            flush_int = 300 # seconds (5min)
-            batch_size = 1000 # max batch size, force flush if reached this count.
-            controllers = [] # to all agents
-            levels = [2]
-
-            [logging.console]
-            type = "console"
-            levels = [2, 4, 7, 8, 9]
-
-        [stats]
-        interval = 60 # seconds
-        controllers = []
-        """
-
-        from IPython import embed
-        print ("DEBUG NOW sss")
-        embed()
-
-    def installportal(self, start=True,mongodbip="127.0.0.1",mongoport=27017,login="",passwd=""):
+        agentAppDir=j.do.joinPaths(j.dirs.base,"apps","agent8")
+        agentcontrollerAppDir=j.do.joinPaths(j.dirs.base,"apps","agentcontroller8")
 
         def upgradePip():
             j.do.execute("pip3 install --upgrade pip")
 
-        j.actions.start(upgradePip, runid="portal_pip")
+        def pythonLibInstall():
+            j.do.execute("pip3 install pytoml")
+
+        def syncthing_build(appbase):
+            url="git@github.com:syncthing/syncthing.git"
+            j.tools.golang.init()
+            j.tools.golang.build(url)            
+
+        def agent_build(appbase):
+            url="git@github.com:Jumpscale/agent2.git"
+            dest=j.do.pullGitRepo(url)
+            j.tools.golang.init()
+            j.tools.golang.build(url)            
+
+            j.sal.fs.copyFile(j.do.joinPaths(j.tools.golang.binpath,"agent2"),j.sal.fs.joinPaths(appbase,"agent2"))
+            j.sal.fs.copyFile(j.do.joinPaths(j.tools.golang.binpath,"syncthing"),j.sal.fs.joinPaths(appbase,"syncthing"))
+
+            j.do.createDir(appbase)
+
+            #link extensions
+            extdir=j.sal.fs.joinPaths(appbase,"extensions")
+            j.do.delete(extdir)
+            j.do.symlink("%s/github/jumpscale/agent2/extensions" % j.do.CODEDIR, extdir)
+
+            #manipulate config file
+            cfgfile='%s/agent.toml' % appbase
+            j.do.copyFile("%s/github/jumpscale/agent2/agent.toml" % j.do.CODEDIR, cfgfile)
+
+            j.sal.fs.copyDirTree("%s/github/jumpscale/agent2/conf" % j.do.CODEDIR, j.sal.fs.joinPaths(appbase,"conf"))
+
+            cfg=j.data.serializer.toml.load(cfgfile)
+
+            #@todo manipulate config file where required
+
+            from IPython import embed
+            print ("DEBUG NOW agent build")
+            embed()
+            
+
+            j.data.serializer.toml.dump(cfgfile,cfg)
 
 
-        def installDeps():
+        def agentcontroller_build(appbase):
+            url="git@github.com:Jumpscale/agentcontroller2.git"
+            dest=j.do.pullGitRepo(url)
+            j.tools.golang.init()
+            j.tools.golang.build(url)
+
+            destfile=j.sal.fs.joinPaths(appbase,"agentcontroller2")
+            j.sal.fs.copyFile(j.do.joinPaths(j.tools.golang.binpath,"agentcontroller2"),destfile)
+            j.sal.fs.copyFile(j.do.joinPaths(j.tools.golang.binpath,"syncthing"),j.sal.fs.joinPaths(appbase,"syncthing"))
+
+            j.do.createDir(appbase)
+            cfgfile='%s/agentcontroller.toml' % appbase
+            j.do.copyFile("%s/github/jumpscale/agentcontroller2/agentcontroller.toml" % j.do.CODEDIR, cfgfile)
+
+            extdir=j.sal.fs.joinPaths(appbase,"extensions")
+            j.do.delete(extdir)
+            j.sal.fs.createDir(extdir)
+            j.do.symlinkFilesInDir("%s/github/jumpscale/agentcontroller2/extensions" % j.do.CODEDIR, extdir, delete=True, includeDirs=False)
+
+            cfg=j.data.serializer.toml.load(cfgfile)
+
+            cfg['jumpscripts']['python_path']="%s:%s"%(extdir,j.dirs.jsLibDir)      
+
+            j.data.serializer.toml.dump(cfgfile,cfg)
+            
+        j.actions.add(upgradePip)
+        j.actions.add(pythonLibInstall)
+        j.actions.add(syncthing_build)
+        j.actions.add(agent_build,args={"appbase":agentAppDir})
+        j.actions.add(agentcontroller_build,args={"appbase":agentcontrollerAppDir})
+
+
+        def startAgent(appbase):
+            import os
+            gopath=os.environ["GOPATH"]
+            
+            cfgfile_agent=j.do.joinPaths(appbase,"agent2.toml")
+            j.sal.nettools.waitConnectionTest("127.0.0.1", 8966, timeout=2)
+            print ("connection test ok to agentcontroller")
+            j.sal.tmux.executeInScreen("main", screenname="agent",cmd="./agent2 -c %s"%cfgfile_agent, wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
+
+        def startAgentController(appbase):
+            import os
+            #@todo complete
+            j.sal.tmux.executeInScreen("main", screenname="ac",cmd="./agentcontroller2 -c %s"%cfgfile_ac, wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
+
+            
+            # j.do.execute()
+        if start:
+            j.actions.add(startAgent,args={"appbase":agentAppDir})
+            j.actions.add(startAgentController,args={"appbase":agentcontrollerAppDir})        
+        else:
+            print('To run your agent/agentcontroller, navigate to "%s" adn to "%s" and do "..."' % agentAppDir)
+
+
+
+
+    def installportal(self, start=True,mongodbip="127.0.0.1",mongoport=27017,login="",passwd=""):
+
+        j.actions.setRunId("installportal")
+
+        def upgradePip():
+            j.do.execute("pip3 install --upgrade pip")
+        actionUpgradePIP=j.actions.add(upgradePip)
+
+        def installDeps(actionin):
             """
             make sure new env arguments are understood on platform
             """
@@ -547,6 +585,7 @@ class Installer():
             def installPip(name):
                 j.do.execute("pip3 install %s --upgrade"%name)
             
+            actionout=None
             for dep in deps.split("\n"):
                 dep=dep.strip()
                 if dep.strip()=="":
@@ -554,38 +593,55 @@ class Installer():
                 if dep.strip()[0]=="#":
                     continue
                 dep=dep.split("=",1)[0]
-                j.actions.start(installPip, args={"name":dep},retry=2,runid="portal_pip",name="pip_%s"%dep)
+                actionout=j.actions.add(installPip, args={"name":dep},retry=2,deps=[actionin,actionout])
+
+            return actionout
+        actiondeps=installDeps(actionUpgradePIP)
+
+        def getcode():
+            j.do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
+        actionGetcode=j.actions.add(getcode,deps=[])
 
 
-        # installDeps()
+        def install():
+            destjslib = j.do.getPythonLibSystem(jumpscale=True)
+            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % destjslib, delete=False)
+            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % j.dirs.jsLibDir, delete=False)
+            
+            # j.application.reload()
 
-        # j.do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
-        # destjslib = j.do.getPythonLibSystem(jumpscale=True)
+            portaldir = '%s/apps/portals/' % j.do.BASE
+            exampleportaldir = '%sexample' % portaldir
+            j.do.createDir(exampleportaldir)
+            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % j.do.CODEDIR, '%s/jslib' % portaldir)
+            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % j.do.CODEDIR,  '%s/portalbase' % portaldir)
+            j.do.createDir('%s/base/home/.space' % exampleportaldir)
+            j.do.copyFile("%s/portalbase/portal_no_ays.py" % portaldir, exampleportaldir)
+            j.do.copyFile("%s/portalbase/config.hrd" % portaldir, exampleportaldir)
+            j.dirs.replaceFilesDirVars("%s/config.hrd"%exampleportaldir)
+            j.do.copyTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
+        actioninstall=j.actions.add(install,deps=[actiondeps])
 
-        # j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % destjslib, delete=False)
-        # j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % j.dirs.jsLibDir, delete=False)
-        
-        
-        # j.application.reload()
+        def changeEve():
+            #2to3 -f all -w /usr/local/lib/python3.5/site-packages/eve_docs/config.py
+            #@todo
+            pass
+        action=j.actions.add(changeEve,deps=[actionGetcode,actioninstall])
 
-        portaldir = '%s/apps/portals/' % j.do.BASE
-        exampleportaldir = '%sexample' % portaldir
-        j.do.createDir(exampleportaldir)
-        j.do.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % j.do.CODEDIR, '%s/jslib' % portaldir)
-        j.do.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % j.do.CODEDIR,  '%s/portalbase' % portaldir)
-        j.do.createDir('%s/base/home/.space' % exampleportaldir)
-        j.do.copyFile("%s/portalbase/portal_no_ays.py" % portaldir, exampleportaldir)
-        j.do.copyFile("%s/portalbase/config.hrd" % portaldir, exampleportaldir)
-        j.dirs.replaceFilesDirVars("%s/config.hrd"%exampleportaldir)
-        j.do.copyTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
-
-        #2to3 -f all -w /usr/local/lib/python3.5/site-packages/eve_docs/config.py
-        #@todo
-
+        def startmethod():
+            #@tod needs to become tmux
+            portaldir = '%s/apps/portals/' % j.do.BASE
+            exampleportaldir = '%sexample' % portaldir
+            cmd="cd %s; jspython portal_no_ays.py" % exampleportaldir
+            j.sal.tmux.executeInScreen("portal", "portal", cmd, wait=0, cwd=None, env=None, user='root', tmuxuser=None)
+            # j.do.execute()
         if start:
-            j.do.execute("cd %s; jspython portal_no_ays.py" % exampleportaldir)
+            actionstart=j.actions.add(startmethod)            
         else:
             print('To run your portal, navigate to "%s" and do "jspython portal_no_ays.py"' % exampleportaldir)
+
+
+        j.actions.run()
 
         #cd /usr/local/Cellar/mongodb/3.2.1/bin/;./mongod --dbpath /Users/kristofdespiegeleer1/optvar/mongodb
 

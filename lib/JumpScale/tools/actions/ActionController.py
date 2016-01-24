@@ -17,17 +17,55 @@ class ActionController(object):
         # self._actions = list()
         # self._width = _width
         self.rememberDone=False
-        self._lastid={}
+        self._actions={}
+        self.last=None
+        self._runid=j.core.db.get("actions.runid").decode()
+        showonly=j.core.db.hget("actions.showonly",self.runid)
+        if showonly==None:
+            self._showonly=False
+        else:
+            self._showonly=showonly.decode()=="1"
 
-    def reset(self,runid=None):
-        if runid!=None:
-            j.core.db.delete("actions.%s"%runid)
-            return
-        for item in j.core.db.keys("actions.*"):
-            self.reset(item.split(".",1)[1])
+    def setRunId(self,runid):
+        self._runid=str(runid)
+        j.core.db.set("actions.runid",self._runid.encode())
 
+    @property
+    def showonly(self):
+        return self._showonly
 
-    def start(self, action,runid=0,actionRecover=None,args={},die=True,stdOutput=False,errorOutput=True,retry=1,serviceObj=None,name=""):
+    @showonly.setter
+    def showonly(self,val):
+        if val=="1" or val==1 or val:
+            j.core.db.hset("actions.showonly",self._runid,"1".encode())
+            self._showonly=True
+        else:
+            j.core.db.hset("actions.showonly",self._runid,"0".encode())
+            self._showonly=False
+
+    @property
+    def runid(self):
+        if self._runid=="" or self._runid==None:
+            raise RuntimeError("runid cannot be empty, please set with j.actions.setRunID(...)")
+        return str(self._runid)
+
+    def reset(self,all=False):
+        if all==False:
+            self._actions={}
+            j.core.db.delete("actions.%s"%self.runid)
+        else:
+            for item in j.core.db.keys("actions.*"):
+                self.reset(item.split(".",1)[1])
+
+    def setState(self,state="INIT"):
+        for key,action in self.actions.items():
+            action.state=state
+            action.save()
+
+    def selectAction(self):
+        return j.tools.console.askChoice(j.actions.actions)
+
+    def add(self, action,actionRecover=None,args={},die=True,stdOutput=False,errorOutput=True,retry=1,serviceObj=None,deps=None,executeNow=False):
         '''
         self.doc is in doc string of method
         specify recover actions in the description
@@ -43,15 +81,59 @@ class ActionController(object):
         @param args is dict with arguments
         @param serviceObj: service, will be used to get category filled in
         '''
-        runid=str(runid)
-        if runid not in self._lastid:
-            self._lastid[runid]=0
-        self._lastid[runid]+=1
-        id=self._lastid[runid]
-        action=Action(action,runid=runid,actionRecover=actionRecover,args=args,die=die,stdOutput=stdOutput,errorOutput=errorOutput,retry=retry,serviceObj=serviceObj,id=id,name=name)
-        action.execute()
+        action=Action(action,runid=self.runid,actionRecover=actionRecover,args=args,die=die,stdOutput=stdOutput,errorOutput=errorOutput,retry=retry,serviceObj=serviceObj,deps=deps)
+        self._actions[action.key]=action
+        self.last=action
+        if executeNow:
+            action.execute()
+        else:
+            action.save()
+        return action
+
+    def start(self, action,actionRecover=None,args={},die=True,stdOutput=False,errorOutput=True,retry=1,serviceObj=None,deps=[]):
+        """
+        same as add method but will execute immediately
+        """
+        self.add(action,actionRecover=actionRecover,args=args,die=die,stdOutput=stdOutput,errorOutput=errorOutput,retry=retry,serviceObj=serviceObj,deps=deps,executeNow=True)
+
+    def gettodo(self):
+        todo=[]
+        for key,action in self.actions.items():
+            if action.readyForExecute:
+                todo.append(action)
+        return todo
+
+    def run(self,agentcontroller=False):
+
+        todo=self.gettodo()
+        step=0
+        while todo!=[]:
+            step+=1
+            print ("STEP:%s"%step)
+            for action in todo:
+                action.execute()
+                if action.state=="ERROR":
+                    raise RuntimeError("cannot execute run:%s, failed action."%(runid))
+            todo=self.gettodo()
 
 
+    @property
+    def actions(self):
+        if self._actions=={}:
+            for key in j.core.db.hkeys("actions.%s"%self.runid):
+                a=Action(runid=self.runid,key=key)
+                self._actions[a.key]=a
+        return self._actions
+
+    def showAll(self):
+        self.showonly=True
+
+        self.showonly=False
+
+
+
+    def showCompleted(self):
+        pass
 
     # def hasRunningActions(self):
     #     '''Check whether actions are currently running

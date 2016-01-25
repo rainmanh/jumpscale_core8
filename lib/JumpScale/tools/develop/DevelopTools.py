@@ -376,112 +376,73 @@ class Installer():
         """
         j.actions.setRunId("installAgentController")
 
-        agentAppDir=j.do.joinPaths(j.dirs.base,"apps","agent8")
-        agentcontrollerAppDir=j.do.joinPaths(j.dirs.base,"apps","agentcontroller8")
+        agentAppDir = j.do.joinPaths(j.dirs.base, "apps", "agent8")
+        agentcontrollerAppDir = j.do.joinPaths(j.dirs.base, "apps", "agentcontroller8")
+        syncthingAppDir = j.do.joinPaths(j.dirs.base, "apps", "syncthing")
 
         def upgradePip():
+            print("upgrading pip")
             j.do.execute("pip3 install --upgrade pip")
 
         def pythonLibInstall():
+            print('installing pytoml')
             j.do.execute("pip3 install pytoml")
 
-        def syncthing_build(appbase):
-            url="git@github.com:syncthing/syncthing.git"
-            j.tools.golang.init()
-            j.tools.golang.build(url)            
+        def agent_get(agentdir, syncthingdir):
+            url = "git@git.aydo.com:binary/agent2.git"
+            dest = j.do.pullGitRepo(url)
 
-        def agent_build(appbase):
-            url="git@github.com:Jumpscale/agent2.git"
-            dest=j.do.pullGitRepo(url)
-            j.tools.golang.init()
-            j.tools.golang.build(url)            
+            j.do.createDir(agentdir)
+            j.do.createDir(syncthingdir)
+            j.sal.fs.symlink(j.sal.fs.joinPaths(dest, 'extensions', 'syncthing', 'syncthing'), j.sal.fs.joinPaths(syncthingdir, 'syncthing'), overwriteTarget=True)
+            j.sal.fs.symlink(j.sal.fs.joinPaths(dest, 'agent2'), j.sal.fs.joinPaths(agentdir, 'agent2'), overwriteTarget=True)
+            j.sal.fs.copyFile(j.sal.fs.joinPaths(dest, 'agent2.toml'), agentdir)
 
-            j.sal.fs.copyFile(j.do.joinPaths(j.tools.golang.binpath,"agent2"),j.sal.fs.joinPaths(appbase,"agent2"))
-            j.sal.fs.copyFile(j.do.joinPaths(j.tools.golang.binpath,"syncthing"),j.sal.fs.joinPaths(appbase,"syncthing"))
+            # link extensions
+            extdir = j.sal.fs.joinPaths(dest, "extensions")
+            j.sal.fs.symlink(extdir, j.sal.fs.joinPaths(agentdir, 'extensions'), overwriteTarget=True)
 
-            j.do.createDir(appbase)
+            # link conf
+            j.sal.fs.symlink(j.sal.fs.joinPaths(dest, "conf"), j.sal.fs.joinPaths(agentdir, 'conf'), overwriteTarget=True)
 
-            #link extensions
-            extdir=j.sal.fs.joinPaths(appbase,"extensions")
-            j.do.delete(extdir)
-            j.do.symlink("%s/github/jumpscale/agent2/extensions" % j.do.CODEDIR, extdir)
-
-            #manipulate config file
-            cfgfile='%s/agent.toml' % appbase
-            j.do.copyFile("%s/github/jumpscale/agent2/agent.toml" % j.do.CODEDIR, cfgfile)
-
-            j.sal.fs.copyDirTree("%s/github/jumpscale/agent2/conf" % j.do.CODEDIR, j.sal.fs.joinPaths(appbase,"conf"))
-
-            cfg=j.data.serializer.toml.load(cfgfile)
-
-            #@todo manipulate config file where required
-
-            from IPython import embed
-            print ("DEBUG NOW agent build")
-            embed()
-            
-
-            j.data.serializer.toml.dump(cfgfile,cfg)
-
-
-        def agentcontroller_build(appbase):
-            url="git@github.com:Jumpscale/agentcontroller2.git"
-            dest=j.do.pullGitRepo(url)
-            j.tools.golang.init()
-            j.tools.golang.build(url)
-
-            destfile=j.sal.fs.joinPaths(appbase,"agentcontroller2")
-            j.sal.fs.copyFile(j.do.joinPaths(j.tools.golang.binpath,"agentcontroller2"),destfile)
-            j.sal.fs.copyFile(j.do.joinPaths(j.tools.golang.binpath,"syncthing"),j.sal.fs.joinPaths(appbase,"syncthing"))
+        def agentcontroller_get(appbase):QQ
+            url = "git@git.aydo.com:binary/agentcontroller2.git"
+            dest = j.do.pullGitRepo(url)
 
             j.do.createDir(appbase)
-            cfgfile='%s/agentcontroller.toml' % appbase
-            j.do.copyFile("%s/github/jumpscale/agentcontroller2/agentcontroller.toml" % j.do.CODEDIR, cfgfile)
+            j.sal.fs.symlink(j.do.joinPaths(dest, "agentcontroller2", "agentcontroller2"), j.sal.fs.joinPaths(appbase, "agentcontroller2"), overwriteTarget=True)
+            j.sal.fs.copyFile(j.do.joinPaths(dest, "agentcontroller2", "agentcontroller2.toml"), appbase)
 
-            extdir=j.sal.fs.joinPaths(appbase,"extensions")
-            j.do.delete(extdir)
+            extdir = j.sal.fs.joinPaths(appbase, "extensions")
             j.sal.fs.createDir(extdir)
-            j.do.symlinkFilesInDir("%s/github/jumpscale/agentcontroller2/extensions" % j.do.CODEDIR, extdir, delete=True, includeDirs=False)
+            j.sal.fs.symlink(j.sal.fs.joinPaths(dest, 'extensions'), extdir, overwriteTarget=True)
 
-            cfg=j.data.serializer.toml.load(cfgfile)
-
-            cfg['jumpscripts']['python_path']="%s:%s"%(extdir,j.dirs.jsLibDir)      
-
-            j.data.serializer.toml.dump(cfgfile,cfg)
-            
         j.actions.add(upgradePip)
         j.actions.add(pythonLibInstall)
-        j.actions.add(syncthing_build)
-        j.actions.add(agent_build,args={"appbase":agentAppDir})
-        j.actions.add(agentcontroller_build,args={"appbase":agentcontrollerAppDir})
+        j.actions.add(agent_get, args={"agentdir": agentAppDir, 'syncthingdir': syncthingAppDir})
+        j.actions.add(agentcontroller_get, args={"appbase": agentcontrollerAppDir})
+        j.actions.run()
 
+        def startSyncthing(appbase):
+            j.sal.tmux.executeInScreen("main", screenname="syncthing",cmd="./syncthing -gui-address 127.0.0.1:18384", wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
 
         def startAgent(appbase):
-            import os
-            gopath=os.environ["GOPATH"]
-            
-            cfgfile_agent=j.do.joinPaths(appbase,"agent2.toml")
-            j.sal.nettools.waitConnectionTest("127.0.0.1", 8966, timeout=2)
-            print ("connection test ok to agentcontroller")
-            j.sal.tmux.executeInScreen("main", screenname="agent",cmd="./agent2 -c %s"%cfgfile_agent, wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
+            j.sal.tmux.executeInScreen("main", screenname="agent",cmd="./agent2 -c agent2.toml", wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
 
         def startAgentController(appbase):
-            import os
-            #@todo complete
-            j.sal.tmux.executeInScreen("main", screenname="ac",cmd="./agentcontroller2 -c %s"%cfgfile_ac, wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
+            j.sal.tmux.executeInScreen("main", screenname="ac",cmd="./agentcontroller2 -c agentcontroller2.toml", wait=0,
+                                       cwd=appbase, env=None, user='root', tmuxuser=None)
 
-            
-            # j.do.execute()
         if start:
-            j.actions.add(startAgent,args={"appbase":agentAppDir})
-            j.actions.add(startAgentController,args={"appbase":agentcontrollerAppDir})        
+            j.actions.add(startSyncthing, args={"appbase": syncthingAppDir})
+            j.actions.add(startAgentController, args={"appbase": agentcontrollerAppDir})
+            j.actions.add(startAgent, args={"appbase": agentAppDir})
+            j.actions.run()
         else:
             print('To run your agent/agentcontroller, navigate to "%s" adn to "%s" and do "..."' % agentAppDir)
 
 
-
-
-    def installportal(self, start=True,mongodbip="127.0.0.1",mongoport=27017,login="",passwd=""):
+    def installPortal(self, start=True,mongodbip="127.0.0.1",mongoport=27017,login="",passwd=""):
 
         j.actions.setRunId("installportal")
 

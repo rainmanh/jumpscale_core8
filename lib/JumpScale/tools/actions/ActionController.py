@@ -8,27 +8,25 @@ from JumpScale import j
 from Action import *
 
 
-
-
 class ActionController(object):
     '''Manager controlling actions'''
     def __init__(self, _output=None, _width=70):
         self.__jslocation__ = "j.actions"
         # self._actions = list()
         # self._width = _width
-        self.rememberDone=False
-        self._actions={}
-        self.last=None
-        self._runid=j.core.db.get("actions.runid").decode()
-        showonly=j.core.db.hget("actions.showonly",self.runid)
-        if showonly==None:
-            self._showonly=False
+        self.rememberDone = False
+        self._actions = {}
+        self.last = None
+        self._runid = j.core.db.get("actions.runid").decode() if j.core.db.exists("actions.runid") else None
+        showonly = j.core.db.hget("actions.showonly", self._runid)
+        if showonly is None:
+            self._showonly = False
         else:
-            self._showonly=showonly.decode()=="1"
+            self._showonly = showonly.decode() == "1"
 
-    def setRunId(self,runid):
-        self._runid=str(runid)
-        j.core.db.set("actions.runid",self._runid.encode())
+    def setRunId(self, runid):
+        self._runid = str(runid)
+        j.core.db.set("actions.runid", self._runid.encode())
 
     @property
     def showonly(self):
@@ -87,7 +85,7 @@ class ActionController(object):
         if executeNow:
             action.execute()
         else:
-            action.save()
+            action.save(True)
         return action
 
     def start(self, action,actionRecover=None,args={},die=True,stdOutput=False,errorOutput=True,retry=1,serviceObj=None,deps=[]):
@@ -103,18 +101,17 @@ class ActionController(object):
                 todo.append(action)
         return todo
 
-    def run(self,agentcontroller=False):
-
-        todo=self.gettodo()
-        step=0
-        while todo!=[]:
-            step+=1
-            print ("STEP:%s"%step)
+    def run(self, agentcontroller=False):
+        todo = self.gettodo()
+        step = 0
+        while todo:
+            step += 1
+            print ("STEP:%s" % step)
             for action in todo:
                 action.execute()
-                if action.state=="ERROR":
-                    raise RuntimeError("cannot execute run:%s, failed action."%(runid))
-            todo=self.gettodo()
+                if action.state == "ERROR":
+                    raise RuntimeError("cannot execute run:%s, failed action." % (runid))
+            todo = self.gettodo()
 
 
     @property

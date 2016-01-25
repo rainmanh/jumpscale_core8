@@ -93,11 +93,11 @@ class ServiceTemplate(object):
                 # if self.domain=="ays":
                     # self.hrd.applyOnFile(self.path_actions_mgmt)
                     # j.application.config.applyOnFile(self.path_actions_mgmt)
-                modulename = "JumpScale.atyourservice.%s.%s.template" % (self.domain, self.name)
+                modulename = "JumpScale.atyourservice.%s.%s.mgmt" % (self.domain, self.name)
                 mod = loadmodule(modulename, self.path_actions_mgmt)
-                self._actions = mod.Actions()
+                self._actions = mod.Actions(self)
             else:
-                self._actions=j.atyourservice.getActionsBaseClassMgmt()
+                self._actions = j.atyourservice.getActionsBaseClassMgmt()(self)
         return self._actions
 
     def build(self, build_server=None, image_build=False, image_push=False,debug=True,syncLocalJumpscale=False):

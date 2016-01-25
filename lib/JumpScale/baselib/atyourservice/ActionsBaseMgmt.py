@@ -11,9 +11,11 @@ class ActionsBaseMgmt(object):
     implement methods of this class to change behavior of lifecycle management of service
     this one happens at central side from which we coordinate our efforts
     """
+    def __init__(self, serviceObj):
+        super(ActionsBaseMgmt).__init__()
+        self.serviceObj = serviceObj
 
-
-    def input(self, serviceObj):
+    def input(self):
         """
         gets executed before init happens of this ays
         use this method to manipulate the arguments which are given or already part of ays instance
@@ -30,7 +32,7 @@ class ActionsBaseMgmt(object):
         ```
 
         """
-        args=serviceObj.args
+        args=self.serviceObj.args
 
         toconsume=[]
 
@@ -38,40 +40,41 @@ class ActionsBaseMgmt(object):
             x = name not in args or args[name] is None or args[name] == ""
             return not x
 
-        if serviceObj.name.startswith("node"):
+        if self.serviceObj.name.startswith("node"):
             # set service name & ip addr
             if not exists(args, 'node.tcp.addr') or args['node.tcp.addr'].find('@ask')!=-1:
                 if "ip" in args:
                     args['node.tcp.addr'] = args["ip"]
 
             if not exists(args, 'node.name'):
-                args['node.name'] = serviceObj.instance
+                args['node.name'] = self.serviceObj.instance
 
-        if serviceObj.recipe.hrd.getBool("ns.enable",default=False) and "ns" not in serviceObj._producers:
+        if self.serviceObj.recipe.hrd.getBool("ns.enable",default=False) and "ns" not in self.serviceObj._producers:
 
-            if "ns" != serviceObj.role and not serviceObj.name.startswith("ns."):
+            if "ns" != self.serviceObj.role and not self.serviceObj.name.startswith("ns."):
                 # means we are not a nameservice ourselves (otherwise chicken & the egg issue)
                 serv = j.atyourservice.findServices(role="ns")
                 if len(serv) == 1:
                     ns_service = serv[0]
-                    serviceObj.consume("@ns")
+                    self.serviceObj.consume("@ns")
 
-                    nsinstance = serviceObj.instance
-                    nsname = serviceObj.name.split(".")[0]
+                    nsinstance = self.serviceObj.instance
+                    nsname = self.serviceObj.name.split(".")[0]
                     nsdomain = ns_service.hrd.get("instance.ns.domain")
                     if "instance.dns" not in args:
                         args["instance.dns"] = []
                     args["instance.dns"].append("%s.%s.%s" % (nsinstance, nsname, nsdomain))
 
         #see if we can find parent if specified (potentially based on role)
-        parent=serviceObj.recipe.schema.parentSchemaItemGet()
+        parent=self.serviceObj.recipe.schema.parentSchemaItemGet()
         if parent!=None:
+
             #parent exists
             role=parent.parent
 
-            if role in serviceObj.args:
+            if role in self.serviceObj.args:
                 #has been speficied or empty
-                rolearg=serviceObj.args[role].strip()
+                rolearg=self.serviceObj.args[role].strip()
             else:
                 rolearg=""
             if rolearg=="":
@@ -80,15 +83,15 @@ class ActionsBaseMgmt(object):
                     #we found 1 service of required role, will take that one
                     aysi=ays_s[0]
                     rolearg=aysi.instance
-                    serviceObj.args[role]=rolearg
+                    self.serviceObj.args[role]=rolearg
                 elif len(ays_s)>1:
-                    raise RuntimeError("Cannt find parent with role '%s' for service '%s, there is more than 1"%(role,serviceObj))
+                    raise RuntimeError("Cannt find parent with role '%s' for service '%s, there is more than 1"%(role,self.serviceObj))
                 else:
                     if parent.parentauto:
                         j.atyourservice.new(name=parent.parent, instance='main', version='', domain='', path=None, parent=None, args={}, consume='')
                         rolearg="main"
                     else:
-                        raise RuntimeError("Cannot find parent with role '%s' for service '%s, there is none, please make sure the service exists."%(role,serviceObj))
+                        raise RuntimeError("Cannot find parent with role '%s' for service '%s, there is none, please make sure the service exists."%(role,self.serviceObj))
 
             #check we can find
             ays_s=j.atyourservice.findServices(role=role,instance=rolearg)
@@ -96,15 +99,15 @@ class ActionsBaseMgmt(object):
                 pass
                 #all ok
             elif len(ays_s)>1:
-                raise RuntimeError("Cannt find parent '%s' for service '%s, there is more than 1 with instance:'%s'"%(role,serviceObj,rolearg))
+                raise RuntimeError("Cannt find parent '%s' for service '%s, there is more than 1 with instance:'%s'"%(role,self.serviceObj,rolearg))
             else:
-                raise RuntimeError("Cannot find parent '%s:%s' for service '%s:%s', please make sure the service exists."%(role,rolearg,serviceObj))
+                raise RuntimeError("Cannot find parent '%s:%s' for service '%s:%s', please make sure the service exists."%(role,rolearg,self.serviceObj))
 
-            serviceObj.hrd.set("parent",ays_s[0].shortkey)
-            serviceObj._parent=ays_s[0]
+            self.serviceObj.hrd.set("parent",ays_s[0].shortkey)
+            self.serviceObj._parent=ays_s[0]
 
         #manipulate the HRD's to mention the consume's to producers
-        consumes=serviceObj.recipe.schema.consumeSchemaItemsGet()
+        consumes=self.serviceObj.recipe.schema.consumeSchemaItemsGet()
 
 
         if consumes!=[]:
@@ -117,37 +120,37 @@ class ActionsBaseMgmt(object):
                 # if consumename=="parent":
                 #     continue
 
-                if not consumename in serviceObj.args:
+                if not consumename in self.serviceObj.args:
                     ays_s=[]
                 else:
                     ays_s=[]
-                    serviceObj.args[consumename]=j.data.text.getList(serviceObj.args[consumename])
-                    for instancename in serviceObj.args[consumename]:
+                    self.serviceObj.args[consumename]=j.data.text.getList(self.serviceObj.args[consumename])
+                    for instancename in self.serviceObj.args[consumename]:
                         service=j.atyourservice.getService(role=role,instance=instancename)
                         if service not in ays_s:
                             ays_s.append(service)
 
                 if len(ays_s)>int(consumeitem.consume_nr_max):
-                    raise RuntimeError("Found too many services with role '%s' which we are relying upon for service '%s, max:'%s'"%(role,serviceObj,consumeitem.consume_nr_max))
+                    raise RuntimeError("Found too many services with role '%s' which we are relying upon for service '%s, max:'%s'"%(role,self.serviceObj,consumeitem.consume_nr_max))
                 if len(ays_s)<int(consumeitem.consume_nr_min):
-                    msg="Found not enough services with role '%s' which we are relying upon for service '%s, min:'%s'"%(role,serviceObj,consumeitem.consume_nr_min)
+                    msg="Found not enough services with role '%s' which we are relying upon for service '%s, min:'%s'"%(role,self.serviceObj,consumeitem.consume_nr_min)
                     if len(ays_s)>0:
-                        msg+="Require following instances:%s"%serviceObj.args[consumename]
+                        msg+="Require following instances:%s"%self.serviceObj.args[consumename]
                     raise RuntimeError(msg)
 
                 for ays in ays_s:
-                    if role not in  serviceObj.producers:
-                        serviceObj._producers[role]=[]
-                    if ays not in serviceObj._producers[role]:
-                        serviceObj._producers[role].append(ays)
+                    if role not in  self.serviceObj.producers:
+                        self.serviceObj._producers[role]=[]
+                    if ays not in self.serviceObj._producers[role]:
+                        self.serviceObj._producers[role].append(ays)
 
-            for key, services in serviceObj._producers.items():
+            for key, services in self.serviceObj._producers.items():
                 producers = []
                 for service in services:
                     if service.key not in producers:
                         producers.append(service.shortkey)
 
-                serviceObj.hrd.set("producer.%s" % key, producers)
+                self.serviceObj.hrd.set("producer.%s" % key, producers)
 
 
 
@@ -213,23 +216,23 @@ class ActionsBaseMgmt(object):
     #     pass
 
 
-    def hrd(self, serviceObj):
+    def hrd(self):
         """
         manipulate the hrd's after processing of the @ASK statements
         """
-        if "ns" != serviceObj.role and not serviceObj.name.startswith("ns."):
+        if "ns" != self.serviceObj.role and not self.serviceObj.name.startswith("ns."):
             # means we are not a nameservice ourselves (otherwise chicken & the egg issue)
             serv = j.atyourservice.findServices(role="ns")
             if len(serv) == 1:
                 serv = serv[0]
-                instance = serviceObj.instance
-                name = serviceObj.name.split(".")[0]
+                instance = self.serviceObj.instance
+                name = self.serviceObj.name.split(".")[0]
                 serv.actions_mgmt.register(serv, "%s.%s" % (instance, name))
         return True
 
-    def _searchDep(self, serviceObj, depkey,die=True):
-        if serviceObj._producers and depkey in serviceObj._producers:
-            dep = serviceObj._producers[depkey]
+    def _searchDep(self, depkey,die=True):
+        if self.serviceObj._producers and depkey in self.serviceObj._producers:
+            dep = self.serviceObj._producers[depkey]
         else:
             dep = j.atyourservice.findServices(role=depkey)
 
@@ -238,7 +241,7 @@ class ActionsBaseMgmt(object):
         if len(dep)>1 and die==False:
             return None
         if len(dep) == 0:
-            j.events.inputerror_critical("Could not find dependency, please install.\nI am %s, I am trying to depend on %s" % (serviceObj, depkey))
+            j.events.inputerror_critical("Could not find dependency, please install.\nI am %s, I am trying to depend on %s" % (self.serviceObj, depkey))
         elif len(dep) > 1:
             j.events.inputerror_critical("Found more than 1 dependent ays, please specify, cannot fullfil dependency requirement.\nI am %s, I am trying to depend on %s" % (serviceObj, depkey))
         else:

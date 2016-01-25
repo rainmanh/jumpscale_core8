@@ -139,7 +139,7 @@ class ActionRun():
                             if method == "node":
                                 res = self.service._executeOnNode(self.name)
                             else:
-                                res = method(self.service)
+                                res = method()
                         except Exception as e:
                             self.setState("ERROR")
                             self.log("Exception:%s"%e)
@@ -154,7 +154,7 @@ class ActionRun():
                                 if method == "node":
                                     res = self.service._executeOnNode(self.name)
                                 else:
-                                    res = method(self.service)
+                                    res = method()
                                 print ("sdsdsds")
                                 raise RuntimeError("1111")
                                 ok=True
@@ -335,7 +335,7 @@ class Service(object):
             if j.sal.fs.exists(path=self.recipe.path_actions_mgmt):
                 self._action_methods_mgmt = self._loadActions(self.recipe.path_actions_mgmt,"mgmt")
             else:
-                self._action_methods_mgmt = j.atyourservice.getActionsBaseClassMgmt()()
+                self._action_methods_mgmt = j.atyourservice.getActionsBaseClassMgmt()(self)
 
         return self._action_methods_mgmt
 
@@ -345,7 +345,7 @@ class Service(object):
             if j.sal.fs.exists(path=self.recipe.path_actions_node):
                 self._action_methods_node = self._loadActions(self.recipe.path_actions_node,"node")
             else:
-                self._action_methods_node = j.atyourservice.getActionsBaseClassNode()()
+                self._action_methods_node = j.atyourservice.getActionsBaseClassNode()(self)
 
         return self._action_methods_node
 
@@ -425,7 +425,7 @@ class Service(object):
         #is only there temporary don't want to keep it there
         j.do.delete(path2)
         j.do.delete(j.do.joinPaths(self.path,"__pycache__"))
-        return mod.Actions()
+        return mod.Actions(self)
 
     @property
     def producers(self):

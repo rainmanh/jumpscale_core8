@@ -584,9 +584,8 @@ class Installer():
         actioninstall=j.actions.add(install,deps=[actiondeps])
 
         def changeEve():
-            #2to3 -f all -w /usr/local/lib/python3.5/site-packages/eve_docs/config.py
-            #@todo
-            pass
+            j.sal.tmux.executeInScreen("portal", "portal",cmd="python %s/site-packages/eve_docs/config.py"%j.do.getPythonSiteConfigPath(), wait=0, cwd=None, env=None, user='root', tmuxuser=None)            #@todo
+
         action=j.actions.add(changeEve,deps=[actionGetcode,actioninstall])
 
         def startmethod():

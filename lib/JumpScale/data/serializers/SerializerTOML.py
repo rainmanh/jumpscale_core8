@@ -3,7 +3,7 @@ import pytoml
 
 from SerializerBase import *
 
-class SerializerUJson(SerializerBase):
+class SerializerTOML(SerializerBase):
     def __init__(self):
         self.__jslocation__ = "j.data.serializer.toml"
 

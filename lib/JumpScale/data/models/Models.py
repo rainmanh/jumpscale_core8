@@ -245,7 +245,7 @@ class Disk(ModelBase, Document):
     lastcheck = IntField(default=j.data.time.getTimeEpoch())
 
 
-class Vdisk(ModelBase, Document):
+class VDisk(ModelBase, Document):
     machineguid = StringField(required=True)
     diskid = IntField()
     fs = StringField()
@@ -272,7 +272,7 @@ class Alert(ModelBase, Document):
     username = StringField(default='')
     description = StringField(default='')
     descriptionpub = StringField(default='')
-    level = IntField(min_value=1, max_value=3)
+    level = IntField(min_value=1, max_value=3, default=1)
     # dot notation e.g. machine.start.failed
     category = StringField(default='')
     tags = StringField(default='')  # e.g. machine:2323

@@ -1,18 +1,11 @@
 from JumpScale import j
-from ServiceTemplate import ServiceTemplate
-from Service import Service, getProcessDicts
-import re
-from ActionsBaseMgmt import ActionsBaseMgmt
-from ActionsBaseNode import ActionsBaseNode
-# import AYSdb
-
-from AtYourServiceSync import AtYourServiceSync
 
 from mongoengine import *
 
 from JumpScale.data.models.Models import ModelBase
 
-class ModelDebug(ModelBase):
+
+class Debug(ModelBase, Document):
     guid = StringField(default='')
     host = StringField(default='')
     cache = StringField(default='')
@@ -39,10 +32,11 @@ class ModelDebug(ModelBase):
 class AtYourServiceSandboxer():
 
 
-    def __init__(self,name="main"):
-        self.model=j.data.models.system.getset(ModelDebug(guid=name))
-        self._cl=None
-        self._clcache=None
+    def __init__(self, name="main"):
+        j.data.models.system.addModel(Debug)
+        self.model = j.data.models.system.Debug.getset(Debug(guid=name))
+        self._cl = None
+        self._clcache = None
 
     @property
     def cuisine_host(self):

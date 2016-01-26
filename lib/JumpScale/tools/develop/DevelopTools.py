@@ -565,8 +565,6 @@ class Installer():
 
 
         def install():
-            import ipdb;ipdb.set_trace()
-
             destjslib = j.do.getPythonLibSystem(jumpscale=True)
             j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % destjslib, delete=False)
             j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % j.dirs.jsLibDir, delete=False)

@@ -509,6 +509,7 @@ class Installer():
             # ptyprocess
             # pycparser
             # pycrypto
+            # pycurl
             # pygo
             # pygobject
             pylzma
@@ -565,11 +566,9 @@ class Installer():
 
 
         def install():
-            import ipdb;ipdb.set_trace()
-
             destjslib = j.do.getPythonLibSystem(jumpscale=True)
-            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % destjslib, delete=False)
-            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % j.dirs.jsLibDir, delete=False)
+            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % destjslib)
+            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % j.dirs.jsLibDir)
 
             # j.application.reload()
 
@@ -581,35 +580,37 @@ class Installer():
             j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/macros" % j.do.CODEDIR, '%s/portalbase/macros' % portaldir)
             j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/templates" % j.do.CODEDIR, '%s/portalbase/templates' % portaldir)
 
-
-            exampleportaldir = '%sexample/base/home/.space/' % portaldir
+            #j.do.symlink("%s/github/jumpscale/jumpscale_portal8/apps/gridportal/base/" % j.do.CODEDIR, "%sexample/base/" % portaldir)
+            exampleportaldir = '%sexample/base' % portaldir
             j.sal.fs.createDir(exampleportaldir)
+            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki/TestSpace" % j.do.CODEDIR, '%s/TestSpace' % exampleportaldir)
+            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki/TestWebsite" % j.do.CODEDIR, '%s/TestWebsite' % exampleportaldir)
+
             j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/portal_no_ays.py" % j.do.CODEDIR, exampleportaldir)
             j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd" % j.do.CODEDIR, exampleportaldir)
             j.dirs.replaceFilesDirVars("%s/config.hrd"%exampleportaldir)
             j.sal.fs.copyDirTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
+
         actioninstall=j.actions.add(install,deps=[actiondeps])
 
 
         def changeEve():
-            #2to3 -f all -w /usr/local/lib/python3.5/site-packages/eve_docs/config.py
-            #@todo
-            pass
+            j.sal.tmux.executeInScreen("portal", "portal",cmd="python %s/site-packages/eve_docs/config.py"%j.do.getPythonSiteConfigPath(), wait=0, cwd=None, env=None, user='root', tmuxuser=None)
+
         action=j.actions.add(changeEve,deps=[actionGetcode,actioninstall])
 
         def startmethod():
             #@tod needs to become tmux
             portaldir = '%s/apps/portals/' % j.do.BASE
-            exampleportaldir = '%sexample/base/home/.space/' % portaldir
+            exampleportaldir = '%sexample/base/' % portaldir
             cmd="cd %s; jspython portal_no_ays.py" % exampleportaldir
             j.sal.tmux.executeInScreen("portal", "portal", cmd, wait=0, cwd=None, env=None, user='root', tmuxuser=None)
             # j.do.execute()
         if start:
             action=j.actions.add(startmethod)
         else:
-            print('To run your portal, navigate to %s/apps/portals/example/base/home/.space/ and run "jspython portal_no_ays.py"' % j.do.BASE)
+            print('To run your portal, navigate to %s/apps/portals/example/base/ and run "jspython portal_no_ays.py"' % j.do.BASE)
 
-        import ipdb;ipdb.set_trace()
         j.actions.run()
 
         #cd /usr/local/Cellar/mongodb/3.2.1/bin/;./mongod --dbpath /Users/kristofdespiegeleer1/optvar/mongodb

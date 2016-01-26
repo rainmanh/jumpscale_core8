@@ -609,7 +609,6 @@ class Installer():
         else:
             print('To run your portal, navigate to %s/apps/portals/example/base/home/.space/ and run "jspython portal_no_ays.py"' % j.do.BASE)
 
-        import ipdb;ipdb.set_trace()
         j.actions.run()
 
         #cd /usr/local/Cellar/mongodb/3.2.1/bin/;./mongod --dbpath /Users/kristofdespiegeleer1/optvar/mongodb

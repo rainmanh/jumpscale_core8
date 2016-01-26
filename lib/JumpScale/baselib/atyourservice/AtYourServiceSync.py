@@ -41,7 +41,7 @@ class AtYourServiceSync():
         #git remote set-url origin git@github.com:Jumpscale/jumpscale_core8.git
 
         C="""
-        cd /opt/code/github/jumpscale
+        cd $codedir/github/jumpscale
         rm -rf jumpscale_core8/
         git clone git@github.com:Jumpscale/jumpscale_core8.git
         cd jumpscale_core8
@@ -51,7 +51,7 @@ class AtYourServiceSync():
         cd ..
 
         set -ex
-        cd /opt/code/github/jumpscale
+        cd $codedir/github/jumpscale
         rm -rf ays_jumpscale8/
         git clone git@github.com:Jumpscale/ays_jumpscale8.git
         cd ays_jumpscale8
@@ -64,7 +64,7 @@ class AtYourServiceSync():
 
         C=C.replace("$branchname",branch)
         C=C.replace("$dockerbase",dockerbase)
-        
+        C=C.replace("$codedir",j.do.CODEDIR)
 
         return j.do.executeBashScript(content=C, remote=ipaddr, sshport=sshport)
 

@@ -29,7 +29,7 @@ class JailFactory(object):
 
         #SHOULD WE ALSO DO NEXT?
         # j.sal.fs.chmod("/opt/code", 0o700)
-        j.sal.process.execute("chmod 700 /opt/code")
+        j.sal.process.execute("chmod 700 %s" %j.do.CODEDIR)
         
         # j.sal.process.execute("chmod 777 /opt/jumpscale")
         # j.sal.process.execute("chmod -R 777 /opt/jumpscale8/bin")

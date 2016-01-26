@@ -296,10 +296,10 @@ class Docker2(SALObject):
         j.sal.fs.createDir(tmppath)
         volsdict[tmppath] = "/tmp"
 
-        if sharecode and j.sal.fs.exists(path="/opt/code"):
+        if sharecode and j.sal.fs.exists(path=j.do.CODEDIR):
             print("share jumpscale code")
-            if "/opt/code" not in volsdict:
-                volsdict["/opt/code"] = "/opt/code"
+            if j.do.CODEDIR not in volsdict:
+                volsdict[j.do.CODEDIR ] = j.do.CODEDIR
 
         volsdictro = {}
         if len(volsro) > 0:

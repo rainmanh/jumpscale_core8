@@ -35,22 +35,22 @@ class Parser(HTMLParser):
 args = parser.parse_args()
 if args.action == 'generate':
     print("UPDATING CORE...")
-    corecl = j.clients.git.getClient('/opt/code/github/jumpscale/jumpscale_core/')
+    corecl = j.clients.git.getClient('%s/github/jumpscale/jumpscale_core8/'%j.do.CODEDIR)
     corecl.pull()
     print("UPDATED")
 
     print("\nUPDATING DOCS...")
-    doccl = j.clients.git.getClient('/opt/code/github/jumpscale/jumpscale_docs/')
+    doccl = j.clients.git.getClient('%s/github/jumpscale/jumpscale_docs8/'%j.do.CODEDIR)
     doccl.pull()
     print("UPDATED")
 
     print("\nUPDATING GENERATED DOCS...")
-    gencl = j.clients.git.getClient('/opt/code/github/jumpscale/generated_docs/')
+    gencl = j.clients.git.getClient('%s/github/jumpscale/generated_docs/'%j.do.CODEDIR)
     gencl.pull()
     print("UPDATED")
 
     print("\nConverting Confluence to RST...")
-    j.sal.process.execute("""cd /opt/code/github/jumpscale/jumpscale_prototypes/prototypes/confluence2rst; python confluence2rst.py""")
+    j.sal.process.execute("""cd %s/github/jumpscale/jumpscale_prototypes/prototypes/confluence2rst; python confluence2rst.py""" %j.do.CODEDIR)
     print("Converted")
 
     gencl.addRemoveFiles()

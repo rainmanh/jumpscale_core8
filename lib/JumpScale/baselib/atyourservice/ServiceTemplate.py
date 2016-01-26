@@ -163,7 +163,7 @@ class ServiceTemplate(object):
 
             if syncLocalJumpscale:
                 print ("upload jumpscale core lib to build docker.")
-                dockerExecutor.upload("/opt/code/github/jumpscale/jumpscale_core8/lib/","/opt/code/github/jumpscale/jumpscale_core8/lib/")
+                dockerExecutor.upload("%s/github/jumpscale/jumpscale_core8/lib/" %j.do.CODEDIR,"%s/github/jumpscale/jumpscale_core8/lib/" %j.do.CODEDIR)
 
             print("start build of %s" % self)
             dockerExecutor.execute("ays build -n %s" % self.name)

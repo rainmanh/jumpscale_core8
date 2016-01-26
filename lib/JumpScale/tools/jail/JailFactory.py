@@ -1,7 +1,6 @@
 from JumpScale import j
-import JumpScale.baselib.redis2
 
-import JumpScale.sal.tmux
+
 
 class JailFactory(object):
 

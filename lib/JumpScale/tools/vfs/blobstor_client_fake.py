@@ -5,7 +5,6 @@ import os
 
 from weed.volume import WeedVolume
 import requests
-import JumpScale.baselib.redis2
 import ExtraTools
 
 class BlobStorClientFake:

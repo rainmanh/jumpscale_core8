@@ -3,7 +3,6 @@ import credis
 #see https://github.com/yihuang/credis
 import time
 from JumpScale import j
-# import JumpScale.baselib.redis2
 
 
 from JumpScale.baselib.redis.RedisQueue import RedisQueue as CRedisQueue

@@ -16,14 +16,14 @@ class ActionsBaseNode(object):
     actions which can be executed remotely on node
     """
 
-    def __init__(self, serviceObj):
+    def __init__(self, service):
         super(ActionsBaseNode).__init__()
-        self.serviceObj = serviceObj
+        self.service = service
 
     def _installFromStore(self):
         from urllib.error import HTTPError
 
-        key = "%s__%s" % (self.serviceObj.domain, self.serviceObj.name)
+        key = "%s__%s" % (self.service.domain, self.service.name)
         flist = '%s.flist' % key
 
         tmpDir = j.sal.fs.getTmpDirPath()
@@ -97,10 +97,10 @@ class ActionsBaseNode(object):
     def install(self):
 
         if j.sal.process.checkProcessRunning('aysfs'):
-            self._installFromAysFS(self.serviceObj)
+            self._installFromAysFS(self.service)
 
         if len(j.atyourservice.findServices(role='ays_stor_client')) > 0:
-            self._installFromStore(self.serviceObj)
+            self._installFromStore(self.service)
 
         # else:
             # j.events.opserror_critical("Can't find any means to install the service. Please enable AYSFS or consume a store_client")
@@ -114,26 +114,26 @@ class ActionsBaseNode(object):
         """
         if j.do.TYPE.startswith("UBUNTU"):
 
-            for src in self.serviceObj.hrd_template.getListFromPrefix("ubuntu.apt.source"):
+            for src in self.service.hrd_template.getListFromPrefix("ubuntu.apt.source"):
                 src = src.replace(";", ":")
                 if src.strip() != "":
                     j.sal.ubuntu.addSourceUri(src)
 
-            for src in self.serviceObj.hrd_template.getListFromPrefix("ubuntu.apt.key.pub"):
+            for src in self.service.hrd_template.getListFromPrefix("ubuntu.apt.key.pub"):
                 src = src.replace(";", ":")
                 if src.strip() != "":
                     cmd = "wget -O - %s | apt-key add -" % src
                     j.do.execute(cmd, dieOnNonZeroExitCode=False)
 
-            if self.serviceObj.hrd_template.getBool("ubuntu.apt.update", default=False):
+            if self.service.hrd_template.getBool("ubuntu.apt.update", default=False):
                 log("apt update")
                 j.do.execute("apt-get update -y", dieOnNonZeroExitCode=False)
 
-            if self.serviceObj.hrd_template.getBool("ubuntu.apt.upgrade", default=False):
+            if self.service.hrd_template.getBool("ubuntu.apt.upgrade", default=False):
                 j.do.execute("apt-get upgrade -y", dieOnNonZeroExitCode=False)
 
-            if self.serviceObj.hrd_template.exists("ubuntu.packages"):
-                packages = self.serviceObj.hrd_template.getList("ubuntu.packages")
+            if self.service.hrd_template.exists("ubuntu.packages"):
+                packages = self.service.hrd_template.getList("ubuntu.packages")
                 packages = [pkg.strip() for pkg in packages if pkg.strip() != ""]
                 if packages:
                     j.sal.ubuntu.install(" ".join(packages))
@@ -141,24 +141,24 @@ class ActionsBaseNode(object):
         return True
 
     def _getDomainName(self, process):
-        domain = self.serviceObj.domain
+        domain = self.service.domain
         if process["name"] != "":
             name = process["name"]
         else:
-            name = self.serviceObj.name
-            if self.serviceObj.instance != "main":
-                name += "__%s" % self.serviceObj.instance
+            name = self.service.name
+            if self.service.instance != "main":
+                name += "__%s" % self.service.instance
         return domain, name
 
     def start(self):
         """
         start happens because of info from main.hrd file but we can overrule this
-        make sure to also call ActionBase.start(self.serviceObj) in your implementation otherwise the default behavior will not happen
+        make sure to also call ActionBase.start(self.service) in your implementation otherwise the default behavior will not happen
 
         only use when you want to overrule
 
         """
-        if self.serviceObj.getProcessDicts()==[]:
+        if self.service.getProcessDicts()==[]:
             return
 
         def start2(process, nbr=None):
@@ -166,7 +166,7 @@ class ActionsBaseNode(object):
             cwd=process["cwd"]
             # args['process'] = process
             if nbr is None:
-                self.stop(self.serviceObj)
+                self.stop(self.service)
 
             tcmd=process["cmd"]
             if tcmd=="jspython":
@@ -176,16 +176,16 @@ class ActionsBaseNode(object):
             tuser=process["user"]
             if tuser=="":
                 tuser="root"
-            tlog=self.serviceObj.hrd.getBool("process.log",default=True)
+            tlog=self.service.hrd.getBool("process.log",default=True)
             env=process["env"]
 
             startupmethod=process["startupmanager"]
-            domain, name = self._getDomainName(self.serviceObj, process)
+            domain, name = self._getDomainName(self.service, process)
             if nbr is not None:
                 name = "%s.%d" % (name, i)
             log("Starting %s:%s" % (domain, name))
 
-            j.sal.fs.remove(self.serviceObj.logPath)
+            j.sal.fs.remove(self.service.logPath)
 
             if startupmethod == 'upstart':
                 # check if we are in our docker image which uses myinit instead of upstart
@@ -212,7 +212,7 @@ class ActionsBaseNode(object):
                 j.sal.tmux.executeInScreen(domain,name,tcmd+" "+targs,cwd=cwd, env=env,user=tuser)#, newscr=True)
 
                 if tlog:
-                    j.sal.tmux.logWindow(domain,name,self.serviceObj.logPath)
+                    j.sal.tmux.logWindow(domain,name,self.service.logPath)
 
             else:
                 raise RuntimeError("startup method not known or disabled:'%s'"%startupmethod)
@@ -236,11 +236,11 @@ class ActionsBaseNode(object):
                 # self.raiseError(msg)
                 # return
 
-        isrunning = self.check_up(self.serviceObj, wait=False)
+        isrunning = self.check_up(self.service, wait=False)
         if isrunning:
             return
 
-        processes = self.serviceObj.getProcessDicts()
+        processes = self.service.getProcessDicts()
         for i, process in enumerate(processes):
 
             if "platform" in process:
@@ -251,23 +251,23 @@ class ActionsBaseNode(object):
             else:
                 start2(process)
 
-        isrunning = self.check_up(self.serviceObj)
+        isrunning = self.check_up(self.service)
         if isrunning is False:
-            if j.sal.fs.exists(path=self.serviceObj.logPath):
-                logc = j.sal.fs.fileGetContents(self.serviceObj.logPath).strip()
+            if j.sal.fs.exists(path=self.service.logPath):
+                logc = j.sal.fs.fileGetContents(self.service.logPath).strip()
             else:
                 logc = ""
 
             msg=""
 
-            if self.serviceObj.getTCPPorts()==[0]:
+            if self.service.getTCPPorts()==[0]:
                 print('Done ...')
-            elif self.serviceObj.getTCPPorts()!=[]:
-                ports=",".join([str(item) for item in self.serviceObj.getTCPPorts()])
-                msg="Could not start:%s, could not connect to ports %s."%(self.serviceObj,ports)
+            elif self.service.getTCPPorts()!=[]:
+                ports=",".join([str(item) for item in self.service.getTCPPorts()])
+                msg="Could not start:%s, could not connect to ports %s."%(self.service,ports)
                 j.events.opserror_critical(msg,"service.start.failed.ports")
             else:
-                j.events.opserror_critical("could not start:%s"%self.serviceObj,"service.start.failed.other")
+                j.events.opserror_critical("could not start:%s"%self.service,"service.start.failed.other")
 
     def stop(self):
         """
@@ -276,14 +276,14 @@ class ActionsBaseNode(object):
         return True if stop was ok, if not this step will have failed & halt will be executed.
         """
 
-        if self.serviceObj.getProcessDicts()==[]:
+        if self.service.getProcessDicts()==[]:
             return
 
         def stop_process(process, nbr=None):
             # print "stop processs:%s"%process
 
             currentpids = (os.getpid(), os.getppid())
-            for pid in self._get_pids(self.serviceObj,[process]):
+            for pid in self._get_pids(self.service,[process]):
                 if pid not in currentpids :
                     try:
                         j.sal.process.kill(-pid, signal.SIGTERM)
@@ -293,7 +293,7 @@ class ActionsBaseNode(object):
 
 
             startupmethod=process["startupmanager"]
-            domain, name = self._getDomainName(self.serviceObj, process)
+            domain, name = self._getDomainName(self.service, process)
             log("Stopping %s:%s" % (domain, name))
             if nbr is not None:
                 name = "%s.%d" % (name, i)
@@ -313,11 +313,11 @@ class ActionsBaseNode(object):
                         j.sal.tmux.killWindow(domain,name)
                         # print "killdone"
 
-        if self.serviceObj.name == 'redis':
+        if self.service.name == 'redis':
             j.logger.redislogging = None
             j.logger.redis = None
 
-        processes = self.serviceObj.getProcessDicts()
+        processes = self.service.getProcessDicts()
         if processes:
             for i, process in enumerate(processes):
                 if len(processes) > 1:
@@ -333,9 +333,9 @@ class ActionsBaseNode(object):
     def _get_pids(self, processes=None, **kwargs):
         pids = set()
         if processes is None:
-            processes = self.serviceObj.getProcessDicts()
+            processes = self.service.getProcessDicts()
         for process in processes:
-            for port in self.serviceObj.getTCPPorts(process):
+            for port in self.service.getTCPPorts(process):
                 pids.update(j.sal.process.getPidsByPort(port))
             if process.get('filterstr', None):
                 pids.update(j.sal.process.getPidsByFilter(process['filterstr']))
@@ -346,10 +346,10 @@ class ActionsBaseNode(object):
         hard kill the app, std a linux kill is used, you can use this method to do something next to the std behavior
         """
         currentpids = (os.getpid(), os.getppid())
-        for pid in self._get_pids(self.serviceObj):
+        for pid in self._get_pids(self.service):
             if pid not in currentpids :
                 j.sal.process.kill(pid, signal.SIGKILL)
-        if not self.check_down_local(self.serviceObj):
+        if not self.check_down_local(self.service):
             j.events.opserror_critical("could not halt:%s"%self,"service.halt")
         return True
 
@@ -361,7 +361,7 @@ class ActionsBaseNode(object):
         def do(process, nbr=None):
             startupmethod = process["startupmanager"]
             if startupmethod == 'upstart':
-                domain, name = self._getDomainName(self.serviceObj, process)
+                domain, name = self._getDomainName(self.service, process)
                 if nbr is not None:
                     name = "%s.%d" % (name, i)
                 # check if we are in our docker image which uses myinit instead of upstart
@@ -375,7 +375,7 @@ class ActionsBaseNode(object):
                 else:
                     return j.sal.ubuntu.statusService(name)
             else:
-                ports = self.serviceObj.getTCPPorts()
+                ports = self.service.getTCPPorts()
                 timeout = process["timeout_start"]
                 if timeout == 0:
                     timeout = 2
@@ -404,7 +404,7 @@ class ActionsBaseNode(object):
                             return True
                         now = j.data.time.getTimeEpoch()
                     return False
-        processes = self.serviceObj.getProcessDicts()
+        processes = self.service.getProcessDicts()
         for i, process in enumerate(processes):
             if len(processes) > 1:
                 result = do(process, nbr=i)
@@ -412,10 +412,10 @@ class ActionsBaseNode(object):
                 result = do(process)
 
             if result is False:
-                domain, name = self._getDomainName(self.serviceObj, process)
+                domain, name = self._getDomainName(self.service, process)
                 log("Status %s:%s not running" % (domain, name))
                 return False
-        log("Status %s is running" % (self.serviceObj))
+        log("Status %s is running" % (self.service))
         return True
 
     def check_down(self, wait=True):
@@ -424,12 +424,12 @@ class ActionsBaseNode(object):
         this happens on system where process is
         return True when down
         """
-        print("check down local:%s"%self.serviceObj)
+        print("check down local:%s"%self.service)
         def do(process):
-            if not self.serviceObj.hrd.exists("process.cwd"):
+            if not self.service.hrd.exists("process.cwd"):
                 return
 
-            ports=self.serviceObj.getTCPPorts()
+            ports=self.service.getTCPPorts()
 
             if len(ports)>0:
                 timeout=process["timeout_stop"]
@@ -446,7 +446,7 @@ class ActionsBaseNode(object):
                     raise RuntimeError("Process filterstr cannot be empty.")
                 return j.sal.process.checkProcessRunning(filterstr)==False
 
-        for process in self.serviceObj.getProcessDicts():
+        for process in self.service.getProcessDicts():
             result=do(process)
             if result==False:
                 return False

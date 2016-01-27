@@ -645,8 +645,6 @@ class Service(object):
     #                 chain.append(dep)
     #     return chain
 
-
-
     def _uploadToNode(self):
         # ONLY UPLOAD THE SERVICE ITSELF, INIT NEEDS TO BE FIRST STEP, NO IMMEDIATE INSTALL
         if not self.parent or self.parent.role != 'ssh':
@@ -656,9 +654,10 @@ class Service(object):
         remotePath = j.sal.fs.joinPaths(hrd_root, 'services', j.sal.fs.getBaseName(self.path)).rstrip("/")+"/"
         self.log("uploading %s '%s'->'%s'" % (self.key,self.path,remotePath))
         templatepath = j.sal.fs.joinPaths(hrd_root, 'servicetemplates', j.sal.fs.getBaseName(self.recipe.path).rstrip("/"))
+        self.executor.cuisine.dir_ensure(templatepath, recursive=True)
+        self.executor.cuisine.dir_ensure(remotePath, recursive=True)
         self.executor.upload(self.recipe.path, templatepath)
         self.executor.upload(self.path, remotePath,recursive=False)
-
 
     def _downloadFromNode(self):
         # if 'os' not in self.producers or self.executor is None:
@@ -720,7 +719,7 @@ class Service(object):
     #     """
     #     create connection between consumer (this service) & producer
     #     producer category is category of service
-    #     @param producerservice is serviceObj or servicekey
+    #     @param producerservice is service or servicekey
     #     """
     #     if j.data.types.string.check(producerservice):
     #         producerservice = j.atyourservice.getServiceFromKey(producerservice)

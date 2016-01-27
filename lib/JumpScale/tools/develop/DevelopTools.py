@@ -38,7 +38,7 @@ class MyFSEventHandler(FileSystemEventHandler):
                 except Exception as e:
                     print(e)
                     j.tools.debug.syncCode()
-                    
+
 
     def on_moved(self, event):
         self.catch_all_handler(event)
@@ -620,7 +620,7 @@ class Installer():
         #@link example spaces
         #@eve issue
         #@explorer issue
-
+        
 
     def multidownload(self,path,dest):
 

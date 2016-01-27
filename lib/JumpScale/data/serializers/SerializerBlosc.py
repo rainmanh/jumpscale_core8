@@ -1,7 +1,8 @@
 
 import blosc
+from SerializerBase import *
 
-class SerializerBlosc(object):
+class SerializerBlosc(SerializerBase):
     def __init__(self):
         self.__jslocation__ = "j.data.serializer.blosc"    
     def dumps(self,obj):        

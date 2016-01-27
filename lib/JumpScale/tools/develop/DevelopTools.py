@@ -496,17 +496,18 @@ class Installer():
             print('To run your agentcontroller, navigate to "%s" adn to "%s" and do "./agentcontroller2 -c agentcontroller2.toml"' % agentcontrollerAppDir)
 
     def installPortal(self, start=True, mongodbip="127.0.0.1", mongoport=27017, login="", passwd=""):
+
         j.actions.setRunId("installportal")
 
         def upgradePip():
             j.do.execute("pip3 install --upgrade pip")
-        actionUpgradePIP=j.actions.add(upgradePip)
+        actionUpgradePIP = j.actions.add(upgradePip)
 
         def installDeps(actionin):
             """
             make sure new env arguments are understood on platform
             """
-            deps="""
+            deps = """
             setuptools
             aioredis
             # argh
@@ -525,9 +526,9 @@ class Installer():
             # docker-py
             # dominate
             # ecdsa
-            Eve
-            Eve-docs
-            Eve-Mongoengine
+            eve
+            eve_docs
+            eve-mongoengine
             # Events
             # Flask
             # Flask-Bootstrap
@@ -594,86 +595,85 @@ class Installer():
             # zmq
             """
 
-
             def installPip(name):
-                j.do.execute("pip3 install %s --upgrade"%name)
-            
-            actionout=None
+                j.do.execute("pip3 install --upgrade %s " % name)
+
+            actionout = None
             for dep in deps.split("\n"):
-                dep=dep.strip()
-                if dep.strip()=="":
+                dep = dep.strip()
+                if dep.strip() == "":
                     continue
-                if dep.strip()[0]=="#":
+                if dep.strip()[0] == "#":
                     continue
-                dep=dep.split("=",1)[0]
-                actionout=j.actions.add(installPip, args={"name":dep},retry=2,deps=[actionin])
+                dep = dep.split("=", 1)[0]
+                actionout = j.actions.add(
+                    installPip, args={"name": dep}, retry=2, deps=[actionin, actionout])
 
             return actionout
-        actiondeps=installDeps(actionUpgradePIP)
+        actiondeps = installDeps(actionUpgradePIP)
 
         def getcode():
             j.do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
-        actionGetcode=j.actions.add(getcode,deps=[])
-        # j.do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
-        # destjslib = j.do.getPythonLibSystem(jumpscale=True)
+        actionGetcode = j.actions.add(getcode, deps=[])
 
-        # j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % destjslib, delete=False)
-        # j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % j.dirs.jsLibDir, delete=False)
-
-
-        # j.application.reload()
-
-        portaldir = '%s/apps/portals/' % j.do.BASE
-        exampleportaldir = '%sexample' % portaldir
-        j.do.createDir(exampleportaldir)
-        j.do.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % j.do.CODEDIR, '%s/jslib' % portaldir)
-        j.do.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % j.do.CODEDIR,  '%s/portalbase' % portaldir)
-        j.do.createDir('%s/base/home/.space' % exampleportaldir)
-        j.do.copyFile("%s/portalbase/portal_no_ays.py" % portaldir, exampleportaldir)
-        j.do.copyFile("%s/portalbase/config.hrd" % portaldir, exampleportaldir)
-        j.dirs.replaceFilesDirVars("%s/config.hrd"%exampleportaldir)
-        j.do.copyTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
-
-        #2to3 -f all -w /usr/local/lib/python3.5/site-packages/eve_docs/config.py
-        #@todo
         def install():
             destjslib = j.do.getPythonLibSystem(jumpscale=True)
-            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % destjslib, delete=False)
-            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % j.dirs.jsLibDir, delete=False)
-            
+            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % destjslib, overwriteTarget=True)
+            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % j.dirs.jsLibDir, overwriteTarget=True)
+
             # j.application.reload()
 
-            portaldir = '%s/apps/portals/' % j.do.BASE
-            exampleportaldir = '%sexample' % portaldir
-            j.do.createDir(exampleportaldir)
-            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % j.dirs.codeDir, '%s/jslib' % portaldir)
-            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % j.dirs.codeDir,  '%s/portalbase' % portaldir)
-            j.do.createDir('%s/base/home/.space' % exampleportaldir)
-            j.do.copyFile("%s/portalbase/portal_no_ays.py" % portaldir, exampleportaldir)
-            j.do.copyFile("%s/portalbase/config.hrd" % portaldir, exampleportaldir)
-            j.dirs.replaceFilesDirVars("%s/config.hrd"%exampleportaldir)
-            j.do.copyTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
-        actioninstall=j.actions.add(install,deps=[actiondeps])
+            portaldir = '%s/apps/portals/' % j.dirs.base
+            j.sal.fs.createDir(portaldir)
+            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % j.dirs.codeDir, '%s/jslib' % portaldir, overwriteTarget=True)
+            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/system" %
+                             j.dirs.codeDir,  '%s/portalbase/system' % portaldir, overwriteTarget=True)
+            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki" %
+                             j.dirs.codeDir, '%s/portalbase/wiki' % portaldir, overwriteTarget=True)
+            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/macros" %
+                             j.dirs.codeDir, '%s/portalbase/macros' % portaldir, overwriteTarget=True)
+            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/templates" %
+                             j.dirs.codeDir, '%s/portalbase/templates' % portaldir, overwriteTarget=True)
+
+            exampleportaldir = '%sexample/base/' % portaldir
+            j.sal.fs.createDir(exampleportaldir)
+            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki/TestSpace" %
+                             j.dirs.codeDir, '%s/TestSpace' % exampleportaldir, overwriteTarget=True)
+            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki/TestWebsite" %
+                             j.dirs.codeDir, '%s/TestWebsite' % exampleportaldir, overwriteTarget=True)
+            j.sal.fs.createDir(j.sal.fs.joinPaths(exampleportaldir, 'home', '.space'))
+            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/gridportal/base/" % j.dirs.codeDir, exampleportaldir, overwriteTarget=True)
+
+            j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/portal_no_ays.py" % j.dirs.codeDir, '%sexample' % portaldir)
+            j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd" % j.dirs.codeDir, '%sexample' % portaldir)
+            j.dirs.replaceFilesDirVars("%s/example/config.hrd" % portaldir)
+            j.sal.fs.copyDirTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
+
+        actioninstall = j.actions.add(install, deps=[actiondeps])
 
         def changeEve():
-            j.sal.tmux.executeInScreen("portal", "portal",cmd="python %s/site-packages/eve_docs/config.py"%j.do.getPythonSiteConfigPath(), wait=0, cwd=None, env=None, user='root', tmuxuser=None)            #@todo
+            executor = j.tools.executor.getLocal()
+            evedocs = j.sal.fs.walk(j.do.getPythonLibSystem(jumpscale=False), recurse=0, pattern='eve_docs', return_folders=1, return_files=0)
+            if not evedocs:
+                return
+            executor.execute("2to3 -f all -w %s" % evedocs[0])
 
-        action=j.actions.add(changeEve,deps=[actionGetcode,actioninstall])
+        j.actions.add(changeEve, deps=[actionGetcode, actioninstall])
 
         def startmethod():
-            #@tod needs to become tmux
             portaldir = '%s/apps/portals/' % j.do.BASE
-            exampleportaldir = '%sexample' % portaldir
-            cmd="cd %s; jspython portal_no_ays.py" % exampleportaldir
+            exampleportaldir = '%sexample/' % portaldir
+            cmd = "cd %s; jspython portal_no_ays.py" % exampleportaldir
             j.sal.tmux.executeInScreen("portal", "portal", cmd, wait=0, cwd=None, env=None, user='root', tmuxuser=None)
+
             # j.do.execute()
         if start:
-            actionstart=j.actions.add(startmethod)            
+            j.actions.add(startmethod)
         else:
-            print('To run your portal, navigate to "%s" and do "jspython portal_no_ays.py"' % exampleportaldir)
-
+            print('To run your portal, navigate to %s/apps/portals/example/ and run "jspython portal_no_ays.py"' % j.dirs.base)
 
         j.actions.run()
+
 
         #cd /usr/local/Cellar/mongodb/3.2.1/bin/;./mongod --dbpath /Users/kristofdespiegeleer1/optvar/mongodb
 
@@ -682,14 +682,12 @@ class Installer():
         #@link example spaces
         #@eve issue
         #@explorer issue
-        
-
 
 
     def installArchLinuxToSDCard(self,executor=None,redownload=False):
         """
-        will only work if 1 sd card found of 8 or 16 GB, be careful will overwrite the card   
-        executor = a linux machine     
+        will only work if 1 sd card found of 8 or 16 GB, be careful will overwrite the card
+        executor = a linux machine
         executor=j.tools.executor.getSSHBased(addr="192.168.0.23", port=22,login="root",passwd="rooter",pushkey="ovh_install")
         j.tools.develop.installer.installArchLinuxToSDCard(executor)
         """
@@ -736,12 +734,12 @@ class Installer():
         pacman -S dnsmasq
         pacman -S iw
         pacman -S iwconfig
-# 
+#
         for item in self.cuisine.fs_find("/mnt/pub",extendinfo=True):
             path,sizeinkb,epochmod=item
             from IPython import embed
             print ("DEBUG NOW sdsd")
             embed()
             p
-            
+
         """

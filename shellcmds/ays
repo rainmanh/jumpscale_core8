@@ -38,15 +38,6 @@ def init():
     # for item in chfiles:
     #     print ("- %s"%item)
 
-#@click.command()
-#@click.argument('servicekey')
-#@click.command()
-#def build(servicekey):
-#    """
-#    builds specific service
-#    """
-#    j.atyourservice.get(servicekey)
-
 @click.command()
 def showactions():
     """

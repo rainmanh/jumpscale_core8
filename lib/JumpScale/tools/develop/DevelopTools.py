@@ -635,14 +635,12 @@ class Installer():
             j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/templates" %
                              j.dirs.codeDir, '%s/portalbase/templates' % portaldir, overwriteTarget=True)
 
-            exampleportaldir = '%sexample/base/' % portaldir
+            exampleportaldir = '%sexample/base' % portaldir
             j.sal.fs.createDir(exampleportaldir)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki/TestSpace" %
-                             j.dirs.codeDir, '%s/TestSpace' % exampleportaldir, overwriteTarget=True)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki/TestWebsite" %
-                             j.dirs.codeDir, '%s/TestWebsite' % exampleportaldir, overwriteTarget=True)
+            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/gridportal" % j.dirs.codeDir, j.sal.fs.joinPaths(exampleportaldir, 'gridportal'),
+                             overwriteTarget=True)
             j.sal.fs.createDir(j.sal.fs.joinPaths(exampleportaldir, 'home', '.space'))
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/gridportal/base/" % j.dirs.codeDir, exampleportaldir, overwriteTarget=True)
+            j.sal.fs.touch(j.sal.fs.joinPaths(exampleportaldir, 'home', 'home.wiki'), overwrite=False)
 
             j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/portal_no_ays.py" % j.dirs.codeDir, '%sexample' % portaldir)
             j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd" % j.dirs.codeDir, '%sexample' % portaldir)

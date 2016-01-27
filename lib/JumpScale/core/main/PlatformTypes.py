@@ -178,7 +178,7 @@ class PlatformType():
         self.myplatform=name   
 
     def has_parent(self,name):
-        return name in self.platformtypes[self.myplatform]
+        return name in self.platformtypes
 
     def dieIfNotPlatform(self,platform):
         if not self.has_parent(platform):

@@ -51,7 +51,7 @@ class WindowsSystem(SALObject):
         
 
     def checkFileToIgnore(self,path):
-        if j.core.platformtype.isWindows():
+        if j.core.platformtype.myplatform.isWindows():
             ignore = False
             filename=j.sal.fs.getBaseName(path)
             if filename[0:2]=="~$":

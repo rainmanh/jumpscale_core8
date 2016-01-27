@@ -31,7 +31,7 @@ class Lock:
         if locktimeout < 0:
             raise RuntimeError("Cannot take lock [%s] with negative timeout [%d]" % (lockname, locktimeout))
 
-        if j.core.platformtype.isUnix():
+        if j.core.platformtype.myplatform.isUnix():
             # linux implementation
             lockfile = self._LOCKPATHLINUX + os.sep + self.cleanupString(lockname)
             j.sal.fs.createDir(Util._LOCKPATHLINUX)
@@ -53,12 +53,12 @@ class Lock:
                 myfile.close()
                 raise RuntimeError("Cannot acquire lock [%s]" % (lockname))
 
-        elif j.core.platformtype.isWindows():
+        elif j.core.platformtype.myplatform.isWindows():
             raise NotImplementedError
 
     def unlock(self, lockname):
         """ Unlock system-wide interprocess lock """
-        if j.core.platformtype.isUnix():
+        if j.core.platformtype.myplatform.isUnix():
             try:
                 myfile = self.__LOCKDICTIONARY.pop(lockname)
                 fcntl.flock(myfile.fileno(), fcntl.LOCK_UN)
@@ -66,5 +66,5 @@ class Lock:
             except Exception as exc:
                 raise RuntimeError("Cannot unlock [%s] with ERROR:%s" % (lockname, str(exc)))
 
-        elif j.core.platformtype.isWindows():
+        elif j.core.platformtype.myplatform.isWindows():
             raise NotImplementedError

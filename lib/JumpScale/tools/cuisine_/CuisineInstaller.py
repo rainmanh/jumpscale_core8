@@ -141,6 +141,4 @@ class CuisineInstaller(object):
         cmd="%s -M 20000 -N -R %s:localhost:22 sshreflector@reflector -p 9222 -i /root/.ssh/reflector"%(cpath,newport)
         self.cuisine.systemd_ensure("autossh", cmd, descr='')
 
-        print ("On %s:%s remote SSH port:%s"%(remotecuisine.executor.addr,port,newport)
-        
-
+        print ("On %s:%s remote SSH port:%s"%(remotecuisine.executor.addr,port,newport))

@@ -9,7 +9,7 @@ class EasyDialog():
     def __init__(self):
       self.easyDialog=EasyDialogConsole()
     def pm_setDialogHandler(self):
-        if j.core.platformtype.isWindows():
+        if j.core.platformtype.myplatform.isWindows():
             self.chooseDialogType(DialogType.WIN32)
         else:
             self.chooseDialogType(None)
@@ -24,7 +24,7 @@ class EasyDialog():
         if self.type==DialogType.WIZARDSERVER:
             from EasyDialogWizardServer import EasyDialogWizardServer
             self.easyDialog=EasyDialogWizardServer()
-        if self.type==DialogType.WIN32 and j.core.platformtype.isWindows():
+        if self.type==DialogType.WIN32 and j.core.platformtype.myplatform.isWindows():
             try:
                 import EasyDialogs
                 easyDialogsInstalled = True

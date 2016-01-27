@@ -284,14 +284,14 @@ class Application:
         """
         try:
             pid = os.getpid()
-            if j.core.platformtype.isWindows():
+            if j.core.platformtype.myplatform.isWindows():
                 return 0
-            if j.core.platformtype.isLinux():
+            if j.core.platformtype.myplatform.isLinux():
                 command = "ps -o pcpu %d | grep -E --regex=\"[0.9]\""%pid
                 j.logger.log("getCPUusage on linux with: %s" % command, 8)
                 exitcode, output = j.sal.process.execute(command, True, False)
                 return output
-            elif j.core.platformtype.isSolaris():
+            elif j.core.platformtype.myplatform.isSolaris():
                 command = 'ps -efo pcpu,pid |grep %d'%pid
                 j.logger.log("getCPUusage on linux with: %s" % command, 8)
                 exitcode, output = j.sal.process.execute(command, True, False)
@@ -308,15 +308,15 @@ class Application:
         """
         try:
             pid = os.getpid()
-            if j.core.platformtype.isWindows():
+            if j.core.platformtype.myplatform.isWindows():
                 # Not supported on windows
                 return "0 K"
-            elif j.core.platformtype.isLinux():
+            elif j.core.platformtype.myplatform.isLinux():
                 command = "ps -o pmem %d | grep -E --regex=\"[0.9]\""%pid
                 j.logger.log("getMemoryUsage on linux with: %s" % command, 8)
                 exitcode, output = j.sal.process.execute(command, True, False)
                 return output
-            elif j.core.platformtype.isSolaris():
+            elif j.core.platformtype.myplatform.isSolaris():
                 command = "ps -efo pcpu,pid |grep %d"%pid
                 j.logger.log("getMemoryUsage on linux with: %s" % command, 8)
                 exitcode, output = j.sal.process.execute(command, True, False)
@@ -338,7 +338,7 @@ class Application:
                 return machineguid
 
         nics = j.sal.nettools.getNics()
-        if j.core.platformtype.isWindows():
+        if j.core.platformtype.myplatform.isWindows():
             order = ["local area", "wifi"]
             for item in order:
                 for nic in nics:

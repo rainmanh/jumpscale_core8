@@ -614,8 +614,6 @@ class Installer():
         def getcode():
             j.do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
         actionGetcode=j.actions.add(getcode,deps=[])
-
-<<<<<<< HEAD
         # j.do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
         # destjslib = j.do.getPythonLibSystem(jumpscale=True)
 
@@ -638,9 +636,6 @@ class Installer():
 
         #2to3 -f all -w /usr/local/lib/python3.5/site-packages/eve_docs/config.py
         #@todo
-=======
->>>>>>> 390325cfab9f54f71c57951e1a947d9cb101210f
-
         def install():
             destjslib = j.do.getPythonLibSystem(jumpscale=True)
             j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % destjslib, delete=False)
@@ -695,10 +690,8 @@ class Installer():
         """
         will only work if 1 sd card found of 8 or 16 GB, be careful will overwrite the card   
         executor = a linux machine     
-
         executor=j.tools.executor.getSSHBased(addr="192.168.0.23", port=22,login="root",passwd="rooter",pushkey="ovh_install")
         j.tools.develop.installer.installArchLinuxToSDCard(executor)
-
         """
 
         executor=j.tools.executor.get(executor)
@@ -731,8 +724,6 @@ class Installer():
 
 
         j.actions.add(partition)
-
-        def 
         'nmap -p22 --open -PN -sV -oG ssh_hosts 192.168.88.0/24'
 
         S="""
@@ -753,3 +744,4 @@ class Installer():
             embed()
             p
             
+        """

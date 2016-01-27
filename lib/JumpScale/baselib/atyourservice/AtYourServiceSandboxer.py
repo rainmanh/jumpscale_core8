@@ -222,16 +222,34 @@ class AtYourServiceSandboxer():
             self._upload(self.model.cache,"/mnt/ays/cache/dedupe/")
 
         if self.model.populate_host_cache:
-            self._upload(self.model.host,"/mnt/ays/cachelocal/dedupe/")
-            #@todo ....
-            j.do.copyTree(self.model.storpath+"/md/0.flist","root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)            
+            # self._upload(self.model.host,"/mnt/ays/cachelocal/dedupe/")
+            # #@todo ....
+            # j.do.copyTree(self.model.storpath+"/md/0.flist", "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
 
         if self.model.populate_master_cache:
-            self._upload("37.59.7.72","/mnt/Storage/openvcloud/ftp/ays/master/dedupe/")
-            j.do.copyTree(self.model.storpath+"/md/0.flist","root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
+            store_client = j.clients.storx.get("http://stor.jumpscale.org/storx")
+            files_path = j.sal.fs.joinPaths(self.model.storpath, 'files')
+            files = j.sal.fs.listFilesInDir(files_path, recursive=True)
+            namespace = j.atyourservice.sandboxer.model['namespace']
+            error_files = []
+            for f in files:
+                src_hash = j.data.hash.md5(f)
+                print('uploading %s' % f)
+                uploaded_hash = store_client.putFile(namespace, f)
+                if src_hash != uploaded_hash:
+                    error_files.append(f)
+                    print("%s hash doesn't match\nsrc     :%32s\nuploaded:%32s" % (f, src_hash, uploaded_hash))
+
+            if len(error_files) == 0:
+                print("all uploaded ok")
+            else:
+                raise RuntimeError('some files didnt upload properly. %s' % ("\n".join(error_files)))
+
+            metadataPath = j.sal.fs.joinPaths(self.model.storpath, "md","0.flist")
+            j.do.copyTree(metadataPath, "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
 
 
-        if self.model.host!="":
+        # if self.model.host!="":
         #     j.do.copyTree(self.model.storpath+"/md/0.flist","root@%s:/etc/ays/local/"%(self.model.host),overwriteFiles=True, rsync=True, ssh=True, sshport=self.model.port)
         #     try:
         #         pid=self.cuisine_host.run("pgrep aysfs")

@@ -8,7 +8,7 @@ import docker
 
 from sal.base.SALObject import SALObject
 
-class Docker2(SALObject):
+class Docker(SALObject):
 
     def __init__(self):
         self.__jslocation__ = "j.sal.docker"

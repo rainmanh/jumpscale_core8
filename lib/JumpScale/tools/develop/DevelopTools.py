@@ -1,7 +1,7 @@
 from JumpScale import j
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
-import time
+import time, os, sys
 
 
 class MyFSEventHandler(FileSystemEventHandler):
@@ -367,87 +367,135 @@ class DevelopToolsFactory():
         except KeyboardInterrupt:
             pass
 
-<<<<<<< HEAD
-    def installportal(self, start=True,mongodbip="127.0.0.1",mongoport=27017,login="",passwd=""):
-=======
 
 class Installer():
 
-    def installAgentcontroller(self,start=True):
+    def installAgentcontroller(self, start=True):
         """
         config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
         """
         j.actions.setRunId("installAgentController")
 
-        agentAppDir = j.do.joinPaths(j.dirs.base, "apps", "agent8")
-        agentcontrollerAppDir = j.do.joinPaths(j.dirs.base, "apps", "agentcontroller8")
-        syncthingAppDir = j.do.joinPaths(j.dirs.base, "apps", "syncthing")
->>>>>>> 390325cfab9f54f71c57951e1a947d9cb101210f
+        executor = j.tools.executor.getLocal()
+
+        agentAppDir = j.sal.fs.joinPaths(j.dirs.base, "apps", "agent8")
+        agentcontrollerAppDir = j.sal.fs.joinPaths(j.dirs.base, "apps", "agentcontroller8")
+        syncthingAppDir = j.sal.fs.joinPaths(j.dirs.base, "apps", "syncthing")
+        os.environ.setdefault("GOROOT", '/usr/lib/go/')
+        os.environ.setdefault("GOPATH", '/opt/go')
 
         def upgradePip():
-            print("upgrading pip")
-            j.do.execute("pip3 install --upgrade pip")
+            executor.execute("pip3 install --upgrade pip")
 
         def pythonLibInstall():
-            print('installing pytoml')
-            j.do.execute("pip3 install pytoml")
+            executor.execute("pip3 install pytoml")
 
-        def agent_get(agentdir, syncthingdir):
-            url = "git@git.aydo.com:binary/agent2.git"
-            dest = j.do.pullGitRepo(url)
+        def prepare_go():
+            rc, out = executor.execute("which go", die=False)
+            if rc > 0:
+                if sys.platform.startswith("OSX"):
+                    executor.execute("brew install golang")
+                else:
+                    executor.execute("apt-get install golang -y --force-yes")
 
-            j.do.createDir(agentdir)
-            j.do.createDir(syncthingdir)
-            j.sal.fs.symlink(j.sal.fs.joinPaths(dest, 'extensions', 'syncthing', 'syncthing'), j.sal.fs.joinPaths(syncthingdir, 'syncthing'), overwriteTarget=True)
-            j.sal.fs.symlink(j.sal.fs.joinPaths(dest, 'agent2'), j.sal.fs.joinPaths(agentdir, 'agent2'), overwriteTarget=True)
-            j.sal.fs.copyFile(j.sal.fs.joinPaths(dest, 'agent2.toml'), agentdir)
+            #rc, gopath = executor.execute("which go", die=False)
+            os.environ.setdefault("GOROOT", '/usr/lib/go/')
+            os.environ.setdefault("GOPATH", '/opt/go')
+            j.sal.fs.createDir(os.environ['GOPATH'])
+            print ('GOPATH:', os.environ["GOPATH"])
+            print ('GOROOT:', os.environ["GOROOT"])
+            j.sal.fs.touch(j.sal.fs.joinPaths(os.environ["HOME"], '.bash_profile'), overwrite=False)
+            path = os.environ.get('PATH')
+            os.environ['PATH'] = '%s:%s/bin' % (path, os.environ['GOPATH'])
+            executor.execute('go get github.com/tools/godep')
+            executor.execute('go get github.com/rcrowley/go-metrics')
 
-            # link extensions
-            extdir = j.sal.fs.joinPaths(dest, "extensions")
-            j.sal.fs.symlink(extdir, j.sal.fs.joinPaths(agentdir, 'extensions'), overwriteTarget=True)
+        def syncthing_build(appbase):
+            url = "git@github.com:syncthing/syncthing.git"
+            dest = j.do.pullGitRepo(url, dest='%s/src/github.com/syncthing/syncthing' % os.environ['GOPATH'])
+            executor.execute('cd %s && godep restore' % dest)
+            executor.execute("cd %s && ./build.sh noupgrade" % dest)
+            tarfile = j.sal.fs.find(dest, 'syncthing*.tar.gz')[0]
+            tar = j.tools.tarfile.get(j.sal.fs.joinPaths(dest, tarfile))
+            tar.extract(dest)
+            path = tarfile.rstrip('.tar.gz')
+            j.sal.fs.copyFile(j.sal.fs.joinPaths(dest, path, 'syncthing'), '%s/bin/' % os.environ['GOPATH'])
+            j.sal.fs.copyFile(j.do.joinPaths(os.environ['GOPATH'], 'bin', 'syncthing'), j.sal.fs.joinPaths(appbase, "syncthing"))
 
-            # link conf
-            j.sal.fs.symlink(j.sal.fs.joinPaths(dest, "conf"), j.sal.fs.joinPaths(agentdir, 'conf'), overwriteTarget=True)
+        def agent_build(appbase):
+            url = "git@github.com:Jumpscale/agent2.git"
+            dest = j.tools.golang.build(url)
 
-        def agentcontroller_get(appbase):QQ
-            url = "git@git.aydo.com:binary/agentcontroller2.git"
-            dest = j.do.pullGitRepo(url)
+            j.sal.fs.copyFile(j.sal.fs.joinPaths(os.environ['GOPATH'], 'bin', "agent2"), j.sal.fs.joinPaths(appbase, "agent2"))
+            j.sal.fs.copyFile(j.sal.fs.joinPaths(os.environ['GOPATH'], 'bin', "syncthing"), j.sal.fs.joinPaths(appbase, "syncthing"))
 
             j.do.createDir(appbase)
-            j.sal.fs.symlink(j.do.joinPaths(dest, "agentcontroller2", "agentcontroller2"), j.sal.fs.joinPaths(appbase, "agentcontroller2"), overwriteTarget=True)
-            j.sal.fs.copyFile(j.do.joinPaths(dest, "agentcontroller2", "agentcontroller2.toml"), appbase)
+
+            # link extensions
+            extdir = j.sal.fs.joinPaths(appbase, "extensions")
+            j.do.delete(extdir)
+            j.do.symlink("%s/extensions" % dest, extdir)
+
+            # manipulate config file
+            cfgfile = '%s/agent.toml' % appbase
+            j.do.copyFile("%s/agent.toml" % dest, cfgfile)
+
+            j.sal.fs.copyDirTree("%s/conf" % dest, j.sal.fs.joinPaths(appbase, "conf"))
+
+            #cfg = j.data.serializer.toml.load(cfgfile)
+
+            #j.data.serializer.toml.dump(cfgfile, cfg)
+
+        def agentcontroller_build(appbase):
+            url = "git@github.com:Jumpscale/agentcontroller2.git"
+            dest = j.tools.golang.build(url)
+
+            destfile = j.sal.fs.joinPaths(appbase, "agentcontroller2")
+            j.sal.fs.copyFile(j.do.joinPaths(os.environ['GOPATH'], 'bin', "agentcontroller2"), destfile)
+
+            j.do.createDir(appbase)
+            cfgfile = '%s/agentcontroller.toml' % appbase
+            j.do.copyFile("%s/agentcontroller.toml" % dest, cfgfile)
 
             extdir = j.sal.fs.joinPaths(appbase, "extensions")
+            j.do.delete(extdir)
             j.sal.fs.createDir(extdir)
-            j.sal.fs.symlink(j.sal.fs.joinPaths(dest, 'extensions'), extdir, overwriteTarget=True)
+            j.do.symlinkFilesInDir("%s/extensions" % dest, extdir, delete=True, includeDirs=False)
+
+            cfg = j.data.serializer.toml.load(cfgfile)
+
+            cfg['jumpscripts']['python_path'] = "%s:%s" % (extdir, j.dirs.jsLibDir)
+
+            j.data.serializer.toml.dump(cfgfile, cfg)
 
         j.actions.add(upgradePip)
         j.actions.add(pythonLibInstall)
-        j.actions.add(agent_get, args={"agentdir": agentAppDir, 'syncthingdir': syncthingAppDir})
-        j.actions.add(agentcontroller_get, args={"appbase": agentcontrollerAppDir})
+        j.actions.add(prepare_go)
+        j.actions.add(syncthing_build, args={'appbase': syncthingAppDir})
+        j.actions.add(agent_build, args={"appbase": agentAppDir})
+        j.actions.add(agentcontroller_build, args={"appbase": agentcontrollerAppDir})
         j.actions.run()
 
-        def startSyncthing(appbase):
-            j.sal.tmux.executeInScreen("main", screenname="syncthing",cmd="./syncthing -gui-address 127.0.0.1:18384", wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
-
         def startAgent(appbase):
-            j.sal.tmux.executeInScreen("main", screenname="agent",cmd="./agent2 -c agent2.toml", wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
+
+            cfgfile_agent = j.do.joinPaths(appbase, "agent2.toml")
+            j.sal.nettools.waitConnectionTest("127.0.0.1", 8966, timeout=2)
+            print("connection test ok to agentcontroller")
+            j.sal.tmux.executeInScreen("main", screenname="agent", cmd="./agent2 -c %s" % cfgfile_agent, wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
 
         def startAgentController(appbase):
-            j.sal.tmux.executeInScreen("main", screenname="ac",cmd="./agentcontroller2 -c agentcontroller2.toml", wait=0,
-                                       cwd=appbase, env=None, user='root', tmuxuser=None)
+            cfgfile_ac = j.do.joinPaths(appbase, "agentcontroller2.toml")
+            j.sal.tmux.executeInScreen("main", screenname="ac", cmd="./agentcontroller2 -c %s" % cfgfile_ac, wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
 
         if start:
-            j.actions.add(startSyncthing, args={"appbase": syncthingAppDir})
-            j.actions.add(startAgentController, args={"appbase": agentcontrollerAppDir})
             j.actions.add(startAgent, args={"appbase": agentAppDir})
+            j.actions.add(startAgentController, args={"appbase": agentcontrollerAppDir})
             j.actions.run()
         else:
-            print('To run your agent/agentcontroller, navigate to "%s" adn to "%s" and do "..."' % agentAppDir)
+            print('To run your agent, navigate to "%s" adn to "%s" and do "./agent2 -c agent2.toml"' % agentAppDir)
+            print('To run your agentcontroller, navigate to "%s" adn to "%s" and do "./agentcontroller2 -c agentcontroller2.toml"' % agentcontrollerAppDir)
 
-
-    def installPortal(self, start=True,mongodbip="127.0.0.1",mongoport=27017,login="",passwd=""):
-
+    def installPortal(self, start=True, mongodbip="127.0.0.1", mongoport=27017, login="", passwd=""):
         j.actions.setRunId("installportal")
 
         def upgradePip():
@@ -513,7 +561,7 @@ class Installer():
             # ptyprocess
             # pycparser
             # pycrypto
-            pycurl
+            # pycurl
             # pygo
             # pygobject
             pylzma
@@ -549,12 +597,8 @@ class Installer():
 
             def installPip(name):
                 j.do.execute("pip3 install %s --upgrade"%name)
-<<<<<<< HEAD
-
-=======
             
             actionout=None
->>>>>>> 390325cfab9f54f71c57951e1a947d9cb101210f
             for dep in deps.split("\n"):
                 dep=dep.strip()
                 if dep.strip()=="":
@@ -599,16 +643,16 @@ class Installer():
 
         def install():
             destjslib = j.do.getPythonLibSystem(jumpscale=True)
-            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % destjslib, delete=False)
-            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % j.dirs.jsLibDir, delete=False)
+            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % destjslib, delete=False)
+            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % j.dirs.jsLibDir, delete=False)
             
             # j.application.reload()
 
             portaldir = '%s/apps/portals/' % j.do.BASE
             exampleportaldir = '%sexample' % portaldir
             j.do.createDir(exampleportaldir)
-            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % j.do.CODEDIR, '%s/jslib' % portaldir)
-            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % j.do.CODEDIR,  '%s/portalbase' % portaldir)
+            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % j.dirs.codeDir, '%s/jslib' % portaldir)
+            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % j.dirs.codeDir,  '%s/portalbase' % portaldir)
             j.do.createDir('%s/base/home/.space' % exampleportaldir)
             j.do.copyFile("%s/portalbase/portal_no_ays.py" % portaldir, exampleportaldir)
             j.do.copyFile("%s/portalbase/config.hrd" % portaldir, exampleportaldir)
@@ -643,8 +687,6 @@ class Installer():
         #@link example spaces
         #@eve issue
         #@explorer issue
-<<<<<<< HEAD
-=======
         
 
     def multidownload(self,path,dest):
@@ -656,4 +698,3 @@ class Installer():
             embed()
             p
             
->>>>>>> 390325cfab9f54f71c57951e1a947d9cb101210f

@@ -1,5 +1,5 @@
 from __future__ import with_statement
-
+import re
 from JumpScale import j
 import copy
 
@@ -238,6 +238,7 @@ class OurCuisineFactory:
         self.__jslocation__ = "j.tools.cuisine"
         self._local=None
 
+
     @property
     def local(self):
         if self._local==None:
@@ -247,20 +248,17 @@ class OurCuisineFactory:
     def get(self,executor=None):
         """
         example:
-        executor=j.tools.executor.getSSHBased(addr='localhost', port=22,login="root",passwd="1234)
+        executor=j.tools.executor.getSSHBased(addr='localhost', port=22,login="root",passwd="1234",pushkey="ovh_install")
         cuisine=j.tools.cuisine.get(executor)
         cuisine.upstart_ensure("apache2")
 
         or if used without executor then will be the local one
 
         """
-
-        if executor==None:
-            executor=j.tools.executor.getLocal()
-
+        executor=j.tools.executor.get(executor)
         return OurCuisine(executor)
 
-
+from CuisineInstaller import CuisineInstaller
 
 class OurCuisine():
 
@@ -268,6 +266,23 @@ class OurCuisine():
         self.cd="/"
         self.executor=executor
         self.sudomode = False 
+        self._installer = None
+        self._platformtype=None
+
+
+    @property
+    def platformtype(self):
+        if self._platformtype==None:
+            self._platformtype=j.core.platformtype.get(self.executor)
+        return self._platformtype
+
+    @property
+    def installer(self):
+        if self._installer==None:
+            self._installer=CuisineInstaller(self)
+        return self._installer
+
+
     # =============================================================================
     #
     # UPSTART
@@ -309,6 +324,37 @@ class OurCuisine():
         if status.succeeded:
             status = self.sudo("service %s stop" % name)
         return status
+
+    def systemd_ensure(self,name,cmd,descr=""):
+        """
+        Ensures that the given systemd service is self.running, starting
+        it if necessary and also create it
+        """
+
+        C="""
+        [Unit]
+        Description=$descr
+
+        [Service]
+        ExecStart=$cmd
+        Restart=on-abort
+
+        [Install]
+        WantedBy=multi-user.target
+        """
+        C=C.replace("$cmd",cmd)
+        if descr=="":
+            descr=name
+        C=C.replace("$descr",descr)
+
+        self.file_write("/etc/systemd/system/%s.service"%name,C)
+
+        self.run("systemctl daemon-reload;systemctl restart %s"%name)
+        self.run("systemctl enable %s"%name)
+        self.run("systemctl daemon-reload;systemctl restart %s"%name)
+
+        
+
 
 
     # =============================================================================
@@ -414,6 +460,7 @@ class OurCuisine():
 
 
         frame = self.file_base64(location)
+        
         return base64.b64decode(frame).decode()
 
 
@@ -451,7 +498,10 @@ class OurCuisine():
 
     def file_write(self,location, content, mode=None, owner=None, group=None, check=True):
         print ("filewrite: %s"%location)
+        content=j.data.text.strip(content)
         content2 = content.encode('utf-8')
+        
+
         sig = hashlib.md5(content2).hexdigest()
 
         content_base64=base64.b64encode(content2).decode()
@@ -561,7 +611,13 @@ class OurCuisine():
 
     def file_base64(self,location):
         """Returns the base64-encoded content of the file at the given location."""
-        return self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
+        res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
+        if res.find("command not found")!=-1:
+            #print could not find python need to install
+            self.package_install("python3.5")
+            res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
+        return res
+            
         # else:
         # return self.run("cat {0} | openssl base64".format(shell_safe((location))))
 
@@ -598,6 +654,91 @@ class OurCuisine():
     #
     # =============================================================================
 
+    def process_tcpport_check(self,port,prefix):
+        res=[]
+        for item in self.process_info_get(prefix):
+            if item["localport"]==port:
+                return True
+        return False
+
+    def process_info_get(self,prefix):
+        res=[]
+        for item in self.processes_info_get():
+            if item["process"].lower().startswith(prefix):
+                res.append(item)        
+        return res
+
+
+    def processes_info_get(self):
+        """
+        return
+        [$item,]
+
+        $item is dict
+
+        {'local': '0.0.0.0',
+         'localport': 6379,
+         'pid': 13824,
+         'process': 'redis',
+         'receive': 0,
+         'receivebytes': 0,
+         'remote': '0.0.0.0',
+         'remoteport': '*',
+         'send': 0,
+         'sendbytes': 0,
+         'parentpid':0}
+
+
+        """
+        result=[]
+        if "linux" in self.platformtype.platformtypes:
+            cmdlinux='netstat -lntp'
+            out=self.run(cmdlinux,showout=False)
+            #to troubleshoot https://regex101.com/#python
+            p = re.compile(u"tcp *(?P<receive>[0-9]*) *(?P<send>[0-9]*) *(?P<local>[0-9*.]*):(?P<localport>[0-9*]*) *(?P<remote>[0-9.*]*):(?P<remoteport>[0-9*]*) *(?P<state>[A-Z]*) *(?P<pid>[0-9]*)/(?P<process>\w*)")
+            for line in out.split("\n"):
+                res=re.search(p, line)
+                if res!=None:
+                    d=res.groupdict()
+                    d["process"]=d["process"].lower()
+                    if d["state"]=="LISTEN":
+                        d.pop("state")
+                        result.append(d)
+
+        elif "darwin" in self.platformtype.platformtypes:
+            # cmd='sudo netstat -anp tcp'
+            # # out=self.run(cmd)
+            # p = re.compile(u"tcp4 *(?P<rec>[0-9]*) *(?P<send>[0-9]*) *(?P<local>[0-9.*]*) *(?P<remote>[0-9.*]*) *LISTEN")
+            cmd="lsof -i 4tcp -sTCP:LISTEN -FpcRn"
+            out=self.run(cmd,showout=False)
+            d={}
+            for line in out.split("\n"):
+                if line.startswith("p"):
+                    d={'local': '','localport': 0,'pid': 0,'process': '','receive': 0,'receivebytes': 0,'remote': '','remoteport': 0,'send': 0,'sendbytes': 0,'parentpid':0}
+                    d["pid"]=int(line[1:])
+                if line.startswith("R"):
+                    d["parentpid"]=int(line[1:])
+                if line.startswith("c"):
+                    d["process"]=line[1:].strip()
+                if line.startswith("n"):
+                    a,b=line.split(":")
+                    d["local"]=a[1:].strip()
+                    d["localport"]=int(b)
+                    result.append(d)
+
+        else:            
+            raise RuntimeError("platform not supported")
+
+        for d in result:
+            for item in ["receive","send","pid","localport","remoteport"]:
+                if d[item]=="*":
+                    continue
+                else:
+                    d[item]=int(d[item])
+
+        return result 
+
+        
 
     def process_find(self,name, exact=False):
         """Returns the pids of processes with the given name. If exact is `False`
@@ -766,7 +907,7 @@ class OurCuisine():
         cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
         return self.run(cmd, warn_only)
 
-    def run(self,cmd,warn_only=False,debug=None,checkok=False,showout=True):
+    def run(self,cmd,die=True,debug=None,checkok=False,showout=True):
         if self.sudomode:
             passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
             cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
@@ -776,14 +917,18 @@ class OurCuisine():
             debugremember=copy.copy(debug)
             self.executor.debug=debug
 
-        rc,out=self.executor.execute(cmd,checkok=checkok, die=warn_only==True, combinestdr=True,showout=showout)
+        rc,out=self.executor.execute(cmd,checkok=checkok, die=die==True, combinestdr=True,showout=showout)
 
         if debug!=None:
             self.executor.debug=debugremember
-        # if rc>0:
+        if rc>0 and die:
+            raise RuntimeError("could not execute %s"%cmd)
         out=out.strip()
         # print("output run: %s" % out)
-        return out
+        if die==False:
+            return rc,out
+        else:
+            return out
 
     def cd(self,path):
         self.cd=path
@@ -1261,15 +1406,27 @@ class OurCuisine():
                 self.sudo("groupdel %s" % group)
 
 
+    #####################SYSTEM IDENTIFICATION
+
+    @property
+    def isUbuntu(self):
+        return "ubuntu" in self.platformtype.platformtypes
+
+    @property
+    def isArch(self):
+        return "arch" in self.platformtype.platformtypes
+
+    @property
+    def isMac(self):
+        return "darwin" in self.platformtype.platformtypes
+
     #####################PACKAGE MGMT
 
-
-
-    def repository_ensure_apt(self,repository):
+    def _repository_ensure_apt(self,repository):
         self.package_ensure_apt('python-software-properties')
         self.sudo("add-apt-repository --yes " + repository)
 
-    def apt_get(self,cmd):
+    def _apt_get(self,cmd):
         cmd    = CMD_APT_GET + cmd
         result = self.sudo(cmd)
         # If the installation process was interrupted, we might get the following message
@@ -1279,55 +1436,100 @@ class OurCuisine():
             result = self.sudo(cmd)
         return result
 
-    def package_update_apt(self,package=None):
-        if package == None:
-            return self.apt_get("-q --yes update")
+    def package_update(self,package=None):
+        if self.isUbuntu:
+            if package == None:
+                return self._apt_get("-q --yes update")
+            else:
+                if type(package) in (list, tuple):
+                    package = " ".join(package)
+                return self._apt_get(' upgrade ' + package)
         else:
+            raise RuntimeError("could not install:%s, platform not supported"%package)
+
+    def package_upgrade(self,distupgrade=False):
+        if self.isUbuntu:
+            if distupgrade:
+                return self._apt_get("dist-upgrade")
+            else:
+                return self._apt_get("upgrade")
+        else:
+            raise RuntimeError("could not install:%s, platform not supported"%package)
+
+    def package_install(self,packages, update=False):
+        if j.data.types.string.check(packages):
+            packages=[packages]
+        if self.isUbuntu:
+            if update: self._apt_get("update")
+            if type(packages) in (list, tuple):
+                package = " ".join(packages)
+            return self._apt_get("install " + package)
+        elif self.isArch:
+            for package in packages:
+                if package.startswith("python3"):
+                    package="extra/python"
+
+                rc,out=self.run("pacman -S %s  --noconfirm"%package,die=False)  
+                if rc>0:
+                    if out.find("not found")==-1:
+                        raise RuntimeError("Could not install:%s %s"%(package,out))
+                    if rc==0:
+                        return out
+
+            if rc>0:
+                raise RuntimeError("Could not install:%s %s"%(package,out))
+                
+        elif self.isMac:
+            self.run("brew install %s "%package) 
+        else:
+            raise RuntimeError("could not install:%s, platform not supported"%package)
+
+
+    def package_start(self,package):
+        if self.isArch:
+            self.run("systemd start %s"%package)
+        else:
+            raise RuntimeError("could not install/ensure:%s, platform not supported"%package)           
+
+
+    def package_ensure(self,package, update=False):
+        """Ensure apt packages are installed"""
+        if self.isUbuntu:
+            if isinstance(package, basestring):
+                package = package.split()
+            res = {}
+            for p in package:
+                p = p.strip()
+                if not p: continue
+                # The most reliable way to detect success is to use the command status
+                # and suffix it with OK. This won't break with other locales.
+                status = self.run("dpkg-query -W -f='${Status} ' %s && echo **OK**;true" % p)
+                if not status.endswith("OK") or "not-installed" in status:
+                    self.package_install(p)
+                    res[p]=False
+                else:
+                    if update:
+                        self.package_update(p)
+                    res[p]=True
+            if len(res) == 1:
+                return res.values()[0]
+            else:
+                return res
+        elif self.isArch:
+            self.run("pacman -S %s"%package)
+        else:
+            raise RuntimeError("could not install/ensure:%s, platform not supported"%package)            
+
+        raise RuntimeError("not supported platform")
+
+    def package_clean(self,package=None):
+        if self.isUbuntu:
             if type(package) in (list, tuple):
                 package = " ".join(package)
-            return self.apt_get(' upgrade ' + package)
+            return self._apt_get("-y --purge remove %s" % package)
 
-    def package_upgrade_apt(self,distupgrade=False):
-        if distupgrade:
-            return self.apt_get("dist-upgrade")
-        else:
-            return self.apt_get("upgrade")
-
-    def package_install_apt(self,package, update=False):
-        if update: self.apt_get("update")
-        if type(package) in (list, tuple):
-            package = " ".join(package)
-        return self.apt_get("install " + package)
-
-    def package_ensure_apt(self,package, update=False):
-        """Ensure apt packages are installed"""
-        if isinstance(package, basestring):
-            package = package.split()
-        res = {}
-        for p in package:
-            p = p.strip()
-            if not p: continue
-            # The most reliable way to detect success is to use the command status
-            # and suffix it with OK. This won't break with other locales.
-            status = self.run("dpkg-query -W -f='${Status} ' %s && echo **OK**;true" % p)
-            if not status.endswith("OK") or "not-installed" in status:
-                self.package_install_apt(p)
-                res[p]=False
-            else:
-                if update:
-                    self.package_update_apt(p)
-                res[p]=True
-        if len(res) == 1:
-            return res.values()[0]
-        else:
-            return res
-
-    def package_clean_apt(self,package=None):
-        if type(package) in (list, tuple):
-            package = " ".join(package)
-        return self.apt_get("-y --purge remove %s" % package)
-
-    def package_remove_apt(self,package, autoclean=False):
-        self.apt_get('remove ' + package)
-        if autoclean:
-            self.apt_get("autoclean")
+    def package_remove(self,package, autoclean=False):
+        if self.isUbuntu:
+            self._apt_get('remove ' + package)
+            if autoclean:
+                self._apt_get("autoclean")

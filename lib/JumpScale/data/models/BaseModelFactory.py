@@ -35,7 +35,7 @@ class NameSpaceLoader():
     def connect2mongo(self, host='localhost', port=27017, db='jumpscale_system'):
         """
         """
-        mongoengine.connect(db=db, host=host, port=port)
+        mongoengine.connect(db=db, alias=db, host=host, port=port)
 
 
 class System(NameSpaceLoader):

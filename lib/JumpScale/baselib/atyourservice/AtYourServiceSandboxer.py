@@ -1,18 +1,11 @@
 from JumpScale import j
-from ServiceTemplate import ServiceTemplate
-from Service import Service, getProcessDicts
-import re
-from ActionsBaseMgmt import ActionsBaseMgmt
-from ActionsBaseNode import ActionsBaseNode
-# import AYSdb
-
-from AtYourServiceSync import AtYourServiceSync
 
 from mongoengine import *
 
 from JumpScale.data.models.Models import ModelBase
 
-class ModelDebug(ModelBase):
+
+class Debug(ModelBase, Document):
     guid = StringField(default='')
     host = StringField(default='')
     cache = StringField(default='')
@@ -39,10 +32,11 @@ class ModelDebug(ModelBase):
 class AtYourServiceSandboxer():
 
 
-    def __init__(self,name="main"):
-        self.model=j.data.models.system.getset(ModelDebug(guid=name))
-        self._cl=None
-        self._clcache=None
+    def __init__(self, name="main"):
+        j.data.models.system.addModel(Debug)
+        self.model = j.data.models.system.Debug.getset(Debug(guid=name))
+        self._cl = None
+        self._clcache = None
 
     @property
     def cuisine_host(self):
@@ -68,9 +62,9 @@ class AtYourServiceSandboxer():
         filter can only be used when sourcepath is directory
         filter e.g. *.py or something*something or start*.*
         """
-        path="%s___%s___%s"%(sourcepath,filter,dest)                    
+        path="%s___%s___%s"%(sourcepath,filter,dest)
         if path not in self.model.sandboxpaths:
-            self.model.sandboxpaths.append(path)        
+            self.model.sandboxpaths.append(path)
         self.model.save()
 
     def addPath(self,path):
@@ -78,7 +72,7 @@ class AtYourServiceSandboxer():
         path to upload to remote aysfs
         """
         if path not in self.model.paths:
-            self.model.paths.append(path)        
+            self.model.paths.append(path)
         self.model.save()
 
     def reset(self):
@@ -95,7 +89,7 @@ class AtYourServiceSandboxer():
 
     def setNamespace(self,namespace):
         self.model.namespace=namespace
-        self.model.save()      
+        self.model.save()
 
     def addCmdPre(self,cmd):
         if cmd not in self.model.cmd_pre:
@@ -109,7 +103,7 @@ class AtYourServiceSandboxer():
 
     def addRestart(self,name):
         if name not in self.model.restart:
-            self.model.restart.append(name)        
+            self.model.restart.append(name)
         self.model.save()
 
     def enableHostCacheUpdate(self):
@@ -134,7 +128,7 @@ class AtYourServiceSandboxer():
     #     """
     #     if self.model.host!="":
     #         self.cuisine_host.run("mkdir -p /mnt/ays/cachelocal/dedupe;mkdir -p /etc/ays/local")
-    #         self.cuisine_host.hostfile_set("ayscache",self.model.cache)  #put in hostfile      
+    #         self.cuisine_host.hostfile_set("ayscache",self.model.cache)  #put in hostfile
     #         self.cuisine_host.run("umount -fl /opt;echo")
     #         self.cuisine_host.run("pkill tmux;echo")
     #         cmd = "cd /usr/local/bin;rm -f aysfs;wget http://stor.jumpscale.org/ays/bin/aysfs"
@@ -155,12 +149,12 @@ class AtYourServiceSandboxer():
         j.do.execute(cmd)
 
     def buildJumpscaleMetadata(self):
-        from JumpScale import findModules   
-        findModules()    
+        from JumpScale import findModules
+        findModules()
 
-    def sandbox(self,python=True): 
+    def sandbox(self,python=True):
         """
-        look for all files in self.paths and copy to the sandbox 
+        look for all files in self.paths and copy to the sandbox
         """
         print ("START SANDBOX")
         if python:
@@ -180,16 +174,16 @@ class AtYourServiceSandboxer():
             if not j.do.exists("%s/bin/python"%j.do.BASE):
                 j.do.copyFile("/usr/bin/python3.5","%s/bin/python"%j.do.BASE)
 
-        for item in self.model.paths:
-            sourcepath,filter,dest=item.split("___")
-            if j.sal.fs.isDir(sourcepath):
-                if filter!=None:
-                    for item in j.sal.fs.listFilesInDir(sourcepath,filter=filter):
-                        j.sal.fs.copyFile(item,dest)
-                else:
-                    j.sal.fs.copyDirTree(sourcepath,dest)
-            else:
-                j.sal.fs.copyFile(sourcepath,dest)
+        # for item in self.model.paths:
+        #     sourcepath,filter,dest=item.split("___")
+        #     if j.sal.fs.isDir(sourcepath):
+        #         if filter!=None:
+        #             for item in j.sal.fs.listFilesInDir(sourcepath,filter=filter):
+        #                 j.sal.fs.copyFile(item,dest)
+        #         else:
+        #             j.sal.fs.copyDirTree(sourcepath,dest)
+        #     else:
+        #         j.sal.fs.copyFile(sourcepath,dest)
 
         j.tools.sandboxer.sandboxLibs("%s/lib"%j.do.BASE,recursive=True)
         j.tools.sandboxer.sandboxLibs("%s/bin"%j.do.BASE,recursive=True)
@@ -202,7 +196,7 @@ class AtYourServiceSandboxer():
         self.buildJumpscaleMetadata()
 
         if sandbox:
-            sandbox1()
+            self.sandbox()
 
         for path in self.model.paths:
             print ("DEDUPE:%s"%path)
@@ -214,7 +208,7 @@ class AtYourServiceSandboxer():
                 self.cuisine_host.run("which aysfs")
             except:
                 self.installAYSFS()
-            
+
             # j.do.copyTree(self.model.storpath+"/files/", "root@%s:/mnt/ays/cachelocal/%s"%(self.model.host,self.model.namespace), \
             #     keepsymlinks=False, deletefirst=False, overwriteFiles=False, rsync=True, ssh=True, sshport=self.model.port, recursive=True)
 
@@ -222,10 +216,12 @@ class AtYourServiceSandboxer():
             self._upload(self.model.cache,"/mnt/ays/cache/dedupe/")
 
         if self.model.populate_host_cache:
+            pass
             # self._upload(self.model.host,"/mnt/ays/cachelocal/dedupe/")
             # #@todo ....
             # j.do.copyTree(self.model.storpath+"/md/0.flist", "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
 
+        import ipdb; ipdb.set_trace()
         if self.model.populate_master_cache:
             store_client = j.clients.storx.get("http://stor.jumpscale.org/storx")
             files_path = j.sal.fs.joinPaths(self.model.storpath, 'files')
@@ -259,15 +255,15 @@ class AtYourServiceSandboxer():
 
         #     self.cuisine_host.run("kill -s sigusr1 %s"%pid)
         # else:
-            self.cuisine_host.run("pkill aysfs;echo")
-            self.cuisine_host.run("umount -fl /opt;echo")
-            self.cuisine_host.file_unlink("/etc/ays/local/md/0.flist")
-        
+            # self.cuisine_host.run("pkill aysfs;echo")
+            # self.cuisine_host.run("umount -fl /opt;echo")
+            # self.cuisine_host.file_unlink("/etc/ays/local/md/0.flist")
 
 
 
-        self.cuisine_master.run("chown -R ays:root /mnt/Storage/openvcloud/ftp/ays/master/dedupe/")
-   
+
+        # self.cuisine_master.run("chown -R ays:root /mnt/Storage/openvcloud/ftp/ays/master/dedupe/")
+
 
     def buildUpload_JS(self,sandbox=False,name="main"):
 
@@ -286,7 +282,7 @@ class AtYourServiceSandboxer():
 
 
 
-    def __str__(self):     
+    def __str__(self):
         return str(self.model)
     __repr__=__str__
 
@@ -337,9 +333,9 @@ class AtYourServiceDebugFactory():
 
     def buildUpload(self,name="main"):
         d=self.get(name=name)
-        d.buildUpload()  
+        d.buildUpload()
 
 
     def buildUpload_master(self,name="master"):
         d=self.get(name=name)
-        d.buildUpload_JS()  
+        d.buildUpload_JS()

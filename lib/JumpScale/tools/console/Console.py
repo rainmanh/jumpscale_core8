@@ -34,25 +34,25 @@ class Console:
         when typing, char per char will be returned
         """
         if not sys.platform.startswith("win"):
-            j.sal.ubuntu.check()
-            import termios
-            fd = sys.stdin.fileno()
+            if j.do.TYPE.startswith("OSX") or j.sal.ubuntu.check():
+                import termios
+                fd = sys.stdin.fileno()
 
-            oldterm = termios.tcgetattr(fd)
-            newattr = termios.tcgetattr(fd)
-            newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
-            termios.tcsetattr(fd, termios.TCSANOW, newattr)
+                oldterm = termios.tcgetattr(fd)
+                newattr = termios.tcgetattr(fd)
+                newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
+                termios.tcsetattr(fd, termios.TCSANOW, newattr)
 
-            cont=True
-            try:
-                while cont:
-                    try:
-                        c = sys.stdin.read(1)
-                        cont, result, params = callback(c, params)
-                    except IOError:
-                        j.logger.exception("Failed to read one character from stdin", 5)
-            finally:
-                termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
+                cont=True
+                try:
+                    while cont:
+                        try:
+                            c = sys.stdin.read(1)
+                            cont, result, params = callback(c, params)
+                        except IOError:
+                            j.logger.exception("Failed to read one character from stdin", 5)
+                finally:
+                    termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
 
         else:
 
@@ -397,7 +397,7 @@ class Console:
             parts = clean(f())
         return parts
 
-    def askChoice(self,choicearray, descr="", sort=True,maxchoice=25,height=30,autocomplete=False):
+    def askChoice(self,choicearray, descr="", sort=True,maxchoice=60,height=40,autocomplete=False):
         """
         @param choicearray is list or dict, when dict key needs to be the object to return,
                the value of the dics is what needs to be returned, the key is the str representation
@@ -428,7 +428,7 @@ class Console:
                 if len(choicearray)<200:
                     shortchoice=[]
                     for item in choicearray:
-                        short=item[0:4]
+                        short=item[0:40]
                         if short not in shortchoice:
                             shortchoice.append(short)
                         if len(shortchoice)>height-3:

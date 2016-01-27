@@ -21,6 +21,7 @@ log=False
 roles = []
 
 def action():
+    import JumpScale.lib.diskmanager
     import statsd
     import psutil
 

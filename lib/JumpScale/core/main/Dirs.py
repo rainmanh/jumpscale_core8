@@ -53,6 +53,7 @@ class Dirs(object):
         self.libExtDir = j.application.config.get("system.paths.python.lib.ext")
         self.tmpDir = tempfile.gettempdir()
         self.hrd =  os.path.join(j.application.config.get("system.paths.hrd"),"system")
+        self.homeDir=os.environ["HOME"]
 
         self._ays=None
 

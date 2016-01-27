@@ -30,7 +30,7 @@ class SSHClientFactory(object):
 
 class SSHClient(object):
 
-    def __init__(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True,allow_agent=True, look_for_keys=True):
+    def __init__(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True,allow_agent=True, look_for_keys=True,timeout=5.0):
         self.port = port
         self.addr = addr
         self.login = login
@@ -73,7 +73,18 @@ class SSHClient(object):
         if self._client is None:
             self._client = paramiko.SSHClient()
             self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys)
+
+            counter = 0
+            while counter < 10:
+                try:
+                    self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys)
+                    break
+                except Exception as e:
+                    counter += 0.1
+                    if counter >= 10:
+                        raise(e)
+                    else:
+                        time.sleep(0.1)
         return self._client
 
     def reset(self):
@@ -84,20 +95,22 @@ class SSHClient(object):
         sftp = self.client.open_sftp()
         return sftp
 
-    def connectTest(self, cmd="ls /etc", timeout=2, die=False):
+    def connectTest(self, cmd="ls /etc", timeout=3, die=False):
         """
         will trying to connect over ssh & execute the specified command, timeout is in sec
         error will be raised if not able to do (unless if die set)\
         return False if not ok
         """
         counter = 0
-        time.sleep(0.5)
-        rc = 1
-        maxcounter = timeout
 
-        while counter < maxcounter and rc != 0:
+        rc = 1
+        timeout1=j.data.time.getTimeEpoch()+timeout
+
+        if j.sal.nettools.waitConnectionTest(self.addr, self.port, timeout)==False:
+            raise RuntimeError("Cannot connect to ssh server %s:%s"%(self.addr,self.port))
+
+        while j.data.time.getTimeEpoch()<timeout1  and rc != 0:
             try:
-                counter += 0.1
                 # print("connect ssh2.")
                 rc, out = self.execute(cmd, showout=False)
                 # print (rc)

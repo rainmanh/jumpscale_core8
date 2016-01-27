@@ -20,148 +20,165 @@ class PlatformTypes():
 
     def __init__(self):
         self.__jslocation__ = "j.core.platformtype"        
-        self.myplatform=self._getPlatform()        
-        self.platformParents={}
-        self.addPlatform("unknown",parent="")
-        self.addPlatform("generic",parent="unknown")
-        self.addPlatform("unix",parent="generic")
-        self.addPlatform("linux",parent="unix")
-        self.addPlatform("linux32",parent="linux")
-        self.addPlatform("linux64",parent="linux")
-        self.addPlatform("ubuntu",parent="linux")
-        self.addPlatform("ubuntu32",parent="ubuntu")
-        self.addPlatform("ubuntu32",parent="linux32")
-        self.addPlatform("ubuntu64",parent="ubuntu")
-        self.addPlatform("ubuntu64",parent="linux64")
-        self.addPlatform("mint",parent="ubuntu")
-        self.addPlatform("mint32",parent="mint")
-        self.addPlatform("mint64",parent="mint")
-        self.addPlatform("mint32",parent="ubuntu32")
-        self.addPlatform("mint64",parent="ubuntu64")
-        self.addPlatform("cygwin",parent="linux32")
-        self.addPlatform("win",parent="generic")
-        self.addPlatform("win32",parent="win")
-        self.addPlatform("win64",parent="win")
-        self.addPlatform("win7",parent="win")
-        self.addPlatform("win8",parent="win")
-        self.addPlatform("vista",parent="win")
-        self.addPlatform("darwin",parent="unix")
-        self.addPlatform("win2008_64",parent="win64")
-        self.addPlatform("win2012_64",parent="win64")
-        
+        self._myplatform=None
+        self._platformParents={}
+        self._platformParents["unix"]=["generic"]
+        self._platformParents["linux"]=["unix"]
+        self._platformParents["linux32"]=["linux"]
+        self._platformParents["linux64"]=["linux"]
+        self._platformParents["unix32"]=["unix"]
+        self._platformParents["unix64"]=["unix"]      
+        self._platformParents["ubuntu"]=["linux"]
+        self._platformParents["ubuntu64"]=["ubuntu","linux64"]
+        self._platformParents["ubuntu32"]=["ubuntu","linux32"]
+        self._platformParents["mint64"]=["mint","ubuntu64"]
+        self._platformParents["mint32"]=["mint","ubuntu32"]
+        self._platformParents["cygwin"]=["linux32"]
+        self._platformParents["win"]=["generic"]
+        self._platformParents["win32"]=["win"]
+        self._platformParents["win64"]=["win"]
+        self._platformParents["win7"]=["win"]
+        self._platformParents["win8"]=["win"]
+        self._platformParents["vista"]=["win"]
+        self._platformParents["win2008_64"]=["win64"]
+        self._platformParents["win2012_64"]=["win64"]
+        self._platformParents["arch"]=["linux"]
+        self._platformParents["arch32"]=["arch","linux32"]
+        self._platformParents["arch64"]=["arch","linux64"]
+        self._platformParents["darwin32"]=["darwin","unix32"]
+        self._platformParents["darwin64"]=["darwin","unix64"]
 
-    def getMyRelevantPlatforms(self):
-        return self.platformParents[str(self.myplatform).lower()]
+    @property
+    def myplatform(self):
+        if self._myplatform==None:
+            self._myplatform=PlatformType()
+        return self._myplatform
+
+    def getParents(self,name):
+        res=[name]
+        res=self._getParents(name,res)        
+        return res
+
+    def _getParents(self,name,res=[]):
+        if name in self._platformParents:
+            for item in self._platformParents[name]:
+                if item not in res:
+                    res.append(item)
+                res=self._getParents(item,res)
+        return res
+
+    def get(self,executor=None):
+        """
+        @param executor is an executor object, None or $hostname:$port or $ipaddr:$port or $hostname or $ipaddr
+        """
+        return PlatformType(executor=executor)
+
+        
+class PlatformType():
+
+    def __init__(self,name="",executor=None):
+        self.myplatform=name
+        self._platformtypes={}        
+        self._uname=""
+        self._is64bit=None
+        self._osversion=""
+        self._hostname=""
+        self._osname=""
+        if executor==None:
+            self.executor=j.tools.executor.getLocal()
+        else:
+            self.executor=executor
+        if name=="":
+            self._getPlatform()
+
+    @property
+    def platformtypes(self):
+        if self._platformtypes=={}:
+            self._platformtypes=j.core.platformtype.getParents(self.myplatform)
+            self._platformtypes=[item for item in self._platformtypes if item!=""]
+        return self._platformtypes
+
+    @property
+    def uname(self):
+        if self._uname=="":
+            rc,self._uname=self.executor.execute("uname -mnprs",showout=False)
+            self._uname=self._uname.strip()
+            self._osname0,self._hostname0,self._version,self._cpu,self._platform=self.uname.split(" ")
+        return self._uname
+
+    @property
+    def hostname(self):
+        if self._hostname=="":
+            self.uname
+            self._hostname=self._hostname0.split(".")[0]            
+        return self._hostname
+
+    @property
+    def is64bit(self):
+        if self._is64bit==None:
+            self.uname
+            self._is64bit="64" in self._cpu
+        return self._is64bit
+
+    @property
+    def is32bit(self):
+        if self._is64bit==None:
+            self.uname
+            self._is64bit="32" in self._cpu
+        return self._is64bit
+
+    @property
+    def osversion(self):
+        if self._osversion=="":
+            self.osname #will populate the version 
+            if self._osversion=="":
+                raise RuntimeError("could not define osversion")
+        return self._osversion
+
+    @property
+    def osname(self):
+        if self._osname=="":
+            self.uname
+            self._osname=self._osname0.lower()
+            if "ARCH" in self.uname:
+                self._osname="arch"
+            else:
+                out=self.executor.cuisine.run("lsb_release -a",showout=False)
+                if "ubuntu" in out.lower():
+                    self._osname="ubuntu"
+                else:
+                    raise RuntimeError("Could not define os version")
+
+                for line in out.split("\n"):
+                    if line.lower().startswith("release"):
+                        pre,post=line.split(":")
+                        self._osversion=post.strip()
+                
+        return self._osname
 
     def checkMatch(self,match):
         """
         match is in form of linux64,darwin
         if any of the items e.g. darwin is in getMyRelevantPlatforms then return True
         """
-        tocheck=self.getMyRelevantPlatforms()
+        tocheck=self.platformtypes
         matches = [item.strip().lower() for item in match.split(",") if item.strip()!=""]
         for match in matches:
             if match in tocheck:
                 return True
         return False
 
-
-    def getPlatforms(self):
-        return list(self.platformParents.keys())
-
-    def getParents(self,name):            
-        result=self.platformParents[name]
-        try:
-            result.pop(result.index(""))
-        except:
-            pass
-        return result
-
-    def getChildren(self,name):
-        raise NotImplemented("getchildren not implemented")
-
-    def addPlatform(self,name,parent):
-        # print "TRY addparent: %s %s"%(name,parent)
-        name=name.lower()
-        parent=parent.lower()
-        if name not in self.platformParents:
-            self.platformParents[name]=[name]
-        if not parent or name == parent:
-            return
-        if parent not in self.platformParents[name]:
-            self.platformParents[name].append(parent)
-        if parent in self.platformParents:
-            for parentofparent in self.platformParents[parent]:
-                if parentofparent != parent:
-                    self.addPlatform(name,parentofparent)
-        else:
-            if parent!="":
-                raise RuntimeError("Could not find parent %s in tree, probably order of insertion not ok."%parent)
-
-
     def _getPlatform(self):
 
-        '''Discovers the platform'''
-        _platform = None
-
-        if sys.platform.startswith("linux"):
-
-            import lsb_release
-            info = lsb_release.get_distro_information()['ID'].lower()
-
-            bits = _useELFtrick("/sbin/init")
-            
-            if bits == 32:
-                if info == 'ubuntu':
-                    _platform = "ubuntu32"
-                elif info == 'linuxmint':
-                    _platform = "mint32"
-                else:
-                    _platform = "linux32"
-            elif bits == 64 or bits==0:  #@todo does not work in python 3 anymore
-                if info == 'ubuntu':
-                    _platform = "ubuntu64"
-                elif info == 'linuxmint':
-                    _platform = "mint64"
-                else:
-                    _platform = "linux64"
-            else:
-                raise RuntimeError("dont find which nr bits in platform")
-            
-            # if os.path.exists("/proc/vmware"):
-            #     _platform = PlatformType.ESX
-
-        # elif sys.platform.startswith("sunos"):
-        #     import commands
-        #     _, bits = commands.getstatusoutput('isainfo -b')
-        #     bits = int(bits)
-        #     if bits == 32:
-        #         _platform = PlatformType.SOLARIS32
-        #     elif bits == 64:
-        #         _platform = PlatformType.SOLARIS64
-        #     else:
-        #         _platform = PlatformType.UNKNOWN
-
-        elif sys.platform.startswith("win"):
-            _platform = "win64"
-
-        elif sys.platform.startswith("cygwin"):
-            _platform = "cygwin"
-
-        elif sys.platform.startswith("darwin"):
-            _platform = "darwin"
-
+        if self.is32bit:
+            name="%s32"%(self.osname)
         else:
-            raise RuntimeError("can't establish platform name")
+            name="%s64"%(self.osname)
 
-
-
-        return _platform        
+        self.myplatform=name   
 
     def has_parent(self,name):
-        if name==self.myplatform:
-            return True
-        return name in self.platformParents[self.myplatform]
+        return name in self.platformtypes[self.myplatform]
 
     def dieIfNotPlatform(self,platform):
         if not self.has_parent(platform):
@@ -197,6 +214,7 @@ class PlatformTypes():
     
     def isHyperV(self):
         '''Check whether the system supports HyperV'''
+        #@todo should be moved to _getPlatform & proper parent definition
         if self.isWindows():
             import winreg as wr
             try:
@@ -208,9 +226,11 @@ class PlatformTypes():
         return False
     
     def __str__(self):
-        return str(self.platformParents)
+        return str(self.myplatform)
 
     __repr__=__str__
+
+        
 
         
 

@@ -596,8 +596,8 @@ class Installer():
 
 
             def installPip(name):
-                j.do.execute("pip3 install --upgrade %s "%name)
-
+                j.do.execute("pip3 install %s --upgrade"%name)
+            
             actionout=None
             for dep in deps.split("\n"):
                 dep=dep.strip()
@@ -606,7 +606,7 @@ class Installer():
                 if dep.strip()[0]=="#":
                     continue
                 dep=dep.split("=",1)[0]
-                actionout=j.actions.add(installPip, args={"name":dep},retry=2,deps=[actionin,actionout])
+                actionout=j.actions.add(installPip, args={"name":dep},retry=2,deps=[actionin])
 
             return actionout
         actiondeps=installDeps(actionUpgradePIP)
@@ -615,53 +615,68 @@ class Installer():
             j.do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
         actionGetcode=j.actions.add(getcode,deps=[])
 
+<<<<<<< HEAD
+        # j.do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
+        # destjslib = j.do.getPythonLibSystem(jumpscale=True)
 
+        # j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % destjslib, delete=False)
+        # j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % j.dirs.jsLibDir, delete=False)
+
+
+        # j.application.reload()
+
+        portaldir = '%s/apps/portals/' % j.do.BASE
+        exampleportaldir = '%sexample' % portaldir
+        j.do.createDir(exampleportaldir)
+        j.do.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % j.do.CODEDIR, '%s/jslib' % portaldir)
+        j.do.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % j.do.CODEDIR,  '%s/portalbase' % portaldir)
+        j.do.createDir('%s/base/home/.space' % exampleportaldir)
+        j.do.copyFile("%s/portalbase/portal_no_ays.py" % portaldir, exampleportaldir)
+        j.do.copyFile("%s/portalbase/config.hrd" % portaldir, exampleportaldir)
+        j.dirs.replaceFilesDirVars("%s/config.hrd"%exampleportaldir)
+        j.do.copyTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
+
+        #2to3 -f all -w /usr/local/lib/python3.5/site-packages/eve_docs/config.py
+        #@todo
+=======
+>>>>>>> 390325cfab9f54f71c57951e1a947d9cb101210f
 
         def install():
             destjslib = j.do.getPythonLibSystem(jumpscale=True)
-            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % destjslib)
-            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % j.dirs.jsLibDir)
-
+            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % destjslib, delete=False)
+            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % j.dirs.jsLibDir, delete=False)
+            
             # j.application.reload()
 
             portaldir = '%s/apps/portals/' % j.do.BASE
-            j.sal.fs.createDir(portaldir)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % j.do.CODEDIR, '%s/jslib' % portaldir)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/system" % j.do.CODEDIR,  '%s/portalbase/system' %portaldir)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki" % j.do.CODEDIR, '%s/portalbase/wiki' % portaldir)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/macros" % j.do.CODEDIR, '%s/portalbase/macros' % portaldir)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/templates" % j.do.CODEDIR, '%s/portalbase/templates' % portaldir)
-
-            #j.do.symlink("%s/github/jumpscale/jumpscale_portal8/apps/gridportal/base/" % j.do.CODEDIR, "%sexample/base/" % portaldir)
-            exampleportaldir = '%sexample/base' % portaldir
-            j.sal.fs.createDir(exampleportaldir)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki/TestSpace" % j.do.CODEDIR, '%s/TestSpace' % exampleportaldir)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki/TestWebsite" % j.do.CODEDIR, '%s/TestWebsite' % exampleportaldir)
-
-            j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/portal_no_ays.py" % j.do.CODEDIR, exampleportaldir)
-            j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd" % j.do.CODEDIR, exampleportaldir)
+            exampleportaldir = '%sexample' % portaldir
+            j.do.createDir(exampleportaldir)
+            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % j.dirs.codeDir, '%s/jslib' % portaldir)
+            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % j.dirs.codeDir,  '%s/portalbase' % portaldir)
+            j.do.createDir('%s/base/home/.space' % exampleportaldir)
+            j.do.copyFile("%s/portalbase/portal_no_ays.py" % portaldir, exampleportaldir)
+            j.do.copyFile("%s/portalbase/config.hrd" % portaldir, exampleportaldir)
             j.dirs.replaceFilesDirVars("%s/config.hrd"%exampleportaldir)
-            j.sal.fs.copyDirTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
-
+            j.do.copyTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
         actioninstall=j.actions.add(install,deps=[actiondeps])
 
-
         def changeEve():
-            j.sal.tmux.executeInScreen("portal", "portal",cmd="python %s/site-packages/eve_docs/config.py"%j.do.getPythonSiteConfigPath(), wait=0, cwd=None, env=None, user='root', tmuxuser=None)
+            j.sal.tmux.executeInScreen("portal", "portal",cmd="python %s/site-packages/eve_docs/config.py"%j.do.getPythonSiteConfigPath(), wait=0, cwd=None, env=None, user='root', tmuxuser=None)            #@todo
 
         action=j.actions.add(changeEve,deps=[actionGetcode,actioninstall])
 
         def startmethod():
             #@tod needs to become tmux
             portaldir = '%s/apps/portals/' % j.do.BASE
-            exampleportaldir = '%sexample/base/' % portaldir
+            exampleportaldir = '%sexample' % portaldir
             cmd="cd %s; jspython portal_no_ays.py" % exampleportaldir
             j.sal.tmux.executeInScreen("portal", "portal", cmd, wait=0, cwd=None, env=None, user='root', tmuxuser=None)
             # j.do.execute()
         if start:
-            action=j.actions.add(startmethod)
+            actionstart=j.actions.add(startmethod)            
         else:
-            print('To run your portal, navigate to %s/apps/portals/example/base/ and run "jspython portal_no_ays.py"' % j.do.BASE)
+            print('To run your portal, navigate to "%s" and do "jspython portal_no_ays.py"' % exampleportaldir)
+
 
         j.actions.run()
 
@@ -672,11 +687,69 @@ class Installer():
         #@link example spaces
         #@eve issue
         #@explorer issue
+        
 
-    def multidownload(self,path,dest):
 
+
+    def installArchLinuxToSDCard(self,executor=None,redownload=False):
+        """
+        will only work if 1 sd card found of 8 or 16 GB, be careful will overwrite the card   
+        executor = a linux machine     
+
+        executor=j.tools.executor.getSSHBased(addr="192.168.0.23", port=22,login="root",passwd="rooter",pushkey="ovh_install")
+        j.tools.develop.installer.installArchLinuxToSDCard(executor)
+
+        """
+
+        executor=j.tools.executor.get(executor)
+
+        j.actions.setRunId("installArchSD")
+
+        def partition(executor):
+            def findDevice(executor):
+                devs=[]
+                for line in executor.cuisine.run("lsblk -b -o TYPE,NAME,SIZE").split("\n"):
+                    if line.startswith("disk"):
+                        while line.find("  ")>0:
+                            line=line.replace("  "," ")
+                        ttype,dev,size=line.split(" ")
+                        size=int(size)
+                        if size>15000000000 and size < 17000000000:
+                            devs.append(dev)
+                        if size>7500000000 and size < 8500000000:
+                            devs.append(dev)
+                if len(devs)!=1:
+                    raise RuntimeError("could not find flash disk device, found %s (need to find 1 of 8 or 16 GB size)"%devs)
+                return dev
+
+
+            dev=findDevice(executor)
+
+            cmd="parted -s /dev/%s mklabel msdos mkpar primary fat32 2 100M mkpart primary ext4 100M 100"%dev
+            cmd+="%"
+            executor.cuisine.run(cmd)
+
+
+        j.actions.add(partition)
+
+        def 
+        'nmap -p22 --open -PN -sV -oG ssh_hosts 192.168.88.0/24'
+
+        S="""
+        cd /root
+        pacman -S git
+        go git https://github.com/oblique/create_ap'
+        pacman -S hostapd
+        pacman -S haveged
+        pacman -S util-linux
+        pacman -S dnsmasq
+        pacman -S iw
+        pacman -S iwconfig
+# 
         for item in self.cuisine.fs_find("/mnt/pub",extendinfo=True):
             path,sizeinkb,epochmod=item
             from IPython import embed
             print ("DEBUG NOW sdsd")
             embed()
+            p
+            

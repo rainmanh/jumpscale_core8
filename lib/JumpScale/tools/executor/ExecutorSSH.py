@@ -1,10 +1,10 @@
 from JumpScale import j
 from ExecutorBase import *
-
+import os
 
 class ExecutorSSH(ExecutorBase):
 
-    def __init__(self, addr, port, dest_prefixes={},login="root",passwd=None,debug=False,checkok=False,allow_agent=True, look_for_keys=True):
+    def __init__(self, addr, port, dest_prefixes={},login="root",passwd=None,debug=False,checkok=True,allow_agent=True, look_for_keys=True,pushkey=None):
         ExecutorBase.__init__(self, dest_prefixes=dest_prefixes,debug=debug,checkok=checkok)
         self.addr = addr
         self.port = int(port)
@@ -12,15 +12,27 @@ class ExecutorSSH(ExecutorBase):
         self.passwd=passwd
         self.allow_agent=allow_agent
         self.look_for_keys=look_for_keys
+        self.pushkey=pushkey
         self._sshclient=None
+        
         if checkok:
-            self.sshclient.connectTest()
+            self.sshclient.connectTest()            
 
 
     @property
     def sshclient(self):
         if self._sshclient==None:
             self._sshclient=j.clients.ssh.get(self.addr,self.port,login=self.login,passwd=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys)
+            if self.pushkey!=None:
+                #lets push the ssh key as specified
+                homedir=os.environ["HOME"]
+                path="%s/.ssh/%s.pub"%(homedir,self.pushkey)
+                if j.sal.fs.exists(path):
+                    pushkey=j.do.readFile(path)
+                    self._sshclient.ssh_authorize("root",pushkey)
+                else:
+                    raise RuntimeError("Could not find key:%s"%path)
+                
         return self._sshclient
 
     def execute(self, cmds, die=True,checkok=None,showout=True, combinestdr=True):

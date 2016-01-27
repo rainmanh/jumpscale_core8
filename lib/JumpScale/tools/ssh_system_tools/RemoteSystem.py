@@ -48,7 +48,7 @@ class RemoteSystem(object):
         self.__jslocation__ = "j.tools.ssh_remotesystem"
         self.connections={}
 
-    def connect(self, ip, login="", password="", timeout=120.0, port=22):
+    def connect(self, ip, login="", password="", timeout=5.0, port=22):
         """Creates a connection object to a remote system via ssh.
         
         @param ip: Ipaddress of the remote system
@@ -58,6 +58,7 @@ class RemoteSystem(object):
         @rtype: RemoteSystemConnection
         """
 
+        print ("ssh remote system connection:%s:%s timeout(%s)"%(ip,port,timeout))
         # if not j.data.types.ipaddress.check(ip):
         #     raise InvalidIpAddressError("IP address is not a valid IPv4 address")
 
@@ -90,10 +91,11 @@ class RemoteSystem(object):
 
 class RemoteSystemConnection(object):
 
-    def __init__(self, ip, login="", password="", timeout=120, port=22):
+    def __init__(self, ip, login="", password="", timeout=5.0, port=22):
         self._closed = False
         self._ipaddress = ip
         self._port = port
+        print ("ssh remote system connection:%s:%s timeout(%s)"%(ip,port,timeout))
         self._client = paramiko.SSHClient()
         self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         if password=="":

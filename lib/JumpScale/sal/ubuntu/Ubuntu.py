@@ -114,7 +114,7 @@ class Ubuntu:
     def deb_install(self, path, installDeps=True):
         self.check()
         if self._cache==None:
-            self.initApt()
+            self.apt_init()
         import apt.debfile
         deb = apt.debfile.DebPackage(path, cache=self._cache)
         if installDeps:
@@ -130,7 +130,7 @@ class Ubuntu:
         """
         j.do.chdir() #will go to tmp
         path=j.do.download(url,"",overwrite=False,minspeed=minspeed,curl=True)
-        self.installDebFile(path)
+        self.deb_install(path)
         if removeDownloaded:
             j.tools.path.get(path).rmtree_p()
 
@@ -312,5 +312,3 @@ stop on runlevel [016]
         cmd = "cat /etc/lsb-release | grep RELEASE"
         rc, result = self._local.executeInteractive(cmd)
         return (result.split("=")[1]).strip()
-
-

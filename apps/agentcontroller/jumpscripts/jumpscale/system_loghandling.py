@@ -25,8 +25,6 @@ except:
     import json
 
 import time
-import JumpScale.baselib.redis
-import JumpScale.grid.osis
 
 def action():
 

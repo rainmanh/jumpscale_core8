@@ -165,31 +165,36 @@ class Container(SALObject):
 
         j.events.inputerror_critical("cannot find publicport for ssh?")
 
+
     def pushSSHKey(self, keyname="", sshpubkey="", local=True):
-        keys = set()
+        print(sshpubkey)
+        key = None
         if local:
+            templates = ['.']
             dir = j.tools.path.get('/root/.ssh')
             for file in dir.listdir("*.pub"):
-                keys.add(file.text())
+                key = file.text()
+                break
 
-        if sshpubkey is not None and sshpubkey != '' and j.data.types.string.check(sshpubkey):
-            key.add(sshpubkey)
+        if sshpubkey is not None and sshpubkey != '':
+            key = sshpubkey
 
         if keyname is not None and keyname != '':
-            if not j.do.checkSSHAgentAvailable:
-                j.do.loadSSHAgent()
-
-            keypath = j.do.getSSHKeyFromAgent(keyname)
-            key = j.sal.fs.getFileContents(keypath+".pub")
-            if key == "":
-                raise RuntimeError("Could not find key %s in ssh-agent"%keyname)
-            keys.add(key)
+            raise RuntimeError("Not implemented")
+            # keypath = j.do.getSSHKeyFromAgent(keyname, die=True)
+            # key = j.sal.fs.fileGetContents(keypath + ".pub")
+            # if key == "":
+            #     raise RuntimeError("Could not find key %s in ssh-agent"%keyname)
+            # self.cuisine.ssh_authorize("root", key)
 
         j.sal.fs.writeFile(filename="/root/.ssh/known_hosts", contents="")
-        for key in keys:
-            self.cuisine.ssh_authorize("root", key)
+        # self.executor.execute("git config --global user.email \"ishouldhavebeenchanged@example.com\"", showout=False)
+        if key is None or key == '':
+            raise RuntimeError("sshkey is empty")
 
-        return list(keys)
+        self.cuisine.ssh_authorize("root", key)
+
+        return key
 
     def destroy(self):
 

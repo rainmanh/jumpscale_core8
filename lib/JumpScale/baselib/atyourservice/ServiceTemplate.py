@@ -93,11 +93,11 @@ class ServiceTemplate(object):
                 # if self.domain=="ays":
                     # self.hrd.applyOnFile(self.path_actions_mgmt)
                     # j.application.config.applyOnFile(self.path_actions_mgmt)
-                modulename = "JumpScale.atyourservice.%s.%s.mgmt" % (self.domain, self.name)
+                modulename = "JumpScale.atyourservice.%s.%s.template" % (self.domain, self.name)
                 mod = loadmodule(modulename, self.path_actions_mgmt)
-                self._actions = mod.Actions(self)
+                self._actions = mod.Actions()
             else:
-                self._actions = j.atyourservice.getActionsBaseClassMgmt()(self)
+                self._actions=j.atyourservice.getActionsBaseClassMgmt()
         return self._actions
 
     def build(self, build_server=None, image_build=False, image_push=False,debug=True,syncLocalJumpscale=False):
@@ -163,7 +163,7 @@ class ServiceTemplate(object):
 
             if syncLocalJumpscale:
                 print ("upload jumpscale core lib to build docker.")
-                dockerExecutor.upload("/opt/code/github/jumpscale/jumpscale_core8/lib/","/opt/code/github/jumpscale/jumpscale_core8/lib/")
+                dockerExecutor.upload("%s/github/jumpscale/jumpscale_core8/lib/" %j.do.CODEDIR,"%s/github/jumpscale/jumpscale_core8/lib/" %j.do.CODEDIR)
 
             print("start build of %s" % self)
             dockerExecutor.execute("ays build -n %s" % self.name)

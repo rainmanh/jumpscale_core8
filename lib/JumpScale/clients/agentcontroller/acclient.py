@@ -803,32 +803,6 @@ class Client(object):
 
         return self._load_json_or_die(result)
 
-    def get_all_processes(self, domain=None, name=None):
-        """
-        Get stats for all running process at the moment of the call, optionally filter with domain and/or name
-        """
-        data = {
-            'domain': domain,
-            'name': name
-        }
-        all_jobs = list()
-
-        cmd = self.cmd(None,
-                       None,
-                       CMD_GET_PROCESSES_STATS,
-                       RunArgs(),
-                       j.data.serializer.json.dumps(data),
-                       fanout=True,
-                       roles=['*'])
-
-        for job in cmd.iter_results():
-            data = self._load_json_or_die(job)
-            all_jobs += data
-
-        return all_jobs
-
-
-
     def get_msgs(self, gid, nid, jobid, levels='*', limit=20):
         """
         Query and return log messages stored on agent side.

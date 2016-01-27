@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 from JumpScale import j
-import sys,time
-import JumpScale.lib.diskmanager
+import time
 import os
-import JumpScale.baselib.netconfig
 import netaddr
 
 from sal.base.SALObject import SALObject

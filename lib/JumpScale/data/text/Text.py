@@ -22,22 +22,7 @@ class Text:
     def toolStripNonAsciFromText(self,text):    
         return "".join([char for char in str(text) if ((ord(char)>31 and ord(char)<127) or ord(char)==10)])
     
-    def stripItems(self,line,items=["PATH","\""," ","'",":","${PATH}","=",","]):
-            def checknow(line,items):
-                found=False
-                for item in items:
-                    if line.startswith(item):
-                        line=line[len(item):]
-                        found=True
-                    if line.endswith(item):
-                        line=line[:-len(item)]
-                        found=True
-                return found,line
 
-            res,line=checknow(line,items)
-            while res:
-                res,line=checknow(line,items)
-            return line
     
     def toStr(self,value, codec='utf-8'):
         if isinstance(value, bytes):

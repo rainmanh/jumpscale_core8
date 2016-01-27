@@ -245,34 +245,11 @@ class Disk(ModelBase, Document):
     lastcheck = IntField(default=j.data.time.getTimeEpoch())
 
 
-class VDisk(ModelBase, Document):
-    machineguid = StringField(required=True)
-    diskid = IntField()
-    fs = StringField()
-    sizeFrom = DictField()
-    sizeTo = DictField()
-    freeFrom = DictField()
-    freeTo = DictField()
-    sizeondiskFrom = DictField()
-    sizeondiskTo = DictField()
-    mounted = BooleanField()
-    path = StringField()
-    description = StringField()
-    mountpoint = StringField()
-    role = ListField(StringField())
-    type = ListField(StringField())
-    order = IntField()
-    devicename = StringField(default='') #if known device name in vmachine
-    backup = BooleanField()
-    backuplocation = StringField()
-    backuptime  = IntField(default=j.data.time.getTimeEpoch())
-    backupexpiration = IntField()
-    
 class Alert(ModelBase, Document):
     username = StringField(default='')
     description = StringField(default='')
     descriptionpub = StringField(default='')
-    level = IntField(min_value=1, max_value=3, default=1)
+    level = IntField(min_value=1, max_value=3)
     # dot notation e.g. machine.start.failed
     category = StringField(default='')
     tags = StringField(default='')  # e.g. machine:2323

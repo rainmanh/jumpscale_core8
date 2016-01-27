@@ -139,7 +139,7 @@ class ActionRun():
                             if method == "node":
                                 res = self.service._executeOnNode(self.name)
                             else:
-                                res = method()
+                                res = method(self.service)
                         except Exception as e:
                             self.setState("ERROR")
                             self.log("Exception:%s"%e)
@@ -154,7 +154,7 @@ class ActionRun():
                                 if method == "node":
                                     res = self.service._executeOnNode(self.name)
                                 else:
-                                    res = method()
+                                    res = method(self.service)
                                 print ("sdsdsds")
                                 raise RuntimeError("1111")
                                 ok=True
@@ -335,7 +335,7 @@ class Service(object):
             if j.sal.fs.exists(path=self.recipe.path_actions_mgmt):
                 self._action_methods_mgmt = self._loadActions(self.recipe.path_actions_mgmt,"mgmt")
             else:
-                self._action_methods_mgmt = j.atyourservice.getActionsBaseClassMgmt()(self)
+                self._action_methods_mgmt = j.atyourservice.getActionsBaseClassMgmt()()
 
         return self._action_methods_mgmt
 
@@ -345,7 +345,7 @@ class Service(object):
             if j.sal.fs.exists(path=self.recipe.path_actions_node):
                 self._action_methods_node = self._loadActions(self.recipe.path_actions_node,"node")
             else:
-                self._action_methods_node = j.atyourservice.getActionsBaseClassNode()(self)
+                self._action_methods_node = j.atyourservice.getActionsBaseClassNode()()
 
         return self._action_methods_node
 
@@ -425,7 +425,7 @@ class Service(object):
         #is only there temporary don't want to keep it there
         j.do.delete(path2)
         j.do.delete(j.do.joinPaths(self.path,"__pycache__"))
-        return mod.Actions(self)
+        return mod.Actions()
 
     @property
     def producers(self):
@@ -645,6 +645,8 @@ class Service(object):
     #                 chain.append(dep)
     #     return chain
 
+
+
     def _uploadToNode(self):
         # ONLY UPLOAD THE SERVICE ITSELF, INIT NEEDS TO BE FIRST STEP, NO IMMEDIATE INSTALL
         if not self.parent or self.parent.role != 'ssh':
@@ -654,10 +656,9 @@ class Service(object):
         remotePath = j.sal.fs.joinPaths(hrd_root, 'services', j.sal.fs.getBaseName(self.path)).rstrip("/")+"/"
         self.log("uploading %s '%s'->'%s'" % (self.key,self.path,remotePath))
         templatepath = j.sal.fs.joinPaths(hrd_root, 'servicetemplates', j.sal.fs.getBaseName(self.recipe.path).rstrip("/"))
-        self.executor.cuisine.dir_ensure(templatepath, recursive=True)
-        self.executor.cuisine.dir_ensure(remotePath, recursive=True)
         self.executor.upload(self.recipe.path, templatepath)
         self.executor.upload(self.path, remotePath,recursive=False)
+
 
     def _downloadFromNode(self):
         # if 'os' not in self.producers or self.executor is None:
@@ -719,7 +720,7 @@ class Service(object):
     #     """
     #     create connection between consumer (this service) & producer
     #     producer category is category of service
-    #     @param producerservice is service or servicekey
+    #     @param producerservice is serviceObj or servicekey
     #     """
     #     if j.data.types.string.check(producerservice):
     #         producerservice = j.atyourservice.getServiceFromKey(producerservice)

@@ -15,14 +15,14 @@ class Docker(SALObject):
         self._basepath = "/mnt/vmstor/docker"
         self._prefix = ""
         self.client = docker.Client(base_url='unix://var/run/docker.sock')
-        self._containers = []
-        self._names = []
-        self.docker_host = {'host': 'localhost', 'port': 0}
+        self._containers=[]
+        self._names=[]
+        self.remote = {'host': 'localhost', 'port': 0}
 
     def connectRemoteTCP(self, address, port):
         url = '%s:%s' % (address, port)
         self.client = docker.Client(base_url=url)
-        self.docker_host = {'host': address, 'port': port}
+        self.remote = {'host': address, 'port': port}
 
     def _execute(self, command):
         env = os.environ.copy()
@@ -56,14 +56,14 @@ class Docker(SALObject):
     def containers(self):
         if self._containers==[]:
             for item in self.client.containers(all=all):
-                name = str(item["Names"][0].strip("/").strip())
-                id = str(item["Id"].strip())
-                self._containers.append(Container(name, id, self.client, self.docker_host['host']))
+                name=str(item["Names"][0].strip("/").strip())
+                id=str(item["Id"].strip())
+                self._containers.append(Container(name, id,self.client))
         return self._containers
 
     @property
     def containerNamesRunning(self):
-        res = []
+        res=[]
         for container in self.containers:
             if container.isRunning():
                 res.append(container.name)
@@ -71,7 +71,7 @@ class Docker(SALObject):
 
     @property
     def containerNames(self):
-        res = []
+        res=[]
         for container in self.containers:
             res.append(container.name)
         return res
@@ -275,7 +275,7 @@ class Docker(SALObject):
         if ssh:
             if 22 not in portsdict:
                 for port in range(9022, 9190):
-                    if not j.sal.nettools.tcpPortConnectionTest(self.docker_host['host'], port):
+                    if not j.sal.nettools.tcpPortConnectionTest(self.remote['host'], port):
                         portsdict[22] = port
                         print(("SSH PORT WILL BE ON:%s" % port))
                         break
@@ -296,10 +296,10 @@ class Docker(SALObject):
         j.sal.fs.createDir(tmppath)
         volsdict[tmppath] = "/tmp"
 
-        if sharecode and j.sal.fs.exists(path="/opt/code"):
+        if sharecode and j.sal.fs.exists(path=j.do.CODEDIR):
             print("share jumpscale code")
-            if "/opt/code" not in volsdict:
-                volsdict["/opt/code"] = "/opt/code"
+            if j.do.CODEDIR not in volsdict:
+                volsdict[j.do.CODEDIR ] = j.do.CODEDIR
 
         volsdictro = {}
         if len(volsro) > 0:
@@ -355,7 +355,7 @@ class Docker(SALObject):
         res = self.client.start(container=id, binds=binds, port_bindings=portsdict, lxc_conf=None, \
             publish_all_ports=False, links=None, privileged=False, dns=nameserver, dns_search=None, volumes_from=None, network_mode=None)
 
-        container = Container(name, id, self.client, self.docker_host['host'])
+        container = Container(name,id, self.client, self.remote['host'])
 
         if ssh:
             # time.sleep(0.5)  # give time to docker to start
@@ -421,10 +421,10 @@ class Docker(SALObject):
             s = "%s " % id
             if 'status' in line:
                 s += line['status']
-            if 'progress' in line:
+            elif 'progress' in line:
                 detail = line['progressDetail']
                 progress = line['progress']
-                s += " %50s " % progress
+                s = "%50s" % progress
             if output:
                 print(s)
             out.append(s)

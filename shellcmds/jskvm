@@ -1,7 +1,6 @@
 #!/usr/bin/env jspython
 from JumpScale import j
 from JumpScale.tools import cmdutils
-import JumpScale.lib.kvm
 
 j.application.start("jskvm")
 

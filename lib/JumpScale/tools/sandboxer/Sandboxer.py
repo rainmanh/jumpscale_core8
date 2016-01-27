@@ -173,50 +173,49 @@ class Sandboxer():
             dest2 = "%s/%s/%s/%s" % (storpath2, md5[0], md5[1], md5)
             dest2verify = "%s/%s/%s/%s_" % (storpath2, md5[0], md5[1], md5)
             dest2_bro = "%s/%s/%s/%s.bro_" % (storpath2, md5[0], md5[1], md5)
+            dest2_bro_final = "%s/%s/%s/%s.bro" % (storpath2, md5[0], md5[1], md5)
             path_src=j.tools.path.get(srcReal)
             self.original_size+=path_src.size
             j.do.delete(dest2_bro)
-
+            if delete:                
+                j.do.delete(dest2_bro_final)
             if compress:
                 print ("- %-100s %sMB"%(srcReal,round(path_src.size/1000000,1)))
-                # if delete or not j.do.exists(dest2_bro_final):
-                cmd="bro --quality 7 --input '%s' --output %s"%(srcReal,dest2_bro)
-                # print (cmd)
-                # os.system(cmd)
-                # try:
-                j.do.execute(cmd)
-
-                # except Exception as e:
-                #     import ipdb
-                #     ipdb.set_trace()
-                if not j.do.exists(dest2_bro):
-                    raise RuntimeError("Could not do:%s"%cmd)
-                md5_bro = j.data.hash.md5(dest2_bro)
-                dest2_bro_final = "%s/%s/%s/%s.bro" % (storpath2, md5_bro[0], md5_bro[1], md5_bro)
-                path_dest=j.tools.path.get(dest2_bro)
-                size=path_dest.size
-                self.new_size+=size
-                if not self.original_size==0:
-                    efficiency=round(self.new_size/self.original_size,3)
-                else:
-                    efficiency=1
-                if not path_src.size==0:
-                    efficiency_now=round(path_dest.size/path_src.size,3)
-                else:
-                    efficiency_now=0
-                print ("- %-100s %-6s %-6s %sMB"%("",efficiency,efficiency_now,round(self.original_size/1000000,1)))
-                if verify:
-                    j.do.delete(dest2verify)
-                    cmd="bro --decompress --quality 10 --input '%s' --output %s"%(dest2_bro,dest2verify)
+                if delete or not j.do.exists(dest2_bro_final):
+                    cmd="bro --quality 7 --input '%s' --output %s"%(srcReal,dest2_bro)
+                    # print (cmd)
+                    # os.system(cmd)
+                    # try:
                     j.do.execute(cmd)
-                    hhash=j.data.hash.md5(dest2verify)
-                    if hhash!=md5:
-                        raise RuntimeError("error in compression:%s"%cmd)
-                    j.do.delete(dest2verify)
-                j.sal.fs.moveFile(dest2_bro,dest2_bro_final)
-
-                md5 = md5_bro
-
+                        
+                    # except Exception as e:
+                    #     import ipdb
+                    #     ipdb.set_trace()
+                    if not j.do.exists(dest2_bro):
+                        raise RuntimeError("Could not do:%s"%cmd)
+                    path_dest=j.tools.path.get(dest2_bro)
+                    size=path_dest.size                    
+                    self.new_size+=size
+                    if not self.original_size==0:
+                        efficiency=round(self.new_size/self.original_size,3)
+                    else:
+                        efficiency=1
+                    if not path_src.size==0:
+                        efficiency_now=round(path_dest.size/path_src.size,3)
+                    else:
+                        efficiency_now=0
+                    print ("- %-100s %-6s %-6s %sMB"%("",efficiency,efficiency_now,round(self.original_size/1000000,1)))
+                    if verify:
+                        j.do.delete(dest2verify)
+                        cmd="bro --decompress --quality 10 --input '%s' --output %s"%(dest2_bro,dest2verify)
+                        j.do.execute(cmd)
+                        hhash=j.data.hash.md5(dest2verify)
+                        if hhash!=md5:
+                            raise RuntimeError("error in compression:%s"%cmd)
+                        j.do.delete(dest2verify)
+                    j.sal.fs.moveFile(dest2_bro,dest2_bro_final)
+                                                                        
+                        
             else:
                 j.do.copyFile(srcReal, dest2)
 
@@ -230,8 +229,6 @@ class Sandboxer():
 
             out = "%s|%s|%s\n" % (src, md5, stat.st_size)
             return out
-
-
         if reset:
             j.do.delete(storpath)
         storpath2 = j.sal.fs.joinPaths(storpath, "files")

@@ -1,6 +1,6 @@
 from JumpScale import j
 import requests
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin
 
 
 class StorxFactory(object):
@@ -16,12 +16,7 @@ class StorxClient(object):
     """Client for the AYDO Stor X"""
     def __init__(self, base_url):
         super(StorxClient, self).__init__()
-        o = urlparse(base_url)
-        self.base_url = o.geturl()
-        self.path = o.path
-
-    def _getURL(self, path):
-        return urljoin(self.base_url, j.sal.fs.joinPaths(self.path, path))
+        self.base_url = base_url
 
     def putFile(self, namespace, file_path):
         """
@@ -31,12 +26,11 @@ class StorxClient(object):
         @file_path: str, path of the file to upload
         return: str, md5 hash of the file
         """
-        url = self._getURL(namespace)
-        resp = None
-        with open(file_path, 'rb') as f:
-            # streaming upload, avoid reading all file in memory
-            resp = requests.post(url, data=f, headers={'Content-Type': 'application/octet-stream'})
-            resp.raise_for_status()
+        url = urljoin(self.base_url, namespace)
+        files = {'file': open(file_path, 'rb')}
+        resp = requests.post(url, files=files)
+
+        resp.raise_for_status()
 
         return resp.json()["Hash"]
 
@@ -48,12 +42,14 @@ class StorxClient(object):
         @hash: str, hash of the file to retreive
         """
         url = urljoin(self.base_url, "%s/%s" % (namespace, hash))
+        print(url)
+        print(hash)
         resp = requests.get(url, stream=True)
 
         resp.raise_for_status()
 
         with open(destination, 'wb') as fd:
-            for chunk in resp.iter_content(65536):
+            for chunk in resp.iter_content(64000):
                 fd.write(chunk)
 
         return True

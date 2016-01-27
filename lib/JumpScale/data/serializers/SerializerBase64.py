@@ -1,8 +1,8 @@
 
 import struct
+from SerializerBase import *
 
-
-class SerializerBase64(object):
+class SerializerBase64(SerializerBase):
     def __init__(self):
         self.__jslocation__ = "j.data.serializer.base64"
 

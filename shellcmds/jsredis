@@ -15,6 +15,7 @@ parser.add_argument('-a', '--agentcontroller', required=False, action='store_tru
 
 opts = parser.parse_args()
 
+import JumpScale.baselib.redis2
 
 def timeago(t):
     t=float(t)

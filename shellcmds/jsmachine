@@ -1,6 +1,8 @@
 #!/usr/bin/env jspython
 from JumpScale import j
 from JumpScale.tools import cmdutils
+import JumpScale.lib.lxc
+import JumpScale.lib.diskmanager
 
 j.application.start("jsmachine_lxc")
 

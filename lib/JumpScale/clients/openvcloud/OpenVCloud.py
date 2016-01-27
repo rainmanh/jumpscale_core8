@@ -171,7 +171,7 @@ metadata.openvcloud            =
             cl.run('git config --global user.name "%s"' % name)
             self.actionDone(gitlaburl, "gitcredentials")
 
-        repopath = "%s/git/%s/%s/" % (j.do.CODEDIR, gitlabAccountname, gitlabReponame)
+        repopath = "/opt/code/git/%s/%s/" % (gitlabAccountname, gitlabReponame)
 
         if self.actionCheck(gitlaburl, "gitlabclone") is False:
             # clone templates repo and change url
@@ -220,7 +220,7 @@ metadata.openvcloud            =
         
             # create ovc_setup instance to save settings
             args  = 'instance.ovc.environment:%s ' % gitlabReponame
-            args += 'instance.ovc.path:%s/git/%s/%s ' % (j.do.CODEDIR,gitlabAccountname, gitlabReponame)
+            args += 'instance.ovc.path:/opt/code/git/%s/%s ' % (gitlabAccountname, gitlabReponame)
             args += 'instance.ovc.ms1.instance:main '
             args += 'instance.ovc.gitlab_client.instance:main ' 
             args += 'instance.ovc.password:rooter '
@@ -278,7 +278,7 @@ metadata.openvcloud            =
         if setup:
             gitlaburl0 = "/".join(gitlaburl.split("/")[:3])
             temp = gitlaburl.split("/")
-            repopath = '%s/git/%s/%s' % (j.do.CODEDIR, temp[3], temp[4])
+            repopath = '/opt/code/git/%s/%s' % (temp[3], temp[4])
             
             print('[+] resuming setup')
             # FIXME
@@ -359,7 +359,7 @@ metadata.openvcloud            =
             # clone templates repo and change url
             _, _, _, _, repoURL = j.do.rewriteGitRepoUrl(gitlaburl, gitlablogin, urllib.parse.quote_plus(gitlabpasswd))
 
-            repopath = "%s/git/%s/%s/" % (j.do.CODEDIR, gitlabAccountname, gitlabReponame)
+            repopath = "/opt/code/git/%s/%s/" % (gitlabAccountname, gitlabReponame)
 
             if not cl.file_exists(repopath):
                 cl.run('git clone %s %s' % (gitlaburl, repopath))
@@ -375,7 +375,7 @@ metadata.openvcloud            =
             # clone templates repo and change url
             _, _, _, _, repoURL = j.do.rewriteGitRepoUrl(gitlaburl, gitlablogin, urllib.parse.quote_plus(gitlabpasswd))
 
-            repopath = "%s/git/%s/%s/" % (j.do.CODEDIR, gitlabAccountname, gitlabReponame)
+            repopath = "/opt/code/git/%s/%s/" % (gitlabAccountname, gitlabReponame)
 
             if not cl.file_exists(repopath):
                 cl.run('git clone %s %s' % (gitlaburl, repopath))

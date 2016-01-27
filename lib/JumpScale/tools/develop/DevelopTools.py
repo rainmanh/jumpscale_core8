@@ -596,8 +596,8 @@ class Installer():
 
 
             def installPip(name):
-                j.do.execute("pip3 install --upgrade %s "%name)
-
+                j.do.execute("pip3 install %s --upgrade"%name)
+            
             actionout=None
             for dep in deps.split("\n"):
                 dep=dep.strip()
@@ -615,53 +615,68 @@ class Installer():
             j.do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
         actionGetcode=j.actions.add(getcode,deps=[])
 
+<<<<<<< HEAD
+        # j.do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
+        # destjslib = j.do.getPythonLibSystem(jumpscale=True)
 
+        # j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % destjslib, delete=False)
+        # j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % j.dirs.jsLibDir, delete=False)
+
+
+        # j.application.reload()
+
+        portaldir = '%s/apps/portals/' % j.do.BASE
+        exampleportaldir = '%sexample' % portaldir
+        j.do.createDir(exampleportaldir)
+        j.do.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % j.do.CODEDIR, '%s/jslib' % portaldir)
+        j.do.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % j.do.CODEDIR,  '%s/portalbase' % portaldir)
+        j.do.createDir('%s/base/home/.space' % exampleportaldir)
+        j.do.copyFile("%s/portalbase/portal_no_ays.py" % portaldir, exampleportaldir)
+        j.do.copyFile("%s/portalbase/config.hrd" % portaldir, exampleportaldir)
+        j.dirs.replaceFilesDirVars("%s/config.hrd"%exampleportaldir)
+        j.do.copyTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
+
+        #2to3 -f all -w /usr/local/lib/python3.5/site-packages/eve_docs/config.py
+        #@todo
+=======
+>>>>>>> 390325cfab9f54f71c57951e1a947d9cb101210f
 
         def install():
             destjslib = j.do.getPythonLibSystem(jumpscale=True)
-            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % destjslib)
-            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.do.CODEDIR, "%s/portal" % j.dirs.jsLibDir)
-
+            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % destjslib, delete=False)
+            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % j.dirs.jsLibDir, delete=False)
+            
             # j.application.reload()
 
             portaldir = '%s/apps/portals/' % j.do.BASE
-            j.sal.fs.createDir(portaldir)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % j.do.CODEDIR, '%s/jslib' % portaldir)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/system" % j.do.CODEDIR,  '%s/portalbase/system' %portaldir)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki" % j.do.CODEDIR, '%s/portalbase/wiki' % portaldir)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/macros" % j.do.CODEDIR, '%s/portalbase/macros' % portaldir)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/templates" % j.do.CODEDIR, '%s/portalbase/templates' % portaldir)
-
-            #j.do.symlink("%s/github/jumpscale/jumpscale_portal8/apps/gridportal/base/" % j.do.CODEDIR, "%sexample/base/" % portaldir)
-            exampleportaldir = '%sexample/base' % portaldir
-            j.sal.fs.createDir(exampleportaldir)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki/TestSpace" % j.do.CODEDIR, '%s/TestSpace' % exampleportaldir)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki/TestWebsite" % j.do.CODEDIR, '%s/TestWebsite' % exampleportaldir)
-
-            j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/portal_no_ays.py" % j.do.CODEDIR, exampleportaldir)
-            j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd" % j.do.CODEDIR, exampleportaldir)
+            exampleportaldir = '%sexample' % portaldir
+            j.do.createDir(exampleportaldir)
+            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % j.dirs.codeDir, '%s/jslib' % portaldir)
+            j.do.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase" % j.dirs.codeDir,  '%s/portalbase' % portaldir)
+            j.do.createDir('%s/base/home/.space' % exampleportaldir)
+            j.do.copyFile("%s/portalbase/portal_no_ays.py" % portaldir, exampleportaldir)
+            j.do.copyFile("%s/portalbase/config.hrd" % portaldir, exampleportaldir)
             j.dirs.replaceFilesDirVars("%s/config.hrd"%exampleportaldir)
-            j.sal.fs.copyDirTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
-
+            j.do.copyTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
         actioninstall=j.actions.add(install,deps=[actiondeps])
 
-
         def changeEve():
-            j.sal.tmux.executeInScreen("portal", "portal",cmd="python %s/site-packages/eve_docs/config.py"%j.do.getPythonSiteConfigPath(), wait=0, cwd=None, env=None, user='root', tmuxuser=None)
+            j.sal.tmux.executeInScreen("portal", "portal",cmd="python %s/site-packages/eve_docs/config.py"%j.do.getPythonSiteConfigPath(), wait=0, cwd=None, env=None, user='root', tmuxuser=None)            #@todo
 
         action=j.actions.add(changeEve,deps=[actionGetcode,actioninstall])
 
         def startmethod():
             #@tod needs to become tmux
             portaldir = '%s/apps/portals/' % j.do.BASE
-            exampleportaldir = '%sexample/base/' % portaldir
+            exampleportaldir = '%sexample' % portaldir
             cmd="cd %s; jspython portal_no_ays.py" % exampleportaldir
             j.sal.tmux.executeInScreen("portal", "portal", cmd, wait=0, cwd=None, env=None, user='root', tmuxuser=None)
             # j.do.execute()
         if start:
-            action=j.actions.add(startmethod)
+            actionstart=j.actions.add(startmethod)            
         else:
-            print('To run your portal, navigate to %s/apps/portals/example/base/ and run "jspython portal_no_ays.py"' % j.do.BASE)
+            print('To run your portal, navigate to "%s" and do "jspython portal_no_ays.py"' % exampleportaldir)
+
 
         j.actions.run()
 
@@ -672,6 +687,7 @@ class Installer():
         #@link example spaces
         #@eve issue
         #@explorer issue
+        
 
 
 
@@ -735,3 +751,5 @@ class Installer():
             from IPython import embed
             print ("DEBUG NOW sdsd")
             embed()
+            p
+            

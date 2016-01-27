@@ -20,6 +20,7 @@ log = True
 
 
 def action():
+    import JumpScale.lib.diskmanager
     result = dict()
     pattern = None
 

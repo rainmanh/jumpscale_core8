@@ -1,7 +1,9 @@
 from JumpScale import j
 import lzma
+import msgpack
 import os
 import requests
+import JumpScale.baselib.redis2
 from weed.master import WeedMaster
 
     

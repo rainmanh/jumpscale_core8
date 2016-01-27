@@ -10,7 +10,7 @@ class ExecutorBase():
         if "tmp" not in self.dest_prefixes:
             self.dest_prefixes["tmp"]="/tmp"
         if "code" not in self.dest_prefixes:
-            self.dest_prefixes["code"]=j.do.CODEDIR
+            self.dest_prefixes["code"]="/opt/code"
         if "var" not in self.dest_prefixes:
             self.dest_prefixes["var"]="%s/var"%j.do.BASE
         if "images" not in self.dest_prefixes:

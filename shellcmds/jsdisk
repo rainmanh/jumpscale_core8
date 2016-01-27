@@ -2,6 +2,7 @@
 from JumpScale import j
 from JumpScale.tools import cmdutils
 
+import sys,time
 
 j.application.start("cmddisk")
 
@@ -10,6 +11,7 @@ parser.add_argument("action", choices=['init','list','listmirrors'], help='Comma
 
 opts = parser.parse_args()
 
+import JumpScale.lib.diskmanager
 
 
 

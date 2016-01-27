@@ -24,6 +24,11 @@ class NameSpaceLoader():
                 self._modelspecs[name] = mem
                 self.__dict__[name] = mem
 
+    def addModel(self, modelclass):
+        self._models.append(modelclass._class_name)
+        self._modelspecs[modelclass._class_name] = modelclass
+        self.__dict__[modelclass._class_name] = modelclass
+
     def listModels(self):
         return self._models
 

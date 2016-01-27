@@ -65,7 +65,7 @@ class TarFile(object):
         if not self.mode is TarFileFactory.READ:
             raise RuntimeError('Can only extract archives opened for reading')
 
-        if not j.data.types.dirpath.check(destination_path):
+        if not j.data.types.path.check(destination_path):
             raise ValueError('Not a valid folder name provided')
         if not j.sal.fs.exists(destination_path):
             raise ValueError('Destination folder "%s" does not exist'

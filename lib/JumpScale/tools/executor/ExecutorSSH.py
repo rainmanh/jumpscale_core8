@@ -49,7 +49,7 @@ class ExecutorSSH(ExecutorBase):
         return (retcode,out)
 
 
-    def upload(self, source, dest, dest_prefix="",recursive=True):
+    def upload(self, source, dest, dest_prefix="",recursive=True, createdir=True):
 
         if dest_prefix != "":
             dest = j.do.joinPaths(dest_prefix,dest)
@@ -58,7 +58,7 @@ class ExecutorSSH(ExecutorBase):
         dest = "root@%s:%s" % (self.addr, dest)
         j.do.copyTree(source, dest, keepsymlinks=True, deletefirst=False, \
             overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,\
-            ssh=True, sshport=self.port,recursive=recursive)
+            ssh=True, sshport=self.port,recursive=recursive, createdir=createdir)
 
 
     def download(self, source, dest, source_prefix="",recursive=True):

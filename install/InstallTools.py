@@ -200,7 +200,7 @@ class InstallTools():
 
     def copyTree(self, source, dest, keepsymlinks = False, deletefirst = False, \
         overwriteFiles=True,ignoredir=[".egg-info",".dist-info"],ignorefiles=[".egg-info"],rsync=True,\
-        ssh=False,sshport=22,recursive=True,rsyncdelete=False):
+        ssh=False,sshport=22,recursive=True,rsyncdelete=False, createdir=False):
         """
         if ssh format of source or dest is: remoteuser@remotehost:/remote/dir
         """
@@ -239,6 +239,8 @@ class InstallTools():
             if dest.find(':') == -1:  # download
                     self.createDir(self.getParent(dest))
 
+            destpath = dest.split(':')[1] if ':' in dest else dest
+
             cmd = "rsync "
             if keepsymlinks:
                 #-l is keep symlinks, -L follow
@@ -252,7 +254,9 @@ class InstallTools():
             if rsyncdelete:
                 cmd += " --delete"
             if ssh:
-                cmd += " -e 'ssh -o StrictHostKeyChecking=no -p %s'" % sshport
+                cmd += " -e 'ssh -o StrictHostKeyChecking=no -p %s' " % sshport
+            if createdir:
+                cmd += "--rsync-path='mkdir -p %s && rsync' " % self.getParent(destpath)
             cmd += " '%s' '%s'" % (source, dest)
             print (cmd)
             rc,out=self.execute(cmd)

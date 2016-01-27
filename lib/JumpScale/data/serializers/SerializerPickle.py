@@ -1,8 +1,8 @@
 
 import pickle
 
-from SerializerBase import *
-class SerializerPickle(SerializerBase):
+
+class SerializerPickle(object):
     def __init__(self):
         self.__jslocation__ = "j.data.serializer.pickle"    
     def dumps(self,obj):

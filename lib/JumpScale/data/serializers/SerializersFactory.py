@@ -8,14 +8,12 @@ from JumpScale.data.serializers.SerializerDict import SerializerDict
 from JumpScale.data.serializers.SerializerBlowfish import SerializerBlowfish
 from JumpScale.data.serializers.SerializerUJson import SerializerUJson
 from JumpScale.data.serializers.SerializerYAML import SerializerYAML
-from JumpScale.data.serializers.SerializerTOML import SerializerTOML
 
 
 class SerializersFactory():
 
     def __init__(self):
-        # self.__jslocation__ = "j.data.serializer.serializers"
-        #LETS SEE IF WE CAN IGNORE THIS ONE, CAN REMOVE LATER THEN
+        self.__jslocation__ = "j.data.serializer.serializers"
         self.types={}
         self._cache={}
         self.int = SerializerInt()
@@ -26,7 +24,6 @@ class SerializersFactory():
         self.blowfish = SerializerBlowfish()
         self.json=SerializerUJson()
         self.yaml=SerializerYAML()
-        self.toml=SerializerTOML()
 
     def get(self,serializationstr,key=""):
         """

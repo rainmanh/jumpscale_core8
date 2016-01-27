@@ -42,9 +42,13 @@ class GOLang:
             raise RuntimeError("Could not find golang, please install")
         self.gopath
 
-    def build(self,url):
+    def build(self, url):
         self.check()
-        url=j.data.text.stripItems(url,["git@",".git"])
-        url=url.replace(":","/")
-        cmd="go get %s"%url
-        j.do.execute(cmd)
+        dest = j.data.text.stripItems(url, ["git@", ".git"])
+        dest = dest.replace(":", "/")
+        dest = j.do.pullGitRepo(url, dest=j.sal.fs.joinPaths(os.environ['GOPATH'], 'src', dest))
+
+        executor = j.tools.executor.getLocal()
+        executor.execute('cd %s && godep restore' % dest)
+        executor.execute('cd %s && go install' % dest)
+        return dest

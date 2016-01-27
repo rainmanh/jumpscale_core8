@@ -32,7 +32,6 @@ args.local=False
 if args.command=="" and args.name=="":
     raise RuntimeError("command or name needs to be given.")
 
-import JumpScale.baselib.redis2
 
 from multiprocessing import Process, Queue
 

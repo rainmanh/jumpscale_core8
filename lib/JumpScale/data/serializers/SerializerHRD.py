@@ -1,9 +1,8 @@
 from JumpScale import j
 import uuid
 # from JumpScale.core.system.text import Text
-from SerializerBase import *
 
-class SerializerHRD(SerializerBase):
+class SerializerHRD():
     def __init__(self):
         self.__jslocation__ = "j.data.serializer.hrd"
         self._primitiveTypes = (int, str, float, bool)

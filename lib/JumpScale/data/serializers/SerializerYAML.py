@@ -1,9 +1,8 @@
 import yaml 
 # import cStringIO
 
-from SerializerBase import *
 
-class SerializerYAML(SerializerBase):
+class SerializerYAML(object):
     def __init__(self):
         self.__jslocation__ = "j.data.serializer.yaml"
 

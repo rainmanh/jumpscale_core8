@@ -644,7 +644,7 @@ class Installer():
                     j.sal.fs.symlink(dir, '%s/gridportal/%s' %(exampleportaldir,folder),
                              overwriteTarget=True)
             j.sal.fs.createDir(j.sal.fs.joinPaths(exampleportaldir, 'home', '.space'))
-            j.sal.fs.touch(j.sal.fs.joinPaths(exampleportaldir, 'home', 'home.wiki'), overwrite=False)
+            j.sal.fs.touch(j.sal.fs.joinPaths(exampleportaldir, 'home', 'home.md'), overwrite=False)
 
             j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/portal_no_ays.py" % j.dirs.codeDir, '%sexample' % portaldir)
             j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd" % j.dirs.codeDir, '%sexample' % portaldir)

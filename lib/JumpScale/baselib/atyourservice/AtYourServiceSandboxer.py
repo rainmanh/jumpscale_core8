@@ -221,7 +221,6 @@ class AtYourServiceSandboxer():
             # #@todo ....
             # j.do.copyTree(self.model.storpath+"/md/0.flist", "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
 
-        import ipdb; ipdb.set_trace()
         if self.model.populate_master_cache:
             store_client = j.clients.storx.get("http://stor.jumpscale.org/storx")
             files_path = j.sal.fs.joinPaths(self.model.storpath, 'files')

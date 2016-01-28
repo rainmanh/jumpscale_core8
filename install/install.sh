@@ -41,7 +41,11 @@ if [ "$(uname)" == "Darwin" ]; then
     pip3 install ptpdb
     
     export TMPDIR=~/tmp
-    export JSBASE='~/opt/jumpscale8'
+    
+    if [ -z"$JSBASE" ]; then 
+        export JSBASE='~/opt/jumpscale8'
+    fi
+    
     cd $TMPDIR
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     dist=''
@@ -60,7 +64,10 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
       tazpkg get-install git
       tazpkg get-install python3.5 
     fi
-    export JSBASE='/opt/jumpscale8'
+
+    if [ -z $JSBASE ]; then    
+        export JSBASE='/opt/jumpscale8'
+    fi
     export TMPDIR=/tmp
 elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
     # Do something under Windows NT platform

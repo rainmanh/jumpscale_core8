@@ -621,7 +621,7 @@ class Installer():
             j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % destjslib, overwriteTarget=True)
             j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % j.dirs.jsLibDir, overwriteTarget=True)
 
-            # j.application.reload()
+            j.application.reload()
 
             portaldir = '%s/apps/portals/' % j.dirs.base
             j.sal.fs.createDir(portaldir)
@@ -652,6 +652,13 @@ class Installer():
             j.sal.fs.copyDirTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
 
         actioninstall = j.actions.add(install, deps=[actiondeps])
+
+        def mongoconnect():
+            cfg = j.data.hrd.get('%s/apps/portals/example/config.hrd'%j.dirs.base)
+            cfg.set('param.mongoengine.connection', {'host':mongodbip, 'port':mongoport})
+            cfg.save()
+
+        j.actions.add(mongoconnect, deps=[actioninstall], args={})
 
         def changeEve():
             executor = j.tools.executor.getLocal()

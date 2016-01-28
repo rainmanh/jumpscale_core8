@@ -637,7 +637,11 @@ class Installer():
 
             exampleportaldir = '%sexample/base' % portaldir
             j.sal.fs.createDir(exampleportaldir)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/gridportal" % j.dirs.codeDir, j.sal.fs.joinPaths(exampleportaldir, 'gridportal'),
+
+            for dir in j.sal.fs.listDirsInDir("%s/github/jumpscale/jumpscale_portal8/apps/gridportal/base" % j.dirs.codeDir):
+                folder = dir.split('/')[-1]
+                if not folder == 'home':
+                    j.sal.fs.symlink(dir, '%s/gridportal/%s' %(exampleportaldir,folder),
                              overwriteTarget=True)
             j.sal.fs.createDir(j.sal.fs.joinPaths(exampleportaldir, 'home', '.space'))
             j.sal.fs.touch(j.sal.fs.joinPaths(exampleportaldir, 'home', 'home.wiki'), overwrite=False)

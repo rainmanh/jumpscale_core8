@@ -216,12 +216,12 @@ class AtYourServiceSandboxer():
             self._upload(self.model.cache,"/mnt/ays/cache/dedupe/")
 
         if self.model.populate_host_cache:
-            self._upload(self.model.host,"/mnt/ays/cachelocal/dedupe/")
-            #@todo ....
-            j.do.copyTree(self.model.storpath+"/md/0.flist", "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
+            pass
+            # self._upload(self.model.host,"/mnt/ays/cachelocal/dedupe/")
+            # #@todo ....
+            # j.do.copyTree(self.model.storpath+"/md/0.flist", "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
 
         if self.model.populate_master_cache:
-            # self._upload("37.59.7.72","/mnt/Storage/openvcloud/ftp/ays/master/dedupe/")
             store_client = j.clients.storx.get("http://stor.jumpscale.org/storx")
             files_path = j.sal.fs.joinPaths(self.model.storpath, 'files')
             files = j.sal.fs.listFilesInDir(files_path, recursive=True)
@@ -240,7 +240,8 @@ class AtYourServiceSandboxer():
             else:
                 raise RuntimeError('some files didnt upload properly. %s' % ("\n".join(error_files)))
 
-            # j.do.copyTree(self.model.storpath+"/md/0.flist","root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
+            metadataPath = j.sal.fs.joinPaths(self.model.storpath, "md","0.flist")
+            j.do.copyTree(metadataPath, "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
 
 
         # if self.model.host!="":

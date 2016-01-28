@@ -370,6 +370,37 @@ class DevelopToolsFactory():
 
 class Installer():
 
+    def installMongo(self, start=True):
+        j.actions.setRunId("installMongo")
+        executor = j.tools.executor.getLocal()
+        rc, out = executor.execute('which mongod', die=False)
+        if out:
+            print('mongodb is already installed')
+        appbase = '/usr/local/bin'
+
+        def getMongo(appbase):
+            if j.core.platformtype.myplatform.isLinux():
+                url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
+            elif sys.platform.startswith("OSX"):
+                url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
+            else:
+                # @TODO (*3*) add support for other platforms
+                return
+            tarpath = j.sal.fs.joinPaths(j.dirs.tmpDir, 'mongodb.tgz')
+            j.sal.nettools.download(url, tarpath)
+            tarfile = j.tools.tarfile.get(tarpath)
+            tarfile.extract(j.dirs.tmpDir)
+            extracted = j.sal.fs.walk(j.dirs.tmpDir, pattern='mongodb*', return_folders=1, return_files=0)[0]
+            j.sal.fs.copyDirTree(j.sal.fs.joinPaths(extracted, 'bin'), appbase)
+
+        def startMongo(appbase):
+            j.sal.tmux.executeInScreen("main", screenname="mongodb", cmd="mongod", user='root')
+
+        getmongo = j.actions.add(getMongo, args={'appbase': appbase})
+        if start:
+            j.actions.add(startMongo, args={'appbase': appbase}, deps=[getmongo])
+        j.actions.run()
+
     def installAgentcontroller(self, start=True):
         """
         config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
@@ -638,15 +669,14 @@ class Installer():
             exampleportaldir = '%sexample/base' % portaldir
             j.sal.fs.createDir(exampleportaldir)
 
-            for dir in j.sal.fs.listDirsInDir("%s/github/jumpscale/jumpscale_portal8/apps/gridportal/base" % j.dirs.codeDir):
-                folder = dir.split('/')[-1]
-                if not folder == 'home':
-                    j.sal.fs.symlink(dir, '%s/gridportal/%s' %(exampleportaldir,folder),
-                             overwriteTarget=True)
+            for space in j.sal.fs.listDirsInDir("%s/github/jumpscale/jumpscale_portal8/apps/gridportal/base" % j.dirs.codeDir):
+                spacename = j.sal.fs.getBaseName(space)
+                if not spacename == 'home':
+                    j.sal.fs.symlink(space, j.sal.fs.joinPaths(exampleportaldir, 'gridportal', spacename), overwriteTarget=True)
             j.sal.fs.createDir(j.sal.fs.joinPaths(exampleportaldir, 'home', '.space'))
             j.sal.fs.touch(j.sal.fs.joinPaths(exampleportaldir, 'home', 'home.md'), overwrite=False)
 
-            j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/portal_no_ays.py" % j.dirs.codeDir, '%sexample' % portaldir)
+            j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py" % j.dirs.codeDir, '%sexample' % portaldir)
             j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd" % j.dirs.codeDir, '%sexample' % portaldir)
             j.dirs.replaceFilesDirVars("%s/example/config.hrd" % portaldir)
             j.sal.fs.copyDirTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
@@ -672,14 +702,14 @@ class Installer():
         def startmethod():
             portaldir = '%s/apps/portals/' % j.do.BASE
             exampleportaldir = '%sexample/' % portaldir
-            cmd = "cd %s; jspython portal_no_ays.py" % exampleportaldir
+            cmd = "cd %s; jspython portal_start.py" % exampleportaldir
             j.sal.tmux.executeInScreen("portal", "portal", cmd, wait=0, cwd=None, env=None, user='root', tmuxuser=None)
 
             # j.do.execute()
         if start:
             j.actions.add(startmethod)
         else:
-            print('To run your portal, navigate to %s/apps/portals/example/ and run "jspython portal_no_ays.py"' % j.dirs.base)
+            print('To run your portal, navigate to %s/apps/portals/example/ and run "jspython portal_start.py"' % j.dirs.base)
 
         j.actions.run()
 

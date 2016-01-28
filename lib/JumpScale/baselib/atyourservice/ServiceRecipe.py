@@ -139,7 +139,7 @@ class ServiceRecipe(ServiceTemplate):
 
         for recipeitem in self.hrd_template.getListFromPrefix("git.export"):
             if "platform" in recipeitem:
-                if not j.core.platformtype.checkMatch(recipeitem["platform"]):
+                if not j.core.platformtype.myplatform.checkMatch(recipeitem["platform"]):
                     continue
 
             # pull the required repo

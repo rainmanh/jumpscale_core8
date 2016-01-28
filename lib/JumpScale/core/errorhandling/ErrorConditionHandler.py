@@ -512,10 +512,10 @@ class ErrorConditionHandler():
                 #print "###END: BACKTRACE"                
 
             editor = None
-            if j.core.platformtype.isLinux():
+            if j.core.platformtype.myplatform.isLinux():
                 #j.tools.console.echo("THIS ONLY WORKS WHEN GEDIT IS INSTALLED")
                 editor = findEditorLinux()
-            elif j.core.platformtype.isWindows():
+            elif j.core.platformtype.myplatform.isWindows():
                 editorPath = j.sal.fs.joinPaths(j.dirs.base,"apps","wscite","scite.exe")
                 if j.sal.fs.exists(editorPath):
                     editor = editorPath

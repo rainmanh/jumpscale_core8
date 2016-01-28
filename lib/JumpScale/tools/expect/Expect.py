@@ -32,7 +32,7 @@ if sys.platform.startswith('sun') or sys.platform.startswith('linux'):
         import pexpect
     except ImportError as e:
         print("did not find pexpect")
-        j.core.platformtype.isLinux()
+        j.core.platformtype.myplatform.isLinux()
         try:
             j.sal.ubuntu.install("python-pexpect")
         except:
@@ -332,7 +332,7 @@ class Expect:
         
     #     If that still fails then we return False.
     #     """
-    #     if not j.core.platformtype.isLinux():
+    #     if not j.core.platformtype.myplatform.isLinux():
     #         raise RuntimeError('pexpect/pxssh not supported on this platform')
 
     #     if not self._pxssh.login(ip, login, password, login_timeout=login_timeout):
@@ -351,12 +351,12 @@ class Expect:
         return stdout,stderror
         """
 
-        if j.core.platformtype.isWindows():
+        if j.core.platformtype.myplatform.isWindows():
             out=self.receiveOut()
             err=self.receiveError()
             return out,err        
 
-        elif j.core.platformtype.isUnix() and self.pexpect:
+        elif j.core.platformtype.myplatform.isUnix() and self.pexpect:
             
             if self.pexpect.match:
                 # out='%s%s'%(self.pexpect.after, self.pexpect.buffer)
@@ -368,7 +368,7 @@ class Expect:
                 before=self._cleanStr(before)
                 return str(before),""
 
-        elif j.core.platformtype.isLinux() and not self.pexpect:
+        elif j.core.platformtype.myplatform.isLinux() and not self.pexpect:
 
             return str(self._pxssh).before,""
 
@@ -528,7 +528,7 @@ class Expect:
         self._lastOutput=""
         self._lastError=""
         
-        if j.core.platformtype.isUnix():
+        if j.core.platformtype.myplatform.isUnix():
             if self.pexpect:
                 if newline:
                     data=data.rstrip("\n")
@@ -536,18 +536,18 @@ class Expect:
                 else:
                     return self.pexpect.send(data)
             
-        if j.core.platformtype.isWindows():
+        if j.core.platformtype.myplatform.isWindows():
             data=data+"\r\n"
 
         p=self._p
 
         if len(data) != 0:
-            if j.core.platformtype.isWindows():
+            if j.core.platformtype.myplatform.isWindows():
                 sent = p.send(data)
                 if sent is None:
                     raise Exception("ERROR: Data sent is none")
                 data = buffer(data, sent)
-            elif j.core.platformtype.isLinux():
+            elif j.core.platformtype.myplatform.isLinux():
                 self._pxssh.sendline(data)
 
     # def read(self):

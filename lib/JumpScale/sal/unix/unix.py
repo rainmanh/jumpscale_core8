@@ -72,7 +72,7 @@ class UnixSystem:
         mem = 0
         cpumhz = 0
         nrcpu = 0
-        if j.core.platformtype.isLinux() or j.core.platformtype.isESX():
+        if j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
             memcontent = j.sal.fs.fileGetContents("/proc/meminfo")
             match = re.search("^MemTotal\:\s+(\d+)\s+kB$",memcontent, re.MULTILINE)
             if match:
@@ -87,7 +87,7 @@ class UnixSystem:
                 nrcpu = len(matches)
                 cpumhz = int(matches[0])
             return mem,cpumhz,nrcpu
-        elif j.core.platformtype.isSolaris():
+        elif j.core.platformtype.myplatform.isSolaris():
             command = "prtconf | grep Memory | awk '{print $3}'"
             (exitcoude, output) = j.sal.process.execute(command)
             mem = output.strip()
@@ -138,10 +138,10 @@ class UnixSystem:
             raise ValueError("This function only supports following intervals: " + str(allowedIntervals))
 
         # Construct timing options
-        if j.core.platformtype.isLinux() or j.core.platformtype.isESX():
+        if j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
             crontabFilePath = "/etc/crontab"
             crontabItem = "*/" + str(interval)
-        elif j.core.platformtype.isSolaris():
+        elif j.core.platformtype.myplatform.isSolaris():
             crontabFilePath = "/var/spool/cron/crontabs/root"
             if interval == 1:
                 crontabItem = "*"
@@ -158,7 +158,7 @@ class UnixSystem:
             crontabOptions = crontabOptions + " "
         crontabOptions = crontabOptions + crontabItem + " "
         crontabOptions = crontabOptions + "* " * (5 - unitPlace)
-        if j.core.platformtype.isLinux():
+        if j.core.platformtype.myplatform.isLinux():
             crontabOptions = crontabOptions + "root    " # The Vixie cron (for Linux) has an extra option: username of running process.
 
         # Construct output redirection
@@ -186,12 +186,12 @@ class UnixSystem:
 
         # Backup old crontab file and write modifications new crontab file.
         j.sal.fs.copyFile(crontabFilePath, crontabFilePath + ".backup") # Create backup
-        if j.core.platformtype.isSolaris():
+        if j.core.platformtype.myplatform.isSolaris():
             self.writeFile(crontabFilePath + "_new", "\n".join(crontabLines) + "\n")
             # On Solaris, we need to call the crontab command to activate the changes.
             self.execute("crontab " + crontabFilePath + "_new")
             self.removeFile(crontabFilePath + "_new")
-        elif j.core.platformtype.isLinux() or j.core.platformtype.isESX():
+        elif j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
             # On Linux, we edit the system-wide crontab of Vixie Cron, so don't have to run the "crontab" command to be sure changes have effect.
             j.sal.fs.writeFile(crontabFilePath, "\n".join(crontabLines) + "\n")
         else:

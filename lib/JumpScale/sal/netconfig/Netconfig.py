@@ -204,7 +204,7 @@ class Netconfig(SALOBJECT):
                     params += ":%s" % proxypassword
                 params += "@"
             params += proxyserver
-            if j.core.platformtype.isUnix():
+            if j.core.platformtype.myplatform.isUnix():
                 os.environ['http_proxy'] = proxyserver
             proxy_support = urllib.request.ProxyHandler()
             opener = urllib.request.build_opener(proxy_support)

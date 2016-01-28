@@ -121,13 +121,13 @@ class NetTools(SALObject):
 
         j.logger.log('Checking whether a service is running on port %d' % port, 8)
 
-        if j.core.platformtype.isLinux() or j.core.platformtype.isESX():
+        if j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
             # netstat: n == numeric, -t == tcp, -u = udp, l= only listening, p = program
             command = "netstat -ntulp | grep ':%s '" % port
             # raise RuntimeError("stop")
             (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False,outputToStdout=False)
             return exitcode == 0
-        elif j.core.platformtype.isSolaris() or j.core.platformtype.isDarwin():
+        elif j.core.platformtype.myplatform.isSolaris() or j.core.platformtype.myplatform.isDarwin():
             command = "netstat -an -f inet"
             (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False,outputToStdout=False)
             for line in output.splitlines():
@@ -142,7 +142,7 @@ class NetTools(SALObject):
                 if match:
                     return True
             return False
-        elif j.core.platformtype.isWindows():
+        elif j.core.platformtype.myplatform.isWindows():
             # We use the GetTcpTable function of the Windows IP Helper API (iphlpapi.dll)
             #
             # Parameters of GetTcpTable:
@@ -204,7 +204,7 @@ class NetTools(SALObject):
         @raise NotImplementedError: Non-Unix systems
         @raise RuntimeError: No nameserver could be found in /etc/resolv.conf
         """
-        if j.core.platformtype.isUnix():
+        if j.core.platformtype.myplatform.isUnix():
             nameserverlines = j.tools.code.regex.findAll(
             "^\s*nameserver\s+(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\s*$",
             j.sal.fs.fileGetContents('/etc/resolv.conf'))
@@ -214,7 +214,7 @@ class NetTools(SALObject):
 
             nameserverline = nameserverlines[0]
             return nameserverline.strip().split(' ')[-1]
-        elif j.core.platformtype.isWindows():
+        elif j.core.platformtype.myplatform.isWindows():
             import wmi
             w=wmi.WMI()
             for nicCfg in w.Win32_NetworkAdapterConfiguration():
@@ -224,7 +224,7 @@ class NetTools(SALObject):
             raise NotImplementedError('This function is only supported on Unix/Windows systems')
 
     def getIpAddresses(self,up=False):
-        if j.core.platformtype.isLinux():
+        if j.core.platformtype.myplatform.isLinux():
             result = list()
             for ipinfo in getNetworkInfo():
                 result.extend(ipinfo['ip'])
@@ -251,9 +251,9 @@ class NetTools(SALObject):
         """
         regex = ''
         output = ''
-        if j.core.platformtype.isLinux() or j.core.platformtype.isESX():
+        if j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
             return [nic['name'] for nic in getNetworkInfo()]
-        elif j.core.platformtype.isSolaris():
+        elif j.core.platformtype.myplatform.isSolaris():
             exitcode,output = j.sal.process.execute("ifconfig -a", outputToStdout=False)
             if up:
                 regex = "^([\w:]+):\sflag.*<.*UP.*>.*$"
@@ -270,7 +270,7 @@ class NetTools(SALObject):
                 else:
                     nics.add(nic[0])
             return list(nics)
-        elif j.core.platformtype.isWindows():
+        elif j.core.platformtype.myplatform.isWindows():
             import wmi
             w = wmi.WMI()
             return [ "%s:%s" %(ad.index,str(ad.NetConnectionID)) for ad in w.Win32_NetworkAdapter() if ad.PhysicalAdapter and ad.NetEnabled]
@@ -282,7 +282,7 @@ class NetTools(SALObject):
         @param interface: Interface to determine Nic type on
         @raise RuntimeError: On linux if ethtool is not present on the system
         """
-        if j.core.platformtype.isLinux() or j.core.platformtype.isESX():
+        if j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
             output=''
             if j.sal.fs.exists("/sys/class/net/%s"%interface):
                 output = j.sal.fs.fileGetContents("/sys/class/net/%s/type"%interface)
@@ -303,7 +303,7 @@ class NetTools(SALObject):
                 if match and match.group("driver") == "bridge" :
                     return "VLAN"
                 return "ETHERNET_GB"
-        elif j.core.platformtype.isSolaris():
+        elif j.core.platformtype.myplatform.isSolaris():
             command = "ifconfig %s"%interface
             exitcode,output = j.sal.process.execute(command, outputToStdout=False, dieOnNonZeroExitCode=False)
             if exitcode != 0:
@@ -328,7 +328,7 @@ class NetTools(SALObject):
                         return "VIRTUAL"
                     else:
                         return "ETHERNET_GB"
-        elif j.core.platformtype.isWindows():
+        elif j.core.platformtype.myplatform.isWindows():
             if j.sal.nettools.getVlanTagFromInterface(interface) > 0:
                 return "VLAN"
             else:
@@ -354,7 +354,7 @@ class NetTools(SALObject):
             nicType=j.sal.nettools.getNicType(interface)
         if nicType == "INFINIBAND" or nicType=="ETHERNET_GB" or nicType == "VIRTUAL":
             return "0"
-        if j.core.platformtype.isLinux():
+        if j.core.platformtype.myplatform.isLinux():
             #check if its a vlan
             vlanfile = '/proc/net/vlan/%s'%(interface)
             if j.sal.fs.exists(vlanfile):
@@ -366,7 +366,7 @@ class NetTools(SALObject):
                 if j.sal.fs.exists(vlanfile):
                     return j.sal.nettools.getVlanTagFromInterface(brif)
             return "0"
-        elif j.core.platformtype.isSolaris() or j.core.platformtype.isWindows():
+        elif j.core.platformtype.myplatform.isSolaris() or j.core.platformtype.myplatform.isWindows():
             return j.sal.nettools.getVlanTagFromInterface(interface)
         else:
             raise RuntimeError("Not supported on this platform!")
@@ -376,7 +376,7 @@ class NetTools(SALObject):
         @param interface: string interface to get vlan tag on
         @rtype: integer representing the vlan tag
         """
-        if j.core.platformtype.isLinux():
+        if j.core.platformtype.myplatform.isLinux():
             vlanfile = '/proc/net/vlan/%s'%(interface)
             if j.sal.fs.exists(vlanfile):
                 content = j.sal.fs.fileGetContents(vlanfile)
@@ -387,14 +387,14 @@ class NetTools(SALObject):
                     raise ValueError("Could not find vlantag for interface %s"%(interface))
             else:
                 raise ValueError("This is not a vlaninterface %s"%(interface))
-        elif j.core.platformtype.isSolaris():
+        elif j.core.platformtype.myplatform.isSolaris():
             #work with interfaces which are subnetted on vlans eq e1000g5000:1
             interface = interface.split(':')[0]
             match = re.search("^\w+?(?P<interfaceid>\d+)$",interface,re.MULTILINE)
             if not match:
                 raise ValueError("This is not a vlaninterface %s"%(interface))
             return int(match.group('interfaceid'))/1000
-        elif j.core.platformtype.isWindows():
+        elif j.core.platformtype.myplatform.isWindows():
             import wmi
             vir = wmi.WMI(namespace='virtualization')
             mac = j.sal.nettools.getMacAddress(interface)
@@ -463,7 +463,7 @@ class NetTools(SALObject):
 
         """ 
         netaddr={}
-        if j.core.platformtype.isLinux():
+        if j.core.platformtype.myplatform.isLinux():
             return [item for item in getNetworkInfo()]
             # ERROR: THIS DOES NOT WORK FOR BRIDGED INTERFACES !!! because macaddr is same as host interface
             # for ipinfo in getNetworkInfo():
@@ -481,7 +481,7 @@ class NetTools(SALObject):
 
     def getIpAddress(self, interface):
         """Return a list of ip addresses and netmasks assigned to this interface"""
-        if j.core.platformtype.isLinux() or j.core.platformtype.isESX():
+        if j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
             command = "ip a s %s" % interface
             (exitcode, output) = j.sal.process.execute(command, outputToStdout=False, dieOnNonZeroExitCode=False)
             if exitcode != 0:
@@ -497,7 +497,7 @@ class NetTools(SALObject):
                     mask += str(int(hex(pow(2,32)-pow(2,32-masknumber))[2:][i*2:i*2+2],16)) + "."
                 result.append([ip, mask[:-1], broadcast])
             return result
-        elif j.core.platformtype.isSolaris():
+        elif j.core.platformtype.myplatform.isSolaris():
             command = "ifconfig %s"%(interface)
             (exitcode, output) = j.sal.process.execute(command, outputToStdout=False, dieOnNonZeroExitCode=False)
             if exitcode != 0:
@@ -513,7 +513,7 @@ class NetTools(SALObject):
             for i in range(4):
                 mask += str(int(netmaskhex[i*2:i*2+2], 16)) + "."
             return [[ip , mask[:-1], broadcast]]
-        elif j.core.platformtype.isWindows():
+        elif j.core.platformtype.myplatform.isWindows():
             import wmi
             ipv4Pattern = '^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$'
             
@@ -534,14 +534,14 @@ class NetTools(SALObject):
         """Return the MAC address of this interface"""
         if not interface in self.getNics():
             raise LookupError("Interface %s not found on the system" % interface)
-        if j.core.platformtype.isLinux() or j.core.platformtype.isESX():
+        if j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
             if j.sal.fs.exists("/sys/class/net"):
                 return j.sal.fs.fileGetContents('/sys/class/net/%s/address' % interface.split('@')[0]).strip()
             else:
                 command = "ifconfig %s | grep HWaddr| awk '{print $5}'"% interface
                 (exitcode,output)=j.sal.process.execute(command, outputToStdout=False)
                 return self.pm_formatMacAddress(output)
-        elif j.core.platformtype.isSolaris():
+        elif j.core.platformtype.myplatform.isSolaris():
             # check if interface is a logical inteface ex: bge0:1
             tokens = interface.split(':')
             if len(tokens) > 1 :
@@ -559,7 +559,7 @@ class NetTools(SALObject):
                 if match:
                     return self.pm_formatMacAddress(match.group("mac"))
             return None
-        elif j.core.platformtype.isWindows():
+        elif j.core.platformtype.myplatform.isWindows():
             import wmi
             w = wmi.WMI()   
             NICIndex = interface.split(":")[0]
@@ -592,7 +592,7 @@ class NetTools(SALObject):
         """
         def doArp(ipaddress):
             args = list()
-            if j.core.platformtype.isLinux():
+            if j.core.platformtype.myplatform.isLinux():
                 # We do not want hostnames to show up in the ARP output
                 args.append("-n")
 
@@ -605,7 +605,7 @@ class NetTools(SALObject):
         def noEntry(output):
             return ("no entry" in output) or ("(incomplete)" in output)
 
-        if j.core.platformtype.isUnix():
+        if j.core.platformtype.myplatform.isUnix():
             if self.isIpInDifferentNetwork(ipaddress):
                 warning = 'The IP address %s is from a different subnet. This means that the macaddress will be the one of the gateway/router instead of the correct one.'
                 j.errorconditionhandler.raiseWarning(warning % ipaddress)
@@ -618,7 +618,7 @@ class NetTools(SALObject):
                 self.pingMachine(ipaddress, pingtimeout=1)
                 exitcode, output = doArp(ipaddress)
 
-            if not noEntry(output) and j.core.platformtype.isSolaris():
+            if not noEntry(output) and j.core.platformtype.myplatform.isSolaris():
                 mac = output.split()[3]
                 return self.pm_formatMacAddress(mac)
             else:
@@ -645,7 +645,7 @@ class NetTools(SALObject):
         return socket.gethostname()
 
     def isNicConnected(self,interface):
-        if j.core.platformtype.isLinux():
+        if j.core.platformtype.myplatform.isLinux():
             carrierfile = '/sys/class/net/%s/carrier'%(interface)
             if not j.sal.fs.exists(carrierfile):
                 return False
@@ -653,13 +653,13 @@ class NetTools(SALObject):
                 return int(j.sal.fs.fileGetContents(carrierfile)) != 0
             except IOError:
                 return False
-        elif j.core.platformtype.isESX():
+        elif j.core.platformtype.myplatform.isESX():
             nl = j.sal.nettools.getNics(up=True)
             if interface not in nl:
                 return False
             else:
                 return True
-        elif j.core.platformtype.isSolaris():
+        elif j.core.platformtype.myplatform.isSolaris():
             if j.core.platformtype.getVersion() < 100:
                 command = "dladm show-dev -p -o STATE %s" % interface
                 expectResults = ['STATE="up"', 'STATE="unknown"']
@@ -683,11 +683,11 @@ class NetTools(SALObject):
         """Get default router
         @rtype: string representing the router interface
         """
-        if j.core.platformtype.isLinux() or j.core.platformtype.isESX():
+        if j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
             command = "ip r | grep 'default' | awk {'print $3'}"
             (exitcode, output) = j.sal.process.execute(command, outputToStdout=False)
             return output.strip()
-        elif j.core.platformtype.isSolaris():
+        elif j.core.platformtype.myplatform.isSolaris():
             command = "netstat -rn | grep default | awk '{print $2}'"
             (exitcode, output) = j.sal.process.execute(command, outputToStdout=False)
             return output.strip()
@@ -740,18 +740,18 @@ class NetTools(SALObject):
         start = time.time()
         pingsucceeded = False
         while time.time() - start < pingtimeout:
-            # if j.core.platformtype.isSolaris():
+            # if j.core.platformtype.myplatform.isSolaris():
             #     #ping -c 1 IP 1
             #     #Last 1 is timeout in seconds
             #     exitcode, output = j.sal.process.execute(
             #                         'ping -c 1 %s 1' % ip, False, False)
-            if j.core.platformtype.isLinux():
+            if j.core.platformtype.myplatform.isLinux():
                 #ping -c 1 -W 1 IP
                 exitcode, output = j.sal.process.execute(
                                     'ping -c 1 -W 1 -w 1 %s' % ip, False, False)
-            elif j.core.platformtype.isUnix():
+            elif j.core.platformtype.myplatform.isUnix():
                 exitcode, output = j.sal.process.execute('ping -c 1 %s'%ip, False, False)
-            elif j.core.platformtype.isWindows():
+            elif j.core.platformtype.myplatform.isWindows():
                 exitcode, output = j.sal.process.execute('ping -w %d %s'%(pingtimeout, ip), False, False)
             else:
                 raise RuntimeError('Platform is not supported')
@@ -850,7 +850,7 @@ class NetTools(SALObject):
         """
         Retrieve the dns domain name
         """
-        cmd = "dnsdomainname" if j.core.platformtype.isLinux() else "domainname" if j.core.platformtype.isSolaris() else ""
+        cmd = "dnsdomainname" if j.core.platformtype.myplatform.isLinux() else "domainname" if j.core.platformtype.myplatform.isSolaris() else ""
         if not cmd:
             raise PlatformNotSupportedError('Platform "%s" is not supported. Command is only supported on Linux and Solaris' % j.core.platformtype.name)
 

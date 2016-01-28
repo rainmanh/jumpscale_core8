@@ -244,7 +244,7 @@ class ActionsBaseNode(object):
         for i, process in enumerate(processes):
 
             if "platform" in process:
-                if not j.core.platformtype.checkMatch(process["platform"]):
+                if not j.core.platformtype.myplatform.checkMatch(process["platform"]):
                     continue
             if len(processes) > 1:
                 start2(process, nbr=i)

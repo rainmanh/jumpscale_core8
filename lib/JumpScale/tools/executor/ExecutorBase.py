@@ -91,9 +91,8 @@ class ExecutorBase():
 
     @property
     def cuisine(self):
-        if self._cuisine==None:
-            self._cuisine=j.tools.cuisine.get(self)
-            self._cuisine.executor=self
-            self._cuisine.sshclient=self.sshclient
+        if self._cuisine is None:
+            self._cuisine = j.tools.cuisine.get(self)
+            self._cuisine.executor = self
+            self._cuisine.sshclient = self.sshclient if hasattr(self, 'sshclient') else None
         return self._cuisine
-        

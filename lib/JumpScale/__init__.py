@@ -126,7 +126,7 @@ if j.core.db==None:
     else:
 
         url="http://stor.jumpscale.org/public/redis-server"
-        if 'redis' not in os.listdir(path='/opt/jumpscale8/bin/'):
+        if 'redis' not in os.listdir(path='%s/bin/'%j.do.BASE):
             j.do.download(url, to='%s/bin/redis'%j.do.BASE, overwrite=False, retry=3)
         import subprocess
         cmd1 = "chmod 550 %sbin/redis > 2&>1"%j.do.BASE

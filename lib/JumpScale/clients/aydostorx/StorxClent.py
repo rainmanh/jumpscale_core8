@@ -4,24 +4,43 @@ from urllib.parse import urljoin, urlparse
 
 
 class StorxFactory(object):
+
     def __init__(self,):
         super(StorxFactory, self).__init__()
         self.__jslocation__ = "j.clients.storx"
 
     def get(self, base_url):
+        """
+        base_url: str, url of the store e.g: https://aydostorx.com
+        """
         return StorxClient(base_url)
 
 
 class StorxClient(object):
     """Client for the AYDO Stor X"""
+
     def __init__(self, base_url):
         super(StorxClient, self).__init__()
+        self.session = requests.Session()
+
         o = urlparse(base_url)
         self.base_url = o.geturl()
         self.path = o.path
 
-    def _getURL(self, path):
-        return urljoin(self.base_url, j.sal.fs.joinPaths(self.path, path))
+    def _postURLStore(self, path):
+        return urljoin(self.base_url, j.sal.fs.joinPaths(self.path, "store", path))
+
+    def _getURLStore(self, namespace, hash):
+        return urljoin(self.base_url, j.sal.fs.joinPaths(self.path, "store", namespace, hash))
+
+    def _URLFixed(self, name):
+        return urljoin(self.base_url, j.sal.fs.joinPaths(self.path, "static", name))
+
+    def authenticate(self, login, password):
+        if login and password:
+            base = login + ":" + password
+            auth_header = "Basic " + j.data.serializer.base64.dumps(base)
+            self.session.headers = {"Authorization": auth_header}
 
     def putFile(self, namespace, file_path):
         """
@@ -31,11 +50,11 @@ class StorxClient(object):
         @file_path: str, path of the file to upload
         return: str, md5 hash of the file
         """
-        url = self._getURL(namespace)
+        url = self._postURLStore(namespace)
         resp = None
         with open(file_path, 'rb') as f:
             # streaming upload, avoid reading all file in memory
-            resp = requests.post(url, data=f, headers={'Content-Type': 'application/octet-stream'})
+            resp = self.session.post(url, data=f, headers={'Content-Type': 'application/octet-stream'})
             resp.raise_for_status()
 
         return resp.json()["Hash"]
@@ -47,8 +66,9 @@ class StorxClient(object):
         @namespace: str, namespace
         @hash: str, hash of the file to retreive
         """
-        url = urljoin(self.base_url, "%s/%s" % (namespace, hash))
-        resp = requests.get(url, stream=True)
+        # url = urljoin(self.base_url, "store/%s/%s" % (namespace, hash))
+        url = self._getURLStore(namespace, hash)
+        resp = self.session.get(url, stream=True)
 
         resp.raise_for_status()
 
@@ -65,8 +85,9 @@ class StorxClient(object):
         @namespace: str, namespace
         @hash: str, hash of the file to delete
         """
-        url = urljoin(self.base_url, "%s/%s" % (namespace, hash))
-        resp = requests.delete(url)
+        url = self._getURLStore(namespace, hash)
+        headers = {}
+        resp = self.session.delete(url)
 
         resp.raise_for_status()
 
@@ -79,8 +100,8 @@ class StorxClient(object):
         @hash: str, hash of the file to test
         return: bool
         """
-        url = urljoin(self.base_url, "%s/%s" % (namespace, hash))
-        resp = requests.head(url)
+        url = self._getURLStore(namespace, hash)
+        resp = self.session.head(url)
 
         if resp.status_code == requests.codes.ok:
             return True
@@ -101,9 +122,9 @@ class StorxClient(object):
             'a84da677c7999e6bed29a8b2d9ebf0e3': True}
 
         """
-        url = urljoin(self.base_url, "%s/%s" % (namespace, "exists"))
+        url = self._getURLStore(namespace, hash)
         data = {'Hashes': hashes}
-        resp = requests.post(url, json=data)
+        resp = self.session.post(url, json=data)
 
         resp.raise_for_status()
 
@@ -122,9 +143,42 @@ class StorxClient(object):
             'compress': compress,
             'quality': quality,
         }
-        url = urljoin(self.base_url, namespace)
-        resp = requests.get(url, params=url_params)
+        url = urljoin(self.base_url, j.sal.fs.joinPaths(self.path, "store", namespace, ""))
+        resp = self.session.get(url, params=url_params)
 
         resp.raise_for_status()
 
         return resp.json()
+
+    def putStaticFile(self, name, file_path):
+        """
+        Upload a file to the store and give bind a name to it
+
+        @name: str, name to give to the file
+        @file_path: str, path of the file to upload
+        """
+        url = self._URLFixed(name)
+        resp = None
+        with open(file_path, 'rb') as f:
+            # streaming upload, avoid reading all file in memory
+            resp = self.session.post(url, data=f, headers={'Content-Type': 'application/octet-stream'})
+            resp.raise_for_status()
+
+        return True
+
+    def getStaticFile(self, name, destination):
+        """
+        Retreive a named file from the store and save it to a file
+
+        @name: str, name of the file to rertieve
+        """
+        url = self._URLFixed(name)
+        resp = self.session.get(url, stream=True)
+
+        resp.raise_for_status()
+
+        with open(destination, 'wb') as fd:
+            for chunk in resp.iter_content(65536):
+                fd.write(chunk)
+
+        return True

@@ -79,7 +79,7 @@ Host *
    UserKnownHostsFile=/dev/null
 """
 
-if j.core.platformtype.isLinux():
+if j.core.platformtype.myplatform.isLinux():
     path=j.sal.fs.joinPaths(os.environ["HOME"],".ssh","config")
     if not j.do.exists(path):
         j.do.writeFile(path,C)

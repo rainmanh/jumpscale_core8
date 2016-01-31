@@ -155,7 +155,7 @@ class EasyDialogConsole(EasyDialogGeneric):
             else:
                 sortCallBack(choices)
 
-        if len(choices) > pageSize and not j.core.platformtype.isLinux():
+        if len(choices) > pageSize and not j.core.platformtype.myplatform.isLinux():
             #@todo implement, make multi screen, sort & allow default value usage, use next-previous (also n&p as short notation)
             ##result = self._handleScreens(choices, defaultValues, pageSize = pageSize)[0]
             j.tools.console.echo("Too many potential choices, more than %s, choose again" % pageSize)

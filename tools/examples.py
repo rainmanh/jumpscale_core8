@@ -1,3 +1,4 @@
+import sys
 from InstallTools import *
 
 import sys
@@ -11,6 +12,9 @@ passwd=sys.argv[2]
 
 # do.installJS(base=j.dirs.base,clean=True,insystem=False,pythonversion=3,web=True)
 
+from JumpScale import j
+
+import JumpScale.lib.sandboxer
 
 # j.tools.sandboxer.copyLibsTo("/opt/code/git/binary/doublecmd/doublecmd","/tmp/2/",recursive=False)
 

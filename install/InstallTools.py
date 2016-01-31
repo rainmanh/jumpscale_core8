@@ -42,7 +42,7 @@ class InstallTools():
             self.VARDIR="%s/optvar"%os.environ["HOME"]
 
         elif sys.platform.startswith("linux"):
-            self.BASE="/opt/jumpscale8"
+            self.BASE=os.environ.get("JSBASE", "/opt/jumpscale8")
             self.TYPE="LINUX"
             self.VARDIR="/optvar/"
             # self.TYPE=platform.linux_distribution(full_distribution_name=0)[0].upper()

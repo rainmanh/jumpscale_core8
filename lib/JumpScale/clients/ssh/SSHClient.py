@@ -72,7 +72,18 @@ class SSHClient(object):
         if self._client is None:
             self._client = paramiko.SSHClient()
             self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys)
+
+            counter = 0
+            while counter < 10:
+                try:
+                    self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys)
+                    break
+                except Exception as e:
+                    counter += 0.1
+                    if counter >= 10:
+                        raise(e)
+                    else:
+                        time.sleep(0.1)
         return self._client
 
     def reset(self):

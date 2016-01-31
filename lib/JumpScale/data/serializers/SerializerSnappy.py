@@ -1,8 +1,9 @@
 
 
 import snappy
+from SerializerBase import *
 
-class SerializerSnappy(object):
+class SerializerSnappy(SerializerBase):
     def __init__(self):
         self.__jslocation__ = "j.data.serializer.snappy"    
     def dumps(self,obj):        

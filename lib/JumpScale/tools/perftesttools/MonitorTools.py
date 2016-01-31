@@ -1,15 +1,19 @@
 from JumpScale import j
 
+import statsd
+import sys
 import time
 
+import os
 import psutil
+from JumpScale.lib.perftesttools import InfluxDumper
 
 
 class MonitorClient(object):
     def __init__(self, redis):
         self.redis = redis
 
-        luapath = "%s/github/jumpscale/jumpscale_core8/lib/JumpScale/lib/perftesttools/stat.lua" %j.do.CODEDIR
+        luapath = "/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/lib/perftesttools/stat.lua"
         lua = j.sal.fs.fileGetContents(luapath)
         self._sha = self.redis.script_load(lua)
 

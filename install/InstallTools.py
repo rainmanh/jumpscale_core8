@@ -1673,12 +1673,15 @@ class InstallTools():
 
         return repository_host, repository_type, repository_account, repository_name, dest, repository_url
 
-    def pullGitRepo(self,url="",dest=None,login=None,passwd=None,depth=1,ignorelocalchanges=False,reset=False,branch=None,revision=None, ssh="auto"):
+    def pullGitRepo(self,url="",dest=None,login=None,passwd=None,depth=1,ignorelocalchanges=False,reset=False,branch=None,revision=None, ssh="auto",executor=None):
         """
         will clone or update repo
         if dest == None then clone underneath: /opt/code/$type/$account/$repo
         will ignore changes !!!!!!!!!!!
         """
+
+        if executor==None:
+            executor=self
 
         base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh)
 
@@ -1687,9 +1690,9 @@ class InstallTools():
             branch = "master"
         elif branch is None and dest is not None and self.exists(dest):
             # if we don't specify the branch, try to find the currently checkedout branch
-            if self.exists(dest):
+            if executor.exists(dest):
                 cmd = 'cd %s; git rev-parse --abbrev-ref HEAD' % dest
-                rc, out = self.execute(cmd)
+                rc, out = executor.execute(cmd)
                 if rc == 0:
                     branch = out.strip()
                 else:  # if we can't retreive current branch, use master as default
@@ -1698,16 +1701,16 @@ class InstallTools():
                 branch = 'master'
 
         checkdir="%s/.git"%(dest)
-        if self.exists(checkdir):
+        if executor.exists(checkdir):
             if ignorelocalchanges:
                 print(("git pull, ignore changes %s -> %s"%(url,dest)))
                 cmd="cd %s;git fetch"%dest
                 if depth!=None:
                     cmd+=" --depth %s"%depth
-                self.execute(cmd)
+                executor.execute(cmd)
                 if branch!=None:
                     print("reset branch to:%s"%branch)
-                    self.execute("cd %s;git reset --hard origin/%s"%(dest,branch),timeout=600)
+                    executor.execute("cd %s;git reset --hard origin/%s"%(dest,branch),timeout=600)
             else:
                 #pull
                 print(("git pull %s -> %s"%(url,dest)))
@@ -1722,7 +1725,7 @@ class InstallTools():
                         cmd="cd %s;git pull origin %s"%(dest,branch)
                     else:
                         cmd="cd %s;git pull"%dest
-                self.execute(cmd,timeout=600)
+                executor.execute(cmd,timeout=600)
         else:
             print(("git clone %s -> %s"%(url,dest)))
             extra = ""
@@ -1743,12 +1746,12 @@ class InstallTools():
 
             if depth!=None:
                 cmd+=" --depth %s"%depth
-            self.execute(cmd,timeout=600)
+            executor.execute(cmd,timeout=600)
 
         if revision!=None:
             cmd="cd %s;git checkout %s"%(dest,revision)
             print(cmd)
-            self.execute(cmd,timeout=600)
+            executor.execute(cmd,timeout=600)
 
         return dest
 

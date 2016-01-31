@@ -47,13 +47,25 @@ class ActionController(object):
             raise RuntimeError("runid cannot be empty, please set with j.actions.setRunID(...)")
         return str(self._runid)
 
-    def reset(self,all=False):
+    def get(self,actionkey):
+        return self.actions[actionkey]
+
+
+    def reset(self,all=False,item=None):
         if all==False:
             self._actions={}
-            j.core.db.delete("actions.%s"%self.runid)
+            if item==None:
+                j.core.db.delete("actions.%s"%self.runid)
+            else:
+                j.core.db.delete("actions.%s"%item)
         else:
             for item in j.core.db.keys("actions.*"):
-                self.reset(item.split(".",1)[1])
+                item=item.decode().split(".",1)[1]
+                print ("delete:%s"%item)
+                self.reset(item=item)
+
+    def resetAll(self):
+        self.reset(True)
 
     def setState(self,state="INIT"):
         for key,action in self.actions.items():
@@ -63,7 +75,7 @@ class ActionController(object):
     def selectAction(self):
         return j.tools.console.askChoice(j.actions.actions)
 
-    def add(self, action,actionRecover=None,args={},die=True,stdOutput=False,errorOutput=True,retry=1,serviceObj=None,deps=None,executeNow=False):
+    def add(self, action,actionRecover=None,args=(),kwargs={},die=True,stdOutput=False,errorOutput=True,retry=1,serviceObj=None,deps=None,executeNow=True,selfGeneratorCode="",force=False):
         '''
         self.doc is in doc string of method
         specify recover actions in the description
@@ -79,10 +91,14 @@ class ActionController(object):
         @param args is dict with arguments
         @param serviceObj: service, will be used to get category filled in
         '''
-        action=Action(action,runid=self.runid,actionRecover=actionRecover,args=args,die=die,stdOutput=stdOutput,errorOutput=errorOutput,retry=retry,serviceObj=serviceObj,deps=deps)
+        if j.data.types.dict.check(args):
+            raise RuntimeError("cannot create action: args should be a list, kwargs a dict, input error")
+
+        action=Action(action,runid=self.runid,actionRecover=actionRecover,args=args,kwargs=kwargs,die=die,stdOutput=stdOutput,errorOutput=errorOutput,retry=retry,serviceObj=serviceObj,deps=deps,selfGeneratorCode=selfGeneratorCode,force=force)
         self._actions[action.key]=action
         self.last=action
         if executeNow:
+            print ("ACTION ADD:%s"%action.key)
             action.execute()
         else:
             action.save(True)
@@ -101,7 +117,7 @@ class ActionController(object):
                 todo.append(action)
         return todo
 
-    def run(self, agentcontroller=False):
+    def runn(self, agentcontroller=False):
         todo = self.gettodo()
         step = 0
         while todo:

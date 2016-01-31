@@ -13,13 +13,13 @@ class SSHClientFactory(object):
         self.cache = {}
 
     def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True,allow_agent=True, look_for_keys=True):
-        key = "%s_%s_%s" % (addr, port, login)
+        key = "%s_%s_%s_%s" % (addr, port, login,j.data.hash.md5_string(str(passwd)))
         if key not in self.cache:
             self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent,allow_agent=allow_agent,look_for_keys=look_for_keys)
         return self.cache[key]
 
     def removeFromCache(self, client):
-        key = "%s_%s_%s" % (client.addr, client.port, client.login)
+        key = "%s_%s_%s_%s" % (client.addr, client.port, client.login,j.data.hash.md5_string(str(client.passwd)))
         client.close()
         if key in self.cache:
             self.cache.pop(key)
@@ -38,13 +38,12 @@ class SSHClient(object):
         self.stdout = stdout
         if passwd!=None:
             self.forward_agent = False
+            self.allow_agent=False
+            self.look_for_keys=False
         else:
             self.forward_agent = forward_agent
-        self.allow_agent=allow_agent
-        self.look_for_keys=look_for_keys
-
-        # if self.forward_agent and not self._test_local_agent():
-        #     raise RuntimeError("forward_agent is True but local ssh-agent is not reachable or no key is loaded")
+            self.allow_agent=allow_agent
+            self.look_for_keys=look_for_keys
 
         self._transport = None
         self._client = None
@@ -84,7 +83,7 @@ class SSHClient(object):
         sftp = self.client.open_sftp()
         return sftp
 
-    def connectTest(self, cmd="ls /etc", timeout=3, die=False):
+    def connectTest(self, cmd="ls /etc", timeout=3, die=True):
         """
         will trying to connect over ssh & execute the specified command, timeout is in sec
         error will be raised if not able to do (unless if die set)\
@@ -96,7 +95,8 @@ class SSHClient(object):
         timeout1=j.data.time.getTimeEpoch()+timeout
 
         if j.sal.nettools.waitConnectionTest(self.addr, self.port, timeout)==False:
-            raise RuntimeError("Cannot connect to ssh server %s:%s"%(self.addr,self.port))
+            print("Cannot connect to ssh server %s:%s"%(self.addr,self.port))
+            return False
 
         while j.data.time.getTimeEpoch()<timeout1  and rc != 0:
             try:
@@ -106,7 +106,7 @@ class SSHClient(object):
             except (BadHostKeyException, AuthenticationException) as e:
                 # cant' recover, no point to wait. exit now
                 print(e)
-                rc = 1
+                rc = 1                
                 break
             except (SSHException, socket.error) as e:
                 print(e)
@@ -119,7 +119,7 @@ class SSHClient(object):
         if rc > 0:
             j.clients.ssh.removeFromCache(self)
             if die:
-                j.events.opserror_critical("Could not connect to ssh on localhost on port %s" % ssh_port)
+                j.events.opserror_critical("Could not connect to ssh on localhost on port %s" % self.port)
             else:
                 return False
         return True
@@ -148,9 +148,23 @@ class SSHClient(object):
                 print(out)
             return out
 
-        buf += readChannel(ch)
+        # buf += readChannel(ch)
         while ch.exit_status_ready() == False:
             buf += readChannel(ch)
+        #@todo (*1*) is too slow need to find other solution can't we check buffer is empty
+
+        if ch.recv_ready():
+            r=readChannel(ch)
+        else:
+            r=""
+
+        while r!="":
+            buf+=r
+            if ch.recv_ready():
+                r=readChannel(ch)            
+            else:
+                r=""
+
 
         retcode = ch.recv_exit_status()
         if die:

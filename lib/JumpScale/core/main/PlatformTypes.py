@@ -142,7 +142,7 @@ class PlatformType():
             self._osname=self._osname0.lower()
             if "ARCH" in self.uname:
                 self._osname="arch"
-            else:
+            elif self._osname not in ["darwin"]:
                 out=self.executor.cuisine.run("lsb_release -a",showout=False)
                 if "ubuntu" in out.lower():
                     self._osname="ubuntu"

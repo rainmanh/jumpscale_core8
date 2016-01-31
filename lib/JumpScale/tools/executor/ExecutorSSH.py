@@ -7,17 +7,49 @@ class ExecutorSSH(ExecutorBase):
     def __init__(self, addr, port, dest_prefixes={},login="root",passwd=None,debug=False,checkok=True,allow_agent=True, look_for_keys=True,pushkey=None):
         ExecutorBase.__init__(self, dest_prefixes=dest_prefixes,debug=debug,checkok=checkok)
         self.addr = addr
-        self.port = int(port)
-        self.login=login
-        self.passwd=passwd
+        self._port = int(port)
+        self._login=login
+        self._passwd=passwd
+        if passwd!=None:
+            look_for_keys=False
+            allow_agent=False
         self.allow_agent=allow_agent
-        self.look_for_keys=look_for_keys
+        self.look_for_keys=look_for_keys    
         self.pushkey=pushkey
         self._sshclient=None
         
         if checkok:
             self.sshclient.connectTest()            
 
+    @property
+    def login(self):
+        return self._login
+
+    @login.setter
+    def login(self,val):    
+        self._login=val
+        self._sshclient=None
+
+    @property
+    def passwd(self):
+        return self._passwd
+
+    @passwd.setter
+    def passwd(self,passwd):    
+        if passwd!=None:
+            self.look_for_keys=False
+            self.allow_agent=False
+        self._passwd=passwd
+        self._sshclient=None
+
+    @property
+    def port(self):
+        return self._port
+
+    @port.setter
+    def port(self,val):    
+        self._port=int(val)
+        self._sshclient=None
 
     @property
     def sshclient(self):
@@ -35,7 +67,7 @@ class ExecutorSSH(ExecutorBase):
                 
         return self._sshclient
 
-    def execute(self, cmds, die=True,checkok=None,showout=True, combinestdr=True):
+    def execute(self, cmds, die=True,checkok=None,showout=True, combinestdr=True,timeout=0):
         """
         @param naked means will not manipulate cmd's to show output in different way
         return (rc,out,err)

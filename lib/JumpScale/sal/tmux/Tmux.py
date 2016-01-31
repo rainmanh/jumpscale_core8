@@ -34,16 +34,16 @@ class Tmux(SALObject):
         if user is not None:
             cmd = "sudo -u %s -i %s" % (user, cmd)
         # j.sal.process.run(cmd, env=env)  #@todo does not work in python3
-        self._local.execute(cmd)
+        self._local.execute(cmd,showout=False)
         # now add the other screens to it
         if len(screens) > 1:
             for screen in screens[1:]:
                 cmd = "tmux new-window -t '%s' -n '%s'" % (sessionname, screen)
                 if user is not None:
                     cmd = "sudo -u %s -i %s" % (user, cmd)
-                self._local.execute(cmd)
+                self._local.execute(cmd,showout=False)
 
-    def executeInScreen(self, sessionname, screenname, cmd, wait=0, cwd=None, env=None, user="root", tmuxuser=None):
+    def executeInScreen(self, sessionname, screenname, cmd, wait=0, cwd=None, env=None, user="root", tmuxuser=None,reset=True):
         """
         @param sessionname Name of the tmux session
         @type sessionname str
@@ -66,6 +66,9 @@ class Tmux(SALObject):
         # Escape the double quote character in cmd
         cmd = cmd.replace('"', r'\"')
 
+        if reset:
+             self.killWindow( sessionname, screenname)
+
         if cmd.strip():
             self.createWindow(sessionname, screenname, user=tmuxuser)
             pane = self._getPane(sessionname, screenname, user=tmuxuser)
@@ -76,7 +79,7 @@ class Tmux(SALObject):
                 cmd2 = "tmux send-keys -t '%s' '%s\n'" % (pane, envstr)
                 if tmuxuser is not None:
                     cmd2 = "sudo -u %s -i %s" % (tmuxuser, cmd2)
-                self._local.execute(cmd2, env=env)
+                self._local.execute(cmd2, env=env,showout=False)
 
             if cwd:
                 cwd = "cd %s;" % cwd
@@ -93,7 +96,7 @@ class Tmux(SALObject):
             if tmuxuser is not None:
                 cmd2 = "sudo -u %s -i %s" % (tmuxuser, cmd2)
             # j.sal.process.run(cmd2, env=env)
-            self._local.execute(cmd2)
+            self._local.execute(cmd2,showout=False)
 
             time.sleep(wait)
 
@@ -101,7 +104,7 @@ class Tmux(SALObject):
         cmd = 'tmux list-sessions -F "#{session_name}"'
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        exitcode, output = self._local.execute(cmd, die=False)
+        exitcode, output = self._local.execute(cmd, die=False,showout=False)
         if exitcode != 0:
             output = ""
         return [name.strip() for name in output.split()]
@@ -110,7 +113,7 @@ class Tmux(SALObject):
         cmd = 'tmux list-panes -t "%s" -F "#{pane_pid};#{window_name}" -a' % session
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        exitcode, output = self._local.execute(cmd, die=False)
+        exitcode, output = self._local.execute(cmd, die=False,showout=False)
         if exitcode > 0:
             return None
         for line in output.split():
@@ -125,7 +128,7 @@ class Tmux(SALObject):
         cmd = 'tmux list-windows -F "#{window_index}:#{window_name}" -t "%s"' % session
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        exitcode, output = self._local.execute(cmd, die=False)
+        exitcode, output = self._local.execute(cmd, die=False,showout=False)
         if exitcode != 0:
             return result
         for line in output.split():
@@ -141,7 +144,7 @@ class Tmux(SALObject):
             cmd = "tmux new-window -t '%s:' -n '%s'" % (session, name)
             if user:
                 cmd = "sudo -u %s -i %s" % (user, cmd)
-            self._local.execute(cmd)
+            self._local.execute(cmd,showout=False)
 
     def logWindow(self, session, name, filename, user=None):
         pane = self._getPane(session, name, user=user)
@@ -149,7 +152,7 @@ class Tmux(SALObject):
             cmd = "tmux pipe-pane -t '%s' 'cat >> \"%s\"'" % (pane, filename)
             if user:
                 cmd = "sudo -u %s -i %s" % (user, cmd)
-            self._local.execute(cmd)
+            self._local.execute(cmd,showout=False)
 
     def windowExists(self, session, name, user=None):
         if session in self.getSessions(user=user):
@@ -173,19 +176,19 @@ class Tmux(SALObject):
         cmd = "tmux kill-window -t '%s'" % pane
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        self._local.execute(cmd, die=False)
+        self._local.execute(cmd, die=False,showout=False)
 
     def killSessions(self, user=None):
         cmd = "tmux kill-server"
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        self._local.execute(cmd, die=False)  # todo checking
+        self._local.execute(cmd, die=False,showout=False)  # todo checking
 
     def killSession(self, sessionname, user=None):
         cmd = "tmux kill-session -t '%s'" % sessionname
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        self._local.execute(cmd, die=False)  # todo checking
+        self._local.execute(cmd, die=False,showout=False)  # todo checking
 
     def attachSession(self, sessionname, windowname=None, user=None):
         if windowname:
@@ -197,4 +200,4 @@ class Tmux(SALObject):
         cmd = "tmux attach -t %s" % (sessionname)
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        self._local.execute(cmd)
+        self._local.execute(cmd,showout=False)

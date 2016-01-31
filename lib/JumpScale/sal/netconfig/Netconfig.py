@@ -1,11 +1,11 @@
 from JumpScale import j
 import netaddr
 
-#@todo (*1*)
+#@todo rewrite all to use the executor and only the executor (*1*)
 
 from sal.base.SALObject import SALObject
 
-class Netconfig(SALOBJECT):
+class Netconfig(SALObject):
     """
     """
 
@@ -177,17 +177,17 @@ class Netconfig(SALOBJECT):
             pass
 
         self.log("restart:%s"%devToApplyTo)
-            cmd="ifdown %s"%devToApplyTo
-            self._executor.execute(cmd) 
-            cmd="ifup %s"%devToApplyTo
-            self._executor.execute(cmd)
+        cmd="ifdown %s"%devToApplyTo
+        self._executor.execute(cmd) 
+        cmd="ifup %s"%devToApplyTo
+        self._executor.execute(cmd)
 
-            if not devToApplyTo.startswith(dev):
-                print(("restart:%s"%dev))
-                cmd="ifdown %s"%dev
-                self._executor.execute(cmd) 
-                cmd="ifup %s"%dev
-                self._executor.execute(cmd)
+        if not devToApplyTo.startswith(dev):
+            print(("restart:%s"%dev))
+            cmd="ifdown %s"%dev
+            self._executor.execute(cmd) 
+            cmd="ifup %s"%dev
+            self._executor.execute(cmd)
 
     def proxy_enable(self):
         maincfg = j.config.getConfig('main')

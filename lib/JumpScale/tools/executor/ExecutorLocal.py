@@ -8,10 +8,10 @@ class ExecutorLocal(ExecutorBase):
         ExecutorBase.__init__(
             self, dest_prefixes=dest_prefixes, debug=debug, checkok=debug)
 
-    def execute(self, cmds, die=True, checkok=None, async=False):
+    def execute(self, cmds, die=True, checkok=None, async=False,combinestdr=True,showout=True):
         cmds = self._transformCmds(cmds, die, checkok=checkok)
         if cmds.find('\n') == -1:
-            return j.do.execute(cmds, dieOnNonZeroExitCode=die, async=async)
+            return j.do.execute(cmds, dieOnNonZeroExitCode=die, async=async,outputStdout=showout, outputStderr=showout)
         return j.do.executeBashScript(content=cmds, path=None, die=die)
 
     def executeInteractive(self, cmds, die=True, checkok=None):

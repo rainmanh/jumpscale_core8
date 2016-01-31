@@ -94,6 +94,12 @@ class ExecutorBase():
         if self._cuisine==None:
             self._cuisine=j.tools.cuisine.get(self)
             self._cuisine.executor=self
-            self._cuisine.sshclient=self.sshclient
+            try:
+                self._cuisine.sshclient=self.sshclient
+            except:
+                pass
         return self._cuisine
+
+    def exists(self,path):
+        return self.cuisine.file_exists(path)
         

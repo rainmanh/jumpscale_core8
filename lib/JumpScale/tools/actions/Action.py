@@ -2,9 +2,10 @@
 from JumpScale import j
 import time
 import inspect
+import traceback
 
 class Action:    
-    def __init__(self, action=None,runid=0,actionRecover=None,args={},die=True,stdOutput=True,errorOutput=True,retry=1,serviceObj=None,deps=[],key=""):
+    def __init__(self, action=None,runid=0,actionRecover=None,args=(),kwargs={},die=True,stdOutput=True,errorOutput=True,retry=1,serviceObj=None,deps=[],key="",selfGeneratorCode="",force=False):
         '''
         self.doc is in doc string of method
         specify recover actions in the description
@@ -22,36 +23,58 @@ class Action:
         @param isparent, if isparent then when this action changes all actions following will be redone of same runid
 
         '''
-        self.serviceObj = serviceObj
-        self.runid = str(runid)
-        self._method = action
-        self.actionRecover = actionRecover
-        self._args = args
-        self.loglevel = 5
-        self.retry=retry
+
+        if key=="" and action==None:
+            raise RuntimeError("need to specify key or action")
+
+        self._args=""
+        self._kwargs=""
+        self._method = None
+        self._result=""
         self._stdOutput=stdOutput
         self._errorOutput=errorOutput
         self._state="INIT"
-        self.die=die
-        self._result=""
-        self.result={}
+        
+        #avoid we can write to it
         self._name=""
         self._path=""
         self._source=""
         self._doc=""
-        self._argsjson=""
-        self.stdouterr=""
-        self._lastCodeMD5=""
-        self._lastArgsMD5=""
-        self._state_show="INIT"
 
+        self._state_show="INIT"        
+        self._selfobj=None
         self._key=key
-
         self._depkeys=[]
         self._deps=[]
+        self._actionRecover=""
+
+        self._lastCodeMD5=""
+        self._lastArgsMD5=""
+        self.stdouterr=""
+        self.loglevel = 5
+        self.retry=retry
+        self.die=die
+        self.force=force
+
+        self.traceback=""
+
+        self.runid = str(runid)
+
+        if action!=None:
+
+            self.selfGeneratorCode=selfGeneratorCode
+
+            self.args = args
+            self.kwargs= kwargs
+
+            self.serviceObj = serviceObj
+
+            self.method=action        
+
+            if actionRecover!=None:
+                self._actionRecover = actionRecover.key
 
         if key=="":
-
             if deps!=None:
                 deps=[dep for dep in deps if dep!=None]
 
@@ -74,6 +97,11 @@ class Action:
             self._load()
         else:
             self._load(True)
+
+
+        if self.state=="INIT" and key=="":
+            #is first time
+            self.save(True)
 
     @property
     def state(self):
@@ -122,13 +150,6 @@ class Action:
             action.state=state
 
     @property
-    def args(self):
-        if self._args=={}:
-            if self._argsjson!="":
-                self._args=j.data.serializer.json.loads(self.argsjson)
-        return self._args
-
-    @property
     def model(self):
         model = {}
         model["_name"] = self.name
@@ -141,17 +162,15 @@ class Action:
         model["_depkeys"]=self._depkeys
         model["stdouterr"]=self.stdouterr
         model["_source"]=self._source
-        model["_argsjson"]=self._argsjson
+        model["_args"]=self._args
+        model["_kwargs"]=self._kwargs
+        model["_result"]=self._result
+        model["selfGeneratorCode"]=self.selfGeneratorCode
         model["runid"] = self.runid
         model["_state_show"] = self._state_show
-
-        if self.result is None:
-            model["_result"] = ""
-        else:
-            try:
-                model["_result"] = j.data.serializer.json.dumps(self.result, True, True)
-            except:
-                pass
+        model["_actionRecover"] = self._actionRecover
+        model["traceback"] = self.traceback
+        model["die"] = self.die
         return model
 
     def _load(self,all=False):
@@ -164,7 +183,7 @@ class Action:
             if all:
                 data3=data2
             else:
-                toload=["_state","_lastArgsMD5","_lastCodeMD5","_result"]
+                toload=["_state","_lastArgsMD5","_lastCodeMD5","_result","traceback","stdouterr"]
                 data3={}
                 for item in toload:
                     data3[item]=data2[item]
@@ -178,6 +197,11 @@ class Action:
             if self._key!="":
                 raise RuntimeError("could not load action:%s, was not in redis & key specified"%self._name)
 
+    @property
+    def actionRecover(self):
+        if self._actionRecover==None or  self._actionRecover=="":
+            return None
+        return j.actions.get(self._actionRecover)
 
     def check(self):
         if j.data.hash.md5_string(self.source) != self._lastCodeMD5:
@@ -185,19 +209,36 @@ class Action:
             self.changeStateWhoDependsOnMe("SOURCEPARENTCHANGED")
             self.save()
 
-        if j.data.hash.md5_string(self.argsjson) != self._lastArgsMD5:
+        if j.data.hash.md5_string(self._args+self._kwargs) != self._lastArgsMD5:
             self.state = "ARGSCHANGED"
             self.changeStateWhoDependsOnMe("ARGSPARENTCHANGED")
             self.save()
 
-
-
     @property
     def method(self):
+        if self.source=="":
+            raise RuntimeError("source cannot be empty")
         if self._method == None:
             exec(self.source)
             self._method=eval("%s"%self.name)
         return self._method  
+
+    @method.setter
+    def method(self,val):
+        source = "".join(inspect.getsourcelines(val)[0])
+        if source != "" and source[-1] != "\n":
+            source += "\n"
+        if source.strip().startswith("@"):
+            #decorator needs to be removed (first line)
+            source="\n".join(source.split("\n")[1:])            
+        self._source=j.data.text.strip(source)
+        self._name = source.split("\n")[0].strip().replace("def ", "").split("(")[0].strip()    
+        self._path = inspect.getsourcefile(val).replace("//", "/")    
+        self._doc=inspect.getdoc(self.method)
+        if self._doc==None:
+            self._doc=""
+        if self._doc!="" and self._doc[-1]!="\n":
+            self._doc+="\n"
 
     @property
     def depsAreOK(self):
@@ -215,17 +256,22 @@ class Action:
 
     def save(self,checkcode=False):
         if checkcode:
-            self._lastArgsMD5 = j.data.hash.md5_string(self.argsjson)
+            self._lastArgsMD5 = j.data.hash.md5_string(self._args+self._kwargs)
             self._lastCodeMD5 = j.data.hash.md5_string(self.source)
         j.core.db.hset("actions.%s" % self.runid, self.key, self.modeljson)
 
     @property
     def key(self):
         if self._key=="":
-            key = "%s.%s" % (self.name,self._args1line)
+            extra=""
+            key = "%s.%s.%s" % (self.filename,self.name,self._args1line)
             return key
         else:
             return self._key
+
+    @property
+    def filename(self):
+        return j.do.getBaseName(self.path)[:-3]
 
     @property
     def modeljson(self):
@@ -233,72 +279,107 @@ class Action:
 
     @property
     def doc(self):
-        if self._doc=="":
-            self._doc=inspect.getdoc(self.method)
-            if self._doc==None:
-                self._doc=""
-            if self._doc!="" and self._doc[-1]!="\n":
-                self._doc+="\n"
         return self._doc
 
     @property
     def source(self):
-        if self._source == "":
-            self._source = "".join(inspect.getsourcelines(self.method)[0])
-            if self._source != "" and self._source[-1] != "\n":
-                self._source += "\n"
-            self._source=j.data.text.strip(self._source)
         return self._source
 
     @property
     def name(self):
-        if self._name == "":
-            self._name = self.source.split("\n")[0].strip().replace("def ", "").split("(")[0].strip()
         return self._name
 
     @property
-    def argsjson(self):
-        if self._argsjson == "":
-            args2 = {}
-            if not j.data.types.dict.check(self.args):
-                raise RuntimeError("args should be dict")
-            for key, val in self.args.items():
-                try:
-                    j.data.serializer.json.dumps(val)
-                    #is just a check to see if json serializer will work
-                    val2 = val
-                except:
-                    val2 = "UNDEFINED"
-                args2[key] = val2
+    def result(self):
+        if self._result=="" or self._result==None:
+            return None
+        return j.data.serializer.json.loads(self._result)
 
-            out = j.data.serializer.json.dumps(args2, True, True)
-            self._argsjson =out
-        return self._argsjson
+    @result.setter
+    def result(self,val):
+        if val is None:
+            self._result = ""
+        else:
+            self._result = j.data.serializer.json.dumps(val, True, True) 
+
+    @property
+    def args(self):
+        if self._args == "":
+            return ()
+        else:
+            return j.data.serializer.json.loads(self._args)
+
+    @args.setter
+    def args(self,val):
+        if val == ():
+            self._args = ""
+        else:
+            self._args = j.data.serializer.json.dumps(val, True, True)     
+
+    @property
+    def kwargs(self):
+        if self._kwargs == "":
+            return {}
+        else:
+            return j.data.serializer.json.loads(self._kwargs)
+
+    @kwargs.setter
+    def kwargs(self,val):
+        if val == {}:
+            self._kwargs = ""
+        else:
+            self._kwargs = j.data.serializer.json.dumps(val, True, True)     
 
     @property
     def _args1line(self):
-        args = self.argsjson.replace("\n", "")
-        args = args.replace("'", "")
-        args = args.replace("\"", "")
-        args = args.replace("{", "")
-        args = args.replace("}", ",")
-        args = args.replace(",,", ",")
-        args = args.replace(" ", "")
+        out=""
+        for arg in self.args:
+            out+="%s,"%arg
+        out=out.strip(",")
+        out+="|"
+        for key,arg in self.kwargs.items():
+            out+="%s!%s,"%(key,arg)
+        out=out.strip(",")
+        args=out.strip()
+        if len(args)>60:
+            args=j.data.hash.md5_string(args)
         return args
 
     @property
     def path(self):
-        if self._path == "":
-            self._path = inspect.getsourcefile(self.method).replace("//", "/")
         return self._path
 
+    @property
+    def selfobj(self):
+        if self._selfobj!=None:
+            return self._selfobj
 
+        if self.selfGeneratorCode!="":
+            try:
+                l={}
+                exec(self.selfGeneratorCode,globals(),l)
+                self._selfobj=l["selfobj"]
+            except Exception as e:
+                self.stdouterr += "SELF OBJ ERROR:\n%s" % e
+                self.state = "ERROR"
+                raise RuntimeError("%s" % str(self))                        
+
+        return self._selfobj
 
     def execute(self):
-        self.check()
+        self.check() #see about changed source code
+
+        if self.force:
+            self.state="FORCE"
+            print ("FORCE")
+
         if self.state == "OK":
             print("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
             return
+
+        if self.state == "ERROR":
+            print ("ACTION WAS ALREADY IN ERROR:")
+            raise RuntimeError("%s" % str(self))
 
         print("  * %-20s: %s" % (self.name, self._args1line))
 
@@ -308,28 +389,48 @@ class Action:
         if j.actions.showonly==False:
             rcode = 0
             output = ""
-            for i in range(self.retry + 1):
+            counter=0
+            ok=False
+            err=""
+            while ok==False and counter<self.retry+1:
                 try:
-                    self.result = self.method(**self.args)
+                    if self.selfobj!=None:
+                        self.result = self.method(self.selfobj,*self.args,**self.kwargs)
+                    else:
+                        self.result = self.method(*self.args,**self.kwargs)
+                    ok=True
+                    rcode=0
+                    self.traceback=""
                 except Exception as e:
-                    if self.retry > 1 and i < self.retry:
-                        time.sleep(0.1)
-                        print("  RETRY, ERROR (%s/%s)" % (i + 1, self.retry))
-                        continue
+                    for line in traceback.format_stack():
+                        if "/IPython/" in line:
+                            continue
+                        if "JumpScale/tools/actions" in line:
+                            continue
+                        line=line.strip().strip("' ").strip().replace("File ","")
+                        err+="%s\n"%line.strip()
+                    err+="ERROR:%s\n"%e
+                    self.traceback=err
+                    counter+=1
+                    time.sleep(0.1)
+                    print("  RETRY, ERROR (%s/%s)" % (counter, self.retry))
                     rcode = 1
-                    self.stdouterr += "ERROR:\n%s" % e
-                break
+            
             if self._stdOutput == False:
                 j.tools.console.enableOutput()
                 self.stdouterr += j.tools.console.getOutput()
+
+    
             if rcode > 0:
+                if err!="":
+                    self.stdouterr += err
                 self.state = "ERROR"
-                print(self.errormsg)
-                if self.actionRecover != None:
-                    self.actionRecover.execute()
+                print(str(self))
                 self.save()
+                if self.actionRecover != None:
+                    self.actionRecover.execute()                
                 if self.die:
-                    raise RuntimeError("%s" % self.errormsg)
+                    raise RuntimeError("%s" % str(self))
             else:
                 self.state = "OK"
             self.save(checkcode=True)
@@ -340,23 +441,22 @@ class Action:
 
         return rcode
 
-    @property
-    def errormsg(self):
-        if self.state == "ERROR":
-            msg = "***ERROR***\n"
-            msg += str(self)
-            if self.source != "":
-                msg += "SOURCE:\n"
-                msg += j.data.text.indent(self.source) + "\n"
-            return msg
-        return ""
-
     def __str__(self):
-        msg = "action: %-20s runid:%-15s      (%s)\n" % (self.name, self.runid, self.state)
+        msg=""
+        if self.state=="ERROR":
+            msg += "***ERROR***\n"
+        msg += "action: %-20s runid:%-15s      (%s)\n" % (self.name, self.runid, self.state)
+        if self.state=="ERROR":
+            msg += "    %s\n"%self.key 
         msg += "    path: %s\n" % self.path
-        if self.argsjson != "":
+        if self._args != "":
             msg += "ARGS:\n"
-            msg += j.data.text.indent(self.argsjson.strip())
+            msg += j.data.text.indent(self._args.strip())
+            if msg[-1]!="\n":
+                msg+="\n"
+        if self._kwargs != "":
+            msg += "KWARGS:\n"
+            msg += j.data.text.indent(self._kwargs.strip())
             if msg[-1]!="\n":
                 msg+="\n"
         if self.doc != "":
@@ -369,9 +469,20 @@ class Action:
             if msg[-1]!="\n":
                 msg+="\n"
         if self.result != None:
-            msg += "RESULT:\n%s" % j.data.text.indent(j.data.serializer.json.dumps(self.result, True, True))
+            msg += "RESULT:\n%s" % j.data.text.indent(self.result)
+        if self.state=="ERROR":
+            if self.source != "":
+                msg += "SOURCE:\n"
+                msg += j.data.text.indent(self.source) + "\n"
+            if self.traceback != "":
+                msg += "TRACEBACK:\n"
+                msg += j.data.text.indent(self.traceback) + "\n"
         if msg[-1]!="\n":
             msg+="\n"
+                
+            
+
+
         return msg
 
     __repr__ = __str__

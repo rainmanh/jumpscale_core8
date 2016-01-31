@@ -61,10 +61,8 @@ class Text:
                
         return out
 
-    def indent(self,instr,nspaces=4, ntabs=0, flatten=False,wrap=120):
-        """Indent a string a given number of spaces or tabstops.
-
-        indent(str,nspaces=4,ntabs=0) -> indent str by ntabs+nspaces.
+    def indent(self,instr,nspaces=4,wrap=120,strip=True,indentchar=" "):
+        """Indent a string a given number of spaces.
 
         Parameters
         ----------
@@ -73,12 +71,6 @@ class Text:
             The string to be indented.
         nspaces : int (default: 4)
             The number of spaces to be indented.
-        ntabs : int (default: 0)
-            The number of tabs to be indented.
-        flatten : bool (default: False)
-            Whether to scrub existing indentation.  If True, all lines will be
-            aligned to the same indentation.  If False, existing indentation will
-            be strictly increased.
 
         Returns
         -------
@@ -86,21 +78,18 @@ class Text:
         str|unicode : string indented by ntabs and nspaces.
 
         """
+        if strip:
+            instr=self.strip(instr)
         if wrap>0:
             instr=self.wrap(instr,wrap)
             flatten=True
         if instr is None:
             return
-        ind = '\t'*ntabs+' '*nspaces
-        if flatten:
-            pat = re.compile(r'^\s*', re.MULTILINE)
-        else:
-            pat = re.compile(r'^', re.MULTILINE)
-        outstr = re.sub(pat, ind, instr)
-        if outstr.endswith(os.linesep+ind):
-            return outstr[:-len(ind)]
-        else:
-            return outstr
+        ind = indentchar*nspaces
+        out=""
+        for line in instr.split("\n"):
+            out+="%s%s\n"%(ind,line)
+        return out
 
     
     def toUnicode(self,value, codec='utf-8'):

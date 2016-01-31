@@ -130,7 +130,7 @@ class Openvclcoud(object):
 
             # generate key pair on the vm
             print('[+] generating keypair on the vm')
-            cl.ssh_keygen('root', 'rsa')
+            cl.ssh.keygen('root', 'rsa')
 
             # secure vm and give access to the local machine
             u = j.ssh.unix.get(cl)
@@ -332,7 +332,7 @@ metadata.openvcloud            =
 
             # generate key pair on the vm
             print('generate keypair on the vm')
-            cl.ssh_keygen('root', 'rsa')
+            cl.ssh.keygen('root', 'rsa')
 
             self.actionDone(spacesecret, "vnas_machinecreate", (ip, port))
         else:

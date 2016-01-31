@@ -4,11 +4,10 @@ from JumpScale import j
 import copy
 
 
-# j.sal.ubuntu.check()
-
-
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
+# Many ideas & lines of code have been taken from:
+#
 # Project   : Cuisine - Functions to write Fabric recipes
 # -----------------------------------------------------------------------------
 # License   : Revised BSD License
@@ -23,6 +22,8 @@ import copy
 # Creation  : 26-Apr-2010
 # Last mod  : Nov-2015
 # -----------------------------------------------------------------------------
+#
+# modified by Jumpscale authors & repackaged, also lots of new modules in this directory & different approach
 
 
 import base64, hashlib, os, re, string, tempfile, subprocess, types, threading, sys
@@ -38,61 +39,17 @@ MAC_EOL                 = "\n"
 UNIX_EOL                = "\n"
 WINDOWS_EOL             = "\r\n"
 
-MODE_LOCAL              = "MODE_LOCAL"
-MODE_SUDO               = "MODE_SUDO"
+# MODE_LOCAL              = "MODE_LOCAL"
+# MODE_SUDO               = "MODE_SUDO"
 
-SUDO_PASSWORD           = "CUISINE_SUDO_PASSWORD"
-OPTION_PACKAGE          = "CUISINE_OPTION_PACKAGE"
-OPTION_PYTHON_PACKAGE   = "CUISINE_OPTION_PYTHON_PACKAGE"
-OPTION_OS_FLAVOUR       = "CUISINE_OPTION_OS_FLAVOUR"
-OPTION_USER             = "CUISINE_OPTION_USER"
-OPTION_GROUP            = "CUISINE_OPTION_GROUP"
-OPTION_HASH             = "CUISINE_OPTION_HASH"
+# SUDO_PASSWORD           = "CUISINE_SUDO_PASSWORD"
+# OPTION_PACKAGE          = "CUISINE_OPTION_PACKAGE"
+# OPTION_PYTHON_PACKAGE   = "CUISINE_OPTION_PYTHON_PACKAGE"
+# OPTION_OS_FLAVOUR       = "CUISINE_OPTION_OS_FLAVOUR"
+# OPTION_USER             = "CUISINE_OPTION_USER"
+# OPTION_GROUP            = "CUISINE_OPTION_GROUP"
+# OPTION_HASH             = "CUISINE_OPTION_HASH"
 
-CMD_APT_GET             = 'DEBIAN_FRONTEND=noninteractive apt-get -q --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" '
-SHELL_ESCAPE            = " '\";`|"
-STATS                   = None
-
-AVAILABLE_OPTIONS = dict(
-    package        = ["apt", "yum", "zypper", "pacman", "emerge", "pkgin", "pkgng"],
-    python_package = ["easy_install","pip"],
-    os_flavour     = ["linux","bsd"],
-    user           = ["linux","bsd"],
-    group          = ["linux","bsd"],
-    hash           = ["python", "openssl"]
-)
-
-DEFAULT_OPTIONS = dict(
-    package        = "apt",
-    python_package = "pip",
-    os_flavour     = "linux",
-    user           = "linux",
-    group          = "linux",
-    hash           = "python"
-)
-
-# logging.info("Welcome to Cuisine v{0}".format(VERSION))
-
-# =============================================================================
-#
-# STATS
-#
-# =============================================================================
-
-class Stats(object):
-    """A work-in-progress class to store cuisine's statistics, so that you
-    can have a summary of what has been done."""
-
-    def __init__( self ):
-        self.filesRead         = []
-        self.filesWritten      = []
-        self.packagesInstalled = []
-
-# =============================================================================
-#
-# DECORATORS
-#
-# =============================================================================
 
 def stringify( value ):
     """Turns the given value in a user-friendly string that can be displayed"""
@@ -103,14 +60,11 @@ def stringify( value ):
     else:
         return str(value)
 
-def is_sudo():
-    return True
-
 def shell_safe( path ):
+    SHELL_ESCAPE            = " '\";`|"
     """Makes sure that the given path/string is escaped and safe for shell"""
     path= "".join([("\\" + _) if _ in SHELL_ESCAPE else _ for _ in path])
     return path
-
 
 
 def is_ok( text ):
@@ -224,52 +178,117 @@ def text_strip_margin(text, margin="|"):
             res.append(line)
     return eol.join(res)
 
-def text_template(text, variables):
-    """Substitutes '${PLACEHOLDER}'s within the text with the
-    corresponding values from variables."""
-    template = string.Template(text)
-    return template.safe_substitute(variables)
+# def text_template(text, variables):
+#     """Substitutes '${PLACEHOLDER}'s within the text with the
+#     corresponding values from variables."""
+#     template = string.Template(text)
+#     return template.safe_substitute(variables)
 
 
-
-
-class OurCuisineFactory:
-    def __init__(self):
-        self.__jslocation__ = "j.tools.cuisine"
-        self._local=None
-
-
-    @property
-    def local(self):
-        if self._local==None:
-            self._local=OurCuisine(j.tools.executor.getLocal())
-        return self._local
-
-    def get(self,executor=None):
-        """
-        example:
-        executor=j.tools.executor.getSSHBased(addr='localhost', port=22,login="root",passwd="1234",pushkey="ovh_install")
-        cuisine=j.tools.cuisine.get(executor)
-        cuisine.upstart_ensure("apache2")
-
-        or if used without executor then will be the local one
-
-        """
-        executor=j.tools.executor.get(executor)
-        return OurCuisine(executor)
 
 from CuisineInstaller import CuisineInstaller
+from CuisineSystemd import CuisineSystemd
+from CuisineUpstart import CuisineUpstart
+from CuisinePackage import CuisinePackage
+from CuisineProcess import CuisineProcess
+from CuisinePIP import CuisinePIP
+from CuisineNet import CuisineNet
+from CuisineSSH import CuisineSSH
+from CuisineNS import CuisineNS
+from CuisineUser import CuisineUser
+from CuisineGit import CuisineGit
+from CuisineGroup import CuisineGroup
+
+def action(cuisineid,*args,**kwargs):
+    cuisine=j.tools.cuisine.get(cuisineid)
+    cuisine.run(*args,**args)
+
+#will be executed using actions
+def actionrun(func):
+    def wrapper(*args, **kwargs):
+        cuisine=args[0]
+        force=kwargs.pop("force",False)
+        
+        if j.tools.cuisine.useActions:
+            args=args[1:]
+            # result = func(*args, **kwargs)
+            cm="selfobj=j.tools.cuisine.getFromId('%s')"%cuisine.id
+            j.actions.setRunId(cuisine.runid)
+            action=j.actions.add(action=func,actionRecover=None,args=args,kwargs=kwargs,die=True,stdOutput=True,errorOutput=True,retry=1,executeNow=True,selfGeneratorCode=cm,force=force)
+            if action.state!="OK":
+                if "die" in kwargs:
+                    if kwargs["die"]==False:
+                        return action
+                raise RuntimeError("**ERROR**:\n%s"%action)
+            return action.result
+        else:
+            return func(*args,**kwargs)
+    return wrapper
 
 class OurCuisine():
 
     def __init__(self,executor):
         self.cd="/"
+
         self.executor=executor
-        self.sudomode = False 
+
         self._installer = None
         self._platformtype=None
+        self._id=None
+        self._package=None
+        self._upstart=None
+        self._systemd=None
+        self._process=None
+        self._pip=None
+        self._ns=None
+        self._ssh=None
+        self._net=None
+        self._group=None
+        self._user=None
+        self._git=None
+        self.runid="cuisine:%s:%s"%(self.executor.addr,self.executor.port)
+        self.done=[]
 
+    @property
+    def package(self):
+        if self._package==None:
+            
+            self._package=CuisinePackage(self.executor,self)
+        return self._package
 
+    @property
+    def upstart(self):
+        if self._upstart==None:
+            self._upstart=CuisineUpstart(self.executor,self)
+        return self._upstart
+
+    @property
+    def systemd(self):
+        if self._systemd==None:            
+            self._systemd=CuisineSystemd(self.executor,self)
+        return self._systemd
+
+    @property
+    def process(self):
+        if self._process==None:
+            self._process=CuisineProcess(self.executor,self)
+        return self._process
+
+    @property
+    def pip(self):
+        if self._pip==None:            
+            self._pip=CuisinePIP(self.executor,self)
+        return self._pip   
+    
+    @property
+    def id(self):
+        if self._id==None:
+            if "addr" in self.executor.__dict__:
+                self._id="%s:%s"%(self.executor.addr,self.executor.port)
+            else:
+                self._id=""
+        return self._id
+    
     @property
     def platformtype(self):
         if self._platformtype==None:
@@ -279,82 +298,45 @@ class OurCuisine():
     @property
     def installer(self):
         if self._installer==None:
-            self._installer=CuisineInstaller(self)
+            self._installer=CuisineInstaller(self.executor,self)
         return self._installer
 
+    @property
+    def ns(self):
+        if self._ns==None:
+            self._ns=CuisineNS(self.executor,self)
+        return self._ns
 
-    # =============================================================================
-    #
-    # UPSTART
-    #
-    # =============================================================================
+    @property
+    def ssh(self):
+        if self._ssh==None:
+            self._ssh=CuisineSSH(self.executor,self)
+        return self._ssh
 
-    def upstart_ensure(self,name):
-        """Ensures that the given upstart service is self.running, starting
-        it if necessary."""
-        status = self,sudo("service %s status" % name,warn_only=True)
-        if status.failed:
-            status = self.sudo("service %s start" % name)
-        return status
+    @property
+    def net(self):
+        if self._net==None:
+            self._net=CuisineNet(self.executor,self)
+        return self._net
 
-    def upstart_reload(self,name):
-        """Reloads the given service, or starts it if it is not self.running."""
-        status = self.sudo("service %s reload" % name,warn_only=True)
-        if status.failed:
-            status = self.sudo("service %s start" % name)
-        return status
 
-    def upstart_restart(self,name):
-        """Tries a `restart` command to the given service, if not successful
-        will stop it and start it. If the service is not started, will start it."""
-        status = self.sudo("service %s status" % name,warn_only=True)
-        if status.failed:
-            return self.sudo("service %s start" % name)
-        else:
-            status = self.sudo("service %s restart" % name)
-            if status.failed:
-                self.sudo("service %s stop"  % name)
-                return self.sudo("service %s start" % name)
-            else:
-                return status
+    @property
+    def user(self):
+        if self._user==None:
+            self._user=CuisineUser(self.executor,self)
+        return self._user
 
-    def upstart_stop(self,name):
-        """Ensures that the given upstart service is stopped."""
-        status = self.sudo("service %s status" % name,warn_only=True)
-        if status.succeeded:
-            status = self.sudo("service %s stop" % name)
-        return status
+    @property
+    def group(self):
+        if self._group==None:
+            self._group=CuisineGroup(self.executor,self)
+        return self._group
 
-    def systemd_ensure(self,name,cmd,descr=""):
-        """
-        Ensures that the given systemd service is self.running, starting
-        it if necessary and also create it
-        """
-
-        C="""
-        [Unit]
-        Description=$descr
-
-        [Service]
-        ExecStart=$cmd
-        Restart=on-abort
-
-        [Install]
-        WantedBy=multi-user.target
-        """
-        C=C.replace("$cmd",cmd)
-        if descr=="":
-            descr=name
-        C=C.replace("$descr",descr)
-
-        self.file_write("/etc/systemd/system/%s.service"%name,C)
-
-        self.run("systemctl daemon-reload;systemctl restart %s"%name)
-        self.run("systemctl enable %s"%name)
-        self.run("systemctl daemon-reload;systemctl restart %s"%name)
-
-        
-
+    @property
+    def git(self):
+        if self._git==None:
+            self._git=CuisineGit(self.executor,self)
+        return self._git
 
 
     # =============================================================================
@@ -496,7 +478,44 @@ class OurCuisine():
         else:
             return None
 
-    def file_write(self,location, content, mode=None, owner=None, group=None, check=True):
+    @property
+    def hostname(self):
+        if self.isMac:
+            hostfile="/private/etc/hostname"
+        else:
+            hostfile="/etc/hostname"        
+        return self.file_read(hostfile)   
+
+    @hostname.setter
+    def hostname(self,val):
+        if self.isMac:
+            hostfile="/private/etc/hostname"
+            self.file_write(hostfile,val,sudo=True)
+        else:
+            hostfile="/etc/hostname"
+            self.file_write(hostfile,val)
+        self.run("hostname %s"%val)
+
+
+    @property
+    def hostfile(self):
+        if self.isMac:
+            hostfile="/private/etc/hosts"
+        else:
+            hostfile="/etc/hosts"        
+        return self.file_read(hostfile)    
+
+    @hostfile.setter
+    def hostfile(self,val):
+        if self.isMac:
+            hostfile="/private/etc/hosts"
+            self.file_write(hostfile,val,sudo=True)
+        else:
+            hostfile="/etc/hosts"
+            self.file_write(hostfile,val)
+        
+    # @actionrun
+    def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False):
         print ("filewrite: %s"%location)
         content=j.data.text.strip(content)
         content2 = content.encode('utf-8')
@@ -507,7 +526,10 @@ class OurCuisine():
         content_base64=base64.b64encode(content2).decode()
 
         if sig != self.file_md5(location):
-            self.run('echo "%s" | openssl base64 -A -d > %s' % (content_base64, shell_safe(location)),showout=False)
+            cmd='echo "%s" | openssl base64 -A -d > %s' % (content_base64, shell_safe(location))
+            if sudo:
+                cmd="sudo %s"%cmd
+            self.run(cmd,showout=False)
 
             if check:
                 file_sig = self.file_md5(location)
@@ -614,7 +636,7 @@ class OurCuisine():
         res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
         if res.find("command not found")!=-1:
             #print could not find python need to install
-            self.package_install("python3.5")
+            self.package.install("python3.5")
             res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
         return res
             
@@ -647,133 +669,6 @@ class OurCuisine():
             return None
         # else:
         #     return self.run('openssl dgst -md5 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
-
-    # =============================================================================
-    #
-    # PROCESS OPERATIONS
-    #
-    # =============================================================================
-
-    def process_tcpport_check(self,port,prefix):
-        res=[]
-        for item in self.process_info_get(prefix):
-            if item["localport"]==port:
-                return True
-        return False
-
-    def process_info_get(self,prefix):
-        res=[]
-        for item in self.processes_info_get():
-            if item["process"].lower().startswith(prefix):
-                res.append(item)        
-        return res
-
-
-    def processes_info_get(self):
-        """
-        return
-        [$item,]
-
-        $item is dict
-
-        {'local': '0.0.0.0',
-         'localport': 6379,
-         'pid': 13824,
-         'process': 'redis',
-         'receive': 0,
-         'receivebytes': 0,
-         'remote': '0.0.0.0',
-         'remoteport': '*',
-         'send': 0,
-         'sendbytes': 0,
-         'parentpid':0}
-
-
-        """
-        result=[]
-        if "linux" in self.platformtype.platformtypes:
-            cmdlinux='netstat -lntp'
-            out=self.run(cmdlinux,showout=False)
-            #to troubleshoot https://regex101.com/#python
-            p = re.compile(u"tcp *(?P<receive>[0-9]*) *(?P<send>[0-9]*) *(?P<local>[0-9*.]*):(?P<localport>[0-9*]*) *(?P<remote>[0-9.*]*):(?P<remoteport>[0-9*]*) *(?P<state>[A-Z]*) *(?P<pid>[0-9]*)/(?P<process>\w*)")
-            for line in out.split("\n"):
-                res=re.search(p, line)
-                if res!=None:
-                    d=res.groupdict()
-                    d["process"]=d["process"].lower()
-                    if d["state"]=="LISTEN":
-                        d.pop("state")
-                        result.append(d)
-
-        elif "darwin" in self.platformtype.platformtypes:
-            # cmd='sudo netstat -anp tcp'
-            # # out=self.run(cmd)
-            # p = re.compile(u"tcp4 *(?P<rec>[0-9]*) *(?P<send>[0-9]*) *(?P<local>[0-9.*]*) *(?P<remote>[0-9.*]*) *LISTEN")
-            cmd="lsof -i 4tcp -sTCP:LISTEN -FpcRn"
-            out=self.run(cmd,showout=False)
-            d={}
-            for line in out.split("\n"):
-                if line.startswith("p"):
-                    d={'local': '','localport': 0,'pid': 0,'process': '','receive': 0,'receivebytes': 0,'remote': '','remoteport': 0,'send': 0,'sendbytes': 0,'parentpid':0}
-                    d["pid"]=int(line[1:])
-                if line.startswith("R"):
-                    d["parentpid"]=int(line[1:])
-                if line.startswith("c"):
-                    d["process"]=line[1:].strip()
-                if line.startswith("n"):
-                    a,b=line.split(":")
-                    d["local"]=a[1:].strip()
-                    d["localport"]=int(b)
-                    result.append(d)
-
-        else:            
-            raise RuntimeError("platform not supported")
-
-        for d in result:
-            for item in ["receive","send","pid","localport","remoteport"]:
-                if d[item]=="*":
-                    continue
-                else:
-                    d[item]=int(d[item])
-
-        return result 
-
-        
-
-    def process_find(self,name, exact=False):
-        """Returns the pids of processes with the given name. If exact is `False`
-        it will return the list of all processes that start with the given
-        `name`."""
-        is_string = isinstance(name,str) or isinstance(name,unicode)
-        # NOTE: ps -A seems to be the only way to not have the grep appearing
-        # as well
-        if is_string: processes = self.run("ps -A | grep {0} ; true".format(name))
-        else:         processes = self.run("ps -A")
-        res = []
-        for line in processes.split("\n"):
-            if not line.strip(): continue
-            line = RE_SPACES.split(line,3)
-            # 3010 pts/1    00:00:07 gunicorn
-            # PID  TTY      TIME     CMD
-            # 0    1        2        3
-            # We skip lines that are not like we expect them (sometimes error
-            # message creep up the output)
-            if len(line) < 4: continue
-            pid, tty, time, command = line
-            if is_string:
-                if pid and ((exact and command == name) or (not exact and command.find(name) >= 0)):
-                    res.append(pid)
-            elif name(line) and pid:
-                res.append(pid)
-        return res
-
-
-    def process_kill(self,name, signal=9, exact=False):
-        """Kills the given processes with the given name. If exact is `False`
-        it will return the list of all processes that start with the given
-        `name`."""
-        for pid in self.process_find(name, exact):
-            self.run("kill -s {0} {1} ; true".format(signal, pid))
 
     # =============================================================================
     #
@@ -849,8 +744,8 @@ class OurCuisine():
         cmd="find %s"%path
         if recursive==False:
             cmd+=" -maxdepth 1"
-        if contentsearch=="" and extendinfo==False:
-            cmd+=" -print"
+        # if contentsearch=="" and extendinfo==False:
+        #     cmd+=" -print"
         if pattern!="":
             cmd+=" -path '%s'"%pattern
         if contentsearch!="":
@@ -865,59 +760,98 @@ class OurCuisine():
         if contentsearch!="":
             cmd+=" -print0 | xargs -r -0 grep -l '%s'"%contentsearch
 
-        out=self.run(cmd)
+        out=self.run(cmd,showout=False)
+        print (cmd)
 
-        paths=[item.strip() for item in out.split("\n")]
+        paths=[item.strip() for item in out.split("\n") if item.strip()!=""]
+        paths=[item for item in paths if item.startswith("+ find")==False]
 
         # print cmd
 
         paths2=[]
         if extendinfo:
             for item in paths:
-                path,size,mod=item.split("||")
-                if path.strip()=="":
-                    continue
-                paths2.append([path,int(size),int(float(mod))])
+                if item.find("||")!=-1:
+                    path,size,mod=item.split("||")
+                    if path.strip()=="":
+                        continue
+                    paths2.append([path,int(size),int(float(mod))])                        
         else:
             paths2=[item for item in paths if item.strip()!=""]
 
         return paths2
 
-
-
-    # def changePasswd(self,passwd,login="recovery"):
-    #     if len(passwd)<6:
-    #         j.events.opserror_critical("Choose longer passwd in changePasswd")
-    #     self.connection.run('echo "{username}:{password}" | chpasswd'.format(
-    #         username=login,
-    #         password=passwd)
-    #     )
-
-    def users_get(self):
-        users=self.fs_find("/home",recursive=False)
-        users=[j.do.getBaseName(item) for item in users if (item.strip()!="" and item.strip("/")!="home")]
-        return users
-
     # -----------------------------------------------------------------------------
     # CORE
     # -----------------------------------------------------------------------------
 
-    def sudo(self, cmd, warn_only=False):
+    @actionrun
+    def sudo(self, cmd, die=True):
         passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
-        cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
-        return self.run(cmd, warn_only)
+        cmd2 = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
+        return self.run(cmd2, die=die)
 
+    @actionrun
     def run(self,cmd,die=True,debug=None,checkok=False,showout=True):
-        if self.sudomode:
-            passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
-            cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
+        import copy
+
         self.executor.curpath=self.cd
         # print ("CMD:'%s'"%cmd)
         if debug!=None:
             debugremember=copy.copy(debug)
             self.executor.debug=debug
 
-        rc,out=self.executor.execute(cmd,checkok=checkok, die=die==True, combinestdr=True,showout=showout)
+        rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)
+
+        if rc>0:
+            items2check=["sudo","wget","curl","git","openssl"]
+            next=True
+            while next==True:
+                next=False
+                if out.find("target not found: python3")!=-1 and not "python" in self.done:
+                    from IPython import embed
+                    print ("DEBUG NOW python3 not found")
+                    embed()
+                    self.done.append("python")
+                    if self.isArch:
+                        self.package.install("python3")
+                    else:
+                        self.package.install("python3.5")                    
+                    next=True
+
+                if out.find("pip3: command not found")!=-1 and not "pip" in self.done: 
+                    from IPython import embed
+                    print ("DEBUG NOW pip3 not found")
+                    embed()
+                                                        
+                    self.done.append("pip")
+                    self.installer.pip()
+                    next=True
+
+                if out.lower().find("fatal error")!=-1 and out.lower().find("python.h")!=-1 \
+                            and out.lower().find("no such")!=-1\
+                            and not "pythondevel" in self.done:
+                    from IPython import embed
+                    print ("DEBUG NOW pythondevel not found")
+                    embed()
+                    
+                    self.done.append("pythondevel")
+                    self.installer.pythonDevelop()
+                    next=True
+
+                for package in items2check:        
+                    if out.find("not found")!=-1 and  out.find(package)!=-1:
+                        from IPython import embed
+                        print ("DEBUG NOW cmd not found")
+                        embed()
+                        
+                        if not package in self.done:
+                            self.done.append(package)
+                            self.installer.base()
+                            next=True
+
+                if next:
+                    rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)
 
         if debug!=None:
             self.executor.debug=debugremember
@@ -936,6 +870,7 @@ class OurCuisine():
     def pwd(self):
         return self.cd
 
+    @actionrun
     def run_script(self,content):
         content=j.data.text.lstrip(content)
         if content[-1]!="\n":
@@ -953,51 +888,6 @@ class OurCuisine():
             # raise Exception("Could not execute bash script.\n%s\nout:%s\n"%(content,out))
         return "\n".join(out.split("\n")[:-1])
 
-
-    # -----------------------------------------------------------------------------
-    # PIP PYTHON PACKAGE MANAGER
-    # -----------------------------------------------------------------------------
-
-    def python_package_upgrade(self,package):
-        '''
-        The "package" argument, defines the name of the package that will be upgraded.
-        '''
-        self.run('pip install --upgrade %s' % (package))
-
-    def python_package_install(self,package=None,r=None):
-        '''
-        The "package" argument, defines the name of the package that will be installed.
-        The argument "r" referes to the requirements file that will be used by pip and
-        is equivalent to the "-r" parameter of pip.
-        Either "package" or "r" needs to be provided
-        The optional argument "E" is equivalent to the "-E" parameter of pip. E is the
-        path to a virtualenv. If provided, it will be added to the pip call.
-        '''
-        pip="pip"
-        if package:
-            self.run('pip install %s' %(package))
-        elif r:
-            self.run('pip install -r %s' %(r))
-        else:
-            raise Exception("Either a package name or the requirements file has to be provided.")
-
-    def python_package_ensure(self,package=None, r=None):
-        '''
-        The "package" argument, defines the name of the package that will be ensured.
-        The argument "r" referes to the requirements file that will be used by pip and
-        is equivalent to the "-r" parameter of pip.
-        Either "package" or "r" needs to be provided
-        '''
-        self.python_package_install(package,r)
-
-    def python_package_remove(self,package):
-        '''
-        The "package" argument, defines the name of the package that will be ensured.
-        The argument "r" referes to the requirements file that will be used by pip and
-        is equivalent to the "-r" parameter of pip.
-        Either "package" or "r" needs to be provided
-        '''
-        return self.run('pip uninstall %s' %(package))
 
 
     # =============================================================================
@@ -1017,12 +907,9 @@ class OurCuisine():
         if package is None:
             package = command
         if not self.command_check(command):
-            self.package_install(package)
+            self.package.install(package)
         assert self.command_check(command), \
             "Command was not installed, check for errors: %s" % (command)
-
-
-
 
 
     # =============================================================================
@@ -1031,29 +918,12 @@ class OurCuisine():
     #
     # =============================================================================
 
-    def tmux_execute(self,cmd,interactive=False):
-        #@todo (*1*) needs to be improved,should be able to specify names, kill 1 screen when interactive  (windowname)
-        res=self.run("tmux has-session -t cmd 2>&1 ;echo")
-        if not res.find("session not found")==-1 or res.find("Connection refused")!=-1:
-            self.run("tmux new-session -s cmd -d")
-        if interactive:
-            cmd0="tmux send -t cmd '%s' ENTER"%cmd
-            self.run(cmd0)
-            out=""
-        else:
-            self.file_unlink("/tmp/tmuxout")
-            cmd0="tmux send -t cmd '%s > /tmp/tmuxout 2>&1;echo **DONE**>> /tmp/tmuxout 2>&1' ENTER"%cmd
-            self.run(cmd0)
-            out=self.file_read("/tmp/tmuxout")
-            self.file_unlink("/tmp/tmuxout")
-            if out.find("**DONE**")==-1:
-                j.events.opserror_critical("Cannot execute %s on tmux on remote %s.\nError:\n%s"%(cmd,"anode",out))
+    @property
+    def tmux(self):
+        j.sal.tmux._local=self.executor
+        return j.sal.tmux
 
-            out=out.replace("**DONE**","")
-        return out
-
-
-    def tmux_execute_jumpscript(self,script):
+    def tmux_execute_jumpscript(self,script,sessionname="ssh", screenname="js"):
         """
         execute a jumpscript (script as content) in a remote tmux command, the stdout will be returned
         """
@@ -1062,7 +932,8 @@ class OurCuisine():
             script="from JumpScale import j\n\n%s"%script
         path="/tmp/jumpscript_temp_%s.py"%j.data.idgenerator.generateRandomInt(1,10000)
         self.file_write(path,script)
-        out=self.tmux_execute("jspython %s"%path)
+        cmd="jspython %s"%path
+        c.tmux.executeInScreen(sessionname,screenname,cmd)
         self.file_unlink(path)
         return out
 
@@ -1080,332 +951,6 @@ class OurCuisine():
         return out
 
 
-    # =============================================================================
-    #
-    # ns
-    #
-    # =============================================================================
-
-    def hostfile_get_ipv4(self,hostfile=""):
-        if hostfile=="":
-            hostfile = self.file_read('/etc/hosts')
-        result={}
-        for line in hostfile.split('\n'):
-            ipaddr_found = re.search(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b',line)
-            if ipaddr_found!=None:
-                ipaddr_found=ipaddr_found.group()
-                if ipaddr_found not in result:
-                    result[ipaddr_found]=[]
-                hosts=line.replace(ipaddr_found,"").strip().split(" ")
-                for host in hosts:
-                    if host.strip() not in result[ipaddr_found]:
-                        result[ipaddr_found].append(host)
-        return result
-
-
-    def hostfile_set(self,name,ipaddr):
-        hostfile = self.file_read('/etc/hosts')
-        C=""
-        result={}
-        for line in hostfile.split('\n'):
-            ipaddr_found = re.search(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b',line)
-            if ipaddr_found==None:
-                C+="%s\n"%line
-
-
-        res=self.hostfile_get_ipv4(hostfile)
-        if not ipaddr in res:
-            res[ipaddr]=[name]
-        else:
-            if name not in res[ipaddr]:
-                res[ipaddr].append(name)
-
-        C+="\n"
-        for ipaddr,names in res.items():
-            namestr=" ".join(names)
-            C+="%-20s %s\n"%(ipaddr,namestr)
-
-        self.file_write('/etc/hosts',C)
-
-
-    def ns_get(self):
-        file = self.file_read('/etc/resolv.conf')
-        results = []
-
-        for line in file.split('\n'):
-            nameserver = re.search(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b',line)
-            if nameserver:
-                nameserver = nameserver.string.replace('nameserver', '').strip()
-                results.append(nameserver)
-        return results
-
-    def ns_set(self, nameservers=[], commit=False):
-        if not nameservers:
-            raise ValueError('You need to provide at least one DNS server')
-        if not isinstance(nameservers, list):
-            raise ValueError('nameservers must be a list')
-
-        content = '#EDITED BY JUMPSCALE NETWORK MANAGER\n'
-        content += '#DO NOT EDIT THIS FILE BY HAND -- YOUR CHANGES WILL BE OVERWRITTEN\n'
-
-        for ns in nameservers:
-            content += 'nameserver %s\n' % ns
-        self.file_write('/etc/resolv.conf', content)
-
-    #####################
-
-    def ssh_keygen(self,user, keytype="dsa"):
-        """Generates a pair of ssh keys in the user's home .ssh directory."""
-        d = self.user_check(user)
-        assert d, "User does not exist: %s" % (user)
-        home = d["home"]
-        key_file = home + "/.ssh/id_%s.pub" % keytype
-        if not self.file_exists(key_file):
-            self.dir_ensure(home + "/.ssh", mode="0700", owner=user, group=user)
-            self.run("ssh-keygen -q -t %s -f '%s/.ssh/id_%s' -N ''" %
-                (keytype, home, keytype))
-            self.file_attribs(home + "/.ssh/id_%s" % keytype, owner=user, group=user)
-            self.file_attribs(home + "/.ssh/id_%s.pub" % keytype, owner=user, group=user)
-            return key_file
-        else:
-            return key_file
-
-    def ssh_authorize(self,user, key):
-        """Adds the given key to the '.ssh/authorized_keys' for the given
-        user."""
-        d = self.user_check(user, need_passwd=False)
-        if d==None:
-            raise RuntimeError("did not find user:%s"%user)
-        group = d["gid"]
-        keyf  = d["home"] + "/.ssh/authorized_keys"
-        if key[-1] != "\n":
-            key += "\n"
-        if self.file_exists(keyf):
-            d = self.file_read(keyf)
-            if self.file_read(keyf).find(key[:-1]) == -1:
-                self.file_append(keyf, key)
-                return False
-            else:
-                return True
-        else:
-            # Make sure that .ssh directory exists, see #42
-            self.dir_ensure(os.path.dirname(keyf), owner=user, group=group, mode="700")
-            self.file_write(keyf, key,             owner=user, group=group, mode="600")
-            return False
-
-    def ssh_unauthorize(self,user, key):
-        """Removes the given key to the remote '.ssh/authorized_keys' for the given
-        user."""
-        key   = key.strip()
-        d     = user_check(user, need_passwd=False)
-        group = d["gid"]
-        keyf  = d["home"] + "/.ssh/authorized_keys"
-        if self.file_exists(keyf):
-            self.file_write(keyf, "\n".join(_ for _ in file_read(keyf).split("\n") if _.strip() != key), owner=user, group=group, mode="600")
-            return True
-        else:
-            return False
-
-    def user_passwd(self,name, passwd, encrypted_passwd=True):
-        """Sets the given user password. Password is expected to be encrypted by default."""
-        #if passwd.strip()=="":
-            #raise RuntimeError("passwd cannot be empty")
-
-        c="%s:%s" % (name, passwd)
-        encoded_password = base64.b64encode(c.encode('ascii'))
-        if encrypted_passwd:
-            self.sudo("usermod -p '%s' %s" % (encoded_password.decode(), name))
-        else:
-            # NOTE: We use base64 here in case the password contains special chars
-            # TODO: Make sure this openssl command works everywhere, maybe we should use a text_base64_decode?
-            self.sudo("echo %s | openssl base64 -A -d | chpasswd" % (shell_safe(encoded_password)))
-
-
-    def user_create(self,name, passwd=None, home=None, uid=None, gid=None, shell=None,
-        uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None, createhome=True):
-        """Creates the user with the given name, optionally giving a
-        specific password/home/uid/gid/shell."""
-        options = []
-
-        if home:
-            options.append("-d '%s'" % (home))
-        if uid:
-            options.append("-u '%s'" % (uid))
-        #if group exists already but is not specified, useradd fails
-        if not gid and self.group_check(name):
-            gid = name
-        if gid:
-            options.append("-g '%s'" % (gid))
-        if shell:
-            options.append("-s '%s'" % (shell))
-        if uid_min:
-            options.append("-K UID_MIN='%s'" % (uid_min))
-        if uid_max:
-            options.append("-K UID_MAX='%s'" % (uid_max))
-        if fullname:
-            options.append("-c '%s'" % (fullname))
-        if createhome:
-            options.append("-m")
-        self.sudo("useradd %s '%s'" % (" ".join(options), name))
-        if passwd:
-            self.user_passwd(name=name,passwd=passwd,encrypted_passwd=encrypted_passwd)
-
-    def user_check(self,name=None, uid=None, need_passwd=True):
-        """Checks if there is a user defined with the given name,
-        returning its information as a
-        '{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}'
-        or 'None' if the user does not exists.
-        need_passwd (Boolean) indicates if password to be included in result or not.
-            If set to True it parses 'getent shadow' and needs self.sudo access
-        """
-        assert name!=None or uid!=None,     "user_check: either `uid` or `name` should be given"
-        assert name is None or uid is None,"user_check: `uid` and `name` both given, only one should be provided"
-        if name != None:
-            d = self.run("getent passwd | egrep '^%s:' ; true" % (name))
-        elif uid != None:
-            d = self.run("getent passwd | egrep '^.*:.*:%s:' ; true" % (uid))
-        results = {}
-        s = None
-        if d:
-            d = d.split(":")
-            assert len(d) >= 7, "passwd entry returned by getent is expected to have at least 7 fields, got %s in: %s" % (len(d), ":".join(d))
-            results = dict(name=d[0], uid=d[2], gid=d[3], fullname=d[4], home=d[5], shell=d[6])
-            if need_passwd:
-                s = self.sudo("getent shadow | egrep '^%s:' | awk -F':' '{print $2}'" % (results['name']))
-                if s: results['passwd'] = s
-        if results:
-            return results
-        else:
-            return None
-
-    def user_ensure(self,name, passwd=None, home=None, uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True,group=None):
-        """Ensures that the given users exists, optionally updating their
-        passwd/home/uid/gid/shell."""
-        d = self.user_check(name)
-        if not d:
-            self.user_create(name, passwd, home, uid, gid, shell, fullname=fullname, encrypted_passwd=encrypted_passwd)
-        else:
-            options = []
-            if home != None and d.get("home") != home:
-                options.append("-d '%s'" % (home))
-            if uid != None and d.get("uid") != uid:
-                options.append("-u '%s'" % (uid))
-            if gid != None and d.get("gid") != gid:
-                options.append("-g '%s'" % (gid))
-            if shell != None and d.get("shell") != shell:
-                options.append("-s '%s'" % (shell))
-            if fullname != None and d.get("fullname") != fullname:
-                options.append("-c '%s'" % fullname)
-            if options:
-                self.sudo("usermod %s '%s'" % (" ".join(options), name))
-            if passwd:
-                self.user_passwd(name=name, passwd=passwd, encrypted_passwd=encrypted_passwd)
-        if group!=None:
-            self.group_user_add(group=group, user=name)
-
-
-    def user_remove(self,name, rmhome=None):
-        """Removes the user with the given name, optionally
-        removing the home directory and mail spool."""
-        options = ["-f"]
-        if rmhome:
-            options.append("-r")
-        self.sudo("userdel %s '%s'" % (" ".join(options), name))
-
-    def group_create(self,name, gid=None):
-        """Creates a group with the given name, and optionally given gid."""
-        options = []
-        if gid:
-            options.append("-g '%s'" % (gid))
-        self.sudo("groupadd %s '%s'" % (" ".join(options), name))
-
-    def group_check(self,name):
-        """Checks if there is a group defined with the given name,
-        returning its information as:
-        '{"name":<str>,"gid":<str>,"members":<list[str]>}'
-        or
-        '{"name":<str>,"gid":<str>}' if the group has no members
-        or
-        'None' if the group does not exists."""
-        group_data = self.run("getent group | egrep '^%s:' ; true" % (name))
-        if len(group_data.split(":")) == 4:
-            name, _, gid, members = group_data.split(":", 4)
-            return dict(name=name, gid=gid,
-                        members=tuple(m.strip() for m in members.split(",")))
-        elif len(group_data.split(":")) == 3:
-            name, _, gid = group_data.split(":", 3)
-            return dict(name=name, gid=gid, members=(''))
-        else:
-            return None
-
-    def group_ensure(self,name, gid=None):
-        """Ensures that the group with the given name (and optional gid)
-        exists."""
-        d = self.group_check(name)
-        if not d:
-            self.group_create(name, gid)
-        else:
-            if gid != None and d.get("gid") != gid:
-                self.sudo("groupmod -g %s '%s'" % (gid, name))
-
-    def group_user_check(self,group, user):
-        """Checks if the given user is a member of the given group. It
-        will return 'False' if the group does not exist."""
-        d = self.group_check(group)
-        if d is None:
-            return False
-        else:
-            return user in d["members"]
-
-    def group_user_add(self,group, user):
-        """Adds the given user/list of users to the given group/groups."""
-        assert self.group_check(group), "Group does not exist: %s" % (group)
-        if not self.group_user_check(group, user):
-            self.sudo("usermod -a -G '%s' '%s'" % (group, user))
-
-    def group_user_ensure(self,group, user):
-        """Ensure that a given user is a member of a given group."""
-        d = self.group_check(group)
-        if not d:
-            self.group_ensure("group")
-            d = self.group_check(group)
-        if user not in d["members"]:
-            self.group_user_add(group, user)
-
-    def group_user_del(self,group, user):
-            """remove the given user from the given group."""
-            assert self.group_check(group), "Group does not exist: %s" % (group)
-            if self.group_user_check(group, user):
-                    group_for_user = self.run("getent group | egrep -v '^%s:' | grep '%s' | awk -F':' '{print $1}' | grep -v %s; true" % (group, user, user)).splitlines()
-                    if group_for_user:
-                            self.sudo("usermod -G '%s' '%s'" % (",".join(group_for_user), user))
-                    else:
-                            self.sudo("usermod -G '' '%s'" % (user))
-
-    def group_remove(self,group=None, wipe=False):
-        """ Removes the given group, this implies to take members out the group
-        if there are any.  If wipe=True and the group is a primary one,
-        deletes its user as well.
-        """
-        assert self.group_check(group), "Group does not exist: %s" % (group)
-        members_of_group = self.run("getent group %s | awk -F':' '{print $4}'" % group)
-        members = members_of_group.split(",")
-        is_primary_group = self.user_check(name=group)
-        if wipe:
-            if len(members_of_group):
-                for user in members:
-                    self.group_user_del(group, user)
-            if is_primary_group:
-                self.user_remove(group)
-            else:
-                self.sudo("groupdel %s" % group)
-        elif not is_primary_group:
-                if len(members_of_group):
-                    for user in members:
-                        self.group_user_del(group, user)
-                self.sudo("groupdel %s" % group)
-
-
     #####################SYSTEM IDENTIFICATION
 
     @property
@@ -1420,116 +965,8 @@ class OurCuisine():
     def isMac(self):
         return "darwin" in self.platformtype.platformtypes
 
-    #####################PACKAGE MGMT
+    def __str__(self):
+        return "cuisine:%s:%s"%(self.executor.addr,self.executor.port)
 
-    def _repository_ensure_apt(self,repository):
-        self.package_ensure_apt('python-software-properties')
-        self.sudo("add-apt-repository --yes " + repository)
+    __repr__=__str__
 
-    def _apt_get(self,cmd):
-        cmd    = CMD_APT_GET + cmd
-        result = self.sudo(cmd)
-        # If the installation process was interrupted, we might get the following message
-        # E: dpkg was interrupted, you must manually self.run 'sudo dpkg --configure -a' to correct the problem.
-        if "sudo dpkg --configure -a" in result:
-            self.sudo("DEBIAN_FRONTEND=noninteractive dpkg --configure -a")
-            result = self.sudo(cmd)
-        return result
-
-    def package_update(self,package=None):
-        if self.isUbuntu:
-            if package == None:
-                return self._apt_get("-q --yes update")
-            else:
-                if type(package) in (list, tuple):
-                    package = " ".join(package)
-                return self._apt_get(' upgrade ' + package)
-        else:
-            raise RuntimeError("could not install:%s, platform not supported"%package)
-
-    def package_upgrade(self,distupgrade=False):
-        if self.isUbuntu:
-            if distupgrade:
-                return self._apt_get("dist-upgrade")
-            else:
-                return self._apt_get("upgrade")
-        else:
-            raise RuntimeError("could not install:%s, platform not supported"%package)
-
-    def package_install(self,packages, update=False):
-        if j.data.types.string.check(packages):
-            packages=[packages]
-        if self.isUbuntu:
-            if update: self._apt_get("update")
-            if type(packages) in (list, tuple):
-                package = " ".join(packages)
-            return self._apt_get("install " + package)
-        elif self.isArch:
-            for package in packages:
-                if package.startswith("python3"):
-                    package="extra/python"
-
-                rc,out=self.run("pacman -S %s  --noconfirm"%package,die=False)  
-                if rc>0:
-                    if out.find("not found")==-1:
-                        raise RuntimeError("Could not install:%s %s"%(package,out))
-                    if rc==0:
-                        return out
-
-            if rc>0:
-                raise RuntimeError("Could not install:%s %s"%(package,out))
-                
-        elif self.isMac:
-            self.run("brew install %s "%package) 
-        else:
-            raise RuntimeError("could not install:%s, platform not supported"%package)
-
-
-    def package_start(self,package):
-        if self.isArch:
-            self.run("systemd start %s"%package)
-        else:
-            raise RuntimeError("could not install/ensure:%s, platform not supported"%package)           
-
-
-    def package_ensure(self,package, update=False):
-        """Ensure apt packages are installed"""
-        if self.isUbuntu:
-            if isinstance(package, basestring):
-                package = package.split()
-            res = {}
-            for p in package:
-                p = p.strip()
-                if not p: continue
-                # The most reliable way to detect success is to use the command status
-                # and suffix it with OK. This won't break with other locales.
-                status = self.run("dpkg-query -W -f='${Status} ' %s && echo **OK**;true" % p)
-                if not status.endswith("OK") or "not-installed" in status:
-                    self.package_install(p)
-                    res[p]=False
-                else:
-                    if update:
-                        self.package_update(p)
-                    res[p]=True
-            if len(res) == 1:
-                return res.values()[0]
-            else:
-                return res
-        elif self.isArch:
-            self.run("pacman -S %s"%package)
-        else:
-            raise RuntimeError("could not install/ensure:%s, platform not supported"%package)            
-
-        raise RuntimeError("not supported platform")
-
-    def package_clean(self,package=None):
-        if self.isUbuntu:
-            if type(package) in (list, tuple):
-                package = " ".join(package)
-            return self._apt_get("-y --purge remove %s" % package)
-
-    def package_remove(self,package, autoclean=False):
-        if self.isUbuntu:
-            self._apt_get('remove ' + package)
-            if autoclean:
-                self._apt_get("autoclean")

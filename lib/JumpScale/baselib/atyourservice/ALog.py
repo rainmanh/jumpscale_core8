@@ -23,7 +23,7 @@ from JumpScale import j
 #     def setOk(self):
 #         self.state="DONE"
 #         self._setLog()
-        
+
 
 #     def getLogs(self):
 #         args={"logs":[]}
@@ -41,7 +41,7 @@ from JumpScale import j
 #         from IPython import embed
 #         print ("DEBUG NOW logs geterrors")
 #         embed()
-        
+
 
 
 #         return args["logs"]
@@ -70,15 +70,15 @@ class ALog():
     actionlog
 
     format of log is
-    
+
 
     RUN
     ===
-    R | $epoch | $runid | $hrtime 
+    R | $epoch | $runid | $hrtime
     A | $epoch | $role!$instance | $actionname | $state
-    G | $epoch | $cat   | $githash  
-    L | $epoch | $level $cat | $msg 
-    L | $epoch | $cat   | $msg 
+    G | $epoch | $cat   | $githash
+    L | $epoch | $level $cat | $msg
+    L | $epoch | $cat   | $msg
 
     R stands for RUN & has unique id
     each action has id
@@ -104,12 +104,12 @@ class ALog():
         self.lastRunEpoch=0
 
         self.changecache={}
-        
+
 
         if not j.do.exists(self.path):
             j.do.writeFile(self.path,"")
             self.newRun()
-        else:        
+        else:
             self.read()
 
 
@@ -138,7 +138,7 @@ class ALog():
         if len(msg)==0:
             return
         line=msg+"\n"
-        j.sal.fs.writeFile(self.path, line, append=True)  
+        j.sal.fs.writeFile(self.path, line, append=True)
         if not logonly:
             self._processLine(line=msg)
 
@@ -162,7 +162,7 @@ class ALog():
     def getChangedAtYourservices(self,action="install"):
         """
         return (changed,changes)
-        changed is list of all changed aysi or ays 
+        changed is list of all changed aysi or ays
 
         """
         if action in self.changecache:
@@ -200,7 +200,7 @@ class ALog():
                         changed.append(aysi)
 
         self.changecache[action]=(changed,changes)
-    
+
         return changed,changes
 
     def _processLine(self,line):
@@ -272,7 +272,3 @@ class ALog():
             #         loghandler(action,lcat,logmsg.strip(),args)  #process log
             #     logmsg=""
             #     lcat=""
-
-
-
-        

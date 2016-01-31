@@ -17,12 +17,12 @@ def cli():
 def new(role,instance,count=1,domain="",version=""):
     """
     @arg role: name of role of instance you want to create
-    @arg instance: the name for the instance 
+    @arg instance: the name for the instance
     """
     from ptpython.repl import embed
     print ("DEBUG NOW new")
     embed(globals(), locals())
-    
+
     click.echo('new')
 
 @click.command()
@@ -115,6 +115,15 @@ def showparents(role,instance):
     print (out)
 
 
+@click.command()
+@click.option('--role', default='')
+@click.option('--instance', default='')
+def list(role, instance):
+    print("Installed services:")
+    services = j.atyourservice.findServices(role=role, instance=instance)
+    for s in sorted(services, key=lambda service: service.role):
+        print("%s!%s" % (s.role, s.instance))
+
 cli.add_command(new)
 cli.add_command(init)
 cli.add_command(install)
@@ -124,6 +133,7 @@ cli.add_command(showproducers)
 cli.add_command(showparents)
 cli.add_command(showactions)
 cli.add_command(removelastrun)
+cli.add_command(list)
 
 if __name__ == '__main__':
     j.atyourservice.debug=True

@@ -59,7 +59,7 @@ class DNS(BaseService):
             # we can't use file_read on open-wrt because it doesn't have
             # openssl by default. We use cat instead
             hostsstr = con.run('cat %s' % DNS.HOSTS)
-            for line in hostsstr.split('\n'):
+            for line in hostsstr.splitlines():
                 line = line.strip()
                 if line == '' or line.startswith('#'):
                     continue

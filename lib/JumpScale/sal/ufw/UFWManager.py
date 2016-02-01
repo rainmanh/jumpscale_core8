@@ -162,7 +162,7 @@ class UFWManager(SALObject):
     def _load(self):
         rc, status = self._local.execute('ufw status numbered')
         self._rules = []
-        for line in status.split('\n'):
+        for line in status.splitlines():
             line = line.strip()
             if not line or '(v6)' in line:
                 continue

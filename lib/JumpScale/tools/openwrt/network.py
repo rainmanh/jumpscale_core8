@@ -89,7 +89,7 @@ class Network(BaseService):
         self._nics = []
         with settings(shell=self._wrt.WRT_SHELL):
             devices = con.run('ls --color=never -1 /sys/class/net/')
-            for dev in devices.split('\n'):
+            for dev in devices.splitlines():
                 dev = dev.strip()
                 mac = con.run('cat /sys/class/net/%s/address' % dev).strip()
                 self._nics.append((dev, mac))

@@ -283,9 +283,9 @@ docs/_build/
         if not j.sal.fs.exists(ignorefilepath):
             j.sal.fs.writeFile(ignorefilepath, gitignore)
         else:
-            lines = gitignore.split('\n')
+            lines = gitignore.splitlines()
             inn = j.sal.fs.fileGetContents(ignorefilepath)
-            lines = inn.split('\n')
+            lines = inn.splitlines()
             linesout = []
             for line in lines:
                 if line.strip():

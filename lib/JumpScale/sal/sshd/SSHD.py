@@ -28,7 +28,7 @@ class SSHD(SALObject):
         if self._keys is None:
             self.SSH_ROOT.makedirs_p()
             if self.SSH_AUTHORIZED_KEYS.exists():
-                self._keys = [_f for _f in self.SSH_AUTHORIZED_KEYS.text().split('\n') if _f]
+                self._keys = [_f for _f in self.SSH_AUTHORIZED_KEYS.text().splitlines() if _f]
             else:
                 self._keys = []
 

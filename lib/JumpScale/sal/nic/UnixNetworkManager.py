@@ -80,7 +80,7 @@ class UnixNetworkManager(SALObject):
     def nics(self):
         if self._nics is None:
             rc, ifaces =  self._executor.execute('ls --color=never -1 /sys/class/net')
-            self._nics = [iface for iface in ifaces.split('\n') if iface]
+            self._nics = [iface for iface in ifaces.splitlines() if iface]
         return self._nics
 
 

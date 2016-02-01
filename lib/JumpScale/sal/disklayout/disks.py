@@ -56,7 +56,7 @@ class DiskInfo(BlkInfo):
         read_disk_next = False
         disk = {}
         partitions = []
-        for line in ptable.split('\n'):
+        for line in ptable.splitlines():
             line = line.strip()
             if line == 'BYT;':
                 read_disk_next = True
@@ -339,7 +339,7 @@ class PartitionInfo(BlkInfo):
         remote partition from fstab
         """
         fstabpath = j.tools.path.get('/etc/fstab')
-        fstab = fstabpath.text().split('\n')
+        fstab = fstabpath.text().splitlines()
         dirty = False
 
         for i in range(len(fstab) - 1, -1, -1):
@@ -362,7 +362,7 @@ class PartitionInfo(BlkInfo):
         path.makedirs_p()
 
         fstabpath = j.tools.path.get('/etc/fstab')
-        fstab = fstabpath.text().split('\n')
+        fstab = fstabpath.text().splitlines()
         dirty = False
 
         try:

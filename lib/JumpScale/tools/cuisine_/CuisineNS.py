@@ -13,7 +13,7 @@ class CuisineNS():
         """
         """
         result={}
-        for line in self.cuisine.hostfile.split('\n'):
+        for line in self.cuisine.hostfile.splitlines():
             ipaddr_found = re.search(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b',line)
             if ipaddr_found!=None:
                 ipaddr_found=ipaddr_found.group()
@@ -92,7 +92,7 @@ class CuisineNS():
         """        
         file = self.cuisine.file_read('/etc/resolv.conf')
         results = []
-        for line in file.split('\n'):
+        for line in file.splitlines():
             nameserver = re.search(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b',line)
             if nameserver:
                 nameserver = nameserver.string.replace('nameserver', '').strip()

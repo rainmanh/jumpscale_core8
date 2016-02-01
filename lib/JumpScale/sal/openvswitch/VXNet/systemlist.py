@@ -77,7 +77,7 @@ def get_nic_params():
     # local
     cmd = '%s -o -d link show ' % ip
     intflist = dobigexec(cmd.split())
-    lines = intflist[0].decode().split('\n')
+    lines = intflist[0].decode().splitlines()
     nictypes = populatenictypes(lines)
     # all namespaces
     for ns in namespaces:

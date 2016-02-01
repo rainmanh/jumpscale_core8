@@ -17,6 +17,7 @@ class Types():
         self.int=Integer()
         self.float=Float()
         self.string=String()
+        self.bytes=Bytes()
         self.multiline=String()
         self.set=Set()
         self.ipaddr=IPAddress()
@@ -44,7 +45,7 @@ class Types():
         - dict
         - set
         - guid
-        - duration e.g. 1w, 1d, 1h, 1m, 1  
+        - duration e.g. 1w, 1d, 1h, 1m, 1
         """
         ttype=ttype.lower().strip()
         if ttype in ["str","string"]:
@@ -98,8 +99,7 @@ class Types():
         - dict
         - set
         - guid
-        - duration e.g. 1w, 1d, 1h, 1m, 1  
+        - duration e.g. 1w, 1d, 1h, 1m, 1
         """
         cl=self.getTypeClass(ttype)
         return cl.get(val)
-

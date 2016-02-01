@@ -142,7 +142,7 @@ class CuisineInstallerDevelop():
             print('To run your agent, navigate to "%s" adn to "%s" and do "./agent2 -c agent2.toml"' % agentAppDir)
             print('To run your agentcontroller, navigate to "%s" adn to "%s" and do "./agentcontroller2 -c agentcontroller2.toml"' % agentcontrollerAppDir)
 
-    def installPortal(self, start=True, mongodbip="127.0.0.1", mongoport=27017, login="", passwd=""):
+    def installPortal(self, minimal=False, start=True, mongodbip="127.0.0.1", mongoport=27017, login="", passwd=""):
 
         j.actions.setRunId("installportal")
 
@@ -285,12 +285,13 @@ class CuisineInstallerDevelop():
             exampleportaldir = '%sexample/base' % portaldir
             j.sal.fs.createDir(exampleportaldir)
 
-            for space in j.sal.fs.listDirsInDir("%s/github/jumpscale/jumpscale_portal8/apps/gridportal/base" % j.dirs.codeDir):
-                spacename = j.sal.fs.getBaseName(space)
-                if not spacename == 'home':
-                    j.sal.fs.symlink(space, j.sal.fs.joinPaths(exampleportaldir, 'gridportal', spacename), overwriteTarget=True)
-            j.sal.fs.createDir(j.sal.fs.joinPaths(exampleportaldir, 'home', '.space'))
-            j.sal.fs.touch(j.sal.fs.joinPaths(exampleportaldir, 'home', 'home.md'), overwrite=False)
+            if not minimal:
+                for space in j.sal.fs.listDirsInDir("%s/github/jumpscale/jumpscale_portal8/apps/gridportal/base" % j.dirs.codeDir):
+                    spacename = j.sal.fs.getBaseName(space)
+                    if not spacename == 'home':
+                        j.sal.fs.symlink(space, j.sal.fs.joinPaths(exampleportaldir, 'gridportal', spacename), overwriteTarget=True)
+                j.sal.fs.createDir(j.sal.fs.joinPaths(exampleportaldir, 'home', '.space'))
+                j.sal.fs.touch(j.sal.fs.joinPaths(exampleportaldir, 'home', 'home.md'), overwrite=False)
 
             j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py" % j.dirs.codeDir, '%sexample' % portaldir)
             j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd" % j.dirs.codeDir, '%sexample' % portaldir)

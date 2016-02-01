@@ -1,29 +1,13 @@
 
 from JumpScale import j
 
-#will be executed using actions
-def actionrun(func):
-    def wrapper(*args, **kwargs):
-        cuisine=args[0].cuisine
-        force=kwargs.pop("force",False)
-        if j.tools.cuisine.useActions:
-            args=args[1:]
-            # result = func(*args, **kwargs)
-            cm="cuisine=j.tools.cuisine.getFromId('%s');selfobj=cuisine.package"%cuisine.id
-            
-            j.actions.setRunId(cuisine.runid)
-            # j.actions.run() #empty queue if still something there
-            action=j.actions.add(action=func,actionRecover=None,args=args,kwargs=kwargs,die=True,stdOutput=True,errorOutput=True,retry=0,executeNow=True,selfGeneratorCode=cm,force=force)
 
-            if action.state!="OK":
-                if "die" in kwargs:
-                    if kwargs["die"]==False:
-                        return action
-                raise RuntimeError("**ERROR**:\n%s"%action)            
-            return action.result
-        else:
-            return func(*args,**kwargs)
-    return wrapper
+from ActionDecorator import ActionDecorator
+class actionrun(ActionDecorator):
+    def __init__(self,*args,**kwargs):
+        ActionDecorator.__init__(self,*args,**kwargs)
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.package"
+
 
 class CuisinePackage():
 
@@ -47,7 +31,7 @@ class CuisinePackage():
             result = self.cuisine.sudo(cmd)
         return result
 
-    @actionrun
+    @actionrun(action=True)
     def update(self,package=None):
         if self.cuisine.isUbuntu:
             if package == None:
@@ -59,7 +43,7 @@ class CuisinePackage():
         else:
             raise RuntimeError("could not install:%s, platform not supported"%package)
 
-    @actionrun
+    @actionrun(action=True)
     def mdupdate(self):
         """
         update metadata of system
@@ -71,7 +55,7 @@ class CuisinePackage():
         elif self.cuisine.isArch:
             self.cuisine.run("pacman -Syy")
 
-    @actionrun
+    @actionrun(action=True)
     def upgrade(self,distupgrade=False):
         """
         upgrades system, distupgrade means ubuntu 14.04 will fo to e.g. 15.04
@@ -86,7 +70,7 @@ class CuisinePackage():
         else:
             raise RuntimeError("could not install:%s, platform not supported"%package)
 
-    @actionrun
+    @actionrun(action=True)
     def install(self,package):
 
         if self.cuisine.isUbuntu:
@@ -123,7 +107,7 @@ class CuisinePackage():
             return out
 
 
-    @actionrun
+    @actionrun(action=True)
     def multiInstall(self,packagelist):
         """
         @param packagelist is text file and each line is name of package
@@ -143,12 +127,14 @@ class CuisinePackage():
             dep=dep.strip()            
             self.install(dep)
 
+    @actionrun()
     def start(self,package):
         if self.cuisine.isArch:
             self.cuisine.run("systemd start %s"%package)
         else:
             raise RuntimeError("could not install/ensure:%s, platform not supported"%package)           
 
+    @actionrun(action=True)
     def ensure(self,package, update=False):
         """Ensure apt packages are installed"""
         if self.cuisine.isUbuntu:
@@ -179,7 +165,7 @@ class CuisinePackage():
 
         raise RuntimeError("not supported platform")
 
-    @actionrun
+    @actionrun(action=True)
     def clean(self,package=None,agressive=False):
         """
         clean packaging system e.g. remove outdated packages & caching packages
@@ -200,7 +186,7 @@ class CuisinePackage():
         else:
             raise RuntimeError("could not package clean:%s, platform not supported"%package)                       
 
-    @actionrun
+    @actionrun(action=True)
     def remove(self,package, autoclean=False):
         if self.cuisine.isUbuntu:
             self._apt_get('remove ' + package)

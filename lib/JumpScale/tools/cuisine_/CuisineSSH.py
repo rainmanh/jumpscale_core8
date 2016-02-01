@@ -72,7 +72,7 @@ class CuisineSSH():
                 out=self.cuisine.run("nmap -p 22 %s | grep for"%range,showout=False)
             except Exception as e:
                 if str(e).find("command not found")!=-1:
-                    self.package.install("nmap")
+                    self.cuisine.package.install("nmap")
                     out=self.cuisine.run("nmap -p 22 %s | grep for"%range)
             for line in out.split("\n"):
                 ip=line.split("for")[1].strip()

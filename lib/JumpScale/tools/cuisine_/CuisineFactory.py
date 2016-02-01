@@ -6,8 +6,6 @@ class OurCuisineFactory:
     def __init__(self):
         self.__jslocation__ = "j.tools.cuisine"
         self._local=None
-        # self.async=OurCuisineFactoryAsync()
-        self.useActions=True
 
 
     @property
@@ -34,17 +32,4 @@ class OurCuisineFactory:
         return cuisine
 
 
-
-# class OurCuisineFactoryAsync:
-
-#     def run(self,**args):
-
-#         def cuisine_run(**args):
-#             cuisine=j.tools.cuisine.get(cuisineid)
-#             cuisine.run(**args)
-
-#         cuisine=args["cuisine"]
-#         args.pop("cuisine")
-#         j.actions.setRunId(cuisine.runid)
-#         j.actions.add(run,args,executeNow=True)
 

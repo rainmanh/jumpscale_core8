@@ -17,7 +17,7 @@ class ExecutorSSH(ExecutorBase):
         self.look_for_keys=look_for_keys    
         self.pushkey=pushkey
         self._sshclient=None
-        
+        self.type="ssh"
         if checkok:
             self.sshclient.connectTest()            
 

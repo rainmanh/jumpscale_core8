@@ -36,6 +36,20 @@ class CuisineNet():
     def defaultgw(self,val):
         raise RuntimeError("not implemented")
 
+    def getAvahi(self):
+        cmd="avahi-browse -a -r -t -l"
+        out=self.cuisine.run(cmd)
+        obj=None
+        for line in out.split("\n"):
+            if line.startswith("="):
+                obj={}
+                obj[""]
+
+        from IPython import embed
+        print ("DEBUG NOW kkkk")
+        embed()
+        
+
     def get_info(self):
         """
         returns network info like

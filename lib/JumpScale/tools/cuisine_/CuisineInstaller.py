@@ -4,31 +4,11 @@ import os
 
 import socket
 
-#will be executed using actions
-def actionrun(func):
-    def wrapper(*args, **kwargs):
-        cuisine=args[0].cuisine
-        force=kwargs.pop("force",False)
-        if j.tools.cuisine.useActions:
-            args=args[1:]
-
-            cm="cuisine=j.tools.cuisine.getFromId('%s');selfobj=cuisine.installer"%cuisine.id
-            
-            j.actions.setRunId(cuisine.runid)
-            # j.actions.run() #empty queue if still something there
-
-            action=j.actions.add(action=func,actionRecover=None,args=args,kwargs=kwargs,die=True,stdOutput=True,errorOutput=True,retry=0,executeNow=True,selfGeneratorCode=cm,force=force)
-
-            if action.state!="OK":
-                if "die" in kwargs:
-                    if kwargs["die"]==False:
-                        return action
-                raise RuntimeError("**ERROR**:\n%s"%action)
-            
-            return action.result
-        else:
-            return func(*args,**kwargs)
-    return wrapper
+from ActionDecorator import ActionDecorator
+class actionrun(ActionDecorator):
+    def __init__(self,*args,**kwargs):
+        ActionDecorator.__init__(self,*args,**kwargs)
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installer"
 
 
 class CuisineInstaller(object):
@@ -37,6 +17,7 @@ class CuisineInstaller(object):
         self.executor=executor
         self.cuisine=cuisine
 
+    @actionrun(action=True)
     def redis(self):
         defport=6379
         if self.cuisine.process_tcpport_check(defport,"redis"):
@@ -54,6 +35,7 @@ class CuisineInstaller(object):
         if self.cuisine.process_tcpport_check(defport,"redis")==False:
             raise RuntimeError("Could not install redis, port was not running")
 
+    @actionrun(action=True)
     def sshreflector_server(self,reset=False):
         """
         to test
@@ -112,6 +94,7 @@ class CuisineInstaller(object):
         if self.cuisine.process_tcpport_check(port,"dropbear")==False:
             raise RuntimeError("Could not install dropbear, port %s was not running"%port)
 
+    @actionrun()
     def sshreflector_createconnection(self,remoteids):
         """
         @param remoteids are the id's of the reflectors e.g. 'ovh3,ovh5:3333'
@@ -159,6 +142,7 @@ class CuisineInstaller(object):
         print ("Reflector:%s"%addr)
         print (out)
 
+    @actionrun(action=True)
     def sshreflector_client(self,remoteids):
         """
         chose a port for remote server which we will reflect to
@@ -260,6 +244,7 @@ class CuisineInstaller(object):
 
             print ("On %s:%s remote SSH port:%s"%(remotecuisine.executor.addr,port,newport))
 
+    @actionrun(action=True)
     def pi_accesspoint(self,passphrase,name="",dns="8.8.8.8",interface="wlan0"):
 
         # cmd1='dnsmasq -d'
@@ -296,6 +281,7 @@ class CuisineInstaller(object):
         
         self.cuisine.systemd_ensure("ap",cmd2,descr="accesspoint for local admin",systemdunit=START1)
 
+    @actionrun(action=True)
     def installJSSandbox(self, rw=False,reset=False):
         """
         install jumpscale, will be done as sandbox
@@ -365,7 +351,7 @@ class CuisineInstaller(object):
         j.actions.add(installJS8SB, actionRecover=None, args={"cuisineid":self.cuisine.id,'rw':rw}, die=True, stdOutput=True, errorOutput=True, retry=1,deps=None)
         j.actions.run()
 
-    @actionrun
+    @actionrun(action=True)
     def pip(self):
         self.base()
         self.pythonDevelop()
@@ -377,7 +363,7 @@ class CuisineInstaller(object):
         self.cuisine.run_script(cmd)  
         self.cuisine.run("cd /tmp;python3.5 get-pip.py")
 
-    @actionrun
+    @actionrun(action=True)
     def pythonDevelop(self):
         C="""
         libpython3.5-dev
@@ -394,7 +380,7 @@ class CuisineInstaller(object):
         """
         self.cuisine.package.multiInstall(C)
 
-    @actionrun
+    @actionrun(action=True)
     def base(self):
         C="""
         sudo
@@ -407,6 +393,7 @@ class CuisineInstaller(object):
         """
         self.cuisine.package.multiInstall(C)
 
+    @actionrun(action=True)
     def webProxyServer(self):
 
         self.cuisine.package.install("polipo")
@@ -605,17 +592,15 @@ class CuisineInstaller(object):
         # print ("http://%s:8123/polipo/status?"%self.cuisine.executor.addr)
         print ("configure your webproxy client to use %s on tcp port 8123"%self.cuisine.executor.addr)
 
-        self.cuisine.run("killall polipo",force=True,die=False)
+        self.cuisine.run("killall polipo",die=False)
 
         cmd=self.cuisine.run("which polipo")
 
         self.cuisine.systemd.ensure("polipo",cmd)
 
-        self.cuisine.package.install("avahi")
-
-        
-
+        self.avahi()
  
+    @actionrun(action=True)
     def installArchLinuxToSDCard(self,redownload=False):
         """
         will only work if 1 sd card found of 8 or 16 GB, be careful will overwrite the card   
@@ -681,12 +666,18 @@ class CuisineInstaller(object):
     
         j.actions.run()
 
-
+    @actionrun(action=True)
     def findPiNodesAndPrepareJSDevelop(self):
         pass
 
 
+    @actionrun(action=True)
     def installJSDevelop(self):
+
+        self.base()
+        self.pythonDevelop()
+        self.pip()
+
 
         if reset:
             j.actions.reset("installer")
@@ -715,23 +706,6 @@ class CuisineInstaller(object):
             # cuisine.package.remove("redis")
 
 
-        packages="""
-            libpython3.5-dev
-            python3.5-dev
-            libffi-dev
-            gcc
-            build-essential
-            autoconf
-            libtool
-            pkg-config
-            libpq-dev
-            libsqlite3-dev 
-            mc
-            git
-            python3.5       
-            """
-
-        self.cuisine.packages_install(packages,runid="installer")
 
     def __str__(self):
         return "cuisine.installer:%s:%s"%(self.executor.addr,self.executor.port)

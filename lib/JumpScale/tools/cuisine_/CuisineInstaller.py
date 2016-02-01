@@ -380,6 +380,7 @@ class CuisineInstaller(object):
         """
         self.cuisine.package.multiInstall(C)
 
+
     @actionrun(action=True)
     def base(self):
         C="""
@@ -392,6 +393,45 @@ class CuisineInstaller(object):
         net-tools
         """
         self.cuisine.package.multiInstall(C)
+
+    #@todo (*1*) installer for golang
+    #@todo (*1*) installer for caddy
+    #@todo (*1*) installer for etcd
+    #@todo (*1*) installer for skydns
+    #@todo (*1*) installer for aydostor
+
+    def installMongo(self, start=True):
+        j.actions.setRunId("installMongo")
+        rc, out = self.executor.execute('which mongod', die=False)
+        if out:
+            print('mongodb is already installed')
+        appbase = '/usr/local/bin'
+
+        def getMongo(appbase):
+            if j.core.platformtype.myplatform.isLinux():#@todo better platform mgmt
+                url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
+            elif sys.platform.startswith("OSX"): #@todo better platform mgmt
+                url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
+            #@todo arm
+            else:
+                # @TODO (*3*) add support for other platforms
+                return
+            tarpath = j.sal.fs.joinPaths(j.dirs.tmpDir, 'mongodb.tgz')
+            j.sal.nettools.download(url, tarpath)
+            tarfile = j.tools.tarfile.get(tarpath)
+            tarfile.extract(j.dirs.tmpDir)
+            extracted = j.sal.fs.walk(j.dirs.tmpDir, pattern='mongodb*', return_folders=1, return_files=0)[0]
+            j.sal.fs.copyDirTree(j.sal.fs.joinPaths(extracted, 'bin'), appbase)
+            j.sal.fs.createDir('/data/db')
+
+        def startMongo(appbase):
+            j.sal.tmux.executeInScreen("main", screenname="mongodb", cmd="mongod", user='root')
+
+        getmongo = j.actions.add(getMongo, args={'appbase': appbase})
+        if start:
+            j.actions.add(startMongo, args={'appbase': appbase}, deps=[getmongo])
+        j.actions.run()
+
 
     @actionrun(action=True)
     def webProxyServer(self):
@@ -598,7 +638,10 @@ class CuisineInstaller(object):
 
         self.cuisine.systemd.ensure("polipo",cmd)
 
-        self.avahi()
+        self.cuisine.avahi.install()
+
+        # if self.cuisine.isUbuntu():
+        #     self.cuisine.run("ufw allow 8123")
  
     @actionrun(action=True)
     def installArchLinuxToSDCard(self,redownload=False):

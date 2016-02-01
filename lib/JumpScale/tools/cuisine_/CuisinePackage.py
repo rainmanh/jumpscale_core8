@@ -107,7 +107,7 @@ class CuisinePackage():
             return out
 
 
-    @actionrun(action=True)
+    @actionrun(action=True,force=True)
     def multiInstall(self,packagelist):
         """
         @param packagelist is text file and each line is name of package

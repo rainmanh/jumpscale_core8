@@ -28,13 +28,13 @@ class StorxClient(object):
         self.path = o.path
 
     def _postURLStore(self, path):
-        return urljoin(self.base_url, j.sal.fs.joinPaths(self.path, "store", path))
+        return  urljoin(self.base_url, j.sal.fs.joinPaths(self.path, "store", path)).rstrip('/')
 
     def _getURLStore(self, namespace, hash):
-        return urljoin(self.base_url, j.sal.fs.joinPaths(self.path, "store", namespace, hash))
+        return urljoin(self.base_url, j.sal.fs.joinPaths(self.path, "store", namespace, hash)).rstrip('/')
 
     def _URLFixed(self, name):
-        return urljoin(self.base_url, j.sal.fs.joinPaths(self.path, "static", name))
+        return urljoin(self.base_url, j.sal.fs.joinPaths(self.path, "static", name)).rstrip('/')
 
     def authenticate(self, login, password):
         if login and password:
@@ -66,7 +66,6 @@ class StorxClient(object):
         @namespace: str, namespace
         @hash: str, hash of the file to retreive
         """
-        # url = urljoin(self.base_url, "store/%s/%s" % (namespace, hash))
         url = self._getURLStore(namespace, hash)
         resp = self.session.get(url, stream=True)
 
@@ -86,7 +85,6 @@ class StorxClient(object):
         @hash: str, hash of the file to delete
         """
         url = self._getURLStore(namespace, hash)
-        headers = {}
         resp = self.session.delete(url)
 
         resp.raise_for_status()
@@ -122,7 +120,7 @@ class StorxClient(object):
             'a84da677c7999e6bed29a8b2d9ebf0e3': True}
 
         """
-        url = self._getURLStore(namespace, hash)
+        url = self._getURLStore(namespace, "exists")
         data = {'Hashes': hashes}
         resp = self.session.post(url, json=data)
 
@@ -143,7 +141,7 @@ class StorxClient(object):
             'compress': compress,
             'quality': quality,
         }
-        url = urljoin(self.base_url, j.sal.fs.joinPaths(self.path, "store", namespace, ""))
+        url = self._getURLStore(namespace, "")
         resp = self.session.get(url, params=url_params)
 
         resp.raise_for_status()

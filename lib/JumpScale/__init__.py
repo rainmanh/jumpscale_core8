@@ -125,7 +125,7 @@ if j.core.db==None:
         os.system(cmd)
     else:
 
-        url="http://stor.jumpscale.org/public/redis-server"
+        url="https://stor.jumpscale.org/public/redis-server"
         if 'redis' not in os.listdir(path='%s/bin/'%j.do.BASE):
             j.do.download(url, to='%s/bin/redis'%j.do.BASE, overwrite=False, retry=3)
         import subprocess

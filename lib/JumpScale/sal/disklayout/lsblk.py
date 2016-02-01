@@ -23,7 +23,7 @@ def _parse(output):
     NAME="sr0" TYPE="rom" UUID="" FSTYPE="" SIZE="1073741312"
     """
     blks = []
-    for line in output.split('\n'):
+    for line in output.splitlines():
         if not line.strip():
             continue
         blk = dict(_extract_pattern.findall(line))

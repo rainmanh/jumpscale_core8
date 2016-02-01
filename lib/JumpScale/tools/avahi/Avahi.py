@@ -1,18 +1,98 @@
 from JumpScale import j
 
+from tools.cuisine_.ActionDecorator import ActionDecorator
+class actionrun(ActionDecorator):
+    def __init__(self,*args,**kwargs):
+        ActionDecorator.__init__(self,*args,**kwargs)
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.avahi"
+
 
 class Avahi():
     def __init__(self):
         self.__jslocation__ = "j.tools.avahi"
+        self.cuisine=j.tools.cuisine.get()
+        self.executor=self.cuisine.executor
 
-    # def __init__(self):
-    #     raise RuntimeError("should not init auto")
-    #     j.sal.ubuntu.checkInstall(["avahi-utils"],"avahi-browse")
+    @actionrun(action=True)
+    def install(self):
+        if self.cuisine.isUbuntu:
+            self.cuisine.package.install("avahi-daemon")
+            self.cuisine.package.install("avahi-utils")
+        if self.cuisine.isArch:
+            self.cuisine.package.install("avahi")
+
+
+        configfile="/etc/avahi/avahi-daemon.conf"
+
+        C="""
+        [server]
+        host-name=$hostname
+        domain-name=$domains
+        browse-domains=$domains
+        use-ipv4=yes
+        use-ipv6=no
+        #allow-interfaces=eth0
+        #deny-interfaces=eth1
+        #check-response-ttl=no
+        #use-iff-running=no
+        #enable-dbus=yes
+        #disallow-other-stacks=no
+        #allow-point-to-point=no
+        #cache-entries-max=4096
+        #clients-max=4096
+        #objects-per-client-max=1024
+        #entries-per-entry-group-max=32
+        ratelimit-interval-usec=1000000
+        ratelimit-burst=1000
+
+        [wide-area]
+        #enable-wide-area=yes
+
+        [publish]
+        #disable-publishing=no
+        #disable-user-service-publishing=no
+        #add-service-cookie=no
+        publish-addresses=yes
+        publish-hinfo=yes
+        publish-workstation=yes
+        publish-domain=yes
+        publish-dns-servers=8.8.8.8
+        publish-resolv-conf-dns-servers=yes
+        publish-aaaa-on-ipv4=yes
+        #publish-a-on-ipv6=no
+
+        [reflector]
+        #enable-reflector=no
+        #reflect-ipv=no
+
+        [rlimits]
+        #rlimit-as=
+        rlimit-core=0
+        rlimit-data=4194304
+        rlimit-fsize=0
+        rlimit-nofile=768
+        rlimit-stack=4194304
+        rlimit-nproc=3
+        """
+        domains="%s.%s"%(self.cuisine.grid,self.cuisine.domain)
+        C=C.replace("$hostname",self.cuisine.name)
+        C=C.replace("$domains",domains)
+        self.cuisine.file_write(configfile,C)
+
+        if self.cuisine.isUbuntu:
+            pre=""
+        else:
+            pre="/usr"
+        self.cuisine.file_link(source="%s/lib/systemd/system/avahi-daemon.service", destination="/etc/systemd/system/multi-user.target.wants/avahi-daemon.service", symbolic=True, mode=None, owner=None, group=None)
+        self.cuisine.file_link(source="%s/lib/systemd/system/docker.socket", destination="/etc/systemd/system/sockets.target.wants/docker.socket", symbolic=True, mode=None, owner=None, group=None)
+
+        self.cuisine.systemd.start("avahi-daemon")
+
 
     def _servicePath(self, servicename):
         path = "/etc/avahi/services"
-        if not j.sal.fs.exists(path=path):
-            j.sal.fs.createDir(path)
+        if not self.cuisine.dir_exists(path):
+            self.cuisine.dir_ensure(path)
         service = '%s.service' % servicename
         return j.sal.fs.joinPaths(path, service)
 
@@ -24,9 +104,9 @@ class Avahi():
 <service-group>
 <name replace-wildcards="yes">${servicename} %h</name>
 
-<service>
-<type>_${servicename}._${type}</type>
-<port>${port}</port>
+<service protocol="ipv4">
+    <type>_${servicename}._${type}</type>
+    <port>${port}</port>
 </service>
 
 </service-group>
@@ -35,22 +115,26 @@ class Avahi():
         content = content.replace("${port}", str(port))
         content = content.replace("${type}", type)
         path = self._servicePath(servicename)
-        j.sal.fs.writeFile(path, content)
+        self.cuisine.file_write(path, content)
 
+        self.reload()
+
+    @actionrun(force=True)
+    def reload(self):
         cmd = "avahi-daemon --reload"
-        j.sal.process.execute(cmd)
+        self.cuisine.run(cmd)
 
+    @actionrun(force=True)
     def removeService(self, servicename):
         path = self._servicePath(servicename)
-        if j.sal.fs.exists(path=path):
-            j.sal.fs.remove(path)
+        # if self.cuisine.dir_exists(path=path):
+        self.cuisine.dir_remove(path)
+        self.reload()
 
-        cmd = "avahi-daemon --reload"
-        j.sal.process.execute(cmd)
-
+    @actionrun(force=True)
     def getServices(self):
         cmd = "avahi-browse -a -r -t"
-        result, output = j.sal.process.execute(cmd, False, False)
+        result, output = self.cuisine.run(cmd,die=False,force=True)
         if result > 0:
             raise RuntimeError(
                 "cannot use avahi command line to find services, please check avahi is installed on system (ubunutu apt-get install avahi-utils)\nCmd Used:%s" % cmd)
@@ -78,6 +162,7 @@ class Avahi():
             avahiservices._add(s)
         return avahiservices
 
+    @actionrun()
     def resolveAddress(self, ipAddress):
         """
         Resolve the ip address to its hostname
@@ -91,7 +176,7 @@ class Avahi():
         if not j.sal.nettools.validateIpAddress(ipAddress):
             raise ValueError('Invalid Ip Address')
         cmd = 'avahi-resolve-address %s'
-        exitCode, output = j.sal.process.execute(cmd % ipAddress, dieOnNonZeroExitCode=False, outputToStdout=False)
+        exitCode, output = self.cuisine.run(cmd % ipAddress, die=False, showout=False)
         if exitCode or not output:  # if the ouput string is '' then something is wrong
             raise RuntimeError('Cannot resolve the hostname of ipaddress: %s' % ipAddress)
         output = output.strip()

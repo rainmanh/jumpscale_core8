@@ -130,7 +130,7 @@ class ALog():
 
 
     def log(self,msg,level=5,cat=""):
-        for item in  msg.strip().split("\n"):
+        for item in  msg.strip().splitlines():
             self._append("L | %-8s | %-8s | %s"%(j.data.time.getTimeEpoch(),level,item),logonly=True)
 
     def _append(self,msg,logonly=False):

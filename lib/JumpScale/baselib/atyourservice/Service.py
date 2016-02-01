@@ -737,6 +737,8 @@ class Service(object):
     def __eq__(self, service):
         if not service:
             return False
+        if isinstance(service, str):
+            return j.atyourservice.getKey(self) == service
         return service.role == self.role and self.instance == service.instance
 
     def __hash__(self):

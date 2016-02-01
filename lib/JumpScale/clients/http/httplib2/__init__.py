@@ -658,7 +658,7 @@ class GoogleLoginAuthentication(Authentication):
 
         auth = dict(Email=credentials[0], Passwd=credentials[1], service=service, source=headers['user-agent'])
         resp, content = self.http.request("https://www.google.com/accounts/ClientLogin", method="POST", body=urlencode(auth), headers={'Content-Type': 'application/x-www-form-urlencoded'})
-        lines = content.split('\n')
+        lines = content.splitlines()
         d = dict([tuple(line.split("=", 1)) for line in lines if line])
         if resp.status == 403:
             self.Auth = ""

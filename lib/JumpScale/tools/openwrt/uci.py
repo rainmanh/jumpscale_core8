@@ -113,7 +113,7 @@ class UCI(object):
 
     def loads(self, ucistr):
         section = None
-        for line in ucistr.split('\n'):
+        for line in ucistr.splitlines():
             line = line.strip()
             if not line:
                 continue

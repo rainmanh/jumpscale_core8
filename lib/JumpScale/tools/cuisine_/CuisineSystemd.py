@@ -26,6 +26,16 @@ class CuisineSystemd():
 
         return result
 
+    def reload(self):
+        self.cuisine.run("systemctl daemon-reload")
+
+    def start(self,name):
+        self.reload()
+        # self.cuisine.run("systemctl enable %s"%name,showout=False)
+        self.cuisine.run("systemctl enable %s"%name,die=False,showout=False)
+        cmd="systemctl restart %s"%name
+        self.cuisine.run(cmd,showout=False)
+
     def stop(self,name):
         cmd="systemctl disable %s"%name
         self.cuisine.run(cmd,showout=False)
@@ -42,10 +52,11 @@ class CuisineSystemd():
         self.cuisine.run("systemctl daemon-reload")
 
 
-    def ensure(self,name,cmd,descr="",systemdunit=""):
+    def ensure(self,name,cmd="",descr="",systemdunit=""):
         """
         Ensures that the given systemd service is self.cuisine.running, starting
         it if necessary and also create it
+        @param systemdunit is the content of the file, will still try to replace the cmd
         """
         if systemdunit!="":
             C=systemdunit
@@ -71,7 +82,7 @@ class CuisineSystemd():
         self.cuisine.file_write("/etc/systemd/system/%s.service"%name,C)
 
         self.cuisine.run("systemctl daemon-reload;systemctl restart %s"%name)
-        self.cuisine.run("systemctl enable %s"%name)
+        self.cuisine.run("systemctl enable %s"%name,die=False,showout=False)
         self.cuisine.run("systemctl daemon-reload;systemctl restart %s"%name)
 
         

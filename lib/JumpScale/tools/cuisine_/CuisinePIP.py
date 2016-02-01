@@ -1,29 +1,12 @@
 
 from JumpScale import j
 
-#will be executed using actions
-def actionrun(func):
-    def wrapper(*args, **kwargs):
-        cuisine=args[0].cuisine
-        force=kwargs.pop("force",False)
-        if j.tools.cuisine.useActions:
-            args=args[1:]
-            # result = func(*args, **kwargs)
-            cm="cuisine=j.tools.cuisine.getFromId('%s');selfobj=cuisine.pip"%cuisine.id            
-            j.actions.setRunId(cuisine.runid)
-            # j.actions.run() #empty queue if still something there
+from ActionDecorator import ActionDecorator
+class actionrun(ActionDecorator):
+    def __init__(self,*args,**kwargs):
+        ActionDecorator.__init__(self,*args,**kwargs)
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.pip"
 
-            action=j.actions.add(action=func,actionRecover=None,args=args,kwargs=kwargs,die=True,stdOutput=True,errorOutput=True,retry=0,executeNow=True,selfGeneratorCode=cm,force=force)
-
-            if action.state!="OK":
-                if "die" in kwargs:
-                    if kwargs["die"]==False:
-                        return action
-                raise RuntimeError("**ERROR**:\n%s"%action)            
-            return action.result
-        else:
-            return func(*args,**kwargs)
-    return wrapper
 
 class CuisinePIP():
 
@@ -36,14 +19,14 @@ class CuisinePIP():
     # PIP PYTHON PACKAGE MANAGER
     # -----------------------------------------------------------------------------
 
-    @actionrun
+    @actionrun(action=True)
     def upgrade(self,package):
         '''
         The "package" argument, defines the name of the package that will be upgraded.
         '''
         self.cuisine.run('pip3 install --upgrade %s' % (package))
 
-    @actionrun
+    @actionrun(action=True)
     def install(self,package=None,upgrade=False):
         '''
         The "package" argument, defines the name of the package that will be installed.
@@ -53,7 +36,7 @@ class CuisinePIP():
             cmd+=" --upgrade"
         self.cuisine.run(cmd)
 
-    @actionrun
+    @actionrun()
     def remove(self,package):
         '''
         The "package" argument, defines the name of the package that will be ensured.
@@ -63,7 +46,7 @@ class CuisinePIP():
         '''
         return self.cuisine.run('pip3 uninstall %s' %(package))
 
-    @actionrun
+    @actionrun()
     def multiInstall(self,packagelist,upgrade=False):
         """
         @param packagelist is text file and each line is name of package

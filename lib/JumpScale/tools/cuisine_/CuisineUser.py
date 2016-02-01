@@ -1,6 +1,6 @@
 
 from JumpScale import j
-import base64
+import crypt
 
 
 def shell_safe( path ):
@@ -19,24 +19,22 @@ class CuisineUser():
 
 
 
-    def passwd(self,name, passwd, encrypted_passwd=False):
+    def passwd(self, name, passwd, encrypted_passwd=False):
         """Sets the given user password."""
-        #if passwd.strip()=="":
-            #raise RuntimeError("passwd cannot be empty")
         print("set user:%s passwd for %s"%(name,self))
-        name=name.strip()
-        passwd=passwd.strip()
-        # c="%s:%s" % (name, passwd)
-        # encoded_password = base64.b64encode(c.encode('ascii'))
+        name = name.strip()
+        passwd = passwd.strip()
+
+        encoded_password = crypt.crypt(passwd)
         if encrypted_passwd:
-            self.cuisine.sudo("usermod -p '%s' %s" % (encoded_password.decode(), name))
+            self.cuisine.sudo("usermod -p '%s' %s" % (encoded_password, name))
         else:
             # NOTE: We use base64 here in case the password contains special chars
             # TODO: Make sure this openssl command works everywhere, maybe we should use a text_base64_decode?
             # self.cuisine.sudo("echo %s | openssl base64 -A -d | chpasswd" % (shell_safe(encoded_password)))
             # self.cuisine.sudo("echo %s | openssl base64 -A -d | chpasswd" % (encoded_password))
-            self.cuisine.run("echo \"%s:%s\" | chpasswd"%(name,passwd))
-        executor=j.tools.executor.getSSHBased(self.executor.addr,self.executor.port,name,passwd,checkok=True)
+            self.cuisine.run("echo \"%s:%s\" | chpasswd"%(name, passwd))
+        #executor = j.tools.executor.getSSHBased(self.executor.addr, self.executor.port, name, passwd, checkok=True)
 
 
     def create(self,name, passwd=None, home=None, uid=None, gid=None, shell=None,

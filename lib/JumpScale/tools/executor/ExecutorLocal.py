@@ -7,6 +7,7 @@ class ExecutorLocal(ExecutorBase):
     def __init__(self, dest_prefixes={}, debug=False, checkok=False):
         ExecutorBase.__init__(
             self, dest_prefixes=dest_prefixes, debug=debug, checkok=debug)
+        self.type="local"
 
     def execute(self, cmds, die=True, checkok=None, async=False,showout=True, combinestdr=True):
         # cmds = self._transformCmds(cmds, die, checkok=checkok)

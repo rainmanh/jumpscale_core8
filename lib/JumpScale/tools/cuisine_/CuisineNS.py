@@ -13,7 +13,7 @@ class CuisineNS():
         """
         """
         result={}
-        for line in self.cuisine.hostfile.split('\n'):
+        for line in self.cuisine.hostfile.splitlines():
             ipaddr_found = re.search(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b',line)
             if ipaddr_found!=None:
                 ipaddr_found=ipaddr_found.group()
@@ -27,17 +27,22 @@ class CuisineNS():
         result.pop('255.255.255.255',"")
         return result
 
-    def hostfile_set_multiple(self,names=[]):
+    def hostfile_set_multiple(self,names=[],remove=[]):
         """
         @param names [[$ipaddr,$name]]
         """
         C="""
         127.0.0.1           localhost
         255.255.255.255     broadcasthost
-        ::1                 localhost
+        ::1                 localhost ip6-localhost ip6-loopback
+        f02::1              ip6-allnodes
+        ff02::2             ip6-allrouters
         """
         C=j.data.text.strip(C)
         res=self.hostfile_get()
+        for item in remove:
+            if item in res:
+                res.pop(item)
         
         for ipaddr,name in names:
             if ipaddr not in res:
@@ -46,8 +51,9 @@ class CuisineNS():
                 res[ipaddr].append(name)
 
         for addr,names in res.items():
-            for name in names:
-                C+="%-19s %s\n"%(addr,name)
+            # for name in names:
+            names2=" ".join(names)
+            C+="%-19s %s\n"%(addr,names2)
 
         #@todo need to do ipv6
         self.cuisine.hostfile=C
@@ -58,7 +64,7 @@ class CuisineNS():
         """
         res=self.hostfile_get()
         local=j.tools.cuisine.get("")
-        res2=local.hostfile_get()
+        res2=local.ns.hostfile_get()
         for ipaddr,names in res2.items():
             for name in names:
                 if ipaddr not in res:
@@ -86,7 +92,7 @@ class CuisineNS():
         """        
         file = self.cuisine.file_read('/etc/resolv.conf')
         results = []
-        for line in file.split('\n'):
+        for line in file.splitlines():
             nameserver = re.search(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b',line)
             if nameserver:
                 nameserver = nameserver.string.replace('nameserver', '').strip()

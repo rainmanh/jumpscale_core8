@@ -285,7 +285,7 @@ class CuisineInstallerDevelop():
             exampleportaldir = '%sexample/base' % portaldir
             self.cuisine.dir_ensure(exampleportaldir)
             if not minimal:
-                for space in j.sal.fs.listDirsInDir("%s/github/jumpscale/jumpscale_portal8/apps/gridportal/base" % j.dirs.codeDir):
+                for space in self.cuisine.fs_find("%s/github/jumpscale/jumpscale_portal8/apps/gridportal/base" % j.dirs.codeDir,recursive=False):
                     spacename = j.sal.fs.getBaseName(space)
                     if not spacename == 'home':
                        self.cuisine.file_link(space, '%s/gridportal/%s' %(exampleportaldir,spacename))

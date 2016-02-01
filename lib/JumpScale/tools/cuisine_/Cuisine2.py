@@ -832,7 +832,7 @@ class OurCuisine():
     @actionrun()
     def sudo(self, cmd, die=True):
         passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
-        cmd2 = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
+        cmd2 = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd.replace("$", "\$"))
         return self.run(cmd2, die=die)
 
     @actionrun()
@@ -1010,7 +1010,6 @@ class OurCuisine():
         return "darwin" in self.platformtype.platformtypes
 
     def __str__(self):
-        return "cuisine:%s:%s"%(self.executor.addr,self.executor.port)
+        return "cuisine:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port'))
 
     __repr__=__str__
-

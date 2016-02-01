@@ -392,6 +392,7 @@ class Installer():
             tarfile.extract(j.dirs.tmpDir)
             extracted = j.sal.fs.walk(j.dirs.tmpDir, pattern='mongodb*', return_folders=1, return_files=0)[0]
             j.sal.fs.copyDirTree(j.sal.fs.joinPaths(extracted, 'bin'), appbase)
+            j.sal.fs.createDir('/data/db')
 
         def startMongo(appbase):
             j.sal.tmux.executeInScreen("main", screenname="mongodb", cmd="mongod", user='root')

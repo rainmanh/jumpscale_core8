@@ -49,6 +49,7 @@ class SSHClient(object):
         self._client = None
         self._cuisine = None
 
+
     def _test_local_agent(self):
         """
         try to connect to the local ssh-agent
@@ -76,7 +77,7 @@ class SSHClient(object):
             counter = 0
             while counter < 10:
                 try:
-                    self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys)
+                    self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,timeout=1)
                     break
                 except Exception as e:
                     counter += 0.1

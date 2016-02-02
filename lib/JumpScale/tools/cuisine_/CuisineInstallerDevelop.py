@@ -9,7 +9,7 @@ from ActionDecorator import ActionDecorator
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
         ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installerdevel"
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installerdevelop"
 
 
 
@@ -17,10 +17,6 @@ class CuisineInstallerDevelop():
 
     def __init__(self,executor,cuisine):
         self.executor=executor
-<<<<<<< Updated upstream
-        self.cuisine=cuisine    
-
-=======
         self.cuisine=cuisine
 
     def _linkfilesindir(self, dir_path, dest):
@@ -65,7 +61,6 @@ class CuisineInstallerDevelop():
         self.executor.env['PATH'] = '%s:%s/bin' % (path, self.executor.env['GOPATH'])
         self.cuisine.run('go get github.com/tools/godep')
         self.cuisine.run('go get github.com/rcrowley/go-metrics')
->>>>>>> Stashed changes
 
     @actionrun(action=True)
     def installAgentcontroller(self, start=True):
@@ -86,25 +81,7 @@ class CuisineInstallerDevelop():
         def pythonLibInstall():
             self.cuisine.run("pip3 install pytoml")
 
-        def prepare_go():
-            rc, out = self.cuisine.run("which go", die=False)
-            if rc > 0:
-                if sys.platform.startswith("OSX"):
-                    self.cuisine.run("brew install golang")
-                else:
-                    self.cuisine.run("apt-get install golang -y --force-yes")
 
-            #rc, gopath = self.executor.execute("which go", die=False)
-            os.environ.setdefault("GOROOT", '/usr/lib/go/')
-            os.environ.setdefault("GOPATH", '/opt/go')
-            j.sal.fs.createDir(os.environ['GOPATH'])
-            print ('GOPATH:', os.environ["GOPATH"])
-            print ('GOROOT:', os.environ["GOROOT"])
-            j.sal.fs.touch(j.sal.fs.joinPaths(os.environ["HOME"], '.bash_profile'), overwrite=False)
-            path = os.environ.get('PATH')
-            os.environ['PATH'] = '%s:%s/bin' % (path, os.environ['GOPATH'])
-            self.executor.execute('go get github.com/tools/godep')
-            self.executor.execute('go get github.com/rcrowley/go-metrics')
 
         def syncthing_build(appbase):
             url = "git@github.com:syncthing/syncthing.git"
@@ -164,12 +141,12 @@ class CuisineInstallerDevelop():
 
             j.data.serializer.toml.dump(cfgfile, cfg)
 
-        upgradePip()
-        pythonLibInstall()
-        self.golang()
-        syncthing_build(appbase=syncthingAppDir)
-        agent_build(appbase=agentAppDir)
-        agentcontroller_build(appbase=agentcontrollerAppDir)
+        self.upgradePip()
+        self.pythonLibInstall()
+        self.prepare_go()
+        self.syncthing_build(appbase=syncthingAppDir)
+        self.agent_build(appbase=agentAppDir)
+        self.agentcontroller_build(appbase=agentcontrollerAppDir)
 
         def startAgent(appbase):
 
@@ -183,14 +160,14 @@ class CuisineInstallerDevelop():
             self.cuisine.tmux.executeInScreen("main", screenname="ac", cmd="./agentcontroller2 -c %s" % cfgfile_ac, wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
 
         if start:
-            startAgent(appbase = agentAppDir)
+            self.startAgent(appbase = agentAppDir)
             startAgentController(appbase = agentcontrollerAppDir)
           # j.actions.run()
         else:
             print('To run your agent, navigate to "%s" adn to "%s" and do "./agent2 -c agent2.toml"' % agentAppDir)
             print('To run your agentcontroller, navigate to "%s" adn to "%s" and do "./agentcontroller2 -c agentcontroller2.toml"' % agentcontrollerAppDir)
 
-    def installPortal(self, start=True, mongodbip="127.0.0.1", mongoport=27017, login="", passwd=""):
+    def installPortal(self, minimal=False, start=True, mongodbip="127.0.0.1", mongoport=27017, login="", passwd=""):
 
         j.actions.setRunId("installportal")
 
@@ -313,37 +290,24 @@ class CuisineInstallerDevelop():
 
         def install():
             destjslib = j.do.getPythonLibSystem(jumpscale=True)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % destjslib, overwriteTarget=True)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % j.dirs.jsLibDir, overwriteTarget=True)
+            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
+            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % j.dirs.jsLibDir)
 
             j.application.reload()
 
             portaldir = '%s/apps/portals/' % j.dirs.base
-            j.sal.fs.createDir(portaldir)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % j.dirs.codeDir, '%s/jslib' % portaldir, overwriteTarget=True)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/system" %
-                             j.dirs.codeDir,  '%s/portalbase/system' % portaldir, overwriteTarget=True)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki" %
-                             j.dirs.codeDir, '%s/portalbase/wiki' % portaldir, overwriteTarget=True)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/macros" %
-                             j.dirs.codeDir, '%s/portalbase/macros' % portaldir, overwriteTarget=True)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/templates" %
-                             j.dirs.codeDir, '%s/portalbase/templates' % portaldir, overwriteTarget=True)
+            self.cuisine.dir_ensure(portaldir)
+            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/jslib" % j.dirs.codeDir, '%s/jslib' % portaldir)
+            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/system" %
+                             j.dirs.codeDir,  '%s/portalbase/system' % portaldir)
+            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki" %
+                             j.dirs.codeDir, '%s/portalbase/wiki' % portaldir)
+            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/macros" %
+                             j.dirs.codeDir, '%s/portalbase/macros' % portaldir)
+            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/templates" %
+                             j.dirs.codeDir, '%s/portalbase/templates' % portaldir)
 
             exampleportaldir = '%sexample/base' % portaldir
-<<<<<<< Updated upstream
-            j.sal.fs.createDir(exampleportaldir)
-
-            for space in j.sal.fs.listDirsInDir("%s/github/jumpscale/jumpscale_portal8/apps/gridportal/base" % j.dirs.codeDir):
-                spacename = j.sal.fs.getBaseName(space)
-                if not spacename == 'home':
-                    j.sal.fs.symlink(space, j.sal.fs.joinPaths(exampleportaldir, 'gridportal', spacename), overwriteTarget=True)
-            j.sal.fs.createDir(j.sal.fs.joinPaths(exampleportaldir, 'home', '.space'))
-            j.sal.fs.touch(j.sal.fs.joinPaths(exampleportaldir, 'home', 'home.md'), overwrite=False)
-
-            j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py" % j.dirs.codeDir, '%sexample' % portaldir)
-            j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd" % j.dirs.codeDir, '%sexample' % portaldir)
-=======
             self.cuisine.dir_ensure(exampleportaldir)
             if not minimal:
                 for space in self.cuisine.fs_find("%s/github/jumpscale/jumpscale_portal8/apps/gridportal/base" % j.dirs.codeDir,recursive=False):
@@ -355,7 +319,6 @@ class CuisineInstallerDevelop():
 
             self._copyfile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py" % j.dirs.codeDir, '%sexample' % portaldir)
             self._copyfile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd" % j.dirs.codeDir, '%sexample' % portaldir)
->>>>>>> Stashed changes
             j.dirs.replaceFilesDirVars("%s/example/config.hrd" % portaldir)
             self._copyfile("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir, recursive=True)
 
@@ -402,5 +365,34 @@ class CuisineInstallerDevelop():
 
     #@todo installer for trueid env
     #@todo installer for g8exchange
+    @actionrun(action=True)
+    def aydostore(self, addr='0.0.0.0:8090', backend="/tmp/aydostor"):
+        """
+        Install aydostore
+        @input addr, address and port on which the service need to listen. e.g. : 0.0.0.0:8090
+        @input backend, directory where to save the data push to the store
+        """
+        def install():
+            script = """
+            set -ex
+            rm -f /usr/bin/aydostorx
+            wget https://stor.jumpscale.org/storx/static/aydostorex -O /usr/bin/aydostorx
+            chmod +x /usr/bin/aydostorx
+            """
+            self.cuisine.run_script(script)
 
-    
+        def configure():
+            self.cuisine.dir_ensure("/etc/aydostorx")
+            config = {
+                'listen_addr': addr,
+                'store_root': backend,
+            }
+            j.data.serializer.toml.dump("/etc/aydostorx/config.toml", config)
+
+        def start():
+            cmd = '/usr/bin/aydostorx -c /etc/aydostorx/config.toml'
+            self.cuisine.tmux.createSession('aydostorx', ['aydostorx'])
+            self.cuisine.tmux.executeInScreen('aydostorx', 'aydostorx', cmd)
+        install()
+        configure()
+        start()

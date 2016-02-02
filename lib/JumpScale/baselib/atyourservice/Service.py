@@ -217,8 +217,8 @@ class Service(object):
         self._hrd = None
 
         if parent!=None:
-            self.path=j.sal.fs.joinPaths(parent.path,"%s!%s"%(self.role,self.instance))
-            self.hrd.set("parent",parent)
+            self.path = j.sal.fs.joinPaths(parent.path,"%s!%s"%(self.role,self.instance))
+            self.hrd.set("parent", parent.key)
 
         self._action_methods_mgmt = None
         self._action_methods_node = None
@@ -487,8 +487,7 @@ class Service(object):
                         self.path = path
                         hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
                         self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
-                        if self._parent is not None:
-                            self.consume(self._parent)
+                    self.consume(self.parent)
 
         self._init = True
 
@@ -505,18 +504,16 @@ class Service(object):
         ```
 
         """
-        return
-        if str(input).strip() == "":
-            return
+        # return
+        # if str(input).strip() == "":
+        #     return
 
         emsg = "consume format is: ayskey,ayskey"
-        self.log("consume from %s:%s" % (self, input))
         if input is not None and input is not '':
             toConsume = set()
             if j.data.types.string.check(input):
                 entities = input.split(",")
                 for entry in entities:
-                    self.log("get service for consumption:%s" % entry.strip())
                     service = j.atyourservice.getServiceFromKey(entry.strip())
                     toConsume.add(service)
 
@@ -537,23 +534,20 @@ class Service(object):
                     prodSet.add(service)
                     self._producers[service.role] = list(prodSet)
 
-            for key, services in self._producers.items():
+            for role, services in self._producers.items():
                 producers = set()
                 for service in services:
-                    key = j.atyourservice.getKey(service)
-                    producers.add(key)
-                self.hrd.set("producer.%s" % key, list(producers))
+                    producers.add(service.key)
+                self.hrd.set("producer.%s" % role, list(producers))
 
             # walk over the producers
-            for producer in toConsume:
-                method=self.getActionMethodMgmt("consume")
-                if method!=None:
-                    j.atyourservice.alog.setNewAction(self.role, self.instance, "mgmt","consume")
-                    self.action_methods_mgmt.consume(self, producer)
-                    j.atyourservice.alog.setNewAction(self.role, self.instance, "mgmt","consume","OK")
-
-        self.log("consumption done")
-
+            # for producer in toConsume:
+            method=self._getActionMethodMgmt("consume")
+            if method!=None:
+                    # j.atyourservice.alog.setNewAction(self.role, self.instance, "mgmt","consume")
+                self.runAction('consume')
+                    # self.action_methods_mgmt.consume(producer)
+                    # j.atyourservice.alog.setNewAction(self.role, self.instance, "mgmt","consume","OK")
 
     def getProducersRecursive(self, producers=set(), callers=set()):
         for role, producers2 in self.producers.items():
@@ -765,10 +759,10 @@ class Service(object):
             return False
         self._uploadToNode()
 
-        execCmd = 'aysexec do %s %s %s' % (actionName, self.role, self.instance)
+        execCmd = 'source /opt/jumpscale8/env.sh; aysexec do %s %s %s' % (actionName, self.role, self.instance)
 
         executor = self.executor
-        executor.execute(execCmd, die=True)
+        executor.execute(execCmd, die=True, showout=True)
 
         return True
 

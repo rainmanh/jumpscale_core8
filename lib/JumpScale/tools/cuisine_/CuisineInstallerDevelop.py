@@ -141,12 +141,12 @@ class CuisineInstallerDevelop():
 
             j.data.serializer.toml.dump(cfgfile, cfg)
 
-        self.upgradePip()
-        self.pythonLibInstall()
-        self.prepare_go()
-        self.syncthing_build(appbase=syncthingAppDir)
-        self.agent_build(appbase=agentAppDir)
-        self.agentcontroller_build(appbase=agentcontrollerAppDir)
+        upgradePip()
+        pythonLibInstall()
+        self.golang()
+        syncthing_build(appbase=syncthingAppDir)
+        agent_build(appbase=agentAppDir)
+        agentcontroller_build(appbase=agentcontrollerAppDir)
 
         def startAgent(appbase):
 
@@ -160,7 +160,7 @@ class CuisineInstallerDevelop():
             self.cuisine.tmux.executeInScreen("main", screenname="ac", cmd="./agentcontroller2 -c %s" % cfgfile_ac, wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
 
         if start:
-            self.startAgent(appbase = agentAppDir)
+            startAgent(appbase = agentAppDir)
             startAgentController(appbase = agentcontrollerAppDir)
           # j.actions.run()
         else:

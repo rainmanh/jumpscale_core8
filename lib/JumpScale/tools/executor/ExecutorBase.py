@@ -72,8 +72,8 @@ class ExecutorBase():
             pre+="cd %s\n"%(self.curpath)
 
         if self.env!={}:
-            for key,val in self.env.iteritems():
-                pre+="export %s='%s'\n"%(self.curpath)
+            for key, val in self.env.items():
+                pre+="export %s='%s'\n" % (key, val)
 
 
         cmds="%s\n%s"%(pre,cmds)

@@ -25,7 +25,7 @@ class OauthInstance():
             self.id = id
             self.scope = scope
             self.redirect_url = redirect_url
-            self.accesstokenaddress = accesstokenaddress
+            self.accesstokenaddress = accesstokenaddr
             self.secret = secret
             self.user_info_url = user_info_url
             self.logout_url = logout_url

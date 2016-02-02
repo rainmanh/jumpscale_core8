@@ -1,6 +1,8 @@
 
 from JumpScale import j
+
 from CuisinePortal import CuisinePortal
+
 
 
 from ActionDecorator import ActionDecorator
@@ -23,7 +25,30 @@ class CuisineInstallerDevelop():
             self._portal = CuisinePortal(self.executor, self.cuisine)
         return self._portal
 
+    def _linkfilesindir(self, dir_path, dest):
+        for fil in self.cuisine.fs_find(dir_path):
+            dest_fil = "%s/%s" %(dest, dir_path.split("/")[-1:][0])
+            self.cuisine.dir_remove(dest_fil, recursive=False)
+            self.cuisine.file_link(fil, dest_fil)
+    def _joinpath(self, *args):
+        path = ""
+        for arg in args:
+            path += "/%s"%arg
+        return path
+    def _copyfile(self, dir_path, dest, overwriteTarget=True,  recursive=False):
+        recurse = "r" if recursive else ""
+        overwrite = "f" if overwriteTarget else ""
+        self.cuisine.run("cp -%s%s %s %s" %(recurse, overwrite, dir_path, dest))
+        
+
     @actionrun(action=True)
+    def golang(self):
+        rc, out = self.cuisine.run("which go", die=False)
+        if rc > 0:
+            if self.cuisine.isMac:
+                self.cuisine.run("brew install golang")
+            else:
+                self.cuisine.run("apt-get install golang -y --force-yes")
 
     def python(self):
         C="""
@@ -179,57 +204,55 @@ class CuisineInstallerDevelop():
             raise RuntimeError("platform not supported yet")
 
 
+    @actionrun(action=True)
     def installAgentcontroller(self, start=True):
         """
         config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
         """
         j.actions.setRunId("installAgentController")
 
-        agentAppDir = j.sal.fs.joinPaths(j.dirs.base, "apps", "agent8")
-        agentcontrollerAppDir = j.sal.fs.joinPaths(j.dirs.base, "apps", "agentcontroller8")
-        syncthingAppDir = j.sal.fs.joinPaths(j.dirs.base, "apps", "syncthing")
-        os.environ.setdefault("GOROOT", '/usr/lib/go/')
-        os.environ.setdefault("GOPATH", '/opt/go')
+        agentAppDir = self._joinpath(j.dirs.base, "apps", "agent8")
+        agentcontrollerAppDir = self._joinpath(j.dirs.base, "apps", "agentcontroller8")
+        syncthingAppDir = self._joinpath(j.dirs.base, "apps", "syncthing")
+        self.executor.env["GOROOT"] = self.executor.env.get("GOROOT", '/usr/lib/go/')
+        self.executor.env["GOPATH"] = self.executor.env.get("GOPATH", '/opt/go')
 
         def upgradePip():
-            self.executor.execute("pip3 install --upgrade pip")
+            self.cuisine.run("pip3 install --upgrade pip")
 
         def pythonLibInstall():
-            self.executor.execute("pip3 install pytoml")
+            self.cuisine.run("pip3 install pytoml")
 
 
 
         def syncthing_build(appbase):
             url = "git@github.com:syncthing/syncthing.git"
-            dest = j.do.pullGitRepo(url, dest='%s/src/github.com/syncthing/syncthing' % os.environ['GOPATH'])
-            self.executor.execute('cd %s && godep restore' % dest)
-            self.executor.execute("cd %s && ./build.sh noupgrade" % dest)
-            tarfile = j.sal.fs.find(dest, 'syncthing*.tar.gz')[0]
-            tar = j.tools.tarfile.get(j.sal.fs.joinPaths(dest, tarfile))
-            tar.extract(dest)
-            path = tarfile.rstrip('.tar.gz')
-            j.sal.fs.copyFile(j.sal.fs.joinPaths(dest, path, 'syncthing'), '%s/bin/' % os.environ['GOPATH'])
-            j.sal.fs.copyFile(j.do.joinPaths(os.environ['GOPATH'], 'bin', 'syncthing'), j.sal.fs.joinPaths(appbase, "syncthing"))
+            dest = self.cuisine.git.pullRepo(url, dest='%s/src/github.com/syncthing/syncthing' % self.executor.env['GOPATH'])
+            self.cuisine.run('cd %s && godep restore' % dest)
+            self.cuisine.run("cd %s && ./build.sh noupgrade" % dest)
+            self.cuisine.dir_ensure(appbase, recursive=True)
+            self._copyfile(self._joinpath(dest, 'syncthing'), '%s/bin/' % self.executor.env['GOPATH'])
+            self._copyfile(self._joinpath(self.executor.env['GOPATH'], 'bin', 'syncthing'), appbase)
 
         def agent_build(appbase):
             url = "git@github.com:Jumpscale/agent2.git"
-            dest = j.tools.golang.build(url)
+            dest = self.cuisine.golang.get(url)
 
-            j.sal.fs.copyFile(j.sal.fs.joinPaths(os.environ['GOPATH'], 'bin', "agent2"), j.sal.fs.joinPaths(appbase, "agent2"))
-            j.sal.fs.copyFile(j.sal.fs.joinPaths(os.environ['GOPATH'], 'bin', "syncthing"), j.sal.fs.joinPaths(appbase, "syncthing"))
+            self._copyfile(self._joinpath(self.executor.env['GOPATH'], 'bin', "agent2"), self._joinpath(appbase, "agent2"))
+            self._copyfile(self._joinpath(self.executor.env['GOPATH'], 'bin', "syncthing"), self._joinpath(appbase, "syncthing"))
 
-            j.do.createDir(appbase)
+            self.cuisine.dir_ensure(appbase, recursive=True)
 
             # link extensions
-            extdir = j.sal.fs.joinPaths(appbase, "extensions")
-            j.do.delete(extdir)
-            j.do.symlink("%s/extensions" % dest, extdir)
+            extdir = self._joinpath(appbase, "extensions")
+            self.cuisine.dir_remove(extdir)
+            self.cuisine.file_link("%s/extensions" % dest, extdir)
 
             # manipulate config file
             cfgfile = '%s/agent.toml' % appbase
-            j.do.copyFile("%s/agent.toml" % dest, cfgfile)
+            self._copyfile("%s/agent.toml" % dest, cfgfile)
 
-            j.sal.fs.copyDirTree("%s/conf" % dest, j.sal.fs.joinPaths(appbase, "conf"))
+            self._copyfile("%s/conf" % dest, self._joinpath(appbase, "conf"), recursive=True )
 
             #cfg = j.data.serializer.toml.load(cfgfile)
 
@@ -237,19 +260,19 @@ class CuisineInstallerDevelop():
 
         def agentcontroller_build(appbase):
             url = "git@github.com:Jumpscale/agentcontroller2.git"
-            dest = j.tools.golang.build(url)
+            dest = self.cuisine.golang.get(url)
 
-            destfile = j.sal.fs.joinPaths(appbase, "agentcontroller2")
-            j.sal.fs.copyFile(j.do.joinPaths(os.environ['GOPATH'], 'bin', "agentcontroller2"), destfile)
+            destfile = self._joinpath(appbase, "agentcontroller2")
+            self._copyfile(self._joinpath(self.executor.env['GOPATH'], 'bin', "agentcontroller2"), destfile)
 
-            j.do.createDir(appbase)
+            self.cuisine.dir_ensure(appbase, recursive=True)
             cfgfile = '%s/agentcontroller.toml' % appbase
-            j.do.copyFile("%s/agentcontroller.toml" % dest, cfgfile)
+            self._copyfile("%s/agentcontroller.toml" % dest, cfgfile)
 
-            extdir = j.sal.fs.joinPaths(appbase, "extensions")
-            j.do.delete(extdir)
-            j.sal.fs.createDir(extdir)
-            j.do.symlinkFilesInDir("%s/extensions" % dest, extdir, delete=True, includeDirs=False)
+            extdir = self._joinpath(appbase, "extensions")
+            self.cuisine.dir_remove(extdir)
+            self.cuisine.dir_ensure(extdir)
+            self._linkfilesindir("%s/extensions" % dest, extdir)
 
             cfg = j.data.serializer.toml.load(cfgfile)
 
@@ -257,29 +280,28 @@ class CuisineInstallerDevelop():
 
             j.data.serializer.toml.dump(cfgfile, cfg)
 
-        j.actions.add(upgradePip)
-        j.actions.add(pythonLibInstall)
-        j.actions.add(prepare_go)
-        j.actions.add(syncthing_build, args={'appbase': syncthingAppDir})
-        j.actions.add(agent_build, args={"appbase": agentAppDir})
-        j.actions.add(agentcontroller_build, args={"appbase": agentcontrollerAppDir})
-        j.actions.run()
+        upgradePip()
+        pythonLibInstall()
+        self.golang()
+        syncthing_build(appbase=syncthingAppDir)
+        agent_build(appbase=agentAppDir)
+        agentcontroller_build(appbase=agentcontrollerAppDir)
 
         def startAgent(appbase):
 
-            cfgfile_agent = j.do.joinPaths(appbase, "agent2.toml")
+            cfgfile_agent = self._joinpath(appbase + "agent2.toml")
             j.sal.nettools.waitConnectionTest("127.0.0.1", 8966, timeout=2)
             print("connection test ok to agentcontroller")
-            j.sal.tmux.executeInScreen("main", screenname="agent", cmd="./agent2 -c %s" % cfgfile_agent, wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
+            self.cuisine.tmux.executeInScreen("main", screenname="agent", cmd="./agent2 -c %s" % cfgfile_agent, wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
 
         def startAgentController(appbase):
-            cfgfile_ac = j.do.joinPaths(appbase, "agentcontroller2.toml")
-            j.sal.tmux.executeInScreen("main", screenname="ac", cmd="./agentcontroller2 -c %s" % cfgfile_ac, wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
+            cfgfile_ac = self._joinpath(appbase, "agentcontroller2.toml")
+            self.cuisine.tmux.executeInScreen("main", screenname="ac", cmd="./agentcontroller2 -c %s" % cfgfile_ac, wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
 
         if start:
-            j.actions.add(startAgent, args={"appbase": agentAppDir})
-            j.actions.add(startAgentController, args={"appbase": agentcontrollerAppDir})
-            j.actions.run()
+            startAgent(appbase = agentAppDir)
+            startAgentController(appbase = agentcontrollerAppDir)
+          # j.actions.run()
         else:
             print('To run your agent, navigate to "%s" adn to "%s" and do "./agent2 -c agent2.toml"' % agentAppDir)
             print('To run your agentcontroller, navigate to "%s" adn to "%s" and do "./agentcontroller2 -c agentcontroller2.toml"' % agentcontrollerAppDir)

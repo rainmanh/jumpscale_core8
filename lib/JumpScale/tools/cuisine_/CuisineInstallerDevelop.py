@@ -7,7 +7,7 @@ from ActionDecorator import ActionDecorator
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
         ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installerdevel"
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installerdevelop"
 
 
 class CuisineInstallerDevelop():
@@ -15,7 +15,6 @@ class CuisineInstallerDevelop():
     def __init__(self,executor,cuisine):
         self.executor=executor
         self.cuisine=cuisine
-
         self._portal = None
 
     @property
@@ -23,31 +22,6 @@ class CuisineInstallerDevelop():
         if self._portal is None:
             self._portal = CuisinePortal(self.executor, self.cuisine)
         return self._portal
-
-    @actionrun(action=True)
-    def golang():
-        rc, out = self.cuisine.run("which go", die=False)
-        if rc > 0:
-            if sys.platform.startswith("OSX"):
-                self.cuisine.run("brew install golang")
-            else:
-                self.cuisine.run("apt-get install golang -y --force-yes")
-
-        from IPython import embed
-        print ("DEBUG NOW oioioi")
-        embed()
-
-        os.environ.setdefault("GOROOT", '/usr/lib/go/')
-        os.environ.setdefault("GOPATH", '/opt/go')
-        j.sal.fs.createDir(os.environ['GOPATH'])
-        print ('GOPATH:', os.environ["GOPATH"])
-        print ('GOROOT:', os.environ["GOROOT"])
-        j.sal.fs.touch(j.sal.fs.joinPaths(os.environ["HOME"], '.bash_profile'), overwrite=False)
-        path = os.environ.get('PATH')
-        os.environ['PATH'] = '%s:%s/bin' % (path, os.environ['GOPATH'])
-        self.executor.execute('go get github.com/tools/godep')
-        self.executor.execute('go get github.com/rcrowley/go-metrics')
-
 
     def installAgentcontroller(self, start=True):
         """

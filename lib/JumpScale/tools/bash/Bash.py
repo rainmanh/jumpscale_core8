@@ -26,6 +26,14 @@ class Bash:
         self._environ={} 
         self._home=None
 
+    def replaceEnvironInText(self,text):
+        """
+        will look for $ENVIRONNAME 's and replace them in text
+        """
+        for key,val in self.environ.item():
+            text=text.replace("$%s"%key,val)
+        return text
+
     @property
     def environ(self):
         if self._environ=={}:
@@ -66,7 +74,7 @@ class Bash:
         """
         isString=True
         if temp==False:
-            if key not in self.environ:
+            if key not in self.environ or self.environ[key]!=val:
                 self.environRemove(key,val)
                 out=self.profile
 
@@ -118,6 +126,7 @@ class Bash:
         self.environSet("PATH","%s:${PATH}"% path)
 
     def environRemove(self,key,val):
+        #@todo needs to be properly checked
         content=self.profile
         out=""
         for line in content.split("\n"):
@@ -129,17 +138,18 @@ class Bash:
                     line=line.replace(val+" ,","")
                     line=line.replace(val+":","")
                     line=line.replace(val+" :","")
-                    line=line.replace(val,"")
                     if line.find("${%s}"%key)==-1:
                         continue
                     else:                        
+                        #check if line is empty after removing all things we don't need, if so we can continue
                         line3=j.data.text.stripItems(line,items=["%s"%key,"\""," ","'",":","${%s}"%key,"=",","])
                         if line3=="":
                             continue
             line2=line.replace("  "," ")
             if line2.startswith("export %s"%key):
                 continue
-            out+="%s\n"%line
+            out+="%s\n"%line2
+
         self.profile=out
 
 

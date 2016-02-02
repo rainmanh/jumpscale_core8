@@ -36,18 +36,39 @@ class CuisineNet():
     def defaultgw(self,val):
         raise RuntimeError("not implemented")
 
-    def getAvahi(self):
-        cmd="avahi-browse -a -r -t -l"
-        out=self.cuisine.run(cmd)
-        obj=None
-        for line in out.split("\n"):
-            if line.startswith("="):
-                obj={}
-                obj[""]
 
-        from IPython import embed
-        print ("DEBUG NOW kkkk")
-        embed()
+    def findnodes(self,range=None,ips=[]):
+        """
+        @param range in format 192.168.0.0/24
+        if range not specified then will take all ranges of local ip addresses (nics)
+        find nodes which are active around
+        """
+        if range==None:
+            res=self.cuisine.net.get_info()
+            for item in res:
+                cidr=item['cidr']
+                
+                name=item['name']
+                if not name.startswith("docker") and name not in ["lo"]:
+                    if len(item['ip'])>0:
+                        ip=item['ip'][0]
+                        ipn=netaddr.IPNetwork(ip+"/"+str(cidr))
+                        range=str(ipn.network)+"/%s"%cidr
+                        ips=self.findnodes(range,ips)
+            return ips
+        else:            
+            try:
+                out=self.cuisine.run("nmap %s -n -sP | grep report | awk '{print $5}'"%range,showout=False)
+            except Exception as e:
+                if str(e).find("command not found")!=-1:
+                    self.cuisine.package.install("nmap")
+                    out=self.cuisine.run("nmap %s -n -sP | grep report | awk '{print $5}'"%range,showout=False)
+            for line in out.splitlines():
+                ip=line.strip()
+                if ip not in ips:                    
+                    ips.append(ip)
+            return ips
+
         
 
     def get_info(self):

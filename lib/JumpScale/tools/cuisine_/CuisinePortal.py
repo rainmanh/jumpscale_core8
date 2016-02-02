@@ -145,6 +145,8 @@ class CuisinePortal(object):
         self.cuisine.run("js 'j.application.reload()'")
 
         portaldir = j.sal.fs.joinPaths(j.dirs.base, "apps", "portals")
+        if not portaldir.endswith("/"):
+            portaldir +='/'
         self.cuisine.dir_ensure(portaldir)
         self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/jslib" % j.dirs.codeDir, '%s/jslib' % portaldir)
         self.cuisine.dir_ensure(j.sal.fs.joinPaths(portaldir, 'portalbase'))
@@ -169,13 +171,12 @@ class CuisinePortal(object):
             self.cuisine.dir_ensure('%s/home/.space' %exampleportaldir)
             self.cuisine.file_ensure('%s/home/home.md' %exampleportaldir)
 
-
-        dest = j.sal.fs.joinPaths(portaldir, 'example')
+        dest = exampleportaldir = '%sexample' % portaldir
         self.cuisine.dir_ensure(dest)
-        self.cuisine.file_copy(j.sal.fs.joinPaths(j.dirs.codeDir, 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'), dest)
-        self.cuisine.file_copy(j.sal.fs.joinPaths(j.dirs.codeDir, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'), dest)
-        self.cuisine.file_copy(j.sal.fs.joinPaths(j.dirs.codeDir, 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'), dest)
-        self.cuisine.file_copy(j.sal.fs.joinPaths(j.dirs.codeDir, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'), dest)
+        self.cuisine.file_copy(j.sal.fs.joinPaths(j.dirs.codeDir, 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'), exampleportaldir)
+        self.cuisine.file_copy(j.sal.fs.joinPaths(j.dirs.codeDir, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'), exampleportaldir)
+        self.cuisine.file_copy(j.sal.fs.joinPaths(j.dirs.codeDir, 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'), exampleportaldir)
+        self.cuisine.file_copy(j.sal.fs.joinPaths(j.dirs.codeDir, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'), exampleportaldir)
         # j.dirs.replaceFilesDirVars("%s/example/config.hrd" % portaldir)
         self.cuisine.file_copy("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir, recursive=True)
 

@@ -200,6 +200,7 @@ from CuisineGit import CuisineGit
 from CuisineGroup import CuisineGroup
 from CuisineInstallerDevelop import CuisineInstallerDevelop
 from ActionDecorator import ActionDecorator
+
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
         ActionDecorator.__init__(self,*args,**kwargs)
@@ -239,7 +240,7 @@ class OurCuisine():
     @property
     def package(self):
         if self._package==None:
-            
+
             self._package=CuisinePackage(self.executor,self)
         return self._package
 
@@ -251,17 +252,15 @@ class OurCuisine():
 
     @property
     def systemd(self):
-        if self._systemd==None:            
+        if self._systemd==None:
             self._systemd=CuisineSystemd(self.executor,self)
         return self._systemd
 
     @property
-    def systemd(self):
-        if self._installerdevel==None:            
+    def installerdevel(self):
+        if self._installerdevel==None:
             self._installerdevel=CuisineInstallerDevelop(self.executor,self)
         return self._installerdevel
-
-
 
     @property
     def process(self):
@@ -271,10 +270,10 @@ class OurCuisine():
 
     @property
     def pip(self):
-        if self._pip==None:            
+        if self._pip==None:
             self._pip=CuisinePIP(self.executor,self)
-        return self._pip   
-    
+        return self._pip
+
     @property
     def id(self):
         if self._id==None:
@@ -283,7 +282,7 @@ class OurCuisine():
             else:
                 self._id=""
         return self._id
-    
+
     @property
     def platformtype(self):
         if self._platformtype==None:
@@ -443,7 +442,7 @@ class OurCuisine():
 
 
         frame = self.file_base64(location)
-        
+
         return base64.b64decode(frame).decode()
 
 
@@ -485,7 +484,7 @@ class OurCuisine():
             if self.isMac:
                 hostfile="/private/etc/hostname"
             else:
-                hostfile="/etc/hostname"        
+                hostfile="/etc/hostname"
             self._hostname= self.run("cat %s"%hostfile).strip().split(".",1)[0]
         return self._hostname
 
@@ -494,7 +493,7 @@ class OurCuisine():
         val=val.strip().lower()
         if self.isMac:
             hostfile="/private/etc/hostname"
-            self.file_write(hostfile,val,sudo=True)            
+            self.file_write(hostfile,val,sudo=True)
         else:
             hostfile="/etc/hostname"
             self.file_write(hostfile,val)
@@ -506,7 +505,7 @@ class OurCuisine():
     @property
     def name(self):
         self._name,self._grid,self._domain=self.fqn.split(".",2)
-        return self._name    
+        return self._name
 
     @property
     def grid(self):
@@ -533,7 +532,7 @@ class OurCuisine():
                         return self.fqn
             raise RuntimeError("fqn was never set, please use cuisine.setIDs()")
         return self._fqn
-        
+
     @fqn.setter
     def fqn(self,val):
         self._fqn=val
@@ -542,15 +541,15 @@ class OurCuisine():
 
     def setIDs(self,name,grid,domain="aydo.com"):
         self.fqn="%s.%s.%s"%(name,grid,domain)
-        self.hostname=name        
+        self.hostname=name
 
     @property
     def hostfile(self):
         if self.isMac:
             hostfile="/private/etc/hosts"
         else:
-            hostfile="/etc/hosts"        
-        return self.file_read(hostfile)    
+            hostfile="/etc/hosts"
+        return self.file_read(hostfile)
 
     @hostfile.setter
     def hostfile(self,val):
@@ -560,13 +559,13 @@ class OurCuisine():
         else:
             hostfile="/etc/hosts"
             self.file_write(hostfile,val)
-        
+
     @actionrun(action=False,force=False)
     def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False):
         print ("filewrite: %s"%location)
         content=j.data.text.strip(content)
         content2 = content.encode('utf-8')
-        
+
 
         sig = hashlib.md5(content2).hexdigest()
 
@@ -689,7 +688,7 @@ class OurCuisine():
             self.package.install("python3.5")
             res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
         return res
-            
+
         # else:
         # return self.run("cat {0} | openssl base64".format(shell_safe((location))))
 
@@ -828,7 +827,7 @@ class OurCuisine():
                     path,size,mod=item.split("||")
                     if path.strip()=="":
                         continue
-                    paths2.append([path,int(size),int(float(mod))])                        
+                    paths2.append([path,int(size),int(float(mod))])
         else:
             paths2=[item for item in paths if item.strip()!=""]
 
@@ -869,14 +868,14 @@ class OurCuisine():
                     if self.isArch:
                         self.package.install("python3")
                     else:
-                        self.package.install("python3.5")                    
+                        self.package.install("python3.5")
                     next=True
 
-                if out.find("pip3: command not found")!=-1 and not "pip" in self.done: 
+                if out.find("pip3: command not found")!=-1 and not "pip" in self.done:
                     from IPython import embed
                     print ("DEBUG NOW pip3 not found")
                     embed()
-                                                        
+
                     self.done.append("pip")
                     self.installer.pip()
                     next=True
@@ -887,17 +886,17 @@ class OurCuisine():
                     from IPython import embed
                     print ("DEBUG NOW pythondevel not found")
                     embed()
-                    
+
                     self.done.append("pythondevel")
                     self.installer.pythonDevelop()
                     next=True
 
-                for package in items2check:        
+                for package in items2check:
                     if out.find("not found")!=-1 and  out.find(package)!=-1:
                         from IPython import embed
                         print ("DEBUG NOW cmd not found")
                         embed()
-                        
+
                         if not package in self.done:
                             self.done.append(package)
                             self.installer.base()
@@ -934,7 +933,7 @@ class OurCuisine():
         out=self.run("bash %s"%path,showout=True)
         self.file_unlink(path)
 
-        
+
         lastline=out.split("\n")[-1]
         if lastline.find("**DONE**")==-1:
             raise Exception("Could not execute bash script.\n%s\n"%(content))
@@ -996,7 +995,7 @@ class OurCuisine():
         """
         script=j.data.text.lstrip(script)
         if script.find("from JumpScale import j")==-1:
-            script="from JumpScale import j\n\n%s"%script        
+            script="from JumpScale import j\n\n%s"%script
         path="/tmp/jumpscript_temp_%s.py"%j.data.idgenerator.generateRandomInt(1,10000)
         self.file_write(path,script)
         out=self.run("jspython %s"%path)

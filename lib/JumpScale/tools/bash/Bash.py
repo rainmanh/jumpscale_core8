@@ -53,13 +53,14 @@ class Bash:
         if self._home==None:
             res={}
             for line in self.cuisine.run("export",profile=False,showout=False).splitlines():
-                if line.startswith("declare -x "):
-                    line=line[11:]
-                    name,val=line.split("=",1)
+                if line.startswith("declare -x ") or line.startswith('export '):
+                    line = line.strip("declare -x ")
+                    line = line.strip('export ')
+                    name, val=line.split("=", 1)
                     name=name.strip()
                     val=val.strip().strip("'").strip("\"")
                     res[name]=val
-            self._home=res["HOME"]        
+            self._home=res["HOME"]
         return self._home    
 
     def environGet(self,name,default=None):  

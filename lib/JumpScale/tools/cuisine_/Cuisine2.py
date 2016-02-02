@@ -938,7 +938,7 @@ class OurCuisine():
                 if item.find("||")!=-1:
                     path,size,mod=item.split("||")
                     if path.strip()=="":
-                        continueH
+                        continue
                     paths2.append([path,int(size),int(float(mod))])
         else:
             paths2=[item for item in paths if item.strip()!=""]
@@ -1140,6 +1140,6 @@ class OurCuisine():
         return "darwin" in self.platformtype.platformtypes
 
     def __str__(self):
-        return "cuisine:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port'))
+        return "cuisine:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
 
     __repr__=__str__

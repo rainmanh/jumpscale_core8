@@ -213,4 +213,4 @@ class SSHClient(object):
         return self._cuisine
 
     def ssh_authorize(self, user, key):
-        self.cuisine.ssh_authorize(user, key)
+        self.cuisine.ssh.authorize(user, key)

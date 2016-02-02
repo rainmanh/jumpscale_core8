@@ -187,7 +187,7 @@ class Container(SALObject):
 
         j.sal.fs.writeFile(filename="/root/.ssh/known_hosts", contents="")
         for key in keys:
-            self.cuisine.ssh_authorize("root", key)
+            self.cuisine.ssh.authorize("root", key)
 
         return list(keys)
 

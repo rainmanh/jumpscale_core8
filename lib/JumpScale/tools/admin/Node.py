@@ -73,7 +73,7 @@ class Node():
             else:
                 j.application.stop()
         key=j.sal.fs.fileGetContents(keyloc)
-        self.ssh.ssh_authorize("root",key)
+        self.ssh.ssh.authorize("root",key)
 
     def aysStop(self,name,filterstr,die=True):
         self.log("ays stop","%s (%s)"%(name,filterstr))

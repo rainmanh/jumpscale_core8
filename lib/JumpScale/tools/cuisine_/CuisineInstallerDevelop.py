@@ -205,7 +205,7 @@ class CuisineInstallerDevelop():
 
 
     @actionrun(action=True)
-    def installAgentcontroller(self, start=True):
+    def agentcontroller(self, start=True):
         """
         config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
         """

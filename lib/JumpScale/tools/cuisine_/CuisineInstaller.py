@@ -77,7 +77,7 @@ class CuisineInstaller(object):
             j.do.chmod(lpath+".pub",0o600)
 
         #authorize remote server to accept now copied private key
-        self.cuisine.ssh_authorize("sshreflector",j.do.readFile(lpath+".pub"))
+        self.cuisine.ssh.authorize("sshreflector",j.do.readFile(lpath+".pub"))
 
         self.cuisine.run("chmod 0644 /home/sshreflector/.ssh/*")
         self.cuisine.run("chown -R sshreflector:sshreflector /home/sshreflector/.ssh/")
@@ -718,6 +718,7 @@ class CuisineInstaller(object):
 
 
     def __str__(self):
-        return "cuisine.installer:%s:%s"%(self.executor.addr,self.executor.port)
+        return "cuisine:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
+
 
     __repr__=__str__

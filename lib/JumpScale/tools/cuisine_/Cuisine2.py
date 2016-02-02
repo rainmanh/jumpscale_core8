@@ -197,6 +197,7 @@ from CuisineSSH import CuisineSSH
 from CuisineNS import CuisineNS
 from CuisineUser import CuisineUser
 from CuisineGit import CuisineGit
+from CuisineBuilder import CuisineBuilder
 from CuisineGroup import CuisineGroup
 from CuisineInstallerDevelop import CuisineInstallerDevelop
 from ActionDecorator import ActionDecorator
@@ -229,6 +230,10 @@ class OurCuisine():
         self._group=None
         self._user=None
         self._git=None
+        self._builder=None
+        self._bash=None
+        self._avahi=None
+        self._tmux=None
         self.cuisine=self
         self._fqn=""
         if self.executor.type=="ssh":
@@ -275,6 +280,12 @@ class OurCuisine():
         return self._pip
 
     @property
+    def builder(self):
+        if self._builder==None:            
+            self._builder=CuisineBuilder(self.executor,self)
+        return self._builder   
+
+    @property
     def id(self):
         if self._id==None:
             if "addr" in self.executor.__dict__:
@@ -309,9 +320,21 @@ class OurCuisine():
 
     @property
     def avahi(self):
-        j.tools.avahi.cuisine=self
-        j.tools.avahi.executor=self.executor
-        return j.tools.avahi
+        if self._avahi==None:
+            self._avahi=j.tools.avahi.get(self,self.executor)
+        return self._avahi
+
+    @property
+    def tmux(self):
+        if self._tmux==None:
+            self._tmux=j.sal.tmux.get(self,self.executor)
+        return self._tmux
+
+    @property
+    def bash(self):
+        if self._bash==None:
+            self._bash=j.tools.bash.get(self,self.executor)
+        return self._bash
 
     @property
     def net(self):
@@ -719,6 +742,7 @@ class OurCuisine():
         # else:
         #     return self.run('openssl dgst -md5 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
 
+
     # =============================================================================
     #
     # DIRECTORY OPERATIONS
@@ -844,7 +868,10 @@ class OurCuisine():
         return self.run(cmd2, die=die)
 
     @actionrun()
-    def run(self,cmd,die=True,debug=None,checkok=False,showout=True):
+    def run(self,cmd,die=True,debug=None,checkok=False,showout=True,profile=False):
+        """
+        @param profile, execute the bash profile first
+        """
         import copy
 
         self.executor.curpath=self.cd
@@ -852,6 +879,12 @@ class OurCuisine():
         if debug!=None:
             debugremember=copy.copy(debug)
             self.executor.debug=debug
+
+        if profile:
+            ppath=self.bash.profilePathExists()
+            if ppath!=None:
+                cmd=". %s;%s"%(ppath,cmd)
+            print ("PROFILECMD:%s"%cmd)
 
         rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)
 
@@ -970,10 +1003,7 @@ class OurCuisine():
     #
     # =============================================================================
 
-    @property
-    def tmux(self):
-        j.sal.tmux._local=self.executor
-        return j.sal.tmux
+
 
     def tmux_execute_jumpscript(self,script,sessionname="ssh", screenname="js"):
         """

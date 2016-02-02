@@ -18,6 +18,30 @@ class CuisineInstallerDevelop():
         self.executor=executor
         self.cuisine=cuisine
 
+    @actionrun(action=True)
+    def golang():
+        rc, out = self.cuisine.run("which go", die=False)
+        if rc > 0:
+            if sys.platform.startswith("OSX"):
+                self.cuisine.run("brew install golang")
+            else:
+                self.cuisine.run("apt-get install golang -y --force-yes")
+
+        from IPython import embed
+        print ("DEBUG NOW oioioi")
+        embed()
+        
+        os.environ.setdefault("GOROOT", '/usr/lib/go/')
+        os.environ.setdefault("GOPATH", '/opt/go')
+        j.sal.fs.createDir(os.environ['GOPATH'])
+        print ('GOPATH:', os.environ["GOPATH"])
+        print ('GOROOT:', os.environ["GOROOT"])
+        j.sal.fs.touch(j.sal.fs.joinPaths(os.environ["HOME"], '.bash_profile'), overwrite=False)
+        path = os.environ.get('PATH')
+        os.environ['PATH'] = '%s:%s/bin' % (path, os.environ['GOPATH'])
+        self.executor.execute('go get github.com/tools/godep')
+        self.executor.execute('go get github.com/rcrowley/go-metrics')
+
 
     def installAgentcontroller(self, start=True):
         """
@@ -37,25 +61,7 @@ class CuisineInstallerDevelop():
         def pythonLibInstall():
             self.executor.execute("pip3 install pytoml")
 
-        def prepare_go():
-            rc, out = self.cuisine.run("which go", die=False)
-            if rc > 0:
-                if sys.platform.startswith("OSX"):
-                    self.cuisine.run("brew install golang")
-                else:
-                    self.cuisine.run("apt-get install golang -y --force-yes")
 
-            #rc, gopath = self.executor.execute("which go", die=False)
-            os.environ.setdefault("GOROOT", '/usr/lib/go/')
-            os.environ.setdefault("GOPATH", '/opt/go')
-            j.sal.fs.createDir(os.environ['GOPATH'])
-            print ('GOPATH:', os.environ["GOPATH"])
-            print ('GOROOT:', os.environ["GOROOT"])
-            j.sal.fs.touch(j.sal.fs.joinPaths(os.environ["HOME"], '.bash_profile'), overwrite=False)
-            path = os.environ.get('PATH')
-            os.environ['PATH'] = '%s:%s/bin' % (path, os.environ['GOPATH'])
-            self.executor.execute('go get github.com/tools/godep')
-            self.executor.execute('go get github.com/rcrowley/go-metrics')
 
         def syncthing_build(appbase):
             url = "git@github.com:syncthing/syncthing.git"

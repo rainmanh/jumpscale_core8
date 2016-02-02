@@ -201,6 +201,7 @@ from CuisineGit import CuisineGit
 from CuisineBuilder import CuisineBuilder
 from CuisineGroup import CuisineGroup
 from ActionDecorator import ActionDecorator
+from CuisineGolang import CuisineGolang
 
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
@@ -234,6 +235,7 @@ class OurCuisine():
         self._bash=None
         self._avahi=None
         self._tmux=None
+        self._golang=None
         self.cuisine=self
         self._fqn=""
         if self.executor.type=="ssh":
@@ -278,6 +280,13 @@ class OurCuisine():
         if self._pip==None:
             self._pip=CuisinePIP(self.executor,self)
         return self._pip
+
+
+    @property
+    def golang(self):
+        if self._golang==None:
+            self._golang=CuisineGolang(self.executor,self)
+        return self._golang
 
     @property
     def builder(self):
@@ -459,6 +468,75 @@ class OurCuisine():
                 shell_safe(backup_location)
             ))
 
+    def file_get_tmp_path(self,basepath=""):
+        if basepath=="":
+            return "/tmp/%s"%j.data.idgenerator.generateXCharID(10)
+        else:
+            return "/tmp/%s"%basepath
+
+
+    def file_download(self,url,to,overwrite=True,retry=3,timeout=0,login="",passwd="",minspeed=0,multithread=False,expand=False):
+        """
+        download from url
+        @return path of downloaded file
+        @param to is destination
+        @param minspeed is kbytes per sec e.g. 50, if less than 50 kbytes during 10 min it will restart the download (curl only)
+        @param when multithread True then will use aria2 download tool to get multiple threads        
+        """
+
+        if expand:
+            destdir=to            
+            to=self.file_get_tmp_path(j.sal.fs.getBaseName(url))
+
+        if overwrite:
+            if self.file_exists(to):
+                self.file_unlink(to)
+                self.file_unlink("%s.downloadok"%to)
+        if not self.file_exists(to) and self.file_exists("%s.downloadok"%to):
+        
+            self.createDir(j.sal.fs.getDirName(to))
+
+            if multithread==False:
+                minspeed=0
+                if minspeed!=0:
+                    minsp="-y %s -Y 600"%(minspeed*1024)
+                else:
+                    minsp=""
+                if login:
+                    user="--user %s:%s "%(login,passwd)
+                else:
+                    user=""
+
+                cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s"%(url,to,user,minsp,retry,timeout)
+                if self.file_exists(to):
+                    cmd += " -C -"
+                print(cmd)
+                self.file_unlink("%s.downloadok"%to)
+                rc, out = self.run(cmd, die=False)
+                if rc == 33: # resume is not support try again withouth resume
+                    self.file_unlink(to)
+                    cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s"%(url,to,user,minsp,retry,timeout)
+                    rc, out = self.run(cmd, die=False)
+                if rc > 0:
+                    raise RuntimeError("Could not download:{}.\nErrorcode: {}".format(url, rc))
+                else:
+                    self.touch("%s.downloadok"%to)
+            else:
+                raise RuntimeError("not implemented yet")
+
+        if expand:
+            self.file_expand(to,destdir)
+
+    def file_expand(self,path,to):
+        if path.endswith(".tar.gz") or path.endswith(".tgz"):
+            cmd="tar -C %s -xzf %s"%(to,path)
+            self.cuisine.run(cmd)
+        else:
+            raise RuntimeError("not supported yet")
+            
+
+    def touch(self,path):
+        self.file_write(path,"")
 
     def file_read(self,location, default=None):
         """Reads the *remote* file at the given location, if default is not `None`,
@@ -623,7 +701,7 @@ class OurCuisine():
             self.file_write(location,"",mode=mode,owner=owner,group=group,scp=scp)
 
     @actionrun(action=False,force=False)
-    def file_upload(self, local, remote):
+    def file_upload_local(self, local, remote):
         """Uploads the local file to the remote location only if the remote location does not
         exists or the content are different."""
         remote_md5 = self.file_md5(remote)
@@ -637,7 +715,7 @@ class OurCuisine():
             f.write(content)
 
     @actionrun(action=False,force=False)
-    def file_download(self,remote, local):
+    def file_download_local(self,remote, local):
         """Downloads the remote file to localy only if the local location does not
         exists or the content are different."""
         f = j.tools.path.get(local)
@@ -784,7 +862,7 @@ class OurCuisine():
             return self.run('rm -%sf %s && echo **OK** ; true' % (flag, shell_safe(location)),showout=False)
 
     @actionrun(action=False,force=False)
-    def dir_ensure(self,location, recursive=False, mode=None, owner=None, group=None):
+    def dir_ensure(self,location, recursive=True, mode=None, owner=None, group=None):
         """Ensures that there is a remote directory at the given location,
         optionally updating its mode/owner/group.
 
@@ -795,6 +873,7 @@ class OurCuisine():
         if owner or group or mode:
             self.dir_attribs(location, owner=owner, group=group, mode=mode, recursive=recursive)
 
+    createDir=dir_ensure
 
     @actionrun(action=False,force=False)
     def fs_find(self,path,recursive=True,pattern="",findstatement="",type="",contentsearch="",extendinfo=False):

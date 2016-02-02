@@ -49,7 +49,7 @@ class CuisineSSH():
             done.append(item)
         return done
 
-    def scan(self,range=None,ips=[]):
+    def scan(self,range=None,ips={},port=22):
         """
         @param range in format 192.168.0.0/24
         if range not specified then will take all ranges of local ip addresses (nics)
@@ -69,16 +69,38 @@ class CuisineSSH():
             return ips
         else:            
             try:
-                out=self.cuisine.run("nmap -p 22 %s | grep for"%range,showout=False)
+                # out=self.cuisine.run("nmap -p 22 %s | grep for"%range,showout=False)
+                out=self.cuisine.run("nmap %s -p %s --open -oX /tmp/nmap"%(range,port),showout=False,force=False,action=True)
             except Exception as e:
                 if str(e).find("command not found")!=-1:
                     self.cuisine.package.install("nmap")
-                    out=self.cuisine.run("nmap -p 22 %s | grep for"%range)
-            for line in out.split("\n"):
-                ip=line.split("for")[1].strip()
-                if ip.find("(")!=-1:
-                    ip=ip.split("(")[1].strip(")").strip()
-                ips.append(ip)
+                    # out=self.cuisine.run("nmap -p 22 %s | grep for"%range)
+                    out=self.cuisine.run("nmap %s -p %s --open -oX /tmp/nmap"%(range,port),showout=False,force=False,action=True)
+            out=self.cuisine.file_read("/tmp/nmap")
+            import xml.etree.ElementTree as ET
+            root = ET.fromstring(out)
+            for child in root:
+                if child.tag=="host":      
+                    ip=None
+                    mac=None
+                    for addr in child.findall("address"):
+                        if addr.get("addrtype")=="ipv4":
+                            ip=addr.get("addr")
+
+                    for addr in child.findall("address"):
+                        if addr.get("addrtype")=="mac":
+                            mac=addr.get("addr")
+
+                    if ip!=None:
+                        ips[ip]={"mac":mac}
+            
+            # for line in out.split("\n"):
+            #     ip=line.split("for")[1].strip()
+            #     if ip.find("(")!=-1:
+            #         ip=ip.split("(")[1].strip(")").strip()
+            #     if ip not in ips:
+
+            #         ips.append(ip)
             return ips
 
 

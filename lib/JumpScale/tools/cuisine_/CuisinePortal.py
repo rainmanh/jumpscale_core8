@@ -187,7 +187,7 @@ class CuisinePortal(object):
         hrd = j.data.hrd.get(content=content, path=tmp)
         hrd.set('param.mongoengine.connection', {'host': ip, 'port': port})
         hrd.save()
-        self.cuisine.file_upload(tmp, cfg_path)
+        self.cuisine.file_upload_local(tmp, cfg_path)
 
     @actionrun(action=True)
     def changeEve(self):

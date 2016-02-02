@@ -303,8 +303,8 @@ class CuisineInstaller(object):
             cuisine=j.tools.cuisine.get(cuisineid)
             C = """
             set +ex
-            pskill redis-server #will now kill too many redis'es, should only kill the one not in docker
-            pskill redis #will now kill too many redis'es, should only kill the one not in docker
+            pkill redis-server #will now kill too many redis'es, should only kill the one not in docker
+            pkill redis #will now kill too many redis'es, should only kill the one not in docker
             umount -fl /optrw
             apt-get remove redis-server -y
             rm -rf /overlay/js_upper
@@ -326,7 +326,7 @@ class CuisineInstaller(object):
             set -ex
             cd /usr/bin
             rm -f js8
-            wget http://stor.jumpscale.org/ays/bin/js8
+            wget https://stor.jumpscale.org/storx/static/js8
             chmod +x js8
             cd /
             mkdir -p /opt
@@ -341,15 +341,20 @@ class CuisineInstaller(object):
             C = """
             set -ex
             cd /usr/bin
-            js8 init
             """
+            if rw:
+                C += "js8 -rw init"
+            else:
+                C += "js8 init"
             cuisine.run_script(C)
 
-
-        j.actions.add(cleanNode, actionRecover=None, args={"cuisineid":self.cuisine.id}, die=True, stdOutput=True, errorOutput=True, retry=1,deps=None)
-        j.actions.add(downloadjs8bin, actionRecover=None, args={"cuisineid":self.cuisine.id}, die=True, stdOutput=True, errorOutput=True, retry=3,deps=None)
-        j.actions.add(installJS8SB, actionRecover=None, args={"cuisineid":self.cuisine.id,'rw':rw}, die=True, stdOutput=True, errorOutput=True, retry=1,deps=None)
-        j.actions.run()
+        cleanNode(self.cuisine.id)
+        downloadjs8bin(self.cuisine.id)
+        installJS8SB(self.cuisine.id)
+        # j.actions.add(cleanNode, actionRecover=None, args={"cuisineid":self.cuisine.id}, die=True, stdOutput=True, errorOutput=True, retry=1,deps=None)
+        # j.actions.add(downloadjs8bin, actionRecover=None, args={"cuisineid":self.cuisine.id}, die=True, stdOutput=True, errorOutput=True, retry=3,deps=None)
+        # j.actions.add(installJS8SB, actionRecover=None, args={"cuisineid":self.cuisine.id,'rw':rw}, die=True, stdOutput=True, errorOutput=True, retry=1,deps=None)
+        # j.actions.run()
 
     @actionrun(action=True)
     def pip(self):
@@ -722,8 +727,8 @@ class CuisineInstaller(object):
         self.pip()
 
 
-        if reset:
-            j.actions.reset("installer")
+        # if reset:
+            # j.actions.reset("installer")
 
         def cleanNode(cuisineid):
             """

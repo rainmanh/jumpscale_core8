@@ -148,7 +148,7 @@ class CuisineInstallerDevelop():
             print('To run your agent, navigate to "%s" adn to "%s" and do "./agent2 -c agent2.toml"' % agentAppDir)
             print('To run your agentcontroller, navigate to "%s" adn to "%s" and do "./agentcontroller2 -c agentcontroller2.toml"' % agentcontrollerAppDir)
 
-    def installPortal(self, start=True, mongodbip="127.0.0.1", mongoport=27017, login="", passwd=""):
+    def installPortal(self, minimal=False, start=True, mongodbip="127.0.0.1", mongoport=27017, login="", passwd=""):
 
         j.actions.setRunId("installportal")
 
@@ -271,35 +271,35 @@ class CuisineInstallerDevelop():
 
         def install():
             destjslib = j.do.getPythonLibSystem(jumpscale=True)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % destjslib, overwriteTarget=True)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % j.dirs.jsLibDir, overwriteTarget=True)
+            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
+            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % j.dirs.jsLibDir)
 
             j.application.reload()
 
             portaldir = '%s/apps/portals/' % j.dirs.base
-            j.sal.fs.createDir(portaldir)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/jslib" % j.dirs.codeDir, '%s/jslib' % portaldir, overwriteTarget=True)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/system" %
-                             j.dirs.codeDir,  '%s/portalbase/system' % portaldir, overwriteTarget=True)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki" %
-                             j.dirs.codeDir, '%s/portalbase/wiki' % portaldir, overwriteTarget=True)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/macros" %
-                             j.dirs.codeDir, '%s/portalbase/macros' % portaldir, overwriteTarget=True)
-            j.sal.fs.symlink("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/templates" %
-                             j.dirs.codeDir, '%s/portalbase/templates' % portaldir, overwriteTarget=True)
+            self.cuisine.dir_ensure(portaldir)
+            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/jslib" % j.dirs.codeDir, '%s/jslib' % portaldir)
+            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/system" %
+                             j.dirs.codeDir,  '%s/portalbase/system' % portaldir)
+            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki" %
+                             j.dirs.codeDir, '%s/portalbase/wiki' % portaldir)
+            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/macros" %
+                             j.dirs.codeDir, '%s/portalbase/macros' % portaldir)
+            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/templates" %
+                             j.dirs.codeDir, '%s/portalbase/templates' % portaldir)
 
             exampleportaldir = '%sexample/base' % portaldir
-            j.sal.fs.createDir(exampleportaldir)
+            self.cuisine.dir_ensure(exampleportaldir)
+            if not minimal:
+                for space in self.cuisine.fs_find("%s/github/jumpscale/jumpscale_portal8/apps/gridportal/base" % j.dirs.codeDir,recursive=False):
+                    spacename = j.sal.fs.getBaseName(space)
+                    if not spacename == 'home':
+                       self.cuisine.file_link(space, '%s/gridportal/%s' %(exampleportaldir,spacename))
+                self.cuisine.dir_ensure('%s/home/.space' %exampleportaldir)
+                self.cuisine.file_ensure('%s/home/home.md' %exampleportaldir)
 
-            for space in j.sal.fs.listDirsInDir("%s/github/jumpscale/jumpscale_portal8/apps/gridportal/base" % j.dirs.codeDir):
-                spacename = j.sal.fs.getBaseName(space)
-                if not spacename == 'home':
-                    j.sal.fs.symlink(space, j.sal.fs.joinPaths(exampleportaldir, 'gridportal', spacename), overwriteTarget=True)
-            j.sal.fs.createDir(j.sal.fs.joinPaths(exampleportaldir, 'home', '.space'))
-            j.sal.fs.touch(j.sal.fs.joinPaths(exampleportaldir, 'home', 'home.md'), overwrite=False)
-
-            j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py" % j.dirs.codeDir, '%sexample' % portaldir)
-            j.sal.fs.copyFile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd" % j.dirs.codeDir, '%sexample' % portaldir)
+            self.cuisine.file_upload("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py" % j.dirs.codeDir, '%sexample' % portaldir)
+            self.cuisine.file_upload("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd" % j.dirs.codeDir, '%sexample' % portaldir)
             j.dirs.replaceFilesDirVars("%s/example/config.hrd" % portaldir)
             j.sal.fs.copyDirTree("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir)
 

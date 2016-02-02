@@ -30,7 +30,7 @@ class Bash:
         """
         will look for $ENVIRONNAME 's and replace them in text
         """
-        for key,val in self.environ.item():
+        for key,val in self.environ.items():
             text=text.replace("$%s"%key,val)
         return text
 
@@ -38,7 +38,7 @@ class Bash:
     def environ(self):
         if self._environ=={}:
             res={}
-            for line in self.cuisine.run("export",profile=True).splitlines():
+            for line in self.cuisine.run("export",profile=True,showout=False).splitlines():
                 if line.startswith("declare -x "):
                     line=line[11:]
                     name,val=line.split("=",1)
@@ -52,7 +52,7 @@ class Bash:
     def home(self):
         if self._home==None:
             res={}
-            for line in self.cuisine.run("export",profile=False).splitlines():
+            for line in self.cuisine.run("export",profile=False,showout=False).splitlines():
                 if line.startswith("declare -x "):
                     line=line[11:]
                     name,val=line.split("=",1)
@@ -88,7 +88,7 @@ class Bash:
                 # print(out)
                 self.profile=out
 
-        self.cuisine.run("export %s=\"%s\""%(key,val),profile=False)
+        self.cuisine.run("export %s=\"%s\""%(key,val),profile=False,showout=False)
 
         self._environ[key]=val
 
@@ -101,8 +101,14 @@ class Bash:
                 return attempt
         return None
 
+    def which(self,cmd):
+        out=self.cuisine.run("which %s"%cmd,showout=False,action=False,profile=True)
+        return out.split("\n")[-1]
+
+
     @property
     def profilePath(self):
+        mpath=j.do.joinPaths(self.home,".profile")
         if self._profilePath=="":
             self._profilePath=self.profilePathExists()
             if self._profilePath==None:
@@ -122,6 +128,7 @@ class Bash:
             self._profile=val
             self.cuisine.file_write(self.profilePath,val)
 
+    @actionrun()
     def addPath(self,path):
         self.environSet("PATH","%s:${PATH}"% path)
 

@@ -20,7 +20,7 @@ class CuisineGolang():
 
     @actionrun(action=True)
     def install(self):
-        rc, out = self.cuisine.run("which go", die=False)
+        rc, out = self.cuisine.run("which go", die=False,showout=False,action=True)
         if rc > 0:
             if self.cuisine.isMac or self.cuisine.isArch:
                 self.cuisine.package.install("go")
@@ -45,10 +45,11 @@ class CuisineGolang():
         self.get("github.com/tools/godep")
         # self.get("github.com/rcrowley/go-metrics")
 
+
     # @actionrun(action=True)
     def get(self,url):
         """
         e.g. url=github.com/tools/godep
         """
-        self.cuisine.run('go get %s'%url,profile=True)
+        self.cuisine.run('go get -x -u %s'%url,profile=True)
 

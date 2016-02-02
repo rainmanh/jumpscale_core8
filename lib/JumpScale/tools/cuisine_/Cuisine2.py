@@ -265,9 +265,9 @@ class OurCuisine():
 
     @property
     def installerdevel(self):
-        if self._installerdevel==None:
-            self._installerdevel=CuisineInstallerDevelop(self.executor,self)
-        return self._installerdevel
+        if self._installerdevelop==None:
+            self._installerdevelop=CuisineInstallerDevelop(self.executor,self)
+        return self._installerdevelop
 
     @property
     def process(self):
@@ -1041,10 +1041,14 @@ class OurCuisine():
         return self.cd
 
     @actionrun()
-    def run_script(self,content):
+    def run_script(self,content,profile=False):
         content=j.data.text.lstrip(content)
         if content[-1]!="\n":
             content+="\n"
+        if profile:
+            ppath=self.bash.profilePathExists()
+            if ppath!=None:
+                content=". %s\n%s\n"%(ppath,content)
         content+="\necho **DONE**\n"
         path="/tmp/%s.sh"%j.data.idgenerator.generateRandomInt(0,10000)
         self.file_write(location=path, content=content, mode=0o770, owner="root", group="root")

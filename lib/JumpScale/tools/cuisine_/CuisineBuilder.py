@@ -35,199 +35,110 @@ class CuisineBuilder(object):
     #@todo (*1*) installer for skydns
     #@todo (*1*) installer for aydostor
 
-    def mongodb(self, start=True):
-        j.actions.setRunId("installMongo")
-        rc, out = self.cuisine.run('which mongod', die=False)
-        if rc== 0:
-            print('mongodb is already installed')
-            return
-
-        appbase = '/usr/local/bin'
-
-        url=None
-        if self.cuisine.isUbuntu:
-            url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
-        elif self.cuisine.isArch:
-            self.cuisine.package.install("mongodb")
-        elif sys.platform.startswith("OSX"): #@todo better platform mgmt
-            url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
-        else:
-            raise RuntimeError("unsupported platform")
-            return
-
-        if url!=None:
-            tarpath = j.sal.fs.joinPaths(j.dirs.tmpDir, 'mongodb.tgz')
-            self.cuisine.file_download(url, to="/tmp/mongodb",overwrite=False,expand=True)
-            # extracted = j.sal.fs.walk(j.dirs.tmpDir, pattern='mongodb*', return_folders=1, return_files=0)[0]
-            # j.sal.fs.copyDirTree(j.sal.fs.joinPaths(extracted, 'bin'), appbase)
-
-        j.sal.fs.createDir('/optvar/data/db')
-
-        from IPython import embed
-        print ("DEBUG NOW 99999998778")
-        embed()
-        
-
-        if start:
-            from IPython import embed
-            print ("DEBUG NOW start mongodb")
-            embed()
-            
-        j.actions.run()
 
 
-    @actionrun(action=True)
-    def findPiNodesAndPrepareJSDevelop(self):
-        pass
+    # @actionrun(action=True)
+    # def findPiNodesAndPrepareJSDevelop(self):
+    #     pass
 
 
     @actionrun(action=True)
     def skydns(self):
+        self.cuisine.golang.get("github.com/skynetservices/skydns")
+        self.cuisine.bash.addPath("/opt/jumpscale8/bin",action=True)
+
+    # @actionrun(action=True)
+    def etcd(self,start=True):
         C="""
-        go get github.com/skynetservices/skydns
-        cd $GOPATH/src/github.com/skynetservices/skydns
-        go build -v
+        set -ex
+        ORG_PATH="github.com/coreos"
+        REPO_PATH="${ORG_PATH}/etcd"
+
+        go get -x -d -u github.com/coreos/etcd
+
+        cd $GOPATH/src/$REPO_PATH
+
+        git checkout v2.2.2
+
+        go get -d .
+
+
+        CGO_ENABLED=0 go build -a -installsuffix cgo -ldflags "-s -X ${REPO_PATH}/version.GitSHA=v2.2.2" -o /opt/jumpscale8/bin/etcd .
+
         """
-        self.GOPATH #make sure env's are set & golang installed
-        C=self.bash.replaceEnvironInText(C)
-        import ipdb
-        ipdb.set_trace()
+        C=self.cuisine.bash.replaceEnvironInText(C)
+        self.cuisine.run_script(C,profile=True,action=True)
+        self.cuisine.bash.addPath("/opt/jumpscale8/bin",action=True)
 
+        if start:
+            cmd=self.cuisine.bash.which("etcd")
+            self.cuisine.systemd.ensure("etcd",cmd)
+        
 
+    def redis(self):
+        C="""
+        #!/bin/bash
+        set -ex
 
-    @actionrun(action=True)
-    def installJSDevelop(self):
+        # groupadd -r redis && useradd -r -g redis redis
 
-        self.base()
-        self.pythonDevelop()
-        self.pip()
+        mkdir -p /opt/redis
+        cd /opt/redis
+        wget http://download.redis.io/releases/redis-3.0.6.tar.gz
+        tar xzf redis-3.0.6.tar.gz
+        cd redis-3.0.6
+        make
 
+        # rm -rf /build/opt/redis
+        # mkdir -p /build/opt/redis
+        # rm -rf /build/optvar/redis/
+        # mkdir -p /build/optvar/redis/
 
-        if reset:
-            j.actions.reset("installer")
+        rm -f /usr/local/bin/redis-server
+        rm -f /usr/local/bin/redis-cli
+        cp /opt/redis/redis-3.0.6/src/redis-server /opt/jumpscale8/bin/
+        cp /opt/redis/redis-3.0.6/src/redis-cli /opt/jumpscale8/bin/
 
-        def cleanNode(cuisineid):
-            """
-            make node clean e.g. remove redis, install tmux, stop js8, unmount js8
-            """
-            cuisine=j.tools.cuisine.get(cuisineid)
-            C = """
-            set +ex
-            pskill redis-server #will now kill too many redis'es, should only kill the one not in docker
-            pskill redis #will now kill too many redis'es, should only kill the one not in docker
-            umount -fl /optrw
-            # apt-get remove redis-server -y
-            rm -rf /overlay/js_upper
-            rm -rf /overlay/js_work
-            rm -rf /optrw
-            js8 stop
-            pskill js8
-            umount -f /opt
-            apt-get install tmux fuse -y
-            """
-            cuisine.run_script(C)
-            # cuisine.package.remove("redis-server")
-            # cuisine.package.remove("redis")
+        mkdir -p /optvar/cfg/
+        cp /bd_build/redis.conf /optvar/cfg/
 
+        rm -rf /opt/redis
 
+        """
+        C=self.cuisine.bash.replaceEnvironInText(C)
+        self.cuisine.run_script(C,profile=True)
+        self.cuisine.bash.addPath("/opt/jumpscale8/bin",action=True)
 
-    def __str__(self):
-        return "cuisine.installer:%s:%s"%(self.executor.addr,self.executor.port)
+    def vulcand(self):
+        C='''
+        #!/bin/bash
+        set -e
+        source /bd_build/buildconfig
+        set -x
 
-    __repr__=__str__
+        export GOPATH=/tmp/vulcandgopath
 
+        if [ ! -d $GOPATH ]; then
+            mkdir -p $GOPATH
+        fi
 
+        go get -d github.com/vulcand/vulcand
 
-C='''
-#!/bin/bash
-set -e
-source /bd_build/buildconfig
-set -x
+        cd $GOPATH/src/github.com/vulcand/vulcand
+        CGO_ENABLED=0 go build -a -ldflags '-s' -installsuffix nocgo .
+        GOOS=linux go build -a -tags netgo -installsuffix cgo -ldflags '-w' -o ./vulcand .
+        GOOS=linux go build -a -tags netgo -installsuffix cgo -ldflags '-w' -o ./vctl/vctl ./vctl
+        GOOS=linux go build -a -tags netgo -installsuffix cgo -ldflags '-w' -o ./vbundle/vbundle ./vbundle
 
+        mkdir -p /build/vulcand
+        cp $GOPATH/src/github.com/vulcand/vulcand/vulcand /opt/jumpscale8/bin/
+        cp $GOPATH/src/github.com/vulcand/vulcand/vctl/vctl /opt/jumpscale8/bin/
+        cp $GOPATH/src/github.com/vulcand/vulcand/vbundle/vbundle /opt/jumpscale8/bin/
 
-apt-get update
+        rm -rf $GOPATH
 
-$minimal_apt_get_install libpython3.5-dev python3.5-dev libffi-dev gcc build-essential autoconf libtool pkg-config libpq-dev
-$minimal_apt_get_install libsqlite3-dev
-#$minimal_apt_get_install net-tools sudo
-
-cd /tmp
-sudo rm -rf brotli/
-git clone https://github.com/google/brotli.git
-cd /tmp/brotli/
-python setup.py install
-cd tests
-make
-cd ..
-cp /tmp/brotli/tools/bro /usr/local/bin/
-rm -rf /tmp/brotli
-
-#DANGEROUS TO RENAME PYTHON
-#rm -f /usr/bin/python
-#rm -f /usr/bin/python3
-#ln -s /usr/bin/python3.5 /usr/bin/python
-#ln -s /usr/bin/python3.5 /usr/bin/python3
-
-
-cd /tmp
-rm -rf get-pip.py
-wget https://bootstrap.pypa.io/get-pip.py
-python3.5 get-pip.py
-
-cd /tmp
-git clone https://github.com/jplana/python-etcd.git
-cd python-etcd
-python3.5 setup.py install
-
-
-pip install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
-
-pip install paramiko
-
-pip install msgpack-python
-pip install redis
-pip install credis
-pip install aioredis
-
-pip install mongoengine
-
-pip install bcrypt
-pip install blosc
-pip install certifi
-pip install docker-py
-
-pip install gitlab3
-pip install gitpython
-pip install html2text
-
-# pip install pysqlite
-pip install click
-pip install influxdb
-pip install ipdb
-pip install ipython --upgrade
-pip install jinja2
-pip install netaddr
-
-pip install reparted
-pip install pytoml
-pip install pystache
-pip install pymongo
-pip install psycopg2
-pip install pathtools
-pip install psutil
-
-pip install pytz
-pip install requests
-pip install sqlalchemy
-pip install urllib3
-pip install zmq
-pip install pyyaml
-pip install websocket
-pip install marisa-trie
-pip install pylzma
-pip install ujson
-pip install watchdog
-'''        
-        # self.actions.
-
+        '''   
+        C=self.cuisine.bash.replaceEnvironInText(C)
+        self.cuisine.run_script(C,profile=True)
+        self.cuisine.bash.addPath("/opt/jumpscale8/bin",action=True)
 

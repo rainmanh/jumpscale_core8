@@ -261,11 +261,6 @@ class OurCuisine():
             self._systemd=CuisineSystemd(self.executor,self)
         return self._systemd
 
-    @property
-    def installerdevel(self):
-        if self._installerdevel==None:
-            self._installerdevel=CuisineInstallerDevelop(self.executor,self)
-        return self._installerdevel
 
     @property
     def process(self):
@@ -620,7 +615,7 @@ class OurCuisine():
         if self.file_exists(location):
             self.file_attribs(location,mode=mode,owner=owner,group=group)
         else:
-            self.file_write(location,"",mode=mode,owner=owner,group=group,scp=scp)
+            self.file_write(location,"",mode=mode,owner=owner,group=group)
 
     @actionrun(action=False,force=False)
     def file_upload(self, local, remote):

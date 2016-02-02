@@ -21,22 +21,19 @@ class CuisineInstallerDevelop():
 
     def _linkfilesindir(self, dir_path, dest):
         for fil in self.cuisine.fs_find(dir_path):
-            dest_fil = "%s/%s" %(dest, dir_path.split("/")[-1:])
+            dest_fil = "%s/%s" %(dest, dir_path.split("/")[-1:][0])
             self.cuisine.dir_remove(dest_fil, recursive=False)
             self.cuisine.file_link(fil, dest_fil)
     def _joinpath(self, *args):
         path = ""
         for arg in args:
-            path += arg
+            path += "/%s"%arg
         return path
     def _copyfile(self, dir_path, dest, overwriteTarget=True,  recursive=False):
         recurse = "r" if recursive else ""
         overwrite = "f" if overwriteTarget else ""
-        final_dest = "%s/%s" %(dest, dir_path.split("/")[-1:])
-        self.cuisine.run("cp -%s%s %s %s" %(recurse, overwrite, dir_path, final_dest))
-        # self.cuisine.dir_remove(final_dest, recursive=False)
-        # self.cuisine.dir_ensure(final_dest)
-        # self.cuisine.file_write(final_dest, content=self.cuisine.file_read(dir_path))
+        self.cuisine.run("cp -%s%s %s %s" %(recurse, overwrite, dir_path, dest))
+        
 
     @actionrun(action=True)
     def golang(self):
@@ -47,17 +44,14 @@ class CuisineInstallerDevelop():
             else:
                 self.cuisine.run("apt-get install golang -y --force-yes")
 
-        from IPython import embed
-        print ("DEBUG NOW oioioi")
-        embed()
-        
-        self.executer.env["GOROOT"]=self.executor.env.get('GOROOT','/usr/lib/go/')
-        self.executer.env["GOPATH"]=self.executor.env.get('GOPATH','/opt/go/')
+       
+        self.executor.env["GOROOT"]=self.executor.env.get('GOROOT','/usr/lib/go/')
+        self.executor.env["GOPATH"]=self.executor.env.get('GOPATH','/opt/go/')
         self.cuisine.dir_ensure(self.executor.env['GOPATH'])
         print ('GOPATH:', self.executor.env["GOPATH"])
         print ('GOROOT:', self.executor.env["GOROOT"])
-        self.cuisine.file_ensure(self.cuisine._joinpath(self.executor.env["HOME"], '.bash_profile'), overwrite=False)
-        path = self.executor.env.get('PATH')
+        self.cuisine.file_ensure(self._joinpath(self.cuisine.run("echo $HOME"), '.bash_profile'))
+        path = self.cuisine.run("echo $PATH")
         self.executor.env['PATH'] = '%s:%s/bin' % (path, self.executor.env['GOPATH'])
         self.cuisine.run('go get github.com/tools/godep')
         self.cuisine.run('go get github.com/rcrowley/go-metrics')
@@ -88,12 +82,9 @@ class CuisineInstallerDevelop():
             dest = self.cuisine.git.pullRepo(url, dest='%s/src/github.com/syncthing/syncthing' % self.executor.env['GOPATH'])
             self.cuisine.run('cd %s && godep restore' % dest)
             self.cuisine.run("cd %s && ./build.sh noupgrade" % dest)
-            # tarfile = j.sal.fs.find(dest, 'syncthing*.tar.gz')[0]
-            # tar = j.tools.tarfile.get(self._joinpath(dest, tarfile))
-            # tar.extract(dest)
-            # path = tarfile.rstrip('.tar.gz')
+            self.cuisine.dir_ensure(appbase, recursive=True)
             self._copyfile(self._joinpath(dest, 'syncthing'), '%s/bin/' % self.executor.env['GOPATH'])
-            self._copyfile(self._joinpath(self.executor.env['GOPATH'], 'bin', 'syncthing'), self._joinpath(appbase, "syncthing"))
+            self._copyfile(self._joinpath(self.executor.env['GOPATH'], 'bin', 'syncthing'), appbase)
 
         def agent_build(appbase):
             url = "git@github.com:Jumpscale/agent2.git"
@@ -102,7 +93,7 @@ class CuisineInstallerDevelop():
             self._copyfile(self._joinpath(self.executor.env['GOPATH'], 'bin', "agent2"), self._joinpath(appbase, "agent2"))
             self._copyfile(self._joinpath(self.executor.env['GOPATH'], 'bin', "syncthing"), self._joinpath(appbase, "syncthing"))
 
-            self.cuisine.dir_ensure(appbase)
+            self.cuisine.dir_ensure(appbase, recursive=True)
 
             # link extensions
             extdir = self._joinpath(appbase, "extensions")
@@ -126,7 +117,7 @@ class CuisineInstallerDevelop():
             destfile = self._joinpath(appbase, "agentcontroller2")
             self._copyfile(self._joinpath(self.executor.env['GOPATH'], 'bin', "agentcontroller2"), destfile)
 
-            self.cuisine.dir_ensure(appbase)
+            self.cuisine.dir_ensure(appbase, recursive=True)
             cfgfile = '%s/agentcontroller.toml' % appbase
             self._copyfile("%s/agentcontroller.toml" % dest, cfgfile)
 

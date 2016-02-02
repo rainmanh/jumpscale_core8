@@ -264,12 +264,6 @@ class OurCuisine():
         return self._systemd
 
     @property
-    def installerdevel(self):
-        if self._installerdevel==None:
-            self._installerdevel=CuisineInstallerDevelop(self.executor,self)
-        return self._installerdevel
-
-    @property
     def process(self):
         if self._process==None:
             self._process=CuisineProcess(self.executor,self)
@@ -319,7 +313,7 @@ class OurCuisine():
     def installerdevelop(self):
         if self._installerdevelop==None:
             self._installerdevelop=CuisineInstallerDevelop(self.executor,self)
-        return self._installerdevelop        
+        return self._installerdevelop
 
     @property
     def ns(self):
@@ -481,11 +475,11 @@ class OurCuisine():
         @return path of downloaded file
         @param to is destination
         @param minspeed is kbytes per sec e.g. 50, if less than 50 kbytes during 10 min it will restart the download (curl only)
-        @param when multithread True then will use aria2 download tool to get multiple threads        
+        @param when multithread True then will use aria2 download tool to get multiple threads
         """
 
         if expand:
-            destdir=to            
+            destdir=to
             to=self.file_get_tmp_path(j.sal.fs.getBaseName(url))
 
         if overwrite:
@@ -493,7 +487,7 @@ class OurCuisine():
                 self.file_unlink(to)
                 self.file_unlink("%s.downloadok"%to)
         if not (self.file_exists(to) and self.file_exists("%s.downloadok"%to)):
-        
+
             self.createDir(j.sal.fs.getDirName(to))
 
             if multithread==False:
@@ -533,7 +527,7 @@ class OurCuisine():
             self.cuisine.run(cmd)
         else:
             raise RuntimeError("not supported yet")
-            
+
 
     def touch(self,path):
         self.file_write(path,"")

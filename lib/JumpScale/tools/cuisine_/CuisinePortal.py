@@ -4,7 +4,7 @@ from ActionDecorator import ActionDecorator
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
         ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installerdevel.portal"
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installerdevelop.portal"
 
 
 class CuisinePortal(object):

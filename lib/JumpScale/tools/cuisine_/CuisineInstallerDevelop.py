@@ -1,11 +1,8 @@
 
 from JumpScale import j
-<<<<<<< HEAD
-#do those apply to remote exec 
-# import os
-=======
+
 from CuisinePortal import CuisinePortal
->>>>>>> master
+
 
 
 from ActionDecorator import ActionDecorator
@@ -239,7 +236,7 @@ class CuisineInstallerDevelop():
 
         def agent_build(appbase):
             url = "git@github.com:Jumpscale/agent2.git"
-            dest = j.tools.golang.build(url)
+            dest = self.cuisine.golang.get(url)
 
             self._copyfile(self._joinpath(self.executor.env['GOPATH'], 'bin', "agent2"), self._joinpath(appbase, "agent2"))
             self._copyfile(self._joinpath(self.executor.env['GOPATH'], 'bin', "syncthing"), self._joinpath(appbase, "syncthing"))
@@ -263,7 +260,7 @@ class CuisineInstallerDevelop():
 
         def agentcontroller_build(appbase):
             url = "git@github.com:Jumpscale/agentcontroller2.git"
-            dest = j.tools.golang.build(url)
+            dest = self.cuisine.golang.get(url)
 
             destfile = self._joinpath(appbase, "agentcontroller2")
             self._copyfile(self._joinpath(self.executor.env['GOPATH'], 'bin', "agentcontroller2"), destfile)

@@ -31,7 +31,7 @@ class CuisineInstallerDevelop():
         return path
     def _copyfile(self, dir_path, dest, overwriteTarget=True,  recursive=False):
         recurse = "r" if recursive else ""
-        overwrite = "r" if overwriteTarget else ""
+        overwrite = "f" if overwriteTarget else ""
         final_dest = "%s/%s" %(dest, dir_path.split("/")[-1:])
         self.cuisine.run("cp -%s%s %s %s" %(recurse, overwrite, dir_path, final_dest))
         # self.cuisine.dir_remove(final_dest, recursive=False)

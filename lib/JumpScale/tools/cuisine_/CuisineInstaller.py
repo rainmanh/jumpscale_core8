@@ -22,13 +22,13 @@ class CuisineInstaller(object):
         defport=6379
         if self.cuisine.process_tcpport_check(defport,"redis"):
             print ("no need to install, already there & running")
-            return 
+            return
 
         if self.cuisine.isUbuntu:
             package="redis-server"
         else:
             package="redis"
-        
+
         self.cuisine.package.install(package)
         self.cuisine.package.start(package)
 
@@ -121,7 +121,7 @@ class CuisineInstaller(object):
         ftp.get(rpath,lpath)
 
         out=self.cuisine.file_read(lpath)
-        
+
         addr=cuisine.executor.addr
 
         keypath=os.environ["HOME"]+"/.ssh/reflector"
@@ -136,7 +136,7 @@ class CuisineInstaller(object):
 
             cmd="autossh -M 0 -N -f -o ExitOnForwardFailure=yes -o \"ServerAliveInterval 60\" -o \"ServerAliveCountMax 3\" -L %s:localhost:%s sshreflector@%s -p 9222 -i %s"%(port,port,addr,keypath)
             self.cuisine.run(cmd)
-            
+
 
         print ("\n\n\n")
         print ("Reflector:%s"%addr)
@@ -170,7 +170,7 @@ class CuisineInstaller(object):
 
 
             lpath=os.environ["HOME"]+"/.ssh/reflector"
-            
+
             if j.do.exists(lpath):
                 print("UPLOAD EXISTING SSH KEYS")
             else:
@@ -180,7 +180,7 @@ class CuisineInstaller(object):
                 path="/home/sshreflector/.ssh/reflector"
                 ftp.get(path,lpath)
                 ftp.close()
-    
+
             #upload to reflector client
             ftp=self.cuisine.executor.sshclient.getSFTP()
             rpath="/root/.ssh/reflector"
@@ -200,7 +200,7 @@ class CuisineInstaller(object):
             if j.sal.nettools.tcpPortConnectionTest(addr,port)==False:
                 raise RuntimeError("Cannot not connect to %s:%s"%(addr,port))
 
-            
+
             rname="refl_%s"%remotecuisine.executor.addr.replace(".","_")
             rname_short=remotecuisine.executor.addr.replace(".","_")
 
@@ -266,7 +266,7 @@ class CuisineInstaller(object):
         [Unit]
         Description=Create AP Service
         Wants=network-online.target
-        After=network-online.target        
+        After=network-online.target
 
         [Service]
         Type=simple
@@ -278,11 +278,11 @@ class CuisineInstaller(object):
         [Install]
         WantedBy=multi-user.target
         """
-        
+
         self.cuisine.systemd_ensure("ap",cmd2,descr="accesspoint for local admin",systemdunit=START1)
 
     @actionrun(action=True)
-    def installJSSandbox(self, rw=False,reset=False):
+    def jumpscale(self, rw=False,reset=False):
         """
         install jumpscale, will be done as sandbox
         otherwise will try to install jumpscale inside OS
@@ -303,8 +303,8 @@ class CuisineInstaller(object):
             cuisine=j.tools.cuisine.get(cuisineid)
             C = """
             set +ex
-            pskill redis-server #will now kill too many redis'es, should only kill the one not in docker
-            pskill redis #will now kill too many redis'es, should only kill the one not in docker
+            pkill redis-server #will now kill too many redis'es, should only kill the one not in docker
+            pkill redis #will now kill too many redis'es, should only kill the one not in docker
             umount -fl /optrw
             apt-get remove redis-server -y
             rm -rf /overlay/js_upper
@@ -326,7 +326,7 @@ class CuisineInstaller(object):
             set -ex
             cd /usr/bin
             rm -f js8
-            wget http://stor.jumpscale.org/ays/bin/js8
+            wget https://stor.jumpscale.org/storx/static/js8
             chmod +x js8
             cd /
             mkdir -p /opt
@@ -341,15 +341,21 @@ class CuisineInstaller(object):
             C = """
             set -ex
             cd /usr/bin
-            js8 init
             """
+            if rw:
+                C += "js8 -rw init"
+            else:
+                C += "js8 init"
             cuisine.run_script(C)
 
+        cleanNode(self.cuisine.id)
+        downloadjs8bin(self.cuisine.id)
+        installJS8SB(self.cuisine.id)
+        # j.actions.add(cleanNode, actionRecover=None, args={"cuisineid":self.cuisine.id}, die=True, stdOutput=True, errorOutput=True, retry=1,deps=None)
+        # j.actions.add(downloadjs8bin, actionRecover=None, args={"cuisineid":self.cuisine.id}, die=True, stdOutput=True, errorOutput=True, retry=3,deps=None)
+        # j.actions.add(installJS8SB, actionRecover=None, args={"cuisineid":self.cuisine.id,'rw':rw}, die=True, stdOutput=True, errorOutput=True, retry=1,deps=None)
+        # j.actions.run()
 
-        j.actions.add(cleanNode, actionRecover=None, args={"cuisineid":self.cuisine.id}, die=True, stdOutput=True, errorOutput=True, retry=1,deps=None)
-        j.actions.add(downloadjs8bin, actionRecover=None, args={"cuisineid":self.cuisine.id}, die=True, stdOutput=True, errorOutput=True, retry=3,deps=None)
-        j.actions.add(installJS8SB, actionRecover=None, args={"cuisineid":self.cuisine.id,'rw':rw}, die=True, stdOutput=True, errorOutput=True, retry=1,deps=None)
-        j.actions.run()
 
     @actionrun(action=True)
     def pip(self):
@@ -360,7 +366,7 @@ class CuisineInstaller(object):
             rm -rf get-pip.py
             wget https://bootstrap.pypa.io/get-pip.py
         """
-        self.cuisine.run_script(cmd)  
+        self.cuisine.run_script(cmd)
         self.cuisine.run("cd /tmp;python3.5 get-pip.py")
 
     @actionrun(action=True)
@@ -369,7 +375,7 @@ class CuisineInstaller(object):
         libpython3.5-dev
         python3.5-dev
         libffi-dev
-        gcc 
+        gcc
         build-essential
         autoconf
         libtool
@@ -379,7 +385,6 @@ class CuisineInstaller(object):
         #net-tools
         """
         self.cuisine.package.multiInstall(C)
-
 
     @actionrun(action=True)
     def base(self):
@@ -399,38 +404,6 @@ class CuisineInstaller(object):
     #@todo (*1*) installer for etcd
     #@todo (*1*) installer for skydns
     #@todo (*1*) installer for aydostor
-
-    def installMongo(self, start=True):
-        j.actions.setRunId("installMongo")
-        rc, out = self.executor.execute('which mongod', die=False)
-        if out:
-            print('mongodb is already installed')
-        appbase = '/usr/local/bin'
-
-        def getMongo(appbase):
-            if j.core.platformtype.myplatform.isLinux():#@todo better platform mgmt
-                url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
-            elif sys.platform.startswith("OSX"): #@todo better platform mgmt
-                url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
-            #@todo arm
-            else:
-                # @TODO (*3*) add support for other platforms
-                return
-            tarpath = j.sal.fs.joinPaths(j.dirs.tmpDir, 'mongodb.tgz')
-            j.sal.nettools.download(url, tarpath)
-            tarfile = j.tools.tarfile.get(tarpath)
-            tarfile.extract(j.dirs.tmpDir)
-            extracted = j.sal.fs.walk(j.dirs.tmpDir, pattern='mongodb*', return_folders=1, return_files=0)[0]
-            j.sal.fs.copyDirTree(j.sal.fs.joinPaths(extracted, 'bin'), appbase)
-            j.sal.fs.createDir('/data/db')
-
-        def startMongo(appbase):
-            j.sal.tmux.executeInScreen("main", screenname="mongodb", cmd="mongod", user='root')
-
-        getmongo = j.actions.add(getMongo, args={'appbase': appbase})
-        if start:
-            j.actions.add(startMongo, args={'appbase': appbase}, deps=[getmongo])
-        j.actions.run()
 
 
     @actionrun(action=True)
@@ -518,7 +491,7 @@ class CuisineInstaller(object):
 
             # Uncomment this if you've got plenty of memory:
 
-            chunkHighMark = 100331648 
+            chunkHighMark = 100331648
             objectHighMark = 16384
 
 
@@ -642,12 +615,12 @@ class CuisineInstaller(object):
 
         # if self.cuisine.isUbuntu():
         #     self.cuisine.run("ufw allow 8123")
- 
+
     @actionrun(action=True)
     def installArchLinuxToSDCard(self,redownload=False):
         """
-        will only work if 1 sd card found of 8 or 16 GB, be careful will overwrite the card   
-        executor = a linux machine     
+        will only work if 1 sd card found of 8 or 16 GB, be careful will overwrite the card
+        executor = a linux machine
 
         executor=j.tools.executor.getSSHBased(addr="192.168.0.23", port=22,login="root",passwd="rooter",pushkey="ovh_install")
         j.tools.develop.installer.installArchLinuxToSDCard(executor)
@@ -658,7 +631,7 @@ class CuisineInstaller(object):
 
         def partition(cuisineid,deviceid,size):
             cuisine=j.tools.cuisine.get(cuisineid)
-            
+
             cmd="parted -s /dev/%s mklabel msdos mkpar primary fat32 2 100M mkpart primary ext4 100M 100"%deviceid
             cmd+="%"
             self.cuisine.run(cmd)
@@ -677,7 +650,7 @@ class CuisineInstaller(object):
             self.cuisine.run("cd /mnt;mv root/boot/* boot")
 
             self.cuisine.run("echo 'PermitRootLogin=yes'>>'/mnt/root/etc/ssh/sshd_config'")
-            
+
 
             self.cuisine.run("umount /mnt/boot",die=False)
             self.cuisine.run("umount /mnt/root",die=False)
@@ -703,150 +676,48 @@ class CuisineInstaller(object):
 
 
         devs=findDevices()
-        
+
         for deviceid,size in devs:
             j.actions.add(partition, actionRecover=None, args={"cuisineid":self.cuisine.id,'deviceid':deviceid,"size":size}, die=True, stdOutput=True, errorOutput=True, retry=1,deps=None)
-    
+
         j.actions.run()
 
-    @actionrun(action=True)
-    def findPiNodesAndPrepareJSDevelop(self):
-        pass
 
+    def mongodb(self, start=True):
+        j.actions.setRunId("installMongo")
+        rc, out = self.cuisine.run('which mongod', die=False)
+        if rc== 0:
+            print('mongodb is already installed')
+            return
 
-    @actionrun(action=True)
-    def installJSDevelop(self):
+        appbase = '/usr/local/bin/'
 
-        self.base()
-        self.pythonDevelop()
-        self.pip()
+        url=None
+        if self.cuisine.isUbuntu:
+            url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
+        elif self.cuisine.isArch:
+            self.cuisine.package.install("mongodb")
+        elif self.cuisine.isMac: #@todo better platform mgmt
+            url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
+        else:
+            raise RuntimeError("unsupported platform")
+            return
 
+        if url!=None:
+            self.cuisine.file_download(url, to=j.dirs.tmpDir,overwrite=False,expand=True)
+            tarpath = self.cuisine.fs_find(j.dirs.tmpDir,recursive=True,pattern="*mongodb*.tgz",type='f')[0]
+            self.cuisine.file_expand(tarpath,j.dirs.tmpDir)
+            extracted = self.cuisine.fs_find(j.dirs.tmpDir,recursive=True,pattern="*mongodb*",type='d')[0]
+            for file in self.cuisine.fs_find('%s/bin/' %extracted,type='f'):
+                self.cuisine.file_copy(file,appbase)
 
-        if reset:
-            j.actions.reset("installer")
+        self.cuisine.dir_ensure('/optvar/data/db')
 
-        def cleanNode(cuisineid):
-            """
-            make node clean e.g. remove redis, install tmux, stop js8, unmount js8
-            """
-            cuisine=j.tools.cuisine.get(cuisineid)
-            C = """
-            set +ex
-            pskill redis-server #will now kill too many redis'es, should only kill the one not in docker
-            pskill redis #will now kill too many redis'es, should only kill the one not in docker
-            umount -fl /optrw
-            # apt-get remove redis-server -y
-            rm -rf /overlay/js_upper
-            rm -rf /overlay/js_work
-            rm -rf /optrw
-            js8 stop
-            pskill js8
-            umount -f /opt
-            apt-get install tmux fuse -y
-            """
-            cuisine.run_script(C)
-            # cuisine.package.remove("redis-server")
-            # cuisine.package.remove("redis")
-
+        if start:
+            self.cuisine.tmux.executeInScreen("main", screenname="mongodb", cmd="mongod --dbpath /optvar/data/db", user='root')
 
 
     def __str__(self):
         return "cuisine.installer:%s:%s"%(self.executor.addr,self.executor.port)
 
     __repr__=__str__
-
-
-
-C='''
-#!/bin/bash
-set -e
-source /bd_build/buildconfig
-set -x
-
-
-apt-get update
-
-$minimal_apt_get_install libpython3.5-dev python3.5-dev libffi-dev gcc build-essential autoconf libtool pkg-config libpq-dev
-$minimal_apt_get_install libsqlite3-dev
-#$minimal_apt_get_install net-tools sudo
-
-cd /tmp
-sudo rm -rf brotli/
-git clone https://github.com/google/brotli.git
-cd /tmp/brotli/
-python setup.py install
-cd tests
-make
-cd ..
-cp /tmp/brotli/tools/bro /usr/local/bin/
-rm -rf /tmp/brotli
-
-#DANGEROUS TO RENAME PYTHON
-#rm -f /usr/bin/python
-#rm -f /usr/bin/python3
-#ln -s /usr/bin/python3.5 /usr/bin/python
-#ln -s /usr/bin/python3.5 /usr/bin/python3
-
-
-cd /tmp
-rm -rf get-pip.py
-wget https://bootstrap.pypa.io/get-pip.py
-python3.5 get-pip.py
-
-cd /tmp
-git clone https://github.com/jplana/python-etcd.git
-cd python-etcd
-python3.5 setup.py install
-
-
-pip install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
-
-pip install paramiko
-
-pip install msgpack-python
-pip install redis
-pip install credis
-pip install aioredis
-
-pip install mongoengine
-
-pip install bcrypt
-pip install blosc
-pip install certifi
-pip install docker-py
-
-pip install gitlab3
-pip install gitpython
-pip install html2text
-
-# pip install pysqlite
-pip install click
-pip install influxdb
-pip install ipdb
-pip install ipython --upgrade
-pip install jinja2
-pip install netaddr
-
-pip install reparted
-pip install pytoml
-pip install pystache
-pip install pymongo
-pip install psycopg2
-pip install pathtools
-pip install psutil
-
-pip install pytz
-pip install requests
-pip install sqlalchemy
-pip install urllib3
-pip install zmq
-pip install pyyaml
-pip install websocket
-pip install marisa-trie
-pip install pylzma
-pip install ujson
-pip install watchdog
-'''        
-        # self.actions.
-
-

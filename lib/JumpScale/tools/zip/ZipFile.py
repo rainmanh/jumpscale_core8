@@ -92,7 +92,7 @@ class ZipFile(object):
             try:
                 self._zip.getinfo(f)
             except KeyError:
-                if not sys.platform.startswith('win'):
+                if not j.core.platformtype.myplatform.isWindows():
                     raise
                 f_ = f.replace('\\', '/')
                 try:

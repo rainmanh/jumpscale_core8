@@ -29,7 +29,7 @@ def kill(pid, sig=None):
 
         except OSError as e:
             raise RuntimeError("Could not kill process with id %s.\n%s" % (pid,e))
-        
+
     elif j.core.platformtype.myplatform.isWindows():
         import win32api, win32process, win32con
         try:
@@ -50,7 +50,7 @@ def kill(pid, sig=None):
 #(http://bugs.python.org/issue1068268) and a patch applied to the Python2.5
 #package in Ubuntu Linux (http://patches.ubuntu.com/p/python2.5/extracted/
 #        subprocess-eintr-safety.dpatch)
-mswindows = (sys.platform == "win32")
+mswindows = (j.core.platformtype.myplatform == "win32")
 #Bump this version number as long as the upstream subprocess module is not
 #fixed. Testcases on Solaris tend to fail easily.
 if sys.version_info >= (2, 7, 0) or mswindows:
@@ -498,7 +498,7 @@ if sys.version_info < (2, 6):
     #Add terminate() and kill() as introduced in Python2.6
     import signal
     class SafePopen(SafePopen):
-        if sys.platform.startswith('win'):
+        if j.core.platformtype.myplatform.isWindows():
             def send_signal(self, sig):
                 '''Send a signal to the process'''
                 if sig == signal.SIGTERM:
@@ -1228,11 +1228,11 @@ class SystemProcess(SALObject):
             print(("system.process.executeAsync [%s]" % command))
 
         if j.core.platformtype.myplatform.isWindows():
-            if argsInCommand:                
+            if argsInCommand:
                 cmd = subprocess.list2cmdline([command] + args)
             else:
                 cmd = command
-                
+
 
             if redirectStreams: # Process will be started and the Popen object will be returned. The calling function can use this object to read or write to its pipes or to wait for completion.
                 retVal = subprocess.Popen(cmd, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE, env=os.environ, shell = useShell)
@@ -1376,7 +1376,7 @@ class SystemProcess(SALObject):
                 childprocess = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True, shell=True, env=os.environ)
                 (output,error) = childprocess.communicate()
                 exitcode = childprocess.returncode
-                
+
             elif j.core.platformtype.myplatform.isWindows():
                 import subprocess, win32pipe, msvcrt, pywintypes
 
@@ -1407,7 +1407,7 @@ class SystemProcess(SALObject):
         except Exception as e:
             raise
 
-        output=output.decode("utf8")#'ascii')            
+        output=output.decode("utf8")#'ascii')
         error=error.decode("utf8")#'ascii')
 
         if exitcode!=0 or error!="":
@@ -1467,7 +1467,7 @@ class SystemProcess(SALObject):
         """
         if params==None:
             params=j.data.params.get()
-        codeLines = code.split("\n")        
+        codeLines = code.split("\n")
         if "def " not in codeLines[0]:
             raise ValueError("code to execute needs to start with def")
         def_indent = codeLines[0].find("def ")
@@ -1500,15 +1500,15 @@ class SystemProcess(SALObject):
             raise RuntimeError("Could not import code, code submitted was \n%s" % code)
 
         main = execContext['main']
-        
+
         #try to execute the code
         result={}
         try:
             result=main(params)
-        except Exception as e:            
+        except Exception as e:
             raise RuntimeError("Error %s.\ncode submitted was \n%s" % (e,code))
         return result
-        
+
     def isPidAlive(self, pid):
         """Checks whether this pid is alive.
            For unix, a signal is sent to check that the process is alive.
@@ -1545,7 +1545,7 @@ class SystemProcess(SALObject):
                 if line.find(filterstr)!=-1:
                     line=line.strip()
                     # print "found pidline:%s"%line
-                    found.append(int(line.split(" ")[0]))   
+                    found.append(int(line.split(" ")[0]))
         return found
 
     def checkstart(self,cmd,filterstr,nrtimes=1,retry=1):
@@ -1584,7 +1584,7 @@ class SystemProcess(SALObject):
             for item in found:
                 self.kill(int(item),9)
             found=self.getPidsByFilter(filterstr)
-                
+
         if len(found)!=0:
             raise RuntimeError("could not stop %s, found %s nr of instances."%(cmd,len(found)))
 
@@ -1603,7 +1603,7 @@ class SystemProcess(SALObject):
                 match = co.search(line)
                 if not match:
                     continue
-                gd = match.groupdict()                
+                gd = match.groupdict()
                 # print "%s"%line
                 # print gd["cmd"]
                 # print process
@@ -1631,7 +1631,7 @@ class SystemProcess(SALObject):
         result=[]
         for process in psutil.get_process_list():
             if process.username==user:
-                result.append(process.pid)            
+                result.append(process.pid)
         return result
 
     def killUserProcesses(self,user):
@@ -1795,7 +1795,7 @@ class SystemProcess(SALObject):
                 except Exception as e:
                     if str(e).find("psutil.AccessDenied")==-1:
                         raise RuntimeError(str(e))
-                    continue                    
+                    continue
                 if cc!=[]:
                     for conn in cc:
                         portfound=conn.laddr[1]
@@ -1862,7 +1862,7 @@ class SystemProcess(SALObject):
         for item in self.appsGetNames():
             pids=self.appGetPidsActive(item)
             pids=[pid for pid in pids if pid not in defunctlist]
-                
+
             if pids==[]:
                 j.application.redis.hdelete("application",item)
             else:
@@ -1874,7 +1874,7 @@ class SystemProcess(SALObject):
         todelete=[]
         for pid in pids:
             if not self.isPidAlive(pid):
-                todelete.append(pid)        
+                todelete.append(pid)
             else:
                 environ = self.getEnviron(pid)
                 if environ.get('JSPROCNAME') != appname:
@@ -1884,5 +1884,3 @@ class SystemProcess(SALObject):
         j.application.redis.hset("application",appname,j.data.serializer.json.dumps(pids))
 
         return pids
-
-

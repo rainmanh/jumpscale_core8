@@ -15,9 +15,9 @@ if subprocess.mswindows:
 else:
     import select
     import fcntl
-    
 
-if sys.platform.startswith('linux'):
+
+if j.core.platformtype.myplatform.isLinux():
     try:
         import pxssh
     except ImportError as e:
@@ -26,8 +26,8 @@ if sys.platform.startswith('linux'):
         #print >> sys.stderr, "Module pxssh not found...Wont be able to ssh on linux!!!"
         print("cannot find pxssh")
         pass
-    
-if sys.platform.startswith('sun') or sys.platform.startswith('linux'):
+
+if j.core.platformtype.myplatform.isUnix():
     try:
         import pexpect
     except ImportError as e:
@@ -149,15 +149,15 @@ class ExpectTool:
     @staticmethod
     def new(cmd=None):
 	'''Create a new Expect session
-	
+
 	@param cmd: Command to execute
 	@type cmd: string
-	
+
 	@returns: Expect session
 	@rtype jumpscale.cmdline.Expect.Expect
-	'''	
+	'''
 	return Expect(cmd=cmd or '')
-	
+
 
 class Expect:
     _p=None      #popen process
@@ -177,14 +177,14 @@ class Expect:
         self._prompt=""
 
         if not cmd:
-            if cmd=="" and sys.platform.startswith('win'):
+            if cmd=="" and j.core.platformtype.myplatform.isWindows():
                 cmd = 'cmd'
-            if cmd=="" and not sys.platform.startswith('win'):
+            if cmd=="" and not j.core.platformtype.myplatform.isWindows():
                 cmd = 'sh'
                 self._pxssh = pxssh.pxssh()
             self._p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-            
-        elif cmd and cmd != 'ssh' and not sys.platform.startswith('win'):
+
+        elif cmd and cmd != 'ssh' and not j.core.platformtype.myplatform.isWindows():
             self.pexpect = pexpect.spawn(cmd)
             if cmd=="sh":
                 self.expect("#")
@@ -196,7 +196,7 @@ class Expect:
     def log(self,message,category="",level=5):
         category="expect.%s"%category
         category=category.strip(".")
-        j.logger.log(message,category=category,level=level)            
+        j.logger.log(message,category=category,level=level)
 
     def enableCleanString(self):
         """
@@ -253,16 +253,16 @@ class Expect:
     def login(self,remote,passwd,seedpasswd,initial=False,timeout=10):
         #login over ssh
         self.send("ssh root@%s"%remote)
-        if initial:            
+        if initial:
             result=self.expect("continue connecting",timeout=2)
             self.send("yes\n")
-        
+
         result=self.expect("password:",timeout=timeout)
-      
+
         if result=="E":
             print("did not see passwd")
             result=self.expect("continue connecting",timeout=timeout/2)
-            
+
             if result==0:
                 print("saw confirmation ssh key")
                 print("send yes for ssh key")
@@ -274,7 +274,7 @@ class Expect:
         if result!="E":
             #we saw passwd
             self.send(passwd)
-            result=self.expect("#",timeout=timeout/2)            
+            result=self.expect("#",timeout=timeout/2)
             if result=="E":
                 result=self.expect("Permission denied")
                 if result!="E" and seedpasswd!="":
@@ -297,19 +297,19 @@ class Expect:
                     self.send(passwd)
                     result=self.expect("#")
                     if result=="E":
-                        raise RuntimeError("could not change passwd")    
-                    return 
+                        raise RuntimeError("could not change passwd")
+                    return
                 else:
-                    raise RuntimeError("Could not login did not see permission denied.") 
+                    raise RuntimeError("Could not login did not see permission denied.")
             else:
-                return 
+                return
 
         if result!="E":
             #we saw passwd
             self.send(passwd)
             result=self.expect("#")
             if result=="E":
-                raise RuntimeError("could not login") 
+                raise RuntimeError("could not login")
             return
         else:
             #did not see passwd again
@@ -320,16 +320,16 @@ class Expect:
     # def login(self, ip, login, password, login_timeout=15):
     #     """Log the user into the given server
 
-    #     By default the prompt is rather optimistic and should be considered more of 
+    #     By default the prompt is rather optimistic and should be considered more of
     #     an example. It is better to try to match the prompt as exactly as possible to prevent
-    #     any false matches by server strings such as a "Message Of The Day" or something. 
+    #     any false matches by server strings such as a "Message Of The Day" or something.
 
-    #     The closer you can make the original_prompt match your real prompt the better. 
+    #     The closer you can make the original_prompt match your real prompt the better.
     #     A timeout causes not necessarily the login to fail.
 
-    #     In case of a time out we assume that the prompt was so weird that we could not match  
-    #     it. We still try to reset the prompt to something more unique. 
-        
+    #     In case of a time out we assume that the prompt was so weird that we could not match
+    #     it. We still try to reset the prompt to something more unique.
+
     #     If that still fails then we return False.
     #     """
     #     if not j.core.platformtype.myplatform.isLinux():
@@ -354,17 +354,17 @@ class Expect:
         if j.core.platformtype.myplatform.isWindows():
             out=self.receiveOut()
             err=self.receiveError()
-            return out,err        
+            return out,err
 
         elif j.core.platformtype.myplatform.isUnix() and self.pexpect:
-            
+
             if self.pexpect.match:
                 # out='%s%s'%(self.pexpect.after, self.pexpect.buffer)
                 out=self.pexpect.before
                 out=self._cleanStr(out)
                 return out,""
             else:
-                before=self.pexpect.before                
+                before=self.pexpect.before
                 before=self._cleanStr(before)
                 return str(before),""
 
@@ -374,11 +374,11 @@ class Expect:
 
 
         o.errorconditionhandler.raiseBug(message="should never come here, unsupported platform",category="expect.receive")
-        
+
     def receivePrint(self):
         """
         Receive data from stdout and stderr and displays them
-        This function also remembers this information for later usage in the 
+        This function also remembers this information for later usage in the
         classes C{_out} & C{_error}.
         """
         out,err=self.receive()
@@ -390,7 +390,7 @@ class Expect:
 
     def _receiveOut(self): #windows only
         """
-        Receive standard out and return. This information is stored for later usage 
+        Receive standard out and return. This information is stored for later usage
         in the class C{_out}.
         """
         out=self._receive(False)
@@ -404,7 +404,7 @@ class Expect:
 
     def _receiveError(self): #windows only
         """
-        Receive standard error and return. This information is stored for later usage 
+        Receive standard error and return. This information is stored for later usage
         in the class C{_error}.
         """
         err=self._receive(True)
@@ -413,11 +413,11 @@ class Expect:
         self._add2lastError(err)
         return err
 
-        #@todo P2 not right,can never work, needs to check if expect or popen or, ... 
+        #@todo P2 not right,can never work, needs to check if expect or popen or, ...
 
     def pprint(self):
         """
-        Print the result of all send & receive operations till now on local C{stdout}. 
+        Print the result of all send & receive operations till now on local C{stdout}.
         """
         out=self._ignoreLinesBasedOnFilter(self._lastOutput)
         error=self._lastError
@@ -520,14 +520,14 @@ class Expect:
     def send(self, data="",newline=True):
         """
         Send a command to shell.
-        After sending a command, one of the receive functions must be called to 
+        After sending a command, one of the receive functions must be called to
         check for the result on C{stdout} or C{stderr}.
         """
         self.log("send: %s" % data,category="send")
         self._lastsend=data
         self._lastOutput=""
         self._lastError=""
-        
+
         if j.core.platformtype.myplatform.isUnix():
             if self.pexpect:
                 if newline:
@@ -535,7 +535,7 @@ class Expect:
                     return self.pexpect.sendline(data)
                 else:
                     return self.pexpect.send(data)
-            
+
         if j.core.platformtype.myplatform.isWindows():
             data=data+"\r\n"
 
@@ -592,9 +592,9 @@ class Expect:
                 tosend=item[1]
                 stepname=item[2]
                 timeout=item[3]
-            else:                
+            else:
                 raise RuntimeError("Error in syntax sequence,\n%s"%sequence)
-            
+
             result=self.expect([regex,self._prompt],timeout=timeout)
             if result==0 or nr==m:
                 o=self.receive()[0]
@@ -611,8 +611,8 @@ class Expect:
 
 
     def prompt(self, timeout=5):
-        """Expect the prompt. 
-        
+        """Expect the prompt.
+
         Return C{True} if the prompt was matched.
         Returns C{False} if there was a time out.
         """
@@ -634,7 +634,7 @@ class Expect:
         """
         self.send(cmd)
         self.prompt(timeout=timeout)
-        out,err= self.receive()        
+        out,err= self.receive()
         return out
 
     def do(self,data,timeout=30):
@@ -643,7 +643,7 @@ class Expect:
 
         The first line is also removed (this is the echo from what has been sent).
         Use this if you quickly want to execute something from the command line.
-        """        
+        """
         self.send(data)
         self.wait(timeout)
         self._lastOutput=self._removeFirstLine(self._lastOutput)
@@ -720,30 +720,30 @@ class Expect:
             r=""
             self._timeout=True
         return tokenfound,r,timeout
-    
+
     def expect(self, outputToExpect,timeout=2):
         """
         Pexpect expect method wrapper
-        usage: Excuting a command that expects user input, this method can be used to 
+        usage: Excuting a command that expects user input, this method can be used to
         expect the question asked then send the answer
         Example:
         Expect = j.tools.expect.new('passwd')
         if Expect.expect('Enter new'):
             Expect.send('newPasswd')
-            
+
             if Expect.expect('Retype new'):
                 Expect.send('anotherPasswd')
-                
+
                 if Expect.expect('passwords do not match'):
                     j.tools.console.echo(Expect.receive())
         else:
             j.tools.console.echo(Expect.receive())
-        
+
         @return 'E' when error
 
         """
         j.logger.log('Expect %s '%outputToExpect, 7)
-        
+
         try:
             result=self.pexpect.expect(outputToExpect, timeout=timeout)
             return result

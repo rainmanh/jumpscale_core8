@@ -112,7 +112,7 @@ class ActionsBaseNode(object):
         typically used to prepare a system e.g. make sure appropriate updates or packages installed
         the next step will copy files from the recipe's to the destination locations on the target (if binary git repo's used)
         """
-        if j.do.TYPE.startswith("UBUNTU"):
+        if 'ubuntu' in j.core.platformtype.myplatform.platformtypes:
 
             for src in self.service.hrd_template.getListFromPrefix("ubuntu.apt.source"):
                 src = src.replace(";", ":")

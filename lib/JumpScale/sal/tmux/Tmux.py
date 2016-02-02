@@ -22,8 +22,8 @@ class Tmux(SALObject):
         @param name is name of session
         @screens is list with nr of screens required in session and their names (is [$screenname,...])
         """
-        if j.do.TYPE.startswith("UBUNTU"):
-            j.sal.ubuntu.checkInstall("tmux", "tmux")
+        if 'ubuntu' in j.core.platformtype.myplatform.platformtypes:
+            j.sal.ubuntu.apt_install_check("tmux", "tmux")
         else:
             if not j.do.checkInstalled("tmux"):
                 raise RuntimeError("Cannnot use tmux, please install tmux")
@@ -134,7 +134,7 @@ class Tmux(SALObject):
         cmd = 'tmux list-windows -F "#{window_index}:#{window_name}" -t "%s"' % session
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        exitcode, output = self.executor.execute(cmd, die=False,showout=False)
+        exitcode, output = self.executor.execute(cmd, die=False,showout=False, checkok=False)
         if exitcode != 0:
             return result
         for line in output.split():

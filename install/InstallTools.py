@@ -1680,8 +1680,10 @@ class InstallTools():
         will ignore changes !!!!!!!!!!!
         """
 
-        if executor==None:
-            executor=self
+        if executor is None:
+            executor = self
+        else:
+            executor.checkok = False
 
         base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh)
 

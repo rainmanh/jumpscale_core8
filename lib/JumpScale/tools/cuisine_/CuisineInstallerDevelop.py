@@ -1,9 +1,12 @@
 
 from JumpScale import j
+<<<<<<< HEAD
 #do those apply to remote exec 
 # import os
+=======
+from CuisinePortal import CuisinePortal
+>>>>>>> master
 
-# import socket
 
 from ActionDecorator import ActionDecorator
 class actionrun(ActionDecorator):
@@ -12,12 +15,18 @@ class actionrun(ActionDecorator):
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installerdevelop"
 
 
-
 class CuisineInstallerDevelop():
 
     def __init__(self,executor,cuisine):
         self.executor=executor
         self.cuisine=cuisine
+        self._portal = None
+
+    @property
+    def portal(self):
+        if self._portal is None:
+            self._portal = CuisinePortal(self.executor, self.cuisine)
+        return self._portal
 
     def _linkfilesindir(self, dir_path, dest):
         for fil in self.cuisine.fs_find(dir_path):
@@ -44,17 +53,159 @@ class CuisineInstallerDevelop():
             else:
                 self.cuisine.run("apt-get install golang -y --force-yes")
 
-       
-        self.executor.env["GOROOT"]=self.executor.env.get('GOROOT','/usr/lib/go/')
-        self.executor.env["GOPATH"]=self.executor.env.get('GOPATH','/opt/go/')
-        self.cuisine.dir_ensure(self.executor.env['GOPATH'])
-        print ('GOPATH:', self.executor.env["GOPATH"])
-        print ('GOROOT:', self.executor.env["GOROOT"])
-        self.cuisine.file_ensure(self._joinpath(self.cuisine.run("echo $HOME"), '.bash_profile'))
-        path = self.cuisine.run("echo $PATH")
-        self.executor.env['PATH'] = '%s:%s/bin' % (path, self.executor.env['GOPATH'])
-        self.cuisine.run('go get github.com/tools/godep')
-        self.cuisine.run('go get github.com/rcrowley/go-metrics')
+    def python(self):
+        C="""
+        libpython3.5-dev
+        python3.5-dev
+        libffi-dev
+        gcc
+        build-essential
+        autoconf
+        libtool
+        pkg-config
+        libpq-dev
+        libsqlite3-dev
+        #net-tools
+        """
+        self.cuisine.package.multiInstall(C)
+
+    @actionrun(action=True)
+    def pip(self):
+        self.cuisine.installer.base()
+        self.python()
+        cmd="""
+            cd /tmp
+            rm -rf get-pip.py
+            wget https://bootstrap.pypa.io/get-pip.py
+        """
+        self.cuisine.run_script(cmd)
+        self.cuisine.run("cd /tmp;python3.5 get-pip.py")
+
+
+    @actionrun(action=True)
+    def jumpscale(self):
+
+        self.pip(action=True)
+
+        C = """
+        set +ex
+        pskill redis-server #will now kill too many redis'es, should only kill the one not in docker
+        pskill redis #will now kill too many redis'es, should only kill the one not in docker
+        umount -fl /optrw
+        # apt-get remove redis-server -y
+        rm -rf /overlay/js_upper
+        rm -rf /overlay/js_work
+        rm -rf /optrw
+        js8 stop
+        pskill js8
+        umount -f /opt
+        apt-get install tmux fuse -y
+        """
+        self.cuisine.run_script(C,action=True)
+
+        #install brotli
+        C="""
+        cd /tmp
+        sudo rm -rf brotli/
+        git clone https://github.com/google/brotli.git
+        cd /tmp/brotli/
+        python setup.py install
+        cd tests
+        make
+        cd ..
+        cp /tmp/brotli/tools/bro /usr/local/bin/
+        rm -rf /tmp/brotli
+        """
+        self.cuisine.run_script(C,action=True)
+
+        #python etcd
+        C="""
+        cd /tmp
+        git clone https://github.com/jplana/python-etcd.git
+        cd python-etcd
+        python3.5 setup.py install
+        """
+        self.cuisine.run_script(C,action=True)
+
+
+        C="""
+        paramiko
+
+        msgpack-python
+        redis
+        credis
+        aioredis
+
+
+        mongoengine
+
+        bcrypt
+        blosc
+        certifi
+        docker-py
+
+        gitlab3
+        gitpython
+        html2text
+
+        # pysqlite
+        click
+        influxdb
+        ipdb
+        ipython --upgrade
+        jinja2
+        netaddr
+
+        reparted
+        pytoml
+        pystache
+        pymongo
+        psycopg2
+        pathtools
+        psutil
+
+        pytz
+        requests
+        sqlalchemy
+        urllib3
+        zmq
+        pyyaml
+        websocket
+        marisa-trie
+        pylzma
+        ujson
+        watchdog
+        """
+        self.cuisine.pip.multiInstall(C,action=True,upgrade=True)
+
+        #gevent
+        C="""
+        pip3 install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
+        """
+        self.cuisine.run_script(C,action=True)
+
+    @actionrun(action=True)
+    def jumpscale8(self):
+
+        self.cuisine.installer.pip()
+        self.cuisine.pip.upgrade("pip")
+        libDeps = ["'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent", "paramiko", "msgpack-python", "redis", "credis", "aioredis", "mongoengine", "bcrypt",
+         "blosc", "certifi", "docker-py", "gitlab3", "gitpython", "html2text","click", "influxdb", "ipdb", "ipython", "jinja2",
+         "netaddr", "reparted", "pytoml", "pystache", "pymongo", "psycopg2", "pathtools", "psutil", "pytz", "requests", "sqlalchemy",
+          "urllib3", "zmq", "pyyaml", "websocket", "marisa-trie", "pylzma", "ujson", "watchdog"]
+        for dep in libDeps:
+            self.cuisine.pip.install(dep)
+
+        if self.cuisine.isUbuntu:
+            self.cuisine.run('cd /tmp;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh')
+        elif self.cuisine.isMac:
+            cmd = """sudo mkdir -p /opt
+            sudo chown -R despiegk:root /opt
+            ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""""
+            self.cuisine.run(cmd)
+        else:
+            raise RuntimeError("platform not supported yet")
+
 
     @actionrun(action=True)
     def installAgentcontroller(self, start=True):
@@ -157,202 +308,6 @@ class CuisineInstallerDevelop():
         else:
             print('To run your agent, navigate to "%s" adn to "%s" and do "./agent2 -c agent2.toml"' % agentAppDir)
             print('To run your agentcontroller, navigate to "%s" adn to "%s" and do "./agentcontroller2 -c agentcontroller2.toml"' % agentcontrollerAppDir)
-
-    def installPortal(self, minimal=False, start=True, mongodbip="127.0.0.1", mongoport=27017, login="", passwd=""):
-
-        j.actions.setRunId("installportal")
-
-        def upgradePip():
-            self.cuisine.run("pip3 install --upgrade pip")
-        actionUpgradePIP = j.actions.add(upgradePip)
-
-        def installDeps(actionin):
-            """
-            make sure new env arguments are understood on platform
-            """
-            deps = """
-            setuptools
-            aioredis
-            # argh
-            bcrypt
-            Beaker
-            blinker
-            blosc
-            # Cerberus
-            # certifi
-            # cffi
-            # click
-            # credis
-            # crontab
-            # Cython
-            decorator
-            # docker-py
-            # dominate
-            # ecdsa
-            eve
-            eve_docs
-            eve-mongoengine
-            # Events
-            # Flask
-            # Flask-Bootstrap
-            # Flask-PyMongo
-            gevent==1.1rc2
-            # gitdb
-            gitlab3
-            # GitPython
-            greenlet
-            # hiredis
-            html2text
-            # influxdb
-            # ipdb
-            # ipython
-            # ipython-genutils
-            itsdangerous
-            Jinja2
-            # marisa-trie
-            MarkupSafe
-            mimeparse
-            mongoengine
-            msgpack-python
-            netaddr
-            # paramiko
-            # path.py
-            pathtools
-            # pexpect
-            # pickleshare
-            psutil
-            # psycopg2
-            # ptyprocess
-            # pycparser
-            # pycrypto
-            # pycurl
-            # pygo
-            # pygobject
-            pylzma
-            pymongo
-            pystache
-            # python-apt
-            python-dateutil
-            pytoml
-            pytz
-            PyYAML
-            # pyzmq
-            # redis
-            # reparted
-            requests
-            simplegeneric
-            simplejson
-            six
-            # smmap
-            # SQLAlchemy
-            traitlets
-            ujson
-            # unattended-upgrades
-            urllib3
-            visitor
-            # watchdog
-            websocket
-            websocket-client
-            Werkzeug
-            wheel
-            # zmq
-            """
-
-            def installPip(name):
-                self.cuisine.run("pip3 install --upgrade %s " % name)
-
-            actionout = None
-            for dep in deps.split("\n"):
-                dep = dep.strip()
-                if dep.strip() == "":
-                    continue
-                if dep.strip()[0] == "#":
-                    continue
-                dep = dep.split("=", 1)[0]
-                actionout = j.actions.add(
-                    installPip, args={"name": dep}, retry=2, deps=[actionin, actionout])
-
-            return actionout
-        actiondeps = installDeps(actionUpgradePIP)
-
-        def getcode():
-            self.cuisine.git.pullRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
-        actionGetcode = j.actions.add(getcode, deps=[])
-
-        def install():
-            destjslib = j.do.getPythonLibSystem(jumpscale=True)
-            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
-            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % j.dirs.jsLibDir)
-
-            j.application.reload()
-
-            portaldir = '%s/apps/portals/' % j.dirs.base
-            self.cuisine.dir_ensure(portaldir)
-            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/jslib" % j.dirs.codeDir, '%s/jslib' % portaldir)
-            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/system" %
-                             j.dirs.codeDir,  '%s/portalbase/system' % portaldir)
-            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki" %
-                             j.dirs.codeDir, '%s/portalbase/wiki' % portaldir)
-            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/macros" %
-                             j.dirs.codeDir, '%s/portalbase/macros' % portaldir)
-            self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/templates" %
-                             j.dirs.codeDir, '%s/portalbase/templates' % portaldir)
-
-            exampleportaldir = '%sexample/base' % portaldir
-            self.cuisine.dir_ensure(exampleportaldir)
-            if not minimal:
-                for space in self.cuisine.fs_find("%s/github/jumpscale/jumpscale_portal8/apps/gridportal/base" % j.dirs.codeDir,recursive=False):
-                    spacename = j.sal.fs.getBaseName(space)
-                    if not spacename == 'home':
-                       self.cuisine.file_link(space, '%s/gridportal/%s' %(exampleportaldir,spacename))
-                self.cuisine.dir_ensure('%s/home/.space' %exampleportaldir)
-                self.cuisine.file_ensure('%s/home/home.md' %exampleportaldir)
-
-            self._copyfile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py" % j.dirs.codeDir, '%sexample' % portaldir)
-            self._copyfile("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd" % j.dirs.codeDir, '%sexample' % portaldir)
-            j.dirs.replaceFilesDirVars("%s/example/config.hrd" % portaldir)
-            self._copyfile("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir, recursive=True)
-
-        actioninstall = j.actions.add(install, deps=[actiondeps])
-
-        def mongoconnect():
-            cfg = j.data.hrd.get('%s/apps/portals/example/config.hrd'%j.dirs.base)
-            cfg.set('param.mongoengine.connection', {'host':mongodbip, 'port':mongoport})
-            cfg.save()
-
-        j.actions.add(mongoconnect, deps=[actioninstall], args={})
-
-        def changeEve():
-            self.executor = j.tools.self.executor.getLocal()
-            evedocs = j.sal.fs.walk(j.do.getPythonLibSystem(jumpscale=False), recurse=0, pattern='eve_docs', return_folders=1, return_files=0)
-            if not evedocs:
-                return
-            self.cuisine.run("2to3 -f all -w %s" % evedocs[0])
-
-        j.actions.add(changeEve, deps=[actionGetcode, actioninstall])
-
-        def startmethod():
-            portaldir = '%s/apps/portals/' % j.do.BASE
-            exampleportaldir = '%sexample/' % portaldir
-            cmd = "cd %s; jspython portal_start.py" % exampleportaldir
-            self.cuisine.tmux.executeInScreen("portal", "portal", cmd, wait=0, cwd=None, env=None, user='root', tmuxuser=None)
-
-            # self.cuisine.run()
-        if start:
-            j.actions.add(startmethod)
-        else:
-            print('To run your portal, navigate to %s/apps/portals/example/ and run "jspython portal_start.py"' % j.dirs.base)
-
-        j.actions.run()
-
-
-        #cd /usr/local/Cellar/mongodb/3.2.1/bin/;./mongod --dbpath /Users/kristofdespiegeleer1/optvar/mongodb
-
-
-        #@todo install gridportal as well
-        #@link example spaces
-        #@eve issue
-        #@explorer issue
 
     #@todo installer for trueid env
     #@todo installer for g8exchange

@@ -201,6 +201,7 @@ from CuisineGit import CuisineGit
 from CuisineBuilder import CuisineBuilder
 from CuisineGroup import CuisineGroup
 from ActionDecorator import ActionDecorator
+from CuisineGolang import CuisineGolang
 
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
@@ -234,6 +235,7 @@ class OurCuisine():
         self._bash=None
         self._avahi=None
         self._tmux=None
+        self._golang=None
         self.cuisine=self
         self._fqn=""
         if self.executor.type=="ssh":
@@ -274,11 +276,18 @@ class OurCuisine():
             self._pip=CuisinePIP(self.executor,self)
         return self._pip
 
+
+    @property
+    def golang(self):
+        if self._golang==None:
+            self._golang=CuisineGolang(self.executor,self)
+        return self._golang
+
     @property
     def builder(self):
-        if self._builder==None:            
+        if self._builder==None:
             self._builder=CuisineBuilder(self.executor,self)
-        return self._builder   
+        return self._builder
 
     @property
     def id(self):
@@ -305,7 +314,7 @@ class OurCuisine():
     def installerdevelop(self):
         if self._installerdevelop==None:
             self._installerdevelop=CuisineInstallerDevelop(self.executor,self)
-        return self._installerdevelop        
+        return self._installerdevelop
 
     @property
     def ns(self):
@@ -454,6 +463,75 @@ class OurCuisine():
                 shell_safe(backup_location)
             ))
 
+    def file_get_tmp_path(self,basepath=""):
+        if basepath=="":
+            return "/tmp/%s"%j.data.idgenerator.generateXCharID(10)
+        else:
+            return "/tmp/%s"%basepath
+
+
+    def file_download(self,url,to,overwrite=True,retry=3,timeout=0,login="",passwd="",minspeed=0,multithread=False,expand=False):
+        """
+        download from url
+        @return path of downloaded file
+        @param to is destination
+        @param minspeed is kbytes per sec e.g. 50, if less than 50 kbytes during 10 min it will restart the download (curl only)
+        @param when multithread True then will use aria2 download tool to get multiple threads
+        """
+
+        if expand:
+            destdir=to
+            to=self.file_get_tmp_path(j.sal.fs.getBaseName(url))
+
+        if overwrite:
+            if self.file_exists(to):
+                self.file_unlink(to)
+                self.file_unlink("%s.downloadok"%to)
+        if not (self.file_exists(to) and self.file_exists("%s.downloadok"%to)):
+
+            self.createDir(j.sal.fs.getDirName(to))
+
+            if multithread==False:
+                minspeed=0
+                if minspeed!=0:
+                    minsp="-y %s -Y 600"%(minspeed*1024)
+                else:
+                    minsp=""
+                if login:
+                    user="--user %s:%s "%(login,passwd)
+                else:
+                    user=""
+
+                cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s"%(url,to,user,minsp,retry,timeout)
+                if self.file_exists(to):
+                    cmd += " -C -"
+                print(cmd)
+                self.file_unlink("%s.downloadok"%to)
+                rc, out = self.run(cmd, die=False)
+                if rc == 33: # resume is not support try again withouth resume
+                    self.file_unlink(to)
+                    cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s"%(url,to,user,minsp,retry,timeout)
+                    rc, out = self.run(cmd, die=False)
+                if rc > 0:
+                    raise RuntimeError("Could not download:{}.\nErrorcode: {}".format(url, rc))
+                else:
+                    self.touch("%s.downloadok"%to)
+            else:
+                raise RuntimeError("not implemented yet")
+
+        if expand:
+            self.file_expand(to,destdir)
+
+    def file_expand(self,path,to):
+        if path.endswith(".tar.gz") or path.endswith(".tgz"):
+            cmd="tar -C %s -xzf %s"%(to,path)
+            self.cuisine.run(cmd)
+        else:
+            raise RuntimeError("not supported yet")
+
+
+    def touch(self,path):
+        self.file_write(path,"")
 
     def file_read(self,location, default=None):
         """Reads the *remote* file at the given location, if default is not `None`,
@@ -609,7 +687,7 @@ class OurCuisine():
 
 
     @actionrun(action=False,force=False)
-    def file_ensure(self,location, mode=None, owner=None, group=None, scp=False):
+    def file_ensure(self,location, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         location."""
         if self.file_exists(location):
@@ -618,7 +696,7 @@ class OurCuisine():
             self.file_write(location,"",mode=mode,owner=owner,group=group)
 
     @actionrun(action=False,force=False)
-    def file_upload(self, local, remote):
+    def file_upload_local(self, local, remote):
         """Uploads the local file to the remote location only if the remote location does not
         exists or the content are different."""
         remote_md5 = self.file_md5(remote)
@@ -626,13 +704,13 @@ class OurCuisine():
         if remote_md5 == local_md5:
             return
 
-        ftp = self.sshclient.getSFTP()
+        ftp = self.executor.sshclient.getSFTP()
         content = j.tools.path.get(local).text()
         with ftp.open(remote, mode='w+') as f:
             f.write(content)
 
     @actionrun(action=False,force=False)
-    def file_download(self,remote, local):
+    def file_download_local(self,remote, local):
         """Downloads the remote file to localy only if the local location does not
         exists or the content are different."""
         f = j.tools.path.get(local)
@@ -698,6 +776,14 @@ class OurCuisine():
         else:
             self.run('ln -f %s %s' % (shell_safe(source), shell_safe(destination)))
         self.file_attribs(destination, mode, owner, group)
+
+    @actionrun(action=False,force=False)
+    def file_copy(self, source, dest, recursive=False):
+        cmd = "cp -v "
+        if recursive:
+            cmd += "-r "
+        cmd += '%s %s' % (source, dest)
+        self.run(cmd)
 
     # SHA256/MD5 sums with openssl are tricky to get working cross-platform
     # SEE: https://github.com/sebastien/cuisine/pull/184#issuecomment-102336443
@@ -779,7 +865,7 @@ class OurCuisine():
             return self.run('rm -%sf %s && echo **OK** ; true' % (flag, shell_safe(location)),showout=False)
 
     @actionrun(action=False,force=False)
-    def dir_ensure(self,location, recursive=False, mode=None, owner=None, group=None):
+    def dir_ensure(self,location, recursive=True, mode=None, owner=None, group=None):
         """Ensures that there is a remote directory at the given location,
         optionally updating its mode/owner/group.
 
@@ -790,6 +876,7 @@ class OurCuisine():
         if owner or group or mode:
             self.dir_attribs(location, owner=owner, group=group, mode=mode, recursive=recursive)
 
+    createDir=dir_ensure
 
     @actionrun(action=False,force=False)
     def fs_find(self,path,recursive=True,pattern="",findstatement="",type="",contentsearch="",extendinfo=False):
@@ -851,7 +938,7 @@ class OurCuisine():
                 if item.find("||")!=-1:
                     path,size,mod=item.split("||")
                     if path.strip()=="":
-                        continue
+                        continueH
                     paths2.append([path,int(size),int(float(mod))])
         else:
             paths2=[item for item in paths if item.strip()!=""]
@@ -957,10 +1044,14 @@ class OurCuisine():
         return self.cd
 
     @actionrun()
-    def run_script(self,content):
+    def run_script(self,content,profile=False):
         content=j.data.text.lstrip(content)
         if content[-1]!="\n":
             content+="\n"
+        if profile:
+            ppath=self.bash.profilePathExists()
+            if ppath!=None:
+                content=". %s\n%s\n"%(ppath,content)
         content+="\necho **DONE**\n"
         path="/tmp/%s.sh"%j.data.idgenerator.generateRandomInt(0,10000)
         self.file_write(location=path, content=content, mode=0o770, owner="root", group="root")

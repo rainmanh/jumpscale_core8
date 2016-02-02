@@ -3,7 +3,7 @@ import sys, os, threading, time
 import os.path
 import ctypes
 
-if not sys.platform.startswith('win'):
+if not j.core.platformtype.myplatform.isWindows():
     raise RuntimeError("WindowsSystem module only supported on Windows operating system")
 
 import win32pdh
@@ -37,7 +37,7 @@ from sal.base.SALObject import SALObject
 
 
 class WindowsSystem(SALObject):
-    
+
     mythreads = []
     _userEveryone = None
 
@@ -48,7 +48,7 @@ class WindowsSystem(SALObject):
 
     def __init__(self):
         self.__dict__ = self.__shared_state
-        
+
 
     def checkFileToIgnore(self,path):
         if j.core.platformtype.myplatform.isWindows():
@@ -59,7 +59,7 @@ class WindowsSystem(SALObject):
             return ignore
         else:
             return False
-            
+
 
 
     def createStartMenuShortcut(self, description, executable, workingDir, startMenuSubdir="", iconLocation=None, createDesktopShortcut=False, putInStartup=False):
@@ -818,7 +818,7 @@ class WindowsSystem(SALObject):
             if foundmaster==False:
                 return False
         return True
-                        
+
 
     def isPidAlive(self, pid):
         """
@@ -978,7 +978,7 @@ class WindowsSystem(SALObject):
                     shutil.rmtree(dirPath)
             else:
                 raise ValueError("Specified path: %s is not a Directory in System.removeDirTree"% dirPath)
-            
+
     def checkProgramExists(self,programName):
         """
         this is a not too well implemented check to see if a program is installed, it just checks if it can be executed without an error message
@@ -992,14 +992,14 @@ class WindowsSystem(SALObject):
             else:
                 return 2
         return 0
-        
-    def clipboardSet(self,text): 
+
+    def clipboardSet(self,text):
         self.initKernel()
         CF_UNICODETEXT = 13
-        GHND = 66        
+        GHND = 66
         if text==None:
                 return
-          
+
         if type(text)==type(''):
             text = str(text,'mbcs')
         bufferSize = (len(text)+1)*2
@@ -1011,10 +1011,10 @@ class WindowsSystem(SALObject):
         if ctypes.windll.user32.OpenClipboard(0):
             ctypes.windll.user32.EmptyClipboard()
             ctypes.windll.user32.SetClipboardData(ctypes.c_int(CF_UNICODETEXT), ctypes.c_int(hGlobalMem))
-            ctypes.windll.user32.CloseClipboard()       
-             
-    def clipboardGet(self):       
-        self.initKernel()        
+            ctypes.windll.user32.CloseClipboard()
+
+    def clipboardGet(self):
+        self.initKernel()
         #Get required functions, strcpy..
         strcpy = ctypes.cdll.msvcrt.strcpy
         ocb = ctypes.windll.user32.OpenClipboard    #Basic Clipboard functions
@@ -1025,15 +1025,15 @@ class WindowsSystem(SALObject):
         ga = ctypes.windll.kernel32.GlobalAlloc    # Global Memory allocation
         gl = ctypes.windll.kernel32.GlobalLock     # Global Memory Locking
         gul = ctypes.windll.kernel32.GlobalUnlock
-        GMEM_DDESHARE = 0x2000 
-        
+        GMEM_DDESHARE = 0x2000
+
         ocb(0) # Open Clip, Default task
-        pcontents = gcd(1) # 1 means CF_TEXT.. too lazy to get the token thingy ... 
+        pcontents = gcd(1) # 1 means CF_TEXT.. too lazy to get the token thingy ...
         data = ctypes.c_char_p(pcontents).value
         #gul(pcontents) ?
         ccb()
         return data
-            
+
     def addActionToShell(self,name,descr,cmd):
         """
         add action in windows explorer on top of file & dir
@@ -1050,4 +1050,4 @@ class WindowsSystem(SALObject):
             winreg.SetValueEx(key,"",None,winreg.REG_SZ,"%s "%descr)
             #winreg.SetValueEx(key2,"",None,winreg.REG_SZ,r'cmd.exe /s /k pushd "%V"')
             winreg.SetValueEx(key2,"",None,winreg.REG_SZ,cmd)
-            winreg.CloseKey(key)            
+            winreg.CloseKey(key)

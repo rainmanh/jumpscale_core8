@@ -1680,8 +1680,10 @@ class InstallTools():
         will ignore changes !!!!!!!!!!!
         """
 
-        if executor==None:
-            executor=self
+        if executor is None:
+            executor = self
+        else:
+            executor.checkok = False
 
         base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh)
 
@@ -1692,7 +1694,7 @@ class InstallTools():
             # if we don't specify the branch, try to find the currently checkedout branch
             if executor.exists(dest):
                 cmd = 'cd %s; git rev-parse --abbrev-ref HEAD' % dest
-                rc, out = executor.execute(cmd, checkok=False)
+                rc, out = executor.execute(cmd)
                 if rc == 0:
                     branch = out.strip()
                 else:  # if we can't retreive current branch, use master as default
@@ -1707,10 +1709,10 @@ class InstallTools():
                 cmd="cd %s;git fetch"%dest
                 if depth!=None:
                     cmd+=" --depth %s"%depth
-                executor.execute(cmd, checkok=False)
+                executor.execute(cmd)
                 if branch!=None:
                     print("reset branch to:%s"%branch)
-                    executor.execute("cd %s;git reset --hard origin/%s"%(dest,branch),timeout=600, checkok=False)
+                    executor.execute("cd %s;git reset --hard origin/%s"%(dest,branch),timeout=600)
             else:
                 #pull
                 print(("git pull %s -> %s"%(url,dest)))
@@ -1725,7 +1727,7 @@ class InstallTools():
                         cmd="cd %s;git pull origin %s"%(dest,branch)
                     else:
                         cmd="cd %s;git pull"%dest
-                executor.execute(cmd,timeout=600, checkok=False)
+                executor.execute(cmd,timeout=600)
         else:
             print(("git clone %s -> %s"%(url,dest)))
             extra = ""
@@ -1746,12 +1748,12 @@ class InstallTools():
 
             if depth!=None:
                 cmd+=" --depth %s"%depth
-            executor.execute(cmd,timeout=600, checkok=False)
+            executor.execute(cmd,timeout=600)
 
         if revision!=None:
             cmd="cd %s;git checkout %s"%(dest,revision)
             print(cmd)
-            executor.execute(cmd,timeout=600, checkok=False)
+            executor.execute(cmd,timeout=600)
 
         return dest
 

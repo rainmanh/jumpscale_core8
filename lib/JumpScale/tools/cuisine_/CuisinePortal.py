@@ -15,6 +15,7 @@ class CuisinePortal(object):
 
     def install(self, minimal=False, start=True, mongodbip="127.0.0.1", mongoport=27017, login="", passwd=""):
 
+        self.cuisine.installerdevelop.jumpscale8()
         self.cuisine.pip.upgrade("pip")
         self.installDeps()
         self.getcode()
@@ -190,13 +191,8 @@ class CuisinePortal(object):
 
     @actionrun(action=True)
     def changeEve(self):
-        path = j.sal.fs.joinPaths(j.do.getPythonLibSystem(jumpscale=False), "eve_docs")
-        evedocs = self.cuisine.fs_find(path, recursive=False, pattern='', findstatement="",type="f", contentsearch="",extendinfo=True)
-        files = [f[0] for f in evedocs]
-        if not evedocs:
-            return
-        for f in files:
-            self.cuisine.run("2to3 -f all -w %s" % f)
+        path = j.sal.fs.joinPaths(j.do.getPythonLibSystem(jumpscale=False), "eve_docs", "config.py")
+        self.cuisine.run("2to3 -f all -w %s" % path)
 
     @actionrun(action=True)
     def start(self):

@@ -492,7 +492,7 @@ class OurCuisine():
             if self.file_exists(to):
                 self.file_unlink(to)
                 self.file_unlink("%s.downloadok"%to)
-        if not self.file_exists(to) and self.file_exists("%s.downloadok"%to):
+        if not (self.file_exists(to) and self.file_exists("%s.downloadok"%to)):
         
             self.createDir(j.sal.fs.getDirName(to))
 

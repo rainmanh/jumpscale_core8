@@ -35,36 +35,44 @@ class CuisineBuilder(object):
     #@todo (*1*) installer for skydns
     #@todo (*1*) installer for aydostor
 
-    def installMongo(self, start=True):
+    def mongodb(self, start=True):
         j.actions.setRunId("installMongo")
-        rc, out = self.executor.execute('which mongod', die=False)
-        if out:
+        rc, out = self.cuisine.run('which mongod', die=False)
+        if rc== 0:
             print('mongodb is already installed')
+            return
+
         appbase = '/usr/local/bin'
 
-        def getMongo(appbase):
-            if j.core.platformtype.myplatform.isLinux():#@todo better platform mgmt
-                url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
-            elif sys.platform.startswith("OSX"): #@todo better platform mgmt
-                url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
-            #@todo arm
-            else:
-                # @TODO (*3*) add support for other platforms
-                return
+        url=None
+        if self.cuisine.isUbuntu:
+            url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
+        elif self.cuisine.isArch:
+            self.cuisine.package.install("mongodb")
+        elif sys.platform.startswith("OSX"): #@todo better platform mgmt
+            url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
+        else:
+            raise RuntimeError("unsupported platform")
+            return
+
+        if url!=None:
             tarpath = j.sal.fs.joinPaths(j.dirs.tmpDir, 'mongodb.tgz')
-            j.sal.nettools.download(url, tarpath)
-            tarfile = j.tools.tarfile.get(tarpath)
-            tarfile.extract(j.dirs.tmpDir)
-            extracted = j.sal.fs.walk(j.dirs.tmpDir, pattern='mongodb*', return_folders=1, return_files=0)[0]
-            j.sal.fs.copyDirTree(j.sal.fs.joinPaths(extracted, 'bin'), appbase)
-            j.sal.fs.createDir('/data/db')
+            self.cuisine.file_download(url, to="/tmp/mongodb",overwrite=False,expand=True)
+            # extracted = j.sal.fs.walk(j.dirs.tmpDir, pattern='mongodb*', return_folders=1, return_files=0)[0]
+            # j.sal.fs.copyDirTree(j.sal.fs.joinPaths(extracted, 'bin'), appbase)
 
-        def startMongo(appbase):
-            j.sal.tmux.executeInScreen("main", screenname="mongodb", cmd="mongod", user='root')
+        j.sal.fs.createDir('/optvar/data/db')
 
-        getmongo = j.actions.add(getMongo, args={'appbase': appbase})
+        from IPython import embed
+        print ("DEBUG NOW 99999998778")
+        embed()
+        
+
         if start:
-            j.actions.add(startMongo, args={'appbase': appbase}, deps=[getmongo])
+            from IPython import embed
+            print ("DEBUG NOW start mongodb")
+            embed()
+            
         j.actions.run()
 
 

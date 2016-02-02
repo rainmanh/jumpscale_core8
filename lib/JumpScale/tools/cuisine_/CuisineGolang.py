@@ -43,7 +43,7 @@ class CuisineGolang():
         print ('GOPATH:', self.cuisine.bash.environ["GOPATH"])
 
         self.get("github.com/tools/godep")
-        self.get("github.com/rcrowley/go-metrics")
+        # self.get("github.com/rcrowley/go-metrics")
 
     # @actionrun(action=True)
     def get(self,url):

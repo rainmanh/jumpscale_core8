@@ -281,9 +281,9 @@ class OurCuisine():
 
     @property
     def builder(self):
-        if self._builder==None:            
+        if self._builder==None:
             self._builder=CuisineBuilder(self.executor,self)
-        return self._builder   
+        return self._builder
 
     @property
     def id(self):
@@ -608,13 +608,13 @@ class OurCuisine():
 
 
     @actionrun(action=False,force=False)
-    def file_ensure(self,location, mode=None, owner=None, group=None, scp=False):
+    def file_ensure(self,location, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         location."""
         if self.file_exists(location):
             self.file_attribs(location,mode=mode,owner=owner,group=group)
         else:
-            self.file_write(location,"",mode=mode,owner=owner,group=group,scp=scp)
+            self.file_write(location,"",mode=mode,owner=owner,group=group)
 
     @actionrun(action=False,force=False)
     def file_upload(self, local, remote):
@@ -625,7 +625,7 @@ class OurCuisine():
         if remote_md5 == local_md5:
             return
 
-        ftp = self.sshclient.getSFTP()
+        ftp = self.executor.sshclient.getSFTP()
         content = j.tools.path.get(local).text()
         with ftp.open(remote, mode='w+') as f:
             f.write(content)
@@ -697,6 +697,14 @@ class OurCuisine():
         else:
             self.run('ln -f %s %s' % (shell_safe(source), shell_safe(destination)))
         self.file_attribs(destination, mode, owner, group)
+
+    @actionrun(action=False,force=False)
+    def file_copy(self, source, dest, recursive=False):
+        cmd = "cp -v "
+        if recursive:
+            cmd += "-r "
+        cmd += '%s %s' % (source, dest)
+        self.run(cmd)
 
     # SHA256/MD5 sums with openssl are tricky to get working cross-platform
     # SEE: https://github.com/sebastien/cuisine/pull/184#issuecomment-102336443

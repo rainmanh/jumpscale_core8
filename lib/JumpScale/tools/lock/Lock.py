@@ -5,7 +5,7 @@ import os
 import time
 import re
 
-if sys.platform.startswith('linux') or sys.platform.startswith('sunos'):
+if j.core.platformtype.myplatform.isUnix():
     import fcntl
 
 from JumpScale import j

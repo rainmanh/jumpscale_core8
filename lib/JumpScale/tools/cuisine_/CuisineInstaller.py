@@ -22,13 +22,13 @@ class CuisineInstaller(object):
         defport=6379
         if self.cuisine.process_tcpport_check(defport,"redis"):
             print ("no need to install, already there & running")
-            return 
+            return
 
         if self.cuisine.isUbuntu:
             package="redis-server"
         else:
             package="redis"
-        
+
         self.cuisine.package.install(package)
         self.cuisine.package.start(package)
 
@@ -121,7 +121,7 @@ class CuisineInstaller(object):
         ftp.get(rpath,lpath)
 
         out=self.cuisine.file_read(lpath)
-        
+
         addr=cuisine.executor.addr
 
         keypath=os.environ["HOME"]+"/.ssh/reflector"
@@ -136,7 +136,7 @@ class CuisineInstaller(object):
 
             cmd="autossh -M 0 -N -f -o ExitOnForwardFailure=yes -o \"ServerAliveInterval 60\" -o \"ServerAliveCountMax 3\" -L %s:localhost:%s sshreflector@%s -p 9222 -i %s"%(port,port,addr,keypath)
             self.cuisine.run(cmd)
-            
+
 
         print ("\n\n\n")
         print ("Reflector:%s"%addr)
@@ -170,7 +170,7 @@ class CuisineInstaller(object):
 
 
             lpath=os.environ["HOME"]+"/.ssh/reflector"
-            
+
             if j.do.exists(lpath):
                 print("UPLOAD EXISTING SSH KEYS")
             else:
@@ -180,7 +180,7 @@ class CuisineInstaller(object):
                 path="/home/sshreflector/.ssh/reflector"
                 ftp.get(path,lpath)
                 ftp.close()
-    
+
             #upload to reflector client
             ftp=self.cuisine.executor.sshclient.getSFTP()
             rpath="/root/.ssh/reflector"
@@ -200,7 +200,7 @@ class CuisineInstaller(object):
             if j.sal.nettools.tcpPortConnectionTest(addr,port)==False:
                 raise RuntimeError("Cannot not connect to %s:%s"%(addr,port))
 
-            
+
             rname="refl_%s"%remotecuisine.executor.addr.replace(".","_")
             rname_short=remotecuisine.executor.addr.replace(".","_")
 
@@ -266,7 +266,7 @@ class CuisineInstaller(object):
         [Unit]
         Description=Create AP Service
         Wants=network-online.target
-        After=network-online.target        
+        After=network-online.target
 
         [Service]
         Type=simple
@@ -278,7 +278,7 @@ class CuisineInstaller(object):
         [Install]
         WantedBy=multi-user.target
         """
-        
+
         self.cuisine.systemd_ensure("ap",cmd2,descr="accesspoint for local admin",systemdunit=START1)
 
     @actionrun(action=True)
@@ -360,7 +360,7 @@ class CuisineInstaller(object):
             rm -rf get-pip.py
             wget https://bootstrap.pypa.io/get-pip.py
         """
-        self.cuisine.run_script(cmd)  
+        self.cuisine.run_script(cmd)
         self.cuisine.run("cd /tmp;python3.5 get-pip.py")
 
     @actionrun(action=True)
@@ -369,7 +369,7 @@ class CuisineInstaller(object):
         libpython3.5-dev
         python3.5-dev
         libffi-dev
-        gcc 
+        gcc
         build-essential
         autoconf
         libtool
@@ -408,9 +408,9 @@ class CuisineInstaller(object):
         appbase = '/usr/local/bin'
 
         def getMongo(appbase):
-            if j.core.platformtype.myplatform.isLinux():#@todo better platform mgmt
+            if 'linux' in  self.cuisine.platformtype.platformtypes:
                 url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
-            elif sys.platform.startswith("OSX"): #@todo better platform mgmt
+            elif 'darwin' in  self.cuisine.platformtype.platformtypes:
                 url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
             #@todo arm
             else:
@@ -518,7 +518,7 @@ class CuisineInstaller(object):
 
             # Uncomment this if you've got plenty of memory:
 
-            chunkHighMark = 100331648 
+            chunkHighMark = 100331648
             objectHighMark = 16384
 
 
@@ -642,12 +642,12 @@ class CuisineInstaller(object):
 
         # if self.cuisine.isUbuntu():
         #     self.cuisine.run("ufw allow 8123")
- 
+
     @actionrun(action=True)
     def installArchLinuxToSDCard(self,redownload=False):
         """
-        will only work if 1 sd card found of 8 or 16 GB, be careful will overwrite the card   
-        executor = a linux machine     
+        will only work if 1 sd card found of 8 or 16 GB, be careful will overwrite the card
+        executor = a linux machine
 
         executor=j.tools.executor.getSSHBased(addr="192.168.0.23", port=22,login="root",passwd="rooter",pushkey="ovh_install")
         j.tools.develop.installer.installArchLinuxToSDCard(executor)
@@ -658,7 +658,7 @@ class CuisineInstaller(object):
 
         def partition(cuisineid,deviceid,size):
             cuisine=j.tools.cuisine.get(cuisineid)
-            
+
             cmd="parted -s /dev/%s mklabel msdos mkpar primary fat32 2 100M mkpart primary ext4 100M 100"%deviceid
             cmd+="%"
             self.cuisine.run(cmd)
@@ -677,7 +677,7 @@ class CuisineInstaller(object):
             self.cuisine.run("cd /mnt;mv root/boot/* boot")
 
             self.cuisine.run("echo 'PermitRootLogin=yes'>>'/mnt/root/etc/ssh/sshd_config'")
-            
+
 
             self.cuisine.run("umount /mnt/boot",die=False)
             self.cuisine.run("umount /mnt/root",die=False)
@@ -703,10 +703,10 @@ class CuisineInstaller(object):
 
 
         devs=findDevices()
-        
+
         for deviceid,size in devs:
             j.actions.add(partition, actionRecover=None, args={"cuisineid":self.cuisine.id,'deviceid':deviceid,"size":size}, die=True, stdOutput=True, errorOutput=True, retry=1,deps=None)
-    
+
         j.actions.run()
 
     @actionrun(action=True)
@@ -846,7 +846,5 @@ pip install marisa-trie
 pip install pylzma
 pip install ujson
 pip install watchdog
-'''        
+'''
         # self.actions.
-
-

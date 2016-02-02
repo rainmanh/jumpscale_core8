@@ -22,7 +22,7 @@ class Tmux(SALObject):
         @param name is name of session
         @screens is list with nr of screens required in session and their names (is [$screenname,...])
         """
-        if j.do.TYPE.startswith("UBUNTU"):
+        if 'ubuntu' in j.core.platformtype.myplatform.platformtypes:
             j.sal.ubuntu.checkInstall("tmux", "tmux")
         else:
             if not j.do.checkInstalled("tmux"):

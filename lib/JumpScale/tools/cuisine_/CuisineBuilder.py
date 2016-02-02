@@ -26,7 +26,7 @@ class CuisineBuilder(object):
                 self.cuisine.installerdevel.golang()
             self._gopath=   os.environ["GOPATH"]
         return self._gopath
-    
+
 
     #@todo (*1*) installer for golang
     #@todo (*1*) installer for caddy
@@ -42,9 +42,9 @@ class CuisineBuilder(object):
         appbase = '/usr/local/bin'
 
         def getMongo(appbase):
-            if j.core.platformtype.myplatform.isLinux():#@todo better platform mgmt
+            if j.core.platformtype.myplatform.isLinux():
                 url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
-            elif sys.platform.startswith("OSX"): #@todo better platform mgmt
+            elif 'darwin' in j.core.platformtype.myplatform.platformtypes:
                 url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
             #@todo arm
             else:
@@ -213,7 +213,5 @@ pip install marisa-trie
 pip install pylzma
 pip install ujson
 pip install watchdog
-'''        
+'''
         # self.actions.
-
-

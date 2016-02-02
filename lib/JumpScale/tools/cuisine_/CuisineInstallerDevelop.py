@@ -30,7 +30,7 @@ class CuisineInstallerDevelop():
         from IPython import embed
         print ("DEBUG NOW oioioi")
         embed()
-        
+
         os.environ.setdefault("GOROOT", '/usr/lib/go/')
         os.environ.setdefault("GOPATH", '/opt/go')
         j.sal.fs.createDir(os.environ['GOPATH'])
@@ -148,13 +148,15 @@ class CuisineInstallerDevelop():
             print('To run your agent, navigate to "%s" adn to "%s" and do "./agent2 -c agent2.toml"' % agentAppDir)
             print('To run your agentcontroller, navigate to "%s" adn to "%s" and do "./agentcontroller2 -c agentcontroller2.toml"' % agentcontrollerAppDir)
 
+    @actionrun(action=True)
     def installPortal(self, minimal=False, start=True, mongodbip="127.0.0.1", mongoport=27017, login="", passwd=""):
 
-        j.actions.setRunId("installportal")
+        # j.actions.setRunId("installportal")
 
         def upgradePip():
-            j.do.execute("pip3 install --upgrade pip")
-        actionUpgradePIP = j.actions.add(upgradePip)
+            self.cuisine.pip.upgrade("pip")
+            # j.do.execute("pip3 install --upgrade pip")
+        # actionUpgradePIP = j.actions.add(upgradePip)
 
         def installDeps(actionin):
             """
@@ -249,7 +251,8 @@ class CuisineInstallerDevelop():
             """
 
             def installPip(name):
-                j.do.execute("pip3 install --upgrade %s " % name)
+                self.cuisine.installer.pip()
+                # j.do.execute("pip3 install --upgrade %s " % name)
 
             actionout = None
             for dep in deps.split("\n"):
@@ -266,7 +269,7 @@ class CuisineInstallerDevelop():
         actiondeps = installDeps(actionUpgradePIP)
 
         def getcode():
-            j.do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git")
+            j.do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git", executor=self.executor)
         actionGetcode = j.actions.add(getcode, deps=[])
 
         def install():

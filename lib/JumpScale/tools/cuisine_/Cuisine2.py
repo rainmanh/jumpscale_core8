@@ -264,12 +264,6 @@ class OurCuisine():
         return self._systemd
 
     @property
-    def installerdevel(self):
-        if self._installerdevelop==None:
-            self._installerdevelop=CuisineInstallerDevelop(self.executor,self)
-        return self._installerdevelop
-
-    @property
     def process(self):
         if self._process==None:
             self._process=CuisineProcess(self.executor,self)
@@ -290,9 +284,9 @@ class OurCuisine():
 
     @property
     def builder(self):
-        if self._builder==None:            
+        if self._builder==None:
             self._builder=CuisineBuilder(self.executor,self)
-        return self._builder   
+        return self._builder
 
     @property
     def id(self):
@@ -319,7 +313,7 @@ class OurCuisine():
     def installerdevelop(self):
         if self._installerdevelop==None:
             self._installerdevelop=CuisineInstallerDevelop(self.executor,self)
-        return self._installerdevelop        
+        return self._installerdevelop
 
     @property
     def ns(self):
@@ -481,11 +475,11 @@ class OurCuisine():
         @return path of downloaded file
         @param to is destination
         @param minspeed is kbytes per sec e.g. 50, if less than 50 kbytes during 10 min it will restart the download (curl only)
-        @param when multithread True then will use aria2 download tool to get multiple threads        
+        @param when multithread True then will use aria2 download tool to get multiple threads
         """
 
         if expand:
-            destdir=to            
+            destdir=to
             to=self.file_get_tmp_path(j.sal.fs.getBaseName(url))
 
         if overwrite:
@@ -493,7 +487,7 @@ class OurCuisine():
                 self.file_unlink(to)
                 self.file_unlink("%s.downloadok"%to)
         if not (self.file_exists(to) and self.file_exists("%s.downloadok"%to)):
-        
+
             self.createDir(j.sal.fs.getDirName(to))
 
             if multithread==False:
@@ -533,7 +527,7 @@ class OurCuisine():
             self.cuisine.run(cmd)
         else:
             raise RuntimeError("not supported yet")
-            
+
 
     def touch(self,path):
         self.file_write(path,"")
@@ -692,13 +686,13 @@ class OurCuisine():
 
 
     @actionrun(action=False,force=False)
-    def file_ensure(self,location, mode=None, owner=None, group=None, scp=False):
+    def file_ensure(self,location, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         location."""
         if self.file_exists(location):
             self.file_attribs(location,mode=mode,owner=owner,group=group)
         else:
-            self.file_write(location,"",mode=mode,owner=owner,group=group,scp=scp)
+            self.file_write(location,"",mode=mode,owner=owner,group=group)
 
     @actionrun(action=False,force=False)
     def file_upload_local(self, local, remote):
@@ -709,7 +703,7 @@ class OurCuisine():
         if remote_md5 == local_md5:
             return
 
-        ftp = self.sshclient.getSFTP()
+        ftp = self.executor.sshclient.getSFTP()
         content = j.tools.path.get(local).text()
         with ftp.open(remote, mode='w+') as f:
             f.write(content)
@@ -781,6 +775,14 @@ class OurCuisine():
         else:
             self.run('ln -f %s %s' % (shell_safe(source), shell_safe(destination)))
         self.file_attribs(destination, mode, owner, group)
+
+    @actionrun(action=False,force=False)
+    def file_copy(self, source, dest, recursive=False):
+        cmd = "cp -v "
+        if recursive:
+            cmd += "-r "
+        cmd += '%s %s' % (source, dest)
+        self.run(cmd)
 
     # SHA256/MD5 sums with openssl are tricky to get working cross-platform
     # SEE: https://github.com/sebastien/cuisine/pull/184#issuecomment-102336443
@@ -935,7 +937,7 @@ class OurCuisine():
                 if item.find("||")!=-1:
                     path,size,mod=item.split("||")
                     if path.strip()=="":
-                        continue
+                        continueH
                     paths2.append([path,int(size),int(float(mod))])
         else:
             paths2=[item for item in paths if item.strip()!=""]

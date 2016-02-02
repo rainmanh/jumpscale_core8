@@ -8,7 +8,7 @@ import string
 import collections
 import sys
 import os
-if sys.platform.startswith("win"):
+if j.core.platformtype.myplatform.isWindows():
     import msvcrt
     clear = lambda: os.system('cls')
 else:
@@ -33,8 +33,8 @@ class Console:
         """
         when typing, char per char will be returned
         """
-        if not sys.platform.startswith("win"):
-            if j.do.TYPE.startswith("OSX") or j.sal.ubuntu.check():
+        if not j.core.platformtype.myplatform.isWindows():
+            if j.core.platformtype.myplatform.isUnix():
                 import termios
                 fd = sys.stdin.fileno()
 
@@ -704,5 +704,3 @@ class Console:
             return [item.strip(" ") for item in results]
         else:
             return results
-
-

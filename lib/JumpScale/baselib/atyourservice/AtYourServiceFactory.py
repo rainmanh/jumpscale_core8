@@ -108,7 +108,7 @@ class AtYourServiceFactory():
             baseDir=baseDir.rstrip("/")
 
             if baseDir.strip()=="":
-                if j.do.TYPE.startswith("OSX"):
+                if 'darwin' in j.core.platformtype.myplatform.platformtypes:
                     baseDir = "%s/ays/"%j.dirs.cfgDir
                 else:
                     baseDir = "/etc/ays/local"

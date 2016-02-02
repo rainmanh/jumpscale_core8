@@ -27,7 +27,7 @@ class CuisineBuilder(object):
                 self.cuisine.installerdevelop.golang()
             self._gopath=   self.bash.environ["GOPATH"]
         return self._gopath
-    
+
 
     #@todo (*1*) installer for golang
     #@todo (*1*) installer for caddy
@@ -141,4 +141,3 @@ class CuisineBuilder(object):
         C=self.cuisine.bash.replaceEnvironInText(C)
         self.cuisine.run_script(C,profile=True)
         self.cuisine.bash.addPath("/opt/jumpscale8/bin",action=True)
-

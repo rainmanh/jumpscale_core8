@@ -16,7 +16,7 @@ class CuisineInstallerDevelop():
 
     def __init__(self,executor,cuisine):
         self.executor=executor
-        self.cuisine=cuisine    
+        self.cuisine=cuisine
 
 
     def installAgentcontroller(self, start=True):
@@ -340,5 +340,34 @@ class CuisineInstallerDevelop():
 
     #@todo installer for trueid env
     #@todo installer for g8exchange
+    @actionrun(action=True)
+    def aydostore(self, addr='0.0.0.0:8090', backend="/tmp/aydostor"):
+        """
+        Install aydostore
+        @input addr, address and port on which the service need to listen. e.g. : 0.0.0.0:8090
+        @input backend, directory where to save the data push to the store
+        """
+        def install():
+            script = """
+            set -ex
+            rm -f /usr/bin/aydostorx
+            wget https://stor.jumpscale.org/storx/static/aydostorex -O /usr/bin/aydostorx
+            chmod +x /usr/bin/aydostorx
+            """
+            self.cuisine.run_script(script)
 
-    
+        def configure():
+            self.cuisine.dir_ensure("/etc/aydostorx")
+            config = {
+                'listen_addr': addr,
+                'store_root': backend,
+            }
+            j.data.serializer.toml.dump("/etc/aydostorx/config.toml", config)
+
+        def start():
+            cmd = '/usr/bin/aydostorx -c /etc/aydostorx/config.toml'
+            self.cuisine.tmux.createSession('aydostorx', ['aydostorx'])
+            self.cuisine.tmux.executeInScreen('aydostorx', 'aydostorx', cmd)
+        install()
+        configure()
+        start()

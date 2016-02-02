@@ -690,24 +690,31 @@ class CuisineInstaller(object):
             print('mongodb is already installed')
             return
 
-        appbase = '/usr/local/bin'
+        appbase = '/usr/local/bin/'
 
         url=None
         if self.cuisine.isUbuntu:
             url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
         elif self.cuisine.isArch:
             self.cuisine.package.install("mongodb")
-        elif sys.platform.startswith("OSX"): #@todo better platform mgmt
+        elif self.cuisine.isMac: #@todo better platform mgmt
             url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
         else:
             raise RuntimeError("unsupported platform")
             return
 
         if url!=None:
-            tarpath = j.sal.fs.joinPaths(j.dirs.tmpDir, 'mongodb.tgz')
-            self.cuisine.file_download(url, to="/tmp/mongodb",overwrite=False,expand=True)
-            # extracted = j.sal.fs.walk(j.dirs.tmpDir, pattern='mongodb*', return_folders=1, return_files=0)[0]
-            # j.sal.fs.copyDirTree(j.sal.fs.joinPaths(extracted, 'bin'), appbase)
+            self.cuisine.file_download(url, to=j.dirs.tmpDir,overwrite=False,expand=True)
+            tarpath = self.cuisine.fs_find(j.dirs.tmpDir,recursive=True,pattern="*mongodb*.tgz",type='f')[0]
+            self.cuisine.file_expand(tarpath,j.dirs.tmpDir)
+            extracted = self.cuisine.fs_find(j.dirs.tmpDir,recursive=True,pattern="*mongodb*",type='d')[0]
+            for file in self.cuisine.fs_find('%s/bin/' %extracted,type='f'):
+                self.cuisine.file_copy(file,appbase)
+
+        self.cuisine.dir_ensure('/optvar/data/db')
+
+        if start:
+            self.cuisine.tmux.executeInScreen("main", screenname="mongodb", cmd="mongod --dbpath /optvar/data/db", user='root')
 
 
     def __str__(self):

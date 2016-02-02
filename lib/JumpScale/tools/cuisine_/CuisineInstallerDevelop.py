@@ -30,7 +30,7 @@ class CuisineInstallerDevelop():
         libpython3.5-dev
         python3.5-dev
         libffi-dev
-        gcc 
+        gcc
         build-essential
         autoconf
         libtool
@@ -50,14 +50,14 @@ class CuisineInstallerDevelop():
             rm -rf get-pip.py
             wget https://bootstrap.pypa.io/get-pip.py
         """
-        self.cuisine.run_script(cmd)  
+        self.cuisine.run_script(cmd)
         self.cuisine.run("cd /tmp;python3.5 get-pip.py")
 
 
     @actionrun(action=True)
     def jumpscale(self):
 
-        self.pip(action=True)        
+        self.pip(action=True)
 
         C = """
         set +ex
@@ -146,7 +146,7 @@ class CuisineInstallerDevelop():
         marisa-trie
         pylzma
         ujson
-        watchdog        
+        watchdog
         """
         self.cuisine.pip.multiInstall(C,action=True,upgrade=True)
 
@@ -156,8 +156,8 @@ class CuisineInstallerDevelop():
         """
         self.cuisine.run_script(C,action=True)
 
-
-    def jumpscale8(self, action=True):
+    @actionrun(action=True)
+    def jumpscale8(self):
 
         self.cuisine.installer.pip()
         self.cuisine.pip.upgrade("pip")

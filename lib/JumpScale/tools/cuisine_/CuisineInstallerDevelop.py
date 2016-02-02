@@ -8,7 +8,7 @@ from ActionDecorator import ActionDecorator
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
         ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installerdevel"
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installerdevelop"
 
 
 
@@ -19,7 +19,7 @@ class CuisineInstallerDevelop():
         self.cuisine=cuisine    
 
     @actionrun(action=True)
-    def golang():
+    def golang(self):
         rc, out = self.cuisine.run("which go", die=False)
         if rc > 0:
             if sys.platform.startswith("OSX"):

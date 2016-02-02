@@ -16,15 +16,16 @@ class CuisineBuilder(object):
     def __init__(self,executor,cuisine):
         self.executor=executor
         self.cuisine=cuisine
+        self.bash=self.cuisine.bash
         self._gopath=None
 
 
     @property
-    def gopath(self):
+    def GOPATH(self):
         if self._gopath==None:
-            if not "GOPATH" in os.environ:
-                self.cuisine.installerdevel.golang()
-            self._gopath=   os.environ["GOPATH"]
+            if not "GOPATH" in self.bash.environ:
+                self.cuisine.installerdevelop.golang()
+            self._gopath=   self.bash.environ["GOPATH"]
         return self._gopath
     
 
@@ -79,6 +80,11 @@ class CuisineBuilder(object):
         cd $GOPATH/src/github.com/skynetservices/skydns
         go build -v
         """
+        self.GOPATH #make sure env's are set & golang installed
+        C=self.bash.replaceEnvironInText(C)
+        import ipdb
+        ipdb.set_trace()
+
 
 
     @actionrun(action=True)

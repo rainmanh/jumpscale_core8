@@ -26,6 +26,14 @@ class Bash:
         self._environ={} 
         self._home=None
 
+    def replaceEnvironInText(self,text):
+        """
+        will look for $ENVIRONNAME 's and replace them in text
+        """
+        for key,val in self.environ.item():
+            text=text.replace("$%s"%key,val)
+        return text
+
     @property
     def environ(self):
         if self._environ=={}:

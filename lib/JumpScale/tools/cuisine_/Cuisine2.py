@@ -187,6 +187,7 @@ def text_strip_margin(text, margin="|"):
 
 
 from CuisineInstaller import CuisineInstaller
+from CuisineInstallerDevelop import CuisineInstallerDevelop
 from CuisineSystemd import CuisineSystemd
 from CuisineUpstart import CuisineUpstart
 from CuisinePackage import CuisinePackage
@@ -199,7 +200,6 @@ from CuisineUser import CuisineUser
 from CuisineGit import CuisineGit
 from CuisineBuilder import CuisineBuilder
 from CuisineGroup import CuisineGroup
-from CuisineInstallerDevelop import CuisineInstallerDevelop
 from ActionDecorator import ActionDecorator
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
@@ -219,7 +219,7 @@ class OurCuisine():
         self._package=None
         self._upstart=None
         self._systemd=None
-        self._installerdevel=None
+        self._installerdevelop=None
         self._process=None
         self._hostname=""
         self._pip=None
@@ -260,12 +260,6 @@ class OurCuisine():
             self._systemd=CuisineSystemd(self.executor,self)
         return self._systemd
 
-    @property
-    def systemd(self):
-        if self._installerdevel==None:            
-            self._installerdevel=CuisineInstallerDevelop(self.executor,self)
-        return self._installerdevel
-
 
     @property
     def process(self):
@@ -305,6 +299,12 @@ class OurCuisine():
         if self._installer==None:
             self._installer=CuisineInstaller(self.executor,self)
         return self._installer
+
+    @property
+    def installerdevelop(self):
+        if self._installerdevelop==None:
+            self._installerdevelop=CuisineInstallerDevelop(self.executor,self)
+        return self._installerdevelop        
 
     @property
     def ns(self):

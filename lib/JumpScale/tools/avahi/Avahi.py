@@ -13,6 +13,12 @@ class Avahi():
         self.cuisine=j.tools.cuisine.get()
         self.executor=self.cuisine.executor
 
+    def get(self,cuisine,executor):
+        b=Avahi()
+        b.cuisine=cuisine
+        b.executor=executor
+        return b
+        
     @actionrun(action=True)
     def install(self):
         if self.cuisine.isUbuntu:

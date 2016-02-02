@@ -45,7 +45,14 @@ class CuisineBuilder(object):
     @actionrun(action=True)
     def skydns(self):
         self.cuisine.golang.get("github.com/skynetservices/skydns")
-        self.cuisine.bash.addPath("/opt/jumpscale8/bin",action=True)
+        self.cuisine.file_copy(j.sal.fs.joinPaths(self.GOPATH, 'bin', 'skydns'),'/opt/jumpscale8/bin')
+        self.cuisine.bash.addPath("/opt/jumpscale8/bin", action=True)
+
+    @actionrun(action=True)
+    def caddy(self):
+        self.cuisine.golang.get("github.com/mholt/caddy")
+        self.cuisine.file_copy(j.sal.fs.joinPaths(self.GOPATH, 'bin', 'caddy'),'/opt/jumpscale8/bin')
+        self.cuisine.bash.addPath("/opt/jumpscale8/bin" ,action=True)
 
     # @actionrun(action=True)
     def etcd(self,start=True):
@@ -73,7 +80,7 @@ class CuisineBuilder(object):
         if start:
             cmd=self.cuisine.bash.which("etcd")
             self.cuisine.systemd.ensure("etcd",cmd)
-        
+
 
     def redis(self):
         C="""
@@ -137,7 +144,7 @@ class CuisineBuilder(object):
 
         rm -rf $GOPATH
 
-        '''   
+        '''
         C=self.cuisine.bash.replaceEnvironInText(C)
         self.cuisine.run_script(C,profile=True)
         self.cuisine.bash.addPath("/opt/jumpscale8/bin",action=True)

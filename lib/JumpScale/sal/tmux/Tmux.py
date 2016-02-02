@@ -134,7 +134,7 @@ class Tmux(SALObject):
         cmd = 'tmux list-windows -F "#{window_index}:#{window_name}" -t "%s"' % session
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        exitcode, output = self.executor.execute(cmd, die=False,showout=False)
+        exitcode, output = self.executor.execute(cmd, die=False,showout=False, checkok=False)
         if exitcode != 0:
             return result
         for line in output.split():

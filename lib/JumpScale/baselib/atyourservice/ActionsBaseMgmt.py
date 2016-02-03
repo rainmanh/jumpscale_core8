@@ -87,7 +87,7 @@ class ActionsBaseMgmt(object):
                 elif len(ays_s)>1:
                     raise RuntimeError("Cannt find parent with role '%s' for service '%s, there is more than 1"%(role,self.service))
                 else:
-                    if parent.parentauto:
+                    if parent.auto:
                         j.atyourservice.new(name=parent.parent, instance='main', version='', domain='', path=None, parent=None, args={}, consume='')
                         rolearg="main"
                     else:
@@ -109,7 +109,6 @@ class ActionsBaseMgmt(object):
         #manipulate the HRD's to mention the consume's to producers
         consumes=self.service.recipe.schema.consumeSchemaItemsGet()
 
-
         if consumes!=[]:
 
             for consumeitem in consumes:
@@ -119,16 +118,16 @@ class ActionsBaseMgmt(object):
 
                 # if consumename=="parent":
                 #     continue
+                ays_s=[]
+                candidates = j.atyourservice.findServices(role=consumeitem.consume_link)
+                if candidates:
+                    ays_s = candidates
 
-                if not consumename in self.service.args:
-                    ays_s=[]
-                else:
-                    ays_s=[]
-                    self.service.args[consumename]=j.data.text.getList(self.service.args[consumename])
-                    for instancename in self.service.args[consumename]:
-                        service=j.atyourservice.getService(role=role,instance=instancename)
-                        if service not in ays_s:
-                            ays_s.append(service)
+                # autoconsume
+                if len(candidates) < int(consumeitem.consume_nr_min) and consumeitem.auto:
+                    for instance in range(len(candidates), int(consumeitem.consume_nr_min)):
+                        consumable = j.atyourservice.new(name=consumeitem.consume_link, instance='auto_%i' % instance, parent=self.service.parent)
+                        ays_s.append(consumable)
 
                 if len(ays_s)>int(consumeitem.consume_nr_max):
                     raise RuntimeError("Found too many services with role '%s' which we are relying upon for service '%s, max:'%s'"%(role,self.service,consumeitem.consume_nr_max))

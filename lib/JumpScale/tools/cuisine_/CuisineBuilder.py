@@ -33,7 +33,7 @@ class CuisineBuilder(object):
     def skydns(self,start=True):
         self.GOPATH
         self.cuisine.golang.get("github.com/skynetservices/skydns",action=True)
-        self.cuisine.file_copy(j.sal.fs.joinPaths(self.GOPATH, 'bin', 'skydns'),'/opt/jumpscale8/bin',action=True)
+        self.cuisine.file_copy(self.cuisine.joinpaths(self.GOPATH, 'bin', 'skydns'),'/opt/jumpscale8/bin',action=True)
         self.cuisine.bash.addPath("/opt/jumpscale8/bin", action=True)
 
         if start:
@@ -44,7 +44,7 @@ class CuisineBuilder(object):
     def caddy(self,ssl=False,start=True):
         self.GOPATH
         self.cuisine.golang.get("github.com/mholt/caddy",action=True)
-        self.cuisine.file_copy(j.sal.fs.joinPaths(self.GOPATH, 'bin', 'caddy'),'/opt/jumpscale8/bin',action=True)
+        self.cuisine.file_copy(self.cuisine.joinpaths(self.GOPATH, 'bin', 'caddy'),'/opt/jumpscale8/bin',action=True)
         self.cuisine.bash.addPath("/opt/jumpscale8/bin" ,action=True)
 
         self.cuisine.systemd.stop("caddy") #will also kill
@@ -99,7 +99,7 @@ class CuisineBuilder(object):
         """
         self.GOPATH
         self.cuisine.golang.get("github.com/Jumpscale/aydostorex", action=True)
-        self.cuisine.file_copy(j.sal.fs.joinPaths(self.GOPATH, 'bin', 'aydostorex'), '/opt/jumpscale8/bin',action=True)
+        self.cuisine.file_copy(self.cuisine.joinpaths(self.GOPATH, 'bin', 'aydostorex'), '/opt/jumpscale8/bin',action=True)
         self.cuisine.bash.addPath("/opt/jumpscale8/bin", action=True)
 
         self.cuisine.systemd.stop("aydostorex") # will also kill
@@ -138,9 +138,9 @@ class CuisineBuilder(object):
         self.cuisine.pip.install('pytoml')
         self.cuisine.pip.install('pygo')
         self.cuisine.golang.install()
-        self.syncthing_build()
-        self.agent_build()
-        self.agentcontroller_build()
+        self.syncthing()
+        self.agent()
+        self.agentcontroller()
 
         if start:
             self._startAgent()
@@ -148,7 +148,7 @@ class CuisineBuilder(object):
 
     @actionrun(action=True)
     def syncthing(self):
-        appbase = j.sal.fs.joinPaths(j.dirs.base, "apps", "syncthing")
+        appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "syncthing")
         GOPATH = self.cuisine.bash.environGet('GOPATH')
 
         url = "git@github.com:syncthing/syncthing.git"
@@ -156,26 +156,26 @@ class CuisineBuilder(object):
         self.cuisine.run('cd %s && godep restore' % dest, profile=True)
         self.cuisine.run("cd %s && ./build.sh noupgrade" % dest, profile=True)
         self.cuisine.dir_ensure(appbase, recursive=True)
-        self.cuisine.file_copy(j.sal.fs.joinPaths(dest, 'syncthing'), j.sal.fs.joinPaths(GOPATH, 'bin'), recursive=True)
-        self.cuisine.file_copy(j.sal.fs.joinPaths(GOPATH, 'bin', 'syncthing'), appbase, recursive=True)
+        self.cuisine.file_copy(self.cuisine.joinpaths(dest, 'syncthing'), self.cuisine.joinpaths(GOPATH, 'bin'), recursive=True)
+        self.cuisine.file_copy(self.cuisine.joinpaths(GOPATH, 'bin', 'syncthing'), appbase, recursive=True)
 
     @actionrun(action=True)
     def agent(self):
         GOPATH = self.cuisine.bash.environGet('GOPATH')
-        appbase = j.sal.fs.joinPaths(j.dirs.base, "apps", "agent8")
+        appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "agent8")
         self.cuisine.dir_ensure(appbase, recursive=True)
 
         url = "github.com/Jumpscale/agent2"
         self.cuisine.golang.get(url)
-        dest = j.sal.fs.joinPaths(GOPATH, 'src/github.com/Jumpscale/agent2')
+        dest = self.cuisine.joinpaths(GOPATH, 'src/github.com/Jumpscale/agent2')
 
-        agent2_dest = j.sal.fs.joinPaths(appbase, "agent8")
-        syncthing_dest = j.sal.fs.joinPaths(appbase, "syncthing")
-        self.cuisine.file_copy(j.sal.fs.joinPaths(GOPATH, 'bin', "agent2"), agent2_dest)
-        self.cuisine.file_copy(j.sal.fs.joinPaths(GOPATH, 'bin', "syncthing"), syncthing_dest)
+        agent2_dest = self.cuisine.joinpaths(appbase, "agent8")
+        syncthing_dest = self.cuisine.joinpaths(appbase, "syncthing")
+        self.cuisine.file_copy(self.cuisine.joinpaths(GOPATH, 'bin', "agent2"), agent2_dest)
+        self.cuisine.file_copy(self.cuisine.joinpaths(GOPATH, 'bin', "syncthing"), syncthing_dest)
 
         # link extensions
-        extdir = j.sal.fs.joinPaths(appbase, "extensions")
+        extdir = self.cuisine.joinpaths(appbase, "extensions")
         self.cuisine.dir_remove(extdir)
         self.cuisine.file_link("%s/extensions" % dest, extdir)
 
@@ -183,28 +183,28 @@ class CuisineBuilder(object):
         cfgfile = '%s/agent.toml' % appbase
         self.cuisine.file_copy("%s/agent.toml" % dest, cfgfile)
 
-        self.cuisine.file_copy("%s/conf" % dest, j.sal.fs.joinPaths(appbase, "conf"), recursive=True )
+        self.cuisine.file_copy("%s/conf" % dest, self.cuisine.joinpaths(appbase, "conf"), recursive=True )
 
     @actionrun(action=True)
     def agentcontroller(self):
         GOPATH = self.cuisine.bash.environGet('GOPATH')
-        appbase = j.sal.fs.joinPaths(j.dirs.base, "apps", "agentcontroller8")
+        appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "agentcontroller8")
         self.cuisine.dir_ensure(appbase, recursive=True)
 
         url = "github.com/Jumpscale/agentcontroller2"
         self.cuisine.golang.get(url)
-        dest = j.sal.fs.joinPaths(GOPATH, 'src/github.com/Jumpscale/agentcontroller2')
+        dest = self.cuisine.joinpaths(GOPATH, 'src/github.com/Jumpscale/agentcontroller2')
 
-        destfile = j.sal.fs.joinPaths(appbase, "agentcontroller8")
-        self.cuisine.file_copy(j.sal.fs.joinPaths(GOPATH, 'bin', "agentcontroller2"), destfile)
+        destfile = self.cuisine.joinpaths(appbase, "agentcontroller8")
+        self.cuisine.file_copy(self.cuisine.joinpaths(GOPATH, 'bin', "agentcontroller2"), destfile)
 
         cfgfile = '%s/agentcontroller.toml' % appbase
         self.cuisine.file_copy("%s/agentcontroller.toml" % dest, cfgfile)
 
-        extdir = j.sal.fs.joinPaths(appbase, "extensions")
+        extdir = self.cuisine.joinpaths(appbase, "extensions")
         self.cuisine.dir_remove(extdir)
         self.cuisine.dir_ensure(extdir)
-        self._linkfilesindir("%s/extensions" % dest, extdir)
+        self.cuisine.file_link("%s/extensions" % dest, extdir)
 
         cfg = j.data.serializer.toml.loads(self.cuisine.file_read(cfgfile))
         cfg['jumpscripts']['python_path'] = "%s:%s" % (extdir, j.dirs.jsLibDir)
@@ -213,16 +213,16 @@ class CuisineBuilder(object):
 
     @actionrun(action=True)
     def _startAgent(self):
-        appbase = j.sal.fs.joinPaths(j.dirs.base, "apps", "agent8")
-        cfgfile_agent = j.sal.fs.joinPaths(appbase, "agent.toml")
+        appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "agent8")
+        cfgfile_agent = self.cuisine.joinpaths(appbase, "agent.toml")
         j.sal.nettools.waitConnectionTest("127.0.0.1", 8966, timeout=2)
         print("connection test ok to agentcontroller")
         self.cuisine.tmux.executeInScreen("main", screenname="agent", cmd="./agent8 -c %s" % cfgfile_agent, wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
 
     @actionrun(action=True)
     def _startAgentController(self):
-        appbase = j.sal.fs.joinPaths(j.dirs.base, "apps", "agentcontroller8")
-        cfgfile_ac = j.sal.fs.joinPaths(appbase, "agentcontroller.toml")
+        appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "agentcontroller8")
+        cfgfile_ac = self.cuisine.joinpaths(appbase, "agentcontroller.toml")
         self.cuisine.tmux.executeInScreen("main", screenname="ac", cmd="./agentcontroller8 -c %s" % cfgfile_ac, wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
 
 

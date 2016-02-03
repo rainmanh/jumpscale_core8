@@ -847,6 +847,16 @@ class OurCuisine():
     # =============================================================================
 
     @actionrun(action=False,force=False)
+    def joinpaths(self, *args):
+        path = ""
+        seperator = "\\"
+        if self.isMac or self.isUbuntu or self.isArch:
+            seperator = "/"
+        for arg in args:
+            path += "%s%s" %(seperator, arg)
+        return path
+
+    @actionrun(action=False,force=False)
     def dir_attribs(self,location, mode=None, owner=None, group=None, recursive=False):
         """Updates the mode/owner/group for the given remote directory."""
         print ("set dir attributes:%s"%location)
@@ -887,6 +897,9 @@ class OurCuisine():
             self.dir_attribs(location, owner=owner, group=group, mode=mode, recursive=recursive)
 
     createDir=dir_ensure
+
+
+
 
     @actionrun(action=False,force=False)
     def fs_find(self,path,recursive=True,pattern="",findstatement="",type="",contentsearch="",extendinfo=False):

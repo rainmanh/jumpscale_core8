@@ -849,13 +849,11 @@ class OurCuisine():
     @actionrun(action=False,force=False)
     def joinpaths(self, *args):
         path = ""
-        seperator = ""
+        seperator = "\\"
         if self.isMac or self.isUbuntu or self.isArch:
             seperator = "/"
-        else:
-            seperator = "\\"
-            for arg in args:
-                path += "%s%s" %(seperator, arg)
+        for arg in args:
+            path += "%s%s" %(seperator, arg)
         return path
 
     @actionrun(action=False,force=False)

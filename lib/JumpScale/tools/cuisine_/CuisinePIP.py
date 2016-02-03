@@ -31,6 +31,13 @@ class CuisinePIP():
         '''
         The "package" argument, defines the name of the package that will be installed.
         '''
+        if self.cuisine.isArch:
+            if package in ["credis","blosc","psycopg2"]:
+                return
+
+        if package in ["pymongo","mongoengine"]:
+            upgrade=False
+
         cmd="pip3 install %s"%package
         if upgrade:
             cmd+=" --upgrade"
@@ -73,7 +80,7 @@ class CuisinePIP():
             if dep.strip()[0]=="#":
                 continue
             dep=dep.split("=",1)[0]
-            self.install(dep,upgrade)
+            self.install(dep,upgrade,action=True)
 
 
 

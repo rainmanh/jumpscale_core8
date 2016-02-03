@@ -55,7 +55,7 @@ class CuisineInstallerDevelop():
 
 
     @actionrun(action=True)
-    def jumpscale(self):
+    def jumpscale8(self):
 
         self.pip(action=True)
 
@@ -156,20 +156,8 @@ class CuisineInstallerDevelop():
         """
         self.cuisine.run_script(C,action=True)
 
-    @actionrun(action=True)
-    def jumpscale8(self):
-
-        self.cuisine.installer.pip()
-        self.cuisine.pip.upgrade("pip")
-        libDeps = ["'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent", "paramiko", "msgpack-python", "redis", "credis", "aioredis", "mongoengine", "bcrypt",
-         "blosc", "certifi", "docker-py", "gitlab3", "gitpython", "html2text","click", "influxdb", "ipdb", "ipython", "jinja2",
-         "netaddr", "reparted", "pytoml", "pystache", "pymongo", "psycopg2", "pathtools", "psutil", "pytz", "requests", "sqlalchemy",
-          "urllib3", "zmq", "pyyaml", "websocket", "marisa-trie", "pylzma", "ujson", "watchdog"]
-        for dep in libDeps:
-            self.cuisine.pip.install(dep)
-
         if self.cuisine.isUbuntu:
-            self.cuisine.run('cd /tmp;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh')
+            self.cuisine.run('cd /tmp;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh',action=True)
         elif self.cuisine.isMac:
             cmd = """sudo mkdir -p /opt
             sudo chown -R despiegk:root /opt

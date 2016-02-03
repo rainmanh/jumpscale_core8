@@ -38,9 +38,8 @@ class Bash:
     def environ(self):
         if self._environ=={}:
             res={}
-            for line in self.cuisine.run("export",profile=True,showout=False).splitlines():
-                if line.startswith("declare -x "):
-                    line=line[11:]
+            for line in self.cuisine.run("printenv", profile=True, showout=False).splitlines():
+                if '=' in line:
                     name,val=line.split("=",1)
                     name=name.strip()
                     val=val.strip().strip("'").strip("\"")
@@ -50,18 +49,16 @@ class Bash:
 
     @property
     def home(self):
-        if self._home==None:
+        if not self._home:
             res={}
-            for line in self.cuisine.run("export",profile=False,showout=False).splitlines():
-                if line.startswith("declare -x ") or line.startswith('export '):
-                    line = line.strip("declare -x ")
-                    line = line.strip('export ')
+            for line in self.cuisine.run("printenv", profile=False, showout=False).splitlines():
+                if '=' in line:
                     name, val=line.split("=", 1)
                     name=name.strip()
                     val=val.strip().strip("'").strip("\"")
                     res[name]=val
             self._home=res["HOME"]
-        return self._home    
+        return self._home
 
     def environGet(self,name,default=None):  
         if name not in self.environ and default!=None:
@@ -185,6 +182,4 @@ class Bash:
             out+="%s\n"%line2
 
         self.profile=out
-
-
 

@@ -1,5 +1,6 @@
 
 from JumpScale import j
+import re
 
 class CuisineProcess():
 
@@ -9,9 +10,9 @@ class CuisineProcess():
 
     
 
-    def tcpport_check(self,port,prefix):
+    def tcpport_check(self,port,prefix=""):
         res=[]
-        for item in self.process_info_get(prefix):
+        for item in self.info_get(prefix):
             if item["localport"]==port:
                 return True
         return False
@@ -38,9 +39,9 @@ class CuisineProcess():
 
         """
         result=[]
-        if "linux" in self.platformtype.platformtypes:
+        if "linux" in self.cuisine.platformtype.platformtypes:
             cmdlinux='netstat -lntp'
-            out=self.run(cmdlinux,showout=False)
+            out=self.cuisine.run(cmdlinux,showout=False)
             #to troubleshoot https://regex101.com/#python
             p = re.compile(u"tcp *(?P<receive>[0-9]*) *(?P<send>[0-9]*) *(?P<local>[0-9*.]*):(?P<localport>[0-9*]*) *(?P<remote>[0-9.*]*):(?P<remoteport>[0-9*]*) *(?P<state>[A-Z]*) *(?P<pid>[0-9]*)/(?P<process>\w*)")
             for line in out.split("\n"):
@@ -53,12 +54,12 @@ class CuisineProcess():
                         d.pop("state")
                         result.append(d)
 
-        elif "darwin" in self.platformtype.platformtypes:
+        elif "darwin" in self.cuisine.platformtype.platformtypes:
             # cmd='sudo netstat -anp tcp'
-            # # out=self.run(cmd)
+            # # out=self.cuisine.run(cmd)
             # p = re.compile(u"tcp4 *(?P<rec>[0-9]*) *(?P<send>[0-9]*) *(?P<local>[0-9.*]*) *(?P<remote>[0-9.*]*) *LISTEN")
             cmd="lsof -i 4tcp -sTCP:LISTEN -FpcRn"
-            out=self.run(cmd,showout=False)
+            out=self.cuisine.run(cmd,showout=False)
             d={}
             for line in out.split("\n"):
                 if line.startswith("p"):
@@ -91,7 +92,7 @@ class CuisineProcess():
         if prefix=="":
             return self._info_get()
         res=[]
-        for item in self.processes_info_get():
+        for item in self._info_get():
             if item["process"].lower().startswith(prefix):
                 res.append(item)        
         return res
@@ -103,8 +104,9 @@ class CuisineProcess():
         is_string = isinstance(name,str) or isinstance(name,unicode)
         # NOTE: ps -A seems to be the only way to not have the grep appearing
         # as well
-        if is_string: processes = self.run("ps -A | grep {0} ; true".format(name))
-        else:         processes = self.run("ps -A")
+        RE_SPACES               = re.compile("[\s\t]+")
+        if is_string: processes = self.cuisine.run("ps -A | grep {0} ; true".format(name))
+        else:         processes = self.cuisine.run("ps -A")
         res = []
         for line in processes.split("\n"):
             if not line.strip(): continue
@@ -128,5 +130,6 @@ class CuisineProcess():
         """Kills the given processes with the given name. If exact is `False`
         it will return the list of all processes that start with the given
         `name`."""
-        for pid in self.process_find(name, exact):
-            self.run("kill -s {0} {1} ; true".format(signal, pid))
+        for pid in self.find(name, exact):
+            self.cuisine.run("kill -s {0} {1} ; true".format(signal, pid))
+

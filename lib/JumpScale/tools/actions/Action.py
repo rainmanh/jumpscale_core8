@@ -377,9 +377,9 @@ class Action:
             print("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
             return
 
-        if self.state == "ERROR":
-            print ("ACTION WAS ALREADY IN ERROR:")
-            raise RuntimeError("%s" % str(self))
+        # if self.state == "ERROR":
+        #     print ("ACTION WAS ALREADY IN ERROR:")
+        #     raise RuntimeError("%s" % str(self))
 
         print("  * %-20s: %s" % (self.name, self._args1line))
 

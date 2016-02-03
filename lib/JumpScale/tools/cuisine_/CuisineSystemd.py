@@ -38,10 +38,12 @@ class CuisineSystemd():
 
     def stop(self,name):
         cmd="systemctl disable %s"%name
-        self.cuisine.run(cmd,showout=False)
+        self.cuisine.run(cmd,showout=False,die=False)
 
         cmd="systemctl stop %s"%name
-        self.cuisine.run(cmd,showout=False)
+        self.cuisine.run(cmd,showout=False,die=False)
+
+        self.cuisine.process.kill(name)
 
     def remove(self,prefix):
         for name,status in self.systemd.list(prefix):

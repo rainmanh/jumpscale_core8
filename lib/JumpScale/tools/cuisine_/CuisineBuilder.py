@@ -44,17 +44,67 @@ class CuisineBuilder(object):
 
     @actionrun(action=True)
     def skydns(self):
-        self.cuisine.golang.get("github.com/skynetservices/skydns")
-        self.cuisine.file_copy(j.sal.fs.joinPaths(self.GOPATH, 'bin', 'skydns'),'/opt/jumpscale8/bin')
+        self.GOPATH
+        self.cuisine.golang.get("github.com/skynetservices/skydns",action=True)
+        self.cuisine.file_copy(j.sal.fs.joinPaths(self.GOPATH, 'bin', 'skydns'),'/opt/jumpscale8/bin',action=True)
         self.cuisine.bash.addPath("/opt/jumpscale8/bin", action=True)
 
+        if start:
+            cmd=self.cuisine.bash.cmdGetPath("skydns")
+            self.cuisine.systemd.ensure("skydns",cmd)        
+
     @actionrun(action=True)
-    def caddy(self):
-        self.cuisine.golang.get("github.com/mholt/caddy")
-        self.cuisine.file_copy(j.sal.fs.joinPaths(self.GOPATH, 'bin', 'caddy'),'/opt/jumpscale8/bin')
+    def caddy(self,ssl=False,start=True):
+        self.GOPATH
+        self.cuisine.golang.get("github.com/mholt/caddy",action=True)
+        self.cuisine.file_copy(j.sal.fs.joinPaths(self.GOPATH, 'bin', 'caddy'),'/opt/jumpscale8/bin',action=True)
         self.cuisine.bash.addPath("/opt/jumpscale8/bin" ,action=True)
 
-    # @actionrun(action=True)
+        self.cuisine.systemd.stop("caddy") #will also kill
+
+        if ssl:
+            PORTS=":443"
+            self.cuisine.fw.allowIncoming(443)
+            self.cuisine.fw.allowIncoming(80)
+
+            if self.cuisine.process.tcpport_check(80,"") or self.cuisine.process.tcpport_check(443,""):
+                raise RuntimeError("port 80 or 443 are occupied, cannot install caddy")
+
+        else:
+            if self.cuisine.process.tcpport_check(80,""):
+                raise RuntimeError("port 80 is occupied, cannot install caddy")
+
+            PORTS=":80"
+            self.cuisine.fw.allowIncoming(80)
+        C="""
+        $ports
+        gzip
+        log /optvar/caddy/log/access.log
+        errors {
+            log /optvar/caddy/log/errors.log
+        }
+        root /optvar/caddy/www
+        """
+        C=C.replace("$ports",PORTS)
+        cpath="/etc/caddy/caddyfile.conf"
+        self.cuisine.dir_ensure("/etc/caddy")
+        self.cuisine.file_write(cpath,C)
+        self.cuisine.dir_ensure("/optvar/caddy/log/")
+        self.cuisine.dir_ensure("/optvar/caddy/www/")
+
+        if start:
+            cmd=self.cuisine.bash.cmdGetPath("caddy")
+            self.cuisine.systemd.ensure("caddy","%s -conf=\"%s\""%(cmd,cpath))        
+
+
+    def caddyConfig(self,sectionname,config):
+        """
+        config format see https://caddyserver.com/docs/caddyfile
+        """
+        pass
+
+
+    @actionrun(action=True)
     def etcd(self,start=True):
         C="""
         set -ex
@@ -78,7 +128,7 @@ class CuisineBuilder(object):
         self.cuisine.bash.addPath("/opt/jumpscale8/bin",action=True)
 
         if start:
-            cmd=self.cuisine.bash.which("etcd")
+            cmd=self.cuisine.bash.cmdGetPath("etcd")
             self.cuisine.systemd.ensure("etcd",cmd)
 
 

@@ -32,12 +32,10 @@ import platform
 
 
 NOTHING                 = base64
-RE_SPACES               = re.compile("[\s\t]+")
+
 STRINGIFY_MAXSTRING     = 80
 STRINGIFY_MAXLISTSTRING = 20
-MAC_EOL                 = "\n"
-UNIX_EOL                = "\n"
-WINDOWS_EOL             = "\r\n"
+
 
 # MODE_LOCAL              = "MODE_LOCAL"
 # MODE_SUDO               = "MODE_SUDO"
@@ -72,6 +70,9 @@ def is_ok( text ):
     return text.find("**OK**")!=-1
 
 def text_detect_eol(text):
+    MAC_EOL                 = "\n"
+    UNIX_EOL                = "\n"
+    WINDOWS_EOL             = "\r\n"    
     # FIXME: Should look at the first line
     if text.find("\r\n") != -1:
         return WINDOWS_EOL
@@ -91,10 +92,12 @@ def text_get_line(text, predicate):
 
 def text_normalize(text):
     """Converts tabs and spaces to single space and strips the text."""
+    RE_SPACES               = re.compile("[\s\t]+")
     return RE_SPACES.sub(" ", text).strip()
 
 def text_nospace(text):
     """Converts tabs and spaces to single space and strips the text."""
+    RE_SPACES               = re.compile("[\s\t]+")
     return RE_SPACES.sub("", text).strip()
 
 def text_replace_line(text, old, new, find=lambda old, new: old == new, process=lambda _: _):
@@ -202,6 +205,7 @@ from CuisineBuilder import CuisineBuilder
 from CuisineGroup import CuisineGroup
 from ActionDecorator import ActionDecorator
 from CuisineGolang import CuisineGolang
+from CuisineFW import CuisineFW
 
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
@@ -236,6 +240,7 @@ class OurCuisine():
         self._avahi=None
         self._tmux=None
         self._golang=None
+        self._fw=None
         self.cuisine=self
         self._fqn=""
         if self.executor.type=="ssh":
@@ -276,6 +281,11 @@ class OurCuisine():
             self._pip=CuisinePIP(self.executor,self)
         return self._pip
 
+    @property
+    def fw(self):
+        if self._fw==None:
+            self._fw=CuisineFW(self.executor,self)
+        return self._fw
 
     @property
     def golang(self):
@@ -969,7 +979,7 @@ class OurCuisine():
             self.executor.debug=debug
 
         if profile:
-            ppath=self.bash.profilePathExists()
+            ppath=self.bash.profilePath
             if ppath!=None:
                 cmd=". %s;%s"%(ppath,cmd)
             print ("PROFILECMD:%s"%cmd)
@@ -1049,7 +1059,7 @@ class OurCuisine():
         if content[-1]!="\n":
             content+="\n"
         if profile:
-            ppath=self.bash.profilePathExists()
+            ppath=self.bash.profilePath
             if ppath!=None:
                 content=". %s\n%s\n"%(ppath,content)
         content+="\necho **DONE**\n"

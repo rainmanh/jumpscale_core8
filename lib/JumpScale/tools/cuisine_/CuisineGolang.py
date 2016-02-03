@@ -46,7 +46,7 @@ class CuisineGolang():
         # self.get("github.com/rcrowley/go-metrics")
 
 
-    # @actionrun(action=True)
+    @actionrun(action=True)
     def get(self,url):
         """
         e.g. url=github.com/tools/godep

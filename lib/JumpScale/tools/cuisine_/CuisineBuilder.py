@@ -138,9 +138,9 @@ class CuisineBuilder(object):
         self.cuisine.pip.install('pytoml')
         self.cuisine.pip.install('pygo')
         self.cuisine.golang.install()
-        self.syncthing_build()
-        self.agent_build()
-        self.agentcontroller_build()
+        self.syncthing()
+        self.agent()
+        self.agentcontroller()
 
         if start:
             self._startAgent()
@@ -204,7 +204,7 @@ class CuisineBuilder(object):
         extdir = j.sal.fs.joinPaths(appbase, "extensions")
         self.cuisine.dir_remove(extdir)
         self.cuisine.dir_ensure(extdir)
-        self._linkfilesindir("%s/extensions" % dest, extdir)
+        self.cuisine.dir_file_link("%s/extensions" % dest, extdir)
 
         cfg = j.data.serializer.toml.loads(self.cuisine.file_read(cfgfile))
         cfg['jumpscripts']['python_path'] = "%s:%s" % (extdir, j.dirs.jsLibDir)

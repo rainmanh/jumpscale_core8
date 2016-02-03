@@ -888,6 +888,14 @@ class OurCuisine():
 
     createDir=dir_ensure
 
+
+    @actionrun(action=False,force=False)
+    def dir_file_link(self, dir_path, dest):
+        for fil in self.cuisine.fs_find(dir_path):
+            dest_fil = "%s/%s" %(dest, dir_path.split("/")[-1:][0])
+            self.cuisine.dir_remove(dest_fil, recursive=False)
+            self.cuisine.file_link(fil, dest_fil)
+
     @actionrun(action=False,force=False)
     def fs_find(self,path,recursive=True,pattern="",findstatement="",type="",contentsearch="",extendinfo=False):
         """

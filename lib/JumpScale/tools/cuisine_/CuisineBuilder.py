@@ -38,7 +38,7 @@ class CuisineBuilder(object):
 
         if start:
             cmd=self.cuisine.bash.cmdGetPath("skydns")
-            self.cuisine.systemd.ensure("skydns",cmd)        
+            self.cuisine.systemd.ensure("skydns",cmd)
 
     @actionrun(action=True)
     def caddy(self,ssl=False,start=True):
@@ -81,7 +81,7 @@ class CuisineBuilder(object):
 
         if start:
             cmd=self.cuisine.bash.cmdGetPath("caddy")
-            self.cuisine.systemd.ensure("caddy","%s -conf=\"%s\""%(cmd,cpath))        
+            self.cuisine.systemd.ensure("caddy","%s -conf=\"%s\""%(cmd,cpath))
 
 
     def caddyConfig(self,sectionname,config):
@@ -90,6 +90,42 @@ class CuisineBuilder(object):
         """
         pass
 
+    @actionrun(action=True)
+    def aydostore(self, addr='0.0.0.0:8090', backend="/tmp/aydostor", start=True):
+        """
+        Build and Install aydostore
+        @input addr, address and port on which the service need to listen. e.g. : 0.0.0.0:8090
+        @input backend, directory where to save the data push to the store
+        """
+        self.GOPATH
+        self.cuisine.golang.get("github.com/Jumpscale/aydostorex", action=True)
+        self.cuisine.file_copy(j.sal.fs.joinPaths(self.GOPATH, 'bin', 'aydostorex'), '/opt/jumpscale8/bin',action=True)
+        self.cuisine.bash.addPath("/opt/jumpscale8/bin", action=True)
+
+        self.cuisine.systemd.stop("aydostorex") # will also kill
+
+        self.cuisine.dir_ensure("/etc/aydostorex")
+        self.cuisine.dir_ensure(backend)
+        config = {
+            'listen_addr': addr,
+            'store_root': backend,
+        }
+        content = j.data.serializer.toml.dumps(config)
+        self.cuisine.file_write("/etc/aydostorex/config.toml", content)
+
+        res = addr.split(":")
+        if len(res) == 2:
+            addr, port = res[0], res[1]
+        else:
+            addr, port = res[0], '8090'
+
+        self.cuisine.fw.allowIncoming(port)
+        if self.cuisine.process.tcpport_check(port,""):
+            raise RuntimeError("port %d is occupied, cannot start aydostorex" % port)
+
+        if start:
+            cmd = self.cuisine.bash.cmdGetPath("aydostorex")
+            self.cuisine.systemd.ensure("aydostorex", '%s --config /etc/aydostorex/config.toml' % cmd)
 
     @actionrun(action=True)
     def etcd(self,start=True):

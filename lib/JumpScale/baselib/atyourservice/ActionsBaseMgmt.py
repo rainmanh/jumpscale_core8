@@ -101,7 +101,7 @@ class ActionsBaseMgmt(object):
             elif len(ays_s)>1:
                 raise RuntimeError("Cannt find parent '%s' for service '%s, there is more than 1 with instance:'%s'"%(role,self.service,rolearg))
             else:
-                raise RuntimeError("Cannot find parent '%s:%s' for service '%s:%s', please make sure the service exists."%(role,rolearg,self.service))
+                raise RuntimeError("Cannot find parent '%s:%s' for service '%s', please make sure the service exists."%(role,rolearg,self.service))
 
             self.service.hrd.set("parent",ays_s[0].shortkey)
             self.service._parent=ays_s[0]

@@ -141,6 +141,105 @@ class CuisineBuilder(object):
             self.cuisine.systemd.ensure("aydostorex", '%s --config /etc/aydostorex/config.toml' % cmd)
 
     @actionrun(action=True)
+    def agentcontroller(self, start=True):
+        """
+        config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
+        """
+        j.actions.setRunId("installAgentController")
+
+        self.cuisine.pip.upgrade('pip')
+        self.cuisine.pip.install('pytoml')
+        self.cuisine.pip.install('pygo')
+        self.cuisine.golang.install()
+        self.syncthing_build()
+        self.agent_build()
+        self.agentcontroller_build()
+
+        if start:
+            self._startAgent()
+            self._startAgentController()
+
+    @actionrun(action=True)
+    def syncthing(self):
+        appbase = j.sal.fs.joinPaths(j.dirs.base, "apps", "syncthing")
+        GOPATH = self.cuisine.bash.environGet('GOPATH')
+
+        url = "git@github.com:syncthing/syncthing.git"
+        dest = self.cuisine.git.pullRepo(url, dest='%s/src/github.com/syncthing/syncthing' % GOPATH)
+        self.cuisine.run('cd %s && godep restore' % dest, profile=True)
+        self.cuisine.run("cd %s && ./build.sh noupgrade" % dest, profile=True)
+        self.cuisine.dir_ensure(appbase, recursive=True)
+        self.cuisine.file_copy(j.sal.fs.joinPaths(dest, 'syncthing'), j.sal.fs.joinPaths(GOPATH, 'bin'), recursive=True)
+        self.cuisine.file_copy(j.sal.fs.joinPaths(GOPATH, 'bin', 'syncthing'), appbase, recursive=True)
+
+    @actionrun(action=True)
+    def agent(self):
+        GOPATH = self.cuisine.bash.environGet('GOPATH')
+        appbase = j.sal.fs.joinPaths(j.dirs.base, "apps", "agent8")
+        self.cuisine.dir_ensure(appbase, recursive=True)
+
+        url = "github.com/Jumpscale/agent2"
+        self.cuisine.golang.get(url)
+        dest = j.sal.fs.joinPaths(GOPATH, 'src/github.com/Jumpscale/agent2')
+
+        agent2_dest = j.sal.fs.joinPaths(appbase, "agent8")
+        syncthing_dest = j.sal.fs.joinPaths(appbase, "syncthing")
+        self.cuisine.file_copy(j.sal.fs.joinPaths(GOPATH, 'bin', "agent2"), agent2_dest)
+        self.cuisine.file_copy(j.sal.fs.joinPaths(GOPATH, 'bin', "syncthing"), syncthing_dest)
+
+        # link extensions
+        extdir = j.sal.fs.joinPaths(appbase, "extensions")
+        self.cuisine.dir_remove(extdir)
+        self.cuisine.file_link("%s/extensions" % dest, extdir)
+
+        # manipulate config file
+        cfgfile = '%s/agent.toml' % appbase
+        self.cuisine.file_copy("%s/agent.toml" % dest, cfgfile)
+
+        self.cuisine.file_copy("%s/conf" % dest, j.sal.fs.joinPaths(appbase, "conf"), recursive=True )
+
+    @actionrun(action=True)
+    def agentcontroller(self):
+        GOPATH = self.cuisine.bash.environGet('GOPATH')
+        appbase = j.sal.fs.joinPaths(j.dirs.base, "apps", "agentcontroller8")
+        self.cuisine.dir_ensure(appbase, recursive=True)
+
+        url = "github.com/Jumpscale/agentcontroller2"
+        self.cuisine.golang.get(url)
+        dest = j.sal.fs.joinPaths(GOPATH, 'src/github.com/Jumpscale/agentcontroller2')
+
+        destfile = j.sal.fs.joinPaths(appbase, "agentcontroller8")
+        self.cuisine.file_copy(j.sal.fs.joinPaths(GOPATH, 'bin', "agentcontroller2"), destfile)
+
+        cfgfile = '%s/agentcontroller.toml' % appbase
+        self.cuisine.file_copy("%s/agentcontroller.toml" % dest, cfgfile)
+
+        extdir = j.sal.fs.joinPaths(appbase, "extensions")
+        self.cuisine.dir_remove(extdir)
+        self.cuisine.dir_ensure(extdir)
+        self._linkfilesindir("%s/extensions" % dest, extdir)
+
+        cfg = j.data.serializer.toml.loads(self.cuisine.file_read(cfgfile))
+        cfg['jumpscripts']['python_path'] = "%s:%s" % (extdir, j.dirs.jsLibDir)
+        content = j.data.serializer.toml.dumps(cfg)
+        self.cuisine.file_write(cfgfile, content)
+
+    @actionrun(action=True)
+    def _startAgent(self):
+        appbase = j.sal.fs.joinPaths(j.dirs.base, "apps", "agent8")
+        cfgfile_agent = j.sal.fs.joinPaths(appbase, "agent.toml")
+        j.sal.nettools.waitConnectionTest("127.0.0.1", 8966, timeout=2)
+        print("connection test ok to agentcontroller")
+        self.cuisine.tmux.executeInScreen("main", screenname="agent", cmd="./agent8 -c %s" % cfgfile_agent, wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
+
+    @actionrun(action=True)
+    def _startAgentController(self):
+        appbase = j.sal.fs.joinPaths(j.dirs.base, "apps", "agentcontroller8")
+        cfgfile_ac = j.sal.fs.joinPaths(appbase, "agentcontroller.toml")
+        self.cuisine.tmux.executeInScreen("main", screenname="ac", cmd="./agentcontroller8 -c %s" % cfgfile_ac, wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
+
+
+    @actionrun(action=True)
     def etcd(self,start=True):
         C="""
         set -ex

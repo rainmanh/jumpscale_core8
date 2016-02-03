@@ -80,6 +80,10 @@ class CuisinePackage():
             if package.startswith("python3"):
                 package="extra/python"
 
+            #ignore
+            if package in ["libpython3.5-dev","libffi-dev","build-essential","libpq-dev","libsqlite3-dev"]:
+                return
+
             cmd="pacman -S %s  --noconfirm"%package
 
         elif self.isMac:
@@ -107,7 +111,6 @@ class CuisinePackage():
             return out
 
 
-    @actionrun(action=True,force=True)
     def multiInstall(self,packagelist):
         """
         @param packagelist is text file and each line is name of package

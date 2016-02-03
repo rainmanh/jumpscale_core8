@@ -16,6 +16,7 @@ class ActionController(object):
         # self._width = _width
         self.rememberDone = False
         self._actions = {}
+        self.lastOnes=[]
         self.last = None
         self._runid = j.core.db.get("actions.runid").decode() if j.core.db.exists("actions.runid") else None
         showonly = j.core.db.hget("actions.showonly", self._runid)
@@ -91,10 +92,17 @@ class ActionController(object):
         @param args is dict with arguments
         @param serviceObj: service, will be used to get category filled in
         '''
+
+
         if j.data.types.dict.check(args):
             raise RuntimeError("cannot create action: args should be a list, kwargs a dict, input error")
 
         action=Action(action,runid=self.runid,actionRecover=actionRecover,args=args,kwargs=kwargs,die=die,stdOutput=stdOutput,errorOutput=errorOutput,retry=retry,serviceObj=serviceObj,deps=deps,selfGeneratorCode=selfGeneratorCode,force=force)
+
+        while len(self.lastOnes)>10:
+            self.lastOnes.pop()
+        self.lastOnes.append(action)
+
         self._actions[action.key]=action
         self.last=action
         if executeNow:

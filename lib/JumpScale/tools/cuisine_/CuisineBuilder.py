@@ -29,21 +29,8 @@ class CuisineBuilder(object):
         return self._gopath
 
 
-    #@todo (*1*) installer for golang
-    #@todo (*1*) installer for caddy
-    #@todo (*1*) installer for etcd
-    #@todo (*1*) installer for skydns
-    #@todo (*1*) installer for aydostor
-
-
-
-    # @actionrun(action=True)
-    # def findPiNodesAndPrepareJSDevelop(self):
-    #     pass
-
-
     @actionrun(action=True)
-    def skydns(self):
+    def skydns(self,start=True):
         self.GOPATH
         self.cuisine.golang.get("github.com/skynetservices/skydns",action=True)
         self.cuisine.file_copy(j.sal.fs.joinPaths(self.GOPATH, 'bin', 'skydns'),'/opt/jumpscale8/bin',action=True)
@@ -131,40 +118,57 @@ class CuisineBuilder(object):
             cmd=self.cuisine.bash.cmdGetPath("etcd")
             self.cuisine.systemd.ensure("etcd",cmd)
 
+    @actionrun(action=True)
+    def redis(self,start=True):
 
-    def redis(self):
+        self.cuisine.systemd.stop("redis-server")
+        self.cuisine.systemd.stop("redis")
+
         C="""
         #!/bin/bash
         set -ex
 
         # groupadd -r redis && useradd -r -g redis redis
 
-        mkdir -p /opt/redis
-        cd /opt/redis
+        mkdir -p /tmp/build/redis
+        cd /tmp/build/redis
         wget http://download.redis.io/releases/redis-3.0.6.tar.gz
         tar xzf redis-3.0.6.tar.gz
         cd redis-3.0.6
         make
 
-        # rm -rf /build/opt/redis
-        # mkdir -p /build/opt/redis
-        # rm -rf /build/optvar/redis/
-        # mkdir -p /build/optvar/redis/
-
         rm -f /usr/local/bin/redis-server
         rm -f /usr/local/bin/redis-cli
-        cp /opt/redis/redis-3.0.6/src/redis-server /opt/jumpscale8/bin/
-        cp /opt/redis/redis-3.0.6/src/redis-cli /opt/jumpscale8/bin/
-
-        mkdir -p /optvar/cfg/
-        cp /bd_build/redis.conf /optvar/cfg/
-
-        rm -rf /opt/redis
 
         """
         C=self.cuisine.bash.replaceEnvironInText(C)
-        self.cuisine.run_script(C,profile=True)
+        self.cuisine.run_script(C,profile=True,action=True)
+        #move action
+        C="""
+        set -ex
+        cp /tmp/build/redis/redis-3.0.6/src/redis-server /opt/jumpscale8/bin/
+        cp /tmp/build/redis/redis-3.0.6/src/redis-cli /opt/jumpscale8/bin/
+
+        rm -rf /opt/redis
+        mkdir -p /optvar/cfg/
+        cp /tmp/build/redis/redis-3.0.6/redis.conf /optvar/cfg/
+        """
+        self.cuisine.run_script(C,profile=True,action=True)
         self.cuisine.bash.addPath("/opt/jumpscale8/bin",action=True)
+
+        if start:
+            cmd=self.cuisine.bash.cmdGetPath("redis-server")
+            self.cuisine.systemd.ensure("redis","/%s /optvar/cfg/redis.conf"%(cmd))    
+
+    def all(self):
+        self.cuisine.installerdevelop.pip()
+        self.cuisine.installerdevelop.python()
+        self.cuisine.installerdevelop.jumpscale8()
+        self.redis(start=False)
+        self.etcd(start=False)
+        self.caddy(start=False)
+        self.skydns(start=False)
+
 
     def vulcand(self):
         C='''

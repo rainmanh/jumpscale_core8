@@ -18,7 +18,7 @@ class HRDType():
         self.retry=5
         self.consume_link="" #link to other service I require, described with name of role
         self.consume_nr_min = 0 #min amount we require
-        self.consume_nr_max = 0 #max amount we require 
+        self.consume_nr_max = 0 #max amount we require
         self.parent=""
         self.parentauto=False
 
@@ -44,7 +44,7 @@ class HRDType():
             for item in result:
                 result2.append(self.typeclass.fromString(item))
             result=result2
-            
+
 
         else:
             if ttype in ["string","float"] or self.typeclass.BASETYPE=="string":
@@ -59,9 +59,9 @@ class HRDType():
                 result=j.tools.console.askMultiline(question=descr)
                 result=self.typeclass.fromString(result)
 
-            elif ttype=="int":
-                result=j.tools.console.askInteger(question=descr,  defaultValue=self.default, minValue=self.minValue, \
-                    maxValue=self.maxValue, retry=self.retry,validate=self.typeclass.check)
+            elif ttype=="int" or ttype=='integer':
+                result=j.tools.console.askInteger(question=descr,  defaultValue=self.default, minValue=self.minVal, \
+                    maxValue=self.maxVal, retry=self.retry,validate=self.typeclass.check)
                 result=self.typeclass.fromString(result)
 
             elif ttype=="boolean":
@@ -104,7 +104,7 @@ class HRDSchema():
             j.events.inputerror_critical("Content needs to be provided if path is empty")
         self.path=path
         self.content=content
-        self.items={} 
+        self.items={}
         self.items_with_alias={}
         self.content=content
         if content!="":
@@ -156,7 +156,7 @@ class HRDSchema():
             hrdtype.name=name
 
             hrdtype.typeclass=j.data.types.getTypeClass(ttype)
-                            
+
             if tags.labelExists("list"):
                 hrdtype.list=True
 
@@ -171,7 +171,7 @@ class HRDSchema():
                 except:
                     import ipdb
                     ipdb.set_trace()
-                    
+
 
 
             if tags.tagExists("descr"):
@@ -208,7 +208,7 @@ class HRDSchema():
 
             if tags.tagExists("maxval"):
                 hrdtype.maxVal = hrdtype.typeclass.fromString(tags.tagGet("maxval"))
-            
+
             if tags.tagExists("multichoice"):
                 hrdtype.multichoice = j.data.types.list.fromString(tags.tagGet("multichoice"),"str")
 
@@ -232,12 +232,12 @@ class HRDSchema():
         for key,ttype in self.items.items():
             val=None
             if ttype.name in args:
-                val=args[ttype.name]                    
+                val=args[ttype.name]
             else:
                 if not hrd.exists(ttype.name):
                     if ttype.doAsk==False:
                         val=ttype.default
-                    else:                        
+                    else:
                         val=ttype.ask()
                 else:
                     continue #no need to further process, already exists in hrd
@@ -263,7 +263,7 @@ class HRDSchema():
                 except Exception as e:
                     msg="Type '%s' check failed for value '%s'.\nError:%s"%(ttype.typeclass.NAME,val,e)
                     self._raiseError(msg)
-                    
+
                 if j.data.types.list.check(val) and len(val)==1:
                     val=val[0] #this to resolve some customer types or yaml inconsistencies, if only 1 member we can use as a non list
             hrd.set(ttype.name,val)
@@ -294,4 +294,3 @@ class HRDSchema():
         return self.content.strip()
 
     __str__=__repr__
-

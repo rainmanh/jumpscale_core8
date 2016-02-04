@@ -604,6 +604,8 @@ class CuisineInstaller(object):
             self.cuisine.run(cmd)
             self.cuisine.run("umount /mnt/boot",die=False)
             self.cuisine.run("umount /mnt/root",die=False)
+            self.cuisine.run("umount /dev/%s1"%deviceid,die=False)
+            self.cuisine.run("umount /dev/%s2"%deviceid,die=False)
             self.cuisine.run("mkfs.vfat /dev/%s1"%deviceid)
             self.cuisine.run("mkdir -p /mnt/boot;mount /dev/%s1 /mnt/boot"%deviceid)
             self.cuisine.run("mkfs.ext4 /dev/%s2"%deviceid)
@@ -612,7 +614,9 @@ class CuisineInstaller(object):
                 self.cuisine.file_unlink("/mnt/ArchLinuxARM-rpi-2-latest.tar.gz")
             if not self.cuisine.file_exists("/mnt/ArchLinuxARM-rpi-2-latest.tar.gz"):
                 self.cuisine.run("cd /mnt;wget http://archlinuxarm.org/os/ArchLinuxARM-rpi-2-latest.tar.gz")
-            self.cuisine.run("cd /mnt;bsdtar -xpf ArchLinuxARM-rpi-2-latest.tar.gz -C root")
+
+            self.cuisine.run("cd /mnt;tar vxf ArchLinuxARM-rpi-2-latest.tar.gz -C root")
+
             self.cuisine.run("sync")
             self.cuisine.run("cd /mnt;mv root/boot/* boot")
 
@@ -647,10 +651,8 @@ class CuisineInstaller(object):
 
         for deviceid,size in devs:
             partition(deviceid,size)
-            # j.actions.add(partition, actionRecover=None, kwargs={"cuisineid":self.cuisine.id,'deviceid':deviceid,"size":size}, die=True, stdOutput=True, errorOutput=True, retry=1,deps=None)
-
-        j.actions.run()
-
+            
+        
     @actionrun(action=True)
     def docker(self):
         if self.cuisine.isUbuntu:

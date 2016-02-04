@@ -118,18 +118,7 @@ class CuisinePortal(object):
         # zmq
         """
 
-        # def installPip(name):
-        #     self.cuisine.installer.pip()
-
-        actionout = None
-        for dep in deps.split("\n"):
-            dep = dep.strip()
-            if dep.strip() == "":
-                continue
-            if dep.strip()[0] == "#":
-                continue
-            dep = dep.split("=", 1)[0]
-            self.cuisine.pip.install(dep)
+        self.cuisine.pip.multiInstall(deps)
 
 
     @actionrun(action=True)
@@ -188,7 +177,8 @@ class CuisinePortal(object):
         hrd = j.data.hrd.get(content=content, path=tmp)
         hrd.set('param.mongoengine.connection', {'host': ip, 'port': port})
         hrd.save()
-        self.cuisine.file_upload_local(tmp, cfg_path)
+        # self.cuisine.file_upload_local(tmp, cfg_path)
+        self.cuisine.file_write(cfg_path,str(hrd))
 
     @actionrun(action=True)
     def changeEve(self):

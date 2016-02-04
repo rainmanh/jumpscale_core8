@@ -18,7 +18,7 @@ def loadmodule(name, path):
     mod = imp.load_source(name, path)
     return mod
 
-def getProcessDicts(hrd, args={}):
+def getProcessDicts(service, args={}):
     counter = 0
 
     defaults = {"prio": 10, "timeout_start": 10,
@@ -26,19 +26,18 @@ def getProcessDicts(hrd, args={}):
     musthave = ["cmd", "args", "prio", "env", "cwd", "timeout_start",
                 "timeout_start", "ports", "startupmanager", "filterstr", "name", "user"]
 
-    procs = hrd.getListFromPrefixEachItemDict("process", musthave=musthave, defaults=defaults, aredict=[
+    procs = service.recipe.hrd.getListFromPrefixEachItemDict("process", musthave=musthave, defaults=defaults, aredict=[
                                                    'env'], arelist=["ports"], areint=["prio", "timeout_start", "timeout_start"])
     for process in procs:
         counter += 1
 
         process["test"] = 1
 
-        if process["name"].strip() == "":
-            process["name"] = "%s_%s" % (
-                hrd.get("name"), hrd.get("instance"))
+        if "name" not in process or process["name"].strip() == "":
+            process["name"] = "%s_%s" % (service.name, service.instance)
 
-        if hrd.exists("env.process.%s" % counter):
-            process["env"] = hrd.getDict("env.process.%s" % counter)
+        if service.recipe.hrd.exists("env.process.%s" % counter):
+            process["env"] = service.recipe.hrd.getDict("env.process.%s" % counter)
 
         if not isinstance(process["env"], dict):
             raise RuntimeError("process env needs to be dict")
@@ -644,7 +643,7 @@ class Service(object):
         return 199
 
     def getProcessDicts(self, args={}):
-        return getProcessDicts(self.recipe.hrd, args={})
+        return getProcessDicts(self, args={})
 
     # def getDependencyChain(self, chain=None):
     #     chain = chain if chain is not None else []

@@ -208,7 +208,6 @@ class CuisineBuilder(object):
 
         extdir = self.cuisine.joinpaths(appbase, "extensions")
         self.cuisine.dir_remove(extdir)
-        self.cuisine.dir_ensure(extdir)
         self.cuisine.file_link("%s/extensions" % dest, extdir)
 
         cfg = j.data.serializer.toml.loads(self.cuisine.file_read(cfgfile))

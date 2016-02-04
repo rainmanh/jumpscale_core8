@@ -36,22 +36,24 @@ class ServiceTemplate(object):
         self.key = j.atyourservice.getKey(self)
 
     def _init(self):
-        # self.path_hrd_template = j.sal.fs.joinPaths(self.path, "template.hrd")
+        self.path_hrd_template = j.sal.fs.joinPaths(self.path, "template.hrd")
         self.path_hrd_schema = j.sal.fs.joinPaths(self.path, "schema.hrd")
         self.path_actions_mgmt = j.sal.fs.joinPaths(self.path, "actions_mgmt.py")
         self.path_actions_node = j.sal.fs.joinPaths(self.path, "actions_node.py")
+        self.path_mongo_model = j.sal.fs.joinPaths(self.path, "model.py")
 
         self.role = self.name.split('.')[0]
 
         self._hrd = None
         self._schema = None
         self._actions = None
+        self._mongoModel = None
 
     @property
     def hrd(self):
         if self._hrd:
             return self._hrd
-        hrdpath = self.path_hrd_schema
+        hrdpath = self.path_hrd_template
         if not j.sal.fs.exists(hrdpath):
             # check if we can find it in other ays template
             if self.name.find(".") != -1:
@@ -81,7 +83,8 @@ class ServiceTemplate(object):
                     self._schema = templ.hrd_schema
                     self.path_hrd_schema = templ.path_hrd_schema
                     return self._schema
-            j.events.opserror_critical(msg="can't find %s." % hrdpath, category="ays load hrd instance")
+            j.data.hrd.get(hrdpath).save()
+            self._schema = j.data.hrd.getSchema(hrdpath)
         else:
             self._schema = j.data.hrd.getSchema(hrdpath)
         return self._schema
@@ -90,15 +93,21 @@ class ServiceTemplate(object):
     def actions(self):
         if self._actions is None:
             if j.sal.fs.exists(self.path_actions_mgmt):
-                # if self.domain=="ays":
-                    # self.hrd.applyOnFile(self.path_actions_mgmt)
-                    # j.application.config.applyOnFile(self.path_actions_mgmt)
                 modulename = "JumpScale.atyourservice.%s.%s.mgmt" % (self.domain, self.name)
                 mod = loadmodule(modulename, self.path_actions_mgmt)
                 self._actions = mod.Actions(self)
             else:
-                self._actions = j.atyourservice.getActionsBaseClassMgmt()(self)
+                self._mongoModel = j.atyourservice.getActionsBaseClassMgmt()(self)
         return self._actions
+
+    @property
+    def model(self):
+        if self._mongoModel is None:
+            if j.sal.fs.exists(self.path_mongo_model):
+                modulename = "JumpScale.atyourservice.%s.%s.model" % (self.domain, self.name)
+                mod = loadmodule(modulename, self.path_mongo_model)
+                self._mongoModel = mod.Model()
+        return self._mongoModel
 
     def build(self, build_server=None, image_build=False, image_push=False,debug=True,syncLocalJumpscale=False):
         """

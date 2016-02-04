@@ -159,7 +159,10 @@ class AtYourServiceFactory():
             dirname = j.do.getBaseName(path)
             if dirname.startswith("_"):
                 return
-            if j.sal.fs.exists("%s/schema.hrd" % path) or j.sal.fs.exists("%s/service.hrd" % path) or j.sal.fs.exists("%s/actions_mgmt.py" % path):
+            if j.sal.fs.exists("%s/schema.hrd" % path) or \
+            j.sal.fs.exists("%s/service.hrd" % path) or \
+            j.sal.fs.exists("%s/actions_mgmt.py" % path) or \
+            j.sal.fs.exists("%s/model.py" % path):
                 templ = ServiceTemplate(path, domain=domain)
                 llist.append(templ)
 

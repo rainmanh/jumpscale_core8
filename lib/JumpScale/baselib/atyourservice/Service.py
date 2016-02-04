@@ -18,7 +18,7 @@ def loadmodule(name, path):
     mod = imp.load_source(name, path)
     return mod
 
-def getProcessDicts(hrd, args={}):
+def getProcessDicts(service, args={}):
     counter = 0
 
     defaults = {"prio": 10, "timeout_start": 10,
@@ -26,19 +26,18 @@ def getProcessDicts(hrd, args={}):
     musthave = ["cmd", "args", "prio", "env", "cwd", "timeout_start",
                 "timeout_start", "ports", "startupmanager", "filterstr", "name", "user"]
 
-    procs = hrd.getListFromPrefixEachItemDict("process", musthave=musthave, defaults=defaults, aredict=[
+    procs = service.recipe.hrd.getListFromPrefixEachItemDict("process", musthave=musthave, defaults=defaults, aredict=[
                                                    'env'], arelist=["ports"], areint=["prio", "timeout_start", "timeout_start"])
     for process in procs:
         counter += 1
 
         process["test"] = 1
 
-        if process["name"].strip() == "":
-            process["name"] = "%s_%s" % (
-                hrd.get("name"), hrd.get("instance"))
+        if "name" not in process or process["name"].strip() == "":
+            process["name"] = "%s_%s" % (service.name, service.instance)
 
-        if hrd.exists("env.process.%s" % counter):
-            process["env"] = hrd.getDict("env.process.%s" % counter)
+        if service.recipe.hrd.exists("env.process.%s" % counter):
+            process["env"] = service.recipe.hrd.getDict("env.process.%s" % counter)
 
         if not isinstance(process["env"], dict):
             raise RuntimeError("process env needs to be dict")
@@ -208,17 +207,17 @@ class Service(object):
 
         self.instance = self.instance.lower()
 
-
         self._parent = ""
         self._parentChain = None
+        if parent is not None:
+            self.path = j.sal.fs.joinPaths(parent.path,"%s!%s"%(self.role,self.instance))
+            self._parent = parent.key
 
         self.path = path.rstrip("/")
 
         self._hrd = None
-
-        if parent!=None:
-            self.path = j.sal.fs.joinPaths(parent.path,"%s!%s"%(self.role,self.instance))
-            self.hrd.set("parent", parent.key)
+        self._yaml = None
+        self._mongoModel = None
 
         self._action_methods_mgmt = None
         self._action_methods_node = None
@@ -273,7 +272,6 @@ class Service(object):
             self._domain=self.hrd.get("service.domain")
         return self._domain
 
-
     @property
     def recipe(self):
         if self._recipe is None:
@@ -299,7 +297,7 @@ class Service(object):
 
     @property
     def parent(self):
-        if self._parent =="":
+        if isinstance(self._parent, str):
             # print ("parent cache miss")
             if self.hrd.exists("parent"):
                 role,instance=self.hrd.get("parent").split("!")
@@ -314,6 +312,24 @@ class Service(object):
             hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
             self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
         return self._hrd
+
+    @property
+    def yaml(self):
+        if self._yaml is None:
+            path = j.sal.fs.joinPaths(self.path, "model.yaml")
+            if j.sal.fs.exists(path):
+                self._yaml = j.data.serializer.yaml.load(path)
+        return self._yaml
+
+    @property
+    def mongoModel(self):
+        if self._mongoModel is None:
+            self._mongoModel = self.recipe.model
+            if self.yaml:
+                for k, v in self.yaml.items():
+                    if k in self._mongoModel:
+                        self._mongoModel[k] = v
+        return self._mongoModel
 
     # @property
     # def hrd_template(self):
@@ -460,22 +476,29 @@ class Service(object):
 
     def init(self):
         if self._init is False:
-            do=False
+            do = False
             if not j.sal.fs.exists(j.sal.fs.joinPaths(self.path, "instance.hrd")):
-                do=True
+                do = True
             else:
-                changed,changes=j.atyourservice.alog.getChangedAtYourservices("init")
+                changed, changes = j.atyourservice.alog.getChangedAtYourservices("init")
                 if self in changed:
-                    do=True
+                    do = True
             if do:
-                print ("INIT:%s"%self)
+                print("INIT:%s"%self)
                 j.do.createDir(self.path)
                 self.runAction("input")
                 hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
-                self._hrd=self.recipe.schema.hrdGet(hrd=self.hrd,args=self.args)
-                self.hrd.set("service.name",self.name)
-                self.hrd.set("service.version",self.version)
-                self.hrd.set("service.domain",self.domain)
+
+                # if no schema.hrd exists in servicetemplate, raw yaml will be used as datasource
+                # we just create en empty instance.hrd
+                if j.sal.fs.exists(self.recipe.parent.path_hrd_schema):
+                    self._hrd = self.recipe.schema.hrdGet(hrd=self.hrd, args=self.args)
+                else:
+                    self._hrd = j.data.hrd.get(hrdpath)
+
+                self.hrd.set("service.name", self.name)
+                self.hrd.set("service.version", self.version)
+                self.hrd.set("service.domain", self.domain)
 
                 self.runAction("hrd")
                 # self.action_methods_mgmt.hrd(self)
@@ -490,7 +513,6 @@ class Service(object):
                     self.consume(self.parent)
 
         self._init = True
-
 
     def consume(self, input):
         """
@@ -621,7 +643,7 @@ class Service(object):
         return 199
 
     def getProcessDicts(self, args={}):
-        return getProcessDicts(self.recipe.hrd, args={})
+        return getProcessDicts(self, args={})
 
     # def getDependencyChain(self, chain=None):
     #     chain = chain if chain is not None else []

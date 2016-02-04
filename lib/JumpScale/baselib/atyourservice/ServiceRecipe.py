@@ -19,41 +19,42 @@ class ServiceRecipe(ServiceTemplate):
         if path != "":
             if not j.sal.fs.exists(path):
                 raise RuntimeError("Could not find path for recipe")
-            self.path=path
-            name=self.state.hrd.get("template.name")
-            domain=self.state.hrd.get("template.domain")
-            version=self.state.hrd.get("template.version")
-            self.parent=j.atyourservice.getTemplate(domain=domain, name=name, version=version)
-            self.name=self.parent.name
+            self.path = path
+            name = self.state.hrd.get("template.name")
+            domain = self.state.hrd.get("template.domain")
+            version = self.state.hrd.get("template.version")
+            self.parent = j.atyourservice.getTemplate(domain=domain, name=name, version=version)
+            self.name = self.parent.name
         else:
-            self.path = j.sal.fs.joinPaths(aysrepopath,"recipes",template.name)
-            self.name=template.name
-            self.parent=template
+            self.path = j.sal.fs.joinPaths(aysrepopath,"recipes", template.name)
+            self.name = template.name
+            self.parent = template
 
-        #copy the files
+        # copy the files
         if not j.sal.fs.exists(path=self.path):
-            firstime=True
+            firstime = True
             j.sal.fs.createDir(self.path)
         else:
-            firstime=False
+            firstime = False
 
         self._init()
 
-        # if j.sal.fs.exists(self.parent.path_hrd_template):
-            # j.sal.fs.copyFile(self.parent.path_hrd_template,self.path_hrd_template)
+        if j.sal.fs.exists(self.parent.path_hrd_template):
+            j.sal.fs.copyFile(self.parent.path_hrd_template, self.path_hrd_template)
         if j.sal.fs.exists(self.parent.path_hrd_schema):
-            j.sal.fs.copyFile(self.parent.path_hrd_schema,self.path_hrd_schema)
+            j.sal.fs.copyFile(self.parent.path_hrd_schema, self.path_hrd_schema)
         if j.sal.fs.exists(self.parent.path_actions_mgmt):
-            j.sal.fs.copyFile(self.parent.path_actions_mgmt,self.path_actions_mgmt)
+            j.sal.fs.copyFile(self.parent.path_actions_mgmt, self.path_actions_mgmt)
         if j.sal.fs.exists(self.parent.path_actions_node):
-            j.sal.fs.copyFile(self.parent.path_actions_node,self.path_actions_node)
+            j.sal.fs.copyFile(self.parent.path_actions_node, self.path_actions_node)
+        if j.sal.fs.exists(self.parent.path_mongo_model):
+            j.sal.fs.copyFile(self.parent.path_mongo_model, self.path_mongo_model)
 
-        self._state=None
+        self._state = None
         # if firstime:
         #     self.state.save()
 
-        self.domain=self.parent.domain
-
+        self.domain = self.parent.domain
 
     @property
     def state(self):
@@ -63,7 +64,7 @@ class ServiceRecipe(ServiceTemplate):
             self._state=None
         return self._state
 
-    def newInstance(self, instance="main", role='', args={}, path='', parent=None, consume="",originator=None):
+    def newInstance(self, instance="main", role='', args={}, path='', parent=None, consume="",originator=None, yaml=None):
         """
         """
         self.actions  # DO NOT REMOVE
@@ -86,7 +87,7 @@ class ServiceRecipe(ServiceTemplate):
         else:
             shortkey = "%s!%s" % (self.role, instance)
 
-            if path != "" and path is not None:
+            if path:
                 fullpath = path
             elif parent is not None:
                 fullpath = j.sal.fs.joinPaths(parent.path, shortkey)
@@ -97,9 +98,13 @@ class ServiceRecipe(ServiceTemplate):
             if j.sal.fs.isDir(fullpath):
                 j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (self.role, instance, fullpath), category="ays.servicetemplate")
 
-            service = Service(self, instance=instance, args=args, path=fullpath, parent=parent,originator=originator)
+            service = Service(self, instance=instance, args=args, path=fullpath, parent=parent, originator=originator)
             j.atyourservice._services[service.shortkey]=service
             service.init()
+
+            if yaml:
+                j.data.serializer.yaml.dump(j.sal.fs.joinPaths(service.path, "model.yaml"), yaml['%s_%s' % (service.name, service.instance)])
+
             service.consume(consume)
 
         return service

@@ -166,7 +166,7 @@ class ActionsBaseNode(object):
             cwd=process["cwd"]
             # args['process'] = process
             if nbr is None:
-                self.stop(self.service)
+                self.stop()
 
             tcmd=process["cmd"]
             if tcmd=="jspython":
@@ -180,12 +180,10 @@ class ActionsBaseNode(object):
             env=process["env"]
 
             startupmethod=process["startupmanager"]
-            domain, name = self._getDomainName(self.service, process)
+            domain, name = self._getDomainName(process)
             if nbr is not None:
                 name = "%s.%d" % (name, i)
             log("Starting %s:%s" % (domain, name))
-
-            j.sal.fs.remove(self.service.logPath)
 
             if startupmethod == 'upstart':
                 # check if we are in our docker image which uses myinit instead of upstart
@@ -211,9 +209,6 @@ class ActionsBaseNode(object):
             elif startupmethod=="tmux":
                 j.sal.tmux.executeInScreen(domain,name,tcmd+" "+targs,cwd=cwd, env=env,user=tuser)#, newscr=True)
 
-                if tlog:
-                    j.sal.tmux.logWindow(domain,name,self.service.logPath)
-
             else:
                 raise RuntimeError("startup method not known or disabled:'%s'"%startupmethod)
 
@@ -236,7 +231,7 @@ class ActionsBaseNode(object):
                 # self.raiseError(msg)
                 # return
 
-        isrunning = self.check_up(self.service, wait=False)
+        isrunning = self.check_up(wait=False)
         if isrunning:
             return
 
@@ -251,13 +246,8 @@ class ActionsBaseNode(object):
             else:
                 start2(process)
 
-        isrunning = self.check_up(self.service)
+        isrunning = self.check_up()
         if isrunning is False:
-            if j.sal.fs.exists(path=self.service.logPath):
-                logc = j.sal.fs.fileGetContents(self.service.logPath).strip()
-            else:
-                logc = ""
-
             msg=""
 
             if self.service.getTCPPorts()==[0]:
@@ -283,7 +273,7 @@ class ActionsBaseNode(object):
             # print "stop processs:%s"%process
 
             currentpids = (os.getpid(), os.getppid())
-            for pid in self._get_pids(self.service,[process]):
+            for pid in self._get_pids([process]):
                 if pid not in currentpids :
                     try:
                         j.sal.process.kill(-pid, signal.SIGTERM)
@@ -293,7 +283,7 @@ class ActionsBaseNode(object):
 
 
             startupmethod=process["startupmanager"]
-            domain, name = self._getDomainName(self.service, process)
+            domain, name = self._getDomainName(process)
             log("Stopping %s:%s" % (domain, name))
             if nbr is not None:
                 name = "%s.%d" % (name, i)
@@ -346,10 +336,10 @@ class ActionsBaseNode(object):
         hard kill the app, std a linux kill is used, you can use this method to do something next to the std behavior
         """
         currentpids = (os.getpid(), os.getppid())
-        for pid in self._get_pids(self.service):
+        for pid in self._get_pids():
             if pid not in currentpids :
                 j.sal.process.kill(pid, signal.SIGKILL)
-        if not self.check_down_local(self.service):
+        if not self.check_down(self.service):
             j.events.opserror_critical("could not halt:%s"%self,"service.halt")
         return True
 
@@ -361,7 +351,7 @@ class ActionsBaseNode(object):
         def do(process, nbr=None):
             startupmethod = process["startupmanager"]
             if startupmethod == 'upstart':
-                domain, name = self._getDomainName(self.service, process)
+                domain, name = self._getDomainName(process)
                 if nbr is not None:
                     name = "%s.%d" % (name, i)
                 # check if we are in our docker image which uses myinit instead of upstart
@@ -412,7 +402,7 @@ class ActionsBaseNode(object):
                 result = do(process)
 
             if result is False:
-                domain, name = self._getDomainName(self.service, process)
+                domain, name = self._getDomainName(process)
                 log("Status %s:%s not running" % (domain, name))
                 return False
         log("Status %s is running" % (self.service))

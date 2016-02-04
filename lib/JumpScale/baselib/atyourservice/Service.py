@@ -218,6 +218,7 @@ class Service(object):
 
         self._hrd = None
         self._yaml = None
+        self._mongoModel = None
 
         self._action_methods_mgmt = None
         self._action_methods_node = None
@@ -320,6 +321,16 @@ class Service(object):
             if j.sal.fs.exists(path):
                 self._yaml = j.data.serializer.yaml.load(path)
         return self._yaml
+
+    @property
+    def mongoModel(self):
+        if self._mongoModel is None:
+            self._mongoModel = self.recipe.model
+            if self.yaml:
+                for k, v in self.yaml.items():
+                    if k in self._mongoModel:
+                        self._mongoModel[k] = v
+        return self._mongoModel
 
     # @property
     # def hrd_template(self):

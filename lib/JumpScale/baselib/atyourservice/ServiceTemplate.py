@@ -81,7 +81,8 @@ class ServiceTemplate(object):
                     self._schema = templ.hrd_schema
                     self.path_hrd_schema = templ.path_hrd_schema
                     return self._schema
-            j.events.opserror_critical(msg="can't find %s." % hrdpath, category="ays load hrd instance")
+            j.data.hrd.get(hrdpath).save()
+            self._schema = j.data.hrd.getSchema(hrdpath)
         else:
             self._schema = j.data.hrd.getSchema(hrdpath)
         return self._schema

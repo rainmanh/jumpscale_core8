@@ -59,7 +59,7 @@ class HRDType():
                 result=j.tools.console.askMultiline(question=descr)
                 result=self.typeclass.fromString(result)
 
-            elif ttype=="int" or ttype=='integer':
+            elif ttype in ['int', 'interger']:
                 result=j.tools.console.askInteger(question=descr,  defaultValue=self.default, minValue=self.minVal, \
                     maxValue=self.maxVal, retry=self.retry,validate=self.typeclass.check)
                 result=self.typeclass.fromString(result)

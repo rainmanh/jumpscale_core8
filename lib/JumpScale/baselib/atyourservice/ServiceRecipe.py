@@ -63,7 +63,7 @@ class ServiceRecipe(ServiceTemplate):
             self._state=None
         return self._state
 
-    def newInstance(self, instance="main", role='', args={}, path='', parent=None, consume="",originator=None):
+    def newInstance(self, instance="main", role='', args={}, path='', parent=None, consume="",originator=None, yaml=None):
         """
         """
         self.actions  # DO NOT REMOVE
@@ -97,9 +97,13 @@ class ServiceRecipe(ServiceTemplate):
             if j.sal.fs.isDir(fullpath):
                 j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (self.role, instance, fullpath), category="ays.servicetemplate")
 
-            service = Service(self, instance=instance, args=args, path=fullpath, parent=parent,originator=originator)
+            service = Service(self, instance=instance, args=args, path=fullpath, parent=parent, originator=originator)
             j.atyourservice._services[service.shortkey]=service
             service.init()
+
+            if yaml:
+                j.data.serializer.yaml.dump(j.sal.fs.joinPaths(service.path, "model.yaml"), yaml['%s_%s' % (service.name, service.instance)])
+
             service.consume(consume)
 
         return service

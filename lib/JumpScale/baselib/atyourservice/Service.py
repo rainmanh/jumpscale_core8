@@ -210,9 +210,9 @@ class Service(object):
 
         self._parent = ""
         self._parentChain = None
-        if parent!=None:
+        if parent is not None:
             self.path = j.sal.fs.joinPaths(parent.path,"%s!%s"%(self.role,self.instance))
-            self.hrd.set("parent", parent.key)
+            self._parent = parent.key
 
         self.path = path.rstrip("/")
 
@@ -298,7 +298,7 @@ class Service(object):
 
     @property
     def parent(self):
-        if self._parent =="":
+        if isinstance(self._parent, str):
             # print ("parent cache miss")
             if self.hrd.exists("parent"):
                 role,instance=self.hrd.get("parent").split("!")

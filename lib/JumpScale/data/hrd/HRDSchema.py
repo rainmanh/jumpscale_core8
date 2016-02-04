@@ -18,9 +18,9 @@ class HRDType():
         self.retry=5
         self.consume_link="" #link to other service I require, described with name of role
         self.consume_nr_min = 0 #min amount we require
-        self.consume_nr_max = 0 #max amount we require
+        self.consume_nr_max = 100 #max amount we require
         self.parent=""
-        self.parentauto=False
+        self.auto=False
 
     def validate(self,value):
         if self.typeclass.check(value)==False:
@@ -201,7 +201,10 @@ class HRDSchema():
                 hrdtype.parent=c
 
             if tags.labelExists("parentauto"):
-                hrdtype.parentauto = True
+                hrdtype.auto = True
+
+            if tags.labelExists("consumeauto"):
+                hrdtype.auto = True
 
             if tags.tagExists("minval"):
                 hrdtype.minVal = hrdtype.typeclass.fromString(tags.tagGet("minval"))
@@ -288,7 +291,6 @@ class HRDSchema():
             if schemaItem.consume_link!="" and schemaItem.parent=="":
                 result.append(schemaItem)
         return result
-
 
     def __repr__(self):
         return self.content.strip()

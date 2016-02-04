@@ -543,7 +543,7 @@ class Service(object):
             # walk over the producers
             # for producer in toConsume:
             method=self._getActionMethodMgmt("consume")
-            if method!=None:
+            if method:
                     # j.atyourservice.alog.setNewAction(self.role, self.instance, "mgmt","consume")
                 self.runAction('consume')
                     # self.action_methods_mgmt.consume(producer)

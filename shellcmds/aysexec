@@ -18,7 +18,7 @@ def do(action, role, instance, debug):
     j.atyourservice.debug = debug
 
     service = j.atyourservice.getService(role=role, instance=instance, die=True)
-    eval("service.action_methods_node.%s(service)" % action)
+    eval("service.action_methods_node.%s()" % action)
 
 cli.add_command(do)
 

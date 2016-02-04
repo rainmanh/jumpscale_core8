@@ -22,7 +22,7 @@ class CuisineDocker():
     def install(self):
         self.cuisine.installer.docker()
 
-    def archbuild(self):
+    def archBuild(self):
         C="""
         FROM base/archlinux:latest
 
@@ -73,9 +73,22 @@ class CuisineDocker():
         """
         self.cuisine.run_script(C)
 
+    def ubuntuBuild(self):
+
+
+        self.cuisine.run("rm -rf /tmp/docker;mkdir /tmp/docker")
+        self.cuisine.file_write("/tmp/docker/Dockerfile",C)
+
+        C="""
+        set -ex
+        cd /tmp/docker
+        docker build -t arch .
+        """
+        self.cuisine.run_script(C)        
+
 
     @actionrun(action=True)
-    def ubuntu(self,name="ubuntu1"):
+    def ArchSystemd(self,name="ubuntu1"):    
         """
         e.g. url=github.com/tools/godep
         """

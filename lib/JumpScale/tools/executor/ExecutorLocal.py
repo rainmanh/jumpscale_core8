@@ -9,7 +9,7 @@ class ExecutorLocal(ExecutorBase):
             self, dest_prefixes=dest_prefixes, debug=debug, checkok=debug)
         self.type="local"
 
-    def execute(self, cmds, die=True, checkok=None, async=False,showout=True, combinestdr=True):
+    def execute(self, cmds, die=True, checkok=None, async=False,showout=True, combinestdr=True,timeout=0):
         # cmds = self._transformCmds(cmds, die, checkok=checkok)
         if cmds.find('\n') == -1:
             if self.debug:

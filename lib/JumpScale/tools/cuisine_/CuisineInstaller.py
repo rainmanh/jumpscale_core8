@@ -582,7 +582,7 @@ class CuisineInstaller(object):
         # if self.cuisine.isUbuntu():
         #     self.cuisine.run("ufw allow 8123")
 
-    @actionrun(action=True)
+    # @actionrun(action=True)
     def installArchLinuxToSDCard(self,redownload=False):
         """
         will only work if 1 sd card found of 8 or 16 GB, be careful will overwrite the card
@@ -595,9 +595,10 @@ class CuisineInstaller(object):
 
         j.actions.setRunId("installArchSD")
 
-        def partition(cuisineid,deviceid,size):
-            cuisine=j.tools.cuisine.get(cuisineid)
+        # def partition(cuisineid,deviceid,size):
+            # cuisine=j.tools.cuisine.get(cuisineid)
 
+        def partition(deviceid,size):
             cmd="parted -s /dev/%s mklabel msdos mkpar primary fat32 2 100M mkpart primary ext4 100M 100"%deviceid
             cmd+="%"
             self.cuisine.run(cmd)
@@ -643,8 +644,10 @@ class CuisineInstaller(object):
 
         devs=findDevices()
 
+
         for deviceid,size in devs:
-            j.actions.add(partition, actionRecover=None, args={"cuisineid":self.cuisine.id,'deviceid':deviceid,"size":size}, die=True, stdOutput=True, errorOutput=True, retry=1,deps=None)
+            partition(deviceid,size)
+            # j.actions.add(partition, actionRecover=None, kwargs={"cuisineid":self.cuisine.id,'deviceid':deviceid,"size":size}, die=True, stdOutput=True, errorOutput=True, retry=1,deps=None)
 
         j.actions.run()
 

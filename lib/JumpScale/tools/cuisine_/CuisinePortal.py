@@ -14,9 +14,9 @@ class CuisinePortal(object):
         self.cuisine=cuisine
 
     def install(self, minimal=False, start=True, mongodbip="127.0.0.1", mongoport=27017, login="", passwd=""):
-
-        self.cuisine.installerdevelop.jumpscale8()
-        self.cuisine.pip.upgrade("pip")
+        if not self.cuisine.isMac:
+            self.cuisine.installerdevelop.jumpscale8()
+            self.cuisine.pip.upgrade("pip")
         self.installDeps()
         self.getcode()
         self.linkCode(minimal=minimal)

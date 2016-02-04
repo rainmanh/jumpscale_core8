@@ -56,7 +56,10 @@ class Docker(SALObject):
     def containers(self):
         if self._containers==[]:
             for item in self.client.containers(all=all):
-                name = str(item["Names"][0].strip("/").strip())
+                try:
+                    name = str(item["Names"][0].strip("/").strip())
+                except:
+                    continue
                 id = str(item["Id"].strip())
                 self._containers.append(Container(name, id, self.client, self.docker_host['host']))
         return self._containers

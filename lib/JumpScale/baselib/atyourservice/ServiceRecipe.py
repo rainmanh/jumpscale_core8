@@ -87,7 +87,7 @@ class ServiceRecipe(ServiceTemplate):
         else:
             shortkey = "%s!%s" % (self.role, instance)
 
-            if path != "" and path is not None:
+            if path:
                 fullpath = path
             elif parent is not None:
                 fullpath = j.sal.fs.joinPaths(parent.path, shortkey)

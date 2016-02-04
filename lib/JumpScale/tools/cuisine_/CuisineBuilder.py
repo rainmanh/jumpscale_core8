@@ -33,7 +33,7 @@ class CuisineBuilder(object):
     def skydns(self,start=True):
         self.GOPATH
         self.cuisine.golang.get("github.com/skynetservices/skydns",action=True)
-        self.cuisine.file_copy(j.sal.fs.joinPaths(self.GOPATH, 'bin', 'skydns'),'/opt/jumpscale8/bin',action=True)
+        self.cuisine.file_copy(self.cuisine.joinpaths(self.GOPATH, 'bin', 'skydns'),'/opt/jumpscale8/bin',action=True)
         self.cuisine.bash.addPath("/opt/jumpscale8/bin", action=True)
 
         if start:
@@ -44,7 +44,7 @@ class CuisineBuilder(object):
     def caddy(self,ssl=False,start=True):
         self.GOPATH
         self.cuisine.golang.get("github.com/mholt/caddy",action=True)
-        self.cuisine.file_copy(j.sal.fs.joinPaths(self.GOPATH, 'bin', 'caddy'),'/opt/jumpscale8/bin',action=True)
+        self.cuisine.file_copy(self.cuisine.joinpaths(self.GOPATH, 'bin', 'caddy'),'/opt/jumpscale8/bin',action=True)
         self.cuisine.bash.addPath("/opt/jumpscale8/bin" ,action=True)
 
         self.cuisine.systemd.stop("caddy") #will also kill
@@ -99,7 +99,7 @@ class CuisineBuilder(object):
         """
         self.GOPATH
         self.cuisine.golang.get("github.com/Jumpscale/aydostorex", action=True)
-        self.cuisine.file_copy(j.sal.fs.joinPaths(self.GOPATH, 'bin', 'aydostorex'), '/opt/jumpscale8/bin',action=True)
+        self.cuisine.file_copy(self.cuisine.joinpaths(self.GOPATH, 'bin', 'aydostorex'), '/opt/jumpscale8/bin',action=True)
         self.cuisine.bash.addPath("/opt/jumpscale8/bin", action=True)
 
         self.cuisine.systemd.stop("aydostorex") # will also kill
@@ -126,6 +126,110 @@ class CuisineBuilder(object):
         if start:
             cmd = self.cuisine.bash.cmdGetPath("aydostorex")
             self.cuisine.systemd.ensure("aydostorex", '%s --config /etc/aydostorex/config.toml' % cmd)
+
+
+
+    @actionrun(action=True)
+    def agentcontroller(self, start=True):
+        """
+        config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
+        """
+        j.actions.setRunId("installAgentController")
+
+        self.cuisine.pip.upgrade('pip')
+        self.cuisine.pip.install('pytoml')
+        self.cuisine.pip.install('pygo')
+        self.cuisine.golang.install()
+        self.syncthing()
+        self.agent()
+        self.agentcontroller()
+
+        if start:
+            self._startAgent()
+            self._startAgentController()
+
+    @actionrun(action=True)
+    def syncthing(self):
+        appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "syncthing")
+        GOPATH = self.cuisine.bash.environGet('GOPATH')
+
+        url = "git@github.com:syncthing/syncthing.git"
+        dest = self.cuisine.git.pullRepo(url, dest='%s/src/github.com/syncthing/syncthing' % GOPATH)
+        self.cuisine.run('cd %s && godep restore' % dest, profile=True)
+        self.cuisine.run("cd %s && ./build.sh noupgrade" % dest, profile=True)
+        self.cuisine.dir_ensure(appbase, recursive=True)
+        self.cuisine.file_copy(self.cuisine.joinpaths(dest, 'syncthing'), self.cuisine.joinpaths(GOPATH, 'bin'), recursive=True)
+        self.cuisine.file_copy(self.cuisine.joinpaths(GOPATH, 'bin', 'syncthing'), appbase, recursive=True)
+
+    @actionrun(action=True)
+    def agent(self,start=True):
+        GOPATH = self.cuisine.bash.environGet('GOPATH')
+        appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "agent8")
+        self.cuisine.dir_ensure(appbase, recursive=True)
+
+        url = "github.com/Jumpscale/agent2"
+        self.cuisine.golang.get(url)
+        dest = self.cuisine.joinpaths(GOPATH, 'src/github.com/Jumpscale/agent2')
+
+        agent2_dest = self.cuisine.joinpaths(appbase, "agent8")
+        syncthing_dest = self.cuisine.joinpaths(appbase, "syncthing")
+        self.cuisine.file_copy(self.cuisine.joinpaths(GOPATH, 'bin', "agent2"), agent2_dest)
+        self.cuisine.file_copy(self.cuisine.joinpaths(GOPATH, 'bin', "syncthing"), syncthing_dest)
+
+        # link extensions
+        extdir = self.cuisine.joinpaths(appbase, "extensions")
+        self.cuisine.dir_remove(extdir)
+        self.cuisine.file_link("%s/extensions" % dest, extdir)
+
+        # manipulate config file
+        cfgfile = '%s/agent.toml' % appbase
+        self.cuisine.file_copy("%s/agent.toml" % dest, cfgfile)
+
+        self.cuisine.file_copy("%s/conf" % dest, self.cuisine.joinpaths(appbase, "conf"), recursive=True )
+
+        if start:
+            self._startAgent()
+
+    @actionrun(action=True)
+    def agentcontroller(self):
+        GOPATH = self.cuisine.bash.environGet('GOPATH')
+        appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "agentcontroller8")
+        self.cuisine.dir_ensure(appbase, recursive=True)
+
+        url = "github.com/Jumpscale/agentcontroller2"
+        self.cuisine.golang.get(url)
+        dest = self.cuisine.joinpaths(GOPATH, 'src/github.com/Jumpscale/agentcontroller2')
+
+        destfile = self.cuisine.joinpaths(appbase, "agentcontroller8")
+        self.cuisine.file_copy(self.cuisine.joinpaths(GOPATH, 'bin', "agentcontroller2"), destfile)
+
+        cfgfile = '%s/agentcontroller.toml' % appbase
+        self.cuisine.file_copy("%s/agentcontroller.toml" % dest, cfgfile)
+
+        extdir = self.cuisine.joinpaths(appbase, "extensions")
+        self.cuisine.dir_remove(extdir)
+        self.cuisine.dir_ensure(extdir)
+        self.cuisine.file_link("%s/extensions" % dest, extdir)
+
+        cfg = j.data.serializer.toml.loads(self.cuisine.file_read(cfgfile))
+        cfg['jumpscripts']['python_path'] = "%s:%s" % (extdir, j.dirs.jsLibDir)
+        content = j.data.serializer.toml.dumps(cfg)
+        self.cuisine.file_write(cfgfile, content)
+
+    @actionrun(action=True)
+    def _startAgent(self):
+        appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "agent8")
+        cfgfile_agent = self.cuisine.joinpaths(appbase, "agent.toml")
+        j.sal.nettools.waitConnectionTest("127.0.0.1", 8966, timeout=2)
+        print("connection test ok to agentcontroller")
+        self.cuisine.tmux.executeInScreen("main", screenname="agent", cmd="./agent8 -c %s" % cfgfile_agent, wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
+
+    @actionrun(action=True)
+    def _startAgentController(self):
+        appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "agentcontroller8")
+        cfgfile_ac = self.cuisine.joinpaths(appbase, "agentcontroller.toml")
+        self.cuisine.tmux.executeInScreen("main", screenname="ac", cmd="./agentcontroller8 -c %s" % cfgfile_ac, wait=0, cwd=appbase, env=None, user='root', tmuxuser=None)
+
 
     @actionrun(action=True)
     def etcd(self,start=True):
@@ -182,6 +286,7 @@ class CuisineBuilder(object):
         #move action
         C="""
         set -ex
+        mkdir -p /opt/jumpscale8/bin/
         cp /tmp/build/redis/redis-3.0.6/src/redis-server /opt/jumpscale8/bin/
         cp /tmp/build/redis/redis-3.0.6/src/redis-cli /opt/jumpscale8/bin/
 
@@ -230,14 +335,15 @@ class CuisineBuilder(object):
             self.cuisine.tmux.executeInScreen("main", screenname="mongodb", cmd="mongod --dbpath /optvar/data/db", user='root')
 
 
-    def all(self):
+    def all(self,start=False):
         self.cuisine.installerdevelop.pip()
         self.cuisine.installerdevelop.python()
         self.cuisine.installerdevelop.jumpscale8()
-        self.redis(start=False)
-        self.etcd(start=False)
-        self.caddy(start=False)
-        self.skydns(start=False)
+        self.redis(start=start)
+        self.agentcontroller(start=start)
+        self.etcd(start=start)
+        self.caddy(start=start)
+        self.skydns(start=start)
 
 
     def vulcand(self):

@@ -12,32 +12,36 @@ class MyFSEventHandler(FileSystemEventHandler):
             # j.tools.debug.syncCode()
         else:
             changedfile = event.src_path
-            for node in j.tools.debug.nodes:
-                sep = "jumpscale_core8/lib/JumpScale/"
-                sep_cmds = "jumpscale_core8/shellcmds/"
-                if changedfile.find(sep) != -1:
-                    dest0 = changedfile.split(sep)[1]
-                    dest = "/optrw/jumpscale8/lib/JumpScale/%s" % (dest0)
-                elif changedfile.find(sep_cmds) != -1:
-                    dest0 = changedfile.split(sep_cmds)[1]
-                    dest = "/optrw/jumpscale8/bin/%s" % (dest0)
-                elif changedfile.find("/.git/") != -1:
-                    return
-                elif changedfile.find("/__pycache__/") != -1:
-                    return
-                elif j.do.getBaseName(changedfile) in ["InstallTools.py", "ExtraTools.py"]:
-                    base = j.do.getBaseName(changedfile)
-                    dest = "/optrw/jumpscale8/lib/JumpScale/%s" % (base)
+            for node in j.tools.develop.nodes:
+                if node.cuisine.isJS8Sandbox:
+                    sep = "jumpscale_core8/lib/JumpScale/"
+                    sep_cmds = "jumpscale_core8/shellcmds/"
+                    if changedfile.find(sep) != -1:
+                        dest0 = changedfile.split(sep)[1]
+                        dest = "/opt/jumpscale8/lib/JumpScale/%s" % (dest0)
+                    elif changedfile.find(sep_cmds) != -1:
+                        dest0 = changedfile.split(sep_cmds)[1]
+                        dest = "/opt/jumpscale8/bin/%s" % (dest0)
+                    elif changedfile.find("/.git/") != -1:
+                        return
+                    elif changedfile.find("/__pycache__/") != -1:
+                        return
+                    elif j.do.getBaseName(changedfile) in ["InstallTools.py", "ExtraTools.py"]:
+                        base = j.do.getBaseName(changedfile)
+                        dest = "/opt/jumpscale8/lib/JumpScale/%s" % (base)
+                    else:
+                        destpart = changedfile.split("jumpscale/", 1)[-1]
+                        dest = "/opt/code/%s" % destpart
                 else:
-                    destpart = changedfile.split("jumpscale/", 1)[-1]
-                    dest = "/optrw/code/%s" % destpart
-
+                    destpart = changedfile.split("code/", 1)[-1]
+                    dest = "/opt/code/%s" % destpart
+                    
                 print("copy: %s %s:%s" % (changedfile, node, dest))
                 try:
                     node.ftpclient.put(changedfile, dest)
                 except Exception as e:
                     print(e)
-                    j.tools.debug.syncCode()
+                    j.tools.develop.syncCode()
 
 
     def on_moved(self, event):
@@ -51,8 +55,6 @@ class MyFSEventHandler(FileSystemEventHandler):
 
     def on_modified(self, event):
         self.catch_all_handler(event)
-
-
 
 class DebugSSHNode():
 
@@ -129,7 +131,7 @@ class DevelopToolsFactory():
         js 'j.tools.debug.init("ovh4,ovh3")'
         js 'j.tools.debug.installJSSandbox(rw=True)' #will install overlay sandbox wich can be editted
         js 'j.tools.debug.syncCode(True)'
-        if you now go onto e.g. ovh4 you will see on /optrw/... all changes reflected which you make locally
+        if you now go onto e.g. ovh4 you will see on /opt/... all changes reflected which you make locally
 
         example output:
         ```
@@ -144,7 +146,7 @@ class DevelopToolsFactory():
 
         Select Nr, use comma separation if more e.g. "1,4", * is all, 0 is None: 2,5
 
-        rsync  -rlptgo --partial --exclude '*.egg-info*/' --exclude '*.dist-info*/' --exclude '*__pycache__*/' --exclude '*.git*/' --exclude '*.egg-info*' --exclude '*.pyc' --exclude '*.bak' --exclude '*__pycache__*'  -e 'ssh -o StrictHostKeyChecking=no -p 22' '/Users/despiegk/opt/code/github/jumpscale/dockers/' 'root@ovh4:/optrw/code/dockers/'
+        rsync  -rlptgo --partial --exclude '*.egg-info*/' --exclude '*.dist-info*/' --exclude '*__pycache__*/' --exclude '*.git*/' --exclude '*.egg-info*' --exclude '*.pyc' --exclude '*.bak' --exclude '*__pycache__*'  -e 'ssh -o StrictHostKeyChecking=no -p 22' '/Users/despiegk/opt/code/github/jumpscale/dockers/' 'root@ovh4:/opt/code/dockers/'
         ... some more rsync commands
 
         monitor:/Users/despiegk/opt/code/github/jumpscale/dockers
@@ -152,7 +154,7 @@ class DevelopToolsFactory():
 
         #if you change a file:
 
-        copy: /Users/despiegk/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/debug/Debug.py debugnode:ovh4:/optrw/jumpscale8/lib/JumpScale/tools/debug/Debug.py
+        copy: /Users/despiegk/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/debug/Debug.py debugnode:ovh4:/opt/jumpscale8/lib/JumpScale/tools/debug/Debug.py
 
         ```
 
@@ -190,12 +192,11 @@ class DevelopToolsFactory():
                 self._nodes.append(DebugSSHNode(addr, sshport))
         return self._nodes
 
-    def installJSSandbox(self, rw=False,resetstate=False):
+    def jumpscale8sb(self, rw=False,synclocalcode=False,monitor=False,resetstate=False):
         """
         install jumpscale, will be done as sandbox over fuse layer for linux
-        otherwise will try to install jumpscale inside OS
 
-        @input rw, if True will put overlay filesystem on top of /opt -> /optrw which will allow you to manipulate/debug the install
+        @input rw, if True will put overlay filesystem on top of /opt -> /opt which will allow you to manipulate/debug the install
         @input synclocalcode, sync the local github code to the node (jumpscale) (only when in rw mode)
         @input reset, remove old code (only used when rw mode)
         @input monitor detect local changes & sync (only used when rw mode)
@@ -203,14 +204,39 @@ class DevelopToolsFactory():
 
         for node in self.nodes:
             node.cuisine.installer.base()
-            node.cuisine.installer.jumpscale(rw=rw,reset=resetstate)           
+            node.cuisine.installer.jumpscale8(rw=rw,reset=resetstate)
 
+        if synclocalcode:
+            self.syncCode()
+
+        if monitor:
+            self.monitor
+
+    def jumpscale8develop(self, rw=False,resetstate=False):
+        """
+        install jumpscale, install in development mode
+
+        @input rw, if True will put overlay filesystem on top of /opt -> /opt which will allow you to manipulate/debug the install
+        @input synclocalcode, sync the local github code to the node (jumpscale) (only when in rw mode)
+        @input reset, remove old code (only used when rw mode)
+        @input monitor detect local changes & sync (only used when rw mode)
+        """
+
+        for node in self.nodes:
+            node.cuisine.installer.base()
+            node.cuisine.installerdevelop.jumpscale8()
+
+        if synclocalcode:
+            self.syncCode()
+
+        if monitor:
+            self.monitor
 
     def resetState(self):
         j.actions.reset()
 
 
-    def syncCode(self, reset=False, ask=False,monitor=False,rsyncdelete=False):
+    def syncCode(self, ask=False,monitor=False,rsyncdelete=False,reset=False):
         """
         sync all code to the remote destinations
 
@@ -227,35 +253,44 @@ class DevelopToolsFactory():
 
 
         if reset:
-            self.overlaySandbox()
+            raise RuntimeError("not implemented")            
 
         codepaths = j.core.db.get("debug.codepaths").decode().split(",")
         for source in codepaths:
             destpart = source.split("jumpscale/", 1)[-1]
             for node in self.nodes:
                 if node.port != 0:
-                    dest = "root@%s:/optrw/code/%s" % (node.addr, destpart)
 
-                    if destpart == "jumpscale_core8":
-                        dest = "root@%s:/optrw/jumpscale8/lib/JumpScale/" % node.addr
+                    if not node.cuisine.isJS8Sandbox:
+                        #non sandboxed mode, need to sync to \
+                        dest="root@%s:/opt/code/%s"%(node.addr, source.split("code/", 1)[1])
+                    else:
+                        dest = "root@%s:/opt/code/%s" % (node.addr, destpart)
+
+                    if destpart == "jumpscale_core8" and node.cuisine.isJS8Sandbox:
+                        dest = "root@%s:/opt/jumpscale8/lib/JumpScale/" % node.addr
                         source2 = source + "/lib/JumpScale/"
+
                         j.do.copyTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True,rsyncdelete=rsyncdelete)
 
                         source2 = source + "/install/InstallTools.py"
-                        dest = "root@%s:/optrw/jumpscale8/lib/JumpScale/InstallTools.py" % node.addr
+                        dest = "root@%s:/opt/jumpscale8/lib/JumpScale/InstallTools.py" % node.addr
                         j.do.copyTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=False)
 
                         source2 = source + "/install/ExtraTools.py"
-                        dest = "root@%s:/optrw/jumpscale8/lib/JumpScale/ExtraTools.py" % node.addr
+                        dest = "root@%s:/opt/jumpscale8/lib/JumpScale/ExtraTools.py" % node.addr
                         j.do.copyTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=False)
 
                     else:
-                        node.cuisine.run("mkdir -p /optrw/code/%s" % destpart)
-                        j.do.copyTree(source, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True,rsyncdelete=rsyncdelete)
+                        node.cuisine.run("mkdir -p /opt/code/%s" % source.split("code/", 1)[1])
+                        if node.cuisine.isJS8Sandbox:
+                            rsyncdelete2=True
+                        else:
+                            rsyncdelete2=rsyncdelete
+                        j.do.copyTree(source, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True,rsyncdelete=rsyncdelete2)
                 else:
-                    # symlink into codetree
-                    import ipdb
-                    ipdb.set_trace()
+                    raise RuntimeError("only ssh nodes supported")
+
         if monitor:
             self.monitorChanges()
 

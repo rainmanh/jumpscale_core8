@@ -206,6 +206,7 @@ from CuisineGroup import CuisineGroup
 from ActionDecorator import ActionDecorator
 from CuisineGolang import CuisineGolang
 from CuisineFW import CuisineFW
+from CuisineDocker import CuisineDocker
 
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
@@ -243,6 +244,8 @@ class OurCuisine():
         self._fw=None
         self.cuisine=self
         self._fqn=""
+        self._docker=None
+        self._js8sb=None
         if self.executor.type=="ssh":
             self.runid="cuisine:%s:%s"%(self.executor.addr,self.executor.port)
         else:
@@ -333,6 +336,13 @@ class OurCuisine():
         return self._ns
 
     @property
+    def docker(self):
+        if self._docker==None:
+            self._docker=CuisineDocker(self.executor,self)
+        return self._docker
+
+
+    @property
     def ssh(self):
         if self._ssh==None:
             self._ssh=CuisineSSH(self.executor,self)
@@ -381,6 +391,12 @@ class OurCuisine():
             self._git=CuisineGit(self.executor,self)
         return self._git
 
+    @property
+    def isJS8Sandbox(self):
+        if self._js8sb==None:
+            #@todo need to implement when sandbox, what is the right check?
+            self._js8sb=False
+        return self._js8sb
 
     # =============================================================================
     #
@@ -847,6 +863,16 @@ class OurCuisine():
     # =============================================================================
 
     @actionrun(action=False,force=False)
+    def joinpaths(self, *args):
+        path = ""
+        seperator = "\\"
+        if self.isMac or self.isUbuntu or self.isArch:
+            seperator = "/"
+        for arg in args:
+            path += "%s%s" %(seperator, arg)
+        return path
+
+    @actionrun(action=False,force=False)
     def dir_attribs(self,location, mode=None, owner=None, group=None, recursive=False):
         """Updates the mode/owner/group for the given remote directory."""
         print ("set dir attributes:%s"%location)
@@ -887,6 +913,9 @@ class OurCuisine():
             self.dir_attribs(location, owner=owner, group=group, mode=mode, recursive=recursive)
 
     createDir=dir_ensure
+
+
+
 
     @actionrun(action=False,force=False)
     def fs_find(self,path,recursive=True,pattern="",findstatement="",type="",contentsearch="",extendinfo=False):

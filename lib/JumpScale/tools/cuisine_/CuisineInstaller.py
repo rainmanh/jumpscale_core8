@@ -281,7 +281,6 @@ class CuisineInstaller(object):
 
         self.cuisine.systemd_ensure("ap",cmd2,descr="accesspoint for local admin",systemdunit=START1)
 
-
     @actionrun(action=True)
     def clean(self):
         C = """
@@ -301,7 +300,7 @@ class CuisineInstaller(object):
         self.cuisine.run_script(C)
 
     @actionrun(action=True)
-    def jumpscale(self, rw=False,reset=False):
+    def jumpscale8(self, rw=False,reset=False):
         """
         install jumpscale, will be done as sandbox
         otherwise will try to install jumpscale inside OS
@@ -343,7 +342,6 @@ class CuisineInstaller(object):
         else:
             C += "js8 init"
         cuisine.run_script(C,action=True)
-
 
     @actionrun(action=True)
     def pip(self):
@@ -651,10 +649,15 @@ class CuisineInstaller(object):
         j.actions.run()
 
     @actionrun(action=True)
-    def docker():
-        C="""
-        wget -qO- https://get.docker.com/ | sh
-        """
+    def docker(self):
+        if self.cuisine.isUbuntu:
+            C="""
+            wget -qO- https://get.docker.com/ | sh
+            """
+            self.cuisine.run_script(C)
+        if self.cuisine.isArch:
+            self.cuisine.package.install("docker")
+            self.cuisine.package.install("docker-compose")
 
     def __str__(self):
         return "cuisine:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))

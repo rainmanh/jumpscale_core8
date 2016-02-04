@@ -66,7 +66,7 @@ class CuisinePackage():
             else:
                 return self._apt_get("upgrade")
         elif self.cuisine.isArch:
-            self.cuisine.run("pacman -Syu;pacman -Sc")
+            self.cuisine.run("pacman -Syu --noconfirm;pacman -Sc --noconfirm")
         else:
             raise RuntimeError("could not install:%s, platform not supported"%package)
 

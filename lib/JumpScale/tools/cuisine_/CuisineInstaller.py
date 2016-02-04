@@ -282,26 +282,8 @@ class CuisineInstaller(object):
         self.cuisine.systemd_ensure("ap",cmd2,descr="accesspoint for local admin",systemdunit=START1)
 
     @actionrun(action=True)
-    def jumpscale(self, rw=False,reset=False):
-        """
-        install jumpscale, will be done as sandbox
-        otherwise will try to install jumpscale inside OS
-
-        @input rw, if True will put overlay filesystem on top of /opt -> /optrw which will allow you to manipulate/debug the install
-        @input synclocalcode, sync the local github code to the node (jumpscale) (only when in rw mode)
-        @input reset, remove old code (only used when rw mode)
-        @input monitor detect local changes & sync (only used when rw mode)
-        """
-
-        if reset:
-            j.actions.reset("installer")
-
-        def cleanNode(cuisineid):
-            """
-            make node clean e.g. remove redis, install tmux, stop js8, unmount js8
-            """
-            cuisine=j.tools.cuisine.get(cuisineid)
-            C = """
+    def clean(self):
+        C = """
             set +ex
             pkill redis-server #will now kill too many redis'es, should only kill the one not in docker
             pkill redis #will now kill too many redis'es, should only kill the one not in docker
@@ -315,14 +297,28 @@ class CuisineInstaller(object):
             umount -f /opt
             apt-get install tmux fuse -y
             """
-            cuisine.run_script(C)
+        self.cuisine.run_script(C)
 
-        def downloadjs8bin(cuisineid):
-            """
-            install jumpscale8 sandbox in read or readwrite mode
-            """
-            cuisine=j.tools.cuisine.get(cuisineid)
-            C = """
+    @actionrun(action=True)
+    def jumpscale8(self, rw=False,reset=False):
+        """
+        install jumpscale, will be done as sandbox
+        otherwise will try to install jumpscale inside OS
+
+        @input rw, if True will put overlay filesystem on top of /opt -> /optrw which will allow you to manipulate/debug the install
+        @input synclocalcode, sync the local github code to the node (jumpscale) (only when in rw mode)
+        @input reset, remove old code (only used when rw mode)
+        @input monitor detect local changes & sync (only used when rw mode)
+        """
+
+        self.clean()
+        self.base()
+
+        """
+        install jumpscale8 sandbox in read or readwrite mode
+        """
+        cuisine=j.tools.cuisine.get(cuisineid)
+        C = """
             set -ex
             cd /usr/bin
             rm -f js8
@@ -331,31 +327,21 @@ class CuisineInstaller(object):
             cd /
             mkdir -p /opt
             """
-            cuisine.run_script(C)
+        cuisine.run_script(C,action=True)
 
-        def installJS8SB(cuisineid,rw=False):
-            """
-            install jumpscale8 sandbox in read or readwrite mode
-            """
-            cuisine=j.tools.cuisine.get(cuisineid)
-            C = """
+        """
+        install jumpscale8 sandbox in read or readwrite mode
+        """
+        cuisine=j.tools.cuisine.get(cuisineid)
+        C = """
             set -ex
             cd /usr/bin
             """
-            if rw:
-                C += "js8 -rw init"
-            else:
-                C += "js8 init"
-            cuisine.run_script(C)
-
-        cleanNode(self.cuisine.id)
-        downloadjs8bin(self.cuisine.id)
-        installJS8SB(self.cuisine.id)
-        # j.actions.add(cleanNode, actionRecover=None, args={"cuisineid":self.cuisine.id}, die=True, stdOutput=True, errorOutput=True, retry=1,deps=None)
-        # j.actions.add(downloadjs8bin, actionRecover=None, args={"cuisineid":self.cuisine.id}, die=True, stdOutput=True, errorOutput=True, retry=3,deps=None)
-        # j.actions.add(installJS8SB, actionRecover=None, args={"cuisineid":self.cuisine.id,'rw':rw}, die=True, stdOutput=True, errorOutput=True, retry=1,deps=None)
-        # j.actions.run()
-
+        if rw:
+            C += "js8 -rw init"
+        else:
+            C += "js8 init"
+        cuisine.run_script(C,action=True)
 
     @actionrun(action=True)
     def pip(self):
@@ -370,24 +356,8 @@ class CuisineInstaller(object):
         self.cuisine.run("cd /tmp;python3.5 get-pip.py")
 
     @actionrun(action=True)
-    def pythonDevelop(self):
-        C="""
-        libpython3.5-dev
-        python3.5-dev
-        libffi-dev
-        gcc
-        build-essential
-        autoconf
-        libtool
-        pkg-config
-        libpq-dev
-        libsqlite3-dev
-        #net-tools
-        """
-        self.cuisine.package.multiInstall(C)
-
-    @actionrun(action=True)
     def base(self):
+        self.clean()
         C="""
         sudo
         wget
@@ -398,13 +368,9 @@ class CuisineInstaller(object):
         net-tools
         """
         self.cuisine.package.multiInstall(C)
-
-    #@todo (*1*) installer for golang
-    #@todo (*1*) installer for caddy
-    #@todo (*1*) installer for etcd
-    #@todo (*1*) installer for skydns
-    #@todo (*1*) installer for aydostor
-
+        self.cuisine.package.mdupdate()
+        self.cuisine.package.upgrade()
+        self.cuisine.package.clean()
 
     @actionrun(action=True)
     def webProxyServer(self):
@@ -682,40 +648,16 @@ class CuisineInstaller(object):
 
         j.actions.run()
 
-
-    def mongodb(self, start=True):
-        j.actions.setRunId("installMongo")
-        rc, out = self.cuisine.run('which mongod', die=False)
-        if rc== 0:
-            print('mongodb is already installed')
-            return
-
-        appbase = '/usr/local/bin/'
-
-        url=None
+    @actionrun(action=True)
+    def docker(self):
         if self.cuisine.isUbuntu:
-            url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
-        elif self.cuisine.isArch:
-            self.cuisine.package.install("mongodb")
-        elif self.cuisine.isMac: #@todo better platform mgmt
-            url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
-        else:
-            raise RuntimeError("unsupported platform")
-            return
-
-        if url!=None:
-            self.cuisine.file_download(url, to=j.dirs.tmpDir,overwrite=False,expand=True)
-            tarpath = self.cuisine.fs_find(j.dirs.tmpDir,recursive=True,pattern="*mongodb*.tgz",type='f')[0]
-            self.cuisine.file_expand(tarpath,j.dirs.tmpDir)
-            extracted = self.cuisine.fs_find(j.dirs.tmpDir,recursive=True,pattern="*mongodb*",type='d')[0]
-            for file in self.cuisine.fs_find('%s/bin/' %extracted,type='f'):
-                self.cuisine.file_copy(file,appbase)
-
-        self.cuisine.dir_ensure('/optvar/data/db')
-
-        if start:
-            self.cuisine.tmux.executeInScreen("main", screenname="mongodb", cmd="mongod --dbpath /optvar/data/db", user='root')
-
+            C="""
+            wget -qO- https://get.docker.com/ | sh
+            """
+            self.cuisine.run_script(C)
+        if self.cuisine.isArch:
+            self.cuisine.package.install("docker")
+            self.cuisine.package.install("docker-compose")
 
     def __str__(self):
         return "cuisine:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))

@@ -306,28 +306,28 @@ class CuisineBuilder(object):
         rc, out = self.cuisine.run('which mongod', die=False)
         if rc== 0:
             print('mongodb is already installed')
-            return
-
-        appbase = '/usr/local/bin/'
-
-        url=None
-        if self.cuisine.isUbuntu:
-            url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
-        elif self.cuisine.isArch:
-            self.cuisine.package.install("mongodb")
-        elif self.cuisine.isMac: #@todo better platform mgmt
-            url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
         else:
-            raise RuntimeError("unsupported platform")
-            return
 
-        if url!=None:
-            self.cuisine.file_download(url, to=j.dirs.tmpDir,overwrite=False,expand=True)
-            tarpath = self.cuisine.fs_find(j.dirs.tmpDir,recursive=True,pattern="*mongodb*.tgz",type='f')[0]
-            self.cuisine.file_expand(tarpath,j.dirs.tmpDir)
-            extracted = self.cuisine.fs_find(j.dirs.tmpDir,recursive=True,pattern="*mongodb*",type='d')[0]
-            for file in self.cuisine.fs_find('%s/bin/' %extracted,type='f'):
-                self.cuisine.file_copy(file,appbase)
+            appbase = '/usr/local/bin/'
+
+            url=None
+            if self.cuisine.isUbuntu:
+                url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
+            elif self.cuisine.isArch:
+                self.cuisine.package.install("mongodb")
+            elif self.cuisine.isMac: #@todo better platform mgmt
+                url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
+            else:
+                raise RuntimeError("unsupported platform")
+                return
+
+            if url!=None:
+                self.cuisine.file_download(url, to=j.dirs.tmpDir,overwrite=False,expand=True)
+                tarpath = self.cuisine.fs_find(j.dirs.tmpDir,recursive=True,pattern="*mongodb*.tgz",type='f')[0]
+                self.cuisine.file_expand(tarpath,j.dirs.tmpDir)
+                extracted = self.cuisine.fs_find(j.dirs.tmpDir,recursive=True,pattern="*mongodb*",type='d')[0]
+                for file in self.cuisine.fs_find('%s/bin/' %extracted,type='f'):
+                    self.cuisine.file_copy(file,appbase)
 
         self.cuisine.dir_ensure('/optvar/data/db')
 

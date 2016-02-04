@@ -56,7 +56,7 @@ class CuisinePortal(object):
         # Flask
         # Flask-Bootstrap
         # Flask-PyMongo
-        gevent==1.1rc2
+        #gevent==1.1rc2  #DO NOT INSTALL IS PART OF PYTHON DEVELOP
         # gitdb
         gitlab3
         # GitPython

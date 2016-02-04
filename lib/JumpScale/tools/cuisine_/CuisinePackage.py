@@ -49,7 +49,7 @@ class CuisinePackage():
         update metadata of system
         """
         if self.cuisine.isUbuntu:
-            self.cuisine.run("apt-get update -f")
+            self.cuisine.run("apt-get update")
         elif self.cuisine.isMac:
             self.cuisine.run("brew update")
         elif self.cuisine.isArch:
@@ -127,7 +127,9 @@ class CuisinePackage():
                 continue
             if dep.strip()[0]=="#":
                 continue
-            dep=dep.strip()            
+            dep=dep.strip()    
+            if dep==None or dep=="":
+                continue        
             self.install(dep)
 
     @actionrun()
@@ -176,9 +178,10 @@ class CuisinePackage():
 
         """
         if self.cuisine.isUbuntu:
-            if type(package) in (list, tuple):
-                package = " ".join(package)
-            return self._apt_get("-y --purge remove %s" % package)
+            if package!=None:
+                return self._apt_get("-y --purge remove %s" % package)
+            else:
+                self.cuisine.run("apt-get autoremove -y")
         elif self.cuisine.isArch:
             cmd="pacman -Sc"
             if agressive:

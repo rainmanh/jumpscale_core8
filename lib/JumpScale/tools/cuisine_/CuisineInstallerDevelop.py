@@ -57,6 +57,7 @@ class CuisineInstallerDevelop():
         python3.5-dev
         libffi-dev
         gcc
+        make
         build-essential
         autoconf
         libtool
@@ -72,6 +73,8 @@ class CuisineInstallerDevelop():
         self.cuisine.installer.base()
         self.python()
         cmd="""
+            #important remove olf pkg_resources, will conflict with new pip
+            rm -rf /usr/lib/python3/dist-packages/pkg_resources
             cd /tmp
             rm -rf get-pip.py
             wget https://bootstrap.pypa.io/get-pip.py
@@ -83,23 +86,11 @@ class CuisineInstallerDevelop():
     @actionrun(action=True)
     def jumpscale8(self):
 
-        self.pip(action=True)
+        #make sure base is done & env is clean
+        self.cuisine.installer.base()
 
-        C = """
-        set +ex
-        pskill redis-server #will now kill too many redis'es, should only kill the one not in docker
-        pskill redis #will now kill too many redis'es, should only kill the one not in docker
-        umount -fl /optrw
-        # apt-get remove redis-server -y
-        rm -rf /overlay/js_upper
-        rm -rf /overlay/js_work
-        rm -rf /optrw
-        js8 stop
-        pskill js8
-        umount -f /opt
-        apt-get install tmux fuse -y
-        """
-        self.cuisine.run_script(C,action=True)
+        self.python()
+        self.pip(action=True)
 
         #install brotli
         C="""
@@ -131,7 +122,7 @@ class CuisineInstallerDevelop():
 
         msgpack-python
         redis
-        credis
+        #credis
         aioredis
 
 
@@ -182,7 +173,9 @@ class CuisineInstallerDevelop():
         """
         self.cuisine.run_script(C,action=True)
 
-        if self.cuisine.isUbuntu:
+        self.cuisine.builder.redis()
+
+        if self.cuisine.isUbuntu or self.cuisine.isArch:
             self.cuisine.run('cd /tmp;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh',action=True)
         elif self.cuisine.isMac:
             cmd = """sudo mkdir -p /opt
@@ -206,12 +199,9 @@ class CuisineInstallerDevelop():
         self.executor.env["GOROOT"] = self.executor.env.get("GOROOT", '/usr/lib/go/')
         self.executor.env["GOPATH"] = self.executor.env.get("GOPATH", '/opt/go')
 
-        def upgradePip():
-            self.cuisine.run("pip3 install --upgrade pip")
+        self.cuisine.installer.base()
 
-        def pythonLibInstall():
-            self.cuisine.run("pip3 install pytoml")
-
+        self.cuisine.run("pip3 install pytoml")
 
 
         def syncthing_build(appbase):

@@ -173,7 +173,7 @@ class Container(SALObject):
                 keys.add(file.text())
 
         if sshpubkey is not None and sshpubkey != '' and j.data.types.string.check(sshpubkey):
-            key.add(sshpubkey)
+            keys.add(sshpubkey)
 
         if keyname is not None and keyname != '':
             if not j.do.checkSSHAgentAvailable:

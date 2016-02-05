@@ -129,7 +129,7 @@ class CuisineBuilder(object):
 
 
 
-    @actionrun(action=True)
+    # @actionrun(action=True)
     def agentcontroller(self, start=True):
         """
         config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
@@ -148,7 +148,7 @@ class CuisineBuilder(object):
             self._startAgent()
             self._startAgentController()
 
-    @actionrun(action=True)
+    # @actionrun(action=True)
     def syncthing(self):
         appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "syncthing")
         GOPATH = self.cuisine.bash.environGet('GOPATH')
@@ -161,8 +161,9 @@ class CuisineBuilder(object):
         self.cuisine.file_copy(self.cuisine.joinpaths(dest, 'syncthing'), self.cuisine.joinpaths(GOPATH, 'bin'), recursive=True)
         self.cuisine.file_copy(self.cuisine.joinpaths(GOPATH, 'bin', 'syncthing'), appbase, recursive=True)
 
-    @actionrun(action=True)
+    # @actionrun(action=True)
     def agent(self,start=True):
+        self.syncthing()
         GOPATH = self.cuisine.bash.environGet('GOPATH')
         appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "agent8")
         self.cuisine.dir_ensure(appbase, recursive=True)
@@ -182,16 +183,19 @@ class CuisineBuilder(object):
         self.cuisine.file_link("%s/extensions" % dest, extdir)
 
         # manipulate config file
-        cfgfile = '%s/agent.toml' % appbase
-        self.cuisine.file_copy("%s/agent.toml" % dest, cfgfile)
+        C=self.cuisine.file_read("%s/agent.toml"%dest)
+        C=C.replace("$base",c.dir_paths["base"])
+        C=C.replace("$tmpdir",c.dir_paths["tmpDir"])
+        
+        self.cuisine.file_write(cfgfile,C)
 
         self.cuisine.file_copy("%s/conf" % dest, self.cuisine.joinpaths(appbase, "conf"), recursive=True )
 
         if start:
             self._startAgent()
 
-    @actionrun(action=True)
-    def agentcontroller(self):
+    # @actionrun(action=True)
+    def agentcontroller(self,start=False):
         GOPATH = self.cuisine.bash.environGet('GOPATH')
         appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "agentcontroller8")
         self.cuisine.dir_ensure(appbase, recursive=True)
@@ -204,17 +208,28 @@ class CuisineBuilder(object):
         self.cuisine.file_copy(self.cuisine.joinpaths(GOPATH, 'bin', "agentcontroller2"), destfile)
 
         cfgfile = '%s/agentcontroller.toml' % appbase
-        self.cuisine.file_copy("%s/agentcontroller.toml" % dest, cfgfile)
+
+        C=self.cuisine.file_read("%s/agentcontroller.toml"%dest)
+        C=C.replace("$base",c.dir_paths["base"])
+        C=C.replace("$tmpdir",c.dir_paths["tmpDir"])
+
+        self.cuisine.file_write(cfgfile,C)
 
         extdir = self.cuisine.joinpaths(appbase, "extensions")
         self.cuisine.dir_remove(extdir)
-        self.cuisine.dir_ensure(extdir)
+        # self.cuisine.dir_ensure(extdir)
         self.cuisine.file_link("%s/extensions" % dest, extdir)
 
         cfg = j.data.serializer.toml.loads(self.cuisine.file_read(cfgfile))
         cfg['jumpscripts']['python_path'] = "%s:%s" % (extdir, j.dirs.jsLibDir)
         content = j.data.serializer.toml.dumps(cfg)
         self.cuisine.file_write(cfgfile, content)
+
+        self.agent()
+
+        if start:
+            self._startAgent()
+            self._startAgentController
 
     @actionrun(action=True)
     def _startAgent(self):

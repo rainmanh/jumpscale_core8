@@ -207,6 +207,7 @@ from ActionDecorator import ActionDecorator
 from CuisineGolang import CuisineGolang
 from CuisineFW import CuisineFW
 from CuisineDocker import CuisineDocker
+from CuisinePortal import CuisinePortal
 
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
@@ -241,16 +242,26 @@ class OurCuisine():
         self._avahi=None
         self._tmux=None
         self._golang=None
+        self._portal = None
         self._fw=None
         self.cuisine=self
         self._fqn=""
         self._docker=None
         self._js8sb=None
+        self._dirs={}
+
         if self.executor.type=="ssh":
             self.runid="cuisine:%s:%s"%(self.executor.addr,self.executor.port)
         else:
             self.runid="cuisine:local"
         self.done=[]
+
+    @property
+    def portal(self):
+        if self._portal is None:
+            self._portal = CuisinePortal(self.executor, self.cuisine)
+        return self._portal
+
 
     @property
     def package(self):
@@ -397,6 +408,14 @@ class OurCuisine():
             #@todo need to implement when sandbox, what is the right check?
             self._js8sb=False
         return self._js8sb
+
+    @property
+    def dir_paths(self):
+        if self._dirs=={}:
+            out=self.cuisine.run("js 'print(j.data.serializer.json.dumps(j.dirs.__dict__))'",showout=False)
+            self._dirs=j.data.serializer.json.loads(out)
+        return self._dirs
+
 
     # =============================================================================
     #

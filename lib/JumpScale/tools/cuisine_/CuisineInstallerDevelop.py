@@ -1,7 +1,7 @@
 
 from JumpScale import j
 
-from CuisinePortal import CuisinePortal
+
 
 
 
@@ -17,13 +17,7 @@ class CuisineInstallerDevelop():
     def __init__(self,executor,cuisine):
         self.executor=executor
         self.cuisine=cuisine
-        self._portal = None
 
-    @property
-    def portal(self):
-        if self._portal is None:
-            self._portal = CuisinePortal(self.executor, self.cuisine)
-        return self._portal
 
     def python(self):
         C="""
@@ -138,6 +132,8 @@ class CuisineInstallerDevelop():
         pylzma
         ujson
         watchdog
+        pygo
+        minio
         """
         self.cuisine.pip.multiInstall(C,action=True,upgrade=True)
 

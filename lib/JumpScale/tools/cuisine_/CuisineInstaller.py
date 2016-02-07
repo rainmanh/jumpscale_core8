@@ -17,23 +17,23 @@ class CuisineInstaller(object):
         self.executor=executor
         self.cuisine=cuisine
 
-    @actionrun(action=True)
-    def redis(self):
-        defport=6379
-        if self.cuisine.process_tcpport_check(defport,"redis"):
-            print ("no need to install, already there & running")
-            return
+    # @actionrun(action=True)
+    # def redis(self):
+    #     defport=6379
+    #     if self.cuisine.process_tcpport_check(defport,"redis"):
+    #         print ("no need to install, already there & running")
+    #         return
 
-        if self.cuisine.isUbuntu:
-            package="redis-server"
-        else:
-            package="redis"
+    #     if self.cuisine.isUbuntu:
+    #         package="redis-server"
+    #     else:
+    #         package="redis"
 
-        self.cuisine.package.install(package)
-        self.cuisine.package.start(package)
+    #     self.cuisine.package.install(package)
+    #     self.cuisine.package.start(package)
 
-        if self.cuisine.process_tcpport_check(defport,"redis")==False:
-            raise RuntimeError("Could not install redis, port was not running")
+    #     if self.cuisine.process_tcpport_check(defport,"redis")==False:
+    #         raise RuntimeError("Could not install redis, port was not running")
 
     @actionrun(action=True)
     def sshreflector_server(self,reset=False):
@@ -283,21 +283,30 @@ class CuisineInstaller(object):
 
     @actionrun(action=True)
     def clean(self):
-        C = """
-            set +ex
-            pkill redis-server #will now kill too many redis'es, should only kill the one not in docker
-            pkill redis #will now kill too many redis'es, should only kill the one not in docker
-            umount -fl /optrw
-            apt-get remove redis-server -y
-            rm -rf /overlay/js_upper
-            rm -rf /overlay/js_work
-            rm -rf /optrw
-            js8 stop
-            pskill js8
-            umount -f /opt
-            apt-get install tmux fuse -y
-            """
-        self.cuisine.run_script(C)
+        self.cuisine.dir_ensure(self.cuisine.dir_paths["tmpDir"],action=False)
+        if not self.cuisine.isMac:
+            C = """
+                set +ex
+                # pkill redis-server #will now kill too many redis'es, should only kill the one not in docker
+                # pkill redis #will now kill too many redis'es, should only kill the one not in docker
+                umount -fl /optrw
+                apt-get remove redis-server -y
+                rm -rf /overlay/js_upper
+                rm -rf /overlay/js_work
+                rm -rf /optrw
+                js8 stop
+                pskill js8
+                umount -f /opt
+                """
+        else:
+            C = """
+                set +ex
+                js8 stop
+                pskill js8
+                echo "OK"
+                """
+
+        self.cuisine.run_script(C,die=False)
 
     @actionrun(action=True)
     def jumpscale8(self, rw=False,reset=False):
@@ -322,12 +331,23 @@ class CuisineInstaller(object):
             set -ex
             cd /usr/bin
             rm -f js8
+            cd /usr/local/bin
+            rm -f js8
+            """
+        cuisine.run_script(C,action=True)
+
+        if not self.cuisine.isUbuntu:
+            raise RuntimeError("not supported yet")
+
+        C = """
+            cd $tmpDir
             wget https://stor.jumpscale.org/storx/static/js8
             chmod +x js8
             cd /
-            mkdir -p /opt
+            mkdir -p $base
             """
         cuisine.run_script(C,action=True)
+
 
         """
         install jumpscale8 sandbox in read or readwrite mode
@@ -343,30 +363,40 @@ class CuisineInstaller(object):
             C += "js8 init"
         cuisine.run_script(C,action=True)
 
-    @actionrun(action=True)
-    def pip(self):
-        self.base()
-        self.pythonDevelop()
-        cmd="""
-            cd /tmp
-            rm -rf get-pip.py
-            wget https://bootstrap.pypa.io/get-pip.py
-        """
-        self.cuisine.run_script(cmd)
-        self.cuisine.run("cd /tmp;python3.5 get-pip.py")
 
     @actionrun(action=True)
     def base(self):
         self.clean()
-        C="""
-        sudo
+
+        if self.cuisine.isMac:
+            C=""
+        else:
+            C="""
+            sudo
+            net-tools
+            """
+
+        C+="""
         wget
         curl
         git
         openssl
         mc
-        net-tools
+        tmux
         """
+        out=""
+        #make sure all dirs exist
+        for key,item in self.cuisine.dir_paths.items():
+            out+="mkdir -p %s\n"%item
+        self.cuisine.run_script(out)
+
+        if not self.cuisine.isMac:
+            self.package.install("fuse")
+
+        if self.cuisine.isArch:
+            self.package.install("wpa_actiond") #is for wireless auto start capability
+            #systemctl enable netctl-auto@wlan0.service
+
         self.cuisine.package.multiInstall(C)
         self.cuisine.package.mdupdate()
         self.cuisine.package.upgrade()

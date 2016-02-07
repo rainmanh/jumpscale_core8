@@ -48,6 +48,7 @@ class CuisinePackage():
         """
         update metadata of system
         """
+        print ("packages mdupdate")
         if self.cuisine.isUbuntu:
             self.cuisine.run("apt-get update")
         elif self.cuisine.isMac:
@@ -60,6 +61,8 @@ class CuisinePackage():
         """
         upgrades system, distupgrade means ubuntu 14.04 will fo to e.g. 15.04
         """
+        self.mdupdate()
+        print ("packages upgrade")
         if self.cuisine.isUbuntu:
             if distupgrade:
                 return self._apt_get("dist-upgrade")
@@ -67,8 +70,10 @@ class CuisinePackage():
                 return self._apt_get("upgrade")
         elif self.cuisine.isArch:
             self.cuisine.run("pacman -Syu --noconfirm;pacman -Sc --noconfirm")
+        elif self.cuisine.isMac:
+            self.cuisine.run("brew upgrade")
         else:
-            raise RuntimeError("could not install:%s, platform not supported"%package)
+            raise RuntimeError("could not upgrade, platform not supported")
 
     @actionrun(action=True)
     def install(self,package):
@@ -86,7 +91,13 @@ class CuisinePackage():
 
             cmd="pacman -S %s  --noconfirm"%package
 
-        elif self.isMac:
+        elif self.cuisine.isMac:
+
+            rc,out=self.cuisine.run("brew info --json=v1 %s"%package,showout=False,die=False)
+            if rc==0:
+                info=j.data.serializer.json.loads(out)
+                return #means was installed
+
             cmd="brew install %s "%package
 
         else:
@@ -189,6 +200,8 @@ class CuisinePackage():
             self.cuisine.run(cmd)
             if aggressive:
                 self.cuisine.run("pacman -Qdttq",showout=False)
+        elif self.cuisine.isMac:
+            pass
         else:
             raise RuntimeError("could not package clean:%s, platform not supported"%package)                       
 

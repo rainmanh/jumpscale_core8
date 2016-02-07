@@ -18,8 +18,10 @@ class CuisineGolang():
         self.executor=executor
         self.cuisine=cuisine
 
-    @actionrun(action=True)
+    # @actionrun(action=True)
     def install(self):
+        self.cuisine.installer.base()
+        optdir=self.cuisine.dir_paths["optDir"]
         rc, out = self.cuisine.run("which go", die=False,showout=False,action=True)
         if rc > 0:
             if self.cuisine.isMac or self.cuisine.isArch:
@@ -31,19 +33,30 @@ class CuisineGolang():
             else:
                 raise RuntimeError("platform not supported")
         
-        self.cuisine.bash.environSet("GOPATH", '/opt/go')
+        self.cuisine.bash.environSet("GOPATH", '%s/go'%optdir)
 
         self.cuisine.bash.addPath('/usr/local/go/bin')
-        self.cuisine.bash.addPath('/opt/go/bin')
+        self.cuisine.bash.addPath('%s/go/bin'%optdir)
 
-        self.cuisine.createDir("/opt/go/src")
-        self.cuisine.createDir("/opt/go/pkg")
-        self.cuisine.createDir("/opt/go/bin")
+        self.cuisine.createDir("%s/go/src"%optdir)
+        self.cuisine.createDir("%s/go/pkg"%optdir)
+        self.cuisine.createDir("%s/go/bin"%optdir)
 
         print ('GOPATH:', self.cuisine.bash.environ["GOPATH"])
 
         self.get("github.com/tools/godep")
         # self.get("github.com/rcrowley/go-metrics")
+
+
+    @property
+    def GOPATH(self):
+        return self.cuisine.dir_paths["goDir"]
+        # if self._gopath==None:
+        #     # if not "GOPATH" in self.bash.environ:
+        #     #     self.cuisine.installerdevelop.golang()
+        #     # self._gopath=   self.bash.environ["GOPATH"]
+            
+        # return self._gopath
 
 
     @actionrun(action=True)

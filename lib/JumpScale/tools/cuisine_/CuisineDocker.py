@@ -63,12 +63,12 @@ class CuisineDocker():
         CMD ["/usr/sbin/init"]
 
         """
-        self.cuisine.run("rm -rf /tmp/docker;mkdir /tmp/docker")
-        self.cuisine.file_write("/tmp/docker/Dockerfile",C)
+        self.cuisine.run("rm -rf $tmpDir/docker;mkdir $tmpDir/docker")
+        self.cuisine.file_write("$tmpDir/docker/Dockerfile",C)
 
         C="""
         set -ex
-        cd /tmp/docker
+        cd $tmpDir/docker
         docker build -t arch .
         """
         self.cuisine.run_script(C)
@@ -76,12 +76,12 @@ class CuisineDocker():
     def ubuntuBuild(self):
 
 
-        self.cuisine.run("rm -rf /tmp/docker;mkdir /tmp/docker")
-        self.cuisine.file_write("/tmp/docker/Dockerfile",C)
+        self.cuisine.run("rm -rf $tmpDir/docker;mkdir $tmpDir/docker")
+        self.cuisine.file_write("$tmpDir/docker/Dockerfile",C)
 
         C="""
         set -ex
-        cd /tmp/docker
+        cd $tmpDir/docker
         docker build -t arch .
         """
         self.cuisine.run_script(C)        

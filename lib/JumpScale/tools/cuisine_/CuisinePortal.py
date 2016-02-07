@@ -201,7 +201,7 @@ class CuisinePortal(object):
     # j.actions.run()
 
 
-        #cd /usr/local/Cellar/mongodb/3.2.1/bin/;./mongod --dbpath /Users/kristofdespiegeleer1/optvar/mongodb
+        #cd /usr/local/Cellar/mongodb/3.2.1/bin/;./mongod --dbpath /Users/kristofdespiegeleer1$varDir/mongodb
 
 
         #@todo install gridportal as well

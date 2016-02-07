@@ -18,7 +18,7 @@ class CuisineInstallerDevelop():
         self.executor=executor
         self.cuisine=cuisine
 
-
+    @actionrun(action=True)
     def python(self):
         C="""
         libpython3.5-dev
@@ -40,15 +40,18 @@ class CuisineInstallerDevelop():
     def pip(self):
         self.cuisine.installer.base()
         self.python()
-        cmd="""
+        C="""
             #important remove olf pkg_resources, will conflict with new pip
             rm -rf /usr/lib/python3/dist-packages/pkg_resources
-            cd /tmp
+            cd $tmpDir/
             rm -rf get-pip.py
             wget https://bootstrap.pypa.io/get-pip.py
-        """
-        self.cuisine.run_script(cmd)
-        self.cuisine.run("cd /tmp;python3.5 get-pip.py")
+            """
+        C=self.cuisine.args_replace(C)
+        self.cuisine.run_script(C,showout=False)
+        C="cd $tmpDir/;python3.5 get-pip.py"
+        C=self.cuisine.args_replace(C)
+        self.cuisine.run(C)
 
 
     @actionrun(action=True)
@@ -62,26 +65,28 @@ class CuisineInstallerDevelop():
 
         #install brotli
         C="""
-        cd /tmp
+        cd $tmpDir/
         sudo rm -rf brotli/
         git clone https://github.com/google/brotli.git
-        cd /tmp/brotli/
+        cd $tmpDir/brotli/
         python setup.py install
         cd tests
         make
         cd ..
-        cp /tmp/brotli/tools/bro /usr/local/bin/
-        rm -rf /tmp/brotli
+        cp $tmpDir/brotli/tools/bro /usr/local/bin/
+        rm -rf $tmpDir/brotli
         """
+        C=self.cuisine.args_replace(C)
         self.cuisine.run_script(C,action=True)
 
         #python etcd
         C="""
-        cd /tmp
+        cd $tmpDir/
         git clone https://github.com/jplana/python-etcd.git
         cd python-etcd
         python3.5 setup.py install
         """
+        C=self.cuisine.args_replace(C)
         self.cuisine.run_script(C,action=True)
 
 
@@ -146,7 +151,9 @@ class CuisineInstallerDevelop():
         self.cuisine.builder.redis()
 
         if self.cuisine.isUbuntu or self.cuisine.isArch:
-            self.cuisine.run('cd /tmp;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh',action=True)
+            C='cd $tmpDir/;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh'
+            C=self.cuisine.args_replace(C)
+            self.cuisine.run(C,action=True)
         elif self.cuisine.isMac:
             cmd = """sudo mkdir -p /opt
             # sudo chown -R despiegk:root /opt

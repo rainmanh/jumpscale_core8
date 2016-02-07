@@ -22,6 +22,8 @@ class ActionDecorator(object):
             else:
                 force=forcebase
 
+            # action=False
+
             if action:
                 args=args[1:]
                 cm=cm.replace("$id",cuisine.id)  #replace the code which has the constructor code for the selfobj to work on

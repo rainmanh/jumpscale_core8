@@ -38,7 +38,7 @@ class CuisineBuilder(object):
 
         if start:
             cmd=self.cuisine.bash.cmdGetPath("skydns")
-            self.cuisine.systemd.ensure("skydns",cmd)
+            self.cuisine.processmanager.ensure("skydns",cmd)
 
     @actionrun(action=True)
     def caddy(self,ssl=False,start=True):
@@ -47,7 +47,7 @@ class CuisineBuilder(object):
         self.cuisine.file_copy(self.cuisine.joinpaths(self.GOPATH, 'bin', 'caddy'),'/opt/jumpscale8/bin',action=True)
         self.cuisine.bash.addPath("/opt/jumpscale8/bin" ,action=True)
 
-        self.cuisine.systemd.stop("caddy") #will also kill
+        self.cuisine.processmanager.stop("caddy") #will also kill
 
         if ssl:
             PORTS=":443"
@@ -81,7 +81,7 @@ class CuisineBuilder(object):
 
         if start:
             cmd=self.cuisine.bash.cmdGetPath("caddy")
-            self.cuisine.systemd.ensure("caddy","%s -conf=\"%s\""%(cmd,cpath))
+            self.cuisine.processmanager.ensure("caddy","%s -conf=\"%s\""%(cmd,cpath))
 
 
     def caddyConfig(self,sectionname,config):
@@ -102,7 +102,7 @@ class CuisineBuilder(object):
         self.cuisine.file_copy(self.cuisine.joinpaths(self.GOPATH, 'bin', 'aydostorex'), '/opt/jumpscale8/bin',action=True)
         self.cuisine.bash.addPath("/opt/jumpscale8/bin", action=True)
 
-        self.cuisine.systemd.stop("aydostorex") # will also kill
+        self.cuisine.processmanager.stop("aydostorex") # will also kill
 
         self.cuisine.dir_ensure("/etc/aydostorex")
         self.cuisine.dir_ensure(backend)
@@ -125,7 +125,7 @@ class CuisineBuilder(object):
 
         if start:
             cmd = self.cuisine.bash.cmdGetPath("aydostorex")
-            self.cuisine.systemd.ensure("aydostorex", '%s --config /etc/aydostorex/config.toml' % cmd)
+            self.cuisine.processmanager.ensure("aydostorex", '%s --config /etc/aydostorex/config.toml' % cmd)
 
 
 
@@ -140,7 +140,9 @@ class CuisineBuilder(object):
         self.cuisine.pip.install('pytoml')
         self.cuisine.pip.install('pygo')
         self.cuisine.golang.install()
+        self.cuisine.installer.redis()
         self.syncthing()
+        self.mongodb()
         self.agent()
         self.agentcontroller()
 
@@ -215,6 +217,12 @@ class CuisineBuilder(object):
         content = j.data.serializer.toml.dumps(cfg)
         self.cuisine.file_write(cfgfile, content)
 
+        self.agent()
+
+        if start:
+            self._startAgent()
+            self._startAgentController
+
     @actionrun(action=True)
     def _startAgent(self):
         appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "agent8")
@@ -255,13 +263,13 @@ class CuisineBuilder(object):
 
         if start:
             cmd=self.cuisine.bash.cmdGetPath("etcd")
-            self.cuisine.systemd.ensure("etcd",cmd)
+            self.cuisine.processmanager.ensure("etcd",cmd)
 
     @actionrun(action=True)
     def redis(self,start=True):
 
-        self.cuisine.systemd.stop("redis-server")
-        self.cuisine.systemd.stop("redis")
+        self.cuisine.processmanager.stop("redis-server")
+        self.cuisine.processmanager.stop("redis")
 
         C="""
         #!/bin/bash
@@ -298,35 +306,35 @@ class CuisineBuilder(object):
 
         if start:
             cmd=self.cuisine.bash.cmdGetPath("redis-server")
-            self.cuisine.systemd.ensure("redis","/%s /optvar/cfg/redis.conf"%(cmd))    
+            self.cuisine.processmanager.ensure("redis","/%s /optvar/cfg/redis.conf"%(cmd))    
 
     @actionrun(action=True)    
     def mongodb(self, start=True):
         rc, out = self.cuisine.run('which mongod', die=False)
         if rc== 0:
             print('mongodb is already installed')
-            return
-
-        appbase = '/usr/local/bin/'
-
-        url=None
-        if self.cuisine.isUbuntu:
-            url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
-        elif self.cuisine.isArch:
-            self.cuisine.package.install("mongodb")
-        elif self.cuisine.isMac: #@todo better platform mgmt
-            url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
         else:
-            raise RuntimeError("unsupported platform")
-            return
 
-        if url!=None:
-            self.cuisine.file_download(url, to=j.dirs.tmpDir,overwrite=False,expand=True)
-            tarpath = self.cuisine.fs_find(j.dirs.tmpDir,recursive=True,pattern="*mongodb*.tgz",type='f')[0]
-            self.cuisine.file_expand(tarpath,j.dirs.tmpDir)
-            extracted = self.cuisine.fs_find(j.dirs.tmpDir,recursive=True,pattern="*mongodb*",type='d')[0]
-            for file in self.cuisine.fs_find('%s/bin/' %extracted,type='f'):
-                self.cuisine.file_copy(file,appbase)
+            appbase = '/usr/local/bin/'
+
+            url=None
+            if self.cuisine.isUbuntu:
+                url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
+            elif self.cuisine.isArch:
+                self.cuisine.package.install("mongodb")
+            elif self.cuisine.isMac: #@todo better platform mgmt
+                url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
+            else:
+                raise RuntimeError("unsupported platform")
+                return
+
+            if url!=None:
+                self.cuisine.file_download(url, to=j.dirs.tmpDir,overwrite=False,expand=True)
+                tarpath = self.cuisine.fs_find(j.dirs.tmpDir,recursive=True,pattern="*mongodb*.tgz",type='f')[0]
+                self.cuisine.file_expand(tarpath,j.dirs.tmpDir)
+                extracted = self.cuisine.fs_find(j.dirs.tmpDir,recursive=True,pattern="*mongodb*",type='d')[0]
+                for file in self.cuisine.fs_find('%s/bin/' %extracted,type='f'):
+                    self.cuisine.file_copy(file,appbase)
 
         self.cuisine.dir_ensure('/optvar/data/db')
 

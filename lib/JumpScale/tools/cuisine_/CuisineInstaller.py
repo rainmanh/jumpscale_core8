@@ -20,7 +20,7 @@ class CuisineInstaller(object):
     @actionrun(action=True)
     def redis(self):
         defport=6379
-        if self.cuisine.process_tcpport_check(defport,"redis"):
+        if self.cuisine.process.tcpport_check(defport,"redis"):
             print ("no need to install, already there & running")
             return
 
@@ -32,7 +32,7 @@ class CuisineInstaller(object):
         self.cuisine.package.install(package)
         self.cuisine.package.start(package)
 
-        if self.cuisine.process_tcpport_check(defport,"redis")==False:
+        if self.cuisine.process.tcpport_check(defport,"redis")==False:
             raise RuntimeError("Could not install redis, port was not running")
 
     @actionrun(action=True)
@@ -85,7 +85,7 @@ class CuisineInstaller(object):
         cpath=self.cuisine.run("which dropbear")
 
         cmd="%s -R -F -E -p 9222 -w -s -g -K 20 -I 60"%cpath
-        self.cuisine.systemd_ensure("reflector", cmd, descr='')
+        self.cuisine.processmanager.ensure("reflector", cmd, descr='')
 
         # self.cuisine.package.start(package)
 
@@ -154,7 +154,7 @@ class CuisineInstaller(object):
         """
 
         if remoteids.find(",")!=-1:
-            self.cuisine.systemd_remove("autossh") #make sure leftovers are gone
+            self.cuisine.processmanager.remove("autossh") #make sure leftovers are gone
             self.cuisine.run("killall autossh",die=False,showout=False)
 
             for item in remoteids.split(","):
@@ -240,7 +240,7 @@ class CuisineInstaller(object):
 
             cpath=self.cuisine.run("which autossh")
             cmd="%s -M 0 -N -o ExitOnForwardFailure=yes -o \"ServerAliveInterval 60\" -o \"ServerAliveCountMax 3\" -R %s:localhost:22 sshreflector@%s -p 9222 -i /root/.ssh/reflector"%(cpath,newport,rname)
-            self.cuisine.systemd_ensure("autossh_%s"%rname_short, cmd, descr='')
+            self.cuisine.processmanager.ensure("autossh_%s"%rname_short, cmd, descr='')
 
             print ("On %s:%s remote SSH port:%s"%(remotecuisine.executor.addr,port,newport))
 
@@ -279,7 +279,7 @@ class CuisineInstaller(object):
         WantedBy=multi-user.target
         """
 
-        self.cuisine.systemd_ensure("ap",cmd2,descr="accesspoint for local admin",systemdunit=START1)
+        self.cuisine.processmanager.ensure("ap",cmd2,descr="accesspoint for local admin",systemdunit=START1)
 
     @actionrun(action=True)
     def clean(self):
@@ -575,7 +575,7 @@ class CuisineInstaller(object):
 
         cmd=self.cuisine.run("which polipo")
 
-        self.cuisine.systemd.ensure("polipo",cmd)
+        self.cuisine.processmanager.ensure("polipo",cmd)
 
         self.cuisine.avahi.install()
 

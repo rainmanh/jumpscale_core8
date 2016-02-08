@@ -54,7 +54,7 @@ class CuisineDocker():
         rm -f /lib/systemd/system/anaconda.target.wants/*;
 
         # switch default target from graphical to multi-user
-        RUN systemctl set-default multi-user.target 
+        RUN systemctl set-default multi-user.target
 
         # systemd inside a container
         ENV container docker
@@ -87,10 +87,10 @@ class CuisineDocker():
         cd $tmpDir/docker
         docker build -t arch .
         """
-        self.cuisine.run_script(C)        
+        self.cuisine.run_script(C)
 
     @actionrun(action=True)
-    def Ubuntu(self,name="ubuntu1", ...):    #@todo (*1*) main docker deployment for ubuntu over cuisine
+    def Ubuntu(self,name="ubuntu1"):    #@todo (*1*) main docker deployment for ubuntu over cuisine
         pass
         #TODO:
         #- start from docker repo where pushed docker image is (build using self.ubuntuBuild)
@@ -99,16 +99,16 @@ class CuisineDocker():
         #- return used port (jsdocker)
 
     @actionrun(action=True)
-    def UbuntuSystemd(self,name="ubuntu1"):    
+    def UbuntuSystemd(self,name="ubuntu1"):
         """
-        start ubuntu 15.10 which is using systemd  #@todo (*2*) 
+        start ubuntu 15.10 which is using systemd  #@todo (*2*)
         will have to do same tricks as with arch below
         """
         pass
 
 
     @actionrun(action=True)
-    def ArchSystemd(self,name="arch1"):    
+    def ArchSystemd(self,name="arch1"):
         """
         start arch which is using systemd  #@todo (*2*) there is an issue with tty, cannot install anything (see in arch builder)
         """
@@ -120,7 +120,7 @@ class CuisineDocker():
         set -ex
         mkdir -p /tmp2/
         chmod 600 /tmp2
-        mkdir -p /tmp2/cgroup 
+        mkdir -p /tmp2/cgroup
         mkdir -p /tmp2/cgroup/systemd
         mount --bind /sys/fs/cgroup/systemd /tmp2/cgroup/systemd
         """
@@ -145,4 +145,3 @@ class CuisineDocker():
 
         # self.cuisine.run("docker run -d --name %s -v /tmp2/cgroup:/sys/fs/cgroup:ro -v /tmp2/%s/run:/run:rw tozd/ubuntu-systemd"%(name,name))
         self.cuisine.run("docker run -d --name %s -v /tmp2/cgroup:/sys/fs/cgroup:ro -v /tmp2/%s/run:/run:rw arch"%(name,name))
-

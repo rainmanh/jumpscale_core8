@@ -1,6 +1,8 @@
 
 from JumpScale import j
 import lz4
+import ujson
+
 blocksize = 20*1024*1024
 objects = []
 new_objects = []

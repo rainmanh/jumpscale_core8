@@ -94,8 +94,8 @@ class SerializersFactory():
                 self.types[type]=j.data.serializer.serializers.snappy
 
             elif type=="j":
-                j.data.serializer.serializers.ujson = SerializerUJson()
-                self.types[type]=j.data.serializer.serializers.ujson
+                j.data.serializer.serializers.json = SerializerUJson()
+                self.types[type]=j.data.serializer.serializers.json
 
             elif type=="d":
                 j.data.serializer.serializers.dict = SerializerDict()

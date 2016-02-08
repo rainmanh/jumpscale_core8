@@ -80,7 +80,7 @@ if opts.action == 'commit':
 
 if opts.action == 'new':
     if opts.base is None:
-        opts.base = "jumpscale/ubuntu1510_python3"
+        opts.base = "jumpscale/ubuntu1510"
     j.sal.docker.create(name=opts.name, stdout=True, base=opts.base, ports=opts.ports, vols=opts.vols,
              volsro=opts.volsro, cpu=opts.cpu, mem=opts.mem, jumpscale=opts.jumpscale, sharecode=opts.sharecode,\
              sshkeyname=opts.sshkeyname,rootpasswd=opts.passwd,jumpscalebranch=opts.jsbranch)

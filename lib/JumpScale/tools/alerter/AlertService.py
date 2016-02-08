@@ -31,7 +31,7 @@ class AlertService(object):
         self.handlers = list()
         self.timers = dict()
         self.loadHandlers()
-        # TODO (*1*) ---> get mongoengine connection from AYS
+        # TODO (*3*) ---> get mongoengine connection from AYS
         j.data.models.system.connect2mongo()
 
     def log(self, message, level=1):

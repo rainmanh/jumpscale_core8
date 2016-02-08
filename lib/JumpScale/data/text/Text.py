@@ -208,22 +208,22 @@ class Text:
     def isNumeric(self,txt):        
         return re_nondigit.search(txt)==None
        
-    def lstrip(self,content):
-        """
-        remove all spaces at beginning & end of line when relevant
-        """
-        #find generic prepend for full file
-        minchars=9999
-        prechars = 0
-        for line in content.split("\n"):
-            prechars=len(line)-len(line.lstrip())
-            if prechars<minchars:
-                minchars=prechars
+    # def lstrip(self,content):
+    #     """
+    #     remove all spaces at beginning & end of line when relevant
+    #     """
+    #     #find generic prepend for full file
+    #     minchars=9999
+    #     prechars = 0
+    #     for line in content.split("\n"):
+    #         prechars=len(line)-len(line.lstrip())
+    #         if prechars<minchars:
+    #             minchars=prechars
 
-        if prechars>0:
-            #remove the prechars
-            content="\n".join([line[minchars:] for line in content.split("\n")])       
-        return content 
+    #     if prechars>0:
+    #         #remove the prechars
+    #         content="\n".join([line[minchars:] for line in content.split("\n")])       
+    #     return content 
 
     
     def ask(self,content,name=None,args={}, ask=True):
@@ -327,6 +327,9 @@ class Text:
             # print "type:'%s'"%ttype
             if ttype=="str":
                 result=j.tools.console.askString(question=descr, defaultparam=default, regex=regex, retry=retry)
+
+            elif ttype=="password":
+                result=j.tools.console.askPassword(question=descr, confirm=False)
 
             elif ttype=="list":
                 result=j.tools.console.askString(question=descr, defaultparam=default, regex=regex, retry=retry)

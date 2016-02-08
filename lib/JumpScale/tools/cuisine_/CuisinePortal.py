@@ -4,7 +4,7 @@ from ActionDecorator import ActionDecorator
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
         ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installerdevelop.portal"
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.portal"
 
 
 class CuisinePortal(object):
@@ -14,9 +14,9 @@ class CuisinePortal(object):
         self.cuisine=cuisine
 
     def install(self, minimal=False, start=True, mongodbip="127.0.0.1", mongoport=27017, login="", passwd=""):
-
-        self.cuisine.installerdevelop.jumpscale8()
-        self.cuisine.pip.upgrade("pip")
+        if not self.cuisine.isMac:
+            self.cuisine.installerdevelop.jumpscale8()
+            self.cuisine.pip.upgrade("pip")
         self.installDeps()
         self.getcode()
         self.linkCode(minimal=minimal)
@@ -56,7 +56,7 @@ class CuisinePortal(object):
         # Flask
         # Flask-Bootstrap
         # Flask-PyMongo
-        gevent==1.1rc2
+        #gevent==1.1rc2  #DO NOT INSTALL IS PART OF PYTHON DEVELOP
         # gitdb
         gitlab3
         # GitPython
@@ -118,18 +118,7 @@ class CuisinePortal(object):
         # zmq
         """
 
-        # def installPip(name):
-        #     self.cuisine.installer.pip()
-
-        actionout = None
-        for dep in deps.split("\n"):
-            dep = dep.strip()
-            if dep.strip() == "":
-                continue
-            if dep.strip()[0] == "#":
-                continue
-            dep = dep.split("=", 1)[0]
-            self.cuisine.pip.install(dep)
+        self.cuisine.pip.multiInstall(deps)
 
 
     @actionrun(action=True)
@@ -189,7 +178,8 @@ class CuisinePortal(object):
         hrd = j.data.hrd.get(content=content, path=tmp)
         hrd.set('param.mongoengine.connection', {'host': ip, 'port': port})
         hrd.save()
-        self.cuisine.file_upload_local(tmp, cfg_path)
+        # self.cuisine.file_upload_local(tmp, cfg_path)
+        self.cuisine.file_write(cfg_path,str(hrd))
 
     @actionrun(action=True)
     def changeEve(self):
@@ -212,7 +202,7 @@ class CuisinePortal(object):
     # j.actions.run()
 
 
-        #cd /usr/local/Cellar/mongodb/3.2.1/bin/;./mongod --dbpath /Users/kristofdespiegeleer1/optvar/mongodb
+        #cd /usr/local/Cellar/mongodb/3.2.1/bin/;./mongod --dbpath /Users/kristofdespiegeleer1$varDir/mongodb
 
 
         #@todo install gridportal as well

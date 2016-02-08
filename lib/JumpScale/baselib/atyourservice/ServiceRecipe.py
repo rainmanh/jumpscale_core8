@@ -19,28 +19,28 @@ class ServiceRecipe(ServiceTemplate):
         if path != "":
             if not j.sal.fs.exists(path):
                 raise RuntimeError("Could not find path for recipe")
-            self.path=path
-            name=self.state.hrd.get("template.name")
-            domain=self.state.hrd.get("template.domain")
-            version=self.state.hrd.get("template.version")
-            self.parent=j.atyourservice.getTemplate(domain=domain, name=name, version=version)
-            self.name=self.parent.name
+            self.path = path
+            name = self.state.hrd.get("template.name")
+            domain = self.state.hrd.get("template.domain")
+            version = self.state.hrd.get("template.version")
+            self.parent = j.atyourservice.getTemplate(domain=domain, name=name, version=version)
+            self.name = self.parent.name
         else:
-            self.path = j.sal.fs.joinPaths(aysrepopath,"recipes",template.name)
-            self.name=template.name
-            self.parent=template
+            self.path = j.sal.fs.joinPaths(aysrepopath,"recipes", template.name)
+            self.name = template.name
+            self.parent = template
 
-        #copy the files
+        # copy the files
         if not j.sal.fs.exists(path=self.path):
-            firstime=True
+            firstime = True
             j.sal.fs.createDir(self.path)
         else:
-            firstime=False
+            firstime = False
 
         self._init()
 
-        # if j.sal.fs.exists(self.parent.path_hrd_template):
-            # j.sal.fs.copyFile(self.parent.path_hrd_template,self.path_hrd_template)
+        if j.sal.fs.exists(self.parent.path_hrd_template):
+            j.sal.fs.copyFile(self.parent.path_hrd_template, self.path_hrd_template)
         if j.sal.fs.exists(self.parent.path_hrd_schema):
             j.sal.fs.copyFile(self.parent.path_hrd_schema, self.path_hrd_schema)
         if j.sal.fs.exists(self.parent.path_actions_mgmt):
@@ -50,12 +50,11 @@ class ServiceRecipe(ServiceTemplate):
         if j.sal.fs.exists(self.parent.path_mongo_model):
             j.sal.fs.copyFile(self.parent.path_mongo_model, self.path_mongo_model)
 
-        self._state=None
+        self._state = None
         # if firstime:
         #     self.state.save()
 
-        self.domain=self.parent.domain
-
+        self.domain = self.parent.domain
 
     @property
     def state(self):

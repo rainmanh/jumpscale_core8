@@ -36,7 +36,7 @@ class ServiceTemplate(object):
         self.key = j.atyourservice.getKey(self)
 
     def _init(self):
-        # self.path_hrd_template = j.sal.fs.joinPaths(self.path, "template.hrd")
+        self.path_hrd_template = j.sal.fs.joinPaths(self.path, "template.hrd")
         self.path_hrd_schema = j.sal.fs.joinPaths(self.path, "schema.hrd")
         self.path_actions_mgmt = j.sal.fs.joinPaths(self.path, "actions_mgmt.py")
         self.path_actions_node = j.sal.fs.joinPaths(self.path, "actions_node.py")
@@ -53,7 +53,7 @@ class ServiceTemplate(object):
     def hrd(self):
         if self._hrd:
             return self._hrd
-        hrdpath = self.path_hrd_schema
+        hrdpath = self.path_hrd_template
         if not j.sal.fs.exists(hrdpath):
             # check if we can find it in other ays template
             if self.name.find(".") != -1:

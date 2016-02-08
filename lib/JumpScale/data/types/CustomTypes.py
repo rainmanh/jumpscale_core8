@@ -35,7 +35,7 @@ class Guid(String):
     toString=fromString
 
 
-#@todo (*1*) need better regex
+#@todo (*3*) need better regex
 class Email(String):
     """
     """
@@ -110,7 +110,7 @@ class Tel(Email):
         return "+32 475.99.99.99"
 
 
-#@todo (*1*) need better regex
+#@todo (*3*) need better regex
 class IPRange(Email):
     """
     """
@@ -122,7 +122,7 @@ class IPRange(Email):
     def get_default(self):
         return "changeme@example.com"
 
-#@todo (*1*) need better regex
+#@todo (*3*) need better regex
 class IPAddress(Email):
     """
     """

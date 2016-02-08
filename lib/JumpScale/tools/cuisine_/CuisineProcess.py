@@ -72,7 +72,10 @@ class CuisineProcess():
                 if line.startswith("n"):
                     a,b=line.split(":")
                     d["local"]=a[1:].strip()
-                    d["localport"]=int(b)
+                    try:
+                        d["localport"]=int(b)
+                    except:
+                        d["localport"]=0                        
                     result.append(d)
 
         else:            
@@ -105,8 +108,8 @@ class CuisineProcess():
         # NOTE: ps -A seems to be the only way to not have the grep appearing
         # as well
         RE_SPACES               = re.compile("[\s\t]+")
-        if is_string: processes = self.cuisine.run("ps -A | grep {0} ; true".format(name))
-        else:         processes = self.cuisine.run("ps -A")
+        if is_string: processes = self.cuisine.run("ps -A | grep {0} ; true".format(name),replaceArgs=False)
+        else:         processes = self.cuisine.run("ps -A",replaceArgs=False)
         res = []
         for line in processes.split("\n"):
             if not line.strip(): continue
@@ -131,5 +134,5 @@ class CuisineProcess():
         it will return the list of all processes that start with the given
         `name`."""
         for pid in self.find(name, exact):
-            self.cuisine.run("kill -s {0} {1} ; true".format(signal, pid))
+            self.cuisine.run("kill -s {0} {1} ; true".format(signal, pid),showout=False,replaceArgs=False)
 

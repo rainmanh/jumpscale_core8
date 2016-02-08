@@ -433,3 +433,12 @@ class CuisineBuilder(object):
         C=self.cuisine.bash.replaceEnvironInText(C)
         self.cuisine.run_script(C,profile=True)
         self.cuisine.bash.addPath("$base/bin",action=True)
+
+    @actionrun(action=True)
+    def weave(self):
+        C = '''
+        curl -L git.io/weave -o $binDir/weave && sudo chmod a+x $binDir/weave
+        '''
+        self.cuisine.package.ensure('curl')
+        self.cuisine.run_script(C, profile=True)
+        self.cuisine.bash.addPath("$binDir", action=True)

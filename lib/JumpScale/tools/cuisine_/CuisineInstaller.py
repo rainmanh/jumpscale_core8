@@ -17,24 +17,6 @@ class CuisineInstaller(object):
         self.executor=executor
         self.cuisine=cuisine
 
-    # @actionrun(action=True)
-    # def redis(self):
-    #     defport=6379
-    #     if self.cuisine.process_tcpport_check(defport,"redis"):
-    #         print ("no need to install, already there & running")
-    #         return
-
-    #     if self.cuisine.isUbuntu:
-    #         package="redis-server"
-    #     else:
-    #         package="redis"
-
-    #     self.cuisine.package.install(package)
-    #     self.cuisine.package.start(package)
-
-    #     if self.cuisine.process_tcpport_check(defport,"redis")==False:
-    #         raise RuntimeError("Could not install redis, port was not running")
-
     @actionrun(action=True)
     def sshreflector_server(self,reset=False):
         """

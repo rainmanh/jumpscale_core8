@@ -44,7 +44,6 @@ class GogsClient(object):
 
         self.session = requests.session()
         self.session.auth = HTTPBasicAuth(login, passwd)
-        #@todo (*1*) use requests lib to go to rest interface of gogs
         # https://github.com/gogits/gogs/tree/master/routers/api/v1
         # https://github.com/gogits/go-gogs-client/wiki
         # modify gogs if have to to get API to do what we want (seems to be

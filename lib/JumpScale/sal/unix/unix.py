@@ -11,11 +11,12 @@ from JumpScale import j
 from JumpScale.core.Time import TimeIntervalUnit
 #from JumpScale.core.decorators import deprecated
 
-#@todo (*1*) fix, move to other sal's
+#@todo (*3*) fix, move to other sal's
 
 #@todo cron needs to be moved into SAL
 #@todo move many of these methods to cuisine2 (our cuisine) or to system if more appropriate
-#@todo this file needs to go over time !!!!
+#@todo this file needs to go away
+#@todo make sure we use proper names & add to right cuisine module
 
 
 

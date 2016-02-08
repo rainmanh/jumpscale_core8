@@ -207,6 +207,7 @@ from ActionDecorator import ActionDecorator
 from CuisineGolang import CuisineGolang
 from CuisineFW import CuisineFW
 from CuisineDocker import CuisineDocker
+from CuisinePortal import CuisinePortal
 
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
@@ -241,16 +242,26 @@ class OurCuisine():
         self._avahi=None
         self._tmux=None
         self._golang=None
+        self._portal = None
         self._fw=None
         self.cuisine=self
         self._fqn=""
         self._docker=None
         self._js8sb=None
+        self._dirs={}
+
         if self.executor.type=="ssh":
             self.runid="cuisine:%s:%s"%(self.executor.addr,self.executor.port)
         else:
             self.runid="cuisine:local"
         self.done=[]
+
+    @property
+    def portal(self):
+        if self._portal is None:
+            self._portal = CuisinePortal(self.executor, self.cuisine)
+        return self._portal
+
 
     @property
     def package(self):
@@ -398,11 +409,81 @@ class OurCuisine():
             self._js8sb=False
         return self._js8sb
 
+    @property
+    def dir_paths(self):
+        if self._dirs=={}:
+            rc,out=self.run("js 'print(j.data.serializer.json.dumps(j.dirs.__dict__))'",showout=False,die=False,force=True,replaceArgs=False)
+            if False:#rc==0:
+                self._dirs=j.data.serializer.json.loads(out)
+            else:
+                res={}
+                if 'JSBASE' in os.environ:
+                    res["base"]= os.environ["JSBASE"]
+                else:
+                    if self.isMac:
+                        res["base"]= "%s/opt/jumpscale8/"%os.environ["HOME"]
+                    else:
+                        res["base"]= "/opt/jumpscale8/"
+                if self.isMac:
+                    res["codeDir"]= "%s/opt/code/"%os.environ["HOME"]
+                else:
+                    res["codeDir"]= "/opt/code/"
+                if self.isMac:
+                    res["varDir"]= "%s/optvar/"%os.environ["HOME"]
+                else:
+                    res["varDir"]= "/optvar/"
+                res["appDir"]="%s/apps"%res["base"]
+                res["binDir"]="%s/bin"%res["base"]
+                res["cfgDir"]="%s/cfg"%res["varDir"]
+                res["jsLibDir"]="%s/lib/JumpScale/"%res["base"]
+                res["libDir"]="%s/lib/"%res["base"]
+                res["homeDir"]=os.environ["HOME"]
+                res["logDir"]="%s/log"%res["varDir"]
+                res["pidDir"]="%s/pid"%res["varDir"]
+                res["tmpDir"]="%s/tmp"%res["varDir"]                
+                self._dirs=res
+
+        if self.isMac:
+            self._dirs["optDir"]= "%s/opt/"%os.environ["HOME"]
+        else:
+            self._dirs["optDir"]= "/opt/"
+
+        self._dirs["goDir"]= "/%s/go/"%self._dirs["optDir"]        
+
+        return self._dirs
+
+
     # =============================================================================
     #
     # SYSTEM
     #
     # =============================================================================
+
+
+    def args_replace(self,text):
+        """
+        replace following args (when jumpscale installed it will take the args from there)
+        dirs:
+        - $base
+        - $appDir
+        - $varDir/
+        - $binDir
+        - $codeDir
+        - $cfgDir
+        - $homeDir
+        - $jsLibDir
+        - $libDir
+        - $logDir
+        - $pidDir
+        - $tmpDir/
+        system
+        - $hostname
+
+        """
+        for key,var in self.dir_paths.items():
+            text=text.replace("$%s"%key,var)
+        text=text.replace("$hostname",self.hostname)
+        return text
 
     def system_uuid_alias_add(self):
         """Adds system UUID alias to /etc/hosts.
@@ -491,10 +572,11 @@ class OurCuisine():
 
     def file_get_tmp_path(self,basepath=""):
         if basepath=="":
-            return "/tmp/%s"%j.data.idgenerator.generateXCharID(10)
+            x= "$tmpDir/%s"%j.data.idgenerator.generateXCharID(10)
         else:
-            return "/tmp/%s"%basepath
-
+            x= "$tmpDir/%s"%basepath
+        x=self.cuisine.args_replace(x)
+        return x
 
     def file_download(self,url,to,overwrite=True,retry=3,timeout=0,login="",passwd="",minspeed=0,multithread=False,expand=False):
         """
@@ -528,7 +610,7 @@ class OurCuisine():
                 else:
                     user=""
 
-                cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s"%(url,to,user,minsp,retry,timeout)
+                cmd = "curl -L '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s"%(url,to,user,minsp,retry,timeout)
                 if self.file_exists(to):
                     cmd += " -C -"
                 print(cmd)
@@ -536,7 +618,7 @@ class OurCuisine():
                 rc, out = self.run(cmd, die=False)
                 if rc == 33: # resume is not support try again withouth resume
                     self.file_unlink(to)
-                    cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s"%(url,to,user,minsp,retry,timeout)
+                    cmd = "curl -L '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s"%(url,to,user,minsp,retry,timeout)
                     rc, out = self.run(cmd, die=False)
                 if rc > 0:
                     raise RuntimeError("Could not download:{}.\nErrorcode: {}".format(url, rc))
@@ -549,6 +631,8 @@ class OurCuisine():
             self.file_expand(to,destdir)
 
     def file_expand(self,path,to):
+        path=self.cuisine.args_replace(path)
+        to=self.cuisine.args_replace(to)
         if path.endswith(".tar.gz") or path.endswith(".tgz"):
             cmd="tar -C %s -xzf %s"%(to,path)
             self.cuisine.run(cmd)
@@ -557,12 +641,13 @@ class OurCuisine():
 
 
     def touch(self,path):
+        path=self.cuisine.args_replace(path)
         self.file_write(path,"")
 
     def file_read(self,location, default=None):
         """Reads the *remote* file at the given location, if default is not `None`,
         default will be returned if the file does not exist."""
-
+        location=self.cuisine.args_replace(location)
         if default is None:
             assert self.file_exists(location), "cuisine.file_read: file does not exists {0}".format(location)
         elif not self.file_exists(location):
@@ -576,21 +661,26 @@ class OurCuisine():
 
     def file_exists(self,location):
         """Tests if there is a *remote* file at the given location."""
+        location=self.cuisine.args_replace(location)
         return is_ok(self.run('test -e %s && echo **OK** ; true' % (shell_safe(location)),showout=False))
 
     def file_is_file(self,location):
+        location=self.cuisine.args_replace(location)
         return is_ok(self.run("test -f %s && echo **OK** ; true" % (shell_safe(location)),showout=False))
 
     def file_is_dir(self,location):
+        location=self.cuisine.args_replace(location)
         return is_ok(self.run("test -d %s && echo **OK** ; true" % (shell_safe(location)),showout=False))
 
     def file_is_link(self,location):
+        location=self.cuisine.args_replace(location)
         return is_ok(self.run("test -L %s && echo **OK** ; true" % (shell_safe(location)),showout=False))
 
 
     def file_attribs(self,location, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         location."""
+        location=self.cuisine.args_replace(location)
         return self.dir_attribs(location, mode, owner, group, False)
 
 
@@ -599,6 +689,7 @@ class OurCuisine():
         Return mode, owner, and group if remote path exists, 'None'
         otherwise.
         """
+        location=self.cuisine.args_replace(location)
         if self.file_exists(location):
             fs_check = self.run('stat %s %s' % (shell_safe(location), '--format="%a %U %G"'),showout=False)
             (mode, owner, group) = fs_check.split(' ')
@@ -610,10 +701,10 @@ class OurCuisine():
     def hostname(self):
         if self._hostname=="":
             if self.isMac:
-                hostfile="/private/etc/hostname"
+                self._hostname=self.run("hostname",showout=False,replaceArgs=False)
             else:
                 hostfile="/etc/hostname"
-            self._hostname= self.run("cat %s"%hostfile).strip().split(".",1)[0]
+                self._hostname= self.run("cat %s"%hostfile,replaceArgs=False).strip().split(".",1)[0]
         return self._hostname
 
     @hostname.setter
@@ -689,7 +780,11 @@ class OurCuisine():
             self.file_write(hostfile,val)
 
     @actionrun(action=False,force=False)
-    def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False):
+    def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False,replaceArgs=False):
+        location=self.cuisine.args_replace(location)
+        if replaceArgs:
+            content=self.cuisine.args_replace(content)
+
         print ("filewrite: %s"%location)
         content=j.data.text.strip(content)
         content2 = content.encode('utf-8')
@@ -716,6 +811,7 @@ class OurCuisine():
     def file_ensure(self,location, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         location."""
+        location=self.cuisine.args_replace(location)
         if self.file_exists(location):
             self.file_attribs(location,mode=mode,owner=owner,group=group)
         else:
@@ -725,6 +821,7 @@ class OurCuisine():
     def file_upload_local(self, local, remote):
         """Uploads the local file to the remote location only if the remote location does not
         exists or the content are different."""
+        local=self.cuisine.args_replace(local)
         remote_md5 = self.file_md5(remote)
         local_md5 = j.data.hash.md5(local)
         if remote_md5 == local_md5:
@@ -739,6 +836,7 @@ class OurCuisine():
     def file_download_local(self,remote, local):
         """Downloads the remote file to localy only if the local location does not
         exists or the content are different."""
+        local=self.cuisine.args_replace(local)
         f = j.tools.path.get(local)
         if f.exists():
             remote_md5 = self.file_md5(remote)
@@ -765,6 +863,7 @@ class OurCuisine():
 
         >   if file_update("/etc/myfile.cfg", lambda _: text_ensure_line(_, line)): self.run("service restart")
         """
+        location=self.cuisine.args_replace(location)
         assert self.file_exists(location), "File does not exists: " + location
         old_content = self.file_read(location)
         new_content = updater(old_content)
@@ -778,6 +877,7 @@ class OurCuisine():
     def file_append(self,location, content, mode=None, owner=None, group=None):
         """Appends the given content to the remote file at the given
         location, optionally updating its mode/owner/group."""
+        location=self.cuisine.args_replace(location)
         content2 = content.encode('utf-8')
         content_base64=base64.b64encode(content2).decode()
         self.run('echo "%s" | openssl base64 -A -d >> %s' % (content_base64, shell_safe(location)),showout=False)
@@ -785,6 +885,7 @@ class OurCuisine():
 
     @actionrun(action=False,force=False)
     def file_unlink(self,path):
+        path=self.cuisine.args_replace(path)
         if self.file_exists(path):
             self.run("unlink %s" % (shell_safe(path)))
 
@@ -792,6 +893,8 @@ class OurCuisine():
     def file_link(self,source, destination, symbolic=True, mode=None, owner=None, group=None):
         """Creates a (symbolic) link between source and destination on the remote host,
         optionally setting its mode/owner/group."""
+        source=self.cuisine.args_replace(source)
+        destination=self.cuisine.args_replace(destination)
         if self.file_exists(destination) and (not self.file_is_link(destination)):
             raise Exception("Destination already exists and is not a link: %s" % (destination))
         # FIXME: Should resolve the link first before unlinking
@@ -805,11 +908,20 @@ class OurCuisine():
 
     @actionrun(action=False,force=False)
     def file_copy(self, source, dest, recursive=False):
+        source=self.cuisine.args_replace(source)
+        dest=self.cuisine.args_replace(dest)        
         cmd = "cp -v "
         if recursive:
             cmd += "-r "
         cmd += '%s %s' % (source, dest)
         self.run(cmd)
+
+    @actionrun(action=False,force=False)
+    def file_move(self, source, dest, recursive=False):
+        self.file_copy(source,dest,recursive)
+        self.file_unlink(source)
+
+
 
     # SHA256/MD5 sums with openssl are tricky to get working cross-platform
     # SEE: https://github.com/sebastien/cuisine/pull/184#issuecomment-102336443
@@ -818,6 +930,7 @@ class OurCuisine():
     @actionrun(action=False,force=False)
     def file_base64(self,location):
         """Returns the base64-encoded content of the file at the given location."""
+        location=self.cuisine.args_replace(location)
         res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
         if res.find("command not found")!=-1:
             #print could not find python need to install
@@ -834,6 +947,7 @@ class OurCuisine():
         # NOTE: In some cases, self.sudo can output errors in here -- but the errors will
         # appear before the result, so we simply split and get the last line to
         # be on the safe side.
+        location=self.cuisine.args_replace(location)
         if self.file_exists(location):
             return self.run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
         else:
@@ -848,6 +962,7 @@ class OurCuisine():
         # appear before the result, so we simply split and get the last line to
         # be on the safe side.
         # if cuisine_env[OPTION_HASH] == "python":
+        location=self.cuisine.args_replace(location)
         if self.file_exists(location):
             return self.run("md5sum {0} | cut -f 1 -d ' '".format(shell_safe((location))),debug=False,checkok=False,showout=False)
         else:
@@ -875,6 +990,7 @@ class OurCuisine():
     @actionrun(action=False,force=False)
     def dir_attribs(self,location, mode=None, owner=None, group=None, recursive=False):
         """Updates the mode/owner/group for the given remote directory."""
+        location=self.cuisine.args_replace(location)
         print ("set dir attributes:%s"%location)
         recursive = recursive and "-R " or ""
         if mode:
@@ -887,12 +1003,14 @@ class OurCuisine():
     @actionrun(action=False,force=False)
     def dir_exists(self,location):
         """Tells if there is a remote directory at the given location."""
+        location=self.cuisine.args_replace(location)
         print ("dir exists:%s"%location)
         return is_ok(self.run('test -d %s && echo **OK** ; true' % (shell_safe(location)),showout=False))
 
     @actionrun(action=False,force=False)
     def dir_remove(self,location, recursive=True):
         """ Removes a directory """
+        location=self.cuisine.args_replace(location)
         print ("dir remove:%s"%location)
         flag = ''
         if recursive:
@@ -907,6 +1025,7 @@ class OurCuisine():
 
         If we are not updating the owner/group then this can be done as a single
         ssh call, so use that method, otherwise set owner/group after creation."""
+        location=self.cuisine.args_replace(location)
         if not self.dir_exists(location):
             self.run('mkdir %s %s' % (recursive and "-p" or "", shell_safe(location)))
         if owner or group or mode:
@@ -944,6 +1063,7 @@ class OurCuisine():
         @param extendinfo   : this will return [[$path,$sizeinkb,$epochmod]]
 
         """
+        path=self.cuisine.args_replace(path)
         cmd="find %s"%path
         if recursive==False:
             cmd+=" -maxdepth 1"
@@ -989,18 +1109,24 @@ class OurCuisine():
     # -----------------------------------------------------------------------------
 
     @actionrun()
-    def sudo(self, cmd, die=True):
-        passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
-        cmd2 = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd.replace("$", "\$"))
-        return self.run(cmd2, die=die)
+    def sudo(self, cmd, die=True,showout=True):
+        if not self.isMac:
+            cmd=self.cuisine.args_replace(cmd)
+            passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
+            cmd2 = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd.replace("$", "\$"))
+            return self.run(cmd2, die=die,showout=showout)
+        else:
+            return self.run(cmd, die=die,showout=showout)
 
     @actionrun()
-    def run(self,cmd,die=True,debug=None,checkok=False,showout=True,profile=False):
+    def run(self,cmd,die=True,debug=None,checkok=False,showout=True,profile=False,replaceArgs=True):
         """
         @param profile, execute the bash profile first
         """
+        # print (cmd)
         import copy
-
+        if replaceArgs:
+            cmd=self.cuisine.args_replace(cmd)
         self.executor.curpath=self.cd
         # print ("CMD:'%s'"%cmd)
         if debug!=None:
@@ -1077,14 +1203,17 @@ class OurCuisine():
             return out
 
     def cd(self,path):
+        path=self.cuisine.args_replace(path)
         self.cd=path
 
     def pwd(self):
         return self.cd
 
     @actionrun()
-    def run_script(self,content,profile=False):
-        content=j.data.text.lstrip(content)
+    def run_script(self,content,die=True,profile=False):
+        content=self.cuisine.args_replace(content)
+        content=j.data.text.strip(content)
+        
         if content[-1]!="\n":
             content+="\n"
         if profile:
@@ -1092,16 +1221,27 @@ class OurCuisine():
             if ppath!=None:
                 content=". %s\n%s\n"%(ppath,content)
         content+="\necho **DONE**\n"
-        path="/tmp/%s.sh"%j.data.idgenerator.generateRandomInt(0,10000)
-        self.file_write(location=path, content=content, mode=0o770, owner="root", group="root")
-        out=self.run("bash %s"%path,showout=True)
+
+        path="$tmpDir/%s.sh"%j.data.idgenerator.generateRandomInt(0,10000)
+        if not self.isMac:
+            self.file_write(location=path, content=content, mode=0o770, owner="root", group="root")
+        else:
+            self.file_write(location=path, content=content, mode=0o770)
+
+        rc,out=self.run("bash %s"%path,showout=True,die=False)
+
         self.file_unlink(path)
+
+        # print ("SCRIPT")
+        # print (path)
+        # print(content)
 
 
         lastline=out.split("\n")[-1]
-        if lastline.find("**DONE**")==-1:
+        if (rc>0 or lastline.find("**DONE**")==-1) and die:
             raise Exception("Could not execute bash script.\n%s\n"%(content))
             # raise Exception("Could not execute bash script.\n%s\nout:%s\n"%(content,out))
+
         return "\n".join(out.split("\n")[:-1])
 
 
@@ -1114,12 +1254,22 @@ class OurCuisine():
 
     def command_check(self,command):
         """Tests if the given command is available on the system."""
-        return self.run("which '%s' >& /dev/null && echo **OK** ; true" % command).endswith("OK")
+        command=self.cuisine.args_replace(command)
+        rc,out= self.run("which '%s'"%command,die=False,showout=False)
+        return rc==0
+
+    def command_location(self,command):
+        """
+        return location of cmd
+        """
+        command=self.cuisine.args_replace(command)
+        return self.bash.cmdGetPath(command)
 
     def command_ensure(self,command, package=None):
         """Ensures that the given command is present, if not installs the
         package with the given name, which is the same as the command by
         default."""
+        command=self.cuisine.args_replace(command)
         if package is None:
             package = command
         if not self.command_check(command):
@@ -1140,13 +1290,14 @@ class OurCuisine():
         """
         execute a jumpscript (script as content) in a remote tmux command, the stdout will be returned
         """
-        script=j.data.text.lstrip(script)
+        script=self.cuisine.args_replace(script)
+        script=j.data.text.strip(script)
         if script.find("from JumpScale import j")==-1:
             script="from JumpScale import j\n\n%s"%script
-        path="/tmp/jumpscript_temp_%s.py"%j.data.idgenerator.generateRandomInt(1,10000)
+        path="$tmpDir/jumpscript_temp_%s.py"%j.data.idgenerator.generateRandomInt(1,10000)
         self.file_write(path,script)
         cmd="jspython %s"%path
-        c.tmux.executeInScreen(sessionname,screenname,cmd)
+        self.tmux.executeInScreen(sessionname,screenname,cmd)
         self.file_unlink(path)
         return out
 
@@ -1154,10 +1305,11 @@ class OurCuisine():
         """
         execute a jumpscript (script as content) in a remote tmux command, the stdout will be returned
         """
-        script=j.data.text.lstrip(script)
+        script=self.cuisine.args_replace(script)
+        script=j.data.text.strip(script)
         if script.find("from JumpScale import j")==-1:
             script="from JumpScale import j\n\n%s"%script
-        path="/tmp/jumpscript_temp_%s.py"%j.data.idgenerator.generateRandomInt(1,10000)
+        path="$tmpDir/jumpscript_temp_%s.py"%j.data.idgenerator.generateRandomInt(1,10000)
         self.file_write(path,script)
         out=self.run("jspython %s"%path)
         self.file_unlink(path)

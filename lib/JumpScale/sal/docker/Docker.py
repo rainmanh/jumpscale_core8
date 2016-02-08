@@ -56,7 +56,10 @@ class Docker(SALObject):
     def containers(self):
         if self._containers==[]:
             for item in self.client.containers(all=all):
-                name = str(item["Names"][0].strip("/").strip())
+                try:
+                    name = str(item["Names"][0].strip("/").strip())
+                except:
+                    continue
                 id = str(item["Id"].strip())
                 self._containers.append(Container(name, id, self.client, self.docker_host['host']))
         return self._containers
@@ -230,12 +233,13 @@ class Docker(SALObject):
 
     def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1510", nameserver=["8.8.8.8"],
                replace=True, cpu=None, mem=0, jumpscale=False, ssh=True, myinit=True, sharecode=False,sshkeyname="",sshpubkey="",
-               setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master"):
+               setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master"): #@todo (*1*) improve to use aydofs see in cuisine_ dir for docker_approach.md
 
         """
         @param ports in format as follows  "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
         @param vols in format as follows "/var/insidemachine:/var/inhost # /var/1:/var/1 # ..."   '#' is separator
         @param sshkeyname : use ssh-agent (can even do remote through ssh -A) and then specify key you want to use in docker
+        #@todo (*1*) change way how we deal with ssh keys, put authorization file in filesystem before docker starts don't use ssh to push them, will be much faster and easier
         """
         name = name.lower().strip()
         print(("create:%s" % name))

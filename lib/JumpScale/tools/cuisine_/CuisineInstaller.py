@@ -17,23 +17,23 @@ class CuisineInstaller(object):
         self.executor=executor
         self.cuisine=cuisine
 
-    @actionrun(action=True)
-    def redis(self):
-        defport=6379
-        if self.cuisine.process_tcpport_check(defport,"redis"):
-            print ("no need to install, already there & running")
-            return
+    # @actionrun(action=True)
+    # def redis(self):
+    #     defport=6379
+    #     if self.cuisine.process_tcpport_check(defport,"redis"):
+    #         print ("no need to install, already there & running")
+    #         return
 
-        if self.cuisine.isUbuntu:
-            package="redis-server"
-        else:
-            package="redis"
+    #     if self.cuisine.isUbuntu:
+    #         package="redis-server"
+    #     else:
+    #         package="redis"
 
-        self.cuisine.package.install(package)
-        self.cuisine.package.start(package)
+    #     self.cuisine.package.install(package)
+    #     self.cuisine.package.start(package)
 
-        if self.cuisine.process_tcpport_check(defport,"redis")==False:
-            raise RuntimeError("Could not install redis, port was not running")
+    #     if self.cuisine.process_tcpport_check(defport,"redis")==False:
+    #         raise RuntimeError("Could not install redis, port was not running")
 
     @actionrun(action=True)
     def sshreflector_server(self,reset=False):
@@ -283,21 +283,30 @@ class CuisineInstaller(object):
 
     @actionrun(action=True)
     def clean(self):
-        C = """
-            set +ex
-            pkill redis-server #will now kill too many redis'es, should only kill the one not in docker
-            pkill redis #will now kill too many redis'es, should only kill the one not in docker
-            umount -fl /optrw
-            apt-get remove redis-server -y
-            rm -rf /overlay/js_upper
-            rm -rf /overlay/js_work
-            rm -rf /optrw
-            js8 stop
-            pskill js8
-            umount -f /opt
-            apt-get install tmux fuse -y
-            """
-        self.cuisine.run_script(C)
+        self.cuisine.dir_ensure(self.cuisine.dir_paths["tmpDir"],action=False)
+        if not self.cuisine.isMac:
+            C = """
+                set +ex
+                # pkill redis-server #will now kill too many redis'es, should only kill the one not in docker
+                # pkill redis #will now kill too many redis'es, should only kill the one not in docker
+                umount -fl /optrw
+                apt-get remove redis-server -y
+                rm -rf /overlay/js_upper
+                rm -rf /overlay/js_work
+                rm -rf /optrw
+                js8 stop
+                pskill js8
+                umount -f /opt
+                """
+        else:
+            C = """
+                set +ex
+                js8 stop
+                pskill js8
+                echo "OK"
+                """
+
+        self.cuisine.run_script(C,die=False)
 
     @actionrun(action=True)
     def jumpscale8(self, rw=False,reset=False):
@@ -322,12 +331,23 @@ class CuisineInstaller(object):
             set -ex
             cd /usr/bin
             rm -f js8
+            cd /usr/local/bin
+            rm -f js8
+            """
+        cuisine.run_script(C,action=True)
+
+        if not self.cuisine.isUbuntu:
+            raise RuntimeError("not supported yet")
+
+        C = """
+            cd $tmpDir
             wget https://stor.jumpscale.org/storx/static/js8
             chmod +x js8
             cd /
-            mkdir -p /opt
+            mkdir -p $base
             """
         cuisine.run_script(C,action=True)
+
 
         """
         install jumpscale8 sandbox in read or readwrite mode
@@ -343,30 +363,40 @@ class CuisineInstaller(object):
             C += "js8 init"
         cuisine.run_script(C,action=True)
 
-    @actionrun(action=True)
-    def pip(self):
-        self.base()
-        self.pythonDevelop()
-        cmd="""
-            cd /tmp
-            rm -rf get-pip.py
-            wget https://bootstrap.pypa.io/get-pip.py
-        """
-        self.cuisine.run_script(cmd)
-        self.cuisine.run("cd /tmp;python3.5 get-pip.py")
 
     @actionrun(action=True)
     def base(self):
         self.clean()
-        C="""
-        sudo
+
+        if self.cuisine.isMac:
+            C=""
+        else:
+            C="""
+            sudo
+            net-tools
+            """
+
+        C+="""
         wget
         curl
         git
         openssl
         mc
-        net-tools
+        tmux
         """
+        out=""
+        #make sure all dirs exist
+        for key,item in self.cuisine.dir_paths.items():
+            out+="mkdir -p %s\n"%item
+        self.cuisine.run_script(out)
+
+        if not self.cuisine.isMac:
+            self.package.install("fuse")
+
+        if self.cuisine.isArch:
+            self.package.install("wpa_actiond") #is for wireless auto start capability
+            #systemctl enable netctl-auto@wlan0.service
+
         self.cuisine.package.multiInstall(C)
         self.cuisine.package.mdupdate()
         self.cuisine.package.upgrade()
@@ -582,7 +612,7 @@ class CuisineInstaller(object):
         # if self.cuisine.isUbuntu():
         #     self.cuisine.run("ufw allow 8123")
 
-    @actionrun(action=True)
+    # @actionrun(action=True)
     def installArchLinuxToSDCard(self,redownload=False):
         """
         will only work if 1 sd card found of 8 or 16 GB, be careful will overwrite the card
@@ -595,14 +625,17 @@ class CuisineInstaller(object):
 
         j.actions.setRunId("installArchSD")
 
-        def partition(cuisineid,deviceid,size):
-            cuisine=j.tools.cuisine.get(cuisineid)
+        # def partition(cuisineid,deviceid,size):
+            # cuisine=j.tools.cuisine.get(cuisineid)
 
+        def partition(deviceid,size):
             cmd="parted -s /dev/%s mklabel msdos mkpar primary fat32 2 100M mkpart primary ext4 100M 100"%deviceid
             cmd+="%"
             self.cuisine.run(cmd)
             self.cuisine.run("umount /mnt/boot",die=False)
             self.cuisine.run("umount /mnt/root",die=False)
+            self.cuisine.run("umount /dev/%s1"%deviceid,die=False)
+            self.cuisine.run("umount /dev/%s2"%deviceid,die=False)
             self.cuisine.run("mkfs.vfat /dev/%s1"%deviceid)
             self.cuisine.run("mkdir -p /mnt/boot;mount /dev/%s1 /mnt/boot"%deviceid)
             self.cuisine.run("mkfs.ext4 /dev/%s2"%deviceid)
@@ -611,7 +644,9 @@ class CuisineInstaller(object):
                 self.cuisine.file_unlink("/mnt/ArchLinuxARM-rpi-2-latest.tar.gz")
             if not self.cuisine.file_exists("/mnt/ArchLinuxARM-rpi-2-latest.tar.gz"):
                 self.cuisine.run("cd /mnt;wget http://archlinuxarm.org/os/ArchLinuxARM-rpi-2-latest.tar.gz")
-            self.cuisine.run("cd /mnt;bsdtar -xpf ArchLinuxARM-rpi-2-latest.tar.gz -C root")
+
+            self.cuisine.run("cd /mnt;tar vxf ArchLinuxARM-rpi-2-latest.tar.gz -C root")
+
             self.cuisine.run("sync")
             self.cuisine.run("cd /mnt;mv root/boot/* boot")
 
@@ -643,11 +678,11 @@ class CuisineInstaller(object):
 
         devs=findDevices()
 
+
         for deviceid,size in devs:
-            j.actions.add(partition, actionRecover=None, args={"cuisineid":self.cuisine.id,'deviceid':deviceid,"size":size}, die=True, stdOutput=True, errorOutput=True, retry=1,deps=None)
-
-        j.actions.run()
-
+            partition(deviceid,size)
+            
+        
     @actionrun(action=True)
     def docker(self):
         if self.cuisine.isUbuntu:

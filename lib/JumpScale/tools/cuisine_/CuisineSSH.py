@@ -70,13 +70,13 @@ class CuisineSSH():
         else:            
             try:
                 # out=self.cuisine.run("nmap -p 22 %s | grep for"%range,showout=False)
-                out=self.cuisine.run("nmap %s -p %s --open -oX /tmp/nmap"%(range,port),showout=False,force=False,action=True)
+                out=self.cuisine.run("nmap %s -p %s --open -oX $tmpDir/nmap"%(range,port),showout=False,force=False,action=True)
             except Exception as e:
                 if str(e).find("command not found")!=-1:
                     self.cuisine.package.install("nmap")
                     # out=self.cuisine.run("nmap -p 22 %s | grep for"%range)
-                    out=self.cuisine.run("nmap %s -p %s --open -oX /tmp/nmap"%(range,port),showout=False,force=False,action=True)
-            out=self.cuisine.file_read("/tmp/nmap")
+                    out=self.cuisine.run("nmap %s -p %s --open -oX $tmpDir/nmap"%(range,port),showout=False,force=False,action=True)
+            out=self.cuisine.file_read("$tmpDir/nmap")
             import xml.etree.ElementTree as ET
             root = ET.fromstring(out)
             for child in root:

@@ -154,6 +154,7 @@ class Bash:
 
     @actionrun()
     def addPath(self,path):
+        path=self.cuisine.args_replace(path)
         self.environSet("PATH","%s:${PATH}"% path)
 
     def environRemove(self,key,val):

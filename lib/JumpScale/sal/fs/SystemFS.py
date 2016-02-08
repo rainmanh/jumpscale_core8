@@ -1719,8 +1719,7 @@ class SystemFS(SALObject):
         @returns: Whether the filename is valid on the given platform
         @rtype: bool
         '''
-        from JumpScale.core.enumerators import PlatformType
-        platform = platform or PlatformType.findPlatformType()
+        platform = platform or j.core.platformtype.myplatform
 
         if not filename:
             return False

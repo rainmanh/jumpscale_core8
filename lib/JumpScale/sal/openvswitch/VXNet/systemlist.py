@@ -1,11 +1,9 @@
 __author__ = 'delandtj'
 
-from utils import *
+from VXNet.utils import *
 import fcntl
-import time
 import re
 from netaddr import *
-from utils import *
 
 
 def acquire_lock(path):

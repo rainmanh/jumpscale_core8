@@ -4,7 +4,6 @@ import os
 import os.path
 import subprocess
 import sys
-import syslog
 import time
 
 command_name = sys.argv[0]

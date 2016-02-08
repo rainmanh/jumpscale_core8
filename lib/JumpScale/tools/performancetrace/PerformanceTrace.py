@@ -15,7 +15,7 @@ class PerformanceTraceFactory():
 
         example:
 
-        import JumpScale.baselib.performancetrace
+        import JumpScale.tools.performancetrace
         do=j.tools.performancetrace.profile('test0b()', globals=globals())
 
         """

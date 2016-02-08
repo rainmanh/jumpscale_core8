@@ -14,7 +14,7 @@ class packInCodePython():
     def __init__(self):
         self.code="""
 from JumpScale import j
-import JumpScale.baselib.packInCode
+import JumpScale.tools.packInCode
 codegen=j.tools.packInCode.get4python()
 
 """

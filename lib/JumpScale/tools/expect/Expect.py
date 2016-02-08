@@ -2,8 +2,6 @@
 import os
 import subprocess
 import errno
-import time
-import sys
 from JumpScale import j
 
 PIPE = subprocess.PIPE

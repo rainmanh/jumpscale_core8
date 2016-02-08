@@ -1,4 +1,4 @@
-from JumpScale.grid.serverbase.Exceptions import RemoteException
+from JumpScale.servers.serverbase.Exceptions import RemoteException
 from JumpScale import j
 
 descr = """
@@ -71,6 +71,5 @@ def action():
 
 
 if __name__ == '__main__':
-    import JumpScale.grid.osis
     j.core.osis.client = j.clients.osis.getByInstance('main')
     print  action()

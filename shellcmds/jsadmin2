@@ -6,9 +6,6 @@ j.application.appname = "jumpscale:jsadmin2"
 j.application.start()
 
 from JumpScale.tools import cmdutils
-import JumpScale.baselib.jumpscripts
-
-import sys
 
 parser = cmdutils.ArgumentParser()
 
@@ -42,10 +39,6 @@ group = parser.add_argument_group(title="sshfs")
 args = parser.parse_args()
 args.local=False
 args.g=False
-
-import JumpScale.baselib.git
-
-import JumpScale.baselib.admin2
 
 admin=j.tools.admin.get(j.sal.fs.getcwd(), args, failWhenNotExist=False)
 

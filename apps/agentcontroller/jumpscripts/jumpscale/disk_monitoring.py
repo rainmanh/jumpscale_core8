@@ -79,6 +79,5 @@ def action():
     return {'results': result, 'errors': []}
 
 if __name__ == '__main__':
-    import JumpScale.grid.osis
     j.core.osis.client = j.clients.osis.getByInstance('processmanager')
     action()

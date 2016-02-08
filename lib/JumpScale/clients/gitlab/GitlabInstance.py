@@ -16,8 +16,6 @@ except Exception as e:
     import gitlab
 
 
-import JumpScale.baselib.git
-
 class GitlabInstance():
     """
     Wrapper around gitlab3 library with Caching capabilities to improve performance.

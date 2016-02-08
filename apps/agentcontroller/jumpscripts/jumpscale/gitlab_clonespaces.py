@@ -1,7 +1,5 @@
 
 from JumpScale import j
-from JumpScale.baselib import gitlab
-from JumpScale.baselib import git
 import sys
 descr = """
 Clone/Update gitlab user spaces

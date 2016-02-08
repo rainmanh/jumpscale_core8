@@ -64,6 +64,5 @@ def action():
             rediscl.hdel('nics', nic['name'])
 
 if __name__ == '__main__':
-    import JumpScale.grid.osis
     j.core.osis.client = j.clients.osis.getByInstance('processmanager')
     action()

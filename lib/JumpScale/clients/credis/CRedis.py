@@ -6,7 +6,7 @@ from JumpScale import j
 # import JumpScale.baselib.redis2
 
 
-from JumpScale.baselib.redis.RedisQueue import RedisQueue as CRedisQueue
+from JumpScale.clients.redis_.RedisQueue import RedisQueue as CRedisQueue
 
 #code https://github.com/yihuang/credis/blob/master/credis/base.pyx
 

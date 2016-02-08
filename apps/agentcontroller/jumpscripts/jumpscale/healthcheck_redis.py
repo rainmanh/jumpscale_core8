@@ -18,7 +18,6 @@ period = 600
 log = True
 
 def action():
-    import JumpScale.baselib.redis
     ports = {}
     results = list()
 

@@ -104,10 +104,6 @@ if opts.action =='cmd':
     ip=l.getIp(opts.name)
     print("ipaddr:%s"%ip)
 
-    import JumpScale.baselib.remote
-
-    import JumpScale.baselib.remote
-
     if opts.passwd==None:
         opts.passwd="rooter"
 

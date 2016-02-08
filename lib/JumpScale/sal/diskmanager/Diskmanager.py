@@ -228,13 +228,13 @@ class Diskmanager(SALObject):
 
                                     if not j.sal.fs.exists(hrdpath) and initialize:
                                         C="""
-diskinfo.partnr=
-diskinfo.gid=
-diskinfo.nid=
-diskinfo.type=
-diskinfo.epoch=
-diskinfo.description=
-"""
+                                        diskinfo.partnr=
+                                        diskinfo.gid=
+                                        diskinfo.nid=
+                                        diskinfo.type=
+                                        diskinfo.epoch=
+                                        diskinfo.description=
+                                        """
                                         j.sal.fs.writeFile(filename=hrdpath,contents=C)
                                         hrd=j.data.hrd.get(hrdpath)
                                         hrd.set("diskinfo.description",j.tools.console.askString("please give description for disk"))
@@ -244,7 +244,7 @@ diskinfo.description=
                                         hrd.set("diskinfo.epoch",j.data.time.getTimeEpoch())
 
 
-                                        # TODO (*1*) ---> get connection from AYS
+                                        # TODO (*4*) ---> get connection from AYS, lets discuss this does not seem right any longer
                                         j.data.models.system.connect2mongo()
 
                                         disk = j.data.models.system.Disk()

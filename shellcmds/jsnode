@@ -56,7 +56,7 @@ def _deleteNode(nid):
     print('Node %s deleted successfully' % (nid))
 
 if opts.action in ['delete', 'enable', 'disable', 'addrole', 'list', 'deleterole']:
-    # TODO (*1*) get mongoengine connection from AYS
+    # TODO (*3*) get mongoengine connection from AYS
     j.data.models.system.connect2mongo()
 
     if opts.action == 'list':

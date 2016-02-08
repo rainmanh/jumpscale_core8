@@ -30,10 +30,10 @@ how to install (cuisine based)
 - install python3 & ... through cuisine.builder for now
 - install agentcontroller,golang, skydns, etcd, ... all through cuisine.builder for now
 - syncthing is used to sync the aydostor folders (for each namespace create a new replica set in synchting, create code for this in aydostor)
-- no ays because this is the bootstrap of all we do
+- no ays because this is the bootstrap before we will do anything further, we need to be able to rely on this no matter what happens with our code, ... so we need to stay close to the code
 - all managed through ssh keys
 
 ITS IMPORTANT WE CAN REPRODUCE ALL !!!
-so nothing manual with customer docker images or custom installs !!!
+so nothing manual with customer docker images or custom manual installs !!!
 
 

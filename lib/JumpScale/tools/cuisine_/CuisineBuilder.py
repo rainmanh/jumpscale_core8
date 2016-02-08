@@ -375,7 +375,12 @@ class CuisineBuilder(object):
             
 
 
-    def all(self,start=False):
+    def all(self,start=False,sandbox=False,aydostor=None):
+        #@todo (*1*) check following behaviour:
+        #- use $...Dir variables everywhere, nothing static 
+        #- make sure builded binaries end up in $binDir (which is on linux /opt/jumpscale8/bin)
+        #- make sure all config files end up in $cfgDir (DO NOT PUT THEM under /opt/... because will be readonly)
+        #- for each config file also keep the original (NEW)  (add .org to filename) is the file where config items are not filled in e.g. ipaddr, ... this allows ays later to still set other arguments
         self.cuisine.installerdevelop.pip()
         self.cuisine.installerdevelop.python()
         self.cuisine.installerdevelop.jumpscale8()
@@ -384,7 +389,17 @@ class CuisineBuilder(object):
         self.etcd(start=start)
         self.caddy(start=start)
         self.skydns(start=start)
+        self.influxdb(start=start) #@todo (*1*)
+        if sandbox:
+            self.sandbox(aydostor)
 
+    def sandbox(self,aydostor): #@todo (*1*)
+        #sandbox all files to /opt & /optvar (use jumpscale which is installed in the place where we have build everything)
+        #make sure all config files are in /optvar (also the originals use path e.g. mongodb.conf and mongodb.conf.org)
+        #aydostor is client to aydo (js client for aydo stor) #@todo (*1*)
+        #upload files to the aydo stor
+        #return url's to the 2 metadata files (1 for /opt 1 for /optvar)
+        pass
 
     def vulcand(self):
         C='''

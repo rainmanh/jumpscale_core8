@@ -130,7 +130,7 @@ class CuisineBuilder(object):
 
 
     @actionrun(action=True)
-    def agentcontroller(self, start=True):
+    def installdeps(self):
         """
         config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
         """
@@ -140,31 +140,33 @@ class CuisineBuilder(object):
         self.cuisine.pip.install('pytoml')
         self.cuisine.pip.install('pygo')
         self.cuisine.golang.install()
-        self.cuisine.installer.redis()
-        self.syncthing()
-        self.mongodb()
-        self.agent()
-        self.agentcontroller()
-
-        if start:
-            self._startAgent()
-            self._startAgentController()
-
+        
     @actionrun(action=True)
-    def syncthing(self):
+    def syncthing(self, start=True):
+        self.installdeps()
+
         appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "syncthing")
         GOPATH = self.cuisine.bash.environGet('GOPATH')
 
         url = "git@github.com:syncthing/syncthing.git"
-        dest = self.cuisine.git.pullRepo(url, dest='%s/src/github.com/syncthing/syncthing' % GOPATH)
+        dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='%s/src/github.com/syncthing/syncthing' % GOPATH)
         self.cuisine.run('cd %s && godep restore' % dest, profile=True)
         self.cuisine.run("cd %s && ./build.sh noupgrade" % dest, profile=True)
         self.cuisine.dir_ensure(appbase, recursive=True)
         self.cuisine.file_copy(self.cuisine.joinpaths(dest, 'syncthing'), self.cuisine.joinpaths(GOPATH, 'bin'), recursive=True)
         self.cuisine.file_copy(self.cuisine.joinpaths(GOPATH, 'bin', 'syncthing'), appbase, recursive=True)
 
+        if start:
+            self._startSyncthing()
+
+
     @actionrun(action=True)
     def agent(self,start=True):
+        self.installdeps()
+        self.cuisine.installer.redis()
+        self.mongodb()
+
+        self.cuisine.golang.install()
         GOPATH = self.cuisine.bash.environGet('GOPATH')
         appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "agent8")
         self.cuisine.dir_ensure(appbase, recursive=True)
@@ -193,7 +195,12 @@ class CuisineBuilder(object):
             self._startAgent()
 
     @actionrun(action=True)
-    def agentcontroller(self):
+    def agentcontroller(self, start=True):
+        self.installdeps()
+        self.cuisine.installer.redis()
+        self.mongodb()
+        self.agent()
+
         GOPATH = self.cuisine.bash.environGet('GOPATH')
         appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "agentcontroller8")
         self.cuisine.dir_ensure(appbase, recursive=True)
@@ -217,11 +224,17 @@ class CuisineBuilder(object):
         content = j.data.serializer.toml.dumps(cfg)
         self.cuisine.file_write(cfgfile, content)
 
-        self.agent()
+
 
         if start:
-            self._startAgent()
-            self._startAgentController
+            self._startAgentController()
+
+    @actionrun(action=True)
+    def _startSyncthing(self):
+        GOPATH = self.cuisine.bash.environGet('GOPATH')
+        self.cuisine.tmux.executeInScreen("main", screenname="syncthing", cmd="./syncthing", wait=0, cwd=self.cuisine.joinpaths(GOPATH, "bin") , env=None, user='root', tmuxuser=None)
+ 
+
 
     @actionrun(action=True)
     def _startAgent(self):

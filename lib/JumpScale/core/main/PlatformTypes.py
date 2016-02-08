@@ -19,7 +19,7 @@ def _useELFtrick(file):
 class PlatformTypes():
 
     def __init__(self):
-        self.__jslocation__ = "j.core.platformtype"        
+        self.__jslocation__ = "j.core.platformtype"
         self._myplatform=None
         self._platformParents={}
         self._platformParents["unix"]=["generic"]
@@ -27,7 +27,7 @@ class PlatformTypes():
         self._platformParents["linux32"]=["linux"]
         self._platformParents["linux64"]=["linux"]
         self._platformParents["unix32"]=["unix"]
-        self._platformParents["unix64"]=["unix"]      
+        self._platformParents["unix64"]=["unix"]
         self._platformParents["ubuntu"]=["linux"]
         self._platformParents["ubuntu64"]=["ubuntu","linux64"]
         self._platformParents["ubuntu32"]=["ubuntu","linux32"]
@@ -56,7 +56,7 @@ class PlatformTypes():
 
     def getParents(self,name):
         res=[name]
-        res=self._getParents(name,res)        
+        res=self._getParents(name,res)
         return res
 
     def _getParents(self,name,res=[]):
@@ -73,12 +73,12 @@ class PlatformTypes():
         """
         return PlatformType(executor=executor)
 
-        
+
 class PlatformType():
 
     def __init__(self,name="",executor=None):
         self.myplatform=name
-        self._platformtypes={}        
+        self._platformtypes={}
         self._uname=""
         self._is64bit=None
         self._osversion=""
@@ -110,7 +110,7 @@ class PlatformType():
     def hostname(self):
         if self._hostname=="":
             self.uname
-            self._hostname=self._hostname0.split(".")[0]            
+            self._hostname=self._hostname0.split(".")[0]
         return self._hostname
 
     @property
@@ -130,7 +130,7 @@ class PlatformType():
     @property
     def osversion(self):
         if self._osversion=="":
-            self.osname #will populate the version 
+            self.osname #will populate the version
             if self._osversion=="":
                 raise RuntimeError("could not define osversion")
         return self._osversion
@@ -143,7 +143,7 @@ class PlatformType():
             if "ARCH" in self.uname:
                 self._osname="arch"
             elif self._osname not in ["darwin"]:
-                out=self.executor.cuisine.run("lsb_release -a",showout=False)
+                out=self.executor.cuisine.run("lsb_release -a",showout=False, replaceArgs=False)
                 if "ubuntu" in out.lower():
                     self._osname="ubuntu"
                 else:
@@ -153,7 +153,7 @@ class PlatformType():
                     if line.lower().startswith("release"):
                         pre,post=line.split(":")
                         self._osversion=post.strip()
-                
+
         return self._osname
 
     def checkMatch(self,match):
@@ -175,7 +175,7 @@ class PlatformType():
         else:
             name="%s64"%(self.osname)
 
-        self.myplatform=name   
+        self.myplatform=name
 
     def has_parent(self,name):
         return name in self.platformtypes
@@ -199,11 +199,11 @@ class PlatformType():
     def isGeneric(self):
         '''Checks whether the platform is generic (they all should)'''
         return self.has_parent("generic")
-    
+
     def isXen(self):
         '''Checks whether Xen support is enabled'''
         return j.sal.process.checkProcess('xen') == 0
-    
+
     def isVirtualBox(self):
         '''Check whether the system supports VirtualBox'''
         if self.isWindows():
@@ -211,7 +211,7 @@ class PlatformType():
             return False
         exitcode, stdout, stderr = j.sal.process.run('lsmod |grep vboxdrv |grep -v grep', stopOnError=False)
         return exitcode == 0
-    
+
     def isHyperV(self):
         '''Check whether the system supports HyperV'''
         #@todo should be moved to _getPlatform & proper parent definition
@@ -224,14 +224,8 @@ class PlatformType():
                 return False
             return True
         return False
-    
+
     def __str__(self):
         return str(self.myplatform)
 
     __repr__=__str__
-
-        
-
-        
-
-        

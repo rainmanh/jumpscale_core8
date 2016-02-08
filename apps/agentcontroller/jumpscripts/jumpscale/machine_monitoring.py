@@ -21,7 +21,6 @@ roles = []
 
 from xml.etree import ElementTree
 try:
-    import JumpScale.lib.qemu_img
     import libvirt
 except:
     enable=False

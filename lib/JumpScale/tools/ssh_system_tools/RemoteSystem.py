@@ -10,7 +10,6 @@ import os
 import socket
 from JumpScale import j
 
-import signal
 try:
     import socketserver as socketserver
 except:
@@ -18,7 +17,6 @@ except:
 
 import select
 import threading
-import re
 import signal
 
 

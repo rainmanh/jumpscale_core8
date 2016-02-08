@@ -14,8 +14,6 @@ passwd=sys.argv[2]
 
 from JumpScale import j
 
-import JumpScale.lib.sandboxer
-
 # j.tools.sandboxer.copyLibsTo("/opt/code/git/binary/doublecmd/doublecmd","/tmp/2/",recursive=False)
 
 

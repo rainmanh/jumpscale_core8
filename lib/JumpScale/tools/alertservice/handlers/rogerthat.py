@@ -1,5 +1,5 @@
 from JumpScale import j
-from JumpScale.lib.rogerthat.rogerthatservice import GeventWSServer
+from JumpScale.clients.rogerthat.rogerthatservice import GeventWSServer
 from JumpScale.tools.alertservice.AlertService import Handler
 import gevent
 

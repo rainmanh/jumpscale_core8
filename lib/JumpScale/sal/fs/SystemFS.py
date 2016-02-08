@@ -1853,7 +1853,7 @@ class SystemFS(SALObject):
         @return: unicode path
         @rtype: unicode
         """
-        from jumpscale import Dirs
+        from JumpScale.core.main import Dirs
         return Dirs.pathToUnicode(path)
 
     def targzCompress(self, sourcepath, destinationpath,followlinks=False,destInTar="",pathRegexIncludes=['.[a-zA-Z0-9]*'], \

@@ -1,17 +1,14 @@
-import datetime
 import base64
 
 
 from JumpScale import j
-
-import os
 
 # import gitlab3
 try:
     import gitlab
 except Exception as e:
     cmd="pip install pyapi-gitlab"
-    if str(e).find('No module named gitlab')!=-1:
+    if str(e).find("No module named 'gitlab'")!=-1:
         j.do.executeInteractive(cmd)
     import gitlab
 

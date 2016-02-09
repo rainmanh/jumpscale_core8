@@ -149,34 +149,12 @@ class SSHClient(object):
         ch.exec_command(cmd)
         buf = ''
 
-        def readChannel(ch):
-            count = 0
-            while ch.recv_ready() is False and count < 0.5:
-                time.sleep(0.1)
-                count += 0.1
-
-            out = ch.recv(1024).decode()
+        out = ch.recv(1024*1024).decode()
+        while out:
             if showout and self.stdout:
                 print(out)
-            return out
-
-        # buf += readChannel(ch)
-        while ch.exit_status_ready() == False:
-            buf += readChannel(ch)
-        #@todo (*1*) is too slow need to find other solution can't we check buffer is empty
-
-        if ch.recv_ready():
-            r=readChannel(ch)
-        else:
-            r=""
-
-        while r!="":
-            buf+=r
-            if ch.recv_ready():
-                r=readChannel(ch)            
-            else:
-                r=""
-
+            buf += out
+            out = ch.recv(1024*1024).decode()
 
         retcode = ch.recv_exit_status()
         if die:

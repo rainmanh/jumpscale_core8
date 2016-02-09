@@ -18,6 +18,88 @@ class CuisineBuilder(object):
         self.cuisine=cuisine
         self.bash=self.cuisine.bash
 
+    def all(self,start=False, sandbox=False, aydostor=None):
+        self.cuisine.installerdevelop.pip()
+        self.cuisine.installerdevelop.python()
+        self.cuisine.installerdevelop.jumpscale8()
+        self.redis(start=start)
+        self.agentcontroller(start=start)
+        self.etcd(start=start)
+        self.caddy(start=start)
+        self.skydns(start=start)
+        self.influxdb(start=start)
+        # self.weave(start=start)
+        if sandbox:
+            self.sandbox(aydostor)
+
+    def sandbox(self, aydostor, python=True):
+        cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], 'js8_opt', '%s', sandbox_python=%s)" % (aydostor, python)
+        self.cuisine.run('js "%s"' % cmd)
+        url_opt = '%s/static/js8_opt' % aydostor
+        cmd = "j.tools.cuisine.local.builder.dedupe(['/optvar'], 'js8_optvar', '%s', sandbox_python=%s)" % (aydostor, False)
+        self.cuisine.run('js "%s"' % cmd)
+        url_optvar = '%s/static/js8_optvar' % aydostor
+        return (url_opt, url_optvar)
+
+    @actionrun(action=True)
+    def _sandbox_python(self, python=True):
+        print("START SANDBOX")
+        if python:
+            paths = []
+            paths.append("/usr/lib/python3.5/")
+            paths.append("/usr/local/lib/python3.5/dist-packages")
+            paths.append("/usr/lib/python3/dist-packages")
+
+            excludeFileRegex=["/xml/","-tk/","/xml","/lib2to3","-34m-",".egg-info"]
+            excludeDirRegex=["/JumpScale","\.dist-info","config-x86_64-linux-gnu","pygtk"]
+
+            dest = j.sal.fs.joinPaths(self.cuisine.dir_paths['base'], 'lib')
+
+            for path in paths:
+                j.tools.sandboxer.copyTo(path, dest, excludeFileRegex=excludeFileRegex, excludeDirRegex=excludeDirRegex)
+
+            if not j.do.exists("%s/bin/python" % self.cuisine.dir_paths['base']):
+                j.do.copyFile("/usr/bin/python3.5", "%s/bin/python" % self.cuisine.dir_paths['base'])
+
+        j.tools.sandboxer.sandboxLibs("%s/lib" % self.cuisine.dir_paths['base'], recursive=True)
+        j.tools.sandboxer.sandboxLibs("%s/bin" % self.cuisine.dir_paths['base'], recursive=True)
+        print("SANDBOXING DONE, ALL OK IF TILL HERE, A Segfault can happen because we have overwritten ourselves.")
+
+    @actionrun(force=True)
+    def dedupe(self, dedupe_path, namespace, store_addr, output_dir='/tmp/sandboxer', sandbox_python=True):
+        self.cuisine.dir_remove(output_dir)
+
+        if sandbox_python:
+            self._sandbox_python()
+
+        if not j.data.types.list.check(dedupe_path):
+            dedupe_path = [dedupe_path]
+
+        for path in dedupe_path:
+            print("DEDUPE:%s" % path)
+            j.tools.sandboxer.dedupe(path, storpath=output_dir, name=namespace, reset=False, append=True)
+
+        store_client = j.clients.storx.get(store_addr)
+        files_path = j.sal.fs.joinPaths(output_dir, 'files')
+        files = j.sal.fs.listFilesInDir(files_path, recursive=True)
+        error_files = []
+        for f in files:
+            src_hash = j.data.hash.md5(f)
+            print('uploading %s' % f)
+            uploaded_hash = store_client.putFile(namespace, f)
+            if src_hash != uploaded_hash:
+                error_files.append(f)
+                print("%s hash doesn't match\nsrc     :%32s\nuploaded:%32s" % (f, src_hash, uploaded_hash))
+
+        if len(error_files) == 0:
+            print("all uploaded ok")
+        else:
+            raise RuntimeError('some files didnt upload properly. %s' % ("\n".join(error_files)))
+
+        metadataPath = j.sal.fs.joinPaths(output_dir, "md", "%s.flist" % namespace)
+        print('uploading %s' % metadataPath)
+        store_client.putStaticFile(namespace, metadataPath)
+
     @actionrun(action=True)
     def skydns(self,start=True):
         self.cuisine.golang.install()

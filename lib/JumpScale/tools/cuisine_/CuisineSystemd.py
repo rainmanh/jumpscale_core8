@@ -1,6 +1,6 @@
 
 from JumpScale import j
-
+import re
 #we implemented a fallback system if systemd does not exist
 
 class CuisineSystemd():
@@ -71,10 +71,9 @@ class CuisineSystemd():
             self.cuisine.tmux.killWindow("main",name)            
 
     def remove(self,prefix):
-        self.stop()
-        cmd=j.core.db.hdel("processcmds",name)
-        for name,status in self.systemd.list(prefix):
-            self.systemd.stop(name)
+        for name,status in self.list(prefix):
+            cmd=j.core.db.hdel("processcmds",name)
+            self.stop(name)
             if self.systemdOK:
                 for item in self.cuisine.fs_find("/etc/systemd",True,"*%s.service"%name):
                     print("remove:%s"%item)

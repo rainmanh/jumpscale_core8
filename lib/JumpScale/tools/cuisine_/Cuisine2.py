@@ -246,6 +246,7 @@ class OurCuisine():
         self._fw=None
         self.cuisine=self
         self._fqn=""
+        self._dnsmasq=None
         self._docker=None
         self._js8sb=None
         self._dirs={}
@@ -370,6 +371,14 @@ class OurCuisine():
         if self._tmux==None:
             self._tmux=j.sal.tmux.get(self,self.executor)
         return self._tmux
+
+    @property
+    def dnsmasq(self):
+        if self._dnsmasq==None:
+            self._dnsmasq=j.sal.dnsmasq()
+            self._dnsmasq.cuisine=self
+            self._dnsmasq.executor=self.executor
+        return self._dnsmasq 
 
     @property
     def bash(self):

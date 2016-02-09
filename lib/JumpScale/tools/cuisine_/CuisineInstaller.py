@@ -17,11 +17,11 @@ class CuisineInstaller(object):
         self.executor=executor
         self.cuisine=cuisine
 
-    @actionrun(action=True)
+    # @actionrun(action=True)
     def sshreflector_server(self,reset=False):
         """
         to test
-        js 'c=j.tools.cuisine.get("stor1:9022");c.installer.sshreflector()'
+        js 'c=j.tools.cuisine.get("stor1:9022");c.installer.sshreflector...'
         """
 
         port=9222
@@ -33,7 +33,7 @@ class CuisineInstaller(object):
         self.cuisine.run("killall dropbear",die=False   )
 
         passwd=j.data.idgenerator.generateGUID()
-        self.cuisine.user_ensure("sshreflector", passwd=passwd, home="/home/sshreflector", uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True, group=None)
+        self.cuisine.user.ensure("sshreflector", passwd=passwd, home="/home/sshreflector", uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True, group=None)
 
         self.cuisine.run('ufw allow %s'%port,die=False)
 
@@ -42,16 +42,17 @@ class CuisineInstaller(object):
         lpath=os.environ["HOME"]+"/.ssh/reflector"
         path="/home/sshreflector/.ssh/reflector"
         ftp=self.cuisine.executor.sshclient.getSFTP()
-        if j.do.exists(lpath):
+        if j.do.exists(lpath) and j.do.exists(lpath+".pub"):
             print("UPLOAD EXISTING SSH KEYS")
             ftp.put(lpath,path)
             ftp.put(lpath+".pub",path+".pub")
         else:
-            if reset:
+            #we do the generation of the keys on the server
+            if reset or not self.cuisine.file_exists(path) or not self.cuisine.file_exists(path+".pub"):
                 self.cuisine.file_unlink(path)
-            if not self.cuisine.file_exists(path):
-                self.cuisine.run("ssh-keygen -f %s -N ''"%path)
-
+                self.cuisine.file_unlink(path+".pub")   
+                #-N is passphrase             
+                self.cuisine.run("ssh-keygen -q -t rsa -b 4096 -f %s -N '' "%path)
             ftp.get(path,lpath)
             ftp.get(path+".pub",lpath+".pub")
 
@@ -67,16 +68,127 @@ class CuisineInstaller(object):
         cpath=self.cuisine.run("which dropbear")
 
         cmd="%s -R -F -E -p 9222 -w -s -g -K 20 -I 60"%cpath
-        self.cuisine.systemd_ensure("reflector", cmd, descr='')
+        self.cuisine.systemd.ensure("reflector", cmd, descr='')
 
         # self.cuisine.package.start(package)
 
-        self.cuisine.hostfile_set_fromlocal()
+        self.cuisine.ns.hostfile_set_fromlocal()
 
-        if self.cuisine.process_tcpport_check(port,"dropbear")==False:
+        if self.cuisine.process.tcpport_check(port,"dropbear")==False:
             raise RuntimeError("Could not install dropbear, port %s was not running"%port)
 
-    @actionrun()
+
+    # @actionrun(action=True)
+    def sshreflector_client_delete(self):
+        self.cuisine.systemd.remove("autossh") #make sure leftovers are gone
+        self.cuisine.run("killall autossh",die=False,showout=False)
+
+    def sshreflector_client(self,remoteids,reset=True):
+        """
+        chose a port for remote server which we will reflect to
+        @param remoteids :  ovh4,ovh5:2222
+
+        to test
+        js 'c=j.tools.cuisine.get("192.168.0.149");c.installer.sshreflector_client("ovh4,ovh5:2222")'
+
+        """
+
+        if remoteids.find(",")!=-1:
+            for item in remoteids.split(","):
+                self.sshreflector_client(item.strip())
+        else:
+
+
+            self.cuisine.systemd.remove("autossh") #make sure leftovers are gone
+            self.cuisine.run("killall autossh",die=False,showout=False)
+
+            self.cuisine.ns.hostfile_set_fromlocal()
+
+            remotecuisine=j.tools.cuisine.get(remoteids)
+
+            package="autossh"
+            self.cuisine.package.install(package)
+
+            lpath=os.environ["HOME"]+"/.ssh/reflector"
+
+            if reset or not j.do.exists(lpath) or not j.do.exists(lpath_pub):
+                print("DOWNLOAD SSH KEYS")
+                #get private key from reflector
+                ftp=remotecuisine.executor.sshclient.getSFTP()
+                path="/home/sshreflector/.ssh/reflector"
+                ftp.get(path,lpath)
+                ftp.get(path+".pub",lpath+".pub")
+                ftp.close()
+
+            #upload to reflector client
+            ftp=self.cuisine.executor.sshclient.getSFTP()
+            rpath="/root/.ssh/reflector"
+            ftp.put(lpath,rpath)
+            ftp.put(lpath+".pub",rpath+".pub")
+            self.cuisine.run("chmod 0600 /root/.ssh/reflector")
+            self.cuisine.run("chmod 0600 /root/.ssh/reflector.pub")
+
+            if(remotecuisine.executor.addr.find(".")!=-1):
+                #is real ipaddress, will put in hostfile as reflector
+                addr=remotecuisine.executor.addr
+            else:
+                a=socket.gethostbyaddr(remotecuisine.executor.addr)
+                addr=a[2][0]
+
+            port=remotecuisine.executor.port
+
+            #test if we can reach the port
+            if j.sal.nettools.tcpPortConnectionTest(addr,port)==False:
+                raise RuntimeError("Cannot not connect to %s:%s"%(addr,port))
+
+
+            rname="refl_%s"%remotecuisine.executor.addr.replace(".","_")
+            rname_short=remotecuisine.executor.addr.replace(".","_")
+
+            self.cuisine.ns.hostfile_set(rname,addr)
+
+            if remotecuisine.file_exists("/home/sshreflector/reflectorclients")==False:
+                print ("reflectorclientsfile does not exist")
+                remotecuisine.file_write("/home/sshreflector/reflectorclients","%s:%s\n"%(self.cuisine.platformtype.hostname,9800))
+                newport=9800
+                out2=remotecuisine.file_read("/home/sshreflector/reflectorclients")
+            else:
+                remotecuisine.file_read("/home/sshreflector/reflectorclients")
+                out=remotecuisine.file_read("/home/sshreflector/reflectorclients")
+                out2=""
+                newport=0
+                highestport=0
+                for line in out.split("\n"):
+                    if line.strip()=="":
+                        continue
+                    if line.find(self.cuisine.platformtype.hostname)!=-1:
+                        newport=int(line.split(":")[1])
+                        continue
+                    foundport=int(line.split(":")[1])
+                    if foundport>highestport:
+                        highestport=foundport
+                    out2+="%s\n"%line
+                if newport==0:
+                    newport=highestport+1
+                out2+="%s:%s\n"%(self.cuisine.platformtype.hostname,newport)
+                remotecuisine.file_write("/home/sshreflector/reflectorclients",out2)
+
+            self.cuisine.file_write("/etc/reflectorclients",out2)
+
+            reflport="9222"
+
+            print("check ssh connection to reflector")
+            self.cuisine.run("ssh -i /root/.ssh/reflector -o StrictHostKeyChecking=no sshreflector@%s -p %s 'ls /'"%(rname,reflport))
+            print ("OK")
+
+            cpath=self.cuisine.run("which autossh")
+            cmd="%s -M 0 -N -o ExitOnForwardFailure=yes -o \"ServerAliveInterval 60\" -o \"ServerAliveCountMax 3\" -R %s:localhost:22 sshreflector@%s -p %s -i /root/.ssh/reflector"%(cpath,newport,rname,reflport)
+            self.cuisine.systemd.ensure("autossh_%s"%rname_short, cmd, descr='')
+
+            print ("On %s:%s remote SSH port:%s"%(remotecuisine.executor.addr,port,newport))
+
+
+    # @actionrun()
     def sshreflector_createconnection(self,remoteids):
         """
         @param remoteids are the id's of the reflectors e.g. 'ovh3,ovh5:3333'
@@ -124,107 +236,6 @@ class CuisineInstaller(object):
         print ("Reflector:%s"%addr)
         print (out)
 
-    @actionrun(action=True)
-    def sshreflector_client(self,remoteids):
-        """
-        chose a port for remote server which we will reflect to
-        @param remoteids :  ovh4,ovh5:2222
-
-        to test
-        js 'c=j.tools.cuisine.get("192.168.0.149");c.installer.sshreflector_client("ovh4,ovh5:2222")'
-
-        """
-
-        if remoteids.find(",")!=-1:
-            self.cuisine.systemd_remove("autossh") #make sure leftovers are gone
-            self.cuisine.run("killall autossh",die=False,showout=False)
-
-            for item in remoteids.split(","):
-                self.sshreflector_client(item.strip())
-        else:
-
-            self.cuisine.hostfile_set_fromlocal()
-
-            remotecuisine=j.tools.cuisine.get(remoteids)
-
-            package="autossh"
-            self.cuisine.package.install(package)
-
-
-            lpath=os.environ["HOME"]+"/.ssh/reflector"
-
-            if j.do.exists(lpath):
-                print("UPLOAD EXISTING SSH KEYS")
-            else:
-                print("DOWNLOAD SSH KEYS")
-                #get private key from reflector
-                ftp=remotecuisine.executor.sshclient.getSFTP()
-                path="/home/sshreflector/.ssh/reflector"
-                ftp.get(path,lpath)
-                ftp.close()
-
-            #upload to reflector client
-            ftp=self.cuisine.executor.sshclient.getSFTP()
-            rpath="/root/.ssh/reflector"
-            ftp.put(lpath,rpath)
-            self.cuisine.run("chmod 0600 /root/.ssh/reflector")
-
-            if(remotecuisine.executor.addr.find(".")!=-1):
-                #is real ipaddress, will put in hostfile as reflector
-                addr=remotecuisine.executor.addr
-            else:
-                a=socket.gethostbyaddr(remotecuisine.executor.addr)
-                addr=a[2][0]
-
-            port=remotecuisine.executor.port
-
-            #test if we can reach the port
-            if j.sal.nettools.tcpPortConnectionTest(addr,port)==False:
-                raise RuntimeError("Cannot not connect to %s:%s"%(addr,port))
-
-
-            rname="refl_%s"%remotecuisine.executor.addr.replace(".","_")
-            rname_short=remotecuisine.executor.addr.replace(".","_")
-
-            self.cuisine.hostfile_set(rname,addr)
-
-            if remotecuisine.file_exists("/home/sshreflector/reflectorclients")==False:
-                print ("reflectorclientsfile does not exist")
-                remotecuisine.file_write("/home/sshreflector/reflectorclients","%s:%s\n"%(self.cuisine.platformtype.hostname,9800))
-                newport=9800
-                out2=remotecuisine.file_read("/home/sshreflector/reflectorclients")
-            else:
-                remotecuisine.file_read("/home/sshreflector/reflectorclients")
-                out=remotecuisine.file_read("/home/sshreflector/reflectorclients")
-                out2=""
-                newport=0
-                highestport=0
-                for line in out.split("\n"):
-                    if line.strip()=="":
-                        continue
-                    if line.find(self.cuisine.platformtype.hostname)!=-1:
-                        newport=int(line.split(":")[1])
-                        continue
-                    foundport=int(line.split(":")[1])
-                    if foundport>highestport:
-                        highestport=foundport
-                    out2+="%s\n"%line
-                if newport==0:
-                    newport=highestport+1
-                out2+="%s:%s\n"%(self.cuisine.platformtype.hostname,newport)
-                remotecuisine.file_write("/home/sshreflector/reflectorclients",out2)
-
-            self.cuisine.file_write("/etc/reflectorclients",out2)
-
-            print("check ssh connection to reflector")
-            self.cuisine.run("ssh -i /root/.ssh/reflector -o StrictHostKeyChecking=no sshreflector@%s -p 9222 'ls /'"%rname)
-            print ("OK")
-
-            cpath=self.cuisine.run("which autossh")
-            cmd="%s -M 0 -N -o ExitOnForwardFailure=yes -o \"ServerAliveInterval 60\" -o \"ServerAliveCountMax 3\" -R %s:localhost:22 sshreflector@%s -p 9222 -i /root/.ssh/reflector"%(cpath,newport,rname)
-            self.cuisine.systemd_ensure("autossh_%s"%rname_short, cmd, descr='')
-
-            print ("On %s:%s remote SSH port:%s"%(remotecuisine.executor.addr,port,newport))
 
     @actionrun(action=True)
     def pi_accesspoint(self,passphrase,name="",dns="8.8.8.8",interface="wlan0"):

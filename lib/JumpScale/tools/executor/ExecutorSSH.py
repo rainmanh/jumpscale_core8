@@ -14,19 +14,19 @@ class ExecutorSSH(ExecutorBase):
             look_for_keys=False
             allow_agent=False
         self.allow_agent=allow_agent
-        self.look_for_keys=look_for_keys    
+        self.look_for_keys=look_for_keys
         self.pushkey=pushkey
         self._sshclient=None
         self.type="ssh"
         if checkok:
-            self.sshclient.connectTest()            
+            self.sshclient.connectTest()
 
     @property
     def login(self):
         return self._login
 
     @login.setter
-    def login(self,val):    
+    def login(self,val):
         self._login=val
         self._sshclient=None
 
@@ -35,7 +35,7 @@ class ExecutorSSH(ExecutorBase):
         return self._passwd
 
     @passwd.setter
-    def passwd(self,passwd):    
+    def passwd(self,passwd):
         if passwd!=None:
             self.look_for_keys=False
             self.allow_agent=False
@@ -47,7 +47,7 @@ class ExecutorSSH(ExecutorBase):
         return self._port
 
     @port.setter
-    def port(self,val):    
+    def port(self,val):
         self._port=int(val)
         self._sshclient=None
 
@@ -64,18 +64,20 @@ class ExecutorSSH(ExecutorBase):
                     self._sshclient.ssh_authorize("root",pushkey)
                 else:
                     raise RuntimeError("Could not find key:%s"%path)
-                
+
         return self._sshclient
 
-    def execute(self, cmds, die=True,checkok=None,showout=True, combinestdr=True,timeout=0):
+    def execute(self, cmds, die=True,checkok=None,showout=True, combinestdr=True,timeout=0, env={}):
         """
         @param naked means will not manipulate cmd's to show output in different way
         return (rc,out,err)
         """
+        if env:
+            self.env.update(env)
         # print("cmds:%s"%cmds)
         cmds2=self._transformCmds(cmds,die,checkok=checkok)
 
-        
+
         if cmds.find("\n") != -1:
             if showout:
                 print("EXECUTESCRIPT} %s:%s:\n%s"%(self.addr,self.port,cmds))
@@ -98,7 +100,7 @@ class ExecutorSSH(ExecutorBase):
         if dest_prefix != "":
             dest = j.do.joinPaths(dest_prefix,dest)
         if dest[0] !="/":
-            raise RuntimeError("need / in beginning of dest path")            
+            raise RuntimeError("need / in beginning of dest path")
         dest = "root@%s:%s" % (self.addr, dest)
         j.do.copyTree(source, dest, keepsymlinks=True, deletefirst=False, \
             overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,\
@@ -109,9 +111,8 @@ class ExecutorSSH(ExecutorBase):
         if source_prefix != "":
             source = j.do.joinPaths(source_prefix,source)
         if source[0] !="/":
-            raise RuntimeError("need / in beginning of source path")        
+            raise RuntimeError("need / in beginning of source path")
         source = "root@%s:%s" % (self.addr,source)
         j.do.copyTree(source, dest, keepsymlinks=True, deletefirst=False, \
             overwriteFiles=True, ignoredir=[".egg-info",".dist-info"], ignorefiles=[".egg-info"], rsync=True,\
             ssh=True, sshport=self.port,recursive=recursive)
-

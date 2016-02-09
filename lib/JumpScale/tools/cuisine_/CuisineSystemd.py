@@ -58,7 +58,7 @@ class CuisineSystemd():
         else:
             cmd=j.core.db.hget("processcmds",name).decode()
             self.stop(name)
-            self.cuisine.tmux.executeInScreen("main", name, cmd, wait=True, reset=False)            
+            self.cuisine.tmux.executeInScreen("main", name, cmd, wait=True, reset=False)
 
     def stop(self,name):
         if self.systemdOK:
@@ -68,7 +68,7 @@ class CuisineSystemd():
             cmd="systemctl stop %s"%name
             self.cuisine.run(cmd,showout=False,die=False)
         else:
-            self.cuisine.tmux.killWindow("main",name)            
+            self.cuisine.tmux.killWindow("main",name)
 
     def remove(self,prefix):
         for name,status in self.list(prefix):
@@ -109,11 +109,6 @@ class CuisineSystemd():
 
             cmd = cmd.replace('"', r'\"')
 
-            if path:
-                cwd = "cd %s;" % path
-                if not cmd.startswith("."):
-                    cmd="./%s"%cmd
-                cmd = "%s %s" % (cwd, cmd)
 
             j.core.db.hset("processcmds",name,cmd)
 
@@ -131,6 +126,7 @@ class CuisineSystemd():
                 [Service]
                 ExecStart=$cmd
                 Restart=always
+                WorkingDirectory=$cwd
 
                 [Install]
                 WantedBy=multi-user.target
@@ -139,6 +135,10 @@ class CuisineSystemd():
             if descr=="":
                 descr=name
             C=C.replace("$descr",descr)
+            if path:
+                C=C.replace("$cwd", path)
+            else:
+                C=C.replace("$cwd", '/')
 
             self.cuisine.file_write("/etc/systemd/system/%s.service"%name,C)
 
@@ -146,18 +146,16 @@ class CuisineSystemd():
             self.cuisine.run("systemctl enable %s"%name,die=False,showout=False)
             self.cuisine.run("systemctl daemon-reload;systemctl restart %s"%name)
 
-        
+
         else:
             self.start(name)
-            
+
     def startAll(self):
         if self.systemdOK:
             #@todo (*1*) start all cuisine services
             raise RuntimeError("not implemented, please do")
-        else:            
+        else:
             for key in j.core.db.hkeys("processcmds"):
                 key=key.decode()
                 cmd=j.core.db.hget("processcmds",key).decode()
                 self.start(key)
-
-

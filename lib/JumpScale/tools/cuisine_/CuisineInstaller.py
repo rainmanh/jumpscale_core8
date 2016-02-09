@@ -302,6 +302,17 @@ class CuisineInstaller(object):
         self.cuisine.run_script(C,die=False)
 
     @actionrun(action=True)
+    def dnspython3(self):
+        C = """
+            cd $tmpDir
+            wget http://www.dnspython.org/kits3/1.12.0/dnspython3-1.12.0.tar.gz
+            tar -xf dnspython3-1.12.0.tar.gz
+            cd dnspython3-1.12.0
+            ./setup.py install
+            """
+        self.cuisine.run_script(C,action=True)
+
+    @actionrun(action=True)
     def jumpscale8(self, rw=False,reset=False):
         """
         install jumpscale, will be done as sandbox
@@ -315,6 +326,11 @@ class CuisineInstaller(object):
 
         self.clean()
         self.base()
+
+        """
+        install dnspython3
+        """
+        self.dnspython3()
 
         """
         install jumpscale8 sandbox in read or readwrite mode
@@ -384,10 +400,10 @@ class CuisineInstaller(object):
         self.cuisine.run_script(out)
 
         if not self.cuisine.isMac:
-            self.package.install("fuse")
+            self.cuisine.package.install("fuse")
 
         if self.cuisine.isArch:
-            self.package.install("wpa_actiond") #is for wireless auto start capability
+            self.cuisine.package.install("wpa_actiond") #is for wireless auto start capability
             #systemctl enable netctl-auto@wlan0.service
 
         self.cuisine.package.multiInstall(C)
@@ -674,8 +690,8 @@ class CuisineInstaller(object):
 
         for deviceid,size in devs:
             partition(deviceid,size)
-            
-        
+
+
     @actionrun(action=True)
     def docker(self):
         if self.cuisine.isUbuntu:

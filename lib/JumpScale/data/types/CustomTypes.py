@@ -35,14 +35,13 @@ class Guid(String):
     toString=fromString
 
 
-#@todo (*3*) need better regex
 class Email(String):
     """
     """
     def __init__(self):
         String.__init__(self)
         self.NAME = 'email'
-        self._RE = re.compile('^[0-9a-z.@_\-]*')
+        self._RE = re.compile('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
 
     
     def check(self,value):
@@ -88,20 +87,24 @@ class Path(Email):
 
 class Tel(Email):
     """
-    format is e.g. +32 475.99.99.99
+    format is e.g. +32 475.99.99.99x123
     only requirement is it needs to start with +
     the. & , and spaces will not be remembered
+    and x stands for phone number extension
     """
     def __init__(self):
         Email.__init__(self)
         self.NAME = 'tel'
-        self._RE = re.compile('\+[0-9]*')
+        self._RE = re.compile('^\+?[0-9]{6,15}(?:x[0-9]+)?$')
 
     def clean(self,v):
         if not j.data.types.string.check(v):
             raise ValueError("Input needs to be string:%s"%v)
         v=v.replace(".","")
         v=v.replace(",","")
+        v=v.replace("-","")
+        v=v.replace("(","")
+        v=v.replace(")","")
         v=v.replace(" ","")
         v.strip()
         return v
@@ -110,26 +113,24 @@ class Tel(Email):
         return "+32 475.99.99.99"
 
 
-#@todo (*3*) need better regex
 class IPRange(Email):
     """
     """
     def __init__(self):
         Email.__init__(self)
         self.NAME = 'iprange'
-        self._RE = re.compile('.*')
+        self._RE = re.compile('[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/[0-9]{1,2}')
 
     def get_default(self):
-        return "changeme@example.com"
+        return "192.168.1.1/24"
 
-#@todo (*3*) need better regex
 class IPAddress(Email):
     """
     """
     def __init__(self):
         Email.__init__(self)
         self.NAME = 'ipaddress'
-        self._RE = re.compile('.*')
+        self._RE = re.compile('[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
     
     def get_default(self):
         return "192.168.1.1"
@@ -164,7 +165,7 @@ class Date(Email):
     def __init__(self):
         Email.__init__(self)
         self.NAME = 'date'
-        self._RE = re.compile('.*\:.*\:.*') #@todo (*1*) better regex
+        self._RE = re.compile('[0-9]{4}/[0-9]{2}/[0-9]{2}')
     
     def get_default(self):
         return "-1"

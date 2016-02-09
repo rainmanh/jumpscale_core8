@@ -72,7 +72,7 @@ def is_ok( text ):
 def text_detect_eol(text):
     MAC_EOL                 = "\n"
     UNIX_EOL                = "\n"
-    WINDOWS_EOL             = "\r\n"    
+    WINDOWS_EOL             = "\r\n"
     # FIXME: Should look at the first line
     if text.find("\r\n") != -1:
         return WINDOWS_EOL
@@ -449,7 +449,7 @@ class OurCuisine():
                 res["homeDir"]=os.environ["HOME"]
                 res["logDir"]="%s/log"%res["varDir"]
                 res["pidDir"]="%s/pid"%res["varDir"]
-                res["tmpDir"]="%s/tmp"%res["varDir"]                
+                res["tmpDir"]="%s/tmp"%res["varDir"]
                 self._dirs=res
 
         if self.isMac:
@@ -457,7 +457,7 @@ class OurCuisine():
         else:
             self._dirs["optDir"]= "/opt/"
 
-        self._dirs["goDir"]= "/%s/go/"%self._dirs["optDir"]        
+        self._dirs["goDir"]= "%sgo/"%self._dirs["optDir"]        
 
         return self._dirs
 
@@ -919,7 +919,7 @@ class OurCuisine():
     @actionrun(action=False,force=False)
     def file_copy(self, source, dest, recursive=False):
         source=self.cuisine.args_replace(source)
-        dest=self.cuisine.args_replace(dest)        
+        dest=self.cuisine.args_replace(dest)
         cmd = "cp -v "
         if recursive:
             cmd += "-r "
@@ -1223,7 +1223,7 @@ class OurCuisine():
     def run_script(self,content,die=True,profile=False):
         content=self.cuisine.args_replace(content)
         content=j.data.text.strip(content)
-        
+
         if content[-1]!="\n":
             content+="\n"
         if profile:

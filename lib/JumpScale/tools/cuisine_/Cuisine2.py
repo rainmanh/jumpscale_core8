@@ -786,6 +786,7 @@ class OurCuisine():
             content=self.cuisine.args_replace(content)
 
         print ("filewrite: %s"%location)
+        self.dir_ensure(j.sal.fs.getParent(location))
         content=j.data.text.strip(content)
         content2 = content.encode('utf-8')
 
@@ -1222,7 +1223,7 @@ class OurCuisine():
                 content=". %s\n%s\n"%(ppath,content)
         content+="\necho **DONE**\n"
 
-        path="$tmpDir/%s.sh"%j.data.idgenerator.generateRandomInt(0,10000)
+        path="$tmpDir/%s.sh"%j.data.idgenerator.generateRandomInt(0, 10000)
         if not self.isMac:
             self.file_write(location=path, content=content, mode=0o770, owner="root", group="root")
         else:
@@ -1238,7 +1239,7 @@ class OurCuisine():
 
 
         lastline=out.split("\n")[-1]
-        if (rc>0 or lastline.find("**DONE**")==-1) and die:
+        if (rc>0 or out.find("**DONE**")==-1) and die:
             raise Exception("Could not execute bash script.\n%s\n"%(content))
             # raise Exception("Could not execute bash script.\n%s\nout:%s\n"%(content,out))
 

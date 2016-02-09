@@ -2,7 +2,7 @@
 from JumpScale import j
 
 
-class GCC():#@todo (*1*) implement global control center 
+class GCC():
 
     def __init__(self):
     
@@ -32,13 +32,13 @@ class GCC_Mgmt():
     def install(self):
         """
         """
-        #@todo use cuisine which is on each node to do all required actions, see readme.md
+        #@todo use cuisine which is on each node to do all required actions
 
 
     def healthcheck(self):
         """
         """
-        #@todo (*3*) implement some healthchecks done over agentcontrollers
+        #@todo implement some healthchecks done over agentcontrollers
         #- check diskpace
         #- check cpu
         #- check that 3 are there

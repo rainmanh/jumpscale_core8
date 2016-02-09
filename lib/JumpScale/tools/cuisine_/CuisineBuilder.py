@@ -437,7 +437,7 @@ class CuisineBuilder(object):
 
         else:
 
-            appbase = self.cuisine.dir_paths("binDir")
+            appbase = self.cuisine.dir_paths["binDir"]
 
             url=None
             if self.cuisine.isUbuntu:
@@ -462,7 +462,7 @@ class CuisineBuilder(object):
 
         if start:
             cmd="mongod --dbpath $varDir/data/db"
-            c.cuisine.process.kill("mongod")
+            self.cuisine.process.kill("mongod")
             self.cuisine.systemd.ensure("mongod",cmd=cmd,env={},path="")
 
     def influxdb(self, start=True):
@@ -524,3 +524,12 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb/influxdb.conf.o
         C=self.cuisine.bash.replaceEnvironInText(C)
         self.cuisine.run_script(C,profile=True)
         self.cuisine.bash.addPath("$base/bin",action=True)
+
+    @actionrun(action=True)
+    def weave(self):
+        C = '''
+        curl -L git.io/weave -o $binDir/weave && sudo chmod a+x $binDir/weave
+        '''
+        self.cuisine.package.ensure('curl')
+        self.cuisine.run_script(C, profile=True)
+        self.cuisine.bash.addPath("$binDir", action=True)

@@ -57,10 +57,10 @@ class ServiceTemplate(object):
         if not j.sal.fs.exists(hrdpath):
             # check if we can find it in other ays template
             if self.name.find(".") != -1:
-                name = self.name.split(".", 1)[0]
-                templ = j.atyourservice.getTemplate(domain=self.domain, name=name, die=False)
+                role = self.name.split(".", 1)[0]
+                templ = j.atyourservice.getTemplate(domain=self.domain, role=role, die=False)
                 if templ is not None:
-                    self._hrd = templ.hrd_template
+                    self._hrd = templ._hrd or j.data.hrd.get(content="")
                     self.path_hrd_template = templ.path_hrd_template
                     return self._hrd
             self._hrd=j.data.hrd.get(content="")

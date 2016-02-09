@@ -41,7 +41,7 @@ class AggregatorClient(object):
         local node=ARGV[6]
 
         """
-        now = int(time.time() * 1000)  # millisecond
+        now = int(time.time())  # seconds
         res = self.redis.evalsha(self._sha["stat"], 1, key, measurement, value, str(now), type, tags, self.nodename)
 
         print("%s %s" % (key, res))

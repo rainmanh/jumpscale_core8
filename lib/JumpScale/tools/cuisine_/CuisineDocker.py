@@ -73,24 +73,21 @@ class CuisineDocker():
         """
         self.cuisine.run_script(C)
 
-    def ubuntuBuild(self): #@todo (*1*)
+    def ubuntuBuild(self):
 
-        C="""
-        #@todo copy from docker repository
-        """
-
-        self.cuisine.run("rm -rf $tmpDir/docker;mkdir $tmpDir/docker")
-        self.cuisine.file_write("$tmpDir/docker/Dockerfile",C)
+        dest = self.cuisine.git.pullRepo('https://github.com/Jumpscale/dockers.git', ssh=False)
+        path = self.cuisine.joinpaths(dest, 'js8/x86_64/2_ubuntu1510')
 
         C="""
         set -ex
-        cd $tmpDir/docker
-        docker build -t arch .
-        """
+        cd %s
+        docker build -t jumpscale/ubuntu1510 --no-cache .
+        docker push jumpscale/ubuntu1510
+        """ % path
         self.cuisine.run_script(C)
 
     @actionrun(action=True)
-    def Ubuntu(self,name="ubuntu1"):    #@todo (*1*) main docker deployment for ubuntu over cuisine
+    def Ubuntu(self, name="ubuntu1"):    #@todo (*1*) main docker deployment for ubuntu over cuisine
         pass
         #TODO:
         #- start from docker repo where pushed docker image is (build using self.ubuntuBuild)

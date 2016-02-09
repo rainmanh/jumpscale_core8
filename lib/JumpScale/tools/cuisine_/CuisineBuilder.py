@@ -345,7 +345,7 @@ class CuisineBuilder(object):
 
         else:
 
-            appbase = self.cuisine.dir_paths("binDir")
+            appbase = self.cuisine.dir_paths["binDir"]
 
             url=None
             if self.cuisine.isUbuntu:
@@ -370,7 +370,7 @@ class CuisineBuilder(object):
 
         if start:
             cmd="mongod --dbpath $varDir/data/db"
-            c.cuisine.process.kill("mongod")
+            self.cuisine.process.kill("mongod")
             self.cuisine.systemd.ensure("mongod",cmd=cmd,env={},path="")
             
 

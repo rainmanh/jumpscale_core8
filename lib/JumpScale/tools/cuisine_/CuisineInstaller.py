@@ -317,6 +317,11 @@ class CuisineInstaller(object):
         self.base()
 
         """
+        install dnspython3
+        """
+        self.dnspython3()
+
+        """
         install jumpscale8 sandbox in read or readwrite mode
         """
         cuisine=j.tools.cuisine.get(cuisineid)

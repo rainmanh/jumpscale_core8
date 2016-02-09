@@ -10,7 +10,6 @@ from JumpScale import j
 
 from sal.base.SALObject import SALObject
 
-# @TODO (*3*) dnspython is not python3 compatible. Look for alternative
 class Zone(object):
     CONFIG_FILES_DIR = j.tools.path.get('/etc/bind/')
     NON_ZONE_FILES = ['/etc/bind/named.conf.options']

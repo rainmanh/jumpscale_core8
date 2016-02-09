@@ -152,6 +152,8 @@ class CuisineBuilder(object):
         self.redis()
         self.mongodb()
 
+        GOPATH = self.cuisine.bash.environGet('GOPATH')
+
         self.cuisine.tmux.killWindow("main","agent")
 
         self.cuisine.process.kill("agent8")
@@ -175,7 +177,7 @@ class CuisineBuilder(object):
         # manipulate config file
         C=self.cuisine.file_read("%s/agent.toml"%sourcepath)    
 
-        self.cuisine.file_write("$cfgDir/agent.toml",C,replaceArgs=True)
+        self.cuisine.file_write("$cfgDir/agent.toml",C ,replaceArgs=True)
 
         self.cuisine.dir_ensure("$appDir/agent8/conf", recursive=True )
 

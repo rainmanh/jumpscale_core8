@@ -18,7 +18,7 @@ class CuisineGolang():
         self.executor=executor
         self.cuisine=cuisine
 
-    # @actionrun(action=True)
+    @actionrun(action=True)
     def install(self):
         self.cuisine.installer.base()
         optdir=self.cuisine.dir_paths["optDir"]
@@ -32,7 +32,7 @@ class CuisineGolang():
                 self.cuisine.file_download(downl,"/usr/local",overwrite=False,retry=3,timeout=0,expand=True)
             else:
                 raise RuntimeError("platform not supported")
-        
+
         self.cuisine.bash.environSet("GOPATH", '%s/go'%optdir)
 
         self.cuisine.bash.addPath('/usr/local/go/bin')
@@ -55,7 +55,7 @@ class CuisineGolang():
         #     # if not "GOPATH" in self.bash.environ:
         #     #     self.cuisine.installerdevelop.golang()
         #     # self._gopath=   self.bash.environ["GOPATH"]
-            
+
         # return self._gopath
 
 
@@ -65,4 +65,3 @@ class CuisineGolang():
         e.g. url=github.com/tools/godep
         """
         self.cuisine.run('go get -x -u %s'%url,profile=True)
-

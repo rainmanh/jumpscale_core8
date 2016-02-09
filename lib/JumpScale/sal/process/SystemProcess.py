@@ -1621,7 +1621,7 @@ class SystemProcess(SALObject):
 
     def getProcessObject(self,pid):
         import psutil
-        for process in psutil.get_process_list():
+        for process in psutil.process_iter():
             if process.pid==pid:
                 return process
         raise RuntimeError("Could not find process with pid:%s"%pid)
@@ -1629,7 +1629,7 @@ class SystemProcess(SALObject):
     def getProcessPidsFromUser(self,user):
         import psutil
         result=[]
-        for process in psutil.get_process_list():
+        for process in psutil.process_iter():
             if process.username==user:
                 result.append(process.pid)
         return result
@@ -1642,7 +1642,7 @@ class SystemProcess(SALObject):
         import psutil
         myprocess=self.getMyProcessObject()
         result=[]
-        for item in psutil.get_process_list():
+        for item in psutil.process_iter():
             try:
                 if item.cmdline==myprocess.cmdline:
                     result.append(item)

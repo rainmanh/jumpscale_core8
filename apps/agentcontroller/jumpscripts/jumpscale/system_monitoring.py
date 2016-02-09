@@ -51,13 +51,13 @@ def action():
     results["load.avg5min"] = avg5min
     results["load.avg15min"] = avg15min
 
-    memory=psutil.virtual_memory()
+    memory = psutil.virtual_memory()
     results["memory.used"]=round((memory.used - memory.cached)/1024.0/1024.0,2)
     results["memory.cached"]=round(memory.cached/1024.0/1024.0,2)
     results["memory.free"]=round(memory.total/1024.0/1024.0,2) - results['memory.used'] - results['memory.cached']
     results["memory.percent"]=memory.percent
 
-    vm= psutil.virtual_memory()
+    vm= psutil.swap_memory()
     results["swap.free"]=round(vm.__getattribute__("free")/1024.0/1024.0,2)
     results["swap.used"]=round(vm.__getattribute__("used")/1024.0/1024.0,2)
     results["swap.percent"]=vm.__getattribute__("percent")

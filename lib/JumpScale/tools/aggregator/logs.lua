@@ -13,10 +13,10 @@ v["message"]= message
 v["tags"]= tags
 v["level"]= level
 v["epoch"]= now
-redis.call('HSET',hsetkey,KEYS[1],)
+redis.call('HSET',hsetkey,KEYS[1])
 
 if redis.call("LLEN", "queues:logs") > 5000 then
-    redis.call("LPOP", "qeues:logs")
+    redis.call("LPOP", "queues:logs")
 end
 
 redis.call("RPUSH", "queues:logs",cjson.encode(v))

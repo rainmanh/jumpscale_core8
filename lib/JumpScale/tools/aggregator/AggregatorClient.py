@@ -1,33 +1,34 @@
 from JumpScale import j
-
+import time
+import os
 
 class AggregatorClient(object):
-    def __init__(self, redis,nodename):
+    def __init__(self, redis, nodename):
         self.redis = redis
+        self._sha = dict()
 
-        #stats
-        #@todo (*1*) use some trick to find the path of this file load the lua scripts
-        luapaths=j.sal.fs.listFilesInDir(path, recursive=False, filter="*.lua",followSymlinks=True)
+        path = os.path.dirname(__file__)
+        luapaths = j.sal.fs.listFilesInDir(path, recursive=False, filter="*.lua", followSymlinks=True)
         for luapath in luapaths:
-            basename=j.sal.fs.getBaseName(luapath).replace(".lua","")
+            basename = j.sal.fs.getBaseName(luapath).replace(".lua", "")
             lua = j.sal.fs.fileGetContents(luapath)
             self._sha[basename] = self.redis.script_load(lua)
 
         self.nodename = nodename
 
-    def measure(self,key,measurement,tags,value):
+    def measure(self, key, measurement, tags, value):
         """
         @param measurement is what you are measuring e.g. kbps (kbits per sec)
         @param key is well chosen location in a tree structure e.g. key="%s.%s.%s"%(self.nodename,dev,measurement) e.g. myserver.eth0.kbps
            key needs to be unique
         @param tags node:kds dim:iops location:elgouna  : this allows aggregation in influxdb level
         """
-        return self.measure(key,measurement,tags,value,type="A")
+        return self._measure(key, measurement, tags, value, type="A")
 
-    def measureDiff(self,key,measurement,tags,value):
-        return self.measure(key,measurement,tags,value,type="D")
+    def measureDiff(self, key, measurement, tags, value):
+        return self.measure(key, measurement, tags, value, type="D")
 
-    def _measure(self,key,measurement,tags,value,type):
+    def _measure(self, key, measurement, tags, value, type):
         """
         in redis:
 
@@ -40,21 +41,21 @@ class AggregatorClient(object):
         local node=ARGV[6]
 
         """
-        now=int(time.time()*1000)
-        res = self.redis.evalsha(self._sha["stat"],1,key,measurement,value,str(now),type,tags,self.nodename)
+        now = int(time.time() * 1000)  # millisecond
+        res = self.redis.evalsha(self._sha["stat"], 1, key, measurement, value, str(now), type, tags, self.nodename)
 
-        print("%s %s"%(key,res))
+        print("%s %s" % (key, res))
 
         return res
 
-    def log(self,message,tags="",level=5,time=0):
-        if time==0:
-            time=int(time.time()*1000)
-        #1 means there is 1 key, others are args
-        res = self.redis.evalsha(self._sha["logs"],1,self.nodename,message,tags,str(level),str(time))
-  
-    def errorcondition(self,message,messagepub="",level=5,type="UNKNOWN",tags="",\
-            code="",funcname="",funcfilepath="",backtrace="",epoch=0):
+    def log(self, message, tags="", level=5, time=0):
+        if time == 0:
+            time = int(time.time() * 1000)
+        # 1 means there is 1 key, others are args
+        res = self.redis.evalsha(self._sha["logs"], 1, self.nodename, message, tags, str(level), str(time))
+
+    def errorcondition(self, message, messagepub="", level=5, type="UNKNOWN", tags="", \
+                       code="", funcname="", funcfilepath="", backtrace="", epoch=0):
         """
         @param type: "BUG", "PERF", "OPS", "UNKNOWN"), default="UNKNOWN"
 
@@ -85,21 +86,20 @@ class AggregatorClient(object):
             closetime = IntField(default=0)
             occurrences = IntField(default=0)
         """
-        if time==0:
-            time=int(time.time()*1000)
-        #1 means there is 1 key, others are args
-        res = self.redis.evalsha(self._sha["eco"],1,message,messagepub,str(level),type,\
-            tags,code,funcname,funcfilepath,backtrace,str(time))
+        if time == 0:
+            time = int(time.time() * 1000)
+        # 1 means there is 1 key, others are args
+        res = self.redis.evalsha(self._sha["eco"], 1, message, messagepub, str(level), type, \
+                                 tags, code, funcname, funcfilepath, backtrace, str(time))
 
-
-    def statGet(self,key):
+    def statGet(self, key):
         """
         key is e.g. mynode.sda1.iops
         """
-        data=self.redis.hget("stats:%s"%self.nodename,key)
-        if data==None:
-            return {"val":None}
-        data=j.data.serializer.json.loads(data)
+        data = self.redis.hget("stats:%s" % self.nodename, key)
+        if data == None:
+            return {"val": None}
+        data = j.data.serializer.json.loads(data)
         return data
 
     @property
@@ -107,14 +107,13 @@ class AggregatorClient(object):
         """
         iterator to go over stat objects
         """
-        #@todo
-
+        # @todo
 
     def logGet(self):
         """
         get oldest log object from queue & return as dict
         """
-        #@todo ...
+        # @todo ...
         return data
 
     @property
@@ -122,16 +121,15 @@ class AggregatorClient(object):
         """
         iterator to go over log objects (oldest first)
         """
-        #@todo
+        # @todo
 
-
-    def ecoGet(self,key="",removeFromQueue=True):
+    def ecoGet(self, key="", removeFromQueue=True):
         """
         get errorcondition object from queue & return as dict
         if key not specified then get oldest ECO object & remove from queue if removeFromQueue is set
         if key set, do not remove from queue
         """
-        #@todo ...
+        # @todo ...
         return data
 
     @property
@@ -139,10 +137,9 @@ class AggregatorClient(object):
         """
         iterator to go over errorcondition objects (oldest first)
         """
-        #@todo
+        # @todo
 
-
-    def reality(self,key,json,modeltype="",tags="",time=0,):
+    def reality(self, key, json, modeltype="", tags="", time=0, ):
         """
         anything found on local node worth mentioning to central env e.g. disk information, network information
         each piece of info gets a well chosen key e.g. disk.sda1
@@ -163,21 +160,20 @@ class AggregatorClient(object):
         @param modeltype defines which model has been used e.g. VDisk this allows the dumper to get the right model & insert in the right way in mongodb
 
         """
-        if time==0:
-            time=int(time.time()*1000)
-        #1 means there is 1 key, others are args
-        res = self.redis.evalsha(self._sha["reality"],1,key,json,self.nodename,tags,str(time),modeltype)
+        if time == 0:
+            time = int(time.time() * 1000)
+        # 1 means there is 1 key, others are args
+        res = self.redis.evalsha(self._sha["reality"], 1, key, json, self.nodename, tags, str(time), modeltype)
 
-    def realityGet(self,key="",removeFromQueue=True):
+    def realityGet(self, key="", removeFromQueue=True):
         """
         if key not specified then get oldest object & remove from queue if removeFromQueue is set
         if key set, do not remove from queue        
         """
-
 
     @property
     def realities(self):
         """
         iterator to go over reality objects (oldest first)
         """
-        #@todo
+        # @todo

@@ -16,9 +16,10 @@ class LogDumper():
     """
 
     def __init__(self):
+        pass
 
-
-    def processLog(self,...):
+    def processLog(self):
         """
         recieve log from MongoDumper
         """
+        raise NotImplementedError()

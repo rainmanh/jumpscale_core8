@@ -149,12 +149,12 @@ class SSHClient(object):
         ch.exec_command(cmd)
         buf = ''
 
-        out = ch.recv(1024).decode()
+        out = ch.recv(1024*1024).decode()
         while out:
             if showout and self.stdout:
                 print(out)
             buf += out
-            out = ch.recv(1024).decode()
+            out = ch.recv(1024*1024).decode()
 
         retcode = ch.recv_exit_status()
         if die:

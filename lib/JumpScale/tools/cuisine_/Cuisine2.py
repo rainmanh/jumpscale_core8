@@ -935,7 +935,7 @@ class OurCuisine():
         res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
         if res.find("command not found")!=-1:
             #print could not find python need to install
-            self.package.install("python3.5")
+            self.cuisine.package.install("python3.5")
             res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
         return res
 
@@ -1153,9 +1153,9 @@ class OurCuisine():
                     embed()
                     self.done.append("python")
                     if self.isArch:
-                        self.package.install("python3")
+                        self.cuisine.package.install("python3")
                     else:
-                        self.package.install("python3.5")
+                        self.cuisine.package.install("python3.5")
                     next=True
 
                 if out.find("pip3: command not found")!=-1 and not "pip" in self.done:
@@ -1274,7 +1274,7 @@ class OurCuisine():
         if package is None:
             package = command
         if not self.command_check(command):
-            self.package.install(package)
+            self.cuisine.package.install(package)
         assert self.command_check(command), \
             "Command was not installed, check for errors: %s" % (command)
 

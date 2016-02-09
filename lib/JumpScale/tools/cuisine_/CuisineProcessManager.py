@@ -161,4 +161,53 @@ class CuisineSystemd():
                 cmd=j.core.db.hget("processcmds",key).decode()
                 self.start(key)
 
+class CuisineUpstart():
+
+    def __init__(self,executor,cuisine):
+        self.executor=executor
+        self.cuisine=cuisine
+
+    
+    def ensure(self,name, *args):
+        """Ensures that the given upstart service is self.running, starting
+        it if necessary."""
+        status = self.cuisine.sudo("service %s status" % name,die=False)
+        if status[0] == 3:
+            status = self.cuisine.sudo("service %s start" % name)
+        return status
+
+    def reload(self,name, *args):
+        """Reloads the given service, or starts it if it is not self.running."""
+        status = self.cuisine.sudo("service %s reload" % name,die=False)
+        if status[0] == 3:
+            status = self.cuisine.sudo("service %s start" % name)
+        return status
+
+    def restart(self,name, *args):
+        """Tries a `restart` command to the given service, if not successful
+        will stop it and start it. If the service is not started, will start it."""
+        status = self.cuisine.sudo("service %s status" % name,die=False)
+        if status[0] == 3:
+            return self.cuisine.sudo("service %s start" % name)
+        else:
+            status = self.cuisine.sudo("service %s restart" % name)
+            if status[0] == 3:
+                self.cuisine.sudo("service %s stop"  % name)
+                return self.cuisine.sudo("service %s start" % name)
+            else:
+                return status
+    def start(self, name, *args):
+        status = self.cuisine.sudo("service %s status" % name,die=False)
+        if status[0] == 3:
+            return self.cuisine.sudo("service %s start" % name)
+        else:
+            return status
+
+
+    def stop(self,name, *args):
+        """Ensures that the given upstart service is stopped."""
+        status = self.cuisine.sudo("service %s status" % name,die=False)
+        if status[0] == 0:
+            status = self.cuisine.sudo("service %s stop" % name)
+        return status      
 

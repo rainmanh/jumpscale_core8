@@ -391,10 +391,10 @@ class CuisineInstaller(object):
         self.cuisine.run_script(out)
 
         if not self.cuisine.isMac:
-            self.package.install("fuse")
+            self.cuisine.package.install("fuse")
 
         if self.cuisine.isArch:
-            self.package.install("wpa_actiond") #is for wireless auto start capability
+            self.cuisine.package.install("wpa_actiond") #is for wireless auto start capability
             #systemctl enable netctl-auto@wlan0.service
 
         self.cuisine.package.multiInstall(C)

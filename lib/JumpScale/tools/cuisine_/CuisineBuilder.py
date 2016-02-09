@@ -121,12 +121,7 @@ class CuisineBuilder(object):
 
     @actionrun(action=True)
     def installdeps(self):
-        """
-        config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
-        """
         self.cuisine.golang.install()
-        j.actions.setRunId("installAgentController")
-
         self.cuisine.pip.upgrade('pip')
         self.cuisine.pip.install('pytoml')
         self.cuisine.pip.install('pygo')
@@ -154,7 +149,7 @@ class CuisineBuilder(object):
     @actionrun(action=True)
     def agent(self,start=True):
         self.installdeps()
-        self.cuisine.installer.redis()
+        self.redis()
         self.mongodb()
 
         self.cuisine.tmux.killWindow("main","agent")
@@ -189,8 +184,11 @@ class CuisineBuilder(object):
 
     @actionrun(action=True)
     def agentcontroller(self, start=True):
+        """
+        config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
+        """
         self.installdeps()
-        self.cuisine.installer.redis()
+        self.redis()
         self.mongodb()
         self.agent()
 
@@ -277,7 +275,7 @@ class CuisineBuilder(object):
 
         if start:
             self.cuisine.process.kill("etcd")
-            self.cuisine.systemd.ensure("etcd","etcd")
+            self.cuisine.processmanager.ensure("etcd","etcd")
 
     @actionrun(action=True)
     def redis(self,name="main",ip="localhost", port=6379, maxram=200, appendonly=True,snapshot=False,slave=(),ismaster=False,passwd=None,unixsocket=True,start=True):
@@ -333,7 +331,7 @@ class CuisineBuilder(object):
         dpath,cpath=j.clients.redis._getPaths(name)
         if start:
             cmd="redis-server %s"%cpath
-            self.cuisine.systemd.ensure(name="redis_%s"%name,cmd=cmd,env={},path=self.cuisine.dir_paths["binDir"])  
+            self.cuisine.processmanager.ensure(name="redis_%s"%name,cmd=cmd,env={},path=self.cuisine.dir_paths["binDir"])  
 
     @actionrun(action=True)    
     def mongodb(self, start=True):
@@ -372,9 +370,9 @@ class CuisineBuilder(object):
         self.cuisine.dir_ensure('$varDir/data/db')
 
         if start:
-            cmd="mongod --dbpath $varDir/data/db"
-            c.cuisine.process.kill("mongod")
-            self.cuisine.systemd.ensure("mongod",cmd=cmd,env={},path="")
+            cmd ="mongod --dbpath $varDir/data/db"
+            self.cuisine.process.kill("mongod")
+            self.cuisine.processmanager.ensure("mongod",cmd=cmd,env={},path="")
             
 
 

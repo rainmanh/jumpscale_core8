@@ -34,8 +34,8 @@ def action():
 
     def disktoStr(disk):
         if disk.mountpoint:
-            freesize, freeunits = j.tools.units.bytes.converToBestUnit(disk.free, 'M')
-            size = j.tools.units.bytes.toSize(disk.size, 'M', freeunits)
+            freesize, freeunits = j.data.units.bytes.converToBestUnit(disk.free, 'M')
+            size = j.data.units.bytes.toSize(disk.size, 'M', freeunits)
             return "%s on %s %.02f/%.02f %siB free" % (disk.path, disk.mountpoint, freesize, size, freeunits)
         else:
             return '%s %s' % (disk.path, disk.model)

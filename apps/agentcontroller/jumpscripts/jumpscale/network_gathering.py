@@ -19,9 +19,8 @@ roles = []
 log=False
 
 def action():
-    ncl = j.clients.osis.getCategory(j.core.osis.client, "system", "nic")
-    rediscl = j.clients.redis.getByInstance('system')
-    netinfo=j.system.net.getNetworkInfo()
+    ncl = j.data.models.system.Nic
+    netinfo = j.sal.nettools.getNetworkInfo()
     results = dict()
     pattern = None
     if j.application.config.exists('nic.pattern'):
@@ -34,35 +33,35 @@ def action():
 
         ipaddr = netitem.get('ip', [])
 
-        nic = ncl.new()
-        oldkey = rediscl.hget('nics', name)
+        nic = ncl()
+        old = ncl.find({'name':name})
 
-        nic.name = name
         results[name] = nic
         nic.active=True
         nic.gid = j.application.whoAmI.gid
         nic.nid = j.application.whoAmI.nid
         nic.ipaddr=ipaddr
         nic.mac=netitem['mac']
-        nic.name=name
+        nic.name = name
 
-        ckey = nic.getContentKey()
-        if oldkey != ckey:
-            print('Nic %s changed ' % name)
-            guid, _, _ = ncl.set(nic)
-            rediscl.hset('nics', name, ckey)
+        if old:
+            old_disk = old_disk[0].to_dict()
+            for key in ['name', 'active', 'gid', 'nid', 'ipaddr', 'mac', 'name']:
+                if old[key] != nic[key]:
+                    print('Nic %s changed ' % name)
+                    old.delete()
+                    nic.save()
+                    break
 
 
-    nics = ncl.search({'nid': j.application.whoAmI.nid, 'gid': j.application.whoAmI.gid})[1:]
+    nics = ncl.find({'nid': j.application.whoAmI.nid, 'gid': j.application.whoAmI.gid})
     #find deleted nices
     for nic in nics:
         if nic['active'] and nic['name'] not in results:
             #no longer active
-            print "NO LONGER ACTIVE:%s" % nic['name']
+            print ("NO LONGER ACTIVE:%s" % nic['name'])
             nic['active'] = False
-            ncl.set(nic)
-            rediscl.hdel('nics', nic['name'])
+            nic.delete()
 
 if __name__ == '__main__':
-    j.core.osis.client = j.clients.osis.getByInstance('processmanager')
     action()

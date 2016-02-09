@@ -71,7 +71,7 @@ class Diskmanager(SALObject):
             try:
                 import parted
             except:
-                j.sal.ubuntu.install("python3-parted")
+                j.sal.ubuntu.apt_install("python3-parted")
                 import parted
 
             #patch self.parted

@@ -17,8 +17,8 @@ log=False
 def action(username):
     hrd = j.application.getAppInstanceHRD(name='portal', instance='main')
     gitlabcontentdir = hrd.getStr('param.cfg.contentdirs')
-    print "Cloning gitlab spaces for user %s " % username
-    print "**********************************************"
+    print ("Cloning gitlab spaces for user %s " % username)
+    print ("**********************************************")
     client = j.clients.gitlab.get()
     projects = client.getUserSpacesObjects(username)
     for p in projects:
@@ -32,6 +32,6 @@ def action(username):
 
 if __name__ == '__main__':
     if not len(sys.argv) == 2:
-        print "Please pass gitlab username"
+        print ("Please pass gitlab username")
     else:
         action(sys.argv[1])

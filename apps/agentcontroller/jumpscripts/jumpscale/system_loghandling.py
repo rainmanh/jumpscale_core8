@@ -55,11 +55,11 @@ def action():
         eventhandlingTE = None
 
     out=[]
-    while log<>None:
+    while log != None:
         log2=json.decode(log)
         log3 = j.logger.getLogObjectFromDict(log2)
         log4= loghandlingTE.executeV2(logobj=log3)
-        if log4<>None:
+        if log4 != None:
             out.append(log4.__dict__)
         if len(out)>500:
             OSISclientLogger.set(out)
@@ -68,7 +68,7 @@ def action():
     if len(out)>0:
         OSISclientLogger.set(out)
 
-    while ecoguid<>None:
+    while ecoguid != None:
         eco = json.loads(rediscl.hget('eco:objects', ecoguid))
         if not eco.get('epoch'):
             eco["epoch"] = int(time.time())

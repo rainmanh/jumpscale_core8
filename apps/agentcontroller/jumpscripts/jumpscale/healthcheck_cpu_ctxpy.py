@@ -34,7 +34,7 @@ def action():
        newest = osis.search('system', 'stats', 
             'select value from "%s_%s_cpu.num_ctx_switches.gauge" where time > now() - 1h order by time desc limit 1' % 
             (gid, nid))
-    except RemoteException , e:
+    except RemoteException as e:
         return [{'category':'CPU', 'state':'ERROR', 'message':'influxdb halted cannot access data'}]
          
     res=list()
@@ -72,4 +72,4 @@ def action():
 
 if __name__ == '__main__':
     j.core.osis.client = j.clients.osis.getByInstance('main')
-    print  action()
+    print(action())

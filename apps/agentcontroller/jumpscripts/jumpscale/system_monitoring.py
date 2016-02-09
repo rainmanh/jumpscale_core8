@@ -73,7 +73,7 @@ def action():
 
     results["cpu.num_ctx_switches"]=num_ctx_switches
 
-    for key, value in results.iteritems():
+    for key, value in results.items():
         pipe.gauge("%s_%s_%s" % (j.application.whoAmI.gid, j.application.whoAmI.nid, key), value)
 
     pipe.send()

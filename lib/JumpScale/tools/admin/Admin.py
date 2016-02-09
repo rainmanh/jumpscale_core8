@@ -107,9 +107,8 @@ class Admin():
 
 
     def _getActiveNodes(self):
-        oscl = j.clients.osis.getByInstance('main')
-        ncl = j.clients.osis.getCategory(oscl, 'system', 'node')
-        return ncl.simpleSearch({'active': True})
+        ncl = j.data.models.system.Node
+        return ncl.find({'active': True})
     
     def raiseError(self,action,msg,e=None):
         #@todo make better

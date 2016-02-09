@@ -74,28 +74,29 @@ def purge(opts,action):
             return j.data.time.getEpochAgo(time)
         return j.data.time.getEpochFuture(time)
 
-    esclient = j.clients.elasticsearch.get()
     query = dict()
 
         
-    if action in ['purgejobs']:
-        timeElement='timeStart'
-    else:
+    if action in ['purgelogs']:
         timeElement='epoch'
-    
+    elif action in ['purgeecos']:
+        timeElement = 'lasttime'
+    elif action in ['purgejobs']:
+        timeElement='starttime'
+
+
     if opts.ffrom:
-        query['range'] = dict()
-        query['range'][timeElement] = dict()
-        query['range'][timeElement]['gt'] = int(_getEpoch(opts.ffrom))
+        query = dict()
+        query[timeElement] = dict()
+        query[timeElement]['gt'] = int(_getEpoch(opts.ffrom))
     
     if opts.to==None:
         opts.to="-4h"
 
     if opts.to:
-        if 'range' not in query:
-            query['range'] = dict()
-            query['range'][timeElement] = dict()
-        query['range'][timeElement]['lt'] = int(_getEpoch(opts.to))
+        query = dict()
+        query[timeElement] = dict()
+        query[timeElement]['lt'] = int(_getEpoch(opts.to))
 
     queryfull={"query":query}
 
@@ -103,18 +104,38 @@ def purge(opts,action):
 
     if query:
         if action in ['purgelogs']:
-            path = j.data.models.s
+            index = "Logs"
+            model  = j.data.models.system.Log
         elif action in ['purgejobs']:
-            index='system_job'
+            index = "Jobs"
+            model = j.data.models.system.Command
         elif action in ['purgeecos']:
-            index='system_eco'
+            index = "Error Conditions"
+            model = j.data.models.system.Errorcondition
 
-        beforecount = esclient.count(index=index, query=query, doc_type='json')['count']
-        result = esclient.delete_by_query(index=index, query=query, doc_type='json')
-        aftercount = esclient.count(index=index, query=query, doc_type='json')['count']
+        beforecount = len(model.find({}))
 
-        if result['_indices'][index]['_shards']['successful'] == result['_indices'][index]['_shards']['total'] and result['ok']:
-            print('purge %s executed successfully. %s records deleted.' % (index, beforecount-aftercount))
+        if action in ['purgejobs']:
+            commands = model.find({})
+            for command in commands:
+                if opts.to:
+                    if command.starttime < int(_getEpoch(opts.to)):
+                        command.delete()
+                        command.save()
+                elif opts.ffrom:
+                    if command.starttime > int(_getEpoch(opts.to)):
+                        command.jobs = []
+                        command.save()
+
+
+        else:
+            objs = model.find(query)
+            for obj in objs:
+                model.delete(obj)
+
+        aftercount = len(model.find({}))
+
+        print('purge %s executed successfully. %s records deleted.' % (index, beforecount-aftercount))
 
 
 if opts.action in ['purgeall','purgelogs','purgejobs', 'purgeecos']:

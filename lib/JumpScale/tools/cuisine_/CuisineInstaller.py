@@ -291,6 +291,17 @@ class CuisineInstaller(object):
         self.cuisine.run_script(C,die=False)
 
     @actionrun(action=True)
+    def dnspython3(self):
+        C = """
+            cd $tmpDir
+            wget http://www.dnspython.org/kits3/1.12.0/dnspython3-1.12.0.tar.gz
+            tar -xf dnspython3-1.12.0.tar.gz
+            cd dnspython3-1.12.0
+            ./setup.py install
+            """
+        self.cuisine.run_script(C,action=True)
+
+    @actionrun(action=True)
     def jumpscale8(self, rw=False,reset=False):
         """
         install jumpscale, will be done as sandbox
@@ -304,6 +315,11 @@ class CuisineInstaller(object):
 
         self.clean()
         self.base()
+
+        """
+        install dnspython3
+        """
+        self.dnspython3()
 
         """
         install jumpscale8 sandbox in read or readwrite mode

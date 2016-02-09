@@ -1911,7 +1911,12 @@ class InstallTools():
         print(("load jumpscript: %s"%path))
         source = self.readFile(path)
         out,tags=self._preprocess(source)
-        md5sum=j.data.hash.md5_string(out)  #@todo (*3*) cannot use j.... refactor
+        def md5_string(s):
+            import hashlib
+            s = s.encode('utf-8')
+            impl = hashlib.new('md5', s)
+            return impl.hexdigest()
+        md5sum=md5_string(out)
         modulename = 'JumpScale.jumpscript_%s' % md5sum
 
         codepath=self.joinPaths(self.getTmpPath(),"jumpscripts","%s.py"%md5sum)

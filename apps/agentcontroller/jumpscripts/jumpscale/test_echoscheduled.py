@@ -21,4 +21,4 @@ debug=True
 
 def action():
     msg="alive"
-    print msg
+    print (msg)

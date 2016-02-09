@@ -34,7 +34,7 @@ def action():
     for instance, ports_val in ports.items():
         for port in ports_val:
             result = {'category': 'Redis'}
-            pids = j.system.process.getPidsByPort(port)
+            pids = j.sal.process.getPidsByPort(port)
             errmsg = 'redis not operational[halted or not installed]'
             if not pids:
                 state = 'ERROR'

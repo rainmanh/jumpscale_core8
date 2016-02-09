@@ -97,7 +97,7 @@ def action():
                 vdisk.type = disk.find('driver').attrib['type']
                 vdisk.devicename = disk.find('target').attrib['dev']
                 vdisk.machineid = machine.guid
-                vdisk.active = j.system.fs.exists(path)
+                vdisk.active = j.sal.fs.exists(path)
                 if vdisk.active:
                     try:
                         diskinfo = j.system.platform.qemu_img.info(path)

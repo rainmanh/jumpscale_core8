@@ -32,14 +32,12 @@ def action():
     logqueue = rediscl.getQueue('logs')
     ecoqueue = rediscl.getQueue('eco')
 
-    OSISclient = j.core.osis.client
-
-    OSISclientLogger = j.clients.osis.getCategory(OSISclient, "system", "log")
-    OSISclientEco = j.clients.osis.getCategory(OSISclient, "system", "eco")
+    clientLogger = j.data.models.system.Log
+    clientEco = j.data.models.system.Errorcondition
 
     log = None
     path = "%s/apps/processmanager/loghandling/"%j.dirs.baseDir
-    if j.system.fs.exists(path=path):
+    if j.sal.fs.exists(path=path):
         loghandlingTE = j.core.taskletengine.get(path)
         log=logqueue.get_nowait()
         # j.core.grid.logger.osis = OSISclientLogger
@@ -60,25 +58,22 @@ def action():
         log3 = j.logger.getLogObjectFromDict(log2)
         log4= loghandlingTE.executeV2(logobj=log3)
         if log4 != None:
-            out.append(log4.__dict__)
-        if len(out)>500:
-            OSISclientLogger.set(out)
-            out=[]
+            clientLogger.save(log4.__dict__)
         log=logqueue.get_nowait()
-    if len(out)>0:
-        OSISclientLogger.set(out)
 
     while ecoguid != None:
-        eco = json.loads(rediscl.hget('eco:objects', ecoguid))
-        if not eco.get('epoch'):
-            eco["epoch"] = int(time.time())
-        ecoobj = j.errorconditionhandler.getErrorConditionObject(ddict=eco)
-        ecores= eventhandlingTE.executeV2(eco=ecoobj)
-        if hasattr(ecores,"tb"):
-            ecores.__dict__.pop("tb")
-        OSISclientEco.set(ecores.__dict__)
-        ecoguid=ecoqueue.get_nowait()
+        eco = j.data.models.system.Errorcondition.find({'guid':ecoguid})
+        if eco:
+            eco = eco[0].to_dict
+            if not eco.get('epoch'):
+                eco["epoch"] = int(time.time())
+            ecoobj = j.errorconditionhandler.getErrorConditionObject(ddict=eco)
+            ecores= eventhandlingTE.executeV2(eco=ecoobj)
+            if hasattr(ecores,"tb"):
+                ecores.__dict__.pop("tb")
+            clientEco.save(ecores.__dict__)
+            ecoguid=ecoqueue.get_nowait()
 
 if __name__ == '__main__':
-    j.core.osis.client = j.clients.osis.getByInstance('main')
     action()
+

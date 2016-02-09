@@ -26,7 +26,7 @@ def action():
     if j.application.config.exists('gridmonitoring.disk.pattern'):
         pattern = j.application.config.getStr('gridmonitoring.disk.pattern')
 
-    disks = j.system.platform.diskmanager.partitionsFind(
+    disks = j.sal.diskmanager.partitionsFind(
         mounted=True, prefix='', minsize=0, maxsize=None)
 
     def diskfilter(disk):

@@ -24,4 +24,4 @@ def action(cmd="result = 'It wrked'"):
     return result
 
 if __name__ == "__main__":
-    print action()
+    print (action())

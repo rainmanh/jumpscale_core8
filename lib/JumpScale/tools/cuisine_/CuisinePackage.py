@@ -154,7 +154,7 @@ class CuisinePackage():
     def ensure(self,package, update=False):
         """Ensure apt packages are installed"""
         if self.cuisine.isUbuntu:
-            if isinstance(package, basestring):
+            if isinstance(package, str):
                 package = package.split()
             res = {}
             for p in package:
@@ -171,7 +171,8 @@ class CuisinePackage():
                         self.update(p)
                     res[p]=True
             if len(res) == 1:
-                return res.values()[0]
+                for _, value in res.items():
+                    return value
             else:
                 return res
         elif self.cuisine.isArch:

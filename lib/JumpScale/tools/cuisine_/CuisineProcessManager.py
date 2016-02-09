@@ -168,7 +168,7 @@ class CuisineUpstart():
         self.cuisine=cuisine
 
     
-    def ensure(self,name, *args):
+    def ensure(self,name, **kwargs):
         """Ensures that the given upstart service is self.running, starting
         it if necessary."""
         status = self.cuisine.sudo("service %s status" % name,die=False)
@@ -176,14 +176,14 @@ class CuisineUpstart():
             status = self.cuisine.sudo("service %s start" % name)
         return status
 
-    def reload(self,name, *args):
+    def reload(self,name, **kwargs):
         """Reloads the given service, or starts it if it is not self.running."""
         status = self.cuisine.sudo("service %s reload" % name,die=False)
         if status[0] == 3:
             status = self.cuisine.sudo("service %s start" % name)
         return status
 
-    def restart(self,name, *args):
+    def restart(self,name, **kwargs):
         """Tries a `restart` command to the given service, if not successful
         will stop it and start it. If the service is not started, will start it."""
         status = self.cuisine.sudo("service %s status" % name,die=False)
@@ -196,7 +196,7 @@ class CuisineUpstart():
                 return self.cuisine.sudo("service %s start" % name)
             else:
                 return status
-    def start(self, name, *args):
+    def start(self, name, **kwargs):
         status = self.cuisine.sudo("service %s status" % name,die=False)
         if status[0] == 3:
             return self.cuisine.sudo("service %s start" % name)
@@ -204,7 +204,7 @@ class CuisineUpstart():
             return status
 
 
-    def stop(self,name, *args):
+    def stop(self,name, **kwargs):
         """Ensures that the given upstart service is stopped."""
         status = self.cuisine.sudo("service %s status" % name,die=False)
         if status[0] == 0:

@@ -272,14 +272,13 @@ class OurCuisine():
 
     @property
     def processmanager(self):
-        if self._processmanager==None:
-            if self.cuisine.isArch:
-                self._processmanager=CuisineSystemd(self.executor,self)
-            elif self.cuisine.isUbuntu:
-                self._processmanager=CuisineUpstart(self.executor,self)
-            elif self.cuisine.isMac:
+        if self._processmanager==None:            
+            self._processmanager = CuisineSystemd(self.executor, self)
+            if self.isDocker:
+                self._processmanager = CuisineUpstart(self.executor, self)
+            elif self.isMac:
                 #@todo create a system manager uses mac specific manager 
-                self._processmanager=CuisineSystemd(self.executor,self)
+                self._processmanager = CuisineSystemd(self.executor, self)
 
         return self._processmanager
 
@@ -1319,6 +1318,12 @@ class OurCuisine():
 
 
     #####################SYSTEM IDENTIFICATION
+    @property
+    def isDocker(self):
+        docker = self.run('mount | grep hostname > /dev/null &&if [[ $? -eq 0 ]];then echo "OK"; fi')
+        if docker == "OK":
+            return True
+        return False
 
     @property
     def isUbuntu(self):

@@ -346,7 +346,7 @@ class CuisineBuilder(object):
 
         else:
 
-            appbase = self.cuisine.dir_paths("binDir")
+            appbase = self.cuisine.dir_paths["binDir"]
 
             url=None
             if self.cuisine.isUbuntu:

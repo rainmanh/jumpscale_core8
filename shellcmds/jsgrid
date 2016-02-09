@@ -121,17 +121,15 @@ def purge(opts,action):
                 if opts.to:
                     if command.starttime < int(_getEpoch(opts.to)):
                         command.delete()
-                        command.save()
                 elif opts.ffrom:
                     if command.starttime > int(_getEpoch(opts.to)):
-                        command.jobs = []
-                        command.save()
+                        command.delete()
 
 
         else:
             objs = model.find(query)
             for obj in objs:
-                model.delete(obj)
+                obj.delete()
 
         aftercount = len(model.find({}))
 

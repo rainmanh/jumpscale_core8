@@ -74,7 +74,7 @@ if prev then
     -- epoch in seconds
     local nowshort=math.floor(now/1000+0.5)
 
-    c=string.format("%s|%u|%u|%u|%u|%u|%u",key,nowshort,m,v["m_avg"],v["m_max"],v["h_avg"],v["h_max"])
+    c=string.format("%s|%s|%u|%u|%u|%u|%u|%u",node,key,nowshort,m,v["m_avg"],v["m_max"],v["h_avg"],v["h_max"])
 
     if redis.call("LLEN", "queues:stats") > 200000 then
         redis.call("LPOP", "queues:stats")

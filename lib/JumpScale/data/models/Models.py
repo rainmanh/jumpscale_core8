@@ -124,9 +124,11 @@ class ModelBase():
 
 
 class Errorcondition(ModelBase, Document):
+    nid = IntField(required=True)
+    gid = IntField(required=True)    
     aid = IntField(default=0)
     pid = IntField(default=0)
-    jid = StringField(default='')
+    jid = StringField(default='')  #@todo (*2*) is this right, string???
     masterjid = IntField(default=0)
     appname = StringField(default="")
     level = IntField(default=1, required=True)

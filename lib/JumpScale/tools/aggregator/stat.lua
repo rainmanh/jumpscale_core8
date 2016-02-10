@@ -112,7 +112,9 @@ else
     v.key = key
     v.tags = tags
     v.measurement = measurement
-    redis.call('SET', statekey, cjson.encode(v))
-    return 0
+    local data = cjson.encode(v)
+    redis.call('SET', statekey, data)
+    redis.call('EXPIRE', statekey, 24*60*60) -- expire in a day
+    return data
 end
 

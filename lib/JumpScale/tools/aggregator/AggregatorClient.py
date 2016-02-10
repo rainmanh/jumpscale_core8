@@ -26,7 +26,7 @@ class AggregatorClient(object):
         return self._measure(key, measurement, tags, value, type="A")
 
     def measureDiff(self, key, measurement, tags, value):
-        return self.measure(key, measurement, tags, value, type="D")
+        return self._measure(key, measurement, tags, value, type="D")
 
     def _measure(self, key, measurement, tags, value, type):
         """
@@ -43,8 +43,6 @@ class AggregatorClient(object):
         """
         now = int(time.time())  # seconds
         res = self.redis.evalsha(self._sha["stat"], 1, key, measurement, value, str(now), type, tags, self.nodename)
-
-        print("%s %s" % (key, res))
 
         return res
 
@@ -94,9 +92,9 @@ class AggregatorClient(object):
 
     def statGet(self, key):
         """
-        key is e.g. mynode.sda1.iops
+        key is e.g. sda1.iops
         """
-        data = self.redis.hget("stats:%s" % self.nodename, key)
+        data = self.redis.get("stats:%s:%s" % (self.nodename, key))
         if data == None:
             return {"val": None}
         data = j.data.serializer.json.loads(data)

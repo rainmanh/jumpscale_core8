@@ -65,11 +65,12 @@ def commit(name, tag):
 @click.option('--cpu', help='cpu shares (min 0, max 1000)')
 @click.option('--memory', '-mem', help='Max memory in MB')
 @click.option('--sharecode', help='Share host /opt/code witch container', is_flag=True, type=bool)
-@click.option('--keyname', help='ssh-agent keyname to be used to push into machine')
-def create(image, name, ports, volumes, cpu, memory, sharecode, keyname):
+@click.option('--keyname', help='ssh-agent keyname to be used to push into container')
+@click.option('--pubkey', help='public sshkey to push into container')
+def create(image, name, ports, volumes, cpu, memory, sharecode, keyname, pubkey):
     j.sal.docker.create(name=name, stdout=True, base=image, ports=ports, vols=volumes,
              volsro=None, cpu=cpu, mem=memory, jumpscale=False, sharecode=sharecode,\
-             sshkeyname=keyname, rootpasswd=None, jumpscalebranch=None)
+             sshkeyname=keyname, sshpubkey=pubkey, rootpasswd=None, jumpscalebranch=None)
 
 
 @click.command()

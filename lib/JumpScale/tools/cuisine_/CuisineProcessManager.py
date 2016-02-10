@@ -77,7 +77,7 @@ class CuisineSystemd(ProcessManagerBase):
 
         cmd=self.cuisine.args_replace(cmd)
         path=self.cuisine.args_replace(path)
-        if not cmd=="":
+        if cmd!="":
             if not cmd.startswith("/"):
                 cmd0=cmd.split(" ",1)[0]
                 cmd1=self.cuisine.bash.cmdGetPath(cmd0)
@@ -145,7 +145,11 @@ class CuisineRunit(ProcessManagerBase):
         super().__init__(executor, cuisine)
 
     def list(self,prefix=""):
-        pass
+        for fs_find("/etc/service", recursive=False).split(",")
+        res = self.cuisine.run("tmux lsw")
+
+
+
     def ensure(self, name, cmd="", env={}, path="", descr=""):
         """Ensures that the given upstart service is self.running, starting
         it if necessary."""

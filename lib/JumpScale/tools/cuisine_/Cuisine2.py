@@ -1311,10 +1311,9 @@ class OurCuisine():
     #####################SYSTEM IDENTIFICATION
     @property
     def isDocker(self):
-        docker = self.run('mount | grep hostname > /dev/null &&if [[ $? -eq 0 ]];then echo "OK"; fi', die = False)
-        if docker == "OK":
-            return True
-        return False
+        docker = self.run('mount | grep hostname > /dev/null', die = False)
+        return not docker[0]
+
 
     @property
     def isUbuntu(self):

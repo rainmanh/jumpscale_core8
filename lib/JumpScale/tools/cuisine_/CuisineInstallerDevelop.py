@@ -48,7 +48,7 @@ class CuisineInstallerDevelop():
             wget https://bootstrap.pypa.io/get-pip.py
             """
         C=self.cuisine.args_replace(C)
-        self.cuisine.run_script(C,showout=False)
+        self.cuisine.run_script(C)
         C="cd $tmpDir/;python3.5 get-pip.py"
         C=self.cuisine.args_replace(C)
         self.cuisine.run(C)
@@ -132,6 +132,7 @@ class CuisineInstallerDevelop():
         urllib3
         zmq
         pyyaml
+        python-etcd
         websocket
         marisa-trie
         pylzma
@@ -161,4 +162,3 @@ class CuisineInstallerDevelop():
             self.cuisine.run(cmd)
         else:
             raise RuntimeError("platform not supported yet")
-

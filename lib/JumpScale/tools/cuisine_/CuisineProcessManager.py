@@ -1,13 +1,13 @@
 
+from ProcessManagerBase import ProcessManagerBase
 from JumpScale import j
 
 #we implemented a fallback system if systemd does not exist
 
-class CuisineSystemd():
+class CuisineSystemd(ProcessManagerBase):
 
     def __init__(self,executor,cuisine):
-        self.executor=executor
-        self.cuisine=cuisine
+        super().__init__(executor, cuisine)
         self._systemdOK=None
         self.forceTMUX=False
 

@@ -180,7 +180,7 @@ class Container(SALObject):
                 j.do.loadSSHAgent()
 
             keypath = j.do.getSSHKeyFromAgent(keyname)
-            key = j.sal.fs.getFileContents(keypath+".pub")
+            key = j.sal.fs.fileGetContents(keypath.decode()+".pub")
             if key == "":
                 raise RuntimeError("Could not find key %s in ssh-agent"%keyname)
             keys.add(key)

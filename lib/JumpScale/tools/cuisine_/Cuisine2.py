@@ -191,7 +191,6 @@ def text_strip_margin(text, margin="|"):
 
 from CuisineInstaller import CuisineInstaller
 from CuisineInstallerDevelop import CuisineInstallerDevelop
-from CuisineProcessManager import CuisineSystemd, CuisineUpstart, CuisineRunit
 from CuisinePackage import CuisinePackage
 from CuisineProcess import CuisineProcess
 from CuisinePIP import CuisinePIP
@@ -247,7 +246,6 @@ class OurCuisine():
         self._fqn=""
         self._docker=None
         self._js8sb=None
-        self._pm=None
         self._dirs={}
 
         if self.executor.type=="ssh":
@@ -269,25 +267,6 @@ class OurCuisine():
 
             self._package=CuisinePackage(self.executor,self)
         return self._package
-
-
-
-    @property
-    def processmanager(self):
-        if self._processmanager==None:  
-            if self.command_check("sv"):
-                    self._processmanager = CuisineRunit(self.executor, self)
-            elif self.command_check("systemctl"):
-                self._processmanager = CuisineSystemd(self.executor, self)
-                if self.isDocker:
-                    self._processmanager = CuisineRunit(self.executor, self)
-            elif self.isMac:
-                self._processmanager = CuisineSystemd(self.executor, self)
-            #else:
-                #self._processmanager = CuisineTmuxec(self.executor, self)
-
-        return self._processmanager
-
 
     @property
     def process(self):
@@ -416,10 +395,10 @@ class OurCuisine():
         return self._js8sb
 
     @property
-    def pm(self):
-        if self._pm==None:
-            self._pm = ProcessManagerFactory.get(self)
-        return self._pm
+    def processmanager(self):
+        if self._processmanager==None:
+            self._processmanager = ProcessManagerFactory.get(self)
+        return self._processmanager
 
     @property
     def dir_paths(self):

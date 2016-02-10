@@ -1,6 +1,5 @@
-from CuisineSystemd import CuisineSystemd
-# from CuisineRunit import CuisineRunit
-# from CuisineTmuxec import CuisineTmuxec
+
+from CuisineProcessManager import CuisineRunit, CuisineTmuxec, CuisineSystemd
 from JumpScale import j
 
 class ProcessManagerFactory:

@@ -16,6 +16,9 @@ local c = ""
 local m
 local prev = redis.call('GET', statekey)
 
+local now_short_m = math.floor(now / 60) * 60
+local now_short_h = math.floor(now / 3600) * 3600
+
 if prev then
     -- get previous value, it exists in a hkey
     v = cjson.decode(prev)
@@ -33,29 +36,30 @@ if prev then
     end
 
     -- the next section makes sure we start recounting
-    if v.m_epoch < (now - 60) then
+    -- local m_epoch = math.floor(v.m_epoch / 60) * 60
+    -- local h_epoch = math.floor(v.m_epoch/ 3600) * 3600
+
+    if v.m_epoch < now_short_m then
         -- 1 min aggregation
-        local nowshort = math.floor(v.m_epoch / 60) * 60
-        local row = string.format("%s|%s|%u|%u|%u|%u",
-            node, key, nowshort, m, v.m_avg, v.m_max)
+        local row = string.format("%s|%s|%u|%f|%f|%f",
+            node, key, v.m_epoch, m, v.m_avg, v.m_max)
 
         redis.call("RPUSH", "queues:stats:min", row)
 
         v.m_total = 0
         v.m_nr = 0
-        v.m_epoch = now
+        v.m_epoch = now_short_m
     end
-    if v.h_epoch < (now - (60 * 60)) then
+    if v.h_epoch < now_short_h then
         -- 1 hour aggregation
-        local nowshort = math.floor(v.h_epoch / 60) * 60
-        local row = string.format("%s|%s|%u|%u|%u|%u",
-            node, key, nowshort, m, v.h_avg, v.h_max)
+        local row = string.format("%s|%s|%u|%f|%f|%f",
+            node, key, v.h_epoch, m, v.h_avg, v.h_max)
 
         redis.call("RPUSH", "queues:stats:hour", row)
 
         v.h_total = 0
         v.h_nr = 0
-        v.h_epoch = now
+        v.h_epoch = now_short_h
     end
 
     -- remember the current value
@@ -94,12 +98,12 @@ if prev then
 else
     v.m_avg = value
     v.m_last = 0
-    v.m_epoch = now
+    v.m_epoch = now_short_m
     v.m_total = value
     v.m_max = value
     v.m_nr = 1
     v.h_avg = 0
-    v.h_epoch = now
+    v.h_epoch = now_short_h
     v.h_total = value
     v.h_nr = 1
     v.h_max = value

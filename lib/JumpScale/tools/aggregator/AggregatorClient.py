@@ -1,6 +1,13 @@
 from JumpScale import j
 import time
 import os
+import collections
+
+Stats = collections.namedtuple('Stats', 'measurement h_nr m_nr h_avg m_epoch m_total h_total m_avg m_last epoch ' +
+                               'm_max val h_max key tags h_epoch')
+
+Log = collections.namedtuple('Log', 'level message node epoch tags')
+
 
 class AggregatorClient(object):
     def __init__(self, redis, nodename):
@@ -16,19 +23,20 @@ class AggregatorClient(object):
 
         self.nodename = nodename
 
-    def measure(self, key, measurement, tags, value):
+    def measure(self, key, measurement, tags, value, timestamp=None):
         """
         @param measurement is what you are measuring e.g. kbps (kbits per sec)
         @param key is well chosen location in a tree structure e.g. key="%s.%s.%s"%(self.nodename,dev,measurement) e.g. myserver.eth0.kbps
            key needs to be unique
         @param tags node:kds dim:iops location:elgouna  : this allows aggregation in influxdb level
+        @param timestamp stats timestamp, default to `now`
         """
-        return self._measure(key, measurement, tags, value, type="A")
+        return self._measure(key, measurement, tags, value, type="A", timestamp=timestamp)
 
-    def measureDiff(self, key, measurement, tags, value):
-        return self._measure(key, measurement, tags, value, type="D")
+    def measureDiff(self, key, measurement, tags, value, timestamp=None):
+        return self._measure(key, measurement, tags, value, type="D", timestamp=timestamp)
 
-    def _measure(self, key, measurement, tags, value, type):
+    def _measure(self, key, measurement, tags, value, type, timestamp=None):
         """
         in redis:
 
@@ -41,16 +49,17 @@ class AggregatorClient(object):
         local node=ARGV[6]
 
         """
-        now = int(time.time())  # seconds
-        res = self.redis.evalsha(self._sha["stat"], 1, key, measurement, value, str(now), type, tags, self.nodename)
+        if timestamp is None:
+            timestamp = int(time.time())  # seconds
+        res = self.redis.evalsha(self._sha["stat"], 1, key, measurement, value, str(timestamp), type, tags, self.nodename)
 
         return res
 
-    def log(self, message, tags="", level=5, time=0):
-        if time == 0:
-            time = int(time.time() * 1000)
-        # 1 means there is 1 key, others are args
-        res = self.redis.evalsha(self._sha["logs"], 1, self.nodename, message, tags, str(level), str(time))
+    def log(self, message, tags='', level=5, timestamp=None):
+        if timestamp is None:
+            timestamp = int(time.time() * 1000)  # in millisecond
+
+        self.redis.evalsha(self._sha["logs"], 1, self.nodename, message, tags, str(level), str(timestamp))
 
     def errorcondition(self, message, messagepub="", level=5, type="UNKNOWN", tags="", \
                        code="", funcname="", funcfilepath="", backtrace="", epoch=0):
@@ -97,29 +106,42 @@ class AggregatorClient(object):
         data = self.redis.get("stats:%s:%s" % (self.nodename, key))
         if data == None:
             return {"val": None}
-        data = j.data.serializer.json.loads(data)
-        return data
+
+        return Stats(**j.data.serializer.json.loads(data))
 
     @property
     def stats(self):
         """
         iterator to go over stat objects
         """
-        # @todo
+        cursor = 0
+        match = 'stats:%s:*' % self.nodename
+        while True:
+            cursor, keys = self.redis.scan(cursor, match)
+            for key in keys:
+                yield Stats(**j.data.serializer.json.loads(self.redis.get(key)))
+
+            if cursor == 0:
+                break
 
     def logGet(self):
         """
-        get oldest log object from queue & return as dict
+        POPs oldest log object from queue & return as dict
         """
-        # @todo ...
-        return data
+        data = self.redis.lpop('queues:logs')
+        if data is None:
+            return None
+
+        Log(**j.data.serializer.json.loads(data))
 
     @property
     def logs(self):
         """
-        iterator to go over log objects (oldest first)
+        Iterates over log objects (oldest first). Doesn't pop from the list
         """
-        # @todo
+        logs = self.redis.lrange('queues:logs', 0, 5000)
+        for log in logs:
+            yield Log(**j.data.serializer.json.loads(log))
 
     def ecoGet(self, key="", removeFromQueue=True):
         """

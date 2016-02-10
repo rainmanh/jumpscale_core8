@@ -2,6 +2,8 @@ from JumpScale import j
 import time
 import os
 import collections
+import hashlib
+
 
 Stats = collections.namedtuple('Stats', 'measurement h_nr m_nr h_avg m_epoch m_total h_total m_avg m_last epoch ' +
                                'm_max val h_max key tags h_epoch')
@@ -61,8 +63,8 @@ class AggregatorClient(object):
 
         self.redis.evalsha(self._sha["logs"], 1, self.nodename, message, tags, str(level), str(timestamp))
 
-    def errorcondition(self, message, messagepub="", level=5, type="UNKNOWN", tags="", \
-                       code="", funcname="", funcfilepath="", backtrace="", epoch=0):
+    def errorcondition(self, message, messagepub="", level=5, type="UNKNOWN", tags="",
+                       code="", funcname="", funcfilepath="", backtrace="", timestamp=None):
         """
         @param type: "BUG", "PERF", "OPS", "UNKNOWN"), default="UNKNOWN"
 
@@ -93,11 +95,17 @@ class AggregatorClient(object):
             closetime = IntField(default=0)
             occurrences = IntField(default=0)
         """
-        if time == 0:
-            time = int(time.time() * 1000)
-        # 1 means there is 1 key, others are args
-        res = self.redis.evalsha(self._sha["eco"], 1, message, messagepub, str(level), type, \
-                                 tags, code, funcname, funcfilepath, backtrace, str(time))
+        if timestamp is None:
+            timestamp = int(time.time() * 1000)
+
+        md5 = hashlib.md5()
+        #key = md5(message + messagepub + code + funcname + funcfilepath)
+        for p in (message, messagepub, code, funcname, funcfilepath):
+            md5.update(p.encode())
+
+        key = md5.hexdigest()
+        res = self.redis.evalsha(self._sha["eco"], 1, key, message, messagepub, str(level), type,
+                                 tags, code, funcname, funcfilepath, backtrace, str(timestamp))
 
     def statGet(self, key):
         """
@@ -143,21 +151,36 @@ class AggregatorClient(object):
         for log in logs:
             yield Log(**j.data.serializer.json.loads(log))
 
-    def ecoGet(self, key="", removeFromQueue=True):
+    def ecoGet(self, key=None, removeFromQueue=True):
         """
         get errorcondition object from queue & return as dict
         if key not specified then get oldest ECO object & remove from queue if removeFromQueue is set
         if key set, do not remove from queue
         """
-        # @todo ...
-        return data
+        if not key:
+            if removeFromQueue:
+                key = self.redis.lpop('queues:eco')
+            else:
+                key = self.redis.lindex('queues:eco', 0)
+
+        if key is None:
+            return None
+
+        data = self.redis.get("eco:%s" % key.decode())
+        if data is None:
+            # shouldn't happen
+            return None
+
+        return j.data.serializer.json.loads(data)
 
     @property
     def ecos(self):
         """
         iterator to go over errorcondition objects (oldest first)
         """
-        # @todo
+        ecos = self.redis.lrange('queues:eco', 0, 1000)
+        for eco in ecos:
+            yield self.ecoGet(eco, removeFromQueue=False)
 
     def reality(self, key, json, modeltype="", tags="", time=0, ):
         """

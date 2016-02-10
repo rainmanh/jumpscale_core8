@@ -5,47 +5,44 @@ from JumpScale import j
 class ProcessManagerFactory:
 
     pms = {}
+    def __init__(self, cuisine):
+        self.cuisine = cuisine
 
-    @classmethod
-    def systemdOK(cls, cuisine):
-        return not cuisine.isDocker and cuisine.command_check("systemctl")
+    def systemdOK(self):
+        return not self.cuisine.isDocker and self.cuisine.command_check("systemctl")
 
-    @classmethod
-    def svOK(cls, cuisine):
-        return cuisine.command_check("sv")
+    def svOK(self):
+        return self.cuisine.command_check("sv")
 
-    @classmethod
-    def get_prefered(cls, cuisine):
+    def get_prefered(self):
         for pm in ["systemd", "sv", "tmux"]:
-            if cls.is_available(cuisine, pm):
+            if self.is_available( pm):
                 return pm
     
-    @classmethod
-    def is_available(cls, cuisine, pm):
+    def is_available(self, pm):
         if pm == "systemd":
-            return cls.systemdOK(cuisine)
+            return self.systemdOK()
         elif pm == "sv":
-            return cls.svOK(cuisine)
+            return self.svOK()
         elif pm == "tmux":
             return True
         else:
             return False
 
-    @classmethod
-    def get(cls, cuisine, pm = None):
+    def get(self, pm = None):
         if pm == None:
-            pm = cls.get_prefered(cuisine)
+            pm = self.get_prefered()
         else:
-            if not cls.is_available(cuisine, pm):
+            if not self.is_available(pm):
                 return j.errorconditionhandler.raiseCritical('%s processmanager is not available on your system'%(pm))
 
-        if pm not in cls.pms:
+        if pm not in self.pms:
             if pm == "systemd":
-                inst = CuisineSystemd(cuisine.executor, cuisine)
+                inst = CuisineSystemd(self.cuisine.executor, self.cuisine)
             elif pm == "sv":
-                inst = CuisineRunit(cuisine.executor, cuisine)
+                inst = CuisineRunit(self.cuisine.executor, self.cuisine)
             elif pm == "tmux":
-                inst = CuisineTmuxec(cuisine.executor, cuisine)
-            cls.pms[pm] = inst
+                inst = CuisineTmuxec(self.cuisine.executor, self.cuisine)
+            self.pms[pm] = inst
 
-        return cls.pms[pm]
+        return self.pms[pm]

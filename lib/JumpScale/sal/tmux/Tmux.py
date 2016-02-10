@@ -142,12 +142,12 @@ class Tmux(SALObject):
             result[int(idx)] = name
         return result
 
-    def createWindow(self, session, name, user=None):
+    def createWindow(self, session, name, user=None, cmd=None):
         if session not in self.getSessions(user=user):
             return self.createSession(session, [name], user=user)
         windows = self.getWindows(session, user=user)
         if name not in list(windows.values()):
-            cmd = "tmux new-window -t '%s:' -n '%s'" % (session, name)
+            cmd = "tmux new-window -t '%s:' -n %s '%s'" % (session, name, cmd)
             if user:
                 cmd = "sudo -u %s -i %s" % (user, cmd)
             self.executor.execute(cmd,showout=False)

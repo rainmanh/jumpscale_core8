@@ -397,7 +397,7 @@ class OurCuisine():
     @property
     def processmanager(self):
         if self._processmanager==None:
-            self._processmanager = ProcessManagerFactory.get(self)
+            self._processmanager = ProcessManagerFactory(self).get()
         return self._processmanager
 
     @property

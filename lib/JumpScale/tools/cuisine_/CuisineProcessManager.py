@@ -1,6 +1,6 @@
 from JumpScale import j
 
-#we implemented a fallback system if systemd does not exist
+#not using cuisine.tmux.executeInScreen
 class ProcessManagerBase:
 
     def __init__(self,executor,cuisine):
@@ -9,7 +9,7 @@ class ProcessManagerBase:
 
     def get(self, pm = None):
         from ProcessManagerFactory import ProcessManagerFactory
-        return ProcessManagerFactory.get(self.cuisine, pm)
+        return ProcessManagerFactory(self.cuisine).get(self.cuisine, pm)
 
 class CuisineSystemd(ProcessManagerBase):
     def __init__(self,executor,cuisine):
@@ -39,7 +39,7 @@ class CuisineSystemd(ProcessManagerBase):
         return result
 
     def reload(self):
-        self.cuisine.run("systemctl daemon-reload")
+        1self.cuisine.run("systemctl daemon-reload")
 
     def start(self,name):
         self.reload()
@@ -139,16 +139,18 @@ class CuisineSystemd(ProcessManagerBase):
                 self.start(key)
 
 
-
 class CuisineRunit(ProcessManagerBase):
     def __init__(self,executor,cuisine):
         super().__init__(executor, cuisine)
 
     def list(self,prefix=""):
-        for fs_find("/etc/service", recursive=False).split(",")
-        res = self.cuisine.run("tmux lsw")
+        result = list()
 
-
+        for service in self.cuisine.fs_find("/etc/service", recursive=False)[1:]:
+            service = service.split("/etc/service/")[1]
+            status = self.cuisine.run("sv  status /etc/service/%s" %service).split(":")[0]
+            result.append([service, status])
+        return result
 
     def ensure(self, name, cmd="", env={}, path="", descr=""):
         """Ensures that the given upstart service is self.running, starting
@@ -176,7 +178,7 @@ class CuisineRunit(ProcessManagerBase):
             # j.core.db.hset("processcmds",name,cmd)
             sv_text ="""#!/bin/sh
 set -e
-echo $descr
+echo $descrs
 cd $path
 exec $cmd
             """
@@ -253,20 +255,20 @@ class CuisineTmuxec(ProcessManagerBase):
             j.core.db.hset("processcmds",name,cmd)
 
         self.stop(name)
-        self.cuisine.tmux.executeInScreen("main", name, cmd, wait=True, reset=False)  
+        self.cuisine.tmux.createWindow("main", name,cmd=cmd)
 
     def reload(self, name):
         """Reloads the given service, or starts it if it is not self.running."""
         cmd=j.core.db.hget("processcmds",name).decode()
         self.stop(name)
-        self.cuisine.tmux.executeInScreen("main", name, cmd, wait=True, reset=False)
+        self.cuisine.tmux.createWindow("main", name,cmd=cmd)
 
     def start(self, name):
         """Tries a `restart` command to the given service, if not successful
         will stop it and start it. If the service is not started, will start it."""
         cmd=j.core.db.hget("processcmds",name).decode()
         self.stop(name)
-        self.cuisine.tmux.executeInScreen("main", name, cmd, wait=True, reset=False)
+        self.cuisine.tmux.createWindow("main", name,cmd=cmd)
 
 
     def stop(self, name):

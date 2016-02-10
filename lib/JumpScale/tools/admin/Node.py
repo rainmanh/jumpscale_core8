@@ -1,15 +1,4 @@
 from JumpScale import j
-import JumpScale.baselib.remote
-import sys
-# import importlib
-import imp
-
-
-import JumpScale.baselib.redis2
-import copy
-import time
-
-
 import time
 
 redis=j.clients.redis.getRedisClient("127.0.0.1", 9999)

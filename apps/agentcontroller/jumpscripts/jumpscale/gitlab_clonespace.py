@@ -1,8 +1,6 @@
 
 from JumpScale import j
-from JumpScale.baselib import gitlab
-from JumpScale.baselib import git
-
+import sys
 descr = """
 Clone/Update gitlab user spaces
 """
@@ -17,8 +15,8 @@ log=False
 
 
 def action(username, spacename):
-    print "Cloning gitlab space %s for user %s " % (spacename, username)
-    print "**********************************************"
+    print ("Cloning gitlab space %s for user %s" %(spacename, username))
+    print ("**********************************************")
     hrd = j.application.getAppInstanceHRD(name='portal', instance='main')
     gitlabcontentdir = hrd.getStr('param.cfg.contentdirs')
 
@@ -41,6 +39,6 @@ def action(username, spacename):
 
 if __name__ == '__main__':
     if not len(sys.argv) == 3:
-        print "Usage: python clonegitlabspace username spacename"
+        print ("Usage: python clonegitlabspace username spacename")
     else:
         action(sys.argv[1], sys.argv[2])

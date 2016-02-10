@@ -1,5 +1,4 @@
 from JumpScale import j
-import JumpScale.baselib.redis
 
 descr = """
 Monitor CPU and mem of worker

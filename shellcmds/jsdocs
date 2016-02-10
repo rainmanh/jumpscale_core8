@@ -3,7 +3,6 @@ from JumpScale.tools import cmdutils
 from JumpScale import j
 from html.parser import HTMLParser
 from xml.etree import cElementTree as etree
-import JumpScale.baselib.git
 j.application.start('jsdocs')
 
 parser = cmdutils.ArgumentParser()

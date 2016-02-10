@@ -1,8 +1,5 @@
 
 from JumpScale import j
-from JumpScale.baselib import gitlab
-from JumpScale.baselib import git
-import subprocess
 import sys
 
 descr = """
@@ -19,10 +16,10 @@ log=False
 
 
 def action(port):
-    return j.system.net.checkListenPort(int(port))
+    return j.sal.nettools.checkListenPort(int(port))
 
 if __name__ == '__main__':
     if not len(sys.argv) == 2:
-        print "Usage: python checkportopen.py port"
+        print ("Usage: python checkportopen.py port")
     else:
-        print action(sys.argv[1])
+        print (action(sys.argv[1]))

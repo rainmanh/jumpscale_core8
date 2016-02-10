@@ -1,8 +1,6 @@
 #!/usr/bin/env jspython
 from JumpScale import j
 from JumpScale.tools import cmdutils
-import JumpScale.lib.lxc
-import JumpScale.lib.diskmanager
 
 j.application.start("jsmachine_lxc")
 
@@ -103,10 +101,6 @@ if opts.action =='cmd':
         raise RuntimeError("specify machine name")    
     ip=l.getIp(opts.name)
     print("ipaddr:%s"%ip)
-
-    import JumpScale.baselib.remote
-
-    import JumpScale.baselib.remote
 
     if opts.passwd==None:
         opts.passwd="rooter"

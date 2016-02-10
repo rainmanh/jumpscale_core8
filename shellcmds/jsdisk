@@ -11,9 +11,6 @@ parser.add_argument("action", choices=['init','list','listmirrors'], help='Comma
 
 opts = parser.parse_args()
 
-import JumpScale.lib.diskmanager
-
-
 
 if opts.action =='list':
     disks=j.system.platform.diskmanager.partitionsFind()

@@ -1,7 +1,7 @@
 from JumpScale import j
-from . import lsblk
-from . import mount
-from . import disks
+import lsblk
+import mount
+import disks
 
 from sal.base.SALObject import SALObject
 

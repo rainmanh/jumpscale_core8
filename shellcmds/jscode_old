@@ -3,11 +3,6 @@ from JumpScale import j
 
 from JumpScale.tools import cmdutils
 
-import JumpScale.baselib.bitbucket
-import JumpScale.baselib.mercurial
-
-import sys,time
-
 j.application.start("jstest")
 
 if j.application.sandbox:

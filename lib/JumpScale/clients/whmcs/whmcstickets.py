@@ -1,5 +1,5 @@
 from JumpScale import j
-import requests, base64, phpserialize
+import requests
 
 import xml.etree.cElementTree as et
 

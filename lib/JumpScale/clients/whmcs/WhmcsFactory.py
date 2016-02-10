@@ -1,9 +1,6 @@
-import os
-
-
-    
 from JumpScale import j
-from .WhmcsInstance import WhmcsInstance
+from JumpScale.clients.whmcs.WhmcsInstance import WhmcsInstance
+
 
 class Dummy(object):
     def __getattribute__(self, attr, *args, **kwargs):

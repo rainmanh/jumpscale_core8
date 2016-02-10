@@ -1,9 +1,9 @@
 
 from JumpScale import j
 
-from whmcsusers import whmcsusers
-from whmcstickets import whmcstickets
-from whmcsorders import whmcsorders
+from JumpScale.clients.whmcs.whmcsusers import whmcsusers
+from JumpScale.clients.whmcs.whmcstickets import whmcstickets
+from JumpScale.clients.whmcs.whmcsorders import whmcsorders
 
 class WhmcsInstance(object):
     def __init__(self,

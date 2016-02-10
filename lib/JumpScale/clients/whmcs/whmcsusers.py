@@ -1,4 +1,5 @@
-import requests, base64, phpserialize
+import requests, base64
+from JumpScale.clients.whmcs import phpserialize
 
 SSL_VERIFY = False
 

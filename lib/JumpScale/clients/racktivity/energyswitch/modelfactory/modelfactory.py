@@ -35,7 +35,7 @@ class ModelFactory(object):
     def _get_module_model(self, module_id, class_name, module_version=None):
         if self._client.basicAuth:
             # we need to use the pre 1.0 API
-            from . import Model_pre_1_0  # pylint: disable=W0404
+            from JumpScale.clients.racktivity.energyswitch.modelfactory import Model_pre_1_0  # pylint: disable=W0404
             return getattr(Model_pre_1_0, class_name)
 
         if not module_version:
@@ -52,7 +52,7 @@ class ModelFactory(object):
 
                 version = str(version)
                 if version.startswith("1.0"):
-                    from . import Model_firmware_1_0  # pylint: disable=W0404
+                    from JumpScale.clients.racktivity.energyswitch.modelfactory import Model_firmware_1_0  # pylint: disable=W0404
                     return getattr(Model_firmware_1_0, class_name)
                 else:
                     raise RuntimeError("Can't get the module version of %s (%s)" % (module_id, self._ip))

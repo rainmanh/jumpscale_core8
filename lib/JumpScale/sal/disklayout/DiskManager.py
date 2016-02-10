@@ -51,7 +51,7 @@ class DiskManager(SALObject):
 
         return devices
 
-    def getDisks(self):
+    def getDisks(self,detailed=None):
         """
         Get list of all available disks on machine
         """
@@ -73,5 +73,8 @@ class DiskManager(SALObject):
                         hrd = self._loadhrd(mnt.path)
 
                 partition.hrd = hrd
-        return devices
+        if detailed:
+           return blks
+        else:
+            return devices
 

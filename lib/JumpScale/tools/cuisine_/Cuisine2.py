@@ -191,7 +191,7 @@ def text_strip_margin(text, margin="|"):
 
 from CuisineInstaller import CuisineInstaller
 from CuisineInstallerDevelop import CuisineInstallerDevelop
-from CuisineProcessManager import CuisineSystemd, CuisineUpstart
+from CuisineProcessManager import CuisineSystemd, CuisineUpstart, CuisineRunit
 from CuisinePackage import CuisinePackage
 from CuisineProcess import CuisineProcess
 from CuisinePIP import CuisinePIP
@@ -272,13 +272,17 @@ class OurCuisine():
 
     @property
     def processmanager(self):
-        if self._processmanager==None:            
-            self._processmanager = CuisineSystemd(self.executor, self)
-            if self.isDocker:
-                self._processmanager = CuisineUpstart(self.executor, self)
-            elif self.isMac:
-                #@todo create a system manager uses mac specific manager 
+        if self._processmanager==None:  
+            if self.command_check("sv"):
+                    self._processmanager = CuisineRunit(self.executor, self)
+            elif self.command_check("systemctl"):
                 self._processmanager = CuisineSystemd(self.executor, self)
+                if self.isDocker:
+                    self._processmanager = CuisineRunit(self.executor, self)
+            elif self.isMac:
+                self._processmanager = CuisineSystemd(self.executor, self)
+            #else:
+                #self._processmanager = CuisineTmuxec(self.executor, self)
 
         return self._processmanager
 

@@ -81,7 +81,7 @@ class CuisineSystemd():
                     self.cuisine.file_unlink(item)
                 self.cuisine.run("systemctl daemon-reload")
 
-    def ensure(self,name,cmd="",env={},path="",descr="",systemdunit=""):
+    def ensure(self,name,cmd="",env={},path="",descr="",systemdunit="", **kwargs):
         """
         Ensures that the given systemd service is self.cuisine.running, starting
         it if necessary and also create it
@@ -161,14 +161,108 @@ class CuisineSystemd():
                 cmd=j.core.db.hget("processcmds",key).decode()
                 self.start(key)
 
-class CuisineUpstart():
 
+
+# class CuisineRunit():
+#     def __init__(self,executor,cuisine):
+#         self.executor=executor
+#         self.cuisine=cuisine
+#         self.runit_flag=False
+#         self._runitOK=None
+
+#     @property
+#     def runitOK(self):
+#         if self._runitOK==None:
+#             if self.runit_flag:
+#                 self._runitOk=False
+#             else:
+#                 self._runitOK=self.cuisine.command_check("sv")
+#         return self._runitOK
+    
+
+
+#     def ensure(self, name, cmd="", env={}, path="", descr="", **kwargs):
+#         """Ensures that the given upstart service is self.running, starting
+#         it if necessary."""
+#         if runitOK:
+#             cmd=self.cuisine.args_replace(cmd)
+#             path=self.cuisine.args_replace(path)
+#             # if cmd=="":
+#             #     cmd=j.core.db.hget("processcmds",name).decode()
+#             else:
+#                 #find absolute path
+#                 if self.runitOK:
+#                     if not cmd.startswith("/"):
+#                         cmd0=cmd.split(" ",1)[0]
+#                         cmd1=self.cuisine.bash.cmdGetPath(cmd0)
+#                         cmd=cmd.replace(cmd0,cmd1)
+
+#                 envstr = ""
+#                 for name0, value in list(env.items()):
+#                     envstr += "export %s=%s\n" % (name0, value)
+
+#                 if envstr!="":
+#                     cmd="%s;%s"%(envstr,cmd)
+
+#                 cmd = cmd.replace('"', r'\"')
+
+#                 if path:
+#                     cwd = "cd %s;" % path
+#                     if not cmd.startswith("."):
+#                         cmd="./%s"%cmd
+#                     cmd = "%s %s" % (cwd, cmd)
+
+#                 # j.core.db.hset("processcmds",name,cmd)
+
+#                 C=C.replace("$cmd",cmd)
+#                 if descr=="":
+#                     descr=name
+#                 C=C.replace("$descr",descr)
+
+#                 self.cuisine.file_write("/etc/systemd/system/%s.service"%name,C)
+
+#                 self.cuisine.run("systemctl daemon-reload;systemctl restart %s"%name)
+#                 self.cuisine.run("systemctl enable %s"%name,die=False,showout=False)
+#                 self.cuisine.run("systemctl daemon-reload;systemctl restart %s"%name)
+
+
+
+#     def reload(self, name, **kwargs):
+#         """Reloads the given service, or starts it if it is not self.running."""
+#         if runitOK:
+
+
+
+#     def restart(self, name, **kwargs):
+#         """Tries a `restart` command to the given service, if not successful
+#         will stop it and start it. If the service is not started, will start it."""
+#         if runitOK:
+
+
+#     def start(self, name, **kwargs):
+#         "start service in tmux"
+#         if runitOK:
+
+
+
+#     def stop(self, name, **kwargs):
+#         """Ensures that the given upstart service is stopped."""
+#         if runitOK:
+
+
+
+
+
+
+
+
+class CuisineUpstart():
     def __init__(self,executor,cuisine):
         self.executor=executor
         self.cuisine=cuisine
 
     
-    def ensure(self,name, **kwargs):
+    def ensure(self, name, cmd="", env={}, path="", descr="", **kwargs):
         """Ensures that the given upstart service is self.running, starting
         it if necessary."""
         status = self.cuisine.sudo("service %s status" % name,die=False)

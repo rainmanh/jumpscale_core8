@@ -218,16 +218,14 @@ class CuisineBuilder(object):
         if start:
             self.agent()
             self._startAgent()
-            self._startAgentController
-
-
-
-        if start:
             self._startAgentController()
+
 
     @actionrun(action=True)
     def _startSyncthing(self):
         GOPATH = self.cuisine.bash.environGet('GOPATH')
+        env={}
+        env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
         self.cuisine.tmux.executeInScreen("main", screenname="syncthing", cmd="./syncthing", wait=0, cwd=self.cuisine.joinpaths(GOPATH, "bin") , env=None, user='root', tmuxuser=None)
  
 

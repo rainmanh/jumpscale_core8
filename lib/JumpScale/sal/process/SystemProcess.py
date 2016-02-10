@@ -743,7 +743,7 @@ def run(commandline, showOutput=False, captureOutput=True, maxSeconds=0,
         cmd = list()
         cmd.append(sys.executable)
 
-        cmd.extend(('-c', '\'from JumpScale.core.system.processhelper import main; main()\'', ))
+        cmd.extend(('-c', '\'from JumpScale.sal.process.processhelper import main; main()\'', ))
 
         if uid is not None:
             cmd.extend(('--uid', '%d' % uid, ))
@@ -1073,7 +1073,7 @@ def runDaemon(commandline, stdout=None, stderr=None, user=None, group=None,
     cmd = list()
     cmd.append(sys.executable)
 
-    cmd.extend(('-c', '\'from JumpScale.core.system.processhelper import main; main()\'', ))
+    cmd.extend(('-c', '\'from JumpScale.sal.process.processhelper import main; main()\'', ))
 
     if stdout:
         j.sal.fs.createDir(os.path.dirname(stdout))

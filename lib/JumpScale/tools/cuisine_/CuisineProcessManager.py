@@ -1,4 +1,5 @@
 
+from ProcessManagerBase import ProcessManagerBase
 from JumpScale import j
 
 #we implemented a fallback system if systemd does not exist

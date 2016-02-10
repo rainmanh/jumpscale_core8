@@ -206,6 +206,7 @@ from ActionDecorator import ActionDecorator
 from CuisineGolang import CuisineGolang
 from CuisineFW import CuisineFW
 from CuisineDocker import CuisineDocker
+from ProcessManagerFactory import ProcessManagerFactory
 from CuisinePortal import CuisinePortal
 
 class actionrun(ActionDecorator):
@@ -246,6 +247,7 @@ class OurCuisine():
         self._fqn=""
         self._docker=None
         self._js8sb=None
+        self._pm=None
         self._dirs={}
 
         if self.executor.type=="ssh":
@@ -412,6 +414,12 @@ class OurCuisine():
             #@todo need to implement when sandbox, what is the right check?
             self._js8sb=False
         return self._js8sb
+
+    @property
+    def pm(self):
+        if self._pm==None:
+            self._pm = ProcessManagerFactory.get(self)
+        return self._pm
 
     @property
     def dir_paths(self):
@@ -1324,7 +1332,7 @@ class OurCuisine():
     #####################SYSTEM IDENTIFICATION
     @property
     def isDocker(self):
-        docker = self.run('mount | grep hostname > /dev/null &&if [[ $? -eq 0 ]];then echo "OK"; fi')
+        docker = self.run('mount | grep hostname > /dev/null &&if [[ $? -eq 0 ]];then echo "OK"; fi', die = False)
         if docker == "OK":
             return True
         return False

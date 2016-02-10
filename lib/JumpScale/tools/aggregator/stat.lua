@@ -13,11 +13,13 @@ local statekey = string.format("stats:%s:%s", node, key)
 -- local hsetkey = string.format("stats:%s", node)
 local v = {}
 local c = ""
-local m
+local stat
 local prev = redis.call('GET', statekey)
 
 local now_short_m = math.floor(now / 60) * 60
 local now_short_h = math.floor(now / 3600) * 3600
+
+local differential = type == "D"
 
 if prev then
     -- get previous value, it exists in a hkey
@@ -26,23 +28,22 @@ if prev then
     local difftime
 
     -- calculate the dif when absolute nrs are logged e.g. byte counter for network 
-    if type == "D" then
+    if differential then
         -- diff
         diff = value - v.val
         difftime = now - v.epoch
-        m = math.floor((diff / difftime) + 0.5)
+        -- calculate diff per second.
+        stat = diff / difftime
     else
-        m = tonumber(value)
+        stat = value
     end
 
-    -- the next section makes sure we start recounting
-    -- local m_epoch = math.floor(v.m_epoch / 60) * 60
-    -- local h_epoch = math.floor(v.m_epoch/ 3600) * 3600
+    -- Check if we can flush the previous aggregated values.
 
     if v.m_epoch < now_short_m then
         -- 1 min aggregation
         local row = string.format("%s|%s|%u|%f|%f|%f",
-            node, key, v.m_epoch, m, v.m_avg, v.m_max)
+            node, key, v.m_epoch, stat, v.m_avg, v.m_max)
 
         redis.call("RPUSH", "queues:stats:min", row)
 
@@ -53,7 +54,7 @@ if prev then
     if v.h_epoch < now_short_h then
         -- 1 hour aggregation
         local row = string.format("%s|%s|%u|%f|%f|%f",
-            node, key, v.h_epoch, m, v.h_avg, v.h_max)
+            node, key, v.h_epoch, stat, v.h_avg, v.h_max)
 
         redis.call("RPUSH", "queues:stats:hour", row)
 
@@ -67,21 +68,21 @@ if prev then
     v.epoch = now
 
     --remember current measurement, and calculate the avg/max for minute value
-    v.m_last = m
-    v.m_total = v.m_total + m
+    v.m_last = stat
+    v.m_total = v.m_total + stat
     v.m_nr = v.m_nr + 1
     v.m_avg = v.m_total / v.m_nr
-    if m > v.m_max then
-        v.m_max = m
+    if stat > v.m_max then
+        v.m_max = stat
     end
 
     -- work for the hour period
     --h_last is not required would not provide additional info
-    v.h_total = v.h_total + m
+    v.h_total = v.h_total + stat
     v.h_nr = v.h_nr + 1
     v.h_avg = v.h_total / v.h_nr
-    if m > v.h_max then
-        v.h_max = m
+    if stat > v.h_max then
+        v.h_max = stat
     end
 
     -- remember in redis
@@ -90,28 +91,45 @@ if prev then
     redis.call('EXPIRE', statekey, 24*60*60) -- expire in a day
 
     -- don't grow over 200,000 records
-    if redis.call("LLEN", "queues:stats") > 200000 then
-        redis.call("LPOP", "queues:stats")
-    end
+    redis.call("LTRIM", "queues:stats:min", -200000, -1)
+    redis.call("LTRIM", "queues:stats:hour", -200000, -1)
 
     return data
 else
-    v.m_avg = value
+    if differential then
+        --differential stats
+        v.m_avg = 0
+        v.m_total = 0
+        v.m_max = 0
+        v.m_nr = 0
+
+        v.h_avg = 0
+        v.h_total = 0
+        v.h_max = 0
+        v.h_nr = 0
+    else
+        --gauages stats
+        v.m_avg = value
+        v.m_total = value
+        v.m_max = value
+        v.m_nr = 1
+
+        v.h_avg = value
+        v.h_total = value
+        v.h_max = value
+        v.h_nr = 1
+    end
+
     v.m_last = 0
     v.m_epoch = now_short_m
-    v.m_total = value
-    v.m_max = value
-    v.m_nr = 1
-    v.h_avg = 0
     v.h_epoch = now_short_h
-    v.h_total = value
-    v.h_nr = 1
-    v.h_max = value
+
     v.epoch = now
     v.val = value
     v.key = key
     v.tags = tags
     v.measurement = measurement
+
     local data = cjson.encode(v)
     redis.call('SET', statekey, data)
     redis.call('EXPIRE', statekey, 24*60*60) -- expire in a day

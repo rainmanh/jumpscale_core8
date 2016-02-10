@@ -130,7 +130,7 @@ class CuisineBuilder(object):
         C="""
         $addr
         gzip
-        log $varDir/caddy/log/access.log
+        log $cfgDir/caddy/log/access.log
         errors {
             log $cfgDir/caddy/log/errors.log
         }
@@ -539,7 +539,7 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb/influxdb.conf.o
             binPath = self.cuisine.joinpaths(self.cuisine.dir_paths['binDir'], 'weave')
         else:
             binPath = '/usr/local/bin/weave'
-        self.cuisine.dir_ensure(binPath)
+        self.cuisine.dir_ensure(j.sal.fs.getParent(binPath))
 
         C = '''
         curl -L git.io/weave -o {binPath} && sudo chmod a+x {binPath}

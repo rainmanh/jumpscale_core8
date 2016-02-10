@@ -494,9 +494,9 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb/influxdb.conf.o
             self.cuisine.bash.addPath("$binDir", action=True)
 
         if start:
-            binPath = c.bash.cmdGetPath('influxd')
+            binPath = self.cuisine.bash.cmdGetPath('influxd')
             cmd = "%s -config $cfgDir/influxdb/influxdb.conf" % (binPath)
-            c.cuisine.process.kill("influxdb")
+            self.cuisine.process.kill("influxdb")
             self.cuisine.systemd.ensure("influxdb", cmd=cmd, env={}, path="")
 
     @actionrun(action=True)

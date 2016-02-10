@@ -27,20 +27,23 @@ def action():
     stats = statsd.StatsClient()
     pipe = stats.pipeline()
 
-    disks = j.sal.diskmanager.partitionsFind(mounted=True, prefix='', minsize=0, maxsize=None)
+    disks = j.sal.disklayout.getDisks(detailed=True)
+
 
     #disk counters
     counters=psutil.disk_io_counters(True)
 
+    
     for disk in disks:
 
         results = {'time_read': 0, 'time_write': 0, 'count_read': 0, 'count_write': 0,
                    'kbytes_read': 0, 'kbytes_write': 0, 
                    'space_free_mb': 0, 'space_used_mb': 0, 'space_percent': 0}
-        path = disk.path.replace("/dev/","")
+        path = disk['NAME'].replace("/dev/","")
+        print (path)
 
         odisk = dcl()
-        old = dcl.find({'path': path})
+        old = dcl.find({'path': disk['NAME']})
         odisk.nid = j.application.whoAmI.nid
         odisk.gid = j.application.whoAmI.gid
 
@@ -56,21 +59,30 @@ def action():
             write_bytes=int(round(write_bytes/1024,0))
             results['kbytes_read'] = read_bytes
             results['kbytes_write'] = write_bytes
-            results['space_free_mb'] = int(round(disk.free))
-            results['space_used_mb'] = int(round(disk.size-disk.free))
-            results['space_percent'] = int(round((float(disk.size-disk.free)/float(disk.size)),2))
 
             if old:
-                old = old[0].to_dict()
-                for key,value in disk.__dict__.items():
-                    same = old[key] == value
-                    odisk[key]=value
+                old_disk = old[0].to_dict()
+            for key,value in disk.items():
+                key = key.lower()
+                if key == "name":
+                    key = "path"
+                elif key == "fstype":
+                    key = "fs"
+                elif key == "uuid":
+                    continue
+                elif key == "type":
+                    value = [value]
+                elif key == "size":
+                    value = int(value)
+                odisk[key] = value
+                if old:
+                    same = old_disk[key] == value
+
                     if not same:
-                        changed = True
-                if changed:
-                    print("Disk %s changed" % (path))
-                    old.delete()
-                    odisk.save()
+                        print("Disk %s's %s changed from %s to %s" % (path,key,old_disk[key],value))
+                        old.delete()
+            if not old:
+                odisk.save()
 
         for key, value in results.items():
             pipe.gauge("%s_%s_disk_%s_%s" % (j.application.whoAmI.gid, j.application.whoAmI.nid, path, key), value)

@@ -317,7 +317,7 @@ class CuisineInstaller(object):
         self.cuisine.run_script(C,action=True)
 
     @actionrun(action=True)
-    def jumpscale8(self, rw=False,reset=False):
+    def jumpscale8(self, rw=False, reset=False):
         """
         install jumpscale, will be done as sandbox
         otherwise will try to install jumpscale inside OS
@@ -327,9 +327,12 @@ class CuisineInstaller(object):
         @input reset, remove old code (only used when rw mode)
         @input monitor detect local changes & sync (only used when rw mode)
         """
-
         self.clean()
         self.base()
+
+        self.cuisine.run('pip3 install snappy')
+        path = self.cuisine.joinpaths(j.do.getPythonLibSystem(jumpscale=False), "snappy")
+        self.cuisine.run("2to3 -f all -w %s" % path)
 
         """
         install dnspython3
@@ -339,7 +342,6 @@ class CuisineInstaller(object):
         """
         install jumpscale8 sandbox in read or readwrite mode
         """
-        cuisine=j.tools.cuisine.get(cuisineid)
         C = """
             set -ex
             cd /usr/bin
@@ -347,7 +349,7 @@ class CuisineInstaller(object):
             cd /usr/local/bin
             rm -f js8
             """
-        cuisine.run_script(C,action=True)
+        self.cuisine.run_script(C, action=True)
 
         if not self.cuisine.isUbuntu:
             raise RuntimeError("not supported yet")
@@ -359,13 +361,11 @@ class CuisineInstaller(object):
             cd /
             mkdir -p $base
             """
-        cuisine.run_script(C,action=True)
-
+        self.cuisine.run_script(C, action=True)
 
         """
         install jumpscale8 sandbox in read or readwrite mode
         """
-        cuisine=j.tools.cuisine.get(cuisineid)
         C = """
             set -ex
             cd /usr/bin
@@ -374,7 +374,7 @@ class CuisineInstaller(object):
             C += "js8 -rw init"
         else:
             C += "js8 init"
-        cuisine.run_script(C,action=True)
+        self.cuisine.run_script(C, action=True)
 
 
     @actionrun(action=True)

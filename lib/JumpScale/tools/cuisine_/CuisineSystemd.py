@@ -17,7 +17,9 @@ class CuisineSystemd():
             if self.forceTMUX:
                 self._systemdOK=False
             else:
-                self._systemdOK=self.cuisine.command_check("systemctl")
+                if self.cuisine.command_check("systemctl"):
+                    rc, out = self.cuisine.run('systemctl status', die=False)
+                    self._systemdOK = (rc == 0)
         return self._systemdOK
 
 
@@ -90,7 +92,6 @@ class CuisineSystemd():
         it if necessary and also create it
         @param systemdunit is the content of the file, will still try to replace the cmd
         """
-
         cmd=self.cuisine.args_replace(cmd)
         path=self.cuisine.args_replace(path)
         #need to remember for future usage

@@ -2,14 +2,6 @@
 import copy
 import unicodedata
 from JumpScale import j
-import traceback
-
-
-
-
-
-import JumpScale.tools.hash
-
 
 
 LEVELMAP = {1: 'CRITICAL', 2: 'WARNING', 3: 'INFO', 4: 'DEBUG'}

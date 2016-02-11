@@ -1,5 +1,4 @@
 from JumpScale import j
-import JumpScale.baselib.units
 import re
 
 percentrec = re.compile("^\s+\((?P<per>\d+\.\d+)/100%\).*$")

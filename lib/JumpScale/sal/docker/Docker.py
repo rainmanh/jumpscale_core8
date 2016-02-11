@@ -13,11 +13,23 @@ class Docker(SALObject):
     def __init__(self):
         self.__jslocation__ = "j.sal.docker"
         self._basepath = "/mnt/vmstor/docker"
+        self._weaveEnabled = None
         self._prefix = ""
-        self.client = docker.Client(base_url='unix://var/run/docker.sock')
         self._containers = []
         self._names = []
-        self.docker_host = {'host': 'localhost', 'port': 0}
+        if 'DOCKER_HOST' not in os.environ or os.environ['DOCKER_HOST'] == "":
+            base_url = 'unix://var/run/docker.sock'
+        else:
+            base_url = os.environ['DOCKER_HOST']
+        self.client = docker.Client(base_url=base_url)
+        self.docker_host = base_url
+
+    @property
+    def isWeaveEnabled(self):
+        if self._weaveEnabled is None:
+            rc, ou = j.tools.cuisine.local.run('weave status', die=False, showout=False)
+            self._weaveEnabled = (rc == 0)
+        return self._weaveEnabled 
 
     def connectRemoteTCP(self, address, port):
         url = '%s:%s' % (address, port)
@@ -61,7 +73,7 @@ class Docker(SALObject):
                 except:
                     continue
                 id = str(item["Id"].strip())
-                self._containers.append(Container(name, id, self.client, self.docker_host['host']))
+                self._containers.append(Container(name, id, self.client))
         return self._containers
 
     @property
@@ -279,7 +291,7 @@ class Docker(SALObject):
         if ssh:
             if 22 not in portsdict:
                 for port in range(9022, 9190):
-                    if not j.sal.nettools.tcpPortConnectionTest(self.docker_host['host'], port):
+                    if not j.sal.nettools.tcpPortConnectionTest('localhost', port):
                         portsdict[22] = port
                         print(("SSH PORT WILL BE ON:%s" % port))
                         break
@@ -347,7 +359,8 @@ class Docker(SALObject):
             print(volskeys)
             print(binds)
 
-        res = self.client.create_container(image=base, command=cmd, hostname=name, user="root", \
+        hostname = None if self.isWeaveEnabled else name
+        res = self.client.create_container(image=base, command=cmd, hostname=hostname, user="root", \
                 detach=False, stdin_open=False, tty=True, mem_limit=mem, ports=list(portsdict.keys()), environment=None, volumes=volskeys,  \
                 network_disabled=False, name=name, entrypoint=None, cpu_shares=cpu, working_dir=None, domainname=None, memswap_limit=None)
 
@@ -356,10 +369,13 @@ class Docker(SALObject):
 
         id = res["Id"]
 
+        if self.isWeaveEnabled:
+            nameserver = None
+
         res = self.client.start(container=id, binds=binds, port_bindings=portsdict, lxc_conf=None, \
             publish_all_ports=False, links=None, privileged=False, dns=nameserver, dns_search=None, volumes_from=None, network_mode=None)
 
-        container = Container(name, id, self.client, self.docker_host['host'])
+        container = Container(name, id, self.client)
 
         if ssh:
             # time.sleep(0.5)  # give time to docker to start
@@ -375,8 +391,8 @@ class Docker(SALObject):
                 else:
                     print("set root passwd to %s" % rootpasswd)
                     container.cexecutor.execute("echo \"root:%s\"|chpasswd" % rootpasswd,showout=False)
-
-            container.setHostName(name)
+            if not self.isWeaveEnabled:
+                container.setHostName(name)
         return container
 
     def getImages(self):

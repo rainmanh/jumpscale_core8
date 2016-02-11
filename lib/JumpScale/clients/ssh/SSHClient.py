@@ -25,7 +25,7 @@ class SSHClientFactory(object):
             self.cache.pop(key)
 
     def close(self):
-        for key, client in self.cache.iteritems():
+        for key, client in self.cache.items():
             client.close()
 
 class SSHClient(object):

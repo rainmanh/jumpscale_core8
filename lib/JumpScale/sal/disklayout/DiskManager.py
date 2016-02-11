@@ -1,7 +1,7 @@
 from JumpScale import j
-from . import lsblk
-from . import mount
-from . import disks
+import lsblk
+import mount
+import disks
 
 from sal.base.SALObject import SALObject
 
@@ -51,7 +51,7 @@ class DiskManager(SALObject):
 
         return devices
 
-    def getDisks(self):
+    def getDisks(self,detailed=None):
         """
         Get list of all available disks on machine
         """
@@ -73,5 +73,8 @@ class DiskManager(SALObject):
                         hrd = self._loadhrd(mnt.path)
 
                 partition.hrd = hrd
-        return devices
+        if detailed:
+           return blks
+        else:
+            return devices
 

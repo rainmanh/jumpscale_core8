@@ -33,6 +33,10 @@ class CuisineBuilder(object):
             self.sandbox(aydostor)
 
     def sandbox(self, aydostor, python=True):
+        """
+        aydostor : addr to the store you want to populate. e.g.: https://stor.jumpscale.org/storx
+        python : do you want to sandbox python too ? if you have segfault after trying sandboxing python, re run with python=False
+        """
         cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], 'js8_opt', '%s', sandbox_python=%s)" % (aydostor, python)
         self.cuisine.run('js "%s"' % cmd)
         url_opt = '%s/static/js8_opt' % aydostor
@@ -126,18 +130,19 @@ class CuisineBuilder(object):
         C="""
         $addr
         gzip
-        log $varDir/caddy/log/access.log
+        log $cfgDir/caddy/log/access.log
         errors {
-            log $varDir/caddy/log/errors.log
+            log $cfgDir/caddy/log/errors.log
         }
-        root $varDir/caddy/www
+        root $cfgDir/caddy/www
         """
         C = C.replace("$addr", addr)
-        cpath = "/etc/caddy/caddyfile.conf"
-        self.cuisine.dir_ensure("/etc/caddy")
+        C = self.cuisine.args_replace(C)
+        cpath = self.cuisine.args_replace("$cfgDir/caddy/caddyfile.conf")
+        self.cuisine.dir_ensure("$cfgDir/caddy")
+        self.cuisine.dir_ensure("$cfgDir/caddy/log/")
+        self.cuisine.dir_ensure("$cfgDir/caddy/www/")
         self.cuisine.file_write(cpath, C)
-        self.cuisine.dir_ensure("$varDir/caddy/log/")
-        self.cuisine.dir_ensure("$varDir/caddy/www/")
 
         if start:
             self.cuisine.systemd.stop("caddy")  # will also kill
@@ -155,7 +160,7 @@ class CuisineBuilder(object):
                 PORTS=":80"
                 self.cuisine.fw.allowIncoming(80)
             cmd = self.cuisine.bash.cmdGetPath("caddy")
-            self.cuisine.systemd.ensure("caddy", '%s -conf="%s"' % (cmd, cpath))
+            self.cuisine.systemd.ensure("caddy", '%s -conf=%s' % (cmd, cpath))
 
 
     def caddyConfig(self,sectionname,config):
@@ -174,12 +179,13 @@ class CuisineBuilder(object):
         """
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/Jumpscale/aydostorex", action=True)
-        self.cuisine.file_copy(self.cuisine.joinpaths(self.goDir, 'bin', 'aydostorex'), '$base/bin',action=True)
+        self.cuisine.file_copy(self.cuisine.joinpaths(self.cuisine.dir_paths['goDir'], 'bin', 'aydostorex'), '$base/bin',action=True)
         self.cuisine.bash.addPath("$base/bin", action=True)
 
         self.cuisine.systemd.stop("aydostorex") # will also kill
 
         self.cuisine.dir_ensure("$cfgDir/aydostorex")
+        backend = self.cuisine.args_replace(backend)
         self.cuisine.dir_ensure(backend)
         config = {
             'listen_addr': addr,
@@ -262,6 +268,8 @@ class CuisineBuilder(object):
         self.cuisine.process.kill("agent8")
 
         self.cuisine.dir_ensure("$cfgDir/agent8", recursive=True)
+        self.cuisine.dir_ensure("$cfgDir/agent8/conf", recursive=True)
+        self.cuisine.dir_ensure("$cfgDir/agent8/mid", recursive=True)
 
         url = "github.com/Jumpscale/agent2"
         self.cuisine.golang.get(url)
@@ -274,7 +282,7 @@ class CuisineBuilder(object):
 
         # link extensions
         self.cuisine.dir_remove("$cfgDir/agent8/extensions")
-        self.cuisine.file_link("%s/extensions" % sourcepath, "$cfgDir/agent8/extensions")
+        self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agent8", recursive=True)
 
         # manipulate config file
         C=self.cuisine.file_read("%s/agent.toml"%sourcepath)
@@ -310,7 +318,7 @@ class CuisineBuilder(object):
         self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml.org', C, replaceArgs=False)
 
         self.cuisine.dir_remove("$cfgDir/agentcontroller8/extensions")
-        self.cuisine.file_link("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extensions")
+        self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8", recursive=True)
 
         if start:
             self.agent()
@@ -320,7 +328,7 @@ class CuisineBuilder(object):
     @actionrun(action=True)
     def _startAgent(self):
         appbase = self.cuisine.joinpaths(j.dirs.cfgDir, "agent8")
-        cfgfile_agent = "$cfgDir/agent8/agent.toml"
+        cfgfile_agent = self.cuisine.args_replace("$cfgDir/agent8/agent.toml")
         binPath = self.cuisine.joinpaths(self.cuisine.dir_paths['binDir'],'agent8')
         print("connection test ok to agentcontroller")
         #@todo (*1*) need to implement to work on node
@@ -331,9 +339,9 @@ class CuisineBuilder(object):
 
     @actionrun(action=True)
     def _startAgentController(self):
-        appbase = self.cuisine.joinpaths(j.dirs.cfgDir, "agentcontroller8")
+        appbase = self.cuisine.joinpaths(self.cuisine.dir_paths['cfgDir'], "agentcontroller8")
         cfgfile_ac = self.cuisine.joinpaths(appbase, "agentcontroller.toml")
-        binPath = self.cuisine.joinpaths(j.dirs.binPath, 'agentcontroller8')
+        binPath = self.cuisine.joinpaths(self.cuisine.dir_paths['binDir'], 'agentcontroller8')
         env = {}
         env["TMPDIR"] = self.cuisine.dir_paths["tmpDir"]
         cmd = "%s -c %s" % (binPath, cfgfile_ac)
@@ -486,9 +494,9 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb/influxdb.conf.o
             self.cuisine.bash.addPath("$binDir", action=True)
 
         if start:
-            binPath = c.bash.cmdGetPath('influxd')
+            binPath = self.cuisine.bash.cmdGetPath('influxd')
             cmd = "%s -config $cfgDir/influxdb/influxdb.conf" % (binPath)
-            c.cuisine.process.kill("influxdb")
+            self.cuisine.process.kill("influxdb")
             self.cuisine.systemd.ensure("influxdb", cmd=cmd, env={}, path="")
 
     @actionrun(action=True)
@@ -526,10 +534,32 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb/influxdb.conf.o
         self.cuisine.bash.addPath("$base/bin",action=True)
 
     @actionrun(action=True)
-    def weave(self):
+    def weave(self, start=True, peer=None, jumpscalePath=True):
+        if jumpscalePath:
+            binPath = self.cuisine.joinpaths(self.cuisine.dir_paths['binDir'], 'weave')
+        else:
+            binPath = '/usr/local/bin/weave'
+        self.cuisine.dir_ensure(j.sal.fs.getParent(binPath))
+
         C = '''
-        curl -L git.io/weave -o $binDir/weave && sudo chmod a+x $binDir/weave
-        '''
+        curl -L git.io/weave -o {binPath} && sudo chmod a+x {binPath}
+        '''.format(binPath=binPath)
+        C = self.cuisine.args_replace(C)
         self.cuisine.package.ensure('curl')
         self.cuisine.run_script(C, profile=True)
-        self.cuisine.bash.addPath("$binDir", action=True)
+        self.cuisine.bash.addPath(j.sal.fs.getParent(binPath), action=True)
+
+        if start:
+            cmd = 'weave stop; weave launch'
+            if peer:
+                cmd += ' %s' % peer
+            self.cuisine.run(cmd, profile=True)
+
+            env = self.cuisine.run('weave env', profile=True)
+            ss = env[len('export'):].strip().split(' ')
+            for entry in ss:
+                splitted = entry.split('=')
+                if len(splitted) == 2:
+                    self.cuisine.bash.environSet(splitted[0],splitted[1])
+                elif len(splitted) > 0:
+                    self.cuisine.bash.environSet(splitted[0], '')

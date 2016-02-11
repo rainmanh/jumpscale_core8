@@ -1,7 +1,7 @@
 from JumpScale.clients.racktivity.energyswitch.common import convert
 from JumpScale.clients.racktivity.energyswitch.common.GUIDTable import Value
 from copy import copy
-from .Power import Power
+from JumpScale.clients.racktivity.energyswitch.modelfactory.models.common.Power import Power
 
 class Model(Power):
     def __init__(self, parent):

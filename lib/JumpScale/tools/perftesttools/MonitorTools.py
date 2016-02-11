@@ -1,12 +1,7 @@
 from JumpScale import j
-
-import statsd
-import sys
 import time
 
-import os
 import psutil
-from JumpScale.lib.perftesttools import InfluxDumper
 
 
 class MonitorClient(object):
@@ -132,17 +127,17 @@ class MonitorTools(MonitorClient):
         key="%s.%s"%(self.nodename,measurement)
         self.measure(key,measurement,tags,val,aggrkey=measurement)
 
-        val=int(psutil.avail_phymem()/1024/1024)
+        val=int(psutil.virtual_memory()[1]/1024/1024)
         measurement="mem_free_mb"
         key="%s.%s"%(self.nodename,measurement)
         self.measure(key,measurement,tags,val,aggrkey=measurement)
 
-        val=int(psutil.virtmem_usage()[3])
+        val=int(psutil.swap_memory()[3])
         measurement="mem_virt_perc"
         key="%s.%s"%(self.nodename,measurement)
         self.measure(key,measurement,tags,val,aggrkey=measurement)
 
-        val=int(psutil.phymem_usage()[2])
+        val=int(psutil.virtual_memory()[2])
         measurement="mem_phy_perc"
         key="%s.%s"%(self.nodename,measurement)
         self.measure(key,measurement,tags,val,aggrkey=measurement)

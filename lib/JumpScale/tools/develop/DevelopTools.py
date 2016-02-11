@@ -35,7 +35,7 @@ class MyFSEventHandler(FileSystemEventHandler):
                 else:
                     destpart = changedfile.split("code/", 1)[-1]
                     dest = "/opt/code/%s" % destpart
-                    
+
                 print("copy: %s %s:%s" % (changedfile, node, dest))
                 try:
                     node.ftpclient.put(changedfile, dest)
@@ -161,14 +161,16 @@ class DevelopToolsFactory():
         """
         print (H)
 
-    def init(self, nodes="localhost"):
+    def init(self, nodes=["localhost"]):
         """
         define which nodes to init,
-        format="localhost,ovh4,anode:2222,192.168.6.5:23"
+        format = ["localhost", "ovh4", "anode:2222", "192.168.6.5:23"]
         this will be remembered in local redis for further usage
         """
-        self._nodes=[]
-        j.core.db.set("debug.nodes", nodes)
+        self._nodes = []
+        if not j.data.types.list.check(nodes):
+            nodes = [nodes]
+        j.core.db.set("debug.nodes", ','.join(nodes))
 
     @property
     def nodes(self):
@@ -253,7 +255,7 @@ class DevelopToolsFactory():
 
 
         if reset:
-            raise RuntimeError("not implemented")            
+            raise RuntimeError("not implemented")
 
         codepaths = j.core.db.get("debug.codepaths").decode().split(",")
         for source in codepaths:
@@ -312,4 +314,3 @@ class DevelopToolsFactory():
                 time.sleep(0.1)
         except KeyboardInterrupt:
             pass
-

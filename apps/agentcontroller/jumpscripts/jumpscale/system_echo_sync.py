@@ -17,4 +17,4 @@ def action(msg="test"):
     return msg
 
 if __name__ == "__main__":
-    print action("It works")
+    print (action("It works"))

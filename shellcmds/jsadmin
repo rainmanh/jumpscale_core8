@@ -44,9 +44,6 @@ args.g=False
 
 do=j.sal.process.executeWithoutPipe
 
-import JumpScale.baselib.remote
-import JumpScale.baselib.admin
-
 admin=j.tools.admin.get(args)
 j.admin=admin
 

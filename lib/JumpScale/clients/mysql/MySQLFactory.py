@@ -2,10 +2,6 @@ from JumpScale import j
 # import _mysql
 import time
 import calendar
-from htmllib import HTMLParser
-from formatter import AbstractFormatter, DumbWriter
-from io import StringIO
-import JumpScale.lib.html
 
 class MySQLFactory():
     """

@@ -87,8 +87,16 @@ class CuisineDocker():
         self.cuisine.run_script(C)
 
     @actionrun(action=True)
-    def Ubuntu(self, name="ubuntu1"):    #@todo (*1*) main docker deployment for ubuntu over cuisine
-        pass
+    def ubuntu(self, name="ubuntu1", image='jumpscale/ubuntu1510', pubkey=None, aydofs=False): #@todo (*1*) main docker deployment for ubuntu over cuisine
+        if not aydofs:
+            cmd = "jsdocker create --name {name} --image {image}".format(name=name, image=image)
+            if pubkey:
+                cmd += " --pubkey '%s'" % pubkey
+            self.cuisine.run(cmd, profile=True)
+            cmd = "jsdocker list --name {name} --parsable".format(name=name)
+            out = self.cuisine.run(cmd, profile=True)
+            info = j.data.serializer.json.loads(out)
+            return info[0]['port']
         #TODO:
         #- start from docker repo where pushed docker image is (build using self.ubuntuBuild)
         #- mount over aydofs see docker_approach.md in this dir (improve jsdocker to also work with aydofs)
@@ -96,7 +104,7 @@ class CuisineDocker():
         #- return used port (jsdocker)
 
     @actionrun(action=True)
-    def UbuntuSystemd(self,name="ubuntu1"):
+    def ubuntuSystemd(self,name="ubuntu1"):
         """
         start ubuntu 15.10 which is using systemd  #@todo (*2*)
         will have to do same tricks as with arch below

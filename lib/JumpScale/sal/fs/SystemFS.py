@@ -1719,8 +1719,7 @@ class SystemFS(SALObject):
         @returns: Whether the filename is valid on the given platform
         @rtype: bool
         '''
-        from JumpScale.core.enumerators import PlatformType
-        platform = platform or PlatformType.findPlatformType()
+        platform = platform or j.core.platformtype.myplatform
 
         if not filename:
             return False
@@ -1853,7 +1852,7 @@ class SystemFS(SALObject):
         @return: unicode path
         @rtype: unicode
         """
-        from jumpscale import Dirs
+        from JumpScale.core.main import Dirs
         return Dirs.pathToUnicode(path)
 
     def targzCompress(self, sourcepath, destinationpath,followlinks=False,destInTar="",pathRegexIncludes=['.[a-zA-Z0-9]*'], \

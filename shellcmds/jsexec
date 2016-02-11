@@ -32,8 +32,6 @@ args.local=False
 if args.command=="" and args.name=="":
     raise RuntimeError("command or name needs to be given.")
 
-import JumpScale.baselib.redis2
-
 from multiprocessing import Process, Queue
 
 class RedirectSTDOUT:
@@ -119,8 +117,6 @@ def doRemote(args,hostkey,cmd):
                 report(node,args)
             else:
                 print("OK     :%s:%s:"%(hostkey,cmd))  
-
-import JumpScale.baselib.admin
 
 if __name__ == '__main__':
     # hosts=["cpu10","cpu12"]

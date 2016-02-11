@@ -1,8 +1,6 @@
 #!/usr/bin/env jspython
 from JumpScale import j
 j.application.start('jscommit')
-import JumpScale.baselib.mercurial
-import JumpScale.baselib.jsdeveltools
 
 j.develtools.installer.getCredentialsJumpScaleRepo()
 for item in j.sal.fs.listDirsInDir("%s/jumpscale"%j.dirs.codeDir):

@@ -217,8 +217,7 @@ class Netconfig(SALObject):
         """
         import pynetlinux
 
-        import JumpScale.baselib.netconfig
-        j.sal.netconfig.reset(True)        
+        j.sal.netconfig.reset(True)
 
         if ipaddr==None or gw == None:
             j.events.inputerror_critical("Cannot configure network when ipaddr or gw not specified","net.config")
@@ -246,7 +245,6 @@ class Netconfig(SALObject):
                 print("waiting for interface:%s to go down"%interface)
         
         if config:
-            import JumpScale.baselib.netconfig
             j.sal.netconfig.enableInterfaceStatic(dev=interface,ipaddr="%s/%s"%(ipaddr,mask),gw=gw,start=True)
         else:
             print("set ipaddr:%s"%ipaddr)
@@ -287,7 +285,6 @@ class Netconfig(SALObject):
         """
         
         import pynetlinux
-        import JumpScale.baselib.netconfig
 
 
         self.reset(True)
@@ -340,7 +337,6 @@ class Netconfig(SALObject):
         if ipaddr == None then will look for existing config on interface and use that one to configure the bridge
         """
         import pynetlinux
-        import JumpScale.baselib.netconfig
         if ipaddr==None or mask==None or interface==None:
             print("get default network config for main interface")
             interface2,ipaddr2=self.getDefaultIPConfig()

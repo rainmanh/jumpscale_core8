@@ -163,7 +163,6 @@ if opts.action =='new':
 if opts.action =='configure':
     if ip=="":
         ip=getip(opts.nr)
-    import JumpScale.baselib.remote
 
     # #this will make sure new password is set
     # seedpasswd="rooter"

@@ -13,7 +13,7 @@ import sys
 import warnings
 
 # from raven.utils.serializer import transform
-from . import six
+import six
 
 
 _coding_re = re.compile(r'coding[:=]\s*([-\w.]+)')

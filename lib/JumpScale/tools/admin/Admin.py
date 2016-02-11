@@ -1,16 +1,5 @@
 from JumpScale import j
-import JumpScale.baselib.remote
-import sys
-# import importlib
-
-
-
-import JumpScale.baselib.redis2
 import copy
-import time
-
-
-import time
 
 redis=j.clients.redis.getRedisClient("127.0.0.1", 9999)
 
@@ -118,10 +107,8 @@ class Admin():
 
 
     def _getActiveNodes(self):
-        import JumpScale.grid.osis
-        oscl = j.clients.osis.getByInstance('main')
-        ncl = j.clients.osis.getCategory(oscl, 'system', 'node')
-        return ncl.simpleSearch({'active': True})
+        ncl = j.data.models.system.Node
+        return ncl.find({'active': True})
     
     def raiseError(self,action,msg,e=None):
         #@todo make better

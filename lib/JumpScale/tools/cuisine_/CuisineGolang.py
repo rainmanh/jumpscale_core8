@@ -18,10 +18,9 @@ class CuisineGolang():
         self.executor=executor
         self.cuisine=cuisine
 
-    # @actionrun(action=True)
+    @actionrun(action=True)
     def install(self):
         self.cuisine.installer.base()
-        optdir=self.cuisine.dir_paths["optDir"]
         rc, out = self.cuisine.run("which go", die=False,showout=False,action=True)
         if rc > 0:
             if self.cuisine.isMac or self.cuisine.isArch:
@@ -32,21 +31,22 @@ class CuisineGolang():
                 self.cuisine.file_download(downl,"/usr/local",overwrite=False,retry=3,timeout=0,expand=True)
             else:
                 raise RuntimeError("platform not supported")
-        
-        self.cuisine.bash.environSet("GOPATH", '%s/go'%optdir)
-
-        self.cuisine.bash.addPath('/usr/local/go/bin')
-        self.cuisine.bash.addPath('%s/go/bin'%optdir)
-
-        self.cuisine.createDir("%s/go/src"%optdir)
-        self.cuisine.createDir("%s/go/pkg"%optdir)
-        self.cuisine.createDir("%s/go/bin"%optdir)
 
         print ('GOPATH:', self.cuisine.bash.environ["GOPATH"])
+        optdir = self.cuisine.dir_paths["optDir"]
+
+        self.cuisine.bash.environSet("GOPATH", self.cuisine.dir_paths['goDir'])
+        self.cuisine.bash.environSet("GOROOT", '/usr/local/go')
+
+        self.cuisine.bash.addPath('/usr/local/go/bin')
+        self.cuisine.bash.addPath(j.sal.fs.joinPaths(optdir, '/go/bin'))
+
+        self.cuisine.createDir("%s/go/src" % optdir)
+        self.cuisine.createDir("%s/go/pkg" % optdir)
+        self.cuisine.createDir("%s/go/bin" % optdir)
 
         self.get("github.com/tools/godep")
         # self.get("github.com/rcrowley/go-metrics")
-
 
     @property
     def GOPATH(self):
@@ -55,7 +55,7 @@ class CuisineGolang():
         #     # if not "GOPATH" in self.bash.environ:
         #     #     self.cuisine.installerdevelop.golang()
         #     # self._gopath=   self.bash.environ["GOPATH"]
-            
+
         # return self._gopath
 
 
@@ -64,5 +64,17 @@ class CuisineGolang():
         """
         e.g. url=github.com/tools/godep
         """
-        self.cuisine.run('go get -x -u %s'%url,profile=True)
+        self.cuisine.run('go get -v -u %s'%url, profile=True)
 
+    @actionrun(action=True)
+    def godep(self, url, branch=None, depth=1):
+        """
+        e.g. url=github.com/tools/godep
+        """
+        GOPATH = self.cuisine.bash.environ['GOPATH']
+
+        pullurl = "git@%s.git" % url.replace('/', ':', 1)
+        
+        dest = self.cuisine.git.pullRepo(pullurl, branch=branch, depth=depth, dest='%s/src/%s' % (GOPATH, url))
+
+        self.cuisine.run('cd %s && godep restore' % dest, profile=True)

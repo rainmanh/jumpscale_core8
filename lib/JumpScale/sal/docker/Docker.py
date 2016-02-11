@@ -29,7 +29,7 @@ class Docker(SALObject):
         if self._weaveEnabled is None:
             rc, ou = j.tools.cuisine.local.run('weave status', die=False, showout=False)
             self._weaveEnabled = (rc == 0)
-        return self._weaveEnabled 
+        return self._weaveEnabled
 
     def connectRemoteTCP(self, address, port):
         url = '%s:%s' % (address, port)
@@ -286,7 +286,7 @@ class Docker(SALObject):
             items = ports.split(" ")
             for item in items:
                 key, val = item.split(":", 1)
-                portsdict[int(key)] = int(val)
+                portsdict[int(key)] = val
 
         if ssh:
             if 22 not in portsdict:

@@ -120,7 +120,8 @@ class CuisineBuilder(object):
 
 
     @actionrun(action=True)
-    def installdeps(self):
+    def installdeps(self): 
+        self.cuisine.installer.base()
         self.cuisine.golang.install()
         self.cuisine.pip.upgrade('pip')
         self.cuisine.pip.install('pytoml')
@@ -183,39 +184,38 @@ class CuisineBuilder(object):
         if start:
             self._startAgent()
 
-    @actionrun(action=True)
+    #@actionrun(action=True)
     def agentcontroller(self, start=True):
         """
         config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
         """
+        import ipdb;ipdb.set_trace()
         self.installdeps()
         self.redis()
         self.mongodb()
         self.agent()
-
-        self.cuisine.tmux.killWindow("main","ac")
+        self.cuisine.tmux.killWindow("main", "ac")
 
         self.cuisine.process.kill("agentcontroller8")
 
         self.cuisine.dir_ensure("$appDir/agentcontroller8", recursive=True)
 
         url = "github.com/Jumpscale/agentcontroller2"
-        self.cuisine.golang.get(url)
+        self.cuisine.golang.godep(url)
         sourcepath = "$goDir/src/github.com/Jumpscale/agentcontroller2"
 
         #do the actual building
-        self.cuisine.run("cd %s;go build ."%sourcepath,profile=True)
+        self.cuisine.run("cd %s && go build ." % sourcepath, profile=True)
 
-        self.cuisine.file_move("%s/agentcontroller2"%sourcepath, "$appDir/agentcontroller8/agentcontroller8")
+        self.cuisine.file_move("%s/agentcontroller2" % sourcepath, "$appDir/agentcontroller8/agentcontroller8")
 
-        C=self.cuisine.file_read("%s/agentcontroller.toml"%sourcepath)
+        C=self.cuisine.file_read("%s/agentcontroller.toml" % sourcepath)
         self.cuisine.file_write('$cfgDir/agentcontroller.toml' ,C)
 
         self.cuisine.dir_remove("$appDir/agentcontroller2/extensions")
         self.cuisine.file_link("%s/extensions" % sourcepath, "$appDir/agentcontroller8/extensions")
 
         if start:
-            self.agent()
             self._startAgent()
             self._startAgentController()
 
@@ -278,7 +278,7 @@ class CuisineBuilder(object):
 
     @actionrun(action=True)
     def redis(self,name="main",ip="localhost", port=6379, maxram=200, appendonly=True,snapshot=False,slave=(),ismaster=False,passwd=None,unixsocket=True,start=True):
-        self.cuisine.installer.base()
+        self.installdeps()
         if not self.cuisine.isMac:
 
             C="""
@@ -334,7 +334,7 @@ class CuisineBuilder(object):
 
     @actionrun(action=True)    
     def mongodb(self, start=True):
-        self.cuisine.installer.base()
+        self.installdeps()
         exists=self.cuisine.command_check("mongod")
 
         if exists:
@@ -368,11 +368,32 @@ class CuisineBuilder(object):
 
         self.cuisine.dir_ensure('$varDir/data/db')
 
+        
+
         if start:
             cmd ="mongod --dbpath $varDir/data/db"
             self.cuisine.process.kill("mongod")
             self.cuisine.processmanager.ensure("mongod",cmd=cmd,env={},path="")
             
+    def influxdb(self):
+        #this will be redone better but is working with agentcontroller for now 
+        self.installdeps()
+        exists=self.cuisine.command_check("influxd")
+
+        if exists:
+            cmd=self.cuisine.command_location("influxd")
+            dest="%s/influxd"%self.cuisine.dir_paths["binDir"]
+            if cmd!=dest:
+                self.cuisine.file_copy(cmd,dest)
+
+        else:
+            self.cuisine.package.install("influxdb")
+            cmd=self.cuisine.command_location("influxd")
+
+        if not self.cuisine.file_exists("$binDir/influxd"):
+            self.cuisine.file_copy(cmd,"$binDir/")
+
+        self.cuisine.processmanager.ensure("inluxd", cmd)
 
 
     def all(self,start=False,sandbox=False,aydostor=None):

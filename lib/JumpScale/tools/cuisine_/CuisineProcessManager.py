@@ -155,6 +155,7 @@ class CuisineRunit(ProcessManagerBase):
     def ensure(self, name, cmd="", env={}, path="", descr=""):
         """Ensures that the given upstart service is self.running, starting
         it if necessary."""
+        
         if not self.cuisine.file_exists("/etc/service/vice/%s/run" %name ):
             cmd=self.cuisine.args_replace(cmd)
             path=self.cuisine.args_replace(path)
@@ -164,29 +165,24 @@ class CuisineRunit(ProcessManagerBase):
             for name0, value in list(env.items()):
                 envstr += "export %s=%s\n" % (name0, value)
 
-            if envstr!="":
-                cmd="%s;%s"%(envstr,cmd)
 
             cmd = cmd.replace('"', r'\"')
 
             if path:
-                cwd = "cd %s;" % path
-                if not cmd.startswith("."):
-                    cmd="./%s"%cmd
-                cmd = "%s %s" % (cwd, cmd)
+                cmd = "%s/%s" % (path, cmd)
 
-            # j.core.db.hset("processcmds",name,cmd)
             sv_text ="""#!/bin/sh
 set -e
 echo $descrs
-cd $path
-exec $cmd
+$env
+exec $cmd2
             """
-            sv_text=sv_text.replace("$cmd",cmd)
+            sv_text = sv_text.replace("$env", envstr)
+            sv_text = sv_text.replace("$cmd",cmd)
             if descr=="":
-                descr=name
-            sv_text=sv_text.replace("$descr",descr)
-            sv_text=sv_text.replace("$path",path)
+                descr = name
+            sv_text = sv_text.replace("$descr",descr)
+            sv_text = sv_text.replace("$path",path)
 
             # if self.cuisine.file_is_link("/etc/service/"):
             #     self.cuisine.file_link( "/etc/getty-5", "/etc/service")

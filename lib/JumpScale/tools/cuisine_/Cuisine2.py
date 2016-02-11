@@ -1128,7 +1128,7 @@ class OurCuisine():
         if profile:
             ppath=self.bash.profilePath
             if ppath!=None:
-                cmd=". %s;%s"%(ppath,cmd)
+                cmd=". %s && %s"%(ppath,cmd)
             print ("PROFILECMD:%s"%cmd)
 
         rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)

@@ -514,11 +514,6 @@ class Service(object):
                 self.hrd.set("service.version", self.version)
                 self.hrd.set("service.domain", self.domain)
 
-                self.runAction("hrd")
-
-                self._rememberActions=True
-                # self.action_methods_mgmt.hrd(self)
-
                 if self.parent is not None:
                     path = j.sal.fs.joinPaths(self.parent.path, "%s!%s" % (self.role, self.instance))
                     if self.path != path:
@@ -527,6 +522,12 @@ class Service(object):
                         hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
                         self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
                     self.consume(self.parent)
+
+                self.runAction("hrd")
+
+                self._rememberActions=True
+                # self.action_methods_mgmt.hrd(self)
+
 
         self._init = True
 

@@ -57,7 +57,6 @@ class ActionRun():
         self._method_mgmt_post=""
         self._method_mgmt=""
         self._methods=""
-        self._rememberActions=False
         self.epoch=epoch
         if self.epoch==0:
             self.epoch=j.data.time.getTimeEpoch()
@@ -106,16 +105,15 @@ class ActionRun():
 
     @property
     def methods(self):
-
-        if self._methods=="":
-            res=[]
-            if self.method_mgmt_pre!=None:
+        if not self._methods:
+            res = list()
+            if self.method_mgmt_pre is not None:
                 res.append(self.method_mgmt_pre)
-            if self.method_node!=None:
+            if self.method_node is not None:
                 res.append("node")
-            if self.method_mgmt!=None:
+            if self.method_mgmt is not None:
                 res.append(self.method_mgmt)
-            if self.method_mgmt_post!=None:
+            if self.method_mgmt_post is not None:
                 res.append(self.method_mgmt_post)
             self._methods=res
 
@@ -243,7 +241,8 @@ class Service(object):
 
         self._actionlog={} #key=actionname with _pre _post ... value = ActionRun
 
-        self.action_current=None
+        self.action_current = None
+        self._rememberActions = False
 
 
     @property
@@ -332,6 +331,11 @@ class Service(object):
                         self._mongoModel[k] = v
         return self._mongoModel
 
+    @property
+    def rememberActions(self):
+        return self.hrd.getBool("rememberactions", False)
+    
+
     # @property
     # def hrd_template(self):
     #     if self._hrd_template:
@@ -354,10 +358,9 @@ class Service(object):
             else:
                 action_methods_mgmt = j.atyourservice.getActionsBaseClassMgmt()(self)
 
-            if self._rememberActions:
+            if self.rememberActions:
                 #we don't want to remember untill hrd is populated
-                print ("REMEMBER")
-                self._action_methods_mgmt=action_methods_mgmt
+                self._action_methods_mgmt = action_methods_mgmt
 
         return self._action_methods_mgmt
 
@@ -369,7 +372,7 @@ class Service(object):
             else:
                 action_methods_node = j.atyourservice.getActionsBaseClassNode()(self)
 
-            if self._rememberActions:
+            if self.rememberActions:
                 #we don't want to remember untill hrd is populated
                 self._action_methods_node=action_methods_node
 
@@ -444,7 +447,7 @@ class Service(object):
                 self.hrd.applyOnFile(path2)
 
             # print ("loadactions:%s:%s:%s"%(self,path,ttype))
-            if self.recipe.hrd!=None:
+            if self.recipe.hrd is not None:
                 self.recipe.hrd.applyOnFile(path2)            
             j.application.config.applyOnFile(path2)
         else:
@@ -470,7 +473,7 @@ class Service(object):
 
                 self._producers[key] = list(producerSet)
 
-            if self.parent!=None:
+            if self.parent is not None:
                 self._producers[self.parent.role]=[self.parent]
 
         return self._producers
@@ -524,8 +527,7 @@ class Service(object):
                     self.consume(self.parent)
 
                 self.runAction("hrd")
-
-                self._rememberActions=True
+                self.hrd.set("rememberActions", True)
                 # self.action_methods_mgmt.hrd(self)
 
 

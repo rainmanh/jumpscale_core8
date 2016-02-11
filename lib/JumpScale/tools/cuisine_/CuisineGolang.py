@@ -32,14 +32,12 @@ class CuisineGolang():
             else:
                 raise RuntimeError("platform not supported")
 
-        print ('GOPATH:', self.cuisine.bash.environ["GOPATH"])
         optdir = self.cuisine.dir_paths["optDir"]
 
         self.cuisine.bash.environSet("GOPATH", self.cuisine.dir_paths['goDir'])
         self.cuisine.bash.environSet("GOROOT", '/usr/local/go')
 
-        self.cuisine.bash.addPath('/usr/local/go/bin')
-        self.cuisine.bash.addPath(j.sal.fs.joinPaths(optdir, '/go/bin'))
+        self.cuisine.bash.addPath(self.cuisine.joinpaths(optdir, '/go/bin'))
 
         self.cuisine.createDir("%s/go/src" % optdir)
         self.cuisine.createDir("%s/go/pkg" % optdir)

@@ -947,6 +947,7 @@ class InstallTools():
         """
         @param remote can be ip addr or hostname of remote, if given will execute cmds there
         """
+        import ipdb;ipdb.set_trace()
         if path!=None:
             content=self.readFile(path)
         if content[-1]!="\n":

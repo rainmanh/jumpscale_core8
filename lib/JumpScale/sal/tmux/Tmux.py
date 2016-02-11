@@ -76,7 +76,8 @@ class Tmux(SALObject):
              self.killWindow( sessionname, screenname)
 
         if cmd.strip():
-            self.createWindow(sessionname, screenname, user=tmuxuser)
+            self.createWindow(sessionname, screenname, cmd=cmd, user=tmuxuser)
+            import ipdb;ipdb.set_trace()
             pane = self._getPane(sessionname, screenname, user=tmuxuser)
             env = os.environ.copy()
             env.pop('TMUX', None)
@@ -143,6 +144,7 @@ class Tmux(SALObject):
         return result
 
     def createWindow(self, session, name, user=None, cmd=None):
+        import ipdb;ipdb.set_trace()
         if session not in self.getSessions(user=user):
             return self.createSession(session, [name], user=user)
         windows = self.getWindows(session, user=user)

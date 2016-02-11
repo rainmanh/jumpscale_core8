@@ -189,7 +189,6 @@ class CuisineBuilder(object):
         """
         config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
         """
-        import ipdb;ipdb.set_trace()
         self.installdeps()
         self.redis()
         self.mongodb()
@@ -245,6 +244,7 @@ class CuisineBuilder(object):
         cfgfile_ac = self.cuisine.args_replace("$cfgDir/agentcontroller.toml")
         env={}
         env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
+        print ("****************************./agentcontroller8 -c %s" % cfgfile_ac)
         self.cuisine.tmux.executeInScreen("main", screenname="ac", cmd="./agentcontroller8 -c %s" % cfgfile_ac, wait=0, cwd=appbase, env=env, user='root', tmuxuser=None)
 
 
@@ -332,8 +332,9 @@ class CuisineBuilder(object):
             cmd="redis-server %s"%cpath
             self.cuisine.processmanager.ensure(name="redis_%s"%name,cmd=cmd,env={},path=self.cuisine.dir_paths["binDir"])  
 
-    @actionrun(action=True)    
+    #@actionrun(action=True)    
     def mongodb(self, start=True):
+        import ipdb;ipdb.set_trace()
         self.installdeps()
         exists=self.cuisine.command_check("mongod")
 

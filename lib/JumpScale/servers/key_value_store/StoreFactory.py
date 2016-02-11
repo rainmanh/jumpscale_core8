@@ -1,7 +1,8 @@
 from JumpScale import j
 
+from fs_store import FileSystemKeyValueStore
 
-class KeyValueStoreFactory(object):
+class StoreFactory(object):
     '''
     The key value store factory provides logic to retrieve store instances. It
     also caches the stores based on their type, name and namespace.
@@ -42,7 +43,7 @@ class KeyValueStoreFactory(object):
         @return: key value store
         @rtype: ArakoonKeyValueStore
         '''
-        from JumpScale.servers.key_value_store.arakoon_store import ArakoonKeyValueStore
+        from servers.key_value_store.arakoon_store import ArakoonKeyValueStore
         if serializers==[]:
             serializers=[j.data.serializer.serializers.getSerializerType('j')]
         key = '%s_%s' % ("arakoon", namespace)
@@ -68,7 +69,7 @@ class KeyValueStoreFactory(object):
         @return: key value store
         @rtype: FileSystemKeyValueStore
         '''
-        from JumpScale.servers.key_value_store.fs_store import FileSystemKeyValueStore
+        
         if serializers==[]:
             serializers=[j.data.serializer.serializers.getMessagePack()]
 
@@ -86,7 +87,7 @@ class KeyValueStoreFactory(object):
         @return: key value store
         @rtype: MemoryKeyValueStore
         '''
-        from JumpScale.servers.key_value_store.memory_store import MemoryKeyValueStore
+        from servers.key_value_store.memory_store import MemoryKeyValueStore
         return MemoryKeyValueStore(namespace)
 
     def getRedisStore(self, namespace='',host='localhost',port=9999,db=0,password='',serializers=None,masterdb=None,changelog=True):
@@ -102,7 +103,7 @@ class KeyValueStoreFactory(object):
         @return: key value store
         @rtype: MemoryKeyValueStore
         '''
-        from JumpScale.servers.key_value_store.redis_store import RedisKeyValueStore
+        from servers.key_value_store.redis_store import RedisKeyValueStore
         key = '%s_%s_%s' % ("redis", port, namespace)
         if key not in self._cache:
             self._cache[key] = RedisKeyValueStore(namespace=namespace,host=host,port=port,db=db,password=password,serializers=serializers,masterdb=masterdb, changelog=changelog)
@@ -120,7 +121,7 @@ class KeyValueStoreFactory(object):
 
         @return: key value store
         '''
-        from JumpScale.servers.key_value_store.leveldb_store import LevelDBKeyValueStore
+        from servers.key_value_store.leveldb_store import LevelDBKeyValueStore
         key = '%s_%s' % ("leveldb", namespace)
         if key not in self._cache:
             self._cache[key] = LevelDBKeyValueStore(namespace=namespace,basedir=basedir,serializers=serializers)

@@ -43,7 +43,7 @@ class GeventWSFactory():
             cl=self.cache[key]
         else:
             from GeventWSTransport import GeventWSTransport
-            from JumpScale.servers.serverbase.DaemonClient import DaemonClient
+            from servers.serverbase.DaemonClient import DaemonClient
             trans = GeventWSTransport(addr, port, timeout)
             cl = DaemonClient(org=org, user=user, passwd=passwd, ssl=ssl, transport=trans,id=id)
             self.cache[key]=cl
@@ -63,7 +63,7 @@ class GeventWSFactory():
             cl=self.cache[key]
         else:
             from GeventWSTransport import GeventWSHATransport
-            from JumpScale.servers.serverbase.DaemonClient import DaemonClient
+            from servers.serverbase.DaemonClient import DaemonClient
             trans = GeventWSHATransport(connections, timeout)
             cl = DaemonClient(org=org, user=user, passwd=passwd, ssl=ssl, transport=trans,id=id)
             self.cache[key]=cl

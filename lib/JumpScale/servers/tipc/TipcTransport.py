@@ -1,6 +1,6 @@
 from JumpScale import j
 
-from JumpScale.servers.serverbase.DaemonClient import Transport
+from servers.serverbase.DaemonClient import Transport
 import socket
 
 

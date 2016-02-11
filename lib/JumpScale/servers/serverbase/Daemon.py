@@ -1,5 +1,5 @@
 from JumpScale import j
-from JumpScale.servers.serverbase import returnCodes
+from servers.serverbase import returnCodes
 from JumpScale.core.errorhandling.ErrorConditionHandler import BaseException
 import inspect
 import time

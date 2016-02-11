@@ -3,7 +3,7 @@ from JumpScale import j
 import tornado.ioloop
 import tornado.web
 
-from JumpScale.servers.serverbase import returnCodes
+from servers.serverbase import returnCodes
 
 
 class MainHandlerRPC(tornado.web.RequestHandler):

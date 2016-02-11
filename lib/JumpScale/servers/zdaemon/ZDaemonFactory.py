@@ -50,7 +50,7 @@ class ZDaemonFactory():
 
         """
         from ZDaemonTransport import ZDaemonTransport
-        from JumpScale.servers.serverbase.DaemonClient import DaemonClient
+        from servers.serverbase.DaemonClient import DaemonClient
         trans = ZDaemonTransport(addr, port,gevent=gevent)
         cl = DaemonClient(org=org, user=user, passwd=passwd, ssl=ssl, transport=trans)
         return cl.getCmdClient(category,sendformat=sendformat, returnformat=returnformat)
@@ -65,7 +65,7 @@ class ZDaemonFactory():
                 print client.echo("Hello World.")
         """
         from ZDaemonTransport import ZDaemonHATransport
-        from JumpScale.servers.serverbase.DaemonClient import DaemonClient
+        from servers.serverbase.DaemonClient import DaemonClient
         trans = ZDaemonHATransport(connections,gevent=gevent)
         cl = DaemonClient(org=org, user=user, passwd=passwd, ssl=ssl, transport=trans)
         return cl.getCmdClient(category,sendformat=sendformat, returnformat=returnformat)

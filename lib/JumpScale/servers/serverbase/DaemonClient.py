@@ -1,6 +1,6 @@
 from JumpScale import j
-from JumpScale.servers.serverbase.Exceptions import AuthenticationError, MethodNotFoundException, RemoteException
-from JumpScale.servers.serverbase import returnCodes
+from servers.serverbase.Exceptions import AuthenticationError, MethodNotFoundException, RemoteException
+from servers.serverbase import returnCodes
 import time
 import uuid
 from random import randrange

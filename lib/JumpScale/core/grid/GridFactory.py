@@ -1,5 +1,5 @@
 from JumpScale import j
-from JumpScale.servers.gridhealthchecker.gridhealthchecker import GridHealthChecker
+from servers.gridhealthchecker.gridhealthchecker import GridHealthChecker
 
 
 # class ZCoreModelsFactory():

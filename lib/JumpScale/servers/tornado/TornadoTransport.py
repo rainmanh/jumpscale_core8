@@ -1,7 +1,7 @@
 from JumpScale import j
 
-from JumpScale.servers.serverbase.DaemonClient import Transport
-from JumpScale.servers.serverbase.TCPHATransport import TCPHATransport
+from servers.serverbase.DaemonClient import Transport
+from servers.serverbase.TCPHATransport import TCPHATransport
 import time
 
 

@@ -1,11 +1,11 @@
 from contextlib import contextmanager
 import unittest
 
-from JumpScale.servers.key_value_store.arakoon_store import ArakoonKeyValueStore
-from JumpScale.servers.key_value_store.fs_store import FileSystemKeyValueStore
-from JumpScale.servers.key_value_store.memory_store import MemoryKeyValueStore
+from servers.key_value_store.arakoon_store import ArakoonKeyValueStore
+from servers.key_value_store.fs_store import FileSystemKeyValueStore
+from servers.key_value_store.memory_store import MemoryKeyValueStore
 from JumpScale import j
-from JumpScale.servers.key_value_store.store import KeyValueStoreType
+from servers.key_value_store.store import KeyValueStoreType
 
 if not q._init_called:
     from JumpScale.core.InitBase import q

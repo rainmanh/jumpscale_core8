@@ -31,7 +31,7 @@ class TipcFactory(object):
 
     def getClient(self, servaddr, category="core", org="myorg", user="root", passwd="passwd", ssl=False, roles=[]):
         from TipcTransport import TipcTransport
-        from JumpScale.servers.serverbase.DaemonClient import DaemonClient
+        from servers.serverbase.DaemonClient import DaemonClient
         trans = TipcTransport(servaddr)
         cl = DaemonClient(org=org, user=user, passwd=passwd, ssl=ssl, transport=trans)
         return cl.getCmdClient(category)

@@ -1,7 +1,7 @@
 from JumpScale import j
 import zmq
-from JumpScale.servers.serverbase.DaemonClient import Transport
-from JumpScale.servers.serverbase.TCPHATransport import TCPHATransport
+from servers.serverbase.DaemonClient import Transport
+from servers.serverbase.TCPHATransport import TCPHATransport
 
 
 class ZDaemonTransport(Transport):

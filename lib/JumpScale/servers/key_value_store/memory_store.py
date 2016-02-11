@@ -1,4 +1,4 @@
-from JumpScale.servers.key_value_store.store import KeyValueStoreBase
+from servers.key_value_store.store import KeyValueStoreBase
 
 NAMESPACES = dict()
 

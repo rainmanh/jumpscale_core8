@@ -286,7 +286,11 @@ class Docker(SALObject):
             items = ports.split(" ")
             for item in items:
                 key, val = item.split(":", 1)
-                portsdict[int(key)] = val
+                ss = key.split("/")
+                if len(ss) == 2:
+                    portsdict[tuple(ss)] = val
+                else:
+                    portsdict[int(key)] = val
 
         if ssh:
             if 22 not in portsdict:
@@ -371,6 +375,12 @@ class Docker(SALObject):
 
         if self.isWeaveEnabled:
             nameserver = None
+
+        for k, v in portsdict.items():
+            if type(k) == tuple and len(k) == 2:
+                portsdict["%s/%s" % (k[0], k[1])] = v
+                portsdict.pop(k)
+
 
         res = self.client.start(container=id, binds=binds, port_bindings=portsdict, lxc_conf=None, \
             publish_all_ports=False, links=None, privileged=False, dns=nameserver, dns_search=None, volumes_from=None, network_mode=None)

@@ -375,7 +375,7 @@ class OurCuisine():
     @property
     def dnsmasq(self):
         if self._dnsmasq==None:
-            self._dnsmasq=j.sal.dnsmasq()
+            self._dnsmasq=j.sal.dnsmasq
             self._dnsmasq.cuisine=self
             self._dnsmasq.executor=self.executor
         return self._dnsmasq 
@@ -789,16 +789,18 @@ class OurCuisine():
             self.file_write(hostfile,val)
 
     @actionrun(action=False,force=False)
-    def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False,replaceArgs=False):
+    def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False,replaceArgs=False,strip=True):
+        if strip:
+            content=j.data.text.strip(content)
+
         location=self.cuisine.args_replace(location)
         if replaceArgs:
             content=self.cuisine.args_replace(content)
 
         print ("filewrite: %s"%location)
         self.dir_ensure(j.sal.fs.getParent(location))
-        content=j.data.text.strip(content)
-        content2 = content.encode('utf-8')
 
+        content2 = content.encode('utf-8')
 
         sig = hashlib.md5(content2).hexdigest()
 

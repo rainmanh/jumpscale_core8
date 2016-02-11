@@ -9,7 +9,12 @@ class CuisineNet():
         self.executor=executor
         self.cuisine=cuisine
 
-    
+    def netconfig(self,interface,ipaddr,cidr=24,gateway=None,dns="8.8.8.8",masquerading=False):
+        raise RuntimeError("please implement using systemd") #@todo (*2*)
+
+    def netconfig(self,interface):
+        raise RuntimeError("please implement using systemd") #@todo (*2*)
+
     @property
     def nics(self):
         res=[]
@@ -71,7 +76,7 @@ class CuisineNet():
 
         
 
-    def get_info(self):
+    def get_info(self,device=None):
         """
         returns network info like
 
@@ -118,6 +123,23 @@ class CuisineNet():
 
         res=[]
         for nic in getNetworkInfo():
+            # print (nic["name"])
+            if nic["name"]==device:
+                return nic
             res.append(nic)
         
+        if device!=None:
+            raise RuntimeError("could not find device")
         return res            
+
+    def getNetObject(self,device):
+        n=self.get_info(device)
+        net=netaddr.IPNetwork(n["ip"][0]+"/"+str(n["cidr"]))
+        return net.cidr
+
+    def getNetRange(self,device,skipBegin=10,skipEnd=10):
+        """
+        return ($fromip,$topip) from range attached to device, skip the mentioned ip addresses
+        """
+        n=self.getNetObject(device)
+        return(str(netaddr.IPAddress(n.first+skipBegin)),str(netaddr.IPAddress(n.last-skipEnd)))

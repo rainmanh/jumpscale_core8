@@ -77,6 +77,10 @@ class CuisineSystemd():
             if self.systemdOK:
                 for item in self.cuisine.fs_find("/etc/systemd",True,"*%s.service"%name):
                     print("remove:%s"%item)
+                    from IPython import embed
+                    print ("DEBUG NOW remove ")
+                    embed()
+                    
                     self.cuisine.file_unlink(item)
                 self.cuisine.run("systemctl daemon-reload")
 
@@ -159,3 +163,14 @@ class CuisineSystemd():
                 key=key.decode()
                 cmd=j.core.db.hget("processcmds",key).decode()
                 self.start(key)
+
+    def getLog(self,name):
+        return self.cuisine.run("journalctl -u %s -n 50"%name)
+
+    def printDependencies(self,name):
+        """
+        show which services need to be started before this one
+        """
+        return self.cuisine.run("systemctl list-dependencies %s"%name)
+
+

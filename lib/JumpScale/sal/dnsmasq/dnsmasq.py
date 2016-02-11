@@ -1,8 +1,5 @@
 from JumpScale import j
-import signal
 
-
-DOMAIN = 'network'
 
 from sal.base.SALObject import SALObject
 
@@ -16,7 +13,10 @@ class DNSMasq(SALObject):
         self._configdir=""
 
     def install(self,start=True):
+        self.cuisine.systemd.remove("dnsmasq")
+        self.cuisine.process.kill("dnsmasq")
         self.cuisine.package.install("dnsmasq")
+        self.config()
         if start:
             cmd=self.cuisine.bash.cmdGetPath("dnsmasq")
             self.cuisine.systemd.ensure("dnsmasq",cmd)
@@ -67,7 +67,13 @@ class DNSMasq(SALObject):
         te.save()
         self.reload()
 
-    def config(self):
+    def config(self,device="eth0",rangefrom="",rangeto="",deviceonly=True):
+        """
+        if rangefrom & rangeto not specified then will serve full local range minus bottomn 10 & top 10 addr
+        """
+        if rangefrom=="" or rangeto=="":
+            rangefrom,rangeto=self.cuisine.net.getNetRange(device)
+
         C="""
 
         # Listen on this specific port instead of the standard DNS port (53). 
@@ -456,7 +462,7 @@ class DNSMasq(SALObject):
         #dhcp-option=46,8           # netbios node type
 
         # Send an empty WPAD option. This may be REQUIRED to get windows 7 to behave.
-        #dhcp-option=252,"\n"
+        #dhcp-option=252,"\\n"
 
         # Send RFC-3397 DNS domain search DHCP option. WARNING: Your DHCP client
         # probably doesn't support this......
@@ -711,10 +717,10 @@ class DNSMasq(SALObject):
 
         # For debugging purposes, log each DNS query as it passes through
         # dnsmasq.
-        #log-queries
+        log-queries
 
         # Log lots of extra information about DHCP transactions.
-        #log-dhcp
+        log-dhcp
 
         # Include another lot of configuration options.
         #conf-file=/etc/dnsmasq.more.conf
@@ -724,6 +730,12 @@ class DNSMasq(SALObject):
         #conf-dir=/etc/dnsmasq.d,.bak
 
         # Include all files in a directory which end in .conf
-        #conf-dir=/etc/dnsmasq.d/,*.conf
+        conf-dir=/etc/dnsmasq.d/,*.conf
 
         """
+        if deviceonly:
+            C=C.replace("#interface=","interface=%s"%device)
+        C=C.replace("$dhcprange","%s,%s"%(rangefrom,rangeto))
+        self.cuisine.dir_ensure("/etc/dnsmasq.d/")
+        self.cuisine.dir_ensure("$varDir/dnsmasq")
+        self.cuisine.file_write("/etc/dnsmasq.conf",C,replaceArgs=True)

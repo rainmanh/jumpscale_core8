@@ -240,6 +240,10 @@ class CuisineInstaller(object):
     @actionrun(action=True)
     def pi_accesspoint(self,passphrase,name="",dns="8.8.8.8",interface="wlan0"):
 
+        #create_ap --no-virt -m bridge wlan1 eth0 kds10 kds007kds
+        #sysctl -w net.ipv4.ip_forward=1
+        #iptables -t nat -I POSTROUTING -o wlan0 -j MASQUERADE
+
         # cmd1='dnsmasq -d'
         if name!="":
             hostname=name

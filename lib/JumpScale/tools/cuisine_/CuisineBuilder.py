@@ -151,7 +151,6 @@ class CuisineBuilder(object):
         self.installdeps()
         self.redis()
         self.mongodb()
-
         GOPATH = self.cuisine.bash.environGet('GOPATH')
 
         self.cuisine.tmux.killWindow("main","agent")
@@ -232,8 +231,8 @@ class CuisineBuilder(object):
 
     @actionrun(action=True)
     def _startAgent(self):
-        appbase = "$appDir/agent8"
-        cfgfile_agent = "$cfgDir/agent.toml"
+        appbase = self.cuisine.args_replace("$appDir/agent8")
+        cfgfile_agent = self.cuisine.args_replace("$cfgDir/agent.toml")
         print("connection test ok to agentcontroller")
         #@todo (*1*) need to implement to work on node        
         env={}
@@ -242,8 +241,8 @@ class CuisineBuilder(object):
 
     @actionrun(action=True)
     def _startAgentController(self):
-        appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "agentcontroller8")
-        cfgfile_ac = self.cuisine.joinpaths(appbase, "agentcontroller.toml")
+        appbase = self.cuisine.args_replace("$appDir/agentcontroller8")
+        cfgfile_ac = self.cuisine.args_replace("$cfgDir/agentcontroller.toml")
         env={}
         env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
         self.cuisine.tmux.executeInScreen("main", screenname="ac", cmd="./agentcontroller8 -c %s" % cfgfile_ac, wait=0, cwd=appbase, env=env, user='root', tmuxuser=None)

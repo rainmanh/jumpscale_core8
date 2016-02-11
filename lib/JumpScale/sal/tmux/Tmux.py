@@ -85,7 +85,7 @@ class Tmux(SALObject):
                 cmd2 = "tmux send-keys -t '%s' '%s\n'" % (pane, envstr)
                 if tmuxuser is not None:
                     cmd2 = "sudo -u %s -i %s" % (tmuxuser, cmd2)
-                self.executor.execute(cmd2, env=env,showout=False)
+                self.executor.execute(cmd2, showout=False)
 
             if cwd:
                 cwd = "cd %s;" % cwd

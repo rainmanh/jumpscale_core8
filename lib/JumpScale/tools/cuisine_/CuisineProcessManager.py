@@ -39,7 +39,7 @@ class CuisineSystemd(ProcessManagerBase):
         return result
 
     def reload(self):
-        1self.cuisine.run("systemctl daemon-reload")
+        self.cuisine.run("systemctl daemon-reload")
 
     def start(self,name):
         self.reload()
@@ -146,8 +146,8 @@ class CuisineRunit(ProcessManagerBase):
     def list(self,prefix=""):
         result = list()
 
-        for service in self.cuisine.fs_find("/etc/service", recursive=False)[1:]:
-            service = service.split("/etc/service/")[1]
+        for service in self.cuisine.fs_find("/etc/service/vice", recursive=False)[1:]:
+            service = service.split("/etc/service/vice/")[1]
             status = self.cuisine.run("sv  status /etc/service/%s" %service).split(":")[0]
             result.append([service, status])
         return result
@@ -155,7 +155,7 @@ class CuisineRunit(ProcessManagerBase):
     def ensure(self, name, cmd="", env={}, path="", descr=""):
         """Ensures that the given upstart service is self.running, starting
         it if necessary."""
-        if self.cuisine.file_exists("/etc/service/%s/run" %name ):
+        if not self.cuisine.file_exists("/etc/service/vice/%s/run" %name ):
             cmd=self.cuisine.args_replace(cmd)
             path=self.cuisine.args_replace(path)
 
@@ -188,12 +188,12 @@ exec $cmd
             sv_text=sv_text.replace("$descr",descr)
             sv_text=sv_text.replace("$path",path)
 
-            self.cuisine.file_link( "/etc/getty-5", "/etc/service")
-            self.cuisine.dir_ensure("/etc/service/%s" %name)
-            self.cuisine.file_attribs("/etc/service/%s/run" %name, "+x")
+            # if self.cuisine.file_is_link("/etc/service/"):
+            #     self.cuisine.file_link( "/etc/getty-5", "/etc/service")
+            self.cuisine.file_ensure("/etc/service/%s/run" %name,mode="+x")
             self.cuisine.file_write("/etc/service/%s/run" %name, sv_text)
 
-            self.start(name)
+        self.start(name)
                 
     def remove(self, prefix):
         """removes process from init"""
@@ -213,7 +213,7 @@ exec $cmd
     def start(self, name):
         """Tries a `restart` command to the given service, if not successful
         will stop it and start it. If the service is not started, will start it."""
-        if self.cuisine.file_exists("/etc/service/%s/run" %name ):
+        if self.cuisine.file_exists("/etc/service/vice/%s/run" %name ):
             self.cuisine.run("sv -w 15 start /etc/service/%s/" %name )
 
     def stop(self, name, **kwargs):

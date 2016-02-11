@@ -87,11 +87,15 @@ class CuisineDocker():
         self.cuisine.run_script(C)
 
     @actionrun(action=True)
-    def ubuntu(self, name="ubuntu1", image='jumpscale/ubuntu1510', pubkey=None, aydofs=False): #@todo (*1*) main docker deployment for ubuntu over cuisine
+    def ubuntu(self, name="ubuntu1", image='jumpscale/ubuntu1510', ports=None, volumes=None, pubkey=None, aydofs=False):
         if not aydofs:
             cmd = "jsdocker create --name {name} --image {image}".format(name=name, image=image)
             if pubkey:
                 cmd += " --pubkey '%s'" % pubkey
+            if ports:
+                cmd += " --ports '%s'" % ports
+            if volumes:
+                cmd += " --volumes '%s'" % volumes
             self.cuisine.run(cmd, profile=True)
             cmd = "jsdocker list --name {name} --parsable".format(name=name)
             out = self.cuisine.run(cmd, profile=True)

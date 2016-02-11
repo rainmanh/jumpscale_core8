@@ -4,7 +4,7 @@ from Container import Container
 from JumpScale import j
 import os
 import docker
-
+import time
 
 from sal.base.SALObject import SALObject
 
@@ -243,9 +243,26 @@ class Docker(SALObject):
         cmd="cd %s;tar xzvf %s -C ."%(path,bpath)
         j.sal.process.executeWithoutPipe(cmd)
 
+    def _init_aysfs(self, fs, dockname):
+        if fs.isUnique():
+            if not fs.isRunning():
+                print('[+] starting unique aysfs: %s' % fs.getName())
+                fs.start()
+            
+            else:
+                print('[+] skipping aysfs: %s (unique running)' % fs.getName())
+        
+        else:        
+            fs.setName('%s-%s' % (dockname, fs.getName()))
+            if fs.isRunning():
+                fs.stop()
+                
+            print('[+] starting aysfs: %s' % fs.getName())
+            fs.start()
+    
     def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1510", nameserver=["8.8.8.8"],
                replace=True, cpu=None, mem=0, jumpscale=False, ssh=True, myinit=True, sharecode=False,sshkeyname="",sshpubkey="",
-               setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master"): #@todo (*1*) improve to use aydofs see in cuisine_ dir for docker_approach.md
+               setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master", aysfs=[]):
 
         """
         @param ports in format as follows  "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
@@ -286,7 +303,11 @@ class Docker(SALObject):
             items = ports.split(" ")
             for item in items:
                 key, val = item.split(":", 1)
-                portsdict[int(key)] = val
+                ss = key.split("/")
+                if len(ss) == 2:
+                    portsdict[tuple(ss)] = val
+                else:
+                    portsdict[int(key)] = val
 
         if ssh:
             if 22 not in portsdict:
@@ -303,6 +324,7 @@ class Docker(SALObject):
                 key, val = item.split(":", 1)
                 volsdict[str(key).strip()] = str(val).strip()
 
+        """
         j.sal.fs.createDir("/var/jumpscale")
         if "/var/jumpscale" not in volsdict:
             volsdict["/var/jumpscale"] = "/var/docker/%s" % name
@@ -311,12 +333,25 @@ class Docker(SALObject):
         tmppath = "/tmp/dockertmp/%s" % name
         j.sal.fs.createDir(tmppath)
         volsdict[tmppath] = "/tmp"
+        """
 
         if sharecode and j.sal.fs.exists(path="/opt/code"):
             print("share jumpscale code")
             if "/opt/code" not in volsdict:
                 volsdict["/opt/code"] = "/opt/code"
-
+        
+        
+        if len(aysfs) > 0:
+            for fs in aysfs:
+                self._init_aysfs(fs, name)
+                mounts = fs.getPrefixs()
+                
+                for inp, out in mounts.items():
+                    while not j.sal.fs.exists(inp):
+                        time.sleep(0.1)
+                    
+                    volsdict[out] = inp
+        
         volsdictro = {}
         if len(volsro) > 0:
             items = volsro.split("#")
@@ -332,12 +367,12 @@ class Docker(SALObject):
         volskeys = []  # is location in docker
 
         for key, path in list(volsdict.items()):
-            j.sal.fs.createDir(path)  # create the path on hostname
+            # j.sal.fs.createDir(path)  # create the path on hostname
             binds[path] = {"bind": key, "ro": False}
             volskeys.append(key)
 
         for key, path in list(volsdictro.items()):
-            j.sal.fs.createDir(path)  # create the path on hostname
+            # j.sal.fs.createDir(path)  # create the path on hostname
             binds[path] = {"bind": key, "ro": True}
             volskeys.append(key)
 
@@ -371,6 +406,12 @@ class Docker(SALObject):
 
         if self.isWeaveEnabled:
             nameserver = None
+
+        for k, v in portsdict.items():
+            if type(k) == tuple and len(k) == 2:
+                portsdict["%s/%s" % (k[0], k[1])] = v
+                portsdict.pop(k)
+
 
         res = self.client.start(container=id, binds=binds, port_bindings=portsdict, lxc_conf=None, \
             publish_all_ports=False, links=None, privileged=False, dns=nameserver, dns_search=None, volumes_from=None, network_mode=None)

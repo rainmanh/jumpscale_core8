@@ -3,7 +3,7 @@
 How to create a machine.
 To create a machine we need to get the correct size and image to create a machine.
 
-```
+```python
 client = j.clients.openvcloud.get('www.mothership1.com', 'demo', 'demo')
 image = client.findImage('Ubuntu 15.04')
 size = client.findSize(512)

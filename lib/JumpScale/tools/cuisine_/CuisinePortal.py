@@ -21,7 +21,6 @@ class CuisinePortal(object):
         self.getcode()
         self.linkCode(minimal=minimal)
         self.mongoconnect(ip=mongodbip, port=mongoport)
-        self.changeEve()
         if start:
             self.start()
 
@@ -56,7 +55,7 @@ class CuisinePortal(object):
         # Flask
         # Flask-Bootstrap
         # Flask-PyMongo
-        #gevent==1.1rc2  #DO NOT INSTALL IS PART OF PYTHON DEVELOP
+        gevent==1.1rc2
         # gitdb
         gitlab3
         # GitPython
@@ -110,7 +109,7 @@ class CuisinePortal(object):
         # unattended-upgrades
         urllib3
         visitor
-        # watchdog
+        watchdog
         websocket
         websocket-client
         Werkzeug
@@ -119,6 +118,7 @@ class CuisinePortal(object):
         """
 
         self.cuisine.pip.multiInstall(deps)
+        self.changeEve()
 
 
     @actionrun(action=True)

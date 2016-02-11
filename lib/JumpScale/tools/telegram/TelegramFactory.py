@@ -1,4 +1,5 @@
 from JumpScale import j
+from handlers.DemoHandlerMS1 import *
 
 from TelegramBot import *
 import os
@@ -48,7 +49,6 @@ class TelegramFactory:
         
         """
         tg=j.tools.telegrambot.get()
-        from handlers.DemoHandlerMS1 import *
         handler = DemoHandlerMS1()
         tg.api.add_handler(handler)
         tg.start() 

@@ -161,7 +161,7 @@ class CuisineBuilder(object):
         self.cuisine.dir_ensure("$appDir/agent8", recursive=True)
 
         url = "github.com/Jumpscale/agent2"
-        self.cuisine.golang.get(url)
+        self.cuisine.golang.godep(url)
         dest = self.cuisine.joinpaths(GOPATH, 'src/github.com/Jumpscale/agent2')
 
         sourcepath = "$goDir/src/github.com/Jumpscale/agent2"
@@ -227,25 +227,27 @@ class CuisineBuilder(object):
         self.cuisine.tmux.executeInScreen("main", screenname="syncthing", cmd="./syncthing", wait=0, cwd=self.cuisine.joinpaths(GOPATH, "bin") , env=None, user='root', tmuxuser=None)
  
 
-
     @actionrun(action=True)
     def _startAgent(self):
-        appbase = self.cuisine.args_replace("$appDir/agent8")
-        cfgfile_agent = self.cuisine.args_replace("$cfgDir/agent.toml")
+        appbase = self.cuisine.joinpaths(j.dirs.cfgDir, "agent8")
+        cfgfile_agent = self.cuisine.args_replace("$cfgDir/agent8/agent.toml")
+        binPath = self.cuisine.joinpaths(self.cuisine.dir_paths['binDir'],'agent8')
         print("connection test ok to agentcontroller")
-        #@todo (*1*) need to implement to work on node        
+        #@todo (*1*) need to implement to work on node
         env={}
         env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
-        self.cuisine.tmux.executeInScreen("main", screenname="agent", cmd="./agent8 -c %s" % cfgfile_agent, wait=0, cwd=appbase, env=env, user='root', tmuxuser=None)
+        cmd = "%s -c %s" % (binPath, cfgfile_agent)
+        self.cuisine.processmanager.ensure("agent8", cmd=cmd, path=appbase, env=env)
 
     @actionrun(action=True)
     def _startAgentController(self):
-        appbase = self.cuisine.args_replace("$appDir/agentcontroller8")
-        cfgfile_ac = self.cuisine.args_replace("$cfgDir/agentcontroller.toml")
-        env={}
-        env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
-        print ("****************************./agentcontroller8 -c %s" % cfgfile_ac)
-        self.cuisine.tmux.executeInScreen("main", screenname="ac", cmd="./agentcontroller8 -c %s" % cfgfile_ac, wait=0, cwd=appbase, env=env, user='root', tmuxuser=None)
+        appbase = self.cuisine.joinpaths(self.cuisine.dir_paths['cfgDir'], "agentcontroller8")
+        cfgfile_ac = self.cuisine.joinpaths(appbase, "agentcontroller.toml")
+        binPath = self.cuisine.joinpaths(self.cuisine.dir_paths['binDir'], 'agentcontroller8')
+        env = {}
+        env["TMPDIR"] = self.cuisine.dir_paths["tmpDir"]
+        cmd = "%s -c %s" % (binPath, cfgfile_ac)
+        self.cuisine.processmanager.ensure("agentcontroller8", cmd=cmd, path=appbase, env=env)
 
 
     # @actionrun(action=True)

@@ -1,4 +1,5 @@
 from JumpScale import j
+import time 
 
 #not using cuisine.tmux.executeInScreen
 class ProcessManagerBase:
@@ -188,8 +189,9 @@ exec $cmd2
             #     self.cuisine.file_link( "/etc/getty-5", "/etc/service")
             self.cuisine.file_ensure("/etc/service/%s/run" %name,mode="+x")
             self.cuisine.file_write("/etc/service/%s/run" %name, sv_text)
-
-        self.start(name)
+            time.sleep(5)
+            
+        self.reload(name)
                 
     def remove(self, prefix):
         """removes process from init"""
@@ -203,26 +205,26 @@ exec $cmd2
     def reload(self, name):
         """Reloads the given service, or starts it if it is not self.running."""
         if self.cuisine.file_exists("/etc/service/%s/run" %name ):
-            self.cuisine.run("sv reload %s" %name)
+            self.cuisine.run("sv reload %s" %name, profile=True)
 
 
     def start(self, name):
         """Tries a `restart` command to the given service, if not successful
         will stop it and start it. If the service is not started, will start it."""
         if self.cuisine.file_exists("/etc/service/vice/%s/run" %name ):
-            self.cuisine.run("sv -w 15 start /etc/service/%s/" %name )
+            self.cuisine.run("sv -w 15 start /etc/service/%s/" %name, profile=True )
 
     def stop(self, name, **kwargs):
         """Ensures that the given upstart service is stopped."""
         if self.cuisine.file_exists("/etc/service/%s/run" %name):
-            self.cuisine.run("sv -w 15 stop /etc/service/%s/" %name)
+            self.cuisine.run("sv -w 15 stop /etc/service/%s/" %name, profile=True)
 
 class CuisineTmuxec(ProcessManagerBase):
     def __init__(self,executor,cuisine):
         super().__init__(executor, cuisine)
 
     def list(self,prefix=""):
-        self.cuisine.run("tmux lsw")
+        self.cuisine.run("tmux lsw", profile=True)
         
     def ensure(self, name, cmd="", env={}, path="", descr=""):
         """Ensures that the given upstart service is self.running, starting

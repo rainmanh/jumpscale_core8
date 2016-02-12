@@ -154,7 +154,7 @@ class ActionRun():
                             #     line=line.strip().strip("' ").strip().replace("File ","")
                             #     err+="%s\n"%line.strip()
                             # err+="ERROR:%s\n"%e
-                            # print (err)                              
+                            # print (err)
                             self.log("Exception:%s"%e)
                             raise RuntimeError(e)
                     else:
@@ -344,7 +344,7 @@ class Service:
                 for k, v in self.yaml.items():
                     if k in self._mongoModel:
                         self._mongoModel[k] = v
-        return self._mongoModel    
+        return self._mongoModel
 
     # @property
     # def hrd_template(self):
@@ -470,13 +470,14 @@ class Service:
 
     @property
     def producers(self):
-        if self._producers ==None:
+        if self._producers is None or self._producers == {}:
             self._producers={}
             for key, items in self.hrd.getDictFromPrefix("producer").items():
                 producerSet = set()
                 for item in items:
-                    role,instance=item.split("!")
-                    service = j.atyourservice.getService(role,instance)
+                    domain, name, _ , instance, _ = j.atyourservice.parseKey(item)
+                    role = name.split(".")[0]
+                    service = j.atyourservice.getService(role, instance)
                     producerSet.add(service)
 
                 self._producers[key] = list(producerSet)

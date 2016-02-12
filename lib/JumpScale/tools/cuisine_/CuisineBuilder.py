@@ -113,7 +113,7 @@ class CuisineBuilder(object):
 
         if start:
             cmd = self.cuisine.bash.cmdGetPath("skydns")
-            self.cuisine.systemd.ensure("skydns", cmd)
+            self.cuisine.systemd.ensure("skydns", cmd + " -addr 0.0.0.0:53")
 
     @actionrun(action=True)
     def caddy(self,ssl=False,start=True, dns=None):
@@ -160,7 +160,7 @@ class CuisineBuilder(object):
                 PORTS=":80"
                 self.cuisine.fw.allowIncoming(80)
             cmd = self.cuisine.bash.cmdGetPath("caddy")
-            self.cuisine.systemd.ensure("caddy", '%s -conf=%s' % (cmd, cpath))
+            self.cuisine.systemd.ensure("caddy", '%s -conf=%s -email=info@greenitglobe.com' % (cmd, cpath))
 
 
     def caddyConfig(self,sectionname,config):
@@ -348,7 +348,14 @@ class CuisineBuilder(object):
         self.cuisine.tmux.executeInScreen("main", screenname="ac", cmd=cmd, wait=0, cwd=appbase, env=env, user='root', tmuxuser=None)
 
     @actionrun(action=True)
-    def etcd(self,start=True):
+    def etcd(self,start=True, host=None, peers=[]):
+        """
+        Build and start etcd
+
+        @start, bool start etcd after buildinf or not
+        @host, string. host of this node in the cluster e.g: http://etcd1.com
+        @peer, list of string, list of all node in the cluster. [http://etcd1.com, http://etcd2.com, http://etcd3.com]
+        """
         self.cuisine.golang.install()
         C="""
         set -ex
@@ -373,7 +380,40 @@ class CuisineBuilder(object):
 
         if start:
             self.cuisine.process.kill("etcd")
-            self.cuisine.systemd.ensure("etcd","etcd")
+            if cmd and peers:
+                cmd = self._etcd_cluster_cmd(host, peers)
+            else:
+                cmd = 'etcd'
+            self.cuisine.systemd.ensure("etcd", cmd)
+
+    def _etcd_cluster_cmd(host, peers=[]):
+        """
+        return the command to execute to launch etcd as a static cluster
+        @host, string. host of this node in the cluster e.g: http://etcd1.com
+        @peer, list of string, list of all node in the cluster. [http://etcd1.com, http://etcd2.com, http://etcd3.com]
+        """
+        if host not in peers:
+            peers.append(host)
+
+        cluster = ""
+        number = None
+        for i, peer in enumerate(peers):
+            cluster += 'infra{i}={host}:2380,'.format(i=i, host=peer)
+            if peer == host:
+                number = i
+        cluster = cluster.rstrip(",")
+
+        host = host.lstrip("http://").lstrip('https://')
+        cmd = """
+    etcd -name infra{i} -initial-advertise-peer-urls http://{host}:2380 \
+      -listen-peer-urls http://{host}:2380 \
+      -listen-client-urls http://{host}:2379,http://127.0.0.1:2379,http://{host}:4001,http://127.0.0.1:4001 \
+      -advertise-client-urls http://{host}:2379,http://{host}:4001 \
+      -initial-cluster-token etcd-cluster-1 \
+      -initial-cluster {cluster} \
+      -initial-cluster-state new
+    """.format(host=host, cluster=cluster, i=number)
+        return cmd
 
     @actionrun(action=True)
     def redis(self,name="main",ip="localhost", port=6379, maxram=200, appendonly=True,snapshot=False,slave=(),ismaster=False,passwd=None,unixsocket=True,start=True):
@@ -550,10 +590,12 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb/influxdb.conf.o
         self.cuisine.bash.addPath(j.sal.fs.getParent(binPath), action=True)
 
         if start:
-            cmd = 'weave stop; weave launch'
-            if peer:
-                cmd += ' %s' % peer
-            self.cuisine.run(cmd, profile=True)
+            rc, out = self.cuisine.run("weave status", die=False, showout=False)
+            if rc != 0:
+                cmd = 'weave launch'
+                if peer:
+                    cmd += ' %s' % peer
+                self.cuisine.run(cmd, profile=True)
 
             env = self.cuisine.run('weave env', profile=True)
             ss = env[len('export'):].strip().split(' ')

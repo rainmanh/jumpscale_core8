@@ -17,7 +17,7 @@ def patchMS1(api):
 
     def createPortFoward(cloudspaceId, protocol, localPort, machineId, publicIp, publicPort):
         url = os.path.join(api.cloudapi.portforwarding._url, 'create')
-        req = {'cloudspaceId': cloudspaceId,
+        req = {'cloudspaceid': cloudspaceId,
                'protocol': protocol,
                'localPort': localPort,
                'vmid': machineId,

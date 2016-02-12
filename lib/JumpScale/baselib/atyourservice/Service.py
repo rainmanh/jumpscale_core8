@@ -8,6 +8,7 @@ import imp
 import sys
 from functools import wraps
 from Recurring import Recurring
+import traceback
 
 # def log(msg, level=2):
 #     j.logger.log(msg, level=level, category='AYS')
@@ -140,8 +141,21 @@ class ActionRun():
                                 res = method()
                         except Exception as e:
                             self.setState("ERROR")
+                            # err="***ERROR %s***\n"%(self)
+                            # for line in traceback.format_stack():
+                            #     if "/IPython/" in line:
+                            #         continue
+                            #     # if "JumpScale/baselib" in line:
+                            #     #     continue
+                            #     if "site-packages/click/" in line:
+                            #         continue
+                            #     if "bin/ays" in line:
+                            #         continue
+                            #     line=line.strip().strip("' ").strip().replace("File ","")
+                            #     err+="%s\n"%line.strip()
+                            # err+="ERROR:%s\n"%e
+                            # print (err)                              
                             self.log("Exception:%s"%e)
-                            print ("ERROR")
                             raise RuntimeError(e)
                     else:
                         f = io.StringIO()
@@ -349,6 +363,7 @@ class Service:
     @property
     def action_methods_mgmt(self):
         if self._action_methods_mgmt is None or not self._rememberActions:
+            print ("reload mgmt actions for %s (%s)"%(self,self._rememberActions))
             if j.sal.fs.exists(path=self.recipe.path_actions_mgmt):
                 action_methods_mgmt = self._loadActions(self.recipe.path_actions_mgmt,"mgmt")
             else:
@@ -369,7 +384,6 @@ class Service:
             self._action_methods_node=action_methods_node
 
         return self._action_methods_node
-
 
     @property
     def actions(self):
@@ -400,17 +414,16 @@ class Service:
         if name not in self._actionlog:
             action = self._setAction(name, printonly=printonly)
             print("new action:%s (get)" % action)
-
+        else:
+            action=self._actionlog[name]
         action.printonly = printonly
         self.action_current = action
         return action
-
 
     def runAction(self,name,printonly=False):
         action=self.getAction(name,printonly=printonly)
         action.run()
         return action
-
 
     def _getActionMethodMgmt(self,action):
         try:
@@ -434,14 +447,17 @@ class Service:
         if j.sal.fs.exists(path+'c'):
             j.sal.fs.remove(path+'c')
         if j.sal.fs.exists(path):
-            if self._hrd is not None:
-                self.hrd.applyOnFile(path)
-            if self.recipe._hrd is not None:
-                self.recipe.hrd.applyOnFile(path)
-            j.application.config.applyOnFile(path)
             j.do.createDir(j.do.getDirName(path))
             path2 = j.do.joinPaths(self.path, j.do.getBaseName(path))
+            #need to create a copy of the recipe mgmt or node action class
             j.do.copyFile(path, path2)
+            # print (path2)
+            if self.hrd is not None:
+                # print ("apply hrd")
+                self.hrd.applyOnFile(path2)
+            if self.recipe._hrd is not None:
+                self.recipe.hrd.applyOnFile(path2)
+            j.application.config.applyOnFile(path2)
         else:
             j.events.opserror_critical(msg="can't find %s." % path, category="ays loadActions")
 
@@ -520,7 +536,6 @@ class Service:
 
                 self.runAction("hrd")
                 self._rememberActions = True
-                # self.action_methods_mgmt.hrd(self)
 
 
         self._init = True

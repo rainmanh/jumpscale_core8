@@ -1,6 +1,6 @@
 from JumpScale import j
 
-from JumpScale.servers.key_value_store.fs_store import FileSystemKeyValueStore
+from servers.key_value_store.fs_store import FileSystemKeyValueStore
 
 class StoreFactory(object):
     '''

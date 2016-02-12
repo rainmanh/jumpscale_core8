@@ -2,7 +2,6 @@
 from JumpScale import j
 from JumpScale.tools.develop.DevelopTools import DebugSSHNode
 
-
 class GCC(object):
 
     def __init__(self):
@@ -83,48 +82,60 @@ class GCC_Mgmt():
             self._docker_nodes = self._parseNode(nodes)
         return self._docker_nodes
 
-    def install(self, pubkey):
+
+    def install(self, pubkey, force=False):
+        """
+        pubkey, public ssh key to authorize inside the dockers deployed on the host.
+        """
         containers = []
         for i, node in enumerate(self.host_nodes):
-            weave_peer = node[0].addr if i > 0 else None
+            weave_peer = self.host_nodes[0].addr if i > 0 else None
             print("Prepare host %s" % node.addr)
-            self._installHostApp(node, weave_peer)
+            self._installHostApp(node, weave_peer, force=force)
+
             print("Create docker container on %s" % node.addr)
-            ssh_port = node.cuisine.docker.ubuntu(name='gcc-%d' % i, pubkey=pubkey)
+            name = 'gcc-%s' % (i+1)
+            ssh_port = node.cuisine.docker.ubuntu(name, ports="80:80 443:443 53/udp:54", pubkey=pubkey, force=force)
             containers.append("%s:%s" % (node.addr, ssh_port))
+
+            # needed cause weave already listen on port 53 on the host
+            ip = node.cuisine.run("jsdocker getip -n %s" % name)
+            node.cuisine.run("iptables -t nat -A PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination %s:53" % ip, action=True)
 
         j.core.db.set("gcc.docker_nodes", ','.join(containers))
 
         print('All host nodes ready.')
         print('Start installations dockers')
         for i, node in enumerate(self.docker_nodes):
-            self._installDockerApps(node)
+            self._installDockerApps(node, force=force)
 
-    def _installHostApp(self, node, weave_peer):
-        node.cuisine.installerdevelop.jumpscale8()
-        node.cuisine.installer.docker()
-        node.cuisine.builder.weave(start=True, peer=weave_peer)
+    def _installHostApp(self, node, weave_peer, force=False):
+        node.cuisine.installerdevelop.jumpscale8(force=force)
+        node.cuisine.installer.docker(force=force)
+        node.cuisine.builder.weave(start=True, peer=weave_peer, force=force)
 
     def _installDockerApps(self, node, force=False):
         node.cuisine.installerdevelop.jumpscale8(force=force)
 
-        node.cuisine.builder.caddy(ssl=True, start=True, dns=None, force=force)
+        peers = ["http://%s" % node.addr for node in self.docker_nodes]
+        node.cuisine.builder.etcd(start=True, host="http://%s" % node.addr, peers=peers, force=force)
+        node.cuisine.builder.skydns(start=True, force=force)
+        # @todo: configure skydns
+
+        node.cuisine.builder.aydostore(start=True, addr='127.0.0.1:8090', backend="$varDir/aydostor", force=force)
+        # node.cuisine.builder.agentcontroller(start=True, force=force)
+        node.cuisine.builder.caddy(ssl=True, start=True, dns=node.addr, force=force)
         cfg = node.cuisine.file_read("$cfgDir/caddy/caddyfile.conf")
         cfg += """
-proxy /etcd localhost:2379 localhost:4001 {
-    without /etcd
-}
+        proxy /etcd localhost:2379 localhost:4001 {
+        without /etcd
+        }
 
-proxy /storex localhost:8090 {
-    without /storex
-}
-"""
+        proxy /storex localhost:8090 {
+        without /storex
+        }
+        """
         node.cuisine.systemd.start('caddy')
-
-        node.cuisine.builder.etcd(start=True, force=force)
-        node.cuisine.builder.skydns(start=True, force=force)
-        node.cuisine.builder.aydostore(start=True, addr='127.0.0.1:8090', backend="$varDir/aydostor", force=force)
-        node.cuisine.builder.agentcontroller(start=True, force=force)
 
     def healthcheck(self):
         """

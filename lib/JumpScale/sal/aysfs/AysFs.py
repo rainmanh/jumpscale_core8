@@ -28,7 +28,7 @@ class AysFsFactory(object):
 		js8opt.setUnique()
 		js8opt.addMount('/aysfs/docker/jumpscale', 'RO', '/aysfs/flist/js8_opt.flist', prefix='/opt')
 		js8opt.addBackend('/ays/backend/jumpscale', 'js8_opt')
-		js8opt.addStor('http://10.197.55.1:8080') # FIXME: remove local storage
+		js8opt.addStor()
 		return js8opt
 	
 	def getOptvar(self, cuisine=None):
@@ -37,7 +37,7 @@ class AysFsFactory(object):
 		js8optvar = AysFs('optvar', cuisine)
 		js8optvar.addMount('/aysfs/docker/$NAME', 'OL', '/aysfs/flist/js8_optvar.flist', prefix='/optvar')
 		js8optvar.addBackend('/ays/backend/$NAME', 'js8_optvar')
-		js8optvar.addStor('http://10.197.55.1:8080') # FIXME: remove local storage
+		js8optvar.addStor()
 		return js8optvar
 
 class AysFs(SALObject):

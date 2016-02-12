@@ -6,6 +6,7 @@ class GCC(object):
 
     def __init__(self):
         super(GCC, self).__init__()
+        self.__jslocation__ = "j.tools.gcc"
 
     def get(self, nodes=[]):
         """
@@ -30,7 +31,7 @@ class GCC_Mgmt():
     def __init__(self, nodes=[]):
         if len(nodes) > 0:
             self.init(nodes=nodes)
-        self.__jslocation__ = "j.tools.gcc"
+
         self._host_nodes = []
         self._docker_nodes = []
 
@@ -114,13 +115,14 @@ class GCC_Mgmt():
         node.cuisine.installer.docker(force=force)
         node.cuisine.builder.weave(start=True, peer=weave_peer, force=force)
 
-    def _installDockerApps(self, node, force=False):
+    def _installDockerApps(self, node, force=False, login='', passwd=''):
         node.cuisine.installerdevelop.jumpscale8(force=force)
 
         peers = ["http://%s" % node.addr for node in self.docker_nodes]
         node.cuisine.builder.etcd(start=True, host="http://%s" % node.addr, peers=peers, force=force)
         node.cuisine.builder.skydns(start=True, force=force)
         # @todo: configure skydns
+        # print(skydns.setConfig({'dns_addr': '0.0.0.0:53', 'domain': 'barcelona.aydo.com'}))
 
         node.cuisine.builder.aydostore(start=True, addr='127.0.0.1:8090', backend="$varDir/aydostor", force=force)
         # node.cuisine.builder.agentcontroller(start=True, force=force)
@@ -135,6 +137,12 @@ class GCC_Mgmt():
         without /storex
         }
         """
+        
+        if login and passwd:
+            cfg += "\nbasicauth /etcd %s %s\n" % (login, passwd)
+        
+        cfg = node.cuisine.file_write("$cfgDir/caddy/caddyfile.conf", cfg)
+        
         node.cuisine.systemd.start('caddy')
 
     def healthcheck(self):
@@ -168,9 +176,13 @@ class GCC_Nameserver():
         self.login = login
         self.passwd = passwd
 
-    def ns_addHost(addr, dnsinfo):  # to be further defined
-        #@todo use https over caddy to speak to etcd to configure skydns, maybe clients do already exist?
-        pass
+    def ns_addHost(self, hostname, target):
+        """
+        set a record (A, AAAA, CNAME) which point from hostname -> target (hello.exemple.com -> 8.8.8.8)
+        """
+        host = self.manager.host_nodes[0].addr
+        skydns = j.clients.skydns.get('https://%s/etcd' % host, self.login, self.passwd)
+        skydns.setRecordA(hostname, target)
 
 
 class GCC_aydostor():

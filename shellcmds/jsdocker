@@ -67,10 +67,18 @@ def commit(name, tag):
 @click.option('--sharecode', help='Share host /opt/code witch container', is_flag=True, type=bool)
 @click.option('--keyname', help='ssh-agent keyname to be used to push into container')
 @click.option('--pubkey', help='public sshkey to push into container')
-def create(image, name, ports, volumes, cpu, memory, sharecode, keyname, pubkey):
+@click.option('--aysfs', help='use default jumpscale aysfs', is_flag=True, type=bool)
+def create(image, name, ports, volumes, cpu, memory, sharecode, keyname, pubkey, aysfs):
+    aysfspts = []
+    
+    if aysfs:
+        aysfspts.append(j.sal.aysfs.getJumpscale())
+        aysfspts.append(j.sal.aysfs.getOptvar())
+    
     j.sal.docker.create(name=name, stdout=True, base=image, ports=ports, vols=volumes,
              volsro=None, cpu=cpu, mem=memory, jumpscale=False, sharecode=sharecode,\
-             sshkeyname=keyname, sshpubkey=pubkey, rootpasswd=None, jumpscalebranch=None)
+             sshkeyname=keyname, sshpubkey=pubkey, rootpasswd=None, jumpscalebranch=None,\
+             aysfs=aysfspts)
 
 
 @click.command()

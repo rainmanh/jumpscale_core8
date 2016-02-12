@@ -32,6 +32,7 @@ class Client:
     def __init__(self, url, login, password=None, secret=None, port=443):
         if not password and not secret:
             raise ValueError("Either secret or password should be given")
+        self._accountId = None
         self._url = url
         self._login = login
         self.api = j.clients.portal.get(url, port)
@@ -43,14 +44,20 @@ class Client:
         else:
             self.api.load_swagger(group='cloudapi')
 
+    @property
+    def accountId(self):
+        if self._accountId is None:
+            self._accountId = self.api.cloudapi.accounts.list()[0]['id']
+        return self._accountId
+
     def __login(self, password, secret):
         if not secret:
             secret = self.api.cloudapi.users.authenticate(username=self._login, password=password)
         self.api._session.cookies.clear()  # make sure cookies are empty, clear guest cookie
         self.api._session.cookies['beaker.session.id'] = secret
 
-    def findSize(self, memory=None, vcpus=None):
-        for size in self.api.cloudapi.sizes.list():
+    def findSize(self, cloudspaceId, memory=None, vcpus=None):
+        for size in self.api.cloudapi.sizes.list(cloudspaceId=cloudspaceId):
             if memory and not size['memory'] == memory:
                 continue
             if vcpus and not size['vcpus'] == vcpus:
@@ -61,6 +68,16 @@ class Client:
         for image in self.api.cloudapi.images.list():
             if image['name'] == name:
                 return image
+
+    def findCloudSpace(self, name):
+        for cs in self.api.cloudapi.cloudspaces.list():
+            if cs['name'] == name:
+                return cs
+
+    def findMachine(self, cloudspaceId, name):
+        for machine in self.api.cloudapi.machines.list(cloudspaceId=cloudspaceId):
+            if machine['name'] == name:
+                return machine
 
     def getSSHConnection(self, machineId):
         """
@@ -110,4 +127,3 @@ class Client:
         login = machine['accounts'][0]['login']
         password = machine['accounts'][0]['password']
         return j.tools.executor.getSSHBased(publicip, sshport, login, password)
-

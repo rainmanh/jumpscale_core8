@@ -218,6 +218,7 @@ class OurCuisine():
 
     def __init__(self,executor):
         self.cd="/"
+        self.sudomode = False
 
         self.executor=executor
 
@@ -378,7 +379,7 @@ class OurCuisine():
             self._dnsmasq=j.sal.dnsmasq
             self._dnsmasq.cuisine=self
             self._dnsmasq.executor=self.executor
-        return self._dnsmasq 
+        return self._dnsmasq
 
     @property
     def bash(self):
@@ -420,7 +421,7 @@ class OurCuisine():
 
     @property
     def dir_paths(self):
-        if self._dirs=={}:
+        if self._dirs == {}:
             rc,out=self.run("js 'print(j.data.serializer.json.dumps(j.dirs.__dict__))'",showout=False,die=False,force=True,replaceArgs=False)
             if False:#rc==0:
                 self._dirs=j.data.serializer.json.loads(out)
@@ -457,7 +458,7 @@ class OurCuisine():
         else:
             self._dirs["optDir"]= "/opt/"
 
-        self._dirs["goDir"]= "%sgo/"%self._dirs["optDir"]        
+        self._dirs["goDir"]= "%sgo/"%self._dirs["optDir"]
 
         return self._dirs
 
@@ -1045,9 +1046,6 @@ class OurCuisine():
 
     createDir=dir_ensure
 
-
-
-
     @actionrun(action=False,force=False)
     def fs_find(self,path,recursive=True,pattern="",findstatement="",type="",contentsearch="",extendinfo=False):
         """
@@ -1150,6 +1148,10 @@ class OurCuisine():
             if ppath!=None:
                 cmd=". %s;%s"%(ppath,cmd)
             print ("PROFILECMD:%s"%cmd)
+
+        if self.sudomode:
+            passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
+            cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
 
         rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)
 

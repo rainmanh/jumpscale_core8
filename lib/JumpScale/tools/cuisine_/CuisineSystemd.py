@@ -18,7 +18,7 @@ class CuisineSystemd():
                 self._systemdOK=False
             else:
                 if self.cuisine.command_check("systemctl"):
-                    rc, out = self.cuisine.run('systemctl status', die=False)
+                    rc, out = self.cuisine.run('systemctl status', die=False, showout=False)
                     self._systemdOK = (rc == 0)
         return self._systemdOK
 
@@ -82,7 +82,7 @@ class CuisineSystemd():
                     from IPython import embed
                     print ("DEBUG NOW remove ")
                     embed()
-                    
+
                     self.cuisine.file_unlink(item)
                 self.cuisine.run("systemctl daemon-reload")
 
@@ -173,5 +173,3 @@ class CuisineSystemd():
         show which services need to be started before this one
         """
         return self.cuisine.run("systemctl list-dependencies %s"%name)
-
-

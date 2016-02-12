@@ -173,7 +173,7 @@ class ActionRun():
     __repr__=__str__
 
 
-class Service(object):
+class Service:
 
     def __init__(self, servicerecipe=None,instance=None, path="", args=None, parent=None, originator=None):
         """
@@ -187,6 +187,7 @@ class Service(object):
             self._version=None
             self._domain=None
             self._recipe=None
+            self._rememberActions = True
         else:
             if j.data.types.string.check(servicerecipe):
                 raise RuntimeError("no longer supported, pass servicerecipe")
@@ -203,6 +204,7 @@ class Service(object):
             self._domain = servicerecipe.parent.domain.lower()
             self._recipe = servicerecipe
             self.role = self.name.split(".")[0]
+            self._rememberActions = False
 
         self.instance = self.instance.lower()
 
@@ -242,7 +244,6 @@ class Service(object):
         self._actionlog={} #key=actionname with _pre _post ... value = ActionRun
 
         self.action_current = None
-        self._rememberActions = False
 
 
     @property
@@ -329,12 +330,7 @@ class Service(object):
                 for k, v in self.yaml.items():
                     if k in self._mongoModel:
                         self._mongoModel[k] = v
-        return self._mongoModel
-
-    @property
-    def rememberActions(self):
-        return self.hrd.getBool("rememberactions", False)
-    
+        return self._mongoModel    
 
     # @property
     # def hrd_template(self):
@@ -352,29 +348,25 @@ class Service(object):
 
     @property
     def action_methods_mgmt(self):
-        if self._action_methods_mgmt is None:
+        if self._action_methods_mgmt is None or not self._rememberActions:
             if j.sal.fs.exists(path=self.recipe.path_actions_mgmt):
                 action_methods_mgmt = self._loadActions(self.recipe.path_actions_mgmt,"mgmt")
             else:
                 action_methods_mgmt = j.atyourservice.getActionsBaseClassMgmt()(self)
 
-            if self.rememberActions:
-                #we don't want to remember untill hrd is populated
-                self._action_methods_mgmt = action_methods_mgmt
+            self._action_methods_mgmt = action_methods_mgmt
 
         return self._action_methods_mgmt
 
     @property
     def action_methods_node(self):
-        if self._action_methods_node is None:
+        if self._action_methods_node is None or not self._rememberActions:
             if j.sal.fs.exists(path=self.recipe.path_actions_node):
                 action_methods_node = self._loadActions(self.recipe.path_actions_node,"node")
             else:
                 action_methods_node = j.atyourservice.getActionsBaseClassNode()(self)
 
-            if self.rememberActions:
-                #we don't want to remember untill hrd is populated
-                self._action_methods_node=action_methods_node
+            self._action_methods_node=action_methods_node
 
         return self._action_methods_node
 
@@ -385,9 +377,12 @@ class Service(object):
 
     def _setAction(self,name,epoch=0,state="INIT",log=True,printonly=False):
         if name not in self._actionlog:
-            self._actionlog[name]=ActionRun(self,name=name,epoch=epoch,state=state,printonly=printonly)
+            actionrun = ActionRun(self, name=name,epoch=epoch,state=state,printonly=printonly)
+            if self._rememberActions:
+                self._actionlog[name] = actionrun
             if log:
-                self._actionlog[name].setState(state)
+                actionrun.setState(state)
+            return actionrun
             # print("new action:%s"%self._actionlog[name])
         else:
             actionrun=self._actionlog[name]
@@ -398,17 +393,16 @@ class Service(object):
                 actionrun.setState(state)
             else:
                 actionrun._state=state
+            return actionrun
             # print("action exists:%s"%self._actionlog[name])
 
-
-    def getAction(self,name,printonly=False):
+    def getAction(self, name, printonly=False):
         if name not in self._actionlog:
-            self._setAction(name,printonly=printonly)
-            print("new action:%s (get)"%self._actionlog[name])
+            action = self._setAction(name, printonly=printonly)
+            print("new action:%s (get)" % action)
 
-        action=self._actionlog[name]
-        action.printonly=printonly
-        self.action_current=action
+        action.printonly = printonly
+        self.action_current = action
         return action
 
 
@@ -440,16 +434,14 @@ class Service(object):
         if j.sal.fs.exists(path+'c'):
             j.sal.fs.remove(path+'c')
         if j.sal.fs.exists(path):
-            j.do.createDir(j.do.getDirName(path))
-            path2=j.do.joinPaths(self.path,j.do.getBaseName(path))
-            j.do.copyFile(path,path2)
             if self._hrd is not None:
-                self.hrd.applyOnFile(path2)
-
-            # print ("loadactions:%s:%s:%s"%(self,path,ttype))
-            if self.recipe.hrd is not None:
-                self.recipe.hrd.applyOnFile(path2)            
-            j.application.config.applyOnFile(path2)
+                self.hrd.applyOnFile(path)
+            if self.recipe._hrd is not None:
+                self.recipe.hrd.applyOnFile(path)
+            j.application.config.applyOnFile(path)
+            j.do.createDir(j.do.getDirName(path))
+            path2 = j.do.joinPaths(self.path, j.do.getBaseName(path))
+            j.do.copyFile(path, path2)
         else:
             j.events.opserror_critical(msg="can't find %s." % path, category="ays loadActions")
 
@@ -527,7 +519,7 @@ class Service(object):
                     self.consume(self.parent)
 
                 self.runAction("hrd")
-                self.hrd.set("rememberActions", True)
+                self._rememberActions = True
                 # self.action_methods_mgmt.hrd(self)
 
 

@@ -37,7 +37,11 @@ class Client:
         self.api = j.clients.portal.get(url, port)
         self.__login(password, secret)
         if 'mothership1' in url:
+            jsonpath = os.path.join(os.path.dirname(__file__), 'ms1.json')
+            self.api.load_swagger(file=jsonpath, group='cloudapi')
             patchMS1(self.api)
+        else:
+            self.api.load_swagger(group='cloudapi')
 
     def __login(self, password, secret):
         if not secret:

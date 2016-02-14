@@ -144,11 +144,11 @@ class CuisinePackage():
             self.install(dep)
 
     @actionrun()
-    def start(self,package):
-        if self.cuisine.isArch:
-            self.cuisine.run("systemd start %s"%package)
+    def start(self,package):        
+        if self.cuisine.isArch or self.cuisine.isUbuntu or self.cuisine.isMac:
+            self.cuisine.processmanager.start(package)    
         else:
-            raise RuntimeError("could not install/ensure:%s, platform not supported"%package)           
+            raise RuntimeError("could not install/ensure:%s, platform not supported" %package)           
 
     @actionrun(action=True)
     def ensure(self,package, update=False):

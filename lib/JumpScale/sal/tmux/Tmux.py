@@ -76,7 +76,7 @@ class Tmux(SALObject):
              self.killWindow( sessionname, screenname)
 
         if cmd.strip():
-            self.createWindow(sessionname, screenname, user=tmuxuser)
+            self.createWindow(sessionname, screenname, cmd=cmd, user=tmuxuser)
             pane = self._getPane(sessionname, screenname, user=tmuxuser)
             env = os.environ.copy()
             env.pop('TMUX', None)
@@ -85,7 +85,7 @@ class Tmux(SALObject):
                 cmd2 = "tmux send-keys -t '%s' '%s\n'" % (pane, envstr)
                 if tmuxuser is not None:
                     cmd2 = "sudo -u %s -i %s" % (tmuxuser, cmd2)
-                self.executor.execute(cmd2, env=env,showout=False)
+                self.executor.execute(cmd2, showout=False)
 
             if cwd:
                 cwd = "cd %s;" % cwd
@@ -142,7 +142,7 @@ class Tmux(SALObject):
             result[int(idx)] = name
         return result
 
-    def createWindow(self, session, name, user=None):
+    def createWindow(self, session, name, user=None, cmd=None):
         if session not in self.getSessions(user=user):
             return self.createSession(session, [name], user=user)
         windows = self.getWindows(session, user=user)

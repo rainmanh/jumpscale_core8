@@ -191,8 +191,6 @@ def text_strip_margin(text, margin="|"):
 
 from CuisineInstaller import CuisineInstaller
 from CuisineInstallerDevelop import CuisineInstallerDevelop
-from CuisineSystemd import CuisineSystemd
-from CuisineUpstart import CuisineUpstart
 from CuisinePackage import CuisinePackage
 from CuisineProcess import CuisineProcess
 from CuisinePIP import CuisinePIP
@@ -207,6 +205,7 @@ from ActionDecorator import ActionDecorator
 from CuisineGolang import CuisineGolang
 from CuisineFW import CuisineFW
 from CuisineDocker import CuisineDocker
+from ProcessManagerFactory import ProcessManagerFactory
 from CuisinePortal import CuisinePortal
 
 class actionrun(ActionDecorator):
@@ -226,8 +225,7 @@ class OurCuisine():
         self._platformtype=None
         self._id=None
         self._package=None
-        self._upstart=None
-        self._systemd=None
+        self._processmanager=None
         self._installerdevelop=None
         self._process=None
         self._hostname=""
@@ -271,19 +269,6 @@ class OurCuisine():
 
             self._package=CuisinePackage(self.executor,self)
         return self._package
-
-    @property
-    def upstart(self):
-        if self._upstart==None:
-            self._upstart=CuisineUpstart(self.executor,self)
-        return self._upstart
-
-    @property
-    def systemd(self):
-        if self._systemd==None:
-            self._systemd=CuisineSystemd(self.executor,self)
-        return self._systemd
-
 
     @property
     def process(self):
@@ -418,6 +403,12 @@ class OurCuisine():
             #@todo need to implement when sandbox, what is the right check?
             self._js8sb=False
         return self._js8sb
+
+    @property
+    def processmanager(self):
+        if self._processmanager==None:
+            self._processmanager = ProcessManagerFactory(self).get()
+        return self._processmanager
 
     @property
     def dir_paths(self):
@@ -947,7 +938,7 @@ class OurCuisine():
         res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
         if res.find("command not found")!=-1:
             #print could not find python need to install
-            self.package.install("python3.5")
+            self.cuisine.package.install("python3.5")
             res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
         return res
 
@@ -1146,7 +1137,7 @@ class OurCuisine():
         if profile:
             ppath=self.bash.profilePath
             if ppath!=None:
-                cmd=". %s;%s"%(ppath,cmd)
+                cmd=". %s && %s"%(ppath,cmd)
             print ("PROFILECMD:%s"%cmd)
 
         if self.sudomode:
@@ -1166,9 +1157,9 @@ class OurCuisine():
                     embed()
                     self.done.append("python")
                     if self.isArch:
-                        self.package.install("python3")
+                        self.cuisine.package.install("python3")
                     else:
-                        self.package.install("python3.5")
+                        self.cuisine.package.install("python3.5")
                     next=True
 
                 if out.find("pip3: command not found")!=-1 and not "pip" in self.done:
@@ -1287,7 +1278,7 @@ class OurCuisine():
         if package is None:
             package = command
         if not self.command_check(command):
-            self.package.install(package)
+            self.cuisine.package.install(package)
         assert self.command_check(command), \
             "Command was not installed, check for errors: %s" % (command)
 
@@ -1331,6 +1322,11 @@ class OurCuisine():
 
 
     #####################SYSTEM IDENTIFICATION
+    @property
+    def isDocker(self):
+        docker = self.run('mount | grep hostname > /dev/null', die = False)
+        return not docker[0]
+
 
     @property
     def isUbuntu(self):

@@ -18,7 +18,7 @@ set -ex
 export PYTHONVERSION='3'
 export AYSGIT='https://github.com/Jumpscale/ays_jumpscale8'
 export AYSBRANCH='master'
-export LC_ALL=C.UTF-8
+export LC_ALL='C.UTF-8'
 
 if [ "$(uname)" == "Darwin" ]; then
     # Do something under Mac OS X platform   

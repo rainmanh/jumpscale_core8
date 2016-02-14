@@ -176,7 +176,7 @@ class CuisineRunit(ProcessManagerBase):
 set -e
 echo $descrs
 $env
-exec $cmd2
+exec $cmd
             """
             sv_text = sv_text.replace("$env", envstr)
             sv_text = sv_text.replace("$cmd",cmd)
@@ -190,7 +190,7 @@ exec $cmd2
             self.cuisine.file_ensure("/etc/service/%s/run" %name,mode="+x")
             self.cuisine.file_write("/etc/service/%s/run" %name, sv_text)
             time.sleep(5)
-            
+
         self.reload(name)
                 
     def remove(self, prefix):

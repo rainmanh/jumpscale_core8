@@ -336,7 +336,6 @@ class CuisineBuilder(object):
 
     #@actionrun(action=True)    
     def mongodb(self, start=True):
-        import ipdb;ipdb.set_trace()
         self.installdeps()
         exists=self.cuisine.command_check("mongod")
 

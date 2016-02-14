@@ -11,22 +11,20 @@ class Factory:
         return Client(url, login, password, secret, port)
 
 def patchMS1(api):
-    def portForwardingList(cloudspaceId):
-        url = os.path.join(api.cloudapi.portforwarding._url, 'list')
-        return api.cloudapi.portforwarding._session.post(url, {'cloudspaceid': cloudspaceId}).json()
+    def patchmethod(method, argmap):
+        def wrapper(**kwargs):
+            for oldkey, newkey in argmap.items():
+                if oldkey in kwargs:
+                    value = kwargs.pop(oldkey)
+                    kwargs[newkey] = value
+            return method(**kwargs)
+        wrapper.__doc__ = method.__doc__
+        return wrapper
 
-    def createPortFoward(cloudspaceId, protocol, localPort, machineId, publicIp, publicPort):
-        url = os.path.join(api.cloudapi.portforwarding._url, 'create')
-        req = {'cloudspaceid': cloudspaceId,
-               'protocol': protocol,
-               'localPort': localPort,
-               'vmid': machineId,
-               'publicIp': publicIp,
-               'publicPort': publicPort}
-        return api.cloudapi.portforwarding._session.post(url, req).json()
 
-    api.cloudapi.portforwarding.list = portForwardingList
-    api.cloudapi.portforwarding.create = createPortFoward
+    api.cloudapi.portforwarding.list = patchmethod(api.cloudapi.portforwarding.list, {'cloudspaceId': 'cloudspaceid'})
+    api.cloudapi.portforwarding.create = patchmethod(api.cloudapi.portforwarding.create,
+                                                     {'cloudspaceId': 'cloudspaceid', 'machineId': 'vmid'})
 
 class Client:
     def __init__(self, url, login, password=None, secret=None, port=443):

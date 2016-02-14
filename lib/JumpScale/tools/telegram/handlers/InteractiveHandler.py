@@ -88,10 +88,11 @@ class InteractiveHandler:
         self.activeSessions = {}
         self.actions={}
         self.lastactionshash=""
+        self.actionspath = ""
 
-        print("connect to local redis")
+        print("Connecting to local redis")
         self.redisconfig=j.core.db
-        print("redis connection ok")        
+        print("redis connection ok")
 
     def checkSession(self,tg,message,name="main",newcom=True):
         # username=message.from_user.username
@@ -103,8 +104,8 @@ class InteractiveHandler:
         self.activeSessions[username]=self.sessions[key]
         if newcom:
             self.sessions[key].start_communication()
-        self.redisconfig.hset("sessions_%s"%username,name,message.chat.id)   
-        self.redisconfig.hset("sessions_active",username,name) 
+        self.redisconfig.hset("sessions_%s"%username,name,message.chat.id)
+        self.redisconfig.hset("sessions_active",username,name)
         return self.sessions[key]
 
     def stopSession(self,tg,message,name):
@@ -129,14 +130,14 @@ class InteractiveHandler:
         print("test.define")
         markup={}
 
-        session=self.checkSession(tg,message,name="test",newcom=True)      
+        session=self.checkSession(tg,message,name="test",newcom=True)
         result=int(session.send_message("Please specify how many VNAS'es you would like to use (1-10).",True))
         for i in range(result):
             session.send_message(str(i))
         markup=[["Yes"],["No"]]
         result=session.send_message("Do you want custom settings?",True,markup=markup)
         session.stop_communication()
-    
+
     def getUserName(self,message):
         try:
             username=message.from_user.username
@@ -153,9 +154,9 @@ class InteractiveHandler:
             h="Available actions (call them with '!$actionname')\n"
             for key,action in self.actions.items():
                 if hasattr(action,"description"):
-                    h+="- '%-20s' : %s\n"%(key, action.description)                    
+                    h+="- '%-20s' : %s\n"%(key, action.description)
                 else:
-                    h+="- '%-20s'\n"%(key)                    
+                    h+="- '%-20s'\n"%(key)
             h+="If you need more help on 1 action, do '!$actionname?'\n"
             h+="If you do ?? you get more info about the robot system.\n"
             h+="!s go to session (std session=main), without arg prints session we are in.\n"
@@ -166,16 +167,20 @@ class InteractiveHandler:
 
             return h
 
-        print("recv:%s"%message.text)
+        print("Received this:")
+        print("*********************")
+        print(message.text)
+        print("*********************")
+
 
         username=self.getUserName(message)
-            
+
         if self.redisconfig.hexists("sessions_active",username):
             sessionName=self.redisconfig.hget("sessions_active",username)
             session=self.checkSession(tg,message,name=sessionName,newcom=False)
         else:
             session=self.checkSession(tg,message,name="main",newcom=False)
-        
+
         if username in self.activeCommunications:
             #returning message from flow
             session=self.activeCommunications[username]
@@ -191,12 +196,12 @@ class InteractiveHandler:
 
         text=message.text.strip()
 
-        if text=="?":       
-            print(tg.send_message(message.chat.id, help()))    
-            return        
+        if text=="?":
+            print(tg.send_message(message.chat.id, help()))
+            return
 
         if text.startswith("!list") or text=="!l":
-            msg="Sessions:\n"            
+            msg="Sessions:\n"
             if self.redisconfig.hkeys("sessions_%s"%username)!=None:
                 for item in self.redisconfig.hkeys("sessions_%s"%username):
                     msg+="- %s\n"%item
@@ -207,7 +212,7 @@ class InteractiveHandler:
 
         if text.lower().startswith("!s "):
             sessionname0=text.split(" ")[1].strip()
-            session=self.checkSession(tg,message,name=sessionname0,newcom=False)   
+            session=self.checkSession(tg,message,name=sessionname0,newcom=False)
             self.activeSessions[username]=session
             return
 
@@ -244,10 +249,10 @@ class InteractiveHandler:
         if text.startswith("!"):
             cmd=text.strip("?!")
             if cmd in list(self.actions.keys()):
-                if text[-1]=="?":                        
+                if text[-1]=="?":
                     h="Help for %s:\n"%cmd
                     h+=self.actions[cmd].help+"\n"
-                    print(tg.send_message(message.chat.id, h))            
+                    print(tg.send_message(message.chat.id, h))
                 else:
                     try:
                         gevent.spawn(self.actions[cmd].action,session,message)
@@ -280,16 +285,16 @@ class InteractiveHandler:
                 tg.send_message(message.chat.id,"session arg: '%s'='%s'"%(paramname,val))
             return
 
-
+    def setActionsPath(self, path):
+        self.actionspath = path
 
     def maintenance(self):
-        print("1")
-        path = "/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/telegram/actions_examples"
-        lasthash=j.data.hash.md5_string(str( j.data.hash.hashDir(path)))
+        print("maintaining")
+        lasthash=j.data.hash.md5_string(str(j.data.hash.hashDir(self.actionspath)))
         if lasthash!=self.lastactionshash:
             print("load actions")
             self.actions={}
-            for path in j.sal.fs.listFilesInDir(path,recursive=True,filter="*.py"):
+            for path in j.sal.fs.listFilesInDir(self.actionspath,recursive=True,filter="*.py"):
                 name=j.sal.fs.getBaseName(path)[:-3]
                 if name[0]!="_":
                     mod = imp.load_source(name, path)

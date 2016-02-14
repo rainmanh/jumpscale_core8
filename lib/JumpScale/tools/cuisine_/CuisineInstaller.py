@@ -275,8 +275,8 @@ class CuisineInstaller(object):
         [Install]
         WantedBy=multi-user.target
         """
-
-        self.cuisine.processmanager.ensure("ap",cmd2,descr="accesspoint for local admin",systemdunit=START1)
+        pm = self.cuisine.processmanager.get("systemd")
+        pm.ensure("ap",cmd2,descr="accesspoint for local admin",systemdunit=START1)
 
     @actionrun(action=True)
     def clean(self):

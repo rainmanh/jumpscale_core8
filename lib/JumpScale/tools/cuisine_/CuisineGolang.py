@@ -31,11 +31,7 @@ class CuisineGolang():
                 self.cuisine.file_download(downl,"/usr/local",overwrite=False,retry=3,timeout=0,expand=True)
             else:
                 raise RuntimeError("platform not supported")
-<<<<<<< HEAD
 
-        self.cuisine.bash.environSet("GOPATH", '%s/go'%optdir)
-=======
->>>>>>> tmp2
 
         optdir = self.cuisine.dir_paths["optDir"]
 

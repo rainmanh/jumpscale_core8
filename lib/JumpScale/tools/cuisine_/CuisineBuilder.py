@@ -243,7 +243,6 @@ class CuisineBuilder(object):
         self.installdeps()
         self.redis()
         self.mongodb()
-        GOPATH = self.cuisine.bash.environGet('GOPATH')
 
         self.cuisine.tmux.killWindow("main","agent")
 

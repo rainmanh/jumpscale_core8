@@ -49,12 +49,14 @@ class TelegramBot:
         """
         # self.api.process_updates()
         h=InteractiveHandler()
+        h.actionspath = "%s/telegrambot/actions" % j.dirs.varDir
+        print("Actions path: %s" %(h.actionspath))
         h.maintenance()
         self.api.add_handler(h)
         gevent.spawn(self.api.process_updates)
         while True:
             gevent.sleep(1)
-        #for handler in self.api.handlers:
-        #        handler.maintenance()
-            self.api.handlers[1].maintenance()
+            for handler in self.api.handlers:
+                if hasattr(handler,'maintenance'):
+                    handler.maintenance()
 

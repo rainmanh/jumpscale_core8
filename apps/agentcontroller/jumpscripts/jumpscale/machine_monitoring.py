@@ -100,7 +100,7 @@ def action():
                 vdisk.active = j.sal.fs.exists(path)
                 if vdisk.active:
                     try:
-                        diskinfo = j.system.platform.qemu_img.info(path)
+                        diskinfo = j.sal.qemu_img.info(path)
                         vdisk.size = diskinfo['virtual size']
                         vdisk.sizeondisk = diskinfo['disk size']
                         vdisk.backingpath = diskinfo.get('backing file', '')

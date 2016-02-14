@@ -455,7 +455,7 @@ fi
 
         j.sal.fs.writeFile(filename=machine_ovs_file,contents=Covs)
 
-        j.system.unix.chmod(machine_ovs_file, 0o755)
+        j.sal.fs.chmod(machine_ovs_file, 0o755)
 
         ed=j.tools.code.getTextFileEditor(machine_cfg_file)
         ed.setSection(netname,config)

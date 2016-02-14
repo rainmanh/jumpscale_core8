@@ -1529,7 +1529,7 @@ class SystemProcess(SALObject):
             return True
 
         elif j.core.platformtype.myplatform.isWindows():
-            return j.system.windows.isPidAlive(pid)
+            return j.sal.windows.isPidAlive(pid)
 
     kill = staticmethod(kill)
 
@@ -1669,7 +1669,7 @@ class SystemProcess(SALObject):
         # Windows platform
         elif j.core.platformtype.myplatform.isWindows():
 
-            return j.system.windows.checkProcess(process, min)
+            return j.sal.windows.checkProcess(process, min)
 
     def checkProcessForPid(self, pid, process):
         """
@@ -1696,7 +1696,7 @@ class SystemProcess(SALObject):
 
         elif j.core.platformtype.myplatform.isWindows():
 
-            return j.system.windows.checkProcessForPid(process, pid)
+            return j.sal.windows.checkProcessForPid(process, pid)
 
     def setEnvironmentVariable(self, varnames, varvalues):
         """Set the value of the environment variables C{varnames}. Existing variable are overwritten

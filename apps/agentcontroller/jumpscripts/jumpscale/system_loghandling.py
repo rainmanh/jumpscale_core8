@@ -46,7 +46,7 @@ def action():
 
     ecoguid = None
     path = "%s/apps/processmanager/eventhandling"%j.dirs.baseDir
-    if j.system.fs.exists(path=path):
+    if j.sal.fs.exists(path=path):
         eventhandlingTE = j.core.taskletengine.get(path)
         ecoguid=ecoqueue.get_nowait()
     else:

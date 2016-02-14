@@ -118,14 +118,14 @@ class CodeTools:
         look for editor (uses geany) and then edit the file
         """
         filepath,linenr,sourcecode=self.classInfoGet(classs)
-        j.system.process.executeWithoutPipe("geany %s" % filepath)
+        j.sal.process.executeWithoutPipe("geany %s" % filepath)
 
     def classEditWing(self,classs):
         """
         look for editor (uses geany) and then edit the file
         """
         filepath,linenr,sourcecode=self.classInfoGet(classs)
-        j.system.process.executeWithoutPipe("wing4.1 %s" % filepath)
+        j.sal.process.executeWithoutPipe("wing4.1 %s" % filepath)
 
 
     def classGetBase(self):

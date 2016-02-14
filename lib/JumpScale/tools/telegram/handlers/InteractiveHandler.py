@@ -88,7 +88,7 @@ class InteractiveHandler:
         self.activeSessions = {}
         self.actions={}
         self.lastactionshash=""
-        self.actionspath = ""
+        self.actionspath = "%s/telegrambot/actions" %j.dirs.varDir
 
         print("Connecting to local redis")
         self.redisconfig=j.core.db

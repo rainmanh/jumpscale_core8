@@ -49,7 +49,6 @@ class TelegramBot:
         """
         # self.api.process_updates()
         h=InteractiveHandler()
-        h.setActionsPath(path="%s/telegrambot/actions" % j.dirs.varDir)
         print("Actions path: %s" %h.actionspath)
         h.maintenance()
         self.api.add_handler(h)

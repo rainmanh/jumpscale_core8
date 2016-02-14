@@ -8,7 +8,7 @@ import sys
 import math
 
 from JumpScale import j
-from JumpScale.core.Time import TimeIntervalUnit
+from JumpScale.data.time.TimeInterval import TimeInterval as TimeIntervalUnit
 #from JumpScale.core.decorators import deprecated
 
 #@todo (*3*) fix, move to other sal's

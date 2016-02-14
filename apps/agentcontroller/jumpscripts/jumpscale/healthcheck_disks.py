@@ -44,7 +44,7 @@ def action():
     for disk in filter(diskfilter, disks):
         result = {'category': 'Disks'}
         result['path'] = disk.path
-        checkusage = not (disk.mountpoint and j.system.fs.exists(j.system.fs.joinPaths(disk.mountpoint, '.dontreportusage')))
+        checkusage = not (disk.mountpoint and j.sal.fs.exists(j.sal.fs.joinPaths(disk.mountpoint, '.dontreportusage')))
         result['state'] = 'OK'
         result['message'] = disktoStr(disk)
         if disk.free and disk.size:

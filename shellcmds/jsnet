@@ -29,7 +29,7 @@ parser.add_argument("-R", '--initNetworkInterfaces', help='Start with a frrresh 
 # parser.add_argument('--force',required=False, action='store_true',help='dont ask yes, do immediate')
 # parser.add_argument('--debug',required=False, action='store_true',help='will stop on errors and show all relevant info')
 
-nc = j.system.ovsnetconfig
+nc = j.sal.openvswitch
 
 opts = parser.parse_args()
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 rm -rf /opt/jumpscale8
 
 set -ex

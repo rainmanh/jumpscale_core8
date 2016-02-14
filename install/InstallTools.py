@@ -2417,10 +2417,12 @@ exec python3 -q "$@"
 
         else:
             self.installpip()
-            # cmds="""
-            # pip3 install ipython
-            # """
-            # do.executeCmds(cmds)
+            cmds="""
+            pip3 install ipython
+            pip3 install redis
+            pip3 install netaddr
+            """
+            do.executeCmds(cmds)
 
             if sys.platform.startswith('win'):
                 raise RuntimeError("Cannot find JSBASE, needs to be set as env var")
@@ -2428,7 +2430,6 @@ exec python3 -q "$@"
                 cmds="""
                 brew install tmux
                 brew install psutils
-                pip3 install redis
                 """
                 do.executeCmds(cmds)
 

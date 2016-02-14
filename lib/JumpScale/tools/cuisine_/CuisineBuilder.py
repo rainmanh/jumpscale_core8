@@ -145,7 +145,7 @@ class CuisineBuilder(object):
         self.cuisine.file_write(cpath, C)
 
         if start:
-            self.cuisine.systemd.stop("caddy")  # will also kill
+            self.cuisine.processmanager.stop("caddy")  # will also kill
             if ssl:
                 self.cuisine.fw.allowIncoming(443)
                 self.cuisine.fw.allowIncoming(80)
@@ -227,6 +227,8 @@ class CuisineBuilder(object):
         GOPATH = self.cuisine.bash.environGet('GOPATH')
 
         url = "git@github.com:syncthing/syncthing.git"
+        
+        self.cusine.dir_remove('%s/src/github.com/syncthing/syncthing' % GOPATH)
         dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='%s/src/github.com/syncthing/syncthing' % GOPATH)
         self.cuisine.run('cd %s && godep restore' % dest, profile=True)
         self.cuisine.run("cd %s && ./build.sh noupgrade" % dest, profile=True)
@@ -285,9 +287,7 @@ class CuisineBuilder(object):
         self.redis()
         self.mongodb()
         self.agent()
-        self.cuisine.tmux.killWindow("main", "ac")
-
-        self.cuisine.process.kill("agentcontroller8")
+        self.processmanager.remove("agentcontroller8")
 
         self.cuisine.dir_ensure("$cfgDir/agentcontroller8", recursive=True)
 
@@ -305,7 +305,7 @@ class CuisineBuilder(object):
         self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml.org', C, replaceArgs=False)
 
         self.cuisine.dir_remove("$cfgDir/agentcontroller8/extensions")
-        self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8", recursive=True)
+        self.cuisine.file_link("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extenstions", recursive=True)
 
         if start:
             self.agent()
@@ -318,30 +318,24 @@ class CuisineBuilder(object):
         GOPATH = self.cuisine.bash.environGet('GOPATH')
         env={}
         env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
-        self.cuisine.tmux.executeInScreen("main", screenname="syncthing", cmd="./syncthing", wait=0, cwd=self.cuisine.joinpaths(GOPATH, "bin") , env=None, user='root', tmuxuser=None)
+        self.cuisine.processmanager.ensure(name="syncthing", cmd="./syncthing", wait=0, path=self.cuisine.joinpaths(GOPATH, "bin"))
  
 
-    @actionrun(action=True)
+    #@actionrun(action=True)
     def _startAgent(self):
-        appbase = self.cuisine.joinpaths(j.dirs.cfgDir, "agent8")
-        cfgfile_agent = self.cuisine.args_replace("$cfgDir/agent8/agent.toml")
-        binPath = self.cuisine.joinpaths(self.cuisine.dir_paths['binDir'],'agent8')
         print("connection test ok to agentcontroller")
         #@todo (*1*) need to implement to work on node
         env={}
         env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
-        cmd = "%s -c %s" % (binPath, cfgfile_agent)
-        self.cuisine.processmanager.ensure("agent8", cmd=cmd, path=appbase, env=env)
+        cmd = "$binDir/agent8 -c $cfgDir/agent8/agent.toml" 
+        self.cuisine.processmanager.ensure("agent8", cmd=cmd, path="$cfgDir/agent8",  env=env)
 
     @actionrun(action=True)
     def _startAgentController(self):
-        appbase = self.cuisine.joinpaths(self.cuisine.dir_paths['cfgDir'], "agentcontroller8")
-        cfgfile_ac = self.cuisine.joinpaths(appbase, "agentcontroller.toml")
-        binPath = self.cuisine.joinpaths(self.cuisine.dir_paths['binDir'], 'agentcontroller8')
         env = {}
         env["TMPDIR"] = self.cuisine.dir_paths["tmpDir"]
-        cmd = "%s -c %s" % (binPath, cfgfile_ac)
-        self.cuisine.processmanager.ensure("agentcontroller8", cmd=cmd, path=appbase, env=env)
+        cmd = "$binDir/agentcontroller8 -c $cfgDir/agentcontroller8/agentcontroller.toml"
+        self.cuisine.processmanager.ensure("agentcontroller8", cmd=cmd, path="$cfgDir/agentcontroller8/", env=env)
 
     @actionrun(action=True)
     def etcd(self,start=True, host=None, peers=[]):
@@ -380,7 +374,7 @@ class CuisineBuilder(object):
                 cmd = self._etcd_cluster_cmd(host, peers)
             else:
                 cmd = 'etcd'
-            self.cuisine.systemd.ensure("etcd", cmd)
+            self.cuisine.processmanager.ensure("etcd", cmd)
 
     def _etcd_cluster_cmd(host, peers=[]):
         """
@@ -507,9 +501,10 @@ class CuisineBuilder(object):
         
 
         if start:
-            cmd="mongod --dbpath $varDir/data/db"
+            which = self.cuisine.command_location("mongod")
+            cmd="%s --dbpath $varDir/data/db" % which
             self.cuisine.process.kill("mongod")
-            self.cuisine.systemd.ensure("mongod",cmd=cmd,env={},path="")
+            self.cuisine.processmanager.ensure("mongod",cmd=cmd,env={},path="")
 
     def influxdb(self, start=True):
         self.cuisine.installer.base()
@@ -535,7 +530,7 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb/influxdb.conf.o
             binPath = self.cuisine.bash.cmdGetPath('influxd')
             cmd = "%s -config $cfgDir/influxdb/influxdb.conf" % (binPath)
             self.cuisine.process.kill("influxdb")
-            self.cuisine.systemd.ensure("influxdb", cmd=cmd, env={}, path="")
+            self.cuisine.processmanager.ensure("influxdb", cmd=cmd, env={}, path="")
 
     @actionrun(action=True)
     def vulcand(self):

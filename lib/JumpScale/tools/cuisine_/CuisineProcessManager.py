@@ -169,16 +169,18 @@ class CuisineRunit(ProcessManagerBase):
 
             cmd = cmd.replace('"', r'\"')
 
-            if path:
+            if path and (path not in cmd):
                 cmd = "%s/%s" % (path, cmd)
 
             sv_text ="""#!/bin/sh
 set -e
 echo $descrs
 $env
+cd $path
 exec $cmd
             """
             sv_text = sv_text.replace("$env", envstr)
+            sv_text = sv_text.replace("$path", path)
             sv_text = sv_text.replace("$cmd",cmd)
             if descr=="":
                 descr = name

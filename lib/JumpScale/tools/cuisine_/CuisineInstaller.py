@@ -80,7 +80,7 @@ class CuisineInstaller(object):
 
     # @actionrun(action=True)
     def sshreflector_client_delete(self):
-        self.cuisine.systemd.remove("autossh") #make sure leftovers are gone
+        self.cuisine.processmanager.remove("autossh") #make sure leftovers are gone
         self.cuisine.run("killall autossh",die=False,showout=False)
 
     def sshreflector_client(self,remoteids,reset=True):
@@ -99,7 +99,7 @@ class CuisineInstaller(object):
         else:
 
 
-            self.cuisine.systemd.remove("autossh") #make sure leftovers are gone
+            self.cuisine.processmanager.remove("autossh") #make sure leftovers are gone
             self.cuisine.run("killall autossh",die=False,showout=False)
 
             self.cuisine.ns.hostfile_set_fromlocal()

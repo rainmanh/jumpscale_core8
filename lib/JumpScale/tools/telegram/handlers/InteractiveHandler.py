@@ -89,8 +89,8 @@ class InteractiveHandler:
         self.actions={}
         self.lastactionshash=""
 
-        print("connect to redis config on %s:9000"%"127.0.0.1")
-        self.redisconfig=j.clients.redis.getGeventRedisClient("127.0.0.1",9000)
+        print("connect to redis config on %s:9999"%"127.0.0.1")
+        self.redisconfig=j.core.db
         print("redis connection ok")        
 
     def checkSession(self,tg,message,name="main",newcom=True):
@@ -284,11 +284,12 @@ class InteractiveHandler:
 
     def maintenance(self):
         print("1")
-        lasthash=j.data.hash.md5_string(str( j.data.hash.hashDir("actions")))
+        path = "/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/telegram/actions_examples"
+        lasthash=j.data.hash.md5_string(str( j.data.hash.hashDir(path)))
         if lasthash!=self.lastactionshash:
             print("load actions")
             self.actions={}
-            for path in j.sal.fs.listFilesInDir("actions",recursive=True,filter="*.py"):
+            for path in j.sal.fs.listFilesInDir(path,recursive=True,filter="*.py"):
                 name=j.sal.fs.getBaseName(path)[:-3]
                 if name[0]!="_":
                     mod = imp.load_source(name, path)

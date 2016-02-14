@@ -94,7 +94,7 @@ class Telegram:
         # Checking if it's a resend id.
         if os.path.exists(filepath):
             filename = os.path.basename(filepath)
-            files[method] = (filename, open(filepath))
+            files[method] = (filename, open(filepath, "rb"))
         else:
             args[method] = filepath
         return self.send_request(command, args, files)

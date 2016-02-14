@@ -54,6 +54,7 @@ class TelegramBot:
         gevent.spawn(self.api.process_updates)
         while True:
             gevent.sleep(1)
-            for handler in self.api.handlers:
-                handler.maintenance()
+        #for handler in self.api.handlers:
+        #        handler.maintenance()
+            self.api.handlers[1].maintenance()
 

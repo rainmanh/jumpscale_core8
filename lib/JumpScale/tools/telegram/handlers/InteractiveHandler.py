@@ -89,7 +89,7 @@ class InteractiveHandler:
         self.actions={}
         self.lastactionshash=""
 
-        print("connect to redis config on %s:9999"%"127.0.0.1")
+        print("connect to local redis")
         self.redisconfig=j.core.db
         print("redis connection ok")        
 

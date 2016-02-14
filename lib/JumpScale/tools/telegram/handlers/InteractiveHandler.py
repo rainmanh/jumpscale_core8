@@ -88,7 +88,7 @@ class InteractiveHandler:
         self.activeSessions = {}
         self.actions={}
         self.lastactionshash=""
-        self.actionspath = "%s/telegrambot/actions" %j.dirs.varDir
+        self.actionspath = ""
 
         print("Connecting to local redis")
         self.redisconfig=j.core.db
@@ -284,9 +284,6 @@ class InteractiveHandler:
                 self.redisconfig.hset(session.name,paramname,val)
                 tg.send_message(message.chat.id,"session arg: '%s'='%s'"%(paramname,val))
             return
-
-    def setActionsPath(self, path):
-        self.actionspath = path
 
     def maintenance(self):
         print("maintaining")

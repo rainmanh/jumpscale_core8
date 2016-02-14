@@ -17,8 +17,7 @@ class TelegramBot:
         @param key eg. 112456445:AAFgQVEWPGztQc1S8NW0NXY8rqQLDPx0knM
         """
         print("key:%s"%telegramkey)
-
-        self.api=Telegram("https://api.telegram.org/bot",telegramkey)        
+        self.api=Telegram("https://api.telegram.org/bot",telegramkey)
 
     # def addLogHandler(self,path="/tmp/chat.log"):
     #     """
@@ -42,13 +41,14 @@ class TelegramBot:
         """
         self.api.add_handler(handler)
 
-    def start(self):
+    def start(self, path = "%s/telegrambot/actions" %j.dirs.varDir ):
         """
         will always look for actions in subdir 'actions'
         each name of script corresponds to name of action
         """
         # self.api.process_updates()
         h=InteractiveHandler()
+        h.actionspath = path
         print("Actions path: %s" %h.actionspath)
         h.maintenance()
         self.api.add_handler(h)

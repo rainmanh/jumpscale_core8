@@ -136,14 +136,14 @@ class RedisDBList:
         obj=RedisDBObj(self,self.path,name,id)
         return obj
 
-    def set(self,data,name=""):
+    def set(self,data,name="", id=""):
         if j.data.types.dict.check(data)==False:
-            raise RuntimeError("only dict supported")        
+            raise RuntimeError("only dict supported")
         if name=="":
-            name=data["name"]
+            name = data.get("name", "")
         if name not in data and name!="":
             data["name"]=name
-        obj=RedisDBObj(self,self.path,name)
+        obj = RedisDBObj(self, self.path, name, id)
         obj.struct=data
         self._list={}
         return obj

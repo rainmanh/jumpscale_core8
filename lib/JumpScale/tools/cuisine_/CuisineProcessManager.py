@@ -1,5 +1,6 @@
 from JumpScale import j
 import time
+import re
 
 #not using cuisine.tmux.executeInScreen
 class ProcessManagerBase:
@@ -32,10 +33,6 @@ class CuisineSystemd(ProcessManagerBase):
                 d=res.groupdict()
                 if d["name"].startswith(prefix):
                     result.append([d["name"],d["state"]])
-        else:
-            from IPython import embed
-            print ("DEBUG NOW list tmux")
-            embed()
 
         return result
 
@@ -60,9 +57,8 @@ class CuisineSystemd(ProcessManagerBase):
 
 
     def remove(self,prefix):
-        self.stop()
-        for name,status in self.systemd.list(prefix):
-            self.systemd.stop(name)
+        for name,status in self.list(prefix):
+            self.stop(name)
 
             for item in self.cuisine.fs_find("/etc/systemd",True,"*%s.service"%name):
                 print("remove:%s"%item)

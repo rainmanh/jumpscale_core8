@@ -215,14 +215,14 @@ class CuisineBuilder(object):
 
 
     @actionrun(action=True)
-    def installdeps(self): 
+    def installdeps(self):
         self.cuisine.installer.base()
         self.cuisine.golang.install()
         self.cuisine.pip.upgrade('pip')
         self.cuisine.pip.install('pytoml')
         self.cuisine.pip.install('pygo')
         self.cuisine.golang.install()
-        
+
     @actionrun(action=True)
     def syncthing(self, start=True):
         self.installdeps()
@@ -231,7 +231,7 @@ class CuisineBuilder(object):
         GOPATH = self.cuisine.bash.environGet('GOPATH')
 
         url = "git@github.com:syncthing/syncthing.git"
-        
+
         self.cusine.dir_remove('%s/src/github.com/syncthing/syncthing' % GOPATH)
         dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='%s/src/github.com/syncthing/syncthing' % GOPATH)
         self.cuisine.run('cd %s && godep restore' % dest, profile=True)
@@ -291,7 +291,7 @@ class CuisineBuilder(object):
         self.redis()
         self.mongodb()
         self.agent()
-        self.processmanager.remove("agentcontroller8")
+        self.cuisine.processmanager.remove("agentcontroller8")
 
         self.cuisine.dir_ensure("$cfgDir/agentcontroller8", recursive=True)
 
@@ -309,7 +309,7 @@ class CuisineBuilder(object):
         self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml.org', C, replaceArgs=False)
 
         self.cuisine.dir_remove("$cfgDir/agentcontroller8/extensions")
-        self.cuisine.file_link("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extenstions", recursive=True)
+        self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extenstions", recursive=True)
 
         if start:
             self.agent()
@@ -323,7 +323,7 @@ class CuisineBuilder(object):
         env={}
         env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
         self.cuisine.processmanager.ensure(name="syncthing", cmd="./syncthing", wait=0, path=self.cuisine.joinpaths(GOPATH, "bin"))
- 
+
 
     #@actionrun(action=True)
     def _startAgent(self):
@@ -331,7 +331,7 @@ class CuisineBuilder(object):
         #@todo (*1*) need to implement to work on node
         env={}
         env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
-        cmd = "$binDir/agent8 -c $cfgDir/agent8/agent.toml" 
+        cmd = "$binDir/agent8 -c $cfgDir/agent8/agent.toml"
         self.cuisine.processmanager.ensure("agent8", cmd=cmd, path="$cfgDir/agent8",  env=env)
 
     @actionrun(action=True)
@@ -464,7 +464,7 @@ class CuisineBuilder(object):
 
         if start:
             cmd="redis-server %s"%cpath
-            self.cuisine.processmanager.ensure(name="redis_%s"%name,cmd=cmd,env={},path='$binDir')  
+            self.cuisine.processmanager.ensure(name="redis_%s"%name,cmd=cmd,env={},path='$binDir')
 
     @actionrun(action=True)
     def mongodb(self, start=True):
@@ -502,7 +502,7 @@ class CuisineBuilder(object):
 
         self.cuisine.dir_ensure('$varDir/data/db')
 
-        
+
 
         if start:
             which = self.cuisine.command_location("mongod")

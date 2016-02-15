@@ -17,14 +17,14 @@ class Factory:
             cl = self.get_from_db(dbkey)
         else:
             data = {"url": url, "login" : login, "password": password, "secret": secret, "port": port}
-            self._clientsdb.set(data, name=dbkey)
+            self._clientsdb.set(data, id=dbkey)
             cl = Client(url, login, password, secret, port)
 
         self._clients[dbkey] = cl
         return cl
 
     def get_from_db(self, dbkey):
-        data = self._clientsdb.get(name=dbkey)
+        data = self._clientsdb.get(id=dbkey)
         return Client(url=data.struct["url"], login=data.struct["login"], password=data.struct["password"],
                     secret=data.struct["secret"], port=data.struct["port"])
 
@@ -85,7 +85,7 @@ class Client:
         if not self._accounts_cache:
             #load from api
             for item in self.api.cloudapi.accounts.list():
-                self._accounts_cache.set(item, name=str(item["name"]))
+                self._accounts_cache.set(item)
         accounts = []
         for account in self._accounts_cache:
             accounts.append(Account(self, account.struct))
@@ -96,7 +96,7 @@ class Client:
         if not self._locations_cache:
             #load from api
             for item in self.api.cloudapi.locations.list():
-                self._locations_cache.set(item, name=str(item["locationCode"]))
+                self._locations_cache.set(item)
         return [x.struct for x in self._locations_cache]
 
     def account_get(self, name):

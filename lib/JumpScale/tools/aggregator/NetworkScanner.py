@@ -6,7 +6,7 @@ class NetworkScanner(object):
     COMMAND = 'nmap -n --disable-arp-ping -send-ip -Pn -sS -p{port} -oG - {cidr}'
 
     def __init__(self, cidr, port=80):
-        code, _ = j.do.execute('which nmap', dieOnNonZeroExitCode=False)
+        code, _ = j.do.execute('which nmap', outputStdout=False, dieOnNonZeroExitCode=False)
         if code != 0:
             raise RuntimeError('nmap is not installed')
 

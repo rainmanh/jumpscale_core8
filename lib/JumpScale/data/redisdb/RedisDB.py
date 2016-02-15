@@ -129,6 +129,9 @@ class RedisDBList:
             res.append(self._list[key])
         return res
 
+    def exists(self, name):
+        return self.db.hexists(self.path, name)
+
     def get(self,name="",id=""):
         obj=RedisDBObj(self,self.path,name,id)
         return obj
@@ -190,12 +193,18 @@ class RedisDBList:
         self.db.delete(self.path)
         self._list={}
 
+    def remove(self, name):
+        self.db.hdel(self.path, name)
+        self._list.pop(name)
+
     def __iter__(self):
         return self.list.__iter__()
 
     def len(self):
         return len(self.list)
 
+    def __bool__(self):
+        return self.len() != 0
 
     def __repr__(self):
         out=""

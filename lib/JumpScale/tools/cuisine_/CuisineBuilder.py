@@ -31,6 +31,7 @@ class CuisineBuilder(object):
         self.skydns(start=start)
         self.influxdb(start=start)
         self.weave(start=start)
+        self.cuisine.portal.install(start=start)
         if sandbox:
             self.sandbox(aydostor)
 
@@ -44,12 +45,14 @@ class CuisineBuilder(object):
         cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], 'js8_opt', '%s', sandbox_python=%s)" % (aydostor, python)
         self.cuisine.run('js "%s"' % cmd)
         url_opt = '%s/static/js8_opt' % aydostor
+
         cmd = "j.tools.cuisine.local.builder.dedupe(['/optvar'], 'js8_optvar', '%s', sandbox_python=%s)" % (aydostor, False)
         self.cuisine.run('js "%s"' % cmd)
         url_optvar = '%s/static/js8_optvar' % aydostor
+
         return (url_opt, url_optvar)
 
-    @actionrun(action=True)
+
     def _sandbox_python(self, python=True):
         print("START SANDBOX")
         if python:
@@ -58,7 +61,7 @@ class CuisineBuilder(object):
             paths.append("/usr/local/lib/python3.5/dist-packages")
             paths.append("/usr/lib/python3/dist-packages")
 
-            excludeFileRegex=["/xml/","-tk/","/xml","/lib2to3","-34m-",".egg-info"]
+            excludeFileRegex=["-tk/","/lib2to3","-34m-",".egg-info"]
             excludeDirRegex=["/JumpScale","\.dist-info","config-x86_64-linux-gnu","pygtk"]
 
             dest = j.sal.fs.joinPaths(self.cuisine.dir_paths['base'], 'lib')
@@ -73,7 +76,7 @@ class CuisineBuilder(object):
         j.tools.sandboxer.sandboxLibs("%s/bin" % self.cuisine.dir_paths['base'], recursive=True)
         print("SANDBOXING DONE, ALL OK IF TILL HERE, A Segfault can happen because we have overwritten ourselves.")
 
-    @actionrun(force=True)
+
     def dedupe(self, dedupe_path, namespace, store_addr, output_dir='/tmp/sandboxer', sandbox_python=True):
         self.cuisine.dir_remove(output_dir)
 
@@ -282,7 +285,7 @@ class CuisineBuilder(object):
         if start:
             self._startAgent()
 
-    #@actionrun(action=True)
+    @actionrun(action=True)
     def agentcontroller(self, start=True):
         """
         config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
@@ -325,7 +328,7 @@ class CuisineBuilder(object):
         self.cuisine.processmanager.ensure(name="syncthing", cmd="./syncthing", wait=0, path=self.cuisine.joinpaths(GOPATH, "bin"))
 
 
-    #@actionrun(action=True)
+    @actionrun(action=True)
     def _startAgent(self):
         print("connection test ok to agentcontroller")
         #@todo (*1*) need to implement to work on node

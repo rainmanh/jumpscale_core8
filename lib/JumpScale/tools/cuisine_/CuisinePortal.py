@@ -55,7 +55,6 @@ class CuisinePortal(object):
         # Flask
         # Flask-Bootstrap
         # Flask-PyMongo
-        gevent==1.1rc2
         # gitdb
         gitlab3
         # GitPython
@@ -123,7 +122,7 @@ class CuisinePortal(object):
 
     @actionrun(action=True)
     def getcode(self):
-        j.do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git", executor=self.executor)
+        j.do.pullGitRepo("https://github.com/Jumpscale/jumpscale_portal8.git", executor=self.executor, ssh=False)
 
     @actionrun(action=True)
     def linkCode(self, minimal=False):

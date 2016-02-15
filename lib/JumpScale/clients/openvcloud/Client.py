@@ -210,16 +210,16 @@ class Space:
         return self.machines[name]
 
     def size_find_id(self, memory=None, vcpus=None):
-        if memory<100:
-            memory=memory*1024 #prob given in GB
+        if memory < 100:
+            memory = memory*1024  # prob given in GB
 
-        sizes=[item.struct["memory"] for item in self.sizes.list]
-        sizes.sort()
-        for size in sizes:
-            if memory>size*0.9:
-                return self.sizes.find(memory=size)[0].struct["id"]
+        sizes = [(item["memory"], item) for item in self.sizes]
+        sizes = sorted(sizes, key=lambda size: size[0])
+        for size, sizeinfo in sizes:
+            if memory > size*0.9:
+                return sizeinfo['id']
 
-        raise RuntimeError("did not find memory size:%s"%memory)
+        raise RuntimeError("did not find memory size:%s" % memory)
 
     @property
     def sizes(self):
@@ -230,14 +230,14 @@ class Space:
         return [x.struct for x in self._sizes_cache]
 
     def image_find_id(self, name):
-        name=name.lower()
+        name = name.lower()
 
-        for image in self.images.list:
-            imageNameFound=image.struct["name"].lower()
-            if imageNameFound.find(name)!=-1:
-                return image.struct["id"]
-        images=[item.struct["name"].lower() for item in self.images.list]
-        raise RuntimeError("did not find image:%s\nPossible Images:\n%s\n"%(name,images))
+        for image in self.images:
+            imageNameFound = image["name"].lower()
+            if imageNameFound.find(name) != -1:
+                return image["id"]
+        images = [item["name"].lower() for item in self.images]
+        raise RuntimeError("did not find image:%s\nPossible Images:\n%s\n" % (name, images))
 
     @property
     def images(self):

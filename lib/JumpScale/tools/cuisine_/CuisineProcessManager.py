@@ -76,9 +76,11 @@ class CuisineSystemd(ProcessManagerBase):
         @param systemdunit is the content of the file, will still try to replace the cmd
         """
 
-        cmd=self.cuisine.args_replace(cmd)
-        path=self.cuisine.args_replace(path)
-        if cmd!="":
+        if not path:
+            path = '/root'
+        cmd = self.cuisine.args_replace(cmd)
+        path = self.cuisine.args_replace(path)
+        if cmd != "":
             if not cmd.startswith("/"):
                 cmd0=cmd.split(" ",1)[0]
                 cmd1=self.cuisine.bash.cmdGetPath(cmd0)
@@ -86,18 +88,10 @@ class CuisineSystemd(ProcessManagerBase):
 
             envstr = ""
             for name0, value in list(env.items()):
-                envstr += "export %s=%s\n" % (name0, value)
+                envstr += "%s=%s " % (name0, value)
 
-            if envstr!="":
-                cmd="%s;%s"%(envstr,cmd)
 
             cmd = cmd.replace('"', r'\"')
-
-            if path:
-                if not j.sal.fs.isAbsolute(path) and not path.startswith('./'):
-                    cmd = "./%s" % cmd
-            else:
-                path = '/root'
 
             if systemdunit!="":
                 C=systemdunit
@@ -112,12 +106,14 @@ class CuisineSystemd(ProcessManagerBase):
                 ExecStart=$cmd
                 Restart=always
                 WorkingDirectory=$cwd
+                Environment=$env
 
                 [Install]
                 WantedBy=multi-user.target
                 """
             C=C.replace("$cmd", cmd)
             C=C.replace("$cwd", path)
+            C=C.replace("$env", envstr)
             if descr=="":
                 descr=name
             C=C.replace("$descr",descr)

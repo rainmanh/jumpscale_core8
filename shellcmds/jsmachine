@@ -149,7 +149,7 @@ if opts.action =='rdp':
         ip=getip(opts.nr)
     time.sleep(2)    
     j.sal.nettools.waitConnectionTest(ip,3389,2)
-    j.system.installtools.execute("rmachine %s -g 1600x900 -e & 2>&1 > /dev/null"%ip)
+    j.sal.process.execute("rmachine %s -g 1600x900 -e & 2>&1 > /dev/null"%ip)
 
 
 if opts.action =='destroyall':
@@ -177,11 +177,11 @@ if opts.action =='restart':
     l.start(opts.name)
 
 if opts.action =="mountdisks":
-    j.system.platform.diskmanager.partitionsFind()
-    j.system.platform.diskmanager.partitionsMount_Ext4Data()
+    j.sal.diskmanager.partitionsFind()
+    j.sal.diskmanager.partitionsMount_Ext4Data()
 
 if opts.action =="unmountdisks":
-    j.system.platform.diskmanager.partitionsUnmount_Ext4Data()
+    j.sal.diskmanager.partitionsUnmount_Ext4Data()
 
 
 j.application.stop()

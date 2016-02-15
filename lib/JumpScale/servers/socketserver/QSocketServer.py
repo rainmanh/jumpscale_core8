@@ -106,7 +106,7 @@ class QSocketServerHandler(socketserver.BaseRequestHandler):
                     self.socket.close()
                     return
             else:
-                result = j.system.socketserver._handledata(data)
+                result = j.servers.socketserver._handledata(data)
                 if result != None:
                     try:
                         self.senddata(result)
@@ -125,9 +125,9 @@ class QSocketServer():
         self.port = port
         self.addr = addr
         self.key = key
-        j.system.socketserver.key = key
+        j.servers.socketserver.key = key
         self.type = "server"
-        j.system.socketserver._handledata = datahandler
+        j.servers.socketserver._handledata = datahandler
         self.server = socketserver.TCPServer((self.addr, self.port), QSocketServerHandler)
 
     def start(self):

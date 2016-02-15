@@ -2,10 +2,10 @@
 import sys, os, threading, time
 import os.path
 import ctypes
+from JumpScale import j
 
 if not j.core.platformtype.myplatform.isWindows():
     raise RuntimeError("WindowsSystem module only supported on Windows operating system")
-
 import win32pdh
 import win32api
 import win32process
@@ -47,6 +47,7 @@ class WindowsSystem(SALObject):
     _wmi = GetObject('winmgmts:')
 
     def __init__(self):
+        self.__jslocation__ = "j.sal.windows"
         self.__dict__ = self.__shared_state
 
 
@@ -774,7 +775,7 @@ class WindowsSystem(SALObject):
         @param tokill is list of list or list of str (when list of list each item of list will be checked)
 
         """
-        for name,id,cmdline in j.system.windows.listRunningProcesses():
+        for name,id,cmdline in self.listRunningProcesses():
             if cmdline==None:
                 cmdline=""
             cmdline=cmdline.lower().replace("  ","").replace("  ","")
@@ -797,7 +798,7 @@ class WindowsSystem(SALObject):
         @param tokill is list of list or list of str (when list of list each item of list will be checked)
 
         """
-        for name,id,cmdline in j.system.windows.listRunningProcesses():
+        for name,id,cmdline in self.listRunningProcesses():
             if cmdline==None:
                 cmdline=""
             cmdline=cmdline.lower().replace("  ","").replace("  ","")

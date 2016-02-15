@@ -3,6 +3,7 @@ from JumpScale import j
 import re
 import os
 import textwrap
+import unicodedata
 matchquote = re.compile(r'\'[^\']*\'')
 matchlist = re.compile(r'\[[^\']*\]')
 re_nondigit= re.compile(r'\D')

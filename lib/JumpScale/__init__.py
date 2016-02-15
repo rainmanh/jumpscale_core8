@@ -119,7 +119,8 @@ redisinit()
 if j.core.db==None:
 
     if j.do.TYPE.startswith("OSX"):
-        cmd="redis-server --port 0 --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"
+        #--port 0 
+        cmd="redis-server --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"
         print ("start redis in background")
         os.system(cmd)
     else:

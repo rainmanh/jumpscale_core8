@@ -127,6 +127,7 @@ class CuisinePortal(object):
 
     @actionrun(action=True)
     def linkCode(self, minimal=False):
+        self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
         destjslib = j.do.getPythonLibSystem(jumpscale=True)
         self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
         self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % j.dirs.jsLibDir)

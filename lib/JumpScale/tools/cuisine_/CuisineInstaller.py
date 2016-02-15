@@ -68,7 +68,7 @@ class CuisineInstaller(object):
         cpath=self.cuisine.run("which dropbear")
 
         cmd="%s -R -F -E -p 9222 -w -s -g -K 20 -I 60"%cpath
-        self.cuisine.systemd.ensure("reflector", cmd, descr='')
+        self.cuisine.processmanager.ensure("reflector", cmd, descr='')
 
         # self.cuisine.package.start(package)
 
@@ -80,7 +80,7 @@ class CuisineInstaller(object):
 
     # @actionrun(action=True)
     def sshreflector_client_delete(self):
-        self.cuisine.systemd.remove("autossh") #make sure leftovers are gone
+        self.cuisine.processmanager.remove("autossh") #make sure leftovers are gone
         self.cuisine.run("killall autossh",die=False,showout=False)
 
     def sshreflector_client(self,remoteids,reset=True):
@@ -99,7 +99,7 @@ class CuisineInstaller(object):
         else:
 
 
-            self.cuisine.systemd.remove("autossh") #make sure leftovers are gone
+            self.cuisine.processmanager.remove("autossh") #make sure leftovers are gone
             self.cuisine.run("killall autossh",die=False,showout=False)
 
             self.cuisine.ns.hostfile_set_fromlocal()
@@ -183,7 +183,7 @@ class CuisineInstaller(object):
 
             cpath=self.cuisine.run("which autossh")
             cmd="%s -M 0 -N -o ExitOnForwardFailure=yes -o \"ServerAliveInterval 60\" -o \"ServerAliveCountMax 3\" -R %s:localhost:22 sshreflector@%s -p %s -i /root/.ssh/reflector"%(cpath,newport,rname,reflport)
-            self.cuisine.systemd.ensure("autossh_%s"%rname_short, cmd, descr='')
+            self.cuisine.processmanager.ensure("autossh_%s"%rname_short, cmd, descr='')
 
             print ("On %s:%s remote SSH port:%s"%(remotecuisine.executor.addr,port,newport))
 
@@ -275,8 +275,8 @@ class CuisineInstaller(object):
         [Install]
         WantedBy=multi-user.target
         """
-
-        self.cuisine.systemd_ensure("ap",cmd2,descr="accesspoint for local admin",systemdunit=START1)
+        pm = self.cuisine.processmanager.get("systemd")
+        pm.ensure("ap",cmd2,descr="accesspoint for local admin",systemdunit=START1)
 
     @actionrun(action=True)
     def clean(self):
@@ -618,7 +618,7 @@ class CuisineInstaller(object):
 
         cmd=self.cuisine.run("which polipo")
 
-        self.cuisine.systemd.ensure("polipo",cmd)
+        self.cuisine.processmanager.ensure("polipo",cmd)
 
         self.cuisine.avahi.install()
 

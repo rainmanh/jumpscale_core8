@@ -163,10 +163,13 @@ class AggregatorClient(object):
             else:
                 key = self.redis.lindex('queues:eco', 0)
 
+        if isinstance(key, bytes):
+            key = key.decode()
+
         if key is None:
             return None
 
-        data = self.redis.get("eco:%s" % key.decode())
+        data = self.redis.get("eco:%s" % key)
         if data is None:
             # shouldn't happen
             return None
@@ -176,13 +179,13 @@ class AggregatorClient(object):
     @property
     def ecos(self):
         """
-        iterator to go over errorcondition objects (oldest first)
+        iterator (and POPs) to go over errorcondition objects (oldest first)
         """
         ecos = self.redis.lrange('queues:eco', 0, 1000)
         for eco in ecos:
             yield self.ecoGet(eco, removeFromQueue=False)
 
-    def reality(self, key, json, modeltype="", tags="", time=0, ):
+    def reality(self, key, json, modeltype="", tags="", timestamp=None):
         """
         anything found on local node worth mentioning to central env e.g. disk information, network information
         each piece of info gets a well chosen key e.g. disk.sda1
@@ -203,20 +206,43 @@ class AggregatorClient(object):
         @param modeltype defines which model has been used e.g. VDisk this allows the dumper to get the right model & insert in the right way in mongodb
 
         """
-        if time == 0:
-            time = int(time.time() * 1000)
+        if timestamp is None:
+            timestamp = int(time.time() * 1000)
+
         # 1 means there is 1 key, others are args
-        res = self.redis.evalsha(self._sha["reality"], 1, key, json, self.nodename, tags, str(time), modeltype)
+        return self.redis.evalsha(self._sha["reality"], 1, key, json, self.nodename, tags, modeltype, str(timestamp))
 
     def realityGet(self, key="", removeFromQueue=True):
         """
         if key not specified then get oldest object & remove from queue if removeFromQueue is set
-        if key set, do not remove from queue        
+        if key set, do not remove from queue
         """
+
+        if not key:
+            if removeFromQueue:
+                key = self.redis.lpop('queues:reality')
+            else:
+                key = self.redis.lindex('queues:reality', 0)
+
+        if isinstance(key, bytes):
+            key = key.decode()
+
+        if key is None:
+            return None
+
+        data = self.redis.get("reality:%s" % key)
+        if data is None:
+            # shouldn't happen
+            return None
+
+        return j.data.serializer.json.loads(data)
 
     @property
     def realities(self):
         """
         iterator to go over reality objects (oldest first)
         """
-        # @todo
+        realities = self.redis.lrange('queues:reality', 0, 1000)
+        for reality in realities:
+            print(reality)
+            yield self.realityGet(reality, removeFromQueue=False)

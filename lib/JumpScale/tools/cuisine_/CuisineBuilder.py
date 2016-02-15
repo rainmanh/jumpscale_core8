@@ -30,7 +30,7 @@ class CuisineBuilder(object):
         self.caddy(start=start)
         self.skydns(start=start)
         self.influxdb(start=start)
-        # self.weave(start=start)
+        self.weave(start=start)
         if sandbox:
             self.sandbox(aydostor)
 
@@ -39,6 +39,8 @@ class CuisineBuilder(object):
         aydostor : addr to the store you want to populate. e.g.: https://stor.jumpscale.org/storx
         python : do you want to sandbox python too ? if you have segfault after trying sandboxing python, re run with python=False
         """
+        # jspython is generated during install,need to copy it back into /opt before sandboxing
+        self.cuisine.file_copy('/usr/local/bin/jspython', '/opt/jumpscale8/bin')
         cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], 'js8_opt', '%s', sandbox_python=%s)" % (aydostor, python)
         self.cuisine.run('js "%s"' % cmd)
         url_opt = '%s/static/js8_opt' % aydostor
@@ -104,7 +106,7 @@ class CuisineBuilder(object):
 
         metadataPath = j.sal.fs.joinPaths(output_dir, "md", "%s.flist" % namespace)
         print('uploading %s' % metadataPath)
-        store_client.putStaticFile(namespace, metadataPath)
+        store_client.putStaticFile(namespace+".flist", metadataPath)
 
     @actionrun(action=True)
     def skydns(self,start=True):

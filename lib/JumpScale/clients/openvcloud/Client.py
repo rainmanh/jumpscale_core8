@@ -265,6 +265,8 @@ class Machine:
         self.model = model
         self.id = self.model["id"]
         self.name = self.model["name"]
+        self._basekey = "%s:%s" % (self.space._basekey, self.id)
+        self._porforwardings_cache = j.data.redisdb.get("%s:portforwardings"%self._basekey)
 
     def start(self):
         self.client.api.cloudapi.machines.start(machineId=self.id)
@@ -275,13 +277,35 @@ class Machine:
     def restart(self):
         self.client.api.cloudapi.machines.restart(machineId=self.id)
 
-    def getSSHConnection(self):
+    @property
+    def portforwardings(self):
+        if not self._porforwardings_cache:
+            #load from api
+            for item in self.client.api.cloudapi.portforwarding.list(cloudspaceId=self.space.id, machineId=self.id):
+                self._porforwardings_cache.set(item, name='%(publicIp)s:%(publicPort)s -> %(localIp)s:%(localPort)s' % item)
+        return [ x.struct for x in self._porforwardings_cache ]
+
+    def create_portforwarding(self, publicport, localport):
+        self.client.api.cloudapi.portforwarding.create(cloudspaceId=self.space.id,
+                                                       protocol='tcp',
+                                                       localPort=localport,
+                                                       machineId=self.id,
+                                                       publicIp=self.space.model['publicipaddress'],
+                                                       publicPort=publicport)
+
+    def delete_portforwarding(self, publicport):
+        self.client.api.cloudapi.portforwarding.deleteByPort(cloudspaceId=self.space.id,
+                                                       publicIp=self.space.model['publicipaddress'],
+                                                       publicPort=publicport,
+                                                       proto='tcp')
+        self._porforwardings_cache.delete()
+
+    def get_ssh_connection(self):
         """
         Will get a cuisine executor for the machine.
         Will attempt to create a portforwarding
         :return:
         """
-
         machine = self.client.api.cloudapi.machines.get(machineId=self.id)
 
         def getMachineIP(machine):
@@ -302,7 +326,7 @@ class Machine:
 
         sshport = None
         usedports = set()
-        for portforward in self.client.api.cloudapi.portforwarding.list(cloudspaceId=self.space.id):
+        for portforward in self.portforwardings:
             if portforward['localIp'] == machineip and int(portforward['localPort']) == 22:
                 sshport = int(portforward['publicPort'])
                 publicip = portforward['publicIp']
@@ -312,12 +336,7 @@ class Machine:
             sshport = 2200
             while sshport in usedports:
                 sshport += 1
-            self.client.api.cloudapi.portforwarding.create(cloudspaceId=self.space.id,
-                                                           protocol='tcp',
-                                                           localPort=22,
-                                                           machineId=machine['id'],
-                                                           publicIp=publicip,
-                                                           publicPort=sshport)
+            self.create_portforwarding(sshport, 22)
         login = machine['accounts'][0]['login']
         password = machine['accounts'][0]['password']
         return j.tools.executor.getSSHBased(publicip, sshport, login, password)         #@todo we need tow work with keys (*2*)

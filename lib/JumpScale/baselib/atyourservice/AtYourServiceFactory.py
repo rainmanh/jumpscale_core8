@@ -8,7 +8,7 @@ from ActionsBaseNode import ActionsBaseNode
 from Blueprint import Blueprint
 from ALog import *
 # import AYSdb
-
+import traceback
 from AtYourServiceSync import AtYourServiceSync
 try:
     from AtYourServiceSandboxer import *
@@ -51,7 +51,7 @@ class AtYourServiceFactory():
         self.sync = AtYourServiceSync()
         self._reposDone = {}
         self._todo = []
-        self.debug=False
+        self.debug=True
         self._basepath=None
         self._git=None
         self._blueprints=[]
@@ -211,6 +211,7 @@ class AtYourServiceFactory():
         """
         if self._blueprints==[]:
             items=j.do.listFilesInDir(self.basepath+"/blueprints")
+            items=[item for item in items if item.find("_archive")==-1]
             items.sort()
             for path in items:
                 self._blueprints.append(Blueprint(path))
@@ -368,11 +369,25 @@ class AtYourServiceFactory():
             print("execute state changes, nr services to process: %s in step:%s" % (len(todo), step))
             for i in range(len(todo)):
                 service = todo[i]
-                try:
-                    service.runAction(name=action,printonly=printonly)
-                except Exception as e:
-                    print ("***ERROR %s***\n%s\n"%(service,e))
-                    error=True
+                service.runAction(name=action,printonly=printonly)
+                # try:
+                #     service.runAction(name=action,printonly=printonly)
+                # except Exception as e:
+                #     err="***ERROR %s***\n"%(service)
+                #     for line in traceback.format_stack():
+                #         if "/IPython/" in line:
+                #             continue
+                #         # if "JumpScale/baselib" in line:
+                #         #     continue
+                #         if "site-packages/click/" in line:
+                #             continue
+                #         if "bin/ays" in line:
+                #             continue
+                #         line=line.strip().strip("' ").strip().replace("File ","")
+                #         err+="%s\n"%line.strip()
+                #     err+="ERROR:%s\n"%e
+                #     print (err)                 
+                #     error=True
 
             step += 1
             if error:

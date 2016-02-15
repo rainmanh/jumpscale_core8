@@ -82,15 +82,14 @@ class Loader(object):
 
 locationbases={}
 j = Loader("j")
+j.data=Loader("j.actions")
 j.data=Loader("j.data")
 j.core=Loader("j.core")
-# j.data.types=Loader("j.data.types")
 j.sal=Loader("j.sal")
 j.tools=Loader("j.tools")
 j.clients=Loader("j.clients")
 j.data.serializer=Loader("j.data.serializer")
 j.servers=Loader("j.servers")
-j.grid=Loader("j.grid")
 j.data.units = Loader('j.data.units')
 j.data.models = Loader('j.data.models')
 
@@ -120,7 +119,8 @@ redisinit()
 if j.core.db==None:
 
     if j.do.TYPE.startswith("OSX"):
-        cmd="redis-server --port 0 --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"
+        #--port 0 
+        cmd="redis-server --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"
         print ("start redis in background")
         os.system(cmd)
     else:
@@ -158,6 +158,7 @@ def findjumpscalelocations(path):
 import json
 
 def findModules():
+
     result={}
     if os.path.isdir(j.do.BASE):
         superroot="%s/lib/JumpScale"%j.do.BASE
@@ -200,14 +201,15 @@ def findModules():
                         result[loc].append((classfile,classname,item))
 
     j.core.db.set("system.locations",json.dumps(result))
-    if base =="/opt/jumpscale8":
+
+    if base =="/opt/jumpscale8/":
         j.do.writeFile("%s/bin/metadata.db"%j.do.BASE,json.dumps(result))
 
 
 forcereload=False
 
 
-if base !="/opt/jumpscale8":
+if base !="/opt/jumpscale8/":
     mdpath="%s/bin/metadata.db"%base
     if j.do.exists(mdpath):
         forcereload=True

@@ -1563,25 +1563,25 @@ class SystemFS(SALObject):
     def convertFileDirnamesUnicodeToAscii(self,rootdir,spacesToUnderscore=False):
         os.path.supports_unicode_filenames=True
         def visit(arg,dirname,names):
-            dirname2=j.system.string.decodeUnicode2Asci(dirname)
+            dirname2 = j.data.text.decodeUnicode2Asci(dirname)
             for name in names:
-                name2=j.system.string.decodeUnicode2Asci(name)
+                name2 = j.data.text.decodeUnicode2Asci(name)
                 if name2!=name:
                     ##print "name not unicode"
-                    source=os.path.join(dirname,name)
+                    source = os.path.join(dirname,name)
                     if spacesToUnderscore:
-                        dirname=dirname.replace(" ","_")
-                        name2=name2.replace(" ","_")
+                        dirname = dirname.replace(" ","_")
+                        name2 = name2.replace(" ","_")
                     if os.path.isdir(source):
                         j.sal.fs.renameDir(source,j.sal.fs.joinPaths(dirname,name2))
                     if os.path.isfile(source):
                         #  #print "renamefile"
                         j.sal.fs.renameFile(source,j.sal.fs.joinPaths(dirname,name2))
-            if dirname2!=dirname:
+            if dirname2 != dirname:
                 #dirname not unicode
                 ##print "dirname not unicode"
                 if spacesToUnderscore:
-                    dirname2=dirname2.replace(" ","_")
+                    dirname2 = dirname2.replace(" ","_")
                 if j.sal.fs.isDir(dirname):
                     j.sal.fs.renameDir(dirname,dirname2)
         arg={}
@@ -1601,7 +1601,7 @@ class SystemFS(SALObject):
         """
         create a tmp dir name and makes sure the dir exists
         """
-        tmpdir=j.sal.fs.joinPaths(j.dirs.tmpDir, str(j.data.idgenerator.generateRandomInt(1,100000000)))
+        tmpdir = j.sal.fs.joinPaths(j.dirs.tmpDir, str(j.data.idgenerator.generateRandomInt(1,100000000)))
         j.sal.fs.createDir(tmpdir)
         return tmpdir
 
@@ -1612,7 +1612,7 @@ class SystemFS(SALObject):
         @rtype: string representing the path of the temp file generated
         """
         #return tempfile.mktemp())
-        tmpdir=j.dirs.tmpDir
+        tmpdir = j.dirs.tmpDir
         fd, path = tempfile.mkstemp(dir=tmpdir)
         try:
             real_fd = os.fdopen(fd)
@@ -1719,8 +1719,7 @@ class SystemFS(SALObject):
         @returns: Whether the filename is valid on the given platform
         @rtype: bool
         '''
-        from JumpScale.core.enumerators import PlatformType
-        platform = platform or PlatformType.findPlatformType()
+        platform = platform or j.core.platformtype.myplatform
 
         if not filename:
             return False
@@ -1853,7 +1852,7 @@ class SystemFS(SALObject):
         @return: unicode path
         @rtype: unicode
         """
-        from jumpscale import Dirs
+        from JumpScale.core.main import Dirs
         return Dirs.pathToUnicode(path)
 
     def targzCompress(self, sourcepath, destinationpath,followlinks=False,destInTar="",pathRegexIncludes=['.[a-zA-Z0-9]*'], \
@@ -1893,7 +1892,7 @@ class SystemFS(SALObject):
                     path=j.sal.fs.readlink(path)
                 self.log("fs.tar: add file %s to tar" % path,7)
                 # print "fstar: add file %s to tar" % path
-                if not (j.core.platformtype.myplatform.isWindows() and j.system.windows.checkFileToIgnore(path)):
+                if not (j.core.platformtype.myplatform.isWindows() and j.sal.windows.checkFileToIgnore(path)):
                     if self.isFile(path) or  self.isLink(path):
                         tarfile.add(path,destpath)
                     else:

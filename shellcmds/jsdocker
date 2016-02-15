@@ -1,212 +1,181 @@
 #!/usr/bin/env jspython
 from JumpScale import j
-from JumpScale.tools import cmdutils
-# import JumpScale.lib.docker
-# import JumpScale.lib.diskmanager
-import sys
+import click
 
-j.application.start("jsmachine_docker")
+@click.group()
+def cli():
+    pass
 
-parser = cmdutils.ArgumentParser()
-# 'mountdisks','unmountdisks'
-parser.add_argument("action",
-                    choices=['ps', 'new', 'pull', 'commit', 'list', 'destroyall','resetdocker', 'destroy', 'cmd', 'ssh',
-                             'start', 'stop', 'restart', 'getip', 'exportTGZ', 'importTGZ', 'exportR',
-                             'importR'],
-                    help='Command to perform')
-parser.add_argument("-n", '--name', help='machine name')
-parser.add_argument("-m", '--bname', help='name of backup (used for import/export)')
-parser.add_argument("-b", '--base', help='base to clone from')
-parser.add_argument("-p", '--passwd', help='password for machine')
-parser.add_argument("-r", '--prefix', help='prefix')
-parser.add_argument("-k", '--key', help='key for syncing')
-parser.add_argument('--sharecode', help='share host /opt/code witch container',
-                    action='store_true', default=False)
-parser.add_argument("-j", '--jumpscale', help='only relevant for new, will install jumpscale',
-                    action='store_true', default=False)
-parser.add_argument('--ports', help='format "22:8022 80:8080"  the first arg e.g. 22 is the port in the container')
-parser.add_argument('--vols', help='format: "/var/insidemachine:/var/inhost # /var/1:/var/1 # ..."')
-parser.add_argument('--volsro', help='same as vols but now mounted read only')
-parser.add_argument('--cpu', help='cpu shares (min 0, max 1000')
-parser.add_argument('--mem', help='max mem in MB')
-parser.add_argument("-c", '--cmd', help='cmd to execute')
-parser.add_argument("-a", '--pubip', help='set pub ip addr of machine (192.168.1.207/24)', default='')
-parser.add_argument("-g", '--gw', help='set ip gateway of machine (192.168.1.1)', default='')
-parser.add_argument('--start', help='start after creation', action='store_true', default=False)
-parser.add_argument('--sshkeyname', help='ssh-agent keyname to be used to push into machine')
-parser.add_argument('--jsbranch', help='jumpscale branch to be used')
+@click.command()
+@click.argument('action')
+@click.argument('role')
+@click.argument('instance')
+@click.option('--debug', default=True, help='enable debug', type=bool)
+def do(action, role, instance, debug):
+    j.atyourservice.debug = debug
 
-opts = parser.parse_args()
+    service = j.atyourservice.getService(role=role, instance=instance, die=True)
+    eval("service.action_methods_node.%s()" % action)
 
-if opts.name!=None and opts.action not in ["new"]:
-    l = j.sal.docker.get(opts.name)
-
-if opts.prefix is not None:
-    j.sal.docker.prefix = opts.prefix
-
-# PS
-if opts.action == 'ps':
-    if opts.name is None:
-        raise RuntimeError("specify machine name")
-    l.getProcessList(opts.name)
-
-
-# NEW
-if opts.action == 'list':
-    # @todo bug list is not working on jsdocker
+@click.command()
+@click.option('--name', '-n', help='name of the docker to commit')
+@click.option('--parsable', '-p', help='enable parsable output', is_flag=True, type=bool)
+def list(name, parsable):
     running = j.sal.docker.status()
-    for name,image,port,status in running:
-        print(" %-20s %-25s %-6s %s" % (name,image,port,status))
-
-if opts.action == 'pull':
-    if opts.base is None:
-        opts.base = "despiegk/mc"
-    cmd = "docker pull %s" % opts.base
-    j.sal.process.executeWithoutPipe(cmd)
-
-if opts.action == 'commit':
-    if opts.name is None:
-        print("specify name of machine with -n")
-        sys.exit(1)
-    if opts.base is None:
-        print("specify name of image to commit to with -b")
-        sys.exit(1)
-    cmd = "docker rmi %s" % opts.base
-    print(cmd)
-    j.sal.process.executeWithoutPipe(cmd, dieOnNonZeroExitCode=False)
-    cmd = "docker commit %s %s" % (opts.name, opts.base)
-    print(cmd)
-    j.sal.process.executeWithoutPipe(cmd)
-
-if opts.action == 'new':
-    if opts.base is None:
-        opts.base = "jumpscale/ubuntu1510"
-    j.sal.docker.create(name=opts.name, stdout=True, base=opts.base, ports=opts.ports, vols=opts.vols,
-             volsro=opts.volsro, cpu=opts.cpu, mem=opts.mem, jumpscale=opts.jumpscale, sharecode=opts.sharecode,\
-             sshkeyname=opts.sshkeyname,rootpasswd=opts.passwd,jumpscalebranch=opts.jsbranch)
-
-if opts.action == 'getip':
-    if opts.name is None:
-        raise RuntimeError("specify machine name")
-    ip = l.getIp(opts.name)
-    print("%s" % ip)
-
-if opts.action == 'exportTGZ':
-    if opts.name is None:
-        raise RuntimeError("specify machine name")
-    if opts.bname is None:
-        raise RuntimeError("specify backup name")
-    print("export %s to %s" % (opts.name, opts.bname))
-    l.exportTgz(opts.name, opts.bname)
-
-if opts.action == 'importTGZ':
-    if opts.name is None:
-        raise RuntimeError("specify machine name")
-    if opts.bname is None:
-        raise RuntimeError("specify backup name")
-    print("import %s to %s" % (opts.bname, opts.name))
-    l.importTgz(opts.bname, opts.name)
-
-if opts.action == 'exportR':
-    if opts.name is None:
-        raise RuntimeError("specify machine name")
-    if opts.bname is None:
-        raise RuntimeError("specify backup name")
-    print("export %s to %s" % (opts.name, opts.bname))
-    l.exportRsync(opts.name, opts.bname, key=opts.key)
-
-if opts.action == 'importR':
-    if opts.name is None:
-        raise RuntimeError("specify machine name")
-    if opts.bname is None:
-        raise RuntimeError("specify backup name")
-    print("import %s to %s" % (opts.bname, opts.name))
-    if opts.base is not None:
-        l.importRsync(opts.bname, opts.name, basename=opts.base)
+    if not parsable:
+        print(" %-20s %-25s %-6s %s" % ("Name", "Imange", "ssh port", "status"))
+        for name2, image, port, status in running:
+            if name and name != name2:
+                continue
+            print(" %-20s %-25s %-6s %s" % (name2, image, port, status))
     else:
-        l.importRsync(opts.bname, opts.name, key=opts.key)
+        infos = []
+        for name2, image, port, status in running:
+            if name and name != name2:
+                continue
+            infos.append({'name': name2, 'image': image, 'port': port, 'status': status})
+        print(j.data.serializer.json.dumps(infos))
 
-if opts.action == 'cmd':
-    if opts.name is None:
-        raise RuntimeError("specify machine name")
+@click.command()
+@click.option('--image', '-i', default='jumpscale/ubuntu1510', help='docker image to pull')
+def pull(image):
+    j.sal.docker.pull(image)
 
-    # if j.sal.nettools.waitConnectionTest(ip,22,4)==False:
-    #     print "could not connect over ssh to ip:%s"%(22)
-    #     j.application.stop(1)
+@click.command()
+@click.option('--name', '-n', help='name of the docker to commit')
+@click.option('--tag', '-t', help='tag to give to the commit')
+@click.option('--mgs', help='commit message')
+@click.option('--force', help='force commit', type=bool, is_flag=True)
+def commit(name, tag):
+    if name is None:
+        print("specify name of machine with -n")
+        return
+    if tag is None:
+        print("specify name of image to commit to with -b")
+        return
+    container = j.sal.docker.get(name)
+    container.commit(tag, msg=msg, delete=True, force=force)
 
-    c = l.getSSH(opts.name, stdout=True)
 
-    print(c.run(opts.cmd))
+@click.command()
+@click.option('--image', '-i', default='jumpscale/ubuntu1510', help='image to use', show_default=True)
+@click.option('--name', '-n', help='name to give to the container')
+@click.option('--ports', '-p', help='format "22:8022 80:8080"  the first arg e.g. 22 is the port in the container')
+@click.option('--volumes', '-v', help='format: "/var/insidemachine:/var/inhost # /var/1:/var/1 # ...')
+@click.option('--cpu', help='cpu shares (min 0, max 1000)')
+@click.option('--memory', '-mem', help='Max memory in MB')
+@click.option('--sharecode', help='Share host /opt/code witch container', is_flag=True, type=bool)
+@click.option('--keyname', help='ssh-agent keyname to be used to push into container')
+@click.option('--pubkey', help='public sshkey to push into container')
+@click.option('--aysfs', help='use default jumpscale aysfs', is_flag=True, type=bool)
+def create(image, name, ports, volumes, cpu, memory, sharecode, keyname, pubkey, aysfs):
+    aysfspts = []
+    
+    if aysfs:
+        aysfspts.append(j.sal.aysfs.getJumpscale())
+        aysfspts.append(j.sal.aysfs.getOptvar())
+    
+    j.sal.docker.create(name=name, stdout=True, base=image, ports=ports, vols=volumes,
+             volsro=None, cpu=cpu, mem=memory, jumpscale=False, sharecode=sharecode,\
+             sshkeyname=keyname, sshpubkey=pubkey, rootpasswd=None, jumpscalebranch=None,\
+             aysfs=aysfspts)
 
-    # #this will make sure new password is set
-    # seedpasswd="rooter"
-    # cl=j.tools.expect.new("sh")
 
-    # if opts.passwd==None:
-    #     opts.passwd="rooter"
+@click.command()
+@click.option('--name', '-n', help='name of the container')
+def getIP(name):
+    container = j.sal.docker.get(name)
+    print(container.getIp())
 
-    # if j.sal.nettools.waitConnectionTest(ip,22,5)==False:
-    #     print "could not connect to port:%s on ip:%s"%(22,ip)
-    #     j.application.stop(1)
 
-    # cl.login(remote=ip,passwd=opts.passwd,seedpasswd="",initial=True)
-
-    # cl.send("/etc/init.d/xrdp start")
-
-    # #cl.wait()
-
-    # nr=0
-
-    # if j.sal.nettools.waitConnectionTest(ip,3389,0.1)==False:
-    #     if nr==10:
-    #         print "could not connect to rdp port:%s on ip:%s"%(3389,ip)
-    #         j.application.stop(1)
-    #     nr+=1
-
-    # print "machine:%s:%s:started"%(nr,ip)
-
-if opts.action == 'rdp':
-    if opts.name is None:
-        raise RuntimeError("specify machine name")
-    if ip == "":
-        ip = getip(opts.nr)
-    time.sleep(2)
-    j.sal.nettools.waitConnectionTest(ip, 3389, 2)
-    j.system.installtools.execute("rmachine %s -g 1600x900 -e & 2>&1 > /dev/null" % ip)
-
-if opts.action == 'destroyall':
+@click.command()
+def destroyAll():
     j.sal.docker.destroyAll()
 
-if opts.action == 'resetDocker':
+@click.command()
+def resetDocker():
     j.sal.docker.resetDocker()
 
-if opts.action == 'destroy':
-    if opts.name is None:
-        raise RuntimeError("specify machine name")
-    l.destroy(opts.name)
+@click.command()
+@click.option('--name', '-n', help='name of the container')
+def destroy(name):
+    container = j.sal.docker.get(name)
+    container.destroy()
 
-if opts.action == 'stop':
-    if opts.name is None:
-        raise RuntimeError("specify machine name")
-    l.stop(opts.name)
+@click.command()
+@click.option('--name', '-n', help='name of the container')
+def stop(name):
+    container = j.sal.docker.get(name)
+    container.stop()
 
-if opts.action == 'start':
-    if opts.name is None:
-        raise RuntimeError("specify machine name")
-    l.start(opts.name)
+@click.command()
+@click.option('--name', '-n', help='name of the container')
+def start(name):
+    container = j.sal.docker.get(name)
+    container.start()
 
-if opts.action == 'restart':
-    if opts.name is None:
-        raise RuntimeError("specify machine name")
-    l.stop(opts.name)
-    l.start(opts.name)
-#
-# if opts.action =="mountdisks":
-#    j.system.platform.diskmanager.partitionsFind()
-#    j.system.platform.diskmanager.partitionsMount_Ext4Data()
+@click.command()
+@click.option('--name', '-n', help='name of the container')
+def restart(name):
+    container = j.sal.docker.get(name)
+    container.stop()
+    container.start()
 
-# if opts.action =="unmountdisks":
-#    j.system.platform.diskmanager.partitionsUnmount_Ext4Data()
+@click.command()
+@click.option('--name', '-n', help='name of the container')
+@click.option('--ouput', '-o', help='name of the ouput file')
+def exportTGZ(name, output):
+    print("export %s to %s" % (name, output))
+    j.sal.docker.exportTgz(name, output)
+
+@click.command()
+@click.option('--name', '-n', help='name of the container')
+@click.option('--input', '-o', help='name of the ouput file')
+def exportTGZ(name, output):
+    print("import %s to %s" % (input, name))
+    j.sal.docker.importTgz(name, output)
+
+@click.command()
+@click.option('--name', '-n', help='name of the container')
+@click.option('--ouput', '-o', help='name of the ouput file')
+@click.option('--key', help='key for syncing')
+def importRsync(name, output, key):
+    print("export %s to %s" % (name, output))
+    j.sal.docker.exportRsync(name, output, key=key)
+
+@click.command()
+@click.option('--name', '-n', help='name of the container')
+@click.option('--input', '-o', help='name of the ouput file')
+@click.option('--key', help='key for syncing')
+def importRsync(name, output, key):
+    print("import %s to %s" % (input, name))
+    j.sal.docker.importRsync(name, output, key=key)
+
+@click.command()
+@click.option('--name', '-n', help='name of the container')
+@click.option('--cmd', '-c', help='command to execute')
+def execute(name, cmd):
+    container = j.sal.docker.get(name)
+    container.cuisine.run(cmd)
 
 
-j.application.stop()
+cli.add_command(do)
+cli.add_command(list)
+cli.add_command(pull)
+cli.add_command(commit)
+cli.add_command(create)
+cli.add_command(getIP)
+cli.add_command(destroyAll)
+cli.add_command(resetDocker)
+cli.add_command(destroy)
+cli.add_command(stop)
+cli.add_command(start)
+cli.add_command(restart)
+cli.add_command(exportTGZ)
+cli.add_command(exportTGZ)
+cli.add_command(importRsync)
+cli.add_command(importRsync)
+cli.add_command(execute)
+
+if __name__ == '__main__':
+    cli()

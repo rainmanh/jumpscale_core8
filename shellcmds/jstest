@@ -1,7 +1,6 @@
 #!/usr/bin/env jspython
 from JumpScale import j
 from JumpScale.tools import cmdutils
-import JumpScale.grid
 
 import sys,time
 
@@ -20,8 +19,6 @@ parser.add_argument('--noOsis',required=False, action='store_true',default=False
 
 
 opts = parser.parse_args()
-
-import JumpScale.baselib.testengine
 
 if opts.path==None:
     j.tools.testengine.paths=["%s/apps"%j.dirs.base]

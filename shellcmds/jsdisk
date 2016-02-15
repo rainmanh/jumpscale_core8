@@ -11,12 +11,9 @@ parser.add_argument("action", choices=['init','list','listmirrors'], help='Comma
 
 opts = parser.parse_args()
 
-import JumpScale.lib.diskmanager
-
-
 
 if opts.action =='list':
-    disks=j.system.platform.diskmanager.partitionsFind()
+    disks = j.sal.diskmanager.partitionsFind()
     print("%-25s %-15s %-6s %-6s %-4s %-30s %-30s %s"%("descr","path","size","free","ssd","mountpoint","type","model"))
     for disk in disks:
         if disk.ssd:
@@ -29,12 +26,12 @@ if opts.action =='list':
             ssd ,disk.mountpoint,",".join(disk.type),disk.model))
 
 if opts.action =='listmirrors':
-    disks=j.system.platform.diskmanager.mirrorsFind()
+    disks = j.sal.diskmanager.mirrorsFind()
 
 
 if opts.action =='init':
 
-    disks=j.system.platform.diskmanager.partitionsFind(initialize=True)
+    disks = j.sal.diskmanager.partitionsFind(initialize=True)
 
 
 

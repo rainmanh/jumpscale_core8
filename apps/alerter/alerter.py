@@ -8,8 +8,7 @@ monkey.patch_time()
 
 from JumpScale import j
 from JumpScale.tools import cmdutils
-from JumpScale.baselib.alerter.alerts_service import AlertService
-
+from JumpScale.tools.alertservice import AlertService
 
 if __name__ == '__main__':
     parser = cmdutils.ArgumentParser()

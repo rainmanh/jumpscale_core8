@@ -5,13 +5,13 @@ import urllib.request, urllib.parse, urllib.error
 
 class OpenvcloudFactory(object):
     def __init__(self):
-        self.__jslocation__ = "j.clients.openvcloud"
+        self.__jslocation__ = "j.tools.openvcloud"
 
     def get(self, apiurl='www.mothership1.com', branch='master'):
-        return Openvclcoud(apiurl, branch)
+        return Openvcloud(apiurl, branch)
 
 
-class Openvclcoud(object):
+class Openvcloud(object):
     def __init__(self, apiurl, branch='master'):
         self._spacesecret = None
         self.apiURL = apiurl

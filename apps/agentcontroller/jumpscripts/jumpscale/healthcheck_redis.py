@@ -18,7 +18,6 @@ period = 600
 log = True
 
 def action():
-    import JumpScale.baselib.redis
     ports = {}
     results = list()
 
@@ -32,10 +31,10 @@ def action():
                 ports[instance.instance] = ports.get(instance.instance, [])
                 ports[instance.instance].append(int(redisport))
 
-    for instance, ports_val in ports.iteritems():
+    for instance, ports_val in ports.items():
         for port in ports_val:
             result = {'category': 'Redis'}
-            pids = j.system.process.getPidsByPort(port)
+            pids = j.sal.process.getPidsByPort(port)
             errmsg = 'redis not operational[halted or not installed]'
             if not pids:
                 state = 'ERROR'
@@ -52,8 +51,8 @@ def action():
 
                 maxmemory = float(rcl.config_get('maxmemory').get('maxmemory', 0))
                 used_memory = rcl.info()['used_memory']
-                size, unit = j.tools.units.bytes.converToBestUnit(used_memory)
-                msize, munit = j.tools.units.bytes.converToBestUnit(maxmemory)
+                size, unit = j.data.units.bytes.converToBestUnit(used_memory)
+                msize, munit = j.data.units.bytes.converToBestUnit(maxmemory)
                 used_memorymsg = '%.2f %sB' % (size, unit)
                 maxmemorymsg = '%.2f %sB' % (msize, munit)               
                 result['message'] = '*Port*: %s. *Memory usage*: %s/ %s' % (port, used_memorymsg, maxmemorymsg)

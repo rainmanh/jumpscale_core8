@@ -4,7 +4,7 @@ from Container import Container
 from JumpScale import j
 import os
 import docker
-
+import time
 
 from sal.base.SALObject import SALObject
 
@@ -13,11 +13,23 @@ class Docker(SALObject):
     def __init__(self):
         self.__jslocation__ = "j.sal.docker"
         self._basepath = "/mnt/vmstor/docker"
+        self._weaveEnabled = None
         self._prefix = ""
-        self.client = docker.Client(base_url='unix://var/run/docker.sock')
         self._containers = []
         self._names = []
-        self.docker_host = {'host': 'localhost', 'port': 0}
+        if 'DOCKER_HOST' not in os.environ or os.environ['DOCKER_HOST'] == "":
+            base_url = 'unix://var/run/docker.sock'
+        else:
+            base_url = os.environ['DOCKER_HOST']
+        self.client = docker.Client(base_url=base_url)
+        self.docker_host = base_url
+
+    @property
+    def isWeaveEnabled(self):
+        if self._weaveEnabled is None:
+            rc, ou = j.tools.cuisine.local.run('weave status', die=False, showout=False)
+            self._weaveEnabled = (rc == 0)
+        return self._weaveEnabled
 
     def connectRemoteTCP(self, address, port):
         url = '%s:%s' % (address, port)
@@ -61,7 +73,7 @@ class Docker(SALObject):
                 except:
                     continue
                 id = str(item["Id"].strip())
-                self._containers.append(Container(name, id, self.client, self.docker_host['host']))
+                self._containers.append(Container(name, id, self.client))
         return self._containers
 
     @property
@@ -231,9 +243,26 @@ class Docker(SALObject):
         cmd="cd %s;tar xzvf %s -C ."%(path,bpath)
         j.sal.process.executeWithoutPipe(cmd)
 
+    def _init_aysfs(self, fs, dockname):
+        if fs.isUnique():
+            if not fs.isRunning():
+                print('[+] starting unique aysfs: %s' % fs.getName())
+                fs.start()
+            
+            else:
+                print('[+] skipping aysfs: %s (unique running)' % fs.getName())
+        
+        else:        
+            fs.setName('%s-%s' % (dockname, fs.getName()))
+            if fs.isRunning():
+                fs.stop()
+                
+            print('[+] starting aysfs: %s' % fs.getName())
+            fs.start()
+    
     def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1510", nameserver=["8.8.8.8"],
                replace=True, cpu=None, mem=0, jumpscale=False, ssh=True, myinit=True, sharecode=False,sshkeyname="",sshpubkey="",
-               setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master"): #@todo (*1*) improve to use aydofs see in cuisine_ dir for docker_approach.md
+               setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master", aysfs=[]):
 
         """
         @param ports in format as follows  "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
@@ -274,12 +303,16 @@ class Docker(SALObject):
             items = ports.split(" ")
             for item in items:
                 key, val = item.split(":", 1)
-                portsdict[int(key)] = int(val)
+                ss = key.split("/")
+                if len(ss) == 2:
+                    portsdict[tuple(ss)] = val
+                else:
+                    portsdict[int(key)] = val
 
         if ssh:
             if 22 not in portsdict:
                 for port in range(9022, 9190):
-                    if not j.sal.nettools.tcpPortConnectionTest(self.docker_host['host'], port):
+                    if not j.sal.nettools.tcpPortConnectionTest('localhost', port):
                         portsdict[22] = port
                         print(("SSH PORT WILL BE ON:%s" % port))
                         break
@@ -291,6 +324,7 @@ class Docker(SALObject):
                 key, val = item.split(":", 1)
                 volsdict[str(key).strip()] = str(val).strip()
 
+        """
         j.sal.fs.createDir("/var/jumpscale")
         if "/var/jumpscale" not in volsdict:
             volsdict["/var/jumpscale"] = "/var/docker/%s" % name
@@ -299,12 +333,25 @@ class Docker(SALObject):
         tmppath = "/tmp/dockertmp/%s" % name
         j.sal.fs.createDir(tmppath)
         volsdict[tmppath] = "/tmp"
+        """
 
         if sharecode and j.sal.fs.exists(path="/opt/code"):
             print("share jumpscale code")
             if "/opt/code" not in volsdict:
                 volsdict["/opt/code"] = "/opt/code"
-
+        
+        
+        if len(aysfs) > 0:
+            for fs in aysfs:
+                self._init_aysfs(fs, name)
+                mounts = fs.getPrefixs()
+                
+                for inp, out in mounts.items():
+                    while not j.sal.fs.exists(inp):
+                        time.sleep(0.1)
+                    
+                    volsdict[out] = inp
+        
         volsdictro = {}
         if len(volsro) > 0:
             items = volsro.split("#")
@@ -320,12 +367,12 @@ class Docker(SALObject):
         volskeys = []  # is location in docker
 
         for key, path in list(volsdict.items()):
-            j.sal.fs.createDir(path)  # create the path on hostname
+            # j.sal.fs.createDir(path)  # create the path on hostname
             binds[path] = {"bind": key, "ro": False}
             volskeys.append(key)
 
         for key, path in list(volsdictro.items()):
-            j.sal.fs.createDir(path)  # create the path on hostname
+            # j.sal.fs.createDir(path)  # create the path on hostname
             binds[path] = {"bind": key, "ro": True}
             volskeys.append(key)
 
@@ -347,7 +394,8 @@ class Docker(SALObject):
             print(volskeys)
             print(binds)
 
-        res = self.client.create_container(image=base, command=cmd, hostname=name, user="root", \
+        hostname = None if self.isWeaveEnabled else name
+        res = self.client.create_container(image=base, command=cmd, hostname=hostname, user="root", \
                 detach=False, stdin_open=False, tty=True, mem_limit=mem, ports=list(portsdict.keys()), environment=None, volumes=volskeys,  \
                 network_disabled=False, name=name, entrypoint=None, cpu_shares=cpu, working_dir=None, domainname=None, memswap_limit=None)
 
@@ -356,10 +404,19 @@ class Docker(SALObject):
 
         id = res["Id"]
 
+        if self.isWeaveEnabled:
+            nameserver = None
+
+        for k, v in portsdict.items():
+            if type(k) == tuple and len(k) == 2:
+                portsdict["%s/%s" % (k[0], k[1])] = v
+                portsdict.pop(k)
+
+
         res = self.client.start(container=id, binds=binds, port_bindings=portsdict, lxc_conf=None, \
             publish_all_ports=False, links=None, privileged=False, dns=nameserver, dns_search=None, volumes_from=None, network_mode=None)
 
-        container = Container(name, id, self.client, self.docker_host['host'])
+        container = Container(name, id, self.client)
 
         if ssh:
             # time.sleep(0.5)  # give time to docker to start
@@ -375,8 +432,8 @@ class Docker(SALObject):
                 else:
                     print("set root passwd to %s" % rootpasswd)
                     container.cexecutor.execute("echo \"root:%s\"|chpasswd" % rootpasswd,showout=False)
-
-            container.setHostName(name)
+            if not self.isWeaveEnabled:
+                container.setHostName(name)
         return container
 
     def getImages(self):

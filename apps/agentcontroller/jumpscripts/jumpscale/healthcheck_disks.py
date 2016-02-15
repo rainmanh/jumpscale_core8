@@ -20,14 +20,13 @@ log = True
 
 
 def action():
-    import JumpScale.lib.diskmanager
     result = dict()
     pattern = None
 
     if j.application.config.exists('gridmonitoring.disk.pattern'):
         pattern = j.application.config.getStr('gridmonitoring.disk.pattern')
 
-    disks = j.system.platform.diskmanager.partitionsFind(
+    disks = j.sal.diskmanager.partitionsFind(
         mounted=True, prefix='', minsize=0, maxsize=None)
 
     def diskfilter(disk):
@@ -35,8 +34,8 @@ def action():
 
     def disktoStr(disk):
         if disk.mountpoint:
-            freesize, freeunits = j.tools.units.bytes.converToBestUnit(disk.free, 'M')
-            size = j.tools.units.bytes.toSize(disk.size, 'M', freeunits)
+            freesize, freeunits = j.data.units.bytes.converToBestUnit(disk.free, 'M')
+            size = j.data.units.bytes.toSize(disk.size, 'M', freeunits)
             return "%s on %s %.02f/%.02f %siB free" % (disk.path, disk.mountpoint, freesize, size, freeunits)
         else:
             return '%s %s' % (disk.path, disk.model)
@@ -45,7 +44,7 @@ def action():
     for disk in filter(diskfilter, disks):
         result = {'category': 'Disks'}
         result['path'] = disk.path
-        checkusage = not (disk.mountpoint and j.system.fs.exists(j.system.fs.joinPaths(disk.mountpoint, '.dontreportusage')))
+        checkusage = not (disk.mountpoint and j.sal.fs.exists(j.sal.fs.joinPaths(disk.mountpoint, '.dontreportusage')))
         result['state'] = 'OK'
         result['message'] = disktoStr(disk)
         if disk.free and disk.size:

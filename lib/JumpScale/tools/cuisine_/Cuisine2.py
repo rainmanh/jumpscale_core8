@@ -191,8 +191,6 @@ def text_strip_margin(text, margin="|"):
 
 from CuisineInstaller import CuisineInstaller
 from CuisineInstallerDevelop import CuisineInstallerDevelop
-from CuisineSystemd import CuisineSystemd
-from CuisineUpstart import CuisineUpstart
 from CuisinePackage import CuisinePackage
 from CuisineProcess import CuisineProcess
 from CuisinePIP import CuisinePIP
@@ -207,6 +205,7 @@ from ActionDecorator import ActionDecorator
 from CuisineGolang import CuisineGolang
 from CuisineFW import CuisineFW
 from CuisineDocker import CuisineDocker
+from ProcessManagerFactory import ProcessManagerFactory
 from CuisinePortal import CuisinePortal
 
 class actionrun(ActionDecorator):
@@ -218,6 +217,7 @@ class OurCuisine():
 
     def __init__(self,executor):
         self.cd="/"
+        self.sudomode = False
 
         self.executor=executor
 
@@ -225,8 +225,7 @@ class OurCuisine():
         self._platformtype=None
         self._id=None
         self._package=None
-        self._upstart=None
-        self._systemd=None
+        self._processmanager=None
         self._installerdevelop=None
         self._process=None
         self._hostname=""
@@ -246,6 +245,7 @@ class OurCuisine():
         self._fw=None
         self.cuisine=self
         self._fqn=""
+        self._dnsmasq=None
         self._docker=None
         self._js8sb=None
         self._dirs={}
@@ -269,19 +269,6 @@ class OurCuisine():
 
             self._package=CuisinePackage(self.executor,self)
         return self._package
-
-    @property
-    def upstart(self):
-        if self._upstart==None:
-            self._upstart=CuisineUpstart(self.executor,self)
-        return self._upstart
-
-    @property
-    def systemd(self):
-        if self._systemd==None:
-            self._systemd=CuisineSystemd(self.executor,self)
-        return self._systemd
-
 
     @property
     def process(self):
@@ -372,6 +359,14 @@ class OurCuisine():
         return self._tmux
 
     @property
+    def dnsmasq(self):
+        if self._dnsmasq==None:
+            self._dnsmasq=j.sal.dnsmasq
+            self._dnsmasq.cuisine=self
+            self._dnsmasq.executor=self.executor
+        return self._dnsmasq
+
+    @property
     def bash(self):
         if self._bash==None:
             self._bash=j.tools.bash.get(self,self.executor)
@@ -410,8 +405,14 @@ class OurCuisine():
         return self._js8sb
 
     @property
+    def processmanager(self):
+        if self._processmanager==None:
+            self._processmanager = ProcessManagerFactory(self).get()
+        return self._processmanager
+
+    @property
     def dir_paths(self):
-        if self._dirs=={}:
+        if self._dirs == {}:
             rc,out=self.run("js 'print(j.data.serializer.json.dumps(j.dirs.__dict__))'",showout=False,die=False,force=True,replaceArgs=False)
             if False:#rc==0:
                 self._dirs=j.data.serializer.json.loads(out)
@@ -448,7 +449,7 @@ class OurCuisine():
         else:
             self._dirs["optDir"]= "/opt/"
 
-        self._dirs["goDir"]= "%sgo/"%self._dirs["optDir"]        
+        self._dirs["goDir"]= "%sgo/"%self._dirs["optDir"]
 
         return self._dirs
 
@@ -780,16 +781,18 @@ class OurCuisine():
             self.file_write(hostfile,val)
 
     @actionrun(action=False,force=False)
-    def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False,replaceArgs=False):
+    def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False,replaceArgs=False,strip=True):
+        if strip:
+            content=j.data.text.strip(content)
+
         location=self.cuisine.args_replace(location)
         if replaceArgs:
             content=self.cuisine.args_replace(content)
 
         print ("filewrite: %s"%location)
         self.dir_ensure(j.sal.fs.getParent(location))
-        content=j.data.text.strip(content)
-        content2 = content.encode('utf-8')
 
+        content2 = content.encode('utf-8')
 
         sig = hashlib.md5(content2).hexdigest()
 
@@ -935,7 +938,7 @@ class OurCuisine():
         res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
         if res.find("command not found")!=-1:
             #print could not find python need to install
-            self.package.install("python3.5")
+            self.cuisine.package.install("python3.5")
             res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
         return res
 
@@ -1033,9 +1036,6 @@ class OurCuisine():
             self.dir_attribs(location, owner=owner, group=group, mode=mode, recursive=recursive)
 
     createDir=dir_ensure
-
-
-
 
     @actionrun(action=False,force=False)
     def fs_find(self,path,recursive=True,pattern="",findstatement="",type="",contentsearch="",extendinfo=False):
@@ -1137,8 +1137,12 @@ class OurCuisine():
         if profile:
             ppath=self.bash.profilePath
             if ppath!=None:
-                cmd=". %s;%s"%(ppath,cmd)
+                cmd=". %s && %s"%(ppath,cmd)
             print ("PROFILECMD:%s"%cmd)
+
+        if self.sudomode:
+            passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
+            cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
 
         rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)
 
@@ -1153,9 +1157,9 @@ class OurCuisine():
                     embed()
                     self.done.append("python")
                     if self.isArch:
-                        self.package.install("python3")
+                        self.cuisine.package.install("python3")
                     else:
-                        self.package.install("python3.5")
+                        self.cuisine.package.install("python3.5")
                     next=True
 
                 if out.find("pip3: command not found")!=-1 and not "pip" in self.done:
@@ -1274,7 +1278,7 @@ class OurCuisine():
         if package is None:
             package = command
         if not self.command_check(command):
-            self.package.install(package)
+            self.cuisine.package.install(package)
         assert self.command_check(command), \
             "Command was not installed, check for errors: %s" % (command)
 
@@ -1318,6 +1322,11 @@ class OurCuisine():
 
 
     #####################SYSTEM IDENTIFICATION
+    @property
+    def isDocker(self):
+        docker = self.run('mount | grep hostname > /dev/null', die = False)
+        return not docker[0]
+
 
     @property
     def isUbuntu(self):

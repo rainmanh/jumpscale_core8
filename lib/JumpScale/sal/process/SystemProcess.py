@@ -743,7 +743,7 @@ def run(commandline, showOutput=False, captureOutput=True, maxSeconds=0,
         cmd = list()
         cmd.append(sys.executable)
 
-        cmd.extend(('-c', '\'from JumpScale.core.system.processhelper import main; main()\'', ))
+        cmd.extend(('-c', '\'from JumpScale.sal.process.processhelper import main; main()\'', ))
 
         if uid is not None:
             cmd.extend(('--uid', '%d' % uid, ))
@@ -1073,7 +1073,7 @@ def runDaemon(commandline, stdout=None, stderr=None, user=None, group=None,
     cmd = list()
     cmd.append(sys.executable)
 
-    cmd.extend(('-c', '\'from JumpScale.core.system.processhelper import main; main()\'', ))
+    cmd.extend(('-c', '\'from JumpScale.sal.process.processhelper import main; main()\'', ))
 
     if stdout:
         j.sal.fs.createDir(os.path.dirname(stdout))
@@ -1529,7 +1529,7 @@ class SystemProcess(SALObject):
             return True
 
         elif j.core.platformtype.myplatform.isWindows():
-            return j.system.windows.isPidAlive(pid)
+            return j.sal.windows.isPidAlive(pid)
 
     kill = staticmethod(kill)
 
@@ -1621,7 +1621,7 @@ class SystemProcess(SALObject):
 
     def getProcessObject(self,pid):
         import psutil
-        for process in psutil.get_process_list():
+        for process in psutil.process_iter():
             if process.pid==pid:
                 return process
         raise RuntimeError("Could not find process with pid:%s"%pid)
@@ -1629,7 +1629,7 @@ class SystemProcess(SALObject):
     def getProcessPidsFromUser(self,user):
         import psutil
         result=[]
-        for process in psutil.get_process_list():
+        for process in psutil.process_iter():
             if process.username==user:
                 result.append(process.pid)
         return result
@@ -1642,7 +1642,7 @@ class SystemProcess(SALObject):
         import psutil
         myprocess=self.getMyProcessObject()
         result=[]
-        for item in psutil.get_process_list():
+        for item in psutil.process_iter():
             try:
                 if item.cmdline==myprocess.cmdline:
                     result.append(item)
@@ -1669,7 +1669,7 @@ class SystemProcess(SALObject):
         # Windows platform
         elif j.core.platformtype.myplatform.isWindows():
 
-            return j.system.windows.checkProcess(process, min)
+            return j.sal.windows.checkProcess(process, min)
 
     def checkProcessForPid(self, pid, process):
         """
@@ -1696,7 +1696,7 @@ class SystemProcess(SALObject):
 
         elif j.core.platformtype.myplatform.isWindows():
 
-            return j.system.windows.checkProcessForPid(process, pid)
+            return j.sal.windows.checkProcessForPid(process, pid)
 
     def setEnvironmentVariable(self, varnames, varvalues):
         """Set the value of the environment variables C{varnames}. Existing variable are overwritten

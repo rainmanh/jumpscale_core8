@@ -1,5 +1,4 @@
 from JumpScale import j
-import JumpScale.baselib.gitlab
 import os
 
 class Item():

@@ -89,16 +89,26 @@ class ServiceTemplate(object):
             self._schema = j.data.hrd.getSchema(hrdpath)
         return self._schema
 
-    @property
-    def actions(self):
-        if self._actions is None:
-            if j.sal.fs.exists(self.path_actions_mgmt):
-                modulename = "JumpScale.atyourservice.%s.%s.mgmt" % (self.domain, self.name)
-                mod = loadmodule(modulename, self.path_actions_mgmt)
-                self._actions = mod.Actions(self)
-            else:
-                self._mongoModel = j.atyourservice.getActionsBaseClassMgmt()(self)
-        return self._actions
+    #@todo I don't think we need this anymore, should be done on service level
+    
+    # @property
+    # def actions(self):
+    #     if self._actions is None:
+    #         if j.sal.fs.exists(self.path_actions_mgmt):
+    #             modulename = "JumpScale.atyourservice.%s.%s.mgmt" % (self.domain, self.name)
+    #             from IPython import embed
+    #             print ("DEBUG NOW iuiuiu")
+    #             embed()
+    #             i
+    #             tmppath=j.sal.fs.joinPaths(j.dirs.tmpDir,"aysrecipes",self.name+".py")
+    #             j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.tmpDir,"aysrecipes"))
+    #             j.sal.fs.copyFile(self.path_actions_mgmt,tmppath)
+
+    #             mod = loadmodule(modulename, tmppath)
+    #             self._actions = mod.Actions(self)
+    #         else:
+    #             self._mongoModel = j.atyourservice.getActionsBaseClassMgmt()(self)
+    #     return self._actions
 
     @property
     def model(self):

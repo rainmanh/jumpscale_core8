@@ -22,15 +22,15 @@ def action():
     import statsd
     stats = statsd.StatsClient()
     pipe = stats.pipeline()
-    counters=psutil.network_io_counters(True)
+    counters=psutil.net_io_counters(True)
     pattern = None
     if j.application.config.exists('gridmonitoring.nic.pattern'):
         pattern = j.application.config.getStr('gridmonitoring.nic.pattern')
 
-    for nic, stat in counters.iteritems():
+    for nic, stat in counters.items():
         if pattern and j.codetools.regex.match(pattern,nic) == False:
             continue
-        if j.system.net.getNicType(nic) == 'VIRTUAL' and not 'pub' in nic:
+        if j.sal.nettools.getNicType(nic) == 'VIRTUAL' and not 'pub' in nic:
             continue
         result = dict()
         bytes_sent, bytes_recv, packets_sent, packets_recv, errin, errout, dropin, dropout = stat
@@ -42,7 +42,7 @@ def action():
         result['errout'] = errout
         result['dropin'] = dropin
         result['dropout'] = dropout
-        for key, value in result.iteritems():
+        for key, value in result.items():
             pipe.gauge("%s_%s_nic_%s_%s" % (j.application.whoAmI.gid, j.application.whoAmI.nid, nic, key), value)
     pipe.send()
 

@@ -67,7 +67,6 @@ class ServiceRecipe(ServiceTemplate):
     def newInstance(self, instance="main", role='', args={}, path='', parent=None, consume="",originator=None, yaml=None):
         """
         """
-        self.actions  # DO NOT REMOVE
 
         if parent is not None and instance == "main":
             instance = parent.instance

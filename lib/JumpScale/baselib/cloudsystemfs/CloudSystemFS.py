@@ -278,7 +278,7 @@ class CloudSystemFS:
         else:
             compressImage = False
 
-        j.cmdtools.disktools.qemu_img.convert(sourcepath, 'raw', tmp_outputFileName, format, compressTargetImage=compressImage)
+        j.sal.qemu_img.convert(sourcepath, 'raw', tmp_outputFileName, format, compressTargetImage=compressImage)
         outputFileName = ''.join([prefix,tmp_outputFileName])
 
         if copy:
@@ -321,7 +321,7 @@ class CloudSystemFS:
             tmp_inputFileName = j.sal.fs.getTempFileName(tempdir)
             self.copyFile(sourcepath, ''.join([prefix,tmp_inputFileName]),tempdir=tempdir)
 
-        j.cmdtools.disktools.qemu_img.convert(tmp_inputFileName, format, destinationpath, 'raw', compressTargetImage=compressImage)
+        j.sal.qemu_img.convert(tmp_inputFileName, format, destinationpath, 'raw', compressTargetImage=compressImage)
 
         if not protocol == "file" and not protocol == "smb" and not protocol == "cifs":
             j.sal.fs.remove(tmp_inputFileName)

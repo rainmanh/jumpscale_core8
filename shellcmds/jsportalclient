@@ -1,8 +1,7 @@
 #!/usr/bin/env jspython
 from JumpScale import j
 from IPython import embed
-import JumpScale.portal
-from JumpScale.baselib.cmdutils import ArgumentParser
+from JumpScale.tools.cmdutils import ArgumentParser
 
 
 if __name__ == '__main__':

@@ -2,9 +2,7 @@
 #! /usr/bin/python
 from JumpScale import j
 from gevent.pywsgi import WSGIServer
-import JumpScale.baselib.redis2
 import time
-import JumpScale.lib.rogerthat
 
 
 

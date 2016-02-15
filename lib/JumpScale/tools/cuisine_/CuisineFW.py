@@ -71,3 +71,16 @@ class CuisineFW():
         self.cuisine.run("ufw deny %s"%port)
 
 
+    def flush(self):
+        C="""
+        iptables --flush
+        iptables --delete-chain
+        iptables --table nat --flush
+        iptables --table filter --flush
+        iptables --table nat --delete-chain
+        iptables --table filter --delete-chain
+        """
+        self.cuisine.run_script(C)
+
+    def show(self):
+        print(self.cuisine.run("iptables -t nat -nvL"))

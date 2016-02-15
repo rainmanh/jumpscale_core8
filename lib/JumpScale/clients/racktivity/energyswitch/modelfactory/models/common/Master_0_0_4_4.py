@@ -2,8 +2,7 @@ from copy import copy
 
 from JumpScale.clients.racktivity.energyswitch.common import convert
 from JumpScale.clients.racktivity.energyswitch.common.GUIDTable import Value
-
-from .Master import Master
+from JumpScale.clients.racktivity.energyswitch.modelfactory.models.common.Master import Master
 
 
 class Model(Master):

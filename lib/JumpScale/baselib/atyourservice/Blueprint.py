@@ -40,17 +40,19 @@ class Blueprint(object):
 
     def loadrecipes(self):
         for model in self.models:
-            for key,item in model.items():
-                aysname,aysinstance=key.split("_",1)
-                j.atyourservice.getRecipe(name=aysname)
+            if model!=None:
+                for key,item in model.items():
+                    aysname,aysinstance=key.split("_",1)
+                    j.atyourservice.getRecipe(name=aysname)
 
     def execute(self):
         for model in self.models:
-            for key, item in model.items():
-                # print ("blueprint model execute:%s %s"%(key,item))
-                aysname, aysinstance = key.split("_", 1)
-                r = j.atyourservice.getRecipe(name=aysname)
-                r.newInstance(instance=aysinstance, args=item, yaml=model)
+            if model!=None:
+                for key, item in model.items():
+                    # print ("blueprint model execute:%s %s"%(key,item))
+                    aysname, aysinstance = key.split("_", 1)
+                    r = j.atyourservice.getRecipe(name=aysname)
+                    r.newInstance(instance=aysinstance, args=item, yaml=model)
 
     def _add2models(self,content,nr):
         #make sure we don't process double
@@ -66,6 +68,6 @@ class Blueprint(object):
         self.models.append(model)
 
     def __str__(self):
-        return str(self.models)
+        return str(self.content)
 
     __repr__=__str__

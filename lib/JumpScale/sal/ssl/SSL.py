@@ -21,7 +21,7 @@ class SSL(SALObject):
     def getSSLHandler(self,keyvaluestor=None):
         """
         default keyvaluestor=j.servers.kvs.getFSStore("sslkeys", serializers=[])  #make sure to use no serializers
-        pass another keyvaluestor if required (first do 'import JumpScale.baselib.key_value_store')
+        pass another keyvaluestor if required (first do 'import JumpScale.servers.key_value_store')
         """
         if keyvaluestor==None:
             keyvaluestor=j.servers.kvs.getFSStore("sslkeys", serializers=[])

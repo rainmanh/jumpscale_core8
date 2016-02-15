@@ -1,6 +1,5 @@
 from libcloud.compute.providers import get_driver
 from JumpScale import j
-import JumpScale.baselib.remote
 
 from sal.base.SALObject import SALObject
 

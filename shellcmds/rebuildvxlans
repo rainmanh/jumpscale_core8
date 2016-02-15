@@ -1,12 +1,8 @@
 #!/usr/bin/env jspython
 __author__ = 'delandtj'
 from JumpScale import j
-from JumpScale.tools import cmdutils
-import JumpScale.lib.ovsnetconfig.VXNet.netclasses as netcl
-import JumpScale.lib.ovsnetconfig.VXNet.vxlan as vx
-
-
-import sys,time
+import JumpScale.sal.openvswitch.VXNet.netclasses as netcl
+import JumpScale.sal.openvswitch.VXNet.vxlan as vx
 
 j.application.start("rebuildvxlans")
 

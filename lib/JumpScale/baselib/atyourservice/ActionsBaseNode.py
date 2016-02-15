@@ -59,7 +59,7 @@ class ActionsBaseNode(object):
                     conn.download(url, path)
 
                     # @TODO need a way to know if the file need to be executable or not
-                    j.system.unix.chmod(path, 0o775)
+                    j.sal.fs.chmod(path, 0o775)
 
                 break
 
@@ -87,7 +87,7 @@ class ActionsBaseNode(object):
                     j.do.copyTree(src, path, deletefirst=False, overwriteFiles=False, ssh=True, sshport=port, recursive=False)
 
                     # @TODO need a way to know if the file need to be executable or not
-                    j.system.unix.chmod(path, 0o775)
+                    j.sal.fs.chmod(path, 0o775)
 
                 break
 

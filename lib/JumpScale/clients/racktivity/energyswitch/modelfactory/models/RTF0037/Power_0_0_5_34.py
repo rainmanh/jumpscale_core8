@@ -3,7 +3,7 @@ from JumpScale.clients.racktivity.energyswitch.common.GUIDTable import Value
 from copy import copy
 import struct
 import time
-from ..common.BaseModule import BaseModule
+from JumpScale.clients.racktivity.energyswitch.modelfactory.models.common.BaseModule import BaseModule
 
 
 class Model(BaseModule):

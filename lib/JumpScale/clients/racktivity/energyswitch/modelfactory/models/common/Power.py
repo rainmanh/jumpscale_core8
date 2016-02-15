@@ -1,6 +1,6 @@
 from JumpScale.clients.racktivity.energyswitch.common import convert
 from JumpScale.clients.racktivity.energyswitch.common.GUIDTable import Value
-from .BaseModule import BaseModule
+from JumpScale.clients.racktivity.energyswitch.modelfactory.models.common.BaseModule import BaseModule
 
 class Power(BaseModule):
     def __init__(self, parent):

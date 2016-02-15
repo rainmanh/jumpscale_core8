@@ -1,7 +1,7 @@
 dockers are on top of aysfs
 
 
-@todo (*1*) implement this scheme in cuisine for now
+@todo (*1*) implement this 
 
 they each mount 2 volumes
 

@@ -3,8 +3,8 @@ import re
 
 
 from JumpScale import j
-from . import mount
-from . import lsblk
+import mount
+import lsblk
 
 
 

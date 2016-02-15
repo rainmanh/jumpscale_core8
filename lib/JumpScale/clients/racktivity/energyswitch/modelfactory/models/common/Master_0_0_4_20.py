@@ -1,6 +1,6 @@
 from JumpScale.clients.racktivity.energyswitch.common import convert
 from JumpScale.clients.racktivity.energyswitch.common.GUIDTable import Value
-from .Master_0_0_4_4 import Model as Master
+from JumpScale.clients.racktivity.energyswitch.modelfactory.models.common.Master_0_0_4_4 import Model as Master
 
 class Model(Master):
     def __init__(self, parent):

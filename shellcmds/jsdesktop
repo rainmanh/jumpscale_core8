@@ -163,7 +163,6 @@ if opts.action =='new':
 if opts.action =='configure':
     if ip=="":
         ip=getip(opts.nr)
-    import JumpScale.baselib.remote
 
     # #this will make sure new password is set
     # seedpasswd="rooter"
@@ -198,7 +197,7 @@ if opts.desktop==True or opts.action =='rdp':
         ip=getip(opts.nr)
     time.sleep(2)    
     j.sal.nettools.waitConnectionTest(ip,3389,2)
-    j.system.installtools.execute("rdesktop %s -g 1600x900 -e & 2>&1 > /dev/null"%ip)
+    j.sal.process.execute("rdesktop %s -g 1600x900 -e & 2>&1 > /dev/null"%ip)
 
 
 if opts.action =='killall':

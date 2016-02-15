@@ -10,6 +10,7 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self,*args,**kwargs)
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.builder"
 
+from CuisineMongoCluster import mongoCluster
 
 class CuisineBuilder(object):
 
@@ -17,6 +18,7 @@ class CuisineBuilder(object):
         self.executor=executor
         self.cuisine=cuisine
         self.bash=self.cuisine.bash
+        self.mongoCluster = mongoCluster
 
     def all(self,start=False, sandbox=False, aydostor=None):
         self.cuisine.installerdevelop.pip()

@@ -7,33 +7,32 @@ class Factory:
     def __init__(self):
         self.__jslocation__ = "j.clients.openvcloud"        
         self._clientsdb = j.data.redisdb.get("openvcloud:main:client")
-        self._clients={}
+        self._clients = {}
 
-
-    def get(self, account, url="", login="", password=None, secret=None, port=443):
-        """
-        @param account, specify account name you want to use 
-        """
-        if account in self._clients:
-            return self._clients[account]
-
-        if url=="":            
-            data=self._clientsdb.get(name=account)         
-            cl= Client(account=data.struct["spaceNameId"], url=data.struct["url"], login=data.struct["login"],\
-                password=data.struct["password"], secret=data.struct["secret"], port=data.struct["port"])
+    def get(self, url, login, password=None, secret=None, port=443):
+        dbkey = "%s:%s" % (url, login)
+        if dbkey in self._clients:
+            return self._clients[dbkey]
+        if self._clientsdb.exists(dbkey):
+            cl = self.get_from_db(dbkey)
         else:
-            data={"url":url,"login":login,"password":password,"secret":secret,"port":port}
-            self._clientsdb.set(data,name=account)
-            cl= Client(account,url, login, password, secret, port)
+            data = {"url": url, "login" : login, "password": password, "secret": secret, "port": port}
+            self._clientsdb.set(data, name=dbkey)
+            cl = Client(url, login, password, secret, port)
 
-        self._clients[account]=cl
-        return self._clients[account]
+        self._clients[dbkey] = cl
+        return cl
+
+    def get_from_db(self, dbkey):
+        data = self._clientsdb.get(name=dbkey)
+        return Client(url=data.struct["url"], login=data.struct["login"], password=data.struct["password"],
+                    secret=data.struct["secret"], port=data.struct["port"])
 
     @property
     def clients(self):
-        if self._clients=={}:
+        if self._clients == {}:
             for data in self._clientsdb:
-                self._clients[data.name]=self.get(data.name)
+                self._clients[data.name] = self.get_from_db(data.name)
         return self._clients
 
 
@@ -55,44 +54,24 @@ def patchMS1(api):
                                                      {'cloudspaceId': 'cloudspaceId', 'machineId': 'vmid'})
 
 class Client:
-    def __init__(self, account,url, login, password=None, secret=None, port=443):
+    def __init__(self, url, login, password=None, secret=None, port=443):
         if not password and not secret:
             raise ValueError("Either secret or password should be given")
-        self._accountId = None
-        self._userId = None
         self._url = url
         self._login = login
         self.api = j.clients.portal.get(url, port)
-        self._account=account
 
         self.__login(password, secret)
         if 'mothership1' in url:
             jsonpath = os.path.join(os.path.dirname(__file__), 'ms1.json')
             self.api.load_swagger(file=jsonpath, group='cloudapi')
             patchMS1(self.api)
-            self.locations=["ca1","uk1","be1"]
         else:
             self.api.load_swagger(group='cloudapi')
 
-        accounts=self.api.cloudapi.accounts.list()
-        found=None
-        for accountDict in accounts:
-            if accountDict["name"]==account:
-                found=accountDict
-                continue
-        if found==None:
-            raise RuntimeError("Could not find account:%s"%account)
-
-
-        self.accountObj=found
-        self.accountName=account
-        self.accountId=self.accountObj["id"]        
-
-        self._spaces_cache= j.data.redisdb.get("openvcloud:%s:space"%self.accountName)
-        self._sizes_cache= j.data.redisdb.get("openvcloud:%s:size"%self.accountName)
-        self._images_cache= j.data.redisdb.get("openvcloud:%s:image"%self.accountName)
-
-        self._spaces={}
+        self._basekey = "openvcloud:%s:%s" % (self._url, self._login)
+        self._accounts_cache = j.data.redisdb.get("%s:accounts"% (self._basekey))
+        self._locations_cache = j.data.redisdb.get("%s:locations"% (self._basekey))
 
     def __login(self, password, secret):
         if not secret:
@@ -100,51 +79,135 @@ class Client:
         self.api._session.cookies.clear()  # make sure cookies are empty, clear guest cookie
         self.api._session.cookies['beaker.session.id'] = secret
 
-    @property
-    def spaces_cache(self): 
-        if self._spaces_cache.len()==0:
-            #load from api
-            for item in self.api.cloudapi.cloudspaces.list():
-                self._spaces_cache.set(item)
-        return self._spaces_cache
 
     @property
-    def spaces(self):
-        if self._spaces=={}:
-            for item in self.spaces_cache:
-                self._spaces[item.name]=Space(self,item.struct)
-        return self._spaces
+    def accounts(self):
+        if not self._accounts_cache:
+            #load from api
+            for item in self.api.cloudapi.accounts.list():
+                self._accounts_cache.set(item, name=str(item["name"]))
+        accounts = []
+        for account in self._accounts_cache:
+            accounts.append(Account(self, account.struct))
+        return accounts
 
     @property
-    def sizes(self): 
-        if self._sizes_cache.len()==0:
+    def locations(self):
+        if not self._locations_cache:
             #load from api
-            for item in self.api.cloudapi.sizes.list():
-                self._sizes_cache.set(item,name=str(item["memory"]))
-        return self._sizes_cache
+            for item in self.api.cloudapi.locations.list():
+                self._locations_cache.set(item, name=str(item["locationCode"]))
+        return [x.struct for x in self._locations_cache]
 
-    @property
-    def images(self): 
-        if self._images_cache.len()==0:
-            #load from api
-            for item in self.api.cloudapi.images.list():
-                self._images_cache.set(item)
-        return self._images_cache
+    def account_get(self, name):
+        for account in self.accounts:
+            if account.model['name'] == name:
+                return account
+        raise KeyError("Not account with name %s" % name)
+
 
     def reset(self):
         """
         """
-        self._spaces_cache.delete()
-        self._sizes_cache.delete()
-        self._images_cache.delete()
-        for space in self.spaces.values():
-            space.reset()
-        self._spaces={}
+        for key in self._accounts_cache.db.keys('%s*' % self._basekey):
+            print(key)
+            self._accounts_cache.db.delete(key)
 
     @property
-    def user_id(self):
-        #@todo is this correct??? think we need to rethink this
-        return self.accountId
+    def login(self):
+        return self._login
+
+    def __repr__(self):
+        return "openvcloud client: %s" % self._url
+
+    __str__ = __repr__
+
+class Account:
+    def __init__(self, client, model):
+        self.client = client
+        self.model = model
+        self.id = model['id']
+        self._basekey = "%s:%s" % (self.client._basekey, self.id)
+        self._spaces_cache = j.data.redisdb.get("%s:spaces" % self._basekey)
+
+    @property
+    def spaces(self):
+        if not self._spaces_cache:
+            #load from api
+            for item in self.client.api.cloudapi.cloudspaces.list():
+                if item['accountId'] == self.model['id']:
+                    self._spaces_cache.set(item)
+        spaces = []
+        for space in self._spaces_cache:
+            spaces.append(Space(self, space.struct))
+        return spaces
+
+    def space_get(self, name, location="", create=True):
+        """
+        will get space if it exists,if not will create it
+        to retrieve existing one location does not have to be specified
+
+        example: for ms1 possible locations: ca1, eu1 (uk), eu2 (be)
+
+        """
+        if not location:
+            raise RuntimeError("Location cannot be empty.")
+        for space in self.spaces:
+            if space.model['name'] == name and space.model['location'] == location:
+                return space
+        else:
+            if create:
+                self.client.api.cloudapi.cloudspaces.create(access=self.client.login,
+                                                            name=name,
+                                                            accountId=self.id,
+                                                            location=location)
+                self._spaces_cache.delete()
+                return self.space_get(name, location, False)
+            else:
+                raise RuntimeError("Could not find space with name %s" % name)
+
+    def __str__(self):
+        return "openvcloud client account: %(name)s" % (self.model)
+
+    __repr__ = __str__
+
+
+class Space:
+    def __init__(self, account, model):
+        self.account = account
+        self.client = account.client
+        self.model = model
+        self.id = model["id"]
+        self._basekey = "%s:%s" % (self.account._basekey, self.id)
+        self._machines_cache = j.data.redisdb.get("%s:machines" % self._basekey)
+        self._sizes_cache = j.data.redisdb.get("%s:size"%self._basekey)
+        self._images_cache = j.data.redisdb.get("%s:image"%self._basekey)
+
+    @property
+    def machines(self):
+        if not self._machines_cache:
+            #load from api
+            for item in self.client.api.cloudapi.machines.list(cloudspaceId=self.id):
+                self._machines_cache.set(item)
+        machines = {}
+        for machine in self._machines_cache:
+            machines[machine.struct['name']] = Machine(self, machine.struct)
+        return machines
+
+    def machine_create(self, name, memsize=2, vcpus=1, disksize=10, image="ubuntu 15.04", ssh=True):
+        """
+        @param memsize in MB or GB
+        for now vcpu's is ignored (waiting for openvcloud)
+
+        """
+        imageId = self.image_find_id(image)
+        sizeId = self.size_find_id(memsize)
+        if name in self.machines:
+            raise RuntimeError("Name is not unique, already exists in %s"%self)
+        print ("cloudspaceid:%s name:%s size:%s image:%s disksize:%s"%(self.id,name,sizeId,imageId,disksize))
+        self.client.api.cloudapi.machines.create(cloudspaceId=self.id, name=name, sizeId=sizeId, imageId=imageId, disksize=disksize)
+        self.reset()
+        return self.machines[name]
 
     def size_find_id(self, memory=None, vcpus=None):
         if memory<100:
@@ -158,16 +221,17 @@ class Client:
 
         raise RuntimeError("did not find memory size:%s"%memory)
 
-        # for size in self.api.cloudapi.sizes.list(spaceId=spaceId):
-        #     if memory and not size['memory'] == memory:
-        #         continue
-        #     if vcpus and not size['vcpus'] == vcpus:
-        #         continue
-        #     return size
+    @property
+    def sizes(self):
+        if not self._sizes_cache:
+            #load from api
+            for item in self.client.api.cloudapi.sizes.list(cloudspaceId=self.id):
+                self._sizes_cache.set(item,name=str(item["memory"]))
+        return [x.struct for x in self._sizes_cache]
 
     def image_find_id(self, name):
         name=name.lower()
-        
+
         for image in self.images.list:
             imageNameFound=image.struct["name"].lower()
             if imageNameFound.find(name)!=-1:
@@ -175,131 +239,78 @@ class Client:
         images=[item.struct["name"].lower() for item in self.images.list]
         raise RuntimeError("did not find image:%s\nPossible Images:\n%s\n"%(name,images))
 
-
-
-    def space_get(self,name,location=""): #@todo (*1*) cannot get this to work
-        """
-        will get space if it exists,if not will create it
-        to retrieve existing one location does not have to be specified
-
-        example: for ms1 possible locations: ca1, eur1, uk1
-
-        """
-        if name in self.spaces:
-            return self.spaces[name]
-        else:
-            if location=="":
-                raise RuntimeError("Location cannot be empty.")
-            cloudid=self.api.cloudapi.cloudspaces.create(access=self.accountId,name=name,accountId=self.accountId,location=location)
-            self._spaces_cache.delete()
-            self._spaces={}
-            if not name in self.spaces:
-                raise RuntimeError("space not created")
-            return self.spaces[name]        
-
-    def __repr__(self):
-        out="openvcloud client:%s"%self.accountName
-        return out
-
-    __str__=__repr__
-
-class Space():
-    def __init__(self,client,model):
-        self.client=client
-        self.model=model
-        self.id=model["id"]
-        self._machines_cache= j.data.redisdb.get("openvcloud:%s:%s:machine"%(self.client.accountName,self.model["name"].lower()))
-        self._machines={}
-
-
     @property
-    def machines_cache(self): 
-        if self._machines_cache.len()==0:
+    def images(self):
+        if self._images_cache.len()==0:
             #load from api
-            for item in self.client.api.cloudapi.machines.list(cloudspaceId=self.id):
-                item["name"]=item["name"].lower()
-                self._machines_cache.set(item)
-        return self._machines_cache
-
-    @property
-    def machines(self):
-        if self._machines=={}:
-            for item in self.machines_cache:
-                self._machines[item.name.lower()]=Machine(self,item.struct)
-        return self._machines
-
-    def machine_create(self,name,memsize=2,vcpus=1,disksize=10,image="ubuntu 15.04",ssh=True):
-        """
-        @param memsize in MB or GB
-        for now vcpu's is ignored (waiting for openvcloud)
-
-        """
-        #@todo (*1*) cannot get this to work
-        #@todo (*1*) make sure ubuntu 15.10 is deployed on all locations in ms 1 (not us)
-        imageId=self.client.image_find_id(image)
-        sizeId=self.client.size_find_id(memsize)
-        if name in self.machines:
-            raise RuntimeError("Name is not unique, already exists in %s"%self)
-        print ("cloudspaceid:%s name:%s size:%s image:%s disksize:%s"%(self.id,name,sizeId,imageId,disksize))
-        self.client.api.cloudapi.machines.create(cloudspaceId=self.id,name=name,sizeId=sizeId,imageId=imageId,disksize=disksize)
-        self.reset()
-        return self.machines[name]
-
+            for item in self.client.api.cloudapi.images.list(cloudspaceId=self.id, accountId=self.account.id):
+                self._images_cache.set(item)
+        return [x.struct for x in self._images_cache]
 
     def reset(self):
         """
         """
         self._machines_cache.delete()
-        self._machines={}
 
     def __repr__(self):
-        out="space: %s (%s)"%(self.model["name"],self.id)
-        return out
+        return "space: %s (%s)"%(self.model["name"],self.id)
 
     __str__=__repr__
         
 
-
-class Machine():
-    def __init__(self,space,model):
-        self.space=space
-        self.client=space.client
-        self.model=model
-        self.id=self.model["id"]
-        self.name=self.model["name"]
+class Machine:
+    def __init__(self, space, model):
+        self.space = space
+        self.client = space.client
+        self.model = model
+        self.id = self.model["id"]
+        self.name = self.model["name"]
+        self._basekey = "%s:%s" % (self.space._basekey, self.id)
+        self._porforwardings_cache = j.data.redisdb.get("%s:portforwardings"%self._basekey)
 
     def start(self):
-        #@todo (*1*) implement
-        from IPython import embed
-        print ("DEBUG NOW start")
-        embed()
-        
+        self.client.api.cloudapi.machines.start(machineId=self.id)
 
     def stop(self):
-        #@todo (*1*) implement
-        from IPython import embed
-        print ("DEBUG NOW stop")
-        embed()
+        self.client.api.cloudapi.machines.stop(machineId=self.id)
 
     def restart(self):
-        self.stop()
-        self.start()
+        self.client.api.cloudapi.machines.restart(machineId=self.id)
 
-    def getSSHConnection(self, machineId):
+    @property
+    def portforwardings(self):
+        if not self._porforwardings_cache:
+            #load from api
+            for item in self.client.api.cloudapi.portforwarding.list(cloudspaceId=self.space.id, machineId=self.id):
+                self._porforwardings_cache.set(item, name='%(publicIp)s:%(publicPort)s -> %(localIp)s:%(localPort)s' % item)
+        return [x.struct for x in self._porforwardings_cache]
+
+    def create_portforwarding(self, publicport, localport):
+        self.client.api.cloudapi.portforwarding.create(cloudspaceId=self.space.id,
+                                                       protocol='tcp',
+                                                       localPort=localport,
+                                                       machineId=self.id,
+                                                       publicIp=self.space.model['publicipaddress'],
+                                                       publicPort=publicport)
+
+    def delete_portforwarding(self, publicport):
+        self.client.api.cloudapi.portforwarding.deleteByPort(cloudspaceId=self.space.id,
+                                                       publicIp=self.space.model['publicipaddress'],
+                                                       publicPort=publicport,
+                                                       proto='tcp')
+        self._porforwardings_cache.delete()
+
+    def get_ssh_connection(self):
         """
         Will get a cuisine executor for the machine.
         Will attempt to create a portforwarding
-
-        :param machineId:
         :return:
         """
-        #@todo (*1*) test om 3 locations
-        
-        machine = self.api.cloudapi.machines.get(machineId=machineId)
+        machine = self.client.api.cloudapi.machines.get(machineId=self.id)
 
         def getMachineIP(machine):
             if machine['interfaces'][0]['ipAddress'] == 'Undefined':
-                machine = self.api.cloudapi.machines.get(machineId=machineId)
+                machine = self.client.api.cloudapi.machines.get(machineId=self.id)
             return machine['interfaces'][0]['ipAddress']
 
         machineip = getMachineIP(machine)
@@ -311,12 +322,11 @@ class Machine():
         if not machineip:
             raise RuntimeError("Could not get IP Address for machine %(name)s" % machine)
 
-        space = self.api.cloudapi.spaces.get(spaceId=machine['spaceId'])
-        publicip = space['publicipaddress']
+        publicip = self.space.model['publicipaddress']
 
         sshport = None
         usedports = set()
-        for portforward in self.api.cloudapi.portforwarding.list(spaceId=machine['spaceId']):
+        for portforward in self.portforwardings:
             if portforward['localIp'] == machineip and int(portforward['localPort']) == 22:
                 sshport = int(portforward['publicPort'])
                 publicip = portforward['publicIp']
@@ -326,22 +336,12 @@ class Machine():
             sshport = 2200
             while sshport in usedports:
                 sshport += 1
-            self.api.cloudapi.portforwarding.create(spaceId=machine['spaceId'],
-                                                    protocol='tcp',
-                                                    localPort=22,
-                                                    machineId=machine['id'],
-                                                    publicIp=publicip,
-                                                    publicPort=sshport)
+            self.create_portforwarding(sshport, 22)
         login = machine['accounts'][0]['login']
         password = machine['accounts'][0]['password']
         return j.tools.executor.getSSHBased(publicip, sshport, login, password)         #@todo we need tow work with keys (*2*)
 
-
     def __repr__(self):
-        out=""
-        from IPython import embed
-        print ("DEBUG NOW repr machine ")
-        embed()
+        return "machine: %s (%s)"%(self.model["name"], self.id)
 
     __str__=__repr__
-        

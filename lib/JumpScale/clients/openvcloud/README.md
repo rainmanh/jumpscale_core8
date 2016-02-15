@@ -5,20 +5,17 @@ To create a machine we need to get the correct size and image to create a machin
 
 ```python
 client = j.clients.openvcloud.get('www.mothership1.com', 'demo', 'demo')
-image = client.findImage('Ubuntu 15.04')
-size = client.findSize(512)
-cloudspaces = client.api.cloudapi.cloudspaces.list()
+account = client.account_get('demo')
+locations = client.locations
+location = locations[0]['locationCode']
+
+space = account.space_get('demospace', location=location)
+
 # lets deploy in our first cloud space
-machineId = client.api.cloudapi.machines.create(name='My VM',
-                                    description='My VM description',
-                                    sizeId=size['id'],
-                                    imageId=image['id'],
-                                    disksize=20,
-                                    cloudspaceId=cloudspaces[0]['id'])
+machine = space.machine_create(name='My VM',
+                                image='Ubuntu 15.10 x64',
+                                memsize=512)
 
-machineobject = client.api.cloudapi.machines.get(machineId=machineId)
-
-# get ssh connection
-executor = client.getSSHConnection(machineId)
+executor = machine.get_ssh_connection()
 
 ```

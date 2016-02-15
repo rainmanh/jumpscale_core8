@@ -97,7 +97,7 @@ class Client:
             #load from api
             for item in self.api.cloudapi.locations.list():
                 self._locations_cache.set(item, name=str(item["locationCode"]))
-        return self._locations_cache
+        return [x.struct for x in self._locations_cache]
 
     def account_get(self, name):
         for account in self.accounts:
@@ -227,7 +227,7 @@ class Space:
             #load from api
             for item in self.client.api.cloudapi.sizes.list(cloudspaceId=self.id):
                 self._sizes_cache.set(item,name=str(item["memory"]))
-        return self._sizes_cache
+        return [x.struct for x in self._sizes_cache]
 
     def image_find_id(self, name):
         name=name.lower()
@@ -245,7 +245,7 @@ class Space:
             #load from api
             for item in self.client.api.cloudapi.images.list(cloudspaceId=self.id, accountId=self.account.id):
                 self._images_cache.set(item)
-        return self._images_cache
+        return [x.struct for x in self._images_cache]
 
     def reset(self):
         """
@@ -283,7 +283,7 @@ class Machine:
             #load from api
             for item in self.client.api.cloudapi.portforwarding.list(cloudspaceId=self.space.id, machineId=self.id):
                 self._porforwardings_cache.set(item, name='%(publicIp)s:%(publicPort)s -> %(localIp)s:%(localPort)s' % item)
-        return [ x.struct for x in self._porforwardings_cache ]
+        return [x.struct for x in self._porforwardings_cache]
 
     def create_portforwarding(self, publicport, localport):
         self.client.api.cloudapi.portforwarding.create(cloudspaceId=self.space.id,

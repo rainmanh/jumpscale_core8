@@ -209,22 +209,23 @@ def get_cuisine(addr = None, port = 22, login = "root", passwd = ""):
     cuisine=j.tools.cuisine.get(executor)
     return cuisine
 
-def mongo_cluster(shards_ips, config_ips, mongos_ips, shards_replica_set_counts = 1, unique = "", mongoport = None, dbdir = "", port = 22, login = "root", passwd = "rooter"):
+def mongoCluster(shards_ips, config_ips, mongos_ips, shards_replica_set_counts = 1, unique = "", mongoport = None, dbdir = "", port = 22, login = "root", passwd = "rooter"):
     args = []
     for i in [shards_ips,config_ips,mongos_ips]:
         cuisines = []
         for k in i:
             cuisines.append(MongoInstance(get_cuisine(addr=k, port=port,login=login,passwd=passwd), port = mongoport, dbdir = dbdir))
         args.append(cuisines)
-    return _mongo_cluster(args[0], args[1], args[2], shards_replica_set_counts = shards_replica_set_counts, unique = unique)
+    return _mongoCluster(args[0], args[1], args[2], shards_replica_set_counts = shards_replica_set_counts, unique = unique)
 
-def _mongo_cluster(shards_css, config_css, mongos_css, shards_replica_set_counts = 1, unique = ""):
+def _mongoCluster(shards_css, config_css, mongos_css, shards_replica_set_counts = 1, unique = ""):
     shards_replicas = [shards_css[i:i+shards_replica_set_counts] for i in range(0, len(shards_css), shards_replica_set_counts)]
     shards = [MongoReplica(i, name = "%s_sh_%d"%(unique, num)) for num, i in enumerate(shards_replicas)]
     cfg = MongoConfigSvr(config_css, name = "%s_cfg"%(unique))
     cluster = MongoCluster(mongos_css, cfg, shards)
     cluster.install()
     cluster.start()
+    return cluster
 
 if __name__ == "__main__":
-    j.tools.cuisine.local.mongo_cluster(["10.0.3.194", "10.0.3.113", "10.0.3.92", "10.0.3.14"], ["10.0.3.183", "10.0.3.161"], ["10.0.3.239", "10.0.3.7"], 2, dbdir = "$varDir/data2/db", mongoport=27021)
+    j.tools.cuisine.local.mongoCluster(["10.0.3.194", "10.0.3.113", "10.0.3.92", "10.0.3.14"], ["10.0.3.183", "10.0.3.161"], ["10.0.3.239", "10.0.3.7"], 2, dbdir = "$varDir/data2/db", mongoport=27021)

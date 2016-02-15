@@ -1185,7 +1185,7 @@ class OurCuisine():
                 for package in items2check:
                     if out.find("not found")!=-1 and  out.find(package)!=-1:
                         from IPython import embed
-                        print ("DEBUG NOW cmd not found")
+                        print ("DEBUG NOW %s not found"%(package))
                         embed()
 
                         if not package in self.done:

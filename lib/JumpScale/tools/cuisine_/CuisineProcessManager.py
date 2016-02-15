@@ -1,5 +1,5 @@
 from JumpScale import j
-import time 
+import time
 
 #not using cuisine.tmux.executeInScreen
 class ProcessManagerBase:
@@ -49,7 +49,7 @@ class CuisineSystemd(ProcessManagerBase):
         cmd="systemctl restart %s"%name
         self.cuisine.run(cmd,showout=False)
 
-          
+
 
     def stop(self,name):
             cmd="systemctl disable %s"%name
@@ -57,13 +57,13 @@ class CuisineSystemd(ProcessManagerBase):
 
             cmd="systemctl stop %s"%name
             self.cuisine.run(cmd,showout=False,die=False)
-            
+
 
     def remove(self,prefix):
         self.stop()
         for name,status in self.systemd.list(prefix):
             self.systemd.stop(name)
-            
+
             for item in self.cuisine.fs_find("/etc/systemd",True,"*%s.service"%name):
                 print("remove:%s"%item)
                 self.cuisine.file_unlink(item)
@@ -94,12 +94,10 @@ class CuisineSystemd(ProcessManagerBase):
             cmd = cmd.replace('"', r'\"')
 
             if path:
-                cwd = "cd %s;" % path
-                if not cmd.startswith("."):
-                    cmd="./%s"%cmd
-                cmd = "%s %s" % (cwd, cmd)
-
-           
+                if not j.sal.fs.isAbsolute(path) and not path.startswith('./'):
+                    cmd = "./%s" % cmd
+            else:
+                path = '/root'
 
             if systemdunit!="":
                 C=systemdunit
@@ -113,11 +111,13 @@ class CuisineSystemd(ProcessManagerBase):
                 [Service]
                 ExecStart=$cmd
                 Restart=always
+                WorkingDirectory=$cwd
 
                 [Install]
                 WantedBy=multi-user.target
                 """
-            C=C.replace("$cmd",cmd)
+            C=C.replace("$cmd", cmd)
+            C=C.replace("$cwd", path)
             if descr=="":
                 descr=name
             C=C.replace("$descr",descr)
@@ -128,12 +128,12 @@ class CuisineSystemd(ProcessManagerBase):
             self.cuisine.run("systemctl enable %s"%name,die=False,showout=False)
         else:
             self.start(name)
-            
+
     def startAll(self):
         if self.systemdOK:
             #@todo (*1*) start all cuisine services
             raise RuntimeError("not implemented, please do")
-        else:            
+        else:
             for key in j.core.db.hkeys("processcmds"):
                 key=key.decode()
                 cmd=j.core.db.hget("processcmds",key).decode()
@@ -156,7 +156,7 @@ class CuisineRunit(ProcessManagerBase):
     def ensure(self, name, cmd="", env={}, path="", descr=""):
         """Ensures that the given upstart service is self.running, starting
         it if necessary."""
-        
+
         if not self.cuisine.file_exists("/etc/service/vice/%s/run" %name ):
             cmd=self.cuisine.args_replace(cmd)
             path=self.cuisine.args_replace(path)
@@ -194,13 +194,13 @@ exec $cmd
             time.sleep(5)
 
         self.reload(name)
-                
+
     def remove(self, prefix):
         """removes process from init"""
         if self.cuisine.file_exists("/etc/service/%s/run" %prefix ):
             self.stop(prefix)
-            self.cuisine.dir_remove("/etc/service/%s/run" %prefix)         
-                
+            self.cuisine.dir_remove("/etc/service/%s/run" %prefix)
+
 
 
 
@@ -227,7 +227,7 @@ class CuisineTmuxec(ProcessManagerBase):
 
     def list(self,prefix=""):
         self.cuisine.run("tmux lsw", profile=True)
-        
+
     def ensure(self, name, cmd="", env={}, path="", descr=""):
         """Ensures that the given upstart service is self.running, starting
         it if necessary."""
@@ -278,12 +278,3 @@ class CuisineTmuxec(ProcessManagerBase):
     def remove(self, name):
         """removes service """
         j.core.db.hdel("processcmds",name)
-
-
-
-
-
-
-
-
-

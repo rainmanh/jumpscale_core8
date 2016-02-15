@@ -45,7 +45,6 @@ class MongoInstance(Startable):
         super().__init__()
         self.cuisine = cuisine
         self.addr = cuisine.executor.addr
-        # self.addr = cuisine
         self.port = port
         self.type_ = type_
         self.replica = replica
@@ -56,8 +55,6 @@ class MongoInstance(Startable):
 
     def _install(self):
         super()._install()
-        print('install', self.addr)
-        # print(self.addr, "install: ", start)
         self.cuisine.dir_ensure(self.dbdir)
         return self.cuisine.builder.mongodb(start = False)
 
@@ -86,7 +83,6 @@ class MongoInstance(Startable):
     def _start(self):
         super()._start()
         print('start', self.addr)
-        # print(self.addr, "start: ",self._gen_service_name(), self._gen_service_cmd())
         return self.cuisine.processmanager.ensure(self._gen_service_name(), self._gen_service_cmd())
 
     @Startable.ensure_started
@@ -190,7 +186,7 @@ class MongoReplica(Startable):
     def __repr__(self):
         return "%s/%s"%(self.name, self.primary)
 
-    # __str__ = __rebr__
+    __str__ = __repr__
 
 class MongoConfigSvr(Startable):
     def __init__(self, nodes, primary = None, name = ""):
@@ -213,13 +209,7 @@ def get_cuisine(addr = None, port = 22, login = "root", passwd = ""):
     cuisine=j.tools.cuisine.get(executor)
     return cuisine
 
-def random_str():
-    return "mie"
-
-def mongo_cluster(shards_ips, config_ips, mongos_ips, shards_replica_set_counts = 1, unique = "", mongoport = "", dbdir = "", port = 22, login = "root", passwd = "rooter"):
-    if unique == "":
-        unique = "mie"
-        # unique = j.data.idgenerator.generateGUID()
+def mongo_cluster(shards_ips, config_ips, mongos_ips, shards_replica_set_counts = 1, unique = "", mongoport = None, dbdir = "", port = 22, login = "root", passwd = "rooter"):
     args = []
     for i in [shards_ips,config_ips,mongos_ips]:
         cuisines = []

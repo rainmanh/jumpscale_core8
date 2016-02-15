@@ -110,8 +110,9 @@ class Client:
         """
         """
         for key in self._accounts_cache.db.keys('%s*' % self._basekey):
-            print(key)
             self._accounts_cache.db.delete(key)
+        self._accounts_cache.delete()
+        self._locations_cache.delete()
 
     @property
     def login(self):
@@ -136,7 +137,7 @@ class Account:
             #load from api
             for item in self.client.api.cloudapi.cloudspaces.list():
                 if item['accountId'] == self.model['id']:
-                    self._spaces_cache.set(item)
+                    self._spaces_cache.set(item, id=item['id'])
         spaces = []
         for space in self._spaces_cache:
             spaces.append(Space(self, space.struct))
@@ -194,7 +195,17 @@ class Space:
             machines[machine.struct['name']] = Machine(self, machine.struct)
         return machines
 
-    def machine_create(self, name, memsize=2, vcpus=1, disksize=10, image="ubuntu 15.04", ssh=True):
+    def refresh(self):
+        cloudspaces = self.client.api.cloudapi.cloudspaces.list()
+        for cloudspace in cloudspaces:
+            if cloudspace['id'] == self.id:
+                self.model = cloudspace
+                break
+        else:
+            raise RuntimeError("Cloud space has been deleted")
+        self.account._spaces_cache.set(cloudspace, id=self.id)
+
+    def machine_create(self, name, memsize=2, vcpus=1, disksize=10, image="Ubuntu 15.10 x64"):
         """
         @param memsize in MB or GB
         for now vcpu's is ignored (waiting for openvcloud)
@@ -214,7 +225,7 @@ class Space:
             memory = memory*1024  # prob given in GB
 
         sizes = [(item["memory"], item) for item in self.sizes]
-        sizes = sorted(sizes, key=lambda size: size[0])
+        sizes.sort(key=lambda size: size[0])
         for size, sizeinfo in sizes:
             if memory > size*0.9:
                 return sizeinfo['id']
@@ -323,13 +334,16 @@ class Machine:
             raise RuntimeError("Could not get IP Address for machine %(name)s" % machine)
 
         publicip = self.space.model['publicipaddress']
+        while not publicip:
+            time.sleep(5)
+            self.space.refresh()
+            publicip = self.space.model['publicipaddress']
 
         sshport = None
         usedports = set()
         for portforward in self.portforwardings:
             if portforward['localIp'] == machineip and int(portforward['localPort']) == 22:
                 sshport = int(portforward['publicPort'])
-                publicip = portforward['publicIp']
                 break
             usedports.add(int(portforward['publicPort']))
         if not sshport:

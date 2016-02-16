@@ -1,8 +1,6 @@
 
 from JumpScale import j
-import os
-
-import socket
+import time
 
 from ActionDecorator import ActionDecorator
 class actionrun(ActionDecorator):
@@ -24,13 +22,14 @@ class CuisineBuilder(object):
         self.cuisine.installerdevelop.pip()
         self.cuisine.installerdevelop.python()
         self.cuisine.installerdevelop.jumpscale8()
-        self.redis(start=start)
+        self.redis(start=start, force=True)
         self.agentcontroller(start=start)
         self.etcd(start=start)
         self.caddy(start=start)
         self.skydns(start=start)
         self.influxdb(start=start)
         self.weave(start=start)
+        self.cuisine.portal.install(start=start)
         if sandbox:
             self.sandbox(aydostor)
 
@@ -44,12 +43,14 @@ class CuisineBuilder(object):
         cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], 'js8_opt', '%s', sandbox_python=%s)" % (aydostor, python)
         self.cuisine.run('js "%s"' % cmd)
         url_opt = '%s/static/js8_opt' % aydostor
+
         cmd = "j.tools.cuisine.local.builder.dedupe(['/optvar'], 'js8_optvar', '%s', sandbox_python=%s)" % (aydostor, False)
         self.cuisine.run('js "%s"' % cmd)
         url_optvar = '%s/static/js8_optvar' % aydostor
+
         return (url_opt, url_optvar)
 
-    @actionrun(action=True)
+
     def _sandbox_python(self, python=True):
         print("START SANDBOX")
         if python:
@@ -58,7 +59,7 @@ class CuisineBuilder(object):
             paths.append("/usr/local/lib/python3.5/dist-packages")
             paths.append("/usr/lib/python3/dist-packages")
 
-            excludeFileRegex=["/xml/","-tk/","/xml","/lib2to3","-34m-",".egg-info"]
+            excludeFileRegex=["-tk/","/lib2to3","-34m-",".egg-info"]
             excludeDirRegex=["/JumpScale","\.dist-info","config-x86_64-linux-gnu","pygtk"]
 
             dest = j.sal.fs.joinPaths(self.cuisine.dir_paths['base'], 'lib')
@@ -73,7 +74,7 @@ class CuisineBuilder(object):
         j.tools.sandboxer.sandboxLibs("%s/bin" % self.cuisine.dir_paths['base'], recursive=True)
         print("SANDBOXING DONE, ALL OK IF TILL HERE, A Segfault can happen because we have overwritten ourselves.")
 
-    @actionrun(force=True)
+
     def dedupe(self, dedupe_path, namespace, store_addr, output_dir='/tmp/sandboxer', sandbox_python=True):
         self.cuisine.dir_remove(output_dir)
 
@@ -226,19 +227,14 @@ class CuisineBuilder(object):
     @actionrun(action=True)
     def syncthing(self, start=True):
         self.installdeps()
-
-        appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "syncthing")
-        GOPATH = self.cuisine.bash.environGet('GOPATH')
-
         url = "git@github.com:syncthing/syncthing.git"
-
-        self.cusine.dir_remove('%s/src/github.com/syncthing/syncthing' % GOPATH)
-        dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='%s/src/github.com/syncthing/syncthing' % GOPATH)
+        
+        self.cuisine.dir_remove('$goDir/src/github.com/syncthing/syncthing')
+        dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='$goDir/src/github.com/syncthing/syncthing')
         self.cuisine.run('cd %s && godep restore' % dest, profile=True)
         self.cuisine.run("cd %s && ./build.sh noupgrade" % dest, profile=True)
-        self.cuisine.dir_ensure(appbase, recursive=True)
-        self.cuisine.file_copy(self.cuisine.joinpaths(dest, 'syncthing'), self.cuisine.joinpaths(GOPATH, 'bin'), recursive=True)
-        self.cuisine.file_copy(self.cuisine.joinpaths(GOPATH, 'bin', 'syncthing'), appbase, recursive=True)
+        self.cuisine.file_copy(self.cuisine.joinpaths(dest, 'syncthing'), "$goDir/bin/", recursive=True)
+        self.cuisine.file_copy("$goDir/bin/syncthing", "$binDir", recursive=True)
 
         if start:
             self._startSyncthing()
@@ -249,6 +245,7 @@ class CuisineBuilder(object):
         self.installdeps()
         self.redis()
         self.mongodb()
+        self.syncthing(start=False)
 
         self.cuisine.tmux.killWindow("main","agent")
 
@@ -267,12 +264,24 @@ class CuisineBuilder(object):
 
         self.cuisine.file_move("%s/agent2"%sourcepath, "$binDir/agent8")
 
-        # link extensions
+        # copy extensions
         self.cuisine.dir_remove("$cfgDir/agent8/extensions")
         self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agent8", recursive=True)
+        self.cuisine.file_copy("$binDir/syncthing", "$cfgDir/agent8/extensions/")
+
 
         # manipulate config file
         C=self.cuisine.file_read("%s/agent.toml"%sourcepath)
+        cfg = j.data.serializer.toml.loads(C)
+        cfg["main"]["message_ID_file"] = cfg["main"]["message_ID_file"].replace("./", "$cfgDir/agent8/")
+        cfg["main"]["history_file"] = cfg["main"]["history_file"].replace("./", "$cfgDir/agent8/")
+        cfg["main"]["include"] =  cfg["main"]["include"].replace("./", "$cfgDir/agent8/")
+        cfg["extensions"]["sync"]["cwd"] = cfg["extensions"]["sync"]["cwd"].replace("./", "$cfgDir/agent8/")
+        cfg["extensions"]["jumpscript"]["cwd"] = cfg["extensions"]["jumpscript"]["cwd"].replace("./", "$cfgDir/agent8/")
+        cfg["extensions"]["jumpscript_content"]["cwd"] = cfg["extensions"]["jumpscript_content"]["cwd"].replace("./", "$cfgDir/agent8/")
+        cfg["extensions"]["js_daemon"]["cwd"] = cfg["extensions"]["js_daemon"]["cwd"].replace("./", "$cfgDir/agent8/")
+        cfg["logging"]["db"]["address"] = cfg["logging"]["db"]["address"].replace("./", "$cfgDir/agent8/")
+        C = j.data.serializer.toml.dumps(cfg)
 
         self.cuisine.file_write("$cfgDir/agent8/agent.toml", C, replaceArgs=True)
         self.cuisine.file_write("$cfgDir/agent8/agent.toml.org", C, replaceArgs=False)
@@ -282,15 +291,14 @@ class CuisineBuilder(object):
         if start:
             self._startAgent()
 
-    #@actionrun(action=True)
+    @actionrun(action=True)
     def agentcontroller(self, start=True):
         """
         config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
         """
         self.installdeps()
-        self.redis()
-        self.mongodb()
         self.agent()
+        self._startSyncthing()
         self.cuisine.processmanager.remove("agentcontroller8")
 
         self.cuisine.dir_ensure("$cfgDir/agentcontroller8", recursive=True)
@@ -305,14 +313,22 @@ class CuisineBuilder(object):
         self.cuisine.file_move("%s/agentcontroller2"%sourcepath, "$binDir/agentcontroller8")
 
         C = self.cuisine.file_read("%s/agentcontroller.toml"%sourcepath)
-        self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml', C)
+        cfg = j.data.serializer.toml.loads(C)
+
+        cfg["events"]["python_path"] = cfg["events"]["python_path"].replace("./", "$cfgDir/agentcontroller8/")
+        cfg["processor"]["python_path"] = cfg["processor"]["python_path"].replace("./", "$cfgDir/agentcontroller8/")
+        cfg["jumpscripts"]["python_path"] = cfg["jumpscripts"]["python_path"].replace("./", "$cfgDir/agentcontroller8/")
+        cfg["jumpscripts"]["settings"]["jumpscripts_path"] = cfg["jumpscripts"]["settings"]["jumpscripts_path"].replace("./", "$cfgDir/agentcontroller8/")
+
+        C = j.data.serializer.toml.dumps(cfg)
+
+        self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml', C, replaceArgs=True)
         self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml.org', C, replaceArgs=False)
 
         self.cuisine.dir_remove("$cfgDir/agentcontroller8/extensions")
-        self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extenstions", recursive=True)
+        self.cuisine.file_link("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extenstions")
 
         if start:
-            self.agent()
             self._startAgent()
             self._startAgentController()
 
@@ -322,24 +338,27 @@ class CuisineBuilder(object):
         GOPATH = self.cuisine.bash.environGet('GOPATH')
         env={}
         env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
-        self.cuisine.processmanager.ensure(name="syncthing", cmd="./syncthing", wait=0, path=self.cuisine.joinpaths(GOPATH, "bin"))
+        pm = self.cuisine.processmanager.get("tmux")
+        pm.ensure(name="syncthing", cmd="./syncthing", path=self.cuisine.joinpaths(GOPATH, "bin"))
+ 
 
-
-    #@actionrun(action=True)
+    @actionrun(action=True)
     def _startAgent(self):
         print("connection test ok to agentcontroller")
         #@todo (*1*) need to implement to work on node
         env={}
         env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
         cmd = "$binDir/agent8 -c $cfgDir/agent8/agent.toml"
-        self.cuisine.processmanager.ensure("agent8", cmd=cmd, path="$cfgDir/agent8",  env=env)
+        pm = self.cuisine.processmanager.get("tmux")
+        pm.ensure("agent8", cmd=cmd, path="$cfgDir/agent8",  env=env)
 
     @actionrun(action=True)
     def _startAgentController(self):
         env = {}
         env["TMPDIR"] = self.cuisine.dir_paths["tmpDir"]
         cmd = "$binDir/agentcontroller8 -c $cfgDir/agentcontroller8/agentcontroller.toml"
-        self.cuisine.processmanager.ensure("agentcontroller8", cmd=cmd, path="$cfgDir/agentcontroller8/", env=env)
+        pm = self.cuisine.processmanager.get("tmux")
+        pm.ensure("agentcontroller8", cmd=cmd, path="$cfgDir/agentcontroller8/", env=env)
 
     @actionrun(action=True)
     def etcd(self,start=True, host=None, peers=[]):
@@ -433,7 +452,7 @@ class CuisineBuilder(object):
             """
             C=self.cuisine.bash.replaceEnvironInText(C)
             C=self.cuisine.args_replace(C)
-            self.cuisine.run_script(C,profile=True,action=True)
+            self.cuisine.run_script(C,profile=True)
             #move action
             C="""
             set -ex
@@ -445,7 +464,7 @@ class CuisineBuilder(object):
             """
             C=self.cuisine.bash.replaceEnvironInText(C)
             C=self.cuisine.args_replace(C)
-            self.cuisine.run_script(C,profile=True,action=True)
+            self.cuisine.run_script(C,profile=True)
         else:
             if self.cuisine.command_check("redis-server")==False:
                 self.cuisine.package.install("redis")

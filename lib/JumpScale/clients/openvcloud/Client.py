@@ -2,6 +2,7 @@ from JumpScale import j
 import time
 import os
 
+CACHETIME = 60
 
 class Factory:
     def __init__(self):
@@ -17,14 +18,14 @@ class Factory:
             cl = self.get_from_db(dbkey)
         else:
             data = {"url": url, "login" : login, "password": password, "secret": secret, "port": port}
-            self._clientsdb.set(data, name=dbkey)
+            self._clientsdb.set(data, id=dbkey)
             cl = Client(url, login, password, secret, port)
 
         self._clients[dbkey] = cl
         return cl
 
     def get_from_db(self, dbkey):
-        data = self._clientsdb.get(name=dbkey)
+        data = self._clientsdb.get(id=dbkey)
         return Client(url=data.struct["url"], login=data.struct["login"], password=data.struct["password"],
                     secret=data.struct["secret"], port=data.struct["port"])
 
@@ -49,7 +50,7 @@ def patchMS1(api):
         return wrapper
 
 
-    api.cloudapi.portforwarding.list = patchmethod(api.cloudapi.portforwarding.list, {'cloudspaceId': 'cloudspaceId'})
+    api.cloudapi.portforwarding.list = patchmethod(api.cloudapi.portforwarding.list, {'cloudspaceId': 'cloudspaceid'})
     api.cloudapi.portforwarding.create = patchmethod(api.cloudapi.portforwarding.create,
                                                      {'cloudspaceId': 'cloudspaceId', 'machineId': 'vmid'})
 
@@ -70,8 +71,8 @@ class Client:
             self.api.load_swagger(group='cloudapi')
 
         self._basekey = "openvcloud:%s:%s" % (self._url, self._login)
-        self._accounts_cache = j.data.redisdb.get("%s:accounts"% (self._basekey))
-        self._locations_cache = j.data.redisdb.get("%s:locations"% (self._basekey))
+        self._accounts_cache = j.data.redisdb.get("%s:accounts"% (self._basekey), CACHETIME)
+        self._locations_cache = j.data.redisdb.get("%s:locations"% (self._basekey), CACHETIME)
 
     def __login(self, password, secret):
         if not secret:
@@ -85,7 +86,7 @@ class Client:
         if not self._accounts_cache:
             #load from api
             for item in self.api.cloudapi.accounts.list():
-                self._accounts_cache.set(item, name=str(item["name"]))
+                self._accounts_cache.set(item)
         accounts = []
         for account in self._accounts_cache:
             accounts.append(Account(self, account.struct))
@@ -96,7 +97,7 @@ class Client:
         if not self._locations_cache:
             #load from api
             for item in self.api.cloudapi.locations.list():
-                self._locations_cache.set(item, name=str(item["locationCode"]))
+                self._locations_cache.set(item)
         return [x.struct for x in self._locations_cache]
 
     def account_get(self, name):
@@ -129,7 +130,7 @@ class Account:
         self.model = model
         self.id = model['id']
         self._basekey = "%s:%s" % (self.client._basekey, self.id)
-        self._spaces_cache = j.data.redisdb.get("%s:spaces" % self._basekey)
+        self._spaces_cache = j.data.redisdb.get("%s:spaces" % self._basekey, CACHETIME)
 
     @property
     def spaces(self):
@@ -180,9 +181,10 @@ class Space:
         self.model = model
         self.id = model["id"]
         self._basekey = "%s:%s" % (self.account._basekey, self.id)
-        self._machines_cache = j.data.redisdb.get("%s:machines" % self._basekey)
-        self._sizes_cache = j.data.redisdb.get("%s:size"%self._basekey)
-        self._images_cache = j.data.redisdb.get("%s:image"%self._basekey)
+        self._machines_cache = j.data.redisdb.get("%s:machines" % self._basekey, CACHETIME)
+        self._sizes_cache = j.data.redisdb.get("%s:size" % self._basekey, CACHETIME)
+        self._images_cache = j.data.redisdb.get("%s:image" % self._basekey, CACHETIME)
+        self._portforwardings_cache = j.data.redisdb.get("%s:portforwardings" % self._basekey, CACHETIME)
 
     @property
     def machines(self):
@@ -220,6 +222,14 @@ class Space:
         self.reset()
         return self.machines[name]
 
+    @property
+    def portforwardings(self):
+        if not self._portforwardings_cache:
+            #load from api
+            for item in self.client.api.cloudapi.portforwarding.list(cloudspaceId=self.id):
+                self._portforwardings_cache.set(item, id='%(publicIp)s:%(publicPort)s -> %(localIp)s:%(localPort)s' % item)
+        return [x.struct for x in self._portforwardings_cache]
+
     def size_find_id(self, memory=None, vcpus=None):
         if memory < 100:
             memory = memory*1024  # prob given in GB
@@ -237,7 +247,7 @@ class Space:
         if not self._sizes_cache:
             #load from api
             for item in self.client.api.cloudapi.sizes.list(cloudspaceId=self.id):
-                self._sizes_cache.set(item,name=str(item["memory"]))
+                self._sizes_cache.set(item)
         return [x.struct for x in self._sizes_cache]
 
     def image_find_id(self, name):
@@ -277,7 +287,7 @@ class Machine:
         self.id = self.model["id"]
         self.name = self.model["name"]
         self._basekey = "%s:%s" % (self.space._basekey, self.id)
-        self._porforwardings_cache = j.data.redisdb.get("%s:portforwardings"%self._basekey)
+        self._portforwardings_cache = j.data.redisdb.get("%s:portforwardings" % self._basekey, CACHETIME)
 
     def start(self):
         self.client.api.cloudapi.machines.start(machineId=self.id)
@@ -290,11 +300,11 @@ class Machine:
 
     @property
     def portforwardings(self):
-        if not self._porforwardings_cache:
+        if not self._portforwardings_cache:
             #load from api
             for item in self.client.api.cloudapi.portforwarding.list(cloudspaceId=self.space.id, machineId=self.id):
-                self._porforwardings_cache.set(item, name='%(publicIp)s:%(publicPort)s -> %(localIp)s:%(localPort)s' % item)
-        return [x.struct for x in self._porforwardings_cache]
+                self._portforwardings_cache.set(item, id='%(publicIp)s:%(publicPort)s -> %(localIp)s:%(localPort)s' % item)
+        return [x.struct for x in self._portforwardings_cache]
 
     def create_portforwarding(self, publicport, localport):
         self.client.api.cloudapi.portforwarding.create(cloudspaceId=self.space.id,
@@ -303,13 +313,16 @@ class Machine:
                                                        machineId=self.id,
                                                        publicIp=self.space.model['publicipaddress'],
                                                        publicPort=publicport)
+        self.space._portforwardings_cache.delete()
+        self._portforwardings_cache.delete()
 
     def delete_portforwarding(self, publicport):
         self.client.api.cloudapi.portforwarding.deleteByPort(cloudspaceId=self.space.id,
                                                        publicIp=self.space.model['publicipaddress'],
                                                        publicPort=publicport,
                                                        proto='tcp')
-        self._porforwardings_cache.delete()
+        self.space._portforwardings_cache.delete()
+        self._portforwardings_cache.delete()
 
     def get_ssh_connection(self):
         """
@@ -327,10 +340,10 @@ class Machine:
         machineip = getMachineIP(machine)
         start = time.time()
         timeout = 60
-        while machineip == 'Undefined' and start + timeout < time.time():
+        while machineip == 'Undefined' and start + timeout > time.time():
             time.sleep(5)
             machineip = getMachineIP(machine)
-        if not machineip:
+        if machineip == 'Undefined':
             raise RuntimeError("Could not get IP Address for machine %(name)s" % machine)
 
         publicip = self.space.model['publicipaddress']
@@ -341,7 +354,7 @@ class Machine:
 
         sshport = None
         usedports = set()
-        for portforward in self.portforwardings:
+        for portforward in self.space.portforwardings:
             if portforward['localIp'] == machineip and int(portforward['localPort']) == 22:
                 sshport = int(portforward['publicPort'])
                 break

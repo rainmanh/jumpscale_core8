@@ -55,7 +55,6 @@ class CuisinePortal(object):
         # Flask
         # Flask-Bootstrap
         # Flask-PyMongo
-        gevent==1.1rc2
         # gitdb
         gitlab3
         # GitPython
@@ -123,7 +122,7 @@ class CuisinePortal(object):
 
     @actionrun(action=True)
     def getcode(self):
-        j.do.pullGitRepo("git@github.com:Jumpscale/jumpscale_portal8.git", executor=self.executor)
+        j.do.pullGitRepo("https://github.com/Jumpscale/jumpscale_portal8.git", executor=self.executor, ssh=False)
 
     @actionrun(action=True)
     def linkCode(self, minimal=False):
@@ -134,7 +133,7 @@ class CuisinePortal(object):
 
         self.cuisine.run("js 'j.application.reload()'")
 
-        portaldir = j.sal.fs.joinPaths(j.dirs.base, "apps", "portals")
+        portaldir = j.sal.fs.joinPaths(self.cuisine.dir_paths['cfgDir'], "portals")
         if not portaldir.endswith("/"):
             portaldir +='/'
         self.cuisine.dir_ensure(portaldir)
@@ -164,15 +163,15 @@ class CuisinePortal(object):
         dest = exampleportaldir = '%sexample' % portaldir
         self.cuisine.dir_ensure(dest)
         self.cuisine.file_copy(j.sal.fs.joinPaths(j.dirs.codeDir, 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'), exampleportaldir)
-        self.cuisine.file_copy(j.sal.fs.joinPaths(j.dirs.codeDir, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'), exampleportaldir)
-        self.cuisine.file_copy(j.sal.fs.joinPaths(j.dirs.codeDir, 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'), exampleportaldir)
-        self.cuisine.file_copy(j.sal.fs.joinPaths(j.dirs.codeDir, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'), exampleportaldir)
-        # j.dirs.replaceFilesDirVars("%s/example/config.hrd" % portaldir)
+        content = self.cuisine.file_read(j.sal.fs.joinPaths(j.dirs.codeDir, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'))
+        configHRD = j.data.hrd.get(content=content, prefixWithName=False)
+        configHRD.set('param.cfg.appdir', j.sal.fs.joinPaths(portaldir, 'portalbase'))
+        self.cuisine.file_write(j.sal.fs.joinPaths(exampleportaldir,'config.hrd'), content=str(configHRD))
         self.cuisine.file_copy("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir, recursive=True)
 
     @actionrun(action=True)
     def mongoconnect(self, ip, port):
-        cfg_path = j.sal.fs.joinPaths(j.dirs.base, 'apps/portals/example/config.hrd')
+        cfg_path = j.sal.fs.joinPaths(self.cuisine.dir_paths['cfgDir'], "portals", 'example','config.hrd')
         content = self.cuisine.file_read(cfg_path)
         tmp = j.sal.fs.getTempFileName()
         hrd = j.data.hrd.get(content=content, path=tmp)
@@ -188,7 +187,7 @@ class CuisinePortal(object):
 
     @actionrun(action=True)
     def start(self):
-        portaldir = j.sal.fs.joinPaths(j.dirs.base,'apps/portals/')
+        portaldir = j.sal.fs.joinPaths(self.cuisine.dir_paths['cfgDir'], "portals")
         exampleportaldir = j.sal.fs.joinPaths(portaldir,'example/')
         cmd = "cd %s; jspython portal_start.py" % exampleportaldir
         self.cuisine.tmux.createSession("portal", ['portal'])

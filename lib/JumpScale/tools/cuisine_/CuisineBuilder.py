@@ -1,6 +1,6 @@
 
 from JumpScale import j
-import time
+
 
 from ActionDecorator import ActionDecorator
 class actionrun(ActionDecorator):
@@ -291,8 +291,9 @@ class CuisineBuilder(object):
         if start:
             self._startAgent()
 
-    @actionrun(action=True)
+    #@actionrun(action=True)
     def agentcontroller(self, start=True):
+        import re
         """
         config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
         """
@@ -303,6 +304,7 @@ class CuisineBuilder(object):
 
         self.cuisine.dir_ensure("$cfgDir/agentcontroller8", recursive=True)
 
+        #get repo 
         url = "github.com/Jumpscale/agentcontroller2"
         self.cuisine.golang.godep(url)
         sourcepath = "$goDir/src/github.com/Jumpscale/agentcontroller2"
@@ -310,8 +312,9 @@ class CuisineBuilder(object):
         #do the actual building
         self.cuisine.run("cd %s && go build ." % sourcepath, profile=True)
 
+        #move binary 
         self.cuisine.file_move("%s/agentcontroller2"%sourcepath, "$binDir/agentcontroller8")
-
+        #edit config 
         C = self.cuisine.file_read("%s/agentcontroller.toml"%sourcepath)
         cfg = j.data.serializer.toml.loads(C)
 
@@ -325,8 +328,19 @@ class CuisineBuilder(object):
         self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml', C, replaceArgs=True)
         self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml.org', C, replaceArgs=False)
 
+        #add jumpscripts to syncthing 
+        sync_cfg = self.cuisine.file_read("/root/.config/syncthing/config.xml")
+        sync_conn = re.search(r'<address>([0-9.]+):([0-9]+)</', sync_cfg)
+        apikey =  re.search(r'<apikey>([\w\-]+)</apikey>', sync_cfg).group(1)
+        sync_cfg.replace(sync_conn.group(1), "0.0.0.0")
+        synccl = j.clients.syncthing.get(self.executor.addr,sync_conn.group(2), apikey=apikey)
+        #where in the config is the jumpscripts file set 
+        #synccl.config_add_folder()
+
+
+
         self.cuisine.dir_remove("$cfgDir/agentcontroller8/extensions")
-        self.cuisine.file_link("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extenstions")
+        self.cuisine.file_link("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extensions")
 
         if start:
             self._startAgent()

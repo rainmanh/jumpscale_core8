@@ -238,7 +238,7 @@ class Space:
         if not self._sizes_cache:
             #load from api
             for item in self.client.api.cloudapi.sizes.list(cloudspaceId=self.id):
-                self._sizes_cache.set(item,name=str(item["memory"]))
+                self._sizes_cache.set(item)
         return [x.struct for x in self._sizes_cache]
 
     def image_find_id(self, name):

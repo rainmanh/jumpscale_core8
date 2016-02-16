@@ -445,7 +445,7 @@ class OurCuisine():
         else:
             self._dirs["optDir"]= "/opt/"
 
-        self._dirs["goDir"]= "%sgo/"%self._dirs["optDir"]
+        self._dirs["goDir"]= "%sgo/"%self._dirs["varDir"]
 
         return self._dirs
 

@@ -220,18 +220,14 @@ class CuisineBuilder(object):
     @actionrun(action=True)
     def syncthing(self, start=True):
         self.installdeps()
-
-        appbase = self.cuisine.joinpaths(j.dirs.base, "apps", "syncthing")
-        GOPATH = self.cuisine.bash.environGet('GOPATH')
-
         url = "git@github.com:syncthing/syncthing.git"
         
         self.cuisine.dir_remove('$goDir/src/github.com/syncthing/syncthing')
         dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='$goDir/src/github.com/syncthing/syncthing')
         self.cuisine.run('cd %s && godep restore' % dest, profile=True)
         self.cuisine.run("cd %s && ./build.sh noupgrade" % dest, profile=True)
-        self.cuisine.file_copy(self.cuisine.joinpaths(dest, 'syncthing'), self.cuisine.joinpaths(GOPATH, 'bin'), recursive=True)
-        self.cuisine.file_copy(self.cuisine.joinpaths(GOPATH, 'bin', 'syncthing'), "$binDir", recursive=True)
+        self.cuisine.file_copy(self.cuisine.joinpaths(dest, 'syncthing'), "$goDir/bin/", recursive=True)
+        self.cuisine.file_copy("$goDir/bin/syncthing", "$binDir", recursive=True)
 
         if start:
             self._startSyncthing()
@@ -618,9 +614,4 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb/influxdb.conf.o
                     self.cuisine.bash.environSet(splitted[0],splitted[1])
                 elif len(splitted) > 0:
                     self.cuisine.bash.environSet(splitted[0], '')
-
-if __name__=="__main__":
-    wtv2 = j.tools.executor.getSSHBased('172.17.0.6', passwd='gig1234')
-    ccl2= j.tools.cuisine.get(wtv2)
-    ccl2.builder.agentcontroller()
 

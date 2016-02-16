@@ -11,7 +11,7 @@ class ProcessManagerBase:
 
     def get(self, pm = None):
         from ProcessManagerFactory import ProcessManagerFactory
-        return ProcessManagerFactory(self.cuisine).get(self.cuisine, pm)
+        return ProcessManagerFactory(self.cuisine).get(pm)
 
 class CuisineSystemd(ProcessManagerBase):
     def __init__(self,executor,cuisine):
@@ -57,9 +57,10 @@ class CuisineSystemd(ProcessManagerBase):
 
 
     def remove(self,prefix):
-        for name,status in self.list(prefix):
-            self.stop(name)
-
+        self.stop()
+        for name,status in self.systemd.list(prefix):
+            self.systemd.stop(name)
+            
             for item in self.cuisine.fs_find("/etc/systemd",True,"*%s.service"%name):
                 print("remove:%s"%item)
                 self.cuisine.file_unlink(item)
@@ -191,8 +192,8 @@ exec $cmd
         """removes process from init"""
         if self.cuisine.file_exists("/etc/service/%s/run" %prefix ):
             self.stop(prefix)
-            self.cuisine.dir_remove("/etc/service/%s/run" %prefix)
-
+            self.cuisine.dir_remove("/etc/service/%s/run" %prefix)         
+                
 
 
 
@@ -231,36 +232,36 @@ class CuisineTmuxec(ProcessManagerBase):
         else:
             envstr = ""
             for name0, value in list(env.items()):
-                envstr += "export %s=%s\n" % (name0, value)
+                envstr += "export %s=%s && " % (name0, value)
 
-            if envstr!="":
-                cmd="%s;%s"%(envstr,cmd)
 
             cmd = cmd.replace('"', r'\"')
 
             if path:
-                cwd = "cd %s;" % path
-                if not cmd.startswith("."):
-                    cmd="./%s"%cmd
+                cwd = "cd %s &&" % path
                 cmd = "%s %s" % (cwd, cmd)
+            if envstr!="":
+                cmd="%s%s"%(envstr,cmd)
 
             j.core.db.hset("processcmds",name,cmd)
 
         self.stop(name)
-        self.cuisine.tmux.createWindow("main", name,cmd=cmd)
+        self.cuisine.tmux.createWindow("main", name)
+        self.cuisine.tmux.executeInScreen("main", name, cmd)
 
     def reload(self, name):
-        """Reloads the given service, or starts it if it is not self.running."""
+        """Reloads the given service, or star
+ts it if it is not self.running."""
         cmd=j.core.db.hget("processcmds",name).decode()
         self.stop(name)
-        self.cuisine.tmux.createWindow("main", name,cmd=cmd)
+        self.cuisine.tmux.executeInScreen("main", name,cmd=cmd)
 
     def start(self, name):
         """Tries a `restart` command to the given service, if not successful
         will stop it and start it. If the service is not started, will start it."""
         cmd=j.core.db.hget("processcmds",name).decode()
         self.stop(name)
-        self.cuisine.tmux.createWindow("main", name,cmd=cmd)
+        self.cuisine.tmux.executeInScreen("main", name,cmd=cmd)
 
 
     def stop(self, name):

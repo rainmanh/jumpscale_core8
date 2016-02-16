@@ -49,6 +49,7 @@ if prev then
 
         v.m_total = 0
         v.m_nr = 0
+        v.m_max = value
         v.m_epoch = now_short_m
     end
     if v.h_epoch < now_short_h then
@@ -60,6 +61,7 @@ if prev then
 
         v.h_total = 0
         v.h_nr = 0
+        v.h_max = value
         v.h_epoch = now_short_h
     end
 
@@ -85,6 +87,8 @@ if prev then
         v.h_max = stat
     end
 
+    -- always reset tags in case of change.
+    v.tags = tags
     -- remember in redis
     local data = cjson.encode(v)
     redis.call('SET', statekey, data)

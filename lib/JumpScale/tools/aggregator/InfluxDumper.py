@@ -1,14 +1,16 @@
 from JumpScale import j
 import Dumper
+import collections
 
-# import sys
-import time
 
-# import os
-import psutil
+Stats = collections.namedtuple("Stats", "node key epoch stat avg max")
 
 
 class InfluxDumper(Dumper.BaseDumper):
+    QUEUE_MIN = 'queues:stats:min'
+    QUEUE_HOUR = 'queues:stats:hour'
+    QUEUES = [QUEUE_MIN, QUEUE_HOUR]
+
     def __init__(self, influx, database=None, cidr='127.0.0.1', port=7777):
         super(InfluxDumper, self).__init__(cidr, port)
 
@@ -18,7 +20,46 @@ class InfluxDumper(Dumper.BaseDumper):
             database = 'statistics'
 
         self.database = database
-        # self.influxdb.create_database(database)
+        found = False
+        for db in self.influxdb.get_list_database():
+            if db['name'] == database:
+                found = True
+
+        if not found:
+            self.influxdb.create_database(database)
+
+    def _parse_line(self, line):
+        """
+        Line is formated as:
+        node|key|epoch|stat|avg|max
+        :param line: Line to parse
+        :return: Stats object
+        """
+
+        parts = line.split('|')
+        if len(parts) != 6:
+            raise Exception('Invalid stats line "%s"' % line)
+        return Stats(parts[0], parts[1], int(parts[2]), float(parts[3]), float(parts[4]), float(parts[5]))
+
+    def _dump(self, key, stats, info):
+        tags = j.data.tags.getObject(info.get('tags', ''))
+
+        points = [
+            {
+                "measurement": key,
+                "tags": tags.tags,
+                "time": stats.epoch,
+                "fields": {
+                    "value": stats.avg,
+                    "max": stats.max,
+                }
+            }
+        ]
+
+        self.influxdb.write_points(points, database=self.database, time_precision='s')
+
+    def _dump_hour(self, stats):
+        print(stats)
 
     def dump(self, redis):
         """
@@ -26,51 +67,24 @@ class InfluxDumper(Dumper.BaseDumper):
         :param redis:
         :return:
         """
-        print(redis)
-    #
-    # def getStatObjectInfo(self,redis,node,key):
-    #     key2="%s_%s"%(node,key)
-    #     if not key2 in self._statObjects:
-    #         cl=j.tools.redistools.getMonitorClient(redis,node)
-    #         data=cl.getStatObject(key) #get the other info like tags from redis
-    #         #why do we do this???
-    #         data["tags"]="%s key:%s"%(data["tags"].strip(),key)
-    #         data["tags"]=data["tags"].replace(" ",",")
-    #         data["tags"]=data["tags"].replace(":","=")
-    #         self._statObjects[key2]=data
-    #     return self._statObjects[key2]
-    #
-    #
-    # def start(self):
-    #     q='queues:stats'
-    #     start=time.time()
-    #     counter=0
-    #     data=""
-    #     while True:
-    #         for redis in self.redis:
-    #             res=redis.lpop(q)
-    #             while res!=None:
-    #                 counter+=1
-    #                 # print res
-    #                 node,key,epoch,last,mavg,mmax,havg,hmax=res.split("|")
-    #                 data=self.getStatObjectInfo(redis,node,key)
-    #                 tags=data["tags"]
-    #                 last=int(last)
-    #                 #is BUG, but for now to be able to continue
-    #                 #@todo (*2*) fix this and check it all
-    #                 if last<1000000:
-    #                     data+="%s,%s value=%s %s\n"%(measurement,tags,last,epoch)
-    #                 else:
-    #                     print("SKIPPED:%s"%"%s,%s value=%s %s\n"%(measurement,tags,last,epoch))
-    #
-    #                 if counter>100 or time.time()>start+2:
-    #                     start=time.time()
-    #                     counter=0
-    #                     print(data)
-    #                     j.clients.influxdb.postraw(data,host='localhost', port=8086,username='root', password='root', database=self.dbname)
-    #                     # print "dump done to db:%s"%self.dbname
-    #                     data=""
-    #
-    #                 res=redis.lpop(q)
-    #
-    #         time.sleep(1)
+        while True:
+            data = redis.blpop(self.QUEUES, 1)
+            if data is None:
+                return
+
+            queue, line = data
+            queue = queue.decode()
+            line = line.decode()
+
+            stats = self._parse_line(line)
+            info = redis.get("stats:%s:%s" % (stats.node, stats.key))
+
+            if info is not None:
+                info = j.data.serializer.json.loads(info)
+            else:
+                info = dict()
+
+            if queue == self.QUEUE_MIN:
+                self._dump("%s_%s_m" % (stats.node, stats.key), stats, info)
+            else:
+                self._dump("%s_%s_h" % (stats.node, stats.key), stats, info)

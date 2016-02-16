@@ -1,19 +1,18 @@
 from JumpScale import j
 import time
-import os
 
 class RedisDB():
     def __init__(self):
         self.__jslocation__ = "j.data.redisdb"
 
-    def get(self,path):
+    def get(self,path, expiration=None):
         """
         @param path in form of someting:something:...
 
         @todo (*2*) please describe and give example
 
         """
-        return RedisDBList(path)
+        return RedisDBList(path, expiration)
 
     def _test(self):
         llist=self.get("root1:child1")
@@ -85,7 +84,10 @@ class RedisDBObj():
         if j.data.types.dict.check(val)==False:
             raise RuntimeError("only dict supported")
         self.db.hset(self.path,self.id,j.data.serializer.json.dumps(val, sort_keys=True))
-        self._list._list={} #will reload
+        if self._list._expiration:
+            self.db.expire(self.path, self._list._expiration)
+        else:
+            self._list._list={} #will reload
 
     def __repr__(self):
         return j.data.serializer.json.dumps(self.struct, sort_keys=True, indent=True)
@@ -93,14 +95,15 @@ class RedisDBObj():
     __str__=__repr__
 
 class RedisDBList:
-    def __init__(self,path):
+    def __init__(self,path, expiration=None):
         self.db=j.core.db
         self.path=path
         self._list={}
+        self._expiration = expiration
 
     @property
     def list(self):
-        if self._list=={}:
+        if self._expiration or not self._list:
             keys=self.db.hkeys(self.path)
             keys.sort()
             for name in keys:
@@ -129,29 +132,19 @@ class RedisDBList:
         self._list={}
         return obj
 
-    def find(self,id="",**filter):
-        if not filter:
-            #done in special way to be as efficient as possible
-           if id:
-                for item in self.list:
-                    if item.id == id:
-                        return item
-                raise RuntimeError("Could not find item with id %s" % id)
-        else:
-            #now the slower one but complete one
-            res=[]
-            for item in self.list:
-                if id and item.id != id:
-                    continue
-                if filter:
-                    found=True
-                    for key, val in filter.items():
-                        if item.struct[key] != val:
-                            found = False
-                            break
-                if found:
-                    res.append(item)
-            return res
+    def find(self, **filter):
+        res=[]
+        for item in self.list:
+            if id and item.id != id:
+                continue
+            found=True
+            for key, val in filter.items():
+                if item.struct[key] != val:
+                    found = False
+                    break
+            if found:
+                res.append(item)
+        return res
 
     def delete(self):
         self.db.delete(self.path)
@@ -159,13 +152,16 @@ class RedisDBList:
 
     def remove(self, id):
         self.db.hdel(self.path, id)
-        self._list.pop(id)
+        self._list.pop(id, None)
 
     def __iter__(self):
         return self.list.__iter__()
 
     def len(self):
-        return len(self.list)
+        if self._expiration:
+            return self.db.hlen(self.path)
+        else:
+            return len(self.list)
 
     def __bool__(self):
         return self.len() != 0

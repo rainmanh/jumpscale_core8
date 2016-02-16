@@ -2,6 +2,7 @@ from JumpScale import j
 import time
 import os
 
+CACHETIME = 60
 
 class Factory:
     def __init__(self):
@@ -49,7 +50,7 @@ def patchMS1(api):
         return wrapper
 
 
-    api.cloudapi.portforwarding.list = patchmethod(api.cloudapi.portforwarding.list, {'cloudspaceId': 'cloudspaceId'})
+    api.cloudapi.portforwarding.list = patchmethod(api.cloudapi.portforwarding.list, {'cloudspaceId': 'cloudspaceid'})
     api.cloudapi.portforwarding.create = patchmethod(api.cloudapi.portforwarding.create,
                                                      {'cloudspaceId': 'cloudspaceId', 'machineId': 'vmid'})
 
@@ -70,8 +71,8 @@ class Client:
             self.api.load_swagger(group='cloudapi')
 
         self._basekey = "openvcloud:%s:%s" % (self._url, self._login)
-        self._accounts_cache = j.data.redisdb.get("%s:accounts"% (self._basekey))
-        self._locations_cache = j.data.redisdb.get("%s:locations"% (self._basekey))
+        self._accounts_cache = j.data.redisdb.get("%s:accounts"% (self._basekey), CACHETIME)
+        self._locations_cache = j.data.redisdb.get("%s:locations"% (self._basekey), CACHETIME)
 
     def __login(self, password, secret):
         if not secret:
@@ -129,7 +130,7 @@ class Account:
         self.model = model
         self.id = model['id']
         self._basekey = "%s:%s" % (self.client._basekey, self.id)
-        self._spaces_cache = j.data.redisdb.get("%s:spaces" % self._basekey)
+        self._spaces_cache = j.data.redisdb.get("%s:spaces" % self._basekey, CACHETIME)
 
     @property
     def spaces(self):
@@ -180,9 +181,9 @@ class Space:
         self.model = model
         self.id = model["id"]
         self._basekey = "%s:%s" % (self.account._basekey, self.id)
-        self._machines_cache = j.data.redisdb.get("%s:machines" % self._basekey)
-        self._sizes_cache = j.data.redisdb.get("%s:size"%self._basekey)
-        self._images_cache = j.data.redisdb.get("%s:image"%self._basekey)
+        self._machines_cache = j.data.redisdb.get("%s:machines" % self._basekey, CACHETIME)
+        self._sizes_cache = j.data.redisdb.get("%s:size"%self._basekey, CACHETIME)
+        self._images_cache = j.data.redisdb.get("%s:image"%self._basekey, CACHETIME)
 
     @property
     def machines(self):
@@ -237,7 +238,7 @@ class Space:
         if not self._sizes_cache:
             #load from api
             for item in self.client.api.cloudapi.sizes.list(cloudspaceId=self.id):
-                self._sizes_cache.set(item,name=str(item["memory"]))
+                self._sizes_cache.set(item)
         return [x.struct for x in self._sizes_cache]
 
     def image_find_id(self, name):
@@ -277,7 +278,7 @@ class Machine:
         self.id = self.model["id"]
         self.name = self.model["name"]
         self._basekey = "%s:%s" % (self.space._basekey, self.id)
-        self._porforwardings_cache = j.data.redisdb.get("%s:portforwardings"%self._basekey)
+        self._porforwardings_cache = j.data.redisdb.get("%s:portforwardings"%self._basekey, CACHETIME)
 
     def start(self):
         self.client.api.cloudapi.machines.start(machineId=self.id)
@@ -293,7 +294,7 @@ class Machine:
         if not self._porforwardings_cache:
             #load from api
             for item in self.client.api.cloudapi.portforwarding.list(cloudspaceId=self.space.id, machineId=self.id):
-                self._porforwardings_cache.set(item, name='%(publicIp)s:%(publicPort)s -> %(localIp)s:%(localPort)s' % item)
+                self._porforwardings_cache.set(item, id='%(publicIp)s:%(publicPort)s -> %(localIp)s:%(localPort)s' % item)
         return [x.struct for x in self._porforwardings_cache]
 
     def create_portforwarding(self, publicport, localport):

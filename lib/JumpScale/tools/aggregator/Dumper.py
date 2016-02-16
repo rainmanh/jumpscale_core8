@@ -7,6 +7,8 @@ import logging
 
 class BaseDumper(object):
     def __init__(self, cidr, port=6379):
+        logging.root.setLevel(logging.INFO)
+
         self._cidr = cidr
         self._port = port
 
@@ -36,11 +38,6 @@ class BaseDumper(object):
     @property
     def candidates(self):
         return self._candidates
-
-    # def _worker_init(self):
-    #     logging.basicConfig(
-    #         filename=('/var/log/%s-worker.log' % self.__class__.__name__)
-    #     )
 
     def _process(self, ip, queue):
         redis = j.clients.redis.getRedisClient(ip, self.port)

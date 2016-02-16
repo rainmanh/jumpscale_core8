@@ -20,12 +20,11 @@ class InfluxDumper(Dumper.BaseDumper):
             database = 'statistics'
 
         self.database = database
-        found = False
+
         for db in self.influxdb.get_list_database():
             if db['name'] == database:
-                found = True
-
-        if not found:
+                break
+        else:
             self.influxdb.create_database(database)
 
     def _parse_line(self, line):

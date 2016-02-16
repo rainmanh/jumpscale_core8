@@ -640,7 +640,7 @@ class Client(object):
         """
         Remove a scheduled job by ID
         """
-        cmd = self.cmd(0, 0, 'controller', RunArgs(name='scheduler_remove_prefix'), data=j.data.serializer.json.dumps(str(id)), roles=['*'])
+        cmd = self.cmd(0, 0, 'controller', RunArgs(name='scheduler_remove_prefix'), data=j.data.serializer.json.dumps(str(prefix)), roles=['*'])
         if validate_queued:
             result = cmd.get_next_result(GET_INFO_TIMEOUT)
             return self._load_json_or_die(result)

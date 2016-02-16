@@ -8,6 +8,7 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self,*args,**kwargs)
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.builder"
 
+from CuisineMongoCluster import mongoCluster
 
 class CuisineBuilder(object):
 
@@ -15,18 +16,20 @@ class CuisineBuilder(object):
         self.executor=executor
         self.cuisine=cuisine
         self.bash=self.cuisine.bash
+        self.mongoCluster = mongoCluster
 
     def all(self,start=False, sandbox=False, aydostor=None):
         self.cuisine.installerdevelop.pip()
         self.cuisine.installerdevelop.python()
         self.cuisine.installerdevelop.jumpscale8()
-        self.redis(start=start)
+        self.redis(start=start, force=True)
         self.agentcontroller(start=start)
         self.etcd(start=start)
         self.caddy(start=start)
         self.skydns(start=start)
         self.influxdb(start=start)
-        # self.weave(start=start)
+        self.weave(start=start)
+        self.cuisine.portal.install(start=start)
         if sandbox:
             self.sandbox(aydostor)
 
@@ -35,15 +38,19 @@ class CuisineBuilder(object):
         aydostor : addr to the store you want to populate. e.g.: https://stor.jumpscale.org/storx
         python : do you want to sandbox python too ? if you have segfault after trying sandboxing python, re run with python=False
         """
+        # jspython is generated during install,need to copy it back into /opt before sandboxing
+        self.cuisine.file_copy('/usr/local/bin/jspython', '/opt/jumpscale8/bin')
         cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], 'js8_opt', '%s', sandbox_python=%s)" % (aydostor, python)
         self.cuisine.run('js "%s"' % cmd)
         url_opt = '%s/static/js8_opt' % aydostor
+
         cmd = "j.tools.cuisine.local.builder.dedupe(['/optvar'], 'js8_optvar', '%s', sandbox_python=%s)" % (aydostor, False)
         self.cuisine.run('js "%s"' % cmd)
         url_optvar = '%s/static/js8_optvar' % aydostor
+
         return (url_opt, url_optvar)
 
-    @actionrun(action=True)
+
     def _sandbox_python(self, python=True):
         print("START SANDBOX")
         if python:
@@ -52,7 +59,7 @@ class CuisineBuilder(object):
             paths.append("/usr/local/lib/python3.5/dist-packages")
             paths.append("/usr/lib/python3/dist-packages")
 
-            excludeFileRegex=["/xml/","-tk/","/xml","/lib2to3","-34m-",".egg-info"]
+            excludeFileRegex=["-tk/","/lib2to3","-34m-",".egg-info"]
             excludeDirRegex=["/JumpScale","\.dist-info","config-x86_64-linux-gnu","pygtk"]
 
             dest = j.sal.fs.joinPaths(self.cuisine.dir_paths['base'], 'lib')
@@ -67,7 +74,7 @@ class CuisineBuilder(object):
         j.tools.sandboxer.sandboxLibs("%s/bin" % self.cuisine.dir_paths['base'], recursive=True)
         print("SANDBOXING DONE, ALL OK IF TILL HERE, A Segfault can happen because we have overwritten ourselves.")
 
-    @actionrun(force=True)
+
     def dedupe(self, dedupe_path, namespace, store_addr, output_dir='/tmp/sandboxer', sandbox_python=True):
         self.cuisine.dir_remove(output_dir)
 
@@ -100,7 +107,7 @@ class CuisineBuilder(object):
 
         metadataPath = j.sal.fs.joinPaths(output_dir, "md", "%s.flist" % namespace)
         print('uploading %s' % metadataPath)
-        store_client.putStaticFile(namespace, metadataPath)
+        store_client.putStaticFile(namespace+".flist", metadataPath)
 
     @actionrun(action=True)
     def skydns(self,start=True):
@@ -209,14 +216,14 @@ class CuisineBuilder(object):
 
 
     @actionrun(action=True)
-    def installdeps(self): 
+    def installdeps(self):
         self.cuisine.installer.base()
         self.cuisine.golang.install()
         self.cuisine.pip.upgrade('pip')
         self.cuisine.pip.install('pytoml')
         self.cuisine.pip.install('pygo')
         self.cuisine.golang.install()
-        
+
     @actionrun(action=True)
     def syncthing(self, start=True):
         self.installdeps()
@@ -445,7 +452,7 @@ class CuisineBuilder(object):
             """
             C=self.cuisine.bash.replaceEnvironInText(C)
             C=self.cuisine.args_replace(C)
-            self.cuisine.run_script(C,profile=True,action=True)
+            self.cuisine.run_script(C,profile=True)
             #move action
             C="""
             set -ex
@@ -457,7 +464,7 @@ class CuisineBuilder(object):
             """
             C=self.cuisine.bash.replaceEnvironInText(C)
             C=self.cuisine.args_replace(C)
-            self.cuisine.run_script(C,profile=True,action=True)
+            self.cuisine.run_script(C,profile=True)
         else:
             if self.cuisine.command_check("redis-server")==False:
                 self.cuisine.package.install("redis")
@@ -476,7 +483,7 @@ class CuisineBuilder(object):
 
         if start:
             cmd="redis-server %s"%cpath
-            self.cuisine.processmanager.ensure(name="redis_%s"%name,cmd=cmd,env={},path='$binDir')  
+            self.cuisine.processmanager.ensure(name="redis_%s"%name,cmd=cmd,env={},path='$binDir')
 
     @actionrun(action=True)
     def mongodb(self, start=True):
@@ -514,7 +521,7 @@ class CuisineBuilder(object):
 
         self.cuisine.dir_ensure('$varDir/data/db')
 
-        
+
 
         if start:
             which = self.cuisine.command_location("mongod")
@@ -614,4 +621,3 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb/influxdb.conf.o
                     self.cuisine.bash.environSet(splitted[0],splitted[1])
                 elif len(splitted) > 0:
                     self.cuisine.bash.environSet(splitted[0], '')
-

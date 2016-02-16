@@ -487,19 +487,19 @@ class LibvirtUtil(object):
     def createVMStorSnapshot(self, name):
         vmstor_snapshot_path = j.sal.fs.joinPaths(self.basepath,'snapshots')
         if not j.sal.fs.exists(vmstor_snapshot_path):
-            j.system.btrfs.subvolumeCreate(self.basepath, 'snapshots')
+            j.sal.btrfs.subvolumeCreate(self.basepath, 'snapshots')
         vmstorsnapshotpath = j.sal.fs.joinPaths(vmstor_snapshot_path, name)
-        j.system.btrfs.snapshotReadOnlyCreate(self.basepath, vmstorsnapshotpath)
+        j.sal.btrfs.snapshotReadOnlyCreate(self.basepath, vmstorsnapshotpath)
         return True
 
     def deleteVMStorSnapshot(self, name):
         vmstor_snapshot_path = j.sal.fs.joinPaths(self.basepath,'snapshots')
-        j.system.btrfs.subvolumeDelete(vmstor_snapshot_path,name)
+        j.sal.btrfs.subvolumeDelete(vmstor_snapshot_path,name)
         return True
 
     def listVMStorSnapshots(self):
         vmstor_snapshot_path = j.sal.fs.joinPaths(self.basepath,'snapshots')
-        return j.system.btrfs.subvolumeList(vmstor_snapshot_path)
+        return j.sal.btrfs.subvolumeList(vmstor_snapshot_path)
 
     def _generateRandomMacAddress(self):
         """Generate a random MAC Address using the VM OUI code"""

@@ -34,6 +34,8 @@ class GCC_Mgmt():
 
         self._host_nodes = []
         self._docker_nodes = []
+        self.dns_domain = None
+        self._basicAuth = None
 
     def _parseNode(self, nodes):
         nodesObjs = []
@@ -48,15 +50,21 @@ class GCC_Mgmt():
             nodesObjs.append(DebugSSHNode(addr, sshport))
         return nodesObjs
 
-    def init(self, nodes=[]):
+    def init(self, nodes=[], domain, login=None, passwd=None):
         """
-        define which nodes to init,
-        format = ["localhost", "ovh4", "anode:2222", "192.168.6.5:23"]
-        this will be remembered in local redis for further usage
+        nodes : define which nodes to init,
+            format = ["localhost", "ovh4", "anode:2222", "192.168.6.5:23"]
+            this will be remembered in local redis for further usage
+        domain: define for which domain the skydns cluster is Authoritative
+        login : login to protect etcd cluster
+        passwd : passwd to protect etcd cluster
         """
         if not j.data.types.list.check(nodes):
             nodes = [nodes]
         j.core.db.set("gcc.host_nodes", ','.join(nodes))
+        self.dns_domain = domain
+        if login and passwd:
+            self._basicAuth = {'login': login, 'passwd': passwd}
 
     @property
     def host_nodes(self):
@@ -82,7 +90,6 @@ class GCC_Mgmt():
             nodes = j.core.db.get("gcc.docker_nodes").decode()
             self._docker_nodes = self._parseNode(nodes)
         return self._docker_nodes
-
 
     def install(self, pubkey, force=False):
         """
@@ -115,18 +122,19 @@ class GCC_Mgmt():
         node.cuisine.installer.docker(force=force)
         node.cuisine.builder.weave(start=True, peer=weave_peer, force=force)
 
-    def _installDockerApps(self, node, force=False, login='', passwd=''):
+    def _installDockerApps(self, node, force=False):
         node.cuisine.installerdevelop.jumpscale8(force=force)
 
         peers = ["http://%s" % node.addr for node in self.docker_nodes]
         node.cuisine.builder.etcd(start=True, host="http://%s" % node.addr, peers=peers, force=force)
         node.cuisine.builder.skydns(start=True, force=force)
-        # @todo: configure skydns
-        # print(skydns.setConfig({'dns_addr': '0.0.0.0:53', 'domain': 'barcelona.aydo.com'}))
-
         node.cuisine.builder.aydostore(start=True, addr='127.0.0.1:8090', backend="$varDir/aydostor", force=force)
         # node.cuisine.builder.agentcontroller(start=True, force=force)
         node.cuisine.builder.caddy(ssl=True, start=True, dns=node.addr, force=force)
+        self._configCaddy(node)
+        self._configSkydns(node)
+
+    def _configCaddy(self, node):
         cfg = node.cuisine.file_read("$cfgDir/caddy/caddyfile.conf")
         cfg += """
         proxy /etcd localhost:2379 localhost:4001 {
@@ -137,13 +145,19 @@ class GCC_Mgmt():
         without /storex
         }
         """
-        
-        if login and passwd:
-            cfg += "\nbasicauth /etcd %s %s\n" % (login, passwd)
-        
+
+        if self._basicAuth:
+            cfg += "\nbasicauth /etcd %s %s\n" % (self._basicAuth['login'], self._basicAuth['passwd'])
         cfg = node.cuisine.file_write("$cfgDir/caddy/caddyfile.conf", cfg)
-        
-        node.cuisine.systemd.start('caddy')
+        node.cuisine.processmanager.start('caddy')
+
+    def _configSkydns(self, node):
+        if self._basicAuth:
+            skydnsCl = j.clients.skydns.get(node.addr, self._basicAuth['login'], self._basicAuth['passwd'])
+        else:
+            skydnsCl = j.clients.skydns.get(node.addr)
+        print(skydnsCl.setConfig({'dns_addr': '0.0.0.0:53', 'domain': self.domain}))
+        node.cuisine.processmanager.start('skydns')
 
     def healthcheck(self):
         """

@@ -14,14 +14,17 @@ class AggregatorClientTest(object):
         #use influxdb dumper
         #test data from test DB with main DB, this way we can validate our results
 
+        raise NotImplementedError()
+
 
     def logstest(self):
         #some fast perf test
         #get logs in & out
         #check we cannot put more values in redis as possible (the defense mechanismes)
+        raise NotImplementedError()
 
     def ecotest(self):
-        ...
+        raise NotImplementedError()
         
 
 

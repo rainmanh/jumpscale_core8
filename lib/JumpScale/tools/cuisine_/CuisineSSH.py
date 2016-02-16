@@ -158,4 +158,25 @@ class CuisineSSH():
         else:
             return False
 
+    def sshagent_add(self,path,removeFirst=True):
+        """
+        @path is path to private key
+        """        
+        print ("add ssh key to ssh-agent: %s"%path)
+        self.cuisine.run("ssh-add -d '%s'"%path,die=False,showout=False)
+        keys=self.cuisine.run("ssh-add -l",showout=False)
+        if path in keys:
+            raise RuntimeError("ssh-key is still loaded in ssh-agent, please remove manually")
+        self.cuisine.run("ssh-add '%s'"%path,showout=False)
         
+    def sshagent_remove(self,path):
+        """
+        @path is path to private key
+        """        
+        print ("remove ssh key to ssh-agent: %s"%path)
+        self.cuisine.run("ssh-add -d '%s'"%path,die=False,showout=False)
+        keys=self.cuisine.run("ssh-add -l",showout=False)
+        if path in keys:
+            raise RuntimeError("ssh-key is still loaded in ssh-agent, please remove manually")
+        
+                

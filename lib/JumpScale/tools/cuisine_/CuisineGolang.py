@@ -74,7 +74,7 @@ class CuisineGolang():
         GOPATH = self.cuisine.bash.environ['GOPATH']
 
         pullurl = "git@%s.git" % url.replace('/', ':', 1)
-        
-        dest = self.cuisine.git.pullRepo(pullurl, branch=branch, depth=depth, dest='%s/src/%s' % (GOPATH, url))
+
+        dest = self.cuisine.git.pullRepo(pullurl, branch=branch, depth=depth, dest='%s/src/%s' % (GOPATH, url), ssh=False)
 
         self.cuisine.run('cd %s && godep restore' % dest, profile=True)

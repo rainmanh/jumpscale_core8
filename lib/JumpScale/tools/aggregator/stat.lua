@@ -1,19 +1,25 @@
-
 --key,measurement,value,str(now),type,tags
 
-local key=KEYS[1]
-local measurement=ARGV[1]
+local key = KEYS[1]
+local measurement = ARGV[1]
 local value = tonumber(ARGV[2])
 local now = tonumber(ARGV[3])
-local type=ARGV[4]
-local tags=ARGV[5]
-local node=ARGV[6]
+local type = ARGV[4]
+local tags = ARGV[5]
+local node = ARGV[6]
 
-local hsetkey =string.format("stats:%s",node)
-local v= {}
-local c=""
-local m 
-local prev = redis.call('HGET',hsetkey,key)
+local statekey = string.format("stats:%s:%s", node, key)
+
+-- local hsetkey = string.format("stats:%s", node)
+local v = {}
+local c = ""
+local stat
+local prev = redis.call('GET', statekey)
+
+local now_short_m = math.floor(now / 60) * 60
+local now_short_h = math.floor(now / 3600) * 3600
+
+local differential = type == "D"
 
 if prev then
     -- get previous value, it exists in a hkey
@@ -22,83 +28,111 @@ if prev then
     local difftime
 
     -- calculate the dif when absolute nrs are logged e.g. byte counter for network 
-    if type=="D" then
+    if differential then
         -- diff
-        diff = tonumber(value)-v["val"]
-        difftime = now-v["epoch"]
-        m=math.floor((diff/difftime)+0.5)
+        diff = value - v.val
+        difftime = now - v.epoch
+        -- calculate diff per second.
+        stat = diff / difftime
     else
-        m=tonumber(value)
+        stat = value
     end
 
-    -- the next section makes sure we start recounting
-    if v["m_epoch"]< (now-60) then
-        v["m_total"]=0
-        v["m_nr"]=0
-        v["m_epoch"] = now
-    end
-    if v["h_epoch"]< (now-(60*60)) then
-        v["h_total"]=0
-        v["h_nr"]=0
-        v["h_epoch"] = now
-    end
+    -- Check if we can flush the previous aggregated values.
 
-    --remember current measurement, and calculate the avg/max for minute value
-    v["m_epoch"]= now    
-    v["m_last"]=m
-    v["m_total"]=v["m_total"]+m
-    v["m_nr"]=v["m_nr"]+1
-    v["m_avg"]= v["m_total"]/v["m_nr"]
-    if m>v["m_max"] then
-        v["m_max"]=m
-    end 
+    if v.m_epoch < now_short_m then
+        -- 1 min aggregation
+        local row = string.format("%s|%s|%u|%f|%f|%f",
+            node, key, v.m_epoch, stat, v.m_avg, v.m_max)
+
+        redis.call("RPUSH", "queues:stats:min", row)
+
+        v.m_total = 0
+        v.m_nr = 0
+        v.m_epoch = now_short_m
+    end
+    if v.h_epoch < now_short_h then
+        -- 1 hour aggregation
+        local row = string.format("%s|%s|%u|%f|%f|%f",
+            node, key, v.h_epoch, stat, v.h_avg, v.h_max)
+
+        redis.call("RPUSH", "queues:stats:hour", row)
+
+        v.h_total = 0
+        v.h_nr = 0
+        v.h_epoch = now_short_h
+    end
 
     -- remember the current value
-    v['val'] = value
-    v["epoch"]= now
+    v.val = value
+    v.epoch = now
+
+    --remember current measurement, and calculate the avg/max for minute value
+    v.m_last = stat
+    v.m_total = v.m_total + stat
+    v.m_nr = v.m_nr + 1
+    v.m_avg = v.m_total / v.m_nr
+    if stat > v.m_max then
+        v.m_max = stat
+    end
 
     -- work for the hour period
-    v["h_epoch"]= now
     --h_last is not required would not provide additional info
-    v["h_total"]=v["h_total"]+m
-    v["h_nr"]=v["h_nr"]+1
-    v["h_avg"]= v["h_total"]/v["h_nr"]
-    if m>v["h_max"] then
-        v["h_max"]=m
+    v.h_total = v.h_total + stat
+    v.h_nr = v.h_nr + 1
+    v.h_avg = v.h_total / v.h_nr
+    if stat > v.h_max then
+        v.h_max = stat
     end
 
     -- remember in redis
-    data=cjson.encode(v)
-    redis.call('HSET',hsetkey,KEYS[1],data)
+    local data = cjson.encode(v)
+    redis.call('SET', statekey, data)
+    redis.call('EXPIRE', statekey, 24*60*60) -- expire in a day
 
-    -- epoch in seconds
-    local nowshort=math.floor(now/1000+0.5)
+    -- don't grow over 200,000 records
+    redis.call("LTRIM", "queues:stats:min", -200000, -1)
+    redis.call("LTRIM", "queues:stats:hour", -200000, -1)
 
-    c=string.format("%s|%s|%u|%u|%u|%u|%u|%u",node,key,nowshort,m,v["m_avg"],v["m_max"],v["h_avg"],v["h_max"])
-
-    if redis.call("LLEN", "queues:stats") > 200000 then
-        redis.call("LPOP", "queues:stats")
-    end
-    redis.call("RPUSH", "queues:stats",c)
     return data
 else
-    v["m_avg"]= 0
-    v["m_last"]= 0
-    v["m_epoch"]= now
-    v["m_total"]= value
-    v["m_max"]= 0
-    v["m_nr"]= 0
-    v["h_avg"]= 0
-    v["h_epoch"]= now
-    v["h_total"]= 0
-    v["h_nr"]= 0
-    v["h_max"]= 0
-    v["epoch"]= now
-    v["val"]= value
-    v["key"]=key
-    v["tags"]=tags
-    v["measurement"]=measurement
-    redis.call('HSET',hsetkey,KEYS[1],cjson.encode(v))
-    return 0
+    if differential then
+        --differential stats
+        v.m_avg = 0
+        v.m_total = 0
+        v.m_max = 0
+        v.m_nr = 0
+
+        v.h_avg = 0
+        v.h_total = 0
+        v.h_max = 0
+        v.h_nr = 0
+    else
+        --gauages stats
+        v.m_avg = value
+        v.m_total = value
+        v.m_max = value
+        v.m_nr = 1
+
+        v.h_avg = value
+        v.h_total = value
+        v.h_max = value
+        v.h_nr = 1
+    end
+
+    v.m_last = 0
+    v.m_epoch = now_short_m
+    v.h_epoch = now_short_h
+
+    v.epoch = now
+    v.val = value
+    v.key = key
+    v.tags = tags
+    v.measurement = measurement
+
+    local data = cjson.encode(v)
+    redis.call('SET', statekey, data)
+    redis.call('EXPIRE', statekey, 24*60*60) -- expire in a day
+    return data
 end
 

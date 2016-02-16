@@ -24,7 +24,7 @@ class HashTool:
         out=""
         for path2 in paths2:
             realpath=j.sal.fs.joinPaths(rootpath,path2)
-            if not j.core.platformtype.myplatform.isWindows() or not j.system.windows.checkFileToIgnore(realpath):
+            if not j.core.platformtype.myplatform.isWindows() or not j.sal.windows.checkFileToIgnore(realpath):
 #                print "realpath %s %s" % (rootpath,path2)
                 hhash=j.data.hash.md5(realpath)
                 out+="%s|%s\n"%(hhash,path2)

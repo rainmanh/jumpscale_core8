@@ -1,3 +1,5 @@
+import inspect
+
 from JumpScale import j
 
 CATEGORY = "atyourserviceActionNode"
@@ -300,55 +302,68 @@ class ActionsBaseMgmt(object):
     #     """
     #     return True
 
-    # def schedule(self, service, cron, method):
-    #     """
-    #     Schedules a method call according to cron
+    def schedule(self, cron, method):
+        """
+        Schedules a method call according to cron
 
-    #     :param service: the Service Object
-    #     :param cron: cron spec (syntax is as defined in https://en.wikipedia.org/wiki/Cron)
-    #     :param method: Function to be scheduled. Make sure the function should not depend on any context or state
-    #                  attributes because it will get executed remotely on the agent.
-    #     """
-    #     if not inspect.isfunction(method):
-    #         raise ValueError("Only 'functions' are supported (no class methods)")
-    #     client = j.clients.ac.get()
-    #     cron_id = 'ays.{name}.{method}'.format(name=str(service), method=method.__name__)
+        :param cron: cron spec (syntax is as defined in https://en.wikipedia.org/wiki/Cron)
+        :param method: Function to be scheduled. Make sure the function should not depend on any context or state
+                     attributes because it will get executed remotely on the agent.
+        """
+        if not inspect.isfunction(method):
+            raise ValueError("Only 'functions' are supported (no class methods)")
+        client = j.clients.agentcontroller.get()
+        cron_id = 'ays.{name}.{method}'.format(name=str(self.service), method=method.__name__)
 
-    #     # find agent for this service node.
-    #     agents = j.atyourservice.findServices(name='agent2', parent=service.parent)
+        # find agent for this service node.
+        agents = j.atyourservice.findServices(name='agent2', parent=self.service.parent)
 
-    #     if service.parent is None:
-    #         agents = filter(lambda a: a.parent is None, agents)
+        if self.service.parent is None:
+            agents = filter(lambda a: a.parent is None, agents)
 
-    #     assert len(agents) == 1, \
-    #         'Can not find the agent instance for service %s. found %s matching agents' % (service, len(agents))
+        assert len(agents) == 1, \
+            'Can not find the agent instance for service %s. found %s matching agents' % (self.service, len(agents))
 
-    #     agent = agents[0]
-    #     gid = agent.hrd.get('gid')
-    #     nid = agent.hrd.get('nid')
+        agent = agents[0]
+        gid = agent.hrd.get('gid')
+        nid = agent.hrd.get('nid')
 
-    #     tags = j.data.tags.getTagString(labels={'ays', 'monitor'}, tags={'service': str(service)})
-    #     client.scheduler.executeJumpscript(cron_id, cron, method=method, gid=gid, nid=nid, tags=tags)
+        tags = j.data.tags.getTagString(labels={'ays', 'monitor'}, tags={'service': str(self.service)})
+        client.scheduler.executeJumpscript(cron_id, cron, method=method, gid=gid, nid=nid, tags=tags)
 
-    # def unschedule(self, service):
-    #     """
-    #     Unschedules all crons created by the schedule method.
-    #     """
-    #     try:
-    #         client = j.clients.ac.get()
-    #     except Exception, err:
-    #         log("WARNING: Failed to unschedule monitor tasks for '%s' due to '%s'" % (service, err))
-    #         return
+    def unschedule(self):
+        """
+        Unschedules all crons created by the schedule method.
+        """
+        try:
+            client = j.clients.ac.get()
+        except Exception as err:
+            log("WARNING: Failed to unschedule monitor tasks for '%s' due to '%s'" % (self.service, err))
+            return
 
-    #     prefix = 'ays.{name}.'.format(name=str(service))
-    #     client.scheduler.unschedule_prefix(prefix)
+        prefix = 'ays.{name}.'.format(name=str(self.service))
+        client.scheduler.unschedule_prefix(prefix)
 
-    # def monitor(self, service):
-    #     """
-    #     monitoring actions
-    #     do not forget to schedule in your service.hrd or instance.hrd
-    #     """
-    #     return True
+    @classmethod
+    def monitor(cls, cron):
+        """
+        monitor decorator
+        You should use it to decorate monitor methods that will get scheduled
+        to run on the nodes
+
+        The monitor function can't take any arguments (not even self)
+        """
+        if not hasattr(cls, "__scheduled__"):
+            cls.__scheduled__ = dict()
+
+        def wrapper(fn):
+            cls.__scheduled__[cron] = fn
+
+        return wrapper
+
+    def start_pre(self):
+        for cron, method in self.__scheduled__:
+            self.schedule(cron, method)
 
     # def cleanup(self,service):
     #     """

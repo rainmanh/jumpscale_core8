@@ -203,14 +203,14 @@ def findModules():
     j.core.db.set("system.locations",json.dumps(result))
 
     if base =="/opt/jumpscale8/":
-        j.do.writeFile("%s/bin/metadata.db"%j.do.BASE,json.dumps(result))
+        j.do.writeFile("%s/metadata.db"%j.do.VARDIR,json.dumps(result))
 
 
 forcereload=False
 
 
 if base !="/opt/jumpscale8/":
-    mdpath="%s/bin/metadata.db"%base
+    mdpath="%s/metadata.db"%j.do.VARDIR
     if j.do.exists(mdpath):
         forcereload=True
         j.do.delete(mdpath)
@@ -223,11 +223,11 @@ if base !="/opt/jumpscale8/":
 
 data=j.core.db.get("system.locations")
 if forcereload or data==None:
-    if not j.do.exists(path="%s/bin/metadata.db"%j.do.BASE):
+    if not j.do.exists(path="%s/metadata.db"%j.do.VARDIR):
         res=findModules()
         data=j.core.db.get("system.locations").decode()
     else:
-        data=j.do.readFile("%s/bin/metadata.db"%j.do.BASE)
+        data=j.do.readFile("%s/metadata.db"%j.do.VARDIR)
         # print ("data from readfile")
 else:
     data=data.decode()

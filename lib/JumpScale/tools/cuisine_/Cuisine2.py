@@ -219,7 +219,8 @@ class OurCuisine():
         self.cd="/"
         self.sudomode = False
 
-        self.executor=executor
+        self.executor = executor
+        self.runid = self.id
 
         self._installer = None
         self._platformtype=None
@@ -250,10 +251,6 @@ class OurCuisine():
         self._js8sb=None
         self._dirs={}
 
-        if self.executor.type=="ssh":
-            self.runid="cuisine:%s:%s"%(self.executor.addr,self.executor.port)
-        else:
-            self.runid="cuisine:local"
         self.done=[]
 
     @property
@@ -302,12 +299,7 @@ class OurCuisine():
 
     @property
     def id(self):
-        if self._id==None:
-            if "addr" in self.executor.__dict__:
-                self._id="%s:%s"%(self.executor.addr,self.executor.port)
-            else:
-                self._id=""
-        return self._id
+        return self.executor.id
 
     @property
     def platformtype(self):

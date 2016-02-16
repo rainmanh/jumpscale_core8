@@ -182,8 +182,9 @@ class Space:
         self.id = model["id"]
         self._basekey = "%s:%s" % (self.account._basekey, self.id)
         self._machines_cache = j.data.redisdb.get("%s:machines" % self._basekey, CACHETIME)
-        self._sizes_cache = j.data.redisdb.get("%s:size"%self._basekey, CACHETIME)
-        self._images_cache = j.data.redisdb.get("%s:image"%self._basekey, CACHETIME)
+        self._sizes_cache = j.data.redisdb.get("%s:size" % self._basekey, CACHETIME)
+        self._images_cache = j.data.redisdb.get("%s:image" % self._basekey, CACHETIME)
+        self._portforwardings_cache = j.data.redisdb.get("%s:portforwardings" % self._basekey, CACHETIME)
 
     @property
     def machines(self):
@@ -220,6 +221,14 @@ class Space:
         self.client.api.cloudapi.machines.create(cloudspaceId=self.id, name=name, sizeId=sizeId, imageId=imageId, disksize=disksize)
         self.reset()
         return self.machines[name]
+
+    @property
+    def portforwardings(self):
+        if not self._portforwardings_cache:
+            #load from api
+            for item in self.client.api.cloudapi.portforwarding.list(cloudspaceId=self.id):
+                self._portforwardings_cache.set(item, id='%(publicIp)s:%(publicPort)s -> %(localIp)s:%(localPort)s' % item)
+        return [x.struct for x in self._portforwardings_cache]
 
     def size_find_id(self, memory=None, vcpus=None):
         if memory < 100:
@@ -278,7 +287,7 @@ class Machine:
         self.id = self.model["id"]
         self.name = self.model["name"]
         self._basekey = "%s:%s" % (self.space._basekey, self.id)
-        self._porforwardings_cache = j.data.redisdb.get("%s:portforwardings"%self._basekey, CACHETIME)
+        self._portforwardings_cache = j.data.redisdb.get("%s:portforwardings" % self._basekey, CACHETIME)
 
     def start(self):
         self.client.api.cloudapi.machines.start(machineId=self.id)
@@ -291,11 +300,11 @@ class Machine:
 
     @property
     def portforwardings(self):
-        if not self._porforwardings_cache:
+        if not self._portforwardings_cache:
             #load from api
             for item in self.client.api.cloudapi.portforwarding.list(cloudspaceId=self.space.id, machineId=self.id):
-                self._porforwardings_cache.set(item, id='%(publicIp)s:%(publicPort)s -> %(localIp)s:%(localPort)s' % item)
-        return [x.struct for x in self._porforwardings_cache]
+                self._portforwardings_cache.set(item, id='%(publicIp)s:%(publicPort)s -> %(localIp)s:%(localPort)s' % item)
+        return [x.struct for x in self._portforwardings_cache]
 
     def create_portforwarding(self, publicport, localport):
         self.client.api.cloudapi.portforwarding.create(cloudspaceId=self.space.id,
@@ -304,13 +313,16 @@ class Machine:
                                                        machineId=self.id,
                                                        publicIp=self.space.model['publicipaddress'],
                                                        publicPort=publicport)
+        self.space._portforwardings_cache.delete()
+        self._portforwardings_cache.delete()
 
     def delete_portforwarding(self, publicport):
         self.client.api.cloudapi.portforwarding.deleteByPort(cloudspaceId=self.space.id,
                                                        publicIp=self.space.model['publicipaddress'],
                                                        publicPort=publicport,
                                                        proto='tcp')
-        self._porforwardings_cache.delete()
+        self.space._portforwardings_cache.delete()
+        self._portforwardings_cache.delete()
 
     def get_ssh_connection(self):
         """
@@ -342,7 +354,7 @@ class Machine:
 
         sshport = None
         usedports = set()
-        for portforward in self.portforwardings:
+        for portforward in self.space.portforwardings:
             if portforward['localIp'] == machineip and int(portforward['localPort']) == 22:
                 sshport = int(portforward['publicPort'])
                 break

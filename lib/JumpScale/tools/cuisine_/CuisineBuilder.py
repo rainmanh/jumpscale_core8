@@ -24,7 +24,7 @@ class CuisineBuilder(object):
         self.cuisine.installerdevelop.pip()
         self.cuisine.installerdevelop.python()
         self.cuisine.installerdevelop.jumpscale8()
-        self.redis(start=start)
+        self.redis(start=start, force=True)
         self.agentcontroller(start=start)
         self.etcd(start=start)
         self.caddy(start=start)
@@ -436,7 +436,7 @@ class CuisineBuilder(object):
             """
             C=self.cuisine.bash.replaceEnvironInText(C)
             C=self.cuisine.args_replace(C)
-            self.cuisine.run_script(C,profile=True,action=True)
+            self.cuisine.run_script(C,profile=True)
             #move action
             C="""
             set -ex
@@ -448,7 +448,7 @@ class CuisineBuilder(object):
             """
             C=self.cuisine.bash.replaceEnvironInText(C)
             C=self.cuisine.args_replace(C)
-            self.cuisine.run_script(C,profile=True,action=True)
+            self.cuisine.run_script(C,profile=True)
         else:
             if self.cuisine.command_check("redis-server")==False:
                 self.cuisine.package.install("redis")

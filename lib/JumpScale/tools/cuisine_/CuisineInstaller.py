@@ -280,6 +280,7 @@ class CuisineInstaller(object):
 
     @actionrun(action=True)
     def clean(self):
+        self.cuisine.set_sudomode()
         self.cuisine.dir_ensure(self.cuisine.dir_paths["tmpDir"],action=False)
         if not self.cuisine.isMac:
             C = """
@@ -327,6 +328,7 @@ class CuisineInstaller(object):
         @input reset, remove old code (only used when rw mode)
         @input monitor detect local changes & sync (only used when rw mode)
         """
+        self.cuisine.set_sudomode()
         self.clean()
         self.base()
 
@@ -379,6 +381,7 @@ class CuisineInstaller(object):
 
     @actionrun(action=True)
     def base(self):
+        self.cuisine.set_sudomode()
         self.clean()
 
         if self.cuisine.isMac:
@@ -698,6 +701,7 @@ class CuisineInstaller(object):
 
     @actionrun(action=True)
     def docker(self):
+        self.cuisine.set_sudomode()
         if self.cuisine.isUbuntu:
             C="""
             wget -qO- https://get.docker.com/ | sh

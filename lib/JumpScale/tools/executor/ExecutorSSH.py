@@ -55,12 +55,15 @@ class ExecutorSSH(ExecutorBase):
     def sshclient(self):
         if self._sshclient==None:
             self._sshclient=j.clients.ssh.get(self.addr,self.port,login=self.login,passwd=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys)
-            if self.pushkey!=None:
+            if self.pushkey is not None:
                 #lets push the ssh key as specified
-                homedir=os.environ["HOME"]
-                path="%s/.ssh/%s.pub"%(homedir,self.pushkey)
+                if j.sal.fs.isAbsolute():
+                    path = pushkey
+                else:
+                    homedir = os.environ["HOME"]
+                    path = "%s/.ssh/%s.pub"%(homedir,self.pushkey)
                 if j.sal.fs.exists(path):
-                    pushkey=j.do.readFile(path)
+                    pushkey = j.do.readFile(path)
                     self._sshclient.ssh_authorize("root",pushkey)
                 else:
                     raise RuntimeError("Could not find key:%s"%path)

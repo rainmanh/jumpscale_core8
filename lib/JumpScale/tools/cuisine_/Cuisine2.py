@@ -413,36 +413,32 @@ class OurCuisine():
     @property
     def dir_paths(self):
         if self._dirs == {}:
-            rc,out=self.run("js 'print(j.data.serializer.json.dumps(j.dirs.__dict__))'",showout=False,die=False,force=True,replaceArgs=False)
-            if False:#rc==0:
-                self._dirs=j.data.serializer.json.loads(out)
+            res={}
+            if 'JSBASE' in os.environ:
+                res["base"]= os.environ["JSBASE"]
             else:
-                res={}
-                if 'JSBASE' in os.environ:
-                    res["base"]= os.environ["JSBASE"]
-                else:
-                    if self.isMac:
-                        res["base"]= "%s/opt/jumpscale8/"%os.environ["HOME"]
-                    else:
-                        res["base"]= "/opt/jumpscale8/"
                 if self.isMac:
-                    res["codeDir"]= "%s/opt/code/"%os.environ["HOME"]
+                    res["base"]= "%s/opt/jumpscale8/"%os.environ["HOME"]
                 else:
-                    res["codeDir"]= "/opt/code/"
-                if self.isMac:
-                    res["varDir"]= "%s/optvar/"%os.environ["HOME"]
-                else:
-                    res["varDir"]= "/optvar/"
-                res["appDir"]="%s/apps"%res["base"]
-                res["binDir"]="%s/bin"%res["base"]
-                res["cfgDir"]="%s/cfg"%res["varDir"]
-                res["jsLibDir"]="%s/lib/JumpScale/"%res["base"]
-                res["libDir"]="%s/lib/"%res["base"]
-                res["homeDir"]=os.environ["HOME"]
-                res["logDir"]="%s/log"%res["varDir"]
-                res["pidDir"]="%s/pid"%res["varDir"]
-                res["tmpDir"]="%s/tmp"%res["varDir"]
-                self._dirs=res
+                    res["base"]= "/opt/jumpscale8/"
+            if self.isMac:
+                res["codeDir"]= "%s/opt/code/"%os.environ["HOME"]
+            else:
+                res["codeDir"]= "/opt/code/"
+            if self.isMac:
+                res["varDir"]= "%s/optvar/"%os.environ["HOME"]
+            else:
+                res["varDir"]= "/optvar/"
+            res["appDir"]="%s/apps"%res["base"]
+            res["binDir"]="%s/bin"%res["base"]
+            res["cfgDir"]="%s/cfg"%res["varDir"]
+            res["jsLibDir"]="%s/lib/JumpScale/"%res["base"]
+            res["libDir"]="%s/lib/"%res["base"]
+            res["homeDir"]=os.environ["HOME"]
+            res["logDir"]="%s/log"%res["varDir"]
+            res["pidDir"]="%s/pid"%res["varDir"]
+            res["tmpDir"]="%s/tmp"%res["varDir"]
+            self._dirs=res
 
         if self.isMac:
             self._dirs["optDir"]= "%s/opt/"%os.environ["HOME"]
@@ -935,11 +931,14 @@ class OurCuisine():
     def file_base64(self,location):
         """Returns the base64-encoded content of the file at the given location."""
         location=self.cuisine.args_replace(location)
+        sudomode = self.sudomode
+        self.sudomode = False
         res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
         if res.find("command not found")!=-1:
             #print could not find python need to install
             self.cuisine.package.install("python3.5")
             res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
+        self.sudomode = sudomode
         return res
 
         # else:
@@ -1109,13 +1108,22 @@ class OurCuisine():
     # CORE
     # -----------------------------------------------------------------------------
 
+    def _clean(self, output):
+        if self.sudomode and hasattr(self.executor, 'login'):
+            output = output.lstrip('[sudo] password for %s:' % self.executor.login)
+        return output
+
+    @actionrun()
+    def set_sudomode(self):
+        self.sudomode = True
+
     @actionrun()
     def sudo(self, cmd, die=True,showout=True):
         if not self.isMac:
-            cmd=self.cuisine.args_replace(cmd)
-            passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
-            cmd2 = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd.replace("$", "\$"))
-            return self.run(cmd2, die=die,showout=showout)
+            sudomode = self.sudomode
+            self.sudomode = True
+            return self.run(cmd, die=die,showout=showout)
+            self.sudomode = sudomode
         else:
             return self.run(cmd, die=die,showout=showout)
 
@@ -1145,8 +1153,9 @@ class OurCuisine():
             cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
 
         rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)
+        out = self._clean(out)
 
-        if rc>0:
+        if rc:
             items2check=["sudo","wget","curl","git","openssl"]
             next=True
             while next==True:
@@ -1234,6 +1243,7 @@ class OurCuisine():
             self.file_write(location=path, content=content, mode=0o770)
 
         rc,out=self.run("bash %s"%path,showout=True,die=False)
+        out = self._clean(out)
 
         self.file_unlink(path)
 

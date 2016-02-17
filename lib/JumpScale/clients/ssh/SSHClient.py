@@ -76,7 +76,16 @@ class SSHClient(object):
             self._client = paramiko.SSHClient()
             self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-            self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys, timeout=10)
+            start = j.data.time.getTimeEpoch()
+            timeout = 20
+            while start + timeout > j.data.time.getTimeEpoch():
+                try:
+                    self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys, timeout=1)
+                    break
+                except:
+                    time.sleep(1)
+                    continue
+
         return self._client
 
     def reset(self):
@@ -140,7 +149,7 @@ class SSHClient(object):
         retcode = 0
 
         ch = self.transport.open_session()
-        ch.set_combine_stderr(combinestdr)
+        # ch.set_combine_stderr(combinestdr)
 
         if self.forward_agent:
             paramiko.agent.AgentRequestHandler(ch)

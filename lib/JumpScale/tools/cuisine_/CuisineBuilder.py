@@ -24,12 +24,13 @@ class CuisineBuilder(object):
         self.cuisine.installerdevelop.python()
         self.cuisine.installerdevelop.jumpscale8()
         self.redis(start=start, force=True)
-        self.agentcontroller(start=start)
+        # self.agentcontroller(start=start)
         self.etcd(start=start)
         self.caddy(start=start)
         self.skydns(start=start)
         self.influxdb(start=start)
         self.weave(start=start)
+        self.mongodb(start=start)
         self.cuisine.portal.install(start=start)
         if sandbox:
             self.sandbox(aydostor)
@@ -39,7 +40,6 @@ class CuisineBuilder(object):
         aydostor : addr to the store you want to populate. e.g.: https://stor.jumpscale.org/storx
         python : do you want to sandbox python too ? if you have segfault after trying sandboxing python, re run with python=False
         """
-        self.cuisine.set_sudomode()
         # jspython is generated during install,need to copy it back into /opt before sandboxing
         self.cuisine.file_copy('/usr/local/bin/jspython', '/opt/jumpscale8/bin')
         cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], 'js8_opt', '%s', sandbox_python=%s)" % (aydostor, python)
@@ -234,7 +234,7 @@ class CuisineBuilder(object):
     def syncthing(self, start=True):
         self.installdeps()
         url = "git@github.com:syncthing/syncthing.git"
-        
+
         self.cuisine.dir_remove('$goDir/src/github.com/syncthing/syncthing')
         dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='$goDir/src/github.com/syncthing/syncthing')
         self.cuisine.run('cd %s && godep restore' % dest, profile=True)
@@ -346,7 +346,7 @@ class CuisineBuilder(object):
         env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
         pm = self.cuisine.processmanager.get("tmux")
         pm.ensure(name="syncthing", cmd="./syncthing", path=self.cuisine.joinpaths(GOPATH, "bin"))
- 
+
 
     @actionrun(action=True)
     def _startAgent(self):

@@ -41,17 +41,21 @@ class Startable():
         return fn2
 
 class MongoInstance(Startable):
-    def __init__(self,cuisine, port = 27017, type_ = "shard", replica = '', configdb='', dbdir = None):
+    def __init__(self,cuisine, private_port = 27021, public_port = None, type_ = "shard", replica = '', configdb='', dbdir = None):
         super().__init__()
         self.cuisine = cuisine
         self.addr = cuisine.executor.addr
-        self.port = port
+        self.private_port = private_port
+        self.public_port = public_port
         self.type_ = type_
         self.replica = replica
         self.configdb = configdb
-        if not dbdir:
+        if dbdir is None:
             dbdir = "$varDir/data/db"
+        if public_port is None:
+            public_port = private_port
         self.dbdir = dbdir
+        print(cuisine, private_port, public_port, type_, replica, configdb, dbdir)
 
     def _install(self):
         super()._install()
@@ -59,7 +63,7 @@ class MongoInstance(Startable):
         return self.cuisine.builder.mongodb(start = False)
 
     def _gen_service_name(self):
-        name = "mongos" if self.type_ == "mongos" else "mongod"
+        name = "ourmongos" if self.type_ == "mongos" else "ourmongod"
         if self.type_ == "cfg":
             name += "_cfg"
         return name
@@ -71,8 +75,8 @@ class MongoInstance(Startable):
             args += " --configsvr"
         if self.type_ != "mongos":
              args += " --dbpath %s"%(self.dbdir)
-        if self.port:
-            args += " --port %s"%(self.port)
+        if self.private_port:
+            args += " --port %s"%(self.private_port)
         if self.replica:
             args += " --replSet %s" % (self.replica) 
         if self.configdb:
@@ -82,21 +86,25 @@ class MongoInstance(Startable):
     @Startable.ensure_installed
     def _start(self):
         super()._start()
-        print('start', self.addr)
-        return self.cuisine.processmanager.ensure(self._gen_service_name(), self._gen_service_cmd())
+        print("starting: ", self._gen_service_name(), self._gen_service_cmd())
+        self.cuisine.run('mkdir iwashere')
+        a = self.cuisine.processmanager.ensure(self._gen_service_name(), self._gen_service_cmd())
+        return a
 
     @Startable.ensure_started
     def execute(self, cmd):
-        print(self.addr, "execute: ",cmd)
-        for i in range(3):
-            rc, out = self.cuisine.run("LC_ALL=C $binDir/mongo --port %s --eval '%s'"%(self.port ,cmd.replace("\\","\\\\").replace("'","\\'")), die=False)
+        for i in range(5):
+            rc, out = self.cuisine.run("LC_ALL=C $binDir/mongo --port %s --eval '%s'"%(self.private_port ,cmd.replace("\\","\\\\").replace("'","\\'")), die=False)
             if not rc and out.find('errmsg') == -1:
+                print('command executed %s'%(cmd))
                 break
             sleep(3)
-            return rc, out
+        else:
+            print('cannot execute command %s'%(cmd))
+        return rc, out
 
     def __repr__(self):
-        return "%s:%s"%(self.addr, self.port)
+        return "%s:%s"%(self.addr, self.public_port)
 
     __str__ = __repr__
 
@@ -204,17 +212,12 @@ class MongoConfigSvr(Startable):
 
     __str__ = __repr__
 
-def get_cuisine(addr = None, port = 22, login = "root", passwd = ""):
-    executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login,passwd=passwd)
-    cuisine=j.tools.cuisine.get(executor)
-    return cuisine
-
-def mongoCluster(shards_ips, config_ips, mongos_ips, shards_replica_set_counts = 1, unique = "", mongoport = None, dbdir = "", port = 22, login = "root", passwd = "rooter"):
+def mongoCluster(shards_nodes, config_nodes, mongos_nodes, shards_replica_set_counts = 1, unique = ""):
     args = []
-    for i in [shards_ips,config_ips,mongos_ips]:
+    for i in [shards_nodes,config_nodes,mongos_nodes]:
         cuisines = []
         for k in i:
-            cuisines.append(MongoInstance(get_cuisine(addr=k, port=port,login=login,passwd=passwd), port = mongoport, dbdir = dbdir))
+            cuisines.append(MongoInstance(j.tools.cuisine.get(k['executor']), private_port = k['private_port'], public_port = k.get('public_port'), dbdir = k.get('dbdir')))
         args.append(cuisines)
     return _mongoCluster(args[0], args[1], args[2], shards_replica_set_counts = shards_replica_set_counts, unique = unique)
 
@@ -228,4 +231,47 @@ def _mongoCluster(shards_css, config_css, mongos_css, shards_replica_set_counts 
     return cluster
 
 if __name__ == "__main__":
-    j.tools.cuisine.local.mongoCluster(["10.0.3.194", "10.0.3.113", "10.0.3.92", "10.0.3.14"], ["10.0.3.183", "10.0.3.161"], ["10.0.3.239", "10.0.3.7"], 2, dbdir = "$varDir/data2/db", mongoport=27021)
+    mongoCluster(
+        [{
+        "executor": j.tools.executor.getSSHBased(addr="10.0.3.194", port=22,login="root",passwd="rooter"),
+        "public_port": 27025,
+        "private_port": 27025,
+        "dbdir": "$varDir/db2/data"
+        }, {
+        "executor": j.tools.executor.getSSHBased(addr="10.0.3.112", port=22,login="root",passwd="rooter"),
+        "public_port": 27025,
+        "private_port": 27025,
+        "dbdir": "$varDir/db2/data"
+        }, {
+        "executor": j.tools.executor.getSSHBased(addr="10.0.3.126", port=22,login="root",passwd="rooter"),
+        "public_port": 27025,
+        "private_port": 27025,
+        "dbdir": "$varDir/db2/data"
+        }, {
+        "executor": j.tools.executor.getSSHBased(addr="10.0.3.209", port=22,login="root",passwd="rooter"),
+        "public_port": 27025,
+        "private_port": 27025,
+        "dbdir": "$varDir/db2/data"
+        }],
+        [{
+        "executor": j.tools.executor.getSSHBased(addr="10.0.3.205", port=22,login="root",passwd="rooter"),
+        "public_port": 27025,
+        "private_port": 27025,
+        "dbdir": "$varDir/db2/data"
+        }, {
+        "executor": j.tools.executor.getSSHBased(addr="10.0.3.204", port=22,login="root",passwd="rooter"),
+        "public_port": 27025,
+        "private_port": 27025,
+        "dbdir": "$varDir/db2/data"
+        }],
+        [{
+        "executor": j.tools.executor.getSSHBased(addr="10.0.3.119", port=22,login="root",passwd="rooter"),
+        "public_port": 27025,
+        "private_port": 27025,
+        "dbdir": "$varDir/db2/data"
+        }, {
+        "executor": j.tools.executor.getSSHBased(addr="10.0.3.79", port=22,login="root",passwd="rooter"),
+        "public_port": 27025,
+        "private_port": 27025,
+        "dbdir": "$varDir/db2/data"
+        }], 2)

@@ -73,16 +73,17 @@ class SSHClient(object):
     def client(self):
         if self._client is None:
             print('ssh new client')
-            self._client = paramiko.SSHClient()
-            self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
             start = j.data.time.getTimeEpoch()
             timeout = 20
             while start + timeout > j.data.time.getTimeEpoch():
                 try:
+                    self._client = paramiko.SSHClient()
+                    self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
                     self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys, timeout=1)
                     break
                 except:
+                    self.reset()
                     time.sleep(1)
                     continue
 
@@ -149,7 +150,6 @@ class SSHClient(object):
         retcode = 0
 
         ch = self.transport.open_session()
-        # ch.set_combine_stderr(combinestdr)
 
         if self.forward_agent:
             paramiko.agent.AgentRequestHandler(ch)
@@ -162,9 +162,14 @@ class SSHClient(object):
                 print(line)
 
         retcode = ch.recv_exit_status()
-        if die:
-            if retcode > 0:
-                raise RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%s " % (cmd, buf))
+        if retcode > 0:
+            stderr = ch.makefile_stderr('r')
+            errors = stderr.readlines()
+            errors = ''.join(errors)
+            if die:
+                raise RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, buf,errors))
+            else:
+                buff = errors
         # print(buf)
         return (retcode, buff)
 

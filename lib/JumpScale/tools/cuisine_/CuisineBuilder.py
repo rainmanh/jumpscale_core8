@@ -334,13 +334,13 @@ class CuisineBuilder(object):
         apikey =  re.search(r'<apikey>([\w\-]+)</apikey>', sync_cfg).group(1)
         sync_cfg.replace(sync_conn.group(1), "0.0.0.0")
         synccl = j.clients.syncthing.get(self.executor.addr,sync_conn.group(2), apikey=apikey)
-        #where in the config is the jumpscripts file set 
-        #synccl.config_add_folder()
+        jumpscripts_path = self.cuisine.args_replace("$cfgDir/agentcontroller8/jumpscripts")
+        synccl.config_add_folder("jumpscripts", jumpscripts_path)
 
 
-
+        #file copy 
         self.cuisine.dir_remove("$cfgDir/agentcontroller8/extensions")
-        self.cuisine.file_link("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extensions")
+        self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extensions", recursive=True)
 
         if start:
             self._startAgent()

@@ -1100,7 +1100,7 @@ class OurCuisine():
 
     def _clean(self, output):
         if self.sudomode and hasattr(self.executor, 'login'):
-            dirt = '[sudo] password for %s:' % self.executor.login
+            dirt = '[sudo] password for %s: ' % self.executor.login
             if output.find(dirt) != -1:
                 output = output.lstrip(dirt)
         return output

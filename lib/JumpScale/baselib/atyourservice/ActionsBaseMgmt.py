@@ -109,21 +109,25 @@ class ActionsBaseMgmt(object):
             self.service._parent=ays_s[0]
 
         #manipulate the HRD's to mention the consume's to producers
-        consumes=self.service.recipe.schema.consumeSchemaItemsGet()
+        consumes = self.service.recipe.schema.consumeSchemaItemsGet()
 
-        if consumes!=[]:
-
+        if consumes:
             for consumeitem in consumes:
                 #parent exists
-                role=consumeitem.consume_link
-                consumename=consumeitem.name
+                role = consumeitem.consume_link
+                consumename = consumeitem.name
 
-                # if consumename=="parent":
-                #     continue
-                ays_s=[]
+                instancenames = []
+                if consumename in self.service.args:
+                    instancenames = self.service.args[consumename]
+
+                ays_s = list()
                 candidates = j.atyourservice.findServices(role=consumeitem.consume_link)
                 if candidates:
-                    ays_s = candidates
+                    if instancenames:
+                        ays_s = [candidate for candidate in candidates if candidate.instance in instancenames]
+                    else:
+                        ays_s = candidates
 
                 # autoconsume
                 if len(candidates) < int(consumeitem.consume_nr_min) and consumeitem.auto:

@@ -137,7 +137,7 @@ class GitClient(object):
 
     def checkout(self,path):
         cmd = 'cd %s;git checkout %s' % (self.baseDir,path)
-        j.sal.process.execute(cmd, dieOnNonZeroExitCode=False)                
+        j.sal.process.execute(cmd)                
 
     def addRemoveFiles(self):
         cmd = 'cd %s;git add -A :/' % self.baseDir

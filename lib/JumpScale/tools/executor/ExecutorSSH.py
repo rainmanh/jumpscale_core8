@@ -58,8 +58,8 @@ class ExecutorSSH(ExecutorBase):
             self._sshclient=j.clients.ssh.get(self.addr,self.port,login=self.login,passwd=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys)
             if self.pushkey is not None:
                 #lets push the ssh key as specified
-                if j.sal.fs.isAbsolute():
-                    path = pushkey
+                if j.sal.fs.isAbsolute(self.pushkey):
+                    path = self.pushkey
                 else:
                     homedir = os.environ["HOME"]
                     path = "%s/.ssh/%s.pub"%(homedir,self.pushkey)

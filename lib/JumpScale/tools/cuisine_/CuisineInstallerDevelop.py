@@ -142,6 +142,8 @@ class CuisineInstallerDevelop():
         watchdog
         pygo
         minio
+        
+        python-telegram-bot
         """
         self.cuisine.pip.multiInstall(C,action=True,upgrade=True)
 

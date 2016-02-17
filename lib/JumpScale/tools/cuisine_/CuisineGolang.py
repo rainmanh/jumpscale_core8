@@ -34,8 +34,9 @@ class CuisineGolang():
 
 
         optdir = self.cuisine.dir_paths["optDir"]
+        goDir = self.cuisine.dir_paths['goDir']
 
-        self.cuisine.bash.environSet("GOPATH", self.cuisine.dir_paths['goDir'])
+        self.cuisine.bash.environSet("GOPATH", goDir)
         self.cuisine.bash.environSet("GOROOT", '/usr/local/go')
 
         self.cuisine.bash.addPath(self.cuisine.joinpaths(goDir, 'bin'))

@@ -1,21 +1,35 @@
+import Dumper
 from JumpScale import j
 
-import time
 
+class MongoDumper(Dumper.BaseDumper):
+    QUEUE = 'queues:reality'
 
-class MongoDumper():
+    def __init__(self, cidr='127.0.0.1', port=7777):
+        super(MongoDumper, self).__init__(cidr, port)
 
-    def __init__(self,redisConnections,mongodbConnections):
-        self.redisConnections=redisConnections
-        self.mongodbConnections=mongodbConnections
-        self.processLogs=False
+    def dump(self, redis):
+        while True:
+            key = redis.lpop(self.QUEUE)
+            if key is None:
+                return
+            key = key.decode()
 
-    def start(self):
-        """
-        use the queues to get logs & ecos & reality objects
-        put them (indexed!) in specified mongodb(s)
-        """
-        ...
+            data = redis.get("reality:%s" % key)
+            data = data.decode()
 
-        #for eco & reality objects make sure j.data.models is used to recreate the mongoengine object before inserting in the mongodb database
-        #logs we can probably do direct because will go faster then, speed here is of the essence
+            obj = j.data.serializer.json.loads(data)
+
+            ns, _, objtype = obj['modeltype'].rpartition('.')
+            if ns == '':
+                ns = 'system'
+            if not hasattr(j.data.models, ns):
+                raise Exception('Unknown namespace "%s"' % ns)
+            space = getattr(j.data.models, ns)
+
+            if not hasattr(space, objtype):
+                raise Exception('Unknown model "%s"' % objtype)
+            model = getattr(space, objtype)
+
+            instance = model.from_json(obj['json'])
+            instance.save()

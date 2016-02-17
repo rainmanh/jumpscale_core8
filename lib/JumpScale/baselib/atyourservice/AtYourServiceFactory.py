@@ -650,6 +650,11 @@ class AtYourServiceFactory():
 
     def __str__(self):
         return self.__repr__()
+    
+    def telegramBot(self, token):
+        from JumpScale.baselib.atyourservice.telegrambot.TelegramAYS import TelegramAYS
+        bot = TelegramAYS(token)
+        return bot
 
 
     # def _getGitRepo(self, url, recipeitem=None, dest=None):

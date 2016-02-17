@@ -243,9 +243,10 @@ class CuisineBuilder(object):
     @actionrun(action=True)
     def agent(self,start=True):
         self.installdeps()
+        #self.cuisine.installer.jumpscale8()
         self.redis()
         self.mongodb()
-        self.syncthing(start=False)
+        self.syncthing()
 
         self.cuisine.tmux.killWindow("main","agent")
 
@@ -299,8 +300,9 @@ class CuisineBuilder(object):
         """
         self.installdeps()
         self.agent()
-        self._startSyncthing()
         self.cuisine.processmanager.remove("agentcontroller8")
+        pm = self.cuisine.processmanager.get("tmux")
+        pm.stop("syncthing")
 
         self.cuisine.dir_ensure("$cfgDir/agentcontroller8", recursive=True)
 
@@ -328,11 +330,15 @@ class CuisineBuilder(object):
         self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml', C, replaceArgs=True)
         self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml.org', C, replaceArgs=False)
 
-        #add jumpscripts to syncthing 
+        #expose syncthing and get api key  
         sync_cfg = self.cuisine.file_read("/root/.config/syncthing/config.xml")
         sync_conn = re.search(r'<address>([0-9.]+):([0-9]+)</', sync_cfg)
-        apikey =  re.search(r'<apikey>([\w\-]+)</apikey>', sync_cfg).group(1)
-        sync_cfg.replace(sync_conn.group(1), "0.0.0.0")
+        apikey = re.search(r'<apikey>([\w\-]+)</apikey>', sync_cfg).group(1)
+        sync_cfg = sync_cfg.replace(sync_conn.group(1), "0.0.0.0")
+        self.cuisine.file_write("/root/.config/syncthing/config.xml", sync_cfg)
+
+        #add jumpscripts file 
+        self._startSyncthing()
         synccl = j.clients.syncthing.get(self.executor.addr,sync_conn.group(2), apikey=apikey)
         jumpscripts_path = self.cuisine.args_replace("$cfgDir/agentcontroller8/jumpscripts")
         synccl.config_add_folder("jumpscripts", jumpscripts_path)
@@ -347,7 +353,6 @@ class CuisineBuilder(object):
             self._startAgentController()
 
 
-    @actionrun(action=True)
     def _startSyncthing(self):
         GOPATH = self.cuisine.bash.environGet('GOPATH')
         env={}
@@ -356,7 +361,6 @@ class CuisineBuilder(object):
         pm.ensure(name="syncthing", cmd="./syncthing", path=self.cuisine.joinpaths(GOPATH, "bin"))
  
 
-    @actionrun(action=True)
     def _startAgent(self):
         print("connection test ok to agentcontroller")
         #@todo (*1*) need to implement to work on node
@@ -366,7 +370,6 @@ class CuisineBuilder(object):
         pm = self.cuisine.processmanager.get("tmux")
         pm.ensure("agent8", cmd=cmd, path="$cfgDir/agent8",  env=env)
 
-    @actionrun(action=True)
     def _startAgentController(self):
         env = {}
         env["TMPDIR"] = self.cuisine.dir_paths["tmpDir"]
@@ -499,7 +502,7 @@ class CuisineBuilder(object):
             cmd="redis-server %s"%cpath
             self.cuisine.processmanager.ensure(name="redis_%s"%name,cmd=cmd,env={},path='$binDir')
 
-    @actionrun(action=True)
+    #@actionrun(action=True)
     def mongodb(self, start=True):
         self.cuisine.installer.base()
         exists=self.cuisine.command_check("mongod")

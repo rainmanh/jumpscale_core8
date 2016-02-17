@@ -38,12 +38,12 @@ class CuisineGolang():
         self.cuisine.bash.environSet("GOPATH", self.cuisine.dir_paths['goDir'])
         self.cuisine.bash.environSet("GOROOT", '/usr/local/go')
 
-        self.cuisine.bash.addPath(self.cuisine.joinpaths(optdir, '/go/bin'))
+        self.cuisine.bash.addPath(self.cuisine.joinpaths(goDir, 'bin'))
         self.cuisine.bash.addPath(self.cuisine.joinpaths("/usr/local/go/bin/"))
 
-        self.cuisine.createDir("%s/go/src" % optdir)
-        self.cuisine.createDir("%s/go/pkg" % optdir)
-        self.cuisine.createDir("%s/go/bin" % optdir)
+        self.cuisine.createDir("%s/src" % goDir)
+        self.cuisine.createDir("%s/pkg" % goDir)
+        self.cuisine.createDir("%s/bin" % goDir)
 
         self.get("github.com/tools/godep")
         # self.get("github.com/rcrowley/go-metrics")

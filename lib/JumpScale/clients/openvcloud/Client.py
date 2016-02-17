@@ -18,8 +18,8 @@ class Factory:
             cl = self.get_from_db(dbkey)
         else:
             data = {"url": url, "login" : login, "password": password, "secret": secret, "port": port}
-            self._clientsdb.set(data, id=dbkey)
             cl = Client(url, login, password, secret, port)
+            self._clientsdb.set(data, id=dbkey)
 
         self._clients[dbkey] = cl
         return cl

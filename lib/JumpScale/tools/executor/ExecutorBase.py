@@ -25,6 +25,7 @@ class ExecutorBase():
         self.curpath = ""
         self.platformtype="linux" #@todo need to create propery and evaluate
         self.jumpscale=True #@todo need to create propery and evaluate
+        self.id = None
 
         self._cuisine=None
 
@@ -42,7 +43,7 @@ class ExecutorBase():
             self.execute("mkdir -p %s"%val)
 
     def docheckok(self,cmd,out):
-        
+
         if out.find("**OK**")==-1:
             raise RuntimeError("Error in:\n%s\n***\n%s"%(cmd,out))
 
@@ -102,4 +103,3 @@ class ExecutorBase():
 
     def exists(self,path):
         return self.cuisine.file_exists(path)
-        

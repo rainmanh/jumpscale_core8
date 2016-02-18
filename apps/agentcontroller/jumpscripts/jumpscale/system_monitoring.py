@@ -19,13 +19,15 @@ queue='process'
 log=False
 
 roles = []
-
 def action():
     import psutil
     import os
     import statsd
     statscl = statsd.StatsClient()
     pipe = statscl.pipeline()
+    hostname =j.sal.nettools.getHostname()
+    aggregator = j.tools.aggregator.getClient(j.core.db,  hostname)
+
 
     results={}
     val=psutil.cpu_percent()
@@ -38,7 +40,7 @@ def action():
     counter=psutil.net_io_counters(False)
     bytes_sent, bytes_recv, packets_sent, packets_recv, errin, errout, dropin, dropout=counter
     results["network.kbytes.recv"]=round(bytes_recv/1024.0,0)
-    results["network.kbytes.send"]=round(bytes_sent/1024.0,0)
+    results["network.kbytes.sent"]=round(bytes_sent/1024.0,0)
     results["network.packets.recv"]=packets_recv
     results["network.packets.send"]=packets_sent
     results["network.error.in"]=errin
@@ -70,11 +72,12 @@ def action():
         stats[key] = value
 
     num_ctx_switches = int(stats['ctxt'])
-
     results["cpu.num_ctx_switches"]=num_ctx_switches
 
+
     for key, value in results.items():
-        pipe.gauge("%s_%s_%s" % (j.application.whoAmI.gid, j.application.whoAmI.nid, key), value)
+        j.data.tags.getTagString()
+        aggregator.measure(tags={'nid': j.application.whoAmI.nid, 'gid': j.application.whoAmI.gid} ,key=key, value=value)
 
     pipe.send()
     return results

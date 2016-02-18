@@ -237,7 +237,7 @@ class Space:
         sizes = [(item["memory"], item) for item in self.sizes]
         sizes.sort(key=lambda size: size[0])
         for size, sizeinfo in sizes:
-            if memory > size*0.9:
+            if memory < size*1.1:
                 return sizeinfo['id']
 
         raise RuntimeError("did not find memory size:%s" % memory)

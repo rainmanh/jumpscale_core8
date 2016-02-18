@@ -66,6 +66,8 @@ class SSHClient(object):
     def transport(self):
         # if self._transport is None:
             # self._transport = self.client.get_transport()
+        if self.client is None:
+            raise RuntimeError("Could not connect to %s:%s" % (self.addr, self.port))
         self._transport = self.client.get_transport()
         return self._transport
 

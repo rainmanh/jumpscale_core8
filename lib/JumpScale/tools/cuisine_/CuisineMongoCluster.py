@@ -87,7 +87,6 @@ class MongoInstance(Startable):
     def _start(self):
         super()._start()
         print("starting: ", self._gen_service_name(), self._gen_service_cmd())
-        self.cuisine.run('mkdir iwashere')
         a = self.cuisine.processmanager.ensure(self._gen_service_name(), self._gen_service_cmd())
         return a
 

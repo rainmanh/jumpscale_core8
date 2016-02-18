@@ -19,13 +19,15 @@ queue='process'
 log=False
 
 roles = []
-
 def action():
     import psutil
     import os
     import statsd
     statscl = statsd.StatsClient()
     pipe = statscl.pipeline()
+    hostname =j.sal.nettools.getHostname()
+    aggregator = j.tools.aggregator.getClient(j.core.db,  hostname)
+
 
     results={}
     val=psutil.cpu_percent()
@@ -70,11 +72,12 @@ def action():
         stats[key] = value
 
     num_ctx_switches = int(stats['ctxt'])
-
     results["cpu.num_ctx_switches"]=num_ctx_switches
 
+
     for key, value in results.items():
-        pipe.gauge("%s_%s_%s" % (j.application.whoAmI.gid, j.application.whoAmI.nid, key), value)
+        j.data.tags.getTagString(tags={'nid': j.application.whoAmI.nid, 'gid': j.application.whoAmI.gid})
+        aggregator.measure(key.split(".")[0], {".".join(key.split(".")[1:]):value})
 
     pipe.send()
     return results

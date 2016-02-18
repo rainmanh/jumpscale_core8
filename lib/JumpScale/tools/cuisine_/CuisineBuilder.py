@@ -246,7 +246,7 @@ class CuisineBuilder(object):
             self._startSyncthing()
 
 
-    @actionrun(action=True)
+    #@actionrun(action=True)
     def agent(self,start=True):
         self.installdeps()
         #self.cuisine.installer.jumpscale8()
@@ -274,7 +274,8 @@ class CuisineBuilder(object):
         # copy extensions
         self.cuisine.dir_remove("$cfgDir/agent8/extensions")
         self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agent8", recursive=True)
-        self.cuisine.file_copy("$binDir/syncthing", "$cfgDir/agent8/extensions/")
+        self.cuisine.dir_ensure("$cfgDir/agent8/extensions/syncthing")
+        self.cuisine.file_copy("$binDir/syncthing", "$cfgDir/agent8/extensions/syncthing/")
 
 
         # manipulate config file
@@ -298,14 +299,18 @@ class CuisineBuilder(object):
         if start:
             self._startAgent()
 
-    #@actionrun(action=True)
+    @actionrun(action=True)
     def agentcontroller(self, start=True):
         import re
+        import hashlib
         """
-        config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
+        config: https://github.com/Jumpscale/agentcontroller2/
         """
         self.installdeps()
-        self.agent()
+        self.redis()
+        self.mongodb()
+        self.syncthing()
+        
         self.cuisine.processmanager.remove("agentcontroller8")
         pm = self.cuisine.processmanager.get("tmux")
         pm.stop("syncthing")
@@ -332,7 +337,6 @@ class CuisineBuilder(object):
         cfg["jumpscripts"]["settings"]["jumpscripts_path"] = cfg["jumpscripts"]["settings"]["jumpscripts_path"].replace("./", "$cfgDir/agentcontroller8/")
 
         C = j.data.serializer.toml.dumps(cfg)
-
         self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml', C, replaceArgs=True)
         self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml.org', C, replaceArgs=False)
 
@@ -341,13 +345,15 @@ class CuisineBuilder(object):
         sync_conn = re.search(r'<address>([0-9.]+):([0-9]+)</', sync_cfg)
         apikey = re.search(r'<apikey>([\w\-]+)</apikey>', sync_cfg).group(1)
         sync_cfg = sync_cfg.replace(sync_conn.group(1), "0.0.0.0")
+        sync_cfg = sync_cfg.replace(sync_conn.group(2), "18384")
         self.cuisine.file_write("/root/.config/syncthing/config.xml", sync_cfg)
 
         #add jumpscripts file 
         self._startSyncthing()
         synccl = j.clients.syncthing.get(self.executor.addr,sync_conn.group(2), apikey=apikey)
         jumpscripts_path = self.cuisine.args_replace("$cfgDir/agentcontroller8/jumpscripts")
-        synccl.config_add_folder("jumpscripts", jumpscripts_path)
+        jumpscripts_id = "jumpscripts-%s" % hashlib.md5(synccl.id_get().encode()).hexdigest()
+        synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
 
 
         #file copy 
@@ -355,6 +361,7 @@ class CuisineBuilder(object):
         self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extensions", recursive=True)
 
         if start:
+            self.agent()
             self._startAgent()
             self._startAgentController()
 

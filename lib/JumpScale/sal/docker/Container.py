@@ -191,8 +191,20 @@ class Container(SALObject):
 
         return list(keys)
 
+    def cleanAysfs(self):
+        # clean default /optvar aysfs if any
+        aysfs = j.sal.aysfs.get('%s-optvar' % self.name, None)
+        
+        # if load config return True, config exists
+        if aysfs.loadConfig():
+            # stopping any running aysfs linked
+            if aysfs.isRunning():
+                aysfs.stop()
+                print("[+] aysfs stopped")
+        
     def destroy(self):
-
+        self.cleanAysfs()
+        
         try:
             self.client.kill(self.id)
         except Exception as e:
@@ -202,8 +214,8 @@ class Container(SALObject):
         except Exception as e:
             print ("could not kill:%s"%self.id)
 
-
     def stop(self):
+        self.cleanAysfs()
         self.client.kill(self.id)
 
     def restart(self):

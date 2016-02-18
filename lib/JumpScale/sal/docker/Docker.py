@@ -340,17 +340,15 @@ class Docker(SALObject):
             if "/opt/code" not in volsdict:
                 volsdict["/opt/code"] = "/opt/code"
         
-        
-        if len(aysfs) > 0:
-            for fs in aysfs:
-                self._init_aysfs(fs, name)
-                mounts = fs.getPrefixs()
+        for fs in aysfs:
+            self._init_aysfs(fs, name)
+            mounts = fs.getPrefixs()
+            
+            for inp, out in mounts.items():
+                while not j.sal.fs.exists(inp):
+                    time.sleep(0.1)
                 
-                for inp, out in mounts.items():
-                    while not j.sal.fs.exists(inp):
-                        time.sleep(0.1)
-                    
-                    volsdict[out] = inp
+                volsdict[out] = inp
         
         volsdictro = {}
         if len(volsro) > 0:

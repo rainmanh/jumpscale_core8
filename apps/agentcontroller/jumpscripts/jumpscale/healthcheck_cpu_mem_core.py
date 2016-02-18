@@ -28,7 +28,7 @@ def action():
             (gid, nid))
         memresults = osiscl.stats.search('select mean(value) from "%s_%s_memory.percent.gauge" where time > now() - 1h group by time(1h)' % 
             (gid, nid))
-    except RemoteException , e:
+    except RemoteException as e:
         return [{'category':'CPU', 'state':'ERROR', 'message':'influxdb is halted cannot access data'}]
 
     try:
@@ -68,5 +68,5 @@ def get_results(series):
     
 if __name__ == '__main__':
     j.core.osis.client = j.clients.osis.getByInstance('main')
-    print action()
+    print (action())
 

@@ -41,4 +41,4 @@ def action():
     return results
          
 if __name__ == '__main__':
-    action()
+    print(action())

@@ -64,8 +64,6 @@ class SSHClient(object):
 
     @property
     def transport(self):
-        # if self._transport is None:
-            # self._transport = self.client.get_transport()
         if self.client is None:
             raise RuntimeError("Could not connect to %s:%s" % (self.addr, self.port))
         self._transport = self.client.get_transport()
@@ -88,6 +86,8 @@ class SSHClient(object):
                     self.reset()
                     time.sleep(1)
                     continue
+            if self._client is None:
+                raise RuntimeError('Impossible to create SSH connection to %s' % self.addr)
 
         return self._client
 

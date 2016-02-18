@@ -87,7 +87,7 @@ class SSHClient(object):
                     time.sleep(1)
                     continue
             if self._client is None:
-                raise RuntimeError('Impossible to create SSH connection to %s' % self.addr)
+                raise RuntimeError('Impossible to create SSH connection to %s:%s' % (self.addr, self.port))
 
         return self._client
 

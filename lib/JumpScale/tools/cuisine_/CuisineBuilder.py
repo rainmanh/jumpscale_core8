@@ -268,6 +268,7 @@ class CuisineBuilder(object):
         # copy extensions
         self.cuisine.dir_remove("$cfgDir/agent8/extensions")
         self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agent8", recursive=True)
+        self.cuisine.dir_ensure("$cfgDir/agent8/extensiions/")
         self.cuisine.file_copy("$binDir/syncthing", "$cfgDir/agent8/extensions/")
 
 
@@ -295,8 +296,9 @@ class CuisineBuilder(object):
     #@actionrun(action=True)
     def agentcontroller(self, start=True):
         import re
+        import hashlib
         """
-        config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
+        config: https://github.com/Jumpscale/agentcontroller2/
         """
         self.installdeps()
         self.agent()
@@ -326,7 +328,6 @@ class CuisineBuilder(object):
         cfg["jumpscripts"]["settings"]["jumpscripts_path"] = cfg["jumpscripts"]["settings"]["jumpscripts_path"].replace("./", "$cfgDir/agentcontroller8/")
 
         C = j.data.serializer.toml.dumps(cfg)
-
         self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml', C, replaceArgs=True)
         self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml.org', C, replaceArgs=False)
 
@@ -341,7 +342,8 @@ class CuisineBuilder(object):
         self._startSyncthing()
         synccl = j.clients.syncthing.get(self.executor.addr,sync_conn.group(2), apikey=apikey)
         jumpscripts_path = self.cuisine.args_replace("$cfgDir/agentcontroller8/jumpscripts")
-        synccl.config_add_folder("jumpscripts", jumpscripts_path)
+        jumpscripts_id = "jumpscripts-%s" % hashlib.md5(synccl.id_get()).hexdigest()
+        synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
 
 
         #file copy 

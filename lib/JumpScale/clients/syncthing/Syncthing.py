@@ -255,7 +255,7 @@ class SyncthingClient:
         print("folder set:%s"%name)
 
         self.executeBashScript("mkdir -p %s"%path)
-
+        self.restart()
         # self.config_set()        
         return folder
         

@@ -335,12 +335,13 @@ class CuisineBuilder(object):
         self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml.org', C, replaceArgs=False)
 
         #expose syncthing and get api key  
-        sync_cfg = self.cuisine.file_read("/root/.config/syncthing/config.xml")
+        sync_cfg = self.cuisine.file_read("$homeDir/.config/syncthing/config.xml")
         sync_conn = re.search(r'<address>([0-9.]+):([0-9]+)</', sync_cfg)
         apikey = re.search(r'<apikey>([\w\-]+)</apikey>', sync_cfg).group(1)
         sync_cfg = sync_cfg.replace(sync_conn.group(1), "0.0.0.0")
         sync_cfg = sync_cfg.replace(sync_conn.group(2), "18384")
-        self.cuisine.file_write("/root/.config/syncthing/config.xml", sync_cfg)
+        self.cuisine.file_write("$homeDir/.config/syncthing/config.xml", sync_cfg)
+
 
         #add jumpscripts file 
         self._startSyncthing()

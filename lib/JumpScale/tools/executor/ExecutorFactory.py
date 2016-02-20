@@ -2,7 +2,6 @@ from JumpScale import j
 
 from ExecutorSSH import *
 from ExecutorLocal import *
-# from ExecutorAgent2 import *
 
 
 class ExecutorFactory():
@@ -18,6 +17,10 @@ class ExecutorFactory():
         """
         @param executor is an executor object, None or $hostname:$port or $ipaddr:$port or $hostname or $ipaddr
         """
+        #  test if it's in cache
+        if executor in self._executors:
+            return self._executors[executor]
+
         if executor in ["localhost", "", None, "127.0.0.1"]:
             if 'localhost' not in self._executors:
                 local = self.getLocal()
@@ -39,9 +42,10 @@ class ExecutorFactory():
 
     def getSSHBased(self, addr="localhost", port=22, login="root", passwd=None, debug=False, checkok=True, allow_agent=True, look_for_keys=True, pushkey=None):
         key = '%s:%s:%s' % (addr, port, login)
-        if key not in self._executors:
-            self._executors[key] = ExecutorSSH(addr, port=port, login=login, passwd=passwd, debug=debug, checkok=checkok, allow_agent=allow_agent, look_for_keys=look_for_keys, pushkey=pushkey)
-        return self._executors[key]
+        h = j.data.hash.md5_string(key)
+        if h not in self._executors:
+            self._executors[h] = ExecutorSSH(addr, port=port, login=login, passwd=passwd, debug=debug, checkok=checkok, allow_agent=allow_agent, look_for_keys=look_for_keys, pushkey=pushkey)
+        return self._executors[h]
 
     def getJSAgent2Based(self, agentControllerClientKey, debug=False, checkok=False):
         return ExecutorAgent2(addr, debug=debug, checkok=debug)

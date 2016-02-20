@@ -5,6 +5,9 @@ import time
 import logging
 
 
+NUM_WORKERS = 4
+
+
 class BaseDumper(object):
     def __init__(self, cidr, port=6379):
         logging.root.setLevel(logging.INFO)
@@ -15,13 +18,13 @@ class BaseDumper(object):
         scanner = NetworkScanner(cidr, port)
         self._candidates = scanner.scan()
 
-    def start(self):
+    def start(self, workers=NUM_WORKERS):
         manager = multiprocessing.Manager()
         queue = manager.Queue()
         for ip in self.candidates:
             queue.put_nowait(ip)
 
-        pool = multiprocessing.Pool(4)
+        pool = multiprocessing.Pool(workers)
 
         while True:
             ip = queue.get()

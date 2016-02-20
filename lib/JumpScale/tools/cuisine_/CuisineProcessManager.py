@@ -87,8 +87,8 @@ class CuisineSystemd(ProcessManagerBase):
             for name0, value in list(env.items()):
                 envstr += "%s=%s " % (name0, value)
 
-
             cmd = cmd.replace('"', r'\"')
+            cmd = self.cuisine._clean(cmd)
 
             if systemdunit!="":
                 C=systemdunit

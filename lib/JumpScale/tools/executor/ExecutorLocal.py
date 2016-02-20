@@ -8,6 +8,7 @@ class ExecutorLocal(ExecutorBase):
         ExecutorBase.__init__(
             self, dest_prefixes=dest_prefixes, debug=debug, checkok=debug)
         self.type="local"
+        self.id = 'localhost'
 
     def execute(self, cmds, die=True, checkok=None, async=False,showout=True, combinestdr=True,timeout=0, env={}):
         if env:

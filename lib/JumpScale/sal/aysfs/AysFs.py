@@ -10,8 +10,8 @@ class AysFsFactory(object):
     def __init__(self):
         self.__jslocation__ = "j.sal.aysfs"
 
-    def get(self, cuisine=None):
-        return AysFs(cuisine=cuisine)
+    def get(self, name, cuisine=None):
+        return AysFs(name=name, cuisine=cuisine)
 
     def _getFlist(self, name):
         if not j.sal.fs.exists('/aysfs/flist/'):
@@ -84,6 +84,28 @@ class AysFs(SALObject):
             prefixs[source] = mount['prefix']
 
         return prefixs
+
+    def getConfig(self):
+        return '%s/etc/%s.toml' % (self.root, self.name)
+
+    def loadConfig(self):
+        config_path = self.getConfig()
+        
+        if not j.sal.fs.exists(config_path):
+            return False
+        
+        cfg = j.data.serializer.toml.load(config_path)
+        
+        for mount in cfg['mount']:
+            self.addMount(mount['path'], mount['mode'], mount['flist'], mount['backend'])
+        
+        for name, backend in cfg['backend'].items():
+            self.addBackend(backend['path'], backend['namespace'], backend['stor'], name=name)
+        
+        for name, store in cfg['aydostor'].items():
+            self.addStor(remote=store['addr'], username=store['login'], password=store['passwd'], name=name)
+        
+        return True
 
     def addMount(self, path, mode, flist=None, backend='default', prefix=''):
         mount = {
@@ -207,7 +229,7 @@ class AysFs(SALObject):
                 j.sal.fs.createDir(backend['path'])
 
         print('[+] writing config file')
-        config = '%s/etc/%s.toml' % (self.root, self.name)
+        config = self.getConfig()
         j.sal.fs.writeFile(config, self.generate())
 
         print('[+] starting aysfs')
@@ -218,9 +240,30 @@ class AysFs(SALObject):
         return True
 
     def stop(self):
-        config = '%s/etc/%s.toml' % (self.root, self.name)
-        self.tmux.killWindow('aysfs', config)
+        config_path = self.getConfig()
+        self.tmux.killWindow('aysfs', config_path)
+
+        for mount in self.mounts:
+            # force umount (cannot stat folder if Transport endpoint is not connected)
+            self.unmount(mount['path'])
 
     def isRunning(self):
-        config = '%s/etc/%s.toml' % (self.root, self.name)
-        return self.tmux.windowExists('aysfs', config)
+        config = self.getConfig()
+        
+        # if window doesn't exists, we can stop now
+        if not self.tmux.windowExists('aysfs', config):
+            return False
+        
+        # checking if the process on the window is aysfs or does it died
+        parent = j.sal.process.getProcessObject(self.tmux.getPid('aysfs', self.getConfig()))
+        
+        # if no children, nothing is running
+        if len(parent.children()) == 0:
+            return False
+        
+        for child in parent.children():
+            # we got it
+            if child.name() == 'aysfs':
+                return True
+        
+        return False

@@ -24,6 +24,7 @@ class CuisinePIP():
         '''
         The "package" argument, defines the name of the package that will be upgraded.
         '''
+        self.cuisine.set_sudomode()
         self.cuisine.run('pip3 install --upgrade %s' % (package))
 
     @actionrun(action=True)
@@ -31,9 +32,13 @@ class CuisinePIP():
         '''
         The "package" argument, defines the name of the package that will be installed.
         '''
+        self.cuisine.set_sudomode()
         if self.cuisine.isArch:
             if package in ["credis","blosc","psycopg2"]:
                 return
+                
+        if package == "pymongo":
+            package = "pymongo==3.2.1" 
 
         if package in ["pymongo","mongoengine"]:
             upgrade=False
@@ -73,6 +78,7 @@ class CuisinePIP():
 
         @param runid, if specified actions will be used to execute
         """
+        self.cuisine.set_sudomode()
         for dep in packagelist.split("\n"):
             dep=dep.strip()
             if dep.strip()=="":

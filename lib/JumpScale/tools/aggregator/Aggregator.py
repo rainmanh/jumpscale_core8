@@ -1,6 +1,7 @@
 from JumpScale import j
 
 from InfluxDumper import InfluxDumper
+from MongoDumper import MongoDumper
 from AggregatorClient import AggregatorClient
 from AggregatorClientTest import AggregatorClientTest
 
@@ -25,13 +26,13 @@ class Aggregator(object):
         d = InfluxDumper(influxdb, port=port)
         d.start()
 
-    def monogopump(self, redisConnections, mongodbConnections):
+    def monogopump(self, port=7777):
         """
         will dump redis stats into influxdb(s)
         get connections from j.jumpscale.clients...
         """
 
-        d = MongoDumper(redisConnections, mongodbConnections)
+        d = MongoDumper(port=port)
         d.start()
 
     def test(self):

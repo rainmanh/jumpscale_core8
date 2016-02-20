@@ -44,6 +44,7 @@ class SSHClient(object):
         self.login = login
         self.passwd = passwd
         self.stdout = stdout
+        self._connection_ok = None
         if passwd!=None:
             self.forward_agent = False
             self.allow_agent=False
@@ -71,28 +72,31 @@ class SSHClient(object):
 
     @property
     def transport(self):
-        # if self._transport is None:
-            # self._transport = self.client.get_transport()
+        if self.client is None:
+            raise RuntimeError("Could not connect to %s:%s" % (self.addr, self.port))
         self._transport = self.client.get_transport()
         return self._transport
 
     @property
     def client(self):
         if self._client is None:
-            self._client = paramiko.SSHClient()
-            self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            print('ssh new client')
 
-            counter = 0
-            while counter < 10:
+            start = j.data.time.getTimeEpoch()
+            timeout = 20
+            while start + timeout > j.data.time.getTimeEpoch():
                 try:
-                    self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,timeout=1)
+                    self._client = paramiko.SSHClient()
+                    self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                    self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys, timeout=1)
                     break
-                except Exception as e:
-                    counter += 0.1
-                    if counter >= 10:
-                        raise(e)
-                    else:
-                        time.sleep(0.1)
+                except:
+                    self.reset()
+                    time.sleep(1)
+                    continue
+            if self._client is None:
+                raise RuntimeError('Impossible to create SSH connection to %s:%s' % (self.addr, self.port))
+
         return self._client
 
     def reset(self):
@@ -103,73 +107,81 @@ class SSHClient(object):
         sftp = self.client.open_sftp()
         return sftp
 
-    def connectTest(self, cmd="ls /etc", timeout=3, die=True):
+    def connectTest(self, cmd="ls /", timeout=5, die=True):
         """
         will trying to connect over ssh & execute the specified command, timeout is in sec
         error will be raised if not able to do (unless if die set)\
         return False if not ok
         """
-        counter = 0
+        if not self._connection_ok:
+            counter = 0
 
-        rc = 1
-        timeout1=j.data.time.getTimeEpoch()+timeout
+            rc = 1
+            # timeout1=j.data.time.getTimeEpoch()+timeout
+            start = j.data.time.getTimeEpoch()
 
-        if j.sal.nettools.waitConnectionTest(self.addr, self.port, timeout)==False:
-            print("Cannot connect to ssh server %s:%s"%(self.addr,self.port))
-            return False
-
-        while j.data.time.getTimeEpoch()<timeout1  and rc != 0:
-            try:
-                # print("connect ssh2.")
-                rc, out = self.execute(cmd, showout=False)
-                # print (rc)
-            except (BadHostKeyException, AuthenticationException) as e:
-                # cant' recover, no point to wait. exit now
-                print(e)
-                rc = 1                
-                break
-            except (SSHException, socket.error) as e:
-                print(e)
-                j.clients.ssh.removeFromCache(self)
-                self._client = None
-                self._transport = None
-                time.sleep(0.1)
-                continue
-
-        if rc > 0:
-            j.clients.ssh.removeFromCache(self)
-            if die:
-                j.events.opserror_critical("Could not connect to ssh on localhost on port %s" % self.port)
-            else:
+            if j.sal.nettools.waitConnectionTest(self.addr, self.port, timeout)==False:
+                print("Cannot connect to ssh server %s:%s"%(self.addr,self.port))
                 return False
-        return True
+
+            while start + timeout > j.data.time.getTimeEpoch() and rc != 0:
+                try:
+                    rc, out = self.execute(cmd, showout=False)
+                except (BadHostKeyException, AuthenticationException) as e:
+                    # cant' recover, no point to wait. exit now
+                    print("authentification error. abording connection")
+                    print(e)
+                    rc = 1
+                    break
+                except (SSHException, socket.error) as e:
+                    print("authentification error. abording connection")
+                    print(e)
+                    j.clients.ssh.removeFromCache(self)
+                    self._client.close()
+                    self.reset()
+                    time.sleep(0.1)
+                    continue
+
+            if rc > 0:
+                j.clients.ssh.removeFromCache(self)
+                self._connection_ok = False
+                if die:
+                    j.events.opserror_critical("Could not connect to ssh on %s@%s:%s" % (self.login, self.addr, self.port))
+                return self._connection_ok
+            self._connection_ok = True
+        return self._connection_ok
 
     def execute(self, cmd, showout=True, die=True, combinestdr=True):
         """
         run cmd & return
         return: (retcode,out_err)
         """
+        buff = ''
+        retcode = 0
+
         ch = self.transport.open_session()
-        ch.set_combine_stderr(combinestdr)
+
         if self.forward_agent:
             paramiko.agent.AgentRequestHandler(ch)
 
         ch.exec_command(cmd)
-        buf = ''
-
-        out = ch.recv(1024*1024).decode()
-        while out:
-            if showout and self.stdout:
-                print(out)
-            buf += out
-            out = ch.recv(1024*1024).decode()
+        stdout = ch.makefile('r')
+        for line in stdout:
+            buff += line
+            if self.stdout and showout:
+                print(line)
 
         retcode = ch.recv_exit_status()
-        if die:
-            if retcode > 0:
-                raise RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%s " % (cmd, buf))
+        if retcode > 0:
+            stderr = ch.makefile_stderr('r')
+            errors = stderr.readlines()
+            errors = ''.join(errors)
+            if die:
+                raise RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, buf,errors))
+            else:
+                buff = errors
         # print(buf)
-        return (retcode, buf)
+        return (retcode, buff)
 
     def close(self):
         self.client.close()

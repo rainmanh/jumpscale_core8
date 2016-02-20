@@ -8,6 +8,7 @@ class ExecutorSSH(ExecutorBase):
             passwd=None,debug=False,checkok=True,allow_agent=True, \
             look_for_keys=True,pushkey=None):
         ExecutorBase.__init__(self, dest_prefixes=dest_prefixes,debug=debug,checkok=checkok)
+        self.id = j.data.hash.md5_string('%s:%s:%s' % (addr, port, login))
         self.addr = addr
         self._port = int(port)
         self._login=login
@@ -57,7 +58,7 @@ class ExecutorSSH(ExecutorBase):
     def sshclient(self):
         if self._sshclient==None:
             self._sshclient=j.clients.ssh.get(self.addr,self.port,login=self.login,passwd=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys)
-            if self.pushkey!=None:
+            if self.pushkey is not None:
                 #lets push the ssh key as specified
                 if j.sal.fs.exists(self.pushkey):
                     path=self.pushkey

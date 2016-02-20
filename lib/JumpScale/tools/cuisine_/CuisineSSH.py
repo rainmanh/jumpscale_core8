@@ -8,7 +8,7 @@ class CuisineSSH():
     def __init__(self,executor,cuisine):
         self.executor=executor
         self.cuisine=cuisine
-    
+
     def test_login(self,passwd,port=22,range=None,onlyplatform="arch"):
         login="root"
         res=[]
@@ -17,19 +17,19 @@ class CuisineSSH():
             client=j.clients.ssh.get(item,port,login,passwd)
             try:
                 testoutput=client.connectTest(timeout=1,die=False)
-            except Exception as e: 
+            except Exception as e:
                 print ("  NOT OK")
                 continue
             if testoutput==False:
                 print ("  NOT OK")
-                continue                
+                continue
             executor=j.tools.executor.getSSHBased(item,port,login,passwd,checkok=True)
             if onlyplatform!="":
                 if not str(executor.cuisine.platformtype).startswith(onlyplatform):
                     continue
             print("  RESPONDED!!!")
             res.append(item)
-        return res            
+        return res
 
     def test_login_pushkey(self,passwd,keyname,port=22,range=None,changepasswdto="",onlyplatform="arch"):
         """
@@ -43,7 +43,7 @@ class CuisineSSH():
                 executor=j.tools.executor.getSSHBased(item,port,login,passwd,checkok=True)
                 executor.cuisine.ssh.authorize(user="root",key=key)
                 if changepasswdto!="":
-                    executor.cuisine.user.passwd(login, changepasswdto, encrypted_passwd=False)                
+                    executor.cuisine.user.passwd(login, changepasswdto, encrypted_passwd=False)
             else:
                 raise RuntimeError("Cannot find key:%s"%keypath)
             done.append(item)
@@ -58,7 +58,7 @@ class CuisineSSH():
             res=self.cuisine.net.get_info()
             for item in res:
                 cidr=item['cidr']
-                
+
                 name=item['name']
                 if not name.startswith("docker") and name not in ["lo"]:
                     if len(item['ip'])>0:
@@ -67,7 +67,7 @@ class CuisineSSH():
                         range=str(ipn.network)+"/%s"%cidr
                         ips=self.scan(range,ips)
             return ips
-        else:            
+        else:
             try:
                 # out=self.cuisine.run("nmap -p 22 %s | grep for"%range,showout=False)
                 out=self.cuisine.run("nmap %s -p %s --open -oX $tmpDir/nmap"%(range,port),showout=False,force=False,action=True)
@@ -80,7 +80,7 @@ class CuisineSSH():
             import xml.etree.ElementTree as ET
             root = ET.fromstring(out)
             for child in root:
-                if child.tag=="host":      
+                if child.tag=="host":
                     ip=None
                     mac=None
                     for addr in child.findall("address"):
@@ -93,7 +93,7 @@ class CuisineSSH():
 
                     if ip!=None:
                         ips[ip]={"mac":mac}
-            
+
             # for line in out.split("\n"):
             #     ip=line.split("for")[1].strip()
             #     if ip.find("(")!=-1:
@@ -124,6 +124,9 @@ class CuisineSSH():
     def authorize(self,user, key):
         """Adds the given key to the '.ssh/authorized_keys' for the given
         user."""
+        sudomode = self.cuisine.sudomode
+        self.cuisine.set_sudomode()
+
         user=user.strip()
         d = self.cuisine.user.check(user, need_passwd=False)
         if d==None:
@@ -132,18 +135,23 @@ class CuisineSSH():
         keyf  = d["home"] + "/.ssh/authorized_keys"
         if key[-1] != "\n":
             key += "\n"
+        ret = None
+
         if self.cuisine.file_exists(keyf):
             d = self.cuisine.file_read(keyf)
             if self.cuisine.file_read(keyf).find(key[:-1]) == -1:
                 self.cuisine.file_append(keyf, key)
-                return False
+                ret = False
             else:
-                return True
+                ret = True
         else:
             # Make sure that .ssh directory exists, see #42
             self.cuisine.dir_ensure(os.path.dirname(keyf), owner=user, group=group, mode="700")
             self.cuisine.file_write(keyf, key,             owner=user, group=group, mode="600")
-            return False
+            ret = False
+
+        self.cuisine.sudomode = sudomode
+        return ret
 
     def unauthorize(self,user, key):
         """Removes the given key to the remote '.ssh/authorized_keys' for the given
@@ -161,22 +169,20 @@ class CuisineSSH():
     def sshagent_add(self,path,removeFirst=True):
         """
         @path is path to private key
-        """        
+        """
         print ("add ssh key to ssh-agent: %s"%path)
         self.cuisine.run("ssh-add -d '%s'"%path,die=False,showout=False)
         keys=self.cuisine.run("ssh-add -l",showout=False)
         if path in keys:
             raise RuntimeError("ssh-key is still loaded in ssh-agent, please remove manually")
         self.cuisine.run("ssh-add '%s'"%path,showout=False)
-        
+
     def sshagent_remove(self,path):
         """
         @path is path to private key
-        """        
+        """
         print ("remove ssh key to ssh-agent: %s"%path)
         self.cuisine.run("ssh-add -d '%s'"%path,die=False,showout=False)
         keys=self.cuisine.run("ssh-add -l",showout=False)
         if path in keys:
             raise RuntimeError("ssh-key is still loaded in ssh-agent, please remove manually")
-        
-                

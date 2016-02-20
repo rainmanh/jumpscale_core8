@@ -1,4 +1,4 @@
-from servers.serverbase.Exceptions import RemoteException
+from JumpScale.servers.serverbase.Exceptions import RemoteException
 from JumpScale import j
 
 descr = """

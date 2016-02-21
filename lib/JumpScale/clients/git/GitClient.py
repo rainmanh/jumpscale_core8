@@ -223,10 +223,6 @@ class GitClient(object):
             for line in lines:
                 diffs[line] = list() if line not in diffs else diffs[line]
                 diffs[line].append({'author': commit.author.name, 'commit': commit.hexsha})
-                from ptpython.repl import embed
-                print ("DEBUG NOW filechange")
-                d
-                embed(globals(), locals())
                 
         return diffs
 

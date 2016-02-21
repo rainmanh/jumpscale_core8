@@ -258,9 +258,6 @@ metadata.openvcloud            =
         else:
             cl = j.clients.gitlab.get("https://git.aydo.com", gitlablogin, gitlabpasswd)
             hrd = cl.getHRD("openvcloudEnvironments", "scaleout1", "services/openvcloud__git_vm__main/service.hrd")
-            from IPython import embed
-            print("DEBUG NOW ooo")
-            embed()
 
         if self.actionCheck(gitlaburl, "gitcredentials"):
             gitlaburl0 = "/".join(gitlaburl.split("/")[:3])

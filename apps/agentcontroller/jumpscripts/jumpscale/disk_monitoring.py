@@ -24,8 +24,6 @@ def action():
     import psutil
 
     dcl = j.data.models.system.Disk
-    stats = statsd.StatsClient()
-    pipe = stats.pipeline()
     hostname =j.sal.nettools.getHostname()
     aggregator = j.tools.aggregator.getClient(j.core.db,  hostname)
     tags = j.data.tags.getTagString(tags={
@@ -93,9 +91,7 @@ def action():
         for key, value in results.items():
             aggregator.measure(tags=tags, key="disks.%s" % key, value=value, measurement="")
 
-            pipe.gauge("%s_%s_disk_%s_%s" % (j.application.whoAmI.gid, j.application.whoAmI.nid, path, key), value)
 
-    result = pipe.send()
     return {'results': result, 'errors': []}
 
 if __name__ == '__main__':

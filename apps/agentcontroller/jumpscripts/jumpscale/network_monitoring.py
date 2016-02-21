@@ -19,9 +19,6 @@ roles = []
 log=False
 
 def action():
-    import statsd
-    stats = statsd.StatsClient()
-    pipe = stats.pipeline()
     hostname =j.sal.nettools.getHostname()
     aggregator = j.tools.aggregator.getClient(j.core.db,  hostname)
     tags = j.data.tags.getTagString(tags={
@@ -50,12 +47,10 @@ def action():
         result['error.out'] = errout
         result['drop.in'] = dropin
         result['drop.out'] = dropout
-        for key, value in result.items():
-            pipe.gauge("%s_%s_nic_%s_%s" % (j.application.whoAmI.gid, j.application.whoAmI.nid, nic, key), value)
 
+        for key, value in result.items():
             aggregator.measure(tags=tags, key="network.%s" % key, value=value, measurement="")
 
-    pipe.send()
 
 if __name__ == '__main__':
     action()

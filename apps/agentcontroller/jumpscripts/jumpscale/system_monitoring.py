@@ -81,6 +81,7 @@ def action():
 
     for key, value in results.items():
         aggregator.measure(tags=tags, key=key, value=value, measurement="")
+        pipe.gauge("%s_%s_%s" % (j.application.whoAmI.gid, j.application.whoAmI.nid, key), value)
 
 
     pipe.send()

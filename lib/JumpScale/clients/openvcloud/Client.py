@@ -2,7 +2,7 @@ from JumpScale import j
 import time
 import os
 
-CACHETIME = 60
+CACHETIME = 1
 
 class Factory:
     def __init__(self):
@@ -304,12 +304,14 @@ class Machine:
         if not self._portforwardings_cache:
             #load from api
             for item in self.client.api.cloudapi.portforwarding.list(cloudspaceId=self.space.id, machineId=self.id):
-                self._portforwardings_cache.set(item, id='%(publicIp)s:%(publicPort)s -> %(localIp)s:%(localPort)s' % item)
+                self._portforwardings_cache.set(item, id='%(publicIp)s:%(publicPort)s/%(protocol)s -> %(localIp)s:%(localPort)s/%(protocol)s' % item)
         return [x.struct for x in self._portforwardings_cache]
 
-    def create_portforwarding(self, publicport, localport):
+    def create_portforwarding(self, publicport, localport, protocol='tcp'):
+        if protocol not in ['tcp', 'udp']:
+            raise RuntimeError("Protocol for portforward should be tcp or udp not %s" % protocol)
         self.client.api.cloudapi.portforwarding.create(cloudspaceId=self.space.id,
-                                                       protocol='tcp',
+                                                       protocol=protocol,
                                                        localPort=localport,
                                                        machineId=self.id,
                                                        publicIp=self.space.model['publicipaddress'],

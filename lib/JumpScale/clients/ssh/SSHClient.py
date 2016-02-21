@@ -12,10 +12,18 @@ class SSHClientFactory(object):
         self.__jslocation__ = "j.clients.ssh"
         self.cache = {}
 
-    def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True,allow_agent=True, look_for_keys=True):
+    def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True,allow_agent=True, look_for_keys=True,timeout=5,testConnection=False,die=True):
         key = "%s_%s_%s_%s" % (addr, port, login,j.data.hash.md5_string(str(passwd)))
         if key not in self.cache:
-            self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent,allow_agent=allow_agent,look_for_keys=look_for_keys)
+            self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent,allow_agent=allow_agent,look_for_keys=look_for_keys,timeout=timeout)
+        if testConnection:
+            ret=self.cache[key].connectTest(timeout=timeout)
+            if ret==False:
+                if die:
+                    raise RuntimeError("Cannot connect over ssh:%s %s"%(addr,port))
+                else:
+                    return False
+            
         return self.cache[key]
 
     def removeFromCache(self, client):

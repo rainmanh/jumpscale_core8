@@ -36,9 +36,9 @@ def action():
     
     for disk in disks:
 
-        results = {'time_read': 0, 'time_write': 0, 'count_read': 0, 'count_write': 0,
-                   'kbytes_read': 0, 'kbytes_write': 0, 
-                   'space_free_mb': 0, 'space_used_mb': 0, 'space_percent': 0}
+        results = {'time.read': 0, 'time.write': 0, 'count.read': 0, 'count.write': 0,
+                   'kbytes.read': 0, 'kbytes.write': 0,
+                   'space.free_mb': 0, 'space.used.mb': 0, 'space.percent': 0}
         path = disk['NAME'].replace("/dev/","")
         print (path)
 
@@ -50,15 +50,15 @@ def action():
         if path in counters.keys():
             counter=counters[path]
             read_count, write_count, read_bytes, write_bytes, read_time, write_time=counter
-            results['time_read'] = read_time
-            results['time_write'] = write_time
-            results['count_read'] = read_count
-            results['count_write'] = write_count
+            results['time.read'] = read_time
+            results['time.write'] = write_time
+            results['count.read'] = read_count
+            results['count.write'] = write_count
 
             read_bytes=int(round(read_bytes/1024,0))
             write_bytes=int(round(write_bytes/1024,0))
-            results['kbytes_read'] = read_bytes
-            results['kbytes_write'] = write_bytes
+            results['kbytes.read'] = read_bytes
+            results['kbytes.write'] = write_bytes
 
             if old:
                 old_disk = old[0].to_dict()

@@ -342,7 +342,7 @@ class Machine:
 
         machineip = getMachineIP(machine)
         start = time.time()
-        timeout = 60
+        timeout = 120
         while machineip == 'Undefined' and start + timeout > time.time():
             time.sleep(5)
             machineip = getMachineIP(machine)

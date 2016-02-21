@@ -1,6 +1,7 @@
 
 from JumpScale import j
 import os
+import time
 
 import socket
 
@@ -50,8 +51,8 @@ class CuisineInstaller(object):
             #we do the generation of the keys on the server
             if reset or not self.cuisine.file_exists(path) or not self.cuisine.file_exists(path+".pub"):
                 self.cuisine.file_unlink(path)
-                self.cuisine.file_unlink(path+".pub")   
-                #-N is passphrase             
+                self.cuisine.file_unlink(path+".pub")
+                #-N is passphrase
                 self.cuisine.run("ssh-keygen -q -t rsa -b 4096 -f %s -N '' "%path)
             ftp.get(path,lpath)
             ftp.get(path+".pub",lpath+".pub")
@@ -328,13 +329,14 @@ class CuisineInstaller(object):
         @input reset, remove old code (only used when rw mode)
         @input monitor detect local changes & sync (only used when rw mode)
         """
-        self.cuisine.set_sudomode()
+        # self.cuisine.set_sudomode()
         self.clean()
         self.base()
 
-        self.cuisine.run('pip3 install snappy')
-        path = self.cuisine.joinpaths(j.do.getPythonLibSystem(jumpscale=False), "snappy")
-        self.cuisine.run("2to3 -f all -w %s" % path)
+        self.cuisine.installerdevelop.pip()
+        # self.cuisine.pip.install('snappy')
+        # path = self.cuisine.joinpaths(j.do.getPythonLibSystem(jumpscale=False), "snappy")
+        # self.cuisine.run("2to3 -f all -w %s" % path)
 
         """
         install dnspython3
@@ -357,9 +359,8 @@ class CuisineInstaller(object):
             raise RuntimeError("not supported yet")
 
         C = """
-            cd $tmpDir
-            wget https://stor.jumpscale.org/storx/static/js8
-            chmod +x js8
+            wget https://stor.jumpscale.org/storx/static/js8 -O /usr/local/bin/js8
+            chmod +x /usr/local/bin/js8
             cd /
             mkdir -p $base
             """
@@ -370,13 +371,26 @@ class CuisineInstaller(object):
         """
         C = """
             set -ex
-            cd /usr/bin
+            cd /usr/local/bin
+            rm -fr /opt/*
             """
         if rw:
-            C += "js8 -rw init"
+            C += "./js8 -rw init"
         else:
-            C += "js8 init"
+            C += "./js8 init"
         self.cuisine.run_script(C, action=True)
+
+        start = j.data.time.epoch
+        timeout = 30
+        while start + timeout > j.data.time.epoch:
+            if not self.cuisine.file_exists('/opt/jumpscale8/bin/jspython'):
+                time.sleep(2)
+            else:
+                self.cuisine.run('ln -s /opt/jumpscale8/bin/jspython /usr/local/bin')
+                self.cuisine.run('ln -s /opt/jumpscale8/bin/js /usr/local/bin')
+                self.cuisine.bash.include('/opt/jumpscale8/env.sh')
+                break
+
 
 
     @actionrun(action=True)
@@ -413,8 +427,8 @@ class CuisineInstaller(object):
             self.cuisine.package.install("wpa_actiond") #is for wireless auto start capability
             #systemctl enable netctl-auto@wlan0.service
 
-        self.cuisine.package.multiInstall(C)
         self.cuisine.package.mdupdate()
+        self.cuisine.package.multiInstall(C)
         self.cuisine.package.upgrade()
         self.cuisine.package.clean()
 

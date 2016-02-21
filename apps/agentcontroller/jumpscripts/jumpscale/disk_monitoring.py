@@ -80,7 +80,7 @@ def action():
 
                     if not same:
                         print("Disk %s's %s changed from %s to %s" % (path,key,old_disk[key],value))
-                        old.delete()
+                        old[0].delete()
             if not old:
                 odisk.save()
 

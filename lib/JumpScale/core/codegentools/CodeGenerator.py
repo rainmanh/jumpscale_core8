@@ -260,11 +260,9 @@ class CodeGenerator:
             #exec("from %s import %s" % (name,classname))
             exec("import %s" % name)
         except Exception as e:
-            from JumpScale.core.Shell import ipshellDebug, ipshell
             print("DEBUG NOW exception in importing in codegenerator (see CodeGenerator.py line 239)")
             print(("codepath: %s" % codepath))
             print(e)
-            ipshell()
             #emsg="could not import code for name:%s " % (name)
             j.errorconditionhandler.raiseBug("", "spec.import", e)
 

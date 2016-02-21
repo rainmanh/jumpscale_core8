@@ -9,7 +9,7 @@ author = "kristof@incubaid.com"
 license = "bsd"
 version = "1.0"
 category = "log.handling.init"
-period = 5  # always in sec
+
 timeout = 4
 startatboot = True
 order = 1

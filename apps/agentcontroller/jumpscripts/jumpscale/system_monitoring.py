@@ -11,7 +11,7 @@ author = "kristof@incubaid.com"
 license = "bsd"
 version = "1.0"
 category = "monitoring.processes"
-period = 60 #always in sec
+
 timeout = period * 0.2
 enable=True
 async=True
@@ -22,9 +22,6 @@ roles = []
 def action():
     import psutil
     import os
-    import statsd
-    statscl = statsd.StatsClient()
-    pipe = statscl.pipeline()
     hostname =j.sal.nettools.getHostname()
     aggregator = j.tools.aggregator.getClient(j.core.db,  hostname)
     tags = j.data.tags.getTagString(tags={
@@ -81,11 +78,9 @@ def action():
 
     for key, value in results.items():
         aggregator.measure(tags=tags, key=key, value=value, measurement="")
-        pipe.gauge("%s_%s_%s" % (j.application.whoAmI.gid, j.application.whoAmI.nid, key), value)
+        
 
-
-    pipe.send()
-    return results
+        return results
 
 if __name__ == '__main__':
     results = action()

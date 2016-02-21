@@ -11,7 +11,7 @@ version = "1.0"
 category = "monitor.healthcheck"
 async = True
 roles = []
-period = 600
+
 log = True
 
 

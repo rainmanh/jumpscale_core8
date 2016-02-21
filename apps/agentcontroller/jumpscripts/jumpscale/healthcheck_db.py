@@ -14,7 +14,7 @@ async = True
 queue = 'process'
 roles = ['master']
 enable = True
-period = 600
+
 
 log = True
 

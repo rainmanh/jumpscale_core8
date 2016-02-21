@@ -25,7 +25,6 @@ def action():
     pattern = None
     if j.application.config.exists('nic.pattern'):
         pattern = j.application.config.getStr('nic.pattern')
-    
     for netitem in netinfo:
         name = netitem['name']
         if pattern and j.codetools.regex.match(pattern,name) == False:
@@ -45,11 +44,11 @@ def action():
         nic.name = name
 
         if old:
-            old_disk = old_disk[0].to_dict()
+            old_nic = old[0].to_dict()
             for key in ['name', 'active', 'gid', 'nid', 'ipaddr', 'mac', 'name']:
-                if old[key] != nic[key]:
+                if old_nic[key] != nic[key]:
                     print('Nic %s changed ' % name)
-                    old.delete()
+                    old[0].delete()
                     nic.save()
                     break
 
@@ -57,11 +56,12 @@ def action():
     nics = ncl.find({'nid': j.application.whoAmI.nid, 'gid': j.application.whoAmI.gid})
     #find deleted nices
     for nic in nics:
-        if nic['active'] and nic['name'] not in results:
+        nic_obj = nic.to_dict()
+        if nic_obj['active'] and nic_obj['name'] not in results:
             #no longer active
-            print ("NO LONGER ACTIVE:%s" % nic['name'])
-            nic['active'] = False
-            nic.delete()
+            print ("NO LONGER ACTIVE:%s" % nic_obj['name'])
+            nic_obj['active'] = False
+            ncl.delete(nic)
 
 if __name__ == '__main__':
     action()

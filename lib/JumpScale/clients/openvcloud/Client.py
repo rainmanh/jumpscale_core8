@@ -2,7 +2,7 @@ from JumpScale import j
 import time
 import os
 
-CACHETIME = 1
+CACHETIME = 60
 
 class Factory:
     def __init__(self):

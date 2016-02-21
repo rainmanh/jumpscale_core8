@@ -36,6 +36,9 @@ class CuisinePIP():
         if self.cuisine.isArch:
             if package in ["credis","blosc","psycopg2"]:
                 return
+                
+        if package == "pymongo":
+            package = "pymongo==3.2.1" 
 
         if package in ["pymongo","mongoengine"]:
             upgrade=False

@@ -6,7 +6,7 @@ CACHETIME = 60
 
 class Factory:
     def __init__(self):
-        self.__jslocation__ = "j.clients.openvcloud"        
+        self.__jslocation__ = "j.clients.openvcloud"
         self._clientsdb = j.data.redisdb.get("openvcloud:main:client")
         self._clients = {}
 
@@ -52,7 +52,7 @@ def patchMS1(api):
 
     api.cloudapi.portforwarding.list = patchmethod(api.cloudapi.portforwarding.list, {'cloudspaceId': 'cloudspaceid'})
     api.cloudapi.portforwarding.create = patchmethod(api.cloudapi.portforwarding.create,
-                                                     {'cloudspaceId': 'cloudspaceId', 'machineId': 'vmid'})
+                                                     {'cloudspaceId': 'cloudspaceid', 'machineId': 'vmid'})
 
 class Client:
     def __init__(self, url, login, password=None, secret=None, port=443):
@@ -236,8 +236,9 @@ class Space:
 
         sizes = [(item["memory"], item) for item in self.sizes]
         sizes.sort(key=lambda size: size[0])
+        sizes.reverse()
         for size, sizeinfo in sizes:
-            if memory > size*0.9:
+            if memory < size*1.1:
                 return sizeinfo['id']
 
         raise RuntimeError("did not find memory size:%s" % memory)
@@ -277,7 +278,7 @@ class Space:
         return "space: %s (%s)"%(self.model["name"],self.id)
 
     __str__=__repr__
-        
+
 
 class Machine:
     def __init__(self, space, model):

@@ -4,8 +4,8 @@ from JumpScale import j
 
 class ProcessManagerFactory:
 
-    pms = {}
     def __init__(self, cuisine):
+        self.pms = {}
         self.cuisine = cuisine
 
     def systemdOK(self):

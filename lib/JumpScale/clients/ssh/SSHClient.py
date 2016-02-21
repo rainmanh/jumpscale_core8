@@ -12,10 +12,18 @@ class SSHClientFactory(object):
         self.__jslocation__ = "j.clients.ssh"
         self.cache = {}
 
-    def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True,allow_agent=True, look_for_keys=True):
+    def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True,allow_agent=True, look_for_keys=True,timeout=5,testConnection=False,die=True):
         key = "%s_%s_%s_%s" % (addr, port, login,j.data.hash.md5_string(str(passwd)))
         if key not in self.cache:
-            self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent,allow_agent=allow_agent,look_for_keys=look_for_keys)
+            self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent,allow_agent=allow_agent,look_for_keys=look_for_keys,timeout=timeout)
+        if testConnection:
+            ret=self.cache[key].connectTest(timeout=timeout)
+            if ret==False:
+                if die:
+                    raise RuntimeError("Cannot connect over ssh:%s %s"%(addr,port))
+                else:
+                    return False
+            
         return self.cache[key]
 
     def removeFromCache(self, client):
@@ -64,8 +72,8 @@ class SSHClient(object):
 
     @property
     def transport(self):
-        # if self._transport is None:
-            # self._transport = self.client.get_transport()
+        if self.client is None:
+            raise RuntimeError("Could not connect to %s:%s" % (self.addr, self.port))
         self._transport = self.client.get_transport()
         return self._transport
 
@@ -73,10 +81,22 @@ class SSHClient(object):
     def client(self):
         if self._client is None:
             print('ssh new client')
-            self._client = paramiko.SSHClient()
-            self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-            self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys, timeout=10)
+            start = j.data.time.getTimeEpoch()
+            timeout = 20
+            while start + timeout > j.data.time.getTimeEpoch():
+                try:
+                    self._client = paramiko.SSHClient()
+                    self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                    self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys, timeout=1)
+                    break
+                except:
+                    self.reset()
+                    time.sleep(1)
+                    continue
+            if self._client is None:
+                raise RuntimeError('Impossible to create SSH connection to %s:%s' % (self.addr, self.port))
+
         return self._client
 
     def reset(self):
@@ -140,7 +160,6 @@ class SSHClient(object):
         retcode = 0
 
         ch = self.transport.open_session()
-        ch.set_combine_stderr(combinestdr)
 
         if self.forward_agent:
             paramiko.agent.AgentRequestHandler(ch)
@@ -153,9 +172,14 @@ class SSHClient(object):
                 print(line)
 
         retcode = ch.recv_exit_status()
-        if die:
-            if retcode > 0:
-                raise RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%s " % (cmd, buf))
+        if retcode > 0:
+            stderr = ch.makefile_stderr('r')
+            errors = stderr.readlines()
+            errors = ''.join(errors)
+            if die:
+                raise RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, buf,errors))
+            else:
+                buff = errors
         # print(buf)
         return (retcode, buff)
 

@@ -63,10 +63,10 @@ def action():
       
             result['state'] = state
             results.append(result)
-            print results
+            print (results)
 
     return results
 
 if __name__ == "__main__":
-    print action()
+    print (action())
 

@@ -4,7 +4,9 @@ import os
 
 class ExecutorSSH(ExecutorBase):
 
-    def __init__(self, addr, port, dest_prefixes={},login="root",passwd=None,debug=False,checkok=True,allow_agent=True, look_for_keys=True,pushkey=None):
+    def __init__(self, addr, port, dest_prefixes={},login="root",\
+            passwd=None,debug=False,checkok=True,allow_agent=True, \
+            look_for_keys=True,pushkey=None):
         ExecutorBase.__init__(self, dest_prefixes=dest_prefixes,debug=debug,checkok=checkok)
         self.id = j.data.hash.md5_string('%s:%s:%s' % (addr, port, login))
         self.addr = addr
@@ -58,17 +60,17 @@ class ExecutorSSH(ExecutorBase):
             self._sshclient=j.clients.ssh.get(self.addr,self.port,login=self.login,passwd=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys)
             if self.pushkey is not None:
                 #lets push the ssh key as specified
-                if j.sal.fs.isAbsolute():
-                    path = pushkey
+                if j.sal.fs.exists(self.pushkey):
+                    path=self.pushkey
                 else:
-                    homedir = os.environ["HOME"]
-                    path = "%s/.ssh/%s.pub"%(homedir,self.pushkey)
+                    homedir=os.environ["HOME"]
+                    path="%s/.ssh/%s.pub"%(homedir,self.pushkey)
                 if j.sal.fs.exists(path):
-                    pushkey = j.do.readFile(path)
-                    self._sshclient.ssh_authorize("root",pushkey)
+                    pushkey=j.do.readFile(path)
                 else:
                     raise RuntimeError("Could not find key:%s"%path)
-
+                self._sshclient.ssh_authorize("root",pushkey)
+    
         return self._sshclient
 
     def execute(self, cmds, die=True,checkok=None,showout=True, combinestdr=True,timeout=0, env={}):

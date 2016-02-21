@@ -642,7 +642,6 @@ class OurCuisine():
         elif not self.file_exists(location):
             return default
 
-
         frame = self.file_base64(location)
 
         return base64.b64decode(frame).decode()
@@ -902,11 +901,12 @@ class OurCuisine():
     def file_copy(self, source, dest, recursive=False):
         source=self.cuisine.args_replace(source)
         dest=self.cuisine.args_replace(dest)
-        cmd = "cp -v "
-        if recursive:
-            cmd += "-r "
-        cmd += '%s %s' % (source, dest)
-        self.run(cmd)
+        if not self.file_exists(dest):
+            cmd = "cp -v "
+            if recursive:
+                cmd += "-r "
+            cmd += '%s %s' % (source, dest)
+            self.run(cmd)
 
     @actionrun(action=False,force=False)
     def file_move(self, source, dest, recursive=False):
@@ -924,7 +924,6 @@ class OurCuisine():
         """Returns the base64-encoded content of the file at the given location."""
         location=self.cuisine.args_replace(location)
         sudomode = self.sudomode
-        self.sudomode = False
         res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
         if res.find("command not found")!=-1:
             #print could not find python need to install
@@ -1102,7 +1101,9 @@ class OurCuisine():
 
     def _clean(self, output):
         if self.sudomode and hasattr(self.executor, 'login'):
-            output = output.lstrip('[sudo] password for %s:' % self.executor.login)
+            dirt = '[sudo] password for %s: ' % self.executor.login
+            if output.find(dirt) != -1:
+                output = output.lstrip(dirt)
         return output
 
     @actionrun()

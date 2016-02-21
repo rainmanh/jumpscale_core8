@@ -1,6 +1,6 @@
 
 from JumpScale import j
-import time
+
 
 from ActionDecorator import ActionDecorator
 class actionrun(ActionDecorator):
@@ -24,12 +24,13 @@ class CuisineBuilder(object):
         self.cuisine.installerdevelop.python()
         self.cuisine.installerdevelop.jumpscale8()
         self.redis(start=start, force=True)
-        self.agentcontroller(start=start)
+        # self.agentcontroller(start=start)
         self.etcd(start=start)
         self.caddy(start=start)
         self.skydns(start=start)
         self.influxdb(start=start)
         self.weave(start=start)
+        self.mongodb(start=start)
         self.cuisine.portal.install(start=start)
         if sandbox:
             self.sandbox(aydostor)
@@ -39,7 +40,6 @@ class CuisineBuilder(object):
         aydostor : addr to the store you want to populate. e.g.: https://stor.jumpscale.org/storx
         python : do you want to sandbox python too ? if you have segfault after trying sandboxing python, re run with python=False
         """
-        self.cuisine.set_sudomode()
         # jspython is generated during install,need to copy it back into /opt before sandboxing
         self.cuisine.file_copy('/usr/local/bin/jspython', '/opt/jumpscale8/bin')
         cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], 'js8_opt', '%s', sandbox_python=%s)" % (aydostor, python)
@@ -234,7 +234,7 @@ class CuisineBuilder(object):
     def syncthing(self, start=True):
         self.installdeps()
         url = "git@github.com:syncthing/syncthing.git"
-        
+
         self.cuisine.dir_remove('$goDir/src/github.com/syncthing/syncthing')
         dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='$goDir/src/github.com/syncthing/syncthing')
         self.cuisine.run('cd %s && godep restore' % dest, profile=True)
@@ -246,12 +246,13 @@ class CuisineBuilder(object):
             self._startSyncthing()
 
 
-    @actionrun(action=True)
+    #@actionrun(action=True)
     def agent(self,start=True):
         self.installdeps()
+        #self.cuisine.installer.jumpscale8()
         self.redis()
         self.mongodb()
-        self.syncthing(start=False)
+        self.syncthing()
 
         self.cuisine.tmux.killWindow("main","agent")
 
@@ -273,7 +274,8 @@ class CuisineBuilder(object):
         # copy extensions
         self.cuisine.dir_remove("$cfgDir/agent8/extensions")
         self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agent8", recursive=True)
-        self.cuisine.file_copy("$binDir/syncthing", "$cfgDir/agent8/extensions/")
+        self.cuisine.dir_ensure("$cfgDir/agent8/extensions/syncthing")
+        self.cuisine.file_copy("$binDir/syncthing", "$cfgDir/agent8/extensions/syncthing/")
 
 
         # manipulate config file
@@ -299,16 +301,23 @@ class CuisineBuilder(object):
 
     @actionrun(action=True)
     def agentcontroller(self, start=True):
+        import re
+        import hashlib
         """
-        config: https://github.com/Jumpscale/agent2/wiki/agent-configuration
+        config: https://github.com/Jumpscale/agentcontroller2/
         """
         self.installdeps()
-        self.agent()
-        self._startSyncthing()
+        self.redis()
+        self.mongodb()
+        self.syncthing()
+        
         self.cuisine.processmanager.remove("agentcontroller8")
+        pm = self.cuisine.processmanager.get("tmux")
+        pm.stop("syncthing")
 
         self.cuisine.dir_ensure("$cfgDir/agentcontroller8", recursive=True)
 
+        #get repo 
         url = "github.com/Jumpscale/agentcontroller2"
         self.cuisine.golang.godep(url)
         sourcepath = "$goDir/src/github.com/Jumpscale/agentcontroller2"
@@ -316,8 +325,9 @@ class CuisineBuilder(object):
         #do the actual building
         self.cuisine.run("cd %s && go build ." % sourcepath, profile=True)
 
+        #move binary 
         self.cuisine.file_move("%s/agentcontroller2"%sourcepath, "$binDir/agentcontroller8")
-
+        #edit config 
         C = self.cuisine.file_read("%s/agentcontroller.toml"%sourcepath)
         cfg = j.data.serializer.toml.loads(C)
 
@@ -327,28 +337,44 @@ class CuisineBuilder(object):
         cfg["jumpscripts"]["settings"]["jumpscripts_path"] = cfg["jumpscripts"]["settings"]["jumpscripts_path"].replace("./", "$cfgDir/agentcontroller8/")
 
         C = j.data.serializer.toml.dumps(cfg)
-
         self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml', C, replaceArgs=True)
         self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml.org', C, replaceArgs=False)
 
+        #expose syncthing and get api key  
+        sync_cfg = self.cuisine.file_read("$homeDir/.config/syncthing/config.xml")
+        sync_conn = re.search(r'<address>([0-9.]+):([0-9]+)</', sync_cfg)
+        apikey = re.search(r'<apikey>([\w\-]+)</apikey>', sync_cfg).group(1)
+        sync_cfg = sync_cfg.replace(sync_conn.group(1), "0.0.0.0")
+        sync_cfg = sync_cfg.replace(sync_conn.group(2), "18384")
+        self.cuisine.file_write("$homeDir/.config/syncthing/config.xml", sync_cfg)
+
+
+        #add jumpscripts file 
+        self._startSyncthing()
+        synccl = j.clients.syncthing.get(self.executor.addr,sync_conn.group(2), apikey=apikey)
+        jumpscripts_path = self.cuisine.args_replace("$cfgDir/agentcontroller8/jumpscripts")
+        jumpscripts_id = "jumpscripts-%s" % hashlib.md5(synccl.id_get().encode()).hexdigest()
+        synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
+
+
+        #file copy 
         self.cuisine.dir_remove("$cfgDir/agentcontroller8/extensions")
-        self.cuisine.file_link("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extenstions")
+        self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extensions", recursive=True)
 
         if start:
+            self.agent()
             self._startAgent()
             self._startAgentController()
 
 
-    @actionrun(action=True)
     def _startSyncthing(self):
         GOPATH = self.cuisine.bash.environGet('GOPATH')
         env={}
         env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
         pm = self.cuisine.processmanager.get("tmux")
         pm.ensure(name="syncthing", cmd="./syncthing", path=self.cuisine.joinpaths(GOPATH, "bin"))
- 
 
-    @actionrun(action=True)
+
     def _startAgent(self):
         print("connection test ok to agentcontroller")
         #@todo (*1*) need to implement to work on node
@@ -358,7 +384,6 @@ class CuisineBuilder(object):
         pm = self.cuisine.processmanager.get("tmux")
         pm.ensure("agent8", cmd=cmd, path="$cfgDir/agent8",  env=env)
 
-    @actionrun(action=True)
     def _startAgentController(self):
         env = {}
         env["TMPDIR"] = self.cuisine.dir_paths["tmpDir"]
@@ -493,7 +518,7 @@ class CuisineBuilder(object):
             cmd="redis-server %s"%cpath
             self.cuisine.processmanager.ensure(name="redis_%s"%name,cmd=cmd,env={},path='$binDir')
 
-    @actionrun(action=True)
+    #@actionrun(action=True)
     def mongodb(self, start=True):
         self.cuisine.set_sudomode()
         self.cuisine.installer.base()

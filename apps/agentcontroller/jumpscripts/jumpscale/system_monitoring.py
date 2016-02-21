@@ -76,8 +76,8 @@ def action():
 
 
     for key, value in results.items():
-        j.data.tags.getTagString()
-        aggregator.measure(tags={'nid': j.application.whoAmI.nid, 'gid': j.application.whoAmI.gid} ,key=key, value=value)
+        aggregator.measure(tags={'nid': j.data.tags.getTagString(j.application.whoAmI.nid), 'gid': j.data.tags.getTagString(j.application.whoAmI.gid)}, key=key, value=value, measurement="")
+
 
     pipe.send()
     return results

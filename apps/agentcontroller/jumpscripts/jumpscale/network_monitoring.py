@@ -47,7 +47,7 @@ def action():
         for key, value in result.items():
             pipe.gauge("%s_%s_nic_%s_%s" % (j.application.whoAmI.gid, j.application.whoAmI.nid, nic, key), value)
 
-            aggregator.measure(tags={'nid': j.application.whoAmI.nid, 'gid': j.application.whoAmI.gid} ,key="network.%s" %key, value=value)
+            aggregator.measure(tags={'nid': j.application.whoAmI.nid, 'gid': j.application.whoAmI.gid} ,key="network.%s" %key, value=value, measurement="")
 
     pipe.send()
 

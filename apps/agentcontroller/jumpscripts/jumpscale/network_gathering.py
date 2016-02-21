@@ -25,7 +25,6 @@ def action():
     pattern = None
     if j.application.config.exists('nic.pattern'):
         pattern = j.application.config.getStr('nic.pattern')
-    import ipdb;ipdb.set_trace()
     for netitem in netinfo:
         name = netitem['name']
         if pattern and j.codetools.regex.match(pattern,name) == False:

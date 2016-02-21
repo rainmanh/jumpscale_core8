@@ -310,6 +310,7 @@ class Machine:
     def create_portforwarding(self, publicport, localport, protocol='tcp'):
         if protocol not in ['tcp', 'udp']:
             raise RuntimeError("Protocol for portforward should be tcp or udp not %s" % protocol)
+        machineip, _ = self.get_machine_ip()
         self.client.api.cloudapi.portforwarding.create(cloudspaceId=self.space.id,
                                                        protocol=protocol,
                                                        localPort=localport,
@@ -327,12 +328,7 @@ class Machine:
         self.space._portforwardings_cache.delete()
         self._portforwardings_cache.delete()
 
-    def get_ssh_connection(self):
-        """
-        Will get a cuisine executor for the machine.
-        Will attempt to create a portforwarding
-        :return:
-        """
+    def get_machine_ip(self):
         machine = self.client.api.cloudapi.machines.get(machineId=self.id)
 
         def getMachineIP(machine):
@@ -348,7 +344,15 @@ class Machine:
             machineip = getMachineIP(machine)
         if machineip == 'Undefined':
             raise RuntimeError("Could not get IP Address for machine %(name)s" % machine)
+        return machineip, machine
 
+    def get_ssh_connection(self):
+        """
+        Will get a cuisine executor for the machine.
+        Will attempt to create a portforwarding
+        :return:
+        """
+        machineip, machine = self.get_machine_ip()
         publicip = self.space.model['publicipaddress']
         while not publicip:
             time.sleep(5)

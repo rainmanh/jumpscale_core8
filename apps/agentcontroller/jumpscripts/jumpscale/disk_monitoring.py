@@ -22,6 +22,7 @@ roles = []
 
 def action(redisconnection):
     import psutil
+
     dcl = j.data.models.system.Disk
     if not redisconnection or not ':' in redisconnection:
         print("Please specifiy a redis connection in the form of ipaddr:port")

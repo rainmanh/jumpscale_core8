@@ -11,8 +11,6 @@ author = "deboeckj@codescalers.com"
 license = "bsd"
 version = "1.0"
 category = "info.gather.nic"
-period = 60 #always in sec
-timeout = period * 0.2
 enable=True
 async=True
 queue='process'
@@ -58,6 +56,7 @@ def action(redisconnection):
         result['error.out'] = errout
         result['drop.in'] = dropin
         result['drop.out'] = dropout
+
         for key, value in result.items():
             aggregator.measure(tags=tags, key="network.%s" % key, value=value, measurement="")
 

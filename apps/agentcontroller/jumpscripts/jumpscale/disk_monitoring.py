@@ -28,8 +28,10 @@ def action():
     pipe = stats.pipeline()
     hostname =j.sal.nettools.getHostname()
     aggregator = j.tools.aggregator.getClient(j.core.db,  hostname)
-    nid = j.data.tags.getTagString(j.application.whoAmI.nid)
-    gid = j.data.tags.getTagString(j.application.whoAmI.gid)
+    tags = j.data.tags.getTagString(tags={
+        'gid': str(j.application.whoAmI.gid),
+        'nid': str(j.application.whoAmI.nid),
+        })
 
     disks = j.sal.disklayout.getDisks(detailed=True)
 
@@ -89,7 +91,7 @@ def action():
                 odisk.save()
 
         for key, value in results.items():
-            aggregator.measure(tags='nid:%s gid:%s' % (nid, gid), key= "disks.%s"%key, value=value, measurement="")
+            aggregator.measure(tags=tags, key="disks.%s" % key, value=value, measurement="")
 
             pipe.gauge("%s_%s_disk_%s_%s" % (j.application.whoAmI.gid, j.application.whoAmI.nid, path, key), value)
 

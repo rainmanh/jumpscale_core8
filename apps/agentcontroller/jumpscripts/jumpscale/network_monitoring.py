@@ -24,8 +24,11 @@ def action():
     pipe = stats.pipeline()
     hostname =j.sal.nettools.getHostname()
     aggregator = j.tools.aggregator.getClient(j.core.db,  hostname)
-    nid = j.data.tags.getTagString(j.application.whoAmI.nid)
-    gid = j.data.tags.getTagString(j.application.whoAmI.gid)
+    tags = j.data.tags.getTagString(tags={
+        'gid': str(j.application.whoAmI.gid),
+        'nid': str(j.application.whoAmI.nid),
+        })
+    
     
     counters=psutil.net_io_counters(True)
     pattern = None
@@ -50,7 +53,7 @@ def action():
         for key, value in result.items():
             pipe.gauge("%s_%s_nic_%s_%s" % (j.application.whoAmI.gid, j.application.whoAmI.nid, nic, key), value)
 
-            aggregator.measure(tags='nid:%s gid:%s' %(nid, gid) ,key="network.%s" %key, value=value, measurement="")
+            aggregator.measure(tags=tags, key="network.%s" % key, value=value, measurement="")
 
     pipe.send()
 

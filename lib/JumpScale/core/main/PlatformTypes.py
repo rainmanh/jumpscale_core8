@@ -140,12 +140,19 @@ class PlatformType():
         if self._osname=="":
             self.uname
             self._osname=self._osname0.lower()
-            if "ARCH" in self.uname:
-                self._osname="arch"
-            elif self._osname not in ["darwin"]:
-                out=self.executor.cuisine.run("lsb_release -a",showout=False, replaceArgs=False)
+            if self._osname not in ["darwin"]:
+                rc, out = self.executor.cuisine.run("lsb_release -a",showout=False, replaceArgs=False, die=False)
+                if rc != 0:
+                    packagemanagers = {'pacman': 'arch', 'apt-get': 'ubuntu', 'yum': 'fedora'}
+                    for packagemanager, osname in packagemanagers.items():
+                        rc, _ = self.executor.cuisine.run("which %s" % packagemanager, showout=False, replaceArgs=False, die=False)
+                        if rc == 0:
+                            self._osname = osname
+                            return self._osname
                 if "ubuntu" in out.lower():
                     self._osname="ubuntu"
+                elif 'arch' in out.lower():
+                    self._osname="arch"
                 else:
                     raise RuntimeError("Could not define os version")
 

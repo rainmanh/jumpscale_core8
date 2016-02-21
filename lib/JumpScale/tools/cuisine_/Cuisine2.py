@@ -901,11 +901,12 @@ class OurCuisine():
     def file_copy(self, source, dest, recursive=False):
         source=self.cuisine.args_replace(source)
         dest=self.cuisine.args_replace(dest)
-        cmd = "cp -v "
-        if recursive:
-            cmd += "-r "
-        cmd += '%s %s' % (source, dest)
-        self.run(cmd)
+        if not self.file_exists(dest):
+            cmd = "cp -v "
+            if recursive:
+                cmd += "-r "
+            cmd += '%s %s' % (source, dest)
+            self.run(cmd)
 
     @actionrun(action=False,force=False)
     def file_move(self, source, dest, recursive=False):

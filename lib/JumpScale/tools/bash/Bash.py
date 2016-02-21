@@ -40,7 +40,7 @@ class Profile(object):
     @property
     def path(self):
         return self._path
-    
+
     def set(self, key, value):
         self._env[key] = value
 
@@ -70,7 +70,7 @@ class Bash:
         self._profilePath=""
         self._profile=None
         self.cuisine=j.tools.cuisine.get()
-        self.executor=self.cuisine.executor  
+        self.executor=self.cuisine.executor
         self._reset()
 
     def get(self,cuisine,executor):
@@ -80,7 +80,7 @@ class Bash:
         return b
 
     def _reset(self):
-        self._environ={} 
+        self._environ={}
         self._home=None
 
     def replaceEnvironInText(self,text):
@@ -122,7 +122,7 @@ class Bash:
         Get environ
         """
         return self.profile.environ.get(name, default)
-            
+
 
     def environSet(self,key,val,temp=False):
         """
@@ -145,8 +145,8 @@ class Bash:
             path=mpath
             self.cuisine.file_write(mpath,". %s\n"%mpath2)
         else:
-            out=self.cuisine.file_read(path)  
-            
+            out=self.cuisine.file_read(path)
+
             out="\n".join(line for line in out.splitlines() if line.find("profile_js")==-1)
 
             out+="\n\n. %s\n"%mpath2
@@ -172,19 +172,18 @@ class Bash:
     @property
     def profilePath(self):
         if self._profilePath=="":
-            self._profilePath=j.do.joinPaths(self.home,".profile_js")            
+            self._profilePath=j.do.joinPaths(self.home,".profile_js")
             if not self.cuisine.file_exists(self._profilePath):
                 self.cuisine.file_write(self._profilePath,"")
                 self.setOurProfile()
                 self._profile=""
         return self._profilePath
-    
+
     @property
     def profile(self):
-        if self._profile is None:
+        if not self._profile:
             content = self.cuisine.file_read(self.profilePath)
             self._profile = Profile(content)
-        
         return self._profile
 
     @actionrun()
@@ -195,3 +194,9 @@ class Bash:
     def environRemove(self, key, val=None):
         self.profile.remove(key)
         self.cuisine.file_write(self.profilePath, self.profile.dump())
+
+    def include(self, path):
+        content = self.cuisine.file_read(self.profilePath)
+        include = 'source %s' % path
+        if content.find(include) == -1:
+            self.cuisine.file_append(self.profilePath, 'source %s' % path)

@@ -22,6 +22,8 @@ def action():
     import statsd
     stats = statsd.StatsClient()
     pipe = stats.pipeline()
+    hostname =j.sal.nettools.getHostname()
+    aggregator = j.tools.aggregator.getClient(j.core.db,  hostname)
     counters=psutil.net_io_counters(True)
     pattern = None
     if j.application.config.exists('gridmonitoring.nic.pattern'):
@@ -34,16 +36,19 @@ def action():
             continue
         result = dict()
         bytes_sent, bytes_recv, packets_sent, packets_recv, errin, errout, dropin, dropout = stat
-        result['kbytes_sent'] = int(round(bytes_sent/1024.0,0))
-        result['kbytes_recv'] = int(round(bytes_recv/1024.0,0))
-        result['packets_sent'] = packets_sent
-        result['packets_recv'] = packets_recv
-        result['errin'] = errin
-        result['errout'] = errout
-        result['dropin'] = dropin
-        result['dropout'] = dropout
+        result['kbytes.sent'] = int(round(bytes_sent/1024.0,0))
+        result['kbytes.recv'] = int(round(bytes_recv/1024.0,0))
+        result['packets.sent'] = packets_sent
+        result['packets.recv'] = packets_recv
+        result['error.in'] = errin
+        result['error.out'] = errout
+        result['drop.in'] = dropin
+        result['drop.out'] = dropout
         for key, value in result.items():
             pipe.gauge("%s_%s_nic_%s_%s" % (j.application.whoAmI.gid, j.application.whoAmI.nid, nic, key), value)
+
+            aggregator.measure(tags={'nid': j.application.whoAmI.nid, 'gid': j.application.whoAmI.gid} ,key="network.%s" %key, value=value)
+
     pipe.send()
 
 if __name__ == '__main__':

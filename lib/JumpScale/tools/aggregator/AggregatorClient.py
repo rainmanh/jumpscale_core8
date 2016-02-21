@@ -185,7 +185,7 @@ class AggregatorClient(object):
         for eco in ecos:
             yield self.ecoGet(eco, removeFromQueue=False)
 
-    def reality(self, key, json, modeltype="", tags="", timestamp=None):
+    def reality(self, key, json, modeltype, tags="", timestamp=None):
         """
         anything found on local node worth mentioning to central env e.g. disk information, network information
         each piece of info gets a well chosen key e.g. disk.sda1
@@ -203,7 +203,7 @@ class AggregatorClient(object):
         to then get the json do:
             disk.to_json()
 
-        @param modeltype defines which model has been used e.g. VDisk this allows the dumper to get the right model & insert in the right way in mongodb
+        @param modeltype defines which model has been used e.g. "system.VDisk" (case sensitive) this allows the dumper to get the right model & insert in the right way in mongodb
 
         """
         if timestamp is None:

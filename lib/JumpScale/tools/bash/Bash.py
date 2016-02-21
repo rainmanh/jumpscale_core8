@@ -10,7 +10,8 @@ class actionrun(ActionDecorator):
 
 
 class Profile(object):
-    pattern = re.compile(r'^([^=\n]+)="([^"\n]+)"$', re.MULTILINE)
+    env_pattern = re.compile(r'^([^=\n]+)="([^"\n]+)"$', re.MULTILINE)
+    include_pattern = re.compile(r'^source (.*)$', re.MULTILINE)
 
     def __init__(self, content):
         """
@@ -22,24 +23,30 @@ class Profile(object):
         export Y
         """
         self._env = {}
-        self._path = []
-        for match in Profile.pattern.finditer(content):
+        self._path = set()
+        self._includes = set()
+        for match in Profile.env_pattern.finditer(content):
             self._env[match.group(1)] = match.group(2)
+        for match in Profile.include_pattern.finditer(content):
+            self._includes.add(match.group(1))
 
-        #load path
+        # load path
         if 'PATH' in self._env:
             path = self._env['PATH']
-            self._path = path.split(':')
+            self._path = set(path.split(':'))
         else:
-            self._path = ['${PATH}']
-
+            self._path = set()
+            self._path.add('${PATH}')
 
     def addPath(self, path):
-        self._path.append(path)
+        self._path.add(path)
+
+    def addInclude(self, path):
+        self._includes.add(path)
 
     @property
     def path(self):
-        return self._path
+        return list(self._path)
 
     def set(self, key, value):
         self._env[key] = value
@@ -49,13 +56,18 @@ class Profile(object):
 
     def dump(self):
         parts = ['${PATH}']
-        parts.extend(self._path)
+        parts.extend(self.path)
         self._env['PATH'] = ':'.join(set(self._path))
 
         content = StringIO()
+        content.write('# environment variables\n')
         for key, value in self._env.items():
             content.write('%s="%s"\n' % (key, value))
             content.write('export %s\n\n' % key)
+
+        content.write('# includes\n')
+        for path in self._includes:
+            content.write('source %s\n' % path)
 
         return content.getvalue()
 
@@ -176,7 +188,7 @@ class Bash:
             if not self.cuisine.file_exists(self._profilePath):
                 self.cuisine.file_write(self._profilePath,"")
                 self.setOurProfile()
-                self._profile=""
+                self._profile = None
         return self._profilePath
 
     @property
@@ -196,7 +208,5 @@ class Bash:
         self.cuisine.file_write(self.profilePath, self.profile.dump())
 
     def include(self, path):
-        content = self.cuisine.file_read(self.profilePath)
-        include = 'source %s' % path
-        if content.find(include) == -1:
-            self.cuisine.file_append(self.profilePath, 'source %s' % path)
+        self.profile.addInclude(path)
+        self.cuisine.file_write(self.profilePath, self.profile.dump())

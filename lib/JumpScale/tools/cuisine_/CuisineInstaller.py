@@ -384,8 +384,8 @@ class CuisineInstaller(object):
             if not self.cuisine.file_exists('/opt/jumpscale8/bin/jspython'):
                 time.sleep(2)
             else:
-                self.cuisine.run('ln -s /opt/jumpscale8/bin/jspython /usr/local/bin')
-                self.cuisine.run('ln -s /opt/jumpscale8/bin/js /usr/local/bin')
+                self.cuisine.file_link('/opt/jumpscale8/bin/jspython', '/usr/local/bin')
+                self.cuisine.file_link('/opt/jumpscale8/bin/js', '/usr/local/bin')
                 self.cuisine.bash.include('/opt/jumpscale8/env.sh')
                 break
 

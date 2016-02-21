@@ -27,6 +27,8 @@ def action():
     pipe = statscl.pipeline()
     hostname =j.sal.nettools.getHostname()
     aggregator = j.tools.aggregator.getClient(j.core.db,  hostname)
+    nid = j.data.tags.getTagString(j.application.whoAmI.nid)
+    gid = j.data.tags.getTagString(j.application.whoAmI.gid)
 
 
     results={}
@@ -76,7 +78,7 @@ def action():
 
 
     for key, value in results.items():
-        aggregator.measure(tags={'nid': j.data.tags.getTagString(j.application.whoAmI.nid), 'gid': j.data.tags.getTagString(j.application.whoAmI.gid)}, key=key, value=value, measurement="")
+        aggregator.measure(tags='nid:%s gid:%s' %(nid, gid), key=key, value=value, measurement="")
 
 
     pipe.send()

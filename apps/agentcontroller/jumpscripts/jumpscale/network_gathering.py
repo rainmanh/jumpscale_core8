@@ -10,7 +10,7 @@ author = "kristof@incubaid.com"
 license = "bsd"
 version = "1.0"
 category = "info.gather.nic"
-
+period = 300 #always in sec
 timeout = period * 0.2
 enable=True
 async=True

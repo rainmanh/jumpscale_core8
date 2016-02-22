@@ -518,9 +518,8 @@ class CuisineBuilder(object):
             cmd="redis-server %s"%cpath
             self.cuisine.processmanager.ensure(name="redis_%s"%name,cmd=cmd,env={},path='$binDir')
 
-    #@actionrun(action=True)
+    @actionrun(action=True)
     def mongodb(self, start=True):
-        self.cuisine.set_sudomode()
         self.cuisine.installer.base()
         exists=self.cuisine.command_check("mongod")
 

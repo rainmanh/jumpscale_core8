@@ -230,8 +230,9 @@ class CuisineBuilder(object):
         self.cuisine.pip.install('pygo')
         self.cuisine.golang.install()
 
-    @actionrun(action=True)
+    #@actionrun(action=True)
     def syncthing(self, start=True):
+        import ipdb;ipdb.set_trace()
         self.installdeps()
         url = "git@github.com:syncthing/syncthing.git"
 
@@ -239,8 +240,8 @@ class CuisineBuilder(object):
         dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='$goDir/src/github.com/syncthing/syncthing')
         self.cuisine.run('cd %s && godep restore' % dest, profile=True)
         self.cuisine.run("cd %s && ./build.sh noupgrade" % dest, profile=True)
-        self.cuisine.file_copy(self.cuisine.joinpaths(dest, 'syncthing'), "$goDir/bin/", recursive=True)
-        self.cuisine.file_copy("$goDir/bin/syncthing", "$binDir", recursive=True)
+        self.cuisine.file_copy(self.cuisine.joinpaths(dest, 'syncthing'), "$goDir/bin/syncthing") 
+        self.cuisine.file_copy("$goDir/bin/syncthing", "$binDir/syncthing", recursive=True)
 
         if start:
             self._startSyncthing()

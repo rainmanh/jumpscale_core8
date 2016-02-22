@@ -423,7 +423,9 @@ class CuisineInstaller(object):
         if self.cuisine.isArch:
             self.cuisine.package.install("wpa_actiond") #is for wireless auto start capability
             #systemctl enable netctl-auto@wlan0.service
+        # bindir = self.cuisine.args_replace("$binDir")
 
+        # self.cuisine.bash.addPath(bindir)
         self.cuisine.package.mdupdate()
         self.cuisine.package.multiInstall(C)
         self.cuisine.package.upgrade()

@@ -40,11 +40,15 @@ class Startable():
             return fn(self, *args, **kwargs)
         return fn2
 
+
 class MongoInstance(Startable):
-    def __init__(self,cuisine, private_port = 27021, public_port = None, type_ = "shard", replica = '', configdb='', dbdir = None):
+    def __init__(self, cuisine, addr=None, private_port=27021, public_port=None, type_="shard", replica='', configdb='', dbdir=None):
         super().__init__()
         self.cuisine = cuisine
-        self.addr = cuisine.executor.addr
+        if not addr:
+            self.addr = cuisine.executor.addr
+        else:
+            self.addr = addr
         self.private_port = private_port
         self.public_port = public_port
         self.type_ = type_
@@ -211,12 +215,13 @@ class MongoConfigSvr(Startable):
 
     __str__ = __repr__
 
-def mongoCluster(shards_nodes, config_nodes, mongos_nodes, shards_replica_set_counts = 1, unique = ""):
+def mongoCluster(shards_nodes, config_nodes, mongos_nodes, shards_replica_set_counts=1, unique=""):
     args = []
     for i in [shards_nodes,config_nodes,mongos_nodes]:
         cuisines = []
         for k in i:
-            cuisines.append(MongoInstance(j.tools.cuisine.get(k['executor']), private_port = k['private_port'], public_port = k.get('public_port'), dbdir = k.get('dbdir')))
+            cuisines.append(MongoInstance(j.tools.cuisine.get(k['executor']), addr=k.get('addr', None), private_port=k['private_port'],
+                                          public_port=k.get('public_port'), dbdir=k.get('dbdir')))
         args.append(cuisines)
     return _mongoCluster(args[0], args[1], args[2], shards_replica_set_counts = shards_replica_set_counts, unique = unique)
 

@@ -299,6 +299,10 @@ class Machine:
     def restart(self):
         self.client.api.cloudapi.machines.restart(machineId=self.id)
 
+    def delete(self):
+        self.client.api.cloudapi.machines.delete(machineId=self.id)
+
+
     @property
     def portforwardings(self):
         if not self._portforwardings_cache:

@@ -634,9 +634,7 @@ class SpecParserFactory():
             self.childspecs[k]=spec
 
         if spec.type=="actor" and specname!="":
-            from JumpScale.core.Shell import ipshell
             print("DEBUG NOW addSpec in specparser, cannot have actor with specname != empty")
-            ipshell()
 
         key="%s_%s_%s_%s"%(spec.type,spec.appname,spec.actorname,specname)
 

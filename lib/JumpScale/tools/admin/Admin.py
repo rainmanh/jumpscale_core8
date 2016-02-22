@@ -52,9 +52,6 @@ class Admin():
         self.hrd=j.data.hrd.get(self.startdir,prefixWithName=True)
         self.hrd.applyOnDir(self.tmpdir)
 
-        from IPython import embed
-        print("DEBUG NOW ooo")
-        embed()
         
 
         j.core.jumpscripts.load("%s/jumpscripts"%self.tmpdir)
@@ -77,12 +74,7 @@ class Admin():
                 try:
                     res=j.core.jumpscripts.execute( organization="jumpscale", actor=actor, action=name, args=data)
                 except Exception as e:
-                    from IPython import embed
-                    print("DEBUG NOW exception")
-                    embed()
-                from IPython import embed
-                print("DEBUG NOW done")
-                embed()
+                    print(e)
                 
 
     def reset(self):
@@ -117,11 +109,6 @@ class Admin():
     def getNode(self,name=""):
         name=name.lower()
         return Node(name)
-
-
-        from IPython import embed
-        print("DEBUG NOW ooo")
-        embed()
         
 
         node=JNode()

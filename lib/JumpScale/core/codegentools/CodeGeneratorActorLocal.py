@@ -73,10 +73,6 @@ else:
     def addInitExtras(self):
         s = """
 ## following code will be loaded at runtime
-from JumpScale.core.Shell import ipshellDebug,ipshell
-print("DEBUG NOW db init")
-ipshell()
-
 actorObject.dbfs=self.dbclientFactory.get(self.appName,actorName,self.dbtype)
 actorObject.dbmem=self.dbclientFactory.get(self.appName,actorName,"MEMORY")
 actorObject.dbredis=self.dbclientFactory.get(self.appName,actorName,"REDIS")

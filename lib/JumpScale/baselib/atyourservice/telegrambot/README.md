@@ -4,7 +4,18 @@
 
 This bot let you manage and run some `ays` projects (repositories) via Telegram.
 
-## Usage
+## Basic demo
+
+This is a basic way to see how the bot works:
+```
+/start
+/project hello
+[upload some blueprints]
+/ays init
+/ays install
+```
+
+## Complete usage
 
 The first step to make this bot working for you is to talk with the bot and send `/start` command. Internally this create an environment for you.
 

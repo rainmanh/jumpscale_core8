@@ -362,8 +362,6 @@ class CuisineBuilder(object):
         self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extensions", recursive=True)
 
         if start:
-            self.agent()
-            self._startAgent()
             self._startAgentController()
 
 

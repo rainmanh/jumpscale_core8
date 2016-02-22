@@ -89,11 +89,6 @@ class AtYourServiceSync():
 
             """
             res2=j.do.executeBashScript(content=C, remote=ipaddr, sshport=sshport)
-
-        from IPython import embed
-        print("DEBUG NOW mmmwss")
-        embed()
-        p
         
 
 

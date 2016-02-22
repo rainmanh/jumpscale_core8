@@ -1154,9 +1154,6 @@ class OurCuisine():
             while next==True:
                 next=False
                 if out.find("target not found: python3")!=-1 and not "python" in self.done:
-                    from IPython import embed
-                    print ("DEBUG NOW python3 not found")
-                    embed()
                     self.done.append("python")
                     if self.isArch:
                         self.cuisine.package.install("python3")
@@ -1165,9 +1162,6 @@ class OurCuisine():
                     next=True
 
                 if out.find("pip3: command not found")!=-1 and not "pip" in self.done:
-                    from IPython import embed
-                    print ("DEBUG NOW pip3 not found")
-                    embed()
 
                     self.done.append("pip")
                     self.installer.pip()

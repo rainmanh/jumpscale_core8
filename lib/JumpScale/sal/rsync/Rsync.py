@@ -171,9 +171,6 @@ list = no
                         #     j.sal.fs.createDir(j.sal.fs.getDirName(destpathfile))
                         #     j.sal.fs.symlink(item, destpathfile, overwriteTarget=True)
 
-        from IPython import embed
-        print("DEBUG NOW rsync prepareroles")
-        embed()
         
 
 

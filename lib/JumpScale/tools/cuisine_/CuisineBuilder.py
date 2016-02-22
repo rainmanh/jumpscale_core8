@@ -352,7 +352,7 @@ class CuisineBuilder(object):
 
         #add jumpscripts file 
         self._startSyncthing()
-        addr = "localhosts"
+        addr = "localhost"
         if not self.cuisine.executor.type == 'local':
             addr = self.executor.addr
         synccl = j.clients.syncthing.get(addr,sync_conn.group(2), apikey=apikey)

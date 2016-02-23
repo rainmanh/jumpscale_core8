@@ -47,5 +47,5 @@ class ExecutorFactory():
             self._executors[h] = ExecutorSSH(addr, port=port, login=login, passwd=passwd, debug=debug, checkok=checkok, allow_agent=allow_agent, look_for_keys=look_for_keys, pushkey=pushkey)
         return self._executors[h]
 
-    def getJSAgent2Based(self, agentControllerClientKey, debug=False, checkok=False):
+    def getJSAgentBased(self, agentControllerClientKey, debug=False, checkok=False):
         return ExecutorAgent2(addr, debug=debug, checkok=debug)

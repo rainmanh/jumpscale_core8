@@ -7,6 +7,22 @@ import uuid
 
 DB = 'jumpscale_system'
 
+default_meta = {'allow_inheritance': True, "db_alias": DB, 'indexes': ['guid']}
+
+def extend(a, b):
+    print(a,b)
+    if isinstance(a, list):
+        return a + b
+    elif isinstance(a, dict):
+        tmp = a.copy()
+        for i in b:
+            if not i in tmp:
+                tmp[i] = b[i]
+            else:
+                tmp[i] = extend(tmp[i], b[i])
+        return tmp
+    else:
+        return b
 
 class ModelBase():
     DoesNotExist = DoesNotExist
@@ -15,30 +31,7 @@ class ModelBase():
     gid = IntField(default=lambda: j.application.whoAmI.gid if j.application.whoAmI else 0)
     nid = IntField(default=lambda: j.application.whoAmI.nid if j.application.whoAmI else 0)
     epoch = IntField(default=j.data.time.getTimeEpoch)
-    meta = {'allow_inheritance': True, "db_alias": DB, 'indexes': ['guid']}
-
-    def __new__(cls, *args, **kwargs):
-        if hasattr(cls,'meta2'):
-            cls.extend_meta(cls.meta2)
-            del cls.meta2
-        return super().__new__(cls, *args, **kwargs)
-
-    @classmethod
-    def extend_meta(cls, meta):
-        def extend(a, b):
-            if isinstance(a, list):
-                return a + b
-            elif isinstance(a, dict):
-                tmp = a.copy()
-                for i in b:
-                    if not i in tmp:
-                        tmp[i] = b[i]
-                    else:
-                        tmp[i] = extend(tmp[i], b[i])
-                return tmp
-            else:
-                return b
-        cls.meta = extend(cls.meta, meta)
+    meta = default_meta
 
     def to_dict(self):
         d = j.data.serializer.json.loads(Document.to_json(self))
@@ -218,7 +211,7 @@ class Job(EmbeddedDocument):
     tags = StringField()
     critical = StringField()
 
-    meta2 = ({
+    meta = extend(default_meta, {
         'indexes': [{'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}],
         'allow_inheritance': True,
         "db_alias": DB
@@ -247,8 +240,7 @@ class Audit(ModelBase, Document):
     kwargs = StringField(default='')
     timestamp = IntField(default=j.data.time.getTimeEpoch())
 
-
-    meta2 = ({'indexes': [
+    meta = extend(default_meta, {'indexes': [
         {'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}
     ], 'allow_inheritance': True, "db_alias": DB})
 
@@ -445,7 +437,7 @@ class SessionCache(ModelBase, Document):
     user = StringField()
     _creation_time = IntField(default=j.data.time.getTimeEpoch())
     _accessed_time = IntField(default=j.data.time.getTimeEpoch())
-    meta2 = ({'indexes': [
+    meta = extend(default_meta, {'indexes': [
         {'fields': ['epoch'], 'expireAfterSeconds': 432000}
     ], 'allow_inheritance': True, "db_alias": DB})
 

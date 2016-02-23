@@ -162,6 +162,9 @@ class CuisineRunit(ProcessManagerBase):
 
             cmd = cmd.replace('"', r'\"')
 
+            if path and (path not in cmd):
+                cmd = "%s/%s" % (path, cmd)
+
             sv_text ="""#!/bin/sh
 set -e
 echo $descrs

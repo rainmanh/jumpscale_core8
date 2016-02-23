@@ -232,7 +232,9 @@ class CuisineBuilder(object):
 
     #@actionrun(action=True)
     def syncthing(self, start=True):
-        import ipdb;ipdb.set_trace()
+        """
+        build and setup syncthing to run on :8384 , this can be changed from the config file in home  
+        """
         self.installdeps()
         url = "git@github.com:syncthing/syncthing.git"
 
@@ -249,6 +251,11 @@ class CuisineBuilder(object):
 
     #@actionrun(action=True)
     def agent(self,start=True, gid=None, nid=None):
+        """
+        builds and setsup dependencies of agent to run with the given gid and nid 
+        niether can be zero 
+        """
+
         self.installdeps()
         #self.cuisine.installer.jumpscale8()
         self.redis()
@@ -300,13 +307,13 @@ class CuisineBuilder(object):
         if start:
             self._startAgent(nid, gid)
 
-    @actionrun(action=True)
+    #@actionrun(action=True)
     def agentcontroller(self, start=True):
-        import re
-        import hashlib
         """
         config: https://github.com/Jumpscale/agentcontroller2/
         """
+        import re
+        import hashlib
         self.installdeps()
         self.redis()
         self.mongodb()

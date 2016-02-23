@@ -259,10 +259,9 @@ class ALog():
             lastref = ""
         return lastref
 
-    def getChangedFiles(self,action="install"):
-        git=j.clients.git.get()
-        changes=git.getChangedFiles(fromref=self.getLastRef(action))
-        changes=[item for item in changes if j.do.exists(j.do.joinPaths(git.baseDir,item))]  #we will have to do something for deletes here
+    def getChangedFiles(self, action="install"):
+        changes = self.git.getChangedFiles(fromref=self.getLastRef(action), toref=self.getLastRef(action+"_pre"))
+        changes = [item for item in changes if j.sal.fs.exists(j.sal.fs.joinPaths(self.git.baseDir, item))]  # we will have to do something for deletes here
         changes.sort()
         return changes
 

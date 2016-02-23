@@ -362,7 +362,7 @@ class CuisineBuilder(object):
         addr = "localhost"
         if not self.cuisine.executor.type == 'local':
             addr = self.executor.addr
-        synccl = j.clients.syncthing.get(addr,sync_conn.group(2), apikey=apikey)
+        synccl = j.clients.syncthing.get(addr,18384, apikey=apikey)
         jumpscripts_path = self.cuisine.args_replace("$cfgDir/agentcontroller8/jumpscripts")
         jumpscripts_id = "jumpscripts-%s" % hashlib.md5(synccl.id_get().encode()).hexdigest()
         synccl.config_add_folder(jumpscripts_id, jumpscripts_path)

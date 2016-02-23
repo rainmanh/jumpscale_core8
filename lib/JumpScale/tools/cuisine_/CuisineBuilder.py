@@ -262,14 +262,14 @@ class CuisineBuilder(object):
         self.cuisine.dir_ensure("$cfgDir/agent8/conf", recursive=True)
         self.cuisine.dir_ensure("$cfgDir/agent8/mid", recursive=True)
 
-        url = "github.com/Jumpscale/agent2"
+        url = "github.com/Jumpscale/agent8"
         self.cuisine.golang.get(url)
 
-        sourcepath = "$goDir/src/github.com/Jumpscale/agent2"
+        sourcepath = "$goDir/src/github.com/Jumpscale/agent8"
 
         self.cuisine.run("cd %s && go build ."%sourcepath,profile=True)
 
-        self.cuisine.file_move("%s/agent2"%sourcepath, "$binDir/agent8")
+        self.cuisine.file_move("%s/agent8" % sourcepath, "$binDir/agent8")
 
         # copy extensions
         self.cuisine.dir_remove("$cfgDir/agent8/extensions")
@@ -304,7 +304,7 @@ class CuisineBuilder(object):
         import re
         import hashlib
         """
-        config: https://github.com/Jumpscale/agentcontroller2/
+        config: https://github.com/Jumpscale/agentcontroller8/
         """
         self.installdeps()
         self.redis()
@@ -318,15 +318,15 @@ class CuisineBuilder(object):
         self.cuisine.dir_ensure("$cfgDir/agentcontroller8", recursive=True)
 
         #get repo 
-        url = "github.com/Jumpscale/agentcontroller2"
+        url = "github.com/Jumpscale/agentcontroller8"
         self.cuisine.golang.godep(url)
-        sourcepath = "$goDir/src/github.com/Jumpscale/agentcontroller2"
+        sourcepath = "$goDir/src/github.com/Jumpscale/agentcontroller8"
 
         #do the actual building
         self.cuisine.run("cd %s && go build ." % sourcepath, profile=True)
 
         #move binary 
-        self.cuisine.file_move("%s/agentcontroller2"%sourcepath, "$binDir/agentcontroller8")
+        self.cuisine.file_move("%s/agentcontroller8" % sourcepath, "$binDir/agentcontroller8")
         #edit config 
         C = self.cuisine.file_read("%s/agentcontroller.toml"%sourcepath)
         cfg = j.data.serializer.toml.loads(C)

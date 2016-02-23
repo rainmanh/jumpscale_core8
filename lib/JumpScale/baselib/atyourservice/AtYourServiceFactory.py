@@ -263,19 +263,18 @@ class AtYourServiceFactory():
 
         self.reset()
 
-        #make sure the recipe's are loaded & initted
+        # make sure the recipe's are loaded & initted
         for bp in self.blueprints:
             bp.loadrecipes()
 
-        #start from clean sheet
+        # start from clean sheet
         self.reset()
-
         self.alog
         self.commitGitChanges(action="init_pre",msg='ays changed, commit changed files before deploy of blueprints',precheck=True)
 
         latestrun=self.alog.newRun(action="init")
 
-        print("init runid:%s"%self.alog.lastRunId)
+        print("init runid:%s" % self.alog.lastRunId)
         commitc=""
         for bp in self.blueprints:
             bp.execute()
@@ -338,19 +337,27 @@ class AtYourServiceFactory():
 
     def do(self,action="install",printonly=False,remember=True,allservices=False):
 
+        def changeState(service):
+            if action in service.actions:
+                actionobj = service.actions[action]
+                actionobj.setState("CHANGED")
+
         self.alog
         self.commitGitChanges(action=action+"_pre",precheck=True)
         latestrun=self.alog.newRun(action=action)
-
+        import ipdb; ipdb.set_trace()
         if not allservices:
-            #we need to find change since last time & make sure that
-            #find all services with action with this name and put back on init
-            changed,changes=self.alog.getChangedAtYourservices(action=action)
+            # we need to find change since last time & make sure that
+            # find all services with action with this name and put back on init
+            # we also need to find all child service and depdendent service of the modified service
+            changed, changes = self.alog.getChangedAtYourservices(action=action)
             for service in changed:
-                if action in service.actions:
-                    actionobj=service.actions[action]
-                    actionobj.setState("CHANGED")
-
+                changeState(service)
+                childern = service.listChildren()
+                for role, instances in childern.items():
+                    for instance in instances:
+                        child = j.atyourservice.getService(role=role, instance=instance)
+                        changeState(child)
 
         else:
             todo=[item[1] for item in self.services.items()]
@@ -386,7 +393,7 @@ class AtYourServiceFactory():
                 #         line=line.strip().strip("' ").strip().replace("File ","")
                 #         err+="%s\n"%line.strip()
                 #     err+="ERROR:%s\n"%e
-                #     print (err)                 
+                #     print (err)
                 #     error=True
 
             step += 1
@@ -650,7 +657,7 @@ class AtYourServiceFactory():
 
     def __str__(self):
         return self.__repr__()
-    
+
     def telegramBot(self, token):
         from JumpScale.baselib.atyourservice.telegrambot.TelegramAYS import TelegramAYS
         bot = TelegramAYS(token)

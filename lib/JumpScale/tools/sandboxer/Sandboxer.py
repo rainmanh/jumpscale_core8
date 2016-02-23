@@ -102,10 +102,10 @@ class Sandboxer():
     def sandboxLibs(self,path,dest=None,recursive=False):
         """
         find binaries on path and look for supporting libs, copy the libs to dest
-        default dest = '%s/bin/'%j.do.BASE
+        default dest = '%s/bin/'%j.dirs.base
         """
         if dest==None:
-            dest="%s/bin/"%j.do.BASE
+            dest="%s/bin/"%j.dirs.base
         if j.sal.fs.isDir(path):
             #do all files in dir
             for item in j.sal.fs.listFilesInDir( path, recursive=recursive, followSymlinks=True, listSymlinks=False):

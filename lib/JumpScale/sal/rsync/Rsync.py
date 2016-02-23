@@ -25,7 +25,7 @@ class RsyncServer(SALObject):
         self.pathsecrets = j.tools.path.get("%s/secrets.cfg" % self.root)
         self.pathusers = j.tools.path.get("%s/users.cfg" % self.root)
         if distrdir == "":
-            distrdir = "%s/apps/agentcontroller/distrdir/"%j.do.BASE
+            distrdir = "%s/apps/agentcontroller/distrdir/"%j.dirs.base
 
         self.distrdir = j.tools.path.get(distrdir)
 

@@ -166,13 +166,13 @@ class AtYourServiceSandboxer():
             excludeFileRegex=["/xml/","-tk/","/xml","/lib2to3","-34m-",".egg-info"]
             excludeDirRegex=["/JumpScale","\.dist-info","config-x86_64-linux-gnu","pygtk"]
 
-            dest = "%s/lib"%j.do.BASE
+            dest = "%s/lib"%j.dirs.base
 
             for path in paths:
                 j.tools.sandboxer.copyTo(path,dest,excludeFileRegex=excludeFileRegex,excludeDirRegex=excludeDirRegex)
 
-            if not j.sal.fs.exists("%s/bin/python"%j.do.BASE):
-                j.do.copyFile("/usr/bin/python3.5","%s/bin/python"%j.do.BASE)
+            if not j.sal.fs.exists("%s/bin/python"%j.dirs.base):
+                j.do.copyFile("/usr/bin/python3.5","%s/bin/python"%j.dirs.base)
 
         # for item in self.model.paths:
         #     sourcepath,filter,dest=item.split("___")
@@ -185,8 +185,8 @@ class AtYourServiceSandboxer():
         #     else:
         #         j.sal.fs.copyFile(sourcepath,dest)
 
-        j.tools.sandboxer.sandboxLibs("%s/lib"%j.do.BASE,recursive=True)
-        j.tools.sandboxer.sandboxLibs("%s/bin"%j.do.BASE,recursive=True)
+        j.tools.sandboxer.sandboxLibs("%s/lib"%j.dirs.base,recursive=True)
+        j.tools.sandboxer.sandboxLibs("%s/bin"%j.dirs.base,recursive=True)
         print ("SANDBOXING DONE, ALL OK IF TILL HERE, A Segfault can happen because we have overwritten ourselves.")
 
     def buildUpload(self,sandbox=True):
@@ -267,8 +267,8 @@ class AtYourServiceSandboxer():
     def buildUpload_JS(self,sandbox=False,name="main"):
 
         j.do.createDir("/usr/local/lib/python3.5/site-packages")
-        # j.do.symlink("%s/lib/JumpScale/"%j.do.BASE,"/usr/local/lib/python3.5/site-packages/JumpScale/")
-        # j.do.symlink("%s/lib/JumpScale/"%j.do.BASE,"/root/.ipython/JumpScale/")
+        # j.do.symlink("%s/lib/JumpScale/"%j.dirs.base,"/usr/local/lib/python3.5/site-packages/JumpScale/")
+        # j.do.symlink("%s/lib/JumpScale/"%j.dirs.base,"/root/.ipython/JumpScale/")
 
         self.model.paths=[]
         # d.setNamespace("dedupe")

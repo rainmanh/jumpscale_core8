@@ -180,7 +180,7 @@ class ObjectInspector():
         self.classDocs={}
         self.visited=[]  
 
-    def importAllLibs(self,ignore=[],base="%s/lib/JumpScale/"%j.do.BASE):
+    def importAllLibs(self,ignore=[],base="%s/lib/JumpScale/"%j.dirs.base):
         self.base=base
         towalk=j.sal.fs.listDirsInDir(base, recursive=False, dirNameOnly=True, findDirectorySymlinks=True)        
         errors="### errors while trying to import libraries\n\n"

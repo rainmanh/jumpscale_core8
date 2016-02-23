@@ -10,7 +10,6 @@ DB = 'jumpscale_system'
 default_meta = {'allow_inheritance': True, "db_alias": DB, 'indexes': ['guid']}
 
 def extend(a, b):
-    print(a,b)
     if isinstance(a, list):
         return a + b
     elif isinstance(a, dict):

@@ -69,7 +69,7 @@ class CuisineBuilder(object):
             for path in paths:
                 j.tools.sandboxer.copyTo(path, dest, excludeFileRegex=excludeFileRegex, excludeDirRegex=excludeDirRegex)
 
-            if not j.do.exists("%s/bin/python" % self.cuisine.dir_paths['base']):
+            if not j.sal.fs.exists("%s/bin/python" % self.cuisine.dir_paths['base']):
                 j.do.copyFile("/usr/bin/python3.5", "%s/bin/python" % self.cuisine.dir_paths['base'])
 
         j.tools.sandboxer.sandboxLibs("%s/lib" % self.cuisine.dir_paths['base'], recursive=True)

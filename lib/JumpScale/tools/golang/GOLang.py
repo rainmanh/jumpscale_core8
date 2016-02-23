@@ -10,7 +10,7 @@ class GOLang:
     def init(self):
         j.tools.bash.addExport("GOPATH",self.gopath)
         j.tools.bash.addPath(self.binpath)
-        if j.do.exists("/usr/local/go/bin/go"):
+        if j.sal.fs.exists("/usr/local/go/bin/go"):
             j.tools.bash.addPath("/usr/local/go/bin/go")
 
     @property
@@ -19,8 +19,8 @@ class GOLang:
             if 'GOPATH' in os.environ.keys():
                 self._gopath=os.environ["GOPATH"]
             else:
-                attempt=j.do.joinPaths(os.environ["HOME"],"go")
-                if j.do.exists(attempt):
+                attempt=j.sal.fs.joinPaths(os.environ["HOME"],"go")
+                if j.sal.fs.exists(attempt):
                     os.environ["GOPATH"]=attempt
                 else:
                     raise RuntimeError("Could not find gopath")
@@ -30,8 +30,8 @@ class GOLang:
     
     @property
     def binpath(self):
-        _binpath=j.do.joinPaths(self.gopath,"bin")
-        if not j.do.exists(_binpath):
+        _binpath=j.sal.fs.joinPaths(self.gopath,"bin")
+        if not j.sal.fs.exists(_binpath):
             raise RuntimeError("could not find bindir in gopath")
             
         return _binpath

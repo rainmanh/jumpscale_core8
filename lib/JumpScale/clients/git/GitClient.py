@@ -12,7 +12,7 @@ class GitClient(object):
         baseDir = baseDir.replace("\\", "/")  # NOQA
         baseDir = baseDir.rstrip("/")
 
-        while ".git" not in j.do.listDirsInDir(baseDir, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
+        while ".git" not in j.sal.fs.listDirsInDir(baseDir, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
             baseDir=j.do.getParent(baseDir)
 
         baseDir=baseDir.rstrip("/")

@@ -145,9 +145,9 @@ class Bash:
 
     # @actionrun(action=True)
     def setOurProfile(self):
-        mpath=j.do.joinPaths(self.home,".profile")
-        mpath2=j.do.joinPaths(self.home,".profile_js")
-        attempts=[mpath,j.do.joinPaths(self.home,".bash_profile")]
+        mpath=j.sal.fs.joinPaths(self.home,".profile")
+        mpath2=j.sal.fs.joinPaths(self.home,".profile_js")
+        attempts=[mpath,j.sal.fs.joinPaths(self.home,".bash_profile")]
         path=""
         for attempt in attempts:
             if self.cuisine.file_exists(attempt):
@@ -184,7 +184,7 @@ class Bash:
     @property
     def profilePath(self):
         if self._profilePath=="":
-            self._profilePath=j.do.joinPaths(self.home,".profile_js")
+            self._profilePath=j.sal.fs.joinPaths(self.home,".profile_js")
             if not self.cuisine.file_exists(self._profilePath):
                 self.cuisine.file_write(self._profilePath,"")
                 self.setOurProfile()

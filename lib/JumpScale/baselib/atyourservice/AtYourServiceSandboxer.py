@@ -171,7 +171,7 @@ class AtYourServiceSandboxer():
             for path in paths:
                 j.tools.sandboxer.copyTo(path,dest,excludeFileRegex=excludeFileRegex,excludeDirRegex=excludeDirRegex)
 
-            if not j.do.exists("%s/bin/python"%j.do.BASE):
+            if not j.sal.fs.exists("%s/bin/python"%j.do.BASE):
                 j.do.copyFile("/usr/bin/python3.5","%s/bin/python"%j.do.BASE)
 
         # for item in self.model.paths:

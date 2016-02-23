@@ -7,5 +7,5 @@ class SerializerBase(object):
         j.do.writeFile(filepath,data)
 
     def load(self,filepath):
-        b=j.do.readFile(filepath)
+        b=j.sal.fs.fileGetContents(filepath)
         return self.loads(b)

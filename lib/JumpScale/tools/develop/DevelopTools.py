@@ -248,8 +248,8 @@ class DevelopToolsFactory():
         """
         if ask or j.core.db.get("debug.codepaths") == None:
             path = j.dirs.codeDir + "/github/jumpscale"
-            if j.do.exists(path):
-                items = j.do.listDirsInDir(path)
+            if j.sal.fs.exists(path):
+                items = j.sal.fs.listDirsInDir(path)
             chosen = j.tools.console.askChoiceMultiple(items)
             j.core.db.set("debug.codepaths", ",".join(chosen))
 

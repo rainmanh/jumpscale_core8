@@ -195,7 +195,7 @@ class Service:
         """
         self.originator = originator
 
-        if path!="" and j.do.exists(path):
+        if path!="" and j.sal.fs.exists(path):
             self.role,self.instance=j.sal.fs.getBaseName(path).split("!")
             self._name=None
             self._version=None
@@ -447,8 +447,8 @@ class Service:
         if j.sal.fs.exists(path+'c'):
             j.sal.fs.remove(path+'c')
         if j.sal.fs.exists(path):
-            j.do.createDir(j.do.getDirName(path))
-            path2 = j.do.joinPaths(self.path, j.do.getBaseName(path))
+            j.do.createDir(j.sal.fs.getDirName(path))
+            path2 = j.sal.fs.joinPaths(self.path, j.do.getBaseName(path))
             #need to create a copy of the recipe mgmt or node action class
             j.do.copyFile(path, path2)
             # print (path2)
@@ -465,7 +465,7 @@ class Service:
         mod = loadmodule(modulename, path2)
         #is only there temporary don't want to keep it there
         j.do.delete(path2)
-        j.do.delete(j.do.joinPaths(self.path,"__pycache__"))
+        j.do.delete(j.sal.fs.joinPaths(self.path,"__pycache__"))
         return mod.Actions(self)
 
     @property
@@ -1070,7 +1070,7 @@ class Service:
     #             items = j.do.listFilesInDir(
     #                 path=src, recursive=False, followSymlinks=False, listSymlinks=False)
     #             if nodirs is False:
-    #                 items += j.do.listDirsInDir(
+    #                 items += j.sal.fs.listDirsInDir(
     #                     path=src, recursive=False, dirNameOnly=False, findDirectorySymlinks=False)
     #
     #             items = [(item, "%s/%s" % (dest, j.do.getBaseName(item)), link)

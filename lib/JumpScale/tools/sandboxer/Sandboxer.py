@@ -29,7 +29,7 @@ class Dep():
         j.sal.fs.createDir(j.sal.fs.getDirName(dest))
         if dest!=self.path: #don't copy to myself
             print ("DEPCOPY: %s %s"%(self.path,dest))
-            if not j.do.exists(dest):
+            if not j.sal.fs.exists(dest):
                 j.sal.fs.copyFile(self.path, dest)
             j.tools.sandboxer._done.append(dest)
 
@@ -152,7 +152,7 @@ class Sandboxer():
                 subpath=subpath.replace("site-packages/","")
 
             dest2=dest+"/"+subpath
-            j.do.createDir(j.do.getDirName(dest2))
+            j.do.createDir(j.sal.fs.getDirName(dest2))
             # print ("C:%s"%dest2)
             j.do.copyFile(src,dest2)
 
@@ -179,7 +179,7 @@ class Sandboxer():
 
             if compress:
                 print ("- %-100s %sMB"%(srcReal,round(path_src.size/1000000,1)))
-                # if delete or not j.do.exists(dest2_bro_final):
+                # if delete or not j.sal.fs.exists(dest2_bro_final):
                 cmd="bro --quality 7 --input '%s' --output %s"%(srcReal,dest2_bro)
                 # print (cmd)
                 # os.system(cmd)
@@ -189,7 +189,7 @@ class Sandboxer():
                 # except Exception as e:
                 #     import ipdb
                 #     ipdb.set_trace()
-                if not j.do.exists(dest2_bro):
+                if not j.sal.fs.exists(dest2_bro):
                     raise RuntimeError("Could not do:%s"%cmd)
                 md5_bro = j.data.hash.md5(dest2_bro)
                 dest2_bro_final = "%s/%s/%s/%s.bro" % (storpath2, md5_bro[0], md5_bro[1], md5_bro)

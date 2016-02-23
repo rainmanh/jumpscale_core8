@@ -31,8 +31,8 @@ class ALog():
         if category.strip()=="":
             raise RuntimeError("category cannot be empty")
         self.category=category
-        self.path=j.do.joinPaths(j.atyourservice.basepath,"alog","%s.alog"%category)
-        j.sal.fs.createDir(j.do.joinPaths(j.atyourservice.basepath,"alog"))
+        self.path=j.sal.fs.joinPaths(j.atyourservice.basepath,"alog","%s.alog"%category)
+        j.sal.fs.createDir(j.sal.fs.joinPaths(j.atyourservice.basepath,"alog"))
 
         self.lastGitRef={} #key = action used to log the git hash
         self.lastRunId=0
@@ -41,7 +41,7 @@ class ALog():
         self.changecache={}
 
 
-        if not j.do.exists(self.path):
+        if not j.sal.fs.exists(self.path):
             j.do.writeFile(self.path,"")
             self.newRun()
         else:
@@ -90,7 +90,7 @@ class ALog():
     def getChangedFiles(self,action="install"):
         git=j.clients.git.get()
         changes=git.getChangedFiles(fromref=self.getLastRef(action))
-        changes=[item for item in changes if j.do.exists(j.do.joinPaths(git.baseDir,item))]  #we will have to do something for deletes here
+        changes=[item for item in changes if j.sal.fs.exists(j.sal.fs.joinPaths(git.baseDir,item))]  #we will have to do something for deletes here
         changes.sort()
         return changes
 
@@ -165,7 +165,7 @@ class ALog():
 
     def removeRun(self,id):
 
-        C=j.do.readFile(self.path)
+        C=j.sal.fs.fileGetContents(self.path)
         path2=self.path+"_"
         j.sal.fs.writeFile(path2,"")
         for line in C.split("\n"):
@@ -186,7 +186,7 @@ class ALog():
 
     def read(self):
 
-        C=j.do.readFile(self.path)
+        C=j.sal.fs.fileGetContents(self.path)
 
         for line in C.split("\n"):
 

@@ -81,7 +81,7 @@ Host *
 
 if j.core.platformtype.myplatform.isLinux():
     path=j.sal.fs.joinPaths(os.environ["HOME"],".ssh","config")
-    if not j.do.exists(path):
+    if not j.sal.fs.exists(path):
         j.do.writeFile(path,C)
 
 if opts.action == "status":

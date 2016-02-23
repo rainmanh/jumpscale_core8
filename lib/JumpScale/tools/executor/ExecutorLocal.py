@@ -28,14 +28,14 @@ class ExecutorLocal(ExecutorBase):
 
     def upload(self, source, dest, dest_prefix="", recursive=True):
         if dest_prefix != "":
-            dest = j.do.joinPaths(dest_prefix, dest)
+            dest = j.sal.fs.joinPaths(dest_prefix, dest)
         j.do.copyTree(source, dest, keepsymlinks=True, deletefirst=False,
                       overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
                       ssh=False, recursive=recursive)
 
     def download(self, source, dest, source_prefix=""):
         if source_prefix != "":
-            source = j.do.joinPaths(source_prefix, source)
+            source = j.sal.fs.joinPaths(source_prefix, source)
         j.do.copyTree(source, dest, keepsymlinks=True, deletefirst=False,
                       overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
                       ssh=False)

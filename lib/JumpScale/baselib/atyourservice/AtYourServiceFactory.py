@@ -190,7 +190,7 @@ class AtYourServiceFactory():
                 domainpath = j.sal.fs.joinPaths(aysrepopath, "%s/recipes/" % aysrepopath)
                 d = j.tools.path.get(domainpath)
                 for item in d.walkfiles("state.hrd"):
-                    recipepath = j.do.getDirName(item)
+                    recipepath = j.sal.fs.getDirName(item)
                     self._recipes.append(ServiceRecipe(recipepath))
         return self._recipes
 

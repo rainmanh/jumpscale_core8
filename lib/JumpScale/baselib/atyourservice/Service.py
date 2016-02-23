@@ -750,9 +750,7 @@ class Service:
         childs = {}
         for path in childDirs:
             child = j.sal.fs.getBaseName(path)
-            ss = child.split("__")
-            name = ss[0]
-            instance = ss[1]
+            name, instance = child.split("!")
             if name not in childs:
                 childs[name] = []
             childs[name].append(instance)

@@ -1,70 +1,5 @@
 from JumpScale import j
 
-# class Action():
-#     def __init__(self,alog,runid,epoch,role,instance,name):
-#         self.alog=alog
-#         self.runid=int(runid)
-#         self.epoch=int(epoch)
-#         self.role=role
-#         self.instance=instance
-#         self.name=name
-#         self.cat=cat
-#         self.error=False
-#         self.done=False
-#         self.state={}
-#         if new:
-#             self._setLog()
-
-#         self.alog.currentActions["%s!%s"%(self.role,self.instance)]=self
-
-#     def _setLog(self):
-#         self.alog._append("A | %-10s | %-15s | %-25s | %-15s | %-5s | %s"%(self.epoch,self.role,self.instance,self.name,self.cat,self.state))
-
-#     def setOk(self):
-#         self.state="DONE"
-#         self._setLog()
-
-
-#     def getLogs(self):
-#         args={"logs":[]}
-
-#         def loghandler(action,lcat,msg,args):
-#             if action.key==self.key:
-#                 args["logs"].append((lcat,msg))
-
-#         self.alog.process(loghandler=loghandler,args=args)
-
-#         return args["logs"]
-
-#     def getErrors(self):
-#         logs=self.getLogs()
-#         from IPython import embed
-#         print ("DEBUG NOW logs geterrors")
-#         embed()
-
-
-
-#         return args["logs"]
-
-#     def log(self,msg,cat="",level=0):
-#         msg=msg.strip()
-#         msg=msg.replace("|","§§")
-
-#         if level!=0:
-#             cat="%s %s"%(level,cat)
-
-#         out="L | %11s | %s"%(cat,msg)
-#         self.alog._append(out)
-
-#     def error(self,msg):
-#         self.log(msg,cat="ERROR",level=0)
-
-
-#     def __str__(self):
-#         return "%-4s | %-10s | %-10s | %-35s |  %-5s | %-10s | %s "%(self.runid,self.epoch,self.role,self.instance,self.cat,self.name,self.state.lower())
-
-#     __repr__=__str__
-
 class ALog():
     """
     actionlog
@@ -259,16 +194,3 @@ class ALog():
                 continue
 
             self._processLine(line)
-
-            # if logmsg!="" or cat=="L":
-            #     if cat=="L":
-            #         lcat,msg0=line1.split("|",1)
-            #         logmsg+="%s\n"%msg0
-            #         if msg0.strip()[-1]=="\\":
-            #             #go to next line there is enter at end of line
-            #             continue
-
-            #     for loghandler in loghandlers:
-            #         loghandler(action,lcat,logmsg.strip(),args)  #process log
-            #     logmsg=""
-            #     lcat=""

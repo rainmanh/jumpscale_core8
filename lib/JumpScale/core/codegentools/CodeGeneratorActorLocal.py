@@ -57,7 +57,7 @@ class CodeGeneratorActorLocal(CodeGeneratorBase):
         key = "%s_%s_%s" % (spec.appname, spec.actorname, method.name)
 
         s += """
-te=j.portal.active.taskletengines["{key}"]
+te=j.portal.server.active.taskletengines["{key}"]
 params=te.execute(params)
 if params.has_key("result"):
     return params.result

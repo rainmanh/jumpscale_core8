@@ -57,8 +57,8 @@ class CuisineInstaller(object):
             ftp.get(path,lpath)
             ftp.get(path+".pub",lpath+".pub")
 
-            j.do.chmod(lpath,0o600)
-            j.do.chmod(lpath+".pub",0o600)
+            j.sal.fs.chmod(lpath,0o600)
+            j.sal.fs.chmod(lpath+".pub",0o600)
 
         #authorize remote server to accept now copied private key
         self.cuisine.ssh.authorize("sshreflector",j.sal.fs.fileGetContents(lpath+".pub"))

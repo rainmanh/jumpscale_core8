@@ -100,7 +100,7 @@ class GitClient(object):
             for item in ignore:
                 if path.find(item)!=-1:
                     return True
-            return False            
+            return False
 
 
         cmd = "cd %s;git status --porcelain" % self.baseDir
@@ -137,7 +137,7 @@ class GitClient(object):
 
     def checkout(self,path):
         cmd = 'cd %s;git checkout %s' % (self.baseDir,path)
-        j.sal.process.execute(cmd)                
+        j.sal.process.execute(cmd)
 
     def addRemoveFiles(self):
         cmd = 'cd %s;git add -A :/' % self.baseDir
@@ -180,7 +180,7 @@ class GitClient(object):
         @param path if only list changed files in paths
         @param fromepoch = starting epoch
         @param toepoch = ending epoch
-        @return 
+        @return
         """
         commits = self.getCommitRefs(fromref=fromref, toref=toref, fromepoch=fromepoch, toepoch=toepoch, author=author, paths=paths,files=True)
         files = [f for commit in commits for f in commit[3]]
@@ -198,7 +198,9 @@ class GitClient(object):
         if toepoch:
             kwargs['min-age'] = toepoch
         if fromref or toref:
-            if fromref:
+            if fromref and not toref:
+                kwargs['rev'] = '%s' % fromref
+            elif fromref and toref:
                 kwargs['rev'] = '%s..%s' % (fromref, toref)
         if author:
             kwargs['author'] = author

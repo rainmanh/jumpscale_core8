@@ -32,7 +32,7 @@ class Dirs(object):
         import sys
 
         # self.base=j.application.config.get("system.paths.base")
-        self.base = j.do.base
+        self.base = j.do.BASE
         if j.core.db!=None:
             data=j.core.db.get("system.dirs.%s"%self.base)
             if data!=None:

@@ -5,8 +5,9 @@ from JumpScale import j
 import click
 
 @click.group()
-def cli():
-    pass
+@click.option('--debug', default=False, help='enable debug', is_flag=True)
+def cli(debug):
+    j.atyourservice.debug = debug
 
 @click.command()
 @click.argument('role')
@@ -136,7 +137,6 @@ cli.add_command(removelastrun)
 cli.add_command(list)
 
 if __name__ == '__main__':
-    j.atyourservice.debug=True
     cli()
 
 # j.application.stop()

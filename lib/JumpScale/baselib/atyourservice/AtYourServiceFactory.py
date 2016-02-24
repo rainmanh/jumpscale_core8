@@ -337,27 +337,23 @@ class AtYourServiceFactory():
 
     def do(self,action="install",printonly=False,remember=True,allservices=False):
 
-        def changeState(service):
-            if action in service.actions:
-                actionobj = service.actions[action]
-                actionobj.setState("CHANGED")
-
         self.alog
-        self.commitGitChanges(action=action+"_pre",precheck=True)
-        latestrun=self.alog.newRun(action=action)
-        import ipdb; ipdb.set_trace()
+        self.commitGitChanges(action=action+"_pre", precheck=True)
+        latestrun = self.alog.newRun(action=action)
+
         if not allservices:
             # we need to find change since last time & make sure that
             # find all services with action with this name and put back on init
             # we also need to find all child service and depdendent service of the modified service
             changed, changes = self.alog.getChangedAtYourservices(action=action)
+            toChange = set(changed)
             for service in changed:
-                changeState(service)
-                childern = service.listChildren()
-                for role, instances in childern.items():
-                    for instance in instances:
-                        child = j.atyourservice.getService(role=role, instance=instance)
-                        changeState(child)
+                toChange = toChange.union(self.findConsumersRecursive(service))
+
+            for service in toChange:
+                if action in service.actions:
+                    actionobj = service.actions[action]
+                    actionobj.setState("CHANGED")
 
         else:
             todo=[item[1] for item in self.services.items()]
@@ -423,8 +419,8 @@ class AtYourServiceFactory():
             if actionrunobj.state!="OK":
                 producersWaiting = service.getProducersWaiting(action,set())
                 if len(producersWaiting)==0:
-                    print("%s waiting for install" % service)
                     todo.append(service)
+                    print("%s waiting for install" % service) if j.atyourservice.debug
                 elif j.application.debug:
                     print("%s no change in producers" % service)
         return todo
@@ -517,6 +513,25 @@ class AtYourServiceFactory():
         for item in self.findServices(instance=instancename):
             if producercategory in item.categories:
                 return item
+
+    def findConsumers(self, target):
+        """
+        @return set of services that consumes target
+        """
+        result = set()
+        for service in self.findServices():
+            if target.isConsumedBy(service):
+                result.add(service)
+        return result
+
+    def findConsumersRecursive(self, target, out=set()):
+        """
+        @return set of services that consumes target, recursivlely
+        """
+        for service in self.findConsumers(target):
+            out.add(service)
+            self.findConsumersRecursive(service, out)
+        return out
 
     def new(self,  name="", instance="main",version="",domain="",path=None, parent=None, args={},consume=""):
         """

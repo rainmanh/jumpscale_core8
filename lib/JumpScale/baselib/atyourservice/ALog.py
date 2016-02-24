@@ -291,7 +291,7 @@ class ALog():
                 path1 = path0.replace(basename, "").strip("/")
                 key = path1.split("/")[-1]
 
-                if ttype == "services":
+                if ttype[:-1] == "services":
                     keys = [key]
                 else:
                     keys = []

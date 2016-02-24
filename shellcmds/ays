@@ -5,8 +5,9 @@ from JumpScale import j
 import click
 
 @click.group()
-def cli():
-    pass
+@click.option('--debug', default=False, help='enable debug', is_flag=True)
+def cli(debug):
+    j.atyourservice.debug = debug
 
 @click.command()
 @click.argument('role')
@@ -69,12 +70,13 @@ def removelastrun():
 @click.argument('action')
 @click.option('--printonly', default=False,  is_flag=True,help='if set will not really execute, only show what would have been done')
 @click.option('--all', default=False,  is_flag=True,help='don\'t look for changed services, execute on all')
-def do(action,printonly=False,all=False):
+@click.option('--ask', default=False,  is_flag=True,help='ask on which service to execute the action')
+def do(action,printonly=False,all=False, ask=False):
     """
     call an action
     """
     allservices=all
-    j.atyourservice.do(action,printonly=printonly,allservices=allservices)
+    j.atyourservice.do(action,printonly=printonly,allservices=allservices, ask=ask)
 
 @click.command()
 @click.argument('action')
@@ -136,7 +138,6 @@ cli.add_command(removelastrun)
 cli.add_command(list)
 
 if __name__ == '__main__':
-    j.atyourservice.debug=True
     cli()
 
 # j.application.stop()

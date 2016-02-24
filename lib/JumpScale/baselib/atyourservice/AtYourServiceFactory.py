@@ -263,19 +263,18 @@ class AtYourServiceFactory():
 
         self.reset()
 
-        #make sure the recipe's are loaded & initted
+        # make sure the recipe's are loaded & initted
         for bp in self.blueprints:
             bp.loadrecipes()
 
-        #start from clean sheet
+        # start from clean sheet
         self.reset()
-
         self.alog
         self.commitGitChanges(action="init_pre",msg='ays changed, commit changed files before deploy of blueprints',precheck=True)
 
         latestrun=self.alog.newRun(action="init")
 
-        print("init runid:%s"%self.alog.lastRunId)
+        print("init runid:%s" % self.alog.lastRunId)
         commitc=""
         for bp in self.blueprints:
             bp.execute()
@@ -336,21 +335,28 @@ class AtYourServiceFactory():
 
 
 
-    def do(self,action="install",printonly=False,remember=True,allservices=False):
+    def do(self,action="install",printonly=False,remember=True,allservices=False, ask=False):
 
         self.alog
-        self.commitGitChanges(action=action+"_pre",precheck=True)
-        latestrun=self.alog.newRun(action=action)
+        self.commitGitChanges(action=action+"_pre", precheck=True)
+        latestrun = self.alog.newRun(action=action)
 
         if not allservices:
-            #we need to find change since last time & make sure that
-            #find all services with action with this name and put back on init
-            changed,changes=self.alog.getChangedAtYourservices(action=action)
+            # we need to find change since last time & make sure that
+            # find all services with action with this name and put back on init
+            # we also need to find all child service and depdendent service of the modified service
+            changed, changes = self.alog.getChangedAtYourservices(action=action)
+            toChange = set(changed)
             for service in changed:
-                if action in service.actions:
-                    actionobj=service.actions[action]
-                    actionobj.setState("CHANGED")
+                toChange = toChange.union(self.findConsumersRecursive(service))
 
+            if ask:
+                toChange = j.tools.console.askChoiceMultiple(list(toChange), sort=False)
+
+            for service in toChange:
+                if action in service.actions:
+                    actionobj = service.actions[action]
+                    actionobj.setState("CHANGED")
 
         else:
             todo=[item[1] for item in self.services.items()]
@@ -386,7 +392,7 @@ class AtYourServiceFactory():
                 #         line=line.strip().strip("' ").strip().replace("File ","")
                 #         err+="%s\n"%line.strip()
                 #     err+="ERROR:%s\n"%e
-                #     print (err)                 
+                #     print (err)
                 #     error=True
 
             step += 1
@@ -416,8 +422,9 @@ class AtYourServiceFactory():
             if actionrunobj.state!="OK":
                 producersWaiting = service.getProducersWaiting(action,set())
                 if len(producersWaiting)==0:
-                    print("%s waiting for install" % service)
                     todo.append(service)
+                    if j.atyourservice.debug:
+                        print("%s waiting for install" % service)
                 elif j.application.debug:
                     print("%s no change in producers" % service)
         return todo
@@ -510,6 +517,25 @@ class AtYourServiceFactory():
         for item in self.findServices(instance=instancename):
             if producercategory in item.categories:
                 return item
+
+    def findConsumers(self, target):
+        """
+        @return set of services that consumes target
+        """
+        result = set()
+        for service in self.findServices():
+            if target.isConsumedBy(service):
+                result.add(service)
+        return result
+
+    def findConsumersRecursive(self, target, out=set()):
+        """
+        @return set of services that consumes target, recursivlely
+        """
+        for service in self.findConsumers(target):
+            out.add(service)
+            self.findConsumersRecursive(service, out)
+        return out
 
     def new(self,  name="", instance="main",version="",domain="",path=None, parent=None, args={},consume=""):
         """
@@ -650,7 +676,7 @@ class AtYourServiceFactory():
 
     def __str__(self):
         return self.__repr__()
-    
+
     def telegramBot(self, token):
         from JumpScale.baselib.atyourservice.telegrambot.TelegramAYS import TelegramAYS
         bot = TelegramAYS(token)

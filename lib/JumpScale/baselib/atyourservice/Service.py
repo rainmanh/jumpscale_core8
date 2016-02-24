@@ -363,7 +363,8 @@ class Service:
     @property
     def action_methods_mgmt(self):
         if self._action_methods_mgmt is None or not self._rememberActions:
-            print ("reload mgmt actions for %s (%s)"%(self,self._rememberActions))
+            if j.atyourservice.debug:
+                print ("reload mgmt actions for %s (%s)"%(self,self._rememberActions))
             if j.sal.fs.exists(path=self.recipe.path_actions_mgmt):
                 action_methods_mgmt = self._loadActions(self.recipe.path_actions_mgmt,"mgmt")
             else:
@@ -750,13 +751,18 @@ class Service:
         childs = {}
         for path in childDirs:
             child = j.sal.fs.getBaseName(path)
-            ss = child.split("__")
-            name = ss[0]
-            instance = ss[1]
+            name, instance = child.split("!")
             if name not in childs:
                 childs[name] = []
             childs[name].append(instance)
         return childs
+
+    def isConsumedBy(self, service):
+        if self.role in service.producers:
+            for s in service.producers[self.role]:
+                if s.key == self.key:
+                    return True
+        return False
 
     # def _consume(self, producerservice, producercategory):
     #     """

@@ -450,7 +450,7 @@ class Service:
             j.sal.fs.createDir(j.sal.fs.getDirName(path))
             path2 = j.sal.fs.joinPaths(self.path, j.sal.fs.getBaseName(path))
             #need to create a copy of the recipe mgmt or node action class
-            j.do.copyFile(path, path2)
+            j.sal.fs.copyFile(path, path2)
             # print (path2)
             if self.hrd is not None:
                 # print ("apply hrd")

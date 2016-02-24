@@ -66,7 +66,7 @@ class Container(SALObject):
         if j.sal.fs.isDir(src):
             j.do.copyTree(src, j.sal.fs.joinPaths(temp, source_name))
         else:
-            j.do.copyFile(src, j.sal.fs.joinPaths(temp, source_name))
+            j.sal.fs.copyFile(src, j.sal.fs.joinPaths(temp, source_name))
 
         ddir = j.sal.fs.getDirName(dest)
         cmd = "mkdir -p %s" % (ddir)

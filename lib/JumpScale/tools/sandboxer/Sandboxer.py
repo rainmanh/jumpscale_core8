@@ -154,7 +154,7 @@ class Sandboxer():
             dest2=dest+"/"+subpath
             j.sal.fs.createDir(j.sal.fs.getDirName(dest2))
             # print ("C:%s"%dest2)
-            j.do.copyFile(src,dest2)
+            j.sal.fs.copyFile(src,dest2)
 
 
         j.sal.fs.walker.walkFunctional(path, callbackFunctionFile=callbackFile, callbackFunctionDir=None, arg=(path,dest), \
@@ -218,7 +218,7 @@ class Sandboxer():
                 md5 = md5_bro
 
             else:
-                j.do.copyFile(srcReal, dest2)
+                j.sal.fs.copyFile(srcReal, dest2)
 
             stat = j.sal.fs.statPath(srcReal)
 

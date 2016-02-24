@@ -448,7 +448,7 @@ class Service:
             j.sal.fs.remove(path+'c')
         if j.sal.fs.exists(path):
             j.do.createDir(j.sal.fs.getDirName(path))
-            path2 = j.sal.fs.joinPaths(self.path, j.do.getBaseName(path))
+            path2 = j.sal.fs.joinPaths(self.path, j.sal.fs.getBaseName(path))
             #need to create a copy of the recipe mgmt or node action class
             j.do.copyFile(path, path2)
             # print (path2)
@@ -1073,7 +1073,7 @@ class Service:
     #                 items += j.sal.fs.listDirsInDir(
     #                     path=src, recursive=False, dirNameOnly=False, findDirectorySymlinks=False)
     #
-    #             items = [(item, "%s/%s" % (dest, j.do.getBaseName(item)), link)
+    #             items = [(item, "%s/%s" % (dest, j.sal.fs.getBaseName(item)), link)
     #                      for item in items]
     #         else:
     #             items = [(src, dest, link)]

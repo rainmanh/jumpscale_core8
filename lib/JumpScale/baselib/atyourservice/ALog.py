@@ -113,7 +113,7 @@ class ALog():
                     ttype="recipes"
 
                 path0=path.split("/%s/"%ttype,1)[1]
-                basename=j.do.getBaseName(path0)
+                basename=j.sal.fs.getBaseName(path0)
                 path1=path0.replace(basename,"").strip("/")
                 key=path1.split("/")[-1]
 

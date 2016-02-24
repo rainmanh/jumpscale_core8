@@ -151,12 +151,12 @@ class AtYourServiceFactory():
         self._doinit()
         def load(domain, path,llist):
             for servicepath in j.sal.fs.listDirsInDir(path, recursive=False):
-                dirname = j.do.getBaseName(servicepath)
+                dirname = j.sal.fs.getBaseName(servicepath)
                 # print "dirname:%s"%dirname
                 if not (dirname.startswith(".")):
                     load(domain,servicepath,llist)
             # print path
-            dirname = j.do.getBaseName(path)
+            dirname = j.sal.fs.getBaseName(path)
             if dirname.startswith("_"):
                 return
             if j.sal.fs.exists("%s/schema.hrd" % path) or \

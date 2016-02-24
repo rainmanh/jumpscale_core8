@@ -26,8 +26,8 @@ class MyFSEventHandler(FileSystemEventHandler):
                         return
                     elif changedfile.find("/__pycache__/") != -1:
                         return
-                    elif j.do.getBaseName(changedfile) in ["InstallTools.py", "ExtraTools.py"]:
-                        base = j.do.getBaseName(changedfile)
+                    elif j.sal.fs.getBaseName(changedfile) in ["InstallTools.py", "ExtraTools.py"]:
+                        base = j.sal.fs.getBaseName(changedfile)
                         dest = "/opt/jumpscale8/lib/JumpScale/%s" % (base)
                     else:
                         destpart = changedfile.split("jumpscale/", 1)[-1]

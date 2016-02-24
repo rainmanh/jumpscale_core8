@@ -20,7 +20,6 @@ class CuisineInstallerDevelop():
 
     @actionrun(action=True)
     def python(self):
-        self.cuisine.set_sudomode()
         C="""
         libpython3.5-dev
         python3.5-dev
@@ -39,7 +38,6 @@ class CuisineInstallerDevelop():
 
     @actionrun(action=True)
     def pip(self):
-        self.cuisine.set_sudomode()
         self.cuisine.installer.base()
         self.python()
         C="""
@@ -58,7 +56,6 @@ class CuisineInstallerDevelop():
 
     @actionrun(action=True)
     def jumpscale8(self):
-        self.cuisine.set_sudomode()
         #make sure base is done & env is clean
         self.cuisine.installer.base()
 

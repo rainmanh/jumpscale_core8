@@ -3,12 +3,14 @@ from JumpScale import j
 
 
 from ActionDecorator import ActionDecorator
-class actionrun(ActionDecorator):
-    def __init__(self,*args,**kwargs):
-        ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.builder"
-
 from CuisineMongoCluster import mongoCluster
+
+
+class actionrun(ActionDecorator):
+    def __init__(self, *args, **kwargs):
+        ActionDecorator.__init__(self, *args, **kwargs)
+        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.builder"
+
 
 class CuisineBuilder(object):
 
@@ -19,7 +21,6 @@ class CuisineBuilder(object):
         self.mongoCluster = mongoCluster
 
     def all(self,start=False, sandbox=False, aydostor=None):
-        self.cuisine.set_sudomode()
         self.cuisine.installerdevelop.pip()
         self.cuisine.installerdevelop.python()
         self.cuisine.installerdevelop.jumpscale8()
@@ -52,7 +53,6 @@ class CuisineBuilder(object):
 
         return (url_opt, url_optvar)
 
-
     def _sandbox_python(self, python=True):
         print("START SANDBOX")
         if python:
@@ -75,7 +75,6 @@ class CuisineBuilder(object):
         j.tools.sandboxer.sandboxLibs("%s/lib" % self.cuisine.dir_paths['base'], recursive=True)
         j.tools.sandboxer.sandboxLibs("%s/bin" % self.cuisine.dir_paths['base'], recursive=True)
         print("SANDBOXING DONE, ALL OK IF TILL HERE, A Segfault can happen because we have overwritten ourselves.")
-
 
     def dedupe(self, dedupe_path, namespace, store_addr, output_dir='/tmp/sandboxer', sandbox_python=True):
         self.cuisine.dir_remove(output_dir)
@@ -113,7 +112,6 @@ class CuisineBuilder(object):
 
     @actionrun(action=True)
     def skydns(self,start=True):
-        self.cuisine.set_sudomode()
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/skynetservices/skydns",action=True)
         self.cuisine.file_copy(self.cuisine.joinpaths('$goDir', 'bin', 'skydns'), '$binDir', action=True)
@@ -125,7 +123,6 @@ class CuisineBuilder(object):
 
     @actionrun(action=True)
     def caddy(self,ssl=False,start=True, dns=None):
-        self.cuisine.set_sudomode()
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/mholt/caddy",action=True)
         self.cuisine.file_copy(self.cuisine.joinpaths('$goDir', 'bin', 'caddy'), '$binDir', action=True)
@@ -171,7 +168,6 @@ class CuisineBuilder(object):
             cmd = self.cuisine.bash.cmdGetPath("caddy")
             self.cuisine.processmanager.ensure("caddy", '%s -conf=%s -email=info@greenitglobe.com' % (cmd, cpath))
 
-
     def caddyConfig(self,sectionname,config):
         """
         config format see https://caddyserver.com/docs/caddyfile
@@ -186,7 +182,6 @@ class CuisineBuilder(object):
         @input addr, address and port on which the service need to listen. e.g. : 0.0.0.0:8090
         @input backend, directory where to save the data push to the store
         """
-        self.cuisine.set_sudomode()
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/Jumpscale/aydostorex", action=True)
         self.cuisine.file_copy(self.cuisine.joinpaths(self.cuisine.dir_paths['goDir'], 'bin', 'aydostorex'), '$base/bin',action=True)
@@ -218,11 +213,8 @@ class CuisineBuilder(object):
             cmd = self.cuisine.bash.cmdGetPath("aydostorex")
             self.cuisine.processmanager.ensure("aydostorex", '%s --config /etc/aydostorex/config.toml' % cmd)
 
-
-
     @actionrun(action=True)
     def installdeps(self):
-        self.cuisine.set_sudomode()
         self.cuisine.installer.base()
         self.cuisine.golang.install()
         self.cuisine.pip.upgrade('pip')
@@ -247,7 +239,6 @@ class CuisineBuilder(object):
 
         if start:
             self._startSyncthing()
-
 
     #@actionrun(action=True)
     def agent(self,start=True, gid=None, nid=None):
@@ -409,7 +400,6 @@ class CuisineBuilder(object):
         @host, string. host of this node in the cluster e.g: http://etcd1.com
         @peer, list of string, list of all node in the cluster. [http://etcd1.com, http://etcd2.com, http://etcd3.com]
         """
-        self.cuisine.set_sudomode()
         self.cuisine.golang.install()
         C="""
         set -ex
@@ -471,7 +461,6 @@ class CuisineBuilder(object):
 
     @actionrun(action=True)
     def redis(self,name="main",ip="localhost", port=6379, maxram=200, appendonly=True,snapshot=False,slave=(),ismaster=False,passwd=None,unixsocket=True,start=True):
-        self.cuisine.set_sudomode()
         self.cuisine.installer.base()
         if not self.cuisine.isMac:
 
@@ -572,7 +561,6 @@ class CuisineBuilder(object):
             self.cuisine.processmanager.ensure("mongod",cmd=cmd,env={},path="")
 
     def influxdb(self, start=True):
-        self.cuisine.set_sudomode()
         self.cuisine.installer.base()
 
         if self.cuisine.isMac:
@@ -600,7 +588,6 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb/influxdb.conf.o
 
     @actionrun(action=True)
     def vulcand(self):
-        self.cuisine.set_sudomode()
         C='''
         #!/bin/bash
         set -e
@@ -635,7 +622,6 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb/influxdb.conf.o
 
     @actionrun(action=True)
     def weave(self, start=True, peer=None, jumpscalePath=True):
-        self.cuisine.set_sudomode()
         if jumpscalePath:
             binPath = self.cuisine.joinpaths(self.cuisine.dir_paths['binDir'], 'weave')
         else:

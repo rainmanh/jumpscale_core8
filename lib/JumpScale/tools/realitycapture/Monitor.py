@@ -1,7 +1,8 @@
 
 class Monitor(object):
-    def __init__(self, controller):
+    def __init__(self, controller, redis_address):
         self.controller = controller
+        self.redis_address = redis_address
 
     def _schedule(self, gid, nid, domain, name, args={}, cron='@every 1m'):
         """
@@ -15,8 +16,10 @@ class Monitor(object):
         :param cron: cron specs according to https://godoc.org/github.com/robfig/cron#hdr-CRON_Expression_Format
         :return:
         """
-        key = '.'.join([str(gid), str(nid), domain, name])
-        self.controller.schedule()
+        args = args.update({'redis': self.redis_address})
+        #
+        # key = '.'.join([str(gid), str(nid), domain, name])
+        # self.controller.schedule()
 
     def _unschedule(self, gid, nid, domain, name):
         """

@@ -2,7 +2,7 @@ from JumpScale import j
 
 from InfluxDumper import InfluxDumper
 from MongoDumper import MongoDumper
-from AggregatorClientTest import AggregatorClientTest
+from ECODumper import ECODumper
 
 
 class RealitProcess(object):
@@ -18,8 +18,7 @@ class RealitProcess(object):
         get connections from j.jumpscale.clients...
         """
 
-        d = InfluxDumper(influxdb, cidr=cidr, port=port)
-        d.start()
+        InfluxDumper(influxdb, cidr=cidr, port=port).start()
 
     def monogopump(self, cidr='127.0.0.1', port=7777):
         """
@@ -27,8 +26,7 @@ class RealitProcess(object):
         get connections from j.jumpscale.clients...
         """
 
-        d = MongoDumper(cidr=cidr, port=port)
-        d.start()
+        MongoDumper(cidr=cidr, port=port).start()
 
     def ecodump(self, cidr='127.0.0.1', port=7777):
         """
@@ -38,7 +36,7 @@ class RealitProcess(object):
         :param port:
         :return:
         """
-        raise NotImplementedError
+        ECODumper(cidr, port).start()
 
     def logsdump(self, cidr='127.0.0.1', port=7777):
         """

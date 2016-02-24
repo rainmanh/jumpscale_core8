@@ -320,7 +320,7 @@ class ActionsBaseMgmt(object):
         cron_id = 'ays.{name}.{method}'.format(name=str(self.service), method=method.__name__)
 
         # find agent for this service node.
-        agents = j.atyourservice.findServices(name='agent2', parent=self.service.parent)
+        agents = j.atyourservice.findServices(name='agent8', parent=self.service.parent)
 
         if self.service.parent is None:
             agents = filter(lambda a: a.parent is None, agents)

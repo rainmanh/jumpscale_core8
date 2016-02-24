@@ -901,7 +901,7 @@ class OurCuisine():
     def file_copy(self, source, dest, recursive=False):
         source=self.cuisine.args_replace(source)
         dest=self.cuisine.args_replace(dest)
-        if not self.file_exists(dest):
+        if not (self.file_is_file(dest) and self.file_exists(dest)):
             cmd = "cp -v "
             if recursive:
                 cmd += "-r "
@@ -1154,9 +1154,6 @@ class OurCuisine():
             while next==True:
                 next=False
                 if out.find("target not found: python3")!=-1 and not "python" in self.done:
-                    from IPython import embed
-                    print ("DEBUG NOW python3 not found")
-                    embed()
                     self.done.append("python")
                     if self.isArch:
                         self.cuisine.package.install("python3")
@@ -1165,9 +1162,6 @@ class OurCuisine():
                     next=True
 
                 if out.find("pip3: command not found")!=-1 and not "pip" in self.done:
-                    from IPython import embed
-                    print ("DEBUG NOW pip3 not found")
-                    embed()
 
                     self.done.append("pip")
                     self.installer.pip()
@@ -1263,7 +1257,7 @@ class OurCuisine():
     def command_check(self,command):
         """Tests if the given command is available on the system."""
         command=self.cuisine.args_replace(command)
-        rc,out= self.run("which '%s'"%command,die=False,showout=False)
+        rc,out= self.run("which '%s'"%command,die=False,showout=False, profile=True)
         return rc==0
 
     def command_location(self,command):

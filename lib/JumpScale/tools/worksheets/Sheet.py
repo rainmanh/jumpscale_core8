@@ -131,9 +131,7 @@ class Row(j.tools.code.classGetBase()):
             interpolated = j.tools.numtools.interpolateList(tointerpolate, floatnr=self.nrfloat)
         except Exception as e:
             print(("could not interpolate row %s" % self.name))
-            from JumpScale.core.Shell import ipshellDebug, ipshell
             print("DEBUG NOW cannot interpolate, explore self & tointerpolate")
-            ipshell()
         xx = 0
         for x in range(start, stop + 1):
             self.cells[x] = interpolated[xx]

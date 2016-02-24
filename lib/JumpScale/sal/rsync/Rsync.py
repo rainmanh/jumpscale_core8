@@ -25,7 +25,7 @@ class RsyncServer(SALObject):
         self.pathsecrets = j.tools.path.get("%s/secrets.cfg" % self.root)
         self.pathusers = j.tools.path.get("%s/users.cfg" % self.root)
         if distrdir == "":
-            distrdir = "%s/apps/agentcontroller2/distrdir/"%j.do.BASE
+            distrdir = "%s/apps/agentcontroller/distrdir/"%j.do.BASE
 
         self.distrdir = j.tools.path.get(distrdir)
 
@@ -171,9 +171,6 @@ list = no
                         #     j.sal.fs.createDir(j.sal.fs.getDirName(destpathfile))
                         #     j.sal.fs.symlink(item, destpathfile, overwriteTarget=True)
 
-        from IPython import embed
-        print("DEBUG NOW rsync prepareroles")
-        embed()
         
 
 

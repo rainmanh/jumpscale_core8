@@ -17,7 +17,7 @@ class Text:
         self.__jslocation__ = "j.data.text"            
 
     def decodeUnicode2Asci(self,text):
-        return unicodedata.normalize('NFKD', self.decode("utf-8")).encode('ascii','ignore')
+        return unicodedata.normalize('NFKD', text.decode("utf-8")).encode('ascii','ignore')
     
     
     def toolStripNonAsciFromText(self,text):    

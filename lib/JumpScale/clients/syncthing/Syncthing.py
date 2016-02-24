@@ -304,8 +304,7 @@ class SyncthingClient:
                 print("retry API CALL %s"%url)
                 counter+=1
                 time.sleep(0.1)
-                if counter>2 and endpoint.find("restart")==-1:
-                    self.restart()
+                
                 if counter>10:
                     raise RuntimeError('Syncthing is not responding. Exiting.')
 

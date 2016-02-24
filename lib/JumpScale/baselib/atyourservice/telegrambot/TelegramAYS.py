@@ -500,7 +500,7 @@ class TelegramAYS():
 			" - create a project with: `/project [name]`",
 			" - upload some blueprints",
 			" - do a *ays init* with `/ays init`",
-			" - do a *ays ...* with `/ays ...` ???",
+			" - do a *ays [stuff]* with `/ays [stuff]`",
 			"",
 			"For more information, just type `/help` :)"
 		]

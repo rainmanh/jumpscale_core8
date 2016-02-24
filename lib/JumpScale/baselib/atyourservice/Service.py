@@ -724,12 +724,12 @@ class Service:
         # if 'os' in self.producers and self.producers.get('os'):
             node = self.parent
             # node = self.producers["os"][0]
-            if '"agentcontroller2' in node.producers:
+            if '"agentcontroller' in node.producers:
                 # this means an agentcontroller is responsible for the node which hosts this service
-                agentcontroller = node.producers["agentcontroller2"][0]
+                agentcontroller = node.producers["agentcontroller"][0]
                 # make more robust
-                agent2controller2client = agentcontroller.producers["agent2controller2client"][0]
-                executor = j.tools.executor.getJSAgent2Based(agent2controller2client.key)
+                agentcontrollerclient = agentcontroller.producers["agentcontrollerclient"][0]
+                executor = j.tools.executor.getJSAgentBased(agentcontrollerclient.key)
             elif node.hrd.exists("node.tcp.addr") and node.hrd.exists("ssh.port"):
                 # is ssh node
                 executor = j.tools.executor.getSSHBased(node.hrd.get("node.tcp.addr"), node.hrd.get("ssh.port"))

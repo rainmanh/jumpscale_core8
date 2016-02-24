@@ -117,7 +117,7 @@ class CuisineBuilder(object):
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/skynetservices/skydns",action=True)
         self.cuisine.file_copy(self.cuisine.joinpaths('$goDir', 'bin', 'skydns'), '$binDir', action=True)
-        self.cuisine.bash.addPath("$binDir", action=True)
+        self.cuisine.bash.addPath(self.cuisine.args_replace("$binDir"), action=True)
 
         if start:
             cmd=self.cuisine.bash.cmdGetPath("skydns")
@@ -129,7 +129,7 @@ class CuisineBuilder(object):
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/mholt/caddy",action=True)
         self.cuisine.file_copy(self.cuisine.joinpaths('$goDir', 'bin', 'caddy'), '$binDir', action=True)
-        self.cuisine.bash.addPath("$binDir", action=True)
+        self.cuisine.bash.addPath(self.cuisine.args_replace("$binDir"), action=True)
 
         if ssl and dns:
             addr = dns
@@ -230,8 +230,11 @@ class CuisineBuilder(object):
         self.cuisine.pip.install('pygo')
         self.cuisine.golang.install()
 
-    @actionrun(action=True)
+    #@actionrun(action=True)
     def syncthing(self, start=True):
+        """
+        build and setup syncthing to run on :8384 , this can be changed from the config file in home  
+        """
         self.installdeps()
         url = "git@github.com:syncthing/syncthing.git"
 
@@ -247,7 +250,12 @@ class CuisineBuilder(object):
 
 
     #@actionrun(action=True)
-    def agent(self,start=True):
+    def agent(self,start=True, gid=None, nid=None):
+        """
+        builds and setsup dependencies of agent to run with the given gid and nid 
+        niether can be zero 
+        """
+
         self.installdeps()
         #self.cuisine.installer.jumpscale8()
         self.redis()
@@ -262,14 +270,14 @@ class CuisineBuilder(object):
         self.cuisine.dir_ensure("$cfgDir/agent8/conf", recursive=True)
         self.cuisine.dir_ensure("$cfgDir/agent8/mid", recursive=True)
 
-        url = "github.com/Jumpscale/agent2"
+        url = "github.com/Jumpscale/agent8"
         self.cuisine.golang.get(url)
 
-        sourcepath = "$goDir/src/github.com/Jumpscale/agent2"
+        sourcepath = "$goDir/src/github.com/Jumpscale/agent8"
 
         self.cuisine.run("cd %s && go build ."%sourcepath,profile=True)
 
-        self.cuisine.file_move("%s/agent2"%sourcepath, "$binDir/agent8")
+        self.cuisine.file_move("%s/agent8" % sourcepath, "$binDir/agent8")
 
         # copy extensions
         self.cuisine.dir_remove("$cfgDir/agent8/extensions")
@@ -297,15 +305,15 @@ class CuisineBuilder(object):
         # self.cuisine.dir_ensure("$cfgDir/agent8/agent8/conf", recursive=True)
 
         if start:
-            self._startAgent()
+            self._startAgent(nid, gid)
 
-    @actionrun(action=True)
+    #@actionrun(action=True)
     def agentcontroller(self, start=True):
+        """
+        config: https://github.com/Jumpscale/agentcontroller8/
+        """
         import re
         import hashlib
-        """
-        config: https://github.com/Jumpscale/agentcontroller2/
-        """
         self.installdeps()
         self.redis()
         self.mongodb()
@@ -318,15 +326,15 @@ class CuisineBuilder(object):
         self.cuisine.dir_ensure("$cfgDir/agentcontroller8", recursive=True)
 
         #get repo 
-        url = "github.com/Jumpscale/agentcontroller2"
+        url = "github.com/Jumpscale/agentcontroller8"
         self.cuisine.golang.godep(url)
-        sourcepath = "$goDir/src/github.com/Jumpscale/agentcontroller2"
+        sourcepath = "$goDir/src/github.com/Jumpscale/agentcontroller8"
 
         #do the actual building
         self.cuisine.run("cd %s && go build ." % sourcepath, profile=True)
 
         #move binary 
-        self.cuisine.file_move("%s/agentcontroller2"%sourcepath, "$binDir/agentcontroller8")
+        self.cuisine.file_move("%s/agentcontroller8" % sourcepath, "$binDir/agentcontroller8")
         #edit config 
         C = self.cuisine.file_read("%s/agentcontroller.toml"%sourcepath)
         cfg = j.data.serializer.toml.loads(C)
@@ -351,7 +359,10 @@ class CuisineBuilder(object):
 
         #add jumpscripts file 
         self._startSyncthing()
-        synccl = j.clients.syncthing.get(self.executor.addr,sync_conn.group(2), apikey=apikey)
+        addr = "localhost"
+        if not self.cuisine.executor.type == 'local':
+            addr = self.executor.addr
+        synccl = j.clients.syncthing.get(addr,18384, apikey=apikey)
         jumpscripts_path = self.cuisine.args_replace("$cfgDir/agentcontroller8/jumpscripts")
         jumpscripts_id = "jumpscripts-%s" % hashlib.md5(synccl.id_get().encode()).hexdigest()
         synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
@@ -362,8 +373,6 @@ class CuisineBuilder(object):
         self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extensions", recursive=True)
 
         if start:
-            self.agent()
-            self._startAgent()
             self._startAgentController()
 
 
@@ -375,12 +384,12 @@ class CuisineBuilder(object):
         pm.ensure(name="syncthing", cmd="./syncthing", path=self.cuisine.joinpaths(GOPATH, "bin"))
 
 
-    def _startAgent(self):
+    def _startAgent(self, nid, gid):
         print("connection test ok to agentcontroller")
         #@todo (*1*) need to implement to work on node
         env={}
         env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
-        cmd = "$binDir/agent8 -c $cfgDir/agent8/agent.toml"
+        cmd = "$binDir/agent8 -nid %s -gid %s -c $cfgDir/agent8/agent.toml" % (nid, gid)
         pm = self.cuisine.processmanager.get("tmux")
         pm.ensure("agent8", cmd=cmd, path="$cfgDir/agent8",  env=env)
 
@@ -518,9 +527,8 @@ class CuisineBuilder(object):
             cmd="redis-server %s"%cpath
             self.cuisine.processmanager.ensure(name="redis_%s"%name,cmd=cmd,env={},path='$binDir')
 
-    #@actionrun(action=True)
+    @actionrun(action=True)
     def mongodb(self, start=True):
-        self.cuisine.set_sudomode()
         self.cuisine.installer.base()
         exists=self.cuisine.command_check("mongod")
 
@@ -582,7 +590,7 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb/influxdb.conf.o
             C = self.cuisine.bash.replaceEnvironInText(C)
             C = self.cuisine.args_replace(C)
             self.cuisine.run_script(C, profile=True, action=True)
-            self.cuisine.bash.addPath("$binDir", action=True)
+            self.cuisine.bash.addPath(self.cuisine.args_replace("$binDir"), action=True)
 
         if start:
             binPath = self.cuisine.bash.cmdGetPath('influxd')

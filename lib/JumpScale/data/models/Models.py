@@ -7,15 +7,30 @@ import uuid
 
 DB = 'jumpscale_system'
 
+default_meta = {'allow_inheritance': True, "db_alias": DB, 'indexes': ['guid']}
+
+def extend(a, b):
+    if isinstance(a, list):
+        return a + b
+    elif isinstance(a, dict):
+        tmp = a.copy()
+        for i in b:
+            if not i in tmp:
+                tmp[i] = b[i]
+            else:
+                tmp[i] = extend(tmp[i], b[i])
+        return tmp
+    else:
+        return b
 
 class ModelBase():
     DoesNotExist = DoesNotExist
 
-    guid = StringField(default=lambda: str(uuid.uuid4()))
+    guid = StringField(default=lambda: str(uuid.uuid4()), unique=True)
     gid = IntField(default=lambda: j.application.whoAmI.gid if j.application.whoAmI else 0)
     nid = IntField(default=lambda: j.application.whoAmI.nid if j.application.whoAmI else 0)
     epoch = IntField(default=j.data.time.getTimeEpoch)
-    meta = {'allow_inheritance': True, "db_alias": DB}
+    meta = default_meta
 
     def to_dict(self):
         d = j.data.serializer.json.loads(Document.to_json(self))
@@ -69,7 +84,7 @@ class ModelBase():
     def _save_redis(cls, obj):
         key = cls._getKey(obj.guid)
         meta = cls._meta['indexes']
-        expire = meta[0].get('expireAfterSeconds', None) if meta else None
+        expire = meta[2].get('expireAfterSeconds', None) if meta else None
         raw = j.data.serializer.json.dumps(obj.to_dict())
         j.core.db.set(key, raw)
         if expire:
@@ -195,11 +210,11 @@ class Job(EmbeddedDocument):
     tags = StringField()
     critical = StringField()
 
-    meta = {
+    meta = extend(default_meta, {
         'indexes': [{'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}],
         'allow_inheritance': True,
         "db_alias": DB
-    }
+    })
 
 
 class Command(ModelBase, Document):
@@ -224,11 +239,9 @@ class Audit(ModelBase, Document):
     kwargs = StringField(default='')
     timestamp = IntField(default=j.data.time.getTimeEpoch())
 
-
-    meta = {'indexes': [
+    meta = extend(default_meta, {'indexes': [
         {'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}
-    ], 'allow_inheritance': True, "db_alias": DB}
-
+    ], 'allow_inheritance': True, "db_alias": DB})
 
 class Disk(ModelBase, Document):
     partnr = IntField()
@@ -423,8 +436,8 @@ class SessionCache(ModelBase, Document):
     user = StringField()
     _creation_time = IntField(default=j.data.time.getTimeEpoch())
     _accessed_time = IntField(default=j.data.time.getTimeEpoch())
-    meta = {'indexes': [
+    meta = extend(default_meta, {'indexes': [
         {'fields': ['epoch'], 'expireAfterSeconds': 432000}
-    ], 'allow_inheritance': True, "db_alias": DB}
+    ], 'allow_inheritance': True, "db_alias": DB})
 
 del EmbeddedDocument

@@ -266,7 +266,7 @@ class AtYourServiceSandboxer():
 
     def buildUpload_JS(self,sandbox=False,name="main"):
 
-        j.do.createDir("/usr/local/lib/python3.5/site-packages")
+        j.sal.fs.createDir("/usr/local/lib/python3.5/site-packages")
         # j.do.symlink("%s/lib/JumpScale/"%j.dirs.base,"/usr/local/lib/python3.5/site-packages/JumpScale/")
         # j.do.symlink("%s/lib/JumpScale/"%j.dirs.base,"/root/.ipython/JumpScale/")
 

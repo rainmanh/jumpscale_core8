@@ -152,7 +152,7 @@ class Sandboxer():
                 subpath=subpath.replace("site-packages/","")
 
             dest2=dest+"/"+subpath
-            j.do.createDir(j.sal.fs.getDirName(dest2))
+            j.sal.fs.createDir(j.sal.fs.getDirName(dest2))
             # print ("C:%s"%dest2)
             j.do.copyFile(src,dest2)
 
@@ -239,7 +239,7 @@ class Sandboxer():
         j.sal.fs.createDir(j.sal.fs.joinPaths(storpath, "md"))
         for i1 in "1234567890abcdef":
             for i2 in "1234567890abcdef":
-                j.do.createDir("%s/%s/%s" % (storpath2, i1, i2))
+                j.sal.fs.createDir("%s/%s/%s" % (storpath2, i1, i2))
 
         print("DEDUPE: %s to %s" % (path, storpath))
 

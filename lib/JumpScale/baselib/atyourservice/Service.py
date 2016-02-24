@@ -447,7 +447,7 @@ class Service:
         if j.sal.fs.exists(path+'c'):
             j.sal.fs.remove(path+'c')
         if j.sal.fs.exists(path):
-            j.do.createDir(j.sal.fs.getDirName(path))
+            j.sal.fs.createDir(j.sal.fs.getDirName(path))
             path2 = j.sal.fs.joinPaths(self.path, j.sal.fs.getBaseName(path))
             #need to create a copy of the recipe mgmt or node action class
             j.do.copyFile(path, path2)
@@ -511,7 +511,7 @@ class Service:
                     do = True
             if do:
                 print("INIT:%s"%self)
-                j.do.createDir(self.path)
+                j.sal.fs.createDir(self.path)
                 self.runAction("input")
                 hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
 

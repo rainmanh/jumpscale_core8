@@ -128,7 +128,7 @@ class Ubuntu:
         will download to tmp if not there yet
         will then install
         """
-        j.do.chdir() #will go to tmp
+        j.sal.fs.changedir(j.dirs.tmpDir) #will go to tmp
         path=j.do.download(url,"",overwrite=False,minspeed=minspeed,curl=True)
         self.deb_install(path)
         if removeDownloaded:

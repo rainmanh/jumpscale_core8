@@ -222,7 +222,7 @@ class CuisineBuilder(object):
         self.cuisine.pip.install('pygo')
         self.cuisine.golang.install()
 
-    #@actionrun(action=True)
+    @actionrun(action=True)
     def syncthing(self, start=True):
         """
         build and setup syncthing to run on :8384 , this can be changed from the config file in home  
@@ -240,7 +240,7 @@ class CuisineBuilder(object):
         if start:
             self._startSyncthing()
 
-    #@actionrun(action=True)
+    @actionrun(action=True)
     def agent(self,start=True, gid=None, nid=None):
         """
         builds and setsup dependencies of agent to run with the given gid and nid 
@@ -266,7 +266,7 @@ class CuisineBuilder(object):
 
         sourcepath = "$goDir/src/github.com/Jumpscale/agent8"
 
-        self.cuisine.run("cd %s && go build ."%sourcepath,profile=True)
+        self.cuisine.run("cd %s && go build ." % sourcepath, profile=True)
 
         self.cuisine.file_move("%s/agent8" % sourcepath, "$binDir/agent8")
 
@@ -276,13 +276,12 @@ class CuisineBuilder(object):
         self.cuisine.dir_ensure("$cfgDir/agent8/extensions/syncthing")
         self.cuisine.file_copy("$binDir/syncthing", "$cfgDir/agent8/extensions/syncthing/")
 
-
         # manipulate config file
-        C=self.cuisine.file_read("%s/agent.toml"%sourcepath)
+        C = self.cuisine.file_read("%s/agent.toml" % sourcepath)
         cfg = j.data.serializer.toml.loads(C)
         cfg["main"]["message_ID_file"] = cfg["main"]["message_ID_file"].replace("./", "$cfgDir/agent8/")
         cfg["main"]["history_file"] = cfg["main"]["history_file"].replace("./", "$cfgDir/agent8/")
-        cfg["main"]["include"] =  cfg["main"]["include"].replace("./", "$cfgDir/agent8/")
+        cfg["main"]["include"] = cfg["main"]["include"].replace("./", "$cfgDir/agent8/")
         cfg["extensions"]["sync"]["cwd"] = cfg["extensions"]["sync"]["cwd"].replace("./", "$cfgDir/agent8/")
         cfg["extensions"]["jumpscript"]["cwd"] = cfg["extensions"]["jumpscript"]["cwd"].replace("./", "$cfgDir/agent8/")
         cfg["extensions"]["jumpscript_content"]["cwd"] = cfg["extensions"]["jumpscript_content"]["cwd"].replace("./", "$cfgDir/agent8/")
@@ -298,7 +297,7 @@ class CuisineBuilder(object):
         if start:
             self._startAgent(nid, gid)
 
-    #@actionrun(action=True)
+    @actionrun(action=True)
     def agentcontroller(self, start=True):
         """
         config: https://github.com/Jumpscale/agentcontroller8/

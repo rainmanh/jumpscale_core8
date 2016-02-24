@@ -338,7 +338,8 @@ class AtYourServiceFactory():
     def do(self,action="install",printonly=False,remember=True,allservices=False, ask=False):
 
         self.alog
-        self.commitGitChanges(action=action+"_pre", precheck=True)
+        if remember:
+            self.commitGitChanges(action=action+"_pre", precheck=True)
         latestrun = self.alog.newRun(action=action)
 
         if not allservices:
@@ -406,9 +407,6 @@ class AtYourServiceFactory():
             remember = False
         if remember is False and error is False:
             self.alog.removeLastRun()
-            # revert git
-            self.git.checkout("%s/services/" % self.basepath)
-            self.git.checkout("%s/recipes/" % self.basepath)
         else:
             # this will make sure we will have remembered the last state of this action
             self.commitGitChanges(action=action)

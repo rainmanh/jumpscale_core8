@@ -2,7 +2,7 @@ from JumpScale import j
 # import JumpScale.baselib.actions
 
 # import pytoml
-# from contextlib import redirect_stdout
+from contextlib import redirect_stdout
 import io
 import imp
 import sys
@@ -159,7 +159,6 @@ class ActionRun():
                             raise RuntimeError(e)
                     else:
                         f = io.StringIO()
-                        print(1)
                         with redirect_stdout(f):
                             ok=False
                             try:
@@ -172,7 +171,6 @@ class ActionRun():
                                 ok=True
                             except Exception as e:
                                 pass
-                        print(2)
                         # self.setState("ERROR")
                         # self.log("STDOUT:")
                         # self.log(f.getvalue())

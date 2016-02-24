@@ -64,7 +64,7 @@ $name=j.data.hrd.get(content=hrdtmp)
 codetmp=\"\"\"
 $code
 \"\"\"
-j.do.createDir(j.do.getParent(\"$path2save\"))
+j.do.createDir(j.sal.fs.getParent(\"$path2save\"))
 codetmp=codegen.unserialize(codetmp)
 j.sal.fs.writeFile(\"$path2save\",codetmp)
 """

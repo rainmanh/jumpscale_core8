@@ -335,7 +335,7 @@ class AtYourServiceFactory():
 
 
 
-    def do(self,action="install",printonly=False,remember=True,allservices=False):
+    def do(self,action="install",printonly=False,remember=True,allservices=False, ask=False):
 
         self.alog
         self.commitGitChanges(action=action+"_pre", precheck=True)
@@ -349,6 +349,9 @@ class AtYourServiceFactory():
             toChange = set(changed)
             for service in changed:
                 toChange = toChange.union(self.findConsumersRecursive(service))
+
+            if ask:
+                toChange = j.tools.console.askChoiceMultiple(list(toChange), sort=False)
 
             for service in toChange:
                 if action in service.actions:
@@ -420,7 +423,8 @@ class AtYourServiceFactory():
                 producersWaiting = service.getProducersWaiting(action,set())
                 if len(producersWaiting)==0:
                     todo.append(service)
-                    print("%s waiting for install" % service) if j.atyourservice.debug
+                    if j.atyourservice.debug:
+                        print("%s waiting for install" % service)
                 elif j.application.debug:
                     print("%s no change in producers" % service)
         return todo

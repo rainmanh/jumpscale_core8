@@ -210,7 +210,7 @@ class AtYourServiceFactory():
         """
         """
         if self._blueprints==[]:
-            items=j.do.listFilesInDir(self.basepath+"/blueprints")
+            items=j.sal.fs.listFilesInDir(self.basepath+"/blueprints")
             items=[item for item in items if item.find("_archive")==-1]
             items.sort()
             for path in items:

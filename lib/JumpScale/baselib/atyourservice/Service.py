@@ -1067,7 +1067,7 @@ class Service:
     #             else:
     #                 nodirs = False
     #
-    #             items = j.do.listFilesInDir(
+    #             items = j.sal.fs.listFilesInDir(
     #                 path=src, recursive=False, followSymlinks=False, listSymlinks=False)
     #             if nodirs is False:
     #                 items += j.sal.fs.listDirsInDir(

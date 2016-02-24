@@ -7,7 +7,7 @@ import uuid
 
 DB = 'jumpscale_system'
 
-default_meta = {'allow_inheritance': True, "db_alias": DB, 'indexes': ['guid']}
+default_meta = {'allow_inheritance': True, "db_alias": DB}
 
 def extend(a, b):
     if isinstance(a, list):
@@ -26,11 +26,18 @@ def extend(a, b):
 class ModelBase():
     DoesNotExist = DoesNotExist
 
-    guid = StringField(default=lambda: str(uuid.uuid4()), unique=True)
     gid = IntField(default=lambda: j.application.whoAmI.gid if j.application.whoAmI else 0)
     nid = IntField(default=lambda: j.application.whoAmI.nid if j.application.whoAmI else 0)
     epoch = IntField(default=j.data.time.getTimeEpoch)
     meta = default_meta
+
+    @property
+    def guid(self):
+        return self.pk
+
+    @guid.setter
+    def guid(self, value):
+        self.pk = value
 
     def to_dict(self):
         d = j.data.serializer.json.loads(Document.to_json(self))
@@ -98,18 +105,13 @@ class ModelBase():
         for key, value in data.items():
             setattr(self, key, value)
 
-    def save(self, data=None, upsert=False):
+    def save(self, data=None):
         redis = getattr(self, '__redis__', False)
         if data:
             self._datatomodel(data)
         if redis:
             return self._save_redis(self)
         else:
-            if upsert and getattr(self,'guid', None):
-                objs = j.data.models.system.Audit.objects(guid=self.guid)
-                if objs:
-                    self.pk = objs[0].pk
-
             return Document.save(self)
 
     def delete(self):

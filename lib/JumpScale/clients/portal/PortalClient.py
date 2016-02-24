@@ -1,6 +1,6 @@
 import requests
 import os
-import json
+from JumpScale.data.serializers.SerializerUJson import json
 
 
 class ApiError(Exception):

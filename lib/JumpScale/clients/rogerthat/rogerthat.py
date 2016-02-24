@@ -1,5 +1,5 @@
 from JumpScale import j
-import ujson
+from JumpScale.data.serializers.SerializerUJson import json
 
 import urllib.request, urllib.error, urllib.parse
 
@@ -40,12 +40,12 @@ class Rogerthat(object):
 
     def _raw_request(self, method, params):
         data = {'id': j.data.idgenerator.generateGUID(), 'method': method, 'params': params}
-        json_data = ujson.dumps(data)
+        json_data = json.dumps(data)
         headers = {'Content-Type': 'application/json-rpc; charset=utf-8', 'X-Nuntiuz-API-key': self._api_key}
         request = urllib.request.Request(self._url, json_data, headers)
         response = urllib.request.urlopen(request)
         if response.getcode() == 200:
-            result = ujson.loads(response.read())
+            result = json.loads(response.read())
             return result
         else:
             j.logger.log('Server error when executing send_message')

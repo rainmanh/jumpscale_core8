@@ -1,7 +1,6 @@
 from JumpScale import j
-import json
+from JumpScale.data.serializers.SerializerUJson import json
 import requests
-import sys
 
 
 class SkyDNSClientFactory():

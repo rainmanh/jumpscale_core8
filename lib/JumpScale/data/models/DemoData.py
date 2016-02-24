@@ -1,6 +1,6 @@
 import mongoengine
 import inspect
-import json
+from JumpScale.data.serializers.SerializerUJson import json
 from JumpScale.data.models import Models
 from JumpScale import j
 

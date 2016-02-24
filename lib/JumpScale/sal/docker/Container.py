@@ -139,7 +139,7 @@ class Container(SALObject):
         # """
         # c.file_write("/root/.ssh/config", C)
         # if not j.sal.fs.exists(path="/root/.ssh/config"):
-        #     j.do.writeFile("/root/.ssh/config", C)
+        #     j.sal.fs.writeFile("/root/.ssh/config", C)
         # C2 = """
         # apt-get install language-pack-en
         # # apt-get install make
@@ -292,7 +292,7 @@ class Container(SALObject):
     #     """
     #     c.file_write("/root/.ssh/config",C)
     #     if not j.sal.fs.exists(path="/root/.ssh/config"):
-    #         j.do.writeFile("/root/.ssh/config",C)
+    #         j.sal.fs.writeFile("/root/.ssh/config",C)
     #     C2="""
     #     apt-get install language-pack-en
     #     # apt-get install make

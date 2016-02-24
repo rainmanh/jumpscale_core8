@@ -66,14 +66,14 @@ $code
 \"\"\"
 j.do.createDir(j.do.getParent(\"$path2save\"))
 codetmp=codegen.unserialize(codetmp)
-j.do.writeFile(\"$path2save\",codetmp)
+j.sal.fs.writeFile(\"$path2save\",codetmp)
 """
         C=C.replace("$code",self._serialize(code))
         C=C.replace("$path2save",str(path2save))
         self.code+="%s\n"%C
 
     def save(self,path):
-        j.do.writeFile(path,self.code)
+        j.sal.fs.writeFile(path,self.code)
 
     def get(self):
         return self.code

@@ -82,7 +82,7 @@ Host *
 if j.core.platformtype.myplatform.isLinux():
     path=j.sal.fs.joinPaths(os.environ["HOME"],".ssh","config")
     if not j.sal.fs.exists(path):
-        j.do.writeFile(path,C)
+        j.sal.fs.writeFile(path,C)
 
 if opts.action == "status":
     print("\n\nSTATUS: account reponame                  " +

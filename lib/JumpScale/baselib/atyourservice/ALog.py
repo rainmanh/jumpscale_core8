@@ -42,7 +42,7 @@ class ALog():
 
 
         if not j.sal.fs.exists(self.path):
-            j.do.writeFile(self.path,"")
+            j.sal.fs.writeFile(self.path,"")
             self.newRun()
         else:
             self.read()

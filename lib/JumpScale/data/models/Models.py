@@ -98,13 +98,18 @@ class ModelBase():
         for key, value in data.items():
             setattr(self, key, value)
 
-    def save(self, data=None):
+    def save(self, data=None, upsert=False):
         redis = getattr(self, '__redis__', False)
         if data:
             self._datatomodel(data)
         if redis:
             return self._save_redis(self)
         else:
+            if upsert and getattr(self,'guid', None):
+                objs = j.data.models.system.Audit.objects(guid=self.guid)
+                if objs:
+                    self.pk = objs[0].pk
+
             return Document.save(self)
 
     def delete(self):

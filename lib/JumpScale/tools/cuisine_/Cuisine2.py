@@ -904,7 +904,7 @@ class OurCuisine():
         cmd = "cp -v "
         if recursive:
             cmd += "-r "
-        if overwrite:
+        if not overwrite:
             cmd += "--no-clobber "
         cmd += '%s %s' % (source, dest)
         self.run(cmd)

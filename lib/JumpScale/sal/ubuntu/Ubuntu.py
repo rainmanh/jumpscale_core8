@@ -129,7 +129,7 @@ class Ubuntu:
         will then install
         """
         j.sal.fs.changedir(j.dirs.tmpDir) #will go to tmp
-        path=j.do.download(url,"",overwrite=False,minspeed=minspeed,curl=True)
+        path=j.sal.nettools.download(url,"")
         self.deb_install(path)
         if removeDownloaded:
             j.tools.path.get(path).rmtree_p()

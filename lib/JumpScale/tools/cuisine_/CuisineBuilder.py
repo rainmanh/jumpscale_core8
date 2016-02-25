@@ -295,6 +295,9 @@ class CuisineBuilder(object):
         # self.cuisine.dir_ensure("$cfgDir/agent8/agent8/conf", recursive=True)
 
         if start:
+            self._startMongodb()
+            self._startRedis()
+            self._startSyncthing()
             self._startAgent(nid, gid)
 
     @actionrun(action=True)
@@ -363,6 +366,9 @@ class CuisineBuilder(object):
         self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extensions", recursive=True)
 
         if start:
+            self._startMongodb()
+            self._startRedis()
+            self._startSyncthing()
             self._startAgentController()
 
 
@@ -375,6 +381,7 @@ class CuisineBuilder(object):
 
 
     def _startAgent(self, nid, gid):
+
         print("connection test ok to agentcontroller")
         #@todo (*1*) need to implement to work on node
         env={}
@@ -389,6 +396,16 @@ class CuisineBuilder(object):
         cmd = "$binDir/agentcontroller8 -c $cfgDir/agentcontroller8/agentcontroller.toml"
         pm = self.cuisine.processmanager.get("tmux")
         pm.ensure("agentcontroller8", cmd=cmd, path="$cfgDir/agentcontroller8/", env=env)
+
+    def _startRedis(self):
+        cmd="redis-server %s"%cpath
+        self.cuisine.processmanager.ensure(name="redis_%s"%name,cmd=cmd,env={},path='$binDir')
+
+    def _startMongodb(self):
+        which = self.cuisine.command_location("mongod")
+        cmd="%s --dbpath $varDir/data/db" % which
+        self.cuisine.process.kill("mongod")
+        self.cuisine.processmanager.ensure("mongod",cmd=cmd,env={},path="")
 
     @actionrun(action=True)
     def etcd(self,start=True, host=None, peers=[]):
@@ -510,10 +527,9 @@ class CuisineBuilder(object):
         j.clients.redis.configureInstance(name, ip, port, maxram=maxram, appendonly=appendonly, \
             snapshot=snapshot, slave=slave, ismaster=ismaster, passwd=passwd, unixsocket=True)
         dpath,cpath=j.clients.redis._getPaths(name)
-
+        
         if start:
-            cmd="redis-server %s"%cpath
-            self.cuisine.processmanager.ensure(name="redis_%s"%name,cmd=cmd,env={},path='$binDir')
+            self._startRedis()
 
     @actionrun(action=True)
     def mongodb(self, start=True):
@@ -554,10 +570,7 @@ class CuisineBuilder(object):
 
 
         if start:
-            which = self.cuisine.command_location("mongod")
-            cmd="%s --dbpath $varDir/data/db" % which
-            self.cuisine.process.kill("mongod")
-            self.cuisine.processmanager.ensure("mongod",cmd=cmd,env={},path="")
+            self._startMongodb()
 
     def influxdb(self, start=True):
         self.cuisine.installer.base()

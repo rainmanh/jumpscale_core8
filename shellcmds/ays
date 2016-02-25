@@ -5,7 +5,7 @@ from JumpScale import j
 import click
 
 @click.group()
-@click.option('--debug', default=False, help='enable debug', is_flag=True)
+@click.option('--debug', default=True, help='enable debug', is_flag=True)
 def cli(debug):
     j.atyourservice.debug = debug
 

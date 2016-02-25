@@ -93,7 +93,7 @@ class TelegramAYS():
     def executeProgressive(self, bot, update, command):
         print("[+] executing: %s" % command)
         process = j.do.execute(command, outputStdout=False, useShell=False, dieOnNonZeroExitCode=False, async=True)
-        prefixs = ['INIT:', 'RUN:', 'NO METHODS FOR:', 'OUT:']
+        prefixs = ['INIT:', 'RUN:', 'NO METHODS FOR:', 'OUT:', 'Exception:']
 
         rawbuffer = []
         outbuffer = []

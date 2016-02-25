@@ -289,6 +289,7 @@ class TelegramAYS():
 		
 		# ays uninstall before
 		self._ays_sync(bot, update, args=['do', 'uninstall'])
+		j.actions.resetAll()
 		
 		for name in names:
 			if name == "*" or name == "all":

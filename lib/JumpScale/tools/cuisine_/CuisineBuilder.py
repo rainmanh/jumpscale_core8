@@ -251,7 +251,7 @@ class CuisineBuilder(object):
         #self.cuisine.installer.jumpscale8()
         self.redis()
         self.mongodb()
-        self.syncthing()
+        self.syncthing(start=False)
 
         self.cuisine.tmux.killWindow("main","agent")
 

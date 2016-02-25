@@ -76,7 +76,7 @@ class AtYourServiceSandboxer():
         self.model.save()
 
     def reset(self):
-        j.do.delete(self.model.storpath)
+        j.sal.fs.remove(self.model.storpath)
 
     def setHost(self,host,port=22):
         self.model.host=host

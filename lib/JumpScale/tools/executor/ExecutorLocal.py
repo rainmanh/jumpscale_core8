@@ -24,7 +24,7 @@ class ExecutorLocal(ExecutorBase):
 
     def executeInteractive(self, cmds, die=True, checkok=None):
         cmds = self._transformCmds(cmds, die, checkok=checkok)
-        return j.do.executeInteractive(cmds)
+        return j.sal.process.executeWithoutPipe(cmds)
 
     def upload(self, source, dest, dest_prefix="", recursive=True):
         if dest_prefix != "":

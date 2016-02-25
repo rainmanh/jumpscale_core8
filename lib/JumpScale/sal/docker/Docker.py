@@ -62,7 +62,7 @@ class Docker(SALObject):
     #
     #     cmd = "cp -r /var/jumpscale/%s/%s %s" % (rndd, source_name, dest)
     #     self.run(name, cmd)
-    #     j.do.delete(temp)
+    #     j.sal.fs.remove(temp)
 
     @property
     def containers(self):

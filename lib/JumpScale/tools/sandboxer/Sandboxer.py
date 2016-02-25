@@ -175,7 +175,7 @@ class Sandboxer():
             dest2_bro = "%s/%s/%s/%s.bro_" % (storpath2, md5[0], md5[1], md5)
             path_src=j.tools.path.get(srcReal)
             self.original_size+=path_src.size
-            j.do.delete(dest2_bro)
+            j.sal.fs.remove(dest2_bro)
 
             if compress:
                 print ("- %-100s %sMB"%(srcReal,round(path_src.size/1000000,1)))
@@ -206,13 +206,13 @@ class Sandboxer():
                     efficiency_now=0
                 print ("- %-100s %-6s %-6s %sMB"%("",efficiency,efficiency_now,round(self.original_size/1000000,1)))
                 if verify:
-                    j.do.delete(dest2verify)
+                    j.sal.fs.remove(dest2verify)
                     cmd="bro --decompress --quality 10 --input '%s' --output %s"%(dest2_bro,dest2verify)
                     j.do.execute(cmd)
                     hhash=j.data.hash.md5(dest2verify)
                     if hhash!=md5:
                         raise RuntimeError("error in compression:%s"%cmd)
-                    j.do.delete(dest2verify)
+                    j.sal.fs.remove(dest2verify)
                 j.sal.fs.moveFile(dest2_bro,dest2_bro_final)
 
                 md5 = md5_bro
@@ -233,7 +233,7 @@ class Sandboxer():
 
 
         if reset:
-            j.do.delete(storpath)
+            j.sal.fs.remove(storpath)
         storpath2 = j.sal.fs.joinPaths(storpath, "files")
         j.sal.fs.createDir(storpath2)
         j.sal.fs.createDir(j.sal.fs.joinPaths(storpath, "md"))
@@ -248,7 +248,7 @@ class Sandboxer():
         if append and j.sal.fs.exists(path=plistfile):
             out = j.sal.fs.fileGetContents(plistfile)
         else:
-            j.do.delete(plistfile)
+            j.sal.fs.remove(plistfile)
             out = ""
 
         # excludeFileRegex=[]

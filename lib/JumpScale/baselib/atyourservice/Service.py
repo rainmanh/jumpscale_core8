@@ -464,8 +464,8 @@ class Service:
         modulename = "JumpScale.atyourservice.%s.%s.%s.%s" % (self.domain, self.name, self.instance,ttype)
         mod = loadmodule(modulename, path2)
         #is only there temporary don't want to keep it there
-        j.do.delete(path2)
-        j.do.delete(j.sal.fs.joinPaths(self.path,"__pycache__"))
+        j.sal.fs.remove(path2)
+        j.sal.fs.remove(j.sal.fs.joinPaths(self.path,"__pycache__"))
         return mod.Actions(self)
 
     @property
@@ -980,7 +980,7 @@ class Service:
     #         return
 
     #     statePath = j.sal.fs.joinPaths(self.path, 'state.toml')
-    #     j.do.delete(statePath)
+    #     j.sal.fs.remove(statePath)
 
     # def reset(self):
     #     """
@@ -997,7 +997,7 @@ class Service:
     #         name = recipeitem['url'].replace(
     #             "https://", "").replace("http://", "").replace(".git", "")
     #         dest = "/opt/build/%s" % name
-    #         j.do.delete(dest)
+    #         j.sal.fs.remove(dest)
     #
     #     self.action_methods_mgmt.removedata(self)
     #     j.atyourservice.remove(self)

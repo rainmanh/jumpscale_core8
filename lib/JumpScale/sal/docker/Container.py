@@ -49,7 +49,7 @@ class Container(SALObject):
 
     def run(self, name, cmd):
         cmd2 = "docker exec -i -t %s %s" % (self.name, cmd)
-        j.do.executeInteractive(cmd2)
+        j.sal.process.executeWithoutPipe(cmd2)
 
     def execute(self, path):
         """
@@ -74,7 +74,7 @@ class Container(SALObject):
 
         cmd = "cp -r /var/jumpscale/%s/%s %s" % (rndd, source_name, dest)
         self.run(self.name, cmd)
-        j.do.delete(temp)
+        j.sal.fs.remove(temp)
 
 
     @property

@@ -105,7 +105,7 @@ for provider, account, reponame, branch, client, path in repos:
             login = j.application.config.get("whoami.git.login")
             passwd = j.application.config.get("whoami.git.passwd")
             _, _, _, _, repository_url = j.do.rewriteGitRepoUrl(url=str(url), login=login, passwd=passwd)
-            j.do.executeInteractive("cd %s;git remote set-url origin '%s'" % (path, repository_url))
+            j.sal.process.executeWithoutPipe("cd %s;git remote set-url origin '%s'" % (path, repository_url))
 
     if opts.action == "update" and opts.deletechanges:
         print(("force update %s/%s/%s" % (provider, account, reponame)))

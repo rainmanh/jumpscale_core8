@@ -108,7 +108,7 @@ class ExecutorSSH(ExecutorBase):
         if dest[0] !="/":
             raise RuntimeError("need / in beginning of dest path")
         dest = "root@%s:%s" % (self.addr, dest)
-        j.do.copyTree(source, dest, keepsymlinks=True, deletefirst=False, \
+        j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False, \
             overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,\
             ssh=True, sshport=self.port,recursive=recursive, createdir=createdir)
 
@@ -119,6 +119,6 @@ class ExecutorSSH(ExecutorBase):
         if source[0] !="/":
             raise RuntimeError("need / in beginning of source path")
         source = "root@%s:%s" % (self.addr,source)
-        j.do.copyTree(source, dest, keepsymlinks=True, deletefirst=False, \
+        j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False, \
             overwriteFiles=True, ignoredir=[".egg-info",".dist-info"], ignorefiles=[".egg-info"], rsync=True,\
             ssh=True, sshport=self.port,recursive=recursive)

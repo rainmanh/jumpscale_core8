@@ -68,7 +68,7 @@ class ActionsBaseNode(object):
                 port = client.hrd.getInt('ssh.port')
                 root = client.hrd.getStr('root')
                 src = '%s:%s/dedupe/md/%s' % (addr, root, flist)
-                j.do.copyTree(src, mdPath, deletefirst=True, overwriteFiles=True, ssh=True, sshport=port, recursive=False)
+                j.sal.fs.copyDirTree(src, mdPath, deletefirst=True, overwriteFiles=True, ssh=True, sshport=port, recursive=False)
 
                 content = j.sal.fs.fileGetContents(mdPath)
                 for line in content.splitlines():
@@ -84,7 +84,7 @@ class ActionsBaseNode(object):
                     value, unit = j.data.units.bytes.converToBestUnit(int(size))
                     unit = unit if unit != '' else 'B'
                     print("downloading %s (%s %s)" % (path, value, unit))
-                    j.do.copyTree(src, path, deletefirst=False, overwriteFiles=False, ssh=True, sshport=port, recursive=False)
+                    j.sal.fs.copyDirTree(src, path, deletefirst=False, overwriteFiles=False, ssh=True, sshport=port, recursive=False)
 
                     # @TODO need a way to know if the file need to be executable or not
                     j.sal.fs.chmod(path, 0o775)

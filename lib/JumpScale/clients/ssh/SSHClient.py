@@ -191,7 +191,7 @@ class SSHClient(object):
             raise RuntimeError("dest path should be absolute, need / in beginning of dest path")
 
         dest = "%s@%s:%s" % (self.login, self.addr, dest)
-        j.do.copyTree(source, dest, keepsymlinks=True, deletefirst=False,
+        j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False,
                       overwriteFiles=True, ignoredir=[".egg-info", ".dist-info", "__pycache__"], ignorefiles=[".egg-info"], rsync=True,
                       ssh=True, sshport=self.port, recursive=recursive)
 
@@ -199,7 +199,7 @@ class SSHClient(object):
         if source[0] != "/":
             raise RuntimeError("source path should be absolute, need / in beginning of source path")
         source = "%s@%s:%s" % (self.login, self.addr, source)
-        j.do.copyTree(source, dest, keepsymlinks=True, deletefirst=False,
+        j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False,
                       overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
                       ssh=True, sshport=self.port, recursive=recursive)
 

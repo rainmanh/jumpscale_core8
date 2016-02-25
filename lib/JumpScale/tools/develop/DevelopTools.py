@@ -273,15 +273,15 @@ class DevelopToolsFactory():
                         dest = "root@%s:/opt/jumpscale8/lib/JumpScale/" % node.addr
                         source2 = source + "/lib/JumpScale/"
 
-                        j.do.copyTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True,rsyncdelete=rsyncdelete)
+                        j.sal.fs.copyDirTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True,rsyncdelete=rsyncdelete)
 
                         source2 = source + "/install/InstallTools.py"
                         dest = "root@%s:/opt/jumpscale8/lib/JumpScale/InstallTools.py" % node.addr
-                        j.do.copyTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=False)
+                        j.sal.fs.copyDirTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=False)
 
                         source2 = source + "/install/ExtraTools.py"
                         dest = "root@%s:/opt/jumpscale8/lib/JumpScale/ExtraTools.py" % node.addr
-                        j.do.copyTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=False)
+                        j.sal.fs.copyDirTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=False)
 
                     else:
                         node.cuisine.run("mkdir -p /opt/code/%s" % source.split("code/", 1)[1])
@@ -289,7 +289,7 @@ class DevelopToolsFactory():
                             rsyncdelete2=True
                         else:
                             rsyncdelete2=rsyncdelete
-                        j.do.copyTree(source, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True,rsyncdelete=rsyncdelete2)
+                        j.sal.fs.copyDirTree(source, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True,rsyncdelete=rsyncdelete2)
                 else:
                     raise RuntimeError("only ssh nodes supported")
 

@@ -209,7 +209,7 @@ class AtYourServiceSandboxer():
             except:
                 self.installAYSFS()
 
-            # j.do.copyTree(self.model.storpath+"/files/", "root@%s:/mnt/ays/cachelocal/%s"%(self.model.host,self.model.namespace), \
+            # j.sal.fs.copyDirTree(self.model.storpath+"/files/", "root@%s:/mnt/ays/cachelocal/%s"%(self.model.host,self.model.namespace), \
             #     keepsymlinks=False, deletefirst=False, overwriteFiles=False, rsync=True, ssh=True, sshport=self.model.port, recursive=True)
 
         if self.model.populate_grid_cache:
@@ -219,7 +219,7 @@ class AtYourServiceSandboxer():
             pass
             # self._upload(self.model.host,"/mnt/ays/cachelocal/dedupe/")
             # #@todo ....
-            # j.do.copyTree(self.model.storpath+"/md/0.flist", "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
+            # j.sal.fs.copyDirTree(self.model.storpath+"/md/0.flist", "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
 
         if self.model.populate_master_cache:
             store_client = j.clients.storx.get("http://stor.jumpscale.org/storx")
@@ -241,11 +241,11 @@ class AtYourServiceSandboxer():
                 raise RuntimeError('some files didnt upload properly. %s' % ("\n".join(error_files)))
 
             metadataPath = j.sal.fs.joinPaths(self.model.storpath, "md","0.flist")
-            j.do.copyTree(metadataPath, "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
+            j.sal.fs.copyDirTree(metadataPath, "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
 
 
         # if self.model.host!="":
-        #     j.do.copyTree(self.model.storpath+"/md/0.flist","root@%s:/etc/ays/local/"%(self.model.host),overwriteFiles=True, rsync=True, ssh=True, sshport=self.model.port)
+        #     j.sal.fs.copyDirTree(self.model.storpath+"/md/0.flist","root@%s:/etc/ays/local/"%(self.model.host),overwriteFiles=True, rsync=True, ssh=True, sshport=self.model.port)
         #     try:
         #         pid=self.cuisine_host.run("pgrep aysfs")
         #     except:

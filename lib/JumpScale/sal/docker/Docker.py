@@ -52,7 +52,7 @@ class Docker(SALObject):
     #     j.sal.fs.createDir(temp)
     #     source_name = j.sal.fs.getBaseName(src)
     #     if j.sal.fs.isDir(src):
-    #         j.do.copyTree(src, j.sal.fs.joinPaths(temp, source_name))
+    #         j.sal.fs.copyDirTree(src, j.sal.fs.joinPaths(temp, source_name))
     #     else:
     #         j.sal.fs.copyFile(src, j.sal.fs.joinPaths(temp, source_name))
     #

@@ -78,19 +78,19 @@ class LogItem(object):
         cat, line1 = line.split("|", 1)
         cat = cat.strip()
         if cat == "R":
-            epoch, runid, action, hrdtime = line1.split("|")
+            epoch, runid, action, hrdtime = line1.split("|", 3)
             return RunLine(runid=int(runid), action=action, hrdtime=hrdtime, epoch=int(epoch))
 
         if cat == "G":
-            epoch, category, githash = [item.strip() for item in line1.split("|", 3)]
+            epoch, category, githash = [item.strip() for item in line1.split("|", 2)]
             return GitLine(category=category, git_hash=githash, epoch=epoch)
 
         if cat == "A":
-            epoch, servicekey, action, state = [item.strip() for item in line1.split("|")]
+            epoch, servicekey, action, state = [item.strip() for item in line1.split("|", 3)]
             return ActionLine(key=servicekey, action_name=action, state=state, epoch=epoch)
 
         if cat == "L":
-            epoch, level, msg = [item.strip() for item in line1.split("|")]
+            epoch, level, msg = [item.strip() for item in line1.split("|", 2)]
             try:
                 level = int(level)
                 return LogLine(msg=msg, level=level, epoch=None)

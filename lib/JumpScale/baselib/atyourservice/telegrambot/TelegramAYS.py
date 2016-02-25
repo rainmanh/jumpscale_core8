@@ -82,7 +82,7 @@ class TelegramAYS():
         return '%s/%s/%s/blueprints' % (self.rootpath, username, project)
 
     def _currentProjectPath(self, username):
-        return self._projectPath(self._currentProject(username))
+        return self._projectPath(username, self._currentProject(username))
 
     def _currentBlueprintsPath(self, username):
         return self._blueprintsPath(username, self._currentProject(username))
@@ -296,21 +296,28 @@ class TelegramAYS():
 
                 ln = len(blueprints)
                 message = "%d blueprint%s removed" % (ln, "s" if ln > 1 else "")
-                return bot.sendMessage(chat_id=update.message.chat_id, text=message)
+                bot.sendMessage(chat_id=update.message.chat_id, text=message)
 
-            blueprint = '%s/%s' % (self._blueprintsPath(username, project), name)
+            else:
+                blueprint = '%s/%s' % (self._blueprintsPath(username, project), name)
 
-            print('[+] deleting: %s' % blueprint)
+                print('[+] deleting: %s' % blueprint)
 
-            if not j.sal.fs.exists(blueprint):
-                message = "Sorry, I don't find any blueprint named `%s`, you can list them with `/blueprint`" % name
+                if not j.sal.fs.exists(blueprint):
+                    message = "Sorry, I don't find any blueprint named `%s`, you can list them with `/blueprint`" % name
+                    bot.sendMessage(chat_id=update.message.chat_id, text=message, parse_mode="Markdown")
+                    continue
+
+                j.sal.fs.remove(blueprint)
+
+                message = "Blueprint `%s` removed from `%s`" % (name, project)
                 bot.sendMessage(chat_id=update.message.chat_id, text=message, parse_mode="Markdown")
-                continue
 
-            j.sal.fs.remove(blueprint)
-
-            message = "Blueprint `%s` removed from `%s`" % (name, project)
-            bot.sendMessage(chat_id=update.message.chat_id, text=message, parse_mode="Markdown")
+        # cleaning
+        j.sal.fs.removeDirTree('%s/alog' % self._currentProjectPath(username))
+        j.sal.fs.removeDirTree('%s/recipes' % self._currentProjectPath(username))
+        j.sal.fs.removeDirTree('%s/services' % self._currentProjectPath(username))
+        j.sal.fs.createDir('%s/services' % self._currentProjectPath(username))
 
     def _blueprintsDeletePrompt(self, bot, update, project):
         username = update.message.from_user.username

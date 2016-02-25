@@ -571,7 +571,7 @@ class CuisineBuilder(object):
 
 
         if start:
-            self._startMongodb(name)
+            self._startMongodb("mongod")
 
     def influxdb(self, start=True):
         self.cuisine.installer.base()

@@ -60,7 +60,7 @@ class CuisineSystemd(ProcessManagerBase):
         self.stop(prefix)
         for name,status in self.list(prefix):
             self.stop(name)
-            
+
             for item in self.cuisine.fs_find("/etc/systemd",True,"*%s.service"%name):
                 print("remove:%s"%item)
                 self.cuisine.file_unlink(item)
@@ -87,7 +87,6 @@ class CuisineSystemd(ProcessManagerBase):
             for name0, value in list(env.items()):
                 envstr += "%s=%s " % (name0, value)
 
-            cmd = cmd.replace('"', r'\"')
             cmd = self.cuisine._clean(cmd)
 
             if systemdunit!="":
@@ -160,8 +159,6 @@ class CuisineRunit(ProcessManagerBase):
                 envstr += "export %s=%s\n" % (name0, value)
 
 
-            cmd = cmd.replace('"', r'\"')
-
             if path and (path not in cmd):
                 cmd = "%s/%s" % (path, cmd)
 
@@ -192,8 +189,8 @@ exec $cmd
         """removes process from init"""
         if self.cuisine.file_exists("/etc/service/%s/run" %prefix ):
             self.stop(prefix)
-            self.cuisine.dir_remove("/etc/service/%s/run" %prefix)         
-                
+            self.cuisine.dir_remove("/etc/service/%s/run" %prefix)
+
 
 
 
@@ -235,7 +232,6 @@ class CuisineTmuxec(ProcessManagerBase):
                 envstr += "export %s=%s && " % (name0, value)
 
 
-            cmd = cmd.replace('"', r'\"')
 
             if path:
                 cwd = "cd %s &&" % path

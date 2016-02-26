@@ -1140,7 +1140,8 @@ class OurCuisine():
             ppath=self.bash.profilePath
             if ppath!=None:
                 cmd=". %s && %s"%(ppath,cmd)
-            print ("PROFILECMD:%s"%cmd)
+            if showout:
+                print ("PROFILECMD:%s"%cmd)
 
         if self.sudomode:
             passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''

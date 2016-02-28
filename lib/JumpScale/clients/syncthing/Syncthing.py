@@ -37,7 +37,7 @@ class SyncthingClient:
             return j.tools.cuisine.local.run_script(content=cmds, die=die)
         else:
             executor = j.tools.cuisine.get(j.tools.executor.getSSHBased(addr=self.addr, port=self.sshport))
-            return executor.runscript(content=cmds, die=die)
+            return executor.run_script(content=cmds, die=die)
 
     def install(self,name=""):
         C="""

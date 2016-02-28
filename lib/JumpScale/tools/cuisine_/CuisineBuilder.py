@@ -241,12 +241,11 @@ class CuisineBuilder(object):
             self._startSyncthing()
 
     @actionrun(action=True)
-    def agent(self,start=True, gid=None, nid=None):
+    def agent(self,start=False, gid=None, nid=None):
         """
         builds and setsup dependencies of agent to run with the given gid and nid 
         niether can be zero 
         """
-
         self.installdeps()
         #self.cuisine.installer.jumpscale8()
         self.redis()
@@ -255,42 +254,42 @@ class CuisineBuilder(object):
 
         self.cuisine.tmux.killWindow("main","agent")
 
-        self.cuisine.process.kill("agent8")
+        self.cuisine.process.kill("core")
 
-        self.cuisine.dir_ensure("$cfgDir/agent8", recursive=True)
-        self.cuisine.dir_ensure("$cfgDir/agent8/conf", recursive=True)
-        self.cuisine.dir_ensure("$cfgDir/agent8/mid", recursive=True)
+        self.cuisine.dir_ensure("$cfgDir/core", recursive=True)
+        self.cuisine.dir_ensure("$cfgDir/core/conf", recursive=True)
+        self.cuisine.dir_ensure("$cfgDir/core/mid", recursive=True)
 
-        url = "github.com/Jumpscale/agent8"
+        url = "github.com/g8os/core"
         self.cuisine.golang.get(url)
 
-        sourcepath = "$goDir/src/github.com/Jumpscale/agent8"
+        sourcepath = "$goDir/src/github.com/g8os/core"
 
         self.cuisine.run("cd %s && go build ." % sourcepath, profile=True)
 
-        self.cuisine.file_move("%s/agent8" % sourcepath, "$binDir/agent8")
+        self.cuisine.file_move("%s/core" % sourcepath, "$binDir/core")
 
         # copy extensions
-        self.cuisine.dir_remove("$cfgDir/agent8/extensions")
-        self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agent8", recursive=True)
-        self.cuisine.dir_ensure("$cfgDir/agent8/extensions/syncthing")
-        self.cuisine.file_copy("$binDir/syncthing", "$cfgDir/agent8/extensions/syncthing/")
+        self.cuisine.dir_remove("$cfgDir/core/extensions")
+        self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/core", recursive=True)
+        self.cuisine.dir_ensure("$cfgDir/core/extensions/syncthing")
+        self.cuisine.file_copy("$binDir/syncthing", "$cfgDir/core/extensions/syncthing/")
 
         # manipulate config file
         C = self.cuisine.file_read("%s/agent.toml" % sourcepath)
         cfg = j.data.serializer.toml.loads(C)
-        cfg["main"]["message_ID_file"] = cfg["main"]["message_ID_file"].replace("./", "$cfgDir/agent8/")
-        cfg["main"]["history_file"] = cfg["main"]["history_file"].replace("./", "$cfgDir/agent8/")
-        cfg["main"]["include"] = cfg["main"]["include"].replace("./", "$cfgDir/agent8/")
-        cfg["extensions"]["sync"]["cwd"] = cfg["extensions"]["sync"]["cwd"].replace("./", "$cfgDir/agent8/")
-        cfg["extensions"]["jumpscript"]["cwd"] = cfg["extensions"]["jumpscript"]["cwd"].replace("./", "$cfgDir/agent8/")
-        cfg["extensions"]["jumpscript_content"]["cwd"] = cfg["extensions"]["jumpscript_content"]["cwd"].replace("./", "$cfgDir/agent8/")
-        cfg["extensions"]["js_daemon"]["cwd"] = cfg["extensions"]["js_daemon"]["cwd"].replace("./", "$cfgDir/agent8/")
-        cfg["logging"]["db"]["address"] = cfg["logging"]["db"]["address"].replace("./", "$cfgDir/agent8/")
+        cfg["main"]["message_ID_file"] = cfg["main"]["message_ID_file"].replace("./", "$cfgDir/core/")
+        cfg["main"]["history_file"] = cfg["main"]["history_file"].replace("./", "$cfgDir/core/")
+        cfg["main"]["include"] = cfg["main"]["include"].replace("./", "$cfgDir/core/")
+        cfg["extensions"]["sync"]["cwd"] = cfg["extensions"]["sync"]["cwd"].replace("./", "$cfgDir/core/")
+        cfg["extensions"]["jumpscript"]["cwd"] = cfg["extensions"]["jumpscript"]["cwd"].replace("./", "$cfgDir/core/")
+        cfg["extensions"]["jumpscript_content"]["cwd"] = cfg["extensions"]["jumpscript_content"]["cwd"].replace("./", "$cfgDir/core/")
+        cfg["extensions"]["js_daemon"]["cwd"] = cfg["extensions"]["js_daemon"]["cwd"].replace("./", "$cfgDir/core/")
+        cfg["logging"]["db"]["address"] = cfg["logging"]["db"]["address"].replace("./", "$cfgDir/core/")
         C = j.data.serializer.toml.dumps(cfg)
 
-        self.cuisine.file_write("$cfgDir/agent8/agent.toml", C, replaceArgs=True)
-        self.cuisine.file_write("$cfgDir/agent8/agent.toml.org", C, replaceArgs=False)
+        self.cuisine.file_write("$cfgDir/core/agent.toml", C, replaceArgs=True)
+        self.cuisine.file_write("$cfgDir/core/agent.toml.org", C, replaceArgs=False)
 
         # self.cuisine.dir_ensure("$cfgDir/agent8/agent8/conf", recursive=True)
 
@@ -300,7 +299,7 @@ class CuisineBuilder(object):
     @actionrun(action=True)
     def agentcontroller(self, start=True):
         """
-        config: https://github.com/Jumpscale/agentcontroller8/
+        config: https://github.com/g8os/controller.git
         """
         import re
         import hashlib
@@ -313,30 +312,30 @@ class CuisineBuilder(object):
         pm = self.cuisine.processmanager.get("tmux")
         pm.stop("syncthing")
 
-        self.cuisine.dir_ensure("$cfgDir/agentcontroller8", recursive=True)
+        self.cuisine.dir_ensure("$cfgDir/controller", recursive=True)
 
         #get repo 
-        url = "github.com/Jumpscale/agentcontroller8"
+        url = "github.com/g8os/controller"
         self.cuisine.golang.godep(url)
-        sourcepath = "$goDir/src/github.com/Jumpscale/agentcontroller8"
+        sourcepath = "$goDir/src/github.com/g8os/controller"
 
         #do the actual building
         self.cuisine.run("cd %s && go build ." % sourcepath, profile=True)
 
         #move binary 
-        self.cuisine.file_move("%s/agentcontroller8" % sourcepath, "$binDir/agentcontroller8")
+        self.cuisine.file_move("%s/controller" % sourcepath, "$binDir/controller")
         #edit config 
         C = self.cuisine.file_read("%s/agentcontroller.toml"%sourcepath)
         cfg = j.data.serializer.toml.loads(C)
 
-        cfg["events"]["python_path"] = cfg["events"]["python_path"].replace("./", "$cfgDir/agentcontroller8/")
-        cfg["processor"]["python_path"] = cfg["processor"]["python_path"].replace("./", "$cfgDir/agentcontroller8/")
-        cfg["jumpscripts"]["python_path"] = cfg["jumpscripts"]["python_path"].replace("./", "$cfgDir/agentcontroller8/")
-        cfg["jumpscripts"]["settings"]["jumpscripts_path"] = cfg["jumpscripts"]["settings"]["jumpscripts_path"].replace("./", "$cfgDir/agentcontroller8/")
+        cfg["events"]["python_path"] = cfg["events"]["python_path"].replace("./", "$cfgDir/controller/")
+        cfg["processor"]["python_path"] = cfg["processor"]["python_path"].replace("./", "$cfgDir/controller/")
+        cfg["jumpscripts"]["python_path"] = cfg["jumpscripts"]["python_path"].replace("./", "$cfgDir/controller/")
+        cfg["jumpscripts"]["settings"]["jumpscripts_path"] = cfg["jumpscripts"]["settings"]["jumpscripts_path"].replace("./", "$cfgDir/controller/")
 
         C = j.data.serializer.toml.dumps(cfg)
-        self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml', C, replaceArgs=True)
-        self.cuisine.file_write('$cfgDir/agentcontroller8/agentcontroller.toml.org', C, replaceArgs=False)
+        self.cuisine.file_write('$cfgDir/controller/agentcontroller.toml', C, replaceArgs=True)
+        self.cuisine.file_write('$cfgDir/controller/agentcontroller.toml.org', C, replaceArgs=False)
 
         #expose syncthing and get api key  
         sync_cfg = self.cuisine.file_read("$homeDir/.config/syncthing/config.xml")
@@ -353,14 +352,14 @@ class CuisineBuilder(object):
         if not self.cuisine.executor.type == 'local':
             addr = self.executor.addr
         synccl = j.clients.syncthing.get(addr,18384, apikey=apikey)
-        jumpscripts_path = self.cuisine.args_replace("$cfgDir/agentcontroller8/jumpscripts")
+        jumpscripts_path = self.cuisine.args_replace("$cfgDir/controller/jumpscripts")
         jumpscripts_id = "jumpscripts-%s" % hashlib.md5(synccl.id_get().encode()).hexdigest()
         synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
 
 
         #file copy 
-        self.cuisine.dir_remove("$cfgDir/agentcontroller8/extensions")
-        self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extensions", recursive=True)
+        self.cuisine.dir_remove("$cfgDir/controller/extensions")
+        self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/controller/extensions", recursive=True)
 
         if start:
  
@@ -383,9 +382,9 @@ class CuisineBuilder(object):
         #@todo (*1*) need to implement to work on node
         env={}
         env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
-        cmd = "$binDir/agent8 -nid %s -gid %s -c $cfgDir/agent8/agent.toml" % (nid, gid)
+        cmd = "$binDir/core -nid %s -gid %s -c $cfgDir/core/agent.toml" % (nid, gid)
         pm = self.cuisine.processmanager.get("tmux")
-        pm.ensure("agent8", cmd=cmd, path="$cfgDir/agent8",  env=env)
+        pm.ensure("core", cmd=cmd, path="$cfgDir/core",  env=env)
 
     def _startAgentController(self):
         self._startMongodb()
@@ -393,9 +392,9 @@ class CuisineBuilder(object):
         self._startSyncthing()
         env = {}
         env["TMPDIR"] = self.cuisine.dir_paths["tmpDir"]
-        cmd = "$binDir/agentcontroller8 -c $cfgDir/agentcontroller8/agentcontroller.toml"
+        cmd = "$binDir/controller -c $cfgDir/controller/agentcontroller.toml"
         pm = self.cuisine.processmanager.get("tmux")
-        pm.ensure("agentcontroller8", cmd=cmd, path="$cfgDir/agentcontroller8/", env=env)
+        pm.ensure("controller", cmd=cmd, path="$cfgDir/controller/", env=env)
 
     def _startRedis(self, name="redis_main"):
         dpath,cpath=j.clients.redis._getPaths(name)

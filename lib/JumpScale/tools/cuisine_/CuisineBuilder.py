@@ -3,12 +3,14 @@ from JumpScale import j
 
 
 from ActionDecorator import ActionDecorator
-class actionrun(ActionDecorator):
-    def __init__(self,*args,**kwargs):
-        ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.builder"
-
 from CuisineMongoCluster import mongoCluster
+
+
+class actionrun(ActionDecorator):
+    def __init__(self, *args, **kwargs):
+        ActionDecorator.__init__(self, *args, **kwargs)
+        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.builder"
+
 
 class CuisineBuilder(object):
 
@@ -19,7 +21,6 @@ class CuisineBuilder(object):
         self.mongoCluster = mongoCluster
 
     def all(self,start=False, sandbox=False, aydostor=None):
-        self.cuisine.set_sudomode()
         self.cuisine.installerdevelop.pip()
         self.cuisine.installerdevelop.python()
         self.cuisine.installerdevelop.jumpscale8()
@@ -52,7 +53,6 @@ class CuisineBuilder(object):
 
         return (url_opt, url_optvar)
 
-
     def _sandbox_python(self, python=True):
         print("START SANDBOX")
         if python:
@@ -75,7 +75,6 @@ class CuisineBuilder(object):
         j.tools.sandboxer.sandboxLibs("%s/lib" % self.cuisine.dir_paths['base'], recursive=True)
         j.tools.sandboxer.sandboxLibs("%s/bin" % self.cuisine.dir_paths['base'], recursive=True)
         print("SANDBOXING DONE, ALL OK IF TILL HERE, A Segfault can happen because we have overwritten ourselves.")
-
 
     def dedupe(self, dedupe_path, namespace, store_addr, output_dir='/tmp/sandboxer', sandbox_python=True):
         self.cuisine.dir_remove(output_dir)
@@ -113,7 +112,6 @@ class CuisineBuilder(object):
 
     @actionrun(action=True)
     def skydns(self,start=True):
-        self.cuisine.set_sudomode()
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/skynetservices/skydns",action=True)
         self.cuisine.file_copy(self.cuisine.joinpaths('$goDir', 'bin', 'skydns'), '$binDir', action=True)
@@ -125,7 +123,6 @@ class CuisineBuilder(object):
 
     @actionrun(action=True)
     def caddy(self,ssl=False,start=True, dns=None):
-        self.cuisine.set_sudomode()
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/mholt/caddy",action=True)
         self.cuisine.file_copy(self.cuisine.joinpaths('$goDir', 'bin', 'caddy'), '$binDir', action=True)
@@ -171,7 +168,6 @@ class CuisineBuilder(object):
             cmd = self.cuisine.bash.cmdGetPath("caddy")
             self.cuisine.processmanager.ensure("caddy", '%s -conf=%s -email=info@greenitglobe.com' % (cmd, cpath))
 
-
     def caddyConfig(self,sectionname,config):
         """
         config format see https://caddyserver.com/docs/caddyfile
@@ -186,7 +182,6 @@ class CuisineBuilder(object):
         @input addr, address and port on which the service need to listen. e.g. : 0.0.0.0:8090
         @input backend, directory where to save the data push to the store
         """
-        self.cuisine.set_sudomode()
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/Jumpscale/aydostorex", action=True)
         self.cuisine.file_copy(self.cuisine.joinpaths(self.cuisine.dir_paths['goDir'], 'bin', 'aydostorex'), '$base/bin',action=True)
@@ -218,11 +213,8 @@ class CuisineBuilder(object):
             cmd = self.cuisine.bash.cmdGetPath("aydostorex")
             self.cuisine.processmanager.ensure("aydostorex", '%s --config /etc/aydostorex/config.toml' % cmd)
 
-
-
     @actionrun(action=True)
     def installdeps(self):
-        self.cuisine.set_sudomode()
         self.cuisine.installer.base()
         self.cuisine.golang.install()
         self.cuisine.pip.upgrade('pip')
@@ -230,7 +222,7 @@ class CuisineBuilder(object):
         self.cuisine.pip.install('pygo')
         self.cuisine.golang.install()
 
-    #@actionrun(action=True)
+    @actionrun(action=True)
     def syncthing(self, start=True):
         """
         build and setup syncthing to run on :8384 , this can be changed from the config file in home  
@@ -248,8 +240,7 @@ class CuisineBuilder(object):
         if start:
             self._startSyncthing()
 
-
-    #@actionrun(action=True)
+    @actionrun(action=True)
     def agent(self,start=True, gid=None, nid=None):
         """
         builds and setsup dependencies of agent to run with the given gid and nid 
@@ -260,7 +251,7 @@ class CuisineBuilder(object):
         #self.cuisine.installer.jumpscale8()
         self.redis()
         self.mongodb()
-        self.syncthing()
+        self.syncthing(start=False)
 
         self.cuisine.tmux.killWindow("main","agent")
 
@@ -275,7 +266,7 @@ class CuisineBuilder(object):
 
         sourcepath = "$goDir/src/github.com/Jumpscale/agent8"
 
-        self.cuisine.run("cd %s && go build ."%sourcepath,profile=True)
+        self.cuisine.run("cd %s && go build ." % sourcepath, profile=True)
 
         self.cuisine.file_move("%s/agent8" % sourcepath, "$binDir/agent8")
 
@@ -285,13 +276,12 @@ class CuisineBuilder(object):
         self.cuisine.dir_ensure("$cfgDir/agent8/extensions/syncthing")
         self.cuisine.file_copy("$binDir/syncthing", "$cfgDir/agent8/extensions/syncthing/")
 
-
         # manipulate config file
-        C=self.cuisine.file_read("%s/agent.toml"%sourcepath)
+        C = self.cuisine.file_read("%s/agent.toml" % sourcepath)
         cfg = j.data.serializer.toml.loads(C)
         cfg["main"]["message_ID_file"] = cfg["main"]["message_ID_file"].replace("./", "$cfgDir/agent8/")
         cfg["main"]["history_file"] = cfg["main"]["history_file"].replace("./", "$cfgDir/agent8/")
-        cfg["main"]["include"] =  cfg["main"]["include"].replace("./", "$cfgDir/agent8/")
+        cfg["main"]["include"] = cfg["main"]["include"].replace("./", "$cfgDir/agent8/")
         cfg["extensions"]["sync"]["cwd"] = cfg["extensions"]["sync"]["cwd"].replace("./", "$cfgDir/agent8/")
         cfg["extensions"]["jumpscript"]["cwd"] = cfg["extensions"]["jumpscript"]["cwd"].replace("./", "$cfgDir/agent8/")
         cfg["extensions"]["jumpscript_content"]["cwd"] = cfg["extensions"]["jumpscript_content"]["cwd"].replace("./", "$cfgDir/agent8/")
@@ -307,7 +297,7 @@ class CuisineBuilder(object):
         if start:
             self._startAgent(nid, gid)
 
-    #@actionrun(action=True)
+    @actionrun(action=True)
     def agentcontroller(self, start=True):
         """
         config: https://github.com/Jumpscale/agentcontroller8/
@@ -373,6 +363,7 @@ class CuisineBuilder(object):
         self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extensions", recursive=True)
 
         if start:
+ 
             self._startAgentController()
 
 
@@ -385,6 +376,9 @@ class CuisineBuilder(object):
 
 
     def _startAgent(self, nid, gid):
+        self._startMongodb()
+        self._startRedis()
+        self._startSyncthing()
         print("connection test ok to agentcontroller")
         #@todo (*1*) need to implement to work on node
         env={}
@@ -394,11 +388,25 @@ class CuisineBuilder(object):
         pm.ensure("agent8", cmd=cmd, path="$cfgDir/agent8",  env=env)
 
     def _startAgentController(self):
+        self._startMongodb()
+        self._startRedis()
+        self._startSyncthing()
         env = {}
         env["TMPDIR"] = self.cuisine.dir_paths["tmpDir"]
         cmd = "$binDir/agentcontroller8 -c $cfgDir/agentcontroller8/agentcontroller.toml"
         pm = self.cuisine.processmanager.get("tmux")
         pm.ensure("agentcontroller8", cmd=cmd, path="$cfgDir/agentcontroller8/", env=env)
+
+    def _startRedis(self, name="redis_main"):
+        dpath,cpath=j.clients.redis._getPaths(name)
+        cmd="redis-server %s"%cpath
+        self.cuisine.processmanager.ensure(name="redis_%s"%name,cmd=cmd,env={},path='$binDir')
+
+    def _startMongodb(self, name="mongod"):
+        which = self.cuisine.command_location("mongod")
+        cmd="%s --dbpath $varDir/data/db" % which
+        self.cuisine.process.kill("mongod")
+        self.cuisine.processmanager.ensure("mongod",cmd=cmd,env={},path="")
 
     @actionrun(action=True)
     def etcd(self,start=True, host=None, peers=[]):
@@ -409,7 +417,6 @@ class CuisineBuilder(object):
         @host, string. host of this node in the cluster e.g: http://etcd1.com
         @peer, list of string, list of all node in the cluster. [http://etcd1.com, http://etcd2.com, http://etcd3.com]
         """
-        self.cuisine.set_sudomode()
         self.cuisine.golang.install()
         C="""
         set -ex
@@ -471,7 +478,6 @@ class CuisineBuilder(object):
 
     @actionrun(action=True)
     def redis(self,name="main",ip="localhost", port=6379, maxram=200, appendonly=True,snapshot=False,slave=(),ismaster=False,passwd=None,unixsocket=True,start=True):
-        self.cuisine.set_sudomode()
         self.cuisine.installer.base()
         if not self.cuisine.isMac:
 
@@ -521,11 +527,10 @@ class CuisineBuilder(object):
         j.clients.redis.cuisine=self.cuisine
         j.clients.redis.configureInstance(name, ip, port, maxram=maxram, appendonly=appendonly, \
             snapshot=snapshot, slave=slave, ismaster=ismaster, passwd=passwd, unixsocket=True)
-        dpath,cpath=j.clients.redis._getPaths(name)
-
+        
+        
         if start:
-            cmd="redis-server %s"%cpath
-            self.cuisine.processmanager.ensure(name="redis_%s"%name,cmd=cmd,env={},path='$binDir')
+            self._startRedis(name)
 
     @actionrun(action=True)
     def mongodb(self, start=True):
@@ -566,13 +571,9 @@ class CuisineBuilder(object):
 
 
         if start:
-            which = self.cuisine.command_location("mongod")
-            cmd="%s --dbpath $varDir/data/db" % which
-            self.cuisine.process.kill("mongod")
-            self.cuisine.processmanager.ensure("mongod",cmd=cmd,env={},path="")
+            self._startMongodb("mongod")
 
     def influxdb(self, start=True):
-        self.cuisine.set_sudomode()
         self.cuisine.installer.base()
 
         if self.cuisine.isMac:
@@ -600,7 +601,6 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb/influxdb.conf.o
 
     @actionrun(action=True)
     def vulcand(self):
-        self.cuisine.set_sudomode()
         C='''
         #!/bin/bash
         set -e
@@ -635,7 +635,6 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb/influxdb.conf.o
 
     @actionrun(action=True)
     def weave(self, start=True, peer=None, jumpscalePath=True):
-        self.cuisine.set_sudomode()
         if jumpscalePath:
             binPath = self.cuisine.joinpaths(self.cuisine.dir_paths['binDir'], 'weave')
         else:

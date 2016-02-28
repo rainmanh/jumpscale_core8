@@ -394,6 +394,7 @@ class CuisineInstaller(object):
     @actionrun(action=True)
     def base(self):
         self.clean()
+        self.cuisine.installerdevelop.python()
 
         if self.cuisine.isMac:
             C=""

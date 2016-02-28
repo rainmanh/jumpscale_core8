@@ -84,7 +84,7 @@ class ModelBase():
     def _save_redis(cls, obj):
         key = cls._getKey(obj.guid)
         meta = cls._meta['indexes']
-        expire = meta[0].get('expireAfterSeconds', None) if meta else None
+        expire = meta[2].get('expireAfterSeconds', None) if meta else None
         raw = j.data.serializer.json.dumps(obj.to_dict())
         j.core.db.set(key, raw)
         if expire:

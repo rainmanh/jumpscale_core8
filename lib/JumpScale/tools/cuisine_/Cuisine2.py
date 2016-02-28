@@ -898,15 +898,16 @@ class OurCuisine():
         self.file_attribs(destination, mode, owner, group)
 
     @actionrun(action=False,force=False)
-    def file_copy(self, source, dest, recursive=False):
+    def file_copy(self, source, dest, recursive=False, overwrite=False):
         source=self.cuisine.args_replace(source)
         dest=self.cuisine.args_replace(dest)
-        if not (self.file_is_file(dest) and self.file_exists(dest)):
-            cmd = "cp -v "
-            if recursive:
-                cmd += "-r "
-            cmd += '%s %s' % (source, dest)
-            self.run(cmd)
+        cmd = "cp -v "
+        if recursive:
+            cmd += "-r "
+        if not overwrite:
+            cmd += "--no-clobber "
+        cmd += '%s %s' % (source, dest)
+        self.run(cmd)
 
     @actionrun(action=False,force=False)
     def file_move(self, source, dest, recursive=False):
@@ -1139,7 +1140,8 @@ class OurCuisine():
             ppath=self.bash.profilePath
             if ppath!=None:
                 cmd=". %s && %s"%(ppath,cmd)
-            print ("PROFILECMD:%s"%cmd)
+            if showout:
+                print ("PROFILECMD:%s"%cmd)
 
         if self.sudomode:
             passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''

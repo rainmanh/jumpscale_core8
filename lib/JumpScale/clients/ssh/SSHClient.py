@@ -80,7 +80,7 @@ class SSHClient(object):
     @property
     def client(self):
         if self._client is None:
-            print('ssh new client')
+            print('ssh new client to %s@%s:%s' % (self.login, self.addr, self.port))
 
             start = j.data.time.getTimeEpoch()
             timeout = 20

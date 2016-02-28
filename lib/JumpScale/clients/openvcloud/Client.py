@@ -332,6 +332,12 @@ class Machine:
         self.space._portforwardings_cache.delete()
         self._portforwardings_cache.delete()
 
+    def delete_portfowarding_by_id(self, pfid):
+        self.client.api.cloudapi.portforwarding.delete(cloudspaceid=self.space.id,
+                                                       id=pfid)
+        self.space._portforwardings_cache.delete()
+        self._portforwardings_cache.delete()
+
     def get_machine_ip(self):
         machine = self.client.api.cloudapi.machines.get(machineId=self.id)
 

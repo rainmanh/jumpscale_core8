@@ -240,13 +240,12 @@ class CuisineBuilder(object):
         if start:
             self._startSyncthing()
 
-    #@actionrun(action=True)
+    @actionrun(action=True)
     def agent(self,start=False, gid=None, nid=None):
         """
         builds and setsup dependencies of agent to run with the given gid and nid 
         niether can be zero 
         """
-        import ipdb;ipdb.set_trace()
         self.installdeps()
         #self.cuisine.installer.jumpscale8()
         self.redis()

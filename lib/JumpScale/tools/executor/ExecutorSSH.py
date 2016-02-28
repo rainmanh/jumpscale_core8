@@ -92,7 +92,7 @@ class ExecutorSSH(ExecutorBase):
             # online command, we use cuisine
             if showout:
                 print("EXECUTE %s:%s: %s"%(self.addr,self.port,cmds))
-            # return j.do.execute("ssh -A -p %s root@%s '%s'"%(self.port,self.addr,cmds),dieOnNonZeroExitCode=die)
+            # return j.sal.process.execute("ssh -A -p %s root@%s '%s'"%(self.port,self.addr,cmds),dieOnNonZeroExitCode=die)
             retcode,out=self.sshclient.execute(cmds2,die=die,showout=showout, combinestdr=combinestdr)
 
         if checkok and die:

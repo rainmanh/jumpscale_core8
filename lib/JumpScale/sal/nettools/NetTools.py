@@ -422,7 +422,7 @@ class NetTools(SALObject):
 
     def bridgeExists(self,bridgename):
         cmd="brctl show"
-        rc,out,err=j.do.execute(cmd,outputStdout=False)
+        rc,out,err=j.sal.process.execute(cmd,outputToStdout=False)
         for line in out.split("\n"):
             if line.lower().startswith(bridgename):
                 return True
@@ -431,14 +431,14 @@ class NetTools(SALObject):
     def resetDefaultGateway(self,gw):
         def gwexists():
             cmd="ip r"
-            rc,out=j.do.execute(cmd,outputStdout=False)
+            rc,out=j.sal.process.execute(cmd,outputToStdout=False)
             for line in out.split("\n"):
                 if line.lower().startswith("default"):
                     return True
             return False
         def removegw():
             cmd="ip route del 0/0"
-            rc,out=j.do.execute(cmd,outputStdout=False,outputStderr=False,dieOnNonZeroExitCode=False)
+            rc,out=j.sal.process.execute(cmd,outputToStdout=False, ignoreErrorOutput=False,dieOnNonZeroExitCode=False)
 
         removegw()            
         couter=0
@@ -451,7 +451,7 @@ class NetTools(SALObject):
                 raise RuntimeError("cannot delete def gw")
 
         cmd='route add default gw %s'%gw
-        j.do.execute(cmd)
+        j.sal.process.execute(cmd)
 
     def getNetworkInfo(self):
         """

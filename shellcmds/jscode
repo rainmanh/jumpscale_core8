@@ -100,7 +100,7 @@ for provider, account, reponame, branch, client, path in repos:
             "git configuration not found, please install github_client service (ays install -n github_client)")
     else:
         # from ipdb import set_trace;set_trace()
-        _, url = j.do.execute("cd %s;git config --get remote.origin.url" % path)
+        _, url = j.sal.process.execute("cd %s;git config --get remote.origin.url" % path)
         if str(url).find("@") == -1:
             login = j.application.config.get("whoami.git.login")
             passwd = j.application.config.get("whoami.git.passwd")
@@ -110,14 +110,14 @@ for provider, account, reponame, branch, client, path in repos:
     if opts.action == "update" and opts.deletechanges:
         print(("force update %s/%s/%s" % (provider, account, reponame)))
         cmd = 'cd %s; git checkout .' % path
-        j.do.execute(cmd)
+        j.sal.process.execute(cmd)
         j.do.pullGitRepo(url=client.remoteUrl)
         # client.update(force=True)
         continue
 
     if opts.action == "get":
         # cmd = "git config --global push.default matching"
-        # j.do.execute(cmd)
+        # j.sal.process.execute(cmd)
         j.do.pullGitRepo(client.remoteUrl, dest=None, depth=None,
                          ignorelocalchanges=opts.deletechanges, reset=False, branch=opts.branch)
         continue

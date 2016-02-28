@@ -184,7 +184,7 @@ class Sandboxer():
                 # print (cmd)
                 # os.system(cmd)
                 # try:
-                j.do.execute(cmd)
+                j.sal.process.execute(cmd)
 
                 # except Exception as e:
                 #     import ipdb
@@ -208,7 +208,7 @@ class Sandboxer():
                 if verify:
                     j.sal.fs.remove(dest2verify)
                     cmd="bro --decompress --quality 10 --input '%s' --output %s"%(dest2_bro,dest2verify)
-                    j.do.execute(cmd)
+                    j.sal.process.execute(cmd)
                     hhash=j.data.hash.md5(dest2verify)
                     if hhash!=md5:
                         raise RuntimeError("error in compression:%s"%cmd)

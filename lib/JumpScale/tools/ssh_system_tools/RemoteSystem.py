@@ -112,6 +112,7 @@ class RemoteSystemConnection(object):
     def __getattribute__(self, name):
         if object.__getattribute__(self, '_closed'):
             raise RuntimeError('There is no active connection.')
+        import ipdb;ipdb.set_trace()
         return object.__getattribute__(self, name)
 
     def _getProcess(self):

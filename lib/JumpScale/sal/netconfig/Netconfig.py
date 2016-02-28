@@ -421,7 +421,7 @@ class Netconfig(SALObject):
                 j.sal.process.execute(cmd)
 
 
-            j.do.execute("sudo stop network-manager",outputStdout=False,outputStderr=False,dieOnNonZeroExitCode=False)
+            j.sal.process.execute("sudo stop network-manager",outputToStdout=False,outputStderr=False,dieOnNonZeroExitCode=False)
             j.sal.fs.writeFile("/etc/init/network-manager.override","manual")
 
             j.sal.netconfig.reset()

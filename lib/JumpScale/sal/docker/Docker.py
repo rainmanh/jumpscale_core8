@@ -460,9 +460,9 @@ class Docker(SALObject):
         for mountpoint in mountpoints:
             j.sal.btrfs.subvolumesDelete(mountpoint,"/docker/")
 
-        j.do.execute("apt-get remove docker-engine -y")
-        j.do.execute("rm -rf /var/lib/docker")
-        j.do.execute("apt-get install docker-engine -y")
+        j.sal.process.execute("apt-get remove docker-engine -y")
+        j.sal.process.execute("rm -rf /var/lib/docker")
+        j.sal.process.execute("apt-get install docker-engine -y")
 
     def pull(self, imagename):
         self.client.import_image_from_image(imagename)

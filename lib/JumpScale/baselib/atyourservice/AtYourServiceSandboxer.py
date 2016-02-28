@@ -146,7 +146,7 @@ class AtYourServiceSandboxer():
         cmd +="--exclude '*.pyc' --exclude '*.bak' --exclude '*__pycache__*'  -e 'ssh -o StrictHostKeyChecking=no -p 22' "
         cmd +="'/tmp/aysfs/files/' 'root@%s:%s'"%(desthost,destpath)
         print (cmd)
-        j.do.execute(cmd)
+        j.sal.process.execute(cmd)
 
     def buildJumpscaleMetadata(self):
         from JumpScale import findModules

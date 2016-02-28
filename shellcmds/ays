@@ -5,9 +5,9 @@ from JumpScale import j
 import click
 
 @click.group()
-@click.option('--debug', default=True, help='enable debug', is_flag=True)
-def cli(debug):
-    j.atyourservice.debug = debug
+@click.option('--nodebug', default=False, help='disable debug mode', is_flag=True)
+def cli(nodebug):
+    j.atyourservice.debug = not nodebug
 
 @click.command()
 @click.argument('role')

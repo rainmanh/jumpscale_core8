@@ -99,7 +99,7 @@ class HRDType():
 class HRDSchema():
     def __init__(self,path="",content=""):
         if path!=None:
-            content=j.do.readFile(path)
+            content=j.sal.fs.fileGetContents(path)
         if content=="":
             j.events.inputerror_critical("Content needs to be provided if path is empty")
         self.path=path

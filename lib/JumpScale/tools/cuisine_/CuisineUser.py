@@ -134,5 +134,5 @@ class CuisineUser():
 
     def list(self):
         users=self.fs_find("/home",recursive=False)
-        users=[j.do.getBaseName(item) for item in users if (item.strip()!="" and item.strip("/")!="home")]
+        users=[j.sal.fs.getBaseName(item) for item in users if (item.strip()!="" and item.strip("/")!="home")]
         return users

@@ -65,8 +65,8 @@ class AtYourServiceSync():
         C=C.replace("$branchname",branch)
         C=C.replace("$dockerbase",dockerbase)
         
-
-        return j.do.executeBashScript(content=C, remote=ipaddr, sshport=sshport)
+        executor = j.tools.cuisine.get(j.tools.executor.getSSHBased(addr=remote, port=sshport,))
+        return executor.run_script(content=C)
 
     def installmaster(self,name,installjs=True,docker=True,rootpasswd="js111js",apikey="js111js",):
 
@@ -88,16 +88,17 @@ class AtYourServiceSync():
             jsdocker new -n aysmaster -b despiegk/ubuntu1504 -p js007 --ports "22:22022 22001:22001 22000:22000 21025:21025" --start
 
             """
-            res2=j.do.executeBashScript(content=C, remote=ipaddr, sshport=sshport)
+            executor = j.tools.cuisine.get(j.tools.executor.getSSHBased(addr=ipaddr, port=sshport))
+            return executor.run_script(content=C)
         
 
 
 
     def _getSyncClient(self,name):
         if name in self.master:
-            node=self.master[name]
+            node = self.master[name]
         elif name in self.nodes:
-            node=self.nodes[name]
+            node = self.nodes[name]
         else:
             raise RuntimeError("could not find node")
 

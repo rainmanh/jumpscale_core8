@@ -92,7 +92,7 @@ class TelegramAYS():
     #
     def executeProgressive(self, bot, update, command):
         print("[+] executing: %s" % command)
-        process = j.do.execute(command, outputStdout=False, useShell=False, dieOnNonZeroExitCode=False, async=True)
+        process = j.sal.process.execute(command, outputStdout=False, useShell=False, dieOnNonZeroExitCode=False, async=True)
         prefixs = ['INIT:', 'RUN:', 'NO METHODS FOR:', 'OUT:', 'Exception:']
 
         rawbuffer = []
@@ -174,13 +174,13 @@ class TelegramAYS():
         j.sal.fs.writeFile('%s/.ays' % repopath, '')
 
         # FIXME: temporary fix
-        j.do.execute("cp -rv /tmp/ays_test/servicetemplates %s/" % repopath)
+        j.sal.process.execute("cp -rv /tmp/ays_test/servicetemplates %s/" % repopath)
 
         previous = j.sal.fs.getcwd()
         j.sal.fs.changeDir(repopath)
 
         # initialize empty git repository
-        j.do.execute("git init", outputStdout=False, dieOnNonZeroExitCode=False)
+        j.sal.process.execute("git init", outputStdout=False, dieOnNonZeroExitCode=False)
 
         j.sal.fs.changeDir(previous)
 

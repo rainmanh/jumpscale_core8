@@ -193,7 +193,7 @@ class Service:
         """
         self.originator = originator
 
-        if path!="" and j.do.exists(path):
+        if path!="" and j.sal.fs.exists(path):
             self.role,self.instance=j.sal.fs.getBaseName(path).split("!")
             self._name=None
             self._version=None
@@ -446,10 +446,10 @@ class Service:
         if j.sal.fs.exists(path+'c'):
             j.sal.fs.remove(path+'c')
         if j.sal.fs.exists(path):
-            j.do.createDir(j.do.getDirName(path))
-            path2 = j.do.joinPaths(self.path, j.do.getBaseName(path))
+            j.sal.fs.createDir(j.sal.fs.getDirName(path))
+            path2 = j.sal.fs.joinPaths(self.path, j.sal.fs.getBaseName(path))
             #need to create a copy of the recipe mgmt or node action class
-            j.do.copyFile(path, path2)
+            j.sal.fs.copyFile(path, path2)
             # print (path2)
             if self.hrd is not None:
                 # print ("apply hrd")
@@ -463,8 +463,8 @@ class Service:
         modulename = "JumpScale.atyourservice.%s.%s.%s.%s" % (self.domain, self.name, self.instance,ttype)
         mod = loadmodule(modulename, path2)
         #is only there temporary don't want to keep it there
-        j.do.delete(path2)
-        j.do.delete(j.do.joinPaths(self.path,"__pycache__"))
+        j.sal.fs.remove(path2)
+        j.sal.fs.remove(j.sal.fs.joinPaths(self.path,"__pycache__"))
         return mod.Actions(self)
 
     @property
@@ -510,7 +510,7 @@ class Service:
                     do = True
             if do:
                 print("INIT:%s"%self)
-                j.do.createDir(self.path)
+                j.sal.fs.createDir(self.path)
                 self.runAction("input")
                 hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
 
@@ -984,7 +984,7 @@ class Service:
     #         return
 
     #     statePath = j.sal.fs.joinPaths(self.path, 'state.toml')
-    #     j.do.delete(statePath)
+    #     j.sal.fs.remove(statePath)
 
     # def reset(self):
     #     """
@@ -1001,7 +1001,7 @@ class Service:
     #         name = recipeitem['url'].replace(
     #             "https://", "").replace("http://", "").replace(".git", "")
     #         dest = "/opt/build/%s" % name
-    #         j.do.delete(dest)
+    #         j.sal.fs.remove(dest)
     #
     #     self.action_methods_mgmt.removedata(self)
     #     j.atyourservice.remove(self)
@@ -1071,13 +1071,13 @@ class Service:
     #             else:
     #                 nodirs = False
     #
-    #             items = j.do.listFilesInDir(
+    #             items = j.sal.fs.listFilesInDir(
     #                 path=src, recursive=False, followSymlinks=False, listSymlinks=False)
     #             if nodirs is False:
-    #                 items += j.do.listDirsInDir(
+    #                 items += j.sal.fs.listDirsInDir(
     #                     path=src, recursive=False, dirNameOnly=False, findDirectorySymlinks=False)
     #
-    #             items = [(item, "%s/%s" % (dest, j.do.getBaseName(item)), link)
+    #             items = [(item, "%s/%s" % (dest, j.sal.fs.getBaseName(item)), link)
     #                      for item in items]
     #         else:
     #             items = [(src, dest, link)]

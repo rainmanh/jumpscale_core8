@@ -52,7 +52,7 @@ class PostgresqlFactory():
         args["dbname"]=db
         cmd="cd /opt/postgresql/bin;./dropdb -U %(login)s -h %(ipaddr)s -p %(port)s %(dbname)s"%(args)
         # print cmd
-        j.do.execute(cmd,outputStdout=False,dieOnNonZeroExitCode=False)
+        j.sal.process.execute(cmd,outputToStdout=False,dieOnNonZeroExitCode=False)
 
 
 class PostgresClient():
@@ -104,7 +104,7 @@ class PostgresClient():
         args["path"]="%s/_schema.sql"%(path)
         cmd="cd /opt/postgresql/bin;./pg_dump -U %(login)s -h %(ipaddr)s -p %(port)s -s -O -d %(dbname)s -w > %(path)s"%(args)
         # print cmd
-        j.do.execute(cmd,outputStdout=False)
+        j.sal.process.execute(cmd,outputToStdout=False)
 
         for name,obj in list(base.classes.items()):
             if name in tablesIgnore:
@@ -115,7 +115,7 @@ class PostgresClient():
             #--quote-all-identifiers 
             cmd="cd /opt/postgresql/bin;./pg_dump -U %(login)s -h %(ipaddr)s -p %(port)s -t %(table)s -a -b --column-inserts -d %(dbname)s -w > %(path)s"%(args)
             # print cmd
-            j.do.execute(cmd,outputStdout=False)
+            j.sal.process.execute(cmd,outputToStdout=False)
 
     def restore(self,path,tables=[],schema=True):
         if not j.sal.fs.exists(path=path):
@@ -125,7 +125,7 @@ class PostgresClient():
             args["base"]=path
             # cmd="cd /opt/postgresql/bin;./pg_restore -1 -e -s -U %(login)s -h %(ipaddr)s -p %(port)s %(base)s/_schema.sql"%(args)
             cmd="cd /opt/postgresql/bin;./psql -U %(login)s -h %(ipaddr)s -p %(port)s -d %(dbname)s < %(base)s/_schema.sql"%(args)
-            j.do.execute(cmd,outputStdout=False)
+            j.sal.process.execute(cmd,outputToStdout=False)
 
         for item in j.sal.fs.listFilesInDir(path, recursive=False, filter="*.sql",followSymlinks=True, listSymlinks=True):
             name=j.sal.fs.getBaseName(item).replace(".sql","")
@@ -135,7 +135,7 @@ class PostgresClient():
                 args["path"]=item
                 # cmd="cd /opt/postgresql/bin;./pg_restore -1 -e -U %(login)s -h %(ipaddr)s -p %(port)s %(path)s"%(args)
                 cmd="cd /opt/postgresql/bin;./psql -1 -U %(login)s -h %(ipaddr)s -p %(port)s -d %(dbname)s < %(path)s"%(args)
-                j.do.execute(cmd,outputStdout=False)
+                j.sal.process.execute(cmd,outputToStdout=False)
 
     def dumpall2hrd(self,path,tablesIgnore=[],fieldsIgnore={},fieldsId={},fieldRewriteRules={},fieldsBinary={}):
         """

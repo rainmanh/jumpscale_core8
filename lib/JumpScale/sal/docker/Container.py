@@ -49,7 +49,7 @@ class Container(SALObject):
 
     def run(self, name, cmd):
         cmd2 = "docker exec -i -t %s %s" % (self.name, cmd)
-        j.do.executeInteractive(cmd2)
+        j.sal.process.executeWithoutPipe(cmd2)
 
     def execute(self, path):
         """
@@ -64,9 +64,9 @@ class Container(SALObject):
         j.sal.fs.createDir(temp)
         source_name = j.sal.fs.getBaseName(src)
         if j.sal.fs.isDir(src):
-            j.do.copyTree(src, j.sal.fs.joinPaths(temp, source_name))
+            j.sal.fs.copyDirTree(src, j.sal.fs.joinPaths(temp, source_name))
         else:
-            j.do.copyFile(src, j.sal.fs.joinPaths(temp, source_name))
+            j.sal.fs.copyFile(src, j.sal.fs.joinPaths(temp, source_name))
 
         ddir = j.sal.fs.getDirName(dest)
         cmd = "mkdir -p %s" % (ddir)
@@ -74,7 +74,7 @@ class Container(SALObject):
 
         cmd = "cp -r /var/jumpscale/%s/%s %s" % (rndd, source_name, dest)
         self.run(self.name, cmd)
-        j.do.delete(temp)
+        j.sal.fs.remove(temp)
 
 
     @property
@@ -139,7 +139,7 @@ class Container(SALObject):
         # """
         # c.file_write("/root/.ssh/config", C)
         # if not j.sal.fs.exists(path="/root/.ssh/config"):
-        #     j.do.writeFile("/root/.ssh/config", C)
+        #     j.sal.fs.writeFile("/root/.ssh/config", C)
         # C2 = """
         # apt-get install language-pack-en
         # # apt-get install make
@@ -292,7 +292,7 @@ class Container(SALObject):
     #     """
     #     c.file_write("/root/.ssh/config",C)
     #     if not j.sal.fs.exists(path="/root/.ssh/config"):
-    #         j.do.writeFile("/root/.ssh/config",C)
+    #         j.sal.fs.writeFile("/root/.ssh/config",C)
     #     C2="""
     #     apt-get install language-pack-en
     #     # apt-get install make

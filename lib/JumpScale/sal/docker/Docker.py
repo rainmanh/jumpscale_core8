@@ -52,9 +52,9 @@ class Docker(SALObject):
     #     j.sal.fs.createDir(temp)
     #     source_name = j.sal.fs.getBaseName(src)
     #     if j.sal.fs.isDir(src):
-    #         j.do.copyTree(src, j.sal.fs.joinPaths(temp, source_name))
+    #         j.sal.fs.copyDirTree(src, j.sal.fs.joinPaths(temp, source_name))
     #     else:
-    #         j.do.copyFile(src, j.sal.fs.joinPaths(temp, source_name))
+    #         j.sal.fs.copyFile(src, j.sal.fs.joinPaths(temp, source_name))
     #
     #     ddir = j.sal.fs.getDirName(dest)
     #     cmd = "mkdir -p %s" % (ddir)
@@ -62,7 +62,7 @@ class Docker(SALObject):
     #
     #     cmd = "cp -r /var/jumpscale/%s/%s %s" % (rndd, source_name, dest)
     #     self.run(name, cmd)
-    #     j.do.delete(temp)
+    #     j.sal.fs.remove(temp)
 
     @property
     def containers(self):
@@ -460,9 +460,9 @@ class Docker(SALObject):
         for mountpoint in mountpoints:
             j.sal.btrfs.subvolumesDelete(mountpoint,"/docker/")
 
-        j.do.execute("apt-get remove docker-engine -y")
-        j.do.execute("rm -rf /var/lib/docker")
-        j.do.execute("apt-get install docker-engine -y")
+        j.sal.process.execute("apt-get remove docker-engine -y")
+        j.sal.process.execute("rm -rf /var/lib/docker")
+        j.sal.process.execute("apt-get install docker-engine -y")
 
     def pull(self, imagename):
         self.client.import_image_from_image(imagename)

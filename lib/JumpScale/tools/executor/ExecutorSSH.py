@@ -66,7 +66,7 @@ class ExecutorSSH(ExecutorBase):
                     homedir=os.environ["HOME"]
                     path="%s/.ssh/%s.pub"%(homedir,self.pushkey)
                 if j.sal.fs.exists(path):
-                    pushkey=j.do.readFile(path)
+                    pushkey=j.sal.fs.fileGetContents(path)
                 else:
                     raise RuntimeError("Could not find key:%s"%path)
                 self._sshclient.ssh_authorize("root",pushkey)
@@ -92,7 +92,7 @@ class ExecutorSSH(ExecutorBase):
             # online command, we use cuisine
             if showout:
                 print("EXECUTE %s:%s: %s"%(self.addr,self.port,cmds))
-            # return j.do.execute("ssh -A -p %s root@%s '%s'"%(self.port,self.addr,cmds),dieOnNonZeroExitCode=die)
+            # return j.sal.process.execute("ssh -A -p %s root@%s '%s'"%(self.port,self.addr,cmds),dieOnNonZeroExitCode=die)
             retcode,out=self.sshclient.execute(cmds2,die=die,showout=showout, combinestdr=combinestdr)
 
         if checkok and die:
@@ -104,21 +104,21 @@ class ExecutorSSH(ExecutorBase):
     def upload(self, source, dest, dest_prefix="",recursive=True, createdir=True):
 
         if dest_prefix != "":
-            dest = j.do.joinPaths(dest_prefix,dest)
+            dest = j.sal.fs.joinPaths(dest_prefix,dest)
         if dest[0] !="/":
             raise RuntimeError("need / in beginning of dest path")
         dest = "root@%s:%s" % (self.addr, dest)
-        j.do.copyTree(source, dest, keepsymlinks=True, deletefirst=False, \
+        j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False, \
             overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,\
             ssh=True, sshport=self.port,recursive=recursive, createdir=createdir)
 
 
     def download(self, source, dest, source_prefix="",recursive=True):
         if source_prefix != "":
-            source = j.do.joinPaths(source_prefix,source)
+            source = j.sal.fs.joinPaths(source_prefix,source)
         if source[0] !="/":
             raise RuntimeError("need / in beginning of source path")
         source = "root@%s:%s" % (self.addr,source)
-        j.do.copyTree(source, dest, keepsymlinks=True, deletefirst=False, \
+        j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False, \
             overwriteFiles=True, ignoredir=[".egg-info",".dist-info"], ignorefiles=[".egg-info"], rsync=True,\
             ssh=True, sshport=self.port,recursive=recursive)

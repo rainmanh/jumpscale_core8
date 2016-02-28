@@ -103,7 +103,7 @@ class AtYourServiceFactory():
 
         baseDir=val
         while j.sal.fs.joinPaths(baseDir, ".ays") not in j.sal.fs.listFilesInDir(baseDir, recursive=False):
-            baseDir=j.do.getParent(baseDir)
+            baseDir=j.sal.fs.getParent(baseDir)
 
             baseDir=baseDir.rstrip("/")
 
@@ -151,12 +151,12 @@ class AtYourServiceFactory():
         self._doinit()
         def load(domain, path,llist):
             for servicepath in j.sal.fs.listDirsInDir(path, recursive=False):
-                dirname = j.do.getBaseName(servicepath)
+                dirname = j.sal.fs.getBaseName(servicepath)
                 # print "dirname:%s"%dirname
                 if not (dirname.startswith(".")):
                     load(domain,servicepath,llist)
             # print path
-            dirname = j.do.getBaseName(path)
+            dirname = j.sal.fs.getBaseName(path)
             if dirname.startswith("_"):
                 return
             if j.sal.fs.exists("%s/schema.hrd" % path) or \
@@ -190,7 +190,7 @@ class AtYourServiceFactory():
                 domainpath = j.sal.fs.joinPaths(aysrepopath, "%s/recipes/" % aysrepopath)
                 d = j.tools.path.get(domainpath)
                 for item in d.walkfiles("state.hrd"):
-                    recipepath = j.do.getDirName(item)
+                    recipepath = j.sal.fs.getDirName(item)
                     self._recipes.append(ServiceRecipe(recipepath))
         return self._recipes
 
@@ -210,7 +210,7 @@ class AtYourServiceFactory():
         """
         """
         if self._blueprints==[]:
-            items=j.do.listFilesInDir(self.basepath+"/blueprints")
+            items=j.sal.fs.listFilesInDir(self.basepath+"/blueprints")
             items=[item for item in items if item.find("_archive")==-1]
             items.sort()
             for path in items:

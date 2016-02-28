@@ -4,8 +4,8 @@ class SerializerBase(object):
 
     def dump(self,filepath,obj):
         data=self.dumps(obj)
-        j.do.writeFile(filepath,data)
+        j.sal.fs.writeFile(filepath,data)
 
     def load(self,filepath):
-        b=j.do.readFile(filepath)
+        b=j.sal.fs.fileGetContents(filepath)
         return self.loads(b)

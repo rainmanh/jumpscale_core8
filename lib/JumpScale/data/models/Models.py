@@ -261,23 +261,22 @@ class Disk(ModelBase, Document):
 
 
 class VDisk(ModelBase, Document):
+
     machineguid = StringField(required=True)
     diskid = IntField()
-    fs = StringField()
-    sizeFrom = DictField()
-    sizeTo = DictField()
-    freeFrom = DictField()
-    freeTo = DictField()
-    sizeondiskFrom = DictField()
-    sizeondiskTo = DictField()
+    fs = StringField(default='')
+    size = IntField(default=0)
+    free = IntField()
+    sizeondisk = IntField()
     mounted = BooleanField()
-    path = StringField()
-    description = StringField()
-    mountpoint = StringField()
+    path = StringField(default='')
+    description = StringField(default='')
+    mountpoint = StringField(default='')
     role = ListField(StringField())
     type = ListField(StringField())
     order = IntField()
     devicename = StringField(default='') #if known device name in vmachine
+    lastcheck = IntField(default=j.data.time.getTimeEpoch())
     backup = BooleanField()
     backuplocation = StringField()
     backuptime  = IntField(default=j.data.time.getTimeEpoch())

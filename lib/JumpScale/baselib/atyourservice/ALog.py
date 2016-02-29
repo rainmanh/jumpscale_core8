@@ -1,5 +1,5 @@
 from JumpScale import j
-
+from collections import deque
 
 class LogItem(object):
     """LogItem is the base classe for log lines"""
@@ -27,12 +27,8 @@ class LogItem(object):
             return ActionLine(key=servicekey, action_name=action, state=state, epoch=epoch)
 
         if cat == "L":
-            epoch, level, msg = [item.strip() for item in line1.split("|", 2)]
-            try:
-                level = int(level)
-                return LogLine(msg=msg, level=level, epoch=None)
-            except ValueError:
-                return LogLine(msg=msg, category=level, epoch=None)
+            epoch, level, category, msg = [item.strip() for item in line1.split("|", 3)]
+            return LogLine(msg=msg, level=int(level), category=category, epoch=epoch)
 
     def __str__(self):
         return repr(self)
@@ -91,12 +87,8 @@ class LogLine(LogItem):
         self.msg = msg
 
     def __repr__(self):
-        if self.category:
-            return "L | %-8s | %-8s | %s" % \
-                (self.epoch, self.category, self.msg)
-        elif self.level:
-            return "L | %-8s | %-8s | %s" % \
-                (self.epoch, self.level, self.msg)
+        return "L | %-8s | %-8s | %-8s | %s" % \
+            (self.epoch, self.level, self.category, self.msg)
 
 
 class ALog():
@@ -111,8 +103,7 @@ class ALog():
     R | $epoch | $runid | $action | $hrtime
     A | $epoch | $role!$instance | $actionname | $state
     G | $epoch | $cat   | $githash
-    L | $epoch | $level $cat | $msg
-    L | $epoch | $cat   | $msg
+    L | $epoch | $level | $cat | $msg
 
     R stands for RUN & has unique id
     each action has id
@@ -138,6 +129,7 @@ class ALog():
         self.lastRunId = 0
         self.lastRunEpoch = 0
         self._git = None
+        self.items = deque([], 250) # keep last 250 log entries in memory
 
         self.changecache = {}
 
@@ -169,11 +161,10 @@ class ALog():
         actionLine = ActionLine(key=service.shortkey, action_name=action, state=state)
         self._append(actionLine, logonly=logonly)
 
-    def log(self, msg, level=5, cat=""):
+    def log(self, msg, level=5, category=None):
         for item in msg.strip().splitlines():
-            logLine = LogLine(level=level, msg=item)
+            logLine = LogLine(level=level, msg=item, category=category)
             self._append(logLine, logonly=True)
-            # self._append("L | %-8s | %-8s | %s"%(j.data.time.getTimeEpoch(),level,item),logonly=True)
 
     def _append(self, logItem, logonly=False):
         item_str = str(logItem)
@@ -292,17 +283,42 @@ class ALog():
             if line.strip() == "" or line.startswith("=="):
                 continue
 
-            self._processLine(LogItem.parseLine(line))
+            item = LogItem.parseLine(line)
+            self.items.append(item)
+            self._processLine(item)
 
-            # if logmsg!="" or cat=="L":
-            #     if cat=="L":
-            #         lcat,msg0=line1.split("|",1)
-            #         logmsg+="%s\n"%msg0
-            #         if msg0.strip()[-1]=="\\":
-            #             #go to next line there is enter at end of line
-            #             continue
+    def getActionOuput(self, action=None):
+        """
+        Return output of the last specified action
+        @action: action name, if None, search for the last executed action and print its output
+        @return (action_name, output) type containing action name and output
+        """
+        if not action:
+            # find which action was the last executed
+            for item in reversed(self.items):
+                if not isinstance(item, ActionLine):
+                    continue
+                else:
+                    action = item.action_name
+                    break
 
-            #     for loghandler in loghandlers:
-            #         loghandler(action,lcat,logmsg.strip(),args)  #process log
-            #     logmsg=""
-            #     lcat=""
+        # walk the alog backwards and look for the the Log
+        # entries of the choosen action
+        lines = []
+        epoch = None
+        for item in reversed(self.items):
+            if not isinstance(item, LogLine) or item.category != action:
+                continue
+
+            if epoch is None:
+                epoch = item.epoch
+            elif epoch != item.epoch:
+                # mean we reach another action log
+                break
+            lines.append(item)
+
+        # recreate output in correct order
+        out = ''
+        for item in reversed(lines):
+            out += item.msg + '\n'
+        return (action,out)

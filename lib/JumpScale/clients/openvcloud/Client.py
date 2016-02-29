@@ -238,7 +238,7 @@ class Space:
         sizes.sort(key=lambda size: size[0])
         sizes.reverse()
         for size, sizeinfo in sizes:
-            if memory < size*1.1:
+            if memory > size / 1.1:
                 return sizeinfo['id']
 
         raise RuntimeError("did not find memory size:%s" % memory)

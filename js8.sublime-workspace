@@ -1,0 +1,2084 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"d",
+				"dirs"
+			],
+			[
+				"class",
+				"classfile	statement"
+			],
+			[
+				"clas",
+				"classname	statement"
+			],
+			[
+				"ssh",
+				"sshport	param"
+			],
+			[
+				"_s",
+				"_startSyncthing	function"
+			],
+			[
+				"_st",
+				"_startRedis	function"
+			],
+			[
+				"delete",
+				"deletefirst"
+			],
+			[
+				"rsync",
+				"rsyncdelete"
+			],
+			[
+				"over",
+				"overwrite"
+			],
+			[
+				"joi",
+				"joinpaths"
+			],
+			[
+				"file_i",
+				"file_is_file	function"
+			],
+			[
+				"arg",
+				"args_replace"
+			],
+			[
+				"bindir",
+				"bindir	statement"
+			],
+			[
+				"loc",
+				"localhost"
+			],
+			[
+				"get",
+				"getTagString"
+			],
+			[
+				"args",
+				"args_replace	function"
+			],
+			[
+				"add",
+				"addPath"
+			],
+			[
+				"ar",
+				"args_replace	function"
+			],
+			[
+				"com",
+				"command_check	function"
+			],
+			[
+				"agentcontroll",
+				"agentcontroller2"
+			],
+			[
+				"sync",
+				"sync_cfg	statement"
+			],
+			[
+				"redi",
+				"redis	function"
+			],
+			[
+				"jum",
+				"jumpscripts_path	statement"
+			],
+			[
+				"repl",
+				"args_replace	function"
+			],
+			[
+				"api",
+				"apiKey"
+			],
+			[
+				"syn",
+				"synccl	statement"
+			],
+			[
+				"sync_",
+				"sync_conn	statement"
+			],
+			[
+				"mon",
+				"mongoport	param"
+			],
+			[
+				"mongo",
+				"mongodbip"
+			],
+			[
+				"mong",
+				"mongodbip	param"
+			],
+			[
+				"users",
+				"users_dict	statement"
+			],
+			[
+				"user",
+				"User"
+			],
+			[
+				"Lis",
+				"ListUserAccess	 ƒ"
+			],
+			[
+				"wr",
+				"Written	bool ƒ"
+			],
+			[
+				"us",
+				"User	struct ʈ"
+			],
+			[
+				"re",
+				"Resp	macaron.ResponseWriter ν"
+			],
+			[
+				"Dele",
+				"delete"
+			],
+			[
+				"gog",
+				"GogsServerErrorException	class"
+			],
+			[
+				"Gog",
+				"GogsBaseException	class"
+			],
+			[
+				"data",
+				"DataErrorException	class"
+			],
+			[
+				"acto",
+				"actor	forstmt"
+			],
+			[
+				"exce",
+				"exceptions	import"
+			],
+			[
+				"l",
+				"log"
+			],
+			[
+				"mod",
+				"modelGroup"
+			],
+			[
+				"a",
+				"Atlantis"
+			],
+			[
+				"i",
+				"id"
+			],
+			[
+				"redis",
+				"redis-server"
+			],
+			[
+				"bas",
+				"BASE"
+			],
+			[
+				"sys",
+				"system	function"
+			],
+			[
+				"exis",
+				"_exists	function"
+			],
+			[
+				"SE",
+				"SerializerTime"
+			],
+			[
+				"ip",
+				"ipdb	ipdb set trace function"
+			],
+			[
+				"Ex",
+				"ExtraTools	module"
+			],
+			[
+				"E",
+				"ExtraTools"
+			],
+			[
+				"syste",
+				"systemFS	function"
+			],
+			[
+				"SystemF",
+				"SystemFSWalker	class"
+			],
+			[
+				"Ss",
+				"SystemFSWalker	module"
+			],
+			[
+				"res",
+				"result	statement"
+			],
+			[
+				"free",
+				"freepercent	statement"
+			],
+			[
+				"result",
+				"results"
+			],
+			[
+				"cp",
+				"CPU"
+			],
+			[
+				"C",
+				"ConnectionError"
+			],
+			[
+				"try",
+				"try	Try/Except"
+			],
+			[
+				"set",
+				"set_trace	function"
+			],
+			[
+				"asse",
+				"assertRaises	function"
+			],
+			[
+				"se",
+				"set_trace	function"
+			],
+			[
+				"cpu",
+				"cpuresults	statement"
+			],
+			[
+				"mem",
+				"memresults	statement"
+			],
+			[
+				"va",
+				"value"
+			],
+			[
+				"rs",
+				"result"
+			],
+			[
+				"mes",
+				"mesvalue	forstmt"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "lib/JumpScale/tools/cuisine_/CuisineBuilder.py",
+			"settings":
+			{
+				"buffer_size": 27513,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "lib/JumpScale/clients/syncthing/Syncthing.py",
+			"settings":
+			{
+				"buffer_size": 10715,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "startup packages aisleriot:amd64 1:3.14.2-0ubuntu2 apt-xapian-index:all 0.46ubuntu1 nautilus-share:amd64 0.7.3-1ubuntu5 apturl:amd64 0.5.2ubuntu6 arandr:all 0.1.7.1-1 ubuntu-desktop:amd64 1.334 checkbox-gui:amd64 0.18-0ubuntu2 cloud-image-utils:all 0.27-0ubuntu15 unity:amd64 7.3.2+15.04.20150420-0ubuntu1 compiz:all 1:0.9.12.1+15.04.20150922-0ubuntu1 compiz-gnome:amd64 1:0.9.12.1+15.04.20150922-0ubuntu1 deja-dup-backend-gvfs:all 32.0-0ubuntu5 deja-dup:amd64 32.0-0ubuntu5 duplicity:amd64 0.7.01-1ubuntu1 euca2ools:all 3.1.0-1 flashplugin-installer:amd64 11.2.202.559ubuntu0.15.04.1 libreoffice-gnome:amd64 1:4.4.6~rc3-0ubuntu1 terminator:all 0.97-4 xul-ext-webaccounts:amd64 0.5-0ubuntu4.15.04.1 webaccounts-extension-common:amd64 0.5-0ubuntu4.15.04.1 unity-control-center-signon:amd64 0.1.7~+14.10.20140814-0ubuntu1 ibus-table:all 1.9.1-3ubuntu1 gnome-user-share:amd64 3.0.4-0ubuntu1 software-center:all 13.10-0ubuntu6.1 gvfs-backends:amd64 1.24.2-0ubuntu0.1 npm:all 1.4.21+ds-2 node-gyp:all 0.12.2+ds-1 gyp:all 0.1~svn1729-3ubuntu1 ipython:all 2.3.0-2 landscape-client-ui-install:amd64 14.12-0ubuntu1 python-gnome2:amd64 2.28.1+dfsg-1.1 libgnomeui-0:amd64 2.24.5-3 libbonoboui2-0:amd64 2.24.5-0ubuntu4 libpurple-bin:all 1:2.10.9-0ubuntu8 vlc-plugin-samba:amd64 2.2.0-1 system-config-printer-gnome:all 1.5.6+20150318-0ubuntu2.1 system-config-printer-common:all 1.5.6+20150318-0ubuntu2.1 python3-smbc:amd64 1.0.15.3-0ubuntu1 libsmbclient:amd64 2:4.1.13+dfsg-4ubuntu3.1 meld:all 3.12.3-1 nodejs-dev:amd64 0.10.25~dfsg2-2ubuntu1 oneconf:all 0.3.7.15.04.1 python3-oneconf:all 0.3.7.15.04.1 python-oneconf:all 0.3.7.15.04.1 oneconf-common:all 0.3.7.15.04.1 openvswitch-switch:amd64 2.3.2-0ubuntu0.15.04.1 openvswitch-common:amd64 2.3.2-0ubuntu0.15.04.1 plainbox-provider-checkbox:amd64 0.4-1 samba-common-bin:amd64 2:4.1.13+dfsg-4ubuntu3.1 totem-plugins:amd64 3.14.3-0ubuntu0.1 python-samba:amd64 2:4.1.13+dfsg-4ubuntu3.1 totem:amd64 3.14.3-0ubuntu0.1 sessioninstaller:all 0.20+bzr141-0ubuntu4 python-aptdaemon.gtk3widgets:all 1.1.1+bzr982-0ubuntu3.1 python-aptdaemon:all 1.1.1+bzr982-0ubuntu3.1 python-bs4:all 4.3.2-2ubuntu2 python-vte:amd64 1:0.28.2-5ubuntu1 python-gi-cairo:amd64 3.14.0-1 ubuntu-sso-client-qt:all 13.10-0ubuntu9 ubuntu-sso-client:all 13.10-0ubuntu9 python-ubuntu-sso-client:all 13.10-0ubuntu9 python-twisted-web:all 14.0.2-1ubuntu1 python-twisted-core:all 14.0.2-1ubuntu1 python-service-identity:all 1.0.0-0ubuntu2 python-characteristic:all 0.1.0-1 python-pip:all 1.5.6-5ubuntu2 python-requestbuilder:all 0.2.3-1 python-requests:all 2.4.3-6 python-colorama:all 0.3.2-1 python-commandnotfound:all 0.3ubuntu15.3 software-center-aptdaemon-plugins:all 0.1.6build1 python-piston-mini-client:all 0.7.5-0ubuntu2 python-oauthlib:all 0.6.1-1 python-crypto:amd64 2.6.1-5 python-cups:amd64 1.9.72-0ubuntu1 ubuntu-system-service:all 0.2.5build1 python-debtagshw:all 1.12.3 python-decorator:all 3.4.0-2build1 python-defer:all 1.0.6-2build1 python-dev:amd64 2.7.9-1 python-dirspec:all 13.10-0ubuntu3 python-distlib:all 0.1.9-1 python-gconf:amd64 2.28.1+dfsg-1.1 python-gdbm:amd64 2.7.9-1 zeitgeist:all 0.9.14-2.2ubuntu3 python-zeitgeist:all 0.9.14-2.2ubuntu3 python-gobject:all 3.14.0-1 python-gi:amd64 3.14.0-1 python-html5lib:all 0.999-3 python-httplib2:all 0.9+dfsg-2 python-idna:all 0.9-0ubuntu1 python-imaging:all 2.7.0-1 vim-python-jedi:all 0.8.1-1 python-jedi:all 0.8.1-1 python-keybinder:amd64 0.3.0-3build1 python-ldb:amd64 1:1.1.18-1ubuntu0.1 python-lockfile:all 1:0.8-2ubuntu2 python-lxml:amd64 3.4.2-1 python-ndg-httpsclient:all 0.3.2-1ubuntu4 python-notify:amd64 0.1.1-4 python-ntdb:amd64 1.0-5 python-openssl:amd64 0.13.1-2ubuntu1 python-pam:amd64 0.4.2-13.1ubuntu3 python-pexpect:all 3.2-1 python-pil:amd64 2.7.0-1 python-virtualenv:all 1.11.6+ds-1 python-zope.interface:amd64 4.1.1-3.1 python-pyasn1-modules:all 0.0.5-0.1 python-pyasn1:all 0.1.7-1ubuntu2 python-pyorbit:amd64 2.24.0-7ubuntu1 python-qt4:amd64 4.11.3+dfsg-1 python-qt4-dbus:amd64 4.11.3+dfsg-1 python-serial:all 2.6-1.1ubuntu1 python-setuptools:all 12.2-1 python-simplegeneric:all 0.8.1-1 python-sip:amd64 4.16.6+dfsg-1 python-urllib3:all 1.9.1-3 samba-libs:amd64 2:4.1.13+dfsg-4ubuntu3.1 python-talloc:amd64 2.1.1-2 python-tdb:amd64 1.3.4-1 python-twisted-bin:amd64 14.0.2-1ubuntu1 python-wheel:all 0.24.0-1 python-xapian:amd64 1.2.19-1 python-xdg:all 0.25-4 squid-deb-proxy-client:all 0.8.10 transmission-gtk:amd64 2.84-0.2ubuntu1 unity-webapps-common:all 2.4.17+14.04.20140416-0ubuntu1 xdiagnose:all 3.7.2 python-gtk2:amd64 2.24.0-3ubuntu4 python-cairo:amd64 1.8.8-1ubuntu5 python-gobject-2:amd64 2.28.6-12build1 libgnome2-0:amd64 2.32.1-4ubuntu1 libgnome2-common:all 2.32.1-4ubuntu1 libgnomevfs2-0:amd64 1:2.24.4-6ubuntu1 libgnomevfs2-common:amd64 1:2.24.4-6ubuntu1 update-notifier:amd64 3.160 update-notifier-common:all 3.160 python-debian:all 0.1.22ubuntu1 python-chardet:all 2.3.0-1 python-dbus:amd64 1.2.0-2build2 python-pkg-resources:all 12.2-1 python-six:all 1.9.0-1 gconf2:amd64 3.2.6-3ubuntu1 indicator-bluetooth:amd64 0.0.6+14.10.20141006-0ubuntu1 unity-control-center:amd64 15.04.0+15.04.20150410-0ubuntu1 ibus:amd64 1.5.9-1ubuntu3 gir1.2-ibus-1.0:amd64 1.5.9-1ubuntu3 libgnome2-bin:amd64 2.32.1-4ubuntu1 python-apt:amd64 0.9.3.11build1 update-manager:all 1:15.04.7.1 python:amd64 2.7.9-1 ubuntu-release-upgrader-gtk:all 1:15.04.14.3 \nQ1",
+			"file": "intrtest.py",
+			"file_size": 81,
+			"file_write_time": 131011536572677761,
+			"settings":
+			{
+				"buffer_size": 5337,
+				"line_ending": "Unix",
+				"name": "from Jumpscale import j"
+			}
+		},
+		{
+			"file": "lib/JumpScale/__init__.py",
+			"settings":
+			{
+				"buffer_size": 8216,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "js8.sublime-project",
+			"settings":
+			{
+				"buffer_size": 294,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Anaconda Python Builder",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				]
+			],
+			[
+				"Packages/Python/Python.sublime-build",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 392.0,
+		"last_filter": ":w",
+		"selected_items":
+		[
+			[
+				":w",
+				":w - Save"
+			],
+			[
+				"git comp",
+				"GitGutter: Compare Against Branch"
+			],
+			[
+				"gitbla",
+				"Git: Blame"
+			],
+			[
+				":W",
+				":w - Save"
+			],
+			[
+				"git",
+				"Git: Blame"
+			],
+			[
+				"disablel",
+				"Anaconda: Disable linting on this file"
+			],
+			[
+				"git bla",
+				"Git: Blame"
+			],
+			[
+				"git ",
+				"Git: Blame"
+			],
+			[
+				"enab",
+				"Package Control: Enable Package"
+			],
+			[
+				"blame",
+				"Git: Blame"
+			],
+			[
+				"gitblam",
+				"Git: Blame"
+			],
+			[
+				"git blame",
+				"Git: Blame"
+			],
+			[
+				"gitb",
+				"Git: Blame"
+			],
+			[
+				"syn bash",
+				"Set Syntax: Shell Script (Bash)"
+			],
+			[
+				"json",
+				"Set Syntax: JSON"
+			],
+			[
+				"python",
+				"Set Syntax: Python"
+			],
+			[
+				"git blame ",
+				"Git: Blame"
+			],
+			[
+				"enable",
+				"Package Control: Enable Package"
+			],
+			[
+				"disab",
+				"Package Control: Disable Package"
+			],
+			[
+				"syn",
+				"Set Syntax: Python"
+			],
+			[
+				"gitblame",
+				"Git: Blame"
+			],
+			[
+				"git bl",
+				"Git: Blame"
+			],
+			[
+				"git b",
+				"Git: Blame"
+			],
+			[
+				":pyth",
+				"Set Syntax: Python"
+			],
+			[
+				":git blame",
+				"Set Syntax: Git Blame"
+			],
+			[
+				":",
+				":w - Save"
+			],
+			[
+				":wq",
+				"BracketHighlighter: Swap Quotes"
+			],
+			[
+				"install ",
+				"Package Control: Install Package"
+			],
+			[
+				":saveall",
+				"File: Save All"
+			],
+			[
+				"pytho",
+				"Set Syntax: Python"
+			],
+			[
+				":e",
+				":e - Revert"
+			],
+			[
+				"j",
+				"Set Syntax: JavaScript"
+			],
+			[
+				"html",
+				"Set Syntax: HTML"
+			],
+			[
+				":sa",
+				"File: Save All"
+			],
+			[
+				":sall",
+				"File: Save All"
+			],
+			[
+				"histo",
+				"Git: Commit history"
+			],
+			[
+				"remov",
+				"Package Control: Remove Package"
+			],
+			[
+				"ins",
+				"Package Control: Install Package"
+			],
+			[
+				":save",
+				"File: Save All"
+			],
+			[
+				":save a",
+				"File: Save All"
+			],
+			[
+				":sA",
+				"File: Save All"
+			],
+			[
+				"pyt",
+				"Set Syntax: Python"
+			],
+			[
+				"lintin",
+				"Anaconda: Enable linting on this file"
+			],
+			[
+				"js",
+				"Set Syntax: JSON"
+			],
+			[
+				"syntax ",
+				"Set Syntax: Python"
+			],
+			[
+				"syntax python ",
+				"Set Syntax: Python"
+			],
+			[
+				"synta pyth",
+				"Set Syntax: Python"
+			],
+			[
+				" linting",
+				"Anaconda: Disable linting on this file"
+			],
+			[
+				"dis linting",
+				"Anaconda: Disable linting on this file"
+			],
+			[
+				"anaconda lin",
+				"Anaconda: Enable linting on this file"
+			],
+			[
+				"disabl",
+				"Package Control: Disable Package"
+			],
+			[
+				"prett",
+				"Pretty JSON: Validate"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"syn python",
+				"Set Syntax: Python"
+			],
+			[
+				"disable",
+				"Package Control: Disable Package"
+			],
+			[
+				"lo",
+				"Local History: Open"
+			],
+			[
+				"install local",
+				"Package Control: Install Local Dependency"
+			],
+			[
+				"package rem",
+				"Package Control: Remove Package"
+			],
+			[
+				"packa disa",
+				"Package Control: Disable Package"
+			],
+			[
+				"package install",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 521.0
+	},
+	"console":
+	{
+		"height": 139.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = '2915d1851351e5ee549c20394736b442' + '8bc59f460fa1548d1514676163dafc88'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/opt/code/github/jumpscale/jumpscale_core8"
+	],
+	"file_history":
+	[
+		"/opt/jumpscale7/lib/JumpScale/__init__.py",
+		"/home/art/.config/sublime-text-3/Packages/User/Anaconda.sublime-settings",
+		"/home/art/.config/sublime-text-3/Packages/Anaconda/Default (Linux).sublime-keymap",
+		"/home/art/.config/sublime-text-3/Packages/User/JSON.sublime-settings",
+		"/opt/code/github/jumpscale/jumpscale_core8/intrtest.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal/tmux/Tmux.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/install/InstallTools.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/data/text/Text.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/baselib/atyourservice/ALog.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/baselib/atyourservice/telegrambot/TelegramAYS.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal/fs/SystemFS.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal/process/SystemProcess.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/perftesttools/PerfTestToolsFactory.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal/routeros/RouterOS.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/executor/ExecutorLocal.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/ssh_system_tools/RemoteSystem.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/CuisineFactory.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/executor/ExecutorSSH.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/executor/ExecutorBase.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/Cuisine2.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/baselib/atyourservice/Service.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/baselib/atyourservice/ActionsBaseNode.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/baselib/atyourservice/AtYourServiceSandboxer.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/baselib/atyourservice/ServiceTemplate.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/clients/postgresql/PostgresqlFactory.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal/disklayout/disks.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal/docker/Docker.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal/netconfig/Netconfig.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal/nettools/NetTools.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/aggregator/NetworkScanner.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/golang/GOLang.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/openwrt/manager.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/sandboxer/Sandboxer.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/telegram/Telegram.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/shellcmds/jscode",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/core/main/Application.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/clients/git/GitClient.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/baselib/atyourservice/AtYourServiceFactory.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/core/main/Dirs.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/__init__.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/clients/git/GitFactory.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal/docker/Container.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/CuisineBuilder.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/baselib/atyourservice/AtYourServiceSync.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/clients/syncthing/Syncthing.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal/ubuntu/Ubuntu.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/clients/gitlab/GitlabInstance.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/clients/sqlalchemy/SQLAlchemy.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal/aoe/AOEManager.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/develop/DevelopTools.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal/rsync/Rsync.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/CuisineInstaller.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal/rsync/RsyncFactory.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/clients/ssh/SSHClient.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/baselib/atyourservice/ServiceRecipe.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/telegram/handlers/DemoHandler.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/CuisinePortal.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/baselib/cloudsystemfs/HttpFS.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/data/models/Models.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/packInCode/PackInCode.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal/unix/unix.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/data/hrd/HRDTree.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/actions/Action.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/CuisineUser.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/baselib/atyourservice/ALog.py.bak",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/data/hrd/HRD.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/data/serializers/SerializerBase.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/clients/openvcloud/OpenVCloud.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/core/logging/LogHandler.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/objectinspector/ObjectInspector.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/bash/Bash.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/CuisineSSH.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/baselib/atyourservice/Blueprint.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/data/hrd/HRDSchema.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/CuisineProcessManager.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/system_monitoring.py",
+		"/opt/code/github/jumpscale/docs8/README.md",
+		"/opt/code/github/jumpscale/docs8/Howto/HowtoShellDebugging.md",
+		"/opt/code/github/jumpscale/docs8/Howto/How To Use Docker.md",
+		"/opt/code/github/jumpscale/docs8/Howto/How To Build Docker Image With JumpScale.md",
+		"/opt/code/github/jumpscale/docs8/GettingStarted/IPythonTricks.md",
+		"/opt/code/github/jumpscale/docs8/GettingStarted/AYS Sandbox.md",
+		"/opt/code/github/jumpscale/docs8/Core/SystemRedis.md",
+		"/opt/code/github/jumpscale/docs8/Core/Core.md",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/healthcheck_db.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/healthcheck_disks.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/healthcheck_jsprocess_status.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/healthcheck_redis.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/healthcheck_workerstatus.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/machine_monitoring.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/network_gathering.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/system_echo_async.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/system_loghandling.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/test_echoscheduled.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/healthcheck_cpu_mem_core.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/healthcheck_cpu_ctxpy.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/backup_osis.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/ays_monitor.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/network_checkportopen.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/gitlab_clonespaces.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/gitlab_clonespace.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/network_monitoring.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/aggregator/Aggregator.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale/disk_monitoring.py",
+		"/opt/code/config.xml",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/CuisinePackage.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/clients/agentcontroller/Client.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/clients/agentcontroller/acclient.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/CuisineInstallerDevelop.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/CuisinePIP.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/ActionDecorator.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/CuisineGolang.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/CuisineMongoCluster.md",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/CuisineMongoCluster.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/install/install.sh",
+		"/opt/code/github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/codetools/TemplateEngine.py",
+		"/opt/code/github/jumpscale/jumpscale_portal8/apps/portalbase/portal_no_ays.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/data/hrd/HRDBase.py",
+		"/opt/code/github/jumpscale/jumpscale_portal8/lib/portal/portal/auth.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/clients/mongodbclient/MongoDBClient.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/data/models/BaseModelFactory.py",
+		"/opt/code/github/jumpscale/jumpscale_portal8/lib/portal/portal/PortalAuthenticatorMongoEngine.py",
+		"/opt/code/github/jumpscale/jumpscale_portal8/lib/portal/portal/PortalServer.py",
+		"/opt/code/github/jumpscale/jumpscale_portal8/apps/portalbase/system/system__usermanager/methodclass/system_usermanager.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/install/ExtraTools.py",
+		"/opt/code/github/jumpscale/jumpscale_portal8/lib/portal/portal/PortalAuthenticatorMinimal.py",
+		"/opt/code/github/jumpscale/jumpscale_portal8/apps/portalbase/system/system__usermanager/specs/actors.spec"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 93.0,
+		"where_history":
+		[
+			"<current file>",
+			"/opt/code/github/jumpscale/jumpscale_core8,-/opt/code/github/jumpscale/jumpscale_core8/install/*,-/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/__init__.py",
+			"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale",
+			"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal",
+			"/opt/code/github/jumpscale/jumpscale_core8,-/opt/code/github/jumpscale/jumpscale_core8/install/*,-/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/__init__.py",
+			"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal",
+			"<current file>",
+			"/opt/code/github/jumpscale/jumpscale_core8,-/opt/code/github/jumpscale/jumpscale_core8/install/*,-/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/__init__.py",
+			"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal",
+			"/opt/code/github/jumpscale/jumpscale_core8,-/opt/code/github/jumpscale/jumpscale_core8/install/*,-/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/__init__.py",
+			"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal",
+			"/opt/code/github/jumpscale/jumpscale_core8,-/opt/code/github/jumpscale/jumpscale_core8/install/*,-/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/__init__.py",
+			"/opt/code/github/jumpscale/jumpscale_core8,-/opt/code/github/jumpscale/jumpscale_core8/install/*",
+			"/opt/code/github/jumpscale/jumpscale_core8,-/opt/code/github/jumpscale/jumpscale_core8/install/",
+			"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/sal",
+			"/opt/code/github/jumpscale/jumpscale_core8,-/opt/code/github/jumpscale/jumpscale_core8/install/InstallTools.py",
+			"/opt/code/github/jumpscale/jumpscale_core8",
+			"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_",
+			"/opt/code/github/jumpscale/docs8",
+			"/opt/code/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale",
+			"/opt/code/github/jumpscale/jumpscale_core8,/opt/code/github/jumpscale/jumpscale_portal8",
+			"/opt/code/github/jumpscale/ays_jumpscale7,/opt/code/github/jumpscale/jumpscale_core7,/opt/code/github/jumpscale/jumpscale_portal",
+			"/opt/code/github/jumpscale/jumpscale_core8,/opt/code/github/jumpscale/jumpscale_portal8",
+			"/home/art/go/src/github.com/gogits/go-gogs-client",
+			"/home/art/go/src/github.com/gogits/gogs",
+			"/opt/code/github/jumpscale/jumpscale_core7,/opt/code/github/jumpscale/jumpscale_portal",
+			"/opt/code/github/jumpscale/jumpscale_core8,/opt/code/github/jumpscale/jumpscale_portal8",
+			"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/clients/agentcontroller2",
+			"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/grid/gridhealthchecker/gridhealthchecker.py",
+			"/opt/code/github/jumpscale/jumpscale_core8/,/opt/code/github/jumpscale/jumpscale_portal8",
+			"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/data/serializers/SerializersFactory.py",
+			"/opt/code/github/jumpscale/jumpscale_core8,/opt/code/github/jumpscale/jumpscale_portal8",
+			"/opt/code/github/jumpscale/jumpscale_core8",
+			"/opt/code/github/jumpscale/jumpscale_core8/,/opt/code/github/jumpscale/jumpscale_portal8",
+			"/opt/code/github/jumpscale/jumpscale_portal8/lib",
+			"/opt/code/github/jumpscale/jumpscale_portal8",
+			"/opt/code/github/jumpscale/jumpscale_portal8/lib",
+			"/opt/code/github/jumpscale/jumpscale_portal8",
+			"/opt/code/github/jumpscale/jumpscale_core8,/opt/code/github/jumpscale/jumpscale_portal8",
+			"/opt/code/github",
+			"",
+			"/opt/code/git/0-complexity",
+			"/opt/code/github/jumpscale",
+			"/opt/code/github/jumpscale/jumpscale_portal",
+			"/opt/code/github/jumpscale/jumpscale_portal,*.py",
+			"/opt/code/github/jumpscale/jumpscale_portal",
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"<none>",
+			"\".\"",
+			"BASE",
+			"runscript",
+			"agent8",
+			"Jumpscale",
+			"agentcontroller8",
+			"j.do.execute(",
+			"j.do",
+			"j.q",
+			"j.",
+			"j.do",
+			"j\\.do\\.",
+			"id",
+			"execute",
+			"execute.i",
+			"execute.id",
+			" executor",
+			"executor",
+			"j\\.do\\.execute\\(",
+			"j\\.do\\.execute",
+			"j\\.do\\.execute\\(\\w+.+outputStderr",
+			"j\\.do\\.execute\\(\\w+.+",
+			"j\\.do\\.execute\\(\\w+.+log",
+			"j\\.do\\.execute",
+			"j\\.do\\.execute\\(\\w+",
+			"j\\.do\\.execute\\(\\w+,\\w",
+			"j\\.do\\.execute\\(\\w+,",
+			"j\\.do\\.execute\\(\\w+.",
+			"def execute",
+			"j\\.do\\.execute\\(\\w+.+outputStdout",
+			"outputStdout",
+			"j\\.do\\.execute\\(\\w+.+outputStdout",
+			"j\\.do\\.execute\\(\\w+.+async",
+			"j\\.do\\.execute\\(\\w+.+captureout",
+			"j\\.do\\.execute\\(\\w+.+timeout",
+			"j\\.do\\.execute\\(\\w+.+ok",
+			"j\\.do\\.execute\\(\\w+.+errors",
+			"j\\.do\\.execute\\(\\w+.+outputStderr",
+			"def execute",
+			"execute",
+			"j\\.do\\.execute\\(\\w+.+cwd",
+			"j\\.do",
+			"j.do",
+			"BASE",
+			"base",
+			"git",
+			"j.do.",
+			"j.do.executeBashScript",
+			"run_script",
+			"def redis",
+			"j.do.executeBashScript",
+			"j.do.",
+			"j.do.symlink",
+			"j.do.",
+			"j.do.delete",
+			"j\\.do\\.",
+			"j\\.do\\.execute.+",
+			"j\\.do\\.executeinteractive",
+			"j\\.do\\.execute\\w+",
+			"outputToStdout=False,",
+			"j.do",
+			"eraseDestination",
+			"j\\.sal\\.fs\\.copyDirTree\\(.+eraseDestination",
+			"j\\.sal\\.fs\\.copyDirTree\\(.+ssh=True",
+			"j\\.do\\.copyTree",
+			"dest",
+			"source",
+			"j\\.do\\.copyTree\\(.+ssh=True",
+			"j\\.do\\.copyTree\\(.+ssh=True\\)",
+			"j\\.do\\.copyTree\\(.+rsync=True\\)",
+			"j\\.do\\.copyTree\\(.+ssh=True\\)",
+			"rsync",
+			"scp",
+			"toml",
+			"bui",
+			"build",
+			"gcc",
+			"j.sal.fs.copyDirTree",
+			"j.do.copyTree",
+			"j\\.do\\.copyTree(^?=createdir)/",
+			"j\\.do\\.copyTree(?=createdir)/",
+			"j\\.do\\.copyTree?(?=createdir)/",
+			"j\\.do\\.copyTree+?(?=createdir)/",
+			"j\\.do\\.copyTree/.+?(?=createdir)/",
+			"j\\.do\\.copyTree[\\w]+",
+			"j\\.do\\.copyTree[.]+",
+			"j\\.do\\.copyTree[.]",
+			"j\\.do\\.copyTree[.]^cr",
+			"j\\.do\\.copyTree ^cr",
+			"j\\.do\\.copyTree ^cr+",
+			"j\\.do\\.copyTree^cr+",
+			"j\\.do\\.copyTree[^cr]+",
+			"j\\.do\\.copyTree[^c]+",
+			"j\\.do\\.copyTree[\\w]+",
+			"j\\.do\\.copyTree[\\w,]*",
+			"j\\.do\\.copyTree[\\w,]+",
+			"j\\.do\\.copyTree[\\w,]+createdir",
+			"j\\.do\\.copyTree",
+			"j\\.do\\.copyTree\\w+",
+			"j\\.do\\.copyTree\\w+createdir",
+			"j\\.do\\.copyTree.+createdir",
+			"def c",
+			"def copy",
+			"copyD",
+			"copytree",
+			"copydirte",
+			"copyTree",
+			"copyDirTree",
+			"j.do.",
+			"do",
+			"j.do.download",
+			"urlopen",
+			"self.download",
+			"j.do.download",
+			"j.do.execute",
+			"'PYTHONVERSION', '3.5'",
+			"os.environ.get('PYTHONVERSION', '3.5')",
+			"pythonlibsystem",
+			"j.do.chmod",
+			"j.do.",
+			"j.do.chdir",
+			"j.sal.fs.changedir",
+			"j.do.chdir",
+			"j.do.",
+			"j.do.createDir",
+			"j.do.getParent",
+			"j.do."
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"",
+			"j.sal.process.execute(",
+			"outputToStdout",
+			"j.sal.fs.symlink",
+			"j.sal.fs.remove",
+			"j.sal.process.executeWithoutPipe",
+			"j.sal.fs.copyDirTree",
+			"j.data.serializer.toml",
+			"j.sal.fs.chmod",
+			"j.sal.fs.changedir",
+			"j.sal.fs.createDir",
+			"j.sal.fs.getParent",
+			"j.sal.fs.copyFile",
+			"j.sal.fs.createDir",
+			"j.sal.fs.listFilesInDir",
+			"j.sal.fs.getParent",
+			"j.sal.fs.getBaseName",
+			"j.sal.fs.writeFile",
+			"j.dirs.base",
+			"j.sal.fs.joinPaths",
+			"j.sal.fs.exists",
+			"j.sal.fs.listDirsInDir",
+			"j.sal.fs.getDirName",
+			"j.sal.fs.fileGetContents",
+			"",
+			"j.data.hash",
+			"j.tools.code",
+			"j.core.types.dict",
+			"j.tools.code",
+			"JumpScale",
+			"from Jumpscale.data.serializers.Serializer",
+			"from JumpScale.core.types.BaseEnumeration import BaseEnumeration",
+			"from JumpScale.core.types import BaseEnumeration",
+			"j.tools.docpreprocessorparser.parseDoc",
+			"from JumpScale.core.types import BaseEnumeration",
+			"j.tools.docpreprocessor.get",
+			"j.tools.code",
+			"JumpScale.core.types",
+			"JumpScale.core.baseclasses_old",
+			"j.data.params",
+			"j.core.types.list",
+			"j.core.types.dict",
+			"j.core.types.bool",
+			"j.core.types.integer",
+			"j.core.types.string",
+			"j.data.tags",
+			"j.tools.idgenerator",
+			"\"",
+			"",
+			"\"",
+			""
+		],
+		"reverse": false,
+		"show_context": false,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 2,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "lib/JumpScale/tools/cuisine_/CuisineBuilder.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 27513,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								10298,
+								10298
+							]
+						],
+						"settings":
+						{
+							"BracketHighlighterBusy": false,
+							"bh_regions":
+							[
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content"
+							],
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3638.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "lib/JumpScale/clients/syncthing/Syncthing.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 10715,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3594,
+								3594
+							]
+						],
+						"settings":
+						{
+							"BracketHighlighterBusy": false,
+							"bh_regions":
+							[
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content"
+							],
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1008.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "intrtest.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5337,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5336,
+								5336
+							]
+						],
+						"settings":
+						{
+							"BracketHighlighterBusy": false,
+							"auto_name": "from Jumpscale import j",
+							"bh_regions":
+							[
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content"
+							],
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "lib/JumpScale/__init__.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 8216,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2930,
+								2930
+							]
+						],
+						"settings":
+						{
+							"BracketHighlighterBusy": false,
+							"bh_regions":
+							[
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content"
+							],
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1207.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "js8.sublime-project",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 294,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								294,
+								294
+							]
+						],
+						"settings":
+						{
+							"BracketHighlighterBusy": false,
+							"bh_regions":
+							[
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content"
+							],
+							"syntax": "Packages/JavaScript/JSON.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 25.0
+	},
+	"input":
+	{
+		"height": 34.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.MarGo-output":
+	{
+		"height": 118.0
+	},
+	"output.autopep8":
+	{
+		"height": 112.0
+	},
+	"output.exec":
+	{
+		"height": 167.0
+	},
+	"output.find_results":
+	{
+		"height": 112.0
+	},
+	"output.unsaved_changes":
+	{
+		"height": 112.0
+	},
+	"pinned_build_system": "Anaconda Python Builder",
+	"project": "js8.sublime-project",
+	"replace":
+	{
+		"height": 46.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"jumpscale",
+				"lib/JumpScale/__init__.py"
+			],
+			[
+				"cuisine",
+				"lib/JumpScale/tools/cuisine_/CuisineBuilder.py"
+			],
+			[
+				"process",
+				"lib/JumpScale/sal/process/SystemProcess.py"
+			],
+			[
+				"in",
+				"install/InstallTools.py"
+			],
+			[
+				"syste",
+				"lib/JumpScale/sal/fs/SystemFS.py"
+			],
+			[
+				"tel",
+				"lib/JumpScale/baselib/atyourservice/telegrambot/TelegramAYS.py"
+			],
+			[
+				"alog",
+				"lib/JumpScale/baselib/atyourservice/ALog.py"
+			],
+			[
+				"al",
+				"lib/JumpScale/baselib/atyourservice/ALog.py"
+			],
+			[
+				"lib/jumpscale/tools/ssh_system_tools/remotesystem.py",
+				"lib/JumpScale/tools/ssh_system_tools/RemoteSystem.py"
+			],
+			[
+				"executopr",
+				"lib/JumpScale/tools/executor/ExecutorSSH.py"
+			],
+			[
+				"exec",
+				"lib/JumpScale/tools/executor/ExecutorLocal.py"
+			],
+			[
+				"insta",
+				"install/InstallTools.py"
+			],
+			[
+				"process/",
+				"lib/JumpScale/sal/process/SystemProcess.py"
+			],
+			[
+				"install",
+				"install/InstallTools.py"
+			],
+			[
+				"dirs",
+				"lib/JumpScale/core/main/Dirs.py"
+			],
+			[
+				"jumpscaleini",
+				"lib/JumpScale/__init__.py"
+			],
+			[
+				"jumpscale/core/main/dirs.py",
+				"lib/JumpScale/core/main/Dirs.py"
+			],
+			[
+				"cuisineb",
+				"lib/JumpScale/tools/cuisine_/CuisineBuilder.py"
+			],
+			[
+				"systemfs",
+				"lib/JumpScale/sal/fs/SystemFS.py"
+			],
+			[
+				"cui",
+				"lib/JumpScale/tools/cuisine_/CuisineBuilder.py"
+			],
+			[
+				"systemf",
+				"lib/JumpScale/sal/fs/SystemFS.py"
+			],
+			[
+				"di",
+				"lib/JumpScale/core/main/Dirs.py"
+			],
+			[
+				"cuisineinstall",
+				"lib/JumpScale/tools/cuisine_/CuisineInstaller.py"
+			],
+			[
+				"rsync",
+				"lib/JumpScale/sal/rsync/Rsync.py"
+			],
+			[
+				"netto",
+				"lib/JumpScale/sal/nettools/NetTools.py"
+			],
+			[
+				"cuisine2",
+				"lib/JumpScale/tools/cuisine_/Cuisine2.py"
+			],
+			[
+				"/jumpscale/data/models/models.py",
+				"lib/JumpScale/data/models/Models.py"
+			],
+			[
+				"dir",
+				"lib/JumpScale/core/main/Dirs.py"
+			],
+			[
+				"lib/jumpscale/core/main/dirs.py",
+				"lib/JumpScale/core/main/Dirs.py"
+			],
+			[
+				"develop",
+				"lib/JumpScale/tools/develop/DevelopTools.py"
+			],
+			[
+				"ins",
+				"install/InstallTools.py"
+			],
+			[
+				"sal/fs",
+				"lib/JumpScale/sal/fs/SystemFS.py"
+			],
+			[
+				"syncthing",
+				"lib/JumpScale/clients/syncthing/Syncthing.py"
+			],
+			[
+				"system_monit",
+				"apps/agentcontroller/jumpscripts/jumpscale/system_monitoring.py"
+			],
+			[
+				"ag",
+				"lib/JumpScale/tools/aggregator/Aggregator.py"
+			],
+			[
+				"cuisinebui",
+				"lib/JumpScale/tools/cuisine_/CuisineBuilder.py"
+			],
+			[
+				"hea",
+				"apps/agentcontroller/jumpscripts/jumpscale/healthcheck_disks.py"
+			],
+			[
+				"pip",
+				"lib/JumpScale/tools/cuisine_/CuisinePIP.py"
+			],
+			[
+				"clientsagentcontroller",
+				"lib/JumpScale/clients/agentcontroller/Client.py"
+			],
+			[
+				"cuisinepip",
+				"lib/JumpScale/tools/cuisine_/CuisinePIP.py"
+			],
+			[
+				"cuisineinsta",
+				"lib/JumpScale/tools/cuisine_/CuisineInstaller.py"
+			],
+			[
+				"__init",
+				"lib/JumpScale/__init__.py"
+			],
+			[
+				"installtoo",
+				"install/InstallTools.py"
+			],
+			[
+				"cluster",
+				"lib/JumpScale/tools/cuisine_/CuisineMongoCluster.md"
+			],
+			[
+				"action",
+				"lib/JumpScale/tools/cuisine_/ActionDecorator.py"
+			],
+			[
+				"mongo",
+				"lib/JumpScale/tools/cuisine_/CuisineMongoCluster.py"
+			],
+			[
+				"cuisien2",
+				"lib/JumpScale/tools/cuisine_/Cuisine2.py"
+			],
+			[
+				"jumpscaleinit",
+				"lib/JumpScale/__init__.py"
+			],
+			[
+				"proc",
+				"lib/JumpScale/tools/cuisine_/CuisineProcessManager.py"
+			],
+			[
+				"cuise",
+				"lib/JumpScale/tools/cuisine_/CuisineBuilder.py"
+			],
+			[
+				"tmux",
+				"jumpscale_core7/lib/JumpScale/baselib/screen/Tmux.py"
+			],
+			[
+				"ubuntu",
+				"jumpscale_core7/lib/JumpScale/baselib/platforms/ubuntu/Ubuntu.py"
+			],
+			[
+				"portalbase/config.hrd",
+				"jumpscale_portal8/apps/portalbase/config.hrd"
+			],
+			[
+				"portal_no_",
+				"jumpscale_portal8/apps/portalbase/portal_no_ays.py"
+			],
+			[
+				"instal/",
+				"jumpscale_core8/install/ExtraTools.py"
+			],
+			[
+				"devlop",
+				"jumpscale_core8/lib/JumpScale/tools/develop/DevelopTools.py"
+			],
+			[
+				"model",
+				"jumpscale_core8/lib/JumpScale/data/models/Models.py"
+			],
+			[
+				"/mongodbclient/mongodbclient.py",
+				"jumpscale_core8/lib/JumpScale/clients/mongodbclient/MongoDBClient.py"
+			],
+			[
+				"basemo",
+				"jumpscale_core8/lib/JumpScale/data/models/BaseModelFactory.py"
+			],
+			[
+				"portal",
+				"jumpscale_portal8/lib/portal/portal/PortalServer.py"
+			],
+			[
+				"userman",
+				"jumpscale_portal8/apps/portalbase/system/system__usermanager/methodclass/system_usermanager.py"
+			],
+			[
+				"oauthinstance",
+				"jumpscale_core8/lib/JumpScale/grid/oauth/OauthInstance.py"
+			],
+			[
+				"oauthfactory",
+				"jumpscale_core8/lib/JumpScale/grid/oauth/OauthFactory.py"
+			],
+			[
+				"oauthin",
+				"jumpscale_core8/lib/JumpScale/grid/oauth/OauthInstance.py"
+			],
+			[
+				"models",
+				"jumpscale_core8/lib/JumpScale/data/models/Models.py"
+			],
+			[
+				"/portal/infomgr/infomgr.py",
+				"jumpscale_portal8/lib/portal/infomgr/InfoMgr.py"
+			],
+			[
+				"a/serializers/serializersfactory.py",
+				"jumpscale_core8/lib/JumpScale/data/serializers/SerializersFactory.py"
+			],
+			[
+				"serializert",
+				"jumpscale_core8/lib/JumpScale/data/serializers/SerializerTOML.py"
+			],
+			[
+				"acclien",
+				"jumpscale_core8/lib/JumpScale/clients/agentcontroller/acclient.py"
+			],
+			[
+				"mode",
+				"jumpscale_core8/lib/JumpScale/data/models/Models.py"
+			],
+			[
+				"portal/portal/portalrest.py",
+				"jumpscale_portal8/lib/portal/portal/PortalRest.py"
+			],
+			[
+				"system_content",
+				"jumpscale_portal8/apps/portalbase/system/system__contentmanager/methodclass/system_contentmanager.gen.py"
+			],
+			[
+				"api.",
+				"routers/api/v1/api.go"
+			],
+			[
+				"api",
+				"routers/api/v1/api.go"
+			],
+			[
+				"gogs",
+				"jumpscale_core8/lib/JumpScale/clients/gogs/GogsClient.py"
+			],
+			[
+				"actorsdoc",
+				"jumpscale_portal/apps/portalbase/macros/page/actorsdocs/3_main.py"
+			],
+			[
+				"actordocs",
+				"jumpscale_portal/apps/portalbase/macros/page/actorsdocs/3_main.py"
+			],
+			[
+				"listactors",
+				"jumpscale_portal/lib/portal/portalloaders/ActorsInfo.py"
+			],
+			[
+				"cloudspace",
+				"0-complexity/openvcloud/apps/cbportal/base/CBGrid/Cloud Spaces/Cloud Space.wiki"
+			],
+			[
+				"cloudspaces",
+				"0-complexity/openvcloud/apps/cbportal/base/CBGrid/Cloud Spaces/Cloud Spaces.wiki"
+			],
+			[
+				"dat",
+				"jumpscale_portal/apps/portalbase/wiki/TestSpace/DataTables/DataTables.wiki"
+			],
+			[
+				"actordocs.p",
+				"jumpscale_portal/apps/portalbase/macros/page/actorsdocs/3_main.py"
+			],
+			[
+				"system/actordo",
+				"jumpscale_portal/apps/portalbase/wiki/System/ActorsDocs/ActorsDocs.wiki"
+			],
+			[
+				"cloudapi",
+				"0-complexity/openvcloud/apps/cloudbroker/base/cloudapi__accounts/methodclass/cloudapi_accounts.py"
+			],
+			[
+				"hamb",
+				"jumpscale_portal/apps/portalbase/macros/page/PortalsHamburgerMenu/1_portalsHamburgerMenu.py"
+			],
+			[
+				"osismongo",
+				"jumpscale_core7/lib/JumpScale/grid/osis/OSISStoreMongo.py"
+			],
+			[
+				"cloud",
+				"0-complexity/openvcloud/apps/cbportal/base/CBGrid/Cloud Spaces/Cloud Space.wiki"
+			],
+			[
+				"cbspaces",
+				"0-complexity/openvcloud/apps/cbportal/base/CBGrid/.macros/page/cbspaces/3_cbspaces.py"
+			],
+			[
+				"cloudspaceswiki",
+				"0-complexity/openvcloud/apps/cbportal/base/CBGrid/Cloud Spaces/Cloud Spaces.wiki"
+			],
+			[
+				"modelbase",
+				"jumpscale_core7/apps/osis/logic/system/group/system_group_osismodelbase.py"
+			],
+			[
+				"osisclientforcat.py",
+				"jumpscale_core7/lib/JumpScale/grid/osis/OSISClientForCat.py"
+			],
+			[
+				"osis_group",
+				"jumpscale_core7/apps/osis/logic/system/group/OSIS_group_impl.py"
+			],
+			[
+				"osismong",
+				"jumpscale_core7/lib/JumpScale/grid/osis/OSISStoreMongo.py"
+			],
+			[
+				"grid/osis/osisclientforcat.py",
+				"jumpscale_core7/lib/JumpScale/grid/osis/OSISClientForCat.py"
+			],
+			[
+				"system__user",
+				"jumpscale_portal/apps/portalbase/system/system__usermanager/methodclass/system_usermanager.py"
+			],
+			[
+				"delete",
+				"jumpscale_portal/apps/portalbase/wiki/System/DeleteSpace/DeleteSpace.wiki"
+			],
+			[
+				"useredi",
+				"jumpscale_portal/apps/portalbase/macros/page/user_edit/5_useredit.py"
+			],
+			[
+				"user.wiki",
+				"jumpscale_portal/apps/portalbase/wiki/System/Userlist/User/User.wiki"
+			],
+			[
+				"portalser",
+				"jumpscale_portal8/lib/portal/portal/PortalServer.py"
+			],
+			[
+				"codetools.py",
+				"jumpscale_core8/lib/JumpScale/tools/codetools/CodeTools.py"
+			],
+			[
+				"/jumpscale/__init__.py",
+				"jumpscale_core8/lib/JumpScale/__init__.py"
+			],
+			[
+				"classbase.py",
+				"jumpscale_core8/lib/JumpScale/tools/codetools/ClassBase.py"
+			],
+			[
+				"system_alerts",
+				"jumpscale_portal8/apps/portalbase/system/system__alerts/methodclass/system_alerts.py"
+			],
+			[
+				"ays.hrd",
+				"jumpscale_core8/lib/JumpScale/baselib/atyourservice/templates/service.hrd"
+			],
+			[
+				"ays",
+				"jumpscale_core8/shellcmds/ays"
+			],
+			[
+				"acfactory",
+				"jumpscale_core8/lib/JumpScale/grid/agentcontroller/AgentControllerFactory.py"
+			],
+			[
+				"basemodel",
+				"jumpscale_core8/lib/JumpScale/tools/basemodel/BaseModelFactory.py"
+			],
+			[
+				"bootstra",
+				"jumpscale_core8/install/web/bootstrap.py"
+			],
+			[
+				"agnetcontroller2/cl",
+				"jumpscale_core8/lib/JumpScale/clients/agentcontroller2/client.py"
+			],
+			[
+				"gridhealt",
+				"jumpscale_core8/lib/JumpScale/grid/gridhealthchecker/gridhealthchecker.py"
+			],
+			[
+				"systemoauth",
+				"jumpscale_portal8/apps/portalbase/system/system__oauth/methodclass/system_oauth.py"
+			],
+			[
+				"basemode",
+				"jumpscale_core8/lib/JumpScale/tools/basemodel/BaseModelFactory.py"
+			],
+			[
+				"system_aler",
+				"jumpscale_portal8/apps/portalbase/system/system__alerts/methodclass/system_alerts.py"
+			],
+			[
+				"loaderbase.py",
+				"jumpscale_portal8/lib/portal/portalloaders/LoaderBase.py"
+			],
+			[
+				"js",
+				"jumpscale_core8/shellcmds/js"
+			],
+			[
+				"jumpscale/__i",
+				"jumpscale_core8/lib/JumpScale/__init__.py"
+			],
+			[
+				"jspython",
+				"jumpscale_portal8/jslib/codemirror/python.js"
+			],
+			[
+				"env.sh",
+				"jumpscale_core8/install/env.sh"
+			],
+			[
+				"boo",
+				"jumpscale_core8/install/web/bootstrap.py"
+			],
+			[
+				"serializersfactory.py",
+				"jumpscale_core8/lib/JumpScale/data/serializers/SerializersFactory.py"
+			],
+			[
+				"memorystor",
+				"jumpscale_core8/lib/JumpScale/grid/key_value_store/memory_store.py"
+			],
+			[
+				"stor",
+				"jumpscale_core8/lib/JumpScale/grid/key_value_store/store.py"
+			],
+			[
+				"appl",
+				"jumpscale_core8/lib/JumpScale/core/main/Application.py"
+			],
+			[
+				"applic",
+				"jumpscale_portal8/jslib/flatui/js/application.js"
+			],
+			[
+				"doc",
+				"jumpscale_portal8/lib/portal/docpreprocessor/DocPreprocessor.py"
+			],
+			[
+				"docp",
+				"jumpscale_portal8/lib/portal/docpreprocessor/DocParser.py"
+			],
+			[
+				"portalserver.py",
+				"jumpscale_portal8/lib/portal/portal/PortalServer.py"
+			],
+			[
+				"storefactory.py",
+				"jumpscale_core8/lib/JumpScale/grid/key_value_store/StoreFactory.py"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 321.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+		"max_columns": 1
+	}
+}

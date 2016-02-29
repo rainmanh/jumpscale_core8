@@ -218,34 +218,24 @@ class CuisineBuilder(object):
     def fs(self, start=False):
         content = """
         [[mount]]
-             path="/opt"
-             flist="/root/jumpscale__base.flist"
-             backend="main"
-             #stor="stor1"
-             mode = "OL"
-             trim_base = true
-
-        [backend.main]
-            path="/tmp/aysfs_main"
-            stor="stor1"
-            #namespace="testing"
-            namespace="dedupe"
-
-            upload=true
-            encrypted=false
-            # encrypted=true
-            user_rsa="user.rsa"
-            store_rsa="store.rsa"
-
-            aydostor_push_cron="@every 1m"
-            cleanup_cron="@every 1m"
-            cleanup_older_than=1 #in hours
-
-        [aydostor.stor1]
-            addr="http://192.168.122.1:8080/"
-            #addr="http://192.168.0.182:8080/"
-            login="zaibon"
-            passwd="supersecret"
+            path="/opt"
+            flist="/optvar/cfg/fs/js8_opt.flist"
+            backend="opt"
+            mode="RO"
+            trim_base=true
+        [backend]
+        [backend.opt]
+            path="/optvar/fs_backend/opt"
+            stor="public"
+            namespace="js8_opt"
+            cleanup_cron="@every 1h"
+            cleanup_older_than=24
+            log=""
+        [aydostor]
+        [aydostor.public]
+            addr="http://stor.jumpscale.org/storx"
+            login=""
+            passwd=""
         """
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/g8os/fs", action=True)

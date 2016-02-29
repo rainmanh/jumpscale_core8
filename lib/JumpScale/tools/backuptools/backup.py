@@ -1,7 +1,6 @@
 
 from JumpScale import j
 import lz4
-from JumpScale.data.serializers.SerializerUJson import json
 
 blocksize = 20*1024*1024
 objects = []
@@ -33,7 +32,7 @@ def store_metadata(store, mdbucketname, backupname, backupmetadata):
     pools = store.list_pools()
     if not mdbucketname in pools:
         store.create_pool(mdbucketname)
-    store.set_object(mdbucketname, backupname, json.dumps(backupmetadata))
+    store.set_object(mdbucketname, backupname, j.data.serializer.json.dumps(backupmetadata))
 
 def read_metadata(store, mdbucketname, backupname):
     data = store.get_object(mdbucketname, backupname)

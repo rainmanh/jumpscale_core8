@@ -1,6 +1,5 @@
 import mongoengine
 import inspect
-from JumpScale.data.serializers.SerializerUJson import json
 from JumpScale.data.models import Models
 from JumpScale import j
 
@@ -38,7 +37,7 @@ def load(path='/optvar/var/populate.json'):
         create(path)
     contents = j.sal.fs.fileGetContents(path).splitlines()
     for obj in contents:
-        obj = json.loads(obj)
+        obj = j.data.serializer.json.loads(obj)
         cls = obj.pop('_cls')
         model = getattr(j.data.models.system, cls)()
         model.save(data=obj)

@@ -462,9 +462,9 @@ class Service:
 
         modulename = "JumpScale.atyourservice.%s.%s.%s.%s" % (self.domain, self.name, self.instance,ttype)
         mod = loadmodule(modulename, path2)
-        #is only there temporary don't want to keep it there
+        # is only there temporary don't want to keep it there
         j.sal.fs.remove(path2)
-        j.sal.fs.remove(j.sal.fs.joinPaths(self.path,"__pycache__"))
+        j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "__pycache__"))
         return mod.Actions(self)
 
     @property

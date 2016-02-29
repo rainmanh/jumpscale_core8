@@ -144,10 +144,10 @@ class CuisineBuilder(object):
         """
         C = C.replace("$addr", addr)
         C = self.cuisine.args_replace(C)
-        cpath = self.cuisine.args_replace("/opt/template/cfg/caddy/caddyfile.conf")
-        self.cuisine.dir_ensure("/opt/template/cfg/caddy")
-        self.cuisine.dir_ensure("/opt/template/cfg/caddy/log/")
-        self.cuisine.dir_ensure("/opt/template/cfg/caddy/www/")
+        cpath = self.cuisine.args_replace("/opt/templates/cfg/caddy/caddyfile.conf")
+        self.cuisine.dir_ensure("/opt/templates/cfg/caddy")
+        self.cuisine.dir_ensure("/opt/templates/cfg/caddy/log/")
+        self.cuisine.dir_ensure("/opt/templates/cfg/caddy/www/")
         self.cuisine.file_write(cpath, C)
 
         if start:
@@ -197,7 +197,7 @@ class CuisineBuilder(object):
             'store_root': backend,
         }
         content = j.data.serializer.toml.dumps(config)        
-        self.cuisine.file_write("/opt/template/cfg/stor/config.toml", content)
+        self.cuisine.file_write("/opt/templates/cfg/stor/config.toml", content)
 
         res = addr.split(":")
         if len(res) == 2:
@@ -210,7 +210,7 @@ class CuisineBuilder(object):
             raise RuntimeError("port %d is occupied, cannot start stor" % port)
 
         if start:
-            self.cuisine.file_copy("/opt/template/cfg/stor/config.toml", "$cfgDir/stor/")
+            self.cuisine.file_copy("/opt/templates/cfg/stor/config.toml", "$cfgDir/stor/")
             cmd = self.cuisine.bash.cmdGetPath("stor")
             self.cuisine.processmanager.ensure("stor", '%s --config $cfgDir/stor/config.toml' % cmd)
 
@@ -239,12 +239,12 @@ class CuisineBuilder(object):
         """
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/g8os/fs", action=True)
-        self.cuisine.dir_ensure("/opt/template/cfg")
+        self.cuisine.dir_ensure("/opt/templates/cfg")
         self.cuisine.file_copy("$goDir/bin/fs", "$base/bin")
         self.cuisine.file_write("$goDir/src/github.com/g8os/fs/config/config.toml", content)
-        self.cuisine.file_copy("$goDir/src/github.com/g8os/fs/config/config.toml", "/opt/template/cfg")
+        self.cuisine.file_copy("$goDir/src/github.com/g8os/fs/config/config.toml", "/opt/templates/cfg")
         if start:
-            self.cuisine.file_copy("/opt/template/cfg", "$varDir/cfg")
+            self.cuisine.file_copy("/opt/templates/cfg", "$varDir/cfg")
 
 
     @actionrun(action=True)
@@ -290,9 +290,9 @@ class CuisineBuilder(object):
 
         self.cuisine.process.kill("core")
 
-        self.cuisine.dir_ensure("/opt/template/cfg/core", recursive=True)
-        self.cuisine.dir_ensure("/opt/template/cfg/core/conf", recursive=True)
-        self.cuisine.dir_ensure("/opt/template/cfg/core/mid", recursive=True)
+        self.cuisine.dir_ensure("/opt/templates/cfg/core", recursive=True)
+        self.cuisine.dir_ensure("/opt/templates/cfg/core/conf", recursive=True)
+        self.cuisine.dir_ensure("/opt/templates/cfg/core/mid", recursive=True)
 
         url = "github.com/g8os/core"
         self.cuisine.golang.get(url)
@@ -304,26 +304,26 @@ class CuisineBuilder(object):
         self.cuisine.file_move("%s/core" % sourcepath, "$binDir/core")
 
         # copy extensions
-        self.cuisine.dir_remove("/opt/template/cfg/core/extensions")
-        self.cuisine.file_copy("%s/extensions" % sourcepath, "/opt/template/cfg/core", recursive=True)
-        self.cuisine.dir_ensure("/opt/template/cfg/core/extensions/syncthing")
-        self.cuisine.file_copy("$binDir/syncthing", "/opt/template/cfg/core/extensions/syncthing/")
+        self.cuisine.dir_remove("/opt/templates/cfg/core/extensions")
+        self.cuisine.file_copy("%s/extensions" % sourcepath, "/opt/templates/cfg/core", recursive=True)
+        self.cuisine.dir_ensure("/opt/templates/cfg/core/extensions/syncthing")
+        self.cuisine.file_copy("$binDir/syncthing", "/opt/templates/cfg/core/extensions/syncthing/")
 
         # manipulate config file
         C = self.cuisine.file_read("%s/agent.toml" % sourcepath)
         cfg = j.data.serializer.toml.loads(C)
-        cfg["main"]["message_ID_file"] = cfg["main"]["message_ID_file"].replace("./", "/opt/template/cfg/core/")
-        cfg["main"]["history_file"] = cfg["main"]["history_file"].replace("./", "/opt/template/cfg/core/")
-        cfg["main"]["include"] = cfg["main"]["include"].replace("./", "/opt/template/cfg/core/")
-        cfg["extensions"]["sync"]["cwd"] = cfg["extensions"]["sync"]["cwd"].replace("./", "/opt/template/cfg/core/")
-        cfg["extensions"]["jumpscript"]["cwd"] = cfg["extensions"]["jumpscript"]["cwd"].replace("./", "/opt/template/cfg/core/")
-        cfg["extensions"]["jumpscript_content"]["cwd"] = cfg["extensions"]["jumpscript_content"]["cwd"].replace("./", "/opt/template/cfg/core/")
-        cfg["extensions"]["js_daemon"]["cwd"] = cfg["extensions"]["js_daemon"]["cwd"].replace("./", "/opt/template/cfg/core/")
-        cfg["logging"]["db"]["address"] = cfg["logging"]["db"]["address"].replace("./", "/opt/template/cfg/core/")
+        cfg["main"]["message_ID_file"] = cfg["main"]["message_ID_file"].replace("./", "/opt/templates/cfg/core/")
+        cfg["main"]["history_file"] = cfg["main"]["history_file"].replace("./", "/opt/templates/cfg/core/")
+        cfg["main"]["include"] = cfg["main"]["include"].replace("./", "/opt/templates/cfg/core/")
+        cfg["extensions"]["sync"]["cwd"] = cfg["extensions"]["sync"]["cwd"].replace("./", "/opt/templates/cfg/core/")
+        cfg["extensions"]["jumpscript"]["cwd"] = cfg["extensions"]["jumpscript"]["cwd"].replace("./", "/opt/templates/cfg/core/")
+        cfg["extensions"]["jumpscript_content"]["cwd"] = cfg["extensions"]["jumpscript_content"]["cwd"].replace("./", "/opt/templates/cfg/core/")
+        cfg["extensions"]["js_daemon"]["cwd"] = cfg["extensions"]["js_daemon"]["cwd"].replace("./", "/opt/templates/cfg/core/")
+        cfg["logging"]["db"]["address"] = cfg["logging"]["db"]["address"].replace("./", "/opt/templates/cfg/core/")
         C = j.data.serializer.toml.dumps(cfg)
 
-        self.cuisine.file_write("/opt/template/cfg/core/agent.toml", C, replaceArgs=True)
-        self.cuisine.file_write("/opt/template/cfg/core/agent.toml.org", C, replaceArgs=False)
+        self.cuisine.file_write("/opt/templates/cfg/core/agent.toml", C, replaceArgs=True)
+        self.cuisine.file_write("/opt/templates/cfg/core/agent.toml.org", C, replaceArgs=False)
 
         # self.cuisine.dir_ensure("$cfgDir/agent8/agent8/conf", recursive=True)
 
@@ -346,7 +346,7 @@ class CuisineBuilder(object):
         pm = self.cuisine.processmanager.get("tmux")
         pm.stop("syncthing")
 
-        self.cuisine.dir_ensure("/opt/template/cfg/controller", recursive=True)
+        self.cuisine.dir_ensure("/opt/templates/cfg/controller", recursive=True)
 
         #get repo 
         url = "github.com/g8os/controller"
@@ -362,14 +362,14 @@ class CuisineBuilder(object):
         C = self.cuisine.file_read("%s/agentcontroller.toml"%sourcepath)
         cfg = j.data.serializer.toml.loads(C)
 
-        cfg["events"]["python_path"] = cfg["events"]["python_path"].replace("./", "/opt/template/cfg/controller/")
-        cfg["processor"]["python_path"] = cfg["processor"]["python_path"].replace("./", "/opt/template/cfg/controller/")
-        cfg["jumpscripts"]["python_path"] = cfg["jumpscripts"]["python_path"].replace("./", "/opt/template/cfg/controller/")
-        cfg["jumpscripts"]["settings"]["jumpscripts_path"] = cfg["jumpscripts"]["settings"]["jumpscripts_path"].replace("./", "/opt/template/cfg/controller/")
+        cfg["events"]["python_path"] = cfg["events"]["python_path"].replace("./", "/opt/templates/cfg/controller/")
+        cfg["processor"]["python_path"] = cfg["processor"]["python_path"].replace("./", "/opt/templates/cfg/controller/")
+        cfg["jumpscripts"]["python_path"] = cfg["jumpscripts"]["python_path"].replace("./", "/opt/templates/cfg/controller/")
+        cfg["jumpscripts"]["settings"]["jumpscripts_path"] = cfg["jumpscripts"]["settings"]["jumpscripts_path"].replace("./", "/opt/templates/cfg/controller/")
 
         C = j.data.serializer.toml.dumps(cfg)
-        self.cuisine.file_write('/opt/template/cfg/controller/agentcontroller.toml', C, replaceArgs=True)
-        self.cuisine.file_write('/opt/template/cfg/controller/agentcontroller.toml.org', C, replaceArgs=False)
+        self.cuisine.file_write('/opt/templates/cfg/controller/agentcontroller.toml', C, replaceArgs=True)
+        self.cuisine.file_write('/opt/templates/cfg/controller/agentcontroller.toml.org', C, replaceArgs=False)
 
         #expose syncthing and get api key  
         sync_cfg = self.cuisine.file_read("$homeDir/.config/syncthing/config.xml")
@@ -386,14 +386,14 @@ class CuisineBuilder(object):
         if not self.cuisine.executor.type == 'local':
             addr = self.executor.addr
         synccl = j.clients.syncthing.get(addr,18384, apikey=apikey)
-        jumpscripts_path = self.cuisine.args_replace("/opt/template/cfg/controller/jumpscripts")
+        jumpscripts_path = self.cuisine.args_replace("/opt/templates/cfg/controller/jumpscripts")
         jumpscripts_id = "jumpscripts-%s" % hashlib.md5(synccl.id_get().encode()).hexdigest()
         synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
 
 
         #file copy 
-        self.cuisine.dir_remove("/opt/template/cfg/controller/extensions")
-        self.cuisine.file_copy("%s/extensions" % sourcepath, "/opt/template/cfg/controller/extensions", recursive=True)
+        self.cuisine.dir_remove("/opt/templates/cfg/controller/extensions")
+        self.cuisine.file_copy("%s/extensions" % sourcepath, "/opt/templates/cfg/controller/extensions", recursive=True)
 
         if start:
  
@@ -409,7 +409,7 @@ class CuisineBuilder(object):
 
 
     def _startCore(self, nid, gid):
-        self.cuisine.file_copy("/opt/template/cfg/core", "$cfgDir/core")
+        self.cuisine.file_copy("/opt/templates/cfg/core", "$cfgDir/core")
         self._startMongodb()
         self._startRedis()
         self._startSyncthing()
@@ -417,29 +417,29 @@ class CuisineBuilder(object):
         #@todo (*1*) need to implement to work on node
         env={}
         env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
-        cmd = "$binDir/core -nid %s -gid %s -c /opt/template/cfg/core/agent.toml" % (nid, gid)
+        cmd = "$binDir/core -nid %s -gid %s -c /opt/templates/cfg/core/agent.toml" % (nid, gid)
         pm = self.cuisine.processmanager.get("tmux")
-        pm.ensure("core", cmd=cmd, path="/opt/template/cfg/core",  env=env)
+        pm.ensure("core", cmd=cmd, path="/opt/templates/cfg/core",  env=env)
 
     def _startController(self):
-        self.cuisine.file_copy("/opt/template/cfg/controller", "$cfgDir/controller")
+        self.cuisine.file_copy("/opt/templates/cfg/controller", "$cfgDir/controller")
         self._startMongodb()
         self._startRedis()
         self._startSyncthing()
         env = {}
         env["TMPDIR"] = self.cuisine.dir_paths["tmpDir"]
-        cmd = "$binDir/controller -c /opt/template/cfg/controller/agentcontroller.toml"
+        cmd = "$binDir/controller -c /opt/templates/cfg/controller/agentcontroller.toml"
         pm = self.cuisine.processmanager.get("tmux")
-        pm.ensure("controller", cmd=cmd, path="/opt/template/cfg/controller/", env=env)
+        pm.ensure("controller", cmd=cmd, path="/opt/templates/cfg/controller/", env=env)
 
     def _startRedis(self, name="redis_main"):
-        self.cuisine.file_copy("/opt/template/cfg/%s", "$cfgDir/%s")
+        self.cuisine.file_copy("/opt/templates/cfg/%s", "$cfgDir/%s")
         dpath,cpath=j.clients.redis._getPaths(name)
         cmd="redis-server %s"%cpath
         self.cuisine.processmanager.ensure(name="redis_%s"%name,cmd=cmd,env={},path='$binDir')
 
     def _startMongodb(self, name="mongod"):
-        self.cuisine.file_copy("/opt/template/cfg/%s", "$cfgDir/%s")
+        self.cuisine.file_copy("/opt/templates/cfg/%s", "$cfgDir/%s")
         which = self.cuisine.command_location("mongod")
         cmd="%s --dbpath $varDir/data/db" % which
         self.cuisine.process.kill("mongod")

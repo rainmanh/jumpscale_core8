@@ -353,55 +353,95 @@ class SystemFS(SALObject):
 
             self.log('Created the directory [%s]' % toStr(newdir), 8)
 
-    def copyDirTree(self, src, dst, keepsymlinks = False, eraseDestination=False, overwriteFiles=True,applyHrdOnDestPaths=None):
+    def copyDirTree(self, src, dst, keepsymlinks = False, deletefirst = False, \
+        overwriteFiles=True,ignoredir=[".egg-info",".dist-info"],ignorefiles=[".egg-info"],rsync=True,\
+        ssh=False,sshport=22,recursive=True,rsyncdelete=False, createdir=False, applyHrdOnDestPaths=None):
         """Recursively copy an entire directory tree rooted at src.
         The dst directory may already exist; if not,
         it will be created as well as missing parent directories
         @param src: string (source of directory tree to be copied)
         @param dst: string (path directory to be copied to...should not already exist)
         @param keepsymlinks: bool (True keeps symlinks instead of copying the content of the file)
-        @param eraseDestination: bool (Set to True if you want to erase destination first, be carefull, this can erase directories)
+        @param deletefirst: bool (Set to True if you want to erase destination first, be carefull, this can erase directories)
         @param overwriteFiles: if True will overwrite files, otherwise will not overwrite when destination exists
         """
-        if src.find("file://")!=-1 or dst.find("file://")!=-1:
-            raise RuntimeError("Cannot use file notation here")
+        if not ssh:
+            if src.find("file://")!=-1 or dst.find("file://")!=-1:
+                raise RuntimeError("Cannot use file notation here")
 
-        self.log('Copy directory tree from %s to %s'% (src, dst),6)
-        if ((src is None) or (dst is None)):
-            raise TypeError('Not enough parameters passed in system.fs.copyDirTree to copy directory from %s to %s '% (src, dst))
-        if j.sal.fs.isDir(src):
-            names = os.listdir(src)
+            self.log('Copy directory tree from %s to %s'% (src, dst),6)
+            if ((src is None) or (dst is None)):
+                raise TypeError('Not enough parameters passed in system.fs.copyDirTree to copy directory from %s to %s '% (src, dst))
+            if j.sal.fs.isDir(src):
+                names = os.listdir(src)
 
-            if not j.sal.fs.exists(dst):
-                self.createDir(dst)
+                if not j.sal.fs.exists(dst):
+                    self.createDir(dst)
 
-            errors = []
-            for name in names:
-                #is only for the name
-                if applyHrdOnDestPaths!=None:
-                    name2=applyHrdOnDestPaths.applyOnContent(name)
-                else:
-                    name2=name
+                errors = []
+                for name in names:
+                    #is only for the name
+                    if applyHrdOnDestPaths!=None:
+                        name2=applyHrdOnDestPaths.applyOnContent(name)
+                    else:
+                        name2=name
 
-                srcname = j.sal.fs.joinPaths(src, name)
-                dstname = j.sal.fs.joinPaths(dst, name2)
-                if eraseDestination and self.exists( dstname ):
-                    if self.isDir( dstname , False ) :
-                        self.removeDirTree( dstname )
-                    if self.isLink(dstname):
-                        self.unlink( dstname )
+                    srcname = j.sal.fs.joinPaths(src, name)
+                    dstname = j.sal.fs.joinPaths(dst, name2)
+                    if deletefirst and self.exists( dstname ):
+                        if self.isDir( dstname , False ) :
+                            self.removeDirTree( dstname )
+                        if self.isLink(dstname):
+                            self.unlink( dstname )
 
-                if keepsymlinks and j.sal.fs.isLink(srcname):
-                    linkto = j.sal.fs.readlink(srcname)
-                    j.sal.fs.symlink(linkto, dstname, overwriteFiles)
-                elif j.sal.fs.isDir(srcname):
-                    #print "1:%s %s"%(srcname,dstname)
-                    j.sal.fs.copyDirTree(srcname, dstname, keepsymlinks, eraseDestination,overwriteFiles=overwriteFiles,applyHrdOnDestPaths=applyHrdOnDestPaths )
-                else:
-                    #print "2:%s %s"%(srcname,dstname)
-                    self.copyFile(srcname, dstname ,createDirIfNeeded=False,overwriteFile=overwriteFiles)
+                    if keepsymlinks and j.sal.fs.isLink(srcname):
+                        linkto = j.sal.fs.readlink(srcname)
+                        j.sal.fs.symlink(linkto, dstname, overwriteFiles)
+                    elif j.sal.fs.isDir(srcname):
+                        #print "1:%s %s"%(srcname,dstname)
+                        j.sal.fs.copyDirTree(srcname, dstname, keepsymlinks, deletefirst,overwriteFiles=overwriteFiles,applyHrdOnDestPaths=applyHrdOnDestPaths )
+                    else:
+                        #print "2:%s %s"%(srcname,dstname)
+                        self.copyFile(srcname, dstname ,createDirIfNeeded=False,overwriteFile=overwriteFiles)
+            else:
+                raise RuntimeError('Source path %s in system.fs.copyDirTree is not a directory'% src)
         else:
-            raise RuntimeError('Source path %s in system.fs.copyDirTree is not a directory'% src)
+            #didnt use j.sal.rsync because its not complete and doesnt work properly
+            excl = ""
+            for item in ignoredir:
+                excl += "--exclude '*%s*/' "%item
+            for item in ignorefiles:
+                excl += "--exclude '*%s*' "%item
+            excl += "--exclude '*.pyc' "
+            excl += "--exclude '*.bak' "
+            excl += "--exclude '*__pycache__*' "
+
+            if self.isDir(src):
+                if dst[-1] != "/":
+                    dst += "/"
+                if src[-1] != "/":
+                    src += "/"
+
+            dstpath = dst.split(':')[1] if ':' in dst else dst
+            cmd = "rsync "
+            if keepsymlinks:
+                #-l is keep symlinks, -L follow
+                cmd += " -rlptgo --partial %s" % excl
+            else:
+                cmd += " -rLptgo --partial %s" % excl
+            if not recursive:
+                cmd += " --exclude \"*/\""
+            if rsyncdelete:
+                cmd += " --delete"
+            if ssh:
+                cmd += " -e 'ssh -o StrictHostKeyChecking=no -p %s' " % sshport
+            if createdir:
+                cmd += "--rsync-path='mkdir -p %s && rsync' " % self.getParent(dstpath)
+            cmd += " '%s' '%s'" % (src, dst)
+            print (cmd)
+
+            return j.tools.cuisine.local.run(cmd)
+            
 
     def removeDirTree(self, path, onlyLogWarningOnRemoveError=False):
         """Recursively delete a directory tree.

@@ -143,7 +143,7 @@ class DiskInfo(BlkInfo):
 
         start, end = spot
         try:
-            j.do.execute(
+            j.sal.process.execute(
                 ('parted -s {name} unit B ' +
                     'mkpart primary {start} {end}').format(name=self.name,
                                                            start=start,
@@ -173,7 +173,7 @@ class DiskInfo(BlkInfo):
 
     def _clearMBR(self):
         try:
-            j.do.execute(
+            j.sal.process.execute(
                 'parted -s {name} mktable gpt'.format(name=self.name)
             )
         except Exception as e:

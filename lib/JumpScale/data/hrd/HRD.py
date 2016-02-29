@@ -311,7 +311,7 @@ class HRD(HRDBase):
 
     def read(self):
         if not j.sal.fs.exists(path=self.path) and self.path.strip()!="":
-            j.do.writeFile(self.path,"")
+            j.sal.fs.writeFile(self.path,"")
         content=j.sal.fs.fileGetContents(self.path)
         self.process(content)
 

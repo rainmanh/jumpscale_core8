@@ -171,7 +171,7 @@ class ServiceTemplate(object):
 
             # remove key from know hosts, cause this is liklely that the key will change at each build because
             # we hit a newly created docker container each time.
-            j.do.execute('ssh-keygen -f "/root/.ssh/known_hosts" -R [%s]:%s' % (docker_addr, docker_port))
+            j.sal.process.execute('ssh-keygen -f "/root/.ssh/known_hosts" -R [%s]:%s' % (docker_addr, docker_port))
 
             dockerExecutor = j.tools.executor.getSSHBased(docker_addr, docker_port)
             # clean service tempates in docker to be sure we have the local version.

@@ -1,68 +1,5 @@
 from JumpScale import j
 
-# class Action():
-#     def __init__(self,alog,runid,epoch,role,instance,name):
-#         self.alog=alog
-#         self.runid=int(runid)
-#         self.epoch=int(epoch)
-#         self.role=role
-#         self.instance=instance
-#         self.name=name
-#         self.cat=cat
-#         self.error=False
-#         self.done=False
-#         self.state={}
-#         if new:
-#             self._setLog()
-
-#         self.alog.currentActions["%s!%s"%(self.role,self.instance)]=self
-
-#     def _setLog(self):
-#         self.alog._append("A | %-10s | %-15s | %-25s | %-15s | %-5s | %s"%(self.epoch,self.role,self.instance,self.name,self.cat,self.state))
-
-#     def setOk(self):
-#         self.state="DONE"
-#         self._setLog()
-
-
-#     def getLogs(self):
-#         args={"logs":[]}
-
-#         def loghandler(action,lcat,msg,args):
-#             if action.key==self.key:
-#                 args["logs"].append((lcat,msg))
-
-#         self.alog.process(loghandler=loghandler,args=args)
-
-#         return args["logs"]
-
-#     def getErrors(self):
-#         logs=self.getLogs()
-#         from IPython import embed
-#         print ("DEBUG NOW logs geterrors")
-#         embed()
-
-
-#         return args["logs"]
-
-#     def log(self,msg,cat="",level=0):
-#         msg=msg.strip()
-#         msg=msg.replace("|","§§")
-
-#         if level!=0:
-#             cat="%s %s"%(level,cat)
-
-#         out="L | %11s | %s"%(cat,msg)
-#         self.alog._append(out)
-
-#     def error(self,msg):
-#         self.log(msg,cat="ERROR",level=0)
-
-
-#     def __str__(self):
-#         return "%-4s | %-10s | %-10s | %-35s |  %-5s | %-10s | %s "%(self.runid,self.epoch,self.role,self.instance,self.cat,self.name,self.state.lower())
-
-#     __repr__=__str__
 
 class LogItem(object):
     """LogItem is the base classe for log lines"""
@@ -78,19 +15,19 @@ class LogItem(object):
         cat, line1 = line.split("|", 1)
         cat = cat.strip()
         if cat == "R":
-            epoch, runid, action, hrdtime = line1.split("|")
+            epoch, runid, action, hrdtime = line1.split("|", 3)
             return RunLine(runid=int(runid), action=action, hrdtime=hrdtime, epoch=int(epoch))
 
         if cat == "G":
-            epoch, category, githash = [item.strip() for item in line1.split("|", 3)]
+            epoch, category, githash = [item.strip() for item in line1.split("|", 2)]
             return GitLine(category=category, git_hash=githash, epoch=epoch)
 
         if cat == "A":
-            epoch, servicekey, action, state = [item.strip() for item in line1.split("|")]
+            epoch, servicekey, action, state = [item.strip() for item in line1.split("|", 3)]
             return ActionLine(key=servicekey, action_name=action, state=state, epoch=epoch)
 
         if cat == "L":
-            epoch, level, msg = [item.strip() for item in line1.split("|")]
+            epoch, level, msg = [item.strip() for item in line1.split("|", 2)]
             try:
                 level = int(level)
                 return LogLine(msg=msg, level=level, epoch=None)

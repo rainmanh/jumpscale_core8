@@ -140,7 +140,7 @@ class LogItemFromDict(LogItem):
 class LogHandlerArgs():
     def __init__(self):
         if j.core.db!=None:
-            data=j.core.db.get("system.logging.%s"%j.do.BASE)
+            data=j.core.db.get("system.logging.%s"%j.dirs.base)
             if data!=None:
                 self.__dict__=j.data.serializer.json.loads(data.decode())
                 return
@@ -150,7 +150,7 @@ class LogHandlerArgs():
         self.consolelogCategories=[]
         self.enabled = j.application.config.getBool("system.logging",default=False)
         data=j.data.serializer.json.dumps(self.__dict__)
-        j.core.db.set("system.logging.%s"%j.do.BASE,data)        
+        j.core.db.set("system.logging.%s"%j.dirs.base,data)        
 
 class LogHandler(object):
     def __init__(self):

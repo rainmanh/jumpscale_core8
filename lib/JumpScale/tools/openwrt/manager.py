@@ -75,7 +75,7 @@ class OpenWRTManager(object):
         uci = UCI(name)
         try:
             with settings(shell=self.WRT_SHELL, abort_exception=UCIError):
-                ucistr = j.do.execute('uci export %s' % name)
+                ucistr = j.sal.process.execute('uci export %s' % name)
             uci.loads(ucistr)
         except UCIError:
             pass
@@ -100,13 +100,13 @@ class OpenWRTManager(object):
             buffer.seek(0)
             chunk = buffer.read(WRITE_CHUNK_SIZE)
             if len(chunk) < WRITE_CHUNK_SIZE:
-                j.do.execute(chunk)
+                j.sal.process.execute(chunk)
                 return
 
             # Write chunks into file
             tmp = os.tempnam()
             try:
-                j.do.execute(
+                j.sal.process.execute(
                     'echo -n > {tmp} "{chunk}"'.format(
                         tmp=tmp,
                         chunk=chunk
@@ -117,17 +117,17 @@ class OpenWRTManager(object):
                     chunk = buffer.read(WRITE_CHUNK_SIZE)
                     if not chunk:
                         break
-                    j.do.execute(
+                    j.sal.process.execute(
                         'echo -n >> {tmp} "{chunk}"'.format(
                             tmp=tmp,
                             chunk=chunk
                         )
                     )
 
-                j.do.execute('chmod +x %s' % tmp)
-                j.do.execute(tmp)
+                j.sal.process.execute('chmod +x %s' % tmp)
+                j.sal.process.execute(tmp)
             finally:
-                j.do.execute('rm -f %s')
+                j.sal.process.execute('rm -f %s')
 
 
 class OpenWRTFactory(object):

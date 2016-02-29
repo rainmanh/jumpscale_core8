@@ -85,7 +85,7 @@ class PerfTestToolsFactory(object):
         """
         nodename=os.environ["nodename"]
         if nodename=="":
-            nodename=j.do.execute("hostname")[1].strip()
+            nodename=j.sal.process.execute("hostname")[1].strip()
 
         net=os.environ["net"]=='1'
         disks=[item.strip() for item in os.environ["disks"].split(",") if item.strip()!=""]

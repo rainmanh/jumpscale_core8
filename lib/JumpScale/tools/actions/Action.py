@@ -271,7 +271,7 @@ class Action:
 
     @property
     def filename(self):
-        return j.do.getBaseName(self.path)[:-3]
+        return j.sal.fs.getBaseName(self.path)[:-3]
 
     @property
     def modeljson(self):

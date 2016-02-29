@@ -196,8 +196,8 @@ class CuisineBuilder(object):
             'listen_addr': addr,
             'store_root': backend,
         }
-        content = j.data.serializer.toml.dumps(config)
-        self.cuisine.file_write("$cfgDir/stor/config.toml", content)
+        content = j.data.serializer.toml.dumps(config)        
+        self.cuisine.file_write("/opt/template/cfg/stor/config.toml", content)
 
         res = addr.split(":")
         if len(res) == 2:
@@ -210,15 +210,17 @@ class CuisineBuilder(object):
             raise RuntimeError("port %d is occupied, cannot start stor" % port)
 
         if start:
+            self.cuisine.file_copy("/opt/template/cfg/stor/config.toml", "$cfgDir/stor/")
             cmd = self.cuisine.bash.cmdGetPath("stor")
             self.cuisine.processmanager.ensure("stor", '%s --config /etc/stor/config.toml' % cmd)
 
     @actionrun(action=True)
     def fs(self, start=False):
         self.cuisine.golang.install()
-        self.cuisine.golang.get("github.com/g8os/stor", action=True)
-        self.cuisine.file_copy("$goDir/bin/fs/", "$base/bin")
-        self.cuisine.file_copy("$goDir/src/gihub.com/fs/config/", "/opt/template/cfg")
+        self.cuisine.golang.get("github.com/g8os/fs", action=True)
+        self.cuisine.dir_ensure("/opt/template/cfg")
+        self.cuisine.file_copy("$goDir/bin/fs", "$base/bin")
+        self.cuisine.file_copy("$goDir/src/github.com/g8os/fs/config/config.go", "/opt/template/cfg")
         if start:
             self.cuisine.file_copy("/opt/template/cfg", "$varDir/cfg")
 
@@ -266,9 +268,9 @@ class CuisineBuilder(object):
 
         self.cuisine.process.kill("core")
 
-        self.cuisine.dir_ensure("/opt/template/core", recursive=True)
-        self.cuisine.dir_ensure("/opt/template/core/conf", recursive=True)
-        self.cuisine.dir_ensure("/opt/template/core/mid", recursive=True)
+        self.cuisine.dir_ensure("/opt/template/cfg/core", recursive=True)
+        self.cuisine.dir_ensure("/opt/template/cfg/core/conf", recursive=True)
+        self.cuisine.dir_ensure("/opt/template/cfg/core/mid", recursive=True)
 
         url = "github.com/g8os/core"
         self.cuisine.golang.get(url)
@@ -322,7 +324,7 @@ class CuisineBuilder(object):
         pm = self.cuisine.processmanager.get("tmux")
         pm.stop("syncthing")
 
-        self.cuisine.dir_ensure("$cfgDir/controller", recursive=True)
+        self.cuisine.dir_ensure("/opt/template/cfg/controller", recursive=True)
 
         #get repo 
         url = "github.com/g8os/controller"

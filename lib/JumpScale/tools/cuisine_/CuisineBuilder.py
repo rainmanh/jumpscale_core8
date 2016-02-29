@@ -239,7 +239,7 @@ class CuisineBuilder(object):
         """
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/g8os/fs", action=True)
-        self.cuisine.dir_ensure("/opt/templates/cfg")
+        self.cuisine.dir_ensure("/opt/templates/cfg/fs")
         self.cuisine.file_copy("$goDir/bin/fs", "$base/bin")
         self.cuisine.file_write("$goDir/src/github.com/g8os/fs/config/config.toml", content)
         self.cuisine.file_copy("$goDir/src/github.com/g8os/fs/config/config.toml", "/opt/templates/cfg")

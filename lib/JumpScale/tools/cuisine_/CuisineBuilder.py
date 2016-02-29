@@ -212,15 +212,47 @@ class CuisineBuilder(object):
         if start:
             self.cuisine.file_copy("/opt/template/cfg/stor/config.toml", "$cfgDir/stor/")
             cmd = self.cuisine.bash.cmdGetPath("stor")
-            self.cuisine.processmanager.ensure("stor", '%s --config /etc/stor/config.toml' % cmd)
+            self.cuisine.processmanager.ensure("stor", '%s --config $cfgDir/stor/config.toml' % cmd)
 
     @actionrun(action=True)
     def fs(self, start=False):
+        content = """
+        [[mount]]
+             path="/opt"
+             flist="/root/jumpscale__base.flist"
+             backend="main"
+             #stor="stor1"
+             mode = "OL"
+             trim_base = true
+
+        [backend.main]
+            path="/tmp/aysfs_main"
+            stor="stor1"
+            #namespace="testing"
+            namespace="dedupe"
+
+            upload=true
+            encrypted=false
+            # encrypted=true
+            user_rsa="user.rsa"
+            store_rsa="store.rsa"
+
+            aydostor_push_cron="@every 1m"
+            cleanup_cron="@every 1m"
+            cleanup_older_than=1 #in hours
+
+        [aydostor.stor1]
+            addr="http://192.168.122.1:8080/"
+            #addr="http://192.168.0.182:8080/"
+            login="zaibon"
+            passwd="supersecret"
+        """
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/g8os/fs", action=True)
         self.cuisine.dir_ensure("/opt/template/cfg")
         self.cuisine.file_copy("$goDir/bin/fs", "$base/bin")
-        self.cuisine.file_copy("$goDir/src/github.com/g8os/fs/config/config.go", "/opt/template/cfg")
+        self.cuisine.file_write("$goDir/src/github.com/g8os/fs/config/config.toml", content)
+        self.cuisine.file_copy("$goDir/src/github.com/g8os/fs/config/config.toml", "/opt/template/cfg")
         if start:
             self.cuisine.file_copy("/opt/template/cfg", "$varDir/cfg")
 

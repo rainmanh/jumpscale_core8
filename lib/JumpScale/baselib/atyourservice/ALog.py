@@ -214,7 +214,7 @@ class ALog():
         changed = []
         changes = {}
         for path in self.getChangedFiles(action):
-            ttypes = ['services/', 'recipes/', 'servicetemplates/']
+            ttypes = ['services/', 'recipes/']
             ttype = None
             for t in ttypes:
                 i = path.find(t)

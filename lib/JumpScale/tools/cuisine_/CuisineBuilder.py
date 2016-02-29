@@ -14,10 +14,10 @@ class actionrun(ActionDecorator):
 
 class CuisineBuilder(object):
 
-    def __init__(self,executor,cuisine):
-        self.executor=executor
-        self.cuisine=cuisine
-        self.bash=self.cuisine.bash
+    def __init__(self, executor, cuisine):
+        self.executor = executor
+        self.cuisine = cuisine
+        self.bash = self.cuisine.bash
         self.mongoCluster = mongoCluster
 
     def all(self,start=False, sandbox=False, aydostor=None):
@@ -25,7 +25,7 @@ class CuisineBuilder(object):
         self.cuisine.installerdevelop.python()
         self.cuisine.installerdevelop.jumpscale8()
         self.redis(start=start, force=True)
-        # self.agentcontroller(start=start)
+        self.agentcontroller(start=start)
         self.etcd(start=start)
         self.caddy(start=start)
         self.skydns(start=start)
@@ -43,15 +43,18 @@ class CuisineBuilder(object):
         """
         # jspython is generated during install,need to copy it back into /opt before sandboxing
         self.cuisine.file_copy('/usr/local/bin/jspython', '/opt/jumpscale8/bin')
+
+        # clean lib dir to avoid segfault during sandboxing
+        self.cuisine.dir_remove('%s/*' % self.cuisine.dir_paths['libDir'])
+        self.cuisine.dir_ensure('%s' % self.cuisine.dir_paths['libDir'])
+        self.cuisine.file_link('/usr/local/lib/python3.5/dist-packages/JumpScale', '%s/JumpScale' % self.cuisine.dir_paths['libDir'])
+
+        # start sandboxing
         cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], 'js8_opt', '%s', sandbox_python=%s)" % (aydostor, python)
         self.cuisine.run('js "%s"' % cmd)
         url_opt = '%s/static/js8_opt' % aydostor
 
-        cmd = "j.tools.cuisine.local.builder.dedupe(['/optvar'], 'js8_optvar', '%s', sandbox_python=%s)" % (aydostor, False)
-        self.cuisine.run('js "%s"' % cmd)
-        url_optvar = '%s/static/js8_optvar' % aydostor
-
-        return (url_opt, url_optvar)
+        return url_opt
 
     def _sandbox_python(self, python=True):
         print("START SANDBOX")
@@ -61,8 +64,8 @@ class CuisineBuilder(object):
             paths.append("/usr/local/lib/python3.5/dist-packages")
             paths.append("/usr/lib/python3/dist-packages")
 
-            excludeFileRegex=["-tk/","/lib2to3","-34m-",".egg-info"]
-            excludeDirRegex=["/JumpScale","\.dist-info","config-x86_64-linux-gnu","pygtk"]
+            excludeFileRegex=["-tk/", "/lib2to3", "-34m-", ".egg-info"]
+            excludeDirRegex=["/JumpScale", "\.dist-info", "config-x86_64-linux-gnu", "pygtk"]
 
             dest = j.sal.fs.joinPaths(self.cuisine.dir_paths['base'], 'lib')
 
@@ -225,7 +228,7 @@ class CuisineBuilder(object):
     @actionrun(action=True)
     def syncthing(self, start=True):
         """
-        build and setup syncthing to run on :8384 , this can be changed from the config file in home  
+        build and setup syncthing to run on :8384 , this can be changed from the config file in home
         """
         self.installdeps()
         url = "git@github.com:syncthing/syncthing.git"
@@ -243,8 +246,8 @@ class CuisineBuilder(object):
     @actionrun(action=True)
     def agent(self,start=False, gid=None, nid=None):
         """
-        builds and setsup dependencies of agent to run with the given gid and nid 
-        niether can be zero 
+        builds and setsup dependencies of agent to run with the given gid and nid
+        niether can be zero
         """
         self.installdeps()
         #self.cuisine.installer.jumpscale8()
@@ -307,14 +310,14 @@ class CuisineBuilder(object):
         self.redis()
         self.mongodb()
         self.syncthing()
-        
+
         self.cuisine.processmanager.remove("agentcontroller8")
         pm = self.cuisine.processmanager.get("tmux")
         pm.stop("syncthing")
 
         self.cuisine.dir_ensure("$cfgDir/controller", recursive=True)
 
-        #get repo 
+        #get repo
         url = "github.com/g8os/controller"
         self.cuisine.golang.godep(url)
         sourcepath = "$goDir/src/github.com/g8os/controller"
@@ -322,9 +325,9 @@ class CuisineBuilder(object):
         #do the actual building
         self.cuisine.run("cd %s && go build ." % sourcepath, profile=True)
 
-        #move binary 
+        #move binary
         self.cuisine.file_move("%s/controller" % sourcepath, "$binDir/controller")
-        #edit config 
+        #edit config
         C = self.cuisine.file_read("%s/agentcontroller.toml"%sourcepath)
         cfg = j.data.serializer.toml.loads(C)
 
@@ -337,7 +340,7 @@ class CuisineBuilder(object):
         self.cuisine.file_write('$cfgDir/controller/agentcontroller.toml', C, replaceArgs=True)
         self.cuisine.file_write('$cfgDir/controller/agentcontroller.toml.org', C, replaceArgs=False)
 
-        #expose syncthing and get api key  
+        #expose syncthing and get api key
         sync_cfg = self.cuisine.file_read("$homeDir/.config/syncthing/config.xml")
         sync_conn = re.search(r'<address>([0-9.]+):([0-9]+)</', sync_cfg)
         apikey = re.search(r'<apikey>([\w\-]+)</apikey>', sync_cfg).group(1)
@@ -346,7 +349,7 @@ class CuisineBuilder(object):
         self.cuisine.file_write("$homeDir/.config/syncthing/config.xml", sync_cfg)
 
 
-        #add jumpscripts file 
+        #add jumpscripts file
         self._startSyncthing()
         addr = "localhost"
         if not self.cuisine.executor.type == 'local':
@@ -357,12 +360,12 @@ class CuisineBuilder(object):
         synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
 
 
-        #file copy 
+        #file copy
         self.cuisine.dir_remove("$cfgDir/controller/extensions")
         self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/controller/extensions", recursive=True)
 
         if start:
- 
+
             self._startAgentController()
 
 
@@ -526,8 +529,8 @@ class CuisineBuilder(object):
         j.clients.redis.cuisine=self.cuisine
         j.clients.redis.configureInstance(name, ip, port, maxram=maxram, appendonly=appendonly, \
             snapshot=snapshot, slave=slave, ismaster=ismaster, passwd=passwd, unixsocket=True)
-        
-        
+
+
         if start:
             self._startRedis(name)
 

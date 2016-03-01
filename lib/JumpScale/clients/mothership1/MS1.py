@@ -114,7 +114,7 @@ class MS1(object):
     def getApiConnection(self, space_secret,**args):
         # host = self.apiURL # if cs["location"] == 'ca1' else '%s.mothership1.com' % cs["location"]
         try:
-            api=j.portal.client.get(self.apiURL, self.apiPort, space_secret)
+            api=j.clients.portal.get(self.apiURL, self.apiPort, space_secret)
         except Exception as e:
             raise RuntimeError("E:Could not login to MS1 API.")
 

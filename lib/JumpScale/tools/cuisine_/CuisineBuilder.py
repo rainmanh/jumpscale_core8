@@ -342,7 +342,7 @@ class CuisineBuilder(object):
         if start:
             self._startCore(nid, gid)
 
-    #@actionrun(action=True)
+    @actionrun(action=True)
     def controller(self, start=True):
         """
         config: https://github.com/g8os/controller.git
@@ -422,14 +422,13 @@ class CuisineBuilder(object):
     def _startController(self):
         import re
         import hashlib
-        
         self.cuisine.dir_ensure("$cfgDir/controller/")
         self.cuisine.file_copy("/opt/templates/cfg/controller", "$cfgDir/controller", recursive=True)
 
         #deps
         self.redis()
         self.mongodb()
-        self.syncthing()
+        self.syncthing(start=False)
         
         #expose syncthing and get api key  
         sync_cfg = self.cuisine.file_read("/opt/templates/cfg/syncthing/config.xml")

@@ -120,20 +120,17 @@ class ActionRun():
 
         return self._methods
 
-
-    def log(self,msg):
-        print(msg)
-        j.atyourservice.alog.log(msg)
+    def log(self, msg):
+        j.atyourservice.alog.log(msg=msg, category=self.name)
 
     def run(self):
         if len(self.methods)>0:
 
             self.setState("START")
-            print ("RUN:%s"%self)
+            print("RUN:%s" % self)
             for method in self.methods:
                 if not self.printonly:
                     if j.atyourservice.debug:
-                        # print (method)
                         try:
                             if method == "node":
                                 res = self.service._executeOnNode(self.name)
@@ -141,39 +138,22 @@ class ActionRun():
                                 res = method()
                         except Exception as e:
                             self.setState("ERROR")
-                            # err="***ERROR %s***\n"%(self)
-                            # for line in traceback.format_stack():
-                            #     if "/IPython/" in line:
-                            #         continue
-                            #     # if "JumpScale/baselib" in line:
-                            #     #     continue
-                            #     if "site-packages/click/" in line:
-                            #         continue
-                            #     if "bin/ays" in line:
-                            #         continue
-                            #     line=line.strip().strip("' ").strip().replace("File ","")
-                            #     err+="%s\n"%line.strip()
-                            # err+="ERROR:%s\n"%e
-                            # print (err)
-                            self.log("Exception:%s"%e)
+                            self.log("Exception: %s" % e)
                             raise RuntimeError(e)
                     else:
                         f = io.StringIO()
                         with redirect_stdout(f):
-                            ok=False
                             try:
                                 if method == "node":
                                     res = self.service._executeOnNode(self.name)
                                 else:
                                     res = method()
-                                print ("sdsdsds")
-                                raise RuntimeError("1111")
-                                ok=True
+                                self.log(f.getvalue())
                             except Exception as e:
-                                pass
-                        # self.setState("ERROR")
-                        # self.log("STDOUT:")
-                        # self.log(f.getvalue())
+                                self.setState("ERROR")
+                                self.log("Exception: %s" % e)
+                                self.log("Ouput:\n %s" % f.getvalue())
+                                raise RuntimeError(e)
         else:
             print ("NO METHODS FOR: %s"%self)
 

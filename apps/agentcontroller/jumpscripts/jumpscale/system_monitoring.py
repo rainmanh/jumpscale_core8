@@ -22,9 +22,6 @@ roles = []
 def action():
     import psutil
     import os
-    import statsd
-    statscl = statsd.StatsClient()
-    pipe = statscl.pipeline()
     hostname =j.sal.nettools.getHostname()
     aggregator = j.tools.aggregator.getClient(j.core.db,  hostname)
 
@@ -79,7 +76,6 @@ def action():
         j.data.tags.getTagString()
         aggregator.measure(tags={'nid': j.application.whoAmI.nid, 'gid': j.application.whoAmI.gid} ,key=key, value=value)
 
-    pipe.send()
     return results
 
 if __name__ == '__main__':

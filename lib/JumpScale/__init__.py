@@ -82,16 +82,19 @@ class Loader(object):
 
 locationbases={}
 j = Loader("j")
-j.data=Loader("j.actions")
 j.data=Loader("j.data")
+j.data.serializer=Loader("j.data.serializer")
+j.data.units = Loader('j.data.units')
+j.data.models = Loader('j.data.models')
 j.core=Loader("j.core")
 j.sal=Loader("j.sal")
 j.tools=Loader("j.tools")
 j.clients=Loader("j.clients")
-j.data.serializer=Loader("j.data.serializer")
 j.servers=Loader("j.servers")
-j.data.units = Loader('j.data.units')
-j.data.models = Loader('j.data.models')
+j.portal = Loader('j.portal')
+j.portal.tools = Loader('j.portal.tools')
+
+
 
 from .InstallTools import InstallTools
 from .InstallTools import Installer

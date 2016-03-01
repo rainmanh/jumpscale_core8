@@ -19,12 +19,9 @@ queue ='process'
 log = False
 roles = []
 
-try:
-    import ujson as json
-except:
-    import json
-
 import time
+from JumpScale.data.serializers.SerializerUJson import json
+
 
 def action():
 

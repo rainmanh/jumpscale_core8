@@ -1,7 +1,5 @@
 from JumpScale import j
-import json
 import requests
-import sys
 
 
 class SkyDNSClientFactory():
@@ -46,7 +44,7 @@ class SkyDNSClient():
         link = self.mkurl(endpoint)
         print('[+] %s' % link)
 
-        payload = {'value': json.dumps(data)}
+        payload = {'value': j.data.serializer.json.dumps(data)}
         r = self._session.put(link, data=payload)
 
         if r.status_code == 401:

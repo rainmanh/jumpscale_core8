@@ -321,7 +321,7 @@ class Service:
 
     @property
     def hrd(self):
-        if self._hrd==None:
+        if self._hrd is None:
             hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
             self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
         return self._hrd
@@ -465,7 +465,16 @@ class Service:
         #is only there temporary don't want to keep it there
         j.do.delete(path2)
         j.do.delete(j.do.joinPaths(self.path,"__pycache__"))
-        return mod.Actions(self)
+
+        actions = mod.Actions(self)
+        if 'roletemplate' in super(actions.__class__, actions).__module__:
+            hrd = j.atyourservice.getRoleTemplateHRD(self.role)
+            if hrd and self._hrd:
+                for key in hrd.items.keys():
+                    if not self._hrd.exists(key):
+                        self._hrd.set(key, hrd.get(key))
+
+        return actions
 
     @property
     def producers(self):

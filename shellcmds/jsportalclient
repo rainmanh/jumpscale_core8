@@ -20,9 +20,9 @@ if __name__ == '__main__':
         resp = requests.post(url, {'user_login_': opts.username, 'passwd': opts.password})
         newsecret = resp.cookies.get('beaker.session.id')
         print("Next time you can use %s as secret" % newsecret)
-        cl = j.clients.portal.get(opts.host, opts.port, newsecret)
+        cl = j.portal.client.get(opts.host, opts.port, newsecret)
     else:
-        cl = j.client.portal.getByInstance(opts.portclientinstance)
+        cl = j.portal.client.getByInstance(opts.portclientinstance)
         portalcfgpath = j.sal.fs.joinPaths(j.dirs.base, 'apps', 'cloudbroker', 'cfg', 'portal')
     j.apps = cl.actors
 

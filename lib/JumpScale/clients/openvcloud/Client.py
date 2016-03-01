@@ -60,7 +60,7 @@ class Client:
             raise ValueError("Either secret or password should be given")
         self._url = url
         self._login = login
-        self.api = j.clients.portal.get(url, port)
+        self.api = j.portal.client.get(url, port)
 
         self.__login(password, secret)
         if 'mothership1' in url:

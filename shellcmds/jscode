@@ -81,8 +81,8 @@ Host *
 
 if j.core.platformtype.myplatform.isLinux():
     path=j.sal.fs.joinPaths(os.environ["HOME"],".ssh","config")
-    if not j.do.exists(path):
-        j.do.writeFile(path,C)
+    if not j.sal.fs.exists(path):
+        j.sal.fs.writeFile(path,C)
 
 if opts.action == "status":
     print("\n\nSTATUS: account reponame                  " +
@@ -100,24 +100,24 @@ for provider, account, reponame, branch, client, path in repos:
             "git configuration not found, please install github_client service (ays install -n github_client)")
     else:
         # from ipdb import set_trace;set_trace()
-        _, url = j.do.execute("cd %s;git config --get remote.origin.url" % path)
+        _, url = j.sal.process.execute("cd %s;git config --get remote.origin.url" % path)
         if str(url).find("@") == -1:
             login = j.application.config.get("whoami.git.login")
             passwd = j.application.config.get("whoami.git.passwd")
             _, _, _, _, repository_url = j.do.rewriteGitRepoUrl(url=str(url), login=login, passwd=passwd)
-            j.do.executeInteractive("cd %s;git remote set-url origin '%s'" % (path, repository_url))
+            j.sal.process.executeWithoutPipe("cd %s;git remote set-url origin '%s'" % (path, repository_url))
 
     if opts.action == "update" and opts.deletechanges:
         print(("force update %s/%s/%s" % (provider, account, reponame)))
         cmd = 'cd %s; git checkout .' % path
-        j.do.execute(cmd)
+        j.sal.process.execute(cmd)
         j.do.pullGitRepo(url=client.remoteUrl)
         # client.update(force=True)
         continue
 
     if opts.action == "get":
         # cmd = "git config --global push.default matching"
-        # j.do.execute(cmd)
+        # j.sal.process.execute(cmd)
         j.do.pullGitRepo(client.remoteUrl, dest=None, depth=None,
                          ignorelocalchanges=opts.deletechanges, reset=False, branch=opts.branch)
         continue

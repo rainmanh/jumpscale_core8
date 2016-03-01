@@ -20,22 +20,23 @@ class ExecutorLocal(ExecutorBase):
             return j.do.execute(cmds, dieOnNonZeroExitCode=die, async=async,outputStdout=showout, outputStderr=showout)
         if self.debug:
             print("EXECUTOR:\n%s\n"%cmds)
-        return j.do.executeBashScript(content=cmds, path=None, die=die)
+
+        return j.sal.process.execute(content=cmds, dieOnNonZeroExitCode=die)
 
     def executeInteractive(self, cmds, die=True, checkok=None):
         cmds = self._transformCmds(cmds, die, checkok=checkok)
-        return j.do.executeInteractive(cmds)
+        return j.sal.process.executeWithoutPipe(cmds)
 
     def upload(self, source, dest, dest_prefix="", recursive=True):
         if dest_prefix != "":
-            dest = j.do.joinPaths(dest_prefix, dest)
-        j.do.copyTree(source, dest, keepsymlinks=True, deletefirst=False,
+            dest = j.sal.fs.joinPaths(dest_prefix, dest)
+        j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False,
                       overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
                       ssh=False, recursive=recursive)
 
     def download(self, source, dest, source_prefix=""):
         if source_prefix != "":
-            source = j.do.joinPaths(source_prefix, source)
-        j.do.copyTree(source, dest, keepsymlinks=True, deletefirst=False,
+            source = j.sal.fs.joinPaths(source_prefix, source)
+        j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False,
                       overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
                       ssh=False)

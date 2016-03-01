@@ -69,8 +69,8 @@ class CuisineBuilder(object):
             for path in paths:
                 j.tools.sandboxer.copyTo(path, dest, excludeFileRegex=excludeFileRegex, excludeDirRegex=excludeDirRegex)
 
-            if not j.do.exists("%s/bin/python" % self.cuisine.dir_paths['base']):
-                j.do.copyFile("/usr/bin/python3.5", "%s/bin/python" % self.cuisine.dir_paths['base'])
+            if not j.sal.fs.exists("%s/bin/python" % self.cuisine.dir_paths['base']):
+                j.sal.fs.copyFile("/usr/bin/python3.5", "%s/bin/python" % self.cuisine.dir_paths['base'])
 
         j.tools.sandboxer.sandboxLibs("%s/lib" % self.cuisine.dir_paths['base'], recursive=True)
         j.tools.sandboxer.sandboxLibs("%s/bin" % self.cuisine.dir_paths['base'], recursive=True)
@@ -251,7 +251,7 @@ class CuisineBuilder(object):
         #self.cuisine.installer.jumpscale8()
         self.redis()
         self.mongodb()
-        self.syncthing()
+        self.syncthing(start=False)
 
         self.cuisine.tmux.killWindow("main","agent")
 
@@ -363,6 +363,7 @@ class CuisineBuilder(object):
         self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/agentcontroller8/extensions", recursive=True)
 
         if start:
+ 
             self._startAgentController()
 
 
@@ -375,6 +376,9 @@ class CuisineBuilder(object):
 
 
     def _startAgent(self, nid, gid):
+        self._startMongodb()
+        self._startRedis()
+        self._startSyncthing()
         print("connection test ok to agentcontroller")
         #@todo (*1*) need to implement to work on node
         env={}
@@ -384,11 +388,25 @@ class CuisineBuilder(object):
         pm.ensure("agent8", cmd=cmd, path="$cfgDir/agent8",  env=env)
 
     def _startAgentController(self):
+        self._startMongodb()
+        self._startRedis()
+        self._startSyncthing()
         env = {}
         env["TMPDIR"] = self.cuisine.dir_paths["tmpDir"]
         cmd = "$binDir/agentcontroller8 -c $cfgDir/agentcontroller8/agentcontroller.toml"
         pm = self.cuisine.processmanager.get("tmux")
         pm.ensure("agentcontroller8", cmd=cmd, path="$cfgDir/agentcontroller8/", env=env)
+
+    def _startRedis(self, name="redis_main"):
+        dpath,cpath=j.clients.redis._getPaths(name)
+        cmd="redis-server %s"%cpath
+        self.cuisine.processmanager.ensure(name="redis_%s"%name,cmd=cmd,env={},path='$binDir')
+
+    def _startMongodb(self, name="mongod"):
+        which = self.cuisine.command_location("mongod")
+        cmd="%s --dbpath $varDir/data/db" % which
+        self.cuisine.process.kill("mongod")
+        self.cuisine.processmanager.ensure("mongod",cmd=cmd,env={},path="")
 
     @actionrun(action=True)
     def etcd(self,start=True, host=None, peers=[]):
@@ -509,11 +527,10 @@ class CuisineBuilder(object):
         j.clients.redis.cuisine=self.cuisine
         j.clients.redis.configureInstance(name, ip, port, maxram=maxram, appendonly=appendonly, \
             snapshot=snapshot, slave=slave, ismaster=ismaster, passwd=passwd, unixsocket=True)
-        dpath,cpath=j.clients.redis._getPaths(name)
-
+        
+        
         if start:
-            cmd="redis-server %s"%cpath
-            self.cuisine.processmanager.ensure(name="redis_%s"%name,cmd=cmd,env={},path='$binDir')
+            self._startRedis(name)
 
     @actionrun(action=True)
     def mongodb(self, start=True):
@@ -554,10 +571,7 @@ class CuisineBuilder(object):
 
 
         if start:
-            which = self.cuisine.command_location("mongod")
-            cmd="%s --dbpath $varDir/data/db" % which
-            self.cuisine.process.kill("mongod")
-            self.cuisine.processmanager.ensure("mongod",cmd=cmd,env={},path="")
+            self._startMongodb("mongod")
 
     def influxdb(self, start=True):
         self.cuisine.installer.base()

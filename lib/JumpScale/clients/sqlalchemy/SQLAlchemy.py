@@ -147,7 +147,7 @@ class SQLAlchemy(object):
 
     def resetDB(self):
         if self.sqlitepath!="":
-            j.do.delete(self.sqlitepath)
+            j.sal.fs.remove(self.sqlitepath)
             engine = create_engine('sqlite:///%s'%self.sqlitepath, echo=False)
             Base.metadata.create_all(engine)             
             self.engine=None
@@ -165,5 +165,5 @@ class SQLAlchemy(object):
         if target._totoml and self.tomlpath!="":
             path=target._tomlpath(self)
             path="%s/%s/%s.toml"%(self.tomlpath,target.__tablename__,target.id.lower())
-            j.do.delete(path)
+            j.sal.fs.remove(path)
         

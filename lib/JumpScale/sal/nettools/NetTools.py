@@ -422,7 +422,7 @@ class NetTools(SALObject):
 
     def bridgeExists(self,bridgename):
         cmd="brctl show"
-        rc,out,err=j.do.execute(cmd,outputStdout=False)
+        rc,out,err=j.sal.process.execute(cmd,outputToStdout=False)
         for line in out.split("\n"):
             if line.lower().startswith(bridgename):
                 return True
@@ -431,14 +431,14 @@ class NetTools(SALObject):
     def resetDefaultGateway(self,gw):
         def gwexists():
             cmd="ip r"
-            rc,out=j.do.execute(cmd,outputStdout=False)
+            rc,out=j.sal.process.execute(cmd,outputToStdout=False)
             for line in out.split("\n"):
                 if line.lower().startswith("default"):
                     return True
             return False
         def removegw():
             cmd="ip route del 0/0"
-            rc,out=j.do.execute(cmd,outputStdout=False,outputStderr=False,dieOnNonZeroExitCode=False)
+            rc,out=j.sal.process.execute(cmd,outputToStdout=False, ignoreErrorOutput=False,dieOnNonZeroExitCode=False)
 
         removegw()            
         couter=0
@@ -451,7 +451,7 @@ class NetTools(SALObject):
                 raise RuntimeError("cannot delete def gw")
 
         cmd='route add default gw %s'%gw
-        j.do.execute(cmd)
+        j.sal.process.execute(cmd)
 
     def getNetworkInfo(self):
         """
@@ -793,7 +793,7 @@ class NetTools(SALObject):
         if md5_checksum and not j.data.hash.md5(destination_file_path) == md5_checksum:
             raise RuntimeError('The provided MD5 checksum did not match that of a freshly-downloaded file!')
 
-    def download(self, url, localpath, username=None, passwd=None):
+    def download(self, url, localpath, username=None, passwd=None, overwrite=True):
         '''Download a url to a file or a directory, supported protocols: http, https, ftp, file
         @param url: URL to download from
         @type url: string
@@ -823,6 +823,7 @@ class NetTools(SALObject):
         from urllib.parse import splittype
         class myURLOpener(FancyURLopener):
             # read a URL, with automatic HTTP authentication
+            import ipdb;ipdb.set_trace()
             def __init__(self, user, passwd):
                 self._user = user
                 self._passwd = passwd
@@ -838,13 +839,15 @@ class NetTools(SALObject):
                 raise RuntimeError('Could not authenticate with the given authentication user:%s and password:%s'%(self._user, self._passwd))
 
         urlopener = myURLOpener(username, passwd)
-        if username and passwd and splittype(url)[0] == 'ftp':
-            url = url.split('://')[0]+'://%s:%s@'%(username,passwd)+url.split('://')[1]
-        if filename != '-':
-            urlopener.retrieve(url, filename, None, None)
-            j.logger.log('URL %s is downloaded to local path %s'%(url, filename), 4)
-        else:
-            return urlopener.open(url).read()
+        if overwrite:
+            if username and passwd and splittype(url)[0] == 'ftp':
+                url = url.split('://')[0]+'://%s:%s@'%(username,passwd)+url.split('://')[1]
+            if filename != '-':
+                urlopener.retrieve(url, filename, None, None)
+                j.logger.log('URL %s is downloaded to local path %s'%(url, filename), 4)
+            else:
+                return urlopener.open(url).read()
+        return print("!!! File already exists did not overwrite")
 
     def getDomainName(self):
         """

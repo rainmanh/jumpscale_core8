@@ -43,7 +43,7 @@ class CuisineInstaller(object):
         lpath=os.environ["HOME"]+"/.ssh/reflector"
         path="/home/sshreflector/.ssh/reflector"
         ftp=self.cuisine.executor.sshclient.getSFTP()
-        if j.do.exists(lpath) and j.do.exists(lpath+".pub"):
+        if j.sal.fs.exists(lpath) and j.sal.fs.exists(lpath+".pub"):
             print("UPLOAD EXISTING SSH KEYS")
             ftp.put(lpath,path)
             ftp.put(lpath+".pub",path+".pub")
@@ -57,11 +57,11 @@ class CuisineInstaller(object):
             ftp.get(path,lpath)
             ftp.get(path+".pub",lpath+".pub")
 
-            j.do.chmod(lpath,0o600)
-            j.do.chmod(lpath+".pub",0o600)
+            j.sal.fs.chmod(lpath,0o600)
+            j.sal.fs.chmod(lpath+".pub",0o600)
 
         #authorize remote server to accept now copied private key
-        self.cuisine.ssh.authorize("sshreflector",j.do.readFile(lpath+".pub"))
+        self.cuisine.ssh.authorize("sshreflector",j.sal.fs.fileGetContents(lpath+".pub"))
 
         self.cuisine.run("chmod 0644 /home/sshreflector/.ssh/*")
         self.cuisine.run("chown -R sshreflector:sshreflector /home/sshreflector/.ssh/")
@@ -112,7 +112,7 @@ class CuisineInstaller(object):
 
             lpath=os.environ["HOME"]+"/.ssh/reflector"
 
-            if reset or not j.do.exists(lpath) or not j.do.exists(lpath_pub):
+            if reset or not j.sal.fs.exists(lpath) or not j.sal.fs.exists(lpath_pub):
                 print("DOWNLOAD SSH KEYS")
                 #get private key from reflector
                 ftp=remotecuisine.executor.sshclient.getSFTP()

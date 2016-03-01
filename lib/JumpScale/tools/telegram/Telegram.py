@@ -3,7 +3,7 @@ try:
     import grequests as requests
 except:
     cmd='pip install grequests'
-    j.do.execute(cmd)
+    j.sal.process.execute(cmd)
     import grequests as requests
 
 # import requests

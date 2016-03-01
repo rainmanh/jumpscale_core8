@@ -76,7 +76,7 @@ class AtYourServiceSandboxer():
         self.model.save()
 
     def reset(self):
-        j.do.delete(self.model.storpath)
+        j.sal.fs.remove(self.model.storpath)
 
     def setHost(self,host,port=22):
         self.model.host=host
@@ -146,7 +146,7 @@ class AtYourServiceSandboxer():
         cmd +="--exclude '*.pyc' --exclude '*.bak' --exclude '*__pycache__*'  -e 'ssh -o StrictHostKeyChecking=no -p 22' "
         cmd +="'/tmp/aysfs/files/' 'root@%s:%s'"%(desthost,destpath)
         print (cmd)
-        j.do.execute(cmd)
+        j.sal.process.execute(cmd)
 
     def buildJumpscaleMetadata(self):
         from JumpScale import findModules
@@ -166,13 +166,13 @@ class AtYourServiceSandboxer():
             excludeFileRegex=["/xml/","-tk/","/xml","/lib2to3","-34m-",".egg-info"]
             excludeDirRegex=["/JumpScale","\.dist-info","config-x86_64-linux-gnu","pygtk"]
 
-            dest = "%s/lib"%j.do.BASE
+            dest = "%s/lib"%j.dirs.base
 
             for path in paths:
                 j.tools.sandboxer.copyTo(path,dest,excludeFileRegex=excludeFileRegex,excludeDirRegex=excludeDirRegex)
 
-            if not j.do.exists("%s/bin/python"%j.do.BASE):
-                j.do.copyFile("/usr/bin/python3.5","%s/bin/python"%j.do.BASE)
+            if not j.sal.fs.exists("%s/bin/python"%j.dirs.base):
+                j.sal.fs.copyFile("/usr/bin/python3.5","%s/bin/python"%j.dirs.base)
 
         # for item in self.model.paths:
         #     sourcepath,filter,dest=item.split("___")
@@ -185,8 +185,8 @@ class AtYourServiceSandboxer():
         #     else:
         #         j.sal.fs.copyFile(sourcepath,dest)
 
-        j.tools.sandboxer.sandboxLibs("%s/lib"%j.do.BASE,recursive=True)
-        j.tools.sandboxer.sandboxLibs("%s/bin"%j.do.BASE,recursive=True)
+        j.tools.sandboxer.sandboxLibs("%s/lib"%j.dirs.base,recursive=True)
+        j.tools.sandboxer.sandboxLibs("%s/bin"%j.dirs.base,recursive=True)
         print ("SANDBOXING DONE, ALL OK IF TILL HERE, A Segfault can happen because we have overwritten ourselves.")
 
     def buildUpload(self,sandbox=True):
@@ -209,7 +209,7 @@ class AtYourServiceSandboxer():
             except:
                 self.installAYSFS()
 
-            # j.do.copyTree(self.model.storpath+"/files/", "root@%s:/mnt/ays/cachelocal/%s"%(self.model.host,self.model.namespace), \
+            # j.sal.fs.copyDirTree(self.model.storpath+"/files/", "root@%s:/mnt/ays/cachelocal/%s"%(self.model.host,self.model.namespace), \
             #     keepsymlinks=False, deletefirst=False, overwriteFiles=False, rsync=True, ssh=True, sshport=self.model.port, recursive=True)
 
         if self.model.populate_grid_cache:
@@ -219,7 +219,7 @@ class AtYourServiceSandboxer():
             pass
             # self._upload(self.model.host,"/mnt/ays/cachelocal/dedupe/")
             # #@todo ....
-            # j.do.copyTree(self.model.storpath+"/md/0.flist", "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
+            # j.sal.fs.copyDirTree(self.model.storpath+"/md/0.flist", "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
 
         if self.model.populate_master_cache:
             store_client = j.clients.storx.get("http://stor.jumpscale.org/storx")
@@ -241,11 +241,11 @@ class AtYourServiceSandboxer():
                 raise RuntimeError('some files didnt upload properly. %s' % ("\n".join(error_files)))
 
             metadataPath = j.sal.fs.joinPaths(self.model.storpath, "md","0.flist")
-            j.do.copyTree(metadataPath, "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
+            j.sal.fs.copyDirTree(metadataPath, "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
 
 
         # if self.model.host!="":
-        #     j.do.copyTree(self.model.storpath+"/md/0.flist","root@%s:/etc/ays/local/"%(self.model.host),overwriteFiles=True, rsync=True, ssh=True, sshport=self.model.port)
+        #     j.sal.fs.copyDirTree(self.model.storpath+"/md/0.flist","root@%s:/etc/ays/local/"%(self.model.host),overwriteFiles=True, rsync=True, ssh=True, sshport=self.model.port)
         #     try:
         #         pid=self.cuisine_host.run("pgrep aysfs")
         #     except:
@@ -266,9 +266,9 @@ class AtYourServiceSandboxer():
 
     def buildUpload_JS(self,sandbox=False,name="main"):
 
-        j.do.createDir("/usr/local/lib/python3.5/site-packages")
-        # j.do.symlink("%s/lib/JumpScale/"%j.do.BASE,"/usr/local/lib/python3.5/site-packages/JumpScale/")
-        # j.do.symlink("%s/lib/JumpScale/"%j.do.BASE,"/root/.ipython/JumpScale/")
+        j.sal.fs.createDir("/usr/local/lib/python3.5/site-packages")
+        # j.sal.fs.symlink("%s/lib/JumpScale/"%j.dirs.base,"/usr/local/lib/python3.5/site-packages/JumpScale/")
+        # j.sal.fs.symlink("%s/lib/JumpScale/"%j.dirs.base,"/root/.ipython/JumpScale/")
 
         self.model.paths=[]
         # d.setNamespace("dedupe")

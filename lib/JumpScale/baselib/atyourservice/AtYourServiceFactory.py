@@ -7,7 +7,6 @@ from ActionsBaseMgmt import ActionsBaseMgmt
 from ActionsBaseNode import ActionsBaseNode
 from Blueprint import Blueprint
 from ALog import *
-# import AYSdb
 import traceback
 from AtYourServiceSync import AtYourServiceSync
 try:
@@ -15,23 +14,6 @@ try:
 except:
     pass
 import os
-
-# class AYSDB():
-#     """
-#     @todo
-#     """
-
-#     def __init__(self):
-#         self.db=j.core.db
-
-#     def index(self,category,key,data):
-#         self.db.hset("ays.index.%s"%category,key,data)
-
-#     def reset(self):
-#         self.db.delete("ays.domains")
-#         self.db.delete("ays.index.service")
-#         self.db.delete("ays.index.recipe")
-#         self.db.delete("ays.index.template")
 
 
 class AtYourServiceFactory():
@@ -284,6 +266,15 @@ class AtYourServiceFactory():
         self.commitGitChanges(action="init")
 
         print ("init done")
+
+    def createAYSRepo(self, path):
+        j.sal.fs.createDir(path)
+        j.sal.fs.createEmptyFile(j.sal.fs.joinPaths(path, '.ays'))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'servicetemplates'))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'blueprints'))
+        j.sal.process.execute("git init %s" % path, dieOnNonZeroExitCode=True, outputToStdout=False, useShell=False, ignoreErrorOutput=False)
+        j.sal.nettools.download('https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
+        print("AYS Repo created at %s" % path)
 
 
     def updateTemplatesRepos(self, repos=[]):

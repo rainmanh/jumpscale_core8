@@ -51,7 +51,7 @@ class NetTools(SALObject):
             if conn:
                 conn.close()
         return True
-        
+
     def waitConnectionTest(self,ipaddr,port,timeout):
         """
         will return false if not successfull (timeout)
@@ -103,7 +103,7 @@ class NetTools(SALObject):
             code = urllib.request.urlopen(url).getcode()
         except Exception:
             j.errorconditionhandler.raiseOperationalCritical("Url %s is unreachable" % url)
-        
+
         if code != 200:
             j.logger.setLogTargetLogForwarder()
             j.errorconditionhandler.raiseOperationalCritical("Url %s is unreachable" % url)
@@ -237,13 +237,13 @@ class NetTools(SALObject):
                 if ipTuple: # if empty array skip
                     result.extend([ ip[0] for ip in ipTuple])
             return result
-    
+
     def checkIpAddressIsLocal(self,ipaddr):
         if ipaddr.strip() in self.getIpAdresses():
             return True
         else:
             return False
-   
+
     def getNics(self,up=False):
         """ Get Nics on this machine
         Works only for Linux/Solaris systems
@@ -440,7 +440,7 @@ class NetTools(SALObject):
             cmd="ip route del 0/0"
             rc,out=j.sal.process.execute(cmd,outputToStdout=False, ignoreErrorOutput=False,dieOnNonZeroExitCode=False)
 
-        removegw()            
+        removegw()
         couter=0
         while gwexists():
             removegw()
@@ -461,7 +461,7 @@ class NetTools(SALObject):
 
         @TODO change for windows
 
-        """ 
+        """
         netaddr={}
         if j.core.platformtype.myplatform.isLinux():
             return [item for item in getNetworkInfo()]
@@ -516,7 +516,7 @@ class NetTools(SALObject):
         elif j.core.platformtype.myplatform.isWindows():
             import wmi
             ipv4Pattern = '^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$'
-            
+
             w = wmi.WMI()
             NICIndex = interface.split(":")[0]
             nic = w.Win32_NetworkAdapterConfiguration(index=NICIndex)[0]
@@ -524,7 +524,7 @@ class NetTools(SALObject):
             if nic.IPAddress:
                 for x in range(0, len(nic.IPAddress)):
                     # skip IPv6 addresses for now
-                    if re.match(ipv4Pattern, str(nic.IPAddress[x])) != None: 
+                    if re.match(ipv4Pattern, str(nic.IPAddress[x])) != None:
                         result.append( [str(nic.IPAddress[x]), str(nic.IPSubnet[x]), ''] )
             return result
         else:
@@ -561,7 +561,7 @@ class NetTools(SALObject):
             return None
         elif j.core.platformtype.myplatform.isWindows():
             import wmi
-            w = wmi.WMI()   
+            w = wmi.WMI()
             NICIndex = interface.split(":")[0]
             return str(w.Win32_NetworkAdapterConfiguration(index=NICIndex)[0].MACAddress)
         else:
@@ -823,7 +823,6 @@ class NetTools(SALObject):
         from urllib.parse import splittype
         class myURLOpener(FancyURLopener):
             # read a URL, with automatic HTTP authentication
-            import ipdb;ipdb.set_trace()
             def __init__(self, user, passwd):
                 self._user = user
                 self._passwd = passwd
@@ -839,12 +838,14 @@ class NetTools(SALObject):
                 raise RuntimeError('Could not authenticate with the given authentication user:%s and password:%s'%(self._user, self._passwd))
 
         urlopener = myURLOpener(username, passwd)
+
         if overwrite:
             if username and passwd and splittype(url)[0] == 'ftp':
                 url = url.split('://')[0]+'://%s:%s@'%(username,passwd)+url.split('://')[1]
             if filename != '-':
                 urlopener.retrieve(url, filename, None, None)
                 j.logger.log('URL %s is downloaded to local path %s'%(url, filename), 4)
+                return
             else:
                 return urlopener.open(url).read()
         return print("!!! File already exists did not overwrite")

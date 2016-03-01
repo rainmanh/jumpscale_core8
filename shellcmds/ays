@@ -126,6 +126,14 @@ def list(role, instance):
     for s in sorted(services, key=lambda service: service.role):
         print("%s!%s" % (s.role, s.instance))
 
+@click.command()
+@click.option('--action', '-a', default=None)
+def printlog(action):
+    action_name, out = j.atyourservice.alog.getActionOuput(action)
+    print("Output of last action: %s\n" % action_name)
+    print(out)
+
+
 cli.add_command(new)
 cli.add_command(init)
 cli.add_command(install)
@@ -136,6 +144,7 @@ cli.add_command(showparents)
 cli.add_command(showactions)
 cli.add_command(removelastrun)
 cli.add_command(list)
+cli.add_command(printlog)
 
 if __name__ == '__main__':
     cli()

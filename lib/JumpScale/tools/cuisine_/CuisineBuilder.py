@@ -260,15 +260,27 @@ class CuisineBuilder(object):
     @actionrun(action=True)
     def syncthing(self, start=True):
         """
-        build and setup syncthing to run on :8384 , this can be changed from the config file in home  
+        build and setup syncthing to run on :8384 , this can be changed from the config file in /optvar/cfg/syncthing  
         """
         self.installdeps()
+        
+        #create config file 
+        with open(self.cuisine.args_replace("$codeDir/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/templates/syncthing.xml"), "r") as config:
+            content = config.read()
+            content = self.cuisine.args_replace(content)
+            content = content.replace("$lclAddrs",  "127.0.0.1", 1)
+            content = content.replace ("$port", "8384", 1)
+        self.cuisine.dir_ensure("/opt/templates/cfg/syncthing/")
+        self.cuisine.file_write("/opt/templates/cfg/syncthing/config.xml", content)
+        
+        #build 
         url = "git@github.com:syncthing/syncthing.git"
-
         self.cuisine.dir_remove('$goDir/src/github.com/syncthing/syncthing')
         dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='$goDir/src/github.com/syncthing/syncthing')
         self.cuisine.run('cd %s && godep restore' % dest, profile=True)
         self.cuisine.run("cd %s && ./build.sh noupgrade" % dest, profile=True)
+
+        #copy bin
         self.cuisine.file_copy(self.cuisine.joinpaths(dest, 'syncthing'), "$goDir/bin/", recursive=True)
         self.cuisine.file_copy("$goDir/bin/syncthing", "$binDir", recursive=True)
 
@@ -283,8 +295,7 @@ class CuisineBuilder(object):
         """
         self.installdeps()
         #self.cuisine.installer.jumpscale8()
-        self.redis()
-        self.mongodb()
+
         self.syncthing(start=False)
 
         self.cuisine.tmux.killWindow("main","agent")
@@ -331,17 +342,13 @@ class CuisineBuilder(object):
         if start:
             self._startCore(nid, gid)
 
-    @actionrun(action=True)
+    #@actionrun(action=True)
     def controller(self, start=True):
         """
         config: https://github.com/g8os/controller.git
         """
-        import re
-        import hashlib
         self.installdeps()
-        self.redis()
-        self.mongodb()
-        self.syncthing()
+
         
         self.cuisine.processmanager.remove("agentcontroller8")
         pm = self.cuisine.processmanager.get("tmux")
@@ -372,26 +379,6 @@ class CuisineBuilder(object):
         self.cuisine.file_write('/opt/templates/cfg/controller/agentcontroller.toml', C, replaceArgs=True)
         self.cuisine.file_write('/opt/templates/cfg/controller/agentcontroller.toml.org', C, replaceArgs=False)
 
-        #expose syncthing and get api key  
-        sync_cfg = self.cuisine.file_read("$homeDir/.config/syncthing/config.xml")
-        sync_conn = re.search(r'<address>([0-9.]+):([0-9]+)</', sync_cfg)
-        apikey = re.search(r'<apikey>([\w\-]+)</apikey>', sync_cfg).group(1)
-        sync_cfg = sync_cfg.replace(sync_conn.group(1), "0.0.0.0")
-        sync_cfg = sync_cfg.replace(sync_conn.group(2), "18384")
-        self.cuisine.file_write("$homeDir/.config/syncthing/config.xml", sync_cfg)
-
-
-        #add jumpscripts file 
-        self._startSyncthing()
-        addr = "localhost"
-        if not self.cuisine.executor.type == 'local':
-            addr = self.executor.addr
-        synccl = j.clients.syncthing.get(addr,18384, apikey=apikey)
-        jumpscripts_path = self.cuisine.args_replace("/opt/templates/cfg/controller/jumpscripts")
-        jumpscripts_id = "jumpscripts-%s" % hashlib.md5(synccl.id_get().encode()).hexdigest()
-        synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
-
-
         #file copy 
         self.cuisine.dir_remove("/opt/templates/cfg/controller/extensions")
         self.cuisine.file_copy("%s/extensions" % sourcepath, "/opt/templates/cfg/controller/extensions", recursive=True)
@@ -402,14 +389,24 @@ class CuisineBuilder(object):
 
 
     def _startSyncthing(self):
+        self.cuisine.dir_ensure("$cfgDir/syncthing/")
+        self.cuisine.file_copy("/opt/templates/cfg/syncthing/", "$cfgDir/syncthing/", recursive=True)
+        
         GOPATH = self.cuisine.bash.environGet('GOPATH')
         env={}
         env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
         pm = self.cuisine.processmanager.get("tmux")
-        pm.ensure(name="syncthing", cmd="./syncthing", path=self.cuisine.joinpaths(GOPATH, "bin"))
+        pm.ensure(name="syncthing", cmd="./syncthing -home  $cfgDir/syncthing/", path=self.cuisine.joinpaths(GOPATH, "bin"))
 
 
     def _startCore(self, nid, gid):
+        self.cuisine.dir_ensure("$cfgDir/core/")
+        self.cuisine.file_copy("/opt/templates/cfg/core", "$cfgDir/core", recursive=True)
+
+
+        #deps
+        self.redis()
+        self.mongodb()
         self.cuisine.file_copy("/opt/templates/cfg/core", "$cfgDir/core", recursive=True)
         self._startMongodb()
         self._startRedis()
@@ -423,7 +420,36 @@ class CuisineBuilder(object):
         pm.ensure("core", cmd=cmd, path="/opt/templates/cfg/core",  env=env)
 
     def _startController(self):
+        import re
+        import hashlib
+        
+        self.cuisine.dir_ensure("$cfgDir/controller/")
         self.cuisine.file_copy("/opt/templates/cfg/controller", "$cfgDir/controller", recursive=True)
+
+        #deps
+        self.redis()
+        self.mongodb()
+        self.syncthing()
+        
+        #expose syncthing and get api key  
+        sync_cfg = self.cuisine.file_read("/opt/templates/cfg/syncthing/config.xml")
+        sync_conn = re.search(r'<address>([0-9.]+):([0-9]+)</', sync_cfg)
+        apikey = re.search(r'<apikey>([\w\-]+)</apikey>', sync_cfg).group(1)
+        sync_cfg = sync_cfg.replace(sync_conn.group(1), "0.0.0.0")
+        sync_cfg = sync_cfg.replace(sync_conn.group(2), "18384")
+        self.cuisine.file_write("$cfgDir/cfg/syncthing/config.xml", sync_cfg)
+
+        #add jumpscripts file 
+        self._startSyncthing()
+        addr = "localhost"
+        if not self.cuisine.executor.type == 'local':
+            addr = self.executor.addr
+        synccl = j.clients.syncthing.get(addr,18384, apikey=apikey)
+        jumpscripts_path = self.cuisine.args_replace("$cfgDir/cfg/controller/jumpscripts")
+        jumpscripts_id = "jumpscripts-%s" % hashlib.md5(synccl.id_get().encode()).hexdigest()
+        synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
+
+        #start
         self._startMongodb()
         self._startRedis()
         self._startSyncthing()

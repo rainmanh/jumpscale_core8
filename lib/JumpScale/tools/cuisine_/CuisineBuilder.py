@@ -436,7 +436,7 @@ class CuisineBuilder(object):
         apikey = re.search(r'<apikey>([\w\-]+)</apikey>', sync_cfg).group(1)
         sync_cfg = sync_cfg.replace(sync_conn.group(1), "0.0.0.0")
         sync_cfg = sync_cfg.replace(sync_conn.group(2), "18384")
-        self.cuisine.file_write("$cfgDir/cfg/syncthing/config.xml", sync_cfg)
+        self.cuisine.file_write("$cfgDir/syncthing/config.xml", sync_cfg)
 
         #add jumpscripts file 
         self._startSyncthing()

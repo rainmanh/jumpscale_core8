@@ -283,6 +283,15 @@ class AtYourServiceFactory():
 
         print ("init done")
 
+    def createAYSRepo(self, path):
+        j.sal.fs.createDir(path)
+        j.sal.fs.createEmptyFile(j.sal.fs.joinPaths(path, '.ays'))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'servicetemplates'))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'blueprints'))
+        j.sal.process.execute("git init %s" % path, dieOnNonZeroExitCode=True, outputToStdout=False, useShell=False, ignoreErrorOutput=False)
+        j.sal.nettools.download('https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
+        print("AYS Repo created at %s" % path)
+
 
     def updateTemplatesRepos(self, repos=[]):
         """

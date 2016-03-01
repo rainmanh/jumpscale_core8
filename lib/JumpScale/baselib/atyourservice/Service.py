@@ -463,8 +463,8 @@ class Service:
         modulename = "JumpScale.atyourservice.%s.%s.%s.%s" % (self.domain, self.name, self.instance,ttype)
         mod = loadmodule(modulename, path2)
         #is only there temporary don't want to keep it there
-        j.sal.fs.delete(path2)
-        j.sal.fs.delete(j.do.joinPaths(self.path,"__pycache__"))
+        j.sal.fs.remove(path2)
+        j.sal.fs.removeDirTree(j.do.joinPaths(self.path,"__pycache__"))
 
         actions = mod.Actions(self)
         if 'roletemplate' in super(actions.__class__, actions).__module__:

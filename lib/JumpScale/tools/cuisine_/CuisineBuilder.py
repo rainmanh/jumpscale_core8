@@ -251,7 +251,8 @@ class CuisineBuilder(object):
         self.cuisine.file_write("$goDir/src/github.com/g8os/fs/config/config.toml", content)
         self.cuisine.file_copy("$goDir/src/github.com/g8os/fs/config/config.toml", "/opt/templates/cfg")
         if start:
-            self.cuisine.file_copy("/opt/templates/cfg", "$varDir/cfg")
+            self.cuisine.file_copy("/opt/templates/cfg/fs/", "$varDir/cfg", recursive=True)
+            # self.cuisine.processmanager.ensure("$binDir/fs -c")
 
 
     @actionrun(action=True)
@@ -416,7 +417,7 @@ class CuisineBuilder(object):
 
 
     def _startCore(self, nid, gid):
-        self.cuisine.file_copy("/opt/templates/cfg/core", "$cfgDir/core")
+        self.cuisine.file_copy("/opt/templates/cfg/core", "$cfgDir/core", recursive=True)
         self._startMongodb()
         self._startRedis()
         self._startSyncthing()
@@ -429,7 +430,7 @@ class CuisineBuilder(object):
         pm.ensure("core", cmd=cmd, path="/opt/templates/cfg/core",  env=env)
 
     def _startController(self):
-        self.cuisine.file_copy("/opt/templates/cfg/controller", "$cfgDir/controller")
+        self.cuisine.file_copy("/opt/templates/cfg/controller", "$cfgDir/controller", recursive=True)
         self._startMongodb()
         self._startRedis()
         self._startSyncthing()
@@ -440,13 +441,11 @@ class CuisineBuilder(object):
         pm.ensure("controller", cmd=cmd, path="/opt/templates/cfg/controller/", env=env)
 
     def _startRedis(self, name="redis_main"):
-        self.cuisine.file_copy("/opt/templates/cfg/%s", "$cfgDir/%s")
         dpath,cpath=j.clients.redis._getPaths(name)
         cmd="redis-server %s"%cpath
         self.cuisine.processmanager.ensure(name="redis_%s"%name,cmd=cmd,env={},path='$binDir')
 
     def _startMongodb(self, name="mongod"):
-        self.cuisine.file_copy("/opt/templates/cfg/%s", "$cfgDir/%s")
         which = self.cuisine.command_location("mongod")
         cmd="%s --dbpath $varDir/data/db" % which
         self.cuisine.process.kill("mongod")

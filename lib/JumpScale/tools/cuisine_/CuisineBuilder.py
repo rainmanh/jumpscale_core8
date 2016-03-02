@@ -437,7 +437,6 @@ class CuisineBuilder(object):
         pm.ensure("core", cmd=cmd, path="$tmplsDir/cfg/core",  env=env)
 
     def _startController(self):
-        import ipdb; ipdb.set_trace()
         import re
         import hashlib
         self.cuisine.dir_ensure("$cfgDir/controller/")

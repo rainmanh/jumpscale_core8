@@ -422,6 +422,7 @@ class OurCuisine():
             else:
                 res["varDir"]= "/optvar/"
             res["appDir"]="%s/apps"%res["base"]
+            res['tmplsDir']="%s/templates" % res["base"]
             res["binDir"]="%s/bin"%res["base"]
             res["cfgDir"]="%s/cfg"%res["varDir"]
             res["jsLibDir"]="%s/lib/JumpScale/"%res["base"]
@@ -455,6 +456,7 @@ class OurCuisine():
         dirs:
         - $base
         - $appDir
+        - $tmplsDir
         - $varDir/
         - $binDir
         - $codeDir
@@ -469,8 +471,8 @@ class OurCuisine():
         - $hostname
 
         """
-        for key,var in self.dir_paths.items():
-            text=text.replace("$%s"%key,var)
+        for key, var in self.dir_paths.items():
+            text = text.replace("$%s" % key, var)
         text=text.replace("$hostname",self.hostname)
         return text
 

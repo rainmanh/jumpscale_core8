@@ -14,44 +14,54 @@ class actionrun(ActionDecorator):
 
 class CuisineBuilder(object):
 
-    def __init__(self,executor,cuisine):
-        self.executor=executor
-        self.cuisine=cuisine
-        self.bash=self.cuisine.bash
+    def __init__(self, executor, cuisine):
+        self.executor = executor
+        self.cuisine = cuisine
+        self.bash = self.cuisine.bash
         self.mongoCluster = mongoCluster
 
-    def all(self,start=False, sandbox=False, aydostor=None):
+    def all(self, start=False, sandbox=False, stor_addr=None):
         self.cuisine.installerdevelop.pip()
         self.cuisine.installerdevelop.python()
         self.cuisine.installerdevelop.jumpscale8()
         self.redis(start=start, force=True)
-        # self.agentcontroller(start=start)
+        self.core(start=start)
+        self.syncthing(start=start)
+        self.controller(start=start)
+        self.fs(start=start)
+        self.stor(start=start)
         self.etcd(start=start)
+        self.cuisine.portal.install(start=start)
+        self.mongodb(start=start)
         self.caddy(start=start)
         self.skydns(start=start)
         self.influxdb(start=start)
         self.weave(start=start)
-        self.mongodb(start=start)
-        self.cuisine.portal.install(start=start)
         if sandbox:
-            self.sandbox(aydostor)
+            if not stor_addr:
+                raise RuntimeError("Store address should be specified if sandboxing enable.")
+            self.sandbox(stor_addr)
 
-    def sandbox(self, aydostor, python=True):
+    def sandbox(self, stor_addr, python=True):
         """
-        aydostor : addr to the store you want to populate. e.g.: https://stor.jumpscale.org/storx
+        stor_addr : addr to the store you want to populate. e.g.: https://stor.jumpscale.org/storx
         python : do you want to sandbox python too ? if you have segfault after trying sandboxing python, re run with python=False
         """
         # jspython is generated during install,need to copy it back into /opt before sandboxing
         self.cuisine.file_copy('/usr/local/bin/jspython', '/opt/jumpscale8/bin')
-        cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], 'js8_opt', '%s', sandbox_python=%s)" % (aydostor, python)
-        self.cuisine.run('js "%s"' % cmd)
-        url_opt = '%s/static/js8_opt' % aydostor
 
-        cmd = "j.tools.cuisine.local.builder.dedupe(['/optvar'], 'js8_optvar', '%s', sandbox_python=%s)" % (aydostor, False)
-        self.cuisine.run('js "%s"' % cmd)
-        url_optvar = '%s/static/js8_optvar' % aydostor
+        # clean lib dir to avoid segfault during sandboxing
+        self.cuisine.dir_remove('%s/*' % self.cuisine.dir_paths['libDir'])
+        self.cuisine.dir_ensure('%s' % self.cuisine.dir_paths['libDir'])
+        self.cuisine.file_link('/usr/local/lib/python3.5/dist-packages/JumpScale', '%s/JumpScale' % self.cuisine.dir_paths['libDir'])
+        self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % j.dirs.jsLibDir)
 
-        return (url_opt, url_optvar)
+        # start sandboxing
+        cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], 'js8_opt', '%s', sandbox_python=%s)" % (stor_addr, python)
+        self.cuisine.run('js "%s"' % cmd)
+        url_opt = '%s/static/js8_opt' % stor_addr
+
+        return url_opt
 
     def _sandbox_python(self, python=True):
         print("START SANDBOX")
@@ -61,8 +71,8 @@ class CuisineBuilder(object):
             paths.append("/usr/local/lib/python3.5/dist-packages")
             paths.append("/usr/lib/python3/dist-packages")
 
-            excludeFileRegex=["-tk/","/lib2to3","-34m-",".egg-info"]
-            excludeDirRegex=["/JumpScale","\.dist-info","config-x86_64-linux-gnu","pygtk"]
+            excludeFileRegex=["-tk/", "/lib2to3", "-34m-", ".egg-info"]
+            excludeDirRegex=["/JumpScale", "\.dist-info", "config-x86_64-linux-gnu", "pygtk"]
 
             dest = j.sal.fs.joinPaths(self.cuisine.dir_paths['base'], 'lib')
 
@@ -87,7 +97,7 @@ class CuisineBuilder(object):
 
         for path in dedupe_path:
             print("DEDUPE:%s" % path)
-            j.tools.sandboxer.dedupe(path, storpath=output_dir, name=namespace, reset=False, append=True)
+            j.tools.sandboxer.dedupe(path, storpath=output_dir, name=namespace, reset=False, append=True, excludeDirs=['/opt/code'])
 
         store_client = j.clients.storx.get(store_addr)
         files_path = j.sal.fs.joinPaths(output_dir, 'files')
@@ -144,10 +154,10 @@ class CuisineBuilder(object):
         """
         C = C.replace("$addr", addr)
         C = self.cuisine.args_replace(C)
-        cpath = self.cuisine.args_replace("$cfgDir/caddy/caddyfile.conf")
-        self.cuisine.dir_ensure("$cfgDir/caddy")
-        self.cuisine.dir_ensure("$cfgDir/caddy/log/")
-        self.cuisine.dir_ensure("$cfgDir/caddy/www/")
+        cpath = self.cuisine.args_replace("$tmplsDir/cfg/caddy/caddyfile.conf")
+        self.cuisine.dir_ensure("$tmplsDir/cfg/caddy")
+        self.cuisine.dir_ensure("$tmplsDir/cfg/caddy/log/")
+        self.cuisine.dir_ensure("$tmplsDir/cfg/caddy/www/")
         self.cuisine.file_write(cpath, C)
 
         if start:
@@ -176,20 +186,20 @@ class CuisineBuilder(object):
         pass
 
     @actionrun(action=True)
-    def aydostore(self, addr='0.0.0.0:8090', backend="$varDir/aydostor", start=True):
+    def stor(self, addr='0.0.0.0:8090', backend="$varDir/aydostor", start=True):
         """
         Build and Install aydostore
         @input addr, address and port on which the service need to listen. e.g. : 0.0.0.0:8090
         @input backend, directory where to save the data push to the store
         """
         self.cuisine.golang.install()
-        self.cuisine.golang.get("github.com/Jumpscale/aydostorex", action=True)
-        self.cuisine.file_copy(self.cuisine.joinpaths(self.cuisine.dir_paths['goDir'], 'bin', 'aydostorex'), '$base/bin',action=True)
+        self.cuisine.golang.get("github.com/g8os/stor", action=True)
+        self.cuisine.file_copy(self.cuisine.joinpaths(self.cuisine.dir_paths['goDir'], 'bin', 'stor'), '$base/bin',action=True)
         self.cuisine.bash.addPath("$base/bin", action=True)
 
-        self.cuisine.processmanager.stop("aydostorex") # will also kill
+        self.cuisine.processmanager.stop("stor") # will also kill
 
-        self.cuisine.dir_ensure("$cfgDir/aydostorex")
+        self.cuisine.dir_ensure("$cfgDir/stor")
         backend = self.cuisine.args_replace(backend)
         self.cuisine.dir_ensure(backend)
         config = {
@@ -197,21 +207,57 @@ class CuisineBuilder(object):
             'store_root': backend,
         }
         content = j.data.serializer.toml.dumps(config)
-        self.cuisine.file_write("$cfgDir/aydostorex/config.toml", content)
+        self.cuisine.file_write("$tmplsDir/cfg/stor/config.toml", content)
 
-        res = addr.split(":")
-        if len(res) == 2:
-            addr, port = res[0], res[1]
-        else:
-            addr, port = res[0], '8090'
-
-        self.cuisine.fw.allowIncoming(port)
-        if self.cuisine.process.tcpport_check(port,""):
-            raise RuntimeError("port %d is occupied, cannot start aydostorex" % port)
 
         if start:
-            cmd = self.cuisine.bash.cmdGetPath("aydostorex")
-            self.cuisine.processmanager.ensure("aydostorex", '%s --config /etc/aydostorex/config.toml' % cmd)
+            res = addr.split(":")
+            if len(res) == 2:
+                addr, port = res[0], res[1]
+            else:
+                addr, port = res[0], '8090'
+
+                self.cuisine.fw.allowIncoming(port)
+                if self.cuisine.process.tcpport_check(port,""):
+                    raise RuntimeError("port %d is occupied, cannot start stor" % port)
+
+            self.cuisine.file_copy("$tmplsDir/cfg/stor/config.toml", "$cfgDir/stor/")
+            cmd = self.cuisine.bash.cmdGetPath("stor")
+            self.cuisine.processmanager.ensure("stor", '%s --config $cfgDir/stor/config.toml' % cmd)
+
+    @actionrun(action=True)
+    def fs(self, start=False):
+        content = """
+        [[mount]]
+            path="/opt"
+            flist="/optvar/cfg/fs/js8_opt.flist"
+            backend="opt"
+            mode="RO"
+            trim_base=true
+        [backend]
+        [backend.opt]
+            path="/optvar/fs_backend/opt"
+            stor="public"
+            namespace="js8_opt"
+            cleanup_cron="@every 1h"
+            cleanup_older_than=24
+            log=""
+        [aydostor]
+        [aydostor.public]
+            addr="http://stor.jumpscale.org/storx"
+            login=""
+            passwd=""
+        """
+        self.cuisine.golang.install()
+        self.cuisine.golang.get("github.com/g8os/fs", action=True)
+        self.cuisine.dir_ensure("$tmplsDir/cfg/fs")
+        self.cuisine.file_copy("$goDir/bin/fs", "$base/bin")
+        self.cuisine.file_write("$goDir/src/github.com/g8os/fs/config/config.toml", content)
+        self.cuisine.file_copy("$goDir/src/github.com/g8os/fs/config/config.toml", "$tmplsDir/cfg/fs")
+        if start:
+            self.cuisine.file_copy("$tmplsDir/cfg/fs", "$varDir/cfg", recursive=True)
+            self.cuisine.processmanager.ensure('fs', cmd="$binDir/fs -c $varDir/cfg/fs/config.toml")
+
 
     @actionrun(action=True)
     def installdeps(self):
@@ -225,15 +271,27 @@ class CuisineBuilder(object):
     @actionrun(action=True)
     def syncthing(self, start=True):
         """
-        build and setup syncthing to run on :8384 , this can be changed from the config file in home  
+        build and setup syncthing to run on :8384 , this can be changed from the config file in /optvar/cfg/syncthing
         """
         self.installdeps()
-        url = "git@github.com:syncthing/syncthing.git"
 
+        #create config file
+        with open(self.cuisine.args_replace("$codeDir/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/templates/syncthing.xml"), "r") as config:
+            content = config.read()
+            content = self.cuisine.args_replace(content)
+            content = content.replace("$lclAddrs",  "0.0.0.0", 1)
+            content = content.replace ("$port", "8384", 1)
+        self.cuisine.dir_ensure("$tmplsDir/cfg/syncthing/")
+        self.cuisine.file_write("$tmplsDir/cfg/syncthing/config.xml", content)
+
+        #build
+        url = "https://github.com/syncthing/syncthing.git"
         self.cuisine.dir_remove('$goDir/src/github.com/syncthing/syncthing')
-        dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='$goDir/src/github.com/syncthing/syncthing')
+        dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='$goDir/src/github.com/syncthing/syncthing', ssh=False)
         self.cuisine.run('cd %s && godep restore' % dest, profile=True)
         self.cuisine.run("cd %s && ./build.sh noupgrade" % dest, profile=True)
+
+        #copy bin
         self.cuisine.file_copy(self.cuisine.joinpaths(dest, 'syncthing'), "$goDir/bin/", recursive=True)
         self.cuisine.file_copy("$goDir/bin/syncthing", "$binDir", recursive=True)
 
@@ -241,24 +299,23 @@ class CuisineBuilder(object):
             self._startSyncthing()
 
     @actionrun(action=True)
-    def agent(self,start=False, gid=None, nid=None):
+    def core(self,start=True, gid=None, nid=None):
         """
-        builds and setsup dependencies of agent to run with the given gid and nid 
-        niether can be zero 
+        builds and setsup dependencies of agent to run with the given gid and nid
+        niether can be zero
         """
         self.installdeps()
         #self.cuisine.installer.jumpscale8()
-        self.redis()
-        self.mongodb()
+
         self.syncthing(start=False)
 
-        self.cuisine.tmux.killWindow("main","agent")
+        self.cuisine.tmux.killWindow("main", "core")
 
         self.cuisine.process.kill("core")
 
-        self.cuisine.dir_ensure("$cfgDir/core", recursive=True)
-        self.cuisine.dir_ensure("$cfgDir/core/conf", recursive=True)
-        self.cuisine.dir_ensure("$cfgDir/core/mid", recursive=True)
+        self.cuisine.dir_ensure("$tmplsDir/cfg/core", recursive=True)
+        self.cuisine.dir_ensure("$tmplsDir/cfg/core/conf", recursive=True)
+        self.cuisine.dir_ensure("$tmplsDir/cfg/core/mid", recursive=True)
 
         url = "github.com/g8os/core"
         self.cuisine.golang.get(url)
@@ -270,51 +327,48 @@ class CuisineBuilder(object):
         self.cuisine.file_move("%s/core" % sourcepath, "$binDir/core")
 
         # copy extensions
-        self.cuisine.dir_remove("$cfgDir/core/extensions")
-        self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/core", recursive=True)
-        self.cuisine.dir_ensure("$cfgDir/core/extensions/syncthing")
-        self.cuisine.file_copy("$binDir/syncthing", "$cfgDir/core/extensions/syncthing/")
+        self.cuisine.dir_remove("$tmplsDir/cfg/core/extensions")
+        self.cuisine.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
+        self.cuisine.dir_ensure("$tmplsDir/cfg/core/extensions/syncthing")
+        self.cuisine.file_copy("$binDir/syncthing", "$tmplsDir/cfg/core/extensions/syncthing/")
 
         # manipulate config file
         C = self.cuisine.file_read("%s/agent.toml" % sourcepath)
         cfg = j.data.serializer.toml.loads(C)
-        cfg["main"]["message_ID_file"] = cfg["main"]["message_ID_file"].replace("./", "$cfgDir/core/")
-        cfg["main"]["history_file"] = cfg["main"]["history_file"].replace("./", "$cfgDir/core/")
-        cfg["main"]["include"] = cfg["main"]["include"].replace("./", "$cfgDir/core/")
-        cfg["extensions"]["sync"]["cwd"] = cfg["extensions"]["sync"]["cwd"].replace("./", "$cfgDir/core/")
-        cfg["extensions"]["jumpscript"]["cwd"] = cfg["extensions"]["jumpscript"]["cwd"].replace("./", "$cfgDir/core/")
-        cfg["extensions"]["jumpscript_content"]["cwd"] = cfg["extensions"]["jumpscript_content"]["cwd"].replace("./", "$cfgDir/core/")
-        cfg["extensions"]["js_daemon"]["cwd"] = cfg["extensions"]["js_daemon"]["cwd"].replace("./", "$cfgDir/core/")
-        cfg["logging"]["db"]["address"] = cfg["logging"]["db"]["address"].replace("./", "$cfgDir/core/")
+        tmplsDir = self.cuisine.dir_paths['tmplsDir']
+        cfg["main"]["message_ID_file"] = cfg["main"]["message_ID_file"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
+        # cfg["main"]["history_file"] = cfg["main"]["history_file"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
+        cfg["main"]["include"] = cfg["main"]["include"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
+        # cfg["extensions"]["sync"]["cwd"] = cfg["extensions"]["sync"]["cwd"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
+        # cfg["extensions"]["jumpscript"]["cwd"] = cfg["extensions"]["jumpscript"]["cwd"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
+        # cfg["extensions"]["jumpscript_content"]["cwd"] = cfg["extensions"]["jumpscript_content"]["cwd"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
+        # cfg["extensions"]["js_daemon"]["cwd"] = cfg["extensions"]["js_daemon"]["cwd"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
+        # cfg["logging"]["db"]["address"] = cfg["logging"]["db"]["address"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
         C = j.data.serializer.toml.dumps(cfg)
 
-        self.cuisine.file_write("$cfgDir/core/agent.toml", C, replaceArgs=True)
-        self.cuisine.file_write("$cfgDir/core/agent.toml.org", C, replaceArgs=False)
+        self.cuisine.file_write("$tmplsDir/cfg/core/agent.toml", C, replaceArgs=True)
+        self.cuisine.file_write("$tmplsDir/cfg/core/agent.toml.org", C, replaceArgs=False)
 
         # self.cuisine.dir_ensure("$cfgDir/agent8/agent8/conf", recursive=True)
 
         if start:
-            self._startAgent(nid, gid)
+            self._startCore(nid, gid)
 
     @actionrun(action=True)
-    def agentcontroller(self, start=True):
+    def controller(self, start=True):
         """
         config: https://github.com/g8os/controller.git
         """
-        import re
-        import hashlib
         self.installdeps()
-        self.redis()
-        self.mongodb()
-        self.syncthing()
-        
+
+
         self.cuisine.processmanager.remove("agentcontroller8")
         pm = self.cuisine.processmanager.get("tmux")
         pm.stop("syncthing")
 
-        self.cuisine.dir_ensure("$cfgDir/controller", recursive=True)
+        self.cuisine.dir_ensure("$tmplsDir/cfg/controller", recursive=True)
 
-        #get repo 
+        #get repo
         url = "github.com/g8os/controller"
         self.cuisine.golang.godep(url)
         sourcepath = "$goDir/src/github.com/g8os/controller"
@@ -322,59 +376,55 @@ class CuisineBuilder(object):
         #do the actual building
         self.cuisine.run("cd %s && go build ." % sourcepath, profile=True)
 
-        #move binary 
+        #move binary
         self.cuisine.file_move("%s/controller" % sourcepath, "$binDir/controller")
-        #edit config 
+        #edit config
         C = self.cuisine.file_read("%s/agentcontroller.toml"%sourcepath)
         cfg = j.data.serializer.toml.loads(C)
 
-        cfg["events"]["python_path"] = cfg["events"]["python_path"].replace("./", "$cfgDir/controller/")
-        cfg["processor"]["python_path"] = cfg["processor"]["python_path"].replace("./", "$cfgDir/controller/")
-        cfg["jumpscripts"]["python_path"] = cfg["jumpscripts"]["python_path"].replace("./", "$cfgDir/controller/")
-        cfg["jumpscripts"]["settings"]["jumpscripts_path"] = cfg["jumpscripts"]["settings"]["jumpscripts_path"].replace("./", "$cfgDir/controller/")
+        tmplsDir = self.cuisine.dir_paths['tmplsDir']
+        cfg["events"]["python_path"] = cfg["events"]["python_path"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/controller/"))
+        cfg["processor"]["python_path"] = cfg["processor"]["python_path"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/controller/"))
+        cfg["jumpscripts"]["python_path"] = cfg["jumpscripts"]["python_path"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/controller/"))
+        cfg["jumpscripts"]["settings"]["jumpscripts_path"] = cfg["jumpscripts"]["settings"]["jumpscripts_path"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/controller/"))
 
         C = j.data.serializer.toml.dumps(cfg)
-        self.cuisine.file_write('$cfgDir/controller/agentcontroller.toml', C, replaceArgs=True)
-        self.cuisine.file_write('$cfgDir/controller/agentcontroller.toml.org', C, replaceArgs=False)
+        self.cuisine.file_write('$tmplsDir/cfg/controller/agentcontroller.toml', C, replaceArgs=True)
+        self.cuisine.file_write('$tmplsDir/cfg/controller/agentcontroller.toml.org', C, replaceArgs=False)
 
-        #expose syncthing and get api key  
-        sync_cfg = self.cuisine.file_read("$homeDir/.config/syncthing/config.xml")
-        sync_conn = re.search(r'<address>([0-9.]+):([0-9]+)</', sync_cfg)
-        apikey = re.search(r'<apikey>([\w\-]+)</apikey>', sync_cfg).group(1)
-        sync_cfg = sync_cfg.replace(sync_conn.group(1), "0.0.0.0")
-        sync_cfg = sync_cfg.replace(sync_conn.group(2), "18384")
-        self.cuisine.file_write("$homeDir/.config/syncthing/config.xml", sync_cfg)
-
-
-        #add jumpscripts file 
-        self._startSyncthing()
-        addr = "localhost"
-        if not self.cuisine.executor.type == 'local':
-            addr = self.executor.addr
-        synccl = j.clients.syncthing.get(addr,18384, apikey=apikey)
-        jumpscripts_path = self.cuisine.args_replace("$cfgDir/controller/jumpscripts")
-        jumpscripts_id = "jumpscripts-%s" % hashlib.md5(synccl.id_get().encode()).hexdigest()
-        synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
-
-
-        #file copy 
-        self.cuisine.dir_remove("$cfgDir/controller/extensions")
-        self.cuisine.file_copy("%s/extensions" % sourcepath, "$cfgDir/controller/extensions", recursive=True)
+        #file copy
+        self.cuisine.dir_remove("$tmplsDir/cfg/controller/extensions")
+        self.cuisine.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/controller/extensions", recursive=True)
 
         if start:
- 
-            self._startAgentController()
+            self._startController()
 
 
     def _startSyncthing(self):
+        self.cuisine.dir_ensure("$cfgDir")
+        self.cuisine.file_copy("$tmplsDir/cfg/syncthing/", "$cfgDir", recursive=True)
+
         GOPATH = self.cuisine.bash.environGet('GOPATH')
         env={}
         env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
         pm = self.cuisine.processmanager.get("tmux")
-        pm.ensure(name="syncthing", cmd="./syncthing", path=self.cuisine.joinpaths(GOPATH, "bin"))
+        pm.ensure(name="syncthing", cmd="./syncthing -home  $cfgDir/syncthing", path=self.cuisine.joinpaths(GOPATH, "bin"))
 
 
-    def _startAgent(self, nid, gid):
+    def _startCore(self, nid, gid):
+        if not nid:
+            nid = 1
+        if not gid:
+            gid = 1
+
+        self.cuisine.dir_ensure("$cfgDir/core/")
+        self.cuisine.file_copy("$tmplsDir/cfg/core", "$cfgDir/core", recursive=True)
+
+
+        #deps
+        self.redis()
+        self.mongodb()
+        self.cuisine.file_copy("$tmplsDir/cfg/core", "$cfgDir/core", recursive=True)
         self._startMongodb()
         self._startRedis()
         self._startSyncthing()
@@ -382,19 +432,48 @@ class CuisineBuilder(object):
         #@todo (*1*) need to implement to work on node
         env={}
         env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
-        cmd = "$binDir/core -nid %s -gid %s -c $cfgDir/core/agent.toml" % (nid, gid)
+        cmd = "$binDir/core -nid %s -gid %s -c $tmplsDir/cfg/core/agent.toml" % (nid, gid)
         pm = self.cuisine.processmanager.get("tmux")
-        pm.ensure("core", cmd=cmd, path="$cfgDir/core",  env=env)
+        pm.ensure("core", cmd=cmd, path="$tmplsDir/cfg/core",  env=env)
 
-    def _startAgentController(self):
+    def _startController(self):
+        import ipdb; ipdb.set_trace()
+        import re
+        import hashlib
+        self.cuisine.dir_ensure("$cfgDir/controller/")
+        self.cuisine.file_copy("$tmplsDir/cfg/controller", "$cfgDir/controller", recursive=True)
+
+        #deps
+        self.redis()
+        self.mongodb()
+        self.syncthing(start=False)
+
+        #expose syncthing and get api key
+        sync_cfg = self.cuisine.file_read("$tmplsDir/cfg/syncthing/config.xml")
+        sync_conn = re.search(r'<address>([0-9.]+):([0-9]+)</', sync_cfg)
+        apikey = re.search(r'<apikey>([\w\-]+)</apikey>', sync_cfg).group(1)
+        sync_cfg = sync_cfg.replace(sync_conn.group(1), "0.0.0.0")
+        sync_cfg = sync_cfg.replace(sync_conn.group(2), "18384")
+        self.cuisine.file_write("$cfgDir/syncthing/config.xml", sync_cfg)
+
+        #add jumpscripts file
+        self._startSyncthing()
+        addr = "localhost"
+        if not self.cuisine.executor.type == 'local':
+            addr = self.executor.addr
+        synccl = j.clients.syncthing.get(addr,18384, apikey=apikey)
+        jumpscripts_path = self.cuisine.args_replace("$cfgDir/cfg/controller/jumpscripts")
+        jumpscripts_id = "jumpscripts-%s" % hashlib.md5(synccl.id_get().encode()).hexdigest()
+        synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
+
+        #start
         self._startMongodb()
         self._startRedis()
-        self._startSyncthing()
         env = {}
         env["TMPDIR"] = self.cuisine.dir_paths["tmpDir"]
-        cmd = "$binDir/controller -c $cfgDir/controller/agentcontroller.toml"
+        cmd = "$binDir/controller -c $tmplsDir/cfg/controller/agentcontroller.toml"
         pm = self.cuisine.processmanager.get("tmux")
-        pm.ensure("controller", cmd=cmd, path="$cfgDir/controller/", env=env)
+        pm.ensure("controller", cmd=cmd, path="$tmplsDir/cfg/controller/", env=env)
 
     def _startRedis(self, name="redis_main"):
         dpath,cpath=j.clients.redis._getPaths(name)
@@ -435,12 +514,12 @@ class CuisineBuilder(object):
 
         """
         C=self.cuisine.bash.replaceEnvironInText(C)
-        self.cuisine.run_script(C,profile=True,action=True)
-        self.cuisine.bash.addPath("$base/bin",action=True)
+        self.cuisine.run_script(C,profile=True, action=True)
+        self.cuisine.bash.addPath("$base/bin", action=True)
 
         if start:
             self.cuisine.process.kill("etcd")
-            if cmd and peers:
+            if host and peers:
                 cmd = self._etcd_cluster_cmd(host, peers)
             else:
                 cmd = 'etcd'
@@ -478,6 +557,7 @@ class CuisineBuilder(object):
     @actionrun(action=True)
     def redis(self,name="main",ip="localhost", port=6379, maxram=200, appendonly=True,snapshot=False,slave=(),ismaster=False,passwd=None,unixsocket=True,start=True):
         self.cuisine.installer.base()
+
         if not self.cuisine.isMac:
 
             C="""
@@ -504,14 +584,14 @@ class CuisineBuilder(object):
             C="""
             set -ex
             mkdir -p $base/bin/
-            cp $tmpDir/build/redis/redis-3.0.6/src/redis-server $base/bin/
-            cp $tmpDir/build/redis/redis-3.0.6/src/redis-cli $base/bin/
+            cp -f $tmpDir/build/redis/redis-3.0.6/src/redis-server $base/bin/
+            cp -f $tmpDir/build/redis/redis-3.0.6/src/redis-cli $base/bin/
 
             rm -rf $base/apps/redis
             """
             C=self.cuisine.bash.replaceEnvironInText(C)
             C=self.cuisine.args_replace(C)
-            self.cuisine.run_script(C,profile=True)
+            self.cuisine.run_script(C, profile=True)
         else:
             if self.cuisine.command_check("redis-server")==False:
                 self.cuisine.package.install("redis")
@@ -520,33 +600,30 @@ class CuisineBuilder(object):
             if cmd!=dest:
                 self.cuisine.file_copy(cmd,dest)
 
-        self.cuisine.bash.addPath("%s/bin"%self.cuisine.dir_paths["base"],action=True)
+        self.cuisine.bash.addPath(j.sal.fs.joinPaths(self.cuisine.dir_paths["base"], "bin"), action=True)
 
         j.clients.redis.executor=self.executor
         j.clients.redis.cuisine=self.cuisine
         j.clients.redis.configureInstance(name, ip, port, maxram=maxram, appendonly=appendonly, \
             snapshot=snapshot, slave=slave, ismaster=ismaster, passwd=passwd, unixsocket=True)
-        
-        
+
         if start:
             self._startRedis(name)
 
     @actionrun(action=True)
     def mongodb(self, start=True):
         self.cuisine.installer.base()
-        exists=self.cuisine.command_check("mongod")
+        exists = self.cuisine.command_check("mongod")
 
         if exists:
-            cmd=self.cuisine.command_location("mongod")
-            dest="%s/mongod"%self.cuisine.dir_paths["binDir"]
-            if cmd!=dest:
-                self.cuisine.file_copy(cmd,dest)
-
+            cmd = self.cuisine.command_location("mongod")
+            dest = "%s/mongod" % self.cuisine.dir_paths["binDir"]
+            if j.sal.fs.pathClean(cmd) != j.sal.fs.pathClean(dest):
+                self.cuisine.file_copy(cmd, dest)
         else:
-
             appbase = self.cuisine.dir_paths["binDir"]
 
-            url=None
+            url = None
             if self.cuisine.isUbuntu:
                 url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
             elif self.cuisine.isArch:
@@ -557,17 +634,15 @@ class CuisineBuilder(object):
                 raise RuntimeError("unsupported platform")
                 return
 
-            if url!=None:
-                self.cuisine.file_download(url, to="$tmpDir",overwrite=False,expand=True)
-                tarpath = self.cuisine.fs_find("$tmpDir",recursive=True,pattern="*mongodb*.tgz",type='f')[0]
+            if url:
+                self.cuisine.file_download(url, to="$tmpDir", overwrite=False, expand=True)
+                tarpath = self.cuisine.fs_find("$tmpDir", recursive=True, pattern="*mongodb*.tgz", type='f')[0]
                 self.cuisine.file_expand(tarpath,"$tmpDir")
-                extracted = self.cuisine.fs_find("$tmpDir",recursive=True,pattern="*mongodb*",type='d')[0]
-                for file in self.cuisine.fs_find('%s/bin/' %extracted,type='f'):
-                    self.cuisine.file_copy(file,appbase)
+                extracted = self.cuisine.fs_find("$tmpDir", recursive=True, pattern="*mongodb*", type='d')[0]
+                for file in self.cuisine.fs_find('%s/bin/' % extracted, type='f'):
+                    self.cuisine.file_copy(file, appbase)
 
         self.cuisine.dir_ensure('$varDir/data/db')
-
-
 
         if start:
             self._startMongodb("mongod")

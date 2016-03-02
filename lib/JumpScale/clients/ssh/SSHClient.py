@@ -23,7 +23,7 @@ class SSHClientFactory(object):
                     raise RuntimeError("Cannot connect over ssh:%s %s"%(addr,port))
                 else:
                     return False
-            
+
         return self.cache[key]
 
     def removeFromCache(self, client):
@@ -177,7 +177,7 @@ class SSHClient(object):
             errors = stderr.readlines()
             errors = ''.join(errors)
             if die:
-                raise RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, buf,errors))
+                raise RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, buff,errors))
             else:
                 buff = errors
         # print(buf)

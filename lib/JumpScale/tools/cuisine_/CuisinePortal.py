@@ -10,8 +10,10 @@ class actionrun(ActionDecorator):
 class CuisinePortal(object):
 
     def __init__(self,executor,cuisine):
-        self.executor=executor
-        self.cuisine=cuisine
+        self.executor = executor
+        self.cuisine = cuisine
+        self.portal_dir = self.cuisine.args_replace('$appDir/portals/')
+        self.example_portal_dir = j.sal.fs.joinPaths(self.portal_dir, 'example')
 
     def install(self, minimal=False, start=True, mongodbip="127.0.0.1", mongoport=27017, login="", passwd=""):
         if not self.cuisine.isMac:
@@ -30,90 +32,19 @@ class CuisinePortal(object):
         make sure new env arguments are understood on platform
         """
         deps = """
-        setuptools
-        aioredis
-        # argh
-        bcrypt
-        Beaker
-        blinker
-        blosc
-        # Cerberus
-        # certifi
-        # cffi
-        # click
-        # credis
-        # crontab
-        # Cython
-        decorator
-        # docker-py
-        # dominate
-        # ecdsa
+        greenlet
+        netaddr
+        beaker
+        ujson
         eve
         eve_docs
-        eve-mongoengine
-        # Events
-        # Flask
-        # Flask-Bootstrap
-        # Flask-PyMongo
-        # gitdb
-        gitlab3
-        # GitPython
-        greenlet
-        # hiredis
-        html2text
-        # influxdb
-        # ipdb
-        # ipython
-        # ipython-genutils
-        itsdangerous
-        Jinja2
-        # marisa-trie
-        MarkupSafe
-        mimeparse
-        mongoengine
-        msgpack-python
-        netaddr
-        # paramiko
-        # path.py
-        pathtools
-        # pexpect
-        # pickleshare
-        psutil
-        # psycopg2
-        # ptyprocess
-        # pycparser
-        # pycrypto
-        # pycurl
-        # pygo
-        # pygobject
-        pylzma
-        pymongo
-        pystache
-        # python-apt
-        python-dateutil
-        pytoml
-        pytz
-        PyYAML
-        # pyzmq
-        # redis
-        # reparted
-        requests
-        simplegeneric
-        simplejson
-        six
-        # smmap
-        # SQLAlchemy
-        traitlets
-        ujson
-        # unattended-upgrades
-        urllib3
-        visitor
+        eve_mongoengine
         watchdog
-        websocket
-        websocket-client
-        Werkzeug
-        wheel
-        # zmq
+        gitlab3
+        mimeparse
+        visitor
+        six
+        pytoml
         """
 
         self.cuisine.pip.multiInstall(deps)
@@ -133,78 +64,63 @@ class CuisinePortal(object):
 
         self.cuisine.run("js 'j.application.reload()'")
 
-        portaldir = j.sal.fs.joinPaths(self.cuisine.dir_paths['cfgDir'], "portals")
-        if not portaldir.endswith("/"):
-            portaldir +='/'
-        self.cuisine.dir_ensure(portaldir)
-        self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/jslib" % j.dirs.codeDir, '%s/jslib' % portaldir)
-        self.cuisine.dir_ensure(j.sal.fs.joinPaths(portaldir, 'portalbase'))
+        if not self.portal_dir.endswith("/"):
+            self.portal_dir +='/'
+        self.cuisine.dir_ensure(self.portal_dir)
+        self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/jslib" % j.dirs.codeDir, '%s/jslib' % self.portal_dir)
+        self.cuisine.dir_ensure(j.sal.fs.joinPaths(self.portal_dir, 'portalbase'))
         self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/system" %
-                         j.dirs.codeDir,  '%s/portalbase/system' % portaldir)
+                         j.dirs.codeDir,  '%s/portalbase/system' % self.portal_dir)
         self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki" %
-                         j.dirs.codeDir, '%s/portalbase/wiki' % portaldir)
+                         j.dirs.codeDir, '%s/portalbase/wiki' % self.portal_dir)
         self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/macros" %
-                         j.dirs.codeDir, '%s/portalbase/macros' % portaldir)
+                         j.dirs.codeDir, '%s/portalbase/macros' % self.portal_dir)
         self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/templates" %
-                         j.dirs.codeDir, '%s/portalbase/templates' % portaldir)
+                         j.dirs.codeDir, '%s/portalbase/templates' % self.portal_dir)
 
-        exampleportaldir = '%sexample/base' % portaldir
-        self.cuisine.dir_ensure(exampleportaldir)
+        self.cuisine.dir_ensure(self.example_portal_dir)
 
         if not minimal:
             for space in self.cuisine.fs_find("%s/github/jumpscale/jumpscale_portal8/apps/gridportal/base" % j.dirs.codeDir,recursive=False):
                 spacename = j.sal.fs.getBaseName(space)
                 if not spacename == 'home':
-                    self.cuisine.dir_ensure(j.sal.fs.joinPaths(exampleportaldir, 'gridportal'))
-                    self.cuisine.file_link(space, j.sal.fs.joinPaths(exampleportaldir, 'gridportal', spacename))
-            self.cuisine.dir_ensure('%s/home/.space' %exampleportaldir)
-            self.cuisine.file_ensure('%s/home/home.md' %exampleportaldir)
+                    self.cuisine.dir_ensure(j.sal.fs.joinPaths(self.example_portal_dir, 'base', 'gridportal'))
+                    self.cuisine.file_link(space, j.sal.fs.joinPaths(self.example_portal_dir, 'base', 'gridportal', spacename))
+            self.cuisine.dir_ensure('%s/base/home/.space' %self.example_portal_dir)
+            self.cuisine.file_ensure('%s/base/home/home.md' %self.example_portal_dir)
 
-        dest = exampleportaldir = '%sexample' % portaldir
-        self.cuisine.dir_ensure(dest)
-        self.cuisine.file_copy(j.sal.fs.joinPaths(j.dirs.codeDir, 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'), exampleportaldir)
+        self.cuisine.dir_ensure('$tmplsDir/cfg/portal')
+        self.cuisine.file_copy(j.sal.fs.joinPaths(j.dirs.codeDir, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'), '$tmplsDir/cfg/portal/config.hrd')
+
+        self.cuisine.file_copy(j.sal.fs.joinPaths(j.dirs.codeDir, 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'), self.example_portal_dir)
         content = self.cuisine.file_read(j.sal.fs.joinPaths(j.dirs.codeDir, 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'))
         configHRD = j.data.hrd.get(content=content, prefixWithName=False)
-        configHRD.set('param.cfg.appdir', j.sal.fs.joinPaths(portaldir, 'portalbase'))
-        self.cuisine.file_write(j.sal.fs.joinPaths(exampleportaldir,'config.hrd'), content=str(configHRD))
-        self.cuisine.file_copy("%s/jslib/old/images" % portaldir, "%s/jslib/old/elfinder" % portaldir, recursive=True)
+        configHRD.set('param.cfg.appdir', j.sal.fs.joinPaths(self.portal_dir, 'portalbase'))
+        self.cuisine.file_write(j.sal.fs.joinPaths(self.example_portal_dir,'config.hrd'), content=str(configHRD))
+        self.cuisine.file_copy("%s/jslib/old/images" % self.portal_dir, "%s/jslib/old/elfinder" % self.portal_dir, recursive=True)
 
     @actionrun(action=True)
     def mongoconnect(self, ip, port):
-        cfg_path = j.sal.fs.joinPaths(self.cuisine.dir_paths['cfgDir'], "portals", 'example','config.hrd')
-        content = self.cuisine.file_read(cfg_path)
+        dest = j.sal.fs.joinPaths(self.cuisine.dir_paths['varDir'],'cfg', "portals")
+        dest_cfg = j.sal.fs.joinPaths(dest, 'example', 'config.hrd')
+        self.cuisine.dir_ensure(dest)
+        content = self.cuisine.file_read('$tmplsDir/cfg/portal/config.hrd')
         tmp = j.sal.fs.getTempFileName()
         hrd = j.data.hrd.get(content=content, path=tmp)
         hrd.set('param.mongoengine.connection', {'host': ip, 'port': port})
         hrd.save()
-        # self.cuisine.file_upload_local(tmp, cfg_path)
-        self.cuisine.file_write(cfg_path,str(hrd))
+        self.cuisine.file_write(dest_cfg, str(hrd))
+        j.sal.fs.remove(tmp)
 
     @actionrun(action=True)
     def changeEve(self):
         path = j.sal.fs.joinPaths(j.do.getPythonLibSystem(jumpscale=False), "eve_docs", "config.py")
-        self.cuisine.run("2to3 -f all -w %s" % path)
+        self.cuisine.run("2to3-3.5 -f all -w %s" % path)
 
     @actionrun(action=True)
     def start(self):
-        portaldir = j.sal.fs.joinPaths(self.cuisine.dir_paths['cfgDir'], "portals")
-        exampleportaldir = j.sal.fs.joinPaths(portaldir,'example/')
-        cmd = "cd %s; jspython portal_start.py" % exampleportaldir
+        dest = j.sal.fs.joinPaths(self.cuisine.dir_paths['varDir'],'cfg', "portals")
+        self.cuisine.file_copy(self.portal_dir, dest, recursive=True)
+        cmd = "cd %s; jspython portal_start.py" % j.sal.fs.joinPaths(dest, 'example')
         self.cuisine.tmux.createSession("portal", ['portal'])
         self.cuisine.tmux.executeInScreen('portal', 'portal', cmd=cmd)
-    #
-    # if start:
-    #     j.actions.add(startmethod)
-    # else:
-    #     print('To run your portal, navigate to %s/apps/portals/example/ and run "jspython portal_start.py"' % j.dirs.base)
-    # startmethod()
-    # j.actions.run()
-
-
-        #cd /usr/local/Cellar/mongodb/3.2.1/bin/;./mongod --dbpath /Users/kristofdespiegeleer1$varDir/mongodb
-
-
-        #@todo install gridportal as well
-        #@link example spaces
-        #@eve issue
-        #@explorer issue

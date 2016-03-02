@@ -13,7 +13,6 @@ class CuisineGit():
         dest = self.cuisine.args_replace(dest)
         if dest==None:
             base,provider,account,repo,dest,url=j.do.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh)
-            dest="/opt/code/%s"%repo            
+            dest="/opt/code/%s"%repo
         return j.do.pullGitRepo(url=url,dest=dest,login=login,passwd=passwd,depth=depth,\
             ignorelocalchanges=ignorelocalchanges,reset=reset,branch=branch,revision=revision, ssh=ssh,executor=self.executor)
-    

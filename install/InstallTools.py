@@ -2163,6 +2163,7 @@ class Installer():
         paths.python.lib.js=$base/lib/JumpScale
         paths.python.lib.ext=$base/libext
         paths.app=$base/apps
+        paths.templates=$base/templates
         paths.var=$vardir/var
         paths.log=$vardir/log
         paths.pid=$vardir/pid

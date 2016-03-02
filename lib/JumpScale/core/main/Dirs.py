@@ -40,8 +40,9 @@ class Dirs(object):
             else:
                 self.init()
     def init(self):
-        print ("load dirs")       
+        print ("load dirs")
         self.appDir = j.application.config.get("system.paths.app")
+        self.tmplsDir = j.application.config.get("system.paths.templates")
         self.varDir = j.application.config.get("system.paths.var")
         self.cfgDir = j.application.config.get("system.paths.cfg")
         self.libDir = j.application.config.get("system.paths.lib")
@@ -58,6 +59,7 @@ class Dirs(object):
         self._ays=None
 
         self._createDir(os.path.join(self.base,"libext"))
+        self._createDir(self.tmplsDir)
 
         if self.libDir in sys.path:
             sys.path.pop(sys.path.index(self.libDir))
@@ -87,6 +89,7 @@ class Dirs(object):
         """
         txt=txt.replace("$base",self.base)
         txt=txt.replace("$appdir",self.appDir)
+        txt=txt.replace("$tmplsDir",self.tmplsDir)
         txt=txt.replace("$codedir",self.codeDir)
         txt=txt.replace("$vardir",self.varDir)
         txt=txt.replace("$cfgDir",self.cfgDir)
@@ -128,7 +131,7 @@ class Dirs(object):
         if self._ays!=None:
             return self._ays
         path = j.atyourservice.basepath
-        self._ays= j.sal.fs.joinPaths(path,"services")    
+        self._ays= j.sal.fs.joinPaths(path,"services")
         j.sal.fs.createDir(self._ays)
         return self._ays
 

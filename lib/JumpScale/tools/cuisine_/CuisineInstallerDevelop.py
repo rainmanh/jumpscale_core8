@@ -88,6 +88,11 @@ class CuisineInstallerDevelop():
         C=self.cuisine.args_replace(C)
         self.cuisine.run_script(C,action=True)
 
+        #gevent
+        C="""
+        pip3 install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
+        """
+        self.cuisine.run_script(C,action=True)
 
         C="""
         paramiko
@@ -139,16 +144,10 @@ class CuisineInstallerDevelop():
         watchdog
         pygo
         minio
-        
+
         python-telegram-bot
         """
         self.cuisine.pip.multiInstall(C,action=True,upgrade=True)
-
-        #gevent
-        C="""
-        pip3 install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
-        """
-        self.cuisine.run_script(C,action=True)
 
         self.cuisine.builder.redis()
 

@@ -160,7 +160,7 @@ class Sandboxer():
         j.sal.fs.walker.walkFunctional(path, callbackFunctionFile=callbackFile, callbackFunctionDir=None, arg=(path,dest), \
             callbackForMatchDir=callbackForMatchDir, callbackForMatchFile=callbackForMatchFile)
 
-    def dedupe(self, path, storpath, name, excludeFiltersExt=["pyc","bak"],append=False,reset=False,removePrefix="",compress=True,delete=False,verify=True):
+    def dedupe(self, path, storpath, name, excludeFiltersExt=["pyc","bak"],append=False,reset=False,removePrefix="",compress=True,delete=False,verify=True, excludeDirs=[]):
         def _calculatePaths(src, removePrefix):
             if j.sal.fs.isLink(src):
                 srcReal = j.sal.fs.readlink(src)
@@ -254,11 +254,18 @@ class Sandboxer():
         # excludeFileRegex=[]
         # for extregex in excludeFiltersExt:
         #     excludeFileRegex.append(re.compile(ur'(\.%s)$'%extregex))
+        def skipDir(src):
+            for d in excludeDirs:
+                if src.startswith(d):
+                    return True
+            return False
 
         if not j.sal.fs.isDir(path):
             out += _calculatePaths(path, removePrefix)
         else:
             for src in j.sal.fs.listFilesInDir(path, recursive=True, exclude=["*.pyc", "*.git*"], followSymlinks=True, listSymlinks=True):
+                if skipDir(src):
+                    continue
                 out += _calculatePaths(src, removePrefix)
 
         out = j.data.text.sort(out)

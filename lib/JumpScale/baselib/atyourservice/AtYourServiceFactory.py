@@ -190,7 +190,6 @@ class AtYourServiceFactory():
         return self._services
 
     def _nodechildren(self, service, parent=None):
-        print (service)
         parent = {} if parent is None else parent
         me = {}
         parent[service.shortkey] = {'children': me}
@@ -200,7 +199,6 @@ class AtYourServiceFactory():
             for role, instances in children.items():
                 for instance in instances:
                     child = j.atyourservice.getService(role=role, instance=instance)
-                    print ('child', role, instance)
                     self._nodechildren(child, me)
         return parent
 
@@ -214,9 +212,7 @@ class AtYourServiceFactory():
                 service_path = j.sal.fs.getDirName(root)
                 service = Service(path=service_path, args=None)
                 self._servicesTree[service.shortkey] = self._nodechildren(service)[service.shortkey]
-                print (self._servicesTree)
         return self._servicesTree
-    
 
     @property
     def blueprints(self):

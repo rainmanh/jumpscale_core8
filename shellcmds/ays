@@ -35,6 +35,9 @@ def init():
     the changes with before (last time you did an init) will be shown
     """
     chfiles=j.atyourservice.init()
+    servicestree = j.atyourservice.servicesTree
+    j.data.serializer.json.dump(j.sal.fs.joinPaths(j.dirs.varDir, 'serivestree.json'), servicestree)
+
     # chfiles.sort()
     # for item in chfiles:
     #     print ("- %s"%item)

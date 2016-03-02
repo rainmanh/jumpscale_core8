@@ -737,6 +737,8 @@ class Service:
         childDirs = j.sal.fs.listDirsInDir(self.path)
         childs = {}
         for path in childDirs:
+            if path.endswith('__pycache__'):
+                continue
             child = j.sal.fs.getBaseName(path)
             name, instance = child.split("!")
             if name not in childs:

@@ -41,6 +41,9 @@ class AtYourServiceFactory():
         self._runcategory=""
         self._sandboxer=None
         self._roletemplates = dict()
+        self._servicesTree = {}
+
+        # self._db=AYSDB()
 
     def reset(self):
         # self._db.reload()
@@ -52,6 +55,7 @@ class AtYourServiceFactory():
         self._git=None
         self._blueprints=[]
         self._alog=None
+        self._servicesTree = {}
 
     @property
     def runcategory(self):
@@ -177,13 +181,42 @@ class AtYourServiceFactory():
     @property
     def services(self):
         self._doinit()
-        if self._services=={}:
-            for hrd_path in j.sal.fs.listFilesInDir(j.dirs.ays, recursive=True, \
-                filter="instance.hrd", case_sensitivity='os', followSymlinks=True, listSymlinks=False):
+        if self._services == {}:
+            for hrd_path in j.sal.fs.listFilesInDir(j.dirs.ays, recursive=True, filter="instance.hrd",
+                                                    case_sensitivity='os', followSymlinks=True, listSymlinks=False):
                 service_path = j.sal.fs.getDirName(hrd_path)
                 service = Service(path=service_path, args=None)
                 self._services[service.shortkey]=service
         return self._services
+
+    def _nodechildren(self, service, parent=None):
+        print (service)
+        parent = {} if parent is None else parent
+        me = {}
+        parent[service.shortkey] = {'children': me}
+        parent[service.shortkey].update(service.hrd.getHRDAsDict())
+        children = service.listChildren()
+        if children:
+            for role, instances in children.items():
+                for instance in instances:
+                    child = j.atyourservice.getService(role=role, instance=instance)
+                    print ('child', role, instance)
+                    self._nodechildren(child, me)
+        return parent
+
+    @property
+    def servicesTree(self):
+        if self._servicesTree:
+            return self._servicesTree
+        self._doinit()
+
+        for root in j.sal.fs.walk(j.dirs.ays, recurse=1, pattern='*instance.hrd', return_files=1, depth=2):
+                service_path = j.sal.fs.getDirName(root)
+                service = Service(path=service_path, args=None)
+                self._servicesTree[service.shortkey] = self._nodechildren(service)[service.shortkey]
+                print (self._servicesTree)
+        return self._servicesTree
+    
 
     @property
     def blueprints(self):

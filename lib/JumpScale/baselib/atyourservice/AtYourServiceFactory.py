@@ -1,7 +1,7 @@
 from JumpScale import j
 from ServiceTemplate import ServiceTemplate
 from ServiceRecipe import ServiceRecipe
-from Service import Service, getProcessDicts
+from Service import Service, getProcessDicts, loadmodule
 import re
 from ActionsBaseMgmt import ActionsBaseMgmt
 from ActionsBaseNode import ActionsBaseNode
@@ -40,8 +40,7 @@ class AtYourServiceFactory():
         self._alog=None
         self._runcategory=""
         self._sandboxer=None
-
-        # self._db=AYSDB()
+        self._roletemplates = dict()
 
     def reset(self):
         # self._db.reload()
@@ -131,20 +130,19 @@ class AtYourServiceFactory():
     @property
     def templates(self):
         self._doinit()
-        def load(domain, path,llist):
+        def load(domain, path, llist):
             for servicepath in j.sal.fs.listDirsInDir(path, recursive=False):
                 dirname = j.sal.fs.getBaseName(servicepath)
                 # print "dirname:%s"%dirname
                 if not (dirname.startswith(".")):
-                    load(domain,servicepath,llist)
+                    load(domain, servicepath, llist)
             # print path
             dirname = j.sal.fs.getBaseName(path)
             if dirname.startswith("_"):
                 return
-            if j.sal.fs.exists("%s/schema.hrd" % path) or \
-            j.sal.fs.exists("%s/service.hrd" % path) or \
-            j.sal.fs.exists("%s/actions_mgmt.py" % path) or \
-            j.sal.fs.exists("%s/model.py" % path):
+            tocheck = ['schema.hrd', 'service.hrd', 'actions_mgmt.py', 'actions_node.py', 'model.py']
+            exists = [True for aysfile in tocheck if j.sal.fs.exists('%s/%s' % (path, aysfile))]
+            if exists:
                 templ = ServiceTemplate(path, domain=domain)
                 llist.append(templ)
 
@@ -198,6 +196,24 @@ class AtYourServiceFactory():
             for path in items:
                 self._blueprints.append(Blueprint(path))
         return self._blueprints
+
+    @property
+    def roletemplates(self):
+        if self._roletemplates:
+            return self._roletemplates
+        templatespaths = [j.sal.fs.joinPaths(self.basepath, '_templates')]
+        for _, metapath in self._domains:
+            templatespaths.append(j.sal.fs.joinPaths(metapath, '_templates'))
+        templatespaths.reverse()
+
+        for templatespath in templatespaths:
+            if j.sal.fs.exists(templatespath):
+                for roletemplate in j.sal.fs.listDirsInDir(templatespath):
+                    paths = ['schema_tmpl.hrd', 'actions_tmpl_mgmt.py', 'actions_tmpl_node.py']
+                    rtpaths = [path for path in paths if j.sal.fs.exists(j.sal.fs.joinPaths(templatespath, roletemplate, path))]
+                    if rtpaths:
+                        self._roletemplates[j.sal.fs.getBaseName(roletemplate)] = [j.sal.fs.joinPaths(roletemplate, rtpath) for rtpath in rtpaths]
+        return self._roletemplates
 
     def _doinit(self):
         # if we don't have write permissin on /opt don't try do download service templates
@@ -300,6 +316,30 @@ class AtYourServiceFactory():
 
     def getActionsBaseClassMgmt(self):
         return ActionsBaseMgmt
+
+    def getRoleTemplateClass(self, role, ttype):
+        if role not in self.roletemplates:
+            raise RuntimeError('Role template %s does not exist' % role)
+        roletemplatepaths = self.roletemplates[role]
+        for roletemplatepath in roletemplatepaths:
+            if ttype in j.sal.fs.getBaseName(roletemplatepath):
+                modulename = "JumpScale.atyourservice.roletemplate.%s.%s" % (role, ttype)
+                mod = loadmodule(modulename, roletemplatepath)
+                return mod.Actions
+        return None
+
+    def getRoleTemplateHRD(self, role):
+        if role not in self.roletemplates:
+            raise RuntimeError('Role template %s does not exist' % role)
+        roletemplatepaths = self.roletemplates[role]
+        hrdpaths = [path for path in roletemplatepaths if j.sal.fs.getFileExtension(path) == 'hrd']
+        if hrdpaths:
+            hrd = j.data.hrd.getSchema(hrdpaths[0])
+            for path in hrdpaths[1:]:
+                hrdtemp = j.data.hrd.getSchema(path)
+                hrd.items.update(hrdtemp.items)
+            return hrd.hrdGet()
+        return None
 
     def install(self,printonly=False,remember=True):
         self.alog
@@ -425,7 +465,7 @@ class AtYourServiceFactory():
         for service in self.services:
             service.state.saveRevisions()
 
-    def findTemplates(self, name="", version="",domain="", role='', first=False):
+    def findTemplates(self, name="", version="", domain="", role='', first=False):
         res = []
         for template in self.templates:
             if not(name == "" or template.name == name):

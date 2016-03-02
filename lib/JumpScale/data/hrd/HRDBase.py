@@ -2,7 +2,8 @@ from JumpScale import j
 import binascii
 import copy
 
-class HRDBase():
+
+class HRDBase:
 
     def prefix(self, key,depth=0):
         """
@@ -111,13 +112,12 @@ class HRDBase():
         returns values from prefix return as list
         """
         result = {}
-        l=len(prefix)
         for key in self.prefix(prefix):
-            if prefix!="":
-                key2=key[l+1:]
+            if prefix != "":
+                key2 = key.lstrip("%s." % prefix)
             else:
-                key2=key
-            result[key2]=self.get(key)
+                key2 = key
+            result[key2] = self.get(key)
         return result
 
     def getHRDAsDict(self):

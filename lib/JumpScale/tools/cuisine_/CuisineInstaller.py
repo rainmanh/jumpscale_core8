@@ -405,10 +405,10 @@ class CuisineInstaller(object):
             """
 
         C+="""
+        openssl
         wget
         curl
         git
-        openssl
         mc
         tmux
         """

@@ -32,19 +32,90 @@ class CuisinePortal(object):
         make sure new env arguments are understood on platform
         """
         deps = """
-        greenlet
-        netaddr
-        beaker
-        ujson
+        setuptools
+        aioredis
+        # argh
+        bcrypt
+        Beaker
+        blinker
+        blosc
+        # Cerberus
+        # certifi
+        # cffi
+        # click
+        # credis
+        # crontab
+        # Cython
+        decorator
+        # docker-py
+        # dominate
+        # ecdsa
         eve
         eve_docs
-        eve_mongoengine
-        watchdog
+        eve-mongoengine
+        # Events
+        # Flask
+        # Flask-Bootstrap
+        # Flask-PyMongo
+        # gitdb
         gitlab3
+        # GitPython
+        greenlet
+        # hiredis
+        html2text
+        # influxdb
+        # ipdb
+        # ipython
+        # ipython-genutils
+        itsdangerous
+        Jinja2
+        # marisa-trie
+        MarkupSafe
         mimeparse
-        visitor
-        six
+        mongoengine
+        msgpack-python
+        netaddr
+        # paramiko
+        # path.py
+        pathtools
+        # pexpect
+        # pickleshare
+        psutil
+        # psycopg2
+        # ptyprocess
+        # pycparser
+        # pycrypto
+        # pycurl
+        # pygo
+        # pygobject
+        pylzma
+        pymongo
+        pystache
+        # python-apt
+        python-dateutil
         pytoml
+        pytz
+        PyYAML
+        # pyzmq
+        # redis
+        # reparted
+        requests
+        simplegeneric
+        simplejson
+        six
+        # smmap
+        # SQLAlchemy
+        traitlets
+        ujson
+        # unattended-upgrades
+        urllib3
+        visitor
+        watchdog
+        websocket
+        websocket-client
+        Werkzeug
+        wheel
+        # zmq
         """
 
         self.cuisine.pip.multiInstall(deps)

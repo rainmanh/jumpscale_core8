@@ -139,8 +139,8 @@ class CuisineRunit(ProcessManagerBase):
     def list(self,prefix=""):
         result = list()
 
-        for service in self.cuisine.fs_find("/etc/service/vice", recursive=False)[1:]:
-            service = service.split("/etc/service/vice/")[1]
+        for service in self.cuisine.fs_find("/etc/service/", recursive=False)[1:]:
+            service = service.split("/etc/service/")[1]
             status = self.cuisine.run("sv  status /etc/service/%s" %service).split(":")[0]
             result.append([service, status])
         return result
@@ -197,7 +197,7 @@ exec $cmd
     def reload(self, name):
         """Reloads the given service, or starts it if it is not self.running."""
         if self.cuisine.file_exists("/etc/service/%s/run" %name ):
-            self.cuisine.run("sv reload %s" %name, profile=True)
+            self.cuisine.run("sv restart %s" %name, profile=True)
 
 
     def start(self, name):

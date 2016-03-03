@@ -365,7 +365,7 @@ class CuisineBuilder(object):
 
         self.cuisine.dir_ensure("$tmplsDir/cfg/core", recursive=True)
         self.cuisine.dir_ensure("$tmplsDir/cfg/core/conf", recursive=True)
-        self.cuisine.dir_ensure("$tmplsDir/cfg/core/mid", recursive=True)
+        self.cuisine.dir_ensure("$tmplsDir/cfg/core/.mid", recursive=True)
 
         url = "github.com/g8os/core"
         self.cuisine.golang.get(url)
@@ -444,21 +444,23 @@ class CuisineBuilder(object):
             gid = 1
 
         self.cuisine.dir_ensure("$cfgDir/core/")
-        self.cuisine.file_copy("$tmplsDir/cfg/core", "$cfgDir/core", recursive=True)
+        self.cuisine.file_copy("$tmplsDir/cfg/core", "$cfgDir/", recursive=True)
         
+
+        import ipdb;ipdb.set_trace()
         # manipulate config file
         sourcepath = "$goDir/src/github.com/g8os/core"
         C = self.cuisine.file_read("%s/agent.toml" % sourcepath)
         cfg = j.data.serializer.toml.loads(C)
         cfgdir = self.cuisine.dir_paths['cfgDir']
-        cfg["main"]["message_ID_file"] = cfg["main"]["message_ID_file"].replace("./", j.sal.fs.joinPaths(cfgdir,"/core/"))
-        cfg["main"]["include"] = cfg["main"]["include"].replace("./", j.sal.fs.joinPaths(cfgdir,"/core/conf"))
-        cfg["extensions"]["sync"]["cwd"] = cfg["extensions"]["sync"]["cwd"].replace("./", j.sal.fs.joinPaths(cfgdir,"/core/"))
-        cfg["extensions"]["jumpscript"]["cwd"] = cfg["extensions"]["jumpscript"]["cwd"].replace("./", j.sal.fs.joinPaths(cfgdir,"/core/"))
-        cfg["extensions"]["jumpscript_content"]["cwd"] = cfg["extensions"]["jumpscript_content"]["cwd"].replace("./", j.sal.fs.joinPaths(cfgdir,"/core/"))
-        cfg["extensions"]["js_daemon"]["cwd"] = cfg["extensions"]["js_daemon"]["cwd"].replace("./", j.sal.fs.joinPaths(cfgdir,"/core/"))
-        cfg["extensions"]["js_daemon"]["env"]["JUMPSCRIPTS_HOME"] = cfg["extensions"]["js_daemon"]["env"]["JUMPSCRIPTS_HOME"].replace("./", j.sal.fs.joinPaths(cfgdir,"/core/"))
-        cfg["logging"]["db"]["address"] = cfg["logging"]["db"]["address"].replace("./", j.sal.fs.joinPaths(cfgdir,"/core/"))
+        cfg["main"]["message_ID_file"] = cfg["main"]["message_ID_file"].replace("./", self.cuisine.joinpaths(cfgdir,"/core/"))
+        cfg["main"]["include"] = cfg["main"]["include"].replace("./", self.cuisine.joinpaths(cfgdir,"/core/conf"))
+        cfg["extensions"]["sync"]["cwd"] = cfg["extensions"]["sync"]["cwd"].replace("./", self.cuisine.joinpaths(cfgdir,"/core/"))
+        cfg["extensions"]["jumpscript"]["cwd"] = cfg["extensions"]["jumpscript"]["cwd"].replace("./", self.cuisine.joinpaths(cfgdir,"/core/"))
+        cfg["extensions"]["jumpscript_content"]["cwd"] = cfg["extensions"]["jumpscript_content"]["cwd"].replace("./", self.cuisine.joinpaths(cfgdir,"/core/"))
+        cfg["extensions"]["js_daemon"]["cwd"] = cfg["extensions"]["js_daemon"]["cwd"].replace("./", self.cuisine.joinpaths(cfgdir,"/core/"))
+        cfg["extensions"]["js_daemon"]["env"]["JUMPSCRIPTS_HOME"] = cfg["extensions"]["js_daemon"]["env"]["JUMPSCRIPTS_HOME"].replace("./", self.cuisine.joinpaths(cfgdir,"/core/"))
+        cfg["logging"]["db"]["address"] = cfg["logging"]["db"]["address"].replace("./", self.cuisine.joinpaths(cfgdir,"/core/"))
         C = j.data.serializer.toml.dumps(cfg)
 
         self.cuisine.file_write("$cfgDir/core/agent.toml", C, replaceArgs=True)
@@ -481,7 +483,7 @@ class CuisineBuilder(object):
         import re
         import hashlib
         self.cuisine.dir_ensure("$cfgDir/controller/")
-        self.cuisine.file_copy("$tmplsDir/cfg/controller", "$cfgDir/controller", recursive=True)
+        self.cuisine.file_copy("$tmplsDir/cfg/controller", "$cfgDir/", recursive=True)
 
 
         #edit config
@@ -490,10 +492,10 @@ class CuisineBuilder(object):
         cfg = j.data.serializer.toml.loads(C)
 
         cfgDir = self.cuisine.dir_paths['cfgDir']
-        cfg["events"]["python_path"] = cfg["events"]["python_path"].replace("./", j.sal.fs.joinPaths(cfgDir,"/controller/"))
-        cfg["processor"]["python_path"] = cfg["processor"]["python_path"].replace("./", j.sal.fs.joinPaths(cfgDir,"/controller/"))
-        cfg["jumpscripts"]["python_path"] = cfg["jumpscripts"]["python_path"].replace("./", j.sal.fs.joinPaths(cfgDir,"/controller/"))
-        cfg["jumpscripts"]["settings"]["jumpscripts_path"] = cfg["jumpscripts"]["settings"]["jumpscripts_path"].replace("./", j.sal.fs.joinPaths(cfgDir,"/controller/"))
+        cfg["events"]["python_path"] = cfg["events"]["python_path"].replace("./",self.cuisine.joinpaths(cfgDir, "/controller/"))
+        cfg["processor"]["python_path"] = cfg["processor"]["python_path"].replace("./",self.cuisine.joinpaths(cfgDir, "/controller/"))
+        cfg["jumpscripts"]["python_path"] = cfg["jumpscripts"]["python_path"].replace("./",self.cuisine.joinpaths(cfgDir, "/controller/"))
+        cfg["jumpscripts"]["settings"]["jumpscripts_path"] = cfg["jumpscripts"]["settings"]["jumpscripts_path"].replace("./",self.cuisine.joinpaths(cfgDir, "/controller/"))
         C = j.data.serializer.toml.dumps(cfg)
 
         self.cuisine.file_write('$cfgDir/controller/agentcontroller.toml', C, replaceArgs=True)
@@ -531,10 +533,10 @@ class CuisineBuilder(object):
         pm = self.cuisine.processmanager.get("tmux")
         pm.ensure("controller", cmd=cmd, path="$cfgDir/controller/", env=env)
 
-    def _startRedis(self, name="redis_main"):
+    def _startRedis(self, name="main"):
         dpath,cpath=j.clients.redis._getPaths(name)
         cmd="redis-server %s"%cpath
-        self.cuisine.processmanager.ensure(name=name,cmd=cmd,env={},path='$binDir')
+        self.cuisine.processmanager.ensure(name="redis_%s" % name,cmd=cmd,env={},path='$binDir')
 
     def _startMongodb(self, name="mongod"):
         which = self.cuisine.command_location("mongod")

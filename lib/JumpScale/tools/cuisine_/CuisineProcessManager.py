@@ -183,7 +183,7 @@ exec $cmd
             self.cuisine.file_write("/etc/service/%s/run" %name, sv_text)
             time.sleep(5)
 
-        self.reload(name)
+        self.start(name)
 
     def remove(self, prefix):
         """removes process from init"""
@@ -197,7 +197,7 @@ exec $cmd
     def reload(self, name):
         """Reloads the given service, or starts it if it is not self.running."""
         if self.cuisine.file_exists("/etc/service/%s/run" %name ):
-            self.cuisine.run("sv restart %s" %name, profile=True)
+            self.cuisine.run("sv reload %s" %name, profile=True)
 
 
     def start(self, name):

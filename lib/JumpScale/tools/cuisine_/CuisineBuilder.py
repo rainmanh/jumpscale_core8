@@ -473,9 +473,9 @@ class CuisineBuilder(object):
         #@todo (*1*) need to implement to work on node
         env={}
         env["TMPDIR"]=self.cuisine.dir_paths["tmpDir"]
-        cmd = "$binDir/core -nid %s -gid %s -c $tmplsDir/cfg/core/agent.toml" % (nid, gid)
+        cmd = "$binDir/core -nid %s -gid %s -c $cfgDir/core/agent.toml" % (nid, gid)
         pm = self.cuisine.processmanager.get("tmux")
-        pm.ensure("core", cmd=cmd, path="$tmplsDir/cfg/core",  env=env)
+        pm.ensure("core", cmd=cmd, path="$cfgDir/core",  env=env)
 
     def _startController(self):
         import re
@@ -527,9 +527,9 @@ class CuisineBuilder(object):
         self._startRedis()
         env = {}
         env["TMPDIR"] = self.cuisine.dir_paths["tmpDir"]
-        cmd = "$binDir/controller -c $tmplsDir/cfg/controller/agentcontroller.toml"
+        cmd = "$binDir/controller -c $cfgDir/controller/agentcontroller.toml"
         pm = self.cuisine.processmanager.get("tmux")
-        pm.ensure("controller", cmd=cmd, path="$tmplsDir/cfg/controller/", env=env)
+        pm.ensure("controller", cmd=cmd, path="$cfgDir/controller/", env=env)
 
     def _startRedis(self, name="redis_main"):
         dpath,cpath=j.clients.redis._getPaths(name)

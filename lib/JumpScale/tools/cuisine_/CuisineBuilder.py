@@ -379,6 +379,7 @@ class CuisineBuilder(object):
         # copy extensions
         self.cuisine.dir_remove("$tmplsDir/cfg/core/extensions")
         self.cuisine.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
+        self.cuisine.file_copy("%s/conf" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
         self.cuisine.dir_ensure("$tmplsDir/cfg/core/extensions/syncthing")
         self.cuisine.file_copy("$binDir/syncthing", "$tmplsDir/cfg/core/extensions/syncthing/")
 
@@ -387,13 +388,13 @@ class CuisineBuilder(object):
         cfg = j.data.serializer.toml.loads(C)
         tmplsDir = self.cuisine.dir_paths['tmplsDir']
         cfg["main"]["message_ID_file"] = cfg["main"]["message_ID_file"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
-        # cfg["main"]["history_file"] = cfg["main"]["history_file"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
-        cfg["main"]["include"] = cfg["main"]["include"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
-        # cfg["extensions"]["sync"]["cwd"] = cfg["extensions"]["sync"]["cwd"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
-        # cfg["extensions"]["jumpscript"]["cwd"] = cfg["extensions"]["jumpscript"]["cwd"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
-        # cfg["extensions"]["jumpscript_content"]["cwd"] = cfg["extensions"]["jumpscript_content"]["cwd"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
-        # cfg["extensions"]["js_daemon"]["cwd"] = cfg["extensions"]["js_daemon"]["cwd"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
-        # cfg["logging"]["db"]["address"] = cfg["logging"]["db"]["address"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
+        cfg["main"]["history_file"] = cfg["main"]["history_file"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
+        cfg["main"]["include"] = cfg["main"]["include"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/conf"))
+        cfg["extensions"]["sync"]["cwd"] = cfg["extensions"]["sync"]["cwd"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
+        cfg["extensions"]["jumpscript"]["cwd"] = cfg["extensions"]["jumpscript"]["cwd"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
+        cfg["extensions"]["jumpscript_content"]["cwd"] = cfg["extensions"]["jumpscript_content"]["cwd"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
+        cfg["extensions"]["js_daemon"]["cwd"] = cfg["extensions"]["js_daemon"]["cwd"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
+        cfg["logging"]["db"]["address"] = cfg["logging"]["db"]["address"].replace("./", j.sal.fs.joinPaths(tmplsDir,"cfg/core/"))
         C = j.data.serializer.toml.dumps(cfg)
 
         self.cuisine.file_write("$tmplsDir/cfg/core/agent.toml", C, replaceArgs=True)

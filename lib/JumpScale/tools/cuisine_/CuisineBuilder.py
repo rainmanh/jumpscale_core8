@@ -348,7 +348,7 @@ class CuisineBuilder(object):
         if start:
             self._startSyncthing()
 
-    @actionrun(action=True)
+    #@actionrun(action=True)
     def core(self,start=True, gid=None, nid=None):
         """
         builds and setsup dependencies of agent to run with the given gid and nid
@@ -409,6 +409,7 @@ class CuisineBuilder(object):
         url = "github.com/g8os/controller"
         self.cuisine.golang.godep(url)
 
+        sourcepath = "$goDir/src/github.com/g8os/controller"
 
         #do the actual building
         self.cuisine.run("cd %s && go build ." % sourcepath, profile=True)
@@ -436,7 +437,6 @@ class CuisineBuilder(object):
         pm = self.cuisine.processmanager.get("tmux")
         pm.ensure(name="syncthing", cmd="./syncthing -home  $cfgDir/syncthing", path=self.cuisine.joinpaths(GOPATH, "bin"))
 
-
     def _startCore(self, nid, gid):
         if not nid:
             nid = 1
@@ -450,14 +450,14 @@ class CuisineBuilder(object):
         sourcepath = "$goDir/src/github.com/g8os/core"
         C = self.cuisine.file_read("%s/agent.toml" % sourcepath)
         cfg = j.data.serializer.toml.loads(C)
-        cfgdir = self.cuisine.dir_paths['cfgdir']
+        cfgdir = self.cuisine.dir_paths['cfgDir']
         cfg["main"]["message_ID_file"] = cfg["main"]["message_ID_file"].replace("./", j.sal.fs.joinPaths(cfgdir,"/core/"))
-        cfg["main"]["history_file"] = cfg["main"]["history_file"].replace("./", j.sal.fs.joinPaths(cfgdir,"/core/"))
         cfg["main"]["include"] = cfg["main"]["include"].replace("./", j.sal.fs.joinPaths(cfgdir,"/core/conf"))
         cfg["extensions"]["sync"]["cwd"] = cfg["extensions"]["sync"]["cwd"].replace("./", j.sal.fs.joinPaths(cfgdir,"/core/"))
         cfg["extensions"]["jumpscript"]["cwd"] = cfg["extensions"]["jumpscript"]["cwd"].replace("./", j.sal.fs.joinPaths(cfgdir,"/core/"))
         cfg["extensions"]["jumpscript_content"]["cwd"] = cfg["extensions"]["jumpscript_content"]["cwd"].replace("./", j.sal.fs.joinPaths(cfgdir,"/core/"))
         cfg["extensions"]["js_daemon"]["cwd"] = cfg["extensions"]["js_daemon"]["cwd"].replace("./", j.sal.fs.joinPaths(cfgdir,"/core/"))
+        cfg["extensions"]["js_daemon"]["env"]["JUMPSCRIPTS_HOME"] = cfg["extensions"]["js_daemon"]["env"]["JUMPSCRIPTS_HOME"].replace("./", j.sal.fs.joinPaths(cfgdir,"/core/"))
         cfg["logging"]["db"]["address"] = cfg["logging"]["db"]["address"].replace("./", j.sal.fs.joinPaths(cfgdir,"/core/"))
         C = j.data.serializer.toml.dumps(cfg)
 

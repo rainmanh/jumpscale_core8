@@ -1,5 +1,4 @@
 from JumpScale import j
-import psutil
 
 descr = """
 gather statistics about system
@@ -19,6 +18,7 @@ roles = []
 log=False
 
 def action():
+    import psutil
     ncl = j.data.models.system.Nic
     netinfo = j.sal.nettools.getNetworkInfo()
     results = dict()

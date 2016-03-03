@@ -13,7 +13,10 @@ class GitClient(object):
         baseDir = baseDir.rstrip("/")
 
         while ".git" not in j.sal.fs.listDirsInDir(baseDir, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
-            baseDir=j.sal.fs.getParent(baseDir)
+            baseDir = j.sal.fs.getParent(baseDir)
+            
+            if baseDir == "/":
+                break
 
         baseDir=baseDir.rstrip("/")
 

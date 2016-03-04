@@ -37,6 +37,7 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
         rm -f /usr/bin/python3
         ln -s /usr/bin/python3.5 /usr/bin/python
         ln -s /usr/bin/python3.5 /usr/bin/python3
+    fi
     if [ -z $JSBASE ]; then    
         export JSBASE='/opt/jumpscale8'
     fi

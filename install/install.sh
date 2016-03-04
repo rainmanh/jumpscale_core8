@@ -47,7 +47,7 @@ if [ "$(uname)" == "Darwin" ]; then
     if [ -z"$JSBASE" ]; then 
         export JSBASE='~/opt/jumpscale8'
     fi
-    
+    mkdir -p $TMPDIR
     cd $TMPDIR
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     dist=''

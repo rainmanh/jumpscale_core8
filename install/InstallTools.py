@@ -1678,7 +1678,18 @@ class InstallTools():
         will clone or update repo
         if dest == None then clone underneath: /opt/code/$type/$account/$repo
         will ignore changes !!!!!!!!!!!
+
+        @param ssh ==True means will checkout ssh
+        @param ssh =="first" means will checkout sss first if that does not work will go to http
         """
+
+        if ssh=="first":
+            try:
+                return self.pullGitRepo(url,dest,login,passwd,depth,ignorelocalchanges,reset,branch,revision, True,executor)
+            except Exception as e:
+                return self.pullGitRepo(url,dest,login,passwd,depth,ignorelocalchanges,reset,branch,revision, False,executor)
+            raise RuntimeError("Could not checkout, needs to be with ssh or without.")                
+
 
         if executor is None:
             executor = self
@@ -1686,7 +1697,6 @@ class InstallTools():
             executor.checkok = False
 
         base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh)
-
 
         if dest is None and branch is None:
             branch = "master"
@@ -1949,7 +1959,7 @@ class Installer():
 
     def installJSDocs(self,ssh=True):
         print("install jsdocs")
-        do.pullGitRepo(url='git@github.com:Jumpscale/docs.git')
+        do.pullGitRepo(url='git@github.com:Jumpscale/docs.git',ssh="first")
 
 
     def installJS(self,base="",clean=False,insystem=True,GITHUBUSER="",GITHUBPASSWD="",CODEDIR="",\
@@ -2031,7 +2041,7 @@ class Installer():
         self.prepare(SANDBOX=SANDBOX,base= os.environ["JSBASE"])
 
         print ("pull core")
-        do.pullGitRepo(JSGIT,branch=JSBRANCH, depth=1, ssh=False)
+        do.pullGitRepo(JSGIT,branch=JSBRANCH, depth=1, ssh="first")
         src="%s/github/jumpscale/jumpscale_core8/lib/JumpScale"%do.CODEDIR
         self.debug=False
 
@@ -2098,7 +2108,7 @@ class Installer():
         #from JumpScale import j
 
         print("Get atYourService metadata.")
-        do.pullGitRepo(AYSGIT, branch=AYSBRANCH, depth=1, ssh=False)
+        do.pullGitRepo(AYSGIT, branch=AYSBRANCH, depth=1, ssh="first")
 
         print ("install was successfull")
         # if pythonversion==2:

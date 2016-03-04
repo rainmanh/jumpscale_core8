@@ -29,18 +29,18 @@ if [ "$(uname)" == "Darwin" ]; then
     brew install python3
     # brew install git
     pip3 install --upgrade pip setuptools
-    pip3 install ipdb
-    pip3 install requests
-    pip3 install paramiko
-    pip3 install watchdog
-    pip3 install mongoengine
-    pip3 install hiredis
+    pip3 install --upgrade ipdb
+    pip3 install --upgrade requests
+    pip3 install --upgrade paramiko
+    pip3 install --upgrade watchdog
+    pip3 install --upgrade mongoengine
+    pip3 install --upgrade hiredis
     # pip3 install dulwich
-    pip3 install gitpython
-    pip3 install click
-    pip3 install ptpython
-    pip3 install pymux
-    pip3 install ptpdb
+    pip3 install --upgrade gitpython
+    pip3 install --upgrade click
+    pip3 install --upgrade ptpython
+    pip3 install --upgrade pymux
+    pip3 install --upgrade ptpdb
     
     export TMPDIR=~/tmp
     

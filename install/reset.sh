@@ -17,36 +17,15 @@ set -ex
 #export JSBASE='/opt/jumpscale8'
 # export JSGIT='https://github.com/Jumpscale/jumpscale_core8.git'
 export PYTHONVERSION='3'
-export AYSGIT='https://github.com/Jumpscale/ays_jumpscale8'
-export AYSBRANCH='master'
-export LC_ALL='C.UTF-8'
 
 if [ "$(uname)" == "Darwin" ]; then
-    # Do something under Mac OS X platform   
-    #echo 'install brew'     
-    #ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-    brew install curl
-    brew install python3
-    # brew install git
-    pip3 install --upgrade pip setuptools
-    pip3 install ipdb
-    pip3 install requests
-    pip3 install paramiko
-    pip3 install watchdog
-    pip3 install mongoengine
-    pip3 install hiredis
-    # pip3 install dulwich
-    pip3 install gitpython
-    pip3 install click
-    pip3 install ptpython
-    pip3 install pymux
-    pip3 install ptpdb
-    
     export TMPDIR=~/tmp
+    export CODEDIR=~/opt/code
     
     if [ -z"$JSBASE" ]; then 
         export JSBASE='~/opt/jumpscale8'
     fi
+    rm -rf $TMPDIR
     mkdir -p $TMPDIR
     cd $TMPDIR
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
@@ -54,23 +33,15 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     dist=`grep DISTRIB_ID /etc/*-release | awk -F '=' '{print $2}'`
     if [ "$dist" == "Ubuntu" ]; then
         echo "found ubuntu"
-        apt-get install mc curl git ssh python3.5 -y
         rm -f /usr/bin/python
         rm -f /usr/bin/python3
         ln -s /usr/bin/python3.5 /usr/bin/python
         ln -s /usr/bin/python3.5 /usr/bin/python3
-
-    elif [ -f "/etc/slitaz-release" ]; then
-      echo "found slitaz"
-      tazpkg get-install curl 
-      tazpkg get-install git
-      tazpkg get-install python3.5 
-    fi
-
     if [ -z $JSBASE ]; then    
         export JSBASE='/opt/jumpscale8'
     fi
     export TMPDIR=/tmp
+    export CODEDIR=/opt/code
 elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
     # Do something under Windows NT platform
     echo 'windows'
@@ -78,10 +49,9 @@ elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
     exit
 fi
 
+rm -rf $CODEDIR/github/jumpscale/ays_jumpscale8/
+rm -rf $CODEDIR/github/jumpscale/jumpscale_core8/
+rm -rf $CODEDIR/github/jumpscale/jumpscale_portal8/
 
 set -ex
-branch=${JSBRANCH-master}
-curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/web/bootstrap.py > $TMPDIR/bootstrap.py
-curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/web/InstallTools.py > $TMPDIR/InstallTools.py
-cd $TMPDIR
-python3.5 bootstrap.py
+rm -rf $JSBASE

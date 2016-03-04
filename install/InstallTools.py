@@ -2039,7 +2039,6 @@ class Installer():
         if do.TYPE.startswith("OSX"):
             do.delete("/usr/local/lib/python2.7/site-packages/JumpScale")
             do.delete("/usr/local/lib/python3.5/site-packages/JumpScale")
-            do.createDir(destjs)
         elif do.TYPE.startswith("WIN"):
             raise RuntimeError("do")
 

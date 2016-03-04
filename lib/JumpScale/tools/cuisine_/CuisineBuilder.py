@@ -486,6 +486,7 @@ class CuisineBuilder(object):
     def _startController(self):
         import re
         import hashlib
+        import time
         self.cuisine.dir_ensure("$cfgDir/controller/")
         self.cuisine.file_copy("$tmplsDir/cfg/controller", "$cfgDir/", recursive=True)
 
@@ -520,6 +521,7 @@ class CuisineBuilder(object):
 
         #add jumpscripts file
         self._startSyncthing()
+        time.sleep(4)
         addr = "localhost"
         if not self.cuisine.executor.type == 'local':
             addr = self.executor.addr

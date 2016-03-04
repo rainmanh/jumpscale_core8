@@ -348,7 +348,7 @@ class CuisineBuilder(object):
         if start:
             self._startSyncthing()
 
-    #@actionrun(action=True)
+    @actionrun(action=True)
     def core(self,start=True, gid=None, nid=None):
         """
         builds and setsup dependencies of agent to run with the given gid and nid
@@ -438,6 +438,10 @@ class CuisineBuilder(object):
         pm.ensure(name="syncthing", cmd="./syncthing -home  $cfgDir/syncthing", path=self.cuisine.joinpaths(GOPATH, "bin"))
 
     def _startCore(self, nid, gid):
+        """
+        if this is run on the sam e machine as a controller instance run controller first as the
+        core will consume the avialable syncthing port and will cause a problem 
+        """
         if not nid:
             nid = 1
         if not gid:
@@ -447,14 +451,14 @@ class CuisineBuilder(object):
         self.cuisine.file_copy("$tmplsDir/cfg/core", "$cfgDir/", recursive=True)
         
 
-        import ipdb;ipdb.set_trace()
+        
         # manipulate config file
         sourcepath = "$goDir/src/github.com/g8os/core"
         C = self.cuisine.file_read("%s/agent.toml" % sourcepath)
         cfg = j.data.serializer.toml.loads(C)
         cfgdir = self.cuisine.dir_paths['cfgDir']
         cfg["main"]["message_ID_file"] = cfg["main"]["message_ID_file"].replace("./", self.cuisine.joinpaths(cfgdir,"/core/"))
-        cfg["main"]["include"] = cfg["main"]["include"].replace("./", self.cuisine.joinpaths(cfgdir,"/core/conf"))
+        cfg["main"]["include"] = self.cuisine.joinpaths(cfgdir,"/core/conf")
         cfg["extensions"]["sync"]["cwd"] = cfg["extensions"]["sync"]["cwd"].replace("./", self.cuisine.joinpaths(cfgdir,"/core/"))
         cfg["extensions"]["jumpscript"]["cwd"] = cfg["extensions"]["jumpscript"]["cwd"].replace("./", self.cuisine.joinpaths(cfgdir,"/core/"))
         cfg["extensions"]["jumpscript_content"]["cwd"] = cfg["extensions"]["jumpscript_content"]["cwd"].replace("./", self.cuisine.joinpaths(cfgdir,"/core/"))

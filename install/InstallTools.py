@@ -1404,8 +1404,9 @@ class InstallTools():
                 self.loadSSHKeys(self.joinPaths(path,keypath))
 
 
-    def getSSHKeyFromAgent(self,keyname,die=True):
+    def getSSHKeyPathFromAgent(self,keyname,die=True):
         try:
+            #@todo why do we use subprocess here and not self.execute?
             out=subprocess.check_output(["ssh-add","-L"])
         except:
             return None
@@ -1416,6 +1417,7 @@ class InstallTools():
             if line.endswith(delim):
                 line=line.strip()
                 keypath=line.split(" ".encode())[-1]
+                content=line.split(" ".encode())[-2]
                 if not self.exists(path=keypath):
                     if self.exists("keys/%s"%keyname):
                         keypath="keys/%s"%keyname
@@ -1425,6 +1427,26 @@ class InstallTools():
         if die:
             raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l"%keyname)
         return None
+
+    def getSSHKeyFromAgentPub(self,keyname,die=True):
+        try:
+            #@todo why do we use subprocess here and not self.execute?
+            out=subprocess.check_output(["ssh-add","-L"])
+        except:
+            return None
+
+        for line in out.splitlines():
+            delim = (".ssh/%s" % keyname).encode()
+            if line.endswith(delim):
+                line=line.strip()
+                # keypath=line.split(" ".encode())[-1]
+                content=line.split(" ".encode())[-2]
+                content=content.decode()
+                return content
+        if die:
+            raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l"%keyname)
+        return None
+
 
     def listSSHKeyFromAgent(self):
         cmd = "ssh-add -L"

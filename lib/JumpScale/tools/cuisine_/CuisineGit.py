@@ -8,11 +8,14 @@ class CuisineGit():
 
 
     def pullRepo(self,url,dest=None,login=None,passwd=None,depth=1,\
-            ignorelocalchanges=True,reset=False,branch=None,revision=None, ssh="auto"):
+            ignorelocalchanges=True,reset=False,branch=None,revision=None, ssh="first"):
 
-        dest = self.cuisine.args_replace(dest)
         if dest==None:
             base,provider,account,repo,dest,url=j.do.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh)
+            #we need to work in remote linux so we only support /opt/code
             dest="/opt/code/%s"%repo
+        else:
+            dest = self.cuisine.args_replace(dest)
+
         return j.do.pullGitRepo(url=url,dest=dest,login=login,passwd=passwd,depth=depth,\
             ignorelocalchanges=ignorelocalchanges,reset=reset,branch=branch,revision=revision, ssh=ssh,executor=self.executor)

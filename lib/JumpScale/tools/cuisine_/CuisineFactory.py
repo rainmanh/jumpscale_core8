@@ -13,11 +13,12 @@ class OurCuisineFactory:
             self._local = OurCuisine(j.tools.executor.getLocal())
         return self._local
 
-    def getPushKey(self,addr='localhost:22',login="root",passwd="",keyname=""):
+    def getPushKey(self,addr='localhost:22',login="root",passwd="",keyname="",pubkey=""):
         """
         will try to login if not ok then will try to push key with passwd
         will push local key to remote, if not specified will list & you can select
         if passwd not specified will ask
+        @param pubkey is the pub key to use (is content of key)
         """
         if addr.find(":")!=-1:
             addr,port=addr.split(":",1)
@@ -33,19 +34,23 @@ class OurCuisineFactory:
             #     executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login)
             #     return OurCuisine(executor)
             passwd=j.tools.console.askPassword("please specify root passwd",False)
-        if keyname=="":
-            rc,out=j.sal.process.execute("ssh-add -l")
-            keys=[]
-            for line in out.split("\n"):
-                try:
-                    #ugly needs to be done better
-                    item=line.split(" ",2)[2]
-                    keyname=item.split("(",1)[0].strip()
-                    keys.append(keyname)
-                except:
-                    pass
-        key=j.tools.console.askChoice(keys,"please select key")
-        executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login,passwd=passwd,pushkey=key)
+        if pubkey=="":
+            if keyname=="":
+                rc,out=j.sal.process.execute("ssh-add -l")
+                keys=[]
+                for line in out.split("\n"):
+                    try:
+                        #ugly needs to be done better
+                        item=line.split(" ",2)[2]
+                        keyname=item.split("(",1)[0].strip()
+                        keys.append(keyname)
+                    except:
+                        pass
+                key=j.tools.console.askChoice(keys,"please select key")
+        else:
+            key=None
+
+        executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login,passwd=passwd,pushkey=key,pubkey=pubkey)
         return OurCuisine(executor)
 
     def get(self,executor=None):

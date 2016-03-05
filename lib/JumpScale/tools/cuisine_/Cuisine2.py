@@ -770,7 +770,7 @@ class OurCuisine():
             self.file_write(hostfile,val)
 
     @actionrun(action=False,force=False)
-    def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False,replaceArgs=False,strip=True):
+    def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False,replaceArgs=False,strip=True,showout=True):
         if strip:
             content=j.data.text.strip(content)
 
@@ -778,7 +778,8 @@ class OurCuisine():
         if replaceArgs:
             content=self.cuisine.args_replace(content)
 
-        print ("filewrite: %s"%location)
+        if showout:
+            print ("filewrite: %s"%location)
         self.dir_ensure(j.sal.fs.getParent(location))
 
         content2 = content.encode('utf-8')
@@ -880,7 +881,7 @@ class OurCuisine():
     def file_unlink(self,path):
         path=self.cuisine.args_replace(path)
         if self.file_exists(path):
-            self.run("unlink %s" % (shell_safe(path)))
+            self.run("unlink %s" % (shell_safe(path)),showout=False)
 
     @actionrun(action=False,force=False)
     def file_link(self,source, destination, symbolic=True, mode=None, owner=None, group=None):
@@ -985,10 +986,11 @@ class OurCuisine():
         return path
 
     @actionrun(action=False,force=False)
-    def dir_attribs(self,location, mode=None, owner=None, group=None, recursive=False):
+    def dir_attribs(self,location, mode=None, owner=None, group=None, recursive=False,showout=False):
         """Updates the mode/owner/group for the given remote directory."""
         location=self.cuisine.args_replace(location)
-        print ("set dir attributes:%s"%location)
+        if showout:
+            print ("set dir attributes:%s"%location)
         recursive = recursive and "-R " or ""
         if mode:
             self.run('chmod %s %s %s' % (recursive, mode,  shell_safe(location)),showout=False)
@@ -1024,7 +1026,7 @@ class OurCuisine():
         ssh call, so use that method, otherwise set owner/group after creation."""
         location=self.cuisine.args_replace(location)
         if not self.dir_exists(location):
-            self.run('mkdir %s %s' % (recursive and "-p" or "", shell_safe(location)))
+            self.run('mkdir %s %s' % (recursive and "-p" or "", shell_safe(location)),showout=False)
         if owner or group or mode:
             self.dir_attribs(location, owner=owner, group=group, mode=mode, recursive=recursive)
 
@@ -1216,8 +1218,10 @@ class OurCuisine():
 
     @actionrun()
     def run_script(self,content,die=True,profile=False):
+        print("RUN SCRIPT:")
         content=self.cuisine.args_replace(content)
         content=j.data.text.strip(content)
+        print(content)
 
         if content[-1]!="\n":
             content+="\n"
@@ -1229,9 +1233,9 @@ class OurCuisine():
 
         path="$tmpDir/%s.sh"%j.data.idgenerator.generateRandomInt(0, 10000)
         if not self.isMac:
-            self.file_write(location=path, content=content, mode=0o770, owner="root", group="root")
+            self.file_write(location=path, content=content, mode=0o770, owner="root", group="root",showout=False)
         else:
-            self.file_write(location=path, content=content, mode=0o770)
+            self.file_write(location=path, content=content, mode=0o770,showout=False)
 
         rc,out=self.run("bash %s"%path,showout=True,die=False)
         out = self._clean(out)

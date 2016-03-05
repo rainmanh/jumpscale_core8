@@ -151,6 +151,12 @@ class CuisineInstallerDevelop():
 
         self.cuisine.builder.redis()
 
+        """
+        install dnspython3
+        """
+        self.dnspython3()
+
+
         if self.cuisine.isUbuntu or self.cuisine.isArch:
             C='cd $tmpDir/;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh'
             C=self.cuisine.args_replace(C)
@@ -162,3 +168,15 @@ class CuisineInstallerDevelop():
             self.cuisine.run(cmd)
         else:
             raise RuntimeError("platform not supported yet")
+
+
+    @actionrun(action=True)
+    def dnspython3(self):
+        C = """
+            cd $tmpDir
+            wget http://www.dnspython.org/kits3/1.12.0/dnspython3-1.12.0.tar.gz
+            tar -xf dnspython3-1.12.0.tar.gz
+            cd dnspython3-1.12.0
+            ./setup.py install
+            """
+        self.cuisine.run_script(C,action=True)

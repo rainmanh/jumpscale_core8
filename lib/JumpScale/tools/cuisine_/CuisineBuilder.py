@@ -34,7 +34,7 @@ class CuisineBuilder(object):
         self.cuisine.portal.install(start=start)
         self.mongodb(start=start)
         self.caddy(start=start)
-        self.skydns(start=start)
+        # self.skydns(start=start)
         self.influxdb(start=start)
         self.weave(start=start)
         if sandbox:

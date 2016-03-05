@@ -73,7 +73,8 @@ class CuisineDocker():
         """
         self.cuisine.run_script(C)
 
-    def ubuntuBuild(self):
+    @actionrun(action=True)
+    def ubuntuBuild(self,push=False):
 
         dest = self.cuisine.git.pullRepo('https://github.com/Jumpscale/dockers.git', ssh=False)
         path = self.cuisine.joinpaths(dest, 'js8/x86_64/2_ubuntu1510')
@@ -82,12 +83,28 @@ class CuisineDocker():
         set -ex
         cd %s
         docker build -t jumpscale/ubuntu1510 --no-cache .
-        docker push jumpscale/ubuntu1510
         """ % path
         self.cuisine.run_script(C)
 
+        if push:
+            C="""
+            set -ex
+            cd %s
+            docker push jumpscale/ubuntu1510
+            """ % path
+            self.cuisine.run_script(C)
+
+
     @actionrun(action=True)
     def ubuntu(self, name="ubuntu1", image='jumpscale/ubuntu1510', ports=None, volumes=None, pubkey=None, aydofs=False):
+        """
+        will return a cuisine object to this up & running docker
+
+        @param ports e.g. 2022,2023
+        @param volumes e.g. format: "/var/insidemachine:/var/inhost # /var/1:/var/1
+        @param ports e.g. format "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
+
+        """
         if not aydofs:
             cmd = "jsdocker create --name {name} --image {image}".format(name=name, image=image)
             if pubkey:
@@ -100,8 +117,23 @@ class CuisineDocker():
             cmd = "jsdocker list --name {name} --parsable".format(name=name)
             out = self.cuisine.run(cmd, profile=True)
             info = j.data.serializer.json.loads(out)
-            return info[0]['port']
-        #TODO:
+
+            port=info[0]["port"]
+
+            #@todo (*1*) is this needed maybe already done before in jsdocker?
+            self.cuisine.fw.allowIncoming(port)
+
+            #make sure past is removed
+            j.do.delete(j.dirs.homeDir+"/.ssh/known_hosts")
+
+
+            #@todo (*1*) shortcut to get this thing to work, jsdocker does not push the key (BUG)
+            #port = ssh port of the docker
+            c2=j.tools.cuisine.getPushKey("%s:%s"%(self.executor.addr,port),passwd="gig1234",pubkey=pubkey)
+            
+            return c2
+
+        #TODO: @todo (*1*)
         #- start from docker repo where pushed docker image is (build using self.ubuntuBuild)
         #- mount over aydofs see docker_approach.md in this dir (improve jsdocker to also work with aydofs)
         #- put ssh key in place for mgmt (use jsdocker remote)
@@ -117,7 +149,7 @@ class CuisineDocker():
 
 
     @actionrun(action=True)
-    def ArchSystemd(self,name="arch1"):
+    def archSystemd(self,name="arch1"):
         """
         start arch which is using systemd  #@todo (*2*) there is an issue with tty, cannot install anything (see in arch builder)
         """

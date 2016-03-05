@@ -9,5 +9,5 @@ Please check our [GitBook](https://gig.gitbooks.io/jumpscale8/content/) for a fu
 
 for install see
 
-[InstallInstructions](https://gig.gitbooks.io/jumpscale8/content/GettingStarted/Install.html)
+[Install Instructions](https://gig.gitbooks.io/jumpscale8/content/GettingStarted/Install.html)
 

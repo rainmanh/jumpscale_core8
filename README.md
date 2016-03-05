@@ -7,18 +7,7 @@ JumpScale is A cloud automation product and a branch from what used to be Pylabs
 
 Please check our [GitBook](https://gig.gitbooks.io/jumpscale8/content/) for a full documentation
 
-the oneliner for an install 
-```
-cd /tmp;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh
-```
+for install see
 
-MAC USERS
-=========
-make sure you have a writable /opt dir & homebrew is installed
-```
-sudo mkdir -p /opt
-sudo chown -R despiegk:root /opt
-ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+[InstallInstructions](https://gig.gitbooks.io/jumpscale8/content/GettingStarted/Install.html)
 
-```
-replace despiegk with your local username

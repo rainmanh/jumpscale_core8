@@ -36,7 +36,7 @@ def init():
     """
     chfiles=j.atyourservice.init()
     path = j.sal.fs.joinPaths(j.dirs.varDir, 'graphelements.json')
-    j.sa.fs.touch(path)
+    j.sal.fs.touch(path)
     graphelements = j.atyourservice.graphelements
     j.data.serializer.json.dump(path, graphelements)
 

@@ -471,9 +471,10 @@ class OurCuisine():
         - $hostname
 
         """
-        for key, var in self.dir_paths.items():
-            text = text.replace("$%s" % key, var)
-        text=text.replace("$hostname",self.hostname)
+        if test:
+            for key, var in self.dir_paths.items():
+                text = text.replace("$%s" % key, var)
+            text = text.replace("$hostname", self.hostname)
         return text
 
     def system_uuid_alias_add(self):

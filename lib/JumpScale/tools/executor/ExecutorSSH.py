@@ -6,7 +6,7 @@ class ExecutorSSH(ExecutorBase):
 
     def __init__(self, addr, port, dest_prefixes={},login="root",\
             passwd=None,debug=False,checkok=True,allow_agent=True, \
-            look_for_keys=True,pushkey=None):
+            look_for_keys=True,pushkey=None,pubkey=""):
         ExecutorBase.__init__(self, dest_prefixes=dest_prefixes,debug=debug,checkok=checkok)
         self.id = j.data.hash.md5_string('%s:%s:%s' % (addr, port, login))
         self.addr = addr
@@ -19,6 +19,7 @@ class ExecutorSSH(ExecutorBase):
         self.allow_agent=allow_agent
         self.look_for_keys=look_for_keys
         self.pushkey=pushkey
+        self.pubkey=pubkey
         self._sshclient=None
         self.type="ssh"
         if checkok:
@@ -65,11 +66,17 @@ class ExecutorSSH(ExecutorBase):
                 else:
                     homedir=os.environ["HOME"]
                     path="%s/.ssh/%s.pub"%(homedir,self.pushkey)
+                if self.pubkey=="":
+                    pubkey=self.pubkey
                 if j.sal.fs.exists(path):
-                    pushkey=j.sal.fs.fileGetContents(path)
+                    pubkey=j.sal.fs.fileGetContents(path)
                 else:
                     raise RuntimeError("Could not find key:%s"%path)
-                self._sshclient.ssh_authorize("root",pushkey)
+                from IPython import embed
+                print ("DEBUG NOW oioioioi")
+                embed()
+                
+                self._sshclient.ssh_authorize("root",pubkey)
     
         return self._sshclient
 

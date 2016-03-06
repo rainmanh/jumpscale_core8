@@ -10,8 +10,12 @@ class ExecutorFactory():
         self.__jslocation__ = "j.tools.executor"
         self._executors = {}
 
-    def pushkey(self, addr, passwd, keyname, port=22, login="root"):
-        ExecutorSSH(addr, port=port, login=login, passwd=passwd, pushkey=keyname)
+    def pushkey(self, addr, passwd, keyname="",pubkey="", port=22, login="root"):
+        """
+        @param keyname is name of key (pub)
+        @param pubkey is the content of the pub key
+        """
+        ExecutorSSH(addr, port=port, login=login, passwd=passwd, pushkey=keyname,pubkey=pubkey)
 
     def get(self, executor="localhost"):
         """
@@ -40,11 +44,11 @@ class ExecutorFactory():
     def getLocal(self, jumpscale=False, debug=False, checkok=False):
         return ExecutorLocal(debug=debug, checkok=debug)
 
-    def getSSHBased(self, addr="localhost", port=22, login="root", passwd=None, debug=False, checkok=True, allow_agent=True, look_for_keys=True, pushkey=None):
+    def getSSHBased(self, addr="localhost", port=22, login="root", passwd=None, debug=False, checkok=True, allow_agent=True, look_for_keys=True, pushkey=None,pubkey=""):
         key = '%s:%s:%s' % (addr, port, login)
         h = j.data.hash.md5_string(key)
         if h not in self._executors:
-            self._executors[h] = ExecutorSSH(addr, port=port, login=login, passwd=passwd, debug=debug, checkok=checkok, allow_agent=allow_agent, look_for_keys=look_for_keys, pushkey=pushkey)
+            self._executors[h] = ExecutorSSH(addr, port=port, login=login, passwd=passwd, debug=debug, checkok=checkok, allow_agent=allow_agent, look_for_keys=look_for_keys, pushkey=pushkey,pubkey=pubkey)
         return self._executors[h]
 
     def getJSAgentBased(self, agentControllerClientKey, debug=False, checkok=False):

@@ -306,55 +306,44 @@ class CuisineInstaller(object):
 
         self.cuisine.run_script(C,die=False)
 
-    @actionrun(action=True)
-    def dnspython3(self):
-        C = """
-            cd $tmpDir
-            wget http://www.dnspython.org/kits3/1.12.0/dnspython3-1.12.0.tar.gz
-            tar -xf dnspython3-1.12.0.tar.gz
-            cd dnspython3-1.12.0
-            ./setup.py install
-            """
-        self.cuisine.run_script(C,action=True)
 
     @actionrun(action=True)
     def jumpscale8(self, rw=False, reset=False):
         """
         install jumpscale, will be done as sandbox
-        otherwise will try to install jumpscale inside OS
 
-        @input rw, if True will put overlay filesystem on top of /opt -> /optrw which will allow you to manipulate/debug the install
-        @input synclocalcode, sync the local github code to the node (jumpscale) (only when in rw mode)
-        @input reset, remove old code (only used when rw mode)
-        @input monitor detect local changes & sync (only used when rw mode)
+        @param rw if True install sandbox in RW mode
+        @param reset, remove old code (only used when rw mode)
+
         """
         self.clean()
         self.base()
 
-        self.cuisine.installerdevelop.pip()
-        # self.cuisine.pip.install('snappy')
-        # path = self.cuisine.joinpaths(j.do.getPythonLibSystem(jumpscale=False), "snappy")
-        # self.cuisine.run("2to3 -f all -w %s" % path)
 
-        """
-        install dnspython3
-        """
-        self.dnspython3()
-
-        """
-        install jumpscale8 sandbox in read or readwrite mode
-        """
         C = """
+            js8 stop
             set -ex
             cd /usr/bin
             rm -f js8
             cd /usr/local/bin
             rm -f js8
+            rm -f /usr/local/bin/jspython
+            rm -f /usr/local/bin/js
+            rm -fr /opt/*
             """
-        self.cuisine.run_script(C, action=True)
+        self.cuisine.run_script(C, action=True,force=True)
 
         if not self.cuisine.isUbuntu:
             raise RuntimeError("not supported yet")
+
+        if reset:
+            C = """
+                set +ex
+                rm -rf /opt
+                rm -rf /optrw
+                """
+            self.cuisine.run_script(C, action=True,force=True)
+            
 
         C = """
             wget https://stor.jumpscale.org/storx/static/js8 -O /usr/local/bin/js8
@@ -362,21 +351,21 @@ class CuisineInstaller(object):
             cd /
             mkdir -p $base
             """
-        self.cuisine.run_script(C, action=True)
+        self.cuisine.run_script(C, action=True,force=True)
 
         """
         install jumpscale8 sandbox in read or readwrite mode
         """
         C = """
             set -ex
+            rm -rf /opt
             cd /usr/local/bin
-            rm -fr /opt/*
             """
         if rw:
             C += "./js8 -rw init"
         else:
             C += "./js8 init"
-        self.cuisine.run_script(C, action=True)
+        self.cuisine.run_script(C, action=True,force=True)
 
         start = j.data.time.epoch
         timeout = 30
@@ -389,12 +378,11 @@ class CuisineInstaller(object):
                 self.cuisine.bash.include('/opt/jumpscale8/env.sh')
                 break
 
-
+        print ("* re-login into your shell to have access to js, because otherwise the env arguments are not set properly.")
 
     @actionrun(action=True)
     def base(self):
         self.clean()
-        self.cuisine.installerdevelop.python()
 
         if self.cuisine.isMac:
             C=""
@@ -402,6 +390,7 @@ class CuisineInstaller(object):
             C="""
             sudo
             net-tools
+            python3
             """
 
         C+="""
@@ -423,10 +412,7 @@ class CuisineInstaller(object):
 
         if self.cuisine.isArch:
             self.cuisine.package.install("wpa_actiond") #is for wireless auto start capability
-            #systemctl enable netctl-auto@wlan0.service
-        # bindir = self.cuisine.args_replace("$binDir")
 
-        # self.cuisine.bash.addPath(bindir)
         self.cuisine.package.mdupdate()
         self.cuisine.package.multiInstall(C)
         self.cuisine.package.upgrade()
@@ -712,17 +698,6 @@ class CuisineInstaller(object):
         for deviceid,size in devs:
             partition(deviceid,size)
 
-
-    @actionrun(action=True)
-    def docker(self):
-        if self.cuisine.isUbuntu:
-            C="""
-            wget -qO- https://get.docker.com/ | sh
-            """
-            self.cuisine.run_script(C)
-        if self.cuisine.isArch:
-            self.cuisine.package.install("docker")
-            self.cuisine.package.install("docker-compose")
 
     def __str__(self):
         return "cuisine:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))

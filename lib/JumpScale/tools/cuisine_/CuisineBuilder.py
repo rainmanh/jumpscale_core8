@@ -354,7 +354,10 @@ class CuisineBuilder(object):
         builds and setsup dependencies of agent to run with the given gid and nid
         neither can be zero
         """
+        #deps
         self.installdeps()
+        self.redis()
+        self.mongodb()
         #self.cuisine.installer.jumpscale8()
 
         self.syncthing(start=False)
@@ -409,7 +412,12 @@ class CuisineBuilder(object):
         """
         config: https://github.com/g8os/controller.git
         """
+        #deps
         self.installdeps()
+        self.redis()
+        self.mongodb()
+        self.syncthing(start=False)
+
 
 
         self.cuisine.processmanager.remove("agentcontroller8")
@@ -471,9 +479,7 @@ class CuisineBuilder(object):
         self.cuisine.file_copy("$tmplsDir/cfg/core", "$cfgDir/core", recursive=True)
 
 
-        #deps
-        self.redis()
-        self.mongodb()
+
         self.cuisine.file_copy("$tmplsDir/cfg/core", "$cfgDir/core", recursive=True)
         self._startMongodb()
         self._startRedis()
@@ -492,11 +498,7 @@ class CuisineBuilder(object):
         self.cuisine.dir_ensure("$cfgDir/controller/")
         self.cuisine.file_copy("$tmplsDir/cfg/controller", "$cfgDir/controller", recursive=True)
 
-        #deps
-        self.redis()
-        self.mongodb()
-        self.syncthing(start=False)
-
+       
         #expose syncthing and get api key
         sync_cfg = self.cuisine.file_read("$tmplsDir/cfg/syncthing/config.xml")
         sync_conn = re.search(r'<address>([0-9.]+):([0-9]+)</', sync_cfg)

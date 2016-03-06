@@ -211,7 +211,6 @@ class AtYourServiceFactory():
         nodes = list()
         edges = list()
         for servicekey, service in self.services.items():
-            print (servicekey)
             node = {'data': {'id': servicekey}}
             hrd = service.hrd.getHRDAsDict()
             for key, value in hrd.items():
@@ -231,7 +230,8 @@ class AtYourServiceFactory():
             # producer-consumer relationship
             for role, instances in service.producers.items():
                 for instance in instances:
-                    edge = {'data': {'id': '"%s""%s"' % (instance, servicekey), 'source': instance, 'target': servicekey}}
+                    producerkey = '%s!%s' % (instance.name, instance.instance)
+                    edge = {'data': {'id': '"%s""%s"' % (producerkey, servicekey), 'source': producerkey, 'target': servicekey}}
                     edges.append(edge)
 
         self._graphelements = {'elements': {'nodes': nodes, 'edges': edges}}

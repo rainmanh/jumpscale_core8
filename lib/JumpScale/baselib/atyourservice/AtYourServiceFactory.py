@@ -735,9 +735,11 @@ class AtYourServiceFactory():
     def __str__(self):
         return self.__repr__()
 
-    def telegramBot(self, token):
+    def telegramBot(self, token, start=True):
         from JumpScale.baselib.atyourservice.telegrambot.TelegramAYS import TelegramAYS
         bot = TelegramAYS(token)
+        if start:
+            bot.run()
         return bot
 
 

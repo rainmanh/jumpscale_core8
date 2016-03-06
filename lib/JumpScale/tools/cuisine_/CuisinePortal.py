@@ -160,8 +160,9 @@ class CuisinePortal(object):
                 if not spacename == 'home':
                     self.cuisine.dir_ensure(j.sal.fs.joinPaths(self.example_portal_dir, 'base', 'gridportal'))
                     self.cuisine.file_link(space, j.sal.fs.joinPaths(self.example_portal_dir, 'base', 'gridportal', spacename))
-            self.cuisine.dir_ensure('%s/base/home/.space' %self.example_portal_dir)
-            self.cuisine.file_ensure('%s/base/home/home.md' %self.example_portal_dir)
+
+        self.cuisine.dir_ensure('%s/base/home/.space' %self.example_portal_dir)
+        self.cuisine.file_ensure('%s/base/home/home.md' %self.example_portal_dir)
 
         self.cuisine.dir_ensure('$tmplsDir/cfg/portal')
         self.cuisine.file_copy(j.sal.fs.joinPaths(self.cuisine.dir_paths["codeDir"], 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'), '$tmplsDir/cfg/portal/config.hrd')
@@ -196,8 +197,17 @@ class CuisinePortal(object):
 
     @actionrun(action=True)
     def start(self):
-        dest = j.sal.fs.joinPaths(self.cuisine.dir_paths['varDir'],'cfg', "portals")
-        self.cuisine.file_copy(self.portal_dir, dest, recursive=True)
-        cmd = "cd %s; jspython portal_start.py" % j.sal.fs.joinPaths(dest, 'example')
+        dest_dir = j.sal.fs.joinPaths(self.cuisine.dir_paths['varDir'],'cfg')
+        cfg_path = j.sal.fs.joinPaths(dest_dir, 'portals/example/config.hrd')
+        app_dir = j.sal.fs.joinPaths(dest_dir, 'portals/portalbase')
+
+        self.cuisine.file_copy(self.portal_dir, dest_dir, recursive=True, overwrite=True)
+
+        content = self.cuisine.file_read(cfg_path)
+        hrd = j.data.hrd.get(content=content, prefixWithName=False)
+        hrd.set('param.cfg.appdir', app_dir)
+        self.cuisine.file_write(cfg_path, str(hrd))
+
+        cmd = "cd %s; jspython portal_start.py" % j.sal.fs.joinPaths(dest_dir, 'portals/example')
         self.cuisine.tmux.createSession("portal", ['portal'])
         self.cuisine.tmux.executeInScreen('portal', 'portal', cmd=cmd)

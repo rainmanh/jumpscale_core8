@@ -113,10 +113,10 @@ class HRDBase:
         """
         result = {}
         for key in self.prefix(prefix):
+            key2 = key
             if prefix != "":
-                key2 = key.lstrip("%s." % prefix)
-            else:
-                key2 = key
+                if key.startswith("%s." % prefix):
+                    key2 = key[len(prefix)+1:]
             result[key2] = self.get(key)
         return result
 

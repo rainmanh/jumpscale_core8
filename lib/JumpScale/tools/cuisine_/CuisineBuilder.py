@@ -530,11 +530,12 @@ class CuisineBuilder(object):
         for i in range(4):
             try:
                 jumpscripts_id = "jumpscripts-%s" % hashlib.md5(synccl.id_get().encode()).hexdigest()
-                continue
+                break
             except RuntimeError:
                 print("restablishing connection to syncthing")
-
-
+        else:
+            raise RuntimeError('Syncthing is not responding. Exiting.')
+            
         synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
 
         #start

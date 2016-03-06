@@ -5,6 +5,7 @@ from paramiko.ssh_exception import SSHException, BadHostKeyException, Authentica
 import time
 import io
 import socket
+import subprocess
 
 class SSHClientFactory(object):
 
@@ -31,6 +32,34 @@ class SSHClientFactory(object):
         client.close()
         if key in self.cache:
             self.cache.pop(key)
+
+    def getSSHKeyFromAgentPub(self,keyname="",die=True):
+        try:
+            #@todo why do we use subprocess here and not self.execute?
+            out=subprocess.check_output(["ssh-add","-L"])
+        except:
+            return None
+
+        if keyname=="":
+            paths=[]
+            for line in out.splitlines():
+                line=line.strip()
+                paths.append(line.split(" ".encode())[-1])
+            if len(paths)==0:
+                raise RuntimeError("could not find loaded ssh-keys")
+
+            path=j.tools.console.askChoice(paths,"Select ssh key to push (public part only).")
+            keyname=j.sal.fs.getBaseName(path.decode())
+
+        for line in out.splitlines():
+            delim = (".ssh/%s" % keyname).encode()
+            if line.endswith(delim):
+                content=line.strip()
+                content=content.decode()
+                return content
+        if die:
+            raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l"%keyname)
+        return None            
 
     def close(self):
         for key, client in self.cache.items():

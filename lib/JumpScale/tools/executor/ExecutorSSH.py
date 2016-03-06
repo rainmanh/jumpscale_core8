@@ -72,6 +72,10 @@ class ExecutorSSH(ExecutorBase):
                     pubkey=j.sal.fs.fileGetContents(path)
                 else:
                     raise RuntimeError("Could not find key:%s"%path)
+                from IPython import embed
+                print ("DEBUG NOW oioioioi")
+                embed()
+                
                 self._sshclient.ssh_authorize("root",pubkey)
     
         return self._sshclient

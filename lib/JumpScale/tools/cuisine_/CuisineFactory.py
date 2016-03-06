@@ -51,6 +51,9 @@ class OurCuisineFactory:
             key=None
 
         executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login,passwd=passwd,pushkey=key,pubkey=pubkey)
+        j.clients.ssh.cache={}
+        executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login)#should now work with key only
+
         return OurCuisine(executor)
 
     def get(self,executor=None):

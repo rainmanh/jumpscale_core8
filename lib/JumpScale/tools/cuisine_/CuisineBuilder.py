@@ -54,7 +54,7 @@ class CuisineBuilder(object):
         self.cuisine.dir_remove('%s/*' % self.cuisine.dir_paths['libDir'])
         self.cuisine.dir_ensure('%s' % self.cuisine.dir_paths['libDir'])
         self.cuisine.file_link('/usr/local/lib/python3.5/dist-packages/JumpScale', '%s/JumpScale' % self.cuisine.dir_paths['libDir'])
-        self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % j.dirs.codeDir, "%s/portal" % j.dirs.jsLibDir)
+        self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self.cuisine.dir_paths["codeDir"], "%s/portal" % self.cuisine.dir_paths['jsLibDir'])
 
         # start sandboxing
         cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], 'js8_opt', '%s', sandbox_python=%s)" % (stor_addr, python)
@@ -275,12 +275,62 @@ class CuisineBuilder(object):
         """
         self.installdeps()
 
+        config="""
+        <configuration version="11">
+            <folder id="default" path="$homeDir/Sync" ro="false" rescanIntervalS="60" ignorePerms="false" autoNormalize="false">
+                <device id="H7MBKSF-XNFETHA-2ERDXTB-JQCAXTA-BBTTLJN-23TN5BZ-4CL7KLS-FYCISAR"></device>
+                <minDiskFreePct>1</minDiskFreePct>
+                <versioning></versioning>
+                <copiers>0</copiers>
+                <pullers>0</pullers>
+                <hashers>0</hashers>
+                <order>random</order>
+                <ignoreDelete>false</ignoreDelete>
+            </folder>
+            <device id="H7MBKSF-XNFETHA-2ERDXTB-JQCAXTA-BBTTLJN-23TN5BZ-4CL7KLS-FYCISAR" name="$hostname" compression="metadata" introducer="false">
+                <address>dynamic</address>
+            </device>
+            <gui enabled="true" tls="false">
+                <address>$lclAddrs:$port</address>
+                <apikey>wbgjQX6uSgjI1RfS7BT1XQgvGX26DHMf</apikey>
+            </gui>
+            <options>
+                <listenAddress>0.0.0.0:22000</listenAddress>
+                <globalAnnounceServer>udp4://announce.syncthing.net:22026</globalAnnounceServer>
+                <globalAnnounceServer>udp6://announce-v6.syncthing.net:22026</globalAnnounceServer>
+                <globalAnnounceEnabled>true</globalAnnounceEnabled>
+                <localAnnounceEnabled>true</localAnnounceEnabled>
+                <localAnnouncePort>21025</localAnnouncePort>
+                <localAnnounceMCAddr>[ff32::5222]:21026</localAnnounceMCAddr>
+                <maxSendKbps>0</maxSendKbps>
+                <maxRecvKbps>0</maxRecvKbps>
+                <reconnectionIntervalS>60</reconnectionIntervalS>
+                <startBrowser>true</startBrowser>
+                <upnpEnabled>true</upnpEnabled>
+                <upnpLeaseMinutes>60</upnpLeaseMinutes>
+                <upnpRenewalMinutes>30</upnpRenewalMinutes>
+                <upnpTimeoutSeconds>10</upnpTimeoutSeconds>
+                <urAccepted>0</urAccepted>
+                <urUniqueID></urUniqueID>
+                <restartOnWakeup>true</restartOnWakeup>
+                <autoUpgradeIntervalH>12</autoUpgradeIntervalH>
+                <keepTemporariesH>24</keepTemporariesH>
+                <cacheIgnoredFiles>true</cacheIgnoredFiles>
+                <progressUpdateIntervalS>5</progressUpdateIntervalS>
+                <symlinksEnabled>true</symlinksEnabled>
+                <limitBandwidthInLan>false</limitBandwidthInLan>
+                <databaseBlockCacheMiB>0</databaseBlockCacheMiB>
+                <pingTimeoutS>30</pingTimeoutS>
+                <pingIdleTimeS>60</pingIdleTimeS>
+                <minHomeDiskFreePct>1</minHomeDiskFreePct>
+            </options>
+        </configuration>
+        """
         #create config file
-        with open(self.cuisine.args_replace("$codeDir/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/templates/syncthing.xml"), "r") as config:
-            content = config.read()
-            content = self.cuisine.args_replace(content)
-            content = content.replace("$lclAddrs",  "0.0.0.0", 1)
-            content = content.replace ("$port", "8384", 1)
+        content = self.cuisine.args_replace(config)
+        content = content.replace("$lclAddrs",  "0.0.0.0", 1)
+        content = content.replace ("$port", "8384", 1)
+
         self.cuisine.dir_ensure("$tmplsDir/cfg/syncthing/")
         self.cuisine.file_write("$tmplsDir/cfg/syncthing/config.xml", content)
 
@@ -302,7 +352,7 @@ class CuisineBuilder(object):
     def core(self,start=True, gid=None, nid=None):
         """
         builds and setsup dependencies of agent to run with the given gid and nid
-        niether can be zero
+        neither can be zero
         """
         self.installdeps()
         #self.cuisine.installer.jumpscale8()

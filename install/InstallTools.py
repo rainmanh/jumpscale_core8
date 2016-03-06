@@ -1438,9 +1438,7 @@ class InstallTools():
         for line in out.splitlines():
             delim = (".ssh/%s" % keyname).encode()
             if line.endswith(delim):
-                line=line.strip()
-                # keypath=line.split(" ".encode())[-1]
-                content=line.split(" ".encode())[-2]
+                content=line.strip()
                 content=content.decode()
                 return content
         if die:
@@ -1620,7 +1618,7 @@ class InstallTools():
         else:
             return True
 
-    def getGitRepoArgs(self, url="", dest=None, login=None, passwd=None, reset=False,branch=None,ssh="auto"):
+    def getGitRepoArgs(self, url="", dest=None, login=None, passwd=None, reset=False,branch=None,ssh="auto",codeDir=None):
         """
         Extracts and returns data useful in cloning a Git repository.
 
@@ -1681,8 +1679,10 @@ class InstallTools():
         repository_type = repository_host.split('.')[0] if '.' in repository_host else repository_host
 
         if not dest:
+            if codeDir==None:
+                codeDir=self.CODEDIR
             dest = '%(codedir)s/%(type)s/%(account)s/%(repo_name)s' % {
-                'codedir': self.CODEDIR,
+                'codedir': codeDir,
                 'type': repository_type.lower(),
                 'account': repository_account.lower(),
                 'repo_name': repository_name,
@@ -1695,7 +1695,7 @@ class InstallTools():
 
         return repository_host, repository_type, repository_account, repository_name, dest, repository_url
 
-    def pullGitRepo(self,url="",dest=None,login=None,passwd=None,depth=1,ignorelocalchanges=False,reset=False,branch=None,revision=None, ssh="auto",executor=None):
+    def pullGitRepo(self,url="",dest=None,login=None,passwd=None,depth=1,ignorelocalchanges=False,reset=False,branch=None,revision=None, ssh="auto",executor=None,codeDir=None):
         """
         will clone or update repo
         if dest == None then clone underneath: /opt/code/$type/$account/$repo
@@ -1718,7 +1718,7 @@ class InstallTools():
         else:
             executor.checkok = False
 
-        base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh)
+        base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh,codeDir=codeDir)
 
         if dest is None and branch is None:
             branch = "master"

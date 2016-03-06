@@ -471,7 +471,7 @@ class OurCuisine():
         - $hostname
 
         """
-        if test:
+        if text:
             for key, var in self.dir_paths.items():
                 text = text.replace("$%s" % key, var)
             text = text.replace("$hostname", self.hostname)

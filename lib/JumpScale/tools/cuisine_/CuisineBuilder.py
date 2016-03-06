@@ -521,13 +521,20 @@ class CuisineBuilder(object):
 
         #add jumpscripts file
         self._startSyncthing()
-        time.sleep(4)
+        
         addr = "localhost"
         if not self.cuisine.executor.type == 'local':
             addr = self.executor.addr
         synccl = j.clients.syncthing.get(addr,18384, apikey=apikey)
         jumpscripts_path = self.cuisine.args_replace("$cfgDir/cfg/controller/jumpscripts")
-        jumpscripts_id = "jumpscripts-%s" % hashlib.md5(synccl.id_get().encode()).hexdigest()
+        for i in range(4):
+            try:
+                jumpscripts_id = "jumpscripts-%s" % hashlib.md5(synccl.id_get().encode()).hexdigest()
+                continue
+            except RuntimeError:
+                print("restablishing connection to syncthing")
+
+
         synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
 
         #start

@@ -216,7 +216,7 @@ class AtYourServiceFactory():
                 self._servicesTree[service.shortkey] = self._nodechildren(service)[service.shortkey]
                 print (self._servicesTree)
         return self._servicesTree
-    
+
 
     @property
     def blueprints(self):
@@ -739,9 +739,11 @@ class AtYourServiceFactory():
     def __str__(self):
         return self.__repr__()
 
-    def telegramBot(self, token):
+    def telegramBot(self, token, start=True):
         from JumpScale.baselib.atyourservice.telegrambot.TelegramAYS import TelegramAYS
         bot = TelegramAYS(token)
+        if start:
+            bot.run()
         return bot
 
 

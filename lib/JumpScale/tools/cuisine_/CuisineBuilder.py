@@ -266,7 +266,7 @@ class CuisineBuilder(object):
         self.cuisine.pip.upgrade('pip')
         self.cuisine.pip.install('pytoml')
         self.cuisine.pip.install('pygo')
-        self.cuisine.golang.install()
+
 
     @actionrun(action=True)
     def syncthing(self, start=True):
@@ -356,8 +356,8 @@ class CuisineBuilder(object):
         """
         #deps
         self.installdeps()
-        self.redis()
-        self.mongodb()
+        self.redis(start=False)
+        self.mongodb(start=False)
         #self.cuisine.installer.jumpscale8()
 
         self.syncthing(start=False)
@@ -401,8 +401,8 @@ class CuisineBuilder(object):
         """
         #deps
         self.installdeps()
-        self.redis()
-        self.mongodb()
+        self.redis(start=False)
+        self.mongodb(start=False)
         self.syncthing(start=False)
 
 

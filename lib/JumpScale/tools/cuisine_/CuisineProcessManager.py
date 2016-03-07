@@ -149,7 +149,7 @@ class CuisineRunit(ProcessManagerBase):
         """Ensures that the given upstart service is self.running, starting
         it if necessary."""
 
-        if not self.cuisine.file_exists("/etc/service/vice/%s/run" %name ):
+        if not self.cuisine.file_exists("/etc/service/%s/run" %name ):
             cmd=self.cuisine.args_replace(cmd)
             path=self.cuisine.args_replace(path)
 
@@ -203,7 +203,7 @@ exec $cmd
     def start(self, name):
         """Tries a `restart` command to the given service, if not successful
         will stop it and start it. If the service is not started, will start it."""
-        if self.cuisine.file_exists("/etc/service/vice/%s/run" %name ):
+        if self.cuisine.file_exists("/etc/service/%s/run" %name ):
             self.cuisine.run("sv -w 15 start /etc/service/%s/" %name, profile=True )
 
     def stop(self, name, **kwargs):

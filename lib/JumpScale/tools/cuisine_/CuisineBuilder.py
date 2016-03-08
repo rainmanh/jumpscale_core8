@@ -375,8 +375,8 @@ class CuisineBuilder(object):
 
         sourcepath = "$goDir/src/github.com/g8os/core"
 
-        self.cuisine.run("cd %s && go build ." % sourcepath, profile=True)
 
+        self.cuisine.run("cd %s && go build ." % sourcepath, profile=True)
         self.cuisine.file_move("%s/core" % sourcepath, "$binDir/core")
 
         # copy extensions
@@ -424,7 +424,7 @@ class CuisineBuilder(object):
         #move binary
         self.cuisine.file_move("%s/controller" % sourcepath, "$binDir/controller")
 
-       
+
 
         #file copy
         self.cuisine.dir_remove("$tmplsDir/cfg/controller/extensions")
@@ -447,7 +447,7 @@ class CuisineBuilder(object):
     def _startCore(self, nid, gid):
         """
         if this is run on the sam e machine as a controller instance run controller first as the
-        core will consume the avialable syncthing port and will cause a problem 
+        core will consume the avialable syncthing port and will cause a problem
         """
         if not nid:
             nid = 1
@@ -456,11 +456,11 @@ class CuisineBuilder(object):
 
         self.cuisine.dir_ensure("$cfgDir/core/")
         self.cuisine.file_copy("$tmplsDir/cfg/core", "$cfgDir/", recursive=True)
-        
 
-        
+
+
         # manipulate config file
-        sourcepath = "$goDir/src/github.com/g8os/core"
+        sourcepath = "$binDir/core"
         C = self.cuisine.file_read("%s/agent.toml" % sourcepath)
         cfg = j.data.serializer.toml.loads(C)
         cfgdir = self.cuisine.dir_paths['cfgDir']
@@ -510,9 +510,6 @@ class CuisineBuilder(object):
 
         self.cuisine.file_write('$cfgDir/controller/agentcontroller.toml', C, replaceArgs=True)
 
-
-
-
         #expose syncthing and get api key
         sync_cfg = self.cuisine.file_read("$tmplsDir/cfg/syncthing/config.xml")
         sync_conn = re.search(r'<address>([0-9.]+):([0-9]+)</', sync_cfg)
@@ -523,11 +520,12 @@ class CuisineBuilder(object):
 
         #add jumpscripts file
         self._startSyncthing()
-        
-        addr = "localhost"
+
         if not self.cuisine.executor.type == 'local':
-            addr = self.executor.addr
-        synccl = j.clients.syncthing.get(addr,18384, apikey=apikey)
+            synccl = j.clients.syncthing.get(addr=self.executor.addr, sshport=self.executor.port, port=18384, apikey=apikey)
+        else:
+            synccl = j.clients.syncthing.get(addr="localhost", port=18384, apikey=apikey)
+
         jumpscripts_path = self.cuisine.args_replace("$cfgDir/cfg/controller/jumpscripts")
         for i in range(4):
             try:
@@ -537,7 +535,7 @@ class CuisineBuilder(object):
                 print("restablishing connection to syncthing")
         else:
             raise RuntimeError('Syncthing is not responding. Exiting.')
-            
+
         synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
 
         #start

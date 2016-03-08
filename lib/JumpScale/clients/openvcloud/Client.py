@@ -333,7 +333,7 @@ class Machine:
         self._portforwardings_cache.delete()
 
     def delete_portfowarding_by_id(self, pfid):
-        self.client.api.cloudapi.portforwarding.delete(cloudspaceid=self.space.id,
+        self.client.api.cloudapi.portforwarding.delete(cloudspaceId=self.space.id,
                                                        id=pfid)
         self.space._portforwardings_cache.delete()
         self._portforwardings_cache.delete()

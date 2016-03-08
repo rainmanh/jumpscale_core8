@@ -560,7 +560,7 @@ class InstallTools():
          e.g. ...getDirName("/opt/qbase/bin/something/test.py", levelsUp=1) would return bin
          e.g. ...getDirName("/opt/qbase/bin/something/test.py", levelsUp=10) would raise an error
         """
-        self.log('Get directory name of path: %s' % path,9)
+        # self.log('Get directory name of path: %s' % path,9)
         if path is None:
             raise TypeError('Path is not passed in system.fs.getDirName')
         dname=os.path.dirname(path)
@@ -1010,7 +1010,7 @@ class InstallTools():
 
         s.quit()
 
-    def execute(self, command , outputStdout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[], ok=[], captureout=True, dieOnNonZeroExitCode=True, async=False):
+    def execute(self, command , outputStdout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[], ok=[], captureout=True, dieOnNonZeroExitCode=True, async=False, die=True):
         """
         @param errors is array of statements if found then exit as error
         return rc,out
@@ -1726,7 +1726,7 @@ class InstallTools():
             # if we don't specify the branch, try to find the currently checkedout branch
             if executor.exists(dest):
                 cmd = 'cd %s; git rev-parse --abbrev-ref HEAD' % dest
-                rc, out = executor.execute(cmd)
+                rc, out = executor.execute(cmd, die=False, showout=False)
                 if rc == 0:
                     branch = out.strip()
                 else:  # if we can't retreive current branch, use master as default

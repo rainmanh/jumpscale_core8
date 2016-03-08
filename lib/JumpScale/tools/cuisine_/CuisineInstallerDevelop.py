@@ -145,6 +145,14 @@ class CuisineInstallerDevelop():
         pygo
         minio
 
+        # colorlog
+        colored-traceback
+        #pygments
+        tmuxp
+
+        xonsh
+        pudb
+
         python-telegram-bot
         """
         self.cuisine.pip.multiInstall(C,action=True,upgrade=True)

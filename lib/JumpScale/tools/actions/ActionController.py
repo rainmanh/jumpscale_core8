@@ -6,7 +6,7 @@
 
 from JumpScale import j
 from Action import *
-
+import traceback
 
 class ActionController(object):
     '''Manager controlling actions'''
@@ -18,6 +18,7 @@ class ActionController(object):
         self._actions = {}
         self.lastOnes=[]
         self.last = None
+        self._current=None #is the current running action !
         self._runid = j.core.db.get("actions.runid").decode() if j.core.db.exists("actions.runid") else None
         showonly = j.core.db.hget("actions.showonly", self._runid)
         if showonly is None:
@@ -28,6 +29,7 @@ class ActionController(object):
     def setRunId(self, runid):
         self._runid = str(runid)
         j.core.db.set("actions.runid", self._runid.encode())
+        j.core.db.delete("actions.%s"%self.runid)
 
     @property
     def showonly(self):
@@ -76,7 +78,7 @@ class ActionController(object):
     def selectAction(self):
         return j.tools.console.askChoice(j.actions.actions)
 
-    def add(self, action,actionRecover=None,args=(),kwargs={},die=True,stdOutput=False,errorOutput=True,retry=1,serviceObj=None,deps=None,executeNow=True,selfGeneratorCode="",force=False):
+    def add(self, action,actionRecover=None,args=(),kwargs={},die=True,stdOutput=False,errorOutput=True,retry=0,serviceObj=None,deps=None,executeNow=True,selfGeneratorCode="",force=True):
         '''
         self.doc is in doc string of method
         specify recover actions in the description
@@ -93,11 +95,22 @@ class ActionController(object):
         @param serviceObj: service, will be used to get category filled in
         '''
 
+        l=traceback.format_stack()
+        tbline=l[-2].split("\n")[0].replace("'","")
+        fpath,linenr,remaining=tbline.split(",",2)
+        fpath=fpath.split("\"")[1].strip()
+        linenr=int(linenr.split(" ")[-1])
+
 
         if j.data.types.dict.check(args):
             raise RuntimeError("cannot create action: args should be a list, kwargs a dict, input error")
 
-        action=Action(action,runid=self.runid,actionRecover=actionRecover,args=args,kwargs=kwargs,die=die,stdOutput=stdOutput,errorOutput=errorOutput,retry=retry,serviceObj=serviceObj,deps=deps,selfGeneratorCode=selfGeneratorCode,force=force)
+        action=Action(action,runid=self.runid,actionRecover=actionRecover,args=args,kwargs=kwargs,die=die,stdOutput=stdOutput,errorOutput=errorOutput,\
+            retry=retry,serviceObj=serviceObj,deps=deps,selfGeneratorCode=selfGeneratorCode,force=force)
+
+        action.calling_linenr=linenr
+        action.calling_path=fpath
+
 
         while len(self.lastOnes)>10:
             self.lastOnes.pop()
@@ -106,7 +119,7 @@ class ActionController(object):
         self._actions[action.key]=action
         self.last=action
         if executeNow:
-            print ("ACTION ADD:%s"%action.key)
+            # print ("ACTION ADD:%s"%action.key)
             action.execute()
         else:
             action.save(True)
@@ -146,15 +159,15 @@ class ActionController(object):
                 self._actions[a.key]=a
         return self._actions
 
-    def showAll(self):
-        self.showonly=True
+    # def showAll(self):
+    #     self.showonly=True
 
-        self.showonly=False
+    #     self.showonly=False
 
 
 
-    def showCompleted(self):
-        pass
+    # def showCompleted(self):
+    #     pass
 
     # def hasRunningActions(self):
     #     '''Check whether actions are currently running

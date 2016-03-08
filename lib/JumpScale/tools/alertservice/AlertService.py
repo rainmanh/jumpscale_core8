@@ -25,7 +25,8 @@ class AlertService(object):
 
     def __init__(self):
         self.__jslocation__ = "j.tools.alertservice"
-        self.rediscl = j.clients.redis.getByInstance('system')
+        # self.rediscl = j.clients.redis.getByInstance('system')
+        self.rediscl = j.core.db
         self.alertqueue = self.rediscl.getQueue('alerts')
         self.alerts_client = j.clients.portal.getByInstance('main').actors.system.alerts
         self.handlers = list()

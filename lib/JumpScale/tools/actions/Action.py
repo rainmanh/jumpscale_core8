@@ -3,6 +3,16 @@ from JumpScale import j
 import time
 import inspect
 import traceback
+import sys
+import colored_traceback
+import imp
+import importlib
+
+colored_traceback.add_hook(always=True)
+
+import pygments.lexers
+from pygments.formatters import get_formatter_by_name
+
 
 class Action:    
     def __init__(self, action=None,runid=0,actionRecover=None,args=(),kwargs={},die=True,stdOutput=True,errorOutput=True,retry=1,serviceObj=None,deps=[],key="",selfGeneratorCode="",force=False):
@@ -38,6 +48,8 @@ class Action:
         #avoid we can write to it
         self._name=""
         self._path=""
+        self.calling_path=""
+        self.calling_linenr=0
         self._source=""
         self._doc=""
 
@@ -51,6 +63,7 @@ class Action:
         self._lastCodeMD5=""
         self._lastArgsMD5=""
         self.stdouterr=""
+        self.error=""
         self.loglevel = 5
         self.retry=retry
         self.die=die
@@ -72,25 +85,29 @@ class Action:
             self.method=action        
 
             if actionRecover!=None:
-                self._actionRecover = actionRecover.key
+                self._actionRecover = actionRecover.key              
 
         if key=="":
             if deps!=None:
+                #remove deps which are None
                 deps=[dep for dep in deps if dep!=None]
 
             if deps!=None and deps!=[]:
                 #means they are specified
                 self._deps=deps
                 self._depkeys=[dep.key for dep in deps ]
-            elif deps==None:
-                #need to grab last one if it exists
-                if j.actions.last!=None:
-                    deps=[j.actions.last]
-                else:
-                    deps=[]
-                self._depkeys=[dep.key for dep in deps ]
-                self._deps=deps
+            #DO NOT WANT THIS BEHAVIOUR ANY LONGER, should not automatically think previously defined actions are required, we need to define
+            # elif deps==None:
+            #     #need to grab last one if it exists
+            #     if j.actions.last!=None:
+            #         deps=[j.actions.last]
+            #     else:
+            #         deps=[]
+            #     self._depkeys=[dep.key for dep in deps ]
+            #     self._deps=deps
             else:
+                if deps==None:
+                    deps=[]
                 self._deps=deps
                 self._depkeys=[dep.key for dep in deps]
 
@@ -98,10 +115,20 @@ class Action:
         else:
             self._load(True)
 
+        self._parent=j.actions._current
+        if self._parent!=None:            
+            self.parent.addDep(self)
 
         if self.state=="INIT" and key=="":
             #is first time
             self.save(True)
+
+
+    @property
+    def parent(self):
+        if self._parent!=None:
+            return j.actions.get(self._parent)
+
 
     @property
     def state(self):
@@ -127,27 +154,37 @@ class Action:
 
     def getDepsAll(self):
         res=self._getDepsAll()
-        if self in res:
-            res.pop(res.index(self))
+        if self.key in res:
+            res.pop(res.index(self.key))
+        res=[j.actions.get(key) for key in res]
         return res
 
-    def _getDepsAll(self,res=[]):
-        for a in self.deps:
-            if a not in res:
-                res.append(a)
-            res=a._getDepsAll(res)
+    def _getDepsAll(self,res=None):
+        if res==None:
+            res=[]
+        for key in self._depkeys:
+            if key not in res:
+                res.append(key)
+            action=j.actions.get(key)
+            res=action._getDepsAll(res)
+
         return res
 
     def getWhoDependsOnMe(self):
         res=[]
         for key,action in j.actions.actions.items():
-            if self in action.getDepsAll():
+            if self.key in action._getDepsAll():
                 res.append(action)
         return res
 
     def changeStateWhoDependsOnMe(self,state):
         for action in self.getWhoDependsOnMe():
             action.state=state
+
+    def addDep(self,action):
+        if action.key not in self._depkeys:
+            self._depkeys.append(action.key)
+            self.save()
 
     @property
     def model(self):
@@ -165,12 +202,17 @@ class Action:
         model["_args"]=self._args
         model["_kwargs"]=self._kwargs
         model["_result"]=self._result
+        model["_parent"]=self._parent
+        model["error"]=self.error
         model["selfGeneratorCode"]=self.selfGeneratorCode
         model["runid"] = self.runid
         model["_state_show"] = self._state_show
         model["_actionRecover"] = self._actionRecover
         model["traceback"] = self.traceback
         model["die"] = self.die
+        model["calling_path"] = self.calling_path
+        model["calling_linenr"] = self.calling_linenr
+
         return model
 
     def _load(self,all=False):
@@ -219,8 +261,11 @@ class Action:
         if self.source=="":
             raise RuntimeError("source cannot be empty")
         if self._method == None:
-            exec(self.source)
-            self._method=eval("%s"%self.name)
+            # j.sal.fs.changeDir(basepath)
+            loader = importlib.machinery.SourceFileLoader(self.name,self.sourceToExecutePath )
+            handle = loader.load_module(self.name)
+            self._method=eval("handle.%s"%self.name)            
+
         return self._method  
 
     @method.setter
@@ -239,6 +284,52 @@ class Action:
             self._doc=""
         if self._doc!="" and self._doc[-1]!="\n":
             self._doc+="\n"
+
+    @property
+    def sourceToExecute(self):
+        s="""
+        from JumpScale import j
+
+        args=\"\"\"
+        $args
+        \"\"\"
+        kwargs=\"\"\"
+        $kwargs
+        \"\"\"
+
+        $source
+        """
+        #not used for now
+        s2="""
+        res=$name(*j.data.serializer.json.loads(args),**j.data.serializer.json.loads(kwargs))
+
+        print ("**RESULT**")
+        print (j.data.serializer.json.dumps(res,True,True))
+
+        """
+        s=j.data.text.strip(s)
+        args=j.data.serializer.json.dumps(self.args,sort_keys=True, indent=True)
+        kwargs=j.data.serializer.json.dumps(self.kwargs,sort_keys=True, indent=True)
+        s=s.replace("$args",args)
+        s=s.replace("$kwargs",kwargs)
+        # source=""
+        # lines=self.source.split("\n")
+        # defline=lines[0]
+        # end=defline.split("(",1)[1]
+        # args=end.split(")",1)[0]
+        # lines[0]=defline.replace(args,"*args,**kwargs")
+        # source=",".join(lines)
+
+        s=s.replace("$source",self.source)
+        s=s.replace("$name",self.name)
+
+        return s
+
+    @property
+    def sourceToExecutePath(self):
+        path=j.sal.fs.joinPaths(j.dirs.tmpDir,"actions",self.runid,self.name+".py")
+        j.do.writeFile(path,self.sourceToExecute)
+        return path
 
     @property
     def depsAreOK(self):
@@ -368,10 +459,12 @@ class Action:
 
     def execute(self):
         self.check() #see about changed source code
+        j.actions._current=self.key
 
-        if self.force:
-            self.state="FORCE"
-            print ("FORCE")
+        #@question why did we do that? (despiegk)
+        # if self.force:
+        #     self.state="FORCE"
+        #     print ("FORCE")
 
         if self.state == "OK":
             print("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
@@ -383,6 +476,9 @@ class Action:
 
         print("  * %-20s: %s" % (self.name, self._args1line))
 
+
+        
+
         if self._stdOutput == False:
             j.tools.console.hideOutput()
 
@@ -391,48 +487,110 @@ class Action:
             output = ""
             counter=0
             ok=False
-            err=""
+
             while ok==False and counter<self.retry+1:
+                
                 try:
                     if self.selfobj!=None:
                         self.result = self.method(self.selfobj,*self.args,**self.kwargs)
                     else:
                         self.result = self.method(*self.args,**self.kwargs)
+                    
                     ok=True
                     rcode=0
                     self.traceback=""
                 except Exception as e:
-                    for line in traceback.format_stack():
-                        if "/IPython/" in line:
-                            continue
-                        if "JumpScale/tools/actions" in line:
-                            continue
-                        line=line.strip().strip("' ").strip().replace("File ","")
-                        err+="%s\n"%line.strip()
-                    err+="ERROR:%s\n"%e
-                    self.traceback=err
+                    # for line in traceback.format_stack():
+                    #     if "/IPython/" in line:
+                    #         continue
+                    #     if "JumpScale/tools/actions" in line:
+                    #         continue
+                    #     if "ActionDecorator.py" in line:
+                    #         continue
+                    #     if "click/core.py" in line:
+                    #         continue
+                    #     # line=line.strip().strip("' ").strip().replace("File ","")
+                    #     self.traceback+="%s\n"%line.strip()
+                    # err=""
+
+
+
+                    tb=e.__traceback__
+                    value=e
+                    type=None
+
+
+                    tblist=traceback.format_exception(type, value, tb)
+                    tblist.pop(1)
+                    tb_text = "".join(tblist)
+
+                    err=""
+                    for e_item in e.args:
+                        err+="%s\n"%e_item
                     counter+=1
                     time.sleep(0.1)
-                    print("  RETRY, ERROR (%s/%s)" % (counter, self.retry))
+                    if self.retry>0:
+                        print("  RETRY, ERROR (%s/%s)" % (counter, self.retry))
                     rcode = 1
+                 
             
+
+            #we did the retries, rcode will be >0 if error
             if self._stdOutput == False:
                 j.tools.console.enableOutput()
-                self.stdouterr += j.tools.console.getOutput()
+                self.stdouterr += j.tools.console.getOutput()            
 
-    
-            if rcode > 0:
-                if err!="":
-                    self.stdouterr += err
-                self.state = "ERROR"
-                print(str(self))
-                self.save()
-                if self.actionRecover != None:
-                    self.actionRecover.execute()                
+ 
+            
+
+            if rcode > 0 or self.state=="ERROR":
+                
+
+                # from pudb import set_trace; set_trace()    
+
                 if self.die:
-                    raise RuntimeError("%s" % str(self))
+                    for action in self.getWhoDependsOnMe():
+                        if action.state=="ERROR":
+                            continue #to avoid saving
+                        # print ("#####%s"%self)
+                        # print (action)                            
+                        action.state="ERROR"    
+                        # print (action)
+                        action.save()
+                        
+
+                if self.actionRecover != None:
+                    self.actionRecover.execute()  
+
+                              
+
+                if self.state=="ERROR":
+                    j.actions._current=None
+                    #we are already in error, means error came from child
+                    if self.die:
+                        raise RuntimeError("error in action: %s"%self)                    
+                    return
+
+                self.traceback=tb_text
+
+                if err!="":
+                    self.error = err
+
+                self.state = "ERROR"
+                self.print()
+                self.save()
+
+
+                #we are no longer in action, so remove
+                j.actions._current=None
+                if self.die:
+                    raise RuntimeError("error in action: %s"%self)
             else:
                 self.state = "OK"
+
+
+            #actions done so need to make sure current is None again
+            j.actions._current=None                
             self.save(checkcode=True)
         else:
             rcode=0
@@ -442,47 +600,114 @@ class Action:
         return rcode
 
     def __str__(self):
+        msg = "action: %-20s runid:%-15s      (%s)\n" % (self.name, self.runid, self.state)
+        return msg
+
+    @property
+    def _stream(self):
+        try:
+            import colorama
+            return colorama.AnsiToWin32(sys.stderr)
+        except ImportError:
+            return sys.stderr
+
+    @property
+    def str(self):
+
+    # def _str(self,formatter="term"):
+
+        # if formatter="term":
+        #     formatter=pygments.formatters.Terminal256Formatter(style=pygments.styles.get_style_by_name("vim"))
+
+        # lexerpy = pygments.lexers.get_lexer_by_name("py3")#, stripall=True)
+        # lexertb = pygments.lexers.get_lexer_by_name("pytb", stripall=True)
+
+        # tb_colored = pygments.highlight(self.sourceToExecute, lexer, formatter)
+
         msg=""
         if self.state=="ERROR":
-            msg += "***ERROR***\n"
+            msg += "*ERROR***********************************************************************************\n"
         msg += "action: %-20s runid:%-15s      (%s)\n" % (self.name, self.runid, self.state)
         if self.state=="ERROR":
             msg += "    %s\n"%self.key 
-        msg += "    path: %s\n" % self.path
-        if self._args != "":
-            msg += "ARGS:\n"
-            msg += j.data.text.indent(self._args.strip())
-            if msg[-1]!="\n":
-                msg+="\n"
-        if self._kwargs != "":
-            msg += "KWARGS:\n"
-            msg += j.data.text.indent(self._kwargs.strip())
-            if msg[-1]!="\n":
-                msg+="\n"
+            msg += "    path: %s\n" % self.path
+        # if self.state=="ERROR":
+        #     if self.source != "":
+        #         msg += "SOURCE:\n"
+        #         msg += j.data.text.indent(self.source) + "\n"
+        #     if self.traceback != "":
+        #         msg += "TRACEBACK:\n"
+        #         msg += j.data.text.indent(self.traceback) + "\n"    
         if self.doc != "":
             msg += "DOC:\n"
             msg += j.data.text.indent(self.doc)
             if msg[-1]!="\n":
                 msg+="\n"
+        # if self._args != "":
+        #     msg += "ARGS:\n"
+        #     msg += j.data.text.indent(self._args.strip())
+        #     if msg[-1]!="\n":
+        #         msg+="\n"
+        # if self._kwargs != "":
+        #     msg += "KWARGS:\n"
+        #     msg += j.data.text.indent(self._kwargs.strip())
+        #     if msg[-1]!="\n":
+        #         msg+="\n"
         if self.stdouterr != "":
             msg += "OUTPUT:\n%s" % j.data.text.indent(self.stdouterr)
             if msg[-1]!="\n":
                 msg+="\n"
         if self.result != None:
             msg += "RESULT:\n%s" % j.data.text.indent(self.result)
-        if self.state=="ERROR":
-            if self.source != "":
-                msg += "SOURCE:\n"
-                msg += j.data.text.indent(self.source) + "\n"
-            if self.traceback != "":
-                msg += "TRACEBACK:\n"
-                msg += j.data.text.indent(self.traceback) + "\n"
+        if self.error != "":
+            msg += "ERROR:\n%s" % j.data.text.indent(self.error)
+            if msg[-1]!="\n":
+                msg+="\n"
         if msg[-1]!="\n":
             msg+="\n"
-                
-            
+        # if self.state=="ERROR":
+        #     msg += "action: %-20s runid:%-15s      (%s)\n" % (self.name, self.runid, self.state)
+        #     msg += "***ERROR***\n"       
+        out=""
+        for line in msg.split("\n"):
+            if line.strip()=="":
+                continue
+            out+="%s\n"%line
+        
+        if self.state=="ERROR":
+            out="\n\n%s"%out
+        return out
 
+    def print(self):
 
-        return msg
+        formatter=pygments.formatters.Terminal256Formatter(style=pygments.styles.get_style_by_name("vim"))
+
+        lexer = pygments.lexers.get_lexer_by_name("bash")#, stripall=True)
+        colored = pygments.highlight(self.str, lexer, formatter)
+        print ("\n")
+        self._stream.write(colored)
+
+        
+        print ("\n*SOURCECODE******************************************************************************\n")
+
+        """
+        styles:
+        'monokai', 'trac', 'borland', 'paraiso-dark', 'tango', 'bw', 'native', 'lovelace', 'algol_nu', 'vim', 'emacs', 'vs', 
+        'pastie', 'rrt', 'default', 'xcode', 'friendly', 'fruity', 'igor', 'colorful', 'paraiso-light', 'murphy', 'manni', 'autumn', 'perldoc', 'algol'
+        """
+        
+
+        lexer = pygments.lexers.get_lexer_by_name("py3")#, stripall=True)
+        tb_colored = pygments.highlight(self.sourceToExecute, lexer, formatter)
+        self._stream.write(tb_colored)
+
+        print ("\n*TRACEBACK*********************************************************************************\n")
+
+        lexer = pygments.lexers.get_lexer_by_name("pytb", stripall=True)
+        tb_colored = pygments.highlight(self.traceback, lexer, formatter)
+        self._stream.write(tb_colored)
+
+        print ("\n\n******************************************************************************************\n")
+    
 
     __repr__ = __str__

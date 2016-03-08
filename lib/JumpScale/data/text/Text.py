@@ -77,7 +77,7 @@ class Text:
                
         return out
 
-    def indent(self,instr,nspaces=4,wrap=120,strip=True,indentchar=" "):
+    def indent(self,instr,nspaces=4,wrap=180,strip=True,indentchar=" "):
         """Indent a string a given number of spaces.
 
         Parameters

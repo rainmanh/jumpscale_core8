@@ -1,5 +1,8 @@
 
 from JumpScale import j
+import colored_traceback
+colored_traceback.add_hook(always=True)
+import sys
 
 class ActionDecorator(object):
 
@@ -34,7 +37,10 @@ class ActionDecorator(object):
                     if "die" in kwargs:
                         if kwargs["die"]==False:
                             return action0
-                    raise RuntimeError("**ERROR**:\n%s"%action0)            
+                    msg="**ERROR ACTION**:\n%s"%action0
+                    # raise RuntimeError()
+                    print (msg)
+                    sys.exit(1)
                 return action0.result
             else:
                 return func(*args,**kwargs)

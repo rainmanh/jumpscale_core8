@@ -375,8 +375,8 @@ class CuisineBuilder(object):
 
         sourcepath = "$goDir/src/github.com/g8os/core"
 
-        self.cuisine.run("cd %s && go build ." % sourcepath, profile=True)
 
+        self.cuisine.run("cd %s && go build ." % sourcepath, profile=True)
         self.cuisine.file_move("%s/core" % sourcepath, "$binDir/core")
 
         # copy extensions
@@ -460,7 +460,7 @@ class CuisineBuilder(object):
 
 
         # manipulate config file
-        sourcepath = "$goDir/src/github.com/g8os/core"
+        sourcepath = "$binDir/core"
         C = self.cuisine.file_read("%s/agent.toml" % sourcepath)
         cfg = j.data.serializer.toml.loads(C)
         cfgdir = self.cuisine.dir_paths['cfgDir']

@@ -173,9 +173,6 @@ class TelegramAYS():
         j.sal.fs.createDir('%s/blueprints' % repopath)
         j.sal.fs.writeFile('%s/.ays' % repopath, '')
 
-        # FIXME: temporary fix
-        j.sal.process.execute("cp -rv /tmp/ays_test/servicetemplates %s/" % repopath)
-
         previous = j.sal.fs.getcwd()
         j.sal.fs.changeDir(repopath)
 

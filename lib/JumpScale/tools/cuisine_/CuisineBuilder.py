@@ -549,7 +549,7 @@ class CuisineBuilder(object):
 
     def _startRedis(self, name="main"):
         dpath,cpath=j.clients.redis._getPaths(name)
-        cmd="redis-server %s"%cpath
+        cmd="$binDir/redis-server %s"%cpath
         self.cuisine.processmanager.ensure(name="redis_%s" % name,cmd=cmd,env={},path='$binDir')
 
     def _startMongodb(self, name="mongod"):

@@ -149,47 +149,46 @@ class CuisineRunit(ProcessManagerBase):
         """Ensures that the given upstart service is self.running, starting
         it if necessary."""
 
-        if not self.cuisine.file_exists("/etc/service/%s/run" %name ):
-            cmd=self.cuisine.args_replace(cmd)
-            path=self.cuisine.args_replace(path)
+        cmd=self.cuisine.args_replace(cmd)
+        path=self.cuisine.args_replace(path)
 
 
-            envstr = ""
-            for name0, value in list(env.items()):
-                envstr += "export %s=%s\n" % (name0, value)
+        envstr = ""
+        for name0, value in list(env.items()):
+            envstr += "export %s=%s\n" % (name0, value)
 
 
-            if path and (path not in cmd):
-                cmd = "%s/%s" % (path, cmd)
+        if path and (path not in cmd):
+            cmd = "%s/%s" % (path, cmd)
 
-            sv_text ="""#!/bin/sh
+        sv_text ="""#!/bin/sh
 set -e
 echo $descrs
 $env
 cd $path
 exec $cmd
-            """
-            sv_text = sv_text.replace("$env", envstr)
-            sv_text = sv_text.replace("$path", path)
-            sv_text = sv_text.replace("$cmd",cmd)
-            if descr=="":
-                descr = name
-            sv_text = sv_text.replace("$descr",descr)
-            sv_text = sv_text.replace("$path",path)
+        """
+        sv_text = sv_text.replace("$env", envstr)
+        sv_text = sv_text.replace("$path", path)
+        sv_text = sv_text.replace("$cmd",cmd)
+        if descr=="":
+            descr = name
+        sv_text = sv_text.replace("$descr",descr)
+        sv_text = sv_text.replace("$path",path)
 
-            # if self.cuisine.file_is_link("/etc/service/"):
-            #     self.cuisine.file_link( "/etc/getty-5", "/etc/service")
-            self.cuisine.file_ensure("/etc/service/%s/run" %name,mode="+x")
-            self.cuisine.file_write("/etc/service/%s/run" %name, sv_text)
-            time.sleep(5)
+        # if self.cuisine.file_is_link("/etc/service/"):
+        #     self.cuisine.file_link( "/etc/getty-5", "/etc/service")
+        self.cuisine.file_ensure("/etc/service/%s/run" % name,mode="+x")
+        self.cuisine.file_write("/etc/service/%s/run" % name, sv_text)
+        time.sleep(2)
 
         self.start(name)
 
     def remove(self, prefix):
         """removes process from init"""
-        if self.cuisine.file_exists("/etc/service/%s/run" %prefix ):
+        if self.cuisine.file_exists("/etc/service/%s/run" % prefix ):
             self.stop(prefix)
-            self.cuisine.dir_remove("/etc/service/%s/run" %prefix)
+            self.cuisine.dir_remove("/etc/service/%s/run" % prefix)
 
 
 

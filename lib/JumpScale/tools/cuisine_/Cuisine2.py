@@ -207,6 +207,7 @@ from CuisineFW import CuisineFW
 from CuisineDocker import CuisineDocker
 from ProcessManagerFactory import ProcessManagerFactory
 from CuisinePortal import CuisinePortal
+from CuisineGeoDns import CuisineGeoDns
 
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
@@ -249,6 +250,7 @@ class OurCuisine():
         self._dnsmasq=None
         self._docker=None
         self._js8sb=None
+        self._geodns=None
         self._dirs={}
 
         self.done=[]
@@ -290,7 +292,12 @@ class OurCuisine():
         if self._golang==None:
             self._golang=CuisineGolang(self.executor,self)
         return self._golang
-
+    @property
+    def geodns(self):
+        if self._geodns==None:
+            self._geodns = CuisineGeoDns(self.executor, self)
+        return self._geodns
+    
     @property
     def builder(self):
         if self._builder==None:

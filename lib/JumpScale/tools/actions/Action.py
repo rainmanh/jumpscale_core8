@@ -85,7 +85,7 @@ class Action:
             self.method=action        
 
             if actionRecover!=None:
-                self._actionRecover = actionRecover.key
+                self._actionRecover = actionRecover.key              
 
         if key=="":
             if deps!=None:
@@ -123,6 +123,7 @@ class Action:
             #is first time
             self.save(True)
 
+
     @property
     def parent(self):
         if self._parent!=None:
@@ -153,21 +154,26 @@ class Action:
 
     def getDepsAll(self):
         res=self._getDepsAll()
-        if self in res:
-            res.pop(res.index(self))
+        if self.key in res:
+            res.pop(res.index(self.key))
+        res=[j.actions.get(key) for key in res]
         return res
 
-    def _getDepsAll(self,res=[]):
-        for a in self.deps:
-            if a not in res:
-                res.append(a)
-            res=a._getDepsAll(res)
+    def _getDepsAll(self,res=None):
+        if res==None:
+            res=[]
+        for key in self._depkeys:
+            if key not in res:
+                res.append(key)
+            action=j.actions.get(key)
+            res=action._getDepsAll(res)
+
         return res
 
     def getWhoDependsOnMe(self):
         res=[]
         for key,action in j.actions.actions.items():
-            if self in action.getDepsAll():
+            if self.key in action._getDepsAll():
                 res.append(action)
         return res
 
@@ -470,6 +476,9 @@ class Action:
 
         print("  * %-20s: %s" % (self.name, self._args1line))
 
+
+        
+
         if self._stdOutput == False:
             j.tools.console.hideOutput()
 
@@ -486,6 +495,7 @@ class Action:
                         self.result = self.method(self.selfobj,*self.args,**self.kwargs)
                     else:
                         self.result = self.method(*self.args,**self.kwargs)
+                    
                     ok=True
                     rcode=0
                     self.traceback=""
@@ -523,26 +533,42 @@ class Action:
                         print("  RETRY, ERROR (%s/%s)" % (counter, self.retry))
                     rcode = 1
                  
+            
 
             #we did the retries, rcode will be >0 if error
             if self._stdOutput == False:
                 j.tools.console.enableOutput()
                 self.stdouterr += j.tools.console.getOutput()            
 
+ 
+            
+
             if rcode > 0 or self.state=="ERROR":
+                
+
+                # from pudb import set_trace; set_trace()    
+
                 if self.die:
                     for action in self.getWhoDependsOnMe():
                         if action.state=="ERROR":
                             continue #to avoid saving
+                        # print ("#####%s"%self)
+                        # print (action)                            
                         action.state="ERROR"    
+                        # print (action)
                         action.save()
+                        
 
                 if self.actionRecover != None:
-                    self.actionRecover.execute()                
+                    self.actionRecover.execute()  
+
+                              
 
                 if self.state=="ERROR":
                     j.actions._current=None
                     #we are already in error, means error came from child
+                    if self.die:
+                        raise RuntimeError("error in action: %s"%self)                    
                     return
 
                 self.traceback=tb_text
@@ -561,7 +587,8 @@ class Action:
                     raise RuntimeError("error in action: %s"%self)
             else:
                 self.state = "OK"
-            
+
+
             #actions done so need to make sure current is None again
             j.actions._current=None                
             self.save(checkcode=True)

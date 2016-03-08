@@ -122,21 +122,21 @@ redisinit()
 if j.core.db==None:
 
     if j.do.TYPE.startswith("OSX"):
-        #--port 0 
+        #--port 0
         cmd="redis-server --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"
         print ("start redis in background")
         os.system(cmd)
     else:
         cmd="echo never > /sys/kernel/mm/transparent_hugepage/enabled"
         os.system(cmd)
-        cmd="sysctl vm.overcommit_memory=1"        
+        cmd="sysctl vm.overcommit_memory=1"
         os.system(cmd)
         redis_bin = '%s/bin/redis-server' % j.do.BASE
         if 'redis-server' not in os.listdir(path='%s/bin/' % j.do.BASE):
             url = "https://stor.jumpscale.org/public/redis-server"
             j.do.download(url, to=redis_bin, overwrite=False, retry=3)
         import subprocess
-        cmd1 = "chmod 550 %s > 2&>1" % redis_bin
+        cmd1 = "chmod 550 %s 2>&1" % redis_bin
         cmd2 = "%s  --port 0 --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes" % redis_bin
         print ("start redis in background")
         os.system(cmd1)

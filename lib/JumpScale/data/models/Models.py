@@ -82,7 +82,7 @@ class ModelBase():
                 res = None
         else:
             try:
-                res = cls.objects.get(guid=guid)
+                res = cls.objects.get(id=guid)
             except DoesNotExist:
                 res = None
         return res

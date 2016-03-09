@@ -28,7 +28,7 @@ toStr = j.data.text.toStr
 
 # We do not use the j.core.platformtype here nor do we import the PlatformType as this would
 # lead to circular imports and raise an exception
-if not j.core.platformtype.myplatform.isWindows():
+if not sys.platform.startswith('win'):
     try:
         import fcntl
     except ImportError:

@@ -1160,7 +1160,7 @@ class OurCuisine():
         rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)
         out = self._clean(out)
 
-        if rc:
+        if rc>0:
             items2check=["sudo","wget","curl","git","openssl"]
             next=True
             while next==True:
@@ -1203,7 +1203,7 @@ class OurCuisine():
         if debug!=None:
             self.executor.debug=debugremember
         if rc>0 and die:
-            raise RuntimeError("could not execute %s,OUT:\n%s"%(cmd,out))
+            raise RuntimeError("could not execute %s,OUT:\n%s**NOSTACK**"%(cmd,out))
         out=out.strip()
         # print("output run: %s" % out)
         if die==False:

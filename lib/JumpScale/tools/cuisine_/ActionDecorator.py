@@ -34,6 +34,9 @@ class ActionDecorator(object):
                 j.actions.setRunId(cuisine.runid)
                 action0=j.actions.add(action=func, actionRecover=None,args=args,kwargs=kwargs,die=True,stdOutput=True,errorOutput=True,retry=0,executeNow=True,selfGeneratorCode=cm,force=force)
 
+                # from pudb import set_trace; set_trace() 
+                
+
                 if action0.state!="OK":
                     if "die" in kwargs:
                         if kwargs["die"]==False:

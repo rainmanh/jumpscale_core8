@@ -442,6 +442,7 @@ class SessionCache(ModelBase, Document):
     user = StringField()
     _creation_time = IntField(default=j.data.time.getTimeEpoch())
     _accessed_time = IntField(default=j.data.time.getTimeEpoch())
+    guid = StringField()
     meta = extend(default_meta, {'indexes': [
         {'fields': ['epoch'], 'expireAfterSeconds': 432000}
     ], 'allow_inheritance': True, "db_alias": DB})

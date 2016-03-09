@@ -91,7 +91,7 @@ class ModelBase():
     def _save_redis(cls, obj):
         key = cls._getKey(obj.guid)
         meta = cls._meta['indexes']
-        expire = meta[2].get('expireAfterSeconds', None) if meta else None
+        expire = meta[0].get('expireAfterSeconds', None) if meta else None
         raw = j.data.serializer.json.dumps(obj.to_dict())
         j.core.db.set(key, raw)
         if expire:
@@ -442,6 +442,7 @@ class SessionCache(ModelBase, Document):
     user = StringField()
     _creation_time = IntField(default=j.data.time.getTimeEpoch())
     _accessed_time = IntField(default=j.data.time.getTimeEpoch())
+    guid = StringField()
     meta = extend(default_meta, {'indexes': [
         {'fields': ['epoch'], 'expireAfterSeconds': 432000}
     ], 'allow_inheritance': True, "db_alias": DB})

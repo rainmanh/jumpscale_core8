@@ -186,3 +186,10 @@ class CuisineSSH():
         keys=self.cuisine.run("ssh-add -l",showout=False)
         if path in keys:
             raise RuntimeError("ssh-key is still loaded in ssh-agent, please remove manually")
+
+
+    def __str__(self):
+        return "cuisine.ssh:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
+
+
+    __repr__=__str__            

@@ -1176,7 +1176,7 @@ class OurCuisine():
                 if out.find("pip3: command not found")!=-1 and not "pip" in self.done:
 
                     self.done.append("pip")
-                    self.installer.pip()
+                    self.installerdevelop.pip()
                     next=True
 
                 if out.lower().find("fatal error")!=-1 and out.lower().find("python.h")!=-1 \
@@ -1192,10 +1192,6 @@ class OurCuisine():
 
                 for package in items2check:
                     if out.find("not found")!=-1 and  out.find(package)!=-1:
-                        from IPython import embed
-                        print ("DEBUG NOW %s not found"%(package))
-                        embed()
-
                         if not package in self.done:
                             self.done.append(package)
                             self.installer.base()

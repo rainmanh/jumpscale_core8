@@ -6,7 +6,7 @@ import sys
 
 class ActionDecorator(object):
 
-    def __init__(self,action=False,force=False):
+    def __init__(self,action=True,force=False):
         self.action=action
         self.force=force
     def __call__(self, func):
@@ -16,6 +16,7 @@ class ActionDecorator(object):
             forcebase=self.force
             cm=self.selfobjCode
             cuisine=args[0].cuisine
+
             if "action" in kwargs:
                 action=kwargs.pop("action")
             else:

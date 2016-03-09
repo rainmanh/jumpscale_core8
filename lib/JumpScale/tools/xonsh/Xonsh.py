@@ -6,6 +6,7 @@ except:
     j.do.executeInteractive("pip3 install colored-traceback")
     j.do.executeInteractive("pip3 install xonsh")
     j.do.executeInteractive("pip3 install pudb")
+    j.do.executeInteractive("pip3 install tmuxp")
     import xonsh
 
 

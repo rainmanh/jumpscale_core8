@@ -20,7 +20,15 @@ class CuisineDocker():
 
     @actionrun(action=True)
     def install(self):
-        self.cuisine.installer.docker()
+        if self.cuisine.isUbuntu:
+            C="""
+            wget -qO- https://get.docker.com/ | sh
+            """
+            self.cuisine.run_script(C)
+        if self.cuisine.isArch:
+            self.cuisine.package.install("docker")
+            self.cuisine.package.install("docker-compose")
+
 
     def archBuild(self): #@todo (*2*)
         C="""

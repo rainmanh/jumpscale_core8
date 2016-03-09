@@ -96,6 +96,8 @@ class ActionController(object):
         @param serviceObj: service, will be used to get category filled in
         '''
 
+        # from pudb import set_trace; set_trace()   
+
         l=traceback.format_stack()
         tbline=l[-2].split("\n")[0].replace("'","")
         fpath,linenr,remaining=tbline.split(",",2)

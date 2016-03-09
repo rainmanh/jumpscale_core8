@@ -8,7 +8,7 @@ class ExecutorSSH(ExecutorBase):
             passwd=None,debug=False,checkok=True,allow_agent=True, \
             look_for_keys=True,pushkey=None,pubkey=""):
         ExecutorBase.__init__(self, dest_prefixes=dest_prefixes,debug=debug,checkok=checkok)
-        self.id = j.data.hash.md5_string('%s:%s:%s' % (addr, port, login))
+        self.id = '%s:%s:%s' % (addr, port, login)
         self.addr = addr
         self._port = int(port)
         self._login=login

@@ -466,6 +466,8 @@ class Action:
         #     self.state="FORCE"
         #     print ("FORCE")
 
+        from pudb import set_trace; set_trace() 
+
         if self.state == "OK":
             print("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
             return
@@ -475,9 +477,6 @@ class Action:
         #     raise RuntimeError("%s" % str(self))
 
         print("  * %-20s: %s" % (self.name, self._args1line))
-
-
-        
 
         if self._stdOutput == False:
             j.tools.console.hideOutput()
@@ -513,8 +512,6 @@ class Action:
                     #     self.traceback+="%s\n"%line.strip()
                     # err=""
 
-
-
                     tb=e.__traceback__
                     value=e
                     type=None
@@ -540,8 +537,6 @@ class Action:
                 j.tools.console.enableOutput()
                 self.stdouterr += j.tools.console.getOutput()            
 
- 
-            
 
             if rcode > 0 or self.state=="ERROR":
                 

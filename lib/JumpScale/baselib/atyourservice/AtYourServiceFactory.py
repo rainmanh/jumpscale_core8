@@ -47,6 +47,7 @@ class AtYourServiceFactory():
 
     def reset(self):
         # self._db.reload()
+        j.dirs._ays = None
         self._services = {}
         self._templates = []
         self._recipes = []

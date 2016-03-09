@@ -7,7 +7,7 @@ import uuid
 
 DB = 'jumpscale_system'
 
-default_meta = {'allow_inheritance': True, "db_alias": DB, 'indexes': ['guid']}
+default_meta = {'allow_inheritance': True, "db_alias": DB}
 
 def extend(a, b):
     if isinstance(a, list):
@@ -26,11 +26,18 @@ def extend(a, b):
 class ModelBase():
     DoesNotExist = DoesNotExist
 
-    guid = StringField(default=lambda: str(uuid.uuid4()), unique=True)
     gid = IntField(default=lambda: j.application.whoAmI.gid if j.application.whoAmI else 0)
     nid = IntField(default=lambda: j.application.whoAmI.nid if j.application.whoAmI else 0)
     epoch = IntField(default=j.data.time.getTimeEpoch)
     meta = default_meta
+
+    @property
+    def guid(self):
+        return self.pk
+
+    @guid.setter
+    def guid(self, value):
+        self.pk = value
 
     def to_dict(self):
         d = j.data.serializer.json.loads(Document.to_json(self))

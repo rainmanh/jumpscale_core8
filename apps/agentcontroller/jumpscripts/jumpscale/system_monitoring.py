@@ -1,6 +1,6 @@
 from JumpScale import j
 import re
-
+import sys
 
 descr = """
 gather statistics about system
@@ -19,11 +19,22 @@ queue='process'
 log=False
 
 roles = []
-def action():
+def action(redisconnection):
     import psutil
     import os
+    if not redisconnection or not ':' in redisconnection:
+        print("Please specifiy a redis connection in the form of ipaddr:port")
+        return
+    addr = redisconnection.split(':')[0]
+    port = int(redisconnection.split(':')[1])
+    redis_client = j.clients.redis.getRedisClient(addr, port)
     hostname =j.sal.nettools.getHostname()
-    aggregator = j.tools.aggregator.getClient(j.core.db,  hostname)
+
+    aggregator = j.tools.aggregator.getClient(redis_client,  hostname)
+    tags = j.data.tags.getTagString(tags={
+        'gid': str(j.application.whoAmI.gid),
+        'nid': str(j.application.whoAmI.nid),
+        })
 
 
     results={}
@@ -73,12 +84,15 @@ def action():
 
 
     for key, value in results.items():
-        j.data.tags.getTagString()
-        aggregator.measure(tags={'nid': j.application.whoAmI.nid, 'gid': j.application.whoAmI.gid} ,key=key, value=value)
+        aggregator.measure(tags=tags, key=key, value=value, measurement="")
 
     return results
 
 if __name__ == '__main__':
-    results = action()
+    if len(sys.argv) == 2:
+        results = action(sys.argv[1])
+    else:
+        print("Please specifiy a redis connection in the form of ipaddr:port")
+
     import yaml
     print (yaml.dump(results))

@@ -128,8 +128,7 @@ class CuisineBuilder(object):
         self.cuisine.bash.addPath(self.cuisine.args_replace("$binDir"), action=True)
 
         if start:
-            cmd=self.cuisine.bash.cmdGetPath("skydns")
-            self.cuisine.processmanager.ensure("skydns",cmd + " -addr 0.0.0.0:53")
+            self._startSkydns()
 
     @actionrun(action=True)
     def caddy(self,ssl=False,start=True, dns=None):
@@ -161,22 +160,8 @@ class CuisineBuilder(object):
         self.cuisine.file_write(cpath, C)
 
         if start:
-            self.cuisine.processmanager.stop("caddy")  # will also kill
-            if ssl:
-                self.cuisine.fw.allowIncoming(443)
-                self.cuisine.fw.allowIncoming(80)
+            self._startCaddy(ssl)
 
-                if self.cuisine.process.tcpport_check(80,"") or self.cuisine.process.tcpport_check(443,""):
-                    raise RuntimeError("port 80 or 443 are occupied, cannot install caddy")
-
-            else:
-                if self.cuisine.process.tcpport_check(80,""):
-                    raise RuntimeError("port 80 is occupied, cannot install caddy")
-
-                PORTS=":80"
-                self.cuisine.fw.allowIncoming(80)
-            cmd = self.cuisine.bash.cmdGetPath("caddy")
-            self.cuisine.processmanager.ensure("caddy", '%s -conf=%s -email=info@greenitglobe.com' % (cmd, cpath))
 
     def caddyConfig(self,sectionname,config):
         """
@@ -209,21 +194,8 @@ class CuisineBuilder(object):
         content = j.data.serializer.toml.dumps(config)
         self.cuisine.file_write("$tmplsDir/cfg/stor/config.toml", content)
 
-
         if start:
-            res = addr.split(":")
-            if len(res) == 2:
-                addr, port = res[0], res[1]
-            else:
-                addr, port = res[0], '8090'
-
-                self.cuisine.fw.allowIncoming(port)
-                if self.cuisine.process.tcpport_check(port,""):
-                    raise RuntimeError("port %d is occupied, cannot start stor" % port)
-
-            self.cuisine.file_copy("$tmplsDir/cfg/stor/config.toml", "$cfgDir/stor/")
-            cmd = self.cuisine.bash.cmdGetPath("stor")
-            self.cuisine.processmanager.ensure("stor", '%s --config $cfgDir/stor/config.toml' % cmd)
+            self._startStor(addr)
 
     @actionrun(action=True)
     def fs(self, start=False):
@@ -255,8 +227,8 @@ class CuisineBuilder(object):
         self.cuisine.file_write("$goDir/src/github.com/g8os/fs/config/config.toml", content)
         self.cuisine.file_copy("$goDir/src/github.com/g8os/fs/config/config.toml", "$tmplsDir/cfg/fs")
         if start:
-            self.cuisine.file_copy("$tmplsDir/cfg/fs", "$varDir/cfg", recursive=True)
-            self.cuisine.processmanager.ensure('fs', cmd="$binDir/fs -c $varDir/cfg/fs/config.toml")
+            self._startFs()
+
 
 
     @actionrun(action=True)
@@ -356,8 +328,8 @@ class CuisineBuilder(object):
         """
         #deps
         self.installdeps()
-        self.redis()
-        self.mongodb()
+        self.redis(start=False)
+        self.mongodb(start=False)
         #self.cuisine.installer.jumpscale8()
 
         self.syncthing(start=False)
@@ -382,6 +354,7 @@ class CuisineBuilder(object):
         # copy extensions
         self.cuisine.dir_remove("$tmplsDir/cfg/core/extensions")
         self.cuisine.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
+        self.cuisine.file_copy("%s/agent.toml" % sourcepath, "$tmplsDir/cfg/core")
         self.cuisine.file_copy("%s/conf" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
         self.cuisine.dir_ensure("$tmplsDir/cfg/core/extensions/syncthing")
         self.cuisine.file_copy("$binDir/syncthing", "$tmplsDir/cfg/core/extensions/syncthing/")
@@ -401,8 +374,8 @@ class CuisineBuilder(object):
         """
         #deps
         self.installdeps()
-        self.redis()
-        self.mongodb()
+        self.redis(start=False)
+        self.mongodb(start=False)
         self.syncthing(start=False)
 
 
@@ -432,7 +405,33 @@ class CuisineBuilder(object):
 
         if start:
             self._startController()
+            
+    def _startCaddy(self, ssl):
+        cpath = self.cuisine.args_replace("$tmplsDir/cfg/caddy/caddyfile.conf")
+        self.cuisine.processmanager.stop("caddy")  # will also kill
+        if ssl:
+            self.cuisine.fw.allowIncoming(443)
+            self.cuisine.fw.allowIncoming(80)
 
+            if self.cuisine.process.tcpport_check(80,"") or self.cuisine.process.tcpport_check(443,""):
+                raise RuntimeError("port 80 or 443 are occupied, cannot install caddy")
+
+        else:
+            if self.cuisine.process.tcpport_check(80,""):
+                raise RuntimeError("port 80 is occupied, cannot install caddy")
+
+            PORTS = ":80"
+            self.cuisine.fw.allowIncoming(80)
+        cmd = self.cuisine.bash.cmdGetPath("caddy")
+        self.cuisine.processmanager.ensure("caddy", '%s -conf=%s -email=info@greenitglobe.com' % (cmd, cpath))
+
+    def _startSkydns(self):
+        cmd = self.cuisine.bash.cmdGetPath("skydns")
+        self.cuisine.processmanager.ensure("skydns",cmd + " -addr 0.0.0.0:53")
+
+    def _startFs(self):
+        self.cuisine.file_copy("$tmplsDir/cfg/fs", "$cfgDir", recursive=True)
+        self.cuisine.processmanager.ensure('fs', cmd="$binDir/fs -c $cfgDir/fs/config.toml")
 
     def _startSyncthing(self):
         self.cuisine.dir_ensure("$cfgDir")
@@ -444,11 +443,29 @@ class CuisineBuilder(object):
         pm = self.cuisine.processmanager.get("tmux")
         pm.ensure(name="syncthing", cmd="./syncthing -home  $cfgDir/syncthing", path=self.cuisine.joinpaths(GOPATH, "bin"))
 
+    def _startStor(self, addr):
+        res = addr.split(":")
+        if len(res) == 2:
+            addr, port = res[0], res[1]
+        else:
+            addr, port = res[0], '8090'
+
+            self.cuisine.fw.allowIncoming(port)
+            if self.cuisine.process.tcpport_check(port,""):
+                raise RuntimeError("port %d is occupied, cannot start stor" % port)
+
+        self.cuisine.dir_ensure("$cfgDir/stor/", recursive=True)
+        self.cuisine.file_copy("$tmplsDir/cfg/stor/config.toml", "$cfgDir/stor/")
+        cmd = self.cuisine.bash.cmdGetPath("stor")
+        self.cuisine.processmanager.ensure("stor", '%s --config $cfgDir/stor/config.toml' % cmd)
+
     def _startCore(self, nid, gid):
         """
         if this is run on the sam e machine as a controller instance run controller first as the
         core will consume the avialable syncthing port and will cause a problem
         """
+
+        # @todo this will break code if two instances on same machine
         if not nid:
             nid = 1
         if not gid:
@@ -460,7 +477,7 @@ class CuisineBuilder(object):
 
 
         # manipulate config file
-        sourcepath = "$binDir/core"
+        sourcepath = "$tmplsDir/cfg/core"
         C = self.cuisine.file_read("%s/agent.toml" % sourcepath)
         cfg = j.data.serializer.toml.loads(C)
         cfgdir = self.cuisine.dir_paths['cfgDir']
@@ -526,7 +543,7 @@ class CuisineBuilder(object):
         else:
             synccl = j.clients.syncthing.get(addr="localhost", port=18384, apikey=apikey)
 
-        jumpscripts_path = self.cuisine.args_replace("$cfgDir/cfg/controller/jumpscripts")
+        jumpscripts_path = self.cuisine.args_replace("$cfgDir/controller/jumpscripts")
         for i in range(4):
             try:
                 jumpscripts_id = "jumpscripts-%s" % hashlib.md5(synccl.id_get().encode()).hexdigest()
@@ -629,7 +646,6 @@ class CuisineBuilder(object):
     @actionrun(action=True)
     def redis(self,name="main",ip="localhost", port=6379, maxram=200, appendonly=True,snapshot=False,slave=(),ismaster=False,passwd=None,unixsocket=True,start=True):
         self.cuisine.installer.base()
-
         if not self.cuisine.isMac:
 
             C="""

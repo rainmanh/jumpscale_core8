@@ -560,7 +560,7 @@ class InstallTools():
          e.g. ...getDirName("/opt/qbase/bin/something/test.py", levelsUp=1) would return bin
          e.g. ...getDirName("/opt/qbase/bin/something/test.py", levelsUp=10) would raise an error
         """
-        self.log('Get directory name of path: %s' % path,9)
+        # self.log('Get directory name of path: %s' % path,9)
         if path is None:
             raise TypeError('Path is not passed in system.fs.getDirName')
         dname=os.path.dirname(path)
@@ -1010,7 +1010,7 @@ class InstallTools():
 
         s.quit()
 
-    def execute(self, command , outputStdout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[], ok=[], captureout=True, dieOnNonZeroExitCode=True, async=False):
+    def execute(self, command , outputStdout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[], ok=[], captureout=True, dieOnNonZeroExitCode=True, async=False, die=True):
         """
         @param errors is array of statements if found then exit as error
         return rc,out
@@ -1404,8 +1404,9 @@ class InstallTools():
                 self.loadSSHKeys(self.joinPaths(path,keypath))
 
 
-    def getSSHKeyFromAgent(self,keyname,die=True):
+    def getSSHKeyPathFromAgent(self,keyname,die=True):
         try:
+            #@todo why do we use subprocess here and not self.execute?
             out=subprocess.check_output(["ssh-add","-L"])
         except:
             return None
@@ -1416,6 +1417,7 @@ class InstallTools():
             if line.endswith(delim):
                 line=line.strip()
                 keypath=line.split(" ".encode())[-1]
+                content=line.split(" ".encode())[-2]
                 if not self.exists(path=keypath):
                     if self.exists("keys/%s"%keyname):
                         keypath="keys/%s"%keyname
@@ -1425,6 +1427,24 @@ class InstallTools():
         if die:
             raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l"%keyname)
         return None
+
+    def getSSHKeyFromAgentPub(self,keyname,die=True):
+        try:
+            #@todo why do we use subprocess here and not self.execute?
+            out=subprocess.check_output(["ssh-add","-L"])
+        except:
+            return None
+
+        for line in out.splitlines():
+            delim = (".ssh/%s" % keyname).encode()
+            if line.endswith(delim):
+                content=line.strip()
+                content=content.decode()
+                return content
+        if die:
+            raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l"%keyname)
+        return None
+
 
     def listSSHKeyFromAgent(self):
         cmd = "ssh-add -L"
@@ -1598,7 +1618,7 @@ class InstallTools():
         else:
             return True
 
-    def getGitRepoArgs(self, url="", dest=None, login=None, passwd=None, reset=False,branch=None,ssh="auto"):
+    def getGitRepoArgs(self, url="", dest=None, login=None, passwd=None, reset=False,branch=None,ssh="auto",codeDir=None):
         """
         Extracts and returns data useful in cloning a Git repository.
 
@@ -1659,8 +1679,10 @@ class InstallTools():
         repository_type = repository_host.split('.')[0] if '.' in repository_host else repository_host
 
         if not dest:
+            if codeDir==None:
+                codeDir=self.CODEDIR
             dest = '%(codedir)s/%(type)s/%(account)s/%(repo_name)s' % {
-                'codedir': self.CODEDIR,
+                'codedir': codeDir,
                 'type': repository_type.lower(),
                 'account': repository_account.lower(),
                 'repo_name': repository_name,
@@ -1673,20 +1695,30 @@ class InstallTools():
 
         return repository_host, repository_type, repository_account, repository_name, dest, repository_url
 
-    def pullGitRepo(self,url="",dest=None,login=None,passwd=None,depth=1,ignorelocalchanges=False,reset=False,branch=None,revision=None, ssh="auto",executor=None):
+    def pullGitRepo(self,url="",dest=None,login=None,passwd=None,depth=1,ignorelocalchanges=False,reset=False,branch=None,revision=None, ssh="auto",executor=None,codeDir=None):
         """
         will clone or update repo
         if dest == None then clone underneath: /opt/code/$type/$account/$repo
         will ignore changes !!!!!!!!!!!
+
+        @param ssh ==True means will checkout ssh
+        @param ssh =="first" means will checkout sss first if that does not work will go to http
         """
+
+        if ssh=="first":
+            try:
+                return self.pullGitRepo(url,dest,login,passwd,depth,ignorelocalchanges,reset,branch,revision, True,executor)
+            except Exception as e:
+                return self.pullGitRepo(url,dest,login,passwd,depth,ignorelocalchanges,reset,branch,revision, False,executor)
+            raise RuntimeError("Could not checkout, needs to be with ssh or without.")                
+
 
         if executor is None:
             executor = self
         else:
             executor.checkok = False
 
-        base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh)
-
+        base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh,codeDir=codeDir)
 
         if dest is None and branch is None:
             branch = "master"
@@ -1694,7 +1726,7 @@ class InstallTools():
             # if we don't specify the branch, try to find the currently checkedout branch
             if executor.exists(dest):
                 cmd = 'cd %s; git rev-parse --abbrev-ref HEAD' % dest
-                rc, out = executor.execute(cmd)
+                rc, out = executor.execute(cmd, die=False, showout=False)
                 if rc == 0:
                     branch = out.strip()
                 else:  # if we can't retreive current branch, use master as default
@@ -1949,7 +1981,7 @@ class Installer():
 
     def installJSDocs(self,ssh=True):
         print("install jsdocs")
-        do.pullGitRepo(url='git@github.com:Jumpscale/docs.git')
+        do.pullGitRepo(url='git@github.com:Jumpscale/docs.git',ssh="first")
 
 
     def installJS(self,base="",clean=False,insystem=True,GITHUBUSER="",GITHUBPASSWD="",CODEDIR="",\
@@ -2031,7 +2063,7 @@ class Installer():
         self.prepare(SANDBOX=SANDBOX,base= os.environ["JSBASE"])
 
         print ("pull core")
-        do.pullGitRepo(JSGIT,branch=JSBRANCH, depth=1, ssh=False)
+        do.pullGitRepo(JSGIT,branch=JSBRANCH, depth=1, ssh="first")
         src="%s/github/jumpscale/jumpscale_core8/lib/JumpScale"%do.CODEDIR
         self.debug=False
 
@@ -2039,7 +2071,6 @@ class Installer():
         if do.TYPE.startswith("OSX"):
             do.delete("/usr/local/lib/python2.7/site-packages/JumpScale")
             do.delete("/usr/local/lib/python3.5/site-packages/JumpScale")
-            do.createDir(destjs)
         elif do.TYPE.startswith("WIN"):
             raise RuntimeError("do")
 
@@ -2099,7 +2130,7 @@ class Installer():
         #from JumpScale import j
 
         print("Get atYourService metadata.")
-        do.pullGitRepo(AYSGIT, branch=AYSBRANCH, depth=1, ssh=False)
+        do.pullGitRepo(AYSGIT, branch=AYSBRANCH, depth=1, ssh="first")
 
         print ("install was successfull")
         # if pythonversion==2:
@@ -2163,6 +2194,7 @@ class Installer():
         paths.python.lib.js=$base/lib/JumpScale
         paths.python.lib.ext=$base/libext
         paths.app=$base/apps
+        paths.templates=$base/templates
         paths.var=$vardir/var
         paths.log=$vardir/log
         paths.pid=$vardir/pid
@@ -2423,6 +2455,11 @@ exec python3 -q "$@"
             pip3 install netaddr
             """
             do.executeCmds(cmds)
+
+            do.executeInteractive("pip3 install colored-traceback")
+            do.executeInteractive("pip3 install xonsh")
+            do.executeInteractive("pip3 install pudb")
+            do.executeInteractive("pip3 install tmuxp")            
 
             if sys.platform.startswith('win'):
                 raise RuntimeError("Cannot find JSBASE, needs to be set as env var")

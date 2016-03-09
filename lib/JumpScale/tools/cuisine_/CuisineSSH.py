@@ -37,9 +37,9 @@ class CuisineSSH():
         login="root"
         done=[]
         for item in self.test_login(passwd,port,range,onlyplatform=onlyplatform):
-            keypath=j.do.joinPaths(os.environ["HOME"],".ssh",keyname+".pub")
-            if j.do.exists(keypath):
-                key=j.do.readFile(keypath)
+            keypath=j.sal.fs.joinPaths(os.environ["HOME"],".ssh",keyname+".pub")
+            if j.sal.fs.exists(keypath):
+                key=j.sal.fs.fileGetContents(keypath)
                 executor=j.tools.executor.getSSHBased(item,port,login,passwd,checkok=True)
                 executor.cuisine.ssh.authorize(user="root",key=key)
                 if changepasswdto!="":
@@ -186,3 +186,10 @@ class CuisineSSH():
         keys=self.cuisine.run("ssh-add -l",showout=False)
         if path in keys:
             raise RuntimeError("ssh-key is still loaded in ssh-agent, please remove manually")
+
+
+    def __str__(self):
+        return "cuisine.ssh:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
+
+
+    __repr__=__str__            

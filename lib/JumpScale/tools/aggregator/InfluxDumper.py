@@ -12,6 +12,18 @@ class InfluxDumper(Dumper.BaseDumper):
     QUEUES = [QUEUE_MIN, QUEUE_HOUR]
 
     def __init__(self, influx, database=None, cidr='127.0.0.1', port=7777):
+        """
+        Create a new instance of influx dumper
+
+        On start. the dump method will get called with the found redis connections object. the `dump`
+        method should process the given instance queues until there is no more data to process and then return
+        This will make the worker move to the next available connection
+
+        :param influx: Influx connection
+        :param database: Influx database name
+        :param cidr: Network CIDR to scan for all redis instances that listen on the specified port
+        :param port: Find all redis instances that listens on that port on the given CIDR
+        """
         super(InfluxDumper, self).__init__(cidr, port)
 
         self.influxdb=influx

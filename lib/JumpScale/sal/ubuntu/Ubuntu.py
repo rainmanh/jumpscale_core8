@@ -128,8 +128,8 @@ class Ubuntu:
         will download to tmp if not there yet
         will then install
         """
-        j.do.chdir() #will go to tmp
-        path=j.do.download(url,"",overwrite=False,minspeed=minspeed,curl=True)
+        j.sal.fs.changedir(j.dirs.tmpDir) #will go to tmp
+        path=j.sal.nettools.download(url,"")
         self.deb_install(path)
         if removeDownloaded:
             j.tools.path.get(path).rmtree_p()

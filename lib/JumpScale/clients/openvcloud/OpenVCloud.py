@@ -156,7 +156,7 @@ class Openvcloud(object):
 metadata.openvcloud            =
     url:'https://git.aydo.com/0-complexity/openvcloud_ays',
 """
-            cl.file_append('%s/hrd/system/atyourservice.hrd'%j.do.BASE, content)
+            cl.file_append('%s/hrd/system/atyourservice.hrd'%j.dirs.base, content)
             self.actionDone(gitlaburl, "jumpscale")
 
         if self.actionCheck(gitlaburl, "gitcredentials") is False:
@@ -258,9 +258,6 @@ metadata.openvcloud            =
         else:
             cl = j.clients.gitlab.get("https://git.aydo.com", gitlablogin, gitlabpasswd)
             hrd = cl.getHRD("openvcloudEnvironments", "scaleout1", "services/openvcloud__git_vm__main/service.hrd")
-            from IPython import embed
-            print("DEBUG NOW ooo")
-            embed()
 
         if self.actionCheck(gitlaburl, "gitcredentials"):
             gitlaburl0 = "/".join(gitlaburl.split("/")[:3])
@@ -352,7 +349,7 @@ metadata.openvcloud            =
 metadata.openvcloud            =
     url:'https://git.aydo.com/0-complexity/openvcloud_ays',
 """
-            cl.file_append('%s/hrd/system/atyourservice.hrd'%j.do.BASE, content)
+            cl.file_append('%s/hrd/system/atyourservice.hrd'%j.dirs.base, content)
             self.actionDone(spacesecret, "vnas_jumpscale")
 
         if self.actionCheck(gitlaburl, "vnas-gitlabclone") is False:

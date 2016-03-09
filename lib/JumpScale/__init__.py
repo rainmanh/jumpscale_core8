@@ -82,16 +82,19 @@ class Loader(object):
 
 locationbases={}
 j = Loader("j")
-j.data=Loader("j.actions")
 j.data=Loader("j.data")
+j.data.serializer=Loader("j.data.serializer")
+j.data.units = Loader('j.data.units')
+j.data.models = Loader('j.data.models')
 j.core=Loader("j.core")
 j.sal=Loader("j.sal")
 j.tools=Loader("j.tools")
 j.clients=Loader("j.clients")
-j.data.serializer=Loader("j.data.serializer")
 j.servers=Loader("j.servers")
-j.data.units = Loader('j.data.units')
-j.data.models = Loader('j.data.models')
+j.portal = Loader('j.portal')
+j.portal.tools = Loader('j.portal.tools')
+
+
 
 from .InstallTools import InstallTools
 from .InstallTools import Installer
@@ -119,21 +122,22 @@ redisinit()
 if j.core.db==None:
 
     if j.do.TYPE.startswith("OSX"):
-        #--port 0 
+        #--port 0
         cmd="redis-server --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"
         print ("start redis in background")
         os.system(cmd)
     else:
         cmd="echo never > /sys/kernel/mm/transparent_hugepage/enabled"
         os.system(cmd)
-        cmd="sysctl vm.overcommit_memory=1"        
+        cmd="sysctl vm.overcommit_memory=1"
         os.system(cmd)
-        url="https://stor.jumpscale.org/public/redis-server"
-        if 'redis' not in os.listdir(path='%s/bin/'%j.do.BASE):
-            j.do.download(url, to='%s/bin/redis'%j.do.BASE, overwrite=False, retry=3)
+        redis_bin = '%s/bin/redis-server' % j.do.BASE
+        if 'redis-server' not in os.listdir(path='%s/bin/' % j.do.BASE):
+            url = "https://stor.jumpscale.org/public/redis-server"
+            j.do.download(url, to=redis_bin, overwrite=False, retry=3)
         import subprocess
-        cmd1 = "chmod 550 %sbin/redis > 2&>1"%j.do.BASE
-        cmd2 = "%sbin/redis  --port 0 --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"%j.do.BASE
+        cmd1 = "chmod 550 %s 2>&1" % redis_bin
+        cmd2 = "%s  --port 0 --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes" % redis_bin
         print ("start redis in background")
         os.system(cmd1)
         os.system(cmd2)
@@ -147,10 +151,13 @@ if j.core.db==None:
 def findjumpscalelocations(path):
     res=[]
     C=j.do.readFile(path)
+    classname=None
     for line in C.split("\n"):
         if line.startswith("class "):
             classname=line.replace("class ","").split(":")[0].split("(",1)[0].strip()
         if line.find("self.__jslocation__")!=-1:
+            if classname==None:
+                raise RuntimeError("Could not find class in %s while loading jumpscale lib."%path)
             location=line.split("=",1)[1].replace("\"","").replace("'","").strip()
             res.append((classname,location))
     return res
@@ -251,3 +258,7 @@ if data==None:
     j.application._config = j.data.hrd.get(path="%s/hrd/system"%basevar)
 
 j.application.init()
+
+j.tools.xonsh
+
+

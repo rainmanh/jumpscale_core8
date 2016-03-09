@@ -7,17 +7,6 @@ def cli():
     pass
 
 @click.command()
-@click.argument('action')
-@click.argument('role')
-@click.argument('instance')
-@click.option('--debug', default=True, help='enable debug', type=bool)
-def do(action, role, instance, debug):
-    j.atyourservice.debug = debug
-
-    service = j.atyourservice.getService(role=role, instance=instance, die=True)
-    eval("service.action_methods_node.%s()" % action)
-
-@click.command()
 @click.option('--name', '-n', help='name of the docker to commit')
 @click.option('--parsable', '-p', help='enable parsable output', is_flag=True, type=bool)
 def list(name, parsable):
@@ -70,11 +59,10 @@ def commit(name, tag):
 @click.option('--aysfs', help='use default jumpscale aysfs', is_flag=True, type=bool)
 def create(image, name, ports, volumes, cpu, memory, sharecode, keyname, pubkey, aysfs):
     aysfspts = []
-    
+
     if aysfs:
         aysfspts.append(j.sal.aysfs.getJumpscale())
-        aysfspts.append(j.sal.aysfs.getOptvar())
-    
+
     j.sal.docker.create(name=name, stdout=True, base=image, ports=ports, vols=volumes,
              volsro=None, cpu=cpu, mem=memory, jumpscale=False, sharecode=sharecode,\
              sshkeyname=keyname, sshpubkey=pubkey, rootpasswd=None, jumpscalebranch=None,\
@@ -159,7 +147,6 @@ def execute(name, cmd):
     container.cuisine.run(cmd)
 
 
-cli.add_command(do)
 cli.add_command(list)
 cli.add_command(pull)
 cli.add_command(commit)

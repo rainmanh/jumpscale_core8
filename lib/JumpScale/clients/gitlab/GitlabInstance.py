@@ -9,7 +9,7 @@ try:
 except Exception as e:
     cmd="pip install pyapi-gitlab"
     if str(e).find("No module named 'gitlab'")!=-1:
-        j.do.executeInteractive(cmd)
+        j.sal.process.executeWithoutPipe(cmd)
     import gitlab
 
 
@@ -158,7 +158,7 @@ class GitlabInstance():
         if not self.getProject(name, renew=True):
             self.gitlab.createproject(name,public=public,namespace_id=group2['id'])
             proj=self.getProject(name, renew=True)
-            j.do.delete(path, force=True)
+            j.sal.fs.remove(path, force=True)
             j.sal.fs.createDir(path)
             def do(cmd):
                 j.sal.process.executeWithoutPipe("cd %s;%s"%(path,cmd))

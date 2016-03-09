@@ -2,7 +2,7 @@ from JumpScale import j
 # import JumpScale.baselib.actions
 
 # import pytoml
-# from contextlib import redirect_stdout
+from contextlib import redirect_stdout
 import io
 import imp
 import sys
@@ -120,20 +120,17 @@ class ActionRun():
 
         return self._methods
 
-
-    def log(self,msg):
-        print(msg)
-        j.atyourservice.alog.log(msg)
+    def log(self, msg):
+        j.atyourservice.alog.log(msg=msg, category=self.name)
 
     def run(self):
         if len(self.methods)>0:
 
             self.setState("START")
-            print ("RUN:%s"%self)
+            print("RUN:%s" % self)
             for method in self.methods:
                 if not self.printonly:
                     if j.atyourservice.debug:
-                        # print (method)
                         try:
                             if method == "node":
                                 res = self.service._executeOnNode(self.name)
@@ -141,41 +138,22 @@ class ActionRun():
                                 res = method()
                         except Exception as e:
                             self.setState("ERROR")
-                            # err="***ERROR %s***\n"%(self)
-                            # for line in traceback.format_stack():
-                            #     if "/IPython/" in line:
-                            #         continue
-                            #     # if "JumpScale/baselib" in line:
-                            #     #     continue
-                            #     if "site-packages/click/" in line:
-                            #         continue
-                            #     if "bin/ays" in line:
-                            #         continue
-                            #     line=line.strip().strip("' ").strip().replace("File ","")
-                            #     err+="%s\n"%line.strip()
-                            # err+="ERROR:%s\n"%e
-                            # print (err)
-                            self.log("Exception:%s"%e)
+                            self.log("Exception: %s" % e)
                             raise RuntimeError(e)
                     else:
                         f = io.StringIO()
-                        print(1)
                         with redirect_stdout(f):
-                            ok=False
                             try:
                                 if method == "node":
                                     res = self.service._executeOnNode(self.name)
                                 else:
                                     res = method()
-                                print ("sdsdsds")
-                                raise RuntimeError("1111")
-                                ok=True
+                                self.log(f.getvalue())
                             except Exception as e:
-                                pass
-                        print(2)
-                        # self.setState("ERROR")
-                        # self.log("STDOUT:")
-                        # self.log(f.getvalue())
+                                self.setState("ERROR")
+                                self.log("Exception: %s" % e)
+                                self.log("Ouput:\n %s" % f.getvalue())
+                                raise RuntimeError(e)
         else:
             print ("NO METHODS FOR: %s"%self)
 
@@ -195,7 +173,7 @@ class Service:
         """
         self.originator = originator
 
-        if path!="" and j.do.exists(path):
+        if path!="" and j.sal.fs.exists(path):
             self.role,self.instance=j.sal.fs.getBaseName(path).split("!")
             self._name=None
             self._version=None
@@ -323,7 +301,7 @@ class Service:
 
     @property
     def hrd(self):
-        if self._hrd==None:
+        if self._hrd is None:
             hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
             self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
         return self._hrd
@@ -363,7 +341,8 @@ class Service:
     @property
     def action_methods_mgmt(self):
         if self._action_methods_mgmt is None or not self._rememberActions:
-            print ("reload mgmt actions for %s (%s)"%(self,self._rememberActions))
+            if j.atyourservice.debug:
+                print ("reload mgmt actions for %s (%s)"%(self,self._rememberActions))
             if j.sal.fs.exists(path=self.recipe.path_actions_mgmt):
                 action_methods_mgmt = self._loadActions(self.recipe.path_actions_mgmt,"mgmt")
             else:
@@ -447,10 +426,10 @@ class Service:
         if j.sal.fs.exists(path+'c'):
             j.sal.fs.remove(path+'c')
         if j.sal.fs.exists(path):
-            j.do.createDir(j.do.getDirName(path))
-            path2 = j.do.joinPaths(self.path, j.do.getBaseName(path))
+            j.sal.fs.createDir(j.sal.fs.getDirName(path))
+            path2 = j.sal.fs.joinPaths(self.path, j.sal.fs.getBaseName(path))
             #need to create a copy of the recipe mgmt or node action class
-            j.do.copyFile(path, path2)
+            j.sal.fs.copyFile(path, path2)
             # print (path2)
             if self.hrd is not None:
                 # print ("apply hrd")
@@ -464,9 +443,18 @@ class Service:
         modulename = "JumpScale.atyourservice.%s.%s.%s.%s" % (self.domain, self.name, self.instance,ttype)
         mod = loadmodule(modulename, path2)
         #is only there temporary don't want to keep it there
-        j.do.delete(path2)
-        j.do.delete(j.do.joinPaths(self.path,"__pycache__"))
-        return mod.Actions(self)
+        j.sal.fs.remove(path2)
+        j.sal.fs.removeDirTree(j.do.joinPaths(self.path,"__pycache__"))
+
+        actions = mod.Actions(self)
+        if 'roletemplate' in super(actions.__class__, actions).__module__:
+            hrd = j.atyourservice.getRoleTemplateHRD(self.role)
+            if hrd and self._hrd:
+                for key in hrd.items.keys():
+                    if not self._hrd.exists(key):
+                        self._hrd.set(key, hrd.get(key))
+
+        return actions
 
     @property
     def producers(self):
@@ -511,7 +499,7 @@ class Service:
                     do = True
             if do:
                 print("INIT:%s"%self)
-                j.do.createDir(self.path)
+                j.sal.fs.createDir(self.path)
                 self.runAction("input")
                 hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
 
@@ -723,12 +711,12 @@ class Service:
         # if 'os' in self.producers and self.producers.get('os'):
             node = self.parent
             # node = self.producers["os"][0]
-            if '"agentcontroller2' in node.producers:
+            if '"agentcontroller' in node.producers:
                 # this means an agentcontroller is responsible for the node which hosts this service
-                agentcontroller = node.producers["agentcontroller2"][0]
+                agentcontroller = node.producers["agentcontroller"][0]
                 # make more robust
-                agent2controller2client = agentcontroller.producers["agent2controller2client"][0]
-                executor = j.tools.executor.getJSAgent2Based(agent2controller2client.key)
+                agentcontrollerclient = agentcontroller.producers["agentcontrollerclient"][0]
+                executor = j.tools.executor.getJSAgentBased(agentcontrollerclient.key)
             elif node.hrd.exists("node.tcp.addr") and node.hrd.exists("ssh.port"):
                 # is ssh node
                 executor = j.tools.executor.getSSHBased(node.hrd.get("node.tcp.addr"), node.hrd.get("ssh.port"))
@@ -749,14 +737,21 @@ class Service:
         childDirs = j.sal.fs.listDirsInDir(self.path)
         childs = {}
         for path in childDirs:
+            if path.endswith('__pycache__'):
+                continue
             child = j.sal.fs.getBaseName(path)
-            ss = child.split("__")
-            name = ss[0]
-            instance = ss[1]
+            name, instance = child.split("!")
             if name not in childs:
                 childs[name] = []
             childs[name].append(instance)
         return childs
+
+    def isConsumedBy(self, service):
+        if self.role in service.producers:
+            for s in service.producers[self.role]:
+                if s.key == self.key:
+                    return True
+        return False
 
     # def _consume(self, producerservice, producercategory):
     #     """
@@ -980,7 +975,7 @@ class Service:
     #         return
 
     #     statePath = j.sal.fs.joinPaths(self.path, 'state.toml')
-    #     j.do.delete(statePath)
+    #     j.sal.fs.remove(statePath)
 
     # def reset(self):
     #     """
@@ -997,7 +992,7 @@ class Service:
     #         name = recipeitem['url'].replace(
     #             "https://", "").replace("http://", "").replace(".git", "")
     #         dest = "/opt/build/%s" % name
-    #         j.do.delete(dest)
+    #         j.sal.fs.remove(dest)
     #
     #     self.action_methods_mgmt.removedata(self)
     #     j.atyourservice.remove(self)
@@ -1067,13 +1062,13 @@ class Service:
     #             else:
     #                 nodirs = False
     #
-    #             items = j.do.listFilesInDir(
+    #             items = j.sal.fs.listFilesInDir(
     #                 path=src, recursive=False, followSymlinks=False, listSymlinks=False)
     #             if nodirs is False:
-    #                 items += j.do.listDirsInDir(
+    #                 items += j.sal.fs.listDirsInDir(
     #                     path=src, recursive=False, dirNameOnly=False, findDirectorySymlinks=False)
     #
-    #             items = [(item, "%s/%s" % (dest, j.do.getBaseName(item)), link)
+    #             items = [(item, "%s/%s" % (dest, j.sal.fs.getBaseName(item)), link)
     #                      for item in items]
     #         else:
     #             items = [(src, dest, link)]

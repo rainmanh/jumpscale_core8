@@ -207,6 +207,11 @@ from CuisineFW import CuisineFW
 from CuisineDocker import CuisineDocker
 from ProcessManagerFactory import ProcessManagerFactory
 from CuisinePortal import CuisinePortal
+from CuisineSSHReflector import CuisineSSHReflector
+from CuisineProxy import CuisineProxy
+from CuisineBootMediaInstaller import CuisineBootMediaInstaller
+from CuisineVRouter import CuisineVRouter
+from CuisineTmux import CuisineTmux
 
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
@@ -250,6 +255,12 @@ class OurCuisine():
         self._docker=None
         self._js8sb=None
         self._dirs={}
+
+        self.sshreflector=CuisineSSHReflector(self.executor,self)
+        self.proxy=CuisineProxy(self.executor,self)
+        self.bootmediaInstaller=CuisineBootMediaInstaller(self.executor,self)
+        self.vrouter=CuisineVRouter(self.executor,self)
+        self.tmux=CuisineTmux(self.executor,self)
 
         self.done=[]
 
@@ -345,12 +356,6 @@ class OurCuisine():
         return self._avahi
 
     @property
-    def tmux(self):
-        if self._tmux==None:
-            self._tmux=j.sal.tmux.get(self,self.executor)
-        return self._tmux
-
-    @property
     def dnsmasq(self):
         if self._dnsmasq==None:
             self._dnsmasq=j.sal.dnsmasq
@@ -422,6 +427,7 @@ class OurCuisine():
             else:
                 res["varDir"]= "/optvar/"
             res["appDir"]="%s/apps"%res["base"]
+            res['tmplsDir']="%s/templates" % res["base"]
             res["binDir"]="%s/bin"%res["base"]
             res["cfgDir"]="%s/cfg"%res["varDir"]
             res["jsLibDir"]="%s/lib/JumpScale/"%res["base"]
@@ -455,6 +461,7 @@ class OurCuisine():
         dirs:
         - $base
         - $appDir
+        - $tmplsDir
         - $varDir/
         - $binDir
         - $codeDir
@@ -469,9 +476,10 @@ class OurCuisine():
         - $hostname
 
         """
-        for key,var in self.dir_paths.items():
-            text=text.replace("$%s"%key,var)
-        text=text.replace("$hostname",self.hostname)
+        if text:
+            for key, var in self.dir_paths.items():
+                text = text.replace("$%s" % key, var)
+            text = text.replace("$hostname", self.hostname)
         return text
 
     def system_uuid_alias_add(self):
@@ -768,7 +776,7 @@ class OurCuisine():
             self.file_write(hostfile,val)
 
     @actionrun(action=False,force=False)
-    def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False,replaceArgs=False,strip=True):
+    def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False,replaceArgs=False,strip=True,showout=True):
         if strip:
             content=j.data.text.strip(content)
 
@@ -776,7 +784,8 @@ class OurCuisine():
         if replaceArgs:
             content=self.cuisine.args_replace(content)
 
-        print ("filewrite: %s"%location)
+        if showout:
+            print ("filewrite: %s"%location)
         self.dir_ensure(j.sal.fs.getParent(location))
 
         content2 = content.encode('utf-8')
@@ -878,7 +887,7 @@ class OurCuisine():
     def file_unlink(self,path):
         path=self.cuisine.args_replace(path)
         if self.file_exists(path):
-            self.run("unlink %s" % (shell_safe(path)))
+            self.run("unlink %s" % (shell_safe(path)),showout=False)
 
     @actionrun(action=False,force=False)
     def file_link(self,source, destination, symbolic=True, mode=None, owner=None, group=None):
@@ -898,12 +907,14 @@ class OurCuisine():
         self.file_attribs(destination, mode, owner, group)
 
     @actionrun(action=False,force=False)
-    def file_copy(self, source, dest, recursive=False):
+    def file_copy(self, source, dest, recursive=False, overwrite=False):
         source=self.cuisine.args_replace(source)
         dest=self.cuisine.args_replace(dest)
         cmd = "cp -v "
         if recursive:
             cmd += "-r "
+        if not overwrite:
+            cmd += "--no-clobber "
         cmd += '%s %s' % (source, dest)
         self.run(cmd)
 
@@ -981,10 +992,11 @@ class OurCuisine():
         return path
 
     @actionrun(action=False,force=False)
-    def dir_attribs(self,location, mode=None, owner=None, group=None, recursive=False):
+    def dir_attribs(self,location, mode=None, owner=None, group=None, recursive=False,showout=False):
         """Updates the mode/owner/group for the given remote directory."""
         location=self.cuisine.args_replace(location)
-        print ("set dir attributes:%s"%location)
+        if showout:
+            print ("set dir attributes:%s"%location)
         recursive = recursive and "-R " or ""
         if mode:
             self.run('chmod %s %s %s' % (recursive, mode,  shell_safe(location)),showout=False)
@@ -1020,7 +1032,7 @@ class OurCuisine():
         ssh call, so use that method, otherwise set owner/group after creation."""
         location=self.cuisine.args_replace(location)
         if not self.dir_exists(location):
-            self.run('mkdir %s %s' % (recursive and "-p" or "", shell_safe(location)))
+            self.run('mkdir %s %s' % (recursive and "-p" or "", shell_safe(location)),showout=False)
         if owner or group or mode:
             self.dir_attribs(location, owner=owner, group=group, mode=mode, recursive=recursive)
 
@@ -1138,7 +1150,8 @@ class OurCuisine():
             ppath=self.bash.profilePath
             if ppath!=None:
                 cmd=". %s && %s"%(ppath,cmd)
-            print ("PROFILECMD:%s"%cmd)
+            if showout:
+                print ("PROFILECMD:%s"%cmd)
 
         if self.sudomode:
             passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
@@ -1153,9 +1166,6 @@ class OurCuisine():
             while next==True:
                 next=False
                 if out.find("target not found: python3")!=-1 and not "python" in self.done:
-                    from IPython import embed
-                    print ("DEBUG NOW python3 not found")
-                    embed()
                     self.done.append("python")
                     if self.isArch:
                         self.cuisine.package.install("python3")
@@ -1164,9 +1174,6 @@ class OurCuisine():
                     next=True
 
                 if out.find("pip3: command not found")!=-1 and not "pip" in self.done:
-                    from IPython import embed
-                    print ("DEBUG NOW pip3 not found")
-                    embed()
 
                     self.done.append("pip")
                     self.installer.pip()
@@ -1217,8 +1224,10 @@ class OurCuisine():
 
     @actionrun()
     def run_script(self,content,die=True,profile=False):
+        print("RUN SCRIPT:")
         content=self.cuisine.args_replace(content)
         content=j.data.text.strip(content)
+        print(content)
 
         if content[-1]!="\n":
             content+="\n"
@@ -1230,9 +1239,9 @@ class OurCuisine():
 
         path="$tmpDir/%s.sh"%j.data.idgenerator.generateRandomInt(0, 10000)
         if not self.isMac:
-            self.file_write(location=path, content=content, mode=0o770, owner="root", group="root")
+            self.file_write(location=path, content=content, mode=0o770, owner="root", group="root",showout=False)
         else:
-            self.file_write(location=path, content=content, mode=0o770)
+            self.file_write(location=path, content=content, mode=0o770,showout=False)
 
         rc,out=self.run("bash %s"%path,showout=True,die=False)
         out = self._clean(out)
@@ -1262,7 +1271,7 @@ class OurCuisine():
     def command_check(self,command):
         """Tests if the given command is available on the system."""
         command=self.cuisine.args_replace(command)
-        rc,out= self.run("which '%s'"%command,die=False,showout=False)
+        rc,out= self.run("which '%s'"%command,die=False,showout=False, profile=True)
         return rc==0
 
     def command_location(self,command):

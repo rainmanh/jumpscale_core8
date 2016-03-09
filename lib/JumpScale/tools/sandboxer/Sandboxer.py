@@ -29,7 +29,7 @@ class Dep():
         j.sal.fs.createDir(j.sal.fs.getDirName(dest))
         if dest!=self.path: #don't copy to myself
             print ("DEPCOPY: %s %s"%(self.path,dest))
-            if not j.do.exists(dest):
+            if not j.sal.fs.exists(dest):
                 j.sal.fs.copyFile(self.path, dest)
             j.tools.sandboxer._done.append(dest)
 
@@ -102,10 +102,10 @@ class Sandboxer():
     def sandboxLibs(self,path,dest=None,recursive=False):
         """
         find binaries on path and look for supporting libs, copy the libs to dest
-        default dest = '%s/bin/'%j.do.BASE
+        default dest = '%s/bin/'%j.dirs.base
         """
         if dest==None:
-            dest="%s/bin/"%j.do.BASE
+            dest="%s/bin/"%j.dirs.base
         if j.sal.fs.isDir(path):
             #do all files in dir
             for item in j.sal.fs.listFilesInDir( path, recursive=recursive, followSymlinks=True, listSymlinks=False):
@@ -152,15 +152,15 @@ class Sandboxer():
                 subpath=subpath.replace("site-packages/","")
 
             dest2=dest+"/"+subpath
-            j.do.createDir(j.do.getDirName(dest2))
+            j.sal.fs.createDir(j.sal.fs.getDirName(dest2))
             # print ("C:%s"%dest2)
-            j.do.copyFile(src,dest2)
+            j.sal.fs.copyFile(src,dest2)
 
 
         j.sal.fs.walker.walkFunctional(path, callbackFunctionFile=callbackFile, callbackFunctionDir=None, arg=(path,dest), \
             callbackForMatchDir=callbackForMatchDir, callbackForMatchFile=callbackForMatchFile)
 
-    def dedupe(self, path, storpath, name, excludeFiltersExt=["pyc","bak"],append=False,reset=False,removePrefix="",compress=True,delete=False,verify=True):
+    def dedupe(self, path, storpath, name, excludeFiltersExt=["pyc","bak"],append=False,reset=False,removePrefix="",compress=True,delete=False,verify=True, excludeDirs=[]):
         def _calculatePaths(src, removePrefix):
             if j.sal.fs.isLink(src):
                 srcReal = j.sal.fs.readlink(src)
@@ -175,21 +175,21 @@ class Sandboxer():
             dest2_bro = "%s/%s/%s/%s.bro_" % (storpath2, md5[0], md5[1], md5)
             path_src=j.tools.path.get(srcReal)
             self.original_size+=path_src.size
-            j.do.delete(dest2_bro)
+            j.sal.fs.remove(dest2_bro)
 
             if compress:
                 print ("- %-100s %sMB"%(srcReal,round(path_src.size/1000000,1)))
-                # if delete or not j.do.exists(dest2_bro_final):
+                # if delete or not j.sal.fs.exists(dest2_bro_final):
                 cmd="bro --quality 7 --input '%s' --output %s"%(srcReal,dest2_bro)
                 # print (cmd)
                 # os.system(cmd)
                 # try:
-                j.do.execute(cmd)
+                j.sal.process.execute(cmd)
 
                 # except Exception as e:
                 #     import ipdb
                 #     ipdb.set_trace()
-                if not j.do.exists(dest2_bro):
+                if not j.sal.fs.exists(dest2_bro):
                     raise RuntimeError("Could not do:%s"%cmd)
                 md5_bro = j.data.hash.md5(dest2_bro)
                 dest2_bro_final = "%s/%s/%s/%s.bro" % (storpath2, md5_bro[0], md5_bro[1], md5_bro)
@@ -206,19 +206,19 @@ class Sandboxer():
                     efficiency_now=0
                 print ("- %-100s %-6s %-6s %sMB"%("",efficiency,efficiency_now,round(self.original_size/1000000,1)))
                 if verify:
-                    j.do.delete(dest2verify)
+                    j.sal.fs.remove(dest2verify)
                     cmd="bro --decompress --quality 10 --input '%s' --output %s"%(dest2_bro,dest2verify)
-                    j.do.execute(cmd)
+                    j.sal.process.execute(cmd)
                     hhash=j.data.hash.md5(dest2verify)
                     if hhash!=md5:
                         raise RuntimeError("error in compression:%s"%cmd)
-                    j.do.delete(dest2verify)
+                    j.sal.fs.remove(dest2verify)
                 j.sal.fs.moveFile(dest2_bro,dest2_bro_final)
 
                 md5 = md5_bro
 
             else:
-                j.do.copyFile(srcReal, dest2)
+                j.sal.fs.copyFile(srcReal, dest2)
 
             stat = j.sal.fs.statPath(srcReal)
 
@@ -233,13 +233,13 @@ class Sandboxer():
 
 
         if reset:
-            j.do.delete(storpath)
+            j.sal.fs.remove(storpath)
         storpath2 = j.sal.fs.joinPaths(storpath, "files")
         j.sal.fs.createDir(storpath2)
         j.sal.fs.createDir(j.sal.fs.joinPaths(storpath, "md"))
         for i1 in "1234567890abcdef":
             for i2 in "1234567890abcdef":
-                j.do.createDir("%s/%s/%s" % (storpath2, i1, i2))
+                j.sal.fs.createDir("%s/%s/%s" % (storpath2, i1, i2))
 
         print("DEDUPE: %s to %s" % (path, storpath))
 
@@ -248,17 +248,24 @@ class Sandboxer():
         if append and j.sal.fs.exists(path=plistfile):
             out = j.sal.fs.fileGetContents(plistfile)
         else:
-            j.do.delete(plistfile)
+            j.sal.fs.remove(plistfile)
             out = ""
 
         # excludeFileRegex=[]
         # for extregex in excludeFiltersExt:
         #     excludeFileRegex.append(re.compile(ur'(\.%s)$'%extregex))
+        def skipDir(src):
+            for d in excludeDirs:
+                if src.startswith(d):
+                    return True
+            return False
 
         if not j.sal.fs.isDir(path):
             out += _calculatePaths(path, removePrefix)
         else:
             for src in j.sal.fs.listFilesInDir(path, recursive=True, exclude=["*.pyc", "*.git*"], followSymlinks=True, listSymlinks=True):
+                if skipDir(src):
+                    continue
                 out += _calculatePaths(src, removePrefix)
 
         out = j.data.text.sort(out)

@@ -73,7 +73,8 @@ class CuisineDocker():
         """
         self.cuisine.run_script(C)
 
-    def ubuntuBuild(self):
+    @actionrun(action=True)
+    def ubuntuBuild(self,push=False):
 
         dest = self.cuisine.git.pullRepo('https://github.com/Jumpscale/dockers.git', ssh=False)
         path = self.cuisine.joinpaths(dest, 'js8/x86_64/2_ubuntu1510')
@@ -82,12 +83,60 @@ class CuisineDocker():
         set -ex
         cd %s
         docker build -t jumpscale/ubuntu1510 --no-cache .
-        docker push jumpscale/ubuntu1510
         """ % path
         self.cuisine.run_script(C)
 
-    @actionrun(action=True)
+        if push:
+            C="""
+            set -ex
+            cd %s
+            docker push jumpscale/ubuntu1510
+            """ % path
+            self.cuisine.run_script(C)
+
+    def enableSSH(self,port=None,passwd="gig1234",pubkey=""):
+        if port!=None:
+            #@todo (*1*) is this needed maybe already done before in jsdocker?
+            self.cuisine.fw.allowIncoming(port)
+
+        #make sure past is removed
+        j.do.delete(j.dirs.homeDir+"/.ssh/known_hosts")
+
+        if pubkey=="" or pubkey==None:
+            pubkey=j.clients.ssh.getSSHKeyFromAgentPub() #will ask for which key to  use
+
+        #@todo (*1*) shortcut to get this thing to work, jsdocker does not push the key (BUG)
+        #port = ssh port of the docker
+        j.clients.ssh.cache={}
+        connstr="%s:%s"%(self.executor.addr,port)
+        c2=j.tools.cuisine.getPushKey(connstr,passwd="gig1234",pubkey=pubkey)
+
+        j.clients.ssh.cache={}
+
+        sshcl=j.clients.ssh.get(self.executor.addr, port=port, login="root", passwd=None, stdout=True, forward_agent=True,allow_agent=True, look_for_keys=True,timeout=5,testConnection=True,die=True)
+
+        # c2=j.tools.cuisine.get(connstr)
+        c2=sshcl.cuisine
+
+        #change passwd
+        c2.user.passwd("root",j.data.idgenerator.generateGUID())
+
+        #to make sure we execute all actions again (because is new action)
+        j.actions.reset(item=c2.runid)
+
+        return connstr
+
+
+    @actionrun(action=True,force=True)
     def ubuntu(self, name="ubuntu1", image='jumpscale/ubuntu1510', ports=None, volumes=None, pubkey=None, aydofs=False):
+        """
+        will return connection string which can be used for getting a cuisine connection as follows:
+            j.cuisine.get(connstr)
+        @param ports e.g. 2022,2023
+        @param volumes e.g. format: "/var/insidemachine:/var/inhost # /var/1:/var/1
+        @param ports e.g. format "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
+
+        """
         if not aydofs:
             cmd = "jsdocker create --name {name} --image {image}".format(name=name, image=image)
             if pubkey:
@@ -100,8 +149,12 @@ class CuisineDocker():
             cmd = "jsdocker list --name {name} --parsable".format(name=name)
             out = self.cuisine.run(cmd, profile=True)
             info = j.data.serializer.json.loads(out)
-            return info[0]['port']
-        #TODO:
+
+            port=info[0]["port"]
+
+            return self.enableSSH(port=port,pubkey=pubkey)
+
+        #TODO: @todo (*1*)
         #- start from docker repo where pushed docker image is (build using self.ubuntuBuild)
         #- mount over aydofs see docker_approach.md in this dir (improve jsdocker to also work with aydofs)
         #- put ssh key in place for mgmt (use jsdocker remote)
@@ -117,7 +170,7 @@ class CuisineDocker():
 
 
     @actionrun(action=True)
-    def ArchSystemd(self,name="arch1"):
+    def archSystemd(self,name="arch1"):
         """
         start arch which is using systemd  #@todo (*2*) there is an issue with tty, cannot install anything (see in arch builder)
         """

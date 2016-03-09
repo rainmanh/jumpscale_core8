@@ -20,7 +20,6 @@ class CuisineInstallerDevelop():
 
     @actionrun(action=True)
     def python(self):
-        self.cuisine.set_sudomode()
         C="""
         libpython3.5-dev
         python3.5-dev
@@ -39,7 +38,6 @@ class CuisineInstallerDevelop():
 
     @actionrun(action=True)
     def pip(self):
-        self.cuisine.set_sudomode()
         self.cuisine.installer.base()
         self.python()
         C="""
@@ -58,7 +56,6 @@ class CuisineInstallerDevelop():
 
     @actionrun(action=True)
     def jumpscale8(self):
-        self.cuisine.set_sudomode()
         #make sure base is done & env is clean
         self.cuisine.installer.base()
 
@@ -91,6 +88,11 @@ class CuisineInstallerDevelop():
         C=self.cuisine.args_replace(C)
         self.cuisine.run_script(C,action=True)
 
+        #gevent
+        C="""
+        pip3 install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
+        """
+        self.cuisine.run_script(C,action=True)
 
         C="""
         paramiko
@@ -142,18 +144,26 @@ class CuisineInstallerDevelop():
         watchdog
         pygo
         minio
-        
+
+        # colorlog
+        colored-traceback
+        #pygments
+        tmuxp
+
+        xonsh
+        pudb
+
         python-telegram-bot
         """
         self.cuisine.pip.multiInstall(C,action=True,upgrade=True)
 
-        #gevent
-        C="""
-        pip3 install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
-        """
-        self.cuisine.run_script(C,action=True)
-
         self.cuisine.builder.redis()
+
+        """
+        install dnspython3
+        """
+        self.dnspython3()
+
 
         if self.cuisine.isUbuntu or self.cuisine.isArch:
             C='cd $tmpDir/;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh'
@@ -166,3 +176,15 @@ class CuisineInstallerDevelop():
             self.cuisine.run(cmd)
         else:
             raise RuntimeError("platform not supported yet")
+
+
+    @actionrun(action=True)
+    def dnspython3(self):
+        C = """
+            cd $tmpDir
+            wget http://www.dnspython.org/kits3/1.12.0/dnspython3-1.12.0.tar.gz
+            tar -xf dnspython3-1.12.0.tar.gz
+            cd dnspython3-1.12.0
+            ./setup.py install
+            """
+        self.cuisine.run_script(C,action=True)

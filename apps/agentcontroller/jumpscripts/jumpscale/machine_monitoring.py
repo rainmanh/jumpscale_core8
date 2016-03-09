@@ -77,10 +77,10 @@ def action():
 
             old = syscl.Machine.find({'guid':machine.guid})
             if old:
-                old = old[0].to_dict()
+                old_machine = old[0].to_dict()
                 for key in ['mem', 'netaddr', 'lastcheck', 'state', 'cpucore']:
-                    if old[key] != machine[key]:
-                        old.delete()
+                    if old_machine[key] != machine[key]:
+                        old[0].delete()
                         print ('Saving', machine.name)
                         machine.save()
                         break
@@ -92,7 +92,7 @@ def action():
                 diskattrib = disk.find('source').attrib
                 path = diskattrib.get('dev', diskattrib.get('file'))
                 vdisk = syscl.VDisk()
-                old_disk = syscl.VDisk.find({'path':path})
+                old = syscl.VDisk.find({'path':path})
                 vdisk.path = path
                 vdisk.type = disk.find('driver').attrib['type']
                 vdisk.devicename = disk.find('target').attrib['dev']
@@ -109,11 +109,11 @@ def action():
                         vdisk.size = -1
                         vdisk.sizeondisk = -1
                         vdisk.backingpath = ''
-                if old_disk:
-                   old_disk = old_disk[0].to_dict()
+                if old:
+                   old_disk = old[0].to_dict()
                    for key in ['path', 'type', 'devicename', 'machineid', 'active', 'size', 'sizeondisk', 'backingpath']:
                        if old_disk[key] != vdisk[key]:
-                           old_disk.delete()
+                           old[0].delete()
                            vdisk.save()
                            break
 

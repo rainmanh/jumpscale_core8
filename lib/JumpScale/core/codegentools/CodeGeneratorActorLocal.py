@@ -57,7 +57,7 @@ class CodeGeneratorActorLocal(CodeGeneratorBase):
         key = "%s_%s_%s" % (spec.appname, spec.actorname, method.name)
 
         s += """
-te=j.portal.active.taskletengines["{key}"]
+te=j.portal.server.active.taskletengines["{key}"]
 params=te.execute(params)
 if params.has_key("result"):
     return params.result
@@ -73,10 +73,6 @@ else:
     def addInitExtras(self):
         s = """
 ## following code will be loaded at runtime
-from JumpScale.core.Shell import ipshellDebug,ipshell
-print("DEBUG NOW db init")
-ipshell()
-
 actorObject.dbfs=self.dbclientFactory.get(self.appName,actorName,self.dbtype)
 actorObject.dbmem=self.dbclientFactory.get(self.appName,actorName,"MEMORY")
 actorObject.dbredis=self.dbclientFactory.get(self.appName,actorName,"REDIS")

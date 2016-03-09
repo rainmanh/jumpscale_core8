@@ -30,8 +30,8 @@ class StatManager():
             return self.base.time.getHourId()
 
     def scheduleSaveClean(self):
-        j.portal.active.addSchedule1MinPeriod("saveInfomgr", self.save)
-        j.portal.active.addSchedule15MinPeriod("cleanCacheInfoMgr", self.cleanCache)
+        j.portal.server.active.addSchedule1MinPeriod("saveInfomgr", self.save)
+        j.portal.server.active.addSchedule15MinPeriod("cleanCacheInfoMgr", self.cleanCache)
 
         # per hour we keep: nritems,maxitem,minitem,total  (so out of this we can calc average)
 
@@ -67,8 +67,8 @@ class StatManager():
         self.fiveMinuteId=j.data.time.get5MinuteId()
 
         ttime = self.getEpoch()
-        now5min = j.portal.active.fiveMinuteId
-        nowh = j.portal.active.hourId
+        now5min = j.portal.server.active.fiveMinuteId
+        nowh = j.portal.server.active.hourId
         # walk over history obj and save if needed
         for key in list(self.historyObjs.keys()):
             if force or ttime > (self.historyObjsLastSave[key] + 900):

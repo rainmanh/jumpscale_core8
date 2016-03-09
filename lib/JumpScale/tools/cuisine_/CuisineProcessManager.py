@@ -57,10 +57,10 @@ class CuisineSystemd(ProcessManagerBase):
 
 
     def remove(self,prefix):
-        self.stop()
-        for name,status in self.systemd.list(prefix):
-            self.systemd.stop(name)
-            
+        self.stop(prefix)
+        for name,status in self.list(prefix):
+            self.stop(name)
+
             for item in self.cuisine.fs_find("/etc/systemd",True,"*%s.service"%name):
                 print("remove:%s"%item)
                 self.cuisine.file_unlink(item)
@@ -87,7 +87,6 @@ class CuisineSystemd(ProcessManagerBase):
             for name0, value in list(env.items()):
                 envstr += "%s=%s " % (name0, value)
 
-            cmd = cmd.replace('"', r'\"')
             cmd = self.cuisine._clean(cmd)
 
             if systemdunit!="":
@@ -140,8 +139,8 @@ class CuisineRunit(ProcessManagerBase):
     def list(self,prefix=""):
         result = list()
 
-        for service in self.cuisine.fs_find("/etc/service/vice", recursive=False)[1:]:
-            service = service.split("/etc/service/vice/")[1]
+        for service in self.cuisine.fs_find("/etc/service/", recursive=False)[1:]:
+            service = service.split("/etc/service/")[1]
             status = self.cuisine.run("sv  status /etc/service/%s" %service).split(":")[0]
             result.append([service, status])
         return result
@@ -159,8 +158,6 @@ class CuisineRunit(ProcessManagerBase):
             for name0, value in list(env.items()):
                 envstr += "export %s=%s\n" % (name0, value)
 
-
-            cmd = cmd.replace('"', r'\"')
 
             if path and (path not in cmd):
                 cmd = "%s/%s" % (path, cmd)
@@ -186,14 +183,14 @@ exec $cmd
             self.cuisine.file_write("/etc/service/%s/run" %name, sv_text)
             time.sleep(5)
 
-        self.reload(name)
+        self.start(name)
 
     def remove(self, prefix):
         """removes process from init"""
         if self.cuisine.file_exists("/etc/service/%s/run" %prefix ):
             self.stop(prefix)
-            self.cuisine.dir_remove("/etc/service/%s/run" %prefix)         
-                
+            self.cuisine.dir_remove("/etc/service/%s/run" %prefix)
+
 
 
 
@@ -235,7 +232,6 @@ class CuisineTmuxec(ProcessManagerBase):
                 envstr += "export %s=%s && " % (name0, value)
 
 
-            cmd = cmd.replace('"', r'\"')
 
             if path:
                 cwd = "cd %s &&" % path

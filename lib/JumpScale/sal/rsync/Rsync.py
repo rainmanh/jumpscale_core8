@@ -1,5 +1,4 @@
 from JumpScale import j
-import toml
 
 
 class RsyncInstance:
@@ -25,7 +24,7 @@ class RsyncServer(SALObject):
         self.pathsecrets = j.tools.path.get("%s/secrets.cfg" % self.root)
         self.pathusers = j.tools.path.get("%s/users.cfg" % self.root)
         if distrdir == "":
-            distrdir = "%s/apps/agentcontroller2/distrdir/"%j.do.BASE
+            distrdir = "%s/apps/agentcontroller/distrdir/"%j.dirs.base
 
         self.distrdir = j.tools.path.get(distrdir)
 
@@ -34,12 +33,12 @@ class RsyncServer(SALObject):
         j.tools.path.get("/etc/rsync").mkdir_p()
 
         if self.pathsecrets.exists():
-            self.secrets = toml.loads(self.pathsecrets.text())
+            self.secrets = j.data.serializer.toml.loads(self.pathsecrets.text())
         else:
             self.secrets = {}
 
         if self.pathusers.exists():
-            self.users = toml.loads(self.pathusers.text())
+            self.users = j.data.serializer.toml.loads(self.pathusers.text())
         else:
             self.users = {}
 
@@ -54,11 +53,11 @@ class RsyncServer(SALObject):
             secret = j.data.idgenerator.generateGUID().replace("-", "")
 
         self.secrets[name.strip()] = secret.strip()
-        self.pathsecrets.write_text(toml.dumps(self.secrets))
+        self.pathsecrets.write_text(j.data.serializer.toml.dumps(self.secrets))
 
     def addUser(self, name, passwd):
         self.users[name.strip()] = passwd.strip()
-        self.pathusers.write_text(toml.dumps(self.users))
+        self.pathusers.write_text(j.data.serializer.toml.dumps(self.users))
 
     def saveConfig(self):
 
@@ -171,9 +170,6 @@ list = no
                         #     j.sal.fs.createDir(j.sal.fs.getDirName(destpathfile))
                         #     j.sal.fs.symlink(item, destpathfile, overwriteTarget=True)
 
-        from IPython import embed
-        print("DEBUG NOW rsync prepareroles")
-        embed()
         
 
 

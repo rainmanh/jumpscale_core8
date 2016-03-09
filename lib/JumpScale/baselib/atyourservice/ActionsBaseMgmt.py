@@ -8,13 +8,12 @@ def log(msg, level=2):
     j.logger.log(msg, level=level, category=CATEGORY)
 
 
-class ActionsBaseMgmt(object):
+class ActionsBaseMgmt:
     """
     implement methods of this class to change behavior of lifecycle management of service
     this one happens at central side from which we coordinate our efforts
     """
     def __init__(self, service):
-        super(ActionsBaseMgmt).__init__()
         self.service = service
 
     def input(self):
@@ -72,7 +71,10 @@ class ActionsBaseMgmt(object):
         if parent!=None:
 
             #parent exists
-            role=parent.parent
+            name = parent.parent
+            role = parent.parent
+            if '.' in role:
+                role = role.split('.', 1)[0]
 
             if role in self.service.args:
                 #has been speficied or empty
@@ -80,7 +82,7 @@ class ActionsBaseMgmt(object):
             else:
                 rolearg=""
             if rolearg=="":
-                ays_s=j.atyourservice.findServices(role=role)
+                ays_s=j.atyourservice.findServices(role=role, name=name)
                 if len(ays_s)==1:
                     #we found 1 service of required role, will take that one
                     aysi=ays_s[0]
@@ -320,7 +322,7 @@ class ActionsBaseMgmt(object):
         cron_id = 'ays.{name}.{method}'.format(name=str(self.service), method=method.__name__)
 
         # find agent for this service node.
-        agents = j.atyourservice.findServices(name='agent2', parent=self.service.parent)
+        agents = j.atyourservice.findServices(name='agent8', parent=self.service.parent)
 
         if self.service.parent is None:
             agents = filter(lambda a: a.parent is None, agents)

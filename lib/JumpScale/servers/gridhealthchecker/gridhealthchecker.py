@@ -7,7 +7,7 @@ class GridHealthChecker(object):
     def __init__(self):
         with j.logger.nostdout():
             self._client = None
-            installedagent = j.application.getAppHRDInstanceNames('agentcontroller2_client')
+            installedagent = j.application.getAppHRDInstanceNames('agentcontroller_client')
             if installedagent:
                 self._client = j.clients.ac.getByInstance(installedagent[0])
 

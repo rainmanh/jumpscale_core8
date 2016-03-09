@@ -1,13 +1,12 @@
 from JumpScale import j
 from ServiceTemplate import ServiceTemplate
 from ServiceRecipe import ServiceRecipe
-from Service import Service, getProcessDicts
+from Service import Service, getProcessDicts, loadmodule
 import re
 from ActionsBaseMgmt import ActionsBaseMgmt
 from ActionsBaseNode import ActionsBaseNode
 from Blueprint import Blueprint
 from ALog import *
-# import AYSdb
 import traceback
 from AtYourServiceSync import AtYourServiceSync
 try:
@@ -15,23 +14,6 @@ try:
 except:
     pass
 import os
-
-# class AYSDB():
-#     """
-#     @todo
-#     """
-
-#     def __init__(self):
-#         self.db=j.core.db
-
-#     def index(self,category,key,data):
-#         self.db.hset("ays.index.%s"%category,key,data)
-
-#     def reset(self):
-#         self.db.delete("ays.domains")
-#         self.db.delete("ays.index.service")
-#         self.db.delete("ays.index.recipe")
-#         self.db.delete("ays.index.template")
 
 
 class AtYourServiceFactory():
@@ -58,6 +40,8 @@ class AtYourServiceFactory():
         self._alog=None
         self._runcategory=""
         self._sandboxer=None
+        self._roletemplates = dict()
+        self._servicesTree = {}
 
         # self._db=AYSDB()
 
@@ -71,6 +55,7 @@ class AtYourServiceFactory():
         self._git=None
         self._blueprints=[]
         self._alog=None
+        self._servicesTree = {}
 
     @property
     def runcategory(self):
@@ -103,7 +88,7 @@ class AtYourServiceFactory():
 
         baseDir=val
         while j.sal.fs.joinPaths(baseDir, ".ays") not in j.sal.fs.listFilesInDir(baseDir, recursive=False):
-            baseDir=j.do.getParent(baseDir)
+            baseDir=j.sal.fs.getParent(baseDir)
 
             baseDir=baseDir.rstrip("/")
 
@@ -149,20 +134,19 @@ class AtYourServiceFactory():
     @property
     def templates(self):
         self._doinit()
-        def load(domain, path,llist):
+        def load(domain, path, llist):
             for servicepath in j.sal.fs.listDirsInDir(path, recursive=False):
-                dirname = j.do.getBaseName(servicepath)
+                dirname = j.sal.fs.getBaseName(servicepath)
                 # print "dirname:%s"%dirname
                 if not (dirname.startswith(".")):
-                    load(domain,servicepath,llist)
+                    load(domain, servicepath, llist)
             # print path
-            dirname = j.do.getBaseName(path)
+            dirname = j.sal.fs.getBaseName(path)
             if dirname.startswith("_"):
                 return
-            if j.sal.fs.exists("%s/schema.hrd" % path) or \
-            j.sal.fs.exists("%s/service.hrd" % path) or \
-            j.sal.fs.exists("%s/actions_mgmt.py" % path) or \
-            j.sal.fs.exists("%s/model.py" % path):
+            tocheck = ['schema.hrd', 'service.hrd', 'actions_mgmt.py', 'actions_node.py', 'model.py']
+            exists = [True for aysfile in tocheck if j.sal.fs.exists('%s/%s' % (path, aysfile))]
+            if exists:
                 templ = ServiceTemplate(path, domain=domain)
                 llist.append(templ)
 
@@ -190,32 +174,85 @@ class AtYourServiceFactory():
                 domainpath = j.sal.fs.joinPaths(aysrepopath, "%s/recipes/" % aysrepopath)
                 d = j.tools.path.get(domainpath)
                 for item in d.walkfiles("state.hrd"):
-                    recipepath = j.do.getDirName(item)
+                    recipepath = j.sal.fs.getDirName(item)
                     self._recipes.append(ServiceRecipe(recipepath))
         return self._recipes
 
     @property
     def services(self):
         self._doinit()
-        if self._services=={}:
-            for hrd_path in j.sal.fs.listFilesInDir(j.dirs.ays, recursive=True, \
-                filter="instance.hrd", case_sensitivity='os', followSymlinks=True, listSymlinks=False):
+        if self._services == {}:
+            for hrd_path in j.sal.fs.listFilesInDir(j.dirs.ays, recursive=True, filter="instance.hrd",
+                                                    case_sensitivity='os', followSymlinks=True, listSymlinks=False):
                 service_path = j.sal.fs.getDirName(hrd_path)
                 service = Service(path=service_path, args=None)
                 self._services[service.shortkey]=service
         return self._services
+
+    def _nodechildren(self, service, parent=None, producers=[]):
+        parent = {} if parent is None else parent
+        me = {"name": service.shortkey.replace('!', '__'), "children": []}
+        parent["children"].append(me)
+        details = service.hrd.getHRDAsDict()
+        details = {key: value for key, value in details.items() if key not in ['service.domain', 'service.name', 'service.version', 'parent']}
+        me["data"] = details
+        children = service.listChildren()
+        for role, instances in children.items():
+            for instance in instances:
+                child = j.atyourservice.getService(role=role, instance=instance)
+                for _, producerinstances in child.producers.items():
+                    for producer in producerinstances:
+                        producers.append([child.shortkey.replace('!', '__'), producer.shortkey.replace('!', '__')])
+                self._nodechildren(child, me, producers)
+        return parent
+
+    @property
+    def servicesTree(self):
+        if self._servicesTree:
+            return self._servicesTree
+        self._doinit()
+        producers = []
+        parents = {"name": "sudoroot", "children": []}
+        for root in j.sal.fs.walk(j.dirs.ays, recurse=1, pattern='*instance.hrd', return_files=1, depth=2):
+            servicekey = j.sal.fs.getBaseName(j.sal.fs.getDirName(root))
+            service = self.services.get(servicekey)
+            for _, producerinstances in service.producers.items():
+                for producer in producerinstances:
+                    producers.append([child.shortkey.replace('!', '__'), producer.shortkey.replace('!', '__')])
+            parents["children"].append(self._nodechildren(service, {"children": [], "name": servicekey.replace('!', '__')}, producers))
+        self._servicesTree['parentchild'] = parents
+        self._servicesTree['producerconsumer'] = producers
+        return self._servicesTree
 
     @property
     def blueprints(self):
         """
         """
         if self._blueprints==[]:
-            items=j.do.listFilesInDir(self.basepath+"/blueprints")
+            items=j.sal.fs.listFilesInDir(self.basepath+"/blueprints")
             items=[item for item in items if item.find("_archive")==-1]
             items.sort()
             for path in items:
                 self._blueprints.append(Blueprint(path))
         return self._blueprints
+
+    @property
+    def roletemplates(self):
+        if self._roletemplates:
+            return self._roletemplates
+        templatespaths = [j.sal.fs.joinPaths(self.basepath, '_templates')]
+        for _, metapath in self._domains:
+            templatespaths.append(j.sal.fs.joinPaths(metapath, '_templates'))
+        templatespaths.reverse()
+
+        for templatespath in templatespaths:
+            if j.sal.fs.exists(templatespath):
+                for roletemplate in j.sal.fs.listDirsInDir(templatespath):
+                    paths = ['schema_tmpl.hrd', 'actions_tmpl_mgmt.py', 'actions_tmpl_node.py']
+                    rtpaths = [path for path in paths if j.sal.fs.exists(j.sal.fs.joinPaths(templatespath, roletemplate, path))]
+                    if rtpaths:
+                        self._roletemplates[j.sal.fs.getBaseName(roletemplate)] = [j.sal.fs.joinPaths(roletemplate, rtpath) for rtpath in rtpaths]
+        return self._roletemplates
 
     def _doinit(self):
         # if we don't have write permissin on /opt don't try do download service templates
@@ -263,19 +300,18 @@ class AtYourServiceFactory():
 
         self.reset()
 
-        #make sure the recipe's are loaded & initted
+        # make sure the recipe's are loaded & initted
         for bp in self.blueprints:
             bp.loadrecipes()
 
-        #start from clean sheet
+        # start from clean sheet
         self.reset()
-
         self.alog
         self.commitGitChanges(action="init_pre",msg='ays changed, commit changed files before deploy of blueprints',precheck=True)
 
         latestrun=self.alog.newRun(action="init")
 
-        print("init runid:%s"%self.alog.lastRunId)
+        print("init runid:%s" % self.alog.lastRunId)
         commitc=""
         for bp in self.blueprints:
             bp.execute()
@@ -285,6 +321,15 @@ class AtYourServiceFactory():
         self.commitGitChanges(action="init")
 
         print ("init done")
+
+    def createAYSRepo(self, path):
+        j.sal.fs.createDir(path)
+        j.sal.fs.createEmptyFile(j.sal.fs.joinPaths(path, '.ays'))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'servicetemplates'))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'blueprints'))
+        j.sal.process.execute("git init %s" % path, dieOnNonZeroExitCode=True, outputToStdout=False, useShell=False, ignoreErrorOutput=False)
+        j.sal.nettools.download('https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
+        print("AYS Repo created at %s" % path)
 
 
     def updateTemplatesRepos(self, repos=[]):
@@ -311,6 +356,30 @@ class AtYourServiceFactory():
     def getActionsBaseClassMgmt(self):
         return ActionsBaseMgmt
 
+    def getRoleTemplateClass(self, role, ttype):
+        if role not in self.roletemplates:
+            raise RuntimeError('Role template %s does not exist' % role)
+        roletemplatepaths = self.roletemplates[role]
+        for roletemplatepath in roletemplatepaths:
+            if ttype in j.sal.fs.getBaseName(roletemplatepath):
+                modulename = "JumpScale.atyourservice.roletemplate.%s.%s" % (role, ttype)
+                mod = loadmodule(modulename, roletemplatepath)
+                return mod.Actions
+        return None
+
+    def getRoleTemplateHRD(self, role):
+        if role not in self.roletemplates:
+            raise RuntimeError('Role template %s does not exist' % role)
+        roletemplatepaths = self.roletemplates[role]
+        hrdpaths = [path for path in roletemplatepaths if j.sal.fs.getFileExtension(path) == 'hrd']
+        if hrdpaths:
+            hrd = j.data.hrd.getSchema(hrdpaths[0])
+            for path in hrdpaths[1:]:
+                hrdtemp = j.data.hrd.getSchema(path)
+                hrd.items.update(hrdtemp.items)
+            return hrd.hrdGet()
+        return None
+
     def install(self,printonly=False,remember=True):
         self.alog
         #start from clean sheet
@@ -336,21 +405,29 @@ class AtYourServiceFactory():
 
 
 
-    def do(self,action="install",printonly=False,remember=True,allservices=False):
+    def do(self,action="install",printonly=False,remember=True,allservices=False, ask=False):
 
         self.alog
-        self.commitGitChanges(action=action+"_pre",precheck=True)
-        latestrun=self.alog.newRun(action=action)
+        if remember:
+            self.commitGitChanges(action=action+"_pre", precheck=True)
+        latestrun = self.alog.newRun(action=action)
 
         if not allservices:
-            #we need to find change since last time & make sure that
-            #find all services with action with this name and put back on init
-            changed,changes=self.alog.getChangedAtYourservices(action=action)
+            # we need to find change since last time & make sure that
+            # find all services with action with this name and put back on init
+            # we also need to find all child service and depdendent service of the modified service
+            changed, changes = self.alog.getChangedAtYourservices(action=action)
+            toChange = set(changed)
             for service in changed:
-                if action in service.actions:
-                    actionobj=service.actions[action]
-                    actionobj.setState("CHANGED")
+                toChange = toChange.union(self.findConsumersRecursive(service))
 
+            if ask:
+                toChange = j.tools.console.askChoiceMultiple(list(toChange), sort=False)
+
+            for service in toChange:
+                if action in service.actions:
+                    actionobj = service.actions[action]
+                    actionobj.setState("CHANGED")
 
         else:
             todo=[item[1] for item in self.services.items()]
@@ -386,7 +463,7 @@ class AtYourServiceFactory():
                 #         line=line.strip().strip("' ").strip().replace("File ","")
                 #         err+="%s\n"%line.strip()
                 #     err+="ERROR:%s\n"%e
-                #     print (err)                 
+                #     print (err)
                 #     error=True
 
             step += 1
@@ -400,9 +477,6 @@ class AtYourServiceFactory():
             remember = False
         if remember is False and error is False:
             self.alog.removeLastRun()
-            # revert git
-            self.git.checkout("%s/services/" % self.basepath)
-            self.git.checkout("%s/recipes/" % self.basepath)
         else:
             # this will make sure we will have remembered the last state of this action
             self.commitGitChanges(action=action)
@@ -416,8 +490,9 @@ class AtYourServiceFactory():
             if actionrunobj.state!="OK":
                 producersWaiting = service.getProducersWaiting(action,set())
                 if len(producersWaiting)==0:
-                    print("%s waiting for install" % service)
                     todo.append(service)
+                    if j.atyourservice.debug:
+                        print("%s waiting for install" % service)
                 elif j.application.debug:
                     print("%s no change in producers" % service)
         return todo
@@ -429,7 +504,7 @@ class AtYourServiceFactory():
         for service in self.services:
             service.state.saveRevisions()
 
-    def findTemplates(self, name="", version="",domain="", role='', first=False):
+    def findTemplates(self, name="", version="", domain="", role='', first=False):
         res = []
         for template in self.templates:
             if not(name == "" or template.name == name):
@@ -510,6 +585,25 @@ class AtYourServiceFactory():
         for item in self.findServices(instance=instancename):
             if producercategory in item.categories:
                 return item
+
+    def findConsumers(self, target):
+        """
+        @return set of services that consumes target
+        """
+        result = set()
+        for service in self.findServices():
+            if target.isConsumedBy(service):
+                result.add(service)
+        return result
+
+    def findConsumersRecursive(self, target, out=set()):
+        """
+        @return set of services that consumes target, recursivlely
+        """
+        for service in self.findConsumers(target):
+            out.add(service)
+            self.findConsumersRecursive(service, out)
+        return out
 
     def new(self,  name="", instance="main",version="",domain="",path=None, parent=None, args={},consume=""):
         """
@@ -650,10 +744,12 @@ class AtYourServiceFactory():
 
     def __str__(self):
         return self.__repr__()
-    
-    def telegramBot(self, token):
+
+    def telegramBot(self, token, start=True):
         from JumpScale.baselib.atyourservice.telegrambot.TelegramAYS import TelegramAYS
         bot = TelegramAYS(token)
+        if start:
+            bot.run()
         return bot
 
 

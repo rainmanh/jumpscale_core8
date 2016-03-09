@@ -1,7 +1,5 @@
 from JumpScale import j
-import json
 import requests
-import sys
 
 
 class SkyDNSClientFactory():
@@ -33,7 +31,6 @@ class SkyDNSClient():
 
     def read(self, endpoint):
         link = self.mkurl(endpoint)
-        print('[+] %s' % link)
 
         r = self._session.get(link)
 
@@ -44,9 +41,8 @@ class SkyDNSClient():
 
     def write(self, endpoint, data):
         link = self.mkurl(endpoint)
-        print('[+] %s' % link)
 
-        payload = {'value': json.dumps(data)}
+        payload = {'value': j.data.serializer.json.dumps(data)}
         r = self._session.put(link, data=payload)
 
         if r.status_code == 401:
@@ -56,7 +52,6 @@ class SkyDNSClient():
 
     def delete(self, endpoint):
         link = self.mkurl(endpoint)
-        print('[+] %s' % link)
 
         r = self._session.delete(link)
 
@@ -91,3 +86,19 @@ class SkyDNSClient():
         key = self._hostKey(name)
         self.delete(key)
         return True
+
+    def exists(self, name):
+        key = self._hostKey(name)
+        resp = self.read(key)
+        if 'node' in resp and 'value' in resp['node']:
+            host = None
+            value = resp['node']['value']
+            if j.data.types.string.check(value):
+                value = j.data.serializer.json.loads(value)
+                host = value['host']
+            elif j.data.types.dict.check(value):
+                host = value['host']
+            else:
+                RuntimeError("Bad response format (%s)", resp)
+            return (True, host)
+        return (False, None)

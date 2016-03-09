@@ -34,9 +34,10 @@ class SyncthingClient:
         print("execute cmd on %s"%self.addr)
         print(cmds)
         if self.addr=="localhost":
-            return j.do.executeBashScript(content=cmds,die=die,remote=None)
+            return j.tools.cuisine.local.run_script(content=cmds, die=die)
         else:
-            return j.do.executeBashScript(content=cmds,die=die,remote=self.addr,sshport=self.sshport)
+            executor = j.tools.cuisine.get(j.tools.executor.getSSHBased(addr=self.addr, port=self.sshport))
+            return executor.run_script(content=cmds, die=die)
 
     def install(self,name=""):
         C="""
@@ -304,8 +305,7 @@ class SyncthingClient:
                 print("retry API CALL %s"%url)
                 counter+=1
                 time.sleep(0.1)
-                if counter>2 and endpoint.find("restart")==-1:
-                    self.restart()
+                
                 if counter>10:
                     raise RuntimeError('Syncthing is not responding. Exiting.')
 

@@ -17,7 +17,7 @@ class Text:
         self.__jslocation__ = "j.data.text"            
 
     def decodeUnicode2Asci(self,text):
-        return unicodedata.normalize('NFKD', self.decode("utf-8")).encode('ascii','ignore')
+        return unicodedata.normalize('NFKD', text.decode("utf-8")).encode('ascii','ignore')
     
     
     def toolStripNonAsciFromText(self,text):    
@@ -77,7 +77,7 @@ class Text:
                
         return out
 
-    def indent(self,instr,nspaces=4,wrap=120,strip=True,indentchar=" "):
+    def indent(self,instr,nspaces=4,wrap=180,strip=True,indentchar=" "):
         """Indent a string a given number of spaces.
 
         Parameters

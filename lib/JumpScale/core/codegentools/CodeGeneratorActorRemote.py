@@ -71,8 +71,6 @@ else:
         return result
 """ % (self.spec.appname, self.spec.actorname, method.name, params)
 
-        s += "\nfrom JumpScale.core.Shell import ipshell\n"
-        s += "ipshell()\n"
 
         #key="%s_%s_%s" % (spec.appname,spec.actorname,method.name)
         self.content += "\n%s" % j.tools.code.indent(s, 2)

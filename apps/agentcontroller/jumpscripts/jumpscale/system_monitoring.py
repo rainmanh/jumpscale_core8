@@ -29,11 +29,8 @@ def action(redisconnection):
     port = int(redisconnection.split(':')[1])
     redis_client = j.clients.redis.getRedisClient(addr, port)
     hostname =j.sal.nettools.getHostname()
-    try:
-        aggregator = j.tools.aggregator.getClient(redis_client,  hostname)
-    except:
-        print("No redis instance was found on this connection")
-        return
+
+    aggregator = j.tools.aggregator.getClient(redis_client,  hostname)
     tags = j.data.tags.getTagString(tags={
         'gid': str(j.application.whoAmI.gid),
         'nid': str(j.application.whoAmI.nid),

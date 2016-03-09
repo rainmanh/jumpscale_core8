@@ -6,7 +6,7 @@ CACHETIME = 60
 
 class Factory:
     def __init__(self):
-        self.__jslocation__ = "j.clients.openvcloud"        
+        self.__jslocation__ = "j.clients.openvcloud"
         self._clientsdb = j.data.redisdb.get("openvcloud:main:client")
         self._clients = {}
 
@@ -51,8 +51,9 @@ def patchMS1(api):
 
 
     api.cloudapi.portforwarding.list = patchmethod(api.cloudapi.portforwarding.list, {'cloudspaceId': 'cloudspaceid'})
+    api.cloudapi.portforwarding.delete = patchmethod(api.cloudapi.portforwarding.delete, {'cloudspaceId': 'cloudspaceid'})
     api.cloudapi.portforwarding.create = patchmethod(api.cloudapi.portforwarding.create,
-                                                     {'cloudspaceId': 'cloudspaceId', 'machineId': 'vmid'})
+                                                     {'cloudspaceId': 'cloudspaceid', 'machineId': 'vmid'})
 
 class Client:
     def __init__(self, url, login, password=None, secret=None, port=443):
@@ -236,8 +237,9 @@ class Space:
 
         sizes = [(item["memory"], item) for item in self.sizes]
         sizes.sort(key=lambda size: size[0])
+        sizes.reverse()
         for size, sizeinfo in sizes:
-            if memory < size*1.1:
+            if memory > size / 1.1:
                 return sizeinfo['id']
 
         raise RuntimeError("did not find memory size:%s" % memory)
@@ -277,7 +279,7 @@ class Space:
         return "space: %s (%s)"%(self.model["name"],self.id)
 
     __str__=__repr__
-        
+
 
 class Machine:
     def __init__(self, space, model):
@@ -298,17 +300,24 @@ class Machine:
     def restart(self):
         self.client.api.cloudapi.machines.restart(machineId=self.id)
 
+    def delete(self):
+        self.client.api.cloudapi.machines.delete(machineId=self.id)
+
+
     @property
     def portforwardings(self):
         if not self._portforwardings_cache:
             #load from api
             for item in self.client.api.cloudapi.portforwarding.list(cloudspaceId=self.space.id, machineId=self.id):
-                self._portforwardings_cache.set(item, id='%(publicIp)s:%(publicPort)s -> %(localIp)s:%(localPort)s' % item)
+                self._portforwardings_cache.set(item, id='%(publicIp)s:%(publicPort)s/%(protocol)s -> %(localIp)s:%(localPort)s/%(protocol)s' % item)
         return [x.struct for x in self._portforwardings_cache]
 
-    def create_portforwarding(self, publicport, localport):
+    def create_portforwarding(self, publicport, localport, protocol='tcp'):
+        if protocol not in ['tcp', 'udp']:
+            raise RuntimeError("Protocol for portforward should be tcp or udp not %s" % protocol)
+        machineip, _ = self.get_machine_ip()
         self.client.api.cloudapi.portforwarding.create(cloudspaceId=self.space.id,
-                                                       protocol='tcp',
+                                                       protocol=protocol,
                                                        localPort=localport,
                                                        machineId=self.id,
                                                        publicIp=self.space.model['publicipaddress'],
@@ -324,12 +333,13 @@ class Machine:
         self.space._portforwardings_cache.delete()
         self._portforwardings_cache.delete()
 
-    def get_ssh_connection(self):
-        """
-        Will get a cuisine executor for the machine.
-        Will attempt to create a portforwarding
-        :return:
-        """
+    def delete_portfowarding_by_id(self, pfid):
+        self.client.api.cloudapi.portforwarding.delete(cloudspaceid=self.space.id,
+                                                       id=pfid)
+        self.space._portforwardings_cache.delete()
+        self._portforwardings_cache.delete()
+
+    def get_machine_ip(self):
         machine = self.client.api.cloudapi.machines.get(machineId=self.id)
 
         def getMachineIP(machine):
@@ -339,13 +349,21 @@ class Machine:
 
         machineip = getMachineIP(machine)
         start = time.time()
-        timeout = 60
+        timeout = 120
         while machineip == 'Undefined' and start + timeout > time.time():
             time.sleep(5)
             machineip = getMachineIP(machine)
         if machineip == 'Undefined':
             raise RuntimeError("Could not get IP Address for machine %(name)s" % machine)
+        return machineip, machine
 
+    def get_ssh_connection(self):
+        """
+        Will get a cuisine executor for the machine.
+        Will attempt to create a portforwarding
+        :return:
+        """
+        machineip, machine = self.get_machine_ip()
         publicip = self.space.model['publicipaddress']
         while not publicip:
             time.sleep(5)

@@ -4,7 +4,9 @@ import os
 
 class ExecutorSSH(ExecutorBase):
 
-    def __init__(self, addr, port, dest_prefixes={},login="root",passwd=None,debug=False,checkok=True,allow_agent=True, look_for_keys=True,pushkey=None):
+    def __init__(self, addr, port, dest_prefixes={},login="root",\
+            passwd=None,debug=False,checkok=True,allow_agent=True, \
+            look_for_keys=True,pushkey=None,pubkey=""):
         ExecutorBase.__init__(self, dest_prefixes=dest_prefixes,debug=debug,checkok=checkok)
         self.id = j.data.hash.md5_string('%s:%s:%s' % (addr, port, login))
         self.addr = addr
@@ -17,6 +19,7 @@ class ExecutorSSH(ExecutorBase):
         self.allow_agent=allow_agent
         self.look_for_keys=look_for_keys
         self.pushkey=pushkey
+        self.pubkey=pubkey
         self._sshclient=None
         self.type="ssh"
         if checkok:
@@ -58,16 +61,19 @@ class ExecutorSSH(ExecutorBase):
             self._sshclient=j.clients.ssh.get(self.addr,self.port,login=self.login,passwd=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys)
             if self.pushkey is not None:
                 #lets push the ssh key as specified
-                if j.sal.fs.isAbsolute(self.pushkey):
-                    path = self.pushkey
+                if j.sal.fs.exists(self.pushkey):
+                    path=self.pushkey
                 else:
-                    homedir = os.environ["HOME"]
-                    path = "%s/.ssh/%s.pub"%(homedir,self.pushkey)
+                    homedir=os.environ["HOME"]
+                    path="%s/.ssh/%s.pub"%(homedir,self.pushkey)
+                if self.pubkey=="":
+                    pubkey=self.pubkey
                 if j.sal.fs.exists(path):
-                    pushkey = j.do.readFile(path)
-                    self._sshclient.ssh_authorize("root",pushkey)
+                    pubkey=j.sal.fs.fileGetContents(path)
                 else:
                     raise RuntimeError("Could not find key:%s"%path)
+
+                self._sshclient.ssh_authorize("root",pubkey)
 
         return self._sshclient
 
@@ -90,7 +96,7 @@ class ExecutorSSH(ExecutorBase):
             # online command, we use cuisine
             if showout:
                 print("EXECUTE %s:%s: %s"%(self.addr,self.port,cmds))
-            # return j.do.execute("ssh -A -p %s root@%s '%s'"%(self.port,self.addr,cmds),dieOnNonZeroExitCode=die)
+            # return j.sal.process.execute("ssh -A -p %s root@%s '%s'"%(self.port,self.addr,cmds),dieOnNonZeroExitCode=die)
             retcode,out=self.sshclient.execute(cmds2,die=die,showout=showout, combinestdr=combinestdr)
 
         if checkok and die:
@@ -102,21 +108,21 @@ class ExecutorSSH(ExecutorBase):
     def upload(self, source, dest, dest_prefix="",recursive=True, createdir=True):
 
         if dest_prefix != "":
-            dest = j.do.joinPaths(dest_prefix,dest)
+            dest = j.sal.fs.joinPaths(dest_prefix,dest)
         if dest[0] !="/":
             raise RuntimeError("need / in beginning of dest path")
         dest = "root@%s:%s" % (self.addr, dest)
-        j.do.copyTree(source, dest, keepsymlinks=True, deletefirst=False, \
+        j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False, \
             overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,\
             ssh=True, sshport=self.port,recursive=recursive, createdir=createdir)
 
 
     def download(self, source, dest, source_prefix="",recursive=True):
         if source_prefix != "":
-            source = j.do.joinPaths(source_prefix,source)
+            source = j.sal.fs.joinPaths(source_prefix,source)
         if source[0] !="/":
             raise RuntimeError("need / in beginning of source path")
         source = "root@%s:%s" % (self.addr,source)
-        j.do.copyTree(source, dest, keepsymlinks=True, deletefirst=False, \
+        j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False, \
             overwriteFiles=True, ignoredir=[".egg-info",".dist-info"], ignorefiles=[".egg-info"], rsync=True,\
             ssh=True, sshport=self.port,recursive=recursive)

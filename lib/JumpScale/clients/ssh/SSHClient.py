@@ -5,6 +5,7 @@ from paramiko.ssh_exception import SSHException, BadHostKeyException, Authentica
 import time
 import io
 import socket
+import subprocess
 
 class SSHClientFactory(object):
 
@@ -12,10 +13,18 @@ class SSHClientFactory(object):
         self.__jslocation__ = "j.clients.ssh"
         self.cache = {}
 
-    def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True,allow_agent=True, look_for_keys=True):
+    def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True,allow_agent=True, look_for_keys=True,timeout=5,testConnection=False,die=True):
         key = "%s_%s_%s_%s" % (addr, port, login,j.data.hash.md5_string(str(passwd)))
         if key not in self.cache:
-            self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent,allow_agent=allow_agent,look_for_keys=look_for_keys)
+            self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent,allow_agent=allow_agent,look_for_keys=look_for_keys,timeout=timeout)
+        if testConnection:
+            ret=self.cache[key].connectTest(timeout=timeout)
+            if ret==False:
+                if die:
+                    raise RuntimeError("Cannot connect over ssh:%s %s"%(addr,port))
+                else:
+                    return False
+
         return self.cache[key]
 
     def removeFromCache(self, client):
@@ -23,6 +32,34 @@ class SSHClientFactory(object):
         client.close()
         if key in self.cache:
             self.cache.pop(key)
+
+    def getSSHKeyFromAgentPub(self,keyname="",die=True):
+        try:
+            #@todo why do we use subprocess here and not self.execute?
+            out=subprocess.check_output(["ssh-add","-L"])
+        except:
+            return None
+
+        if keyname=="":
+            paths=[]
+            for line in out.splitlines():
+                line=line.strip()
+                paths.append(line.split(" ".encode())[-1])
+            if len(paths)==0:
+                raise RuntimeError("could not find loaded ssh-keys")
+
+            path=j.tools.console.askChoice(paths,"Select ssh key to push (public part only).")
+            keyname=j.sal.fs.getBaseName(path.decode())
+
+        for line in out.splitlines():
+            delim = (".ssh/%s" % keyname).encode()
+            if line.endswith(delim):
+                content=line.strip()
+                content=content.decode()
+                return content
+        if die:
+            raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l"%keyname)
+        return None            
 
     def close(self):
         for key, client in self.cache.items():
@@ -64,8 +101,6 @@ class SSHClient(object):
 
     @property
     def transport(self):
-        # if self._transport is None:
-            # self._transport = self.client.get_transport()
         if self.client is None:
             raise RuntimeError("Could not connect to %s:%s" % (self.addr, self.port))
         self._transport = self.client.get_transport()
@@ -74,7 +109,7 @@ class SSHClient(object):
     @property
     def client(self):
         if self._client is None:
-            print('ssh new client')
+            print('ssh new client to %s@%s:%s' % (self.login, self.addr, self.port))
 
             start = j.data.time.getTimeEpoch()
             timeout = 20
@@ -88,6 +123,8 @@ class SSHClient(object):
                     self.reset()
                     time.sleep(1)
                     continue
+            if self._client is None:
+                raise RuntimeError('Impossible to create SSH connection to %s:%s' % (self.addr, self.port))
 
         return self._client
 
@@ -169,7 +206,7 @@ class SSHClient(object):
             errors = stderr.readlines()
             errors = ''.join(errors)
             if die:
-                raise RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, buf,errors))
+                raise RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, buff,errors))
             else:
                 buff = errors
         # print(buf)
@@ -183,7 +220,7 @@ class SSHClient(object):
             raise RuntimeError("dest path should be absolute, need / in beginning of dest path")
 
         dest = "%s@%s:%s" % (self.login, self.addr, dest)
-        j.do.copyTree(source, dest, keepsymlinks=True, deletefirst=False,
+        j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False,
                       overwriteFiles=True, ignoredir=[".egg-info", ".dist-info", "__pycache__"], ignorefiles=[".egg-info"], rsync=True,
                       ssh=True, sshport=self.port, recursive=recursive)
 
@@ -191,7 +228,7 @@ class SSHClient(object):
         if source[0] != "/":
             raise RuntimeError("source path should be absolute, need / in beginning of source path")
         source = "%s@%s:%s" % (self.login, self.addr, source)
-        j.do.copyTree(source, dest, keepsymlinks=True, deletefirst=False,
+        j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False,
                       overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
                       ssh=True, sshport=self.port, recursive=recursive)
 

@@ -41,11 +41,11 @@ class CodeGenerator:
                 # print("remove code generated class %s from memory" % key
                 j.core.codegenerator.classes.pop(key2)
 
-        for key2 in list(j.portal.active.taskletengines.keys()):
+        for key2 in list(j.portal.server.active.taskletengines.keys()):
             app, item, remaining = key2.split("_", 2)
             if app == appname and item.find(actor) == 0:
                 # print("remove tasklets %s from memory" % key
-                j.portal.active.taskletengines.pop(key2)
+                j.portal.server.active.taskletengines.pop(key2)
 
     def resetMemNonSystem(self):
         for key2 in list(j.core.codegenerator.classes.keys()):
@@ -53,10 +53,10 @@ class CodeGenerator:
             if app != "system":
                 j.core.codegenerator.classes.pop(key2)
 
-        for key2 in list(j.portal.active.taskletengines.keys()):
+        for key2 in list(j.portal.server.active.taskletengines.keys()):
             app, item, remaining = key2.split("_", 2)
             if app != "system":
-                j.portal.active.taskletengines.pop(key2)
+                j.portal.server.active.taskletengines.pop(key2)
 
     def getClassActorLocal(self, appname, actor, typecheck=True, dieInGenCode=True):
         """
@@ -260,11 +260,7 @@ class CodeGenerator:
             #exec("from %s import %s" % (name,classname))
             exec("import %s" % name)
         except Exception as e:
-            from JumpScale.core.Shell import ipshellDebug, ipshell
-            print("DEBUG NOW exception in importing in codegenerator (see CodeGenerator.py line 239)")
-            print(("codepath: %s" % codepath))
             print(e)
-            ipshell()
             #emsg="could not import code for name:%s " % (name)
             j.errorconditionhandler.raiseBug("", "spec.import", e)
 

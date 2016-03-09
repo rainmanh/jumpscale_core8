@@ -16,7 +16,7 @@ class Blueprint(object):
         self.models=[]
         self._contentblocks=[]
         content=""
-        content0=j.do.readFile(path)
+        content0=j.sal.fs.fileGetContents(path)
         nr=0
         #we need to do all this work because the yaml parsing does not maintain order because its a dict
         for line in content0.split("\n"):
@@ -47,7 +47,7 @@ class Blueprint(object):
 
     def execute(self):
         for model in self.models:
-            if model!=None:
+            if model is not None:
                 for key, item in model.items():
                     # print ("blueprint model execute:%s %s"%(key,item))
                     aysname, aysinstance = key.split("_", 1)

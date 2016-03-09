@@ -371,7 +371,7 @@ class CuisineBuilder(object):
         self.cuisine.dir_ensure("$tmplsDir/cfg/core/mid", recursive=True)
 
         url = "github.com/g8os/core"
-        self.cuisine.golang.get(url)
+        self.cuisine.golang.godep(url)
 
         sourcepath = "$goDir/src/github.com/g8os/core"
 

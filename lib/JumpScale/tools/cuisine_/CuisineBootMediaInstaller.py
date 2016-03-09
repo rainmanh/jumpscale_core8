@@ -52,7 +52,6 @@ class CuisineBootMediaInstaller(object):
         self.cuisine.run("cd /mnt && mv root/boot/* boot")
         self.cuisine.run("echo 'PermitRootLogin=yes'>>'/mnt/root/etc/ssh/sshd_config'")
 
-    # @actionrun(action=True)
     def formatCardDeployImage(self, url, deviceid=None, part_type='msdos', post_install=None):
         """
         will only work if 1 or more sd cards found of 8 or 16 or 32 GB, be careful will overwrite the card
@@ -120,7 +119,7 @@ class CuisineBootMediaInstaller(object):
         title   {title}
         linux   /vmlinuz-linux
         initrd  /initramfs-linux.img
-        options root=PARTUUID={uuid} rw init={init}
+        options root=PARTUUID={uuid} rw earlymodules=xhci_hcd modules-load=xhci_hcd init={init}
         """
 
         fstab_tmpl = """\

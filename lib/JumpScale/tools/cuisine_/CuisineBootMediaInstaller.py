@@ -66,6 +66,9 @@ class CuisineBootMediaInstaller(object):
                     devs.append((dev, size))
                 if size > 7500000000 and size < 8500000000:
                     devs.append((dev, size))
+                if size > 4000000000 and size < 4100000000:
+                    devs.append((dev, size))
+
         if len(devs) == 0:
             raise RuntimeError(
                 "could not find flash disk device, (need to find at least 1 of 8,16 or 32 GB size)" % devs)
@@ -73,7 +76,7 @@ class CuisineBootMediaInstaller(object):
 
     def formatCardDeployImage(self, url, deviceid=None, part_type='msdos', post_install=None):
         """
-        will only work if 1 or more sd cards found of 8 or 16 or 32 GB, be careful will overwrite the card
+        will only work if 1 or more sd cards found of 4 or 8 or 16 or 32 GB, be careful will overwrite the card
         executor = a linux machine
 
         executor=j.tools.executor.getSSHBased(addr="192.168.0.23", port=22,login="root",passwd="rooter",pushkey="ovh_install")
@@ -101,7 +104,7 @@ class CuisineBootMediaInstaller(object):
             self._umount(deviceid)
 
         if deviceid is None:
-            devs = self.findDevices()
+            devs = self._findDevices()
         else:
             devs = [(deviceid, 0)]
 

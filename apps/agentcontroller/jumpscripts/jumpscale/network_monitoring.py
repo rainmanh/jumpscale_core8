@@ -1,5 +1,4 @@
 from JumpScale import j
-import psutil
 
 descr = """
 gather network statistics
@@ -19,6 +18,7 @@ roles = []
 log=False
 
 def action():
+    import psutil
     import statsd
     stats = statsd.StatsClient()
     pipe = stats.pipeline()

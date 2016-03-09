@@ -33,7 +33,7 @@ def action():
             try:
                 osiscl.export(namespace, category, categoryfile)
             except:
-                print 'Error exporting category: %s on namespace:%s' % (category, namespace)
+                print ('Error exporting category: %s on namespace:%s' % (category, namespace))
             
 if __name__ == '__main__':
     action()

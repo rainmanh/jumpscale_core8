@@ -241,7 +241,7 @@ class Audit(ModelBase, Document):
     user = StringField(default='')
     result = StringField(default='')
     call = StringField(default='')
-    status_code = StringField(default='')
+    status_code = IntField(default=0)
     args = StringField(default='')
     kwargs = StringField(default='')
     timestamp = IntField(default=j.data.time.getTimeEpoch())

@@ -445,7 +445,8 @@ class Action:
         if self._selfobj!=None:
             return self._selfobj
 
-        if self.selfGeneratorCode!="":
+        from pudb import set_trace; set_trace() 
+        if self.selfGeneratorCode!="": #this is the code which needs to generate a selfobj
             try:
                 l={}
                 exec(self.selfGeneratorCode,globals(),l)
@@ -488,6 +489,7 @@ class Action:
                 
                 try:
                     if self.selfobj!=None:
+                        #here we try to reconstruct the cuisine object@
                         self.result = self.method(self.selfobj,*self.args,**self.kwargs)
                     else:
                         self.result = self.method(*self.args,**self.kwargs)

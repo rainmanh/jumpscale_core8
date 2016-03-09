@@ -6,7 +6,7 @@ import sys
 
 class ActionDecorator(object):
 
-    def __init__(self,action=True,force=False):
+    def __init__(self,action=False,force=False):
         self.action=action
         self.force=force
     def __call__(self, func):

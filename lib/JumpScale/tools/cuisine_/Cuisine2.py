@@ -1160,7 +1160,7 @@ class OurCuisine():
         rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)
         out = self._clean(out)
 
-        if rc:
+        if rc>0:
             items2check=["sudo","wget","curl","git","openssl"]
             next=True
             while next==True:

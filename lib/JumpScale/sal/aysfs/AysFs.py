@@ -57,7 +57,7 @@ class AysFs(SALObject):
         self.root = '/aysfs'
         self.name = name.replace('/', '-')
         self.unique = False
-        self.tmux = j.sal.tmux.get(self.cuisine, self.cuisine.executor)
+        self.tmux = self.cuisine.tmux
 
         self.defstor = 'https://stor.jumpscale.org/storx'
 

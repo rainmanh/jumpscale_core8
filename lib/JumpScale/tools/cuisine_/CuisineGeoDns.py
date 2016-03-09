@@ -175,29 +175,45 @@ class CuisineGeoDns():
         domain_instance = Domain(domain_name, self.cuisine, serial, ttl, content, max_hosts, a_records, cname_records, ns)
         domain_instance.save()
         return domain_instance
-
-    def del_domain(self, domain_name):
-        self.cuisine.dir_remove("$cfgDir/geodns/dns/%s.json" % domain_name)
-
-    def get_record(self, domain_name, record_type):
-        if not self.cuisine.file_exists("$cfgDir/geodns/dns/%s.json" % domain_name):
-            raise Exception("domain_name not created")
-        domain_instance = self.ensure_domain(domain_name)
-        if record_type == "a":
-            return domain_instance.get_a_record()
-        if record_type == "cname":
-            return domain_instance.get_cname_record()
-
-    def del_record(self, domain_name, record_type,  value, full=True):
-        if not self.cuisine.file_exists("$cfgDir/geodns/dns/%s.json" % domain_name):
-            raise Exception("domain_name not created")
-        domain_instance = self.ensure_domain(domain_name)
-        if record_type == "a":
-            return domain_instance.del_a_record()
-        if record_type == "cname":
-            return domain_instance.del_cname_record()
-
+    
     def get_domain(self, domain_name):
         if not self.cuisine.file_exists("$cfgDir/geodns/dns/%s.json" % domain_name):
             raise Exception("domain_name not created")
         return self.ensure_domain(domain_name)
+
+    def del_domain(self, domain_name):
+        self.cuisine.dir_remove("$cfgDir/geodns/dns/%s.json" % domain_name)
+
+    def add_record(self, domain_name, subdomain, record_type, value, weight=100):
+        if not self.cuisine.file_exists("$cfgDir/geodns/dns/%s.json" % domain_name):
+            raise Exception("domain_name not created")
+        domain_instance = self.ensure_domain(domain_name)
+        if record_type == "a":
+            domain_instance.add_a_record(subdomain, value )
+        if record_type == "cname":
+            domain_instance.add_cname_record(subdomain, value)
+        return domain_instance.save()
+
+
+    
+    def get_record(self, domain_name, record_type, subdomain=None):
+        if not self.cuisine.file_exists("$cfgDir/geodns/dns/%s.json" % domain_name):
+            raise Exception("domain_name not created")
+        domain_instance = self.ensure_domain(domain_name)
+        if record_type == "a":
+            domain_instance.get_a_record(subdomain)
+        if record_type == "cname":
+            domain_instance.get_cname_record(subdomain)
+        return domain_instance.save()
+
+    def del_record(self, domain_name, record_type, subdomain, value, full=True):
+        if not self.cuisine.file_exists("$cfgDir/geodns/dns/%s.json" % domain_name):
+            raise Exception("domain_name not created")
+        domain_instance = self.ensure_domain(domain_name)
+        if record_type == "a":
+            domain_instance.del_a_record(subdomain, value, full)
+        if record_type == "cname":
+            domain_instance.del_cname_record(subdomain, value)
+        return domain_instance.save()
+
+

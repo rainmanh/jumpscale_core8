@@ -207,6 +207,10 @@ from CuisineFW import CuisineFW
 from CuisineDocker import CuisineDocker
 from ProcessManagerFactory import ProcessManagerFactory
 from CuisinePortal import CuisinePortal
+from CuisineSSHReflector import CuisineSSHReflector
+from CuisineProxy import CuisineProxy
+from CuisineBootMediaInstaller import CuisineBootMediaInstaller
+from CuisineVRouter import CuisineVRouter
 
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
@@ -250,6 +254,12 @@ class OurCuisine():
         self._docker=None
         self._js8sb=None
         self._dirs={}
+
+        self.sshreflector=CuisineSSHReflector()
+        self.proxy=CuisineProxy()
+        self.bootmediaInstaller=CuisineBootMediaInstaller()
+        self.vrouter=CuisineVRouter()
+
 
         self.done=[]
 

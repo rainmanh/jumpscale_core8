@@ -328,8 +328,8 @@ class CuisineBuilder(object):
         """
         #deps
         self.installdeps()
-        self.redis()
-        self.mongodb()
+        self.redis(start=False)
+        self.mongodb(start=False)
         #self.cuisine.installer.jumpscale8()
 
         self.syncthing(start=False)
@@ -352,8 +352,9 @@ class CuisineBuilder(object):
         self.cuisine.file_move("%s/core" % sourcepath, "$binDir/core")
 
         # copy extensions
-        self.cuisine.dir_remove("$tmplsDir/cfg/core/extensions")
+        self.cuisine.dir_rembove("$tmplsDir/cfg/core/extensions")
         self.cuisine.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
+        self.cuisine.file_copy("%s/core/agent.toml" % sourcepath, "$tmplsDir/cfg/core")
         self.cuisine.file_copy("%s/conf" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
         self.cuisine.dir_ensure("$tmplsDir/cfg/core/extensions/syncthing")
         self.cuisine.file_copy("$binDir/syncthing", "$tmplsDir/cfg/core/extensions/syncthing/")
@@ -373,8 +374,8 @@ class CuisineBuilder(object):
         """
         #deps
         self.installdeps()
-        self.redis()
-        self.mongodb()
+        self.redis(start=False)
+        self.mongodb(start=False)
         self.syncthing(start=False)
 
 
@@ -463,6 +464,8 @@ class CuisineBuilder(object):
         if this is run on the sam e machine as a controller instance run controller first as the
         core will consume the avialable syncthing port and will cause a problem
         """
+
+        # @todo this will break code if two instances on same machine
         if not nid:
             nid = 1
         if not gid:
@@ -474,7 +477,7 @@ class CuisineBuilder(object):
 
 
         # manipulate config file
-        sourcepath = "$binDir/core"
+        sourcepath = "$tmplsDir/cfg/core"
         C = self.cuisine.file_read("%s/agent.toml" % sourcepath)
         cfg = j.data.serializer.toml.loads(C)
         cfgdir = self.cuisine.dir_paths['cfgDir']

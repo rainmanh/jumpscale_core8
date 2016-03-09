@@ -543,7 +543,7 @@ class CuisineBuilder(object):
         else:
             synccl = j.clients.syncthing.get(addr="localhost", port=18384, apikey=apikey)
 
-        jumpscripts_path = self.cuisine.args_replace("$cfgDir/cfg/controller/jumpscripts")
+        jumpscripts_path = self.cuisine.args_replace("$cfgDir/controller/jumpscripts")
         for i in range(4):
             try:
                 jumpscripts_id = "jumpscripts-%s" % hashlib.md5(synccl.id_get().encode()).hexdigest()

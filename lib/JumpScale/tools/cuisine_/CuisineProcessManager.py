@@ -216,8 +216,13 @@ class CuisineTmuxec(ProcessManagerBase):
         super().__init__(executor, cuisine)
 
     def list(self,prefix=""):
-        self.cuisine.run("tmux lsw", profile=True)
-
+        try:
+            result = self.cuisine.run("tmux lsw", profile=True).split("\n")
+        except:
+            print("no running processes")
+            return
+        return result 
+        
     def ensure(self, name, cmd="", env={}, path="", descr=""):
         """Ensures that the given upstart service is self.running, starting
         it if necessary."""
@@ -262,14 +267,16 @@ ts it if it is not self.running."""
 
     def stop(self, name):
         """Ensures that the given upstart service is stopped."""
-        pid = self.cuisine.tmux.getPid('main', name)
-        self.cuisine.run("kill -9 %s" % pid)
-        self.cuisine.tmux.killWindow("main",name)
+        if name in self.list():
+            pid = self.cuisine.tmux.getPid('main', name)
+            self.cuisine.run("kill -9 %s" % pid)
+            self.cuisine.tmux.killWindow("main",name)
 
     def remove(self, name):
         """removes service """
-        pid = self.cuisine.tmux.getPid('main', name)
-        self.cuisine.run("kill -9 %s" % pid)
-        self.cuisine.tmux.killWindow("main",name)
-        j.core.db.hdel("processcmds",name)
+        if name in self.list():
+            pid = self.cuisine.tmux.getPid('main', name)
+            self.cuisine.run("kill -9 %s" % pid)
+            self.cuisine.tmux.killWindow("main",name)
+            j.core.db.hdel("processcmds",name)
 

@@ -9,7 +9,6 @@ class CuisineTmux():
     def __init__(self,executor,cuisine):
         self.executor=executor
         self.cuisine=cuisine
-        self.screencmd="tmux"
 
     def createSession(self, sessionname, screens, user=None):
         """
@@ -304,6 +303,7 @@ class CuisineTmux():
         run-shell "tmux set-environment -g TMUX_VERSION_MINOR $(tmux -V | cut -d' ' -f2 | cut -d'.' -f2 | sed 's/[^0-9]*//g')"
 
         set -g mouse on
+        set -g mode-mouse on
 
         # rm mouse mode fail
         # if-shell '\( #{$TMUX_VERSION_MAJOR} -eq 2 -a #{$TMUX_VERSION_MINOR} -ge 1\) -o #{$TMUX_VERSION_MAJOR} -gt 2' 'set -g mouse off'

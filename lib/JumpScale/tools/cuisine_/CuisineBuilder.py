@@ -337,7 +337,7 @@ class CuisineBuilder(object):
         #build
         url = "https://github.com/syncthing/syncthing.git"
         self.cuisine.dir_remove('$goDir/src/github.com/syncthing/syncthing')
-        dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='$goDir/src/github.com/syncthing/syncthing', ssh=False)
+        dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='$goDir/src/github.com/syncthing/syncthing', ssh=False, depth=None)
         self.cuisine.run('cd %s && godep restore' % dest, profile=True)
         self.cuisine.run("cd %s && ./build.sh noupgrade" % dest, profile=True)
 
@@ -371,7 +371,7 @@ class CuisineBuilder(object):
         self.cuisine.dir_ensure("$tmplsDir/cfg/core/mid", recursive=True)
 
         url = "github.com/g8os/core"
-        self.cuisine.golang.get(url)
+        self.cuisine.golang.godep(url)
 
         sourcepath = "$goDir/src/github.com/g8os/core"
 

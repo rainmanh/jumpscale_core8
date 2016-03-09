@@ -450,10 +450,11 @@ class Action:
                 l={}
                 exec(self.selfGeneratorCode,globals(),l)
                 self._selfobj=l["selfobj"]
-            except Exception as e:
-                self.stdouterr += "SELF OBJ ERROR:\n%s" % e
+            except Exception as e:                
+                self.error += "SELF OBJ ERROR:\n%s" % e
                 self.state = "ERROR"
-                raise RuntimeError("%s" % str(self))                        
+                self.print()
+                raise RuntimeError("error in selfobj in action:%s"%self)
 
         return self._selfobj
 
@@ -466,15 +467,11 @@ class Action:
         #     self.state="FORCE"
         #     print ("FORCE")
 
-        from pudb import set_trace; set_trace() 
+        # from pudb import set_trace; set_trace() 
 
         if self.state == "OK":
             print("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
             return
-
-        # if self.state == "ERROR":
-        #     print ("ACTION WAS ALREADY IN ERROR:")
-        #     raise RuntimeError("%s" % str(self))
 
         print("  * %-20s: %s" % (self.name, self._args1line))
 

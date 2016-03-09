@@ -337,7 +337,7 @@ class CuisineBuilder(object):
         #build
         url = "https://github.com/syncthing/syncthing.git"
         self.cuisine.dir_remove('$goDir/src/github.com/syncthing/syncthing')
-        dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='$goDir/src/github.com/syncthing/syncthing', ssh=False)
+        dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='$goDir/src/github.com/syncthing/syncthing', ssh=False, depth=None)
         self.cuisine.run('cd %s && godep restore' % dest, profile=True)
         self.cuisine.run("cd %s && ./build.sh noupgrade" % dest, profile=True)
 

@@ -17,13 +17,24 @@ queue='process'
 roles = []
 log=False
 
-def action():
+def action(redisconnection):
     import psutil
-    import statsd
-    stats = statsd.StatsClient()
-    pipe = stats.pipeline()
+    import sys
+    if not redisconnection or not ':' in redisconnection:
+        print("Please specifiy a redis connection in the form of ipaddr:port")
+        return
+    addr = redisconnection.split(':')[0]
+    port = int(redisconnection.split(':')[1])
+    redis_client = j.clients.redis.getRedisClient(addr, port)
     hostname =j.sal.nettools.getHostname()
-    aggregator = j.tools.aggregator.getClient(j.core.db,  hostname)
+
+    aggregator = j.tools.aggregator.getClient(redis_client,  hostname)
+    tags = j.data.tags.getTagString(tags={
+        'gid': str(j.application.whoAmI.gid),
+        'nid': str(j.application.whoAmI.nid),
+        })
+    
+    
     counters=psutil.net_io_counters(True)
     pattern = None
     if j.application.config.exists('gridmonitoring.nic.pattern'):
@@ -44,12 +55,13 @@ def action():
         result['error.out'] = errout
         result['drop.in'] = dropin
         result['drop.out'] = dropout
+
         for key, value in result.items():
-            pipe.gauge("%s_%s_nic_%s_%s" % (j.application.whoAmI.gid, j.application.whoAmI.nid, nic, key), value)
+            aggregator.measure(tags=tags, key="network.%s" % key, value=value, measurement="")
 
-            aggregator.measure(tags={'nid': j.application.whoAmI.nid, 'gid': j.application.whoAmI.gid} ,key="network.%s" %key, value=value)
-
-    pipe.send()
-
+    return result
 if __name__ == '__main__':
-    action()
+  if len(sys.argv) == 2:
+      action(sys.argv[1])
+  else:
+      print("Please specifiy a redis connection in the form of ipaddr:port")

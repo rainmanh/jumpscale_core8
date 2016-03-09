@@ -147,7 +147,6 @@ def execute(name, cmd):
     container.cuisine.run(cmd)
 
 
-cli.add_command(do)
 cli.add_command(list)
 cli.add_command(pull)
 cli.add_command(commit)

@@ -1,4 +1,5 @@
 from JumpScale import j
+import sys
 
 descr = """
 gather statistics about disks
@@ -19,13 +20,26 @@ log=False
 
 roles = []
 
-def action():
-    import statsd
+def action(redisconnection):
     import psutil
 
     dcl = j.data.models.system.Disk
-    stats = statsd.StatsClient()
-    pipe = stats.pipeline()
+    if not redisconnection or not ':' in redisconnection:
+        print("Please specifiy a redis connection in the form of ipaddr:port")
+        return
+    addr = redisconnection.split(':')[0]
+    port = int(redisconnection.split(':')[1])
+    redis_client = j.clients.redis.getRedisClient(addr, port)
+    hostname =j.sal.nettools.getHostname()
+    try:
+        aggregator = j.tools.aggregator.getClient(redis_client,  hostname)
+    except:
+        print("No redis instance was found on this connection")
+        return
+    tags = j.data.tags.getTagString(tags={
+        'gid': str(j.application.whoAmI.gid),
+        'nid': str(j.application.whoAmI.nid),
+        })
 
     disks = j.sal.disklayout.getDisks(detailed=True)
 
@@ -85,10 +99,12 @@ def action():
                 odisk.save()
 
         for key, value in results.items():
-            pipe.gauge("%s_%s_disk_%s_%s" % (j.application.whoAmI.gid, j.application.whoAmI.nid, path, key), value)
+            aggregator.measure(tags=tags, key="disks.%s" % key, value=value, measurement="")
 
-    result = pipe.send()
-    return {'results': result, 'errors': []}
+    return results
 
 if __name__ == '__main__':
-    action()
+    if len(sys.argv) == 2:
+        action(sys.argv[1])
+    else:
+        print("Please specifiy a redis connection in the form of ipaddr:port")

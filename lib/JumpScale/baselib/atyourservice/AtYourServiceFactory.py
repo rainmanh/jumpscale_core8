@@ -42,7 +42,6 @@ class AtYourServiceFactory():
         self._sandboxer=None
         self._roletemplates = dict()
         self._servicesTree = {}
-        self._graphelements = {}
 
         # self._db=AYSDB()
 
@@ -57,7 +56,6 @@ class AtYourServiceFactory():
         self._blueprints=[]
         self._alog=None
         self._servicesTree = {}
-        self._graphelements = {}
 
     @property
     def runcategory(self):
@@ -191,62 +189,39 @@ class AtYourServiceFactory():
                 self._services[service.shortkey]=service
         return self._services
 
-    def _nodechildren(self, service, parent=None):
+    def _nodechildren(self, service, parent=None, producers=[]):
         parent = {} if parent is None else parent
-        me = {}
-        parent[service.shortkey] = {'children': me}
-        parent[service.shortkey].update(service.hrd.getHRDAsDict())
+        me = {"name": service.shortkey.replace('!', '__'), "children": []}
+        parent["children"].append(me)
+        details = service.hrd.getHRDAsDict()
+        details = {key: value for key, value in details.items() if key not in ['service.domain', 'service.name', 'service.version', 'parent']}
+        me["data"] = details
         children = service.listChildren()
-        if children:
-            for role, instances in children.items():
-                for instance in instances:
-                    child = j.atyourservice.getService(role=role, instance=instance)
-                    self._nodechildren(child, me)
+        for role, instances in children.items():
+            for instance in instances:
+                child = j.atyourservice.getService(role=role, instance=instance)
+                for _, producerinstances in child.producers.items():
+                    for producer in producerinstances:
+                        producers.append([child.shortkey.replace('!', '__'), producer.shortkey.replace('!', '__')])
+                self._nodechildren(child, me, producers)
         return parent
-
-    @property
-    def graphelements(self):
-        if self._graphelements:
-            return self._graphelements
-        nodes = list()
-        edges = list()
-        for servicekey, service in self.services.items():
-            node = {'data': {'id': servicekey}}
-            hrd = service.hrd.getHRDAsDict()
-            for key, value in hrd.items():
-                if key.startswith('producer') or key in ['service.domain', 'service.name', 'service.version', 'parent']:
-                    continue
-                key = key.replace('.', '_')
-                node['data'][key] = value
-            nodes.append(node)
-
-            # parent-child relationship
-            for role, instances in service.listChildren().items():
-                for instance in instances:
-                    childkey = "%s!%s" % (role, instance)
-                    edge = {'data': {'id': '"%s""%s"' % (servicekey, childkey), 'source': servicekey, 'target': childkey}}
-                    edges.append(edge)
-
-            # producer-consumer relationship
-            for role, instances in service.producers.items():
-                for instance in instances:
-                    producerkey = '%s!%s' % (instance.name, instance.instance)
-                    edge = {'data': {'id': '"%s""%s"' % (producerkey, servicekey), 'source': producerkey, 'target': servicekey}}
-                    edges.append(edge)
-
-        self._graphelements = {'elements': {'nodes': nodes, 'edges': edges}}
-        return self._graphelements
 
     @property
     def servicesTree(self):
         if self._servicesTree:
             return self._servicesTree
         self._doinit()
-
+        producers = []
+        parents = {"name": "sudoroot", "children": []}
         for root in j.sal.fs.walk(j.dirs.ays, recurse=1, pattern='*instance.hrd', return_files=1, depth=2):
-                service_path = j.sal.fs.getDirName(root)
-                service = Service(path=service_path, args=None)
-                self._servicesTree[service.shortkey] = self._nodechildren(service)[service.shortkey]
+            servicekey = j.sal.fs.getBaseName(j.sal.fs.getDirName(root))
+            service = self.services.get(servicekey)
+            for _, producerinstances in service.producers.items():
+                for producer in producerinstances:
+                    producers.append([child.shortkey.replace('!', '__'), producer.shortkey.replace('!', '__')])
+            parents["children"].append(self._nodechildren(service, {"children": [], "name": servicekey.replace('!', '__')}, producers))
+        self._servicesTree['parentchild'] = parents
+        self._servicesTree['producerconsumer'] = producers
         return self._servicesTree
 
     @property

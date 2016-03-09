@@ -258,3 +258,7 @@ if data==None:
     j.application._config = j.data.hrd.get(path="%s/hrd/system"%basevar)
 
 j.application.init()
+
+j.tools.xonsh
+
+

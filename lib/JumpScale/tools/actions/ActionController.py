@@ -26,10 +26,11 @@ class ActionController(object):
         else:
             self._showonly = showonly.decode() == "1"
 
-    def setRunId(self, runid):
+    def setRunId(self, runid,reset=False):
         self._runid = str(runid)
         j.core.db.set("actions.runid", self._runid.encode())
-        j.core.db.delete("actions.%s"%self.runid)
+        if reset:
+            j.core.db.delete("actions.%s"%self.runid)
 
     @property
     def showonly(self):
@@ -138,7 +139,7 @@ class ActionController(object):
                 todo.append(action)
         return todo
 
-    def runn(self, agentcontroller=False):
+    def run(self, agentcontroller=False):
         todo = self.gettodo()
         step = 0
         while todo:

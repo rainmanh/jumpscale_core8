@@ -207,6 +207,11 @@ from CuisineFW import CuisineFW
 from CuisineDocker import CuisineDocker
 from ProcessManagerFactory import ProcessManagerFactory
 from CuisinePortal import CuisinePortal
+from CuisineSSHReflector import CuisineSSHReflector
+from CuisineProxy import CuisineProxy
+from CuisineBootMediaInstaller import CuisineBootMediaInstaller
+from CuisineVRouter import CuisineVRouter
+from CuisineTmux import CuisineTmux
 from CuisineGeoDns import CuisineGeoDns
 
 class actionrun(ActionDecorator):
@@ -252,6 +257,12 @@ class OurCuisine():
         self._js8sb=None
         self._geodns=None
         self._dirs={}
+
+        self.sshreflector=CuisineSSHReflector(self.executor,self)
+        self.proxy=CuisineProxy(self.executor,self)
+        self.bootmediaInstaller=CuisineBootMediaInstaller(self.executor,self)
+        self.vrouter=CuisineVRouter(self.executor,self)
+        self.tmux=CuisineTmux(self.executor,self)
 
         self.done=[]
 
@@ -350,12 +361,6 @@ class OurCuisine():
         if self._avahi==None:
             self._avahi=j.tools.avahi.get(self,self.executor)
         return self._avahi
-
-    @property
-    def tmux(self):
-        if self._tmux==None:
-            self._tmux=j.sal.tmux.get(self,self.executor)
-        return self._tmux
 
     @property
     def dnsmasq(self):

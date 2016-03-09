@@ -51,6 +51,7 @@ def patchMS1(api):
 
 
     api.cloudapi.portforwarding.list = patchmethod(api.cloudapi.portforwarding.list, {'cloudspaceId': 'cloudspaceid'})
+    api.cloudapi.portforwarding.delete = patchmethod(api.cloudapi.portforwarding.delete, {'cloudspaceId': 'cloudspaceid'})
     api.cloudapi.portforwarding.create = patchmethod(api.cloudapi.portforwarding.create,
                                                      {'cloudspaceId': 'cloudspaceid', 'machineId': 'vmid'})
 
@@ -333,7 +334,7 @@ class Machine:
         self._portforwardings_cache.delete()
 
     def delete_portfowarding_by_id(self, pfid):
-        self.client.api.cloudapi.portforwarding.delete(cloudspaceId=self.space.id,
+        self.client.api.cloudapi.portforwarding.delete(cloudspaceid=self.space.id,
                                                        id=pfid)
         self.space._portforwardings_cache.delete()
         self._portforwardings_cache.delete()

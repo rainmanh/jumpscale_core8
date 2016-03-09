@@ -35,10 +35,10 @@ def init():
     the changes with before (last time you did an init) will be shown
     """
     chfiles=j.atyourservice.init()
-    path = j.sal.fs.joinPaths(j.dirs.varDir, 'graphelements.json')
+    path = j.sal.fs.joinPaths(j.dirs.varDir, 'servicestree.json')
     j.sal.fs.touch(path)
-    graphelements = j.atyourservice.graphelements
-    j.data.serializer.json.dump(path, graphelements)
+    servicestree = j.atyourservice.servicesTree
+    j.data.serializer.json.dump(path, servicestree)
 
     # chfiles.sort()
     # for item in chfiles:

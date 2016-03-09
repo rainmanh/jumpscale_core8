@@ -262,8 +262,14 @@ ts it if it is not self.running."""
 
     def stop(self, name):
         """Ensures that the given upstart service is stopped."""
+        pid = self.cuisine.tmux.getPid('main', name)
+        self.cuisine.run("kill -9 %s" % pid)
         self.cuisine.tmux.killWindow("main",name)
 
     def remove(self, name):
         """removes service """
+        pid = self.cuisine.tmux.getPid('main', name)
+        self.cuisine.run("kill -9 %s" % pid)
+        self.cuisine.tmux.killWindow("main",name)
         j.core.db.hdel("processcmds",name)
+

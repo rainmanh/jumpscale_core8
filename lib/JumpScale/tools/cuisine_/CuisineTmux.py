@@ -28,8 +28,7 @@ class CuisineTmux():
 
         env = os.environ.copy()
         env.pop('TMUX', None)
-        cmd = "%s new-session -d -s %s -n %s" % (
-            self.screencmd, sessionname, screens[0])
+        cmd = "tmux new-session -d -s %s -n %s" % (sessionname, screens[0])
         if user is not None:
             cmd = "sudo -u %s -i %s" % (user, cmd)
         # j.sal.process.run(cmd, env=env)  #@todo does not work in python3

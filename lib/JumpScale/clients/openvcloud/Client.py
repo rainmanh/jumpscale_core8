@@ -51,6 +51,7 @@ def patchMS1(api):
 
 
     api.cloudapi.portforwarding.list = patchmethod(api.cloudapi.portforwarding.list, {'cloudspaceId': 'cloudspaceid'})
+    api.cloudapi.portforwarding.delete = patchmethod(api.cloudapi.portforwarding.delete, {'cloudspaceId': 'cloudspaceid'})
     api.cloudapi.portforwarding.create = patchmethod(api.cloudapi.portforwarding.create,
                                                      {'cloudspaceId': 'cloudspaceid', 'machineId': 'vmid'})
 

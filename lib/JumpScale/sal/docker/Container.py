@@ -172,18 +172,16 @@ class Container(SALObject):
             for file in dir.listdir("*.pub"):
                 keys.add(file.text())
 
-        if sshpubkey is not None and sshpubkey != '' and j.data.types.string.check(sshpubkey):
+        if sshpubkey and j.data.types.string.check(sshpubkey):
             keys.add(sshpubkey)
 
         if keyname is not None and keyname != '':
             if not j.do.checkSSHAgentAvailable:
                 j.do.loadSSHAgent()
 
-            keypath = j.do.getSSHKeyFromAgent(keyname)
-            key = j.sal.fs.fileGetContents(keypath.decode()+".pub")
-            if key == "":
-                raise RuntimeError("Could not find key %s in ssh-agent"%keyname)
-            keys.add(key)
+            key = j.do.getSSHKeyFromAgentPub(keyname)
+            if key:
+                keys.add(key)
 
         j.sal.fs.writeFile(filename="/root/.ssh/known_hosts", contents="")
         for key in keys:
@@ -194,17 +192,17 @@ class Container(SALObject):
     def cleanAysfs(self):
         # clean default /optvar aysfs if any
         aysfs = j.sal.aysfs.get('%s-optvar' % self.name, None)
-        
+
         # if load config return True, config exists
         if aysfs.loadConfig():
             # stopping any running aysfs linked
             if aysfs.isRunning():
                 aysfs.stop()
                 print("[+] aysfs stopped")
-        
+
     def destroy(self):
         self.cleanAysfs()
-        
+
         try:
             self.client.kill(self.id)
         except Exception as e:

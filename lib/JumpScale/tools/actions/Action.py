@@ -116,7 +116,8 @@ class Action:
             self._load(True)
 
         self._parent=j.actions._current
-        if self._parent!=None:            
+        if self._parent!=None:         
+            # from pudb import set_trace; set_trace() 
             self.parent.addDep(self)
 
         if self.state=="INIT" and key=="":
@@ -445,7 +446,7 @@ class Action:
         if self._selfobj!=None:
             return self._selfobj
 
-        from pudb import set_trace; set_trace() 
+        # from pudb import set_trace; set_trace() 
         if self.selfGeneratorCode!="": #this is the code which needs to generate a selfobj
             try:
                 l={}
@@ -468,10 +469,16 @@ class Action:
         #     self.state="FORCE"
         #     print ("FORCE")
 
-        # from pudb import set_trace; set_trace() 
+        
+
+        # args=str(self.args)
+        # myid=str(self)
+        # from pudb import set_trace; set_trace()                 
+        
 
         if self.state == "OK":
             print("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
+            j.actions._current=None  
             return
 
         print("  * %-20s: %s" % (self.name, self._args1line))
@@ -511,6 +518,7 @@ class Action:
                     #     self.traceback+="%s\n"%line.strip()
                     # err=""
 
+
                     tb=e.__traceback__
                     value=e
                     type=None
@@ -528,6 +536,10 @@ class Action:
                     if self.retry>0:
                         print("  RETRY, ERROR (%s/%s)" % (counter, self.retry))
                     rcode = 1
+
+                    if "**NOSTACK**" in err:
+                        tb_text=""
+                        err=err.replace("**NOSTACK**","")
                  
             
 
@@ -544,7 +556,7 @@ class Action:
 
                 if self.die:
                     for action in self.getWhoDependsOnMe():
-                        if action.state=="ERROR":
+                        if action.state=="ERRORCHILD":
                             continue #to avoid saving
                         # print ("#####%s"%self)
                         # print (action)                            
@@ -558,7 +570,7 @@ class Action:
 
                               
 
-                if self.state=="ERROR":
+                if self.state=="ERRORCHILD":
                     j.actions._current=None
                     #we are already in error, means error came from child
                     if self.die:
@@ -682,24 +694,25 @@ class Action:
         self._stream.write(colored)
 
         
-        print ("\n*SOURCECODE******************************************************************************\n")
+        if self.traceback!="":
+            print ("\n*SOURCECODE******************************************************************************\n")
 
-        """
-        styles:
-        'monokai', 'trac', 'borland', 'paraiso-dark', 'tango', 'bw', 'native', 'lovelace', 'algol_nu', 'vim', 'emacs', 'vs', 
-        'pastie', 'rrt', 'default', 'xcode', 'friendly', 'fruity', 'igor', 'colorful', 'paraiso-light', 'murphy', 'manni', 'autumn', 'perldoc', 'algol'
-        """
-        
+            """
+            styles:
+            'monokai', 'trac', 'borland', 'paraiso-dark', 'tango', 'bw', 'native', 'lovelace', 'algol_nu', 'vim', 'emacs', 'vs', 
+            'pastie', 'rrt', 'default', 'xcode', 'friendly', 'fruity', 'igor', 'colorful', 'paraiso-light', 'murphy', 'manni', 'autumn', 'perldoc', 'algol'
+            """
+            
 
-        lexer = pygments.lexers.get_lexer_by_name("py3")#, stripall=True)
-        tb_colored = pygments.highlight(self.sourceToExecute, lexer, formatter)
-        self._stream.write(tb_colored)
+            lexer = pygments.lexers.get_lexer_by_name("py3")#, stripall=True)
+            tb_colored = pygments.highlight(self.sourceToExecute, lexer, formatter)
+            self._stream.write(tb_colored)
 
-        print ("\n*TRACEBACK*********************************************************************************\n")
+            print ("\n*TRACEBACK*********************************************************************************\n")
 
-        lexer = pygments.lexers.get_lexer_by_name("pytb", stripall=True)
-        tb_colored = pygments.highlight(self.traceback, lexer, formatter)
-        self._stream.write(tb_colored)
+            lexer = pygments.lexers.get_lexer_by_name("pytb", stripall=True)
+            tb_colored = pygments.highlight(self.traceback, lexer, formatter)
+            self._stream.write(tb_colored)
 
         print ("\n\n******************************************************************************************\n")
     

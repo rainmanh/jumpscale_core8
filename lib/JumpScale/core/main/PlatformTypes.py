@@ -141,11 +141,11 @@ class PlatformType():
             self.uname
             self._osname=self._osname0.lower()
             if self._osname not in ["darwin"]:
-                rc, out = self.executor.cuisine.run("lsb_release -a",showout=False, replaceArgs=False, die=False)
+                rc, out = self.executor.cuisine.run("lsb_release -a",showout=False, replaceArgs=False, die=False,action=False)
                 if rc != 0:
                     packagemanagers = {'pacman': 'arch', 'apt-get': 'ubuntu', 'yum': 'fedora'}
                     for packagemanager, osname in packagemanagers.items():
-                        rc, _ = self.executor.cuisine.run("which %s" % packagemanager, showout=False, replaceArgs=False, die=False)
+                        rc, _ = self.executor.cuisine.run("which %s" % packagemanager, showout=False, replaceArgs=False, die=False,action=False)
                         if rc == 0:
                             self._osname = osname
                             return self._osname

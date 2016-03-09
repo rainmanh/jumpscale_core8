@@ -15,5 +15,5 @@ log = True
 
 
 def action(msg):
-    print msg
+    print (msg)
     return msg

@@ -354,7 +354,7 @@ class CuisineBuilder(object):
         # copy extensions
         self.cuisine.dir_remove("$tmplsDir/cfg/core/extensions")
         self.cuisine.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
-        self.cuisine.file_copy("%s/core/agent.toml" % sourcepath, "$tmplsDir/cfg/core")
+        self.cuisine.file_copy("%s/agent.toml" % sourcepath, "$tmplsDir/cfg/core")
         self.cuisine.file_copy("%s/conf" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
         self.cuisine.dir_ensure("$tmplsDir/cfg/core/extensions/syncthing")
         self.cuisine.file_copy("$binDir/syncthing", "$tmplsDir/cfg/core/extensions/syncthing/")

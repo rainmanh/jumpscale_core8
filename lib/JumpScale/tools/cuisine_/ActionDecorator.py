@@ -2,6 +2,7 @@
 from JumpScale import j
 import colored_traceback
 colored_traceback.add_hook(always=True)
+import functools
 import sys
 
 class ActionDecorator(object):
@@ -26,7 +27,7 @@ class ActionDecorator(object):
             else:
                 force=forcebase
 
-            # action=False
+            #action=False
 
             if action:
                 args=args[1:]
@@ -48,4 +49,5 @@ class ActionDecorator(object):
                 return action0.result
             else:
                 return func(*args,**kwargs)
+        functools.update_wrapper(wrapper, func)
         return wrapper

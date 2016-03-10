@@ -218,8 +218,8 @@ class CuisineTmuxec(ProcessManagerBase):
     def list(self,prefix=""):
         try:
             result = self.cuisine.run("tmux lsw", profile=True).split("\n")
-        except:
-            print("no running processes")
+        except Exception as e:
+            print("no running processes", e)
             return []
         return result
         

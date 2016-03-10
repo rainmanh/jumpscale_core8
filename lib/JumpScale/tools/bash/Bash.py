@@ -194,7 +194,9 @@ class Bash:
     @property
     def profile(self):
         if not self._profile:
-            content = self.cuisine.file_read(self.profilePath)
+            content = ""
+            if self.cuisine.file_exists(self.profilePath):
+                content = self.cuisine.file_read(self.profilePath)
             self._profile = Profile(content)
         return self._profile
 

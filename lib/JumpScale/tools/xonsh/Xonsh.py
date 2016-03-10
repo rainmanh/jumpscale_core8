@@ -39,7 +39,7 @@ class Xonsh:
 
         from tools.xonsh.XonshAliases import *
 
-        aliases['go'] = xonsh_go
+        aliases['jsgo'] = xonsh_go
         aliases['jsedit'] = xonsh_edit
 
 

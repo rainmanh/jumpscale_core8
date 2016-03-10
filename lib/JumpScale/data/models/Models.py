@@ -147,7 +147,7 @@ class ModelBase():
 
 class Errorcondition(ModelBase, Document):
     nid = IntField(required=True)
-    gid = IntField(required=True)    
+    gid = IntField(required=True)
     aid = IntField(default=0)
     pid = IntField(default=0)
     jid = StringField(default='')  #@todo (*2*) is this right, string???
@@ -288,7 +288,7 @@ class VDisk(ModelBase, Document):
     backuplocation = StringField()
     backuptime  = IntField(default=j.data.time.getTimeEpoch())
     backupexpiration = IntField()
-    
+
 class Alert(ModelBase, Document):
     username = StringField(default='')
     description = StringField(default='')

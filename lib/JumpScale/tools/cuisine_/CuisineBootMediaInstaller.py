@@ -52,10 +52,31 @@ class CuisineBootMediaInstaller(object):
         self.cuisine.run("cd /mnt && mv root/boot/* boot")
         self.cuisine.run("echo 'PermitRootLogin=yes'>>'/mnt/root/etc/ssh/sshd_config'")
 
-    # @actionrun(action=True)
+    def _findDevices(self):
+        devs = []
+        for line in self.cuisine.run("lsblk -b -o TYPE,NAME,SIZE").split("\n"):
+            if line.startswith("disk"):
+                while line.find("  ") > 0:
+                    line = line.replace("  ", " ")
+                ttype, dev, size = line.split(" ")
+                size = int(size)
+                if size > 30000000000 and size < 32000000000:
+                    devs.append((dev, size))
+                if size > 15000000000 and size < 17000000000:
+                    devs.append((dev, size))
+                if size > 7500000000 and size < 8500000000:
+                    devs.append((dev, size))
+                if size > 4000000000 and size < 4100000000:
+                    devs.append((dev, size))
+
+        if len(devs) == 0:
+            raise RuntimeError(
+                "could not find flash disk device, (need to find at least 1 of 8,16 or 32 GB size)" % devs)
+        return devs
+
     def formatCardDeployImage(self, url, deviceid=None, part_type='msdos', post_install=None):
         """
-        will only work if 1 or more sd cards found of 8 or 16 or 32 GB, be careful will overwrite the card
+        will only work if 1 or more sd cards found of 4 or 8 or 16 or 32 GB, be careful will overwrite the card
         executor = a linux machine
 
         executor=j.tools.executor.getSSHBased(addr="192.168.0.23", port=22,login="root",passwd="rooter",pushkey="ovh_install")
@@ -83,32 +104,13 @@ class CuisineBootMediaInstaller(object):
             self._umount(deviceid)
 
         if deviceid is None:
-            devs = self.findDevices()
+            devs = self._findDevices()
         else:
             devs = [(deviceid, 0)]
 
         for deviceid, size in devs:
             partition(deviceid, size, base)
 
-        return devs
-
-    def _findDevices(self):
-        devs = []
-        for line in self.cuisine.run("lsblk -b -o TYPE,NAME,SIZE").split("\n"):
-            if line.startswith("disk"):
-                while line.find("  ") > 0:
-                    line = line.replace("  ", " ")
-                ttype, dev, size = line.split(" ")
-                size = int(size)
-                if size > 30000000000 and size < 32000000000:
-                    devs.append((dev, size))
-                if size > 15000000000 and size < 17000000000:
-                    devs.append((dev, size))
-                if size > 7500000000 and size < 8500000000:
-                    devs.append((dev, size))
-        if len(devs) == 0:
-            raise RuntimeError(
-                "could not find flash disk device, (need to find at least 1 of 8,16 or 32 GB size)" % devs)
         return devs
 
     def arch(self, deviceid=None):
@@ -120,7 +122,7 @@ class CuisineBootMediaInstaller(object):
         title   {title}
         linux   /vmlinuz-linux
         initrd  /initramfs-linux.img
-        options root=PARTUUID={uuid} rw init={init}
+        options root=PARTUUID={uuid} rw earlymodules=xhci_hcd modules-load=xhci_hcd init={init}
         """
 
         fstab_tmpl = """\

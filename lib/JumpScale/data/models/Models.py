@@ -82,7 +82,7 @@ class ModelBase():
                 res = None
         else:
             try:
-                res = cls.objects.get(pk=guid)
+                res = cls.objects.get(id=guid)
             except DoesNotExist:
                 res = None
         return res
@@ -91,7 +91,7 @@ class ModelBase():
     def _save_redis(cls, obj):
         key = cls._getKey(obj.guid)
         meta = cls._meta['indexes']
-        expire = meta[2].get('expireAfterSeconds', None) if meta else None
+        expire = meta[0].get('expireAfterSeconds', None) if meta else None
         raw = j.data.serializer.json.dumps(obj.to_dict())
         j.core.db.set(key, raw)
         if expire:
@@ -241,7 +241,7 @@ class Audit(ModelBase, Document):
     user = StringField(default='')
     result = StringField(default='')
     call = StringField(default='')
-    status_code = StringField(default='')
+    status_code = IntField(default=0)
     args = StringField(default='')
     kwargs = StringField(default='')
     timestamp = IntField(default=j.data.time.getTimeEpoch())
@@ -442,6 +442,7 @@ class SessionCache(ModelBase, Document):
     user = StringField()
     _creation_time = IntField(default=j.data.time.getTimeEpoch())
     _accessed_time = IntField(default=j.data.time.getTimeEpoch())
+    guid = StringField()
     meta = extend(default_meta, {'indexes': [
         {'fields': ['epoch'], 'expireAfterSeconds': 432000}
     ], 'allow_inheritance': True, "db_alias": DB})

@@ -6,6 +6,7 @@ class OurCuisineFactory:
     def __init__(self):
         self.__jslocation__ = "j.tools.cuisine"
         self._local=None
+        self._cuinses_instance = {}
 
     @property
     def local(self):
@@ -54,7 +55,9 @@ class OurCuisineFactory:
         j.clients.ssh.cache={}
         executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login)#should now work with key only
 
-        return OurCuisine(executor)
+        cuisine = OurCuisine(executor)
+        self._cuinses_instance[executor.id] = cuisine
+        return self._cuinses_instance[executor.id]
 
     def get(self,executor=None):
 
@@ -68,9 +71,13 @@ class OurCuisineFactory:
         or if used without executor then will be the local one
         """
         executor = j.tools.executor.get(executor)
-        return OurCuisine(executor)
+        if executor.id in self._cuinses_instance:
+            return self._cuinses_instance[executor.id]
+
+        cuisine = OurCuisine(executor)
+        self._cuinses_instance[executor.id] = cuisine
+        return self._cuinses_instance[executor.id]
 
     def getFromId(self, id):
         executor = j.tools.executor.get(id)
-        cuisine = j.tools.cuisine.get(executor)
-        return cuisine
+        return self.get(executor)

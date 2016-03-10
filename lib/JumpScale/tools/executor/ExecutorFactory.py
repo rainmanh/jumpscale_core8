@@ -33,9 +33,14 @@ class ExecutorFactory():
 
         elif j.data.types.string.check(executor):
             if executor.find(":") > 0:
-                # ssh with port
-                addr, port = executor.split(":")
-                return self.getSSHBased(addr=addr.strip(), port=int(port))
+                nbr = executor.count(':')
+                login = 'root'
+                if nbr == 2:
+                    # ssh with port
+                    addr, port = executor.split(":")
+                if nbr == 3:
+                    addr, port, login = executor.split(":")
+                return self.getSSHBased(addr=addr.strip(), port=int(port), login=login)
             else:
                 return self.getSSHBased(addr=executor.strip())
         else:
@@ -46,10 +51,9 @@ class ExecutorFactory():
 
     def getSSHBased(self, addr="localhost", port=22, login="root", passwd=None, debug=False, checkok=True, allow_agent=True, look_for_keys=True, pushkey=None,pubkey=""):
         key = '%s:%s:%s' % (addr, port, login)
-        h = j.data.hash.md5_string(key)
-        if h not in self._executors:
-            self._executors[h] = ExecutorSSH(addr, port=port, login=login, passwd=passwd, debug=debug, checkok=checkok, allow_agent=allow_agent, look_for_keys=look_for_keys, pushkey=pushkey,pubkey=pubkey)
-        return self._executors[h]
+        if key not in self._executors:
+            self._executors[key] = ExecutorSSH(addr, port=port, login=login, passwd=passwd, debug=debug, checkok=checkok, allow_agent=allow_agent, look_for_keys=look_for_keys, pushkey=pushkey,pubkey=pubkey)
+        return self._executors[key]
 
     def getJSAgentBased(self, agentControllerClientKey, debug=False, checkok=False):
         return ExecutorAgent2(addr, debug=debug, checkok=debug)

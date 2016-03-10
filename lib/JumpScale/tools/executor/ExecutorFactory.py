@@ -35,10 +35,10 @@ class ExecutorFactory():
             if executor.find(":") > 0:
                 nbr = executor.count(':')
                 login = 'root'
-                if nbr == 2:
+                if nbr == 1:
                     # ssh with port
                     addr, port = executor.split(":")
-                if nbr == 3:
+                if nbr == 2:
                     addr, port, login = executor.split(":")
                 return self.getSSHBased(addr=addr.strip(), port=int(port), login=login)
             else:

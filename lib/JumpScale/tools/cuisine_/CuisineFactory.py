@@ -27,14 +27,16 @@ class OurCuisineFactory:
         else:
             port=22
 
+        executor=None
         if passwd=="":
-            #@todo fix (*1*),goal is to test if ssh works, get some weird paramiko issues
-            # res=j.clients.ssh.get(addr, port=port, login=login, passwd="",allow_agent=True, look_for_keys=True,timeout=0.5,testConnection=True,die=False)
-            # if res!=False:
-            #     executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login)
-            #     return OurCuisine(executor)
-            passwd=j.tools.console.askPassword("please specify root passwd",False)
-        if pubkey=="":
+            #@todo fix (*1*),goal is to test if ssh works, get some weird paramiko issues or timeout is too long
+            res=j.clients.ssh.get(addr, port=port, login=login, passwd="",allow_agent=True, look_for_keys=True,timeout=0.5,testConnection=True,die=False)            
+            if res!=False:
+                executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login)
+            else:
+                passwd=j.tools.console.askPassword("please specify root passwd",False)
+
+        if pubkey=="" and executor==None:
             if keyname=="":
                 rc,out=j.sal.process.execute("ssh-add -l")
                 keys=[]
@@ -47,10 +49,14 @@ class OurCuisineFactory:
                     except:
                         pass
                 key=j.tools.console.askChoice(keys,"please select key")
+            else:
+                key=keyname
         else:
             key=None
 
-        executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login,passwd=passwd,pushkey=key,pubkey=pubkey)
+        if executor==None:
+            executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login,passwd=passwd,pushkey=key,pubkey=pubkey)
+
         j.clients.ssh.cache={}
         executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login)#should now work with key only
 

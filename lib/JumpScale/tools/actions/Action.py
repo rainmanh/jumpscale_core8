@@ -474,7 +474,6 @@ class Action:
         # args=str(self.args)
         # myid=str(self)
         # from pudb import set_trace; set_trace()                 
-        
 
         if self.state == "OK":
             print("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))

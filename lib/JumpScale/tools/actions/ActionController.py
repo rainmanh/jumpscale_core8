@@ -79,7 +79,7 @@ class ActionController(object):
     def selectAction(self):
         return j.tools.console.askChoice(j.actions.actions)
 
-    def add(self, action,actionRecover=None,args=(),kwargs={},die=True,stdOutput=False,errorOutput=True,retry=0,serviceObj=None,deps=None,executeNow=True,selfGeneratorCode="",force=True):
+    def add(self, action,actionRecover=None,args=(),kwargs={},die=True,stdOutput=False,errorOutput=True,retry=0,serviceObj=None,deps=None,executeNow=True,selfGeneratorCode="",force=True,showout=None):
         '''
         self.doc is in doc string of method
         specify recover actions in the description
@@ -96,7 +96,12 @@ class ActionController(object):
         @param serviceObj: service, will be used to get category filled in
         '''
 
-        # from pudb import set_trace; set_trace()   
+        # from pudb import set_trace; set_trace()  
+
+        if showout==True:
+            stdOutput=True 
+        if showout==False:
+            stdOutput=False 
 
         l=traceback.format_stack()
         tbline=l[-2].split("\n")[0].replace("'","")

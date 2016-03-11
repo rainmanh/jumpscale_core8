@@ -125,18 +125,18 @@ class NetTools(SALObject):
             # netstat: n == numeric, -t == tcp, -u = udp, l= only listening, p = program
             command = "netstat -ntulp | grep ':%s '" % port
             # raise RuntimeError("stop")
-            (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False,outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, die=False,outputToStdout=False)
             return exitcode == 0
         elif j.core.platformtype.myplatform.isSolaris() or j.core.platformtype.myplatform.isDarwin():
             command = "netstat -an -f inet"
-            (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False,outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, die=False,outputToStdout=False)
             for line in output.splitlines():
                 match = re.match(".*\.%s .*\..*LISTEN"%port, line)
                 if match:
                     return True
             # No ipv4? Then check ipv6
             command = "netstat -an -f inet6"
-            (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False,outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, die=False,outputToStdout=False)
             for line in output.splitlines():
                 match = re.match(".*\.%s .*\..*LISTEN"%port, line)
                 if match:
@@ -305,7 +305,7 @@ class NetTools(SALObject):
                 return "ETHERNET_GB"
         elif j.core.platformtype.myplatform.isSolaris():
             command = "ifconfig %s"%interface
-            exitcode,output = j.sal.process.execute(command, outputToStdout=False, dieOnNonZeroExitCode=False)
+            exitcode,output = j.sal.process.execute(command, outputToStdout=False, die=False)
             if exitcode != 0:
                 # temporary plumb the interface to lookup its mac
                 j.logger.log("Interface %s is down. Temporarily plumbing it to be able to lookup its nic type" % interface, 1)
@@ -438,7 +438,7 @@ class NetTools(SALObject):
             return False
         def removegw():
             cmd="ip route del 0/0"
-            rc,out=j.sal.process.execute(cmd,outputToStdout=False, ignoreErrorOutput=False,dieOnNonZeroExitCode=False)
+            rc,out=j.sal.process.execute(cmd,outputToStdout=False, ignoreErrorOutput=False,die=False)
 
         removegw()
         couter=0
@@ -483,7 +483,7 @@ class NetTools(SALObject):
         """Return a list of ip addresses and netmasks assigned to this interface"""
         if j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
             command = "ip a s %s" % interface
-            (exitcode, output) = j.sal.process.execute(command, outputToStdout=False, dieOnNonZeroExitCode=False)
+            (exitcode, output) = j.sal.process.execute(command, outputToStdout=False, die=False)
             if exitcode != 0:
                 return []
             nicinfo = re.findall("^\s+inet\s+(.*)\/(\d+)\s(?:brd\s)?(\d+\.\d+\.\d+\.\d+)?\s?scope.*$",output,re.MULTILINE)
@@ -499,7 +499,7 @@ class NetTools(SALObject):
             return result
         elif j.core.platformtype.myplatform.isSolaris():
             command = "ifconfig %s"%(interface)
-            (exitcode, output) = j.sal.process.execute(command, outputToStdout=False, dieOnNonZeroExitCode=False)
+            (exitcode, output) = j.sal.process.execute(command, outputToStdout=False, die=False)
             if exitcode != 0:
                 return []
             result = []
@@ -547,12 +547,12 @@ class NetTools(SALObject):
             if len(tokens) > 1 :
                 interface = tokens[0]
             command = "ifconfig %s" % interface
-            (exitcode, output) = j.sal.process.execute(command, outputToStdout=False, dieOnNonZeroExitCode=False)
+            (exitcode, output) = j.sal.process.execute(command, outputToStdout=False, die=False)
             if exitcode != 0:
                 # temporary plumb the interface to lookup its mac
                 j.logger.log("Interface %s is down. Temporarily plumbing it to be able to lookup its MAC address" % interface, 1)
                 j.sal.process.execute('%s plumb' % command, outputToStdout=False)
-                (exitcode, output) = j.sal.process.execute(command, outputToStdout=False, dieOnNonZeroExitCode=False)
+                (exitcode, output) = j.sal.process.execute(command, outputToStdout=False, die=False)
                 j.sal.process.execute('%s unplumb' % command, outputToStdout=False)
             if exitcode == 0:
                 match = re.search(r"^\s*(ipib|ether)\s*(?P<mac>\S*)", output, re.MULTILINE)
@@ -598,7 +598,7 @@ class NetTools(SALObject):
 
             return j.sal.process.execute(
                 'arp %s %s' % (" ".join(args), ipaddress),
-                dieOnNonZeroExitCode=False,
+                die=False,
                 outputToStdout=False
             )
 
@@ -667,7 +667,7 @@ class NetTools(SALObject):
                 command = "dladm show-phys -p -o STATE %s" % interface
                 expectResults = ['up', 'unknown']
 
-            (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False, outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, die=False, outputToStdout=False)
             if exitcode != 0:
                 return False
             output = output.strip()

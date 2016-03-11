@@ -154,7 +154,7 @@ class _remoteSystemObject(object):
 
 class RemoteSystemProcess(_remoteSystemObject):
 
-    def _execute_common(self, command, dieOnNonZeroExitCode=True, tostdout=True):
+    def _execute_common(self, command, die=True, tostdout=True):
         """
         only works on all platforms
         return a tuple of (exitcode, stdout, stderr)
@@ -202,7 +202,7 @@ class RemoteSystemProcess(_remoteSystemObject):
         # print 'ExitCode:' + str(exitcode)
 
         # Only die if exitcode != 0, error != '' is not enough to conclude that the process went wrong because it may only be warnings!
-        if dieOnNonZeroExitCode and exitcode != 0:
+        if die and exitcode != 0:
             raise RuntimeError("Process terminated with non 0 exitcode, got exitcode %s.\nout:%s\nerror:%s" % (str(exitcode), myOut, myErr))
 
         return exitcode, myOut, myErr
@@ -210,13 +210,13 @@ class RemoteSystemProcess(_remoteSystemObject):
     # Todo tomorow refactor other methods to use this one
     # For now don't break code
 
-    def execute(self, command, dieOnNonZeroExitCode=False, outputToStdout=True, loglevel=5, timeout=None):
+    def execute(self, command, die=False, outputToStdout=True, loglevel=5, timeout=None):
         """Executes a command, returns the exitcode and the output
         
         @param command: command to execute
         @type command: string
-        @param dieOnNonZeroExitCode: die if got non zero exitcode
-        @type dieOnNonZeroExitCode: bool
+        @param die: die if got non zero exitcode
+        @type die: bool
         @param outputToStdout
         @param timeout: seconds to wait for a pending read/write operation.  Infinity if omitted
         @type timeout: float
@@ -231,10 +231,10 @@ class RemoteSystemProcess(_remoteSystemObject):
         # are they usefull are simply there for backwards compatibility?
 
         if j.core.platformtype.has_parent("unix"):
-            exitcode, output, error = self._executeUnix(command, dieOnNonZeroExitCode)
+            exitcode, output, error = self._executeUnix(command, die)
         else:
 
-            exitcode, output, error = self._execute_common(command, dieOnNonZeroExitCode, tostdout=outputToStdout)
+            exitcode, output, error = self._execute_common(command, die, tostdout=outputToStdout)
 
         return exitcode, output, error
 
@@ -245,7 +245,7 @@ class RemoteSystemProcess(_remoteSystemObject):
         @raise SSHException: if the server fails to execute the command
         """
         command = command + ' ; echo "***EXITCODE***:$?"'
-        exitcode, output, error = self._execute_common(command, dieOnNonZeroExitCode=False)
+        exitcode, output, error = self._execute_common(command, die=False)
 
         # Not correct, many command issue warnings on stderr!
         # if len(error.strip())>0 and dieOnError:
@@ -278,7 +278,7 @@ class RemoteSystemProcess(_remoteSystemObject):
         @type pid: int
         """
         command = 'kill -%(signum)s %(pid)s' % {'pid': pid, 'signum': signal.SIGTERM}
-        exitCode, output = self.execute(command, dieOnNonZeroExitCode=False, outputToStdout=False)
+        exitCode, output = self.execute(command, die=False, outputToStdout=False)
         if exitCode:
             j.tools.console.echo('Failed to execute remote command %s. Reason %s' % (command, output))
         return exitCode, output

@@ -49,9 +49,12 @@ def xonsh_edit(args, stdin=None):
 
 def xonsh_update(args, stdin=None):
     print ("update git repo's")
-    
+    j.tools.xonsh.configAll()
+    # j.do.execute("jscode update -a jumpscale -n play8")
+    # j.do.execute("jscode update -a jumpscale -n play8")
+    # j.do.execute("jscode update -a jumpscale -n play8")
 
-    
+
 
 # def xonsh_git(args, stdin=None):
 #     def checkdir():

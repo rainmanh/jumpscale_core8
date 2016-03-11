@@ -464,12 +464,9 @@ class Action:
         self.check() #see about changed source code
         j.actions._current=self.key
 
-        #@question why did we do that? (despiegk)
-        # if self.force:
-        #     self.state="FORCE"
-        #     print ("FORCE")
-
-        
+        #makes sure we will force the action, needs to stay
+        if self.force:
+            self.state="FORCE"
 
         # args=str(self.args)
         # myid=str(self)
@@ -610,11 +607,12 @@ class Action:
 
     @property
     def _stream(self):
-        try:
-            import colorama
-            return colorama.AnsiToWin32(sys.stderr)
-        except ImportError:
-            return sys.stderr
+        return sys.stderr
+        # try:
+        #     import colorama
+        #     return colorama.AnsiToWin32(sys.stderr)
+        # except ImportError:
+        #     return sys.stderr
 
     @property
     def str(self):

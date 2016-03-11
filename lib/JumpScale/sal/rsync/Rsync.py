@@ -119,7 +119,7 @@ list = no
         # with bindmounts
         # cmd="mount | grep /tmp/server"
 
-        # rc,out=j.sal.process.execute(cmd,dieOnNonZeroExitCode=False)
+        # rc,out=j.sal.process.execute(cmd,die=False)
         # if rc==0:
         #     for line in out.split("\n"):
         #         if line=="":

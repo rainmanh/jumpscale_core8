@@ -703,11 +703,11 @@ class OurCuisine():
     @property
     def hostname(self):
         if self._hostname=="":
-            if self.isMac:
-                self._hostname=self.run("hostname",showout=False,replaceArgs=False)
+            if self.isMac:  
+                self._hostname=self.run("hostname",showout=False,replaceArgs=False,actionshow=False)
             else:
                 hostfile="/etc/hostname"
-                self._hostname= self.run("cat %s"%hostfile,replaceArgs=False).strip().split(".",1)[0]
+                self._hostname= self.run("cat %s"%hostfile,showout=False,replaceArgs=False,actionshow=False).strip().split(".",1)[0]
         return self._hostname
 
     @hostname.setter

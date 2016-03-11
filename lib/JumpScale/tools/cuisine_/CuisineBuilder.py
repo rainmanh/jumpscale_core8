@@ -266,7 +266,7 @@ class CuisineBuilder(object):
         self.cuisine.pip.upgrade('pip')
         self.cuisine.pip.install('pytoml')
         self.cuisine.pip.install('pygo')
-
+        self.cuisine.golang.install()
 
     @actionrun(action=True)
     def syncthing(self, start=True):

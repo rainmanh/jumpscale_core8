@@ -35,7 +35,7 @@ def init():
     the changes with before (last time you did an init) will be shown
     """
     chfiles=j.atyourservice.init()
-    path = j.sal.fs.joinPaths(j.dirs.varDir, 'servicestree.json')
+    path = j.sal.fs.joinPaths(j.dirs.varDir, 'servicetrees', '%s.json' % j.sal.fs.getcwd().replace('/', '__'))
     j.sal.fs.touch(path)
     servicestree = j.atyourservice.servicesTree
     j.data.serializer.json.dump(path, servicestree)

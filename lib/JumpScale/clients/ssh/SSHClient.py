@@ -5,7 +5,7 @@ from paramiko.ssh_exception import SSHException, BadHostKeyException, Authentica
 import time
 import io
 import socket
-import subprocess
+
 
 class SSHClientFactory(object):
 
@@ -13,80 +13,83 @@ class SSHClientFactory(object):
         self.__jslocation__ = "j.clients.ssh"
         self.cache = {}
 
-    def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True,allow_agent=True, look_for_keys=True,timeout=5,testConnection=False,die=True):
-        key = "%s_%s_%s_%s" % (addr, port, login,j.data.hash.md5_string(str(passwd)))
+    def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True, look_for_keys=True, timeout=5, testConnection=False, die=True):
+        key = "%s_%s_%s_%s" % (addr, port, login, j.data.hash.md5_string(str(passwd)))
         if key not in self.cache:
-            self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent,allow_agent=allow_agent,look_for_keys=look_for_keys,timeout=timeout)
+            self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent, allow_agent=allow_agent, look_for_keys=look_for_keys, timeout=timeout)
         if testConnection:
-            ret=self.cache[key].connectTest(timeout=timeout)
-            if ret==False:
+            ret = self.cache[key].connectTest(timeout=timeout, die=die)
+            if ret is False:
                 if die:
-                    raise RuntimeError("Cannot connect over ssh:%s %s"%(addr,port))
+                    raise RuntimeError("Cannot connect over ssh:%s %s" % (addr, port))
                 else:
                     return False
 
         return self.cache[key]
 
     def removeFromCache(self, client):
-        key = "%s_%s_%s_%s" % (client.addr, client.port, client.login,j.data.hash.md5_string(str(client.passwd)))
+        key = "%s_%s_%s_%s" % (client.addr, client.port, client.login, j.data.hash.md5_string(str(client.passwd)))
         client.close()
         if key in self.cache:
             self.cache.pop(key)
 
-    def getSSHKeyFromAgentPub(self,keyname="",die=True):
-        try:
-            #@todo why do we use subprocess here and not self.execute?
-            out=subprocess.check_output(["ssh-add","-L"])
-        except:
-            return None
+    def getSSHKeyFromAgentPub(self, keyname="", die=True):
+        rc, out = j.tools.cuisine.local.run("ssh-add -L", die=False)
+        if rc > 1:
+            err = "Error looking for key in ssh-agent: %s", out
+            if die:
+                raise RuntimeError(err)
+            else:
+                print(err)
+                return None
 
-        if keyname=="":
-            paths=[]
+        if keyname == "":
+            paths = []
             for line in out.splitlines():
-                line=line.strip()
-                paths.append(line.split(" ".encode())[-1])
-            if len(paths)==0:
+                line = line.strip()
+                paths.append(line.split(" ")[-1])
+            if len(paths) == 0:
                 raise RuntimeError("could not find loaded ssh-keys")
 
-            path=j.tools.console.askChoice(paths,"Select ssh key to push (public part only).")
-            keyname=j.sal.fs.getBaseName(path.decode())
+            path = j.tools.console.askChoice(paths, "Select ssh key to push (public part only).")
+            keyname = j.sal.fs.getBaseName(path)
 
         for line in out.splitlines():
-            delim = (".ssh/%s" % keyname).encode()
+            delim = (".ssh/%s" % keyname)
             if line.endswith(delim):
-                content=line.strip()
-                content=content.decode()
+                content = line.strip()
+                content = content
                 return content
         if die:
-            raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l"%keyname)
-        return None            
+            raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l" % keyname)
+        return None
 
     def close(self):
         for key, client in self.cache.items():
             client.close()
 
+
 class SSHClient(object):
 
-    def __init__(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True,allow_agent=True, look_for_keys=True,timeout=5.0):
+    def __init__(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True, look_for_keys=True, timeout=5.0):
         self.port = port
         self.addr = addr
         self.login = login
         self.passwd = passwd
         self.stdout = stdout
         self._connection_ok = None
-        if passwd!=None:
+        if passwd != None:
             self.forward_agent = False
-            self.allow_agent=False
-            self.look_for_keys=False
+            self.allow_agent = False
+            self.look_for_keys = False
         else:
             self.forward_agent = forward_agent
-            self.allow_agent=allow_agent
-            self.look_for_keys=look_for_keys
+            self.allow_agent = allow_agent
+            self.look_for_keys = look_for_keys
 
         self._transport = None
         self._client = None
         self._cuisine = None
-
 
     def _test_local_agent(self):
         """
@@ -117,7 +120,7 @@ class SSHClient(object):
                 try:
                     self._client = paramiko.SSHClient()
                     self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                    self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys, timeout=1)
+                    self._client.connect(self.addr, self.port, username=self.login, password=self.passwd, allow_agent=self.allow_agent, look_for_keys=self.look_for_keys, timeout=1)
                     break
                 except:
                     self.reset()
@@ -146,11 +149,10 @@ class SSHClient(object):
             counter = 0
 
             rc = 1
-            # timeout1=j.data.time.getTimeEpoch()+timeout
             start = j.data.time.getTimeEpoch()
 
-            if j.sal.nettools.waitConnectionTest(self.addr, self.port, timeout)==False:
-                print("Cannot connect to ssh server %s:%s"%(self.addr,self.port))
+            if j.sal.nettools.waitConnectionTest(self.addr, self.port, timeout) == False:
+                print("Cannot connect to ssh server %s:%s" % (self.addr, self.port))
                 return False
 
             while start + timeout > j.data.time.getTimeEpoch() and rc != 0:
@@ -206,7 +208,7 @@ class SSHClient(object):
             errors = stderr.readlines()
             errors = ''.join(errors)
             if die:
-                raise RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, buff,errors))
+                raise RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, buff, errors))
             else:
                 buff = errors
         # print(buf)
@@ -221,16 +223,16 @@ class SSHClient(object):
 
         dest = "%s@%s:%s" % (self.login, self.addr, dest)
         j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False,
-                      overwriteFiles=True, ignoredir=[".egg-info", ".dist-info", "__pycache__"], ignorefiles=[".egg-info"], rsync=True,
-                      ssh=True, sshport=self.port, recursive=recursive)
+                             overwriteFiles=True, ignoredir=[".egg-info", ".dist-info", "__pycache__"], ignorefiles=[".egg-info"], rsync=True,
+                             ssh=True, sshport=self.port, recursive=recursive)
 
     def rsync_down(self, source, dest, source_prefix="", recursive=True):
         if source[0] != "/":
             raise RuntimeError("source path should be absolute, need / in beginning of source path")
         source = "%s@%s:%s" % (self.login, self.addr, source)
         j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False,
-                      overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
-                      ssh=True, sshport=self.port, recursive=recursive)
+                             overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
+                             ssh=True, sshport=self.port, recursive=recursive)
 
     @property
     def cuisine(self):

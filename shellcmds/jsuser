@@ -59,7 +59,7 @@ def getPasswd(password):
 def getUserGUID(username):
     results = j.data.models.system.User.find({'name': username})
     if results:
-        return results[0]['guid']
+        return results[0].pk
     print("Could not find user with name %s" % username)
     j.application.stop(1)
 

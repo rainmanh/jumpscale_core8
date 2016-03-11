@@ -41,6 +41,7 @@ class Xonsh:
 
         aliases['jsgo'] = xonsh_go
         aliases['jsedit'] = xonsh_edit
+        aliases['jsupdate'] = xonsh_update
 
 
         """

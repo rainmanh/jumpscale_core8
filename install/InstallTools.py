@@ -1010,11 +1010,25 @@ class InstallTools():
 
         s.quit()
 
-    def execute(self, command , outputStdout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[], ok=[], captureout=True, dieOnNonZeroExitCode=True, async=False, die=True):
+    def execute(self, command , outputStdout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[], \
+                        ok=[], captureout=True, dieOnNonZeroExitCode=True, async=False, showout=None,die=None):
         """
         @param errors is array of statements if found then exit as error
         return rc,out
         """
+        #this has been added to be compatible with other execute functions
+        if showout==False:
+            outputStdout=False
+        if showout==True:
+            outputStdout=True
+            outputStderr=True
+        if die==True:
+            dieOnNonZeroExitCode=True
+        if die==False:
+            dieOnNonZeroExitCode=False
+
+        from pudb import set_trace; set_trace() 
+
         # print "EXEC:"
         # print command
         os.environ["PYTHONUNBUFFERED"]="1"

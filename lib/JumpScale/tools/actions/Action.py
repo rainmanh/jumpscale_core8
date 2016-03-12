@@ -471,7 +471,6 @@ class Action:
         # args=str(self.args)
         # myid=str(self)
 
-
         if self.state == "OK":
             print("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
             j.actions._current=None

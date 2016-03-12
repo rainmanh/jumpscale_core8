@@ -55,18 +55,18 @@ class ActionController(object):
         return self.actions[actionkey]
 
 
-    def reset(self,all=False,item=None):
-        if all==False:
-            self._actions={}
-            if item==None:
+    def reset(self, all=False, item=None):
+        if all is True:
+            for item in j.core.db.keys("actions.*"):
+                item = item.decode().split(".", 1)[1]
+                print("delete:%s" % item)
+                self.reset(item=item)
+        else:
+            self._actions = {}
+            if item is None:
                 j.core.db.delete("actions.%s"%self.runid)
             else:
                 j.core.db.delete("actions.%s"%item)
-        else:
-            for item in j.core.db.keys("actions.*"):
-                item=item.decode().split(".",1)[1]
-                print ("delete:%s"%item)
-                self.reset(item=item)
 
     def resetAll(self):
         self.reset(True)

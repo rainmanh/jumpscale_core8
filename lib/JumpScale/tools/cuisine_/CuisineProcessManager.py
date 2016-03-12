@@ -221,7 +221,7 @@ class CuisineTmuxec(ProcessManagerBase):
             print("no running processes", e)
             return []
         return result
-        
+
     def ensure(self, name, cmd="", env={}, path="", descr=""):
         """Ensures that the given upstart service is self.running, starting
         it if necessary."""
@@ -252,7 +252,10 @@ class CuisineTmuxec(ProcessManagerBase):
     def reload(self, name):
         """Reloads the given service, or star
 ts it if it is not self.running."""
-        cmd=j.core.db.hget("processcmds",name).decode()
+        cmd = j.core.db.hget("processcmds",name)
+        if cmd is None:
+            return
+        cmd = cmd.decode()
         self.stop(name)
         self.cuisine.tmux.executeInScreen("main", name,cmd=cmd)
 
@@ -278,4 +281,3 @@ ts it if it is not self.running."""
             self.cuisine.run("kill -9 %s" % pid)
             self.cuisine.tmux.killWindow("main",name)
             j.core.db.hdel("processcmds",name)
-

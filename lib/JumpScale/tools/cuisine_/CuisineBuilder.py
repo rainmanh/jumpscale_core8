@@ -24,6 +24,7 @@ class CuisineBuilder(object):
         self.cuisine.installerdevelop.pip()
         self.cuisine.installerdevelop.python()
         self.cuisine.installerdevelop.jumpscale8()
+        self.cuisine.portal.install(start=start)
         self.redis(start=start, force=True)
         self.core(start=start)
         self.syncthing(start=start)
@@ -31,7 +32,6 @@ class CuisineBuilder(object):
         self.fs(start=start)
         self.stor(start=start)
         self.etcd(start=start)
-        self.cuisine.portal.install(start=start)
         self.mongodb(start=start)
         self.caddy(start=start)
         # self.skydns(start=start)
@@ -59,7 +59,7 @@ class CuisineBuilder(object):
         # start sandboxing
         cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], 'js8_opt', '%s', sandbox_python=%s)" % (stor_addr, python)
         self.cuisine.run('js "%s"' % cmd)
-        url_opt = '%s/static/js8_opt' % stor_addr
+        url_opt = '%s/static/js8_opt.flist' % stor_addr
 
         return url_opt
 
@@ -238,7 +238,6 @@ class CuisineBuilder(object):
         self.cuisine.pip.upgrade('pip')
         self.cuisine.pip.install('pytoml')
         self.cuisine.pip.install('pygo')
-        self.cuisine.golang.install()
 
     @actionrun(action=True)
     def syncthing(self, start=True):
@@ -404,7 +403,7 @@ class CuisineBuilder(object):
 
         if start:
             self._startController()
-            
+
     def _startCaddy(self, ssl):
         cpath = self.cuisine.args_replace("$tmplsDir/cfg/caddy/caddyfile.conf")
         self.cuisine.processmanager.stop("caddy")  # will also kill

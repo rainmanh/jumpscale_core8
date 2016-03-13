@@ -7,7 +7,7 @@ def cli():
     pass
 
 @click.command()
-@click.option('--name', '-n', help='name of the docker to commit')
+@click.option('--name', '-n', help='name of the docker to list')
 @click.option('--parsable', '-p', help='enable parsable output', is_flag=True, type=bool)
 def list(name, parsable):
     running = j.sal.docker.status()
@@ -29,6 +29,11 @@ def list(name, parsable):
 @click.option('--image', '-i', default='jumpscale/ubuntu1510', help='docker image to pull')
 def pull(image):
     j.sal.docker.pull(image)
+
+@click.command()
+@click.option('--image', '-i', help='name of the image to push')
+def pull(image):
+    j.sal.docker.push(image, progress=True)
 
 @click.command()
 @click.option('--name', '-n', help='name of the docker to commit')
@@ -149,6 +154,7 @@ def execute(name, cmd):
 
 cli.add_command(list)
 cli.add_command(pull)
+cli.add_command(push)
 cli.add_command(commit)
 cli.add_command(create)
 cli.add_command(getIP)

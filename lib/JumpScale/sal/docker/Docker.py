@@ -38,7 +38,10 @@ class Docker(SALObject):
     @property
     def docker_host(self):
         u = parse.urlparse(self.base_url)
-        return u.hostname
+        if u.scheme != 'unix':
+            return 'localhost'
+        else:
+            return u.hostname
 
     def _execute(self, command):
         env = os.environ.copy()

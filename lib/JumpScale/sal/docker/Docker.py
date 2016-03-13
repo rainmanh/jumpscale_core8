@@ -5,6 +5,7 @@ from JumpScale import j
 import os
 import docker
 import time
+from urllib import parse
 
 from sal.base.SALObject import SALObject
 
@@ -18,11 +19,10 @@ class Docker(SALObject):
         self._containers = []
         self._names = []
         if 'DOCKER_HOST' not in os.environ or os.environ['DOCKER_HOST'] == "":
-            base_url = 'unix://var/run/docker.sock'
+            self.base_url = 'unix://var/run/docker.sock'
         else:
-            base_url = os.environ['DOCKER_HOST']
-        self.client = docker.Client(base_url=base_url)
-        self.docker_host = base_url
+            self.base_url = os.environ['DOCKER_HOST']
+        self.client = docker.Client(base_url=self.base_url)
 
     @property
     def isWeaveEnabled(self):
@@ -31,10 +31,17 @@ class Docker(SALObject):
             self._weaveEnabled = (rc == 0)
         return self._weaveEnabled
 
-    def connectRemoteTCP(self, address, port):
-        url = '%s:%s' % (address, port)
-        self.client = docker.Client(base_url=url)
-        self.docker_host = {'host': address, 'port': port}
+    def connectRemoteTCP(self, base_url):
+        self.base_url = base_url
+        self.client = docker.Client(base_url=base_url)
+
+    @property
+    def docker_host(self):
+        u = parse.urlparse(self.base_url)
+        if u.scheme == 'unix':
+            return 'localhost'
+        else:
+            return u.hostname
 
     def _execute(self, command):
         env = os.environ.copy()
@@ -248,18 +255,18 @@ class Docker(SALObject):
             if not fs.isRunning():
                 print('[+] starting unique aysfs: %s' % fs.getName())
                 fs.start()
-            
+
             else:
                 print('[+] skipping aysfs: %s (unique running)' % fs.getName())
-        
-        else:        
+
+        else:
             fs.setName('%s-%s' % (dockname, fs.getName()))
             if fs.isRunning():
                 fs.stop()
-                
+
             print('[+] starting aysfs: %s' % fs.getName())
             fs.start()
-    
+
     def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1510", nameserver=["8.8.8.8"],
                replace=True, cpu=None, mem=0, jumpscale=False, ssh=True, myinit=True, sharecode=False,sshkeyname="",sshpubkey="",
                setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master", aysfs=[]):
@@ -312,7 +319,7 @@ class Docker(SALObject):
         if ssh:
             if 22 not in portsdict:
                 for port in range(9022, 9190):
-                    if not j.sal.nettools.tcpPortConnectionTest('localhost', port):
+                    if not j.sal.nettools.tcpPortConnectionTest(self.docker_host, port):
                         portsdict[22] = port
                         print(("SSH PORT WILL BE ON:%s" % port))
                         break
@@ -339,17 +346,17 @@ class Docker(SALObject):
             print("share jumpscale code")
             if "/opt/code" not in volsdict:
                 volsdict["/opt/code"] = "/opt/code"
-        
+
         for fs in aysfs:
             self._init_aysfs(fs, name)
             mounts = fs.getPrefixs()
-            
+
             for inp, out in mounts.items():
                 while not j.sal.fs.exists(inp):
                     time.sleep(0.1)
-                
+
                 volsdict[out] = inp
-        
+
         volsdictro = {}
         if len(volsro) > 0:
             items = volsro.split("#")
@@ -376,8 +383,7 @@ class Docker(SALObject):
 
         if base not in self.getImages():
             print("download docker")
-            cmd = "docker pull %s" % base
-            j.sal.process.executeWithoutPipe(cmd)
+            self.pull(base)
 
         if myinit:
             cmd = "sh -c \"mkdir -p /var/run/screen;chmod 777 /var/run/screen; /var/run/screen;exec >/dev/tty 2>/dev/tty </dev/tty && /sbin/my_init -- /usr/bin/screen -s bash\""
@@ -414,7 +420,8 @@ class Docker(SALObject):
         res = self.client.start(container=id, binds=binds, port_bindings=portsdict, lxc_conf=None, \
             publish_all_ports=False, links=None, privileged=False, dns=nameserver, dns_search=None, volumes_from=None, network_mode=None)
 
-        container = Container(name, id, self.client)
+
+        container = Container(name, id, self.client, host=self.docker_host)
 
         if ssh:
             # time.sleep(0.5)  # give time to docker to start

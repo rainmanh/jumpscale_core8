@@ -914,6 +914,17 @@ class SimpleClient(object):
 
         return list(command.get_jobs().values())
 
+    def reboot(self, gid=None, nid=None, roles=[], allnodes=True):
+        """
+        Same as execute but cmds can be a bash script
+        """
+        nid, roles, fanout = self._get_route(nid, roles, allnodes)
+
+        runargs = acclient.RunArgs()
+        command = self._client.cmd(gid, nid, 'reboot', args=runargs, roles=roles, fanout=fanout)
+
+        return list(command.get_jobs().keys())
+
     def tunnel_create(self, gid, nid, local, remote_gid, remote_nid, ip, remote):
         """
         Opens a tunnel that accepts connection at the agent's local port `local`

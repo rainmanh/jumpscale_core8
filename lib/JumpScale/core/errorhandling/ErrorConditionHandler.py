@@ -539,9 +539,9 @@ class ErrorConditionHandler():
                     cmd="%s '%s'" % (editor,tracefile)
                     #print "EDITORCMD: %s" %cmd
                     if editor=="less":
-                        j.sal.process.executeWithoutPipe(cmd,dieOnNonZeroExitCode=False)
+                        j.sal.process.executeWithoutPipe(cmd,die=False)
                     else:
-                        result,out=j.sal.process.execute(cmd,dieOnNonZeroExitCode=False, outputToStdout=False)
+                        result,out=j.sal.process.execute(cmd,die=False, outputToStdout=False)
                     
                 j.logger.clear()
                 if res == "c":

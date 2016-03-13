@@ -37,8 +37,6 @@ class GitClient(object):
 
         self.baseDir=baseDir
 
-        # self.baseDir = baseDir.split("/code/")[0]+"/code/%s/%s/%s/"%(self.type, self.account, self.name)
-
         # if len(self.repo.remotes) != 1:
         #     j.events.inputerror_critical("git repo on %s is corrupt could not find remote url" % baseDir)
 

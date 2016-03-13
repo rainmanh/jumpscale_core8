@@ -17,11 +17,11 @@ class ExecutorLocal(ExecutorBase):
         if cmds.find('\n') == -1:
             if self.debug:
                 print("EXECUTOR:%s"%cmds)
-            return j.do.execute(cmds, dieOnNonZeroExitCode=die, async=async,outputStdout=showout, outputStderr=showout)
+            return j.do.execute(cmds, die=die, async=async,showout=showout, outputStderr=showout)
         if self.debug:
             print("EXECUTOR:\n%s\n"%cmds)
 
-        return j.sal.process.execute(content=cmds, dieOnNonZeroExitCode=die)
+        return j.sal.process.execute(content=cmds, die=die)
 
     def executeInteractive(self, cmds, die=True, checkok=None):
         cmds = self._transformCmds(cmds, die, checkok=checkok)

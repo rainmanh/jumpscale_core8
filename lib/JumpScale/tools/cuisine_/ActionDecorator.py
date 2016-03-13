@@ -10,22 +10,31 @@ class ActionDecorator(object):
     def __init__(self,action=True,force=False):
         self.action=action
         self.force=force
+
     def __call__(self, func):
 
         def wrapper(*args, **kwargs):
-            actionbase=self.action
-            forcebase=self.force
+
             cm=self.selfobjCode
             cuisine=args[0].cuisine
+
+            #this makes sure we show the action on terminal
+            if "actionshow" in kwargs:
+                actionshow=kwargs.pop("actionshow")
+            else:
+                actionshow=True
+
 
             if "action" in kwargs:
                 action=kwargs.pop("action")
             else:
-                action=actionbase
+                action=self.action
+
             if "force" in kwargs:
                 force=kwargs.pop("force")
             else:
-                force=forcebase
+                force=self.force
+
 
             #action=False
 

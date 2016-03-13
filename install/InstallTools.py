@@ -916,11 +916,11 @@ class InstallTools():
                 cmd += " -C -"
             print(cmd)
             self.delete("%s.downloadok"%to)
-            rc, out = self.execute(cmd, dieOnNonZeroExitCode=False)
+            rc, out = self.execute(cmd, die=False)
             if rc == 33: # resume is not support try again withouth resume
                 self.delete(to)
                 cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s"%(url,to,user,minsp,retry,timeout)
-                rc, out = self.execute(cmd, dieOnNonZeroExitCode=False)
+                rc, out = self.execute(cmd, die=False)
             if rc > 0:
                 raise RuntimeError("Could not download:{}.\nErrorcode: {}".format(url, rc))
             else:
@@ -943,7 +943,7 @@ class InstallTools():
             return True
         return False
 
-    def executeBashScript(self,content="",path=None,die=True,remote=None,sshport=22,  outputStdout=True, outputStderr=True):
+    def executeBashScript(self,content="",path=None,die=True,remote=None,sshport=22,  showout=True, outputStderr=True):
         """
         @param remote can be ip addr or hostname of remote, if given will execute cmds there
         """
@@ -966,20 +966,20 @@ class InstallTools():
 
         if remote!=None:
             tmppathdest="/tmp/do.sh"
-            self.execute("scp -P %s %s root@%s:%s "%(sshport,path2,remote,tmppathdest),dieOnNonZeroExitCode=die)
-            res=self.execute("ssh -A -p %s root@%s 'bash %s'"%(sshport,remote,tmppathdest),dieOnNonZeroExitCode=die)
+            self.execute("scp -P %s %s root@%s:%s "%(sshport,path2,remote,tmppathdest),die=die)
+            res=self.execute("ssh -A -p %s root@%s 'bash %s'"%(sshport,remote,tmppathdest),die=die)
         else:
-            res=self.execute("bash %s"%path2,dieOnNonZeroExitCode=die,  outputStdout=outputStdout, outputStderr=outputStderr)
+            res=self.execute("bash %s"%path2,die=die,  showout=showout, outputStderr=outputStderr)
         return res
 
-    def executeCmds(self,cmdstr, outputStdout=True, outputStderr=True,useShell = True,log=True,cwd=None,timeout=120,errors=[],ok=[],captureout=True,dieOnNonZeroExitCode=True):
+    def executeCmds(self,cmdstr, showout=True, outputStderr=True,useShell = True,log=True,cwd=None,timeout=120,errors=[],ok=[],captureout=True,die=True):
         rc_=[]
         out_=""
         for cmd in cmdstr.split("\n"):
             if cmd.strip()=="" or cmd[0]=="#":
                 continue
             cmd=cmd.strip()
-            rc,out=self.execute(cmd, outputStdout, outputStderr,useShell ,log,cwd,timeout,errors,ok,captureout,dieOnNonZeroExitCode)
+            rc,out=self.execute(cmd, showout, outputStderr,useShell ,log,cwd,timeout,errors,ok,captureout,die)
             rc_.append(str(rc))
             out_+=out
 
@@ -1010,11 +1010,13 @@ class InstallTools():
 
         s.quit()
 
-    def execute(self, command , outputStdout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[], ok=[], captureout=True, dieOnNonZeroExitCode=True, async=False, die=True):
+    def execute(self, command , showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[], \
+                        ok=[], captureout=True, die=True, async=False):
         """
         @param errors is array of statements if found then exit as error
         return rc,out
         """
+
         # print "EXEC:"
         # print command
         os.environ["PYTHONUNBUFFERED"]="1"
@@ -1112,7 +1114,7 @@ class InstallTools():
                         break
 
                 if chan=='O':
-                    if outputStdout:
+                    if showout:
                         print((line.strip()))
                     if captureout:
                         out+=line
@@ -1140,7 +1142,7 @@ class InstallTools():
             rc = p.returncode
 
 
-        if rc>0 and dieOnNonZeroExitCode:
+        if rc>0 and die:
             if err!="":
                 raise RuntimeError("Could not execute cmd:\n'%s'\nerr:\n%s"%(command,err))
             else:
@@ -1313,7 +1315,7 @@ class InstallTools():
     def whoami(self):
         if self._whoami!=None:
             return self._whoami
-        rc, result =self.execute("whoami",dieOnNonZeroExitCode=False,outputStdout=False, outputStderr=False)
+        rc, result =self.execute("whoami",die=False,showout=False, outputStderr=False)
         if rc>0:
             #could not start ssh-agent
             raise RuntimeError("Could not call whoami,\nstdout:%s\nstderr:%s\n"%(result,err))
@@ -1369,7 +1371,7 @@ class InstallTools():
 
         if path!=None:
 
-            rc,out = self.execute("ssh-add -l",dieOnNonZeroExitCode=False,outputStdout=False, outputStderr=False)
+            rc,out = self.execute("ssh-add -l",die=False,showout=False, outputStderr=False)
             if rc>1:
                 print(out)
                 print(err)
@@ -1386,7 +1388,7 @@ class InstallTools():
             print("load sshkey: %s"%path)
             cmd="ssh-add -t %s %s "%(duration,path)
             print(cmd)
-            # rc,result,err=self.execute(cmd,dieOnNonZeroExitCode=False,outputStdout=False, outputStderr=False)
+            # rc,result,err=self.execute(cmd,die=False,showout=False, outputStderr=False)
             self.executeInteractive(cmd)
             # if rc>0:
             #     raise RuntimeError("Could not add key to sshagent, something went wrong,\nstdout:%s\nstderr:%s\n"%(result,err))
@@ -1572,7 +1574,7 @@ class InstallTools():
         if not self.exists(self._getSSHSocketpath()):
             socketpath=self._getSSHSocketpath()
             #ssh-agent not loaded
-            rc,result = self.execute("ssh-agent -a %s"%socketpath,dieOnNonZeroExitCode=False,outputStdout=False, outputStderr=False)
+            rc,result = self.execute("ssh-agent -a %s"%socketpath,die=False,showout=False, outputStderr=False)
             if rc>0:
                 #could not start ssh-agent
                 raise RuntimeError("Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n"%(result,err))
@@ -1596,7 +1598,7 @@ class InstallTools():
             # pid=int(self.readFile(self.joinPaths(self.TMP,"ssh-agent-pid")))
             if "SSH_AUTH_SOCK" not in os.environ:
                 self._initSSH_ENV(True)
-            rc,result = self.execute("ssh-add -l",dieOnNonZeroExitCode=False,outputStdout=False, outputStderr=False)
+            rc,result = self.execute("ssh-add -l",die=False,showout=False, outputStderr=False)
             if rc==2:#>0 and err.find("not open a connection")!=-1:
                 #no ssh-agent found\
                 print(result)
@@ -1612,7 +1614,7 @@ class InstallTools():
 
 
     def checkSSHAgentAvailable(self):
-        rc,out = self.execute("ssh-add -l",outputStdout=False, outputStderr=False,dieOnNonZeroExitCode=False)
+        rc,out = self.execute("ssh-add -l",showout=False, outputStderr=False,die=False)
         if rc!=0:
             return False
         else:
@@ -1856,7 +1858,7 @@ class InstallTools():
         # if we don't specify the branch, try to find the currently checkedout branch
         cmd = 'cd %s;git rev-parse --abbrev-ref HEAD' % path
         try:
-            rc, out = self.execute(cmd, outputStdout=False, outputStderr=False)
+            rc, out = self.execute(cmd, showout=False, outputStderr=False)
             if rc == 0:
                 branch = out.strip()
             else:  # if we can't retreive current branch, use master as default
@@ -2397,7 +2399,7 @@ exec python3 -q "$@"
             rm -rf /opt/redis/
             """
             CMDS=CMDS.replace("$base",self.BASE)
-            do.executeCmds(CMDS,outputStdout=False, outputStderr=False,useShell = True,log=False,cwd=None,timeout=60,errors=[],ok=[],captureout=False,dieOnNonZeroExitCode=False)
+            do.executeCmds(CMDS,showout=False, outputStderr=False,useShell = True,log=False,cwd=None,timeout=60,errors=[],ok=[],captureout=False,die=False)
 
             for PYTHONVERSION in ["3.5","3.4","3.3","2.7",""]:
                 CMDS="""
@@ -2410,7 +2412,7 @@ exec python3 -q "$@"
                 rm -rf /usr/local/lib/python%(pythonversion)s/dist-packages/JumpScale/
                 rm -rf /usr/local/lib/python%(pythonversion)s/dist-packages/jumpscale/
                 """% {'pythonversion': PYTHONVERSION}
-                do.executeCmds(CMDS,outputStdout=False, outputStderr=False,useShell = True,log=False,cwd=None,timeout=60,errors=[],ok=[],captureout=False,dieOnNonZeroExitCode=False)
+                do.executeCmds(CMDS,showout=False, outputStderr=False,useShell = True,log=False,cwd=None,timeout=60,errors=[],ok=[],captureout=False,die=False)
 
 
     def updateOS(self):
@@ -2576,10 +2578,10 @@ exec python3 -q "$@"
     #         do.execute("apt-get install apt-transport-https -y")
 
     #     if not do.exists(path="/etc/apt/sources.list.d/docker.list"):
-    #         do.execute("apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9",outputStdout=False, outputStderr=False,dieOnNonZeroExitCode=False)
+    #         do.execute("apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9",showout=False, outputStderr=False,die=False)
     #         do.writeFile("/etc/apt/sources.list.d/docker.list","deb https://get.docker.com/ubuntu docker main\n")
     #         do.execute("apt-get update")
-    #         do.execute("apt-get install lxc-docker -y",dieOnNonZeroExitCode=False)
+    #         do.execute("apt-get install lxc-docker -y",die=False)
 
     def gitConfig(self,name,email):
         if name=="":

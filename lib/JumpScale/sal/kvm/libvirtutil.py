@@ -415,7 +415,7 @@ class LibvirtUtil(object):
             if not os.path.exists(poolpath):
                 os.makedirs(poolpath)
                 cmd = 'chattr +C %s ' % poolpath
-                j.sal.process.execute(cmd, dieOnNonZeroExitCode=False, outputToStdout=False, useShell=False, ignoreErrorOutput=False)
+                j.sal.process.execute(cmd, die=False, outputToStdout=False, useShell=False, ignoreErrorOutput=False)
             pool = self.env.get_template('pool.xml').render(poolname=poolname, basepath=self.basepath)
             self.connection.storagePoolCreateXML(pool, 0)
         return True

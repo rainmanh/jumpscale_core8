@@ -225,7 +225,7 @@ class Job(EmbeddedDocument):
 
 
 class Command(ModelBase, Document):
-    guid = StringField()
+    guid = StringField(unique=True, required=True)
     gid = IntField(default=0)
     nid = IntField(default=0)
     cmd = StringField()

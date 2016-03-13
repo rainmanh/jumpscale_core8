@@ -225,6 +225,7 @@ class Job(EmbeddedDocument):
 
 
 class Command(ModelBase, Document):
+    guid = StringField()
     gid = IntField(default=0)
     nid = IntField(default=0)
     cmd = StringField()
@@ -235,6 +236,10 @@ class Command(ModelBase, Document):
     tags = StringField()
     starttime = IntField()
     jobs = ListField(EmbeddedDocumentField(Job))
+
+    meta = extend(default_meta, {
+        'indexes': [{'fields': ['guid']}]
+    })
 
 
 class Audit(ModelBase, Document):

@@ -380,8 +380,7 @@ class Docker(SALObject):
 
         if base not in self.getImages():
             print("download docker")
-            cmd = "docker pull %s" % base
-            j.sal.process.executeWithoutPipe(cmd)
+            self.pull(base)
 
         if myinit:
             cmd = "sh -c \"mkdir -p /var/run/screen;chmod 777 /var/run/screen; /var/run/screen;exec >/dev/tty 2>/dev/tty </dev/tty && /sbin/my_init -- /usr/bin/screen -s bash\""

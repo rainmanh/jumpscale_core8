@@ -4,9 +4,7 @@
     <description>debug</description>
     <content>
 <![CDATA[
-from ptpdb import set_trace
-set_trace()
-
+from pudb import set_trace; set_trace() 
 ]]>
     </content>
 </snippet>

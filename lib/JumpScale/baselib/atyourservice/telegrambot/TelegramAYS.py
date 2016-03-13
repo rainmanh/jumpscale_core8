@@ -92,7 +92,8 @@ class TelegramAYS():
     #
     def executeProgressive(self, bot, update, command):
         print("[+] executing: %s" % command)
-        process = j.sal.process.execute(command, outputStdout=False, useShell=False, dieOnNonZeroExitCode=False, async=True)
+        process = j.sal.process.execute(command, showout=False, useShell=False, die=False, async=True)
+
         prefixs = ['INIT:', 'RUN:', 'NO METHODS FOR:', 'OUT:', 'Exception:']
 
         rawbuffer = []
@@ -177,7 +178,7 @@ class TelegramAYS():
         j.sal.fs.changeDir(repopath)
 
         # initialize empty git repository
-        j.sal.process.execute("git init", outputStdout=False, dieOnNonZeroExitCode=False)
+        j.sal.process.execute("git init", showout=False, die=False)
 
         j.sal.fs.changeDir(previous)
 

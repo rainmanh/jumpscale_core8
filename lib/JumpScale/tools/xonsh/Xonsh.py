@@ -12,6 +12,7 @@ except:
 
 #from pudb import set_trace; set_trace()    
 
+
 class Xonsh:
     def __init__(self):
         self.__jslocation__ = "j.tools.xonsh"
@@ -41,6 +42,7 @@ class Xonsh:
 
         aliases['jsgo'] = xonsh_go
         aliases['jsedit'] = xonsh_edit
+        aliases['jsupdate'] = xonsh_update
 
 
         """

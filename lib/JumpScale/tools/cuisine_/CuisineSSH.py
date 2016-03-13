@@ -125,7 +125,7 @@ class CuisineSSH():
         """Adds the given key to the '.ssh/authorized_keys' for the given
         user."""
         sudomode = self.cuisine.sudomode
-        self.cuisine.set_sudomode()
+        self.cuisine.sudomode = True
 
         user=user.strip()
         d = self.cuisine.user.check(user, need_passwd=False)
@@ -192,4 +192,4 @@ class CuisineSSH():
         return "cuisine.ssh:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
 
 
-    __repr__=__str__            
+    __repr__=__str__

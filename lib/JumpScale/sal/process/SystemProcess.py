@@ -1180,13 +1180,13 @@ class SystemProcess(SALObject):
     def __init__(self):
         self.__jslocation__ = "j.sal.process"
 
-    def executeWithoutPipe(self, command, dieOnNonZeroExitCode = True, printCommandToStdout = False):
+    def executeWithoutPipe(self, command, die = True, printCommandToStdout = False):
         """
 
         Execute command without opening pipes, returns only the exitcode
         This is platform independent
         @param command: command to execute
-        @param dieOnNonZeroExitCode: boolean to die if got non zero exitcode
+        @param die: boolean to die if got non zero exitcode
         @param printCommandToStdout: boolean to show/hide output to stdout
         @param outputToStdout: Deprecated. Use 'printCommandToStdout' instead.
         @rtype: integer represents the exitcode
@@ -1199,7 +1199,7 @@ class SystemProcess(SALObject):
             j.logger.log("system.process.executeWithoutPipe [%s]" % command, 8)
         exitcode = os.system(command)
 
-        if exitcode !=0 and dieOnNonZeroExitCode:
+        if exitcode !=0 and die:
             j.logger.log("command: [%s]\nexitcode:%s" % (command, exitcode), 3)
             raise RuntimeError("Error during execution!\nCommand: %s\nExitcode: %s" % (command, exitcode))
 
@@ -1298,10 +1298,10 @@ class SystemProcess(SALObject):
 
         return retVal
 
-    def execute(self, command , dieOnNonZeroExitCode=True, outputToStdout=False, useShell = False, ignoreErrorOutput=False):
+    def execute(self, command , die=True, outputToStdout=False, useShell = False, ignoreErrorOutput=False):
         """Executes a command, returns the exitcode and the output
         @param command: command to execute
-        @param dieOnNonZeroExitCode: boolean to die if got non zero exitcode
+        @param die: boolean to die if got non zero exitcode
         @param outputToStdout: boolean to show/hide output to stdout
         @param ignoreErrorOutput standard stderror is added to stdout in out result, if you want to make sure this does not happen put on True
         @rtype: integer represents the exitcode plus the output of the executed command
@@ -1415,7 +1415,7 @@ class SystemProcess(SALObject):
             if ignoreErrorOutput!=True:
                 output="%s\n***ERROR***\n%s\n" % (output,error)
 
-        if exitcode !=0 and dieOnNonZeroExitCode:
+        if exitcode !=0 and die:
             j.logger.log("command: [%s]\nexitcode:%s\noutput:%s\nerror:%s" % (command, exitcode, output, error), 3)
             raise RuntimeError("Error during execution! (system.process.execute())\n\nCommand: [%s]\n\nExitcode: %s\n\nProgram output:\n%s\n\nErrormessage:\n%s\n" % (command, exitcode, output, error))
 
@@ -1578,7 +1578,7 @@ class SystemProcess(SALObject):
             if len(found)==nrinstances:
                 return
             # print "START:%s"%cmd
-            self.execute(cmd,dieOnNonZeroExitCode=False)
+            self.execute(cmd,die=False)
             time.sleep(1)
             found=self.getPidsByFilter(filterstr)
             for item in found:
@@ -1596,7 +1596,7 @@ class SystemProcess(SALObject):
             # Need to set $COLUMNS such that we can grep full commandline
             # Note: apparently this does not work on solaris
             command = "env COLUMNS=300 ps -ef"
-            (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False, outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, die=False, outputToStdout=False)
             pids = list()
             co = re.compile("\s*(?P<uid>[a-z]+)\s+(?P<pid>[0-9]+)\s+(?P<ppid>[0-9]+)\s+(?P<cpu>[0-9]+)\s+(?P<stime>\S+)\s+(?P<tty>\S+)\s+(?P<time>\S+)\s+(?P<cmd>.+)")
             for line in output.splitlines():
@@ -1681,7 +1681,7 @@ class SystemProcess(SALObject):
         j.logger.log('Checking whether process with PID %d is actually %s' % (pid, process), 7)
         if j.core.platformtype.myplatform.isUnix():
             command = "ps -p %i"%pid
-            (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False, outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, die=False, outputToStdout=False)
             i=0
             for line in output.splitlines():
                 if j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
@@ -1746,7 +1746,7 @@ class SystemProcess(SALObject):
             return None
         if j.core.platformtype.myplatform.isLinux():
             command = "netstat -ntulp | grep ':%s '" % port
-            (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False,outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, die=False,outputToStdout=False)
 
             # Not found if grep's exitcode  > 0
             if not exitcode == 0:
@@ -1776,7 +1776,7 @@ class SystemProcess(SALObject):
             # Need to set $COLUMNS such that we can grep full commandline
             # Note: apparently this does not work on solaris
             command = "env COLUMNS=300 ps -ef"
-            (exitcode, output) = j.sal.process.execute(command, dieOnNonZeroExitCode=False, outputToStdout=False)
+            (exitcode, output) = j.sal.process.execute(command, die=False, outputToStdout=False)
             co = re.compile("\s*(?P<uid>[a-z]+)\s+(?P<pid>[0-9]+)\s+(?P<ppid>[0-9]+)\s+(?P<cpu>[0-9]+)\s+(?P<stime>\S+)\s+(?P<tty>\S+)\s+(?P<time>\S+)\s+(?P<cmd>.+)")
             for line in output.splitlines():
                 match = co.search(line)

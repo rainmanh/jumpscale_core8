@@ -149,47 +149,46 @@ class CuisineRunit(ProcessManagerBase):
         """Ensures that the given upstart service is self.running, starting
         it if necessary."""
 
-        if not self.cuisine.file_exists("/etc/service/vice/%s/run" %name ):
-            cmd=self.cuisine.args_replace(cmd)
-            path=self.cuisine.args_replace(path)
+        cmd=self.cuisine.args_replace(cmd)
+        path=self.cuisine.args_replace(path)
 
 
-            envstr = ""
-            for name0, value in list(env.items()):
-                envstr += "export %s=%s\n" % (name0, value)
+        envstr = ""
+        for name0, value in list(env.items()):
+            envstr += "export %s=%s\n" % (name0, value)
 
 
-            if path and (path not in cmd):
-                cmd = "%s/%s" % (path, cmd)
+        if path and (path not in cmd):
+            cmd = "%s/%s" % (path, cmd)
 
-            sv_text ="""#!/bin/sh
+        sv_text ="""#!/bin/sh
 set -e
 echo $descrs
 $env
 cd $path
 exec $cmd
-            """
-            sv_text = sv_text.replace("$env", envstr)
-            sv_text = sv_text.replace("$path", path)
-            sv_text = sv_text.replace("$cmd",cmd)
-            if descr=="":
-                descr = name
-            sv_text = sv_text.replace("$descr",descr)
-            sv_text = sv_text.replace("$path",path)
+        """
+        sv_text = sv_text.replace("$env", envstr)
+        sv_text = sv_text.replace("$path", path)
+        sv_text = sv_text.replace("$cmd",cmd)
+        if descr=="":
+            descr = name
+        sv_text = sv_text.replace("$descr",descr)
+        sv_text = sv_text.replace("$path",path)
 
-            # if self.cuisine.file_is_link("/etc/service/"):
-            #     self.cuisine.file_link( "/etc/getty-5", "/etc/service")
-            self.cuisine.file_ensure("/etc/service/%s/run" %name,mode="+x")
-            self.cuisine.file_write("/etc/service/%s/run" %name, sv_text)
-            time.sleep(5)
+        # if self.cuisine.file_is_link("/etc/service/"):
+        #     self.cuisine.file_link( "/etc/getty-5", "/etc/service")
+        self.cuisine.file_ensure("/etc/service/%s/run" % name,mode="+x")
+        self.cuisine.file_write("/etc/service/%s/run" % name, sv_text)
+        time.sleep(2)
 
         self.start(name)
 
     def remove(self, prefix):
         """removes process from init"""
-        if self.cuisine.file_exists("/etc/service/%s/run" %prefix ):
+        if self.cuisine.file_exists("/etc/service/%s/run" % prefix ):
             self.stop(prefix)
-            self.cuisine.dir_remove("/etc/service/%s/run" %prefix)
+            self.cuisine.dir_remove("/etc/service/%s/run" % prefix)
 
 
 
@@ -203,7 +202,7 @@ exec $cmd
     def start(self, name):
         """Tries a `restart` command to the given service, if not successful
         will stop it and start it. If the service is not started, will start it."""
-        if self.cuisine.file_exists("/etc/service/vice/%s/run" %name ):
+        if self.cuisine.file_exists("/etc/service/%s/run" %name ):
             self.cuisine.run("sv -w 15 start /etc/service/%s/" %name, profile=True )
 
     def stop(self, name, **kwargs):
@@ -218,11 +217,11 @@ class CuisineTmuxec(ProcessManagerBase):
     def list(self,prefix=""):
         try:
             result = self.cuisine.run("tmux lsw", profile=True).split("\n")
-        except:
-            print("no running processes")
+        except Exception as e:
+            print("no running processes", e)
             return []
         return result
-        
+
     def ensure(self, name, cmd="", env={}, path="", descr=""):
         """Ensures that the given upstart service is self.running, starting
         it if necessary."""
@@ -253,7 +252,10 @@ class CuisineTmuxec(ProcessManagerBase):
     def reload(self, name):
         """Reloads the given service, or star
 ts it if it is not self.running."""
-        cmd=j.core.db.hget("processcmds",name).decode()
+        cmd = j.core.db.hget("processcmds",name)
+        if cmd is None:
+            return
+        cmd = cmd.decode()
         self.stop(name)
         self.cuisine.tmux.executeInScreen("main", name,cmd=cmd)
 
@@ -279,4 +281,3 @@ ts it if it is not self.running."""
             self.cuisine.run("kill -9 %s" % pid)
             self.cuisine.tmux.killWindow("main",name)
             j.core.db.hdel("processcmds",name)
-

@@ -52,7 +52,7 @@ class PostgresqlFactory():
         args["dbname"]=db
         cmd="cd /opt/postgresql/bin;./dropdb -U %(login)s -h %(ipaddr)s -p %(port)s %(dbname)s"%(args)
         # print cmd
-        j.sal.process.execute(cmd,outputToStdout=False,dieOnNonZeroExitCode=False)
+        j.sal.process.execute(cmd,outputToStdout=False,die=False)
 
 
 class PostgresClient():

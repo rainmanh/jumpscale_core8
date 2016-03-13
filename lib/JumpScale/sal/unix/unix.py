@@ -645,7 +645,7 @@ class UnixSystem:
         """
         check if app is installed,  if yes return True
         """
-        result,out=j.sal.process.execute("which %s" % appname,dieOnNonZeroExitCode=False)
+        result,out=j.sal.process.execute("which %s" % appname,die=False)
         if result==0 and len(out)>5:
             return True
         return False

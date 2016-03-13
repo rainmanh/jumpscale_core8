@@ -14,7 +14,7 @@ import pygments.lexers
 from pygments.formatters import get_formatter_by_name
 
 
-class Action:    
+class Action:
     def __init__(self, action=None,runid=0,actionRecover=None,args=(),kwargs={},die=True,stdOutput=True,errorOutput=True,retry=1,serviceObj=None,deps=[],key="",selfGeneratorCode="",force=False):
         '''
         self.doc is in doc string of method
@@ -33,7 +33,6 @@ class Action:
         @param isparent, if isparent then when this action changes all actions following will be redone of same runid
 
         '''
-
         if key=="" and action==None:
             raise RuntimeError("need to specify key or action")
 
@@ -44,7 +43,7 @@ class Action:
         self._stdOutput=stdOutput
         self._errorOutput=errorOutput
         self._state="INIT"
-        
+
         #avoid we can write to it
         self._name=""
         self._path=""
@@ -53,7 +52,7 @@ class Action:
         self._source=""
         self._doc=""
 
-        self._state_show="INIT"        
+        self._state_show="INIT"
         self._selfobj=None
         self._key=key
         self._depkeys=[]
@@ -82,10 +81,10 @@ class Action:
 
             self.serviceObj = serviceObj
 
-            self.method=action        
+            self.method=action
 
             if actionRecover!=None:
-                self._actionRecover = actionRecover.key              
+                self._actionRecover = actionRecover.key
 
         if key=="":
             if deps!=None:
@@ -116,8 +115,7 @@ class Action:
             self._load(True)
 
         self._parent=j.actions._current
-        if self._parent!=None:         
-            # from pudb import set_trace; set_trace() 
+        if self._parent!=None:
             self.parent.addDep(self)
 
         if self.state=="INIT" and key=="":
@@ -265,9 +263,9 @@ class Action:
             # j.sal.fs.changeDir(basepath)
             loader = importlib.machinery.SourceFileLoader(self.name,self.sourceToExecutePath )
             handle = loader.load_module(self.name)
-            self._method=eval("handle.%s"%self.name)            
+            self._method=eval("handle.%s"%self.name)
 
-        return self._method  
+        return self._method
 
     @method.setter
     def method(self,val):
@@ -276,10 +274,10 @@ class Action:
             source += "\n"
         if source.strip().startswith("@"):
             #decorator needs to be removed (first line)
-            source="\n".join(source.split("\n")[1:])            
+            source="\n".join(source.split("\n")[1:])
         self._source=j.data.text.strip(source)
-        self._name = source.split("\n")[0].strip().replace("def ", "").split("(")[0].strip()    
-        self._path = inspect.getsourcefile(val).replace("//", "/")    
+        self._name = source.split("\n")[0].strip().replace("def ", "").split("(")[0].strip()
+        self._path = inspect.getsourcefile(val).replace("//", "/")
         self._doc=inspect.getdoc(self.method)
         if self._doc==None:
             self._doc=""
@@ -344,7 +342,7 @@ class Action:
         self.check()
         if self.state!="OK" and self.depsAreOK:
             return True
-        return False    
+        return False
 
     def save(self,checkcode=False):
         if checkcode:
@@ -392,7 +390,7 @@ class Action:
         if val is None:
             self._result = ""
         else:
-            self._result = j.data.serializer.json.dumps(val, True, True) 
+            self._result = j.data.serializer.json.dumps(val, True, True)
 
     @property
     def args(self):
@@ -406,7 +404,7 @@ class Action:
         if val == ():
             self._args = ""
         else:
-            self._args = j.data.serializer.json.dumps(val, True, True)     
+            self._args = j.data.serializer.json.dumps(val, True, True)
 
     @property
     def kwargs(self):
@@ -420,7 +418,7 @@ class Action:
         if val == {}:
             self._kwargs = ""
         else:
-            self._kwargs = j.data.serializer.json.dumps(val, True, True)     
+            self._kwargs = j.data.serializer.json.dumps(val, True, True)
 
     @property
     def _args1line(self):
@@ -446,13 +444,12 @@ class Action:
         if self._selfobj!=None:
             return self._selfobj
 
-        # from pudb import set_trace; set_trace() 
         if self.selfGeneratorCode!="": #this is the code which needs to generate a selfobj
             try:
                 l={}
                 exec(self.selfGeneratorCode,globals(),l)
                 self._selfobj=l["selfobj"]
-            except Exception as e:                
+            except Exception as e:
                 self.error += "SELF OBJ ERROR:\n%s" % e
                 self.state = "ERROR"
                 self.print()
@@ -464,21 +461,17 @@ class Action:
         self.check() #see about changed source code
         j.actions._current=self.key
 
-        #@question why did we do that? (despiegk)
-        # if self.force:
-        #     self.state="FORCE"
-        #     print ("FORCE")
 
-        
+        #makes sure we will force the action, needs to stay
+        if self.force:
+            self.state="FORCE"
 
         # args=str(self.args)
         # myid=str(self)
-        # from pudb import set_trace; set_trace()                 
-        
 
         if self.state == "OK":
             print("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
-            j.actions._current=None  
+            j.actions._current=None
             return
 
         print("  * %-20s: %s" % (self.name, self._args1line))
@@ -491,16 +484,18 @@ class Action:
             output = ""
             counter=0
             ok=False
+            tb_text = ''
+            err = 'tb_text'
 
             while ok==False and counter<self.retry+1:
-                
+
                 try:
                     if self.selfobj!=None:
                         #here we try to reconstruct the cuisine object@
                         self.result = self.method(self.selfobj,*self.args,**self.kwargs)
                     else:
                         self.result = self.method(*self.args,**self.kwargs)
-                    
+
                     ok=True
                     rcode=0
                     self.traceback=""
@@ -540,41 +535,41 @@ class Action:
                     if "**NOSTACK**" in err:
                         tb_text=""
                         err=err.replace("**NOSTACK**","")
-                 
-            
+
+
 
             #we did the retries, rcode will be >0 if error
             if self._stdOutput == False:
                 j.tools.console.enableOutput()
-                self.stdouterr += j.tools.console.getOutput()            
+                self.stdouterr += j.tools.console.getOutput()
 
 
             if rcode > 0 or self.state=="ERROR":
-                
 
-                # from pudb import set_trace; set_trace()    
+
+                # from pudb import set_trace; set_trace()
 
                 if self.die:
                     for action in self.getWhoDependsOnMe():
                         if action.state=="ERRORCHILD":
                             continue #to avoid saving
                         # print ("#####%s"%self)
-                        # print (action)                            
-                        action.state="ERROR"    
+                        # print (action)
+                        action.state="ERROR"
                         # print (action)
                         action.save()
-                        
+
 
                 if self.actionRecover != None:
-                    self.actionRecover.execute()  
+                    self.actionRecover.execute()
 
-                              
+
 
                 if self.state=="ERRORCHILD":
                     j.actions._current=None
                     #we are already in error, means error came from child
                     if self.die:
-                        raise RuntimeError("error in action: %s"%self)                    
+                        raise RuntimeError("error in action: %s"%self)
                     return
 
                 self.traceback=tb_text
@@ -596,7 +591,7 @@ class Action:
 
 
             #actions done so need to make sure current is None again
-            j.actions._current=None                
+            j.actions._current=None
             self.save(checkcode=True)
         else:
             rcode=0
@@ -611,11 +606,12 @@ class Action:
 
     @property
     def _stream(self):
-        try:
-            import colorama
-            return colorama.AnsiToWin32(sys.stderr)
-        except ImportError:
-            return sys.stderr
+        return sys.stderr
+        # try:
+        #     import colorama
+        #     return colorama.AnsiToWin32(sys.stderr)
+        # except ImportError:
+        #     return sys.stderr
 
     @property
     def str(self):
@@ -635,7 +631,7 @@ class Action:
             msg += "*ERROR***********************************************************************************\n"
         msg += "action: %-20s runid:%-15s      (%s)\n" % (self.name, self.runid, self.state)
         if self.state=="ERROR":
-            msg += "    %s\n"%self.key 
+            msg += "    %s\n"%self.key
             msg += "    path: %s\n" % self.path
         # if self.state=="ERROR":
         #     if self.source != "":
@@ -643,7 +639,7 @@ class Action:
         #         msg += j.data.text.indent(self.source) + "\n"
         #     if self.traceback != "":
         #         msg += "TRACEBACK:\n"
-        #         msg += j.data.text.indent(self.traceback) + "\n"    
+        #         msg += j.data.text.indent(self.traceback) + "\n"
         if self.doc != "":
             msg += "DOC:\n"
             msg += j.data.text.indent(self.doc)
@@ -673,13 +669,13 @@ class Action:
             msg+="\n"
         # if self.state=="ERROR":
         #     msg += "action: %-20s runid:%-15s      (%s)\n" % (self.name, self.runid, self.state)
-        #     msg += "***ERROR***\n"       
+        #     msg += "***ERROR***\n"
         out=""
         for line in msg.split("\n"):
             if line.strip()=="":
                 continue
             out+="%s\n"%line
-        
+
         if self.state=="ERROR":
             out="\n\n%s"%out
         return out
@@ -693,16 +689,16 @@ class Action:
         print ("\n")
         self._stream.write(colored)
 
-        
+
         if self.traceback!="":
             print ("\n*SOURCECODE******************************************************************************\n")
 
             """
             styles:
-            'monokai', 'trac', 'borland', 'paraiso-dark', 'tango', 'bw', 'native', 'lovelace', 'algol_nu', 'vim', 'emacs', 'vs', 
+            'monokai', 'trac', 'borland', 'paraiso-dark', 'tango', 'bw', 'native', 'lovelace', 'algol_nu', 'vim', 'emacs', 'vs',
             'pastie', 'rrt', 'default', 'xcode', 'friendly', 'fruity', 'igor', 'colorful', 'paraiso-light', 'murphy', 'manni', 'autumn', 'perldoc', 'algol'
             """
-            
+
 
             lexer = pygments.lexers.get_lexer_by_name("py3")#, stripall=True)
             tb_colored = pygments.highlight(self.sourceToExecute, lexer, formatter)
@@ -715,6 +711,6 @@ class Action:
             self._stream.write(tb_colored)
 
         print ("\n\n******************************************************************************************\n")
-    
+
 
     __repr__ = __str__

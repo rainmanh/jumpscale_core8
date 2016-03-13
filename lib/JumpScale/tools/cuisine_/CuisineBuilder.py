@@ -759,6 +759,197 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb/influxdb.conf.o
             self.cuisine.process.kill("influxdb")
             self.cuisine.processmanager.ensure("influxdb", cmd=cmd, env={}, path="")
 
+    def grafana(self, start=True, influx_addr='127.0.0.1', influx_port=8086):
+
+        if self.cuisine.isMac:
+            self.cuisine.package.mdupdate()
+            self.cuisine.package.install('grafana')
+        if self.cuisine.isUbuntu:
+            C= """
+cd $tmpDir
+wget https://grafanarel.s3.amazonaws.com/builds/grafana_2.6.0_amd64.deb
+sudo apt-get install -y adduser libfontconfig
+sudo dpkg -i grafana_2.6.0_amd64.deb"""
+            C = self.cuisine.bash.replaceEnvironInText(C)
+            C = self.cuisine.args_replace(C)
+            self.cuisine.run_script(C, profile=True, action=True)
+            self.cuisine.bash.addPath(self.cuisine.args_replace("$binDir"), action=True)
+            scriptedagent = """/* global _ */
+
+/*
+ * Complex scripted dashboard
+ * This script generates a dashboard object that Grafana can load. It also takes a number of user
+ * supplied URL parameters (in the ARGS variable)
+ *
+ * Return a dashboard object, or a function
+ *
+ * For async scripts, return a function, this function must take a single callback function as argument,
+ * call this callback function with the dashboard object (look at scripted_async.js for an example)
+ */
+
+'use strict';
+
+// accessible variables in this scope
+var window, document, ARGS, $, jQuery, moment, kbn;
+
+// Setup some variables
+var dashboard;
+
+// All url parameters are available via the ARGS object
+var ARGS;
+
+// Intialize a skeleton with nothing but a rows array and service object
+dashboard = {
+  rows : [],
+  refresh: '5s',
+};
+
+// Set a title
+dashboard.title = 'Scripted dash';
+
+// Set default time
+// time can be overriden in the url using from/to parameters, but this is
+// handled automatically in grafana core during dashboard initialization
+dashboard.time = {
+  from: "now-6h",
+  to: "now"
+};
+
+var series = [];
+
+if(!_.isUndefined(ARGS.series)) {
+  series = ARGS.series.split(',');
+}
+
+
+dashboard.rows.push({
+    panels: [
+{
+  "aliasColors": {},
+  "bars": false,
+  "datasource": 'influxdb_main',
+  "editable": true,
+  "error": false,
+  "fill": 1,
+  "grid": {
+    "leftLogBase": 1,
+    "leftMax": null,
+    "leftMin": null,
+    "rightLogBase": 1,
+    "rightMax": null,
+    "rightMin": null,
+    "threshold1": null,
+    "threshold1Color": "rgba(216, 200, 27, 0.27)",
+    "threshold2": null,
+    "threshold2Color": "rgba(234, 112, 112, 0.22)"
+  },
+  "hideTimeOverride": false,
+  "id": 1,
+  "isNew": true,
+  "legend": {
+    "avg": false,
+    "current": false,
+    "max": false,
+    "min": false,
+    "show": true,
+    "total": false,
+    "values": false
+  },
+  "lines": true,
+  "linewidth": 2,
+  "links": [],
+  "nullPointMode": "connected",
+  "percentage": false,
+  "pointradius": 5,
+  "points": false,
+  "renderer": "flot",
+  "seriesOverrides": [],
+  "span": 12,
+  "stack": false,
+  "steppedLine": false,
+  "targets": series.map(function(x){return {
+      "dsType": "influxdb",
+      "groupBy": [
+        {
+          "params": [
+            "auto"
+          ],
+          "type": "time"
+        },
+        {
+          "params": [
+            "null"
+          ],
+          "type": "fill"
+        }
+      ],
+      "hide": false,
+      "measurement": x,
+      "query": 'SELECT "value" FROM "'+x+'"',
+      "rawQuery": true,
+      "refId": "A",
+      "resultFormat": "time_series",
+      "select": [
+        [
+          {
+            "params": [
+              "value"
+            ],
+            "type": "field"
+          },
+          {
+            "params": [],
+            "type": "mean"
+          }
+        ]
+      ],
+      "tags": []
+    }
+  }),
+  "timeFrom": null,
+  "timeShift": null,
+  "title": "Panel Title",
+  "tooltip": {
+    "shared": true,
+    "value_type": "cumulative"
+  },
+  "type": "graph",
+  "x-axis": true,
+  "y-axis": true,
+  "y_formats": [
+    "short",
+    "short"
+  ]
+}        
+    ]
+});
+
+
+return dashboard;
+
+"""
+        self.cuisine.file_write('/usr/share/grafana/public/dashboards/scriptedagent.js',scriptedagent)
+
+        if start:
+            binPath = self.cuisine.bash.cmdGetPath('grafana-server')
+            cmd = "%s --config=/etc/grafana/grafana.ini" % (binPath)
+            self.cuisine.process.kill("grafana-server")
+            self.cuisine.processmanager.ensure("grafana-server", cmd=cmd, env={}, path="/usr/share/grafana/")
+            import time
+            time.sleep(10)
+            grafanaclient = j.clients.grafana.get(url='http://%s:3000'%(self.cuisine.executor.addr),username='admin', password='admin')
+            data = {                         
+              'type': 'influxdb',
+              'access': 'proxy',
+              'database': 'statistics',
+              'name': 'influxdb_main',
+              'url': 'http://%s:%u' % (influx_addr, influx_port),
+              'user': 'admin',
+              'password': 'passwd',
+              'default': True,
+            }
+            grafanaclient.addDataSource(data)
+
     @actionrun(action=True)
     def vulcand(self):
         C='''

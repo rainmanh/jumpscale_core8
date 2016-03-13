@@ -157,10 +157,6 @@ class CuisineRunit(ProcessManagerBase):
         for name0, value in list(env.items()):
             envstr += "export %s=%s\n" % (name0, value)
 
-
-        if path and (path not in cmd):
-            cmd = "%s/%s" % (path, cmd)
-
         sv_text ="""#!/bin/sh
 set -e
 echo $descrs

@@ -764,21 +764,30 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb/influxdb.conf.o
             self.cuisine.process.kill("influxdb")
             self.cuisine.processmanager.ensure("influxdb", cmd=cmd, env={}, path="")
 
-    def grafana(self, start=True, influx_addr='127.0.0.1', influx_port=8086):
+    def grafana(self, start=True, influx_addr='127.0.0.1', influx_port=8086, port=3000):
 
-        if self.cuisine.isMac:
-            self.cuisine.package.mdupdate()
-            self.cuisine.package.install('grafana')
         if self.cuisine.isUbuntu:
+            dataDir = self.cuisine.args_replace("$varDir/data/grafana")
+            logDir = '%s/log' %(dataDir)
             C= """
 cd $tmpDir
-wget https://grafanarel.s3.amazonaws.com/builds/grafana_2.6.0_amd64.deb
-sudo apt-get install -y adduser libfontconfig
-sudo dpkg -i grafana_2.6.0_amd64.deb"""
+wget https://grafanarel.s3.amazonaws.com/builds/grafana-2.6.0.linux-x64.tar.gz 
+tar -xvzf grafana-2.6.0.linux-x64.tar.gz
+cd grafana-2.6.0
+cp bin/grafana-server $binDir
+mkdir -p $tmplsDir/grafana
+cp -rn conf public vendor $tmplsDir/grafana
+mkdir -p %s
+"""%(logDir)
+
             C = self.cuisine.bash.replaceEnvironInText(C)
             C = self.cuisine.args_replace(C)
             self.cuisine.run_script(C, profile=True, action=True)
             self.cuisine.bash.addPath(self.cuisine.args_replace("$binDir"), action=True)
+            cfg = self.cuisine.file_read("$tmplsDir/grafana/conf/defaults.ini")
+            cfg = cfg.replace('data = data', 'data = %s'%(dataDir))
+            cfg = cfg.replace('logs = data/log', 'logs = %s'%(logDir))
+            self.cuisine.file_write("$tmplsDir/grafana/conf/defaults.ini", cfg)
             scriptedagent = """/* global _ */
 
 /*
@@ -933,27 +942,39 @@ dashboard.rows.push({
 return dashboard;
 
 """
-        self.cuisine.file_write('/usr/share/grafana/public/dashboards/scriptedagent.js',scriptedagent)
-
+            self.cuisine.file_write('$tmplsDir/grafana/public/dashboards/scriptedagent.js',scriptedagent)
         if start:
-            binPath = self.cuisine.bash.cmdGetPath('grafana-server')
-            cmd = "%s --config=/etc/grafana/grafana.ini" % (binPath)
-            self.cuisine.process.kill("grafana-server")
-            self.cuisine.processmanager.ensure("grafana-server", cmd=cmd, env={}, path="/usr/share/grafana/")
-            import time
-            time.sleep(10)
-            grafanaclient = j.clients.grafana.get(url='http://%s:3000'%(self.cuisine.executor.addr),username='admin', password='admin')
-            data = {                         
-              'type': 'influxdb',
-              'access': 'proxy',
-              'database': 'statistics',
-              'name': 'influxdb_main',
-              'url': 'http://%s:%u' % (influx_addr, influx_port),
-              'user': 'admin',
-              'password': 'passwd',
-              'default': True,
-            }
-            grafanaclient.addDataSource(data)
+            self._startGrafana(influx_addr=influx_addr, influx_port=influx_port, port=port)
+
+    def _startGrafana(self, influx_addr='127.0.0.1', influx_port=8086,port=3000):
+        cfg = self.cuisine.file_read('$tmplsDir/grafana/conf/defaults.ini')
+        cfg = cfg.replace("http_port = 3000", "http_port = %i"%(port))
+        self.cuisine.file_write('$cfgDir/grafana/grafana.ini', cfg)
+        cmd = "$binDir/grafana-server --config=$cfgDir/grafana/grafana.ini"
+        self.cuisine.process.kill("grafana-server")
+        self.cuisine.processmanager.ensure("grafana-server", cmd=cmd, env={}, path="$tmplsDir/grafana/")
+        grafanaclient = j.clients.grafana.get(url='http://%s:%d'%(self.cuisine.executor.addr, port),username='admin', password='admin')
+        data = {
+          'type': 'influxdb',
+          'access': 'proxy',
+          'database': 'statistics',
+          'name': 'influxdb_main',
+          'url': 'http://%s:%u' % (influx_addr, influx_port),
+          'user': 'admin',
+          'password': 'passwd',
+          'default': True,
+        }
+        import time
+        import requests
+        now = time.time()
+        while time.time() - now < 10:
+            try:
+                grafanaclient.addDataSource(data)
+                break
+            except requests.exceptions.ConnectionError:
+                time.sleep(0.1)
+                pass
+
 
     @actionrun(action=True)
     def vulcand(self):

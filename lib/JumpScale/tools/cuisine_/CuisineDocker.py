@@ -109,7 +109,6 @@ class CuisineDocker():
             self.cuisine.run_script(C)
 
     def enableSSH(self, port=None):
-        import ipdb; ipdb.set_trace()
         if port is not None:
             self.cuisine.fw.allowIncoming(port, 'tcp')
 

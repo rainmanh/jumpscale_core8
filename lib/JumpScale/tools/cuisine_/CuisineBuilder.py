@@ -6,6 +6,11 @@ from ActionDecorator import ActionDecorator
 from CuisineMongoCluster import mongoCluster
 
 
+"""
+please ensure that the start and build methods are separate and 
+the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
+"""
+
 class actionrun(ActionDecorator):
     def __init__(self, *args, **kwargs):
         ActionDecorator.__init__(self, *args, **kwargs)

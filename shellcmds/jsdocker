@@ -33,14 +33,14 @@ def pull(image):
 @click.command()
 @click.option('--image', '-i', help='name of the image to push')
 def push(image):
-    j.sal.docker.push(image, progress=True)
+    j.sal.docker.push(image, output=True)
 
 @click.command()
 @click.option('--name', '-n', help='name of the docker to commit')
 @click.option('--tag', '-t', help='tag to give to the commit')
-@click.option('--mgs', help='commit message')
+@click.option('--msg', help='commit message')
 @click.option('--force', help='force commit', type=bool, is_flag=True)
-def commit(name, tag):
+def commit(name, tag, msg, force):
     if name is None:
         print("specify name of machine with -n")
         return

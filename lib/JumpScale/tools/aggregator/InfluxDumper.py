@@ -96,6 +96,6 @@ class InfluxDumper(Dumper.BaseDumper):
                 info = dict()
 
             if queue == self.QUEUE_MIN:
-                self._dump("%s_%s_m" % (stats.node, stats.key), stats, info)
+                self._dump("%s|%s|m" % (stats.node, stats.key), stats, info)
             else:
-                self._dump("%s_%s_h" % (stats.node, stats.key), stats, info)
+                self._dump("%s|%s|h" % (stats.node, stats.key), stats, info)

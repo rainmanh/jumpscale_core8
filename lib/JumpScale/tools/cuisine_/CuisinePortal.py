@@ -15,14 +15,17 @@ class CuisinePortal(object):
         self.portal_dir = self.cuisine.args_replace('$appDir/portals/')
         self.example_portal_dir = j.sal.fs.joinPaths(self.portal_dir, 'example')
 
-    def install(self, minimal=False, start=True, mongodbip="127.0.0.1", mongoport=27017, login="", passwd=""):
+    def install(self, minimal=False, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
+        """
+        grafanaip and port should be the external ip of the machine 
+        """
         if not self.cuisine.isMac:
             self.cuisine.installerdevelop.jumpscale8()
             self.cuisine.pip.upgrade("pip")
         self.installDeps()
         self.getcode()
         self.linkCode(minimal=minimal)
-        self.mongoconnect(ip=mongodbip, port=mongoport)
+        self.serviceconnect(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip, influxport=influxport, grafanaip=grafanaip, grafanaport=grafanaport)
         if start:
             self.start()
 
@@ -175,14 +178,16 @@ class CuisinePortal(object):
         self.cuisine.file_copy("%s/jslib/old/images" % self.portal_dir, "%s/jslib/old/elfinder" % self.portal_dir, recursive=True)
 
     @actionrun(action=True)
-    def mongoconnect(self, ip, port):
+    def serviceconnect(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, grafanaip="127.0.0.1", grafanaport=3000):
         dest = j.sal.fs.joinPaths(self.cuisine.dir_paths['varDir'],'cfg', "portals")
         dest_cfg = j.sal.fs.joinPaths(dest, 'example', 'config.hrd')
         self.cuisine.dir_ensure(dest)
         content = self.cuisine.file_read('$tmplsDir/cfg/portal/config.hrd')
         tmp = j.sal.fs.getTempFileName()
         hrd = j.data.hrd.get(content=content, path=tmp)
-        hrd.set('param.mongoengine.connection', {'host': ip, 'port': port})
+        hrd.set('param.mongoengine.connection', {'host': mongodbip, 'port': mongoport})
+        hrd.set('param.cfg.influx', {'host': influxip, 'port': influxport})
+        hrd.set('param.cfg.grafana', {'host': grafanaip, 'port': grafanaport})
         hrd.save()
         self.cuisine.file_write(dest_cfg, str(hrd))
         j.sal.fs.remove(tmp)

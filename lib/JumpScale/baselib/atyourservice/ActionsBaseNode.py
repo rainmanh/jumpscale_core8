@@ -123,21 +123,21 @@ class ActionsBaseNode(object):
                 src = src.replace(";", ":")
                 if src.strip() != "":
                     cmd = "wget -O - %s | apt-key add -" % src
-                    j.sal.process.execute(cmd, dieOnNonZeroExitCode=False)
+                    j.sal.process.execute(cmd, die=False)
 
             if self.service.hrd_template.getBool("ubuntu.apt.update", default=False):
                 log("apt update")
-                j.sal.process.execute("apt-get update -y", dieOnNonZeroExitCode=False)
+                j.sal.process.execute("apt-get update -y", die=False)
 
             if self.service.hrd_template.getBool("ubuntu.apt.upgrade", default=False):
-                j.sal.process.execute("apt-get upgrade -y", dieOnNonZeroExitCode=False)
+                j.sal.process.execute("apt-get upgrade -y", die=False)
 
             if self.service.hrd_template.exists("ubuntu.packages"):
                 packages = self.service.hrd_template.getList("ubuntu.packages")
                 packages = [pkg.strip() for pkg in packages if pkg.strip() != ""]
                 if packages:
                     j.sal.ubuntu.install(" ".join(packages))
-                    # j.sal.process.execute("apt-get install -y -f %s" % " ".join(packages), dieOnNonZeroExitCode=True)
+                    # j.sal.process.execute("apt-get install -y -f %s" % " ".join(packages), die=True)
         return True
 
     def _getDomainName(self, process):
@@ -201,7 +201,7 @@ class ActionsBaseNode(object):
                     path2="/etc/service/%s/run"%name
                     j.sal.fs.writeFile(path2, C)
                     j.sal.fs.chmod(path2,0o770)
-                    j.sal.process.execute("sv start %s"%name,dieOnNonZeroExitCode=False, outputToStdout=False,outputStderr=False, captureout=False)
+                    j.sal.process.execute("sv start %s"%name,die=False, outputToStdout=False,outputStderr=False, captureout=False)
                 else:
                     j.sal.ubuntu.serviceInstall(name, tcmd, pwd=cwd, env=env)
                     j.sal.ubuntu.startService(name)
@@ -290,7 +290,7 @@ class ActionsBaseNode(object):
 
             if j.sal.fs.exists(path="/etc/my_init.d/%s"%name):
                 print("stop through myinitd:%s"%name)
-                j.sal.process.execute("sv stop %s"%name,dieOnNonZeroExitCode=False, outputToStdout=False,outputStderr=False, captureout=False)
+                j.sal.process.execute("sv stop %s"%name,die=False, outputToStdout=False,outputStderr=False, captureout=False)
             elif startupmethod == "upstart":
                 print("stop through upstart:%s"%name)
                 j.sal.ubuntu.stopService(name)
@@ -356,7 +356,7 @@ class ActionsBaseNode(object):
                     name = "%s.%d" % (name, i)
                 # check if we are in our docker image which uses myinit instead of upstart
                 if j.sal.fs.exists(path="/etc/my_init.d/"):
-                    _, res, _ = j.sal.process.execute("sv status %s" % name, dieOnNonZeroExitCode=False,
+                    _, res, _ = j.sal.process.execute("sv status %s" % name, die=False,
                                              outputToStdout=False, outputStderr=False, captureout=True)
                     if res.startswith('ok'):
                         return True

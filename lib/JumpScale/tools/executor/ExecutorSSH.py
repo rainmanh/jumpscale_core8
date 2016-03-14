@@ -8,7 +8,7 @@ class ExecutorSSH(ExecutorBase):
             passwd=None,debug=False,checkok=True,allow_agent=True, \
             look_for_keys=True,pushkey=None,pubkey=""):
         ExecutorBase.__init__(self, dest_prefixes=dest_prefixes,debug=debug,checkok=checkok)
-        self.id = '%s:%s' % (addr, port)
+        self.id = '%s:%s:%s' % (addr, port, login)
         self.addr = addr
         self._port = int(port)
         self._login=login
@@ -96,7 +96,7 @@ class ExecutorSSH(ExecutorBase):
             # online command, we use cuisine
             if showout:
                 print("EXECUTE %s:%s: %s"%(self.addr,self.port,cmds))
-            # return j.sal.process.execute("ssh -A -p %s root@%s '%s'"%(self.port,self.addr,cmds),dieOnNonZeroExitCode=die)
+            # return j.sal.process.execute("ssh -A -p %s root@%s '%s'"%(self.port,self.addr,cmds),die=die)
             retcode,out=self.sshclient.execute(cmds2,die=die,showout=showout, combinestdr=combinestdr)
 
         if checkok and die:

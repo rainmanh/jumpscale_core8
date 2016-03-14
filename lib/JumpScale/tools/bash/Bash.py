@@ -114,7 +114,9 @@ class Bash:
                     val=val.strip().strip("'").strip("\"")
                     res[name]=val
             self._environ=res
-        return self._environ
+        merge = self._environ.copy()
+        merge.update(self.profile.environ)
+        return merge
 
     @property
     def home(self):
@@ -183,18 +185,20 @@ class Bash:
 
     @property
     def profilePath(self):
-        if self._profilePath=="":
-            self._profilePath=j.sal.fs.joinPaths(self.home,".profile_js")
-            if not self.cuisine.file_exists(self._profilePath):
-                self.cuisine.file_write(self._profilePath,"")
-                self.setOurProfile()
-                self._profile = None
+        if self._profilePath == "":
+            self._profilePath = j.sal.fs.joinPaths(self.home, ".profile_js")
+        if not self.cuisine.file_exists(self._profilePath):
+            self.cuisine.file_write(self._profilePath,"")
+            self.setOurProfile()
+            self._profile = None
         return self._profilePath
 
     @property
     def profile(self):
         if not self._profile:
-            content = self.cuisine.file_read(self.profilePath)
+            content = ""
+            if self.cuisine.file_exists(self.profilePath):
+                content = self.cuisine.file_read(self.profilePath)
             self._profile = Profile(content)
         return self._profile
 

@@ -41,8 +41,54 @@ def xonsh_edit(args, stdin=None):
         cmd="open -a Sublime\ Text %s"%path
 
     elif j.sal.fs.exists("/usr/bin/subl"):
-        raise RuntimeError("implement")        
+        raise RuntimeError("please implement xonsh_edit for linux")        #@todo (*2*)
     else:
         raise RuntimeError("Did not find editor")
 
     j.do.executeInteractive(cmd)
+
+def xonsh_update(args, stdin=None):
+    print ("update git repo's")
+    j.tools.xonsh.configAll()
+    # j.do.execute("jscode update -a jumpscale -n play8")
+    # j.do.execute("jscode update -a jumpscale -n play8")
+    # j.do.execute("jscode update -a jumpscale -n play8")
+
+
+
+# def xonsh_git(args, stdin=None):
+#     def checkdir():
+#         from IPython import embed
+#         print ("DEBUG NOW checkdir")
+#         embed()
+        
+#     if len(args)==0:
+#         H="""
+#         for these commands to work you need to be in git directory
+
+#         jsgit commit 'message'  # will commit, pull & merge
+#         jsgit push 'message'    # will commit, pull & merge & push
+#         jsgit branch mybranch   # will create/get branch, then commit
+#         jsgit pull remoteUrl    # no need to specify location where to pull, will go there directly
+#         jsgit reset             # will remove local changes & go to trunk
+#         """
+#         return
+#     elif len(args)==1:    
+#         cmd=args[0]
+#         if cmd=="reset":
+#             cmd = 'cd %s; git checkout .' % path
+#             j.sal.process.execute(cmd)
+#             j.do.pullGitRepo(url=client.remoteUrl)
+#     elif len(args)==2:
+#         cmd=args[0]
+#         data=args[1]
+#         if cmd=="pull":
+#             j.do.pullGitRepo(data, dest=None, depth=None,
+#                          ignorelocalchanges=opts.deletechanges, reset=False, branch=opts.branch)
+#         elif cmd=="push":
+
+
+#     else:
+#         raise RuntimeError("need to specify 1 or 2 args.\n%s"%H)
+
+#     j.do.executeInteractive(cmd)

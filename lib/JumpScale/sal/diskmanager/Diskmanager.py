@@ -187,7 +187,7 @@ class Diskmanager(SALObject):
                         if partfound==None and mounted!=True:
                             mountpoint="/mnt/tmp"
                             cmd="mount %s /mnt/tmp"%partition.path
-                            rcode,output=j.sal.process.execute(cmd,ignoreErrorOutput=False,dieOnNonZeroExitCode=False,)
+                            rcode,output=j.sal.process.execute(cmd,ignoreErrorOutput=False,die=False,)
                             if rcode!=0:
                                 #mount did not work
                                 mountpoint==None
@@ -269,7 +269,7 @@ class Diskmanager(SALObject):
                                         disko.description=hrd.get("diskinfo.description")
                                         print(("found disk:\n%s"%(disko)))
                                     cmd="umount /mnt/tmp"
-                                    j.sal.process.execute(cmd,dieOnNonZeroExitCode=False)
+                                    j.sal.process.execute(cmd,die=False)
                                     if os.path.ismount("/mnt/tmp")==True:
                                         raise RuntimeError("/mnt/tmp should not be mounted")
 

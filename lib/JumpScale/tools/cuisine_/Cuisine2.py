@@ -212,6 +212,7 @@ from CuisineProxy import CuisineProxy
 from CuisineBootMediaInstaller import CuisineBootMediaInstaller
 from CuisineVRouter import CuisineVRouter
 from CuisineTmux import CuisineTmux
+from CuisineGeoDns import CuisineGeoDns
 
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
@@ -254,6 +255,7 @@ class OurCuisine():
         self._dnsmasq=None
         self._docker=None
         self._js8sb=None
+        self._geodns=None
         self._dirs={}
 
         self.sshreflector=CuisineSSHReflector(self.executor,self)
@@ -301,7 +303,12 @@ class OurCuisine():
         if self._golang==None:
             self._golang=CuisineGolang(self.executor,self)
         return self._golang
-
+    @property
+    def geodns(self):
+        if self._geodns==None:
+            self._geodns = CuisineGeoDns(self.executor, self)
+        return self._geodns
+    
     @property
     def builder(self):
         if self._builder==None:
@@ -696,11 +703,11 @@ class OurCuisine():
     @property
     def hostname(self):
         if self._hostname=="":
-            if self.isMac:
-                self._hostname=self.run("hostname",showout=False,replaceArgs=False)
+            if self.isMac:  
+                self._hostname=self.run("hostname",showout=False,replaceArgs=False,actionshow=False)
             else:
                 hostfile="/etc/hostname"
-                self._hostname= self.run("cat %s"%hostfile,replaceArgs=False).strip().split(".",1)[0]
+                self._hostname= self.run("cat %s"%hostfile,showout=False,replaceArgs=False,actionshow=False).strip().split(".",1)[0]
         return self._hostname
 
     @hostname.setter

@@ -111,8 +111,8 @@ class CuisineDocker():
             self.cuisine.run_script(C)
 
     def enableSSH(self, port=None):
-        if port is not None:
-            self.cuisine.fw.allowIncoming(port, 'tcp')
+        # if port is not None:
+            # self.cuisine.fw.allowIncoming(port, 'tcp')
         if self.cuisine.executor.type == 'local':
             return "%s:%s" % (j.sal.docker.docker_host, port)
         else:
@@ -151,7 +151,7 @@ class CuisineDocker():
         info = j.data.serializer.json.loads(out)
 
         port = info[0]["port"]
-        return self.enableSSH(port=port)
+        return "%s:%s" % (self.executor.addr, port)
 
     @actionrun(action=True)
     def ubuntuSystemd(self, name="ubuntu1"):

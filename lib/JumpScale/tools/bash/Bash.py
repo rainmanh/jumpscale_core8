@@ -107,7 +107,7 @@ class Bash:
     def environ(self):
         if self._environ=={}:
             res={}
-            for line in self.cuisine.run("printenv", profile=True, showout=False).splitlines():
+            for line in self.cuisine.run("printenv", profile=True, showout=False, force=True).splitlines():
                 if '=' in line:
                     name,val=line.split("=",1)
                     name=name.strip()
@@ -122,7 +122,7 @@ class Bash:
     def home(self):
         if not self._home:
             res={}
-            for line in self.cuisine.run("printenv", profile=False, showout=False).splitlines():
+            for line in self.cuisine.run("printenv", profile=False, showout=False, force=True).splitlines():
                 if '=' in line:
                     name, val=line.split("=", 1)
                     name=name.strip()
@@ -142,6 +142,7 @@ class Bash:
         """
         Set environ
         """
+        self._environ[key] = val
         self.profile.set(key, val)
         self.cuisine.file_write(self.profilePath, self.profile.dump())
 
@@ -174,7 +175,7 @@ class Bash:
         """
         checks cmd Exists and returns the path
         """
-        rc,out=self.cuisine.run("which %s"%cmd,die=False,showout=False,action=False,profile=True)
+        rc,out=self.cuisine.run("which %s"%cmd,die=False,showout=False,action=False,profile=True, force=True)
         if rc>0:
             if die:
                 raise RuntimeError("Did not find command: %s"%cmd)
@@ -188,7 +189,7 @@ class Bash:
         if self._profilePath == "":
             self._profilePath = j.sal.fs.joinPaths(self.home, ".profile_js")
         if not self.cuisine.file_exists(self._profilePath):
-            self.cuisine.file_write(self._profilePath,"")
+            self.cuisine.file_write(self._profilePath,"", force=True)
             self.setOurProfile()
             self._profile = None
         return self._profilePath
@@ -198,19 +199,19 @@ class Bash:
         if not self._profile:
             content = ""
             if self.cuisine.file_exists(self.profilePath):
-                content = self.cuisine.file_read(self.profilePath)
+                content = self.cuisine.file_read(self.profilePath, force=True)
             self._profile = Profile(content)
         return self._profile
 
-    @actionrun()
+    @actionrun(action=True)
     def addPath(self, path):
         self.profile.addPath(path)
-        self.cuisine.file_write(self.profilePath, self.profile.dump())
+        self.cuisine.file_write(self.profilePath, self.profile.dump(), force=True)
 
     def environRemove(self, key, val=None):
         self.profile.remove(key)
-        self.cuisine.file_write(self.profilePath, self.profile.dump())
+        self.cuisine.file_write(self.profilePath, self.profile.dump(), force=True)
 
     def include(self, path):
         self.profile.addInclude(path)
-        self.cuisine.file_write(self.profilePath, self.profile.dump())
+        self.cuisine.file_write(self.profilePath, self.profile.dump(), force=True)

@@ -17,7 +17,7 @@ class CuisinePortal(object):
 
     def install(self, minimal=False, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
         """
-        grafanaip and port should be the external ip of the machine 
+        grafanaip and port should be the external ip of the machine
         """
         if not self.cuisine.isMac:
             self.cuisine.installerdevelop.jumpscale8()
@@ -193,6 +193,7 @@ class CuisinePortal(object):
 
     @actionrun(action=True)
     def changeEve(self):
+        path = self.cuisine.run("js") # hack, make sure jumpscale has loaded lib before trying to print something
         path = self.cuisine.run("js 'print(j.do.getPythonLibSystem(jumpscale=False))'")
         path = j.sal.fs.joinPaths(path, "eve_docs", "config.py")
         if not self.cuisine.file_exists(path):

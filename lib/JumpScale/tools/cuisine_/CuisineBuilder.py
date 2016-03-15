@@ -4,10 +4,10 @@ from JumpScale import j
 
 from ActionDecorator import ActionDecorator
 from CuisineMongoCluster import mongoCluster
-
+import time
 
 """
-please ensure that the start and build methods are separate and 
+please ensure that the start and build methods are separate and
 the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
 """
 
@@ -538,7 +538,7 @@ class CuisineBuilder(object):
         sync_cfg = sync_cfg.replace(sync_conn.group(2), "18384")
         self.cuisine.file_write("$cfgDir/syncthing/config.xml", sync_cfg)
 
-        #add jumpscripts file
+        # add jumpscripts file
         self._startSyncthing()
 
         if not self.cuisine.executor.type == 'local':
@@ -547,15 +547,19 @@ class CuisineBuilder(object):
             synccl = j.clients.syncthing.get(addr="localhost", port=18384, apikey=apikey)
 
         jumpscripts_path = self.cuisine.args_replace("$cfgDir/controller/jumpscripts")
-        for i in range(4):
+        timeout = 30
+        start = time.time()
+        syn_id = None
+        while time.time() < (start + timeout) and syn_id is None:
             try:
-                jumpscripts_id = "jumpscripts-%s" % hashlib.md5(synccl.id_get().encode()).hexdigest()
-                break
+                syn_id = synccl.id_get()
             except RuntimeError:
                 print("restablishing connection to syncthing")
-        else:
+
+        if syn_id is None:
             raise RuntimeError('Syncthing is not responding. Exiting.')
 
+        jumpscripts_id = "jumpscripts-%s" % hashlib.md5(syn_id.encode()).hexdigest()
         synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
 
         #start

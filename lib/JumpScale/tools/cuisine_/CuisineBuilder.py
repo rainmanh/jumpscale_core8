@@ -522,10 +522,10 @@ class CuisineBuilder(object):
         cfg = j.data.serializer.toml.loads(C)
 
         cfgDir = self.cuisine.dir_paths['cfgDir']
-        cfg["events"]["python_path"] = cfg["events"]["python_path"].replace("./",self.cuisine.joinpaths(cfgDir, "/controller/"))
-        cfg["processor"]["python_path"] = cfg["processor"]["python_path"].replace("./",self.cuisine.joinpaths(cfgDir, "/controller/"))
-        cfg["jumpscripts"]["python_path"] = cfg["jumpscripts"]["python_path"].replace("./",self.cuisine.joinpaths(cfgDir, "/controller/"))
-        cfg["jumpscripts"]["settings"]["jumpscripts_path"] = cfg["jumpscripts"]["settings"]["jumpscripts_path"].replace("./",self.cuisine.joinpaths(cfgDir, "/controller/"))
+        cfg["events"]["python_path"] = self.cuisine.joinpaths(cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
+        cfg["processor"]["python_path"] = self.cuisine.joinpaths(cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
+        cfg["jumpscripts"]["python_path"] = self.cuisine.joinpaths(cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
+        cfg["jumpscripts"]["settings"]["jumpscripts_path"] = self.cuisine.joinpaths(cfgDir, "/controller/jumpscripts")
         C = j.data.serializer.toml.dumps(cfg)
 
         self.cuisine.file_write('$cfgDir/controller/agentcontroller.toml', C, replaceArgs=True)

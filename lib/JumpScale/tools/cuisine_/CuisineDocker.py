@@ -23,15 +23,17 @@ class CuisineDocker():
     @actionrun(action=True)
     def install(self):
         if self.cuisine.isUbuntu:
-            C = """
-            wget -qO- https://get.docker.com/ | sh
-            """
-            self.cuisine.run_script(C)
-            C = """
-            curl -L https://github.com/docker/compose/releases/download/1.6.2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
-            chmod +x /usr/local/bin/docker-compose
-            """
-            self.cuisine.run_script(C)
+            if not self.cuisine.command_check('docker'):
+                C = """
+                wget -qO- https://get.docker.com/ | sh
+                """
+                self.cuisine.run_script(C)
+            if not self.cuisine.command_check('docker-compose'):
+                C = """
+                curl -L https://github.com/docker/compose/releases/download/1.6.2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+                chmod +x /usr/local/bin/docker-compose
+                """
+                self.cuisine.run_script(C)
         if self.cuisine.isArch:
             self.cuisine.package.install("docker")
             self.cuisine.package.install("docker-compose")

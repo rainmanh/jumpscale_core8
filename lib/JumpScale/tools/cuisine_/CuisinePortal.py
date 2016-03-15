@@ -16,6 +16,9 @@ class CuisinePortal(object):
         self.example_portal_dir = j.sal.fs.joinPaths(self.portal_dir, 'example')
 
     def install(self, minimal=False, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
+        """
+        grafanaip and port should be the external ip of the machine 
+        """
         if not self.cuisine.isMac:
             self.cuisine.installerdevelop.jumpscale8()
             self.cuisine.pip.upgrade("pip")

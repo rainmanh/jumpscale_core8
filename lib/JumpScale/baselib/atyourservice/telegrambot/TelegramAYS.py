@@ -23,6 +23,10 @@ class TelegramAYS():
         self.bot = self.updater.bot
         dispatcher = self.updater.dispatcher
 
+        print("[+] make sure ssh-agent is running")
+        if not j.sal.process.checkProcessRunning('ssh-agent'):
+            j.do.execute('eval `ssh-agent`')
+
         # commands
         dispatcher.addTelegramCommandHandler('start', self.start)
         dispatcher.addTelegramCommandHandler('project', self.project)
@@ -482,7 +486,15 @@ class TelegramAYS():
         # check if it's a blueprint
         try:
             yaml = j.data.serializer.yaml.loads(update.message.text)
-            custom = '99_custom.yaml'
+            def generate_unique_name():
+                name = '%s.yaml' % j.data.time.getLocalTimeHRForFilesystem()
+                path = '%s/%s' % (self._currentBlueprintsPath(username), name)
+                while j.sal.fs.exists(path):
+                    time.sleep(1)
+                    name = '%s.yaml' % j.data.time.getLocalTimeHRForFilesystem()
+                    path = '%s/%s' % (self._currentBlueprintsPath(username), name)
+                return name
+            custom = generate_unique_name()
 
             if not self._currentProject(username):
                 message = "You need to create a project before sending me blueprint. See /project"

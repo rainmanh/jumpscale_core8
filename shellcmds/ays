@@ -138,6 +138,11 @@ def printlog(action):
     print("Output of last action: %s\n" % action_name)
     print(out)
 
+@click.command()
+@click.option('--token', '-t', prompt='Please enter the token for your bot', help="Telegram bot token. talk to @BotFather to get one.")
+@click.option('--repo', '-r', help="Directory where to store the projects", default='/opt/code/telegram-projects')
+def bot(token, repo):
+    bot = j.atyourservice.telegramBot(token, start=True)
 
 cli.add_command(new)
 cli.add_command(init)
@@ -150,6 +155,7 @@ cli.add_command(showactions)
 cli.add_command(removelastrun)
 cli.add_command(list)
 cli.add_command(printlog)
+cli.add_command(bot)
 
 if __name__ == '__main__':
     cli()

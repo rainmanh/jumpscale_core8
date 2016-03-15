@@ -65,9 +65,9 @@ def shell_safe( path ):
     return path
 
 
-def is_ok( text ):
-    """Tells if the given text ends with "OK", swallowing trailing blanks."""
-    return text.find("**OK**")!=-1
+# def is_ok( text ):
+#     """Tells if the given text ends with "OK", swallowing trailing blanks."""
+#     return text.find("**OK**")!=-1
 
 def text_detect_eol(text):
     MAC_EOL                 = "\n"
@@ -265,6 +265,10 @@ class OurCuisine():
         self.tmux=CuisineTmux(self.executor,self)
 
         self.done=[]
+
+
+    def reset_actions(self):
+        j.actions.reset(self.runid)
 
     @property
     def portal(self):
@@ -570,7 +574,7 @@ class OurCuisine():
             return False
         else:
             return self.run("cp -a {0} {1}".format(
-                shell_safe(location),
+                location,
                 shell_safe(backup_location)
             ))
 
@@ -648,7 +652,9 @@ class OurCuisine():
         path=self.cuisine.args_replace(path)
         self.file_write(path,"")
 
+    @actionrun(action=True,force=True)
     def file_read(self,location, default=None):
+        import base64
         """Reads the *remote* file at the given location, if default is not `None`,
         default will be returned if the file does not exist."""
         location=self.cuisine.args_replace(location)
@@ -661,32 +667,35 @@ class OurCuisine():
 
         return base64.b64decode(frame).decode()
 
-
+    @actionrun(action=True,force=False,actionshow=False)
     def file_exists(self,location):
         """Tests if there is a *remote* file at the given location."""
         location=self.cuisine.args_replace(location)
-        return is_ok(self.run('test -e %s && echo **OK** ; true' % (shell_safe(location)),showout=False))
+        return self.run('test -e %s && echo **OK** ; true' % (location),showout=False,check_is_ok=True)
 
+    @actionrun(action=True,force=False,actionshow=False)
     def file_is_file(self,location):
         location=self.cuisine.args_replace(location)
-        return is_ok(self.run("test -f %s && echo **OK** ; true" % (shell_safe(location)),showout=False))
+        return self.run("test -f %s && echo **OK** ; true" % (location),showout=False,check_is_ok=True)
 
+    @actionrun(action=True,force=False,actionshow=False)
     def file_is_dir(self,location):
         location=self.cuisine.args_replace(location)
-        return is_ok(self.run("test -d %s && echo **OK** ; true" % (shell_safe(location)),showout=False))
+        return self.run("test -d %s && echo **OK** ; true" % (location),showout=False,check_is_ok=True)
 
+    @actionrun(action=True,force=False,actionshow=False)
     def file_is_link(self,location):
         location=self.cuisine.args_replace(location)
-        return is_ok(self.run("test -L %s && echo **OK** ; true" % (shell_safe(location)),showout=False))
+        return self.run("test -L %s && echo **OK** ; true" % (location),showout=False,check_is_ok=True)
 
-
+    @actionrun(action=True,force=False,actionshow=False)
     def file_attribs(self,location, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         location."""
         location=self.cuisine.args_replace(location)
         return self.dir_attribs(location, mode, owner, group, False)
 
-
+    @actionrun(action=True,force=False,actionshow=False)
     def file_attribs_get(self,location):
         """Return mode, owner, and group for remote path.
         Return mode, owner, and group if remote path exists, 'None'
@@ -694,7 +703,7 @@ class OurCuisine():
         """
         location=self.cuisine.args_replace(location)
         if self.file_exists(location):
-            fs_check = self.run('stat %s %s' % (shell_safe(location), '--format="%a %U %G"'),showout=False)
+            fs_check = self.run('stat %s %s' % (location, '--format="%a %U %G"'),showout=False)
             (mode, owner, group) = fs_check.split(' ')
             return {'mode': mode, 'owner': owner, 'group': group}
         else:
@@ -782,8 +791,10 @@ class OurCuisine():
             hostfile="/etc/hosts"
             self.file_write(hostfile,val)
 
-    @actionrun(action=False,force=False)
-    def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False,replaceArgs=False,strip=True,showout=True):
+    @actionrun(action=True,force=True)
+    def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False,replaceArgs=False,strip=True,showout=False):
+        # print (content)
+
         if strip:
             content=j.data.text.strip(content)
 
@@ -793,6 +804,7 @@ class OurCuisine():
 
         if showout:
             print ("filewrite: %s"%location)
+
         self.dir_ensure(j.sal.fs.getParent(location))
 
         content2 = content.encode('utf-8')
@@ -802,19 +814,19 @@ class OurCuisine():
         content_base64=base64.b64encode(content2).decode()
 
         # if sig != self.file_md5(location):
-        cmd='echo "%s" | openssl base64 -A -d > %s' % (content_base64, shell_safe(location))
+        cmd='echo "%s" | openssl base64 -A -d > %s' % (content_base64, location)
         if sudo:
             cmd="sudo %s"%cmd
-        self.run(cmd,showout=False)
+        self.run(cmd,showout=False,force=True)
 
         if check:
-            file_sig = self.file_md5(location)
+            file_sig = self.file_md5(location,force=True)
             assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (location, repr(file_sig), repr(sig))
 
-        self.file_attribs(location, mode=mode, owner=owner, group=group)
+        self.file_attribs(location, mode=mode, owner=owner, group=group,actionshow=False,force=True)
 
 
-    @actionrun(action=False,force=False)
+    @actionrun(action=True,force=False)
     def file_ensure(self,location, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         location."""
@@ -824,7 +836,7 @@ class OurCuisine():
         else:
             self.file_write(location,"",mode=mode,owner=owner,group=group)
 
-    @actionrun(action=False,force=False)
+    @actionrun(action=True,force=False)
     def file_upload_local(self, local, remote):
         """Uploads the local file to the remote location only if the remote location does not
         exists or the content are different."""
@@ -839,7 +851,7 @@ class OurCuisine():
         with ftp.open(remote, mode='w+') as f:
             f.write(content)
 
-    @actionrun(action=False,force=False)
+    @actionrun(action=True,force=False)
     def file_download_local(self,remote, local):
         """Downloads the remote file to localy only if the local location does not
         exists or the content are different."""
@@ -855,7 +867,7 @@ class OurCuisine():
         f.write_text(content)
 
 
-    @actionrun(action=False,force=False)
+    @actionrun(action=True,force=False)
     def file_update(self,location, updater=lambda x: x):
         """Updates the content of the given by passing the existing
         content of the remote file at the given location to the 'updater'
@@ -880,23 +892,23 @@ class OurCuisine():
         self.file_write(location, new_content)
         return True
 
-    @actionrun(action=False,force=False)
+    @actionrun(action=True,force=False)
     def file_append(self,location, content, mode=None, owner=None, group=None):
         """Appends the given content to the remote file at the given
         location, optionally updating its mode/owner/group."""
         location=self.cuisine.args_replace(location)
         content2 = content.encode('utf-8')
         content_base64=base64.b64encode(content2).decode()
-        self.run('echo "%s" | openssl base64 -A -d >> %s' % (content_base64, shell_safe(location)),showout=False)
+        self.run('echo "%s" | openssl base64 -A -d >> %s' % (content_base64, location),showout=False)
         self.file_attribs(location, mode=mode, owner=owner, group=group)
 
-    @actionrun(action=False,force=False)
+    @actionrun(action=True,force=False)
     def file_unlink(self,path):
         path=self.cuisine.args_replace(path)
         if self.file_exists(path):
             self.run("unlink %s" % (shell_safe(path)),showout=False)
 
-    @actionrun(action=False,force=False)
+    @actionrun(action=True,force=False)
     def file_link(self,source, destination, symbolic=True, mode=None, owner=None, group=None):
         """Creates a (symbolic) link between source and destination on the remote host,
         optionally setting its mode/owner/group."""
@@ -913,7 +925,7 @@ class OurCuisine():
             self.run('ln -f %s %s' % (shell_safe(source), shell_safe(destination)))
         self.file_attribs(destination, mode, owner, group)
 
-    @actionrun(action=False,force=False)
+    @actionrun(action=True,force=True)
     def file_copy(self, source, dest, recursive=False, overwrite=False):
         source=self.cuisine.args_replace(source)
         dest=self.cuisine.args_replace(dest)
@@ -925,7 +937,7 @@ class OurCuisine():
         cmd += '%s %s' % (source, dest)
         self.run(cmd)
 
-    @actionrun(action=False,force=False)
+    @actionrun(action=True,force=True)
     def file_move(self, source, dest, recursive=False):
         self.file_copy(source,dest,recursive)
         self.file_unlink(source)
@@ -936,7 +948,7 @@ class OurCuisine():
     # SEE: https://github.com/sebastien/cuisine/pull/184#issuecomment-102336443
     # SEE: http://stackoverflow.com/questions/22982673/is-there-any-function-to-get-the-md5sum-value-of-file-in-linux
 
-    @actionrun(action=False,force=False)
+    # @actionrun(action=True,force=True,actionshow=False)
     def file_base64(self,location):
         """Returns the base64-encoded content of the file at the given location."""
         location=self.cuisine.args_replace(location)
@@ -952,7 +964,7 @@ class OurCuisine():
         # else:
         # return self.run("cat {0} | openssl base64".format(shell_safe((location))))
 
-    @actionrun(action=False,force=False)
+    # @actionrun(action=True,force=True,actionshow=False)
     def file_sha256(self,location):
         """Returns the SHA-256 sum (as a hex string) for the remote file at the given location."""
         # NOTE: In some cases, self.sudo can output errors in here -- but the errors will
@@ -964,9 +976,9 @@ class OurCuisine():
         else:
             return None
         # else:
-        #     return self.run('openssl dgst -sha256 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
+        #     return self.run('openssl dgst -sha256 %s' % (location)).split("\n")[-1].split(")= ",1)[-1].strip()
 
-    @actionrun(action=False,force=False)
+    # @actionrun(action=True,force=True,actionshow=False)
     def file_md5(self, location):
         """Returns the MD5 sum (as a hex string) for the remote file at the given location."""
         # NOTE: In some cases, self.sudo can output errors in here -- but the errors will
@@ -979,7 +991,7 @@ class OurCuisine():
         else:
             return None
         # else:
-        #     return self.run('openssl dgst -md5 %s' % (shell_safe(location))).split("\n")[-1].split(")= ",1)[-1].strip()
+        #     return self.run('openssl dgst -md5 %s' % (location)).split("\n")[-1].split(")= ",1)[-1].strip()
 
 
     # =============================================================================
@@ -988,7 +1000,6 @@ class OurCuisine():
     #
     # =============================================================================
 
-    @actionrun(action=False,force=False)
     def joinpaths(self, *args):
         path = ""
         seperator = "\\"
@@ -998,7 +1009,7 @@ class OurCuisine():
             path += "%s%s" %(seperator, arg)
         return path
 
-    @actionrun(action=False,force=False)
+    @actionrun(action=True,force=False)
     def dir_attribs(self,location, mode=None, owner=None, group=None, recursive=False,showout=False):
         """Updates the mode/owner/group for the given remote directory."""
         location=self.cuisine.args_replace(location)
@@ -1006,20 +1017,20 @@ class OurCuisine():
             print ("set dir attributes:%s"%location)
         recursive = recursive and "-R " or ""
         if mode:
-            self.run('chmod %s %s %s' % (recursive, mode,  shell_safe(location)),showout=False)
+            self.run('chmod %s %s %s' % (recursive, mode,  location),showout=False)
         if owner:
-            self.run('chown %s %s %s' % (recursive, owner, shell_safe(location)),showout=False)
+            self.run('chown %s %s %s' % (recursive, owner, location),showout=False)
         if group:
-            self.run('chgrp %s %s %s' % (recursive, group, shell_safe(location)),showout=False)
+            self.run('chgrp %s %s %s' % (recursive, group, location),showout=False)
 
-    @actionrun(action=False,force=False)
+    @actionrun(action=True,force=False,actionshow=False)
     def dir_exists(self,location):
         """Tells if there is a remote directory at the given location."""
         location=self.cuisine.args_replace(location)
-        print ("dir exists:%s"%location)
-        return is_ok(self.run('test -d %s && echo **OK** ; true' % (shell_safe(location)),showout=False))
+        # print ("dir exists:%s"%location)
+        return self.run('test -d %s && echo **OK** ; true' % (location),showout=False,check_is_ok=True)
 
-    @actionrun(action=False,force=False)
+    @actionrun(action=True,force=False)
     def dir_remove(self,location, recursive=True):
         """ Removes a directory """
         location=self.cuisine.args_replace(location)
@@ -1028,9 +1039,9 @@ class OurCuisine():
         if recursive:
             flag = 'r'
         if self.dir_exists(location):
-            return self.run('rm -%sf %s && echo **OK** ; true' % (flag, shell_safe(location)),showout=False)
+            return self.run('rm -%sf %s && echo **OK** ; true' % (flag, location),showout=False)
 
-    @actionrun(action=False,force=False)
+    @actionrun(action=True,force=False,actionshow=False)
     def dir_ensure(self,location, recursive=True, mode=None, owner=None, group=None):
         """Ensures that there is a remote directory at the given location,
         optionally updating its mode/owner/group.
@@ -1039,13 +1050,13 @@ class OurCuisine():
         ssh call, so use that method, otherwise set owner/group after creation."""
         location=self.cuisine.args_replace(location)
         if not self.dir_exists(location):
-            self.run('mkdir %s %s' % (recursive and "-p" or "", shell_safe(location)),showout=False)
+            self.run('mkdir %s %s' % (recursive and "-p" or "", location),showout=False)
         if owner or group or mode:
             self.dir_attribs(location, owner=owner, group=group, mode=mode, recursive=recursive)
 
     createDir=dir_ensure
 
-    @actionrun(action=False,force=False)
+    @actionrun(action=True,force=False)
     def fs_find(self,path,recursive=True,pattern="",findstatement="",type="",contentsearch="",extendinfo=False):
         """
         @param findstatement can be used if you want to use your own find arguments
@@ -1128,7 +1139,7 @@ class OurCuisine():
     def set_sudomode(self):
         self.sudomode = True
 
-    @actionrun()
+    @actionrun(action=True,force=True)
     def sudo(self, cmd, die=True,showout=True):
         if not self.isMac:
             sudomode = self.sudomode
@@ -1138,8 +1149,8 @@ class OurCuisine():
         else:
             return self.run(cmd, die=die,showout=showout)
 
-    @actionrun()
-    def run(self,cmd,die=True,debug=None,checkok=False,showout=True,profile=False,replaceArgs=True):
+    @actionrun(action=True,force=True,actionshow=False)
+    def run(self,cmd,die=True,debug=None,checkok=False,showout=True,profile=False,replaceArgs=True,check_is_ok=False):
         """
         @param profile, execute the bash profile first
         """
@@ -1156,7 +1167,7 @@ class OurCuisine():
         if profile:
             ppath=self.bash.profilePath
             if ppath!=None:
-                cmd=". %s && %s"%(ppath,cmd)
+                cmd=". %s && %s"%(ppath,cmd) 
             if showout:
                 print ("PROFILECMD:%s"%cmd)
 
@@ -1213,6 +1224,9 @@ class OurCuisine():
             raise RuntimeError("could not execute %s,OUT:\n%s**NOSTACK**"%(cmd,out))
         out=out.strip()
         # print("output run: %s" % out)
+
+        if check_is_ok:
+            return out.find("**OK**")!=-1
         if die==False:
             return rc,out
         else:
@@ -1225,7 +1239,7 @@ class OurCuisine():
     def pwd(self):
         return self.cd
 
-    @actionrun()
+    @actionrun(action=True,force=True,actionshow=False)
     def run_script(self,content,die=True,profile=False):
         print("RUN SCRIPT:")
         content=self.cuisine.args_replace(content)

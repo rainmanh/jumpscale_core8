@@ -15,7 +15,8 @@ from pygments.formatters import get_formatter_by_name
 
 
 class Action:
-    def __init__(self, action=None,runid=0,actionRecover=None,args=(),kwargs={},die=True,stdOutput=True,errorOutput=True,retry=1,serviceObj=None,deps=[],key="",selfGeneratorCode="",force=False):
+    def __init__(self, action=None,runid=0,actionRecover=None,args=(),kwargs={},die=True,stdOutput=True,errorOutput=True,retry=1,\
+                serviceObj=None,deps=[],key="",selfGeneratorCode="",force=False,actionshow=True):
         '''
         self.doc is in doc string of method
         specify recover actions in the description
@@ -43,6 +44,8 @@ class Action:
         self._stdOutput=stdOutput
         self._errorOutput=errorOutput
         self._state="INIT"
+
+        self.actionshow=actionshow
 
         #avoid we can write to it
         self._name=""
@@ -462,19 +465,18 @@ class Action:
         j.actions._current=self.key
 
 
-        #makes sure we will force the action, needs to stay
-        if self.force:
-            self.state="FORCE"
 
         # args=str(self.args)
         # myid=str(self)
 
-        if self.state == "OK":
-            print("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
+        if self.state == "OK" and self.force==False:
+            if self.actionshow:
+                print("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
             j.actions._current=None
             return
 
-        print("  * %-20s: %s" % (self.name, self._args1line))
+        if self.actionshow:
+            print("  * %-20s: %s" % (self.name, self._args1line))
 
         if self._stdOutput == False:
             j.tools.console.hideOutput()
@@ -513,6 +515,7 @@ class Action:
                     #     self.traceback+="%s\n"%line.strip()
                     # err=""
 
+                    from pudb import set_trace; set_trace() 
 
                     tb=e.__traceback__
                     value=e

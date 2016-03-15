@@ -4,12 +4,19 @@ import time
 
 
 
-def test(install=False, port=3333, tmux=True):
+def test(geodns_install=False, dnsresolver_install=True,  port=3333, tmux=True):
     # start geodns instance(this is the main object to be used it is an
     # abstraction of the domain object)
     cuisine = j.tools.cuisine.local
     geodns = cuisine.geodns
-    if install:
+
+    if dnsresolver_install:
+        cuisine.file_download("http://www.dnspython.org/kits3/1.12.0/dnspython3-1.12.0.tar.gz", to="$tmpDir", overwrite=False, expand=True)
+        tarpath = cuisine.fs_find("$tmpDir", recursive=True, pattern="*dns*.tgz", type='f')[0]
+        extracted = cuisine.file_expand(tarpath,"$tmpDir")
+        cuisine.run("cd %s && python setup.py" % extracted)
+
+    if geodns_install:
         geodns.install
 
     geodns.start(port=port, tmux=tmux)

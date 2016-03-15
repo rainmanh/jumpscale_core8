@@ -578,7 +578,8 @@ class CuisineBuilder(object):
 
     def _startMongodb(self, name="mongod"):
         which = self.cuisine.command_location("mongod")
-        cmd="%s --dbpath $varDir/data/db" % which
+        self.cuisine.dir_ensure('$varDir/data/mongodb')
+        cmd="%s --dbpath $varDir/data/mongodb" % which
         self.cuisine.process.kill("mongod")
         self.cuisine.processmanager.ensure("mongod",cmd=cmd,env={},path="")
 
@@ -737,7 +738,7 @@ class CuisineBuilder(object):
                 for file in self.cuisine.fs_find('%s/bin/' % extracted, type='f'):
                     self.cuisine.file_copy(file, appbase)
 
-        self.cuisine.dir_ensure('$varDir/data/db')
+        self.cuisine.dir_ensure('$varDir/data/mongodb')
 
         if start:
             self._startMongodb("mongod")
@@ -749,24 +750,37 @@ class CuisineBuilder(object):
             self.cuisine.package.mdupdate()
             self.cuisine.package.install('influxdb')
         if self.cuisine.isUbuntu:
-            self.cuisine.dir_ensure("$cfgDir/influxdb")
+            self.cuisine.dir_ensure("$tmplsDir/cfg/influxdb")
             C= """
 cd $tmpDir
 wget https://s3.amazonaws.com/influxdb/influxdb-0.10.0-1_linux_amd64.tar.gz
 tar xvfz influxdb-0.10.0-1_linux_amd64.tar.gz
 cp influxdb-0.10.0-1/usr/bin/influxd $binDir
-cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb
-cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb/influxdb.conf.org"""
+cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $tmplsDir/cfg/influxdb/influxdb.conf"""
             C = self.cuisine.bash.replaceEnvironInText(C)
             C = self.cuisine.args_replace(C)
             self.cuisine.run_script(C, profile=True, action=True)
             self.cuisine.bash.addPath(self.cuisine.args_replace("$binDir"), action=True)
 
         if start:
-            binPath = self.cuisine.bash.cmdGetPath('influxd')
-            cmd = "%s -config $cfgDir/influxdb/influxdb.conf" % (binPath)
-            self.cuisine.process.kill("influxdb")
-            self.cuisine.processmanager.ensure("influxdb", cmd=cmd, env={}, path="")
+            self._start_influxdb(self)
+
+    def _start_influxdb(self):
+        binPath = self.cuisine.bash.cmdGetPath('influxd')
+        self.cuisine.dir_ensure("$varDir/data/influxdb")
+        self.cuisine.dir_ensure("$varDir/data/influxdb/meta")
+        self.cuisine.dir_ensure("$varDir/data/influxdb/data")
+        self.cuisine.dir_ensure("$varDir/data/influxdb/wal")
+        content = self.cuisine.file_read('$tmplsDir/cfg/influxdb/influxdb.conf')
+        cfg = j.data.serializer.toml.loads(content)
+        cfg['meta']['dir'] = "$varDir/data/influxdb/meta"
+        cfg['data']['dir'] = "$varDir/data/influxdb/data"
+        cfg['data']['wal-dir'] = "$varDir/data/influxdb/data"
+        self.cuisine.dir_ensure('$cfgDir/influxdb')
+        self.cuisine.file_write('$cfgDir/influxdb/influxdb.conf', j.data.serializer.toml.dumps(cfg))
+        cmd = "%s -config $cfgDir/influxdb/influxdb.conf" % (binPath)
+        self.cuisine.process.kill("influxdb")
+        self.cuisine.processmanager.ensure("influxdb", cmd=cmd, env={}, path="")
 
     def grafana(self, start=True, influx_addr='127.0.0.1', influx_port=8086, port=3000):
 
@@ -775,7 +789,7 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $cfgDir/influxdb/influxdb.conf.o
             logDir = '%s/log' %(dataDir)
             C= """
 cd $tmpDir
-wget https://grafanarel.s3.amazonaws.com/builds/grafana-2.6.0.linux-x64.tar.gz 
+wget https://grafanarel.s3.amazonaws.com/builds/grafana-2.6.0.linux-x64.tar.gz
 tar -xvzf grafana-2.6.0.linux-x64.tar.gz
 cd grafana-2.6.0
 cp bin/grafana-server $binDir
@@ -938,7 +952,7 @@ dashboard.rows.push({
     "short",
     "short"
   ]
-}        
+}
     ]
 });
 

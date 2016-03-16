@@ -211,12 +211,10 @@ class CuisineTmuxec(ProcessManagerBase):
         super().__init__(executor, cuisine)
 
     def list(self,prefix=""):
-        try:
-            result = self.cuisine.run("tmux lsw", profile=True).split("\n")
-        except Exception as e:
-            print("no running processes", e)
+        rc, result = self.cuisine.run("tmux lsw", profile=True, die=False)
+        if rc > 1:
             return []
-        return result
+        return result.splitlines()
 
     def ensure(self, name, cmd="", env={}, path="", descr=""):
         """Ensures that the given upstart service is self.running, starting

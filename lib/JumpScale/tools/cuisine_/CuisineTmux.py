@@ -241,7 +241,7 @@ class CuisineTmux():
         set -g status-justify centre # center align window list
         set -g status-left-length 20
         set -g status-right-length 140
-        set -g status-left '#[fg=green]#H #[fg=black]• #[fg=green,bright]#(uname -r | cut -c 1-6)#[default]'
+        set -g status-left '#[fg=green]#H #[fg=black] #[fg=green,bright]#(uname -r | cut -c 1-6)#[default]'
         set -g status-right '#[fg=green,bg=default,bright]#(tmux-mem-cpu-load) #[fg=red,dim,bg=default]#(uptime | cut -f 4-5 -d " " | cut -f 1 -d ",") #[fg=white,bg=default]%a%l:%M:%S %p#[default] #[fg=blue]%Y-%m-%d'
 
         # C-b is not acceptable -- Vim uses it
@@ -254,12 +254,12 @@ class CuisineTmux():
         # Allows for faster key repetition
         set -s escape-time 0
 
-        # Rather than constraining window size to the maximum size of any client 
-        # connected to the *session*, constrain window size to the maximum size of any 
+        # Rather than constraining window size to the maximum size of any client
+        # connected to the *session*, constrain window size to the maximum size of any
         # client connected to *that window*. Much more reasonable.
         setw -g aggressive-resize on
 
-        # Allows us to use C-a a <command> to send commands to a TMUX session inside 
+        # Allows us to use C-a a <command> to send commands to a TMUX session inside
         # another TMUX session
         # bind-key a send-prefix
 
@@ -314,7 +314,7 @@ class CuisineTmux():
         # if-shell "#{$TMUX_VERSION_MAJOR} -gt 1 -o \( #{$TMUX_VERSION_MAJOR} -eq 1 -a #{$TMUX_VERSION_MINOR} -ge 8 \)" "unbind '"'; bind '"' split-window -v -c '#{pane_current_path}'"
         if-shell "#{$TMUX_VERSION_MAJOR} -gt 1 -o \( #{$TMUX_VERSION_MAJOR} -eq 1 -a #{$TMUX_VERSION_MINOR} -ge 8 \)" 'unbind v; bind v split-window -h -c "#{pane_current_path}"'
         if-shell "#{$TMUX_VERSION_MAJOR} -gt 1 -o \( #{$TMUX_VERSION_MAJOR} -eq 1 -a #{$TMUX_VERSION_MINOR} -ge 8 \)" 'unbind %; bind % split-window -h -c "#{pane_current_path}"'
-        
+
         """
 
         if xonsh:

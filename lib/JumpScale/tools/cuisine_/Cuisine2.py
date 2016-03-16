@@ -312,7 +312,7 @@ class OurCuisine():
         if self._geodns==None:
             self._geodns = CuisineGeoDns(self.executor, self)
         return self._geodns
-    
+
     @property
     def builder(self):
         if self._builder==None:
@@ -447,6 +447,7 @@ class OurCuisine():
             res["logDir"]="%s/log"%res["varDir"]
             res["pidDir"]="%s/pid"%res["varDir"]
             res["tmpDir"]="%s/tmp"%res["varDir"]
+            res["hrdDir"]="%s/hrd"%res["varDir"]
             self._dirs=res
 
         if self.isMac:
@@ -712,7 +713,7 @@ class OurCuisine():
     @property
     def hostname(self):
         if self._hostname=="":
-            if self.isMac:  
+            if self.isMac:
                 self._hostname=self.run("hostname",showout=False,replaceArgs=False,actionshow=False)
             else:
                 hostfile="/etc/hostname"
@@ -791,10 +792,8 @@ class OurCuisine():
             hostfile="/etc/hosts"
             self.file_write(hostfile,val)
 
-    @actionrun(action=True,force=True)
-    def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False,replaceArgs=False,strip=True,showout=False):
-        # print (content)
-
+    @actionrun(action=False, force=False)
+    def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False,replaceArgs=False,strip=True,showout=True):
         if strip:
             content=j.data.text.strip(content)
 

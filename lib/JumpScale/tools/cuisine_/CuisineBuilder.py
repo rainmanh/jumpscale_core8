@@ -404,6 +404,7 @@ class CuisineBuilder(object):
 
         #file copy
         self.cuisine.dir_remove("$tmplsDir/cfg/controller/extensions")
+        self.cuisine.file_copy("%s/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscale" % self.cuisine.dir_paths["codeDir"], "$tmplsDir/cfg/controller/jumpscripts/", recursive=True)
         self.cuisine.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/controller/extensions", recursive=True)
 
         if start:
@@ -988,6 +989,8 @@ return dashboard;
         while time.time() - now < 10:
             try:
                 grafanaclient.addDataSource(data)
+                if not grafanaclient.listDataSources():
+                    continue
                 break
             except requests.exceptions.ConnectionError:
                 time.sleep(0.1)

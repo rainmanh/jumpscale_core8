@@ -52,9 +52,11 @@ class Domain(object):
             self.content = {"data": {"": {}}}
             self._a_records = a_records
             self.name = name
+            self.max_hosts = max_hosts
             self._cname_records = cname_records
             self.ttl = ttl
             self.serial = serial
+            ns.append(name)
             self.ns = ns
 
     def add_subdomain(self, subdomain):
@@ -90,8 +92,7 @@ class Domain(object):
                     return self._a_records[subdomain].pop(i)
 
     def add_cname_record(self, value, subdomain=""):
-        if subdomain in self._cname_records:
-            self._cname_records[subdomain] = value
+        self._cname_records[subdomain] = value
 
     def get_cname_record(self, subdomain=None):
         if subdomain is not None and subdomain in self._cname_records:
@@ -111,6 +112,7 @@ class Domain(object):
 
         self.content["ttl"] = self.ttl
         self.content["serial"] = self.serial
+        self.content["max_hosts"] = self.max_hosts
         self.content["data"][""]["ns"] = self.ns
         config = json.dumps(self.content)
         self.cuisine.file_write("$cfgDir/geodns/dns/%s.json" % self.name, config)
@@ -146,6 +148,8 @@ class CuisineGeoDns():
         """
         starts geodns server with given params
         """
+        if self.cuisine.dir_exists(config_dir):
+            self.cuisine.dir_ensure(config_dir)
         cmd = "./geodns -interface %s -port %s -config=%s -identifier=%s -cpus=%s" % (ip, str(port), config_dir, identifier, str(cpus))
         if tmux:
             pm = self.cuisine.processmanager.get("tmux")
@@ -177,41 +181,54 @@ class CuisineGeoDns():
         return domain_instance
     
     def get_domain(self, domain_name):
+        """
+        get domain object with dict of relevant records
+        """
         if not self.cuisine.file_exists("$cfgDir/geodns/dns/%s.json" % domain_name):
             raise Exception("domain_name not created")
         return self.ensure_domain(domain_name)
 
     def del_domain(self, domain_name):
+        """
+        delete domain object 
+        """
         self.cuisine.dir_remove("$cfgDir/geodns/dns/%s.json" % domain_name)
 
     def add_record(self, domain_name, subdomain, record_type, value, weight=100):
-        if not self.cuisine.file_exists("$cfgDir/geodns/dns/%s.json" % domain_name):
-            raise Exception("domain_name not created")
-        domain_instance = self.ensure_domain(domain_name)
+        """
+        @domain_name = domin object name : string 
+        @subdomain = subdomain assigned to record : string 
+        @record_type = cname or a :string 
+        @value = ip or cname : string 
+        @weight = recurrence on request : int 
+        """
+        domain_instance = self.get_domain(domain_name)
         if record_type == "a":
-            domain_instance.add_a_record(subdomain, value )
+            domain_instance.add_a_record(value, subdomain)
         if record_type == "cname":
-            domain_instance.add_cname_record(subdomain, value)
+            domain_instance.add_cname_record(value, subdomain)
         return domain_instance.save()
 
 
     
     def get_record(self, domain_name, record_type, subdomain=None):
-        if not self.cuisine.file_exists("$cfgDir/geodns/dns/%s.json" % domain_name):
-            raise Exception("domain_name not created")
-        domain_instance = self.ensure_domain(domain_name)
+        """
+        returns a dict of record/s and related subdomains within domain 
+        """
+        domain_instance = self.get_domain(domain_name)
         if record_type == "a":
-            domain_instance.get_a_record(subdomain)
+            record = domain_instance.get_a_record(subdomain)
         if record_type == "cname":
-            domain_instance.get_cname_record(subdomain)
-        return domain_instance.save()
+            record = domain_instance.get_cname_record(subdomain)
+        return record
 
     def del_record(self, domain_name, record_type, subdomain, value, full=True):
-        if not self.cuisine.file_exists("$cfgDir/geodns/dns/%s.json" % domain_name):
-            raise Exception("domain_name not created")
-        domain_instance = self.ensure_domain(domain_name)
+        """
+        delete record and/or entire subdomain
+        """
+        domain_instance = self.get_domain(domain_name)
         if record_type == "a":
-            domain_instance.del_a_record(subdomain, value, full)
+            domain_instance.del_a_record(subdomain=subdomain, ip=value, full=full)
         if record_type == "cname":
             domain_instance.del_cname_record(subdomain, value)
         return domain_instance.save()

@@ -39,7 +39,7 @@ class CuisineGolang():
         self.cuisine.bash.environSet("GOROOT", '/usr/local/go')
 
         self.cuisine.bash.addPath(self.cuisine.joinpaths(goDir, 'bin'))
-        self.cuisine.bash.addPath(self.cuisine.joinpaths("/usr/local/go/bin/"))
+        self.cuisine.bash.addPath("/usr/local/go/bin/")
 
         self.cuisine.createDir("%s/src" % goDir)
         self.cuisine.createDir("%s/pkg" % goDir)

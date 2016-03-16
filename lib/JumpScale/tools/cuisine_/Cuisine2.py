@@ -308,7 +308,7 @@ class OurCuisine():
         if self._geodns==None:
             self._geodns = CuisineGeoDns(self.executor, self)
         return self._geodns
-    
+
     @property
     def builder(self):
         if self._builder==None:
@@ -443,6 +443,7 @@ class OurCuisine():
             res["logDir"]="%s/log"%res["varDir"]
             res["pidDir"]="%s/pid"%res["varDir"]
             res["tmpDir"]="%s/tmp"%res["varDir"]
+            res["hrdDir"]="%s/hrd"%res["varDir"]
             self._dirs=res
 
         if self.isMac:
@@ -648,6 +649,7 @@ class OurCuisine():
         path=self.cuisine.args_replace(path)
         self.file_write(path,"")
 
+    @actionrun(action=False)
     def file_read(self,location, default=None):
         """Reads the *remote* file at the given location, if default is not `None`,
         default will be returned if the file does not exist."""
@@ -661,25 +663,28 @@ class OurCuisine():
 
         return base64.b64decode(frame).decode()
 
-
+    @actionrun(action=False)
     def file_exists(self,location):
         """Tests if there is a *remote* file at the given location."""
         location=self.cuisine.args_replace(location)
         return is_ok(self.run('test -e %s && echo **OK** ; true' % (shell_safe(location)),showout=False))
 
+    @actionrun(action=False)
     def file_is_file(self,location):
         location=self.cuisine.args_replace(location)
         return is_ok(self.run("test -f %s && echo **OK** ; true" % (shell_safe(location)),showout=False))
 
+    @actionrun(action=False)
     def file_is_dir(self,location):
         location=self.cuisine.args_replace(location)
         return is_ok(self.run("test -d %s && echo **OK** ; true" % (shell_safe(location)),showout=False))
 
+    @actionrun(action=False)
     def file_is_link(self,location):
         location=self.cuisine.args_replace(location)
         return is_ok(self.run("test -L %s && echo **OK** ; true" % (shell_safe(location)),showout=False))
 
-
+    @actionrun(action=False)
     def file_attribs(self,location, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         location."""
@@ -703,7 +708,7 @@ class OurCuisine():
     @property
     def hostname(self):
         if self._hostname=="":
-            if self.isMac:  
+            if self.isMac:
                 self._hostname=self.run("hostname",showout=False,replaceArgs=False,actionshow=False)
             else:
                 hostfile="/etc/hostname"
@@ -782,7 +787,7 @@ class OurCuisine():
             hostfile="/etc/hosts"
             self.file_write(hostfile,val)
 
-    @actionrun(action=False,force=False)
+    @actionrun(action=False, force=False)
     def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False,replaceArgs=False,strip=True,showout=True):
         if strip:
             content=j.data.text.strip(content)

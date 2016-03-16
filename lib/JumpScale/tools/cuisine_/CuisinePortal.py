@@ -17,7 +17,7 @@ class CuisinePortal(object):
 
     def install(self, minimal=False, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
         """
-        grafanaip and port should be the external ip of the machine 
+        grafanaip and port should be the external ip of the machine
         """
         if not self.cuisine.isMac:
             self.cuisine.installerdevelop.jumpscale8()
@@ -126,20 +126,19 @@ class CuisinePortal(object):
 
 
     @actionrun(action=True)
-    def getcode(self):        
+    def getcode(self):
         self.cuisine.git.pullRepo("https://github.com/Jumpscale/jumpscale_portal8.git")
-    
+
 
     @actionrun(action=True)
     def linkCode(self, minimal=False):
         self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        destjslib=self.cuisine.execute_jumpscript("print(j.do.getPythonLibSystem(jumpscale=True))")
-
+        destjslib = self.cuisine.run("js 'print(j.do.getPythonLibSystem(jumpscale=False))'", showout=False)
 
         self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self.cuisine.dir_paths["codeDir"], "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
         self.cuisine.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self.cuisine.dir_paths["codeDir"], "%s/portal" % self.cuisine.dir_paths['jsLibDir'])
 
-        self.cuisine.run("js 'j.application.reload()'")
+        self.cuisine.run("js 'j.application.reload()'", showout=False, die=False)
 
         if not self.portal_dir.endswith("/"):
             self.portal_dir +='/'
@@ -194,10 +193,11 @@ class CuisinePortal(object):
 
     @actionrun(action=True)
     def changeEve(self):
-        path=self.cuisine.execute_jumpscript("print(j.do.getPythonLibSystem(jumpscale=False))")
+        path = self.cuisine.run("js") # hack, make sure jumpscale has loaded lib before trying to print something
+        path = self.cuisine.run("js 'print(j.do.getPythonLibSystem(jumpscale=False))'")
         path = j.sal.fs.joinPaths(path, "eve_docs", "config.py")
         if not self.cuisine.file_exists(path):
-            raise RuntimeError("Cannot find:%s, to convert to python 3"%path)        
+            raise RuntimeError("Cannot find:%s, to convert to python 3"%path)
         self.cuisine.run("2to3-3.5 -f all -w %s" % path)
 
     @actionrun(action=True)

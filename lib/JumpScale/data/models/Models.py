@@ -1,5 +1,5 @@
 
-from mongoengine.fields import *
+from mongoengine.fields import IntField, StringField, ListField, BooleanField, DictField, EmbeddedDocumentField, FloatField
 from mongoengine import DoesNotExist, EmbeddedDocument, Document
 from JumpScale import j
 

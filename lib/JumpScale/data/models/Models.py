@@ -202,7 +202,6 @@ class Group(ModelBase, Document):
     active = BooleanField(default=True)
     description = StringField(default='master')
     lastcheck = IntField(default=j.data.time.getTimeEpoch())
-    users = ListField(StringField())
 
 
 class Job(EmbeddedDocument):

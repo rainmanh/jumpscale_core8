@@ -500,7 +500,6 @@ class CuisineBuilder(object):
 
         self._startMongodb()
         self._startRedis()
-        self._startSyncthing()
         print("connection test ok to agentcontroller")
         #@todo (*1*) need to implement to work on node
         env={}

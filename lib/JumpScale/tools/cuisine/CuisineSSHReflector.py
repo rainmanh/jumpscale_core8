@@ -47,7 +47,7 @@ class CuisineSSHReflector(object):
         
         lpath=os.environ["HOME"]+"/.ssh/reflector"
         path="/home/sshreflector/.ssh/reflector"
-        ftp=self.cuisine.executor.sshclient.getSFTP()
+        ftp=self.cuisine.core.executor.sshclient.getSFTP()
         if j.sal.fs.exists(lpath) and j.sal.fs.exists(lpath+".pub"):
             print("UPLOAD EXISTING SSH KEYS")
             ftp.put(lpath,path)
@@ -118,47 +118,47 @@ class CuisineSSHReflector(object):
             if reset or not j.sal.fs.exists(lpath) or not j.sal.fs.exists(lpath_pub):
                 print("DOWNLOAD SSH KEYS")
                 #get private key from reflector
-                ftp=remotecuisine.executor.sshclient.getSFTP()
+                ftp=remotecuisine.core.executor.sshclient.getSFTP()
                 path="/home/sshreflector/.ssh/reflector"
                 ftp.get(path,lpath)
                 ftp.get(path+".pub",lpath+".pub")
                 ftp.close()
 
             #upload to reflector client
-            ftp=self.cuisine.executor.sshclient.getSFTP()
+            ftp=self.cuisine.core.executor.sshclient.getSFTP()
             rpath="/root/.ssh/reflector"
             ftp.put(lpath,rpath)
             ftp.put(lpath+".pub",rpath+".pub")
             self.cuisine.core.run("chmod 0600 /root/.ssh/reflector")
             self.cuisine.core.run("chmod 0600 /root/.ssh/reflector.pub")
 
-            if(remotecuisine.executor.addr.find(".")!=-1):
+            if(remotecuisine.core.executor.addr.find(".")!=-1):
                 #is real ipaddress, will put in hostfile as reflector
-                addr=remotecuisine.executor.addr
+                addr=remotecuisine.core.executor.addr
             else:
-                a=socket.gethostbyaddr(remotecuisine.executor.addr)
+                a=socket.gethostbyaddr(remotecuisine.core.executor.addr)
                 addr=a[2][0]
 
-            port=remotecuisine.executor.port
+            port=remotecuisine.core.executor.port
 
             #test if we can reach the port
             if j.sal.nettools.tcpPortConnectionTest(addr,port)==False:
                 raise j.exceptions.RuntimeError("Cannot not connect to %s:%s"%(addr,port))
 
 
-            rname="refl_%s"%remotecuisine.executor.addr.replace(".","_")
-            rname_short=remotecuisine.executor.addr.replace(".","_")
+            rname="refl_%s"%remotecuisine.core.executor.addr.replace(".","_")
+            rname_short=remotecuisine.core.executor.addr.replace(".","_")
 
             self.cuisine.ns.hostfile_set(rname,addr)
 
-            if remotecuisine.file_exists("/home/sshreflector/reflectorclients")==False:
+            if remotecuisine.core.file_exists("/home/sshreflector/reflectorclients")==False:
                 print ("reflectorclientsfile does not exist")
-                remotecuisine.file_write("/home/sshreflector/reflectorclients","%s:%s\n"%(self.cuisine.platformtype.hostname,9800))
+                remotecuisine.core.file_write("/home/sshreflector/reflectorclients","%s:%s\n"%(self.cuisine.platformtype.hostname,9800))
                 newport=9800
-                out2=remotecuisine.file_read("/home/sshreflector/reflectorclients")
+                out2=remotecuisine.core.file_read("/home/sshreflector/reflectorclients")
             else:
-                remotecuisine.file_read("/home/sshreflector/reflectorclients")
-                out=remotecuisine.file_read("/home/sshreflector/reflectorclients")
+                remotecuisine.core.file_read("/home/sshreflector/reflectorclients")
+                out=remotecuisine.core.file_read("/home/sshreflector/reflectorclients")
                 out2=""
                 newport=0
                 highestport=0
@@ -175,7 +175,7 @@ class CuisineSSHReflector(object):
                 if newport==0:
                     newport=highestport+1
                 out2+="%s:%s\n"%(self.cuisine.platformtype.hostname,newport)
-                remotecuisine.file_write("/home/sshreflector/reflectorclients",out2)
+                remotecuisine.core.file_write("/home/sshreflector/reflectorclients",out2)
 
             self.cuisine.core.file_write("/etc/reflectorclients",out2)
 
@@ -189,7 +189,7 @@ class CuisineSSHReflector(object):
             cmd="%s -M 0 -N -o ExitOnForwardFailure=yes -o \"ServerAliveInterval 60\" -o \"ServerAliveCountMax 3\" -R %s:localhost:22 sshreflector@%s -p %s -i /root/.ssh/reflector"%(cpath,newport,rname,reflport)
             self.cuisine.processmanager.ensure("autossh_%s"%rname_short, cmd, descr='')
 
-            print ("On %s:%s remote SSH port:%s"%(remotecuisine.executor.addr,port,newport))
+            print ("On %s:%s remote SSH port:%s"%(remotecuisine.core.executor.addr,port,newport))
 
 
     # @actionrun()
@@ -215,12 +215,12 @@ class CuisineSSHReflector(object):
 
         rpath="/home/sshreflector/reflectorclients"
         lpath=os.environ["HOME"]+"/.ssh/reflectorclients"
-        ftp=cuisine.executor.sshclient.getSFTP()
+        ftp=cuisine.core.executor.sshclient.getSFTP()
         ftp.get(rpath,lpath)
 
         out=self.cuisine.core.file_read(lpath)
 
-        addr=cuisine.executor.addr
+        addr=cuisine.core.executor.addr
 
         keypath=os.environ["HOME"]+"/.ssh/reflector"
 

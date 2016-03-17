@@ -64,7 +64,7 @@ class MongoInstance(Startable):
     def _install(self):
         super()._install()
         self.cuisine.core.dir_ensure(self.dbdir)
-        return self.cuisine.builder.mongodb(start = False)
+        return self.cuisine.apps.mongodb.build(start = False)
 
     def _gen_service_name(self):
         name = "ourmongos" if self.type_ == "mongos" else "ourmongod"

@@ -1,5 +1,5 @@
 
-from mongoengine.fields import *
+from mongoengine.fields import IntField, StringField, ListField, BooleanField, DictField, EmbeddedDocumentField, FloatField
 from mongoengine import DoesNotExist, EmbeddedDocument, Document
 from JumpScale import j
 
@@ -202,7 +202,6 @@ class Group(ModelBase, Document):
     active = BooleanField(default=True)
     description = StringField(default='master')
     lastcheck = IntField(default=j.data.time.getTimeEpoch())
-    users = ListField(StringField())
 
 
 class Job(EmbeddedDocument):

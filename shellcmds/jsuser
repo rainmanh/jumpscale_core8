@@ -138,13 +138,13 @@ if opts.action == 'add' or opts.action == 'set':
         if j.tools.console.askYesNo("do you want to define new groups."):
             groups = j.tools.console.askString("comma separated list of groups").split(",")
         else:
-            groups = [item["name"] for item in j.data.models.system.group.find({"name": gid})]
+            groups = [item["name"] for item in j.data.models.system.Group.find({"name": gid})]
             groups = j.tools.console.askChoiceMultiple(groups, "select groups", True)
 
         emails = j.tools.console.askString(
             "comma separated list of emails").split(',')
 
-    if opts.action == 'add' and j.data.models.system.User.exists("%s_%s" % (j.application.whoAmI.gid, name)):
+    if opts.action == 'add' and j.data.models.system.User.find({'name': name}):
         j.errorconditionhandler.raiseOperationalCritical(
             message='user already exists', category="jsuser.add.exists")
 
@@ -164,6 +164,14 @@ if opts.action == 'add' or opts.action == 'set':
     user.authkeys = authkeys
 
     user.save()
+
+    for group in groups:
+        g = j.data.models.system.Group.find({'name': group})
+        if g:
+            continue
+        g = j.data.models.system.Group()
+        g.name = group
+        g.save()
 
     print(user)
 

@@ -668,35 +668,35 @@ class OurCuisine():
 
         return base64.b64decode(frame).decode()
 
-    @actionrun(action=True,force=False,actionshow=False)
+    @actionrun(action=True,force=True,actionshow=False)
     def file_exists(self,location):
         """Tests if there is a *remote* file at the given location."""
         location=self.cuisine.args_replace(location)
         return self.run('test -e %s && echo **OK** ; true' % (location),showout=False,check_is_ok=True)
 
-    @actionrun(action=True,force=False,actionshow=False)
+    @actionrun(action=True,force=True,actionshow=False)
     def file_is_file(self,location):
         location=self.cuisine.args_replace(location)
         return self.run("test -f %s && echo **OK** ; true" % (location),showout=False,check_is_ok=True)
 
-    @actionrun(action=True,force=False,actionshow=False)
+    @actionrun(action=True,force=True,actionshow=False)
     def file_is_dir(self,location):
         location=self.cuisine.args_replace(location)
         return self.run("test -d %s && echo **OK** ; true" % (location),showout=False,check_is_ok=True)
 
-    @actionrun(action=True,force=False,actionshow=False)
+    @actionrun(action=True,force=True,actionshow=False)
     def file_is_link(self,location):
         location=self.cuisine.args_replace(location)
         return self.run("test -L %s && echo **OK** ; true" % (location),showout=False,check_is_ok=True)
 
-    @actionrun(action=True,force=False,actionshow=False)
+    @actionrun(action=True,force=True,actionshow=False)
     def file_attribs(self,location, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         location."""
         location=self.cuisine.args_replace(location)
         return self.dir_attribs(location, mode, owner, group, False)
 
-    @actionrun(action=True,force=False,actionshow=False)
+    @actionrun(action=True,force=True,actionshow=False)
     def file_attribs_get(self,location):
         """Return mode, owner, and group for remote path.
         Return mode, owner, and group if remote path exists, 'None'
@@ -792,7 +792,7 @@ class OurCuisine():
             hostfile="/etc/hosts"
             self.file_write(hostfile,val)
 
-    @actionrun(action=False, force=False)
+    @actionrun(action=True, force=True)
     def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False,replaceArgs=False,strip=True,showout=True):
         if strip:
             content=j.data.text.strip(content)
@@ -801,8 +801,8 @@ class OurCuisine():
         if replaceArgs:
             content=self.cuisine.args_replace(content)
 
-        if showout:
-            print ("filewrite: %s"%location)
+        # if showout:
+        #     print ("filewrite: %s"%location)
 
         self.dir_ensure(j.sal.fs.getParent(location))
 
@@ -825,7 +825,7 @@ class OurCuisine():
         self.file_attribs(location, mode=mode, owner=owner, group=group,actionshow=False,force=True)
 
 
-    @actionrun(action=True,force=False)
+    @actionrun(action=True,force=True)
     def file_ensure(self,location, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         location."""
@@ -835,7 +835,7 @@ class OurCuisine():
         else:
             self.file_write(location,"",mode=mode,owner=owner,group=group)
 
-    @actionrun(action=True,force=False)
+    @actionrun(action=True,force=True)
     def file_upload_local(self, local, remote):
         """Uploads the local file to the remote location only if the remote location does not
         exists or the content are different."""
@@ -850,7 +850,7 @@ class OurCuisine():
         with ftp.open(remote, mode='w+') as f:
             f.write(content)
 
-    @actionrun(action=True,force=False)
+    @actionrun(action=True,force=True)
     def file_download_local(self,remote, local):
         """Downloads the remote file to localy only if the local location does not
         exists or the content are different."""
@@ -866,7 +866,7 @@ class OurCuisine():
         f.write_text(content)
 
 
-    @actionrun(action=True,force=False)
+    @actionrun(action=True,force=True)
     def file_update(self,location, updater=lambda x: x):
         """Updates the content of the given by passing the existing
         content of the remote file at the given location to the 'updater'
@@ -891,7 +891,7 @@ class OurCuisine():
         self.file_write(location, new_content)
         return True
 
-    @actionrun(action=True,force=False)
+    @actionrun(action=True,force=True)
     def file_append(self,location, content, mode=None, owner=None, group=None):
         """Appends the given content to the remote file at the given
         location, optionally updating its mode/owner/group."""
@@ -901,13 +901,13 @@ class OurCuisine():
         self.run('echo "%s" | openssl base64 -A -d >> %s' % (content_base64, location),showout=False)
         self.file_attribs(location, mode=mode, owner=owner, group=group)
 
-    @actionrun(action=True,force=False)
+    @actionrun(action=True,force=True)
     def file_unlink(self,path):
         path=self.cuisine.args_replace(path)
         if self.file_exists(path):
             self.run("unlink %s" % (shell_safe(path)),showout=False)
 
-    @actionrun(action=True,force=False)
+    @actionrun(action=True,force=True)
     def file_link(self,source, destination, symbolic=True, mode=None, owner=None, group=None):
         """Creates a (symbolic) link between source and destination on the remote host,
         optionally setting its mode/owner/group."""
@@ -1008,7 +1008,7 @@ class OurCuisine():
             path += "%s%s" %(seperator, arg)
         return path
 
-    @actionrun(action=True,force=False)
+    @actionrun(action=True,force=True)
     def dir_attribs(self,location, mode=None, owner=None, group=None, recursive=False,showout=False):
         """Updates the mode/owner/group for the given remote directory."""
         location=self.cuisine.args_replace(location)
@@ -1022,14 +1022,14 @@ class OurCuisine():
         if group:
             self.run('chgrp %s %s %s' % (recursive, group, location),showout=False)
 
-    @actionrun(action=True,force=False,actionshow=False)
+    @actionrun(action=True,force=True,actionshow=False)
     def dir_exists(self,location):
         """Tells if there is a remote directory at the given location."""
         location=self.cuisine.args_replace(location)
         # print ("dir exists:%s"%location)
         return self.run('test -d %s && echo **OK** ; true' % (location),showout=False,check_is_ok=True)
 
-    @actionrun(action=True,force=False)
+    @actionrun(action=True,force=True)
     def dir_remove(self,location, recursive=True):
         """ Removes a directory """
         location=self.cuisine.args_replace(location)
@@ -1040,7 +1040,7 @@ class OurCuisine():
         if self.dir_exists(location):
             return self.run('rm -%sf %s && echo **OK** ; true' % (flag, location),showout=False)
 
-    @actionrun(action=True,force=False,actionshow=False)
+    @actionrun(action=True,force=True,actionshow=False)
     def dir_ensure(self,location, recursive=True, mode=None, owner=None, group=None):
         """Ensures that there is a remote directory at the given location,
         optionally updating its mode/owner/group.
@@ -1055,7 +1055,7 @@ class OurCuisine():
 
     createDir=dir_ensure
 
-    @actionrun(action=True,force=False)
+    @actionrun(action=True,force=True)
     def fs_find(self,path,recursive=True,pattern="",findstatement="",type="",contentsearch="",extendinfo=False):
         """
         @param findstatement can be used if you want to use your own find arguments

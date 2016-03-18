@@ -209,14 +209,17 @@ class Bash:
     @actionrun(action=True)
     def addPath(self, path):
         self.profile.addPath(path)
+        self.cuisine.file_write(self.profilePath, self.profile.dump(), force=True,showout=False)
 
-        self.cuisine.file_write(self.profilePath, self.profile.dump(), force=True)
-
+    @actionrun(action=True)
     def environRemove(self, key, val=None):
         self.profile.remove(key)
-        self.cuisine.file_write(self.profilePath, self.profile.dump(), force=True)
+        self.cuisine.file_write(self.profilePath, self.profile.dump(), force=True,showout=False)
 
+    @actionrun(action=True)
     def include(self, path):
         self.profile.addInclude(path)
-        self.cuisine.file_write(self.profilePath, self.profile.dump(), force=True)
+        self.cuisine.file_write(self.profilePath, self.profile.dump(), force=True,showout=False)
+
+
 

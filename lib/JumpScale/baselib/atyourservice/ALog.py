@@ -188,10 +188,17 @@ class ALog():
         return lastref
 
     def getChangedFiles(self, action="install"):
-        changes = self.git.getChangedFiles(fromref=self.getLastRef(action), toref=self.getLastRef(action+"_pre"))
+        changes = self.git.getChangedFiles(fromref=self.getLastRef(action), toref=self.getLastRef(action+"_pre"))        
         changes = [item for item in changes if j.sal.fs.exists(j.sal.fs.joinPaths(self.git.baseDir, item))]  # we will have to do something for deletes here
         changes.sort()
         return changes
+
+    def checkChangedBlueprint(self,action="install"):
+        for path in self.getChangedFiles(action):
+            if path.find("blueprints/") !=-1:
+                path=j.sal.fs.joinPaths(self.git.baseDir,path)
+                bp=j.atyourservice.getBlueprint(path)
+                bp.execute(force=True)                
 
     def getChangedAtYourservices(self, action="install"):
         """
@@ -204,6 +211,9 @@ class ALog():
 
         changed = []
         changes = {}
+
+
+
         for path in self.getChangedFiles(action):
             ttypes = ['services/', 'recipes/']
             ttype = None
@@ -232,7 +242,7 @@ class ALog():
                     aysi = j.atyourservice.getService(role, instance)
                     if basename not in changes:
                         changes[basename] = []
-                    changes[basename].append(aysi)
+                    changes[basename].append(aysi) #e.g. {'instance.hrd': [user!despiegk]}
                     if aysi not in changed:
                         changed.append(aysi)
 

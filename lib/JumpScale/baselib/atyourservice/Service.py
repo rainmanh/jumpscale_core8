@@ -123,6 +123,21 @@ class ActionRun():
     def log(self, msg):
         j.atyourservice.alog.log(msg=msg, category=self.name)
 
+
+
+
+#EXAMPLE HOW TO REMOTE LAUNCH SOMETHING
+# def start(self):
+#     executor.cuisine.processmanager.start('shellinabox_%s' % self.service.instance)
+# action=j.action.add( start, die=False, stdOutput=True, errorOutput=True,executeNow=True, force=True, showout=None, actionshow=True)
+# if action.state!="OK":
+#     print ("*********ACTION************")
+#     print(action.modeljson)
+#     print ("*********JSON************")
+
+
+
+
     def run(self):
         if len(self.methods)>0:
 
@@ -192,8 +207,8 @@ class Service:
 
             self._name = servicerecipe.name.lower()
             self.instance=instance
-            self._version = servicerecipe.parent.version
-            self._domain = servicerecipe.parent.domain.lower()
+            self._version = servicerecipe.template.version
+            self._domain = servicerecipe.template.domain.lower()
             self._recipe = servicerecipe
             self.role = self.name.split(".")[0]
             self._rememberActions = False
@@ -488,15 +503,27 @@ class Service:
             self._recurring = Recurring(self)
         return self._recurring
 
-    def init(self):
+    def init(self,force=False,yaml=None):
         if self._init is False:
+
             do = False
-            if not j.sal.fs.exists(j.sal.fs.joinPaths(self.path, "instance.hrd")):
-                do = True
+
+            if force:
+                do=True
+
+            #make sure yaml is written again, which means changes will be detected
+            if yaml!=None:
+                j.data.serializer.yaml.dump(j.sal.fs.joinPaths(service.path, "model.yaml"), yaml)
             else:
+                if do==False and not j.sal.fs.exists(j.sal.fs.joinPaths(self.path, "instance.hrd")):
+                    do=True
+
+            if do==False:
+                #now check which files got changed
                 changed, changes = j.atyourservice.alog.getChangedAtYourservices("init")
                 if self in changed:
                     do = True
+
             if do:
                 print("INIT:%s"%self)
                 j.sal.fs.createDir(self.path)
@@ -505,10 +532,10 @@ class Service:
 
                 # if no schema.hrd exists in servicetemplate, raw yaml will be used as datasource
                 # we just create en empty instance.hrd
-                if j.sal.fs.exists(self.recipe.parent.path_hrd_schema):
+                if j.sal.fs.exists(self.recipe.template.path_hrd_schema):
                     self._hrd = self.recipe.schema.hrdGet(hrd=self.hrd, args=self.args)
                 else:
-                    self._hrd = j.data.hrd.get(hrdpath)
+                    self._hrd = j.data.hrd.get(content="")
 
                 self.hrd.set("service.name", self.name)
                 self.hrd.set("service.version", self.version)

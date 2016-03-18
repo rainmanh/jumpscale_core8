@@ -23,12 +23,12 @@ class ServiceRecipe(ServiceTemplate):
             name = self.state.hrd.get("template.name")
             domain = self.state.hrd.get("template.domain")
             version = self.state.hrd.get("template.version")
-            self.parent = j.atyourservice.getTemplate(domain=domain, name=name, version=version)
-            self.name = self.parent.name
+            self.template = j.atyourservice.getTemplate(domain=domain, name=name, version=version)
+            self.name = self.template.name
         else:
             self.path = j.sal.fs.joinPaths(aysrepopath,"recipes", template.name)
             self.name = template.name
-            self.parent = template
+            self.template = template
 
         # copy the files
         if not j.sal.fs.exists(path=self.path):
@@ -39,22 +39,22 @@ class ServiceRecipe(ServiceTemplate):
 
         self._init()
 
-        if j.sal.fs.exists(self.parent.path_hrd_template):
-            j.sal.fs.copyFile(self.parent.path_hrd_template, self.path_hrd_template)
-        if j.sal.fs.exists(self.parent.path_hrd_schema):
-            j.sal.fs.copyFile(self.parent.path_hrd_schema, self.path_hrd_schema)
-        if j.sal.fs.exists(self.parent.path_actions_mgmt):
-            j.sal.fs.copyFile(self.parent.path_actions_mgmt, self.path_actions_mgmt)
-        if j.sal.fs.exists(self.parent.path_actions_node):
-            j.sal.fs.copyFile(self.parent.path_actions_node, self.path_actions_node)
-        if j.sal.fs.exists(self.parent.path_mongo_model):
-            j.sal.fs.copyFile(self.parent.path_mongo_model, self.path_mongo_model)
+        if j.sal.fs.exists(self.template.path_hrd_template):
+            j.sal.fs.copyFile(self.template.path_hrd_template, self.path_hrd_template)
+        if j.sal.fs.exists(self.template.path_hrd_schema):
+            j.sal.fs.copyFile(self.template.path_hrd_schema, self.path_hrd_schema)
+        if j.sal.fs.exists(self.template.path_actions_mgmt):
+            j.sal.fs.copyFile(self.template.path_actions_mgmt, self.path_actions_mgmt)
+        if j.sal.fs.exists(self.template.path_actions_node):
+            j.sal.fs.copyFile(self.template.path_actions_node, self.path_actions_node)
+        if j.sal.fs.exists(self.template.path_mongo_model):
+            j.sal.fs.copyFile(self.template.path_mongo_model, self.path_mongo_model)
 
         self._state = None
         # if firstime:
         #     self.state.save()
 
-        self.domain = self.parent.domain
+        self.domain = self.template.domain
 
     @property
     def state(self):
@@ -64,7 +64,7 @@ class ServiceRecipe(ServiceTemplate):
             self._state=None
         return self._state
 
-    def newInstance(self, instance="main", role='', args={}, path='', parent=None, consume="",originator=None, yaml=None):
+    def newInstance(self, instance="main", role='', args={}, path='', parent=None, consume="",originator=None,yaml=None):
         """
         """
 
@@ -77,7 +77,7 @@ class ServiceRecipe(ServiceTemplate):
 
         if service!=None:
             # if j.application.debug:
-            #     print("Service instance %s!%s  exists." % (self.name, instance))
+            #     print("NEWINSTANCE: Service instance %s!%s  exists." % (self.name, instance))
 
             service.args.update(args)  # needed to get the new args in
             service._recipe = self
@@ -97,12 +97,13 @@ class ServiceRecipe(ServiceTemplate):
             if j.sal.fs.isDir(fullpath):
                 j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (self.role, instance, fullpath), category="ays.servicetemplate")
 
-            service = Service(self, instance=instance, args=args, path=fullpath, parent=parent, originator=originator)
+            service = Service(self, instance=instance, args=args, path=fullpath, parent=parent, originator=originator,)
             j.atyourservice._services[service.shortkey]=service
-            service.init()
 
-            if yaml:
-                j.data.serializer.yaml.dump(j.sal.fs.joinPaths(service.path, "model.yaml"), yaml['%s_%s' % (service.name, service.instance)])
+            if not j.sal.fs.exists(self.template.path_hrd_schema):
+                service.init(yaml=yaml)
+            else:
+                service.init()
 
             service.consume(consume)
 
@@ -226,4 +227,4 @@ class ServiceRecipe(ServiceTemplate):
         j.tools.sandboxer.dedupe(path, storpath="/tmp/aysfs", name="md", reset=False, append=True)
 
     def __repr__(self):
-        return "Recipe: %-15s (%s)" % (self.name,self.parent.version)
+        return "Recipe: %-15s (%s)" % (self.name,self.template.version)

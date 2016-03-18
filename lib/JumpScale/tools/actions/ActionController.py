@@ -18,13 +18,13 @@ class ActionController(object):
         self._actions = {}
         self.lastOnes=[]
         self.last = None
-        self._current=None #is the current running action !
         self._runid = j.core.db.get("actions.runid").decode() if j.core.db.exists("actions.runid") else None
         showonly = j.core.db.hget("actions.showonly", self._runid)
         if showonly is None:
             self._showonly = False
         else:
             self._showonly = showonly.decode() == "1"
+        self.stack=[]
 
     def setRunId(self, runid,reset=False):
         self._runid = str(runid)
@@ -120,7 +120,7 @@ class ActionController(object):
         action.calling_path=fpath
 
 
-        while len(self.lastOnes)>10:
+        while len(self.lastOnes)>100:
             self.lastOnes.pop()
         self.lastOnes.append(action)
 
@@ -132,6 +132,15 @@ class ActionController(object):
         else:
             action.save(True)
         return action
+
+    def addToStack(self,action):
+        if action not in self.stack:
+            self.stack.append(action)
+
+
+    def delFromStack(self,action):
+        if action in self.stack:
+            self.stack.pop(self.stack.index(action))
 
     def start(self, action,actionRecover=None,args={},die=True,stdOutput=False,errorOutput=True,retry=1,serviceObj=None,deps=[]):
         """

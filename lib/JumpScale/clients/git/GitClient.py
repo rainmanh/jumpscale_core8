@@ -4,6 +4,7 @@ from JumpScale import j
 class GitClient(object):
 
     def __init__(self, baseDir):  # NOQA
+
         self._repo = None
         if not j.sal.fs.exists(path=baseDir):
             j.events.inputerror_critical("git repo on %s not found." % baseDir)
@@ -17,6 +18,8 @@ class GitClient(object):
             
             if baseDir == "/":
                 break
+
+
 
         baseDir=baseDir.rstrip("/")
 

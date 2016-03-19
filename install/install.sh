@@ -19,12 +19,13 @@ set -ex
 export PYTHONVERSION='3'
 export AYSGIT='https://github.com/Jumpscale/ays_jumpscale8'
 export AYSBRANCH='master'
-export LC_ALL='C.UTF-8'
+
 
 if [ "$(uname)" == "Darwin" ]; then
     # Do something under Mac OS X platform   
     #echo 'install brew'     
     #ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    export LANG=C; export LC_ALL=C
     brew install curl
     brew install python3
     # brew install git
@@ -50,6 +51,7 @@ if [ "$(uname)" == "Darwin" ]; then
     mkdir -p $TMPDIR
     cd $TMPDIR
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+    export LC_ALL='C.UTF-8'
     dist=''
     dist=`grep DISTRIB_ID /etc/*-release | awk -F '=' '{print $2}'`
     if [ "$dist" == "Ubuntu" ]; then

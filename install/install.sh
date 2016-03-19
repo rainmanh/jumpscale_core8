@@ -25,7 +25,7 @@ if [ "$(uname)" == "Darwin" ]; then
     # Do something under Mac OS X platform   
     #echo 'install brew'     
     #ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-    #export LANG=C; export LC_ALL=C
+    export LANG=C; export LC_ALL=C
     brew install curl
     brew install python3
     # brew install git

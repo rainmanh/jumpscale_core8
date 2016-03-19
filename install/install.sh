@@ -28,6 +28,7 @@ if [ "$(uname)" == "Darwin" ]; then
     export LANG=C; export LC_ALL=C
     brew install curl
     brew install python3
+    brew install redis
     # brew install git
     pip3 install --upgrade pip setuptools
     pip3 install --upgrade ipdb

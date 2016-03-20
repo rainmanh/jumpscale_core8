@@ -71,7 +71,7 @@ class ServiceState():
 
                 if not pastHeader and line.find("```") != -1:
                         pastHeader = True
-                    continue
+                        continue
                 out+="%s\n"%line
 
 

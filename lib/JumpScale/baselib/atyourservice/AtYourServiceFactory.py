@@ -3,7 +3,7 @@ from ServiceTemplate import ServiceTemplate
 from ServiceRecipe import ServiceRecipe
 from Service import Service, getProcessDicts, loadmodule
 import re
-from ActionsBaseMgmt import ActionsBaseMgmt
+from ActionsBase import ActionsBaseMgmt
 from ActionsBaseNode import ActionsBaseNode
 from Blueprint import Blueprint
 from ALog import *

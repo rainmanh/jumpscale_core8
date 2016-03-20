@@ -8,7 +8,7 @@ import imp
 import sys
 from functools import wraps
 from Recurring import Recurring
-from SericeState import SericeState
+from ServiceState import ServiceState
 import traceback
 
 # def log(msg, level=2):

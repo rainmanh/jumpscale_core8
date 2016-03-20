@@ -146,7 +146,7 @@ class Bash:
         """
         self._environ[key] = val
         self.profile.set(key, val)
-        self.cuisine.core.file_write(self.profilePath, self.profile.dump(),force=True)
+        self.cuisine.core.file_write(self.profilePath, self.profile.dump())
         self.reset()
 
     @actionrun(action=True)

@@ -498,9 +498,6 @@ class Action:
         self.check() #see about changed source code
         j.actions.addToStack(self)
 
-        # args=str(self.args)
-        # myid=str(self)
-
         if self.state == "OK" and self.force==False:
             if self.actionshow:
                 print("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
@@ -519,7 +516,7 @@ class Action:
             counter=0
             ok=False
             tb_text = ''
-            err = 'tb_text'
+            err = ''
 
             while ok==False and counter<self.retry+1:
 
@@ -570,8 +567,6 @@ class Action:
                         tb_text=""
                         err=err.replace("**NOSTACK**","")
 
-
-
             #we did the retries, rcode will be >0 if error
             if self._stdOutput == False:
                 j.tools.console.enableOutput()
@@ -614,7 +609,11 @@ class Action:
                 #we are no longer in action, so remove
                 j.actions.delFromStack(self)
                 if self.die:
-                    raise RuntimeError("error in action: %s"%self)
+                    # if j.actions.stack==[]:
+                    print("error in action: %s"%self)
+                    sys.exit(1)
+                    # else:
+                    #     raise RuntimeError("error in action: %s"%self)
             else:
                 self.state = "OK"
 

@@ -102,4 +102,4 @@ class ExecutorBase():
         return self._cuisine
 
     def exists(self,path):
-        return self.cuisine.file_exists(path)
+        return self.cuisine.core.file_exists(path)

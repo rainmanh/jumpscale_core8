@@ -150,8 +150,8 @@ class Container(SALObject):
         # j.do.executeBashScript(content=C2, remote="localhost", sshport=ssh_port)
 
     def setHostName(self, hostname):
-        self.cuisine.sudo("echo '%s' > /etc/hostname" % hostname)
-        self.cuisine.sudo("echo %s >> /etc/hosts" % hostname)
+        self.cuisine.core.sudo("echo '%s' > /etc/hostname" % hostname)
+        self.cuisine.core.sudo("echo %s >> /etc/hosts" % hostname)
 
     def getPubPortForInternalPort(self, port):
 
@@ -242,11 +242,11 @@ class Container(SALObject):
         get a file located at source in the host to dest on the host
 
         """
-        if not self.cuisine.file_exists(source):
+        if not self.cuisine.core.file_exists(source):
             j.events.inputerror_critical(msg="%s not found in container" % source)
         ddir = j.sal.fs.getDirName(dest)
         j.sal.fs.createDir(ddir)
-        content = self.cuisine.file_read(source)
+        content = self.cuisine.core.file_read(source)
         j.sal.fs.writeFile(dest, content)
 
 

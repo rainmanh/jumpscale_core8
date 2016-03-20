@@ -115,7 +115,7 @@ class Domain(object):
         self.content["max_hosts"] = self.max_hosts
         self.content["data"][""]["ns"] = self.ns
         config = json.dumps(self.content)
-        self.cuisine.file_write("$cfgDir/geodns/dns/%s.json" % self.name, config)
+        self.cuisine.core.file_write("$cfgDir/geodns/dns/%s.json" % self.name, config)
         return config
 
 
@@ -138,18 +138,18 @@ class CuisineGeoDns():
         self.cuisine.golang.get("github.com/abh/geodns")
 
         # moving files and creating config
-        self.cuisine.file_copy("$goDir/bin/geodns", "$binDir")
-        self.cuisine.dir_ensure("$tmplsDir/cfg/geodns/dns", recursive=True)
+        self.cuisine.core.file_copy("$goDir/bin/geodns", "$binDir")
+        self.cuisine.core.dir_ensure("$tmplsDir/cfg/geodns/dns", recursive=True)
 
-        self.cuisine.file_copy(
+        self.cuisine.core.file_copy(
             "$tmplsDir/cfg/geodns", "$cfgDir/", recursive=True)
 
     def start(self, ip="0.0.0.0", port="5053", config_dir="$cfgDir/geodns/dns/", identifier="geodns_main", cpus="1", tmux=False):
         """
         starts geodns server with given params
         """
-        if self.cuisine.dir_exists(config_dir):
-            self.cuisine.dir_ensure(config_dir)
+        if self.cuisine.core.dir_exists(config_dir):
+            self.cuisine.core.dir_ensure(config_dir)
         cmd = "./geodns -interface %s -port %s -config=%s -identifier=%s -cpus=%s" % (ip, str(port), config_dir, identifier, str(cpus))
         if tmux:
             pm = self.cuisine.processmanager.get("tmux")
@@ -174,8 +174,8 @@ class CuisineGeoDns():
         @serial = used as a uniques key
         @ns = list of name servers
         """
-        if self.cuisine.file_exists("$cfgDir/geodns/dns/%s.json" % domain_name):
-            content = self.cuisine.file_read("$cfgDir/geodns/dns/%s.json" % domain_name)
+        if self.cuisine.core.file_exists("$cfgDir/geodns/dns/%s.json" % domain_name):
+            content = self.cuisine.core.file_read("$cfgDir/geodns/dns/%s.json" % domain_name)
         domain_instance = Domain(domain_name, self.cuisine, serial, ttl, content, max_hosts, a_records, cname_records, ns)
         domain_instance.save()
         return domain_instance
@@ -184,7 +184,7 @@ class CuisineGeoDns():
         """
         get domain object with dict of relevant records
         """
-        if not self.cuisine.file_exists("$cfgDir/geodns/dns/%s.json" % domain_name):
+        if not self.cuisine.core.file_exists("$cfgDir/geodns/dns/%s.json" % domain_name):
             raise Exception("domain_name not created")
         return self.ensure_domain(domain_name)
 
@@ -192,7 +192,7 @@ class CuisineGeoDns():
         """
         delete domain object 
         """
-        self.cuisine.dir_remove("$cfgDir/geodns/dns/%s.json" % domain_name)
+        self.cuisine.core.dir_remove("$cfgDir/geodns/dns/%s.json" % domain_name)
 
     def add_record(self, domain_name, subdomain, record_type, value, weight=100):
         """

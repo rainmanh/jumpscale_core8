@@ -33,16 +33,16 @@ class CuisineVRouter(object):
         if name!="":
             hostname=name
         else:
-            hostname=self.cuisine.run("hostname")
+            hostname=self.cuisine.core.run("hostname")
         #--dhcp-dns 192.168.0.149
-        cpath=self.cuisine.run("which create_ap")
+        cpath=self.cuisine.core.run("which create_ap")
         cmd2='%s %s eth0 gig_%s %s -d'%(cpath,interface,hostname,passphrase)
 
         giturl="https://github.com/oblique/create_ap"
         self.cuisine.pullGitRepo(url=giturl,dest=None,login=None,passwd=None,depth=1,\
             ignorelocalchanges=True,reset=True,branch=None,revision=None, ssh=False)
 
-        self.cuisine.run("cp /opt/code/create_ap/create_ap /usr/local/bin/")
+        self.cuisine.core.run("cp /opt/code/create_ap/create_ap /usr/local/bin/")
 
         START1="""
         [Unit]

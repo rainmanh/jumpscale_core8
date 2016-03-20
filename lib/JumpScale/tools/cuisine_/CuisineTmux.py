@@ -320,10 +320,10 @@ class CuisineTmux():
         if xonsh:
             C+="set -g default-command \"xonsh\"\n\n"
 
-        self.cuisine.file_write("$homeDir/.tmux.conf",C)
+        self.cuisine.core.file_write("$homeDir/.tmux.conf",C)
 
         if restartTmux:
-            self.cuisine.run("killall tmux",die=False)
+            self.cuisine.core.run("killall tmux",die=False)
 
 
 

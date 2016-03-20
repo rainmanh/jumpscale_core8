@@ -24,16 +24,16 @@ class CuisinePIP():
         '''
         The "package" argument, defines the name of the package that will be upgraded.
         '''
-        self.cuisine.set_sudomode()
-        self.cuisine.run('pip3 install --upgrade %s' % (package))
+        self.cuisine.core.set_sudomode()
+        self.cuisine.core.run('pip3 install --upgrade %s' % (package))
 
     @actionrun(action=True)
     def install(self,package=None,upgrade=False):
         '''
         The "package" argument, defines the name of the package that will be installed.
         '''
-        self.cuisine.set_sudomode()
-        if self.cuisine.isArch:
+        self.cuisine.core.set_sudomode()
+        if self.cuisine.core.isArch:
             if package in ["credis","blosc","psycopg2"]:
                 return
                 
@@ -46,7 +46,7 @@ class CuisinePIP():
         cmd="pip3 install %s"%package
         if upgrade:
             cmd+=" --upgrade"
-        self.cuisine.run(cmd)
+        self.cuisine.core.run(cmd)
 
     @actionrun()
     def remove(self,package):
@@ -56,7 +56,7 @@ class CuisinePIP():
         is equivalent to the "-r" parameter of pip.
         Either "package" or "r" needs to be provided
         '''
-        return self.cuisine.run('pip3 uninstall %s' %(package))
+        return self.cuisine.core.run('pip3 uninstall %s' %(package))
 
     @actionrun()
     def multiInstall(self,packagelist,upgrade=False):
@@ -78,7 +78,7 @@ class CuisinePIP():
 
         @param runid, if specified actions will be used to execute
         """
-        self.cuisine.set_sudomode()
+        self.cuisine.core.set_sudomode()
         for dep in packagelist.split("\n"):
             dep=dep.strip()
             if dep.strip()=="":

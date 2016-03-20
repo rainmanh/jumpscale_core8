@@ -188,7 +188,7 @@ class AysFs(SALObject):
         return j.data.serializer.toml.dumps(config)
 
     def unmount(self, path):
-        self.cuisine.run('umount %s; exit 0' % path)
+        self.cuisine.core.run('umount %s; exit 0' % path)
 
     def _ensure_path(self, path):
         if not j.sal.fs.exists(path):

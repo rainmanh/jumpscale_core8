@@ -48,6 +48,7 @@ class TelegramBot:
         """
         # self.api.process_updates()
         h=InteractiveHandler()
+        j.sal.fs.createDir(path)
         h.actionspath = path
         print("Actions path: %s" %h.actionspath)
         h.maintenance()

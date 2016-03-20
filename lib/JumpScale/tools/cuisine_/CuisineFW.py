@@ -14,25 +14,25 @@ class CuisineFW():
     @property
     def ufw_enabled(self):
         if self._ufw_enabled == None:
-            if not self.cuisine.isMac:
+            if not self.cuisine.core.isMac:
                 if self.cuisine.bash.cmdGetPath("ufw", die=False) == False:
                     self.cuisine.package.install("ufw")
                     self.cuisine.bash.cmdGetPath("ufw")
-                self._ufw_enabled = not "inactive" in self.cuisine.run("ufw status")
+                self._ufw_enabled = not "inactive" in self.cuisine.core.run("ufw status")
         return self._ufw_enabled
 
     def ufw_enable(self):
         if not self.ufw_enabled:
-            if not self.cuisine.isMac:
+            if not self.cuisine.core.isMac:
                 if self.executor.type != 'local':
-                    self.cuisine.run("ufw allow %s" % self.executor.port)
-                self.cuisine.run("echo \"y\" | ufw enable")
+                    self.cuisine.core.run("ufw allow %s" % self.executor.port)
+                self.cuisine.core.run("echo \"y\" | ufw enable")
                 self._ufw_enabled = True
         return True
 
     @property
     def ufw_rules_allow(self):
-        if self.cuisine.isMac:
+        if self.cuisine.core.isMac:
             return {}
         if self._ufw_allow == {}:
             self._ufw_status()
@@ -40,7 +40,7 @@ class CuisineFW():
 
     @property
     def ufw_rules_deny(self):
-        if self.cuisine.isMac:
+        if self.cuisine.core.isMac:
             return {}
         if self._ufw_deny == {}:
             self._ufw_status()
@@ -48,7 +48,7 @@ class CuisineFW():
 
     def _ufw_status(self):
         self.ufw_enable()
-        out = self.cuisine.run("ufw status", action=True, force=True)
+        out = self.cuisine.core.run("ufw status", action=True, force=True)
         for line in out.splitlines():
             if line.find("(v6)") != -1:
                 continue
@@ -60,17 +60,17 @@ class CuisineFW():
                 self._ufw_deny[ip] = "*"
 
     def allowIncoming(self, port, protocol='tcp'):
-        if self.cuisine.isMac:
+        if self.cuisine.core.isMac:
             return
         self.ufw_enable()
-        self.cuisine.run("ufw allow %s/%s" % (port, protocol))
+        self.cuisine.core.run("ufw allow %s/%s" % (port, protocol))
 
     def denyIncoming(self, port):
-        if self.cuisine.isMac:
+        if self.cuisine.core.isMac:
             return
 
         self.ufw_enable()
-        self.cuisine.run("ufw deny %s" % port)
+        self.cuisine.core.run("ufw deny %s" % port)
 
     def flush(self):
         C = """
@@ -81,7 +81,7 @@ class CuisineFW():
         iptables --table nat --delete-chain
         iptables --table filter --delete-chain
         """
-        self.cuisine.run_script(C)
+        self.cuisine.core.run_script(C)
 
     def show(self):
-        print(self.cuisine.run("iptables -t nat -nvL"))
+        print(self.cuisine.core.run("iptables -t nat -nvL"))

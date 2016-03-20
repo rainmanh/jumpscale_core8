@@ -63,7 +63,7 @@ class MongoInstance(Startable):
 
     def _install(self):
         super()._install()
-        self.cuisine.dir_ensure(self.dbdir)
+        self.cuisine.core.dir_ensure(self.dbdir)
         return self.cuisine.builder.mongodb(start = False)
 
     def _gen_service_name(self):
@@ -97,7 +97,7 @@ class MongoInstance(Startable):
     @Startable.ensure_started
     def execute(self, cmd):
         for i in range(5):
-            rc, out = self.cuisine.run("LC_ALL=C $binDir/mongo --port %s --eval '%s'"%(self.private_port ,cmd.replace("\\","\\\\").replace("'","\\'")), die=False)
+            rc, out = self.cuisine.core.run("LC_ALL=C $binDir/mongo --port %s --eval '%s'"%(self.private_port ,cmd.replace("\\","\\\\").replace("'","\\'")), die=False)
             if not rc and out.find('errmsg') == -1:
                 print('command executed %s'%(cmd))
                 break

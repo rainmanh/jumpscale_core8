@@ -176,20 +176,20 @@ class RedisFactory:
             return False
 
     def _getPaths(self, name):
-        dpath = j.sal.fs.joinPaths(self.cuisine.dir_paths["varDir"], 'redis', name)
+        dpath = j.sal.fs.joinPaths(self.cuisine.core.dir_paths["varDir"], 'redis', name)
         cpath = j.sal.fs.joinPaths(dpath, "redis.conf")
         return (dpath, cpath)
 
     def deleteInstance(self, name):
         # self.stopInstance(name)
         dpath, _ = self._getPaths(name)
-        self.cuisine.dir_remove(dpath)
+        self.cuisine.core.dir_remove(dpath)
 
     def emptyInstance(self, name):
         # self.stopInstance(name)
         dpath, _ = self._getPaths(name)
-        self.cuisine.dir_remove(dpath)
-        self.cuisine.dir_ensure(dpath)
+        self.cuisine.core.dir_remove(dpath)
+        self.cuisine.core.dir_ensure(dpath)
 
     def configureInstance(self, name, ip="localhost", port=6379, maxram=200, appendonly=True,snapshot=False,slave=(),ismaster=False,passwd=None,unixsocket=False):
         """
@@ -197,7 +197,7 @@ class RedisFactory:
         slave example: (192.168.10.10,8888,asecret)   (ip,port,secret)
         """
         cmd='sysctl vm.overcommit_memory=1'
-        self.cuisine.run(cmd, die=False, showout=False)
+        self.cuisine.core.run(cmd, die=False, showout=False)
 
         self.emptyInstance(name)
 
@@ -764,7 +764,7 @@ class RedisFactory:
         if port != "":
              port = "port %s" % port
         C = C.replace("$port", str(port))
-        C = C.replace("$vardir", self.cuisine.dir_paths["varDir"])
+        C = C.replace("$vardir", self.cuisine.core.dir_paths["varDir"])
         C = C.replace("$bind", ip)
 
         if ismaster:
@@ -804,6 +804,6 @@ class RedisFactory:
 
         dpath,cpath=self._getPaths(name)
         dbpath = j.sal.fs.joinPaths(dpath, "db")
-        self.cuisine.dir_ensure(dbpath)
-        self.cuisine.file_write(cpath, C)
+        self.cuisine.core.dir_ensure(dbpath)
+        self.cuisine.core.file_write(cpath, C)
 

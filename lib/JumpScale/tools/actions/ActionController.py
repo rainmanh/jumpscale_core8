@@ -24,7 +24,6 @@ class ActionController(object):
             self._showonly = False
         else:
             self._showonly = showonly.decode() == "1"
-        self.stack=[]
 
     def setRunId(self, runid,reset=False):
         self._runid = str(runid)
@@ -137,10 +136,23 @@ class ActionController(object):
         if action not in self.stack:
             self.stack.append(action)
 
-
     def delFromStack(self,action):
         if action in self.stack:
             self.stack.pop(self.stack.index(action))
+
+    @property
+    def stack(self):
+        val=j.core.db.hget("actions.stack",self.runid)
+        if val==None:
+            val2=[]
+        else:
+            val2=j.data.serializer.json.loads(val)
+        return val2
+
+    @stack.setter
+    def stack(self,val):
+        val2=j.data.serializer.json.dumps(val)
+        j.core.db.hset("actions.stack",self.runid,val2)
 
     def start(self, action,actionRecover=None,args={},die=True,stdOutput=False,errorOutput=True,retry=1,serviceObj=None,deps=[]):
         """

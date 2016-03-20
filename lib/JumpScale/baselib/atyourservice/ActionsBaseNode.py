@@ -1,5 +1,5 @@
 from JumpScale import j
-import JumpScale.sal.tmux
+# import JumpScale.sal.tmux
 import os
 import signal
 import inspect
@@ -20,10 +20,15 @@ class ActionsBaseNode(object):
         super(ActionsBaseNode).__init__()
         self.service = service
 
-    def _installFromStore(self):
+    def installFiles(self):
+
+        #@todo (*1*) I think is not optimally designed, or we work with fuse or without
+        #if without we need to create a library function on e.g. AYSFS which allows someone to connect to G8OS Stor
+        #and then call this library to expand the content locally, this should be done through arguments  ($...)
+
         from urllib.error import HTTPError
 
-        key = "%s__%s" % (self.service.domain, self.service.name)
+        key = "$(service.name)__$(service.instance)"
         flist = '%s.flist' % key
 
         tmpDir = j.sal.fs.getTmpDirPath()
@@ -53,7 +58,7 @@ class ActionsBaseNode(object):
                             continue
 
                     url = "%s/dedupe/files/%s/%s/%s" %(addr, hash[0], hash[1], hash)
-                    value, unit = j.data.units.bytes.converToBestUnit(int(size))
+                    value, unit = j.data.units.bytes.converToBestUnit(int(size)) #@todo typo?  (*1*)
                     print("downloading %s (%s %s)" % (path, value, unit))
                     unit = unit if unit != '' else 'B'
                     conn.download(url, path)
@@ -442,59 +447,3 @@ class ActionsBaseNode(object):
                 return False
         return True
 
-    def check_requirements(self):
-        """
-        do checks if requirements are met to install this app
-        e.g. can we connect to database, is this the right platform, ...
-        """
-        return True
-
-
-    def monitor(self):
-        """
-        monitoring actions
-        do not forget to schedule in your service.hrd or instance.hrd
-        """
-        return True
-
-    def cleanup(self):
-        """
-        regular cleanup of env e.g. remove logfiles, ...
-        is just to keep the system healthy
-        do not forget to schedule in your service.hrd or instance.hrd
-        """
-        return True
-
-    def data_export(self):
-        """
-        export data of app to a central location (configured in hrd under whatever chosen params)
-        return the location where to restore from (so that the restore action knows how to restore)
-        we remember in $name.export the backed up events (epoch,$id,$state,$location)  $state is OK or ERROR
-        """
-        return False
-
-    def data_import(self, id):
-        """
-        import data of app to local location
-        if specifies which retore to do, id corresponds with line item in the $name.export file
-        """
-        return False
-
-    def uninstall(self):
-        """
-        uninstall the apps, remove relevant files
-        """
-        pass
-
-    def removedata(self):
-        """
-        remove all data from the app (called when doing a reset)
-        """
-        pass
-
-
-    def test(self):
-        """
-        test the service on appropriate behavior
-        """
-        pass

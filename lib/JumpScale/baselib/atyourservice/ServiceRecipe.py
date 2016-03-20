@@ -43,10 +43,8 @@ class ServiceRecipe(ServiceTemplate):
             j.sal.fs.copyFile(self.template.path_hrd_template, self.path_hrd_template)
         if j.sal.fs.exists(self.template.path_hrd_schema):
             j.sal.fs.copyFile(self.template.path_hrd_schema, self.path_hrd_schema)
-        if j.sal.fs.exists(self.template.path_actions_mgmt):
-            j.sal.fs.copyFile(self.template.path_actions_mgmt, self.path_actions_mgmt)
-        if j.sal.fs.exists(self.template.path_actions_node):
-            j.sal.fs.copyFile(self.template.path_actions_node, self.path_actions_node)
+        if j.sal.fs.exists(self.template.path_actions):
+            j.sal.fs.copyFile(self.template.path_actions, self.path_actions)
         if j.sal.fs.exists(self.template.path_mongo_model):
             j.sal.fs.copyFile(self.template.path_mongo_model, self.path_mongo_model)
 

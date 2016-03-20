@@ -41,7 +41,7 @@ class CuisineProcess():
         result=[]
         if "linux" in self.cuisine.platformtype.platformtypes:
             cmdlinux='netstat -lntp'
-            out=self.cuisine.run(cmdlinux,showout=False)
+            out=self.cuisine.core.run(cmdlinux,showout=False)
             #to troubleshoot https://regex101.com/#python
             p = re.compile(u"tcp *(?P<receive>[0-9]*) *(?P<send>[0-9]*) *(?P<local>[0-9*.]*):(?P<localport>[0-9*]*) *(?P<remote>[0-9.*]*):(?P<remoteport>[0-9*]*) *(?P<state>[A-Z]*) *(?P<pid>[0-9]*)/(?P<process>\w*)")
             for line in out.split("\n"):
@@ -56,10 +56,10 @@ class CuisineProcess():
 
         elif "darwin" in self.cuisine.platformtype.platformtypes:
             # cmd='sudo netstat -anp tcp'
-            # # out=self.cuisine.run(cmd)
+            # # out=self.cuisine.core.run(cmd)
             # p = re.compile(u"tcp4 *(?P<rec>[0-9]*) *(?P<send>[0-9]*) *(?P<local>[0-9.*]*) *(?P<remote>[0-9.*]*) *LISTEN")
             cmd="lsof -i 4tcp -sTCP:LISTEN -FpcRn"
-            out=self.cuisine.run(cmd,showout=False)
+            out=self.cuisine.core.run(cmd,showout=False)
             d={}
             for line in out.split("\n"):
                 if line.startswith("p"):
@@ -108,8 +108,8 @@ class CuisineProcess():
         # NOTE: ps -A seems to be the only way to not have the grep appearing
         # as well
         RE_SPACES               = re.compile("[\s\t]+")
-        if is_string: processes = self.cuisine.run("ps -A | grep {0} ; true".format(name),replaceArgs=False)
-        else:         processes = self.cuisine.run("ps -A",replaceArgs=False)
+        if is_string: processes = self.cuisine.core.run("ps -A | grep {0} ; true".format(name),replaceArgs=False)
+        else:         processes = self.cuisine.core.run("ps -A",replaceArgs=False)
         res = []
         for line in processes.split("\n"):
             if not line.strip(): continue
@@ -134,5 +134,5 @@ class CuisineProcess():
         it will return the list of all processes that start with the given
         `name`."""
         for pid in self.find(name, exact):
-            self.cuisine.run("kill -s {0} {1} ; true".format(signal, pid),showout=False,replaceArgs=False)
+            self.cuisine.core.run("kill -s {0} {1} ; true".format(signal, pid),showout=False,replaceArgs=False)
 

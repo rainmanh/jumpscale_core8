@@ -308,7 +308,15 @@ class ActionsBaseMgmt:
     #     """
     #     return True
 
-    def schedule(self, cron, method):
+    def cron_configure(self):
+        """
+        gets executed when service is deployed,
+        inside need to call self.schedule
+        #@todo put some examples
+        """
+        return True    
+
+    def cron_schedule(self, cron, method):
         """
         Schedules a method call according to cron
 
@@ -336,8 +344,9 @@ class ActionsBaseMgmt:
 
         tags = j.data.tags.getTagString(labels={'ays', 'monitor'}, tags={'service': str(self.service)})
         client.scheduler.executeJumpscript(cron_id, cron, method=method, gid=gid, nid=nid, tags=tags)
+        return True    
 
-    def unschedule(self):
+    def cron_unschedule(self):
         """
         Unschedules all crons created by the schedule method.
         """
@@ -349,6 +358,7 @@ class ActionsBaseMgmt:
 
         prefix = 'ays.{name}.'.format(name=str(self.service))
         client.scheduler.unschedule_prefix(prefix)
+        return True    
 
     @classmethod
     def monitor(cls, cron):

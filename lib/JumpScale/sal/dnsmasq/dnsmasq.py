@@ -736,6 +736,6 @@ class DNSMasq(SALObject):
         if deviceonly:
             C=C.replace("#interface=","interface=%s"%device)
         C=C.replace("$dhcprange","%s,%s"%(rangefrom,rangeto))
-        self.cuisine.dir_ensure("/etc/dnsmasq.d/")
-        self.cuisine.dir_ensure("$varDir/dnsmasq")
-        self.cuisine.file_write("/etc/dnsmasq.conf",C,replaceArgs=True)
+        self.cuisine.core.dir_ensure("/etc/dnsmasq.d/")
+        self.cuisine.core.dir_ensure("$varDir/dnsmasq")
+        self.cuisine.core.file_write("/etc/dnsmasq.conf",C,replaceArgs=True)

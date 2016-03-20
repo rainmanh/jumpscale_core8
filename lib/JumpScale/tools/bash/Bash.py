@@ -161,15 +161,15 @@ class Bash:
 
         if path=="":
             path=mpath
-            self.cuisine.core.file_write(mpath,". %s\n"%mpath2,force=True)
+            self.cuisine.core.file_write(mpath,". %s\n"%mpath2)
         else:
-            out=self.cuisine.core.file_read(path,force=True)
+            out=self.cuisine.core.file_read(path)
 
             out="\n".join(line for line in out.splitlines() if line.find("profile_js")==-1)
 
             out+="\n\n. %s\n"%mpath2
 
-            self.cuisine.core.file_write(path,out,force=True)
+            self.cuisine.core.file_write(path,out)
         self.reset()
         return None
 
@@ -192,7 +192,7 @@ class Bash:
         if self._profilePath == "":
             self._profilePath = j.sal.fs.joinPaths(self.home, ".profile_js")
         if not self.cuisine.core.file_exists(self._profilePath):
-            self.cuisine.core.file_write(self._profilePath,"", force=True)
+            self.cuisine.core.file_write(self._profilePath,"")
             self.setOurProfile()
             self._profile = None
         return self._profilePath
@@ -202,24 +202,24 @@ class Bash:
         if not self._profile:
             content = ""
             if self.cuisine.core.file_exists(self.profilePath):
-                content = self.cuisine.core.file_read(self.profilePath, force=True)
+                content = self.cuisine.core.file_read(self.profilePath)
             self._profile = Profile(content)
         return self._profile
 
     @actionrun(action=True)
     def addPath(self, path):
         self.profile.addPath(path)
-        self.cuisine.core.file_write(self.profilePath, self.profile.dump(), force=True,showout=False)
+        self.cuisine.core.file_write(self.profilePath, self.profile.dump(),showout=False)
 
     @actionrun(action=True)
     def environRemove(self, key, val=None):
         self.profile.remove(key)
-        self.cuisine.core.file_write(self.profilePath, self.profile.dump(), force=True,showout=False)
+        self.cuisine.core.file_write(self.profilePath, self.profile.dump(),showout=False)
 
     @actionrun(action=True)
     def include(self, path):
         self.profile.addInclude(path)
-        self.cuisine.core.file_write(self.profilePath, self.profile.dump(), force=True,showout=False)
+        self.cuisine.core.file_write(self.profilePath, self.profile.dump(),showout=False)
 
 
 

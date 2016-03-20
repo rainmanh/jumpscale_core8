@@ -47,10 +47,10 @@ class CuisineInstallerDevelop():
             rm -rf get-pip.py
             wget https://bootstrap.pypa.io/get-pip.py
             """
-        C=self.cuisine.args_replace(C)
+        C=self.cuisine.core.args_replace(C)
         self.cuisine.core.run_script(C)
         C="cd $tmpDir/;python3.5 get-pip.py"
-        C=self.cuisine.args_replace(C)
+        C=self.cuisine.core.args_replace(C)
         self.cuisine.core.run(C)
 
 
@@ -75,7 +75,7 @@ class CuisineInstallerDevelop():
         cp $tmpDir/brotli/tools/bro /usr/local/bin/
         rm -rf $tmpDir/brotli
         """
-        C=self.cuisine.args_replace(C)
+        C=self.cuisine.core.args_replace(C)
         self.cuisine.core.run_script(C)
 
         #python etcd
@@ -85,7 +85,7 @@ class CuisineInstallerDevelop():
         cd python-etcd
         python3.5 setup.py install
         """
-        C=self.cuisine.args_replace(C)
+        C=self.cuisine.core.args_replace(C)
         self.cuisine.core.run_script(C)
 
         #gevent
@@ -168,7 +168,7 @@ class CuisineInstallerDevelop():
 
         if self.cuisine.core.isUbuntu or self.cuisine.core.isArch:
             C='cd $tmpDir/;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh'
-            C=self.cuisine.args_replace(C)
+            C=self.cuisine.core.args_replace(C)
             self.cuisine.core.run(C)
         elif self.cuisine.core.isMac:
             cmd = """sudo mkdir -p /opt

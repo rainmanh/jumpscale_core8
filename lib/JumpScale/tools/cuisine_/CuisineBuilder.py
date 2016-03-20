@@ -763,7 +763,7 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $tmplsDir/cfg/influxdb/influxdb.
             self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
 
         if start:
-            self._start_influxdb(self)
+            self._start_influxdb()
 
     def _start_influxdb(self):
         binPath = self.cuisine.bash.cmdGetPath('influxd')

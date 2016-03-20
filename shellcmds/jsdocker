@@ -149,7 +149,7 @@ def importRsync(name, output, key):
 @click.option('--cmd', '-c', help='command to execute')
 def execute(name, cmd):
     container = j.sal.docker.get(name)
-    container.cuisine.run(cmd)
+    container.cuisine.core.run(cmd)
 
 
 cli.add_command(list)

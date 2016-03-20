@@ -13,9 +13,9 @@ class DemoHandler:
         self.image = "%s/giglogo.png"%j.dirs.tmpDir
         self.sound = "%s/test.mp3"%j.dirs.tmpDir
         self.sticker = "%s/sticker.png"%j.dirs.tmpDir
-        j.sal.nettools.download(url,to=self.image,overwrite=False)
-        j.sal.nettools.download(AUDIOFILE,to=self.sound,overwrite=False)
-        j.sal.nettools.download(STICKERFILE,to=self.sticker,overwrite=False)
+        j.sal.nettools.download(url,self.image,overwrite=False)
+        j.sal.nettools.download(AUDIOFILE,self.sound,overwrite=False)
+        j.sal.nettools.download(STICKERFILE,self.sticker,overwrite=False)
         self.once = True
 
     def on_text(self, tg, message):

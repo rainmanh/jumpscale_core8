@@ -2,7 +2,7 @@ from JumpScale import j
 try:
     import grequests as requests
 except:
-    cmd='pip install grequests'
+    cmd='pip3 install grequests'
     j.sal.process.execute(cmd)
     import grequests as requests
 

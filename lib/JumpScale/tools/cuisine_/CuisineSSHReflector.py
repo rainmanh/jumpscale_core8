@@ -31,15 +31,15 @@ class CuisineSSHReflector(object):
         package="dropbear"
         self.cuisine.package.install(package)
 
-        self.cuisine.run("rm -f /etc/default/dropbear",die=False)
-        self.cuisine.run("killall dropbear",die=False   )
+        self.cuisine.core.run("rm -f /etc/default/dropbear",die=False)
+        self.cuisine.core.run("killall dropbear",die=False   )
 
         passwd=j.data.idgenerator.generateGUID()
         self.cuisine.user.ensure("sshreflector", passwd=passwd, home="/home/sshreflector", uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True, group=None)
 
-        self.cuisine.run('ufw allow %s'%port,die=False)
+        self.cuisine.core.run('ufw allow %s'%port,die=False)
 
-        self.cuisine.dir_ensure("/home/sshreflector/.ssh", recursive=True, mode=None, owner="sshreflector", group="sshreflector")
+        self.cuisine.core.dir_ensure("/home/sshreflector/.ssh", recursive=True, mode=None, owner="sshreflector", group="sshreflector")
 
         from IPython import embed
         print ("DEBUG NOW reflector")
@@ -54,11 +54,11 @@ class CuisineSSHReflector(object):
             ftp.put(lpath+".pub",path+".pub")
         else:
             #we do the generation of the keys on the server
-            if reset or not self.cuisine.file_exists(path) or not self.cuisine.file_exists(path+".pub"):
-                self.cuisine.file_unlink(path)
-                self.cuisine.file_unlink(path+".pub")
+            if reset or not self.cuisine.core.file_exists(path) or not self.cuisine.core.file_exists(path+".pub"):
+                self.cuisine.core.file_unlink(path)
+                self.cuisine.core.file_unlink(path+".pub")
                 #-N is passphrase
-                self.cuisine.run("ssh-keygen -q -t rsa -b 4096 -f %s -N '' "%path)
+                self.cuisine.core.run("ssh-keygen -q -t rsa -b 4096 -f %s -N '' "%path)
             ftp.get(path,lpath)
             ftp.get(path+".pub",lpath+".pub")
 
@@ -68,10 +68,10 @@ class CuisineSSHReflector(object):
         #authorize remote server to accept now copied private key
         self.cuisine.ssh.authorize("sshreflector",j.sal.fs.fileGetContents(lpath+".pub"))
 
-        self.cuisine.run("chmod 0644 /home/sshreflector/.ssh/*")
-        self.cuisine.run("chown -R sshreflector:sshreflector /home/sshreflector/.ssh/")
+        self.cuisine.core.run("chmod 0644 /home/sshreflector/.ssh/*")
+        self.cuisine.core.run("chown -R sshreflector:sshreflector /home/sshreflector/.ssh/")
 
-        cpath=self.cuisine.run("which dropbear")
+        cpath=self.cuisine.core.run("which dropbear")
 
         cmd="%s -R -F -E -p 9222 -w -s -g -K 20 -I 60"%cpath
         self.cuisine.processmanager.ensure("reflector", cmd, descr='')
@@ -87,7 +87,7 @@ class CuisineSSHReflector(object):
     # @actionrun(action=True)
     def client_delete(self):
         self.cuisine.processmanager.remove("autossh") #make sure leftovers are gone
-        self.cuisine.run("killall autossh",die=False,showout=False)
+        self.cuisine.core.run("killall autossh",die=False,showout=False)
 
     def client(self,remoteids,reset=True):
         """
@@ -129,8 +129,8 @@ class CuisineSSHReflector(object):
             rpath="/root/.ssh/reflector"
             ftp.put(lpath,rpath)
             ftp.put(lpath+".pub",rpath+".pub")
-            self.cuisine.run("chmod 0600 /root/.ssh/reflector")
-            self.cuisine.run("chmod 0600 /root/.ssh/reflector.pub")
+            self.cuisine.core.run("chmod 0600 /root/.ssh/reflector")
+            self.cuisine.core.run("chmod 0600 /root/.ssh/reflector.pub")
 
             if(remotecuisine.executor.addr.find(".")!=-1):
                 #is real ipaddress, will put in hostfile as reflector
@@ -177,15 +177,15 @@ class CuisineSSHReflector(object):
                 out2+="%s:%s\n"%(self.cuisine.platformtype.hostname,newport)
                 remotecuisine.file_write("/home/sshreflector/reflectorclients",out2)
 
-            self.cuisine.file_write("/etc/reflectorclients",out2)
+            self.cuisine.core.file_write("/etc/reflectorclients",out2)
 
             reflport="9222"
 
             print("check ssh connection to reflector")
-            self.cuisine.run("ssh -i /root/.ssh/reflector -o StrictHostKeyChecking=no sshreflector@%s -p %s 'ls /'"%(rname,reflport))
+            self.cuisine.core.run("ssh -i /root/.ssh/reflector -o StrictHostKeyChecking=no sshreflector@%s -p %s 'ls /'"%(rname,reflport))
             print ("OK")
 
-            cpath=self.cuisine.run("which autossh")
+            cpath=self.cuisine.core.run("which autossh")
             cmd="%s -M 0 -N -o ExitOnForwardFailure=yes -o \"ServerAliveInterval 60\" -o \"ServerAliveCountMax 3\" -R %s:localhost:22 sshreflector@%s -p %s -i /root/.ssh/reflector"%(cpath,newport,rname,reflport)
             self.cuisine.processmanager.ensure("autossh_%s"%rname_short, cmd, descr='')
 
@@ -197,7 +197,7 @@ class CuisineSSHReflector(object):
         """
         @param remoteids are the id's of the reflectors e.g. 'ovh3,ovh5:3333'
         """
-        self.cuisine.run("killall autossh",die=False)
+        self.cuisine.core.run("killall autossh",die=False)
         self.cuisine.package.install("autossh")
 
 
@@ -218,7 +218,7 @@ class CuisineSSHReflector(object):
         ftp=cuisine.executor.sshclient.getSFTP()
         ftp.get(rpath,lpath)
 
-        out=self.cuisine.file_read(lpath)
+        out=self.cuisine.core.file_read(lpath)
 
         addr=cuisine.executor.addr
 
@@ -233,7 +233,7 @@ class CuisineSSHReflector(object):
             # self.cuisine.tmux.executeInScreen("ssh",name,cmd)
 
             cmd="autossh -M 0 -N -f -o ExitOnForwardFailure=yes -o \"ServerAliveInterval 60\" -o \"ServerAliveCountMax 3\" -L %s:localhost:%s sshreflector@%s -p 9222 -i %s"%(port,port,addr,keypath)
-            self.cuisine.run(cmd)
+            self.cuisine.core.run(cmd)
 
 
         print ("\n\n\n")

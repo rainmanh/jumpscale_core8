@@ -13,7 +13,7 @@ class MyFSEventHandler(FileSystemEventHandler):
         else:
             changedfile = event.src_path
             for node in j.tools.develop.nodes:
-                if node.cuisine.isJS8Sandbox:
+                if node.cuisine.core.isJS8Sandbox:
                     sep = "jumpscale_core8/lib/JumpScale/"
                     sep_cmds = "jumpscale_core8/shellcmds/"
                     if changedfile.find(sep) != -1:
@@ -263,13 +263,13 @@ class DevelopToolsFactory():
             for node in self.nodes:
                 if node.port != 0:
 
-                    if not node.cuisine.isJS8Sandbox:
+                    if not node.cuisine.core.isJS8Sandbox:
                         #non sandboxed mode, need to sync to \
                         dest="root@%s:/opt/code/%s"%(node.addr, source.split("code/", 1)[1])
                     else:
                         dest = "root@%s:/opt/code/%s" % (node.addr, destpart)
 
-                    if destpart == "jumpscale_core8" and node.cuisine.isJS8Sandbox:
+                    if destpart == "jumpscale_core8" and node.cuisine.core.isJS8Sandbox:
                         dest = "root@%s:/opt/jumpscale8/lib/JumpScale/" % node.addr
                         source2 = source + "/lib/JumpScale/"
 
@@ -284,8 +284,8 @@ class DevelopToolsFactory():
                         j.sal.fs.copyDirTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=False)
 
                     else:
-                        node.cuisine.run("mkdir -p /opt/code/%s" % source.split("code/", 1)[1])
-                        if node.cuisine.isJS8Sandbox:
+                        node.cuisine.core.run("mkdir -p /opt/code/%s" % source.split("code/", 1)[1])
+                        if node.cuisine.core.isJS8Sandbox:
                             rsyncdelete2=True
                         else:
                             rsyncdelete2=rsyncdelete

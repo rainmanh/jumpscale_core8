@@ -20,21 +20,21 @@ class CuisineDocker():
         self.executor = executor
         self.cuisine = cuisine
 
-    @actionrun(action=True)
+    @actionrun(action=True,force=False)
     def install(self):
-        if self.cuisine.isUbuntu:
-            if not self.cuisine.command_check('docker'):
+        if self.cuisine.core.isUbuntu:
+            if not self.cuisine.core.command_check('docker'):
                 C = """
                 wget -qO- https://get.docker.com/ | sh
                 """
-                self.cuisine.run_script(C)
-            if not self.cuisine.command_check('docker-compose'):
+                self.cuisine.core.run_script(C)
+            if not self.cuisine.core.command_check('docker-compose'):
                 C = """
                 curl -L https://github.com/docker/compose/releases/download/1.6.2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
                 chmod +x /usr/local/bin/docker-compose
                 """
-                self.cuisine.run_script(C)
-        if self.cuisine.isArch:
+                self.cuisine.core.run_script(C)
+        if self.cuisine.core.isArch:
             self.cuisine.package.install("docker")
             self.cuisine.package.install("docker-compose")
 
@@ -79,28 +79,28 @@ class CuisineDocker():
         CMD ["/usr/sbin/init"]
 
         """
-        self.cuisine.run("rm -rf $tmpDir/docker;mkdir $tmpDir/docker")
-        self.cuisine.file_write("$tmpDir/docker/Dockerfile", C)
+        self.cuisine.core.run("rm -rf $tmpDir/docker;mkdir $tmpDir/docker")
+        self.cuisine.core.file_write("$tmpDir/docker/Dockerfile", C)
 
         C = """
         set -ex
         cd $tmpDir/docker
         docker build -t arch .
         """
-        self.cuisine.run_script(C)
+        self.cuisine.core.run_script(C)
 
     @actionrun(action=True)
     def ubuntuBuild(self, push=False):
 
         dest = self.cuisine.git.pullRepo('https://github.com/Jumpscale/dockers.git', ssh=False)
-        path = self.cuisine.joinpaths(dest, 'js8/x86_64/2_ubuntu1510')
+        path = self.cuisine.core.joinpaths(dest, 'js8/x86_64/2_ubuntu1510')
 
         C = """
         set -ex
         cd %s
         docker build -t jumpscale/ubuntu1510 --no-cache .
         """ % path
-        self.cuisine.run_script(C)
+        self.cuisine.core.run_script(C)
 
         if push:
             C = """
@@ -108,7 +108,7 @@ class CuisineDocker():
             cd %s
             docker push jumpscale/ubuntu1510
             """ % path
-            self.cuisine.run_script(C)
+            self.cuisine.core.run_script(C)
 
     def enableSSH(self, port=None):
         # if port is not None:
@@ -145,9 +145,9 @@ class CuisineDocker():
             cmd += " --volumes '%s'" % volumes
         if aydofs:
             cmd += " --aysfs"
-        self.cuisine.run(cmd, profile=True)
+        self.cuisine.core.run(cmd, profile=True)
         cmd = "jsdocker list --name {name} --parsable".format(name=name)
-        out = self.cuisine.run(cmd, profile=True)
+        out = self.cuisine.core.run(cmd, profile=True)
         info = j.data.serializer.json.loads(out)
 
         port = info[0]["port"]
@@ -166,7 +166,7 @@ class CuisineDocker():
         """
         start arch which is using systemd  #@todo (*2*) there is an issue with tty, cannot install anything (see in arch builder)
         """
-        if not self.cuisine.isArch:
+        if not self.cuisine.core.isArch:
             raise RuntimeError("not supported")
 
         C = """
@@ -178,7 +178,7 @@ class CuisineDocker():
         mkdir -p /tmp2/cgroup/systemd
         mount --bind /sys/fs/cgroup/systemd /tmp2/cgroup/systemd
         """
-        self.cuisine.run_script(C)
+        self.cuisine.core.run_script(C)
 
         C = """
         set +ex
@@ -195,7 +195,7 @@ class CuisineDocker():
         """
         C = C.replace("$name", name)
         print(C)
-        self.cuisine.run_script(C)
+        self.cuisine.core.run_script(C)
 
-        # self.cuisine.run("docker run -d --name %s -v /tmp2/cgroup:/sys/fs/cgroup:ro -v /tmp2/%s/run:/run:rw tozd/ubuntu-systemd"%(name,name))
-        self.cuisine.run("docker run -d --name %s -v /tmp2/cgroup:/sys/fs/cgroup:ro -v /tmp2/%s/run:/run:rw arch" % (name, name))
+        # self.cuisine.core.run("docker run -d --name %s -v /tmp2/cgroup:/sys/fs/cgroup:ro -v /tmp2/%s/run:/run:rw tozd/ubuntu-systemd"%(name,name))
+        self.cuisine.core.run("docker run -d --name %s -v /tmp2/cgroup:/sys/fs/cgroup:ro -v /tmp2/%s/run:/run:rw arch" % (name, name))

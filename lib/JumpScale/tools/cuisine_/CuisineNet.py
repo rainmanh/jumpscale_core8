@@ -35,7 +35,7 @@ class CuisineNet():
 
     @property
     def defaultgw(self):
-        return self.cuisine.run("ip r | grep 'default' | awk {'print $3'}")
+        return self.cuisine.core.run("ip r | grep 'default' | awk {'print $3'}")
 
     @defaultgw.setter
     def defaultgw(self,val):
@@ -63,11 +63,11 @@ class CuisineNet():
             return ips
         else:            
             try:
-                out=self.cuisine.run("nmap %s -n -sP | grep report | awk '{print $5}'"%range,showout=False)
+                out=self.cuisine.core.run("nmap %s -n -sP | grep report | awk '{print $5}'"%range,showout=False)
             except Exception as e:
                 if str(e).find("command not found")!=-1:
                     self.cuisine.package.install("nmap")
-                    out=self.cuisine.run("nmap %s -n -sP | grep report | awk '{print $5}'"%range,showout=False)
+                    out=self.cuisine.core.run("nmap %s -n -sP | grep report | awk '{print $5}'"%range,showout=False)
             for line in out.splitlines():
                 ip=line.strip()
                 if ip not in ips:                    
@@ -116,7 +116,7 @@ class CuisineNet():
             return result
 
         def getNetworkInfo():
-            output =self.cuisine.run("ip a", showout=False)
+            output =self.cuisine.core.run("ip a", showout=False)
             for m in IPBLOCKS.finditer(output):
                 block = m.group('block')
                 yield parseBlock(block)

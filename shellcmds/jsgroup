@@ -60,8 +60,10 @@ if opts.action == 'list':
     out = ""
     print("\n%-20s %-25s %s" % ("name", "domain", "users"))
     print("="*80)
-    for item in j.data.models.system.Group.find({"domain": opts.domain}):
-        out += "%-20s %-25s %s\n" % (item["name"], item["domain"], ",".join(item["users"]))
+    for item in j.data.models.system.Group.find({}):
+        users = j.data.models.system.User.find({'groups': item['name']})
+        users = [user['name'] for user in users]
+        out += "%-20s %-25s %s\n" % (item["name"], item["domain"], ", ".join(users))
     out = out.split("\n")
     out.sort()
     out = "\n".join(out)

@@ -53,7 +53,7 @@ class CuisineProxy(object):
         \.xiti\.com
         webtrekk\..*
         """
-        self.cuisine.file_write("/etc/polipo/forbiddenTunnels",forbiddentunnels)
+        self.cuisine.core.file_write("/etc/polipo/forbiddenTunnels",forbiddentunnels)
 
         # dnsNameServer
 
@@ -213,7 +213,7 @@ class CuisineProxy(object):
             disableIndexing = false
 
             """
-        self.cuisine.file_write("/etc/polipo/config",CONFIG)
+        self.cuisine.core.file_write("/etc/polipo/config",CONFIG)
 
         print ("INSTALL OK")
         print ("to see status: point webbrowser to")
@@ -221,16 +221,16 @@ class CuisineProxy(object):
         # print ("http://%s:8123/polipo/status?"%self.cuisine.executor.addr)
         print ("configure your webproxy client to use %s on tcp port 8123"%self.cuisine.executor.addr)
 
-        self.cuisine.run("killall polipo",die=False)
+        self.cuisine.core.run("killall polipo",die=False)
 
-        cmd=self.cuisine.run("which polipo")
+        cmd=self.cuisine.core.run("which polipo")
 
         self.cuisine.processmanager.ensure("polipo",cmd)
 
         self.cuisine.avahi.install()
 
-        # if self.cuisine.isUbuntu():
-        #     self.cuisine.run("ufw allow 8123")
+        # if self.cuisine.core.isUbuntu():
+        #     self.cuisine.core.run("ufw allow 8123")
 
 
 

@@ -69,14 +69,14 @@ class CuisineSSH():
             return ips
         else:
             try:
-                # out=self.cuisine.run("nmap -p 22 %s | grep for"%range,showout=False)
-                out=self.cuisine.run("nmap %s -p %s --open -oX $tmpDir/nmap"%(range,port),showout=False,force=False,action=True)
+                # out=self.cuisine.core.run("nmap -p 22 %s | grep for"%range,showout=False)
+                out=self.cuisine.core.run("nmap %s -p %s --open -oX $tmpDir/nmap"%(range,port),showout=False,force=False,action=True)
             except Exception as e:
                 if str(e).find("command not found")!=-1:
                     self.cuisine.package.install("nmap")
-                    # out=self.cuisine.run("nmap -p 22 %s | grep for"%range)
-                    out=self.cuisine.run("nmap %s -p %s --open -oX $tmpDir/nmap"%(range,port),showout=False,force=False,action=True)
-            out=self.cuisine.file_read("$tmpDir/nmap")
+                    # out=self.cuisine.core.run("nmap -p 22 %s | grep for"%range)
+                    out=self.cuisine.core.run("nmap %s -p %s --open -oX $tmpDir/nmap"%(range,port),showout=False,force=False,action=True)
+            out=self.cuisine.core.file_read("$tmpDir/nmap")
             import xml.etree.ElementTree as ET
             root = ET.fromstring(out)
             for child in root:
@@ -111,12 +111,12 @@ class CuisineSSH():
         assert d, "User does not exist: %s" % (user)
         home = d["home"]
         key_file = home + "/.ssh/id_%s.pub" % keytype
-        if not self.cuisine.file_exists(key_file):
-            self.cuisine.dir_ensure(home + "/.ssh", mode="0700", owner=user, group=user)
-            self.cuisine.run("ssh-keygen -q -t %s -f '%s/.ssh/id_%s' -N ''" %
+        if not self.cuisine.core.file_exists(key_file):
+            self.cuisine.core.dir_ensure(home + "/.ssh", mode="0700", owner=user, group=user)
+            self.cuisine.core.run("ssh-keygen -q -t %s -f '%s/.ssh/id_%s' -N ''" %
                 (keytype, home, keytype))
-            self.cuisine.file_attribs(home + "/.ssh/id_%s" % keytype, owner=user, group=user)
-            self.cuisine.file_attribs(home + "/.ssh/id_%s.pub" % keytype, owner=user, group=user)
+            self.cuisine.core.file_attribs(home + "/.ssh/id_%s" % keytype, owner=user, group=user)
+            self.cuisine.core.file_attribs(home + "/.ssh/id_%s.pub" % keytype, owner=user, group=user)
             return key_file
         else:
             return key_file
@@ -124,8 +124,8 @@ class CuisineSSH():
     def authorize(self,user, key):
         """Adds the given key to the '.ssh/authorized_keys' for the given
         user."""
-        sudomode = self.cuisine.sudomode
-        self.cuisine.sudomode = True
+        sudomode = self.cuisine.core.sudomode
+        self.cuisine.core.sudomode = True
 
         user=user.strip()
         d = self.cuisine.user.check(user, need_passwd=False)
@@ -137,20 +137,20 @@ class CuisineSSH():
             key += "\n"
         ret = None
 
-        if self.cuisine.file_exists(keyf):
-            d = self.cuisine.file_read(keyf)
-            if self.cuisine.file_read(keyf).find(key[:-1]) == -1:
-                self.cuisine.file_append(keyf, key)
+        if self.cuisine.core.file_exists(keyf):
+            d = self.cuisine.core.file_read(keyf)
+            if self.cuisine.core.file_read(keyf).find(key[:-1]) == -1:
+                self.cuisine.core.file_append(keyf, key)
                 ret = False
             else:
                 ret = True
         else:
             # Make sure that .ssh directory exists, see #42
-            self.cuisine.dir_ensure(os.path.dirname(keyf), owner=user, group=group, mode="700")
-            self.cuisine.file_write(keyf, key,             owner=user, group=group, mode="600")
+            self.cuisine.core.dir_ensure(os.path.dirname(keyf), owner=user, group=group, mode="700")
+            self.cuisine.core.file_write(keyf, key,             owner=user, group=group, mode="600")
             ret = False
 
-        self.cuisine.sudomode = sudomode
+        self.cuisine.core.sudomode = sudomode
         return ret
 
     def unauthorize(self,user, key):
@@ -160,8 +160,8 @@ class CuisineSSH():
         d     = user.check(user, need_passwd=False)
         group = d["gid"]
         keyf  = d["home"] + "/.ssh/authorized_keys"
-        if self.cuisine.file_exists(keyf):
-            self.cuisine.file_write(keyf, "\n".join(_ for _ in file_read(keyf).split("\n") if _.strip() != key), owner=user, group=group, mode="600")
+        if self.cuisine.core.file_exists(keyf):
+            self.cuisine.core.file_write(keyf, "\n".join(_ for _ in file_read(keyf).split("\n") if _.strip() != key), owner=user, group=group, mode="600")
             return True
         else:
             return False
@@ -171,19 +171,19 @@ class CuisineSSH():
         @path is path to private key
         """
         print ("add ssh key to ssh-agent: %s"%path)
-        self.cuisine.run("ssh-add -d '%s'"%path,die=False,showout=False)
-        keys=self.cuisine.run("ssh-add -l",showout=False)
+        self.cuisine.core.run("ssh-add -d '%s'"%path,die=False,showout=False)
+        keys=self.cuisine.core.run("ssh-add -l",showout=False)
         if path in keys:
             raise RuntimeError("ssh-key is still loaded in ssh-agent, please remove manually")
-        self.cuisine.run("ssh-add '%s'"%path,showout=False)
+        self.cuisine.core.run("ssh-add '%s'"%path,showout=False)
 
     def sshagent_remove(self,path):
         """
         @path is path to private key
         """
         print ("remove ssh key to ssh-agent: %s"%path)
-        self.cuisine.run("ssh-add -d '%s'"%path,die=False,showout=False)
-        keys=self.cuisine.run("ssh-add -l",showout=False)
+        self.cuisine.core.run("ssh-add -d '%s'"%path,die=False,showout=False)
+        keys=self.cuisine.core.run("ssh-add -l",showout=False)
         if path in keys:
             raise RuntimeError("ssh-key is still loaded in ssh-agent, please remove manually")
 

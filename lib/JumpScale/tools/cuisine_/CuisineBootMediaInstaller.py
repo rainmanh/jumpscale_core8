@@ -23,38 +23,38 @@ class CuisineBootMediaInstaller(object):
         base = url.split("/")[-1]
         downloadpath = "$tmpDir/%s" % base
         if redownload:
-            self.cuisine.file_unlink(downloadpath)
+            self.cuisine.core.file_unlink(downloadpath)
 
-        if not self.cuisine.file_exists(downloadpath):
-            self.cuisine.run("cd $tmpDir;curl %s -O" % url)
+        if not self.cuisine.core.file_exists(downloadpath):
+            self.cuisine.core.run("cd $tmpDir;curl %s -O" % url)
 
         return base
 
     def _partition(self, deviceid, type):
         cmd = "parted -s /dev/%s mklabel %s mkpart primary fat32 2 200M set 1 boot on mkpart primary ext4 200M 100%%" % (deviceid, type)
-        self.cuisine.run(cmd)
+        self.cuisine.core.run(cmd)
 
     def _umount(self, deviceid):
-        self.cuisine.run("umount /mnt/boot", die=False)
-        self.cuisine.run("umount /mnt/root", die=False)
-        self.cuisine.run("umount /dev/%s1" % deviceid, die=False)
-        self.cuisine.run("umount /dev/%s2" % deviceid, die=False)
+        self.cuisine.core.run("umount /mnt/boot", die=False)
+        self.cuisine.core.run("umount /mnt/root", die=False)
+        self.cuisine.core.run("umount /dev/%s1" % deviceid, die=False)
+        self.cuisine.core.run("umount /dev/%s2" % deviceid, die=False)
 
     def _mount(self, deviceid):
-        self.cuisine.run("mkfs.vfat -F32 /dev/%s1" % deviceid)
-        self.cuisine.run("mkdir -p /mnt/boot && mount /dev/%s1 /mnt/boot" % deviceid)
-        self.cuisine.run("mkfs.ext4 /dev/%s2" % deviceid)
-        self.cuisine.run("mkdir -p /mnt/root && mount /dev/%s2 /mnt/root" % deviceid)
+        self.cuisine.core.run("mkfs.vfat -F32 /dev/%s1" % deviceid)
+        self.cuisine.core.run("mkdir -p /mnt/boot && mount /dev/%s1 /mnt/boot" % deviceid)
+        self.cuisine.core.run("mkfs.ext4 /dev/%s2" % deviceid)
+        self.cuisine.core.run("mkdir -p /mnt/root && mount /dev/%s2 /mnt/root" % deviceid)
 
     def _install(self, base):
-        self.cuisine.run("cd $tmpDir && tar vxf %s -C /mnt/root" % base)
-        self.cuisine.run("sync")
-        self.cuisine.run("cd /mnt && mv root/boot/* boot")
-        self.cuisine.run("echo 'PermitRootLogin=yes'>>'/mnt/root/etc/ssh/sshd_config'")
+        self.cuisine.core.run("cd $tmpDir && tar vxf %s -C /mnt/root" % base)
+        self.cuisine.core.run("sync")
+        self.cuisine.core.run("cd /mnt && mv root/boot/* boot")
+        self.cuisine.core.run("echo 'PermitRootLogin=yes'>>'/mnt/root/etc/ssh/sshd_config'")
 
     def _findDevices(self):
         devs = []
-        for line in self.cuisine.run("lsblk -b -o TYPE,NAME,SIZE").split("\n"):
+        for line in self.cuisine.core.run("lsblk -b -o TYPE,NAME,SIZE").split("\n"):
             if line.startswith("disk"):
                 while line.find("  ") > 0:
                     line = line.replace("  ", " ")
@@ -133,16 +133,16 @@ class CuisineBootMediaInstaller(object):
         def configure(deviceid):
             # get UUID of device
             import textwrap
-            bootuuid = self.cuisine.run('blkid /dev/%s1 -o value -s PARTUUID' % deviceid)
-            rootuuid = self.cuisine.run('blkid /dev/%s2 -o value -s PARTUUID' % deviceid)
+            bootuuid = self.cuisine.core.run('blkid /dev/%s1 -o value -s PARTUUID' % deviceid)
+            rootuuid = self.cuisine.core.run('blkid /dev/%s2 -o value -s PARTUUID' % deviceid)
 
             arch = textwrap.dedent(tmpl).format(title="Arch linux", uuid=rootuuid, init="/sbin/init")
             g8os = textwrap.dedent(tmpl).format(title="Arch linux", uuid=rootuuid, init="/sbin/g8os.init")
             fstab = textwrap.dedent(fstab_tmpl).format(rootuuid=rootuuid, bootuuid=bootuuid)
 
-            self.cuisine.file_write("/mnt/boot/loader/entries/arch.conf", arch)
-            self.cuisine.file_write("/mnt/boot/loader/entries/g8os.conf", g8os)
-            self.cuisine.file_write("/mnt/root/etc/fstab", fstab)
+            self.cuisine.core.file_write("/mnt/boot/loader/entries/arch.conf", arch)
+            self.cuisine.core.file_write("/mnt/boot/loader/entries/g8os.conf", g8os)
+            self.cuisine.core.file_write("/mnt/root/etc/fstab", fstab)
 
         self.formatCardDeployImage(url, deviceid=deviceid, part_type='gpt', post_install=configure)
 

@@ -48,10 +48,10 @@ class CuisineInstallerDevelop():
             wget https://bootstrap.pypa.io/get-pip.py
             """
         C=self.cuisine.args_replace(C)
-        self.cuisine.run_script(C)
+        self.cuisine.core.run_script(C)
         C="cd $tmpDir/;python3.5 get-pip.py"
         C=self.cuisine.args_replace(C)
-        self.cuisine.run(C)
+        self.cuisine.core.run(C)
 
 
     @actionrun(action=True)
@@ -76,7 +76,7 @@ class CuisineInstallerDevelop():
         rm -rf $tmpDir/brotli
         """
         C=self.cuisine.args_replace(C)
-        self.cuisine.run_script(C,action=True)
+        self.cuisine.core.run_script(C)
 
         #python etcd
         C="""
@@ -86,13 +86,13 @@ class CuisineInstallerDevelop():
         python3.5 setup.py install
         """
         C=self.cuisine.args_replace(C)
-        self.cuisine.run_script(C,action=True)
+        self.cuisine.core.run_script(C)
 
         #gevent
         C="""
         pip3 install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
         """
-        self.cuisine.run_script(C,action=True)
+        self.cuisine.core.run_script(C)
 
         C="""
         paramiko
@@ -156,7 +156,7 @@ class CuisineInstallerDevelop():
         traitlets
         python-telegram-bot
         """
-        self.cuisine.pip.multiInstall(C,action=True,upgrade=True)
+        self.cuisine.pip.multiInstall(C,upgrade=True)
 
         self.cuisine.builder.redis()
 
@@ -166,15 +166,15 @@ class CuisineInstallerDevelop():
         self.dnspython3()
 
 
-        if self.cuisine.isUbuntu or self.cuisine.isArch:
+        if self.cuisine.core.isUbuntu or self.cuisine.core.isArch:
             C='cd $tmpDir/;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh'
             C=self.cuisine.args_replace(C)
-            self.cuisine.run(C,action=True)
-        elif self.cuisine.isMac:
+            self.cuisine.core.run(C)
+        elif self.cuisine.core.isMac:
             cmd = """sudo mkdir -p /opt
             # sudo chown -R despiegk:root /opt
             ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""""
-            self.cuisine.run(cmd)
+            self.cuisine.core.run(cmd)
         else:
             raise RuntimeError("platform not supported yet")
 
@@ -188,4 +188,4 @@ class CuisineInstallerDevelop():
             cd dnspython3-1.12.0
             ./setup.py install
             """
-        self.cuisine.run_script(C,action=True)
+        self.cuisine.core.run_script(C)

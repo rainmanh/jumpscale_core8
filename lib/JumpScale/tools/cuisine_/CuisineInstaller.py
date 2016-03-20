@@ -21,8 +21,8 @@ class CuisineInstaller(object):
 
     @actionrun(action=True)
     def clean(self):
-        self.cuisine.dir_ensure(self.cuisine.dir_paths["tmpDir"],action=False)
-        if not self.cuisine.isMac:
+        self.cuisine.core.dir_ensure(self.cuisine.core.dir_paths["tmpDir"])
+        if not self.cuisine.core.isMac:
             C = """
                 set +ex
                 # pkill redis-server #will now kill too many redis'es, should only kill the one not in docker
@@ -44,7 +44,7 @@ class CuisineInstaller(object):
                 echo "OK"
                 """
 
-        self.cuisine.run_script(C,die=False)
+        self.cuisine.core.run_script(C,die=False)
 
 
     @actionrun(action=True)
@@ -71,9 +71,9 @@ class CuisineInstaller(object):
             rm -f /usr/local/bin/js
             rm -fr /opt/*
             """
-        self.cuisine.run_script(C, action=True,force=True)
+        self.cuisine.core.run_script(C, action=True,force=True)
 
-        if not self.cuisine.isUbuntu:
+        if not self.cuisine.core.isUbuntu:
             raise RuntimeError("not supported yet")
 
         if reset:
@@ -82,7 +82,7 @@ class CuisineInstaller(object):
                 rm -rf /opt
                 rm -rf /optrw
                 """
-            self.cuisine.run_script(C, action=True,force=True)
+            self.cuisine.core.run_script(C, action=True,force=True)
             
 
         C = """
@@ -91,7 +91,7 @@ class CuisineInstaller(object):
             cd /
             mkdir -p $base
             """
-        self.cuisine.run_script(C, action=True,force=True)
+        self.cuisine.core.run_script(C, action=True,force=True)
 
         """
         install jumpscale8 sandbox in read or readwrite mode
@@ -105,16 +105,16 @@ class CuisineInstaller(object):
             C += "./js8 -rw init"
         else:
             C += "./js8 init"
-        self.cuisine.run_script(C, action=True,force=True)
+        self.cuisine.core.run_script(C, action=True,force=True)
 
         start = j.data.time.epoch
         timeout = 30
         while start + timeout > j.data.time.epoch:
-            if not self.cuisine.file_exists('/opt/jumpscale8/bin/jspython'):
+            if not self.cuisine.core.file_exists('/opt/jumpscale8/bin/jspython'):
                 time.sleep(2)
             else:
-                self.cuisine.file_link('/opt/jumpscale8/bin/jspython', '/usr/local/bin/jspython')
-                self.cuisine.file_link('/opt/jumpscale8/bin/js', '/usr/local/bin/js')
+                self.cuisine.core.file_link('/opt/jumpscale8/bin/jspython', '/usr/local/bin/jspython')
+                self.cuisine.core.file_link('/opt/jumpscale8/bin/js', '/usr/local/bin/js')
                 self.cuisine.bash.include('/opt/jumpscale8/env.sh')
                 break
 
@@ -124,7 +124,7 @@ class CuisineInstaller(object):
     def base(self):
         self.clean()
 
-        if self.cuisine.isMac:
+        if self.cuisine.core.isMac:
             C=""
         else:
             C="""
@@ -143,14 +143,14 @@ class CuisineInstaller(object):
         """
         out=""
         #make sure all dirs exist
-        for key,item in self.cuisine.dir_paths.items():
+        for key,item in self.cuisine.core.dir_paths.items():
             out+="mkdir -p %s\n"%item
-        self.cuisine.run_script(out)
+        self.cuisine.core.run_script(out)
 
-        if not self.cuisine.isMac:
+        if not self.cuisine.core.isMac:
             self.cuisine.package.install("fuse")
 
-        if self.cuisine.isArch:
+        if self.cuisine.core.isArch:
             self.cuisine.package.install("wpa_actiond") #is for wireless auto start capability
 
         self.cuisine.package.mdupdate()

@@ -90,7 +90,7 @@ class CuisineNS():
         can set & get
         @param nameservers [$nserver1,$nserver2]
         """        
-        file = self.cuisine.file_read('/etc/resolv.conf')
+        file = self.cuisine.core.file_read('/etc/resolv.conf')
         results = []
         for line in file.splitlines():
             nameserver = re.search(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b',line)

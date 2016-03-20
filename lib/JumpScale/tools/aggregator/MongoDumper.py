@@ -6,7 +6,7 @@ class MongoDumper(Dumper.BaseDumper):
     QUEUE = 'queues:reality'
 
     def __init__(self, cidr='127.0.0.1', port=7777):
-        super(MongoDumper, self).__init__(cidr, port)
+        super(MongoDumper, self).__init__(cidr, ports=[port])
 
     def dump(self, redis):
         while True:

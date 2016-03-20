@@ -9,13 +9,13 @@ NUM_WORKERS = 4
 
 
 class BaseDumper(object):
-    def __init__(self, cidr, port=6379):
+    def __init__(self, cidr, ports=[6379]):
         logging.root.setLevel(logging.INFO)
 
         self._cidr = cidr
-        self._port = port
+        self._ports = ports
 
-        scanner = NetworkScanner(cidr, port)
+        scanner = NetworkScanner(cidr, ports)
         self._candidates = scanner.scan()
 
     def start(self, workers=NUM_WORKERS):
@@ -35,15 +35,15 @@ class BaseDumper(object):
         return self._cidr
 
     @property
-    def port(self):
-        return self._port
+    def ports(self):
+        return self._ports
 
     @property
     def candidates(self):
         return self._candidates
 
     def _process(self, ip, queue):
-        redis = j.clients.redis.getRedisClient(ip, self.port)
+        redis = j.clients.redis.getRedisClient(ip, self.ports)
         now = int(time.time())
         try:
             logging.info("Processing redis %s" % ip)

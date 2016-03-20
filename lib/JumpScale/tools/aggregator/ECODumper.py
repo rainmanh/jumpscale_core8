@@ -6,7 +6,7 @@ class ECODumper(Dumper.BaseDumper):
     QUEUE = 'queues:eco'
 
     def __init__(self, cidr='127.0.0.1', port=7777):
-        super(ECODumper, self).__init__(cidr, port)
+        super(ECODumper, self).__init__(cidr, ports=[port])
 
     def dump(self, redis):
         """

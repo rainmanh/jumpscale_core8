@@ -441,9 +441,8 @@ class User(ModelBase, Document):
         return False
 
     def save(user):
-        passwd = crypt.crypt(user.passwd)
-        if not hmac.compare_digest(user.passwd, passwd):
-            user.passwd = passwd
+        if not user.pk:
+            user.passwd = crypt.crypt(user.passwd)
         super(ModelBase, user).save()
 
 

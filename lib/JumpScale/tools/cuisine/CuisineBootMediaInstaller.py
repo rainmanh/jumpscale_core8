@@ -22,7 +22,7 @@ class CuisineBootMediaInstaller(object):
     def _downloadImage(self, url, redownload=False):
         base = url.split("/")[-1]
         downloadpath = "$tmpDir/%s" % base
-        self.dir_ensure("$tmpDir")
+        self.core.dir_ensure("$tmpDir")
 
         if redownload:
             self.cuisine.core.file_unlink(downloadpath)

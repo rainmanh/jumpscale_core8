@@ -49,13 +49,6 @@ mobile = []
 description = ""
 authkeys = []
 
-
-def getPasswd(password):
-    if len(password) != 32:
-        password = j.data.hash.md5_string(password)
-    return password
-
-
 def getUserGUID(username):
     results = j.data.models.system.User.find({'name': username})
     if results:
@@ -82,7 +75,7 @@ if opts.action == 'passwd':
 
     userguid = getUserGUID(opts.userlogin)
     user = j.data.models.system.User.get(userguid)
-    user.passwd = getPasswd(opts.userpasswd)
+    user.passwd = opts.userpasswd
     user.save()
 
 if opts.action == 'delete':
@@ -157,7 +150,7 @@ if opts.action == 'add' or opts.action == 'set':
     user.groups = groups
     user.emails = emails
     user.domain = domain
-    user.passwd = getPasswd(passwd)
+    user.passwd = passwd
     user.mobile = mobile
     user.xmpp = xmpp
     user.description = description

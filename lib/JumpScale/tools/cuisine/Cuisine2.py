@@ -15,7 +15,6 @@ from CuisineUser import CuisineUser
 from CuisineGit import CuisineGit
 from CuisineBuilder import CuisineBuilder
 from CuisineGroup import CuisineGroup
-from ActionDecorator import ActionDecorator
 from CuisineGolang import CuisineGolang
 from CuisineFW import CuisineFW
 from CuisineDocker import CuisineDocker
@@ -30,7 +29,7 @@ from CuisineGeoDns import CuisineGeoDns
 from CuisineCore import CuisineCore
 
 
-class OurCuisine():
+class JSCuisine:
 
     def __init__(self,executor):
 

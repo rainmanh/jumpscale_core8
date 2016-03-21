@@ -130,7 +130,7 @@ class CuisineBuilder(object):
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/skynetservices/skydns",action=True)
         self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'skydns'), '$binDir', action=True)
-        self.cuisine.bash.addPath(self.cuisine.args_replace("$binDir"), action=True)
+        self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
 
         if start:
             self._startSkydns()
@@ -140,7 +140,7 @@ class CuisineBuilder(object):
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/mholt/caddy",action=True)
         self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'caddy'), '$binDir', action=True)
-        self.cuisine.bash.addPath(self.cuisine.args_replace("$binDir"), action=True)
+        self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
 
         if ssl and dns:
             addr = dns
@@ -157,8 +157,8 @@ class CuisineBuilder(object):
         root $cfgDir/caddy/www
         """
         C = C.replace("$addr", addr)
-        C = self.cuisine.args_replace(C)
-        cpath = self.cuisine.args_replace("$tmplsDir/cfg/caddy/caddyfile.conf")
+        C = self.cuisine.core.args_replace(C)
+        cpath = self.cuisine.core.args_replace("$tmplsDir/cfg/caddy/caddyfile.conf")
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/caddy")
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/caddy/log/")
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/caddy/www/")
@@ -190,7 +190,7 @@ class CuisineBuilder(object):
         self.cuisine.processmanager.stop("stor") # will also kill
 
         self.cuisine.core.dir_ensure("$cfgDir/stor")
-        backend = self.cuisine.args_replace(backend)
+        backend = self.cuisine.core.args_replace(backend)
         self.cuisine.core.dir_ensure(backend)
         config = {
             'listen_addr': addr,
@@ -303,7 +303,7 @@ class CuisineBuilder(object):
         </configuration>
         """
         #create config file
-        content = self.cuisine.args_replace(config)
+        content = self.cuisine.core.args_replace(config)
         content = content.replace("$lclAddrs",  "0.0.0.0", 1)
         content = content.replace ("$port", "8384", 1)
 
@@ -411,7 +411,7 @@ class CuisineBuilder(object):
             self._startController()
 
     def _startCaddy(self, ssl):
-        cpath = self.cuisine.args_replace("$tmplsDir/cfg/caddy/caddyfile.conf")
+        cpath = self.cuisine.core.args_replace("$tmplsDir/cfg/caddy/caddyfile.conf")
         self.cuisine.processmanager.stop("caddy")  # will also kill
         if ssl:
             self.cuisine.fw.allowIncoming(443)
@@ -546,7 +546,7 @@ class CuisineBuilder(object):
         else:
             synccl = j.clients.syncthing.get(addr="localhost", port=18384, apikey=apikey)
 
-        jumpscripts_path = self.cuisine.args_replace("$cfgDir/controller/jumpscripts")
+        jumpscripts_path = self.cuisine.core.args_replace("$cfgDir/controller/jumpscripts")
         timeout = 30
         start = time.time()
         syn_id = None
@@ -674,7 +674,7 @@ class CuisineBuilder(object):
 
             """
             C=self.cuisine.bash.replaceEnvironInText(C)
-            C=self.cuisine.args_replace(C)
+            C=self.cuisine.core.args_replace(C)
             self.cuisine.core.run_script(C,profile=True)
             #move action
             C="""
@@ -686,7 +686,7 @@ class CuisineBuilder(object):
             rm -rf $base/apps/redis
             """
             C=self.cuisine.bash.replaceEnvironInText(C)
-            C=self.cuisine.args_replace(C)
+            C=self.cuisine.core.args_replace(C)
             self.cuisine.core.run_script(C, profile=True)
         else:
             if self.cuisine.core.command_check("redis-server")==False:
@@ -758,12 +758,12 @@ tar xvfz influxdb-0.10.0-1_linux_amd64.tar.gz
 cp influxdb-0.10.0-1/usr/bin/influxd $binDir
 cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $tmplsDir/cfg/influxdb/influxdb.conf"""
             C = self.cuisine.bash.replaceEnvironInText(C)
-            C = self.cuisine.args_replace(C)
+            C = self.cuisine.core.args_replace(C)
             self.cuisine.core.run_script(C, profile=True, action=True)
-            self.cuisine.bash.addPath(self.cuisine.args_replace("$binDir"), action=True)
+            self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
 
         if start:
-            self._start_influxdb(self)
+            self._start_influxdb()
 
     def _start_influxdb(self):
         binPath = self.cuisine.bash.cmdGetPath('influxd')
@@ -785,7 +785,7 @@ cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $tmplsDir/cfg/influxdb/influxdb.
     def grafana(self, start=True, influx_addr='127.0.0.1', influx_port=8086, port=3000):
 
         if self.cuisine.core.isUbuntu:
-            dataDir = self.cuisine.args_replace("$varDir/data/grafana")
+            dataDir = self.cuisine.core.args_replace("$varDir/data/grafana")
             logDir = '%s/log' %(dataDir)
             C= """
 cd $tmpDir
@@ -799,9 +799,9 @@ mkdir -p %s
 """%(logDir)
 
             C = self.cuisine.bash.replaceEnvironInText(C)
-            C = self.cuisine.args_replace(C)
+            C = self.cuisine.core.args_replace(C)
             self.cuisine.core.run_script(C, profile=True, action=True)
-            self.cuisine.bash.addPath(self.cuisine.args_replace("$binDir"), action=True)
+            self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
             cfg = self.cuisine.core.file_read("$tmplsDir/grafana/conf/defaults.ini")
             cfg = cfg.replace('data = data', 'data = %s'%(dataDir))
             cfg = cfg.replace('logs = data/log', 'logs = %s'%(logDir))
@@ -1041,7 +1041,7 @@ return dashboard;
         C = '''
         curl -L git.io/weave -o {binPath} && sudo chmod a+x {binPath}
         '''.format(binPath=binPath)
-        C = self.cuisine.args_replace(C)
+        C = self.cuisine.core.args_replace(C)
         self.cuisine.package.ensure('curl')
         self.cuisine.core.run_script(C, profile=True)
         self.cuisine.bash.addPath(j.sal.fs.getParent(binPath), action=True)

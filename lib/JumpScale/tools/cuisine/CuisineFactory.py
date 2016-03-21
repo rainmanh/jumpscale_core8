@@ -2,7 +2,7 @@ from JumpScale import j
 
 from Cuisine2 import *
 
-class OurCuisineFactory:
+class JSCuisineFactory:
     def __init__(self):
         self.__jslocation__ = "j.tools.cuisine"
         self._local=None
@@ -11,7 +11,7 @@ class OurCuisineFactory:
     @property
     def local(self):
         if self._local is None:
-            self._local = OurCuisine(j.tools.executor.getLocal())
+            self._local = JSCuisine(j.tools.executor.getLocal())
         return self._local
 
     def getPushKey(self,addr='localhost:22',login="root",passwd="",keyname="",pubkey=""):
@@ -61,7 +61,7 @@ class OurCuisineFactory:
         j.clients.ssh.cache={}
         executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login)#should now work with key only
 
-        cuisine = OurCuisine(executor)
+        cuisine = JSCuisine(executor)
         self._cuinses_instance[executor.id] = cuisine
         return self._cuinses_instance[executor.id]
 
@@ -80,7 +80,7 @@ class OurCuisineFactory:
         if executor.id in self._cuinses_instance:
             return self._cuinses_instance[executor.id]
 
-        cuisine = OurCuisine(executor)
+        cuisine = JSCuisine(executor)
         self._cuinses_instance[executor.id] = cuisine
         return self._cuinses_instance[executor.id]
 

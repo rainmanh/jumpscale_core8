@@ -942,13 +942,10 @@ class CuisineCore():
 
     @actionrun(action=True,force=True)
     def sudo(self, cmd, die=True,showout=True):
-        if not self.isMac:
-            sudomode = self.sudomode
-            self.sudomode = True
-            return self.run(cmd, die=die,showout=showout)
-            self.sudomode = sudomode
-        else:
-            return self.run(cmd, die=die,showout=showout)
+        sudomode = self.sudomode
+        self.sudomode = True
+        return self.run(cmd, die=die,showout=showout)
+        self.sudomode = sudomode
 
     @actionrun(action=True,force=True)
     def run(self,cmd,die=True,debug=None,checkok=False,showout=True,profile=False,replaceArgs=True,check_is_ok=False):

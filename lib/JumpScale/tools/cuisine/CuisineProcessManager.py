@@ -75,8 +75,8 @@ class CuisineSystemd(ProcessManagerBase):
 
         if not path:
             path = '/root'
-        cmd = self.cuisine.args_replace(cmd)
-        path = self.cuisine.args_replace(path)
+        cmd = self.cuisine.core.args_replace(cmd)
+        path = self.cuisine.core.args_replace(path)
         if cmd != "":
             if not cmd.startswith("/"):
                 cmd0=cmd.split(" ",1)[0]
@@ -87,7 +87,7 @@ class CuisineSystemd(ProcessManagerBase):
             for name0, value in list(env.items()):
                 envstr += "%s=%s " % (name0, value)
 
-            cmd = self.cuisine._clean(cmd)
+            cmd = self.cuisine.core._clean(cmd)
 
             if systemdunit!="":
                 C=systemdunit
@@ -149,8 +149,8 @@ class CuisineRunit(ProcessManagerBase):
         """Ensures that the given upstart service is self.running, starting
         it if necessary."""
 
-        cmd=self.cuisine.args_replace(cmd)
-        path=self.cuisine.args_replace(path)
+        cmd=self.cuisine.core.args_replace(cmd)
+        path=self.cuisine.core.args_replace(path)
 
 
         envstr = ""
@@ -219,8 +219,8 @@ class CuisineTmuxec(ProcessManagerBase):
     def ensure(self, name, cmd="", env={}, path="", descr=""):
         """Ensures that the given upstart service is self.running, starting
         it if necessary."""
-        cmd=self.cuisine.args_replace(cmd)
-        path=self.cuisine.args_replace(path)
+        cmd=self.cuisine.core.args_replace(cmd)
+        path=self.cuisine.core.args_replace(path)
 
         if cmd=="":
             cmd=j.core.db.hget("processcmds",name).decode()

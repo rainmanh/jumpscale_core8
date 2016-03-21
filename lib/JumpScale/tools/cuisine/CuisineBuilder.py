@@ -28,8 +28,8 @@ class CuisineBuilder(object):
     def all(self, start=False, sandbox=False, stor_addr=None):
         self.cuisine.installerdevelop.pip()
         self.cuisine.installerdevelop.python()
-        self.cuisine.installerdevelop.jumpscale8()
-        self.mongodb(start=start)
+        if not self.cuisine.executor.type == 'local':
+            self.cuisine.installerdevelop.jumpscale8()
         self.cuisine.portal.install(start=start)
         self.redis(start=start, force=True)
         self.core(start=start)
@@ -38,6 +38,7 @@ class CuisineBuilder(object):
         self.fs(start=start)
         self.stor(start=start)
         self.etcd(start=start)
+        self.mongodb(start=start)
         self.caddy(start=start)
         # self.skydns(start=start)
         self.influxdb(start=start)

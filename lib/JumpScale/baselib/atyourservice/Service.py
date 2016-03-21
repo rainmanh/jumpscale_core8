@@ -514,16 +514,16 @@ class Service:
                         ays_s.append(consumable)
 
                 if len(ays_s) > int(consumeitem.consume_nr_max):
-                    raise RuntimeError("Found too many services with role '%s' which we are relying upon for service '%s, max:'%s'"%(role, self, consumeitem.consume_nr_max))
+                    raise RuntimeError("Found too many services with role '%s' which we are relying upon for service '%s, max:'%s'" % (role, self, consumeitem.consume_nr_max))
                 if len(ays_s) < int(consumeitem.consume_nr_min):
-                    msg = "Found not enough services with role '%s' which we are relying upon for service '%s, min:'%s'"%(role, self, consumeitem.consume_nr_min)
+                    msg = "Found not enough services with role '%s' which we are relying upon for service '%s, min:'%s'" % (role, self, consumeitem.consume_nr_min)
                     if len(ays_s) > 0:
-                        msg += "Require following instances:%s"%self.args[consumename]
+                        msg += "Require following instances:%s" % self.args[consumename]
                     raise RuntimeError(msg)
 
                 for ays in ays_s:
-                    if role not in  self.producers:
-                        self._producers[role]=[]
+                    if role not in self.producers:
+                        self._producers[role] = []
                     if ays not in self._producers[role]:
                         self._producers[role].append(ays)
 
@@ -533,7 +533,7 @@ class Service:
                     if service.key not in producers:
                         producers.append(service.shortkey)
 
-                self.hrd.set("producer.%s" % key, producers)      
+                self.hrd.set("producer.%s" % key, producers)
 
     def consume(self, input):
         """
@@ -547,11 +547,6 @@ class Service:
         ```
 
         """
-        # return
-        # if str(input).strip() == "":
-        #     return
-
-        emsg = "consume format is: ayskey,ayskey"
         if input is not None and input is not '':
             toConsume = set()
             if j.data.types.string.check(input):
@@ -585,12 +580,12 @@ class Service:
 
             # walk over the producers
             # for producer in toConsume:
-            method=self._getActionMethodMgmt("consume")
+            method = self._getActionMethodMgmt("consume")
             if method:
-                    # j.atyourservice.alog.setNewAction(self.role, self.instance, "mgmt","consume")
+                # j.atyourservice.alog.setNewAction(self.role, self.instance, "mgmt","consume")
                 self.runAction('consume')
-                    # self.action_methods.consume(producer)
-                    # j.atyourservice.alog.setNewAction(self.role, self.instance, "mgmt","consume","OK")
+                # self.action_methods.consume(producer)
+                # j.atyourservice.alog.setNewAction(self.role, self.instance, "mgmt","consume","OK")
 
     def getProducersRecursive(self, producers=set(), callers=set()):
         for role, producers2 in self.producers.items():

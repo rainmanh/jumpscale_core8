@@ -84,7 +84,7 @@ class ServiceTemplate(object):
             # check if we can find it in other ays instance
             if self.name.find(".") != -1:
                 name = self.name.split(".", 1)[0]
-                templ = j.atyourservice.getTemplate(self.domain,name,die=False)
+                templ = j.atyourservice.getTemplate(self.domain, name,die=False)
                 if templ is not None:
                     self._schema = templ.hrd_schema
                     self.path_hrd_schema = templ.path_hrd_schema

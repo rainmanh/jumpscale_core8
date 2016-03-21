@@ -1,14 +1,12 @@
 from JumpScale import j
 from ServiceTemplate import ServiceTemplate
 from ServiceRecipe import ServiceRecipe
-from Service import Service, getProcessDicts, loadmodule
-import re
+from Service import Service, loadmodule
 from ActionsBaseNode import ActionsBaseNode
 from ActionMethodDecorator import ActionMethodDecorator
 from Blueprint import Blueprint
 # from AYSdb import *
 
-import traceback
 from AtYourServiceSync import AtYourServiceSync
 try:
     from AtYourServiceSandboxer import *
@@ -56,13 +54,11 @@ class AtYourServiceFactory():
         self._todo = []
         self._git=None
         self._blueprints=[]
-        self._alog=None
         self._servicesTree = {}
 
     def destroy(self):
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath,"recipes"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath,"services"))
-        j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath,"alog"))        
 
     @property
     def basepath(self):
@@ -132,7 +128,7 @@ class AtYourServiceFactory():
             dirname = j.sal.fs.getBaseName(path)
             if dirname.startswith("_"):
                 return
-            tocheck = ['schema.hrd', 'service.hrd', 'actions_mgmt.py', 'actions_node.py', 'model.py']
+            tocheck = ['schema.hrd', 'service.hrd', 'actions_mgmt.py', 'actions_node.py', 'model.py', 'actions.py']
             exists = [True for aysfile in tocheck if j.sal.fs.exists('%s/%s' % (path, aysfile))]
             if exists:
                 templ = ServiceTemplate(path, domain=domain)
@@ -368,27 +364,25 @@ class AtYourServiceFactory():
         return None
 
     def install(self,printonly=False,remember=True):
-        self.alog
         #start from clean sheet
         self.init()
         self.do(action="install",printonly=printonly,remember=remember)
-        if printonly or remember==False:
-            self.alog.removeLastRun()
 
 
     def commit(self,action="unknown",msg="",precheck=False):
-        if len(self.git.getModifiedFiles(True,ignore=["/alog/"]))>0:
-            if msg=="":
-                msg='ays changed, commit changed files for action:%s'%action
-            print(msg)
-            repo=self.git.commit(message=msg, addremove=True)
-            self.alog.newGitCommit(action=action,githash=repo.hexsha)
-        else:
-            #@todo will create duplicates will have to fix that
-            #git hash is current state
-            if not precheck:
-                #only do this when no precheck, means we are not cleaning up past
-                self.alog.newGitCommit(action=action,githash="")
+        pass
+        # if len(self.git.getModifiedFiles(True,ignore=["/alog/"]))>0:
+        #     if msg=="":
+        #         msg='ays changed, commit changed files for action:%s'%action
+        #     print(msg)
+        #     repo=self.git.commit(message=msg, addremove=True)
+        #     self.alog.newGitCommit(action=action,githash=repo.hexsha)
+        # else:
+        #     #@todo will create duplicates will have to fix that
+        #     #git hash is current state
+        #     if not precheck:
+        #         #only do this when no precheck, means we are not cleaning up past
+        #         self.alog.newGitCommit(action=action,githash="")
 
     def do(self,action="install",printonly=False,remember=True,allservices=False, ask=False):
 
@@ -533,6 +527,9 @@ class AtYourServiceFactory():
             return res[0]
 
         return res
+
+    def findAYSRepos(self):
+        return [j.sal.fs.getDirName(repo) for repo in j.sal.fs.walk(j.dirs.codeDir, 1, '.ays')]
 
     def findServices(self, name="", instance="",version="", domain="", parent=None, first=False, role="", node=None, include_disabled=False):
         res = []

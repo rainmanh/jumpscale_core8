@@ -123,7 +123,7 @@ class ServiceRecipe(ServiceTemplate):
                         #lets check we didn't get out of the def or property
                         if linestrip.startswith("@") or linestrip.startswith("def"):
                             indef=False
-                            intype=""                            
+                            intype=""
                             self._checkdef(actionmethod,defcontent) #remember action
                             defcontent=""
                             actionmethod=""
@@ -141,6 +141,7 @@ class ServiceRecipe(ServiceTemplate):
                         continue #ignore other decorators
 
                     if linestrip.startswith("def"):
+
                         if intype!="prop":
                             intype="def"
                         if linestrip.startswith("def input"):
@@ -176,7 +177,7 @@ class ServiceRecipe(ServiceTemplate):
             "check_down","check_requirements","cleanup","data_export","data_import","uninstall","removedata"]
 
         for method in actionmethodsRequired:
-            if method not in self.actionmethods.keys():
+            if method not in self.actionmethods:
                 if method!="input":
                     out+="    @actionmethod()\n    def %s(self):\n        return True\n\n"%method
                 else:

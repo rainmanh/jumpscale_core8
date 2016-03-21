@@ -1,6 +1,6 @@
 from JumpScale import j
 
-from tools.cuisine_.ActionDecorator import ActionDecorator
+from tools.cuisine.ActionDecorator import ActionDecorator
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
         ActionDecorator.__init__(self,*args,**kwargs)

@@ -576,9 +576,6 @@ class Action:
 
             
             if rcode > 0 or self.state=="ERROR":
-
-                from pudb import set_trace; set_trace() 
-
                 if self.die:
                     for action in self.getWhoDependsOnMe():
                         if action.state=="ERRORCHILD":

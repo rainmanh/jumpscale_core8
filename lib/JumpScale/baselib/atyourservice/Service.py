@@ -369,7 +369,7 @@ class Service:
 
             #make sure yaml is written again, which means changes will be detected
             if yaml!=None:
-                j.data.serializer.yaml.dump(j.sal.fs.joinPaths(service.path, "model.yaml"), yaml)
+                j.data.serializer.yaml.dump(j.sal.fs.joinPaths(self.path, "model.yaml"), yaml)
 
 
             #see if we can find parent if specified (potentially based on role)
@@ -390,32 +390,32 @@ class Service:
                     rolearg=""
 
                 if rolearg=="":
-                    ays_s=j.atyourself.findServices(role=role, name=name)
+                    ays_s=j.atyourservice.findServices(role=role, name=name)
                     if len(ays_s)==1:
                         #we found 1 service of required role, will take that one
                         aysi=ays_s[0]
                         rolearg=aysi.instance
                         self.args[role]=rolearg
                     elif len(ays_s)>1:
-                        raise RuntimeError("Cannt find parent with role '%s' for service '%s, there is more than 1"%(role,service))
+                        raise RuntimeError("Cannt find parent with role '%s' for service '%s, there is more than 1"%(role, self))
                     else:
                         if parent.auto:
-                            j.atyourself.new(name=parent.parent, instance='main', version='', domain='', path=None, parent=None, args={}, consume='')
+                            j.atyourservice.new(name=parent.parent, instance='main', version='', domain='', path=None, parent=None, args={}, consume='')
                             rolearg="main"
                         else:
-                            raise RuntimeError("Cannot find parent with role '%s' for service '%s, there is none, please make sure the service exists."%(role,service))
+                            raise RuntimeError("Cannot find parent with role '%s' for service '%s, there is none, please make sure the service exists."%(role, self))
 
                 #check we can find
                 ays_s=j.atyourservice.findServices(role=role,instance=rolearg)
-                if len(ays_s)==1:
+                if len(ays_s) == 1:
                     pass
                     #all ok
-                elif len(ays_s)>1:
-                    raise RuntimeError("Cannt find parent '%s' for service '%s, there is more than 1 with instance:'%s'"%(role,service,rolearg))
+                elif len(ays_s) > 1:
+                    raise RuntimeError("Cannt find parent '%s' for service '%s, there is more than 1 with instance:'%s'"%(role, self, rolearg))
                 else:
-                    raise RuntimeError("Cannot find parent '%s:%s' for service '%s', please make sure the service exists."%(role,rolearg,service))
+                    raise RuntimeError("Cannot find parent '%s:%s' for service '%s', please make sure the service exists."%(role, rolearg, self))
 
-                self._parent=ays_s[0]
+                self._parent = ays_s[0]
 
                 self.path = j.sal.fs.joinPaths(self.parent.path, "%s!%s" % (self.role, self.instance))
 
@@ -432,11 +432,11 @@ class Service:
             # if no schema.hrd exists in servicetemplate, raw yaml will be used as datasource
             # we just create en empty instance.hrd
             if j.sal.fs.exists(self.recipe.template.path_hrd_schema):
-                self._hrd = self.recipe.schema.hrdGet(hrd=self.hrd, args=self.args,path=hrdpath)
+                self._hrd = self.recipe.schema.hrdGet(hrd=self.hrd, args=self.args, path=hrdpath)
             else:
                 self._hrd = j.data.hrd.get(content="")
 
-            if self.recipe.hrd!=None:
+            if self.recipe.hrd is not None:
                 #apply values from recipe hrd to this hrd
                 self.hrd.applyTemplate(self.recipe.hrd)
 
@@ -447,13 +447,12 @@ class Service:
             self.hrd.set("service.instance", self.instance)
 
             if self.parent is not None:
-                self.hrd.set("parent",self.parent.shortkey)                
+                self.hrd.set("parent", self.parent.shortkey)
                 self.consume(self.parent)
 
+            self._manipulateHRD()
 
-            self._manipulateHRD()            
-
-            self._action_methods =None #to make sure we reload the actions
+            self._action_methods = None  # to make sure we reload the actions
 
             self.actions.hrd()
 
@@ -462,7 +461,7 @@ class Service:
                 recurringPeriod = self.hrd.getStr(item).strip("\"")
                 self.state.addRecurring(recurringName, recurringPeriod)
 
-            for key,amethod in self.recipe.actionmethods.items():
+            for key, _ in self.recipe.actionmethods.items():
                 self.state.getSet(key)
 
             self.state.save()
@@ -480,31 +479,13 @@ class Service:
         if self.name.startswith("node"):
             # set service name & ip addr
             if not exists(self.args, 'node.tcp.addr') or self.args['node.tcp.addr'].find('@ask')!=-1:
-                if "ip" in args:
+                if "ip" in self.args:
                     self.args['node.tcp.addr'] = self.args["ip"]
 
-            if not exists(args, 'node.name'):
+            if not exists(self.args, 'node.name'):
                 self.args['node.name'] = self.instance
 
-        ##fill in nameserver
-        if self.recipe.hrd.getBool("ns.enable",default=False) and "ns" not in self._producers:
-
-            if "ns" != self.role and not self.name.startswith("ns."):
-                # means we are not a nameservice ourselves (otherwise chicken & the egg issue)
-                serv = j.atyourself.findServices(role="ns")
-                if len(serv) == 1:
-                    ns_service = serv[0]
-                    self.consume("@ns")
-
-                    nsinstance = self.instance
-                    nsname = self.name.split(".")[0]
-                    nsdomain = ns_self.hrd.get("instance.ns.domain")
-                    if "instance.dns" not in self.args:
-                        self.args["instance.dns"] = []
-                    self.args["instance.dns"].append("%s.%s.%s" % (nsinstance, nsname, nsdomain))
-
     def _manipulateHRD(self):
-
         #manipulate the HRD's to mention the consume's to producers
         consumes = self.recipe.schema.consumeSchemaItemsGet()
 
@@ -519,7 +500,7 @@ class Service:
                     instancenames = self.args[consumename]
 
                 ays_s = list()
-                candidates = j.atyourself.findServices(role=consumeitem.consume_link)
+                candidates = j.atyourservice.findServices(role=consumeitem.consume_link)
                 if candidates:
                     if instancenames:
                         ays_s = [candidate for candidate in candidates if candidate.instance in instancenames]
@@ -529,15 +510,15 @@ class Service:
                 # autoconsume
                 if len(candidates) < int(consumeitem.consume_nr_min) and consumeitem.auto:
                     for instance in range(len(candidates), int(consumeitem.consume_nr_min)):
-                        consumable = j.atyourself.new(name=consumeitem.consume_link, instance='auto_%i' % instance, parent=self.parent)
+                        consumable = j.atyourservice.new(name=consumeitem.consume_link, instance='auto_%i' % instance, parent=self.parent)
                         ays_s.append(consumable)
 
-                if len(ays_s)>int(consumeitem.consume_nr_max):
-                    raise RuntimeError("Found too many services with role '%s' which we are relying upon for service '%s, max:'%s'"%(role,service,consumeitem.consume_nr_max))
-                if len(ays_s)<int(consumeitem.consume_nr_min):
-                    msg="Found not enough services with role '%s' which we are relying upon for service '%s, min:'%s'"%(role,service,consumeitem.consume_nr_min)
-                    if len(ays_s)>0:
-                        msg+="Require following instances:%s"%self.args[consumename]
+                if len(ays_s) > int(consumeitem.consume_nr_max):
+                    raise RuntimeError("Found too many services with role '%s' which we are relying upon for service '%s, max:'%s'"%(role, self, consumeitem.consume_nr_max))
+                if len(ays_s) < int(consumeitem.consume_nr_min):
+                    msg = "Found not enough services with role '%s' which we are relying upon for service '%s, min:'%s'"%(role, self, consumeitem.consume_nr_min)
+                    if len(ays_s) > 0:
+                        msg += "Require following instances:%s"%self.args[consumename]
                     raise RuntimeError(msg)
 
                 for ays in ays_s:
@@ -549,8 +530,8 @@ class Service:
             for key, services in self._producers.items():
                 producers = []
                 for service in services:
-                    if self.key not in producers:
-                        producers.append(self.shortkey)
+                    if service.key not in producers:
+                        producers.append(service.shortkey)
 
                 self.hrd.set("producer.%s" % key, producers)      
 

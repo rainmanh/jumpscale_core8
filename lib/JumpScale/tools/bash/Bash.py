@@ -137,7 +137,7 @@ class Bash:
         """
         Get environ
         """
-        return self.profile.environ.get(name, default,force=True)
+        return self.profile.environ.get(name, default)
 
 
     def environSet(self,key,val,temp=False):
@@ -220,6 +220,3 @@ class Bash:
     def include(self, path):
         self.profile.addInclude(path)
         self.cuisine.core.file_write(self.profilePath, self.profile.dump(),showout=False)
-
-
-

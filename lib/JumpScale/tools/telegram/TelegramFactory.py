@@ -4,8 +4,6 @@ from handlers.DemoHandlerMS1 import *
 from TelegramBot import *
 import os
 
-
-
 class TelegramFactory:
     def __init__(self):
         self.__jslocation__ = "j.tools.telegrambot"

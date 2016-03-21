@@ -107,8 +107,8 @@ class GCC_Mgmt():
             containers.append("%s:%s" % (node.addr, ssh_port))
 
             # needed cause weave already listen on port 53 on the host
-            ip = node.cuisine.run("jsdocker getip -n %s" % name)
-            node.cuisine.run("iptables -t nat -A PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination %s:53" % ip, action=True)
+            ip = node.cuisine.core.run("jsdocker getip -n %s" % name)
+            node.cuisine.core.run("iptables -t nat -A PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination %s:53" % ip, action=True)
 
         j.core.db.set("gcc.docker_nodes", ','.join(containers))
 
@@ -135,7 +135,7 @@ class GCC_Mgmt():
         self._configSkydns(node)
 
     def _configCaddy(self, node):
-        cfg = node.cuisine.file_read("$cfgDir/caddy/caddyfile.conf")
+        cfg = node.cuisine.core.file_read("$cfgDir/caddy/caddyfile.conf")
         cfg += """
         proxy /etcd localhost:2379 localhost:4001 {
         without /etcd
@@ -148,7 +148,7 @@ class GCC_Mgmt():
 
         if self._basicAuth:
             cfg += "\nbasicauth /etcd %s %s\n" % (self._basicAuth['login'], self._basicAuth['passwd'])
-        cfg = node.cuisine.file_write("$cfgDir/caddy/caddyfile.conf", cfg)
+        cfg = node.cuisine.core.file_write("$cfgDir/caddy/caddyfile.conf", cfg)
         node.cuisine.processmanager.start('caddy')
 
     def _configSkydns(self, node):

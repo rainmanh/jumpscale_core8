@@ -42,8 +42,20 @@ When you have a project with blueprints, you can apply some `ays` stuff on it:
 ## Installation
 Generate a token via @botfather on Telegram, then use it to launch this bot:
 
-```
+With a python script:
+```python
 from JumpScale import j
 bot = j.atyourservice.telegramBot('1857YYYY:XXXXXXXXXXXX')
 bot.run()
+```
+Using ays CLI:
+`ays bot -token 1857YYYY:XXXXXXXXXXXX`
+```shell
+ays bot --help
+Usage: ays bot [OPTIONS]
+
+Options:
+  -t, --token TEXT  Telegram bot token. talk to @BotFather to get one.
+  -r, --repo TEXT   Directory where to store the projects
+  --help            Show this message and exit.
 ```

@@ -8,6 +8,7 @@ import imp
 import sys
 from functools import wraps
 from Recurring import Recurring
+from ServiceState import ServiceState
 import traceback
 
 # def log(msg, level=2):
@@ -45,125 +46,6 @@ def getProcessDicts(service, args={}):
 
     return procs
 
-class ActionRun():
-
-    def __init__(self,service,name,epoch=0,state="",printonly=False):
-        """
-        @param state: INIT, START, OK, ERROR
-        """
-        self.service=service
-        self.name=name
-        self._method_node=""
-        self._method_mgmt_pre=""
-        self._method_mgmt_post=""
-        self._method_mgmt=""
-        self._methods=""
-        self.epoch=epoch
-        if self.epoch==0:
-            self.epoch=j.data.time.getTimeEpoch()
-        self._state=state
-        self.printonly=printonly
-        if self.state=="":
-            raise RuntimeError("state cannot be empty")
-
-    def setState(self,state):
-        if state !=self.state:
-            j.atyourservice.alog.newAction(self.service,self.name,state=state,logonly=True)
-            self._state=state
-
-    @property
-    def state(self):
-        return self._state
-
-
-    @property
-    def method_node(self):
-        if self._method_node == "":
-            if self.service.parent != None:
-                if self.service.parent.role == "ssh":
-                    self._method_node = self.service._getActionMethodNode(self.name)
-                    return self._method_node
-            self._method_node=None
-        return self._method_node
-
-    @property
-    def method_mgmt(self):
-        if self._method_mgmt=="":
-            self._method_mgmt=self.service._getActionMethodMgmt(self.name)
-        return self._method_mgmt
-
-    @property
-    def method_mgmt_pre(self):
-        if self._method_mgmt_pre=="":
-            self._method_mgmt_pre=self.service._getActionMethodMgmt(self.name+"_pre")
-        return self._method_mgmt_pre
-
-    @property
-    def method_mgmt_post(self):
-        if self._method_mgmt_post=="":
-            self._method_mgmt_post=self.service._getActionMethodMgmt(self.name+"_post")
-        return self._method_mgmt_post
-
-    @property
-    def methods(self):
-        if not self._methods:
-            res = list()
-            if self.method_mgmt_pre is not None:
-                res.append(self.method_mgmt_pre)
-            if self.method_node is not None:
-                res.append("node")
-            if self.method_mgmt is not None:
-                res.append(self.method_mgmt)
-            if self.method_mgmt_post is not None:
-                res.append(self.method_mgmt_post)
-            self._methods=res
-
-        return self._methods
-
-    def log(self, msg):
-        j.atyourservice.alog.log(msg=msg, category=self.name)
-
-    def run(self):
-        if len(self.methods)>0:
-
-            self.setState("START")
-            print("RUN:%s" % self)
-            for method in self.methods:
-                if not self.printonly:
-                    if j.atyourservice.debug:
-                        try:
-                            if method == "node":
-                                res = self.service._executeOnNode(self.name)
-                            else:
-                                res = method()
-                        except Exception as e:
-                            self.setState("ERROR")
-                            self.log("Exception: %s" % e)
-                            raise RuntimeError(e)
-                    else:
-                        f = io.StringIO()
-                        with redirect_stdout(f):
-                            try:
-                                if method == "node":
-                                    res = self.service._executeOnNode(self.name)
-                                else:
-                                    res = method()
-                                self.log(f.getvalue())
-                            except Exception as e:
-                                self.setState("ERROR")
-                                self.log("Exception: %s" % e)
-                                self.log("Ouput:\n %s" % f.getvalue())
-                                raise RuntimeError(e)
-        else:
-            print ("NO METHODS FOR: %s"%self)
-
-        self.setState("OK")
-
-    def __str__(self):
-        return ("%-20s -> do: %-30s (%s)"%(self.service,self.name,self.state))
-
-    __repr__=__str__
-
 
 class Service:
 
@@ -192,8 +74,8 @@ class Service:
 
             self._name = servicerecipe.name.lower()
             self.instance=instance
-            self._version = servicerecipe.parent.version
-            self._domain = servicerecipe.parent.domain.lower()
+            self._version = servicerecipe.template.version
+            self._domain = servicerecipe.template.domain.lower()
             self._recipe = servicerecipe
             self.role = self.name.split(".")[0]
             self._rememberActions = False
@@ -212,8 +94,7 @@ class Service:
         self._yaml = None
         self._mongoModel = None
 
-        self._action_methods_mgmt = None
-        self._action_methods_node = None
+        self._action_methods = None
 
         self._dnsNames = []
 
@@ -230,12 +111,6 @@ class Service:
         self._state = None
 
         self._executor = None
-
-        self._recurring = None
-
-        self._actionlog={} #key=actionname with _pre _post ... value = ActionRun
-
-        self.action_current = None
 
 
     @property
@@ -335,22 +210,22 @@ class Service:
     @property
     def state(self):
         if self._state==None:
-            self._state=None
+            self._state=ServiceState(self)
         return self._state
 
     @property
-    def action_methods_mgmt(self):
-        if self._action_methods_mgmt is None or not self._rememberActions:
+    def action_methods(self):
+        if self._action_methods is None or not self._rememberActions:
             if j.atyourservice.debug:
                 print ("reload mgmt actions for %s (%s)"%(self,self._rememberActions))
-            if j.sal.fs.exists(path=self.recipe.path_actions_mgmt):
-                action_methods_mgmt = self._loadActions(self.recipe.path_actions_mgmt,"mgmt")
+            if j.sal.fs.exists(path=self.recipe.path_actions):
+                action_methods = self._loadActions(self.recipe.path_actions,"mgmt")
             else:
-                action_methods_mgmt = j.atyourservice.getActionsBaseClassMgmt()(self)
+                action_methods = j.atyourservice.getActionsBaseClassMgmt()(self)
 
-            self._action_methods_mgmt = action_methods_mgmt
+            self._action_methods = action_methods
 
-        return self._action_methods_mgmt
+        return self._action_methods
 
     @property
     def action_methods_node(self):
@@ -406,7 +281,7 @@ class Service:
 
     def _getActionMethodMgmt(self,action):
         try:
-            method=eval("self.action_methods_mgmt.%s"%action)
+            method=eval("self.action_methods.%s"%action)
         except Exception as e:
             if str(e).find("has no attribute")!=-1:
                 return None
@@ -484,19 +359,31 @@ class Service:
 
     @property
     def recurring(self):
-        if self._recurring is None:
-            self._recurring = Recurring(self)
-        return self._recurring
+        if self._state is None:
+            self._state = Recurring(self)
+        return self._state
 
-    def init(self):
+    def init(self,force=False,yaml=None):
         if self._init is False:
+
             do = False
-            if not j.sal.fs.exists(j.sal.fs.joinPaths(self.path, "instance.hrd")):
-                do = True
+
+            if force:
+                do=True
+
+            #make sure yaml is written again, which means changes will be detected
+            if yaml!=None:
+                j.data.serializer.yaml.dump(j.sal.fs.joinPaths(service.path, "model.yaml"), yaml)
             else:
+                if do==False and not j.sal.fs.exists(j.sal.fs.joinPaths(self.path, "instance.hrd")):
+                    do=True
+
+            if do==False:
+                #now check which files got changed
                 changed, changes = j.atyourservice.alog.getChangedAtYourservices("init")
                 if self in changed:
                     do = True
+
             if do:
                 print("INIT:%s"%self)
                 j.sal.fs.createDir(self.path)
@@ -505,10 +392,10 @@ class Service:
 
                 # if no schema.hrd exists in servicetemplate, raw yaml will be used as datasource
                 # we just create en empty instance.hrd
-                if j.sal.fs.exists(self.recipe.parent.path_hrd_schema):
+                if j.sal.fs.exists(self.recipe.template.path_hrd_schema):
                     self._hrd = self.recipe.schema.hrdGet(hrd=self.hrd, args=self.args)
                 else:
-                    self._hrd = j.data.hrd.get(hrdpath)
+                    self._hrd = j.data.hrd.get(content="")
 
                 self.hrd.set("service.name", self.name)
                 self.hrd.set("service.version", self.version)
@@ -583,7 +470,7 @@ class Service:
             if method:
                     # j.atyourservice.alog.setNewAction(self.role, self.instance, "mgmt","consume")
                 self.runAction('consume')
-                    # self.action_methods_mgmt.consume(producer)
+                    # self.action_methods.consume(producer)
                     # j.atyourservice.alog.setNewAction(self.role, self.instance, "mgmt","consume","OK")
 
     def getProducersRecursive(self, producers=set(), callers=set()):
@@ -685,8 +572,8 @@ class Service:
         remotePath = j.sal.fs.joinPaths(hrd_root, 'services', j.sal.fs.getBaseName(self.path)).rstrip("/")+"/"
         self.log("uploading %s '%s'->'%s'" % (self.key,self.path,remotePath))
         templatepath = j.sal.fs.joinPaths(hrd_root, 'servicetemplates', j.sal.fs.getBaseName(self.recipe.path).rstrip("/"))
-        self.executor.cuisine.dir_ensure(templatepath, recursive=True)
-        self.executor.cuisine.dir_ensure(remotePath, recursive=True)
+        self.executor.cuisine.core.dir_ensure(templatepath, recursive=True)
+        self.executor.cuisine.core.dir_ensure(remotePath, recursive=True)
         self.executor.upload(self.recipe.path, templatepath)
         self.executor.upload(self.path, remotePath,recursive=False)
 
@@ -814,17 +701,17 @@ class Service:
     #     self.log("stop instance")
     #     self._executeOnNode("stop")
     #     self.recurring.stop()
-    #     self.action_methods_mgmt.stop(self)
+    #     self.action_methods.stop(self)
     #
-    #     if not self.action_methods_mgmt.check_down(self):
-    #         self.action_methods_mgmt.halt(self)
+    #     if not self.action_methods.check_down(self):
+    #         self.action_methods.halt(self)
     #         self._executeOnNode("halt")
 
     # def start(self):
     #     self.log("start instance")
     #     self._executeOnNode("start")
     #     self.recurring.start()
-    #     self.action_methods_mgmt.start(self)
+    #     self.action_methods.start(self)
     #
     # def restart(self):
     #     self.stop()
@@ -844,12 +731,12 @@ class Service:
     #
     #     log("INSTALL:%s" % self)
     #
-    #     self.action_methods_mgmt.install_pre(self)
+    #     self.action_methods.install_pre(self)
     #     if self.state.changed:
     #         self._uploadToNode()
     #     self._executeOnNode('prepare')
     #     self._executeOnNode('install')
-    #     self.action_methods_mgmt.install_post(self)
+    #     self.action_methods.install_post(self)
     #
     #     if self.recipe.hrd.getBool("hrd.return", False):
     #         self._downloadFromNode()
@@ -931,7 +818,7 @@ class Service:
     #         return
     #
     #     self.log("publish instance")
-    #     self.action_methods_mgmt.publish(self)
+    #     self.action_methods.publish(self)
     #
     # def package(self):
     #     """
@@ -939,7 +826,7 @@ class Service:
     #     if self._executeOnNode("package"):
     #         return
     #
-    #     self.action_methods_mgmt.package(self)
+    #     self.action_methods.package(self)
 
 
     # def update(self):
@@ -994,7 +881,7 @@ class Service:
     #         dest = "/opt/build/%s" % name
     #         j.sal.fs.remove(dest)
     #
-    #     self.action_methods_mgmt.removedata(self)
+    #     self.action_methods.removedata(self)
     #     j.atyourservice.remove(self)
 
     # def removedata(self):
@@ -1006,7 +893,7 @@ class Service:
     #     self._executeOnNode("removedata")
     #
     #     self.log("removedata instance")
-    #     self.action_methods_mgmt.removedata(self)
+    #     self.action_methods.removedata(self)
     #
     # def execute(self, cmd=None):
     #     """
@@ -1017,7 +904,7 @@ class Service:
     #
     #     if cmd is None:
     #         cmd = self.cmd
-    #     self.action_methods_mgmt.execute(self, cmd=cmd)
+    #     self.action_methods.execute(self, cmd=cmd)
 
     # def _uninstall(self):
     #     for recipeitem in self.recipe.hrd.getListFromPrefix("web.export"):
@@ -1093,7 +980,7 @@ class Service:
     #     self.log("uninstall instance")
     #     self.disable()
     #     self._uninstall()
-    #     self.action_methods_mgmt.uninstall(self)
+    #     self.action_methods.uninstall(self)
     #     j.sal.fs.removeDirTree(self.path)
     #
     # def monitor(self):
@@ -1101,9 +988,9 @@ class Service:
     #     Schedule the monitor local and monitor remote methods
     #     """
     #     if self._executeOnNode("monitor"):
-    #         res = self.action_methods_mgmt.check_up_local(self)
-    #         res = res and self.action_methods_mgmt.schedule_monitor_local(self)
-    #         res = res and self.action_methods_mgmt.schedule_monitor_remote(self)
+    #         res = self.action_methods.check_up_local(self)
+    #         res = res and self.action_methods.schedule_monitor_local(self)
+    #         res = res and self.action_methods.schedule_monitor_remote(self)
     #         return res
     #
     #     return True
@@ -1113,7 +1000,7 @@ class Service:
     #         return
     #
     #     self.log("import instance data")
-    #     self.action_methods_mgmt.data_import(url, self)
+    #     self.action_methods.data_import(url, self)
     #
     # def export(self, url):
     #     if self._executeOnNode("export"):
@@ -1125,7 +1012,7 @@ class Service:
     # def configure(self, restart=True):
     #
     #     self.log("configure instance mgmt")
-    #     res = self.action_methods_mgmt.configure(self)
+    #     res = self.action_methods.configure(self)
     #     if res is False:
     #         j.events.opserror_critical(msg="Could not configure %s (mgmt)" % self, category="ays.service.configure")
     #

@@ -38,7 +38,7 @@ class ServiceTemplate(object):
     def _init(self):
         self.path_hrd_template = j.sal.fs.joinPaths(self.path, "template.hrd")
         self.path_hrd_schema = j.sal.fs.joinPaths(self.path, "schema.hrd")
-        self.path_actions_mgmt = j.sal.fs.joinPaths(self.path, "actions_mgmt.py")
+        self.path_actions = j.sal.fs.joinPaths(self.path, "actions_mgmt.py")
         self.path_actions_node = j.sal.fs.joinPaths(self.path, "actions_node.py")
         self.path_mongo_model = j.sal.fs.joinPaths(self.path, "model.py")
 
@@ -94,7 +94,7 @@ class ServiceTemplate(object):
     # @property
     # def actions(self):
     #     if self._actions is None:
-    #         if j.sal.fs.exists(self.path_actions_mgmt):
+    #         if j.sal.fs.exists(self.path_actions):
     #             modulename = "JumpScale.atyourservice.%s.%s.mgmt" % (self.domain, self.name)
     #             from IPython import embed
     #             print ("DEBUG NOW iuiuiu")
@@ -102,7 +102,7 @@ class ServiceTemplate(object):
     #             i
     #             tmppath=j.sal.fs.joinPaths(j.dirs.tmpDir,"aysrecipes",self.name+".py")
     #             j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.tmpDir,"aysrecipes"))
-    #             j.sal.fs.copyFile(self.path_actions_mgmt,tmppath)
+    #             j.sal.fs.copyFile(self.path_actions,tmppath)
 
     #             mod = loadmodule(modulename, tmppath)
     #             self._actions = mod.Actions(self)
@@ -175,8 +175,8 @@ class ServiceTemplate(object):
 
             dockerExecutor = j.tools.executor.getSSHBased(docker_addr, docker_port)
             # clean service tempates in docker to be sure we have the local version.
-            if dockerExecutor.cuisine.dir_exists(self.path):
-                dockerExecutor.cuisine.dir_remove(self.path, recursive=True)
+            if dockerExecutor.cuisine.core.dir_exists(self.path):
+                dockerExecutor.cuisine.core.dir_remove(self.path, recursive=True)
             # upload local template inside the docker.
             dockerExecutor.upload(self.path, self.path)
 

@@ -3,10 +3,10 @@ from ServiceTemplate import ServiceTemplate
 from ServiceRecipe import ServiceRecipe
 from Service import Service, getProcessDicts, loadmodule
 import re
-from ActionsBaseMgmt import ActionsBaseMgmt
+from ActionsBase import ActionsBaseMgmt
 from ActionsBaseNode import ActionsBaseNode
 from Blueprint import Blueprint
-from ALog import *
+# from ALog import *
 import traceback
 from AtYourServiceSync import AtYourServiceSync
 try:
@@ -299,7 +299,10 @@ class AtYourServiceFactory():
 
     def init(self,newrun=True):
 
+
         self.reset()
+
+        self.alog.checkChangedBlueprint(action="init")
 
         # make sure the recipe's are loaded & initted
         for bp in self.blueprints:
@@ -353,6 +356,11 @@ class AtYourServiceFactory():
 
     def getActionsBaseClassNode(self):
         return ActionsBaseNode
+
+    def getBlueprint(self,path):
+        if not j.sal.fs.exists(path):
+            path=self.basepath+"/"+path        
+        return Blueprint(path)
 
     def getActionsBaseClassMgmt(self):
         return ActionsBaseMgmt

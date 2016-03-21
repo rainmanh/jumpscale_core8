@@ -15,7 +15,8 @@ from pygments.formatters import get_formatter_by_name
 
 
 class Action:
-    def __init__(self, action=None,runid=0,actionRecover=None,args=(),kwargs={},die=True,stdOutput=True,errorOutput=True,retry=1,serviceObj=None,deps=[],key="",selfGeneratorCode="",force=False):
+    def __init__(self, action=None,runid=0,actionRecover=None,args=(),kwargs={},die=True,stdOutput=True,errorOutput=True,retry=1,\
+                serviceObj=None,deps=[],key="",selfGeneratorCode="",force=False,actionshow=True):
         '''
         self.doc is in doc string of method
         specify recover actions in the description
@@ -43,6 +44,8 @@ class Action:
         self._stdOutput=stdOutput
         self._errorOutput=errorOutput
         self._state="INIT"
+
+        self.actionshow=actionshow
 
         #avoid we can write to it
         self._name=""
@@ -114,19 +117,17 @@ class Action:
         else:
             self._load(True)
 
-        self._parent=j.actions._current
-        if self._parent!=None:
-            self.parent.addDep(self)
+
+        self._parents=[]
+        if len(j.actions.stack)>0:
+            for actionstack in j.actions.stack:
+                if actionstack.key not in self._parents:
+                    self._parents.append(actionstack.key)
+                    actionstack.addDep(self)
 
         if self.state=="INIT" and key=="":
             #is first time
             self.save(True)
-
-
-    @property
-    def parent(self):
-        if self._parent!=None:
-            return j.actions.get(self._parent)
 
 
     @property
@@ -201,7 +202,7 @@ class Action:
         model["_args"]=self._args
         model["_kwargs"]=self._kwargs
         model["_result"]=self._result
-        model["_parent"]=self._parent
+        model["_parents"]=self._parents
         model["error"]=self.error
         model["selfGeneratorCode"]=self.selfGeneratorCode
         model["runid"] = self.runid
@@ -213,6 +214,10 @@ class Action:
         model["calling_linenr"] = self.calling_linenr
 
         return model
+
+    @property
+    def parents(self):
+        return [j.actions.get(item) for item in self._parents]
 
     def _load(self,all=False):
         # print('load key %s' % self.key)
@@ -436,6 +441,38 @@ class Action:
         return args
 
     @property
+    def _args10line(self):
+        out=""
+        for arg in self.args:
+            out+="%s,"%arg
+        out=out.strip(",")
+        if len(self.kwargs.items())>0:
+            out+=" | "
+            for key,arg in self.kwargs.items():
+                out+="%s:%s,"%(key,str(arg).strip())
+        out=out.strip()
+        out=out.strip(",|")
+        out=out.strip()
+        out=out.strip(",|")
+        args=out.strip()
+        if len(args)>120 or args.find("\n")!=-1:
+            out=""
+            if len(self.args)>0:
+                argsdict={}
+                counter=0
+                for item  in self.args:
+                    counter+=1
+                    argsdict["arg%s"%counter]=item
+                out+=str(j.data.hrd.getHRDFromDict(argsdict))
+            if self.kwargs!={}:
+                out+=str(j.data.hrd.getHRDFromDict(self.kwargs))
+            out=out.replace("\n\n","\n")
+            out=out.replace("\n\n","\n")
+            out=out.replace("\n\n","\n")
+            args="\n%s"%j.data.text.indent(out, nspaces=6, wrap=120, strip=True, indentchar=' ')
+        return args
+
+    @property
     def path(self):
         return self._path
 
@@ -459,22 +496,16 @@ class Action:
 
     def execute(self):
         self.check() #see about changed source code
-        j.actions._current=self.key
+        j.actions.addToStack(self)
 
-
-        #makes sure we will force the action, needs to stay
-        if self.force:
-            self.state="FORCE"
-
-        # args=str(self.args)
-        # myid=str(self)
-
-        if self.state == "OK":
-            print("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
-            j.actions._current=None
+        if self.state == "OK" and self.force==False:
+            if self.actionshow:
+                print("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
+            j.actions.delFromStack(self)
             return
 
-        print("  * %-20s: %s" % (self.name, self._args1line))
+        if self.actionshow:
+            print("  * %-20s: %s" % (self.name, self._args10line))
 
         if self._stdOutput == False:
             j.tools.console.hideOutput()
@@ -485,7 +516,7 @@ class Action:
             counter=0
             ok=False
             tb_text = ''
-            err = 'tb_text'
+            err = ''
 
             while ok==False and counter<self.retry+1:
 
@@ -513,11 +544,11 @@ class Action:
                     #     self.traceback+="%s\n"%line.strip()
                     # err=""
 
+                    # from pudb import set_trace; set_trace() 
 
                     tb=e.__traceback__
                     value=e
                     type=None
-
 
                     tblist=traceback.format_exception(type, value, tb)
                     tblist.pop(1)
@@ -536,8 +567,6 @@ class Action:
                         tb_text=""
                         err=err.replace("**NOSTACK**","")
 
-
-
             #we did the retries, rcode will be >0 if error
             if self._stdOutput == False:
                 j.tools.console.enableOutput()
@@ -547,15 +576,13 @@ class Action:
             if rcode > 0 or self.state=="ERROR":
 
 
-                # from pudb import set_trace; set_trace()
-
                 if self.die:
                     for action in self.getWhoDependsOnMe():
                         if action.state=="ERRORCHILD":
                             continue #to avoid saving
                         # print ("#####%s"%self)
                         # print (action)
-                        action.state="ERROR"
+                        action.state="ERRORCHILD"
                         # print (action)
                         action.save()
 
@@ -563,10 +590,8 @@ class Action:
                 if self.actionRecover != None:
                     self.actionRecover.execute()
 
-
-
                 if self.state=="ERRORCHILD":
-                    j.actions._current=None
+                    j.actions.delFromStack(self)
                     #we are already in error, means error came from child
                     if self.die:
                         raise RuntimeError("error in action: %s"%self)
@@ -581,17 +606,20 @@ class Action:
                 self.print()
                 self.save()
 
-
                 #we are no longer in action, so remove
-                j.actions._current=None
+                j.actions.delFromStack(self)
                 if self.die:
-                    raise RuntimeError("error in action: %s"%self)
+                    # if j.actions.stack==[]:
+                    print("error in action: %s"%self)
+                    sys.exit(1)
+                    # else:
+                    #     raise RuntimeError("error in action: %s"%self)
             else:
                 self.state = "OK"
 
 
             #actions done so need to make sure current is None again
-            j.actions._current=None
+            j.actions.delFromStack(self)
             self.save(checkcode=True)
         else:
             rcode=0
@@ -601,7 +629,7 @@ class Action:
         return rcode
 
     def __str__(self):
-        msg = "action: %-20s runid:%-15s      (%s)\n" % (self.name, self.runid, self.state)
+        msg = "action: %-20s runid:%-15s (%s)\n    %s\n" % (self.name, self.runid, self.state,self._args10line)
         return msg
 
     @property
@@ -660,9 +688,9 @@ class Action:
             if msg[-1]!="\n":
                 msg+="\n"
         if self.result != None:
-            msg += "RESULT:\n%s" % j.data.text.indent(self.result)
+            msg += "RESULT:\n%s" % j.data.text.indent(str(self.result))
         if self.error != "":
-            msg += "ERROR:\n%s" % j.data.text.indent(self.error)
+            msg += "ERROR:\n%s" % j.data.text.indent(str(self.error))
             if msg[-1]!="\n":
                 msg+="\n"
         if msg[-1]!="\n":

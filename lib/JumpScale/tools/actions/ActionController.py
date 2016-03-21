@@ -18,7 +18,6 @@ class ActionController(object):
         self._actions = {}
         self.lastOnes=[]
         self.last = None
-        self._current=None #is the current running action !
         self._runid = j.core.db.get("actions.runid").decode() if j.core.db.exists("actions.runid") else None
         showonly = j.core.db.hget("actions.showonly", self._runid)
         if showonly is None:
@@ -79,7 +78,7 @@ class ActionController(object):
     def selectAction(self):
         return j.tools.console.askChoice(j.actions.actions)
 
-    def add(self, action,actionRecover=None,args=(),kwargs={},die=True,stdOutput=False,errorOutput=True,retry=0,serviceObj=None,deps=None,executeNow=True,selfGeneratorCode="",force=True,showout=None):
+    def add(self, action,actionRecover=None,args=(),kwargs={},die=True,stdOutput=False,errorOutput=True,retry=0,serviceObj=None,deps=None,executeNow=True,selfGeneratorCode="",force=True,showout=None,actionshow=True):
         '''
         self.doc is in doc string of method
         specify recover actions in the description
@@ -114,13 +113,13 @@ class ActionController(object):
             raise RuntimeError("cannot create action: args should be a list, kwargs a dict, input error")
 
         action=Action(action,runid=self.runid,actionRecover=actionRecover,args=args,kwargs=kwargs,die=die,stdOutput=stdOutput,errorOutput=errorOutput,\
-            retry=retry,serviceObj=serviceObj,deps=deps,selfGeneratorCode=selfGeneratorCode,force=force)
+            retry=retry,serviceObj=serviceObj,deps=deps,selfGeneratorCode=selfGeneratorCode,force=force,actionshow=actionshow)
 
         action.calling_linenr=linenr
         action.calling_path=fpath
 
 
-        while len(self.lastOnes)>10:
+        while len(self.lastOnes)>100:
             self.lastOnes.pop()
         self.lastOnes.append(action)
 
@@ -132,6 +131,28 @@ class ActionController(object):
         else:
             action.save(True)
         return action
+
+    def addToStack(self,action):
+        if action not in self.stack:
+            self.stack.append(action)
+
+    def delFromStack(self,action):
+        if action in self.stack:
+            self.stack.pop(self.stack.index(action))
+
+    @property
+    def stack(self):
+        val=j.core.db.hget("actions.stack",self.runid)
+        if val==None:
+            val2=[]
+        else:
+            val2=j.data.serializer.json.loads(val)
+        return val2
+
+    @stack.setter
+    def stack(self,val):
+        val2=j.data.serializer.json.dumps(val)
+        j.core.db.hset("actions.stack",self.runid,val2)
 
     def start(self, action,actionRecover=None,args={},die=True,stdOutput=False,errorOutput=True,retry=1,serviceObj=None,deps=[]):
         """

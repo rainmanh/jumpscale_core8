@@ -814,7 +814,7 @@ class NetTools(SALObject):
         if j.sal.fs.isDir(localpath):
             filename = j.sal.fs.joinPaths(localpath, j.sal.fs.getBaseName(url))
         else:
-            if j.sal.fs.isDir(j.sal.fs.getDirName(localpath)) and not j.sal.fs.exists(localpath):
+            if j.sal.fs.isDir(j.sal.fs.getDirName(localpath)):
                 filename = localpath
             else:
                 raise ValueError('Local path is an invalid path')
@@ -838,6 +838,10 @@ class NetTools(SALObject):
                 raise RuntimeError('Could not authenticate with the given authentication user:%s and password:%s'%(self._user, self._passwd))
 
         urlopener = myURLOpener(username, passwd)
+
+
+        if not j.sal.fs.exists(filename):
+            overwrite=True        
 
         if overwrite:
             if username and passwd and splittype(url)[0] == 'ftp':

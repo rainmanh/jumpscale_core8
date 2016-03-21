@@ -3,8 +3,6 @@ from mongoengine.fields import IntField, StringField, ListField, BooleanField, D
 from mongoengine import DoesNotExist, EmbeddedDocument, Document
 from JumpScale import j
 
-import uuid
-
 DB = 'jumpscale_system'
 
 default_meta = {'allow_inheritance': True, "db_alias": DB}
@@ -435,9 +433,20 @@ class User(ModelBase, Document):
     authkeys = ListField(StringField())
 
     def authenticate(username, passwd):
-        if User.objects(__raw__={'name': username, 'passwd': {'$in': [passwd, j.data.hash.md5_string(passwd)]}}):
-            return True
+        import crypt
+        import hmac
+        for user in User.find({'name': username}):
+            if hmac.compare_digest(user.passwd, crypt.crypt(passwd, user.passwd)):
+                return True
         return False
+
+    def save(user):
+        import crypt
+        import hmac
+        passwd = crypt.crypt(user.passwd)
+        if not hmac.compare_digest(user.passwd, passwd):
+            user.passwd = passwd
+        super(ModelBase, user).save()
 
 
 class SessionCache(ModelBase, Document):

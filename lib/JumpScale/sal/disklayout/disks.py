@@ -25,7 +25,14 @@ def _default_formatter(name, fstype):
         fstype=fstype,
         name=name
     )
+class PartitionError(Exception):
+    pass
 
+class FormatError(Exception):
+    pass
+
+class DiskError(Exception):
+    pass
 
 class BlkInfo(object):
     def __init__(self,  name, type, size):

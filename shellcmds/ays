@@ -66,12 +66,6 @@ def showactions():
         for key,action in service.actions.items():
             print ("- %-20s %s"%(key,action))
 
-@click.command()
-def removelastrun():
-    """
-    remove last runid from the actionlog
-    """
-    j.atyourservice.alog.removeLastRun()
 
 @click.command()
 @click.argument('action')
@@ -158,13 +152,13 @@ def destroy():
 cli.add_command(new)
 cli.add_command(destroy)
 cli.add_command(init)
+# cli.add_command(commit)
 cli.add_command(install)
 cli.add_command(do)
 cli.add_command(do0)
 cli.add_command(showproducers)
 cli.add_command(showparents)
 cli.add_command(showactions)
-cli.add_command(removelastrun)
 cli.add_command(list)
 cli.add_command(printlog)
 cli.add_command(bot)

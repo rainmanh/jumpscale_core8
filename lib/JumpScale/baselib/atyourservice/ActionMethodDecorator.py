@@ -80,7 +80,11 @@ class ActionMethodDecorator(object):
                     msg="**ERROR ACTION**:\n%s"%action0
                     # raise RuntimeError()
                     print (msg)
+                    service.save()
                     sys.exit(1)
+
+                service.save()
+
                 return action0.result
             else:
                 return func(*args,**kwargs)

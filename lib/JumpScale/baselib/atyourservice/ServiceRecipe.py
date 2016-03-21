@@ -172,7 +172,7 @@ class ServiceRecipe(ServiceTemplate):
                     out+="%s\n"%line
 
 
-        actionmethodsRequired=["input","hrd","init","install","stop","start","monitor","halt","check_up",\
+        actionmethodsRequired=["input","hrd","install","stop","start","monitor","halt","check_up",\
             "check_down","check_requirements","cleanup","data_export","data_import","uninstall","removedata"]
 
         for method in actionmethodsRequired:

@@ -210,14 +210,6 @@ class Service:
                         self._mongoModel[k] = v
         return self._mongoModel
 
-    # @property
-    # def hrd_template(self):
-    #     if self._hrd_template:
-    #         return self._hrd_template
-    #     path = j.sal.fs.joinPaths(self.path, "template.hrd")
-    #     self._hrd_template = j.data.hrd.get(path, prefixWithName=False)
-    #     return self._hrd_template
-
     @property
     def state(self):
         if self._state==None:
@@ -365,6 +357,8 @@ class Service:
     #         self._executor = self._getExecutor()
     #     return self._executor
 
+    def save(self):
+        self.state.save()
 
     def init(self,yaml=None):
         if self._init is False:

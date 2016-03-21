@@ -330,7 +330,7 @@ class HRD(HRDBase):
         else:
             return "base"
 
-    def applyTemplates(self,path="",templates=[],args={},prefix=""):
+    def applyTemplate(self,template,args={},prefix=""):
         """
         IMPORTANT:
         this should be the ONLy location where args & templates are applied to hrd
@@ -340,14 +340,6 @@ class HRD(HRDBase):
         if self.istemplate:
             return
 
-        if not j.data.types.list.check(templates):
-            templates=[templates]
-
-        if path!="":
-            templates.append(HRD(path=path,istemplate=True))
-
-        changes={}
-
         if prefix:
             prefix = '%s.' % prefix if not prefix.endswith('.') else prefix
 
@@ -355,79 +347,41 @@ class HRD(HRDBase):
         args2 = copy.copy(self.args)
         args2.update(args)
 
-        for template in templates:
 
-            #apply template
-            for key,templateItem in template.items.items():
-                if not key.startswith(prefix):
-                    key2 = (prefix+key).lower()
-                else:
-                    key2=key.lower()
-                if key2 in self.items:
-                    if templateItem.data.find("@ASK")==-1:
-                        #means we overrule & put it (its not a dynamic variable)
-                        if self.items[key2].data != templateItem.data and templateItem.data.strip()!="":
-                            print("we overrule: %s with '%s'"%(key2,templateItem.data))
-                            changes[key2] = [self.items[key2].data, templateItem.data]
-                            self.items[key2].data=templateItem.data
-                            self.items[key2].comments=templateItem.comments
-                            self.items[key2].ttype=templateItem.ttype
-                            
-                else:
-                    #its not in hrd yet
-                    if templateItem.data.find("@ASK")==-1:
-                        self.set(key2, value=templateItem.value, persistent=False, comments=templateItem.comments, ttype=templateItem.ttype, data=templateItem.data)
-                    else:
-                        self.set(key2, value="", persistent=False, comments=templateItem.comments, ttype=templateItem.ttype, data=templateItem.data)
+        #apply template
+        for key,templateItem in template.items.items():
+            if not key.startswith(prefix):
+                key2 = (prefix+key).lower()
+            else:
+                key2=key.lower()
+            if key2 in self.items:
+                if templateItem.data.find("@ASK")==-1:
+                    #means we overrule & put it (its not a dynamic variable)
+                    if self.items[key2].data != templateItem.data and templateItem.data.strip()!="":
+                        print("we overrule: %s with '%s'"%(key2,templateItem.data))
+                        # changes[key2] = [self.items[key2].data, templateItem.data]
+                        self.items[key2].data=templateItem.data
+                        self.items[key2].comments=templateItem.comments
+                        self.items[key2].ttype=templateItem.ttype
                         
-                    # self.items[key2].data=templateItem.data
-                    # self.items[key2].comments=templateItem.comments
-                    # self.items[key2].ttype=templateItem.ttype           
-                    changes[key2]=["",templateItem.data]
-                    self.items[key2]                    
+            else:
+                #its not in hrd yet
+                if templateItem.data.find("@ASK")==-1:
+                    self.set(key2, value=templateItem.value, persistent=False, comments=templateItem.comments, ttype=templateItem.ttype, data=templateItem.data)
+                else:
+                    self.set(key2, value="", persistent=False, comments=templateItem.comments, ttype=templateItem.ttype, data=templateItem.data)
+                    
+                # self.items[key2].data=templateItem.data
+                # self.items[key2].comments=templateItem.comments
+                # self.items[key2].ttype=templateItem.ttype           
+                self.items[key2]                    
     
-        if len(list(changes.keys()))>0:
-            self.save()
-
+        self.save()
 
         #process the args
         self.setArgs(args2,prefix=prefix)
 
         self.save()
-
-        #now process the asks
-        for key,item in self.items.items():
-            if item.value != item.get():
-                if key in changes:
-                    changes[key]=[changes[key][0],item.value ]
-                else:
-                    changes[key]=[item.get(),item.value]
-
-            #         changes[key]=[item.get(),val]
-            # if (item.ttype=='str' or item.ttype=="base") and item.data.find("@ASK")!=-1:
-            #     from IPython import embed
-            #     print "DEBUG NOW sss333"
-            #     embed()
-                
-            #     # ttype, val=j.data.text.ask(item.data,name=key)
-            #     item.get()
-            #     # if not ttype:
-            #     #     ttype = item.ttype
-            #     # self.set(key,val,persistent=True,ttype=ttype,data=val)
-            #     if changes.has_key(key):
-            #         changes[key]=[changes[key][0],val]
-            #     else:
-            #         changes[key]=[item.get(),val]
-
-        if len(changes)>0:
-            self.changed=True
-            self.save()
-            template.applyOnFile(self.path)
-            self.applyOnFile(self.path)
-            j.application.config.applyOnFile(self.path)
-            self.process()
-
-        return changes
 
     def setArgs(self,args,prefix=""):
         #process the args

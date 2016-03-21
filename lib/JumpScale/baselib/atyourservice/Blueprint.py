@@ -45,7 +45,7 @@ class Blueprint(object):
                     aysname,aysinstance=key.split("_",1)
                     j.atyourservice.getRecipe(name=aysname)
 
-    def execute(self,force=False):
+    def execute(self):
         for model in self.models:
             if model is not None:
                 for key, item in model.items():
@@ -54,8 +54,7 @@ class Blueprint(object):
                     r = j.atyourservice.getRecipe(name=aysname)
                     yaml=model['%s_%s' % (aysname, aysinstance)]
                     aysi=r.newInstance(instance=aysinstance, args=item, yaml=yaml)
-                    if force:
-                        aysi.init(force=True)
+                    aysi.init()                    
 
     def _add2models(self,content,nr):
         #make sure we don't process double

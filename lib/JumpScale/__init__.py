@@ -259,6 +259,6 @@ if data==None:
 
 j.application.init()
 
-j.tools.xonsh
+# j.tools.xonsh
 
 

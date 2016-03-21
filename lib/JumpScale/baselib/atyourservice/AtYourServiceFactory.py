@@ -3,10 +3,11 @@ from ServiceTemplate import ServiceTemplate
 from ServiceRecipe import ServiceRecipe
 from Service import Service, getProcessDicts, loadmodule
 import re
-from ActionsBaseMgmt import ActionsBaseMgmt
 from ActionsBaseNode import ActionsBaseNode
+from ActionMethodDecorator import ActionMethodDecorator
 from Blueprint import Blueprint
-from ALog import *
+# from AYSdb import *
+
 import traceback
 from AtYourServiceSync import AtYourServiceSync
 try:
@@ -15,6 +16,9 @@ except:
     pass
 import os
 
+
+import colored_traceback
+colored_traceback.add_hook(always=True)
 
 class AtYourServiceFactory():
 
@@ -37,12 +41,9 @@ class AtYourServiceFactory():
         self._basepath=None
         self._git=None
         self._blueprints=[]
-        self._alog=None
-        self._runcategory=""
         self._sandboxer=None
         self._roletemplates = dict()
         self._servicesTree = {}
-
         # self._db=AYSDB()
 
     def reset(self):
@@ -58,24 +59,10 @@ class AtYourServiceFactory():
         self._alog=None
         self._servicesTree = {}
 
-    @property
-    def runcategory(self):
-        if self._runcategory=="":
-            self._runcategory="deploy"
-        return self._runcategory
-
-    @runcategory.setter
-    def runcategory(self,val):
-        if val!=self._runcategory:
-            self.reset()
-            self._runcategory=val
-
-    @property
-    def alog(self):
-        if self._alog==None:
-            self._alog=ALog(self.runcategory)
-            # self._alog.getNewRun()
-        return self._alog
+    def destroy(self):
+        j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath,"recipes"))
+        j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath,"services"))
+        j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath,"alog"))        
 
     @property
     def basepath(self):
@@ -262,6 +249,10 @@ class AtYourServiceFactory():
             self._init = True
 
         if self._init is False:
+
+            j.actions.setRunId("ays_%s"%j.sal.fs.getBaseName(j.atyourservice.basepath))
+            # j.actions.reset()
+
             j.logger.consolelogCategories.append("AYS")
 
             # j.do.debug=True
@@ -299,10 +290,7 @@ class AtYourServiceFactory():
 
     def init(self,newrun=True):
 
-
         self.reset()
-
-        self.alog.checkChangedBlueprint(action="init")
 
         # make sure the recipe's are loaded & initted
         for bp in self.blueprints:
@@ -310,19 +298,9 @@ class AtYourServiceFactory():
 
         # start from clean sheet
         self.reset()
-        self.alog
-        self.commitGitChanges(action="init_pre",msg='ays changed, commit changed files before deploy of blueprints',precheck=True)
 
-        latestrun=self.alog.newRun(action="init")
-
-        print("init runid:%s" % self.alog.lastRunId)
-        commitc=""
         for bp in self.blueprints:
             bp.execute()
-            commitc+="\nBlueprint:%s\n"%bp.path
-            commitc+=bp.content+"\n"
-
-        self.commitGitChanges(action="init")
 
         print ("init done")
 
@@ -334,7 +312,6 @@ class AtYourServiceFactory():
         j.sal.process.execute("git init %s" % path, die=True, outputToStdout=False, useShell=False, ignoreErrorOutput=False)
         j.sal.nettools.download('https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
         print("AYS Repo created at %s" % path)
-
 
     def updateTemplatesRepos(self, repos=[]):
         """
@@ -357,13 +334,14 @@ class AtYourServiceFactory():
     def getActionsBaseClassNode(self):
         return ActionsBaseNode
 
+
+    def getActionMethodDecorator(self):
+        return ActionMethodDecorator
+
     def getBlueprint(self,path):
         if not j.sal.fs.exists(path):
             path=self.basepath+"/"+path        
         return Blueprint(path)
-
-    def getActionsBaseClassMgmt(self):
-        return ActionsBaseMgmt
 
     def getRoleTemplateClass(self, role, ttype):
         if role not in self.roletemplates:
@@ -398,7 +376,7 @@ class AtYourServiceFactory():
             self.alog.removeLastRun()
 
 
-    def commitGitChanges(self,action="unknown",msg="",precheck=False):
+    def commit(self,action="unknown",msg="",precheck=False):
         if len(self.git.getModifiedFiles(True,ignore=["/alog/"]))>0:
             if msg=="":
                 msg='ays changed, commit changed files for action:%s'%action
@@ -412,14 +390,7 @@ class AtYourServiceFactory():
                 #only do this when no precheck, means we are not cleaning up past
                 self.alog.newGitCommit(action=action,githash="")
 
-
-
     def do(self,action="install",printonly=False,remember=True,allservices=False, ask=False):
-
-        self.alog
-        if remember:
-            self.commitGitChanges(action=action+"_pre", precheck=True)
-        latestrun = self.alog.newRun(action=action)
 
         if not allservices:
             # we need to find change since last time & make sure that
@@ -567,8 +538,8 @@ class AtYourServiceFactory():
         res = []
 
         for shortkey,service in self.services.items():
-            if service._state and service._state.hrd.getBool('disabled', False) and not include_disabled:
-                continue
+            # if service._state and service._state.hrd.getBool('disabled', False) and not include_disabled:
+            #     continue
             if not(name == "" or service.name == name):
                 continue
             if not(domain == "" or service.domain == domain):
@@ -711,6 +682,7 @@ class AtYourServiceFactory():
 
         """
         domain, name, version, instance, role = self.parseKey(key)
+        
         return self.getService(instance=instance,role=role, die=True)
 
     def parseKey(self, key):
@@ -747,6 +719,10 @@ class AtYourServiceFactory():
         else:
             version = ""
         name = name.strip()
+
+        if role=="":
+            role=name.split(".",1)[0]
+
         domain = domain.strip()
         version = version.strip()
         return (domain, name, version, instance, role)

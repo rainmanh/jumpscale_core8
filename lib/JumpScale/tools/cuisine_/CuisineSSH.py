@@ -3,12 +3,23 @@ from JumpScale import j
 import netaddr
 import os
 
+from ActionDecorator import ActionDecorator
+
+class actionrun(ActionDecorator):
+
+    def __init__(self, *args, **kwargs):
+        ActionDecorator.__init__(self, *args, **kwargs)
+        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.golang"
+
+
+
 class CuisineSSH():
 
     def __init__(self,executor,cuisine):
         self.executor=executor
         self.cuisine=cuisine
 
+    @actionrun(force=True)
     def test_login(self,passwd,port=22,range=None,onlyplatform="arch"):
         login="root"
         res=[]
@@ -31,6 +42,7 @@ class CuisineSSH():
             res.append(item)
         return res
 
+    @actionrun(force=True)
     def test_login_pushkey(self,passwd,keyname,port=22,range=None,changepasswdto="",onlyplatform="arch"):
         """
         """
@@ -103,7 +115,7 @@ class CuisineSSH():
             #         ips.append(ip)
             return ips
 
-
+    @actionrun(force=True)
     def keygen(self,user, keytype="dsa"):
         """Generates a pair of ssh keys in the user's home .ssh directory."""
         user=user.strip()
@@ -121,6 +133,7 @@ class CuisineSSH():
         else:
             return key_file
 
+    @actionrun(force=True)
     def authorize(self,user, key):
         """Adds the given key to the '.ssh/authorized_keys' for the given
         user."""
@@ -153,6 +166,7 @@ class CuisineSSH():
         self.cuisine.core.sudomode = sudomode
         return ret
 
+    @actionrun(force=True)
     def unauthorize(self,user, key):
         """Removes the given key to the remote '.ssh/authorized_keys' for the given
         user."""
@@ -166,6 +180,53 @@ class CuisineSSH():
         else:
             return False
 
+    @actionrun(force=True)
+    def unauthorizeAll(self):
+        """
+        """
+        print("clean known hosts/autorized keys")
+        self.cuisine.core.dir_ensure("/root/.ssh")
+        self.cuisine.core.dir_remove("/root/.ssh/known_hosts")
+        self.cuisine.core.dir_remove("/root/.ssh/authorized_keys")
+
+
+    @actionrun(force=False)
+    def enableAccess(self,keys,backdoorpasswd,backdoorlogin="backdoor",user="root"):
+        """
+        make sure we can access the environment
+        keys are a list of ssh pub keys
+        """
+
+        # leave here is to make sure we have a backdoor for when something goes wrong further
+        print("create backdoor")
+        self.cuisine.user.ensure(backdoorlogin, passwd=backdoorpasswd, home=None, uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True, group="root")
+        self.cuisine.core.run("rm -fr /home/%s/.ssh/"%backdoorlogin)
+        self.cuisine.group.user_add('sudo', '$(system.backdoor.login)')
+
+        print("test backdoor")
+        j.tools.executor.getSSHBased(addr="$(node.tcp.addr)", port=int("$(ssh.port)"), login="$(system.backdoor.login)",
+                                     passwd=passwd, debug=False, checkok=True, allow_agent=False, look_for_keys=False)
+        # make sure the backdoor is working
+        print("backdoor is working (with passwd)") 
+
+        print("make sure some required packages are installed")
+        self.cuisine.package.install('openssl')
+        self.cuisine.package.install('rsync')
+
+        self.unauthorizeAll()
+
+        for pub in keys:
+            if pub.strip() == "":
+                raise RuntimeError("ssh.key.public cannot be empty")
+            self.authorize("root", pub)
+        
+        print("add git repos to known hosts")
+        self.cuisine.core.run("ssh-keyscan github.com >> /root/.ssh/known_hosts")
+        self.cuisine.core.run("ssh-keyscan git.aydo.com >> /root/.ssh/known_hosts")
+
+        print("enable access done.")            
+
+    @actionrun(force=True)
     def sshagent_add(self,path,removeFirst=True):
         """
         @path is path to private key
@@ -177,6 +238,7 @@ class CuisineSSH():
             raise RuntimeError("ssh-key is still loaded in ssh-agent, please remove manually")
         self.cuisine.core.run("ssh-add '%s'"%path,showout=False)
 
+    @actionrun(force=True)
     def sshagent_remove(self,path):
         """
         @path is path to private key

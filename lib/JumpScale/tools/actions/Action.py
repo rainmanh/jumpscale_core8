@@ -33,6 +33,8 @@ class Action:
         @param serviceObj: service, will be used to get category filled in
         @param isparent, if isparent then when this action changes all actions following will be redone of same runid
 
+        @param selfGeneratorCode is the code which gets evalled to return the object which is given to self, ...
+
         '''
         if key=="" and action==None:
             raise RuntimeError("need to specify key or action")
@@ -56,7 +58,7 @@ class Action:
         self._doc=""
 
         self._state_show="INIT"
-        self._selfobj=None
+        self._selfobj="**NOTHING**"
         self._key=key
         self._depkeys=[]
         self._deps=[]
@@ -478,23 +480,23 @@ class Action:
 
     @property
     def selfobj(self):
-        if self._selfobj!=None:
-            return self._selfobj
-
         if self.selfGeneratorCode!="": #this is the code which needs to generate a selfobj
             try:
                 l={}
                 exec(self.selfGeneratorCode,globals(),l)
                 self._selfobj=l["selfobj"]
             except Exception as e:
+                # from pudb import set_trace; set_trace() 
                 self.error += "SELF OBJ ERROR:\n%s" % e
                 self.state = "ERROR"
+                self.save()
                 self.print()
-                raise RuntimeError("error in selfobj in action:%s"%self)
+                raise RuntimeError("error in selfobj in action:%s\nSelf obj code is:\n%s"%(self,self.selfGeneratorCode))
 
         return self._selfobj
 
     def execute(self):
+
         self.check() #see about changed source code
         j.actions.addToStack(self)
 
@@ -518,10 +520,10 @@ class Action:
             tb_text = ''
             err = ''
 
-            while ok==False and counter<self.retry+1:
+            while self.state!="ERROR" and ok==False and counter<self.retry+1:
 
                 try:
-                    if self.selfobj!=None:
+                    if self.selfobj!="**NOTHING**":
                         #here we try to reconstruct the cuisine object@
                         self.result = self.method(self.selfobj,*self.args,**self.kwargs)
                     else:
@@ -572,9 +574,10 @@ class Action:
                 j.tools.console.enableOutput()
                 self.stdouterr += j.tools.console.getOutput()
 
-
+            
             if rcode > 0 or self.state=="ERROR":
 
+                from pudb import set_trace; set_trace() 
 
                 if self.die:
                     for action in self.getWhoDependsOnMe():

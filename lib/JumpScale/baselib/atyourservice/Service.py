@@ -8,7 +8,7 @@ import imp
 import sys
 from functools import wraps
 from Recurring import Recurring
-from SericeState import SericeState
+from ServiceState import ServiceState
 import traceback
 
 # def log(msg, level=2):
@@ -91,10 +91,12 @@ class Service:
         self.path = path.rstrip("/")
 
         self._hrd = None
+        self._hrd_hash = None
         self._yaml = None
         self._mongoModel = None
 
         self._action_methods = None
+        self._action_methods_node = None
 
         self._dnsNames = []
 
@@ -174,12 +176,21 @@ class Service:
                 self._parent=None
         return self._parent
 
+    
+
     @property
     def hrd(self):
         if self._hrd is None:
             hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
             self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
         return self._hrd
+
+
+    @property
+    def hrdhash(self):
+        if self._hrd_hash is None:
+            self._hrd_hash = j.data.hash.md5_string(str(self.hrd))
+        return self._hrd_hash
 
     @property
     def yaml(self):
@@ -214,74 +225,68 @@ class Service:
         return self._state
 
     @property
-    def action_methods(self):
-        if self._action_methods is None or not self._rememberActions:
-            if j.atyourservice.debug:
-                print ("reload mgmt actions for %s (%s)"%(self,self._rememberActions))
-            if j.sal.fs.exists(path=self.recipe.path_actions):
-                action_methods = self._loadActions(self.recipe.path_actions,"mgmt")
-            else:
-                action_methods = j.atyourservice.getActionsBaseClassMgmt()(self)
-
+    def actions(self):
+        if self._action_methods is None:
+            print ("reload mgmt actions for %s"%(self))
+            action_methods = self._loadActions(self.recipe.path_actions,"mgmt")
             self._action_methods = action_methods
-
         return self._action_methods
 
-    @property
-    def action_methods_node(self):
-        if self._action_methods_node is None or not self._rememberActions:
-            if j.sal.fs.exists(path=self.recipe.path_actions_node):
-                action_methods_node = self._loadActions(self.recipe.path_actions_node,"node")
-            else:
-                action_methods_node = j.atyourservice.getActionsBaseClassNode()(self)
 
-            self._action_methods_node=action_methods_node
+    # @property
+    # def action_methods_node(self):
+    #     if self._action_methods_node is None or not self._rememberActions:
+    #         if j.sal.fs.exists(path=self.recipe.path_actions_node):
+    #             action_methods_node = self._loadActions(self.recipe.path_actions_node,"node")
+    #         else:
+    #             action_methods_node = j.atyourservice.getActionsBaseClassNode()()
 
-        return self._action_methods_node
+    #         self._action_methods_node=action_methods_node
 
-    @property
-    def actions(self):
-        return self._actionlog
+    #     return self._action_methods_node
 
-    def _setAction(self,name,epoch=0,state="INIT",log=True,printonly=False):
-        if name not in self._actionlog:
-            actionrun = ActionRun(self, name=name,epoch=epoch,state=state,printonly=printonly)
-            if self._rememberActions:
-                self._actionlog[name] = actionrun
-            if log:
-                actionrun.setState(state)
-            return actionrun
-            # print("new action:%s"%self._actionlog[name])
-        else:
-            actionrun=self._actionlog[name]
-            actionrun.printonly=printonly
-            if epoch!=0:
-                actionrun.epoch=epoch
-            if log:
-                actionrun.setState(state)
-            else:
-                actionrun._state=state
-            return actionrun
-            # print("action exists:%s"%self._actionlog[name])
 
-    def getAction(self, name, printonly=False):
-        if name not in self._actionlog:
-            action = self._setAction(name, printonly=printonly)
-            print("new action:%s (get)" % action)
-        else:
-            action=self._actionlog[name]
-        action.printonly = printonly
-        self.action_current = action
-        return action
+    # def getAction(self, name, printonly=False):
+    #     if name not in self._actionlog:
+    #         action = self._setAction(name, printonly=printonly)
+    #         print("new action:%s (get)" % action)
+    #     else:
+    #         action=self._actionlog[name]
+    #     action.printonly = printonly
+    #     self.action_current = action
+    #     return action
 
-    def runAction(self,name,printonly=False):
-        action=self.getAction(name,printonly=printonly)
-        action.run()
-        return action
+    # def runAction(self,name,printonly=False):
+    #     """
+    #     look for action & run, there are no arguments
+    #     """
+    #     method=self._getActionMethodMgmt(name)
+    #     if method==None:
+    #         return None
+    #     action=j.actions.add(method, kwargs={"ayskey":self.shortkey}, die=True, stdOutput=False, \
+    #             errorOutput=False, executeNow=True,force=True, showout=False, actionshow=True,selfGeneratorCode='selfobj=None')
+    #     from IPython import embed
+    #     print ("DEBUG NOW runaction")
+    #     embed()
+        
+    #     return action
+
+    # def runActionNode(self,name,*args,**kwargs):
+    #     """
+    #     run on node, need to pass all arguments required
+    #     there are no arguments given by default
+    #     """
+    #     method=self._getActionMethodNode(name)
+    #     if method==None:
+    #         return None
+    #     from IPython import embed
+    #     print ("DEBUG NOW runaction node")
+    #     embed()
+    #     return action
 
     def _getActionMethodMgmt(self,action):
         try:
-            method=eval("self.action_methods.%s"%action)
+            method=eval("self.action_methods_mgmt.%s"%action)
         except Exception as e:
             if str(e).find("has no attribute")!=-1:
                 return None
@@ -309,8 +314,8 @@ class Service:
             if self.hrd is not None:
                 # print ("apply hrd")
                 self.hrd.applyOnFile(path2)
-            if self.recipe._hrd is not None:
-                self.recipe.hrd.applyOnFile(path2)
+            # if self.recipe._hrd is not None:
+            #     self.recipe.hrd.applyOnFile(path2)
             j.application.config.applyOnFile(path2)
         else:
             j.events.opserror_critical(msg="can't find %s." % path, category="ays loadActions")
@@ -318,18 +323,22 @@ class Service:
         modulename = "JumpScale.atyourservice.%s.%s.%s.%s" % (self.domain, self.name, self.instance,ttype)
         mod = loadmodule(modulename, path2)
         #is only there temporary don't want to keep it there
-        j.sal.fs.remove(path2)
-        j.sal.fs.removeDirTree(j.do.joinPaths(self.path,"__pycache__"))
 
-        actions = mod.Actions(self)
-        if 'roletemplate' in super(actions.__class__, actions).__module__:
-            hrd = j.atyourservice.getRoleTemplateHRD(self.role)
-            if hrd and self._hrd:
-                for key in hrd.items.keys():
-                    if not self._hrd.exists(key):
-                        self._hrd.set(key, hrd.get(key))
+        actions = mod.Actions()
+
+        # if 'roletemplate' in super(actions.__class__, actions).__module__:
+        #     hrd = j.atyourservice.getRoleTemplateHRD(self.role)
+        #     if hrd and self._hrd:
+        #         for key in hrd.items.keys():
+        #             if not self._hrd.exists(key):
+        #                 self._hrd.set(key, hrd.get(key))
 
         return actions
+
+    def cleanOnRepo(self):
+        j.sal.fs.removeDirTree(j.do.joinPaths(self.path,"__pycache__"))
+        j.sal.fs.remove(j.sal.fs.joinPaths(self.path, "actions.py"))
+        j.sal.fs.remove(j.sal.fs.joinPaths(self.path, "actions_node.py"))
 
     @property
     def producers(self):
@@ -350,71 +359,206 @@ class Service:
 
         return self._producers
 
+    # @property
+    # def executor(self):
+    #     if self._executor is None:
+    #         self._executor = self._getExecutor()
+    #     return self._executor
 
-    @property
-    def executor(self):
-        if self._executor is None:
-            self._executor = self._getExecutor()
-        return self._executor
 
-    @property
-    def recurring(self):
-        if self._state is None:
-            self._state = Recurring(self)
-        return self._state
-
-    def init(self,force=False,yaml=None):
+    def init(self,yaml=None):
         if self._init is False:
 
-            do = False
+            print("INIT:%s"%self)
 
-            if force:
-                do=True
+            self._hrd_hash=None
 
             #make sure yaml is written again, which means changes will be detected
             if yaml!=None:
                 j.data.serializer.yaml.dump(j.sal.fs.joinPaths(service.path, "model.yaml"), yaml)
-            else:
-                if do==False and not j.sal.fs.exists(j.sal.fs.joinPaths(self.path, "instance.hrd")):
-                    do=True
 
-            if do==False:
-                #now check which files got changed
-                changed, changes = j.atyourservice.alog.getChangedAtYourservices("init")
-                if self in changed:
-                    do = True
 
-            if do:
-                print("INIT:%s"%self)
-                j.sal.fs.createDir(self.path)
-                self.runAction("input")
-                hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
+            #see if we can find parent if specified (potentially based on role)
+            parent=self.recipe.schema.parentSchemaItemGet()
 
-                # if no schema.hrd exists in servicetemplate, raw yaml will be used as datasource
-                # we just create en empty instance.hrd
-                if j.sal.fs.exists(self.recipe.template.path_hrd_schema):
-                    self._hrd = self.recipe.schema.hrdGet(hrd=self.hrd, args=self.args)
+            if parent!=None:
+
+                #parent exists
+                name = parent.parent
+                role = parent.parent
+                if '.' in role:
+                    role = role.split('.', 1)[0]
+
+                if role in self.args:
+                    #has been speficied or empty
+                    rolearg=self.args[role].strip()
                 else:
-                    self._hrd = j.data.hrd.get(content="")
+                    rolearg=""
 
-                self.hrd.set("service.name", self.name)
-                self.hrd.set("service.version", self.version)
-                self.hrd.set("service.domain", self.domain)
+                if rolearg=="":
+                    ays_s=j.atyourself.findServices(role=role, name=name)
+                    if len(ays_s)==1:
+                        #we found 1 service of required role, will take that one
+                        aysi=ays_s[0]
+                        rolearg=aysi.instance
+                        self.args[role]=rolearg
+                    elif len(ays_s)>1:
+                        raise RuntimeError("Cannt find parent with role '%s' for service '%s, there is more than 1"%(role,service))
+                    else:
+                        if parent.auto:
+                            j.atyourself.new(name=parent.parent, instance='main', version='', domain='', path=None, parent=None, args={}, consume='')
+                            rolearg="main"
+                        else:
+                            raise RuntimeError("Cannot find parent with role '%s' for service '%s, there is none, please make sure the service exists."%(role,service))
 
-                if self.parent is not None:
-                    path = j.sal.fs.joinPaths(self.parent.path, "%s!%s" % (self.role, self.instance))
-                    if self.path != path:
-                        j.sal.fs.moveDir(self.path, path)
-                        self.path = path
-                        hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
-                        self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
-                    self.consume(self.parent)
+                #check we can find
+                ays_s=j.atyourservice.findServices(role=role,instance=rolearg)
+                if len(ays_s)==1:
+                    pass
+                    #all ok
+                elif len(ays_s)>1:
+                    raise RuntimeError("Cannt find parent '%s' for service '%s, there is more than 1 with instance:'%s'"%(role,service,rolearg))
+                else:
+                    raise RuntimeError("Cannot find parent '%s:%s' for service '%s', please make sure the service exists."%(role,rolearg,service))
 
-                self.runAction("hrd")
-                self._rememberActions = True
+                self._parent=ays_s[0]
 
+                self.path = j.sal.fs.joinPaths(self.parent.path, "%s!%s" % (self.role, self.instance))
+
+
+            j.sal.fs.createDir(self.path)
+
+            #run the args manipulation action as an action            
+            self.args=self.actions.input(self.name,self.role,self.instance,self.args)            
+
+            hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
+
+            self._manipulateArgs()
+
+            # if no schema.hrd exists in servicetemplate, raw yaml will be used as datasource
+            # we just create en empty instance.hrd
+            if j.sal.fs.exists(self.recipe.template.path_hrd_schema):
+                self._hrd = self.recipe.schema.hrdGet(hrd=self.hrd, args=self.args,path=hrdpath)
+            else:
+                self._hrd = j.data.hrd.get(content="")
+
+            if self.recipe.hrd!=None:
+                #apply values from recipe hrd to this hrd
+                self.hrd.applyTemplate(self.recipe.hrd)
+
+            self.hrd.set("service.name", self.name)
+            self.hrd.set("service.version", self.version)
+            self.hrd.set("service.domain", self.domain)
+            self.hrd.set("service.role", self.role)
+            self.hrd.set("service.instance", self.instance)
+
+            if self.parent is not None:
+                self.hrd.set("parent",self.parent.shortkey)                
+                self.consume(self.parent)
+
+
+            self._manipulateHRD()            
+
+            self._action_methods =None #to make sure we reload the actions
+
+            self.actions.hrd()
+
+            for item in self.hrd.prefix("recurring"):
+                recurringName = item.split(".")[1]
+                recurringPeriod = self.hrd.getStr(item).strip("\"")
+                self.state.addRecurring(recurringName, recurringPeriod)
+
+            for key,amethod in self.recipe.actionmethods.items():
+                self.state.getSet(key)
+
+            self.state.save()
+            self.cleanOnRepo()
 
         self._init = True
+
+    def _manipulateArgs(self):
+
+        def exists(args, name):
+            x = name not in args or args[name] is None or args[name] == ""
+            return not x
+
+        ##fill in node.tcp.address
+        if self.name.startswith("node"):
+            # set service name & ip addr
+            if not exists(self.args, 'node.tcp.addr') or self.args['node.tcp.addr'].find('@ask')!=-1:
+                if "ip" in args:
+                    self.args['node.tcp.addr'] = self.args["ip"]
+
+            if not exists(args, 'node.name'):
+                self.args['node.name'] = self.instance
+
+        ##fill in nameserver
+        if self.recipe.hrd.getBool("ns.enable",default=False) and "ns" not in self._producers:
+
+            if "ns" != self.role and not self.name.startswith("ns."):
+                # means we are not a nameservice ourselves (otherwise chicken & the egg issue)
+                serv = j.atyourself.findServices(role="ns")
+                if len(serv) == 1:
+                    ns_service = serv[0]
+                    self.consume("@ns")
+
+                    nsinstance = self.instance
+                    nsname = self.name.split(".")[0]
+                    nsdomain = ns_self.hrd.get("instance.ns.domain")
+                    if "instance.dns" not in self.args:
+                        self.args["instance.dns"] = []
+                    self.args["instance.dns"].append("%s.%s.%s" % (nsinstance, nsname, nsdomain))
+
+    def _manipulateHRD(self):
+
+        #manipulate the HRD's to mention the consume's to producers
+        consumes = self.recipe.schema.consumeSchemaItemsGet()
+
+        if consumes:
+            for consumeitem in consumes:
+                #parent exists
+                role = consumeitem.consume_link
+                consumename = consumeitem.name
+
+                instancenames = []
+                if consumename in self.args:
+                    instancenames = self.args[consumename]
+
+                ays_s = list()
+                candidates = j.atyourself.findServices(role=consumeitem.consume_link)
+                if candidates:
+                    if instancenames:
+                        ays_s = [candidate for candidate in candidates if candidate.instance in instancenames]
+                    else:
+                        ays_s = candidates
+
+                # autoconsume
+                if len(candidates) < int(consumeitem.consume_nr_min) and consumeitem.auto:
+                    for instance in range(len(candidates), int(consumeitem.consume_nr_min)):
+                        consumable = j.atyourself.new(name=consumeitem.consume_link, instance='auto_%i' % instance, parent=self.parent)
+                        ays_s.append(consumable)
+
+                if len(ays_s)>int(consumeitem.consume_nr_max):
+                    raise RuntimeError("Found too many services with role '%s' which we are relying upon for service '%s, max:'%s'"%(role,service,consumeitem.consume_nr_max))
+                if len(ays_s)<int(consumeitem.consume_nr_min):
+                    msg="Found not enough services with role '%s' which we are relying upon for service '%s, min:'%s'"%(role,service,consumeitem.consume_nr_min)
+                    if len(ays_s)>0:
+                        msg+="Require following instances:%s"%self.args[consumename]
+                    raise RuntimeError(msg)
+
+                for ays in ays_s:
+                    if role not in  self.producers:
+                        self._producers[role]=[]
+                    if ays not in self._producers[role]:
+                        self._producers[role].append(ays)
+
+            for key, services in self._producers.items():
+                producers = []
+                for service in services:
+                    if self.key not in producers:
+                        producers.append(self.shortkey)
+
+                self.hrd.set("producer.%s" % key, producers)      
 
     def consume(self, input):
         """
@@ -563,19 +707,6 @@ class Service:
     #                 chain.append(dep)
     #     return chain
 
-    def _uploadToNode(self):
-        # ONLY UPLOAD THE SERVICE ITSELF, INIT NEEDS TO BE FIRST STEP, NO IMMEDIATE INSTALL
-        if not self.parent or self.parent.role != 'ssh':
-        # if "os" not in self.producers:
-            return
-        hrd_root = "/etc/ays/local/"
-        remotePath = j.sal.fs.joinPaths(hrd_root, 'services', j.sal.fs.getBaseName(self.path)).rstrip("/")+"/"
-        self.log("uploading %s '%s'->'%s'" % (self.key,self.path,remotePath))
-        templatepath = j.sal.fs.joinPaths(hrd_root, 'servicetemplates', j.sal.fs.getBaseName(self.recipe.path).rstrip("/"))
-        self.executor.cuisine.core.dir_ensure(templatepath, recursive=True)
-        self.executor.cuisine.core.dir_ensure(remotePath, recursive=True)
-        self.executor.upload(self.recipe.path, templatepath)
-        self.executor.upload(self.path, remotePath,recursive=False)
 
     def _downloadFromNode(self):
         # if 'os' not in self.producers or self.executor is None:
@@ -682,73 +813,20 @@ class Service:
     def __str__(self):
         return self.__repr__()
 
-    # ACTIONS
-    # def _executeOnNode(self, actionName, cmd=None, reinstall=False):
-    def _executeOnNode(self, actionName):
-        if not self.parent or self.parent.role != 'ssh':
-        # if 'os' not in self.producers or self.executor is None:
-            return False
-        self._uploadToNode()
+    # # ACTIONS
+    # # def _executeOnNode(self, actionName, cmd=None, reinstall=False):
+    # def _executeOnNode(self, actionName):
+    #     if not self.parent or self.parent.role != 'ssh':
+    #     # if 'os' not in self.producers or self.executor is None:
+    #         return False
+    #     self._uploadToNode()
 
-        execCmd = 'source /opt/jumpscale8/env.sh; aysexec do %s %s %s' % (actionName, self.role, self.instance)
+    #     execCmd = 'source /opt/jumpscale8/env.sh; aysexec do %s %s %s' % (actionName, self.role, self.instance)
 
-        executor = self.executor
-        executor.execute(execCmd, die=True, showout=True)
+    #     executor = self.executor
+    #     executor.execute(execCmd, die=True, showout=True)
 
-        return True
-
-    # def stop(self):
-    #     self.log("stop instance")
-    #     self._executeOnNode("stop")
-    #     self.recurring.stop()
-    #     self.action_methods.stop(self)
-    #
-    #     if not self.action_methods.check_down(self):
-    #         self.action_methods.halt(self)
-    #         self._executeOnNode("halt")
-
-    # def start(self):
-    #     self.log("start instance")
-    #     self._executeOnNode("start")
-    #     self.recurring.start()
-    #     self.action_methods.start(self)
-    #
-    # def restart(self):
-    #     self.stop()
-    #     self.start()
-    #
-    # def prepare(self):
-    #     self._executeOnNode("prepare")
-
-    # def install(self, start=True):
-    #     """
-    #     Install Service.
-    #
-    #     Keyword arguments:
-    #     start     -- whether Service should start after install (default True)
-    #     reinstall -- reinstall if already installed (default False)
-    #     """
-    #
-    #     log("INSTALL:%s" % self)
-    #
-    #     self.action_methods.install_pre(self)
-    #     if self.state.changed:
-    #         self._uploadToNode()
-    #     self._executeOnNode('prepare')
-    #     self._executeOnNode('install')
-    #     self.action_methods.install_post(self)
-    #
-    #     if self.recipe.hrd.getBool("hrd.return", False):
-    #         self._downloadFromNode()
-    #         # need to reload the downloaded instance.hrd file
-    #         self._hrd = j.data.hrd.get(j.sal.fs.joinPaths(self.path, 'instance.hrd'), prefixWithName=False)
-    #
-    #     # now we can remove changes of statefile & remove old hrd
-    #     self.state.installDoneOK()
-    #     j.sal.fs.copyFile(
-    #         j.sal.fs.joinPaths(self.path, "instance.hrd"),
-    #         j.sal.fs.joinPaths(self.path, "instance_old.hrd")
-    #     )
+    #     return True
 
     def _getDisabledProducers(self):
         producers = dict()
@@ -804,217 +882,4 @@ class Service:
             consumer.enable()
             consumer.start()
 
-    # def _install(self, reinstall=False):
-
-
-        # self.configure()
-
-    # def publish(self):
-    #     """
-    #     check which repo's are used & push the info
-    #     this does not use the build repo's
-    #     """
-    #     if self._executeOnNode("publish"):
-    #         return
-    #
-    #     self.log("publish instance")
-    #     self.action_methods.publish(self)
-    #
-    # def package(self):
-    #     """
-    #     """
-    #     if self._executeOnNode("package"):
-    #         return
-    #
-    #     self.action_methods.package(self)
-
-
-    # def update(self):
-    #     """
-    #     - go over all related repo's & do an update
-    #     - copy the files again
-    #     - restart the app
-    #     """
-    #     if self._executeOnNode("update"):
-    #         return
-    #
-    #     self.log("update instance")
-    #     for recipeitem in self.hrd.getListFromPrefix("git.export"):
-    #         # pull the required repo
-    #         j.atyourservice._getRepo(recipeitem['url'], recipeitem=recipeitem)
-    #
-    #     for recipeitem in self.hrd.getListFromPrefix("git.build"):
-    #         # print recipeitem
-    #         # pull the required repo
-    #         name = recipeitem['url'].replace(
-    #             "https://", "").replace("http://", "").replace(".git", "")
-    #         dest = "/opt/build/%s/%s" % name
-    #         j.do.pullGitRepo(dest=dest, ignorelocalchanges=True)
-    #
-    #     self.restart()
-
-    # def resetstate(self):
-    #     """
-    #     remove state of a service.
-    #     """
-    #     raise RuntimeError("not implemented")
-    #     if self._executeOnNode("resetstate"):
-    #         return
-
-    #     statePath = j.sal.fs.joinPaths(self.path, 'state.toml')
-    #     j.sal.fs.remove(statePath)
-
-    # def reset(self):
-    #     """
-    #     - remove build repo's !!!
-    #     - remove state of the app (same as resetstate) in jumpscale (the configuration info)
-    #     - remove data of the app
-    #     """
-    #     if self._executeOnNode("reset"):
-    #         return
-    #
-    #     self.log("reset instance")
-    #     # remove build repo's
-    #     for recipeitem in self.hrd.getListFromPrefix("git.build"):
-    #         name = recipeitem['url'].replace(
-    #             "https://", "").replace("http://", "").replace(".git", "")
-    #         dest = "/opt/build/%s" % name
-    #         j.sal.fs.remove(dest)
-    #
-    #     self.action_methods.removedata(self)
-    #     j.atyourservice.remove(self)
-
-    # def removedata(self):
-    #     """
-    #     - remove build repo's !!!
-    #     - remove state of the app (same as resetstate) in jumpscale (the configuration info)
-    #     - remove data of the app
-    #     """
-    #     self._executeOnNode("removedata")
-    #
-    #     self.log("removedata instance")
-    #     self.action_methods.removedata(self)
-    #
-    # def execute(self, cmd=None):
-    #     """
-    #     execute cmd on service
-    #     """
-    #     if self._executeOnNode("execute", cmd=cmd):
-    #         return
-    #
-    #     if cmd is None:
-    #         cmd = self.cmd
-    #     self.action_methods.execute(self, cmd=cmd)
-
-    # def _uninstall(self):
-    #     for recipeitem in self.recipe.hrd.getListFromPrefix("web.export"):
-    #         if "dest" not in recipeitem:
-    #             raise RuntimeError("could not find dest in hrditem for %s %s" % (recipeitem, self))
-    #         dest = recipeitem['dest']
-    #         j.sal.fs.removeDirTree(dest)
-    #
-    #     for recipeitem in self.recipe.hrd.getListFromPrefix("git.export"):
-    #         if "platform" in recipeitem:
-    #             if not j.core.platformtype.myplatform.checkMatch(recipeitem["platform"]):
-    #                 continue
-    #
-    #         if "link" in recipeitem and str(recipeitem["link"]).lower() == 'true':
-    #             # means we need to only list files & one by one link them
-    #             link = True
-    #         else:
-    #             link = False
-    #
-    #         repository_type, repository_account, repository_name = recipeitem['url'].strip('http://').strip('https://').split('/', 3) #'http://git.aydo.com/binary/mongodb',
-    #         repository_type = repository_type.split('.')[0]
-    #         srcdir = '%(codedir)s/%(type)s/%(account)s/%(repo_name)s' % {
-    #             'codedir': j.dirs.codeDir,
-    #             'type': repository_type.lower(),
-    #             'account': repository_account.lower(),
-    #             'repo_name': repository_name,
-    #         }
-    #
-    #         src = recipeitem['source']
-    #         src = j.sal.fs.joinPaths(srcdir, src)
-    #
-    #         if "dest" not in recipeitem:
-    #             raise RuntimeError(
-    #                 "could not find dest in hrditem for %s %s" % (recipeitem, self))
-    #         dest = recipeitem['dest']
-    #
-    #         if src[-1] == "*":
-    #             src = src.replace("*", "")
-    #             if "nodirs" in recipeitem and str(recipeitem["nodirs"]).lower() == 'true':
-    #                 # means we need to only list files & one by one link them
-    #                 nodirs = True
-    #             else:
-    #                 nodirs = False
-    #
-    #             items = j.sal.fs.listFilesInDir(
-    #                 path=src, recursive=False, followSymlinks=False, listSymlinks=False)
-    #             if nodirs is False:
-    #                 items += j.sal.fs.listDirsInDir(
-    #                     path=src, recursive=False, dirNameOnly=False, findDirectorySymlinks=False)
-    #
-    #             items = [(item, "%s/%s" % (dest, j.sal.fs.getBaseName(item)), link)
-    #                      for item in items]
-    #         else:
-    #             items = [(src, dest, link)]
-    #
-    #         for src, dest, link in items:
-    #             if dest.strip() == "":
-    #                 raise RuntimeError("a dest in coderecipe cannot be empty for %s" % self)
-    #             if dest[0] != "/":
-    #                 dest = "/%s" % dest
-    #             else:
-    #                 if link:
-    #                     if j.sal.fs.exists(dest):
-    #                         j.sal.fs.unlink(dest)
-    #                 else:
-    #                     self.log(("deleting: %s" % dest))
-    #                     j.sal.fs.removeDirTree(dest)
-
-    # def uninstall(self):
-    #     self._executeOnNode("uninstall")
-    #
-    #
-    #     self.log("uninstall instance")
-    #     self.disable()
-    #     self._uninstall()
-    #     self.action_methods.uninstall(self)
-    #     j.sal.fs.removeDirTree(self.path)
-    #
-    # def monitor(self):
-    #     """
-    #     Schedule the monitor local and monitor remote methods
-    #     """
-    #     if self._executeOnNode("monitor"):
-    #         res = self.action_methods.check_up_local(self)
-    #         res = res and self.action_methods.schedule_monitor_local(self)
-    #         res = res and self.action_methods.schedule_monitor_remote(self)
-    #         return res
-    #
-    #     return True
-
-    # def iimport(self, url):
-    #     if self._executeOnNode("import"):
-    #         return
-    #
-    #     self.log("import instance data")
-    #     self.action_methods.data_import(url, self)
-    #
-    # def export(self, url):
-    #     if self._executeOnNode("export"):
-    #         return
-    #
-    #     self.log("export instance data")
-    #     self.actions.data_export(url, self)
-    #
-    # def configure(self, restart=True):
-    #
-    #     self.log("configure instance mgmt")
-    #     res = self.action_methods.configure(self)
-    #     if res is False:
-    #         j.events.opserror_critical(msg="Could not configure %s (mgmt)" % self, category="ays.service.configure")
-    #
-    #     self.log("configure instance on node")
-    #     self._executeOnNode("configure")
+ 

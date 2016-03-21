@@ -229,7 +229,7 @@ class HRDSchema():
             for alias in hrdtype.alias:
                 self.items_with_alias[alias]=hrdtype
 
-    def hrdGet(self,hrd=None,args={}):
+    def hrdGet(self,hrd=None,args={},path=None):
         if hrd==None:
             hrd=j.data.hrd.get(content="",prefixWithName=False)
         for key,ttype in self.items.items():
@@ -270,6 +270,9 @@ class HRDSchema():
                 if j.data.types.list.check(val) and len(val)==1:
                     val=val[0] #this to resolve some customer types or yaml inconsistencies, if only 1 member we can use as a non list
             hrd.set(ttype.name,val)
+            if path==None:
+                hrd.path=path
+            
         return hrd
 
     def parentSchemaItemGet(self):

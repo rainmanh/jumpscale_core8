@@ -43,7 +43,7 @@ class ActionDecorator(object):
                 args=args[1:]
                 cm=cm.replace("$id",cuisine.id)  #replace the code which has the constructor code for the selfobj to work on
                 j.actions.setRunId(cuisine.runid)
-                action0=j.actions.add(action=func, actionRecover=None,args=args,kwargs=kwargs,die=True,stdOutput=True,\
+                action0=j.actions.add(action=func, actionRecover=None,args=args,kwargs=kwargs,die=False,stdOutput=True,\
                     errorOutput=True,retry=0,executeNow=True,selfGeneratorCode=cm,force=force,actionshow=actionshow)
 
                 # from pudb import set_trace; set_trace() 

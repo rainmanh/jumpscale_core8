@@ -34,11 +34,13 @@ def init():
     the blueprints will be converted to ays instances
     the changes with before (last time you did an init) will be shown
     """
-    chfiles=j.atyourservice.init()
-    path = j.sal.fs.joinPaths(j.dirs.varDir, 'servicetrees', '%s.json' % j.sal.fs.getcwd().replace('/', '__'))
-    j.sal.fs.touch(path)
-    servicestree = j.atyourservice.servicesTree
-    j.data.serializer.json.dump(path, servicestree)
+    j.atyourservice.init()
+
+    #@question why do we need this (despiegk)
+    # path = j.sal.fs.joinPaths(j.dirs.varDir, 'servicetrees', '%s.json' % j.sal.fs.getcwd().replace('/', '__'))
+    # j.sal.fs.touch(path)
+    # servicestree = j.atyourservice.servicesTree
+    # j.data.serializer.json.dump(path, servicestree)
 
     # chfiles.sort()
     # for item in chfiles:
@@ -144,7 +146,17 @@ def printlog(action):
 def bot(token, repo):
     bot = j.atyourservice.telegramBot(token, start=True)
 
+
+@click.command()
+def destroy():
+    """
+    reset in current ays repo all services & recipe's
+    """
+    j.atyourservice.destroy()
+    
+
 cli.add_command(new)
+cli.add_command(destroy)
 cli.add_command(init)
 cli.add_command(install)
 cli.add_command(do)

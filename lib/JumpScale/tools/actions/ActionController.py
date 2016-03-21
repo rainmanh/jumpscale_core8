@@ -92,7 +92,8 @@ class ActionController(object):
         @param action: python function to execute
         @param actionRecover: link to other action (same as this object but will be used to recover the situation)
         @param args is dict with arguments
-        @param serviceObj: service, will be used to get category filled in
+        @param serviceObj: service, will be used to get category filled in e.g. selfGeneratorCode='selfobj=None'
+            needs to be done selfobj=....  ... is whatever code which fill filling selfobj 
         '''
 
         # from pudb import set_trace; set_trace()  

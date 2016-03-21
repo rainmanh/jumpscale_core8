@@ -22,6 +22,8 @@ class CuisineBootMediaInstaller(object):
     def _downloadImage(self, url, redownload=False):
         base = url.split("/")[-1]
         downloadpath = "$tmpDir/%s" % base
+        self.dir_ensure("$tmpDir")
+
         if redownload:
             self.cuisine.file_unlink(downloadpath)
 
@@ -112,6 +114,12 @@ class CuisineBootMediaInstaller(object):
             partition(deviceid, size, base)
 
         return devs
+
+    def ubuntu(self, deviceid):
+        name = self._downloadImage("http://releases.ubuntu.com/15.10/ubuntu-15.10-server-amd64.iso")
+        path = "$tmpDir/%s" % name
+        cmd = 'dd if=%s of=/dev/%s bs=4000' % (path, deviceid)
+        self.cuisine.sudo(cmd)
 
     def arch(self, deviceid=None):
         url = "http://archlinuxarm.org/os/ArchLinuxARM-rpi-2-latest.tar.gz"

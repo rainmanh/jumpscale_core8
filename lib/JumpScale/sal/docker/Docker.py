@@ -146,14 +146,14 @@ class Docker(SALObject):
         @return list of dicts
 
         """
-        res=[]
+        res = []
         for item in self.client.containers():
-            name=item["Names"][0].strip(" /")
-            sshport=""
+            name = item["Names"][0].strip(" /")
+            sshport = ""
             for port in item["Ports"]:
-                if port["PrivatePort"]==22:
-                    sshport=port["PublicPort"]
-            res.append([name,item["Image"],sshport,item["Status"]])
+                if port["PrivatePort"] == 22:
+                    sshport = port["PublicPort"]
+            res.append([name, item["Image"], self.docker_host, sshport, item["Status"]])
 
         return res
 

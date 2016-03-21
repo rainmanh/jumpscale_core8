@@ -34,19 +34,19 @@ class SyncthingClient:
         print("execute cmd on %s"%self.addr)
         print(cmds)
         if self.addr=="localhost":
-            return j.tools.cuisine.local.run_script(content=cmds, die=die)
+            return j.tools.cuisine.local.core.run_script(content=cmds, die=die)
         else:
             executor = j.tools.cuisine.get(j.tools.executor.getSSHBased(addr=self.addr, port=self.sshport))
-            return executor.run_script(content=cmds, die=die)
+            return executor.cuisine.core.run_script(content=cmds, die=die)
 
     def install(self,name=""):
         C="""
         set -ex
         tmux kill-session -t sync > /dev/null 2>&1;tmux new-session -d -s sync -n sync
         if [ "$(uname)" == "Darwin" ]; then
-            # Do something under Mac OS X platform   
-            echo 'install brew'  
-            set +ex   
+            # Do something under Mac OS X platform
+            echo 'install brew'
+            set +ex
             ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
             brew install curl
             brew install python
@@ -93,14 +93,14 @@ class SyncthingClient:
             raise RuntimeError("Could not find syncthing on %s:%s, tcp port test"%(self.addr,self.port))
 
         print(self.status_get())
-        
+
 
     def restart(self):
         print("set config")
         pprint.pprint( self._config)
         self.config_set()
         print("restart")
-        
+
         res= self.api_call("system/restart",get=False)
         print("wait for connection")
         time.sleep(0.5)
@@ -171,7 +171,7 @@ class SyncthingClient:
             self._config["devices"]=res
             if len(res)!=x:
                 print('deleted devices:%s'%name)
-                # self.config_set()                
+                # self.config_set()
 
     def config_delete_all_folders(self):
         config=self.config_get()
@@ -213,7 +213,7 @@ class SyncthingClient:
 
         print("device set:%s"%name)
 
-        # self.config_set()        
+        # self.config_set()
         return device
 
     def config_add_folder(self,name,path,replace=True,ignorePerms=False,readOnly=False,rescanIntervalS=10,devices=[]):
@@ -257,9 +257,9 @@ class SyncthingClient:
 
         self.executeBashScript("mkdir -p %s"%path)
         self.restart()
-        # self.config_set()        
+        # self.config_set()
         return folder
-        
+
 
     def api_call(self, endpoint, request_body=False, get=True,data=None):
         """
@@ -305,7 +305,7 @@ class SyncthingClient:
                 print("retry API CALL %s"%url)
                 counter+=1
                 time.sleep(0.1)
-                
+
                 if counter>10:
                     raise RuntimeError('Syncthing is not responding. Exiting.')
 
@@ -313,7 +313,7 @@ class SyncthingClient:
         if r.ok==False:
             print("%s"%(url))
             print(endpoint)
-            print(request_body)            
+            print(request_body)
             raise RuntimeError("Error in rest call: %s"%r)
 
         if get and endpoint != '/system/version':

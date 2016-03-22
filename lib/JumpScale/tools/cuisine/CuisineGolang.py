@@ -27,7 +27,7 @@ class CuisineGolang():
                 self.cuisine.package.install("go")
             elif "ubuntu" in self.cuisine.platformtype.platformtypes:
                 # self.cuisine.core.run("apt-get install golang -y --force-yes")
-                downl="https://storage.googleapis.com/golang/go1.5.3.linux-amd64.tar.gz"
+                downl = "https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz"
                 self.cuisine.core.file_download(downl,"/usr/local",overwrite=False,retry=3,timeout=0,expand=True)
             else:
                 raise RuntimeError("platform not supported")

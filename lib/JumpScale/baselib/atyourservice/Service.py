@@ -422,7 +422,7 @@ class Service:
 
             j.sal.fs.createDir(self.path)
 
-            #run the args manipulation action as an action            
+            #run the args manipulation action as an action
             self.args=self.actions.input(self.name,self.role,self.instance,self.args)            
 
             hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
@@ -617,9 +617,9 @@ class Service:
 
         # print ("producerswaiting:%s"%self)
         for producer in self.getProducersRecursive(set(), set()):
-            actionrunobj=producer.getAction(action)
+            actionrunobj = producer.state.getSet(action)
             # print (actionrunobj)
-            if actionrunobj.state!="OK":
+            if actionrunobj.state != "OK":
                 producersChanged.add(producer)
         return producersChanged
 

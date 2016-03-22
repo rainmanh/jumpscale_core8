@@ -1,5 +1,5 @@
 from JumpScale import j
-
+import time
 from ActionDecorator import ActionDecorator
 
 
@@ -211,7 +211,11 @@ class CuisinePortal(object):
         self.cuisine.core.run("2to3-3.5 -f all -w %s" % path)
 
     @actionrun(action=True)
-    def start(self):
+    def start(self, passwd=None):
+        """
+        Start the portal
+        passwd : if not None, change the admin password to passwd after start
+        """
         dest_dir = j.sal.fs.joinPaths(self.cuisine.core.dir_paths['varDir'], 'cfg')
         cfg_path = j.sal.fs.joinPaths(dest_dir, 'portals/main/config.hrd')
         app_dir = j.sal.fs.joinPaths(dest_dir, 'portals/portalbase')
@@ -223,6 +227,25 @@ class CuisinePortal(object):
         hrd.set('param.cfg.appdir', app_dir)
         self.cuisine.core.file_write(cfg_path, str(hrd))
 
-        cmd = "cd %s; jspython portal_start.py" % j.sal.fs.joinPaths(dest_dir, 'portals/main')
-        self.cuisine.tmux.createSession("portal", ['portal'])
-        self.cuisine.tmux.executeInScreen('portal', 'portal', cmd=cmd)
+        cmd = "jspython portal_start.py"
+        self.cuisine.processmanager.ensure('portal', cmd=cmd, path=j.sal.fs.joinPaths(dest_dir, 'portals/main'))
+
+        if passwd is not None:
+            self.set_admin_password(passwd)
+
+    def set_admin_password(self, passwd):
+        # wait for the admin user to be created by portal
+        timeout = 60
+        start = time.time()
+        resp = self.cuisine.core.run('jsuser list', showout=False, force=True)
+        while resp.find('admin') == -1 and start + timeout > time.time():
+            try:
+                time.sleep(2)
+                resp = self.cuisine.core.run('jsuser list', showout=False, force=True)
+            except:
+                continue
+
+        if resp.find('admin') == -1:
+            self.cuisine.core.run('jsuser add --data admin:%s:admin:admin@mail.com:cockpit' % passwd)
+        else:
+            self.cuisine.core.run('jsuser passwd -ul admin -up %s' % passwd)

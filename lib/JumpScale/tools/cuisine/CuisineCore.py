@@ -447,7 +447,7 @@ class CuisineCore():
         to=self.args_replace(to)
         if path.endswith(".tar.gz") or path.endswith(".tgz"):
             cmd="tar -C %s -xzf %s"%(to,path)
-            self.cuisine.run(cmd)
+            self.cuisine.core.run(cmd)
         else:
             raise RuntimeError("not supported yet")
 

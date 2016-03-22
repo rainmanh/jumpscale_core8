@@ -14,6 +14,7 @@ from CuisineNS import CuisineNS
 from CuisineUser import CuisineUser
 from CuisineGit import CuisineGit
 from apps.CuisineApps import CuisineApps
+from CuisineBuilder import CuisineBuilder
 from CuisineGroup import CuisineGroup
 from CuisineGolang import CuisineGolang
 from CuisineFW import CuisineFW
@@ -63,6 +64,7 @@ class JSCuisine:
         self._docker=None
         self._js8sb=None
         self._geodns=None
+        self._builder=None
 
         self.core=CuisineCore(self.executor,self)
 
@@ -124,6 +126,12 @@ class JSCuisine:
         if self._apps==None:
             self._apps=CuisineApps(self.executor, self)
         return self._apps
+
+    @property
+    def builder(self):
+        if self._builder==None:
+            self._builder=CuisineBuilder(self.executor, self)
+        return self._builder
 
     @property
     def id(self):

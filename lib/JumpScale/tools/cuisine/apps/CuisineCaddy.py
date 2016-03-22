@@ -73,3 +73,10 @@ class Caddy():
             self.cuisine.fw.allowIncoming(80)
         cmd = self.cuisine.bash.cmdGetPath("caddy")
         self.cuisine.processmanager.ensure("caddy", '%s -conf=%s -email=info@greenitglobe.com' % (cmd, cpath))
+
+
+    def caddyConfig(self,sectionname,config):
+        """
+        config format see https://caddyserver.com/docs/caddyfile
+        """
+        raise RuntimeError("needs to be implemented")

@@ -37,21 +37,21 @@ class CuisineBootMediaInstaller(object):
         self.cuisine.core.run(cmd)
 
     def _umount(self, deviceid):
-        self.cuisine.core.run("umount /mnt/boot", die=False)
+        self.cuisine.core.run("umount /mnt/root/boot", die=False)
         self.cuisine.core.run("umount /mnt/root", die=False)
         self.cuisine.core.run("umount /dev/%s1" % deviceid, die=False)
         self.cuisine.core.run("umount /dev/%s2" % deviceid, die=False)
 
     def _mount(self, deviceid):
-        self.cuisine.core.run("mkfs.vfat -F32 /dev/%s1" % deviceid)
-        self.cuisine.core.run("mkdir -p /mnt/boot && mount /dev/%s1 /mnt/boot" % deviceid)
         self.cuisine.core.run("mkfs.ext4 /dev/%s2" % deviceid)
         self.cuisine.core.run("mkdir -p /mnt/root && mount /dev/%s2 /mnt/root" % deviceid)
+        self.cuisine.core.run("mkfs.vfat -F32 /dev/%s1" % deviceid)
+        self.cuisine.core.run("mkdir -p /mnt/root/boot && mount /dev/%s1 /mnt/root/boot" % deviceid)
+
 
     def _install(self, base):
         self.cuisine.core.run("cd $tmpDir && tar vxf %s -C /mnt/root" % base)
         self.cuisine.core.run("sync")
-        self.cuisine.core.run("cd /mnt && mv root/boot/* boot")
         self.cuisine.core.run("echo 'PermitRootLogin=yes'>>'/mnt/root/etc/ssh/sshd_config'")
 
     def _findDevices(self):
@@ -126,13 +126,6 @@ class CuisineBootMediaInstaller(object):
         self.formatCardDeployImage(url, deviceid=deviceid)
 
     def g8os(self, url, deviceid=None):
-        tmpl = """\
-        title   {title}
-        linux   /vmlinuz-linux
-        initrd  /initramfs-linux.img
-        options root=PARTUUID={uuid} rw earlymodules=xhci_hcd modules-load=xhci_hcd init={init}
-        """
-
         fstab_tmpl = """\
         PARTUUID={rootuuid}\t/\text4\trw,relatime,data=ordered\t0 1
         PARTUUID={bootuuid}\t/boot\tvfat\trw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro    0 2
@@ -144,12 +137,20 @@ class CuisineBootMediaInstaller(object):
             bootuuid = self.cuisine.core.run('blkid /dev/%s1 -o value -s PARTUUID' % deviceid)
             rootuuid = self.cuisine.core.run('blkid /dev/%s2 -o value -s PARTUUID' % deviceid)
 
-            arch = textwrap.dedent(tmpl).format(title="Arch linux", uuid=rootuuid, init="/sbin/init")
-            g8os = textwrap.dedent(tmpl).format(title="Arch linux", uuid=rootuuid, init="/sbin/g8os.init")
-            fstab = textwrap.dedent(fstab_tmpl).format(rootuuid=rootuuid, bootuuid=bootuuid)
+            self.cuisine.core.run('mount -t sysfs none /mnt/root/sys')
+            self.cuisine.core.run('mount -t devtmpfs none /mnt/root/dev')
+            self.cuisine.core.run('mount -t tmpfs none /mnt/root/tmp')
+            self.cuisine.core.run('mount -t proc none /mnt/root/proc')
 
-            self.cuisine.core.file_write("/mnt/boot/loader/entries/arch.conf", arch)
-            self.cuisine.core.file_write("/mnt/boot/loader/entries/g8os.conf", g8os)
+            # add g8os section.
+            self.cuisine.core.run('chroot /mnt/root grub-mkconfig -o /boot/grub/grub.cfg')
+
+            self.cuisine.core.run('umount /mnt/root/sys')
+            self.cuisine.core.run('umount /mnt/root/dev')
+            self.cuisine.core.run('umount /mnt/root/tmp')
+            self.cuisine.core.run('umount /mnt/root/proc')
+
+            fstab = textwrap.dedent(fstab_tmpl).format(rootuuid=rootuuid, bootuuid=bootuuid)
             self.cuisine.core.file_write("/mnt/root/etc/fstab", fstab)
 
         self.formatCardDeployImage(url, deviceid=deviceid, part_type='gpt', post_install=configure)

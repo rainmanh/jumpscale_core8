@@ -304,7 +304,7 @@ class MongoConfigSvr(Startable):
 
 
 if __name__ == "__main__":
-    mongoCluster(
+    Mongodb.mongoCluster(
         [{
         "executor": j.tools.executor.getSSHBased(addr="127.0.0.1", port=22,login="root",passwd="rooter"),
         "public_port": 27021,

@@ -66,8 +66,8 @@ class Mongodb():
         cmd = "%s --dbpath $varDir/data/mongodb" % which
         self.cuisine.process.kill("mongod")
         self.cuisine.processmanager.ensure("mongod", cmd=cmd, env={}, path="")
-    
-    def mongoCluster(shards_nodes, config_nodes, mongos_nodes, shards_replica_set_counts=1, unique=""):
+
+    def mongoCluster(self, shards_nodes, config_nodes, mongos_nodes, shards_replica_set_counts=1, unique=""):
         args = []
         for i in [shards_nodes,config_nodes,mongos_nodes]:
             cuisines = []
@@ -75,9 +75,9 @@ class Mongodb():
                 cuisines.append(MongoInstance(j.tools.cuisine.get(k['executor']), addr=k.get('addr', None), private_port=k['private_port'],
                                               public_port=k.get('public_port'), dbdir=k.get('dbdir')))
             args.append(cuisines)
-        return _mongoCluster(args[0], args[1], args[2], shards_replica_set_counts = shards_replica_set_counts, unique = unique)
+        return self._mongoCluster(args[0], args[1], args[2], shards_replica_set_counts = shards_replica_set_counts, unique = unique)
 
-    def _mongoCluster(shards_css, config_css, mongos_css, shards_replica_set_counts = 1, unique = ""):
+    def _mongoCluster(self, shards_css, config_css, mongos_css, shards_replica_set_counts = 1, unique = ""):
         shards_replicas = [shards_css[i:i+shards_replica_set_counts] for i in range(0, len(shards_css), shards_replica_set_counts)]
         shards = [MongoReplica(i, name = "%s_sh_%d"%(unique, num)) for num, i in enumerate(shards_replicas)]
         cfg = MongoConfigSvr(config_css, name = "%s_cfg"%(unique))
@@ -150,7 +150,7 @@ class MongoInstance(Startable):
     def _install(self):
         super()._install()
         self.cuisine.core.dir_ensure(self.dbdir)
-        return self.cuisine.builder.mongodb(start = False)
+        return self.cuisine.apps.mongodb.build(start = False)
 
     def _gen_service_name(self):
         name = "ourmongos" if self.type_ == "mongos" else "ourmongod"

@@ -42,7 +42,7 @@ class Core():
         self.cuisine.process.kill("core")
 
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/core", recursive=True)
-        self.cuisine.core.dir_ensure("$tmplsDir/cfg/core/.mid", recursive=True)
+        self.cuisine.core.file_ensure("$tmplsDir/cfg/core/.mid")
 
         url = "github.com/g8os/core"
         self.cuisine.golang.godep(url)
@@ -55,17 +55,17 @@ class Core():
         # copy extensions
         self.cuisine.core.dir_remove("$tmplsDir/cfg/core/extensions")
         self.cuisine.core.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
-        self.cuisine.core.file_copy("%s/agent.toml" % sourcepath, "$tmplsDir/cfg/core")
-        self.cuisine.core.file_copy("%s/conf" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
+        self.cuisine.core.file_copy("%s/g8os.toml" % sourcepath, "$tmplsDir/cfg/core")
+        self.cuisine.core.dir_ensure("$tmplsDir/cfg/core/conf/")
+        self.cuisine.core.file_copy("{0}sshd.toml {0}basic.toml {0}sshd.toml".format(sourcepath+"/conf/"), "$tmplsDir/cfg/core/conf/", recursive=True)
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/core/extensions/syncthing")
         self.cuisine.core.file_copy("$binDir/syncthing", "$tmplsDir/cfg/core/extensions/syncthing/")
 
-        # self.cuisine.core.dir_ensure("$cfgDir/agent8/agent8/conf", recursive=True)
 
         if start:
             self.start(nid, gid)
 
-    def start(self, nid, gid):
+    def start(self, nid, gid, controller_url="http://127.0.0.1:8966"):
         """
         if this is run on the sam e machine as a controller instance run controller first as the
         core will consume the avialable syncthing port and will cause a problem
@@ -86,14 +86,15 @@ class Core():
         C = self.cuisine.core.file_read("%s/agent.toml" % sourcepath)
         cfg = j.data.serializer.toml.loads(C)
         cfgdir = self.cuisine.core.dir_paths['cfgDir']
-        cfg["main"]["message_ID_file"] = self.cuisine.core.joinpaths(
-            cfgdir, "/core/.mid")
+        cfg["main"]["message_ID_file"] = self.cuisine.core.joinpaths(cfgdir, "/core/.mid")
         cfg["main"]["include"] = self.cuisine.core.joinpaths(cfgdir, "/core/conf")
-        cfg["extensions"]["sync"]["cwd"] = self.cuisine.core.joinpaths(cfgdir, "/core/extensions")
-        cfg["extensions"]["jumpscript"]["cwd"] = self.cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscript")
-        cfg["extensions"]["jumpscript_content"]["cwd"] = self.cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscript")
-        cfg["extensions"]["js_daemon"]["cwd"] = self.cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscript")
-        cfg["extensions"]["js_daemon"]["env"]["JUMPSCRIPTS_HOME"] = self.cuisine.core.joinpaths(cfgdir, "/core/jumpscripts/")
+        cfg["main"].pop("network")
+        cfg["controllers"] = {"main": {"url": controller_url}}
+        cfg["extension"]["sync"]["cwd"] = self.cuisine.core.joinpaths(cfgdir, "/core/extensions")
+        cfg["extension"]["jumpscript"]["cwd"] = self.cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscript")
+        cfg["extension"]["jumpscript_content"]["cwd"] = self.cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscript")
+        cfg["extension"]["js_daemon"]["cwd"] = self.cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscript")
+        cfg["extension"]["js_daemon"]["env"]["JUMPSCRIPTS_HOME"] = self.cuisine.core.joinpaths(cfgdir, "/core/jumpscripts/")
         cfg["logging"]["db"]["address"] = self.cuisine.core.joinpaths(cfgdir, "/core/logs")
         C = j.data.serializer.toml.dumps(cfg)
 

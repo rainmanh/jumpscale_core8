@@ -441,8 +441,12 @@ class User(ModelBase, Document):
         return False
 
     def save(user):
-        if not user.pk:
+        if not user.id:
             user.passwd = crypt.crypt(user.passwd)
+        else:
+            olduser = User.get(user.id)
+            if olduser.passwd != user.passwd:  # change passwd
+                user.passwd = crypt.crypt(user.passwd)
         super(ModelBase, user).save()
 
 

@@ -455,15 +455,13 @@ class AtYourServiceFactory():
             # this will make sure we will have remembered the last state of this action
             self.commitGitChanges(action=action)
 
-
-    def findTodo(self,action="install"):
-        self.alog
-        todo=[]
-        for key,service in self.services.items():
-            actionrunobj=service.getAction(action)
-            if actionrunobj.state!="OK":
-                producersWaiting = service.getProducersWaiting(action,set())
-                if len(producersWaiting)==0:
+    def findTodo(self, action="install"):
+        todo = list()
+        for key, service in self.services.items():
+            actionstate = service.state.getSet(action)
+            if actionstate.state != "OK":
+                producersWaiting = service.getProducersWaiting(action, set())
+                if len(producersWaiting) == 0:
                     todo.append(service)
                     if j.atyourservice.debug:
                         print("%s waiting for install" % service)

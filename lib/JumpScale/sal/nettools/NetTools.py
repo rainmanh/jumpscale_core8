@@ -88,7 +88,7 @@ class NetTools(SALObject):
             now=j.data.time.getTimeEpoch()
         return False
 
-    def checkUrlReachable(self, url):
+    def checkUrlReachable(self, url, timeout=5):
         """
         raise operational critical if unreachable
         return True if reachable
@@ -100,7 +100,7 @@ class NetTools(SALObject):
             import urllib.parse as urllib
 
         try:
-            code = urllib.request.urlopen(url).getcode()
+            code = urllib.request.urlopen(url, timeout=timeout).getcode()
         except Exception:
             j.errorconditionhandler.raiseOperationalCritical("Url %s is unreachable" % url)
 

@@ -151,7 +151,11 @@ class CuisineDocker():
         info = j.data.serializer.json.loads(out)
 
         port = info[0]["port"]
-        return "%s:%s" % (self.executor.addr, port)
+        if 'host' in info[0]:
+            host = info[0]['host']
+            return "%s:%s" % (host, port)
+        else:
+            return "%s:%s" % (self.executor.addr, port)
 
     @actionrun(action=True)
     def ubuntuSystemd(self, name="ubuntu1"):

@@ -28,8 +28,8 @@ class CuisineBuilder(object):
     def all(self, start=False, sandbox=False, stor_addr=None):
         self.cuisine.installerdevelop.pip()
         self.cuisine.installerdevelop.python()
-        self.cuisine.installerdevelop.jumpscale8()
-        self.mongodb(start=start)
+        if not self.cuisine.executor.type == 'local':
+            self.cuisine.installerdevelop.jumpscale8()
         self.cuisine.portal.install(start=start)
         self.redis(start=start, force=True)
         self.core(start=start)
@@ -38,6 +38,7 @@ class CuisineBuilder(object):
         self.fs(start=start)
         self.stor(start=start)
         self.etcd(start=start)
+        self.mongodb(start=start)
         self.caddy(start=start)
         # self.skydns(start=start)
         self.influxdb(start=start)
@@ -793,8 +794,8 @@ wget https://grafanarel.s3.amazonaws.com/builds/grafana-2.6.0.linux-x64.tar.gz
 tar -xvzf grafana-2.6.0.linux-x64.tar.gz
 cd grafana-2.6.0
 cp bin/grafana-server $binDir
-mkdir -p $tmplsDir/grafana
-cp -rn conf public vendor $tmplsDir/grafana
+mkdir -p $tmplsDir/cfg/grafana
+cp -rn conf public vendor $tmplsDir/cfg/grafana
 mkdir -p %s
 """%(logDir)
 
@@ -802,10 +803,10 @@ mkdir -p %s
             C = self.cuisine.core.args_replace(C)
             self.cuisine.core.run_script(C, profile=True, action=True)
             self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
-            cfg = self.cuisine.core.file_read("$tmplsDir/grafana/conf/defaults.ini")
+            cfg = self.cuisine.core.file_read("$tmplsDir/cfg/grafana/conf/defaults.ini")
             cfg = cfg.replace('data = data', 'data = %s'%(dataDir))
             cfg = cfg.replace('logs = data/log', 'logs = %s'%(logDir))
-            self.cuisine.core.file_write("$tmplsDir/grafana/conf/defaults.ini", cfg)
+            self.cuisine.core.file_write("$tmplsDir/cfg/cfg/grafana/conf/defaults.ini", cfg)
             scriptedagent = """/* global _ */
 
 /*
@@ -965,12 +966,12 @@ return dashboard;
             self._startGrafana(influx_addr=influx_addr, influx_port=influx_port, port=port)
 
     def _startGrafana(self, influx_addr='127.0.0.1', influx_port=8086,port=3000):
-        cfg = self.cuisine.core.file_read('$tmplsDir/grafana/conf/defaults.ini')
+        cfg = self.cuisine.core.file_read('$tmplsDir/cfg/grafana/conf/defaults.ini')
         cfg = cfg.replace("http_port = 3000", "http_port = %i"%(port))
         self.cuisine.core.file_write('$cfgDir/grafana/grafana.ini', cfg)
         cmd = "$binDir/grafana-server --config=$cfgDir/grafana/grafana.ini"
         self.cuisine.process.kill("grafana-server")
-        self.cuisine.processmanager.ensure("grafana-server", cmd=cmd, env={}, path="$tmplsDir/grafana/")
+        self.cuisine.processmanager.ensure("grafana-server", cmd=cmd, env={}, path="$tmplsDir/cfg/grafana/")
         grafanaclient = j.clients.grafana.get(url='http://%s:%d'%(self.cuisine.executor.addr, port),username='admin', password='admin')
         data = {
           'type': 'influxdb',

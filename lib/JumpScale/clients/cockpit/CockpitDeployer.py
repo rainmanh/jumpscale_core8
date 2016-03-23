@@ -1,4 +1,5 @@
 from JumpScale import j
+import click
 
 class CockpitArgs:
     """Argument required to deploy a G8Cockpit"""
@@ -74,7 +75,7 @@ class CockpitArgs:
     def dns_login(self):
         if self._dns_login is None:
             self._dns_login = self.asker.ask_dns_login()
-        self._dns_login
+        return self._dns_login
 
     @property
     def dns_password(self):
@@ -126,16 +127,23 @@ class CockpitDeployer:
         self.type = None
 
     def printInfo(self, msg):
-        print(msg)
+        msg = '[+]: %s' % msg
+        click.echo(click.style(msg, fg='green'))
         if self.type == 'bot':
             self.args.asker.say(msg)
+
+    def exit(err, code=1):
+        if isinstance(err, BaseException):
+            raise(err)
+        else:
+            raise(RuntimeError(err))
 
     def _get_vdc(self):
         try:
             ovc_client = j.clients.openvcloud.get(self.args.ovc_url, self.args.ovc_login, self.args.ovc_password)
         except Exception as e:
             self.printInfo("Error While Trying to connec to Gener8 (%s). login:%s" % (self.args.ovc_url, self.args.ovc_login))
-            exit(e)
+            self.exit(e)
 
         self.args.ovc_client = ovc_client
         account = ovc_client.account_get(self.args.ovc_account)
@@ -144,7 +152,7 @@ class CockpitDeployer:
             vdc = account.space_get(self.args.ovc_vdc, self.args.ovc_location, create=True)
         except Exception as e:
             self.printInfo("Error While Trying to have access to vdc %s with account:%s" % (self.args.ovc_vdc, self.args.ovc_account))
-            exit(e)
+            self.exit(e)
         return vdc
 
     def _get_dns_client(self):
@@ -154,17 +162,18 @@ class CockpitDeployer:
             try:
                 baseurl = url % i
                 client = j.clients.skydns.get(baseurl, username=self.args.dns_login, password=self.args.dns_password)
-                _ = client.getConfig()
+                cfg = client.getConfig()
+                if 'error' in cfg:
+                    self.printInfo("Can't connect to DNS: %s" % cfg['error'])
+                    client = None
+                    break
                 return client
             except Exception as e:
-                if i > 3:
-                    self.printInfo("Can't connect to DNS")
-                    exit(e)
-                else:
-                    continue
+                client = None
+                continue
         if not client:
             self.printInfo("Can't connect to DNS")
-            exit("Can't connect to DNS")
+            self.exit("Can't connect to DNS")
 
     def _register_domain(self, vdc_adress):
         dns_client = self._get_dns_client()
@@ -232,16 +241,13 @@ class CockpitDeployer:
         return url
 
     def deploy(self):
-        # from IPython import embed;embed()
-        # ddd
-        # container_cuisine = j.tools.cuisine.get('10.101.104.122:9022')
         cuisine = j.tools.cuisine.local
 
         # connection to Gener8 + get vdc client
         self.printInfo('Test connectivity to Gener8')
         vdc_cockpit = self._get_vdc()
 
-        self.printInfo('Register domain for new cockpit on dns server')
+        # self.printInfo('Register domain for new cockpit on dns server')
         dns_name = self._register_domain(vdc_cockpit.model['publicipaddress'])
 
         key_pub = j.do.getSSHKeyFromAgentPub(self.args.sshkey)
@@ -256,12 +262,12 @@ class CockpitDeployer:
             j.sal.fs.removeDirTree(cockpit_repo_path)
         j.sal.fs.createDir(cockpit_repo_path)
         cuisine.core.run('git init %s' % cockpit_repo_path)
-        cuisine.core.run('git remote add --mirror=push origin https://github.com/zaibon/testg8cokpit %s' % self.args.repo_url)
+        cuisine.core.run('git remote remove origin;git remote add origin %s' % self.args.repo_url)
 
         src = j.sal.fs.joinPaths(template_repo_path, 'ays_repo')
         dest = j.sal.fs.joinPaths(cockpit_repo_path, 'ays_repo')
         if not j.sal.fs.exists(src):
-            exit("%s doesn't exist. template repo is propably not valid")
+            self.exit("%s doesn't exist. template repo is propably not valid")
         j.sal.fs.copyDirTree(src, dest)
 
         git_cl = j.clients.git.get(cockpit_repo_path)
@@ -376,17 +382,17 @@ class CockpitDeployer:
         git_cl.push()
 
         content = "grid.id = %d\nnode.id = 0" % int(self.args.gid)
-        container_cuisine.file_append(location="$hrdDir/system/system.hrd", content=content)
+        container_cuisine.core.file_append(location="$hrdDir/system/system.hrd", content=content)
 
         j.sal.fs.copyFile("portforwards.py", cockpit_repo_path, createDirIfNeeded=False, overwriteFile=True)
         dest = 'root@%s:%s' % (container_cuisine.executor.addr, cockpit_repo_path)
-        container_cuisine.dir_ensure(cockpit_repo_path)
+        container_cuisine.core.dir_ensure(cockpit_repo_path)
         j.do.copyTree(cockpit_repo_path, dest, sshport=container_cuisine.executor.port, ssh=True)
-        j.sal.fs.changeDir(pwd)
 
         self.printInfo("\nCockpit deployed")
         self.printInfo("SSH: ssh root@%s -p %s" % (dns_name, container_cuisine.executor.port))
-        self.printInfo("Shellinabox: https://%s/%s" % (dns_name, shellinbox_url))
-        self.printInfo("Portal: https://%s" % (dns_name))
+        if shellinbox_url:
+            self.printInfo("Shellinabox: https://%s/%s" % (dns_name, shellinbox_url))
+        self.printInfo("Portal: http://%s" % (dns_name))
 
         return cockpit_repo_path

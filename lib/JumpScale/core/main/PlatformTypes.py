@@ -132,7 +132,7 @@ class PlatformType():
         if self._osversion=="":
             self.osname #will populate the version
             if self._osversion=="":
-                raise RuntimeError("could not define osversion")
+                raise j.exceptions.RuntimeError("could not define osversion")
         return self._osversion
 
     @property
@@ -154,7 +154,7 @@ class PlatformType():
                 elif 'arch' in out.lower():
                     self._osname="arch"
                 else:
-                    raise RuntimeError("Could not define os version")
+                    raise j.exceptions.RuntimeError("Could not define os version")
 
                 for line in out.split("\n"):
                     if line.lower().startswith("release"):
@@ -189,7 +189,7 @@ class PlatformType():
 
     def dieIfNotPlatform(self,platform):
         if not self.has_parent(platform):
-            raise RuntimeError("Can not continue, supported platform is %s, this platform is %s"%(platform,self.myplatform))
+            raise j.exceptions.RuntimeError("Can not continue, supported platform is %s, this platform is %s"%(platform,self.myplatform))
 
     def isUnix(self):
         '''Checks whether the platform is Unix-based'''

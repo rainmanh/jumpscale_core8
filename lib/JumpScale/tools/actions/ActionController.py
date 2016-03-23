@@ -47,7 +47,7 @@ class ActionController(object):
     @property
     def runid(self):
         if self._runid=="" or self._runid==None:
-            raise RuntimeError("runid cannot be empty, please set with j.actions.setRunID(...)")
+            raise j.exceptions.RuntimeError("runid cannot be empty, please set with j.actions.setRunID(...)")
         return str(self._runid)
 
     def get(self,actionkey):
@@ -111,7 +111,7 @@ class ActionController(object):
 
 
         if j.data.types.dict.check(args):
-            raise RuntimeError("cannot create action: args should be a list, kwargs a dict, input error")
+            raise j.exceptions.RuntimeError("cannot create action: args should be a list, kwargs a dict, input error")
 
         action=Action(action,runid=self.runid,actionRecover=actionRecover,args=args,kwargs=kwargs,die=die,stdOutput=stdOutput,errorOutput=errorOutput,\
             retry=retry,serviceObj=serviceObj,deps=deps,selfGeneratorCode=selfGeneratorCode,force=force,actionshow=actionshow)
@@ -177,7 +177,7 @@ class ActionController(object):
             for action in todo:
                 action.execute()
                 if action.state == "ERROR":
-                    raise RuntimeError("cannot execute run:%s, failed action." % (runid))
+                    raise j.exceptions.RuntimeError("cannot execute run:%s, failed action." % (runid))
             todo = self.gettodo()
 
 

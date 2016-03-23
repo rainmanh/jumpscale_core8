@@ -39,7 +39,7 @@ class TextLineEditor():
         #check types of input
         if type(blockStartPatterns).__name__!='list' or type(blockStartPatternsNegative).__name__!='list' or type(blockStopPatterns).__name__!='list' \
             or type(blockStopPatternsNegative).__name__!='list':
-            raise RuntimeError("Blockstartpatterns,blockStartPatternsNegative,blockStopPatterns,blockStopPatternsNegative has to be of type list")
+            raise j.exceptions.RuntimeError("Blockstartpatterns,blockStartPatternsNegative,blockStopPatterns,blockStopPatternsNegative has to be of type list")
                                           
         state="scan"
         lines=self.lines
@@ -89,7 +89,7 @@ class TextLineEditor():
 
     def getHighestBlockNr(self,name):
         if name not in self._higestblocknr:
-            raise RuntimeError("Cound not find block with name %s" % name)
+            raise j.exceptions.RuntimeError("Cound not find block with name %s" % name)
         else:
             return self._higestblocknr[name]
     
@@ -132,7 +132,7 @@ class TextLineEditor():
         """
         block=[line for line in self.lines if (line.block==blockname and line.blocknr==blocknr)]
         if len(block)==0:
-            raise RuntimeError("Cannot find block from text with blockname %s and blocknr %s" % (blockname,blocknr))
+            raise j.exceptions.RuntimeError("Cannot find block from text with blockname %s and blocknr %s" % (blockname,blocknr))
         return str.join(block)
         
     def replaceBlock(self,blockname,text,blocknr=1):
@@ -186,7 +186,7 @@ class TextLineEditor():
             line=self.lines[linenr]
             if line.name==blockname and line.blocknr==blocknr:
                 return linenr
-        raise RuntimeError("Could not find block with name %s and blocknr %s" % (blockname,blocknr))
+        raise j.exceptions.RuntimeError("Could not find block with name %s and blocknr %s" % (blockname,blocknr))
     
        
     def addBlock(self,blockname,text):

@@ -181,7 +181,7 @@ class Bash:
         rc,out=self.cuisine.core.run("which %s"%cmd,die=False,showout=False,action=False,profile=True, force=True)
         if rc>0:
             if die:
-                raise RuntimeError("Did not find command: %s"%cmd)
+                raise j.exceptions.RuntimeError("Did not find command: %s"%cmd)
             else:
                 return False
         return out.split("\n")[-1]

@@ -267,7 +267,7 @@ class Expect:
                 self.send("yes\n")
                 result=self.expect("password:",timeout=timeout/2)
             else:
-                raise RuntimeError("Could not login with std passwd nor with seedpasswd, did not get passwd str")
+                raise j.exceptions.RuntimeError("Could not login with std passwd nor with seedpasswd, did not get passwd str")
 
         if result!="E":
             #we saw passwd
@@ -280,25 +280,25 @@ class Expect:
                     self.send(seedpasswd)
                     result=self.expect("#")
                     if result=="E":
-                        raise RuntimeError("could not login with std passwd nor with seedpasswd")
+                        raise j.exceptions.RuntimeError("could not login with std passwd nor with seedpasswd")
                     print("seedpasswd worked")
 
                     print("change passwd")
                     self.send("passwd")
                     result=self.expect("password:")
                     if result=="E":
-                        raise RuntimeError("did not get passwd prompt.")
+                        raise j.exceptions.RuntimeError("did not get passwd prompt.")
                     self.send(passwd)
                     result=self.expect("password:")
                     if result=="E":
-                        raise RuntimeError("did not get passwd prompt.")
+                        raise j.exceptions.RuntimeError("did not get passwd prompt.")
                     self.send(passwd)
                     result=self.expect("#")
                     if result=="E":
-                        raise RuntimeError("could not change passwd")
+                        raise j.exceptions.RuntimeError("could not change passwd")
                     return
                 else:
-                    raise RuntimeError("Could not login did not see permission denied.")
+                    raise j.exceptions.RuntimeError("Could not login did not see permission denied.")
             else:
                 return
 
@@ -307,11 +307,11 @@ class Expect:
             self.send(passwd)
             result=self.expect("#")
             if result=="E":
-                raise RuntimeError("could not login")
+                raise j.exceptions.RuntimeError("could not login")
             return
         else:
             #did not see passwd again
-            raise RuntimeError("Did not see passwd request, could not login")
+            raise j.exceptions.RuntimeError("Did not see passwd request, could not login")
 
         return
 
@@ -331,7 +331,7 @@ class Expect:
     #     If that still fails then we return False.
     #     """
     #     if not j.core.platformtype.myplatform.isLinux():
-    #         raise RuntimeError('pexpect/pxssh not supported on this platform')
+    #         raise j.exceptions.RuntimeError('pexpect/pxssh not supported on this platform')
 
     #     if not self._pxssh.login(ip, login, password, login_timeout=login_timeout):
     #         raise ValueError('Could not connect to %s, check either login/password are not correct or host is not reacheable over SSH.'%ip)
@@ -591,7 +591,7 @@ class Expect:
                 stepname=item[2]
                 timeout=item[3]
             else:
-                raise RuntimeError("Error in syntax sequence,\n%s"%sequence)
+                raise j.exceptions.RuntimeError("Error in syntax sequence,\n%s"%sequence)
 
             result=self.expect([regex,self._prompt],timeout=timeout)
             if result==0 or nr==m:
@@ -602,9 +602,9 @@ class Expect:
                 self.send(tosend,False)
 
             elif result==False:
-                raise RuntimeError("Timeout in execution of sequence.\nError:\n%s"%o)
+                raise j.exceptions.RuntimeError("Timeout in execution of sequence.\nError:\n%s"%o)
             else:
-                raise RuntimeError("Error in execution of sequence.\nError:\n%s"%o)
+                raise j.exceptions.RuntimeError("Error in execution of sequence.\nError:\n%s"%o)
         return self.prompt()
 
 

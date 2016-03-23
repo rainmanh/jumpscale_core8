@@ -71,7 +71,7 @@ class ExecutorSSH(ExecutorBase):
                 if j.sal.fs.exists(path):
                     pubkey=j.sal.fs.fileGetContents(path)
                 else:
-                    raise RuntimeError("Could not find key:%s"%path)
+                    raise j.exceptions.RuntimeError("Could not find key:%s"%path)
 
                 self._sshclient.ssh_authorize("root",pubkey)
 
@@ -110,7 +110,7 @@ class ExecutorSSH(ExecutorBase):
         if dest_prefix != "":
             dest = j.sal.fs.joinPaths(dest_prefix,dest)
         if dest[0] !="/":
-            raise RuntimeError("need / in beginning of dest path")
+            raise j.exceptions.RuntimeError("need / in beginning of dest path")
         dest = "root@%s:%s" % (self.addr, dest)
         j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False, \
             overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,\
@@ -121,7 +121,7 @@ class ExecutorSSH(ExecutorBase):
         if source_prefix != "":
             source = j.sal.fs.joinPaths(source_prefix,source)
         if source[0] !="/":
-            raise RuntimeError("need / in beginning of source path")
+            raise j.exceptions.RuntimeError("need / in beginning of source path")
         source = "root@%s:%s" % (self.addr,source)
         j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False, \
             overwriteFiles=True, ignoredir=[".egg-info",".dist-info"], ignorefiles=[".egg-info"], rsync=True,\

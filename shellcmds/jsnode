@@ -20,7 +20,7 @@ parser.add_argument('--roles', dest='roles', required=False, type=str,
 
 # TODO (*2*) ---> Re-add when AYS is ready
 #if not j.clients.redis.isRunning('system'):
-#    raise RuntimeError("System redis is not installed")
+#    raise j.exceptions.RuntimeError("System redis is not installed")
 
 
 opts = parser.parse_args()

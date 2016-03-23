@@ -27,13 +27,13 @@ class LevelDBInterface():
     def getb(self,key):
         result= self.db.get(key,fill_cache=True,verify_checksums=True)
         if result==None:
-            raise RuntimeError("Cannot find object in db with key:%s"%key)
+            raise j.exceptions.RuntimeError("Cannot find object in db with key:%s"%key)
         return result
 
     def get(self,key):
         value=self.getb(key)        
         if value==None:
-            raise RuntimeError("Cannot find object in db with key:%s"%key)
+            raise j.exceptions.RuntimeError("Cannot find object in db with key:%s"%key)
         val=j.data.serializer.serializers.getSerializerType('j').loads(value)
         return val
 

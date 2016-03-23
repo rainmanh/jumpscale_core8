@@ -22,7 +22,7 @@ class Netconfig(SALObject):
         """
         self.root = j.tools.path.get(root)
         if not self.root.exists():
-            raise RuntimeError("Cannot find root for netconfig:%s" % root)
+            raise j.exceptions.RuntimeError("Cannot find root for netconfig:%s" % root)
         # set base files
         for item in ["etc/network/interfaces", "etc/resolv.conf"]:
             self.root.joinpath(item).touch()
@@ -42,7 +42,7 @@ class Netconfig(SALObject):
     def _getInterfacePath(self):
         path = self.root.joinpath("etc/network/interfaces")
         if not path.exists():
-            raise RuntimeError("Could not find network interface path: %s" % path)
+            raise j.exceptions.RuntimeError("Could not find network interface path: %s" % path)
         return path
 
     def _backup(self, path):
@@ -81,7 +81,7 @@ class Netconfig(SALObject):
         C="nameserver %s\n"%addr    
         path=self.root.joinpath("etc/resolv.conf")
         if not path.exists():
-            raise RuntimeError("Could not find resolv.conf path: '%s'"%path)
+            raise j.exceptions.RuntimeError("Could not find resolv.conf path: '%s'"%path)
         path.write_text(C)
 
     def hostname_set(self, hostname):
@@ -125,7 +125,7 @@ class Netconfig(SALObject):
 
         if ipaddr!=None:
             if dhcp:
-                raise RuntimeError("cannot specify ipaddr & dhcp")
+                raise j.exceptions.RuntimeError("cannot specify ipaddr & dhcp")
             C+="    address $ip\n"
             C+="    netmask $mask\n"
             C+="    network $net\n"
@@ -350,7 +350,7 @@ class Netconfig(SALObject):
         if interface=="brpub":
             gw=pynetlinux.route.get_default_gw()
             if not j.sal.nettools.pingMachine(gw,pingtimeout=2):
-                raise RuntimeError("cannot continue to execute on bridgeConfigResetPub, gw was not reachable.")
+                raise j.exceptions.RuntimeError("cannot continue to execute on bridgeConfigResetPub, gw was not reachable.")
             #this means the default found interface is already brpub, so can leave here
             return
 
@@ -360,12 +360,12 @@ class Netconfig(SALObject):
             i.mac
         except IOError as e:
             if e.errno == 19:
-                raise RuntimeError("Did not find interface: %s"%interface)
+                raise j.exceptions.RuntimeError("Did not find interface: %s"%interface)
             else:
                 raise
 
         if ipaddr==None:
-            raise RuntimeError("Did not find ipaddr: %s"%ipaddr)
+            raise j.exceptions.RuntimeError("Did not find ipaddr: %s"%ipaddr)
 
 
         if mask==None:
@@ -377,10 +377,10 @@ class Netconfig(SALObject):
             print("gw found:%s"%gw)
 
         if gw==None:
-            raise RuntimeError("Did not find gw: %s"%gw)            
+            raise j.exceptions.RuntimeError("Did not find gw: %s"%gw)            
 
         if not j.sal.nettools.pingMachine(gw,pingtimeout=2):
-            raise RuntimeError("cannot continue to execute on bridgeConfigResetPub, gw was not reachable.")
+            raise j.exceptions.RuntimeError("cannot continue to execute on bridgeConfigResetPub, gw was not reachable.")
         print("gw can be reached")
 
 

@@ -277,7 +277,7 @@ class InteractiveHandler:
                     session=self.activeSessions[username]
                 else:
                     #create new session
-                    raise RuntimeError("there should always be a session")
+                    raise j.exceptions.RuntimeError("there should always be a session")
                 paramname,val=text.split("=")
                 paramname=paramname.strip()
                 val=val.strip()

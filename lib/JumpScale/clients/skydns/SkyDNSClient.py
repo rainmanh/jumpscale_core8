@@ -99,6 +99,6 @@ class SkyDNSClient():
             elif j.data.types.dict.check(value):
                 host = value['host']
             else:
-                RuntimeError("Bad response format (%s)", resp)
+                raise j.exceptions.RuntimeError("Bad response format (%s)", resp)
             return (True, host)
         return (False, None)

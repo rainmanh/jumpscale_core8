@@ -23,7 +23,7 @@ if sys.platform.startswith("darwin"):
 else:
     if "JSBASE" not in os.environ:
         os.environ["JSBASE"]="/opt/jumpscale8"
-        # raise RuntimeError("Cannot load jumpscale, please specify JSBASE as env variable.")
+        # raise j.exceptions.RuntimeError("Cannot load jumpscale, please specify JSBASE as env variable.")
     base=os.environ["JSBASE"]
     basevar="/optvar"
 
@@ -157,7 +157,7 @@ def findjumpscalelocations(path):
             classname=line.replace("class ","").split(":")[0].split("(",1)[0].strip()
         if line.find("self.__jslocation__")!=-1:
             if classname==None:
-                raise RuntimeError("Could not find class in %s while loading jumpscale lib."%path)
+                raise j.exceptions.RuntimeError("Could not find class in %s while loading jumpscale lib."%path)
             location=line.split("=",1)[1].replace("\"","").replace("'","").strip()
             res.append((classname,location))
     return res

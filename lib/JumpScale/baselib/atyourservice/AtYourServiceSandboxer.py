@@ -238,7 +238,7 @@ class AtYourServiceSandboxer():
             if len(error_files) == 0:
                 print("all uploaded ok")
             else:
-                raise RuntimeError('some files didnt upload properly. %s' % ("\n".join(error_files)))
+                raise j.exceptions.RuntimeError('some files didnt upload properly. %s' % ("\n".join(error_files)))
 
             metadataPath = j.sal.fs.joinPaths(self.model.storpath, "md","0.flist")
             j.sal.fs.copyDirTree(metadataPath, "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)

@@ -187,7 +187,7 @@ class BlobStorClientFake:
             #     # out_hash = self._dump2stor(out,key=md5) #hashlist is stored on md5 location of file
             #     self.set(key=key, data=out,repoid=repoid)   
             # else:
-            #     raise RuntimeError("hashist needs to be more than 1.")
+            #     raise j.exceptions.RuntimeError("hashist needs to be more than 1.")
         else:
             # print "upload file (<4MB) %s"%(path)
             for data in self._read_file(path):
@@ -242,7 +242,7 @@ class BlobStorClientFake:
     #                 jid,key,dest,link,repoid,chmod,chownuid,chowngid=self._downloadbatch[jid]
     #                 key2=result[0]
     #                 if key2 != key:
-    #                     raise RuntimeError("Keys need to be the same")
+    #                     raise j.exceptions.RuntimeError("Keys need to be the same")
     #                 blob=result[2]
     #                 serialization=result[1]
                     
@@ -258,7 +258,7 @@ class BlobStorClientFake:
         if key=="":
             return
         if blob==None:
-            raise RuntimeError("Cannot find blob with key:%s"%key)
+            raise j.exceptions.RuntimeError("Cannot find blob with key:%s"%key)
                 
         if self.cachepath != "":
             blob_path = self._getBlobCachePath(key)
@@ -315,5 +315,5 @@ class BlobStorClientFake:
 
     def _link(self, src, dest):
         if dest=="":
-            raise RuntimeError("dest cannot be empty")
+            raise j.exceptions.RuntimeError("dest cannot be empty")
         os.link(src, dest)

@@ -42,7 +42,7 @@ def getProcessDicts(service, args={}):
             process["env"] = service.recipe.hrd.getDict("env.process.%s" % counter)
 
         if not isinstance(process["env"], dict):
-            raise RuntimeError("process env needs to be dict")
+            raise j.exceptions.RuntimeError("process env needs to be dict")
 
     return procs
 
@@ -64,13 +64,13 @@ class Service:
             self._rememberActions = True
         else:
             if j.data.types.string.check(servicerecipe):
-                raise RuntimeError("no longer supported, pass servicerecipe")
+                raise j.exceptions.RuntimeError("no longer supported, pass servicerecipe")
             if servicerecipe==None:
-                raise RuntimeError("service recipe cannot be None if path not specified")
+                raise j.exceptions.RuntimeError("service recipe cannot be None if path not specified")
             if instance==None:
-                raise RuntimeError("instance needs to be specified")
+                raise j.exceptions.RuntimeError("instance needs to be specified")
             if path=="":
-                raise RuntimeError("path needs to be specified of service")
+                raise j.exceptions.RuntimeError("path needs to be specified of service")
 
             self._name = servicerecipe.name.lower()
             self.instance=instance
@@ -106,7 +106,7 @@ class Service:
         self._logPath = None
 
         if self.path == "" or self.path is None:
-            raise RuntimeError("cannot be empty")
+            raise j.exceptions.RuntimeError("cannot be empty")
 
         self._init = False
 
@@ -282,7 +282,7 @@ class Service:
         except Exception as e:
             if str(e).find("has no attribute")!=-1:
                 return None
-            raise RuntimeError(e)
+            raise j.exceptions.RuntimeError(e)
         return method
 
     def _getActionMethodNode(self,action):
@@ -291,7 +291,7 @@ class Service:
         except Exception as e:
             if str(e).find("has no attribute")!=-1:
                 return None
-            raise RuntimeError(e)
+            raise j.exceptions.RuntimeError(e)
         return method
 
     def _loadActions(self, path,ttype):
@@ -397,13 +397,13 @@ class Service:
                         rolearg=aysi.instance
                         self.args[role]=rolearg
                     elif len(ays_s)>1:
-                        raise RuntimeError("Cannt find parent with role '%s' for service '%s, there is more than 1"%(role, self))
+                        raise j.exceptions.RuntimeError("Cannt find parent with role '%s' for service '%s, there is more than 1"%(role, self))
                     else:
                         if parent.auto:
                             j.atyourservice.new(name=parent.parent, instance='main', version='', domain='', path=None, parent=None, args={}, consume='')
                             rolearg="main"
                         else:
-                            raise RuntimeError("Cannot find parent with role '%s' for service '%s, there is none, please make sure the service exists."%(role, self))
+                            raise j.exceptions.RuntimeError("Cannot find parent with role '%s' for service '%s, there is none, please make sure the service exists."%(role, self))
 
                 #check we can find
                 ays_s=j.atyourservice.findServices(role=role,instance=rolearg)
@@ -411,9 +411,9 @@ class Service:
                     pass
                     #all ok
                 elif len(ays_s) > 1:
-                    raise RuntimeError("Cannt find parent '%s' for service '%s, there is more than 1 with instance:'%s'"%(role, self, rolearg))
+                    raise j.exceptions.RuntimeError("Cannt find parent '%s' for service '%s, there is more than 1 with instance:'%s'"%(role, self, rolearg))
                 else:
-                    raise RuntimeError("Cannot find parent '%s:%s' for service '%s', please make sure the service exists."%(role, rolearg, self))
+                    raise j.exceptions.RuntimeError("Cannot find parent '%s:%s' for service '%s', please make sure the service exists."%(role, rolearg, self))
 
                 self._parent = ays_s[0]
 
@@ -514,12 +514,12 @@ class Service:
                         ays_s.append(consumable)
 
                 if len(ays_s) > int(consumeitem.consume_nr_max):
-                    raise RuntimeError("Found too many services with role '%s' which we are relying upon for service '%s, max:'%s'" % (role, self, consumeitem.consume_nr_max))
+                    raise j.exceptions.RuntimeError("Found too many services with role '%s' which we are relying upon for service '%s, max:'%s'" % (role, self, consumeitem.consume_nr_max))
                 if len(ays_s) < int(consumeitem.consume_nr_min):
                     msg = "Found not enough services with role '%s' which we are relying upon for service '%s, min:'%s'" % (role, self, consumeitem.consume_nr_min)
                     if len(ays_s) > 0:
                         msg += "Require following instances:%s" % self.args[consumename]
-                    raise RuntimeError(msg)
+                    raise j.exceptions.RuntimeError(msg)
 
                 for ays in ays_s:
                     if role not in self.producers:
@@ -692,7 +692,7 @@ class Service:
     def _getExecutor(self):
         # if not self.parent or self.parent.role != 'os':
         # if 'os' in self.producers and len(self.producers["os"]) > 1:
-            # raise RuntimeError("found more then 1 executor for %s" % self)
+            # raise j.exceptions.RuntimeError("found more then 1 executor for %s" % self)
 
         executor = None
         if self.parent and self.parent.role == 'ssh':
@@ -714,7 +714,7 @@ class Service:
             executor = j.tools.executor.getLocal()
 
         if executor is None:
-            raise RuntimeError("cannot find executor")
+            raise j.exceptions.RuntimeError("cannot find executor")
 
         return executor
 

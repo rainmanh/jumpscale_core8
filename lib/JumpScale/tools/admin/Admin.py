@@ -78,7 +78,7 @@ class Admin():
                 
 
     def reset(self):
-        raise RuntimeError("not implemented")
+        raise j.exceptions.RuntimeError("not implemented")
 
 
     def osis2git(self):
@@ -86,7 +86,7 @@ class Admin():
         if args.roles:
             roles = args.roles.split(",")
         #@todo change to use hostkeys (reem)
-        raise RuntimeError("not implemented")
+        raise j.exceptions.RuntimeError("not implemented")
         nodes = self._getActiveNodes()
         hosts = [node['name'] for node in nodes]
         for node in nodes:
@@ -104,7 +104,7 @@ class Admin():
     
     def raiseError(self,action,msg,e=None):
         #@todo make better
-        raise RuntimeError("%s;%s"%(action,msg))
+        raise j.exceptions.RuntimeError("%s;%s"%(action,msg))
 
     def getNode(self,name=""):
         name=name.lower()
@@ -128,11 +128,11 @@ class Admin():
                 node.getScriptRun()
                 return node
             else:
-                raise RuntimeError("Could not find node:'%s'"%name)
+                raise j.exceptions.RuntimeError("Could not find node:'%s'"%name)
 
         
         if self.redis.hexists("admin:nodes","%s:%s"%(gridname,name))==False:
-            raise RuntimeError("could not find node: '%s/%s'"%(gridname,name))
+            raise j.exceptions.RuntimeError("could not find node: '%s/%s'"%(gridname,name))
             # node=JNode()
             # node.ip=name
             # node.host=name
@@ -142,7 +142,7 @@ class Admin():
             try:
                 node.__dict__.update(j.data.serializer.json.loads(data))
             except Exception as e:
-                raise RuntimeError("could not decode node: '%s/%s'"%(gridname,name))
+                raise j.exceptions.RuntimeError("could not decode node: '%s/%s'"%(gridname,name))
                 # node=JNode()
                 # self.setNode(node)
         node.args=self.args
@@ -195,7 +195,7 @@ class Admin():
                 node.actionsDone[jsname]=now
                 node.lastcheck=now
             except BaseException as e:
-                msg="error in execution of %s.Stack:\n%s\nError:\n%s\n"%(jsname,j.errorconditionhandler.parsePythonErrorObject(e),e)
+                msg="error in execution of %s.Stack:\n%s\nError:\n%s\n"%(jsname,j.errorconditionhandler.parsePythonExceptionObject(e),e)
                 sr.state="ERROR"
                 sr.error+=msg
                 print() 
@@ -287,7 +287,7 @@ class Admin():
                     print("PROCESSES WHICH KEEP MOUNT BUSY:")
                     print(("\n".join(res)))                    
                     return
-                raise RuntimeError("could not umount:%s\n%s"%(mntpath,out))
+                raise j.exceptions.RuntimeError("could not umount:%s\n%s"%(mntpath,out))
 
         if gridname=="" and name=="":
             for mntpath in getMntPaths():
@@ -304,7 +304,7 @@ class Admin():
         do("ssh-keygen -t dsa")
         keyloc="/root/.ssh/id_dsa.pub"
         if not j.sal.fs.exists(path=keyloc):
-            raise RuntimeError("cannot find path for key %s, was keygen well executed"%keyloc)
+            raise j.exceptions.RuntimeError("cannot find path for key %s, was keygen well executed"%keyloc)
         key=j.sal.fs.fileGetContents(keyloc).strip()
         c=""
         login=j.tools.console.askString("official loginname (e.g. despiegk)")
@@ -317,7 +317,7 @@ class Admin():
 
         idloc=self._getPath("identities/")
         if login=="":
-            raise RuntimeError("login cannot be empty")
+            raise j.exceptions.RuntimeError("login cannot be empty")
         userloc=j.sal.fs.joinPaths(idloc,login)
         
         j.sal.fs.createDir(userloc)
@@ -389,7 +389,7 @@ ff02::2      ip6-allrouters
             try:
                 node.__dict__=j.data.serializer.json.loads(data)
             except Exception as e:
-                raise RuntimeError("could not decode node: '%s/%s'"%(gridname,name))
+                raise j.exceptions.RuntimeError("could not decode node: '%s/%s'"%(gridname,name))
             n=node.name
             n=n.lower()
             g=node.gridname
@@ -411,7 +411,7 @@ ff02::2      ip6-allrouters
         for hostname in hkeysNew:
             ipaddr=newHostnames[hostname]
             if hostname.lower() in list(existingHostnames.keys()):
-                raise RuntimeError("error: found new hostname '%s' which already exists in existing hostsfile."%hostname)
+                raise j.exceptions.RuntimeError("error: found new hostname '%s' which already exists in existing hostsfile."%hostname)
             out+="%-18s %s\n"%(ipaddr,hostname)
 
 

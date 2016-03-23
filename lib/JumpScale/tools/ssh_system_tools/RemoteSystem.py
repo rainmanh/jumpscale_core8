@@ -111,7 +111,7 @@ class RemoteSystemConnection(object):
 
     def __getattribute__(self, name):
         if object.__getattribute__(self, '_closed'):
-            raise RuntimeError('There is no active connection.')
+            raise j.exceptions.RuntimeError('There is no active connection.')
         return object.__getattribute__(self, name)
 
     def _getProcess(self):
@@ -202,7 +202,7 @@ class RemoteSystemProcess(_remoteSystemObject):
 
         # Only die if exitcode != 0, error != '' is not enough to conclude that the process went wrong because it may only be warnings!
         if die and exitcode != 0:
-            raise RuntimeError("Process terminated with non 0 exitcode, got exitcode %s.\nout:%s\nerror:%s" % (str(exitcode), myOut, myErr))
+            raise j.exceptions.RuntimeError("Process terminated with non 0 exitcode, got exitcode %s.\nout:%s\nerror:%s" % (str(exitcode), myOut, myErr))
 
         return exitcode, myOut, myErr
 
@@ -248,11 +248,11 @@ class RemoteSystemProcess(_remoteSystemObject):
 
         # Not correct, many command issue warnings on stderr!
         # if len(error.strip())>0 and dieOnError:
-        #    raise RuntimeError("Could not execute %s on %s, output was \n%s\n%s\n" % (command,self._ipaddress,myOut,myErr))
+        #    raise j.exceptions.RuntimeError("Could not execute %s on %s, output was \n%s\n%s\n" % (command,self._ipaddress,myOut,myErr))
         index = output.find("***EXITCODE***:")
         if index == -1:  # Something unknown when wrong, we did not recieve all output
             exitcode = 1000
-            # raise RuntimeError("Did not get all output from executing the SSH command %s" % command) ??
+            # raise j.exceptions.RuntimeError("Did not get all output from executing the SSH command %s" % command) ??
         else:
             lenght = len("***EXITCODE***:")
             exitcodestr = output[index + lenght:]
@@ -448,7 +448,7 @@ class RemoteSystemFS(_remoteSystemObject):
                         sf.close()
                 j.logger.log('Created the directory [%s]' % newdir.encode("utf-8"), 8)
         except:
-            raise RuntimeError("Failed to create the directory [%s]" % newdir.encode("utf-8"))
+            raise j.exceptions.RuntimeError("Failed to create the directory [%s]" % newdir.encode("utf-8"))
 
     def copyDirTree(self, src, dst, keepsymlinks=False):
         """Recursively copy an entire directory tree rooted at src
@@ -489,7 +489,7 @@ class RemoteSystemFS(_remoteSystemObject):
             j.logger.log("Executing [%s]" % cmd, 5)
             self._connection.exec_command(cmd)
         else:
-            raise RuntimeError('Source path %s in remote.system.fs.copyDirTree is not a directory' % src)
+            raise j.exceptions.RuntimeError('Source path %s in remote.system.fs.copyDirTree is not a directory' % src)
 
     def copyDirTreeLocalRemote(self, source, destination="", removeNonRelevantFiles=False):
         """
@@ -502,7 +502,7 @@ class RemoteSystemFS(_remoteSystemObject):
           if destination no specified will use same location as source
         """
         #@todo check and fix
-        raise RuntimeError("not fully implemented yet")
+        raise j.exceptions.RuntimeError("not fully implemented yet")
         if destination == "":
             destination = source
         dirs = {}
@@ -545,11 +545,11 @@ class RemoteSystemFS(_remoteSystemObject):
                     self.copyFile(source, destination)
                     self.removeFile(source)
                 else:
-                    raise RuntimeError("The specified destination path in system.fs.moveFile does not exist: %s" % destination)
+                    raise j.exceptions.RuntimeError("The specified destination path in system.fs.moveFile does not exist: %s" % destination)
             else:
-                raise RuntimeError("The specified source path in system.fs.moveFile does not exist: %s" % source)
+                raise j.exceptions.RuntimeError("The specified source path in system.fs.moveFile does not exist: %s" % source)
         except:
-            raise RuntimeError("File could not be moved...in remote.system.fs.moveFile: from %s to %s " % (source, destination))
+            raise j.exceptions.RuntimeError("File could not be moved...in remote.system.fs.moveFile: from %s to %s " % (source, destination))
 
     def isFile(self, name):
         """Check if the specified file exists for the given path
@@ -596,13 +596,13 @@ class RemoteSystemFS(_remoteSystemObject):
                     sf.remove(path)
                     j.logger.log('Done removing file with path: %s' % path)
                 except:
-                    raise RuntimeError("File with path: %s could not be removed\nDetails: %s" % (path, sys.exc_info()[0]))
+                    raise j.exceptions.RuntimeError("File with path: %s could not be removed\nDetails: %s" % (path, sys.exc_info()[0]))
                 finally:
                     sf.close()
             else:
-                raise RuntimeError("Path: %s is not a file in remote.system.fs.removeFile" % path)
+                raise j.exceptions.RuntimeError("Path: %s is not a file in remote.system.fs.removeFile" % path)
         else:
-            raise RuntimeError("Path: %s does not exist in remote.system.fs.removeFile" % path)
+            raise j.exceptions.RuntimeError("Path: %s does not exist in remote.system.fs.removeFile" % path)
 
     def copyFile(self, fileFrom, fileTo):
         """Copy file
@@ -629,9 +629,9 @@ class RemoteSystemFS(_remoteSystemObject):
                 cmd = 'cp %s %s' % (fileFrom, fileTo)
                 self._connection.exec_command(cmd)
             else:
-                raise RuntimeError("Cannot copy file, file: %s does not exist in system.fs.copyFile" % fileFrom)
+                raise j.exceptions.RuntimeError("Cannot copy file, file: %s does not exist in system.fs.copyFile" % fileFrom)
         except:
-            raise RuntimeError("Failed to copy file from %s to %s" % (fileFrom, fileTo))
+            raise j.exceptions.RuntimeError("Failed to copy file from %s to %s" % (fileFrom, fileTo))
 
     def isEmptyDir(self, path):
         """Check whether a directory is empty
@@ -642,9 +642,9 @@ class RemoteSystemFS(_remoteSystemObject):
         if not path:
             raise TypeError('Not enough parameters passed to system.fs.isEmptyDir: %s' % path)
         if not self.exists(path):
-            raise RuntimeError('Remote path %s does not exist' % path)
+            raise j.exceptions.RuntimeError('Remote path %s does not exist' % path)
         if not self.isDir(path):
-            raise RuntimeError('Remote path %s is not a directory' % path)
+            raise j.exceptions.RuntimeError('Remote path %s is not a directory' % path)
 
         sf = self._connection.open_sftp()
         try:
@@ -794,9 +794,9 @@ class RemoteSystemPortForward(_remoteSystemObject):
         if pid != -1:
             exitCode, output = self.process.killProcess(pid)
             if exitCode:
-                raise RuntimeError('Failed to cancel remote port forwarding for remote port %s. Reason: %s' % (serverPort, output))
+                raise j.exceptions.RuntimeError('Failed to cancel remote port forwarding for remote port %s. Reason: %s' % (serverPort, output))
             return True
-        raise RuntimeError('Failed to cancel remote port forwarding for remote port %s. Reason: %s' % (serverPort, output))
+        raise j.exceptions.RuntimeError('Failed to cancel remote port forwarding for remote port %s. Reason: %s' % (serverPort, output))
 
 
 class LocalForwardServer(socketserver.ThreadingTCPServer):

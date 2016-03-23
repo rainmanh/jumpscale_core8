@@ -29,7 +29,7 @@ class Lock:
         """ Take a system-wide interprocess exclusive lock. Default timeout is 60 seconds """
 
         if locktimeout < 0:
-            raise RuntimeError("Cannot take lock [%s] with negative timeout [%d]" % (lockname, locktimeout))
+            raise j.exceptions.RuntimeError("Cannot take lock [%s] with negative timeout [%d]" % (lockname, locktimeout))
 
         if j.core.platformtype.myplatform.isUnix():
             # linux implementation
@@ -51,7 +51,7 @@ class Lock:
                     time.sleep(1)
             if not lockAcquired:
                 myfile.close()
-                raise RuntimeError("Cannot acquire lock [%s]" % (lockname))
+                raise j.exceptions.RuntimeError("Cannot acquire lock [%s]" % (lockname))
 
         elif j.core.platformtype.myplatform.isWindows():
             raise NotImplementedError
@@ -64,7 +64,7 @@ class Lock:
                 fcntl.flock(myfile.fileno(), fcntl.LOCK_UN)
                 myfile.close()
             except Exception as exc:
-                raise RuntimeError("Cannot unlock [%s] with ERROR:%s" % (lockname, str(exc)))
+                raise j.exceptions.RuntimeError("Cannot unlock [%s] with ERROR:%s" % (lockname, str(exc)))
 
         elif j.core.platformtype.myplatform.isWindows():
             raise NotImplementedError

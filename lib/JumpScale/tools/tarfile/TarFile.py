@@ -63,7 +63,7 @@ class TarFile(object):
         @type files: iterable
         '''
         if not self.mode is TarFileFactory.READ:
-            raise RuntimeError('Can only extract archives opened for reading')
+            raise j.exceptions.RuntimeError('Can only extract archives opened for reading')
 
         if not j.data.types.path.check(destination_path):
             raise ValueError('Not a valid folder name provided')

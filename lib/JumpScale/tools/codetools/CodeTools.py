@@ -160,7 +160,7 @@ class CodeTools:
                     #is a real dict (not a dict as representation of an object)
                     isprimtype, funcprop = isPrimAttribute(obj, key)
                     if not isprimtype:
-                        raise RuntimeError("not supported")
+                        raise j.exceptions.RuntimeError("not supported")
                     else:
                         for valkey, valval in list(value.items()):
                             attr = getattr(obj, key)
@@ -180,7 +180,7 @@ class CodeTools:
 
                 elif isinstance(value, dict) and not isinstance(obj.__dict__[objpropname], dict) :
                     #is a dict which represents another object
-                    raise RuntimeError("not supported, only 1 level deep objects")
+                    raise j.exceptions.RuntimeError("not supported, only 1 level deep objects")
                 else:
                     obj.__dict__[objpropname]=value
             return obj
@@ -327,7 +327,7 @@ class CodeTools:
                 #print "DEBUG NOW Can only convert object to dict with properties basic types or inherited of ClassBase"
                 #ipshell()
                 if dieOnUnknown:
-                    raise RuntimeError("Can only convert object to dict with properties basic types or inherited of ClassBase")
+                    raise j.exceptions.RuntimeError("Can only convert object to dict with properties basic types or inherited of ClassBase")
                 try:
                     val= str(value)
                 except:
@@ -377,7 +377,7 @@ class CodeTools:
                         content2+="\n"
                 else:
                         if line.find("    ")!=0:
-                                raise RuntimeError("identation error for %s."%content)
+                                raise j.exceptions.RuntimeError("identation error for %s."%content)
                         content2+="%s\n" % line[4:]
         return content2
 

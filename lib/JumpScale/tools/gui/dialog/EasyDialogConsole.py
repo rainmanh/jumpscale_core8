@@ -21,7 +21,7 @@ class EasyDialogConsole(EasyDialogGeneric):
         filepath=""
         currentDir = startPath or "/"
         if j.sal.fs.isEmptyDir(currentDir):
-            raise RuntimeError('Startpath directory contains no files, please enter a non empty dir')
+            raise j.exceptions.RuntimeError('Startpath directory contains no files, please enter a non empty dir')
         while(j.sal.fs.isDir(currentDir)):
             dirs = j.sal.fs.walk(currentDir, return_folders = 1)
             if dirs:
@@ -138,7 +138,7 @@ class EasyDialogConsole(EasyDialogGeneric):
         """
 
         if j.application.interactive!=True:
-            raise RuntimeError ("Cannot ask a choice in an list of items in a non interactive mode.")
+            raise j.exceptions.RuntimeError("Cannot ask a choice in an list of items in a non interactive mode.")
 
         defaultValues = list()
 
@@ -181,7 +181,7 @@ class EasyDialogConsole(EasyDialogGeneric):
         """
 
         if j.application.interactive!=True:
-            raise RuntimeError ("Cannot ask a choice in a list of items in a non interactive mode.")
+            raise j.exceptions.RuntimeError("Cannot ask a choice in a list of items in a non interactive mode.")
 
         defaultValues = list()
         defaultValue=str(defaultValue)
@@ -224,7 +224,7 @@ class EasyDialogConsole(EasyDialogGeneric):
         @param pageSize: max number of choices that can be prompted to the user in a single screen
         @param multiSelection: whether the more than one selection is allowed or not
         """
-        raise RuntimeError("IMPLEMENTATION of handlescreens is too bad, no try except allowed, will stop now")
+        raise j.exceptions.RuntimeError("IMPLEMENTATION of handlescreens is too bad, no try except allowed, will stop now")
     #@todo reimplement (NO TRY EXCEPT, USE Q.CONSOLE classes much more) (kds: tried to get it to work but code is just not good enough)
 
         def ask(choices, pageSize, currentLocation, defaultValue, multiSelection):
@@ -262,7 +262,7 @@ class EasyDialogConsole(EasyDialogGeneric):
         @param multiSelection: whether the more than one selection is allowed or not
         @param up: whether to show the next page or previous one
         """
-        raise RuntimeError("IMPLEMENTATION of handlescreens is too bad, no try except allowed, will stop now")
+        raise j.exceptions.RuntimeError("IMPLEMENTATION of handlescreens is too bad, no try except allowed, will stop now")
         if up:
             numberOfChoices = len(choices)
             if currentLocation > numberOfChoices:
@@ -412,7 +412,7 @@ class EasyDialogConsole(EasyDialogGeneric):
         @param choices: choices to choose from
         @param multiSelection: whether the more than one selection is allowed or not
         """
-        raise RuntimeError("IMPLEMENTATION of handlescreens is too bad, no try except allowed, will stop now")
+        raise j.exceptions.RuntimeError("IMPLEMENTATION of handlescreens is too bad, no try except allowed, will stop now")
         selections = [value.strip() for value in selection.split(',')]
         if not multiSelection:
             selections = selections[:1]

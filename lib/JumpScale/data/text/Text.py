@@ -549,7 +549,7 @@ class Text:
             try:
                 result = eval(item)
             except Exception as e:
-                raise RuntimeError("Could not execute code in j.data.text,%s\n%s. Error was:%s" % (item, code, e))
+                raise j.exceptions.RuntimeError("Could not execute code in j.data.text,%s\n%s. Error was:%s" % (item, code, e))
             result = self.pythonObjToStr(result, multiline=False).strip()
             code = code.replace(item, result)
         return code
@@ -591,7 +591,7 @@ class Text:
             return str(obj)
         elif j.data.types.list.check(obj):
             # if not canBeDict:
-            #     raise RuntimeError("subitem cannot be list or dict for:%s"%obj)
+            #     raise j.exceptions.RuntimeError("subitem cannot be list or dict for:%s"%obj)
             if multiline:
                 resout="\n"
                 for item in obj:
@@ -607,7 +607,7 @@ class Text:
 
         elif j.data.types.dict.check(obj):
             if not canBeDict:
-                raise RuntimeError("subitem cannot be list or dict for:%s"%obj)            
+                raise j.exceptions.RuntimeError("subitem cannot be list or dict for:%s"%obj)            
             if multiline:
                 resout="\n"
                 keys=list(obj.keys())
@@ -630,7 +630,7 @@ class Text:
             return resout
 
         else:   
-            raise RuntimeError("Could not convert %s to string"%obj)
+            raise j.exceptions.RuntimeError("Could not convert %s to string"%obj)
 
     
     def hrd2machinetext(self,value,onlyone=False):
@@ -795,7 +795,7 @@ class Text:
             else:
                 return False
         else:
-            raise RuntimeError("input needs to be None, string, bool or int")
+            raise j.exceptions.RuntimeError("input needs to be None, string, bool or int")
 
     
     def _dealWithQuote(self,text):
@@ -861,7 +861,7 @@ class Text:
         for item in self.split(","):
             if item.strip()!="":
                 if item.find(":")==-1:
-                    raise RuntimeError("Could not find : in %s, cannot get dict out of it."%text)
+                    raise j.exceptions.RuntimeError("Could not find : in %s, cannot get dict out of it."%text)
                     
                 key,val=item.split(":",1)
                 if val.find("[")!=-1:

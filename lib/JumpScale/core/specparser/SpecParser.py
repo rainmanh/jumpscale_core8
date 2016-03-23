@@ -408,7 +408,7 @@ class SpecFileParser():
         self.actorname=actorname
         if self.appname!=self.appname.lower().strip():
             emsg="appname %s for specs should be lowercase & no spaces" % self.appname
-            raise RuntimeError(emsg+" {category:spec.nameerror}")
+            raise j.exceptions.RuntimeError(emsg+" {category:spec.nameerror}")
         self.contentin=j.sal.fs.fileGetContents(path)
         self.contentout=""
         self.specblocks={} #key is name
@@ -569,7 +569,7 @@ class SpecParserFactory():
             else:
                 if die:
                     emsg="Cannot find enumeration with name %s for app %s" % (name,app)
-                    raise RuntimeError(emsg+" {category:specs.enumeration.notfound}")
+                    raise j.exceptions.RuntimeError(emsg+" {category:specs.enumeration.notfound}")
                 else:
                     return False
 
@@ -579,7 +579,7 @@ class SpecParserFactory():
             return self.specs[key]
         else:
             if raiseError:
-                raise RuntimeError("Cannot find actor with name %s for app %s" % (name,app)+" {category:specs.actor.notfound}")
+                raise j.exceptions.RuntimeError("Cannot find actor with name %s for app %s" % (name,app)+" {category:specs.actor.notfound}")
             else:
                 return None
 
@@ -591,7 +591,7 @@ class SpecParserFactory():
         else:
             if die:
                 emsg="Cannot find model with name %s for app %s" % (name,app)
-                raise RuntimeError(emsg+" {category:specs.model.notfound}")
+                raise j.exceptions.RuntimeError(emsg+" {category:specs.model.notfound}")
             else:
                 return False
             
@@ -604,7 +604,7 @@ class SpecParserFactory():
         else:
             if die:
                 emsg="Cannot find model with name %s for app %s" % (name,app)
-                raise RuntimeError(emsg+" {category:specs.model.notfound}")
+                raise j.exceptions.RuntimeError(emsg+" {category:specs.model.notfound}")
             else:
                 return False
 
@@ -640,17 +640,17 @@ class SpecParserFactory():
 
         if spec.type!=spec.type.lower().strip():
             emsg="type %s of spec %s should be lowercase & no spaces" % (spec.type,key)
-            raise RuntimeError(emsg+" {category:specs.input}") #@todo P2 the errorcondition handler does not deal with this format to escalate categories
+            raise j.exceptions.RuntimeError(emsg+" {category:specs.input}") #@todo P2 the errorcondition handler does not deal with this format to escalate categories
         if spec.name!=spec.name.lower().strip():
             emsg="name %s of spec %s should be lowercase & no spaces" % (spec.name,key)
-            raise RuntimeError(emsg+" {category:specs.input}")
+            raise j.exceptions.RuntimeError(emsg+" {category:specs.input}")
 
         if spec.appname not in self.appnames:
             self.appnames.append(spec.appname)
 
         if spec.actorname=="":
             emsg="actorname cannot be empty for spec:%s" % (spec.name)
-            raise RuntimeError(emsg+"\n{category:specs.input}")
+            raise j.exceptions.RuntimeError(emsg+"\n{category:specs.input}")
         if "%s_%s"%(spec.appname,spec.actorname) not in self.actornames:
             self.actornames.append("%s_%s"%(spec.appname,spec.actorname))
         
@@ -739,7 +739,7 @@ class SpecParserFactory():
             else:
                 emsg="Could not find spec with query:'%s' appname:'%s' actorname:'%s' name:'%s' " % \
                     (query,appname,actorname,specname)
-            raise RuntimeError(emsg+" {category:specs.finderror}")
+            raise j.exceptions.RuntimeError(emsg+" {category:specs.finderror}")
 
         if findOnlyOne:
             if len(result)!=1:
@@ -749,7 +749,7 @@ class SpecParserFactory():
                 else:
                     emsg="Found more than 1 spec for search query:%s appname:%s actorname:%s name:%s " % \
                         (query,appname,actorname,specname)
-                raise RuntimeError(emsg+" {category:specs.finderror}")
+                raise j.exceptions.RuntimeError(emsg+" {category:specs.finderror}")
             else:
                 result=result[0]
 
@@ -797,7 +797,7 @@ class SpecParserFactory():
         @param specpath if empty will look for path specs in current dir
         """
         if not j.sal.fs.exists(specpath):
-            raise RuntimeError("Cannot find specs on path %s"%specpath)
+            raise j.exceptions.RuntimeError("Cannot find specs on path %s"%specpath)
 
         SpecDirParser(specpath,appname,actorname=actorname)
         #generate specs for model actors
@@ -836,10 +836,10 @@ class SpecParserFactory():
                 if returntype not in ["list","dict"]:
                     returntype="enum"
             if result==False:
-                raise RuntimeError("Cannot find spec for app:%s, actor:%s, with typestr:%s" % (appname,actorname,typestr))
+                raise j.exceptions.RuntimeError("Cannot find spec for app:%s, actor:%s, with typestr:%s" % (appname,actorname,typestr))
             else:
                 spec=result
         return returntype,spec
 
-            #raise RuntimeError("Could not find type:%s in getSpecFromTypeStr" % type)
+            #raise j.exceptions.RuntimeError("Could not find type:%s in getSpecFromTypeStr" % type)
 

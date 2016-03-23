@@ -176,7 +176,7 @@ class CuisineInstallerDevelop():
             ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""""
             self.cuisine.core.run(cmd)
         else:
-            raise RuntimeError("platform not supported yet")
+            raise j.exceptions.RuntimeError("platform not supported yet")
 
 
     @actionrun(action=True)

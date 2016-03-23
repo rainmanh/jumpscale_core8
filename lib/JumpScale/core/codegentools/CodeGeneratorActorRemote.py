@@ -63,7 +63,7 @@ class CodeGeneratorActorRemote(CodeGeneratorBase):
 
         s += """
 if resultcode != 0:
-    raise RuntimeError("error in calling webservice %s:%s:%s:%s" )
+    raise j.exceptions.RuntimeError("error in calling webservice %s:%s:%s:%s" )
 else:
     if j.data.types.dict.check(result) and result.has_key("result"):
         return result["result"]

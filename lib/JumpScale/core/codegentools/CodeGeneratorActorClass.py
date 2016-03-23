@@ -64,7 +64,7 @@ class CodeGeneratorActorClass(CodeGeneratorBase):
 # return self.models.{modelname}.set({modelname})
 #         """
 #         else:
-#             raise RuntimeError("Cound not find method %s for osis.\n%s" % (methodcall, method))
+#             raise j.exceptions.RuntimeError("Cound not find method %s for osis.\n%s" % (methodcall, method))
 
 #         s = s.replace("{modelname}", modelname)
 #         populateparams = ""
@@ -175,7 +175,7 @@ self.appname="{appname}"
                     s += "self.db=self.dbfs\n"
 
             if ok == False:
-                raise RuntimeError("Cannot find default db, there needs to be fs,mem or arakoon specified as db on aktor level.")
+                raise j.exceptions.RuntimeError("Cannot find default db, there needs to be fs,mem or arakoon specified as db on aktor level.")
 
             if False:  # "redis" in dbtypes: #@todo
                 if j.portal.server.active.rediscfg != None and appname != "system":

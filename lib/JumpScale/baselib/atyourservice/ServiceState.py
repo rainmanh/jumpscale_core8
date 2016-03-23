@@ -58,7 +58,7 @@ class StateItem():
     @state.setter
     def state(self,val):
         if val not in ["INIT","ERROR","OK","DISABLED","DO","CHANGED"]:
-            raise RuntimeError("state can only be INIT,ERROR,OK,DISABLED,DO,CHANGED")
+            raise j.exceptions.RuntimeError("state can only be INIT,ERROR,OK,DISABLED,DO,CHANGED")
         if val!=self._state:
             self._state=val
             self.changed=True
@@ -109,7 +109,7 @@ class ServiceState():
         self.service = service
 
         if self.service.path == "" or self.service.path is None:
-            raise RuntimeError("path cannot be empty")
+            raise j.exceptions.RuntimeError("path cannot be empty")
 
         self.path = j.sal.fs.joinPaths(self.service.path, "state.md")
         self.items={}

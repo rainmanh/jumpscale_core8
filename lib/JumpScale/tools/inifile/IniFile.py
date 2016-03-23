@@ -28,7 +28,7 @@ class InifileTool:
             if createIfNonExisting:
                 return InifileTool.new(filename)
             else:
-                raise RuntimeError('Attempt to open non-existing INI file %s' % filename)
+                raise j.exceptions.RuntimeError('Attempt to open non-existing INI file %s' % filename)
         return IniFile(filename, create=False)
 
     @staticmethod
@@ -44,7 +44,7 @@ class InifileTool:
         @rtype: jumpscale.inifile.IniFile.IniFile
         '''
         if isinstance(filename, str) and j.sal.fs.exists(filename):
-            raise RuntimeError('Attempt to create existing INI file %s as a new file' % filename)
+            raise j.exceptions.RuntimeError('Attempt to create existing INI file %s as a new file' % filename)
         return IniFile(filename, create=True)
 
 class IniFile(object):
@@ -81,7 +81,7 @@ class IniFile(object):
                 j.logger.log("Create config file: "+iniFile,7)
                 j.sal.fs.writeFile(iniFile, '')
             if not j.sal.fs.isFile(iniFile):
-                raise RuntimeError("Inifile could not be found on location %s" %  iniFile)
+                raise j.exceptions.RuntimeError("Inifile could not be found on location %s" %  iniFile)
         else: # iniFile is a file-like object
             self.__file = iniFile
 
@@ -110,7 +110,7 @@ class IniFile(object):
             print(err)
             if fp and not fp.closed:
                 fp.close()
-            raise RuntimeError("Failed to read the inifile \nERROR: %s"%(str(err)))
+            raise j.exceptions.RuntimeError("Failed to read the inifile \nERROR: %s"%(str(err)))
 
     def getSections(self):
         """ Return list of sections from this IniFile"""
@@ -206,7 +206,7 @@ class IniFile(object):
             if self.checkSection(sectionName):
                 return True
         except Exception as err:
-            raise RuntimeError('Failed to add section with sectionName: %s \nERROR: %s'%(sectionName, str(err)))
+            raise j.exceptions.RuntimeError('Failed to add section with sectionName: %s \nERROR: %s'%(sectionName, str(err)))
 
     def addParam(self, sectionName, paramName, newvalue):
         """ Add name-value pair to section of IniFile
@@ -223,7 +223,7 @@ class IniFile(object):
             self.write()
             return False
         except Exception as err:
-            raise RuntimeError('Failed to add parameter with sectionName: %s, parameterName: %s, value: %s \nERROR: %s'%(sectionName, paramName, newvalue, str(err)))
+            raise j.exceptions.RuntimeError('Failed to add parameter with sectionName: %s, parameterName: %s, value: %s \nERROR: %s'%(sectionName, paramName, newvalue, str(err)))
 
     def setParam(self, sectionName, paramName, newvalue):
         """ Add name-value pair to section of IniFile
@@ -243,7 +243,7 @@ class IniFile(object):
                 return False
             return True
         except Exception as err:
-            raise RuntimeError('Failed to remove section %s with \nERROR: %s'%(sectionName, str(err)))
+            raise j.exceptions.RuntimeError('Failed to remove section %s with \nERROR: %s'%(sectionName, str(err)))
 
     def removeParam(self, sectionName, paramName):
         """ Remove a param from this IniFile
@@ -255,7 +255,7 @@ class IniFile(object):
             j.logger.log("Inifile:remove %s:%s from %s" % (sectionName,paramName,self.__inifilepath))
             return True
         except Exception as err:
-            raise RuntimeError('Failed to remove parameter: %s under section: %s \nERROR: %s'%(paramName, sectionName, str(err)))
+            raise j.exceptions.RuntimeError('Failed to remove parameter: %s under section: %s \nERROR: %s'%(paramName, sectionName, str(err)))
 
     def write(self, filePath=None):
         """ Write the IniFile content to disk
@@ -290,7 +290,7 @@ class IniFile(object):
             if fp and closeFileHandler and not fp.closed:
                 fp.close()
                 j.sal.fs.unlock_(filePath)
-            raise RuntimeError("Failed to update the inifile at '%s'\nERROR: %s\n" % (filePath, str(err)))
+            raise j.exceptions.RuntimeError("Failed to update the inifile at '%s'\nERROR: %s\n" % (filePath, str(err)))
 
     def getContent(self):
         """ Get the Inifile content to a string

@@ -58,7 +58,7 @@ class QemuImg(SALObject):
         exitCode, output = self._local.execute(command, die=False)
 
         if not exitCode == 0:
-            raise RuntimeError('Command %s exited with code %s, output %s' % (command, exitCode, output))
+            raise j.exceptions.RuntimeError('Command %s exited with code %s, output %s' % (command, exitCode, output))
 
     def commit(self, fileName, diskImageFormat):
         """
@@ -73,7 +73,7 @@ class QemuImg(SALObject):
         exitCode, output = self._local.execute(command, die=False)
 
         if not exitCode == 0:
-            raise RuntimeError('Command %s exited with code %s, output %s' % (command, exitCode, output))
+            raise j.exceptions.RuntimeError('Command %s exited with code %s, output %s' % (command, exitCode, output))
 
     def convert(self, fileName, diskImageFormat, outputFileName, outputFormat, compressTargetImage=False, encryptTargetImage=False, useCompatibilityLevel6=False, isTargetImageTypeSCSI=False, logger=None):
         """
@@ -153,7 +153,7 @@ class QemuImg(SALObject):
             exitCode = prc.returncode
 
         if not exitCode == 0:
-            raise RuntimeError('Command %s exited with code %s, output %s' % (command, exitCode, output))
+            raise j.exceptions.RuntimeError('Command %s exited with code %s, output %s' % (command, exitCode, output))
 
     def info(self, fileName, diskImageFormat=None, chain=False, unit='K'):
         """
@@ -181,7 +181,7 @@ class QemuImg(SALObject):
         exitCode, output = self._local.execute(command, die=False)
 
         if not exitCode == 0:
-            raise RuntimeError('Command %s exited with code %s, output %s' % (command, exitCode, output))
+            raise j.exceptions.RuntimeError('Command %s exited with code %s, output %s' % (command, exitCode, output))
 
         def getresult(output):
             result = dict()

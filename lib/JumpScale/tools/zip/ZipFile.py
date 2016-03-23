@@ -45,7 +45,7 @@ class ZipFile(object):
             #TODO Make this optional?
             result = self._zip.testzip()
             if result is not None:
-                raise RuntimeError('Trying to open broken zipfile, first broken file is %s' % \
+                raise j.exceptions.RuntimeError('Trying to open broken zipfile, first broken file is %s' % \
                         result)
 
         else:

@@ -186,7 +186,7 @@ class BlobStorClientFake:
         if key=="":
             return
         if blob==None:
-            raise RuntimeError("Cannot find blob with key:%s"%key)
+            raise j.exceptions.RuntimeError("Cannot find blob with key:%s"%key)
                 
         if self.cachepath!="":
             blob_path = self._getBlobCachePath(key)
@@ -243,6 +243,6 @@ class BlobStorClientFake:
 
     def _link(self, src, dest):
         if dest=="":
-            raise RuntimeError("dest cannot be empty")
+            raise j.exceptions.RuntimeError("dest cannot be empty")
         os.link(src, dest)
 

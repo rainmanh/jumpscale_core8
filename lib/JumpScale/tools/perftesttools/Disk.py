@@ -25,7 +25,7 @@ class Disk():
         print("init %s:%s check mount" % (fs, self))
         
         if not self.checkMount():
-            raise RuntimeError("could not mount %s" % self)
+            raise j.exceptions.RuntimeError("could not mount %s" % self)
         
         print("init %s:%s done" % (fs, self))
 

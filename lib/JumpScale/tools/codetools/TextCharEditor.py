@@ -46,7 +46,7 @@ class TextCharEditor():
             textToInvestigate=string.join([char[0] for char in self.chars[match.start:]],"")
             result2=j.tools.code.regex.getRegexMatches(stoppattern,textToInvestigate)     
             if len(result2.matches)==0:
-                raise RuntimeError("could not find stoppattern %s"%stoppattern)
+                raise j.exceptions.RuntimeError("could not find stoppattern %s"%stoppattern)
             end=result2.matches[0].end
             skip=False
             for pos in range(match.start,match.start+end): #scan first time if somewhere there is already a char part of a block
@@ -103,7 +103,7 @@ class TextCharEditor():
 
     def getHighestBlockNr(self,name):
         if name not in self._higestblocknr:
-            raise RuntimeError("Cound not find block with name %s" % name)
+            raise j.exceptions.RuntimeError("Cound not find block with name %s" % name)
         else:
             return self._higestblocknr[name]
     
@@ -132,7 +132,7 @@ class TextCharEditor():
         will check there is only 1 block and that block will be deleted, otherwise raise error
         """
         if self.getHighestBlockNr(blockname)>1:
-            raise RuntimeError("Found more than 1 block, cannot delete blockname=%s" % blockname)        
+            raise j.exceptions.RuntimeError("Found more than 1 block, cannot delete blockname=%s" % blockname)        
         self.chars=[char for char in self.chars if char[1]!=blockname ]
         
     def getBlock(self,blockname,blocknr):
@@ -146,7 +146,7 @@ class TextCharEditor():
         will check there is only 1 block and that block will be returned, otherwise raise error
         """
         if self.getHighestBlockNr(blockname)>1:
-            raise RuntimeError("Found more than 1 block, cannot get blockname=%s" % blockname)
+            raise j.exceptions.RuntimeError("Found more than 1 block, cannot get blockname=%s" % blockname)
         return string.join([char[0] for char in self.chars if char[1]==blockname ],"")    
     
     def insertBlock(self,start,text,blockname="",blocknr=None):
@@ -158,9 +158,9 @@ class TextCharEditor():
         if blocknr==None and blockname=="":
             blocknr=0
         if blocknr!=None and blockname=="":
-            raise RuntimeError("Cannot have a blockname != \"\" with blocknr>0")
+            raise j.exceptions.RuntimeError("Cannot have a blockname != \"\" with blocknr>0")
         if len(text)==0:
-            raise RuntimeError("Cannot insert empty block of text.")
+            raise j.exceptions.RuntimeError("Cannot insert empty block of text.")
         counter=start
         textarray=list(text)#text needs to be reversed otherwise inserting does not go well
         textarray.reverse()
@@ -191,7 +191,7 @@ class TextCharEditor():
             #print "%s %s %s" % (charnr,self.chars[charnr][1],self.chars[charnr][2])
             if self.chars[charnr][1]==blockname and (blocknr==None or self.chars[charnr][2]==blocknr):
                 return charnr        
-        raise RuntimeError("Could not find block with name %s and blocknr %s" % (blockname,blocknr))
+        raise j.exceptions.RuntimeError("Could not find block with name %s and blocknr %s" % (blockname,blocknr))
     
     
     #def __repr__(self):

@@ -344,7 +344,7 @@ class CuisineBuilder(object):
         self.cuisine.process.kill("core")
 
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/core", recursive=True)
-        self.cuisine.core.dir_ensure("$tmplsDir/cfg/core/.mid", recursive=True)
+        self.cuisine.core.file_ensure("$tmplsDir/cfg/core/.mid")
 
         url = "github.com/g8os/core"
         self.cuisine.golang.godep(url)
@@ -355,11 +355,13 @@ class CuisineBuilder(object):
         self.cuisine.core.run("cd %s && go build ." % sourcepath, profile=True)
         self.cuisine.core.file_move("%s/core" % sourcepath, "$binDir/core")
 
+
         # copy extensions
         self.cuisine.core.dir_remove("$tmplsDir/cfg/core/extensions")
         self.cuisine.core.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
-        self.cuisine.core.file_copy("%s/agent.toml" % sourcepath, "$tmplsDir/cfg/core")
-        self.cuisine.core.file_copy("%s/conf" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
+        self.cuisine.core.file_copy("%s/g8os.toml" % sourcepath, "$tmplsDir/cfg/core")
+        self.cuisine.core.dir_ensure("$tmplsDir/cfg/core/conf/")
+        self.cuisine.core.file_copy("{0}sshd.toml {0}basic.toml {0}sshd.toml".format(sourcepath+"/conf/"), "$tmplsDir/cfg/core/conf/", recursive=True)
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/core/extensions/syncthing")
         self.cuisine.core.file_copy("$binDir/syncthing", "$tmplsDir/cfg/core/extensions/syncthing/")
 
@@ -464,7 +466,7 @@ class CuisineBuilder(object):
         cmd = self.cuisine.bash.cmdGetPath("stor")
         self.cuisine.processmanager.ensure("stor", '%s --config $cfgDir/stor/config.toml' % cmd)
 
-    def _startCore(self, nid, gid):
+    def _startCore(self, nid, gid, controller_url="http://127.0.0.1:8966"):
         """
         if this is run on the sam e machine as a controller instance run controller first as the
         core will consume the avialable syncthing port and will cause a problem
@@ -483,20 +485,22 @@ class CuisineBuilder(object):
 
         # manipulate config file
         sourcepath = "$tmplsDir/cfg/core"
-        C = self.cuisine.core.file_read("%s/agent.toml" % sourcepath)
+        C = self.cuisine.core.file_read("%s/g8os.toml" % sourcepath)
         cfg = j.data.serializer.toml.loads(C)
         cfgdir = self.cuisine.core.dir_paths['cfgDir']
         cfg["main"]["message_ID_file"] = self.cuisine.core.joinpaths(cfgdir,"/core/.mid")
         cfg["main"]["include"] = self.cuisine.core.joinpaths(cfgdir,"/core/conf")
-        cfg["extensions"]["sync"]["cwd"] = self.cuisine.core.joinpaths(cfgdir,"/core/extensions")
-        cfg["extensions"]["jumpscript"]["cwd"] = self.cuisine.core.joinpaths(cfgdir,"/core/extensions/jumpscript")
-        cfg["extensions"]["jumpscript_content"]["cwd"] = self.cuisine.core.joinpaths(cfgdir,"/core/extensions/jumpscript")
-        cfg["extensions"]["js_daemon"]["cwd"] = self.cuisine.core.joinpaths(cfgdir,"/core/extensions/jumpscript")
-        cfg["extensions"]["js_daemon"]["env"]["JUMPSCRIPTS_HOME"] = self.cuisine.core.joinpaths(cfgdir,"/core/jumpscripts/")
+        cfg["main"].pop("network")
+        cfg["controllers"] = {"main": {"url": controller_url}}
+        cfg["extension"]["sync"]["cwd"] = self.cuisine.core.joinpaths(cfgdir,"/core/extensions")
+        cfg["extension"]["jumpscript"]["cwd"] = self.cuisine.core.joinpaths(cfgdir,"/core/extensions/jumpscript")
+        cfg["extension"]["jumpscript_content"]["cwd"] = self.cuisine.core.joinpaths(cfgdir,"/core/extensions/jumpscript")
+        cfg["extension"]["js_daemon"]["cwd"] = self.cuisine.core.joinpaths(cfgdir,"/core/extensions/jumpscript")
+        cfg["extension"]["js_daemon"]["env"]["JUMPSCRIPTS_HOME"] = self.cuisine.core.joinpaths(cfgdir,"/core/jumpscripts/")
         cfg["logging"]["db"]["address"] = self.cuisine.core.joinpaths(cfgdir,"/core/logs")
         C = j.data.serializer.toml.dumps(cfg)
 
-        self.cuisine.core.file_write("$cfgDir/core/agent.toml", C, replaceArgs=True)
+        self.cuisine.core.file_write("$cfgDir/core/g8os.toml", C, replaceArgs=True)
 
 
         self._startMongodb()
@@ -505,7 +509,7 @@ class CuisineBuilder(object):
         #@todo (*1*) need to implement to work on node
         env={}
         env["TMPDIR"]=self.cuisine.core.dir_paths["tmpDir"]
-        cmd = "$binDir/core -nid %s -gid %s -c $cfgDir/core/agent.toml" % (nid, gid)
+        cmd = "$binDir/core -nid %s -gid %s -c $cfgDir/core/g8os.toml" % (nid, gid)
         pm = self.cuisine.processmanager.get("tmux")
         pm.ensure("core", cmd=cmd, path="$cfgDir/core",  env=env)
 

@@ -409,14 +409,14 @@ class AtYourServiceFactory():
             if [service for action in actions if service.state.getSet(action).state == 'CHANGED']:
                 changed.append(service)
                 changed.extend([producer for _, producer in service.producers()])
+        return changed
 
-    def do(self,action="install",printonly=False,remember=True,allservices=False, ask=False):
-
+    def do(self, action="install", printonly=False, remember=True, allservices=False, ask=False):
         if not allservices:
             # we need to find change since last time & make sure that
             # find all services with action with this name and put back on init
             # we also need to find all child service and depdendent service of the modified service
-            changed, changes = self.alog.getChangedAtYourservices(action=action)
+            changed = self._getChangedServices(action=action)
             toChange = set(changed)
             for service in changed:
                 toChange = toChange.union(self.findConsumersRecursive(service))
@@ -430,56 +430,23 @@ class AtYourServiceFactory():
                     actionobj.setState("CHANGED")
 
         else:
-            todo=[item[1] for item in self.services.items()]
+            todo = [item[1] for item in self.services.items()]
             for service in todo:
-                actionobj=service.getAction(action)
-                if remember==False or printonly:
-                    actionobj._state="START"
+                actionobj = service.getAction(action)
+                if remember is False or printonly:
+                    actionobj._state = "START"
                 else:
                     actionobj.setState("START")
 
-        todo=self.findTodo(action=action)
+        todo = self.findTodo(action=action)
 
         step = 1
-        error=False
         while todo != []:
             print("execute state changes, nr services to process: %s in step:%s" % (len(todo), step))
             for i in range(len(todo)):
                 service = todo[i]
-                service.runAction(name=action,printonly=printonly)
-                # try:
-                #     service.runAction(name=action,printonly=printonly)
-                # except Exception as e:
-                #     err="***ERROR %s***\n"%(service)
-                #     for line in traceback.format_stack():
-                #         if "/IPython/" in line:
-                #             continue
-                #         # if "JumpScale/baselib" in line:
-                #         #     continue
-                #         if "site-packages/click/" in line:
-                #             continue
-                #         if "bin/ays" in line:
-                #             continue
-                #         line=line.strip().strip("' ").strip().replace("File ","")
-                #         err+="%s\n"%line.strip()
-                #     err+="ERROR:%s\n"%e
-                #     print (err)
-                #     error=True
-
-            step += 1
-            if error:
-                #don't do other levels, because error on this level
-                todo=[]
-            else:
-                todo=self.findTodo(action=action)
-
-        if printonly:
-            remember = False
-        if remember is False and error is False:
-            self.alog.removeLastRun()
-        else:
-            # this will make sure we will have remembered the last state of this action
-            self.commitGitChanges(action=action)
+                service.runAction(action, printonly=printonly)
+            todo = self.findTodo(action=action)
 
     def findTodo(self, action="install"):
         todo = list()

@@ -364,8 +364,11 @@ class Service:
             self._hrd_hash=None
 
             #make sure yaml is written again, which means changes will be detected
-            if yaml!=None:
-                j.data.serializer.yaml.dump(j.sal.fs.joinPaths(self.path, "model.yaml"), yaml)
+            if yaml is not None:
+                yamlpath = j.sal.fs.joinPaths(self.path, "model.yaml")
+                if not j.sal.fs.exists(yamlpath):
+                    j.sal.fs.touch(yamlpath)
+                j.data.serializer.yaml.dump(yamlpath, yaml)
 
 
             #see if we can find parent if specified (potentially based on role)
@@ -427,15 +430,12 @@ class Service:
 
             # if no schema.hrd exists in servicetemplate, raw yaml will be used as datasource
             # we just create en empty instance.hrd
-            if j.sal.fs.exists(self.recipe.template.path_hrd_schema):
-                self._hrd = self.recipe.schema.hrdGet(hrd=self.hrd, args=self.args, path=hrdpath)
-            else:
-                self._hrd = j.data.hrd.get(content="")
+            self._hrd = self.recipe.schema.hrdGet(hrd=self.hrd, args=self.args, path=hrdpath)
 
             if self.recipe.hrd is not None:
                 #apply values from recipe hrd to this hrd
                 self.hrd.applyTemplate(self.recipe.hrd)
-
+            self.hrd.prefixWithName = False
             self.hrd.set("service.name", self.name)
             self.hrd.set("service.version", self.version)
             self.hrd.set("service.domain", self.domain)

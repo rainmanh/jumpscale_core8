@@ -53,9 +53,8 @@ class CuisineInstallerDevelop():
         C=self.cuisine.core.args_replace(C)
         self.cuisine.core.run(C)
 
-
     @actionrun(action=True)
-    def jumpscale8(self):
+    def installJS8Deps(self):
         #make sure base is done & env is clean
         self.cuisine.installer.base()
 
@@ -165,6 +164,9 @@ class CuisineInstallerDevelop():
         """
         self.dnspython3()
 
+    @actionrun(action=True)
+    def jumpscale8(self):
+        self.installJS8Deps()
 
         if self.cuisine.core.isUbuntu or self.cuisine.core.isArch:
             C='cd $tmpDir/;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh'

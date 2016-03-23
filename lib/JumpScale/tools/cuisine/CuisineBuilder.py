@@ -359,7 +359,6 @@ class CuisineBuilder(object):
         # copy extensions
         self.cuisine.core.dir_remove("$tmplsDir/cfg/core/extensions")
         self.cuisine.core.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
-        self.cuisine.core.file_copy("%s/network.toml" % sourcepath, "$tmplsDir/cfg/core")
         self.cuisine.core.file_copy("%s/g8os.toml" % sourcepath, "$tmplsDir/cfg/core")
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/core/conf/")
         self.cuisine.core.file_copy("{0}sshd.toml {0}basic.toml {0}sshd.toml".format(sourcepath+"/conf/"), "$tmplsDir/cfg/core/conf/", recursive=True)

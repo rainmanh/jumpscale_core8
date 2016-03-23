@@ -227,11 +227,13 @@ class CuisineBuilder(object):
             passwd=""
         """
         self.cuisine.golang.install()
-        self.cuisine.golang.get("github.com/g8os/fs", action=True)
+        self.cuisine.golang.godep("github.com/g8os/fs", action=True)
+        self.cuisine.core.run("cd %s && go build ." % "$goDir/src/github.com/g8os/fs", profile=True)
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/fs")
-        self.cuisine.core.file_copy("$goDir/bin/fs", "$base/bin")
+        self.cuisine.core.file_copy("$goDir/src/github.com/g8os/fs/fs", "$base/bin")
         self.cuisine.core.file_write("$goDir/src/github.com/g8os/fs/config/config.toml", content)
         self.cuisine.core.file_copy("$goDir/src/github.com/g8os/fs/config/config.toml", "$tmplsDir/cfg/fs")
+        self.cuisine.core.file_download("https://stor.jumpscale.org/storx/static/js8_opt.flist", self.cuisine.core.args_replace("$tmplsDir/cfg/fs/js8_opt.flist"))
         if start:
             self._startFs()
 
@@ -439,7 +441,7 @@ class CuisineBuilder(object):
         self.cuisine.processmanager.ensure("skydns",cmd + " -addr 0.0.0.0:53")
 
     def _startFs(self):
-        self.cuisine.core.file_copy("$tmplsDir/cfg/fs", "$cfgDir", recursive=True)
+        self.cuisine.core.file_copy("$tmplsDir/cfg/fs/", "$cfgDir", recursive=True)
         self.cuisine.processmanager.ensure('fs', cmd="$binDir/fs -c $cfgDir/fs/config.toml")
 
     def _startSyncthing(self):

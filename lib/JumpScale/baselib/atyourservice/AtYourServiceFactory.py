@@ -368,8 +368,21 @@ class AtYourServiceFactory():
         self.init()
         self.do(action="install",printonly=printonly,remember=remember)
 
+    def apply(self, printonly=False, remember=True):
+        # start from clean sheet
+        self.init()
 
-    def commit(self,action="unknown",msg="",precheck=False):
+        actions = ['install', 'start']
+
+        todo = self.findTodo(action='install')
+        while todo != []:
+            for i in range(len(todo)):
+                service = todo[i]
+                for action in actions:
+                    service.runAction(action, printonly)
+            todo = self.findTodo('install')
+
+    def commit(self, action="unknown", msg="", precheck=False):
         pass
         # if len(self.git.getModifiedFiles(True,ignore=["/alog/"]))>0:
         #     if msg=="":
@@ -383,6 +396,19 @@ class AtYourServiceFactory():
         #     if not precheck:
         #         #only do this when no precheck, means we are not cleaning up past
         #         self.alog.newGitCommit(action=action,githash="")
+
+    def _getChangedServices(self, action=None):
+        changed = list()
+        if not action:
+            actions = ["install", "stop", "start", "monitor", "halt", "check_up", "check_down",
+                       "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata"]
+        else:
+            actions = [action]
+
+        for _, service in self.services.items():
+            if [service for action in actions if service.state.getSet(action).state == 'CHANGED']:
+                changed.append(service)
+                changed.extend([producer for _, producer in service.producers()])
 
     def do(self,action="install",printonly=False,remember=True,allservices=False, ask=False):
 

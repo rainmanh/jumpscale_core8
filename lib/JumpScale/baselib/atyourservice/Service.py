@@ -302,17 +302,13 @@ class Service:
             path2 = j.sal.fs.joinPaths(self.path, j.sal.fs.getBaseName(path))
             #need to create a copy of the recipe mgmt or node action class
             j.sal.fs.copyFile(path, path2)
-            # print (path2)
             if self.hrd is not None:
-                # print ("apply hrd")
                 self.hrd.applyOnFile(path2)
-            # if self.recipe._hrd is not None:
-            #     self.recipe.hrd.applyOnFile(path2)
             j.application.config.applyOnFile(path2)
         else:
             j.events.opserror_critical(msg="can't find %s." % path, category="ays loadActions")
 
-        modulename = "JumpScale.atyourservice.%s.%s.%s.%s" % (self.domain, self.name, self.instance,ttype)
+        modulename = "JumpScale.atyourservice.%s.%s.%s.%s" % (self.domain, self.name, self.instance, ttype)
         mod = loadmodule(modulename, path2)
         #is only there temporary don't want to keep it there
 
@@ -329,7 +325,7 @@ class Service:
 
     def cleanOnRepo(self):
         j.sal.fs.removeDirTree(j.do.joinPaths(self.path,"__pycache__"))
-        j.sal.fs.remove(j.sal.fs.joinPaths(self.path, "actions.py"))
+        # j.sal.fs.remove(j.sal.fs.joinPaths(self.path, "actions.py"))
         j.sal.fs.remove(j.sal.fs.joinPaths(self.path, "actions_node.py"))
 
     @property
@@ -797,6 +793,12 @@ class Service:
     #     executor.execute(execCmd, die=True, showout=True)
 
     #     return True
+
+    def runAction(self, action, printonly=False):
+        if printonly:
+            # TODO printonyl
+            return
+        getattr(self.actions, action)()
 
     def _getDisabledProducers(self):
         producers = dict()

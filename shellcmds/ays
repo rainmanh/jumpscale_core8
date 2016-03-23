@@ -68,6 +68,17 @@ def showactions():
 
 
 @click.command()
+@click.option('--printonly', default=False, is_flag=True, help='if set will not really execute, only show what would have been done')
+@click.option('--all', default=False, is_flag=True, help='don\'t look for changed services, execute on all')
+@click.option('--ask', default=False, is_flag=True, help='ask on which service to execute the action')
+def apply(printonly=False, all=False, ask=False):
+    """
+    """
+    allservices = all
+    j.atyourservice.apply(printonly=printonly)
+
+
+@click.command()
 @click.argument('action')
 @click.option('--printonly', default=False,  is_flag=True,help='if set will not really execute, only show what would have been done')
 @click.option('--all', default=False,  is_flag=True,help='don\'t look for changed services, execute on all')
@@ -152,7 +163,7 @@ def destroy():
 cli.add_command(new)
 cli.add_command(destroy)
 cli.add_command(init)
-# cli.add_command(commit)
+cli.add_command(apply)
 cli.add_command(install)
 cli.add_command(do)
 cli.add_command(do0)

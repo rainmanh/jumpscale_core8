@@ -347,11 +347,11 @@ class Service:
 
         return self._producers
 
-    # @property
-    # def executor(self):
-    #     if self._executor is None:
-    #         self._executor = self._getExecutor()
-    #     return self._executor
+    @property
+    def executor(self):
+        if self._executor is None:
+            self._executor = self._getExecutor()
+        return self._executor
 
     def save(self):
         self.state.save()
@@ -686,35 +686,14 @@ class Service:
         self.executor.download(remotePath, self.path)
 
     def _getExecutor(self):
-        # if not self.parent or self.parent.role != 'os':
-        # if 'os' in self.producers and len(self.producers["os"]) > 1:
-            # raise RuntimeError("found more then 1 executor for %s" % self)
-
         executor = None
-        if self.parent and self.parent.role == 'ssh':
-        # if 'os' in self.producers and self.producers.get('os'):
-            node = self.parent
-            # node = self.producers["os"][0]
-            if '"agentcontroller' in node.producers:
-                # this means an agentcontroller is responsible for the node which hosts this service
-                agentcontroller = node.producers["agentcontroller"][0]
-                # make more robust
-                agentcontrollerclient = agentcontroller.producers["agentcontrollerclient"][0]
-                executor = j.tools.executor.getJSAgentBased(agentcontrollerclient.key)
-            elif node.hrd.exists("node.tcp.addr") and node.hrd.exists("ssh.port"):
-                # is ssh node
-                executor = j.tools.executor.getSSHBased(node.hrd.get("node.tcp.addr"), node.hrd.get("ssh.port"))
-            else:
-                executor = j.tools.executor.getLocal()
-        else:
-            executor = j.tools.executor.getLocal()
+        for parent in self.parents:
+            if hasattr(parent.actions, 'getExecutor'):
+                executor = parent.actions.getExecutor()
+                return executor
+        return j.tools.executor.getLocal()
 
-        if executor is None:
-            raise RuntimeError("cannot find executor")
-
-        return executor
-
-    def log(self, msg,level=0):
+    def log(self, msg, level=0):
         self.action_current.log(msg)
 
     def listChildren(self):
@@ -853,5 +832,3 @@ class Service:
         for consumer in self._getConsumers(include_disabled=True):
             consumer.enable()
             consumer.start()
-
- 

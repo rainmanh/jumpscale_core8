@@ -84,6 +84,8 @@ class ServiceRecipe(ServiceTemplate):
             self.actionmethods[actionmethod] = a
             if actionmethod == 'input':
                 self._out += '\n    def input(self,name,role,instance,serviceargs):\n        return serviceargs\n\n'
+            elif actionmethod == 'getExecutor':
+                self._out += content
             elif content:
                 self._out += '\n    @actionmethod()\n%s' % (content)
             else:

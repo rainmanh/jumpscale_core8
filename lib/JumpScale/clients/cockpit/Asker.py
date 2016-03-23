@@ -1,5 +1,5 @@
 from JumpScale import j
-from telegram.dispatcher import run_async
+from telegram.ext.dispatcher import run_async
 import queue
 
 class ConsoleAsker(object):

@@ -302,17 +302,13 @@ class Service:
             path2 = j.sal.fs.joinPaths(self.path, j.sal.fs.getBaseName(path))
             #need to create a copy of the recipe mgmt or node action class
             j.sal.fs.copyFile(path, path2)
-            # print (path2)
             if self.hrd is not None:
-                # print ("apply hrd")
                 self.hrd.applyOnFile(path2)
-            # if self.recipe._hrd is not None:
-            #     self.recipe.hrd.applyOnFile(path2)
             j.application.config.applyOnFile(path2)
         else:
             j.events.opserror_critical(msg="can't find %s." % path, category="ays loadActions")
 
-        modulename = "JumpScale.atyourservice.%s.%s.%s.%s" % (self.domain, self.name, self.instance,ttype)
+        modulename = "JumpScale.atyourservice.%s.%s.%s.%s" % (self.domain, self.name, self.instance, ttype)
         mod = loadmodule(modulename, path2)
         #is only there temporary don't want to keep it there
 
@@ -329,7 +325,7 @@ class Service:
 
     def cleanOnRepo(self):
         j.sal.fs.removeDirTree(j.do.joinPaths(self.path,"__pycache__"))
-        j.sal.fs.remove(j.sal.fs.joinPaths(self.path, "actions.py"))
+        # j.sal.fs.remove(j.sal.fs.joinPaths(self.path, "actions.py"))
         j.sal.fs.remove(j.sal.fs.joinPaths(self.path, "actions_node.py"))
 
     @property
@@ -368,8 +364,11 @@ class Service:
             self._hrd_hash=None
 
             #make sure yaml is written again, which means changes will be detected
-            if yaml!=None:
-                j.data.serializer.yaml.dump(j.sal.fs.joinPaths(self.path, "model.yaml"), yaml)
+            if yaml is not None:
+                yamlpath = j.sal.fs.joinPaths(self.path, "model.yaml")
+                if not j.sal.fs.exists(yamlpath):
+                    j.sal.fs.touch(yamlpath)
+                j.data.serializer.yaml.dump(yamlpath, yaml)
 
 
             #see if we can find parent if specified (potentially based on role)
@@ -431,15 +430,12 @@ class Service:
 
             # if no schema.hrd exists in servicetemplate, raw yaml will be used as datasource
             # we just create en empty instance.hrd
-            if j.sal.fs.exists(self.recipe.template.path_hrd_schema):
-                self._hrd = self.recipe.schema.hrdGet(hrd=self.hrd, args=self.args, path=hrdpath)
-            else:
-                self._hrd = j.data.hrd.get(content="")
+            self._hrd = self.recipe.schema.hrdGet(hrd=self.hrd, args=self.args, path=hrdpath)
 
             if self.recipe.hrd is not None:
                 #apply values from recipe hrd to this hrd
                 self.hrd.applyTemplate(self.recipe.hrd)
-
+            self.hrd.prefixWithName = False
             self.hrd.set("service.name", self.name)
             self.hrd.set("service.version", self.version)
             self.hrd.set("service.domain", self.domain)
@@ -797,6 +793,12 @@ class Service:
     #     executor.execute(execCmd, die=True, showout=True)
 
     #     return True
+
+    def runAction(self, action, printonly=False):
+        if printonly:
+            # TODO printonyl
+            return
+        getattr(self.actions, action)()
 
     def _getDisabledProducers(self):
         producers = dict()

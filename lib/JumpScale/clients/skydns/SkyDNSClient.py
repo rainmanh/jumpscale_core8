@@ -35,7 +35,7 @@ class SkyDNSClient():
         r = self._session.get(link)
 
         if r.status_code == 401:
-            return {'not authorized'}
+            return {"error": "not authorized"}
 
         return r.json()
 
@@ -46,7 +46,7 @@ class SkyDNSClient():
         r = self._session.put(link, data=payload)
 
         if r.status_code == 401:
-            return {'not authorized'}
+            return {"error": "not authorized"}
 
         return r.json()
 
@@ -56,7 +56,7 @@ class SkyDNSClient():
         r = self._session.delete(link)
 
         if r.status_code == 401:
-            return {'not authorized'}
+            return {"error": "not authorized"}
 
         return r.json()
 

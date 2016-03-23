@@ -53,6 +53,7 @@ class ServiceRecipe(ServiceTemplate):
             self.path = j.sal.fs.joinPaths(aysrepopath,"recipes", template.name)
             self.name = template.name
             self.template = template
+        self.domain = self.template.domain
 
         # copy the files
         if not j.sal.fs.exists(path=self.path):
@@ -76,7 +77,6 @@ class ServiceRecipe(ServiceTemplate):
 
         self._copyActions()
 
-        self.domain = self.template.domain
 
 
     def _checkdef(self,actionmethod,content):

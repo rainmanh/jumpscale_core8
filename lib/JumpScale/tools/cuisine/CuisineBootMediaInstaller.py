@@ -43,7 +43,7 @@ class CuisineBootMediaInstaller(object):
         self.cuisine.core.run("umount /dev/%s2" % deviceid, die=False)
 
     def _mount(self, deviceid):
-        self.cuisine.core.run("mkfs.ext4 /dev/%s2" % deviceid)
+        self.cuisine.core.run("mkfs.ext4 -F /dev/%s2" % deviceid)
         self.cuisine.core.run("mkdir -p /mnt/root && mount /dev/%s2 /mnt/root" % deviceid)
         self.cuisine.core.run("mkfs.vfat -F32 /dev/%s1" % deviceid)
         self.cuisine.core.run("mkdir -p /mnt/root/boot && mount /dev/%s1 /mnt/root/boot" % deviceid)
@@ -143,6 +143,7 @@ class CuisineBootMediaInstaller(object):
             self.cuisine.core.run('mount -t proc none /mnt/root/proc')
 
             # add g8os section.
+            self.cuisine.core.run('chroot /mnt/root grub-install --target=x86_64-efi --efi-directory=/boot --modules="part_gpt ext2 fat"  --removable')
             self.cuisine.core.run('chroot /mnt/root grub-mkconfig -o /boot/grub/grub.cfg')
 
             self.cuisine.core.run('umount /mnt/root/sys')

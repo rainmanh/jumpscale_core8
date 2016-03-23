@@ -447,7 +447,7 @@ class CuisineCore():
         to=self.args_replace(to)
         if path.endswith(".tar.gz") or path.endswith(".tgz"):
             cmd="tar -C %s -xzf %s"%(to,path)
-            self.cuisine.core.run(cmd)
+            self.run(cmd)
         else:
             raise j.exceptions.RuntimeError("not supported yet")
 
@@ -972,7 +972,6 @@ class CuisineCore():
         if self.sudomode:
             passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
             cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
-
         rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)
         out = self._clean(out)
 

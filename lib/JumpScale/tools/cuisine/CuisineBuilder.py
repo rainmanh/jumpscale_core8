@@ -130,7 +130,7 @@ class CuisineBuilder(object):
     def skydns(self,start=True):
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/skynetservices/skydns",action=True)
-        self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'skydns'), '$binDir', action=True)
+        self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'skydns'), '$binDir')
         self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
 
         if start:
@@ -140,7 +140,7 @@ class CuisineBuilder(object):
     def caddy(self,ssl=False,start=True, dns=None):
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/mholt/caddy",action=True)
-        self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'caddy'), '$binDir', action=True)
+        self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'caddy'), '$binDir')
         self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
 
         if ssl and dns:
@@ -183,9 +183,10 @@ class CuisineBuilder(object):
         @input addr, address and port on which the service need to listen. e.g. : 0.0.0.0:8090
         @input backend, directory where to save the data push to the store
         """
+        self.cuisine.core.dir_remove("%s/src" % self.cuisine.bash.environGet('GOPATH'))
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/g8os/stor", action=True)
-        self.cuisine.core.file_copy(self.cuisine.core.joinpaths(self.cuisine.core.dir_paths['goDir'], 'bin', 'stor'), '$base/bin',action=True)
+        self.cuisine.core.file_copy(self.cuisine.core.joinpaths(self.cuisine.core.dir_paths['goDir'], 'bin', 'stor'), '$base/bin')
         self.cuisine.bash.addPath("$base/bin", action=True)
 
         self.cuisine.processmanager.stop("stor") # will also kill
@@ -227,11 +228,13 @@ class CuisineBuilder(object):
             passwd=""
         """
         self.cuisine.golang.install()
-        self.cuisine.golang.get("github.com/g8os/fs", action=True)
+        self.cuisine.golang.godep("github.com/g8os/fs", action=True)
+        self.cuisine.core.run("cd %s && go build ." % "$goDir/src/github.com/g8os/fs", profile=True)
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/fs")
-        self.cuisine.core.file_copy("$goDir/bin/fs", "$base/bin")
+        self.cuisine.core.file_copy("$goDir/src/github.com/g8os/fs/fs", "$base/bin")
         self.cuisine.core.file_write("$goDir/src/github.com/g8os/fs/config/config.toml", content)
         self.cuisine.core.file_copy("$goDir/src/github.com/g8os/fs/config/config.toml", "$tmplsDir/cfg/fs")
+        self.cuisine.core.file_download("https://stor.jumpscale.org/storx/static/js8_opt.flist", self.cuisine.core.args_replace("$tmplsDir/cfg/fs/js8_opt.flist"))
         if start:
             self._startFs()
 
@@ -360,13 +363,11 @@ class CuisineBuilder(object):
         self.cuisine.core.dir_remove("$tmplsDir/cfg/core/extensions")
         self.cuisine.core.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
         self.cuisine.core.file_copy("%s/g8os.toml" % sourcepath, "$tmplsDir/cfg/core")
+        self.cuisine.core.file_copy("%s/conf" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/core/conf/")
         self.cuisine.core.file_copy("{0}sshd.toml {0}basic.toml {0}sshd.toml".format(sourcepath+"/conf/"), "$tmplsDir/cfg/core/conf/", recursive=True)
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/core/extensions/syncthing")
-        self.cuisine.core.file_copy("$binDir/syncthing", "$tmplsDir/cfg/core/extensions/syncthing/")
-
-
-
+        self.cuisine.core.file_copy("$binDir/syncthing", "$tmplsDir/cfg/core/extensions/syncthing/") 
 
         # self.cuisine.core.dir_ensure("$cfgDir/agent8/agent8/conf", recursive=True)
 
@@ -407,7 +408,7 @@ class CuisineBuilder(object):
 
         #file copy
         self.cuisine.core.dir_remove("$tmplsDir/cfg/controller/extensions")
-        self.cuisine.core.file_copy("%s/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscale" % self.cuisine.core.dir_paths["codeDir"], "$tmplsDir/cfg/controller/jumpscripts/", recursive=True)
+        self.cuisine.core.file_copy("%s/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale" % self.cuisine.core.dir_paths["codeDir"], "$tmplsDir/cfg/controller/jumpscripts/", recursive=True)
         self.cuisine.core.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/controller/extensions", recursive=True)
 
         if start:
@@ -437,7 +438,7 @@ class CuisineBuilder(object):
         self.cuisine.processmanager.ensure("skydns",cmd + " -addr 0.0.0.0:53")
 
     def _startFs(self):
-        self.cuisine.core.file_copy("$tmplsDir/cfg/fs", "$cfgDir", recursive=True)
+        self.cuisine.core.file_copy("$tmplsDir/cfg/fs/", "$cfgDir", recursive=True)
         self.cuisine.processmanager.ensure('fs', cmd="$binDir/fs -c $cfgDir/fs/config.toml")
 
     def _startSyncthing(self):

@@ -964,7 +964,7 @@ class CuisineCore():
 
         if profile:
             ppath=self.cuisine.bash.profilePath
-            if ppath!=None:
+            if ppath:
                 cmd=". %s && %s"%(ppath,cmd) 
             if showout:
                 print ("PROFILECMD:%s"%cmd)
@@ -1009,7 +1009,7 @@ class CuisineCore():
                     if out.find("not found")!=-1 and  out.find(package)!=-1:
                         if not package in self.done:
                             self.done.append(package)
-                            self.installer.base()
+                            self.cuisine.installer.base()
                             next=True
 
                 if next:

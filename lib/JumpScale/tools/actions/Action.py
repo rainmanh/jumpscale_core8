@@ -517,7 +517,6 @@ class Action:
             output = ""
             counter=0
             ok=False
-            tb_text = ''
             err = ''
 
             while self.state!="ERROR" and ok==False and counter<self.retry+1:
@@ -554,10 +553,12 @@ class Action:
 
                     tblist=traceback.format_exception(type, value, tb)
                     tblist.pop(1)
-                    tb_text = "".join(tblist)
+                    self.traceback = "".join(tblist)
 
                     err=""
                     for e_item in e.args:
+                        if isinstance(e_item, (set, list, tuple)):
+                            e_item = ' '.join(e_item)
                         err+="%s\n"%e_item
                     counter+=1
                     time.sleep(0.1)
@@ -566,7 +567,7 @@ class Action:
                     rcode = 1
 
                     if "**NOSTACK**" in err:
-                        tb_text=""
+                        self.traceback = ""
                         err=err.replace("**NOSTACK**","")
 
             #we did the retries, rcode will be >0 if error
@@ -597,7 +598,6 @@ class Action:
                         raise j.exceptions.RuntimeError("error in action: %s"%self)
                     return
 
-                self.traceback=tb_text
 
                 if err!="":
                     self.error = err

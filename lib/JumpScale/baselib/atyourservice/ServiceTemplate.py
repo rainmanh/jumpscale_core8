@@ -81,16 +81,8 @@ class ServiceTemplate(object):
             return self._schema
         hrdpath = self.path_hrd_schema
         if not j.sal.fs.exists(hrdpath):
-            # check if we can find it in other ays instance
-            # templ = j.atyourservice.getTemplate(domain=self.domain, name=self.name, die=False)
-            # if templ is not None:
-            #     self._schema = templ.schema
-            #     self.path_hrd_schema = templ.path_hrd_schema
-            #     return self._schema
             j.sal.fs.touch(hrdpath)
-            self._schema = j.data.hrd.getSchema(hrdpath)
-        else:
-            self._schema = j.data.hrd.getSchema(hrdpath)
+        self._schema = j.data.hrd.getSchema(hrdpath)
         return self._schema
 
 

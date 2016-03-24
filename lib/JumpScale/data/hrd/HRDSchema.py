@@ -200,10 +200,10 @@ class HRDSchema():
                 hrdtype.consume_link=c
                 hrdtype.parent=c
 
-            if tags.labelExists("parentauto"):
+            if tags.labelExists("auto"):
                 hrdtype.auto = True
 
-            if tags.labelExists("consumeauto"):
+            if tags.labelExists("auto"):
                 hrdtype.auto = True
 
             if tags.tagExists("minval"):

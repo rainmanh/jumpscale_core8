@@ -9,9 +9,9 @@ import click
 
 
 @click.group()
-@click.option('--debug', default=False, help='enable debug mode', is_flag=True)
+@click.option('--nodebug', default=False, help='disable debug mode', is_flag=True)
 def cli(nodebug):
-    j.atyourservice.debug = nodebug
+    j.atyourservice.debug = not nodebug
 
 @click.command()
 @click.argument('role')

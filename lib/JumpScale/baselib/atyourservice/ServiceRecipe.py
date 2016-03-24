@@ -5,7 +5,7 @@ from JumpScale import j
 # import JumpScale.baselib.actions
 
 from ServiceTemplate import ServiceTemplate
-from Service import Service
+from Service import Service, loadmodule
 
 class ActionMethod():
 
@@ -79,112 +79,49 @@ class ServiceRecipe(ServiceTemplate):
 
 
 
-    def _checkdef(self,actionmethod,content):
-        a=ActionMethod(self,actionmethod,content)
-        self.actionmethods[actionmethod]=a
+    def _checkdef(self, actionmethod, content, property=False):
+        if not property:
+            a = ActionMethod(self, actionmethod, content)
+            self.actionmethods[actionmethod] = a
+            if actionmethod == 'input':
+                self._out += '\n    def input(self,name,role,instance,serviceargs):\n        return serviceargs\n\n'
+            elif content:
+                self._out += '\n    @actionmethod()\n%s' % (content)
+            else:
+                self._out += "\n    @actionmethod()\n    def %s(self):\n        return True\n\n" % actionmethod
+        else:
+            self._out += content
 
     def _copyActions(self):
-        out="""
+        self._out = """
         from JumpScale import j
-
         ActionMethodDecorator=j.atyourservice.getActionMethodDecorator()
         class actionmethod(ActionMethodDecorator):
             def __init__(self,*args,**kwargs):
                 ActionMethodDecorator.__init__(self,*args,**kwargs)
                 self.selfobjCode="service=j.atyourservice.getService(role='$(service.role)', instance='$(service.instance)', die=True);selfobj=service.actions;selfobj.service=service"
-
         class Actions():
-
         """
-        out=j.data.text.strip(out)
+        self._out = j.data.text.strip(self._out)
 
         if j.sal.fs.exists(self.template.path_actions):
-            content=j.sal.fs.fileGetContents(self.template.path_actions)
-            inclass=False
-            indef=False
-            intype=""
-            defcontent=""
+            from inspect import getmembers, isfunction, isclass, getsource
+            actions = loadmodule('temp.actions', self.template.path_actions)
+            classes_list = [cls for cls in getmembers(actions) if isclass(cls[1])]
+            if classes_list:
+                [self._checkdef(func[0], getsource(func[1])) for func in getmembers(classes_list[0][1]) if isfunction(func[1])]
+                #self._checkdef(prop[0], getsource(prop[1]), property=True)
+                # props = [prop for prop in getmembers(classes_list[0][1]) if isinstance(prop[1], property)]
+                # TODO add properties
 
-            for line in content.split("\n"):
-
-                if line.find("from JumpScale import")!=-1:
-                    continue
-                if line.startswith("ActionsBase"):
-                    continue
-
-                if inclass:
-                    if line.startswith("class"):
-                        break #there should be no 2nd class
-
-                    linestrip=line.strip()
-                    #now we need to look for defs
-
-                    if indef:
-                        #lets check we didn't get out of the def or property
-                        if linestrip.startswith("@") or linestrip.startswith("def"):
-                            indef=False
-                            intype=""                            
-                            self._checkdef(actionmethod,defcontent) #remember action
-                            defcontent=""
-                            actionmethod=""
-
-                    if indef:
-                        #we are in the definition or in the property now
-                        out+="%s\n"%line
-                        defcontent+="%s\n"%line
-
-                    if linestrip.startswith("@property"):
-                        intype="prop"
-                        continue
-
-                    if linestrip.startswith("@"):
-                        continue #ignore other decorators
-
-                    if linestrip.startswith("def"):
-                        if intype!="prop":
-                            intype="def"
-                        if linestrip.startswith("def input"):
-                            #rewrite input line to make sure is always right format
-                            line="    def input(self,name,role,instance,serviceargs):"    
-                            actionmethod="input"                    
-                        elif line.find("(self)")==-1:
-                            #now check format of def is ok
-                            raise j.exceptions.RuntimeError("Error in template action: %s\n    there should be no arguments in def line:\n    %s"%(self,line))
-                        else:
-                            linestrip2=linestrip[3:].strip()
-                            actionmethod=linestrip2.split("(")[0].strip()
-                            line="    def %s(self):"%actionmethod
-
-                        if intype=="prop":
-                            out+="    @property\n"
-                        else:
-                            if actionmethod!="input":
-                                out+="    @actionmethod()\n"
-                        out+="%s\n"%line
-                        indef=True
-                        continue
-
-                else:
-                    #are before the class starts
-                    if line.startswith("class"):
-                        inclass=True
-                        continue
-                    out+="%s\n"%line
-
-
-        actionmethodsRequired=["input","hrd","install","stop","start","monitor","halt","check_up",\
-            "check_down","check_requirements","cleanup","data_export","data_import","uninstall","removedata"]
+        actionmethodsRequired = ["input", "hrd", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
+                                 "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata"]
 
         for method in actionmethodsRequired:
             if method not in self.actionmethods:
-                if method!="input":
-                    out+="    @actionmethod()\n    def %s(self):\n        return True\n\n"%method
-                else:
-                    out+="    def input(self,name,role,instance,serviceargs):\n        return serviceargs\n\n"
-                self._checkdef(method,"") #remember action
+                self._checkdef(method, "")  # remember action
 
-        j.sal.fs.writeFile(filename=self.path_actions,contents=out)
-
+        j.sal.fs.writeFile(filename=self.path_actions, contents=self._out)
 
     def newInstance(self, instance="main", role='', args={}, path='', parent=None, consume="",originator=None,yaml=None):
         """

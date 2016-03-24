@@ -375,12 +375,12 @@ class Service:
             parent=self.recipe.schema.parentSchemaItemGet()
 
             if parent!=None:
-
                 #parent exists
                 name = parent.parent
-                role = parent.parent
-                if '.' in role:
-                    role = role.split('.', 1)[0]
+                role = name
+
+                if '.' in name:
+                    role = name.split('.', 1)[0]
 
                 if role in self.args:
                     #has been speficied or empty
@@ -389,7 +389,11 @@ class Service:
                     rolearg=""
 
                 if rolearg=="":
-                    ays_s=j.atyourservice.findServices(role=role, name=name)
+                    if role != name:
+                        ays_s=j.atyourservice.findServices(name=name)
+                    else:
+                        ays_s=j.atyourservice.findServices(role=role)
+
                     if len(ays_s)==1:
                         #we found 1 service of required role, will take that one
                         aysi=ays_s[0]

@@ -28,25 +28,25 @@ class ConsoleAsker(object):
                 return True
             except:
                 return False
-        ovc_url = j.tools.console.askString("Url of the Gener8 where to deploy your cockpit. e.g: 'be-conv-2.demo.greenitglobe.com'", retry=3, validate=validate)
+        ovc_url = j.tools.console.askString("Url of the G8 where to deploy your cockpit. e.g: 'be-conv-2.demo.greenitglobe.com'", retry=3, validate=validate)
         return ovc_url
 
     def ask_ovc_login(self):
         def validate(input):
             return True
-        login = j.tools.console.askString("Login of your account on the Gener8 where to deploy cockpit", retry=3, validate=validate)
+        login = j.tools.console.askString("Login of your account on the G8 where to deploy the G8 Cockpit", retry=3, validate=validate)
         return login
 
     def ask_ovc_password(self):
         def validate(input):
             return True
-        passwd = j.tools.console.askPassword("Password of your account on the Gener8 where to deploy cockpit", confirm=True, retry=3, validate=validate)
+        passwd = j.tools.console.askPassword("Password of your account on the G8 where to deploy the G8 Cockpit", confirm=True, retry=3, validate=validate)
         return passwd
 
     def ask_ovc_vdc(self):
         def validate(input):
             return True
-        name = j.tools.console.askString("Name of the Virtual Data center where to deploy the G8Cockpit", defaultparam='cockpit', regex=None, retry=3, validate=validate)
+        name = j.tools.console.askString("Name of the virtual datacenter where to deploy the G8 Cockpit", defaultparam='cockpit', regex=None, retry=3, validate=validate)
         return name
 
     def ask_ovc_account(self, ovc_client=None):
@@ -114,14 +114,14 @@ class ConsoleAsker(object):
     def ask_domain(self):
         def validate(input):
             return True
-        domain = j.tools.console.askString("Domaine to use for your cockpit", defaultparam='', retry=3, validate=validate)
+        domain = j.tools.console.askString("Domain to use for your G8 Cockpit", defaultparam='', retry=3, validate=validate)
         return domain
 
     def ask_ssh_key(self):
         def validate(input):
             key = j.do.getSSHKeyFromAgentPub(input, die=False)
             return (key is not None)
-        key = j.tools.console.askString("Name of the ssh key to authorize on the G8Cockpit. key are fetch from ssh-agent.", defaultparam='id_rsa', retry=3, validate=validate)
+        key = j.tools.console.askString("Name of the ssh key to authorize on the G8 Cockpit. Keys are fetched from ssh-agent.", defaultparam='id_rsa', retry=3, validate=validate)
         return key
 
     def ask_portal_password(self):
@@ -234,25 +234,25 @@ class TelegramAsker(object):
     def ask_ovc_url(self):
         def validate(input):
             return j.sal.nettools.checkUrlReachable(input)
-        ovc_url = self.askString("Url of the Gener8 where to deploy your cockpit. e.g: 'be-conv-2.demo.greenitglobe.com'")
+        ovc_url = self.askString("Url of the G8 where to deploy your cockpit. e.g: 'be-conv-2.demo.greenitglobe.com'")
         return ovc_url
 
     def ask_ovc_login(self):
         def validate(input):
             return True
-        login = self.askString("Login of your account on the Gener8 where to deploy the cockpit")
+        login = self.askString("Login of your account on the G8 where to deploy the cockpit")
         return login
 
     def ask_ovc_password(self):
         def validate(input):
             return True
-        passwd = self.askString("Password of your account on the Gener8 where to deploy cockpit")
+        passwd = self.askString("Password of your account on the G8 where to deploy cockpit")
         return passwd
 
     def ask_ovc_vdc(self):
         def validate(input):
             return True
-        name = self.askString("Name of the Virtual Data center where to deploy the G8Cockpit")
+        name = self.askString("Name of the virtual data center where to deploy the G8 Cockpit")
         return name
 
     def ask_ovc_account(self, ovc_client=None):
@@ -320,14 +320,14 @@ class TelegramAsker(object):
     def ask_domain(self):
         def validate(input):
             return True
-        domain = self.askString("Domaine to use for your cockpit")
+        domain = self.askString("Domain to use for your cockpit")
         return domain
 
     def ask_ssh_key(self):
         def validate(input):
             key = j.do.getSSHKeyFromAgentPub(input, die=False)
             return (key is not None)
-        key = self.askString("Name of the ssh key to authorize on the G8Cockpit. key are fetch from ssh-agent.")
+        key = self.askString("Name of the ssh key to authorize on the G8 Cockpit. key are fetch from ssh-agent.")
         return key
 
     def ask_portal_password(self):

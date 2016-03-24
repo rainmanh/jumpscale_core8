@@ -130,7 +130,7 @@ class CuisineBuilder(object):
     def skydns(self,start=True):
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/skynetservices/skydns",action=True)
-        self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'skydns'), '$binDir', action=True)
+        self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'skydns'), '$binDir')
         self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
 
         if start:
@@ -140,7 +140,7 @@ class CuisineBuilder(object):
     def caddy(self,ssl=False,start=True, dns=None):
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/mholt/caddy",action=True)
-        self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'caddy'), '$binDir', action=True)
+        self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'caddy'), '$binDir')
         self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
 
         if ssl and dns:
@@ -183,9 +183,10 @@ class CuisineBuilder(object):
         @input addr, address and port on which the service need to listen. e.g. : 0.0.0.0:8090
         @input backend, directory where to save the data push to the store
         """
+        self.cuisine.core.dir_remove("%s/src" % self.cuisine.bash.environGet('GOPATH'))
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/g8os/stor", action=True)
-        self.cuisine.core.file_copy(self.cuisine.core.joinpaths(self.cuisine.core.dir_paths['goDir'], 'bin', 'stor'), '$base/bin',action=True)
+        self.cuisine.core.file_copy(self.cuisine.core.joinpaths(self.cuisine.core.dir_paths['goDir'], 'bin', 'stor'), '$base/bin')
         self.cuisine.bash.addPath("$base/bin", action=True)
 
         self.cuisine.processmanager.stop("stor") # will also kill

@@ -71,7 +71,7 @@ class NodeNas(NodeBase):
                 if disk.mounted is False:
                     disk.initDisk(fs=self.fstype)
 
-                    # raise RuntimeError("Could not find all disks mounted, disk %s not mounted on %s"%(disk,self))
+                    # raise j.exceptions.RuntimeError("Could not find all disks mounted, disk %s not mounted on %s"%(disk,self))
 
             print("all disks mounted")
 
@@ -119,7 +119,7 @@ class NodeNas(NodeBase):
             out = self.execute(cmd, env={}, dieOnError=True, report=True)
             dev = checkLoopExists(out)
             if dev == '':
-                raise RuntimeError("fail to create loop dev on %s" % backend_file)
+                raise j.exceptions.RuntimeError("fail to create loop dev on %s" % backend_file)
 
         # add new dev to known disks
         diskNr = len(self.disks)

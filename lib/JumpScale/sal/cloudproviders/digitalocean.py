@@ -50,7 +50,7 @@ class DigitalOcean(SALObject):
                 break
 
         if not host:
-            raise RuntimeError('Could not find machine: %s' % machine_name)
+            raise j.exceptions.RuntimeError('Could not find machine: %s' % machine_name)
         rapi = j.remote.cuisine.api
         rapi.connect(host)
         if sudo:

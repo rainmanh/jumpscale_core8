@@ -67,12 +67,12 @@ elif args.action == "listnodes":
 elif args.action == "sshfs":
     if args.remote != "":
         if args.gridname=="":
-            raise RuntimeError("need to specify gridname")
+            raise j.exceptions.RuntimeError("need to specify gridname")
     admin.sshfs(args.gridname,args.remote)
 elif args.action == "sshfsoff":
     if args.remote != "":
         if args.gridname=="":
-            raise RuntimeError("need to specify gridname")
+            raise j.exceptions.RuntimeError("need to specify gridname")
     admin.sshfsumount(args.gridname,args.remote)
 
 elif args.action == "deployssh":

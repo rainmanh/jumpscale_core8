@@ -65,7 +65,7 @@ class MS1(object):
 
     def getCloudspaceObj(self, space_secret,**args):
         if not self.db.exists('cloudrobot:cloudspaces:secrets', space_secret):
-            raise RuntimeError("E:Space secret does not exist, cannot continue (END)")
+            raise j.exceptions.RuntimeError("E:Space secret does not exist, cannot continue (END)")
         space=j.data.serializer.json.loads(self.db.get('cloudrobot:cloudspaces:secrets', space_secret))
         return space
 
@@ -85,7 +85,7 @@ class MS1(object):
             response = requests.post('http://%s/restmachine/cloudapi/users/authenticate' % baseURL, params=params)
 
         if response.status_code != 200:
-            raise RuntimeError("E:Could not authenticate user %s" % login)
+            raise j.exceptions.RuntimeError("E:Could not authenticate user %s" % login)
         auth_key = response.json()
         params = {'authkey': auth_key}
         try:
@@ -99,7 +99,7 @@ class MS1(object):
         if cloudspace:
             cloudspace = cloudspace[0]
         else:
-            raise RuntimeError("E:Could not find a matching cloud space with name %s and location %s" % (cloudspace_name, location))
+            raise j.exceptions.RuntimeError("E:Could not find a matching cloud space with name %s and location %s" % (cloudspace_name, location))
 
         self.db.set('cloudrobot:cloudspaces:secrets', auth_key,j.data.serializer.json.dumps(cloudspace))
 
@@ -116,7 +116,7 @@ class MS1(object):
         try:
             api=j.clients.portal.get(self.apiURL, self.apiPort, space_secret)
         except Exception as e:
-            raise RuntimeError("E:Could not login to MS1 API.")
+            raise j.exceptions.RuntimeError("E:Could not login to MS1 API.")
 
         return api
 
@@ -134,7 +134,7 @@ class MS1(object):
     #         else:
     #             time.sleep(2)
     #     if not j.data.types.ipaddress.check(machine['interfaces'][0]['ipAddress']):
-    #         raise RuntimeError('Machine was created, but never got an IP address')
+    #         raise j.exceptions.RuntimeError('Machine was created, but never got an IP address')
     #     cloudspace_forward_rules = portforwarding_actor.list(machine['cloudspaceid'])
     #     public_ports = [rule['publicPort'] for rule in cloudspace_forward_rules]
     #     ssh_port = '2222'
@@ -148,7 +148,7 @@ class MS1(object):
 
     #     # do an ssh connection to the machine
     #     if not j.sal.nettools.waitConnectionTest(cloudspace['publicipaddress'], int(ssh_port), 60):
-    #         raise RuntimeError("Failed to connect to %s %s" % (cloudspace['publicipaddress'], ssh_port))
+    #         raise j.exceptions.RuntimeError("Failed to connect to %s %s" % (cloudspace['publicipaddress'], ssh_port))
     #     ssh_connection = j.remote.cuisine.api
     #     username, password = machine['accounts'][0]['login'], machine['accounts'][0]['password']
     #     ssh_connection.fabric.api.env['password'] = password
@@ -241,9 +241,9 @@ class MS1(object):
             memsize = float(memsize)
 
         if memsize not in memsizes:
-            raise RuntimeError("E: supported memory sizes are %s, you specified:%s" % (', '.join(memsizes), memsize))
+            raise j.exceptions.RuntimeError("E: supported memory sizes are %s, you specified:%s" % (', '.join(memsizes), memsize))
         if ssdsize not in ssdsizes:
-            raise RuntimeError("E: supported ssd sizes are %s (is in GB), you specified:%s" % (', '.join(ssdsizes), ssdsize))
+            raise j.exceptions.RuntimeError("E: supported ssd sizes are %s (is in GB), you specified:%s" % (', '.join(ssdsizes), ssdsize))
 
         size_id = None
         for size in sizes:
@@ -252,7 +252,7 @@ class MS1(object):
                 break
 
         if not size_id:
-            raise RuntimeError('E:Could not find a matching memory size %s' % memsize)
+            raise j.exceptions.RuntimeError('E:Could not find a matching memory size %s' % memsize)
 
         if stackId is not None:
             machine_cb_actor = api.cloudbroker.machine
@@ -292,7 +292,7 @@ class MS1(object):
             except Exception as e:
                 if str(e).find("Selected name already exists") != -1:
                    j.events.inputerror_critical("Could not create machine it does already exist.","ms1.createmachine.exists")
-                raise RuntimeError("E:Could not create machine, unknown error : %s", e.response.content)
+                raise j.exceptions.RuntimeError("E:Could not create machine, unknown error : %s", e.response.content)
 
         self.vars["machine.id"] = machine_id
 
@@ -306,7 +306,7 @@ class MS1(object):
             else:
                 time.sleep(1)
         if not j.data.types.ipaddress.check(machine['interfaces'][0]['ipAddress']):
-            raise RuntimeError('E:Machine was created, but never got an IP address')
+            raise j.exceptions.RuntimeError('E:Machine was created, but never got an IP address')
 
         self.vars["machine.ip.addr"] = machine['interfaces'][0]['ipAddress']
 
@@ -359,7 +359,7 @@ class MS1(object):
         cloudspace_id = self.getCloudspaceId(spacesecret)
         machine_id = [machine['id'] for machine in api.cloudapi.machines.list(cloudspaceId=cloudspace_id) if machine['name'] == name]
         if len(machine_id)==0:
-            raise RuntimeError("E:Could not find machine with name:%s, cannot continue action."%name)
+            raise j.exceptions.RuntimeError("E:Could not find machine with name:%s, cannot continue action."%name)
         machine_id = machine_id[0]
         return (api, machine_id, cloudspace_id)
 
@@ -372,12 +372,12 @@ class MS1(object):
                 return "NOTEXIST"
             if str(e).find("Space secret does not exist")!=-1:
                 return "E:SPACE SECRET IS NOT CORRECT"
-            raise RuntimeError(e)
+            raise j.exceptions.RuntimeError(e)
         try:
             api.cloudapi.machines.delete(machineId=machine_id)
         except Exception as e:
             print(e)
-            raise RuntimeError("E:could not delete machine %s"%name)
+            raise j.exceptions.RuntimeError("E:could not delete machine %s"%name)
         return "OK"
 
     def startMachine(self, spacesecret, name,**args):
@@ -385,7 +385,7 @@ class MS1(object):
         try:
             api.cloudapi.machines.start(machineId=machine_id)
         except Exception as e:
-            raise RuntimeError("E:could not start machine.")
+            raise j.exceptions.RuntimeError("E:could not start machine.")
         return "OK"
 
     def stopMachine(self, spacesecret, name,**args):
@@ -393,7 +393,7 @@ class MS1(object):
         try:
             api.cloudapi.machines.stop(machineId=machine_id)
         except Exception as e:
-            raise RuntimeError("E:could not stop machine.")
+            raise j.exceptions.RuntimeError("E:could not stop machine.")
         return "OK"
 
     def snapshotMachine(self, spacesecret, name, snapshotname,**args):
@@ -401,7 +401,7 @@ class MS1(object):
         try:
             api.cloudapi.machines.snapshot(machineId=machine_id, name=snapshotname)
         except Exception as e:
-            raise RuntimeError("E:could not stop machine.")
+            raise j.exceptions.RuntimeError("E:could not stop machine.")
         return "OK"
 
     def createTcpPortForwardRule(self, spacesecret, name, machinetcpport, pubip="", pubipport=22,**args):
@@ -500,7 +500,7 @@ class MS1(object):
                 break
 
         if i>mmax-1:
-            raise RuntimeError("E:cannot find free tcp or udp port.")
+            raise j.exceptions.RuntimeError("E:cannot find free tcp or udp port.")
 
 
         self.vars["space.free.tcp.port"]=str(i)
@@ -520,7 +520,7 @@ class MS1(object):
         if len(machine["interfaces"])>0:
             local_ipaddr=machine["interfaces"][0]['ipAddress'].strip()
         else:
-            raise RuntimeError("cannot find local ip addr")
+            raise j.exceptions.RuntimeError("cannot find local ip addr")
 
         items=[]
         for item in api.cloudapi.portforwarding.list(cloudspaceid=cloudspace_id):
@@ -542,7 +542,7 @@ class MS1(object):
         if len(machine["interfaces"])>0:
             local_ipaddr=machine["interfaces"][0]['ipAddress'].strip()
         else:
-            raise RuntimeError("cannot find local ip addr")
+            raise j.exceptions.RuntimeError("cannot find local ip addr")
 
         #remove leftovers
         for item in items:
@@ -564,7 +564,7 @@ class MS1(object):
             counter+=1
             time.sleep(0.5)
             if counter>100:
-                raise RuntimeError("E:could not find ip address for machine:%s"%name)
+                raise j.exceptions.RuntimeError("E:could not find ip address for machine:%s"%name)
             localIP=machine["interfaces"][0]["ipAddress"]
 
         self.createTcpPortForwardRule(spacesecret, name, 22, pubipport=tempport,**args)
@@ -582,7 +582,7 @@ class MS1(object):
                 if not j.sal.nettools.waitConnectionTest(local_ipaddr, 22, 5):
                     if counter >=3:
                         # if still can't connect, then it's an error
-                        raise RuntimeError("E:Failed to connect to %s" % (tempport))
+                        raise j.exceptions.RuntimeError("E:Failed to connect to %s" % (tempport))
                 else:
                     connectionAddr = local_ipaddr
                     connectionPort = 22
@@ -600,7 +600,7 @@ class MS1(object):
             if not j.sal.fs.exists(path=keyloc):
                 j.sal.process.executeWithoutPipe("ssh-keygen -t rsa")
                 if not j.sal.fs.exists(path=keyloc):
-                    raise RuntimeError("cannot find path for key %s, was keygen well executed"%keyloc)
+                    raise j.exceptions.RuntimeError("cannot find path for key %s, was keygen well executed"%keyloc)
 
             j.sal.fs.chmod("/root/.ssh/id_rsa", 0o600)
             key = j.sal.fs.fileGetContents(keyloc)
@@ -668,11 +668,11 @@ class MS1(object):
                     self.action.raiseError(msg)
                     self.stdout.lastlines=""
                 print(e)
-                raise RuntimeError("E:Could not execute sshscript, errors.")
+                raise j.exceptions.RuntimeError("E:Could not execute sshscript, errors.")
             sys.stdout=self.stdout.prevout
 
         else:
-            raise RuntimeError("E:Could not find param script or lines")
+            raise j.exceptions.RuntimeError("E:Could not find param script or lines")
 
 
         return out

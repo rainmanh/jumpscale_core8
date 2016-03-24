@@ -14,7 +14,7 @@ class NodeBase(MonitorTools):
 
         """
         if j.tools.perftesttools.monitorNodeIp==None:
-            raise RuntimeError("please do j.tools.perftesttools.init() before calling this")
+            raise j.exceptions.RuntimeError("please do j.tools.perftesttools.init() before calling this")
 
         self.influx_host = j.tools.perftesttools.monitorNodeIp
         self.influx_port = 8086
@@ -73,7 +73,7 @@ class NodeBase(MonitorTools):
         self.prepareTmux("mon%s"%self.role,["monitor"])
         env={}
         if j.tools.perftesttools.monitorNodeIp==None:
-            raise RuntimeError("please do j.tools.perftesttools.init() before calling this")
+            raise j.exceptions.RuntimeError("please do j.tools.perftesttools.init() before calling this")
         env["redishost"] = self.redis_host
         env["redisport"] = self.redis_port
         env["cpu"] = cpu
@@ -97,7 +97,7 @@ class NodeBase(MonitorTools):
     def prepareTmux(self,session,screens=["default"],kill=True):
         print("prepare tmux:%s %s %s"%(session,screens,kill))
         if len(screens)<1:
-            raise RuntimeError("there needs to be at least 1 screen specified")
+            raise j.exceptions.RuntimeError("there needs to be at least 1 screen specified")
         if kill:
             self.execute("tmux kill-session -t %s"%session, dieOnError=False)
 

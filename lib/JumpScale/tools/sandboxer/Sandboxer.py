@@ -21,7 +21,7 @@ class Dep():
         else:
             if j.sal.fs.exists(self.path):
                 return
-        raise RuntimeError("could not find lib (dep): '%s'"%self.path)
+        raise j.exceptions.RuntimeError("could not find lib (dep): '%s'"%self.path)
 
     def copyTo(self,path):
         dest=j.sal.fs.joinPaths(path,self.name)
@@ -190,7 +190,7 @@ class Sandboxer():
                 #     import ipdb
                 #     ipdb.set_trace()
                 if not j.sal.fs.exists(dest2_bro):
-                    raise RuntimeError("Could not do:%s"%cmd)
+                    raise j.exceptions.RuntimeError("Could not do:%s"%cmd)
                 md5_bro = j.data.hash.md5(dest2_bro)
                 dest2_bro_final = "%s/%s/%s/%s.bro" % (storpath2, md5_bro[0], md5_bro[1], md5_bro)
                 path_dest=j.tools.path.get(dest2_bro)
@@ -211,7 +211,7 @@ class Sandboxer():
                     j.sal.process.execute(cmd)
                     hhash=j.data.hash.md5(dest2verify)
                     if hhash!=md5:
-                        raise RuntimeError("error in compression:%s"%cmd)
+                        raise j.exceptions.RuntimeError("error in compression:%s"%cmd)
                     j.sal.fs.remove(dest2verify)
                 j.sal.fs.moveFile(dest2_bro,dest2_bro_final)
 

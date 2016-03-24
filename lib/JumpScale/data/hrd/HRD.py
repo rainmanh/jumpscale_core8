@@ -229,7 +229,7 @@ class HRD(HRDBase):
         # print "set:%s %s |%s|"%(key,value,data)
         if self.prefixWithName:
             if self.name=="":
-                raise RuntimeError("name cannot be empoty when prefixWithName used.")
+                raise j.exceptions.RuntimeError("name cannot be empoty when prefixWithName used.")
             key = key.replace('%s.' % self.name, '')
         if key not in self.items:
             self.items[key]=HRDItem(name=key,hrd=self,ttype=ttype,data=value,comments="")
@@ -241,7 +241,7 @@ class HRD(HRDBase):
             if default==None:
                 msg="Cannot find value with key %s in tree %s."%(key,self.path),"hrd.get.notexist"
                 if True or j.application.debug:
-                    raise RuntimeError(msg)
+                    raise j.exceptions.RuntimeError(msg)
                 else:
                     j.events.inputerror_critical(msg)
             else:
@@ -258,7 +258,7 @@ class HRD(HRDBase):
 
     def save(self):
         if self.istemplate:
-            raise RuntimeError("should not save template")
+            raise j.exceptions.RuntimeError("should not save template")
 
         if self.prefixWithName:
             #remove prefix from mem representation
@@ -517,7 +517,7 @@ class HRD(HRDBase):
                         vartype="base" #newline text                
 
                 if vartype=="unknown":
-                    raise RuntimeError("parse error, only dict, list, normal or ask format in multiline")
+                    raise j.exceptions.RuntimeError("parse error, only dict, list, normal or ask format in multiline")
 
                 if vartype=="base":
                     line2=j.data.text.hrd2machinetext(line2,onlyone=True)  

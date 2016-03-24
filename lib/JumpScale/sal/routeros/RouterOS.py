@@ -133,14 +133,14 @@ class ApiRos:
         n = 0;                      
         while n < len(str):         
             r = self.sk.send(str[n:])
-            if r == 0: raise RuntimeError("connection closed by remote end")
+            if r == 0: raise j.exceptions.RuntimeError("connection closed by remote end")
             n += r                  
 
     def readStr(self, length):      
         ret = ''                    
         while len(ret) < length:    
             s = self.sk.recv(length - len(ret))
-            if s == '': raise RuntimeError("connection closed by remote end")
+            if s == '': raise j.exceptions.RuntimeError("connection closed by remote end")
             ret += s
         return ret
 
@@ -162,7 +162,7 @@ class RouterOS(SALObject):
         self.password=password
         self.ftp=None
         if res!=True:
-            raise RuntimeError("Could not login into RouterOS: %s"%host)
+            raise j.exceptions.RuntimeError("Could not login into RouterOS: %s"%host)
         self.configpath="%s/apps/routeros/configs/default/"%j.dirs.base
         j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.varDir,"routeros"))
         inputsentence = []
@@ -231,7 +231,7 @@ class RouterOS(SALObject):
                         cats[7]="value generated with :return command"
                         if cat in cats:
                             msg+"\ncat:%s"%cats[cat]
-                    raise RuntimeError("could not execute,error:\n%s"%(msg))
+                    raise j.exceptions.RuntimeError("could not execute,error:\n%s"%(msg))
             result3.append(result2)
         return result3
 
@@ -283,14 +283,14 @@ class RouterOS(SALObject):
         @param single if True then only 1 ip addr per interface, other will be removed
         """
         if ipaddr.find("/")==-1:
-            raise RuntimeError("specify mask")
+            raise j.exceptions.RuntimeError("specify mask")
         arg={}
         arg["address"]=ipaddr
         if comment!="":
             arg["comment"]=comment
         interfaces=self.interface_getnames()
         if interfacename not in interfaces:
-            raise RuntimeError("Could not find interface:%s"%interfacename)
+            raise j.exceptions.RuntimeError("Could not find interface:%s"%interfacename)
         arg["interface"]=interfacename
         if single:
             for item in self.ipaddr_getall():
@@ -356,7 +356,7 @@ class RouterOS(SALObject):
             self.ftp.connect(host="%s"%self.host,port=9021)
             self.ftp.login(user=self.login, passwd=self.password)
         else:
-            raise RuntimeError("Could not find port 21 or 9021 to open ftp connection to %s"%self.host)
+            raise j.exceptions.RuntimeError("Could not find port 21 or 9021 to open ftp connection to %s"%self.host)
         
     def networkId2NetworkAddr(self,networkid):
         netrange=j.application.config.get("vfw.netrange.internal")
@@ -384,7 +384,7 @@ class RouterOS(SALObject):
         print(("upload: '%s' to '%s'"%(path,dest)))
         self._getFtp()
         if not j.sal.fs.exists(path=path):
-            raise RuntimeError("Cannot find %s"%path)
+            raise j.exceptions.RuntimeError("Cannot find %s"%path)
         self.ftp.storbinary('STOR %s'%dest, open(path))
 
     def removeAllFirewallRules(self):
@@ -429,7 +429,7 @@ class RouterOS(SALObject):
             nr+=1
         
         if interface==None:
-            raise RuntimeError("Could not find interface %s"%interface)
+            raise j.exceptions.RuntimeError("Could not find interface %s"%interface)
 
         self.do("/interface/ethernet/reset-mac-address",args={"numbers":str(nr)})
 

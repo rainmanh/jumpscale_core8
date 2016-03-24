@@ -433,11 +433,11 @@ class CuisineCore():
                     cmd = "curl -L '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s"%(url,to,user,minsp,retry,timeout)
                     rc, out = self.run(cmd, die=False)
                 if rc > 0:
-                    raise RuntimeError("Could not download:{}.\nErrorcode: {}".format(url, rc))
+                    raise j.exceptions.RuntimeError("Could not download:{}.\nErrorcode: {}".format(url, rc))
                 else:
                     self.touch("%s.downloadok"%to)
             else:
-                raise RuntimeError("not implemented yet")
+                raise j.exceptions.RuntimeError("not implemented yet")
 
         if expand:
             self.file_expand(to,destdir)
@@ -447,9 +447,9 @@ class CuisineCore():
         to=self.args_replace(to)
         if path.endswith(".tar.gz") or path.endswith(".tgz"):
             cmd="tar -C %s -xzf %s"%(to,path)
-            self.cuisine.core.run(cmd)
+            self.run(cmd)
         else:
-            raise RuntimeError("not supported yet")
+            raise j.exceptions.RuntimeError("not supported yet")
 
 
     def touch(self,path):
@@ -565,7 +565,7 @@ class CuisineCore():
                     if len(name.split("."))>2:
                         self.fqn=name
                         return self.fqn
-            raise RuntimeError("fqn was never set, please use cuisine.setIDs()")
+            raise j.exceptions.RuntimeError("fqn was never set, please use cuisine.setIDs()")
         return self._fqn
 
     @fqn.setter
@@ -972,7 +972,6 @@ class CuisineCore():
         if self.sudomode:
             passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
             cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
-
         rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)
         out = self._clean(out)
 
@@ -1019,7 +1018,7 @@ class CuisineCore():
         if debug!=None:
             self.executor.debug=debugremember
         if rc>0 and die:
-            raise RuntimeError("could not execute %s,OUT:\n%s**NOSTACK**"%(cmd,out))
+            raise j.exceptions.RuntimeError("could not execute %s,OUT:\n%s**NOSTACK**"%(cmd,out))
         out=out.strip()
         # print("output run: %s" % out)
 

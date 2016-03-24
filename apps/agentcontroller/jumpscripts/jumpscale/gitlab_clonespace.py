@@ -35,7 +35,7 @@ def action(username, spacename):
         repo = j.clients.git.getClient(basedir=basedir, remoteUrl=web_url)
         repo.fetch()
     except ValueError:
-        raise RuntimeError("Insufficient permissions to clone space %s for user %s" % (spacename, username))
+        raise j.exceptions.RuntimeError("Insufficient permissions to clone space %s for user %s" % (spacename, username))
 
 if __name__ == '__main__':
     if not len(sys.argv) == 3:

@@ -271,7 +271,7 @@ class Diskmanager(SALObject):
                                     cmd="umount /mnt/tmp"
                                     j.sal.process.execute(cmd,die=False)
                                     if os.path.ismount("/mnt/tmp")==True:
-                                        raise RuntimeError("/mnt/tmp should not be mounted")
+                                        raise j.exceptions.RuntimeError("/mnt/tmp should not be mounted")
 
         return result
 

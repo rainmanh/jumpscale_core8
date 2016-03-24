@@ -4,7 +4,7 @@ from InstallTools import *
 import sys
 
 if len(sys.argv)<3:
-    raise RuntimeError("specify login/passwd (as 2 independant args)")
+    raise j.exceptions.RuntimeError("specify login/passwd (as 2 independant args)")
 
 login=sys.argv[1]
 passwd=sys.argv[2]

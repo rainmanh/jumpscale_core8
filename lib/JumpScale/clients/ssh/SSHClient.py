@@ -21,7 +21,7 @@ class SSHClientFactory(object):
             ret = self.cache[key].connectTest(timeout=timeout, die=die)
             if ret is False:
                 if die:
-                    raise RuntimeError("Cannot connect over ssh:%s %s" % (addr, port))
+                    raise j.exceptions.RuntimeError("Cannot connect over ssh:%s %s" % (addr, port))
                 else:
                     return False
 
@@ -38,7 +38,7 @@ class SSHClientFactory(object):
         if rc > 1:
             err = "Error looking for key in ssh-agent: %s", out
             if die:
-                raise RuntimeError(err)
+                raise j.exceptions.RuntimeError(err)
             else:
                 print(err)
                 return None
@@ -49,7 +49,7 @@ class SSHClientFactory(object):
                 line = line.strip()
                 paths.append(line.split(" ")[-1])
             if len(paths) == 0:
-                raise RuntimeError("could not find loaded ssh-keys")
+                raise j.exceptions.RuntimeError("could not find loaded ssh-keys")
 
             path = j.tools.console.askChoice(paths, "Select ssh key to push (public part only).")
             keyname = j.sal.fs.getBaseName(path)
@@ -61,7 +61,7 @@ class SSHClientFactory(object):
                 content = content
                 return content
         if die:
-            raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l" % keyname)
+            raise j.exceptions.RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l" % keyname)
         return None
 
     def close(self):
@@ -105,7 +105,7 @@ class SSHClient(object):
     @property
     def transport(self):
         if self.client is None:
-            raise RuntimeError("Could not connect to %s:%s" % (self.addr, self.port))
+            raise j.exceptions.RuntimeError("Could not connect to %s:%s" % (self.addr, self.port))
         self._transport = self.client.get_transport()
         return self._transport
 
@@ -127,7 +127,7 @@ class SSHClient(object):
                     time.sleep(1)
                     continue
             if self._client is None:
-                raise RuntimeError('Impossible to create SSH connection to %s:%s' % (self.addr, self.port))
+                raise j.exceptions.RuntimeError('Impossible to create SSH connection to %s:%s' % (self.addr, self.port))
 
         return self._client
 
@@ -208,7 +208,7 @@ class SSHClient(object):
             errors = stderr.readlines()
             errors = ''.join(errors)
             if die:
-                raise RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, buff, errors))
+                raise j.exceptions.RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, buff, errors))
             else:
                 buff = errors
         # print(buf)
@@ -219,7 +219,7 @@ class SSHClient(object):
 
     def rsync_up(self, source, dest, recursive=True):
         if dest[0] != "/":
-            raise RuntimeError("dest path should be absolute, need / in beginning of dest path")
+            raise j.exceptions.RuntimeError("dest path should be absolute, need / in beginning of dest path")
 
         dest = "%s@%s:%s" % (self.login, self.addr, dest)
         j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False,
@@ -228,7 +228,7 @@ class SSHClient(object):
 
     def rsync_down(self, source, dest, source_prefix="", recursive=True):
         if source[0] != "/":
-            raise RuntimeError("source path should be absolute, need / in beginning of source path")
+            raise j.exceptions.RuntimeError("source path should be absolute, need / in beginning of source path")
         source = "%s@%s:%s" % (self.login, self.addr, source)
         j.sal.fs.copyDirTree(source, dest, keepsymlinks=True, deletefirst=False,
                              overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,

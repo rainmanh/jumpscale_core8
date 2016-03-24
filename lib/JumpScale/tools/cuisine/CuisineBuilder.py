@@ -45,7 +45,7 @@ class CuisineBuilder(object):
         self.weave(start=start)
         if sandbox:
             if not stor_addr:
-                raise RuntimeError("Store address should be specified if sandboxing enable.")
+                raise j.exceptions.RuntimeError("Store address should be specified if sandboxing enable.")
             self.sandbox(stor_addr)
 
     def sandbox(self, stor_addr, python=True):
@@ -120,7 +120,7 @@ class CuisineBuilder(object):
         if len(error_files) == 0:
             print("all uploaded ok")
         else:
-            raise RuntimeError('some files didnt upload properly. %s' % ("\n".join(error_files)))
+            raise j.exceptions.RuntimeError('some files didnt upload properly. %s' % ("\n".join(error_files)))
 
         metadataPath = j.sal.fs.joinPaths(output_dir, "md", "%s.flist" % namespace)
         print('uploading %s' % metadataPath)
@@ -173,7 +173,7 @@ class CuisineBuilder(object):
         """
         config format see https://caddyserver.com/docs/caddyfile
         """
-        raise RuntimeError("needs to be implemented")
+        raise j.exceptions.RuntimeError("needs to be implemented")
         pass
 
     @actionrun(action=True)
@@ -344,7 +344,7 @@ class CuisineBuilder(object):
         self.cuisine.process.kill("core")
 
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/core", recursive=True)
-        self.cuisine.core.dir_ensure("$tmplsDir/cfg/core/.mid", recursive=True)
+        self.cuisine.core.file_ensure("$tmplsDir/cfg/core/.mid")
 
         url = "github.com/g8os/core"
         self.cuisine.golang.godep(url)
@@ -355,11 +355,13 @@ class CuisineBuilder(object):
         self.cuisine.core.run("cd %s && go build ." % sourcepath, profile=True)
         self.cuisine.core.file_move("%s/core" % sourcepath, "$binDir/core")
 
+
         # copy extensions
         self.cuisine.core.dir_remove("$tmplsDir/cfg/core/extensions")
         self.cuisine.core.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
-        self.cuisine.core.file_copy("%s/agent.toml" % sourcepath, "$tmplsDir/cfg/core")
-        self.cuisine.core.file_copy("%s/conf" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
+        self.cuisine.core.file_copy("%s/g8os.toml" % sourcepath, "$tmplsDir/cfg/core")
+        self.cuisine.core.dir_ensure("$tmplsDir/cfg/core/conf/")
+        self.cuisine.core.file_copy("{0}sshd.toml {0}basic.toml {0}sshd.toml".format(sourcepath+"/conf/"), "$tmplsDir/cfg/core/conf/", recursive=True)
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/core/extensions/syncthing")
         self.cuisine.core.file_copy("$binDir/syncthing", "$tmplsDir/cfg/core/extensions/syncthing/")
 
@@ -419,11 +421,11 @@ class CuisineBuilder(object):
             self.cuisine.fw.allowIncoming(80)
 
             if self.cuisine.process.tcpport_check(80,"") or self.cuisine.process.tcpport_check(443,""):
-                raise RuntimeError("port 80 or 443 are occupied, cannot install caddy")
+                raise j.exceptions.RuntimeError("port 80 or 443 are occupied, cannot install caddy")
 
         else:
             if self.cuisine.process.tcpport_check(80,""):
-                raise RuntimeError("port 80 is occupied, cannot install caddy")
+                raise j.exceptions.RuntimeError("port 80 is occupied, cannot install caddy")
 
             PORTS = ":80"
             self.cuisine.fw.allowIncoming(80)
@@ -457,14 +459,14 @@ class CuisineBuilder(object):
 
             self.cuisine.fw.allowIncoming(port)
             if self.cuisine.process.tcpport_check(port,""):
-                raise RuntimeError("port %d is occupied, cannot start stor" % port)
+                raise j.exceptions.RuntimeError("port %d is occupied, cannot start stor" % port)
 
         self.cuisine.core.dir_ensure("$cfgDir/stor/", recursive=True)
         self.cuisine.core.file_copy("$tmplsDir/cfg/stor/config.toml", "$cfgDir/stor/")
         cmd = self.cuisine.bash.cmdGetPath("stor")
         self.cuisine.processmanager.ensure("stor", '%s --config $cfgDir/stor/config.toml' % cmd)
 
-    def _startCore(self, nid, gid):
+    def _startCore(self, nid, gid, controller_url="http://127.0.0.1:8966"):
         """
         if this is run on the sam e machine as a controller instance run controller first as the
         core will consume the avialable syncthing port and will cause a problem
@@ -483,20 +485,22 @@ class CuisineBuilder(object):
 
         # manipulate config file
         sourcepath = "$tmplsDir/cfg/core"
-        C = self.cuisine.core.file_read("%s/agent.toml" % sourcepath)
+        C = self.cuisine.core.file_read("%s/g8os.toml" % sourcepath)
         cfg = j.data.serializer.toml.loads(C)
         cfgdir = self.cuisine.core.dir_paths['cfgDir']
         cfg["main"]["message_ID_file"] = self.cuisine.core.joinpaths(cfgdir,"/core/.mid")
         cfg["main"]["include"] = self.cuisine.core.joinpaths(cfgdir,"/core/conf")
-        cfg["extensions"]["sync"]["cwd"] = self.cuisine.core.joinpaths(cfgdir,"/core/extensions")
-        cfg["extensions"]["jumpscript"]["cwd"] = self.cuisine.core.joinpaths(cfgdir,"/core/extensions/jumpscript")
-        cfg["extensions"]["jumpscript_content"]["cwd"] = self.cuisine.core.joinpaths(cfgdir,"/core/extensions/jumpscript")
-        cfg["extensions"]["js_daemon"]["cwd"] = self.cuisine.core.joinpaths(cfgdir,"/core/extensions/jumpscript")
-        cfg["extensions"]["js_daemon"]["env"]["JUMPSCRIPTS_HOME"] = self.cuisine.core.joinpaths(cfgdir,"/core/jumpscripts/")
+        cfg["main"].pop("network")
+        cfg["controllers"] = {"main": {"url": controller_url}}
+        cfg["extension"]["sync"]["cwd"] = self.cuisine.core.joinpaths(cfgdir,"/core/extensions")
+        cfg["extension"]["jumpscript"]["cwd"] = self.cuisine.core.joinpaths(cfgdir,"/core/extensions/jumpscript")
+        cfg["extension"]["jumpscript_content"]["cwd"] = self.cuisine.core.joinpaths(cfgdir,"/core/extensions/jumpscript")
+        cfg["extension"]["js_daemon"]["cwd"] = self.cuisine.core.joinpaths(cfgdir,"/core/extensions/jumpscript")
+        cfg["extension"]["js_daemon"]["env"]["JUMPSCRIPTS_HOME"] = self.cuisine.core.joinpaths(cfgdir,"/core/jumpscripts/")
         cfg["logging"]["db"]["address"] = self.cuisine.core.joinpaths(cfgdir,"/core/logs")
         C = j.data.serializer.toml.dumps(cfg)
 
-        self.cuisine.core.file_write("$cfgDir/core/agent.toml", C, replaceArgs=True)
+        self.cuisine.core.file_write("$cfgDir/core/g8os.toml", C, replaceArgs=True)
 
 
         self._startMongodb()
@@ -505,7 +509,7 @@ class CuisineBuilder(object):
         #@todo (*1*) need to implement to work on node
         env={}
         env["TMPDIR"]=self.cuisine.core.dir_paths["tmpDir"]
-        cmd = "$binDir/core -nid %s -gid %s -c $cfgDir/core/agent.toml" % (nid, gid)
+        cmd = "$binDir/core -nid %s -gid %s -c $cfgDir/core/g8os.toml" % (nid, gid)
         pm = self.cuisine.processmanager.get("tmux")
         pm.ensure("core", cmd=cmd, path="$cfgDir/core",  env=env)
 
@@ -558,7 +562,7 @@ class CuisineBuilder(object):
                 print("restablishing connection to syncthing")
 
         if syn_id is None:
-            raise RuntimeError('Syncthing is not responding. Exiting.')
+            raise j.exceptions.RuntimeError('Syncthing is not responding. Exiting.')
 
         jumpscripts_id = "jumpscripts-%s" % hashlib.md5(syn_id.encode()).hexdigest()
         synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
@@ -728,7 +732,7 @@ class CuisineBuilder(object):
             elif self.cuisine.core.isMac: #@todo better platform mgmt
                 url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
             else:
-                raise RuntimeError("unsupported platform")
+                raise j.exceptions.RuntimeError("unsupported platform")
                 return
 
             if url:

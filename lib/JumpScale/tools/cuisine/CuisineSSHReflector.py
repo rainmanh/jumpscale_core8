@@ -81,7 +81,7 @@ class CuisineSSHReflector(object):
         self.cuisine.ns.hostfile_set_fromlocal()
 
         if self.cuisine.process.tcpport_check(port,"dropbear")==False:
-            raise RuntimeError("Could not install dropbear, port %s was not running"%port)
+            raise j.exceptions.RuntimeError("Could not install dropbear, port %s was not running"%port)
 
 
     # @actionrun(action=True)
@@ -143,7 +143,7 @@ class CuisineSSHReflector(object):
 
             #test if we can reach the port
             if j.sal.nettools.tcpPortConnectionTest(addr,port)==False:
-                raise RuntimeError("Cannot not connect to %s:%s"%(addr,port))
+                raise j.exceptions.RuntimeError("Cannot not connect to %s:%s"%(addr,port))
 
 
             rname="refl_%s"%remotecuisine.executor.addr.replace(".","_")
@@ -211,7 +211,7 @@ class CuisineSSHReflector(object):
         else:
             cuisine=j.tools.cuisine.get(remoteids)
         if cuisine==None:
-            raise RuntimeError("could not find reflector active")
+            raise j.exceptions.RuntimeError("could not find reflector active")
 
         rpath="/home/sshreflector/reflectorclients"
         lpath=os.environ["HOME"]+"/.ssh/reflectorclients"

@@ -124,7 +124,7 @@ class NetTools(SALObject):
         if j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
             # netstat: n == numeric, -t == tcp, -u = udp, l= only listening, p = program
             command = "netstat -ntulp | grep ':%s '" % port
-            # raise RuntimeError("stop")
+            # raise j.exceptions.RuntimeError("stop")
             (exitcode, output) = j.sal.process.execute(command, die=False,outputToStdout=False)
             return exitcode == 0
         elif j.core.platformtype.myplatform.isSolaris() or j.core.platformtype.myplatform.isDarwin():
@@ -181,7 +181,7 @@ class NetTools(SALObject):
             # Call the GetTcpTable function again, but now with a buffer that's large enough. The TCP table will be written in the buffer.
             retVal = ctypes.windll.iphlpapi.GetTcpTable(ctypes.byref(tcpTable), ctypes.byref(dwSize), 0)
             if not retVal == 0:
-                raise RuntimeError("j.sal.nettools.checkListenPort: The function iphlpapi.GetTcpTable returned error number %s"%retVal)
+                raise j.exceptions.RuntimeError("j.sal.nettools.checkListenPort: The function iphlpapi.GetTcpTable returned error number %s"%retVal)
 
             for i in range(tcpTable.dwNumEntries):  # We can't iterate over the table the usual way as tcpTable.table isn't a Python table structure.
                 tcpState = tcpTable.table[i].dwState
@@ -191,7 +191,7 @@ class NetTools(SALObject):
             return False # The port is not in a listening state.
 
         else:
-            raise RuntimeError("This platform is not supported in j.sal.nettools.checkListenPort()")
+            raise j.exceptions.RuntimeError("This platform is not supported in j.sal.nettools.checkListenPort()")
 
     def getNameServer(self):
         """Returns the first nameserver IP found in /etc/resolv.conf
@@ -210,7 +210,7 @@ class NetTools(SALObject):
             j.sal.fs.fileGetContents('/etc/resolv.conf'))
 
             if not nameserverlines:
-                raise RuntimeError('No nameserver found in /etc/resolv.conf')
+                raise j.exceptions.RuntimeError('No nameserver found in /etc/resolv.conf')
 
             nameserverline = nameserverlines[0]
             return nameserverline.strip().split(' ')[-1]
@@ -275,7 +275,7 @@ class NetTools(SALObject):
             w = wmi.WMI()
             return [ "%s:%s" %(ad.index,str(ad.NetConnectionID)) for ad in w.Win32_NetworkAdapter() if ad.PhysicalAdapter and ad.NetEnabled]
         else:
-            raise RuntimeError("Not supported on this platform!")
+            raise j.exceptions.RuntimeError("Not supported on this platform!")
 
     def getNicType(self,interface):
         """ Get Nic Type on a certain interface
@@ -293,7 +293,7 @@ class NetTools(SALObject):
                     return 'VLAN'
                 exitcode,output = j.sal.process.execute("which ethtool", False, outputToStdout=False)
                 if exitcode != 0:
-                    raise RuntimeError("Ethtool is not installed on this system!")
+                    raise j.exceptions.RuntimeError("Ethtool is not installed on this system!")
                 exitcode,output = j.sal.process.execute("ethtool -i %s"%(interface),False,outputToStdout=False)
                 if exitcode !=0:
                     return 'VIRTUAL'
@@ -346,7 +346,7 @@ class NetTools(SALObject):
                 else:
                     return "UNKNOWN"
         else:
-            raise RuntimeError("Not supported on this platform!")
+            raise j.exceptions.RuntimeError("Not supported on this platform!")
 
     def getVlanTag(self,interface,nicType=None):
         """Get VLan tag on the specified interface and vlan type"""
@@ -369,7 +369,7 @@ class NetTools(SALObject):
         elif j.core.platformtype.myplatform.isSolaris() or j.core.platformtype.myplatform.isWindows():
             return j.sal.nettools.getVlanTagFromInterface(interface)
         else:
-            raise RuntimeError("Not supported on this platform!")
+            raise j.exceptions.RuntimeError("Not supported on this platform!")
 
     def getVlanTagFromInterface(self,interface):
         """Get vlan tag from interface
@@ -409,7 +409,7 @@ class NetTools(SALObject):
         try:
             s.connect((ip, port))
         except:
-            raise RuntimeError("Cannot connect to %s:%s, check network configuration"%(ip,port))
+            raise j.exceptions.RuntimeError("Cannot connect to %s:%s, check network configuration"%(ip,port))
         return s.getsockname()[0]
 
     def getDefaultIPConfig(self):
@@ -448,7 +448,7 @@ class NetTools(SALObject):
             print("try to delete def gw")
             counter+=1
             if counter>10:
-                raise RuntimeError("cannot delete def gw")
+                raise j.exceptions.RuntimeError("cannot delete def gw")
 
         cmd='route add default gw %s'%gw
         j.sal.process.execute(cmd)
@@ -528,7 +528,7 @@ class NetTools(SALObject):
                         result.append( [str(nic.IPAddress[x]), str(nic.IPSubnet[x]), ''] )
             return result
         else:
-            raise RuntimeError("j.sal.nettools.getIpAddress not supported on this platform")
+            raise j.exceptions.RuntimeError("j.sal.nettools.getIpAddress not supported on this platform")
 
     def getMacAddress(self, interface):
         """Return the MAC address of this interface"""
@@ -565,7 +565,7 @@ class NetTools(SALObject):
             NICIndex = interface.split(":")[0]
             return str(w.Win32_NetworkAdapterConfiguration(index=NICIndex)[0].MACAddress)
         else:
-            raise RuntimeError("j.sal.nettools.getMacAddress not supported on this platform")
+            raise j.exceptions.RuntimeError("j.sal.nettools.getMacAddress not supported on this platform")
 
     def pm_formatMacAddress(self, macaddress):
         macpieces = macaddress.strip().split(':')
@@ -631,13 +631,13 @@ class NetTools(SALObject):
 
                     output, stdout, stderr = j.sal.process.run('ip a', stopOnError=False)
                     if exitcode:
-                        raise RuntimeError('Could not get the MAC address for [%s] because "ip" is not found'%s)
+                        raise j.exceptions.RuntimeError('Could not get the MAC address for [%s] because "ip" is not found'%s)
                     mo = re.search('\d:\s+\w+:\s+.*\n\s+.+\s+(?P<mac>([a-fA-F0-9]{2}[:|\-]?){6}).+\n\s+inet\s%s[^0-9]+'%ipaddress, stdout, re.MULTILINE)
                     if mo:
                         return self.pm_formatMacAddress(mo.groupdict()['mac'])
-            raise RuntimeError("MAC address for [%s] not found"%ipaddress)
+            raise j.exceptions.RuntimeError("MAC address for [%s] not found"%ipaddress)
         else:
-            raise RuntimeError("j.sal.nettools.getMacAddressForIp not supported on this platform")
+            raise j.exceptions.RuntimeError("j.sal.nettools.getMacAddressForIp not supported on this platform")
 
     def getHostname(self):
         """Get hostname of the machine
@@ -692,7 +692,7 @@ class NetTools(SALObject):
             (exitcode, output) = j.sal.process.execute(command, outputToStdout=False)
             return output.strip()
         else:
-            raise RuntimeError("j.sal.nettools.getDefaultRouter not supported on this platform")
+            raise j.exceptions.RuntimeError("j.sal.nettools.getDefaultRouter not supported on this platform")
 
     def validateIpAddress(self, ipaddress):
         """Validate wether this ip address is a valid ip address of 4 octets ranging from 0 to 255 or not
@@ -754,7 +754,7 @@ class NetTools(SALObject):
             elif j.core.platformtype.myplatform.isWindows():
                 exitcode, output = j.sal.process.execute('ping -w %d %s'%(pingtimeout, ip), False, False)
             else:
-                raise RuntimeError('Platform is not supported')
+                raise j.exceptions.RuntimeError('Platform is not supported')
             if exitcode == 0:
                 pingsucceeded = True
                 j.logger.log('Machine with ip:[%s] is pingable'%ip, 9)
@@ -791,7 +791,7 @@ class NetTools(SALObject):
 
         # Now check if the downloaded file matches the provided checksum
         if md5_checksum and not j.data.hash.md5(destination_file_path) == md5_checksum:
-            raise RuntimeError('The provided MD5 checksum did not match that of a freshly-downloaded file!')
+            raise j.exceptions.RuntimeError('The provided MD5 checksum did not match that of a freshly-downloaded file!')
 
     def download(self, url, localpath, username=None, passwd=None, overwrite=True):
         '''Download a url to a file or a directory, supported protocols: http, https, ftp, file
@@ -831,11 +831,11 @@ class NetTools(SALObject):
 
             def prompt_user_passwd(self, host, realm):
                 if not self._user or not self._passwd:
-                    raise RuntimeError('Server requested authentication but nothing was given')
+                    raise j.exceptions.RuntimeError('Server requested authentication but nothing was given')
                 if not self._promptcalled:
                     self._promptcalled = True
                     return self._user, self._passwd
-                raise RuntimeError('Could not authenticate with the given authentication user:%s and password:%s'%(self._user, self._passwd))
+                raise j.exceptions.RuntimeError('Could not authenticate with the given authentication user:%s and password:%s'%(self._user, self._passwd))
 
         urlopener = myURLOpener(username, passwd)
 

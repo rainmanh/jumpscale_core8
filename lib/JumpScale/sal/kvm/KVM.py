@@ -177,7 +177,7 @@ class KVM(SALObject):
         else:
             if j.sal.fs.exists(self._getRootPath(name)):
                 print('Error creating machine "%s"' % name)
-                raise RuntimeError('Machine "%s" already exists, please explicitly specify replace=True(default) if you want to create a vmachine with the same name' % name)
+                raise j.exceptions.RuntimeError('Machine "%s" already exists, please explicitly specify replace=True(default) if you want to create a vmachine with the same name' % name)
         j.sal.fs.createDir(self._getRootPath(name))
         print('Creating machine %s...' % name)
         try:
@@ -307,9 +307,9 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
         """
         machine_hrd = self.getConfig(name)
         if not machine_hrd:
-            raise RuntimeError('Machine "%s" does not exist' % name)
+            raise j.exceptions.RuntimeError('Machine "%s" does not exist' % name)
         if snapshotname not in self.listSnapshots(name):
-            raise RuntimeError('Machine "%s" does not have a snapshot named "%s"' % (name, snapshotname))
+            raise j.exceptions.RuntimeError('Machine "%s" does not have a snapshot named "%s"' % (name, snapshotname))
         print(('Mounting snapshot "%s" of mahcine "%s" on "%s"' % (snapshotname, name, location)))
         if not j.sal.fs.exists(location):
             print(('Location "%s" does not exist, it will be created' % location))
@@ -326,7 +326,7 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
                 snapshot_path = qi
                 break
         if not snapshot_path:
-            raise RuntimeError('Could not find snapshot "%s" path' % snapshotname)
+            raise j.exceptions.RuntimeError('Could not find snapshot "%s" path' % snapshotname)
         j.sal.process.execute('qemu-nbd --connect=%s %s' % (dev, snapshot_path))
         if not partitionnr:
             partitionnr = machine_hrd.get('root.partitionnr', '1')

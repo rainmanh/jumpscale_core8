@@ -65,7 +65,7 @@ class Blueprint(object):
             model=j.data.serializer.yaml.loads(content)
         except Exception as e:
             msg="Could not process blueprint: '%s', line: '%s', content '%s'\nerror:%s"%(self.path,nr,content,e)
-            raise RuntimeError(msg)
+            raise j.exceptions.RuntimeError(msg)
 
         self.models.append(model)
 

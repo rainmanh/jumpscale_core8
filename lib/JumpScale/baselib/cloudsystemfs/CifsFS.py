@@ -168,7 +168,7 @@ class CifsFS(object):
 
         exitCode, output = j.sal.process.execute(command, die=False, outputToStdout=False)
         if not exitCode == 0:
-            raise RuntimeError('Failed to execute command %s'%command)
+            raise j.exceptions.RuntimeError('Failed to execute command %s'%command)
 
         if j.sal.fs.exists(self.orgmntpoint):
             j.sal.fs.removeDir(self.orgmntpoint)
@@ -186,7 +186,7 @@ class CifsFS(object):
                 if os.path.isdir(self.path_components[-1]):
                     os.chdir(self.path_components[-1])
                 else:
-                    raise RuntimeError('%s is not a valid directory under %s' %('/'.join(self.path_components),self.sharename))
+                    raise j.exceptions.RuntimeError('%s is not a valid directory under %s' %('/'.join(self.path_components),self.sharename))
             if os.path.isdir(self.path_components[0]):
                 os.chdir(self.path_components[0])
 

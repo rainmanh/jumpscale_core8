@@ -54,7 +54,7 @@ class CodeGeneratorActorTasklets(CodeGeneratorBase):
                     if tags.tagExists("tasklettemplate"):
                         templ = tags.tagGet("tasklettemplate").strip().lower()
                     if templ not in tasklets:
-                        raise RuntimeError("Cannot find tasklet template %s in \n%s" % (templ, method))
+                        raise j.exceptions.RuntimeError("Cannot find tasklet template %s in \n%s" % (templ, method))
                     content = tasklets[templ]
                     if templ.find("model") == 0:  # is used for templates for crud methods
                         content = content.replace("{appname}", spec.appname)

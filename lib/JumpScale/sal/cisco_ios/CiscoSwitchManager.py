@@ -33,7 +33,7 @@ class CiscoSwitch(SALObject):
         self.login=login
         self.password=password
         # if res != True: #adjust to check @TODO
-        #     raise RuntimeError("Could not login into cisco switch: %s"%host)
+        #     raise j.exceptions.RuntimeError("Could not login into cisco switch: %s"%host)
 
         # inputsentence = []
 
@@ -102,16 +102,16 @@ class CiscoSwitch(SALObject):
         """
         return info about interfaces on switch (name, macaddresses, types, ...)
         """
-        raise RuntimeError("implement")
+        raise j.exceptions.RuntimeError("implement")
         return r
 
     def interface_getnames(self):
-        raise RuntimeError("implement")
+        raise j.exceptions.RuntimeError("implement")
         return r
 
     def backup(self,name,destinationdir):
         config=self.do("show running-config")
-        raise RuntimeError("implement")
+        raise j.exceptions.RuntimeError("implement")
         return r        
         self.do("/system/backup/save", args={"name":name})
         path="%s.backup"%name

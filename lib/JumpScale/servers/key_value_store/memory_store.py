@@ -18,7 +18,7 @@ class MemoryKeyValueStore(KeyValueStoreBase):
     def get(self, category, key):
         key=str(key)
         if not self.exists(category, key):
-            raise RuntimeError("Could not find object with category %s key %s"%(category,key))
+            raise j.exceptions.RuntimeError("Could not find object with category %s key %s"%(category,key))
         return self.db[category][key]
 
     def set(self, category, key, value):

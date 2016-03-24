@@ -29,7 +29,7 @@ if opts.prefix != None:
 ############PS
 if opts.action =='ps':
     if opts.name==None:
-        raise RuntimeError("specify machine name")    
+        raise j.exceptions.RuntimeError("specify machine name")    
     l.getProcessList(opts.name)
 
 
@@ -47,7 +47,7 @@ if opts.action =='new':
     if opts.base==None:
         opts.base="saucy-amd64-base"
     if opts.name==None:
-        raise RuntimeError("need to specify name")
+        raise j.exceptions.RuntimeError("need to specify name")
     l.create(name=opts.name,stdout=True,base=opts.base,start=False)
     if opts.pubip != "":
         bridgename = j.application.config.get('lxc.pub.interface')        
@@ -57,39 +57,39 @@ if opts.action =='new':
 
 if opts.action =='getip':
     if opts.name==None:
-        raise RuntimeError("specify machine name")    
+        raise j.exceptions.RuntimeError("specify machine name")    
     ip=l.getIp(opts.name)
     print("%s"%ip)
 
 if opts.action =='exportTGZ':
     if opts.name==None:
-        raise RuntimeError("specify machine name")    
+        raise j.exceptions.RuntimeError("specify machine name")    
     if opts.bname==None:
-        raise RuntimeError("specify backup name")    
+        raise j.exceptions.RuntimeError("specify backup name")    
     print("export %s to %s"%(opts.name,opts.bname))
     l.exportTgz(opts.name,opts.bname)
 
 if opts.action =='importTGZ':
     if opts.name==None:
-        raise RuntimeError("specify machine name")    
+        raise j.exceptions.RuntimeError("specify machine name")    
     if opts.bname==None:
-        raise RuntimeError("specify backup name")    
+        raise j.exceptions.RuntimeError("specify backup name")    
     print("import %s to %s"%(opts.bname,opts.name))
     l.importTgz(opts.bname,opts.name)
 
 if opts.action =='exportR':
     if opts.name==None:
-        raise RuntimeError("specify machine name")    
+        raise j.exceptions.RuntimeError("specify machine name")    
     if opts.bname==None:
-        raise RuntimeError("specify backup name")    
+        raise j.exceptions.RuntimeError("specify backup name")    
     print("export %s to %s"%(opts.name,opts.bname))
     l.exportRsync(opts.name,opts.bname,key=opts.key)
 
 if opts.action =='importR':
     if opts.name==None:
-        raise RuntimeError("specify machine name")    
+        raise j.exceptions.RuntimeError("specify machine name")    
     if opts.bname==None:
-        raise RuntimeError("specify backup name")    
+        raise j.exceptions.RuntimeError("specify backup name")    
     print("import %s to %s"%(opts.bname,opts.name))
     if opts.base != None:
         l.importRsync(opts.bname,opts.name,basename=opts.base)
@@ -98,7 +98,7 @@ if opts.action =='importR':
 
 if opts.action =='cmd':
     if opts.name==None:
-        raise RuntimeError("specify machine name")    
+        raise j.exceptions.RuntimeError("specify machine name")    
     ip=l.getIp(opts.name)
     print("ipaddr:%s"%ip)
 
@@ -144,7 +144,7 @@ if opts.action =='cmd':
 
 if opts.action =='rdp':
     if opts.name==None:
-        raise RuntimeError("specify machine name")    
+        raise j.exceptions.RuntimeError("specify machine name")    
     if ip=="":
         ip=getip(opts.nr)
     time.sleep(2)    
@@ -157,22 +157,22 @@ if opts.action =='destroyall':
 
 if opts.action =='destroy':
     if opts.name==None:
-        raise RuntimeError("specify machine name")
+        raise j.exceptions.RuntimeError("specify machine name")
     l.destroy(opts.name)
 
 if opts.action =='stop':
     if opts.name==None:
-        raise RuntimeError("specify machine name")
+        raise j.exceptions.RuntimeError("specify machine name")
     l.stop(opts.name)
 
 if opts.action =='start':
     if opts.name==None:
-        raise RuntimeError("specify machine name")
+        raise j.exceptions.RuntimeError("specify machine name")
     l.start(opts.name)
 
 if opts.action =='restart':
     if opts.name==None:
-        raise RuntimeError("specify machine name")
+        raise j.exceptions.RuntimeError("specify machine name")
     l.stop(opts.name)
     l.start(opts.name)
 

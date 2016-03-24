@@ -79,14 +79,14 @@ def createBridge(name):
     cmd = '%s --may-exist add-br %s' % (vsctl, name)
     r,s,e = doexec(cmd.split())
     if r:
-        raise RuntimeError("Problem with creation of bridge %s, err was: %s" % (name,e))
+        raise j.exceptions.RuntimeError("Problem with creation of bridge %s, err was: %s" % (name,e))
 
 
 def destroyBridge(name):
     cmd = '%s --if-exists del-br %s' % (vsctl, name)
     r,s,e = doexec(cmd.split())
     if r:
-        raise RuntimeError("Problem with destruction of bridge %s, err was: %s" % (name,e))
+        raise j.exceptions.RuntimeError("Problem with destruction of bridge %s, err was: %s" % (name,e))
 
 
 def VlanPatch(parentbridge, vlanbridge, vlanid):
@@ -95,11 +95,11 @@ def VlanPatch(parentbridge, vlanbridge, vlanid):
     cmd = '%s add-port %s %s tag=%s -- set Interface %s type=patch options:peer=%s' % (vsctl, parentbridge, parentpatchport, vlanid, parentpatchport, bridgepatchport)
     r,s,e = doexec(cmd.split())
     if r:
-        raise RuntimeError("Add extra vlan pair failed %s" % (e.readlines()))
+        raise j.exceptions.RuntimeError("Add extra vlan pair failed %s" % (e.readlines()))
     cmd = '%s add-port %s %s -- set Interface %s type=patch options:peer=%s' % (vsctl, vlanbridge, bridgepatchport, bridgepatchport, parentpatchport)
     r,s,e = doexec(cmd.split())
     if r:
-        raise RuntimeError("Add extra vlan pair failed %s" % (e.readlines()))
+        raise j.exceptions.RuntimeError("Add extra vlan pair failed %s" % (e.readlines()))
 
 
 def addVlanPatch(parbr,vlbr,id, mtu=None):
@@ -162,7 +162,7 @@ def destroyVethPair(left):
     cmd = '%s link del %s ' %(ip, left)
     r,s,e = doexec(cmd.split())
     if r:
-        raise RuntimeError("Problem with destruction of Veth pair %s, err was: %s" % (left,e))
+        raise j.exceptions.RuntimeError("Problem with destruction of Veth pair %s, err was: %s" % (left,e))
 
 
 def createVXlan(vxname,vxid,multicast,vxbackend):
@@ -226,13 +226,13 @@ def connectIfToBridge(bridge,interface):
     cmd = '%s --may-exist add-port %s %s' %(vsctl,bridge,interface)
     r,s,e = doexec(cmd.split())
     if r:
-        raise RuntimeError('Error adding port %s to bridge %s' %(interface,bridge))
+        raise j.exceptions.RuntimeError('Error adding port %s to bridge %s' %(interface,bridge))
 
 def connectIfToNameSpace(nsname,interface):
     cmd = '%s link set %s netns %s' %( ip, interface, nsname)
     r,s,e = doexec(cmd.split())
     if r:
-        raise RuntimeError("Error moving %s to namespace %s" %(interface,nsname))
+        raise j.exceptions.RuntimeError("Error moving %s to namespace %s" %(interface,nsname))
 
 
 def disable_ipv6(interface):
@@ -245,7 +245,7 @@ def setMTU(interface,mtu):
     cmd = 'ip link set %s mtu %s' % (interface,mtu)
     r,s,e = doexec(cmd.split())
     if r:
-        raise RuntimeError('Could not set %s to MTU %s' %(interface,mtu))
+        raise j.exceptions.RuntimeError('Could not set %s to MTU %s' %(interface,mtu))
 
 
 def addBond(bridge, bondname, iflist, lacp="active", lacp_time="fast", mode="balance-tcp", trunks=None):
@@ -275,4 +275,4 @@ def addBond(bridge, bondname, iflist, lacp="active", lacp_time="fast", mode="bal
         disable_ipv6(i)
     r,s,e = doexec(buildup.split())
     if e:
-        raise RuntimeError("Could not create bond %s for bridge %s" % (bondname,bridge))
+        raise j.exceptions.RuntimeError("Could not create bond %s for bridge %s" % (bondname,bridge))

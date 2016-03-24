@@ -19,7 +19,7 @@ class Lxc(SALObject):
         env.pop('PYTHONPATH', None)
         (exitcode, stdout, stderr) = j.sal.process.run(command, showOutput=False, captureOutput=True, stopOnError=False, env=env)
         if exitcode != 0:
-            raise RuntimeError("Failed to execute %s: Error: %s, %s" % (command, stdout, stderr))
+            raise j.exceptions.RuntimeError("Failed to execute %s: Error: %s, %s" % (command, stdout, stderr))
         return stdout
 
     @property
@@ -30,7 +30,7 @@ class Lxc(SALObject):
             else:
                 self._basepath="/mnt/vmstor/lxc" #btrfs subvol create
             if not j.sal.fs.exists(path=self._basepath):
-                raise RuntimeError("only btrfs lxc supported for now")
+                raise j.exceptions.RuntimeError("only btrfs lxc supported for now")
         return self._basepath
 
     def _getChildren(self,pid,children):
@@ -46,7 +46,7 @@ class Lxc(SALObject):
 
     def _getMachinePath(self,machinename,append=""):
         if machinename=="":
-            raise RuntimeError("Cannot be empty")
+            raise j.exceptions.RuntimeError("Cannot be empty")
         base = j.sal.fs.joinPaths( self.basepath,'%s%s' % (self._prefix, machinename))
         if append!="":
             base=j.sal.fs.joinPaths(base,append)
@@ -101,7 +101,7 @@ ipaddr=
             pid = int(pid.strip())
         if pid==0:
             if fail:
-                raise RuntimeError("machine:%s is not running"%name)
+                raise j.exceptions.RuntimeError("machine:%s is not running"%name)
             else:
                 return 0
         return pid
@@ -142,7 +142,7 @@ ipaddr=
         ipaddr=j.application.config.get("jssync.addr")
         path=self._getMachinePath(name)
         if not j.sal.fs.exists(path):
-            raise RuntimeError("cannot find machine:%s"%path)
+            raise j.exceptions.RuntimeError("cannot find machine:%s"%path)
         if backupname[-1]!="/":
             backupname+="/"
         if path[-1]!="/":
@@ -176,9 +176,9 @@ ipaddr=
 
     def btrfsSubvolCopy(self,nameFrom,NameDest):
         if not self.btrfsSubvolExists(nameFrom):
-            raise RuntimeError("could not find vol for %s"%nameFrom)
+            raise j.exceptions.RuntimeError("could not find vol for %s"%nameFrom)
         if j.sal.fs.exists(path="%s/%s"%(self.basepath,NameDest)):
-            raise RuntimeError("path %s exists, cannot copy to existing destination, destroy first."%nameFrom)            
+            raise j.exceptions.RuntimeError("path %s exists, cannot copy to existing destination, destroy first."%nameFrom)            
         cmd="subvolume snapshot %s/%s %s/%s"%(self.basepath,nameFrom,self.basepath,NameDest)
         self._btrfsExecute(cmd)    
 
@@ -195,7 +195,7 @@ ipaddr=
         if j.sal.fs.exists(path=path):
             j.sal.fs.removeDirTree(path)
         if self.btrfsSubvolExists(name):
-            raise RuntimeError("vol cannot exist:%s"%name)
+            raise j.exceptions.RuntimeError("vol cannot exist:%s"%name)
 
     def removeRedundantFiles(self,name):
         basepath=self._getMachinePath(name)
@@ -225,7 +225,7 @@ ipaddr=
             if basepath[-1]!="/":
                 basepath+="/"
             if not j.sal.fs.exists(basepath):
-                raise RuntimeError("cannot find base machine:%s"%basepath)
+                raise j.exceptions.RuntimeError("cannot find base machine:%s"%basepath)
             cmd="rsync -av -v %s %s --delete-after --modify-window=60 --size-only --compress --stats  --progress"%(basepath,path)            
             print(cmd)
             j.sal.process.executeWithoutPipe(cmd)
@@ -239,7 +239,7 @@ ipaddr=
         path=self._getMachinePath(name)
         bpath= j.sal.fs.joinPaths(self.basepath,"backups")
         if not j.sal.fs.exists(path):
-            raise RuntimeError("cannot find machine:%s"%path)
+            raise j.exceptions.RuntimeError("cannot find machine:%s"%path)
         j.sal.fs.createDir(bpath)
         bpath= j.sal.fs.joinPaths(bpath,"%s.tgz"%backupname)
         cmd="cd %s;tar Szcf %s ."%(path,bpath)
@@ -250,7 +250,7 @@ ipaddr=
         path=self._getMachinePath(name)        
         bpath= j.sal.fs.joinPaths(self.basepath,"backups","%s.tgz"%backupname)
         if not j.sal.fs.exists(bpath):
-            raise RuntimeError("cannot find import path:%s"%bpath)
+            raise j.exceptions.RuntimeError("cannot find import path:%s"%bpath)
         j.sal.fs.createDir(path)
 
         cmd="cd %s;tar xzvf %s -C ."%(path,bpath)        
@@ -412,7 +412,7 @@ ipaddr=
             msg= "could not start new machine, did not start in 20 sec."
             if stdout:
                 print(msg)
-            raise RuntimeError(msg)
+            raise j.exceptions.RuntimeError(msg)
     
         self.setHostName(name)
 
@@ -423,7 +423,7 @@ ipaddr=
             if j.sal.nettools.tcpPortConnectionTest(ipaddr,22):
                 return
             time.sleep(0.1)
-        raise RuntimeError("Could not connect to machine %s over port 22 (ssh)"%ipaddr)
+        raise j.exceptions.RuntimeError("Could not connect to machine %s over port 22 (ssh)"%ipaddr)
 
     def networkSet(self, machinename,netname="pub0",pubips=[],bridge="public",gateway=None):
         bridge=bridge.lower()
@@ -467,7 +467,7 @@ fi
 
 
     def networkSetPrivateVXLan(self, name, vxlanid, ipaddresses):
-        raise RuntimeError("not implemented")
+        raise j.exceptions.RuntimeError("not implemented")
 
     def _setConfig(self,name,parent):
         print("SET CONFIG")

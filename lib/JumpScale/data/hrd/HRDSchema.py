@@ -100,8 +100,8 @@ class HRDSchema():
     def __init__(self,path="",content=""):
         if path!=None:
             content=j.sal.fs.fileGetContents(path)
-        if content=="":
-            j.events.inputerror_critical("Content needs to be provided if path is empty")
+        # if content=="":
+            # j.events.inputerror_critical("Content needs to be provided if path is empty")
         self.path=path
         self.content=content
         self.items={}
@@ -115,7 +115,7 @@ class HRDSchema():
             print ("ERROR in schema:%s"%self.path)
         else:
             print ("ERROR in schema:\n%s"%self.content)
-        raise RuntimeError(msg)
+        raise j.exceptions.RuntimeError(msg)
 
     def process(self,content):
         for line in content.split("\n"):

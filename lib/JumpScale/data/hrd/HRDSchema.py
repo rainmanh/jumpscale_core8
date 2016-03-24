@@ -115,7 +115,7 @@ class HRDSchema():
             print ("ERROR in schema:%s"%self.path)
         else:
             print ("ERROR in schema:\n%s"%self.content)
-        raise RuntimeError(msg)
+        raise j.exceptions.RuntimeError(msg)
 
     def process(self,content):
         for line in content.split("\n"):

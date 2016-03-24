@@ -5,7 +5,7 @@ import ctypes
 from JumpScale import j
 
 if not j.core.platformtype.myplatform.isWindows():
-    raise RuntimeError("WindowsSystem module only supported on Windows operating system")
+    raise j.exceptions.RuntimeError("WindowsSystem module only supported on Windows operating system")
 import win32pdh
 import win32api
 import win32process
@@ -550,7 +550,7 @@ class WindowsSystem(SALObject):
             j.logger.log('Failed to delete user %s'%userName, 6)
 
         else:
-            raise RuntimeError("User %s is not a system user"%userName)
+            raise j.exceptions.RuntimeError("User %s is not a system user"%userName)
 
     def getSystemUserSid(self, userName):
         """
@@ -572,7 +572,7 @@ class WindowsSystem(SALObject):
             return sid
 
         else:
-            raise RuntimeError('Failed to Get User %s\'s SID'%userName)
+            raise j.exceptions.RuntimeError('Failed to Get User %s\'s SID'%userName)
 
     def createService(self, serviceName, displayName, binPath, args=None):
         """
@@ -785,7 +785,7 @@ class WindowsSystem(SALObject):
                 elif j.data.types.list.check(item):
                     itemlist=item
                 else:
-                    raise RuntimeError("Can only process string or list")
+                    raise j.exceptions.RuntimeError("Can only process string or list")
                 found=True
                 for item2 in itemlist:
                     if cmdline.find(item2)==-1:
@@ -809,7 +809,7 @@ class WindowsSystem(SALObject):
                 elif j.data.types.list.check(item):
                     itemlist=item
                 else:
-                    raise RuntimeError("Can only process string or list")
+                    raise j.exceptions.RuntimeError("Can only process string or list")
                 found=True
                 for item2 in itemlist:
                     if cmdline.find(item2)==-1:

@@ -79,7 +79,7 @@ class CuisineProcess():
                     result.append(d)
 
         else:            
-            raise RuntimeError("platform not supported")
+            raise j.exceptions.RuntimeError("platform not supported")
 
         for d in result:
             for item in ["receive","send","pid","localport","remoteport"]:

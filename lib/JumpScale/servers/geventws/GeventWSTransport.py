@@ -58,7 +58,7 @@ class GeventWSTransport(Transport):
                         print(("retry connection to %s"%self.url))
                         time.sleep(0.1)
                     else:
-                        raise RuntimeError("error to send msg to %s,error was %s"%(self.url,e))
+                        raise j.exceptions.RuntimeError("error to send msg to %s,error was %s"%(self.url,e))
 
         else:
             print("NO RETRY ON REQUEST WS TRANSPORT")

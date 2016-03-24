@@ -98,7 +98,7 @@ class KeyStor(SALObject):
             else:
                 key = m2c.RSA.load_key(p1, empty_callback)
         except:
-            raise RuntimeError("Cannot load key:%s" % cachekey)
+            raise j.exceptions.RuntimeError("Cannot load key:%s" % cachekey)
         p1.remove_p()
         self.keys[cachekey] = key
         return key
@@ -199,6 +199,6 @@ class KeyStor(SALObject):
             MsgDigest.update (message2)
 
             if not PubKey.verify_rsassa_pss (MsgDigest.digest (), signature2) == 1:
-                raise RuntimeError("Could not verify the message")
+                raise j.exceptions.RuntimeError("Could not verify the message")
 
         return plainText

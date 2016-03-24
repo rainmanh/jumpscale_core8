@@ -53,7 +53,7 @@ class SocketServerClient():
             if self._initclient() == True:
                 self.socket.settimeout(self.timeout)
                 return True
-        raise RuntimeError("Connection timed out to server %s" % self.addr)
+        raise j.exceptions.RuntimeError("Connection timed out to server %s" % self.addr)
 
     def _initclient(self):
         print(("try to connect to %s:%s" % (self.addr, self.port)))
@@ -85,7 +85,7 @@ class SocketServerClient():
     def getsize(self, data):
         check = data[0]
         if check != "A":
-            raise RuntimeError("error in tcp stream, first byte needs to be 'A'")
+            raise j.exceptions.RuntimeError("error in tcp stream, first byte needs to be 'A'")
         sizebytes = data[1:5]
         size = struct.unpack("I", sizebytes)[0]
         return data[5:], size

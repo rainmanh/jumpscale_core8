@@ -1,5 +1,5 @@
 from JumpScale import j
-from telegram.dispatcher import run_async
+from telegram.ext.dispatcher import run_async
 import queue
 
 class ConsoleAsker(object):
@@ -9,13 +9,21 @@ class ConsoleAsker(object):
 
     def ask_repo_url(self):
         def validate(input):
-            return j.sal.nettools.checkUrlReachable(input)
+            try:
+                if not input.startswith('http'):
+                    input = 'http://%s' % input
+                j.sal.nettools.checkUrlReachable(input)
+                return True
+            except:
+                return False
         repo_url = j.tools.console.askString("Url of the git repository where to store the ays repo of your cockpit. The repo need to exists", retry=3, validate=validate)
         return repo_url
 
     def ask_ovc_url(self):
         def validate(input):
             try:
+                if not input.startswith('http'):
+                    input = 'http://%s' % input
                 j.sal.nettools.checkUrlReachable(input)
                 return True
             except:

@@ -142,7 +142,7 @@ class Avahi():
         cmd = "avahi-browse -a -r -t"
         result, output = self.cuisine.core.run(cmd,die=False,force=True)
         if result > 0:
-            raise RuntimeError(
+            raise j.exceptions.RuntimeError(
                 "cannot use avahi command line to find services, please check avahi is installed on system (ubunutu apt-get install avahi-utils)\nCmd Used:%s" % cmd)
         items = j.tools.code.regex.extractBlocks(output, ["^= .*"])
         avahiservices = AvahiServices()
@@ -184,7 +184,7 @@ class Avahi():
         cmd = 'avahi-resolve-address %s'
         exitCode, output = self.cuisine.core.run(cmd % ipAddress, die=False, showout=False)
         if exitCode or not output:  # if the ouput string is '' then something is wrong
-            raise RuntimeError('Cannot resolve the hostname of ipaddress: %s' % ipAddress)
+            raise j.exceptions.RuntimeError('Cannot resolve the hostname of ipaddress: %s' % ipAddress)
         output = output.strip()
         hostname = output.split('\t')[-1]
         # remove the trailing .local

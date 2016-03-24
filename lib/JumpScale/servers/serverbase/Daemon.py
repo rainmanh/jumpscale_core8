@@ -65,7 +65,7 @@ class DaemonCMDS(object):
             session.passwd = self.daemon.decrypt(session.passwd, session)
 
         if not self.authenticate(session):
-            raise RuntimeError("Cannot Authenticate User:%s" % session.user)
+            raise j.exceptions.RuntimeError("Cannot Authenticate User:%s" % session.user)
         self.daemon.sessions[session.id] = session
         print("OK")
 
@@ -90,7 +90,7 @@ class DaemonCMDS(object):
             if 'session' in args.args:
                 session_index = args.args.index('session')
                 if session_index!=len(args.args)-1:
-                    raise RuntimeError("session arg needs to be last argument of method. Cat:%s Method:%s \nArgs:%s"%(cat,name,args))
+                    raise j.exceptions.RuntimeError("session arg needs to be last argument of method. Cat:%s Method:%s \nArgs:%s"%(cat,name,args))
                 del args.args[session_index]
                 if args.defaults:
                     session_default_index = session_index - len(args.args) - 1
@@ -232,7 +232,7 @@ class Daemon(object):
         except Exception as e:
             if isinstance(e, BaseException):
                 return returnCodes.ERROR, returnformat, e.eco
-            eco = j.errorconditionhandler.parsePythonErrorObject(e)
+            eco = j.errorconditionhandler.parsePythonExceptionObject(e)
             eco.level = 2
             eco.data = data
             # print eco
@@ -288,7 +288,7 @@ class Daemon(object):
                 ser = j.data.serializer.serializers.get(informat, key=self.key)
                 data = ser.loads(data)
         except Exception as e:
-            eco=j.errorconditionhandler.parsePythonErrorObject(e)
+            eco=j.errorconditionhandler.parsePythonExceptionObject(e)
             eco.tb=""
             return returnCodes.SERIALIZATIONERRORIN, "m", self.errorconditionserializer.dumps(eco.__dict__)
 

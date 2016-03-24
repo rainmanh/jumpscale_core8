@@ -60,7 +60,7 @@ class DaemonClient(object):
 
         # WARNING: Do not put this back this makes it impossible to register a node
         #if j.application.whoAmI.gid==0 or j.application.whoAmI.nid==0:
-        #    raise RuntimeError("gid or nid cannot be 0, see grid.hrd file in main config of jumpscale hrd dir")
+        #    raise j.exceptions.RuntimeError("gid or nid cannot be 0, see grid.hrd file in main config of jumpscale hrd dir")
 
         #WILL NOT LONGER ADD GID & NID
         # roles2=[]
@@ -180,7 +180,7 @@ class DaemonClient(object):
             # print "*** error in client to zdaemon ***"
             ecodict = s.loads(returndata)
             if cmd == "logeco":
-                raise RuntimeError("Could not forward errorcondition object to logserver, error was %s" % ecodict)
+                raise j.exceptions.RuntimeError("Could not forward errorcondition object to logserver, error was %s" % ecodict)
             # for k, v in list(ecodict.items()):
             #     if isinstance(k, bytes):
             #         ecodict.pop(k)
@@ -261,7 +261,7 @@ class Klass(object):
             ns = dict()
             exec(compile(strmethod, '<string>', 'exec'), ns)
             # except Exception as e:
-                # raise RuntimeError("could not exec the client method, error:%s, code was:%s"%(e,strmethod))
+                # raise j.exceptions.RuntimeError("could not exec the client method, error:%s, code was:%s"%(e,strmethod))
             klass = ns['Klass'](self, category)
             setattr(client, key, klass.method)
                 # print strmethod
@@ -284,14 +284,14 @@ class Klass(object):
         #print(("start perftest for %s for ping cmd" % nr))
         for i in range(nr):
             if not self.sendcmd("ping") == "pong":
-                raise RuntimeError("ping did not return pong.")
+                raise j.exceptions.RuntimeError("ping did not return pong.")
         stop = time.time()
         nritems = nr / (stop - start)
         #print(("nr items per sec: %s" % nritems))
         #print(("start perftest for %s for cmd ping" % nr))
         for i in range(nr):
             if not self.sendcmd("pingcmd") == "pong":
-                raise RuntimeError("ping did not return pong.")
+                raise j.exceptions.RuntimeError("ping did not return pong.")
         stop = time.time()
         nritems = nr / (stop - start)
         #print(("nr items per sec: %s" % nritems))
@@ -302,13 +302,13 @@ class Transport(object):
         """
         everwrite this method in implementation to init your connection to server (the transport layer)
         """
-        raise RuntimeError("not implemented")
+        raise j.exceptions.RuntimeError("not implemented")
 
     def close(self):
         """
         close the connection (reset all required)
         """
-        raise RuntimeError("not implemented")
+        raise j.exceptions.RuntimeError("not implemented")
 
     def sendMsg(self, category, cmd, data, sendformat="j", returnformat="j"):
         """
@@ -322,7 +322,7 @@ class Transport(object):
             2= method not found
             2+ any other error
         """
-        raise RuntimeError("not implemented")
+        raise j.exceptions.RuntimeError("not implemented")
         # send message, retry if needed, retrieve message
 
     def __str__(self):

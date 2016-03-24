@@ -196,13 +196,13 @@ class JSFileMgr():
         self.errors=[]
 
         # if src[0] == "/":
-        #     raise RuntimeError("not supported src path")
+        #     raise j.exceptions.RuntimeError("not supported src path")
     
         #DIRS & FILES
         src2 = "%s/%s/%s" % (self.MDPath, "MD",src)
 
         if not j.sal.fs.exists(path=src2):
-            raise RuntimeError("Could not find MD source '%s'"%src2)
+            raise j.exceptions.RuntimeError("Could not find MD source '%s'"%src2)
 
         #restore dirs
         for item in j.sal.fs.listFilesInDir(src2, True,filter=".meta"):
@@ -432,7 +432,7 @@ class JSFileMgr():
         cmd="diff %s_ %s_ -C 0 | grep ^'- ' > %s"%(originalFiles,destFlist,deleted)
         rcode,result=j.sal.process.execute(cmd,False)
         # if not(rcode==1 and result.strip().replace("***ERROR***","")==""):
-        #     raise RuntimeError("Could not diff : cmd:%s error: %s"%(cmd,result))
+        #     raise j.exceptions.RuntimeError("Could not diff : cmd:%s error: %s"%(cmd,result))
 
         #DEAL WITH DELETED FILES
         f=open(deleted, "r")
@@ -536,13 +536,13 @@ class JSFileMgr():
     #     """
 
     #     if not self.storpath:
-    #         raise RuntimeError("Link Path is not Set!")
+    #         raise j.exceptions.RuntimeError("Link Path is not Set!")
 
     #     if src[0] != "/":
     #         src = "%s/%s" % (self.MDPath, src.strip())
 
     #     if not j.sal.fs.exists(path=src):
-    #         raise RuntimeError("Could not find source (on mdstore)")
+    #         raise j.exceptions.RuntimeError("Could not find source (on mdstore)")
 
     #     for item in j.sal.fs.listFilesInDir(src, True):
     #         # Retrieve blob & blob_path in intermediate location

@@ -54,6 +54,7 @@ class Application:
     def init(self):
         if j.logger.enabled:
             j.logger.init()  
+        j.errorconditionhandler.setExceptHook()
 
     def useCurrentDirAsHome(self):
         """
@@ -63,7 +64,7 @@ class Application:
         will also empty redis
         """
         if not j.sal.fs.exists("env.sh"):
-            raise RuntimeError("Could not find env.sh in current directory, please go to root of jumpscale e.g. /optrw/jumpscale8")
+            raise j.exceptions.RuntimeError("Could not find env.sh in current directory, please go to root of jumpscale e.g. /optrw/jumpscale8")
         # C=j.sal.fs.fileGetContents("env.sh")
         # C2=""
         # for line in C.split("\n"):
@@ -145,7 +146,7 @@ class Application:
             self.appname=os.environ["JSPROCNAME"]
 
         if self.state == "RUNNING":
-            raise RuntimeError("Application %s already started" % self.appname)
+            raise j.exceptions.RuntimeError("Application %s already started" % self.appname)
 
         # Register exit handler for sys.exit and for script termination
         atexit.register(self._exithandler)
@@ -351,7 +352,7 @@ class Application:
                 macaddr.append(nicmac.replace(":", ""))
         macaddr.sort()
         if len(macaddr) < 1:
-            raise RuntimeError("Cannot find macaddress of nics in machine.")
+            raise j.exceptions.RuntimeError("Cannot find macaddress of nics in machine.")
 
         if j.application.config.exists(uniquekey):
             j.application.config.set(uniquekey, macaddr[0])

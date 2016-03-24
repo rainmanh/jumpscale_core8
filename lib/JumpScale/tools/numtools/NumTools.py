@@ -153,7 +153,7 @@ class NumTools:
         e.g.: 0.1mEUR or 0.1m EUR or 100k EUR or 100000 EUR        
         """
         if not j.data.types.string(value):
-            raise RuntimeError("value needs to be string in text2val, here: %s" % value)
+            raise j.exceptions.RuntimeError("value needs to be string in text2val, here: %s" % value)
         if value.lower().find("eur") != -1:
             value = value.replace("eur", "").strip()
         self._initCurrencies()

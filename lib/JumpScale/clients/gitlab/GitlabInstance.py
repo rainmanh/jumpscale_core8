@@ -292,7 +292,7 @@ class GitlabInstance():
 
         space = self.getProject(space)
         if not space:
-            raise RuntimeError("Project %s not found" % space)
+            raise j.exceptions.RuntimeError("Project %s not found" % space)
 
         rights = space.find_member(username=username)
         if rights:

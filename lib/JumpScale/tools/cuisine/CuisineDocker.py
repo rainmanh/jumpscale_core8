@@ -171,7 +171,7 @@ class CuisineDocker():
         start arch which is using systemd  #@todo (*2*) there is an issue with tty, cannot install anything (see in arch builder)
         """
         if not self.cuisine.core.isArch:
-            raise RuntimeError("not supported")
+            raise j.exceptions.RuntimeError("not supported")
 
         C = """
 

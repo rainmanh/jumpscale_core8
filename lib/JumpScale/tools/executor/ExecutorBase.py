@@ -45,7 +45,7 @@ class ExecutorBase():
     def docheckok(self,cmd,out):
 
         if out.find("**OK**")==-1:
-            raise RuntimeError("Error in:\n%s\n***\n%s"%(cmd,out))
+            raise j.exceptions.RuntimeError("Error in:\n%s\n***\n%s"%(cmd,out))
 
     def _transformCmds(self, cmds, die=True,checkok=None):
         # print ("TRANSF:%s"%cmds)

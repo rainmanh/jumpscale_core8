@@ -6,7 +6,7 @@ from JumpScale.tools import cmdutils
 j.application.start("jstest")
 
 if j.application.sandbox:
-    raise RuntimeError("Cannot use jscode in sandboxed mode, is not supported, install in development mode.")
+    raise j.exceptions.RuntimeError("Cannot use jscode in sandboxed mode, is not supported, install in development mode.")
 
 parser = cmdutils.ArgumentParser()
 parser.add_argument("action", choices=['commit','push','update','status'], help='Command to perform')
@@ -35,7 +35,7 @@ if opts.accounts==None and opts.repos==None:
 
 
 if opts.branch!=None and opts.action in ['status']: 
-    raise RuntimeError("Cannot specify branch when asking status")
+    raise j.exceptions.RuntimeError("Cannot specify branch when asking status")
 
 def getRepos():
     result=[]
@@ -67,10 +67,10 @@ def getRepos():
 
                     repodir="%s/%s__%s"%(accountdir,branch,reponame)
                 else:
-                    raise RuntimeError("branch not specified in reponame.")
+                    raise j.exceptions.RuntimeError("branch not specified in reponame.")
 
                 if not j.sal.fs.exists(path=repodir):
-                    raise RuntimeError("Could not find mercurial repo on %s"%repodir)
+                    raise j.exceptions.RuntimeError("Could not find mercurial repo on %s"%repodir)
 
                 bitbucket = j.clients.bitbucket.getBitbucketRepoClient(account, reponame)
                 

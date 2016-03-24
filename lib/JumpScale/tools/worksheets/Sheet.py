@@ -30,9 +30,9 @@ class Row(j.tools.code.classGetBase()):
         self.aggregateAction = aggregate
         self.nrfloat = nrfloat
         if aggregate not in ["T", "MAX", "MIN", "LAST", "FIRST", "AVG"]:
-            raise RuntimeError("Cannot find action:%s for agreggate" % self.aggregateAction)
+            raise j.exceptions.RuntimeError("Cannot find action:%s for agreggate" % self.aggregateAction)
         if ttype not in ["int", "perc", "float", "empty", "str", "unknown"]:
-            raise RuntimeError("only support format: int,perc,float,empty,str,unknown")
+            raise j.exceptions.RuntimeError("only support format: int,perc,float,empty,str,unknown")
         self.nrcols = nrcols
 
     def setDefaultValue(self, defval=None, stop=None):
@@ -85,7 +85,7 @@ class Row(j.tools.code.classGetBase()):
             for m in months:
                 val = self.cells[m]
                 if val == None:
-                    raise RuntimeError("Cannot aggregrate row %s from group %s,\n%s" % (self.name, self.groupname, self.cells))
+                    raise j.exceptions.RuntimeError("Cannot aggregrate row %s from group %s,\n%s" % (self.name, self.groupname, self.cells))
                 if self.aggregateAction == "T" or self.aggregateAction == "AVG":
                     result += val
                 if self.aggregateAction == "MIN":
@@ -201,10 +201,10 @@ class Row(j.tools.code.classGetBase()):
     def _getVariationPositive(self, change, variation):
         change = float(change)
         if change < 0:
-            raise RuntimeError("change needs to be positive")
+            raise j.exceptions.RuntimeError("change needs to be positive")
         variation = float(variation)
         if variation < 0 or variation > 1:
-            raise RuntimeError("Variation cannot be more than 1 and not less than 0.")
+            raise j.exceptions.RuntimeError("Variation cannot be more than 1 and not less than 0.")
         changeMin = int(100.0 * (change - variation * change))
         changeMax = int(100.0 * (change + variation * change))
         gd = float(j.data.idgenerator.generateRandomInt(changeMin, changeMax) / 100.0)
@@ -219,11 +219,11 @@ class Row(j.tools.code.classGetBase()):
             return start, None
         y = self.cells[start]  # start height
         if y == None:
-            raise RuntimeError("start position y needs to != None")
+            raise j.exceptions.RuntimeError("start position y needs to != None")
         y = float(y)
         minvalue = y - godown
         if minvalue < 0:
-            raise RuntimeError("Minvalue in go down can not be < 0")
+            raise j.exceptions.RuntimeError("Minvalue in go down can not be < 0")
         godown = float(godown) / float(nrSteps)
         maxvalue = y - 1
         while True:
@@ -252,11 +252,11 @@ class Row(j.tools.code.classGetBase()):
             return start, None
         y = self.cells[start]  # start height
         if y == None:
-            raise RuntimeError("start position y needs to != None")
+            raise j.exceptions.RuntimeError("start position y needs to != None")
         y = float(y)
         minvalue = y
         if minvalue < 0:
-            raise RuntimeError("Minvalue in go up can not be < 0")
+            raise j.exceptions.RuntimeError("Minvalue in go up can not be < 0")
         maxvalue = y + goup
         goup = float(goup) / float(nrSteps)
         while True:
@@ -319,7 +319,7 @@ class Row(j.tools.code.classGetBase()):
             self._cumul += nr - nr2
             return nr2
         else:
-            raise RuntimeError("error in normalizing, should not get here")
+            raise j.exceptions.RuntimeError("error in normalizing, should not get here")
         return nr
 
     def applyFunction(self, ffunction, args={}):
@@ -358,7 +358,7 @@ class Row(j.tools.code.classGetBase()):
                     maxval = 0.0
                     for item in splitted:
                         if len(item.split(":")) != 2:
-                            raise RuntimeError("text2row input not properly formatted: %s, subpart: %s" % (data, item))
+                            raise j.exceptions.RuntimeError("text2row input not properly formatted: %s, subpart: %s" % (data, item))
                         pos, value = item.split(":")
                         pos = int(pos) + (12 * year)
                         if start == None and interp:
@@ -720,7 +720,7 @@ class Sheet(j.tools.code.classGetBase()):
 
     def getRow(self, rowName):
         if rowName not in self.rows:
-            raise RuntimeError("Cannot find row with name %s" % rowName)
+            raise j.exceptions.RuntimeError("Cannot find row with name %s" % rowName)
         return self.rows[rowName]
 
     def getCell(self, rowName, month):

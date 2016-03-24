@@ -135,7 +135,7 @@ class Node():
         scriptRun=self.getScriptRun()
         scriptRun.state="ERROR"
         if e!=None:
-            msg="Stack:\n%s\nError:\n%s\n"%(j.errorconditionhandler.parsePythonErrorObject(e),e)
+            msg="Stack:\n%s\nError:\n%s\n"%(j.errorconditionhandler.parsePythonExceptionObject(e),e)
             scriptRun.state="ERROR"
             scriptRun.error+=msg
 
@@ -146,7 +146,7 @@ class Node():
         self.lastcheck=0
         j.admin.setNode(self)
         j.admin.setNode(self)
-        raise RuntimeError("**ERROR**")
+        raise j.exceptions.RuntimeError("**ERROR**")
 
     def log(self,action,msg):
         out=""

@@ -41,7 +41,7 @@ class CuisinePackage():
                     package = " ".join(package)
                 return self._apt_get(' upgrade ' + package)
         else:
-            raise RuntimeError("could not install:%s, platform not supported"%package)
+            raise j.exceptions.RuntimeError("could not install:%s, platform not supported"%package)
 
     @actionrun(action=True)
     def mdupdate(self):
@@ -73,7 +73,7 @@ class CuisinePackage():
         elif self.cuisine.core.isMac:
             self.cuisine.core.run("brew upgrade")
         else:
-            raise RuntimeError("could not upgrade, platform not supported")
+            raise j.exceptions.RuntimeError("could not upgrade, platform not supported")
 
     @actionrun(action=True)
     def install(self,package):
@@ -101,7 +101,7 @@ class CuisinePackage():
             cmd="brew install %s "%package
 
         else:
-            raise RuntimeError("could not install:%s, platform not supported"%package)
+            raise j.exceptions.RuntimeError("could not install:%s, platform not supported"%package)
 
         mdupdate=False
         while True:
@@ -109,7 +109,7 @@ class CuisinePackage():
 
             if rc>0:
                 if mdupdate==True:
-                    raise RuntimeError("Could not install:'%s' \n%s"%(package,out))
+                    raise j.exceptions.RuntimeError("Could not install:'%s' \n%s"%(package,out))
 
 
                 if out.find("not found")!=-1 or out.find("failed to retrieve some files")!=-1:
@@ -117,7 +117,7 @@ class CuisinePackage():
                     mdupdate=True
                     continue
 
-                raise RuntimeError("Could not install:%s %s"%(package,out))
+                raise j.exceptions.RuntimeError("Could not install:%s %s"%(package,out))
 
             return out
 
@@ -148,7 +148,7 @@ class CuisinePackage():
         if self.cuisine.core.isArch or self.cuisine.core.isUbuntu or self.cuisine.core.isMac:
             self.cuisine.processmanager.start(package)    
         else:
-            raise RuntimeError("could not install/ensure:%s, platform not supported" %package)           
+            raise j.exceptions.RuntimeError("could not install/ensure:%s, platform not supported" %package)           
 
     @actionrun(action=True)
     def ensure(self,package, update=False):
@@ -178,9 +178,9 @@ class CuisinePackage():
         elif self.cuisine.core.isArch:
             self.cuisine.core.run("pacman -S %s"%package)
         else:
-            raise RuntimeError("could not install/ensure:%s, platform not supported"%package)            
+            raise j.exceptions.RuntimeError("could not install/ensure:%s, platform not supported"%package)            
 
-        raise RuntimeError("not supported platform")
+        raise j.exceptions.RuntimeError("not supported platform")
 
     @actionrun(action=True)
     def clean(self,package=None,agressive=False):
@@ -204,7 +204,7 @@ class CuisinePackage():
         elif self.cuisine.core.isMac:
             pass
         else:
-            raise RuntimeError("could not package clean:%s, platform not supported"%package)                       
+            raise j.exceptions.RuntimeError("could not package clean:%s, platform not supported"%package)                       
 
     @actionrun(action=True)
     def remove(self,package, autoclean=False):

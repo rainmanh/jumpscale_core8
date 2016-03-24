@@ -23,7 +23,7 @@ class GOLang:
                 if j.sal.fs.exists(attempt):
                     os.environ["GOPATH"]=attempt
                 else:
-                    raise RuntimeError("Could not find gopath")
+                    raise j.exceptions.RuntimeError("Could not find gopath")
                 self._gopath=os.environ["GOPATH"]
                 self.init()
         return self._gopath
@@ -32,14 +32,14 @@ class GOLang:
     def binpath(self):
         _binpath=j.sal.fs.joinPaths(self.gopath,"bin")
         if not j.sal.fs.exists(_binpath):
-            raise RuntimeError("could not find bindir in gopath")
+            raise j.exceptions.RuntimeError("could not find bindir in gopath")
             
         return _binpath
 
     def check(self):
         rc,out=j.sal.process.execute("which go",outputToStdout=False, outputStderr=False,die=False)
         if rc>0:
-            raise RuntimeError("Could not find golang, please install")
+            raise j.exceptions.RuntimeError("Could not find golang, please install")
         self.gopath
 
     def build(self, url):

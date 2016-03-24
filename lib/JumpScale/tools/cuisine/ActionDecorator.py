@@ -54,7 +54,7 @@ class ActionDecorator(object):
                         if kwargs["die"]==False:
                             return action0
                     msg="**ERROR ACTION**:\n%s"%action0
-                    # raise RuntimeError()
+                    # raise j.exceptions.RuntimeError()
                     print (msg)
                     sys.exit(1)
                 return action0.result

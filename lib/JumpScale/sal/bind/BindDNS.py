@@ -121,7 +121,7 @@ class BindDNS(DNS,SALObject):
         map = self.map
         record = map.get(host)
         if not record:
-            raise RuntimeError("Invalid host name")
+            raise j.exceptions.RuntimeError("Invalid host name")
 
         for r in record:
             file = r['file']
@@ -139,7 +139,7 @@ class BindDNS(DNS,SALObject):
         host = "%s." % host
         records  = [x for x in self.zones if x.domain == domain]
         if not records:
-            raise RuntimeError("Invalid domain")
+            raise j.exceptions.RuntimeError("Invalid domain")
         
         record = records[0]
         file = record.file
@@ -173,7 +173,7 @@ class BindDNS(DNS,SALObject):
         map = self.map
         record = map.get(host)
         if not record:
-            raise RuntimeError("Invalid host name")
+            raise j.exceptions.RuntimeError("Invalid host name")
         
         for r in record:
             file = r['file']

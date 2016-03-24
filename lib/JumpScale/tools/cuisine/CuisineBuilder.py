@@ -45,7 +45,7 @@ class CuisineBuilder(object):
         self.weave(start=start)
         if sandbox:
             if not stor_addr:
-                raise RuntimeError("Store address should be specified if sandboxing enable.")
+                raise j.exceptions.RuntimeError("Store address should be specified if sandboxing enable.")
             self.sandbox(stor_addr)
 
     def sandbox(self, stor_addr, python=True):
@@ -120,7 +120,7 @@ class CuisineBuilder(object):
         if len(error_files) == 0:
             print("all uploaded ok")
         else:
-            raise RuntimeError('some files didnt upload properly. %s' % ("\n".join(error_files)))
+            raise j.exceptions.RuntimeError('some files didnt upload properly. %s' % ("\n".join(error_files)))
 
         metadataPath = j.sal.fs.joinPaths(output_dir, "md", "%s.flist" % namespace)
         print('uploading %s' % metadataPath)
@@ -173,7 +173,7 @@ class CuisineBuilder(object):
         """
         config format see https://caddyserver.com/docs/caddyfile
         """
-        raise RuntimeError("needs to be implemented")
+        raise j.exceptions.RuntimeError("needs to be implemented")
         pass
 
     @actionrun(action=True)
@@ -421,11 +421,11 @@ class CuisineBuilder(object):
             self.cuisine.fw.allowIncoming(80)
 
             if self.cuisine.process.tcpport_check(80,"") or self.cuisine.process.tcpport_check(443,""):
-                raise RuntimeError("port 80 or 443 are occupied, cannot install caddy")
+                raise j.exceptions.RuntimeError("port 80 or 443 are occupied, cannot install caddy")
 
         else:
             if self.cuisine.process.tcpport_check(80,""):
-                raise RuntimeError("port 80 is occupied, cannot install caddy")
+                raise j.exceptions.RuntimeError("port 80 is occupied, cannot install caddy")
 
             PORTS = ":80"
             self.cuisine.fw.allowIncoming(80)
@@ -459,7 +459,7 @@ class CuisineBuilder(object):
 
             self.cuisine.fw.allowIncoming(port)
             if self.cuisine.process.tcpport_check(port,""):
-                raise RuntimeError("port %d is occupied, cannot start stor" % port)
+                raise j.exceptions.RuntimeError("port %d is occupied, cannot start stor" % port)
 
         self.cuisine.core.dir_ensure("$cfgDir/stor/", recursive=True)
         self.cuisine.core.file_copy("$tmplsDir/cfg/stor/config.toml", "$cfgDir/stor/")
@@ -562,7 +562,7 @@ class CuisineBuilder(object):
                 print("restablishing connection to syncthing")
 
         if syn_id is None:
-            raise RuntimeError('Syncthing is not responding. Exiting.')
+            raise j.exceptions.RuntimeError('Syncthing is not responding. Exiting.')
 
         jumpscripts_id = "jumpscripts-%s" % hashlib.md5(syn_id.encode()).hexdigest()
         synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
@@ -732,7 +732,7 @@ class CuisineBuilder(object):
             elif self.cuisine.core.isMac: #@todo better platform mgmt
                 url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
             else:
-                raise RuntimeError("unsupported platform")
+                raise j.exceptions.RuntimeError("unsupported platform")
                 return
 
             if url:

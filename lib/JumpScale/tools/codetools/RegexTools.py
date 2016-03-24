@@ -72,7 +72,7 @@ class RegexTools:
             return result
         else:
             if dieIfNotFound:
-                raise RuntimeError("Could not find %s in htmldoc %s" % (tofind,path))
+                raise j.exceptions.RuntimeError("Could not find %s in htmldoc %s" % (tofind,path))
             else:
                 return ""
 
@@ -93,7 +93,7 @@ class RegexTools:
         search if there is at least 1 match
         """
         if pattern=="" or text=="":
-            raise RuntimeError("Cannot do .codetools.regex.match when pattern or text parameter is empty")     
+            raise j.exceptions.RuntimeError("Cannot do .codetools.regex.match when pattern or text parameter is empty")     
         #j.logger.log("Regextools: pattern:%s in text:%s" % (pattern,text),5)        
         #print "Regextools: pattern:%s in text:%s" % (pattern,text)
         pattern=self._patternFix(pattern)
@@ -109,11 +109,11 @@ class RegexTools:
         if patterns=[] then will return False
         """
         if patterns=="":
-            raise RuntimeError("Cannot do .codetools.regex.matchMultiple when pattern is empty")        
+            raise j.exceptions.RuntimeError("Cannot do .codetools.regex.matchMultiple when pattern is empty")        
         if text=="":
             return False
         if type(patterns).__name__!='list' :
-            raise RuntimeError("patterns has to be of type list []")
+            raise j.exceptions.RuntimeError("patterns has to be of type list []")
         if patterns==[]:
             return False
             
@@ -140,9 +140,9 @@ class RegexTools:
         @param text: Text where you want to search and replace
         """
         if not regexFind or not regexFindsubsetToReplace or not text:
-            raise RuntimeError("Cannot do .codetools.regex.replace when any of the four variables is empty.")
+            raise j.exceptions.RuntimeError("Cannot do .codetools.regex.replace when any of the four variables is empty.")
         if regexFind.find(regexFindsubsetToReplace) == -1:
-            raise RuntimeError('regexFindsubsetToReplace must be part or all of regexFind "ex: regexFind="Some example text", regexFindsubsetToReplace="example"')
+            raise j.exceptions.RuntimeError('regexFindsubsetToReplace must be part or all of regexFind "ex: regexFind="Some example text", regexFindsubsetToReplace="example"')
         matches = self.findAll(regexFind,text)
         if matches:
             finalReplaceWith = re.sub(regexFindsubsetToReplace, replaceWith, matches[0])
@@ -157,7 +157,7 @@ class RegexTools:
         @param text: Text to search in
         """
         if not pattern or not text:
-            raise RuntimeError("Cannot do .codetools.regex.findOne when pattern or text parameter is empty")               
+            raise j.exceptions.RuntimeError("Cannot do .codetools.regex.findOne when pattern or text parameter is empty")               
         pattern=self._patternFix(pattern)
         result= re.finditer(pattern,text, flags)
         finalResult = list()
@@ -165,7 +165,7 @@ class RegexTools:
             finalResult.append(item.group())
 
         if len(finalResult)>1:
-            raise RuntimeError("found more than 1 result of regex %s in text %s" % (pattern,text))
+            raise j.exceptions.RuntimeError("found more than 1 result of regex %s in text %s" % (pattern,text))
         if len(finalResult)==1:
             return finalResult[0]
         return ""
@@ -178,7 +178,7 @@ class RegexTools:
         @param text: Text to search in
         """
         if pattern=="" or text=="":
-            raise RuntimeError("Cannot do .codetools.regex.findAll when pattern or text parameter is empty")        
+            raise j.exceptions.RuntimeError("Cannot do .codetools.regex.findAll when pattern or text parameter is empty")        
         pattern=self._patternFix(pattern)
         results = re.finditer(pattern,text, flags)
         matches = list()
@@ -192,7 +192,7 @@ class RegexTools:
         return RegexMatches  (is array of RegexMatch)
         """
         if pattern=="" or text=="":
-            raise RuntimeError("Cannot do j.tools.code.regex.getRegexMatches when pattern or text parameter is empty")
+            raise j.exceptions.RuntimeError("Cannot do j.tools.code.regex.getRegexMatches when pattern or text parameter is empty")
         pattern=self._patternFix(pattern)
         rm=RegexMatches()
         for match in re.finditer(pattern, text, flags):
@@ -204,7 +204,7 @@ class RegexTools:
             witch would improve the performance of the search function.
         """
         if pattern=="" or text=="":
-            raise RuntimeError("Cannot do j.tools.code.regex.getRegexMatches when pattern or text parameter is empty")
+            raise j.exceptions.RuntimeError("Cannot do j.tools.code.regex.getRegexMatches when pattern or text parameter is empty")
         pattern=self._patternFix(pattern)
         
         for match in re.finditer(pattern, text, flags):
@@ -228,7 +228,7 @@ class RegexTools:
         @return RegexMatch object, or None if didn't match any.
         """
         if pattern == "" or text == "":
-            raise RuntimeError("Cannot do j.tools.code.regex.getRegexMatches when pattern or text parameter is empty")
+            raise j.exceptions.RuntimeError("Cannot do j.tools.code.regex.getRegexMatches when pattern or text parameter is empty")
         pattern = self._patternFix(pattern)
         match = re.match(pattern, text, flags)
         if match:
@@ -246,7 +246,7 @@ class RegexTools:
         remove lines based on pattern  
         """
         if pattern=="" or text=="":
-            raise RuntimeError("Cannot do j.tools.code.regex.removeLines when pattern or text parameter is empty")
+            raise j.exceptions.RuntimeError("Cannot do j.tools.code.regex.removeLines when pattern or text parameter is empty")
         pattern=self._patternFix(pattern)
         return self.processLines(text,excludes=[pattern])
 
@@ -345,7 +345,7 @@ class RegexTools:
         #check types of input
         if type(blockStartPatterns).__name__!='list' or type(blockStartPatternsNegative).__name__!='list' or type(blockStopPatterns).__name__!='list' \
             or type(blockStopPatternsNegative).__name__!='list' or type(linesIncludePatterns).__name__!='list' or type(linesExcludePatterns).__name__!='list' :
-            raise RuntimeError("Blockstartpatterns,blockStartPatternsNegative,blockStopPatterns,blockStopPatternsNegative,linesIncludePatterns,linesExcludePatterns has to be of type list")                                
+            raise j.exceptions.RuntimeError("Blockstartpatterns,blockStartPatternsNegative,blockStopPatterns,blockStopPatternsNegative,linesIncludePatterns,linesExcludePatterns has to be of type list")                                
         
         state="scan"
         lines=text.split("\n")

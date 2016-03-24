@@ -10,10 +10,10 @@ class CuisineNet():
         self.cuisine=cuisine
 
     def netconfig(self,interface,ipaddr,cidr=24,gateway=None,dns="8.8.8.8",masquerading=False):
-        raise RuntimeError("please implement using systemd") #@todo (*2*)
+        raise j.exceptions.RuntimeError("please implement using systemd") #@todo (*2*)
 
     def netconfig(self,interface):
-        raise RuntimeError("please implement using systemd") #@todo (*2*)
+        raise j.exceptions.RuntimeError("please implement using systemd") #@todo (*2*)
 
     @property
     def nics(self):
@@ -39,7 +39,7 @@ class CuisineNet():
 
     @defaultgw.setter
     def defaultgw(self,val):
-        raise RuntimeError("not implemented")
+        raise j.exceptions.RuntimeError("not implemented")
 
 
     def findnodes(self,range=None,ips=[]):
@@ -129,7 +129,7 @@ class CuisineNet():
             res.append(nic)
         
         if device!=None:
-            raise RuntimeError("could not find device")
+            raise j.exceptions.RuntimeError("could not find device")
         return res            
 
     def getNetObject(self,device):

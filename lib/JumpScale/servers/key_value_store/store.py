@@ -203,7 +203,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
         lockfree=self._lockWait(locktype, timeoutwait)
         if not lockfree:
             if force==False:
-                raise RuntimeError("Cannot lock %s %s"%(locktype, info))
+                raise j.exceptions.RuntimeError("Cannot lock %s %s"%(locktype, info))
         value = [self.id, j.data.time.getTimeEpoch() + timeout, info]
         encodedValue = j.data.serializer.json.dumps(value)
         self.settest(category, locktype, encodedValue)
@@ -258,7 +258,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
         lockfree=self._lockWait(locktype, timeoutwait)
         if not lockfree:
             if force==False:
-                raise RuntimeError("Cannot unlock %s" % locktype)
+                raise j.exceptions.RuntimeError("Cannot unlock %s" % locktype)
         self.delete("lock",locktype)
 
     def incrementReset(self, incrementtype, newint=0):
@@ -358,7 +358,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
         else:
             if startid!=0:
                 if not self.exists(category,startid):
-                    raise RuntimeError("Cannot find %s:%s in db, cannot subscribe, select valid startid" % (category,startid))
+                    raise j.exceptions.RuntimeError("Cannot find %s:%s in db, cannot subscribe, select valid startid" % (category,startid))
 
                 def modfunction(data,subscriberid,db,startid):
                     data[subscriberid]=[db.now(),startid]
@@ -374,10 +374,10 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
            True,the data when a next
         """
         if not self.exists("subscribers",category):
-            raise RuntimeError("cannot find subscription")
+            raise j.exceptions.RuntimeError("cannot find subscription")
         data=self.get("subscribers",category)
         if subscriberid not in data:
-            raise RuntimeError("cannot find subscriber")
+            raise j.exceptions.RuntimeError("cannot find subscriber")
         lastaccesstime,lastid=data[subscriberid]
         lastid+=1
         if not self.exists(category,startid):

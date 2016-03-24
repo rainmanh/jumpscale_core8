@@ -59,7 +59,7 @@ class Session():
 
 
     def kill(self):
-        raise RuntimeError("kill")
+        raise j.exceptions.RuntimeError("kill")
 
     def __repr__(self):
         return ("session:%s:%s"%(self.id,self.name))
@@ -108,7 +108,7 @@ class Window():
                         if pane2.name!=name:
                             pane2.kill()
                 return pane
-        raise RuntimeError("Could not find pane:%s.%s"%(self.name,name))
+        raise j.exceptions.RuntimeError("Could not find pane:%s.%s"%(self.name,name))
             
         
     def select(self):
@@ -145,7 +145,7 @@ class Pane():
         for pane2 in self.window.mgmt.panes:
             if not self.window.existsPane(id=pane2.get("pane_id")):
                 if panefound!=None:
-                    raise RuntimeError("can only find 1 pane, bug")
+                    raise j.exceptions.RuntimeError("can only find 1 pane, bug")
                 panefound=pane2
         pane=Pane(self.window,panefound)
         pane.name=name

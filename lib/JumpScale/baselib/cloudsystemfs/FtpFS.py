@@ -56,7 +56,7 @@ class FtpFS(object):
             else:
                 self.ftp.login()
         except:
-            raise RuntimeError('Failed to login on ftp server [%s] credentials login: [%s] pass [%s]' % (self.server,self.username,self.password))
+            raise j.exceptions.RuntimeError('Failed to login on ftp server [%s] credentials login: [%s] pass [%s]' % (self.server,self.username,self.password))
         # change to correct directory
         if not dontCD:
             path = self.path.lstrip(os.sep).split(os.sep)
@@ -185,7 +185,7 @@ class FtpFS(object):
         stat=j.sal.fs.statPath(uploadPath)
         if size!=stat.st_size:
             self.ftp.delete(file)
-            raise RuntimeError("Could not upload:%s %s, size different, have now deleted"%(file,uploadPath))
+            raise j.exceptions.RuntimeError("Could not upload:%s %s, size different, have now deleted"%(file,uploadPath))
 
     def handleUploadDir(self,dir,upload_path):
         """

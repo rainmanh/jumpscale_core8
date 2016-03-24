@@ -48,14 +48,14 @@ class ModelFactory(object):
                 # check if this is firmware version 1.0 as this didn't support module versions
                 code, version = self._get_firmware_version()
                 if code:
-                    raise RuntimeError("Can't get the firmware version of the device (%s)" % self._ip)
+                    raise j.exceptions.RuntimeError("Can't get the firmware version of the device (%s)" % self._ip)
 
                 version = str(version)
                 if version.startswith("1.0"):
                     from JumpScale.clients.racktivity.energyswitch.modelfactory import Model_firmware_1_0  # pylint: disable=W0404
                     return getattr(Model_firmware_1_0, class_name)
                 else:
-                    raise RuntimeError("Can't get the module version of %s (%s)" % (module_id, self._ip))
+                    raise j.exceptions.RuntimeError("Can't get the module version of %s (%s)" % (module_id, self._ip))
 
         # get the closest model
         parts = str(module_version).split(".")
@@ -68,7 +68,7 @@ class ModelFactory(object):
             model = __import__(model_class, globals(), locals(), fromlist=["Model"], level=1)
             return model.Model
         except RuntimeError:
-            raise RuntimeError("Unsupported module version '%s' for %s (%s)" % (version, module_id, self._ip))
+            raise j.exceptions.RuntimeError("Unsupported module version '%s' for %s (%s)" % (version, module_id, self._ip))
 
     def _get_module_version(self, module_id):
         guid, portnumber, length, valdef = self.MODULE_INFO

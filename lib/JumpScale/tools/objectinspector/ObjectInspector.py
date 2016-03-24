@@ -221,7 +221,7 @@ class ObjectInspector():
 
     def _processMethod(self, name,method,path,classobj):
         if classobj==None:
-            raise RuntimeError("cannot be None")
+            raise j.exceptions.RuntimeError("cannot be None")
 
         classpath=".".join(path.split(".")[:-1])
         

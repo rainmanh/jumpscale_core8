@@ -207,7 +207,7 @@ class CuisinePortal(object):
         path = self.cuisine.core.run("js 'print(j.do.getPythonLibSystem(jumpscale=False))'")
         path = j.sal.fs.joinPaths(path, "eve_docs", "config.py")
         if not self.cuisine.core.file_exists(path):
-            raise RuntimeError("Cannot find:%s, to convert to python 3" % path)
+            raise j.exceptions.RuntimeError("Cannot find:%s, to convert to python 3" % path)
         self.cuisine.core.run("2to3-3.5 -f all -w %s" % path)
 
     @actionrun(action=True)

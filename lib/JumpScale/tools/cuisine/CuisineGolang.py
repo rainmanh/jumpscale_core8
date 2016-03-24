@@ -30,7 +30,7 @@ class CuisineGolang():
                 downl = "https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz"
                 self.cuisine.core.file_download(downl,"/usr/local",overwrite=False,retry=3,timeout=0,expand=True)
             else:
-                raise RuntimeError("platform not supported")
+                raise j.exceptions.RuntimeError("platform not supported")
 
 
         optdir = self.cuisine.core.dir_paths["optDir"]

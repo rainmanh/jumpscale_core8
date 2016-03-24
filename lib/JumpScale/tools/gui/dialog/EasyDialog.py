@@ -54,7 +54,7 @@ class EasyDialog():
 
         filepath=self.easyDialog.askFilePath(message, startPath)
         if not j.sal.fs.exists(filepath):
-            raise RuntimeError ("Could not find selected file path %s." % filepath)
+            raise j.exceptions.RuntimeError("Could not find selected file path %s." % filepath)
         return filepath
 
     def askDirPath(self,message, startPath = None):
@@ -68,7 +68,7 @@ class EasyDialog():
 
         filepath=self.easyDialog.askDirPath(message, startPath)
         if not j.sal.fs.exists(filepath):
-            raise RuntimeError ("Could not find selected folder path %s." % filepath)
+            raise j.exceptions.RuntimeError("Could not find selected folder path %s." % filepath)
         return filepath
 
     def askString(self,question, defaultValue = None, validator=None):

@@ -1,7 +1,7 @@
 from JumpScale import j
 import telegram
 from telegram import Updater
-from telegram.dispatcher import run_async
+from telegram.ext.dispatcher import run_async
 import time
 import re
 import sys

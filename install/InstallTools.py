@@ -83,15 +83,15 @@ class InstallTools():
         # self._initSSH_ENV()
 
 
-    # def excepthook(self, ttype, pythonExceptionObject, tb):
+    # def excepthook(self, ttype, exceptionObject, tb):
 
-    #     # if isinstance(pythonExceptionObject, HaltException):
+    #     # if isinstance(exceptionObject, HaltException):
     #     #     sys.exit(1)
 
     #     # print "jumpscale EXCEPTIONHOOK"
     #     # if self.inException:
     #     #     print("ERROR IN EXCEPTION HANDLING ROUTINES, which causes recursive errorhandling behavior.")
-    #     #     print(pythonExceptionObject)
+    #     #     print(exceptionObject)
     #     #     return
 
     #     print ("WE ARE IN EXCEPTHOOL OF INSTALLTOOLS, DEVELOP THIS FURTHER")

@@ -178,7 +178,7 @@ class ErrorConditionHandler():
         if hasattr(exceptionObject,"msgpub"):
             msgpub=exceptionObject.msgpub
         else:
-            message=""
+            msgpub=""
 
         if hasattr(exceptionObject,"source"):
             source=exceptionObject.source

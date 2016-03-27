@@ -113,7 +113,7 @@ class CuisineDocker():
     def enableSSH(self, port=None):
         # if port is not None:
             # self.cuisine.fw.allowIncoming(port, 'tcp')
-        if self.cuisine.executor.type == 'local':
+        if self.cuisine.core.executor.type == 'local':
             return "%s:%s" % (j.sal.docker.docker_host, port)
         else:
             connstr = "%s:%s" % (self.executor.addr, port)

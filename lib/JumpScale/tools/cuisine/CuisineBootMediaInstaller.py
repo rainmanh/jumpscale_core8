@@ -119,7 +119,7 @@ class CuisineBootMediaInstaller(object):
         name = self._downloadImage("http://releases.ubuntu.com/15.10/ubuntu-15.10-server-amd64.iso")
         path = "$tmpDir/%s" % name
         cmd = 'dd if=%s of=/dev/%s bs=4000' % (path, deviceid)
-        self.cuisine.sudo(cmd)
+        self.cuisine.core.sudo(cmd)
 
     def arch(self, deviceid=None):
         url = "http://archlinuxarm.org/os/ArchLinuxARM-rpi-2-latest.tar.gz"

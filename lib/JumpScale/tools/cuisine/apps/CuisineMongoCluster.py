@@ -46,7 +46,7 @@ class MongoInstance(Startable):
         super().__init__()
         self.cuisine = cuisine
         if not addr:
-            self.addr = cuisine.executor.addr
+            self.addr = cuisine.core.executor.addr
         else:
             self.addr = addr
         self.private_port = private_port
@@ -64,7 +64,7 @@ class MongoInstance(Startable):
     def _install(self):
         super()._install()
         self.cuisine.core.dir_ensure(self.dbdir)
-        return self.cuisine.builder.mongodb(start = False)
+        return self.cuisine.apps.mongodb.build(start = False)
 
     def _gen_service_name(self):
         name = "ourmongos" if self.type_ == "mongos" else "ourmongod"

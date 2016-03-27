@@ -38,11 +38,11 @@ class ProcessManagerFactory:
 
         if pm not in self.pms:
             if pm == "systemd":
-                inst = CuisineSystemd(self.cuisine.executor, self.cuisine)
+                inst = CuisineSystemd(self.cuisine.core.executor, self.cuisine)
             elif pm == "sv":
-                inst = CuisineRunit(self.cuisine.executor, self.cuisine)
+                inst = CuisineRunit(self.cuisine.core.executor, self.cuisine)
             elif pm == "tmux":
-                inst = CuisineTmuxec(self.cuisine.executor, self.cuisine)
+                inst = CuisineTmuxec(self.cuisine.core.executor, self.cuisine)
             self.pms[pm] = inst
 
         return self.pms[pm]

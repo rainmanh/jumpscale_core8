@@ -13,6 +13,7 @@ from CuisineSSH import CuisineSSH
 from CuisineNS import CuisineNS
 from CuisineUser import CuisineUser
 from CuisineGit import CuisineGit
+from apps.CuisineApps import CuisineApps
 from CuisineBuilder import CuisineBuilder
 from CuisineGroup import CuisineGroup
 from CuisineGolang import CuisineGolang
@@ -50,7 +51,7 @@ class JSCuisine:
         self._group=None
         self._user=None
         self._git=None
-        self._builder=None
+        self._apps=None
         self._bash=None
         self._avahi=None
         self._tmux=None
@@ -63,6 +64,7 @@ class JSCuisine:
         self._docker=None
         self._js8sb=None
         self._geodns=None
+        self._builder=None
 
         self.core=CuisineCore(self.executor,self)
 
@@ -120,9 +122,15 @@ class JSCuisine:
         return self._geodns
 
     @property
+    def apps(self):
+        if self._apps==None:
+            self._apps=CuisineApps(self.executor, self)
+        return self._apps
+
+    @property
     def builder(self):
         if self._builder==None:
-            self._builder=CuisineBuilder(self.executor,self)
+            self._builder=CuisineBuilder(self.executor, self)
         return self._builder
 
     @property

@@ -13,7 +13,7 @@ class CuisineNS():
         """
         """
         result={}
-        for line in self.cuisine.hostfile.splitlines():
+        for line in self.cuisine.core.hostfile.splitlines():
             ipaddr_found = re.search(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b',line)
             if ipaddr_found!=None:
                 ipaddr_found=ipaddr_found.group()
@@ -56,7 +56,7 @@ class CuisineNS():
             C+="%-19s %s\n"%(addr,names2)
 
         #@todo need to do ipv6
-        self.cuisine.hostfile=C
+        self.cuisine.core.hostfile=C
 
     def hostfile_set_fromlocal(self):
         """

@@ -1,4 +1,5 @@
 from JumpScale import j
+import sys
 
 descr = """
 gather network statistics

@@ -19,12 +19,18 @@ queue='process'
 log=False
 
 roles = []
-def action():
+def action(redisconnection):
     import psutil
     import os
     hostname =j.sal.nettools.getHostname()
 
-    redis = j.clients.redis.getRedisClient(os.environ.get('REDIS_HOST'), port=os.environ.get('REDIS_PORT'))
+    if not redisconnection or not ':' in redisconnection:
+        print("Please specifiy a redis connection in the form of ipaddr:port")
+        return
+    addr = redisconnection.split(':')[0]
+    port = int(redisconnection.split(':')[1])
+    redis = j.clients.redis.getRedisClient(addr, port)
+
     aggregator = j.tools.aggregator.getClient(redis,  hostname)
     tags = j.data.tags.getTagString(tags={
         'gid': str(j.application.whoAmI.gid),
@@ -84,7 +90,11 @@ def action():
     return results
 
 if __name__ == '__main__':
-    results = action()
-
+  if len(sys.argv) == 2:
+    results=action(sys.argv[1])
     import yaml
     print (yaml.dump(results))
+  else:
+      print("Please specifiy a redis connection in the form of ipaddr:port")
+
+

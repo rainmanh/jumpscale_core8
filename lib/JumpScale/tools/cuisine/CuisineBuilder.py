@@ -15,26 +15,27 @@ class CuisineBuilder(object):
         self.cuisine = cuisine
 
     def all(self, start=False, sandbox=False, stor_addr=None):
-            self.cuisine.installerdevelop.pip()
-            self.cuisine.installerdevelop.python()
+        self.cuisine.installerdevelop.pip()
+        self.cuisine.installerdevelop.python()
+        if not self.cuisine.executor.type == 'local':
             self.cuisine.installerdevelop.jumpscale8()
-            self.cuisine.apps.mongodb.build(start=start)
-            self.cuisine.apps.cuisine.portal.install(start=start)
-            self.cuisine.apps.redis.build(start=start, force=True)
-            self.cuisine.apps.core.build(start=start)
-            self.cuisine.apps.syncthing.build(start=start)
-            self.cuisine.apps.controller.build(start=start)
-            self.cuisine.apps.fs.build(start=start)
-            self.cuisine.apps.stor.build(start=start)
-            self.cuisine.apps.etcd.build(start=start)
-            self.cuisine.apps.caddy.build(start=start)
-            # self.skydns.build(start=start)
-            self.cuisine.apps.influxdb.build(start=start)
-            self.cuisine.apps.weave.build(start=start)
-            if sandbox:
-                if not stor_addr:
-                    raise RuntimeError("Store address should be specified if sandboxing enable.")
-                self.sandbox(stor_addr)
+        self.apps.cuisine.portal.install(start=start)
+        self.apps.redis.build(start=start, force=True)
+        self.apps.core.build(start=start)
+        self.apps.syncthing.build(start=start)
+        self.apps.controller.build(start=start)
+        self.apps.fs.build(start=start)
+        self.apps.stor.build(start=start)
+        self.apps.etcd.build(start=start)
+        self.apps.mongodb.build(start=start)
+        self.apps.caddy.build(start=start)
+        # self.skydns(start=start)
+        self.apps.influxdb.build(start=start)
+        self.apps.weave.build(start=start)
+        if sandbox:
+            if not stor_addr:
+                raise j.exceptions.RuntimeError("Store address should be specified if sandboxing enable.")
+            self.sandbox(stor_addr)
 
     def sandbox(self, stor_addr, python=True):
         """

@@ -199,7 +199,7 @@ class CuisinePackage():
             if agressive:
                 cmd+="c"
             self.cuisine.core.run(cmd)
-            if aggressive:
+            if agressive:
                 self.cuisine.core.run("pacman -Qdttq",showout=False)
         elif self.cuisine.core.isMac:
             pass

@@ -991,7 +991,7 @@ class CuisineCore():
                 if out.find("pip3: command not found")!=-1 and not "pip" in self.done:
 
                     self.done.append("pip")
-                    self.installerdevelop.pip()
+                    self.cuisine.installerdevelop.pip()
                     next=True
 
                 if out.lower().find("fatal error")!=-1 and out.lower().find("python.h")!=-1 \
@@ -1002,7 +1002,7 @@ class CuisineCore():
                     embed()
 
                     self.done.append("pythondevel")
-                    self.installer.pythonDevelop()
+                    self.cuisine.installer.pythonDevelop()
                     next=True
 
                 for package in items2check:

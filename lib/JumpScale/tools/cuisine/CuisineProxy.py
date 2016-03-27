@@ -217,9 +217,9 @@ class CuisineProxy(object):
 
         print ("INSTALL OK")
         print ("to see status: point webbrowser to")
-        print ("http://%s:8123/polipo/status?"%self.cuisine.executor.addr)
-        # print ("http://%s:8123/polipo/status?"%self.cuisine.executor.addr)
-        print ("configure your webproxy client to use %s on tcp port 8123"%self.cuisine.executor.addr)
+        print ("http://%s:8123/polipo/status?"%self.cuisine.core.executor.addr)
+        # print ("http://%s:8123/polipo/status?"%self.cuisine.core.executor.addr)
+        print ("configure your webproxy client to use %s on tcp port 8123"%self.cuisine.core.executor.addr)
 
         self.cuisine.core.run("killall polipo",die=False)
 

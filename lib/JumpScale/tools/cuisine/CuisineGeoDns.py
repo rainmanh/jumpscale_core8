@@ -7,7 +7,7 @@ class actionrun(ActionDecorator):
 
     def __init__(self, *args, **kwargs):
         ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.golang"
+        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.geodns"
 
 
 class Domain(object):

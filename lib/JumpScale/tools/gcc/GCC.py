@@ -120,17 +120,17 @@ class GCC_Mgmt():
     def _installHostApp(self, node, weave_peer, force=False):
         node.cuisine.installerdevelop.jumpscale8(force=force)
         node.cuisine.installer.docker(force=force)
-        node.cuisine.builder.weave(start=True, peer=weave_peer, force=force)
+        node.cuisine.apps.weave.build(start=True, peer=weave_peer, force=force)
 
     def _installDockerApps(self, node, force=False):
         node.cuisine.installerdevelop.jumpscale8(force=force)
 
         peers = ["http://%s" % node.addr for node in self.docker_nodes]
-        node.cuisine.builder.etcd(start=True, host="http://%s" % node.addr, peers=peers, force=force)
-        node.cuisine.builder.skydns(start=True, force=force)
-        node.cuisine.builder.aydostore(start=True, addr='127.0.0.1:8090', backend="$varDir/aydostor", force=force)
-        # node.cuisine.builder.agentcontroller(start=True, force=force)
-        node.cuisine.builder.caddy(ssl=True, start=True, dns=node.addr, force=force)
+        node.cuisine.apps.etcd.build(start=True, host="http://%s" % node.addr, peers=peers, force=force)
+        node.cuisine.apps.skydns.build(start=True, force=force)
+        node.cuisine.apps.aydostore(start=True, addr='127.0.0.1:8090', backend="$varDir/aydostor", force=force)
+        # node.cuisine.apps.agentcontroller(start=True, force=force)
+        node.cuisine.apps.caddy.build(ssl=True, start=True, dns=node.addr, force=force)
         self._configCaddy(node)
         self._configSkydns(node)
 

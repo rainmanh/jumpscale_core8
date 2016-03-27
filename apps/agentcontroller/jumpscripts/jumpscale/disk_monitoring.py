@@ -63,7 +63,7 @@ def action(redisconnection):
 
         if path in counters.keys():
             counter=counters[path]
-            read_count, write_count, read_bytes, write_bytes, read_time, write_time=counter
+            read_count, write_count, read_bytes, write_bytes, read_time, write_time, read_merged_count, write_merged_count, busy_time=counter
             results['time.read'] = read_time
             results['time.write'] = write_time
             results['count.read'] = read_count

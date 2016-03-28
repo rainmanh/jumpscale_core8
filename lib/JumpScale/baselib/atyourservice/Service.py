@@ -11,8 +11,8 @@ from Recurring import Recurring
 from ServiceState import ServiceState
 import traceback
 
-# def log(msg, level=2):
-#     j.logger.log(msg, level=level, category='AYS')
+CATEGORY = 'atyourservice.service'
+logger = j.logger.get(CATEGORY)
 
 def loadmodule(name, path):
     parentname = ".".join(name.split(".")[:-1])
@@ -176,7 +176,7 @@ class Service:
                 self._parent=None
         return self._parent
 
-    
+
 
     @property
     def hrd(self):
@@ -260,7 +260,7 @@ class Service:
     #     from IPython import embed
     #     print ("DEBUG NOW runaction")
     #     embed()
-        
+
     #     return action
 
     # def runActionNode(self,name,*args,**kwargs):
@@ -426,7 +426,7 @@ class Service:
             j.sal.fs.createDir(self.path)
 
             #run the args manipulation action as an action
-            self.args=self.actions.input(self.name,self.role,self.instance,self.args)            
+            self.args=self.actions.input(self.name,self.role,self.instance,self.args)
 
             hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
 
@@ -857,5 +857,3 @@ class Service:
         for consumer in self._getConsumers(include_disabled=True):
             consumer.enable()
             consumer.start()
-
- 

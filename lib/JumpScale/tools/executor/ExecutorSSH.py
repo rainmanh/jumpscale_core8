@@ -8,6 +8,7 @@ class ExecutorSSH(ExecutorBase):
             passwd=None,debug=False,checkok=True,allow_agent=True, \
             look_for_keys=True,pushkey=None,pubkey=""):
         ExecutorBase.__init__(self, dest_prefixes=dest_prefixes,debug=debug,checkok=checkok)
+        self.logger = j.logger.get("j.tools.executor.ssh")
         self.id = '%s:%s:%s' % (addr, port, login)
         self.addr = addr
         self._port = int(port)
@@ -85,17 +86,20 @@ class ExecutorSSH(ExecutorBase):
         if env:
             self.env.update(env)
         # print("cmds:%s"%cmds)
+        self.logger.debug("cmd: %s" % cmds)
         cmds2=self._transformCmds(cmds,die,checkok=checkok)
 
 
         if cmds.find("\n") != -1:
             if showout:
-                print("EXECUTESCRIPT} %s:%s:\n%s"%(self.addr,self.port,cmds))
+                # print("EXECUTESCRIPT} %s:%s:\n%s"%(self.addr,self.port,cmds))
+                self.logger.debug("EXECUTESCRIPT} %s:%s:\n%s"%(self.addr,self.port,cmds))
             retcode,out=j.do.executeBashScript(content=cmds2,path=None,die=die,remote=self.addr,sshport=self.port)
         else:
             # online command, we use cuisine
             if showout:
-                print("EXECUTE %s:%s: %s"%(self.addr,self.port,cmds))
+                self.logger.debug("EXECUTE %s:%s: %s"%(self.addr,self.port,cmds))
+                # print("EXECUTE %s:%s: %s"%(self.addr,self.port,cmds))
             # return j.sal.process.execute("ssh -A -p %s root@%s '%s'"%(self.port,self.addr,cmds),die=die)
             retcode,out=self.sshclient.execute(cmds2,die=die,showout=showout, combinestdr=combinestdr)
 

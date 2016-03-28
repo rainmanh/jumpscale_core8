@@ -12,6 +12,7 @@ CHUNKSIZE=8192
 
 # FIXME: HTTP basic authentication support
 class HttpFS(object):
+    self.logger = j.logger.get('j.sal.cloudfs.HTTPFS')
     server = None
     path = None
     filename = None
@@ -24,7 +25,7 @@ class HttpFS(object):
         """
         Initialize connection
         """
-        j.logger.log("HttpFS: connection information: server [%s] path [%s]" % (server,path))
+        self.logger.debug("HttpFS: connection information: server [%s] path [%s]" % (server,path))
         self.filename = j.sal.fs.getBaseName(path)
         self.tempdir=tempdir
 
@@ -38,7 +39,7 @@ class HttpFS(object):
         """
         Initialize connection
         """
-        j.logger.log("HttpFS: connection information: server [%s] path [%s]" % (server,path))
+        self.logger.debug("HttpFS: connection information: server [%s] path [%s]" % (server,path))
         self.filename = j.sal.fs.getBaseName(path)
         self.tempdir=tempdir
 
@@ -96,7 +97,7 @@ class HttpFS(object):
         """
         self._connect()
         j.sal.fs.createDir(self.local_dir)
-        j.logger.log("HttpFS: downloading file to local file [%s]" % self.local_file)
+        self.logger.debug("HttpFS: downloading file to local file [%s]" % self.local_file)
         file = open(self.local_file,'wb')
         rb = self.http_socket.read(CHUNKSIZE)
         while rb:

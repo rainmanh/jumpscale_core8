@@ -1,10 +1,7 @@
 from JumpScale import j
 
-CATEGORY = "ays:bp"
-
-
-def log(msg, level=2):
-    j.logger.log(msg, level=level, category=CATEGORY)
+CATEGORY = "atyourservice.blueprint"
+logger = j.logger.get(CATEGORY)
 
 
 class Blueprint(object):
@@ -66,7 +63,7 @@ class Blueprint(object):
                             r = j.atyourservice.getRecipe(name=aysname)
                     yaml=model['%s_%s' % (aysname, aysinstance)]
                     aysi=r.newInstance(instance=aysinstance, args=item, yaml=yaml)
-                    aysi.init()                    
+                    aysi.init()
 
     def _add2models(self,content,nr):
         #make sure we don't process double

@@ -3,6 +3,7 @@ from JumpScale import j
 class Ubuntu:
     def __init__(self):
         self.__jslocation__ = "j.sal.ubuntu"
+        self.logger = j.logger.get("j.sal.ubuntu")
         self._aptupdated = False
         self._checked = False
         self._cache=None
@@ -146,7 +147,7 @@ class Ubuntu:
             return out.split("\n")
 
     def pkg_remove(self, packagename):
-        j.logger.log("ubuntu remove package:%s"%packagename,category="ubuntu.remove")
+        self.logger.debug("ubuntu remove package:%s"%packagename)
         self.check()
         if self._cache==None:
             self.initApt()
@@ -183,7 +184,7 @@ stop on runlevel [016]
         j.tools.path.get("/etc/init/%s.conf"%servicename).remove_p()
 
     def service_start(self, servicename):
-        j.logger.log("start service on ubuntu for:%s"%servicename,category="ubuntu.start")  #@todo P1 add log statements for all other methods of this class
+        self.log.debug("start service on ubuntu for:%s"%servicename)
         if not self.statusService(servicename):
             cmd="sudo start %s" % servicename
             # print cmd
@@ -263,7 +264,7 @@ stop on runlevel [016]
 
 
     def apt_find1_installed(self,packagename):
-        j.logger.log("find 1 package in ubuntu",6,category="ubuntu.find")
+        self.logger.debug("find 1 package in ubuntu")
         res=self.findPackagesInstalled(packagename)
         if len(res)==1:
             return res[0]

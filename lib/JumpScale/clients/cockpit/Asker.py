@@ -1,5 +1,7 @@
 from JumpScale import j
+import telegram
 from telegram.ext.dispatcher import run_async
+import threading
 import queue
 
 class ConsoleAsker(object):
@@ -173,13 +175,20 @@ class TelegramAsker(object):
     # TODO implement retry on ask* Methods
 
     def __init__(self, updater):
+        """
+        Updater is the telegram.ext.update object from telegram library
+        """
         super(TelegramAsker, self).__init__()
         self.chat_id = None
+        self.client_user = None
         self.updater = updater
         self.bot = self.updater.bot
-        self.last_question_id = None
+        self.question_lock = threading.Lock()
         self.queue = queue.Queue(maxsize=1)
-
+        self.question_tmpl = """
+**QUESTION :**
+{message}
+"""
         self._register_handlers()
 
     def _register_handlers(self):
@@ -190,20 +199,19 @@ class TelegramAsker(object):
 
     @run_async
     def handlerChoice(self, bot, update, **kwargs):
-        print('enter handler choise')
-        if not self.last_question_id:
-            print("[-] No question has been asked, we should not end up here")
-            return
-        if update.message.message_id != self.last_question_id+1:
-            print("[-] Message id (%d) is not the response to the last question od (%d)" % (update.message_id, self.last_question_id))
-            return
+        self.question_lock.acquire()
         self.queue.put(update.message.text)
+        self.question_lock.release()
 
     def askYesNo(self, message):
         custom_keyboar = [['yes', 'no']]
         reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboar, resize_keyboard=True, one_time_keyboard=True)
+
+        self.question_lock.acquire()
+        message = self.question_tmpl.format(message=message)
         message = self.bot.sendMessage(chat_id=self.chat_id, text=message, parse_mode="Markdown", reply_markup=reply_markup)
         self.last_question_id = message.message_id
+        self.question_lock.release()
         value = self.queue.get()
         self.last_question_id = None
         return value
@@ -213,46 +221,48 @@ class TelegramAsker(object):
         for i in range(0, len(choices), 2):
             custom_keyboar.append(choices[i:i+2])
         reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboar, resize_keyboard=True, one_time_keyboard=True)
+        message = self.question_tmpl.format(message=message)
         message = self.bot.sendMessage(chat_id=self.chat_id, text=message, parse_mode="Markdown", reply_markup=reply_markup)
         self.last_question_id = message.message_id
         value = self.queue.get()
         self.last_question_id = None
         return value
 
-    def askString(self, message):
-        message = self.bot.sendMessage(chat_id=self.chat_id, text=message, parse_mode="Markdown")
+    def askString(self, message, default=None):
+        reply_markup = telegram.ForceReply()
+        message = self.question_tmpl.format(message=message)
+        message = self.bot.sendMessage(chat_id=self.chat_id, text=message, parse_mode="Markdown", reply_markup=reply_markup)
         self.last_question_id = message.message_id
         value = self.queue.get()
         self.last_question_id = None
         return value
 
-
     def ask_repo_url(self):
-        repo_url = self.askString("Url of the git repository where to store the ays repo of your cockpit. The repo need to exists")
+        repo_url = self.askString("Pleanse enter the url of the git repository where to store the ays repo of your cockpit. The repo need to exists")
         return repo_url
 
     def ask_ovc_url(self):
         def validate(input):
             return j.sal.nettools.checkUrlReachable(input)
-        ovc_url = self.askString("Url of the G8 where to deploy your cockpit. e.g: 'be-conv-2.demo.greenitglobe.com'")
+        ovc_url = self.askChoice("Pleanse enter the url of the G8 where to deploy your cockpit.", choices=['be-conv-2.demo.greenitglobe.com'])
         return ovc_url
 
     def ask_ovc_login(self):
         def validate(input):
             return True
-        login = self.askString("Login of your account on the G8 where to deploy the cockpit")
+        login = self.askString("Pleanse enter the login of your account on the G8 where to deploy the cockpit")
         return login
 
     def ask_ovc_password(self):
         def validate(input):
             return True
-        passwd = self.askString("Password of your account on the G8 where to deploy cockpit")
+        passwd = self.askString("Pleanse enter the password of your account on the G8 where to deploy cockpit")
         return passwd
 
     def ask_ovc_vdc(self):
         def validate(input):
             return True
-        name = self.askString("Name of the virtual data center where to deploy the G8 Cockpit")
+        name = self.askChoice("Pleanse select the name of the virtual data center where to deploy the G8 Cockpit", choices=['default', 'cockpit'])
         return name
 
     def ask_ovc_account(self, ovc_client=None):
@@ -296,7 +306,7 @@ class TelegramAsker(object):
                         return account.spaces[vdc_name].model['location']
             elif len(ovc_client.locations) > 1:
                 choices = [loc.model['name'] for loc in ovc_client.locations]
-                location = j.tools.console.askChoice('Choose which location to use', choices)
+                location = self.askChoice('Choose which location to use', choices)
                 return location
 
         # if not ovc_client or locations number is 0
@@ -308,7 +318,7 @@ class TelegramAsker(object):
     def ask_dns_login(self):
         def validate(input):
             return True
-        login = self.askString("Login of your account on the DN")
+        login = self.askString("Login of your account on the DNS cluster")
         return login
 
     def ask_dns_password(self):
@@ -320,14 +330,14 @@ class TelegramAsker(object):
     def ask_domain(self):
         def validate(input):
             return True
-        domain = self.askString("Domain to use for your cockpit")
+        domain = self.askChoice("Please choose the domaine you want to use for your cockpit", choices=[self.client_user.username])
         return domain
 
     def ask_ssh_key(self):
         def validate(input):
             key = j.do.getSSHKeyFromAgentPub(input, die=False)
             return (key is not None)
-        key = self.askString("Name of the ssh key to authorize on the G8 Cockpit. key are fetch from ssh-agent.")
+        key = self.askString("Please past the ssh public key you want to authorize in your cockpit")
         return key
 
     def ask_portal_password(self):
@@ -351,21 +361,10 @@ class TelegramAsker(object):
 "@botfather should give you a token, paste it here please :
 """
         token = self.askString(msg)
-        msg = """add command description to your bot.
-type '/setcommands' in @botfather, choose your bot and past these lines :
-start - create your private environment
-project - manage your project (create, list, remove)
-blueprint - manage your blueprints project (list, get, remove)
-ays - perform some atyourservice actions on your project
-help - show you what I can do"""
-        resp = self.askYesNo("is it done ?")
-        while not resp:
-            print("please do it")
-            resp = self.askYesNo("is it done ?")
         return token
 
     def ask_gid(self):
         def validate(input):
             return j.data.types.int.check(input)
-        gid = self.askString("Grid ID to give to the controller. Need to be an integer")
-        return gid
+        gid = self.askChoice("Please select a grid ID to give to the controller.", choices=[1, 10, 100])
+        return int(gid)

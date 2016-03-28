@@ -29,41 +29,42 @@ import OurExceptions
 
 
 class ErrorConditionHandler():
-    
+
     def __init__(self,haltOnError=True,storeErrorConditionsLocal=True):
         self.__jslocation__ = "j.errorconditionhandler"
         self._blacklist = None
         self.lastAction=""
-        self.haltOnError=haltOnError     
+        self.haltOnError=haltOnError
         self.setExceptHook()
         self.lastEco=None
         self.redis=None
         self.escalateToRedis=None
         self.exceptions=OurExceptions
-        j.exceptions=OurExceptions        
+        j.exceptions=OurExceptions
 
 
 
     def _send2Redis(self,eco):
-        if j.logger.enabled and self.redis==None:
-            if j.sal.nettools.tcpPortConnectionTest("localhost", 9999, timeout=None):
-                self.redis=j.clients.redis.getGeventRedisClient("localhost", 9999, fromcache=True, password='')
-                luapath="%s/core/errorhandling/eco.lua"%j.dirs.jsLibDir
-                if j.sal.fs.exists(path=luapath):
-                    lua=j.sal.fs.fileGetContents(luapath)
-                    self.escalateToRedis=self.redis.register_script(lua)
-
-        if self.redis!=None and self.escalateToRedis!=None:
-            key=eco.getUniqueKey()
-            
-            data=eco.toJson()
-            res=self.escalateToRedis(keys=["queues:eco","eco:incr","eco:occurrences","eco:objects","eco:last"],args=[key,data])
-            # print "redisreturn: '%s'"%res
-            # j.application.stop()
-            res= j.data.serializer.json.loads(res)            
-            return res
-        else:
-            return None
+        pass
+        # if j.logger.enabled and self.redis==None:
+        #     if j.sal.nettools.tcpPortConnectionTest("localhost", 9999, timeout=None):
+        #         self.redis=j.clients.redis.getGeventRedisClient("localhost", 9999, fromcache=True, password='')
+        #         luapath="%s/core/errorhandling/eco.lua"%j.dirs.jsLibDir
+        #         if j.sal.fs.exists(path=luapath):
+        #             lua=j.sal.fs.fileGetContents(luapath)
+        #             self.escalateToRedis=self.redis.register_script(lua)
+        #
+        # if self.redis!=None and self.escalateToRedis!=None:
+        #     key=eco.getUniqueKey()
+        #
+        #     data=eco.toJson()
+        #     res=self.escalateToRedis(keys=["queues:eco","eco:incr","eco:occurrences","eco:objects","eco:last"],args=[key,data])
+        #     # print "redisreturn: '%s'"%res
+        #     # j.application.stop()
+        #     res= j.data.serializer.json.loads(res)
+        #     return res
+        # else:
+        #     return None
 
     @property
     def blacklist(self):
@@ -74,67 +75,67 @@ class ErrorConditionHandler():
             else:
                 self._blacklist = list()
         return self._blacklist
-        
+
     def toolStripNonAsciFromText(text):
-        return string.join([char for char in str(text) if ((ord(char)>31 and ord(char)<127) or ord(char)==10)],"")        
-        
+        return string.join([char for char in str(text) if ((ord(char)>31 and ord(char)<127) or ord(char)==10)],"")
+
     def setExceptHook(self):
         sys.excepthook = self.excepthook
         self.inException=False
 
     def getLevelName(self, level):
         return LEVELMAP.get(level, 'UNKNOWN')
-        
+
     def getErrorConditionObject(self,ddict={},msg="",msgpub="",category="",level=1,type="UNKNOWN",tb=None,tags=""):
         """
         @data is dict with fields of errorcondition obj
         returns only ErrorConditionObject which should be used in jumpscale to define an errorcondition (or potential error condition)
-        
+
         """
-        errorconditionObject= ErrorConditionObject(ddict=ddict,msg=msg,msgpub=msgpub,level=level,category=category,type=type,tb=tb,tags=tags)                
-        return errorconditionObject        
-  
+        errorconditionObject= ErrorConditionObject(ddict=ddict,msg=msg,msgpub=msgpub,level=level,category=category,type=type,tb=tb,tags=tags)
+        return errorconditionObject
+
     def processPythonExceptionObject(self,exceptionObject, tb=None):
-        """ 
+        """
         how to use
-        
+
         try:
-            ##do something            
+            ##do something
         except Exception,e:
             j.errorconditionhandler.processexceptionObject(e)
-            
+
         @param exceptionObject is errorobject thrown by python when there is an exception
         @param ttype : is the description of the error, can be None
         @param tb : can be a python data object for traceback, can be None
-        
+
         @return [ecsource,ecid,ecguid]
-        
+
         the errorcondition is then also processed e.g. send to local logserver and/or stored locally in errordb
-        """        
+        """
         eco=self.parsePythonExceptionObject(exceptionObject,ttype, tb,level,message)
         eco.process()
-        
+
     def parsePythonExceptionObject(self,exceptionObject,tb=None):
-        
-        """ 
+
+        """
         how to use
-        
+
         try:
-            ##do something            
+            ##do something
         except Exception,e:
             eco=j.errorconditionhandler.parsePythonExceptionObject(e)
 
-        eco is jumpscale internal format for an error 
+        eco is jumpscale internal format for an error
         next step could be to process the error objecect (eco) e.g. by eco.process()
-            
+
         @param exceptionObject is errorobject thrown by python when there is an exception
         @param ttype : is the description of the error, can be None
         @param tb : can be a python data object for traceback, can be None
-        
+
         @return a ErrorConditionObject object as used by jumpscale (should be the only type of object we pass around)
 
 
-        """        
+        """
 
         #this allows to do raise eco
         if isinstance(exceptionObject, ErrorConditionObject):  #was BaseException  , dont understand (despiegk)
@@ -162,7 +163,7 @@ class ErrorConditionHandler():
         if hasattr(exceptionObject,"eco"):
             eco=exceptionObject.eco
         else:
-            eco=None       
+            eco=None
 
         if hasattr(exceptionObject,"level"):
             level=exceptionObject.level
@@ -199,16 +200,16 @@ class ErrorConditionHandler():
             message=exceptionObject.message
         else:
             message=str(exceptionObject)
-            
+
         if message.find("((")!=-1:
-            tags=j.tools.code.regex.findOne("\(\(.*\)\)",message2)         
+            tags=j.tools.code.regex.findOne("\(\(.*\)\)",message2)
             message.replace(tags,"")
         else:
             tags=""
 
         if hasattr(exceptionObject,"tags"):
             tags=exceptionObject.tags+" %s"%tags
-                    
+
         # if ttype!=None:
         #     try:
         #         type_str=str(ttype).split("exceptions.")[1].split("'")[0]
@@ -216,9 +217,9 @@ class ErrorConditionHandler():
         #         type_str=str(ttype)
         # else:
         #     type_str=""
-                    
+
         if eco==None:
-            eco=self.getErrorConditionObject(msg=message,msgpub=msgpub,level=level,tb=tb,tags=tags,type=type)      
+            eco=self.getErrorConditionObject(msg=message,msgpub=msgpub,level=level,tb=tb,tags=tags,type=type)
 
         if codetrace:
             #so for unknown exceptions not done through raise j.exceptions we will do stacktrace
@@ -226,7 +227,7 @@ class ErrorConditionHandler():
 
             if len(eco.traceback)>10000:
                 eco.traceback=errorobject.traceback[:10000]
-        
+
         # if "message" in exceptionObject.__dict__:
         #     errorobject.exceptioninfo = j.data.serializer.json.dumps({'message': exceptionObject.message})
         # else:
@@ -235,12 +236,12 @@ class ErrorConditionHandler():
         eco.exceptionclassname = exceptionObject.__class__.__name__
 
         # module = inspect.getmodule(exceptionObject)
-        # errorobject.exceptionmodule = module.__name__ if module else None  
+        # errorobject.exceptionmodule = module.__name__ if module else None
 
         # try:
         #     errorobject.funcfilename=tb.tb_frame.f_code.co_filename
         # except:
-        #     pass        
+        #     pass
 
         # # try:
         # try:
@@ -257,7 +258,7 @@ class ErrorConditionHandler():
         #     sys.exit()
 
 
-        return eco        
+        return eco
 
     def reRaiseECO(self, eco):
         if eco.exceptionmodule:
@@ -277,7 +278,7 @@ class ErrorConditionHandler():
         This routine will create an errorobject & escalate to the infoserver
         @ttype : is the description of the error
         @tb : can be a python data object or a Event
-        """           
+        """
 
         if isinstance(exceptionObject,HaltException):
             j.application.stop(1)
@@ -287,19 +288,19 @@ class ErrorConditionHandler():
             print("ERROR IN EXCEPTION HANDLING ROUTINES, which causes recursive errorhandling behavior.")
             print(exceptionObject)
             sys.exit(1)
-            return 
+            return
 
         self.inException=True
 
         eco=self.parsePythonExceptionObject(exceptionObject,tb=tb)
 
-        self.inException=False             
+        self.inException=False
         eco.process()
         if eco.traceback!="":
             print ("\n**** TRACEBACK ***")
             eco.printTraceback()
         print(eco)
-                        
+
 
     def checkErrorIgnore(self,eco):
         if j.application.debug:
@@ -338,8 +339,8 @@ class ErrorConditionHandler():
                 f_locals = getattr(tb.tb_frame, 'f_locals', {})
                 if not _getitem_from_frame(f_locals, '__traceback_hide__'):
                     frames.append((tb.tb_frame, getattr(tb, 'tb_lineno', None)))
-                tb = tb.tb_next        
-            frames.reverse()  
+                tb = tb.tb_next
+            frames.reverse()
 
         result=[]
         ignore=["ipython","errorcondition","loghandler","errorhandling"]
@@ -364,7 +365,7 @@ class ErrorConditionHandler():
         func0="unknown"
         frs=self.getFrames(tb=tb)
         frs.reverse()
-        for f,linenr in frs:            
+        for f,linenr in frs:
             try:
                 code,linenr2=inspect.findsource(f)
             except IOError:
@@ -381,20 +382,20 @@ class ErrorConditionHandler():
                 func0=finfo.function
 
         return out,filename0,linenr0,func0
-             
+
 
     def escalateBugToDeveloper(self,errorConditionObject,tb=None):
 
         j.logger.enabled=False #no need to further log, there is error
 
         tracefile=""
-        
+
         def findEditorLinux():
-            apps=["sublime_text","geany","gedit","kate"]                
+            apps=["sublime_text","geany","gedit","kate"]
             for app in apps:
                 try:
                     if j.system.unix.checkApplicationInstalled(app):
-                        editor=app                    
+                        editor=app
                         return editor
                 except:
                     pass
@@ -404,7 +405,7 @@ class ErrorConditionHandler():
             #if j.application.shellconfig.debug:
                 #print "###ERROR: BACKTRACE"
                 #print errorConditionObject.backtrace
-                #print "###END: BACKTRACE"                
+                #print "###END: BACKTRACE"
 
             editor = None
             if j.core.platformtype.myplatform.isLinux():
@@ -415,9 +416,9 @@ class ErrorConditionHandler():
                 if j.sal.fs.exists(editorPath):
                     editor = editorPath
             tracefile=errorConditionObject.log2filesystem()
-            #print "EDITOR FOUND:%s" % editor            
+            #print "EDITOR FOUND:%s" % editor
             if editor:
-                #print errorConditionObject.errormessagepublic   
+                #print errorConditionObject.errormessagepublic
                 if tb==None:
                     try:
                         res = j.tools.console.askString("\nAn error has occurred. Do you want do you want to do? (s=stop, c=continue, t=getTrace)")
@@ -437,7 +438,7 @@ class ErrorConditionHandler():
                         j.sal.process.executeWithoutPipe(cmd,die=False)
                     else:
                         result,out=j.sal.process.execute(cmd,die=False, outputToStdout=False)
-                    
+
                 j.logger.clear()
                 if res == "c":
                     return
@@ -481,5 +482,3 @@ class ErrorConditionHandler():
         eco=j.errorconditionhandler.getErrorConditionObject(ddict={}, msg=message, msgpub=msgpub, category='', level=level, type='WARNING')
 
         eco.process()
-        
-      

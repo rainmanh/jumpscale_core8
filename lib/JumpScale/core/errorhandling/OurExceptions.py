@@ -9,6 +9,19 @@ from JumpScale import j
 import sys
 
 
+class ExceptionFactory:
+    def __init__(self):
+        self.__jslocation__ = "j.exceptions"
+        self.HaltException = HaltException()
+        self.RuntimeError = RuntimeError()
+        self.Input = Input()
+        self.BUG = BUG()
+        self.JSBUG = JSBUG()
+        self.OPERATIONS = OPERATIONS()
+        self.IOError = IOError()
+        self.AYSNotFound = AYSNotFound()
+        self.NotFound = NotFound()
+
 class BaseJSException(Exception):
 
     def __init__(self, message="",level=1,source="",actionkey="",eco=None,tags="",msgpub=""):
@@ -43,8 +56,8 @@ class BaseJSException(Exception):
 
     @property
     def msg(self):
-        return "%s ((%s))"%(self.message,tags)        
-    
+        return "%s ((%s))"%(self.message,tags)
+
 
     def __str__(self):
         out="ERROR: %s ((%s)"%(self.message,self.tags)

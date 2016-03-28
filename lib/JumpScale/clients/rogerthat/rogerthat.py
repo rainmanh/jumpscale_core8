@@ -10,6 +10,7 @@ class RogerthatFactory(object):
         return Rogerthat(api_key)
 
 class Rogerthat(object):
+    self.logger = j.logget.get("j.clients.rogerthat")
     STATUS_RECEIVED = 1
     STATUS_ACKED = 2
 
@@ -47,7 +48,7 @@ class Rogerthat(object):
             result = j.data.serializer.json.loads(response.read())
             return result
         else:
-            j.logger.log('Server error when executing send_message')
+            self.logger.error('Server error when executing send_message')
             return False
 
     def checkFlag(self, flags, flag):

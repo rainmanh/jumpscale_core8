@@ -96,7 +96,7 @@ class MySQLClient():
                     elif col=="true":
                         col=False
                     else:
-                        raise RuntimeError("Could not decide what value for bool:%s"%col)
+                        raise j.exceptions.RuntimeError("Could not decide what value for bool:%s"%col)
                 elif colname.find("html__")==0:
                     colname=colname[6:]
                     col=self._html2text(row[colnr])                    

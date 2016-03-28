@@ -46,7 +46,7 @@ class Tasklet:
             params = j.data.params.get(params)
         else:
             if not j.data.params.isParams(params):
-                raise RuntimeError("Params need to be a params object, cannot execute tasklet: %s" % self.path)
+                raise j.exceptions.RuntimeError("Params need to be a params object, cannot execute tasklet: %s" % self.path)
         if not hasattr(self.module, 'match') or self.module.match(j, params, service, tags, self):
             params = self.module.main(j, params, service, tags, self)
         return params
@@ -105,7 +105,7 @@ class TaskletEngineGroup():
         if groupname in self.taskletEngines:
             return self.taskletEngines[groupname].execute(params, service, tags)
         else:
-            raise RuntimeError("Cannot find groupname: %s in tasklets" % groupname)
+            raise j.exceptions.RuntimeError("Cannot find groupname: %s in tasklets" % groupname)
 
     def executeV2(self, groupname, **args):
         """
@@ -114,7 +114,7 @@ class TaskletEngineGroup():
         if groupname in self.taskletEngines:
             return self.taskletEngines[groupname].executeV2(**args)
         else:
-            raise RuntimeError("Cannot find groupname: %s in tasklets" % groupname)
+            raise j.exceptions.RuntimeError("Cannot find groupname: %s in tasklets" % groupname)
 
 
 class TaskletEngine():
@@ -263,11 +263,11 @@ class TaskletEngine():
             params = j.data.params.get(params)
         else:
             if not j.data.params.isParams(params):
-                raise RuntimeError("Params need to be a params object, cannot execute tasklet: %s" % self.path)
+                raise j.exceptions.RuntimeError("Params need to be a params object, cannot execute tasklet: %s" % self.path)
 
         if 'result' not in params:
             params.result = None
-            # raise RuntimeError("tasklet:%s did not return a params.result"%self)
+            # raise j.exceptions.RuntimeError("tasklet:%s did not return a params.result"%self)
 
         for tasklet in self.tasklets:
             if params.get('stop') is True:

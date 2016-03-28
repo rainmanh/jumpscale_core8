@@ -54,9 +54,9 @@ class TextFileEditor:
             linenr+=1
             
         if len(result)==0:
-            raise RuntimeError("Could not find a line matching %s and not matching %s in file %s" % (includes,excludes,self.filepath))
+            raise j.exceptions.RuntimeError("Could not find a line matching %s and not matching %s in file %s" % (includes,excludes,self.filepath))
         if len(result)>1:
-            raise RuntimeError("Found more than 1 line matching %s" % (includes,self.filepath))
+            raise j.exceptions.RuntimeError("Found more than 1 line matching %s" % (includes,self.filepath))
         return [linenrfound,linefound]
     
     def replaceLinesFromFunction(self,replaceFunction,argument,includes="",excludes=""):
@@ -223,7 +223,7 @@ class TextFileEditor:
         if filepath==None:
             filepath=self.filepath
         if filepath==None:
-            raise RuntimeError("Cannot write the textfile because path is None")
+            raise j.exceptions.RuntimeError("Cannot write the textfile because path is None")
         j.sal.fs.writeFile(filepath,self.content)            
         
 

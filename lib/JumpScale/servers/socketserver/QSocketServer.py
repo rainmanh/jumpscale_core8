@@ -27,7 +27,7 @@ class QSocketServerHandler(socketserver.BaseRequestHandler):
     def getsize(self, data):
         check = data[0]
         if check != "A":
-            raise RuntimeError("error in tcp stream, first byte needs to be 'A'")
+            raise j.exceptions.RuntimeError("error in tcp stream, first byte needs to be 'A'")
         sizebytes = data[1:5]
         size = struct.unpack("I", sizebytes)[0]
         return data[5:], size
@@ -38,18 +38,18 @@ class QSocketServerHandler(socketserver.BaseRequestHandler):
             ready = select.select([self.socket], [], [], self.timeout)
             self.selectcounter += 1
             if self.selectcounter > 100:
-                raise RuntimeError("recverror")
+                raise j.exceptions.RuntimeError("recverror")
 
         except Exception as e:
             print(e)
-            raise RuntimeError("recverror")
+            raise j.exceptions.RuntimeError("recverror")
 
         if ready[0]:
             try:
                 data += self.socket.recv(4096)
             except Exception as e:
                 print(e)
-                raise RuntimeError("recverror")
+                raise j.exceptions.RuntimeError("recverror")
         else:
             print("timeout on select")
         return data
@@ -93,7 +93,7 @@ class QSocketServerHandler(socketserver.BaseRequestHandler):
                     self.socket.close()
                     return
                 else:
-                    raise RuntimeError("Cannot read data from client, unknown error: %s" % e)
+                    raise j.exceptions.RuntimeError("Cannot read data from client, unknown error: %s" % e)
 
             if data.find("**connect**") != -1:
                 try:

@@ -144,7 +144,7 @@ def unlock(lockname):
     try:
         unlock_(lockname)
     except Exception as msg:
-        raise RuntimeError("Cannot unlock [%s] with ERROR: %s" % (lockname, str(msg)))
+        raise j.exceptions.RuntimeError("Cannot unlock [%s] with ERROR: %s" % (lockname, str(msg)))
 
 def unlock_(lockname):
     '''Unlock system-wide interprocess lock
@@ -258,9 +258,9 @@ class SystemFS(SALObject):
                 shutil.copy(fileFrom, to)
                 self.log("Copied file from %s to %s" % (fileFrom,to),6)
             except Exception as e:
-                raise RuntimeError("Could not copy file from %s to %s, error %s" % (fileFrom,to,e))
+                raise j.exceptions.RuntimeError("Could not copy file from %s to %s, error %s" % (fileFrom,to,e))
         else:
-            raise RuntimeError("Can not copy file, file: %s does not exist in system.fs.copyFile" % ( fileFrom ) )
+            raise j.exceptions.RuntimeError("Can not copy file, file: %s does not exist in system.fs.copyFile" % ( fileFrom ) )
 
     def moveFile(self, source, destin):
         """Move a  File from source path to destination path
@@ -271,11 +271,11 @@ class SystemFS(SALObject):
         if ((source is None) or (destin is None)):
             raise TypeError("Not enough parameters given to system.fs.moveFile: move from %s, to %s" % (source, destin))
         if not j.sal.fs.isFile(source):
-            raise RuntimeError("The specified source path in system.fs.moveFile does not exist or is no file: %s" % source)
+            raise j.exceptions.RuntimeError("The specified source path in system.fs.moveFile does not exist or is no file: %s" % source)
         try:
             self.move(source, destin)
         except Exception as e:
-            raise RuntimeError("File could not be moved...in system.fs.moveFile: from %s to %s , Error %s" % (source, destin,str(e)))
+            raise j.exceptions.RuntimeError("File could not be moved...in system.fs.moveFile: from %s to %s , Error %s" % (source, destin,str(e)))
 
     def renameFile(self, filePath, new_name):
         """
@@ -305,7 +305,7 @@ class SystemFS(SALObject):
             try:
                 os.remove(path)
             except Exception as e:
-                raise RuntimeError("File with path: %s could not be removed\nDetails: %s\n%s"%(path,e, sys.exc_info()[0]))
+                raise j.exceptions.RuntimeError("File with path: %s could not be removed\nDetails: %s\n%s"%(path,e, sys.exc_info()[0]))
             self.log('Done removing file with path: %s'%path)
 
     def createEmptyFile(self, filename):
@@ -319,7 +319,7 @@ class SystemFS(SALObject):
             open(filename, "w").close()
             self.log('Empty file %s has been successfully created'%filename)
         except Exception:
-            raise RuntimeError("Failed to create an empty file with the specified filename: %s"%filename)
+            raise j.exceptions.RuntimeError("Failed to create an empty file with the specified filename: %s"%filename)
 
     def createDir(self, newdir):
         """Create new Directory
@@ -328,7 +328,7 @@ class SystemFS(SALObject):
         if newdir was given as a complete path with the directory name, the new directory will be created in the specified path
         """
         if newdir.find("file://")!=-1:
-            raise RuntimeError("Cannot use file notation here")
+            raise j.exceptions.RuntimeError("Cannot use file notation here")
         self.log('Creating directory if not exists %s' % toStr(newdir), 8)
 
         if newdir == '' or newdir == None:
@@ -367,7 +367,7 @@ class SystemFS(SALObject):
         """
         if not ssh:
             if src.find("file://")!=-1 or dst.find("file://")!=-1:
-                raise RuntimeError("Cannot use file notation here")
+                raise j.exceptions.RuntimeError("Cannot use file notation here")
 
             self.log('Copy directory tree from %s to %s'% (src, dst),6)
             if ((src is None) or (dst is None)):
@@ -404,7 +404,7 @@ class SystemFS(SALObject):
                         #print "2:%s %s"%(srcname,dstname)
                         self.copyFile(srcname, dstname ,createDirIfNeeded=False,overwriteFile=overwriteFiles)
             else:
-                raise RuntimeError('Source path %s in system.fs.copyDirTree is not a directory'% src)
+                raise j.exceptions.RuntimeError('Source path %s in system.fs.copyDirTree is not a directory'% src)
         else:
             #didnt use j.sal.rsync because its not complete and doesnt work properly
             excl = ""
@@ -483,7 +483,7 @@ class SystemFS(SALObject):
             else:
                 raise ValueError("Path: %s is not a Directory in system.fs.removeDir"% path)
         else:
-            raise RuntimeError("Path: %s does not exist in system.fs.removeDir"% path)
+            raise j.exceptions.RuntimeError("Path: %s does not exist in system.fs.removeDir"% path)
 
     def changeDir(self, path):
         """Changes Current Directory
@@ -501,7 +501,7 @@ class SystemFS(SALObject):
             else:
                 raise ValueError("Path: %s in system.fs.changeDir is not a Directory"% path)
         else:
-            raise RuntimeError("Path: %s in system.fs.changeDir does not exist"% path)
+            raise j.exceptions.RuntimeError("Path: %s in system.fs.changeDir does not exist"% path)
 
     def moveDir(self, source, destin):
         """Move Directory from source to destination
@@ -515,7 +515,7 @@ class SystemFS(SALObject):
             j.sal.fs.move(source, destin)
             self.log('Directory is successfully moved from %s to %s'% (source, destin))
         else:
-            raise RuntimeError("Specified Source path: %s does not exist in system.fs.moveDir"% source)
+            raise j.exceptions.RuntimeError("Specified Source path: %s does not exist in system.fs.moveDir"% source)
 
     def joinPaths(self,*args):
         """Join one or more path components.
@@ -542,7 +542,7 @@ class SystemFS(SALObject):
         try:
             return os.path.join(*args)
         except Exception as e:
-            raise RuntimeError("Failed to join paths: %s, Error %s "%(str(args),str(e)))
+            raise j.exceptions.RuntimeError("Failed to join paths: %s, Error %s "%(str(args),str(e)))
 
     def getDirName(self, path,lastOnly=False,levelsUp=None):
         """
@@ -569,7 +569,7 @@ class SystemFS(SALObject):
             if len(parts)-levelsUp>0:
                 return parts[len(parts)-levelsUp-1]
             else:
-                raise RuntimeError ("Cannot find part of dir %s levels up, path %s is not long enough" % (levelsUp,path))
+                raise j.exceptions.RuntimeError("Cannot find part of dir %s levels up, path %s is not long enough" % (levelsUp,path))
         return dname+os.sep
 
 
@@ -581,7 +581,7 @@ class SystemFS(SALObject):
         try:
             return os.path.basename(path.rstrip(os.path.sep))
         except Exception as e:
-            raise RuntimeError('Failed to get base name of the given path: %s, Error: %s'% (path,str(e)))
+            raise j.exceptions.RuntimeError('Failed to get base name of the given path: %s, Error: %s'% (path,str(e)))
 
     def pathShorten(self, path):
         """
@@ -679,7 +679,7 @@ class SystemFS(SALObject):
         for item in path.split("/"):
             if item=="..":
                 if result==[]:
-                    raise RuntimeError("Cannot processPathForDoubleDots for paths with only ..")
+                    raise j.exceptions.RuntimeError("Cannot processPathForDoubleDots for paths with only ..")
                 else:
                     result.pop()
             else:
@@ -727,14 +727,14 @@ class SystemFS(SALObject):
                     os.chown(path, uid, gid)
                 except Exception as e:
                     if str(e).find("No such file or directory")==-1:
-                        raise RuntimeError("%s"%e)
+                        raise j.exceptions.RuntimeError("%s"%e)
             for file in files:
                 path = os.path.join(root, file)
                 try:
                     os.chown(path, uid, gid)
                 except Exception as e:
                     if str(e).find("No such file or directory")==-1:
-                        raise RuntimeError("%s"%e)
+                        raise j.exceptions.RuntimeError("%s"%e)
 
     def chmod(self,path,permissions):
         """
@@ -748,7 +748,7 @@ class SystemFS(SALObject):
                     os.chmod(path,permissions)
                 except Exception as e:
                     if str(e).find("No such file or directory")==-1:
-                        raise RuntimeError("%s"%e)
+                        raise j.exceptions.RuntimeError("%s"%e)
 
             for file in files:
                 path = os.path.join(root, file)
@@ -756,7 +756,7 @@ class SystemFS(SALObject):
                     os.chmod(path,permissions)
                 except Exception as e:
                     if str(e).find("No such file or directory")==-1:
-                        raise RuntimeError("%s"%e)
+                        raise j.exceptions.RuntimeError("%s"%e)
 
 
     def parsePath(self,path, baseDir="",existCheck=True, checkIsFile=False):
@@ -776,9 +776,9 @@ class SystemFS(SALObject):
         """
         #make sure only clean path is left and the filename is out
         if existCheck and not self.exists(path):
-            raise RuntimeError("Cannot find file %s when importing" % path)
+            raise j.exceptions.RuntimeError("Cannot find file %s when importing" % path)
         if checkIsFile and not self.isFile(path):
-            raise RuntimeError("Path %s should be a file (not e.g. a dir), error when importing" % path)
+            raise j.exceptions.RuntimeError("Path %s should be a file (not e.g. a dir), error when importing" % path)
         extension=""
         if self.isDir(path):
             name=""
@@ -823,7 +823,7 @@ class SystemFS(SALObject):
         try:
             return os.getcwd()
         except Exception as e:
-            raise RuntimeError('Failed to get current working directory')
+            raise j.exceptions.RuntimeError('Failed to get current working directory')
 
     def readlink(self, path):
         """Works only for unix
@@ -838,9 +838,9 @@ class SystemFS(SALObject):
             try:
                 return os.readlink(path)
             except Exception as e:
-                raise RuntimeError('Failed to read link with path: %s \nERROR: %s'%(path, str(e)))
+                raise j.exceptions.RuntimeError('Failed to read link with path: %s \nERROR: %s'%(path, str(e)))
         elif j.core.platformtype.myplatform.isWindows():
-            raise RuntimeError('Cannot readLink on windows')
+            raise j.exceptions.RuntimeError('Cannot readLink on windows')
 
     def removeLinks(self,path):
         """
@@ -866,7 +866,7 @@ class SystemFS(SALObject):
             else:
                 raise ValueError("Specified path: %s is not a Directory in system.fs.listDir"% path)
         else:
-            raise RuntimeError("Specified path: %s does not exist in system.fs.listDir"% path)
+            raise j.exceptions.RuntimeError("Specified path: %s does not exist in system.fs.listDir"% path)
 
     def listFilesInDir(self, path, recursive=False, filter=None, minmtime=None, maxmtime=None,depth=None, case_sensitivity='os',exclude=[],followSymlinks=True,listSymlinks=False):
         """Retrieves list of files found in the specified directory
@@ -1150,9 +1150,9 @@ class SystemFS(SALObject):
             if j.core.platformtype.myplatform.isUnix():
                 return os.link(source, destin)
             else:
-                raise RuntimeError('Cannot create a hard link on windows')
+                raise j.exceptions.RuntimeError('Cannot create a hard link on windows')
         except:
-            raise RuntimeError('Failed to hardLinkFile from %s to %s'% (source, destin))
+            raise j.exceptions.RuntimeError('Failed to hardLinkFile from %s to %s'% (source, destin))
 
     def checkDirParam(self,path):
         if(path.strip()==""):
@@ -1194,7 +1194,7 @@ class SystemFS(SALObject):
             self.log('path %s is not an empty directory'%path,9)
             return False
         except:
-            raise RuntimeError('Failed to check if the specified path: %s is an empty directory...in system.fs.isEmptyDir'% path)
+            raise j.exceptions.RuntimeError('Failed to check if the specified path: %s is an empty directory...in system.fs.isEmptyDir'% path)
 
     def isFile(self, path, followSoftlink = True):
         """Check if the specified file exists for the given path
@@ -1219,7 +1219,7 @@ class SystemFS(SALObject):
             self.log('path %s is not a file'%path,8)
             return False
         except:
-            raise RuntimeError('Failed to check if the specified path: %s is a file...in system.fs.isFile'% path)
+            raise j.exceptions.RuntimeError('Failed to check if the specified path: %s is a file...in system.fs.isFile'% path)
 
 
     def isExecutable(self, path):
@@ -1241,9 +1241,9 @@ class SystemFS(SALObject):
             try:
                 result=j.sal.process.execute(cmd)
             except Exception as e:
-                raise RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s."%cmd)
+                raise j.exceptions.RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s."%cmd)
             if result[0]!=0:
-                raise RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s."%cmd)
+                raise j.exceptions.RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s."%cmd)
             if result[1].lower().find("substitute name")!=-1:
                 return True
             else:
@@ -1301,7 +1301,7 @@ class SystemFS(SALObject):
         if (filename is None):
             raise TypeError('File name is None in QSstem.unlinkFile')
         if not self.isFile(filename):
-            raise RuntimeError("filename is not a file so cannot unlink")
+            raise j.exceptions.RuntimeError("filename is not a file so cannot unlink")
         try:
             os.unlink(filename)
         except:
@@ -1411,7 +1411,7 @@ class SystemFS(SALObject):
         """
         self.log('Getting filesize of file: %s'%filename,8)
         if not self.exists(filename):
-            raise RuntimeError("Specified file: %s does not exist"% filename)
+            raise j.exceptions.RuntimeError("Specified file: %s does not exist"% filename)
         try:
             return os.path.getsize(filename)
         except Exception as e:
@@ -1473,7 +1473,7 @@ class SystemFS(SALObject):
                         digest.update(buf)
             return digest.hexdigest()
         except Exception as e:
-            raise RuntimeError("Failed to get the hex digest of the file %sin system.fs.md5sum. Error: %s"  % (filename,str(e)))
+            raise j.exceptions.RuntimeError("Failed to get the hex digest of the file %sin system.fs.md5sum. Error: %s"  % (filename,str(e)))
 
     def getFolderMD5sum(self, folder):
         files = sorted(self.walk(folder, recurse=1))
@@ -1914,7 +1914,7 @@ class SystemFS(SALObject):
         import tarfile
 
         if not j.sal.fs.isDir(sourcepath):
-            raise RuntimeError("Cannot find file (exists but is not a file or dir) %s" % sourcepath)
+            raise j.exceptions.RuntimeError("Cannot find file (exists but is not a file or dir) %s" % sourcepath)
 
         self.log("Compressing directory %s to %s"%(sourcepath, destinationpath))
         if not j.sal.fs.exists(j.sal.fs.getDirName(destinationpath)):
@@ -1936,7 +1936,7 @@ class SystemFS(SALObject):
                     if self.isFile(path) or  self.isLink(path):
                         tarfile.add(path,destpath)
                     else:
-                        raise RuntimeError("Cannot add file %s to destpath"%destpath)
+                        raise j.exceptions.RuntimeError("Cannot add file %s to destpath"%destpath)
             params={}
             params["t"]=t
             params["destintar"]=destInTar

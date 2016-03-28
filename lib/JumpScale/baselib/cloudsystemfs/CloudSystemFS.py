@@ -164,7 +164,7 @@ class CloudSystemFS:
         elif (dst_proto == 'file'):
             dst_fs = FileFS('dst',path=dst_elements.path,is_dir=is_dir,recursive=recursive,tempdir=tempdir, Atype=Atype)
         elif (dst_proto == 'http'):
-            raise RuntimeError('http as a destination is not supported')
+            raise j.exceptions.RuntimeError('http as a destination is not supported')
         elif (dst_proto == 'sftp'):
             dst_fs = SshFS('dst', server=dst_elements.hostname,directory=dst_elements.path,username=dst_elements.username,password=dst_elements.password,is_dir=is_dir,recursive=recursive,tempdir=tempdir, Atype=Atype)
         else:

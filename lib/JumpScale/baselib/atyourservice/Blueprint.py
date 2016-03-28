@@ -43,6 +43,13 @@ class Blueprint(object):
             if model!=None:
                 for key,item in model.items():
                     aysname,aysinstance=key.split("_",1)
+                    if not aysname.startswith('blueprint.'):
+                        blueaysname = 'blueprint.%s' % aysname
+                        try:
+                            j.atyourservice.getRecipe(name=blueaysname)
+                            continue
+                        except j.exceptions.Input:
+                            pass
                     j.atyourservice.getRecipe(name=aysname)
 
     def execute(self):
@@ -51,7 +58,12 @@ class Blueprint(object):
                 for key, item in model.items():
                     # print ("blueprint model execute:%s %s"%(key,item))
                     aysname, aysinstance = key.split("_", 1)
-                    r = j.atyourservice.getRecipe(name=aysname)
+                    if not aysname.startswith('blueprint.'):
+                        blueaysname = 'blueprint.%s' % aysname
+                        try:
+                            r = j.atyourservice.getRecipe(name=blueaysname)
+                        except j.exceptions.Input:
+                            r = j.atyourservice.getRecipe(name=aysname)
                     yaml=model['%s_%s' % (aysname, aysinstance)]
                     aysi=r.newInstance(instance=aysinstance, args=item, yaml=yaml)
                     aysi.init()                    
@@ -65,7 +77,7 @@ class Blueprint(object):
             model=j.data.serializer.yaml.loads(content)
         except Exception as e:
             msg="Could not process blueprint: '%s', line: '%s', content '%s'\nerror:%s"%(self.path,nr,content,e)
-            raise RuntimeError(msg)
+            raise j.exceptions.RuntimeError(msg)
 
         self.models.append(model)
 

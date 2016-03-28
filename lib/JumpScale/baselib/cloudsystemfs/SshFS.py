@@ -59,7 +59,7 @@ class SshFS(object):
 
         exitCode, output = j.sal.process.execute(command,die=False, outputToStdout=False)
         if not exitCode == 0:
-            raise RuntimeError('Failed to execute command %s'%command)
+            raise j.exceptions.RuntimeError('Failed to execute command %s'%command)
         else:
             self.is_mounted = True
 
@@ -132,7 +132,7 @@ class SshFS(object):
 
         exitCode, output = j.sal.process.execute(command,die=False, outputToStdout=False)
         if not exitCode == 0:
-            raise RuntimeError('Failed to execute command %s'%command)
+            raise j.exceptions.RuntimeError('Failed to execute command %s'%command)
 
         j.sal.fs.removeDir(self.mntpoint)
         self.is_mounted = False
@@ -149,7 +149,7 @@ class SshFS(object):
                 if os.path.isdir(self.path_components[-1]):
                     os.chdir(self.path_components[-1])
                 else:
-                    raise RuntimeError('%s is not a valid directory under %s' %('/'.join(self.path_components),self.sharename))
+                    raise j.exceptions.RuntimeError('%s is not a valid directory under %s' %('/'.join(self.path_components),self.sharename))
             if os.path.isdir(self.path_components[0]):
                 os.chdir(self.path_components[0])
 

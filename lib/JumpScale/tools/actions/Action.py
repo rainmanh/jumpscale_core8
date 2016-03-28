@@ -37,7 +37,7 @@ class Action:
 
         '''
         if key=="" and action==None:
-            raise RuntimeError("need to specify key or action")
+            raise j.exceptions.RuntimeError("need to specify key or action")
 
         self._args=""
         self._kwargs=""
@@ -243,7 +243,7 @@ class Action:
 
         else:
             if self._key!="":
-                raise RuntimeError("could not load action:%s, was not in redis & key specified"%self._name)
+                raise j.exceptions.RuntimeError("could not load action:%s, was not in redis & key specified"%self._name)
 
     @property
     def actionRecover(self):
@@ -265,7 +265,7 @@ class Action:
     @property
     def method(self):
         if self.source=="":
-            raise RuntimeError("source cannot be empty")
+            raise j.exceptions.RuntimeError("source cannot be empty")
         if self._method == None:
             # j.sal.fs.changeDir(basepath)
             loader = importlib.machinery.SourceFileLoader(self.name,self.sourceToExecutePath )
@@ -491,7 +491,7 @@ class Action:
                 self.state = "ERROR"
                 self.save()
                 self.print()
-                raise RuntimeError("error in selfobj in action:%s\nSelf obj code is:\n%s"%(self,self.selfGeneratorCode))
+                raise j.exceptions.RuntimeError("error in selfobj in action:%s\nSelf obj code is:\n%s"%(self,self.selfGeneratorCode))
 
         return self._selfobj
 
@@ -517,7 +517,6 @@ class Action:
             output = ""
             counter=0
             ok=False
-            tb_text = ''
             err = ''
 
             while self.state!="ERROR" and ok==False and counter<self.retry+1:
@@ -554,10 +553,12 @@ class Action:
 
                     tblist=traceback.format_exception(type, value, tb)
                     tblist.pop(1)
-                    tb_text = "".join(tblist)
+                    self.traceback = "".join(tblist)
 
                     err=""
                     for e_item in e.args:
+                        if isinstance(e_item, (set, list, tuple)):
+                            e_item = ' '.join(e_item)
                         err+="%s\n"%e_item
                     counter+=1
                     time.sleep(0.1)
@@ -566,7 +567,7 @@ class Action:
                     rcode = 1
 
                     if "**NOSTACK**" in err:
-                        tb_text=""
+                        self.traceback = ""
                         err=err.replace("**NOSTACK**","")
 
             #we did the retries, rcode will be >0 if error
@@ -594,10 +595,9 @@ class Action:
                     j.actions.delFromStack(self)
                     #we are already in error, means error came from child
                     if self.die:
-                        raise RuntimeError("error in action: %s"%self)
+                        raise j.exceptions.RuntimeError("error in action: %s"%self)
                     return
 
-                self.traceback=tb_text
 
                 if err!="":
                     self.error = err
@@ -613,7 +613,7 @@ class Action:
                     print("error in action: %s"%self)
                     sys.exit(1)
                     # else:
-                    #     raise RuntimeError("error in action: %s"%self)
+                    #     raise j.exceptions.RuntimeError("error in action: %s"%self)
             else:
                 self.state = "OK"
 

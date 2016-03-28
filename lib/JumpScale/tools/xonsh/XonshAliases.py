@@ -41,9 +41,9 @@ def xonsh_edit(args, stdin=None):
         cmd="open -a Sublime\ Text %s"%path
 
     elif j.sal.fs.exists("/usr/bin/subl"):
-        raise RuntimeError("please implement xonsh_edit for linux")        #@todo (*2*)
+        raise j.exceptions.RuntimeError("please implement xonsh_edit for linux")        #@todo (*2*)
     else:
-        raise RuntimeError("Did not find editor")
+        raise j.exceptions.RuntimeError("Did not find editor")
 
     j.do.executeInteractive(cmd)
 
@@ -89,6 +89,6 @@ def xonsh_update(args, stdin=None):
 
 
 #     else:
-#         raise RuntimeError("need to specify 1 or 2 args.\n%s"%H)
+#         raise j.exceptions.RuntimeError("need to specify 1 or 2 args.\n%s"%H)
 
 #     j.do.executeInteractive(cmd)

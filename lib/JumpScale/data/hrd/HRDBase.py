@@ -86,7 +86,7 @@ class HRDBase:
             items=[item.strip() for item in lst.split(",")]
             items=[item for item in items if item!=""]
             return items
-        raise RuntimeError("no list for %s"%key)
+        raise j.exceptions.RuntimeError("no list for %s"%key)
 
     def getDict(self,key):
         ddict=self.get(key)
@@ -96,7 +96,7 @@ class HRDBase:
             return ddict
         if ddict.strip()=="":
             return {}
-        raise RuntimeError("no dict for %s"%key)
+        raise j.exceptions.RuntimeError("no dict for %s"%key)
 
     def getListFromPrefix(self, prefix):
         """
@@ -330,7 +330,7 @@ class HRDBase:
 
             if not isinstance( hrditem.data,str):
                 #@todo fix this bug
-                # raise RuntimeError("BUG SHOULD ALWAYS BE STR")
+                # raise j.exceptions.RuntimeError("BUG SHOULD ALWAYS BE STR")
                 pass
 
 

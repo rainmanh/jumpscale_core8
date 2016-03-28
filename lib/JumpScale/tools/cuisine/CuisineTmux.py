@@ -19,11 +19,11 @@ class CuisineTmux():
             j.sal.ubuntu.apt_install_check("tmux", "tmux")
         else:
             if not j.do.checkInstalled("tmux"):
-                raise RuntimeError("Cannnot use tmux, please install tmux")
+                raise j.exceptions.RuntimeError("Cannnot use tmux, please install tmux")
 
         self.killSession(sessionname)
         if len(screens) < 1:
-            raise RuntimeError(
+            raise j.exceptions.RuntimeError(
                 "Cannot create screens, need at least 1 screen specified")
 
         env = os.environ.copy()

@@ -57,7 +57,7 @@ class CuisineSSH():
                 if changepasswdto!="":
                     executor.cuisine.user.passwd(login, changepasswdto, encrypted_passwd=False)
             else:
-                raise RuntimeError("Cannot find key:%s"%keypath)
+                raise j.exceptions.RuntimeError("Cannot find key:%s"%keypath)
             done.append(item)
         return done
 
@@ -143,7 +143,7 @@ class CuisineSSH():
         user=user.strip()
         d = self.cuisine.user.check(user, need_passwd=False)
         if d==None:
-            raise RuntimeError("did not find user:%s"%user)
+            raise j.exceptions.RuntimeError("did not find user:%s"%user)
         group = d["gid"]
         keyf  = d["home"] + "/.ssh/authorized_keys"
         if key[-1] != "\n":
@@ -217,7 +217,7 @@ class CuisineSSH():
 
         for pub in keys:
             if pub.strip() == "":
-                raise RuntimeError("ssh.key.public cannot be empty")
+                raise j.exceptions.RuntimeError("ssh.key.public cannot be empty")
             self.authorize("root", pub)
         
         print("add git repos to known hosts")
@@ -235,7 +235,7 @@ class CuisineSSH():
         self.cuisine.core.run("ssh-add -d '%s'"%path,die=False,showout=False)
         keys=self.cuisine.core.run("ssh-add -l",showout=False)
         if path in keys:
-            raise RuntimeError("ssh-key is still loaded in ssh-agent, please remove manually")
+            raise j.exceptions.RuntimeError("ssh-key is still loaded in ssh-agent, please remove manually")
         self.cuisine.core.run("ssh-add '%s'"%path,showout=False)
 
     @actionrun(force=True)
@@ -247,7 +247,7 @@ class CuisineSSH():
         self.cuisine.core.run("ssh-add -d '%s'"%path,die=False,showout=False)
         keys=self.cuisine.core.run("ssh-add -l",showout=False)
         if path in keys:
-            raise RuntimeError("ssh-key is still loaded in ssh-agent, please remove manually")
+            raise j.exceptions.RuntimeError("ssh-key is still loaded in ssh-agent, please remove manually")
 
 
     def __str__(self):

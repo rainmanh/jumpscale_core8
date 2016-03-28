@@ -90,7 +90,7 @@ class SyncthingClient:
 
         print("check if we can find syncthing on right port: %s:%s"%(self.addr,self.port))
         if j.sal.nettools.waitConnectionTest(self.addr,self.port,timeout=10)==False:
-            raise RuntimeError("Could not find syncthing on %s:%s, tcp port test"%(self.addr,self.port))
+            raise j.exceptions.RuntimeError("Could not find syncthing on %s:%s, tcp port test"%(self.addr,self.port))
 
         print(self.status_get())
 
@@ -200,7 +200,7 @@ class SyncthingClient:
                         res.append(device)
                 self._config["devices"]=res
             else:
-                raise RuntimeError("Cannot add device %s, exists"%name)
+                raise j.exceptions.RuntimeError("Cannot add device %s, exists"%name)
 
         device={ 'addresses': ['dynamic'],
             'certName': '',
@@ -228,7 +228,7 @@ class SyncthingClient:
                         res.append(folder)
                 self._config["folders"]=res
             else:
-                raise RuntimeError("Cannot add folder %s, exists"%name)
+                raise j.exceptions.RuntimeError("Cannot add folder %s, exists"%name)
 
         if self.id_get() not in devices:
             devices.append(self.id_get())
@@ -307,14 +307,14 @@ class SyncthingClient:
                 time.sleep(0.1)
 
                 if counter>10:
-                    raise RuntimeError('Syncthing is not responding. Exiting.')
+                    raise j.exceptions.RuntimeError('Syncthing is not responding. Exiting.')
 
 
         if r.ok==False:
             print("%s"%(url))
             print(endpoint)
             print(request_body)
-            raise RuntimeError("Error in rest call: %s"%r)
+            raise j.exceptions.RuntimeError("Error in rest call: %s"%r)
 
         if get and endpoint != '/system/version':
             return r.json()

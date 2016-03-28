@@ -70,7 +70,7 @@ class DebugSSHNode():
                 if test:
                     self.port=9022
         if test==False:
-            raise RuntimeError("Cannot connect to %s:%s"%(self.addr,self.port))
+            raise j.exceptions.RuntimeError("Cannot connect to %s:%s"%(self.addr,self.port))
 
         self._platformType = None
         self._sshclient = None
@@ -255,7 +255,7 @@ class DevelopToolsFactory():
 
 
         if reset:
-            raise RuntimeError("not implemented")
+            raise j.exceptions.RuntimeError("not implemented")
 
         codepaths = j.core.db.get("debug.codepaths").decode().split(",")
         for source in codepaths:
@@ -291,7 +291,7 @@ class DevelopToolsFactory():
                             rsyncdelete2=rsyncdelete
                         j.sal.fs.copyDirTree(source, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True,rsyncdelete=rsyncdelete2)
                 else:
-                    raise RuntimeError("only ssh nodes supported")
+                    raise j.exceptions.RuntimeError("only ssh nodes supported")
 
         if monitor:
             self.monitorChanges()

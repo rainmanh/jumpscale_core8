@@ -45,7 +45,7 @@ class CuisineBuilder(object):
         self.weave(start=start)
         if sandbox:
             if not stor_addr:
-                raise RuntimeError("Store address should be specified if sandboxing enable.")
+                raise j.exceptions.RuntimeError("Store address should be specified if sandboxing enable.")
             self.sandbox(stor_addr)
 
     def sandbox(self, stor_addr, python=True):
@@ -120,7 +120,7 @@ class CuisineBuilder(object):
         if len(error_files) == 0:
             print("all uploaded ok")
         else:
-            raise RuntimeError('some files didnt upload properly. %s' % ("\n".join(error_files)))
+            raise j.exceptions.RuntimeError('some files didnt upload properly. %s' % ("\n".join(error_files)))
 
         metadataPath = j.sal.fs.joinPaths(output_dir, "md", "%s.flist" % namespace)
         print('uploading %s' % metadataPath)
@@ -130,7 +130,7 @@ class CuisineBuilder(object):
     def skydns(self,start=True):
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/skynetservices/skydns",action=True)
-        self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'skydns'), '$binDir', action=True)
+        self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'skydns'), '$binDir')
         self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
 
         if start:
@@ -140,7 +140,7 @@ class CuisineBuilder(object):
     def caddy(self,ssl=False,start=True, dns=None):
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/mholt/caddy",action=True)
-        self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'caddy'), '$binDir', action=True)
+        self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'caddy'), '$binDir')
         self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
 
         if ssl and dns:
@@ -173,7 +173,7 @@ class CuisineBuilder(object):
         """
         config format see https://caddyserver.com/docs/caddyfile
         """
-        raise RuntimeError("needs to be implemented")
+        raise j.exceptions.RuntimeError("needs to be implemented")
         pass
 
     @actionrun(action=True)
@@ -183,9 +183,10 @@ class CuisineBuilder(object):
         @input addr, address and port on which the service need to listen. e.g. : 0.0.0.0:8090
         @input backend, directory where to save the data push to the store
         """
+        self.cuisine.core.dir_remove("%s/src" % self.cuisine.bash.environGet('GOPATH'))
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/g8os/stor", action=True)
-        self.cuisine.core.file_copy(self.cuisine.core.joinpaths(self.cuisine.core.dir_paths['goDir'], 'bin', 'stor'), '$base/bin',action=True)
+        self.cuisine.core.file_copy(self.cuisine.core.joinpaths(self.cuisine.core.dir_paths['goDir'], 'bin', 'stor'), '$base/bin')
         self.cuisine.bash.addPath("$base/bin", action=True)
 
         self.cuisine.processmanager.stop("stor") # will also kill
@@ -227,11 +228,13 @@ class CuisineBuilder(object):
             passwd=""
         """
         self.cuisine.golang.install()
-        self.cuisine.golang.get("github.com/g8os/fs", action=True)
+        self.cuisine.golang.godep("github.com/g8os/fs", action=True)
+        self.cuisine.core.run("cd %s && go build ." % "$goDir/src/github.com/g8os/fs", profile=True)
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/fs")
-        self.cuisine.core.file_copy("$goDir/bin/fs", "$base/bin")
+        self.cuisine.core.file_copy("$goDir/src/github.com/g8os/fs/fs", "$base/bin")
         self.cuisine.core.file_write("$goDir/src/github.com/g8os/fs/config/config.toml", content)
         self.cuisine.core.file_copy("$goDir/src/github.com/g8os/fs/config/config.toml", "$tmplsDir/cfg/fs")
+        self.cuisine.core.file_download("https://stor.jumpscale.org/storx/static/js8_opt.flist", self.cuisine.core.args_replace("$tmplsDir/cfg/fs/js8_opt.flist"))
         if start:
             self._startFs()
 
@@ -360,13 +363,11 @@ class CuisineBuilder(object):
         self.cuisine.core.dir_remove("$tmplsDir/cfg/core/extensions")
         self.cuisine.core.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
         self.cuisine.core.file_copy("%s/g8os.toml" % sourcepath, "$tmplsDir/cfg/core")
+        self.cuisine.core.file_copy("%s/conf" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/core/conf/")
         self.cuisine.core.file_copy("{0}sshd.toml {0}basic.toml {0}sshd.toml".format(sourcepath+"/conf/"), "$tmplsDir/cfg/core/conf/", recursive=True)
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/core/extensions/syncthing")
-        self.cuisine.core.file_copy("$binDir/syncthing", "$tmplsDir/cfg/core/extensions/syncthing/")
-
-
-
+        self.cuisine.core.file_copy("$binDir/syncthing", "$tmplsDir/cfg/core/extensions/syncthing/") 
 
         # self.cuisine.core.dir_ensure("$cfgDir/agent8/agent8/conf", recursive=True)
 
@@ -407,7 +408,7 @@ class CuisineBuilder(object):
 
         #file copy
         self.cuisine.core.dir_remove("$tmplsDir/cfg/controller/extensions")
-        self.cuisine.core.file_copy("%s/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscale" % self.cuisine.core.dir_paths["codeDir"], "$tmplsDir/cfg/controller/jumpscripts/", recursive=True)
+        self.cuisine.core.file_copy("%s/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale" % self.cuisine.core.dir_paths["codeDir"], "$tmplsDir/cfg/controller/jumpscripts/", recursive=True)
         self.cuisine.core.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/controller/extensions", recursive=True)
 
         if start:
@@ -421,11 +422,11 @@ class CuisineBuilder(object):
             self.cuisine.fw.allowIncoming(80)
 
             if self.cuisine.process.tcpport_check(80,"") or self.cuisine.process.tcpport_check(443,""):
-                raise RuntimeError("port 80 or 443 are occupied, cannot install caddy")
+                raise j.exceptions.RuntimeError("port 80 or 443 are occupied, cannot install caddy")
 
         else:
             if self.cuisine.process.tcpport_check(80,""):
-                raise RuntimeError("port 80 is occupied, cannot install caddy")
+                raise j.exceptions.RuntimeError("port 80 is occupied, cannot install caddy")
 
             PORTS = ":80"
             self.cuisine.fw.allowIncoming(80)
@@ -437,7 +438,7 @@ class CuisineBuilder(object):
         self.cuisine.processmanager.ensure("skydns",cmd + " -addr 0.0.0.0:53")
 
     def _startFs(self):
-        self.cuisine.core.file_copy("$tmplsDir/cfg/fs", "$cfgDir", recursive=True)
+        self.cuisine.core.file_copy("$tmplsDir/cfg/fs/", "$cfgDir", recursive=True)
         self.cuisine.processmanager.ensure('fs', cmd="$binDir/fs -c $cfgDir/fs/config.toml")
 
     def _startSyncthing(self):
@@ -459,7 +460,7 @@ class CuisineBuilder(object):
 
             self.cuisine.fw.allowIncoming(port)
             if self.cuisine.process.tcpport_check(port,""):
-                raise RuntimeError("port %d is occupied, cannot start stor" % port)
+                raise j.exceptions.RuntimeError("port %d is occupied, cannot start stor" % port)
 
         self.cuisine.core.dir_ensure("$cfgDir/stor/", recursive=True)
         self.cuisine.core.file_copy("$tmplsDir/cfg/stor/config.toml", "$cfgDir/stor/")
@@ -562,7 +563,7 @@ class CuisineBuilder(object):
                 print("restablishing connection to syncthing")
 
         if syn_id is None:
-            raise RuntimeError('Syncthing is not responding. Exiting.')
+            raise j.exceptions.RuntimeError('Syncthing is not responding. Exiting.')
 
         jumpscripts_id = "jumpscripts-%s" % hashlib.md5(syn_id.encode()).hexdigest()
         synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
@@ -732,7 +733,7 @@ class CuisineBuilder(object):
             elif self.cuisine.core.isMac: #@todo better platform mgmt
                 url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
             else:
-                raise RuntimeError("unsupported platform")
+                raise j.exceptions.RuntimeError("unsupported platform")
                 return
 
             if url:

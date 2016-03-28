@@ -47,11 +47,11 @@ if opts.action == 'removebridges':
 
 if opts.action == 'init':
     if opts.ipaddr == None:
-        raise RuntimeError("ipaddr needs to be specified")
+        raise j.exceptions.RuntimeError("ipaddr needs to be specified")
     if opts.iface == None:
         raise RuntimeError * ("interface needs to be specified e.g. eth0")
     if opts.backplanename == None:
-        raise RuntimeError("backplanename needs to be specified")
+        raise j.exceptions.RuntimeError("backplanename needs to be specified")
     if opts.gw == "":
         nc.setBackplane(interfacename=opts.iface, backplanename=opts.backplanename, ipaddr=opts.ipaddr)
     else:
@@ -60,11 +60,11 @@ if opts.action == 'init':
 
 if opts.action == 'initbond':
     if opts.ipaddr == None:
-        raise RuntimeError("ipaddr needs to be specified")
+        raise j.exceptions.RuntimeError("ipaddr needs to be specified")
     if opts.ifaces == None:
-        raise RuntimeError("interfaces need to be specified e.g. \"eth0,eth1\"")
+        raise j.exceptions.RuntimeError("interfaces need to be specified e.g. \"eth0,eth1\"")
     if opts.backplanename == None:
-        raise RuntimeError("backplanename needs to be specified")
+        raise j.exceptions.RuntimeError("backplanename needs to be specified")
     if opts.bondname is None:
         # set to reasonable default
         bondname = "bond-%s" % opts.backplanename
@@ -85,9 +85,9 @@ if opts.action == 'initbond':
 
 if opts.action == 'initdhcp':
     if opts.iface == None:
-        raise RuntimeError("interface needs to be specified e.g. eth0")
+        raise j.exceptions.RuntimeError("interface needs to be specified e.g. eth0")
     if opts.backplanename == None:
-        raise RuntimeError("backplanename needs to be specified")
+        raise j.exceptions.RuntimeError("backplanename needs to be specified")
     nc.setBackplaneDhcp(interfacename=opts.iface, backplanename=opts.backplanename)
     opts.action = 'applyconfig'
 
@@ -102,9 +102,9 @@ if opts.action == 'applyconfig':
 
 if opts.action == 'addvxlans':
     if opts.backplanename == None:
-        raise RuntimeError("backplanename needs to be specified")
+        raise j.exceptions.RuntimeError("backplanename needs to be specified")
     if opts.networkids == None:
-        raise RuntimeError("Networkids need to be specified")
+        raise j.exceptions.RuntimeError("Networkids need to be specified")
     import libvirt
 
     conn = libvirt.open()

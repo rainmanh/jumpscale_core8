@@ -39,14 +39,14 @@ class Ubuntu:
                 info = lsb_release.get_distro_information()['ID']
                 release = lsb_release.get_distro_information()['RELEASE']
                 if info != 'Ubuntu' and info !='LinuxMint':
-                    raise RuntimeError("Only ubuntu or mint supported.")
+                    raise j.exceptions.RuntimeError("Only ubuntu or mint supported.")
                 if not (release.startswith("14") or release.startswith("15")):
-                    raise RuntimeError("Only ubuntu version 14+ supported")
+                    raise j.exceptions.RuntimeError("Only ubuntu version 14+ supported")
                 self._checked = True
             except ImportError:
                 self._checked = False
                 if die:
-                    raise RuntimeError("Only ubuntu or mint supported.")
+                    raise j.exceptions.RuntimeError("Only ubuntu or mint supported.")
         return self._checked
 
     def version_get(self):
@@ -79,7 +79,7 @@ class Ubuntu:
                 return
             result, out = self._local.execute("which %s" % cmdname, False)
             if result != 0:
-                raise RuntimeError("Could not install package %s and check for command %s." % (packagename, cmdname))
+                raise j.exceptions.RuntimeError("Could not install package %s and check for command %s." % (packagename, cmdname))
 
     def apt_install(self, packagename):
 
@@ -268,8 +268,8 @@ stop on runlevel [016]
         if len(res)==1:
             return res[0]
         elif len(res)>1:
-            raise RuntimeError("Found more than 1 package for %s"%packagename)
-        raise RuntimeError("Could not find package %s"%packagename)
+            raise j.exceptions.RuntimeError("Found more than 1 package for %s"%packagename)
+        raise j.exceptions.RuntimeError("Could not find package %s"%packagename)
 
     def apt_sources_list(self):
         from aptsources import sourceslist

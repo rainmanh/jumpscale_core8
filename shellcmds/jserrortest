@@ -4,7 +4,7 @@ from JumpScale import j
 j.application.appname = "jumpscale:jserrortest"
 j.application.start()
 
-raise RuntimeError("this is a dummy test error")
+raise j.exceptions.RuntimeError("this is a dummy test error")
 
 j.application.stop()
 

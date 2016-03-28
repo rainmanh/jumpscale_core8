@@ -205,7 +205,7 @@ class ActionsBaseNode():
                 j.tools.cuisine.local.tmux.executeInScreen(domain,name,tcmd+" "+targs,cwd=cwd, env=env,user=tuser)#, newscr=True)
 
             else:
-                raise RuntimeError("startup method not known or disabled:'%s'"%startupmethod)
+                raise j.exceptions.RuntimeError("startup method not known or disabled:'%s'"%startupmethod)
 
 
 
@@ -380,7 +380,7 @@ class ActionsBaseNode():
                     filterstr=process["filterstr"].strip()
 
                     if filterstr=="":
-                        raise RuntimeError("Process filterstr cannot be empty.")
+                        raise j.exceptions.RuntimeError("Process filterstr cannot be empty.")
 
                     start = j.data.time.getTimeEpoch()
                     now = start
@@ -428,7 +428,7 @@ class ActionsBaseNode():
                 #no ports defined
                 filterstr=process["filterstr"].strip()
                 if filterstr=="":
-                    raise RuntimeError("Process filterstr cannot be empty.")
+                    raise j.exceptions.RuntimeError("Process filterstr cannot be empty.")
                 return j.sal.process.checkProcessRunning(filterstr)==False
 
         for process in self.service.getProcessDicts():
@@ -524,7 +524,7 @@ class ActionsBaseNode():
             print('download flist file back into template directory')
             dockerExecutor.download("/tmp/aysfs/md/*", self.path)
         except Exception as e:
-            error=j.errorconditionhandler.parsePythonErrorObject(e)
+            error=j.errorconditionhandler.parsePythonExceptionObject(e)
             eco.getBacktraceDetailed()
         finally:
             if debug==False:

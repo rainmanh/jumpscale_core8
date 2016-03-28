@@ -38,7 +38,7 @@ class InfluxdbFactory:
         url='http://%s:%s/write?db=%s&precision=s'%(host,port,database)
         r = requests.post(url, data=data,auth=HTTPBasicAuth(username, password))
         if r.content!="":
-            raise RuntimeError("Could not send data to influxdb.\n%s\n############\n%s"%(data,r.content))
+            raise j.exceptions.RuntimeError("Could not send data to influxdb.\n%s\n############\n%s"%(data,r.content))
         
 
         

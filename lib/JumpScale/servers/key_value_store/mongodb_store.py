@@ -15,7 +15,7 @@ def chunks(l, n):
 
 class MongoDBKeyValueStore(KeyValueStoreBase):
     def __init__(self,namespace="",host='localhost',port=7771,db=0,password='', serializers=[],masterdb=None, changelog=True):
-        raise RuntimeError("not implemented")
+        raise j.exceptions.RuntimeError("not implemented")
         self.namespace = namespace
 
         self.db = MongoClient()
@@ -45,7 +45,7 @@ class MongoDBKeyValueStore(KeyValueStoreBase):
             
             self.redisclient.set(categoryKey, value)
         else:
-            raise RuntimeError("Only support dicts in set")
+            raise j.exceptions.RuntimeError("Only support dicts in set")
 
     def delete(self, category, key):
         if self.hasmaster:

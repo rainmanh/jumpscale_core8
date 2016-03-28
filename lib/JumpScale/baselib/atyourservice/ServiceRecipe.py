@@ -38,11 +38,11 @@ class ServiceRecipe(ServiceTemplate):
 
         aysrepopath = j.atyourservice.basepath
         if not aysrepopath:
-            raise RuntimeError("A service instance can only be used when used from a ays repo")
+            raise j.exceptions.RuntimeError("A service instance can only be used when used from a ays repo")
 
         if path != "":
             if not j.sal.fs.exists(path):
-                raise RuntimeError("Could not find path for recipe")
+                raise j.exceptions.RuntimeError("Could not find path for recipe")
             self.path = path
             name = self.state.hrd.get("template.name")
             domain = self.state.hrd.get("template.domain")
@@ -78,6 +78,7 @@ class ServiceRecipe(ServiceTemplate):
         self._copyActions()
 
 
+
     def _checkdef(self, actionmethod, content, property=False):
         if not property:
             a = ActionMethod(self, actionmethod, content)
@@ -96,15 +97,12 @@ class ServiceRecipe(ServiceTemplate):
     def _copyActions(self):
         self._out = """
         from JumpScale import j
-
         ActionMethodDecorator=j.atyourservice.getActionMethodDecorator()
         class actionmethod(ActionMethodDecorator):
             def __init__(self,*args,**kwargs):
                 ActionMethodDecorator.__init__(self,*args,**kwargs)
                 self.selfobjCode="service=j.atyourservice.getService(role='$(service.role)', instance='$(service.instance)', die=True);selfobj=service.actions;selfobj.service=service"
-
         class Actions():
-
         """
         self._out = j.data.text.strip(self._out)
 
@@ -250,7 +248,7 @@ class ServiceRecipe(ServiceTemplate):
             for src, dest, link in items:
                 delete = recipeitem.get('overwrite', 'true').lower() == "true"
                 if dest.strip() == "":
-                    raise RuntimeError(
+                    raise j.exceptions.RuntimeError(
                         "a dest in coderecipe cannot be empty for %s" % self)
                 if dest[0] != "/":
                     dest = "/%s" % dest

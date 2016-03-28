@@ -101,14 +101,14 @@ def change_uid_gid(uid, gid):
         gids = set(gids)
 
         if not hasattr(os, 'setgroups'):
-            raise RuntimeError('setgroups() not available on this platform')
+            raise j.exceptions.RuntimeError('setgroups() not available on this platform')
 
         os.setgroups(tuple(gids))
 
     # Note: we need to call setgid() before calling setuid() because it might be
     # possible setgid() fails once we impersonated another user
     if gid is not None and not hasattr(os, 'setgid'):
-        raise RuntimeError('GID provided but setgid() not available on this '
+        raise j.exceptions.RuntimeError('GID provided but setgid() not available on this '
                            'platform')
     if gid is not None:
         os.setgid(gid)
@@ -116,14 +116,14 @@ def change_uid_gid(uid, gid):
     if uid is not None and gid is None:
         # Set primary group to GID of given UID
         if not hasattr(os, 'setgid'):
-            raise RuntimeError('setgid() not available on this platform')
+            raise j.exceptions.RuntimeError('setgid() not available on this platform')
 
         import pwd
         user = pwd.getpwuid(uid)
         os.setgid(user.pw_gid)
 
     if uid is not None and not hasattr(os, 'setuid'):
-        raise RuntimeError('UID provided by setuid() not available on this '
+        raise j.exceptions.RuntimeError('UID provided by setuid() not available on this '
                            'platform')
     if uid is not None:
         os.setuid(uid)
@@ -179,7 +179,7 @@ def daemonize(stdout, stderr, chdir='/', umask=0):
     '''
     #pylint: disable-msg=R0912
     if not hasattr(os, 'fork'):
-        raise RuntimeError(
+        raise j.exceptions.RuntimeError(
                 'os.fork not found, daemon mode not supported on your system')
 
     def check_output_permissions(file_):
@@ -219,11 +219,11 @@ def daemonize(stdout, stderr, chdir='/', umask=0):
                     user = None
 
                 if user:
-                    raise RuntimeError('User %s has no permissions to open '
+                    raise j.exceptions.RuntimeError('User %s has no permissions to open '
                                        'file \'%s\' for writing' % \
                                        (user, file_))
                 else:
-                    raise RuntimeError('Current user has no permissions to '
+                    raise j.exceptions.RuntimeError('Current user has no permissions to '
                                        'open file \'%s\' for writing' % file_)
             else:
                 raise
@@ -329,17 +329,17 @@ def main():
 
     #Only parse until a '--' argument
     if not '--' in sys.argv:
-        raise RuntimeError('No -- argument found')
+        raise j.exceptions.RuntimeError('No -- argument found')
 
     begin_idx = 0 if sys.argv[0] != '-c' else 1
     options, args = parser.parse_args(
         args=sys.argv[begin_idx:sys.argv.index('--')])
 
     if not options.daemonize and options.stdout:
-        raise RuntimeError('Stdout redirection is not available in '
+        raise j.exceptions.RuntimeError('Stdout redirection is not available in '
                            'foreground mode')
     if not options.daemonize and options.stderr:
-        raise RuntimeError('Stderr redirection is not available in '
+        raise j.exceptions.RuntimeError('Stderr redirection is not available in '
                            'foreground mode')
 
     if options.stdout and not os.path.isdir(os.path.dirname(options.stdout)):

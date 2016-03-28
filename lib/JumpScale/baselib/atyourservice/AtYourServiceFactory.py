@@ -35,7 +35,7 @@ class AtYourServiceFactory():
         self.sync = AtYourServiceSync()
         self._reposDone = {}
         self._todo = []
-        self.debug=True
+        self.debug=j.core.db.get("atyourservice.debug")==1
         self._basepath=None
         self._git=None
         self._blueprints=[]
@@ -215,6 +215,7 @@ class AtYourServiceFactory():
         if self._blueprints==[]:
             items=j.sal.fs.listFilesInDir(self.basepath+"/blueprints")
             items=[item for item in items if item.find("_archive")==-1]
+            items=[item for item in items if item[0]!="_"]
             items.sort()
             for path in items:
                 self._blueprints.append(Blueprint(path))
@@ -266,7 +267,7 @@ class AtYourServiceFactory():
             for domain in list(items.keys()):
                 url=items[domain]['url']
                 if url.strip()=="":
-                    raise RuntimeError("url cannot be empty")
+                    raise j.exceptions.RuntimeError("url cannot be empty")
                 branch=items[domain].get('branch', 'master')
                 reponame=url.rpartition("/")[-1]
                 if not reponame in list(repos.keys()):
@@ -341,7 +342,7 @@ class AtYourServiceFactory():
 
     def getRoleTemplateClass(self, role, ttype):
         if role not in self.roletemplates:
-            raise RuntimeError('Role template %s does not exist' % role)
+            raise j.exceptions.RuntimeError('Role template %s does not exist' % role)
         roletemplatepaths = self.roletemplates[role]
         for roletemplatepath in roletemplatepaths:
             if ttype in j.sal.fs.getBaseName(roletemplatepath):
@@ -352,7 +353,7 @@ class AtYourServiceFactory():
 
     def getRoleTemplateHRD(self, role):
         if role not in self.roletemplates:
-            raise RuntimeError('Role template %s does not exist' % role)
+            raise j.exceptions.RuntimeError('Role template %s does not exist' % role)
         roletemplatepaths = self.roletemplates[role]
         hrdpaths = [path for path in roletemplatepaths if j.sal.fs.getFileExtension(path) == 'hrd']
         if hrdpaths:

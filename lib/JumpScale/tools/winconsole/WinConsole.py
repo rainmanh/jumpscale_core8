@@ -13,7 +13,7 @@ class WinConsole():
         """
         self.__jslocation__ = "j.tools.winconsole"
         if not  j.core.platformtype.myplatform.isWindows():
-            raise RuntimeError("Only supported on windows.")
+            raise j.exceptions.RuntimeError("Only supported on windows.")
         self.configpath=j.sal.fs.joinPaths(j.dirs.tmpDir,"consolecfg",str(j.data.idgenerator.generateRandomInt(1,1000))+".xml")
         self.config="""
 

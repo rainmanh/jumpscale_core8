@@ -124,7 +124,7 @@ class CuisineSystemd(ProcessManagerBase):
     def startAll(self):
         if self.systemdOK:
             #@todo (*1*) start all cuisine services
-            raise RuntimeError("not implemented, please do")
+            raise j.exceptions.RuntimeError("not implemented, please do")
         else:
             for key in j.core.db.hkeys("processcmds"):
                 key=key.decode()

@@ -74,7 +74,7 @@ class CuisineInstaller(object):
         self.cuisine.core.run_script(C, action=True,force=True)
 
         if not self.cuisine.core.isUbuntu:
-            raise RuntimeError("not supported yet")
+            raise j.exceptions.RuntimeError("not supported yet")
 
         if reset:
             C = """

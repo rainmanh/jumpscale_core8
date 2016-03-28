@@ -72,7 +72,7 @@ class CuisineBootMediaInstaller(object):
                     devs.append((dev, size))
 
         if len(devs) == 0:
-            raise RuntimeError(
+            raise j.exceptions.RuntimeError(
                 "could not find flash disk device, (need to find at least 1 of 8,16 or 32 GB size)" % devs)
         return devs
 

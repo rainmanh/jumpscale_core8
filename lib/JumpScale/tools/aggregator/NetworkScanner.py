@@ -8,7 +8,7 @@ class NetworkScanner(object):
     def __init__(self, cidr, port=80):
         code, _ = j.sal.process.execute('which nmap', outputToStdout=False, die=False)
         if code != 0:
-            raise RuntimeError('nmap is not installed')
+            raise j.exceptions.RuntimeError('nmap is not installed')
 
         self._port = port
         self._cidr = cidr
@@ -19,7 +19,7 @@ class NetworkScanner(object):
         cmd = self.COMMAND.format(port=self._port, cidr=self._cidr)
         code, output = j.sal.process.execute(cmd, outputToStdout=False, die=False)
         if code != 0:
-            raise RuntimeError('nmap scan failed')
+            raise j.exceptions.RuntimeError('nmap scan failed')
 
         regex = re.compile(r'^Host: ([^\(]+) .+Ports: %d/open' % self._port, re.MULTILINE)
         hosts = []

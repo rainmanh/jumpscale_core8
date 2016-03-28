@@ -13,7 +13,7 @@ class TLS(SALObject):
         elif path is not None:
             self.cwd = j.tools.path.get(path)
         else:
-            raise RuntimeError('TLS must be initialized with either the cfsslService or path')
+            raise j.exceptions.RuntimeError('TLS must be initialized with either the cfsslService or path')
 
     def askSubjects(self):
         """

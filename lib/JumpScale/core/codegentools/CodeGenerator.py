@@ -198,7 +198,7 @@ class CodeGenerator:
         else:
             emsg = "Could not generate code of type %s (did not find) for spec appname:%s actorname:%s type:%s name:%s " % \
                 (type, spec.appname, spec.actorname, type, spec.name)
-            raise RuntimeError(emsg + " {category:spec.generate}")
+            raise j.exceptions.RuntimeError(emsg + " {category:spec.generate}")
 
         code = cg.generate()
 

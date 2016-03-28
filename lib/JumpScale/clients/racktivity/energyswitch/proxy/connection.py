@@ -156,7 +156,7 @@ class BlockingConnection(object):
         data = url_f.read()
         url_f.close()
         if url_f.code != 200:
-            raise RuntimeError("Server fault code %s message %s" % (url_f.code, data))
+            raise j.exceptions.RuntimeError("Server fault code %s message %s" % (url_f.code, data))
         return data
 
     def getDetailedBinaryLog(self, module, starttime, stoptime, filename):
@@ -169,7 +169,7 @@ class BlockingConnection(object):
 
         if url_f.code != 200:
             url_f.close()
-            raise RuntimeError("Server fault code %s" % (url_f.code))
+            raise j.exceptions.RuntimeError("Server fault code %s" % (url_f.code))
         else:
             with open(filename, 'wb') as fp:
                 while True:

@@ -92,7 +92,7 @@ class Container(SALObject):
         @return [["$name",$pid,$mem,$parent],....,[$mem,$cpu]]
         last one is sum of mem & cpu
         """
-        raise RuntimeError("not implemented")
+        raise j.exceptions.RuntimeError("not implemented")
         pid = self.getPid()
         children = list()
         children = self._getChildren(pid, children)
@@ -120,7 +120,7 @@ class Container(SALObject):
         return result
 
     def installJumpscale(self, branch="master"):
-        raise RuntimeError("not implemented")
+        raise j.exceptions.RuntimeError("not implemented")
         # print("Install jumpscale8")
         # # c = self.getSSH(name)
         #
@@ -307,7 +307,7 @@ class Container(SALObject):
     #     return self._execute(cmd)
 
     # def btrfsSubvolList(self):
-    #     raise RuntimeError("not implemented")
+    #     raise j.exceptions.RuntimeError("not implemented")
     #     out=self._btrfsExecute("subvolume list %s"%self.basepath)
     #     res=[]
     #     for line in out.split("\n"):
@@ -321,28 +321,28 @@ class Container(SALObject):
     #     return res
 
     # def btrfsSubvolNew(self,name):
-    #     raise RuntimeError("not implemented")
+    #     raise j.exceptions.RuntimeError("not implemented")
     #     if not self.btrfsSubvolExists(name):
     #         cmd="subvolume create %s/%s"%(self.basepath,name)
     #         self._btrfsExecute(cmd)
 
     # def btrfsSubvolCopy(self,nameFrom,NameDest):
-    #     raise RuntimeError("not implemented")
+    #     raise j.exceptions.RuntimeError("not implemented")
     #     if not self.btrfsSubvolExists(nameFrom):
-    #         raise RuntimeError("could not find vol for %s"%nameFrom)
+    #         raise j.exceptions.RuntimeError("could not find vol for %s"%nameFrom)
     #     if j.sal.fs.exists(path="%s/%s"%(self.basepath,NameDest)):
-    #         raise RuntimeError("path %s exists, cannot copy to existing destination, destroy first."%nameFrom)
+    #         raise j.exceptions.RuntimeError("path %s exists, cannot copy to existing destination, destroy first."%nameFrom)
     #     cmd="subvolume snapshot %s/%s %s/%s"%(self.basepath,nameFrom,self.basepath,NameDest)
     #     self._btrfsExecute(cmd)
 
     # def btrfsSubvolExists(self,name):
-    #     raise RuntimeError("not implemented")
+    #     raise j.exceptions.RuntimeError("not implemented")
     #     subvols=self.btrfsSubvolList()
     #     # print subvols
     #     return name in subvols
 
     # def btrfsSubvolDelete(self,name):
-    #     raise RuntimeError("not implemented")
+    #     raise j.exceptions.RuntimeError("not implemented")
     #     if self.btrfsSubvolExists(name):
     #         cmd="subvolume delete %s/%s"%(self.basepath,name)
     #         self._btrfsExecute(cmd)
@@ -350,4 +350,4 @@ class Container(SALObject):
     #     if j.sal.fs.exists(path=path):
     #         j.sal.fs.removeDirTree(path)
     #     if self.btrfsSubvolExists(name):
-    #         raise RuntimeError("vol cannot exist:%s"%name)
+    #         raise j.exceptions.RuntimeError("vol cannot exist:%s"%name)

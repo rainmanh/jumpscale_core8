@@ -93,7 +93,7 @@ if opts.action == 'add' or opts.action == 'set':
     if opts.data is not None:
         splitted = opts.data.split(":")
         if len(splitted) != 5:
-            raise RuntimeError(
+            raise j.exceptions.RuntimeError(
                 "error, format for param data needs to be: username:passwd:group1,group2:email1,email2:domain")
         name, passwd, groups, emails, domain = splitted
         groups = groups.split(",")

@@ -115,7 +115,7 @@ class HRDSchema():
             print ("ERROR in schema:%s"%self.path)
         else:
             print ("ERROR in schema:\n%s"%self.content)
-        raise RuntimeError(msg)
+        raise j.exceptions.RuntimeError(msg)
 
     def process(self,content):
         for line in content.split("\n"):
@@ -200,10 +200,10 @@ class HRDSchema():
                 hrdtype.consume_link=c
                 hrdtype.parent=c
 
-            if tags.labelExists("parentauto"):
+            if tags.labelExists("auto"):
                 hrdtype.auto = True
 
-            if tags.labelExists("consumeauto"):
+            if tags.labelExists("auto"):
                 hrdtype.auto = True
 
             if tags.tagExists("minval"):

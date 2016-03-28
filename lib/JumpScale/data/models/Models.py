@@ -50,7 +50,7 @@ class ModelBase():
     def find(cls, query):
         redis = getattr(cls, '__redis__', False)
         if redis:
-            raise RuntimeError("not implemented")
+            raise j.exceptions.RuntimeError("not implemented")
         else:
             return cls.objects(__raw__=query)
 

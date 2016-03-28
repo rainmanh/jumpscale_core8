@@ -48,7 +48,7 @@ class Sheets(j.tools.code.classGetBase()):
                     sumvalue = 0.0
                     for sheet in sheets:
                         if sheet.rows[rowname].cells[x] == None:
-                            raise RuntimeError("could not aggregate sheet%s row:%s, found None value" % (sheet.name, rowname))
+                            raise j.exceptions.RuntimeError("could not aggregate sheet%s row:%s, found None value" % (sheet.name, rowname))
                         sumvalue += sheet.rows[rowname].cells[x]
                     rowdest.cells[x] = sumvalue
         return sheettotal

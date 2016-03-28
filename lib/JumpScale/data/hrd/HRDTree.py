@@ -22,14 +22,14 @@ class HRDTree(HRDBase):
     def add2treeFromContent(self,content):
         hrd=HRD("",treeposition,self,prefixWithName=self.prefixWithName,keepformat=self.keepformat)
         self.hrds.append(hrd)
-        hrdpos=len(self.hrds)-1        
+        hrdpos=len(self.hrds)-1
         hrd.process(content)
 
     def add2tree(self,path,recursive=True):
         paths= j.sal.fs.listFilesInDir(path, recursive=True, filter="*.hrd")
-        
+
         for pathfound in paths:
-            j.data.hrd.log("Add hrd %s" % (pathfound), level=7, category="load")                        
+            j.data.hrd.logger.debug("Add hrd %s" % (pathfound))
             hrd=HRD(pathfound,self,prefixWithName=self.prefixWithName,keepformat=self.keepformat)
             self.hrds.append(hrd)
 
@@ -53,5 +53,5 @@ class HRDTree(HRDBase):
             val=default
         else:
             val= self.items[key].get()
-        j.data.hrd.log("hrd get '%s':'%s'"%(key,val))
+        j.data.hrd.logger.debug("hrd get '%s':'%s'"%(key,val))
         return val

@@ -22,6 +22,7 @@ class AtYourServiceFactory():
 
     def __init__(self):
         self.__jslocation__ = "j.atyourservice"
+        self.logger = j.logger.get("j.atyourservice")
 
         self._init = False
         self._domains = []
@@ -250,7 +251,7 @@ class AtYourServiceFactory():
             j.actions.setRunId("ays_%s"%j.sal.fs.getBaseName(j.atyourservice.basepath))
             # j.actions.reset()
 
-            j.logger.consolelogCategories.append("AYS")
+            # j.logger.consolelogCategories.append("AYS")
 
             # j.do.debug=True
 
@@ -299,7 +300,7 @@ class AtYourServiceFactory():
         for bp in self.blueprints:
             bp.execute()
 
-        print ("init done")
+        self.logger.debug('init done')
 
     def createAYSRepo(self, path):
         j.sal.fs.createDir(path)
@@ -337,7 +338,7 @@ class AtYourServiceFactory():
 
     def getBlueprint(self,path):
         if not j.sal.fs.exists(path):
-            path=self.basepath+"/"+path        
+            path=self.basepath+"/"+path
         return Blueprint(path)
 
     def getRoleTemplateClass(self, role, ttype):
@@ -671,7 +672,7 @@ class AtYourServiceFactory():
 
         """
         domain, name, version, instance, role = self.parseKey(key)
-        
+
         return self.getService(instance=instance,role=role, die=True)
 
     def parseKey(self, key):

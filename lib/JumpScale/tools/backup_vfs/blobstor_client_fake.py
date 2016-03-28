@@ -12,6 +12,7 @@ class BlobStorClientFake:
     """
 
     def __init__(self, master, domain, namespace, host='localhost', port=9400):
+        self.logger = j.logget.get('j.tools.backup_blobstor.client_fake')
         self.master=master
         self.domain=domain
         self.namespace=namespace
@@ -54,15 +55,15 @@ class BlobStorClientFake:
         try:
             r = requests.post(url, files=files)
         except Exception as e:
-            j.logger.log("Could not post file. Exception is: %s" % e)
+            self.logger.debug("Could not post file. Exception is: %s" % e)
             return None
         # weed-fs returns a 200 but the content may contain an error
         result = j.data.serializer.json.loads(r.content)
         if r.status_code == 200:
             if 'error' in result:
-                j.logger.log(result['error'])
+                self.logger.warn(result['error'])
             else:
-                j.logger.log(result)
+                self.logger.debug(result)
 
         return result
 
@@ -168,7 +169,7 @@ class BlobStorClientFake:
         j.sal.process.execute(cmd)
         j.sal.fs.remove(tarpath)
 
-    def uploadFile(self,path,key="",repoid=0,compress=None):        
+    def uploadFile(self,path,key="",repoid=0,compress=None):
         if key=="":
             key=j.data.hash.md5(path)
         self.redis.rpush('files.%s' % key, j.sal.fs.getBaseName(path))
@@ -185,7 +186,7 @@ class BlobStorClientFake:
             #     out += hashparts
             #     # Store in blobstor
             #     # out_hash = self._dump2stor(out,key=md5) #hashlist is stored on md5 location of file
-            #     self.set(key=key, data=out,repoid=repoid)   
+            #     self.set(key=key, data=out,repoid=repoid)
             # else:
             #     raise j.exceptions.RuntimeError("hashist needs to be more than 1.")
         else:
@@ -221,22 +222,22 @@ class BlobStorClientFake:
             self._downloadbatch[jid]=(jid,key,dest,link,repoid,chmod,chownuid,chowngid)
             self._downloadbatchSize+=int(size)
         else:
-            # Get blob from blobstor2 
+            # Get blob from blobstor2
             if key != "":
                 key,serialization,blob = self.get( key,repoid=repoid,sync=True)
                 self._downloadFilePhase2(blob,dest,key,chmod,chownuid,chowngid,link,serialization)
 
 
     # def downloadBatch(self):
-    #     self._send()        
+    #     self._send()
     #     jids=self._downloadbatch.keys()
     #     self.blobstor._cmdchannel.send_multipart([msgpack.dumps([[0,"getresults",{},jids]]),"S",str(60),self.blobstor.sessionkey])
     #     res= self.blobstor._cmdchannel.recv_multipart()
-       
+
     #     for item in res:
     #         if item=="":
     #             continue
-    #         else:                
+    #         else:
     #             jid,rcode,result=msgpack.loads(item)
     #             if rcode==0:
     #                 jid,key,dest,link,repoid,chmod,chownuid,chowngid=self._downloadbatch[jid]
@@ -245,7 +246,7 @@ class BlobStorClientFake:
     #                     raise j.exceptions.RuntimeError("Keys need to be the same")
     #                 blob=result[2]
     #                 serialization=result[1]
-                    
+
     #                 self._downloadFilePhase2(blob,dest,key,chmod,chownuid,chowngid,link,serialization)
     #             else:
     #                 ##TODO
@@ -253,13 +254,13 @@ class BlobStorClientFake:
 
     #     self._downloadbatchSize=0
     #     self._downloadbatch={}
-            
+
     def _downloadFilePhase2(self,blob,dest,key,chmod,chownuid,chowngid,link,serialization):
         if key=="":
             return
         if blob==None:
             raise j.exceptions.RuntimeError("Cannot find blob with key:%s"%key)
-                
+
         if self.cachepath != "":
             blob_path = self._getBlobCachePath(key)
             self._restoreBlobToDest(blob_path, blob, chmod=chmod,chownuid=chownuid,chowngid=chowngid,serialization=serialization)
@@ -268,9 +269,9 @@ class BlobStorClientFake:
             if link:
                 self._link(blob_path,dest)
             else:
-                j.sal.fs.copyFile(blob_path, dest)            
-                os.chmod(dest, chmod) 
-                os.chown(dest, chownuid, chowngid) 
+                j.sal.fs.copyFile(blob_path, dest)
+                os.chmod(dest, chmod)
+                os.chown(dest, chownuid, chowngid)
         else:
             self._restoreBlobToDest(dest, blob, chmod=chmod,chownuid=chownuid,chowngid=chowngid,serialization=serialization)
 
@@ -293,14 +294,14 @@ class BlobStorClientFake:
         if blob.find(check)==0:
             # found hashlist
             # print "FOUND HASHLIST %s" % blob
-            hashlist = blob[len(check) + 1:]            
+            hashlist = blob[len(check) + 1:]
             j.sal.fs.writeFile(dest,"")
             for hashitem in hashlist.split("\n"):
                 if hashitem.strip() != "":
                     key,serialization,blob_block = self.get(hashitem)
                     if serialization=="L":
                          blob_block= lzma.decompress(blob_block)
-                    j.sal.fs.writeFile(dest, blob_block, append=True)                        
+                    j.sal.fs.writeFile(dest, blob_block, append=True)
         else:
             # content is there
             if serialization=="L":
@@ -311,7 +312,7 @@ class BlobStorClientFake:
         if chmod != 0:
             os.chmod(dest,chmod)
         if chownuid != 0:
-            os.chown(dest,chownuid,chowngid)       
+            os.chown(dest,chownuid,chowngid)
 
     def _link(self, src, dest):
         if dest=="":

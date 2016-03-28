@@ -157,9 +157,10 @@ def findjumpscalelocations(path):
             classname=line.replace("class ","").split(":")[0].split("(",1)[0].strip()
         if line.find("self.__jslocation__")!=-1:
             if classname==None:
-                raise j.exceptions.RuntimeError("Could not find class in %s while loading jumpscale lib."%path)
+                raise RuntimeError("Could not find class in %s while loading jumpscale lib."%path)
             location=line.split("=",1)[1].replace("\"","").replace("'","").strip()
-            res.append((classname,location))
+            if location.find("self.__jslocation__") == -1:
+                res.append((classname,location))
     return res
 
 import json
@@ -201,7 +202,7 @@ def findModules():
                     # print("classfile:%s"%classfile)
                     if classname!=None:
                         loc=".".join(location.split(".")[:-1])
-                        print ("location:%s"%(location))
+                        # print ("location:%s"%(location))
                         item=location.split(".")[-1]
                         if loc not in result:
                             result[loc]=[]
@@ -241,9 +242,7 @@ else:
 
 locations=json.loads(data)
 # print ("LEN:%s"%len(locations))
-
 for locationbase,llist in locations.items():  #locationbase is e.g. j.sal
-    # print (locationbase)
     loader=locationbases[locationbase]
     for classfile,classname,item in llist:
         # print (" - %s|%s|%s"%(item,classfile,classname))
@@ -260,5 +259,3 @@ if data==None:
 j.application.init()
 
 # j.tools.xonsh
-
-

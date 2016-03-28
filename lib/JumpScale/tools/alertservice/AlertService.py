@@ -25,6 +25,7 @@ class AlertService(object):
 
     def __init__(self):
         self.__jslocation__ = "j.tools.alertservice"
+        self.logger = j.logger.get('j.tools.alertservice')
         # self.rediscl = j.clients.redis.getByInstance('system')
         self.rediscl = j.core.db
         self.alertqueue = self.rediscl.getQueue('alerts')
@@ -34,9 +35,6 @@ class AlertService(object):
         self.loadHandlers()
         # TODO (*3*) ---> get mongoengine connection from AYS
         j.data.models.system.connect2mongo()
-
-    def log(self, message, level=1):
-        j.logger.log(message, level, 'alerter')
 
     def getUsersForLevel(self, level):
         groupname = "level%s" % level
@@ -78,15 +76,15 @@ class AlertService(object):
     def escalateHigher(self, alert):
         self.timers.pop(alert['guid'], None)
         message = "Took too long to be Accepted"
-        self.log(message + " %s" % alert['guid'])
+        self.logger.debug(message + " %s" % alert['guid'])
         self.alerts_client.escalate(alert=alert['guid'], comment=message)
 
     def start(self, options):
         if options.clean:
             lalerts = self.rediscl.hlen('alerts')
-            self.log("Removing cached alerts: %s" % lalerts)
+            self.logger.debug("Removing cached alerts: %s" % lalerts)
             self.rediscl.delete('alerts')
-            self.log("Removing alerts queue: %s" % self.alertqueue.qsize())
+            self.logger.debug("Removing alerts queue: %s" % self.alertqueue.qsize())
             self.rediscl.delete(self.alertqueue.key)
 
         for handler in self.handlers:
@@ -105,14 +103,14 @@ class AlertService(object):
         if greenlet is not None:
             scheduledalert = greenlet.args[0]
             if scheduledalert['state'] != alert['state']:
-                self.log("Removing schedule for alert %s" % scheduledalert['state'])
+                self.logger.debug("Removing schedule for alert %s" % scheduledalert['state'])
                 greenlet.kill()
             else:
                 return
 
         delay = self.getStateTime(alert)
         if delay:
-            self.log("Schedule escalation in %ss for state %s" % (delay, alert['state']))
+            self.logger.debug("Schedule escalation in %ss for state %s" % (delay, alert['state']))
             self.timers[alert['guid']] = gevent.spawn_later(delay, self.escalateHigher, alert)
 
     def restartTimers(self):
@@ -129,7 +127,7 @@ class AlertService(object):
                 epoch = alert['epoch'] or alert['lasttime']
                 remainingtime = (epoch + alerttime) - now
                 if remainingtime > 0:
-                    self.log("Schedule escalation in %ss for state %s" % (remainingtime, alert['state']))
+                    self.logger.debug("Schedule escalation in %ss for state %s" % (remainingtime, alert['state']))
                     self.timers[alert['guid']] = gevent.spawn_later(remainingtime, self.escalateHigher, alert)
                 else:
                     self.escalateHigher(alert)
@@ -137,10 +135,10 @@ class AlertService(object):
     def receiveAlerts(self):
         while True:
             alertid = self.alertqueue.get()
-            alert = self.getAlert(alertid) 
+            alert = self.getAlert(alertid)
             oldalert = self.rediscl.hget('alerts', alertid)
             self.rediscl.hset('alerts', alert['guid'], json.dumps(alert))
-            self.log('Got alertid %s' % alertid)
+            self.logger.debug('Got alertid %s' % alertid)
             if alert['state'] == 'ALERT':
                 self.escalate(alert=alert)
             elif oldalert:

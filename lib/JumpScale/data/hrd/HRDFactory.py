@@ -7,14 +7,7 @@ from HRDSchema import HRDSchema
 class HRDFactory:
     def __init__(self):
         self.__jslocation__="j.data.hrd"
-        self.logenable=False
-        self.loglevel=5
-
-    def log(self,msg,category="",level=5):
-        # if "logger" not in j.__dict__:
-        #     print(msg)
-        if level<self.loglevel+1 and self.logenable:
-            j.logger.log(msg,category="hrd.%s"%category,level=level)
+        self.logger = j.logger.get("j.data.hrd")
 
     def getSchema(self,path=None,content=""):
         return HRDSchema(path=path,content=content)
@@ -22,7 +15,7 @@ class HRDFactory:
     def get(self,path=None,content="",prefixWithName=True,keepformat=False,args={},templates=[]):
         """
         @param path
-        """        
+        """
         if templates=="":
             templates=[]
         if path is not None and j.sal.fs.isDir(path):
@@ -48,11 +41,11 @@ class HRDFactory:
                 out+="%s.%s\n"%(prefix,line)
             else:
                 out+="%s\n"%(line)
-        return self.getHRDFromContent(out)   
+        return self.getHRDFromContent(out)
 
 
     def getHRDFromDict(self,ddict={}):
         hrd=self.get(content=" ",prefixWithName=False)
         for key,val in ddict.items():
-            hrd.set(key,val)  
+            hrd.set(key,val)
         return hrd

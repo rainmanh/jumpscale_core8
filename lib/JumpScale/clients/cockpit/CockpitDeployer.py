@@ -321,20 +321,20 @@ class CockpitDeployer:
         self.printInfo("Start configuration of cockpit")
 
         self.printInfo("Configuration of influxdb")
-        container_cuisine.builder._start_influxdb()
+        container_cuisine.apps.influxdb.start()
 
         self.printInfo("Configuration of grafana")
-        container_cuisine.builder._startGrafana()
+        container_cuisine.apps.grafana.start()
         cfg = container_cuisine.core.file_read('$cfgDir/grafana/grafana.ini')
         cfg = cfg.replace('domain = localhost', 'domain = %s' % dns_name)
         cfg = cfg.replace('root_url = %(protocol)s://%(domain)s:%(http_port)s/', 'root_url = %(protocol)s://%(domain)s:%(http_port)s/grafana')
         container_cuisine.core.file_write('$cfgDir/grafana/grafana.ini', cfg)
 
         self.printInfo("Configuration of mongodb")
-        container_cuisine.builder._startMongodb()
+        container_cuisine.apps.mongodb.start()
 
         self.printInfo("Configuration of g8os controller")
-        container_cuisine.builder._startController()
+        container_cuisine.apps.controller.start()
 
         self.printInfo("Configuration of cockpit portal")
         # start, do the linking of minimum portal and set admin passwd

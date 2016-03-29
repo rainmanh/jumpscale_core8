@@ -105,6 +105,7 @@ def action(redisconnection):
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
-        action(sys.argv[1])
+        results = action(sys.argv[1])
+        print(results)
     else:
         print("Please specifiy a redis connection in the form of ipaddr:port")

@@ -91,7 +91,7 @@ def action(redisconnection):
 
 if __name__ == '__main__':
   if len(sys.argv) == 2:
-    results=action(sys.argv[1])
+    results = action(sys.argv[1])
     import yaml
     print (yaml.dump(results))
   else:

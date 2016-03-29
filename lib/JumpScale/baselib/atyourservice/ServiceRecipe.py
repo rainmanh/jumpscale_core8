@@ -101,7 +101,7 @@ class ServiceRecipe(ServiceTemplate):
         class actionmethod(ActionMethodDecorator):
             def __init__(self,*args,**kwargs):
                 ActionMethodDecorator.__init__(self,*args,**kwargs)
-                self.selfobjCode="service=j.atyourservice.getService(role='$(service.role)', instance='$(service.instance)', die=True);selfobj=service.actions;selfobj.service=service"
+                self.selfobjCode="service=j.atyourservice.getService(name='$(service.name)', role='$(service.role)', instance='$(service.instance)', die=True);selfobj=service.actions;selfobj.service=service"
         class Actions():
         """
         self._out = j.data.text.strip(self._out)
@@ -134,11 +134,11 @@ class ServiceRecipe(ServiceTemplate):
 
         instance = instance.lower()
 
-        service = j.atyourservice.getService(role=self.role, instance=instance,die=False)
+        services = j.atyourservice.findServices(name=self.name, instance=instance)
 
-
-        if service!=None:
+        if services:
             print("NEWINSTANCE: Service instance %s!%s  exists." % (self.name, instance))
+            service = services[0]
             service.args.update(args or {})  # needed to get the new args in
             service._recipe = self
             service.init()

@@ -121,7 +121,7 @@ class Service:
 
     @property
     def shortkey(self):
-        return "%s!%s"%(self.role,self.instance)
+        return "%s!%s@%s"%(self.name, self.instance, self.role)
 
 
     @property
@@ -403,24 +403,14 @@ class Service:
                         raise j.exceptions.RuntimeError("Cannt find parent with role '%s' for service '%s, there is more than 1"%(role, self))
                     else:
                         if parent.auto:
-                            j.atyourservice.new(name=parent.parent, instance='main', version='', domain='', path=None, parent=None, args={}, consume='')
+                            ays_s = [j.atyourservice.new(name=parent.parent, instance='main', version='', domain='', path=None, parent=None, args={}, consume='')]
                             rolearg="main"
                         else:
                             raise j.exceptions.RuntimeError("Cannot find parent with role '%s' for service '%s, there is none, please make sure the service exists."%(role, self))
 
-                #check we can find
-                ays_s=j.atyourservice.findServices(role=role,instance=rolearg)
-                if len(ays_s) == 1:
-                    pass
-                    #all ok
-                elif len(ays_s) > 1:
-                    raise j.exceptions.RuntimeError("Cannt find parent '%s' for service '%s, there is more than 1 with instance:'%s'"%(role, self, rolearg))
-                else:
-                    raise j.exceptions.RuntimeError("Cannot find parent '%s:%s' for service '%s', please make sure the service exists."%(role, rolearg, self))
-
                 self._parent = ays_s[0]
 
-                self.path = j.sal.fs.joinPaths(self.parent.path, "%s!%s" % (self.role, self.instance))
+                self.path = j.sal.fs.joinPaths(self.parent.path, "%s!%s@%s" % (self.name, self.instance, self.role))
 
 
             j.sal.fs.createDir(self.path)
@@ -492,7 +482,8 @@ class Service:
         if consumes:
             for consumeitem in consumes:
                 #parent exists
-                role = consumeitem.consume_link
+                name = consumeitem.consume_link
+                role = name.split('.')[0]
                 consumename = consumeitem.name
 
                 instancenames = []
@@ -500,7 +491,10 @@ class Service:
                     instancenames = self.args[consumename]
 
                 ays_s = list()
-                candidates = j.atyourservice.findServices(role=consumeitem.consume_link)
+                if role != name:
+                    candidates = j.atyourservice.findServices(name=consumeitem.consume_link)
+                else:
+                    candidates = j.atyourservice.findServices(role=consumeitem.consume_link)
                 if candidates:
                     if instancenames:
                         ays_s = [candidate for candidate in candidates if candidate.instance in instancenames]

@@ -175,7 +175,7 @@ class AtYourServiceFactory():
 
     def _nodechildren(self, service, parent=None, producers=[]):
         parent = {} if parent is None else parent
-        me = {"name": service.shortkey.replace('!', '__'), "children": []}
+        me = {"name": service.shortkey, "children": []}
         parent["children"].append(me)
         details = service.hrd.getHRDAsDict()
         details = {key: value for key, value in details.items() if key not in ['service.domain', 'service.name', 'service.version', 'parent']}
@@ -186,7 +186,7 @@ class AtYourServiceFactory():
                 child = j.atyourservice.getService(role=role, instance=instance)
                 for _, producerinstances in child.producers.items():
                     for producer in producerinstances:
-                        producers.append([child.shortkey.replace('!', '__'), producer.shortkey.replace('!', '__')])
+                        producers.append([child.shortkey, producer.shortkey])
                 self._nodechildren(child, me, producers)
         return parent
 
@@ -202,8 +202,8 @@ class AtYourServiceFactory():
             service = self.services.get(servicekey)
             for _, producerinstances in service.producers.items():
                 for producer in producerinstances:
-                    producers.append([child.shortkey.replace('!', '__'), producer.shortkey.replace('!', '__')])
-            parents["children"].append(self._nodechildren(service, {"children": [], "name": servicekey.replace('!', '__')}, producers))
+                    producers.append([child.shortkey, producer.shortkey])
+            parents["children"].append(self._nodechildren(service, {"children": [], "name": servicekey}, producers))
         self._servicesTree['parentchild'] = parents
         self._servicesTree['producerconsumer'] = producers
         return self._servicesTree
@@ -526,7 +526,7 @@ class AtYourServiceFactory():
     def findServices(self, name="", instance="",version="", domain="", parent=None, first=False, role="", node=None, include_disabled=False):
         res = []
 
-        for shortkey,service in self.services.items():
+        for shortkey, service in self.services.items():
             # if service._state and service._state.hrd.getBool('disabled', False) and not include_disabled:
             #     continue
             if not(name == "" or service.name == name):
@@ -614,12 +614,13 @@ class AtYourServiceFactory():
         template = self.getTemplate(domain=domain,name=name, version=version, role=role)
         return template.recipe
 
-    def getService(self,  role='', instance='main', die=True):
+    def getService(self,  name='', instance='main', role='', die=True):
         """
         Return service indentifier by domain,name and instance
         throw error if service is not found or if more than one service is found
         """
-        shortkey="%s!%s"%(role,instance)
+        role = role if role else name.split['.'][0]
+        shortkey="%s!%s@%s" % (name, instance, role)
         if shortkey in self.services:
             return self.services[shortkey]
         if die:

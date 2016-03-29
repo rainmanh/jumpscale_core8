@@ -129,6 +129,17 @@ class CuisineInstaller(object):
         print ("* re-login into your shell to have access to js, because otherwise the env arguments are not set properly.")
 
     @actionrun(action=True)
+    def libvirt(self):
+        """
+        do not use in containers or VMs only actual machines @todo not tested 
+        """
+        self.cuisine.core.file_download("https://pypi.python.org/packages/source/l/libvirt-python/libvirt-python-1.3.2.tar.gz#md5=ed018c714d7ddbe93221c796dff283ed", to="$tmpDir", overwrite=True, expand=True)
+        tarpath = self.cuisine.core.fs_find("$tmpDir", recursive=True, pattern="*libvirt*.tgz", type='f')[0]
+        self.cuisine.core.file_expand(tarpath, "$tmpDir")
+        extracted = self.cuisine.core.fs_find("$tmpDir", recursive=True, pattern="*libvirt*", type='d')[0]
+        self.cuisine.core.run("cd %s; python setup.py install" % extracted)
+
+    @actionrun(action=True)
     def base(self):
         self.clean()
 

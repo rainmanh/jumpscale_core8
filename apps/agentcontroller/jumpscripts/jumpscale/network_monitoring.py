@@ -57,7 +57,7 @@ def action(redisconnection):
         result['drop.out'] = dropout
 
         for key, value in result.items():
-            aggregator.measure(tags=tags, key="network.%s" % key, value=value, measurement="")
+            aggregator.measure(tags=tags, key="network.%s.%s" % (nic,key), value=value, measurement="")
 
     return result
 if __name__ == '__main__':

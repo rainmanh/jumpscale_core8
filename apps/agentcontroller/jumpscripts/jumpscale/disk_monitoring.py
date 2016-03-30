@@ -99,7 +99,7 @@ def action(redisconnection):
                 odisk.save()
 
         for key, value in results.items():
-            aggregator.measure(tags=tags, key="disks.%s" % key, value=value, measurement="")
+            aggregator.measure(tags=tags, key="disk.%s.%s" % (path,key), value=value, measurement="")
 
     return results
 

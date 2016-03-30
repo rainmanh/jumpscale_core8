@@ -58,20 +58,20 @@ def action(redisconnection):
     results["network.drop.out"]=dropout
 
     avg1min, avg5min, avg15min = os.getloadavg()
-    results["load.avg1min"] = avg1min
-    results["load.avg5min"] = avg5min
-    results["load.avg15min"] = avg15min
+    results["process.load.avg1min"] = avg1min
+    results["process.load.avg5min"] = avg5min
+    results["processes.load.avg15min"] = avg15min
 
     memory = psutil.virtual_memory()
-    results["memory.used"]=round((memory.used - memory.cached)/1024.0/1024.0,2)
-    results["memory.cached"]=round(memory.cached/1024.0/1024.0,2)
-    results["memory.free"]=round(memory.total/1024.0/1024.0,2) - results['memory.used'] - results['memory.cached']
-    results["memory.percent"]=memory.percent
+    results["memory.virtual.used"]=round((memory.used - memory.cached)/1024.0/1024.0,2)
+    results["memory.virtual.cached"]=round(memory.cached/1024.0/1024.0,2)
+    results["memory.virtual.free"]=round(memory.total/1024.0/1024.0,2) - results['memory.used'] - results['memory.cached']
+    results["memory.virtual.percent"]=memory.percent
 
     vm= psutil.swap_memory()
-    results["swap.free"]=round(vm.__getattribute__("free")/1024.0/1024.0,2)
-    results["swap.used"]=round(vm.__getattribute__("used")/1024.0/1024.0,2)
-    results["swap.percent"]=vm.__getattribute__("percent")
+    results["memory.swap.free"]=round(vm.__getattribute__("free")/1024.0/1024.0,2)
+    results["memory.swap.used"]=round(vm.__getattribute__("used")/1024.0/1024.0,2)
+    results["memory.swap.percent"]=vm.__getattribute__("percent")
 
 
     stat = j.sal.fs.fileGetContents('/proc/stat')

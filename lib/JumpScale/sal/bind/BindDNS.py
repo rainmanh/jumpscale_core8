@@ -25,7 +25,7 @@ class Zone(object):
 
     @staticmethod
     def getZones():
-        self.logger.debug('GETTING ZONES INFO')
+        self.logger.info('GETTING ZONES INFO')
         configs = []
         zonesfiles = []
         for configfile in ['named.conf.local', 'named.conf']:
@@ -105,19 +105,19 @@ class BindDNS(DNS,SALObject):
         return Zone.getreverseMap(self.zones)
 
     def start(self):
-        self.logger.debug('STARTING BIND SERVICE')
+        self.logger.info('STARTING BIND SERVICE')
         _, out = j.sal.process.execute('service bind9 start', outputToStdout=True)
-        self.logger.debug(out)
+        self.logger.info(out)
 
     def stop(self):
-        self.logger.debug('STOPPING BIND SERVICE')
+        self.logger.info('STOPPING BIND SERVICE')
         _, out = j.sal.process.execute('service bind9 stop', outputToStdout=True)
-        self.logger.debug(out)
+        self.logger.info(out)
 
     def restart(self):
-        self.logger.debug('RESTSRTING BIND SERVICE')
+        self.logger.info('RESTSRTING BIND SERVICE')
         _, out = j.sal.process.execute('service bind9 restart', outputToStdout=True)
-        self.logger.debug(out)
+        self.logger.info(out)
 
     def updateHostIp(self, host, ip):
         map = self.map

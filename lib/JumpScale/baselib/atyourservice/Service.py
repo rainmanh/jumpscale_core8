@@ -1,7 +1,5 @@
 from JumpScale import j
-# import JumpScale.baselib.actions
 
-# import pytoml
 from contextlib import redirect_stdout
 import io
 import imp
@@ -11,8 +9,6 @@ from Recurring import Recurring
 from ServiceState import ServiceState
 import traceback
 
-CATEGORY = 'atyourservice.service'
-logger = j.logger.get(CATEGORY)
 
 def loadmodule(name, path):
     parentname = ".".join(name.split(".")[:-1])
@@ -54,6 +50,7 @@ class Service:
         @param consume is in format $role!$instance,$role2!$instance2
         """
         self.originator = originator
+        logger = j.logger.get('j.atyourservice.service')
 
         if path!="" and j.sal.fs.exists(path):
             self.role,self.instance=j.sal.fs.getBaseName(path).split("!")
@@ -686,7 +683,7 @@ class Service:
         hrd_root = "/etc/ays/local/"
         remotePath = j.sal.fs.joinPaths(hrd_root, j.sal.fs.getBaseName(self.path), 'instance.hrd')
         dest = self.path.rstrip("/")+"/"+"instance.hrd"
-        self.log("downloading %s '%s'->'%s'" % (self.key, remotePath, self.path))
+        self.logger.info("downloading %s '%s'->'%s'" % (self.key, remotePath, self.path))
         self.executor.download(remotePath, self.path)
 
     def _getExecutor(self):
@@ -717,9 +714,6 @@ class Service:
             raise j.exceptions.RuntimeError("cannot find executor")
 
         return executor
-
-    def log(self, msg,level=0):
-        self.action_current.log(msg)
 
     def listChildren(self):
         childDirs = j.sal.fs.listDirsInDir(self.path)
@@ -835,7 +829,7 @@ class Service:
                 # No other candidates already installed. Disable consumer as well.
                 consumer.disable()
 
-        self.log("disable instance")
+        self.logger.info("disable instance %s" % self.instance)
         self.state.hrd.set('disabled', True)
 
     def _canBeEnabled(self):
@@ -847,13 +841,12 @@ class Service:
 
     def enable(self):
         # Check that all dependencies are enabled
-
         if not self._canBeEnabled():
-            self.log("%s cannot be enabled because one or more of its producers is disabled" % self)
+            self.logger.warning("%s cannot be enabled because one or more of its producers is disabled" % self)
             return
 
         self.state.hrd.set('disabled', False)
-        self.log("Enable instance")
+        self.logger.info("Enable instance %s" % self.instance)
         for consumer in self._getConsumers(include_disabled=True):
             consumer.enable()
             consumer.start()

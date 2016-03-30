@@ -5,7 +5,6 @@ from Service import Service, loadmodule
 from ActionsBaseNode import ActionsBaseNode
 from ActionMethodDecorator import ActionMethodDecorator
 from Blueprint import Blueprint
-# from AYSdb import *
 
 from AtYourServiceSync import AtYourServiceSync
 try:
@@ -43,10 +42,8 @@ class AtYourServiceFactory():
         self._sandboxer=None
         self._roletemplates = dict()
         self._servicesTree = {}
-        # self._db=AYSDB()
 
     def reset(self):
-        # self._db.reload()
         j.dirs._ays = None
         self._services = {}
         self._templates = []

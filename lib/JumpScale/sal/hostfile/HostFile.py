@@ -27,7 +27,7 @@ class HostFile(SALObject):
             filecontents = filecontents.replace(searchObj.group(0), '')
             j.sal.fs.writeFile(self.hostfilePath, filecontents)
         else:
-            self.logger.warn('Ip address %s not found in hosts file' % ip)
+            self.logger.warning('Ip address %s not found in hosts file' % ip)
 
     def existsIP(self, ip):
         """Check if ip is in the hostsfile

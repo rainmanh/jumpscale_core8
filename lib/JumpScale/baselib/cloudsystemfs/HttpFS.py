@@ -25,7 +25,7 @@ class HttpFS(object):
         """
         Initialize connection
         """
-        self.logger.debug("HttpFS: connection information: server [%s] path [%s]" % (server,path))
+        self.logger.info("HttpFS: connection information: server [%s] path [%s]" % (server,path))
         self.filename = j.sal.fs.getBaseName(path)
         self.tempdir=tempdir
 
@@ -39,7 +39,7 @@ class HttpFS(object):
         """
         Initialize connection
         """
-        self.logger.debug("HttpFS: connection information: server [%s] path [%s]" % (server,path))
+        self.logger.info("HttpFS: connection information: server [%s] path [%s]" % (server,path))
         self.filename = j.sal.fs.getBaseName(path)
         self.tempdir=tempdir
 
@@ -97,7 +97,7 @@ class HttpFS(object):
         """
         self._connect()
         j.sal.fs.createDir(self.local_dir)
-        self.logger.debug("HttpFS: downloading file to local file [%s]" % self.local_file)
+        self.logger.info("HttpFS: downloading file to local file [%s]" % self.local_file)
         file = open(self.local_file,'wb')
         rb = self.http_socket.read(CHUNKSIZE)
         while rb:

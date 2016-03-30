@@ -46,7 +46,6 @@ class LoggerFactory:
         self._logger.propagate = True
 
     def _enable_dev_mode(self):
-        logging.basicConfig(level='DEBUG')
         logging.setLoggerClass(JSLogger)
         self._logger = logging.getLogger(self.root_logger_name)
         self._logger.setLevel(logging.DEBUG)

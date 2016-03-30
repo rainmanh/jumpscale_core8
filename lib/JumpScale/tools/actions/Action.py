@@ -504,14 +504,11 @@ class Action:
 
         if self.state == "OK" and self.force==False:
             if self.actionshow:
-                # print("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
                 self.logger.info("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
             j.actions.delFromStack(self)
             return
 
-        # if self.actionshow:
-        self.logger.debug("  * %-20s: %s" % (self.name, self._args10line))
-            # print("  * %-20s: %s" % (self.name, self._args10line))
+        self.logger.info("  * %-20s: %s" % (self.name, self._args10line))
 
         if self._stdOutput == False:
             j.tools.console.hideOutput()
@@ -725,13 +722,6 @@ class Action:
 
 
         if self.traceback!="":
-            # print ("\n*SOURCECODE******************************************************************************\n")
-            #
-            # """
-            # styles:
-            # 'monokai', 'trac', 'borland', 'paraiso-dark', 'tango', 'bw', 'native', 'lovelace', 'algol_nu', 'vim', 'emacs', 'vs',
-            # 'pastie', 'rrt', 'default', 'xcode', 'friendly', 'fruity', 'igor', 'colorful', 'paraiso-light', 'murphy', 'manni', 'autumn', 'perldoc', 'algol'
-            # """
             self.logger.error("\n*SOURCECODE******************************************************************************\n")
 
             """
@@ -745,14 +735,12 @@ class Action:
             tb_colored = pygments.highlight(self.sourceToExecute, lexer, formatter)
             self._stream.write(tb_colored)
 
-            # print ("\n*TRACEBACK*********************************************************************************\n")
             self.logger.error("\n*TRACEBACK*********************************************************************************\n")
 
             lexer = pygments.lexers.get_lexer_by_name("pytb", stripall=True)
             tb_colored = pygments.highlight(self.traceback, lexer, formatter)
             self._stream.write(tb_colored)
 
-        # print ("\n\n******************************************************************************************\n")
         self.logger.error("\n\n******************************************************************************************\n")
 
 

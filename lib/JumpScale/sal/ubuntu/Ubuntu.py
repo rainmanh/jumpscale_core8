@@ -147,7 +147,7 @@ class Ubuntu:
             return out.split("\n")
 
     def pkg_remove(self, packagename):
-        self.logger.debug("ubuntu remove package:%s"%packagename)
+        self.logger.info("ubuntu remove package:%s"%packagename)
         self.check()
         if self._cache==None:
             self.initApt()
@@ -264,7 +264,7 @@ stop on runlevel [016]
 
 
     def apt_find1_installed(self,packagename):
-        self.logger.debug("find 1 package in ubuntu")
+        self.logger.info("find 1 package in ubuntu")
         res=self.findPackagesInstalled(packagename)
         if len(res)==1:
             return res[0]

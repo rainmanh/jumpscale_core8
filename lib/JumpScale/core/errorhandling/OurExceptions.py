@@ -1,26 +1,8 @@
 
 from JumpScale import j
 
-# import imp
-# import importlib
-
-
-# import traceback
 import sys
 
-
-class ExceptionFactory:
-    def __init__(self):
-        self.__jslocation__ = "j.exceptions"
-        self.HaltException = HaltException()
-        self.RuntimeError = RuntimeError()
-        self.Input = Input()
-        self.BUG = BUG()
-        self.JSBUG = JSBUG()
-        self.OPERATIONS = OPERATIONS()
-        self.IOError = IOError()
-        self.AYSNotFound = AYSNotFound()
-        self.NotFound = NotFound()
 
 class BaseJSException(Exception):
 

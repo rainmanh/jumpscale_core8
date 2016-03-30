@@ -426,8 +426,7 @@ class CuisineCore():
                 cmd = "curl -L '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s"%(url,to,user,minsp,retry,timeout)
                 if self.file_exists(to):
                     cmd += " -C -"
-                # print(cmd)
-                self.logger.debug(cmd)
+                self.logger.info(cmd)
                 self.file_unlink("%s.downloadok"%to)
                 rc, out = self.run(cmd, die=False)
                 if rc == 33: # resume is not support try again withouth resume
@@ -971,9 +970,10 @@ class CuisineCore():
             ppath=self.cuisine.bash.profilePath
             if ppath!=None:
                 cmd=". %s && %s"%(ppath,cmd)
-            # if showout:
-            self.logger.debug("PROFILECMD:%s"%cmd)
-                # print ("PROFILECMD:%s"%cmd)
+            if showout:
+                self.logger.info("PROFILECMD:%s"%cmd)
+            else:
+                self.logger.debug("PROFILECMD:%s"%cmd)
 
         if self.sudomode:
             passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
@@ -1004,7 +1004,6 @@ class CuisineCore():
                             and out.lower().find("no such")!=-1\
                             and not "pythondevel" in self.done:
                     from IPython import embed
-                    # print ("DEBUG NOW pythondevel not found")
                     self.logger.error("DEBUG NOW pythondevel not found")
                     embed()
 
@@ -1045,12 +1044,10 @@ class CuisineCore():
 
     @actionrun(action=True,force=True)
     def run_script(self,content,die=True,profile=False):
-        # print("RUN SCRIPT:")
-        self.logger.debug("RUN SCRIPT:")
+        self.logger.info("RUN SCRIPT:")
         content=self.args_replace(content)
         content=j.data.text.strip(content)
-        self.logger.debug(content)
-        # print(content)
+        self.logger.info(content)
 
         if content[-1]!="\n":
             content+="\n"

@@ -29,7 +29,7 @@ class HRDTree(HRDBase):
         paths= j.sal.fs.listFilesInDir(path, recursive=True, filter="*.hrd")
 
         for pathfound in paths:
-            j.data.hrd.logger.debug("Add hrd %s" % (pathfound))
+            j.data.hrd.logger.info("Add hrd %s" % (pathfound))
             hrd=HRD(pathfound,self,prefixWithName=self.prefixWithName,keepformat=self.keepformat)
             self.hrds.append(hrd)
 
@@ -53,5 +53,5 @@ class HRDTree(HRDBase):
             val=default
         else:
             val= self.items[key].get()
-        j.data.hrd.logger.debug("hrd get '%s':'%s'"%(key,val))
+        j.data.hrd.logger.info("hrd get '%s':'%s'"%(key,val))
         return val

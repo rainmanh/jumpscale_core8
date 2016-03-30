@@ -161,7 +161,7 @@ class RemoteSystemProcess(_remoteSystemObject):
         Execute a command on the SSH server.  Wait till output done.
         @raise SSHException: if the server fails to execute the command
         """
-        self.logger.debug("Execute ssh command %s on %s" % (command, self._ipaddress))
+        self.logger.info("Execute ssh command %s on %s" % (command, self._ipaddress))
         #channel = self._connection.get_transport().open_session()
         # ipshell()
         # stdin, channelFileStdOut, channelFileStdErr=self._connection.exec_command(command)
@@ -180,19 +180,19 @@ class RemoteSystemProcess(_remoteSystemObject):
         while (not channelFileStdOut.channel.eof_received) or (not channelFileStdErr.channel.eof_received):
             if channelFileStdOut.channel.recv_ready():
                 tmp = (channelFileStdOut.channel.recv(1024))
-                self.logger.debug("ssh %s out:%s" % (self._ipaddress, tmp))
+                self.logger.info("ssh %s out:%s" % (self._ipaddress, tmp))
                 if tostdout:
                     print((tmp.strip()))
                 myOut += tmp
             if channelFileStdErr.channel.recv_stderr_ready():
                 tmp = (channelFileStdErr.channel.recv_stderr(1024))
-                self.logger.debug("ssh %s err:%s" % (self._ipaddress, tmp))
+                self.logger.info("ssh %s err:%s" % (self._ipaddress, tmp))
                 myErr += tmp
         tmp = channelFileStdOut.read()
-        self.logger.debug("ssh %s out:%s" % (self._ipaddress, tmp))
+        self.logger.info("ssh %s out:%s" % (self._ipaddress, tmp))
         myOut += tmp
         tmp = channelFileStdErr.read()
-        self.logger.debug("ssh %s err:%s" % (self._ipaddress, tmp))
+        self.logger.info("ssh %s err:%s" % (self._ipaddress, tmp))
         myErr += tmp
 
         exitcode = chan.recv_exit_status()
@@ -306,7 +306,7 @@ class RemoteSystemFS(_remoteSystemObject):
         sf = self._connection.open_sftp()
         try:
             sf.put(localpath, remotepath)
-            self.logger.debug('Uploaded file %s to %s' % (localpath, remotepath))
+            self.logger.info('Uploaded file %s to %s' % (localpath, remotepath))
         finally:
             sf.close()
 
@@ -330,10 +330,10 @@ class RemoteSystemFS(_remoteSystemObject):
         sf = self._connection.open_sftp()
 
         try:
-            self.logger.debug('Opened SFTP connection to receive file %s' % filename)
+            self.logger.info('Opened SFTP connection to receive file %s' % filename)
             try:
                 sf.get(filename, localfile)
-                self.logger.debug('Saved %s file to %s' % (filename, localfile))
+                self.logger.info('Saved %s file to %s' % (filename, localfile))
                 return j.sal.fs.fileGetContents(localfile)
             finally:
                 j.sal.fs.remove(localfile)
@@ -366,7 +366,7 @@ class RemoteSystemFS(_remoteSystemObject):
             sf = self._connection.open_sftp()
 
             try:
-                self.logger.debug('Opened SFTP connection to send %s to %s' % (localfile, filename))
+                self.logger.info('Opened SFTP connection to send %s to %s' % (localfile, filename))
                 sf.put(localfile, filename)
             finally:
                 sf.close()
@@ -395,7 +395,7 @@ class RemoteSystemFS(_remoteSystemObject):
             raise
         finally:
             sf.close()
-        self.logger.debug('path %s exists' % str(path.encode("utf-8")), 8)
+        self.logger.info('path %s exists' % str(path.encode("utf-8")), 8)
         return True
 
     def isDir(self, path):
@@ -417,7 +417,7 @@ class RemoteSystemFS(_remoteSystemObject):
             else:
                 raise
         finally:
-            self.logger.debug('path [%s] is a directory' % path.encode("utf-8"), 8)
+            self.logger.info('path [%s] is a directory' % path.encode("utf-8"), 8)
             sf.close()
         return True
 
@@ -430,12 +430,12 @@ class RemoteSystemFS(_remoteSystemObject):
         @raise TypeError: newdir parameter is empty
         @raise RuntimeError: failed to create directory
         """
-        self.logger.debug('Creating directory if not exists %s' % newdir.encode("utf-8"), 8)
+        self.logger.info('Creating directory if not exists %s' % newdir.encode("utf-8"), 8)
         if newdir == '' or newdir == None:
             raise TypeError('The newdir-parameter of system.fs.createDir() is None or an empty string.')
         try:
             if self.exists(newdir):
-                self.logger.debug('Directory trying to create: [%s] already exists' % newdir.encode("utf-8"), 8)
+                self.logger.info('Directory trying to create: [%s] already exists' % newdir.encode("utf-8"), 8)
                 pass
             else:
                 head, tail = os.path.split(newdir)
@@ -447,7 +447,7 @@ class RemoteSystemFS(_remoteSystemObject):
                         sf.mkdir(newdir)
                     finally:
                         sf.close()
-                self.logger.debug('Created the directory [%s]' % newdir.encode("utf-8"), 8)
+                self.logger.info('Created the directory [%s]' % newdir.encode("utf-8"), 8)
         except:
             raise j.exceptions.RuntimeError("Failed to create the directory [%s]" % newdir.encode("utf-8"))
 
@@ -469,7 +469,7 @@ class RemoteSystemFS(_remoteSystemObject):
         solaris = False
         for line in stdout:
             if line.startswith('SunOS'):
-                self.logger.debug("Solaris", 5)
+                self.logger.info("Solaris", 5)
                 solaris = True
         if solaris:
             if keepsymlinks:
@@ -477,7 +477,7 @@ class RemoteSystemFS(_remoteSystemObject):
             else:
                 symlinks = ''
         else:
-            self.logger.debug("No solaris", 5)
+            self.logger.info("No solaris", 5)
             if keepsymlinks:
                 symlinks = '-L'
             else:
@@ -487,7 +487,7 @@ class RemoteSystemFS(_remoteSystemObject):
             if not self.exists(dst):
                 self.createDir(dst)
             cmd = 'cp -rf %s %s/* %s' % (symlinks, src, dst)
-            self.logger.debug("Executing [%s]" % cmd, 5)
+            self.logger.info("Executing [%s]" % cmd, 5)
             self._connection.exec_command(cmd)
         else:
             raise j.exceptions.RuntimeError('Source path %s in remote.system.fs.copyDirTree is not a directory' % src)
@@ -512,16 +512,16 @@ class RemoteSystemFS(_remoteSystemObject):
         if removeNonRelevantFiles:
             self._removeRedundantFiles(source)
         files = j.sal.fs.listFilesInDir(source, recursive=True)
-        self.logger.debug("Coppy %s files from %s to %s" % (len(files), source, destination), 2)
+        self.logger.info("Coppy %s files from %s to %s" % (len(files), source, destination), 2)
         for filepath in files:
             dest = j.sal.fs.joinPaths(destination, j.sal.fs.pathRemoveDirPart(filepath, source))
             destdir = j.sal.fs.getDirName(dest)
             if destdir not in dirs:
-                self.logger.debug("Create dir %s" % (destdir))
+                self.logger.info("Create dir %s" % (destdir))
                 # ftp.mkdir(destdir)
                 self.executewait("mkdir -p %s" % destdir)
                 dirs[destdir] = 1
-            self.logger.debug("put %s to %s" % (filepath, dest))
+            self.logger.info("put %s to %s" % (filepath, dest))
             ftp.put(filepath, dest)
 
     def moveFile(self, source, destination):
@@ -537,7 +537,7 @@ class RemoteSystemFS(_remoteSystemObject):
         @raise RuntimeError: file could not be moved
         """
 
-        self.logger.debug('Move file from %s to %s' % (source, destination), 6)
+        self.logger.info('Move file from %s to %s' % (source, destination), 6)
         if not source or not destination:
             raise ValueError("Not enough parameters given to remote.system.fs.moveFile: move from %s, to %s" % (source, destination))
         try:
@@ -560,7 +560,7 @@ class RemoteSystemFS(_remoteSystemObject):
 
         @raise TypeError: name is empty
         """
-        self.logger.debug("isfile:%s" % name)
+        self.logger.info("isfile:%s" % name)
         if (name is None):
             raise TypeError('File name is None in remote.system.fs.isFile')
         sf = self._connection.open_sftp()
@@ -587,7 +587,7 @@ class RemoteSystemFS(_remoteSystemObject):
         @raise TypeError: path is empty
         """
 
-        self.logger.debug('Removing file with path: %s' % path)
+        self.logger.info('Removing file with path: %s' % path)
         if not path:
             raise TypeError('Not enough parameters passed to system.fs.removeFile: %s' % path)
         if(self.exists(path)):
@@ -595,7 +595,7 @@ class RemoteSystemFS(_remoteSystemObject):
                 sf = self._connection.open_sftp()
                 try:
                     sf.remove(path)
-                    self.logger.debug('Done removing file with path: %s' % path)
+                    self.logger.info('Done removing file with path: %s' % path)
                 except:
                     raise j.exceptions.RuntimeError("File with path: %s could not be removed\nDetails: %s" % (path, sys.exc_info()[0]))
                 finally:
@@ -622,7 +622,7 @@ class RemoteSystemFS(_remoteSystemObject):
         @raise RuntimeError: Cannot copy file
         """
 
-        self.logger.debug("Copy file from %s to %s" % (fileFrom, fileTo))
+        self.logger.info("Copy file from %s to %s" % (fileFrom, fileTo))
         if not fileFrom or not fileTo:
             raise TypeError("No parameters given to system.fs.copyFile from %s, to %s" % (fileFrom, fileTo))
         try:
@@ -668,9 +668,9 @@ class RemotePortForwardHander(object):
     def accept(self, channel, xxx_todo_changeme, xxx_todo_changeme1):
         (origin_addr, origin_port) = xxx_todo_changeme
         (server_addr, server_port) = xxx_todo_changeme1
-        self.logger.debug('port_forward_handler:accept  New connection: "%s" %s" "%s" "%s" "%s" "%s"' %
+        self.logger.info('port_forward_handler:accept  New connection: "%s" %s" "%s" "%s" "%s" "%s"' %
                      (id(self), id(channel), origin_addr, origin_port, server_addr, server_port))
-        self.logger.debug('port_forward_handler:accept  channel.fileno: %s' % channel.fileno())
+        self.logger.info('port_forward_handler:accept  channel.fileno: %s' % channel.fileno())
 
         if (server_addr, server_port) not in self.forwards:
             raise ValueError('Failed to handle RemoteForward: No forward registered for %s.\nRegistered forwards: %s' %
@@ -686,16 +686,16 @@ class RemotePortForwardHander(object):
         '''
         Is called from a different thread whenever a forwarded connection arrives.
         '''
-        #self.logger.debug('port_forward_handler: New connection: "%s" "%s" "%s" "%s" "%s"' % (id(channel), origin_addr, origin_port, server_addr, server_port))
+        #self.logger.info('port_forward_handler: New connection: "%s" "%s" "%s" "%s" "%s"' % (id(channel), origin_addr, origin_port, server_addr, server_port))
 
         sock = socket.socket()
         try:
             sock.connect((local_address, local_port))
         except Exception as e:
-            self.logger.debug('port_forward_handler:handle Forwarding request to %s:%d failed: %r' % (local_address, local_port, e))
+            self.logger.info('port_forward_handler:handle Forwarding request to %s:%d failed: %r' % (local_address, local_port, e))
             return
 
-        self.logger.debug('port_forward_handler:handle Connected!  Tunnel open %r -> %r' %
+        self.logger.info('port_forward_handler:handle Connected!  Tunnel open %r -> %r' %
                      (channel.getpeername(), (local_address, local_port))))
 
         while True:
@@ -711,7 +711,7 @@ class RemotePortForwardHander(object):
                     break
                 sock.send(data)
 
-        self.logger.debug('port_forward_handler:handle Tunnel closed from %r to %s' % (channel.getpeername(), (local_address, local_port)))
+        self.logger.info('port_forward_handler:handle Tunnel closed from %r to %s' % (channel.getpeername(), (local_address, local_port)))
 
         channel.close()
         sock.close()
@@ -792,7 +792,7 @@ class RemoteSystemPortForward(_remoteSystemObject):
 #        transport = self._connection.get_transport()
 #        transport.cancel_port_forward('', serverPort)
         pid, output = self.process.getPidForPort(serverPort)
-        self.logger.debug('PID IS %s and output is %s' % (pid, output))
+        self.logger.info('PID IS %s and output is %s' % (pid, output))
         if pid != -1:
             exitCode, output = self.process.killProcess(pid)
             if exitCode:

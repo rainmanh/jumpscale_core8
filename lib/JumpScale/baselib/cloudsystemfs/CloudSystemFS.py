@@ -61,7 +61,7 @@ class CloudSystemFS:
         # j.cloud.system.fs.copyFile('file:///mnt/blubje' , 'sftp://aserver:aserver@localhost/home/aserver/Desktop/')
         # j.cloud.system.fs.copyFile('sftp://aserver:aserver@localhost/home/aserver/Desktop/bub', 'file:///mnt/blubje')
         # Determine the object we need to call
-        self.logger.debug("copyFile: from [%s] to [%s]" % ( sourcepath, destinationpath) )
+        self.logger.info("copyFile: from [%s] to [%s]" % ( sourcepath, destinationpath) )
 
         src_fs = self._getSourceHandler(sourcepath)
         dst_fs = self._getDestinationHandler(destinationpath)
@@ -74,7 +74,7 @@ class CloudSystemFS:
         """
         Move a file
         """
-        self.logger.debug("moveFile: from [%s] to [%s]" % ( sourcepath, destinationpath) )
+        self.logger.info("moveFile: from [%s] to [%s]" % ( sourcepath, destinationpath) )
 
         src_fs = self._getSourceHandler(sourcepath, Atype='move')
         dst_fs = self._getDestinationHandler(destinationpath, Atype='move')
@@ -87,7 +87,7 @@ class CloudSystemFS:
         """
         Copy Directory
         """
-        self.logger.debug("copyDir: from [%s] to [%s]" % ( sourcepath, destinationpath) )
+        self.logger.info("copyDir: from [%s] to [%s]" % ( sourcepath, destinationpath) )
 
         src_fs = self._getSourceHandler(sourcepath, is_dir=True,  Atype='copy')
         dst_fs = self._getDestinationHandler(destinationpath, is_dir=True, Atype='copy')
@@ -100,7 +100,7 @@ class CloudSystemFS:
         """
         Move directory
         """
-        self.logger.debug("moveDir: from [%s] to [%s]" % ( sourcepath, destinationpath) )
+        self.logger.info("moveDir: from [%s] to [%s]" % ( sourcepath, destinationpath) )
 
         src_fs = self._getSourceHandler(sourcepath, is_dir=True,  Atype='move')
         dst_fs = self._getDestinationHandler(destinationpath, is_dir=True, Atype='move')
@@ -121,10 +121,10 @@ class CloudSystemFS:
         else:
             src_elements = urllib.urlparse(sourcepath)
 
-        self.logger.debug('PARSING SRC RETURNED %s' %str(src_elements))
+        self.logger.info('PARSING SRC RETURNED %s' %str(src_elements))
 
         # Determine the object we need to call
-        self.logger.debug("_getSourceHandler: source protocol [%s]" % (src_proto))
+        self.logger.info("_getSourceHandler: source protocol [%s]" % (src_proto))
 
         # for the source
         if(src_proto == "cifs" or src_proto == "smb"):
@@ -153,10 +153,10 @@ class CloudSystemFS:
             dst_elements = self._parseCifsURL(destinationpath)
         else:
             dst_elements = urllib.urlparse(destinationpath)
-        self.logger.debug('PARSING DEST RETURNED %s' %str(dst_elements))
+        self.logger.info('PARSING DEST RETURNED %s' %str(dst_elements))
 
         # Determine the object we need to call
-        self.logger.debug("_getDestinationHandler: destination protocol [%s]" % (dst_proto))
+        self.logger.info("_getDestinationHandler: destination protocol [%s]" % (dst_proto))
 
         if(dst_proto == "cifs" or dst_proto == "smb"):
             dst_fs = CifsFS('dst',server=dst_elements.hostname,share=dst_elements.path,username=dst_elements.username,password=dst_elements.password,is_dir=is_dir,recursive=recursive,tempdir=tempdir, Atype=Atype)
@@ -177,7 +177,7 @@ class CloudSystemFS:
         Determine the protocol to be used e.g ftp,cifs,rsync,...
         """
         elements = urllib.urlparse(url)
-        self.logger.debug('Determined protocol: %s' %str(elements.scheme))
+        self.logger.info('Determined protocol: %s' %str(elements.scheme))
         return elements.scheme
 
     def _parseCifsURL(self,url):
@@ -191,7 +191,7 @@ class CloudSystemFS:
 
         elements = urllib.urlparse(durl)
         ret_elements = {}
-        self.logger.debug('_parseCifsURL returned %s' %elements.hostname)
+        self.logger.info('_parseCifsURL returned %s' %elements.hostname)
         return elements
 
     def importFile(self,sourcepath,destinationpath,tempdir=j.dirs.tmpDir):
@@ -223,7 +223,7 @@ class CloudSystemFS:
         """
 
         # Tested: j.cloud.system.fs.importDir('smb://autotest:phun5chU@fileserver.aserver.com/Public/Engineering/vdi/sso_images/SSO_VD', 'file:///tmp/tmp/')
-        self.logger.debug("exportDir: from [%s] to [%s]" % (sourcepath, destinationpath) )
+        self.logger.info("exportDir: from [%s] to [%s]" % (sourcepath, destinationpath) )
 
         src_fs = self._getSourceHandler(sourcepath, is_dir=True,  Atype='copy')
         dst_fs = self._getDestinationHandler(destinationpath, is_dir=True, Atype='copy')
@@ -272,7 +272,7 @@ class CloudSystemFS:
         else:
             tmp_outputFileName = j.sal.fs.getTempFileName(tempdir)
 
-        self.logger.debug("CloudSystemFS: exportVolume source [%s] to path [%s]" % (sourcepath, tmp_outputFileName))
+        self.logger.info("CloudSystemFS: exportVolume source [%s] to path [%s]" % (sourcepath, tmp_outputFileName))
 
         if destinationpath.endswith('.tgz'):
             compressImage = True
@@ -301,7 +301,7 @@ class CloudSystemFS:
         @type tempdir:             string
         """
         prefix = 'file://'
-        self.logger.debug("CloudSystemFS: importVolume source [%s] to path [%s]" % (sourcepath, destinationpath))
+        self.logger.info("CloudSystemFS: importVolume source [%s] to path [%s]" % (sourcepath, destinationpath))
 
         if sourcepath.endswith('.tgz'):
             compressImage = True
@@ -311,13 +311,13 @@ class CloudSystemFS:
         protocol = self._determineProtocol(sourcepath)
         if  protocol == "file":
             elements = urllib.urlparse(sourcepath)
-            self.logger.debug("Source is a local file:// not running copyFile... for %s" % elements.path)
+            self.logger.info("Source is a local file:// not running copyFile... for %s" % elements.path)
             tmp_inputFileName = elements.path
         elif protocol == "smb" or protocol == "cifs":
             src_elements = self._parseCifsURL(sourcepath)
             src_fs = CifsFS('src',server=src_elements.hostname,share=src_elements.path,username=src_elements.username,password=src_elements.password,is_dir=False,recursive=False,tempdir=tempdir)
             tmp_inputFileName = src_fs.download()
-            self.logger.debug("Source is a CIFS/SMB share, not running copyFile,using %s" %tmp_inputFileName)
+            self.logger.info("Source is a CIFS/SMB share, not running copyFile,using %s" %tmp_inputFileName)
         else:
             tmp_inputFileName = j.sal.fs.getTempFileName(tempdir)
             self.copyFile(sourcepath, ''.join([prefix,tmp_inputFileName]),tempdir=tempdir)
@@ -336,17 +336,17 @@ class CloudSystemFS:
         is_dir = True
         recursive = False
 
-        self.logger.debug("listDir: supplied path is [%s]" % path )
+        self.logger.info("listDir: supplied path is [%s]" % path )
 
         proto = self._determineProtocol(path)
         if(proto == "cifs" or proto == "smb"):
             path_elements = self._parseCifsURL(path)
-            self.logger.debug('CIFS LISTDIR path_elements: %s' %str(path_elements))
+            self.logger.info('CIFS LISTDIR path_elements: %s' %str(path_elements))
         else:
             path_elements = urllib.urlparse(path)
 
         # Determine the object we need to call
-        self.logger.debug("listDir: protocol [%s]" % proto )
+        self.logger.info("listDir: protocol [%s]" % proto )
 
         # for the source
         if(proto == "cifs" or proto == "smb"):

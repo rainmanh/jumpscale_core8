@@ -52,11 +52,11 @@ class SshFS(object):
     def _connect(self):
         j.sal.fs.createDir(self.mntpoint)
 
-        self.logger.debug("SshFS: mounting share [%s] from server [%s] with credentials login [%s] and password [%s]" % (self.directory,self.server,self.username,self.password))
+        self.logger.info("SshFS: mounting share [%s] from server [%s] with credentials login [%s] and password [%s]" % (self.directory,self.server,self.username,self.password))
 
         command = "echo \"%s\" | %s %s@%s:%s %s  -o password_stdin -o StrictHostKeyChecking=no" % (self.password,self._command,self.username,self.server,self.directory,self.mntpoint)
 
-        self.logger.debug("SshFS: executing command [%s]" % command)
+        self.logger.info("SshFS: executing command [%s]" % command)
 
         exitCode, output = j.sal.process.execute(command,die=False, outputToStdout=False)
         if not exitCode == 0:
@@ -92,10 +92,10 @@ class SshFS(object):
                 else:
                     # walk tree and move
                     for file in j.sal.fs.walk(uploadPath, recurse=0):
-                        self.logger.debug("SshFS: uploading directory -  Copying file [%s] to path [%s]" % (file,self.mntpoint))
+                        self.logger.info("SshFS: uploading directory -  Copying file [%s] to path [%s]" % (file,self.mntpoint))
                         j.sal.fs.moveFile(file,self.mntpoint)
             else:
-                self.logger.debug("SshFS: uploading file - [%s] to [%s]" % (uploadPath,self.mntpoint))
+                self.logger.info("SshFS: uploading file - [%s] to [%s]" % (uploadPath,self.mntpoint))
                 j.sal.fs.moveFile(uploadPath,j.sal.fs.joinPaths(self.mntpoint,self.filename))
         else:
             if self.Atype == "copy":
@@ -105,10 +105,10 @@ class SshFS(object):
                     else:
                     # walk tree and copy
                         for file in j.sal.fs.walk(uploadPath, recurse=0):
-                            self.logger.debug("SshFS: uploading directory -  Copying file [%s] to path [%s]" % (file,self.mntpoint))
+                            self.logger.info("SshFS: uploading directory -  Copying file [%s] to path [%s]" % (file,self.mntpoint))
                             j.sal.fs.copyFile(file,self.mntpoint)
                 else:
-                    self.logger.debug("SshFS: uploading file - [%s] to [%s]" % (uploadPath,self.mntpoint))
+                    self.logger.info("SshFS: uploading file - [%s] to [%s]" % (uploadPath,self.mntpoint))
                     j.sal.fs.copyFile(uploadPath,j.sal.fs.joinPaths(self.mntpoint,self.filename))
 
     def download(self):
@@ -117,18 +117,18 @@ class SshFS(object):
         """
         self. _connect()
         if self.is_dir:
-            self.logger.debug("SshFS: downloading from [%s]" % self.mntpoint)
+            self.logger.info("SshFS: downloading from [%s]" % self.mntpoint)
             return self.mntpoint
         else:
             pathname =  j.sal.fs.joinPaths(self.mntpoint,self.filename)
-            self.logger.debug("SshFS: downloading from [%s]" % pathname)
+            self.logger.info("SshFS: downloading from [%s]" % pathname)
             return pathname
 
     def cleanup(self):
         """
         Umount sshfs share
         """
-        self.logger.debug("SshFS: cleaning up and umounting share")
+        self.logger.info("SshFS: cleaning up and umounting share")
         command = "umount %s" % self.mntpoint
 
         exitCode, output = j.sal.process.execute(command,die=False, outputToStdout=False)
@@ -156,11 +156,11 @@ class SshFS(object):
 
         flist = j.sal.fs.walk(os.curdir,return_folders=1,return_files=1)
         os.chdir(self.curdir)
-        self.logger.debug("list: Returning content of SSH Mount [%s] which is tmp mounted under [%s]" % (self.share , self.mntpoint))
+        self.logger.info("list: Returning content of SSH Mount [%s] which is tmp mounted under [%s]" % (self.share , self.mntpoint))
 
         return flist
     def __del__(self):
         if self.is_mounted:
-            self.logger.debug('SshFS GC')
+            self.logger.info('SshFS GC')
             self.cleanup()
         os.chdir(self.curdir)

@@ -59,7 +59,6 @@ class ActionController(object):
         if all is True:
             for item in j.core.db.keys("actions.*"):
                 item = item.decode().split(".", 1)[1]
-                # print("delete:%s" % item)
                 self.logger.info("delete:%s" % item)
                 self.reset(item=item)
         else:
@@ -175,7 +174,6 @@ class ActionController(object):
         step = 0
         while todo:
             step += 1
-            # print ("STEP:%s" % step)
             self.logger.info("STEP:%s" % step)
             for action in todo:
                 action.execute()

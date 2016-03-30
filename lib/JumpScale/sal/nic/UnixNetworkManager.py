@@ -93,6 +93,6 @@ class UnixNetworkManager(SALObject):
 
         self._executor.execute('service networking restart')
         if device:
-            self.logger.debug('Restarting interface %s' % device)
+            self.logger.info('Restarting interface %s' % device)
             self._executor.execute('ifdown %s && ifup %s' % (device, device))
-        self.logger.debug('DONE')
+        self.logger.info('DONE')

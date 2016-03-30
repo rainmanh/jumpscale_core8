@@ -158,12 +158,12 @@ class WindowsSystem(SALObject):
         fullpath = os.path.abspath(dirpath)
         driveLetter = os.path.splitdrive(fullpath)[0]
         if not self.isNTFSVolume(driveLetter):
-            self.logger.warn("Skipped file permissions update - filesystem for [%s] is not NTFS" % dirpath)
+            self.logger.warning("Skipped file permissions update - filesystem for [%s] is not NTFS" % dirpath)
             return
 
         def _grantFile(fileName, securityDescriptor):
             '''Set security on a file'''
-            self.logger.debug("granting all access to everyone on %s" % fileName)
+            self.logger.info("granting all access to everyone on %s" % fileName)
             win32security.SetFileSecurity(fileName, win32security.DACL_SECURITY_INFORMATION, securityDescriptor)
 
         def _grantDir(dirpath, securityDescriptor):
@@ -319,7 +319,7 @@ class WindowsSystem(SALObject):
                     value = value[1:-1] #Remove leading and trailing quote
 
                 # Write the value to the registry
-                self.logger.debug("Adding '%s' to registry in key '%s' with value '%s' and type '%s'"%(param, section, value, valueType))
+                self.logger.info("Adding '%s' to registry in key '%s' with value '%s' and type '%s'"%(param, section, value, valueType))
                 self.setValueFromRegKey(section, param, value, valueType)
 
     def importRegKeysFromFile(self, path):
@@ -487,7 +487,7 @@ class WindowsSystem(SALObject):
         @param passwd(optional): password of the user
         raise an exception if user already exists
         """
-        self.logger.debug('Adding system user %s'%userName)
+        self.logger.info('Adding system user %s'%userName)
 
         if self.isSystemUser(userName):
             raise ValueError('User %s Already Exist'%userName)
@@ -504,21 +504,21 @@ class WindowsSystem(SALObject):
 
         if self.isSystemUser(userName):
 
-            self.logger.debug('User %s Added successfully'%userN)
+            self.logger.info('User %s Added successfully'%userN)
 
     def isSystemUser(self, userName):
         """
         Check if user is valid system User
         @param userName: name of the user
         """
-        self.logger.debug('Checking if user %s exists'%userName)
+        self.logger.info('Checking if user %s exists'%userName)
 
         if userName in self.listSystemUsers():
-            self.logger.debug('User %s exists'%userName)
+            self.logger.info('User %s exists'%userName)
 
             return True
 
-        self.logger.debug('User %s doesnt exist'%userName)
+        self.logger.info('User %s doesnt exist'%userName)
 
         return False
 
@@ -527,7 +527,7 @@ class WindowsSystem(SALObject):
         List system users
         @return: list of system user names
         """
-        self.logger.debug('Listing System Users')
+        self.logger.info('Listing System Users')
 
         users = [entry['name'] for entry in win32net.NetUserEnum(None, 0)[0]]
 
@@ -538,17 +538,17 @@ class WindowsSystem(SALObject):
         Delete a system user
         @param userName: name of the user to delete
         """
-        self.logger.debug('Deleting User %s'%userName)
+        self.logger.info('Deleting User %s'%userName)
 
         if self.isSystemUser(userName):
             win32net.NetUserDel(None, userName)
 
             if not self.isSystemUser(userName):
-                self.logger.debug('User %s deleted successfully'%userName)
+                self.logger.info('User %s deleted successfully'%userName)
 
                 return True
 
-            self.logger.debug('Failed to delete user %s'%userName)
+            self.logger.info('Failed to delete user %s'%userName)
 
         else:
             raise j.exceptions.RuntimeError("User %s is not a system user"%userName)
@@ -560,7 +560,7 @@ class WindowsSystem(SALObject):
         @return: security identifier of the user
         @rtype: string
         """
-        self.logger.debug('Getting User %s\'s SID'%userName)
+        self.logger.info('Getting User %s\'s SID'%userName)
 
         if self.isSystemUser(userName) or userName == 'everyone':
 
@@ -568,7 +568,7 @@ class WindowsSystem(SALObject):
             pySid = info[0]
             sid = win32security.ConvertSidToStringSid(pySid)
 
-            self.logger.debug('User\'s SID is %s'%str(sid))
+            self.logger.info('User\'s SID is %s'%str(sid))
 
             return sid
 
@@ -589,7 +589,7 @@ class WindowsSystem(SALObject):
         pgDataDir = j.sal.fs.joinPathso.dirs.baseDir, 'apps','postgresql8', 'Data')
         j.system.windows.createService(serviceName, displayName , '%s\\pg_ctl.exe','runservice -W -N %s -D %s'%(serviceName, pgDataDir))
         """
-        self.logger.debug('Creating Service %s'%serviceName)
+        self.logger.info('Creating Service %s'%serviceName)
 
         if not j.sal.fs.isFile(binPath):
             raise ValueError('binPath %s is not a valid file'%binPath)
@@ -636,7 +636,7 @@ class WindowsSystem(SALObject):
             win32service.CloseServiceHandle(hscm)
 
         if self.isServiceInstalled(serviceName):
-            self.logger.debug('Service %s Created Successfully'%serviceName)
+            self.logger.info('Service %s Created Successfully'%serviceName)
             return True
 
     def removeService(self, serviceName):
@@ -657,7 +657,7 @@ class WindowsSystem(SALObject):
         win32service.CloseServiceHandle(serviceHandler)
 
         if not self.isServiceInstalled(serviceName):
-            self.logger.debug('Service %s removed Successfully'%serviceName)
+            self.logger.info('Service %s removed Successfully'%serviceName)
 
             return True
 
@@ -669,7 +669,7 @@ class WindowsSystem(SALObject):
         @rtype: boolean
         """
         isRunning =  win32serviceutil.QueryServiceStatus(serviceName)[1] == win32service.SERVICE_RUNNING
-        self.logger.debug('Service %s isRunning = %s'%(serviceName, isRunning))
+        self.logger.info('Service %s isRunning = %s'%(serviceName, isRunning))
 
         return isRunning
 
@@ -679,15 +679,15 @@ class WindowsSystem(SALObject):
         Check if service is installed
         @rtype: boolean
         """
-        self.logger.debug('Checking if service %s is installed'%serviceName)
+        self.logger.info('Checking if service %s is installed'%serviceName)
 
         if serviceName in self.listServices():
 
-            self.logger.debug('Service %s is installed'%serviceName)
+            self.logger.info('Service %s is installed'%serviceName)
 
             return True
 
-        self.logger.debug('Service %s is not installed'%serviceName)
+        self.logger.info('Service %s is not installed'%serviceName)
 
         return False
 
@@ -696,7 +696,7 @@ class WindowsSystem(SALObject):
         List all services installed
         @return: list of service names installed
         """
-        self.logger.debug('Listing services installed')
+        self.logger.info('Listing services installed')
 
         services = self._wmi.InstancesOf('Win32_Service')
         serviceNames = [service.Properties_('Name').Value for service in services]
@@ -719,10 +719,10 @@ class WindowsSystem(SALObject):
             if self.isServiceRunning(serviceName):
                 return True
 
-            self.logger.debug('Failed to start service %s '%serviceName)
+            self.logger.info('Failed to start service %s '%serviceName)
 
         else:
-            self.logger.debug('Service %s is already running'%serviceName)
+            self.logger.info('Service %s is already running'%serviceName)
 
         return False
 
@@ -742,17 +742,17 @@ class WindowsSystem(SALObject):
 
                 return True
 
-            self.logger.debug('Failed to stop service %s'%serviceName)
+            self.logger.info('Failed to stop service %s'%serviceName)
 
         else:
-            self.logger.debug('Service %s is not running'%serviceName)
+            self.logger.info('Service %s is not running'%serviceName)
 
     def listRunningProcessesIds(self):
         """
         List Running Processes Ids
         @return: list of running processes ids
         """
-        self.logger.debug('Listing Running Processes ids')
+        self.logger.info('Listing Running Processes ids')
 
         runningProcesses = win32process.EnumProcesses()
 
@@ -763,7 +763,7 @@ class WindowsSystem(SALObject):
         List Running Processes names
         @return: list of running processes names,cmdlines & ids
         """
-        self.logger.debug('Listing Running processes names')
+        self.logger.info('Listing Running processes names')
 
         # j.sal.process.execute()
         processes = self._wmi.InstancesOf('Win32_Process')
@@ -829,14 +829,14 @@ class WindowsSystem(SALObject):
         @type: int
         @rtype: boolean
         """
-        self.logger.debug('Checking if pid %s is alive'%pid)
+        self.logger.info('Checking if pid %s is alive'%pid)
 
         if pid in self.listRunningProcessesIds():
-            self.logger.debug('Pid %s is alive'%pid)
+            self.logger.info('Pid %s is alive'%pid)
 
             return True
 
-        self.logger.debug('Pid %s is not alive'%pid)
+        self.logger.info('Pid %s is not alive'%pid)
 
         return False
 
@@ -848,17 +848,17 @@ class WindowsSystem(SALObject):
         @return: the pid (or None if Failed)
         @rtype: int
         """
-        self.logger.debug('Retreiving the pid of process %s'%process)
+        self.logger.info('Retreiving the pid of process %s'%process)
 
         processInfo = self._wmi.ExecQuery('select * from Win32_Process where Name="%s"'%process)
 
         if len(processInfo) > 0:
             pid = processInfo[0].Properties_('ProcessId').Value
-            self.logger.debug('Process %s\'s id is %d'%(process, pid))
+            self.logger.info('Process %s\'s id is %d'%(process, pid))
 
             return pid
 
-        self.logger.debug('Failed to retreive the pid of process %s'%process)
+        self.logger.info('Failed to retreive the pid of process %s'%process)
 
         return None
 
@@ -874,14 +874,14 @@ class WindowsSystem(SALObject):
         processInfo = self._wmi.ExecQuery('select * from Win32_Process where Name="%s"'%process)
 
         if len(processInfo) >= min:
-            self.logger.debug('Process %s is running with %d threads'%(process, min))
+            self.logger.info('Process %s is running with %d threads'%(process, min))
             return 0
 
         elif len(processInfo)  == 0:
-            self.logger.debug('Process %s is not running'%(process))
+            self.logger.info('Process %s is not running'%(process))
 
         else:
-            self.logger.debug('Process %s is running with %d thread(s)'%(process, len(processInfo)))
+            self.logger.info('Process %s is running with %d thread(s)'%(process, len(processInfo)))
 
         return 1
 
@@ -892,7 +892,7 @@ class WindowsSystem(SALObject):
         @param process: (str) the process that should have the pid
         @return status: (int) 0 when ok, 1 when not ok.
         """
-        self.logger.debug('Check if process %s\'s Id is %d'%(process, pid))
+        self.logger.info('Check if process %s\'s Id is %d'%(process, pid))
 
         processInfo = self._wmi.ExecQuery('select * from Win32_Process where Name="%s"'%process)
 
@@ -904,7 +904,7 @@ class WindowsSystem(SALObject):
                 if processId == pid:
                     return 0
 
-        self.logger.debug('Process %s\'s Id is %d and not %d'%(process, processId, pid))
+        self.logger.info('Process %s\'s Id is %d and not %d'%(process, processId, pid))
 
         return 1
 
@@ -927,7 +927,7 @@ class WindowsSystem(SALObject):
         @param dir: path of the dir
         @param userName: name of the user to add to the acl of the dir tree
         """
-        self.logger.debug('Granting access to Dir Tree %s'%dirPath)
+        self.logger.info('Granting access to Dir Tree %s'%dirPath)
 
         if j.sal.fs.isDir(dirPath):
             self.grantAccessToFile(dirPath, userName)
@@ -935,7 +935,7 @@ class WindowsSystem(SALObject):
             for subDir in j.sal.fs.WalkExtended(dirPath, recurse=1):
                 self.grantAccessToFile(subDir, userName)
         else:
-            self.logger.debug('%s is not a valid directory'%dirPath)
+            self.logger.info('%s is not a valid directory'%dirPath)
             raise IOError('Directory %s does not exist'%dirPath)
 
     def grantAccessToFile(self, filePath, userName='everyone'):
@@ -944,7 +944,7 @@ class WindowsSystem(SALObject):
         @param file: path of the file/dir
         @param userName: name of the user to add to the acl of the file/dir
         """
-        self.logger.debug('Granting access to file %s'%filePath)
+        self.logger.info('Granting access to file %s'%filePath)
         import ntsecuritycon as con
         if j.sal.fs.isFile(filePath) or j.sal.fs.isDir(filePath):
 
@@ -958,7 +958,7 @@ class WindowsSystem(SALObject):
             win32security.SetFileSecurity (filePath, win32security.DACL_SECURITY_INFORMATION, sd)
 
         else:
-            self.logger.debug('File/Directory %s is not valid'%filePath)
+            self.logger.info('File/Directory %s is not valid'%filePath)
 
             raise IOError('FilePath %s does not exist'%filePath)
     def pm_removeDirTree(self, dirPath, force = False, errorHandler = None):
@@ -972,7 +972,7 @@ class WindowsSystem(SALObject):
                 if force:
                     fileMode = win32file.GetFileAttributesW(dirPath)
                     for file in j.sal.fs.Walk(dirPath,recurse=1):
-                        self.logger.debug('Changing attributes on %s'%fileMode)
+                        self.logger.info('Changing attributes on %s'%fileMode)
                         win32file.SetFileAttributesW(file, fileMode &  ~win32file.FILE_ATTRIBUTE_HIDDEN)
                 if errorHandler != None:
                     shutil.rmtree(dirPath, onerror = errorHandler)

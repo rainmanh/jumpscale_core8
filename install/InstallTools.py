@@ -351,10 +351,6 @@ class InstallTools():
             self.chmod(dest,0o770)
 
     def createDir(self,path):
-        # if self.debug:
-            # print(("createDir: %s" % path))
-        # if os.path.exists(path) and  os.path.isfile(path):
-        #     self.delete(path)
         if not os.path.exists(path) and not os.path.islink(path):
             os.makedirs(path)
 

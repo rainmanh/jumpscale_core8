@@ -105,7 +105,7 @@ class ZipFile(object):
 
             data = self._zip.read(f)
             #We need binary write
-            self.logger.debug('Writing file %s' % outfile_path)
+            self.logger.info('Writing file %s' % outfile_path)
             fd = open(outfile_path, 'wb')
             fd.write(data)
             fd.close()

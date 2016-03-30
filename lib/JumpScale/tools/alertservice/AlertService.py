@@ -76,15 +76,15 @@ class AlertService(object):
     def escalateHigher(self, alert):
         self.timers.pop(alert['guid'], None)
         message = "Took too long to be Accepted"
-        self.logger.debug(message + " %s" % alert['guid'])
+        self.logger.info(message + " %s" % alert['guid'])
         self.alerts_client.escalate(alert=alert['guid'], comment=message)
 
     def start(self, options):
         if options.clean:
             lalerts = self.rediscl.hlen('alerts')
-            self.logger.debug("Removing cached alerts: %s" % lalerts)
+            self.logger.info("Removing cached alerts: %s" % lalerts)
             self.rediscl.delete('alerts')
-            self.logger.debug("Removing alerts queue: %s" % self.alertqueue.qsize())
+            self.logger.info("Removing alerts queue: %s" % self.alertqueue.qsize())
             self.rediscl.delete(self.alertqueue.key)
 
         for handler in self.handlers:
@@ -103,14 +103,14 @@ class AlertService(object):
         if greenlet is not None:
             scheduledalert = greenlet.args[0]
             if scheduledalert['state'] != alert['state']:
-                self.logger.debug("Removing schedule for alert %s" % scheduledalert['state'])
+                self.logger.info("Removing schedule for alert %s" % scheduledalert['state'])
                 greenlet.kill()
             else:
                 return
 
         delay = self.getStateTime(alert)
         if delay:
-            self.logger.debug("Schedule escalation in %ss for state %s" % (delay, alert['state']))
+            self.logger.info("Schedule escalation in %ss for state %s" % (delay, alert['state']))
             self.timers[alert['guid']] = gevent.spawn_later(delay, self.escalateHigher, alert)
 
     def restartTimers(self):
@@ -127,7 +127,7 @@ class AlertService(object):
                 epoch = alert['epoch'] or alert['lasttime']
                 remainingtime = (epoch + alerttime) - now
                 if remainingtime > 0:
-                    self.logger.debug("Schedule escalation in %ss for state %s" % (remainingtime, alert['state']))
+                    self.logger.info("Schedule escalation in %ss for state %s" % (remainingtime, alert['state']))
                     self.timers[alert['guid']] = gevent.spawn_later(remainingtime, self.escalateHigher, alert)
                 else:
                     self.escalateHigher(alert)
@@ -138,7 +138,7 @@ class AlertService(object):
             alert = self.getAlert(alertid)
             oldalert = self.rediscl.hget('alerts', alertid)
             self.rediscl.hset('alerts', alert['guid'], json.dumps(alert))
-            self.logger.debug('Got alertid %s' % alertid)
+            self.logger.info('Got alertid %s' % alertid)
             if alert['state'] == 'ALERT':
                 self.escalate(alert=alert)
             elif oldalert:

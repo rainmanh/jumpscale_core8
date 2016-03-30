@@ -120,8 +120,7 @@ class SSHClient(object):
     @property
     def client(self):
         if self._client is None:
-            # print('ssh new client to %s@%s:%s' % (self.login, self.addr, self.port))
-            self.logger.debug('ssh new client to %s@%s:%s' % (self.login, self.addr, self.port))
+            self.logger.info('ssh new client to %s@%s:%s' % (self.login, self.addr, self.port))
 
             start = j.data.time.getTimeEpoch()
             timeout = 20
@@ -155,13 +154,11 @@ class SSHClient(object):
         return False if not ok
         """
         if not self._connection_ok:
-            counter = 0
-
+            self.logger.info("Test connection to %s:%s" % (self.addr, self.port))
             rc = 1
             start = j.data.time.getTimeEpoch()
 
             if j.sal.nettools.waitConnectionTest(self.addr, self.port, timeout) == False:
-                # print("Cannot connect to ssh server %s:%s" % (self.addr, self.port))
                 self.logger.error("Cannot connect to ssh server %s:%s" % (self.addr, self.port))
                 return False
 
@@ -175,7 +172,7 @@ class SSHClient(object):
                     rc = 1
                     break
                 except (SSHException, socket.error) as e:
-                    self.logger.error("authentification error. abording connection")
+                    self.logger.error("Unexpected error. abording connection")
                     self.logger.error(e)
                     j.clients.ssh.removeFromCache(self)
                     self._client.close()
@@ -214,7 +211,7 @@ class SSHClient(object):
         for line in stdout:
             buff += line
             if self.stdout and showout:
-                self.logger.debug(line)
+                self.logger.info(line)
 
         retcode = ch.recv_exit_status()
         if retcode > 0:

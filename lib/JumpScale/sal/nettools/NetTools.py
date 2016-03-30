@@ -308,7 +308,7 @@ class NetTools(SALObject):
             exitcode,output = j.sal.process.execute(command, outputToStdout=False, die=False)
             if exitcode != 0:
                 # temporary plumb the interface to lookup its mac
-                self.logger.warn("Interface %s is down. Temporarily plumbing it to be able to lookup its nic type" % interface)
+                self.logger.warning("Interface %s is down. Temporarily plumbing it to be able to lookup its nic type" % interface)
                 j.sal.process.execute('%s plumb' % command, outputToStdout=False)
                 (exitcode, output) = j.sal.process.execute(command, outputToStdout=False)
                 j.sal.process.execute('%s unplumb' % command, outputToStdout=False)
@@ -550,7 +550,7 @@ class NetTools(SALObject):
             (exitcode, output) = j.sal.process.execute(command, outputToStdout=False, die=False)
             if exitcode != 0:
                 # temporary plumb the interface to lookup its mac
-                self.logger.warn("Interface %s is down. Temporarily plumbing it to be able to lookup its MAC address" % interface)
+                self.logger.warning("Interface %s is down. Temporarily plumbing it to be able to lookup its MAC address" % interface)
                 j.sal.process.execute('%s plumb' % command, outputToStdout=False)
                 (exitcode, output) = j.sal.process.execute(command, outputToStdout=False, die=False)
                 j.sal.process.execute('%s unplumb' % command, outputToStdout=False)

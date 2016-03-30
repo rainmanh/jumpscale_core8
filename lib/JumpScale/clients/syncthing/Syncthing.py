@@ -303,10 +303,10 @@ class SyncthingClient:
                 self.logger.warn("retry API CALL %s" % url)
                 time.sleep(0.2)
 
-        if r.ok==False:
-            print("%s"%(url))
-            print(endpoint)
-            print(request_body)
+        if r.ok is False:
+            self.logger.error("%s"%(url))
+            self.logger.error(endpoint)
+            self.logger.error(request_body)
             raise j.exceptions.RuntimeError("Error in rest call: %s"%r)
 
         if get and endpoint != '/system/version':

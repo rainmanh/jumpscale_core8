@@ -145,7 +145,7 @@ class CockpitDeployer:
 
         self.args.ovc_client = ovc_client
         account = ovc_client.account_get(self.args.ovc_account)
-        self.logger.info("Create space")
+        self.logger.info("Virtual Data Center Selection")
         try:
             vdc = account.space_get(self.args.ovc_vdc, self.args.ovc_location, create=True)
         except Exception as e:
@@ -255,7 +255,7 @@ class CockpitDeployer:
             key_pub = self.args.sshkey
 
         self.logger.info('cloning template repo (%s)' % self.TEMPLATE_REPO)
-        template_repo_path = j.do.pullGitRepo(url=self.TEMPLATE_REPO, executor=cuisine.executor)
+        template_repo_path = j.do.pullGitRepo(url=self.TEMPLATE_REPO, branch='master', executor=cuisine.executor)
         self.logger.info('cloned in %s' % template_repo_path)
 
         self.logger.info("creation of cockpit repo")
@@ -264,7 +264,7 @@ class CockpitDeployer:
             j.sal.fs.removeDirTree(cockpit_repo_path)
         j.sal.fs.createDir(cockpit_repo_path)
         cuisine.core.run('git init %s' % cockpit_repo_path)
-        cuisine.core.run('git remote remove origin;git remote add origin %s' % self.args.repo_url)
+        cuisine.core.run('cd %s; git remote add origin %s' % (cockpit_repo_path, cockpit_repo_remote))
 
         src = j.sal.fs.joinPaths(template_repo_path, 'ays_repo')
         dest = j.sal.fs.joinPaths(cockpit_repo_path, 'ays_repo')
@@ -383,19 +383,19 @@ class CockpitDeployer:
         }
         r = j.atyourservice.getRecipe('cockpitconfig')
         r.newInstance(args=args)
-        cuisine.core.run('cd %s; git push -f origin master' % cockpit_repo_path, force=True)
+        # cuisine.core.run('cd %s; git push -f origin master' % cockpit_repo_path, force=True)
 
         content = "grid.id = %d\nnode.id = 0" % int(self.args.gid)
         container_cuisine.core.file_append(location="$hrdDir/system/system.hrd", content=content)
 
         # j.sal.fs.copyFile("portforwards.py", cockpit_repo_path, createDirIfNeeded=False, overwriteFile=True)
-        # dest = 'root@%s:%s' % (container_cuisine.executor.addr, cockpit_repo_path)
-        # container_cuisine.core.dir_ensure(cockpit_repo_path)
-        # j.do.copyTree(cockpit_repo_path, dest, sshport=container_cuisine.executor.port, ssh=True)
+        dest = 'root@%s:%s' % (container_cuisine.executor.addr, cockpit_repo_path)
+        container_cuisine.core.dir_ensure(cockpit_repo_path)
+        j.do.copyTree(cockpit_repo_path, dest, sshport=container_cuisine.executor.port, ssh=True)
 
         self.logger.info("\nCockpit deployed")
         self.logger.info("SSH: ssh root@%s -p %s" % (dns_name, container_cuisine.executor.port))
-        if shellinbox_url:
+        if self.args.expose_ssh:
             self.logger.info("Shellinabox: https://%s/%s" % (dns_name, shellinbox_url))
         self.logger.info("Portal: http://%s" % (dns_name))
 

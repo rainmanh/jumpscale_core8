@@ -72,13 +72,14 @@ class IniFile(object):
             @param removeWhenDereferenced: Whether or not to remove the file when this object is dereferenced
             @type removeWhenDereferenced:  bool
         """
+        self.logger = j.logger.get("j.tools.inifile")
         self.__configParser = ConfigParser()
         self.__removeWhenDereferenced = removeWhenDereferenced
         if isinstance(iniFile, str): # iniFile is a filepath
             self.__inifilepath = iniFile
             if create:
                 j.sal.fs.createDir(j.sal.fs.getDirName(iniFile))
-                j.logger.log("Create config file: "+iniFile,7)
+                self.logger.info("Create config file: "+iniFile)
                 j.sal.fs.writeFile(iniFile, '')
             if not j.sal.fs.isFile(iniFile):
                 raise j.exceptions.RuntimeError("Inifile could not be found on location %s" %  iniFile)
@@ -156,7 +157,7 @@ class IniFile(object):
             return default
         try:
             result=self.__configParser.get(sectionName, paramName, raw=raw)
-            j.logger.log("Inifile: get %s:%s from %s, result:%s" % (sectionName,paramName,self.__inifilepath,result),7)
+            self.logger.info("Inifile: get %s:%s from %s, result:%s" % (sectionName,paramName,self.__inifilepath,result))
             return result
         except Exception as err:
             raise LookupError('Failed to get value of the parameter: %s under section: %s in file %s.\nERROR: %s'%(paramName, sectionName, self.__inifilepath,str(err)))
@@ -167,7 +168,7 @@ class IniFile(object):
         @param paramName:   name of the parameter"""
         try:
             result= self.__configParser.getboolean(sectionName, paramName)
-            j.logger.log("Inifile: get boolean %s:%s from %s, result:%s" % (sectionName,paramName,self.__inifilepath,result),7)
+            self.logger.info("Inifile: get boolean %s:%s from %s, result:%s" % (sectionName,paramName,self.__inifilepath,result))
             return result
 
         except Exception as e:
@@ -179,7 +180,7 @@ class IniFile(object):
         @param paramName:   name of the parameter"""
         try:
             result= self.__configParser.getint(sectionName, paramName)
-            j.logger.log("Inifile: get integer %s:%s from %s, result:%s" % (sectionName,paramName,self.__inifilepath,result),7)
+            self.logger.info("Inifile: get integer %s:%s from %s, result:%s" % (sectionName,paramName,self.__inifilepath,result))
             return result
         except Exception as e:
             raise LookupError('Failed to get integer value of parameter: %s under section: %s\nERROR: %s' % (paramName, sectionName, e))
@@ -190,7 +191,7 @@ class IniFile(object):
         @param paramName:   name of the parameter"""
         try:
             result=self.__configParser.getfloat(sectionName, paramName)
-            j.logger.log("Inifile: get integer %s:%s from %s, result:%s" % (sectionName,paramName,self.__inifilepath,result),7)
+            self.logger.info("Inifile: get integer %s:%s from %s, result:%s" % (sectionName,paramName,self.__inifilepath,result))
             return result
         except Exception as e:
             raise LookupError('Failed to get float value of parameter:%s under section:%s \nERROR: %'%(paramName, sectionName, e))
@@ -201,7 +202,7 @@ class IniFile(object):
         try:
             if(self.checkSection(sectionName)):
                 return
-            j.logger.log("Inifile: add section %s to %s" % (sectionName,self.__inifilepath))
+            self.logger.info("Inifile: add section %s to %s" % (sectionName,self.__inifilepath))
             self.__configParser.add_section(sectionName)
             if self.checkSection(sectionName):
                 return True
@@ -217,7 +218,7 @@ class IniFile(object):
             if str(newvalue)=="none":
                 newvalue=="*NONE*"
             self.__configParser.set(sectionName, paramName, str(newvalue))
-            j.logger.log("Inifile: set %s:%s=%s on %s" % (sectionName,paramName,str(newvalue),self.__inifilepath))
+            self.logger.info("Inifile: set %s:%s=%s on %s" % (sectionName,paramName,str(newvalue),self.__inifilepath))
             #if self.checkParam(sectionName, paramName):
             #    return True
             self.write()
@@ -238,7 +239,7 @@ class IniFile(object):
         if not self.checkSection(sectionName): return False
         try:
             self.__configParser.remove_section(sectionName)
-            j.logger.log("inifile: remove section %s on %s" % (sectionName,self.__inifilepath))
+            self.logger.info("inifile: remove section %s on %s" % (sectionName,self.__inifilepath))
             if self.checkSection(sectionName):
                 return False
             return True
@@ -252,7 +253,7 @@ class IniFile(object):
         if not self.checkParam(sectionName, paramName): return False
         try:
             self.__configParser.remove_option(sectionName, paramName)
-            j.logger.log("Inifile:remove %s:%s from %s" % (sectionName,paramName,self.__inifilepath))
+            self.logger.info("Inifile:remove %s:%s from %s" % (sectionName,paramName,self.__inifilepath))
             return True
         except Exception as err:
             raise j.exceptions.RuntimeError('Failed to remove parameter: %s under section: %s \nERROR: %s'%(paramName, sectionName, str(err)))
@@ -264,7 +265,7 @@ class IniFile(object):
         """
         closeFileHandler = True
         fp = None
-        j.logger.log("Inifile: Write configfile %s to disk" % (self.__inifilepath))
+        self.logger.info("Inifile: Write configfile %s to disk" % (self.__inifilepath))
         if not filePath:
             if self.__inifilepath: # Use the inifilepath that was set in the constructor
                 filePath = self.__inifilepath

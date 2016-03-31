@@ -7,6 +7,7 @@ class ExecutorLocal(ExecutorBase):
     def __init__(self, dest_prefixes={}, debug=False, checkok=False):
         ExecutorBase.__init__(
             self, dest_prefixes=dest_prefixes, debug=debug, checkok=debug)
+        self.logger = j.logger.get("j.tools.executor.local")
         self.type="local"
         self.id = 'localhost'
         self.addr = 'localhost'

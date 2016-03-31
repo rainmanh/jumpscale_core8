@@ -157,9 +157,10 @@ def findjumpscalelocations(path):
             classname=line.replace("class ","").split(":")[0].split("(",1)[0].strip()
         if line.find("self.__jslocation__")!=-1:
             if classname==None:
-                raise j.exceptions.RuntimeError("Could not find class in %s while loading jumpscale lib."%path)
+                raise RuntimeError("Could not find class in %s while loading jumpscale lib."%path)
             location=line.split("=",1)[1].replace("\"","").replace("'","").strip()
-            res.append((classname,location))
+            if location.find("self.__jslocation__") == -1:
+                res.append((classname,location))
     return res
 
 import json
@@ -179,29 +180,22 @@ def findModules():
     for rootfolder in j.do.listDirsInDir(superroot,False,True):
         fullpath0=os.path.join(superroot, rootfolder)
         if rootfolder.startswith("_"):
-            # print ("SKIP__:%s"%fullpath0)
             continue
         for module in j.do.listDirsInDir(fullpath0,False,True):
             fullpath=os.path.join(superroot,rootfolder, module)
             if module.startswith("_"):
-                # print ("SKIP_:%s"%fullpath)
                 continue
-            # moduleload = '%s.%s' % (prefix, module)
 
             for classfile in j.do.listFilesInDir(fullpath,False,"*.py"):
                 basename=j.do.getBaseName(classfile)
                 if basename.startswith("_"):
-                    # print ("SKIP_file:%s (%s)"%(classfile,basename))
                     continue
                 if str(basename[0])!=str(basename[0].upper()):#look for files starting with Capital
-                    # print ("SKIP_file_upper:%s (%s)"%(classfile,basename))
                     continue
 
                 for (classname,location) in findjumpscalelocations(classfile):
-                    # print("classfile:%s"%classfile)
                     if classname!=None:
                         loc=".".join(location.split(".")[:-1])
-                        print ("location:%s"%(location))
                         item=location.split(".")[-1]
                         if loc not in result:
                             result[loc]=[]
@@ -235,18 +229,13 @@ if forcereload or data==None:
         data=j.core.db.get("system.locations").decode()
     else:
         data=j.do.readFile("%s/metadata.db"%j.do.VARDIR)
-        # print ("data from readfile")
 else:
     data=data.decode()
 
 locations=json.loads(data)
-# print ("LEN:%s"%len(locations))
-
 for locationbase,llist in locations.items():  #locationbase is e.g. j.sal
-    # print (locationbase)
     loader=locationbases[locationbase]
     for classfile,classname,item in llist:
-        # print (" - %s|%s|%s"%(item,classfile,classname))
         loader._register(item,classfile,classname)
 
 if not j.do.exists("%s/hrd/system/system.hrd"%basevar):
@@ -258,7 +247,3 @@ if data==None:
     j.application._config = j.data.hrd.get(path="%s/hrd/system"%basevar)
 
 j.application.init()
-
-# j.tools.xonsh
-
-

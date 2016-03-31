@@ -251,7 +251,7 @@ class HRDBase:
         """
         look for $(name) and replace with hrd value
         """
-        j.data.hrd.log("hrd %s apply on dir:%s"%(self.name,path),category="apply")
+        j.data.hrd.logger.info("hrd %s apply on dir:%s"%(self.name,path))
 
         items=j.sal.fs.listFilesInDir( path, recursive=True, filter=filter, minmtime=minmtime, maxmtime=maxmtime, depth=depth)
         for item in items:
@@ -268,7 +268,7 @@ class HRDBase:
         look for $(name) and replace with hrd value
         """
 
-        j.data.hrd.log("hrd:%s apply on file:%s"%(self.path,path),category="apply")
+        j.data.hrd.logger.info("hrd:%s apply on file:%s"%(self.path,path))
         content=j.sal.fs.fileGetContents(path)
         content=self._replaceVarsInText(content,additionalArgs=additionalArgs)
         j.sal.fs.writeFile(path,content)
@@ -286,7 +286,7 @@ class HRDBase:
             return content
 
         items=j.tools.code.regex.findAll(r"\$\([\w.]*\)",content)
-        j.data.hrd.log("replace vars in hrd:%s"%self.path,"replacevar",7)
+        j.data.hrd.logger.info("replace vars in hrd:%s" % self.path)
         if len(items)>0:
             for item in items:
                 # print "look for : %s"%item
@@ -362,4 +362,3 @@ class HRDBase:
 
     def __str__(self):
         return self.__repr__()
-

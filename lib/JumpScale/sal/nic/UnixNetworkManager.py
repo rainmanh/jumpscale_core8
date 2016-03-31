@@ -1,6 +1,6 @@
 from JumpScale import j
-# 
-import re 
+#
+import re
 import netaddr
 
 # class NetworkingErro(Exception):
@@ -17,9 +17,10 @@ class UnixNetworkManager(SALObject):
 
     def __init__(self):
         self.__jslocation__ = "j.sal.nic"
+        self.logger("j.sal.nic")
         self._executor = j.tools.executor.getLocal()
         self._nics = None
-    
+
     def _nicExists(self, nic):
         if nic not in self.nics:
             raise NetworkingError('Invalid NIC')
@@ -34,21 +35,21 @@ class UnixNetworkManager(SALObject):
         rc, res = self._executor.execute(cmd)
         ipmask = netaddr.IPNetwork(res)
         netmask = str(ipmask.netmask)
-        ip = str(ipmask.ip) 
+        ip = str(ipmask.ip)
         return (ip, netmask)
-    
+
     def ipSet(self, device, ip=None, netmask=None, gw=None, inet='dhcp', commit=False):
         """
         Return all interfaces that has this ifname
         """
         self._nicExists(device)
-        
+
         if inet not in ['static', 'dhcp']:
             raise ValueError('Invalid inet .. use either dhcp or static')
-        
+
         if inet == 'static' and (not ip or not netmask):
             raise ValueError('ip, and netmask, are required in static inet.')
-        
+
         file = j.tools.path.get('/etc/network/interfaces.d/%s' % device)
         content = 'auto %s\n' % device
 
@@ -58,23 +59,23 @@ class UnixNetworkManager(SALObject):
             content += 'iface %s inet static\naddress %s\nnetmask %s\n' % (device, ip, netmask)
             if gw:
                 content += 'gateway %s\n' % gw
-        
+
         file.write_text(content)
-        
+
         if commit:
             self.commit(device)
         else:
-            j.logger.log('Do NOT FORGET TO COMMIT', 2)
+            self.logger.info('Do NOT FORGET TO COMMIT')
 
     def ipReset(self, device, commit=False):
         self._nicExists(device)
         file = j.tools.path.get('/etc/network/interfaces.d/%s' % device)
         file.write_text('')
-        
+
         if commit:
             self.commit()
         else:
-            j.logger.log('Do NOT FORGET TO COMMIT', 2)
+            self.logger.info('Do NOT FORGET TO COMMIT')
 
     @property
     def nics(self):
@@ -92,6 +93,6 @@ class UnixNetworkManager(SALObject):
 
         self._executor.execute('service networking restart')
         if device:
-            j.logger.log('Restarting interface %s' % device, 2)
+            self.logger.info('Restarting interface %s' % device)
             self._executor.execute('ifdown %s && ifup %s' % (device, device))
-        j.logger.log('DONE', 2)
+        self.logger.info('DONE')

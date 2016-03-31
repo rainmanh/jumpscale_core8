@@ -12,9 +12,8 @@ class HostFile(SALObject):
 
     def __init___(self):
         self.__jslocation__ = "j.sal.hostsfile"
+        self.logger = j.logger.get("j.sal.hostsfile")
         self.hostfilePath="/etc/hosts"
-
-
 
     def remove(self, hostsfile, ip):
         """Update a hostfile, delete ip from hostsfile
@@ -28,7 +27,7 @@ class HostFile(SALObject):
             filecontents = filecontents.replace(searchObj.group(0), '')
             j.sal.fs.writeFile(self.hostfilePath, filecontents)
         else:
-            j.logger.log('Ip address %s not found in hosts file' %ip, 1)
+            self.logger.warning('Ip address %s not found in hosts file' % ip)
 
     def existsIP(self, ip):
         """Check if ip is in the hostsfile
@@ -69,7 +68,7 @@ class HostFile(SALObject):
             hostname = hostname.split()
         filecontents = j.sal.fs.fileGetContents(self.hostfilePath)
         searchObj = re.search('^%s\s.*\n' %ip, filecontents, re.MULTILINE)
-        
+
         hostnames = ' '.join(hostname)
         if searchObj:
             filecontents = filecontents.replace(searchObj.group(0), '%s %s\n' %(ip, hostnames))
@@ -77,5 +76,3 @@ class HostFile(SALObject):
             filecontents += '%s %s\n' %(ip, hostnames)
 
         j.sal.fs.writeFile(self.hostfilePath, filecontents)
-
-

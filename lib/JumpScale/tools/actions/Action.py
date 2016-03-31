@@ -36,8 +36,11 @@ class Action:
         @param selfGeneratorCode is the code which gets evalled to return the object which is given to self, ...
 
         '''
+        self.logger = j.logger.get("j.actions")
+
         if key=="" and action==None:
             raise j.exceptions.RuntimeError("need to specify key or action")
+
 
         self._args=""
         self._kwargs=""
@@ -130,7 +133,6 @@ class Action:
         if self.state=="INIT" and key=="":
             #is first time
             self.save(True)
-
 
     @property
     def state(self):
@@ -486,7 +488,7 @@ class Action:
                 exec(self.selfGeneratorCode,globals(),l)
                 self._selfobj=l["selfobj"]
             except Exception as e:
-                # from pudb import set_trace; set_trace() 
+                # from pudb import set_trace; set_trace()
                 self.error += "SELF OBJ ERROR:\n%s" % e
                 self.state = "ERROR"
                 self.save()
@@ -502,12 +504,11 @@ class Action:
 
         if self.state == "OK" and self.force==False:
             if self.actionshow:
-                print("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
+                self.logger.info("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
             j.actions.delFromStack(self)
             return
 
-        if self.actionshow:
-            print("  * %-20s: %s" % (self.name, self._args10line))
+        self.logger.info("  * %-20s: %s" % (self.name, self._args10line))
 
         if self._stdOutput == False:
             j.tools.console.hideOutput()
@@ -545,7 +546,7 @@ class Action:
                     #     self.traceback+="%s\n"%line.strip()
                     # err=""
 
-                    # from pudb import set_trace; set_trace() 
+                    # from pudb import set_trace; set_trace()
 
                     tb=e.__traceback__
                     value=e
@@ -563,7 +564,8 @@ class Action:
                     counter+=1
                     time.sleep(0.1)
                     if self.retry>0:
-                        print("  RETRY, ERROR (%s/%s)" % (counter, self.retry))
+                        # print("  RETRY, ERROR (%s/%s)" % (counter, self.retry))
+                        self.logger.info("  RETRY, ERROR (%s/%s)" % (counter, self.retry))
                     rcode = 1
 
                     if "**NOSTACK**" in err:
@@ -575,7 +577,7 @@ class Action:
                 j.tools.console.enableOutput()
                 self.stdouterr += j.tools.console.getOutput()
 
-            
+
             if rcode > 0 or self.state=="ERROR":
                 if self.die:
                     for action in self.getWhoDependsOnMe():
@@ -610,7 +612,8 @@ class Action:
                 j.actions.delFromStack(self)
                 if self.die:
                     # if j.actions.stack==[]:
-                    print("error in action: %s"%self)
+                    # print("error in action: %s"%self)
+                    self.logger.error("error in action: %s"%self)
                     sys.exit(1)
                     # else:
                     #     raise j.exceptions.RuntimeError("error in action: %s"%self)
@@ -719,7 +722,7 @@ class Action:
 
 
         if self.traceback!="":
-            print ("\n*SOURCECODE******************************************************************************\n")
+            self.logger.error("\n*SOURCECODE******************************************************************************\n")
 
             """
             styles:
@@ -732,13 +735,13 @@ class Action:
             tb_colored = pygments.highlight(self.sourceToExecute, lexer, formatter)
             self._stream.write(tb_colored)
 
-            print ("\n*TRACEBACK*********************************************************************************\n")
+            self.logger.error("\n*TRACEBACK*********************************************************************************\n")
 
             lexer = pygments.lexers.get_lexer_by_name("pytb", stripall=True)
             tb_colored = pygments.highlight(self.traceback, lexer, formatter)
             self._stream.write(tb_colored)
 
-        print ("\n\n******************************************************************************************\n")
+        self.logger.error("\n\n******************************************************************************************\n")
 
 
     __repr__ = __str__

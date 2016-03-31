@@ -20,7 +20,7 @@ class WhmcsFactory(object):
 
     def __init__(self):
         self.__jslocation__ = "j.clients.whmcs"
-        j.logger.consolelogCategories.append('whmcs')
+        self.logger = j.logger.get('j.clients.whmcs')
 
     def get(self,
             username='',
@@ -40,12 +40,7 @@ class WhmcsFactory(object):
             operations_user_id,
             operations_department_id,
             instance)
-        
-    
+
+
     def getDummy(self):
         return DummyWhmcs()
-
-    def log(self,msg,category='',level=5):
-        category = 'whmcs.%s'%category
-        category = category.rstrip('.')
-        j.logger.log(msg,category=category,level=level)

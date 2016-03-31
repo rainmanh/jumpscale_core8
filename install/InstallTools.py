@@ -351,10 +351,6 @@ class InstallTools():
             self.chmod(dest,0o770)
 
     def createDir(self,path):
-        if self.debug:
-            print(("createDir: %s" % path))
-        # if os.path.exists(path) and  os.path.isfile(path):
-        #     self.delete(path)
         if not os.path.exists(path) and not os.path.islink(path):
             os.makedirs(path)
 
@@ -1712,7 +1708,7 @@ class InstallTools():
                 return self.pullGitRepo(url,dest,login,passwd,depth,ignorelocalchanges,reset,branch,revision, True,executor)
             except Exception as e:
                 return self.pullGitRepo(url,dest,login,passwd,depth,ignorelocalchanges,reset,branch,revision, False,executor)
-            raise RuntimeError("Could not checkout, needs to be with ssh or without.")                
+            raise RuntimeError("Could not checkout, needs to be with ssh or without.")
 
 
         if executor is None:
@@ -2461,7 +2457,7 @@ exec python3 -q "$@"
             do.executeInteractive("pip3 install colored-traceback")
             do.executeInteractive("pip3 install xonsh")
             do.executeInteractive("pip3 install pudb")
-            do.executeInteractive("pip3 install tmuxp")            
+            do.executeInteractive("pip3 install tmuxp")
 
             if sys.platform.startswith('win'):
                 raise RuntimeError("Cannot find JSBASE, needs to be set as env var")

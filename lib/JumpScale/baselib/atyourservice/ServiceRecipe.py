@@ -134,7 +134,7 @@ class ServiceRecipe(ServiceTemplate):
 
         instance = instance.lower()
 
-        services = j.atyourservice.findServices(name=self.name, instance=instance)
+        services = j.atyourservice.findServices(role=self.role, instance=instance)
 
         if services:
             print("NEWINSTANCE: Service instance %s!%s  exists." % (self.name, instance))

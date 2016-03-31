@@ -18,6 +18,8 @@ class Syncthing:
 class SyncthingClient:
 
     def __init__(self, addr="localhost",port=22001,sshport=22,rootpasswd="js111js",apikey="js111js"):
+        self.logger = j.logger.get('j.clients.syncthing')
+        self._session = requests.session()
         addr=addr.lower()
         if addr=="127.0.0.1":
             addr="localhost"
@@ -285,11 +287,11 @@ class SyncthingClient:
             for key in keys:
                 url += '&%s=%s' % (key, request_body[key])
 
-
-        counter=0
-        ok=False
-        print(url)
-        while ok==False:
+        timeout = 10
+        start = time.time()
+        ok = False
+        self.logger.debug(url)
+        while time.time() < (start + timeout) and ok is False:
             try:
                 if get:
                     r = requests.get(url, headers=headers, timeout=2)
@@ -297,23 +299,14 @@ class SyncthingClient:
                     r = requests.post(url, headers=headers,json=data, timeout=2)
                 ok=True
             except Exception as e:
-                print("Warning, Error in API call, will retry:\n%s"%e)
-                # except requests.packages.urllib3.exceptions.ProtocolError:
-                # from IPython import embed
-                # print "DEBUG NOW ooosss"
-                # embed()
-                print("retry API CALL %s"%url)
-                counter+=1
-                time.sleep(0.1)
+                self.logger.warn("Warning, Error in API call, will retry:\n%s" % e)
+                self.logger.warn("retry API CALL %s" % url)
+                time.sleep(0.2)
 
-                if counter>10:
-                    raise j.exceptions.RuntimeError('Syncthing is not responding. Exiting.')
-
-
-        if r.ok==False:
-            print("%s"%(url))
-            print(endpoint)
-            print(request_body)
+        if r.ok is False:
+            self.logger.error("%s"%(url))
+            self.logger.error(endpoint)
+            self.logger.error(request_body)
             raise j.exceptions.RuntimeError("Error in rest call: %s"%r)
 
         if get and endpoint != '/system/version':

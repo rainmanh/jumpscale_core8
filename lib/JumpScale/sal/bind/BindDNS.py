@@ -15,16 +15,17 @@ class Zone(object):
     NON_ZONE_FILES = ['/etc/bind/named.conf.options']
 
     def __init__(self, domain, type, file):
+        self.logger = j.logger.get("j.sal.bind.zone")
         self.domain = domain
         self.type = type
         self.file = file
-    
+
     def __repr__(self):
         return "{domain:%s, type:%s, file:%s}" % (self.domain, self.type, self.file)
-    
+
     @staticmethod
     def getZones():
-        j.logger.log('GETTING ZONES INFO', 2)
+        self.logger.info('GETTING ZONES INFO')
         configs = []
         zonesfiles = []
         for configfile in ['named.conf.local', 'named.conf']:
@@ -44,13 +45,13 @@ class Zone(object):
                     data = match.group('data')
                     domaindata = dict()
                     for fieldm in re.finditer("^\s+(?P<key>\w+)\s+(?P<value>.*);$", data, re.M):
-                        domaindata[fieldm.group('key')] = fieldm.group('value') 
+                        domaindata[fieldm.group('key')] = fieldm.group('value')
                     if not domaindata:
                         continue
                     zones[domain] = domaindata
                     zones[domain]['file'] = zones[domain]['file'].replace('"', '')
         return zones
-    
+
     @staticmethod
     def getMap(zones):
         res = {}
@@ -80,11 +81,12 @@ class Zone(object):
             except NoSOA:
                 continue
         return res
-    
+
 class BindDNS(DNS,SALObject):
 
     def __init__(self):
         self.__jslocation__="j.sal.bind"
+        self.logger = j.logger.get("j.sal.bind")
 
     @property
     def zones(self):
@@ -93,7 +95,7 @@ class BindDNS(DNS,SALObject):
             z = Zone(k, v['type'], v['file'])
             res.append(z)
         return res
-    
+
     @property
     def map(self):
         return Zone.getMap(self.zones)
@@ -103,19 +105,19 @@ class BindDNS(DNS,SALObject):
         return Zone.getreverseMap(self.zones)
 
     def start(self):
-        j.logger.log('STARTING BIND SERVICE', 2)
+        self.logger.info('STARTING BIND SERVICE')
         _, out = j.sal.process.execute('service bind9 start', outputToStdout=True)
-        j.logger.log(out, 2)
-        
+        self.logger.info(out)
+
     def stop(self):
-        j.logger.log('STOPPING BIND SERVICE', 2)
+        self.logger.info('STOPPING BIND SERVICE')
         _, out = j.sal.process.execute('service bind9 stop', outputToStdout=True)
-        j.logger.log(out, 2)
-    
+        self.logger.info(out)
+
     def restart(self):
-        j.logger.log('RESTSRTING BIND SERVICE', 2)
+        self.logger.info('RESTSRTING BIND SERVICE')
         _, out = j.sal.process.execute('service bind9 restart', outputToStdout=True)
-        j.logger.log(out, 2)
+        self.logger.info(out)
 
     def updateHostIp(self, host, ip):
         map = self.map
@@ -140,15 +142,15 @@ class BindDNS(DNS,SALObject):
         records  = [x for x in self.zones if x.domain == domain]
         if not records:
             raise j.exceptions.RuntimeError("Invalid domain")
-        
+
         record = records[0]
         file = record.file
         zone = dns.zone.from_file(file, os.path.basename(file),relativize=False)
         node = zone.get_node(host, create=True)
-        
+
         if type == "A":
             t = dns.rdatatype.A
-        
+
         if klass == "IN":
             k = dns.rdataclass.IN
 
@@ -157,14 +159,14 @@ class BindDNS(DNS,SALObject):
         if type == "A" and klass == "IN":
             item = A(k, t, ip)
             ds.items.append(item)
-        
+
         # update version
         for k, v in zone.nodes.items():
             for ds in v.rdatasets:
                 if ds.rdtype == dns.rdatatype.SOA:
                     for item in ds.items:
                         item.serial += 1
-        
+
         zone.to_file(file, relativize=False)
         self.restart()
 
@@ -174,7 +176,7 @@ class BindDNS(DNS,SALObject):
         record = map.get(host)
         if not record:
             raise j.exceptions.RuntimeError("Invalid host name")
-        
+
         for r in record:
             file = r['file']
             old_ip = r['ip']
@@ -188,6 +190,6 @@ class BindDNS(DNS,SALObject):
                     if ds.rdtype == dns.rdatatype.SOA:
                         for item in ds.items:
                             item.serial += 1
-            
+
             zone.to_file(file, relativize=False)
         self.restart()

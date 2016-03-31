@@ -6,8 +6,7 @@ from BackupClient import BackupClient
 class BackupFactory:
     def __init__(self):
         self.__jslocation__ = "j.tools.backup_vfs"
-        self.logenable=True
-        self.loglevel=5
+        self.logger = j.logger.get("j.tools.backup_vfs")
         self._cache={}
 
     def get(self, backupname,blobstorAccount,blobstorNamespace,gitlabAccount,compress=True,fullcheck=False,servercheck=True,storpath="/mnt/STOR"):
@@ -20,8 +19,3 @@ class BackupFactory:
         self._cache[name]= BackupClient(backupname=backupname,blobstorAccount=blobstorAccount,blobstorNamespace=blobstorNamespace, \
             gitlabAccount=gitlabAccount,compress=compress,servercheck=servercheck,fullcheck=fullcheck,storpath=storpath)
         return self._cache[name]
-
-    def _log(self,msg,category="",level=5):
-        if level<self.loglevel+1 and self.logenable:
-            j.logger.log(msg,category="backup.%s"%category,level=level)
-

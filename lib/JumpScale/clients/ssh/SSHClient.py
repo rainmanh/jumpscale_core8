@@ -11,6 +11,7 @@ class SSHClientFactory(object):
 
     def __init__(self):
         self.__jslocation__ = "j.clients.ssh"
+        self.logger = j.logger.get("j.clients.ssh")
         self.cache = {}
 
     def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True, look_for_keys=True, timeout=5, testConnection=False, die=True):
@@ -20,9 +21,11 @@ class SSHClientFactory(object):
         if testConnection:
             ret = self.cache[key].connectTest(timeout=timeout, die=die)
             if ret is False:
+                err = "Cannot connect over ssh:%s %s" % (addr, port)
                 if die:
-                    raise j.exceptions.RuntimeError("Cannot connect over ssh:%s %s" % (addr, port))
+                    raise j.exceptions.RuntimeError(err)
                 else:
+                    self.logger.error(err)
                     return False
 
         return self.cache[key]
@@ -40,7 +43,7 @@ class SSHClientFactory(object):
             if die:
                 raise j.exceptions.RuntimeError(err)
             else:
-                print(err)
+                self.logger.error(err)
                 return None
 
         if keyname == "":
@@ -60,8 +63,11 @@ class SSHClientFactory(object):
                 content = line.strip()
                 content = content
                 return content
+        err = "Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l" % keyname
         if die:
-            raise j.exceptions.RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l" % keyname)
+            raise j.exceptions.RuntimeError(err)
+        else:
+            self.logger.error(err)
         return None
 
     def close(self):
@@ -86,6 +92,8 @@ class SSHClient(object):
             self.forward_agent = forward_agent
             self.allow_agent = allow_agent
             self.look_for_keys = look_for_keys
+
+        self.logger = j.logger.get("j.clients.ssh")
 
         self._transport = None
         self._client = None
@@ -112,7 +120,7 @@ class SSHClient(object):
     @property
     def client(self):
         if self._client is None:
-            print('ssh new client to %s@%s:%s' % (self.login, self.addr, self.port))
+            self.logger.info('ssh new client to %s@%s:%s' % (self.login, self.addr, self.port))
 
             start = j.data.time.getTimeEpoch()
             timeout = 20
@@ -146,13 +154,12 @@ class SSHClient(object):
         return False if not ok
         """
         if not self._connection_ok:
-            counter = 0
-
+            self.logger.info("Test connection to %s:%s" % (self.addr, self.port))
             rc = 1
             start = j.data.time.getTimeEpoch()
 
             if j.sal.nettools.waitConnectionTest(self.addr, self.port, timeout) == False:
-                print("Cannot connect to ssh server %s:%s" % (self.addr, self.port))
+                self.logger.error("Cannot connect to ssh server %s:%s" % (self.addr, self.port))
                 return False
 
             while start + timeout > j.data.time.getTimeEpoch() and rc != 0:
@@ -160,13 +167,13 @@ class SSHClient(object):
                     rc, out = self.execute(cmd, showout=False)
                 except (BadHostKeyException, AuthenticationException) as e:
                     # cant' recover, no point to wait. exit now
-                    print("authentification error. abording connection")
-                    print(e)
+                    self.logger.error("authentification error. abording connection")
+                    self.logger.error(e)
                     rc = 1
                     break
                 except (SSHException, socket.error) as e:
-                    print("authentification error. abording connection")
-                    print(e)
+                    self.logger.error("Unexpected error. abording connection")
+                    self.logger.error(e)
                     j.clients.ssh.removeFromCache(self)
                     self._client.close()
                     self.reset()
@@ -176,10 +183,14 @@ class SSHClient(object):
             if rc > 0:
                 j.clients.ssh.removeFromCache(self)
                 self._connection_ok = False
+                err = "Could not connect to ssh on %s@%s:%s" % (self.login, self.addr, self.port)
                 if die:
-                    j.events.opserror_critical("Could not connect to ssh on %s@%s:%s" % (self.login, self.addr, self.port))
+                    j.events.opserror_critical(err)
+                else:
+                    self.logger.error(err)
                 return self._connection_ok
-            self._connection_ok = True
+            else:
+                self._connection_ok = True
         return self._connection_ok
 
     def execute(self, cmd, showout=True, die=True, combinestdr=True):
@@ -200,7 +211,7 @@ class SSHClient(object):
         for line in stdout:
             buff += line
             if self.stdout and showout:
-                print(line)
+                self.logger.info(line)
 
         retcode = ch.recv_exit_status()
         if retcode > 0:
@@ -210,8 +221,8 @@ class SSHClient(object):
             if die:
                 raise j.exceptions.RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, buff, errors))
             else:
+                self.logger.error(errors)
                 buff = errors
-        # print(buf)
         return (retcode, buff)
 
     def close(self):

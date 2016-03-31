@@ -35,6 +35,7 @@ class NetTools(SALObject):
 
     def __init__(self):
         self.__jslocation__ = "j.sal.nettools"
+        self.logger = j.logger.get('j.sal.nettools')
         self._windowsNetworkInfo = None
 
     def tcpPortConnectionTest(self,ipaddr,port, timeout=None):
@@ -56,7 +57,7 @@ class NetTools(SALObject):
         """
         will return false if not successfull (timeout)
         """
-        j.logger.log("test tcp connection to '%s' on port %s"%(ipaddr,port))
+        self.logger.debug("test tcp connection to '%s' on port %s"%(ipaddr,port))
         if ipaddr.strip()=="localhost":
             ipaddr="127.0.0.1"
         port=int(port)
@@ -76,7 +77,7 @@ class NetTools(SALObject):
         will test that port is not active
         will return false if not successfull (timeout)
         """
-        j.logger.log("test tcp connection to '%s' on port %s"%(ipaddr,port))
+        self.logger.debug("test tcp connection to '%s' on port %s"%(ipaddr,port))
         if ipaddr.strip()=="localhost":
             ipaddr="127.0.0.1"
         port=int(port)
@@ -105,7 +106,6 @@ class NetTools(SALObject):
             j.errorconditionhandler.raiseOperationalCritical("Url %s is unreachable" % url)
 
         if code != 200:
-            j.logger.setLogTargetLogForwarder()
             j.errorconditionhandler.raiseOperationalCritical("Url %s is unreachable" % url)
         return True
 
@@ -119,7 +119,7 @@ class NetTools(SALObject):
         if port >65535 or port <0 :
             raise ValueError("Port cannot be bigger then 65535 or lower then 0")
 
-        j.logger.log('Checking whether a service is running on port %d' % port, 8)
+        self.logger.debug('Checking whether a service is running on port %d' % port)
 
         if j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
             # netstat: n == numeric, -t == tcp, -u = udp, l= only listening, p = program
@@ -308,7 +308,7 @@ class NetTools(SALObject):
             exitcode,output = j.sal.process.execute(command, outputToStdout=False, die=False)
             if exitcode != 0:
                 # temporary plumb the interface to lookup its mac
-                j.logger.log("Interface %s is down. Temporarily plumbing it to be able to lookup its nic type" % interface, 1)
+                self.logger.warning("Interface %s is down. Temporarily plumbing it to be able to lookup its nic type" % interface)
                 j.sal.process.execute('%s plumb' % command, outputToStdout=False)
                 (exitcode, output) = j.sal.process.execute(command, outputToStdout=False)
                 j.sal.process.execute('%s unplumb' % command, outputToStdout=False)
@@ -550,7 +550,7 @@ class NetTools(SALObject):
             (exitcode, output) = j.sal.process.execute(command, outputToStdout=False, die=False)
             if exitcode != 0:
                 # temporary plumb the interface to lookup its mac
-                j.logger.log("Interface %s is down. Temporarily plumbing it to be able to lookup its MAC address" % interface, 1)
+                self.logger.warning("Interface %s is down. Temporarily plumbing it to be able to lookup its MAC address" % interface)
                 j.sal.process.execute('%s plumb' % command, outputToStdout=False)
                 (exitcode, output) = j.sal.process.execute(command, outputToStdout=False, die=False)
                 j.sal.process.execute('%s unplumb' % command, outputToStdout=False)
@@ -708,19 +708,19 @@ class NetTools(SALObject):
                     except:
                         return False
                     if not isinstance(ipList[i], int):
-                        j.logger.log('[%s] is not a valid ip address, octects should be integers'%ipaddress, 7)
+                        self.logger.warning('[%s] is not a valid ip address, octects should be integers'%ipaddress)
                         return False
                 if max(ipList) < 256:
-                    j.logger.log('[%s] is a valid ip address'%ipaddress, 9)
+                    self.logger.warning('[%s] is a valid ip address'%ipaddress)
                     return True
                 else:
-                    j.logger.log('[%s] is not a valid ip address, octetcs should be less than 256'%ipaddress, 7)
+                    self.logger.warning('[%s] is not a valid ip address, octetcs should be less than 256'%ipaddress)
                     return False
             else:
-                j.logger.log('[%s] is not a valid ip address, ip should contain 4 octets'%ipaddress, 7)
+                self.logger.warning('[%s] is not a valid ip address, ip should contain 4 octets'%ipaddress)
                 return False
         else:
-            j.logger.log('[%s] is not a valid ip address'%ipaddress, 7)
+            self.logger.warning('[%s] is not a valid ip address'%ipaddress)
             return False
 
     def pingMachine(self, ip, pingtimeout=60, recheck = False, allowhostname = True):
@@ -735,7 +735,7 @@ class NetTools(SALObject):
             if not j.sal.nettools.validateIpAddress(ip):
                 raise ValueError('ERROR: invalid ip address passed:[%s]'%ip)
 
-        j.logger.log('pingMachine %s, timeout=%d, recheck=%s' % (ip, pingtimeout, str(recheck)), 8)
+        self.logger.debug('pingMachine %s, timeout=%d, recheck=%s' % (ip, pingtimeout, str(recheck)))
 
         start = time.time()
         pingsucceeded = False
@@ -757,11 +757,11 @@ class NetTools(SALObject):
                 raise j.exceptions.RuntimeError('Platform is not supported')
             if exitcode == 0:
                 pingsucceeded = True
-                j.logger.log('Machine with ip:[%s] is pingable'%ip, 9)
+                self.logger.debug('Machine with ip:[%s] is pingable'%ip)
                 return True
             time.sleep(1)
         if not pingsucceeded:
-            j.logger.log("Could not ping machine with ip:[%s]"%ip, 7)
+            self.logger.debug("Could not ping machine with ip:[%s]"%ip)
             return False
 
     def downloadIfNonExistent(self, url, destination_file_path, md5_checksum=None,
@@ -818,7 +818,7 @@ class NetTools(SALObject):
                 filename = localpath
             else:
                 raise ValueError('Local path is an invalid path')
-        j.logger.log('Downloading url %s to local path %s'%(url, filename), 4)
+        self.logger.debug('Downloading url %s to local path %s'%(url, filename))
         from urllib.request import FancyURLopener
         from urllib.parse import splittype
         class myURLOpener(FancyURLopener):
@@ -841,14 +841,14 @@ class NetTools(SALObject):
 
 
         if not j.sal.fs.exists(filename):
-            overwrite=True        
+            overwrite=True
 
         if overwrite:
             if username and passwd and splittype(url)[0] == 'ftp':
                 url = url.split('://')[0]+'://%s:%s@'%(username,passwd)+url.split('://')[1]
             if filename != '-':
                 urlopener.retrieve(url, filename, None, None)
-                j.logger.log('URL %s is downloaded to local path %s'%(url, filename), 4)
+                self.logger.debug('URL %s is downloaded to local path %s'%(url, filename))
                 return
             else:
                 return urlopener.open(url).read()

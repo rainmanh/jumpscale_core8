@@ -1,4 +1,5 @@
 from Asker import ConsoleAsker, TelegramAsker
+from CockpitBot import CockpitDeployerBot
 from JumpScale.clients.cockpit.CockpitDeployer import CockpitDeployer
 
 class CockpitFactory:
@@ -15,8 +16,6 @@ class Installer:
         deployer.type = 'cli'
         return deployer
 
-    def getBot(self, bot_updater):
-        asker = TelegramAsker(bot_updater)
-        deployer = CockpitDeployer(asker)
-        deployer.type = 'bot'
-        return deployer
+    def getBot(self):
+        bot = CockpitDeployerBot()
+        return bot

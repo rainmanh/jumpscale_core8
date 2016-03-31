@@ -12,10 +12,11 @@ class actionrun(ActionDecorator):
 class CuisinePackage():
 
     def __init__(self,executor,cuisine):
+        self.logger = j.logger.get('j.tools.cuisine.package')
         self.executor=executor
         self.cuisine=cuisine
 
-    
+
     def _repository_ensure_apt(self,repository):
         self.ensure('python-software-properties')
         self.cuisine.core.sudo("add-apt-repository --yes " + repository)
@@ -48,7 +49,7 @@ class CuisinePackage():
         """
         update metadata of system
         """
-        print ("packages mdupdate")
+        self.logger.info("packages mdupdate")
         if self.cuisine.core.isUbuntu:
             self.cuisine.core.run("apt-get update")
         elif self.cuisine.core.isMac:
@@ -62,7 +63,7 @@ class CuisinePackage():
         upgrades system, distupgrade means ubuntu 14.04 will fo to e.g. 15.04
         """
         self.mdupdate()
-        print ("packages upgrade")
+        self.logger.info("packages upgrade")
         if self.cuisine.core.isUbuntu:
             if distupgrade:
                 return self._apt_get("dist-upgrade")
@@ -105,7 +106,7 @@ class CuisinePackage():
 
         mdupdate=False
         while True:
-            rc,out=self.cuisine.core.run(cmd,die=False)  
+            rc,out=self.cuisine.core.run(cmd,die=False)
 
             if rc>0:
                 if mdupdate==True:
@@ -138,17 +139,17 @@ class CuisinePackage():
                 continue
             if dep.strip()[0]=="#":
                 continue
-            dep=dep.strip()    
+            dep=dep.strip()
             if dep==None or dep=="":
-                continue        
+                continue
             self.install(dep)
 
     @actionrun()
-    def start(self,package):        
+    def start(self,package):
         if self.cuisine.core.isArch or self.cuisine.core.isUbuntu or self.cuisine.core.isMac:
-            self.cuisine.processmanager.start(package)    
+            self.cuisine.processmanager.start(package)
         else:
-            raise j.exceptions.RuntimeError("could not install/ensure:%s, platform not supported" %package)           
+            raise j.exceptions.RuntimeError("could not install/ensure:%s, platform not supported" %package)
 
     @actionrun(action=True)
     def ensure(self,package, update=False):
@@ -178,7 +179,7 @@ class CuisinePackage():
         elif self.cuisine.core.isArch:
             self.cuisine.core.run("pacman -S %s"%package)
         else:
-            raise j.exceptions.RuntimeError("could not install/ensure:%s, platform not supported"%package)            
+            raise j.exceptions.RuntimeError("could not install/ensure:%s, platform not supported"%package)
 
         raise j.exceptions.RuntimeError("not supported platform")
 
@@ -204,7 +205,7 @@ class CuisinePackage():
         elif self.cuisine.core.isMac:
             pass
         else:
-            raise j.exceptions.RuntimeError("could not package clean:%s, platform not supported"%package)                       
+            raise j.exceptions.RuntimeError("could not package clean:%s, platform not supported"%package)
 
     @actionrun(action=True)
     def remove(self,package, autoclean=False):

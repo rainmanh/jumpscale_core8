@@ -31,7 +31,10 @@ class LoggerFactory:
         self.__jslocation__ = "j.logger"
         self.root_logger_name = 'j'
 
-        self.__loaded = False
+        self.handlers = {
+            "console": self.__consoleHandler(),
+            "file": self.__fileRotateHandler(),
+        }
 
         # Modes
         self.PRODUCTION = PRODUCTION
@@ -43,7 +46,8 @@ class LoggerFactory:
     def init(self, mode, level, filter=[]):
         self.set_mode(mode.upper())
         self.set_level(level)
-        self._logger.addFilter(ModuleFilter(filter))
+        if filter:
+            self.handlers['console'].addFilter(ModuleFilter(filter))
 
     def get(self, name=None, enable_only_me=False):
         """
@@ -94,10 +98,6 @@ class LoggerFactory:
         self._logger.setLevel(logging.DEBUG)
         self._logger.propagate = False
         logging.lastResort = None
-        self.handlers = {
-            "console": self.__consoleHandler(),
-            "file": self.__fileRotateHandler(),
-        }
         for h in self.handlers.values():
             self._logger.addHandler(h)
 
@@ -127,14 +127,7 @@ class LoggerFactory:
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)
         ch.setFormatter(formatter)
-        logging_cfg = j.data.hrd.get('/optvar/hrd/system/logging.hrd')
-        modules = logging_cfg.get('filter')
-        ch.addFilter(ModuleFilter(modules))
         return ch
-
-    # def __filter_module(self, modules):
-    #     def filter(record):
-    #         if record.name:
 
     def __redisHandler(self, redis_client=None):
             if redis_client is None:

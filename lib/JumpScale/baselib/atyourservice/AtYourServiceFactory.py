@@ -482,7 +482,7 @@ class AtYourServiceFactory():
 
         if first:
             if len(res) == 0:
-                j.events.inputerror_critical("cannot find service template %s|%s (%s)" % (domain, name, version), "ays.findTemplates")
+                j.events.inputerror_critical("cannot find service template %s:%s (%s)" % (domain, name, version), "ays.findTemplates")
             return res[0]
         return res
 
@@ -610,7 +610,7 @@ class AtYourServiceFactory():
         Return service indentifier by domain,name and instance
         throw error if service is not found or if more than one service is found
         """
-        key = ServiceKey.get(name=name,role=role, instance=instance)
+        key = ServiceKey.get(name=name, role=role, instance=instance)
         if key.short in self.services:
             return self.services[key.short]
         if die:
@@ -618,29 +618,6 @@ class AtYourServiceFactory():
         else:
             self.logger.error("Cannot get ays service '%s', did not find" % key.short)
             return None
-
-    def getServiceFromKey(self, key):
-        """
-        key in format domain_name_instance_version
-
-        different formats
-        - $domain|$name!$instance
-        - $name
-        - !$instance
-        - $name!$instance
-        - @role
-
-        version is added with ()
-        - e.g. node.ssh (1.0)
-
-        examples
-        - find me service with role ns: '@ns' if more than 1 then there will be an error
-        - find me a service with instance name ovh4 '!ovh4'
-
-        """
-        domain, name, version, instance, role = self.parseKey(key)
-
-        return self.getService(instance=instance,role=role, die=True)
 
     def parseKey(self, key):
         """

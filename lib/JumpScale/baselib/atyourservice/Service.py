@@ -45,19 +45,21 @@ def getProcessDicts(service, args={}):
 
 class Service:
 
-    def __init__(self, servicerecipe=None,instance=None, path="", args=None, parent=None, originator=None):
+    def __init__(self, servicerecipe=None, instance=None, path="", args=None, parent=None, originator=None):
         """
         @param consume is in format $role!$instance,$role2!$instance2
         """
         self.logger = j.logger.get('j.atyourservice.service')
 
         self.originator = originator
-        logger = j.logger.get('j.atyourservice.service')
+        j.logger.get('j.atyourservice.service')
 
         self._domain = None
         self._name = None
         self._instance = None
-        self._vesion = None
+        self._version = None
+
+        self._recipe = None
 
         key_input = None
         if path != "" and j.sal.fs.exists(path):
@@ -74,7 +76,7 @@ class Service:
             self._rememberActions = False
 
         self.key = ServiceKey.parse(key_input)
-        self.key.instance = instance
+        self.key.instance = instance if instance else self.key.instance
         self._domain = self.key.domain
         self._name = self.key.name
         self._instance = self.key.instance
@@ -167,8 +169,8 @@ class Service:
     def parent(self):
         if isinstance(self._parent, str):
             if self.hrd.exists("parent"):
-                role, instance = self.hrd.get("parent").split("!")
-                self._parent = j.atyourservice.getService(role, instance)
+                key = ServiceKey.parse(self.hrd.get("parent"))
+                self._parent = j.atyourservice.getService(name=key.name, role=key.role, instance=key.instance)
             else:
                 self._parent = None
         return self._parent
@@ -268,7 +270,7 @@ class Service:
                 producerSet = set()
                 for item in items:
                     key = ServiceKey.parse(item)
-                    service = j.atyourservice.getService(role=key.role, instance=key.instance)
+                    service = j.atyourservice.getService(name=key.name, instance=key.instance)
                     producerSet.add(service)
 
                 self._producers[key] = list(producerSet)
@@ -364,7 +366,7 @@ class Service:
             self.hrd.set("service.instance", self.instance)
 
             if self.parent is not None:
-                self.hrd.set("parent", self.parent.key.short)
+                self.hrd.set("parent", self.parent.key.__str__())
                 self.consume(self.parent)
 
             self._manipulateHRD()
@@ -452,7 +454,7 @@ class Service:
                 producers = []
                 for service in services:
                     if service.key not in producers:
-                        producers.append(service.key.short)
+                        producers.append(service.key.__str__())
 
                 self.hrd.set("producer.%s" % key, producers)
 

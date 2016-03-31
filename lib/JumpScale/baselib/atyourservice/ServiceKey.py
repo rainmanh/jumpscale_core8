@@ -7,6 +7,7 @@ class ServiceKey:
         self.name = None
         self.instance = None
         self.version = None
+        self._role = None
 
     @property
     def role(self):
@@ -17,8 +18,6 @@ class ServiceKey:
         service_key = ServiceKey()
 
         service_key.domain = domain
-        if role and not name:
-            service_key.role = name
         service_key.name = name
         service_key.instance = instance
         service_key.version = version
@@ -70,7 +69,7 @@ class ServiceKey:
         if key.find('@') != -1:
             key, version = key.split('@', 2)
         else:
-            version = '0.1'
+            version = ''
 
         ss = key.split('__')
         if len(ss) != 3:

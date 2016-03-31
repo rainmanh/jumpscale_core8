@@ -79,7 +79,7 @@ class LoggerFactory:
             self._enable_dev_mode()
 
     def set_level(self, level):
-        self._logger.setLevel(level)
+        self.handlers['console'].setLevel(level)
 
     def log(self, msg=None, level=None, category=None):
         self._logger.log(level, msg)

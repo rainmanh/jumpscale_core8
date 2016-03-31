@@ -284,8 +284,4 @@ class ServiceRecipe(ServiceTemplate):
         j.tools.sandboxer.dedupe(path, storpath="/tmp/aysfs", name="md", reset=False, append=True)
 
     def __repr__(self):
-<<<<<<< HEAD
-        return "Recipe: %-15s (%s)" % (self.name, self.template.version)
-=======
         return "Recipe: %-15s (%s)" % (self.name,self.template.version)
->>>>>>> c9d9df91a28ab12e32ba6d03a4bd0aadd5267b5f

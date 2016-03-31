@@ -621,10 +621,7 @@ class AtYourServiceFactory():
 
     def getServiceFromKey(self, key):
         """
-<<<<<<< HEAD
         key in format domain_name_instance_version
-=======
-        key in format $domain|$name!$instance@role ($version)
 
         different formats
         - $domain|$name!$instance
@@ -649,7 +646,6 @@ class AtYourServiceFactory():
         """
         @return (domain,name,version,instance,role)
 
->>>>>>> c9d9df91a28ab12e32ba6d03a4bd0aadd5267b5f
         """
         service_key = servicekey.parse(key)
         return self.getService(instance=service_key.instance, role=service_key.role, die=True)

@@ -10,6 +10,9 @@ class ActionsBaseNode():
     actions which can be executed remotely on node
     """
 
+    def __init__(self):
+        self.logger = j.logger.get('j.atyourservice.actionbasenode')
+
     def installFiles(self):
 
         #@todo (*1*) I think is not optimally designed, or we work with fuse or without
@@ -121,7 +124,7 @@ class ActionsBaseNode():
                     j.sal.process.execute(cmd, die=False)
 
             if self.service.hrd_template.getBool("ubuntu.apt.update", default=False):
-                log("apt update")
+                self.logger.info("apt update")
                 j.sal.process.execute("apt-get update -y", die=False)
 
             if self.service.hrd_template.getBool("ubuntu.apt.upgrade", default=False):
@@ -178,7 +181,7 @@ class ActionsBaseNode():
             domain, name = self._getDomainName(process)
             if nbr is not None:
                 name = "%s.%d" % (name, i)
-            log("Starting %s:%s" % (domain, name))
+            self.logger.info("Starting %s:%s" % (domain, name))
 
             if startupmethod == 'upstart':
                 # check if we are in our docker image which uses myinit instead of upstart
@@ -279,24 +282,23 @@ class ActionsBaseNode():
 
             startupmethod=process["startupmanager"]
             domain, name = self._getDomainName(process)
-            log("Stopping %s:%s" % (domain, name))
+            self.logger.info("Stopping %s:%s" % (domain, name))
             if nbr is not None:
                 name = "%s.%d" % (name, i)
 
             if j.sal.fs.exists(path="/etc/my_init.d/%s"%name):
-                print("stop through myinitd:%s"%name)
+                self.logger.info("stop through myinitd:%s"%name)
                 j.sal.process.execute("sv stop %s"%name,die=False, outputToStdout=False,outputStderr=False, captureout=False)
             elif startupmethod == "upstart":
-                print("stop through upstart:%s"%name)
+                self.logger.info("stop through upstart:%s"%name)
                 j.sal.ubuntu.stopService(name)
             elif startupmethod=="tmux":
-                print("stop tmux:%s %s"%(domain,name))
+                self.logger.info("stop tmux:%s %s"%(domain,name))
 
                 for tmuxkey,tmuxname in list(j.tools.cuisine.local.tmux.getWindows(domain).items()):
                     if tmuxname==name:
-                        print("tmux kill:%s %s"%(tmuxkey,tmuxname))
+                        self.logger.info("tmux kill:%s %s"%(tmuxkey,tmuxname))
                         j.tools.cuisine.local.tmux.killWindow(domain,name)
-                        # print "killdone"
 
         if "$(service.name)" == 'redis':
             j.logger.redislogging = None
@@ -309,9 +311,7 @@ class ActionsBaseNode():
                     stop_process(process, nbr=i)
                 else:
                     stop_process(process)
-
-        print("stop ok")
-
+        self.logger.info('stop ok')
 
         return True
 
@@ -398,9 +398,9 @@ class ActionsBaseNode():
 
             if result is False:
                 domain, name = self._getDomainName(process)
-                log("Status %s:%s not running" % (domain, name))
+                self.logger.warning("Status %s not running" % self.service)
                 return False
-        log("Status %s is running" % (self.service))
+        self.logger.info("Status %s is running" % (self.service))
         return True
 
     def check_down(self, wait=True):
@@ -409,7 +409,7 @@ class ActionsBaseNode():
         this happens on system where process is
         return True when down
         """
-        print("check down local:%s"%self.service)
+        self.logger.info("check down local:%s" % self.service)
         def do(process):
             if not self.service.hrd.exists("process.cwd"):
                 return
@@ -441,9 +441,6 @@ class ActionsBaseNode():
         """
         build_server : node service where the the service will be build
         """
-        log("build")
-
-
         if debug:
             syncLocalJumpscale=True
 

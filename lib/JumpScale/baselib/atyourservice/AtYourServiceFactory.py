@@ -2,10 +2,10 @@ from JumpScale import j
 from ServiceTemplate import ServiceTemplate
 from ServiceRecipe import ServiceRecipe
 from Service import Service, loadmodule
+from ServiceKey import ServiceKey
 from ActionsBaseNode import ActionsBaseNode
 from ActionMethodDecorator import ActionMethodDecorator
 from Blueprint import Blueprint
-# from AYSdb import *
 
 from AtYourServiceSync import AtYourServiceSync
 try:
@@ -22,6 +22,7 @@ class AtYourServiceFactory():
 
     def __init__(self):
         self.__jslocation__ = "j.atyourservice"
+        self.logger = j.logger.get("j.atyourservice")
 
         self._init = False
         self._domains = []
@@ -42,10 +43,8 @@ class AtYourServiceFactory():
         self._sandboxer=None
         self._roletemplates = dict()
         self._servicesTree = {}
-        # self._db=AYSDB()
 
     def reset(self):
-        # self._db.reload()
         j.dirs._ays = None
         self._services = {}
         self._templates = []
@@ -170,12 +169,12 @@ class AtYourServiceFactory():
                                                     case_sensitivity='os', followSymlinks=True, listSymlinks=False):
                 service_path = j.sal.fs.getDirName(hrd_path)
                 service = Service(path=service_path, args=None)
-                self._services[service.shortkey]=service
+                self._services[service.key.short]=service
         return self._services
 
     def _nodechildren(self, service, parent=None, producers=[]):
         parent = {} if parent is None else parent
-        me = {"name": service.shortkey, "children": []}
+        me = {"name": service.key.short, "children": []}
         parent["children"].append(me)
         details = service.hrd.getHRDAsDict()
         details = {key: value for key, value in details.items() if key not in ['service.domain', 'service.name', 'service.version', 'parent']}
@@ -186,7 +185,7 @@ class AtYourServiceFactory():
                 child = j.atyourservice.getService(role=role, instance=instance)
                 for _, producerinstances in child.producers.items():
                     for producer in producerinstances:
-                        producers.append([child.shortkey, producer.shortkey])
+                        producers.append([child.key.short, producer.key.short])
                 self._nodechildren(child, me, producers)
         return parent
 
@@ -202,7 +201,7 @@ class AtYourServiceFactory():
             service = self.services.get(servicekey)
             for _, producerinstances in service.producers.items():
                 for producer in producerinstances:
-                    producers.append([child.shortkey, producer.shortkey])
+                    producers.append([child.key.short, producer.key.short])
             parents["children"].append(self._nodechildren(service, {"children": [], "name": servicekey}, producers))
         self._servicesTree['parentchild'] = parents
         self._servicesTree['producerconsumer'] = producers
@@ -248,12 +247,6 @@ class AtYourServiceFactory():
         if self._init is False:
 
             j.actions.setRunId("ays_%s"%j.sal.fs.getBaseName(j.atyourservice.basepath))
-            # j.actions.reset()
-
-            j.logger.consolelogCategories.append("AYS")
-
-            # j.do.debug=True
-
             if j.sal.fs.exists(path="/etc/my_init.d"):
                 self.indocker=True
 
@@ -299,7 +292,7 @@ class AtYourServiceFactory():
         for bp in self.blueprints:
             bp.execute()
 
-        print ("init done")
+        self.logger.debug('init done')
 
     def createAYSRepo(self, path):
         j.sal.fs.createDir(path)
@@ -337,7 +330,7 @@ class AtYourServiceFactory():
 
     def getBlueprint(self,path):
         if not j.sal.fs.exists(path):
-            path=self.basepath+"/"+path        
+            path=self.basepath+"/"+path
         return Blueprint(path)
 
     def getRoleTemplateClass(self, role, ttype):
@@ -527,8 +520,6 @@ class AtYourServiceFactory():
         res = []
 
         for shortkey, service in self.services.items():
-            # if service._state and service._state.hrd.getBool('disabled', False) and not include_disabled:
-            #     continue
             if not(name == "" or service.name == name):
                 continue
             if not(domain == "" or service.domain == domain):
@@ -619,103 +610,21 @@ class AtYourServiceFactory():
         Return service indentifier by domain,name and instance
         throw error if service is not found or if more than one service is found
         """
-        role = role if role else name.split['.'][0]
-        shortkey="%s!%s@%s" % (name, instance, role)
-        if shortkey in self.services:
-            return self.services[shortkey]
+        key = ServiceKey.get(name=name,role=role, instance=instance)
+        if key.short in self.services:
+            return self.services[key.short]
         if die:
-            j.events.inputerror_critical("Cannot get ays service '%s', did not find" % shortkey,"ays.getservice")
+            j.events.inputerror_critical("Cannot get ays service '%s', did not find" % key.short, "ays.getservice")
         else:
+            self.logger.error("Cannot get ays service '%s', did not find" % key.short)
             return None
-
-        return res[0]
-
-    def getKey(self, service):
-        """
-
-        different formats
-        - $domain|$name!$instance
-        - $name
-        - !$instance
-        - $name!$instance
-
-        version is added with ()
-        - e.g. node.ssh (1.0)
-
-        """
-        key = service.name
-        if service.domain != "":
-            key = "%s|%s" % (service.domain, service.name)
-        if hasattr(service, "instance") and service.instance is not None and service.instance != "":
-            key += "!%s" % (service.instance)
-        if service.version != "":
-            key += " (%s)" % service.version
-        return key.lower()
 
     def getServiceFromKey(self, key):
         """
-        key in format $domain|$name!$instance@role ($version)
-
-        different formats
-        - $domain|$name!$instance
-        - $name
-        - !$instance
-        - $name!$instance
-        - @role
-
-        version is added with ()
-        - e.g. node.ssh (1.0)
-
-        examples
-        - find me service with role ns: '@ns' if more than 1 then there will be an error
-        - find me a service with instance name ovh4 '!ovh4'
-
+        key in format domain_name_instance_version
         """
-        domain, name, version, instance, role = self.parseKey(key)
-        
-        return self.getService(instance=instance,role=role, die=True)
-
-    def parseKey(self, key):
-        """
-        @return (domain,name,version,instance,role)
-
-        """
-        key = key.lower()
-        if key.find("|") != -1:
-            domain, name = key.split("|", 1)
-        else:
-            domain = ""
-            name = key
-
-        if key.find("@") != -1:
-            name, role = key.split("@", 1)
-            role = role.strip()
-        else:
-            role = ""
-
-        if name.find("!") != -1:
-            # found instance
-            name, instance = name.split("!", 1)
-            if instance.find("(") != -1:
-                instance, version = instance.split("(", 1)
-                name += "(%s" % version
-            instance = instance.strip()
-        else:
-            instance = ""
-
-        if name.find("(") != -1:
-            name, version = name.split("(", 1)
-            version = version.split(")", 1)[0]
-        else:
-            version = ""
-        name = name.strip()
-
-        if role=="":
-            role=name.split(".",1)[0]
-
-        domain = domain.strip()
-        version = version.strip()
-        return (domain, name, version, instance, role)
+        service_key = servicekey.parse(key)
+        return self.getService(instance=service_key.instance, role=service_key.role, die=True)
 
     def __str__(self):
         return self.__repr__()
@@ -726,41 +635,3 @@ class AtYourServiceFactory():
         if start:
             bot.run()
         return bot
-
-
-    # def _getGitRepo(self, url, recipeitem=None, dest=None):
-    #     if url in self._reposDone:
-    #         return self._reposDone[url]
-
-    #     login = None
-    #     passwd = None
-    #     if recipeitem is not None and "login" in recipeitem:
-    #         login = recipeitem["login"]
-    #         if login == "anonymous" or login.lower() == "none" or login == "" or login.lower() == "guest":
-    #             login = "guest"
-    #     if recipeitem is not None and "passwd" in recipeitem:
-    #         passwd = recipeitem["passwd"]
-
-    #     branch = None  # let branch be selected automatily
-    #     if recipeitem is not None and "branch" in recipeitem:
-    #         branch = recipeitem["branch"]
-
-    #     revision = None
-    #     if recipeitem is not None and "revision" in recipeitem:
-    #         revision = recipeitem["revision"]
-
-    #     depth = 1
-    #     if recipeitem is not None and "depth" in recipeitem:
-    #         depth = recipeitem["depth"]
-    #         if isinstance(depth, str) and depth.lower() == "all":
-    #             depth = None
-    #         else:
-    #             depth = int(depth)
-
-    #     login = j.application.config.get("whoami.git.login").strip()
-    #     passwd = j.application.config.getStr("whoami.git.passwd").strip()
-
-    #     dest = j.do.pullGitRepo(url=url, login=login, passwd=passwd,
-    #                             depth=depth, branch=branch, revision=revision, dest=dest)
-    #     self._reposDone[url] = dest
-    #     return dest

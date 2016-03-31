@@ -621,7 +621,35 @@ class AtYourServiceFactory():
 
     def getServiceFromKey(self, key):
         """
+<<<<<<< HEAD
         key in format domain_name_instance_version
+=======
+        key in format $domain|$name!$instance@role ($version)
+
+        different formats
+        - $domain|$name!$instance
+        - $name
+        - !$instance
+        - $name!$instance
+        - @role
+
+        version is added with ()
+        - e.g. node.ssh (1.0)
+
+        examples
+        - find me service with role ns: '@ns' if more than 1 then there will be an error
+        - find me a service with instance name ovh4 '!ovh4'
+
+        """
+        domain, name, version, instance, role = self.parseKey(key)
+
+        return self.getService(instance=instance,role=role, die=True)
+
+    def parseKey(self, key):
+        """
+        @return (domain,name,version,instance,role)
+
+>>>>>>> c9d9df91a28ab12e32ba6d03a4bd0aadd5267b5f
         """
         service_key = servicekey.parse(key)
         return self.getService(instance=service_key.instance, role=service_key.role, die=True)

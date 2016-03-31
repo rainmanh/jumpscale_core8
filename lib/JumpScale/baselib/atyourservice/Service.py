@@ -6,10 +6,8 @@ from contextlib import redirect_stdout
 import io
 import imp
 import sys
-from functools import wraps
 from Recurring import Recurring
 from ServiceState import ServiceState
-import traceback
 
 
 def loadmodule(name, path):
@@ -54,6 +52,7 @@ class Service:
         self.logger = j.logger.get('j.atyourservice.service')
 
         self.originator = originator
+        logger = j.logger.get('j.atyourservice.service')
 
         self._domain = None
         self._name = None

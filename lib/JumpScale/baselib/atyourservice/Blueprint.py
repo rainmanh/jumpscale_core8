@@ -6,7 +6,7 @@ class Blueprint(object):
     """
 
     def __init__(self, path):
-        logger = j.logger.get('j.atyourservice.blueprint')
+        self.logger = j.logger.get('j.atyourservice.blueprint')
         self.path=path
         self.models=[]
         self._contentblocks=[]
@@ -51,7 +51,7 @@ class Blueprint(object):
         for model in self.models:
             if model is not None:
                 for key, item in model.items():
-                    self.logger.deubg("blueprint model execute:%s %s"%(key,item))
+                    self.logger.debug("blueprint model execute:%s %s"%(key,item))
                     aysname, aysinstance = key.split("_", 1)
                     if not aysname.startswith('blueprint.'):
                         blueaysname = 'blueprint.%s' % aysname

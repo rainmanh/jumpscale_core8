@@ -12,7 +12,7 @@ class Application:
 
     def __init__(self):
         self.__jslocation__ = "j.application"
-        self.logger = j.logger.get("j.application")
+        self.logger = None
         self.state = "UNKNOWN"
         # self.state = None
         self.appname = 'starting'
@@ -54,6 +54,14 @@ class Application:
 
     def init(self):
         j.errorconditionhandler.setExceptHook()
+
+        logging_cfg = self.config.getDictFromPrefix('logging')
+        level = logging_cfg.get('level', 'DEBUG')
+        mode = logging_cfg.get('mode', 'DEV')
+        filter_module = logging_cfg.get('filter', [])
+        j.logger.init(mode, level, filter_module)
+
+        self.logger = j.logger.get("j.application")
 
     def useCurrentDirAsHome(self):
         """

@@ -99,12 +99,13 @@ def action(redisconnection):
                 odisk.save()
 
         for key, value in results.items():
-            aggregator.measure(tags=tags, key="disks.%s" % key, value=value, measurement="")
+            aggregator.measure(tags=tags, key="disk.%s.%s" % (path,key), value=value, measurement="")
 
     return results
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
-        action(sys.argv[1])
+        results = action(sys.argv[1])
+        print(results)
     else:
         print("Please specifiy a redis connection in the form of ipaddr:port")

@@ -1,11 +1,6 @@
 
 from JumpScale import j
 
-# import imp
-# import importlib
-
-
-# import traceback
 import sys
 
 
@@ -43,8 +38,8 @@ class BaseJSException(Exception):
 
     @property
     def msg(self):
-        return "%s ((%s))"%(self.message,tags)        
-    
+        return "%s ((%s))"%(self.message,tags)
+
 
     def __str__(self):
         out="ERROR: %s ((%s)"%(self.message,self.tags)

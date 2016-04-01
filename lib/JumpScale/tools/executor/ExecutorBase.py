@@ -20,7 +20,7 @@ class ExecutorBase():
 
         self.debug=debug
         self.checkok=checkok
-
+        self.logger = j.logger.get("j.tools.executor")
         self.env = {}
         self.curpath = ""
         self.platformtype="linux" #@todo need to create propery and evaluate

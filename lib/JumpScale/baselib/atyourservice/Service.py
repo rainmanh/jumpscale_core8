@@ -1,7 +1,5 @@
 from JumpScale import j
-# import JumpScale.baselib.actions
 
-# import pytoml
 from contextlib import redirect_stdout
 import io
 import imp
@@ -11,8 +9,6 @@ from Recurring import Recurring
 from ServiceState import ServiceState
 import traceback
 
-# def log(msg, level=2):
-#     j.logger.log(msg, level=level, category='AYS')
 
 def loadmodule(name, path):
     parentname = ".".join(name.split(".")[:-1])
@@ -54,6 +50,7 @@ class Service:
         @param consume is in format $role!$instance,$role2!$instance2
         """
         self.originator = originator
+        logger = j.logger.get('j.atyourservice.service')
 
         if path!="" and j.sal.fs.exists(path):
             self.role,self.instance=j.sal.fs.getBaseName(path).split("!")
@@ -176,7 +173,7 @@ class Service:
                 self._parent=None
         return self._parent
 
-    
+
 
     @property
     def hrd(self):
@@ -260,7 +257,7 @@ class Service:
     #     from IPython import embed
     #     print ("DEBUG NOW runaction")
     #     embed()
-        
+
     #     return action
 
     # def runActionNode(self,name,*args,**kwargs):
@@ -426,7 +423,7 @@ class Service:
             j.sal.fs.createDir(self.path)
 
             #run the args manipulation action as an action
-            self.args=self.actions.input(self.name,self.role,self.instance,self.args)            
+            self.args=self.actions.input(self.name,self.role,self.instance,self.args)
 
             hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
 
@@ -686,7 +683,7 @@ class Service:
         hrd_root = "/etc/ays/local/"
         remotePath = j.sal.fs.joinPaths(hrd_root, j.sal.fs.getBaseName(self.path), 'instance.hrd')
         dest = self.path.rstrip("/")+"/"+"instance.hrd"
-        self.log("downloading %s '%s'->'%s'" % (self.key, remotePath, self.path))
+        self.logger.info("downloading %s '%s'->'%s'" % (self.key, remotePath, self.path))
         self.executor.download(remotePath, self.path)
 
     def _getExecutor(self):
@@ -696,9 +693,6 @@ class Service:
                 executor = parent.actions.getExecutor()
                 return executor
         return j.tools.executor.getLocal()
-
-    def log(self, msg, level=0):
-        self.action_current.log(msg)
 
     def listChildren(self):
         childDirs = j.sal.fs.listDirsInDir(self.path)
@@ -814,7 +808,7 @@ class Service:
                 # No other candidates already installed. Disable consumer as well.
                 consumer.disable()
 
-        self.log("disable instance")
+        self.logger.info("disable instance %s" % self.instance)
         self.state.hrd.set('disabled', True)
 
     def _canBeEnabled(self):
@@ -826,13 +820,12 @@ class Service:
 
     def enable(self):
         # Check that all dependencies are enabled
-
         if not self._canBeEnabled():
-            self.log("%s cannot be enabled because one or more of its producers is disabled" % self)
+            self.logger.warning("%s cannot be enabled because one or more of its producers is disabled" % self)
             return
 
         self.state.hrd.set('disabled', False)
-        self.log("Enable instance")
+        self.logger.info("Enable instance %s" % self.instance)
         for consumer in self._getConsumers(include_disabled=True):
             consumer.enable()
             consumer.start()

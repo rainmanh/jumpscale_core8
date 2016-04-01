@@ -1,5 +1,3 @@
-
-    
 from JumpScale import j
 
 # import urllib
@@ -19,17 +17,17 @@ class GitlabFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.clients.gitlab"
-        self.connections={}
-        j.logger.consolelogCategories.append("gitlab")
+        self.logger = j.logger.get('j.clients.gitlab')
+        self.connections = {}
 
-    def get(self,gitlaburl="",login="",passwd="",instance="main"):        
+    def get(self,gitlaburl="",login="",passwd="",instance="main"):
         """
         example for gitlaburl
             https://despiegk:dddd@git.aydo.com
         can also be without login:passwd
             e.g. https://git.aydo.com and specify login/passwd
 
-        if gitlaburl is empty then 
+        if gitlaburl is empty then
             hrd is used as follows:
             hrd=j.application.getAppInstanceHRD("gitlab_client",instance)
             gitlaburl=hrd.get("gitlab.client.url")
@@ -47,11 +45,6 @@ class GitlabFactory:
             gitlaburl=gitlaburl.replace("%s:%s@"%(login,passwd),"")
 
         return GitlabInstance(addr=gitlaburl,login=login,passwd=passwd,instance=instance)
-
-    def log(self,msg,category="",level=5):
-        category="gitlab.%s"%category
-        category=category.rstrip(".")
-        j.logger.log(msg,category=category,level=level)
 
     def getAccountnameReponameFromUrl(self,url):
         repository_host, repository_type, repository_account, repository_name, repository_url= j.do.rewriteGitRepoUrl( url)

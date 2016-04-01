@@ -12,6 +12,7 @@ class Application:
 
     def __init__(self):
         self.__jslocation__ = "j.application"
+        self.logger = None
         self.state = "UNKNOWN"
         # self.state = None
         self.appname = 'starting'
@@ -52,9 +53,15 @@ class Application:
         j.do.debug = value
 
     def init(self):
-        if j.logger.enabled:
-            j.logger.init()  
         j.errorconditionhandler.setExceptHook()
+
+        logging_cfg = self.config.getDictFromPrefix('logging')
+        level = logging_cfg.get('level', 'DEBUG')
+        mode = logging_cfg.get('mode', 'DEV')
+        filter_module = logging_cfg.get('filter', [])
+        j.logger.init(mode, level, filter_module)
+
+        self.logger = j.logger.get("j.application")
 
     def useCurrentDirAsHome(self):
         """
@@ -110,7 +117,7 @@ class Application:
         if self.config is not None and self.config.exists('grid.node.id'):
             nodeid = self.config.getInt("grid.node.id")
             gridid = self.config.getInt("grid.id")
-            j.logger.log("gridid:%s,nodeid:%s"%(gridid, nodeid), level=3, category="application.startup")
+            self.logger.debug("gridid:%s,nodeid:%s" % (gridid, nodeid))
         else:
             gridid = 0
             nodeid = 0
@@ -170,7 +177,7 @@ class Application:
 
         # self.initWhoAmI()
 
-        j.logger.log("***Application started***: %s" % self.appname, level=8, category="jumpscale.app")
+        self.logger.info("***Application started***: %s" % self.appname)
 
     def stop(self, exitcode=0, stop=True):
 
@@ -190,7 +197,7 @@ class Application:
         # Since we call os._exit, the exithandler of IPython is not called.
         # We need it to save command history, and to clean up temp files used by
         # IPython itself.
-        j.logger.log("Stopping Application %s" % self.appname, 8)
+        self.logger.info("Stopping Application %s" % self.appname)
         try:
             __IPYTHON__.atexit_operations()
         except:
@@ -289,12 +296,12 @@ class Application:
                 return 0
             if j.core.platformtype.myplatform.isLinux():
                 command = "ps -o pcpu %d | grep -E --regex=\"[0.9]\""%pid
-                j.logger.log("getCPUusage on linux with: %s" % command, 8)
+                self.logger.debug("getCPUusage on linux with: %s" % command)
                 exitcode, output = j.sal.process.execute(command, True, False)
                 return output
             elif j.core.platformtype.myplatform.isSolaris():
                 command = 'ps -efo pcpu,pid |grep %d'%pid
-                j.logger.log("getCPUusage on linux with: %s" % command, 8)
+                self.logger.debug("getCPUusage on linux with: %s" % command)
                 exitcode, output = j.sal.process.execute(command, True, False)
                 cpuUsage = output.split(' ')[1]
                 return cpuUsage
@@ -314,12 +321,12 @@ class Application:
                 return "0 K"
             elif j.core.platformtype.myplatform.isLinux():
                 command = "ps -o pmem %d | grep -E --regex=\"[0.9]\""%pid
-                j.logger.log("getMemoryUsage on linux with: %s" % command, 8)
+                self.logger.debug("getMemoryUsage on linux with: %s" % command)
                 exitcode, output = j.sal.process.execute(command, True, False)
                 return output
             elif j.core.platformtype.myplatform.isSolaris():
                 command = "ps -efo pcpu,pid |grep %d"%pid
-                j.logger.log("getMemoryUsage on linux with: %s" % command, 8)
+                self.logger.debug("getMemoryUsage on linux with: %s" % command)
                 exitcode, output = j.sal.process.execute(command, True, False)
                 memUsage = output.split(' ')[1]
                 return memUsage

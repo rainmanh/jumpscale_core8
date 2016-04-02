@@ -110,7 +110,7 @@ class LoggerFactory:
         return fh
 
     def __consoleHandler(self):
-        formatter = LimitForamter(
+        formatter = LimitFormater(
             fmt=CONSOLE_FORMAT,
             datefmt="%a%d %H:%M",
             reset=True,
@@ -135,9 +135,9 @@ class LoggerFactory:
                 self.redis_client = j.core.db
 
 
-class LimitForamter(ColoredFormatter):
+class LimitFormater(ColoredFormatter):
     def __init__(self, fmt, datefmt, reset, log_colors, secondary_log_colors, style, lenght):
-        super(LimitForamter, self).__init__(
+        super(LimitFormater, self).__init__(
             fmt=fmt,
             datefmt=datefmt,
             reset=reset,
@@ -149,4 +149,4 @@ class LimitForamter(ColoredFormatter):
     def format(self, record):
         if len(record.pathname) > self.lenght:
             record.pathname = "..." + record.pathname[-self.lenght:]
-        return super(LimitForamter, self).format(record)
+        return super(LimitFormater, self).format(record)

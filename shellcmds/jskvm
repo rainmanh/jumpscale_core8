@@ -29,11 +29,11 @@ kvm = j.sal.kvm
 ############create
 if opts.action == 'create':
     if not opts.name:
-        raise RuntimeError("specify machine name")
+        raise j.exceptions.RuntimeError("specify machine name")
     if not opts.base:
-        raise RuntimeError("specify image name")
+        raise j.exceptions.RuntimeError("specify image name")
     if opts.base not in kvm.images:
-        raise RuntimeError("image does not exist")
+        raise j.exceptions.RuntimeError("image does not exist")
     kvm.create(opts.name, opts.base, opts.replace, opts.description, opts.size, opts.mem, opts.vcpu)
 
 ##########list
@@ -51,7 +51,7 @@ if opts.action == 'list':
 ##########init_network
 if opts.action == 'init_network':
     if not opts.pubiface:
-        raise RuntimeError('public iface must be specified')
+        raise j.exceptions.RuntimeError('public iface must be specified')
     kvm.initPhysicalBridges(opts.pubiface)
     kvm.initLibvirtNetwork()
     kvm.initNattingRules()
@@ -65,14 +65,14 @@ if opts.action == 'list_images':
 ##########list_snapshots
 if opts.action == 'list_snapshots':
     if not opts.name:
-        raise RuntimeError("specify machine name")
+        raise j.exceptions.RuntimeError("specify machine name")
     for snapshot in kvm.listSnapshots(opts.name):
         print(snapshot)
 
 ##########info
 if opts.action == 'info':
     if not opts.name:
-        raise RuntimeError("specify machine name")
+        raise j.exceptions.RuntimeError("specify machine name")
     config = kvm.getConfig(opts.name)
     if config:
         print('Name: %s\nBase image: %s\nID: %s\nIP address: %s\nMemory: %s MB\nDisk size: %s GB\n' % (opts.name, 
@@ -82,30 +82,30 @@ if opts.action == 'info':
 ##########execute
 if opts.action == 'execute':
     if not opts.name:
-        raise RuntimeError("specify machine name")
+        raise j.exceptions.RuntimeError("specify machine name")
     if not opts.cmd:
-        raise RuntimeError("specify command to execute")
+        raise j.exceptions.RuntimeError("specify command to execute")
     kvm.execute(opts.name, opts.cmd, opts.sudo)
 
 ##########snapshot
 if opts.action == 'snapshot':
     if not opts.name:
-        raise RuntimeError("specify machine name")
+        raise j.exceptions.RuntimeError("specify machine name")
     if not opts.snapshotname:
-        raise RuntimeError("specify snapshot name")
+        raise j.exceptions.RuntimeError("specify snapshot name")
     kvm.snapshot(opts.name, opts.snapshotname)
 
 ##########delete_snapshot
 if opts.action == 'delete_snapshot':
     if not opts.name:
-        raise RuntimeError("specify machine name")
+        raise j.exceptions.RuntimeError("specify machine name")
     if not opts.snapshotname:
-        raise RuntimeError("specify snapshot name")
+        raise j.exceptions.RuntimeError("specify snapshot name")
     kvm.deleteSnapshot(opts.name, opts.snapshotname)
 
 # if opts.action =='rdp':
 #     if opts.name==None:
-#         raise RuntimeError("specify machine name")    
+#         raise j.exceptions.RuntimeError("specify machine name")    
 #     if ip=="":
 #         ip=getip(opts.nr)
 #     time.sleep(2)    
@@ -120,22 +120,22 @@ if opts.action == 'destroy_all':
 
 if opts.action == 'destroy':
     if not opts.name:
-        raise RuntimeError("specify machine name")
+        raise j.exceptions.RuntimeError("specify machine name")
     kvm.destroy(opts.name)
 
 if opts.action == 'stop':
     if not opts.name:
-        raise RuntimeError("specify machine name")
+        raise j.exceptions.RuntimeError("specify machine name")
     kvm.stop(opts.name)
 
 if opts.action == 'start':
     if not opts.name:
-        raise RuntimeError("specify machine name")
+        raise j.exceptions.RuntimeError("specify machine name")
     kvm.start(opts.name)
 
 if opts.action == 'restart':
     if not opts.name:
-        raise RuntimeError("specify machine name")
+        raise j.exceptions.RuntimeError("specify machine name")
     kvm.stop(opts.name)
     kvm.start(opts.name)
 

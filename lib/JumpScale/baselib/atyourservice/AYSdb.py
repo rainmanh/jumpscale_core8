@@ -1,5 +1,13 @@
 from JumpScale import j
-from sqlalchemy.orm import relationship, backref, sessionmaker, class_mapper
+
+try:
+    from sqlalchemy.orm import relationship, backref, sessionmaker, class_mapper
+except:
+    cmd="pip3 install sqlalchemy"
+    j.do.execute(cmd)
+    from sqlalchemy.orm import relationship, backref, sessionmaker, class_mapper
+
+
 from sqlalchemy import *
 from sqlalchemy.event import listen
 from sqlalchemy.orm.collections import attribute_mapped_collection

@@ -63,7 +63,7 @@ def action(redisconnection):
 
         if path in counters.keys():
             counter=counters[path]
-            read_count, write_count, read_bytes, write_bytes, read_time, write_time=counter
+            read_count, write_count, read_bytes, write_bytes, read_time, write_time, read_merged_count, write_merged_count, busy_time=counter
             results['time.read'] = read_time
             results['time.write'] = write_time
             results['count.read'] = read_count
@@ -99,12 +99,13 @@ def action(redisconnection):
                 odisk.save()
 
         for key, value in results.items():
-            aggregator.measure(tags=tags, key="disks.%s" % key, value=value, measurement="")
+            aggregator.measure(tags=tags, key="disk.%s.%s" % (path,key), value=value, measurement="")
 
     return results
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
-        action(sys.argv[1])
+        results = action(sys.argv[1])
+        print(results)
     else:
         print("Please specifiy a redis connection in the form of ipaddr:port")

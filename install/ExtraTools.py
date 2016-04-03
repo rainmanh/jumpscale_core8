@@ -100,7 +100,7 @@ class RegexTool():
         if patterns=[] then will return False
         """
         if type(patterns).__name__!='list' :
-            raise RuntimeError("patterns has to be of type list []")
+            raise j.exceptions.RuntimeError("patterns has to be of type list []")
         if patterns==[]:
             return True
         for pattern in patterns:
@@ -433,7 +433,7 @@ else:
             elif self.fs.isDir(path2,followlinks):
                 ttype="D"
             else:
-                raise RuntimeError("Can only detect files, dirs, links,path was '%s'"%path2)
+                raise j.exceptions.RuntimeError("Can only detect files, dirs, links,path was '%s'"%path2)
 
             if ttype not in callbackMatchFunctions or (ttype in callbackMatchFunctions and callbackMatchFunctions[ttype](path2,arg,pathRegexIncludes,pathRegexExcludes)):
                 # self.log("walker filepath:%s"% path2)   

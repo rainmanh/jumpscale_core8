@@ -12,6 +12,7 @@ class ActionController(object):
     '''Manager controlling actions'''
     def __init__(self, _output=None, _width=70):
         self.__jslocation__ = "j.actions"
+        self.logger = j.logger.get("j.actions")
         # self._actions = list()
         # self._width = _width
         self.rememberDone = False
@@ -47,7 +48,7 @@ class ActionController(object):
     @property
     def runid(self):
         if self._runid=="" or self._runid==None:
-            raise RuntimeError("runid cannot be empty, please set with j.actions.setRunID(...)")
+            raise j.exceptions.RuntimeError("runid cannot be empty, please set with j.actions.setRunID(...)")
         return str(self._runid)
 
     def get(self,actionkey):
@@ -58,7 +59,7 @@ class ActionController(object):
         if all is True:
             for item in j.core.db.keys("actions.*"):
                 item = item.decode().split(".", 1)[1]
-                print("delete:%s" % item)
+                self.logger.info("delete:%s" % item)
                 self.reset(item=item)
         else:
             self._actions = {}
@@ -92,15 +93,16 @@ class ActionController(object):
         @param action: python function to execute
         @param actionRecover: link to other action (same as this object but will be used to recover the situation)
         @param args is dict with arguments
-        @param serviceObj: service, will be used to get category filled in
+        @param serviceObj: service, will be used to get category filled in e.g. selfGeneratorCode='selfobj=None'
+            needs to be done selfobj=....  ... is whatever code which fill filling selfobj
         '''
 
-        # from pudb import set_trace; set_trace()  
+        # from pudb import set_trace; set_trace()
 
         if showout==True:
-            stdOutput=True 
+            stdOutput=True
         if showout==False:
-            stdOutput=False 
+            stdOutput=False
 
         l=traceback.format_stack()
         tbline=l[-2].split("\n")[0].replace("'","")
@@ -110,7 +112,7 @@ class ActionController(object):
 
 
         if j.data.types.dict.check(args):
-            raise RuntimeError("cannot create action: args should be a list, kwargs a dict, input error")
+            raise j.exceptions.RuntimeError("cannot create action: args should be a list, kwargs a dict, input error")
 
         action=Action(action,runid=self.runid,actionRecover=actionRecover,args=args,kwargs=kwargs,die=die,stdOutput=stdOutput,errorOutput=errorOutput,\
             retry=retry,serviceObj=serviceObj,deps=deps,selfGeneratorCode=selfGeneratorCode,force=force,actionshow=actionshow)
@@ -172,11 +174,11 @@ class ActionController(object):
         step = 0
         while todo:
             step += 1
-            print ("STEP:%s" % step)
+            self.logger.info("STEP:%s" % step)
             for action in todo:
                 action.execute()
                 if action.state == "ERROR":
-                    raise RuntimeError("cannot execute run:%s, failed action." % (runid))
+                    raise j.exceptions.RuntimeError("cannot execute run:%s, failed action." % (runid))
             todo = self.gettodo()
 
 

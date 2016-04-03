@@ -12,20 +12,20 @@ class RegexTemplates_FindLines:
 
     def findCommentlines(self):
         return "^( *#).*"
-    
+
     def findClasslines(self):
         return "^class .*"
 
     def findDeflines(self):
         return "^def .*"
-    
+
 class Empty:
     pass
-    
+
 class RegexMatches:
     def __init__(self):
         self.matches=[]
-        
+
     def addMatch(self,match):
         if match!=None or match!="":
             rm=RegexMatch()
@@ -46,7 +46,7 @@ class RegexMatches:
 
 class RegexMatch:
     def __init__(self):
-         
+
         self.start=0
         self.end=0
         self.founditem=""
@@ -58,12 +58,13 @@ class RegexMatch:
 
     def __repr__(self):
         return self.__str__()
-        
-        
+
+
 class RegexTools:
     #@todo doe some propper error handling with re, now obscure errors  (id:21)
     def __init__(self):
-        self.__jslocation__="j.data.regex"           
+        self.__jslocation__="j.data.regex"
+        self.logger = j.logger.get("j.data.regex")
         self.templates=Empty()
         self.templates.lines=RegexTemplates_FindLines()
 
@@ -74,7 +75,7 @@ class RegexTools:
             return result
         else:
             if dieIfNotFound:
-                raise RuntimeError("Could not find %s in htmldoc %s" % (tofind,path))
+                raise j.exceptions.RuntimeError("Could not find %s in htmldoc %s" % (tofind,path))
             else:
                 return ""
 
@@ -88,37 +89,36 @@ class RegexTools:
         subject=subject.split(found)[1]  #remove tofind pre part
         found=self.findHtmlElement(subject,"/%s"%tofind,path,dieIfNotFound=True) #now we need to die because first element found
         result,post=subject.split(found)  #look for end
-        return result    
+        return result
 
     def match(self,pattern,text):
         """
         search if there is at least 1 match
         """
         if pattern=="" or text=="":
-            raise RuntimeError("Cannot do .codetools.regex.match when pattern or text parameter is empty")     
-        #j.logger.log("Regextools: pattern:%s in text:%s" % (pattern,text),5)        
-        #print "Regextools: pattern:%s in text:%s" % (pattern,text)
+            raise j.exceptions.RuntimeError("Cannot do .codetools.regex.match when pattern or text parameter is empty")
+        self.logger.debug("pattern:%s in text:%s" % (pattern,text))
         pattern=self._patternFix(pattern)
         result=re.findall(pattern,text)
         if len(result)>0:
             return True
         else:
             return False
-        
+
     def matchMultiple(self,patterns,text):
         """
         see if any patterns matched
         if patterns=[] then will return False
         """
         if patterns=="":
-            raise RuntimeError("Cannot do .codetools.regex.matchMultiple when pattern is empty")        
+            raise j.exceptions.RuntimeError("Cannot do .codetools.regex.matchMultiple when pattern is empty")
         if text=="":
             return False
         if type(patterns).__name__!='list' :
-            raise RuntimeError("patterns has to be of type list []")
+            raise j.exceptions.RuntimeError("patterns has to be of type list []")
         if patterns==[]:
             return False
-            
+
         for pattern in patterns:
             pattern=self._patternFix(pattern)
             if self.match(pattern,text):
@@ -129,7 +129,7 @@ class RegexTools:
         if pattern.find("(?m)")==-1:
             pattern="%s%s" % ("(?m)",pattern)
         return pattern
-    
+
     def replace(self,regexFind,regexFindsubsetToReplace,replaceWith,text):
         """
         Search for regexFind in text and if found, replace the subset regexFindsubsetToReplace of regexFind with replacewith and returns the new text
@@ -142,9 +142,9 @@ class RegexTools:
         @param text: Text where you want to search and replace
         """
         if not regexFind or not regexFindsubsetToReplace or not text:
-            raise RuntimeError("Cannot do .codetools.regex.replace when any of the four variables is empty.")
+            raise j.exceptions.RuntimeError("Cannot do .codetools.regex.replace when any of the four variables is empty.")
         if regexFind.find(regexFindsubsetToReplace) == -1:
-            raise RuntimeError('regexFindsubsetToReplace must be part or all of regexFind "ex: regexFind="Some example text", regexFindsubsetToReplace="example"')
+            raise j.exceptions.RuntimeError('regexFindsubsetToReplace must be part or all of regexFind "ex: regexFind="Some example text", regexFindsubsetToReplace="example"')
         matches = self.findAll(regexFind,text)
         if matches:
             finalReplaceWith = re.sub(regexFindsubsetToReplace, replaceWith, matches[0])
@@ -159,7 +159,7 @@ class RegexTools:
         @param text: Text to search in
         """
         if not pattern or not text:
-            raise RuntimeError("Cannot do .codetools.regex.findOne when pattern or text parameter is empty")               
+            raise j.exceptions.RuntimeError("Cannot do .codetools.regex.findOne when pattern or text parameter is empty")
         pattern=self._patternFix(pattern)
         result= re.finditer(pattern,text, flags)
         finalResult = list()
@@ -167,11 +167,11 @@ class RegexTools:
             finalResult.append(item.group())
 
         if len(finalResult)>1:
-            raise RuntimeError("found more than 1 result of regex %s in text %s" % (pattern,text))
+            raise j.exceptions.RuntimeError("found more than 1 result of regex %s in text %s" % (pattern,text))
         if len(finalResult)==1:
             return finalResult[0]
         return ""
-    
+
 
     def findAll(self,pattern,text, flags=0):
         """
@@ -180,7 +180,7 @@ class RegexTools:
         @param text: Text to search in
         """
         if pattern=="" or text=="":
-            raise RuntimeError("Cannot do .codetools.regex.findAll when pattern or text parameter is empty")        
+            raise j.exceptions.RuntimeError("Cannot do .codetools.regex.findAll when pattern or text parameter is empty")
         pattern=self._patternFix(pattern)
         results = re.finditer(pattern,text, flags)
         matches = list()
@@ -194,7 +194,7 @@ class RegexTools:
         return RegexMatches  (is array of RegexMatch)
         """
         if pattern=="" or text=="":
-            raise RuntimeError("Cannot do j.tools.code.regex.getRegexMatches when pattern or text parameter is empty")
+            raise j.exceptions.RuntimeError("Cannot do j.tools.code.regex.getRegexMatches when pattern or text parameter is empty")
         pattern=self._patternFix(pattern)
         rm=RegexMatches()
         for match in re.finditer(pattern, text, flags):
@@ -206,9 +206,9 @@ class RegexTools:
             witch would improve the performance of the search function.
         """
         if pattern=="" or text=="":
-            raise RuntimeError("Cannot do j.tools.code.regex.getRegexMatches when pattern or text parameter is empty")
+            raise j.exceptions.RuntimeError("Cannot do j.tools.code.regex.getRegexMatches when pattern or text parameter is empty")
         pattern=self._patternFix(pattern)
-        
+
         for match in re.finditer(pattern, text, flags):
             rm = RegexMatch()
             rm.start = match.start()
@@ -216,21 +216,21 @@ class RegexTools:
             rm.founditem = match.group()
             rm.foundSubitems = match.groups()
             yield rm
-        
+
     def matchAllText(self,pattern,text):
         result=self.getRegexMatch( pattern, text)
         if result==None:
             return False
         if result.founditem.strip()!=text.strip():
             return False
-        
+
     def getRegexMatch(self, pattern, text, flags=0):
         """
         find the first match in the string that matches the pattern.
         @return RegexMatch object, or None if didn't match any.
         """
         if pattern == "" or text == "":
-            raise RuntimeError("Cannot do j.tools.code.regex.getRegexMatches when pattern or text parameter is empty")
+            raise j.exceptions.RuntimeError("Cannot do j.tools.code.regex.getRegexMatches when pattern or text parameter is empty")
         pattern = self._patternFix(pattern)
         match = re.match(pattern, text, flags)
         if match:
@@ -242,13 +242,13 @@ class RegexTools:
             return rm
         else:
             return None #no match
-            
+
     def removeLines(self,pattern,text):
         """
-        remove lines based on pattern  
+        remove lines based on pattern
         """
         if pattern=="" or text=="":
-            raise RuntimeError("Cannot do j.tools.code.regex.removeLines when pattern or text parameter is empty")
+            raise j.exceptions.RuntimeError("Cannot do j.tools.code.regex.removeLines when pattern or text parameter is empty")
         pattern=self._patternFix(pattern)
         return self.processLines(text,excludes=[pattern])
 
@@ -262,7 +262,7 @@ class RegexTools:
             includes=[".*"]  #match all
         if excludes=="":
             excludes=[]  #match none
-                       
+
         lines = text.split("\n")
         out=""
         for line in lines:
@@ -282,7 +282,7 @@ class RegexTools:
             includes=[".*"]  #match all
         if excludes=="":
             excludes=[]  #match none
-                       
+
         lines = text.split("\n")
         out=""
         for line in lines:
@@ -293,8 +293,8 @@ class RegexTools:
                 out="%s%s\n" % (out,line)
         if out[-2:]=="\n\n":
             out=out[:-1]
-        return out    
-    
+        return out
+
     def findLine(self,regex,text):
         """
         returns line when found
@@ -303,7 +303,7 @@ class RegexTools:
         """
 
         return self.processLines(text,includes=[self._patternFix(regex)],excludes="")
-    
+
     def getINIAlikeVariableFromText(self,variableName,text,isArray=False):
         """
         e.g. in text
@@ -312,7 +312,7 @@ class RegexTools:
         testarray = 1,2,4,5
         '
         getINIAlikeVariable("test",text) will return 'something'
-        @isArray when True and , in result will make array out of 
+        @isArray when True and , in result will make array out of
         getINIAlikeVariable("testarray",text,True) will return [1,2,4,5]
         """
         line=self.findLine("^%s *=" % variableName,text)
@@ -326,9 +326,9 @@ class RegexTools:
                 else:
                     return [val]
             else:
-                return val            
+                return val
         return ""
-        
+
     def extractFirstFoundBlock(self,text,blockStartPatterns,blockStartPatternsNegative=[],blockStopPatterns=[],blockStopPatternsNegative=[],linesIncludePatterns=[".*"],linesExcludePatterns=[],includeMatchingLine=True):
             result=self.extractBlocks(text,blockStartPatterns,blockStartPatternsNegative,blockStopPatterns,blockStopPatternsNegative,linesIncludePatterns,linesExcludePatterns,includeMatchingLine)
             if len(result)>0:
@@ -342,19 +342,19 @@ class RegexTools:
         look for blocks starting with line which matches one of patterns in blockStartPatterns and not matching one of patterns in blockStartPatternsNegative
         block will stop when line found which matches one of patterns in blockStopPatterns and not in blockStopPatternsNegative or when next match for start is found
         in block lines matching linesIncludePatterns will be kept and reverse for linesExcludePatterns
-        example pattern: '^class ' looks for class at beginning of line with space behind 
+        example pattern: '^class ' looks for class at beginning of line with space behind
         """
         #check types of input
         if type(blockStartPatterns).__name__!='list' or type(blockStartPatternsNegative).__name__!='list' or type(blockStopPatterns).__name__!='list' \
             or type(blockStopPatternsNegative).__name__!='list' or type(linesIncludePatterns).__name__!='list' or type(linesExcludePatterns).__name__!='list' :
-            raise RuntimeError("Blockstartpatterns,blockStartPatternsNegative,blockStopPatterns,blockStopPatternsNegative,linesIncludePatterns,linesExcludePatterns has to be of type list")                                
-        
+            raise j.exceptions.RuntimeError("Blockstartpatterns,blockStartPatternsNegative,blockStopPatterns,blockStopPatternsNegative,linesIncludePatterns,linesExcludePatterns has to be of type list")
+
         state="scan"
         lines=text.split("\n")
         line=""
         result=[]
         for t in range(len(lines)):
-            line=lines[t]            
+            line=lines[t]
             #print "\nPROCESS: %s,%s state:%s line:%s" % (t,len(lines)-1,state,line)
             emptyLine = not line
             addLine = (self.matchMultiple(linesIncludePatterns,line) and not self.matchMultiple(linesExcludePatterns,line)) or emptyLine
@@ -364,28 +364,28 @@ class RegexTools:
                                           (self.matchMultiple(blockStartPatterns,line) and not self.matchMultiple(blockStartPatternsNegative,line)) or \
                                           (len(blockStopPatternsNegative)>0 and not self.matchMultiple(blockStopPatternsNegative,line)))\
                                         ):
-                
+
                 #new potential block found or end of file
                 result.append(block) #add to results line
                 if t==len(lines)-1:
                     state="endoffile"
                     if addLine:
-                        block="%s%s\n" % (block,line)  
+                        block="%s%s\n" % (block,line)
                 else:
                     #have to go back to scanning
                     state="scan"
                     if blockStartPatterns==blockStopPatterns:
-                        #otherwise we would start match again                    
+                        #otherwise we would start match again
                         if t<len(lines):
                             t=t+1
                             line=lines[t]
                         else:
-                            line=""                          
-                            
+                            line=""
+
             if state=="foundblock":
                 #print "foundblock %s" % self.matchMultiple(linesIncludePatterns,line)
                 if addLine:
-                    block="%s%s\n" % (block,line)                            
+                    block="%s%s\n" % (block,line)
 
             if state=="scan" and self.matchMultiple(blockStartPatterns,line) and not self.matchMultiple(blockStartPatternsNegative,line):
                 #found beginning of block
@@ -395,9 +395,6 @@ class RegexTools:
                 if includeMatchingLine:
                     if addLine:
                         block=line+"\n"
-                                            
-            
+
+
         return result
-
-
-    

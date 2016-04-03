@@ -19,7 +19,7 @@ class AmazonProvider(SALObject):
 
     def connect(self, access_key_id, secret_access_key):
         if not self.region:
-            raise RuntimeError('Region must be set first')
+            raise j.exceptions.RuntimeError('Region must be set first')
         self._client = get_driver(self.region)(access_key_id, secret_access_key)
 
     def find_size(self, size_id):
@@ -53,12 +53,12 @@ class AmazonProvider(SALObject):
         for machine in machines:
             if machine['name'] == machine_name:
                 if machine['status'] != 'running':
-                    raise RuntimeError('Machine "%s" is not running' % machine_name)
+                    raise j.exceptions.RuntimeError('Machine "%s" is not running' % machine_name)
                 host = machine['public_ips'][0]
                 break
 
         if not host:
-            raise RuntimeError('Could not find machine: %s' % machine_name)
+            raise j.exceptions.RuntimeError('Could not find machine: %s' % machine_name)
         rapi = j.remote.cuisine.api
         rapi.connect(host, user='ubuntu')
         if sudo:

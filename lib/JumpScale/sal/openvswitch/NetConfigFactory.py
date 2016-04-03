@@ -115,7 +115,7 @@ class NetConfigFactory(SALObject):
     def getType(self,interfaceName):
         layout=self.getConfigFromSystem()
         if interfaceName not in layout:
-            raise RuntimeError("cannot find interface %s"%interfaceName)
+            raise j.exceptions.RuntimeError("cannot find interface %s"%interfaceName)
         interf=layout[interfaceName]
         if "type" in interf["params"]:
             return interf["params"]["type"]

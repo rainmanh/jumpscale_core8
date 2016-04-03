@@ -8,7 +8,7 @@
                 { "trigger": "joinPaths","contents":"j.sal.fs.joinPaths(${1:pathpart},${2:pathpart})"},
                 { "trigger": "getFile","contents":"j.sal.fs.fileGetContents(${1:filename})"},
                 
-                { "trigger": "runtimeError","contents":"raise RuntimeError(\"$1\")"},
+                { "trigger": "runtimeError","contents":"raise j.exceptions.RuntimeError(\"$1\")"},
                 
                 { "trigger": "hrdget","contents":"hrd=j.data.hrd.getHRDTree(path=${1:path})"},
                 
@@ -17,7 +17,7 @@
                 { "trigger": "exists","contents":"j.sal.fs.exists(path=${1:path}))"}, 
                 
                 { "trigger": "raisebug","contents":"j.errorconditionhandler.raiseBug(message=${1:msg},category=${2:cat})"},
-                { "trigger": "raisebugDetailed","contents":"j.errorconditionhandler.raiseBug(message=${1:msg},category=\"\",pythonExceptionObject=None, pythonTraceBack=None, msgpub='')"},
+                { "trigger": "raisebugDetailed","contents":"j.errorconditionhandler.raiseBug(message=${1:msg},category=\"\",exceptionObject=None, pythonTraceBack=None, msgpub='')"},
                 { "trigger": "raiseOperationalCritical","contents":"j.errorconditionhandler.raiseOperationalCritical(msgpub=\"${1:msg}\",message=\"\",category=\"\",die=True,tags=\"\")"},
                 { "trigger": "raiseOperationalWarning","contents":"j.errorconditionhandler.raiseOperationalWarning(msgpub=\"${1:msg}\",message=\"\",category=\"\",msgpub='',tags=\"\")"},
                 { "trigger": "raiseInputError","contents":"j.errorconditionhandler.raiseInputError(msgpub=\"${1:msg}\",message=\"\",category=\"\",tags=\"\",die=True)"},

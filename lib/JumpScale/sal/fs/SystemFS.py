@@ -62,7 +62,7 @@ def cleanupString(string, replacewith="_", regex="([^A-Za-z0-9])"):
 
 def lock(lockname, locktimeout=60, reentry=False):
     '''Take a system-wide interprocess exclusive lock. Default timeout is 60 seconds'''
-    j.logger.log('Lock with name: %s'% lockname,6)
+    j.sal.fs.logger.debug('Lock with name: %s'% lockname)
     try:
         result = lock_(lockname, locktimeout, reentry)
     except Exception as e:
@@ -140,11 +140,11 @@ def islocked(lockname, reentry=False):
 
 def unlock(lockname):
     """Unlock system-wide interprocess lock"""
-    j.logger.log('UnLock with name: %s'% lockname,6)
+    j.sal.fs.logger.log('UnLock with name: %s'% lockname,6)
     try:
         unlock_(lockname)
     except Exception as msg:
-        raise RuntimeError("Cannot unlock [%s] with ERROR: %s" % (lockname, str(msg)))
+        raise j.exceptions.RuntimeError("Cannot unlock [%s] with ERROR: %s" % (lockname, str(msg)))
 
 def unlock_(lockname):
     '''Unlock system-wide interprocess lock
@@ -215,14 +215,8 @@ class SystemFS(SALObject):
 
     def __init__(self):
         self.__jslocation__="j.sal.fs"
-        self.logenable=False
-        self.loglevel=5
-        self.walker=SystemFSWalker()
-
-    def log(self,msg,level=5,category=""):
-        # print (msg)
-        if level<self.loglevel+1 and self.logenable:
-            j.logger.log(msg,category="system.fs.%s"%category,level=level)
+        self.logger = j.logger.get("j.sal.fs")
+        self.walker = SystemFSWalker()
 
     def copyFile(self, fileFrom, to, createDirIfNeeded=False, overwriteFile=True):
         """Copy file
@@ -256,32 +250,32 @@ class SystemFS(SALObject):
                 self.remove(to) # overwriting some open  files is frustrating and may not work due to locking [delete/copy is a better strategy]
             try:
                 shutil.copy(fileFrom, to)
-                self.log("Copied file from %s to %s" % (fileFrom,to),6)
+                self.logger.debug("Copied file from %s to %s" % (fileFrom,to))
             except Exception as e:
-                raise RuntimeError("Could not copy file from %s to %s, error %s" % (fileFrom,to,e))
+                raise j.exceptions.RuntimeError("Could not copy file from %s to %s, error %s" % (fileFrom,to,e))
         else:
-            raise RuntimeError("Can not copy file, file: %s does not exist in system.fs.copyFile" % ( fileFrom ) )
+            raise j.exceptions.RuntimeError("Can not copy file, file: %s does not exist in system.fs.copyFile" % ( fileFrom ) )
 
     def moveFile(self, source, destin):
         """Move a  File from source path to destination path
         @param source: string (Source file path)
         @param destination: string (Destination path the file should be moved to )
         """
-        self.log('Move file from %s to %s'% (source, destin),6)
+        self.logger.debug('Move file from %s to %s'% (source, destin))
         if ((source is None) or (destin is None)):
             raise TypeError("Not enough parameters given to system.fs.moveFile: move from %s, to %s" % (source, destin))
         if not j.sal.fs.isFile(source):
-            raise RuntimeError("The specified source path in system.fs.moveFile does not exist or is no file: %s" % source)
+            raise j.exceptions.RuntimeError("The specified source path in system.fs.moveFile does not exist or is no file: %s" % source)
         try:
             self.move(source, destin)
         except Exception as e:
-            raise RuntimeError("File could not be moved...in system.fs.moveFile: from %s to %s , Error %s" % (source, destin,str(e)))
+            raise j.exceptions.RuntimeError("File could not be moved...in system.fs.moveFile: from %s to %s , Error %s" % (source, destin,str(e)))
 
     def renameFile(self, filePath, new_name):
         """
         OBSOLETE
         """
-        self.log("WARNING: renameFIle should not be used")
+        self.logger.debug("WARNING: renameFIle should not be used")
         return self.move(filePath,new_name)
 
     def removeIrrelevantFiles(self,path,followSymlinks=True):
@@ -294,7 +288,7 @@ class SystemFS(SALObject):
         """Remove a File
         @param path: string (File path required to be removed
         """
-        self.log('Remove file with path: %s'%path,6)
+        self.logger.debug('Remove file with path: %s'%path)
         if len(path)>0 and path[-1]==os.sep:
             path=path[:-1]
         if path is None:
@@ -305,21 +299,21 @@ class SystemFS(SALObject):
             try:
                 os.remove(path)
             except Exception as e:
-                raise RuntimeError("File with path: %s could not be removed\nDetails: %s\n%s"%(path,e, sys.exc_info()[0]))
-            self.log('Done removing file with path: %s'%path)
+                raise j.exceptions.RuntimeError("File with path: %s could not be removed\nDetails: %s\n%s"%(path,e, sys.exc_info()[0]))
+            self.logger.debug('Done removing file with path: %s'%path)
 
     def createEmptyFile(self, filename):
         """Create an empty file
         @param filename: string (file path name to be created)
         """
-        self.log('creating an empty file with name & path: %s'%filename,9)
+        self.logger.debug('creating an empty file with name & path: %s' % filename)
         if filename is None:
             raise ArithmeticError('Not enough parameters passed to system.fs.createEmptyFile: %s'%filename)
         try:
             open(filename, "w").close()
-            self.log('Empty file %s has been successfully created'%filename)
+            self.logger.debug('Empty file %s has been successfully created' % filename)
         except Exception:
-            raise RuntimeError("Failed to create an empty file with the specified filename: %s"%filename)
+            raise j.exceptions.RuntimeError("Failed to create an empty file with the specified filename: %s"%filename)
 
     def createDir(self, newdir):
         """Create new Directory
@@ -328,8 +322,8 @@ class SystemFS(SALObject):
         if newdir was given as a complete path with the directory name, the new directory will be created in the specified path
         """
         if newdir.find("file://")!=-1:
-            raise RuntimeError("Cannot use file notation here")
-        self.log('Creating directory if not exists %s' % toStr(newdir), 8)
+            raise j.exceptions.RuntimeError("Cannot use file notation here")
+        self.logger.debug('Creating directory if not exists %s' % toStr(newdir))
 
         if newdir == '' or newdir == None:
             raise TypeError('The newdir-parameter of system.fs.createDir() is None or an empty string.')
@@ -338,7 +332,7 @@ class SystemFS(SALObject):
             self.unlink(newdir)
 
         if self.isDir(newdir):
-            self.log('Directory trying to create: [%s] already exists' % toStr(newdir), 8)
+            self.logger.debug('Directory trying to create: [%s] already exists' % toStr(newdir))
         else:
             head, tail = os.path.split(newdir)
             if head and not j.sal.fs.isDir(head):
@@ -351,7 +345,7 @@ class SystemFS(SALObject):
                     if e.errno != os.errno.EEXIST: #File exists
                         raise
 
-            self.log('Created the directory [%s]' % toStr(newdir), 8)
+            self.logger.debug('Created the directory [%s]' % toStr(newdir))
 
     def copyDirTree(self, src, dst, keepsymlinks = False, deletefirst = False, \
         overwriteFiles=True,ignoredir=[".egg-info",".dist-info"],ignorefiles=[".egg-info"],rsync=True,\
@@ -367,9 +361,9 @@ class SystemFS(SALObject):
         """
         if not ssh:
             if src.find("file://")!=-1 or dst.find("file://")!=-1:
-                raise RuntimeError("Cannot use file notation here")
+                raise j.exceptions.RuntimeError("Cannot use file notation here")
 
-            self.log('Copy directory tree from %s to %s'% (src, dst),6)
+            self.logger.debug('Copy directory tree from %s to %s'% (src, dst))
             if ((src is None) or (dst is None)):
                 raise TypeError('Not enough parameters passed in system.fs.copyDirTree to copy directory from %s to %s '% (src, dst))
             if j.sal.fs.isDir(src):
@@ -404,7 +398,7 @@ class SystemFS(SALObject):
                         #print "2:%s %s"%(srcname,dstname)
                         self.copyFile(srcname, dstname ,createDirIfNeeded=False,overwriteFile=overwriteFiles)
             else:
-                raise RuntimeError('Source path %s in system.fs.copyDirTree is not a directory'% src)
+                raise j.exceptions.RuntimeError('Source path %s in system.fs.copyDirTree is not a directory'% src)
         else:
             #didnt use j.sal.rsync because its not complete and doesnt work properly
             excl = ""
@@ -441,13 +435,13 @@ class SystemFS(SALObject):
             print (cmd)
 
             return j.tools.cuisine.local.run(cmd)
-            
+
 
     def removeDirTree(self, path, onlyLogWarningOnRemoveError=False):
         """Recursively delete a directory tree.
             @param path: the path to be removed
         """
-        self.log('Removing directory tree with path: %s'%path,6)
+        self.logger.debug('Removing directory tree with path: %s'%path)
         if self.isLink(path):
             self.remove(path)
         if self.isFile(path):
@@ -458,14 +452,14 @@ class SystemFS(SALObject):
             if(self.isDir(path)):
                 if onlyLogWarningOnRemoveError:
                     def errorHandler(shutilFunc, shutilPath, shutilExc_info):
-                        self.log('WARNING: could not remove %s while recursively deleting %s' % (shutilPath, path), 2)
-                    self.log('Trying to remove Directory tree with path: %s (warn on errors)'%path)
+                        self.logger.debug('WARNING: could not remove %s while recursively deleting %s' % (shutilPath, path))
+                    self.logger.debug('Trying to remove Directory tree with path: %s (warn on errors)'%path)
                     shutil.rmtree(path, onerror=errorHandler)
                 else:
-                    self.log('Trying to remove Directory tree with path: %s' % path)
+                    self.logger.debug('Trying to remove Directory tree with path: %s' % path)
                     shutil.rmtree(path)
 
-                self.log('Directory tree with path: %s is successfully removed' % path)
+                self.logger.debug('Directory tree with path: %s is successfully removed' % path)
             else:
                 raise ValueError("Specified path: %s is not a Directory in system.fs.removeDirTree" % path)
 
@@ -473,49 +467,49 @@ class SystemFS(SALObject):
         """Remove a Directory
         @param path: string (Directory path that should be removed)
         """
-        self.log('Removing the directory with path: %s'%path,6)
+        self.logger.debug('Removing the directory with path: %s'%path)
         if path is None:
             raise TypeError('Path is None in system.fs.removeDir')
         if(j.sal.fs.exists(path)):
             if(j.sal.fs.isDir(path)):
                 os.rmdir(path)
-                self.log('Directory with path: %s is successfully removed'%path)
+                self.logger.debug('Directory with path: %s is successfully removed'%path)
             else:
                 raise ValueError("Path: %s is not a Directory in system.fs.removeDir"% path)
         else:
-            raise RuntimeError("Path: %s does not exist in system.fs.removeDir"% path)
+            raise j.exceptions.RuntimeError("Path: %s does not exist in system.fs.removeDir"% path)
 
     def changeDir(self, path):
         """Changes Current Directory
         @param path: string (Directory path to be changed to)
         """
-        self.log('Changing directory to: %s'%path,6)
+        self.logger.debug('Changing directory to: %s'%path)
         if path is None:
             raise TypeError('Path is not given in system.fs.changeDir')
         if(j.sal.fs.exists(path)):
             if(j.sal.fs.isDir(path)):
                 os.chdir(path)
                 newcurrentPath = os.getcwd()
-                self.log('Directory successfully changed to %s'%path)
+                self.logger.debug('Directory successfully changed to %s'%path)
                 return newcurrentPath
             else:
                 raise ValueError("Path: %s in system.fs.changeDir is not a Directory"% path)
         else:
-            raise RuntimeError("Path: %s in system.fs.changeDir does not exist"% path)
+            raise j.exceptions.RuntimeError("Path: %s in system.fs.changeDir does not exist"% path)
 
     def moveDir(self, source, destin):
         """Move Directory from source to destination
         @param source: string (Source path where the directory should be removed from)
         @param destin: string (Destination path where the directory should be moved into)
         """
-        self.log('Moving directory from %s to %s'% (source, destin),6)
+        self.logger.debug('Moving directory from %s to %s'% (source, destin))
         if ((source is None) or (destin is None)):
             raise TypeError('Not enough passed parameters to moveDirectory from %s to %s in system.fs.moveDir '% (source, destin))
         if(j.sal.fs.isDir(source)):
             j.sal.fs.move(source, destin)
-            self.log('Directory is successfully moved from %s to %s'% (source, destin))
+            self.logger.debug('Directory is successfully moved from %s to %s'% (source, destin))
         else:
-            raise RuntimeError("Specified Source path: %s does not exist in system.fs.moveDir"% source)
+            raise j.exceptions.RuntimeError("Specified Source path: %s does not exist in system.fs.moveDir"% source)
 
     def joinPaths(self,*args):
         """Join one or more path components.
@@ -528,7 +522,7 @@ class SystemFS(SALObject):
         with exactly one directory separator (os.sep) inserted between components, unless path2 is empty.
         """
         args = [ toStr(x) for x in args ]
-        self.log('Join paths %s'%(str(args)),9)
+        self.logger.debug('Join paths %s'%(str(args)))
         if args is None:
             raise TypeError('Not enough parameters %s'%(str(args)))
         if j.core.platformtype.myplatform.isWindows():
@@ -542,7 +536,7 @@ class SystemFS(SALObject):
         try:
             return os.path.join(*args)
         except Exception as e:
-            raise RuntimeError("Failed to join paths: %s, Error %s "%(str(args),str(e)))
+            raise j.exceptions.RuntimeError("Failed to join paths: %s, Error %s "%(str(args),str(e)))
 
     def getDirName(self, path,lastOnly=False,levelsUp=None):
         """
@@ -554,7 +548,7 @@ class SystemFS(SALObject):
          e.g. ...getDirName("/opt/qbase/bin/something/test.py", levelsUp=1) would return bin
          e.g. ...getDirName("/opt/qbase/bin/something/test.py", levelsUp=10) would raise an error
         """
-        self.log('Get directory name of path: %s' % path,9)
+        self.logger.debug('Get directory name of path: %s' % path)
         if path is None:
             raise TypeError('Path is not passed in system.fs.getDirName')
         dname=os.path.dirname(path)
@@ -569,19 +563,19 @@ class SystemFS(SALObject):
             if len(parts)-levelsUp>0:
                 return parts[len(parts)-levelsUp-1]
             else:
-                raise RuntimeError ("Cannot find part of dir %s levels up, path %s is not long enough" % (levelsUp,path))
+                raise j.exceptions.RuntimeError("Cannot find part of dir %s levels up, path %s is not long enough" % (levelsUp,path))
         return dname+os.sep
 
 
     def getBaseName(self, path):
         """Return the base name of pathname path."""
-        # self.log('Get basename for path: %s'%path,9)
+        self.logger.debug('Get basename for path: %s'%path)
         if path is None:
             raise TypeError('Path is not passed in system.fs.getDirName')
         try:
             return os.path.basename(path.rstrip(os.path.sep))
         except Exception as e:
-            raise RuntimeError('Failed to get base name of the given path: %s, Error: %s'% (path,str(e)))
+            raise j.exceptions.RuntimeError('Failed to get base name of the given path: %s, Error: %s'% (path,str(e)))
 
     def pathShorten(self, path):
         """
@@ -679,7 +673,7 @@ class SystemFS(SALObject):
         for item in path.split("/"):
             if item=="..":
                 if result==[]:
-                    raise RuntimeError("Cannot processPathForDoubleDots for paths with only ..")
+                    raise j.exceptions.RuntimeError("Cannot processPathForDoubleDots for paths with only ..")
                 else:
                     result.pop()
             else:
@@ -727,14 +721,14 @@ class SystemFS(SALObject):
                     os.chown(path, uid, gid)
                 except Exception as e:
                     if str(e).find("No such file or directory")==-1:
-                        raise RuntimeError("%s"%e)
+                        raise j.exceptions.RuntimeError("%s"%e)
             for file in files:
                 path = os.path.join(root, file)
                 try:
                     os.chown(path, uid, gid)
                 except Exception as e:
                     if str(e).find("No such file or directory")==-1:
-                        raise RuntimeError("%s"%e)
+                        raise j.exceptions.RuntimeError("%s"%e)
 
     def chmod(self,path,permissions):
         """
@@ -748,7 +742,7 @@ class SystemFS(SALObject):
                     os.chmod(path,permissions)
                 except Exception as e:
                     if str(e).find("No such file or directory")==-1:
-                        raise RuntimeError("%s"%e)
+                        raise j.exceptions.RuntimeError("%s"%e)
 
             for file in files:
                 path = os.path.join(root, file)
@@ -756,7 +750,7 @@ class SystemFS(SALObject):
                     os.chmod(path,permissions)
                 except Exception as e:
                     if str(e).find("No such file or directory")==-1:
-                        raise RuntimeError("%s"%e)
+                        raise j.exceptions.RuntimeError("%s"%e)
 
 
     def parsePath(self,path, baseDir="",existCheck=True, checkIsFile=False):
@@ -776,9 +770,9 @@ class SystemFS(SALObject):
         """
         #make sure only clean path is left and the filename is out
         if existCheck and not self.exists(path):
-            raise RuntimeError("Cannot find file %s when importing" % path)
+            raise j.exceptions.RuntimeError("Cannot find file %s when importing" % path)
         if checkIsFile and not self.isFile(path):
-            raise RuntimeError("Path %s should be a file (not e.g. a dir), error when importing" % path)
+            raise j.exceptions.RuntimeError("Path %s should be a file (not e.g. a dir), error when importing" % path)
         extension=""
         if self.isDir(path):
             name=""
@@ -819,11 +813,11 @@ class SystemFS(SALObject):
         """get current working directory
         @rtype: string (current working directory path)
         """
-        self.log('Get current working directory',9)
+        self.logger.debug('Get current working directory')
         try:
             return os.getcwd()
         except Exception as e:
-            raise RuntimeError('Failed to get current working directory')
+            raise j.exceptions.RuntimeError('Failed to get current working directory')
 
     def readlink(self, path):
         """Works only for unix
@@ -831,16 +825,16 @@ class SystemFS(SALObject):
         """
         while path[-1]=="/" or path[-1]=="\\":
             path=path[:-1]
-        self.log('Read link with path: %s'%path,8)
+        self.logger.debug('Read link with path: %s'%path)
         if path is None:
             raise TypeError('Path is not passed in system.fs.readLink')
         if j.core.platformtype.myplatform.isUnix():
             try:
                 return os.readlink(path)
             except Exception as e:
-                raise RuntimeError('Failed to read link with path: %s \nERROR: %s'%(path, str(e)))
+                raise j.exceptions.RuntimeError('Failed to read link with path: %s \nERROR: %s'%(path, str(e)))
         elif j.core.platformtype.myplatform.isWindows():
-            raise RuntimeError('Cannot readLink on windows')
+            raise j.exceptions.RuntimeError('Cannot readLink on windows')
 
     def removeLinks(self,path):
         """
@@ -866,7 +860,7 @@ class SystemFS(SALObject):
             else:
                 raise ValueError("Specified path: %s is not a Directory in system.fs.listDir"% path)
         else:
-            raise RuntimeError("Specified path: %s does not exist in system.fs.listDir"% path)
+            raise j.exceptions.RuntimeError("Specified path: %s does not exist in system.fs.listDir"% path)
 
     def listFilesInDir(self, path, recursive=False, filter=None, minmtime=None, maxmtime=None,depth=None, case_sensitivity='os',exclude=[],followSymlinks=True,listSymlinks=False):
         """Retrieves list of files found in the specified directory
@@ -886,7 +880,7 @@ class SystemFS(SALObject):
         """
         if depth!=None:
             depth=int(depth)
-        self.log('List files in directory with path: %s' % path,9)
+        self.logger.debug('List files in directory with path: %s' % path)
         if depth==0:
             depth=None
         # if depth != None:
@@ -912,7 +906,7 @@ class SystemFS(SALObject):
         """
         if depth!=None:
             depth=int(depth)
-        self.log('List files in directory with path: %s' % path,9)
+        self.logger.debug('List files in directory with path: %s' % path)
         if depth==0:
             depth=None
         # if depth != None:
@@ -1037,7 +1031,7 @@ class SystemFS(SALObject):
         @param path: string represents directory path to search in
         @rtype: list
         """
-        self.log('List directories in directory with path: %s, recursive = %s' % (path, str(recursive)),9)
+        self.logger.debug('List directories in directory with path: %s, recursive = %s' % (path, str(recursive)))
 
         #if recursive:
             #if not j.sal.fs.exists(path):
@@ -1092,13 +1086,13 @@ class SystemFS(SALObject):
             raise TypeError('Path is not passed in system.fs.exists')
         if os.path.exists(path) or os.path.islink(path):
             if self.isLink(path) and followlinks:
-                #self.log('path %s exists' % str(path.encode("utf-8")),8)
+                self.logger.debug('path %s exists' % str(path.encode("utf-8")))
                 relativelink = self.readlink(path)
                 newpath = self.joinPaths(self.getParent(path), relativelink)
                 return self.exists(newpath)
             else:
                 return True
-        #self.log('path %s does not exist' % str(path.encode("utf-8")),8)
+        self.logger.debug('path %s does not exist' % str(path.encode("utf-8")))
         return False
 
 
@@ -1108,7 +1102,7 @@ class SystemFS(SALObject):
         @param target: destination path required to create the symbolic link at
         @param overwriteTarget: boolean indicating whether target can be overwritten
         """
-        self.log('Getting symlink for path: %s to target %s'% (path, target),7)
+        self.logger.debug('Getting symlink for path: %s to target %s'% (path, target))
         if ( path is None):
             raise TypeError('Path is None in system.fs.symlink')
 
@@ -1128,7 +1122,7 @@ class SystemFS(SALObject):
             j.sal.fs.createDir(dir)
 
         if j.core.platformtype.myplatform.isUnix():
-            self.log(  "Creating link from %s to %s" %( path, target) )
+            self.logger.debug(  "Creating link from %s to %s" %( path, target) )
             os.symlink(path, target)
         elif j.core.platformtype.myplatform.isWindows():
             path=path.replace("+",":")
@@ -1143,16 +1137,16 @@ class SystemFS(SALObject):
         @rtype: concatenation of dirname, and optionally linkname, etc.
         with exactly one directory separator (os.sep) inserted between components, unless path2 is empty
         """
-        self.log('Create a hard link pointing to %s named %s'% (source, destin),7)
+        self.logger.debug('Create a hard link pointing to %s named %s'% (source, destin))
         if (source is None):
             raise TypeError('Source path is not passed in system.fs.hardlinkFile')
         try:
             if j.core.platformtype.myplatform.isUnix():
                 return os.link(source, destin)
             else:
-                raise RuntimeError('Cannot create a hard link on windows')
+                raise j.exceptions.RuntimeError('Cannot create a hard link on windows')
         except:
-            raise RuntimeError('Failed to hardLinkFile from %s to %s'% (source, destin))
+            raise j.exceptions.RuntimeError('Failed to hardLinkFile from %s to %s'% (source, destin))
 
     def checkDirParam(self,path):
         if(path.strip()==""):
@@ -1189,12 +1183,12 @@ class SystemFS(SALObject):
             raise TypeError('Directory path is None in system.fs.isEmptyDir')
         try:
             if(self._listInDir(path) == []):
-                self.log('path %s is an empty directory'%path,9)
+                self.logger.debug('path %s is an empty directory'%path)
                 return True
-            self.log('path %s is not an empty directory'%path,9)
+            self.logger.debug('path %s is not an empty directory'%path)
             return False
         except:
-            raise RuntimeError('Failed to check if the specified path: %s is an empty directory...in system.fs.isEmptyDir'% path)
+            raise j.exceptions.RuntimeError('Failed to check if the specified path: %s is an empty directory...in system.fs.isEmptyDir'% path)
 
     def isFile(self, path, followSoftlink = True):
         """Check if the specified file exists for the given path
@@ -1202,24 +1196,24 @@ class SystemFS(SALObject):
         @param followSoftlink: boolean
         @rtype: boolean (True if file exists for the given path)
         """
-        self.log("isfile:%s" % path,8)
+        self.logger.debug("isfile:%s" % path)
 
 
         if ( path is None):
             raise TypeError('File path is None in system.fs.isFile')
         try:
             if not followSoftlink and self.isLink( path ) :
-                self.log('path %s is a file'%path,8)
+                self.logger.debug('path %s is a file'%path)
                 return True
 
             if(os.path.isfile(path)):
-                self.log('path %s is a file'%path,8)
+                self.logger.debug('path %s is a file'%path)
                 return True
 
-            self.log('path %s is not a file'%path,8)
+            self.logger.debug('path %s is not a file'%path)
             return False
         except:
-            raise RuntimeError('Failed to check if the specified path: %s is a file...in system.fs.isFile'% path)
+            raise j.exceptions.RuntimeError('Failed to check if the specified path: %s is a file...in system.fs.isFile'% path)
 
 
     def isExecutable(self, path):
@@ -1241,25 +1235,25 @@ class SystemFS(SALObject):
             try:
                 result=j.sal.process.execute(cmd)
             except Exception as e:
-                raise RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s."%cmd)
+                raise j.exceptions.RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s."%cmd)
             if result[0]!=0:
-                raise RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s."%cmd)
+                raise j.exceptions.RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s."%cmd)
             if result[1].lower().find("substitute name")!=-1:
                 return True
             else:
                 return False
 
         if(os.path.islink(path)):
-            self.log('path %s is a link'%path,8)
+            self.logger.debug('path %s is a link'%path)
             return True
-        self.log('path %s is not a link'%path,8)
+        self.logger.debug('path %s is not a link'%path)
         return False
 
     def isMount(self, path):
         """Return true if pathname path is a mount point:
         A point in a file system where a different file system has been mounted.
         """
-        self.log('Check if path %s is a mount point'%path,8)
+        self.logger.debug('Check if path %s is a mount point'%path)
         if path is None:
             raise TypeError('Path is passed null in system.fs.isMount')
         return os.path.ismount(path)
@@ -1280,7 +1274,7 @@ class SystemFS(SALObject):
         @param dirname: string (Directory original name)
         @param newname: string (Directory new name to be changed to)
         """
-        self.log('Renaming directory %s to %s'% (dirname, newname),7)
+        self.logger.debug('Renaming directory %s to %s'% (dirname, newname))
         if dirname == newname:
             return
         if ((dirname is None) or (newname is None)):
@@ -1296,12 +1290,12 @@ class SystemFS(SALObject):
         """Remove the file path (only for files, not for symlinks)
         @param filename: File path to be removed
         """
-        self.log('Unlink file with path: %s'%filename, 6)
+        self.logger.debug('Unlink file with path: %s'%filename)
 
         if (filename is None):
             raise TypeError('File name is None in QSstem.unlinkFile')
         if not self.isFile(filename):
-            raise RuntimeError("filename is not a file so cannot unlink")
+            raise j.exceptions.RuntimeError("filename is not a file so cannot unlink")
         try:
             os.unlink(filename)
         except:
@@ -1313,7 +1307,7 @@ class SystemFS(SALObject):
         @param filename: File path to be removed
         @type filename: string
         '''
-        self.log('Unlink path: %s' % filename, 6)
+        self.logger.debug('Unlink path: %s' % filename)
 
         if not filename:
             raise TypeError('File name is None in system.fs.unlink')
@@ -1329,11 +1323,11 @@ class SystemFS(SALObject):
         """
         if filename is None:
             raise TypeError('File name is None in system.fs.fileGetContents')
-        self.log('Opened file %s for reading'% filename,6)
-        # self.log('Reading file %s'% filename,9)
+        self.logger.debug('Opened file %s for reading'% filename)
+        self.logger.debug('Reading file %s'% filename)
         with open(filename) as fp:
             data = fp.read()
-        self.log('File %s is closed after reading'%filename,9)
+        self.logger.debug('File %s is closed after reading'%filename)
         return data
 
     def fileGetUncommentedContents(self, filename):
@@ -1343,8 +1337,8 @@ class SystemFS(SALObject):
         """
         if filename is None:
             raise TypeError('File name is None in system.fs.fileGetContents')
-        self.log('Opened file %s for reading'% filename,6)
-        # self.log('Reading file %s'% filename,9)
+        self.logger.debug('Opened file %s for reading'% filename)
+        # self.logger.debug('Reading file %s'% filename,9)
         with open(filename) as fp:
             data = fp.readlines()
         uncommented = list()
@@ -1352,7 +1346,7 @@ class SystemFS(SALObject):
             if not line.startswith('#') and not line.startswith('\n'):
                 line = line.replace('\n', '')
                 uncommented.append(line)
-        self.log('File %s is closed after reading'%filename,9)
+        self.logger.debug('File %s is closed after reading'%filename)
         return uncommented
 
     def fileGetTextContents(self, filename):
@@ -1394,12 +1388,12 @@ class SystemFS(SALObject):
         """
         if (filename is None) or (contents is None):
             raise TypeError('Passed None parameters in system.fs.writeFile')
-        self.log('Opened file %s for writing'% filename,6)
+        self.logger.debug('Opened file %s for writing'% filename)
         if append==False:
             fp = open(filename,"wb")
         else:
             fp = open(filename,"ab")
-        self.log('Writing contents in file %s'%filename,9)
+        self.logger.debug('Writing contents in file %s'%filename)
         fp.write(bytes(contents, 'UTF-8'))
         # fp.write(contents)
         fp.close()
@@ -1409,9 +1403,9 @@ class SystemFS(SALObject):
         @param filename: the file u want to know the filesize of
         @return: int representing file size
         """
-        self.log('Getting filesize of file: %s'%filename,8)
+        self.logger.debug('Getting filesize of file: %s'%filename)
         if not self.exists(filename):
-            raise RuntimeError("Specified file: %s does not exist"% filename)
+            raise j.exceptions.RuntimeError("Specified file: %s does not exist"% filename)
         try:
             return os.path.getsize(filename)
         except Exception as e:
@@ -1426,7 +1420,7 @@ class SystemFS(SALObject):
         """
         if not filelocation or not obj:
             raise ValueError("You should provide a filelocation or a object as parameters")
-        self.log("Creating pickle and write it to file: %s" % filelocation,6)
+        self.logger.debug("Creating pickle and write it to file: %s" % filelocation)
         try:
             pcl = pickle.dumps(obj)
         except Exception as e:
@@ -1443,9 +1437,9 @@ class SystemFS(SALObject):
         """
         if not filelocation:
             raise ValueError("You should provide a filelocation as a parameter")
-        self.log("Opening file %s for reading" % filelocation,6)
+        self.logger.debug("Opening file %s for reading" % filelocation)
         contents = j.sal.fs.fileGetContents(filelocation)
-        self.log("creating object",9)
+        self.logger.debug("creating object")
         try:
             obj = pickle.loads(contents)
         except Exception as e:
@@ -1457,7 +1451,7 @@ class SystemFS(SALObject):
         @param filename: string (filename to get the hex digest of it) or list of files
         @rtype: md5 of the file
         """
-        self.log('Get the hex digest of file %s without loading it all into memory'%filename,8)
+        self.logger.debug('Get the hex digest of file %s without loading it all into memory'%filename)
         if filename is None:
             raise('File name is None in system.fs.md5sum')
         if not isinstance(filename, list):
@@ -1473,7 +1467,7 @@ class SystemFS(SALObject):
                         digest.update(buf)
             return digest.hexdigest()
         except Exception as e:
-            raise RuntimeError("Failed to get the hex digest of the file %sin system.fs.md5sum. Error: %s"  % (filename,str(e)))
+            raise j.exceptions.RuntimeError("Failed to get the hex digest of the file %sin system.fs.md5sum. Error: %s"  % (filename,str(e)))
 
     def getFolderMD5sum(self, folder):
         files = sorted(self.walk(folder, recurse=1))
@@ -1510,7 +1504,7 @@ class SystemFS(SALObject):
         To find only the second one you could use
            j.sal.fs.walkExtended('tmp', recurse=0, dirPattern="*small_test*", filePattern="*.rtt", dirs=False)
         """
-        self.log('Scanning directory (walk) %s'%root,6)
+        self.logger.debug('Scanning directory (walk) %s'%root,6)
         result = []
         try:
             names = os.listdir(root)
@@ -1566,7 +1560,7 @@ class SystemFS(SALObject):
         if str:
             os.path.supports_unicode_filenames=True
 
-        self.log('Scanning directory (walk)%s'%root,6)
+        self.logger.debug('Scanning directory (walk)%s'%root)
         # initialize
         result = []
 
@@ -1820,7 +1814,7 @@ class SystemFS(SALObject):
         @param file: File to convert
         @type file: string
         '''
-        self.log("fileConvertLineEndingCRLF "+file, 8)
+        self.logger.debug("fileConvertLineEndingCRLF "+file)
         content=j.sal.fs.fileGetContents(file)
         lines=content.split("\n")
         out=""
@@ -1914,9 +1908,9 @@ class SystemFS(SALObject):
         import tarfile
 
         if not j.sal.fs.isDir(sourcepath):
-            raise RuntimeError("Cannot find file (exists but is not a file or dir) %s" % sourcepath)
+            raise j.exceptions.RuntimeError("Cannot find file (exists but is not a file or dir) %s" % sourcepath)
 
-        self.log("Compressing directory %s to %s"%(sourcepath, destinationpath))
+        self.logger.debug("Compressing directory %s to %s"%(sourcepath, destinationpath))
         if not j.sal.fs.exists(j.sal.fs.getDirName(destinationpath)):
             j.sal.fs.createDir(j.sal.fs.getDirName(destinationpath))
         t = tarfile.open(name = destinationpath, mode = 'w:gz')
@@ -1930,13 +1924,13 @@ class SystemFS(SALObject):
                 destpath=j.sal.fs.joinPaths(destInTar,j.sal.fs.pathRemoveDirPart(path, sourcepath))
                 if j.sal.fs.isLink(path) and followlinks:
                     path=j.sal.fs.readlink(path)
-                self.log("fs.tar: add file %s to tar" % path,7)
+                self.logger.debug("fs.tar: add file %s to tar" % path)
                 # print "fstar: add file %s to tar" % path
                 if not (j.core.platformtype.myplatform.isWindows() and j.sal.windows.checkFileToIgnore(path)):
                     if self.isFile(path) or  self.isLink(path):
                         tarfile.add(path,destpath)
                     else:
-                        raise RuntimeError("Cannot add file %s to destpath"%destpath)
+                        raise j.exceptions.RuntimeError("Cannot add file %s to destpath"%destpath)
             params={}
             params["t"]=t
             params["destintar"]=destInTar

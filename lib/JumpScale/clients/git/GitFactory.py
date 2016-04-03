@@ -6,7 +6,7 @@ import os
 class GitFactory:
     def __init__(self):
         self.__jslocation__ = "j.clients.git"
-        j.logger.consolelogCategories.append("git")
+        self.logger = j.logger.get('j.clients.git')
 
     def get(self, basedir=""):
         """
@@ -15,11 +15,6 @@ class GitFactory:
         if basedir=="":
             basedir=j.sal.fs.getcwd()
         return GitClient(basedir)
-
-    def log(self, msg, category="", level=5):
-        category = "git.%s" % category
-        category = category.rstrip(".")
-        j.logger.log(msg, category=category, level=level)
 
     def find(self, account=None, name=None, interactive=False, returnGitClient=False): # NOQA
         """
@@ -77,7 +72,7 @@ class GitFactory:
                     if checkaccount(account):
                         accountdir = "%s/%s/%s" % (j.dirs.codeDir, top, account)
                         if j.sal.fs.exists(path="%s/.git" % accountdir):
-                            raise RuntimeError("there should be no .git at %s level" % accountdir)
+                            raise j.exceptions.RuntimeError("there should be no .git at %s level" % accountdir)
                         else:
                             for reponame in j.sal.fs.listDirsInDir("%s/%s/%s" % (j.dirs.codeDir, top, account),
                                                                       recursive=False, dirNameOnly=True,

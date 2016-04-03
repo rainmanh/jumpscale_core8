@@ -38,14 +38,14 @@ if opts.action == 'add':
     if opts.data is not None:
         splitted = opts.data.split(":")
         if len(splitted) != 2:
-            raise RuntimeError("error, format for param data needs to be: groupname:domain")
+            raise j.exceptions.RuntimeError("error, format for param data needs to be: groupname:domain")
         name, domain = splitted
     else:
         name = j.tools.console.askString("name")
         domain = j.tools.console.askString("domain e.g. incubaid.com")
 
     if j.data.models.system.Group.find({'name': name}):
-        raise RuntimeError("group already exists")
+        raise j.exceptions.RuntimeError("group already exists")
 
     group = j.data.models.system.Group()
     group.name = name

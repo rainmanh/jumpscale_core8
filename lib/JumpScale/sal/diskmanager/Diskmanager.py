@@ -271,7 +271,7 @@ class Diskmanager(SALObject):
                                     cmd="umount /mnt/tmp"
                                     j.sal.process.execute(cmd,die=False)
                                     if os.path.ismount("/mnt/tmp")==True:
-                                        raise RuntimeError("/mnt/tmp should not be mounted")
+                                        raise j.exceptions.RuntimeError("/mnt/tmp should not be mounted")
 
         return result
 
@@ -293,7 +293,7 @@ class Diskmanager(SALObject):
     def partitionsUnmount_Ext4Data(self):
         partitions=self.partitionsGet_Ext4Data()
         for partid,size,free in partitions:
-            mntdir="/mnt/datadisks/%s"%partnr
+            mntdir="/mnt/datadisks/%s"%partid
             cmd="umount %s"%(mntdir)
             j.sal.process.execute(cmd)
 

@@ -16,8 +16,8 @@ class HRDItem():
         self.name=name
         self.data=data
         self.value=None
-        self.comments=comments 
-        self.temp=False   
+        self.comments=comments
+        self.temp=False
         self._isSaving = False
 
     def get(self, ask=True):
@@ -45,7 +45,7 @@ class HRDItem():
                 data=data.strip()
         else:
             data=data.strip("\n")
-            
+
         return data
 
 
@@ -61,7 +61,7 @@ class HRDItem():
         # if value.startswith("'"):
         #     value=value.strip("'")
         #     self.ttype='str'
-        
+
         self.value=value
         if data=="" or data==None:
             self.data=value
@@ -76,7 +76,7 @@ class HRDItem():
         if temp:
             self.temp=True
             return
-        
+
         self.hrd._markChanged()
 
         # if self.hrd.keepformat and persistent:
@@ -84,7 +84,7 @@ class HRDItem():
         #     out=""
         #     found=False
         #     for line in j.sal.fs.fileGetContents(self.hrd.path).split("\n"):
-        #         if line.strip().startswith(name):                        
+        #         if line.strip().startswith(name):
         #             state="found"
         #             continue
 
@@ -112,7 +112,7 @@ class HRDItem():
             self.hrd.save()
 
     def _process(self, ask=True):
-        
+
         data=copy.copy(self.data)
         # print "process:%s |%s|"%(self,data)
         #check if link to other value $(...)
@@ -127,11 +127,11 @@ class HRDItem():
                     item2=item.strip(" ").strip("$").strip(" ").strip("(").strip(")")
                     if self.hrd.exists(item2):
                         replacewith = j.data.text.pythonObjToStr(self.hrd.get(item2), multiline=False, partial=partial)
-                        data=data.replace(item,replacewith)                            
+                        data=data.replace(item,replacewith)
                         # data=data.replace("//","/")
                     elif self.hrd.prefixWithName and self.hrd.tree!=None and self.hrd.tree.exists("%s.%s"%(self.hrd.name,item2)):
                         replacewith = j.data.text.pythonObjToStr(self.hrd.get("%s.%s" % (self.hrd.name,item2)), multiline=False, partial=partial)
-                        data=data.replace(item,replacewith)                    
+                        data=data.replace(item,replacewith)
                         # data=data.replace("//","/")
 
         data=j.data.text._dealWithList(data)
@@ -213,8 +213,8 @@ class HRD(HRDBase):
         self.commentblock=""  #at top of file
         self.keepformat=keepformat
         self.prefixWithName=prefixWithName
-        self.templates=templates    
-        self.args=args   
+        self.templates=templates
+        self.args=args
         self.istemplate=istemplate
 
         if content!="":
@@ -229,7 +229,7 @@ class HRD(HRDBase):
         # print "set:%s %s |%s|"%(key,value,data)
         if self.prefixWithName:
             if self.name=="":
-                raise RuntimeError("name cannot be empoty when prefixWithName used.")
+                raise j.exceptions.RuntimeError("name cannot be empoty when prefixWithName used.")
             key = key.replace('%s.' % self.name, '')
         if key not in self.items:
             self.items[key]=HRDItem(name=key,hrd=self,ttype=ttype,data=value,comments="")
@@ -241,14 +241,14 @@ class HRD(HRDBase):
             if default==None:
                 msg="Cannot find value with key %s in tree %s."%(key,self.path),"hrd.get.notexist"
                 if True or j.application.debug:
-                    raise RuntimeError(msg)
+                    raise j.exceptions.RuntimeError(msg)
                 else:
                     j.events.inputerror_critical(msg)
             else:
                 return default
         val= self.items[key].get(ask=ask)
         val = val.strip().strip("'") if isinstance(val, str) else val
-        j.data.hrd.log("hrd get '%s':'%s'"%(key,val))
+        j.data.hrd.logger.debug("hrd get '%s':'%s'"%(key,val))
         return val
 
     def _markChanged(self):
@@ -258,7 +258,7 @@ class HRD(HRDBase):
 
     def save(self):
         if self.istemplate:
-            raise RuntimeError("should not save template")
+            raise j.exceptions.RuntimeError("should not save template")
 
         if self.prefixWithName:
             #remove prefix from mem representation
@@ -294,7 +294,7 @@ class HRD(HRDBase):
                 #found line
                 if line.find("#")!=-1:
                     comment=line.split("#",1)[1]
-                    line2=line.split("#")[0]                    
+                    line2=line.split("#")[0]
                 else:
                     line2=line
                 key2,value2=line2.split("=",1)
@@ -315,7 +315,7 @@ class HRD(HRDBase):
         content=j.sal.fs.fileGetContents(self.path)
         self.process(content)
 
-    def _recognizeType(self,content):        
+    def _recognizeType(self,content):
         content=j.data.text.replaceQuotes(content,"something")
         if content.lower().find("@ask")!=-1:
             return "ask"
@@ -330,23 +330,15 @@ class HRD(HRDBase):
         else:
             return "base"
 
-    def applyTemplates(self,path="",templates=[],args={},prefix=""):
+    def applyTemplate(self,template,args={},prefix=""):
         """
         IMPORTANT:
         this should be the ONLy location where args & templates are applied to hrd
         """
-        
+
 
         if self.istemplate:
             return
-
-        if not j.data.types.list.check(templates):
-            templates=[templates]
-
-        if path!="":
-            templates.append(HRD(path=path,istemplate=True))
-
-        changes={}
 
         if prefix:
             prefix = '%s.' % prefix if not prefix.endswith('.') else prefix
@@ -355,79 +347,41 @@ class HRD(HRDBase):
         args2 = copy.copy(self.args)
         args2.update(args)
 
-        for template in templates:
 
-            #apply template
-            for key,templateItem in template.items.items():
-                if not key.startswith(prefix):
-                    key2 = (prefix+key).lower()
-                else:
-                    key2=key.lower()
-                if key2 in self.items:
-                    if templateItem.data.find("@ASK")==-1:
-                        #means we overrule & put it (its not a dynamic variable)
-                        if self.items[key2].data != templateItem.data and templateItem.data.strip()!="":
-                            print("we overrule: %s with '%s'"%(key2,templateItem.data))
-                            changes[key2] = [self.items[key2].data, templateItem.data]
-                            self.items[key2].data=templateItem.data
-                            self.items[key2].comments=templateItem.comments
-                            self.items[key2].ttype=templateItem.ttype
-                            
-                else:
-                    #its not in hrd yet
-                    if templateItem.data.find("@ASK")==-1:
-                        self.set(key2, value=templateItem.value, persistent=False, comments=templateItem.comments, ttype=templateItem.ttype, data=templateItem.data)
-                    else:
-                        self.set(key2, value="", persistent=False, comments=templateItem.comments, ttype=templateItem.ttype, data=templateItem.data)
-                        
-                    # self.items[key2].data=templateItem.data
-                    # self.items[key2].comments=templateItem.comments
-                    # self.items[key2].ttype=templateItem.ttype           
-                    changes[key2]=["",templateItem.data]
-                    self.items[key2]                    
-    
-        if len(list(changes.keys()))>0:
-            self.save()
+        #apply template
+        for key,templateItem in template.items.items():
+            if not key.startswith(prefix):
+                key2 = (prefix+key).lower()
+            else:
+                key2=key.lower()
+            if key2 in self.items:
+                if templateItem.data.find("@ASK")==-1:
+                    #means we overrule & put it (its not a dynamic variable)
+                    if self.items[key2].data != templateItem.data and templateItem.data.strip()!="":
+                        print("we overrule: %s with '%s'"%(key2,templateItem.data))
+                        # changes[key2] = [self.items[key2].data, templateItem.data]
+                        self.items[key2].data=templateItem.data
+                        self.items[key2].comments=templateItem.comments
+                        self.items[key2].ttype=templateItem.ttype
 
+            else:
+                #its not in hrd yet
+                if templateItem.data.find("@ASK")==-1:
+                    self.set(key2, value=templateItem.value, persistent=False, comments=templateItem.comments, ttype=templateItem.ttype, data=templateItem.data)
+                else:
+                    self.set(key2, value="", persistent=False, comments=templateItem.comments, ttype=templateItem.ttype, data=templateItem.data)
+
+                # self.items[key2].data=templateItem.data
+                # self.items[key2].comments=templateItem.comments
+                # self.items[key2].ttype=templateItem.ttype
+                self.items[key2]
+
+        self.save()
 
         #process the args
         self.setArgs(args2,prefix=prefix)
 
         self.save()
-
-        #now process the asks
-        for key,item in self.items.items():
-            if item.value != item.get():
-                if key in changes:
-                    changes[key]=[changes[key][0],item.value ]
-                else:
-                    changes[key]=[item.get(),item.value]
-
-            #         changes[key]=[item.get(),val]
-            # if (item.ttype=='str' or item.ttype=="base") and item.data.find("@ASK")!=-1:
-            #     from IPython import embed
-            #     print "DEBUG NOW sss333"
-            #     embed()
-                
-            #     # ttype, val=j.data.text.ask(item.data,name=key)
-            #     item.get()
-            #     # if not ttype:
-            #     #     ttype = item.ttype
-            #     # self.set(key,val,persistent=True,ttype=ttype,data=val)
-            #     if changes.has_key(key):
-            #         changes[key]=[changes[key][0],val]
-            #     else:
-            #         changes[key]=[item.get(),val]
-
-        if len(changes)>0:
-            self.changed=True
-            self.save()
-            template.applyOnFile(self.path)
-            self.applyOnFile(self.path)
-            j.application.config.applyOnFile(self.path)
-            self.process()
-
-        return changes
 
     def setArgs(self,args,prefix=""):
         #process the args
@@ -449,13 +403,13 @@ class HRD(HRDBase):
             else:
                 self.set(key2,argval,data=argval)
                 changes[key2]=["",argval]
-                
+
         if changes!={}:
-            self.save()        
+            self.save()
 
     def process(self,content=""):
         if content=="":
-            content=j.sal.fs.fileGetContents(self.path)  
+            content=j.sal.fs.fileGetContents(self.path)
 
         if content!=""  and content[-1]!="\n":
             content+="\n"
@@ -475,15 +429,15 @@ class HRD(HRDBase):
             line=splitted[x]
 
             # print ("%s:%s:%s"%(state,vartype,line))
-            
-            if not vartype.startswith("binary"): 
+
+            if not vartype.startswith("binary"):
                 line2=line.strip()
 
                 if len(line)>0 and line.find("#")!=-1:
                         line,comment0=line.split("#",1)
                         line2=line.strip()
                         comments+="#%s\n"%comment0
-            
+
                 if line2=="":
                     if state=="multiline":
                         #end of multiline var needs to be processed
@@ -523,7 +477,7 @@ class HRD(HRDBase):
                 # print ("%s:%s:%s"%(state,vartype,line))
 
                 if line.find("=")!=-1:
-                    pre,post=line2.split("=",1)                        
+                    pre,post=line2.split("=",1)
                     vartype="unknown"
                     name=pre.strip()
                     if post.strip()=="" or post.strip() in ("b", "bqp") or post.strip().lower()=="@ask,":
@@ -537,9 +491,9 @@ class HRD(HRDBase):
                             vartype="binary"
                         elif post.strip()=="bqp":
                             post=""
-                            vartype="binaryqp"                            
+                            vartype="binaryqp"
                         else:
-                            post=post.strip()+" " #make sure there is space trailing 
+                            post=post.strip()+" " #make sure there is space trailing
                         continue
                     else:
                         vartype=self._recognizeType(post)
@@ -551,7 +505,7 @@ class HRD(HRDBase):
                 if line[0]=="#":
                     comments+="%s\n"%line
 
-            if state=="multiline":                             
+            if state=="multiline":
                 if vartype=="unknown":
                     #means first line of multiline, this will define type
                     line2=j.data.text.hrd2machinetext(line2)
@@ -560,16 +514,16 @@ class HRD(HRDBase):
                     elif line2[-1]==",":
                         vartype="list"
                     else:
-                        vartype="base" #newline text                
+                        vartype="base" #newline text
 
                 if vartype=="unknown":
-                    raise RuntimeError("parse error, only dict, list, normal or ask format in multiline")
+                    raise j.exceptions.RuntimeError("parse error, only dict, list, normal or ask format in multiline")
 
                 if vartype=="base":
-                    line2=j.data.text.hrd2machinetext(line2,onlyone=True)  
+                    line2=j.data.text.hrd2machinetext(line2,onlyone=True)
                     post+="%s\\n"%line2
                 elif vartype.startswith("binary"):
-                    post+="%s\n"%line2                    
+                    post+="%s\n"%line2
                 elif vartype=="dict" or vartype=="list":
                     line2=j.data.text.hrd2machinetext(line2)
                     post+="%s "%line2
@@ -596,10 +550,7 @@ class HRD(HRDBase):
                 self.items[name]=HRDItem(name,self,vartype,post,comments)
                 if self.tree!=None:
                     self.tree.items[name2]=self.items[name]
-                    
+
                 state="look4var"
                 comments=""
                 vartype="unknown"
-
-
-

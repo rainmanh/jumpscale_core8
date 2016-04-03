@@ -32,7 +32,7 @@ class Recurring():
         self.service = service
 
         if self.service.path == "" or self.service.path is None:
-            raise RuntimeError("path cannot be empty")
+            raise j.exceptions.RuntimeError("path cannot be empty")
 
         self.path = j.sal.fs.joinPaths(self.service.path, "recurring.md")
         self.items={}

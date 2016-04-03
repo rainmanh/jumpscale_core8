@@ -2,7 +2,7 @@ from JumpScale import j
 import re
 from io import StringIO
 
-from tools.cuisine_.ActionDecorator import ActionDecorator
+from JumpScale.tools.cuisine.ActionDecorator import ActionDecorator
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
         ActionDecorator.__init__(self,*args,**kwargs)
@@ -137,7 +137,7 @@ class Bash:
         """
         Get environ
         """
-        return self.profile.environ.get(name, default,force=True)
+        return self.profile.environ.get(name, default)
 
 
     def environSet(self,key,val,temp=False):
@@ -181,7 +181,7 @@ class Bash:
         rc,out=self.cuisine.core.run("which %s"%cmd,die=False,showout=False,action=False,profile=True, force=True)
         if rc>0:
             if die:
-                raise RuntimeError("Did not find command: %s"%cmd)
+                raise j.exceptions.RuntimeError("Did not find command: %s"%cmd)
             else:
                 return False
         return out.split("\n")[-1]
@@ -220,6 +220,3 @@ class Bash:
     def include(self, path):
         self.profile.addInclude(path)
         self.cuisine.core.file_write(self.profilePath, self.profile.dump(),showout=False)
-
-
-

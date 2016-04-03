@@ -99,7 +99,7 @@ class UnixSystem:
             cpumhz = int(tuples[0])
             return mem,cpumhz,nrcpu
         else:
-            raise RuntimeError(" System.getMachineInfo not supported on this platform")
+            raise j.exceptions.RuntimeError(" System.getMachineInfo not supported on this platform")
 
     def addCronJob(self, commandToExecute, interval=1, logFilePath=None, replaceLineIfCommandAlreadyInCrontab=True, unit=TimeIntervalUnit.MINUTES):
         '''Add a cronjob to the system
@@ -117,7 +117,7 @@ class UnixSystem:
         '''
 
         if not pwd.getpwuid(os.getuid())[0] == "root":
-            raise RuntimeError("You have to be logged in as root to add a CronJob.")
+            raise j.exceptions.RuntimeError("You have to be logged in as root to add a CronJob.")
 
         # Configuration dependent on the time interval
         if unit == TimeIntervalUnit.MINUTES:
@@ -150,7 +150,7 @@ class UnixSystem:
                 # Solaris crontab doesn't know the "*/x" syntax, we have to contruct options like "0,15,30,45" to run a command every quarter of an hour.
                 crontabItem = ",".join([str(i) for i in range(startAt, unitRange + startAt, interval)])
         else:
-            raise RuntimeError("Platform not supported.")
+            raise j.exceptions.RuntimeError("Platform not supported.")
 
         # These lines generate strings like "0 0 */3 * * " specifing options for the crontab command.
         randomRanges = [(0,60), (0,3), (1,29)] # Execute command between x:00 and x:59 if they run hourly, between 0:00 and 2:59 if they run daily and on any day if they run monthly.
@@ -196,7 +196,7 @@ class UnixSystem:
             # On Linux, we edit the system-wide crontab of Vixie Cron, so don't have to run the "crontab" command to be sure changes have effect.
             j.sal.fs.writeFile(crontabFilePath, "\n".join(crontabLines) + "\n")
         else:
-            raise RuntimeError("Platform not supported.")
+            raise j.exceptions.RuntimeError("Platform not supported.")
 
     def killGroup(self, pid):
         """ Kill a process group
@@ -323,12 +323,12 @@ class UnixSystem:
             raise ValueError('The user %s can\'t be found on this system' % username)
 
         if not os.getuid() == 0:
-            raise RuntimeError('Can\'t execute as user when not running as root (UID 0)')
+            raise j.exceptions.RuntimeError('Can\'t execute as user when not running as root (UID 0)')
 
         subin = '/bin/su'
 
         if not j.sal.fs.exists(subin):
-            raise RuntimeError('%s not found on this system, I need it there' % subin)
+            raise j.exceptions.RuntimeError('%s not found on this system, I need it there' % subin)
 
         command = '%s --login --command %s %s' % (subin, subprocess.mkarg(command), username)
 
@@ -364,7 +364,7 @@ class UnixSystem:
             command = "useradd"
             options = []
             if groupname and not j.system.unix.unixGroupExists(groupname):
-                raise RuntimeError('Failed to add user because group %s does not exist' %groupname)
+                raise j.exceptions.RuntimeError('Failed to add user because group %s does not exist' %groupname)
             if groupname and j.system.unix.unixGroupExists(groupname):
                 options.append("-g %s" %(groupname))
             if shell:
@@ -377,7 +377,7 @@ class UnixSystem:
 
             if exitCode:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
-                raise RuntimeError('Failed to add user %s, error: %s' % \
+                raise j.exceptions.RuntimeError('Failed to add user %s, error: %s' % \
                                     (username,output))
             if homedir!=None:
                 j.sal.fs.createDir(homedir)
@@ -401,7 +401,7 @@ class UnixSystem:
 
             if exitCode:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
-                raise RuntimeError('Failed to add group %s, error: %s' %(groupname,output))
+                raise j.exceptions.RuntimeError('Failed to add group %s, error: %s' %(groupname,output))
         else:
             j.logger.log("Group %s already exists" % groupname, 4)
 
@@ -464,7 +464,7 @@ class UnixSystem:
 
             if exitCode:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
-                raise RuntimeError('Failed to disable user %s, error: %s' %(username,output))
+                raise j.exceptions.RuntimeError('Failed to disable user %s, error: %s' %(username,output))
             return True
 
     def enableUnixUser(self,username):
@@ -482,7 +482,7 @@ class UnixSystem:
 
             if exitCode:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
-                raise RuntimeError('Failed to enable user %s, error: %s' %(username,output))
+                raise j.exceptions.RuntimeError('Failed to enable user %s, error: %s' %(username,output))
             return True
 
     def removeUnixUser(self, username, removehome=False,die=True):
@@ -504,7 +504,7 @@ class UnixSystem:
 
             if exitCode:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
-                raise RuntimeError('Failed to remove user %s, error: %s' %(username,output))
+                raise j.exceptions.RuntimeError('Failed to remove user %s, error: %s' %(username,output))
             return True
 
     def setUnixUserPassword(self,username, password):
@@ -525,7 +525,7 @@ class UnixSystem:
 
             if exitCode:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
-                raise RuntimeError('Failed to set password on user %s, error: %s' %(username,output))
+                raise j.exceptions.RuntimeError('Failed to set password on user %s, error: %s' %(username,output))
             return True
 
     @staticmethod
@@ -587,7 +587,7 @@ class UnixSystem:
         #other UNIXes we could use pthread_is_multithreaded_np, but this is
         #not available on Linux at least.
         if not hasattr(os, 'fork'):
-            raise RuntimeError(
+            raise j.exceptions.RuntimeError(
                 'os.fork not found, daemon mode not supported on your system')
 
         import threading

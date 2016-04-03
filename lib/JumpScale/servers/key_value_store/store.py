@@ -20,6 +20,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
     '''KeyValueStoreBase defines a store interface.'''
 
     def __init__(self, serializers=[]):
+        self.logger = j.logger.get('j.servers.kvs')
         #self.id = j.application.getUniqueMachineId()
         self.serializers = serializers or list()
         self.unserializers = list(reversed(self.serializers))
@@ -81,11 +82,11 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
             key=j.data.idgenerator.generateGUID()
         self.set("cache", key, value)
         return key
-        # if nrMinutesExpiration>0:            
+        # if nrMinutesExpiration>0:
         #     self.set("cache", key, value)
         #     tt=j.data.time.getMinuteId()
         #     actor.dbmem.set("mcache_%s"%tt, key, "")
-        # elif nrHoursExpiration>0:            
+        # elif nrHoursExpiration>0:
         #     self.set("cache", key, value)
         #     tt=j.data.time.getHourId()
         #     actor.dbmem.set("hcache_%s"%tt, key, "")
@@ -203,7 +204,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
         lockfree=self._lockWait(locktype, timeoutwait)
         if not lockfree:
             if force==False:
-                raise RuntimeError("Cannot lock %s %s"%(locktype, info))
+                raise j.exceptions.RuntimeError("Cannot lock %s %s"%(locktype, info))
         value = [self.id, j.data.time.getTimeEpoch() + timeout, info]
         encodedValue = j.data.serializer.json.dumps(value)
         self.settest(category, locktype, encodedValue)
@@ -219,7 +220,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
             try:
                 id, lockEnd, info = j.data.serializer.json.loads(encodedValue)
             except ValueError:
-                j.logger.exception("Failed to decode lock value")
+                self.logger.error("Failed to decode lock value")
                 raise ValueError("Invalid lock type %s" % locktype)
 
             if j.data.time.getTimeEpoch() > lockEnd:
@@ -258,7 +259,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
         lockfree=self._lockWait(locktype, timeoutwait)
         if not lockfree:
             if force==False:
-                raise RuntimeError("Cannot unlock %s" % locktype)
+                raise j.exceptions.RuntimeError("Cannot unlock %s" % locktype)
         self.delete("lock",locktype)
 
     def incrementReset(self, incrementtype, newint=0):
@@ -310,13 +311,13 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
         if not self.exists(category, key):
             errorMessage = 'Key value store doesnt have a value for key '\
                            '"%s" in category "%s"' % (key, category)
-            j.logger.log(errorMessage, 4)
+            self.logger.error(errorMessage)
             raise KeyError(errorMessage)
 
     def _assertCategoryExists(self, category):
         if not self._categoryExists(category):
             errorMessage = 'Key value store doesn\'t have a category %s' % (category)
-            j.logger.log(errorMessage, 4)
+            self.logger.error(errorMessage)
             raise KeyError(errorMessage)
 
     def now(self):
@@ -358,7 +359,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
         else:
             if startid!=0:
                 if not self.exists(category,startid):
-                    raise RuntimeError("Cannot find %s:%s in db, cannot subscribe, select valid startid" % (category,startid))
+                    raise j.exceptions.RuntimeError("Cannot find %s:%s in db, cannot subscribe, select valid startid" % (category,startid))
 
                 def modfunction(data,subscriberid,db,startid):
                     data[subscriberid]=[db.now(),startid]
@@ -374,10 +375,10 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
            True,the data when a next
         """
         if not self.exists("subscribers",category):
-            raise RuntimeError("cannot find subscription")
+            raise j.exceptions.RuntimeError("cannot find subscription")
         data=self.get("subscribers",category)
         if subscriberid not in data:
-            raise RuntimeError("cannot find subscriber")
+            raise j.exceptions.RuntimeError("cannot find subscriber")
         lastaccesstime,lastid=data[subscriberid]
         lastid+=1
         if not self.exists(category,startid):
@@ -395,4 +396,3 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
             return data
 
         self.getModifySet("subscribers",category,modfunction,subscriberid=subscriberid,db=self,lastProcessedId=lastProcessedId)
-

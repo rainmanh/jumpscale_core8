@@ -19,12 +19,18 @@ queue='process'
 log=False
 
 roles = []
-def action():
+def action(redisconnection):
     import psutil
     import os
     hostname =j.sal.nettools.getHostname()
 
-    redis = j.clients.redis.getRedisClient(os.environ.get('REDIS_HOST'), port=os.environ.get('REDIS_PORT'))
+    if not redisconnection or not ':' in redisconnection:
+        print("Please specifiy a redis connection in the form of ipaddr:port")
+        return
+    addr = redisconnection.split(':')[0]
+    port = int(redisconnection.split(':')[1])
+    redis = j.clients.redis.getRedisClient(addr, port)
+
     aggregator = j.tools.aggregator.getClient(redis,  hostname)
     tags = j.data.tags.getTagString(tags={
         'gid': str(j.application.whoAmI.gid),
@@ -52,20 +58,20 @@ def action():
     results["network.drop.out"]=dropout
 
     avg1min, avg5min, avg15min = os.getloadavg()
-    results["load.avg1min"] = avg1min
-    results["load.avg5min"] = avg5min
-    results["load.avg15min"] = avg15min
+    results["process.load.avg1min"] = avg1min
+    results["process.load.avg5min"] = avg5min
+    results["processes.load.avg15min"] = avg15min
 
     memory = psutil.virtual_memory()
-    results["memory.used"]=round((memory.used - memory.cached)/1024.0/1024.0,2)
-    results["memory.cached"]=round(memory.cached/1024.0/1024.0,2)
-    results["memory.free"]=round(memory.total/1024.0/1024.0,2) - results['memory.used'] - results['memory.cached']
-    results["memory.percent"]=memory.percent
+    results["memory.virtual.used"]=round((memory.used - memory.cached)/1024.0/1024.0,2)
+    results["memory.virtual.cached"]=round(memory.cached/1024.0/1024.0,2)
+    results["memory.virtual.free"]=round(memory.total/1024.0/1024.0,2) - results['memory.used'] - results['memory.cached']
+    results["memory.virtual.percent"]=memory.percent
 
     vm= psutil.swap_memory()
-    results["swap.free"]=round(vm.__getattribute__("free")/1024.0/1024.0,2)
-    results["swap.used"]=round(vm.__getattribute__("used")/1024.0/1024.0,2)
-    results["swap.percent"]=vm.__getattribute__("percent")
+    results["memory.swap.free"]=round(vm.__getattribute__("free")/1024.0/1024.0,2)
+    results["memory.swap.used"]=round(vm.__getattribute__("used")/1024.0/1024.0,2)
+    results["memory.swap.percent"]=vm.__getattribute__("percent")
 
 
     stat = j.sal.fs.fileGetContents('/proc/stat')
@@ -84,7 +90,11 @@ def action():
     return results
 
 if __name__ == '__main__':
-    results = action()
-
+  if len(sys.argv) == 2:
+    results = action(sys.argv[1])
     import yaml
     print (yaml.dump(results))
+  else:
+      print("Please specifiy a redis connection in the form of ipaddr:port")
+
+

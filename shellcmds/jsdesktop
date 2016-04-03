@@ -213,9 +213,9 @@ if opts.action =='del':
 
 if opts.action =='userconfig':
     if opts.name==None:
-        raise RuntimeError("please specify name")
+        raise j.exceptions.RuntimeError("please specify name")
     if opts.passwd==None:
-        raise RuntimeError("please specify passwd")        
+        raise j.exceptions.RuntimeError("please specify passwd")        
     client=j.clients.agentcontroller
     client.execute("jumpscale", "desktopcreate", "master", timeout=60, wait=True, lock='desktopcreate', username=opts.name,passwd=opts.passwd)
 

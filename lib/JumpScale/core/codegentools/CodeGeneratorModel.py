@@ -38,7 +38,7 @@ if not isinstance(value, %(type)s) and value is not None:
                 j.core.codegenerator.generate(specfound, type="enumerator")
                 name, path = j.core.codegenerator.getCodeId(specfound, type="enumerator")
                 if name not in j.core.codegenerator.classes:
-                    raise RuntimeError("generation was not successfull for %s, there should be a classes populated" % name)
+                    raise j.exceptions.RuntimeError("generation was not successfull for %s, there should be a classes populated" % name)
                 enumerationcheck = "j.enumerators.%s" % name.split("enumeration_")[1]
                 s = "%s.check(value) or isinstance(value, int)" % enumerationcheck
                 type = "enumerator:%s or int" % type

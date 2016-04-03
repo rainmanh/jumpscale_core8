@@ -132,7 +132,7 @@ class WordReplacer():
                     #found line which is regex format
                     splitted=line.split("'")
                     if len(splitted)!=4:
-                        raise RuntimeError("syntax error in synonym line (has to be 2 'regex' statements" % line)
+                        raise j.exceptions.RuntimeError("syntax error in synonym line (has to be 2 'regex' statements" % line)
                     syn=Synonym(replaceWith=splitted[2])
                     syn.setRegexSearch(regexFind=splitted[0],regexFindForReplace=splitted[1])
                 else:    
@@ -146,7 +146,7 @@ class WordReplacer():
         find [...] and remove the [ and the ]
         @todo 2  (id:19)
         """
-        raise RuntimeError("todo needs to be done, is not working now") 
+        raise j.exceptions.RuntimeError("todo needs to be done, is not working now") 
         def replaceinside(matchobj):
             match=matchobj.group()
             #we found a match now

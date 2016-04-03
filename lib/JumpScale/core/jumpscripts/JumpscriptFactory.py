@@ -121,7 +121,7 @@ from JumpScale import j
             return ppipe.recv()
 
     def _getECO(self, e):
-        eco = j.errorconditionhandler.parsePythonErrorObject(e)
+        eco = j.errorconditionhandler.parsePythonExceptionObject(e)
         eco.tb = None
         eco.errormessage='Exec error procmgr jumpscr:%s_%s on node:%s_%s %s'%(self.organization,self.name, \
                 j.application.whoAmI.gid, j.application.whoAmI.nid,eco.errormessage)

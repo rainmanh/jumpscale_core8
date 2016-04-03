@@ -113,7 +113,7 @@ class Time_(object):
         if epoch==None:
             epoch=time.time()
         if epoch<1262318400.0:
-            raise RuntimeError("epoch cannot be smaller than 1262318400, given epoch:%s"%epoch)
+            raise j.exceptions.RuntimeError("epoch cannot be smaller than 1262318400, given epoch:%s"%epoch)
         
         return int((epoch-1262318400.0)/60.0)
 
@@ -149,7 +149,7 @@ class Time_(object):
         txt = txt.strip()
         unit = txt[-1]
         if txt[-1] not in list(TIMES.keys()):
-            raise RuntimeError("Cannot find time, needs to be in format have time indicator %s " % list(TIMES.keys()))
+            raise j.exceptions.RuntimeError("Cannot find time, needs to be in format have time indicator %s " % list(TIMES.keys()))
         value = float(txt[:-1])
         return value * TIMES[unit]
 

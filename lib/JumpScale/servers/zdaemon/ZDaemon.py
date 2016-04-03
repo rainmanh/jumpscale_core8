@@ -30,7 +30,7 @@ class ZDaemon(GeventLoop):
         self.port = port
 
         if port==None:
-            raise RuntimeError("Port cannot be none")
+            raise j.exceptions.RuntimeError("Port cannot be none")
 
         self.nrCmdGreenlets = nrCmdGreenlets
 
@@ -140,7 +140,7 @@ class ZDaemon(GeventLoop):
     #             found = i
     #             break
     #     if found == None:
-    #         raise RuntimeError("Could not find free port")
+    #         raise j.exceptions.RuntimeError("Could not find free port")
 
     #     self.schedule("port_%s"%found, method, port=found, **args)
 

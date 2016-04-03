@@ -16,7 +16,7 @@ class NodeMonitor(NodeBase):
         env={}
 
         if j.tools.perftesttools.monitorNodeIp==None:
-            raise RuntimeError("please do j.tools.perftesttools.init() before calling this")
+            raise j.exceptions.RuntimeError("please do j.tools.perftesttools.init() before calling this")
 
         if self.influx_host is None:
             env["redishost"] = j.tools.perftesttools.monitorNodeIp

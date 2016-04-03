@@ -1,9 +1,9 @@
 
 from mongoengine.fields import IntField, StringField, ListField, BooleanField, DictField, EmbeddedDocumentField, FloatField
 from mongoengine import DoesNotExist, EmbeddedDocument, Document
+import crypt
+import hmac
 from JumpScale import j
-
-import uuid
 
 DB = 'jumpscale_system'
 
@@ -50,7 +50,7 @@ class ModelBase():
     def find(cls, query):
         redis = getattr(cls, '__redis__', False)
         if redis:
-            raise RuntimeError("not implemented")
+            raise j.exceptions.RuntimeError("not implemented")
         else:
             return cls.objects(__raw__=query)
 
@@ -435,9 +435,19 @@ class User(ModelBase, Document):
     authkeys = ListField(StringField())
 
     def authenticate(username, passwd):
-        if User.objects(__raw__={'name': username, 'passwd': {'$in': [passwd, j.data.hash.md5_string(passwd)]}}):
-            return True
+        for user in User.find({'name': username}):
+            if hmac.compare_digest(user.passwd, crypt.crypt(passwd, user.passwd)):
+                return True
         return False
+
+    def save(user):
+        if not user.id:
+            user.passwd = crypt.crypt(user.passwd)
+        else:
+            olduser = User.get(user.id)
+            if olduser.passwd != user.passwd:  # change passwd
+                user.passwd = crypt.crypt(user.passwd)
+        super(ModelBase, user).save()
 
 
 class SessionCache(ModelBase, Document):

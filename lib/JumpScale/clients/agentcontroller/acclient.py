@@ -849,6 +849,59 @@ class Client(object):
         result = self.cmd(gid, nid, CMD_GET_MSGS, RunArgs(), j.data.serializer.json.dumps(query)).get_next_result()
         return self._load_json_or_die(result)
 
+    def reverse_tunnel_open(self, local, gid, nid, ip, remote):
+        """
+        Opens a tunnel from the controller (local) port to the given agent "ip:remote"
+
+        :param local: Port number on controller side
+        :param gid: Grid id of target agent
+        :param nid: Node id of target agent
+        :param ip: Ip to reach from agent side
+        :param remote: Remote Ip to reach from agent side
+        :return:
+        """
+        request = {
+            'local': int(local),
+            'gateway': '%s.%s' % (gid, nid),
+            'ip': ip,
+            'remote': int(remote)
+        }
+
+        args = RunArgs(name='tunnel_open')
+        result = self.cmd(None, None, 'controller', args, j.data.serializer.json.dumps(request), roles=['*']).get_next_result(GET_INFO_TIMEOUT)
+        return self._load_json_or_die(result)
+
+    def reverse_tunnel_close(self, local, gid, nid, ip, remote):
+        """
+        Close a tunnel from the controller (local) port to the given agent "ip:remote"
+
+        :param local: Port number on controller side
+        :param gid: Grid id of target agent
+        :param nid: Node id of target agent
+        :param ip: Ip to reach from agent side
+        :param remote: Remote Ip to reach from agent side
+        :return:
+        """
+        request = {
+            'local': int(local),
+            'gateway': '%s.%s' % (gid, nid),
+            'ip': ip,
+            'remote': int(remote)
+        }
+
+        args = RunArgs(name='tunnel_close')
+        result = self.cmd(None, None, 'controller', args, j.data.serializer.json.dumps(request), roles=['*']).get_next_result(GET_INFO_TIMEOUT)
+        return self._load_json_or_die(result)
+
+    def reverse_tunnel_list(self):
+        """
+        List all tunnels opened from the controller to agents
+        """
+
+        args = RunArgs(name='tunnel_list')
+        result = self.cmd(None, None, 'controller', args, roles=['*']).get_next_result(GET_INFO_TIMEOUT)
+        return self._load_json_or_die(result)
+
     def tunnel_open(self, gid, nid, local, gateway, ip, remote):
         """
         Opens a secure tunnel that accepts connection at the agent's local port `local`
@@ -863,6 +916,7 @@ class Client(object):
         :param gateway: The other endpoint `agent` which the connection will be redirected to.
                       This should be the name of the hubble agent.
                       NOTE: if the endpoint is another superangent, it automatically names itself as '<gid>.<nid>'
+                      NOTE: there is a special gateway named 'controller' that points to the agent controller
         :param ip: The endpoint ip address on the remote agent network. Note that IP must be a real ip not a host name
                  dns names lookup is not supported.
         :param remote: The endpoint port on the remote agent network

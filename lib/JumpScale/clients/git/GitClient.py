@@ -24,7 +24,7 @@ class GitClient(object):
         baseDir=baseDir.rstrip("/")
 
         if baseDir.strip()=="":
-            raise RuntimeError("could not find basepath for .git in %s"%baseDir)
+            raise j.exceptions.RuntimeError("could not find basepath for .git in %s"%baseDir)
 
         if baseDir.find("/code/") == -1:
             j.events.inputerror_critical(

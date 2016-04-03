@@ -161,7 +161,7 @@ class RedisFactory:
             if line.find("port") == 0:
                 port = int(line.split("port ")[1])
                 return port
-        raise RuntimeError("Could not find redis port in config file %s" % cpath)
+        raise j.exceptions.RuntimeError("Could not find redis port in config file %s" % cpath)
 
     def isRunning(self, name):
         # tmpl = j.atyourservice.findTemplates('','redis')[0]

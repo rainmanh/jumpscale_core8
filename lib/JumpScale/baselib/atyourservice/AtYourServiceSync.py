@@ -100,7 +100,7 @@ class AtYourServiceSync():
         elif name in self.nodes:
             node = self.nodes[name]
         else:
-            raise RuntimeError("could not find node")
+            raise j.exceptions.RuntimeError("could not find node")
 
 
     def addNode(self, name,addr="localhost",sshport=22,port=22001):

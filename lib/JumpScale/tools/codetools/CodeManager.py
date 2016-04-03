@@ -139,7 +139,7 @@ class CodeManagerFile():
         result=j.tools.code.regex.findAll("\(\(.*: *\d* *\)\)",text)
         
         if len(result)>1:
-            raise RuntimeError("Found 2 id's in %s" % path)
+            raise j.exceptions.RuntimeError("Found 2 id's in %s" % path)
         if len(result)==1:    
             result=result[0].split(":")[1]
             result=result.split(")")[0]
@@ -151,7 +151,7 @@ class CodeManagerFile():
             try:
                 result=int(result)
             except Exception as e:
-                raise RuntimeError("Could not parse if, error:%s. \nPath = %s" %(e,path))
+                raise j.exceptions.RuntimeError("Could not parse if, error:%s. \nPath = %s" %(e,path))
             
             
         return text,result
@@ -219,7 +219,7 @@ class CodeManagerFile():
         items=j.tools.code.regex.findAll("\[[a-z, ]*\]",text)  
         text=text.lower()
         if len(items)>1:
-            raise RuntimeError("Found to many users,groups items in string, needs to be one [ and one ] and users & groups inside, now %s" % text)
+            raise j.exceptions.RuntimeError("Found to many users,groups items in string, needs to be one [ and one ] and users & groups inside, now %s" % text)
         if len(items)==0:
             return text,[]
         usergroups=items[0]  
@@ -277,7 +277,7 @@ class CodeManagerFile():
                         descr+=item+" "
                         state="endofmeta"
                         timeitem=""
-                        #raise RuntimeError("Time item match failed for text %s" % text)
+                        #raise j.exceptions.RuntimeError("Time item match failed for text %s" % text)
                 elif item.find(":")!=-1:
                     tags+="%s "%item
                 else:
@@ -313,7 +313,7 @@ class CodeManagerFile():
                 story,storyinfo2=self.findItem(text2,"@story")                
                 storyinfo,timetextdonotuse,userdonotuse,groupdonotuse,descr=self.parseTaskQuestionRemark(storyinfo2)
                 if len(descr)<5:
-                    raise RuntimeError("Story description is less than 5 for path %s" % fullPath)
+                    raise j.exceptions.RuntimeError("Story description is less than 5 for path %s" % fullPath)
 
                 storyname=descr 
                 
@@ -339,7 +339,7 @@ class CodeManagerFile():
                 text2,owners=self.findItem(text2,"@owner")
                 descr,name=self.findItem(text2,"@scrumteamdef")                                
                 if len(descr)<5:
-                    raise RuntimeError("Scrumteam description is less than 5 for path %s" % fullPath)
+                    raise j.exceptions.RuntimeError("Scrumteam description is less than 5 for path %s" % fullPath)
                 obj=self.projectInfoObject.scrumteams.addScrumteam(id=id1,name=name.strip(),description=descr.strip())
                 obj.model.owner=owners
                 obj.model.path=fullPath    
@@ -380,7 +380,7 @@ class CodeManagerFile():
             try:
                 result.append(int(item))
             except:
-                raise RuntimeError("Cannot convert str to array, item was %s" % item)
+                raise j.exceptions.RuntimeError("Cannot convert str to array, item was %s" % item)
         return result
     
     def _strToInt(self,item):
@@ -389,7 +389,7 @@ class CodeManagerFile():
         try:
             result=int(item)
         except:
-            raise RuntimeError("Cannot convert str to int, item was %s" % item)
+            raise j.exceptions.RuntimeError("Cannot convert str to int, item was %s" % item)
         return result
                 
         
@@ -417,7 +417,7 @@ class CodeManagerFile():
                 descr,remarks=self._descrToDescrAndRemarks(descr)
                 sprintinfodonotuse,timetextdonotuse,userdonotuse,groupdonotuse,name=self.parseTaskQuestionRemark(line)   
                 if len(descr)<5:
-                    raise RuntimeError("Roadmap description is less than 5 for path %s" % fullPath)
+                    raise j.exceptions.RuntimeError("Roadmap description is less than 5 for path %s" % fullPath)
                 id1=self.addUniqueId(lineFull,fullPath,ttype="roadmapitem")
                 obj=self.projectInfoObject.roadmapitems.addRoadmapitem(id=id1,name=name.strip(),description=descr.strip())
                 obj.model.id=id1

@@ -33,9 +33,14 @@ class Action:
         @param serviceObj: service, will be used to get category filled in
         @param isparent, if isparent then when this action changes all actions following will be redone of same runid
 
+        @param selfGeneratorCode is the code which gets evalled to return the object which is given to self, ...
+
         '''
+        self.logger = j.logger.get("j.actions")
+
         if key=="" and action==None:
-            raise RuntimeError("need to specify key or action")
+            raise j.exceptions.RuntimeError("need to specify key or action")
+
 
         self._args=""
         self._kwargs=""
@@ -56,7 +61,7 @@ class Action:
         self._doc=""
 
         self._state_show="INIT"
-        self._selfobj=None
+        self._selfobj="**NOTHING**"
         self._key=key
         self._depkeys=[]
         self._deps=[]
@@ -128,7 +133,6 @@ class Action:
         if self.state=="INIT" and key=="":
             #is first time
             self.save(True)
-
 
     @property
     def state(self):
@@ -241,7 +245,7 @@ class Action:
 
         else:
             if self._key!="":
-                raise RuntimeError("could not load action:%s, was not in redis & key specified"%self._name)
+                raise j.exceptions.RuntimeError("could not load action:%s, was not in redis & key specified"%self._name)
 
     @property
     def actionRecover(self):
@@ -263,7 +267,7 @@ class Action:
     @property
     def method(self):
         if self.source=="":
-            raise RuntimeError("source cannot be empty")
+            raise j.exceptions.RuntimeError("source cannot be empty")
         if self._method == None:
             # j.sal.fs.changeDir(basepath)
             loader = importlib.machinery.SourceFileLoader(self.name,self.sourceToExecutePath )
@@ -478,34 +482,33 @@ class Action:
 
     @property
     def selfobj(self):
-        if self._selfobj!=None:
-            return self._selfobj
-
         if self.selfGeneratorCode!="": #this is the code which needs to generate a selfobj
             try:
                 l={}
                 exec(self.selfGeneratorCode,globals(),l)
                 self._selfobj=l["selfobj"]
             except Exception as e:
+                # from pudb import set_trace; set_trace()
                 self.error += "SELF OBJ ERROR:\n%s" % e
                 self.state = "ERROR"
+                self.save()
                 self.print()
-                raise RuntimeError("error in selfobj in action:%s"%self)
+                raise j.exceptions.RuntimeError("error in selfobj in action:%s\nSelf obj code is:\n%s"%(self,self.selfGeneratorCode))
 
         return self._selfobj
 
     def execute(self):
+
         self.check() #see about changed source code
         j.actions.addToStack(self)
 
         if self.state == "OK" and self.force==False:
             if self.actionshow:
-                print("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
+                self.logger.info("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
             j.actions.delFromStack(self)
             return
 
-        if self.actionshow:
-            print("  * %-20s: %s" % (self.name, self._args10line))
+        self.logger.info("  * %-20s: %s" % (self.name, self._args10line))
 
         if self._stdOutput == False:
             j.tools.console.hideOutput()
@@ -515,13 +518,12 @@ class Action:
             output = ""
             counter=0
             ok=False
-            tb_text = ''
             err = ''
 
-            while ok==False and counter<self.retry+1:
+            while self.state!="ERROR" and ok==False and counter<self.retry+1:
 
                 try:
-                    if self.selfobj!=None:
+                    if self.selfobj!="**NOTHING**":
                         #here we try to reconstruct the cuisine object@
                         self.result = self.method(self.selfobj,*self.args,**self.kwargs)
                     else:
@@ -544,7 +546,7 @@ class Action:
                     #     self.traceback+="%s\n"%line.strip()
                     # err=""
 
-                    # from pudb import set_trace; set_trace() 
+                    # from pudb import set_trace; set_trace()
 
                     tb=e.__traceback__
                     value=e
@@ -552,19 +554,22 @@ class Action:
 
                     tblist=traceback.format_exception(type, value, tb)
                     tblist.pop(1)
-                    tb_text = "".join(tblist)
+                    self.traceback = "".join(tblist)
 
                     err=""
                     for e_item in e.args:
+                        if isinstance(e_item, (set, list, tuple)):
+                            e_item = ' '.join(e_item)
                         err+="%s\n"%e_item
                     counter+=1
                     time.sleep(0.1)
                     if self.retry>0:
-                        print("  RETRY, ERROR (%s/%s)" % (counter, self.retry))
+                        # print("  RETRY, ERROR (%s/%s)" % (counter, self.retry))
+                        self.logger.info("  RETRY, ERROR (%s/%s)" % (counter, self.retry))
                     rcode = 1
 
                     if "**NOSTACK**" in err:
-                        tb_text=""
+                        self.traceback = ""
                         err=err.replace("**NOSTACK**","")
 
             #we did the retries, rcode will be >0 if error
@@ -574,8 +579,6 @@ class Action:
 
 
             if rcode > 0 or self.state=="ERROR":
-
-
                 if self.die:
                     for action in self.getWhoDependsOnMe():
                         if action.state=="ERRORCHILD":
@@ -594,10 +597,9 @@ class Action:
                     j.actions.delFromStack(self)
                     #we are already in error, means error came from child
                     if self.die:
-                        raise RuntimeError("error in action: %s"%self)
+                        raise j.exceptions.RuntimeError("error in action: %s"%self)
                     return
 
-                self.traceback=tb_text
 
                 if err!="":
                     self.error = err
@@ -610,10 +612,11 @@ class Action:
                 j.actions.delFromStack(self)
                 if self.die:
                     # if j.actions.stack==[]:
-                    print("error in action: %s"%self)
+                    # print("error in action: %s"%self)
+                    self.logger.error("error in action: %s"%self)
                     sys.exit(1)
                     # else:
-                    #     raise RuntimeError("error in action: %s"%self)
+                    #     raise j.exceptions.RuntimeError("error in action: %s"%self)
             else:
                 self.state = "OK"
 
@@ -719,7 +722,7 @@ class Action:
 
 
         if self.traceback!="":
-            print ("\n*SOURCECODE******************************************************************************\n")
+            self.logger.error("\n*SOURCECODE******************************************************************************\n")
 
             """
             styles:
@@ -732,13 +735,13 @@ class Action:
             tb_colored = pygments.highlight(self.sourceToExecute, lexer, formatter)
             self._stream.write(tb_colored)
 
-            print ("\n*TRACEBACK*********************************************************************************\n")
+            self.logger.error("\n*TRACEBACK*********************************************************************************\n")
 
             lexer = pygments.lexers.get_lexer_by_name("pytb", stripall=True)
             tb_colored = pygments.highlight(self.traceback, lexer, formatter)
             self._stream.write(tb_colored)
 
-        print ("\n\n******************************************************************************************\n")
+        self.logger.error("\n\n******************************************************************************************\n")
 
 
     __repr__ = __str__

@@ -12,17 +12,17 @@ def cli():
 def list(name, parsable):
     running = j.sal.docker.status()
     if not parsable:
-        print(" %-20s %-25s %-6s %s" % ("Name", "Imange", "ssh port", "status"))
-        for name2, image, port, status in running:
+        print(" %-20s %-25s %-20s %-10s %s" % ("Name", "Imange", "host", "ssh port", "status"))
+        for name2, image, host, port, status in running:
             if name and name != name2:
                 continue
-            print(" %-20s %-25s %-6s %s" % (name2, image, port, status))
+            print(" %-20s %-25s %-20s %-10s %s" % (name2, image, host, port, status))
     else:
         infos = []
-        for name2, image, port, status in running:
+        for name2, image, host, port, status in running:
             if name and name != name2:
                 continue
-            infos.append({'name': name2, 'image': image, 'port': port, 'status': status})
+            infos.append({'name': name2, 'image': image, 'host': host, 'port': port, 'status': status})
         print(j.data.serializer.json.dumps(infos))
 
 @click.command()

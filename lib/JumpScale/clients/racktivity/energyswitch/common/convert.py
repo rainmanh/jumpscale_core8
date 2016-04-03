@@ -127,7 +127,7 @@ def value2bin(data, val_def):
     elif val_def.type == "TYPE_MAC":
         parts = data.split(":")
         if len(parts) != 6:
-            raise RuntimeError("Invalid mac format '%s'" % data)
+            raise j.exceptions.RuntimeError("Invalid mac format '%s'" % data)
         out = ""
         for part in parts:
             out += int2bin(int(part, 16), 1, False)

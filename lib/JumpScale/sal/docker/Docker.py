@@ -27,7 +27,7 @@ class Docker(SALObject):
     @property
     def isWeaveEnabled(self):
         if self._weaveEnabled is None:
-            rc, ou = j.tools.cuisine.local.run('weave status', die=False, showout=False)
+            rc, ou = j.tools.cuisine.local.core.run('weave status', die=False, showout=False)
             self._weaveEnabled = (rc == 0)
         return self._weaveEnabled
 
@@ -48,7 +48,7 @@ class Docker(SALObject):
         env.pop('PYTHONPATH', None)
         (exitcode, stdout, stderr) = j.sal.process.run(command, showOutput=False, captureOutput=True, stopOnError=False, env=env)
         if exitcode != 0:
-            raise RuntimeError("Failed to execute %s: Error: %s, %s" % (command, stdout, stderr))
+            raise j.exceptions.RuntimeError("Failed to execute %s: Error: %s, %s" % (command, stdout, stderr))
         return stdout
 
 
@@ -133,7 +133,7 @@ class Docker(SALObject):
 
     def _getMachinePath(self,machinename,append=""):
         if machinename=="":
-            raise RuntimeError("Cannot be empty")
+            raise j.exceptions.RuntimeError("Cannot be empty")
         base = j.sal.fs.joinPaths( self.basepath,'%s%s' % (self._prefix, machinename))
         if append!="":
             base=j.sal.fs.joinPaths(base,append)
@@ -146,14 +146,14 @@ class Docker(SALObject):
         @return list of dicts
 
         """
-        res=[]
+        res = []
         for item in self.client.containers():
-            name=item["Names"][0].strip(" /")
-            sshport=""
+            name = item["Names"][0].strip(" /")
+            sshport = ""
             for port in item["Ports"]:
-                if port["PrivatePort"]==22:
-                    sshport=port["PublicPort"]
-            res.append([name,item["Image"],sshport,item["Status"]])
+                if port["PrivatePort"] == 22:
+                    sshport = port["PublicPort"]
+            res.append([name, item["Image"], self.docker_host, sshport, item["Status"]])
 
         return res
 
@@ -168,17 +168,17 @@ class Docker(SALObject):
             if container.name==name:
                 return container
         if die:
-            raise RuntimeError("Container with name %s doesn't exists" % name)
+            raise j.exceptions.RuntimeError("Container with name %s doesn't exists" % name)
         else:
             return None
 
     def exportRsync(self,name,backupname,key="pub"):
-        raise RuntimeError("not implemented")
+        raise j.exceptions.RuntimeError("not implemented")
         self.removeRedundantFiles(name)
         ipaddr=j.application.config.get("jssync.addr")
         path=self._getMachinePath(name)
         if not j.sal.fs.exists(path):
-            raise RuntimeError("cannot find machine:%s"%path)
+            raise j.exceptions.RuntimeError("cannot find machine:%s"%path)
         if backupname[-1]!="/":
             backupname+="/"
         if path[-1]!="/":
@@ -188,7 +188,7 @@ class Docker(SALObject):
         j.sal.process.executeWithoutPipe(cmd)
 
     def removeRedundantFiles(self,name):
-        raise RuntimeError("not implemented")
+        raise j.exceptions.RuntimeError("not implemented")
         basepath=self._getMachinePath(name)
         j.sal.fs.removeIrrelevantFiles(basepath,followSymlinks=False)
 
@@ -199,7 +199,7 @@ class Docker(SALObject):
         """
         @param basename is the name of a start of a machine locally, will be used as basis and then the source will be synced over it
         """
-        raise RuntimeError("not implemented")
+        raise j.exceptions.RuntimeError("not implemented")
         ipaddr=j.application.config.get("jssync.addr")
         path=self._getMachinePath(name)
 
@@ -217,7 +217,7 @@ class Docker(SALObject):
             if basepath[-1]!="/":
                 basepath+="/"
             if not j.sal.fs.exists(basepath):
-                raise RuntimeError("cannot find base machine:%s"%basepath)
+                raise j.exceptions.RuntimeError("cannot find base machine:%s"%basepath)
             cmd="rsync -av -v %s %s --delete-after --modify-window=60 --size-only --compress --stats  --progress"%(basepath,path)
             print(cmd)
             j.sal.process.executeWithoutPipe(cmd)
@@ -227,12 +227,12 @@ class Docker(SALObject):
         j.sal.process.executeWithoutPipe(cmd)
 
     def exportTgz(self,name,backupname):
-        raise RuntimeError("not implemented")
+        raise j.exceptions.RuntimeError("not implemented")
         self.removeRedundantFiles(name)
         path=self._getMachinePath(name)
         bpath= j.sal.fs.joinPaths(self.basepath,"backups")
         if not j.sal.fs.exists(path):
-            raise RuntimeError("cannot find machine:%s"%path)
+            raise j.exceptions.RuntimeError("cannot find machine:%s"%path)
         j.sal.fs.createDir(bpath)
         bpath= j.sal.fs.joinPaths(bpath,"%s.tgz"%backupname)
         cmd="cd %s;tar Szcf %s ."%(path,bpath)
@@ -240,11 +240,11 @@ class Docker(SALObject):
         return bpath
 
     def importTgz(self,backupname,name):
-        raise RuntimeError("not implemented")
+        raise j.exceptions.RuntimeError("not implemented")
         path=self._getMachinePath(name)
         bpath= j.sal.fs.joinPaths(self.basepath,"backups","%s.tgz"%backupname)
         if not j.sal.fs.exists(bpath):
-            raise RuntimeError("cannot find import path:%s"%bpath)
+            raise j.exceptions.RuntimeError("cannot find import path:%s"%bpath)
         j.sal.fs.createDir(path)
 
         cmd="cd %s;tar xzvf %s -C ."%(path,bpath)
@@ -404,7 +404,7 @@ class Docker(SALObject):
                 network_disabled=False, name=name, entrypoint=None, cpu_shares=cpu, working_dir=None, domainname=None, memswap_limit=None)
 
         if res["Warnings"] is not None:
-            raise RuntimeError("Could not create docker, res:'%s'" % res)
+            raise j.exceptions.RuntimeError("Could not create docker, res:'%s'" % res)
 
         id = res["Id"]
 

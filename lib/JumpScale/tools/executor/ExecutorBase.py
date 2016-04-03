@@ -20,7 +20,7 @@ class ExecutorBase():
 
         self.debug=debug
         self.checkok=checkok
-
+        self.logger = j.logger.get("j.tools.executor")
         self.env = {}
         self.curpath = ""
         self.platformtype="linux" #@todo need to create propery and evaluate
@@ -45,7 +45,7 @@ class ExecutorBase():
     def docheckok(self,cmd,out):
 
         if out.find("**OK**")==-1:
-            raise RuntimeError("Error in:\n%s\n***\n%s"%(cmd,out))
+            raise j.exceptions.RuntimeError("Error in:\n%s\n***\n%s"%(cmd,out))
 
     def _transformCmds(self, cmds, die=True,checkok=None):
         # print ("TRANSF:%s"%cmds)

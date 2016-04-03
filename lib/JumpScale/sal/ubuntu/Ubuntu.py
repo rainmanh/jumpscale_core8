@@ -3,6 +3,7 @@ from JumpScale import j
 class Ubuntu:
     def __init__(self):
         self.__jslocation__ = "j.sal.ubuntu"
+        self.logger = j.logger.get("j.sal.ubuntu")
         self._aptupdated = False
         self._checked = False
         self._cache=None
@@ -39,14 +40,14 @@ class Ubuntu:
                 info = lsb_release.get_distro_information()['ID']
                 release = lsb_release.get_distro_information()['RELEASE']
                 if info != 'Ubuntu' and info !='LinuxMint':
-                    raise RuntimeError("Only ubuntu or mint supported.")
+                    raise j.exceptions.RuntimeError("Only ubuntu or mint supported.")
                 if not (release.startswith("14") or release.startswith("15")):
-                    raise RuntimeError("Only ubuntu version 14+ supported")
+                    raise j.exceptions.RuntimeError("Only ubuntu version 14+ supported")
                 self._checked = True
             except ImportError:
                 self._checked = False
                 if die:
-                    raise RuntimeError("Only ubuntu or mint supported.")
+                    raise j.exceptions.RuntimeError("Only ubuntu or mint supported.")
         return self._checked
 
     def version_get(self):
@@ -79,7 +80,7 @@ class Ubuntu:
                 return
             result, out = self._local.execute("which %s" % cmdname, False)
             if result != 0:
-                raise RuntimeError("Could not install package %s and check for command %s." % (packagename, cmdname))
+                raise j.exceptions.RuntimeError("Could not install package %s and check for command %s." % (packagename, cmdname))
 
     def apt_install(self, packagename):
 
@@ -146,7 +147,7 @@ class Ubuntu:
             return out.split("\n")
 
     def pkg_remove(self, packagename):
-        j.logger.log("ubuntu remove package:%s"%packagename,category="ubuntu.remove")
+        self.logger.info("ubuntu remove package:%s"%packagename)
         self.check()
         if self._cache==None:
             self.initApt()
@@ -183,7 +184,7 @@ stop on runlevel [016]
         j.tools.path.get("/etc/init/%s.conf"%servicename).remove_p()
 
     def service_start(self, servicename):
-        j.logger.log("start service on ubuntu for:%s"%servicename,category="ubuntu.start")  #@todo P1 add log statements for all other methods of this class
+        self.log.debug("start service on ubuntu for:%s"%servicename)
         if not self.statusService(servicename):
             cmd="sudo start %s" % servicename
             # print cmd
@@ -263,13 +264,13 @@ stop on runlevel [016]
 
 
     def apt_find1_installed(self,packagename):
-        j.logger.log("find 1 package in ubuntu",6,category="ubuntu.find")
+        self.logger.info("find 1 package in ubuntu")
         res=self.findPackagesInstalled(packagename)
         if len(res)==1:
             return res[0]
         elif len(res)>1:
-            raise RuntimeError("Found more than 1 package for %s"%packagename)
-        raise RuntimeError("Could not find package %s"%packagename)
+            raise j.exceptions.RuntimeError("Found more than 1 package for %s"%packagename)
+        raise j.exceptions.RuntimeError("Could not find package %s"%packagename)
 
     def apt_sources_list(self):
         from aptsources import sourceslist

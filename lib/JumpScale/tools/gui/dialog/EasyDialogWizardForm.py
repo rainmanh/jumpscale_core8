@@ -89,7 +89,7 @@ class WizardForm(object):
             if isinstance(data, str):
                 data = j.data.serializer.json.loads(data)
             else:
-                raise RuntimeError('Unknown data format. Data type: %s, Data: %s' % (type(data), data))
+                raise j.exceptions.RuntimeError('Unknown data format. Data type: %s, Data: %s' % (type(data), data))
 
         self.activeTab = data['activeTab']
         for tabData in data['tabs']:

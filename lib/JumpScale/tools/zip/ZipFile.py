@@ -31,6 +31,7 @@ class ZipFile(object):
         @prarm mode: Action to perform on the zip file
         @type mode: ZipFileFactory Action
         '''
+        self.logger = j.logger.get('j.tools.zipfile')
 
         if not j.data.types.path.check(path):
             raise ValueError('Provided string %s is not a valid path' % path)
@@ -45,7 +46,7 @@ class ZipFile(object):
             #TODO Make this optional?
             result = self._zip.testzip()
             if result is not None:
-                raise RuntimeError('Trying to open broken zipfile, first broken file is %s' % \
+                raise j.exceptions.RuntimeError('Trying to open broken zipfile, first broken file is %s' % \
                         result)
 
         else:
@@ -104,7 +105,7 @@ class ZipFile(object):
 
             data = self._zip.read(f)
             #We need binary write
-            j.logger.log('Writing file %s' % outfile_path)
+            self.logger.info('Writing file %s' % outfile_path)
             fd = open(outfile_path, 'wb')
             fd.write(data)
             fd.close()

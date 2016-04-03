@@ -1,8 +1,17 @@
+try:
+    import pygments.lexers
+    from pygments.formatters import get_formatter_by_name
+    pygmentsObj=True
+except:
+    pygmentsObj=False
 
 import copy
 import unicodedata
 from JumpScale import j
-
+import sys
+import colored_traceback
+colored_traceback.add_hook(always=True)
+import traceback
 
 LEVELMAP = {1: 'CRITICAL', 2: 'WARNING', 3: 'INFO', 4: 'DEBUG'}
 
@@ -11,17 +20,15 @@ class ErrorConditionObject(BaseException):
     @param type #BUG,INPUT,MONITORING,OPERATIONS,PERFORMANCE,UNKNOWN  
     @param level #1:critical, 2:warning, 3:info see j.enumerators.ErrorConditionLevel
     """
-    def __init__(self,ddict={},msg="",msgpub="",category="",level=1,type="UNKNOWN",tb=None, data=None):
+    def __init__(self,ddict={},msg="",msgpub="",category="",level=1,type="UNKNOWN",tb=None, data=None,tags=""):
         if ddict!={}:
             self.__dict__=ddict
         else:
 
-            self.backtrace=""
-            self.backtraceDetailed=""
             btkis,filename0,linenr0,func0=j.errorconditionhandler.getErrorTraceKIS(tb=tb)
 
-            if len(btkis)>1:
-                self.backtrace=self.getBacktrace(btkis,filename0,linenr0,func0)
+            # if len(btkis)>1:
+            #     self.backtrace=self.getBacktrace(btkis,filename0,linenr0,func0)
     
             self.guid=j.data.idgenerator.generateGUID() #is for default case where there is no redis
             self.category=category #is category in dot notation
@@ -29,10 +36,9 @@ class ErrorConditionObject(BaseException):
             self.errormessagePub=msgpub
             self.level=int(level) #1:critical, 2:warning, 3:info see j.enumerators.ErrorConditionLevel.
             self.data = data
+            self.tags=tags
             
-            
-
-            if len(btkis)>1:                
+            if len(btkis)>0:                
                 self.code=btkis[-1][0]
                 self.funcname=func0
                 self.funcfilename=filename0
@@ -52,11 +58,13 @@ class ErrorConditionObject(BaseException):
             self.jid = 0
             self.masterjid = 0
 
-            
-
             self.epoch= j.data.time.getTimeEpoch()
             self.type=str(type) #BUG,INPUT,MONITORING,OPERATIONS,PERFORMANCE,UNKNOWN  
-            self.tb=tb  
+
+            self._traceback=""
+
+            if tb != None:
+                self.tb=tb
 
             self.tags="" #e.g. machine:2323
             self.state="NEW" #["NEW","ALERT","CLOSED"]
@@ -68,7 +76,40 @@ class ErrorConditionObject(BaseException):
 
             self.uniquekey=""
 
-    def getUniqueKey(self):
+
+    @property
+    def traceback(self):
+        return self._traceback
+
+    def tracebackSet(self,tb,exceptionObject):
+
+        # tb=e.__traceback__
+        type=None        
+        tblist=traceback.format_exception(type, exceptionObject, tb)
+        
+        self._traceback=""
+
+        ignore=["click/core.py","ipython"]
+
+        for item in tblist:
+            for ignoreitem in ignore:
+                if item.find(ignoreitem)!=-1:
+                    item=""
+            if item!="":
+                self._traceback+="%s"%item
+
+
+    def printTraceback(self):
+        if pygmentsObj:
+            formatter=pygments.formatters.Terminal256Formatter(style=pygments.styles.get_style_by_name("vim"))
+            lexer = pygments.lexers.get_lexer_by_name("pytb", stripall=True)  #pytb
+            tb_colored = pygments.highlight(self.traceback, lexer, formatter)
+            sys.stdout.write(tb_colored)
+        else:
+            print(self.traceback)
+
+    @property
+    def key(self):
         """
         return unique key for object, is used to define unique id
         """
@@ -79,7 +120,8 @@ class ErrorConditionObject(BaseException):
         self.uniquekey=j.data.hash.md5_string(C)
         return self.uniquekey
 
-    def toAscii(self):
+    def _toAscii(self):
+
         def _toAscii(s):
             doagain=False
             try:
@@ -95,15 +137,19 @@ class ErrorConditionObject(BaseException):
                 except Exception as e2:
                     print("BUG in toascii in ErrorConditionObject")
                     import ipdb
-                    
                                                 
         self.errormessage=_toAscii(self.errormessage)
         self.errormessagePub=_toAscii(self.errormessagePub)
-        self.errormessagePub=_toAscii(self.errormessagePub)
-        self.backtraceDetailed=_toAscii(self.backtraceDetailed)
+        # self.errormessagePub=_toAscii(self.errormessagePub)
+        self._traceback=_toAscii(self._traceback)
+        # self.backtraceDetailed=_toAscii(self.backtraceDetailed)
+
+        self.errormessage=self.errormessage.decode()
+        self.errormessagePub=self.errormessagePub.decode()
+        self._traceback=self._traceback.decode()
 
     def process(self):
-        self.toAscii()
+        self._toAscii()
 
         if self.type in ["INPUT","MONITORING","OPERATIONS","PERFORMANCE"] and j.application.debug==False:
             self.tb=""
@@ -122,10 +168,11 @@ class ErrorConditionObject(BaseException):
                 pass
             if not j.data.types.int.check(param.level):
                 self.level=1
-                j.events.inputerror_warning("Errorcondition was thrown with wrong level, needs to be int.\n%s"%str(self),"eco.check.level")
+                j.events.inputerror_warning("Errorcondition was thrown with wrong level, needs to be int.\n%s"%str(self.errormessage),"eco.check.level")
 
         if self.level>4:
-            j.events.inputerror_warning("Errorcondition was thrown with wrong level, needs to be max 4.\n%s"%str(self),"eco.check.level")
+            raise RuntimeError("Errorcondition was thrown with wrong level, needs to be max 4.")
+            # j.events.inputerror_warning("Errorcondition was thrown with wrong level, needs to be max 4.\n%s"%str(self.errormessage),"eco.check.level")
             self.level=4
 
         res=j.errorconditionhandler._send2Redis(self)
@@ -140,14 +187,15 @@ class ErrorConditionObject(BaseException):
 
 
     def __str__(self):
+        # self._toAscii()            
         content="\n\n***ERROR***\n"
-        if self.backtrace!="":
-            content="%s\n" % self.backtrace
-        content+="type/level: %s/%s\n" % (self.type,self.level)
+        if self.type!="UNKNOWN":
+            content+="  type/level: %s/%s\n" % (self.type,self.level)
+        # if self.tags!="":
+        #     content+="tags: %s\n" % self.tags
         content+="%s\n" % self.errormessage
-        if self.errormessagePub!="":
-            content+="errorpub: %s\n" % self.errormessagePub        
-
+        if self.errormessagePub!="" and self.errormessagePub!=None:
+            content+="errorpub:\n%s\n\n" % self.errormessagePub
         return content
             
     __repr__=__str__
@@ -157,7 +205,8 @@ class ErrorConditionObject(BaseException):
         write errorcondition to filesystem
         """
         j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.logDir,"errors",j.application.appname))
-        path=j.sal.fs.joinPaths(j.dirs.logDir,"errors",j.application.appname,"backtrace_%s.log"%(j.data.time.getLocalTimeHRForFilesystem()))        
+        path=j.sal.fs.joinPaths(j.dirs.logDir,"errors",j.application.appname,"backtrace_%s.log"%(j.data.time.getLocalTimeHRForFilesystem()))    
+
         msg="***ERROR BACKTRACE***\n"
         msg+="%s\n"%self.backtrace
         msg+="***ERROR MESSAGE***\n"
@@ -174,48 +223,48 @@ class ErrorConditionObject(BaseException):
         j.sal.fs.writeFile(path,msg)
         return path    
     
-    def getBacktrace(self,btkis=None,filename0=None,linenr0=None,func0=None):
-        if btkis==None:
-            btkis,filename0,linenr0,func0=j.errorconditionhandler.getErrorTraceKIS()
-        out=""
-        # out="File:'%s'\nFunction:'%s'\n"%(filename0,func0)
-        # out+="Linenr:%s\n*************************************************************\n\n"%linenr0
-        # btkis.reverse()
-        for filename,func,linenr,code,linenrOverall in btkis:
-            # print "AAAAAA:%s %s"%(func,filename)
-            # print "BBBBBB:%s"%linenr
-            # out+="%-15s : %s\n"%(func,filename)
-            out+="  File \"%s\" Line %s, in %s\n"%(filename,linenrOverall,func)
-            c=0            
-            code2=""
-            for line in code.split("\n"):
-                if c==linenr:
-                    if len(line)>120:
-                        line=line[0:120]
-                    # out+="  %-13s :     %s\n"%(linenrOverall,line.strip())
-                    out+="    %s\n"%line.strip()
-                #     pre="  *** "
-                # else:
-                #     pre="      "
-                # code2+="%s%s\n"%(pre,line)
-                c+=1
+    # def getBacktrace(self,btkis=None,filename0=None,linenr0=None,func0=None):
+    #     if btkis==None:
+    #         btkis,filename0,linenr0,func0=j.errorconditionhandler.getErrorTraceKIS()
+    #     out=""
+    #     # out="File:'%s'\nFunction:'%s'\n"%(filename0,func0)
+    #     # out+="Linenr:%s\n*************************************************************\n\n"%linenr0
+    #     # btkis.reverse()
+    #     for filename,func,linenr,code,linenrOverall in btkis:
+    #         # print "AAAAAA:%s %s"%(func,filename)
+    #         # print "BBBBBB:%s"%linenr
+    #         # out+="%-15s : %s\n"%(func,filename)
+    #         out+="  File \"%s\" Line %s, in %s\n"%(filename,linenrOverall,func)
+    #         c=0            
+    #         code2=""
+    #         for line in code.split("\n"):
+    #             if c==linenr:
+    #                 if len(line)>120:
+    #                     line=line[0:120]
+    #                 # out+="  %-13s :     %s\n"%(linenrOverall,line.strip())
+    #                 out+="    %s\n"%line.strip()
+    #             #     pre="  *** "
+    #             # else:
+    #             #     pre="      "
+    #             # code2+="%s%s\n"%(pre,line)
+    #             c+=1
 
-            # for line in code2.split("\n"):
-            #     if len(line)>90:
-            #         out+="%s\n"%line[0:90]
-            #         line=line[90:]
-            #         while len(line)>90:
-            #             line0=line[0:75]
-            #             out+="                 ...%s\n"%line0
-            #             line=line[75:]
-            #         out+="                 ...%s\n"%line
-            #     else:
-            #         out+="%s\n"%line
+    #         # for line in code2.split("\n"):
+    #         #     if len(line)>90:
+    #         #         out+="%s\n"%line[0:90]
+    #         #         line=line[90:]
+    #         #         while len(line)>90:
+    #         #             line0=line[0:75]
+    #         #             out+="                 ...%s\n"%line0
+    #         #             line=line[75:]
+    #         #         out+="                 ...%s\n"%line
+    #         #     else:
+    #         #         out+="%s\n"%line
 
-            # out+="-------------------------------------------------------------------\n"
-        self.backtraceDetailed=out
+    #         # out+="-------------------------------------------------------------------\n"
+    #     self.backtraceDetailed=out
 
-        return out
+    #     return out
 
 
 
@@ -244,6 +293,8 @@ class ErrorConditionObject(BaseException):
                 return False
             if v.find("IPython")!=-1:
                 return False
+            if v.find("click")!=-1:
+                return False
             if v.find("<built-in function")!=-1:
                 return False
             if v.find("jumpscale.Shell")!=-1:
@@ -253,72 +304,72 @@ class ErrorConditionObject(BaseException):
 
         return True
 
-    def getBacktraceDetailed(self,tracebackObject=""):
-        """
-        Get stackframe log
-        is a very detailed log with filepaths, code locations & global vars, this output can become quite big
-        """        
-        import inspect
-        if j.application.skipTraceback:
-            return ""
-        sep="\n"+"-"*90+"\n"
-        result = ''
-        if not tracebackObject:
-            return "" #@todo needs to be fixed so it does work
-        if tracebackObject==None:
-            tracebackObject = inspect.currentframe()  #@todo does not work
-        frames = inspect.getinnerframes(tracebackObject, 16)
-        nrlines=0
-        for (frame, filename, lineno, fun, context, idx) in frames:
-            ##result = result + "-"*50 + "\n\n"
-            nrlines+=1
-            if nrlines>100:
-                return result
-            location=filename + "(line %d) (function %s)\n" % (lineno, fun)
-            if location.find("EventHandler.py")==-1:
-                result += "  " + sep
-                result += "  " + location
-                result += "  " + "========== STACKFRAME==========\n"
-                if context:
-                    l = 0
-                    for line in context:
-                        prefix = "    "
-                        if l == idx:
-                            prefix = "--> "
-                        l += 1
-                        result += prefix + line
-                        nrlines+=1
-                        if nrlines>100:
-                            return result
-                result += "  " + "============ LOCALS============\n"
-                for (k,v) in sorted(frame.f_locals.items()):
-                    if self._filterLocals(k,v):
-                        try:
-                            result += "    %s : %s\n" % (str(k), str(v))
-                        except:
-                            pass
-                        nrlines+=1
-                        if nrlines>100:
-                            return result
+    # def getBacktraceDetailed(self,tracebackObject=""):
+    #     """
+    #     Get stackframe log
+    #     is a very detailed log with filepaths, code locations & global vars, this output can become quite big
+    #     """        
+    #     import inspect
+    #     if j.application.skipTraceback:
+    #         return ""
+    #     sep="\n"+"-"*90+"\n"
+    #     result = ''
+    #     if not tracebackObject:
+    #         return "" #@todo needs to be fixed so it does work
+    #     if tracebackObject==None:
+    #         tracebackObject = inspect.currentframe()  #@todo does not work
+    #     frames = inspect.getinnerframes(tracebackObject, 16)
+    #     nrlines=0
+    #     for (frame, filename, lineno, fun, context, idx) in frames:
+    #         ##result = result + "-"*50 + "\n\n"
+    #         nrlines+=1
+    #         if nrlines>100:
+    #             return result
+    #         location=filename + "(line %d) (function %s)\n" % (lineno, fun)
+    #         if location.find("EventHandler.py")==-1:
+    #             result += "  " + sep
+    #             result += "  " + location
+    #             result += "  " + "========== STACKFRAME==========\n"
+    #             if context:
+    #                 l = 0
+    #                 for line in context:
+    #                     prefix = "    "
+    #                     if l == idx:
+    #                         prefix = "--> "
+    #                     l += 1
+    #                     result += prefix + line
+    #                     nrlines+=1
+    #                     if nrlines>100:
+    #                         return result
+    #             result += "  " + "============ LOCALS============\n"
+    #             for (k,v) in sorted(frame.f_locals.items()):
+    #                 if self._filterLocals(k,v):
+    #                     try:
+    #                         result += "    %s : %s\n" % (str(k), str(v))
+    #                     except:
+    #                         pass
+    #                     nrlines+=1
+    #                     if nrlines>100:
+    #                         return result
 
-                        ##result += "  " + "============ GLOBALS============\n"
-                ##for (k,v) in sorted(frame.f_globals.iteritems()):
-                ##    if self._filterLocals(k,v):
-                ##        result += "    %s : %s\n" % (str(k), str(v))
-        self.backtrace=result
+    #                     ##result += "  " + "============ GLOBALS============\n"
+    #             ##for (k,v) in sorted(frame.f_globals.iteritems()):
+    #             ##    if self._filterLocals(k,v):
+    #             ##        result += "    %s : %s\n" % (str(k), str(v))
+    #     self.backtrace=result
 
-    def getCategory(self):
-        return "eco"
+    # def getCategory(self):
+    #     return "eco"
 
-    def getObjectType(self):
-        return 3
+    # def getObjectType(self):
+    #     return 3
 
-    def getVersion(self):
-        return 1
+    # def getVersion(self):
+    #     return 1
 
-    def getMessage(self):
-        #[$objecttype,$objectversion,guid,$object=data]
-        return [3,1,self.guid,self.__dict__]
+    # def getMessage(self):
+    #     #[$objecttype,$objectversion,guid,$object=data]
+    #     return [3,1,self.guid,self.__dict__]
 
     def getContentKey(self):
         """

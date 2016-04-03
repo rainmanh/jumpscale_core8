@@ -4,6 +4,7 @@ import os
 
 # maybe this could be switched to http://curlftpfs.sourceforge.net/
 class FtpFS(object):
+    self.logger = j.logger.get('j.sal.cloudfs.FtpFS')
     server = None
     path = None
     filename = None
@@ -19,7 +20,7 @@ class FtpFS(object):
         """
         Initialize connection
         """
-        j.logger.log("FtpFS: connection information: server [%s] path [%s] username [%s] password [%s]" % (server,path,username,password))
+        self.logger.info("FtpFS: connection information: server [%s] path [%s] username [%s] password [%s]" % (server,path,username,password))
 
         self.end_type = end_type
         self.Atype = Atype
@@ -28,7 +29,7 @@ class FtpFS(object):
         self.filename = j.sal.fs.getBaseName(path)
         #self.path = path.rstrip(self.filename).lstrip('/')
         self.path = os.path.dirname(path).lstrip('/')
-        #j.logger.log("FtpFS: path is %s" % self.path)
+        self.logger.info("FtpFS: path is %s" % self.path)
         self.local_dir =  j.sal.fs.joinPaths(tempdir , j.data.idgenerator.generateGUID())
         self.local_file = j.sal.fs.joinPaths(self.local_dir , self.filename)
         self.tempdir=tempdir
@@ -38,9 +39,9 @@ class FtpFS(object):
         self.recursive = recursive
 
         if is_dir == False:
-            j.logger.log("FtpFS: copying filename [%s] path [%s]" % (self.filename,self.path))
+            self.logger.info("FtpFS: copying filename [%s] path [%s]" % (self.filename,self.path))
         else:
-            j.logger.log("FtpFS: copying to local directory [%s] from path [%s]" % (self.local_dir,self.path))
+            self.logger.info("FtpFS: copying to local directory [%s] from path [%s]" % (self.local_dir,self.path))
 
         self.username = username
         self.password = password
@@ -56,7 +57,7 @@ class FtpFS(object):
             else:
                 self.ftp.login()
         except:
-            raise RuntimeError('Failed to login on ftp server [%s] credentials login: [%s] pass [%s]' % (self.server,self.username,self.password))
+            raise j.exceptions.RuntimeError('Failed to login on ftp server [%s] credentials login: [%s] pass [%s]' % (self.server,self.username,self.password))
         # change to correct directory
         if not dontCD:
             path = self.path.lstrip(os.sep).split(os.sep)
@@ -102,13 +103,13 @@ class FtpFS(object):
         Store file
         """
         self._connect()
-        j.logger.log("FtpFS: uploading [%s] to FTP server" % uploadPath)
+        self.logger.info("FtpFS: uploading [%s] to FTP server" % uploadPath)
         if self.is_dir:
             f = j.sal.fs.listFilesInDir(uploadPath)
             f += j.sal.fs.listDirsInDir(uploadPath)
     #                d = j.sal.fs.listDirsInDir(uploadPath,self.recursive)
             for file in f:
-                j.logger.log("Checking file [%s]" % file)
+                self.logger.info("Checking file [%s]" % file)
                 if j.sal.fs.isDir(file):
                     self.handleUploadDir(file,uploadPath)
                 else:
@@ -130,27 +131,27 @@ class FtpFS(object):
         # FIXME: make sure the original file name is kept
         # should return path to which file was downloaded
         if self.is_dir:
-            j.logger.log("FtpFS: downloading dir [%s]" % self.path)
+            self.logger.info("FtpFS: downloading dir [%s]" % self.path)
             listing = []
             remote_file_list = self.ftp.retrlines('LIST', listing.append)
             for l in listing:
                 t = l.split()
                 name = t[-1:]
-                j.logger.log("Checking t [%s] with name [%s]" % (t,name))
+                self.logger.info("Checking t [%s] with name [%s]" % (t,name))
                 if len(name) > 0:
                     if t[0].startswith('d'): #WARNING: dirty-hack alarm!
                         ldir = j.sal.fs.joinPaths(self.ftp.pwd(), name[0])
                         self.handleDownloadDir(ldir)
                     elif t[0].startswith('l'):
-                        j.logger.log("FtpFS: symlink on FTP (skipping)")
+                        self.logger.info("FtpFS: symlink on FTP (skipping)")
                     else: # it's a normal file
-                        j.logger.log("FtpFS: normal file")
+                        self.logger.info("FtpFS: normal file")
                         #rdir = '/'.join([self.local_dir , self.path])
                         rdir = j.sal.fs.joinPaths(self.local_dir , self.path)
                         j.sal.fs.createDir(rdir)
                         self.retrieveFile(name[0],self.path,rdir)
                 else:
-                    j.logger.log("FtpFS: skipping [%s]" % name)
+                    self.logger.info("FtpFS: skipping [%s]" % name)
             return self.local_dir
         else:
             self.retrieveFile(self.filename,self.path,self.local_file)
@@ -171,34 +172,34 @@ class FtpFS(object):
             lfile = j.sal.fs.joinPaths(dest, file)
         else:
             lfile = self.local_file
-        j.logger.log("FtpFS: retrieving [%s] from dir [%s] to [%s]" % (file, dir,lfile))
+        self.logger.info("FtpFS: retrieving [%s] from dir [%s] to [%s]" % (file, dir,lfile))
         self.ftp.retrbinary('RETR %s' % file, open(lfile, 'wb').write)
 
     def storeFile(self,file,uploadPath):
         """
         Ftp upload file
         """
-        j.logger.log("FtpFS: storing [%s] from [%s]" % (file,uploadPath))
+        self.logger.info("FtpFS: storing [%s] from [%s]" % (file,uploadPath))
         # print "%s:%s:%s %s %s"%(self.server,self.username,self.password,file,uploadPath)
         self.ftp.storbinary('STOR %s' % file, open(uploadPath, 'rb'), 8192)
         size=self.ftp.size(file)
         stat=j.sal.fs.statPath(uploadPath)
         if size!=stat.st_size:
             self.ftp.delete(file)
-            raise RuntimeError("Could not upload:%s %s, size different, have now deleted"%(file,uploadPath))
+            raise j.exceptions.RuntimeError("Could not upload:%s %s, size different, have now deleted"%(file,uploadPath))
 
     def handleUploadDir(self,dir,upload_path):
         """
         Ftp handle a upload directory
         """
         self._connect()
-        j.logger.log("FtpFS: handleUploadDir [%s]" % dir)
+        self.logger.info("FtpFS: handleUploadDir [%s]" % dir)
         dname = j.sal.fs.getBaseName(dir)
-        j.logger.log("FtpFS: dirname is %s and upload path %s" % (dname, upload_path))
+        self.logger.info("FtpFS: dirname is %s and upload path %s" % (dname, upload_path))
         fname =  dir.replace(upload_path, '')
         previous_dir = '/'.join(['/' , self.path])
         #creating directory on FTP
-        j.logger.log("FtpFS: mkd and cwd to [%s] (previous dir %s)" % (fname,previous_dir))
+        self.logger.info("FtpFS: mkd and cwd to [%s] (previous dir %s)" % (fname,previous_dir))
         self.ftp.mkd(fname)
         #self.ftp.cwd(fname)
 
@@ -206,7 +207,7 @@ class FtpFS(object):
         f += j.sal.fs.listDirsInDir(dir)
 #       d = j.sal.fs.listDirsInDir(uploadPath,self.recursive)
         for file in f:
-            j.logger.log("Checking file [%s]" % file)
+            self.logger.info("Checking file [%s]" % file)
             if j.sal.fs.isDir(file):
                 self.handleUploadDir(file,upload_path)
             else:
@@ -220,9 +221,9 @@ class FtpFS(object):
         Ftp handle a download directory
         """
         self._connect()
-        j.logger.log("FtpFS: handleDownloadDir [%s]" % dirname)
+        self.logger.info("FtpFS: handleDownloadDir [%s]" % dirname)
         rdir = '/'.join([self.local_dir , dirname])
-        j.logger.log("FtpFs: handleDownloadDir - creating local [%s]" % rdir)
+        self.logger.info("FtpFs: handleDownloadDir - creating local [%s]" % rdir)
         j.sal.fs.createDir(rdir)
         self.ftp.cwd(dirname)
 
@@ -231,18 +232,18 @@ class FtpFS(object):
         for l in listing:
             t = l.split()
             name = t[-1:]
-            j.logger.log("Checking t [%s] with name [%s]" % (t,name))
+            self.logger.info("Checking t [%s] with name [%s]" % (t,name))
             if len(name) > 0:
                 if t[0].startswith('d'): #WARNING: dirty-hack alarm!
                     ldir = j.sal.fs.joinPaths(self.ftp.pwd(), name[0])
                     self.handleDownloadDir(ldir)
                 elif t[0].startswith('l'):
-                    j.logger.log("FtpFS: symlink on FTP (skipping)")
+                    self.logger.info("FtpFS: symlink on FTP (skipping)")
                 else: # it's a normal file
-                    j.logger.log("FtpFS: normal file, attempting to retrieve file [%s] to location [%s]" % (name[0], rdir))
+                    self.logger.info("FtpFS: normal file, attempting to retrieve file [%s] to location [%s]" % (name[0], rdir))
                     self.retrieveFile(name[0],self.path,rdir)
             else:
-                j.logger.log("FtpFS: skipping [%s]" % name)
+                self.logger.info("FtpFS: skipping [%s]" % name)
 
         previous_dir = dirname.rstrip(j.sal.fs.getBaseName(dirname))
         self.ftp.cwd(previous_dir)
@@ -253,7 +254,7 @@ class FtpFS(object):
         """
         self._connect()
         dir_content = []
-        j.logger.log("list: Returning list of FTP directory [%s]" % self.path)
+        self.logger.info("list: Returning list of FTP directory [%s]" % self.path)
         listing = []
         self.ftp.retrlines('LIST', listing.append)
         for l in listing:

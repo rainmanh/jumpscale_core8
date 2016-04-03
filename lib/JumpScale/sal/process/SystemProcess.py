@@ -19,7 +19,7 @@ def kill(pid, sig=None):
     @param pid: pid of the process to kill
     @param sig: signal. If no signal is specified signal.SIGKILL is used
     """
-    j.logger.log('Killing process %d' % pid, 7)
+    j.sal.process.logger.debug('Killing process %d' % pid)
     if j.core.platformtype.myplatform.isUnix():
         try:
             if sig is None:
@@ -28,7 +28,7 @@ def kill(pid, sig=None):
             os.kill(pid, sig)
 
         except OSError as e:
-            raise RuntimeError("Could not kill process with id %s.\n%s" % (pid,e))
+            raise j.exceptions.RuntimeError("Could not kill process with id %s.\n%s" % (pid,e))
 
     elif j.core.platformtype.myplatform.isWindows():
         import win32api, win32process, win32con
@@ -607,12 +607,12 @@ def _convert_uid_gid(user, group):
 
         # Validation: does os.set*id exist?
         if not hasattr(os, setfunc):
-            raise RuntimeError('%s provided but %s() not available on '
+            raise j.exceptions.RuntimeError('%s provided but %s() not available on '
                                'this platform' % (cname, setfunc))
 
         # We want to make sure we're running as root. This requires os.getuid
         if not hasattr(os, 'getuid'):
-            raise RuntimeError('No getuid() available on this platform')
+            raise j.exceptions.RuntimeError('No getuid() available on this platform')
         if os.getuid() != 0:
             raise ValueError('%s argument only supported when running '
                              'as root' % cname)
@@ -790,9 +790,9 @@ def _runWithEnv(commandline, showOutput=False, captureOutput=True, maxSeconds=0,
     if captureOutput and showOutput:
         raise ValueError('captureOutput and showOutput are mutually exclusive')
 
-    j.logger.log(
+    j.sal.process.logger.debug(
             'system.process.start "%s" maxSeconds=%d stopOnError=%s' % \
-            (commandline, maxSeconds, stopOnError), 5)
+            (commandline, maxSeconds, stopOnError))
 
     if captureOutput and not showOutput:
         stdin = None
@@ -960,18 +960,18 @@ def _runWithEnv(commandline, showOutput=False, captureOutput=True, maxSeconds=0,
     for func in cleanup:
         func()
 
-    j.logger.log('system.process.run ended, exitcode was %d' % \
-            ret[0], 4)
-    j.logger.log('system.process.run stdout:\n%s' % ret[1], 7)
-    j.logger.log('system.process.run stderr:\n%s' % ret[2], 7)
+    j.sal.process.logger.debug('system.process.run ended, exitcode was %d' % \
+            ret[0])
+    j.sal.process.logger.debug('system.process.run stdout:\n%s' % ret[1])
+    j.sal.process.logger.debug('system.process.run stderr:\n%s' % ret[2])
 
     #45 first, since -2 != 0
     if stopOnError and killed:
-        j.logger.log(
-                'system.process.start had to kill the subprocess', 3)
+        j.sal.process.logger.debug(
+                'system.process.start had to kill the subprocess')
         sys.exit(45)
     if stopOnError and ret[0] != 0:
-        j.logger.log('system.process.start subprocess failed', 3)
+        j.sal.process.logger.debug('system.process.start subprocess failed')
         sys.exit(44)
 
     return ret
@@ -1000,7 +1000,7 @@ def runScript(script, showOutput=False, captureOutput=True, maxSeconds=0,
         raise ValueError('Unable to execute %s: not an existing file' % script)
 
     cmdline = '%s -u "%s"' % (sys.executable, script)
-    j.logger.log('Executing script: %s' % cmdline, 6)
+    j.sal.process.logger.info('Executing script: %s' % cmdline, 6)
 
     return run(cmdline, showOutput=showOutput, captureOutput=captureOutput,
             maxSeconds=maxSeconds, stopOnError=stopOnError)
@@ -1060,7 +1060,7 @@ def runDaemon(commandline, stdout=None, stderr=None, user=None, group=None,
     if group is not None:
         logmessage.append('setgid to group %s' % str(group))
     logmessage = ', '.join(logmessage)
-    j.logger.log(logmessage, 5)
+    j.sal.process.info(logmessage)
 
     uid, gid = _convert_uid_gid(user, group)
 
@@ -1117,7 +1117,7 @@ def runDaemon(commandline, stdout=None, stderr=None, user=None, group=None,
     if 'GID' in processdata:
         logmessage.append('GID is %d' % int(processdata['GID']))
     logmessage = ', '.join(logmessage)
-    j.logger.log(logmessage, 6)
+    j.sal.process.debug(logmessage)
 
     return childpid
 
@@ -1179,6 +1179,7 @@ from sal.base.SALObject import SALObject
 class SystemProcess(SALObject):
     def __init__(self):
         self.__jslocation__ = "j.sal.process"
+        self.logger = j.logger.get('j.sal.process')
 
     def executeWithoutPipe(self, command, die = True, printCommandToStdout = False):
         """
@@ -1194,14 +1195,14 @@ class SystemProcess(SALObject):
         """
 
         if printCommandToStdout:
-            j.logger.log("system.process.executeWithoutPipe [%s]" % command, 8)
+            self.logger.info("system.process.executeWithoutPipe [%s]" % command)
         else:
-            j.logger.log("system.process.executeWithoutPipe [%s]" % command, 8)
+            self.logger.debug("system.process.executeWithoutPipe [%s]" % command)
         exitcode = os.system(command)
 
         if exitcode !=0 and die:
-            j.logger.log("command: [%s]\nexitcode:%s" % (command, exitcode), 3)
-            raise RuntimeError("Error during execution!\nCommand: %s\nExitcode: %s" % (command, exitcode))
+            self.logger.error("command: [%s]\nexitcode:%s" % (command, exitcode))
+            raise j.exceptions.RuntimeError("Error during execution!\nCommand: %s\nExitcode: %s" % (command, exitcode))
 
         return exitcode
 
@@ -1221,9 +1222,9 @@ class SystemProcess(SALObject):
             elif j.core.platformtype.myplatform.isWindows():
                 useShell = False
             else:
-                raise RuntimeError("Platform not supported")
+                raise j.exceptions.RuntimeError("Platform not supported")
 
-        j.logger.log("system.process.executeAsync [%s]" % command, 6)
+        self.logger.info("system.process.executeAsync [%s]" % command)
         if printCommandToStdout:
             print(("system.process.executeAsync [%s]" % command))
 
@@ -1282,7 +1283,7 @@ class SystemProcess(SALObject):
                     retVal = proc.pid # Returning the pid, analogous to the windows implementation where we don't have a Popen object to return.
             else:
                 if argsInCommand: # Not possible, only the shell is able to parse command line arguments form a space-separated string.
-                    raise RuntimeError("On Unix, either use the shell to execute a command, or split your command in an argument list")
+                    raise j.exceptions.RuntimeError("On Unix, either use the shell to execute a command, or split your command in an argument list")
                 if redirectStreams:
                     retVal = subprocess.Popen([command] + args, shell=False, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE, env=os.environ)
                 else:
@@ -1294,7 +1295,7 @@ class SystemProcess(SALObject):
                         devnull.close()
                     retVal = proc.pid # Returning the pid, analogous to the windows implementation where we don't have a Popen object to return.
         else:
-            raise RuntimeError("Platform not supported")
+            raise j.exceptions.RuntimeError("Platform not supported")
 
         return retVal
 
@@ -1314,12 +1315,9 @@ class SystemProcess(SALObject):
         # on stdout or stdin of the child process, we log it
         #
         # When the process terminates, we log the final lines (and add a \n to them)
-        j.logger.log("exec:%s" % command)
+        self.logger.info("exec:%s" % command)
         def _logentry(entry,loglevel=5):
-            if outputToStdout:
-                j.tools.console.echo(entry, loglevel)
-            else:
-                j.logger.log(entry,loglevel)
+            self.tools.console.info(entry)
 
         def _splitdata(data):
             """ Split data in pieces separated by \n """
@@ -1363,7 +1361,7 @@ class SystemProcess(SALObject):
 
         if command is None:
             raise ValueError('Error, cannot execute command not specified')
-        j.logger.log("system.process.execute [%s]" % command, 8)
+        self.logger.info("system.process.execute [%s]" % command)
         try:
             import errno
             if j.core.platformtype.myplatform.isUnix():
@@ -1372,7 +1370,7 @@ class SystemProcess(SALObject):
                 try:
                     signal.signal(signal.SIGCHLD, signal.SIG_DFL)
                 except Exception as ex:
-                    j.logger.log('failed to set child signal, error %s'%ex, 2)
+                    self.logger.error('failed to set child signal, error %s'%ex)
                 childprocess = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True, shell=True, env=os.environ)
                 (output,error) = childprocess.communicate()
                 exitcode = childprocess.returncode
@@ -1402,7 +1400,7 @@ class SystemProcess(SALObject):
                 error = "Error output redirected to stdout."
 
             else:
-                raise RuntimeError("Non supported OS for system.process.execute()")
+                raise j.exceptions.RuntimeError("Non supported OS for system.process.execute()")
 
         except Exception as e:
             raise
@@ -1411,13 +1409,13 @@ class SystemProcess(SALObject):
         error=error.decode("utf8")#'ascii')
 
         if exitcode!=0 or error!="":
-            j.logger.log(" Exitcode:%s\nOutput:%s\nError:%s\n" % (exitcode, output, error), 5)
+            self.logger.error(" Exitcode:%s\nOutput:%s\nError:%s\n" % (exitcode, output, error))
             if ignoreErrorOutput!=True:
                 output="%s\n***ERROR***\n%s\n" % (output,error)
 
         if exitcode !=0 and die:
-            j.logger.log("command: [%s]\nexitcode:%s\noutput:%s\nerror:%s" % (command, exitcode, output, error), 3)
-            raise RuntimeError("Error during execution! (system.process.execute())\n\nCommand: [%s]\n\nExitcode: %s\n\nProgram output:\n%s\n\nErrormessage:\n%s\n" % (command, exitcode, output, error))
+            self.logger.error("command: [%s]\nexitcode:%s\noutput:%s\nerror:%s" % (command, exitcode, output, error))
+            raise j.exceptions.RuntimeError("Error during execution! (system.process.execute())\n\nCommand: [%s]\n\nExitcode: %s\n\nProgram output:\n%s\n\nErrormessage:\n%s\n" % (command, exitcode, output, error))
 
 
         return exitcode, output
@@ -1432,7 +1430,7 @@ class SystemProcess(SALObject):
 
     def executeScript(self, scriptName):
         """execute python script from shell/Interactive Window"""
-        j.logger.log('Excecuting script with name: %s'%scriptName, 8)
+        self.logger.info('Excecuting script with name: %s'%scriptName)
         if scriptName is None:
             raise ValueError('Error, Script name in empty in system.process.executeScript')
         try:
@@ -1440,25 +1438,25 @@ class SystemProcess(SALObject):
             scriptc=compile(script, scriptName, 'exec')
             exec(scriptc)
         except Exception as err:
-            raise RuntimeError('Failed to execute the specified script: %s, %s' % (scriptName,str(err)))
+            raise j.exceptions.RuntimeError('Failed to execute the specified script: %s, %s' % (scriptName,str(err)))
 
     def executeInSandbox(self, command, timeout=0):
         """Executes a command
         @param command: string (command to be executed)
         @param timeout: 0 means to ever, expressed in seconds
         """
-        j.logger.log('Executing command %s in sandbox'%command, 8)
+        self.logger.info('Executing command %s in sandbox'%command)
         if command is None:
-            raise RuntimeError('Error, cannot execute command not specified')
+            raise j.exceptions.RuntimeError('Error, cannot execute command not specified')
         try:
             p = os.popen(command)
             output = p.read()
             exitcode = p.close() or 0
             if exitcode !=0 and timeout:
-                raise RuntimeError("Error durring execution!\nCommand: %s\nErrormessage: %s"%(command,output))
+                raise j.exceptions.RuntimeError("Error durring execution!\nCommand: %s\nErrormessage: %s"%(command,output))
             return exitcode, output
         except:
-            raise RuntimeError('Failed to execute the specified command: %s' % command)
+            raise j.exceptions.RuntimeError('Failed to execute the specified command: %s' % command)
 
     def executeCode(self,code,params=None):
         """
@@ -1497,7 +1495,7 @@ class SystemProcess(SALObject):
         try:
             exec((code2, globals(), locals()), execContext)
         except Exception as e:
-            raise RuntimeError("Could not import code, code submitted was \n%s" % code)
+            raise j.exceptions.RuntimeError("Could not import code, code submitted was \n%s" % code)
 
         main = execContext['main']
 
@@ -1506,7 +1504,7 @@ class SystemProcess(SALObject):
         try:
             result=main(params)
         except Exception as e:
-            raise RuntimeError("Error %s.\ncode submitted was \n%s" % (e,code))
+            raise j.exceptions.RuntimeError("Error %s.\ncode submitted was \n%s" % (e,code))
         return result
 
     def isPidAlive(self, pid):
@@ -1515,7 +1513,7 @@ class SystemProcess(SALObject):
            For windows, the process information is retrieved and it is double checked that the process is python.exe
            or pythonw.exe
         """
-        j.logger.log('Checking whether process with PID %d is alive' % pid, 9)
+        self.logger.info('Checking whether process with PID %d is alive' % pid)
         if j.core.platformtype.myplatform.isUnix():
             # Unix strategy: send signal SIGCONT to process pid
             # Achilles heal: another process which happens to have the same pid could be running
@@ -1564,7 +1562,7 @@ class SystemProcess(SALObject):
             time.sleep(1)
             found=self.getPidsByFilter(filterstr)
         if len(found)!=nrtimes:
-            raise RuntimeError("could not start %s, found %s nr of instances. Needed %s."%(cmd,len(found),nrtimes))
+            raise j.exceptions.RuntimeError("could not start %s, found %s nr of instances. Needed %s."%(cmd,len(found),nrtimes))
 
     def checkstop(self,cmd,filterstr,retry=1,nrinstances=0):
         """
@@ -1586,12 +1584,12 @@ class SystemProcess(SALObject):
             found=self.getPidsByFilter(filterstr)
 
         if len(found)!=0:
-            raise RuntimeError("could not stop %s, found %s nr of instances."%(cmd,len(found)))
+            raise j.exceptions.RuntimeError("could not stop %s, found %s nr of instances."%(cmd,len(found)))
 
 
     def getProcessPid(self, process):
         if process==None:
-            raise RuntimeError("process cannot be None")
+            raise j.exceptions.RuntimeError("process cannot be None")
         if j.core.platformtype.myplatform.isUnix():
             # Need to set $COLUMNS such that we can grep full commandline
             # Note: apparently this does not work on solaris
@@ -1624,7 +1622,7 @@ class SystemProcess(SALObject):
         for process in psutil.process_iter():
             if process.pid==pid:
                 return process
-        raise RuntimeError("Could not find process with pid:%s"%pid)
+        raise j.exceptions.RuntimeError("Could not find process with pid:%s"%pid)
 
     def getProcessPidsFromUser(self,user):
         import psutil
@@ -1659,7 +1657,7 @@ class SystemProcess(SALObject):
         @param min: (int) minimal threads that should run.
         @return True if ok
         """
-        j.logger.log('Checking whether at least %d processes %s are running' % (min, process), 8)
+        self.logger.info('Checking whether at least %d processes %s are running' % (min, process))
         if j.core.platformtype.myplatform.isUnix():
             pids = self.getProcessPid(process)
             if len(pids) >= min:
@@ -1678,7 +1676,7 @@ class SystemProcess(SALObject):
         @param process: (str) the process that should have the pid
         @return status: (int) 0 when ok, 1 when not ok.
         """
-        j.logger.log('Checking whether process with PID %d is actually %s' % (pid, process), 7)
+        self.logger.info('Checking whether process with PID %d is actually %s' % (pid, process))
         if j.core.platformtype.myplatform.isUnix():
             command = "ps -p %i"%pid
             (exitcode, output) = j.sal.process.execute(command, die=False, outputToStdout=False)
@@ -1710,7 +1708,7 @@ class SystemProcess(SALObject):
             for i in range(len(varnames)):
                 os.environ[varnames[i]] = str(varvalues[i]).strip()
         except Exception as e:
-            raise RuntimeError(e)
+            raise j.exceptions.RuntimeError(e)
 
     def getPidsByPort(self, port):
         """
@@ -1761,14 +1759,14 @@ class SystemProcess(SALObject):
             for line in output.splitlines():
                 match = re.match(regex, line)
                 if not match:
-                    raise RuntimeError("Unexpected output from netstat -tanup: [%s]" % line)
+                    raise j.exceptions.RuntimeError("Unexpected output from netstat -tanup: [%s]" % line)
                 pid_of_line = match.groups()[0]
                 if pid == -1:
                     pid = pid_of_line
                 else:
                     if pid != pid_of_line:
 
-                        raise RuntimeError("Found multiple pids listening to port [%s]. Error." % port)
+                        raise j.exceptions.RuntimeError("Found multiple pids listening to port [%s]. Error." % port)
             if pid == -1:
                 # No process found listening on this port
                 return None
@@ -1794,7 +1792,7 @@ class SystemProcess(SALObject):
                     cc= [x for x in process.connections() if x.status == psutil.CONN_LISTEN]
                 except Exception as e:
                     if str(e).find("psutil.AccessDenied")==-1:
-                        raise RuntimeError(str(e))
+                        raise j.exceptions.RuntimeError(str(e))
                     continue
                 if cc!=[]:
                     for conn in cc:
@@ -1802,7 +1800,7 @@ class SystemProcess(SALObject):
                         if port == portfound:
                             return process
             return None
-            # raise RuntimeError("This platform is not supported in j.sal.process.getProcessByPort()")
+            # raise j.exceptions.RuntimeError("This platform is not supported in j.sal.process.getProcessByPort()")
 
     run = staticmethod(run)
     runScript = staticmethod(runScript)
@@ -1828,7 +1826,7 @@ class SystemProcess(SALObject):
 
     def appGetPids(self,appname):
         if j.application.redis==None:
-            raise RuntimeError("Redis was not running when applications started, cannot get pid's")
+            raise j.exceptions.RuntimeError("Redis was not running when applications started, cannot get pid's")
         if not j.application.redis.hexists("application",appname):
             return list()
         else:
@@ -1837,7 +1835,7 @@ class SystemProcess(SALObject):
 
     def appsGetNames(self):
         if j.application.redis==None:
-            raise RuntimeError("Make sure redis is running for port 9999")
+            raise j.exceptions.RuntimeError("Make sure redis is running for port 9999")
         return j.application.redis.hkeys("application")
 
     def getDefunctProcesses(self):

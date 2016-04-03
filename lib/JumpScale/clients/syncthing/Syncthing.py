@@ -18,6 +18,8 @@ class Syncthing:
 class SyncthingClient:
 
     def __init__(self, addr="localhost",port=22001,sshport=22,rootpasswd="js111js",apikey="js111js"):
+        self.logger = j.logger.get('j.clients.syncthing')
+        self._session = requests.session()
         addr=addr.lower()
         if addr=="127.0.0.1":
             addr="localhost"
@@ -34,19 +36,19 @@ class SyncthingClient:
         print("execute cmd on %s"%self.addr)
         print(cmds)
         if self.addr=="localhost":
-            return j.tools.cuisine.local.run_script(content=cmds, die=die)
+            return j.tools.cuisine.local.core.run_script(content=cmds, die=die)
         else:
             executor = j.tools.cuisine.get(j.tools.executor.getSSHBased(addr=self.addr, port=self.sshport))
-            return executor.run_script(content=cmds, die=die)
+            return executor.cuisine.core.run_script(content=cmds, die=die)
 
     def install(self,name=""):
         C="""
         set -ex
         tmux kill-session -t sync > /dev/null 2>&1;tmux new-session -d -s sync -n sync
         if [ "$(uname)" == "Darwin" ]; then
-            # Do something under Mac OS X platform   
-            echo 'install brew'  
-            set +ex   
+            # Do something under Mac OS X platform
+            echo 'install brew'
+            set +ex
             ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
             brew install curl
             brew install python
@@ -90,17 +92,17 @@ class SyncthingClient:
 
         print("check if we can find syncthing on right port: %s:%s"%(self.addr,self.port))
         if j.sal.nettools.waitConnectionTest(self.addr,self.port,timeout=10)==False:
-            raise RuntimeError("Could not find syncthing on %s:%s, tcp port test"%(self.addr,self.port))
+            raise j.exceptions.RuntimeError("Could not find syncthing on %s:%s, tcp port test"%(self.addr,self.port))
 
         print(self.status_get())
-        
+
 
     def restart(self):
         print("set config")
         pprint.pprint( self._config)
         self.config_set()
         print("restart")
-        
+
         res= self.api_call("system/restart",get=False)
         print("wait for connection")
         time.sleep(0.5)
@@ -171,7 +173,7 @@ class SyncthingClient:
             self._config["devices"]=res
             if len(res)!=x:
                 print('deleted devices:%s'%name)
-                # self.config_set()                
+                # self.config_set()
 
     def config_delete_all_folders(self):
         config=self.config_get()
@@ -200,7 +202,7 @@ class SyncthingClient:
                         res.append(device)
                 self._config["devices"]=res
             else:
-                raise RuntimeError("Cannot add device %s, exists"%name)
+                raise j.exceptions.RuntimeError("Cannot add device %s, exists"%name)
 
         device={ 'addresses': ['dynamic'],
             'certName': '',
@@ -213,7 +215,7 @@ class SyncthingClient:
 
         print("device set:%s"%name)
 
-        # self.config_set()        
+        # self.config_set()
         return device
 
     def config_add_folder(self,name,path,replace=True,ignorePerms=False,readOnly=False,rescanIntervalS=10,devices=[]):
@@ -228,7 +230,7 @@ class SyncthingClient:
                         res.append(folder)
                 self._config["folders"]=res
             else:
-                raise RuntimeError("Cannot add folder %s, exists"%name)
+                raise j.exceptions.RuntimeError("Cannot add folder %s, exists"%name)
 
         if self.id_get() not in devices:
             devices.append(self.id_get())
@@ -257,9 +259,9 @@ class SyncthingClient:
 
         self.executeBashScript("mkdir -p %s"%path)
         self.restart()
-        # self.config_set()        
+        # self.config_set()
         return folder
-        
+
 
     def api_call(self, endpoint, request_body=False, get=True,data=None):
         """
@@ -285,11 +287,11 @@ class SyncthingClient:
             for key in keys:
                 url += '&%s=%s' % (key, request_body[key])
 
-
-        counter=0
-        ok=False
-        print(url)
-        while ok==False:
+        timeout = 10
+        start = time.time()
+        ok = False
+        self.logger.debug(url)
+        while time.time() < (start + timeout) and ok is False:
             try:
                 if get:
                     r = requests.get(url, headers=headers, timeout=2)
@@ -297,24 +299,15 @@ class SyncthingClient:
                     r = requests.post(url, headers=headers,json=data, timeout=2)
                 ok=True
             except Exception as e:
-                print("Warning, Error in API call, will retry:\n%s"%e)
-                # except requests.packages.urllib3.exceptions.ProtocolError:
-                # from IPython import embed
-                # print "DEBUG NOW ooosss"
-                # embed()
-                print("retry API CALL %s"%url)
-                counter+=1
-                time.sleep(0.1)
-                
-                if counter>10:
-                    raise RuntimeError('Syncthing is not responding. Exiting.')
+                self.logger.warn("Warning, Error in API call, will retry:\n%s" % e)
+                self.logger.warn("retry API CALL %s" % url)
+                time.sleep(0.2)
 
-
-        if r.ok==False:
-            print("%s"%(url))
-            print(endpoint)
-            print(request_body)            
-            raise RuntimeError("Error in rest call: %s"%r)
+        if r.ok is False:
+            self.logger.error("%s"%(url))
+            self.logger.error(endpoint)
+            self.logger.error(request_body)
+            raise j.exceptions.RuntimeError("Error in rest call: %s"%r)
 
         if get and endpoint != '/system/version':
             return r.json()

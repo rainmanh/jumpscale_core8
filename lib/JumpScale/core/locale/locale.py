@@ -68,7 +68,7 @@ class Localizer(object):
                     line = line.rstrip("\\")
                     m = re.match(KEYP, line)
                     if not m:
-                        raise RuntimeError("Invalid line at '%s:%d'" % (path, l))
+                        raise j.exceptions.RuntimeError("Invalid line at '%s:%d'" % (path, l))
                     k = m.group(1)
                     v = m.group(3)
                     
@@ -86,4 +86,4 @@ class Localizer(object):
         elif DEFAULTLOCALE in self.__domains:
             return self.__domains[DEFAULTLOCALE]
         else:
-            raise RuntimeError("Can't find locale '%s' or the default '%s' locale" % (locale, DEFAULTLOCALE))
+            raise j.exceptions.RuntimeError("Can't find locale '%s' or the default '%s' locale" % (locale, DEFAULTLOCALE))

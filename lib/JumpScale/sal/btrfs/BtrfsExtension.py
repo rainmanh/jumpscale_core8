@@ -38,7 +38,7 @@ class BtrfsExtension(SALObject):
         code, out = self._executor.execute(cmd, die=False)
 
         if code:
-            raise RuntimeError(out)
+            raise j.exceptions.RuntimeError(out)
 
         return out
 

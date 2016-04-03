@@ -26,6 +26,7 @@ class Console:
     """
     def __init__(self):
         self.__jslocation__ = "j.tools.console"
+        self.logger = j.logger.get('j.tools.console')
         self.width=230
         self.indent=0 #current indentation of messages send to console
 
@@ -50,7 +51,7 @@ class Console:
                             c = sys.stdin.read(1)
                             cont, result, params = callback(c, params)
                         except IOError:
-                            j.logger.exception("Failed to read one character from stdin", 5)
+                            raise j.exceptions.IOError("Failed to read one character from stdin")
                 finally:
                     termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
 
@@ -143,9 +144,10 @@ class Console:
             sys._stdout_ori.write(msg)
         else:
             print(msg)
-        j.logger.inlog=False
+        # j.logger.inlog=False
         if log:
-            j.logger.log(msg,1)
+            self.logger.info(msg)
+            # j.logger.log(msg,1)
 
     def echoListItem(self, msg):
         """

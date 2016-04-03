@@ -38,7 +38,7 @@ class BaseDumper(object):
         return self._candidates
 
     def _process(self, ip, port, queue):
-        redis = j.clients.redis.getRedisClient(ip, port)
+        redis = j.clients.redis.get(ip, port)
         now = int(time.time())
         try:
             logging.info("Processing redis %s:%s" % (ip, port))

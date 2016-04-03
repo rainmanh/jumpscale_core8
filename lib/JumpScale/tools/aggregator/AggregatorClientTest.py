@@ -152,7 +152,7 @@ class AggregatorClientTest(object):
 
 if __name__ == '__main__':
     from AggregatorClient import AggregatorClient
-    redis = j.clients.redis.getRedisClient('127.0.0.1', 6379)
+    redis = j.clients.redis.get('127.0.0.1', 6379)
     influx = j.clients.influxdb.get()
     aggregator = AggregatorClient(redis, 'mynode')
     tester = AggregatorClientTest()

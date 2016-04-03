@@ -13,11 +13,13 @@ class CuisineBuilder(object):
     def __init__(self, executor, cuisine):
         self.executor = executor
         self.cuisine = cuisine
+    def jumpscale_installed(self):
+        return self.cuisine.executor.execute('which js')
 
     def all(self, start=False, sandbox=False, stor_addr=None):
         self.cuisine.installerdevelop.pip()
         self.cuisine.installerdevelop.python()
-        if not self.cuisine.executor.type == 'local':
+        if not self.jumpscale_installed():
             self.cuisine.installerdevelop.jumpscale8()
         self.cuisine.apps.cuisine.portal.install(start=start)
         self.cuisine.apps.redis.build(start=start, force=True)

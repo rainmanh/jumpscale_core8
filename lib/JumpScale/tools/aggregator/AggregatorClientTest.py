@@ -111,7 +111,7 @@ class AggregatorClientTest(object):
         # force the dumper to find the test redis instance. By allowing it to only search the given redis host
         # for active redis instances.
 
-        dumper = InfluxDumper(influxdb, self.TEST_INFLUX_DB, cidr=redis_host, port=port)
+        dumper = InfluxDumper(influxdb, self.TEST_INFLUX_DB, cidr=redis_host, ports=[port])
         # DO NOT CALL dumper.start() or the actuall dumper worker processes will start. Instead we simulate the process
         # by calling the dumper.dump method directly. given the `found` redis connection. Read InfluxDumper doc string
         # for more info

@@ -19,7 +19,7 @@ class BaseDumper(object):
     def start(self, workers=NUM_WORKERS):
         manager = multiprocessing.Manager()
         queue = manager.Queue()
-        for ip, ports in self.candidates.iteritems():
+        for ip, ports in self.candidates.items():
             for port in ports:
                 queue.put_nowait(ip, port)
 

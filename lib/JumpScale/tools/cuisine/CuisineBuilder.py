@@ -13,17 +13,12 @@ class CuisineBuilder(object):
     def __init__(self, executor, cuisine):
         self.executor = executor
         self.cuisine = cuisine
+
     def jumpscale_installed(self, die=False):
-        try:
-            result = self.cuisine.executor.execute('which js')
-        except:
-            die = True
-        if not die and result[0] == 0:
+        rc, out = self.cuisine.executor.execute('which js', die=False)
+        if rc == 0:
             return True
-        else:
-            return False
-
-
+        return False
 
     def all(self, start=False, sandbox=False, stor_addr=None):
         self.cuisine.installerdevelop.pip()

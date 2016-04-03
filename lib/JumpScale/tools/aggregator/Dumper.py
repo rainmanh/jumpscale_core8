@@ -13,43 +13,38 @@ class BaseDumper(object):
         logging.root.setLevel(logging.INFO)
 
         self._cidr = cidr
-        self._ports = ports
-
         scanner = NetworkScanner(cidr, ports)
         self._candidates = scanner.scan()
 
     def start(self, workers=NUM_WORKERS):
         manager = multiprocessing.Manager()
         queue = manager.Queue()
-        for ip in self.candidates:
-            queue.put_nowait(ip)
+        for ip, ports in self.candidates.iteritems():
+            for port in ports:
+                queue.put_nowait(ip, port)
 
         pool = multiprocessing.Pool(workers)
 
         while True:
-            ip = queue.get()
-            pool.apply_async(self._process, (ip, queue))
+            ip, port = queue.get()
+            pool.apply_async(self._process, (ip, port, queue))
 
     @property
     def cidr(self):
         return self._cidr
 
     @property
-    def ports(self):
-        return self._ports
-
-    @property
     def candidates(self):
         return self._candidates
 
-    def _process(self, ip, queue):
-        redis = j.clients.redis.getRedisClient(ip, self.ports)
+    def _process(self, ip, port, queue):
+        redis = j.clients.redis.getRedisClient(ip, port)
         now = int(time.time())
         try:
-            logging.info("Processing redis %s" % ip)
+            logging.info("Processing redis %s:%s" % (ip, port))
             self.dump(redis)
         except Exception:
-            logging.exception("Failed to process redis '%s'" % ip)
+            logging.exception("Failed to process redis '%s:%s'" % (ip, port))
         finally:
             # workers must have some rest (1 sec) before moving to next
             # ip to process
@@ -57,7 +52,7 @@ class BaseDumper(object):
                 # process took very short time. Give worker time to rest
                 time.sleep(1)
 
-            queue.put_nowait(ip)
+            queue.put_nowait(ip, port)
 
     def dump(self, redis):
         """

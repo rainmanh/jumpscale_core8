@@ -65,7 +65,7 @@ def action(redisconnection):
     memory = psutil.virtual_memory()
     results["memory.virtual.used"]=round((memory.used - memory.cached)/1024.0/1024.0,2)
     results["memory.virtual.cached"]=round(memory.cached/1024.0/1024.0,2)
-    results["memory.virtual.free"]=round(memory.total/1024.0/1024.0,2) - results['memory.used'] - results['memory.cached']
+    results["memory.virtual.free"]=round(memory.total/1024.0/1024.0,2) - results['memory.virtual.used'] - results['memory.virtual.cached']
     results["memory.virtual.percent"]=memory.percent
 
     vm= psutil.swap_memory()

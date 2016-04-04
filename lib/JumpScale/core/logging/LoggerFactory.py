@@ -85,8 +85,9 @@ class LoggerFactory:
     def set_level(self, level):
         self.handlers['console'].setLevel(level)
 
-    def log(self, msg=None, level=None, category=None):
-        self._logger.log(level, msg)
+    def log(self, msg=None, level=logging.INFO, category="j"):
+        logger = j.logger.get(category)
+        logger.log(level, msg)
 
     def _enable_production_mode(self):
         self._logger.handlers = []

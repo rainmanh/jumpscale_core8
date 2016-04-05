@@ -245,7 +245,7 @@ class TelegramAsker(object):
     def ask_ovc_url(self):
         def validate(input):
             return j.sal.nettools.checkUrlReachable(input)
-        ovc_url = self.askChoice("Pleanse enter the url of the G8 where to deploy your cockpit.", choices=['be-conv-2.demo.greenitglobe.com'])
+        ovc_url = self.askChoice("Pleanse enter the url of the G8 where to deploy your cockpit.", choices=self.g8_choices)
         return ovc_url
 
     def ask_ovc_login(self):

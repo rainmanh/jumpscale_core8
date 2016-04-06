@@ -6,8 +6,9 @@ import re
 class ProcessManagerBase:
 
     def __init__(self,executor,cuisine):
-        self.executor=executor
-        self.cuisine=cuisine
+        self.executor = executor
+        self.cuisine = cuisine
+        self.logger = j.logger.get('j.tools.cuisine.processmanager')
 
     def get(self, pm = None):
         from ProcessManagerFactory import ProcessManagerFactory
@@ -179,7 +180,13 @@ exec $cmd
         self.cuisine.core.file_write("/etc/service/%s/run" % name, sv_text)
         
         # waiting for runsvdir to populate service directory monitor
+        remain = 300
         while not self.cuisine.core.dir_exists("/etc/service/%s/supervise" % name):
+            remain = remain - 1
+            if remain == 0:
+                self.logger.warn('/etc/service/%s/supervise: still not exists, check if runsvdir is running, start may fail.' % name)
+                break
+            
             time.sleep(0.2)
 
         self.start(name)

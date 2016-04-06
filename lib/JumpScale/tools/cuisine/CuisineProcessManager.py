@@ -135,6 +135,7 @@ class CuisineSystemd(ProcessManagerBase):
 class CuisineRunit(ProcessManagerBase):
     def __init__(self,executor,cuisine):
         super().__init__(executor, cuisine)
+        self.timeout = 30
 
     def list(self,prefix=""):
         result = list()
@@ -199,12 +200,12 @@ exec $cmd
         """Tries a `restart` command to the given service, if not successful
         will stop it and start it. If the service is not started, will start it."""
         if self.cuisine.core.file_exists("/etc/service/%s/run" %name ):
-            self.cuisine.core.run("sv -w 15 start /etc/service/%s/" %name, profile=True )
+            self.cuisine.core.run("sv -w %d start /etc/service/%s/" % (self.timeout, name), profile=True )
 
     def stop(self, name, **kwargs):
         """Ensures that the given upstart service is stopped."""
         if self.cuisine.core.file_exists("/etc/service/%s/run" %name):
-            self.cuisine.core.run("sv -w 15 stop /etc/service/%s/" %name, profile=True)
+            self.cuisine.core.run("sv -w %d stop /etc/service/%s/" % (self.timeout, name), profile=True)
 
 class CuisineTmuxec(ProcessManagerBase):
     def __init__(self,executor,cuisine):

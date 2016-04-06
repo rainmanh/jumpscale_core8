@@ -177,7 +177,10 @@ exec $cmd
         #     self.cuisine.core.file_link( "/etc/getty-5", "/etc/service")
         self.cuisine.core.file_ensure("/etc/service/%s/run" % name,mode="+x")
         self.cuisine.core.file_write("/etc/service/%s/run" % name, sv_text)
-        time.sleep(2)
+        
+        # waiting for runsvdir to populate service directory monitor
+        while not self.cuisine.core.dir_exists("/etc/service/%s/supervise" % name):
+            time.sleep(0.2)
 
         self.start(name)
 
@@ -200,11 +203,7 @@ exec $cmd
         """Tries a `restart` command to the given service, if not successful
         will stop it and start it. If the service is not started, will start it."""
         if self.cuisine.core.file_exists("/etc/service/%s/run" %name ):
-            # ignore die if error happen
-            self.cuisine.core.run("sv -w %d start /etc/service/%s/" % (self.timeout, name), profile=True, die=False)
-            
-            # only die if the status is not running (avoid warning-return during start)
-            self.cuisine.core.run("sv status /etc/service/%s/" % name, profile=True)
+            self.cuisine.core.run("sv -w %d start /etc/service/%s/" % (self.timeout, name), profile=True)
 
     def stop(self, name, **kwargs):
         """Ensures that the given upstart service is stopped."""

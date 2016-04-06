@@ -200,7 +200,11 @@ exec $cmd
         """Tries a `restart` command to the given service, if not successful
         will stop it and start it. If the service is not started, will start it."""
         if self.cuisine.core.file_exists("/etc/service/%s/run" %name ):
-            self.cuisine.core.run("sv -w %d start /etc/service/%s/" % (self.timeout, name), profile=True )
+            # ignore die if error happen
+            self.cuisine.core.run("sv -w %d start /etc/service/%s/" % (self.timeout, name), profile=True, die=False)
+            
+            # only die if the status is not running (avoid warning-return during start)
+            self.cuisine.core.run("sv status /etc/service/%s/" % name, profile=True)
 
     def stop(self, name, **kwargs):
         """Ensures that the given upstart service is stopped."""

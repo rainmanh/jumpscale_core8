@@ -98,6 +98,7 @@ class CockpitDeployerBot:
         q = queue.Queue()
         qh = logging.handlers.QueueHandler(q)
         qh.setLevel(logging.INFO)
+        deployer.logger = j.logger.get('j.clients.cockpit.installer.%s' % chat_id)
         deployer.logger.addHandler(qh)
 
         th = TelegramHandler(self.bot, chat_id)

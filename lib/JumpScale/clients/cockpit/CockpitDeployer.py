@@ -132,9 +132,9 @@ class CockpitDeployer:
 
     def exit(err, code=1):
         if isinstance(err, BaseException):
-            raise(err)
+            raise err
         else:
-            raise(RuntimeError(err))
+            raise RuntimeError(err)
 
     def _get_vdc(self):
         try:
@@ -240,6 +240,8 @@ class CockpitDeployer:
         return url
 
     def deploy(self):
+        j.do.loadSSHAgent(createkeys=True)
+        local_pubkey = j.do.listSSHKeyFromAgent()[0]
         cuisine = j.tools.cuisine.local
 
         # connection to Gener8 + get vdc client
@@ -254,9 +256,10 @@ class CockpitDeployer:
         if key_pub is None:
             key_pub = self.args.sshkey
 
-        self.logger.info('cloning template repo (%s)' % self.TEMPLATE_REPO)
-        template_repo_path = j.do.pullGitRepo(url=self.TEMPLATE_REPO, branch='master', executor=cuisine.executor)
-        self.logger.info('cloned in %s' % template_repo_path)
+        #self.logger.info('cloning template repo (%s)' % self.TEMPLATE_REPO)
+        _, _, _, _, template_repo_path, _ = j.do.getGitRepoArgs(self.TEMPLATE_REPO)
+        #template_repo_path = j.do.pullGitRepo(url=self.TEMPLATE_REPO, branch='master', executor=cuisine.executor)
+        #self.logger.info('cloned in %s' % template_repo_path)
 
         self.logger.info("creation of cockpit repo")
         _, _, _, _, cockpit_repo_path, cockpit_repo_remote = j.do.getGitRepoArgs(self.args.repo_url, ssh=True)
@@ -292,8 +295,8 @@ class CockpitDeployer:
             machine.create_portforwarding(18384, 18384)  # temporary create portforwardings for syncthing
 
         self.logger.info('Authorize ssh key into VM')
-        # authorize ssh into VM
-        ssh_exec.cuisine.ssh.authorize('root', key_pub)
+        # authorize ssh key into VM
+        ssh_exec.cuisine.ssh.authorize('root', local_pubkey)
         # reconnect as root
         ssh_exec = j.tools.executor.getSSHBased(ssh_exec.addr, ssh_exec.port, 'root')
 
@@ -307,8 +310,13 @@ class CockpitDeployer:
         ssh_exec.cuisine.bash.addPath('/usr/local/go/bin')
         self.logger.info("Creation of docker container")
         ssh_exec.cuisine.core.run('$binDir/jsdocker pull -i jumpscale/g8cockpit', profile=True)
-        container_conn_str = ssh_exec.cuisine.docker.ubuntu(name='g8cockpit', image='jumpscale/g8cockpit', ports="80:80 443:443 18384:18384", volumes="/optvar/data:/optvar/data", pubkey=key_pub, aydofs=False)
-
+        container_conn_str = ssh_exec.cuisine.docker.ubuntu(name='g8cockpit', image='jumpscale/g8cockpit', 
+           ports="80:80 443:443 18384:18384", volumes="/optvar/data:/optvar/data", 
+           pubkey=local_pubkey, aydofs=False)
+        
+        # erase our own key and put the key from the client instead
+        ssh_exec.cuisine.core.file_write('/root/.ssh/authorized_keys', key_pub)
+        
         addr, port = container_conn_str.split(":")
         if port not in exists_pf:
             machine.create_portforwarding(port, port) # expose ssh of docker
@@ -387,7 +395,9 @@ class CockpitDeployer:
 
         content = "grid.id = %d\nnode.id = 0" % int(self.args.gid)
         container_cuisine.core.file_append(location="$hrdDir/system/system.hrd", content=content)
-
+	# erase our own key and write client key instead
+        container_cuisine.core.file_write('/root/.ssh/authorized_keys', key_pub)
+        
         # j.sal.fs.copyFile("portforwards.py", cockpit_repo_path, createDirIfNeeded=False, overwriteFile=True)
         dest = 'root@%s:%s' % (container_cuisine.executor.addr, cockpit_repo_path)
         container_cuisine.core.dir_ensure(cockpit_repo_path)

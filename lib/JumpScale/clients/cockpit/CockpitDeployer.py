@@ -395,8 +395,6 @@ class CockpitDeployer:
 
         content = "grid.id = %d\nnode.id = 0" % int(self.args.gid)
         container_cuisine.core.file_append(location="$hrdDir/system/system.hrd", content=content)
-	# erase our own key and write client key instead
-        container_cuisine.core.file_write('/root/.ssh/authorized_keys', key_pub)
         
         # j.sal.fs.copyFile("portforwards.py", cockpit_repo_path, createDirIfNeeded=False, overwriteFile=True)
         dest = 'root@%s:%s' % (container_cuisine.executor.addr, cockpit_repo_path)
@@ -406,7 +404,10 @@ class CockpitDeployer:
         self.logger.info("\nCockpit deployed")
         self.logger.info("SSH: ssh root@%s -p %s" % (dns_name, container_cuisine.executor.port))
         if self.args.expose_ssh:
-            self.logger.info("Shellinabox: https://%s/%s" % (dns_name, shellinbox_url))
+            self.logger.info("Shell In A Box: https://%s/%s" % (dns_name, shellinbox_url))
         self.logger.info("Portal: http://%s" % (dns_name))
+        
+        # erase our own key and write client key instead
+        container_cuisine.core.file_write('/root/.ssh/authorized_keys', key_pub)
 
         return cockpit_repo_path

@@ -957,6 +957,7 @@ class CuisineCore():
         @param profile, execute the bash profile first
         """
         # print (cmd)
+        j.logger.get('j.tools.cuisine.core', enable_only_me=True)
         import copy
         if replaceArgs:
             cmd=self.args_replace(cmd)

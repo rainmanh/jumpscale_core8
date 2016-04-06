@@ -239,31 +239,31 @@ class TelegramAsker(object):
         return value
 
     def ask_repo_url(self):
-        repo_url = self.askString("Pleanse enter the url of the git repository where to store the ays repo of your cockpit. The repo need to exists")
+        repo_url = self.askString("Please enter the url of the git repository where to store the ays repo of your cockpit. The repo need to exists")
         return repo_url
 
     def ask_ovc_url(self):
         def validate(input):
             return j.sal.nettools.checkUrlReachable(input)
-        ovc_url = self.askChoice("Pleanse enter the url of the G8 where to deploy your cockpit.", choices=self.g8_choices)
+        ovc_url = self.askChoice("Please enter the url of the G8 where to deploy your cockpit.", choices=self.g8_choices)
         return ovc_url
 
     def ask_ovc_login(self):
         def validate(input):
             return True
-        login = self.askString("Pleanse enter the login of your account on the G8 where to deploy the cockpit")
+        login = self.askString("Please enter the login of your account on the G8 where to deploy the cockpit")
         return login
 
     def ask_ovc_password(self):
         def validate(input):
             return True
-        passwd = self.askString("Pleanse enter the password of your account on the G8 where to deploy cockpit")
+        passwd = self.askString("Please enter the password of your account on the G8 where to deploy cockpit")
         return passwd
 
     def ask_ovc_vdc(self):
         def validate(input):
             return True
-        name = self.askChoice("Pleanse select the name of the virtual data center where to deploy the G8 Cockpit", choices=['default', 'cockpit'])
+        name = self.askChoice("Please select the name of the virtual data center where to deploy the G8 Cockpit", choices=['default', 'cockpit'])
         return name
 
     def ask_ovc_account(self, ovc_client=None):

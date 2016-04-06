@@ -17,7 +17,7 @@ class CuisineBuilder(object):
     def all(self, start=False, sandbox=False, stor_addr=None):
         self.cuisine.installerdevelop.pip()
         self.cuisine.installerdevelop.python()
-        if not self.cuisine.executor.type == 'local':
+        if not self.cuisine.installer.jumpscale_installed():
             self.cuisine.installerdevelop.jumpscale8()
         self.cuisine.apps.cuisine.portal.install(start=start)
         self.cuisine.apps.redis.build(start=start, force=True)

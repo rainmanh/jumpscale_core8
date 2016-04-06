@@ -180,7 +180,7 @@ class CockpitDeployer:
             self.logger.info("Test if domain name is available (%s)" % dns_name)
             exists, host = dns_client.exists(dns_name)
             if exists and host != vdc_adress:
-                self.logger.info("%s is not available, please choose another name")
+                self.logger.info("%s is not available, please choose another name" % dns_name)
                 return False
             else:
                 self.logger.info("Domain name is available (%s)" % dns_name)
@@ -245,7 +245,7 @@ class CockpitDeployer:
         cuisine = j.tools.cuisine.local
 
         # connection to Gener8 + get vdc client
-        self.logger.info('Test connectivity to Gener8')
+        self.logger.info('Test connectivity to G8')
         vdc_cockpit = self._get_vdc()
         self.logger.info('Connection to Gener8 valid.')
 

@@ -140,7 +140,7 @@ class CockpitDeployer:
         try:
             ovc_client = j.clients.openvcloud.get(self.args.ovc_url, self.args.ovc_login, self.args.ovc_password)
         except Exception as e:
-            self.logger.error("Error While Trying to connec to Gener8 (%s). login:%s" % (self.args.ovc_url, self.args.ovc_login))
+            self.logger.error("Error while trying to connect to G8 (%s). Login: %s" % (self.args.ovc_url, self.args.ovc_login))
             self.exit(e)
 
         self.args.ovc_client = ovc_client
@@ -149,7 +149,7 @@ class CockpitDeployer:
         try:
             vdc = account.space_get(self.args.ovc_vdc, self.args.ovc_location, create=True)
         except Exception as e:
-            self.logger.error("Error While Trying to have access to vdc %s with account:%s" % (self.args.ovc_vdc, self.args.ovc_account))
+            self.logger.error("Error while trying to have access to VDC %s with account: %s" % (self.args.ovc_vdc, self.args.ovc_account))
             self.exit(e)
         return vdc
 

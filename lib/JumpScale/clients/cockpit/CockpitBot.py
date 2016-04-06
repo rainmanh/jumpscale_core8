@@ -134,7 +134,7 @@ Let's get to work.""" % update.message.from_user.first_name
             deployer.deploy()
         except Exception as e:
             self.logger.error(e)
-            self.bot.sendMessage(chat_id=chat_id, text="Error during deployement. Please /stat again.")
+            self.bot.sendMessage(chat_id=chat_id, text="Error during deployement. Please /start again.")
         finally:
             ql.stop()
 

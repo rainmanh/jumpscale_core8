@@ -247,7 +247,7 @@ class CockpitDeployer:
         # connection to Gener8 + get vdc client
         self.logger.info('Test connectivity to G8')
         vdc_cockpit = self._get_vdc()
-        self.logger.info('Connection to Gener8 valid.')
+        self.logger.info('Connection to G8 valid.')
 
         # self.logger.info('Register domain for new cockpit on dns server')
         dns_name = self._register_domain(vdc_cockpit.model['publicipaddress'])

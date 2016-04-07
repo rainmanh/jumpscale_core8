@@ -10,7 +10,7 @@ import os
 
 
 FILE_FORMAT = '%(asctime)s - %(pathname)s:%(lineno)d - %(levelname)-8s - %(message)s'
-CONSOLE_FORMAT = '%(cyan)s[%(asctime)s]%(reset)s - %(pathname)s:%(lineno)-2d - %(log_color)s%(levelname)-8s%(reset)s - %(message)s'
+CONSOLE_FORMAT = '%(cyan)s[%(asctime)s]%(reset)s - %(pathname)30s:%(lineno)-4d - %(log_color)s%(levelname)-8s%(reset)s - %(message)s'
 
 # Modes
 PRODUCTION = 0  # use NullHander, let the application configure the logging
@@ -30,7 +30,6 @@ class LoggerFactory:
     def __init__(self):
         self.__jslocation__ = "j.logger"
         self.root_logger_name = 'j'
-
         self.handlers = {
             "console": self.__consoleHandler(),
             "file": self.__fileRotateHandler(),
@@ -85,8 +84,9 @@ class LoggerFactory:
     def set_level(self, level):
         self.handlers['console'].setLevel(level)
 
-    def log(self, msg=None, level=None, category=None):
-        self._logger.log(level, msg)
+    def log(self, msg=None, level=logging.INFO, category="j"):
+        logger = j.logger.get(category)
+        logger.log(level, msg)
 
     def _enable_production_mode(self):
         self._logger.handlers = []
@@ -102,7 +102,9 @@ class LoggerFactory:
             self._logger.addHandler(h)
 
     def __fileRotateHandler(self, name='jumpscale'):
-        filename = "/optvar/log/%s.log" % name  # TODO can't use j.dirs here before j.dirs is loaded.
+        if not j.do.exists("%s/log/" % j.do.VARDIR):
+            j.do.createDir("%s/log/" % j.do.VARDIR)
+        filename = "%s/log/%s.log" % (j.do.VARDIR,name)
         formatter = logging.Formatter(FILE_FORMAT)
         fh = logging.handlers.TimedRotatingFileHandler(filename, when='D', interval=1, backupCount=7, encoding=None, delay=False, utc=False, atTime=None)
         fh.setLevel(logging.DEBUG)
@@ -110,7 +112,7 @@ class LoggerFactory:
         return fh
 
     def __consoleHandler(self):
-        formatter = ColoredFormatter(
+        formatter = LimitFormater(
             fmt=CONSOLE_FORMAT,
             datefmt="%a%d %H:%M",
             reset=True,
@@ -122,7 +124,8 @@ class LoggerFactory:
                 'CRITICAL': 'red,bg_white',
             },
             secondary_log_colors={},
-            style='%'
+            style='%',
+            lenght=37
         )
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)
@@ -132,3 +135,20 @@ class LoggerFactory:
     def __redisHandler(self, redis_client=None):
             if redis_client is None:
                 self.redis_client = j.core.db
+
+
+class LimitFormater(ColoredFormatter):
+    def __init__(self, fmt, datefmt, reset, log_colors, secondary_log_colors, style, lenght):
+        super(LimitFormater, self).__init__(
+            fmt=fmt,
+            datefmt=datefmt,
+            reset=reset,
+            log_colors=log_colors,
+            secondary_log_colors=secondary_log_colors,
+            style=style)
+        self.lenght = lenght
+
+    def format(self, record):
+        if len(record.pathname) > self.lenght:
+            record.pathname = "..." + record.pathname[-self.lenght:]
+        return super(LimitFormater, self).format(record)

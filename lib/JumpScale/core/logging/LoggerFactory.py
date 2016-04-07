@@ -66,7 +66,8 @@ class LoggerFactory:
             name = "%s.%s" % (self.root_logger_name, name)
         logger = logging.getLogger(name)
         if enable_only_me:
-            logger.enable_only_me()
+            logger = JSLogger(name)
+            logger.enable_only_me
         return logger
 
     def set_mode(self, mode):

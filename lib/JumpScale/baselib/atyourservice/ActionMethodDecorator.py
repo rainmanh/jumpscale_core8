@@ -38,6 +38,8 @@ class ActionMethodDecorator(object):
             else:
                 force=self.force
 
+            force=True
+
             if action:
                 args=args[1:]
 

@@ -127,6 +127,8 @@ class CockpitDeployer:
         self.TEMPLATE_REPO = "https://github.com/0-complexity/g8cockpit.git"
         self.type = None
 
+
+
     def printInfo(self, msg):
         self.logger.info(msg)
 
@@ -240,6 +242,8 @@ class CockpitDeployer:
         return url
 
     def deploy(self):
+        j.actions.resetAll() #@todo needs to be improved, is too harsh
+        
         j.do.loadSSHAgent(createkeys=True)
         local_pubkey = j.do.listSSHKeyFromAgent()[0]
         cuisine = j.tools.cuisine.local

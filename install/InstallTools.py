@@ -1678,7 +1678,7 @@ class InstallTools():
 
         if not dest:
             if codeDir==None:
-                if executor==None:
+                if True:
                     codeDir=self.CODEDIR
                 else:
                     codeDir=executor.cuisine.core.dir_paths['codeDir']

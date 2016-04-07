@@ -47,7 +47,6 @@ class CockpitDeployerBot:
         self._register_handlers()
         if 'git' in self.config:
             cuisine = j.tools.cuisine.local
-            import ipdb; ipdb.set_trace()
             rc, resp = cuisine.core.run('git config --global user.name', die=False)
             if resp == '':
                 cuisine.core.run('git config --global user.name %s' % self.config['git']['username'])
@@ -117,7 +116,7 @@ class CockpitDeployerBot:
         else:
             asker = TelegramAsker(self.updater)
             deployer = CockpitDeployer(asker)
-            self.deployers[update.message.from_user.username] = deployer
+            self.deployers[username] = deployer
 
         self._configure_deployer(deployer, chat_id, update.message.from_user)
         ql = self._attache_logger(deployer, chat_id)

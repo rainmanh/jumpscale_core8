@@ -1,5 +1,7 @@
 from JumpScale import j
 import click
+import GrafanaData
+import json
 
 class CockpitArgs:
     """Argument required to deploy a G8Cockpit"""
@@ -373,6 +375,9 @@ class CockpitDeployer:
         # if self.args.dev:  # enable stating environment
             # cmd += ' -ca https://acme-staging.api.letsencrypt.org/directory'
         container_cuisine.processmanager.ensure('caddy', cmd)
+
+        container_cuisine.core.run(r"""curl -X POST -H  "Content-Type: application/json" -d '%s' http://admin:admin@localhost/grafana/api/datasources"""%json.dumps(GrafanaData.datasource))
+        container_cuisine.core.run(r"""curl -X POST -H  "Content-Type: application/json" -d '%s' http://admin:admin@localhost/grafana/api/dashboards/db"""%json.dumps(GrafanaData.dashboard))
 
         self.logger.info("Configuration of AYS robot")
         cmd = "ays bot --token %s" % self.args.bot_token

@@ -2262,6 +2262,7 @@ class Installer():
         filter =
             'j.sal.fs',
             'j.data.hrd',
+            'j.application'
         """
         do.writeFile("%s/hrd/system/logging.hrd" % vardir, C)
 

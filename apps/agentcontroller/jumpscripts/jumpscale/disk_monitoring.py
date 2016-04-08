@@ -29,7 +29,7 @@ def action(redisconnection):
         return
     addr = redisconnection.split(':')[0]
     port = int(redisconnection.split(':')[1])
-    redis_client = j.clients.redis.getRedisClient(addr, port)
+    redis_client = j.clients.redis.get(addr, port)
     hostname =j.sal.nettools.getHostname()
     try:
         aggregator = j.tools.aggregator.getClient(redis_client,  hostname)
@@ -99,12 +99,13 @@ def action(redisconnection):
                 odisk.save()
 
         for key, value in results.items():
-            aggregator.measure(tags=tags, key="disks.%s" % key, value=value, measurement="")
+            aggregator.measure(tags=tags, key="disk.%s.%s" % (path,key), value=value, measurement="")
 
     return results
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
-        action(sys.argv[1])
+        results = action(sys.argv[1])
+        print(results)
     else:
         print("Please specifiy a redis connection in the form of ipaddr:port")

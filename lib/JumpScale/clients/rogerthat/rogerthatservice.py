@@ -41,6 +41,7 @@ class GeventWSServer(object):
     SERVICEKEY = j.application.config.get('rogerthat.servicekey')
 
     def __init__(self, addr, port, handler):
+        self.logger = j.logger.get('j.clients.rogerthat.service')
         self.port = port
         self.addr = addr
         self.handler = handler
@@ -52,7 +53,7 @@ class GeventWSServer(object):
 
     def _authenticateRequest(self, service_key):
         return service_key == self.SERVICEKEY
-        
+
     @jsonrpc
     def rpcRequest(self, method, **params):
         if method == 'test.test':
@@ -104,7 +105,7 @@ class GeventWSServer(object):
                 return None
 
     def start(self):
-        j.logger.log('started on %s' % self.port, 2, 'rogerthat')
+        self.logger.info('started on %s' % self.port, 2, 'rogerthat')
         self.server.serve_forever()
 
 if __name__ == '__main__':

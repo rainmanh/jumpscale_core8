@@ -351,10 +351,6 @@ class InstallTools():
             self.chmod(dest,0o770)
 
     def createDir(self,path):
-        if self.debug:
-            print(("createDir: %s" % path))
-        # if os.path.exists(path) and  os.path.isfile(path):
-        #     self.delete(path)
         if not os.path.exists(path) and not os.path.islink(path):
             os.makedirs(path)
 
@@ -1620,7 +1616,7 @@ class InstallTools():
         else:
             return True
 
-    def getGitRepoArgs(self, url="", dest=None, login=None, passwd=None, reset=False,branch=None,ssh="auto",codeDir=None):
+    def getGitRepoArgs(self, url="", dest=None, login=None, passwd=None, reset=False,branch=None,ssh="auto",codeDir=None,executor=None):
         """
         Extracts and returns data useful in cloning a Git repository.
 
@@ -1682,7 +1678,10 @@ class InstallTools():
 
         if not dest:
             if codeDir==None:
-                codeDir=self.CODEDIR
+                if True:
+                    codeDir=self.CODEDIR
+                else:
+                    codeDir=executor.cuisine.core.dir_paths['codeDir']
             dest = '%(codedir)s/%(type)s/%(account)s/%(repo_name)s' % {
                 'codedir': codeDir,
                 'type': repository_type.lower(),
@@ -1712,7 +1711,7 @@ class InstallTools():
                 return self.pullGitRepo(url,dest,login,passwd,depth,ignorelocalchanges,reset,branch,revision, True,executor)
             except Exception as e:
                 return self.pullGitRepo(url,dest,login,passwd,depth,ignorelocalchanges,reset,branch,revision, False,executor)
-            raise RuntimeError("Could not checkout, needs to be with ssh or without.")                
+            raise RuntimeError("Could not checkout, needs to be with ssh or without.")
 
 
         if executor is None:
@@ -1720,7 +1719,7 @@ class InstallTools():
         else:
             executor.checkok = False
 
-        base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh,codeDir=codeDir)
+        base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh,codeDir=codeDir,executor=executor)
 
         if dest is None and branch is None:
             branch = "master"
@@ -2204,7 +2203,6 @@ class Installer():
         paths.cfg=$vardir/cfg
         paths.hrd=$vardir/hrd
 
-        system.logging = 0
         system.sandbox = 1
 
         """
@@ -2257,6 +2255,16 @@ class Installer():
         if not do.exists(path=hpath):
             do.writeFile(hpath,C)
 
+        C = """
+        mode = 'DEV'
+        level = 'DEBUG'
+
+        filter =
+            'j.sal.fs',
+            'j.data.hrd',
+            'j.application'
+        """
+        do.writeFile("%s/hrd/system/logging.hrd" % vardir, C)
 
 
 
@@ -2461,7 +2469,8 @@ exec python3 -q "$@"
             do.executeInteractive("pip3 install colored-traceback")
             do.executeInteractive("pip3 install xonsh")
             do.executeInteractive("pip3 install pudb")
-            do.executeInteractive("pip3 install tmuxp")            
+            do.executeInteractive("pip3 install tmuxp")
+            do.executeInteractive("pip3 install colorlog")
 
             if sys.platform.startswith('win'):
                 raise RuntimeError("Cannot find JSBASE, needs to be set as env var")

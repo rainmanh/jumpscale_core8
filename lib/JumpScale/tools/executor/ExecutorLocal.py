@@ -7,6 +7,7 @@ class ExecutorLocal(ExecutorBase):
     def __init__(self, dest_prefixes={}, debug=False, checkok=False):
         ExecutorBase.__init__(
             self, dest_prefixes=dest_prefixes, debug=debug, checkok=debug)
+        self.logger = j.logger.get("j.tools.executor.local")
         self.type="local"
         self.id = 'localhost'
         self.addr = 'localhost'
@@ -22,7 +23,7 @@ class ExecutorLocal(ExecutorBase):
         if self.debug:
             print("EXECUTOR:\n%s\n"%cmds)
 
-        return j.sal.process.execute(content=cmds, die=die)
+        return j.sal.process.execute(command=cmds, die=die)
 
     def executeInteractive(self, cmds, die=True, checkok=None):
         cmds = self._transformCmds(cmds, die, checkok=checkok)

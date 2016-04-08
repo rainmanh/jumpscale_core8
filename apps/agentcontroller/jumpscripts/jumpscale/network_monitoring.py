@@ -26,9 +26,8 @@ def action(redisconnection):
         return
     addr = redisconnection.split(':')[0]
     port = int(redisconnection.split(':')[1])
-    redis_client = j.clients.redis.getRedisClient(addr, port)
+    redis_client = j.clients.redis.get(addr, port)
     hostname =j.sal.nettools.getHostname()
-
     aggregator = j.tools.aggregator.getClient(redis_client,  hostname)
     tags = j.data.tags.getTagString(tags={
         'gid': str(j.application.whoAmI.gid),
@@ -58,11 +57,13 @@ def action(redisconnection):
         result['drop.out'] = dropout
 
         for key, value in result.items():
-            aggregator.measure(tags=tags, key="network.%s" % key, value=value, measurement="")
+            aggregator.measure(tags=tags, key="network.%s.%s" % (nic,key), value=value, measurement="")
 
     return result
 if __name__ == '__main__':
   if len(sys.argv) == 2:
-      action(sys.argv[1])
+      results = action(sys.argv[1])
+      print(results)
+
   else:
       print("Please specifiy a redis connection in the form of ipaddr:port")

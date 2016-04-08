@@ -196,8 +196,9 @@ class actionrun(ActionDecorator):
 class CuisineCore():
 
     def __init__(self,executor,cuisine):
+        self.logger = j.logger.get("j.tools.cuisine.core", enable_only_me=True)
         self.cd="/"
-        self._dirs={}        
+        self._dirs={}
         self.sudomode = False
 
         self.executor = executor
@@ -425,7 +426,7 @@ class CuisineCore():
                 cmd = "curl -L '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s"%(url,to,user,minsp,retry,timeout)
                 if self.file_exists(to):
                     cmd += " -C -"
-                print(cmd)
+                self.logger.info(cmd)
                 self.file_unlink("%s.downloadok"%to)
                 rc, out = self.run(cmd, die=False)
                 if rc == 33: # resume is not support try again withouth resume
@@ -456,7 +457,7 @@ class CuisineCore():
         path=self.args_replace(path)
         self.file_write(path,"")
 
-    
+
     def file_read(self,location, default=None):
         import base64
         """Reads the *remote* file at the given location, if default is not `None`,
@@ -471,35 +472,35 @@ class CuisineCore():
 
         return base64.b64decode(frame).decode()
 
-    
+
     def file_exists(self,location):
         """Tests if there is a *remote* file at the given location."""
         location=self.args_replace(location)
         return self.run('test -e %s && echo **OK** ; true' % (location),showout=False,check_is_ok=True)
 
-    
+
     def file_is_file(self,location):
         location=self.args_replace(location)
         return self.run("test -f %s && echo **OK** ; true" % (location),showout=False,check_is_ok=True)
 
-    
+
     def file_is_dir(self,location):
         location=self.args_replace(location)
         return self.run("test -d %s && echo **OK** ; true" % (location),showout=False,check_is_ok=True)
 
-    
+
     def file_is_link(self,location):
         location=self.args_replace(location)
         return self.run("test -L %s && echo **OK** ; true" % (location),showout=False,check_is_ok=True)
 
-    
+
     def file_attribs(self,location, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         location."""
         location=self.args_replace(location)
         return self.dir_attribs(location, mode, owner, group, False)
 
-    
+
     def file_attribs_get(self,location):
         """Return mode, owner, and group for remote path.
         Return mode, owner, and group if remote path exists, 'None'
@@ -595,7 +596,7 @@ class CuisineCore():
             hostfile="/etc/hosts"
             self.file_write(hostfile,val)
 
-    
+
     def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False,replaceArgs=False,strip=True,showout=True):
         if strip:
             content=j.data.text.strip(content)
@@ -637,7 +638,7 @@ class CuisineCore():
         else:
             self.file_write(location,"",mode=mode,owner=owner,group=group)
 
-    
+
     def file_upload_local(self, local, remote):
         """Uploads the local file to the remote location only if the remote location does not
         exists or the content are different."""
@@ -652,7 +653,7 @@ class CuisineCore():
         with ftp.open(remote, mode='w+') as f:
             f.write(content)
 
-    
+
     def file_download_local(self,remote, local):
         """Downloads the remote file to localy only if the local location does not
         exists or the content are different."""
@@ -668,7 +669,7 @@ class CuisineCore():
         f.write_text(content)
 
 
-    
+
     def file_update(self,location, updater=lambda x: x):
         """Updates the content of the given by passing the existing
         content of the remote file at the given location to the 'updater'
@@ -693,7 +694,7 @@ class CuisineCore():
         self.file_write(location, new_content)
         return True
 
-    
+
     def file_append(self,location, content, mode=None, owner=None, group=None):
         """Appends the given content to the remote file at the given
         location, optionally updating its mode/owner/group."""
@@ -703,13 +704,13 @@ class CuisineCore():
         self.run('echo "%s" | openssl base64 -A -d >> %s' % (content_base64, location),showout=False)
         self.file_attribs(location, mode=mode, owner=owner, group=group)
 
-    
+
     def file_unlink(self,path):
         path=self.args_replace(path)
         if self.file_exists(path):
             self.run("unlink %s" % (shell_safe(path)),showout=False)
 
-    
+
     def file_link(self,source, destination, symbolic=True, mode=None, owner=None, group=None):
         """Creates a (symbolic) link between source and destination on the remote host,
         optionally setting its mode/owner/group."""
@@ -726,7 +727,7 @@ class CuisineCore():
             self.run('ln -f %s %s' % (shell_safe(source), shell_safe(destination)))
         self.file_attribs(destination, mode, owner, group)
 
-    
+
     def file_copy(self, source, dest, recursive=False, overwrite=False):
         source=self.args_replace(source)
         dest=self.args_replace(dest)
@@ -738,7 +739,7 @@ class CuisineCore():
         cmd += '%s %s' % (source, dest)
         self.run(cmd)
 
-    
+
     def file_move(self, source, dest, recursive=False):
         self.file_copy(source,dest,recursive)
         self.file_unlink(source)
@@ -749,7 +750,7 @@ class CuisineCore():
     # SEE: https://github.com/sebastien/cuisine/pull/184#issuecomment-102336443
     # SEE: http://stackoverflow.com/questions/22982673/is-there-any-function-to-get-the-md5sum-value-of-file-in-linux
 
-    # 
+    #
     def file_base64(self,location):
         """Returns the base64-encoded content of the file at the given location."""
         location=self.args_replace(location)
@@ -765,7 +766,7 @@ class CuisineCore():
         # else:
         # return self.run("cat {0} | openssl base64".format(shell_safe((location))))
 
-    # 
+    #
     def file_sha256(self,location):
         """Returns the SHA-256 sum (as a hex string) for the remote file at the given location."""
         # NOTE: In some cases, self.sudo can output errors in here -- but the errors will
@@ -779,7 +780,7 @@ class CuisineCore():
         # else:
         #     return self.run('openssl dgst -sha256 %s' % (location)).split("\n")[-1].split(")= ",1)[-1].strip()
 
-    # 
+    #
     def file_md5(self, location):
         """Returns the MD5 sum (as a hex string) for the remote file at the given location."""
         # NOTE: In some cases, self.sudo can output errors in here -- but the errors will
@@ -810,12 +811,13 @@ class CuisineCore():
             path += "%s%s" %(seperator, arg)
         return path
 
-    
+
     def dir_attribs(self,location, mode=None, owner=None, group=None, recursive=False,showout=False):
         """Updates the mode/owner/group for the given remote directory."""
         location=self.args_replace(location)
         if showout:
-            print ("set dir attributes:%s"%location)
+            # print ("set dir attributes:%s"%location)
+            self.logger.debug('set dir attributes:%s"%location')
         recursive = recursive and "-R " or ""
         if mode:
             self.run('chmod %s %s %s' % (recursive, mode,  location),showout=False)
@@ -824,25 +826,26 @@ class CuisineCore():
         if group:
             self.run('chgrp %s %s %s' % (recursive, group, location),showout=False)
 
-    
+
     def dir_exists(self,location):
         """Tells if there is a remote directory at the given location."""
         location=self.args_replace(location)
         # print ("dir exists:%s"%location)
         return self.run('test -d %s && echo **OK** ; true' % (location),showout=False,check_is_ok=True)
 
-    
+
     def dir_remove(self,location, recursive=True):
         """ Removes a directory """
         location=self.args_replace(location)
-        print ("dir remove:%s"%location)
+        # print("dir remove:%s"%location)
+        self.logger.debug("dir remove:%s"%location)
         flag = ''
         if recursive:
             flag = 'r'
         if self.dir_exists(location):
             return self.run('rm -%sf %s && echo **OK** ; true' % (flag, location),showout=False)
 
-    
+
     def dir_ensure(self,location, recursive=True, mode=None, owner=None, group=None):
         """Ensures that there is a remote directory at the given location,
         optionally updating its mode/owner/group.
@@ -857,7 +860,7 @@ class CuisineCore():
 
     createDir=dir_ensure
 
-    
+
     def fs_find(self,path,recursive=True,pattern="",findstatement="",type="",contentsearch="",extendinfo=False):
         """
         @param findstatement can be used if you want to use your own find arguments
@@ -905,7 +908,8 @@ class CuisineCore():
             cmd+=" -print0 | xargs -r -0 grep -l '%s'"%contentsearch
 
         out=self.run(cmd,showout=False)
-        print (cmd)
+        # print (cmd)
+        self.logger.debug(cmd)
 
         paths=[item.strip() for item in out.split("\n") if item.strip()!=""]
         paths=[item for item in paths if item.startswith("+ find")==False]
@@ -936,7 +940,7 @@ class CuisineCore():
                 output = output.lstrip(dirt)
         return output
 
-    
+
     def set_sudomode(self):
         self.sudomode = True
 
@@ -965,9 +969,11 @@ class CuisineCore():
         if profile:
             ppath=self.cuisine.bash.profilePath
             if ppath:
-                cmd=". %s && %s"%(ppath,cmd) 
+                cmd=". %s && %s"%(ppath,cmd)
             if showout:
-                print ("PROFILECMD:%s"%cmd)
+                self.logger.info("PROFILECMD:%s"%cmd)
+            else:
+                self.logger.debug("PROFILECMD:%s"%cmd)
 
         if self.sudomode:
             passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
@@ -998,7 +1004,7 @@ class CuisineCore():
                             and out.lower().find("no such")!=-1\
                             and not "pythondevel" in self.done:
                     from IPython import embed
-                    print ("DEBUG NOW pythondevel not found")
+                    self.logger.error("DEBUG NOW pythondevel not found")
                     embed()
 
                     self.done.append("pythondevel")
@@ -1038,10 +1044,10 @@ class CuisineCore():
 
     @actionrun(action=True,force=True)
     def run_script(self,content,die=True,profile=False):
-        print("RUN SCRIPT:")
+        self.logger.info("RUN SCRIPT:")
         content=self.args_replace(content)
         content=j.data.text.strip(content)
-        print(content)
+        self.logger.info(content)
 
         if content[-1]!="\n":
             content+="\n"

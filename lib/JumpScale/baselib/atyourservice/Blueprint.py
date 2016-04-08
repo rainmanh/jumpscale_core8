@@ -1,17 +1,12 @@
 from JumpScale import j
 
-CATEGORY = "ays:bp"
-
-
-def log(msg, level=2):
-    j.logger.log(msg, level=level, category=CATEGORY)
-
 
 class Blueprint(object):
     """
     """
 
     def __init__(self, path):
+        self.logger = j.logger.get('j.atyourservice.blueprint')
         self.path=path
         self.models=[]
         self._contentblocks=[]
@@ -56,7 +51,7 @@ class Blueprint(object):
         for model in self.models:
             if model is not None:
                 for key, item in model.items():
-                    # print ("blueprint model execute:%s %s"%(key,item))
+                    self.logger.debug("blueprint model execute:%s %s"%(key,item))
                     aysname, aysinstance = key.split("_", 1)
                     if not aysname.startswith('blueprint.'):
                         blueaysname = 'blueprint.%s' % aysname
@@ -66,7 +61,7 @@ class Blueprint(object):
                             r = j.atyourservice.getRecipe(name=aysname)
                     yaml=model['%s_%s' % (aysname, aysinstance)]
                     aysi=r.newInstance(instance=aysinstance, args=item, yaml=yaml)
-                    aysi.init()                    
+                    aysi.init()
 
     def _add2models(self,content,nr):
         #make sure we don't process double

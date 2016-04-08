@@ -203,7 +203,7 @@ class CuisinePortal(object):
 
     @actionrun(action=True)
     def changeEve(self):
-        path = self.cuisine.core.run("js")  # hack, make sure jumpscale has loaded lib before trying to print something
+        path = self.cuisine.core.run("js 'print(j)'")  # hack, make sure jumpscale has loaded lib before trying to print something
         path = self.cuisine.core.run("js 'print(j.do.getPythonLibSystem(jumpscale=False))'")
         path = j.sal.fs.joinPaths(path, "eve_docs", "config.py")
         if not self.cuisine.core.file_exists(path):

@@ -20,6 +20,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
     '''KeyValueStoreBase defines a store interface.'''
 
     def __init__(self, serializers=[]):
+        self.logger = j.logger.get('j.servers.kvs')
         #self.id = j.application.getUniqueMachineId()
         self.serializers = serializers or list()
         self.unserializers = list(reversed(self.serializers))
@@ -81,11 +82,11 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
             key=j.data.idgenerator.generateGUID()
         self.set("cache", key, value)
         return key
-        # if nrMinutesExpiration>0:            
+        # if nrMinutesExpiration>0:
         #     self.set("cache", key, value)
         #     tt=j.data.time.getMinuteId()
         #     actor.dbmem.set("mcache_%s"%tt, key, "")
-        # elif nrHoursExpiration>0:            
+        # elif nrHoursExpiration>0:
         #     self.set("cache", key, value)
         #     tt=j.data.time.getHourId()
         #     actor.dbmem.set("hcache_%s"%tt, key, "")
@@ -219,7 +220,7 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
             try:
                 id, lockEnd, info = j.data.serializer.json.loads(encodedValue)
             except ValueError:
-                j.logger.exception("Failed to decode lock value")
+                self.logger.error("Failed to decode lock value")
                 raise ValueError("Invalid lock type %s" % locktype)
 
             if j.data.time.getTimeEpoch() > lockEnd:
@@ -310,13 +311,13 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
         if not self.exists(category, key):
             errorMessage = 'Key value store doesnt have a value for key '\
                            '"%s" in category "%s"' % (key, category)
-            j.logger.log(errorMessage, 4)
+            self.logger.error(errorMessage)
             raise KeyError(errorMessage)
 
     def _assertCategoryExists(self, category):
         if not self._categoryExists(category):
             errorMessage = 'Key value store doesn\'t have a category %s' % (category)
-            j.logger.log(errorMessage, 4)
+            self.logger.error(errorMessage)
             raise KeyError(errorMessage)
 
     def now(self):
@@ -395,4 +396,3 @@ class KeyValueStoreBase(object):#, metaclass=ABCMeta):
             return data
 
         self.getModifySet("subscribers",category,modfunction,subscriberid=subscriberid,db=self,lastProcessedId=lastProcessedId)
-

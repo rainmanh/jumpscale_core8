@@ -11,7 +11,7 @@ class InfluxDumper(Dumper.BaseDumper):
     QUEUE_HOUR = 'queues:stats:hour'
     QUEUES = [QUEUE_MIN, QUEUE_HOUR]
 
-    def __init__(self, influx, database=None, cidr='127.0.0.1', port=7777):
+    def __init__(self, influx, database=None, cidr='127.0.0.1', ports=[7777]):
         """
         Create a new instance of influx dumper
 
@@ -24,7 +24,7 @@ class InfluxDumper(Dumper.BaseDumper):
         :param cidr: Network CIDR to scan for all redis instances that listen on the specified port
         :param port: Find all redis instances that listens on that port on the given CIDR
         """
-        super(InfluxDumper, self).__init__(cidr, port)
+        super(InfluxDumper, self).__init__(cidr, ports)
 
         self.influxdb=influx
 
@@ -53,12 +53,11 @@ class InfluxDumper(Dumper.BaseDumper):
         return Stats(parts[0], parts[1], int(parts[2]), float(parts[3]), float(parts[4]), float(parts[5]))
 
     def _dump(self, key, stats, info):
-        tags = j.data.tags.getObject(info.get('tags', ''))
 
         points = [
             {
                 "measurement": key,
-                "tags": tags.tags,
+                "tags": info['tags'].tags,
                 "time": stats.epoch,
                 "fields": {
                     "value": stats.avg,
@@ -95,7 +94,10 @@ class InfluxDumper(Dumper.BaseDumper):
             else:
                 info = dict()
 
+            info['tags'] = j.data.tags.getObject(info.get('tags', []))
+            info['tags'].tags['node'] = stats.node
+
             if queue == self.QUEUE_MIN:
-                self._dump("%s|%s|m" % (stats.node, stats.key), stats, info)
+                self._dump("%s|m" % (stats.key,), stats, info)
             else:
-                self._dump("%s|%s|h" % (stats.node, stats.key), stats, info)
+                self._dump("%s|h" % (stats.key,), stats, info)

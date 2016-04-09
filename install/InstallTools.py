@@ -1678,7 +1678,7 @@ class InstallTools():
 
         if not dest:
             if codeDir==None:
-                if executor==None:
+                if True:
                     codeDir=self.CODEDIR
                 else:
                     codeDir=executor.cuisine.core.dir_paths['codeDir']
@@ -2262,7 +2262,7 @@ class Installer():
         filter =
             'j.sal.fs',
             'j.data.hrd',
-            'j.application',
+            'j.application'
         """
         do.writeFile("%s/hrd/system/logging.hrd" % vardir, C)
 

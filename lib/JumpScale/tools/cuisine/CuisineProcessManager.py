@@ -210,6 +210,8 @@ exec $cmd
         """Tries a `restart` command to the given service, if not successful
         will stop it and start it. If the service is not started, will start it."""
         if self.cuisine.core.file_exists("/etc/service/%s/run" %name ):
+            if name=='redis_main':
+                self.timeout = 60
             self.cuisine.core.run("sv -w %d start /etc/service/%s/" % (self.timeout, name), profile=True)
 
     def stop(self, name, **kwargs):

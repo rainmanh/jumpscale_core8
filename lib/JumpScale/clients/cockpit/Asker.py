@@ -196,7 +196,8 @@ class TelegramAsker(object):
     @run_async
     def handlerChoice(self, bot, update, **kwargs):
         self.question_lock.acquire()
-        self.queue.put(update.message.text)
+        if update.message.chat_id == self.chat_id:
+            self.queue.put(update.message.text)
         self.question_lock.release()
 
     def askYesNo(self, message):

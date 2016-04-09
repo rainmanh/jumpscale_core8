@@ -196,7 +196,7 @@ class actionrun(ActionDecorator):
 class CuisineCore():
 
     def __init__(self,executor,cuisine):
-        self.logger = j.logger.get("j.tools.cuisine.core")
+        self.logger = j.logger.get("j.tools.cuisine.core", enable_only_me=True)
         self.cd="/"
         self._dirs={}
         self.sudomode = False

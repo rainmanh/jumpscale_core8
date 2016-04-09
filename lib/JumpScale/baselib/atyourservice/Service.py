@@ -500,7 +500,7 @@ class Service:
             elif isinstance(input, Service):
                 toConsume.add(input)
             else:
-                j.events.inputerror_critical("Type of input to consume not valid. Only support list, string or Service object", category='AYS.consume', msgpub='Type of input to consume not valid. Only support list, string or Service object')
+                raise j.exceptions.Input("Type of input to consume not valid. Only support list, string or Service object", category='AYS.consume', msgpub='Type of input to consume not valid. Only support list, string or Service object')
 
             for service in toConsume:
                 if service.role not in self._producers:

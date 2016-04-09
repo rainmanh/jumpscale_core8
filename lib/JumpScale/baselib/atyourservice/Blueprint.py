@@ -37,7 +37,7 @@ class Blueprint(object):
         for model in self.models:
             if model!=None:
                 for key,item in model.items():
-                    aysname,aysinstance=key.split("_",1)
+                    aysname,aysinstance=key.split("__",1)
                     if not aysname.startswith('blueprint.'):
                         blueaysname = 'blueprint.%s' % aysname
                         try:
@@ -45,7 +45,13 @@ class Blueprint(object):
                             continue
                         except j.exceptions.Input:
                             pass
-                    j.atyourservice.getRecipe(name=aysname)
+                    try:
+                        j.atyourservice.getRecipe(name=aysname)
+                    except Exception as e:
+                        e.source=" Try to load recipe for %s in blueprint %s."%(key,self.path)
+                        raise e
+
+                        
 
     def execute(self):
         for model in self.models:

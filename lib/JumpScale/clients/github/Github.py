@@ -1,36 +1,58 @@
 from JumpScale import j
 from JumpScale.tools.zip.ZipFile import ZipFile
 
+try:
+    import github
+except:
+    cmd="pip3 install pygithub"
+    j.do.execute(cmd)
+    import github
+
 
 class GitHubFactory(object):
     def __init__(self):
         self.__jslocation__ = "j.clients.github"
 
-    def getClient(self, account, reponame):
-        return GitHubClient(account, reponame)
+    # def getRepoClient(self, account, reponame):
+    #     return GitHubRepoClient(account, reponame)
+
+    def getClient(self,secret):
+        return GitHubClient(secret)
 
 
-class GitHubClient(object):
-    def __init__(self, account, reponame, branch='master'):
-        self._account = account
-        self._branch = branch
-        self._reponame = reponame
-        self._url = "http://github.com/%s/%s/archive/%s.zip" % (self._account, self._reponame, branch)
-        self._accountdir = j.sal.fs.joinPaths(j.dirs.codeDir, 'github', account)
-        self.basedir = j.sal.fs.joinPaths(self._accountdir, "%s-%s" % (reponame, branch))
-        self.repokey = "github-%s-%s" % (self._account, self._reponame)
+class GitHubClient():
 
-    def export(self):
-        if j.sal.fs.exists(self.basedir):
-            j.sal.fs.removeDirTree(self.basedir)
-        tmpfile = j.sal.fs.getTempFileName()
-        j.sal.nettools.download(self._url, tmpfile)
-        zp = ZipFile(tmpfile)
-        zp.extract(self._accountdir)
+    def __init__(self, secret):
+        self.client=github.Github(secret)
 
-    def identify(self):
-        return self._branch
+        from IPython import embed
+        print ("DEBUG NOW jjj")
+        embed()
+        
 
-    def pullupdate(self):
-        # TODO implement this for real
-        self.export()
+
+
+# class GitHubRepoClient(object):
+#     def __init__(self, account, reponame, branch='master'):
+#         self._account = account
+#         self._branch = branch
+#         self._reponame = reponame
+#         self._url = "http://github.com/%s/%s/archive/%s.zip" % (self._account, self._reponame, branch)
+#         self._accountdir = j.sal.fs.joinPaths(j.dirs.codeDir, 'github', account)
+#         self.basedir = j.sal.fs.joinPaths(self._accountdir, "%s-%s" % (reponame, branch))
+#         self.repokey = "github-%s-%s" % (self._account, self._reponame)
+
+#     def export(self):
+#         if j.sal.fs.exists(self.basedir):
+#             j.sal.fs.removeDirTree(self.basedir)
+#         tmpfile = j.sal.fs.getTempFileName()
+#         j.sal.nettools.download(self._url, tmpfile)
+#         zp = ZipFile(tmpfile)
+#         zp.extract(self._accountdir)
+
+#     def identify(self):
+#         return self._branch
+
+#     # def pullupdate(self):
+#     #     # TODO implement this for real
+#     #     self.export()

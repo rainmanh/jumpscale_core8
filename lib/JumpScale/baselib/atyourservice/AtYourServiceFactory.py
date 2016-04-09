@@ -482,7 +482,7 @@ class AtYourServiceFactory():
 
         if first:
             if len(res) == 0:
-                j.events.inputerror_critical("cannot find service template %s:%s (%s)" % (domain, name, version), "ays.findTemplates")
+                raise j.exceptions.Input("cannot find service template %s:%s (%s)" % (domain, name, version), "ays.findTemplates")
             return res[0]
         return res
 
@@ -506,9 +506,9 @@ class AtYourServiceFactory():
 
         if one:
             if len(res) == 0:
-                j.events.inputerror_critical("cannot find ays recipes %s|%s (%s)" % (domain, name, version), "ays.findRecipes")
+                raise j.exceptions.Input("cannot find ays recipes %s|%s (%s)" % (domain, name, version), "ays.findRecipes")
             if len(res) > 1:
-                j.events.inputerror_critical("found 2+ ays recipes %s|%s (%s)" % (domain, name, version), "ays.findRecipes")
+                raise j.exceptions.Input("found 2+ ays recipes %s|%s (%s)" % (domain, name, version), "ays.findRecipes")
             return res[0]
 
         return res
@@ -537,7 +537,7 @@ class AtYourServiceFactory():
             res.append(service)
         if first:
             if len(res) == 0:
-                j.events.inputerror_critical("cannot find service %s|%s:%s (%s)" % (domain, name, instance, version), "ays.findServices")
+                raise j.exceptions.Input("cannot find service %s|%s:%s (%s)" % (domain, name, instance, version), "ays.findServices")
             return res[0]
         return res
 
@@ -591,12 +591,12 @@ class AtYourServiceFactory():
             res = self.findTemplates(domain=domain, name=name, version=version, role=role, first=first)
             if len(res) > 1:
                 if die:
-                    j.events.inputerror_critical("Cannot get ays template '%s|%s (%s)', found more than 1" % (domain, name, version), "ays.gettemplate")
+                    raise j.exceptions.Input("Cannot get ays template '%s|%s (%s)', found more than 1" % (domain, name, version), "ays.gettemplate")
                 else:
                     return
             if len(res) == 0:
                 if die:
-                    j.events.inputerror_critical("Cannot get ays template '%s|%s (%s)', did not find" % (domain, name, version), "ays.gettemplate")
+                    raise j.exceptions.Input("Cannot get ays template '%s|%s (%s)', did not find" % (domain, name, version), "ays.gettemplate")
                 else:
                     return
             return res[0]
@@ -614,7 +614,7 @@ class AtYourServiceFactory():
         if key.short in self.services:
             return self.services[key.short]
         if die:
-            j.events.inputerror_critical("Cannot get ays service '%s', did not find" % key.short, "ays.getservice")
+            raise j.exceptions.Input("Cannot get ays service '%s', did not find" % key.short, "ays.getservice")
         else:
             self.logger.error("Cannot get ays service '%s', did not find" % key.short)
             return None

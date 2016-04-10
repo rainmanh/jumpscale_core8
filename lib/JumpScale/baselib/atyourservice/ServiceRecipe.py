@@ -78,19 +78,12 @@ class ServiceRecipe(ServiceTemplate):
 
 
 
-    def _checkdef(self, actionmethod, content, property=False):
-        if not property:
-            a = ActionMethod(self, actionmethod, content)
-            self.actionmethods[actionmethod] = a
-            if actionmethod == 'input':
-                self._out += '\n    def input(self,name,role,instance,serviceargs):\n        return serviceargs\n\n'
-            elif actionmethod == 'getExecutor':
-                self._out += content
-            elif content:
-                self._out += '\n    @actionmethod()\n%s' % (content)
-            else:
-                self._out += "\n    @actionmethod()\n    def %s(self):\n        return True\n\n" % actionmethod
-        else:
+    def _checkdef(self, actionmethod, content, decorator=True):
+        a = ActionMethod(self, actionmethod, content)
+        self.actionmethods[actionmethod] = a
+        if actionmethod == 'input':
+            self._out += '\n    def input(self,name,role,instance,serviceargs):\n        return serviceargs\n\n'
+        elif not decorator and content:
             self._out += content
         elif content:
             self._out += '\n    @actionmethod()\n%s' % (content)
@@ -100,16 +93,11 @@ class ServiceRecipe(ServiceTemplate):
     def _copyActions(self):
         self._out = """
         from JumpScale import j
-
         ActionMethodDecorator=j.atyourservice.getActionMethodDecorator()
-
-
         class actionmethod(ActionMethodDecorator):
             def __init__(self,*args,**kwargs):
                 ActionMethodDecorator.__init__(self,*args,**kwargs)
                 self.selfobjCode="service=j.atyourservice.getService(name='$(service.name)', role='$(service.role)', instance='$(service.instance)', die=True);selfobj=service.actions;selfobj.service=service"
-
-
         class Actions():
         """
         actionmethodsRequired = ["input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",

@@ -52,7 +52,7 @@ class Service:
         @param consume is in format $role!$instance,$role2!$instance2
         """
         self.originator = originator
-        logger = j.logger.get('j.atyourservice.service')
+        self.logger = j.logger.get('j.atyourservice.service')
 
         if path!="" and j.sal.fs.exists(path):
             self.role,self.instance=j.sal.fs.getBaseName(path).split("!")
@@ -168,14 +168,14 @@ class Service:
     def parent(self):
         if isinstance(self._parent, str):
             # print ("parent cache miss")
-            if self.hrd.exists("parent"):
+            if self._hrd is not None and self.hrd.exists("parent"):
                 role, instance = self.hrd.get("parent").split("!")
                 self._parent = j.atyourservice.getService(role, instance)
             else:
                 self._parent=None
         return self._parent
 
-    
+
 
     @property
     def hrd(self):
@@ -259,7 +259,7 @@ class Service:
     #     from IPython import embed
     #     print ("DEBUG NOW runaction")
     #     embed()
-        
+
     #     return action
 
     # def runActionNode(self,name,*args,**kwargs):
@@ -364,44 +364,37 @@ class Service:
                 name = parent.parent
                 role = name
 
-                ays_s = []
-
                 if '.' in name:
                     role = name.split('.', 1)[0]
 
                 if role in self.args:
-                    #has been speficied or empty
-                    rolearg=self.args[role].strip()
+                    # has been speficied or empty
+                    rolearg = self.args[role].strip()
                 else:
-                    rolearg=""
+                    rolearg = ""
 
-                if rolearg=="":
+                if rolearg == "":
                     if role != name:
-                        ays_s=j.atyourservice.findServices(name=name)
+                        ays_s = j.atyourservice.findServices(name=name)
                     else:
                         ays_s = j.atyourservice.findServices(role=role)
 
-                if len(ays_s) == 1:
-                    # we found 1 service of required role, will take that one
-                    aysi = ays_s[0]
-                    rolearg = aysi.instance
-                    self.args[role] = rolearg
-                elif len(ays_s) > 1:
-                    raise j.exceptions.RuntimeError("Found more than one parent candidate with role '%s' for service '%s" % (role, self))
-                else:
-                    if parent.auto:
-                        ays_s = [j.atyourservice.new(name=parent.parent, instance='main', version='', domain='', path=None, parent=None, args={}, consume='')]
-                        rolearg = "main"
+                    if len(ays_s) == 1:
+                        # we found 1 service of required role, will take that one
+                        aysi = ays_s[0]
+                        rolearg = aysi.instance
+                        self.args[role] = rolearg
+                    elif len(ays_s) > 1:
+                        raise j.exceptions.RuntimeError("Found more than one parent candidate with role '%s' for service '%s" % (role, self))
                     else:
-                        raise j.exceptions.RuntimeError("Cannot find parent with role '%s' for service '%s, there is none, please make sure the service exists."%(role, self))
-       
+                        if parent.auto:
+                            ays_s = [j.atyourservice.new(name=parent.parent, instance='main', version='', domain='', path=None, parent=None, args={}, consume='')]
+                            rolearg = "main"
+                        else:
+                            raise j.exceptions.RuntimeError("Cannot find parent with role '%s' for service '%s, there is none, please make sure the service exists."%(role, self))
+
                 self._parent = ays_s[0]
-
-                self.path = j.sal.fs.joinPaths(self.parent.path, "%s!%s@%s" % (self.name, self.instance, self.role))
-
-
-            j.sal.fs.createDir(self.path)
-
+                self.path = j.sal.fs.joinPaths(self.parent.path, str(self))
 
         if self._init is False:
             self.logger.info('INIT service: %s' % self)
@@ -418,6 +411,8 @@ class Service:
             # see if we can find parent if specified (potentially based on role)
             if not self.parent:
                 _initParent()
+
+            j.sal.fs.createDir(self.path)
 
             # run the args manipulation action as an action
             self.args = self.actions.input(self.name, self.role, self.instance, self.args)
@@ -730,7 +725,7 @@ class Service:
             if service.parent==self:
                 res.append(service)
         return res
-    
+
     def isConsumedBy(self, service):
         if self.role in service.producers:
             for s in service.producers[self.role]:

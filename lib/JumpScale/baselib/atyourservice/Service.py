@@ -47,12 +47,12 @@ def getProcessDicts(service, args={}):
 
 class Service:
 
-    def __init__(self, servicerecipe=None, instance=None, path="", args=None, parent=None, originator=None):
+    def __init__(self, servicerecipe=None,instance=None, path="", args=None, parent=None, originator=None):
         """
         @param consume is in format $role!$instance,$role2!$instance2
         """
         self.originator = originator
-        j.logger.get('j.atyourservice.service')
+        logger = j.logger.get('j.atyourservice.service')
 
         if path!="" and j.sal.fs.exists(path):
             self.role,self.instance=j.sal.fs.getBaseName(path).split("!")
@@ -169,8 +169,8 @@ class Service:
         if isinstance(self._parent, str):
             # print ("parent cache miss")
             if self.hrd.exists("parent"):
-                role,instance=self.hrd.get("parent").split("!")
-                self._parent = j.atyourservice.getService(role,instance)
+                role, instance = self.hrd.get("parent").split("!")
+                self._parent = j.atyourservice.getService(role, instance)
             else:
                 self._parent=None
         return self._parent

@@ -489,7 +489,7 @@ class AtYourServiceFactory():
 
         if first:
             if len(res) == 0:
-                j.events.inputerror_critical("cannot find service template %s:%s (%s)" % (domain, name, version), "ays.findTemplates")
+                j.events.inputerror_critical("cannot find service template %s|%s (%s)" % (domain, name, version), "ays.findTemplates")
             return res[0]
         return res
 
@@ -672,7 +672,6 @@ class AtYourServiceFactory():
 
         """
         domain, name, version, instance, role = self.parseKey(key)
-        
         return self.getService(instance=instance,role=role, die=True)
 
     def parseKey(self, key):

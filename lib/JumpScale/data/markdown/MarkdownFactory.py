@@ -164,17 +164,22 @@ class MDComment():
     def __init__(self,text):
         self.text=text
         self.type="comment"
-    
+
     def __repr__(self):
-        pre=""
-        if self.level>1:
-            for i in range(self.level-1):
-                pre+="    "
-            return "%s- %s"%(pre,self.text)
-        else:
-            return "- %s"%(self.text)
+        out="<!--\n%s\n-->\n"%self.text            
 
     __str__=__repr__
+
+class MDComment1Line():
+    def __init__(self,text):
+        self.text=text
+        self.type="comment1line"
+    
+    def __repr__(self):
+        out="<!--%s-->\n"%self.text    
+        return out     
+
+    __str__=__repr__    
 
 class MDBlock():
     def __init__(self,text):
@@ -248,7 +253,7 @@ class MDData():
 
 
     def __repr__(self):
-        out="<!-data|%s|%s-->\n"%(self.name,self.guid)
+        out="<!--data|%s|%s-->\n"%(self.name,self.guid)
         out+="\n"
         out+=str(MDHeader(2,"%s"%self.name))
         out+="\n"
@@ -292,7 +297,9 @@ class MarkdownDocument():
         """
         returns table which needs to be manipulated
         """
-        self.items.append(MDTable())
+        t=MDTable()
+        self.items.append(t)
+        return t
 
     def addMDHeader(self,level,title):
         """
@@ -308,6 +315,11 @@ class MarkdownDocument():
         """
         """
         self.items.append(MDComment(text))    
+
+    def addMDComment1Line(self,text):
+        """
+        """
+        self.items.append(MDComment1Line(text))   
 
     def addMDBlock(self,text):
         """
@@ -355,9 +367,9 @@ class MarkdownDocument():
             linestripped=line.strip()
 
             #substate
-            if linestripped.startswith("<!-") and linestripped.endswith("-->"):
+            if linestripped.startswith("<!--") and linestripped.endswith("-->"):
                 block=addBlock(block)                    
-                substate=linestripped[3:-3].strip()
+                substate=linestripped[4:-3].strip()
                 continue
 
             if line.startswith("<!-"):
@@ -507,6 +519,7 @@ class MarkdownDocument():
                 out+=str(item).strip()+"\n\n"
             else:
                 out+=str(item).rstrip()+"\n"
+                
             prevtype=item.type
         return out
 

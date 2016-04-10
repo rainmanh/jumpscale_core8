@@ -10,7 +10,7 @@ TIMES = {'s': 1,
  'w': 3600 * 24 * 7
 }
 
-
+import datetime
 import time
 
 from TimeInterval import TimeInterval
@@ -101,10 +101,25 @@ class Time_(object):
         
     def epoch2HRDateTime(self,epoch,local=True):
         return self.formatTime(epoch,'%Y/%m/%d %H:%M:%S',local)
+
+    def pythonDateTime2HRDateTime(self,pythonDateTime,local=True):
+        if not isinstance (pythonDateTime,datetime.datetime):
+            raise j.exceptions.Input("needs to be python date.time obj:%s"%pythonDateTime)
+        epoch=pythonDateTime.timestamp()
+        return self.epoch2HRDateTime(epoch)
+
+    def pythonDateTime2Epoch(self,pythonDateTime,local=True):
+        if not isinstance (pythonDateTime,datetime.datetime):
+            raise j.exceptions.Input("needs to be python date.time obj:%s"%pythonDateTime)
+
+        epoch=pythonDateTime.timestamp()
+        return epoch
+
+    def epoch2pythonDateTime(self,epoch):
+        return datetime.datetime.fromtimestamp(epoch)
         
     def epoch2HRTime(self,epoch,local=True):
         return self.formatTime(epoch,'%H:%M:%S',local)
-        
 
     def getMinuteId(self,epoch=None):
         """
@@ -185,7 +200,75 @@ class Time_(object):
             return 0
         try:
             datestr=datestr.strip()
-            return time.mktime(time.strptime(datestr, "%d/%m/%Y"))
+            return time.mktime(time.strptime(datestr, "'%Y/%m/%d"))
         except:
             raise ValueError ("Date needs to be formatted as \"16/06/1981\", also check if date is valid, now format = %s" % datestr)
         
+    def HRDateTime2epoch(self,hrdatetime):
+        """
+        convert string date/time to epoch
+        Needs to be formatted as 16/06/1988 %H:%M:%S
+        """
+        if hrdatetime.strip()=="":
+            return 0
+        try:
+            hrdatetime=hrdatetime.strip()
+            return time.mktime(time.strptime(hrdatetime, "%Y/%m/%d %H:%M:%S"))
+        except:
+            raise ValueError ("Date needs to be formatted as \"16/06/1981 day/month/year\", also check if date is valid, now format = %s" % hrdatetime)
+
+    def any2epoch(self,val):
+        """
+        if list will go item by item until not empty,0 or None
+        if int is epoch
+        if string is human readable format
+        if date.time yeh ...
+        """
+        if j.data.types.list.check(val):
+            for item in val:
+                res= self.any2epoch(item)
+                if res!=0:
+                    return res
+            return 0
+        if val==None:
+            return 0
+        if j.data.types.int.check(val):
+            return val
+        if j.data.types.string.check(val):
+            return self.HRDateTime2epoch(val)
+        if isinstance (val,datetime.datetime):
+            return self.pythonDateTime2Epoch(val)
+        raise j.exceptions.Input("Could not define format of time value, needs to be int, human readable time, list or python datetime obj.")
+
+    def any2HRDateTime(self,val):
+        """
+        if list will go item by item until not empty,0 or None
+        if int is epoch
+        if string is human readable format
+        if date.time yeh ...
+        """
+        epoch=self.any2epoch(val)
+        return self.epoch2HRDateTime(epoch)
+
+    def _test(self):
+        now=self.getTimeEpoch()
+        hr=self.epoch2HRDateTime(now)
+        assert self.HRDateTime2epoch(hr)==now
+        assert self.any2epoch(hr)==now
+        dt=self.epoch2pythonDateTime(now)
+        assert self.any2epoch(dt)==now
+        hr=self.pythonDateTime2HRDateTime(dt)
+        assert self.any2epoch(hr)==now
+        hr=self.any2HRDateTime(now)
+        assert self.any2epoch(hr)==now
+        hr=self.any2HRDateTime(hr)
+        assert self.any2epoch(hr)==now
+        hr=self.any2HRDateTime(dt)
+        assert self.any2epoch(hr)==now
+        hr=self.any2HRDateTime(["",0,dt])
+        assert self.any2epoch(hr)==now
+
+
+
+
+

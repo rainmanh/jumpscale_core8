@@ -513,6 +513,9 @@ class Action:
         if self._stdOutput == False:
             j.tools.console.hideOutput()
 
+        if self.force:
+            self.state="NEW"
+
         if j.actions.showonly==False:
             rcode = 0
             output = ""

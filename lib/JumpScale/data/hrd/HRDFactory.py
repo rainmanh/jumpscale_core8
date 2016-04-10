@@ -8,6 +8,7 @@ class HRDFactory:
     def __init__(self):
         self.__jslocation__="j.data.hrd"
         self.logger = j.logger.get("j.data.hrd")
+        self.logger.disabled=True
 
     def getSchema(self,path=None,content=""):
         return HRDSchema(path=path,content=content)

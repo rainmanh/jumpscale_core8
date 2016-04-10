@@ -216,6 +216,8 @@ class SystemFS(SALObject):
     def __init__(self):
         self.__jslocation__="j.sal.fs"
         self.logger = j.logger.get("j.sal.fs")
+        self.logger.disabled=True
+        
         self.walker = SystemFSWalker()
 
     def copyFile(self, fileFrom, to, createDirIfNeeded=False, overwriteFile=True):

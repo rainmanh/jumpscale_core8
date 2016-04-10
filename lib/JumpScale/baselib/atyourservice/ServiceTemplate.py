@@ -1,9 +1,22 @@
+
+
 from JumpScale import j
-from Service import *
-from ServiceKey import ServiceKey
 import imp
 import sys
 import os
+
+# import JumpScale.tools.actions
+
+from Service import *
+
+# from ServiceTemplateBuilder import *
+
+
+# def loadmodule(name, path):
+#     parentname = ".".join(name.split(".")[:-1])
+#     sys.modules[parentname] = __package__
+#     mod = imp.load_source(name, path)
+#     return mod
 
 
 class ServiceTemplate(object):
@@ -12,16 +25,21 @@ class ServiceTemplate(object):
         self.path = path
 
         base = j.sal.fs.getBaseName(path)
-        self.domain = domain
-        self.name = base
-        self.version = None
+
+        _, self.name, self.version, _, _ = j.atyourservice.parseKey(base)
+        if base.find("__") != -1:
+            self.domain, self.name = base.split("__", 1)
+        else:
+            self.domain = domain
 
         self._init()
+        self.key = j.atyourservice.getKey(self)
+
         self.fix()
 
     def fix(self):
         if j.sal.fs.exists(j.sal.fs.joinPaths(self.path, "actions_mgmt.py")):
-            j.sal.fs.renameFile(j.sal.fs.joinPaths(self.path, "actions_mgmt.py"),self.path_actions)
+            j.sal.fs.renameFile(j.sal.fs.joinPaths(self.path, "actions_mgmt.py"),self.path_actions)                
 
     def _init(self):
         self.path_hrd_template = j.sal.fs.joinPaths(self.path, "service.hrd")
@@ -36,7 +54,6 @@ class ServiceTemplate(object):
         self._schema = None
         self._actions = None
         self._mongoModel = None
-        self.key = ServiceKey.get(domain=self.domain, name=self.name, version=self.version)
 
     @property
     def hrd(self):

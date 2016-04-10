@@ -68,10 +68,16 @@ class MDTable():
 
     def addHeader(self,cols):
         self.header=cols
+        for nr in range(len(self.header)):
+            if self.header[nr]==None or self.header[nr].strip()=="":
+                self.header[nr]=" . "
 
     def addRow(self,cols):
         if len(cols)!=len(self.header):
             raise j.exceptions.Input("cols need to be same size as header. %s vs %s"%(len(cols),len(self.header)))
+        for nr in range(len(cols)):
+            if cols[nr]==None or cols[nr].strip()=="":
+                cols[nr]=" . "
         self.rows.append(cols)
 
     def _findSizes(self):

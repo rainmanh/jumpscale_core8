@@ -121,12 +121,14 @@ class Milestone(Base):
 
 class Issue(Base):
 
-    def __init__(self,repo,ddict={},githubObj=None):
+    def __init__(self,repo,ddict={},githubObj=None,md=None):
         self.repo=repo
         self._ddict=ddict
         self._githubObj=githubObj
         if githubObj!=None:
             self.load()
+        if md!=None:
+            self._loadMD(md)
 
     @property
     def api(self):
@@ -207,10 +209,10 @@ class Issue(Base):
             if label.startswith("state"):
                 states.append(label)
         if len(states)==1:
-            return states[0]
+            return states[0][len("state"):].strip("_")
         else:
             self.state="state_new"
-            return "state_new"
+            return "new"
 
     @state.setter
     def state(self,val):
@@ -223,10 +225,10 @@ class Issue(Base):
             if label.startswith("type"):
                 items.append(label)
         if len(items)==1:
-            return items[0]
+            return items[0][len("type"):].strip("_")
         else:
             self.type="type_unknown"
-            return "type_unknown"        
+            return "unknown"        
 
     @type.setter
     def type(self,val):
@@ -239,9 +241,9 @@ class Issue(Base):
             if label.startswith("priority"):
                 items.append(label)
         if len(items)==1:
-            return items[0]
+            return items[0][len("priority"):].strip("_")
         else:
-            self.priority="priority_normal"
+            self.priority="normal"
             return self.priority 
 
     @priority.setter
@@ -255,10 +257,9 @@ class Issue(Base):
             if label.startswith("process"):
                 items.append(label)
         if len(items)==1:
-            return items[0]
+            return items[0][len("process"):].strip("_")
         else:
-            self.priority=""
-            return self.priority 
+            return ""
 
     @process.setter
     def process(self,val):
@@ -267,7 +268,7 @@ class Issue(Base):
     def _setLabels(self,val,category):
 
         if val.startswith(category):
-            val=val[7:]
+            val=val[len(category):]
         val=val.strip("_")
         val=val.lower()
 
@@ -352,6 +353,39 @@ class Issue(Base):
         else:
             ms=self.repo.client.getMilestone(githubObj=self.api.milestone)
             self._ddict["milestone"]="%s:%s"%(ms.number,ms.title)
+
+    def getMarkdown(self,priotype=True):
+        md=j.data.markdown.getDocument()
+        md.addMDComment1Line("issue:%s"%self.number)
+        md.addMDHeader(4,self.title)
+        if self.body.strip()!="":
+            md.addMDBlock(self.body)
+        h=[self.state,"[%s](%s)"%(self.number,self.url)]
+        rows=[]
+        t=md.addMDTable()
+        t.addHeader(h)
+        t.addRow(["milestone",self.milestone])
+        t.addRow([self.priority,self.type])
+        t.addRow(["assignee",self.assignee])
+        t.addRow(["time",self.time])
+
+        if self.comments!=[]:
+            for comment in self.comments:
+                md.addMDHeader(5,"comment")
+                md.addMDBlock(comment["body"])
+                h=[comment["user"],"[%s](%s)"%(comment["id"],comment["url"])]
+                t=md.addMDTable()
+                t.addHeader(h)
+                t.addRow(["time",comment["time"]])
+
+        return md
+
+    def _loadMD(self,md):
+        from IPython import embed
+        print ("DEBUG NOW loadmd")
+        embed()
+        
+
             
 replacelabels={'bug':'type_bug',
  'duplicate':'process_duplicate',
@@ -396,6 +430,93 @@ class GithubRepo():
             if item.name==name:
                 return item
         raise RuntimeError("not found")
+
+    def issues_by_type(self,filter=None):
+        """
+        filter is method which takes  issue as argument and returns True or False to include
+        """
+        res={}
+        for item in self.types:
+            res[item]={}
+            for issue in self.issues:
+                if issue.type==item:
+                    if filter==None or filter(issue):
+                        res[item].append(issue)
+        return res
+
+    def issues_by_state(self,filter=None):
+        """
+        filter is method which takes  issue as argument and returns True or False to include
+        """
+        res={}
+        for item in self.states:
+            res[item]={}
+            for issue in self.issues:
+                if issue.state==item:
+                    if filter==None or filter(issue):
+                        res[item].append(issue)
+        return res
+
+    def issues_by_priority(self,filter=None):
+        """
+        filter is method which takes  issue as argument and returns True or False to include
+        """
+        res={}
+        for item in self.priorities:
+            res[item]={}
+            for issue in self.issues:
+                if issue.priority==item:
+                    if filter==None or filter(issue):
+                        res[item].append(issue)
+        return res
+    
+    def issues_by_type_state(self,filter=None,collapsepriority=True):
+        """
+        filter is method which takes  issue as argument and returns True or False to include
+        returns dict of dict keys: type, state and then issues sorted following priority
+        """
+        res={}
+        for type in self.types:
+            res[type]={}
+            for state in self.states:
+                res[type][state]={}
+                for priority in self.priorities:
+                    res[type][state][priority]=[]
+                    for issue in self.issues:
+                        if issue.type==type and issue.state==state :
+                            if filter==None or filter(issue):
+                                res[type][state][priority].append(issue)
+                if collapsepriority:
+                    #sort the issues following priority
+                    temp=res[type][state]
+                    res[type][state]=[]
+                    for priority in self.priorities:
+                        for subitem in temp[priority]:
+                            res[type][state].append(subitem)
+        return res
+
+
+    @property
+    def types(self):
+        return ["story","ticket","task","bug","feature","question","monitor","unknown"]
+
+    @property
+    def priorities(self):
+        return ["critical","urgent","normal","minor"]
+
+    @property
+    def states(self):
+        return ["new","accepted","question","inprogress","verification","closed"]
+
+
+    def _labelSubset(self,cat):
+        res=[]
+        for item in self.labels:
+            if item.startswith(cat):
+                item=item[len(cat):].strip("_")
+                res.append(item)
+        res.sort()
+        return res
 
     def getColor(self,name):
 

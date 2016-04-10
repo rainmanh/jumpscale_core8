@@ -8,6 +8,8 @@ import imp
 import sys
 from Recurring import Recurring
 from ServiceState import ServiceState
+from ServiceInstance import ServiceInstance
+from ServiceRecipe import 
 
 
 def loadmodule(name, path):
@@ -66,11 +68,15 @@ class Service:
             key_input = j.sal.fs.getBaseName(path)
             self._rememberActions = True
         else:
-            if j.data.types.string.check(servicerecipe):
-                raise j.exceptions.RuntimeError("no longer supported, pass servicerecipe")
-            assert servicerecipe, "service recipe cannot be None if path not specified"
-            assert instance, "instance needs to be specified"
-            assert path, "path needs to be specified of service"
+            if not isinstance(servicerecipe,ServiceRecipe):
+                raise j.exceptions.Input("pass Service Recipe Object.")
+
+            if not isinstance(instance,ServiceInstance):
+                raise j.exceptions.Input("pass Service Instance Object.")
+
+            if not j.data.types.string.check(path) or path=="":
+                raise j.exceptions.Input("path needs to be specified of service, cannot be empty and needs to be string.")
+
             key_input = servicerecipe
             self._recipe = servicerecipe
             self._rememberActions = False

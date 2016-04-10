@@ -635,11 +635,7 @@ class AtYourServiceFactory():
         if shortkey in self.services:
             return self.services[shortkey]
         if die:
-<<<<<<< HEAD
             raise j.exceptions.Input("Cannot get ays service '%s', did not find" % key.short, "ays.getservice")
-=======
-            j.events.inputerror_critical("Cannot get ays service '%s', did not find" % shortkey,"ays.getservice")
->>>>>>> bb9ba59ffd79641753a5c444c041b59716083823
         else:
             return None
 

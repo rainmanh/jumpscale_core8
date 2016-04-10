@@ -63,14 +63,14 @@ class Blueprint(object):
             if model is not None:
                 for key, item in model.items():
                     # print ("blueprint model execute:%s %s"%(key,item))
-                    aysname, aysinstance = key.split("_", 1)
+                    aysname, aysinstance = key.split("__", 1)
                     if not aysname.startswith('blueprint.'):
                         blueaysname = 'blueprint.%s' % aysname
                         try:
                             r = j.atyourservice.getRecipe(name=blueaysname)
                         except j.exceptions.Input:
                             r = j.atyourservice.getRecipe(name=aysname)
-                    yaml=model['%s_%s' % (aysname, aysinstance)]
+                    yaml=model['%s__%s' % (aysname, aysinstance)]
                     aysi=r.newInstance(instance=aysinstance, args=item, yaml=yaml)
                     aysi.init()                    
 

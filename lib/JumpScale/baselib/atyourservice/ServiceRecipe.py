@@ -1,5 +1,6 @@
 from JumpScale import j
 from ServiceTemplate import ServiceTemplate
+
 from Service import Service, loadmodule
 from inspect import getmembers, isfunction, isclass, getsource
 
@@ -77,6 +78,7 @@ class ServiceRecipe(ServiceTemplate):
         self._copyActions()
 
     def _checkdef(self, actionmethod, content, decorator=True):
+        content=content.replace("def action_","def ")
         a = ActionMethod(self, actionmethod, content)
         self.actionmethods[actionmethod] = a
         if actionmethod == 'input':
@@ -105,6 +107,7 @@ class ServiceRecipe(ServiceTemplate):
         """
         actionmethodsRequired = ["input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
                                  "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata"]
+
         self._out = j.data.text.strip(self._out)
 
         if j.sal.fs.exists(self.template.path_actions):
@@ -112,12 +115,19 @@ class ServiceRecipe(ServiceTemplate):
             classes_list = [cls for cls in getmembers(actions) if isclass(cls[1])]
             if classes_list:
                 for func in getmembers(classes_list[0][1]):
+                    methodName=func[0]
                     if isfunction(func[1]):
-                        decorator = True if func[0] in actionmethodsRequired else False
-                        self._checkdef(func[0], getsource(func[1]), decorator)
+                        decorator = True if methodName in actionmethodsRequired else False
+                        if methodName.startswith("action"):
+                            decorator=True
+                            methodName=methodName[6:].strip("_")    
+                                                                            
+                        self._checkdef(methodName, getsource(func[1]), decorator)
+
                 # [self._checkdef(func[0], getsource(func[1])) for func in getmembers(classes_list[0][1]) if isfunction(func[1])]
                 #self._checkdef(prop[0], getsource(prop[1]), property=True)
                 # props = [prop for prop in getmembers(classes_list[0][1]) if isinstance(prop[1], property)]
+
         for method in actionmethodsRequired:
             if method not in self.actionmethods:
                 self._checkdef(method, "")  # remember action

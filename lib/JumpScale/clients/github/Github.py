@@ -310,11 +310,9 @@ class Issue(Base):
                     newlabels.append(label)
 
         if labels!=newlabels:
-            from IPython import embed
-            print ("DEBUG NOW change labels")
-            embed()
+            print("change label:%s for %s"%(labels,self.api.title))
             labels2set=[self.repo.getLabel(item) for item in newlabels]
-            self.api.set_labels(labels2set)
+            self.api.set_labels(*labels2set)
             labels=newlabels
 
         comments=[comment for comment in self.api.get_comments()]
@@ -358,7 +356,7 @@ class Issue(Base):
         md=j.data.markdown.getDocument()
         md.addMDComment1Line("issue:%s"%self.number)
         md.addMDHeader(4,self.title)
-        if self.body.strip()!="":
+        if self.body!=None and self.body.strip()!="":
             md.addMDBlock(self.body)
         h=[self.state,"[%s](%s)"%(self.number,self.url)]
         rows=[]

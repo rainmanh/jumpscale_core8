@@ -8,8 +8,7 @@ import imp
 import sys
 from Recurring import Recurring
 from ServiceState import ServiceState
-from ServiceInstance import ServiceInstance
-from ServiceRecipe import 
+# from ServiceRecipe import ServiceRecipe
 
 
 def loadmodule(name, path):
@@ -68,11 +67,11 @@ class Service:
             key_input = j.sal.fs.getBaseName(path)
             self._rememberActions = True
         else:
-            if not isinstance(servicerecipe,ServiceRecipe):
-                raise j.exceptions.Input("pass Service Recipe Object.")
+            # if not isinstance(servicerecipe,ServiceRecipe):
+            #     raise j.exceptions.Input("pass Service Recipe Object.")
 
-            if not isinstance(instance,ServiceInstance):
-                raise j.exceptions.Input("pass Service Instance Object.")
+            if not j.data.types.string.check(instance) or instance=="":
+                raise j.exceptions.Input("Instance needs to be a string.")
 
             if not j.data.types.string.check(path) or path=="":
                 raise j.exceptions.Input("path needs to be specified of service, cannot be empty and needs to be string.")
@@ -551,6 +550,12 @@ class Service:
         return list of producers which are waiting to be executing the action
         """
         for producer in self.getProducersRecursive(set(), set()):
+            #check that the action exists, no need to wait for other actions, appart from when init or install not done
+            if producer.getAction(action)==None:
+                # actionrunobjInit = producer.state.getSet("init")
+                # actionrunobjInstall = producer.state.getSet("install")
+                # if actionrunobjInit.state == "OK" and actionrunobjInstall.state == "OK" :
+                continue
             actionrunobj = producer.state.getSet(action)
             if actionrunobj.state != "OK":
                 producersChanged.add(producer)
@@ -669,7 +674,25 @@ class Service:
         if printonly:
             # TODO printonyl
             return
-        getattr(self.actions, action)()
+
+        self.actions.service=self
+        a=self.getAction(action)
+
+        #when none means does not exist so does not have to be executed
+        if a!=None:
+            return a()
+
+    def getAction(self,action):    
+        """
+        @return None when not exist
+        """        
+        try:
+            a=getattr(self.actions, action)
+        except Exception as e:
+            if str(e).find("object has no attribute")!=-1:
+                return None
+            raise Exception(e)
+        return a
 
     def _getDisabledProducers(self):
         producers = dict()

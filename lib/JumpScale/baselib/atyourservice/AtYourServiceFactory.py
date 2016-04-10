@@ -443,13 +443,25 @@ class AtYourServiceFactory():
             todo = self.findTodo(action=action)
 
     def findTodo(self, action="install"):
+        
+        if action!="init":
+            todoinit=self.findTodo("init")
+            if len(todoinit)>0:
+                self.do("init")
+
+        if action!="init" and action!="install":
+            todoinstall=self.findTodo("install")
+            if len(todoinstall)>0:
+                self.do("install")
+
         todo = list()
         for key, service in self.services.items():
             actionstate = service.state.getSet(action)
             if actionstate.state != "OK":
                 producersWaiting = service.getProducersWaiting(action, set())
                 if len(producersWaiting) == 0:
-                    todo.append(service)
+                    if service.getAction(action)!=None:
+                        todo.append(service)
                     if j.atyourservice.debug:
                         print("%s waiting for install" % service)
                 elif j.application.debug:

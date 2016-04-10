@@ -1,4 +1,7 @@
 from JumpScale import j
+
+# import JumpScale.baselib.actions
+
 from ServiceTemplate import ServiceTemplate
 
 from Service import Service, loadmodule
@@ -32,8 +35,6 @@ class ActionMethod():
 class ServiceRecipe(ServiceTemplate):
 
     def __init__(self, path="",template=None,aysrepopath=""):
-        self.logger = j.logger.get('j.atyourservice.recipe')
-        self.key = template.key
 
         aysrepopath = j.atyourservice.basepath
         if not aysrepopath:
@@ -47,12 +48,11 @@ class ServiceRecipe(ServiceTemplate):
             domain = self.state.hrd.get("template.domain")
             version = self.state.hrd.get("template.version")
             self.template = j.atyourservice.getTemplate(domain=domain, name=name, version=version)
+            self.name = self.template.name
         else:
             self.path = j.sal.fs.joinPaths(aysrepopath,"recipes", template.name)
             self.name = template.name
             self.template = template
-
-        self.version = self.template.version
         self.domain = self.template.domain
 
         # copy the files
@@ -77,6 +77,8 @@ class ServiceRecipe(ServiceTemplate):
 
         self._copyActions()
 
+
+
     def _checkdef(self, actionmethod, content, decorator=True):
         content=content.replace("def action_","def ")
         a = ActionMethod(self, actionmethod, content)
@@ -93,16 +95,11 @@ class ServiceRecipe(ServiceTemplate):
     def _copyActions(self):
         self._out = """
         from JumpScale import j
-
         ActionMethodDecorator=j.atyourservice.getActionMethodDecorator()
-
-
         class actionmethod(ActionMethodDecorator):
             def __init__(self,*args,**kwargs):
                 ActionMethodDecorator.__init__(self,*args,**kwargs)
-                self.selfobjCode="service=j.atyourservice.getService(name='$(service.name)', role='$(service.role)', instance='$(service.instance)', die=True);selfobj=service.actions;selfobj.service=service"
-
-
+                self.selfobjCode="service=j.atyourservice.getService(role='$(service.role)', instance='$(service.instance)', die=True);selfobj=service.actions;selfobj.service=service"
         class Actions():
         """
         actionmethodsRequired = ["input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
@@ -143,31 +140,31 @@ class ServiceRecipe(ServiceTemplate):
 
         instance = instance.lower()
 
-        services = j.atyourservice.findServices(name=self.name, instance=instance)
-        self.key.instance = instance
+        service = j.atyourservice.getService(role=self.role, instance=instance, die=False)
 
-        if services:
-            self.logger.warning("NEWINSTANCE: Service instance %s exists." % self.key)
-            service = services[0]
+        if service is not None:
+            print("NEWINSTANCE: Service instance %s!%s  exists." % (self.name, instance))
             service.args.update(args or {})  # needed to get the new args in
             service._recipe = self
             service.init()
 
         else:
+            shortkey = "%s!%s" % (self.role, instance)
+
             if path:
                 fullpath = path
             elif parent is not None:
-                fullpath = j.sal.fs.joinPaths(parent.path, str(self.key))
+                fullpath = j.sal.fs.joinPaths(parent.path, shortkey)
             else:
                 ppath = j.sal.fs.joinPaths(j.atyourservice.basepath, "services")
-                fullpath = j.sal.fs.joinPaths(ppath, str(self.key))
+                fullpath = j.sal.fs.joinPaths(ppath, shortkey)
 
             if j.sal.fs.isDir(fullpath):
                 j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (self.role, instance, fullpath))
 
             service = Service(self, instance=instance, args=args, path=fullpath, parent=parent, originator=originator)
 
-            j.atyourservice._services[service.key.short] = service
+            j.atyourservice._services[service.shortkey]=service
 
             if not j.sal.fs.exists(self.template.path_hrd_schema):
                 service.init(yaml=yaml)

@@ -97,7 +97,7 @@ class ServiceRecipe(ServiceTemplate):
         class actionmethod(ActionMethodDecorator):
             def __init__(self,*args,**kwargs):
                 ActionMethodDecorator.__init__(self,*args,**kwargs)
-                self.selfobjCode="service=j.atyourservice.getService(name='$(service.name)', role='$(service.role)', instance='$(service.instance)', die=True);selfobj=service.actions;selfobj.service=service"
+                self.selfobjCode="service=j.atyourservice.getService(role='$(service.role)', instance='$(service.instance)', die=True);selfobj=service.actions;selfobj.service=service"
         class Actions():
         """
         actionmethodsRequired = ["input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
@@ -130,11 +130,10 @@ class ServiceRecipe(ServiceTemplate):
 
         instance = instance.lower()
 
-        services = j.atyourservice.findServices(name=self.name, instance=instance)
+        service = j.atyourservice.getService(role=self.role, instance=instance, die=False)
 
-        if services:
+        if service is not None:
             print("NEWINSTANCE: Service instance %s!%s  exists." % (self.name, instance))
-            service = services[0]
             service.args.update(args or {})  # needed to get the new args in
             service._recipe = self
             service.init()

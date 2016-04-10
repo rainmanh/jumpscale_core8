@@ -614,13 +614,12 @@ class AtYourServiceFactory():
         template = self.getTemplate(domain=domain,name=name, version=version, role=role)
         return template.recipe
 
-    def getService(self,  name='', instance='main', role='', die=True):
+    def getService(self, role='', instance='main', die=True):
         """
         Return service indentifier by domain,name and instance
         throw error if service is not found or if more than one service is found
         """
-        role = role if role else name.split['.'][0]
-        shortkey="%s!%s@%s" % (name, instance, role)
+        shortkey="%s!%s"%(role,instance)
         if shortkey in self.services:
             return self.services[shortkey]
         if die:

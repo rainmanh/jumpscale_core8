@@ -120,7 +120,7 @@ class Service:
 
     @property
     def shortkey(self):
-        return "%s!%s@%s"%(self.name, self.instance, self.role)
+        return "%s!%s"%(self.role,self.instance)
 
 
     @property
@@ -170,6 +170,7 @@ class Service:
             # print ("parent cache miss")
             if self._hrd is not None and self.hrd.exists("parent"):
                 role, instance = self.hrd.get("parent").split("!")
+                instance = instance.split('@')[0]
                 self._parent = j.atyourservice.getService(role, instance)
             else:
                 self._parent=None
@@ -339,7 +340,7 @@ class Service:
                     service = j.atyourservice.getService(role, instance)
                     producerSet.add(service)
 
-                self._producers[key.role] = list(producerSet)
+                self._producers[key] = list(producerSet)
 
             if self.parent is not None:
                 self._producers[self.parent.role]=[self.parent]
@@ -369,32 +370,31 @@ class Service:
 
                 if role in self.args:
                     # has been speficied or empty
-                    rolearg = self.args[role].strip()
+                    instance = self.args[role].strip()
                 else:
-                    rolearg = ""
+                    instance = ""
 
-                if rolearg == "":
-                    if role != name:
-                        ays_s = j.atyourservice.findServices(name=name)
-                    else:
-                        ays_s = j.atyourservice.findServices(role=role)
+                if instance == "":
+                    ays_s = j.atyourservice.findServices(role=role)
+                else:
+                    ays_s = j.atyourservice.findServices(role=role, instance=instance)
 
-                    if len(ays_s) == 1:
-                        # we found 1 service of required role, will take that one
-                        aysi = ays_s[0]
-                        rolearg = aysi.instance
-                        self.args[role] = rolearg
-                    elif len(ays_s) > 1:
-                        raise j.exceptions.RuntimeError("Found more than one parent candidate with role '%s' for service '%s" % (role, self))
+                if len(ays_s) == 1:
+                    # we found 1 service of required role, will take that one
+                    aysi = ays_s[0]
+                    rolearg = aysi.instance
+                    self.args[role] = rolearg
+                elif len(ays_s) > 1:
+                    raise j.exceptions.RuntimeError("Found more than one parent candidate with role '%s' for service '%s" % (role, self))
+                else:
+                    if parent.auto:
+                        ays_s = [j.atyourservice.new(name=parent.parent, instance='main', version='', domain='', path=None, parent=None, args={}, consume='')]
+                        rolearg = "main"
                     else:
-                        if parent.auto:
-                            ays_s = [j.atyourservice.new(name=parent.parent, instance='main', version='', domain='', path=None, parent=None, args={}, consume='')]
-                            rolearg = "main"
-                        else:
-                            raise j.exceptions.RuntimeError("Cannot find parent with role '%s' for service '%s, there is none, please make sure the service exists."%(role, self))
+                        raise j.exceptions.RuntimeError("Cannot find parent with role '%s' for service '%s, there is none, please make sure the service exists."%(role, self))
 
                 self._parent = ays_s[0]
-                self.path = j.sal.fs.joinPaths(self.parent.path, str(self))
+                self.path = j.sal.fs.joinPaths(self.parent.path,"%s!%s"%(self.role,self.instance))
 
         if self._init is False:
             self.logger.info('INIT service: %s' % self)
@@ -481,8 +481,7 @@ class Service:
         if consumes:
             for consumeitem in consumes:
                 #parent exists
-                name = consumeitem.consume_link
-                role = name.split('.')[0]
+                role = consumeitem.consume_link
                 consumename = consumeitem.name
 
                 if role in self.producers:
@@ -493,10 +492,7 @@ class Service:
                     instancenames = self.args[consumename]
 
                 ays_s = list()
-                if role != name:
-                    candidates = j.atyourservice.findServices(name=consumeitem.consume_link)
-                else:
-                    candidates = j.atyourservice.findServices(role=consumeitem.consume_link)
+                candidates = j.atyourservice.findServices(role=consumeitem.consume_link)
                 if candidates:
                     if instancenames:
                         ays_s = [candidate for candidate in candidates if candidate.instance in instancenames]

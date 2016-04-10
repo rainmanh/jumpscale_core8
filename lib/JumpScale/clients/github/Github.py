@@ -104,7 +104,7 @@ class GitHubClient(object):
 
         if not dest:
             if codeDir == None:
-                    codeDir = self.executor.cuisine.core.dir_paths['codeDir']
+                codeDir = self.executor.cuisine.core.dir_paths['codeDir']
 
             dest = '%(codedir)s/%(type)s/%(account)s/%(repo_name)s' % {
                 'codedir': codeDir,

@@ -27,7 +27,7 @@ class Caddy():
     def build(self, ssl=False, start=True, dns=None):
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/mholt/caddy", action=True)
-        self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'caddy'), '$binDir', action=True)
+        self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'caddy'), '$binDir')
         self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
 
         if ssl and dns:

@@ -519,7 +519,7 @@ class AtYourServiceFactory():
         return res
 
     def findAYSRepos(self):
-        return [j.sal.fs.getDirName(repo) for repo in j.sal.fs.walk(j.dirs.codeDir, 1, '.ays')]
+        return (root for root, dirs, files in os.walk(j.dirs.codeDir) if '.ays' in files)
 
     def findServices(self, name="", instance="",version="", domain="", parent=None, first=False, role="", node=None, include_disabled=False):
         res = []

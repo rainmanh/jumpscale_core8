@@ -169,10 +169,8 @@ class HRDSchema():
                 try:
                     hrdtype.default=hrdtype.typeclass.get_default()
                 except:
-                    import ipdb
-                    ipdb.set_trace()
-
-
+                    print ("issue in default from hrdtype")
+                    from pudb import set_trace; set_trace() 
 
             if tags.tagExists("descr"):
                 hrdtype.description=tags.tagGet("descr")
@@ -230,6 +228,9 @@ class HRDSchema():
                 self.items_with_alias[alias]=hrdtype
 
     def hrdGet(self,hrd=None,args={},path=None):
+        """
+        populate hrd out of the schema
+        """
         if hrd==None:
             hrd=j.data.hrd.get(content="",prefixWithName=False)
         for key,ttype in self.items.items():

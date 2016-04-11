@@ -170,12 +170,12 @@ class AtYourServiceFactory():
                                                     case_sensitivity='os', followSymlinks=True, listSymlinks=False):
                 service_path = j.sal.fs.getDirName(hrd_path)
                 service = Service(path=service_path, args=None)
-                self._services[service.shortkey]=service
+                self._services[service.key]=service
         return self._services
 
     def _nodechildren(self, service, parent=None, producers=[]):
         parent = {} if parent is None else parent
-        me = {"name": service.shortkey, "children": []}
+        me = {"name": service.key, "children": []}
         parent["children"].append(me)
         details = service.hrd.getHRDAsDict()
         details = {key: value for key, value in details.items() if key not in ['service.domain', 'service.name', 'service.version', 'parent']}
@@ -186,7 +186,7 @@ class AtYourServiceFactory():
                 child = j.atyourservice.getService(role=role, instance=instance)
                 for _, producerinstances in child.producers.items():
                     for producer in producerinstances:
-                        producers.append([child.shortkey, producer.shortkey])
+                        producers.append([child.key, producer.key])
                 self._nodechildren(child, me, producers)
         return parent
 
@@ -202,7 +202,7 @@ class AtYourServiceFactory():
             service = self.services.get(servicekey)
             for _, producerinstances in service.producers.items():
                 for producer in producerinstances:
-                    producers.append([child.shortkey, producer.shortkey])
+                    producers.append([child.key, producer.key])
             parents["children"].append(self._nodechildren(service, {"children": [], "name": servicekey}, producers))
         self._servicesTree['parentchild'] = parents
         self._servicesTree['producerconsumer'] = producers
@@ -538,7 +538,7 @@ class AtYourServiceFactory():
     def findServices(self, name="", instance="",version="", domain="", parent=None, first=False, role="", node=None, include_disabled=False):
         res = []
 
-        for shortkey, service in self.services.items():
+        for key, service in self.services.items():
             # if service._state and service._state.hrd.getBool('disabled', False) and not include_disabled:
             #     continue
             if not(name == "" or service.name == name):
@@ -631,9 +631,9 @@ class AtYourServiceFactory():
         Return service indentifier by domain,name and instance
         throw error if service is not found or if more than one service is found
         """
-        shortkey="%s!%s"%(role,instance)
-        if shortkey in self.services:
-            return self.services[shortkey]
+        key="%s!%s"%(role,instance)
+        if key in self.services:
+            return self.services[key]
         if die:
             raise j.exceptions.Input("Cannot get ays service '%s', did not find" % key.short, "ays.getservice")
         else:
@@ -645,22 +645,25 @@ class AtYourServiceFactory():
         """
 
         different formats
-        - $domain|$name!$instance
-        - $name
-        - !$instance
-        - $name!$instance
 
-        version is added with ()
-        - e.g. node.ssh (1.0)
+        for services:
+        ```$role!$instance```
 
-        """
-        key = service.name
-        if service.domain != "":
-            key = "%s|%s" % (service.domain, service.name)
-        if hasattr(service, "instance") and service.instance is not None and service.instance != "":
+        for servicetemplates or servicerecipes
+        ```$domain|$name``` if domain is not empty or not ays
+
+        """        
+        if isinstance(service,Service):
+            key = service.role
             key += "!%s" % (service.instance)
-        if service.version != "":
-            key += " (%s)" % service.version
+        elif isinstance(service,ServiceTemplate) or isinstance(service,ServiceRecipe):
+            
+            if service.domain != "" and service.domain != "ays" :
+                key = "%s|%s" % (service.domain, service.name)
+            else:
+                key = service.name
+        # if service.version != "":
+        #     key += " (%s)" % service.version
         return key.lower()
 
     def getServiceFromKey(self, key):
@@ -668,14 +671,9 @@ class AtYourServiceFactory():
         key in format $domain|$name!$instance@role ($version)
 
         different formats
-        - $domain|$name!$instance
-        - $name
+        - @$role!$instance or $role!$instance
         - !$instance
-        - $name!$instance
         - @role
-
-        version is added with ()
-        - e.g. node.ssh (1.0)
 
         examples
         - find me service with role ns: '@ns' if more than 1 then there will be an error

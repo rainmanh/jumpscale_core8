@@ -83,7 +83,9 @@ class ServiceRecipe(ServiceTemplate):
         content=content.replace("def action_","def ")
         a = ActionMethod(self, actionmethod, content)
         self.actionmethods[actionmethod] = a
-        if actionmethod == 'input':
+        if actionmethod == "input":
+            decorator=False
+        if actionmethod == 'input' and content=="":
             self._out += '\n    def input(self,name,role,instance,serviceargs):\n        return serviceargs\n\n'
         elif not decorator and content:
             self._out += content
@@ -149,22 +151,22 @@ class ServiceRecipe(ServiceTemplate):
             service.init()
 
         else:
-            shortkey = "%s!%s" % (self.role, instance)
+            key = "%s!%s" % (self.role, instance)
 
             if path:
                 fullpath = path
             elif parent is not None:
-                fullpath = j.sal.fs.joinPaths(parent.path, shortkey)
+                fullpath = j.sal.fs.joinPaths(parent.path, key)
             else:
                 ppath = j.sal.fs.joinPaths(j.atyourservice.basepath, "services")
-                fullpath = j.sal.fs.joinPaths(ppath, shortkey)
+                fullpath = j.sal.fs.joinPaths(ppath, key)
 
             if j.sal.fs.isDir(fullpath):
                 j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (self.role, instance, fullpath))
 
             service = Service(self, instance=instance, args=args, path=fullpath, parent=parent, originator=originator)
 
-            j.atyourservice._services[service.shortkey]=service
+            j.atyourservice._services[service.key]=service
 
             if not j.sal.fs.exists(self.template.path_hrd_schema):
                 service.init(yaml=yaml)
@@ -244,7 +246,8 @@ class ServiceRecipe(ServiceTemplate):
                     items += j.sal.fs.listDirsInDir(
                         path=src, recursive=False, dirNameOnly=False, findDirectorySymlinks=False)
 
-                items = [(item, "%s/%s" % (dest, j.sal.fs.getshortkey(item)), link)
+                raise RuntimeError("getshort_key does not even exist")
+                items = [(item, "%s/%s" % (dest, j.sal.fs.getshort_key(item)), link)
                          for item in items]
             else:
                 items = [(src, dest, link)]

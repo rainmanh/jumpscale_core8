@@ -129,9 +129,9 @@ class Service:
     def key(self):
         return j.atyourservice.getKey(self)
 
-    @property
-    def shortkey(self):
-        return "%s!%s"%(self.role,self.instance)
+    # @property
+    # def key(self):
+    #     return "%s!%s"%(self.role,self.instance)
 
 
     @property
@@ -266,7 +266,7 @@ class Service:
     #     method=self._getActionMethodMgmt(name)
     #     if method==None:
     #         return None
-    #     action=j.actions.add(method, kwargs={"ayskey":self.shortkey}, die=True, stdOutput=False, \
+    #     action=j.actions.add(method, kwargs={"ayskey":self.key}, die=True, stdOutput=False, \
     #             errorOutput=False, executeNow=True,force=True, showout=False, actionshow=True,selfGeneratorCode='selfobj=None')
     #     from IPython import embed
     #     print ("DEBUG NOW runaction")
@@ -379,9 +379,10 @@ class Service:
                 if '.' in name:
                     role = name.split('.', 1)[0]
 
-                if role in self.args:
+                #parent.name is name of element in scheme which points to item we are filling in
+                if parent.name in self.args:
                     # has been speficied or empty
-                    instance = self.args[role].strip()
+                    instance = self.args[parent.name].strip()
                 else:
                     instance = ""
 
@@ -396,13 +397,16 @@ class Service:
                     rolearg = aysi.instance
                     self.args[role] = rolearg
                 elif len(ays_s) > 1:
-                    raise j.exceptions.RuntimeError("Found more than one parent candidate with role '%s' for service '%s" % (role, self))
+                    raise j.exceptions.Input("Found more than one parent candidate with role '%s' for service '%s'" % (role, self))
                 else:
                     if parent.auto:
                         ays_s = [j.atyourservice.new(name=parent.parent, instance='main', version='', domain='', path=None, parent=None, args={}, consume='')]
                         rolearg = "main"
                     else:
-                        raise j.exceptions.RuntimeError("Cannot find parent with role '%s' for service '%s, there is none, please make sure the service exists."%(role, self))
+                        if instance!="":
+                            raise j.exceptions.Input("Cannot find parent '%s!%s' for service '%s, there is none, please make sure the service exists."%(role,instance, self))
+                        else:
+                            raise j.exceptions.Input("Cannot find parent with role '%s' for service '%s, there is none, please make sure the service exists."%(role, self))
 
                 self._parent = ays_s[0]
                 self.path = j.sal.fs.joinPaths(self.parent.path,"%s!%s"%(self.role,self.instance))
@@ -421,7 +425,7 @@ class Service:
 
             # see if we can find parent if specified (potentially based on role)
             if not self.parent:
-                _initParent()
+                _initParent()  #@question what exactly does this thing do & why (despiegk)
 
             j.sal.fs.createDir(self.path)
 
@@ -447,7 +451,7 @@ class Service:
             self.hrd.set("service.instance", self.instance)
 
             if self.parent is not None:
-                self.hrd.set("parent", self.parent.shortkey)
+                self.hrd.set("parent", self.parent.key)
                 self.consume(self.parent)
 
             self._manipulateHRD()
@@ -539,7 +543,7 @@ class Service:
                 producers = []
                 for service in services:
                     if service.key not in producers:
-                        producers.append(service.shortkey)
+                        producers.append(service.key)
 
                 self.hrd.set("producer.%s" % key, producers)
 
@@ -783,7 +787,7 @@ class Service:
 
     def __repr__(self):
         # return '%s|%s!%s(%s)' % (self.domain, self.name, self.instance, self.version)
-        return self.shortkey
+        return self.key
 
     def __str__(self):
         return self.__repr__()

@@ -42,6 +42,8 @@ class Blueprint(object):
         for model in self.models:
             if model!=None:
                 for key,item in model.items():
+                    if key.find("__")==-1:
+                        raise j.exceptions.Input("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'"%key)
                     aysname,aysinstance=key.split("__",1)
                     if not aysname.startswith('blueprint.'):
                         blueaysname = 'blueprint.%s' % aysname
@@ -82,8 +84,8 @@ class Blueprint(object):
         try:
             model=j.data.serializer.yaml.loads(content)
         except Exception as e:
-            msg="Could not process blueprint: '%s', line: '%s', content '%s'\nerror:%s"%(self.path,nr,content,e)
-            raise j.exceptions.RuntimeError(msg)
+            msg="Could not process blueprint (load from yaml):\npath:'%s',\nline: '%s', content:\n######\n\n%s\n######\nerror:%s"%(self.path,nr,content,e)
+            raise j.exceptions.Input(msg)
 
         self.models.append(model)
 

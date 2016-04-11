@@ -373,9 +373,11 @@ class MarkdownDocument():
             linestripped=line.strip()
 
             #substate
-            if linestripped.startswith("<!--") and linestripped.endswith("-->"):
-                block=addMDComment1Line(block)                    
+            if linestripped.startswith("<!--") and linestripped.endswith("-->"):                                    
                 substate=linestripped[4:-3].strip()
+                self.addMDComment1Line(substate)
+                block=""
+                state=""
                 continue
 
             if line.startswith("<!-"):

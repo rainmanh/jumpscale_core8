@@ -405,11 +405,11 @@ class AtYourServiceFactory():
                        "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata"]
         else:
             actions = [action]
-
         for _, service in self.services.items():
             if [service for action in actions if service.state.getSet(action).state == 'CHANGED']:
                 changed.append(service)
-                changed.extend([producer for _, producer in service.producers()])
+                for producers in [producers for _, producers in service.producers.items()]:
+                    changed.extend(producers)
         return changed
 
     def do(self, action="install", printonly=False, remember=True, allservices=False, ask=False):
@@ -426,9 +426,9 @@ class AtYourServiceFactory():
                 toChange = j.tools.console.askChoiceMultiple(list(toChange), sort=False)
 
             for service in toChange:
-                if action in service.actions:
-                    actionobj = service.actions[action]
-                    actionobj.setState("CHANGED")
+                if hasattr(service.actions, action):
+                    stateItem = service.state.getSet(action)
+                    stateItem.state = "CHANGED"
 
         else:
             todo = [item[1] for item in self.services.items()]
@@ -450,7 +450,7 @@ class AtYourServiceFactory():
             todo = self.findTodo(action=action)
 
     def findTodo(self, action="install"):
-        
+
         if action!="init":
             todoinit=self.findTodo("init")
             if len(todoinit)>0:

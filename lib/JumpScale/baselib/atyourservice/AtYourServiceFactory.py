@@ -635,7 +635,7 @@ class AtYourServiceFactory():
         if key in self.services:
             return self.services[key]
         if die:
-            raise j.exceptions.Input("Cannot get ays service '%s', did not find" % key.short, "ays.getservice")
+            raise j.exceptions.Input("Cannot get ays service '%s', did not find" % key, "ays.getservice")
         else:
             return None
 

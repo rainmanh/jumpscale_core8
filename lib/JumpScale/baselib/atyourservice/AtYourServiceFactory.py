@@ -723,7 +723,7 @@ class AtYourServiceFactory():
 
         if role == "":
             if name.find('.') != -1:
-                role, name = name.split(".", 1)
+                role = name.split(".", 1)[0]
             else:
                 role = name
 

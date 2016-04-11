@@ -28,7 +28,7 @@ class AYSKey(unittest.TestCase):
                 'key': 'domain|role.name',
                 'expect': {
                     'domain': 'domain',
-                    'name': 'name',
+                    'name': 'role.name',
                     'instance': '',
                     'role': 'role'
                 }
@@ -39,6 +39,15 @@ class AYSKey(unittest.TestCase):
                     'domain': '',
                     'name': '',
                     'instance': 'instance',
+                    'role': 'role'
+                }
+            },
+            {
+                'key': 'role.name',
+                'expect': {
+                    'domain': '',
+                    'name': 'role.name',
+                    'instance': '',
                     'role': 'role'
                 }
             }

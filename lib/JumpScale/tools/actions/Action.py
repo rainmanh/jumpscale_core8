@@ -523,11 +523,8 @@ class Action:
             ok=False
             err = ''
 
-            while ok==False and counter<self.retry+1:
+            while self.state != "ERROR" and ok==False and counter<self.retry+1:
 
-                if self.force is False:
-                    if self.state != "ERROR":
-                        break
                 try:
                     if self.selfobj!="**NOTHING**":
                         #here we try to reconstruct the cuisine object@

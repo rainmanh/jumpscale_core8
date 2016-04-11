@@ -72,16 +72,6 @@ class ModelBase0():
             keys.pop("id")
             keys.insert(0,"id")
 
-
-
-| Format   | Tag example |
-| -------- | ----------- |
-| Headings | =heading1=<br>==heading2==<br>===heading3=== |
-| New paragraph | A blank line starts a new paragraph |
-| Source code block |  // all on one line<br> {{{ if (foo) bar else   baz }}} |
-
-
-
     @classmethod
     def find(cls, query):
         redis = getattr(cls, '__redis__', False)

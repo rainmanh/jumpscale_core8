@@ -587,7 +587,7 @@ class Service:
             for role, services in self._producers.items():
                 producers = set()
                 for service in services:
-                    producers.add(service.shortkey)
+                    producers.add(service.key)
                 self.hrd.set("producer.%s" % role, list(producers))
 
             # walk over the producers

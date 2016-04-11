@@ -20,7 +20,6 @@ from CuisineGolang import CuisineGolang
 from CuisineFW import CuisineFW
 from CuisineDocker import CuisineDocker
 from ProcessManagerFactory import ProcessManagerFactory
-from CuisinePortal import CuisinePortal
 from CuisineSSHReflector import CuisineSSHReflector
 from CuisineProxy import CuisineProxy
 from CuisineBootMediaInstaller import CuisineBootMediaInstaller
@@ -56,7 +55,6 @@ class JSCuisine:
         self._avahi=None
         self._tmux=None
         self._golang=None
-        self._portal = None
         self._fw=None
         self.cuisine=self
         self._fqn=""
@@ -76,14 +74,6 @@ class JSCuisine:
 
 
         self.done=[]
-
-
-    @property
-    def portal(self):
-        if self._portal is None:
-            self._portal = CuisinePortal(self.executor, self.cuisine)
-        return self._portal
-
 
     @property
     def package(self):

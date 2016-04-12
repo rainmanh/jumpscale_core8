@@ -75,7 +75,7 @@ class Ubuntu:
             packagename=packagenames
             result, out = self._local.execute("which %s" % cmdname, False)
             if result != 0:
-                self.install(packagename)
+                self.apt_install(packagename)
             else:
                 return
             result, out = self._local.execute("which %s" % cmdname, False)

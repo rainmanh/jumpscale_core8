@@ -345,11 +345,11 @@ class CockpitDeployer:
         container_cuisine.apps.influxdb.start()
 
         self.logger.info("Configuration of grafana")
-        container_cuisine.apps.grafana.start()
         cfg = container_cuisine.core.file_read('$cfgDir/grafana/grafana.ini')
         cfg = cfg.replace('domain = localhost', 'domain = %s' % dns_name)
         cfg = cfg.replace('root_url = %(protocol)s://%(domain)s:%(http_port)s/', 'root_url = %(protocol)s://%(domain)s:%(http_port)s/grafana')
         container_cuisine.core.file_write('$cfgDir/grafana/grafana.ini', cfg)
+        container_cuisine.apps.grafana.start()
 
         self.logger.info("Configuration of mongodb")
         container_cuisine.apps.mongodb.start()

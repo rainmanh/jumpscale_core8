@@ -81,7 +81,7 @@ class CuisinePortal(object):
         # marisa-trie
         MarkupSafe
         mimeparse
-        mongoengine
+        mongoengine==0.10.6
         msgpack-python
         netaddr
         # paramiko
@@ -98,7 +98,7 @@ class CuisinePortal(object):
         # pygo
         # pygobject
         pylzma
-        pymongo
+        pymongo==3.2.1
         pystache
         # python-apt
         python-dateutil

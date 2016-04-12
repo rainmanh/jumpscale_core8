@@ -37,6 +37,7 @@ class Profile(object):
         else:
             self._path = set()
             self._path.add('${PATH}')
+            self._path.add(j.dirs.binDir)
 
     def addPath(self, path):
         self._path.add(path)
@@ -204,6 +205,7 @@ class Bash:
             if self.cuisine.core.file_exists(self.profilePath):
                 content = self.cuisine.core.file_read(self.profilePath)
             self._profile = Profile(content)
+            self.cuisine.core.file_write(self.profilePath, self._profile.dump())
         return self._profile
 
     @actionrun(action=True)

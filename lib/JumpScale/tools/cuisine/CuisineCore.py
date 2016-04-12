@@ -967,6 +967,8 @@ class CuisineCore():
             self.executor.debug=debug
 
         if profile:
+            #instaciation of profile 
+            self.cuisine.bash.profile
             ppath=self.cuisine.bash.profilePath
             if ppath:
                 cmd=". %s && %s"%(ppath,cmd)

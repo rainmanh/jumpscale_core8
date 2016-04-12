@@ -19,6 +19,7 @@ class CuisineBuilder(object):
         self.cuisine.installerdevelop.python()
         if not self.cuisine.installer.jumpscale_installed():
             self.cuisine.installerdevelop.jumpscale8()
+        self.cuisine.apps.mongodb.build(start=start)
         self.cuisine.apps.cuisine.portal.install(start=start)
         self.cuisine.apps.redis.build(start=start, force=True)
         self.cuisine.apps.core.build(start=start)
@@ -27,7 +28,6 @@ class CuisineBuilder(object):
         self.cuisine.apps.fs.build(start=start)
         self.cuisine.apps.stor.build(start=start)
         self.cuisine.apps.etcd.build(start=start)
-        self.cuisine.apps.mongodb.build(start=start)
         self.cuisine.apps.caddy.build(start=start)
         # self.cuisine.apps.skydns(start=start)
         self.cuisine.apps.influxdb.build(start=start)

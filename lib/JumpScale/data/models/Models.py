@@ -72,16 +72,6 @@ class ModelBase0():
             keys.pop("id")
             keys.insert(0,"id")
 
-
-
-| Format   | Tag example |
-| -------- | ----------- |
-| Headings | =heading1=<br>==heading2==<br>===heading3=== |
-| New paragraph | A blank line starts a new paragraph |
-| Source code block |  // all on one line<br> {{{ if (foo) bar else   baz }}} |
-
-
-
     @classmethod
     def find(cls, query):
         redis = getattr(cls, '__redis__', False)
@@ -112,7 +102,7 @@ class ModelBase0():
         if redis:
             ttype = cls._class_name.split(".")[-1]
             key = "models.%s" % ttype
-            for guid in redis.hkeys(key):
+            for guid in j.core.db.hkeys(key):
                 guid=guid.decode()
                 obj=cls.get(guid)
                 if method(obj):
@@ -137,23 +127,22 @@ class ModelBase0():
         if redis:
             ttype = cls._class_name.split(".")[-1]
             key = "models.%s" % ttype
-            redis.delete(key)        
+            j.core.db.delete(key)
 
     @property
     def hash(self):
         from IPython import embed
         print ("DEBUG NOW hash")
         embed()
-        
 
     @classmethod
     def hashlist(cls):
         """
         get a dict which is guid,hash of obj
         """
-        res={}
+        res = {}
         for item in cls.list():
-            res[item.guid]=item.hash
+            res[item.guid] = item.hash
         return res
 
     @classmethod
@@ -165,7 +154,7 @@ class ModelBase0():
         key = "models.%s" % ttype
         key = key.encode('utf-8')
         hkey = guid.encode('utf-8')
-        return (key,hkey)
+        return (key, hkey)
 
     @classmethod
     def get(cls, guid):
@@ -175,8 +164,8 @@ class ModelBase0():
         redis = getattr(cls, '__redis__', False)
 
         if redis:
-            key,hkey=cls._getRedisKey(guid)
-            modelraw = redis.hget(key,hkey)
+            key, hkey = cls._getRedisKey(guid)
+            modelraw = j.core.db.hget(key, hkey)
             if modelraw:
                 modelraw = modelraw.decode()
                 obj = cls.from_json(modelraw)
@@ -243,7 +232,7 @@ class ModelBase0():
             return bool(cls.get(guid=guid))
 
     def getset(cls):
-        redis = getattr(cls, '__redis__', False)        
+        redis = getattr(cls, '__redis__', False)
         if redis:
             key = cls._getRedisKey(cls.guid)
             model = cls.get(key)

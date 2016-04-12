@@ -346,9 +346,8 @@ class Service:
             for key, items in self.hrd.getDictFromPrefix("producer").items():
                 producerSet = set()
                 for item in items:
-                    domain, name, _ , instance, _ = j.atyourservice.parseKey(item)
-                    role = name.split(".")[0]
-                    service = j.atyourservice.getService(role, instance)
+                    domain, _, _, instance, role = j.atyourservice.parseKey(item)
+                    service = j.atyourservice.getService(role=role, instance=instance)
                     producerSet.add(service)
 
                 self._producers[key] = list(producerSet)

@@ -652,12 +652,12 @@ class AtYourServiceFactory():
         for servicetemplates or servicerecipes
         ```$domain|$name``` if domain is not empty or not ays
 
-        """        
+        """
         if isinstance(service,Service):
             key = service.role
             key += "!%s" % (service.instance)
         elif isinstance(service,ServiceTemplate) or isinstance(service,ServiceRecipe):
-            
+
             if service.domain != "" and service.domain != "ays" :
                 key = "%s|%s" % (service.domain, service.name)
             else:
@@ -690,13 +690,13 @@ class AtYourServiceFactory():
         """
         key = key.lower()
         if key.find("|") != -1:
-            domain, name = key.split("|", 1)
+            domain, name = key.split("|")
         else:
             domain = ""
             name = key
 
-        if key.find("@") != -1:
-            name, role = key.split("@", 1)
+        if name.find("@") != -1:
+            name, role = name.split("@", 1)
             role = role.strip()
         else:
             role = ""
@@ -708,6 +708,9 @@ class AtYourServiceFactory():
                 instance, version = instance.split("(", 1)
                 name += "(%s" % version
             instance = instance.strip()
+            if domain == '':
+                role = name
+                name = ''
         else:
             instance = ""
 
@@ -718,8 +721,11 @@ class AtYourServiceFactory():
             version = ""
         name = name.strip()
 
-        if role=="":
-            role=name.split(".",1)[0]
+        if role == "":
+            if name.find('.') != -1:
+                role = name.split(".", 1)[0]
+            else:
+                role = name
 
         domain = domain.strip()
         version = version.strip()

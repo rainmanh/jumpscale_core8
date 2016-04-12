@@ -466,7 +466,15 @@ class Service:
                 self.state.addRecurring(recurringName, recurringPeriod)
 
             for key, _ in self.recipe.actionmethods.items():
-                self.state.getSet(key)
+                stateitem=self.state.getSet(key)
+
+                if stateitem.state=="OK":
+                    #lets check if we don't have to put it on changed depending the method changes
+                    if stateitem.actionObj.hash!=stateitem.actionmethod_hash:
+                        stateitem.state="CHANGED"
+                    if self.hrdhash!=stateitem.hrd_hash:
+                        stateitem.state="CHANGEDHRD"
+
 
             self.state.save()
             self.cleanOnRepo()
@@ -594,10 +602,7 @@ class Service:
             # for producer in toConsume:
             method = self._getActionMethodMgmt("consume")
             if method:
-                # j.atyourservice.alog.setNewAction(self.role, self.instance, "mgmt","consume")
                 self.runAction('consume')
-                # self.action_methods.consume(producer)
-                # j.atyourservice.alog.setNewAction(self.role, self.instance, "mgmt","consume","OK")
 
     def getProducersRecursive(self, producers=set(), callers=set()):
         for role, producers2 in self.producers.items():
@@ -618,22 +623,11 @@ class Service:
         """
         return list of producers which are waiting to be executing the action
         """
-        # changed,changes=j.atyourservice.alog.getChangedAtYourservices(action=action)
-
-        # changed2=[]
-        # for item in changed:
-        #     # print (item.actions)
-        #     actionrunobj=item.getAction(action)
-        #     if actionrunobj.state!="OK":
-        #         changed2.append(item)
 
         # print ("producerswaiting:%s"%self)
         for producer in self.getProducersRecursive(set(), set()):
             #check that the action exists, no need to wait for other actions, appart from when init or install not done
             if producer.getAction(action)==None:
-                # actionrunobjInit = producer.state.getSet("init")
-                # actionrunobjInstall = producer.state.getSet("install")
-                # if actionrunobjInit.state == "OK" and actionrunobjInstall.state == "OK" :
                 continue
             actionrunobj = producer.state.getSet(action)
             # print (actionrunobj)

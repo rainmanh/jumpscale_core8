@@ -117,6 +117,14 @@ class Time_(object):
 
     def epoch2pythonDateTime(self,epoch):
         return datetime.datetime.fromtimestamp(epoch)
+
+    def epoch2ISODateTime(self,epoch):
+        dt=datetime.datetime.fromtimestamp(epoch)
+        return dt.isoformat()
+
+    def epoch2pythonDate(self,epoch):
+        return datetime.date.fromtimestamp(epoch)
+
         
     def epoch2HRTime(self,epoch,local=True):
         return self.formatTime(epoch,'%H:%M:%S',local)
@@ -213,7 +221,7 @@ class Time_(object):
             return 0
         try:
             hrdatetime=hrdatetime.strip()
-            return time.mktime(time.strptime(hrdatetime, "%Y/%m/%d %H:%M:%S"))
+            return int(time.mktime(time.strptime(hrdatetime, "%Y/%m/%d %H:%M:%S")))
         except:
             raise ValueError ("Date needs to be formatted as \"16/06/1981 day/month/year\", also check if date is valid, now format = %s" % hrdatetime)
 

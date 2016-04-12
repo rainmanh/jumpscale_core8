@@ -8,6 +8,7 @@ except:
     j.do.execute(cmd)
     import github
 
+import copy
 
 class GitHubFactory(object):
     def __init__(self):
@@ -20,6 +21,46 @@ class GitHubFactory(object):
         return GitHubClient(secret)
 
 class Base():
+
+
+    @property
+    def bodyWithoutTags(self):
+        #remove the tag lines from the body
+        out=""
+        for line in self.body.split("\n"):
+            if line.startswith("##") and not line.startswith("###"):
+                continue
+            out+="%s\n"%line
+
+        out=out.rstrip()+"\n"
+        return out
+
+    @property
+    def tags(self):
+        # if "_tags" not in self.__dict__ or self._tags=="":
+        lineAll=""
+        for line in self.body.split("\n"):
+            #look for multiple lines, append and then transform to tags
+            if line.startswith("##") and not line.startswith("###"):
+                line0=line[2:].strip()
+                lineAll+="%s "%line0
+        return j.data.tags.getObject(lineAll)
+
+    @tags.setter
+    def tags(self,ddict):
+        if j.data.types.dict(ddict)==False:
+            raise j.exceptions.Input("Tags need to be dict as input for setter, now:%s"%ddict)
+
+        keys=ddict.keys()
+        keys.sort()
+
+        out=self.bodyWithoutTags+"\n"
+        for key,val in ddict.items():
+            out+="## %s:%s\n"%(key,val)
+
+        self.body=out
+        return self.tags
+
 
     def __str__(self):
         return str(self._ddict)
@@ -65,9 +106,10 @@ class User(Base):
         return self._ddict["login"]    
 
             
-
-
-class Milestone(Base):
+class RepoMilestone(Base):
+    """
+    milestone as defined on 1 specific repo
+    """
     def __init__(self,client,githubObj=None):
         self._ddict={}    
         self._githubObj=githubObj
@@ -88,23 +130,76 @@ class Milestone(Base):
         self._ddict["id"]=self.api.id
         self._ddict["url"]=self.api.url
         self._ddict["title"]=self.api.title
+        self._ddict["body"]=self.api.description
         self._ddict["number"]=self.api.number
+        self._ddict["name"]=""
+        self._ddict["owner"]=""
+
+        #load the props
+        self.owner
+        self.name
         
     @property
     def title(self):
         return self._ddict["title"]
+
+    @title.setter
+    def title(self,val):
+        self._ddict["title"]=val
+        from IPython import embed
+        print ("DEBUG NOW set title in ms")
+        embed()
+        s
+        
+
+    @property
+    def name(self):
+        """
+        is name, corresponds to ays instance of milestone who created this
+        """
+        if self._ddict["name"]=="":
+            self._ddict["name"]=self.tags.tagGet("name",default="")
+        if self._ddict["name"]=="":
+            return self.title
+        return self._ddict["name"]
+
+    @property
+    def owner(self):
+        """
+        is name, corresponds to ays instance of milestone who created this
+        """
+        if self._ddict["owner"]=="":
+            self._ddict["owner"]=self.tags.tagGet("owner",default="")
+        return self._ddict["owner"]
+
+    @property
+    def descr(self):
+        return self.bodyWithoutTags
+
+    #synonym to let the tags of super class work
+    @property
+    def body(self):
+        return self._ddict["body"]      
+
+    @body.setter
+    def body(self,val):
+        if self._ddict["body"]!=val:
+            self._ddict["body"]=val
+            self.api.edit(self.title, description=val)
 
     @property
     def deadline(self):
         return self._ddict["deadline"]                
 
     @deadline.setter
-    def deadline(self,value):
-        self._ddict["deadline"] =j.data.time.any2HRDateTime(self.api.due_on)
+    def deadline(self,val):
+        self._ddict["deadline"]=val
         from IPython import embed
-        print ("DEBUG NOW set deadline on milestone")
+        print ("DEBUG NOW set deadline in ms")
         embed()
+        s
         
+
         
     @property
     def id(self):
@@ -118,6 +213,20 @@ class Milestone(Base):
     def number(self):
         return self._ddict["number"]    
 
+replacelabels={'bug':'type_bug',
+     'duplicate':'process_duplicate',
+     'enhancement':'type_feature',
+     'help wanted':'state_question',
+     'invalid':'state_question',
+     'question':'state_question',
+     'wontfix':'process_wontfix',
+     'completed':'state_verification',
+     'in progress':'state_inprogress',
+     'ready':'state_verification',
+     'story':'type_story',
+     'urgent':'priority_urgent',
+     'type_bug':'type_unknown',
+     'type_story':'type_unknown'}
 
 class Issue(Base):
 
@@ -277,7 +386,7 @@ class Issue(Base):
         if val not in self.repo.labelnames:
             self.repo.labelnames.sort()
             llist=",".join(self.repo.labelnames)
-            raise j.exceptions.Input("Label needs to be in list:%s, now is: '%s'"%(llist,val))
+            raise j.exceptions.Input("Label needs to be in list:%s (is understood labels in this repo on github), now is: '%s'"%(llist,val))
 
         #make sure there is only 1
         labels2set=self.labels
@@ -298,10 +407,10 @@ class Issue(Base):
         self._ddict={}
 
         #check labels
-        labels=[item.name for item in self.api.labels]
+        labels=[item.name for item in self.api.labels] #are the names
         newlabels=[]
         for label in labels:
-            if label not in self.repo.labels2set:
+            if label not in self.repo.labelnames:
                 if label in replacelabels:
                     if replacelabels[label] not in newlabels:
                         newlabels.append(replacelabels[label] )
@@ -383,22 +492,6 @@ class Issue(Base):
         print ("DEBUG NOW loadmd")
         embed()
         
-
-            
-replacelabels={'bug':'type_bug',
- 'duplicate':'process_duplicate',
- 'enhancement':'type_feature',
- 'help wanted':'state_question',
- 'invalid':'state_question',
- 'question':'state_question',
- 'wontfix':'process_wontfix',
- 'completed':'state_verification',
- 'in progress':'state_inprogress',
- 'ready':'state_verification',
- 'story':'type_story',
- 'urgent':'priority_urgent'}
-
-
 class GithubRepo():
     def __init__(self, client,fullname):
         self.client=client
@@ -406,6 +499,7 @@ class GithubRepo():
         self._repoclient=None
         self._labels=None
         self.issues=[]
+        self._milestones=[]
 
     @property
     def api(self):
@@ -423,11 +517,67 @@ class GithubRepo():
             self._labels=[item for item in self.api.get_labels()]
         return self._labels
 
+    @labels.setter
+    def labels(self,labels2set):
+
+        for item in labels2set:
+            if not j.data.types.string.check(item):
+                raise j.exceptions.Input("Labels to set need to be in string format, found:%s"%labels2set)
+
+        #walk over github existing labels
+        labelstowalk=copy.copy(self.labels)
+        for item in labelstowalk:
+            name=item.name.lower()
+            if name not in labels2set:                
+                #label in repo does not correspond to label we need                
+                if name in replacelabels:
+                    nameNew=replacelabels[item.name.lower()]
+                    if not nameNew in self.labelnames:
+                        color=self.getColor(name)
+                        print ("change label in repo: %s oldlabel:'%s' to:'%s' color:%s"%(self.fullname,item.name,nameNew,color))
+                        item.edit(nameNew, color)
+                        self._labels=None                            
+                else:
+                    #no replacement
+                    from IPython import embed
+                    print ("DEBUG NOW no replacement label")
+                    embed()
+        
+        #walk over new labels we need to set
+        for name in labels2set:
+            if name not in self.labelnames:
+                #does not exist yet in repo
+                color=self.getColor(name)
+                print ("create label: %s %s %s"%(self.fullname,name,color))
+                self.api.create_label(name, color)
+                self._labels=None
+
+        name=""
+
+        labelstowalk=copy.copy(self.labels)
+        for item in labelstowalk:
+            if item.name not in labels2set:
+                print ("delete label: %s %s"%(self.fullname,item.name))
+                item.delete()
+                self._labels=None
+
+        #check the colors
+        labelstowalk=copy.copy(self.labels)
+        for item in labelstowalk:
+            #we recognise the label
+            print ("check color of repo:%s labelname:'%s'"%(self.fullname,item.name))
+            color=self.getColor(item.name)
+            if item.color != color:
+                print ("change label color for repo %s %s"%(item.name,color))
+                item.edit(item.name, color)                    
+                self._labels=None                
+
     def getLabel(self,name):
         for item in self.labels:
+            print ("%s:look for name:'%s'"%(item.name,name))
             if item.name==name:
                 return item
-        raise RuntimeError("not found")
+        raise j.exceptions.Input("Dit not find label: '%s'"%name)
 
     def issues_by_type(self,filter=None):
         """
@@ -493,7 +643,6 @@ class GithubRepo():
                             res[type][state].append(subitem)
         return res
 
-
     @property
     def types(self):
         return ["story","ticket","task","bug","feature","question","monitor","unknown"]
@@ -506,6 +655,67 @@ class GithubRepo():
     def states(self):
         return ["new","accepted","question","inprogress","verification","closed"]
 
+    @property
+    def milestones(self):
+        if self._milestones==[]:
+            for ms in self.api.get_milestones():
+                milestoneObj=self.client.getMilestone(githubObj=ms)
+                self._milestones.append(milestoneObj)
+        return self._milestones
+        
+    @property
+    def milestoneTitles(self):
+        return [item.title for item in self._milestones]
+
+    @property
+    def milestoneNames(self):
+        return [item.name for item in self._milestones]
+
+    def getMilestone(self,name,die=True):
+        if name.strip()=="":
+            raise j.exceptions.Input("Name cannot be empty.")
+        for item in self.milestones:
+            if name==item.name or name==item.title:
+                return item
+        if die:
+            raise j.exceptions.Input("Could not find milestone with name:%s"%name)
+        else:
+            return None
+
+    def createMilestone(self,name,title,description="",deadline="",owner=""):
+
+        def getBody(descr,name,owner):
+            out="%s\n\n"%descr
+            out+="## name:%s\n"%name
+            out+="## owner:%s\n"%owner
+            return out
+
+        ms=self.getMilestone(name,die=False)
+        if ms!=None:
+
+            if ms.title!=title:
+                ms.title=title
+            #@todo milestone setting does not work
+            # if ms.deadline!=deadline:
+            #     ms.deadline=deadline
+            tocheck=getBody(description.strip(),name,owner)
+            if ms.body.strip()!=tocheck.strip():
+                ms.body=tocheck
+        else:
+            self._milestones=[]
+            due=j.data.time.epoch2ISODateTime(int(j.data.time.any2epoch(deadline)))
+            print ("Create milestone on %s: %s"%(self,title))
+            body=getBody(description.strip(),name,owner)
+            self.api.create_milestone(title=title, description=body)#, due_on=due    #@todo cannot set deadline, please fix
+
+
+    def deleteMilestone(self,name):
+        if name.strip()=="":
+            raise j.exceptions.Input("Name cannot be empty.")        
+        print ("Delete milestone on %s: '%s'"%(self,name))
+        ms=self.getMilestone(name)
+        ms.api.delete()
+        self._milestones=[]
 
     def _labelSubset(self,cat):
         res=[]
@@ -550,59 +760,22 @@ class GithubRepo():
 
         return "ffffff"
 
-    def configureLabels(self,labels2set):
-        self.labels2set=labels2set
 
-        #walk over github existing labels
-        for item in self.labels:
-            name=item.name.lower()
-            if name not in labels2set:                
-                #label in repo does not correspond to label we need                
-                if name in replacelabels:
-                    nameNew=replacelabels[item.name.lower()]
-                    if not nameNew in self.labelnames:
-                        color=self.getColor(name)
-                        print ("change label: %s %s %s"%(self.fullname,nameNew,color))
-                        item.edit(nameNew, color)
-                        self._labels=None                            
-                else:
-                    #no replacement
-                    from IPython import embed
-                    print ("DEBUG NOW no replacement label")
-                    embed()
-        
-            #we recognise the label
-            print ("check color of %s %s"%(self.fullname,name))
-            color=self.getColor(name)
-            if item.color != color:
-                print ("change label color: %s %s %s"%(self.fullname,name,color))
-                item.edit(name, color)
-                    
-                self._labels=None
-                    
-        for name in labels2set:
-            if name not in self.labelnames:
-                #does not exist yet in repo
-                color=self.getColor(name)
-                print ("create label: %s %s %s"%(self.fullname,name,color))
-                self.api.create_label(name, color)
-                self._labels=None
-
-        for item in self.labels:
-            if item.name not in labels2set:
-                print ("delete label: %s %s"%(self.fullname,item.name))
-                item.delete()
-    
     def loadIssues(self):
         for item in self.api.get_issues():     
             self.issues.append(Issue(self,githubObj=item))
+
+    def __str__(self):
+        return "gitrepo:%s"%self.fullname
+
+    __repr__=__str__                
 
 class GitHubClient():
 
     def __init__(self, secret):
         self.api=github.Github(secret)
         self.users={}
-        self.milestones={}
+        self._milestones={}
 
     def getRepo(self,fullname):
         """
@@ -629,12 +802,12 @@ class GitHubClient():
             return self.users[githubObj.login]
 
     def getMilestone(self,number=None,githubObj=None):
-        if number in self.milestones:
-            return self.milestones[number]
+        if number in self._milestones:
+            return self._milestones[number]
 
         if githubObj!=None:
-            if not githubObj.number in self.milestones:                
-                obj=Milestone(self,githubObj=githubObj)
-                self.milestones[githubObj.number]=obj
-            return self.milestones[githubObj.number]
+            if not githubObj.number in self._milestones:                
+                obj=RepoMilestone(self,githubObj=githubObj)
+                self._milestones[githubObj.number]=obj
+            return self._milestones[githubObj.number]
 

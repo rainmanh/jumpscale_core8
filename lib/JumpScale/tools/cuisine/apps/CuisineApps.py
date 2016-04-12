@@ -19,6 +19,7 @@ from apps.CuisineGrafana import Grafana
 from apps.CuisineInfluxdb import Influxdb
 from apps.CuisineVulcand import Vulcand
 from apps.CuisineWeave import Weave
+from apps.CuisinePortal import CuisinePortal
 
 
 import time
@@ -55,6 +56,7 @@ class CuisineApps(object):
         self._core = None
         self._vulcand = None
         self._weave = None
+        self._portal = None
 
 
     @property
@@ -140,6 +142,12 @@ class CuisineApps(object):
         if self._weave is None:
             self._weave = Weave(self.executor, self.cuisine)
         return self._weave
+
+    @property
+    def portal(self):
+        if self._portal is None:
+            self._portal = CuisinePortal(self.executor, self.cuisine)
+        return self._portal
 
     @actionrun(action=True)
     def installdeps(self):

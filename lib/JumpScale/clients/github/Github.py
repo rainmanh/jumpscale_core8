@@ -41,7 +41,7 @@ class Base():
         lineAll=""
         for line in self.body.split("\n"):
             #look for multiple lines, append and then transform to tags
-            if line.startswith("##") and not line.startswith("###"):
+            if line.startswith(".. ") and not line.startswith("..."):
                 line0=line[2:].strip()
                 lineAll+="%s "%line0
         return j.data.tags.getObject(lineAll)
@@ -56,7 +56,7 @@ class Base():
 
         out=self.bodyWithoutTags+"\n"
         for key,val in ddict.items():
-            out+="## %s:%s\n"%(key,val)
+            out+=".. %s:%s\n"%(key,val)
 
         self.body=out
         return self.tags
@@ -539,9 +539,10 @@ class GithubRepo():
                         self._labels=None                            
                 else:
                     #no replacement
-                    from IPython import embed
-                    print ("DEBUG NOW no replacement label")
-                    embed()
+                    name='type_unknown'
+                    color=self.getColor(name)
+                    item.edit(nameNew, color)
+                    self._labels=None                            
         
         #walk over new labels we need to set
         for name in labels2set:

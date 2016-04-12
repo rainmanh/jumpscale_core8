@@ -36,14 +36,6 @@ class CuisinePIP():
         if self.cuisine.core.isArch:
             if package in ["credis","blosc","psycopg2"]:
                 return
-                
-        if package == "pymongo":
-            package = "pymongo==3.2.1" 
-        if package == "mongoengine":
-            package = "mongoengine==0.10.6"
-        if package in ["pymongo","mongoengine"]:
-            upgrade=False
-
         cmd="pip3 install %s"%package
         if upgrade:
             cmd+=" --upgrade"
@@ -86,7 +78,6 @@ class CuisinePIP():
                 continue
             if dep.strip()[0]=="#":
                 continue
-            dep=dep.split("=",1)[0]
             self.install(dep,upgrade,action=True)
 
 

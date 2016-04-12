@@ -104,7 +104,7 @@ class CuisineInstallerDevelop():
         aioredis
 
 
-        mongoengine
+        mongoengine==0.10.6
 
         #bcrypt
         blosc

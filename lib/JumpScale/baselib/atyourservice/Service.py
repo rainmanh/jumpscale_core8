@@ -310,7 +310,7 @@ class Service:
         if j.sal.fs.exists(path):
             j.sal.fs.createDir(j.sal.fs.getDirName(path))
             path2 = j.sal.fs.joinPaths(self.path, j.sal.fs.getBaseName(path))
-            #need to create a copy of the recipe mgmt or node action class
+            # need to create a copy of the recipe mgmt or node action class
             j.sal.fs.copyFile(path, path2)
             if self.hrd is not None:
                 self.hrd.applyOnFile(path2)
@@ -433,7 +433,6 @@ class Service:
             hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
 
             # self._manipulateArgs()
-
             self._hrd = self.recipe.schema.hrdGet(hrd=self.hrd, args=self.args, path=hrdpath)
             self._hrd.save()
 
@@ -452,7 +451,7 @@ class Service:
                 self.hrd.set("parent", self.parent.key)
                 self.consume(self.parent)
 
-            self._manipulateHRD()            
+            self._manipulateHRD()
 
             self._action_methods = None  # to make sure we reload the actions
 
@@ -547,17 +546,11 @@ class Service:
                         self._producers[role].append(ays)
 
                 if len(candidates)==1:
-                    self.hrd.set(consumeitem.name,candidates[0].instance)
+                    self.hrd.set(consumeitem.name, candidates[0].instance)
                 else:
-                    self.hrd.set(consumeitem.name,",".join([item.instance for item in candidates]))
-
-            for key, services in self._producers.items():
-                producers = []
-                for service in services:
-                    if service.key not in producers:
-                        producers.append(service.key)
-
-                self.hrd.set("producer.%s" % key, producers)
+                    producers_list = [item.instance for item in candidates]
+                    producers_list.sort()
+                    self.hrd.set(consumeitem.name, producers_list)
 
     def consume(self, input):
         """
@@ -601,7 +594,9 @@ class Service:
                 producers = set()
                 for service in services:
                     producers.add(service.key)
-                self.hrd.set("producer.%s" % role, list(producers))
+                list_prods = list(producers)
+                list_prods.sort()
+                self.hrd.set("producer.%s" % role, list_prods)
 
 
             # # walk over the producers
@@ -819,10 +814,10 @@ class Service:
         if a!=None:
             return a()
 
-    def getAction(self,action):    
+    def getAction(self,action):
         """
         @return None when not exist
-        """        
+        """
         try:
             a=getattr(self.actions, action)
         except Exception as e:

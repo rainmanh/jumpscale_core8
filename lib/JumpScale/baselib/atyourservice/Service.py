@@ -199,9 +199,8 @@ class Service:
 
     @property
     def hrdhash(self):
-        if self._hrd_hash is None:
-            self._hrd_hash = j.data.hash.md5_string(str(self.hrd))
-        return self._hrd_hash
+        self.hrd.save()
+        return j.data.hash.md5_string(str(self.hrd))
 
     @property
     def yaml(self):
@@ -433,15 +432,15 @@ class Service:
 
             hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
 
-            self._manipulateArgs()
+            # self._manipulateArgs()
 
-            # if no schema.hrd exists in servicetemplate, raw yaml will be used as datasource
-            # we just create en empty instance.hrd
             self._hrd = self.recipe.schema.hrdGet(hrd=self.hrd, args=self.args, path=hrdpath)
+            self._hrd.save()
 
             if self.recipe.hrd is not None:
                 #apply values from recipe hrd to this hrd
                 self.hrd.applyTemplate(self.recipe.hrd)
+
             self.hrd.prefixWithName = False
             self.hrd.set("service.name", self.name)
             self.hrd.set("service.version", self.version)
@@ -453,7 +452,7 @@ class Service:
                 self.hrd.set("parent", self.parent.key)
                 self.consume(self.parent)
 
-            self._manipulateHRD()
+            self._manipulateHRD()            
 
             self._action_methods = None  # to make sure we reload the actions
 
@@ -464,6 +463,8 @@ class Service:
                 recurringPeriod = self.hrd.getStr(item).strip("\"")
                 self.state.addRecurring(recurringName, recurringPeriod)
 
+            self._hrd.save()
+
             for key, _ in self.recipe.actionmethods.items():
                 stateitem=self.state.getSet(key)
 
@@ -471,30 +472,34 @@ class Service:
                     #lets check if we don't have to put it on changed depending the method changes
                     if stateitem.actionObj.hash!=stateitem.actionmethod_hash:
                         stateitem.state="CHANGED"
+                        self.state.save()
+                        self.actions.change(stateitem)
+
                     if self.hrdhash!=stateitem.hrd_hash:
                         stateitem.state="CHANGEDHRD"
-
+                        self.state.save()
+                        self.actions.change(stateitem)
 
             self.state.save()
             self.cleanOnRepo()
 
         self._init = True
 
-    def _manipulateArgs(self):
+    # def _manipulateArgs(self):
 
-        def exists(args, name):
-            x = name not in args or args[name] is None or args[name] == ""
-            return not x
+    #     def exists(args, name):
+    #         x = name not in args or args[name] is None or args[name] == ""
+    #         return not x
 
-        ##fill in node.tcp.address
-        if self.name.startswith("node"):
-            # set service name & ip addr
-            if not exists(self.args, 'node.tcp.addr') or self.args['node.tcp.addr'].find('@ask')!=-1:
-                if "ip" in self.args:
-                    self.args['node.tcp.addr'] = self.args["ip"]
+    #     ##fill in node.tcp.address
+    #     if self.name.startswith("node"):
+    #         # set service name & ip addr
+    #         if not exists(self.args, 'node.tcp.addr') or self.args['node.tcp.addr'].find('@ask')!=-1:
+    #             if "ip" in self.args:
+    #                 self.args['node.tcp.addr'] = self.args["ip"]
 
-            if not exists(self.args, 'node.name'):
-                self.args['node.name'] = self.instance
+    #         if not exists(self.args, 'node.name'):
+    #             self.args['node.name'] = self.instance
 
     def _manipulateHRD(self):
         #manipulate the HRD's to mention the consume's to producers
@@ -566,10 +571,11 @@ class Service:
         ```
 
         """
+        print ("input:'%s'"%input)
         if input is not None and input is not '':
             toConsume = set()
             if j.data.types.string.check(input):
-                entities = input.split(",")
+                entities = [item for item in input.split(",") if item.strip()!=""]
                 for entry in entities:
                     service = j.atyourservice.getServiceFromKey(entry.strip())
                     toConsume.add(service)
@@ -597,11 +603,12 @@ class Service:
                     producers.add(service.key)
                 self.hrd.set("producer.%s" % role, list(producers))
 
-            # walk over the producers
-            # for producer in toConsume:
-            method = self._getActionMethodMgmt("consume")
-            if method:
-                self.runAction('consume')
+
+            # # walk over the producers
+            # # for producer in toConsume:
+            # method = self._getActionMethodMgmt("consume")
+            # if method:
+            #     self.runAction('consume')
 
     def getProducersRecursive(self, producers=set(), callers=set()):
         for role, producers2 in self.producers.items():

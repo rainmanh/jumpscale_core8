@@ -52,8 +52,15 @@ class ActionMethodDecorator(object):
                 method_hash=service.recipe.actionmethods[action0.name].hash
                 hrd_hash=service.hrdhash
 
-                if stateitem.hrd_hash!=hrd_hash or stateitem.actionmethod_hash!=method_hash:
+                if stateitem.hrd_hash!=hrd_hash:
+                    stateitem.state="CHANGEDHRD"                    
+                    service.save()
+                    service.actions.change(stateitem)
+
+                if stateitem.actionmethod_hash!=method_hash:
                     stateitem.state="CHANGED"
+                    service.save()
+                    service.actions.change(stateitem)
 
                 if stateitem.name == 'init':
                     stateitem.state = "CHANGED"
@@ -76,8 +83,8 @@ class ActionMethodDecorator(object):
                 stateitem.last=j.data.time.epoch
                 
                 if action0.state=="OK":
-                    stateitem.hrd_hash=hrd_hash
-                    stateitem.actionmethod_hash=method_hash
+                    stateitem.hrd_hash=service.hrdhash
+                    stateitem.actionmethod_hash=service.recipe.actionmethods[action0.name].hash
                 else:
                     if "die" in kwargs:
                         if kwargs["die"]==False:

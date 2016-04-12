@@ -83,10 +83,12 @@ class ServiceRecipe(ServiceTemplate):
         content=content.replace("def action_","def ")
         a = ActionMethod(self, actionmethod, content)
         self.actionmethods[actionmethod] = a
-        if actionmethod == "input":
+        if actionmethod == "input" or actionmethod == "change":
             decorator=False
         if actionmethod == 'input' and content=="":
             self._out += '\n    def input(self,name,role,instance,serviceargs):\n        return serviceargs\n\n'
+        elif actionmethod == 'change' and content=="":
+            self._out += '\n    def change(self,stateitem):\n        return True\n\n'
         elif not decorator and content:
             self._out += content
         elif content:
@@ -105,7 +107,7 @@ class ServiceRecipe(ServiceTemplate):
         class Actions():
         """
         actionmethodsRequired = ["input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
-                                 "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata"]
+                                 "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata","change"]
 
         self._out = j.data.text.strip(self._out)
 

@@ -305,8 +305,7 @@ class Service:
         return method
 
     def _loadActions(self, path,ttype):
-        if j.sal.fs.exists(path+'c'):
-            j.sal.fs.remove(path+'c')
+        self.cleanOnRepo()
         if j.sal.fs.exists(path):
             j.sal.fs.createDir(j.sal.fs.getDirName(path))
             path2 = j.sal.fs.joinPaths(self.path, j.sal.fs.getBaseName(path))
@@ -336,7 +335,6 @@ class Service:
     def cleanOnRepo(self):
         j.sal.fs.removeDirTree(j.do.joinPaths(self.path,"__pycache__"))
         # j.sal.fs.remove(j.sal.fs.joinPaths(self.path, "actions.py"))
-        j.sal.fs.remove(j.sal.fs.joinPaths(self.path, "actions_node.py"))
 
     @property
     def producers(self):
@@ -452,7 +450,7 @@ class Service:
                 self.hrd.set("parent", self.parent.key)
                 self.consume(self.parent)
 
-            self._manipulateHRD()            
+            self._manipulateHRD()
 
             self._action_methods = None  # to make sure we reload the actions
 

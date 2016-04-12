@@ -39,7 +39,8 @@ class CuisinePIP():
                 
         if package == "pymongo":
             package = "pymongo==3.2.1" 
-
+        if package == "mongoengine":
+            package = "mongoengine==0.10.6"
         if package in ["pymongo","mongoengine"]:
             upgrade=False
 

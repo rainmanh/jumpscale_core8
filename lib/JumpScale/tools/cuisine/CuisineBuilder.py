@@ -20,7 +20,7 @@ class CuisineBuilder(object):
         if not self.cuisine.installer.jumpscale_installed():
             self.cuisine.installerdevelop.jumpscale8()
         self.cuisine.apps.mongodb.build(start=start)
-        self.cuisine.apps.cuisine.portal.install(start=start)
+        self.cuisine.apps.portal.install(start=start)
         self.cuisine.apps.redis.build(start=start, force=True)
         self.cuisine.apps.core.build(start=start)
         self.cuisine.apps.syncthing.build(start=start)

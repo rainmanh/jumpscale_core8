@@ -359,7 +359,7 @@ class CockpitDeployer:
 
         self.logger.info("Configuration of cockpit portal")
         # start, do the linking of minimum portal and set admin passwd
-        container_cuisine.portal.start(force=True, passwd=self.args.portal_password)
+        container_cuisine.apps.portal.start(force=True, passwd=self.args.portal_password)
         # link required cockpit spaces
         container_cuisine.core.dir_ensure('$cfgDir/portals/main/base/')
         container_cuisine.core.file_link("/opt/code/github/jumpscale/jumpscale_portal8/apps/gridportal/base/Cockpit", "$cfgDir/portals/main/base/Cockpit")

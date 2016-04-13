@@ -35,16 +35,20 @@ class Base():
         out=out.rstrip()+"\n"
         return out
 
+
+
+
     @property
     def tags(self):
-        # if "_tags" not in self.__dict__ or self._tags=="":
-        lineAll=""
-        for line in self.body.split("\n"):
-            #look for multiple lines, append and then transform to tags
-            if line.startswith(".. ") and not line.startswith("..."):
-                line0=line[2:].strip()
-                lineAll+="%s "%line0
-        return j.data.tags.getObject(lineAll)
+        if "_tags" not in self.__dict__:
+            lineAll=""
+            for line in self.body.split("\n"):
+                #look for multiple lines, append and then transform to tags
+                if line.startswith(".. ") and not line.startswith("..."):
+                    line0=line[2:].strip()
+                    lineAll+="%s "%line0
+            self._tags=j.data.tags.getObject(lineAll)
+        return self._tags
 
     @tags.setter
     def tags(self,ddict):
@@ -138,7 +142,7 @@ class RepoMilestone(Base):
         #load the props
         self.owner
         self.name
-        
+
     @property
     def title(self):
         return self._ddict["title"]
@@ -238,6 +242,7 @@ class Issue(Base):
             self.load()
         if md!=None:
             self._loadMD(md)
+        # self.todo
 
     @property
     def api(self):
@@ -319,9 +324,10 @@ class Issue(Base):
                 states.append(label)
         if len(states)==1:
             return states[0][len("state"):].strip("_")
+        elif len(states)>1:
+            self.state="question"
         else:
-            self.state="state_new"
-            return "new"
+            return ""
 
     @state.setter
     def state(self,val):
@@ -397,7 +403,7 @@ class Issue(Base):
         if len(items)==1 and val in items:
             return
         for item in items:
-            labels2set.pop(item)
+            labels2set.pop(labels2set.index(item))
         if val!=None or val!="":
             labels2set.append(val)
         self.labels=labels2set
@@ -491,6 +497,69 @@ class Issue(Base):
         from IPython import embed
         print ("DEBUG NOW loadmd")
         embed()
+
+
+    @property
+    def todo(self):
+        if "_todo" not in self.__dict__:
+            todo=[]
+            for line in self.body.split("\n"):
+                if line.startswith("!! "):
+                    todo.append(line.strip().strip("!"))
+            for comment in self.comments:
+                for line in comment['body'].split("\n"):
+                    if line.startswith("!! "):
+                        todo.append(line.strip().strip("!"))
+            self._todo=todo
+        return self._todo
+
+    @property
+    def isStory(self):
+        #check on type_story
+        #check on ($story) and end of title, needs to be well chosen name
+        #if issue, fix
+        pass
+
+    @property
+    def isTask(self):
+        #check on type_task
+        #check on $story: ...
+        #if issue, fix
+        pass
+        #@todo (1)
+
+
+    def process(self):
+        """
+        find all todo's
+        cmds supported
+
+        !!prio $prio  ($prio is checked on first 4 letters, e.g. critical, or crit matches same)
+        !!p $prio (alias above)
+
+        !!move gig-projects/home (move issue to this project, try to keep milestones, labels, ...)
+
+        !!delete
+
+        """
+        #process commands & execute
+
+        #when repo of type home (ONLY THERE)    
+            #for any issue check for ($storyname) at end of title
+                #if found remember the storyname
+            #for any issue
+                #see if there is '$storyname:' in title  (no spaces in $storyname)
+                #find the story, if story found in same repo then put link in body of this issue e.g. story:#4
+                #in story put link tasks:#4,#5, ...
+                #if we found storyname make sure type is task
+                #if we found the storyname then make sure type is story
+        #describe these rules in our process wiki
+
+        #use repo.stories... property
+
+        #@todo (1)
+
+        
         
 class GithubRepo():
     def __init__(self, client,fullname):
@@ -517,6 +586,22 @@ class GithubRepo():
             self._labels=[item for item in self.api.get_labels()]
         return self._labels
 
+    @property
+    def stories(self):
+        #walk overall issues find the stories (based on type)
+        #only for home type repo, otherwise return []
+        return []
+
+        #@todo (1)
+
+    @property
+    def tasks(self):
+        #walk overall issues find the stories (based on type)
+        #only for home type repo, otherwise return []
+        return []
+
+        #@todo (1)
+
     @labels.setter
     def labels(self,labels2set):
 
@@ -541,7 +626,10 @@ class GithubRepo():
                     #no replacement
                     name='type_unknown'
                     color=self.getColor(name)
-                    item.edit(nameNew, color)
+                    try:
+                        item.edit(name, color)
+                    except:
+                        item.delete()
                     self._labels=None                            
         
         #walk over new labels we need to set
@@ -729,35 +817,47 @@ class GithubRepo():
 
     def getColor(self,name):
 
-        colors={'state_question':'fbca04',
-         'priority_urgent':'d93f0b',
-         'state_verification':'006b75',
-         'priority_minor':'',
-         'type_task':'',
-         'type_feature':'',
-         'process_wontfix':"ffffff",
-         'priority_critical':"b60205",
-         'state_inprogress':"e6e6e6",
-         'priority_normal':"e6e6e6",
-         'type_story':"ee9a00",
-         'process_duplicate':"",
-         'state_closed':"5319e7",
-         'type_bug':"fc2929",
-         'state_accepted':"0e8a16",
-         'type_question':"fbca04",
-         'state_new':"1d76db"}
+        # colors={'state_question':'fbca04',
+        #  'priority_urgent':'d93f0b',
+        #  'state_verification':'006b75',
+        #  'priority_minor':'',
+        #  'type_task':'',
+        #  'type_feature':'',
+        #  'process_wontfix':"ffffff",
+        #  'priority_critical':"b60205",
+        #  'state_inprogress':"e6e6e6",
+        #  'priority_normal':"e6e6e6",
+        #  'type_story':"ee9a00",
+        #  'process_duplicate':"",
+        #  'state_closed':"5319e7",
+        #  'type_bug':"fc2929",
+        #  'state_accepted':"0e8a16",
+        #  'type_question':"fbca04",
+        #  'state_new':"1d76db"}
+
+        if name.startswith("state"):
+            return("c2e0c6") #light green
 
         if name.startswith("process"):
-            return("e6e6e6")
+            return("d4c5f9") #light purple
 
         if name.startswith("type"):
-            return("fef2c0")
+            return("fef2c0") #light yellow
 
-        if name in colors:
-            color=colors[name]
-            if color=="":
-                color="ffffff"
-            return color
+        if name.startswith("priority_critical"):
+            return("b60205")
+
+        if name.startswith("priority_urgent"):
+            return("d93f0b")
+
+        if name.startswith("priority"):
+            return("f9d0c4")  #roze            
+
+        # if name in colors:
+        #     color=colors[name]
+        #     if color=="":
+        #         color="ffffff"
+        #     return color
 
         return "ffffff"
 

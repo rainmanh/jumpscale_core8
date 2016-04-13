@@ -31,7 +31,8 @@ class CuisineBuilder(object):
         self.cuisine.apps.caddy.build(start=start)
         # self.cuisine.apps.skydns(start=start)
         self.cuisine.apps.influxdb.build(start=start)
-        self.cuisine.apps.weave.build(start=start)
+        if self.cuisine.command_check("docker")
+            self.cuisine.apps.weave.build(start=start)
         if sandbox:
             if not stor_addr:
                 raise j.exceptions.RuntimeError("Store address should be specified if sandboxing enable.")

@@ -83,7 +83,7 @@ class Core():
 
         # manipulate config file
         sourcepath = "$tmplsDir/cfg/core"
-        C = self.cuisine.core.file_read("%s/agent.toml" % sourcepath)
+        C = self.cuisine.core.file_read("%s/g8os.toml" % sourcepath)
         cfg = j.data.serializer.toml.loads(C)
         cfgdir = self.cuisine.core.dir_paths['cfgDir']
         cfg["main"]["message_ID_file"] = self.cuisine.core.joinpaths(cfgdir, "/core/.mid")
@@ -98,7 +98,7 @@ class Core():
         cfg["logging"]["db"]["address"] = self.cuisine.core.joinpaths(cfgdir, "/core/logs")
         C = j.data.serializer.toml.dumps(cfg)
 
-        self.cuisine.core.file_write("$cfgDir/core/agent.toml", C, replaceArgs=True)
+        self.cuisine.core.file_write("$cfgDir/core/g8os.toml", C, replaceArgs=True)
 
         self.cuisine.apps.mongodb.start()
         self.cuisine.apps.redis.start()
@@ -106,7 +106,7 @@ class Core():
         #@todo (*1*) need to implement to work on node
         env = {}
         env["TMPDIR"] = self.cuisine.core.dir_paths["tmpDir"]
-        cmd = "$binDir/core -nid %s -gid %s -c $cfgDir/core/agent.toml" % (
+        cmd = "$binDir/core -nid %s -gid %s -c $cfgDir/core/g8os.toml" % (
             nid, gid)
         pm = self.cuisine.processmanager.get("tmux")
         pm.ensure("core", cmd=cmd, path="$cfgDir/core", env=env)

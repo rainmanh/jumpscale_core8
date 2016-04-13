@@ -13,7 +13,7 @@ class Profile(object):
     env_pattern = re.compile(r'^([^=\n]+)="([^"\n]+)"$', re.MULTILINE)
     include_pattern = re.compile(r'^source (.*)$', re.MULTILINE)
 
-    def __init__(self, content):
+    def __init__(self, content, binDir=None):
         """
         X="value"
         Y="value"
@@ -37,6 +37,7 @@ class Profile(object):
         else:
             self._path = set()
             self._path.add('${PATH}')
+            self._path.add(binDir)
 
     def addPath(self, path):
         self._path.add(path)
@@ -192,7 +193,7 @@ class Bash:
         if self._profilePath == "":
             self._profilePath = j.sal.fs.joinPaths(self.home, ".profile_js")
         if not self.cuisine.core.file_exists(self._profilePath):
-            self.cuisine.core.file_write(self._profilePath,"")
+            self.cuisine.core.file_write(self._profilePath, self.profile.dump())
             self.setOurProfile()
             self._profile = None
         return self._profilePath
@@ -201,10 +202,12 @@ class Bash:
     def profile(self):
         if not self._profile:
             content = ""
-            if self.cuisine.core.file_exists(self.profilePath):
+            if self._profilePath == "" and self.cuisine.core.file_exists(self.profilePath):
                 content = self.cuisine.core.file_read(self.profilePath)
-            self._profile = Profile(content)
+            self._profile = Profile(content, self.cuisine.core.dir_paths["binDir"])
+
         return self._profile
+
 
     @actionrun(action=True)
     def addPath(self, path):

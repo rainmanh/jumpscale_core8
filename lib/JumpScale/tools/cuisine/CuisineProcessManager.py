@@ -224,8 +224,8 @@ class CuisineTmuxec(ProcessManagerBase):
         super().__init__(executor, cuisine)
 
     def list(self,prefix=""):
-        if self.cusine.core.command_check("tmux"):
-            rc, result = self.cuisine.core.run("tmux lsw 2> /dev/null/ || true", profile=True, die=False)
+        if self.cuisine.core.command_check("tmux"):
+            rc, result = self.cuisine.core.run("tmux lsw 2> /dev/null || true", profile=True, die=False)
             if rc > 0 :
                 return []
             return result.splitlines()

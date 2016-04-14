@@ -618,7 +618,7 @@ class Service:
                 producer.printProducersRecursive(prefix+"  ")
 
 
-    def getProducersWaiting(self, action="install",producersChanged=set()):
+    def getProducersWaiting(self, action="install",producersChanged=set(),scope=None):
         """
         return list of producers which are waiting to be executing the action
         """
@@ -626,12 +626,24 @@ class Service:
         # print ("producerswaiting:%s"%self)
         for producer in self.getProducersRecursive(set(), set()):
             #check that the action exists, no need to wait for other actions, appart from when init or install not done
+            
+            if producer.state.getSet("init").state!= "OK":
+                producersChanged.add(producer)
+
+            if producer.state.getSet("install").state!= "OK":
+                producersChanged.add(producer)
+
             if producer.getAction(action)==None:
                 continue
+
             actionrunobj = producer.state.getSet(action)
             # print (actionrunobj)
             if actionrunobj.state != "OK":
                 producersChanged.add(producer)
+
+        if scope!=None:
+            producersChanged=producersChanged.intersection(scope)
+
         return producersChanged
 
 
@@ -764,7 +776,7 @@ class Service:
 
     def getProducers(self, producercategory):
         if producercategory not in self.producers:
-            j.events.inputerror_warning("cannot find producer with category:%s" % producercategory, "ays.getProducer")
+            raise j.exceptions.Input("cannot find producer with category:%s" % producercategory)
         instances = self.producers[producercategory]
         return instances
 

@@ -58,14 +58,26 @@ class Blueprint(object):
                         e.source=" Try to load recipe for %s in blueprint %s."%(key,self.path)
                         raise e
 
-                        
-
-    def execute(self):
+    def execute(self,role="",instance=""):
         for model in self.models:
             if model is not None:
                 for key, item in model.items():
+                    
                     # print ("blueprint model execute:%s %s"%(key,item))
                     aysname, aysinstance = key.split("__", 1)
+
+                    if aysname.find(".")!=-1:
+                        rolefound,aysname=aysname.split(".")
+                    else:
+                        rolefound=aysname
+                        aysname=aysname
+
+                    if role!="" and role!=rolefound:
+                        continue
+
+                    if instance!="" and instance!=aysinstance:
+                        continue
+
                     if not aysname.startswith('blueprint.'):
                         blueaysname = 'blueprint.%s' % aysname
                         try:

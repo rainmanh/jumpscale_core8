@@ -392,6 +392,7 @@ class Issue(Base):
         if val not in self.repo.labelnames:
             self.repo.labelnames.sort()
             llist=",".join(self.repo.labelnames)
+            return
             raise j.exceptions.Input("Label needs to be in list:%s (is understood labels in this repo on github), now is: '%s'"%(llist,val))
 
         #make sure there is only 1

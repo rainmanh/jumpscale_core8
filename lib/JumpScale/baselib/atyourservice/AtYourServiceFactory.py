@@ -70,11 +70,9 @@ class AtYourServiceFactory():
     @basepath.setter
     def basepath(self,val):
         self.reset()
-
         baseDir=val
         while j.sal.fs.joinPaths(baseDir, ".ays") not in j.sal.fs.listFilesInDir(baseDir, recursive=False):
             baseDir=j.sal.fs.getParent(baseDir)
-
             baseDir=baseDir.rstrip("/")
 
             if baseDir.strip()=="":
@@ -286,7 +284,7 @@ class AtYourServiceFactory():
 
         self._init=True
 
-    def init(self,newrun=True):
+    def init(self,role="",instance="",newrun=True):
 
         self.reset()
 
@@ -298,7 +296,7 @@ class AtYourServiceFactory():
         self.reset()
 
         for bp in self.blueprints:
-            bp.execute()
+            bp.execute(role=role,instance=instance)
 
         print ("init done")
 
@@ -364,28 +362,15 @@ class AtYourServiceFactory():
                 hrd.items.update(hrdtemp.items)
             return hrd.hrdGet()
         return None
-
-    def install(self,printonly=False,remember=True):
-        #start from clean sheet
-        self.init()
-        self.do(action="install",printonly=printonly,remember=remember)
-
     def uninstall(self, printonly=False, remember=True):
         self.do(action="uninstall", printonly=printonly, remember=False)
 
-    def apply(self, printonly=False, remember=True):
-        # start from clean sheet
-        self.init()
 
-        actions = ['install', 'start']
+    def install(self,role="", instance="",printonly=False,ignorestate=False):
+        self.do(action="install",role=role,instance=instance,printonly=printonly,ignorestate=ignorestate)
 
-        todo = self.findTodo(action='install')
-        while todo != []:
-            for i in range(len(todo)):
-                service = todo[i]
-                for action in actions:
-                    service.runAction(action, printonly)
-            todo = self.findTodo('install')
+    def apply(self, role="", instance="",printonly=False, remember=True):
+        self.do("start",role,instance)  #will make sure init & install happened first
 
     def commit(self, action="unknown", msg="", precheck=False):
         pass
@@ -402,89 +387,100 @@ class AtYourServiceFactory():
         #         #only do this when no precheck, means we are not cleaning up past
         #         self.alog.newGitCommit(action=action,githash="")
 
-    def _getChangedServices(self, action=None):
-        changed = list()
-        if not action:
-            actions = ["install", "stop", "start", "monitor", "halt", "check_up", "check_down",
-                       "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata"]
-        else:
-            actions = [action]
-        for _, service in self.services.items():
-            if [service for action in actions if service.state.getSet(action).state == 'CHANGED']:
-                changed.append(service)
-                for producers in [producers for _, producers in service.producers.items()]:
-                    changed.extend(producers)
-        return changed
+    # def _getChangedServices(self, action=None):
+    #     changed = list()
+    #     if not action:
+    #         actions = ["install", "stop", "start", "monitor", "halt", "check_up", "check_down",
+    #                    "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata"]
+    #     else:
+    #         actions = [action]
+    #     for _, service in self.services.items():
+    #         if [service for action in actions if service.state.getSet(action).state == 'CHANGED']:
+    #             changed.append(service)
+    #             for producers in [producers for _, producers in service.producers.items()]:
+    #                 changed.extend(producers)
+    #     return changed
 
-    def do(self, action="install", printonly=False, remember=True, allservices=False, ask=False):
-        if not allservices:
-            # we need to find change since last time & make sure that
-            # find all services with action with this name and put back on init
-            # we also need to find all child service and depdendent service of the modified service
-            changed = self._getChangedServices(action=action)
-            toChange = set(changed)
-            for service in changed:
-                toChange = toChange.union(self.findConsumersRecursive(service))
 
-            if ask:
-                toChange = j.tools.console.askChoiceMultiple(list(toChange), sort=False)
+    def do(self, action="install", role="", instance="", printonly=False, ignorestate=False, force=False, ask=False):
 
-            for service in toChange:
-                if hasattr(service.actions, action):
-                    stateItem = service.state.getSet(action)
-                    stateItem.state = "CHANGED"
+        #make sure actions which are relevant get their init & install done
+        if action!="init":
+            self.do("init",role=role,instance=instance,force=force)
 
-        else:
-            todo = [item[1] for item in self.services.items()]
-            for service in todo:
-                actionobj = service.getAction(action)
-                if remember is False or printonly:
-                    actionobj._state = "START"
-                else:
-                    actionobj.setState("START")
+        if action!="init" and action!="install":
+            self.do("install",role=role,instance=instance,force=force)
 
-        todo = self.findTodo(action=action)
+        todo = self.findTodo(action=action,role=role,instance=instance,force=force,ignorestate=ignorestate or printonly)
 
         step = 1
         while todo != []:
+
+            if ask:
+                from IPython import embed
+                print ("DEBUG NOW ask in do, filter items")
+                embed()
+                
+
             print("execute state changes, nr services to process: %s in step:%s" % (len(todo), step))
             for i in range(len(todo)):
                 service = todo[i]
-                service.runAction(action, printonly=printonly)
+                print ("DO:%s %s"%(service,action))
+                service.runAction(action, printonly=printonly,ignorestate= ignorestate)
+
             todo = self.findTodo(action=action)
 
-    def findTodo(self, action="install"):
+    def findTodo(self, action="install",role="",instance="",force=False,ignorestate=False):
 
-        if action != "init" and action != "uninstall":
-            todoinit=self.findTodo("init")
-            if len(todoinit)>0:
-                self.do("init")
 
-        if action != "init" and action != "install" and action != "uninstall":
-            todoinstall=self.findTodo("install")
-            if len(todoinstall)>0:
-                self.do("install")
+        #change the state so for sure these will be executed
+        if force:
+            todo = [item[1] for item in self.services.items()]
+            for service in todo:
 
-        todo = list()
+                #skip the ones which are not part of the filter for role & instance
+                if role!="" and service.role!=role:
+                    continue
+                if instance!="" and service.instance!=instance:
+                    continue
+
+                state = service.state.getSet(action)
+                if ignorestate:
+                    state._state = "DO" #this should make sure its not being set in state file
+                else:
+                    state.state = "DO"
+
+        #create a scope in which we need to find work
+        scope=set()
         for key, service in self.services.items():
+            if role!="" and service.role!=role:
+                continue
+            if instance!="" and service.instance!=instance:
+                continue
+            scope.add(service)
+            producersl=service.getProducersRecursive()
+            scope=scope.union(producersl)
+
+        #now we need to go over all but limited to scope
+        todo = list()
+        for service in scope:
             actionstate = service.state.getSet(action)
             if actionstate.state != "OK":
-                producersWaiting = service.getProducersWaiting(action, set())
+                producersWaiting = service.getProducersWaiting(action, set(),scope=scope)
+                # print ("%s:\n%s"%(action,producersWaiting))                
                 if len(producersWaiting) == 0:
                     if service.getAction(action)!=None:
                         todo.append(service)
-                    if j.atyourservice.debug:
-                        print("%s waiting for install" % service)
+                        if j.atyourservice.debug:
+                            print("%s waiting for %s" % (service,action))
+                    else:
+                        if j.atyourservice.debug:
+                            print("%s no need to do '%s' because method does not exist." % (service,action))
+
                 elif j.application.debug:
-                    print("%s no change in producers" % service)
+                    print("%s no producers waiting for action %s" % (service,action))
         return todo
 
-    def checkRevisions(self):
-        if len(self.services) == 0:
-            self.loadServices()
-
-        for service in self.services:
-            service.state.saveRevisions()
 
     def findTemplates(self, name="", version="", domain="", role='', first=False):
         res = []
@@ -744,41 +740,3 @@ class AtYourServiceFactory():
         if start:
             bot.run()
         return bot
-
-
-    # def _getGitRepo(self, url, recipeitem=None, dest=None):
-    #     if url in self._reposDone:
-    #         return self._reposDone[url]
-
-    #     login = None
-    #     passwd = None
-    #     if recipeitem is not None and "login" in recipeitem:
-    #         login = recipeitem["login"]
-    #         if login == "anonymous" or login.lower() == "none" or login == "" or login.lower() == "guest":
-    #             login = "guest"
-    #     if recipeitem is not None and "passwd" in recipeitem:
-    #         passwd = recipeitem["passwd"]
-
-    #     branch = None  # let branch be selected automatily
-    #     if recipeitem is not None and "branch" in recipeitem:
-    #         branch = recipeitem["branch"]
-
-    #     revision = None
-    #     if recipeitem is not None and "revision" in recipeitem:
-    #         revision = recipeitem["revision"]
-
-    #     depth = 1
-    #     if recipeitem is not None and "depth" in recipeitem:
-    #         depth = recipeitem["depth"]
-    #         if isinstance(depth, str) and depth.lower() == "all":
-    #             depth = None
-    #         else:
-    #             depth = int(depth)
-
-    #     login = j.application.config.get("whoami.git.login").strip()
-    #     passwd = j.application.config.getStr("whoami.git.passwd").strip()
-
-    #     dest = j.do.pullGitRepo(url=url, login=login, passwd=passwd,
-    #                             depth=depth, branch=branch, revision=revision, dest=dest)
-    #     self._reposDone[url] = dest
-    #     return dest

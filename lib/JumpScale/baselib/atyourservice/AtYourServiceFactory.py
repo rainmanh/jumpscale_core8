@@ -363,7 +363,7 @@ class AtYourServiceFactory():
             return hrd.hrdGet()
         return None
     def uninstall(self, printonly=False, remember=True):
-        self.do(action="uninstall", printonly=printonly, remember=False)
+        self.do(action="uninstall", printonly=printonly)
 
 
     def install(self,role="", instance="",printonly=False,ignorestate=False):
@@ -405,10 +405,10 @@ class AtYourServiceFactory():
     def do(self, action="install", role="", instance="", printonly=False, ignorestate=False, force=False, ask=False):
 
         #make sure actions which are relevant get their init & install done
-        if action!="init":
+        if action != "init" and action != "uninstall":
             self.do("init",role=role,instance=instance,force=force)
 
-        if action!="init" and action!="install":
+        if action != "init" and action != "install" and action != "uninstall":
             self.do("install",role=role,instance=instance,force=force)
 
         todo = self.findTodo(action=action,role=role,instance=instance,force=force,ignorestate=ignorestate or printonly)

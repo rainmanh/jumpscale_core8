@@ -1410,7 +1410,7 @@ class InstallTools():
             return None
 
         for line in out.splitlines():
-            delim = (".ssh/%s" % keyname).encode()
+            delim = ("/%s" % keyname).encode()
 
             if line.endswith(delim):
                 line=line.strip()

@@ -444,6 +444,7 @@ class AtYourServiceFactory():
                 else:
                     actionobj.setState("START")        
 
+        #create a scope in which we need to find work
         scope=set()
         for key, service in self.services.items():
             if role!="" and service.role!=role:

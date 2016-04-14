@@ -1155,12 +1155,12 @@ class CuisineCore():
     #####################SYSTEM IDENTIFICATION
     @property
     def isDocker(self):
-        self._isDocker = not self.run('cat  /proc/1/cgroup | grep "docker" >/dev/null ; echo $?', die=False)[0]
+        self._isDocker = not int(self.run('cat  /proc/1/cgroup | grep "docker" >/dev/null ; echo $?', die=False)[1])
         return self._isDocker
 
     @property
     def isLxc(self):
-        self._isLxc =  not self.run('cat  /proc/1/cgroup | grep "lxc" >/dev/null ; echo $?', die=False)[0]
+        self._isLxc = not int(self.run('cat  /proc/1/cgroup | grep "lxc" >/dev/null ; echo $?', die=False)[1])
         return self._isLxc
     
 

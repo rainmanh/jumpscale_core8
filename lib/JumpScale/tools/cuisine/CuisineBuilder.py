@@ -31,7 +31,7 @@ class CuisineBuilder(object):
         self.cuisine.apps.caddy.build(start=start)
         # self.cuisine.apps.skydns(start=start)
         self.cuisine.apps.influxdb.build(start=start)
-        if hasattr(self.cuisine.apps, "weave"):
+        if not self.cuisine.core.isDocker and not self.cuisine.core.isLxc:
             self.cuisine.apps.weave.build(start=start)
         if sandbox:
             if not stor_addr:

@@ -57,6 +57,7 @@ class AtYourServiceFactory():
         self._servicesTree = {}
 
     def destroy(self):
+        self.uninstall()
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath,"recipes"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath,"services"))
 
@@ -369,6 +370,9 @@ class AtYourServiceFactory():
         self.init()
         self.do(action="install",printonly=printonly,remember=remember)
 
+    def uninstall(self, printonly=False, remember=True):
+        self.do(action="uninstall", printonly=printonly, remember=False)
+
     def apply(self, printonly=False, remember=True):
         # start from clean sheet
         self.init()
@@ -451,12 +455,12 @@ class AtYourServiceFactory():
 
     def findTodo(self, action="install"):
 
-        if action!="init":
+        if action != "init" and action != "uninstall":
             todoinit=self.findTodo("init")
             if len(todoinit)>0:
                 self.do("init")
 
-        if action!="init" and action!="install":
+        if action != "init" and action != "install" and action != "uninstall":
             todoinstall=self.findTodo("install")
             if len(todoinstall)>0:
                 self.do("install")

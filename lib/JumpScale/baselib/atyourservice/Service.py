@@ -449,7 +449,7 @@ class Service:
                 self.hrd.set("parent", self.parent.key)
                 self.consume(self.parent)
 
-            self._manipulateHRD()
+            self._consumeFromSchema()
 
             self._action_methods = None  # to make sure we reload the actions
 
@@ -498,7 +498,7 @@ class Service:
     #         if not exists(self.args, 'node.name'):
     #             self.args['node.name'] = self.instance
 
-    def _manipulateHRD(self):
+    def _consumeFromSchema(self):
         #manipulate the HRD's to mention the consume's to producers
         consumes = self.recipe.schema.consumeSchemaItemsGet()
 
@@ -507,6 +507,7 @@ class Service:
                 #parent exists
                 role = consumeitem.consume_link
                 consumename = consumeitem.name
+
 
                 if role in self.producers:
                     continue
@@ -517,8 +518,8 @@ class Service:
 
                 ays_s = list()
                 candidates = j.atyourservice.findServices(role=consumeitem.consume_link)
-                if candidates:
-                    if instancenames:
+                if len(candidates)>0:
+                    if len(instancenames)>0:
                         ays_s = [candidate for candidate in candidates if candidate.instance in instancenames]
                     else:
                         ays_s = candidates
@@ -543,12 +544,11 @@ class Service:
                     if ays not in self._producers[role]:
                         self._producers[role].append(ays)
 
-                if len(candidates)==1:
-                    self.hrd.set(consumeitem.name, candidates[0].instance)
-                else:
-                    producers_list = [item.instance for item in candidates]
-                    producers_list.sort()
-                    self.hrd.set(consumeitem.name, producers_list)
+            for key,producers in self.producers.items():
+                producers=[item.key for item in producers]
+                producers.sort()
+                self.hrd.set("producer.%s"%key,producers)
+
 
     def consume(self, input):
         """
@@ -812,17 +812,19 @@ class Service:
 
     #     return True
 
-    def runAction(self, action, printonly=False):
-        if printonly:
-            # TODO printonyl
-            return
+    def runAction(self, action, printonly=False,ignorestate=False):
 
         self.actions.service=self
         a=self.getAction(action)
 
         #when none means does not exist so does not have to be executed
         if a!=None:
-            return a()
+            if printonly==False:
+                return a()
+            else:
+                print ("Execute: %s %s"%(self,action))
+
+        #@todo implement ignorestate (not so easy)
 
     def getAction(self,action):
         """

@@ -407,7 +407,7 @@ class AtYourServiceFactory():
         if action!="init" and action!="install":
             self.do("install",role=role,instance=instance,force=force)
 
-        todo = self.findTodo(action=action,role=role,instance=instance,force=force)
+        todo = self.findTodo(action=action,role=role,instance=instance,force=force,ignorestate=ignorestate or printonly)
 
         step = 1
         while todo != []:
@@ -422,10 +422,11 @@ class AtYourServiceFactory():
             for i in range(len(todo)):
                 service = todo[i]
                 print ("DO:%s %s"%(service,action))
-                service.runAction(action, printonly=printonly)
+                service.runAction(action, printonly=printonly,ignorestate= ignorestate)
+
             todo = self.findTodo(action=action)
 
-    def findTodo(self, action="install",role="",instance="",force=False):
+    def findTodo(self, action="install",role="",instance="",force=False,ignorestate=False):
 
         #change the state so for sure these will be executed
         if force:
@@ -438,11 +439,11 @@ class AtYourServiceFactory():
                 if instance!="" and service.instance!=instance:
                     continue
 
-                actionobj = service.getAction(action)
-                if remember is False or printonly:
-                    actionobj._state = "START"
+                state = service.state.getSet(action)
+                if ignorestate:
+                    state._state = "DO" #this should make sure its not being set in state file
                 else:
-                    actionobj.setState("START")        
+                    state.state = "DO"
 
         #create a scope in which we need to find work
         scope=set()

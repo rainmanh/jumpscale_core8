@@ -1156,6 +1156,8 @@ class CuisineCore():
     #####################SYSTEM IDENTIFICATION
     @property
     def _cgroup(self):
+        if self.isMac:
+            return ""
         if not self.__cgroup:
             self.__cgroup = self.file_read("/proc/1/cgroup")
         return self.__cgroup

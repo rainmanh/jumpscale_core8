@@ -58,13 +58,15 @@ class CuisineApps(object):
         self._weave = None
         self._portal = None
 
-        def _add_weave():
-            if self._weave is None:
+    @property
+    def weave(self):
+        if self._weave is None:
+            if not self.cuisine.core.isDocker and not self.cuisine.core.isLxc:
                 self._weave = Weave(self.executor, self.cuisine)
-            return self._weave
-        if not self.cuisine.core.isDocker and not self.cuisine.core.islxc:
-            self.weave = property(_add_weave)
-
+            else:
+                raise AttributeError('Weave does not support LXC or Docker containers')
+        return self._weave
+        
 
     @property
     def skydns(self):

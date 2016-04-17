@@ -58,24 +58,22 @@ class Blueprint(object):
                         e.source=" Try to load recipe for %s in blueprint %s."%(key,self.path)
                         raise e
 
-    def execute(self,role="",instance=""):
+    def execute(self, role="", instance=""):
         for model in self.models:
             if model is not None:
                 for key, item in model.items():
-                    
                     # print ("blueprint model execute:%s %s"%(key,item))
                     aysname, aysinstance = key.split("__", 1)
 
-                    if aysname.find(".")!=-1:
-                        rolefound,aysname=aysname.split(".")
+                    if aysname.find(".") != -1:
+                        rolefound, _ = aysname.split(".", 1)
                     else:
-                        rolefound=aysname
-                        aysname=aysname
+                        rolefound = aysname
 
-                    if role!="" and role!=rolefound:
+                    if role != "" and role != rolefound:
                         continue
 
-                    if instance!="" and instance!=aysinstance:
+                    if instance != "" and instance != aysinstance:
                         continue
 
                     if not aysname.startswith('blueprint.'):
@@ -84,9 +82,9 @@ class Blueprint(object):
                             r = j.atyourservice.getRecipe(name=blueaysname)
                         except j.exceptions.Input:
                             r = j.atyourservice.getRecipe(name=aysname)
-                    yaml=model['%s__%s' % (aysname, aysinstance)]
-                    aysi=r.newInstance(instance=aysinstance, args=item, yaml=yaml)
-                    aysi.init()                    
+                    yaml = model['%s__%s' % (aysname, aysinstance)]
+                    aysi = r.newInstance(instance=aysinstance, args=item, yaml=yaml)
+                    aysi.init()
 
     def _add2models(self,content,nr):
         #make sure we don't process double

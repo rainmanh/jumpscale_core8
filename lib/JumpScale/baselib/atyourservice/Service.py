@@ -382,10 +382,10 @@ class Service:
                 else:
                     instance = ""
 
-                if instance == "":
-                    ays_s = j.atyourservice.findServices(role=role)
-                else:
+                if role == name:
                     ays_s = j.atyourservice.findServices(role=role, instance=instance)
+                else:
+                    ays_s = j.atyourservice.findServices(name=name, instance=instance)
 
                 if len(ays_s) == 1:
                     # we found 1 service of required role, will take that one
@@ -507,7 +507,6 @@ class Service:
                 #parent exists
                 role = consumeitem.consume_link
                 consumename = consumeitem.name
-
 
                 if role in self.producers:
                     continue

@@ -16,7 +16,8 @@ class CuisineTmux():
         @screens is list with nr of screens required in session and their names (is [$screenname,...])
         """
         if 'ubuntu' in j.core.platformtype.myplatform.platformtypes:
-            j.sal.ubuntu.apt_install_check("tmux", "tmux")
+            if not self.cuisine.core.command_check("tmux"):
+                self.cuisine.package.install("tmux")
         else:
             if not j.do.checkInstalled("tmux"):
                 raise j.exceptions.RuntimeError("Cannnot use tmux, please install tmux")

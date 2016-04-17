@@ -224,10 +224,13 @@ class CuisineTmuxec(ProcessManagerBase):
         super().__init__(executor, cuisine)
 
     def list(self,prefix=""):
-        rc, result = self.cuisine.core.run("tmux lsw", profile=True, die=False)
-        if rc > 1:
-            return []
-        return result.splitlines()
+        if self.cuisine.core.command_check("tmux"):
+            rc, result = self.cuisine.core.run("tmux lsw 2> /dev/null || true", profile=True, die=False)
+            if rc > 0 :
+                return []
+            return result.splitlines()
+        else:
+            self.logger.error("tmux not installed")
 
     def ensure(self, name, cmd="", env={}, path="", descr=""):
         """Ensures that the given upstart service is self.running, starting

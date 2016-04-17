@@ -30,6 +30,7 @@ class AydoStor():
         @input addr, address and port on which the service need to listen. e.g. : 0.0.0.0:8090
         @input backend, directory where to save the data push to the store
         """
+        self.cuisine.core.dir_remove("%s/src" % self.cuisine.bash.environGet('GOPATH'))
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/g8os/stor", action=True)
         self.cuisine.core.file_copy(self.cuisine.core.joinpaths(

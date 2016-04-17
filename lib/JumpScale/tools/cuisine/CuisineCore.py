@@ -1155,9 +1155,14 @@ class CuisineCore():
     #####################SYSTEM IDENTIFICATION
     @property
     def isDocker(self):
-        docker = self.run('mount | grep hostname > /dev/null', die = False)
-        return not docker[0]
+        self._isDocker = not int(self.run('cat  /proc/1/cgroup | grep "docker" >/dev/null ; echo $?', die=False)[1])
+        return self._isDocker
 
+    @property
+    def isLxc(self):
+        self._isLxc = not int(self.run('cat  /proc/1/cgroup | grep "lxc" >/dev/null ; echo $?', die=False)[1])
+        return self._isLxc
+    
 
     @property
     def isUbuntu(self):

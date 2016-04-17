@@ -264,7 +264,8 @@ class CockpitDeployer:
 
         #self.logger.info('cloning template repo (%s)' % self.TEMPLATE_REPO)
         _, _, _, _, template_repo_path, _ = j.do.getGitRepoArgs(self.TEMPLATE_REPO)
-        #template_repo_path = j.do.pullGitRepo(url=self.TEMPLATE_REPO, branch='master', executor=cuisine.executor)
+        #template_repo_path = j.clients.github.getClient(url=self.TEMPLATE_REPO, executor=cuisine.executor)
+        #template_repo_path = template_repo_path.pullGitRepo(url)
         #self.logger.info('cloned in %s' % template_repo_path)
 
         self.logger.info("creation of cockpit repo")
@@ -334,7 +335,9 @@ class CockpitDeployer:
             'https://github.com/Jumpscale/jumpscale_portal8.git',
         ]
         for url in repos:
-            j.do.pullGitRepo(url=url, executor=container_cuisine.executor)
+            git_client = j.clients.github.getClient("", url, executor=container_cuisine.executor)
+            git_client.pullGitRepo(url)
+
 
 
         self.logger.info("Start configuration of your cockpit")
@@ -342,11 +345,11 @@ class CockpitDeployer:
         container_cuisine.apps.influxdb.start()
 
         self.logger.info("Configuration of grafana")
-        container_cuisine.apps.grafana.start()
         cfg = container_cuisine.core.file_read('$cfgDir/grafana/grafana.ini')
         cfg = cfg.replace('domain = localhost', 'domain = %s' % dns_name)
         cfg = cfg.replace('root_url = %(protocol)s://%(domain)s:%(http_port)s/', 'root_url = %(protocol)s://%(domain)s:%(http_port)s/grafana')
         container_cuisine.core.file_write('$cfgDir/grafana/grafana.ini', cfg)
+        container_cuisine.apps.grafana.start()
 
         self.logger.info("Configuration of mongodb")
         container_cuisine.apps.mongodb.start()
@@ -356,7 +359,7 @@ class CockpitDeployer:
 
         self.logger.info("Configuration of cockpit portal")
         # start, do the linking of minimum portal and set admin passwd
-        container_cuisine.portal.start(force=True, passwd=self.args.portal_password)
+        container_cuisine.apps.portal.start(force=True, passwd=self.args.portal_password)
         # link required cockpit spaces
         container_cuisine.core.dir_ensure('$cfgDir/portals/main/base/')
         container_cuisine.core.file_link("/opt/code/github/jumpscale/jumpscale_portal8/apps/gridportal/base/Cockpit", "$cfgDir/portals/main/base/Cockpit")

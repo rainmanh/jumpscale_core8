@@ -6,7 +6,7 @@ from ActionDecorator import ActionDecorator
 class actionrun(ActionDecorator):
     def __init__(self, *args, **kwargs):
         ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.portal"
+        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.portal"
 
 
 class CuisinePortal(object):
@@ -81,7 +81,7 @@ class CuisinePortal(object):
         # marisa-trie
         MarkupSafe
         mimeparse
-        mongoengine
+        mongoengine==0.10.6
         msgpack-python
         netaddr
         # paramiko
@@ -98,7 +98,7 @@ class CuisinePortal(object):
         # pygo
         # pygobject
         pylzma
-        pymongo
+        pymongo==3.2.1
         pystache
         # python-apt
         python-dateutil
@@ -126,7 +126,6 @@ class CuisinePortal(object):
         wheel
         # zmq
         """
-
         self.cuisine.pip.multiInstall(deps)
         self.changeEve()
 
@@ -216,6 +215,7 @@ class CuisinePortal(object):
         Start the portal
         passwd : if not None, change the admin password to passwd after start
         """
+
         dest_dir = j.sal.fs.joinPaths(self.cuisine.core.dir_paths['varDir'], 'cfg')
         cfg_path = j.sal.fs.joinPaths(dest_dir, 'portals/main/config.hrd')
         app_dir = j.sal.fs.joinPaths(dest_dir, 'portals/portalbase')

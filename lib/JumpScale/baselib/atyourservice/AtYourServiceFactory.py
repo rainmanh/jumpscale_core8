@@ -57,6 +57,7 @@ class AtYourServiceFactory():
         self._servicesTree = {}
 
     def destroy(self):
+        self.uninstall()
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath,"recipes"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath,"services"))
 
@@ -361,6 +362,9 @@ class AtYourServiceFactory():
                 hrd.items.update(hrdtemp.items)
             return hrd.hrdGet()
         return None
+    def uninstall(self, printonly=False, remember=True):
+        self.do(action="uninstall", printonly=printonly)
+
 
     def install(self,role="", instance="",printonly=False,ignorestate=False):
         self.do(action="install",role=role,instance=instance,printonly=printonly,ignorestate=ignorestate)
@@ -401,10 +405,10 @@ class AtYourServiceFactory():
     def do(self, action="install", role="", instance="", printonly=False, ignorestate=False, force=False, ask=False):
 
         #make sure actions which are relevant get their init & install done
-        if action!="init":
+        if action != "init" and action != "uninstall":
             self.do("init",role=role,instance=instance,force=force)
 
-        if action!="init" and action!="install":
+        if action != "init" and action != "install" and action != "uninstall":
             self.do("install",role=role,instance=instance,force=force)
 
         todo = self.findTodo(action=action,role=role,instance=instance,force=force,ignorestate=ignorestate or printonly)
@@ -427,6 +431,7 @@ class AtYourServiceFactory():
             todo = self.findTodo(action=action)
 
     def findTodo(self, action="install",role="",instance="",force=False,ignorestate=False):
+
 
         #change the state so for sure these will be executed
         if force:

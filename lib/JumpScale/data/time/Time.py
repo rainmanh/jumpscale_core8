@@ -28,7 +28,7 @@ class Time_(object):
     @property
     def epoch(self):
         return int(time.time())
-    
+
 
     def getTimeEpoch(self):
         '''
@@ -40,7 +40,7 @@ class Time_(object):
         #     pass
         timestamp = int(time.time())
         return timestamp
-    
+
     def getSecondsInHR(self, seconds):
         minute = 60.
         hour = 3600.
@@ -74,7 +74,7 @@ class Time_(object):
     def getLocalTimeHRForFilesystem(self):
         #@todo check if correct implementation
         return time.strftime("%d_%b_%Y_%H_%M_%S", time.gmtime())
-    
+
     def formatTime(self,epoch,formatstr='%Y/%m/%d %H:%M:%S',local=True):
         '''
         Returns a formatted time string representing the current time
@@ -98,7 +98,7 @@ class Time_(object):
 
     def epoch2HRDate(self,epoch,local=True):
         return self.formatTime(epoch,'%Y/%m/%d',local)
-        
+
     def epoch2HRDateTime(self,epoch,local=True):
         return self.formatTime(epoch,'%Y/%m/%d %H:%M:%S',local)
 
@@ -125,7 +125,7 @@ class Time_(object):
     def epoch2pythonDate(self,epoch):
         return datetime.date.fromtimestamp(epoch)
 
-        
+
     def epoch2HRTime(self,epoch,local=True):
         return self.formatTime(epoch,'%H:%M:%S',local)
 
@@ -137,7 +137,7 @@ class Time_(object):
             epoch=time.time()
         if epoch<1262318400.0:
             raise j.exceptions.RuntimeError("epoch cannot be smaller than 1262318400, given epoch:%s"%epoch)
-        
+
         return int((epoch-1262318400.0)/60.0)
 
     def getHourId(self,epoch=None):
@@ -190,7 +190,7 @@ class Time_(object):
 
     def getEpochFuture(self,txt):
         """
-        only supported now is +3d and +3h  (ofcourse 3 can be any int)        
+        only supported now is +3d and +3h  (ofcourse 3 can be any int)
         +3d means 3 days in future
         and an int which would be just be returned
         if txt==None or 0 then will be 1 day ago
@@ -198,7 +198,7 @@ class Time_(object):
         if txt==None or str(txt).strip()=="0":
             return self.getTimeEpoch()
         return self.getTimeEpoch() + self.getDeltaTime(txt)
-                
+
     def HRDatetoEpoch(self,datestr,local=True):
         """
         convert string date to epoch
@@ -208,10 +208,10 @@ class Time_(object):
             return 0
         try:
             datestr=datestr.strip()
-            return time.mktime(time.strptime(datestr, "'%Y/%m/%d"))
+            return time.mktime(time.strptime(datestr, "%d/%m/%Y"))
         except:
             raise ValueError ("Date needs to be formatted as \"16/06/1981\", also check if date is valid, now format = %s" % datestr)
-        
+
     def HRDateTime2epoch(self,hrdatetime):
         """
         convert string date/time to epoch
@@ -223,7 +223,7 @@ class Time_(object):
             hrdatetime=hrdatetime.strip()
             return int(time.mktime(time.strptime(hrdatetime, "%Y/%m/%d %H:%M:%S")))
         except:
-            raise ValueError ("Date needs to be formatted as \"16/06/1981 day/month/year\", also check if date is valid, now format = %s" % hrdatetime)
+            raise ValueError ("Date needs to be formatted as Needs to be formatted as 16/06/1988 %H:%M:%S, also check if date is valid, now format = %s" % hrdatetime)
 
     def any2epoch(self,val):
         """
@@ -243,7 +243,14 @@ class Time_(object):
         if j.data.types.int.check(val):
             return val
         if j.data.types.string.check(val):
-            return self.HRDateTime2epoch(val)
+            try:
+                return self.HRDateTime2epoch(val)
+            except:
+                pass
+            try:
+                return self.HRDatetoEpoch(val)
+            except:
+                pass
         if isinstance (val,datetime.datetime):
             return self.pythonDateTime2Epoch(val)
         raise j.exceptions.Input("Could not define format of time value, needs to be int, human readable time, list or python datetime obj.")
@@ -275,8 +282,3 @@ class Time_(object):
         assert self.any2epoch(hr)==now
         hr=self.any2HRDateTime(["",0,dt])
         assert self.any2epoch(hr)==now
-
-
-
-
-

@@ -58,9 +58,9 @@ class Caddy():
     def start(self, ssl):
         cpath = self.cuisine.core.args_replace("$tmplsDir/cfg/caddy/caddyfile.conf")
         self.cuisine.processmanager.stop("caddy")  # will also kill
-        rc,_ = self.cuisine.core.run("ufw status", die=False)
+        fw = not self.cuisine.core.run("ufw status 2> /dev/null || echo **OK**", die=False, check_is_ok=True )
         if ssl:
-            if not rc==1:
+            if fw:
                 self.cuisine.fw.allowIncoming(443)
                 self.cuisine.fw.allowIncoming(80)
 
@@ -73,7 +73,7 @@ class Caddy():
                 raise RuntimeError("port 80 is occupied, cannot install caddy")
 
             PORTS = ":80"
-            if not rc==1:
+            if fw:
                 self.cuisine.fw.allowIncoming(80)
 
         cmd = self.cuisine.bash.cmdGetPath("caddy")

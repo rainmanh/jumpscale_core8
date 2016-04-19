@@ -234,15 +234,12 @@ replacelabels={'bug':'type_bug',
 
 class Issue(Base):
 
-    def __init__(self,repo,ddict={},githubObj=None,md=None):
+    def __init__(self,repo,ddict={},githubObj=None):
         self.repo=repo
         self._ddict=ddict
         self._githubObj=githubObj
         if githubObj!=None:
             self.load()
-        if md!=None:
-            self._loadMD(md)
-        # self.todo
 
     @property
     def api(self):
@@ -494,11 +491,64 @@ class Issue(Base):
 
         return md
 
-    def _loadMD(self,md):
-        from IPython import embed
-        print ("DEBUG NOW loadmd")
-        embed()
+    def _loadMD(self,content):
+        md=j.data.markdown.getDocument(content)
+        title=md.items[0]
+        self._ddict["title"]=title.title
+        body=md.items[1]
+        self._ddict["body"]=body.text
+        table=md.items[2]
+        state,tmp=table.header
+        #first label
+        self._ddict["labels"]=["state_%s"%state]
 
+        prio,ttype=table.rows[1]
+        self._ddict["labels"].append("priority_%s"%prio)
+        self._ddict["labels"].append("type_%s"%ttype)
+
+        self._ddict["comments"]=[]
+
+        for row in  table.rows:
+            if row[0]=="milestone":
+                ms=row[1]
+                if ms!=".":
+                    self._ddict["milestone"]=ms
+            elif row[0]=="assignee":
+                assignee=row[1]
+                if assignee!=".":
+                    self._ddict["assignee"]=assignee
+            elif row[0]=="time":
+                ttime=row[1]
+                if ttime!=".":
+                    self._ddict["time"]=ttime
+
+        for i in range(3):
+            md.items.pop(0)
+
+        state="title"
+        comment={}
+        for item in md.items:
+            if state=="title":
+                comment={}
+                state="body"
+                continue
+            if state=="body":
+                comment["body"]=item.text
+                state="table"
+                continue
+            if state=="table":
+                assignee=item.header[0]
+                url=item.header[1]
+                ttime=item.rows[0][1]
+                id=url.split("]",1)[0].strip("[")
+                comment["id"]=int(id)
+                url=url.split("]",1)[1].strip("()")
+                comment["url"]=url
+                comment["time"]=ttime
+                state="title"
+                #now add the comment
+                self._ddict["comments"].append(comment)
+                continue
 
     @property
     def todo(self):
@@ -572,6 +622,27 @@ class GithubRepo():
         self._milestones=[]
 
     @property
+    def name(self):
+        return self.fullname.split("/",1)[-1]
+
+    @property
+    def type(self):
+        if self.name in ["home"]:
+            return "home"
+        elif self.name.startswith("proj"):
+            return "proj"
+        elif self.name.startswith("org_"):
+            return "org"
+        elif self.name.startswith("www"):
+            return "www"
+        elif self.name.startswith("doc"):
+            return "doc"
+        elif self.name.startswith("cockpit"):
+            return "cockpit"
+        else:
+            return "code"
+
+    @property
     def api(self):
         if self._repoclient==None:
             self._repoclient=self.client.api.get_repo(self.fullname)
@@ -589,6 +660,10 @@ class GithubRepo():
 
     @property
     def stories(self):
+        from IPython import embed
+        print ("DEBUG NOW stories")
+        embed()
+        
         #walk overall issues find the stories (based on type)
         #only for home type repo, otherwise return []
         return []
@@ -597,6 +672,10 @@ class GithubRepo():
 
     @property
     def tasks(self):
+        from IPython import embed
+        print ("DEBUG NOW tasks")
+        embed()
+        
         #walk overall issues find the stories (based on type)
         #only for home type repo, otherwise return []
         return []
@@ -714,7 +793,7 @@ class GithubRepo():
         returns dict of dict keys: type, state and then issues sorted following priority
         """
         res={}
-        for type in self.types:
+        for type in self.issuePossibleTypes:
             res[type]={}
             for state in self.states:
                 res[type][state]={}
@@ -733,8 +812,15 @@ class GithubRepo():
                             res[type][state].append(subitem)
         return res
 
+    def getIssueFromMarkdown(self,number,md):
+
+        i=Issue(self)
+        i._ddict["number"]=int(number)
+        i._loadMD(md)
+
+
     @property
-    def types(self):
+    def issuePossibleTypes(self):
         return ["story","ticket","task","bug","feature","question","monitor","unknown"]
 
     @property

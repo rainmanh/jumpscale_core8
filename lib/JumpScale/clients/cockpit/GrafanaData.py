@@ -75,7 +75,7 @@ dashboard = {
                                     }
                                 ],
                                 "measurement": "cpu.percent|m",
-                                "query": "SELECT \"value\" FROM \"cpu.percent|m\" WHERE \"node\" =~ /$/ AND  GROUP BY \"node\"",
+                                "query": "SELECT \"value\" FROM \"cpu.percent|m\" WHERE \"node\" =~ /$node$/ AND  GROUP BY \"node\"",
                                 "refId": "A",
                                 "resultFormat": "time_series",
                                 "select": [
@@ -92,12 +92,12 @@ dashboard = {
                                     {
                                         "key": "node",
                                         "operator": "=~",
-                                        "value": "/$/"
+                                        "value": "/$node$/"
                                     }
                                 ]
                             }
                         ],
-                        "title": "Panel Title",
+                        "title": "CPU",
                         "tooltip": {
                             "shared": True,
                             "value_type": "cumulative"
@@ -156,7 +156,7 @@ dashboard = {
                                     }
                                 ],
                                 "measurement": "memory.virtual.used|m",
-                                "query": "SELECT \"value\" FROM \"memory.virtual.used|m\" WHERE \"node\" =~ /$/ AND  GROUP BY \"node\"",
+                                "query": "SELECT \"value\" FROM \"memory.virtual.used|m\" WHERE \"node\" =~ /$node$/ AND  GROUP BY \"node\"",
                                 "refId": "A",
                                 "resultFormat": "time_series",
                                 "select": [
@@ -173,12 +173,12 @@ dashboard = {
                                     {
                                         "key": "node",
                                         "operator": "=~",
-                                        "value": "/$/"
+                                        "value": "/$node$/"
                                     }
                                 ]
                             }
                         ],
-                        "title": "Panel Title",
+                        "title": "Memory",
                         "tooltip": {
                             "shared": True,
                             "value_type": "cumulative"
@@ -237,7 +237,7 @@ dashboard = {
                                     }
                                 ],
                                 "measurement": "/network\\.kbytes\\.recv\\|m|network\\.kbytes\\.sent\\|m/",
-                                "query": "SELECT \"value\" FROM /network\\.kbytes\\.recv\\|m|network\\.kbytes\\.sent\\|m/ WHERE \"node\" =~ /$/ AND  GROUP BY \"node\"",
+                                "query": "SELECT \"value\" FROM /network\\.kbytes\\.recv\\|m|network\\.kbytes\\.sent\\|m/ WHERE \"node\" =~ /$node$/ AND  GROUP BY \"node\"",
                                 "refId": "A",
                                 "resultFormat": "time_series",
                                 "select": [
@@ -254,12 +254,12 @@ dashboard = {
                                     {
                                         "key": "node",
                                         "operator": "=~",
-                                        "value": "/$/"
+                                        "value": "/$node$/"
                                     }
                                 ]
                             }
                         ],
-                        "title": "Panel Title",
+                        "title": "Network",
                         "tooltip": {
                             "shared": True,
                             "value_type": "cumulative"

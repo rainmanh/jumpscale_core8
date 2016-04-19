@@ -55,3 +55,6 @@ target/
 
 #libext is for external extensions
 lib/JumpScale/libext/
+
+#Idea (pycharm)
+.idea

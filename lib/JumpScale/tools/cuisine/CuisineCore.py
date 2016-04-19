@@ -200,6 +200,7 @@ class CuisineCore():
         self.cd="/"
         self._dirs={}
         self.sudomode = False
+        self.__cgroup = None
 
         self.executor = executor
         self.cuisine=cuisine
@@ -1154,10 +1155,23 @@ class CuisineCore():
 
     #####################SYSTEM IDENTIFICATION
     @property
+    def _cgroup(self):
+        if self.isMac:
+            return ""
+        if not self.__cgroup:
+            self.__cgroup = self.file_read("/proc/1/cgroup")
+        return self.__cgroup
+    
+    @property
     def isDocker(self):
-        docker = self.run('mount | grep hostname > /dev/null', die = False)
-        return not docker[0]
+        self._isDocker = self._cgroup.find("docker") != -1
+        return self._isDocker
 
+    @property
+    def isLxc(self):
+        self._isLxc = self._cgroup.find("lxc") != -1
+        return self._isLxc
+    
 
     @property
     def isUbuntu(self):

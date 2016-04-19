@@ -1,7 +1,6 @@
 
 from JumpScale import j
 import os
-import time
 
 import socket
 
@@ -62,6 +61,7 @@ class CuisineInstaller(object):
         @param reset, remove old code (only used when rw mode)
 
         """
+        import time
         if self.jumpscale_installed() and not reset:
             return
         self.clean()

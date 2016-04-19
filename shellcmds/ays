@@ -103,6 +103,14 @@ def install(role="",instance="",printonly=False,all=False, ask=False,ignorestate
     """
     j.atyourservice.do("install",role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
 
+@click.command()
+@click.option('--printonly', default=False,  is_flag=True,help='if set will not really execute, only show what would have been done')
+def uninstall(printonly=False):
+    """
+    do uninstall
+    """
+    j.atyourservice.uninstall(printonly=printonly)
+
 
 @click.command()
 @click.argument('role')
@@ -174,6 +182,7 @@ cli.add_command(destroy)
 cli.add_command(init)
 cli.add_command(apply)
 cli.add_command(install)
+cli.add_command(uninstall)
 cli.add_command(do)
 cli.add_command(showproducers)
 cli.add_command(showparents)

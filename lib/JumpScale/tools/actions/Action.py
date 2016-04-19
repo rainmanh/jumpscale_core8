@@ -85,6 +85,7 @@ class Action:
             self.selfGeneratorCode=selfGeneratorCode
 
             self.args = args
+            self.imports = kwargs.pop("imports")
             self.kwargs= kwargs
 
             self.serviceObj = serviceObj
@@ -296,8 +297,8 @@ class Action:
     @property
     def sourceToExecute(self):
         s="""
+        $imports
         from JumpScale import j
-
         args=\"\"\"
         $args
         \"\"\"
@@ -316,6 +317,7 @@ class Action:
 
         """
         s=j.data.text.strip(s)
+        s = s.replace("$imports", '\n'.join(self.imports))
         args=j.data.serializer.json.dumps(self.args,sort_keys=True, indent=True)
         kwargs=j.data.serializer.json.dumps(self.kwargs,sort_keys=True, indent=True)
         s=s.replace("$args",args)

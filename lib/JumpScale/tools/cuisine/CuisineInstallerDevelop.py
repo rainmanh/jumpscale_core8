@@ -56,8 +56,6 @@ class CuisineInstallerDevelop():
     @actionrun(action=True)
     def installJS8Deps(self):
         #make sure base is done & env is clean
-        if self.cuisine.installer.jumpscale_installed():
-            return
         self.cuisine.installer.base()
 
         self.python()

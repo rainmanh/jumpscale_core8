@@ -349,14 +349,14 @@ class Issue(Base):
                 self._ddict["comments"].append(comment)
                 continue
 
-
     @property
     def todo(self):
         if "_todo" not in self.__dict__:
             todo = []
-            for line in self.body.split("\n"):
-                if line.startswith("!! "):
-                    todo.append(line.strip().strip("!! "))
+            if self.body!=None:                
+                for line in self.body.split("\n"):
+                    if line.startswith("!! "):
+                        todo.append(line.strip().strip("!! "))
             for comment in self.comments:
                 for line in comment['body'].split("\n"):
                     if line.startswith("!! "):

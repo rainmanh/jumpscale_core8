@@ -56,8 +56,9 @@ class AtYourServiceFactory():
         self._blueprints=[]
         self._servicesTree = {}
 
-    def destroy(self):
-        self.uninstall()
+    def destroy(self,uninstall=True):
+        if uninstall:
+            self.uninstall()
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath,"recipes"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath,"services"))
 
@@ -406,13 +407,18 @@ class AtYourServiceFactory():
 
         #make sure actions which are relevant get their init & install done
         if action != "init" and action != "uninstall":
-            self.do("init",role=role,instance=instance,force=force)
+            self.do("init",role=role,instance=instance)
 
         if action != "init" and action != "install" and action != "uninstall":
-            self.do("install",role=role,instance=instance,force=force)
+            self.do("install",role=role,instance=instance)
 
         todo = self.findTodo(action=action,role=role,instance=instance,force=force,ignorestate=ignorestate or printonly)
 
+        # if todo!=[]:
+        #     from IPython import embed
+        #     print ("DEBUG NOW oioioi")
+        #     embed()
+        
         step = 1
         while todo != []:
 

@@ -461,7 +461,12 @@ class GithubRepo():
                     self.logger.warning("command %s not supported" % cmd)
 
             # Logic after this point is only for home repo
-            if not self.fullname.lower().endswith('home'):
+            valid = False
+            for typ in ['org_', 'proj_']:
+                if not self.fullname.lower().startswith(typ):
+                    valid = True
+                    break
+            if not valid:
                 continue
 
             start = issue.title.split(":", 1)[0]

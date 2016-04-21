@@ -91,7 +91,7 @@ class GitHubClient(object):
             if "GITHUBUSER" in self.cuisine.bash.environ.keys():
                 login = self.cuisine.bash.environGet("GITHUBUSER")
 
-            if "GITHUBPASSWD" in os.environ.keys():
+            if "GITHUBPASSWD" in self.cuisine.bash.environ.keys():
                 passwd = self.cuisine.bash.environGet("GITHUBPASSWD")
 
 
@@ -143,12 +143,12 @@ class GitHubClient(object):
 
         if dest is None and branch is None:
             branch = "master"
-        elif branch is None and dest is not None and j.sal.fs.exists(dest):
+        elif branch is None and dest is not None and self.cuisine.core.dir_exists(dest):
             # if we don't specify the branch, try to find the currently
             # checkedout branch
             if self.executor.exists(dest):
                 cmd = 'cd %s; git rev-parse --abbrev-ref HEAD' % dest
-                rc, out = self.executor.execute(cmd, die=False, showout=False)
+                rc, out = self.executor.execute(cmd, die=False, checkok=False,  showout=False)
                 if rc == 0:
                     branch = out.strip()
                 # if we can't retreive current branch, use master as default

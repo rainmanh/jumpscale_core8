@@ -1343,11 +1343,13 @@ class SystemFS(SALObject):
             data = fp.readlines()
         uncommented = list()
         for line in data:
+            line = line.strip() #fixes lines start with spaces.
             if not line.startswith('#') and not line.startswith('\n'):
                 line = line.replace('\n', '')
                 uncommented.append(line)
         self.logger.debug('File %s is closed after reading'%filename)
         return uncommented
+
 
     def fileGetTextContents(self, filename):
         """Read a UTF-8 file and get contents of that file. Takes care of the [BOM](http://en.wikipedia.org/wiki/Byte_order_mark)

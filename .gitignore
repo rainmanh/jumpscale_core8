@@ -58,3 +58,7 @@ lib/JumpScale/libext/
 
 #Idea (pycharm)
 .idea
+
+# Vagrant files
+Vagrantfile
+.vagrant

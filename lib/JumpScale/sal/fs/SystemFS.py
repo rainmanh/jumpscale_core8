@@ -1674,41 +1674,25 @@ class SystemFS(SALObject):
             dir = dir or j.dirs.tmpDir
             return tempfile.mktemp('', prefix, dir)
 
-    def isAsciiFile(self, filename, checksize=4096):
-        """Read the first <checksize> bytes of <filename>.
-           Validate that only valid ascii characters (32-126), \r, \t, \n are
-           present in the file"""
-        BLOCKSIZE = 4096
-        dataread = 0
-        if checksize == 0:
-            checksize = BLOCKSIZE
-        fp = open(filename,"r")
-        isAscii = True
-        while dataread < checksize:
-            data = fp.read(BLOCKSIZE)
-            if not data:
-                break
-            dataread += len(data)
-            for x in data:
-                if not ((ord(x)>=32 and ord(x)<=126) or x=='\r' or x=='\n' or x=='\t'):
-                    isAscii = False
-                    break
-            if not isAscii:
-                break
-        fp.close()
-        return isAscii
+    def isAsciiFile(self, filename):
+        try:
+            with open(filename, encoding='ascii') as f:
+                f.read()
+                return True
+        except UnicodeDecodeError:
+                return False
 
-    def isBinaryFile(self, filename, checksize=4096):
-        return not self.isAsciiFile(filename, checksize)
+        def isBinaryFile(self, filename, checksize=4096):
+            return not self.isAsciiFile(filename, checksize)
 
-    def isAbsolute(self, path):
-        return os.path.isabs(path)
+        def isAbsolute(self, path):
+            return os.path.isabs(path)
 
-    lock = staticmethod(lock)
-    lock_ = staticmethod(lock_)
-    islocked = staticmethod(islocked)
-    unlock = staticmethod(unlock)
-    unlock_ = staticmethod(unlock_)
+        lock = staticmethod(lock)
+        lock_ = staticmethod(lock_)
+        islocked = staticmethod(islocked)
+        unlock = staticmethod(unlock)
+        unlock_ = staticmethod(unlock_)
 
     def validateFilename(self, filename, platform=None):
         '''Validate a filename for a given (or current) platform

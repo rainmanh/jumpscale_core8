@@ -1356,7 +1356,7 @@ class SystemFS(SALObject):
         """
         if filename is None:
             raise TypeError('File name is None in system.fs.fileGetTextContents')
-        with open(filename) as f:
+        with open(filename, encoding='utf8') as f: #enforce utf8 encoding
             s = f.read()
 
         boms = [codecs.BOM_UTF8]
@@ -1365,6 +1365,7 @@ class SystemFS(SALObject):
                 s = s.replace(bom.decode(), '', 1)
                 break
         return s
+
 
     def touch(self,paths,overwrite=True):
         """

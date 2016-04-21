@@ -1460,15 +1460,16 @@ class SystemFS(SALObject):
         digest = hashlib.md5()
         try:
             for filepath in filename:
-                with open(filepath) as fh:
+                with open(filepath, 'rb') as fh:
                     while True:
                         buf = fh.read(4096)
-                        if buf == "":
+                        if buf == b"":
                             break
                         digest.update(buf)
             return digest.hexdigest()
         except Exception as e:
             raise j.exceptions.RuntimeError("Failed to get the hex digest of the file %sin system.fs.md5sum. Error: %s"  % (filename,str(e)))
+
 
     def getFolderMD5sum(self, folder):
         files = sorted(self.walk(folder, recurse=1))

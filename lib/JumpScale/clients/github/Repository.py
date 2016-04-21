@@ -2,6 +2,7 @@ from JumpScale import j
 from Issue import Issue
 from Base import replacelabels
 import copy
+from Milestone import RepoMilestone
 
 
 class GithubRepo():
@@ -56,8 +57,8 @@ class GithubRepo():
     def stories(self):
         # walk overall issues find the stories (based on type)
         # only for home type repo, otherwise return []
-        if not self.fullname.lower().endswith('home'):
-            return []
+        # if not self.fullname.lower().endswith('home'):
+        #     return []
 
         if self.issues == []:
             self.loadIssues()
@@ -71,8 +72,8 @@ class GithubRepo():
     def tasks(self):
         # walk overall issues find the stories (based on type)
         # only for home type repo, otherwise return []
-        if not self.fullname.lower().endswith('home'):
-            return []
+        # if not self.fullname.lower().endswith('home'):
+        #     return []
 
         if self.issues == []:
             self.loadIssues()
@@ -259,7 +260,7 @@ class GithubRepo():
     def milestones(self):
         if self._milestones == []:
             for ms in self.api.get_milestones():
-                milestoneObj = self.client.getMilestone(githubObj=ms)
+                milestoneObj = self.getMilestoneFromGithubObj(githubObj=ms)
                 self._milestones.append(milestoneObj)
         return self._milestones
 
@@ -271,6 +272,21 @@ class GithubRepo():
     def milestoneNames(self):
         return [item.name for item in self.milestones]
 
+    def getMilestoneFromGithubObj(self, githubObj):
+
+        found=None
+        for item in self._milestones:
+            if int(githubObj.number) == int(item.number):
+                found=item
+
+        if found==None:
+            obj = RepoMilestone(self, githubObj=githubObj)
+            obj._ddict["number"]=githubObj.number
+            self._milestones.append(obj)
+            return obj
+        else:
+            return found
+
     def getMilestone(self, name, die=True):
         name = name.strip()
         if name == "":
@@ -279,9 +295,7 @@ class GithubRepo():
             if name == item.name.strip() or name == item.title.strip():
                 return item
         if die:
-            raise j.exceptions.Input(
-                "Could not find milestone with name:%s" %
-                name)
+            raise j.exceptions.Input("Could not find milestone with name:%s" %name)
         else:
             return None
 
@@ -414,7 +428,7 @@ class GithubRepo():
             'norm': 'normal',
             'urge': 'urgent',
         }
-
+        
         stories_name = [story.story_name for story in self.stories]
 
         def get_story(name):

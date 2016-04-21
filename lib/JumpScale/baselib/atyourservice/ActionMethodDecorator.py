@@ -38,15 +38,17 @@ class ActionMethodDecorator(object):
             else:
                 force=self.force
 
-            force=True
-
             if action:
                 args=args[1:]
 
                 action0=j.actions.add(action=func, actionRecover=None,args=args,kwargs=kwargs,die=False,stdOutput=True,\
-                    errorOutput=True,retry=0,executeNow=False,selfGeneratorCode=cm,force=force,actionshow=actionshow)
+                    errorOutput=True,retry=0,executeNow=False,selfGeneratorCode=cm,force=True,actionshow=actionshow)
 
                 service=action0.selfobj.service
+                
+                if force:
+                    service.state.set(action0.name,"DO")
+
                 stateitem=service.state.getSet(action0.name)
 
                 method_hash=service.recipe.actionmethods[action0.name].hash

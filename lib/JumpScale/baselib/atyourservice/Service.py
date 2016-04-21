@@ -811,10 +811,13 @@ class Service:
 
     #     return True
 
-    def runAction(self, action, printonly=False,ignorestate=False):
+    def runAction(self, action, printonly=False,ignorestate=False, force=False):
 
         self.actions.service=self
         a=self.getAction(action)
+
+        if force:
+            self.state.set(methodname=action, state="DO")
 
         #when none means does not exist so does not have to be executed
         if a!=None:

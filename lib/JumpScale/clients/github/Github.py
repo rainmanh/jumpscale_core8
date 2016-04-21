@@ -3,7 +3,7 @@ from JumpScale.tools.zip.ZipFile import ZipFile
 
 from Repository import GithubRepo
 from User import User
-from Milestone import RepoMilestone
+
 
 try:
     import github
@@ -17,26 +17,31 @@ class GitHubFactory(object):
 
     def __init__(self):
         self.__jslocation__ = "j.clients.github"
+        self._clients={}
 
     # def getRepoClient(self, account, reponame):
     #     return GitHubRepoClient(account, reponame)
 
     def getClient(self, secret):
-        return GitHubClient(secret)
-
+        if secret not in self._clients:
+            self._clients[secret]= GitHubClient(secret)
+        return self._clients[secret]
 
 class GitHubClient():
 
     def __init__(self, secret):
         self.api = github.Github(secret)
         self.users = {}
-        self._milestones = {}
+        self.repos = {}        
 
     def getRepo(self, fullname):
         """
         fullname e.g. incubaid/myrepo
         """
-        return GithubRepo(self, fullname)
+        if fullname not in self.repos:
+            r= GithubRepo(self, fullname)
+            self.repos[fullname]=r
+        return self.repos[fullname]
 
     def getUserLogin(self, githubObj):
         if githubObj is None:
@@ -56,12 +61,3 @@ class GitHubClient():
                 self.users[githubObj.login] = user
             return self.users[githubObj.login]
 
-    def getMilestone(self, number=None, githubObj=None):
-        if number in self._milestones:
-            return self._milestones[number]
-
-        if githubObj is not None:
-            if githubObj.number not in self._milestones:
-                obj = RepoMilestone(self, githubObj=githubObj)
-                self._milestones[githubObj.number] = obj
-            return self._milestones[githubObj.number]

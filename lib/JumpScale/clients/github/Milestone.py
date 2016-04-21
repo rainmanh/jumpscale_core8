@@ -7,12 +7,13 @@ class RepoMilestone(Base):
     milestone as defined on 1 specific repo
     """
 
-    def __init__(self, client, githubObj=None):
+    def __init__(self, repo, githubObj=None):
         self.logger = j.logger.get('j.clients.github.milestone')
         self._ddict = {}
         self._githubObj = githubObj
         if githubObj is not None:
             self.load()
+        self.repo=repo
 
     @property
     def api(self):

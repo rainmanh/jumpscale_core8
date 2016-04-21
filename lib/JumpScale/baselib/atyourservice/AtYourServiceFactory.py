@@ -414,11 +414,6 @@ class AtYourServiceFactory():
 
         todo = self.findTodo(action=action,role=role,instance=instance,force=force,ignorestate=ignorestate or printonly)
 
-        # if todo!=[]:
-        #     from IPython import embed
-        #     print ("DEBUG NOW oioioi")
-        #     embed()
-        
         step = 1
         while todo != []:
 
@@ -432,7 +427,7 @@ class AtYourServiceFactory():
             for i in range(len(todo)):
                 service = todo[i]
                 print ("DO:%s %s"%(service,action))
-                service.runAction(action, printonly=printonly,ignorestate= ignorestate)
+                service.runAction(action, printonly=printonly,ignorestate= ignorestate, force=force)
 
             todo = self.findTodo(action=action)
 

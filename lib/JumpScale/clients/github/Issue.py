@@ -388,6 +388,7 @@ class Issue(Base):
         return ''
 
     def move_to_repo(self, repo):
+        print ("%s: move to repo:%s"%(self,repo))
         body = "Issue moved from %s\n\n" % self.api.url
         for line in self.api.body.splitlines():
             if line.startswith("!!") or line.startswith(
@@ -418,6 +419,7 @@ class Issue(Base):
         """
         If this issue is a story, add a link to a subtasks
         """
+        print ("%s: add task:%s"%(self,task))
         if self.repo.api.id != task.repo.api.id:
             raise j.exceptions.Input(
                 "The task and the story have to be in the same Repository.")
@@ -440,12 +442,18 @@ class Issue(Base):
             new_body = '%s\n\n### Tasks: #%d' % (
                 self.api.body, task.api.number)
 
+        #@todo (1) dirty hack why is this required
+        while "\n\n\n" in new_body:
+            new_body=new_body.replace("\n\n","\n")
+
         self.api.edit(body=new_body)
+            
 
     def link_to_story(self, story):
         """
         If this issue is a task from a story, add link in to the story in the description
         """
+        print ("%s: link to story:%s"%(self,story))
         if self.repo.api.id != story.repo.api.id:
             raise j.exceptions.Input(
                 "The task and the story have to be in the same Repository.")

@@ -1341,14 +1341,14 @@ class SystemFS(SALObject):
         # self.logger.debug('Reading file %s'% filename,9)
         with open(filename) as fp:
             data = fp.readlines()
-        uncommented = list()
-        for line in data:
-            line = line.strip() #fixes lines start with spaces.
-            if not line.startswith('#') and not line.startswith('\n'):
-                line = line.replace('\n', '')
-                uncommented.append(line)
-        self.logger.debug('File %s is closed after reading'%filename)
-        return uncommented
+            uncommented = list()
+            for line in data:
+                line = line.strip() #fixes lines start with spaces.
+                if not line.startswith('#') and not line.startswith('\n'):
+                    line = line.replace('\n', '')
+                    uncommented.append(line)
+            self.logger.debug('File %s is closed after reading'%filename)
+            return uncommented
 
 
     def fileGetTextContents(self, filename):
@@ -1361,12 +1361,12 @@ class SystemFS(SALObject):
         with open(filename, encoding='utf8') as f: #enforce utf8 encoding
             s = f.read()
 
-        boms = [codecs.BOM_UTF8]
-        for bom in boms:  # we can add more BOMs later:
-            if s.startswith(bom.decode()):
-                s = s.replace(bom.decode(), '', 1)
-                break
-        return s
+            boms = [codecs.BOM_UTF8]
+            for bom in boms:  # we can add more BOMs later:
+                if s.startswith(bom.decode()):
+                    s = s.replace(bom.decode(), '', 1)
+                    break
+            return s
 
 
     def touch(self,paths,overwrite=True):

@@ -1674,7 +1674,8 @@ class SystemFS(SALObject):
             dir = dir or j.dirs.tmpDir
             return tempfile.mktemp('', prefix, dir)
 
-    def isAsciiFile(self, filename):
+    def isAsciiFile(self, filename, checksize=4096):
+        #TODO: let's talk about checksize feature.
         try:
             with open(filename, encoding='ascii') as f:
                 f.read()
@@ -1682,17 +1683,17 @@ class SystemFS(SALObject):
         except UnicodeDecodeError:
                 return False
 
-        def isBinaryFile(self, filename, checksize=4096):
+    def isBinaryFile(self, filename, checksize=4096):
             return not self.isAsciiFile(filename, checksize)
 
-        def isAbsolute(self, path):
+    def isAbsolute(self, path):
             return os.path.isabs(path)
 
-        lock = staticmethod(lock)
-        lock_ = staticmethod(lock_)
-        islocked = staticmethod(islocked)
-        unlock = staticmethod(unlock)
-        unlock_ = staticmethod(unlock_)
+    lock = staticmethod(lock)
+    lock_ = staticmethod(lock_)
+    islocked = staticmethod(islocked)
+    unlock = staticmethod(unlock)
+    unlock_ = staticmethod(unlock_)
 
     def validateFilename(self, filename, platform=None):
         '''Validate a filename for a given (or current) platform

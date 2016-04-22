@@ -1343,8 +1343,7 @@ class SystemFS(SALObject):
             data = fp.readlines()
             uncommented = list()
             for line in data:
-                line = line.strip() #fixes lines start with spaces.
-                if not line.startswith('#') and not line.startswith('\n'):
+                if not line.strip().startswith('#') and not line.startswith('\n'):
                     line = line.replace('\n', '')
                     uncommented.append(line)
             self.logger.debug('File %s is closed after reading'%filename)

@@ -1,3 +1,5 @@
+from JumpScale import j
+
 import Sender
 
 
@@ -30,3 +32,5 @@ class Email:
 
         :return: Sender instance
         """
+        cfg = j.data.serializer.yaml.load(j.sal.fs.joinPaths(j.dirs.cfgDir, 'smtp.yaml'))
+        return self.getSender(cfg['username'], cfg['password'], cfg['host'], cfg['port'])

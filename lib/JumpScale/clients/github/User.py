@@ -1,5 +1,4 @@
 from JumpScale import j
-import github
 from Base import Base
 
 

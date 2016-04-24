@@ -12,10 +12,12 @@ class Sender:
 
     @contextmanager
     def _connect(self):
-        s = smtplib.SMTP(self._host, self._port)
-        s.login(self._username, self._password)
-        yield s
-        s.close()
+        try:
+            s = smtplib.SMTP(self._host, self._port)
+            s.login(self._username, self._password)
+            yield s
+        finally:
+            s.close()
 
     def send(self, to, from_, subject, content):
         msg = MIMEText(content)
@@ -28,6 +30,3 @@ class Sender:
         msg['From'] = from_
         with self._connect() as s:
             s.sendmail(from_, to, str(msg))
-
-
-

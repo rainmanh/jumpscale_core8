@@ -129,6 +129,14 @@ class CuisineInstaller(object):
         print ("* re-login into your shell to have access to js, because otherwise the env arguments are not set properly.")
 
     @actionrun(action=True)
+    def libvirt(self):
+        """
+        do not use in containers or VMs only actual machines @todo not tested 
+        """
+        self.cuisine.package.install('libvirt-dev')
+        self.cuisine.pip.install("libvirt-python==1.3.2", upgrade=False)
+        
+    @actionrun(action=True)
     def base(self):
         self.clean()
 

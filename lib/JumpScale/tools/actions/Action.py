@@ -85,7 +85,7 @@ class Action:
             self.selfGeneratorCode=selfGeneratorCode
 
             self.args = args
-            self.imports = kwargs.pop("imports")
+            self.imports = kwargs.pop("imports", [])
             self.kwargs= kwargs
 
             self.serviceObj = serviceObj

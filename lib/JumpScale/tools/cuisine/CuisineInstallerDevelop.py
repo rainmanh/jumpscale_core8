@@ -142,6 +142,7 @@ class CuisineInstallerDevelop():
         ujson
         watchdog
         pygo
+        pygithub
         minio
 
         # colorlog

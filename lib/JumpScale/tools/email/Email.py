@@ -3,9 +3,18 @@ from JumpScale import j
 import Sender
 
 
-class Email:
+class EmailTool:
     def __init__(self):
         self.__jslocation__ = "j.tools.email"
+
+    def new(self):
+        return Email() #we should set the attrs we need...
+
+
+class Email:
+
+    def __init__(self):
+        pass
 
     def getLast(self, num=100):
         """

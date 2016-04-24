@@ -1324,6 +1324,8 @@ class InstallTools():
     def addSSHAgentToBashProfile(self,path=None):
         if path==None:
             if "root"==self.whoami():
+                if not self.exists('/root/.bash_profile'):
+                    self.execute('touch /root/.bash_profile')
                 return self.addSSHAgentToBashProfile(path="/root/.bash_profile")
             path=self.joinPaths(os.environ["HOME"],".bash_profile")
             self.createDir(path)

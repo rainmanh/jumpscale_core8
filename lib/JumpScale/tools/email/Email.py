@@ -1,3 +1,6 @@
+import Sender
+
+
 class Email:
     def __init__(self):
         self.__jslocation__ = "j.tools.email"
@@ -18,5 +21,12 @@ class Email:
         """
         raise NotImplementedError()
 
-    def send(self):
-        raise NotImplementedError()
+    def getSender(self, username, password, host='smtp.mandrillapp.com', port=587):
+        return Sender.Sender(username, password, host, port)
+
+    def getDefaultSender(self):
+        """
+        Gets the default configured email sender
+
+        :return: Sender instance
+        """

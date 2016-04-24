@@ -56,8 +56,6 @@ class CuisineInstallerDevelop():
     @actionrun(action=True)
     def installJS8Deps(self):
         #make sure base is done & env is clean
-        if self.cuisine.installer.jumpscale_installed():
-            return
         self.cuisine.installer.base()
 
         self.python()
@@ -169,6 +167,8 @@ class CuisineInstallerDevelop():
 
     @actionrun(action=True)
     def jumpscale8(self):
+        if self.cuisine.installer.jumpscale_installed():
+            return
         self.installJS8Deps()
 
         if self.cuisine.core.isUbuntu or self.cuisine.core.isArch:

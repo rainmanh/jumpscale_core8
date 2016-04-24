@@ -45,7 +45,7 @@ class Redis():
             """
             C=self.cuisine.bash.replaceEnvironInText(C)
             C=self.cuisine.core.args_replace(C)
-            self.cuisine.core.run_script(C,profile=True)
+            self.cuisine.core.run_script(C)
             #move action
             C="""
             set -ex
@@ -57,7 +57,7 @@ class Redis():
             """
             C=self.cuisine.bash.replaceEnvironInText(C)
             C=self.cuisine.core.args_replace(C)
-            self.cuisine.core.run_script(C, profile=True)
+            self.cuisine.core.run_script(C)
         else:
             if self.cuisine.core.command_check("redis-server")==False:
                 self.cuisine.package.install("redis")

@@ -1007,7 +1007,7 @@ class InstallTools():
         s.quit()
 
     def execute(self, command , showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[], \
-                        ok=[], captureout=True, die=True, async=False):
+                        ok=[], captureout=True, die=True, async=False, executor=None):
         """
         @param errors is array of statements if found then exit as error
         return rc,out
@@ -1015,6 +1015,8 @@ class InstallTools():
 
         # print "EXEC:"
         # print command
+        if executor:
+            return executor.execute(command, die=die, checkok=False, async=async, showout=True, combinestdr=outputStderr, timeout=timeout)
         os.environ["PYTHONUNBUFFERED"]="1"
         ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -1656,9 +1658,10 @@ class InstallTools():
         else:
             return True
 
-    def getGitRepoArgs(self, url="", dest=None, login=None, passwd=None, reset=False,branch=None,ssh="auto",codeDir=None,executor=None):
+    def getGitRepoArgs(self, url="", dest=None, login=None, passwd=None, reset=False,branch=None,ssh="auto",codeDir=None, executor=None):
         """
         Extracts and returns data useful in cloning a Git repository.
+
         Args:
             url (str): the HTTP/GIT URL of the Git repository to clone from. eg: 'https://github.com/odoo/odoo.git'
             dest (str): the local filesystem path to clone to
@@ -1667,7 +1670,9 @@ class InstallTools():
             reset (boolean): if True, any cached clone of the Git repository will be removed
             branch (str): branch to be used
             ssh if auto will check if ssh-agent loaded, if True will be forced to use ssh for git
+
         #### Process for finding authentication credentials (NOT IMPLEMENTED YET)
+
         - first check there is an ssh-agent and there is a key attached to it, if yes then no login & passwd will be used & method will always be git
         - if not ssh-agent found
             - then we will check if url is github & ENV argument GITHUBUSER & GITHUBPASSWD is set
@@ -1677,14 +1682,20 @@ class InstallTools():
         - if we don't know login or passwd yet then
             - login/passwd will be fetched from local git repo directory (if it exists and reset==False)
         - if at this point still no login/passwd then we will try to build url with anonymous
+
+
         #### Process for defining branch
+
         - if branch arg: None
             - check if git directory exists if yes take that branch
             - default to 'master'
         - if it exists, use the branch arg
+
         Returns:
             (repository_host, repository_type, repository_account, repository_name,branch, login, passwd)
+
             - repository_type http or git
+
         Remark:
             url can be empty, then the git params will be fetched out of the git configuration at that path
         """
@@ -1708,11 +1719,11 @@ class InstallTools():
         repository_type = repository_host.split('.')[0] if '.' in repository_host else repository_host
 
         if not dest:
-            if codeDir==None:
-                if executor==None:
-                    codeDir=self.CODEDIR
+            if codeDir is None:
+                if not executor:
+                    codeDir = self.CODEDIR
                 else:
-                    codeDir=executor.cuisine.core.dir_paths['codeDir']
+                    codeDir = executor.cuisine.core.dir_paths['codeDir']
             dest = '%(codedir)s/%(type)s/%(account)s/%(repo_name)s' % {
                 'codedir': codeDir,
                 'type': repository_type.lower(),
@@ -1732,6 +1743,7 @@ class InstallTools():
         will clone or update repo
         if dest == None then clone underneath: /opt/code/$type/$account/$repo
         will ignore changes !!!!!!!!!!!
+
         @param ssh ==True means will checkout ssh
         @param ssh =="first" means will checkout sss first if that does not work will go to http
         """
@@ -1739,43 +1751,39 @@ class InstallTools():
         if ssh=="first":
             try:
                 return self.pullGitRepo(url,dest,login,passwd,depth,ignorelocalchanges,reset,branch,revision, True,executor)
-            except Exception as e:
+            except Exception:
                 return self.pullGitRepo(url,dest,login,passwd,depth,ignorelocalchanges,reset,branch,revision, False,executor)
             raise RuntimeError("Could not checkout, needs to be with ssh or without.")
 
-
-        if executor is None:
-            executor = self
-        else:
-            executor.checkok = False
-
         base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh,codeDir=codeDir,executor=executor)
+
+        exists = self.exists(dest) if not executor else executor.exists(dest)
 
         if dest is None and branch is None:
             branch = "master"
-        elif branch is None and dest is not None and self.exists(dest):
+        elif branch is None and dest is not None and exists:
             # if we don't specify the branch, try to find the currently checkedout branch
-            if executor.exists(dest):
-                cmd = 'cd %s; git rev-parse --abbrev-ref HEAD' % dest
-                rc, out = executor.execute(cmd, die=False, showout=False)
-                if rc == 0:
-                    branch = out.strip()
-                else:  # if we can't retreive current branch, use master as default
-                    branch = 'master'
-            else:
+            cmd = 'cd %s; git rev-parse --abbrev-ref HEAD' % dest
+            rc, out = self.execute(cmd, die=False, showout=False, executor=executor)
+            if rc == 0:
+                branch = out.strip()
+            else:  # if we can't retreive current branch, use master as default
                 branch = 'master'
+        else:
+            branch = 'master'
 
-        checkdir="%s/.git"%(dest)
-        if executor.exists(checkdir):
+        checkdir = "%s/.git" % (dest)
+        exists = self.exists(checkdir) if not executor else executor.exists(checkdir)
+        if exists:
             if ignorelocalchanges:
-                print(("git pull, ignore changes %s -> %s"%(url,dest)))
+                print(("git pull, ignore changes %s -> %s"%(url, dest)))
                 cmd="cd %s;git fetch"%dest
                 if depth!=None:
                     cmd+=" --depth %s"%depth
-                executor.execute(cmd)
+                    self.execute(cmd, executor=executor)
                 if branch!=None:
                     print("reset branch to:%s"%branch)
-                    executor.execute("cd %s;git reset --hard origin/%s"%(dest,branch),timeout=600)
+                    self.execute("cd %s;git reset --hard origin/%s" % (dest, branch), timeout=600, executor=executor)
             else:
                 #pull
                 print(("git pull %s -> %s"%(url,dest)))
@@ -1790,7 +1798,7 @@ class InstallTools():
                         cmd="cd %s;git pull origin %s"%(dest,branch)
                     else:
                         cmd="cd %s;git pull"%dest
-                executor.execute(cmd,timeout=600)
+                self.execute(cmd, timeout=600, executor=executor)
         else:
             print(("git clone %s -> %s"%(url,dest)))
             extra = ""
@@ -1811,15 +1819,14 @@ class InstallTools():
 
             if depth!=None:
                 cmd+=" --depth %s"%depth
-            executor.execute(cmd,timeout=600)
+            self.execute(cmd, timeout=600, executor=executor)
 
         if revision!=None:
             cmd="cd %s;git checkout %s"%(dest,revision)
             print(cmd)
-            executor.execute(cmd,timeout=600)
+            self.execute(cmd, timeout=600, executor=executor)
 
         return dest
-
 
     def checkInstalled(self,cmdname):
         """

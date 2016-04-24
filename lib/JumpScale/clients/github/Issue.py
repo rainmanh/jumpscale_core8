@@ -443,8 +443,8 @@ class Issue(Base):
                 self.api.body, task.api.number)
 
         #@todo (1) dirty hack why is this required
-        while "\n\n\n" in new_body:
-            new_body=new_body.replace("\n\n","\n")
+        # while "\n\n\n" in new_body:
+        #     new_body=new_body.replace("\n\n","\n")
 
         self.api.edit(body=new_body)
             

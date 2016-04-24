@@ -289,7 +289,6 @@ stop on runlevel [016]
         path.write_text("deb %s\n" % url)
 
 
-    @property
     def whoami(self):
         rc,result=self._local.execute("whoami")
         return result.strip()

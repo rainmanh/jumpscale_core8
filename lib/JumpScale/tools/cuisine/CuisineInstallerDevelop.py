@@ -156,6 +156,7 @@ class CuisineInstallerDevelop():
         traitlets
         python-telegram-bot
         colorlog
+        path.py
         """
         self.cuisine.pip.multiInstall(C,upgrade=True)
 

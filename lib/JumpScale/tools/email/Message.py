@@ -61,38 +61,34 @@ Details about the message for which the event occurred.
             valid 	whether the message`s DKIM signature was valid. Always false if signed is false.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, key, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._key=None
+        self._key=key
         self._cached = False
-
-    def set_key(self, key):
-        self._key = key
 
     def _cache(self):
         if self._key:
-            self._cache = True
             self.update(util.get_json_msg(self._key))
+            self._cache = True
 
-    ##THESE ARE LOADED LAZELY.
-    def lazy(self, f):
-        if not self._cached and self._key:
+    ##THESE ARE LOADED ON DEMAND
+    def _checkcached(self):
+        if not self._cached:
             self._cache()
-        return f
 
     @property
-    @lazy
     def html(self):
+        self._checkcached()
         return self.html
 
     @property
-    @lazy
     def text(self):
+        self._checkcached()
         return self.text
 
     @property
-    @lazy
     def content(self):
+        self._checkcached()
         return self.content
 
 

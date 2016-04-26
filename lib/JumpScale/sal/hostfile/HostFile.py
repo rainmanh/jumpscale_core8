@@ -12,13 +12,12 @@ class HostFileFactory:
     def get(self):
         return HostFile()
 
-class HostFile(SALObject):
-
+class HostFile:
     def __init___(self):
 
         self.hostfilePath="/etc/hosts"
 
-    def remove(self, hostsfile, ip):
+    def remove(self, ip):
         """Update a hostfile, delete ip from hostsfile
         @param hostsfile: File where hosts are defined
         @param ip: Ip of the machine to remove

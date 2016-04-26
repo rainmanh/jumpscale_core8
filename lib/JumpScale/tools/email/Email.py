@@ -1,20 +1,22 @@
+import json
 from JumpScale import j
-
+from Message import Message
 import Sender
+from utils import get_msg_path, get_json_msg
 
 
 class EmailTool:
     def __init__(self):
         self.__jslocation__ = "j.tools.email"
 
-    def new(self):
-        return Email() #we should set the attrs we need...
+    def _get_lastest_keys(self, n=100):
+        """
+        Gets the latest (n) keys in the the queue
 
+        :return: list
 
-class Email:
-
-    def __init__(self):
-        pass
+        """
+        return j.core.db.lrange('mails.queue', -1*n, -1)
 
     def getLast(self, num=100):
         """
@@ -22,7 +24,24 @@ class Email:
 
         :return: list
         """
-        raise NotImplementedError()
+
+        messages=[]
+        keys=self._get_lastest_keys()
+        for k in keys:
+            #get k from the hashset
+            m=Message(j.core.db.hmget('mails', key))
+            m.set_key(k)
+            messages.append(m)
+
+        return messages
+
+    def _pop_key(self, n=1):
+        """
+        pops the most recent (n) keys in the queue.
+
+        :returns a key
+        """
+        return j.core.db.lpop('mails.queue', n)
 
     def pop(self):
         """
@@ -30,7 +49,12 @@ class Email:
 
         :return: Message
         """
-        raise NotImplementedError()
+        #we are adding from the right. the oldest is the one on the left.
+        k = self._pop_key() ## ts-guid
+        msg = get_json_msg(k)        #get message path
+        msg.set_key(k)
+        return Message(msg)
+
 
     def getSender(self, username, password, host='smtp.mandrillapp.com', port=587):
         return Sender.Sender(username, password, host, port)

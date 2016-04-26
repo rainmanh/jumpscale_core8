@@ -75,9 +75,9 @@ elif args.action == "sshfsoff":
 
 elif args.action == "deployssh":
     if args.remote=="":
-        j.events.inputerror_critical("please specify remote server with -r")
+        raise j.exceptions.Input("please specify remote server with -r")
     if args.passwd=="":
-        j.events.inputerror_critical("please specify passwd with -p")        
+        raise j.exceptions.Input("please specify passwd with -p")        
     admin.deployssh()#args.gridname,args.remote)
 
 

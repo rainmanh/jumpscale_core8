@@ -1749,7 +1749,6 @@ class InstallTools():
         @param ssh ==True means will checkout ssh
         @param ssh =="first" means will checkout sss first if that does not work will go to http
         """
-
         if ssh=="first":
             try:
                 return self.pullGitRepo(url,dest,login,passwd,depth,ignorelocalchanges,reset,branch,revision, True,executor)
@@ -1772,7 +1771,7 @@ class InstallTools():
             else:  # if we can't retreive current branch, use master as default
                 branch = 'master'
         else:
-            branch = 'master'
+            branch = branch
 
         checkdir = "%s/.git" % (dest)
         exists = self.exists(checkdir) if not executor else executor.exists(checkdir)
@@ -1804,7 +1803,7 @@ class InstallTools():
         else:
             print(("git clone %s -> %s"%(url,dest)))
             extra = ""
-            if depth and depth != 0:
+            if depth :
                  extra = "--depth=%s" % depth
             if url.find("http")!=-1:
                 if branch!=None:
@@ -1819,8 +1818,6 @@ class InstallTools():
 
             print(cmd)
 
-            if depth!=None:
-                cmd+=" --depth %s"%depth
             self.execute(cmd, timeout=600, executor=executor)
 
         if revision!=None:

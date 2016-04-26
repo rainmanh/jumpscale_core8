@@ -72,7 +72,7 @@ Details about the message for which the event occurred.
     def _cache(self):
         if self._key:
             self._cache = True
-            self.__dict__.update(util.get_json_msg(self._key))
+            self.update(util.get_json_msg(self._key))
 
     ##THESE ARE LOADED LAZELY.
     def lazy(self, f):

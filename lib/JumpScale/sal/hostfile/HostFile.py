@@ -1,18 +1,21 @@
-
-
 # import time
 # import socket
-# import re
+import re
 
 from JumpScale import j
 
-from sal.base.SALObject import SALObject
+class HostFileFactory:
+    def __init__(self):
+        self.__jslocation__ = "j.sal.hostsfile"
+        self.logger = j.logger.get("j.sal.hostsfile")
+
+    def get(self):
+        return HostFile()
 
 class HostFile(SALObject):
 
     def __init___(self):
-        self.__jslocation__ = "j.sal.hostsfile"
-        self.logger = j.logger.get("j.sal.hostsfile")
+
         self.hostfilePath="/etc/hosts"
 
     def remove(self, hostsfile, ip):

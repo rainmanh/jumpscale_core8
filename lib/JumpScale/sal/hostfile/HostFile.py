@@ -51,7 +51,7 @@ class HostFile:
         @return: List of machinehostnames
         """
 
-        if self.hostExists( ip):
+        if self.existsIP( ip):
             filecontents = j.sal.fs.fileGetContents(self.hostfilePath)
             searchObj = re.search('^%s\s.*\n' %ip, filecontents, re.MULTILINE)
             hostnames = searchObj.group(0).strip().split()

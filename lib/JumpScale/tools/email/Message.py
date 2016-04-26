@@ -10,6 +10,7 @@ class attrdict(dict):
 
         return atts
 
+        
 def toattrdict(d):
     if isinstance(d, dict):
         d=attrdict(d) #the parent
@@ -84,7 +85,7 @@ Details about the message for which the event occurred.
         if isinstance(msg, dict):
             self.msg=toattrdict(msg)
         elif isinstance(msg, str):
-            self.msg=json.loads(msg)['msg']
+            self.msg=toattrdict(json.loads(msg)['msg'])
         else:
             pass
 

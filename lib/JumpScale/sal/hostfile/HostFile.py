@@ -13,8 +13,8 @@ class HostFileFactory:
         return HostFile()
 
 class HostFile:
-    def __init___(self):
 
+    def __init__(self):
         self.hostfilePath="/etc/hosts"
 
     def remove(self, ip):

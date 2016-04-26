@@ -1,5 +1,5 @@
 from JumpScale import j
-
+from utils import get_msg_path
 class attrdict(dict):
     def __getattr__(self, k):
         return self[k]
@@ -10,7 +10,7 @@ class attrdict(dict):
 
         return atts
 
-        
+
 def toattrdict(d):
     if isinstance(d, dict):
         d=attrdict(d) #the parent
@@ -22,33 +22,12 @@ def toattrdict(d):
     return d
 
 
-m="""
-{
+class Message(attrdict):
 
-'msg':
-    {
-        'raw_msg': 'somethinggg'
-        'headers': 'somethinnnn1111'
-        'text' : 'that the bodyyy'
-        'from_email': 'ahmed@there.com'
-        'from_name': 'ahmed'
-        'to': 'someone2'
-        'email': 'someone2 @there.com'
-
-    }
-}
-
-
-"""
-class Message(object):
-
-    def __init__(self, msg):
-"""
-
-
+    """
 Details about the message for which the event occurred.
     raw_msg 	the full content of the received message, including headers and content
-    headers 	an array of the headers received for the message, such as ‘Dkim-Signature’, ‘Mime-version’, ‘Date’, ‘Message-Id’, etc.
+    headers 	an array of the headers received for the message, such as `Dkim-Signature`, `Mime-version`, `Date`, `Message-Id`, etc.
     text 	the text version of the message
     html 	the HTML version of the message
     from_email 	the from email address for the message
@@ -77,18 +56,57 @@ Details about the message for which the event occurred.
             spf 	spf validation results, or null if an error occurred while checking SPF for the message. Contains the following keys:
             result 	the spf validation result. One of: pass, neutral, fail, softfail, temperror, permerror, none
             detail 	a human-readable description of the result
-            dkim 	details about the message’s DKIM signature, if any
+            dkim 	details about the message`s DKIM signature, if any
             signed 	boolean whether the message contained a DKIM signature (true or false)
-            valid 	whether the message’s DKIM signature was valid. Always false if signed is false.
-"""
+            valid 	whether the message`s DKIM signature was valid. Always false if signed is false.
+    """
 
-        if isinstance(msg, dict):
-            self.msg=toattrdict(msg)
-        elif isinstance(msg, str):
-            self.msg=toattrdict(json.loads(msg)['msg'])
-        else:
-            pass
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._key=None
+        self._cached = False
+
+    def set_key(self, key):
+        self._key = key
+
+    def _cache(self):
+        if self._key:
+            self._cache = True
+            self.__dict__.update(util.get_json_msg(self._key))
+
+    ##THESE ARE LOADED LAZELY.
+    def lazy(self, f):
+        if not self._cached and self._key:
+            self._cache()
+        return f
+
+    @property
+    @lazy
+    def html(self):
+        return self.html
+
+    @property
+    @lazy
+    def text(self):
+        return self.text
+
+    @property
+    @lazy
+    def content(self):
+        return self.content
+
 
 if __name__=="__main__":
+    m = {
+        "raw_msg": "somethinggg",
+        "headers": "somethinnnn1111",
+        "text" : "that the bodyyy",
+        "from_email": "ahmed@there.com",
+        "from_name": "ahmed",
+        "to": "someone2",
+        "email": "someone2 @there.com",
+    }
+
     msg=Message(m)
     print(msg)
+    print(msg.raw_msg)

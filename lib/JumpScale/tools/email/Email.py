@@ -29,8 +29,7 @@ class EmailTool:
         keys=self._get_lastest_keys()
         for k in keys:
             #get k from the hashset
-            m=Message(j.core.db.hmget('mails', key))
-            m.set_key(k)
+            m=Message(k, j.core.db.hmget('mails', key))
             messages.append(m)
 
         return messages
@@ -52,8 +51,7 @@ class EmailTool:
         #we are adding from the right. the oldest is the one on the left.
         k = self._pop_key() ## ts-guid
         msg = get_json_msg(k)        #get message path
-        msg.set_key(k)
-        return Message(msg)
+        return Message(k, msg)
 
 
     def getSender(self, username, password, host='smtp.mandrillapp.com', port=587):

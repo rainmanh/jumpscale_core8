@@ -1,11 +1,13 @@
 from JumpScale import j
 from utils import get_msg_path
+
+
 class attrdict(dict):
     def __getattr__(self, k):
         return self[k]
 
     def __dir__(self):
-        atts=list(self.keys())
+        atts = list(self.keys())
         atts.extend(dir(super()))
 
         return atts
@@ -13,10 +15,10 @@ class attrdict(dict):
 
 def toattrdict(d):
     if isinstance(d, dict):
-        d=attrdict(d) #the parent
-        for k,v in d.items():
+        d = attrdict(d)
+        for k, v in d.items():
             if isinstance(v, dict):
-                d[k]=toattrdict(v)
+                d[k] = toattrdict(v)
 
         return d
     return d
@@ -63,7 +65,7 @@ Details about the message for which the event occurred.
 
     def __init__(self, key, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._key=key
+        self._key = key
         self._cached = False
 
     def _cache(self):
@@ -71,7 +73,6 @@ Details about the message for which the event occurred.
             self.update(util.get_json_msg(self._key))
             self._cache = True
 
-    ##THESE ARE LOADED ON DEMAND
     def _checkcached(self):
         if not self._cached:
             self._cache()
@@ -92,17 +93,17 @@ Details about the message for which the event occurred.
         return self.content
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     m = {
         "raw_msg": "somethinggg",
         "headers": "somethinnnn1111",
-        "text" : "that the bodyyy",
+        "text": "that the bodyyy",
         "from_email": "ahmed@there.com",
         "from_name": "ahmed",
         "to": "someone2",
         "email": "someone2 @there.com",
     }
 
-    msg=Message(m)
+    msg = Message(m)
     print(msg)
     print(msg.raw_msg)

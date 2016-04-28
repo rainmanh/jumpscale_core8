@@ -327,7 +327,7 @@ class GithubRepo():
             self.logger.info("Create milestone on %s: %s" % (self, title))
             body = getBody(description.strip(), name, owner)
             # workaround for https://github.com/PyGithub/PyGithub/issues/396
-            milestome = self.api.create_milestone(title=title, description=body)  # , due_on=due)
+            milestone = self.api.create_milestone(title=title, description=body)  # , due_on=due)
             milestone.edit(title=title, due_on=due)
 
     def deleteMilestone(self, name):

@@ -41,10 +41,10 @@ class Blueprint(object):
     def loadrecipes(self):
         for model in self.models:
             if model!=None:
-                for key,item in model.items():
-                    if key.find("__")==-1:
-                        raise j.exceptions.Input("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'"%key)
-                    aysname,aysinstance=key.split("__",1)
+                for aysinstance, item in model.items():
+                    aysname = item.get('type', None)
+                    if not aysname:
+                        raise j.exceptions.Input("AYS name not provided. Needs to be type: aysname")
                     if not aysname.startswith('blueprint.'):
                         blueaysname = 'blueprint.%s' % aysname
                         try:
@@ -61,9 +61,8 @@ class Blueprint(object):
     def execute(self, role="", instance=""):
         for model in self.models:
             if model is not None:
-                for key, item in model.items():
-                    # print ("blueprint model execute:%s %s"%(key,item))
-                    aysname, aysinstance = key.split("__", 1)
+                for aysinstance, item in model.items():
+                    aysname = item.get('type')
 
                     if aysname.find(".") != -1:
                         rolefound, _ = aysname.split(".", 1)
@@ -82,7 +81,7 @@ class Blueprint(object):
                             r = j.atyourservice.getRecipe(name=blueaysname)
                         except j.exceptions.Input:
                             r = j.atyourservice.getRecipe(name=aysname)
-                    yaml = model['%s__%s' % (aysname, aysinstance)]
+                    yaml = model[aysinstance]
                     aysi = r.newInstance(instance=aysinstance, args=item, yaml=yaml)
                     aysi.init()
 

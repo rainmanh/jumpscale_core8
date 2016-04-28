@@ -24,7 +24,7 @@ class GithubRepo():
 
     @property
     def name(self):
-        return self.fullname.split("/",1)[-1]
+        return self.fullname.split("/", 1)[-1]
 
     @property
     def type(self):
@@ -161,21 +161,21 @@ class GithubRepo():
                 return item
         raise j.exceptions.Input("Dit not find label: '%s'" % name)
 
-    def getIssueFromMarkdown(self,issueNumber,markdown):
-        i=self.getIssue(issueNumber,False)
+    def getIssueFromMarkdown(self, issueNumber, markdown):
+        i = self.getIssue(issueNumber, False)
         i._loadMD(markdown)
         self.issues.append(i)
         return i
 
-    def getIssue(self,issueNumber,die=True):
+    def getIssue(self, issueNumber, die=True):
         for issue in self.issues:
-            if issue.number==issueNumber:
+            if issue.number == issueNumber:
                 return issue
         if die:
-            raise j.exceptions.Input("cannot find issue:%s in repo:%s"%(issueNumber,self))
+            raise j.exceptions.Input("cannot find issue:%s in repo:%s" % (issueNumber, self))
         else:
-            i=Issue(self)
-            i._ddict["number"]=issueNumber
+            i = Issue(self)
+            i._ddict["number"] = issueNumber
             return i
 
     def issues_by_type(self, filter=None):
@@ -274,14 +274,14 @@ class GithubRepo():
 
     def getMilestoneFromGithubObj(self, githubObj):
 
-        found=None
+        found = None
         for item in self._milestones:
             if int(githubObj.number) == int(item.number):
-                found=item
+                found = item
 
-        if found==None:
+        if found is None:
             obj = RepoMilestone(self, githubObj=githubObj)
-            obj._ddict["number"]=githubObj.number
+            obj._ddict["number"] = githubObj.number
             self._milestones.append(obj)
             return obj
         else:
@@ -295,11 +295,11 @@ class GithubRepo():
             if name == item.name.strip() or name == item.title.strip():
                 return item
         if die:
-            raise j.exceptions.Input("Could not find milestone with name:%s" %name)
+            raise j.exceptions.Input("Could not find milestone with name:%s" % name)
         else:
             return None
 
-    def createMilestone(self, name, title, description="",deadline="", owner=""):
+    def createMilestone(self, name, title, description="", deadline="", owner=""):
 
         def getBody(descr, name, owner):
             out = "%s\n\n" % descr
@@ -323,13 +323,12 @@ class GithubRepo():
                 ms.body = tocheck
         else:
             self._milestones = []
-            due = j.data.time.epoch2pythonDateTime(
-                int(j.data.time.any2epoch(deadline)))
+            due = j.data.time.epoch2pythonDateTime(int(j.data.time.any2epoch(deadline)))
             self.logger.info("Create milestone on %s: %s" % (self, title))
             body = getBody(description.strip(), name, owner)
-            # @todo cannot set deadline, please fix. See https://github.com/PyGithub/PyGithub/issues/396
-            self.api.create_milestone(
-                title=title, description=body)#, due_on=due)
+            # workaround for https://github.com/PyGithub/PyGithub/issues/396
+            milestome = self.api.create_milestone(title=title, description=body)  # , due_on=due)
+            milestone.edit(title=title, due_on=due)
 
     def deleteMilestone(self, name):
         if name.strip() == "":
@@ -428,7 +427,7 @@ class GithubRepo():
             'norm': 'normal',
             'urge': 'urgent',
         }
-        
+
         stories_name = [story.story_name for story in self.stories]
 
         def get_story(name):
@@ -442,7 +441,7 @@ class GithubRepo():
                 try:
                     cmd, args = todo.split(' ', 1)
                 except Exception as e:
-                    print ("*** WARNING:%s, cannot process todo for %s"%(str(e),todo))                    
+                    print("*** WARNING:%s, cannot process todo for %s" % (str(e), todo))
                     continue
 
                 if cmd == 'move':
@@ -474,7 +473,7 @@ class GithubRepo():
                 else:
                     self.logger.warning("command %s not supported" % cmd)
 
-            # Logic after this point is only for home repo
+            # Logic after this point is only for home and org repo
             valid = False
             for typ in ['org_', 'proj_']:
                 if not self.fullname.lower().startswith(typ):
@@ -497,7 +496,7 @@ class GithubRepo():
                 labels.append("type_story")
                 story.labels = labels
 
-            # creaet link between stort and tasks
+            # creaet link between story and tasks
             issue.link_to_story(story)
             story.add_task(issue)
 

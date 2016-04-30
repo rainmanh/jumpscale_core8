@@ -450,7 +450,6 @@ class Issue(Base):
                 existing_tasks = [c[2] for c in token['cells']]
                 if "#%d" % task.number not in existing_tasks:
                     change = True
-                    # TODO add issue to tasks
                     table = doc.items[i]
                     table.addRow([task.api.state, task.title, "#%s" % task.number])
                     break

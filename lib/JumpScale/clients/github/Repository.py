@@ -441,7 +441,7 @@ class GithubRepo():
                 try:
                     cmd, args = todo.split(' ', 1)
                 except Exception as e:
-                    print("*** WARNING:%s, cannot process todo for %s" % (str(e), todo))
+                    self.logger.warning("%s, cannot process todo for %s" % (str(e), todo))
                     continue
 
                 if cmd == 'move':

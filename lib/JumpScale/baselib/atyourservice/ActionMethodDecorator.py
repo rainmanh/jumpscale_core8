@@ -7,7 +7,7 @@ import sys
 
 class ActionMethodDecorator(object):
 
-    def __init__(self,action=True,force=False,actionshow=True,actionMethodName=""):
+    def __init__(self,action=True,force=False,actionshow=True,actionMethodName="",queue=""):
         self.action=action
         self.force=force
         self.actionshow=actionshow
@@ -49,7 +49,7 @@ class ActionMethodDecorator(object):
                 if force:
                     service.state.set(action0.name,"DO")
 
-                stateitem=service.state.getSetObject(action0.name)
+                stateitem=service.state.getObject(action0.name,default="AINIT")
 
                 # method_hash=service.recipe.actionmethods[action0.name].hash
                 # hrd_hash=service.hrdhash

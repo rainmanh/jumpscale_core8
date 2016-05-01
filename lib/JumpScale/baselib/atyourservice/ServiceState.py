@@ -120,9 +120,12 @@ class ServiceState():
         item.state=state
         return item
 
-    def getObject(self,methodname):
+    def getObject(self,methodname,default=None):
         if not methodname in self.items:
-            raise j.exceptions.Input("Cannot find state for method:%s"%methodname)
+            if default==None:
+                raise j.exceptions.Input("Cannot find state for method:%s"%methodname)
+            else:
+                self.items[methodname]=StateItem(self,methodname,state=default)
         return self.items[methodname]
 
 

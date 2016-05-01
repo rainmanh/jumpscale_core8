@@ -4,22 +4,37 @@ from JumpScale import j
 
 from ServiceTemplate import ServiceTemplate
 
-from Service import Service, loadmodule
-from inspect import getmembers, isfunction, isclass, getsource
+
+
+from Service import Service,loadmodule
+# from inspect import getmembers, isfunction, isclass, getsource
+
+DECORATORCODE="""
+ActionMethodDecorator=j.atyourservice.getActionMethodDecorator()
+class action(ActionMethodDecorator):
+    def __init__(self,*args,**kwargs):
+        ActionMethodDecorator.__init__(self,*args,**kwargs)
+        self.selfobjCode="service=j.atyourservice._currentService;selfobj=service.actions;selfobj.service=service"
+
+"""
+
 
 class ActionMethod():
 
-    def __init__(self,recipe,name,content):
+    def __init__(self,recipe,defline="",name=""):
+        if name=="":
+            line=defline.strip()[4:]
+            name=line.split("(",1)[0].strip()
+        self.defline=defline
+        self.source=""
         self.name=name
+        self.hash=""
         self.recipe=recipe
-        self._check(content)
         self.hrdArgKeys=[] #names of arguments as used in hrd which are used in this action method
-        if content=="":
-            self.hash=""
-        else:
-            self.hash=j.data.hash.md5_string(content)
 
-    def _check(self,content):
+    def _process(self):
+        if self.source!="":
+            self.hash=j.data.hash.md5_string(self.source)
         #for now we don't do a check, later want to make sure we don't call other services, now we just put impact on all hrd schema arguments
         self.recipe.schema
         #for now we take all arguments, later we need to be more specific
@@ -29,7 +44,6 @@ class ActionMethod():
         return "%s:%s"%(self.name,self.hash)
 
     __str__=__repr__
-
 
 
 class ServiceRecipe(ServiceTemplate):
@@ -62,6 +76,8 @@ class ServiceRecipe(ServiceTemplate):
         else:
             firstime = False
 
+        self._action_methods=None
+
         self.actionmethods={}
 
         self._init()
@@ -77,63 +93,82 @@ class ServiceRecipe(ServiceTemplate):
 
         self._copyActions()
 
-
-
-    def _checkdef(self, actionmethod, content, decorator=True):
-        content=content.replace("def action_","def ")
-        a = ActionMethod(self, actionmethod, content)
-        self.actionmethods[actionmethod] = a
-        if actionmethod == "input" or actionmethod == "change":
-            decorator=False
-        if actionmethod == 'input' and content=="":
-            self._out += '\n    def input(self,name,role,instance,serviceargs):\n        return serviceargs\n\n'
-        elif actionmethod == 'change' and content=="":
-            self._out += '\n    def change(self,stateitem):\n        return True\n\n'
-        elif not decorator and content:
-            self._out += content
-        elif content:
-            self._out += '\n    @actionmethod()\n%s' % (content)
-        else:
-            self._out += "\n    @actionmethod()\n    def %s(self):\n        return True\n\n" % actionmethod
-
     def _copyActions(self):
-        self._out = """
-        from JumpScale import j
-        ActionMethodDecorator=j.atyourservice.getActionMethodDecorator()
-        class actionmethod(ActionMethodDecorator):
-            def __init__(self,*args,**kwargs):
-                ActionMethodDecorator.__init__(self,*args,**kwargs)
-                self.selfobjCode="service=j.atyourservice.getService(role='$(service.role)', instance='$(service.instance)', die=True);selfobj=service.actions;selfobj.service=service"
-        class Actions():
-        """
+        self._out = ""
+
         actionmethodsRequired = ["input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
                                  "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata","change"]
 
-        self._out = j.data.text.strip(self._out)
-
         if j.sal.fs.exists(self.template.path_actions):
-            actions = loadmodule('temp.actions', self.template.path_actions)
-            classes_list = [cls for cls in getmembers(actions) if isclass(cls[1])]
-            if classes_list:
-                for func in getmembers(classes_list[0][1]):
-                    methodName=func[0]
-                    if isfunction(func[1]):
-                        decorator = True if methodName in actionmethodsRequired else False
-                        if methodName.startswith("action"):
-                            decorator=True
-                            methodName=methodName[6:].strip("_")    
-                                                                            
-                        self._checkdef(methodName, getsource(func[1]), decorator)
+            content=j.sal.fs.fileGetContents(self.template.path_actions)
+        else:
+            content="class Actions():\n\n"
 
-                # [self._checkdef(func[0], getsource(func[1])) for func in getmembers(classes_list[0][1]) if isfunction(func[1])]
-                #self._checkdef(prop[0], getsource(prop[1]), property=True)
-                # props = [prop for prop in getmembers(classes_list[0][1]) if isinstance(prop[1], property)]
+        if content.find("class action(ActionMethodDecorator)")!=-1:
+            raise j.exceptions.Input("There should be no decorator specified in %s"%self.path_actions)
+        
+        content="%s\n\n%s"%(DECORATORCODE,content)
 
-        for method in actionmethodsRequired:
-            if method not in self.actionmethods:
-                self._checkdef(method, "")  # remember action
+        content=content.replace("from JumpScale import j","")
+        content="from JumpScale import j\n\n%s"%content
 
-        j.sal.fs.writeFile(filename=self.path_actions, contents=self._out)
+        state="INIT"
+        am=None
+
+        #DO NOT CHANGE TO USE PYTHON PARSING UTILS
+        for line in content.split("\n"):
+            linestrip=line.strip()
+            if state=="INIT" and linestrip.startswith("class Actions"):
+                state="MAIN"
+                continue
+
+            if state=="MAIN" and linestrip.startswith("@"):
+                    if am!=None:
+                        am._process()
+                        am=None
+                    continue
+
+            if state=="MAIN" and linestrip.startswith("def"):
+                    if am!=None:
+                        am._process()
+                    am=ActionMethod(self,defline=line)
+                    self.actionmethods[am.name]=am
+                    continue
+
+            if am!=None:
+                am.source+="%s\n"%line[8:]
+
+        #process the last actionmethod
+        if am!=None:
+            am._process()
+
+        #add missing methods
+        for actionname in actionmethodsRequired:
+            if actionname not in self.actionmethods:
+                am=ActionMethod(self,name=actionname)
+                am._process()
+                self.actionmethods[am.name]=am
+                #not found
+                if actionname =="input":
+                    content+='\n\n    def input(self,name,role,instance,serviceargs):\n        return serviceargs\n'
+                elif actionname =="change":
+                    content += '\n\n    def change(self,stateitem):\n        return True\n'
+                else:
+                    content += "\n\n    @action()\n    def %s(self):\n        return True\n" % actionname
+
+        j.sal.fs.writeFile(self.path_actions,content)
+
+
+    @property
+    def actions(self):
+        if self._action_methods is None:
+            print ("reload mgmt actions for %s"%(self))
+            modulename = "JumpScale.atyourservice.%s.%s" % (self.domain, self.name)
+            mod = loadmodule(modulename, self.path_actions)
+            self._action_methods = mod.Actions()
+
+        return self._action_methods
+      
 
     def newInstance(self, instance="main", role='', args={}, path='', parent=None, consume="",originator=None,yaml=None):
         """

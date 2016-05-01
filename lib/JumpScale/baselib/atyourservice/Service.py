@@ -6,7 +6,7 @@ from contextlib import redirect_stdout
 import io
 import imp
 import sys
-from Recurring import Recurring
+# from Recurring import Recurring
 from ServiceState import ServiceState
 # from ServiceRecipe import ServiceRecipe
 
@@ -45,6 +45,11 @@ def getProcessDicts(service, args={}):
 
     return procs
 
+EMPTYACTIONSCODE="""
+class ACTIONS():
+    def __init__(self,service):
+        self._service=service
+"""
 
 class Service:
 
@@ -105,8 +110,8 @@ class Service:
         self._yaml = None
         self._mongoModel = None
 
-        self._action_methods = None
-        self._action_methods_node = None
+        # self._action_methods = None
+        # self._action_methods_node = None
 
         self._dnsNames = []
 
@@ -226,15 +231,6 @@ class Service:
             self._state=ServiceState(self)
         return self._state
 
-    @property
-    def actions(self):
-        if self._action_methods is None:
-            print ("reload mgmt actions for %s"%(self))
-            action_methods = self._loadActions(self.recipe.path_actions,"mgmt")
-            self._action_methods = action_methods
-        return self._action_methods
-
-
     # @property
     # def action_methods_node(self):
     #     if self._action_methods_node is None or not self._rememberActions:
@@ -286,55 +282,25 @@ class Service:
     #     embed()
     #     return action
 
-    def _getActionMethodMgmt(self,action):
-        try:
-            method=eval("self.action_methods_mgmt.%s"%action)
-        except Exception as e:
-            if str(e).find("has no attribute")!=-1:
-                return None
-            raise j.exceptions.RuntimeError(e)
-        return method
+    # def _getActionMethodMgmt(self,action):
+    #     try:
+    #         method=eval("self.action_methods_mgmt.%s"%action)
+    #     except Exception as e:
+    #         if str(e).find("has no attribute")!=-1:
+    #             return None
+    #         raise j.exceptions.RuntimeError(e)
+    #     return method
 
-    def _getActionMethodNode(self,action):
-        try:
-            method=eval("self.action_methods_node.%s"%action)
-        except Exception as e:
-            if str(e).find("has no attribute")!=-1:
-                return None
-            raise j.exceptions.RuntimeError(e)
-        return method
+    # def _getActionMethodNode(self,action):
+    #     try:
+    #         method=eval("self.action_methods_node.%s"%action)
+    #     except Exception as e:
+    #         if str(e).find("has no attribute")!=-1:
+    #             return None
+    #         raise j.exceptions.RuntimeError(e)
+    #     return method
 
-    def _loadActions(self, path,ttype):
-        self.cleanOnRepo()
-        if j.sal.fs.exists(path):
-            j.sal.fs.createDir(j.sal.fs.getDirName(path))
-            path2 = j.sal.fs.joinPaths(self.path, j.sal.fs.getBaseName(path))
-            # need to create a copy of the recipe mgmt or node action class
-            j.sal.fs.copyFile(path, path2)
-            if self.hrd is not None:
-                self.hrd.applyOnFile(path2)
-            j.application.config.applyOnFile(path2)
-        else:
-            j.events.opserror_critical(msg="can't find %s." % path, category="ays loadActions")
 
-        modulename = "JumpScale.atyourservice.%s.%s.%s.%s" % (self.domain, self.name, self.instance, ttype)
-        mod = loadmodule(modulename, path2)
-        #is only there temporary don't want to keep it there
-
-        actions = mod.Actions()
-
-        # if 'roletemplate' in super(actions.__class__, actions).__module__:
-        #     hrd = j.atyourservice.getRoleTemplateHRD(self.role)
-        #     if hrd and self._hrd:
-        #         for key in hrd.items.keys():
-        #             if not self._hrd.exists(key):
-        #                 self._hrd.set(key, hrd.get(key))
-
-        return actions
-
-    def cleanOnRepo(self):
-        j.sal.fs.removeDirTree(j.do.joinPaths(self.path,"__pycache__"))
-        # j.sal.fs.remove(j.sal.fs.joinPaths(self.path, "actions.py"))
 
     @property
     def producers(self):
@@ -451,7 +417,7 @@ class Service:
 
             self._consumeFromSchema()
 
-            self._action_methods = None  # to make sure we reload the actions
+            # self._action_methods = None  # to make sure we reload the actions
 
             self.actions.init()
 
@@ -478,7 +444,7 @@ class Service:
                         self.actions.change(stateitem)
 
             self.state.save()
-            self.cleanOnRepo()
+            # self.cleanOnRepo()
 
         self._init = True
 
@@ -547,7 +513,6 @@ class Service:
                 producers=[item.key for item in producers]
                 producers.sort()
                 self.hrd.set("producer.%s"%key,producers)
-
 
     def consume(self, input):
         """
@@ -618,7 +583,6 @@ class Service:
                 print ("%s- %s"%(prefix,producer))
                 producer.printProducersRecursive(prefix+"  ")
 
-
     def getProducersWaiting(self, action="install",producersChanged=set(),scope=None):
         """
         return list of producers which are waiting to be executing the action
@@ -646,7 +610,6 @@ class Service:
             producersChanged=producersChanged.intersection(scope)
 
         return producersChanged
-
 
     def getNode(self):
         for parent in self.parents:
@@ -813,22 +776,28 @@ class Service:
 
     #     return True
 
+    @property
+    def actions(self):
+        #make sure that recipe action finds us
+        j.atyourservice._currentService=self
+        return self.recipe.actions
+
     def runAction(self, action, printonly=False,ignorestate=False, force=False):
 
         self.actions.service=self
         a=self.getAction(action)
 
         if force:
-            self.state.set(methodname=action, state="DO")
+            self.state.set(methodname=action, state="FORCE")
 
         #when none means does not exist so does not have to be executed
         if a!=None:
             if printonly==False:
+                j.atyourservice._currentService=self
                 return a()
             else:
                 print ("Execute: %s %s"%(self,action))
 
-        #@todo implement ignorestate (not so easy)
 
     def getAction(self,action):
         """

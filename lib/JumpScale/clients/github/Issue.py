@@ -254,7 +254,7 @@ class Issue(Base):
         self._ddict["time"] = j.data.time.any2HRDateTime(
             [self.api.last_modified, self.api.created_at])
 
-        print("LOAD:%s %s" % (self.repo.fullname, self._ddict["title"]))
+        self.logger.debug("LOAD:%s %s" % (self.repo.fullname, self._ddict["title"]))
 
         if self.api.milestone is None:
             self._ddict["milestone"] = ""
@@ -353,7 +353,7 @@ class Issue(Base):
     def todo(self):
         if "_todo" not in self.__dict__:
             todo = []
-            if self.body!=None:                
+            if self.body!=None:
                 for line in self.body.split("\n"):
                     if line.startswith("!! "):
                         todo.append(line.strip().strip("!! "))
@@ -387,8 +387,21 @@ class Issue(Base):
 
         return ''
 
+    @property
+    def tasks(self):
+        """
+        Only works for issue that is a story.
+        returns the tasks linked to this story.
+        """
+        tasks = []
+        if self.isStory:
+            for issue in self.repo.tasks:
+                if issue.title.startswith(self.story_name):
+                    tasks.append(issue)
+        return tasks
+
     def move_to_repo(self, repo):
-        print ("%s: move to repo:%s"%(self,repo))
+        self.logger.info("%s: move to repo:%s"%(self,repo))
         body = "Issue moved from %s\n\n" % self.api.url
         for line in self.api.body.splitlines():
             if line.startswith("!!") or line.startswith(
@@ -404,7 +417,7 @@ class Issue(Base):
         self.api.edit(state='close')
 
     def _create_comments_backlog(self):
-        out = "## backlog comments of '%s' (%s)\n\n" % (self.title, self.url)
+        out = "### backlog comments of '%s' (%s)\n\n" % (self.title, self.url)
         for comment in self.api.get_comments():
             if comment.body.find("!! move") != -1:
                 continue
@@ -419,61 +432,68 @@ class Issue(Base):
         """
         If this issue is a story, add a link to a subtasks
         """
-        print ("%s: add task:%s"%(self,task))
+        self.logger.info("%s: add task:%s" % (self, task))
         if self.repo.api.id != task.repo.api.id:
-            raise j.exceptions.Input(
-                "The task and the story have to be in the same Repository.")
+            raise j.exceptions.Input("The task and the story have to be in the same Repository.")
 
         if not self.isStory:
             raise j.exceptions.Input("This issue is not a story")
 
-        task_line_found = False
-        new_body = ''
-        for line in self.api.body.splitlines():
-            if line.startswith('### Tasks:'):
-                task_line_found = True
-                tasks = line[len('### Tasks:'):].split(',')
-                tasks = [task.strip() for task in tasks]
-                if "#%d" % task.api.number not in tasks:
-                    line += " , #%d " % task.api.number
-            new_body += line if line != '' else '\n\n'
+        task_table_found = False
+        change = False
+        doc = j.data.markdown.getDocument(self.body)
+        i = 0
 
-        if not task_line_found:
-            new_body = '%s\n\n### Tasks: #%d' % (
-                self.api.body, task.api.number)
+        for token in doc.tokens:
+            if token['type'] == 'table':
+                task_table_found = True
+                existing_tasks = [c[2] for c in token['cells']]
+                if "#%d" % task.number not in existing_tasks:
+                    change = True
+                    table = doc.items[i]
+                    table.addRow([task.api.state, task.title, "#%s" % task.number])
+                    break
+            i += 1
 
-        #@todo (1) dirty hack why is this required
-        # while "\n\n\n" in new_body:
-        #     new_body=new_body.replace("\n\n","\n")
+        if not task_table_found:
+            change = True
+            table = doc.addMDTable()
+            table.addHeader(['status', 'title', 'link'])
+            table.addRow([task.api.state, task.title, "#%s" % task.number])
 
-        self.api.edit(body=new_body)
-            
+        if change:
+            self.ddict["body"] = str(doc)
+            self.api.edit(body=str(doc))
 
     def link_to_story(self, story):
         """
         If this issue is a task from a story, add link in to the story in the description
         """
-        print ("%s: link to story:%s"%(self,story))
+        self.logger.info("%s: link to story:%s"%(self,story))
         if self.repo.api.id != story.repo.api.id:
-            raise j.exceptions.Input(
-                "The task and the story have to be in the same Repository.")
+            raise j.exceptions.Input("The task and the story have to be in the same Repository.")
 
         if not self.isTask:
             raise j.exceptions.Input("This issue is not a task")
 
+        change = False
         story_line_found = False
+        story_header = '#### Part of Story:'
         new_body = ''
-        for line in self.api.body.splitlines():
-            if line.startswith('### Part of Story:'):
+        for line in self.body.splitlines():
+            if line.startswith(story_header):
                 story_line_found = True
-                line = '### Part of Story: #%d' % (story.api.number)
+                line = '%s #%d' % (story_header, story.number)
             new_body += line if line != '' else '\n\n'
+            change = True
 
         if not story_line_found:
-            new_body = '### Part of Story: #%d\n\n%s' % (
-                story.api.number, self.api.body)
+            change = True
+            new_body = '%s #%d\n\n%s' % (story_header, story.number, self.body)
 
-        self.api.edit(body=new_body)
+        if change:
+            self.ddict["body"] = new_body
+            self.api.edit(body=new_body)
 
     def __str__(self):
         return "issue:%s" % self.title

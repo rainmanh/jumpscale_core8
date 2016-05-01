@@ -7,7 +7,7 @@ import sys
 
 class ActionMethodDecorator(object):
 
-    def __init__(self,action=True,force=True,actionshow=True,actionMethodName=""):
+    def __init__(self,action=True,force=False,actionshow=True,actionMethodName=""):
         self.action=action
         self.force=force
         self.actionshow=actionshow
@@ -49,23 +49,23 @@ class ActionMethodDecorator(object):
                 if force:
                     service.state.set(action0.name,"DO")
 
-                stateitem=service.state.getSet(action0.name)
+                stateitem=service.state.getSetObject(action0.name)
 
-                method_hash=service.recipe.actionmethods[action0.name].hash
-                hrd_hash=service.hrdhash
+                # method_hash=service.recipe.actionmethods[action0.name].hash
+                # hrd_hash=service.hrdhash
 
-                if stateitem.hrd_hash!=hrd_hash:
-                    stateitem.state="CHANGEDHRD"                    
-                    service.save()
-                    service.actions.change(stateitem)
+                # if stateitem.hrd_hash!=hrd_hash:
+                #     stateitem.state="CHANGEDHRD"                    
+                #     service.save()
+                #     service.actions.change(stateitem)
 
-                if stateitem.actionmethod_hash!=method_hash:
-                    stateitem.state="CHANGED"
-                    service.save()
-                    service.actions.change(stateitem)
+                # if stateitem.actionmethod_hash!=method_hash:
+                #     stateitem.state="CHANGED"
+                #     service.save()
+                #     service.actions.change(stateitem)
 
-                if stateitem.name == 'init':
-                    stateitem.state = "CHANGED"
+                # if stateitem.name == 'init':
+                #     stateitem.state = "CHANGED"
 
                 if stateitem.state=="OK":
                     print ("NOTHING TODO OK: %s"%stateitem)
@@ -97,7 +97,7 @@ class ActionMethodDecorator(object):
                     service.save()
                     sys.exit(1)
 
-                service.save()
+                service.save()                
 
                 return action0.result
             else:

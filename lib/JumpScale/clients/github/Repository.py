@@ -14,6 +14,7 @@ class GithubRepo():
         self._repoclient = None
         self._labels = None
         self.issues = []
+        self.issues_loaded = False
         self._milestones = []
 
     @property

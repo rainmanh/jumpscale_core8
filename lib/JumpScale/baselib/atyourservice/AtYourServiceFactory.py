@@ -5,6 +5,7 @@ from Service import Service, loadmodule
 from ActionsBaseNode import ActionsBaseNode
 from ActionMethodDecorator import ActionMethodDecorator
 from Blueprint import Blueprint
+from AYSRun import AYSRun
 # from AYSdb import *
 
 from AtYourServiceSync import AtYourServiceSync
@@ -173,22 +174,22 @@ class AtYourServiceFactory():
                 self._services[service.key]=service
         return self._services
 
-    def _nodechildren(self, service, parent=None, producers=[]):
-        parent = {} if parent is None else parent
-        me = {"name": service.key, "children": []}
-        parent["children"].append(me)
-        details = service.hrd.getHRDAsDict()
-        details = {key: value for key, value in details.items() if key not in ['service.domain', 'service.name', 'service.version', 'parent']}
-        me["data"] = details
-        children = service.listChildren()
-        for role, instances in children.items():
-            for instance in instances:
-                child = j.atyourservice.getService(role=role, instance=instance)
-                for _, producerinstances in child.producers.items():
-                    for producer in producerinstances:
-                        producers.append([child.key, producer.key])
-                self._nodechildren(child, me, producers)
-        return parent
+    # def _nodechildren(self, service, parent=None, producers=[]):
+    #     parent = {} if parent is None else parent
+    #     me = {"name": service.key, "children": []}
+    #     parent["children"].append(me)
+    #     details = service.hrd.getHRDAsDict()
+    #     details = {key: value for key, value in details.items() if key not in ['service.domain', 'service.name', 'service.version', 'parent']}
+    #     me["data"] = details
+    #     children = service.listChildren()
+    #     for role, instances in children.items():
+    #         for instance in instances:
+    #             child = j.atyourservice.getService(role=role, instance=instance)
+    #             for _, producerinstances in child.producers.items():
+    #                 for producer in producerinstances:
+    #                     producers.append([child.key, producer.key])
+    #             self._nodechildren(child, me, producers)
+    #     return parent
 
     @property
     def servicesTree(self):
@@ -285,7 +286,7 @@ class AtYourServiceFactory():
 
         self._init=True
 
-    def init(self,role="",instance="",newrun=True):
+    def init(self,role="",instance="",hasAction="",include_disabled=False):
 
         self.reset()
 
@@ -298,6 +299,10 @@ class AtYourServiceFactory():
 
         for bp in self.blueprints:
             bp.execute(role=role,instance=instance)
+
+        #force init's
+        for service in self.findServices(instance=instance,role=role, hasAction=hasAction, include_disabled=include_disabled):
+            service.init()
 
         print ("init done")
 
@@ -363,12 +368,138 @@ class AtYourServiceFactory():
                 hrd.items.update(hrdtemp.items)
             return hrd.hrdGet()
         return None
+    
     def uninstall(self, printonly=False, remember=True):
         self.do(action="uninstall", printonly=printonly)
 
+    def install(self,role="", instance="",printonly=False,ignorestate=False,force=False):
 
-    def install(self,role="", instance="",printonly=False,ignorestate=False):
-        self.do(action="install",role=role,instance=instance,printonly=printonly,ignorestate=ignorestate)
+        self.init(role=role,instance=instance,include_disabled=False)
+
+        if force:
+            self.forceAction(action="install",role=role,instance=instance,saveState=True)
+
+        scope=findProducersScope(role=role,instance=instance,actions=["install"])
+        self.run("install",scope)
+
+
+
+    def setState(self,actions=[],role="",instance="",state="DO"):
+        """
+        get run with self.getRun...
+
+        will not mark if state in skipIfIn
+
+        """
+        if "install" in actions:
+            if "init" not in actions:                
+                actions.insert(0,"init")
+
+        for action in actions:
+            for key, service in self.services.items():
+                if role!="" and service.role!=role:
+                    continue
+                if instance!="" and service.instance!=instance:
+                    continue
+                if service.getAction(action)==None:
+                    continue                
+                service.state.getSetObject(action, state)
+                service.state.save()
+
+    def findActionScope(self,action,role="",instance="",producerRoles="*"):
+        """
+        find all services from role & instance and their producers
+        only find producers wich have at least one of the actions
+        """
+        #create a scope in which we need to find work
+        scope=set()
+        for key, service in self.services.items():
+            if role!="" and service.role!=role:
+                continue
+            if instance!="" and service.instance!=instance:
+                continue
+            if service.getAction(action)==None:
+                continue
+            scope.add(service)
+            if producerRoles==[]:
+                producersl=[]
+            else:
+                producersl=service.getProducersRecursive()  
+                if producerRoles!="*":       
+                    producerRoles=[item for item in producerRoles if item.role in producerRoles]
+            scope=scope.union(producersl)
+
+        return scope
+
+    def _processProducerRoles(self,producerroles):
+        if producerroles=="*":
+            return "*"
+        elif producerroles=="":
+            producerroles=[]
+        elif producerroles.find(",")!=-1:
+            producerroles=[item for item in producerroles.split(",") if item.strip()!=""]
+        else:
+            producerroles=[producerroles.strip()]
+        return producerroles
+
+
+    def getRun(self,role="",instance="",action="install",force=False,producerRoles="*"):
+
+        producerRoles=self._processProducerRoles(producerRoles)
+
+        if force:
+            self.setstate(actions=[action],role=role,instance=instance,state="DO")
+
+        if action=="init":
+            actions=["init"]
+        elif action=="install":
+            actions=["init","install"]
+        else:
+            actions=["init","install",action]
+
+        run=AYSRun(self)        
+        for action0 in actions:
+            scope=self.findActionScope(action=action0,role=role,instance=instance,producerRoles=producerRoles)
+            todo=self._findTodo(action=action0,scope=scope,run=run,producerRoles=producerRoles)
+            while  todo != []:
+                newstep=True   
+                for service in todo:
+                    if service.state.getObject(action0).state!="OK":
+                        print ("DO:%s %s"%(action,service))
+                        if newstep:
+                            step=run.newStep(action=action0)
+                            newstep=False
+                        step.services.append(service)
+                    if service in scope:
+                        scope.remove(service)
+                todo=self._findTodo(action0,scope=scope,run=run,producerRoles=producerRoles)
+        run.sort()
+        return run
+
+    def _findTodo(self,action,scope,run,producerRoles):
+        if action=="" or action==None:
+            raise RuntimeError("action cannot be empty")
+        if scope==[]:
+            return []
+        todo = list()
+        waiting=False
+        for service in scope:
+            producersWaiting = service.getProducersRecursive(producers=set(), callers=set(),action=action,producerRoles=producerRoles)
+            #remove the ones which are already in previous runs
+            producersWaiting=[item for item in producersWaiting if run.exists(item,action)==False]
+            producersWaiting=[item for item in producersWaiting if item.state.getObject(action).state!="OK"]
+            # print ("findtodo: %s:\n%s"%(action,producersWaiting))                
+            if len(producersWaiting) == 0:
+                todo.append(service)
+                # if j.atyourservice.debug:
+                    # print("%s waiting for %s" % (service,action))
+            elif j.application.debug:
+                waiting=True
+                # print("%s has producers which need to execute action %s (dependencies not done yet)" % (service,action))
+        if todo==[] and waiting:
+            raise RuntimeError("cannot find todo's for action:%s in scope:%s.\n\nDEPENDENCY ERROR: could not resolve dependency chain."%(action,scope))
+        return todo
+
 
     def apply(self, role="", instance="",printonly=False, remember=True):
         self.do("start",role,instance)  #will make sure init & install happened first
@@ -431,56 +562,6 @@ class AtYourServiceFactory():
 
             todo = self.findTodo(action=action)
 
-    def findTodo(self, action="install",role="",instance="",force=False,ignorestate=False):
-
-
-        #change the state so for sure these will be executed
-        if force:
-            todo = [item[1] for item in self.services.items()]
-            for service in todo:
-
-                #skip the ones which are not part of the filter for role & instance
-                if role!="" and service.role!=role:
-                    continue
-                if instance!="" and service.instance!=instance:
-                    continue
-
-                state = service.state.getSet(action)
-                if ignorestate:
-                    state._state = "DO" #this should make sure its not being set in state file
-                else:
-                    state.state = "DO"
-
-        #create a scope in which we need to find work
-        scope=set()
-        for key, service in self.services.items():
-            if role!="" and service.role!=role:
-                continue
-            if instance!="" and service.instance!=instance:
-                continue
-            scope.add(service)
-            producersl=service.getProducersRecursive()
-            scope=scope.union(producersl)
-
-        #now we need to go over all but limited to scope
-        todo = list()
-        for service in scope:
-            actionstate = service.state.getSet(action)
-            if actionstate.state != "OK":
-                producersWaiting = service.getProducersWaiting(action, set(),scope=scope)
-                # print ("%s:\n%s"%(action,producersWaiting))                
-                if len(producersWaiting) == 0:
-                    if service.getAction(action)!=None:
-                        todo.append(service)
-                        if j.atyourservice.debug:
-                            print("%s waiting for %s" % (service,action))
-                    else:
-                        if j.atyourservice.debug:
-                            print("%s no need to do '%s' because method does not exist." % (service,action))
-
-                elif j.application.debug:
-                    print("%s no producers waiting for action %s" % (service,action))
-        return todo
 
 
     def findTemplates(self, name="", version="", domain="", role='', first=False):
@@ -536,7 +617,7 @@ class AtYourServiceFactory():
     def findAYSRepos(self):
         return (root for root, dirs, files in os.walk(j.dirs.codeDir) if '.ays' in files)
 
-    def findServices(self, name="", instance="",version="", domain="", parent=None, first=False, role="", node=None, include_disabled=False):
+    def findServices(self, name="", instance="",version="", domain="", parent=None, first=False, role="", hasAction="", include_disabled=False):
         res = []
 
         for key, service in self.services.items():
@@ -554,8 +635,10 @@ class AtYourServiceFactory():
                 continue
             if not(role == "" or role == service.role):
                 continue
-            if not(node is None or service.isOnNode(node)):
-                continue
+            if hasAction!="" and service.getAction(hasAction)==None:
+                continue                
+            # if not(node is None or service.isOnNode(node)):
+            #     continue
             res.append(service)
         if first:
             if len(res) == 0:

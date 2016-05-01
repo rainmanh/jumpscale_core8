@@ -113,10 +113,23 @@ class ServiceState():
         self.items={}
         self._read()
 
-    def getSet(self,methodname,state="INIT"):
+    def getSetObject(self,methodname,state="INIT"):
         if not methodname in self.items:
             self.items[methodname]=StateItem(self,methodname,state=state)
+        item= self.items[methodname]
+        item.state=state
+        return item
+
+    def getObject(self,methodname):
+        if not methodname in self.items:
+            raise j.exceptions.Input("Cannot find state for method:%s"%methodname)
         return self.items[methodname]
+
+
+    def get(self,methodname):
+        if not methodname in self.items:
+            raise j.exceptions.Input("Cannot find state:%s"%methodname)
+        return self.items[methodname].state
 
     def set(self,methodname,state):
         state=StateItem(self,methodname,state=state)
@@ -176,15 +189,20 @@ class ServiceState():
             out += "%s" % obj
         return out
 
-    def save(self):
+    @property
+    def changed(self):
         changed=False
         for key, obj in self.items.items():
             if obj.changed:
-                changed=True
-                break
+                return True
+        return False
 
-        if changed==False:
+    def save(self):
+
+        if not self.changed:
             return
+
+        print ("CHANGED")
 
         print (" - write state: %s"%self.service)
         out=str(self.wiki)

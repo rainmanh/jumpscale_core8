@@ -463,7 +463,7 @@ class Service:
             self._hrd.save()
 
             for key, _ in self.recipe.actionmethods.items():
-                stateitem=self.state.getSet(key)
+                stateitem=self.state.getSetObject(key)
 
                 if stateitem.state=="OK":
                     #lets check if we don't have to put it on changed depending the method changes
@@ -602,11 +602,13 @@ class Service:
             # if method:
             #     self.runAction('consume')
 
-    def getProducersRecursive(self, producers=set(), callers=set()):
+    def getProducersRecursive(self,producers=set(), callers=set(),action="",producerRoles="*"):   
         for role, producers2 in self.producers.items():
             for producer in producers2:
-                producers.add(producer)
-                producers = producer.getProducersRecursive(producers, callers=callers)
+                if action=="" or producer.getAction(action)!=None:
+                    if producerRoles=="*" or producer.role in producerRoles:
+                        producers.add(producer)
+                producers = producer.getProducersRecursive(producers=producers, callers=callers,action=action,producerRoles=producerRoles)
         return producers.symmetric_difference(callers)
 
     def printProducersRecursive(self,prefix=""):
@@ -626,16 +628,16 @@ class Service:
         for producer in self.getProducersRecursive(set(), set()):
             #check that the action exists, no need to wait for other actions, appart from when init or install not done
             
-            if producer.state.getSet("init").state!= "OK":
+            if producer.state.getObject("init").state!= "OK":
                 producersChanged.add(producer)
 
-            if producer.state.getSet("install").state!= "OK":
+            if producer.state.getObject("install").state!= "OK":
                 producersChanged.add(producer)
 
             if producer.getAction(action)==None:
                 continue
 
-            actionrunobj = producer.state.getSet(action)
+            actionrunobj = producer.state.getSetObject(action)
             # print (actionrunobj)
             if actionrunobj.state != "OK":
                 producersChanged.add(producer)

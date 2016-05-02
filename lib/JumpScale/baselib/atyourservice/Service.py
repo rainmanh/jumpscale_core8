@@ -567,7 +567,7 @@ class Service:
             # if method:
             #     self.runAction('consume')
 
-    def getProducersRecursive(self,producers=set(), callers=set(),action="",producerRoles="*"):   
+    def getProducersRecursive(self,producers=set(), callers=set(),action="",producerRoles="*"):
         for role, producers2 in self.producers.items():
             for producer in producers2:
                 if action=="" or producer.getAction(action)!=None:
@@ -591,7 +591,7 @@ class Service:
         # print ("producerswaiting:%s"%self)
         for producer in self.getProducersRecursive(set(), set()):
             #check that the action exists, no need to wait for other actions, appart from when init or install not done
-            
+
             if producer.state.getObject("init").state!= "OK":
                 producersChanged.add(producer)
 
@@ -778,8 +778,13 @@ class Service:
 
     @property
     def actions(self):
-        #make sure that recipe action finds us
-        j.atyourservice._currentService=self
+        actions_path = j.sal.fs.joinPaths(self.recipe.path, 'actions.py')
+        if j.sal.fs.exists(actions_path):
+            # TODO: make it only once
+             self.hrd.applyOnFile(actions_path)
+
+        # make sure that recipe action finds us
+        j.atyourservice._currentService = self
         return self.recipe.actions
 
     def runAction(self, action, printonly=False,ignorestate=False, force=False):

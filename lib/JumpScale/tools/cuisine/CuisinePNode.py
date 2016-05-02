@@ -27,7 +27,8 @@ class CuisinePNode():
             if self.cuisine.core.dir_exists('/sys/class/bcm2708_vcio'):
                 return "rpi_2b"
 
-            # if self.cuisine.core
+            if self.cuisine.core.file_exists('/dev/mmcblk1boot0'):
+                return 'orangepi_plus'
 
         return None
 

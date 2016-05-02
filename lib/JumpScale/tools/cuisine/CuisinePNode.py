@@ -132,15 +132,19 @@ class CuisinePNode():
         # commit changes to the kernel
         self.cuisine.core.run("partprobe")
     
-    def importRoot(self):
+    def importRoot(self, source="/image.tar.gz", destination="/"):
         """
+        Import and extract an archive to the filesystem
+        """
+        cmd = 'tar -zpxf %s -C %s' % (source, destination)
+        self.cuisine.core.run(cmd) 
         
+    def exportRoot(self, source="/", destination="/image.tar.gz"):
         """
-        
-    def exportRoot(self):
+        Create an archive of a remote file system
         """
-        
-        """
+        cmd = 'tar -zpcf %s --exclude=%s --one-file-system %s' % (destination, destination, source)
+        self.cuisine.core.run(cmd)
         
     def formatStorage(self, keepRoot=True, mountpoint="/storage"):
         """

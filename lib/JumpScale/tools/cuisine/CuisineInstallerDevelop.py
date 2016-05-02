@@ -20,9 +20,19 @@ class CuisineInstallerDevelop():
 
     @actionrun(action=True)
     def python(self):
+        if self.cuisine.platformtype.osname=="debian":
+            C="""
+            libpython3.4-dev
+            python3.4-dev
+            """
+        else:
+            C="""
+            libpython3.5-dev
+            python3.5-dev
+            """
+        self.cuisine.package.multiInstall(C)
+
         C="""
-        libpython3.5-dev
-        python3.5-dev
         libffi-dev
         gcc
         make
@@ -49,7 +59,7 @@ class CuisineInstallerDevelop():
             """
         C=self.cuisine.core.args_replace(C)
         self.cuisine.core.run_script(C)
-        C="cd $tmpDir/;python3.5 get-pip.py"
+        C="cd $tmpDir/;python3 get-pip.py"
         C=self.cuisine.core.args_replace(C)
         self.cuisine.core.run(C)
 
@@ -75,7 +85,7 @@ class CuisineInstallerDevelop():
         rm -rf $tmpDir/brotli
         """
         C=self.cuisine.core.args_replace(C)
-        self.cuisine.core.run_script(C)
+        self.cuisine.core.run_script(C,force=False)
 
         #python etcd
         C="""
@@ -85,13 +95,13 @@ class CuisineInstallerDevelop():
         python3.5 setup.py install
         """
         C=self.cuisine.core.args_replace(C)
-        self.cuisine.core.run_script(C)
+        self.cuisine.core.run_script(C,force=False)
 
         #gevent
         C="""
         pip3 install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
         """
-        self.cuisine.core.run_script(C)
+        self.cuisine.core.run_script(C,force=False)
 
         C="""
         paramiko
@@ -101,11 +111,8 @@ class CuisineInstallerDevelop():
         #credis
         aioredis
 
-
         mongoengine==0.10.6
 
-        #bcrypt
-        blosc
         certifi
         docker-py
 
@@ -159,6 +166,14 @@ class CuisineInstallerDevelop():
         path.py
         """
         self.cuisine.pip.multiInstall(C,upgrade=True)
+
+
+        if self.cuisine.platformtype.osname!="debian":
+            C="""
+            blosc
+            bcrypt
+            """
+            self.cuisine.pip.multiInstall(C,upgrade=True)
 
         self.cuisine.apps.redis.build()
 

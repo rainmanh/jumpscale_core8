@@ -27,7 +27,7 @@ class CuisinePIP():
         self.cuisine.core.set_sudomode()
         self.cuisine.core.run('pip3 install --upgrade %s' % (package))
 
-    @actionrun(action=True)
+    @actionrun(action=True,force=False)
     def install(self,package=None,upgrade=False):
         '''
         The "package" argument, defines the name of the package that will be installed.

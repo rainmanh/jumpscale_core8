@@ -27,6 +27,7 @@ from CuisineVRouter import CuisineVRouter
 from CuisineTmux import CuisineTmux
 from CuisineGeoDns import CuisineGeoDns
 from CuisineCore import CuisineCore
+from CuisinePNode import CuisinePNode
 
 
 class JSCuisine:
@@ -71,6 +72,8 @@ class JSCuisine:
         self.bootmediaInstaller=CuisineBootMediaInstaller(self.executor,self)
         self.vrouter=CuisineVRouter(self.executor,self)
         self.tmux=CuisineTmux(self.executor,self)
+
+        self.pnode=CuisinePNode(self.executor,self)
 
 
         self.done=[]

@@ -3,6 +3,7 @@ from Base import Base
 from Base import replacelabels
 import re
 from github.GithubObject import NotSet
+from Milestone import RepoMilestone
 
 re_story_name = re.compile('.+\((.+)\)$')
 
@@ -16,7 +17,7 @@ class Issue(Base):
         self._githubObj = githubObj
         if githubObj is not None:
             self.load()
-        #self.todo
+        # self.todo
 
     @property
     def api(self):
@@ -259,7 +260,7 @@ class Issue(Base):
         if self.api.milestone is None:
             self._ddict["milestone"] = ""
         else:
-            ms = self.repo.client.getMilestone(githubObj=self.api.milestone)
+            ms = RepoMilestone(repo=self.repo, githubObj=self.api.milestone)
             self._ddict["milestone"] = "%s:%s" % (ms.number, ms.title)
 
     def getMarkdown(self, priotype=True):
@@ -290,62 +291,62 @@ class Issue(Base):
 
         return md
 
-    def _loadMD(self,content):
-        md=j.data.markdown.getDocument(content)
-        title=md.items[0]
-        self._ddict["title"]=title.title
-        body=md.items[1]
-        self._ddict["body"]=body.text
-        table=md.items[2]
-        state,tmp=table.header
-        #first label
-        self._ddict["labels"]=["state_%s"%state]
+    def _loadMD(self, content):
+        md = j.data.markdown.getDocument(content)
+        title = md.items[0]
+        self._ddict["title"] = title.title
+        body = md.items[1]
+        self._ddict["body"] = body.text
+        table = md.items[2]
+        state, tmp = table.header
+        # first label
+        self._ddict["labels"] = ["state_%s" % state]
 
-        prio,ttype=table.rows[1]
-        self._ddict["labels"].append("priority_%s"%prio)
-        self._ddict["labels"].append("type_%s"%ttype)
+        prio, ttype = table.rows[1]
+        self._ddict["labels"].append("priority_%s" % prio)
+        self._ddict["labels"].append("type_%s" % ttype)
 
-        self._ddict["comments"]=[]
+        self._ddict["comments"] = []
 
-        for row in  table.rows:
-            if row[0]=="milestone":
-                ms=row[1]
-                if ms!=".":
-                    self._ddict["milestone"]=ms
-            elif row[0]=="assignee":
-                assignee=row[1]
-                if assignee!=".":
-                    self._ddict["assignee"]=assignee
-            elif row[0]=="time":
-                ttime=row[1]
-                if ttime!=".":
-                    self._ddict["time"]=ttime
+        for row in table.rows:
+            if row[0] == "milestone":
+                ms = row[1]
+                if ms != ".":
+                    self._ddict["milestone"] = ms
+            elif row[0] == "assignee":
+                assignee = row[1]
+                if assignee != ".":
+                    self._ddict["assignee"] = assignee
+            elif row[0] == "time":
+                ttime = row[1]
+                if ttime != ".":
+                    self._ddict["time"] = ttime
 
         for i in range(3):
             md.items.pop(0)
 
-        state="title"
-        comment={}
+        state = "title"
+        comment = {}
         for item in md.items:
-            if state=="title":
-                comment={}
-                state="body"
+            if state == "title":
+                comment = {}
+                state = "body"
                 continue
-            if state=="body":
-                comment["body"]=item.text
-                state="table"
+            if state == "body":
+                comment["body"] = item.text
+                state = "table"
                 continue
-            if state=="table":
-                assignee=item.header[0]
-                url=item.header[1]
-                ttime=item.rows[0][1]
-                id=url.split("]",1)[0].strip("[")
-                comment["id"]=int(id)
-                url=url.split("]",1)[1].strip("()")
-                comment["url"]=url
-                comment["time"]=ttime
-                state="title"
-                #now add the comment
+            if state == "table":
+                assignee = item.header[0]
+                url = item.header[1]
+                ttime = item.rows[0][1]
+                id = url.split("]", 1)[0].strip("[")
+                comment["id"] = int(id)
+                url = url.split("]", 1)[1].strip("()")
+                comment["url"] = url
+                comment["time"] = ttime
+                state = "title"
+                # now add the comment
                 self._ddict["comments"].append(comment)
                 continue
 
@@ -353,7 +354,7 @@ class Issue(Base):
     def todo(self):
         if "_todo" not in self.__dict__:
             todo = []
-            if self.body!=None:
+            if self.body is not None:
                 for line in self.body.split("\n"):
                     if line.startswith("!! "):
                         todo.append(line.strip().strip("!! "))
@@ -401,7 +402,7 @@ class Issue(Base):
         return tasks
 
     def move_to_repo(self, repo):
-        self.logger.info("%s: move to repo:%s"%(self,repo))
+        self.logger.info("%s: move to repo:%s" % (self, repo))
         body = "Issue moved from %s\n\n" % self.api.url
         for line in self.api.body.splitlines():
             if line.startswith("!!") or line.startswith(
@@ -445,14 +446,25 @@ class Issue(Base):
         i = 0
 
         for token in doc.tokens:
+            if change is True:
+                return
             if token['type'] == 'table':
                 task_table_found = True
-                existing_tasks = [c[2] for c in token['cells']]
-                if "#%d" % task.number not in existing_tasks:
+                table = doc.items[i]
+                existing_tasks = [r[2] for r in table.rows]
+                # add task is not in table yet
+                if not "#%d" % task.number in existing_tasks:
                     change = True
-                    table = doc.items[i]
                     table.addRow([task.api.state, task.title, "#%s" % task.number])
                     break
+                else:
+                    # update task status if needed
+                    for row in table.rows:
+                        if row[2] == '#%s' % task.number and row[0] != task.api.state:
+                            change = True
+                            row[0] = task.api.state
+                            row[1] = task.title
+                            break
             i += 1
 
         if not task_table_found:
@@ -469,7 +481,7 @@ class Issue(Base):
         """
         If this issue is a task from a story, add link in to the story in the description
         """
-        self.logger.info("%s: link to story:%s"%(self,story))
+        self.logger.info("%s: link to story:%s" % (self, story))
         if self.repo.api.id != story.repo.api.id:
             raise j.exceptions.Input("The task and the story have to be in the same Repository.")
 

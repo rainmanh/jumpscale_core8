@@ -100,8 +100,9 @@ def install(role="",instance="",force=False,producerroles="*", ask=False):
     if you want more finegrained controle please use the do cmd
     """
     # j.atyourservice.do("install",role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
-    run=j.atyourservice.getRun(role=role,instance=instance,action="install",force=force,producerRoles=producerroles)
+    run = j.atyourservice.getRun(role=role,instance=instance,action="install",force=force,producerRoles=producerroles)
     print(run)
+    run.execute()
 
 
 
@@ -191,7 +192,7 @@ def destroy():
     """
     j.actions.resetAll()
     j.atyourservice.destroy(False)
-    
+
 @click.command()
 @click.argument('debug')
 def debug(debug):

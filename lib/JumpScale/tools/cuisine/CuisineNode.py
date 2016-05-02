@@ -11,7 +11,7 @@ class CuisinePNode():
     @property
     def hwplatform(self):
         """
-        example: hwplatform = rpi_2b, orangepi_plus,amd64
+        example: hwplatform = rpi_2b, orangepi_plus, amd64
         """
         #@todo (*1*)
         
@@ -23,8 +23,10 @@ class CuisinePNode():
             find boot/root partitions and leave them untouched (check if mirror, leave too)
         clean/remove all (other) disks/partitions
         """
-        if self.hwplatform!="amd64":
+        if self.hwplatform != "amd64":
             raise j.exceptions.Input("only amd64 hw platform supported")
+        
+        
         #@todo (*1*)
 
     def formatStorage(self,keepRoot=True,mountpoint="/storage"):

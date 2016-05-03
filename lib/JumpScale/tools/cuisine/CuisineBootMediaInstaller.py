@@ -28,7 +28,7 @@ class CuisineBootMediaInstaller(object):
             self.cuisine.core.file_unlink(downloadpath)
 
         if not self.cuisine.core.file_exists(downloadpath):
-            self.cuisine.core.run("cd $tmpDir;curl %s -O" % url)
+            self.cuisine.core.run("cd $tmpDir;curl -L %s -O" % url)
 
         return base
 

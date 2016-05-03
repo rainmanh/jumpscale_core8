@@ -157,9 +157,11 @@ class CuisinePNode():
 
         """
         #@todo (*1*) implement using CuisineStor space
+        pass
 
     def importRootDedupe(self, storspace,plistname, destination="/mnt/",removetmpdir=True):
         #@todo (*1*) implement using CuisineStor space
+        pass
 
         
     def formatStorage(self, keepRoot=True, mountpoint="/storage"):

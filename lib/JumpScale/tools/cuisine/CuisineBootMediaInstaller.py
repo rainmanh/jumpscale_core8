@@ -50,7 +50,8 @@ class CuisineBootMediaInstaller(object):
 
 
     def _install(self, base):
-        self.cuisine.core.run("cd $tmpDir && tar vxf %s -C /mnt/root" % base)
+        # We use bsdtar to support pi2 arm images.
+        self.cuisine.core.run("cd $tmpDir && bsdtar -vxpf %s -C /mnt/root" % base)
         self.cuisine.core.run("sync")
         self.cuisine.core.run("echo 'PermitRootLogin=yes'>>'/mnt/root/etc/ssh/sshd_config'")
 

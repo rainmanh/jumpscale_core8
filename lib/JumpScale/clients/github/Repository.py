@@ -3,6 +3,7 @@ from Issue import Issue
 from Base import replacelabels
 import copy
 from Milestone import RepoMilestone
+from JumpScale.core.errorhandling.OurExceptions import Input
 
 
 class GithubRepo():
@@ -335,17 +336,12 @@ class GithubRepo():
         if name.strip() == "":
             raise j.exceptions.Input("Name cannot be empty.")
         self.logger.info("Delete milestone on %s: '%s'" % (self, name))
-        ms = self.getMilestone(name)
-        ms.api.delete()
-        self._milestones = []
-
-    def deleteMilestone(self, name):
-        if name.strip() == "":
-            raise j.exceptions.Input("Name cannot be empty.")
-        self.logger.info("Delete milestone on %s: '%s'" % (self, name))
-        ms = self.getMilestone(name)
-        ms.api.delete()
-        self._milestones = []
+        try:
+            ms = self.getMilestone(name)
+            ms.api.delete()
+            self._milestones = []
+        except Input:
+            self.logger.info("Milestone '%s' doesn't exist. no need to delete" % name)
 
     def _labelSubset(self, cat):
         res = []

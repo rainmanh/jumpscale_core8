@@ -434,10 +434,12 @@ class Issue(Base):
         If this issue is a story, add a link to a subtasks
         """
         if self.repo.api.id != task.repo.api.id:
-            raise j.exceptions.Input("The task and the story have to be in the same Repository.")
+            self.logger.warning("The task and the story have to be in the same Repository.")
+            return
 
         if not self.isStory:
-            raise j.exceptions.Input("This issue is not a story")
+            self.logger.warning("This issue is not a story")
+            return
 
         task_table_found = False
         change = False
@@ -448,11 +450,8 @@ class Issue(Base):
             if change is True:
                 return
             if item.type == 'table':
-                try:
-                    task_table_found = True
-                    table = item
-                except:
-                    from IPython import embed;embed()
+                task_table_found = True
+                table = item
                 existing_tasks = [r[2] for r in table.rows]
                 # add task is not in table yet
                 if not "#%d" % task.number in existing_tasks:
@@ -485,10 +484,12 @@ class Issue(Base):
         If this issue is a task from a story, add link in to the story in the description
         """
         if self.repo.api.id != story.repo.api.id:
-            raise j.exceptions.Input("The task and the story have to be in the same Repository.")
+            self.logger.warning("The task (%s) and the story (%s) have to be in the same Repository." % (self.title, story.task))
+            return
 
         if not self.isTask:
-            raise j.exceptions.Input("This issue is not a task")
+            self.logger.warning("This issue (%s) is not a task" % self.title)
+            return
 
         doc = j.data.markdown.getDocument(self.body)
         change = False

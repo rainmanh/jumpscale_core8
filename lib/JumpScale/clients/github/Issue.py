@@ -433,7 +433,6 @@ class Issue(Base):
         """
         If this issue is a story, add a link to a subtasks
         """
-        self.logger.info("%s: add task:%s" % (self, task))
         if self.repo.api.id != task.repo.api.id:
             raise j.exceptions.Input("The task and the story have to be in the same Repository.")
 
@@ -445,15 +444,19 @@ class Issue(Base):
         doc = j.data.markdown.getDocument(self.body)
         i = 0
 
-        for token in doc.tokens:
+        for item in doc.items:
             if change is True:
                 return
-            if token['type'] == 'table':
-                task_table_found = True
-                table = doc.items[i]
+            if item.type == 'table':
+                try:
+                    task_table_found = True
+                    table = item
+                except:
+                    from IPython import embed;embed()
                 existing_tasks = [r[2] for r in table.rows]
                 # add task is not in table yet
                 if not "#%d" % task.number in existing_tasks:
+                    self.logger.info("%s: add task:%s" % (self, task))
                     change = True
                     table.addRow([task.api.state, task.title, "#%s" % task.number])
                     break
@@ -461,11 +464,11 @@ class Issue(Base):
                     # update task status if needed
                     for row in table.rows:
                         if row[2] == '#%s' % task.number and row[0] != task.api.state:
+                            self.logger.info("%s: update task:%s" % (self, task))
                             change = True
                             row[0] = task.api.state
                             row[1] = task.title
                             break
-            i += 1
 
         if not task_table_found:
             change = True
@@ -481,31 +484,35 @@ class Issue(Base):
         """
         If this issue is a task from a story, add link in to the story in the description
         """
-        self.logger.info("%s: link to story:%s" % (self, story))
         if self.repo.api.id != story.repo.api.id:
             raise j.exceptions.Input("The task and the story have to be in the same Repository.")
 
         if not self.isTask:
             raise j.exceptions.Input("This issue is not a task")
 
+        doc = j.data.markdown.getDocument(self.body)
         change = False
         story_line_found = False
-        story_header = '#### Part of Story:'
-        new_body = ''
-        for line in self.body.splitlines():
-            if line.startswith(story_header):
+        for item in doc.items:
+            if item.type == 'header' and item.level == 3 and item.title.find("Part of Story") != -1:
                 story_line_found = True
-                line = '%s #%d' % (story_header, story.number)
-            new_body += line if line != '' else '\n\n'
-            change = True
+                story_number = item.title.lstrip('Part of Story: ')
+                if story_number != '#%d' % story.number:
+                    it.title = 'Part of Story: #%s' % story.number
+                    change = True
+                break
 
         if not story_line_found:
             change = True
-            new_body = '%s #%d\n\n%s' % (story_header, story.number, self.body)
+            doc.addMDHeader(3, 'Part of Story: #%s' % story.number)
+            # make sure it's on the first line of the comment
+            title = doc.items.pop(-1)
+            doc.items.insert(0, title)
 
         if change:
-            self.ddict["body"] = new_body
-            self.api.edit(body=new_body)
+            self.logger.info("%s: link to story:%s" % (self, story))
+            self.ddict["body"] = str(doc)
+            self.api.edit(body=str(doc))
 
     def __str__(self):
         return "issue:%s" % self.title

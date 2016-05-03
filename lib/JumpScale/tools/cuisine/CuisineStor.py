@@ -16,7 +16,7 @@ class CuisineStor():
     @property
     def config(self):
         if self._config==None:
-            #read j.sal.fs.joinPaths(self.path,"config.yaml")
+            #read j.sal.fs.joinPaths(self.root,"config.yaml")
             #is dict, deserialize and store in self._config
         return self._config
 
@@ -28,9 +28,11 @@ class CuisineStor():
     def enableServerHTTP(self):
         self.config["httpserver"]={"running":False}
 
+    def enableServerREST(self):
+        self.config["restserver"]={"running":False}
+
     def enableServerRSYNC(self):
         self.config["rsyncserver"]={"running":False}
-
 
     def getStorageSpace(self,name):
         if not name in self.storagespaces:

@@ -28,7 +28,7 @@ from CuisineTmux import CuisineTmux
 from CuisineGeoDns import CuisineGeoDns
 from CuisineCore import CuisineCore
 from CuisinePNode import CuisinePNode
-
+from CuisineStor import CuisineStor
 
 class JSCuisine:
 
@@ -74,6 +74,8 @@ class JSCuisine:
         self.tmux=CuisineTmux(self.executor,self)
 
         self.pnode=CuisinePNode(self.executor,self)
+
+        self.stor = CuisineStor(self.executor,self)
 
 
         self.done=[]

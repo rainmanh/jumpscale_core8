@@ -7,7 +7,7 @@ class StateItem():
         self.name = name
         self._period = period
         self._last = last
-        self._state= state #INIT,ERROR,OK,DISABLED,DO,CHANGED  DO means: execute the action method as fast as you can, init means it has not been started yet ever 
+        self._state= state #INIT,ERROR,OK,DISABLED,DO,CHANGED  DO means: execute the action method as fast as you can, init means it has not been started yet ever
         self._action = None #is key of action
         self._actionmethod_hash=actionmethod_hash
         self._hrd_hash=hrd_hash
@@ -86,7 +86,7 @@ class StateItem():
     def actionObj(self):
         # action=self.states.service.getAction(self.name)
         return self.states.service.recipe.actionmethods[self.name]
-        
+
     @property
     def model(self):
         data={}
@@ -94,9 +94,9 @@ class StateItem():
         data["period"]=self.period
         data["last"]=self.last
         data["hrd_hash"]=self.hrd_hash
-        data["actionmethod_hash"]=self.actionmethod_hash 
-        return data       
-        
+        data["actionmethod_hash"]=self.actionmethod_hash
+        return data
+
     def __str__(self):
         return self.__repr__()
 
@@ -139,7 +139,7 @@ class ServiceState():
         self.items[methodname]=state
 
     def addRecurring(self, name, period):
-        stateitem=self.getSet(name)
+        stateitem=self.getSetObject(name)
         stateitem.period=period
 
     def check(self):

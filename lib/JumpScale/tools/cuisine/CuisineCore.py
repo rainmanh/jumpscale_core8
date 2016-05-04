@@ -1192,7 +1192,12 @@ class CuisineCore():
         script = j.data.text.strip(script)
         
         path = "$tmpDir/pyscript_temp_%s.py" % j.data.idgenerator.generateRandomInt(1,10000)
-        self.file_write(path, script)
+        path = self.args_replace(path)
+
+        # saving locally, uploading, removing locally
+        j.sal.fs.writeFile(path, script)
+        self.file_upload_binary(path, path)
+        j.sal.fs.remove(path)
         
         out = self.run("python %s" % path)
         

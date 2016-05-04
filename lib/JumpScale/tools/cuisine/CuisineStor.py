@@ -1,4 +1,5 @@
 from JumpScale import j
+import gzip
 
 class StorScripts():
     # create hexa directory tree
@@ -43,6 +44,7 @@ class StorScripts():
         import os
         import json
         import hashlib
+        import time
         
         root = "%s"
         keys = json.loads('''%s''')
@@ -59,16 +61,32 @@ class StorScripts():
             afile.close()
             return hasher.hexdigest()
         
+        def loadMetadata(metafile):
+            with open(metafile, 'r') as f:
+                data = f.read()
+            
+            return json.loads(data)
+                
         def checkMeta(fullpath):
             metafile = fullpath + ".meta"
-            # check metafile
+            metadata = loadMetadata(metafile)
+            
+            if time.time() >= metadata["expiration"]:
+                # os.unlink(fullpath)
+                # os.unlink(metafile)
+                return "expired"
             
             return True
         
         def checkFile(dirname, filename):
             fullpath = os.path.join(dirname, filename)
             
-            if hashfile(fullpath) != filename:
+            if not os.path.isfile(fullpath):
+                return "not found"
+            
+            if hashfile(fullpath) != os.path.basename(filename):
+                # os.unlink(fullpath)
+                # delete metafile if exists ?
                 return "corrupted"
             
             if os.path.isfile(fullpath + ".meta"):
@@ -94,10 +112,51 @@ class StorScripts():
         
         # check for specific keys
         else:
-            pass
+            for key in keys:
+                path = os.path.join(key[:2], key[2:4], key)
+                data[key] = checkFile(root, path)
         
         print(json.dumps(data))
         
+        """ % (root, j.data.serializer.json.dumps(keys))
+    
+    def getMetadata(self, root, keys):
+        return """
+        import os
+        import json
+        import gzip
+        import random
+        
+        root = "%s"
+        keys = json.loads('''%s''')
+        data = {}
+        
+        def loadMetadata(metafile):
+            with open(metafile, 'r') as f:
+                data = f.read()
+            
+            return json.loads(data)
+        
+        def getMetadata(dirname, filename, key):
+            fullpath = os.path.join(dirname, filename)
+            metapath = fullpath + ".meta"
+            
+            if os.path.isfile(metapath):
+                data[key] = loadMetadata(metapath)
+        
+        for key in keys:
+            path = os.path.join(key[:2], key[2:4], key)
+            getMetadata(root, path, key)
+        
+        output = json.dumps(data)
+        content = gzip.compress(bytes(output, 'utf-8'))
+        tmpfile = '/tmp/md-gzip-' + str(random.randrange(1, 10000000)) + '.gz'
+        
+        with open(tmpfile, 'w+b') as f:
+            f.write(content)
+        
+        print(tmpfile)
+            
         """ % (root, j.data.serializer.json.dumps(keys))
         
 class CuisineStor():
@@ -208,8 +267,6 @@ class CuisineStor():
         """
         Check if a keys exists in a specific storagespace
         """
-        #create bash or python script which checks existance all keys on remote (this to be efficient, only 1 script execute remotely returns result required)
-        #return list of which keys exist
         sp = self.getStorageSpace(name)
         return sp.exists(keys)
 
@@ -346,8 +403,10 @@ class StorSpace(object):
     def metadataFile(self, path):
         return "%s.meta" % path
     
-    # build an internal metadata dictionary
     def metadata(self, expiration=None, tags=None):
+        """
+        Build a representation used internaly to expose metadata
+        """
         if expiration or tags:
             meta = {}
             meta["expiration"] = expiration
@@ -357,6 +416,14 @@ class StorSpace(object):
         return None
         
     def file_upload(self, source, storpath, expiration=None, tags=None):
+        """
+        Upload a file to a specific location in the storagespace
+        @param expiration: timestamp after when file could be discarded
+        """
+        # small protection against directory transversal
+        # better approch: os.path.abspath ?
+        storpath = storpath.replace('../', '')
+        
         filepath = j.sal.fs.joinPaths(self.path, storpath)
         path = j.sal.fs.getDirName(filepath)
         
@@ -367,18 +434,27 @@ class StorSpace(object):
         metadata = self.metadata(expiration, tags)
         if metadata:
             # upload metadata only if defined
-            yaml = j.data.serializer.yaml.dumps(metadata)
-            self.cuisine.core.file_write(self.metadataFile(filepath), yaml)
+            # NOTE: metadata are saved in json because code executed
+            # on remote side does probably not have yaml parser installed
+            # json parser in python should be able out-of-box
+            md = j.data.serializer.json.dumps(metadata)
+            self.cuisine.core.file_write(self.metadataFile(filepath), md)
         
         return True
 
     def file_download(self, storpath, dest, chmod=None, chown=None):
+        """
+        Download a file from the storagespace to a specific location
+        """
+        # small protection against directory transversal
+        storpath = storpath.replace('../', '')
+        
         filepath = j.sal.fs.joinPaths(self.path, storpath)
         self.cuisine.core.file_download_binary(dest, filepath)
         
         if chmod:
             j.sal.fs.chmod(dest, chmod)
-            
+
         if chown:
             # FIXME: group ?
             j.sal.fs.chown(dest, chown)
@@ -391,6 +467,12 @@ class StorSpace(object):
         return True
 
     def file_remove(self, storpath):
+        """
+        Remove a given file from the storagespace
+        """
+        # small protection against directory transversal
+        storpath = storpath.replace('../', '')
+        
         path = j.sal.fs.joinPaths(self.path, storpath)
         
         if not self.cuisine.core.file_exists(path):
@@ -405,13 +487,6 @@ class StorSpace(object):
             self.cuisine.core.file_unlink(metadata)
         
         return True
-
-    """
-    def upload(self, source, dest, expiration=0, tags=""):
-        #upload file to $self.path/$dest  dest is relative e.g. myfiles/something/read.this
-        metadata = self.metadata(expiration, tags)
-        pass
-    """
 
     def exists(self, keys=[]):
         """
@@ -430,6 +505,7 @@ class StorSpace(object):
     def set(self, source, expiration=None, tags=None):
         """
         Upload a file and save it to the storage. It's hash will be returned
+        @param expiration: timestamp after when file could be discarded
         """
         checksum = j.data.hash.md5(source)
         
@@ -447,24 +523,43 @@ class StorSpace(object):
         return False
 
     def delete(self, key):
-        self.file_remove(self.hashPath(key))
-
+        """
+        Delete a key in the storagespace
+        """
+        return self.file_remove(self.hashPath(key))
 
     def check(self, keys=[]):
+        """
+        Check consistancy and validity of a set of keys in the storagespace
+        """
         script = self.stor.scripts.check(self.path, keys)
         data = self.cuisine.core.execute_python(script)
-        # return j.data.serializer.json.loads(data)
-        print(data)
+        return j.data.serializer.json.loads(data)
 
     def getMetadata(self, keys):
         """
+        Get metadata content for a set of keys from the storagespace
         """
-        #create bash or python script which gets metadata for all files specified and puts in tgz
-        #dowbload tgz
-        #expand and put in list of dicts, return the list
-        #this is done to be more efficient
-        #only return when metadata exists
-        pass
+        script = self.stor.scripts.getMetadata(self.path, keys)
+        data = self.cuisine.core.execute_python(script)
+        print(data)
+        
+        if not data.startswith('/tmp'):
+            # output seems not correct
+            return False
+        
+        localfile = '/tmp/jstor-md.gz'
+        self.cuisine.core.file_download_binary(localfile, data)
+        self.cuisine.core.file_unlink(data)
+        
+        with open(localfile, 'rb') as f:
+            content = f.read()
+        
+        j.sal.fs.remove(localfile)
+        
+        metadata = gzip.decompress(content).decode('utf-8')
+        
+        return j.data.serializer.json.loads(metadata)
 
 
     def setMetadata(self, keys, metadata={}):

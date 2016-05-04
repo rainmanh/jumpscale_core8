@@ -38,6 +38,11 @@ class ActionMethodDecorator(object):
             else:
                 force=self.force
 
+            # print ("ACTION:START: isaction=%s"%action)
+            # print(func)
+            # if "getIssuesFromGithub" in str(func):
+            #     from pudb import set_trace; set_trace() 
+
             if action:
                 args=args[1:]
 
@@ -85,8 +90,9 @@ class ActionMethodDecorator(object):
                     action0.save()
 
 
-                service.logger.info("execute:%s %s"%(service,func.__name__ ))
+                service.logger.info("Execute Action:%s %s"%(service,func.__name__ ))
                 action0.execute()
+                    
                 stateitem.state=action0.state
 
                 stateitem.last=j.data.time.epoch

@@ -189,7 +189,7 @@ class ServiceState():
         out += "| %-20s | %-10s | %-10s | %-30s |\n" % ("name", "state","period", "last")
         out += "| %-20s | %-10s | %-10s | %-30s |\n" % ("---", "---","---", "---")
         for key, obj in self.items.items():
-            out += "%s" % obj
+            out += "%s\n" % obj
         return out
 
     @property

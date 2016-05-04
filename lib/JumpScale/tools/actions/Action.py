@@ -37,10 +37,10 @@ class Action:
 
         '''
         self.logger = j.logger.get("j.actions")
+        # self.logger.debug("OPEN ACTION:%s"%action)
 
         if key=="" and action==None:
             raise j.exceptions.RuntimeError("need to specify key or action")
-
 
         self._args=""
         self._kwargs=""
@@ -92,7 +92,7 @@ class Action:
 
             self.serviceObj = serviceObj
 
-            self.method=action
+            self.method=action                
 
             if actionRecover!=None:
                 self._actionRecover = actionRecover.key
@@ -294,11 +294,11 @@ class Action:
         self._source=j.data.text.strip(source)
         self._name = source.split("\n")[0].strip().replace("def ", "").split("(")[0].strip()
         self._path = inspect.getsourcefile(val).replace("//", "/")
-        self._doc=inspect.getdoc(self.method)
-        if self._doc==None:
-            self._doc=""
-        if self._doc!="" and self._doc[-1]!="\n":
-            self._doc+="\n"
+        # self._doc=inspect.getdoc(self.method)
+        # if self._doc==None:
+        #     self._doc=""
+        # if self._doc!="" and self._doc[-1]!="\n":
+        #     self._doc+="\n"
 
     @property
     def sourceToExecute(self):
@@ -344,6 +344,9 @@ class Action:
             s=j.dirs.replaceTxtDirVars(s)
         elif "$" in s:
             s=j.dirs.replaceTxtDirVars(s)
+
+        if "$(" in s:
+            raise RuntimeError("$() should not be there, probably hrd has not been set")
         return s
 
     @property
@@ -523,6 +526,10 @@ class Action:
     def execute(self):
 
         self.check() #see about changed source code
+
+        # if "$" in self.sourceToExecute:
+        #     raise RuntimeError("$ should not be there")
+
         j.actions.addToStack(self)
 
         if self.state == "OK" and self.force==False:

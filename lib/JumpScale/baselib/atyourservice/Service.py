@@ -780,6 +780,7 @@ class Service:
     @property
     def actions(self):
         # make sure that recipe action finds us
+        self.logger.debug("Direct Actions Execute On Service:%s"%(self))
         j.atyourservice._currentService = self
         self.recipe.actions.service=self
         return self.recipe.actions

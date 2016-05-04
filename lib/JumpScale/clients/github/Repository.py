@@ -52,7 +52,7 @@ class GithubRepo():
     @property
     def labels(self):
         if self._labels is None:
-            self._labels = [item for item in self.api.get_labels()]
+            self._labels = [item for item in self.api.get_labels()]                
         return self._labels
 
     @property

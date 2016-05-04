@@ -122,17 +122,21 @@ class ServiceRecipe(ServiceTemplate):
 
         # DO NOT CHANGE TO USE PYTHON PARSING UTILS
         lines = content.splitlines()
-        for i in range(len(lines)):
+        size = len(lines)
+        i = 0
+        while i < size:
             line = lines[i]
             linestrip = line.strip()
             if state == "INIT" and linestrip.startswith("class Actions"):
                 state = "MAIN"
+                i += 1
                 continue
 
             if state == "MAIN" and linestrip.startswith("@"):
                 if am is not None:
                     am._process()
                     am = None
+                i += 1
                 continue
 
             if state == "MAIN" and linestrip.startswith("def"):
@@ -143,12 +147,15 @@ class ServiceRecipe(ServiceTemplate):
 
                 # make sure the required method have the action() decorator
                 if am.name in actionmethodsRequired and not lines[i-1].strip().startswith('@'):
-                    lines[i-1] = '\n    @action()'
+                    lines.insert(i, '\n    @action()')
+                    size += 1
 
+                i += 1
                 continue
 
             if am is not None:
                 am.source += "%s\n" % line[8:]
+            i += 1
 
         content = '\n'.join(lines)
 

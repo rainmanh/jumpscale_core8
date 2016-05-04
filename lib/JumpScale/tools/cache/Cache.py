@@ -16,6 +16,7 @@ class CacheFactory():
         """
         return Cache(db,expiration)
 
+
 class Cache():
 
     def __init__(self, db,expiration=300):
@@ -26,13 +27,13 @@ class Cache():
     def set(self,key,value):
         tostore={}
         tostore["val"]=value
-        tostore["expire"]=j.base.time.getTimeEpoch()+self.expiration
+        tostore["expire"]=j.data.time.getTimeEpoch()+self.expiration
         data=json.dumps(tostore)
         if self.redis:
             self.db.set("cache", key, data)
         else:
             self.db.set("cache", key, data,expire=self.expiration)
-        
+
     def get(self,key):
         """
         expire = bool, is true if expired

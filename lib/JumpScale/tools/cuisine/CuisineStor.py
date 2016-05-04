@@ -39,6 +39,7 @@ class StorScripts():
         
         """ % (root, j.data.serializer.json.dumps(keys))
     
+    # check consistancy and expirations of files
     def check(self, root, keys):
         return """
         import os
@@ -120,6 +121,7 @@ class StorScripts():
         
         """ % (root, j.data.serializer.json.dumps(keys))
     
+    # get metadata of a set of keys
     def getMetadata(self, root, keys):
         return """
         import os
@@ -158,6 +160,35 @@ class StorScripts():
         print(tmpfile)
             
         """ % (root, j.data.serializer.json.dumps(keys))
+    
+    # set metadata for a set of keys
+    def setMetadata(self, root, keys, metadata):
+        return """
+        import os
+        import json
+        import gzip
+        
+        root = "%s"
+        keys = json.loads('''%s''')
+        meta = '''%s'''
+        data = {}
+        
+        def setMetadata(dirname, filename, key, meta):
+            fullpath = os.path.join(dirname, filename)
+            metafile = fullpath + ".meta"
+            
+            with open(metafile, 'w') as f:
+                f.write(meta)
+            
+            data[key] = True
+        
+        for key in keys:
+            path = os.path.join(key[:2], key[2:4], key)
+            setMetadata(root, path, key, meta)
+        
+        print(json.dumps(data))
+            
+        """ % (root, j.data.serializer.json.dumps(keys), j.data.serializer.json.dumps(metadata))
         
 class CuisineStor():
     def __init__(self, executor, cuisine):
@@ -297,7 +328,42 @@ class CuisineStor():
         - remove tmpdir if removetmpdir=True
         """
         #@todo (*1*) implement
-        pass
+
+        # loading the storagespace
+        sp = self.getStorageSpace(name)
+        
+        # building the flist struct
+        flist = self.flist(source)
+        
+        exists = self.exists(name, flist.keys())
+        needed = []
+        
+        for key, exist in exists.items():
+            if not exist:
+                needed.append({'hash': key, 'file': flist[key]['file']})
+
+        if len(needed) == 0:
+            # nothing to upload
+            return True
+
+        # 'needed' contains hashs and filenames needed to upload
+        tmptar = '/tmp/jstor-upload.tar'
+        tar = j.tools.tarfile.get(tmptar, j.tools.tarfile.WRITE)
+
+        for file in needed:
+            tar.add(file['file'], sp.hashPath(file['hash']))
+            # FIXME: change permission (remove write, 600)
+
+        tar.close()
+
+        # now, tar file is ready, let's upload it to the storage then extract it
+        # setting the expire time to 1, this will ensure that the file will
+        # be removed in the next check
+        sp.file_upload(tmptar, 'jstor-uploader.tar', expiration=1)
+        sp._extract('jstor-uploader.tar')
+
+        # export plist
+        # delete stuff
 
     def download(self, name, plistname, destination="/mnt/", removetmpdir=True, cacheStorspace=None):
         """
@@ -313,6 +379,27 @@ class CuisineStor():
         """
         #@todo (*1*) implement
         pass
+    
+    def flist(self, path):
+        """
+        Generate a flist for the path contents
+        """
+        flist = {}
+        
+        for file in j.sal.fs.walk(path, recurse=True):
+            hash = j.data.hash.md5(file)
+            size = j.sal.fs.fileSize(file)
+            flist[hash] = {'file': file, 'size': size}
+        
+        return flist
+    
+    def flistDumps(self, flist):
+        data = []
+        
+        for key, f in flist.items():
+            data.append("%s|%s|%d" % (f['file'], key, f['size']))
+            
+        return "\n".join(data)
 
 class StorSpace(object):
     """
@@ -508,18 +595,18 @@ class StorSpace(object):
         @param expiration: timestamp after when file could be discarded
         """
         checksum = j.data.hash.md5(source)
-        
+
         # do not upload file if already exists
         existing = self.exists([checksum])
         if existing[checksum]:
             return True
-        
+
         hashpath = self.hashPath(checksum)
-        
+
         # uploading file, if success, return the hash
         if self.file_upload(source, hashpath, expiration, tags):
             return checksum
-        
+
         return False
 
     def delete(self, key):
@@ -534,6 +621,7 @@ class StorSpace(object):
         """
         script = self.stor.scripts.check(self.path, keys)
         data = self.cuisine.core.execute_python(script)
+
         return j.data.serializer.json.loads(data)
 
     def getMetadata(self, keys):
@@ -542,33 +630,47 @@ class StorSpace(object):
         """
         script = self.stor.scripts.getMetadata(self.path, keys)
         data = self.cuisine.core.execute_python(script)
-        print(data)
         
-        if not data.startswith('/tmp'):
+        return j.data.serializer.json.loads(self.getResponse(data))
+
+
+    def setMetadata(self, keys, metadata):
+        """
+        Set (same) metadata for a set of keys
+        @param metadata: a metadata type created with self.metadata
+        """
+        script = self.stor.scripts.setMetadata(self.path, keys, metadata)
+        data = self.cuisine.core.execute_python(script)
+        print(data)
+
+
+    def getResponse(self, remote):
+        if not remote.startswith('/tmp'):
             # output seems not correct
             return False
-        
-        localfile = '/tmp/jstor-md.gz'
-        self.cuisine.core.file_download_binary(localfile, data)
-        self.cuisine.core.file_unlink(data)
-        
+
+        localfile = '/tmp/jstor-response-%s.gz' % j.sal.fs.getBaseName(remote)
+        self.cuisine.core.file_download_binary(localfile, remote)
+        self.cuisine.core.file_unlink(remote)
+
         with open(localfile, 'rb') as f:
             content = f.read()
-        
+
         j.sal.fs.remove(localfile)
-        
-        metadata = gzip.decompress(content).decode('utf-8')
-        
-        return j.data.serializer.json.loads(metadata)
 
+        response = gzip.decompress(content).decode('utf-8')
 
-    def setMetadata(self, keys, metadata={}):
+        return response
+
+    def _extract(self, tarfile):
         """
-        @param metadata is the dict which is relevant for the files mentioned
+        Extract a tarball on the storage, this should be used only internally
         """
-        #create bash or python script which sets metadata for all files specified
-        pass
-
+        tarsource = j.sal.fs.joinPaths(self.path, tarfile)
+        tartarget = self.path
+        
+        self.cuisine.core.run('tar -xvf %s -C %s' % (tarsource, tartarget))
+        self.cuisine.core.file_unlink(tarsource)
 
 """
 some remarks

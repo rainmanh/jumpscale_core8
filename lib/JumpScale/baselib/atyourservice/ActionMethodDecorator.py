@@ -84,6 +84,8 @@ class ActionMethodDecorator(object):
                     action0._method=None
                     action0.save()
 
+
+                service.logger.info("execute:%s %s"%(service,func.__name__ ))
                 action0.execute()
                 stateitem.state=action0.state
 

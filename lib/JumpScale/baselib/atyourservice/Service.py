@@ -794,7 +794,6 @@ class Service:
         #when none means does not exist so does not have to be executed
         if a!=None:
             if printonly==False:
-                self.logger.info("Execute: %s %s"%(self,action))
                 return a()
             else:
                 print ("Execute: %s %s"%(self,action))

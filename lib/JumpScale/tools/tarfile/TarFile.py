@@ -1,11 +1,7 @@
-
-
 '''The TarFile class provides convenience methods to work with tar archives'''
 
-import tarfile
-
 from JumpScale import j
-
+import tarfile
 
 # NOTE: When implementing, see documentation on the 'errorlevel' attribute of
 # the Python TarFile object
@@ -34,21 +30,31 @@ class TarFile(object):
         '''
         if not j.data.types.path.check(path):
             raise ValueError('Provided string "%s" is not a valid path' % path)
+
         if mode is TarFileFactory.READ:
             if not j.sal.fs.isFile(path):
-                raise ValueError(
-                        'Provided path "%s" is not an existing file' % path)
+                raise ValueError('Provided path "%s" is not an existing file' % path)
+
             if not tarfile.is_tarfile(path):
-                raise ValueError(
-                        'Provided path "%s" is not a valid tar archive' % path)
+                raise ValueError('Provided path "%s" is not a valid tar archive' % path)
+
             self._tar = tarfile.open(path, 'r')
 
+        elif mode is TarFileFactory.WRITE:
+            self._tar = tarfile.open(path, 'w')
+            
         else:
             raise ValueError('Invalid mode')
 
         self.path = path
         self.mode = mode
 
+    def add(self, file, name=None):
+        """
+        Add a file to the tarball, if name is specified, this name
+        will be used on the archive (alternative name)
+        """
+        self._tar.add(file, arcname=name)
 
     def extract(self, destination_path, files=None):
         '''Extract all or some files from the archive to destination_path
@@ -67,9 +73,9 @@ class TarFile(object):
 
         if not j.data.types.path.check(destination_path):
             raise ValueError('Not a valid folder name provided')
+
         if not j.sal.fs.exists(destination_path):
-            raise ValueError('Destination folder "%s" does not exist'
-                    % destination_path)
+            raise ValueError('Destination folder "%s" does not exist' % destination_path)
 
         members = list()
         if files:

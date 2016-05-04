@@ -76,6 +76,8 @@ class Action:
         self.die=die
         self.force=force
 
+        self._hrd={}
+
         self.traceback=""
 
         self.runid = str(runid)
@@ -217,6 +219,7 @@ class Action:
         model["die"] = self.die
         model["calling_path"] = self.calling_path
         model["calling_linenr"] = self.calling_linenr
+        model["_hrd"]=self._hrd
 
         return model
 
@@ -231,10 +234,13 @@ class Action:
         if data != None:
             data2 = j.data.serializer.json.loads(data)
 
+            if "_hrd" not in data2:
+                data2["_hrd"]={}
+
             if all:
                 data3=data2
             else:
-                toload=["_state","_lastArgsMD5","_lastCodeMD5","_result","traceback","stdouterr"]
+                toload=["_state","_lastArgsMD5","_lastCodeMD5","_result","traceback","stdouterr","_hrd"]
                 data3={}
                 for item in toload:
                     data3[item]=data2[item]
@@ -333,6 +339,11 @@ class Action:
         s=s.replace("$source",self.source)
         s=s.replace("$name",self.name)
 
+        if "$(" in s:
+            s=self.hrd.applyOnContent(s)
+            s=j.dirs.replaceTxtDirVars(s)
+        elif "$" in s:
+            s=j.dirs.replaceTxtDirVars(s)
         return s
 
     @property
@@ -402,6 +413,16 @@ class Action:
             self._result = ""
         else:
             self._result = j.data.serializer.json.dumps(val, True, True)
+
+    @property
+    def hrd(self):
+        hrd=j.data.hrd.getHRDFromDict(self._hrd)
+        return hrd
+
+    @hrd.setter
+    def hrd(self,hrd):
+        #@todo need to check if hrd or text and convert
+        self._hrd=hrd.getHRDAsDict()
 
     @property
     def args(self):

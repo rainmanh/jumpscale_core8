@@ -68,16 +68,21 @@ class ActionMethodDecorator(object):
                 #     stateitem.state = "CHANGED"
 
                 if stateitem.state=="OK":
-                    print ("NOTHING TODO OK: %s"%stateitem)
+                    service.logger.info ("NOTHING TODO OK: %s"%stateitem)
                     action0.state="OK"
                     action0.save()
                     return action0.result
 
                 if stateitem.state=="DISABLED":
-                    print ("NOTHING TODO DISABLED: %s"%stateitem)
+                    service.logger.info ("NOTHING TODO DISABLED: %s"%stateitem)
                     action0.state="DISABLED"
                     action0.save()
                     return
+
+                if func.__name__ not in ["init","input"]:
+                    action0.hrd=service.hrd
+                    action0._method=None
+                    action0.save()
 
                 action0.execute()
                 stateitem.state=action0.state
@@ -93,7 +98,7 @@ class ActionMethodDecorator(object):
                             return action0
                     msg="**ERROR ACTION**:\n%s"%action0
                     # raise j.exceptions.RuntimeError()
-                    print (msg)
+                    service.logger.error (msg)
                     service.save()
                     sys.exit(1)
 

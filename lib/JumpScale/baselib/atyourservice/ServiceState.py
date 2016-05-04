@@ -15,9 +15,9 @@ class StateItem():
 
     def __repr__(self):
         if self.last != 0:
-            return str("| %-20s | %-10s | %-10s | %-30s |\n" % (self.name,self.state,self.period,j.data.time.epoch2HRDateTime(self.last)))
+            return str("| %-20s | %-10s | %-10s | %-30s |" % (self.name,self.state,self.period,j.data.time.epoch2HRDateTime(self.last)))
         else:
-            return str("| %-20s | %-10s | %-10s | %-30s |\n" % (self.name,self.state,self.period,""))
+            return str("| %-20s | %-10s | %-10s | %-30s |" % (self.name,self.state,self.period,""))
 
     def check(self):
         if self.periodSec>0:

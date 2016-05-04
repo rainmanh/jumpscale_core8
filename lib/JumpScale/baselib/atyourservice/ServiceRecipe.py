@@ -13,7 +13,7 @@ ActionMethodDecorator=j.atyourservice.getActionMethodDecorator()
 class action(ActionMethodDecorator):
     def __init__(self,*args,**kwargs):
         ActionMethodDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="service=j.atyourservice._currentService;selfobj=service.actions;selfobj.service=service"
+        self.selfobjCode="service=j.atyourservice._currentService;selfobj=service.recipe.actions;selfobj.service=service"
 
 """
 
@@ -34,13 +34,19 @@ class ActionMethod():
     def _process(self):
         if self.source != "":
             self.hash = j.data.hash.md5_string(self.source)
+
+            #need to make sure we are not using templ var's in these 2 methods because they get executed before we can apply the hrd arguments
+            if self.name in ["input","init"]:
+                if self.source.find("$(")!=-1:
+                    raise j.exceptions.Input("Action method:%s should not have template variable '$(...' in sourcecode for init or input method."%(self))
+
         # for now we don't do a check, later want to make sure we don't call other services, now we just put impact on all hrd schema arguments
         self.recipe.schema
         # for now we take all arguments, later we need to be more specific
         self.hrdArgKeys = [item for item in self.recipe.schema.items.keys()]
 
     def __repr__(self):
-        return "%s:%s" % (self.name, self.hash)
+        return "actionmethod: %s:%s" % (self.recipe,self.name)
 
     __str__ = __repr__
 

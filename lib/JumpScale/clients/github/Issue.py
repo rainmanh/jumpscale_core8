@@ -434,11 +434,11 @@ class Issue(Base):
         If this issue is a story, add a link to a subtasks
         """
         if self.repo.api.id != task.repo.api.id:
-            self.logger.warning("The task and the story have to be in the same Repository.")
+            j.exceptions.Input("The task and the story have to be in the same Repository.")
             return
 
         if not self.isStory:
-            self.logger.warning("This issue is not a story")
+            j.exceptions.Input("This issue is not a story")
             return
 
         task_table_found = False
@@ -484,12 +484,12 @@ class Issue(Base):
         If this issue is a task from a story, add link in to the story in the description
         """
         if self.repo.api.id != story.repo.api.id:
-            self.logger.warning("The task (%s) and the story (%s) have to be in the same Repository." % (self.title, story.task))
-            return
+            raise j.exceptions.Input("The task (%s) and the story (%s) have to be in the same Repository." % (self.title, story.task))
+            # return
 
         if not self.isTask:
-            self.logger.warning("This issue (%s) is not a task" % self.title)
-            return
+            raise j.exceptions.Input("This issue (%s) is not a task" % self.title)
+            # return
 
         doc = j.data.markdown.getDocument(self.body)
         change = False

@@ -500,6 +500,7 @@ class GithubRepo():
     def loadIssues(self):
         for item in self.api.get_issues():
             self.issues.append(Issue(self, githubObj=item))
+        self.issues_loaded=True
 
     def __str__(self):
         return "gitrepo:%s" % self.fullname

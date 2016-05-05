@@ -238,28 +238,6 @@ class CuisineStor():
             self.storagespaces[name] = sp
         
         return self.storagespaces[name]
-
-
-    def get(self, name, key, dest):
-        """
-        Download a file from a specific storagespace
-        """
-        sp = self.getStorageSpace(name)
-        return sp.get(key, dest)
-
-    def set(self, name, source, expiration=0, tags=""):
-        """
-        Upload a file in a specific storagespace
-        """
-        sp = self.getStorageSpace(name)
-        return sp.set(source, expiration, tags)
-
-    def delete(self, name, key):
-        """
-        Delete a file in a specific storagespace
-        """
-        sp = self.getStorageSpace(name)
-        return sp.delete(key)
     
     def removeStorageSpace(self, name):
         """
@@ -294,113 +272,6 @@ class CuisineStor():
                 #start rsync in tmux, there should be cuisine extension for this
                 pass
 
-    def exists(self, name, keys=[]):
-        """
-        Check if a keys exists in a specific storagespace
-        """
-        sp = self.getStorageSpace(name)
-        return sp.exists(keys)
-
-    def check(self, name, keys=[]):
-        """
-        Check a set of keys (or all keys if not specified).
-        Check consist of an existance, consistancy (checksum) check and expiration rotation
-        Return a list of keys found and still valid
-        """
-        #create bash or python script which checks all keys on remote (this to be efficient, only 1 script execute remotely returns result required)
-        #check means hash check & existance check & expiration check 
-        #return list of which keys exist & are as such ok
-        sp = self.getStorageSpace(name)
-        return sp.check(keys)
-
-    def upload(self, name, plistname, source="/", excludes=["\.pyc","__pycache__"], removetmpdir=True, metadataStorspace=None):
-        """
-        - rsync over ssh the source to $tmpdir/cuisinestor/$plistname.   (from remote machine to local one)
-        - create a plist like we do for aydostor or G8stor
-        - do a self.exists ... to find which files are not on remote yet
-        - create tar with all files which do not exist
-            - aa/bb/...
-            - compress each individual file using same compression as what we used for aydostor/g7stor (was something good)
-        - upload tar to remote temp space
-        - expand tar to required storage space
-        - upload plist to storspace under plist/$plistname.plist (using file_upload)
-            - metadataStorspace!=None then use other storspace for uploading the plist
-        - remove tmpdir if removetmpdir=True
-        """
-        #@todo (*1*) implement
-
-        # loading the storagespace
-        sp = self.getStorageSpace(name)
-        
-        # building the flist struct
-        flist = self.flist(source)
-        
-        exists = self.exists(name, flist.keys())
-        needed = []
-        
-        for key, exist in exists.items():
-            if not exist:
-                needed.append({'hash': key, 'file': flist[key]['file']})
-
-        if len(needed) == 0:
-            # nothing to upload
-            return True
-
-        # 'needed' contains hashs and filenames needed to upload
-        tmptar = '/tmp/jstor-upload.tar'
-        tar = j.tools.tarfile.get(tmptar, j.tools.tarfile.WRITE)
-
-        for file in needed:
-            tar.add(file['file'], sp.hashPath(file['hash']))
-            # FIXME: change permission (remove write, 600)
-
-        tar.close()
-
-        # now, tar file is ready, let's upload it to the storage then extract it
-        # setting the expire time to 1, this will ensure that the file will
-        # be removed in the next check
-        sp.file_upload(tmptar, 'jstor-uploader.tar', expiration=1)
-        sp._extract('jstor-uploader.tar')
-
-        # export plist
-        # delete stuff
-
-    def download(self, name, plistname, destination="/mnt/", removetmpdir=True, cacheStorspace=None):
-        """
-        - download plist on remote stor (use storspace.filedownload())
-        - if cacheStorspace not None: check which files we already have in the cache (use cacheStorspace.exists)
-        - create a bash or python file which has commands to get required files & put in tar on remote
-        - download tar
-        - if cacheStorspace!=None: upload each file to restore not in cache yet to cache
-        - restore the files to $tmpdir/cuisinestor/$plistname  (all files, from cache & from remote, as efficient as possible)
-            - decompress each file
-        - rsync over ssh $tmpdir/cuisinestor/$plistname  to the cuisine we are working on
-        - remove tmpdir if removetmpdir=True
-        """
-        #@todo (*1*) implement
-        pass
-    
-    def flist(self, path):
-        """
-        Generate a flist for the path contents
-        """
-        flist = {}
-        
-        for file in j.sal.fs.walk(path, recurse=True):
-            hash = j.data.hash.md5(file)
-            size = j.sal.fs.fileSize(file)
-            flist[hash] = {'file': file, 'size': size}
-        
-        return flist
-    
-    def flistDumps(self, flist):
-        data = []
-        
-        for key, f in flist.items():
-            data.append("%s|%s|%d" % (f['file'], key, f['size']))
-            
-        return "\n".join(data)
-
 class StorSpace(object):
     """
     each file is stored in
@@ -410,8 +281,6 @@ class StorSpace(object):
 
     OPTIONALLY:
     $self.path/ab/cd/$hash.meta is stored which has some metadata about the file
-
-
     """
 
     def __init__(self, stor, name, public=True):
@@ -501,7 +370,8 @@ class StorSpace(object):
             return meta
             
         return None
-        
+
+
     def file_upload(self, source, storpath, expiration=None, tags=None):
         """
         Upload a file to a specific location in the storagespace
@@ -575,6 +445,7 @@ class StorSpace(object):
         
         return True
 
+
     def exists(self, keys=[]):
         """
         Check if a set of keys exists. Returns a list which contains hash and bool
@@ -582,6 +453,7 @@ class StorSpace(object):
         script = self.stor.scripts.exists(self.path, keys)
         data = self.cuisine.core.execute_python(script)
         return j.data.serializer.json.loads(data)
+
 
     def get(self, key, dest, chmod=None, chown=None):
         """
@@ -615,6 +487,7 @@ class StorSpace(object):
         """
         return self.file_remove(self.hashPath(key))
 
+
     def check(self, keys=[]):
         """
         Check consistancy and validity of a set of keys in the storagespace
@@ -623,6 +496,7 @@ class StorSpace(object):
         data = self.cuisine.core.execute_python(script)
 
         return j.data.serializer.json.loads(data)
+
 
     def getMetadata(self, keys):
         """
@@ -633,7 +507,6 @@ class StorSpace(object):
         
         return j.data.serializer.json.loads(self.getResponse(data))
 
-
     def setMetadata(self, keys, metadata):
         """
         Set (same) metadata for a set of keys
@@ -642,7 +515,6 @@ class StorSpace(object):
         script = self.stor.scripts.setMetadata(self.path, keys, metadata)
         data = self.cuisine.core.execute_python(script)
         print(data)
-
 
     def getResponse(self, remote):
         if not remote.startswith('/tmp'):
@@ -661,6 +533,140 @@ class StorSpace(object):
         response = gzip.decompress(content).decode('utf-8')
 
         return response
+
+    def upload(self, flistname, host=None, source="/", excludes=["\.pyc","__pycache__"], removetmpdir=True, metadataStorspace=None):
+        """
+        Upload a complete directory:
+         - from 'host' (if it's an executor)
+           Note: you need to use an ssh key to avoid password prompt
+         - from local (if None)
+        Compress and upload the directory to the storagespace
+        """
+        """
+        - rsync over ssh the source to $tmpdir/cuisinestor/$plistname.   (from remote machine to local one)
+        - create a plist like we do for aydostor or G8stor
+        - do a self.exists ... to find which files are not on remote yet
+        - create tar with all files which do not exist
+            - aa/bb/...
+            - compress each individual file using same compression as what we used for aydostor/g7stor (was something good)
+        - upload tar to remote temp space
+        - expand tar to required storage space
+        - upload plist to storspace under plist/$plistname.plist (using file_upload)
+            - metadataStorspace!=None then use other storspace for uploading the plist
+        - remove tmpdir if removetmpdir=True
+        """
+        if not host:
+            host = j.tools.executor.getLocal()
+        
+        if host.type == 'ssh':
+            source = '%s@%s:%s' % (host.login, host.addr, source)
+            target = j.sal.fs.getTmpDirPath()
+            j.sal.fs.copyDirTree(source, target, keepsymlinks=True, ssh=True, sshport=host.port)
+
+        else:
+            target = source
+        
+        # building the flist struct
+        flist = self.flist(target)
+        
+        exists = self.exists(flist.keys())
+        needed = []
+        
+        for key, exist in exists.items():
+            if not exist:
+                needed.append({'hash': key, 'file': flist[key]['file']})
+
+        if len(needed) == 0:
+            # nothing to upload
+            return True
+
+        # 'needed' contains hashs and filenames needed to upload
+        tmptar = '/tmp/jstor-upload.tar'
+        tar = j.tools.tarfile.get(tmptar, j.tools.tarfile.WRITE)
+
+        for file in needed:
+            inpath = self.hashPath(file['hash'])
+            tar.add(file['file'], inpath)
+
+            tarinfo = tar.get(inpath)
+            tarinfo.mode = 0o600
+
+        tar.close()
+
+        # now, tar file is ready, let's upload it to the storage then extract it
+        # setting the expire time to 1, this will ensure that the file will
+        # be removed in the next check
+        self.file_upload(tmptar, 'jstor-uploader.tar', expiration=1)
+        self._extract('jstor-uploader.tar')
+
+        # uploading the flist to the (right) store
+        mds = self
+        
+        if metadataStorspace:
+            mds = self.stor.getStorageSpace(metadataStorspace)
+
+        flistpath = j.sal.fs.getTmpDirPath()
+        flistfile = j.sal.fs.joinPaths(flistpath, flistname + '.flist')
+
+        # dumping flist and uploading it
+        j.sal.fs.writeFile(flistfile, self.flistDumps(flist))
+        mds.file_upload(flistfile, 'flist/%s.flist' % flistname)
+
+        # cleaning: removing tar file, flist dir, ...
+        j.sal.fs.removeDirTree(flistpath)
+        j.sal.fs.remove(tmptar)
+
+        # cleaning temp directory (if asked and not the local one)
+        if target != source:
+            if removetmpdir:
+                j.sal.fs.removeDirTree(target)
+
+    def download(self, name, plistname, destination="/mnt/", removetmpdir=True, cacheStorspace=None):
+        """
+        - download plist on remote stor (use storspace.filedownload())
+        - if cacheStorspace not None: check which files we already have in the cache (use cacheStorspace.exists)
+        - create a bash or python file which has commands to get required files & put in tar on remote
+        - download tar
+        - if cacheStorspace!=None: upload each file to restore not in cache yet to cache
+        - restore the files to $tmpdir/cuisinestor/$plistname  (all files, from cache & from remote, as efficient as possible)
+            - decompress each file
+        - rsync over ssh $tmpdir/cuisinestor/$plistname  to the cuisine we are working on
+        - remove tmpdir if removetmpdir=True
+        """
+        #@todo (*1*) implement
+        pass
+    
+    def flist(self, path):
+        """
+        Generate a flist for the path contents
+        """
+        flist = {}
+        
+        for file in j.sal.fs.walk(path, recurse=True):
+            stat = j.sal.fs.statPath(file)
+            hash = j.data.hash.md5(file)
+            
+            flist[hash] = {
+                'file': file,
+                'size': stat.st_size,
+                'mode': stat.st_mode,
+                'user': stat.st_uid,
+                'group': stat.st_gid
+            }
+        
+        return flist
+
+    def flistDumps(self, flist):
+        data = []
+        
+        for key, f in flist.items():
+            line = "%s|%s|%d|%d|%d|%d" % (
+                f['file'], key, f['size'], f['user'], f['group'], f['mode']
+            )
+
+            data.append(line)
+            
+        return "\n".join(data) + "\n"
 
     def _extract(self, tarfile):
         """

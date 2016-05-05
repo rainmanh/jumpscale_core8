@@ -557,7 +557,7 @@ class StorSpace(object):
         """
         if not host:
             host = j.tools.executor.getLocal()
-        
+
         if host.type == 'ssh':
             source = '%s@%s:%s' % (host.login, host.addr, source)
             target = j.sal.fs.getTmpDirPath()
@@ -565,13 +565,13 @@ class StorSpace(object):
 
         else:
             target = source
-        
+
         # building the flist struct
         flist = self.flist(target)
-        
+
         exists = self.exists(flist.keys())
         needed = []
-        
+
         for key, exist in exists.items():
             if not exist:
                 needed.append({'hash': key, 'file': flist[key]['file']})
@@ -601,7 +601,7 @@ class StorSpace(object):
 
         # uploading the flist to the (right) store
         mds = self
-        
+
         if metadataStorspace:
             mds = self.stor.getStorageSpace(metadataStorspace)
 

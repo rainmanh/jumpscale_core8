@@ -641,7 +641,7 @@ class CuisineCore():
 
     def _file_stream(self, input, output):
         while True:
-            piece = input.read(4096)
+            piece = input.read(131072)
             if not piece:
                 break
             

@@ -56,6 +56,12 @@ class TarFile(object):
         """
         self._tar.add(file, arcname=name)
 
+    def get(self, name):
+        """
+        Return a tarinfo about a file in the tar
+        """
+        return self._tar.getmember(name)
+
     def extract(self, destination_path, files=None):
         '''Extract all or some files from the archive to destination_path
 

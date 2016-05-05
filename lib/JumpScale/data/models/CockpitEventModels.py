@@ -9,12 +9,12 @@ DB = 'jumpscale_cockpitevent'
 
 class Email(ModelBase, Document):
     type = StringField(default='email', choices=('email'), required=True)
-    body = StringField(required=True)
+    body = StringField(required=True, default='')
     body_type = StringField(choices=('md', 'html', 'text'))
     attachments = DictField()
     cc = ListField(StringField())
     sender = StringField(required=True)
-    recipient = StringField(required=True)
+    to = ListField(StringField(required=True))
     subject = StringField(required=True)
     epoch = IntField(default=j.data.time.getTimeEpoch(), required=True)
 

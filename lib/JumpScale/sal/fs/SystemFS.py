@@ -1332,6 +1332,9 @@ class SystemFS(SALObject):
         self.logger.debug('File %s is closed after reading'%filename)
         return data
 
+    def readFile(self,filename):
+        return self.fileGetContents(filename)
+
     def fileGetUncommentedContents(self, filename):
         """Read a file and get uncommented contents of that file
         @param filename: string (filename to open for reading )

@@ -56,7 +56,7 @@ class ActionMethodDecorator(object):
 
                 stateitem=service.state.getObject(action0.name,default="AINIT")
 
-                # method_hash=service.recipe.actionmethods[action0.name].hash
+                # method_hash=service.recipe.actionsmeta.methods[action0.name].hash
                 # hrd_hash=service.hrdhash
 
                 # if stateitem.hrd_hash!=hrd_hash:
@@ -99,7 +99,7 @@ class ActionMethodDecorator(object):
                 
                 if action0.state=="OK":
                     stateitem.hrd_hash=service.hrdhash
-                    stateitem.actionmethod_hash=service.recipe.actionmethods[action0.name].hash
+                    stateitem.actionmethod_hash=service.recipe.actionsmeta.methods[action0.name].hash
                 else:
                     if "die" in kwargs:
                         if kwargs["die"]==False:

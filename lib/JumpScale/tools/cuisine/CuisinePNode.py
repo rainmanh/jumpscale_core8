@@ -188,12 +188,18 @@ class CuisinePNode():
         setup = []
         for disk in disks:
             setup.append(self._ensureDevName(disk))
-        
-        disklist = ' '.join(setup)
-        
-        self.cuisine.core.run('mkfs.btrfs -d raid1 %s' % disklist)
-        self.cuisine.core.dir_ensure(mountpoint)
-        self.cuisine.core.run('mount %s %s' % (setup[0], mountpoint))
+
+        if not len(setup)==0:
+
+            disklist = ' '.join(setup)
+            
+            self.cuisine.core.run('mkfs.btrfs -d raid1 %s' % disklist)
+            self.cuisine.core.dir_ensure(mountpoint)
+            self.cuisine.core.run('mount %s %s' % (setup[0], mountpoint))
+
+        else:
+            #check if no mounted btrfs partition yet and create if required
+            self.cuisine.btrfs.subvolumeCreate(mountpoint)            
 
     def buildG8OSImage(self):
         """

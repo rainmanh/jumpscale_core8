@@ -38,7 +38,7 @@ class Blueprint(object):
 
         self.content=content0
 
-    def loadrecipes(self):
+    def loadrecipes(self,init=True):
         for model in self.models:
             if model!=None:
                 for key,item in model.items():
@@ -48,7 +48,7 @@ class Blueprint(object):
                     if not aysname.startswith('blueprint.'):
                         blueaysname = 'blueprint.%s' % aysname
                         try:
-                            j.atyourservice.getRecipe(name=blueaysname)
+                            j.atyourservice.getRecipe(name=blueaysname,init=init)
                             continue
                         except j.exceptions.Input:
                             pass

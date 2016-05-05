@@ -71,28 +71,29 @@ class CuisineInstallerDevelop():
         self.python()
         self.pip(action=True)
 
-        #install brotli
-        C="""
-        cd $tmpDir/
-        sudo rm -rf brotli/
-        git clone https://github.com/google/brotli.git
-        cd $tmpDir/brotli/
-        python setup.py install
-        cd tests
-        make
-        cd ..
-        cp $tmpDir/brotli/tools/bro /usr/local/bin/
-        rm -rf $tmpDir/brotli
-        """
-        C=self.cuisine.core.args_replace(C)
-        self.cuisine.core.run_script(C,force=False)
+        if not self.cuisine.core.isArch:
+            #install brotli
+            C="""
+            cd $tmpDir/
+            sudo rm -rf brotli/
+            git clone https://github.com/google/brotli.git
+            cd $tmpDir/brotli/
+            python setup.py install
+            cd tests
+            make
+            cd ..
+            cp $tmpDir/brotli/tools/bro /usr/local/bin/
+            rm -rf $tmpDir/brotli
+            """
+            C=self.cuisine.core.args_replace(C)
+            self.cuisine.core.run_script(C,force=False)
 
         #python etcd
         C="""
         cd $tmpDir/
         git clone https://github.com/jplana/python-etcd.git
         cd python-etcd
-        python3.5 setup.py install
+        python3 setup.py install
         """
         C=self.cuisine.core.args_replace(C)
         self.cuisine.core.run_script(C,force=False)
@@ -189,13 +190,18 @@ class CuisineInstallerDevelop():
         self.installJS8Deps()
 
         if self.cuisine.core.isUbuntu or self.cuisine.core.isArch:
+
+            if self.cuisine.core.dir_exists("/usr/local/lib/python3.4/dist-packages"):
+                linkcmd="mkdir -p /usr/local/lib/python3.5/dist-packages/JumpScale;ln -s /usr/local/lib/python3.5/dist-packages/JumpScale /usr/local/lib/python3.4/dist-packages/JumpScale"
+                self.cuisine.core.run(linkcmd)            
+
             C='cd $tmpDir/;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh'
             C=self.cuisine.core.args_replace(C)
             self.cuisine.core.run(C)
         elif self.cuisine.core.isMac:
             cmd = """sudo mkdir -p /opt
             # sudo chown -R despiegk:root /opt
-            ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""""
+            ruby -e \"$ (curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""""
             self.cuisine.core.run(cmd)
         else:
             raise j.exceptions.RuntimeError("platform not supported yet")

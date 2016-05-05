@@ -85,7 +85,7 @@ class StateItem():
     @property
     def actionObj(self):
         # action=self.states.service.getAction(self.name)
-        return self.states.service.recipe.actionmethods[self.name]
+        return self.states.service.recipe.actionsmeta.methods[self.name]
 
     @property
     def model(self):

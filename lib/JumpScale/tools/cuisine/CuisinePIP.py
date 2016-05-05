@@ -78,7 +78,7 @@ class CuisinePIP():
                 continue
             if dep.strip()[0]=="#":
                 continue
-            self.install(dep,upgrade,action=True)
+            self.install(dep,upgrade,action=True,force=False)
 
 
 

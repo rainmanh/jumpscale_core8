@@ -690,6 +690,9 @@ class AtYourServiceFactory():
             j.sal.fs.removeDirTree(service.path)
 
     def getTemplate(self,  name="", version="",domain="", role="", first=True, die=True):
+        """
+        @param first means, will only return first found template instance
+        """
         if first:
             return self.findTemplates(domain=domain, name=name, version=version, role=role, first=first)
         else:
@@ -706,9 +709,9 @@ class AtYourServiceFactory():
                     return
             return res[0]
 
-    def getRecipe(self, name="",version="", domain="", role=""):
+    def getRecipe(self, name="",version="", domain="", role="",init=False):
         template = self.getTemplate(domain=domain,name=name, version=version, role=role)
-        return template.recipe
+        return template.getRecipe(init=init)
 
     def getService(self, role='', instance='main', die=True):
         """

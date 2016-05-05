@@ -1,6 +1,7 @@
 from JumpScale import j
 
 # import JumpScale.baselib.actions
+import copy
 
 from ServiceTemplate import ServiceTemplate
 
@@ -18,17 +19,71 @@ class action(ActionMethodDecorator):
 """
 
 
+class ActionMethods():
+
+    def __init__(self, recipe):
+        self.recipe=recipe
+        self.methods={}
+        self._methodsList=[]
+        self.load()       
+
+    def addMethod(self,defline="",name=""):
+        am=ActionMethod(self,defline=defline,name=name)
+        self.methods[am.name]= am
+        return am
+
+    @property
+    def _datapath(self):
+        return j.sal.fs.joinPaths(self.recipe.path,"methods.yaml")
+
+    @property
+    def methodslist(self):
+        """
+        sorted methods
+        """
+        if self._methodsList==[]:
+            keys=[item for item in self.methods.keys()]
+            keys.sort()
+            for key in keys:
+                self._methodsList.append(self.methods[key])
+        return self._methodsList
+
+    def save(self):
+        model=[item.model for item in self.methodslist]
+        j.sal.fs.writeFile(self._datapath,j.data.serializer.yaml.dumps(model))
+
+    def load(self):
+        if j.sal.fs.exists(path=self._datapath):
+            data=j.sal.fs.readFile(self._datapath)
+            model=j.data.serializer.yaml.loads(data)
+            for item in model:
+                am=self.addMethod(defline=item["defline"],name=item["name"])
+                am.hash=item["hash"]    
+
+    def __repr__(self):
+        out=""
+        for item in self.methodslist:
+            out+="%s\n"%item
+        return out
+
+    __str__ = __repr__
+
+
 class ActionMethod():
 
-    def __init__(self, recipe, defline="", name=""):
-        if name == "":
+    def __init__(self, meta,defline="", name=""):
+        self.meta=meta
+        self.name = name
+        if self.name == "":
+            if defline=="":
+                raise j.exceptions.Input("defline cannot be empty in %s while name is empty."%self)            
             line = defline.strip()[4:]
-            name = line.split("(", 1)[0].strip()
+            self.name = line.split("(", 1)[0].strip()
         self.defline = defline
         self.source = ""
-        self.name = name
+        if self.name=="":
+            raise j.exceptions.Input("name cannot be empty in %s"%self)
         self.hash = ""
-        self.recipe = recipe
         self.hrdArgKeys = []  # names of arguments as used in hrd which are used in this action method
 
     def _process(self):
@@ -41,19 +96,28 @@ class ActionMethod():
                     raise j.exceptions.Input("Action method:%s should not have template variable '$(...' in sourcecode for init or input method."%(self))
 
         # for now we don't do a check, later want to make sure we don't call other services, now we just put impact on all hrd schema arguments
-        self.recipe.schema
+        self.meta.recipe.schema
         # for now we take all arguments, later we need to be more specific
-        self.hrdArgKeys = [item for item in self.recipe.schema.items.keys()]
+        self.hrdArgKeys = [item for item in self.meta.recipe.schema.items.keys()]
+
+    @property
+    def model(self):
+        self._process()
+        ddict={}
+        ddict["name"]=self.name
+        ddict["defline"]=self.defline
+        ddict["hash"]=self.hash
+        return ddict
 
     def __repr__(self):
-        return "actionmethod: %s:%s" % (self.recipe,self.name)
+        return "actionmethod: %s:%s (%s)" % (self.meta.recipe,self.name,self.hash)
 
     __str__ = __repr__
 
 
 class ServiceRecipe(ServiceTemplate):
 
-    def __init__(self, path="", template=None, aysrepopath=""):
+    def __init__(self, path="", template=None, aysrepopath="",init=False):
 
         aysrepopath = j.atyourservice.basepath
         if not aysrepopath:
@@ -76,29 +140,30 @@ class ServiceRecipe(ServiceTemplate):
 
         # copy the files
         if not j.sal.fs.exists(path=self.path):
-            firstime = True
+            init = True
             j.sal.fs.createDir(self.path)
-        else:
-            firstime = False
 
-        self._action_methods = None
+        self._action_methods =None
 
-        self.actionmethods = {}
 
-        self._init()
+        self._init_props()
 
-        if j.sal.fs.exists(self.template.path_hrd_template):
-            j.sal.fs.copyFile(self.template.path_hrd_template, self.path_hrd_template)
-        if j.sal.fs.exists(self.template.path_hrd_schema):
-            j.sal.fs.copyFile(self.template.path_hrd_schema, self.path_hrd_schema)
-        if j.sal.fs.exists(self.template.path_actions_node):
-            j.sal.fs.copyFile(self.template.path_actions_node, self.path_actions_node)
-        if j.sal.fs.exists(self.template.path_mongo_model):
-            j.sal.fs.copyFile(self.template.path_mongo_model, self.path_mongo_model)
+        self.actionsmeta=ActionMethods(self)
 
-        self._copyActions()
+        if init:
+            if j.sal.fs.exists(self.template.path_hrd_template):
+                j.sal.fs.copyFile(self.template.path_hrd_template, self.path_hrd_template)
+            if j.sal.fs.exists(self.template.path_hrd_schema):
+                j.sal.fs.copyFile(self.template.path_hrd_schema, self.path_hrd_schema)
+            if j.sal.fs.exists(self.template.path_actions_node):
+                j.sal.fs.copyFile(self.template.path_actions_node, self.path_actions_node)
+            if j.sal.fs.exists(self.template.path_mongo_model):
+                j.sal.fs.copyFile(self.template.path_mongo_model, self.path_mongo_model)
 
-    def _copyActions(self):
+            self._writeActionsFile()
+
+
+    def _writeActionsFile(self):
         self._out = ""
 
         actionmethodsRequired = ["input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
@@ -142,8 +207,7 @@ class ServiceRecipe(ServiceTemplate):
             if state == "MAIN" and linestrip.startswith("def"):
                 if am is not None:
                     am._process()
-                am = ActionMethod(self, defline=line)
-                self.actionmethods[am.name] = am
+                am = self.actionsmeta.addMethod(defline=line)
 
                 # make sure the required method have the action() decorator
                 if am.name in actionmethodsRequired and not lines[i-1].strip().startswith('@'):
@@ -165,10 +229,9 @@ class ServiceRecipe(ServiceTemplate):
 
         # add missing methods
         for actionname in actionmethodsRequired:
-            if actionname not in self.actionmethods:
-                am = ActionMethod(self, name=actionname)
+            if actionname not in self.actionsmeta.methods:
+                am = self.actionsmeta.addMethod(name=actionname)
                 am._process()
-                self.actionmethods[am.name] = am
                 #not found
                 if actionname == "input":
                     content += '\n\n    def input(self,name,role,instance,serviceargs):\n        return serviceargs\n'
@@ -178,6 +241,8 @@ class ServiceRecipe(ServiceTemplate):
                     content += "\n\n    @action()\n    def %s(self):\n        return True\n" % actionname
 
         j.sal.fs.writeFile(self.path_actions, content)
+
+        self.actionsmeta.save()
 
     @property
     def actions(self):

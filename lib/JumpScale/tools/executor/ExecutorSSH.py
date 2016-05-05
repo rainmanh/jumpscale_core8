@@ -78,7 +78,7 @@ class ExecutorSSH(ExecutorBase):
 
         return self._sshclient
 
-    def execute(self, cmds, die=True,checkok=None,showout=True, combinestdr=True,timeout=0, env={}):
+    def execute(self, cmds, die=True,checkok=None,showout=True, combinestdr=True,timeout=0, env={},async=False):
         """
         @param naked means will not manipulate cmd's to show output in different way
         return (rc,out,err)

@@ -188,6 +188,8 @@ class ErrorConditionHandler():
 
         if hasattr(exceptionObject,"message"):
             message=exceptionObject.message
+            if j.data.types.list.check(message):
+                message=message[0] #@hack to let all work again
         else:
             message=str(exceptionObject)
 

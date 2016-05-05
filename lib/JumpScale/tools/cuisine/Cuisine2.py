@@ -78,12 +78,18 @@ class JSCuisine:
         self.stor = CuisineStor(self.executor,self)
 
 
+
+
         self.done=[]
+
+    @property
+    def btrfs(self):
+        j.sal.btrfs._executor=self.executor
+        return j.sal.btrfs
 
     @property
     def package(self):
         if self._package==None:
-
             self._package=CuisinePackage(self.executor,self)
         return self._package
 

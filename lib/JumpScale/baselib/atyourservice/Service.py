@@ -429,7 +429,7 @@ class Service:
 
             self._hrd.save()
 
-            for key, _ in self.recipe.actionmethods.items():
+            for key, _ in self.recipe.actionsmeta.methods.items():
                 stateitem=self.state.getSetObject(key)
 
                 if stateitem.state=="OK":
@@ -805,9 +805,9 @@ class Service:
         @return None when not exist
         """
         j.atyourservice._currentService = self
-        if action not in self.recipe.actionmethods:
+        if action not in self.recipe.actionsmeta.methods:
             return None
-        # am=self.recipe.actionmethods[action]        
+        # am=self.recipe.actionsmeta.methods[action]        
         a=getattr(self.recipe.actions, action)
         return a
 

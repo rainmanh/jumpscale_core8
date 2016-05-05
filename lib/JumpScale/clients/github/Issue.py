@@ -269,9 +269,12 @@ class Issue(Base):
         md.addMDHeader(4, self.title)
         if self.body is not None and self.body.strip() != "":
             md.addMDBlock(self.body)
+
+        md.addMDHeader(5, "meta")
+
+        t = md.addMDTable()
         h = [self.state, "[%s](%s)" % (self.number, self.url)]
         rows = []
-        t = md.addMDTable()
         t.addHeader(h)
         t.addRow(["milestone", self.milestone])
         t.addRow([self.priority, self.type])
@@ -491,7 +494,11 @@ class Issue(Base):
             raise j.exceptions.Input("This issue (%s) is not a task" % self.title)
             # return
 
+        if self.body=="" or self.body==None:
+            return
+        
         doc = j.data.markdown.getDocument(self.body)
+            
         change = False
         story_line_found = False
         for item in doc.items:
@@ -499,7 +506,7 @@ class Issue(Base):
                 story_line_found = True
                 story_number = item.title.lstrip('Part of Story: ')
                 if story_number != '#%d' % story.number:
-                    it.title = 'Part of Story: #%s' % story.number
+                    item.title = 'Part of Story: #%s' % story.number
                     change = True
                 break
 

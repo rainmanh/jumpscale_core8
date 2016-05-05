@@ -32,7 +32,7 @@ class ServiceTemplate(object):
         else:
             self.domain = domain
 
-        self._init()
+        self._init_props()
         self.key = j.atyourservice.getKey(self)
 
         self.fix()
@@ -41,7 +41,7 @@ class ServiceTemplate(object):
         if j.sal.fs.exists(j.sal.fs.joinPaths(self.path, "actions_mgmt.py")):
             j.sal.fs.renameFile(j.sal.fs.joinPaths(self.path, "actions_mgmt.py"),self.path_actions)                
 
-    def _init(self):
+    def _init_props(self):
         self.path_hrd_template = j.sal.fs.joinPaths(self.path, "service.hrd")
         self.path_hrd_schema = j.sal.fs.joinPaths(self.path, "schema.hrd")
         self.path_actions = j.sal.fs.joinPaths(self.path, "actions.py")
@@ -98,8 +98,11 @@ class ServiceTemplate(object):
 
     @property
     def recipe(self):
+        return self.getRecipe()
+
+    def getRecipe(self,init=False):
         from ServiceRecipe import ServiceRecipe
-        return ServiceRecipe(template=self)
+        return ServiceRecipe(template=self,init=init)
 
     def __repr__(self):
         return "template: %-15s:%s (%s)" % (self.domain, self.name,self.version)

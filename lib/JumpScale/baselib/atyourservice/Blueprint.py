@@ -41,17 +41,16 @@ class Blueprint(object):
     def loadrecipes(self):
         for model in self.models:
             if model!=None:
-                for key,item in model.items():
-                    if key.find("__")==-1:
-                        raise j.exceptions.Input("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'"%key)
-                    aysname,aysinstance=key.split("__",1)
+                for aysname, instances in model.items():
+                    if not isinstance(instances, dict):
+                        raise j.exceptions.Input("AYS instances are not correctly defined. Need to be a dict")
                     if not aysname.startswith('blueprint.'):
                         blueaysname = 'blueprint.%s' % aysname
-                        try:
-                            j.atyourservice.getRecipe(name=blueaysname)
-                            continue
-                        except j.exceptions.Input:
-                            pass
+                    try:
+                        j.atyourservice.getRecipe(name=blueaysname)
+                        continue
+                    except j.exceptions.Input:
+                        pass
                     try:
                         j.atyourservice.getRecipe(name=aysname)
                     except Exception as e:
@@ -61,10 +60,7 @@ class Blueprint(object):
     def execute(self, role="", instance=""):
         for model in self.models:
             if model is not None:
-                for key, item in model.items():
-                    # print ("blueprint model execute:%s %s"%(key,item))
-                    aysname, aysinstance = key.split("__", 1)
-
+                for aysname, instances in model.items():
                     if aysname.find(".") != -1:
                         rolefound, _ = aysname.split(".", 1)
                     else:
@@ -72,19 +68,18 @@ class Blueprint(object):
 
                     if role != "" and role != rolefound:
                         continue
-
-                    if instance != "" and instance != aysinstance:
-                        continue
-
                     if not aysname.startswith('blueprint.'):
                         blueaysname = 'blueprint.%s' % aysname
                         try:
                             r = j.atyourservice.getRecipe(name=blueaysname)
                         except j.exceptions.Input:
                             r = j.atyourservice.getRecipe(name=aysname)
-                    yaml = model['%s__%s' % (aysname, aysinstance)]
-                    aysi = r.newInstance(instance=aysinstance, args=item, yaml=yaml)
-                    aysi.init()
+                    for aysinstance, item in instances.items():
+                        if instance != "" and instance != aysinstance:
+                            continue
+                        yaml = model[aysname][aysinstance]
+                        aysi = r.newInstance(instance=aysinstance, args=item, yaml=yaml)
+                        aysi.init()
 
     def _add2models(self,content,nr):
         #make sure we don't process double

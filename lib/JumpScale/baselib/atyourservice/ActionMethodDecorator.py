@@ -15,9 +15,8 @@ class ActionMethodDecorator(object):
 
     def __call__(self, func):
 
-        def wrapper(*args, **kwargs):
-
-            cm=self.selfobjCode
+        def wrapper(that, *args, **kwargs):
+            cm=self.selfobjCode % that.params
 
             #args[0] is self
             # cuisine=args[0].cuisine
@@ -44,8 +43,6 @@ class ActionMethodDecorator(object):
             #     from pudb import set_trace; set_trace() 
 
             if action:
-                args=args[1:]
-
                 action0=j.actions.add(action=func, actionRecover=None,args=args,kwargs=kwargs,die=False,stdOutput=True,\
                     errorOutput=True,retry=0,executeNow=False,selfGeneratorCode=cm,force=True,actionshow=actionshow)
 
@@ -114,7 +111,7 @@ class ActionMethodDecorator(object):
 
                 return action0.result
             else:
-                return func(*args,**kwargs)
+                return func(that, *args,**kwargs)
 
         functools.update_wrapper(wrapper, func)
         return wrapper

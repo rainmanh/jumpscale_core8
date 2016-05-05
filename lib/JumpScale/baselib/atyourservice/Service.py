@@ -330,7 +330,6 @@ class Service:
         self.state.save()
 
     def init(self, yaml=None):
-        j.atyourservice._currentService = self
         def _initParent():
             parent = self.recipe.schema.parentSchemaItemGet()
 
@@ -393,7 +392,7 @@ class Service:
             j.sal.fs.createDir(self.path)
 
             # run the args manipulation action as an action
-            self.args = self.recipe.actions.input(self.name, self.role, self.instance, self.args)
+            self.args = self.actions.input(self.name, self.role, self.instance, self.args)
 
             hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
 
@@ -420,7 +419,7 @@ class Service:
 
             # self._action_methods = None  # to make sure we reload the actions
 
-            self.recipe.actions.init()
+            self.actions.init()
 
             for item in self.hrd.prefix("recurring"):
                 recurringName = item.split(".")[1]
@@ -780,13 +779,11 @@ class Service:
     @property
     def actions(self):
         # make sure that recipe action finds us
-        self.logger.debug("Direct Actions Execute On Service:%s"%(self))
-        j.atyourservice._currentService = self
-        self.recipe.actions.service=self
-        return self.recipe.actions
+        self.logger.debug("Direct actions execute on service:%s"%(self))
+        actions = self.recipe.get_actions(self.role, self.instance)
+        return actions
 
     def runAction(self, action, printonly=False,ignorestate=False, force=False):
-
         a=self.getAction(action)
 
         if force:
@@ -804,11 +801,10 @@ class Service:
         """
         @return None when not exist
         """
-        j.atyourservice._currentService = self
         if action not in self.recipe.actionmethods:
             return None
         # am=self.recipe.actionmethods[action]        
-        a=getattr(self.recipe.actions, action)
+        a=getattr(self.actions, action)
         return a
 
     def _getDisabledProducers(self):

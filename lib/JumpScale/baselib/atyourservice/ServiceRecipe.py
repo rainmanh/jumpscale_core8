@@ -13,7 +13,7 @@ ActionMethodDecorator=j.atyourservice.getActionMethodDecorator()
 class action(ActionMethodDecorator):
     def __init__(self,*args,**kwargs):
         ActionMethodDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="service=j.atyourservice._currentService;selfobj=service.recipe.actions;selfobj.service=service"
+        self.selfobjCode = "service=j.atyourservice.getService('%(role)s', '%(instance)s');selfobj=service.actions;selfobj.service=service"
 
 """
 
@@ -101,7 +101,7 @@ class ServiceRecipe(ServiceTemplate):
     def _copyActions(self):
         self._out = ""
 
-        actionmethodsRequired = ["input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
+        actionmethodsRequired = ["__init__", "input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
                                  "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata", "change"]
 
         if j.sal.fs.exists(self.template.path_actions):
@@ -174,20 +174,18 @@ class ServiceRecipe(ServiceTemplate):
                     content += '\n\n    def input(self,name,role,instance,serviceargs):\n        return serviceargs\n'
                 elif actionname == "change":
                     content += '\n\n    def change(self,stateitem):\n        return True\n'
+                elif actionname == "__init__":
+                    content += """\n\n    def __init__(self, role, instance):
+        self.params = {'role': role, 'instance': instance}\n"""
                 else:
                     content += "\n\n    @action()\n    def %s(self):\n        return True\n" % actionname
 
         j.sal.fs.writeFile(self.path_actions, content)
 
-    @property
-    def actions(self):
-        if self._action_methods is None:
-            print("reload mgmt actions for %s" % (self))
-            modulename = "JumpScale.atyourservice.%s.%s" % (self.domain, self.name)
-            mod = loadmodule(modulename, self.path_actions)
-            self._action_methods = mod.Actions()
-
-        return self._action_methods
+    def get_actions(self, name, instance):
+        modulename = "JumpScale.atyourservice.%s.%s" % (name, instance)
+        mod = loadmodule(modulename, self.path_actions)
+        return mod.Actions(name, instance)
 
     def newInstance(self, instance="main", role='', args={}, path='', parent=None, consume="", originator=None, yaml=None):
         """

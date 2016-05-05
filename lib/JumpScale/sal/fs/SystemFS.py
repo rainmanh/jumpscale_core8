@@ -436,7 +436,7 @@ class SystemFS(SALObject):
             cmd += " '%s' '%s'" % (src, dst)
             print (cmd)
 
-            return j.tools.cuisine.local.run(cmd)
+            return j.tools.cuisine.local.core.run(cmd)
 
 
     def removeDirTree(self, path, onlyLogWarningOnRemoveError=False):

@@ -1,5 +1,8 @@
 from JumpScale import j
+import os
 import gzip
+import pwd
+import grp
 
 class StorScripts():
     # create hexa directory tree
@@ -189,6 +192,33 @@ class StorScripts():
         print(json.dumps(data))
             
         """ % (root, j.data.serializer.json.dumps(keys), j.data.serializer.json.dumps(metadata))
+
+    def tarball(self, root, keys, target):
+        return """
+        import os
+        import json
+        import subprocess
+        
+        root = "%s"
+        keys = json.loads('''%s''')
+        targ = '''%s'''
+        item = targ + '.list'
+        
+        os.chdir(root)
+        
+        if os.path.isfile(targ):
+            os.unlink(targ)
+        
+        with open(item, 'w') as f:
+            for key in keys:
+                f.write(os.path.join(key[:2], key[2:4], key) + "\\n")
+
+        subprocess.call(['tar', '-cT', item, '-f', targ])
+        os.unlink(item)
+        
+        print(targ)
+        
+        """ % (root, j.data.serializer.json.dumps(keys), target)
         
 class CuisineStor():
     def __init__(self, executor, cuisine):
@@ -514,7 +544,7 @@ class StorSpace(object):
         """
         script = self.stor.scripts.setMetadata(self.path, keys, metadata)
         data = self.cuisine.core.execute_python(script)
-        print(data)
+        return True
 
     def getResponse(self, remote):
         if not remote.startswith('/tmp'):
@@ -534,6 +564,15 @@ class StorSpace(object):
 
         return response
 
+    def _clearFile(self, obj):
+        obj.mode = 0o0600
+        obj.uid = 0
+        obj.gid = 0
+        obj.uname = 'root'
+        obj.gname = 'root'
+        
+        return obj
+        
     def upload(self, flistname, host=None, source="/", excludes=["\.pyc","__pycache__"], removetmpdir=True, metadataStorspace=None):
         """
         Upload a complete directory:
@@ -583,13 +622,10 @@ class StorSpace(object):
         # 'needed' contains hashs and filenames needed to upload
         tmptar = '/tmp/jstor-upload.tar'
         tar = j.tools.tarfile.get(tmptar, j.tools.tarfile.WRITE)
-
+        
         for file in needed:
-            inpath = self.hashPath(file['hash'])
-            tar.add(file['file'], inpath)
-
-            tarinfo = tar.get(inpath)
-            tarinfo.mode = 0o600
+            hash = self.hashPath(file['hash'])
+            tar.addFiltered(file['file'], hash, self._clearFile)
 
         tar.close()
 
@@ -621,7 +657,7 @@ class StorSpace(object):
             if removetmpdir:
                 j.sal.fs.removeDirTree(target)
 
-    def download(self, name, plistname, destination="/mnt/", removetmpdir=True, cacheStorspace=None):
+    def download(self, flistname, destination="/mnt/", removetmpdir=True, cacheStorspace=None, metadataStorspace=None):
         """
         - download plist on remote stor (use storspace.filedownload())
         - if cacheStorspace not None: check which files we already have in the cache (use cacheStorspace.exists)
@@ -633,9 +669,67 @@ class StorSpace(object):
         - rsync over ssh $tmpdir/cuisinestor/$plistname  to the cuisine we are working on
         - remove tmpdir if removetmpdir=True
         """
-        #@todo (*1*) implement
-        pass
-    
+        # FIXME:
+        jstortmp = '/tmp/jstor-extracted'
+        if not j.sal.fs.isDir(jstortmp):
+            j.sal.fs.createDir(jstortmp)
+        
+        # downloading flist
+        mds = self
+
+        if metadataStorspace:
+            mds = self.stor.getStorageSpace(metadataStorspace)
+        
+        workdir = j.sal.fs.getTmpDirPath()
+        flistfile = j.sal.fs.joinPaths(workdir, flistname + '.flist')
+        mds.file_download('flist/%s.flist' % flistname, flistfile)
+        flist = self.flistLoads(j.sal.fs.fileGetContents(flistfile))
+
+        # checking for cache
+
+        # building tar
+        tarfile = '%s.tar' % flistname
+        tarpath = j.sal.fs.joinPaths('flist', tarfile)
+        
+        self.tarball(flist.keys(), tarpath)
+
+        # downloading tar
+        dstpath = j.sal.fs.joinPaths(workdir, tarfile)
+        self.file_download(tarpath, dstpath)
+
+        # loading tar and uncompressing it
+        tar = j.tools.tarfile.get(dstpath, j.tools.tarfile.READ)
+
+        if not j.sal.fs.isDir(jstortmp):
+            j.sal.fs.createDir(jstortmp)
+
+        tar.extract(jstortmp)
+
+        # restoring permissions
+        for key in flist.keys():
+            file = j.sal.fs.joinPaths(jstortmp, self.hashPath(key))
+
+            final = j.sal.fs.joinPaths(destination, flist[key]['file'][1:])
+            fpath = j.sal.fs.getDirName(final)
+
+            if not j.sal.fs.isDir(fpath):
+                j.sal.fs.createDir(fpath)
+
+            # restoring file to its correct location
+            if j.sal.fs.isLink(file):
+                linkto = os.readlink(file)
+                os.symlink(linkto, final)
+
+            else:
+                j.sal.fs.copyFile(file, final)
+                j.sal.fs.chown(final, flist[key]['uname'], flist[key]['gname'])
+                j.sal.fs.chmod(final, int(flist[key]['mode'], 8))
+
+    def tarball(self, keys, target):
+        script = self.stor.scripts.tarball(self.path, keys, target)
+        data = self.cuisine.core.execute_python(script)
+        return data
+
     def flist(self, path):
         """
         Generate a flist for the path contents
@@ -645,13 +739,14 @@ class StorSpace(object):
         for file in j.sal.fs.walk(path, recurse=True):
             stat = j.sal.fs.statPath(file)
             hash = j.data.hash.md5(file)
+            mode = oct(stat.st_mode)[3:]
             
             flist[hash] = {
                 'file': file,
                 'size': stat.st_size,
-                'mode': stat.st_mode,
-                'user': stat.st_uid,
-                'group': stat.st_gid
+                'mode': mode,
+                'uname': pwd.getpwuid(stat.st_uid).pw_name,
+                'gname': grp.getgrgid(stat.st_gid).gr_name
             }
         
         return flist
@@ -660,13 +755,29 @@ class StorSpace(object):
         data = []
         
         for key, f in flist.items():
-            line = "%s|%s|%d|%d|%d|%d" % (
-                f['file'], key, f['size'], f['user'], f['group'], f['mode']
+            line = "%s|%s|%d|%s|%s|%s" % (
+                f['file'], key, f['size'], f['uname'], f['gname'], f['mode']
             )
 
             data.append(line)
             
         return "\n".join(data) + "\n"
+
+    def flistLoads(self, flist):
+        data = {}
+        
+        for line in flist.splitlines():
+            f = line.split('|')
+
+            data[f[1]] = {
+                'file': f[0],
+                'size': int(f[2]),
+                'mode': f[5],
+                'uname': f[3],
+                'gname': f[4]
+            }
+
+        return data
 
     def _extract(self, tarfile):
         """

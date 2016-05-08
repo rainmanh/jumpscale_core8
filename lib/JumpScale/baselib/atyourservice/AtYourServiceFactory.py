@@ -12,7 +12,6 @@ from AtYourServiceRepo import AtYourServiceRepo
 
 from AtYourServiceTester import AtYourServiceTester
 
-# from AtYourServiceSync import AtYourServiceSync
 try:
     from AtYourServiceSandboxer import *
 except:
@@ -29,7 +28,7 @@ class AtYourServiceFactory():
         self.__jslocation__ = "j.atyourservice"
 
         self._init = False
-        
+
         self._domains = []
         self._templates = {}
 
@@ -41,7 +40,7 @@ class AtYourServiceFactory():
 
         # self.sync = AtYourServiceSync()
         # self._reposDone = {}
-        
+
         self.debug=j.core.db.get("atyourservice.debug")==1
 
         self.logger=j.logger.get('j.atyourservice')
@@ -66,6 +65,12 @@ class AtYourServiceFactory():
         self._repos
         j.dirs._ays = None
 
+    @property
+    def repos(self):
+        for path in j.atyourservice.findAYSRepos():
+            name = j.sal.fs.getBaseName(path)
+            self._repos[name] = AtYourServiceRepo(name, path)
+        return self._repos
 
     @property
     def sandboxer(self):
@@ -108,7 +113,7 @@ class AtYourServiceFactory():
 
         return self._templates
 
- 
+
 
     # @property
     # def roletemplates(self):
@@ -181,6 +186,8 @@ class AtYourServiceFactory():
         j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'blueprints'))
         j.sal.process.execute("git init %s" % path, die=True, outputToStdout=False, useShell=False, ignoreErrorOutput=False)
         j.sal.nettools.download('https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
+        name = j.sal.fs.getBaseName(path)
+        self._repos[name] = AtYourServiceRepo(name, path)
         print("AYS Repo created at %s" % path)
 
     def updateTemplates(self, repos=[]):
@@ -236,7 +243,7 @@ class AtYourServiceFactory():
     #             hrd.items.update(hrdtemp.items)
     #         return hrd.hrdGet()
     #     return None
-    
+
 
     def findTemplates(self, name="", domain="", role=''):
         res = []

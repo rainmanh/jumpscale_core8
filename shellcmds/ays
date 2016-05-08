@@ -197,7 +197,7 @@ def destroy():
 @click.command()
 @click.argument('cmd')
 @click.option('--name', '-n', help="Name of test.", default='main')
-@click.option('--message', '-n', help="Message as used in e.g. commit.", default='unknown')
+@click.option('--message', '-n', help="Message as used in e.g. pull/push.", default='unknown')
 def test(cmd,name,message):
     """
     cmds are
@@ -211,7 +211,7 @@ def test(cmd,name,message):
     elif cmd=="push":
         tester.gitpush(message=message)
     elif cmd=="pull":
-        tester.gitpull()
+        tester.gitpull(message=message)
 
 cli.add_command(simulate)
 cli.add_command(test)

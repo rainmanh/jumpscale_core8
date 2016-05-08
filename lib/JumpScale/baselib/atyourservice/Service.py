@@ -344,6 +344,14 @@ class Service:
                 self.hrd.save()
                 self.state.templateHRDHash=newTemplateHrdHash
 
+        # Set subscribed event into state
+        for event, actions in self.hrd.getDictFromPrefix('events').items():
+            self.state.setEvents(event, actions)
+
+        # Set recurring into state
+        for action, period in self.hrd.getDictFromPrefix('recurring').items():
+            self.state.setRecurring(action, period)
+
         self.save()
 
     def _consumeFromSchema(self,args):

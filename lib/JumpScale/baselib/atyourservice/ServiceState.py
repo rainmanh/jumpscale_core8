@@ -11,7 +11,7 @@ class ServiceState():
         if j.sal.fs.exists(path=self._path):
             self._model=j.data.serializer.yaml.load(self._path)
         else:
-            self._model={"parent":"","producers":{},"state":{},"recurring":{},"templateHRDHash":"","instanceHRDHash":"","recipe":""}
+            self._model={"parent":"","producers":{},"state":{},"recurring":{},"events":{},"templateHRDHash":"","instanceHRDHash":"","recipe":""}
 
         self._changed=False
 
@@ -109,7 +109,7 @@ class ServiceState():
         period = e.g. 1h, 1d, ...
         """
         return self._model["recurring"]
-        
+
     def setRecurring(self, name, period):
         """
         """
@@ -117,6 +117,30 @@ class ServiceState():
         if name not in self._model["recurring"] or self._model["recurring"][name][0]!=period:
             self._model["recurring"][name]=[period,0]
             self.changed=True
+
+    @property
+    def events(self):
+        """
+        return dict
+            key = event name
+            val = [actions]
+        """
+        return self._model["events"]
+
+    def setEvents(self, event, actions):
+        """
+        """
+        event = event.lower()
+        change = False
+        if event not in self._model["events"]:
+            change = True
+        else:
+            if self._model["events"][event].sort() != actions.sort():
+                change = True
+
+        if change:
+            self._model["events"][event] = actions
+        self.changed = change
 
     def check(self):
         """
@@ -126,7 +150,7 @@ class ServiceState():
         print ("DEBUG NOW check recurring")
         embed()
         p
-        
+
     @property
     def parent(self):
         return self._model["parent"]
@@ -140,14 +164,14 @@ class ServiceState():
             self.consume(parent)
             self.changed=True
             self.service.reset()
-    
+
     @property
     def producers(self):
         return self._model["producers"]
 
 
     def consume(self,producerkey="",aysi=None):
-        """        
+        """
         """
         #will check if service exists
         if aysi==None:
@@ -157,7 +181,7 @@ class ServiceState():
             self.changed=True
         if aysi.key not in self._model["producers"][aysi.role]:
             self._model["producers"][aysi.role].append(aysi.key)
-            self.changed=True    
+            self.changed=True
             self.service.reset()
 
     @property
@@ -166,9 +190,9 @@ class ServiceState():
 
     @property
     def wiki(self):
-        
+
         out="## service:%s state"%self.service.key
-        
+
         if self.parent!="":
             out+="\n- parent:%s\n\n"%self.parent
 

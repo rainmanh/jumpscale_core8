@@ -273,12 +273,18 @@ class ServiceRecipe(ServiceTemplate):
 
     @property
     def actions(self):
-        if self._action_methods is None:
+        if self._actions is None:
             print("reload mgmt actions for %s" % (self))
             modulename = "JumpScale.atyourservice.%s" % (self.name)
             mod = loadmodule(modulename, self.path_actions)
-            self._action_methods = mod.Actions()
+            self._actions = mod.Actions()
+        return self._actions
 
+    @property
+    def action_methods(self):
+        if self._action_methods is None:
+            import inspect
+            self._action_methods = {key:action for key, action in inspect.getmembers(self.actions, inspect.ismethod)}
         return self._action_methods
 
     def newInstance(self, instance="main", args={}, path='', parent=None, consume="", originator=None):

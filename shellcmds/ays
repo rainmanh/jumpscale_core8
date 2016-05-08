@@ -4,11 +4,12 @@ from JumpScale import j
 
 import click
 
+atyourservice=j.atyourservice.get("ays",j.sal.fs.getcwd())
 
 @click.group()
 @click.option('--nodebug', default=False, help='disable debug mode', is_flag=True)
 def cli(nodebug):
-    j.atyourservice.debug = not nodebug
+    atyourservice.debug = not nodebug
 
 # @click.command()
 # @click.argument('name')
@@ -38,7 +39,7 @@ def init(role="",instance=""):
     the changes with before (last time you did an init) will be shown
 
     """
-    j.atyourservice.init(role=role,instance=instance)
+    atyourservice.init(role=role,instance=instance)
 
 
 #@click.command()
@@ -48,15 +49,15 @@ def init(role="",instance=""):
 #    """
 #    builds specific service
 #    """
-#    j.atyourservice.get(servicekey)
+#    atyourservice.get(servicekey)
 
 @click.command()
 def showactions():
     """
     shows all services with relevant actions
     """
-    j.atyourservice.alog
-    for key,service in j.atyourservice.services.items():
+    atyourservice.alog
+    for key,service in atyourservice.services.items():
         print ("%s"%service)
         for key,action in service.actions.items():
             print ("- %-20s %s"%(key,action))
@@ -68,7 +69,7 @@ def showactions():
 #     """
 #     """
 #     allservices = all
-#     j.atyourservice.apply(printonly=printonly)
+#     atyourservice.apply(printonly=printonly)
 
 
 @click.command()
@@ -83,8 +84,8 @@ def do(action,role="",instance="",force=False,producerroles="*", ask=False):
     call an action
     """
     # allservices=all
-    # j.atyourservice.do(action,role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
-    run=j.atyourservice.getRun(role=role,instance=instance,action=action,force=force,producerRoles=producerroles)
+    # atyourservice.do(action,role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
+    run=atyourservice.getRun(role=role,instance=instance,action=action,force=force,producerRoles=producerroles)
     print(run)
     run.execute()
 
@@ -99,8 +100,8 @@ def install(role="",instance="",force=False,producerroles="*", ask=False):
     make it reality
     if you want more finegrained controle please use the do cmd
     """
-    # j.atyourservice.do("install",role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
-    run = j.atyourservice.getRun(role=role,instance=instance,action="install",force=force,producerRoles=producerroles)
+    # atyourservice.do("install",role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
+    run = atyourservice.getRun(role=role,instance=instance,action="install",force=force,producerRoles=producerroles)
     print(run)
     run.execute()
 
@@ -116,7 +117,7 @@ def install(role="",instance="",force=False,producerroles="*", ask=False):
 def simulate(action,role="",instance="",force=False,producerroles="*"):
     """
     """
-    run=j.atyourservice.getRun(role=role,instance=instance,action=action,force=force,producerRoles=producerroles)
+    run=atyourservice.getRun(role=role,instance=instance,action=action,force=force,producerRoles=producerroles)
     print(run)
 
 @click.command()
@@ -129,8 +130,8 @@ def simulate(action,role="",instance="",force=False,producerroles="*"):
 def setstate(action,state="DO",role="",instance="",force=False,producerroles=""):
     """
     """
-    j.atyourservice.setState(actions=[action],role=role,instance=instance,state=state)
-    run=j.atyourservice.getRun(role=role,instance=instance,action=action,force=False,producerRoles=producerroles)
+    atyourservice.setState(actions=[action],role=role,instance=instance,state=state)
+    run=atyourservice.getRun(role=role,instance=instance,action=action,force=False,producerRoles=producerroles)
     print(run)
 
 
@@ -140,7 +141,7 @@ def setstate(action,state="DO",role="",instance="",force=False,producerroles="")
 #     """
 #     do uninstall
 #     """
-#     j.atyourservice.uninstall(printonly=printonly)
+#     atyourservice.uninstall(printonly=printonly)
 
 
 @click.command()
@@ -148,14 +149,14 @@ def setstate(action,state="DO",role="",instance="",force=False,producerroles="")
 @click.argument('instance')
 def showproducers(role,instance):
     print ("producers:")
-    ays=j.atyourservice.getService(role,instance)
+    ays=atyourservice.getService(role,instance)
     ays.printProducersRecursive()
 
 @click.command()
 @click.argument('role')
 @click.argument('instance')
 def showparents(role,instance):
-    ays=j.atyourservice.getService(role,instance)
+    ays=atyourservice.getService(role,instance)
     out="parents:\n"
     for parent in ays.parents:
         out+="- %s\n"%parent
@@ -167,14 +168,14 @@ def showparents(role,instance):
 @click.option('--instance', default='')
 def list(role, instance):
     print("Installed services:")
-    services = j.atyourservice.findServices(role=role, instance=instance)
+    services = atyourservice.findServices(role=role, instance=instance)
     for s in sorted(services, key=lambda service: service.role):
         print("%s!%s" % (s.role, s.instance))
 
 @click.command()
 @click.option('--action', '-a', default=None)
 def printlog(action):
-    action_name, out = j.atyourservice.alog.getActionOuput(action)
+    action_name, out = atyourservice.alog.getActionOuput(action)
     print("Output of last action: %s\n" % action_name)
     print(out)
 
@@ -182,7 +183,7 @@ def printlog(action):
 @click.option('--token', '-t', prompt='Please enter the token for your bot', help="Telegram bot token. talk to @BotFather to get one.")
 @click.option('--repo', '-r', help="Directory where to store the projects", default='/opt/code/telegram-projects')
 def bot(token, repo):
-    bot = j.atyourservice.telegramBot(token, start=True)
+    bot = atyourservice.telegramBot(token, start=True)
 
 
 @click.command()
@@ -191,7 +192,7 @@ def destroy():
     reset in current ays repo all services & recipe's
     """
     j.actions.resetAll()
-    j.atyourservice.destroy(False)
+    atyourservice.destroy(False)
 
 @click.command()
 @click.argument('debug')

@@ -7,10 +7,11 @@ from ServiceTemplate import ServiceTemplate
 
 
 from Service import Service, loadmodule
-# from inspect import getmembers, isfunction, isclass, getsource
 
 DECORATORCODE = """
 ActionMethodDecorator=j.atyourservice.getActionMethodDecorator()
+ActionsBaseMgmt=j.atyourservice.getActionsBaseClassMgmt()
+
 class action(ActionMethodDecorator):
     def __init__(self,*args,**kwargs):
         ActionMethodDecorator.__init__(self,*args,**kwargs)
@@ -18,23 +19,44 @@ class action(ActionMethodDecorator):
 
 """
 
-
-class ActionMethods():
+class RecipeState():
 
     def __init__(self, recipe):
         self.recipe=recipe
-        self.methods={}
-        self._methodsList=[]
-        self.load()       
 
-    def addMethod(self,defline="",name=""):
-        am=ActionMethod(self,defline=defline,name=name)
-        self.methods[am.name]= am
-        return am
+        self._path = j.sal.fs.joinPaths(self.recipe.path, "state.json")
+        if j.sal.fs.exists(path=self._path):
+            self._model=j.data.serializer.json.load(self._path)
+        else:
+            self._model={"methods":{}}
+
+        self.changed=False
+        self._changes={}
+        self._methodsList=[]
+
+    def addMethod(self,name="",source="",isDefaultMethod=False):        
+        if source!="":
+            if name in ["input","init"]:
+                if source.find("$(")!=-1:
+                    raise j.exceptions.Input("Action method:%s should not have template variable '$(...' in sourcecode for init or input method."%(self))
+
+            if not isDefaultMethod:
+                newhash=j.data.hash.md5_string(source)
+                if name not in self._model["methods"] or newhash!=self._model["methods"][name]:
+                    self._changes[name]=True
+                    self._model["methods"][name]=newhash
+                    self.changed=True
+            else:
+                self._model["methods"][name]=""
+
+    def methodChanged(self,name):
+        if name in self._changes:
+            return True
+        return False
 
     @property
-    def _datapath(self):
-        return j.sal.fs.joinPaths(self.recipe.path,"methods.yaml")
+    def methods(self):
+        return self._model["methods"]
 
     @property
     def methodslist(self):
@@ -49,16 +71,11 @@ class ActionMethods():
         return self._methodsList
 
     def save(self):
-        model=[item.model for item in self.methodslist]
-        j.sal.fs.writeFile(self._datapath,j.data.serializer.yaml.dumps(model))
-
-    def load(self):
-        if j.sal.fs.exists(path=self._datapath):
-            data=j.sal.fs.readFile(self._datapath)
-            model=j.data.serializer.yaml.loads(data)
-            for item in model:
-                am=self.addMethod(defline=item["defline"],name=item["name"])
-                am.hash=item["hash"]    
+        if self.changed:
+            self.recipe.logger.info ("Recipe state Changed, writen to disk.")
+            out=j.data.serializer.json.dumps(self._model,True,True)
+            j.sal.fs.writeFile(filename=self._path,contents=out)
+            self.changed=False
 
     def __repr__(self):
         out=""
@@ -69,110 +86,109 @@ class ActionMethods():
     __str__ = __repr__
 
 
-class ActionMethod():
-
-    def __init__(self, meta,defline="", name=""):
-        self.meta=meta
-        self.name = name
-        if self.name == "":
-            if defline=="":
-                raise j.exceptions.Input("defline cannot be empty in %s while name is empty."%self)            
-            line = defline.strip()[4:]
-            self.name = line.split("(", 1)[0].strip()
-        self.defline = defline
-        self.source = ""
-        if self.name=="":
-            raise j.exceptions.Input("name cannot be empty in %s"%self)
-        self.hash = ""
-        self.hrdArgKeys = []  # names of arguments as used in hrd which are used in this action method
-
-    def _process(self):
-        if self.source != "":
-            self.hash = j.data.hash.md5_string(self.source)
-
-            #need to make sure we are not using templ var's in these 2 methods because they get executed before we can apply the hrd arguments
-            if self.name in ["input","init"]:
-                if self.source.find("$(")!=-1:
-                    raise j.exceptions.Input("Action method:%s should not have template variable '$(...' in sourcecode for init or input method."%(self))
-
-        # for now we don't do a check, later want to make sure we don't call other services, now we just put impact on all hrd schema arguments
-        self.meta.recipe.schema
-        # for now we take all arguments, later we need to be more specific
-        self.hrdArgKeys = [item for item in self.meta.recipe.schema.items.keys()]
-
-    @property
-    def model(self):
-        self._process()
-        ddict={}
-        ddict["name"]=self.name
-        ddict["defline"]=self.defline
-        ddict["hash"]=self.hash
-        return ddict
-
-    def __repr__(self):
-        return "actionmethod: %s:%s (%s)" % (self.meta.recipe,self.name,self.hash)
-
-    __str__ = __repr__
 
 
 class ServiceRecipe(ServiceTemplate):
 
-    def __init__(self, path="", template=None, aysrepopath="",init=False):
+    def __init__(self, aysrepo,path="", template=None):
 
-        aysrepopath = j.atyourservice.basepath
-        if not aysrepopath:
-            raise j.exceptions.RuntimeError("A service instance can only be used when used from a ays repo")
+        self.aysrepo=aysrepo
+
+        self.logger=self.aysrepo.logger
+
 
         if path != "":
             if not j.sal.fs.exists(path):
                 raise j.exceptions.RuntimeError("Could not find path for recipe")
-            self.path = path
-            name = self.state.hrd.get("template.name")
-            domain = self.state.hrd.get("template.domain")
-            version = self.state.hrd.get("template.version")
-            self.template = j.atyourservice.getTemplate(domain=domain, name=name, version=version)
-            self.name = self.template.name
+            self.name = j.sal.fs.getBaseName(path)
+            self._path=path
         else:
-            self.path = j.sal.fs.joinPaths(aysrepopath, "recipes", template.name)
-            self.name = template.name
-            self.template = template
-        self.domain = self.template.domain
+            if template==None:
+                raise RuntimeError("template cannot be None")
+            self.name=template.name
+            self._path=None
 
-        # copy the files
-        if not j.sal.fs.exists(path=self.path):
-            init = True
-            j.sal.fs.createDir(self.path)
+        self._init_props()
+
+        self.state=RecipeState(self)
+
+        self.role=self.name.split(".",1)[0]
 
         self._action_methods =None
 
 
-        self._init_props()
+        # copy the files
+        if not j.sal.fs.exists(path=self.path):
+            j.sal.fs.createDir(self.path)
+            self.init()
 
-        self.actionsmeta=ActionMethods(self)
+    def _init_props(self):
+        self._hrd = None
+        self._schema = None
+        self._actions = None
+        self._name=None
+        self._domain=None
+        self._recipe=None
+        self._template=None
+        self.path_hrd_template = j.sal.fs.joinPaths(self.path, "service.hrd")
+        self.path_hrd_schema = j.sal.fs.joinPaths(self.path, "schema.hrd")
+        self.path_actions = j.sal.fs.joinPaths(self.path, "actions.py")
+        self.path_actions_node = j.sal.fs.joinPaths(self.path, "actions_node.py")
+        self.path_mongo_model = j.sal.fs.joinPaths(self.path, "model.py")        
 
-        if init:
-            if j.sal.fs.exists(self.template.path_hrd_template):
-                j.sal.fs.copyFile(self.template.path_hrd_template, self.path_hrd_template)
-            if j.sal.fs.exists(self.template.path_hrd_schema):
-                j.sal.fs.copyFile(self.template.path_hrd_schema, self.path_hrd_schema)
-            if j.sal.fs.exists(self.template.path_actions_node):
-                j.sal.fs.copyFile(self.template.path_actions_node, self.path_actions_node)
-            if j.sal.fs.exists(self.template.path_mongo_model):
-                j.sal.fs.copyFile(self.template.path_mongo_model, self.path_mongo_model)
+    @property
+    def path(self):
+        if self._path==None:
+            self._path = j.sal.fs.joinPaths(self.aysrepo.basepath, "recipes", self.template.name)
+        return self._path
 
-            self._writeActionsFile()
+    @property
+    def template(self):
+        if self._template==None:
+            self._template = self.aysrepo.getTemplate(self.name)
+        return self._template
+
+    @property
+    def domain(self):
+        if self._domain==None:
+            self._domain = self.template.domain
+        return self._domain
+
+    @property
+    def recipe(self):
+        if self._recipe==None:
+            self._recipe = self.aysrepo.getRecipe(self.name)
+        return self._recipe
+    
+
+    def init(self):
+
+        self.state._changes={}
+
+        if j.sal.fs.exists(self.template.path_hrd_template):
+            j.sal.fs.copyFile(self.template.path_hrd_template, self.path_hrd_template)
+        if j.sal.fs.exists(self.template.path_hrd_schema):
+            j.sal.fs.copyFile(self.template.path_hrd_schema, self.path_hrd_schema)
+        if j.sal.fs.exists(self.template.path_actions_node):
+            j.sal.fs.copyFile(self.template.path_actions_node, self.path_actions_node)
+        if j.sal.fs.exists(self.template.path_mongo_model):
+            j.sal.fs.copyFile(self.template.path_mongo_model, self.path_mongo_model)
+
+        self._writeActionsFile()
+
+        self.state.save()
 
 
     def _writeActionsFile(self):
         self._out = ""
 
         actionmethodsRequired = ["input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
-                                 "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata", "change"]
+                                 "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata"]
 
         if j.sal.fs.exists(self.template.path_actions):
             content = j.sal.fs.fileGetContents(self.template.path_actions)
         else:
-            content = "class Actions():\n\n"
+            content = "class Actions(ActionsBaseMgmt):\n\n"
 
         if content.find("class action(ActionMethodDecorator)") != -1:
             raise j.exceptions.Input("There should be no decorator specified in %s" % self.path_actions)
@@ -183,12 +199,14 @@ class ServiceRecipe(ServiceTemplate):
         content = "from JumpScale import j\n\n%s" % content
 
         state = "INIT"
-        am = None
+        amSource = ""
+        amName = ""
 
         # DO NOT CHANGE TO USE PYTHON PARSING UTILS
         lines = content.splitlines()
         size = len(lines)
         i = 0
+
         while i < size:
             line = lines[i]
             linestrip = line.strip()
@@ -198,63 +216,72 @@ class ServiceRecipe(ServiceTemplate):
                 continue
 
             if state == "MAIN" and linestrip.startswith("@"):
-                if am is not None:
-                    am._process()
-                    am = None
+                if amSource!="":
+                    self.state.addMethod(amName,amSource)
+                amSource = ""
+                amName = ""
                 i += 1
                 continue
 
             if state == "MAIN" and linestrip.startswith("def"):
-                if am is not None:
-                    am._process()
-                am = self.actionsmeta.addMethod(defline=line)
-
+                if amSource!="":
+                    self.state.addMethod(amName,amSource)
+                amSource=linestrip+"\n"
+                amName=linestrip.split("(",1)[0][4:].strip()
                 # make sure the required method have the action() decorator
-                if am.name in actionmethodsRequired and not lines[i-1].strip().startswith('@'):
+                if amName in actionmethodsRequired and not lines[i-1].strip().startswith('@') and amName not in ["input"]:
                     lines.insert(i, '\n    @action()')
                     size += 1
+                    i+=1
 
                 i += 1
                 continue
 
-            if am is not None:
-                am.source += "%s\n" % line[8:]
+            if amName !="":
+                amSource += "%s\n" % line[4:]
             i += 1
 
+        
+        #process the last one
+        if amSource!="":
+            self.state.addMethod(amName,amSource)
+                
         content = '\n'.join(lines)
-
-        # process the last actionmethod
-        if am is not None:
-            am._process()
 
         # add missing methods
         for actionname in actionmethodsRequired:
-            if actionname not in self.actionsmeta.methods:
-                am = self.actionsmeta.addMethod(name=actionname)
-                am._process()
+            if actionname not in self.state.methods:
+                am = self.state.addMethod(name=actionname,isDefaultMethod=True)
                 #not found
                 if actionname == "input":
                     content += '\n\n    def input(self,name,role,instance,serviceargs):\n        return serviceargs\n'
-                elif actionname == "change":
-                    content += '\n\n    def change(self,stateitem):\n        return True\n'
+                elif actionname == "change_hrd":
+                    content += '\n\n    def change_hrd(self,stateitem):\n        return True\n'
+                elif actionname == "change_method":
+                    content += '\n\n    def change_hrd(self,stateitem):\n        return True\n'
                 else:
                     content += "\n\n    @action()\n    def %s(self):\n        return True\n" % actionname
 
         j.sal.fs.writeFile(self.path_actions, content)
 
-        self.actionsmeta.save()
+        for key,_ in self.state.methods.items():
+            if self.state.methodChanged(key):
+                self.logger.info("method:%s    %s changed"%(key,self))
+                for service in self.aysrepo.findServices(templatename=self.name):
+                    service.actions.change_method(methodname=am.name)
+        self.state._changes={}   
 
     @property
     def actions(self):
         if self._action_methods is None:
             print("reload mgmt actions for %s" % (self))
-            modulename = "JumpScale.atyourservice.%s.%s" % (self.domain, self.name)
+            modulename = "JumpScale.atyourservice.%s" % (self.name)
             mod = loadmodule(modulename, self.path_actions)
             self._action_methods = mod.Actions()
 
         return self._action_methods
 
-    def newInstance(self, instance="main", role='', args={}, path='', parent=None, consume="", originator=None, yaml=None):
+    def newInstance(self, instance="main", args={}, path='', parent=None, consume="", originator=None):
         """
         """
 
@@ -263,13 +290,12 @@ class ServiceRecipe(ServiceTemplate):
 
         instance = instance.lower()
 
-        service = j.atyourservice.getService(role=self.role, instance=instance, die=False)
+        service = self.aysrepo.getService(role=self.role, instance=instance, die=False)
 
         if service is not None:
             print("NEWINSTANCE: Service instance %s!%s  exists." % (self.name, instance))
-            service.args.update(args or {})  # needed to get the new args in
             service._recipe = self
-            service.init()
+            service.init(args=args)
 
         else:
             key = "%s!%s" % (self.role, instance)
@@ -279,22 +305,19 @@ class ServiceRecipe(ServiceTemplate):
             elif parent is not None:
                 fullpath = j.sal.fs.joinPaths(parent.path, key)
             else:
-                ppath = j.sal.fs.joinPaths(j.atyourservice.basepath, "services")
+                ppath = j.sal.fs.joinPaths(self.aysrepo.basepath, "services")
                 fullpath = j.sal.fs.joinPaths(ppath, key)
 
             if j.sal.fs.isDir(fullpath):
                 j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (self.role, instance, fullpath))
 
-            service = Service(self, instance=instance, args=args, path=fullpath, parent=parent, originator=originator)
+            service = Service(aysrepo=self.aysrepo,servicerecipe=self, instance=instance, args=args, path="", parent=parent, originator=originator)
 
-            j.atyourservice._services[service.key] = service
-
-            if not j.sal.fs.exists(self.template.path_hrd_schema):
-                service.init(yaml=yaml)
-            else:
-                service.init()
-
-            service.consume(consume)
+            self.aysrepo._services[service.key] = service
+            
+            # service.init(args=args)
+        
+        service.consume(consume)
 
         return service
 
@@ -337,7 +360,7 @@ class ServiceRecipe(ServiceTemplate):
                     continue
 
             # pull the required repo
-            dest0 = j.atyourservice._getRepo(recipeitem['url'], recipeitem=recipeitem)
+            dest0 = self.aysrepo._getRepo(recipeitem['url'], recipeitem=recipeitem)
             src = "%s/%s" % (dest0, recipeitem['source'])
             src = src.replace("//", "/")
             if "dest" not in recipeitem:
@@ -407,7 +430,7 @@ class ServiceRecipe(ServiceTemplate):
         """
         return a list of instance name for this template
         """
-        services = j.atyourservice.findServices(domain=self.domain, name=self.name)
+        services = self.aysrepo.findServices(domain=self.domain, name=self.name)
         return [service.instance for service in services]
 
     def upload2AYSfs(self, path):
@@ -417,4 +440,4 @@ class ServiceRecipe(ServiceTemplate):
         j.tools.sandboxer.dedupe(path, storpath="/tmp/aysfs", name="md", reset=False, append=True)
 
     def __repr__(self):
-        return "Recipe: %-15s (%s)" % (self.name, self.template.version)
+        return "Recipe: %-15s" % (self.name)

@@ -20,7 +20,7 @@ class AYSRunStep:
     def __repr__(self):
         out=""
         for service in self.services:
-            out+="- %-50s ! %-15s %s \n"%(service,self.action,service.state.getSetObject(self.action).state)
+            out+="- %-50s ! %-15s %s \n"%(service,self.action,service.state.get(self.action,die=False))
         return out
 
     __str__=__repr__

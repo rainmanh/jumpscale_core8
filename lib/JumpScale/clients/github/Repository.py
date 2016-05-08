@@ -501,6 +501,31 @@ class GithubRepo():
         for item in self.api.get_issues():
             self.issues.append(Issue(self, githubObj=item))
         self.issues_loaded=True
+        return self.issues
+
+    def serialize2Markdown(self,path):
+
+        md=j.data.markdown.getDocument()
+        md.addMDHeader(1, "Issues")
+
+        res=self.issues_by_type_state()
+
+        for type in self.types:
+            typeheader=False            
+            for state in self.states:
+                issues=res[type][state]
+                stateheader=False
+                for issue in issues:
+                    if typeheader==False:
+                        md.addMDHeader(2, "Type:%s"%type)
+                        typeheader=True
+                    if stateheader==False:
+                        md.addMDHeader(3, "State:%s"%state)
+                        stateheader=True
+                    md.addMDBlock(str(issue.getMarkdown()))
+
+        j.sal.fs.writeFile(path,str(md))
+
 
     def __str__(self):
         return "gitrepo:%s" % self.fullname

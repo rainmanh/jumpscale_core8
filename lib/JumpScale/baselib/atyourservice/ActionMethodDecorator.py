@@ -7,7 +7,7 @@ import sys
 
 class ActionMethodDecorator(object):
 
-    def __init__(self,action=True,force=False,actionshow=True,actionMethodName="",queue=""):
+    def __init__(self,action=True,force=True,actionshow=True,actionMethodName="",queue=""):
         self.action=action
         self.force=force
         self.actionshow=actionshow
@@ -54,53 +54,32 @@ class ActionMethodDecorator(object):
                 if force:
                     service.state.set(action0.name,"DO")
 
-                stateitem=service.state.getObject(action0.name,default="AINIT")
+                state=service.state.getSet(action0.name,default="INIT")
 
-                # method_hash=service.recipe.actionsmeta.methods[action0.name].hash
-                # hrd_hash=service.hrdhash
-
-                # if stateitem.hrd_hash!=hrd_hash:
-                #     stateitem.state="CHANGEDHRD"                    
-                #     service.save()
-                #     service.actions.change(stateitem)
-
-                # if stateitem.actionmethod_hash!=method_hash:
-                #     stateitem.state="CHANGED"
-                #     service.save()
-                #     service.actions.change(stateitem)
-
-                # if stateitem.name == 'init':
-                #     stateitem.state = "CHANGED"
-
-                if stateitem.state=="OK":
-                    service.logger.info ("NOTHING TODO OK: %s"%stateitem)
+                if state=="OK":
+                    service.logger.info ("NOTHING TODO OK: %s"%action0.name)
                     action0.state="OK"
                     action0.save()
                     return action0.result
 
-                if stateitem.state=="DISABLED":
-                    service.logger.info ("NOTHING TODO DISABLED: %s"%stateitem)
+                if state=="DISABLED":
+                    service.logger.info ("NOTHING TODO DISABLED: %s"%action0.name)
                     action0.state="DISABLED"
                     action0.save()
                     return
 
                 if func.__name__ not in ["init","input"]:
-                    action0.hrd=service.hrd
+                    if service.hrd!=None:
+                        action0.hrd=service.hrd
                     action0._method=None
                     action0.save()
-
 
                 service.logger.info("Execute Action:%s %s"%(service,func.__name__ ))
                 action0.execute()
                     
-                stateitem.state=action0.state
-
-                stateitem.last=j.data.time.epoch
+                service.state.set(action0.name,action0.state)
                 
-                if action0.state=="OK":
-                    stateitem.hrd_hash=service.hrdhash
-                    stateitem.actionmethod_hash=service.recipe.actionsmeta.methods[action0.name].hash
-                else:
+                if not action0.state=="OK":
                     if "die" in kwargs:
                         if kwargs["die"]==False:
                             return action0

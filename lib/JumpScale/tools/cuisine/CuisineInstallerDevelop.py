@@ -79,9 +79,9 @@ class CuisineInstallerDevelop():
             git clone https://github.com/google/brotli.git
             cd $tmpDir/brotli/
             python setup.py install
-            cd tests
-            make
-            cd ..
+            # cd tests
+            # make
+            # cd ..
             cp $tmpDir/brotli/tools/bro /usr/local/bin/
             rm -rf $tmpDir/brotli
             """
@@ -128,6 +128,7 @@ class CuisineInstallerDevelop():
         ipython --upgrade
         jinja2
         netaddr
+        wtforms_json
 
         reparted
         pytoml
@@ -176,7 +177,7 @@ class CuisineInstallerDevelop():
             """
             self.cuisine.pip.multiInstall(C,upgrade=True)
 
-        self.cuisine.apps.redis.build()
+        self.cuisine.apps.redis.install()
 
         """
         install dnspython3

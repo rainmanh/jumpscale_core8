@@ -1,23 +1,9 @@
 
 
 from JumpScale import j
-import imp
-import sys
-import os
-
-# import JumpScale.tools.actions
 
 from Service import *
-
-# from ServiceTemplateBuilder import *
-
-
-# def loadmodule(name, path):
-#     parentname = ".".join(name.split(".")[:-1])
-#     sys.modules[parentname] = __package__
-#     mod = imp.load_source(name, path)
-#     return mod
-
+from ServiceRecipe import *
 
 class ServiceTemplate(object):
 
@@ -26,20 +12,14 @@ class ServiceTemplate(object):
 
         base = j.sal.fs.getBaseName(path)
 
-        _, self.name, self.version, _, _ = j.atyourservice.parseKey(base)
+        _, self.name, _, _ = j.atyourservice._parseKey(base)
         if base.find("__") != -1:
             self.domain, self.name = base.split("__", 1)
         else:
             self.domain = domain
 
         self._init_props()
-        self.key = j.atyourservice.getKey(self)
-
-        self.fix()
-
-    def fix(self):
-        if j.sal.fs.exists(j.sal.fs.joinPaths(self.path, "actions_mgmt.py")):
-            j.sal.fs.renameFile(j.sal.fs.joinPaths(self.path, "actions_mgmt.py"),self.path_actions)                
+        self.key = j.atyourservice._getKey(self)
 
     def _init_props(self):
         self.path_hrd_template = j.sal.fs.joinPaths(self.path, "service.hrd")
@@ -57,34 +37,42 @@ class ServiceTemplate(object):
 
     @property
     def hrd(self):
-        if self._hrd:
+        if self._hrd=="EMPTY":
+            return None
+        if self._hrd!=None:
             return self._hrd
         hrdpath = self.path_hrd_template
         if not j.sal.fs.exists(hrdpath):
             # check if we can find it in other ays template
             if self.name.find(".") != -1:
-                role = self.name.split(".", 1)[0]
-                templ = j.atyourservice.getTemplate(domain=self.domain, role=role, die=False)
+                name0 = self.name.split(".", 1)[0]
+                templ = j.atyourservice.getTemplate(name=name0, die=False)
                 if templ is not None:
-                    self._hrd = templ._hrd or j.data.hrd.get(content="")
+                    self._hrd = templ._hrd                
                     self.path_hrd_template = templ.path_hrd_template
                     return self._hrd
-            self._hrd=j.data.hrd.get(content="")
-            # j.events.opserror_critical(msg="can't find %s." % hrdpath, category="ays load hrd template")
+                else:
+                    self._hrd =="EMPTY"
+                    return None
+        if j.sal.fs.exists(hrdpath):
+            self._hrd=j.data.hrd.get(hrdpath,prefixWithName=False)
         else:
-            self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
+            self._hrd = "EMPTY"
+            return None
         return self._hrd
 
     @property
     def schema(self):
+        if self._schema=="EMPTY":
+            return None
         if self._schema:
             return self._schema
         hrdpath = self.path_hrd_schema
         if not j.sal.fs.exists(hrdpath):
-            j.sal.fs.touch(hrdpath)
+            self._schema="EMPTY"
+            return None
         self._schema = j.data.hrd.getSchema(hrdpath)
         return self._schema
-
 
     @property
     def model(self):
@@ -95,17 +83,12 @@ class ServiceTemplate(object):
                 self._mongoModel = mod.Model()
         return self._mongoModel
 
-
-    @property
-    def recipe(self):
-        return self.getRecipe()
-
-    def getRecipe(self,init=False):
+    def getRecipe(self,aysrepo):
         from ServiceRecipe import ServiceRecipe
-        return ServiceRecipe(template=self,init=init)
+        return ServiceRecipe(aysrepo,template=self)        
 
     def __repr__(self):
-        return "template: %-15s:%s (%s)" % (self.domain, self.name,self.version)
+        return "template: %-15s:%s" % (self.domain, self.name)
 
     def __str__(self):
         return self.__repr__()

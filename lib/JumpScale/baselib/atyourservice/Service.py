@@ -6,11 +6,13 @@ import imp
 import sys
 from ServiceState import ServiceState
 
+
 def loadmodule(name, path):
     parentname = ".".join(name.split(".")[:-1])
     sys.modules[parentname] = __package__
     mod = imp.load_source(name, path)
     return mod
+
 
 def getProcessDicts(service, args={}):
     counter = 0
@@ -21,7 +23,7 @@ def getProcessDicts(service, args={}):
                 "timeout_start", "ports", "startupmanager", "filterstr", "name", "user"]
 
     procs = service.recipe.hrd.getListFromPrefixEachItemDict("process", musthave=musthave, defaults=defaults, aredict=[
-                                                   'env'], arelist=["ports"], areint=["prio", "timeout_start", "timeout_start"])
+        'env'], arelist=["ports"], areint=["prio", "timeout_start", "timeout_start"])
     for process in procs:
         counter += 1
 
@@ -38,61 +40,56 @@ def getProcessDicts(service, args={}):
 
     return procs
 
+
 class Service:
 
-    def __init__(self, aysrepo,servicerecipe=None,instance=None, path="", args={}, originator=None,parent=None):
+    def __init__(self, aysrepo, servicerecipe=None, instance=None, path="", args={}, originator=None, parent=None, model=None):
         """
         """
 
-        self.aysrepo=aysrepo
-        
-        if args==None:
-            args={}
+        self.aysrepo = aysrepo
 
-        # self.logger = j.logger.get('self.aysrepo.service')
-        self.logger=self.aysrepo.logger
+        if args is None:
+            args = {}
+
+        self.logger = self.aysrepo.logger
 
         self.reset()
 
-        self.originator = originator        
+        self.originator = originator
 
-        self.state=None
+        self.state = None
 
-        if path!="" and j.sal.fs.exists(path):
-            self._role,self._instance=j.sal.fs.getBaseName(path).split("!")
-            self._recipe=None
-            self.path=path
-            servicerecipe=None
-            # self._rememberActions = True
+        if path != "" and j.sal.fs.exists(path):
+            self._role, self._instance = j.sal.fs.getBaseName(path).split("!")
+            self._recipe = None
+            self.path = path
+            servicerecipe = None
         else:
-            # if not isinstance(servicerecipe,ServiceRecipe):
-            #     raise j.exceptions.Input("pass Service Recipe Object.")
-
-            if not j.data.types.string.check(instance) or instance=="":
+            if not j.data.types.string.check(instance) or instance == "":
                 raise j.exceptions.Input("Instance needs to be a string.")
 
             if j.data.types.string.check(servicerecipe):
                 raise j.exceptions.RuntimeError("no longer supported, pass servicerecipe")
 
-            if servicerecipe==None:
+            if servicerecipe is None:
                 raise j.exceptions.RuntimeError("service recipe cannot be None if path not specified")
 
-            if instance==None:
+            if instance is None:
                 raise j.exceptions.RuntimeError("instance needs to be specified")
 
-            self._instance=instance.lower()
+            self._instance = instance.lower()
             self._role = servicerecipe.name.split(".")[0]
-            # self._rememberActions = False
 
-            self.path=j.sal.fs.joinPaths(self.aysrepo.basepath, "services","%s!%s" % (self.role, instance))
+            self.path = j.sal.fs.joinPaths(self.aysrepo.basepath, "services", "%s!%s" % (self.role, instance))
 
-            parentkey=""
-            if parent==None:
-                if servicerecipe.schema!=None:
-                    #CHECK PARENTS !
-                    parent_recipe_item=servicerecipe.schema.parentSchemaItemGet()
-                    
-                    if parent_recipe_item!=None and parent_recipe_item.parent != None and parent_recipe_item.parent!="":
+            parentkey = ""
+            if parent is None:
+                if servicerecipe.schema is not None:
+                    # CHECK PARENTS !
+                    parent_recipe_item = servicerecipe.schema.parentSchemaItemGet()
+
+                    if parent_recipe_item is not None and parent_recipe_item.parent is not None and parent_recipe_item.parent != "":
 
                         ays_template_name = parent_recipe_item.parent
 
@@ -100,10 +97,10 @@ class Service:
                         if '.' in ays_template_name:
                             parentrole = ays_template_name.split('.', 1)[0]
                         else:
-                            parentrole=ays_template_name
+                            parentrole = ays_template_name
 
-                        #parent.name is name of element in scheme which points to item we are filling in
-                        parentinstance=""
+                        # parent.name is name of element in scheme which points to item we are filling in
+                        parentinstance = ""
                         if parent_recipe_item.name in args:
                             # has been speficied or empty
                             parentinstance = args[parent_recipe_item.name].strip()
@@ -111,68 +108,71 @@ class Service:
                             # has been speficied or empty
                             parentinstance = args[parentrole].strip()
 
-                        if parentinstance!="":
-                            aysi=self.aysrepo.getService(role=parentrole, instance=parentinstance,die=True)
-                        elif parent_recipe_item.auto:                        
-                            aysi=self.aysrepo.getService(role=parentrole, instance="main",die=False)
-                            if aysi==None:
-                                aysi=servicerecipe.newInstance(instance=parentinstance, args={})
+                        if parentinstance != "":
+                            aysi = self.aysrepo.getService(role=parentrole, instance=parentinstance, die=True)
+                        elif parent_recipe_item.auto:
+                            aysi = self.aysrepo.getService(role=parentrole, instance="main", die=False)
+                            if aysi is None:
+                                aysi = servicerecipe.newInstance(instance=parentinstance, args={})
                         else:
-                            raise j.exceptions.Input("Parent '%s' needs to be specified or put on autocreation in recipe:%s, now instance:%s"%(parent_recipe_item.name,servicerecipe,self.instance))
+                            raise j.exceptions.Input("Parent '%s' needs to be specified or put on autocreation in recipe:%s, now instance:%s" % (parent_recipe_item.name, servicerecipe, self.instance))
 
-                        parentkey =aysi.key
-                        parent=aysi
+                        parentkey = aysi.key
+                        parent = aysi
             else:
-                parentkey =parent.key
-                
-            if parentkey!="":
-                self.path = j.sal.fs.joinPaths(parent.path,"%s!%s"%(self.role,self.instance))
-                self.state=ServiceState(self)
-                self.state.parent=parentkey
+                parentkey = parent.key
+
+            if parentkey != "":
+                self.path = j.sal.fs.joinPaths(parent.path, "%s!%s" % (self.role, self.instance))
+                self.state = ServiceState(self)
+                self.state.parent = parentkey
             else:
-                if self.path=="":
+                if self.path == "":
                     raise j.exceptions.Input("path cannot be empty")
-            
+
             j.sal.fs.createDir(self.path)
 
-            if servicerecipe.template.schema==None:
-                if args!={}:
-                    yamlpath = j.sal.fs.joinPaths(self.path, "model.yaml")
-                    j.data.serializer.yaml.dump(yamlpath, self.args)
+            if servicerecipe.template.schema is None and servicerecipe.template.hrd is None:
+                self._hrd = "EMPTY"
 
-            if servicerecipe.template.schema==None and servicerecipe.template.hrd==None:
-                self._hrd="EMPTY"              
+            if model is not None:
+                self._hrd = "EMPTY"
+                if j.data.types.dict.check(model):
+                    self._model = model
+                    model_path = j.sal.fs.joinPaths(self.path, "model.yaml")
+                    j.data.serializer.yaml.dump(model_path, model)
+                else:
+                    raise NotImplementedError("only support yaml format at the moment")
 
-            self.hrd #create empty hrd
+            self.hrd  # create empty hrd
 
-        self._key=j.atyourservice._getKey(self)
+        self._key = j.atyourservice._getKey(self)
 
-        if self.state==None:
-            self.state=ServiceState(self)
+        if self.state is None:
+            self.state = ServiceState(self)
 
-        if servicerecipe!=None:
+        if servicerecipe is not None:
             self.state.recipe = servicerecipe.name
-            self.init(args=args) #first time init
+            self.init(args=args)  # first time init
             self.state.save()
-        
-
 
     def reset(self):
         self._hrd = None
-        self._yaml = None
+        # self._yaml = None
         self._mongoModel = None
         self._dnsNames = []
         self._logPath = None
         self._state = None
-        self._executor = None    
-        self._producers=None    
+        self._executor = None
+        self._producers = None
         self._parentChain = None
         self._parent = None
-        self._recipe= None
+        self._recipe = None
+        self._model = None
 
     @property
     def key(self):
-        if self._key=="":
+        if self._key == "":
             raise RuntimeError("key cannot be ''")
         return self._key
 
@@ -187,13 +187,12 @@ class Service:
     @property
     def recipe(self):
         if self._recipe is None:
-            self._recipe=self.aysrepo.getRecipe(name=self.state.recipe)
+            self._recipe = self.aysrepo.getRecipe(name=self.state.recipe)
         return self._recipe
 
     @property
     def templatename(self):
         return self.state.recipe
-    
 
     @property
     def dnsNames(self):
@@ -203,7 +202,7 @@ class Service:
 
     @property
     def parents(self):
-        if self._parentChain ==None:
+        if self._parentChain is None:
             chain = []
             parent = self.parent
             while parent is not None:
@@ -214,23 +213,23 @@ class Service:
 
     @property
     def parent(self):
-        if self._parent==None:
-            if self.state.parent!="":
-                _,_,instance,role=j.atyourservice._parseKey(self.state.parent)
+        if self._parent is None:
+            if self.state.parent != "":
+                _, _, instance, role = j.atyourservice._parseKey(self.state.parent)
                 self._parent = self.aysrepo.getService(role=role, instance=instance)
         return self._parent
 
     @property
     def hrd(self):
-        if self._hrd=="EMPTY":
+        if self._hrd == "EMPTY":
             return None
         if self._hrd is None:
             hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
             if not j.sal.fs.exists(path=hrdpath):
-                self._hrd=="EMPTY"
+                self._hrd == "EMPTY"
                 return None
             self._hrd = j.data.hrd.get(path=hrdpath, prefixWithName=False)
-            
+
         return self._hrd
 
     def hrdCreate(self):
@@ -238,36 +237,17 @@ class Service:
         self._hrd = j.data.hrd.get(path=hrdpath, prefixWithName=False)
 
     @property
-    def yaml(self):
-        if self._yaml=="EMPTY":
-            return None        
-        if self._yaml is None:
-            path = j.sal.fs.joinPaths(self.path, "model.yaml")
-            if j.sal.fs.exists(path):
-                self._yaml = j.data.serializer.yaml.load(path)
-            else:
-                self._yaml="EMPTY"
-                return None
-        return self._yaml
-
-    @property
-    def mongoModel(self):
-        if self._mongoModel is None:
-            self._mongoModel = self.recipe.model
-            if self.yaml:
-                for k, v in self.yaml.items():
-                    if k in self._mongoModel:
-                        self._mongoModel[k] = v
-        return self._mongoModel
-
-
-
-
+    def model(self):
+        if self._model is None:
+            model_path = j.sal.fs.joinPaths(self.path, "model.yaml")
+            if j.sal.fs.exists(model_path):
+                self._model = j.data.serializer.yaml.loads(j.sal.fs.fileGetContents(model_path))
+        return self._model
 
     @property
     def producers(self):
         if self._producers is None:
-            self._producers={}
+            self._producers = {}
             for key, items in self.state.producers.items():
                 producerSet = set()
                 # items=[item for item in items if item.strip()!=""]
@@ -286,63 +266,64 @@ class Service:
         return self._executor
 
     def save(self):
-        self.state.save()        
+        self.state.save()
 
-    def init(self,args={}):
+    def init(self, args={}):
 
-        if args==None:
-            args={}
+        if args is None:
+            args = {}
 
         j.atyourservice._currentService = self
         self.logger.info('INIT service: %s' % self)
 
-        # run the args manipulation action as an action   
-        self.recipe.actions.service=self     
+        # run the args manipulation action as an action
+        self.recipe.actions.service = self
         args = self.recipe.actions.input(self.recipe, self.role, self.instance, args)
 
-        originalhrd=j.data.hrd.get(content=str(self.hrd))
+        originalhrd = j.data.hrd.get(content=str(self.hrd))
 
-        #apply args
-        if self._hrd=="EMPTY":
-            self._hrd=None
-        if self.recipe.template.schema!=None:
-            self._hrd=self.recipe.template.schema.hrdGet(hrd=self.hrd,args=args)
-            self._hrd.path=j.sal.fs.joinPaths(self.path, "instance.hrd")
+        # apply args
+        if self._hrd == "EMPTY":
+            self._hrd = None
         else:
-            if args!={}:
-                for key,val in args.items():
-                    if self.hrd.exists(key) and self.hrd.get(key)!=val:
-                        self.hrd.set(key,val)
+            if self.recipe.template.schema is not None:
+                self._hrd = self.recipe.template.schema.hrdGet(hrd=self.hrd, args=args)
+                self._hrd.path = j.sal.fs.joinPaths(self.path, "instance.hrd")
+            else:
+                if args != {}:
+                    for key, val in args.items():
+                        if self.hrd.exists(key) and self.hrd.get(key) != val:
+                            self.hrd.set(key, val)
 
         # self._action_methods = None  # to make sure we reload the actions
 
         j.atyourservice._currentService = self
 
-        if self.hrd!=None:
+        if self.hrd is not None:
             self.hrd.save()
-        self.state.save()    
+        self.state.save()
 
         self._consumeFromSchema(args)
 
         self.actions.init()
 
-        if self.hrd!=None:
-            newInstanceHrdHash=j.data.hash.md5_string(str(self.hrd))
-            if self.state.instanceHRDHash!=newInstanceHrdHash:                
+        if self.hrd is not None:
+            newInstanceHrdHash = j.data.hash.md5_string(str(self.hrd))
+            if self.state.instanceHRDHash != newInstanceHrdHash:
                 self.actions.change_hrd_instance(originalhrd=originalhrd)
-                self.hrd.save()    
-            self.state.instanceHRDHash=newInstanceHrdHash        
-            
-        if self.recipe.template.hrd!=None:
-            if self._hrd=="EMPTY":
-                self._hrd=None
-            newTemplateHrdHash=j.data.hash.md5_string(str(self.recipe.template.hrd))
-            if self.state.templateHRDHash!=newTemplateHrdHash:
-                #the template hash changed
+                self.hrd.save()
+            self.state.instanceHRDHash = newInstanceHrdHash
+
+        if self.recipe.template.hrd is not None:
+            if self._hrd == "EMPTY":
+                self._hrd = None
+            newTemplateHrdHash = j.data.hash.md5_string(str(self.recipe.template.hrd))
+            if self.state.templateHRDHash != newTemplateHrdHash:
+                # the template hash changed
                 self.hrd.applyTemplate(template=self.recipe.template.hrd, args={}, prefix='')
                 self.actions.change_hrd_template(originalhrd=originalhrd)
                 self.hrd.save()
-                self.state.templateHRDHash=newTemplateHrdHash
+                self.state.templateHRDHash = newTemplateHrdHash
 
         # Set subscribed event into state
         for event, actions in self.hrd.getDictFromPrefix('events').items():
@@ -354,18 +335,18 @@ class Service:
 
         self.save()
 
-    def _consumeFromSchema(self,args):
+    def _consumeFromSchema(self, args):
 
-        if self.recipe.schema==None:
+        if self.recipe.schema is None:
             return
 
-        #manipulate the HRD's to mention the consume's to producers
+        # manipulate the HRD's to mention the consume's to producers
         consumes = self.recipe.schema.consumeSchemaItemsGet()
 
         if consumes:
             for consumeitem in consumes:
 
-                #parent exists
+                # parent exists
                 role = consumeitem.consume_link
                 consumename = consumeitem.name
 
@@ -378,8 +359,8 @@ class Service:
 
                 ays_s = list()
                 candidates = self.aysrepo.findServices(role=consumeitem.consume_link)
-                if len(candidates)>0:
-                    if len(instancenames)>0:
+                if len(candidates) > 0:
+                    if len(instancenames) > 0:
                         ays_s = [candidate for candidate in candidates if candidate.instance in instancenames]
                     else:
                         ays_s = candidates
@@ -401,7 +382,6 @@ class Service:
                 for ays in ays_s:
                     self.state.consume(aysi=ays)
 
-
     def consume(self, input):
         """
         @input is comma separate list of ayskeys or a Service object or list of Service object
@@ -414,11 +394,11 @@ class Service:
         ```
 
         """
-        print ("input:'%s'"%input)
+        print("input:'%s'" % input)
         if input is not None and input is not '':
             toConsume = set()
             if j.data.types.string.check(input):
-                entities = [item for item in input.split(",") if item.strip()!=""]
+                entities = [item for item in input.split(",") if item.strip() != ""]
                 for entry in entities:
                     service = self.aysrepo.getServiceFromKey(entry.strip())
                     toConsume.add(service)
@@ -435,38 +415,38 @@ class Service:
             for ays in toConsume:
                 self.state.consume(aysi=ays)
 
-    def getProducersRecursive(self,producers=set(), callers=set(),action="",producerRoles="*"):
+    def getProducersRecursive(self, producers=set(), callers=set(), action="", producerRoles="*"):
         for role, producers2 in self.producers.items():
             for producer in producers2:
-                if action=="" or producer.getAction(action)!=None:
-                    if producerRoles=="*" or producer.role in producerRoles:
+                if action == "" or producer.getAction(action) != None:
+                    if producerRoles == "*" or producer.role in producerRoles:
                         producers.add(producer)
-                producers = producer.getProducersRecursive(producers=producers, callers=callers,action=action,producerRoles=producerRoles)
+                producers = producer.getProducersRecursive(producers=producers, callers=callers, action=action, producerRoles=producerRoles)
         return producers.symmetric_difference(callers)
 
-    def printProducersRecursive(self,prefix=""):
+    def printProducersRecursive(self, prefix=""):
         for role, producers2 in self.producers.items():
             # print ("%s%s"%(prefix,role))
             for producer in producers2:
-                print ("%s- %s"%(prefix,producer))
-                producer.printProducersRecursive(prefix+"  ")
+                print("%s- %s" % (prefix, producer))
+                producer.printProducersRecursive(prefix + "  ")
 
-    def getProducersWaiting(self, action="install",producersChanged=set(),scope=None):
+    def getProducersWaiting(self, action="install", producersChanged=set(), scope=None):
         """
         return list of producers which are waiting to be executing the action
         """
 
         # print ("producerswaiting:%s"%self)
         for producer in self.getProducersRecursive(set(), set()):
-            #check that the action exists, no need to wait for other actions, appart from when init or install not done
+            # check that the action exists, no need to wait for other actions, appart from when init or install not done
 
-            if producer.state.getObject("init").state!= "OK":
+            if producer.state.getObject("init").state != "OK":
                 producersChanged.add(producer)
 
-            if producer.state.getObject("install").state!= "OK":
+            if producer.state.getObject("install").state != "OK":
                 producersChanged.add(producer)
 
-            if producer.getAction(action)==None:
+            if producer.getAction(action) == None:
                 continue
 
             actionrunobj = producer.state.getSetObject(action)
@@ -474,8 +454,8 @@ class Service:
             if actionrunobj.state != "OK":
                 producersChanged.add(producer)
 
-        if scope!=None:
-            producersChanged=producersChanged.intersection(scope)
+        if scope is not None:
+            producersChanged = producersChanged.intersection(scope)
 
         return producersChanged
 
@@ -485,12 +465,11 @@ class Service:
                 return parent
         return None
 
-    def isOnNode(self,node=None):
+    def isOnNode(self, node=None):
         mynode = self.getNode()
         if mynode is None:
             return False
         return mynode.key == node.key
-
 
     def getTCPPorts(self, processes=None, *args, **kwargs):
         ports = set()
@@ -523,7 +502,7 @@ class Service:
 
         hrd_root = "/etc/ays/local/"
         remotePath = j.sal.fs.joinPaths(hrd_root, j.sal.fs.getBaseName(self.path), 'instance.hrd')
-        dest = self.path.rstrip("/")+"/"+"instance.hrd"
+        dest = self.path.rstrip("/") + "/" + "instance.hrd"
         self.logger.info("downloading %s '%s'->'%s'" % (self.key, remotePath, self.path))
         self.executor.download(remotePath, self.path)
 
@@ -556,9 +535,9 @@ class Service:
 
     @property
     def children(self):
-        res=[]
-        for key,service in self.aysrepo.services.items():
-            if service.parent==self:
+        res = []
+        for key, service in self.aysrepo.services.items():
+            if service.parent == self:
                 res.append(service)
         return res
 
@@ -583,7 +562,7 @@ class Service:
         return service.role == self.role and self.instance == service.instance
 
     def __hash__(self):
-      return hash((self.instance, self.role))
+        return hash((self.instance, self.role))
 
     def __repr__(self):
         # return '%s|%s!%s(%s)' % (self.domain, self.name, self.instance, self.version)
@@ -595,35 +574,34 @@ class Service:
     @property
     def actions(self):
         # make sure that recipe action finds us
-        self.logger.debug("Direct Actions Execute On Service:%s"%(self))
+        self.logger.debug("Direct Actions Execute On Service:%s" % (self))
         j.atyourservice._currentService = self
-        self.recipe.actions.service=self
+        self.recipe.actions.service = self
         return self.recipe.actions
 
-    def runAction(self, action, printonly=False,ignorestate=False, force=False):
+    def runAction(self, action, printonly=False, ignorestate=False, force=False):
 
-        a=self.getAction(action)
+        a = self.getAction(action)
 
         if force:
             self.state.set(methodname=action, state="FORCE")
 
-        #when none means does not exist so does not have to be executed
-        if a!=None:
-            if printonly==False:
+        # when none means does not exist so does not have to be executed
+        if a is not None:
+            if not printonly:
                 return a()
             else:
-                print ("Execute: %s %s"%(self,action))
+                print("Execute: %s %s" % (self, action))
 
-
-    def getAction(self,action):
+    def getAction(self, action):
         """
         @return None when not exist
         """
         j.atyourservice._currentService = self
         if action not in self.recipe.state.methods:
             return None
-        # am=self.recipe.actionsmeta.methods[action]        
-        a=getattr(self.recipe.actions, action)
+        # am=self.recipe.actionsmeta.methods[action]
+        a = getattr(self.recipe.actions, action)
         return a
 
     def _getDisabledProducers(self):
@@ -680,7 +658,6 @@ class Service:
             consumer.enable()
             consumer.start()
 
-
     # @property
     # def action_methods_node(self):
     #     if self._action_methods_node is None or not self._rememberActions:
@@ -692,7 +669,6 @@ class Service:
     #         self._action_methods_node=action_methods_node
 
     #     return self._action_methods_node
-
 
     # def getAction(self, name, printonly=False):
     #     if name not in self._actionlog:
@@ -750,7 +726,6 @@ class Service:
     #         raise j.exceptions.RuntimeError(e)
     #     return method
 
-
     # # ACTIONS
     # # def _executeOnNode(self, actionName, cmd=None, reinstall=False):
     # def _executeOnNode(self, actionName):
@@ -764,6 +739,4 @@ class Service:
     #     executor = self.executor
     #     executor.execute(execCmd, die=True, showout=True)
 
-    #     return True    
-
-
+    #     return True

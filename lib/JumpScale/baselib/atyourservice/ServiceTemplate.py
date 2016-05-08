@@ -5,9 +5,10 @@ from JumpScale import j
 from Service import *
 from ServiceRecipe import *
 
+
 class ServiceTemplate(object):
 
-    def __init__(self, path,domain=""):
+    def __init__(self, path, domain=""):
         self.path = path
 
         base = j.sal.fs.getBaseName(path)
@@ -37,9 +38,9 @@ class ServiceTemplate(object):
 
     @property
     def hrd(self):
-        if self._hrd=="EMPTY":
+        if self._hrd == "EMPTY":
             return None
-        if self._hrd!=None:
+        if self._hrd is not None:
             return self._hrd
         hrdpath = self.path_hrd_template
         if not j.sal.fs.exists(hrdpath):
@@ -48,14 +49,14 @@ class ServiceTemplate(object):
                 name0 = self.name.split(".", 1)[0]
                 templ = j.atyourservice.getTemplate(name=name0, die=False)
                 if templ is not None:
-                    self._hrd = templ._hrd                
+                    self._hrd = templ._hrd
                     self.path_hrd_template = templ.path_hrd_template
                     return self._hrd
                 else:
-                    self._hrd =="EMPTY"
+                    self._hrd == "EMPTY"
                     return None
         if j.sal.fs.exists(hrdpath):
-            self._hrd=j.data.hrd.get(hrdpath,prefixWithName=False)
+            self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
         else:
             self._hrd = "EMPTY"
             return None
@@ -63,13 +64,13 @@ class ServiceTemplate(object):
 
     @property
     def schema(self):
-        if self._schema=="EMPTY":
+        if self._schema == "EMPTY":
             return None
         if self._schema:
             return self._schema
         hrdpath = self.path_hrd_schema
         if not j.sal.fs.exists(hrdpath):
-            self._schema="EMPTY"
+            self._schema = "EMPTY"
             return None
         self._schema = j.data.hrd.getSchema(hrdpath)
         return self._schema
@@ -83,9 +84,9 @@ class ServiceTemplate(object):
                 self._mongoModel = mod.Model()
         return self._mongoModel
 
-    def getRecipe(self,aysrepo):
+    def getRecipe(self, aysrepo):
         from ServiceRecipe import ServiceRecipe
-        return ServiceRecipe(aysrepo,template=self)        
+        return ServiceRecipe(aysrepo, template=self)
 
     def __repr__(self):
         return "template: %-15s:%s" % (self.domain, self.name)

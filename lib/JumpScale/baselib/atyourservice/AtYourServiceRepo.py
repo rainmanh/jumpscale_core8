@@ -22,7 +22,7 @@ class AtYourServiceRepo():
         # self._justinstalled = []
         self._type = None
 
-        self._services = {}        
+        self._services = {}
         self._recipes = {}
 
         self._templates={}
@@ -32,11 +32,11 @@ class AtYourServiceRepo():
         self.logger=j.atyourservice.logger
 
         self._todo = []
-        
+
         self.name=name
         self.basepath=path
         self._git=None
-        
+
         self._blueprints=[]
 
         # self._roletemplates = dict()
@@ -289,7 +289,7 @@ class AtYourServiceRepo():
     #             hrd.items.update(hrdtemp.items)
     #         return hrd.hrdGet()
     #     return None
-    
+
 
 
     def setState(self,actions=[],role="",instance="",state="DO"):
@@ -301,7 +301,7 @@ class AtYourServiceRepo():
         """
         self._doinit()
         if "install" in actions:
-            if "init" not in actions:                
+            if "init" not in actions:
                 actions.insert(0,"init")
 
         for action in actions:
@@ -311,7 +311,7 @@ class AtYourServiceRepo():
                 if instance!="" and service.instance!=instance:
                     continue
                 if service.getAction(action)==None:
-                    continue                
+                    continue
                 service.state.set(action, state)
                 service.state.save()
 
@@ -333,8 +333,8 @@ class AtYourServiceRepo():
             if producerRoles==[]:
                 producersl=[]
             else:
-                producersl=service.getProducersRecursive()  
-                if producerRoles!="*":       
+                producersl=service.getProducersRecursive()
+                if producerRoles!="*":
                     producerRoles=[item for item in producerRoles if item.role in producerRoles]
             scope=scope.union(producersl)
 
@@ -366,12 +366,12 @@ class AtYourServiceRepo():
         else:
             actions=["init","install",action]
 
-        run=AYSRun(self)        
+        run=AYSRun(self)
         for action0 in actions:
             scope=self.findActionScope(action=action0,role=role,instance=instance,producerRoles=producerRoles)
             todo=self._findTodo(action=action0,scope=scope,run=run,producerRoles=producerRoles)
             while  todo != []:
-                newstep=True   
+                newstep=True
                 for service in todo:
                     if service.state.get(action0,die=False)!="OK":
                         print ("DO:%s %s"%(action,service))
@@ -397,7 +397,7 @@ class AtYourServiceRepo():
             #remove the ones which are already in previous runs
             producersWaiting=[item for item in producersWaiting if run.exists(item,action)==False]
             producersWaiting=[item for item in producersWaiting if item.state.get(action,die=False)!="OK"]
-            # print ("findtodo: %s:\n%s"%(action,producersWaiting))                
+            # print ("findtodo: %s:\n%s"%(action,producersWaiting))
             if len(producersWaiting) == 0:
                 todo.append(service)
                 # if j.atyourservice.debug:
@@ -463,7 +463,7 @@ class AtYourServiceRepo():
     #             from IPython import embed
     #             print ("DEBUG NOW ask in do, filter items")
     #             embed()
-                
+
 
     #         print("execute state changes, nr services to process: %s in step:%s" % (len(todo), step))
     #         for i in range(len(todo)):
@@ -543,7 +543,7 @@ class AtYourServiceRepo():
             if not(role == "" or role == service.role):
                 continue
             if hasAction!="" and service.getAction(hasAction)==None:
-                continue                
+                continue
             # if not(node is None or service.isOnNode(node)):
             #     continue
             res.append(service)
@@ -577,7 +577,7 @@ class AtYourServiceRepo():
             self.findConsumersRecursive(service, out)
         return out
 
-    def new(self,  name="", instance="main",path=None, parent=None, args={},consume=""):
+    def new(self,  name="", instance="main",path=None, parent=None, args={},consume="", model=None):
         """
         will create a new service from template
 
@@ -586,9 +586,9 @@ class AtYourServiceRepo():
                 format $role/$domain|$name!$instance,$role2/$domain2|$name2!$instance2
 
         """
-        self._doinit()        
+        self._doinit()
         recipe = self.getRecipe(name)
-        obj = recipe.newInstance(instance=instance, path=path, parent=parent, args=args, consume=consume)
+        obj = recipe.newInstance(instance=instance, path=path, parent=parent, args=args, consume=consume, model=model)
         return obj
 
     def remove(self,  name="", instance="",domain="", role=""):
@@ -661,5 +661,3 @@ class AtYourServiceRepo():
         """
         domain, name, instance, role = j.atyourservice._parseKey(key)
         return self.getService(instance=instance,role=role, die=True)
-
-

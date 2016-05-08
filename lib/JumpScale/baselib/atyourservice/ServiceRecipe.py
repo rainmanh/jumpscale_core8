@@ -34,7 +34,7 @@ class RecipeState():
         self._changes={}
         self._methodsList=[]
 
-    def addMethod(self,name="",source="",isDefaultMethod=False):        
+    def addMethod(self,name="",source="",isDefaultMethod=False):
         if source!="":
             if name in ["input","init"]:
                 if source.find("$(")!=-1:
@@ -134,7 +134,7 @@ class ServiceRecipe(ServiceTemplate):
         self.path_hrd_schema = j.sal.fs.joinPaths(self.path, "schema.hrd")
         self.path_actions = j.sal.fs.joinPaths(self.path, "actions.py")
         self.path_actions_node = j.sal.fs.joinPaths(self.path, "actions_node.py")
-        self.path_mongo_model = j.sal.fs.joinPaths(self.path, "model.py")        
+        # self.path_mongo_model = j.sal.fs.joinPaths(self.path, "model.py")
 
     @property
     def path(self):
@@ -159,7 +159,7 @@ class ServiceRecipe(ServiceTemplate):
         if self._recipe==None:
             self._recipe = self.aysrepo.getRecipe(self.name)
         return self._recipe
-    
+
 
     def init(self):
 
@@ -241,11 +241,11 @@ class ServiceRecipe(ServiceTemplate):
                 amSource += "%s\n" % line[4:]
             i += 1
 
-        
+
         #process the last one
         if amSource!="":
             self.state.addMethod(amName,amSource)
-                
+
         content = '\n'.join(lines)
 
         # add missing methods
@@ -269,7 +269,7 @@ class ServiceRecipe(ServiceTemplate):
                 self.logger.info("method:%s    %s changed"%(key,self))
                 for service in self.aysrepo.findServices(templatename=self.name):
                     service.actions.change_method(methodname=am.name)
-        self.state._changes={}   
+        self.state._changes={}
 
     @property
     def actions(self):
@@ -287,7 +287,7 @@ class ServiceRecipe(ServiceTemplate):
             self._action_methods = {key:action for key, action in inspect.getmembers(self.actions, inspect.ismethod)}
         return self._action_methods
 
-    def newInstance(self, instance="main", args={}, path='', parent=None, consume="", originator=None):
+    def newInstance(self, instance="main", args={}, path='', parent=None, consume="", originator=None, model=None):
         """
         """
 
@@ -317,12 +317,12 @@ class ServiceRecipe(ServiceTemplate):
             if j.sal.fs.isDir(fullpath):
                 j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (self.role, instance, fullpath))
 
-            service = Service(aysrepo=self.aysrepo,servicerecipe=self, instance=instance, args=args, path="", parent=parent, originator=originator)
+            service = Service(aysrepo=self.aysrepo,servicerecipe=self, instance=instance, args=args, path="", parent=parent, originator=originator, model=model)
 
             self.aysrepo._services[service.key] = service
-            
+
             # service.init(args=args)
-        
+
         service.consume(consume)
 
         return service

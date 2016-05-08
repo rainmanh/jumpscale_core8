@@ -16,7 +16,11 @@ class ActionMethodDecorator(object):
     def __call__(self, func):
 
         def wrapper(that, *args, **kwargs):
-            cm=self.selfobjCode % that.params
+
+            # cm=self.selfobjCode % that.params
+            #@todo (*1*) need to re-introduce reem her changes, to make this safer
+
+            cm=self.selfobjCode 
 
             #args[0] is self
             # cuisine=args[0].cuisine

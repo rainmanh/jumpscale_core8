@@ -4,6 +4,7 @@ from ServiceRecipe import ServiceRecipe
 from Service import Service, loadmodule
 from ActionsBaseNode import ActionsBaseNode
 from ActionsBaseMgmt import ActionsBaseMgmt
+from ServiceTemplate import ServiceTemplate
 from ActionMethodDecorator import ActionMethodDecorator
 from Blueprint import Blueprint
 from AYSRun import AYSRun
@@ -73,6 +74,9 @@ class AtYourServiceRepo():
     def basepath(self,val):
         self.reset()
         baseDir=val
+        if not j.sal.fs.exists(path=baseDir):
+            raise j.exceptions.Input("Can not find based dir for ays in %s"%baseDir)
+
         while j.sal.fs.joinPaths(baseDir, ".ays") not in j.sal.fs.listFilesInDir(baseDir, recursive=False):
             baseDir=j.sal.fs.getParent(baseDir)
             baseDir=baseDir.rstrip("/")
@@ -83,6 +87,9 @@ class AtYourServiceRepo():
                 else:
                     baseDir = "/etc/ays/local"
                 break
+
+        if baseDir.strip("/").strip()=="":
+            raise j.exceptions.Input("Can not find based dir for ays in %s, after looking for parents."%val)
 
         self._basepath=baseDir
         for item in ["blueprints","recipes","services","servicetemplates"]:
@@ -130,10 +137,9 @@ class AtYourServiceRepo():
                 templ = ServiceTemplate(path, domain=domain)
                 self._templates[templ.name]=templ #overrule the factory ones with the local ones
 
-        if not self._templates:
-            # load local templates
-            path = j.sal.fs.joinPaths(self.basepath, "servicetemplates/")
-            load(self.name, path)
+        # load local templates
+        path = j.sal.fs.joinPaths(self.basepath, "servicetemplates/")
+        load(self.name, path)
 
         return self._templates
 
@@ -247,8 +253,12 @@ class AtYourServiceRepo():
 
             recipe.init()
 
-        for service in self.findServices(instance=instance,role=role, hasAction=hasAction, include_disabled=include_disabled):
-            service.init()
+        run = self.getRun(role=role,instance=instance,action="init",force=True)
+        run.execute()
+
+        # findActionScope
+        # for service in self.findServices(instance=instance,role=role, hasAction=hasAction, include_disabled=include_disabled):
+        #     service.init()
 
         print ("init done")
 
@@ -302,7 +312,7 @@ class AtYourServiceRepo():
                     continue
                 if service.getAction(action)==None:
                     continue                
-                service.state.getSetObject(action, state)
+                service.state.set(action, state)
                 service.state.save()
 
     def findActionScope(self,action,role="",instance="",producerRoles="*"):
@@ -347,7 +357,7 @@ class AtYourServiceRepo():
         producerRoles=self._processProducerRoles(producerRoles)
 
         if force:
-            self.setstate(actions=[action],role=role,instance=instance,state="DO")
+            self.setState(actions=[action],role=role,instance=instance,state="DO")
 
         if action=="init":
             actions=["init"]
@@ -435,52 +445,70 @@ class AtYourServiceRepo():
     #     return changed
 
 
-    def do(self, action="install", role="", instance="", printonly=False, ignorestate=False, force=False, ask=False):
-        self._doinit()
-        #make sure actions which are relevant get their init & install done
-        if action != "init" and action != "uninstall":
-            self.do("init",role=role,instance=instance)
+    # def do(self, action="install", role="", instance="", printonly=False, ignorestate=False, force=False, ask=False):
+    #     self._doinit()
+    #     #make sure actions which are relevant get their init & install done
+    #     if action != "init" and action != "uninstall":
+    #         self.do("init",role=role,instance=instance)
 
-        if action != "init" and action != "install" and action != "uninstall":
-            self.do("install",role=role,instance=instance)
+    #     if action != "init" and action != "install" and action != "uninstall":
+    #         self.do("install",role=role,instance=instance)
 
-        todo = self.findTodo(action=action,role=role,instance=instance,force=force,ignorestate=ignorestate or printonly)
+    #     todo = self.findTodo(action=action,role=role,instance=instance,force=force,ignorestate=ignorestate or printonly)
 
-        step = 1
-        while todo != []:
+    #     step = 1
+    #     while todo != []:
 
-            if ask:
-                from IPython import embed
-                print ("DEBUG NOW ask in do, filter items")
-                embed()
+    #         if ask:
+    #             from IPython import embed
+    #             print ("DEBUG NOW ask in do, filter items")
+    #             embed()
                 
 
-            print("execute state changes, nr services to process: %s in step:%s" % (len(todo), step))
-            for i in range(len(todo)):
-                service = todo[i]
-                print ("DO:%s %s"%(service,action))
-                service.runAction(action, printonly=printonly,ignorestate= ignorestate, force=force)
+    #         print("execute state changes, nr services to process: %s in step:%s" % (len(todo), step))
+    #         for i in range(len(todo)):
+    #             service = todo[i]
+    #             print ("DO:%s %s"%(service,action))
+    #             service.runAction(action, printonly=printonly,ignorestate= ignorestate, force=force)
 
-            todo = self.findTodo(action=action)
+    #         todo = self.findTodo(action=action)
 
-    def uninstall(self):
+    def install(self,role="", instance="",force=True,producerRoles="*"):
         self._doinit()
         if force:
-            self.forceAction(action="stop",role=role,instance=instance,saveState=True)
-            self.forceAction(action="uninstall",role=role,instance=instance,saveState=True)
+            self.setState(actions=["install"], role=role, instance=instance, state='DO')
 
-        scope=findProducersScope(role=role,instance=instance,actions=["stop"])
-        self.do("stop",scope)
-        scope=findProducersScope(role=role,instance=instance,actions=["uninstall"])
-        self.do("uninstall",scope)
+        run = self.getRun(action="install",force=force)
+        print("RUN:UNINSTALL")
+        print(run)
+        run.execute()
 
-    def install(self,role="", instance="",printonly=False,ignorestate=False,force=False):
+    def uninstall(self,role="", instance="",force=True,producerRoles="*"):
         self._doinit()
         if force:
-            self.forceAction(action="install",role=role,instance=instance,saveState=True)
+            self.setState(actions=["stop","uninstall"], role=role, instance=instance, state='DO')
 
-        scope=findProducersScope(role=role,instance=instance,actions=["install"])
-        self.do("install",scope)
+        run = self.getRun(action="stop",force=force)
+        print("RUN:STOP")
+        print(run)
+        run.execute()
+        run = self.getRun(role=role,instance=instance,action="uninstall",force=force)
+        print("RUN:UNINSTALL")
+        print(run)
+        run.execute()
+
+        # scope=self.findProducersScope(role=role,instance=instance,actions=["stop"])
+        # self.do("stop",scope)
+        # scope=self.findProducersScope(role=role,instance=instance,actions=["uninstall"])
+        # self.do("uninstall",scope)
+
+    # def install(self,role="", instance="",printonly=False,ignorestate=False,force=False):
+    #     self._doinit()
+    #     if force:
+    #         self.forceAction(action="install",role=role,instance=instance,saveState=True)
+
+    #     scope=findProducersScope(role=role,instance=instance,actions=["install"])
+    #     self.do("install",scope)
 
 
     def findRecipes(self, name="", version="", role=''):

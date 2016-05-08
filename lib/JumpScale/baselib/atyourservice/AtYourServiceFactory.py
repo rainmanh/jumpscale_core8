@@ -55,6 +55,8 @@ class AtYourServiceFactory():
 
     def get(self,name,path=""):
         self._doinit()
+        if path=="":
+            path=j.sal.fs.getcwd()
         if not name in self._repos:
             self._repos[name]=AtYourServiceRepo(name,path)
         return self._repos[name]

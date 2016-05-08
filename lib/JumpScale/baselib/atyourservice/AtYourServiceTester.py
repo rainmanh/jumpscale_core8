@@ -26,18 +26,16 @@ class AtYourServiceTester():
         return self._git
 
     def reset(self):
-        self.aysrepo.destroy()
+        self.aysrepo.destroy(uninstall=False)
 
     def gitpull(self):
         self.reset()
         self.git.pull()
 
-    def gitpush(self):
+    def gitpush(self,message="unknown"):
         self.reset()
-        from IPython import embed
-        print ("DEBUG NOW commit")
-        embed()
-        
+        self.git.commit(message)
+        self.git.pull()
         self.git.push()
 
 

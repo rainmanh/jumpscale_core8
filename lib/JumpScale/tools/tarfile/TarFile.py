@@ -56,6 +56,15 @@ class TarFile(object):
         """
         self._tar.add(file, arcname=name)
 
+    def addFiltered(self, file, name=None, filtering=None):
+        """
+        Add a file to the tarball, if name is specified, this name
+        will be used on the archive (alternative name)
+        This method accept a filter functions which can manipulate the TarInfo
+        This function need to take TarInfo in argument and return the modified object
+        """
+        self._tar.add(file, arcname=name, recursive=True, exclude=None, filter=filtering)
+
     def get(self, name):
         """
         Return a tarinfo about a file in the tar

@@ -641,7 +641,7 @@ class CuisineCore():
 
     def _file_stream(self, input, output):
         while True:
-            piece = input.read(131072)
+            piece = input.read(512 * 1024) # 512 kB chunk
             if not piece:
                 break
             

@@ -264,12 +264,12 @@ class ServiceRecipe(ServiceTemplate):
 
         j.sal.fs.writeFile(self.path_actions, content)
 
-        for key,_ in self.state.methods.items():
+        for key, _ in self.state.methods.items():
             if self.state.methodChanged(key):
-                self.logger.info("method:%s    %s changed"%(key,self))
+                self.logger.info("method:%s    %s changed" % (key, self))
                 for service in self.aysrepo.findServices(templatename=self.name):
-                    service.actions.change_method(methodname=am.name)
-        self.state._changes={}
+                    service.actions.change_method(methodname=key)
+        self.state._changes = {}
 
     @property
     def actions(self):

@@ -54,6 +54,11 @@ class Issue(Base):
     def body(self):
         return self.ddict["body"]
 
+    @body.setter
+    def body(self, val):
+        self.ddict["body"] = val
+        self.api.edit(body=self.ddict['body'])
+
     @property
     def time(self):
         return self.ddict["time"]

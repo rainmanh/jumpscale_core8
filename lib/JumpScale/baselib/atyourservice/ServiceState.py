@@ -45,6 +45,7 @@ class ServiceState():
         """
         state = INIT,ERROR,OK,DISABLED,DO,CHANGED,CHANGEDHRD  DO means: execute the action method as fast as you can, init means it has not been started yet ever
         """
+        name = name.lower()
         if default not in ["INIT","ERROR","OK","DISABLED","DO","CHANGED","CHANGEDHRD"]:
             raise j.exceptions.Input("State needs to be in INIT,ERROR,OK,DISABLED,DO,CHANGED,CHANGEDHRD")
         if name not in self._model["state"]:
@@ -53,6 +54,7 @@ class ServiceState():
             return  self._model["state"][name][0]
 
     def get(self,name,die=True):
+        name = name.lower()
         if name in self._model["state"]:
             return self._model["state"][name]
         else:
@@ -125,7 +127,10 @@ class ServiceState():
             key = event name
             val = [actions]
         """
-        return self._model["events"]
+        try:
+            return self._model["events"]
+        except KeyError:
+            return {}
 
     def setEvents(self, event, actions):
         """

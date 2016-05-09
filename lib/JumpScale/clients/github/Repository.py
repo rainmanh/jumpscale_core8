@@ -52,7 +52,7 @@ class GithubRepo():
     @property
     def labels(self):
         if self._labels is None:
-            self._labels = [item for item in self.api.get_labels()]                
+            self._labels = [item for item in self.api.get_labels()]
         return self._labels
 
     @property
@@ -398,7 +398,7 @@ class GithubRepo():
 
         return "ffffff"
 
-    def process_issues(self):
+    def process_issues(self, issues=[]):
         """
         find all todo's
         cmds supported
@@ -433,7 +433,10 @@ class GithubRepo():
                     return story
 
         # process commands & execute
-        for issue in self.issues:
+        if issues == []:
+            issues = self.issues
+
+        for issue in issues:
             for todo in issue.todo:
                 try:
                     cmd, args = todo.split(' ', 1)
@@ -511,7 +514,7 @@ class GithubRepo():
         res=self.issues_by_type_state()
 
         for type in self.types:
-            typeheader=False            
+            typeheader=False
             for state in self.states:
                 issues=res[type][state]
                 stateheader=False

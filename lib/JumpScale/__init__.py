@@ -132,6 +132,10 @@ if j.core.db==None:
         cmd="sysctl vm.overcommit_memory=1"
         os.system(cmd)
         redis_bin = '%s/bin/redis-server' % j.do.BASE
+        # this should not be here, this dependency should not hardcoded in the initialization code
+        base_bin_dir = os.path.join(j.do.BASE, 'bin')
+        if not os.path.exists(base_bin_dir):
+            os.makedirs(base_bin_dir)
         if 'redis-server' not in os.listdir(path='%s/bin/' % j.do.BASE):
             url = "https://stor.jumpscale.org/public/redis-server"
             j.do.download(url, to=redis_bin, overwrite=False, retry=3)

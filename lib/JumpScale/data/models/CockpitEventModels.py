@@ -33,3 +33,9 @@ class Alarm(ModelBase, Document):
     method = StringField(required=True)
     msg = StringField(required=True)
     epoch = IntField(default=j.data.time.getTimeEpoch(), required=True)
+
+
+class Generic(ModelBase, Document):
+    type = StringField(default='Generic', choices=('Generic'), required=True)
+    args = DictField()
+    epoch = IntField(default=j.data.time.getTimeEpoch(), required=True)

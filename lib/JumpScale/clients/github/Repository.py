@@ -173,6 +173,14 @@ class GithubRepo():
         for issue in self.issues:
             if issue.number == issueNumber:
                 return issue
+        # not found in cache, try to load from github
+        github_issue = self.api.get_issue(issueNumber)
+
+        if github_issue:
+            issue = Issue(repo=self, githubObj=github_issue)
+            self.issues.append(issue)
+            return issue
+
         if die:
             raise j.exceptions.Input("cannot find issue:%s in repo:%s" % (issueNumber, self))
         else:

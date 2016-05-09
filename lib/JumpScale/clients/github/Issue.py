@@ -108,6 +108,10 @@ class Issue(Base):
         return self._setLabels(val, "state")
 
     @property
+    def isOpen(self):
+        return self.ddict['open'] == True
+
+    @property
     def type(self):
         items = []
         for label in self.labels:
@@ -242,6 +246,7 @@ class Issue(Base):
         self._ddict["id"] = self.api.id
         self._ddict["url"] = self.api.html_url
         self._ddict["number"] = self.api.number
+        self._ddict['open'] = self.api.state == 'open'
 
         self._ddict["assignee"] = self.repo.client.getUserLogin(
             githubObj=self.api.assignee)
@@ -460,15 +465,16 @@ class Issue(Base):
                 if not "#%d" % task.number in existing_tasks:
                     self.logger.info("%s: add task:%s" % (self, task))
                     change = True
-                    table.addRow([task.api.state, task.title, "#%s" % task.number])
+                    table.addRow([task.state, task.title, "#%s" % task.number])
                     break
                 else:
                     # update task status if needed
                     for row in table.rows:
-                        if row[2] == '#%s' % task.number and row[0] != task.api.state:
+                        state = 'open' if task.isOpen else 'closed'
+                        if row[2] == '#%s' % task.number and row[0] != state:
                             self.logger.info("%s: update task:%s" % (self, task))
                             change = True
-                            row[0] = task.api.state
+                            row[0] = state
                             row[1] = task.title
                             break
 
@@ -476,7 +482,7 @@ class Issue(Base):
             change = True
             table = doc.addMDTable()
             table.addHeader(['status', 'title', 'link'])
-            table.addRow([task.api.state, task.title, "#%s" % task.number])
+            table.addRow([task.state, task.title, "#%s" % task.number])
 
         if change:
             self.ddict["body"] = str(doc)
@@ -496,9 +502,9 @@ class Issue(Base):
 
         if self.body=="" or self.body==None:
             return
-        
+
         doc = j.data.markdown.getDocument(self.body)
-            
+
         change = False
         story_line_found = False
         for item in doc.items:

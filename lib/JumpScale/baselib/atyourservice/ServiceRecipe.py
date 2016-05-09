@@ -2,6 +2,7 @@ from JumpScale import j
 
 # import JumpScale.baselib.actions
 import copy
+import inspect
 
 from ServiceTemplate import ServiceTemplate
 
@@ -15,7 +16,7 @@ ActionsBaseMgmt=j.atyourservice.getActionsBaseClassMgmt()
 class action(ActionMethodDecorator):
     def __init__(self,*args,**kwargs):
         ActionMethodDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="service=j.atyourservice._currentService;selfobj=service.recipe.actions;selfobj.service=service"
+        self.selfobjCode = "aysrepo=j.atyourservice.get('%(reponame)s', '%(repopath)s'); service=aysrepo.getService('%(role)s', '%(instance)s', reset=True); selfobj=service.actions;"
 
 """
 
@@ -178,7 +179,6 @@ class ServiceRecipe(ServiceTemplate):
 
         self.state.save()
 
-
     def _writeActionsFile(self):
         self._out = ""
 
@@ -280,11 +280,15 @@ class ServiceRecipe(ServiceTemplate):
             self._actions = mod.Actions()
         return self._actions
 
+    def get_actions(self, name, instance, repopath, reponame):
+        modulename = "JumpScale.atyourservice.%s.%s" % (name, instance)
+        mod = loadmodule(modulename, self.path_actions)
+        return mod.Actions(name, instance, repopath, reponame)
+
     @property
     def action_methods(self):
         if self._action_methods is None:
-            import inspect
-            self._action_methods = {key:action for key, action in inspect.getmembers(self.actions, inspect.ismethod)}
+            self._action_methods = {key: action for key, action in inspect.getmembers(self.actions, inspect.ismethod)}
         return self._action_methods
 
     def newInstance(self, instance="main", args={}, path='', parent=None, consume="", originator=None, model=None):
@@ -436,7 +440,7 @@ class ServiceRecipe(ServiceTemplate):
         """
         return a list of instance name for this template
         """
-        services = self.aysrepo.findServices(domain=self.domain, name=self.name)
+        services = self.aysrepo.findServices(templatename=self.name)
         return [service.instance for service in services]
 
     def upload2AYSfs(self, path):

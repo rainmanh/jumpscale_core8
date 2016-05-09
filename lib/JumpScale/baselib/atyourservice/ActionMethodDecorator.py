@@ -17,13 +17,7 @@ class ActionMethodDecorator(object):
 
         def wrapper(that, *args, **kwargs):
 
-            # cm=self.selfobjCode % that.params
-            #@todo (*1*) need to re-introduce reem her changes, to make this safer
-
-            cm=self.selfobjCode 
-
-            #args[0] is self
-            # cuisine=args[0].cuisine
+            cm = self.selfobjCode % that.params
 
             #this makes sure we show the action on terminal
             if "actionshow" in kwargs:
@@ -47,10 +41,10 @@ class ActionMethodDecorator(object):
             #     from pudb import set_trace; set_trace() 
 
             if action:
-                action0=j.actions.add(action=func, actionRecover=None,args=args,kwargs=kwargs,die=False,stdOutput=True,\
-                    errorOutput=True,retry=0,executeNow=False,selfGeneratorCode=cm,force=True,actionshow=actionshow)
+                action0 = j.actions.add(action=func, actionRecover=None, args=args, kwargs=kwargs, die=False, stdOutput=True,\
+                    errorOutput=True, retry=0, executeNow=False, selfGeneratorCode=cm, force=True, actionshow=actionshow)
 
-                service=action0.selfobj.service
+                service = action0.selfobj.service
                 
                 if force:
                     service.state.set(action0.name,"DO")
@@ -94,7 +88,7 @@ class ActionMethodDecorator(object):
 
                 return action0.result
             else:
-                return func(that, *args,**kwargs)
+                return func(that, *args, **kwargs)
 
         functools.update_wrapper(wrapper, func)
         return wrapper

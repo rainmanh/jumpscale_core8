@@ -150,7 +150,7 @@ class AtYourServiceRepo():
             aysrepopath = self.basepath
             if aysrepopath is not None:
                 # load local templates
-                domainpath = j.sal.fs.joinPaths(aysrepopath, "%s/recipes/" % aysrepopath)
+                domainpath = j.sal.fs.joinPaths(aysrepopath, "recipes")
                 d = j.tools.path.get(domainpath)
                 for item in d.walkfiles("state.json"):
                     recipepath = j.sal.fs.getDirName(item)
@@ -630,12 +630,14 @@ class AtYourServiceRepo():
         if die:
             raise j.exceptions.Input("Cannot find recipe with name:%s"%name)
 
-    def getService(self, role='', instance='main', die=True):
+    def getService(self, role='', instance='main', die=True, reset=False):
         """
         Return service indentifier by domain,name and instance
         throw error if service is not found or if more than one service is found
         """
         key="%s!%s"%(role,instance)
+        if reset: # TODO: figure out a cleaner way to make sure services are up to date. potentially very expensive.
+            self._services = {}
         if key in self.services:
             return self.services[key]
         if die:

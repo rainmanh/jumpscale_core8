@@ -273,12 +273,10 @@ class Service:
         if args is None:
             args = {}
 
-        j.atyourservice._currentService = self
         self.logger.info('INIT service: %s' % self)
 
         # run the args manipulation action as an action
-        self.recipe.actions.service = self
-        args = self.recipe.actions.input(self.recipe, self.role, self.instance, args)
+        args = self.actions.input(self.recipe, self.role, self.instance, args)
 
         originalhrd = j.data.hrd.get(content=str(self.hrd))
 
@@ -297,14 +295,11 @@ class Service:
 
         # self._action_methods = None  # to make sure we reload the actions
 
-        j.atyourservice._currentService = self
-
         if self.hrd is not None:
             self.hrd.save()
         self.state.save()
 
         self._consumeFromSchema(args)
-
         self.actions.init()
 
         if self.hrd is not None:
@@ -574,13 +569,11 @@ class Service:
     @property
     def actions(self):
         # make sure that recipe action finds us
-        self.logger.debug("Direct Actions Execute On Service:%s" % (self))
-        j.atyourservice._currentService = self
-        self.recipe.actions.service = self
-        return self.recipe.actions
+        self.logger.debug("Direct actions execute on service:%s" % self)
+        actions = self.recipe.get_actions(self.role, self.instance, self.aysrepo.basepath, j.sal.fs.getBaseName(self.aysrepo.basepath))
+        return actions
 
     def runAction(self, action, printonly=False, ignorestate=False, force=False):
-
         a = self.getAction(action)
 
         if force:
@@ -600,8 +593,7 @@ class Service:
         j.atyourservice._currentService = self
         if action not in self.recipe.state.methods:
             return None
-        # am=self.recipe.actionsmeta.methods[action]
-        a = getattr(self.recipe.actions, action)
+        a = getattr(self.actions, action)
         return a
 
     def _getDisabledProducers(self):

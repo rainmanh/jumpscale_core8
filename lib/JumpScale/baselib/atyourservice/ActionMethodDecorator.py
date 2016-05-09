@@ -35,10 +35,15 @@ class ActionMethodDecorator(object):
             else:
                 force=self.force
 
+            if "die" in kwargs:
+                die = kwargs.pop('die')
+            else:
+                die = True
+
             # print ("ACTION:START: isaction=%s"%action)
             # print(func)
             # if "getIssuesFromGithub" in str(func):
-            #     from pudb import set_trace; set_trace() 
+            #     from pudb import set_trace; set_trace()
 
             if action:
                 action0 = j.actions.add(action=func, actionRecover=None, args=args, kwargs=kwargs, die=False, stdOutput=True,\
@@ -71,20 +76,19 @@ class ActionMethodDecorator(object):
 
                 service.logger.info("Execute Action:%s %s"%(service,func.__name__ ))
                 action0.execute()
-                    
+
                 service.state.set(action0.name,action0.state)
-                
+
                 if not action0.state=="OK":
-                    if "die" in kwargs:
-                        if kwargs["die"]==False:
-                            return action0
+                    if die is False:
+                        return action0
                     msg="**ERROR ACTION**:\n%s"%action0
                     # raise j.exceptions.RuntimeError()
                     service.logger.error (msg)
                     service.save()
                     sys.exit(1)
 
-                service.save()                
+                service.save()
 
                 return action0.result
             else:

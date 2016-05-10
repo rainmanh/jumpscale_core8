@@ -285,12 +285,6 @@ class ServiceRecipe(ServiceTemplate):
         mod = loadmodule(modulename, self.path_actions)
         return mod.Actions(name, instance, repopath, reponame)
 
-    @property
-    def action_methods(self):
-        if self._action_methods is None:
-            self._action_methods = {key: action for key, action in inspect.getmembers(self.actions, inspect.ismethod)}
-        return self._action_methods
-
     def newInstance(self, instance="main", args={}, path='', parent=None, consume="", originator=None, model=None):
         """
         """

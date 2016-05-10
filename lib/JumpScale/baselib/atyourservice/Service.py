@@ -4,6 +4,7 @@ from contextlib import redirect_stdout
 import io
 import imp
 import sys
+import inspect
 from ServiceState import ServiceState
 
 
@@ -588,12 +589,17 @@ class Service:
             else:
                 print("Execute: %s %s" % (self, action))
 
+    @property
+    def action_methods(self):
+        if self._action_methods is None:
+            self._action_methods = {key: action for key, action in inspect.getmembers(self.actions, inspect.ismethod)}
+        return self._action_methods
+
     def getAction(self, action):
         """
         @return None when not exist
         """
-        j.atyourservice._currentService = self
-        if action not in self.recipe.state.methods:
+        if action not in self.action_methods:
             return None
         a = getattr(self.actions, action)
         return a

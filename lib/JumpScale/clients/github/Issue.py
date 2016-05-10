@@ -22,9 +22,7 @@ class Issue(Base):
     @property
     def api(self):
         if self._githubObj is None:
-            from IPython import embed
-            print("DEBUG NOW get api")
-            embed()
+            self._githubObj = self.repo.api.get_issue(self.number)
         return self._githubObj
 
     @property

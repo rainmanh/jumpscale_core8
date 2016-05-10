@@ -246,6 +246,12 @@ class Service:
                 self._model = j.data.serializer.yaml.loads(j.sal.fs.fileGetContents(model_path))
         return self._model
 
+    @model.setter
+    def model(self, val):
+        self._model = val
+        model_path = j.sal.fs.joinPaths(self.path, "model.yaml")
+        j.data.serializer.yaml.dump(model_path, self._model)
+
     @property
     def producers(self):
         if self._producers is None:
@@ -312,16 +318,16 @@ class Service:
                 self.hrd.save()
             self.state.instanceHRDHash = newInstanceHrdHash
 
-        if self.recipe.template.hrd is not None:
-            if self._hrd == "EMPTY":
-                self._hrd = None
-            newTemplateHrdHash = j.data.hash.md5_string(str(self.recipe.template.hrd))
-            if self.state.templateHRDHash != newTemplateHrdHash:
-                # the template hash changed
-                self.hrd.applyTemplate(template=self.recipe.template.hrd, args={}, prefix='')
-                self.actions.change_hrd_template(originalhrd=originalhrd)
-                self.hrd.save()
-                self.state.templateHRDHash = newTemplateHrdHash
+            if self.recipe.template.hrd is not None:
+                if self._hrd == "EMPTY":
+                    self._hrd = None
+                newTemplateHrdHash = j.data.hash.md5_string(str(self.recipe.template.hrd))
+                if self.state.templateHRDHash != newTemplateHrdHash:
+                    # the template hash changed
+                    self.hrd.applyTemplate(template=self.recipe.template.hrd, args={}, prefix='')
+                    self.actions.change_hrd_template(originalhrd=originalhrd)
+                    self.hrd.save()
+                    self.state.templateHRDHash = newTemplateHrdHash
 
         # Set subscribed event into state
         if self.recipe.template.hrd is not None:

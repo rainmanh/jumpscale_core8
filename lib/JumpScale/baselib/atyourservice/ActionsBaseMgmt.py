@@ -10,7 +10,7 @@ class ActionsBaseMgmt():
     @property
     def service(self):
         if not self._service:
-            self._service = self.aysrepo.getService(self.params['role'], self.params['instance'])
+            self._service = self.aysrepo.getService(self.params['role'], self.params['instance'], reset=True)
         return self._service
 
     def change_hrd_template(self,originalhrd):

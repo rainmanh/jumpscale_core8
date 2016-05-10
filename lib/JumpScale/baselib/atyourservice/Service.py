@@ -276,6 +276,7 @@ class Service:
         self.logger.info('INIT service: %s' % self)
 
         # run the args manipulation action as an action
+        self.state.save()
         args = self.actions.input(self.recipe, self.role, self.instance, args)
 
         originalhrd = j.data.hrd.get(content=str(self.hrd))
@@ -376,6 +377,7 @@ class Service:
 
                 for ays in ays_s:
                     self.state.consume(aysi=ays)
+            self.state.save()
 
     def consume(self, input):
         """

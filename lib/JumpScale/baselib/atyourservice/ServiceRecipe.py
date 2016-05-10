@@ -434,7 +434,7 @@ class ServiceRecipe(ServiceTemplate):
         """
         return a list of instance name for this template
         """
-        services = self.aysrepo.findServices(templatename=self.name)
+        services = self.aysrepo.findServices(domain=self.domain, name=self.name)
         return [service.instance for service in services]
 
     def upload2AYSfs(self, path):

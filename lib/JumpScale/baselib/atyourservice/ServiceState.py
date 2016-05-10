@@ -211,7 +211,7 @@ class ServiceState():
             out +="\n"
 
         if self.recurring!={} or self.methods!={}:
-            methods=OrderedDict
+            methods=OrderedDict()
             for actionname,actionstate in self.methods.items():
                 methods[actionname]=[actionstate,"",0]
             for actionname,obj in self.recurring.items():
@@ -222,7 +222,7 @@ class ServiceState():
             out = "### actions\n\n"
             out += "| %-20s | %-10s | %-10s | %-30s |\n" % ("name", "state","period", "last")
             out += "| %-20s | %-10s | %-10s | %-30s |\n" % ("---", "---","---", "---")
-            for actionname, obj in methods:
+            for actionname, obj in methods.items():
                 actionstate,period,last=obj
                 out += "| %-20s | %-10s | %-10s | %-30s |\n" % (actionname,actionstate,period,last)
             out +="\n"

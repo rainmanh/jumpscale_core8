@@ -60,6 +60,7 @@ class Service:
         self.originator = originator
 
         self.state = None
+        self._action_methods = None
 
         if path != "" and j.sal.fs.exists(path):
             self._role, self._instance = j.sal.fs.getBaseName(path).split("!")

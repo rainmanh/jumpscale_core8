@@ -154,7 +154,6 @@ class ServiceState():
         from IPython import embed
         print ("DEBUG NOW check recurring")
         embed()
-        p
 
     @property
     def parent(self):

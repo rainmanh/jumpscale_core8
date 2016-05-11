@@ -2,6 +2,7 @@ from JumpScale import j
 
 import random
 import inspect
+import imp
 import colored_traceback
 colored_traceback.add_hook(always=True)
 
@@ -107,27 +108,31 @@ class AtYourServiceTester():
         # some other basic tests
 
     def test_change_1template_method(self):
-        first_run = self.aysrepo.getRun(action='init')
         if self.subname != "main":
             raise j.exceptions.Input("test only supported on main")
-        templates_with_action_files = [service for service in self.aysrepo.services.values() if j.sal.fs.exists(service.recipe.template.path_actions)]
-        random_service = random.choice(templates_with_action_files)
-        random_method = random.choice(list(random_service.action_methods.values()))
-        recipe_path = j.sal.fs.joinPaths(random_service.recipe.template.path, "actions.py")
-        _, linenumber = inspect.getsourcelines(random_method)
-        with open(recipe_path, 'r') as file:
-            data = file.read().splitlines()
+        self.aysrepo.init()
+        random_blueprint = random.choice(self.aysrepo.blueprints)
+        blueprint_templates = [key.split('__')[0] for model in random_blueprint.models for key in model]
 
-        original_line = data[linenumber+1]
-        data[linenumber+1] = '%s # testing changing the template' % original_line
+        templates_with_action_files = [self.aysrepo.getTemplate(template).path_actions for template in blueprint_templates if j.sal.fs.exists(self.aysrepo.getTemplate(template).path_actions)]
+        template_path = random.choice(templates_with_action_files)
+        print ('******** path', template_path)
 
-        # and write everything back
-        with open(recipe_path, 'w') as file:
-            file.writelines(data)
+        data = j.sal.fs.fileGetContents(template_path).splitlines()
+        method_lines = [indx for indx in range(0, len(data)-1) if data[indx].startswith('    def ')]
+        random_method_line = random.choice(method_lines)
+        print ('******** line', random_method_line)
+        random_method = data[random_method_line].split('def')[1].strip().split('(')[0]
+        first_run = self.aysrepo.getRun(action=random_method)
+        # first_run.execute()
 
-        self.aysrepo._services = {}  # to reload everything
+        print ('******** method', random_method)
+        data[random_method_line+1] = '%s # testing changing the template' % data[random_method_line+1]
+        j.sal.fs.writeFile(template_path, '\n'.join(data))
 
-        second_run = self.aysrepo.getRun(action='init')
+        self.aysrepo._services = {}
+
+        second_run = self.aysrepo.getRun(action=random_method)
 
         # check second_run only contains changed 
         # change 1 template method
@@ -138,6 +143,31 @@ class AtYourServiceTester():
     def test_change_1template_schema(self):
         if self.subname != "main":
             raise j.exceptions.Input("test only supported on main")
+
+        # self.aysrepo.init()
+        random_blueprint = random.choice(self.aysrepo.blueprints)
+        blueprint_templates = [key.split('__')[0] for model in random_blueprint.models for key in model]
+
+        templates_with_schema = [self.aysrepo.getTemplate(template).path_hrd_schema for template in blueprint_templates if j.sal.fs.exists(self.aysrepo.getTemplate(template).path_hrd_schema)]
+        schema_path = random.choice(templates_with_schema)
+        print ('******** path', schema_path)
+
+        first_run = self.aysrepo.getRun(action='install')
+        first_run.execute()
+        original = j.sal.fs.fileGetContents(schema_path)
+        j.sal.fs.writeFile(schema_path, '\nextra.param = type:str default:\'test\'\n', append=True)
+        self.aysrepo._services = {}
+
+        second_run = self.aysrepo.getRun(action='install')
+
+        assert first_run.steps != second_run.steps, "something's not right!"
+
+        j.sal.fs.writeFile(schema_path, original)
+
+        third_run = self.aysrepo.getRun(action='install')
+
+        assert second_run.steps != third_run.steps, "No good"
+
         # change 1 template schema (add variable)
         # ask for aysrun for init, check the aysrun is ok, right aysi impacted
         # do init
@@ -147,6 +177,9 @@ class AtYourServiceTester():
     def test_change_blueprint(self):
         if self.subname != "main":
             raise j.exceptions.Input("test only supported on main")
+        random_blueprint = random.choice(self.aysrepo.blueprints)
+        bp_path = random_blueprint.path
+
         # change an argument in blueprint
         # ask for aysrun for init, check the aysrun is ok, right aysi impacted
         # do init

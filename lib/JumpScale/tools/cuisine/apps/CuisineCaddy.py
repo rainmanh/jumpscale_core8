@@ -38,11 +38,11 @@ class Caddy():
         C = """
         $addr
         gzip
-        log $cfgDir/caddy/log/access.log
+        log $tmplsDir/cfg/caddy/log/access.log
         errors {
-            log $cfgDir/caddy/log/errors.log
+            log $tmplsDir/cfg/caddy/log/errors.log
         }
-        root $cfgDir/caddy/www
+        root $tmplsDir/cfg/caddy/www
         """
         C = C.replace("$addr", addr)
         C = self.cuisine.core.args_replace(C)

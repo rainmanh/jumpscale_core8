@@ -94,6 +94,7 @@ class CuisineInstallerDevelop():
         self.cuisine.core.run_script(C)
 
         C="""
+        cffi==1.5.2
         paramiko
 
         msgpack-python

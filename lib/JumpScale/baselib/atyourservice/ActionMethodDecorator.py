@@ -50,7 +50,7 @@ class ActionMethodDecorator(object):
                     errorOutput=True, retry=0, executeNow=False, selfGeneratorCode=cm, force=True, actionshow=actionshow)
 
                 service = action0.selfobj.service
-                
+
                 if force:
                     service.state.set(action0.name,"DO")
 
@@ -83,10 +83,9 @@ class ActionMethodDecorator(object):
                     if die is False:
                         return action0
                     msg="**ERROR ACTION**:\n%s"%action0
-                    # raise j.exceptions.RuntimeError()
-                    service.logger.error (msg)
                     service.save()
-                    sys.exit(1)
+                    service.logger.error(msg)
+                    raise j.exceptions.RuntimeError(msg)
 
                 service.save()
 

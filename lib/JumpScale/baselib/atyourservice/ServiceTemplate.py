@@ -1,9 +1,5 @@
-
-
 from JumpScale import j
-
-from Service import *
-from ServiceRecipe import *
+from JumpScale.baselib.atyourservice.Service import *
 
 
 class ServiceTemplate(object):
@@ -85,7 +81,7 @@ class ServiceTemplate(object):
         return self._mongoModel
 
     def getRecipe(self, aysrepo):
-        from ServiceRecipe import ServiceRecipe
+        from JumpScale.baselib.atyourservice.ServiceRecipe import ServiceRecipe
         return ServiceRecipe(aysrepo, template=self)
 
     def __repr__(self):

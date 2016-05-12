@@ -13,13 +13,14 @@ class Blueprint(object):
 
     def __init__(self, aysrepo,path):
         self.aysrepo=aysrepo
-        
+
         self.path=path
+        self.name = j.sal.fs.getBaseName(path)
         self.models=[]
         self._contentblocks=[]
         content=""
         content0=j.sal.fs.fileGetContents(path)
-        
+
         nr=0
         #we need to do all this work because the yaml parsing does not maintain order because its a dict
         for line in content0.split("\n"):
@@ -61,7 +62,7 @@ class Blueprint(object):
                     recipe=self.aysrepo.getRecipe(aysname,die=False)
 
                     if recipe==None:
-                        
+
                         #check if its a blueprintays, if yes then template name is different
                         aystemplate_name=aysname
                         if not aysname.startswith('blueprint.'):
@@ -70,7 +71,7 @@ class Blueprint(object):
                                 aystemplate_name=blueaysname
 
                         recipe=self.aysrepo.getRecipe(aystemplate_name) #will load recipe if it doesn't exist yet
-                    
+
                     aysi = recipe.newInstance(instance=aysinstance, args=item)
 
 

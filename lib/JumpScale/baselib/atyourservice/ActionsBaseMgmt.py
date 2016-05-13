@@ -2,16 +2,9 @@ from JumpScale import j
 
 
 class ActionsBaseMgmt():
-    def __init__(self, role, instance, repopath, reponame):
-        self.params = {'role': role, 'instance': instance, 'repopath': repopath, 'reponame': reponame}
-        self.aysrepo = j.atyourservice.get(reponame, repopath)
-        self._service = None
+    def __init__(self, service):
+        self.service = service
 
-    @property
-    def service(self):
-        if not self._service:
-            self._service = self.aysrepo.getService(self.params['role'], self.params['instance'], reset=True)
-        return self._service
 
     def change_hrd_template(self,originalhrd):
         for methodname,obj in self.service.state.methods.items():

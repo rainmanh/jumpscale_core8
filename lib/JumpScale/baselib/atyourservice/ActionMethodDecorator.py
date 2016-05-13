@@ -17,8 +17,6 @@ class ActionMethodDecorator(object):
 
         def wrapper(that, *args, **kwargs):
 
-            cm = self.selfobjCode % that.params
-
             #this makes sure we show the action on terminal
             if "actionshow" in kwargs:
                 actionshow=kwargs.pop("actionshow")
@@ -47,47 +45,45 @@ class ActionMethodDecorator(object):
 
             if action:
                 action0 = j.actions.add(action=func, actionRecover=None, args=args, kwargs=kwargs, die=False, stdOutput=True,\
-                    errorOutput=True, retry=0, executeNow=False, selfGeneratorCode=cm, force=True, actionshow=actionshow)
-
-                service = action0.selfobj.service
+                    errorOutput=True, retry=0, serviceObj=that.service, executeNow=False, force=True, actionshow=actionshow)
 
                 if force:
-                    service.state.set(action0.name,"DO")
+                    that.service.state.set(action0.name,"DO")
 
-                state=service.state.getSet(action0.name,default="INIT")
+                state=that.service.state.getSet(action0.name,default="INIT")
 
                 if state=="OK":
-                    service.logger.info ("NOTHING TODO OK: %s"%action0.name)
+                    that.service.logger.info ("NOTHING TODO OK: %s"%action0.name)
                     action0.state="OK"
                     action0.save()
                     return action0.result
 
                 if state=="DISABLED":
-                    service.logger.info ("NOTHING TODO DISABLED: %s"%action0.name)
+                    that.service.logger.info ("NOTHING TODO DISABLED: %s"%action0.name)
                     action0.state="DISABLED"
                     action0.save()
                     return
 
                 if func.__name__ not in ["init","input"]:
-                    if service.hrd!=None:
-                        action0.hrd=service.hrd
+                    if that.service.hrd!=None:
+                        action0.hrd=that.service.hrd
                     action0._method=None
                     action0.save()
 
-                service.logger.info("Execute Action:%s %s"%(service,func.__name__ ))
+                that.service.logger.info("Execute Action:%s %s"%(that.service,func.__name__ ))
                 action0.execute()
 
-                service.state.set(action0.name,action0.state)
+                that.service.state.set(action0.name,action0.state)
 
                 if not action0.state=="OK":
                     if die is False:
                         return action0
                     msg="**ERROR ACTION**:\n%s"%action0
-                    service.save()
-                    service.logger.error(msg)
+                    that.service.save()
+                    that.service.logger.error(msg)
                     raise j.exceptions.RuntimeError(msg)
 
-                service.save()
+                that.service.save()
 
                 return action0.result
             else:

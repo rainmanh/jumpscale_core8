@@ -14,7 +14,6 @@ ActionsBaseMgmt=j.atyourservice.getActionsBaseClassMgmt()
 class action(ActionMethodDecorator):
     def __init__(self,*args,**kwargs):
         ActionMethodDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode = "aysrepo=j.atyourservice.get('%(reponame)s', '%(repopath)s'); service=aysrepo.getService('%(role)s', '%(instance)s', reset=True); selfobj=service.actions;"
 
 """
 
@@ -269,19 +268,10 @@ class ServiceRecipe(ServiceTemplate):
                     service.actions.change_method(methodname=key)
         self.state._changes = {}
 
-    @property
-    def actions(self):
-        if self._actions is None:
-            print("reload mgmt actions for %s" % (self))
-            modulename = "JumpScale.atyourservice.%s" % (self.name)
-            mod = loadmodule(modulename, self.path_actions)
-            self._actions = mod.Actions()
-        return self._actions
-
-    def get_actions(self, name, instance, repopath, reponame):
-        modulename = "JumpScale.atyourservice.%s.%s" % (name, instance)
+    def get_actions(self, service):
+        modulename = "JumpScale.atyourservice.%s.%s" % (self.name, service.instance)
         mod = loadmodule(modulename, self.path_actions)
-        return mod.Actions(name, instance, repopath, reponame)
+        return mod.Actions(service)
 
     def newInstance(self, instance="main", args={}, path='', parent=None, consume="", originator=None, model=None):
         """

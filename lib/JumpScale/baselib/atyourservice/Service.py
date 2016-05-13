@@ -580,8 +580,7 @@ class Service:
     def actions(self):
         # make sure that recipe action finds us
         self.logger.debug("Direct actions execute on service:%s" % self)
-        actions = self.recipe.get_actions(self.role, self.instance, self.aysrepo.basepath, j.sal.fs.getBaseName(self.aysrepo.basepath))
-        return actions
+        return self.recipe.get_actions(self)
 
     def runAction(self, action, printonly=False, ignorestate=False, force=False):
         a = self.getAction(action)

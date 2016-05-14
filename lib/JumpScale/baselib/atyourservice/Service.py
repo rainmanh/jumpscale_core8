@@ -320,10 +320,11 @@ class Service:
             newTemplateHrdHash = j.data.hash.md5_string(str(self.recipe.template.hrd))
             if self.state.templateHRDHash != newTemplateHrdHash:
                 # the template hash changed
-                self.hrd.applyTemplate(template=self.recipe.template.hrd, args={}, prefix='')
-                self.actions.change_hrd_template(originalhrd=originalhrd)
-                self.hrd.save()
-                self.state.templateHRDHash = newTemplateHrdHash
+                if self.hrd is not None:
+                    self.hrd.applyTemplate(template=self.recipe.template.hrd, args={}, prefix='')
+                    self.actions.change_hrd_template(service=self,originalhrd=originalhrd)
+                    self.hrd.save()
+                    self.state.templateHRDHash = newTemplateHrdHash
 
         # Set subscribed event into state
         if self.recipe.template.hrd is not None:
@@ -395,7 +396,6 @@ class Service:
         ```
 
         """
-        print("input:'%s'" % input)
         if input is not None and input is not '':
             toConsume = set()
             if j.data.types.string.check(input):

@@ -516,6 +516,8 @@ class Action:
 
     @property
     def selfobj(self):
+        if self.selfGeneratorCode==None or self.selfGeneratorCode.lower().strip()=="none":
+            return None
         if self.selfGeneratorCode!="": #this is the code which needs to generate a selfobj
             try:
                 l={}
@@ -562,20 +564,20 @@ class Action:
             err = ''
 
             while self.state != "ERROR" and ok==False and counter<self.retry+1:
+                
+                kwargs=self.kwargs
 
                 if self.dynamicArguments !="":
-                    from IPython import embed
-                    print ("DEBUG NOW dynamicArguments")
-                    embed()
-                    p
-                    
+                    for akey,acode in self.dynamicArguments.items():
+                        l={}
+                        kwargs[akey]=eval(acode,globals(),l)
 
                 try:
                     if self.selfobj!="**NOTHING**":
                         #here we try to reconstruct the cuisine object@ or other self objects
-                        self.result = self.method(self.selfobj,*self.args,**self.kwargs)
+                        self.result = self.method(self.selfobj,*self.args,**kwargs)
                     else:
-                        self.result = self.method(*self.args,**self.kwargs)
+                        self.result = self.method(*self.args,**kwargs)
 
                     ok=True
                     rcode=0

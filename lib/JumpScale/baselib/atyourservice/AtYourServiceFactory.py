@@ -274,7 +274,7 @@ class AtYourServiceFactory():
             else:
                 return None
         repo=self._repos[reponame]
-        return repo.get(role,instance,die)
+        return repo.getService(role=role,instance=instance,die=die)
 
     def getTemplate(self,  name, die=True):
         """

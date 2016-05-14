@@ -20,26 +20,22 @@ class ServiceState():
         """
         return dict
             key = action name
-            val = [state,lastokepoch]
+            val = state
         state = INIT,ERROR,OK,DISABLED,DO,CHANGED,CHANGEDHRD  DO means: execute the action method as fast as you can, init means it has not been started yet ever
 
         """
         return self._model["state"]
 
-    def set(self,name,state="DO",remembertime=True):
+    def set(self,name,state="DO"):
         """
         state = INIT,ERROR,OK,DISABLED,DO,CHANGED,CHANGEDHRD  DO means: execute the action method as fast as you can, init means it has not been started yet ever
         """
         if state not in ["INIT","ERROR","OK","DISABLED","DO","CHANGED","CHANGEDHRD"]:
             raise j.exceptions.Input("State needs to be in INIT,ERROR,OK,DISABLED,DO,CHANGED,CHANGEDHRD")
         name=name.lower()
-        if remembertime:
-            self._model["state"][name]=[state,j.data.time.getTimeEpoch()]
+        if name not in self._model["state"] or self._model["state"][name]!=state:
+            self._model["state"][name]=state
             self.changed=True
-        else:
-            if name not in self._model["state"] or self._model["actionsState"][name]!=state:
-                self._model["state"][name]=[default,j.data.time.getTimeEpoch]
-                self.changed=True
 
     def getSet(self,name,default="DO"):
         """
@@ -49,14 +45,15 @@ class ServiceState():
         if default not in ["INIT","ERROR","OK","DISABLED","DO","CHANGED","CHANGEDHRD"]:
             raise j.exceptions.Input("State needs to be in INIT,ERROR,OK,DISABLED,DO,CHANGED,CHANGEDHRD")
         if name not in self._model["state"]:
-            self._model["state"][name]=[default,j.data.time.getTimeEpoch()]
+            self._model["state"][name]=default
+            self.changed=True
         else:
-            return  self._model["state"][name][0]
+            return  self._model["state"][name]
 
     def get(self,name,die=True):
         name = name.lower()
         if name in self._model["state"]:
-            return self._model["state"][name][0]
+            return self._model["state"][name]
         else:
             if die:
                 raise j.exceptions.Input("Cannot find state with name %s"%name)
@@ -71,7 +68,6 @@ class ServiceState():
     @changed.setter
     def changed(self,changed):
         self._changed=changed
-
 
     @property
     def recipe(self):
@@ -109,7 +105,7 @@ class ServiceState():
 
         lastrun = epoch
         period = e.g. 1h, 1d, ...
-        """
+        """        
         return self._model["recurring"]
 
     def setRecurring(self, name, period):
@@ -126,7 +122,7 @@ class ServiceState():
         return dict
             key = event name
             val = [actions]
-        """
+        """        
         try:
             return self._model["events"]
         except KeyError:
@@ -185,6 +181,7 @@ class ServiceState():
             self.changed=True
         if aysi.key not in self._model["producers"][aysi.role]:
             self._model["producers"][aysi.role].append(aysi.key)
+            self._model["producers"][aysi.role].sort()
             self.changed=True
             self.service.reset()
 
@@ -230,7 +227,7 @@ class ServiceState():
 
     def save(self):
         if self.changed:
-            self.service.logger.info ("State Changed, writen to disk.")
+            # self.service.logger.info ("State Changed, writen to disk.")
             j.data.serializer.yaml.dump(self._path,self.model)
             self.changed=False
 

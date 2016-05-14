@@ -85,8 +85,10 @@ class GithubRepo():
         issues = self.issues_by_type(filter)
         return issues['task']
 
-    @labels.setter
-    def labels(self, labels2set):
+    def labelsSet(self, labels2set,ignoreDelete=["p_"],delete=True):
+        """
+        @param ignore all labels starting with ignore will not be deleted
+        """
 
         for item in labels2set:
             if not j.data.types.string.check(item):
@@ -132,14 +134,19 @@ class GithubRepo():
 
         name = ""
 
-        labelstowalk = copy.copy(self.labels)
-        for item in labelstowalk:
-            if item.name not in labels2set:
-                self.logger.info(
-                    "delete label: %s %s" %
-                    (self.fullname, item.name))
-                item.delete()
-                self._labels = None
+        if delete:
+            labelstowalk = copy.copy(self.labels)
+            for item in labelstowalk:
+                if item.name not in labels2set:
+                    self.logger.info("delete label: %s %s" % (self.fullname, item.name))
+                    ignoreDeleteDo=False
+                    for filteritem in ignoreDelete:
+                        if item.name.startswith(filteritem):
+                            ignoreDeleteDo=True
+                    if ignoreDeleteDo==False:
+                        from pudb import set_trace; set_trace() 
+                        item.delete()
+                    self._labels = None
 
         # check the colors
         labelstowalk = copy.copy(self.labels)

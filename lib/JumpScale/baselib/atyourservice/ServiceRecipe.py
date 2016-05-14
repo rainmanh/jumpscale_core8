@@ -263,7 +263,7 @@ class ServiceRecipe(ServiceTemplate):
             if self.state.methodChanged(key):
                 self.logger.info("method:%s    %s changed" % (key, self))
                 for service in self.aysrepo.findServices(templatename=self.name):
-                    service.actions.change_method(methodname=key)
+                    service.actions.change_method(service=service,methodname=key)            
         self.state._changes = {}
 
     @property
@@ -287,7 +287,7 @@ class ServiceRecipe(ServiceTemplate):
         service = self.aysrepo.getService(role=self.role, instance=instance, die=False)
 
         if service is not None:
-            print("NEWINSTANCE: Service instance %s!%s  exists." % (self.name, instance))
+            # print("NEWINSTANCE: Service instance %s!%s  exists." % (self.name, instance))
             service._recipe = self
             service.init(args=args)
 

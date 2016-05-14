@@ -590,6 +590,8 @@ class Text:
         elif j.data.types.int.check(obj) or j.data.types.float.check(obj):
             return str(obj)
         elif j.data.types.list.check(obj):
+            obj.sort()
+            obj=[item for item in obj if item.strip()!="" or item.strip()!="''"]
             # if not canBeDict:
             #     raise j.exceptions.RuntimeError("subitem cannot be list or dict for:%s"%obj)
             if multiline:

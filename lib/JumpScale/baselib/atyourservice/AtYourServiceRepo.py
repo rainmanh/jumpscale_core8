@@ -358,9 +358,10 @@ class AtYourServiceRepo():
         if force:
             self.setState(actions=[action],role=role,instance=instance,state="DO")
 
-        for key,s in self.services.items():
-            if s.state.get("init")!="OK":
-                raise j.exceptions.Input("Cannot get run: %s:%s:%s because found a service not properly inited yet:%s, please rerun ays init"%(role,instance,action,s))
+        if action not in ["init"]:
+            for key,s in self.services.items():
+                if s.state.get("init")!="OK":
+                    raise j.exceptions.Input("Cannot get run: %s:%s:%s because found a service not properly inited yet:%s, please rerun ays init"%(role,instance,action,s))
 
         if action=="init":
             actions=["init"]
@@ -413,25 +414,19 @@ class AtYourServiceRepo():
         return todo
 
 
-    def commit(self, action="unknown", msg="", precheck=False):
+    def commit(self, message="", branch="master",push=True):
         self._doinit()
-        from IPython import embed
-        print ("DEBUG NOW commit")
-        embed()
-        s
-        pass
-        # if len(self.git.getModifiedFiles(True,ignore=["/alog/"]))>0:
-        #     if msg=="":
-        #         msg='ays changed, commit changed files for action:%s'%action
-        #     print(msg)
-        #     repo=self.git.commit(message=msg, addremove=True)
-        #     self.alog.newGitCommit(action=action,githash=repo.hexsha)
-        # else:
-        #     #@todo will create duplicates will have to fix that
-        #     #git hash is current state
-        #     if not precheck:
-        #         #only do this when no precheck, means we are not cleaning up past
-        #         self.alog.newGitCommit(action=action,githash="")
+        if message=="":
+            message="log changes for repo:%s"%self.name
+        gitcl=j.clients.git.get(self.basepath)
+        if branch!="master":
+            gitcl.switchBranch(branch)
+
+        gitcl.commit(message,True)
+
+        if push:
+            print ("PUSH")
+            gitcl.push()
 
     # def _getChangedServices(self, action=None):
     #     changed = list()

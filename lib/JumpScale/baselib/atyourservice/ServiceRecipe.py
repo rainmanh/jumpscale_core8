@@ -16,7 +16,6 @@ ActionsBaseMgmt=j.atyourservice.getActionsBaseClassMgmt()
 class action(ActionMethodDecorator):
     def __init__(self,*args,**kwargs):
         ActionMethodDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode = "aysrepo=j.atyourservice.get('%(reponame)s', '%(repopath)s'); service=aysrepo.getService('%(role)s', '%(instance)s', reset=True); selfobj=service.actions;"
 
 """
 
@@ -254,13 +253,9 @@ class ServiceRecipe(ServiceTemplate):
                 am = self.state.addMethod(name=actionname,isDefaultMethod=True)
                 #not found
                 if actionname == "input":
-                    content += '\n\n    def input(self,name,role,instance,serviceargs):\n        return serviceargs\n'
-                elif actionname == "change_hrd":
-                    content += '\n\n    def change_hrd(self,stateitem):\n        return True\n'
-                elif actionname == "change_method":
-                    content += '\n\n    def change_hrd(self,stateitem):\n        return True\n'
+                    content += '\n\n    def input(self,service,name,role,instance,serviceargs):\n        return serviceargs\n'
                 else:
-                    content += "\n\n    @action()\n    def %s(self):\n        return True\n" % actionname
+                    content += "\n\n    @action()\n    def %s(self,service):\n        return True\n" % actionname
 
         j.sal.fs.writeFile(self.path_actions, content)
 
@@ -279,11 +274,6 @@ class ServiceRecipe(ServiceTemplate):
             mod = loadmodule(modulename, self.path_actions)
             self._actions = mod.Actions()
         return self._actions
-
-    def get_actions(self, name, instance, repopath, reponame):
-        modulename = "JumpScale.atyourservice.%s.%s" % (name, instance)
-        mod = loadmodule(modulename, self.path_actions)
-        return mod.Actions(name, instance, repopath, reponame)
 
     def newInstance(self, instance="main", args={}, path='', parent=None, consume="", originator=None, model=None):
         """
@@ -315,7 +305,7 @@ class ServiceRecipe(ServiceTemplate):
             if j.sal.fs.isDir(fullpath):
                 j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (self.role, instance, fullpath))
 
-            service = Service(aysrepo=self.aysrepo,servicerecipe=self, instance=instance, args=args, path="", parent=parent, originator=originator, model=model)
+            service = Service(aysrepo=self.aysrepo,servicerecipe=self, instance=instance, args=args, path="", parent=parent, originator=originator, model=model)                
 
             self.aysrepo._services[service.key] = service
 

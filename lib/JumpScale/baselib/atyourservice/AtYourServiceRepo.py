@@ -23,7 +23,7 @@ class AtYourServiceRepo():
         self._type = None
 
         self._services = {}
-        self._recipes = {}
+        self._recipes = {} 
 
         self._templates={}
 
@@ -630,14 +630,14 @@ class AtYourServiceRepo():
         if die:
             raise j.exceptions.Input("Cannot find recipe with name:%s"%name)
 
-    def getService(self, role='', instance='main', die=True, reset=False):
+    def getService(self, role, instance, die=True):
         """
         Return service indentifier by domain,name and instance
         throw error if service is not found or if more than one service is found
         """
+        if role.strip()=="" or instance.strip()=="":
+            raise j.exceptions.Input("role or instance cannot be empty.")
         key="%s!%s"%(role,instance)
-        if reset: # TODO: figure out a cleaner way to make sure services are up to date. potentially very expensive.
-            self._services = {}
         if key in self.services:
             return self.services[key]
         if die:
@@ -649,17 +649,11 @@ class AtYourServiceRepo():
 
     def getServiceFromKey(self, key):
         """
-        key in format $domain|$name!$instance@role ($version)
-
-        different formats
-        - @$role!$instance or $role!$instance
-        - !$instance
-        - @role
-
-        examples
-        - find me service with role ns: '@ns' if more than 1 then there will be an error
-        - find me a service with instance name ovh4 '!ovh4'
+        key in format $reponame!$name!$instance@role ($version)
 
         """
-        domain, name, instance, role = j.atyourservice._parseKey(key)
+        if key.count("!")==2:
+            reponame,role,instance=key.split("!")
+        else:
+            role,instance=key.split("!")
         return self.getService(instance=instance,role=role, die=True)

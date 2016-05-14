@@ -264,6 +264,17 @@ class AtYourServiceFactory():
     def findAYSRepos(self):
         return (root for root, dirs, files in os.walk(j.dirs.codeDir) if '.ays' in files)
 
+    def getService(self,key,die=True):
+        if key.count("!")!=2:
+            raise j.exceptions.Input("key:%s needs to be $reponame!$role!$instance"%key)
+        reponame,role,instance=key.split("!",2)
+        if reponame not in self._repos:
+            if die:
+                raise j.exceptions.Input("service repo %s does not exist, could not retrieve ays service:%s"%(reponame,key))
+            else:
+                return None
+        repo=self._repos[reponame]
+        return repo.get(role,instance,die)
 
     def getTemplate(self,  name, die=True):
         """
@@ -293,71 +304,6 @@ class AtYourServiceFactory():
         if self.getTemplate(name,die=False)==None:
             return False
         return True
-
-
-    def _getKey(self, service):
-        """
-
-        different formats
-
-        for services:
-        ```$role!$instance```
-
-        for servicetemplates or servicerecipes
-        ```$domain|$name``` if domain is not empty or not ays
-
-        """
-        if isinstance(service,Service):
-            key = service.role
-            key += "!%s" % (service.instance)
-        elif isinstance(service,ServiceTemplate) or isinstance(service,ServiceRecipe):
-
-            if service.domain != "" and service.domain != "ays" :
-                key = "%s|%s" % (service.domain, service.name)
-            else:
-                key = service.name
-        # if service.version != "":
-        #     key += " (%s)" % service.version
-        return key.lower()
-
-    def _parseKey(self, key):
-        """
-        @return (domain,name,instance,role)
-
-        """
-        key = key.lower()
-        if key.find("|") != -1:
-            domain, name = key.split("|")
-        else:
-            domain = ""
-            name = key
-
-        if name.find("@") != -1:
-            name, role = name.split("@", 1)
-            role = role.strip()
-        else:
-            role = ""
-
-        if name.find("!") != -1:
-            # found instance
-            name, instance = name.split("!", 1)
-            instance = instance.strip()
-            if domain == '':
-                role = name
-                name = ''
-        else:
-            instance = ""
-
-        name = name.strip()
-
-        if role == "":
-            if name.find('.') != -1:
-                role = name.split(".", 1)[0]
-            else:
-                role = name
-
-        domain = domain.strip()
-        return (domain, name, instance, role)
 
     def __str__(self):
         return self.__repr__()

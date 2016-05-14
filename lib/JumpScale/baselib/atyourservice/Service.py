@@ -148,7 +148,8 @@ class Service:
 
             self.hrd  # create empty hrd
 
-        self._key = j.atyourservice._getKey(self)
+        self._key = "%s!%s" % (self.role,self.instance)
+        self._gkey = "%s!%s!%s" % (aysrepo.name,self.role,self.instance)
 
         if self.state is None:
             self.state = ServiceState(self)
@@ -174,9 +175,11 @@ class Service:
 
     @property
     def key(self):
-        if self._key == "":
-            raise RuntimeError("key cannot be ''")
         return self._key
+
+    @property
+    def gkey(self):
+        return self._gkey
 
     @property
     def role(self):
@@ -217,8 +220,7 @@ class Service:
     def parent(self):
         if self._parent is None:
             if self.state.parent != "":
-                _, _, instance, role = j.atyourservice._parseKey(self.state.parent)
-                self._parent = self.aysrepo.getService(role=role, instance=instance)
+                self._parent = self.aysrepo.getServiceFromKey(self.state.parent)
         return self._parent
 
     @property
@@ -254,7 +256,7 @@ class Service:
                 producerSet = set()
                 # items=[item for item in items if item.strip()!=""]
                 for item in items:
-                    _, _, instance, role = j.atyourservice._parseKey(item)
+                    role,instance=item.split("!")
                     service = self.aysrepo.getService(role=role, instance=instance)
                     producerSet.add(service)
 
@@ -279,7 +281,7 @@ class Service:
 
         # run the args manipulation action as an action
         self.state.save()
-        args = self.actions.input(self.recipe, self.role, self.instance, args)
+        args = self.actions.input(self,self.recipe, self.role, self.instance, args)
 
         originalhrd = j.data.hrd.get(content=str(self.hrd))
 
@@ -303,12 +305,12 @@ class Service:
         self.state.save()
 
         self._consumeFromSchema(args)
-        self.actions.init()
+        self.actions.init(service=self)
 
         if self.hrd is not None:
             newInstanceHrdHash = j.data.hash.md5_string(str(self.hrd))
             if self.state.instanceHRDHash != newInstanceHrdHash:
-                self.actions.change_hrd_instance(originalhrd=originalhrd)
+                self.actions.change_hrd_instance(service=self,originalhrd=originalhrd)
                 self.hrd.save()
             self.state.instanceHRDHash = newInstanceHrdHash
 
@@ -574,21 +576,18 @@ class Service:
     def actions(self):
         # make sure that recipe action finds us
         self.logger.debug("Direct actions execute on service:%s" % self)
-        actions = self.recipe.get_actions(self.role, self.instance, self.aysrepo.basepath, j.sal.fs.getBaseName(self.aysrepo.basepath))
-        return actions
+        return self.recipe.actions
 
-    def runAction(self, action, printonly=False, ignorestate=False, force=False):
+    def runAction(self, action):
         a = self.getAction(action)
-
-        if force:
-            self.state.set(methodname=action, state="FORCE")
+        if a==None:
+            raise j.exceptions.Input("Cannot find action:%s on %s"%(action,self))
 
         # when none means does not exist so does not have to be executed
         if a is not None:
-            if not printonly:
-                return a()
-            else:
-                print("Execute: %s %s" % (self, action))
+            # if action not in ["init","input"]:
+            return a(service=self)
+
 
     @property
     def action_methods(self):

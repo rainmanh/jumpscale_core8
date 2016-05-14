@@ -12,15 +12,14 @@ class ServiceTemplate(object):
         self.path = path
 
         base = j.sal.fs.getBaseName(path)
-
-        _, self.name, _, _ = j.atyourservice._parseKey(base)
+        self.name=base
+        
         if base.find("__") != -1:
             self.domain, self.name = base.split("__", 1)
         else:
             self.domain = domain
 
         self._init_props()
-        self.key = j.atyourservice._getKey(self)
 
     def _init_props(self):
         self.path_hrd_template = j.sal.fs.joinPaths(self.path, "service.hrd")

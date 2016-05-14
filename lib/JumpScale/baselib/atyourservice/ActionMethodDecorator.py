@@ -7,9 +7,8 @@ import sys
 
 class ActionMethodDecorator(object):
 
-    def __init__(self,action=True,force=True,actionshow=True,actionMethodName="",queue=""):
+    def __init__(self,action=True,actionshow=True,actionMethodName="",queue=""):
         self.action=action
-        self.force=force
         self.actionshow=actionshow
         self.name=actionMethodName
 
@@ -17,7 +16,7 @@ class ActionMethodDecorator(object):
 
         def wrapper(that, *args, **kwargs):
 
-            cm = self.selfobjCode % that.params
+            # cm = self.selfobjCode % that.params
 
             #this makes sure we show the action on terminal
             if "actionshow" in kwargs:
@@ -31,53 +30,55 @@ class ActionMethodDecorator(object):
                 action=self.action
 
             if "force" in kwargs:
-                force=kwargs.pop("force")
-            else:
-                force=self.force
+                raise RuntimeError("no longer force ")
+                
+            # if "force" in kwargs:
+            #     force=kwargs.pop("force")
+            # else:
+            #     force=self.force
+            # force=True #because we now have the aysrun so we know what to do and what not
 
             if "die" in kwargs:
                 die = kwargs.pop('die')
             else:
                 die = True
 
+            if self.name=="":
+                self.name=func.__name__
+
             # print ("ACTION:START: isaction=%s"%action)
-            # print(func)
-            # if "getIssuesFromGithub" in str(func):
-            #     from pudb import set_trace; set_trace()
+
+            if "service" in kwargs:
+                if j.data.types.string.check(kwargs["service"]):
+                    dargs={}
+                    dargs["service"]="j.atyourservice.getService(\"%s\")"%kwargs["service"]
+                    service=j.atyourservice.getService(kwargs["service"])
+                else:
+                    #will just execute with service as argument
+                    action=False
+                    service=kwargs["service"]
+            else:
+                raise j.exception.Input("service should be used as kwargs argument")
+
+            if self.name in ["init","input"]:
+                action=False
+
+
+            state=service.state.getSet(self.name,default="INIT")
 
             if action:
                 action0 = j.actions.add(action=func, actionRecover=None, args=args, kwargs=kwargs, die=False, stdOutput=True,\
-                    errorOutput=True, retry=0, executeNow=False, selfGeneratorCode=cm, force=True, actionshow=actionshow)
-
-                service = action0.selfobj.service
+                    errorOutput=True, retry=0, executeNow=False, force=True, actionshow=actionshow,dynamicArguments=dargs,selfGeneratorCode="None")
                 
-                if force:
-                    service.state.set(action0.name,"DO")
-
-                state=service.state.getSet(action0.name,default="INIT")
-
-                if state=="OK":
-                    service.logger.info ("NOTHING TODO OK: %s"%action0.name)
-                    action0.state="OK"
-                    action0.save()
-                    return action0.result
-
-                if state=="DISABLED":
-                    service.logger.info ("NOTHING TODO DISABLED: %s"%action0.name)
-                    action0.state="DISABLED"
-                    action0.save()
-                    return
-
-                if func.__name__ not in ["init","input"]:
-                    if service.hrd!=None:
-                        action0.hrd=service.hrd
-                    action0._method=None
-                    action0.save()
+                if service.hrd!=None:
+                    action0.hrd=service.hrd
+                action0._method=None
+                action0.save()
 
                 service.logger.info("Execute Action:%s %s"%(service,func.__name__ ))
                 action0.execute()
 
-                service.state.set(action0.name,action0.state)
+                service.state.set(self.name,action0.state)
 
                 if not action0.state=="OK":
                     if die is False:
@@ -88,11 +89,26 @@ class ActionMethodDecorator(object):
                     service.save()
                     sys.exit(1)
 
-                service.save()
-
                 return action0.result
+
             else:
-                return func(that, *args, **kwargs)
+                result = func(that, *args, **kwargs)
+
+                #@todo escalation does not happen well
+                # try:
+                #     result = func(that, *args, **kwargs)
+                # except Exception as e:
+                #     service.state.set(func.__name__,"ERROR")
+                #     if die:
+                #         service.save()
+                #         raise RuntimeError(e)
+                #         sys.exit(1)
+                #     else:
+                #         return False
+
+                service.state.set(func.__name__,"OK")
+
+            service.save()
 
         functools.update_wrapper(wrapper, func)
         return wrapper

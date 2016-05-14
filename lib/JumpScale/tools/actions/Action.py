@@ -16,7 +16,7 @@ from pygments.formatters import get_formatter_by_name
 
 class Action:
     def __init__(self, action=None,runid=0,actionRecover=None,args=(),kwargs={},die=True,stdOutput=True,errorOutput=True,retry=1,\
-                serviceObj=None,deps=[],key="",selfGeneratorCode="",force=False,actionshow=True):
+                serviceObj=None,deps=[],key="",selfGeneratorCode="",force=False,actionshow=True,dynamicArguments={}):
         '''
         self.doc is in doc string of method
         specify recover actions in the description
@@ -85,6 +85,7 @@ class Action:
         if action!=None:
 
             self.selfGeneratorCode=selfGeneratorCode
+            self.dynamicArguments=dynamicArguments
 
             self.args = args
             self.imports = kwargs.pop("imports", [])
@@ -212,6 +213,7 @@ class Action:
         model["_parents"]=self._parents
         model["error"]=self.error
         model["selfGeneratorCode"]=self.selfGeneratorCode
+        model["dynamicArguments"]=self.dynamicArguments
         model["runid"] = self.runid
         model["_state_show"] = self._state_show
         model["_actionRecover"] = self._actionRecover
@@ -315,13 +317,14 @@ class Action:
         $source
         """
         #not used for now
-        s2="""
-        res=$name(*j.data.serializer.json.loads(args),**j.data.serializer.json.loads(kwargs))
+        # s2="""
+        # res=$name(*j.data.serializer.json.loads(args),**j.data.serializer.json.loads(kwargs))
 
-        print ("**RESULT**")
-        print (j.data.serializer.json.dumps(res,True,True))
+        # print ("**RESULT**")
+        # print (j.data.serializer.json.dumps(res,True,True))
 
-        """
+        # """
+
         s=j.data.text.strip(s)
         s = s.replace("$imports", '\n'.join(self.imports))
         args=j.data.serializer.json.dumps(self.args,sort_keys=True, indent=True)
@@ -556,9 +559,16 @@ class Action:
 
             while self.state != "ERROR" and ok==False and counter<self.retry+1:
 
+                if self.dynamicArguments !="":
+                    from IPython import embed
+                    print ("DEBUG NOW dynamicArguments")
+                    embed()
+                    p
+                    
+
                 try:
                     if self.selfobj!="**NOTHING**":
-                        #here we try to reconstruct the cuisine object@
+                        #here we try to reconstruct the cuisine object@ or other self objects
                         self.result = self.method(self.selfobj,*self.args,**self.kwargs)
                     else:
                         self.result = self.method(*self.args,**self.kwargs)

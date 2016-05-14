@@ -333,8 +333,8 @@ class GithubRepo():
         if ms is not None:
             if ms.title != title:
                 ms.title = title
-            if ms.deadline != deadline:
-                ms.deadline = deadline
+            # if ms.deadline != deadline:
+            #     ms.deadline = deadline
             tocheck = getBody(description.strip(), name, owner)
             if ms.body.strip() != tocheck.strip():
                 ms.body = tocheck

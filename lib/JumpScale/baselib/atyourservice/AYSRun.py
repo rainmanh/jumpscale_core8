@@ -8,10 +8,17 @@ class AYSRunStep:
         self.run=run
         self.nr=nr
         self.services=[]
+        self.serviceKeys={}
         self.action=action
 
+    def addService(self,aysi):
+        if aysi.key not in self.serviceKeys:
+            self.services.append(aysi)
+            self.serviceKeys[aysi.key]=aysi
+
+
     def exists(self,aysi):
-        return aysi in self.services
+        return aysi.key in self.serviceKeys
 
     def execute(self):
         for service in self.services:

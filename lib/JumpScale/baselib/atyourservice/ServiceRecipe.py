@@ -269,7 +269,7 @@ class ServiceRecipe(ServiceTemplate):
     @property
     def actions(self):
         if self._actions is None:
-            print("reload mgmt actions for %s" % (self))
+            # print("reload mgmt actions for %s" % (self))
             modulename = "JumpScale.atyourservice.%s" % (self.name)
             mod = loadmodule(modulename, self.path_actions)
             self._actions = mod.Actions()

@@ -56,7 +56,7 @@ class ServiceState():
     def get(self,name,die=True):
         name = name.lower()
         if name in self._model["state"]:
-            return self._model["state"][name]
+            return self._model["state"][name][0]
         else:
             if die:
                 raise j.exceptions.Input("Cannot find state with name %s"%name)

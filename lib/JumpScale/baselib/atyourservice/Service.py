@@ -574,8 +574,7 @@ class Service:
 
     @property
     def actions(self):
-        # make sure that recipe action finds us
-        self.logger.debug("Direct actions execute on service:%s" % self)
+        # self.logger.debug("Direct actions execute on service:%s" % self)
         return self.recipe.actions
 
     def runAction(self, action):

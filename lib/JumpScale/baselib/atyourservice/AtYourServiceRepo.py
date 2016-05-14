@@ -242,6 +242,8 @@ class AtYourServiceRepo():
         self._doinit()
         self.reset()
 
+        self.setState(actions=["init"],role=role,instance=instance,state="INIT")
+
         # make sure the recipe's are loaded & initted
         for bp in self.blueprints:
             bp.load(role=role)
@@ -253,12 +255,8 @@ class AtYourServiceRepo():
 
             recipe.init()
 
-        run = self.getRun(role=role,instance=instance,action="init",force=True)
+        run = self.getRun(role=role,instance=instance,action="init")
         run.execute()
-
-        # findActionScope
-        # for service in self.findServices(instance=instance,role=role, hasAction=hasAction, include_disabled=include_disabled):
-        #     service.init()
 
         print ("init done")
 
@@ -352,6 +350,7 @@ class AtYourServiceRepo():
         return producerroles
 
 
+
     def getRun(self,role="",instance="",action="install",force=False,producerRoles="*"):
         self._doinit()
         producerRoles=self._processProducerRoles(producerRoles)
@@ -359,12 +358,14 @@ class AtYourServiceRepo():
         if force:
             self.setState(actions=[action],role=role,instance=instance,state="DO")
 
+        for key,s in self.services.items():
+            if s.state.get("init")!="OK":
+                raise j.exceptions.Input("Cannot get run: %s:%s:%s because found a service not properly inited yet:%s, please rerun ays init"%(role,instance,action,s))
+
         if action=="init":
             actions=["init"]
-        elif action=="install":
-            actions=["init","install"]
         else:
-            actions=["init","install",action]
+            actions=["install",action]
 
         run=AYSRun(self)
         for action0 in actions:
@@ -378,7 +379,7 @@ class AtYourServiceRepo():
                         if newstep:
                             step=run.newStep(action=action0)
                             newstep=False
-                        step.services.append(service)
+                        step.addService(service)
                     if service in scope:
                         scope.remove(service)
                 todo=self._findTodo(action0,scope=scope,run=run,producerRoles=producerRoles)
@@ -393,6 +394,8 @@ class AtYourServiceRepo():
         todo = list()
         waiting=False
         for service in scope:
+            if run.exists(service,action):
+                continue
             producersWaiting = service.getProducersRecursive(producers=set(), callers=set(),action=action,producerRoles=producerRoles)
             #remove the ones which are already in previous runs
             producersWaiting=[item for item in producersWaiting if run.exists(item,action)==False]

@@ -84,16 +84,20 @@ class Action:
 
         if action!=None:
 
+            self.serviceObj = serviceObj
             self.selfGeneratorCode=selfGeneratorCode
             self.dynamicArguments=dynamicArguments
 
+            # In the case of AYS action execution. We passe the service Obj directly.
+            # actions are already loaded in service object. we can directly take the action object as selfobj
+            if self.serviceObj is not None and hasattr(self.serviceObj, 'actions') and self.selfGeneratorCode == '':
+                self._selfobj = serviceObj.actions
+
             self.args = args
             self.imports = kwargs.pop("imports", [])
-            self.kwargs= kwargs
+            self.kwargs = kwargs
 
-            self.serviceObj = serviceObj
-
-            self.method=action                
+            self.method=action
 
             if actionRecover!=None:
                 self._actionRecover = actionRecover.key

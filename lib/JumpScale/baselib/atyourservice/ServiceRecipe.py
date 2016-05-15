@@ -114,8 +114,6 @@ class ServiceRecipe(ServiceTemplate):
 
         self.role=self.name.split(".",1)[0]
 
-        self._action_methods =None
-
 
         # copy the files
         if not j.sal.fs.exists(path=self.path):
@@ -216,7 +214,7 @@ class ServiceRecipe(ServiceTemplate):
 
             if state == "MAIN" and linestrip.startswith("@"):
                 if amSource!="":
-                    self.state.addMethod(amName,amSource)
+                    self.state.addMethod(amName, amSource)
                 amSource = ""
                 amName = ""
                 i += 1
@@ -255,7 +253,7 @@ class ServiceRecipe(ServiceTemplate):
                 if actionname == "input":
                     content += '\n\n    def input(self,service,name,role,instance,serviceargs):\n        return serviceargs\n'
                 else:
-                    content += "\n\n    @action()\n    def %s(self,service):\n        return True\n" % actionname
+                    content += "\n\n    @action()\n    def %s(self):\n        return True\n" % actionname
 
         j.sal.fs.writeFile(self.path_actions, content)
 
@@ -266,14 +264,10 @@ class ServiceRecipe(ServiceTemplate):
                     service.actions.change_method(service=service,methodname=key)            
         self.state._changes = {}
 
-    @property
-    def actions(self):
-        if self._actions is None:
-            # print("reload mgmt actions for %s" % (self))
-            modulename = "JumpScale.atyourservice.%s" % (self.name)
-            mod = loadmodule(modulename, self.path_actions)
-            self._actions = mod.Actions()
-        return self._actions
+    def get_actions(self, service):
+        modulename = "JumpScale.atyourservice.%s.%s" % (self.name, service.instance)
+        mod = loadmodule(modulename, self.path_actions)
+        return mod.Actions(service)
 
     def newInstance(self, instance="main", args={}, path='', parent=None, consume="", originator=None, model=None):
         """

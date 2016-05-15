@@ -305,12 +305,12 @@ class Service:
         self.state.save()
 
         self._consumeFromSchema(args)
-        self.actions.init(service=self)
+        self.actions.init()
 
         if self.hrd is not None:
             newInstanceHrdHash = j.data.hash.md5_string(str(self.hrd))
             if self.state.instanceHRDHash != newInstanceHrdHash:
-                self.actions.change_hrd_instance(service=self,originalhrd=originalhrd)
+                self.actions.change_hrd_instance(originalhrd=originalhrd)
                 self.hrd.save()
             self.state.instanceHRDHash = newInstanceHrdHash
 
@@ -322,7 +322,7 @@ class Service:
                 # the template hash changed
                 if self.hrd is not None:
                     self.hrd.applyTemplate(template=self.recipe.template.hrd, args={}, prefix='')
-                    self.actions.change_hrd_template(service=self,originalhrd=originalhrd)
+                    self.actions.change_hrd_template(originalhrd=originalhrd)
                     self.hrd.save()
                     self.state.templateHRDHash = newTemplateHrdHash
 
@@ -574,8 +574,7 @@ class Service:
 
     @property
     def actions(self):
-        # self.logger.debug("Direct actions execute on service:%s" % self)
-        return self.recipe.actions
+        return self.recipe.get_actions(self)
 
     def runAction(self, action):
         a = self.getAction(action)
@@ -585,7 +584,7 @@ class Service:
         # when none means does not exist so does not have to be executed
         if a is not None:
             # if action not in ["init","input"]:
-            return a(service=self)
+            return a()
 
 
     @property

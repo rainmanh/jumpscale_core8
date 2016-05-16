@@ -86,7 +86,8 @@ class AtYourServiceTester():
     def test_install(self):
         if self.subname != "main":
             raise j.exceptions.Input("test only supported on main")
-        self.test_init()
+        self.reset()
+        self.aysrepo.init()
 
         run_services = list()
         run = self.aysrepo.getRun(action='install')
@@ -111,7 +112,7 @@ class AtYourServiceTester():
         if self.subname != "main":
             raise j.exceptions.Input("test only supported on main")
 
-        self.aysrepo.destroy()
+        self.reset()
         self.aysrepo.init()
 
         random_blueprint = random.choice(self.aysrepo.blueprints)
@@ -120,7 +121,7 @@ class AtYourServiceTester():
         templates_with_action_files = [self.aysrepo.getTemplate(template).path_actions for template in blueprint_templates if j.sal.fs.exists(self.aysrepo.getTemplate(template).path_actions)]
         template_path = random.choice(templates_with_action_files)
         data = j.sal.fs.fileGetContents(template_path).splitlines()
-        method_lines = [indx for indx in range(0, len(data)-1) if data[indx].startswith('    def ')]
+        method_lines = [indx for indx in range(0, len(data)-1) if data[indx].startswith('    def ') and 'init' not in data[indx]]
         random_method_line = random.choice(method_lines)
         random_method = data[random_method_line].split('def')[1].strip().split('(')[0]
 
@@ -148,7 +149,7 @@ class AtYourServiceTester():
         second_run = second_run.stdout.readlines()
         assert len(first_run) != len(second_run), "second run should've only contained affected services"
 
-        j.sal.fs.writeFile(template_path, ''.join(original))
+        j.sal.fs.writeFile(template_path, '\n'.join(original))
 
         third_run = subprocess.Popen(command, universal_newlines=True, stdout=subprocess.PIPE)
         third_run = third_run.stdout.readlines()
@@ -165,7 +166,7 @@ class AtYourServiceTester():
         if self.subname != "main":
             raise j.exceptions.Input("test only supported on main")
 
-        self.aysrepo.destroy()
+        self.reset()
         self.aysrepo.init()
 
         random_blueprint = random.choice(self.aysrepo.blueprints)
@@ -173,7 +174,7 @@ class AtYourServiceTester():
 
         templates_with_schema = [self.aysrepo.getTemplate(template).path_hrd_schema for template in blueprint_templates if j.sal.fs.exists(self.aysrepo.getTemplate(template).path_hrd_schema)]
         schema_path = random.choice(templates_with_schema)
-        service_role = j.sal.fs.getBaseName(j.sal.fs.getDirName(schema_path))
+        service_role = j.sal.fs.getBaseName(j.sal.fs.getDirName(schema_path)).split('.')[0]
         command = ["ays", "simulate", "install"]
 
         first_run = subprocess.Popen(command, universal_newlines=True, stdout=subprocess.PIPE)
@@ -198,7 +199,7 @@ class AtYourServiceTester():
         third_run = third_run.stdout.readlines()
 
         assert len(second_run) == len(third_run), "third run should've only contained affected services, same ones second run did"
-        assert service_role in ''.join(third_run)
+        assert service_role in ''.join(third_run), 'service of role "%s" should have been affected' % service_role
         # change 1 template schema (add variable)
         # ask for aysrun for init, check the aysrun is ok, right aysi impacted
         # do init
@@ -209,7 +210,7 @@ class AtYourServiceTester():
         if self.subname != "main":
             raise j.exceptions.Input("test only supported on main")
 
-        self.aysrepo.destroy()
+        self.reset()
         self.aysrepo.init()
 
         random_blueprint = random.choice(self.aysrepo.blueprints)
@@ -254,12 +255,12 @@ class AtYourServiceTester():
         if self.subname != "main":
             raise j.exceptions.Input("test only supported on main")
 
-        self.aysrepo.destroy()
+        self.reset()
         self.aysrepo.init()
 
         services = [j.sal.fs.joinPaths(service.path, 'instance.hrd') for service in list(self.aysrepo.services.values())]
         instance_path = random.choice(services)
-        service_role = j.sal.fs.getBaseName(j.sal.fs.getDirName(instance_path))
+        service_role = j.sal.fs.getBaseName(j.sal.fs.getDirName(instance_path)).split('.')[0]
         command = ["ays", "simulate", "install"]
 
         first_run = subprocess.Popen(command, universal_newlines=True, stdout=subprocess.PIPE)
@@ -284,7 +285,8 @@ class AtYourServiceTester():
         third_run = third_run.stdout.readlines()
 
         assert len(second_run) == len(third_run), "third run should've only contained affected services, same ones second run did"
-        assert service_role in ''.join(third_run)
+        assert service_role in ''.join(third_run), 'service of role "%s" should have been affected' % service_role
+        # change 1 template schema (add variable)
         # change hrd for 1 instance
         # ask for aysrun for init, check the aysrun is ok, right aysi impacted
         # do init

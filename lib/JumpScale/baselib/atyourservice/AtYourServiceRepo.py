@@ -151,6 +151,8 @@ class AtYourServiceRepo():
             if aysrepopath is not None:
                 # load local templates
                 domainpath = j.sal.fs.joinPaths(aysrepopath, "recipes")
+                if not j.sal.fs.exists(domainpath):
+                    return {}
                 d = j.tools.path.get(domainpath)
                 for item in d.walkfiles("state.json"):
                     recipepath = j.sal.fs.getDirName(item)
@@ -164,7 +166,10 @@ class AtYourServiceRepo():
     def services(self):
         self._doinit()
         if self._services == {}:
-            for hrd_path in j.sal.fs.listFilesInDir(j.sal.fs.joinPaths(self.basepath,"services"), recursive=True, filter="state.yaml",
+            services_path = j.sal.fs.joinPaths(self.basepath, "services")
+            if not j.sal.fs.exists(services_path):
+                return {}
+            for hrd_path in j.sal.fs.listFilesInDir(services_path, recursive=True, filter="state.yaml",
                                                     case_sensitivity='os', followSymlinks=True, listSymlinks=False):
                 service_path = j.sal.fs.getDirName(hrd_path)
                 service = Service(self,path=service_path, args=None)

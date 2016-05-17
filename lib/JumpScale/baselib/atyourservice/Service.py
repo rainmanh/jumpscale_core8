@@ -281,7 +281,7 @@ class Service:
 
         # run the args manipulation action as an action
         self.state.save()
-        args = self.actions.input(self,self.recipe, self.role, self.instance, args)
+        args = self.actions.input(self.recipe, self.role, self.instance, args)
 
         originalhrd = j.data.hrd.get(content=str(self.hrd))
 

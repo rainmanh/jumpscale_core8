@@ -251,7 +251,7 @@ class ServiceRecipe(ServiceTemplate):
                 am = self.state.addMethod(name=actionname,isDefaultMethod=True)
                 #not found
                 if actionname == "input":
-                    content += '\n\n    def input(self,service,name,role,instance,serviceargs):\n        return serviceargs\n'
+                    content += '\n\n    def input(self, name,role,instance,serviceargs):\n        return serviceargs\n'
                 else:
                     content += "\n\n    @action()\n    def %s(self):\n        return True\n" % actionname
 
@@ -261,7 +261,7 @@ class ServiceRecipe(ServiceTemplate):
             if self.state.methodChanged(key):
                 self.logger.info("method:%s    %s changed" % (key, self))
                 for service in self.aysrepo.findServices(templatename=self.name):
-                    service.actions.change_method(methodname=key)            
+                    service.actions.change_method(methodname=key)
         self.state._changes = {}
 
     def get_actions(self, service):
@@ -299,7 +299,7 @@ class ServiceRecipe(ServiceTemplate):
             if j.sal.fs.isDir(fullpath):
                 j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (self.role, instance, fullpath))
 
-            service = Service(aysrepo=self.aysrepo,servicerecipe=self, instance=instance, args=args, path="", parent=parent, originator=originator, model=model)                
+            service = Service(aysrepo=self.aysrepo,servicerecipe=self, instance=instance, args=args, path="", parent=parent, originator=originator, model=model)
 
             self.aysrepo._services[service.key] = service
 

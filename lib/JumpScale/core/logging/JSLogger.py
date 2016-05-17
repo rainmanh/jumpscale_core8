@@ -36,7 +36,7 @@ class JSLogger(logging.Logger):
 
         logger.critical("Houston, we have a %s", "major disaster", exc_info=1)
         """
-        if self.isEnabledFor(CRITICAL):
+        if self.isEnabledFor(logging.CRITICAL):
             eco = j.errorconditionhandler.getErrorConditionObject(
                 ddict={}, msg=msg, msgpub=msg, category=self.name,
                 level=logging.CRITICAL, type=logging.getLevelName(logging.CRITICAL),

@@ -180,7 +180,7 @@ class ServiceRecipe(ServiceTemplate):
         self._out = ""
 
         actionmethodsRequired = ["input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
-                                 "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata"]
+                                 "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata", "consume"]
 
         if j.sal.fs.exists(self.template.path_actions):
             content = j.sal.fs.fileGetContents(self.template.path_actions)

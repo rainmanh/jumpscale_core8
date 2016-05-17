@@ -106,6 +106,9 @@ def install(role="",instance="",force=False,producerroles="*", ask=False):
     run.execute()
 
 
+    run = atyourservice.getRun(action='consume', force=False)
+    run.execute()
+
 
 
 @click.command()

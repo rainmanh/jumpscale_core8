@@ -549,6 +549,9 @@ class Service:
                     return True
         return False
 
+    def get_consumers(self):
+        return [service for service in list(self.aysrepo.services.values()) if self.isConsumedBy(service)]
+
     def getProducers(self, producercategory):
         if producercategory not in self.producers:
             raise j.exceptions.Input("cannot find producer with category:%s" % producercategory)

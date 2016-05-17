@@ -19,5 +19,10 @@ class ActionsBaseMgmt:
                 self.service.state.save()
 
     def change_method(self, methodname):
-        self.service.state.set(methodname,"CHANGED")
+        self.service.state.set(methodname, "CHANGED")
         self.service.state.save()
+
+        # set consumers' consume states to changed as well
+        for consumer in self.service.get_consumers():
+            if 'consume' in consumer.action_methods.keys():
+                consumer.actions.change_method('consume')

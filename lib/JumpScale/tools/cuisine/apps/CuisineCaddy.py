@@ -56,7 +56,17 @@ class Caddy():
             self.start(ssl)
 
     def start(self, ssl):
-        cpath = self.cuisine.core.args_replace("$tmplsDir/cfg/caddy/caddyfile.conf")
+        cpath = self.cuisine.core.args_replace("$cfgDir/caddy/caddyfile.conf")
+        self.cuisine.core.file_copy("$tmplsDir/cfg/caddy", "$cfgDir/caddy", recursive=True)
+
+        #adjust confguration file
+        conf = self.cuisine.core.file_read(cpath)
+        conf.replace("$tmplsDir/cfg", "$cfgDir")
+        conf = self.cuisine.core.args_replace(conf)
+        self.cuisine.core.file_write("$cfgDir/caddy/caddyfile.conf", conf, replaceArgs=True)
+
+
+
         self.cuisine.processmanager.stop("caddy")  # will also kill
         fw = not self.cuisine.core.run("ufw status 2> /dev/null || echo **OK**", die=False, check_is_ok=True )
         if ssl:

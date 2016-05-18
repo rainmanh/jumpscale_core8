@@ -41,6 +41,7 @@ class CuisinePortal(object):
         make sure new env arguments are understood on platform
         """
         deps = """
+        cffi==1.5.2
         setuptools
         aioredis
         # argh

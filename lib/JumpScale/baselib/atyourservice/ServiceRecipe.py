@@ -251,9 +251,9 @@ class ServiceRecipe(ServiceTemplate):
                 am = self.state.addMethod(name=actionname,isDefaultMethod=True)
                 #not found
                 if actionname == "input":
-                    content += '\n\n    def input(self,service,name,role,instance,serviceargs):\n        return serviceargs\n'
+                    content += '\n\n    def input(self, service, name, role, instance, serviceargs):\n        return serviceargs\n'
                 else:
-                    content += "\n\n    @action()\n    def %s(self):\n        return True\n" % actionname
+                    content += "\n\n    @action()\n    def %s(self, service):\n        return True\n" % actionname
 
         j.sal.fs.writeFile(self.path_actions, content)
 
@@ -261,13 +261,13 @@ class ServiceRecipe(ServiceTemplate):
             if self.state.methodChanged(key):
                 self.logger.info("method:%s    %s changed" % (key, self))
                 for service in self.aysrepo.findServices(templatename=self.name):
-                    service.actions.change_method(methodname=key)            
+                    service.actions.change_method(service, methodname=key)            
         self.state._changes = {}
 
     def get_actions(self, service):
         modulename = "JumpScale.atyourservice.%s.%s" % (self.name, service.instance)
         mod = loadmodule(modulename, self.path_actions)
-        return mod.Actions(service)
+        return mod.Actions()
 
     def newInstance(self, instance="main", args={}, path='', parent=None, consume="", originator=None, model=None):
         """

@@ -371,7 +371,7 @@ class AtYourServiceRepo():
         if action=="init":
             actions=["init"]
         else:
-            actions = ["install", action, "consume"]
+            actions = ["install", action]
 
         run=AYSRun(self)
         for action0 in actions:

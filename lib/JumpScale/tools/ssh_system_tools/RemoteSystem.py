@@ -696,7 +696,7 @@ class RemotePortForwardHander(object):
             return
 
         self.logger.info('port_forward_handler:handle Connected!  Tunnel open %r -> %r' %
-                     (channel.getpeername(), (local_address, local_port))))
+                     (channel.getpeername(), (local_address, local_port)))
 
         while True:
             r, w, x = select.select([sock, channel], [], [])

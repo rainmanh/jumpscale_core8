@@ -11,7 +11,7 @@ class NginxFactory:
 
 
 
-class Nginx():
+class Nginx:
 
     def __init__(self):
         self.configPath = j.tools.path.get('/etc').joinpath('nginx', 'conf.d')

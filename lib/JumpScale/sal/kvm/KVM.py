@@ -24,7 +24,7 @@ root.partitionnr=
 
 
 
-class KVM():
+class KVM:
 
     def __init__(self):
         """

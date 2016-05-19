@@ -13,7 +13,7 @@ class NetworkingError(Exception):
 
 
 
-class UnixNetworkManager():
+class UnixNetworkManager:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.nic"

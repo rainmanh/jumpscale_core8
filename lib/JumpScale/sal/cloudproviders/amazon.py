@@ -3,7 +3,7 @@ from JumpScale import j
 
 
 
-class AmazonProvider():
+class AmazonProvider:
 
     def __init__(self):
         self._region = None

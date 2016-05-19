@@ -4,7 +4,7 @@ from servers.key_value_store.store import KeyValueStoreBase
 
 import plyvel
 
-class LevelDBInterface():
+class LevelDBInterface:
 
     def __init__(self,namespace,basedir):
         j.sal.fs.createDir(basedir)

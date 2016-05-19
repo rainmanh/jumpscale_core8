@@ -68,7 +68,7 @@ class VDisk:
         return str(self)
 
 
-class AOEManager():
+class AOEManager:
     def __init__(self):
         self.__jslocation__="j.sal.aoe"           
         self._local = j.tools.executor.getLocal()
@@ -187,7 +187,7 @@ class AOEManager():
         j.tools.path.get(path).remove_p()
 
 
-class AOEFactory():
+class AOEFactory:
     def get(self):
         return AOEManager()
 

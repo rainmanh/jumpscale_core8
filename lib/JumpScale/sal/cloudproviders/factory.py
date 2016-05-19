@@ -3,7 +3,7 @@ from digitalocean import DigitalOcean
 
 
 
-class Factory():
+class Factory:
     self.__jslocation__="j.sal.cloudproviders"   
 
     def get(self, provider):

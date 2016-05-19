@@ -7,7 +7,7 @@ import time
 import psutil
 
 
-class InfluxDumper():
+class InfluxDumper:
 
     def __init__(self,testname,redis,server="localhost",port=8086,login="root",passwd="root"):
         self.redis=redis

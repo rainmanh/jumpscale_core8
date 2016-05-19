@@ -17,7 +17,7 @@ class RsyncError(Exception):
 
 
 
-class RsyncModule():
+class RsyncModule:
     def __init__(self, name=None):
         self.name = name
         self.params = {}
@@ -42,7 +42,7 @@ class RsyncModule():
     def __repr__(self):
         return str(self)
 
-class Rsync():
+class Rsync:
     def __init__(self):
         self._local = j.tools.executor.getLocal()
         self._modules = None
@@ -186,7 +186,7 @@ class Rsync():
 
 
 
-class RsyncFactory():
+class RsyncFactory:
     
     def _getFactoryEnabledClasses(self):
         return (("","RsyncModule",RsyncModule()),("","Rsync",Rsync()))    

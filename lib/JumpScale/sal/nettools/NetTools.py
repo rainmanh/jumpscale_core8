@@ -31,7 +31,7 @@ def getNetworkInfo():
 
 
 
-class NetTools():
+class NetTools:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.nettools"

@@ -9,7 +9,7 @@ from urllib import parse
 
 
 
-class Docker():
+class Docker:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.docker"

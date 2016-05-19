@@ -9,7 +9,7 @@ virtualsizerec = re.compile("\((?P<size>[\d\.]+)\sbytes\)")
 
 
 
-class QemuImg():
+class QemuImg:
     def __init__(self):
         self.__jslocation__ = "j.sal.qemu_img"
 

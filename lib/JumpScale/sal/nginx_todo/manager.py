@@ -5,7 +5,7 @@ from JumpScale import j
 
 
 
-class NginxManager():
+class NginxManager:
     def __init__(self, path='/etc/nginx/nginx.conf'):
         self._path = j.tools.path.get(path)
         self._executor = j.tools.executor.getLocal()

@@ -6,7 +6,7 @@ from CustomTypes import *
 from CollectionTypes import *
 from PrimitiveTypes import *
 
-class Types():
+class Types:
     def __init__(self):
         self.__jslocation__ = "j.data.types"
         self.dict=Dictionary()

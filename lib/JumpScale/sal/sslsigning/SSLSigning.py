@@ -6,7 +6,7 @@ from socket import gethostname
 
 
 
-class SSLSigning():
+class SSLSigning:
     def __init__(self):
         self.__jslocation__ = "j.sal.ssl_signing"
 

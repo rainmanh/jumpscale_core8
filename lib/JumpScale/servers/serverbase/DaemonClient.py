@@ -5,7 +5,7 @@ import time
 import uuid
 from random import randrange
 
-class Session():
+class Session:
 
     def __init__(self, id, organization, user, passwd, encrkey, netinfo, roles):
         self.id = id #is unique session id

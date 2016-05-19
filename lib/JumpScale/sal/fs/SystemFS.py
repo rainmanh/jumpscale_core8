@@ -210,7 +210,7 @@ class FileLock:
         return wrapper
 
 
-class SystemFS():
+class SystemFS:
     exceptions = Exceptions
 
     def __init__(self):

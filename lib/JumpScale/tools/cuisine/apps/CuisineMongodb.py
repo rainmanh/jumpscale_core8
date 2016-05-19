@@ -17,7 +17,7 @@ class actionrun(ActionDecorator):
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.mongodb"
 
 
-class Mongodb():
+class Mongodb:
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -87,7 +87,7 @@ class Mongodb():
         return cluster
 
 
-class Startable():
+class Startable:
     def __init__(self):
         self.installed = False
         self.started = False

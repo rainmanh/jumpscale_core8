@@ -11,7 +11,7 @@ class SSHError(Exception):
 
 
 
-class SSHD():
+class SSHD:
     def __init__(self):
         self.__jslocation__ = "j.sal.sshd"
 

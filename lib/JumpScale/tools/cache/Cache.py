@@ -5,7 +5,7 @@ try:
 except:
     import json
 
-class CacheFactory():
+class CacheFactory:
     def __init__(self):
         self.__jslocation__ = "j.tools.cache"
 
@@ -17,7 +17,7 @@ class CacheFactory():
         return Cache(db,expiration)
 
 
-class Cache():
+class Cache:
 
     def __init__(self, db,expiration=300):
         self.db=db

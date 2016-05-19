@@ -43,7 +43,7 @@ class AysFsFactory:
         return js8optvar
 
 
-class AysFs():
+class AysFs:
 
     def __init__(self, name, cuisine=None):
         self.cuisine = cuisine

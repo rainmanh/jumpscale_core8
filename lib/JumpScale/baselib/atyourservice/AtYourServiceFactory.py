@@ -18,7 +18,7 @@ import os
 import colored_traceback
 colored_traceback.add_hook(always=True)
 
-class AtYourServiceFactory():
+class AtYourServiceFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.atyourservice"

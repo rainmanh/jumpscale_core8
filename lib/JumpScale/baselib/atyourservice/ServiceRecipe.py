@@ -7,7 +7,7 @@ from ServiceTemplate import ServiceTemplate
 from Service import Service, loadmodule
 from inspect import getmembers, isfunction, isclass, getsource
 
-class ActionMethod():
+class ActionMethod:
 
     def __init__(self,recipe,name,content):
         self.name=name
@@ -104,7 +104,7 @@ class ServiceRecipe(ServiceTemplate):
             def __init__(self,*args,**kwargs):
                 ActionMethodDecorator.__init__(self,*args,**kwargs)
                 self.selfobjCode="service=j.atyourservice.getService(role='$(service.role)', instance='$(service.instance)', die=True);selfobj=service.actions;selfobj.service=service"
-        class Actions():
+        class Actions:
         """
         actionmethodsRequired = ["input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
                                  "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata","change"]

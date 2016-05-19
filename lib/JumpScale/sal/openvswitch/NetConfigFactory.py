@@ -10,7 +10,7 @@ from VXNet.utils import *
 
 
 
-class NetConfigFactory():
+class NetConfigFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.openvswitch"

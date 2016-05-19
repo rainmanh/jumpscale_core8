@@ -119,7 +119,7 @@ class Domain:
         return config
 
 
-class CuisineGeoDns():
+class CuisineGeoDns:
 
     def __init__(self, executor, cuisine):
         self.executor = executor

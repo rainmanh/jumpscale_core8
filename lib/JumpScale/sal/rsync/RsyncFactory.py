@@ -4,7 +4,7 @@ from Rsync import *
 
 
 
-class RsyncFactory():
+class RsyncFactory:
     """
     """
     def __init__(self):

@@ -141,7 +141,7 @@ class RuleOp(UFWOperation):
         return ' '.join(cmd)
 
 
-class UFWManager():
+class UFWManager:
     ACTION_ALLOW_IN = 'allow in'
     ACTION_ALLOW_OUT = 'allow out'
     ACTION_DENY_IN = 'deny in'

@@ -5,7 +5,7 @@ from JumpScale import j
 from DialogType import DialogType
 from EasyDialogConsole import EasyDialogConsole
 
-class EasyDialog():
+class EasyDialog:
     def __init__(self):
       self.easyDialog=EasyDialogConsole()
     def pm_setDialogHandler(self):

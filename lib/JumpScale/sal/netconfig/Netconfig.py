@@ -6,7 +6,7 @@ import netaddr
 
 
 
-class Netconfig():
+class Netconfig:
     """
     """
 

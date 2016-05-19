@@ -7,7 +7,7 @@ import netaddr
 
 
 
-class Lxc():
+class Lxc:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.lxc"

@@ -6,7 +6,7 @@ import disks
 
 
 
-class DiskManager():
+class DiskManager:
     def __init__(self):
         self.__jslocation__ = "j.sal.disklayout"
 

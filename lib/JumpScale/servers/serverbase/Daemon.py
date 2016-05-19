@@ -6,7 +6,7 @@ import time
 
 
 
-class Session():
+class Session:
 
     def __init__(self, ddict):
         self.__dict__ = ddict

@@ -14,7 +14,7 @@ def empty_callback():
 
 
 
-class SSL():
+class SSL:
     def __init__(self):
         self.__jslocation__ = "j.sal.ssl"
 
@@ -28,7 +28,7 @@ class SSL():
         return KeyStor(keyvaluestor)
 
 
-class KeyStor():
+class KeyStor:
 
     def __init__(self,keyvaluestor=None):
         self.keys={}

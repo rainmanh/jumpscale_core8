@@ -1176,7 +1176,7 @@ def calculateEnvironment(values, source=None):
 
 
 
-class SystemProcess():
+class SystemProcess:
     def __init__(self):
         self.__jslocation__ = "j.sal.process"
         self.logger = j.logger.get('j.sal.process')

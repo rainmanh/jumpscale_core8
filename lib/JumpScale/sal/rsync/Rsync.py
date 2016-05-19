@@ -12,7 +12,7 @@ class RsyncInstance:
 
 
 
-class RsyncServer():
+class RsyncServer:
 
     """
     """

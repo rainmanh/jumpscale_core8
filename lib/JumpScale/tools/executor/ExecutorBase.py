@@ -1,6 +1,6 @@
 from JumpScale import j
 
-class ExecutorBase():
+class ExecutorBase:
 
     def __init__(self,dest_prefixes={},debug=False,checkok=False):
 

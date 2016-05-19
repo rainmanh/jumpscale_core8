@@ -1,7 +1,7 @@
 from JumpScale import j
 import time
 
-class RedisDB():
+class RedisDB:
     def __init__(self):
         self.__jslocation__ = "j.data.redisdb"
 
@@ -55,7 +55,7 @@ class RedisDB():
         res=llist.find(aval=5)
         assert len(res)==1
 
-class RedisDBObj():
+class RedisDBObj:
     def __init__(self,llist,path,id=""):
         self._list=llist
         self.db=j.core.db

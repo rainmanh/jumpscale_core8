@@ -4,7 +4,7 @@ from JumpScale import j
 import time
 
 
-class ZDaemonFactory():
+class ZDaemonFactory:
     def __init__(self):
         self.__jslocation__ = "j.servers.zdaemon"
 
@@ -16,7 +16,7 @@ class ZDaemonFactory():
 
         zd=j.servers.zdaemon.getZDaemon(port=5651,nrCmdGreenlets=50)
 
-        class MyCommands():
+        class MyCommands:
             def __init__(self,daemon):
                 self.daemon=daemon
 

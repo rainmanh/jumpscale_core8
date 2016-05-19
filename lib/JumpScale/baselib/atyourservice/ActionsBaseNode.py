@@ -5,7 +5,7 @@ import signal
 import inspect
 
 
-class ActionsBaseNode():
+class ActionsBaseNode:
     """
     actions which can be executed remotely on node
     """

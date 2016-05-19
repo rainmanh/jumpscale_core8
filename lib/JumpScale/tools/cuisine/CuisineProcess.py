@@ -2,7 +2,7 @@
 from JumpScale import j
 import re
 
-class CuisineProcess():
+class CuisineProcess:
 
     def __init__(self,executor,cuisine):
         self.executor=executor

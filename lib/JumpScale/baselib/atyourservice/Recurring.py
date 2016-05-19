@@ -1,7 +1,7 @@
 from JumpScale import j
 
 
-class RecurringItem():
+class RecurringItem:
     def __init__(self, service,name,period,last):
         self.service = service
         self.name = name
@@ -26,7 +26,7 @@ class RecurringItem():
         return self.__repr__()
 
 
-class Recurring():
+class Recurring:
     def __init__(self, service):
 
         self.service = service

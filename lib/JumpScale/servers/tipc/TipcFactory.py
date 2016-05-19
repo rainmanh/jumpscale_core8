@@ -10,7 +10,7 @@ class TipcFactory:
         HOW TO USE:
         daemon=j.servers.tornado.getServer(port=4444)
 
-        class MyCommands():
+        class MyCommands:
             def __init__(self,daemon):
                 self.daemon=daemon
 

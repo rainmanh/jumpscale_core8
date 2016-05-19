@@ -16,7 +16,7 @@ class actionrun(ActionDecorator):
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.skydns"
 
 
-class SkyDns():
+class SkyDns:
 
     def __init__(self, executor, cuisine):
         self.executor = executor

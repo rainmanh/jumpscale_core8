@@ -3,7 +3,7 @@ from JumpScale import j
 
 
 
-class DNSMasq():
+class DNSMasq:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.dnsmasq"

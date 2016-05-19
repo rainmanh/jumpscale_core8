@@ -3,7 +3,7 @@ from JumpScale import j
 
 
 
-class TLS():
+class TLS:
     def __init__(self, cfsslService=None, path=None):
         super(TLS, self).__init__()
         self._local = j.tools.executor.getLocal()

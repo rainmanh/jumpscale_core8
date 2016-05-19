@@ -5,7 +5,7 @@ import time
 
 
 
-class DigitalOcean():
+class DigitalOcean:
 
     def __init__(self):
         self._client = None

@@ -3,7 +3,7 @@ from JumpScale import j
 import time
 import calendar
 
-class MySQLFactory():
+class MySQLFactory:
     """
     """
 
@@ -19,7 +19,7 @@ class MySQLFactory():
         return MySQLClient(self.clients[key])
 
 
-class MySQLClient():
+class MySQLClient:
 
     def __init__(self,cl):
         self.client=cl

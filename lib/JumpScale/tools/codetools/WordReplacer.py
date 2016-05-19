@@ -3,7 +3,7 @@ from JumpScale import j
 import re,random
 
 
-class Synonym():
+class Synonym:
     def __init__(self,name='',replaceWith='', simpleSearch="", addConfluenceLinkTags=False, replaceExclude=''):
         """
         @param name: Name of the sysnoym
@@ -82,7 +82,7 @@ class Synonym():
     def __repr__(self):
         return self.__str__()
     
-class WordReplacer():
+class WordReplacer:
     
     def __init__(self):
         self.synonyms=[] #array Synonym()

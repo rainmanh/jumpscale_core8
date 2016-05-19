@@ -4,7 +4,7 @@ from JumpScale import j
 
 
 
-class Container():
+class Container:
     """Docker Container"""
 
     def __init__(self, name, id, client, host="localhost"):

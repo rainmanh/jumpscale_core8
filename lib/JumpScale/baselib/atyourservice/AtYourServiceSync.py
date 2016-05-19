@@ -1,6 +1,6 @@
 from JumpScale import j
 
-class AtYourServiceSync():
+class AtYourServiceSync:
 
     def __init__(self,sshport=22,rootpasswd="js111js",apikey="js111js"):
         self.nodes={}

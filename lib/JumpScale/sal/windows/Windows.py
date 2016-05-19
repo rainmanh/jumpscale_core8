@@ -36,7 +36,7 @@ import shutil
 
 
 
-class WindowsSystem():
+class WindowsSystem:
 
     mythreads = []
     _userEveryone = None

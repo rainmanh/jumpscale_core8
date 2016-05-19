@@ -1,7 +1,7 @@
 from JumpScale import j
 import os
 
-class Item():
+class Item:
     def __init__(self,data=""):
         state="start"
         self.hash=""
@@ -35,7 +35,7 @@ class Item():
 
 from BlobStorClientFake import BlobStorClientFake
 
-class JSFileMgr():
+class JSFileMgr:
     def __init__(self, MDPath,backupname,blobstorAccount,blobstorNamespace,repoid=0,compress=True,fullcheck=False,servercheck=True,storpath="/mnt/STOR"):
         self.errors=[]
         self._MB4=1024*1024*4 #4Mbyte

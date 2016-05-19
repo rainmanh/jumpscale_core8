@@ -27,7 +27,7 @@ class GitHubFactory:
             self._clients[secret]= GitHubClient(secret)
         return self._clients[secret]
 
-class GitHubClient():
+class GitHubClient:
 
     def __init__(self, secret):
         self.api = github.Github(secret)

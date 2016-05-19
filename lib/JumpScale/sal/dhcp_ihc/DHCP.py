@@ -4,7 +4,7 @@ import netifaces
 
 
 
-class DHCP():
+class DHCP:
     def __init__(self):
         self.__jslocation__="j.sal.dhcp_ihc"
         self.configPath = j.tools.path.get('/etc').joinpath('dhcp3', 'dhcpd.conf')

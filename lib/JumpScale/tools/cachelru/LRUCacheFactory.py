@@ -1,7 +1,7 @@
 from LRUCache import LRUCache
 from RWCache import RWCache
 
-class LRUCacheFactory():
+class LRUCacheFactory:
     def __init__(self):
         self.__jslocation__ = "j.tools.cachelru"
 

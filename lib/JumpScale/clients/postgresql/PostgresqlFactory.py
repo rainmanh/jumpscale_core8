@@ -14,7 +14,7 @@ import copy
 # from io import StringIO
 # import JumpScale.lib.html
 
-class PostgresqlFactory():
+class PostgresqlFactory:
     """
     """
 
@@ -55,7 +55,7 @@ class PostgresqlFactory():
         j.sal.process.execute(cmd,outputToStdout=False,die=False)
 
 
-class PostgresClient():
+class PostgresClient:
 
     def __init__(self,ipaddr,port,login,passwd,dbname):
         self.ipaddr=ipaddr

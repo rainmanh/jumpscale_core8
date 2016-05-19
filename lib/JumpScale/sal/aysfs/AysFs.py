@@ -2,7 +2,7 @@
 from JumpScale import j
 import os
 
-from sal.base.SALObject import SALObject
+
 
 
 class AysFsFactory(object):

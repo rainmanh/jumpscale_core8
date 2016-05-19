@@ -14,7 +14,7 @@ class NFSError(Exception):
     pass
 
 
-from sal.base.SALObject import SALObject
+
 
 class NFSExport():
     def __init__(self, path=""):

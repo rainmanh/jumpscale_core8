@@ -14,7 +14,7 @@ CONFIG_FILE = '/etc/rsyncd.conf'
 class RsyncError(Exception):
     pass
 
-from sal.base.SALObject import SALObject
+
 
 
 class RsyncModule():

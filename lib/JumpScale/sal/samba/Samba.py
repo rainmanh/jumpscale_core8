@@ -10,7 +10,7 @@ CONFIG_FILE = '/etc/samba/smb.conf'
 EXCEPT_SHARES = ['global', 'printers', 'homes']
 BASEPATH = '/VNASSHARE/'
 
-from sal.base.SALObject import SALObject
+
 
 
 class SMBUser():

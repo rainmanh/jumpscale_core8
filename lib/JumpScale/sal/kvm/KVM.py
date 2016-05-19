@@ -22,7 +22,7 @@ root.partitionnr=
 """
 
 
-from sal.base.SALObject import SALObject
+
 
 class KVM():
 

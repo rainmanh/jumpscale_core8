@@ -1,7 +1,7 @@
 from libcloud.compute.providers import get_driver
 from JumpScale import j
 
-from sal.base.SALObject import SALObject
+
 
 class AmazonProvider():
 

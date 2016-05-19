@@ -3,7 +3,7 @@ from JumpScale import j
 
 import time
 
-from sal.base.SALObject import SALObject
+
 
 class DigitalOcean():
 

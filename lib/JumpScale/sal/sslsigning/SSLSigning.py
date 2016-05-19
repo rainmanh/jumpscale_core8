@@ -3,7 +3,7 @@ from OpenSSL import crypto
 import OpenSSL
 from socket import gethostname
 
-from sal.base.SALObject import SALObject
+
 
 
 class SSLSigning():

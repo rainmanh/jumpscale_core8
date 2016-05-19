@@ -10,7 +10,7 @@ class RsyncInstance:
         self.readonly = True
         self.exclude = "*.pyc .git"
 
-from sal.base.SALObject import SALObject
+
 
 class RsyncServer():
 

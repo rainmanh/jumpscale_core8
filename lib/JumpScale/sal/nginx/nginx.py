@@ -9,7 +9,7 @@ class NginxFactory(object):
         #@todo (*2*) let work on path
         return Nginx()
 
-from sal.base.SALObject import SALObject
+
 
 class Nginx():
 

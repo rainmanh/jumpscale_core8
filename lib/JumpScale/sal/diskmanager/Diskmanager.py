@@ -35,7 +35,7 @@ def get_open_blks(pid):
         os.stat('/proc/%s' % pid)
     return retlist
 
-from sal.base.SALObject import SALObject
+
 
 class Disk():
     """

@@ -3,7 +3,7 @@ import lsblk
 import mount
 import disks
 
-from sal.base.SALObject import SALObject
+
 
 
 class DiskManager():

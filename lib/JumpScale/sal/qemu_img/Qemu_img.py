@@ -6,7 +6,7 @@ inforec = re.compile("^(?P<key>\w+(\s+\w+)?):\s+(?P<value>.*)$", re.MULTILINE)
 sizerec = re.compile("^(?P<size>[\d\.]+)(?P<unit>[A-Z])")
 virtualsizerec = re.compile("\((?P<size>[\d\.]+)\sbytes\)")
 
-from sal.base.SALObject import SALObject
+
 
 
 class QemuImg():

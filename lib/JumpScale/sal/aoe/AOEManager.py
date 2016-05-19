@@ -7,7 +7,7 @@ CMD_PS_PATTERN = re.compile(
     re.MULTILINE
 )
 
-from sal.base.SALObject import SALObject
+
 
 class AOEError(Exception):
     pass

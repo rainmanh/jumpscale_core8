@@ -12,7 +12,7 @@ def empty_callback():
 #howto used from http://e1ven.com/2011/04/06/how-to-use-m2crypto-tutorial/
 
 
-from sal.base.SALObject import SALObject
+
 
 class SSL():
     def __init__(self):

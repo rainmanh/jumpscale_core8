@@ -4,7 +4,7 @@ import time
 import os
 import netaddr
 
-from sal.base.SALObject import SALObject
+
 
 
 class Lxc():

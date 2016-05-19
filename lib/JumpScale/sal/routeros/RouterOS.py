@@ -144,7 +144,7 @@ class ApiRos:
             ret += s
         return ret
 
-from sal.base.SALObject import SALObject
+
 
 class RouterOS():
 

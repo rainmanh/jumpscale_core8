@@ -4,7 +4,7 @@ import netaddr
 #@todo rewrite all to use the executor and only the executor (*3*)
 #MAYBE WE SHOULD STANDARDISE ON ARCH LINUX & USE SYSTEMDNETWORKING
 
-from sal.base.SALObject import SALObject
+
 
 class Netconfig():
     """

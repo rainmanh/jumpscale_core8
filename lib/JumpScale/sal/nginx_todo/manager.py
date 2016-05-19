@@ -3,7 +3,7 @@ from JumpScale import j
 #@todo (*2*) is double with previous one, fix
 
 
-from sal.base.SALObject import SALObject
+
 
 class NginxManager():
     def __init__(self, path='/etc/nginx/nginx.conf'):
@@ -55,7 +55,7 @@ class NginxBaseConfig(object):
         self._properties.append((directive, value))
 
 
-class NginxConfig(NginxBaseConfig,SALObject):
+class NginxConfig(NginxBaseConfig):
     def __init__(self, content=None):
         self.http = None
         self.events = None
@@ -116,7 +116,7 @@ class NginxHTTP(NginxBaseConfig):
         return server
 
 
-class NginxServer(NginxBaseConfig,SALObject):
+class NginxServer(NginxBaseConfig):
     def __init__(self, config=None):
         self.locations = list()
         super(NginxServer, self).__init__(config)
@@ -131,7 +131,7 @@ class NginxServer(NginxBaseConfig,SALObject):
         return location
 
 
-class NginxLocation(NginxBaseConfig,SALObject):
+class NginxLocation(NginxBaseConfig):
     def __init__(self, path=None, config=None):
         self.path = path
         super(NginxLocation, self).__init__(config)

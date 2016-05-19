@@ -1173,7 +1173,7 @@ def calculateEnvironment(values, source=None):
 
     return result
 
-from sal.base.SALObject import SALObject
+
 
 
 class SystemProcess():

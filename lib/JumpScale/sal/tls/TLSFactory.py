@@ -1,7 +1,7 @@
 from JumpScale import j
 from TLS import TLS
 
-from sal.base.SALObject import SALObject
+
 
 
 class TLSFactory():

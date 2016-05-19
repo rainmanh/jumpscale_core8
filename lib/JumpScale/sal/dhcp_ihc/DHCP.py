@@ -1,7 +1,7 @@
 from JumpScale import j
 import netifaces
 
-from sal.base.SALObject import SALObject
+
 
 
 class DHCP():

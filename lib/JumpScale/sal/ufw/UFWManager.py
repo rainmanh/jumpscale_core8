@@ -17,7 +17,7 @@ class UFWError(Exception):
     pass
 
 
-from sal.base.SALObject import SALObject
+
 
 
 

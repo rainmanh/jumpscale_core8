@@ -2,7 +2,7 @@
 from JumpScale import j
 
 
-from sal.base.SALObject import SALObject
+
 
 class Container():
     """Docker Container"""

@@ -7,7 +7,7 @@ import docker
 import time
 from urllib import parse
 
-from sal.base.SALObject import SALObject
+
 
 class Docker():
 

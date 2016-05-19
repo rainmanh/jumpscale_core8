@@ -10,7 +10,7 @@ import netaddr
 class NetworkingError(Exception):
     pass
 
-from sal.base.SALObject import SALObject
+
 
 
 class UnixNetworkManager():

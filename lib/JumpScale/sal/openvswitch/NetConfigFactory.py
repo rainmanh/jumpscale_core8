@@ -7,7 +7,7 @@ from VXNet import vxlan as vxlan
 from VXNet import netclasses as netcl
 from VXNet.utils import *
 
-from sal.base.SALObject import SALObject
+
 
 
 class NetConfigFactory():

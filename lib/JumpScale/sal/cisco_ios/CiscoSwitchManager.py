@@ -1,6 +1,6 @@
 from JumpScale import j
 # import JumpScale.baselib.remote
-from sal.base.SALObject import SALObject
+
 
 class CiscoSwitchManager(object):
 

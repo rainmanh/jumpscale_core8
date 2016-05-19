@@ -8,7 +8,7 @@ from dns.rdtypes.IN.A import A
 from base import DNS
 from JumpScale import j
 
-from sal.base.SALObject import SALObject
+
 
 class Zone(object):
     CONFIG_FILES_DIR = j.tools.path.get('/etc/bind/')
@@ -82,7 +82,7 @@ class Zone(object):
                 continue
         return res
 
-class BindDNS(DNS,SALObject):
+class BindDNS(DNS):
 
     def __init__(self):
         self.__jslocation__="j.sal.bind"

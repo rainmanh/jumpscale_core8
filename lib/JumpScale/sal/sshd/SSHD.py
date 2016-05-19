@@ -9,7 +9,7 @@ OP_ERS = '--'
 class SSHError(Exception):
     pass
 
-from sal.base.SALObject import SALObject
+
 
 class SSHD():
     def __init__(self):

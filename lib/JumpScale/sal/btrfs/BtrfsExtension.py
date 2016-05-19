@@ -1,6 +1,6 @@
 from JumpScale import j
 import re
-from sal.base.SALObject import SALObject
+
 
 BASECMD = "btrfs"
 

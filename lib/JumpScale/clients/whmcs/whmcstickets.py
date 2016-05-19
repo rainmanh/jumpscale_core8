@@ -5,7 +5,7 @@ import xml.etree.cElementTree as et
 
 SSL_VERIFY = False
 
-class whmcstickets():
+class whmcstickets:
     def __init__(self,
                  authenticationparams,
                  url,

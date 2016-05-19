@@ -1173,10 +1173,10 @@ def calculateEnvironment(values, source=None):
 
     return result
 
-from sal.base.SALObject import SALObject
 
 
-class SystemProcess(SALObject):
+
+class SystemProcess:
     def __init__(self):
         self.__jslocation__ = "j.sal.process"
         self.logger = j.logger.get('j.sal.process')

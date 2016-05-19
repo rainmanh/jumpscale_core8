@@ -1,7 +1,7 @@
 
 from JumpScale import j
 
-class CuisineGroup():
+class CuisineGroup:
 
     def __init__(self,executor,cuisine):
         self.executor=executor

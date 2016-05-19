@@ -1,7 +1,7 @@
 from JumpScale import j
 
 
-class PerfTestTools():
+class PerfTestTools:
     def __init__(self,node):
         self.node=node
 

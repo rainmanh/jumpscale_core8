@@ -9,7 +9,7 @@ import zipfile
 from JumpScale import j
 
 
-class ZipFileFactory(object):
+class ZipFileFactory:
     READ = 'r'
     WRIATE = 'w'
     APPEND = 'a'
@@ -21,7 +21,7 @@ class ZipFileFactory(object):
         return ZipFile(path, mode)
 
 
-class ZipFile(object):
+class ZipFile:
     '''Handle zip files'''
     def __init__(self, path, mode=ZipFileFactory.READ):
         '''Create a new ZipFile object

@@ -7,7 +7,7 @@ def log(msg, level=2):
     j.logger.log(msg, level=level, category=CATEGORY)
 
 
-class Blueprint(object):
+class Blueprint:
     """
     """
 

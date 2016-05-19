@@ -11,7 +11,7 @@ from JumpScale.data.serializers.SerializerYAML import SerializerYAML
 from JumpScale.data.serializers.SerializerTOML import SerializerTOML
 
 
-class SerializersFactory():
+class SerializersFactory:
 
     def __init__(self):
         # self.__jslocation__ = "j.data.serializer.serializers"
@@ -117,7 +117,7 @@ class SerializersFactory():
         return self.types[type]
 
 
-class Serializer():
+class Serializer:
     def __init__(self,serializationstr,key=""):
         self.serializationstr=serializationstr
         self.key=key

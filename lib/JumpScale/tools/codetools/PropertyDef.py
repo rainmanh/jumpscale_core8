@@ -1,5 +1,5 @@
 
-class PropertyDef(object):
+class PropertyDef:
 
     def __init__(self,classDef, name="", defaultVal="", type="", comments="", isArray=False, isDict=False,dictKey="",decorators=None):
         if name.startswith("__"):

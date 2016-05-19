@@ -2,7 +2,7 @@ from JumpScale import j
 import requests
 
 
-class SkyDNSClientFactory():
+class SkyDNSClientFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.clients.skydns"
@@ -14,7 +14,7 @@ class SkyDNSClientFactory():
         return SkyDNSClient(baseurl, username, password)
 
 
-class SkyDNSClient():
+class SkyDNSClient:
 
     def __init__(self, baseurl='', username=None, password=None):
         self._session = requests.Session()

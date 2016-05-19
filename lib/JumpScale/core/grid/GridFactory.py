@@ -2,13 +2,13 @@ from JumpScale import j
 from servers.gridhealthchecker.gridhealthchecker import GridHealthChecker
 
 
-# class ZCoreModelsFactory():
+# class ZCoreModelsFactory:
 
 #     def getModelObject(self, ddict={}):
 #         return ModelObject(ddict)
 
 
-class GridFactory():
+class GridFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.core.grid"

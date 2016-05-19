@@ -1,6 +1,6 @@
 from JumpScale import j
 
-class Disk():
+class Disk:
     def __init__(self,devname,node=None,disknr=None,screenname=None):
         devname.replace("//","/")
         self.devname=devname

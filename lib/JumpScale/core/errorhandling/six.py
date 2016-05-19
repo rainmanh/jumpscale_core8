@@ -52,7 +52,7 @@ else:
         MAXSIZE = int((1 << 31) - 1)
     else:
         # It's possible to have sizeof(long) != sizeof(Py_ssize_t).
-        class X(object):
+        class X:
             def __len__(self):
                 return 1 << 31
         try:
@@ -77,7 +77,7 @@ def _import_module(name):
     return sys.modules[name]
 
 
-class _LazyDescr(object):
+class _LazyDescr:
 
     def __init__(self, name):
         self.name = name
@@ -257,7 +257,7 @@ else:
     def get_unbound_function(unbound):  # NOQA
         return unbound.__func__
 
-    class Iterator(object):
+    class Iterator:
 
         def __next__(self):
             return type(self).__next__(self)

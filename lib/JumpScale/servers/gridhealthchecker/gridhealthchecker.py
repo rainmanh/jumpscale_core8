@@ -2,7 +2,7 @@ from JumpScale import j
 import gevent
 
 
-class GridHealthChecker(object):
+class GridHealthChecker:
 
     def __init__(self):
         with j.logger.nostdout():

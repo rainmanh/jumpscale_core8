@@ -18,7 +18,7 @@ replacelabels = {
 }
 
 
-class Base():
+class Base:
 
     @property
     def bodyWithoutTags(self):

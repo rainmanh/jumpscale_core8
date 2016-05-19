@@ -4,7 +4,7 @@ import re
 
 #@review [kristof,incubaid] name:codereviewtools tools for codereview, check all new code
 
-class CodeManager():
+class CodeManager:
     def __init__(self):   
         self.ignoreDirs=["/.hg*"]
         self.users={}
@@ -86,7 +86,7 @@ class CodeManager():
                     codemanagerfile=CodeManagerFile(self,path3)
                     codemanagerfile.process()
 
-class CodeManagerFile():
+class CodeManagerFile:
     """
     manages code for one file
     """

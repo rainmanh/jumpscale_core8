@@ -70,7 +70,7 @@ import urllib.parse
  #     ]
  # }
 
-class SwaggerGen(object):
+class SwaggerGen:
     def __init__(self):
         self.__jslocation__ = "j.tools.swaggerGen"
         tmplDir = j.sal.fs.joinPaths(j.sal.fs.getDirName(__file__),'templates')

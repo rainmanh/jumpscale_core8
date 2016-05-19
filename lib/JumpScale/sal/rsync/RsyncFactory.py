@@ -2,9 +2,9 @@ from JumpScale import j
 
 from Rsync import *
 
-from sal.base.SALObject import SALObject
 
-class RsyncFactory(SALObject):
+
+class RsyncFactory:
     """
     """
     def __init__(self):

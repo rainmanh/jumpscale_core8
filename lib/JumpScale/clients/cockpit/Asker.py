@@ -4,7 +4,7 @@ from telegram.ext.dispatcher import run_async
 import threading
 import queue
 
-class ConsoleAsker(object):
+class ConsoleAsker:
     """Asker interface with console"""
     def __init__(self):
         super(ConsoleAsker, self).__init__()
@@ -165,7 +165,7 @@ help - show you what I can do"""
         return gid
 
 
-class TelegramAsker(object):
+class TelegramAsker:
     """Asker Interface with telegram"""
     # TODO implement retry on ask* Methods
 

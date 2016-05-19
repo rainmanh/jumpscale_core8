@@ -1,9 +1,9 @@
 from JumpScale import j
 
 
-from sal.base.SALObject import SALObject
 
-class DNSMasq(SALObject):
+
+class DNSMasq:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.dnsmasq"

@@ -11,7 +11,7 @@ def shell_safe( path ):
 
 
 
-class CuisineUser():
+class CuisineUser:
 
     def __init__(self,executor,cuisine):
         self.executor=executor

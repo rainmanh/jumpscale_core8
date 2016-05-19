@@ -2,7 +2,7 @@
 from JumpScale import j
 
 
-class GCC():
+class GCC:
 
     def __init__(self):
     

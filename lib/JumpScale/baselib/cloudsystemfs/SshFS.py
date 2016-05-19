@@ -3,7 +3,7 @@ from JumpScale import j
 import re
 
 # requires sshfs package
-class SshFS(object):
+class SshFS:
     self.logger = j.logger.get('j.sal.cloudfs.Cifs')
     server = None
     directory = None

@@ -12,7 +12,7 @@ class AdminFactory:
     def get(self,path,args,failWhenNotExist=False):
         return Admin(path,args,failWhenNotExist)
 
-class Admin():
+class Admin:
 
     def __init__(self,path,args,failWhenNotExist=False):
         j.core.admin=self

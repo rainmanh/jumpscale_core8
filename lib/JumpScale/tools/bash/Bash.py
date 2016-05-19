@@ -9,7 +9,7 @@ class actionrun(ActionDecorator):
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.bash"
 
 
-class Profile(object):
+class Profile:
     env_pattern = re.compile(r'^([^=\n]+)="([^"\n]+)"$', re.MULTILINE)
     include_pattern = re.compile(r'^source (.*)$', re.MULTILINE)
 

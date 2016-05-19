@@ -4,7 +4,7 @@ from GeventLoop import GeventLoop
 import time
 
 
-class GeventLoopFactory():
+class GeventLoopFactory:
     def __init__(self):
         self.__jslocation__ = "j.core.gevent"
 

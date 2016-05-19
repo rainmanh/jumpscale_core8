@@ -8,7 +8,7 @@ import random
 from JumpScale import j
 
 
-class OauthInstance():
+class OauthInstance:
     def __init__(self, addr, accesstokenaddr, id, secret, scope, redirect_url, user_info_url, logout_url, instance):
         if not addr:
             hrd = j.application.getAppInstanceHRD('oauth_client', instance)

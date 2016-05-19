@@ -14,9 +14,9 @@ class NFSError(Exception):
     pass
 
 
-from sal.base.SALObject import SALObject
 
-class NFSExport(SALObject):
+
+class NFSExport:
     def __init__(self, path=""):
         self.__jslocation__ = "j.sal.nfs"
         self._path = j.tools.path.get(path)
@@ -54,7 +54,7 @@ class NFSExport(SALObject):
         return str(self)
 
 
-class NFS(SALObject):
+class NFS:
     def __init__(self):
         self._exports = None
         self._executor = j.tools.executor.getLocal()

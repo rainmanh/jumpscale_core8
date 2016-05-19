@@ -1,7 +1,7 @@
 from JumpScale import j
 
 
-class NginxFactory(object):
+class NginxFactory:
     def __init__(self):
         self.__jslocation__ = "j.sal.nginx"
 
@@ -9,9 +9,9 @@ class NginxFactory(object):
         #@todo (*2*) let work on path
         return Nginx()
 
-from sal.base.SALObject import SALObject
 
-class Nginx(SALObject):
+
+class Nginx:
 
     def __init__(self):
         self.configPath = j.tools.path.get('/etc').joinpath('nginx', 'conf.d')

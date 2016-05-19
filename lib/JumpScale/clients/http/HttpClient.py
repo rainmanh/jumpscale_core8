@@ -36,7 +36,7 @@ class HTTPError(Exception):
     def __str__(self):
         return "%s:\n %s" % (self.status_code, self.msg)
 
-class Connection(object):
+class Connection:
     
     def __init__(self):
         pass
@@ -169,7 +169,7 @@ class Connection(object):
         return resp
 
 
-class HttpClient(object):
+class HttpClient:
     def __init__(self):
         self.__jslocation__ = "j.clients.http"
 

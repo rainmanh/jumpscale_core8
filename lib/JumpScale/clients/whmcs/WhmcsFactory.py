@@ -2,7 +2,7 @@ from JumpScale import j
 from JumpScale.clients.whmcs.WhmcsInstance import WhmcsInstance
 
 
-class Dummy(object):
+class Dummy:
     def __getattribute__(self, attr, *args, **kwargs):
         def dummyFunction(*args, **kwargs):
             pass
@@ -10,13 +10,13 @@ class Dummy(object):
     def __setattribute__(self, attr, val):
         pass
 
-class DummyWhmcs(object):
+class DummyWhmcs:
     def __init__(self):
         self.tickets = Dummy()
         self.orders = Dummy()
         self.users = Dummy()
 
-class WhmcsFactory(object):
+class WhmcsFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.clients.whmcs"

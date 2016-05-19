@@ -2,7 +2,7 @@ from AggregatorClient import AggregatorClient
 from AggregatorClientTest import AggregatorClientTest
 
 
-class Aggregator(object):
+class Aggregator:
     """
     """
 

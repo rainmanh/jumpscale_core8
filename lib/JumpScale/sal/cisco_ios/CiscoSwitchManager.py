@@ -1,8 +1,8 @@
 from JumpScale import j
 # import JumpScale.baselib.remote
-from sal.base.SALObject import SALObject
 
-class CiscoSwitchManager(object):
+
+class CiscoSwitchManager:
 
     def get(self, host, login,password):
         return CiscoSwitch(host, login,password)
@@ -10,7 +10,7 @@ class CiscoSwitchManager(object):
 
 from Router import Router
 
-class CiscoSwitch(SALObject):
+class CiscoSwitch:
 
     def __init__(self, host, login,password):
 

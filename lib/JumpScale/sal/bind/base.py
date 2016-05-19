@@ -1,4 +1,4 @@
-class DNS(object):
+class DNS:
     def start(self):
         raise NotImplemented()
         

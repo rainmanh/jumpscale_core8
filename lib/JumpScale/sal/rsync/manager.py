@@ -14,10 +14,10 @@ CONFIG_FILE = '/etc/rsyncd.conf'
 class RsyncError(Exception):
     pass
 
-from sal.base.SALObject import SALObject
 
 
-class RsyncModule(SALObject):
+
+class RsyncModule:
     def __init__(self, name=None):
         self.name = name
         self.params = {}
@@ -42,7 +42,7 @@ class RsyncModule(SALObject):
     def __repr__(self):
         return str(self)
 
-class Rsync(SALObject):
+class Rsync:
     def __init__(self):
         self._local = j.tools.executor.getLocal()
         self._modules = None
@@ -186,7 +186,7 @@ class Rsync(SALObject):
 
 
 
-class RsyncFactory(SALObject):
+class RsyncFactory:
     
     def _getFactoryEnabledClasses(self):
         return (("","RsyncModule",RsyncModule()),("","Rsync",Rsync()))    

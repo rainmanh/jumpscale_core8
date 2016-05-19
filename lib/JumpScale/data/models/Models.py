@@ -23,7 +23,7 @@ def extend(a, b):
     else:
         return b
 
-class ModelBase():
+class ModelBase:
     DoesNotExist = DoesNotExist
 
     gid = IntField(default=lambda: j.application.whoAmI.gid if j.application.whoAmI else 0)

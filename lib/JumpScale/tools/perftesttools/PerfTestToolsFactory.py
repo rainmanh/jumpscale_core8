@@ -8,7 +8,7 @@ from InfluxDumper import *
 
 import os
 
-class PerfTestToolsFactory(object):
+class PerfTestToolsFactory:
     """
     j.tools.perftesttools.getNodeMonitor("localhost",22)
     make sure there is influxdb running on monitor node (root/root)

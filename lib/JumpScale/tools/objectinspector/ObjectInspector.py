@@ -9,7 +9,7 @@ from JumpScale import j
 
 import inspect
 
-class Arg():
+class Arg:
     def __init__(self,name,defaultvalue):
         self.name=name
         self.defaultvalue=defaultvalue
@@ -26,7 +26,7 @@ class Arg():
         return self.__str__()
 
 
-class MethodDoc():
+class MethodDoc:
     def __init__(self,method,name,classdoc):
         self.classdoc=classdoc
         self.params=[]
@@ -86,7 +86,7 @@ class MethodDoc():
         return self.__str__()
 
 
-class ClassDoc():
+class ClassDoc:
     def __init__(self,classobj,location):
         self.location=location
         self.methods={}
@@ -167,7 +167,7 @@ class ClassDoc():
     def __repr__(self):
         return self.__str__()
 
-class ObjectInspector():
+class ObjectInspector:
 
     """
     functionality to inspect objectr structure and generate apifile

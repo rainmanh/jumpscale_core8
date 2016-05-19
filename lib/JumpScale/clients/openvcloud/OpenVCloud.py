@@ -3,7 +3,7 @@ from JumpScale import j
 import urllib.request, urllib.parse, urllib.error
 
 
-class OpenvcloudFactory(object):
+class OpenvcloudFactory:
     def __init__(self):
         self.__jslocation__ = "j.tools.openvcloud"
 
@@ -11,7 +11,7 @@ class OpenvcloudFactory(object):
         return Openvcloud(apiurl, branch)
 
 
-class Openvcloud(object):
+class Openvcloud:
     def __init__(self, apiurl, branch='master'):
         self._spacesecret = None
         self.apiURL = apiurl

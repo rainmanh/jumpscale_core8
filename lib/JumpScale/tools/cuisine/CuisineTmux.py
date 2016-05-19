@@ -4,7 +4,7 @@ import os
 
 
 
-class CuisineTmux():
+class CuisineTmux:
 
     def __init__(self,executor,cuisine):
         self.executor=executor

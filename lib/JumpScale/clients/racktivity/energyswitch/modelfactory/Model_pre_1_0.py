@@ -1,4 +1,4 @@
-class Master(object):
+class Master:
     def __init__(self, parent):
         self._parent = parent
         self._moduleID = "M1"
@@ -13,7 +13,7 @@ class Master(object):
         return 0, "%d.%d.%d.%d" % (ipaddress[0], ipaddress[1], ipaddress[2], ipaddress[3])
 
 
-class Power(object):
+class Power:
     def __init__(self, parent):
         self._parent = parent
         self._moduleID = "P1"

@@ -34,7 +34,7 @@ class FormatError(Exception):
 class DiskError(Exception):
     pass
 
-class BlkInfo(object):
+class BlkInfo:
     def __init__(self,  name, type, size):
         self.name = name
         self.type = type

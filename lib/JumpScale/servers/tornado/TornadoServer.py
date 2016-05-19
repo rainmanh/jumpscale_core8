@@ -64,7 +64,7 @@ class MainHandlerRPC(tornado.web.RequestHandler):
         self.write(j.data.serializer.json.dumps(result))
         self.flush()
 
-class TornadoServer():
+class TornadoServer:
 
     def __init__(self, addr, port, sslorg=None, ssluser=None, sslkeyvaluestor=None):
         """

@@ -1,6 +1,6 @@
 from JumpScale import j
 
-class PerformanceTraceFactory():
+class PerformanceTraceFactory:
     """
     """
     def __init__(self):

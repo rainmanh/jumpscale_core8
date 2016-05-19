@@ -1,7 +1,7 @@
 order = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
 
 
-class Sizes(object):
+class Sizes:
     _BASE = 1000.
 
     def __init__(self):

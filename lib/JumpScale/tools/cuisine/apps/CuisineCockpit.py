@@ -22,10 +22,10 @@ class Cockpit():
         self.cuisine = cuisine
 
     @actionrun(action=True)
-    def build(self, start=True, bot_token=''):
+    def build(self, start=True, bot_token='', jwt_key='', organization=''):
         """
         Build and Install cockpit
-        If start is True, bot_token should be specified
+        If start is True, bot_token, jwt_key, organization should be specified
         """
         self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
         if not self.cuisine.core.isMac:
@@ -37,9 +37,9 @@ class Cockpit():
         self.link_code()
 
         if start:
-            self.start(bot_token)
+            self.start(bot_token, jwt_key, organization)
 
-    def start(self, bot_token):
+    def start(self, bot_token, jwt_key, organization):
         """
         bot_token: telegram token for cockpit bot
         """
@@ -60,13 +60,15 @@ class Cockpit():
     def link_code(self):
         self.cuisine.core.file_link('$codeDir/github/jumpscale/jscockpit/app/', '$appDir/cockpit')
 
-    def create_config(self, bot_token):
+    def create_config(self, bot_token, jwt_key, organization):
         cfg = {
             'api': {
                 'ays': {
                     'host': 'localhost',
                     'port': 5000,
                     'active': True,
+                    'jwt_key': jwt_key,
+                    'organization': organization
                 }
             },
             'bot': {

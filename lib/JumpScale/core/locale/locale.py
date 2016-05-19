@@ -5,7 +5,7 @@ KEYP = re.compile("(\w+(\.\w+)*)\s*=\s*(.*)", re.DOTALL)
 
 DEFAULTLOCALE='en'
 
-class Domain(object):
+class Domain:
     def __init__(self, key):
         self._value_ = None
         self.__key = key
@@ -34,7 +34,7 @@ class Domain(object):
     def __str__(self):
         return str(self._value_) if self._value_ != None else self._key_
 
-class Localizer(object):
+class Localizer:
     def __init__(self, tdirs):
         self.__domains = self.__load(tdirs)
     

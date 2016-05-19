@@ -453,7 +453,7 @@ def _wsse_username_token(cnonce, iso_now, password):
 # So we also need each Auth instance to be able to tell us
 # how close to the 'top' it is.
 
-class Authentication(object):
+class Authentication:
     def __init__(self, credentials, host, request_uri, headers, response, content, http):
         (scheme, authority, path, query, fragment) = parse_uri(request_uri)
         self.path = path
@@ -681,7 +681,7 @@ AUTH_SCHEME_CLASSES = {
 
 AUTH_SCHEME_ORDER = ["hmacdigest", "googlelogin", "digest", "wsse", "basic"]
 
-class FileCache(object):
+class FileCache:
     """Uses a local directory as a store for cached files.
     Not really safe to use if multiple threads or processes are going to
     be running on the same cache.
@@ -714,7 +714,7 @@ class FileCache(object):
         if os.path.exists(cacheFullPath):
             os.remove(cacheFullPath)
 
-class Credentials(object):
+class Credentials:
     def __init__(self):
         self.credentials = []
 
@@ -735,7 +735,7 @@ class KeyCerts(Credentials):
     pass
 
 
-class ProxyInfo(object):
+class ProxyInfo:
   """Collect information required to use a proxy."""
   def __init__(self, proxy_type, proxy_host, proxy_port, proxy_rdns=None, proxy_user=None, proxy_pass=None):
       """The parameter proxy_type must be set to one of socks.PROXY_TYPE_XXX
@@ -957,7 +957,7 @@ try:
       pass
 
 
-  class AppEngineHttpConnection(object):
+  class AppEngineHttpConnection:
     """Emulates an httplib.HTTPConnection object, but actually uses the Google
     App Engine urlfetch library. This allows the timeout to be properly used on
     Google App Engine, and avoids using httplib, which on Google App Engine is
@@ -1032,7 +1032,7 @@ except ImportError:
   pass
 
 
-class Http(object):
+class Http:
     """An HTTP client that handles:
 - all methods
 - caching

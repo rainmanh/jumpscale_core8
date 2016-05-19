@@ -10,7 +10,7 @@ from JumpScale import j
 
 
 
-class Zone(object):
+class Zone:
     CONFIG_FILES_DIR = j.tools.path.get('/etc/bind/')
     NON_ZONE_FILES = ['/etc/bind/named.conf.options']
 

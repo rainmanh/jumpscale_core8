@@ -4,7 +4,7 @@ from JumpScale import j
 #     pass
 
 
-class Mount(object):
+class Mount:
     def __init__(self,  device, path=None, options=''):
         self._device = device
         self._path = path

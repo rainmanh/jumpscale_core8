@@ -6,7 +6,7 @@ from JumpScale.clients.racktivity.energyswitch.common.GUIDTable import Value
 from JumpScale.clients.racktivity.energyswitch.modelfactory.modelfactory import ModelFactory
 
 
-class RackSal(object):
+class RackSal:
     MODULE_INFO = (40031, 0, 1, Value(u"type='TYPE_VERSION_FULL'\nsize=4\nLength=4\nunit=''\nscale=0"))
 
     def __init__(self, username, password, hostname, port, rtf=None, moduleinfo=None):  # pylint: disable=W0622

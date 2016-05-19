@@ -21,7 +21,7 @@ class UFWError(Exception):
 
 
 
-class UFWRule(object):
+class UFWRule:
     def __init__(self, action=None, source=None, destination=None, number=None):
         self._number = number
         self._source = source
@@ -53,7 +53,7 @@ class UFWRule(object):
         return str(self)
 
 
-class UFWOperation(object):
+class UFWOperation:
     def cmd(self):
         raise NotImplemented()
 

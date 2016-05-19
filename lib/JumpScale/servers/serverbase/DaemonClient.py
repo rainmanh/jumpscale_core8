@@ -25,12 +25,12 @@ class Session():
     __str__ = __repr__
 
 
-class SimpleClient(object):
+class SimpleClient:
     def __init__(self, client):
         self._client = client
 
 
-class DaemonClient(object):
+class DaemonClient:
 
     def __init__(self, org="myorg", user="root", passwd="passwd", ssl=False, encrkey="", reset=False, roles=[], \
         transport=None, defaultSerialization="j",id=None):
@@ -234,7 +234,7 @@ class DaemonClient(object):
             # print "key:%s spec:%s"%(key,spec)
         
             strmethod = """
-class Klass(object):
+class Klass:
     def __init__(self, client, category):
         self._client = client
         self._category = category
@@ -296,7 +296,7 @@ class Klass(object):
         nritems = nr / (stop - start)
         #print(("nr items per sec: %s" % nritems))
 
-class Transport(object):
+class Transport:
 
     def connect(self, sessionid=None):
         """

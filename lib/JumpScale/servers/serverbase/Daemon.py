@@ -26,7 +26,7 @@ class Session():
     __str__ = __repr__
 
 
-class DaemonCMDS(object):
+class DaemonCMDS:
 
     def __init__(self, daemon):
         self.daemon = daemon
@@ -102,7 +102,7 @@ class DaemonCMDS(object):
         return methods
 
 
-class Daemon(object):
+class Daemon:
 
     def __init__(self, name=None):
         j.application.interactive = False # make sure errorhandler does not require input we are daemon

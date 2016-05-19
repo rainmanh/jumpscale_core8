@@ -9,7 +9,7 @@ from JumpScale import j
 import sys
 
 
-class Output(object):
+class Output:
     def __init__(self):
         self.out=""
         self.lastlines=""
@@ -39,7 +39,7 @@ class Output(object):
         return None
 
 
-class MS1Factory(object):
+class MS1Factory:
     def __init__(self):
         self.__jslocation__ = "j.clients.ms1"
 
@@ -47,7 +47,7 @@ class MS1Factory(object):
         return MS1(apiURL, port)
 
 
-class MS1(object):
+class MS1:
 
     def __init__(self, apiURL, port):
         self.apiURL = apiURL

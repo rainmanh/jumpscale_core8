@@ -177,7 +177,7 @@ def unlock_(lockname):
     #     j.tools.console.echo("Lock %r not found"%lockname)
 
 
-class FileLock(object):
+class FileLock:
     '''Context manager for file-based locks
 
     Context managers were introduced in Python 2.5, see the documentation on the

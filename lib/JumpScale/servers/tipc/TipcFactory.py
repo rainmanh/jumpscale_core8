@@ -1,7 +1,7 @@
 from JumpScale import j
 
 
-class TipcFactory(object):
+class TipcFactory:
     def __init__(self):
         self.__jslocation__ = "j.servers.tipc"
 

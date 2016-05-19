@@ -30,7 +30,7 @@ class GogsServerErrorException(GogsBaseException):
     pass
 
 
-class GogsClient(object):
+class GogsClient:
     """
     some depend on an edited gogs , which is not yet pushed 
     """

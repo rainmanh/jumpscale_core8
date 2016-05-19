@@ -10,7 +10,7 @@ class actionrun(ActionDecorator):
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.geodns"
 
 
-class Domain(object):
+class Domain:
 
     def __init__(self, name, cuisine, serial=None,  ttl=None, content="", max_hosts=2,  a_records={}, cname_records={}, ns=[]):
         """

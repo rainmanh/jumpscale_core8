@@ -5,7 +5,7 @@ import os
 
 
 
-class AysFsFactory(object):
+class AysFsFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.aysfs"

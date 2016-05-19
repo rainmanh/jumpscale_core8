@@ -21,8 +21,8 @@ class RWCache():
 
 
 #based on LRUCache but modified for different purpose (write through cache)
-class WCache(object):    
-    class __Node(object):
+class WCache:    
+    class __Node:
         """Record of a cached value. Not for public consumption."""
         
         def __init__(self, key, obj, timestamp):

@@ -11,7 +11,7 @@ Stats = collections.namedtuple('Stats', 'measurement h_nr m_nr h_avg m_epoch m_t
 Log = collections.namedtuple('Log', 'level message node epoch tags')
 
 
-class AggregatorClient(object):
+class AggregatorClient:
     def __init__(self, redis, nodename):
         self.redis = redis
         self._sha = dict()

@@ -79,7 +79,7 @@ class UCISection(collections.OrderedDict):
             buffer.close()
 
 
-class UCI(object):
+class UCI:
     def __init__(self, package):
         self._package = package
         self._sections = list()

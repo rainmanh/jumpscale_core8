@@ -16,7 +16,7 @@ class KeyValueStoreType(str):
         self.REDIS = 'redis'
 
 
-class KeyValueStoreBase(object):#, metaclass=ABCMeta):
+class KeyValueStoreBase:#, metaclass=ABCMeta):
     '''KeyValueStoreBase defines a store interface.'''
 
     def __init__(self, serializers=[]):

@@ -3,7 +3,7 @@ from JumpScale import j
 import time
 from netaddr import EUI
 
-class RouterOSFactory(object):
+class RouterOSFactory:
     def __init__(self):
         self.__jslocation__ = "j.sal.routeros"
 

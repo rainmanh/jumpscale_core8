@@ -13,7 +13,7 @@ class AOEError(Exception):
     pass
 
 
-class VDisk(object):
+class VDisk:
     def __init__(self, pid=None, major=None, minor=None, inf=None, path=None, size=0):
         self._pid = pid
         self._major = major

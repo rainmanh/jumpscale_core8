@@ -8,7 +8,7 @@ from JumpScale import j
 from Action import *
 import traceback
 
-class ActionController(object):
+class ActionController:
     '''Manager controlling actions'''
     def __init__(self, _output=None, _width=70):
         self.__jslocation__ = "j.actions"

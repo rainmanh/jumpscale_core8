@@ -1,5 +1,5 @@
 
-class MethodDef(object):
+class MethodDef:
     
     def __init__(self, classDef, fileDef, name="", paramstring="", comments="", decorators=[]):
         self.classDef=classDef

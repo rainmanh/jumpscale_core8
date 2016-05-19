@@ -2,7 +2,7 @@ from JumpScale import j
 # import JumpScale.baselib.remote
 
 
-class CiscoSwitchManager(object):
+class CiscoSwitchManager:
 
     def get(self, host, login,password):
         return CiscoSwitch(host, login,password)

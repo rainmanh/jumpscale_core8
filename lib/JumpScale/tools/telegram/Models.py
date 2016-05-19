@@ -1,7 +1,7 @@
 # Using __dict__ and *args for compulsory args and **kwargs for optional ones.
 
 
-class User(object):
+class User:
     def __init__(self, *args):
         try:
             self.__dict__ = args[0]
@@ -9,7 +9,7 @@ class User(object):
             pass
 
 
-class GroupChat(object):
+class GroupChat:
     def __init__(self, *args):
         try:
             self.__dict__ = args[0]
@@ -89,7 +89,7 @@ class UserProfilePhotos:
             self.photos.append(list(row))
 
 
-class ReplyKeyBoard(object):
+class ReplyKeyBoard:
     def __init__(self, **kwargs):
         self.selective = kwargs.get('selective', False)
 
@@ -129,7 +129,7 @@ replace_dict = {'forward_from': User,
                 }
 
 
-class Message(object):
+class Message:
     def __init__(self, *args):
         message_dict = {}
 

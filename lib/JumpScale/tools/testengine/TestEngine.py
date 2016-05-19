@@ -6,7 +6,7 @@ import unittest
 import new
 from io import BytesIO
 
-class Tee(object):
+class Tee:
     def __init__(self, *fobjs):
         self.fileobjs = fobjs
 
@@ -144,7 +144,7 @@ class Test():
     __repr__ = __str__
 
 
-class FakeTestObj(object):
+class FakeTestObj:
     def __init__(self):
         self.source = dict()
         self.output = dict()

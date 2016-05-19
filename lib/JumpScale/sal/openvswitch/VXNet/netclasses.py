@@ -3,7 +3,7 @@ __author__ = 'delandtj'
 from VXNet.utils import *
 
 
-class VXlan(object):
+class VXlan:
     def __init__(self,oid,backend='vxbackend'):
         def bytes(num):
             return num >> 8, num & 0xFF
@@ -22,7 +22,7 @@ class VXlan(object):
 
 
 
-class Bridge(object):
+class Bridge:
     def __init__(self, name):
         self.name = name
     def create(self):
@@ -40,7 +40,7 @@ class VXBridge(Bridge):
         assert isinstance(oid.tostring, object)
         self.name = 'space_' + oid.tostring()
 
-class BondBridge(object):
+class BondBridge:
     def __init__(self, name, interfaces, bondname=None, trunks=None):
         self.name = name
         self.interfaces = interfaces
@@ -58,7 +58,7 @@ class BondBridge(object):
         destroyBridge(self.name)
 
 
-class NameSpace(object):
+class NameSpace:
     def __init__(self, name):
         self.name = name
     def create(self):
@@ -74,7 +74,7 @@ class VXNameSpace(NameSpace):
         self.name = 'ns-' + oid.tostring()
 
 
-class NetID(object):
+class NetID:
     def __init__(self,oid):
         if type(oid) is str:
             self.oid = int(oid,16)
@@ -86,7 +86,7 @@ class NetID(object):
         return oidstring
 
 
-class VethPair(object):
+class VethPair:
     def __init__(self,oid):
         self.left = 'veth-left-%s' % oid.tostring()
         self.right = 'veth-right-%s' % oid.tostring()

@@ -38,7 +38,7 @@ class NginxManager():
         self._path.write_text(self.config.content)
 
 
-class NginxBaseConfig(object):
+class NginxBaseConfig:
     def __init__(self, config=None):
         self._properties = list()
         for key, value in config:
@@ -136,7 +136,7 @@ class NginxLocation(NginxBaseConfig):
         self.path = path
         super(NginxLocation, self).__init__(config)
 
-class NginxManagerFactory(object):
+class NginxManagerFactory:
     # def _getFactoryEnabledClasses(self):
     #     return ([("","NginxManager",NginxManager()),("server","NginxServer",NginxServer())])
     def get(self,  path='/etc/nginx/nginx.conf'):

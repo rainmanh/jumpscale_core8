@@ -13,7 +13,7 @@ except:
     import github
 
 
-class GitHubFactory(object):
+class GitHubFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.clients.github"

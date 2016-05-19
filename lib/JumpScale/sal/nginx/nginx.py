@@ -1,7 +1,7 @@
 from JumpScale import j
 
 
-class NginxFactory(object):
+class NginxFactory:
     def __init__(self):
         self.__jslocation__ = "j.sal.nginx"
 

@@ -4,7 +4,7 @@ from requests.auth import HTTPBasicAuth
 import os
 
 
-class GrafanaFactory(object):
+class GrafanaFactory:
     def __init__(self):
         self.__jslocation__ = "j.clients.grafana"
 
@@ -24,7 +24,7 @@ class GrafanaFactory(object):
         return self.get(url, username, password)
 
 
-class GrafanaClient(object):
+class GrafanaClient:
     def __init__(self, url, username, password):
         self._url = url
         self.setAuth(username, password)

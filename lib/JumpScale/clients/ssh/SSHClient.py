@@ -10,7 +10,7 @@ import threading
 import queue
 
 
-class SSHClientFactory(object):
+class SSHClientFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.clients.ssh"
@@ -78,7 +78,7 @@ class SSHClientFactory(object):
             client.close()
 
 
-class SSHClient(object):
+class SSHClient:
 
     def __init__(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True, look_for_keys=True, timeout=5.0):
         self.port = port

@@ -11,7 +11,7 @@ except:
     import urllib.parse as urllib
     # from urllib import parse
 
-class TemplateEngine(object):
+class TemplateEngine:
     def __init__(self):
         self.replaceDict = {}##dict(string,string)
         #System ##System

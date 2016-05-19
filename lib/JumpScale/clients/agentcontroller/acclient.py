@@ -41,7 +41,7 @@ class ResultTimeout(AgentException):
     pass
 
 
-class RunArgs(object):
+class RunArgs:
     """
     Creates a new instance of RunArgs
 
@@ -194,7 +194,7 @@ class RunArgs(object):
         return RunArgs(**base)
 
 
-class Base(object):
+class Base:
     def __init__(self, client, id, gid, nid):
         self._client = client
         self._id = id
@@ -508,7 +508,7 @@ class Cmd(BaseCmd):
         return repr(self.dump())
 
 
-class Client(object):
+class Client:
     """
     Creates a new client instance. You need a client to send jobs to the agent-controller
     and to retrieve results

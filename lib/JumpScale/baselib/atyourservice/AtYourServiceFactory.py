@@ -184,7 +184,7 @@ class AtYourServiceFactory():
         j.sal.fs.createEmptyFile(j.sal.fs.joinPaths(path, '.ays'))
         j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'servicetemplates'))
         j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'blueprints'))
-        j.sal.process.execute("git init %s" % path, die=True, outputToStdout=False, useShell=False, ignoreErrorOutput=False)
+        j.tools.cuisine.local.core.run('git init')
         j.sal.nettools.download('https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
         name = j.sal.fs.getBaseName(path)
         self._repos[name] = AtYourServiceRepo(name, path)
@@ -304,6 +304,44 @@ class AtYourServiceFactory():
         if self.getTemplate(name,die=False)==None:
             return False
         return True
+
+    def _parseKey(self, key):
+        """
+        @return (domain,name,instance,role)
+        """
+        key = key.lower()
+        if key.find("|") != -1:
+            domain, name = key.split("|")
+        else:
+            domain = ""
+            name = key
+
+        if name.find("@") != -1:
+            name, role = name.split("@", 1)
+            role = role.strip()
+        else:
+            role = ""
+
+        if name.find("!") != -1:
+            # found instance
+            name, instance = name.split("!", 1)
+            instance = instance.strip()
+            if domain == '':
+                role = name
+                name = ''
+        else:
+            instance = ""
+
+        name = name.strip()
+
+        if role == "":
+            if name.find('.') != -1:
+                role = name.split(".", 1)[0]
+            else:
+                role = name
+
+        domain = domain.strip()
+        return (domain, name, instance, role)
 
     def __str__(self):
         return self.__repr__()

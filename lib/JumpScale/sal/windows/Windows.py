@@ -36,7 +36,7 @@ import shutil
 from sal.base.SALObject import SALObject
 
 
-class WindowsSystem(SALObject):
+class WindowsSystem():
 
     mythreads = []
     _userEveryone = None

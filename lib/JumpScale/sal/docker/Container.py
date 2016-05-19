@@ -4,7 +4,7 @@ from JumpScale import j
 
 from sal.base.SALObject import SALObject
 
-class Container(SALObject):
+class Container():
     """Docker Container"""
 
     def __init__(self, name, id, client, host="localhost"):

@@ -43,7 +43,7 @@ class AysFsFactory(object):
         return js8optvar
 
 
-class AysFs(SALObject):
+class AysFs():
 
     def __init__(self, name, cuisine=None):
         self.cuisine = cuisine

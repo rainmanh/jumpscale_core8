@@ -11,7 +11,7 @@ class NginxFactory(object):
 
 from sal.base.SALObject import SALObject
 
-class Nginx(SALObject):
+class Nginx():
 
     def __init__(self):
         self.configPath = j.tools.path.get('/etc').joinpath('nginx', 'conf.d')

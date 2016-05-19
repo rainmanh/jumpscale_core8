@@ -12,7 +12,7 @@ class RsyncInstance:
 
 from sal.base.SALObject import SALObject
 
-class RsyncServer(SALObject):
+class RsyncServer():
 
     """
     """

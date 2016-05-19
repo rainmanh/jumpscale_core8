@@ -26,7 +26,7 @@ FACTOR = {None: 1,
           }
 
 
-class BtrfsExtension(SALObject):
+class BtrfsExtension():
     def __init__(self):
         self.__jslocation__="j.sal.btrfs"        
         self.__conspattern = re.compile("^(?P<key>[^:]+): total=(?P<total>[^,]+), used=(?P<used>.+)$", re.MULTILINE)

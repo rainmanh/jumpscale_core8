@@ -5,7 +5,7 @@ from JumpScale import j
 
 from sal.base.SALObject import SALObject
 
-class NginxManager(SALObject):
+class NginxManager():
     def __init__(self, path='/etc/nginx/nginx.conf'):
         self._path = j.tools.path.get(path)
         self._executor = j.tools.executor.getLocal()

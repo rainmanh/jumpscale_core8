@@ -10,7 +10,7 @@ class CiscoSwitchManager(object):
 
 from Router import Router
 
-class CiscoSwitch(SALObject):
+class CiscoSwitch():
 
     def __init__(self, host, login,password):
 

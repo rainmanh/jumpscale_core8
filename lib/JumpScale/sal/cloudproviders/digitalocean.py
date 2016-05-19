@@ -5,7 +5,7 @@ import time
 
 from sal.base.SALObject import SALObject
 
-class DigitalOcean(SALObject):
+class DigitalOcean():
 
     def __init__(self):
         self._client = None

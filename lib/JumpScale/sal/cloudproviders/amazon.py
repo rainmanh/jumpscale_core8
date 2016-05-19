@@ -3,7 +3,7 @@ from JumpScale import j
 
 from sal.base.SALObject import SALObject
 
-class AmazonProvider(SALObject):
+class AmazonProvider():
 
     def __init__(self):
         self._region = None

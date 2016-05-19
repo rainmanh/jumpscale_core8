@@ -146,7 +146,7 @@ class ApiRos:
 
 from sal.base.SALObject import SALObject
 
-class RouterOS(SALObject):
+class RouterOS():
 
     def __init__(self, host, login,password):
         # self.configPath = j.sal.fs.joinPaths('/etc', 'RouterOS')

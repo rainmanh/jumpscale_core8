@@ -14,7 +14,7 @@ def empty_callback():
 
 from sal.base.SALObject import SALObject
 
-class SSL(SALObject):
+class SSL():
     def __init__(self):
         self.__jslocation__ = "j.sal.ssl"
 
@@ -28,7 +28,7 @@ class SSL(SALObject):
         return KeyStor(keyvaluestor)
 
 
-class KeyStor(SALObject):
+class KeyStor():
 
     def __init__(self,keyvaluestor=None):
         self.keys={}

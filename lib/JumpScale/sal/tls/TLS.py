@@ -3,7 +3,7 @@ from JumpScale import j
 
 from sal.base.SALObject import SALObject
 
-class TLS(SALObject):
+class TLS():
     def __init__(self, cfsslService=None, path=None):
         super(TLS, self).__init__()
         self._local = j.tools.executor.getLocal()

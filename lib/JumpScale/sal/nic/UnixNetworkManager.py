@@ -13,7 +13,7 @@ class NetworkingError(Exception):
 from sal.base.SALObject import SALObject
 
 
-class UnixNetworkManager(SALObject):
+class UnixNetworkManager():
 
     def __init__(self):
         self.__jslocation__ = "j.sal.nic"

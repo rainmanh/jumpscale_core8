@@ -13,7 +13,7 @@ BASEPATH = '/VNASSHARE/'
 from sal.base.SALObject import SALObject
 
 
-class SMBUser(SALObject):
+class SMBUser():
     def __init__(self,  verbose=False):
         # self._smb = cmd_sambatool(self._stdout, self._stderr)
         self._local = j.tools.executor.getLocal()
@@ -65,7 +65,7 @@ class SMBUser(SALObject):
         return True
 
 
-class SMBShare(SALObject):
+class SMBShare():
     def __init__(self):
         self._config = SambaConfigParser()
         self._load()
@@ -144,7 +144,7 @@ class SMBShare(SALObject):
         return result
 
 
-class SMBSubShare(SALObject):
+class SMBSubShare():
     def __init__(self):
         j.tools.path.get(BASEPATH).mkdir_p()
 
@@ -194,7 +194,7 @@ class SMBSubShare(SALObject):
         return result
 
 
-class Samba(SALObject):
+class Samba():
     def __init__(self):
         self.__jslocation__ = "j.sal.samba"
         self._local = j.tools.executor.getLocal()
@@ -245,7 +245,7 @@ class Samba(SALObject):
         return self._users.revokeaccess(username, sharename, sharepath, readonly)
 
 
-# class SambaFactory(SALObject):
+# class SambaFactory():
 
 #     def _getFactoryEnabledClasses(self):
 #         return (("", "Samba", Samba()), ("Samba", "SMBUser", SMBUser()), ("Samba", "SMBShare", SMBShare()),

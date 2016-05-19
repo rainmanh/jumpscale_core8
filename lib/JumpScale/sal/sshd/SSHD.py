@@ -11,7 +11,7 @@ class SSHError(Exception):
 
 from sal.base.SALObject import SALObject
 
-class SSHD(SALObject):
+class SSHD():
     def __init__(self):
         self.__jslocation__ = "j.sal.sshd"
 

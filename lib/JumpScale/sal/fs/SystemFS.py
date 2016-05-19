@@ -210,7 +210,7 @@ class FileLock(object):
         return wrapper
 
 from JumpScale.sal.base.SALObject import SALObject
-class SystemFS(SALObject):
+class SystemFS():
     exceptions = Exceptions
 
     def __init__(self):

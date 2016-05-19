@@ -37,7 +37,7 @@ def get_open_blks(pid):
 
 from sal.base.SALObject import SALObject
 
-class Disk(SALObject):
+class Disk():
     """
     identifies a disk in the grid
     """
@@ -60,7 +60,7 @@ class Disk(SALObject):
 
     __repr__=__str__
 
-class Diskmanager(SALObject):
+class Diskmanager():
     def __init__(self):
         self.__jslocation__ = "j.sal.diskmanager"
         self._parted=None

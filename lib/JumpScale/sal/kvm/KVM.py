@@ -24,7 +24,7 @@ root.partitionnr=
 
 from sal.base.SALObject import SALObject
 
-class KVM(SALObject):
+class KVM():
 
     def __init__(self):
         """

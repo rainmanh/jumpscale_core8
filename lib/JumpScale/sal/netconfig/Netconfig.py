@@ -6,7 +6,7 @@ import netaddr
 
 from sal.base.SALObject import SALObject
 
-class Netconfig(SALObject):
+class Netconfig():
     """
     """
 

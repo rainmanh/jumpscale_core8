@@ -4,7 +4,8 @@ from JumpScale import j
 
 import click
 
-atyourservice=j.atyourservice.get("ays",j.sal.fs.getcwd())
+cwd = j.sal.fs.getcwd()
+atyourservice=j.atyourservice.get(j.sal.fs.getBaseName(cwd), cwd)
 
 @click.group()
 @click.option('--nodebug', default=False, help='disable debug mode', is_flag=True)
@@ -104,8 +105,6 @@ def install(role="",instance="",force=False,producerroles="*", ask=False):
     run = atyourservice.getRun(role=role,instance=instance,action="install",force=force,producerRoles=producerroles)
     print(run)
     run.execute()
-
-
 
 
 @click.command()

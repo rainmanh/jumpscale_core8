@@ -158,6 +158,23 @@ class CuisineBootMediaInstaller(object):
             raise j.exceptions.Input("platform not supported yet")        
         self.formatCardDeployImage(url, deviceid=deviceid)
 
+    def g8os_arm(self, url, gid, nid, deviceid=None):
+        init_tmpl = """\
+        #!/usr/bin/bash
+
+        mkdir /dev/pts
+        mount -t devpts none /dev/pts
+        source /etc/profile
+        exec /sbin/core -gid {gid} -nid {nid} -roles g8os > /var/log/core.log 2>&1
+        """
+
+        def configure(deviceid):
+            import textwrap
+            init = textwrap.dedent(init_tmpl).format(gid=gid, nid=nid)
+            self.cuisine.core.file_write("/mnt/sbin/init", init, mode=755)
+
+        self.formatCardDeployImage(url, deviceid=deviceid, part_type='msdos', post_install=configure)
+
     def g8os(self, gid, nid, platform="amd64",deviceid=None):
         """
         if platform none then it will use self.cuisine.node.hwplatform

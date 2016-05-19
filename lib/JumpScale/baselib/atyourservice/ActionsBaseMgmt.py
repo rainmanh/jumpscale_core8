@@ -2,22 +2,21 @@ from JumpScale import j
 
 
 class ActionsBaseMgmt:
-    def __init__(self, service):
-        self.service = service
 
-    def change_hrd_template(self, originalhrd):
-        for methodname,obj in self.service.state.methods.items():
+    def change_hrd_template(self, service, originalhrd):
+        for methodname,obj in service.state.methods.items():
             if methodname in ["install"]:
-                self.service.state.set(methodname,"CHANGEDHRD")
-                self.service.state.save()
+                service.state.set(methodname,"CHANGEDHRD")
+                service.state.save()
 
 
-    def change_hrd_instance(self, originalhrd):
-        for methodname,obj in self.service.state.methods.items():
+    def change_hrd_instance(self, service, originalhrd):
+        for methodname,obj in service.state.methods.items():
             if methodname in ["install"]:
-                self.service.state.set(methodname,"CHANGEDHRD")
-                self.service.state.save()
+                service.state.set(methodname,"CHANGEDHRD")
+                service.state.save()
 
-    def change_method(self, methodname):
-        self.service.state.set(methodname,"CHANGED")
-        self.service.state.save()
+    def change_method(self, service, methodname):
+        service.state.set(methodname, "CHANGED")
+        service.state.save()
+

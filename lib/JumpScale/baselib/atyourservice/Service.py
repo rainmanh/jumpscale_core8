@@ -281,7 +281,7 @@ class Service:
 
         # run the args manipulation action as an action
         self.state.save()
-        args = self.actions.input(self.recipe, self.role, self.instance, args)
+        args = self.actions.input(self, self.recipe, self.role, self.instance, args)
 
         originalhrd = j.data.hrd.get(content=str(self.hrd))
 
@@ -305,12 +305,12 @@ class Service:
         self.state.save()
 
         self._consumeFromSchema(args)
-        self.actions.init()
+        self.actions.init(service=self)
 
         if self.hrd is not None:
             newInstanceHrdHash = j.data.hash.md5_string(str(self.hrd))
             if self.state.instanceHRDHash != newInstanceHrdHash:
-                self.actions.change_hrd_instance(originalhrd=originalhrd)
+                self.actions.change_hrd_instance(service=self, originalhrd=originalhrd)
                 self.hrd.save()
             self.state.instanceHRDHash = newInstanceHrdHash
 
@@ -322,7 +322,7 @@ class Service:
                 # the template hash changed
                 if self.hrd is not None:
                     self.hrd.applyTemplate(template=self.recipe.template.hrd, args={}, prefix='')
-                    self.actions.change_hrd_template(originalhrd=originalhrd)
+                    self.actions.change_hrd_template(service=self, originalhrd=originalhrd)
                     self.hrd.save()
                     self.state.templateHRDHash = newTemplateHrdHash
 
@@ -513,7 +513,7 @@ class Service:
         tocheck.extend(self.parents)
         for service in tocheck:
             if hasattr(service.actions, 'getExecutor'):
-                executor = service.actions.getExecutor()
+                executor = service.actions.getExecutor(service=self)
                 return executor
         return j.tools.executor.getLocal()
 
@@ -549,6 +549,9 @@ class Service:
                     return True
         return False
 
+    def get_consumers(self):
+        return [service for service in list(self.aysrepo.services.values()) if self.isConsumedBy(service)]
+
     def getProducers(self, producercategory):
         if producercategory not in self.producers:
             raise j.exceptions.Input("cannot find producer with category:%s" % producercategory)
@@ -574,7 +577,7 @@ class Service:
 
     @property
     def actions(self):
-        return self.recipe.get_actions(self)
+        return self.recipe.get_actions(service=self)
 
     def runAction(self, action):
         a = self.getAction(action)
@@ -584,7 +587,7 @@ class Service:
         # when none means does not exist so does not have to be executed
         if a is not None:
             # if action not in ["init","input"]:
-            return a()
+            return a(service=self)
 
 
     @property

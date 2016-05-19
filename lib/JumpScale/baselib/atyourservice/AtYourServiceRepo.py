@@ -371,7 +371,7 @@ class AtYourServiceRepo():
         if action=="init":
             actions=["init"]
         else:
-            actions=["install",action]
+            actions = ["install", action]
 
         run=AYSRun(self)
         for action0 in actions:
@@ -433,19 +433,19 @@ class AtYourServiceRepo():
             print ("PUSH")
             gitcl.push()
 
-    # def _getChangedServices(self, action=None):
-    #     changed = list()
-    #     if not action:
-    #         actions = ["install", "stop", "start", "monitor", "halt", "check_up", "check_down",
-    #                    "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata"]
-    #     else:
-    #         actions = [action]
-    #     for _, service in self.services.items():
-    #         if [service for action in actions if service.state.getSet(action).state == 'CHANGED']:
-    #             changed.append(service)
-    #             for producers in [producers for _, producers in service.producers.items()]:
-    #                 changed.extend(producers)
-    #     return changed
+    def _getChangedServices(self, action=None):
+        changed = list()
+        if not action:
+            actions = ["install", "stop", "start", "monitor", "halt", "check_up", "check_down",
+                       "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata"]
+        else:
+            actions = [action]
+        for _, service in self.services.items():
+            if [service for action in actions if action in list(service.action_methods.keys()) and service.state.get(action, die=False) == 'CHANGED']:
+                changed.append(service)
+                for producers in [producers for _, producers in service.producers.items()]:
+                    changed.extend(producers)
+        return changed
 
 
     # def do(self, action="install", role="", instance="", printonly=False, ignorestate=False, force=False, ask=False):

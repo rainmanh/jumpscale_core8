@@ -145,7 +145,9 @@ class Account:
             spaces.append(Space(self, space.struct))
         return spaces
 
-    def space_get(self, name, location="", create=True):
+    def space_get(self, name, location="", create=True,
+                  maxMemoryCapacity=-1, maxVDiskCapacity=-1, maxCPUCapacity=-1, maxNASCapacity=-1,
+                  maxArchiveCapacity=-1, maxNetworkOptTransfer=-1, maxNetworkPeerTransfer=-1, maxNumPublicIP=-1):
         """
         will get space if it exists,if not will create it
         to retrieve existing one location does not have to be specified
@@ -163,7 +165,15 @@ class Account:
                 self.client.api.cloudapi.cloudspaces.create(access=self.client.login,
                                                             name=name,
                                                             accountId=self.id,
-                                                            location=location)
+                                                            location=location,
+                                                            maxMemoryCapacity=maxMemoryCapacity,
+                                                            maxVDiskCapacity=maxVDiskCapacity,
+                                                            maxCPUCapacity=maxCPUCapacity,
+                                                            maxNASCapacity=maxNASCapacity,
+                                                            maxArchiveCapacity=maxArchiveCapacity,
+                                                            maxNetworkOptTransfer=maxNetworkOptTransfer,
+                                                            maxNetworkPeerTransfer=maxNetworkPeerTransfer,
+                                                            maxNumPublicIP=maxNumPublicIP)
                 self._spaces_cache.delete()
                 return self.space_get(name, location, False)
             else:

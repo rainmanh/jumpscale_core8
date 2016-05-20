@@ -43,9 +43,9 @@ class Cockpit():
         """
         bot_token: telegram token for cockpit bot
         """
-        self.create_config(bot_token)
+        self.create_config(bot_token, jwt_key, organization)
         cmd = 'jspython cockpit --config $cfgDir/cockpit/config.toml'
-        c.processmanager.ensure('cockpit', cmd=cmd, path='/opt/jumpscale8/apps/cockpit')
+        self.cuisine.processmanager.ensure('cockpit', cmd=cmd, path='/opt/jumpscale8/apps/cockpit')
 
     def install_deps(self):
         deps = """

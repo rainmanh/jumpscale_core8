@@ -115,7 +115,8 @@ class Service:
                         elif parent_recipe_item.auto:
                             aysi = self.aysrepo.getService(role=parentrole, instance="main", die=False)
                             if aysi is None:
-                                aysi = servicerecipe.newInstance(instance=parentinstance, args={})
+                                parent_recipe = self.aysrepo.getRecipe(name=parent_recipe_item.name)
+                                aysi = parent_recipe.newInstance(instance="main", args={})
                         else:
                             raise j.exceptions.Input("Parent '%s' needs to be specified or put on autocreation in recipe:%s, now instance:%s" % (parent_recipe_item.name, servicerecipe, self.instance))
 
@@ -513,7 +514,7 @@ class Service:
         tocheck.extend(self.parents)
         for service in tocheck:
             if hasattr(service.actions, 'getExecutor'):
-                executor = service.actions.getExecutor(service=self)
+                executor = service.actions.getExecutor(service=service)
                 return executor
         return j.tools.executor.getLocal()
 

@@ -206,6 +206,7 @@ class CuisineCore():
         self.cuisine=cuisine
         self.runid = self.id
         self._hostname=""
+        self._fqn = ""
         self.done=[]
 
 
@@ -526,8 +527,11 @@ class CuisineCore():
         return self._hostname
 
     @hostname.setter
-    def hostname(self,val):
-        val=val.strip().lower()
+    def hostname(self, val):
+        sudo = self.sudomode = True
+        self.sudomode = True
+
+        val = val.strip().lower()
         if self.isMac:
             hostfile="/private/etc/hostname"
             self.file_write(hostfile,val,sudo=True)
@@ -536,7 +540,9 @@ class CuisineCore():
             self.file_write(hostfile,val)
         self.run("hostname %s"%val)
         self._hostname=val
-        self.fqn="%s.%s.%s"%(self.name,self.grid,self.domain) #make sure name is reflected in fqn
+        self.ns.hostfile_set(val, '127.0.0.1')
+
+        self.sudomode = sudo
 
 
     @property
@@ -553,6 +559,10 @@ class CuisineCore():
     def domain(self):
         self.name
         return self._domain
+
+    @property
+    def ns(self):
+        return self.cuisine.ns
 
     @property
     def fqn(self):
@@ -644,23 +654,23 @@ class CuisineCore():
             piece = input.read(131072)
             if not piece:
                 break
-            
+
             output.write(piece)
-        
+
         output.close()
         input.close()
-        
+
     def file_upload_binary(self, local, remote):
         """Uploads (stream) the local file to the remote location"""
         local = self.args_replace(local)
 
         sftp = self.executor.sshclient.getSFTP()
-        
+
         output = sftp.open(remote, mode='w+')
         input = open(local, "rb")
-        
+
         self._file_stream(input, output)
-        
+
     def file_upload_local(self, local, remote):
         """Uploads the local file to the remote location only if the remote location does not
         exists or the content are different."""
@@ -680,12 +690,12 @@ class CuisineCore():
         local = self.args_replace(local)
 
         sftp = self.executor.sshclient.getSFTP()
-        
+
         output = open(local, "w+b")
         input = sftp.open(remote, mode='r')
-        
+
         self._file_stream(input, output)
-    
+
     def file_download_local(self,remote, local):
         """Downloads the remote file to localy only if the local location does not
         exists or the content are different."""
@@ -1184,7 +1194,7 @@ class CuisineCore():
         out=self.run("jspython %s"%path)
         self.file_unlink(path)
         return out
-    
+
     @actionrun(action=True,force=True)
     def execute_python(self, script):
         """
@@ -1192,7 +1202,7 @@ class CuisineCore():
         """
         script = self.args_replace(script)
         script = j.data.text.strip(script)
-        
+
         path = "$tmpDir/pyscript_temp_%s.py" % j.data.idgenerator.generateRandomInt(1,10000)
         path = self.args_replace(path)
 
@@ -1200,11 +1210,11 @@ class CuisineCore():
         j.sal.fs.writeFile(path, script)
         self.file_upload_binary(path, path)
         j.sal.fs.remove(path)
-        
+
         out = self.run("python %s" % path)
-        
+
         self.file_unlink(path)
-        
+
         return out
 
 
@@ -1216,7 +1226,7 @@ class CuisineCore():
         if not self.__cgroup:
             self.__cgroup = self.file_read("/proc/1/cgroup")
         return self.__cgroup
-    
+
     @property
     def isDocker(self):
         self._isDocker = self._cgroup.find("docker") != -1
@@ -1226,7 +1236,7 @@ class CuisineCore():
     def isLxc(self):
         self._isLxc = self._cgroup.find("lxc") != -1
         return self._isLxc
-    
+
 
     @property
     def isUbuntu(self):

@@ -87,6 +87,27 @@ class Blueprint(object):
 
         self.models.append(model)
 
+    @property
+    def services(self):
+        services = []
+        for model in self.models:
+            if model is not None:
+                for key, item in model.items():
+                    if key.find("__")==-1:
+                        raise j.exceptions.Input("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'"%key)
+
+                    aysname, aysinstance = key.split("__", 1)
+                    if aysname.find(".") != -1:
+                        rolefound, _ = aysname.split(".", 1)
+                    else:
+                        rolefound = aysname
+
+                    service = self.aysrepo.getService(role=rolefound, instance=aysinstance, die=False)
+                    if service:
+                        services.append(service)
+
+        return services
+
     def __str__(self):
         return str(self.content)
 

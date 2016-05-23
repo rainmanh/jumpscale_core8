@@ -48,7 +48,7 @@ class Blueprint(object):
                 for key,item in model.items():
                     if key.find("__")==-1:
                         raise j.exceptions.Input("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'"%key)
-                    aysname,aysinstance=key.split("__",1)
+                    aysname,aysinstance=key.lower().split("__",1)
 
                     if aysname.find(".") != -1:
                         rolefound, _ = aysname.split(".", 1)
@@ -96,7 +96,7 @@ class Blueprint(object):
                     if key.find("__")==-1:
                         raise j.exceptions.Input("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'"%key)
 
-                    aysname, aysinstance = key.split("__", 1)
+                    aysname, aysinstance = key.lower().split("__", 1)
                     if aysname.find(".") != -1:
                         rolefound, _ = aysname.split(".", 1)
                     else:

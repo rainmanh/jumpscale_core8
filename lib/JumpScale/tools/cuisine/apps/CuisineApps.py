@@ -21,6 +21,7 @@ from apps.CuisineVulcand import Vulcand
 from apps.CuisineWeave import Weave
 from apps.CuisinePortal import CuisinePortal
 from apps.CuisineCockpit import Cockpit
+from apps.CuisineDeployerBot import DeployerBot
 
 
 import time
@@ -59,6 +60,7 @@ class CuisineApps(object):
         self._weave = None
         self._portal = None
         self._cockpit = None
+        self._deployerbot = None
 
     @property
     def weave(self):
@@ -159,6 +161,11 @@ class CuisineApps(object):
         if self._cockpit is None:
             self._cockpit = Cockpit(self.executor, self.cuisine)
         return self._cockpit
+    @property
+    def deployerbot(self):
+        if self._deployerbot is None:
+            self._deployerbot = DeployerBot(self.executor, self.cuisine)
+        return self._deployerbot
 
     @actionrun(action=True)
     def installdeps(self):

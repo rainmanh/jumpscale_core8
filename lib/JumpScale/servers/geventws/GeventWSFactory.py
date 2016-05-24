@@ -1,7 +1,7 @@
 from JumpScale import j
 
 
-class GeventWSFactory():
+class GeventWSFactory:
     def __init__(self):
         self.__jslocation__ = "j.servers.geventws"
         self.cache={}
@@ -12,7 +12,7 @@ class GeventWSFactory():
         HOW TO USE:
         daemon=j.servers.geventws.getServer(port=4444)
 
-        class MyCommands():
+        class MyCommands:
             def __init__(self,daemon):
                 self.daemon=daemon
 

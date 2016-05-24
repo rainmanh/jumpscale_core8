@@ -29,7 +29,7 @@ class Debug(ModelBase, Document):
 
 
 
-class AtYourServiceSandboxer():
+class AtYourServiceSandboxer:
 
 
     def __init__(self, name="main"):
@@ -285,7 +285,7 @@ class AtYourServiceSandboxer():
         return str(self.model)
     __repr__=__str__
 
-class AtYourServiceDebugFactory():
+class AtYourServiceDebugFactory:
 
     @property
     def doc(self):

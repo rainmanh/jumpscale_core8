@@ -5,7 +5,7 @@ import os
 from JumpScale import j
 from OauthInstance import *
 
-class OauthFactory(object):
+class OauthFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.clients.oauth"

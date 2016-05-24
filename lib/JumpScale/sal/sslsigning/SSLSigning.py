@@ -3,10 +3,10 @@ from OpenSSL import crypto
 import OpenSSL
 from socket import gethostname
 
-from sal.base.SALObject import SALObject
 
 
-class SSLSigning(SALObject):
+
+class SSLSigning:
     def __init__(self):
         self.__jslocation__ = "j.sal.ssl_signing"
 

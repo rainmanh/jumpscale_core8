@@ -7,9 +7,9 @@ import docker
 import time
 from urllib import parse
 
-from sal.base.SALObject import SALObject
 
-class Docker(SALObject):
+
+class Docker:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.docker"

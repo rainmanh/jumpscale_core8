@@ -32,13 +32,13 @@ class RemoteSystemAuthenticationError(RuntimeError):
     pass
 
 
-class Exceptions(object):
+class Exceptions:
     RemoteSystemNotReachableError = RemoteSystemNotReachableError
     RemoteSystemAuthenticationError = RemoteSystemAuthenticationError
     InvalidIpAddressError = InvalidIpAddressError
 
 
-class RemoteSystem(object):
+class RemoteSystem:
     name = "j.remote.system"
 
     exceptions = Exceptions
@@ -87,7 +87,7 @@ class RemoteSystem(object):
         return remoteConnection
 
 
-class RemoteSystemConnection(object):
+class RemoteSystemConnection:
 
     def __init__(self, ip, login="", password="", timeout=5.0, port=22):
         self._closed = False
@@ -142,7 +142,7 @@ class RemoteSystemConnection(object):
     portforward = property(fget=_getPortForward, doc="Executes remote and local port forwarding using the connecting machine as ssh server")
 
 
-class _remoteSystemObject(object):
+class _remoteSystemObject:
 
     def __init__(self, connection, ipaddress=None):
         self.logger = j.logger.get("j.tools.ssh_remotesystem")
@@ -658,7 +658,7 @@ class RemoteSystemFS(_remoteSystemObject):
             sf.close()
 
 
-class RemotePortForwardHander(object):
+class RemotePortForwardHander:
 
     def __init__(self):
         # Keep  trac of registered forwards forwards[(server_addr, server_port)] = (local_addr, local_port)
@@ -696,7 +696,7 @@ class RemotePortForwardHander(object):
             return
 
         self.logger.info('port_forward_handler:handle Connected!  Tunnel open %r -> %r' %
-                     (channel.getpeername(), (local_address, local_port))))
+                     (channel.getpeername(), (local_address, local_port)))
 
         while True:
             r, w, x = select.select([sock, channel], [], [])

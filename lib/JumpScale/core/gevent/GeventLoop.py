@@ -3,7 +3,7 @@ import gevent
 import zmq.green as zmq
 
 
-class GeventLoop(object):
+class GeventLoop:
 
     def __init__(self):
         self.greenlets = {}

@@ -8,7 +8,7 @@ except:
 import re
 matchquote = re.compile(r'\'[^\']*\'')
 
-class Tags():
+class Tags:
     """
     represent set of tags & _labels
     label is e.g. important (no value attached)

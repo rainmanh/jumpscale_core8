@@ -3,7 +3,7 @@ from xml.etree import ElementTree
 from JumpScale import j
 
 
-class NetworkScanner(object):
+class NetworkScanner:
     COMMAND = 'nmap -n --disable-arp-ping -send-ip -Pn -sS -p{ports} -oX - {cidr}'
 
     def __init__(self, cidr, ports=[80]):

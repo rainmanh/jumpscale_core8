@@ -1,5 +1,5 @@
 from JumpScale import j
-class SpecModelActorsGenerator():
+class SpecModelActorsGenerator:
 
     def __init__(self,appname,actorname,specpath,typecheck=True,dieInGenCode=True):
         self.content=""

@@ -180,7 +180,7 @@ class SpecModelProperty(Specbase):
 
 
 
-class SpecBlock():
+class SpecBlock:
     """
     generic block of specs identified with starting with [...]
     can be multiple types
@@ -340,7 +340,7 @@ class SpecBlock():
     __repr__=__str__
 
 
-class SpecDirParser():
+class SpecDirParser:
     def __init__(self,path,appname,actorname):
         self.appname=appname
         self.actorname=actorname
@@ -398,7 +398,7 @@ class SpecDirParser():
     __repr__=__str__
 
 
-class SpecFileParser():
+class SpecFileParser:
     def __init__(self,path,appname,actorname):
         """
         find blocks in file
@@ -549,7 +549,7 @@ class Role(j.tools.code.classGetBase()):
 
 
 
-class SpecParserFactory():
+class SpecParserFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.core.specparser"

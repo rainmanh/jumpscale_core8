@@ -4,7 +4,7 @@ from ExecutorSSH import *
 from ExecutorLocal import *
 
 
-class ExecutorFactory():
+class ExecutorFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.tools.executor"

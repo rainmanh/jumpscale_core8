@@ -45,7 +45,7 @@ else:
     sys.path.append("%s/lib/lib-dynload"%base)
 
 
-class Loader(object):
+class Loader:
     def __init__(self,name):
         self.__doc__=name
         locationbases[name]=self

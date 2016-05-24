@@ -1,7 +1,7 @@
 from JumpScale import j
 from time import sleep
 
-class Startable():
+class Startable:
     def __init__(self):
         self.installed = False
         self.started = False

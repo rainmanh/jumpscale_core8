@@ -1,7 +1,7 @@
 
 from JumpScale import j
 
-class CuisineGit():
+class CuisineGit:
     def __init__(self,executor,cuisine):
         self.executor=executor
         self.cuisine=cuisine

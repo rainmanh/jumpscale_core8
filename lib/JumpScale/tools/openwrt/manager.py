@@ -22,7 +22,7 @@ class UCIError(Exception):
 
 
 
-class OpenWRTManager(object):
+class OpenWRTManager:
     WRT_SHELL = '/bin/ash -c'
 
     def __init__(self, con=None):
@@ -130,7 +130,7 @@ class OpenWRTManager(object):
                 j.sal.process.execute('rm -f %s')
 
 
-class OpenWRTFactory(object):
+class OpenWRTFactory:
     def _getFactoryEnabledClasses(self):
         return (("","UCI",UCI()),("","DNS",DNS()),("","DHCP",DHCP()),("","PureFTP",PureFTP()),("","Network",Network()),("","Firewall",Firewall()),("","OpenWRTManager",OpenWRTManager()))      
     def get(self, connection=None):

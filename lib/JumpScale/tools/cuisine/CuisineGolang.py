@@ -12,7 +12,7 @@ class actionrun(ActionDecorator):
 
 
 
-class CuisineGolang():
+class CuisineGolang:
 
     def __init__(self,executor,cuisine):
         self.executor=executor

@@ -12,7 +12,7 @@ class actionrun(ActionDecorator):
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installerdevelop"
 
 
-class CuisineInstallerDevelop():
+class CuisineInstallerDevelop:
 
     def __init__(self,executor,cuisine):
         self.executor=executor
@@ -94,6 +94,7 @@ class CuisineInstallerDevelop():
         self.cuisine.core.run_script(C)
 
         C="""
+        cffi==1.5.2
         paramiko
 
         msgpack-python

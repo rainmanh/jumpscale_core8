@@ -11,7 +11,7 @@ except:
     import urllib.parse as urllib
 
 
-class GraphiteClient():
+class GraphiteClient:
     def __init__(self):
         self.__jslocation__ = "j.clients.graphite"
         self._SERVER = '127.0.0.1'

@@ -2,7 +2,7 @@ from JumpScale import j
 
 import tmuxp
 
-class Session():
+class Session:
     def __init__(self,session):
 
         self.id=session.get("session_id")
@@ -66,7 +66,7 @@ class Session():
 
     __str__=__repr__
 
-class Window():
+class Window:
     def __init__(self,session,window):
         self.name=window.get("window_name")
         self.session=session
@@ -126,7 +126,7 @@ class Window():
 
     __str__=__repr__
 
-class Pane():
+class Pane:
 
     def __init__(self,window,pane):
         self.mgmt=pane
@@ -163,7 +163,7 @@ class Pane():
 
     __str__=__repr__
 
-class Tmux():
+class Tmux:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.tmux"

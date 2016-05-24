@@ -3,7 +3,7 @@ import os
 import re
 
 # requires smbfs package
-class CifsFS(object):
+class CifsFS:
     self.logger = j.logger.get("j.sal.cloudfs.Cifs")
     server = None
     share = None

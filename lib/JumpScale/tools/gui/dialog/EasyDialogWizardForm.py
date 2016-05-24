@@ -37,7 +37,7 @@ from EasyDialogWizardServer import EasyDialogWizardServer
 
 
 
-class EasyDialogWizardForm(object):
+class EasyDialogWizardForm:
 
     def createForm(self):
         """
@@ -47,14 +47,14 @@ class EasyDialogWizardForm(object):
         """
         return WizardForm()
 
-class WizardElementBase(object):
+class WizardElementBase:
     """
     Base class for element objects
     """
     def __init__(self, properties):
         self.__dict__ = properties
 
-class WizardForm(object):
+class WizardForm:
     """
     Helper class which generate form
     """
@@ -164,7 +164,7 @@ class WizardList(list):
     def __str__(self):
         return '[%s]'%','.join([item.name for item in self._items])
 
-class WizardTab(object):
+class WizardTab:
     """
     Helper class which generate tab structure
     """

@@ -10,7 +10,7 @@ import collections
 import os
 import base64
 
-class Jumpscript(object):
+class Jumpscript:
     def __init__(self, ddict=None, path=None):
         self._loaded = False
         self.name=""

@@ -17,11 +17,11 @@ class UFWError(Exception):
     pass
 
 
-from sal.base.SALObject import SALObject
 
 
 
-class UFWRule(object):
+
+class UFWRule:
     def __init__(self, action=None, source=None, destination=None, number=None):
         self._number = number
         self._source = source
@@ -53,7 +53,7 @@ class UFWRule(object):
         return str(self)
 
 
-class UFWOperation(object):
+class UFWOperation:
     def cmd(self):
         raise NotImplemented()
 
@@ -141,7 +141,7 @@ class RuleOp(UFWOperation):
         return ' '.join(cmd)
 
 
-class UFWManager(SALObject):
+class UFWManager:
     ACTION_ALLOW_IN = 'allow in'
     ACTION_ALLOW_OUT = 'allow out'
     ACTION_DENY_IN = 'deny in'

@@ -3,7 +3,7 @@ from JumpScale import j
 import re
 import os
 
-class Dep():
+class Dep:
     def __init__(self,name,path):
         self.name=name
         self.path=path
@@ -38,7 +38,7 @@ class Dep():
 
     __repr__=__str__
 
-class Sandboxer():
+class Sandboxer:
     """
     sandbox any linux app
     """

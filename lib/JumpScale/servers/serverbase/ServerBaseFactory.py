@@ -5,7 +5,7 @@ import time
 import struct
 
 
-class ServerBaseFactory():
+class ServerBaseFactory:
     def __init__(self):
         self.__jslocation__ = "j.servers.base"
 
@@ -17,7 +17,7 @@ class ServerBaseFactory():
 
         daemon=j.servers.base.getDaemon()
 
-        class MyCommands():
+        class MyCommands:
             def __init__(self,daemon):
                 self.daemon=daemon
 

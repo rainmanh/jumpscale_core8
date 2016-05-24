@@ -47,7 +47,7 @@ class InifileTool:
             raise j.exceptions.RuntimeError('Attempt to create existing INI file %s as a new file' % filename)
         return IniFile(filename, create=True)
 
-class IniFile(object):
+class IniFile:
     """
     Use with care:
     - addParam and setParam are 'auto-write'

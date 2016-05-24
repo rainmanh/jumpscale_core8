@@ -3,7 +3,7 @@ import time
 
 redis=j.clients.redis.get("127.0.0.1", 9999)
 
-class Node():
+class Node:
     def __init__(self,name,args={}):
         self.model=j.core.admin.hrd.getDictFromPrefix("node.%s"%name)
         self.ssh=None

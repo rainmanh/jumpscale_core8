@@ -9,7 +9,7 @@ class actionrun(ActionDecorator):
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.portal"
 
 
-class CuisinePortal(object):
+class CuisinePortal:
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -41,6 +41,7 @@ class CuisinePortal(object):
         make sure new env arguments are understood on platform
         """
         deps = """
+        cffi==1.5.2
         setuptools
         aioredis
         # argh

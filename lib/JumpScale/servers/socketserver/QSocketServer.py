@@ -116,7 +116,7 @@ class QSocketServerHandler(socketserver.BaseRequestHandler):
                         return
 
 
-class QSocketServer():
+class QSocketServer:
 
     def __init__(self, addr, port, key, datahandler):
         """
@@ -135,7 +135,7 @@ class QSocketServer():
         self.server.serve_forever()
 
 
-class QSocketServerFactory():
+class QSocketServerFactory:
     def __init__(self):
         self.__jslocation__ = "j.servers.socketserver"
 

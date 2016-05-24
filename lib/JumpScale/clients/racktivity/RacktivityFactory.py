@@ -1,7 +1,7 @@
 from JumpScale import j
 from energyswitch.client import RackSal
 
-class RacktivityFactory(object):
+class RacktivityFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.clients.racktivity"

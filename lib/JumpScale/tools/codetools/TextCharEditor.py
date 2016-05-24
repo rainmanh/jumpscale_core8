@@ -1,7 +1,7 @@
 from JumpScale import j
 
 
-class TextCharEditor():
+class TextCharEditor:
     """
     represents a piece of text but broken appart in blocks
     this one works on a char basis

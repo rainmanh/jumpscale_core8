@@ -1,7 +1,7 @@
 from Monitor import Monitor
 
 
-class RealityCapture(object):
+class RealityCapture:
     """
     RealityCapture schedules monitoring on remote nodes given the gid and nid
     """

@@ -19,7 +19,7 @@ from Service import *
 #     return mod
 
 
-class ServiceTemplate(object):
+class ServiceTemplate:
 
     def __init__(self, path,domain=""):
         self.path = path

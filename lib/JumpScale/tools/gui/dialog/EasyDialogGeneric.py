@@ -33,7 +33,7 @@
 #
 # </License>
 
-class EasyDialogGeneric(object):
+class EasyDialogGeneric:
 
 
     def message(self, message):

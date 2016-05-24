@@ -1,6 +1,6 @@
 from JumpScale import j
 
-class ClassBase(object):    
+class ClassBase:    
     """
     implement def _obj2dict to overrule serialization, output needs to be dict, reverse is _dict2obj
     """

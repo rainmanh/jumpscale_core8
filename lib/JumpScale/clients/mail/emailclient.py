@@ -9,7 +9,7 @@ from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-class EmailClient(object):
+class EmailClient:
     def __init__(self):
         self.__jslocation__ = "j.clients.email"
         hrd=j.application.getAppInstanceHRD("mailclient","main")

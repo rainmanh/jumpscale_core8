@@ -13,7 +13,7 @@ except Exception as e:
     import gitlab
 
 
-class GitlabInstance():
+class GitlabInstance:
     """
     Wrapper around gitlab3 library with Caching capabilities to improve performance.
     """

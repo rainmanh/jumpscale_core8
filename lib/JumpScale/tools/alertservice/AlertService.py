@@ -6,7 +6,7 @@ import os
 import inspect
 import gevent
 
-class Handler(object):
+class Handler:
     ORDER = 50
 
     def __init__(self, service):
@@ -21,7 +21,7 @@ class Handler(object):
     def escalate(self, alert, users):
         pass
 
-class AlertService(object):
+class AlertService:
 
     def __init__(self):
         self.__jslocation__ = "j.tools.alertservice"

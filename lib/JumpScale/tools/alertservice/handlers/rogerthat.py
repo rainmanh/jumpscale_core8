@@ -52,7 +52,7 @@ Message: %(errormessage)s
 """  % alert
         return message
 
-class RogerThatHandler(object):
+class RogerThatHandler:
     API_KEY = j.application.config.get('rogerthat.apikey')
 
     def __init__(self, service):

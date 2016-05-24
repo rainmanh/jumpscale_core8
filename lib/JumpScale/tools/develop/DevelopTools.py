@@ -56,7 +56,7 @@ class MyFSEventHandler(FileSystemEventHandler):
     def on_modified(self, event):
         self.catch_all_handler(event)
 
-class DebugSSHNode():
+class DebugSSHNode:
 
     def __init__(self, addr="localhost", sshport=22):
         self.addr = addr
@@ -118,7 +118,7 @@ class DebugSSHNode():
     __repr__ = __str__
 
 
-class DevelopToolsFactory():
+class DevelopToolsFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.tools.develop"

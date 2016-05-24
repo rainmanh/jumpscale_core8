@@ -1,7 +1,7 @@
 from JumpScale import j
 
 
-class HRDType():
+class HRDType:
     def __init__(self):
         self.name=""
         self.typeclass=None
@@ -96,7 +96,7 @@ class HRDType():
 
     __repr__=__str__
 
-class HRDSchema():
+class HRDSchema:
     def __init__(self,path="",content=""):
         if path!=None:
             content=j.sal.fs.fileGetContents(path)

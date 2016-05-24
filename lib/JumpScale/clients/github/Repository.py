@@ -5,7 +5,7 @@ import copy
 from Milestone import RepoMilestone
 
 
-class GithubRepo():
+class GithubRepo:
 
     def __init__(self, client, fullname):
         self.logger = j.logger.get('j.clients.github.repo')

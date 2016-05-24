@@ -1,7 +1,7 @@
 from JumpScale import j
 
 
-class StateItem():
+class StateItem:
     def __init__(self, states,name,state="INIT",period=0,last=0,actionmethod_hash="",hrd_hash=""):
         self.states = states
         self.name = name
@@ -101,7 +101,7 @@ class StateItem():
         return self.__repr__()
 
 
-class ServiceState():
+class ServiceState:
     def __init__(self, service):
 
         self.service = service

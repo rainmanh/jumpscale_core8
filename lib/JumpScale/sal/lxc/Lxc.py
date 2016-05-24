@@ -4,10 +4,10 @@ import time
 import os
 import netaddr
 
-from sal.base.SALObject import SALObject
 
 
-class Lxc(SALObject):
+
+class Lxc:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.lxc"

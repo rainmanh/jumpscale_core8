@@ -1,6 +1,6 @@
 from path import path
 
-class PathFactory():
+class PathFactory:
     def __init__(self):
         self.__jslocation__ = "j.tools.path"
 

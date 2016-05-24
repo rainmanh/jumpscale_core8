@@ -2,7 +2,7 @@ from JumpScale import j
 
 
 # maybe this could be switched to http://curlftpfs.sourceforge.net/
-class FileFS(object):
+class FileFS:
     path = None
     end_type = None
     local_file = None

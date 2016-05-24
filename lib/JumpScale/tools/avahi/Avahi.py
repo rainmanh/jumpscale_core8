@@ -7,7 +7,7 @@ class actionrun(ActionDecorator):
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.avahi"
 
 
-class Avahi():
+class Avahi:
     def __init__(self):
         self.__jslocation__ = "j.tools.avahi"
         self.cuisine=j.tools.cuisine.get()
@@ -192,7 +192,7 @@ class Avahi():
         return hostname
 
 
-class AvahiServices():
+class AvahiServices:
 
     def __init__(self):
         self.services = []
@@ -251,7 +251,7 @@ class AvahiServices():
         return self.__str__()
 
 
-class AvahiService():
+class AvahiService:
 
     def __init__(self):
         self.servicename = ""

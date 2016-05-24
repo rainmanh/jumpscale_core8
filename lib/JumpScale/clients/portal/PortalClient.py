@@ -23,7 +23,7 @@ class ApiError(Exception):
         return self._response
 
 
-class BaseResource(object):
+class BaseResource:
     def __init__(self, session, url):
         self._session = session
         self._url = url
@@ -71,6 +71,7 @@ class Resource(BaseResource):
                 api = getattr(api, path)
             docstring = methodspec['post']['description']
             for param in methodspec['post'].get('parameters', list()):
+                param['type'] = param['type'] if 'type' in param else str(param.get('$ref', 'unknown'))
                 docstring += """
                 :param %(name)s: %(description)s required %(required)s
                 :type %(name)s: %(type)s""" % param

@@ -124,7 +124,7 @@ r"""
     information about that, have a look at the next section.  Here an
     example for a simple object hook:
 
-    >>> class User(object):
+    >>> class User:
     ...     def __init__(self, username):
     ...         self.username = username
     ...
@@ -294,7 +294,7 @@ def _translate_member_name(name):
     return name
 
 
-class phpobject(object):
+class phpobject:
     """Simple representation for PHP objects.  This is used """
     __slots__ = ('__name__', '__php_vars__')
 

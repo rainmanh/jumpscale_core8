@@ -16,7 +16,7 @@ except:
 import select
 
 
-class SocketServerClient():
+class SocketServerClient:
 
     def __init__(self, addr="localhost", port=9999, key="1234"):
         self.port = port

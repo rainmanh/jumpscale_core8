@@ -1,10 +1,10 @@
 from JumpScale import j
 
-class WinConsoleFactory():
+class WinConsoleFactory:
     def get(self):
         return WinConsole()
 
-class WinConsole():
+class WinConsole:
     """
     methods to work with console on windows
     """    

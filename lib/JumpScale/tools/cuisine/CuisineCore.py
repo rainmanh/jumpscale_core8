@@ -193,7 +193,7 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self,*args,**kwargs)
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.core"
 
-class CuisineCore():
+class CuisineCore:
 
     def __init__(self,executor,cuisine):
         self.logger = j.logger.get("j.tools.cuisine.core", enable_only_me=True)

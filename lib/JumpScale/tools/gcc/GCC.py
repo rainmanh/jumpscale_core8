@@ -2,7 +2,7 @@
 from JumpScale import j
 from JumpScale.tools.develop.DevelopTools import DebugSSHNode
 
-class GCC(object):
+class GCC:
 
     def __init__(self):
         super(GCC, self).__init__()

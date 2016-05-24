@@ -1,6 +1,6 @@
 from JumpScale import j
 
-class OSTicketFactory():
+class OSTicketFactory:
     """
     """
 
@@ -19,7 +19,7 @@ class OSTicketFactory():
         return OSTicketClient(self.clients[key])
 
 
-class OSTicketClient():
+class OSTicketClient:
 
     def __init__(self,cl):
         self.client=cl

@@ -94,7 +94,7 @@ def preprocessing(text, tab=4):
     return pattern.sub('', text)
 
 
-class BlockGrammar(object):
+class BlockGrammar:
     """Grammars for block level tokens."""
 
     def_links = re.compile(
@@ -172,7 +172,7 @@ class BlockGrammar(object):
     text = re.compile(r'^[^\n]+')
 
 
-class BlockLexer(object):
+class BlockLexer:
     """Block level lexer for block grammars."""
     grammar_class = BlockGrammar
 
@@ -442,7 +442,7 @@ class BlockLexer(object):
         self.tokens.append({'type': 'text', 'text': text})
 
 
-class InlineGrammar(object):
+class InlineGrammar:
     """Grammars for inline level tokens."""
 
     escape = re.compile(r'^\\([\\`*{}\[\]()#+\-.!_>~|])')  # \* \+ \! ....
@@ -494,7 +494,7 @@ class InlineGrammar(object):
         )
 
 
-class InlineLexer(object):
+class InlineLexer:
     """Inline level lexer for inline grammars."""
     grammar_class = InlineGrammar
 
@@ -670,7 +670,7 @@ class InlineLexer(object):
         return self.renderer.text(text)
 
 
-class Renderer(object):
+class Renderer:
     """The default HTML renderer for rendering Markdown.
     """
 
@@ -928,7 +928,7 @@ class Renderer(object):
         return html % (self.hrule(), text)
 
 
-class Markdown(object):
+class Markdown:
     """The Markdown parser.
 
     :param renderer: An instance of ``Renderer``.

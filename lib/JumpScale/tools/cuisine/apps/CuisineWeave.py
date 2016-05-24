@@ -17,7 +17,7 @@ class actionrun(ActionDecorator):
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.weave"
 
 
-class Weave():
+class Weave:
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -36,6 +36,7 @@ class Weave():
         curl -L git.io/weave -o {binPath} && sudo chmod a+x {binPath}
         '''.format(binPath=binPath)
         C = self.cuisine.core.args_replace(C)
+        self.cuisine.docker.install()
         self.cuisine.package.ensure('curl')
         self.cuisine.core.run_script(C, profile=True)
         self.cuisine.bash.addPath(j.sal.fs.getParent(binPath), action=True)

@@ -11,7 +11,7 @@ import http.client
 CHUNKSIZE=8192
 
 # FIXME: HTTP basic authentication support
-class HttpFS(object):
+class HttpFS:
     self.logger = j.logger.get('j.sal.cloudfs.HTTPFS')
     server = None
     path = None

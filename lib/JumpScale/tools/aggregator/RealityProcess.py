@@ -5,7 +5,7 @@ from MongoDumper import MongoDumper
 from ECODumper import ECODumper
 
 
-class RealitProcess(object):
+class RealitProcess:
     """
     """
 

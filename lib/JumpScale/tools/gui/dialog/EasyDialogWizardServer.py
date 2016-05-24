@@ -161,7 +161,7 @@ class EasyDialogWizardServer(EasyDialogGeneric):
     def showMessageBox(self, message, title, msgboxButtons = "OK", msgboxIcon = "Information", defaultButton = "OK"):
         return self.pm_actions.ShowMessageBox(message, title, msgboxButtons, msgboxIcon, defaultButton)
 
-class WizardActions(object):
+class WizardActions:
     """
     Helper class which generates JSON encoded string which represent
     Actions for the Wizard client

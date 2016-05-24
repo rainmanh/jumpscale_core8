@@ -25,7 +25,7 @@ def printable_out(str_in):
     str_out = [x for x in str_in if x in string.printable]
     return str_out
 
-class Router(object):
+class Router:
     def __init__(self, hostname, software=IOS, logfile=None, **kwargs):
         self.hostname = hostname
         self.software = software        # IOS or IOS XR

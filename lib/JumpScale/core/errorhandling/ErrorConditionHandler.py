@@ -28,7 +28,7 @@ from OurExceptions import *
 import OurExceptions
 
 
-class ErrorConditionHandler():
+class ErrorConditionHandler:
 
     def __init__(self,haltOnError=True,storeErrorConditionsLocal=True):
         self.__jslocation__ = "j.errorconditionhandler"

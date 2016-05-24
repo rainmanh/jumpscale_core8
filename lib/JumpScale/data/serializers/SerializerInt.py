@@ -1,6 +1,6 @@
 
 
-class SerializerInt(object):
+class SerializerInt:
     def __init__(self):
         self.__jslocation__ = "j.data.serializer.int"
 

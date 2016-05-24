@@ -15,7 +15,7 @@ def isPrimAttribute(obj, key):
     isprimtype=not hasattr(obj,funcprop)
     return isprimtype, funcprop
 
-class Struct(object):
+class Struct:
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 

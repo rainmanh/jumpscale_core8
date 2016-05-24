@@ -930,7 +930,7 @@ class Sheet(j.tools.code.classGetBase()):
     __repr__ = __str__
 
 
-class SheetFactory():
+class SheetFactory:
 
     def new(self, name, nrcols=72, headers=[], period="M"):
         """

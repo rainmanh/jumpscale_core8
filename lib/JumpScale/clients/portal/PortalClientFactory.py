@@ -1,7 +1,7 @@
 from JumpScale import j
 from JumpScale.clients.portal.PortalClient import Resource
 
-class PortalClientFactory(object):
+class PortalClientFactory:
     def __init__(self):
         self.__jslocation__ = "j.clients.portal"
         self._portalClients = {}

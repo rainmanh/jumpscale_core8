@@ -2504,7 +2504,7 @@ exec python3 -q "$@"
             do.executeCmds(cmds)
 
             do.executeInteractive("pip3 install colored-traceback")
-            do.executeInteractive("pip3 install xonsh")
+            #do.executeInteractive("pip3 install xonsh")
             do.executeInteractive("pip3 install pudb")
             do.executeInteractive("pip3 install tmuxp")
             do.executeInteractive("pip3 install colorlog")

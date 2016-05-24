@@ -189,6 +189,7 @@ class AtYourServiceFactory():
         name = j.sal.fs.getBaseName(path)
         self._repos[name] = AtYourServiceRepo(name, path)
         print("AYS Repo created at %s" % path)
+        return self._repos[name]
 
     def updateTemplates(self, repos=[]):
         """

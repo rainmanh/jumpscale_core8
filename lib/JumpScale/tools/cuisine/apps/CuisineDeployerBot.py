@@ -93,6 +93,8 @@ class DeployerBot():
             cfg['g8'][name] = {
                 'address': address
             }
+        # make sure port is an int
+        cfg['oauth']['port'] = int(cfg['oauth']['port'])
 
         self.cuisine.core.createDir('$cfgDir/deployerbot')
         content = j.data.serializer.toml.dumps(cfg)

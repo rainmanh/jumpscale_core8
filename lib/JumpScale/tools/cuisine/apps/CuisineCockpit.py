@@ -32,7 +32,7 @@ class Cockpit():
             self.cuisine.installerdevelop.jumpscale8()
             self.cuisine.pip.upgrade("pip")
 
-        self.installDeps()
+        self.install_deps()
         self.cuisine.git.pullRepo('https://github.com/Jumpscale/jscockpit.git')
         self.link_code()
 
@@ -55,7 +55,7 @@ class Cockpit():
         flask_wtf
         python-telegram-bot
         """
-        self.cuisine.pip.multiInstall(deps, update=True)
+        self.cuisine.pip.multiInstall(deps, upgrade=True)
 
     def link_code(self):
         self.cuisine.core.file_link('$codeDir/github/jumpscale/jscockpit/app/', '$appDir/cockpit')

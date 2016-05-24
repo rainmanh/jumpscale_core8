@@ -27,6 +27,8 @@ class CuisineInstallerDevelop():
             """
         else:
             C="""
+            libpython3.4-dev
+            python3.4-dev
             libpython3.5-dev
             python3.5-dev
             """
@@ -195,7 +197,7 @@ class CuisineInstallerDevelop():
 
             if self.cuisine.core.dir_exists("/usr/local/lib/python3.4/dist-packages"):
                 linkcmd="mkdir -p /usr/local/lib/python3.5/dist-packages/JumpScale;ln -s /usr/local/lib/python3.5/dist-packages/JumpScale /usr/local/lib/python3.4/dist-packages/JumpScale"
-                self.cuisine.core.run(linkcmd)            
+                self.cuisine.core.run(linkcmd)
 
             C='cd $tmpDir/;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh'
             C=self.cuisine.core.args_replace(C)

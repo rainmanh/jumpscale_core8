@@ -3,7 +3,7 @@ from JumpScale import j
 
 #@todo P2 S4 :eduard TextLineEditor tool does not work any more, is a pitty because ideal to parse config files on a filesystem (id:83)
 
-class TextLineEditor():
+class TextLineEditor:
     """
     represents a piece of text but broken appart in blocks/tokens
     this one works on a line basis
@@ -207,7 +207,7 @@ class TextLineEditor():
         else:
             return ""
 
-class LTLine():
+class LTLine:
     def __init__(self,line,blockname="",blocknr=0):
         """        
         @param no blockname means ignore

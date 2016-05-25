@@ -2,14 +2,14 @@ from JumpScale import j
 
 import urllib.request, urllib.error, urllib.parse
 
-class RogerthatFactory(object):
+class RogerthatFactory:
     def __init__(self):
         self.__jslocation__ = "j.clients.rogerthat"
 
     def get(self, api_key):
         return Rogerthat(api_key)
 
-class Rogerthat(object):
+class Rogerthat:
     self.logger = j.logget.get("j.clients.rogerthat")
     STATUS_RECEIVED = 1
     STATUS_ACKED = 2

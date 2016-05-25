@@ -4,7 +4,7 @@ import time
 
 #@TODO very early spec, needs to be done todo (*3*) despiegk
 
-class LogDumper():
+class LogDumper:
     """
     dump the info to log files, 
     for log's the log files are human readable

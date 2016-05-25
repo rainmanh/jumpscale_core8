@@ -2,7 +2,7 @@ from JumpScale import j
 
 from servers.key_value_store.fs_store import FileSystemKeyValueStore
 
-class StoreFactory(object):
+class StoreFactory:
     '''
     The key value store factory provides logic to retrieve store instances. It
     also caches the stores based on their type, name and namespace.

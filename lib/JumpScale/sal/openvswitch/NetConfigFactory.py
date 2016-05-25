@@ -7,10 +7,10 @@ from VXNet import vxlan as vxlan
 from VXNet import netclasses as netcl
 from VXNet.utils import *
 
-from sal.base.SALObject import SALObject
 
 
-class NetConfigFactory(SALObject):
+
+class NetConfigFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.openvswitch"

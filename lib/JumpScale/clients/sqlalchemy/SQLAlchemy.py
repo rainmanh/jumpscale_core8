@@ -82,7 +82,7 @@ class Base(Base0):
         return str(self.getDataAsDict())
 
 
-class SQLAlchemyFactory(object):
+class SQLAlchemyFactory:
     def __init__(self):
         self.__jslocation__ = "j.clients.sqlalchemy"
 
@@ -112,7 +112,7 @@ class SQLAlchemyFactory(object):
             raise j.exceptions.Input("Property error, email not formatted well, needs @.Val:%s\nObj:\n%s"%(value,target))
         return value            
 
-class SQLAlchemy(object):
+class SQLAlchemy:
 
     def __init__(self, connectionstring="",sqlitepath="",tomlpath="../data"):
         """

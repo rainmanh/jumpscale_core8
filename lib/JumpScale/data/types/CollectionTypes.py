@@ -35,7 +35,7 @@ class JSON():
         self.NAME = 'json'
         self.BASETYPE = 'dictionary'
 
-class Dictionary():
+class Dictionary:
     '''Generic dictionary type'''
 
     def __init__(self):
@@ -67,7 +67,7 @@ class Dictionary():
         return j.data.serializer.json.dumps(v,True,True)
 
 
-class List():
+class List:
 
     '''Generic list type'''
 
@@ -107,7 +107,7 @@ class List():
     toString = fromString
 
 
-class Set():
+class Set:
 
     '''Generic set type'''
 

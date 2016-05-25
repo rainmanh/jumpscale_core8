@@ -17,7 +17,7 @@ class actionrun(ActionDecorator):
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.caddy"
 
 
-class Caddy():
+class Caddy:
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -38,11 +38,11 @@ class Caddy():
         C = """
         $addr
         gzip
-        log $cfgDir/caddy/log/access.log
+        log $tmplsDir/cfg/caddy/log/access.log
         errors {
-            log $cfgDir/caddy/log/errors.log
+            log $tmplsDir/cfg/caddy/log/errors.log
         }
-        root $cfgDir/caddy/www
+        root $tmplsDir/cfg/caddy/www
         """
         C = C.replace("$addr", addr)
         C = self.cuisine.core.args_replace(C)
@@ -57,7 +57,15 @@ class Caddy():
 
     def start(self, ssl):
         cpath = self.cuisine.core.args_replace("$cfgDir/caddy/caddyfile.conf")
-        self.cuisine.core.file_copy('$tmplsDir/cfg/caddy', '$cfgDir/caddy', recursive=True)
+        self.cuisine.core.file_copy("$tmplsDir/cfg/caddy", "$cfgDir/caddy", recursive=True)
+
+        #adjust confguration file
+        conf = self.cuisine.core.file_read(cpath)
+        conf.replace("$tmplsDir/cfg", "$cfgDir")
+        conf = self.cuisine.core.args_replace(conf)
+        self.cuisine.core.file_write("$cfgDir/caddy/caddyfile.conf", conf, replaceArgs=True)
+
+
 
         self.cuisine.processmanager.stop("caddy")  # will also kill
         fw = not self.cuisine.core.run("ufw status 2> /dev/null || echo **OK**", die=False, check_is_ok=True )

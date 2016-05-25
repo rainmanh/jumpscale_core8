@@ -3,14 +3,14 @@ from JumpScale import j
 
  as json
 
-class packInCodeFactory():
+class packInCodeFactory:
     def __init__(self):
         self.__jslocation__ = "j.tools.packInCode"
 
     def get4python(self):
         return packInCodePython()
 
-class packInCodePython():
+class packInCodePython:
     def __init__(self):
         self.code="""
 from JumpScale import j

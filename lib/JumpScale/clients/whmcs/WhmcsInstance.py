@@ -5,7 +5,7 @@ from JumpScale.clients.whmcs.whmcsusers import whmcsusers
 from JumpScale.clients.whmcs.whmcstickets import whmcstickets
 from JumpScale.clients.whmcs.whmcsorders import whmcsorders
 
-class WhmcsInstance(object):
+class WhmcsInstance:
     def __init__(self,
                  username,
                  md5_password,

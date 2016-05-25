@@ -1,7 +1,7 @@
 from JumpScale import j
 
 
-class TornadoFactory():
+class TornadoFactory:
     def __init__(self):
         self.__jslocation__ = "j.servers.tornado"
 
@@ -10,7 +10,7 @@ class TornadoFactory():
         HOW TO USE:
         daemon=j.servers.tornado.getServer(port=4444)
 
-        class MyCommands():
+        class MyCommands:
             def __init__(self,daemon):
                 self.daemon=daemon
 

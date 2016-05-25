@@ -4,7 +4,7 @@ from JumpScale import j
 from Tags import Tags
 
 
-class TagsFactory(object):
+class TagsFactory:
     """
     Factory Class of dealing with TAGS     
     """

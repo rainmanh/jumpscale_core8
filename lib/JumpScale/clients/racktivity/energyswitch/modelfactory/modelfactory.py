@@ -9,7 +9,7 @@ from JumpScale.clients.racktivity.energyswitch.common import convert
 from JumpScale.clients.racktivity.energyswitch.common.GUIDTable import Value
 
 
-class ModelFactory(object):
+class ModelFactory:
     FIRMWARE_ID = (10004, 0, 1, Value(u"type='TYPE_STRING'\nsize=8\nlength=8\nunit=''\nscale=0"))
     MODULE_INFO = (40031, 0, 1, Value(u"type='TYPE_VERSION_FULL'\nsize=4\nLength=4\nunit=''\nscale=0"))
     FIRMWARE_INFO = (10002, 0, 1, Value(u"type='TYPE_VERSION_FULL'\nsize=4\nlength=4\nunit=''\nscale=0"))

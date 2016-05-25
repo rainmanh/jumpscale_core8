@@ -20,7 +20,7 @@ def pathToUnicode(path):
 
     return path.decode(sys.getfilesystemencoding())
 
-class Dirs(object):
+class Dirs:
     """Utility class to configure and store all relevant directory paths"""
 
 

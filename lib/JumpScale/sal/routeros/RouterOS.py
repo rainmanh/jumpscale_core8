@@ -3,7 +3,7 @@ from JumpScale import j
 import time
 from netaddr import EUI
 
-class RouterOSFactory(object):
+class RouterOSFactory:
     def __init__(self):
         self.__jslocation__ = "j.sal.routeros"
 
@@ -144,9 +144,9 @@ class ApiRos:
             ret += s
         return ret
 
-from sal.base.SALObject import SALObject
 
-class RouterOS(SALObject):
+
+class RouterOS:
 
     def __init__(self, host, login,password):
         # self.configPath = j.sal.fs.joinPaths('/etc', 'RouterOS')

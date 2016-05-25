@@ -60,7 +60,7 @@ They talk about PyGithub
 
 from JumpScale.data.markdown.mistune import *
 
-class MDTable():
+class MDTable:
     def __init__(self):
         self.header=[]
         self.rows=[]
@@ -135,7 +135,7 @@ class MDTable():
 
     __str__=__repr__
 
-class MDHeader():
+class MDHeader:
     def __init__(self,level,title):
         self.level=level
         self.title=title
@@ -149,7 +149,7 @@ class MDHeader():
 
     __str__=__repr__
 
-class MDListItem():
+class MDListItem:
     def __init__(self,level,text):
         self.level=level
         self.text=text
@@ -166,7 +166,7 @@ class MDListItem():
 
     __str__=__repr__
 
-class MDComment():
+class MDComment:
     def __init__(self,text):
         self.text=text
         self.type="comment"
@@ -187,7 +187,7 @@ class MDComment1Line():
 
     __str__=__repr__
 
-class MDBlock():
+class MDBlock:
     def __init__(self,text):
         self.text=text
         self.type="block"
@@ -203,7 +203,7 @@ class MDBlock():
 
     __str__=__repr__
 
-class MDCode():
+class MDCode:
     def __init__(self,text,lang):
         self.text=text
         self.type="code"
@@ -220,7 +220,7 @@ class MDCode():
 
     __str__=__repr__
 
-class MDData():
+class MDData:
     def __init__(self,ddict,name="",guid=""):
         self.name=name
         self.type="data"
@@ -269,7 +269,7 @@ class MDData():
 
     __str__=__repr__
 
-class MarkdownDocument():
+class MarkdownDocument:
 
     def __init__(self,content="",path=""):
 

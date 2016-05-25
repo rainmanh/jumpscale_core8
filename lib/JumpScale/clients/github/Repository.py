@@ -6,7 +6,7 @@ from Milestone import RepoMilestone
 from JumpScale.core.errorhandling.OurExceptions import Input
 
 
-class GithubRepo():
+class GithubRepo:
 
     def __init__(self, client, fullname):
         self.logger = j.logger.get('j.clients.github.repo')

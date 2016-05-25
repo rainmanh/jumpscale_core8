@@ -23,7 +23,7 @@ class ApiError(Exception):
         return self._response
 
 
-class BaseResource(object):
+class BaseResource:
     def __init__(self, session, url):
         self._session = session
         self._url = url

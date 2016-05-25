@@ -15,7 +15,7 @@ class InvalidTaskletFunction(RuntimeError):
                               'argument specification' % (name, path))
 
 
-class TaskletEngineFactory():
+class TaskletEngineFactory:
     def __init__(self):
         self.__jslocation__ = "j.tools.taskletengine"
 
@@ -79,7 +79,7 @@ class Tasklet:
         return s
 
 
-class TaskletEngineGroup():
+class TaskletEngineGroup:
     def __init__(self, path=""):
         self.taskletEngines = {}
         if path!="":
@@ -117,7 +117,7 @@ class TaskletEngineGroup():
             raise j.exceptions.RuntimeError("Cannot find groupname: %s in tasklets" % groupname)
 
 
-class TaskletEngine():
+class TaskletEngine:
     def __init__(self, path):
         """
         @param path from which tasklets will be loaded

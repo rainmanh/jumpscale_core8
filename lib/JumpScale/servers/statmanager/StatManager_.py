@@ -2,7 +2,7 @@
 from JumpScale import j
 
 
-class StatManager():
+class StatManager:
 
     def __init__(self):
 

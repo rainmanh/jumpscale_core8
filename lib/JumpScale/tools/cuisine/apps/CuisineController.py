@@ -15,7 +15,7 @@ class actionrun(ActionDecorator):
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.controller"
 
 
-class Controller():
+class Controller:
 
     def __init__(self, executor, cuisine):
         self.executor = executor

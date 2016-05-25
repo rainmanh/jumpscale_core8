@@ -5,7 +5,7 @@ colored_traceback.add_hook(always=True)
 import functools
 import sys
 
-class ActionDecorator(object):
+class ActionDecorator:
 
     def __init__(self,action=True,force=False,actionshow=True):
         self.action=action

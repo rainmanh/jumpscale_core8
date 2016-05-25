@@ -15,7 +15,7 @@ import time
 
 from TimeInterval import TimeInterval
 
-class Time_(object):
+class Time_:
     """
     generic provider of time functions
     lives at j.data.time

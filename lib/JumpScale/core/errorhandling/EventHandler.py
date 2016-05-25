@@ -2,7 +2,7 @@ from JumpScale import j
 
 
 
-class EventHandler(object):
+class EventHandler:
     def __init__(self):
         self.__jslocation__ = "j.events"
 

@@ -3,7 +3,7 @@ from JumpScale import j
 '''Definition of several primitive type properties (integer, string,...)'''
 
 
-class String():
+class String:
 
     '''Generic string type'''
     def __init__(self):
@@ -41,7 +41,7 @@ class String():
         """
         return value
 
-class Bytes():
+class Bytes:
     '''Generic array of bytes type'''
     def __init__(self):
 
@@ -76,7 +76,7 @@ class Bytes():
         return value
 
 
-class Boolean():
+class Boolean:
 
     '''Generic boolean type'''
     def __init__(self):
@@ -126,7 +126,7 @@ class Boolean():
         return value
 
 
-class Integer():
+class Integer:
 
     '''Generic integer type'''
     def __init__(self):
@@ -165,7 +165,7 @@ class Integer():
 
 
 
-class Float():
+class Float:
 
     '''Generic float type'''
     def __init__(self):

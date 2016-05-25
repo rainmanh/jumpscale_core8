@@ -17,7 +17,7 @@ class actionrun(ActionDecorator):
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.etcd"
 
 
-class Etcd():
+class Etcd:
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -57,12 +57,12 @@ class Etcd():
         if start:
             self.start(host, peers)
 
-    def start(self, host, peers):
+    def start(self, host=None, peers=None):
         self.cuisine.process.kill("etcd")
         if host and peers:
             cmd = self._etcd_cluster_cmd(host, peers)
         else:
-            cmd = 'etcd'
+            cmd = '$binDir/etcd'
         self.cuisine.processmanager.ensure("etcd", cmd)
 
 
@@ -87,7 +87,7 @@ class Etcd():
 
         host = host.lstrip("http://").lstrip('https://')
         cmd = """
-    etcd -name infra{i} -initial-advertise-peer-urls http://{host}:2380 \
+    $binDir/etcd -name infra{i} -initial-advertise-peer-urls http://{host}:2380 \
       -listen-peer-urls http://{host}:2380 \
       -listen-client-urls http://{host}:2379,http://127.0.0.1:2379,http://{host}:4001,http://127.0.0.1:4001 \
       -advertise-client-urls http://{host}:2379,http://{host}:4001 \

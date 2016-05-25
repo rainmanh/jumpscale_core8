@@ -10,7 +10,7 @@ from servers.key_value_store.store import KeyValueStoreType
 if not q._init_called:
     from JumpScale.core.InitBase import q
 
-class PatchedTimeContext(object):
+class PatchedTimeContext:
     def __init__(self, time):
         self.time = time
 
@@ -29,7 +29,7 @@ def pathed_time(t):
     finally:
         j.data.time.getTimeEpoch = origGetTimeEpoch
 
-class KeyValueStoreTestCaseBase(object):
+class KeyValueStoreTestCaseBase:
 
     STORE_NAME = 'test_store'
     STORE_NAMESPACE = 'test_namespace'

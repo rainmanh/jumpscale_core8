@@ -3,7 +3,7 @@ from ftplib import FTP, error_perm
 import os
 
 # maybe this could be switched to http://curlftpfs.sourceforge.net/
-class FtpFS(object):
+class FtpFS:
     self.logger = j.logger.get('j.sal.cloudfs.FtpFS')
     server = None
     path = None

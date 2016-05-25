@@ -5,7 +5,7 @@ from HRDBase import HRDBase
 import binascii
 import copy
 
-class HRDItem():
+class HRDItem:
     def __init__(self,name,hrd,ttype,data,comments):
         """
         @ttype: normal,dict,list

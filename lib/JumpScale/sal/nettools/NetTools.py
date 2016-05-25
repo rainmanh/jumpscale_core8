@@ -29,9 +29,9 @@ def getNetworkInfo():
         block = m.group('block')
         yield parseBlock(block)
 
-from sal.base.SALObject import SALObject
 
-class NetTools(SALObject):
+
+class NetTools:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.nettools"

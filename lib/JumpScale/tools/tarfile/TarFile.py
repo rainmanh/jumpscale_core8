@@ -6,7 +6,7 @@ import tarfile
 # NOTE: When implementing, see documentation on the 'errorlevel' attribute of
 # the Python TarFile object
 
-class TarFileFactory(object):
+class TarFileFactory:
     READ = 'r'
     WRITE = 'w'
     APPEND = 'a'
@@ -17,7 +17,7 @@ class TarFileFactory(object):
     def get(self, path, mode=READ):
         return TarFile(path, mode)
 
-class TarFile(object):
+class TarFile:
     '''Handle tar files'''
 
     def __init__(self, path, mode=TarFileFactory.READ):

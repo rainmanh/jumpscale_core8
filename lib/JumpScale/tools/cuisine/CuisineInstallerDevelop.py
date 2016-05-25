@@ -1,4 +1,3 @@
-
 from JumpScale import j
 
 
@@ -12,7 +11,7 @@ class actionrun(ActionDecorator):
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installerdevelop"
 
 
-class CuisineInstallerDevelop():
+class CuisineInstallerDevelop:
 
     def __init__(self,executor,cuisine):
         self.executor=executor
@@ -57,7 +56,7 @@ class CuisineInstallerDevelop():
             rm -rf /usr/lib/python3/dist-packages/pkg_resources
             cd $tmpDir/
             rm -rf get-pip.py
-            wget https://bootstrap.pypa.io/get-pip.py
+            wget --remote-encoding=utf-8 https://bootstrap.pypa.io/get-pip.py
             """
         C=self.cuisine.core.args_replace(C)
         self.cuisine.core.run_script(C)

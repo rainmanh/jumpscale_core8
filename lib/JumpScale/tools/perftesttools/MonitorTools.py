@@ -4,7 +4,7 @@ import time
 import psutil
 
 
-class MonitorClient(object):
+class MonitorClient:
     def __init__(self, redis):
         self.redis = redis
 

@@ -1,6 +1,6 @@
 from JumpScale.clients.racktivity.energyswitch.common import convert
 
-class BaseModule(object):
+class BaseModule:
     def __init__(self, parent):
         self._parent = parent
         self._guidTable = {}

@@ -2,7 +2,7 @@ from JumpScale import j
 
 from HTML2Text import *
 
-class HTMLFactory(object):
+class HTMLFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.tools.html"

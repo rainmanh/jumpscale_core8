@@ -12,7 +12,7 @@ class actionrun(ActionDecorator):
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.proxy"
 
 
-class CuisineProxy(object):
+class CuisineProxy:
     """
     all methods to do to allow a local lan to work more efficient with internet e.g. cache for apt-get, web proxy, ...
     """

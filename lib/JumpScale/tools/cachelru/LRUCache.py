@@ -50,9 +50,9 @@ class CacheKeyError(KeyError):
     of a cache record before reading or deleting it."""
     pass
 
-class LRUCache(object):
+class LRUCache:
     
-    class __Node(object):
+    class __Node:
         """Record of a cached value. Not for public consumption."""
         
         def __init__(self, key, obj, timestamp):

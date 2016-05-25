@@ -9,7 +9,7 @@ class actionrun(ActionDecorator):
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.portal"
 
 
-class CuisinePortal(object):
+class CuisinePortal:
 
     def __init__(self, executor, cuisine):
         self.executor = executor

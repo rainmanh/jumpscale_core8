@@ -15,7 +15,7 @@ NOLOCK = 3
 LOCKEXIST = 4
 
 
-class LibvirtUtil(object):
+class LibvirtUtil:
     def __init__(self, host='localhost'):
         self._host = host
         self.open()

@@ -3,7 +3,7 @@ from JumpScale.clients.whmcs import phpserialize
 
 SSL_VERIFY = False
 
-class whmcsusers():
+class whmcsusers:
     def __init__(self, authenticationparams, url):
         self.authenticationparams = authenticationparams
         self.url = url

@@ -17,7 +17,7 @@ class actionrun(ActionDecorator):
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.vulcand"
 
 
-class Vulcand():
+class Vulcand:
 
     def __init__(self, executor, cuisine):
         self.executor = executor

@@ -3,10 +3,10 @@ import lsblk
 import mount
 import disks
 
-from sal.base.SALObject import SALObject
 
 
-class DiskManager(SALObject):
+
+class DiskManager:
     def __init__(self):
         self.__jslocation__ = "j.sal.disklayout"
 

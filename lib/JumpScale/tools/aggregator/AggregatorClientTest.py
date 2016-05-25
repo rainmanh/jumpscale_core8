@@ -5,7 +5,7 @@ import random
 import io
 
 
-class AggregatorClientTest(object):
+class AggregatorClientTest:
     TEST_INFLUX_DB = "test"
     def __init__(self):
         self.logger = j.logger.get(self.__class__.__name__)

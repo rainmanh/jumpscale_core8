@@ -2,10 +2,10 @@
 from JumpScale import j
 import os
 
-from sal.base.SALObject import SALObject
 
 
-class AysFsFactory(object):
+
+class AysFsFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.aysfs"
@@ -43,7 +43,7 @@ class AysFsFactory(object):
         return js8optvar
 
 
-class AysFs(SALObject):
+class AysFs:
 
     def __init__(self, name, cuisine=None):
         self.cuisine = cuisine

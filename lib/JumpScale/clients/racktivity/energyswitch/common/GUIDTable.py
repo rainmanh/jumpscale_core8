@@ -1,5 +1,5 @@
 #pylint: disable=W0201
-class Value(object):
+class Value:
     def __init__(self, initStr=None, **kwargs):
         #Initialize everything with None
         self.fields = ("type", "size", "length", "unit", "version", "scale", "min", "max")
@@ -26,7 +26,7 @@ class Value(object):
             (key, val) = line.split("=", 1)
             setattr(self, key, eval(val))
 
-class Functions(object):
+class Functions:
     #Variables
     def __init__(self):
         self.guid = None

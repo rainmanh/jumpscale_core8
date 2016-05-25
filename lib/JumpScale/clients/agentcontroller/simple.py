@@ -18,7 +18,7 @@ RESULT_JSON = 20
 ResultTuple = collections.namedtuple('ResultTuple', 'status stdout stderr')
 
 
-class ProcessInfo(object):
+class ProcessInfo:
     def __init__(self, info):
         self._info = info
 
@@ -42,7 +42,7 @@ class ProcessInfo(object):
         return '<ProcessInfo ID:{this.cmd[id]} CMD:{this.cmd[cmd]}>'.format(this=self)
 
 
-class Agent(object):
+class Agent:
     """
     Represents an active agent (alive)
     """
@@ -144,7 +144,7 @@ class Agent(object):
         return '<Agent {this.gid}:{this.nid} {this.roles}>'.format(this=self)
 
 
-class Result(object):
+class Result:
     """
     Represents a job result
     """
@@ -223,7 +223,7 @@ class Result(object):
         return '<Result {this.state} from {this.gid}:{this.nid}>'.format(this=self)
 
 
-class Peer(object):
+class Peer:
     """
     Represents a peer on a share
     """
@@ -272,7 +272,7 @@ class Peer(object):
         return '<Peer {this.gid}:{this.nid}>'.format(this=self)
 
 
-class Share(object):
+class Share:
     """
     Represents a shared folder over syncthing
     """
@@ -387,7 +387,7 @@ class Share(object):
         return '<Share on {this.gid}:{this.nid} {this.path}>'.format(this=self)
 
 
-class SyncClient(object):
+class SyncClient:
     API_TIMEOUT = 10
 
     def __init__(self, client):
@@ -516,7 +516,7 @@ class SyncClient(object):
 
 # TODO: Currently scheduler has to rebuild command structure for scheduling which is redoing
 # work of most of the 'shortcut' methods. We need to restructure this for better code reuse.
-class SchedulerClient(object):
+class SchedulerClient:
     """
     Scheduler interface
     """
@@ -655,7 +655,7 @@ class SchedulerClient(object):
         return self._client.schedule_remove_prefix(prefix)
 
 
-class SimpleClient(object):
+class SimpleClient:
     """
     Simple client
     """

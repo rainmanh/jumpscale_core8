@@ -1,9 +1,9 @@
 from amazon import AmazonProvider
 from digitalocean import DigitalOcean
 
-from sal.base.SALObject import SALObject
 
-class Factory(SALObject):
+
+class Factory:
     self.__jslocation__="j.sal.cloudproviders"   
 
     def get(self, provider):

@@ -1,6 +1,6 @@
 
 
-class RedisQueue(object):
+class RedisQueue:
     """Simple Queue with Redis Backend"""
     def __init__(self, redis,name, namespace='queue'):
         """The default connection parameters are: host='localhost', port=9999, db=0"""

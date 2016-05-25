@@ -36,7 +36,7 @@
 from JumpScale import j
 
 
-class DialogType(object):
+class DialogType:
     def __init__(self):
         self.CONSOLE = 'console'
         self.WIN32 = 'win32'

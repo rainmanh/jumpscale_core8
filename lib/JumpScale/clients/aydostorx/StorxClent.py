@@ -3,7 +3,7 @@ import requests
 from urllib.parse import urljoin, urlparse
 
 
-class StorxFactory(object):
+class StorxFactory:
 
     def __init__(self,):
         super(StorxFactory, self).__init__()
@@ -16,7 +16,7 @@ class StorxFactory(object):
         return StorxClient(base_url)
 
 
-class StorxClient(object):
+class StorxClient:
     """Client for the AYDO Stor X"""
 
     def __init__(self, base_url):

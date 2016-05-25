@@ -1,7 +1,7 @@
 from JumpScale import j
 
 
-class GitClient(object):
+class GitClient:
 
     def __init__(self, baseDir):  # NOQA
 

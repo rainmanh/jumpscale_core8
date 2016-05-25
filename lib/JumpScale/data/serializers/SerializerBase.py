@@ -1,6 +1,6 @@
 from JumpScale import j
 
-class SerializerBase(object):
+class SerializerBase:
 
     def dump(self,filepath,obj):
         data=self.dumps(obj)

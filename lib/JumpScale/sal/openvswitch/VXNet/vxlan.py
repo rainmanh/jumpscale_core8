@@ -42,7 +42,7 @@ class NetLayout:
         return False
 
 
-class VXNet(object):
+class VXNet:
     def __init__(self,netid,backend='vxbackend'):
         self.netid = NetID(netid)
         self.ipv6 = None

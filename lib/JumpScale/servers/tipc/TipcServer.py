@@ -3,7 +3,7 @@ import socket
 
 
 
-class TipcServer(object):
+class TipcServer:
 
     def __init__(self, servaddr, sslorg=None, ssluser=None, sslkeyvaluestor=None):
         """

@@ -12,7 +12,7 @@ class actionrun(ActionDecorator):
 
 
 
-class CuisineSSH():
+class CuisineSSH:
 
     def __init__(self,executor,cuisine):
         self.executor=executor

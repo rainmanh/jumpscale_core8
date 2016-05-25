@@ -41,7 +41,7 @@ def jsonrpc(func):
 
     return wrapper
 
-class GeventWSServer():
+class GeventWSServer:
 
     def __init__(self, addr, port, sslorg=None, ssluser=None, sslkeyvaluestor=None):
         """

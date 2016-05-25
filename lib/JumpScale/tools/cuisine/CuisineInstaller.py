@@ -11,7 +11,7 @@ class actionrun(ActionDecorator):
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installer"
 
 
-class CuisineInstaller(object):
+class CuisineInstaller:
 
     def __init__(self,executor,cuisine):
         self.executor=executor

@@ -7,7 +7,7 @@ PARAMMAP = {'string': 'str',
             'array': 'list',
             'object': 'dict'}
 
-class ActorGen(object):
+class ActorGen:
     def __init__(self, swagger):
         self.swagger = swagger
 

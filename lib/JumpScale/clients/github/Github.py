@@ -14,7 +14,7 @@ except:
     import github
 
 
-class GitHubFactory(object):
+class GitHubFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.clients.github"
@@ -31,7 +31,7 @@ class GitHubFactory(object):
     def getIssueClass(self):
         return Issue
 
-class GitHubClient():
+class GitHubClient:
 
     def __init__(self, secret):
         self.api = github.Github(secret)

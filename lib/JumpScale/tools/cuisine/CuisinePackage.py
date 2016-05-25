@@ -9,7 +9,7 @@ class actionrun(ActionDecorator):
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.package"
 
 
-class CuisinePackage():
+class CuisinePackage:
 
     def __init__(self,executor,cuisine):
         self.logger = j.logger.get('j.tools.cuisine.package')

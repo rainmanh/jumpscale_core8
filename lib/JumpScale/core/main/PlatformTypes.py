@@ -16,7 +16,7 @@ def _useELFtrick(file):
     return result
 
 
-class PlatformTypes():
+class PlatformTypes:
 
     def __init__(self):
         self.__jslocation__ = "j.core.platformtype"
@@ -78,7 +78,7 @@ class PlatformTypes():
         return PlatformType(executor=executor)
 
 
-class PlatformType():
+class PlatformType:
 
     def __init__(self,name="",executor=None):
         self.myplatform=name

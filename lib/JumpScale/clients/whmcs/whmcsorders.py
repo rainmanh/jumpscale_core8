@@ -4,7 +4,7 @@ from JumpScale.clients.whmcs import phpserialize
 
 SSL_VERIFY = False
 
-class whmcsorders():
+class whmcsorders:
     def __init__(self, authenticationparams, url):
         self._authenticationparams = authenticationparams
         self._url = url

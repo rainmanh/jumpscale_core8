@@ -10,7 +10,7 @@ except:
     pass
 
 
-class NameSpaceLoader():
+class NameSpaceLoader:
     def __init__(self, modelsmodule):
         self._module = modelsmodule
         mongoengine.register_connection(self._module.DB, self._module.DB)

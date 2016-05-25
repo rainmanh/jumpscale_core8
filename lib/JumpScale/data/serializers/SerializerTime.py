@@ -2,7 +2,7 @@
 import struct
 
 
-class SerializerTime(object):
+class SerializerTime:
     def __init__(self):
         self.__jslocation__ = "j.data.serializer.time"
 

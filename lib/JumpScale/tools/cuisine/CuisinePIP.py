@@ -8,7 +8,7 @@ class actionrun(ActionDecorator):
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.pip"
 
 
-class CuisinePIP():
+class CuisinePIP:
 
     def __init__(self,executor,cuisine):
         self.executor=executor

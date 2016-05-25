@@ -3,7 +3,7 @@ from JumpScale import j
 Provides the Params object and the ParamsFactory that is used in the Q-Tree
 """
 
-class ParamsFactory():
+class ParamsFactory:
     """
     This factory can create new Params objects
     """
@@ -31,7 +31,7 @@ class ParamsFactory():
         """
         return isinstance(p, Params)
 
-class Params():
+class Params:
     def __init__(self, dictObject=None):
         if dictObject!=None:
             self.__dict__ = dictObject      

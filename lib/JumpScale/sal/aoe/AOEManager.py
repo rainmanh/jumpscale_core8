@@ -7,13 +7,13 @@ CMD_PS_PATTERN = re.compile(
     re.MULTILINE
 )
 
-from sal.base.SALObject import SALObject
+
 
 class AOEError(Exception):
     pass
 
 
-class VDisk(object):
+class VDisk:
     def __init__(self, pid=None, major=None, minor=None, inf=None, path=None, size=0):
         self._pid = pid
         self._major = major
@@ -68,7 +68,7 @@ class VDisk(object):
         return str(self)
 
 
-class AOEManager(SALObject):
+class AOEManager:
     def __init__(self):
         self.__jslocation__="j.sal.aoe"           
         self._local = j.tools.executor.getLocal()
@@ -187,7 +187,7 @@ class AOEManager(SALObject):
         j.tools.path.get(path).remove_p()
 
 
-class AOEFactory(SALObject):
+class AOEFactory:
     def get(self):
         return AOEManager()
 

@@ -8,7 +8,7 @@ def Connect(username, password, hostname="127.0.0.1", port=8080):
     return BlockingConnection(username, password, hostname, port)
 
 
-class BlockingConnection(object):
+class BlockingConnection:
     def __init__(self, username, password, hostname="127.0.0.1", port=8080):
         self.cookiejar = http.cookiejar.CookieJar()
         data = {"username": username, "password": password}

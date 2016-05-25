@@ -6,7 +6,7 @@ from Service import *
 from ServiceRecipe import *
 
 
-class ServiceTemplate(object):
+class ServiceTemplate:
 
     def __init__(self, path, domain=""):
         self.path = path

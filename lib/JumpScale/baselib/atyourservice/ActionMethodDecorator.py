@@ -29,7 +29,7 @@ class ActionMethodDecorator:
 
             if "force" in kwargs:
                 raise RuntimeError("no longer force ")
-                
+
             # if "force" in kwargs:
             #     force=kwargs.pop("force")
             # else:
@@ -63,17 +63,17 @@ class ActionMethodDecorator:
                     kwargs.pop('service')
             else:
                 raise j.exceptions.Input('service should be used as kwargs argument')
-            
+
             state=service.state.getSet(self.name,default="INIT")
 
             if action:
-                
+
                 #this is safe for e.g.gevent usage, should always return recipe which is alike for all
                 selfGeneratorCode="service=j.atyourservice.getService('%s');selfobj=service.actions" % aysikey
 
                 action0 = j.actions.add(action=func, actionRecover=None, args=args, kwargs=kwargs, die=False, stdOutput=True,\
                     errorOutput=True, retry=0, executeNow=False, force=True, actionshow=actionshow,dynamicArguments=dargs,selfGeneratorCode=selfGeneratorCode)
-                
+
                 if service.hrd!=None:
                     action0.hrd=service.hrd
                 action0._method=None
@@ -83,16 +83,15 @@ class ActionMethodDecorator:
                 action0.execute()
 
                 service.state.set(self.name,action0.state)
-                service.save()                
+                service.save()
 
                 if not action0.state=="OK":
                     if die is False:
                         return action0
                     msg="**ERROR ACTION**:\n%s"%action0
-                    # raise j.exceptions.RuntimeError()
-                    service.logger.error (msg)
+                    service.logger.error(msg)
                     service.save()
-                    sys.exit(1)
+                    raise j.exceptions.RuntimeError(action0.error)
 
                 return action0.result
 

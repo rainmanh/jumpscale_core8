@@ -197,6 +197,19 @@ class Space:
         self._images_cache = j.data.redisdb.get("%s:image" % self._basekey, CACHETIME)
         self._portforwardings_cache = j.data.redisdb.get("%s:portforwardings" % self._basekey, CACHETIME)
 
+    def save(self):
+        self.client.api.cloudapi.cloudspaces.update(cloudspaceId=self.model['id'],
+                                                    name=self.model['name'],
+                                                    maxMemoryCapacity=self.model['maxMemoryCapacity'],
+                                                    maxVDiskCapacity=self.model['maxVDiskCapacity'],
+                                                    maxCPUCapacity=self.model['maxCPUCapacity'],
+                                                    maxNASCapacity=self.model['maxNASCapacity'],
+                                                    maxArchiveCapacity=self.model['maxArchiveCapacity'],
+                                                    maxNetworkOptTransfer=self.model['maxNetworkOptTransfer'],
+                                                    maxNetworkPeerTransfer=self.model['maxNetworkPeerTransfer'],
+                                                    maxNumPublicIP=self.model['maxNumPublicIP']
+                                                    )
+
     @property
     def machines(self):
         if not self._machines_cache:

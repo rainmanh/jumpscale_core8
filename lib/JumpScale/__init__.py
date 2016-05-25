@@ -136,10 +136,12 @@ if j.core.db==None:
             url = "https://stor.jumpscale.org/public/redis-server"
             j.do.download(url, to=redis_bin, overwrite=False, retry=3)
         import subprocess
+        sync_cmd = 'sync'
         cmd1 = "chmod 550 %s 2>&1" % redis_bin
         cmd2 = "%s  --port 0 --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes" % redis_bin
         print ("start redis in background")
         os.system(cmd1)
+        os.system(sync_cmd)
         os.system(cmd2)
     # Wait until redis is up
     redisinit()

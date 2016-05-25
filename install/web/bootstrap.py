@@ -38,7 +38,7 @@ if not os.path.exists(path):
     r=random.randint(1, 10000)#to make sure caching does not work on internet
     cmd="curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/%s/install/InstallTools.py?%s > %s"%(branch,r,path)
     # print (cmd)
-    os.system(cmd)    
+    os.system(cmd)
 
 from importlib import util
 spec=util.spec_from_file_location("InstallTools",path)
@@ -57,9 +57,9 @@ InstallTools=spec.loader.load_module()
 #         import InstallTools
 #         # from InstallTools import InstallTools
 #         # InstallTools = __import__('InstallTools')
-#         done="OK"        
+#         done="OK"
 #     except Exception as e:
-#         print (e)   
+#         print (e)
 #         print ("import again")
 #         counter+=1
 #         time.sleep(1)
@@ -78,7 +78,7 @@ if "DEVELOP" in os.environ:
     do.installer.prepareUbuntu15Development()
 
 print("install jumpscale8")
-do.installer.installJS()
+do.installer.installJS(JSBRANCH='redis_fix')
 
 from JumpScale import j
 

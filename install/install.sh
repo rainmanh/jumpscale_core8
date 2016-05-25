@@ -22,8 +22,8 @@ export AYSBRANCH='master'
 
 
 if [ "$(uname)" == "Darwin" ]; then
-    # Do something under Mac OS X platform   
-    #echo 'install brew'     
+    # Do something under Mac OS X platform
+    #echo 'install brew'
     #ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     export LANG=C; export LC_ALL=C
     brew install curl
@@ -43,10 +43,10 @@ if [ "$(uname)" == "Darwin" ]; then
     pip3 install --upgrade ptpython
     pip3 install --upgrade pymux
     pip3 install --upgrade ptpdb
-    
+
     export TMPDIR=~/tmp
-    
-    if [ -z"$JSBASE" ]; then 
+
+    if [ -z"$JSBASE" ]; then
         export JSBASE='~/opt/jumpscale8'
     fi
     mkdir -p $TMPDIR
@@ -65,12 +65,12 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
 
     elif [ -f "/etc/slitaz-release" ]; then
       echo "found slitaz"
-      tazpkg get-install curl 
+      tazpkg get-install curl
       tazpkg get-install git
-      tazpkg get-install python3.5 
+      tazpkg get-install python3.5
     fi
 
-    if [ -z $JSBASE ]; then    
+    if [ -z $JSBASE ]; then
         export JSBASE='/opt/jumpscale8'
     fi
     export TMPDIR=/tmp
@@ -84,9 +84,8 @@ fi
 
 set -ex
 branch=${JSBRANCH-master}
-curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/web/bootstrap.py > $TMPDIR/bootstrap.py
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/redis_fix/install/web/bootstrap.py > $TMPDIR/bootstrap.py
 
 cd $TMPDIR
 python3 bootstrap.py
 js 'j.tools.cuisine.local.installerdevelop.installJS8Deps()'
-

@@ -161,6 +161,7 @@ class CuisineInstallerDevelop:
         #pygments
         tmuxp
 
+        ply
         xonsh
         pudb
 

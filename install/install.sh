@@ -84,7 +84,7 @@ fi
 
 set -ex
 branch=${JSBRANCH-master}
-curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/redis_fix/install/web/bootstrap.py > $TMPDIR/bootstrap.py
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/web/bootstrap.py > $TMPDIR/bootstrap.py
 
 cd $TMPDIR
 python3 bootstrap.py

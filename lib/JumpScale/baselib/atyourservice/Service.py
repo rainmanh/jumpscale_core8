@@ -264,6 +264,11 @@ class Service:
                 self._producers[key] = list(producerSet)
         return self._producers
 
+    def remove_producer(self, role, instance):
+        key = "%s!%s" % (role, instance)
+        self.state.remove_producer(role, instance)
+        self._producers[role].remove(key)
+
     @property
     def executor(self):
         if self._executor is None:
@@ -304,7 +309,6 @@ class Service:
         if self.hrd is not None:
             self.hrd.save()
         self.state.save()
-
         self._consumeFromSchema(args)
         self.actions.init(service=self)
 
@@ -351,9 +355,6 @@ class Service:
                 # parent exists
                 role = consumeitem.consume_link
                 consumename = consumeitem.name
-
-                if role in self.producers:
-                    continue
 
                 instancenames = []
                 if consumename in args:
@@ -563,7 +564,7 @@ class Service:
         if not service:
             return False
         if isinstance(service, str):
-            return j.atyourservice._getKey(self) == service
+            return self.key == service
         return service.role == self.role and self.instance == service.instance
 
     def __hash__(self):

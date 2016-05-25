@@ -105,7 +105,7 @@ class ServiceState():
 
         lastrun = epoch
         period = e.g. 1h, 1d, ...
-        """        
+        """
         return self._model["recurring"]
 
     def setRecurring(self, name, period):
@@ -122,7 +122,7 @@ class ServiceState():
         return dict
             key = event name
             val = [actions]
-        """        
+        """
         try:
             return self._model["events"]
         except KeyError:
@@ -168,6 +168,15 @@ class ServiceState():
     @property
     def producers(self):
         return self._model["producers"]
+
+    def remove_producer(self, role, instance):
+        if role not in self.producers:
+            return
+        key = "%s!%s" % (role, instance)
+        if key in self.producers[role]:
+            self.producers[role].remove(key)
+            self._changed = True
+        self.save()
 
 
     def consume(self,producerkey="",aysi=None):

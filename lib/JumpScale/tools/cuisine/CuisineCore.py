@@ -1017,11 +1017,13 @@ class CuisineCore:
             else:
                 self.logger.debug("PROFILECMD:%s"%cmd)
 
+        if '"' in cmd:
+            cmd = cmd.replace('"', '\\"')
         if self.sudomode:
             passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
-            if '"' in cmd:
-                cmd = cmd.replace('"', '\\"')
             cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
+        else:
+            cmd = 'bash -c "%s"' % cmd
         rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)
         out = self._clean(out)
 

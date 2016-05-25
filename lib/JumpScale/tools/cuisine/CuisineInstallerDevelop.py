@@ -19,13 +19,18 @@ class CuisineInstallerDevelop:
 
     @actionrun(action=True)
     def python(self):
-        if self.cuisine.platformtype.osname=="debian":
-            C="""
+        if self.cuisine.platformtype.osname == "debian":
+            C = """
             libpython3.4-dev
             python3.4-dev
             """
+        elif self.cuisine.platformtype.osname == 'ubuntu' and self.cuisine.platformtype.osversion == '16.04':
+            C = """
+            libpython3.5-dev
+            python3.5-dev
+            """
         else:
-            C="""
+            C = """
             libpython3.4-dev
             python3.4-dev
             libpython3.5-dev

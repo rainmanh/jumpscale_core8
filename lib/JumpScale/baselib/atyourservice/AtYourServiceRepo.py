@@ -23,7 +23,7 @@ class AtYourServiceRepo():
         self._type = None
 
         self._services = {}
-        self._recipes = {} 
+        self._recipes = {}
 
         self._templates={}
 
@@ -336,7 +336,7 @@ class AtYourServiceRepo():
             if producerRoles==[]:
                 producersl=[]
             else:
-                producersl=service.getProducersRecursive()
+                producersl=service.getProducersRecursive(producers=set(), callers=set(), action=action, producerRoles=producerRoles)
                 if producerRoles!="*":
                     producerRoles=[item for item in producerRoles if item.role in producerRoles]
             scope=scope.union(producersl)

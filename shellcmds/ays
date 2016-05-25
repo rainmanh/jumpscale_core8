@@ -179,13 +179,6 @@ def printlog(action):
     print(out)
 
 @click.command()
-@click.option('--token', '-t', prompt='Please enter the token for your bot', help="Telegram bot token. talk to @BotFather to get one.")
-@click.option('--repo', '-r', help="Directory where to store the projects", default='/opt/code/telegram-projects')
-def bot(token, repo):
-    bot = atyourservice.telegramBot(token, start=True)
-
-
-@click.command()
 def destroy():
     """
     reset in current ays repo all services & recipe's
@@ -206,7 +199,7 @@ def test(cmd,name,message):
     """
     tester=j.atyourservice.getTester(name)
     if cmd=="doall":
-        tester.doall()        
+        tester.doall()
     elif cmd=="push":
         tester.gitpush(message=message)
     elif cmd=="pull":
@@ -237,7 +230,6 @@ cli.add_command(showparents)
 cli.add_command(showactions)
 cli.add_command(list)
 cli.add_command(printlog)
-cli.add_command(bot)
 # cli.add_command(debug)
 
 # print (sys.excepthook)

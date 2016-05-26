@@ -185,7 +185,7 @@ class CuisineInstallerDevelop:
             """
             self.cuisine.pip.multiInstall(C,upgrade=True)
 
-        self.cuisine.apps.redis.install()
+        self.cuisine.apps.redis.build()
 
         """
         install dnspython3

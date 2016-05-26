@@ -16,5 +16,7 @@ class CuisineGit:
         else:
             dest = self.cuisine.core.args_replace(dest)
 
+        self.cuisine.core.dir_ensure(dest)
+
         return j.do.pullGitRepo(url=url,dest=dest,login=login,passwd=passwd,depth=depth,\
             ignorelocalchanges=ignorelocalchanges,reset=reset,branch=branch,revision=revision, ssh=ssh,executor=self.executor)

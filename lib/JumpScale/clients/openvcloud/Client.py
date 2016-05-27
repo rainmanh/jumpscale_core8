@@ -254,6 +254,22 @@ class Space:
                 self._portforwardings_cache.set(item, id='%(publicIp)s:%(publicPort)s -> %(localIp)s:%(localPort)s' % item)
         return [x.struct for x in self._portforwardings_cache]
 
+    @property
+    def authorized_users(self):
+        return [u['userGroupId'] for u in self.model['acl']]
+
+    def authorize_user(self, username, right="ACDRUX"):
+        if username not in self.authorized_users:
+            self.client.api.cloudapi.cloudspaces.addUser(cloudspaceId=self.id, userId=username, accesstype=right)
+            self.refresh()
+        return True
+
+    def unauthorize_user(self, username):
+        if username in self.authorized_users:
+            self.client.api.cloudapi.cloudspaces.deleteUser(cloudspaceId=self.id, userId=username, recursivedelete=True)
+            self.refresh()
+        return True
+
     def size_find_id(self, memory=None, vcpus=None):
         if memory < 100:
             memory = memory*1024  # prob given in GB

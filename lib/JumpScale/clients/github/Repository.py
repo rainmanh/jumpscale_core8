@@ -390,8 +390,8 @@ class GithubRepo:
         if name.startswith("type"):
             return("fef2c0")  # light yellow
 
-        if name.startswith("priority_critical"):
-            return("b60205")
+        if name in ("priority_critical", "task_no_estimation"):
+            return("b60205")  # red
 
         if name.startswith("priority_urgent"):
             return("d93f0b")
@@ -505,9 +505,25 @@ class GithubRepo:
                 continue
 
             story = get_story(start)
-            if "type_task" not in issue.labels:
-                labels = issue.labels.copy()
+            labels = issue.labels
+            labels_dirty = False
+
+            if "type_task" not in labels:
                 labels.append("type_task")
+                labels_dirty = True
+
+            if issue.estimate is None:
+                if "task_no_estimation" not in labels:
+                    labels.append("task_no_estimation")
+                    labels_dirty = True
+            else:
+                # pop label out
+                if "task_no_estimation" in labels:
+                    labels.remove("task_no_estimation")
+                    labels_dirty = True
+
+            if labels_dirty:
+                # Only update labels if it was changed.
                 issue.labels = labels
 
             # creaet link between story and tasks

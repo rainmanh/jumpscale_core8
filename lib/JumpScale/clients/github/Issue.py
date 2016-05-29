@@ -6,7 +6,7 @@ from github.GithubObject import NotSet
 from Milestone import RepoMilestone
 
 re_story_name = re.compile('.+\((.+)\)$')
-
+re_task_estimate = re.compile('.+\[([^\]]+)\]$')
 
 class Issue(Base):
 
@@ -81,6 +81,13 @@ class Issue(Base):
     def labels(self):
         #we return a copy so changing the list doesn't actually change the ddict value
         return self.ddict["labels"][:]
+
+    @property
+    def estimate(self):
+        m = re_task_estimate.match(self.title)
+        if m is not None:
+            return m.group(1)
+        return None
 
     @property
     def id(self):

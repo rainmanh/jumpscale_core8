@@ -267,7 +267,10 @@ class AtYourServiceRepo():
 
     def getBlueprint(self,path):
         self._doinit()
-        return Blueprint(self,path)
+        for bp in self.blueprints:
+            if bp.path == path:
+                return bp
+        return Blueprint(self, path)
 
     # def getRoleTemplateClass(self, role, ttype):
     #     if role not in self.roletemplates:

@@ -19,6 +19,14 @@ class Issue(Base):
             self.load()
         # self.todo
 
+    @staticmethod
+    def get_story_name(title):
+        m = re_story_name.match(title)
+        if m is None:
+            return None
+
+        return m.group(1)
+
     @property
     def api(self):
         if self._githubObj is None:
@@ -71,7 +79,8 @@ class Issue(Base):
 
     @property
     def labels(self):
-        return self.ddict["labels"]
+        #we return a copy so changing the list doesn't actually change the ddict value
+        return self.ddict["labels"][:]
 
     @property
     def id(self):
@@ -121,10 +130,10 @@ class Issue(Base):
             if label.startswith("type"):
                 items.append(label)
         if len(items) == 1:
-            return items[0][len("type"):].strip("_")
-        else:
-            self.type = ""
-            return ""
+            _, _, typ = items[0].partition("_")
+            return typ
+
+        return ""
 
     @type.setter
     def type(self, val):
@@ -137,7 +146,8 @@ class Issue(Base):
             if label.startswith("priority"):
                 items.append(label)
         if len(items) == 1:
-            return items[0][len("priority"):].strip("_")
+            _, _, pri = items[0].partition("_")
+            return pri
         else:
             self.priority = "normal"
             return self.priority
@@ -180,7 +190,8 @@ class Issue(Base):
             return
 
         if val.startswith(category):
-            val = val[len(category):]
+            _, _, val = val.partition('_')
+
         val = val.strip("_")
         val = val.lower()
 
@@ -378,7 +389,7 @@ class Issue(Base):
 
     @property
     def isStory(self):
-        if self.type == 'story' or self.title.lower().endswith('story'):
+        if self.type == 'story' or self.story_name != '':
             return True
         return False
 
@@ -390,14 +401,10 @@ class Issue(Base):
 
     @property
     def story_name(self):
-        if not self.isStory:
+        name = Issue.get_story_name(self.title)
+        if name is None:
             return ''
-
-        for name in re_story_name.findall(self.title):
-            if name != '':
-                return name
-
-        return ''
+        return name
 
     @property
     def tasks(self):

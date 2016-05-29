@@ -280,7 +280,7 @@ class Application:
         """
         returns hrd instance names for specific appname (default domain=jumpscale)
         """
-        names = [service.instance for aysrepo in j.atyourservice.findAYSRepos() for service in list(j.atyourservice.get(j.sal.fs.getBaseName(aysrepo), aysrepo).services.values()) if service.templatename == name]
+        names = [service.instance for aysrepo in list(j.atyourservice.repos.values()) for service in list(aysrepo.services.values()) if service.templatename == name]
         names.sort()
         return names
 

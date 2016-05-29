@@ -326,24 +326,16 @@ class AtYourServiceRepo():
         find all services from role & instance and their producers
         only find producers wich have at least one of the actions
         """
-        #create a scope in which we need to find work
-        scope=set()
-        for key, service in self.services.items():
-            if role!="" and service.role!=role:
-                continue
-            if instance!="" and service.instance!=instance:
-                continue
-            if service.getAction(action)==None:
-                continue
-            scope.add(service)
-            if producerRoles==[]:
-                producersl=[]
+        # create a scope in which we need to find work
+        producerRoles = self._processProducerRoles(producerRoles)
+        scope = set(self.findServices(role=role, instance=instance, hasAction=action))
+        for service in scope:
+            producer_candidates = service.getProducersRecursive(producers=set(), callers=set(), action=action, producerRoles=producerRoles)
+            if producerRoles != '*':
+                producer_valid = [item for item in producer_candidates if item.role in producerRoles]
             else:
-                producersl=service.getProducersRecursive(producers=set(), callers=set(), action=action, producerRoles=producerRoles)
-                if producerRoles!="*":
-                    producerRoles=[item for item in producerRoles if item.role in producerRoles]
-            scope=scope.union(producersl)
-
+                producer_valid = producer_candidates
+            scope = scope.union(producer_valid)
         return scope
 
     def _processProducerRoles(self,producerroles):
@@ -494,11 +486,11 @@ class AtYourServiceRepo():
         if force:
             self.setState(actions=["stop","uninstall"], role=role, instance=instance, state='DO')
 
-        run = self.getRun(action="stop",force=force)
+        run = self.getRun(role=role, instance=instance, action="stop", producerRoles=producerRoles, force=force)
         print("RUN:STOP")
         print(run)
         run.execute()
-        run = self.getRun(role=role,instance=instance,action="uninstall",force=force)
+        run = self.getRun(role=role, instance=instance, action="uninstall", producerRoles=producerRoles, force=force)
         print("RUN:UNINSTALL")
         print(run)
         run.execute()

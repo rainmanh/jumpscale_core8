@@ -2,11 +2,18 @@ from JumpScale import j
 from Issue import Issue
 from Base import replacelabels
 import copy
+import threading
 from Milestone import RepoMilestone
 from JumpScale.core.errorhandling.OurExceptions import Input
 
 
 class GithubRepo:
+    TYPES = ["story", "ticket", "task", "bug",
+             "feature", "question", "monitor", "unknown"]
+    PRIORITIES = ["critical", "urgent", "normal", "minor"]
+
+    STATES = ["new", "accepted", "question",
+              "inprogress", "verification", "closed"]
 
     def __init__(self, client, fullname):
         self.logger = j.logger.get('j.clients.github.repo')
@@ -14,8 +21,8 @@ class GithubRepo:
         self.fullname = fullname
         self._repoclient = None
         self._labels = None
-        self.issues = []
-        self.issues_loaded = False
+        self._issues = None
+        self._lock = threading.RLock()
         self._milestones = []
 
     @property
@@ -51,8 +58,12 @@ class GithubRepo:
 
     @property
     def labels(self):
-        if self._labels is None:
-            self._labels = [item for item in self.api.get_labels()]
+        try:
+            self._lock.acquire()
+            if self._labels is None:
+                self._labels = [item for item in self.api.get_labels()]
+        finally:
+            self._lock.release()
         return self._labels
 
     @property
@@ -62,13 +73,7 @@ class GithubRepo:
         # if not self.fullname.lower().endswith('home'):
         #     return []
 
-        if self.issues == []:
-            self.loadIssues()
-
-        def filter(issue):
-            return issue.type == 'story'
-        issues = self.issues_by_type(filter)
-        return issues['story']
+        return self.issues_by_type('story')
 
     @property
     def tasks(self):
@@ -76,14 +81,7 @@ class GithubRepo:
         # only for home type repo, otherwise return []
         # if not self.fullname.lower().endswith('home'):
         #     return []
-
-        if self.issues == []:
-            self.loadIssues()
-
-        def filter(issue):
-            return issue.type == 'task'
-        issues = self.issues_by_type(filter)
-        return issues['task']
+        return self.issues_by_type('task')
 
     def labelsSet(self, labels2set,ignoreDelete=["p_"],delete=True):
         """
@@ -195,18 +193,16 @@ class GithubRepo:
             i._ddict["number"] = issueNumber
             return i
 
-    def issues_by_type(self, filter=None):
+    def issues_by_type(self, *types):
         """
         filter is method which takes  issue as argument and returns True or False to include
         """
-        res = {}
-        for item in self.types:
-            res[item] = []
-            for issue in self.issues:
-                if issue.type == item:
-                    if filter is None or filter(issue):
-                        res[item].append(issue)
-        return res
+        issues = []
+        for issue in self.issues:
+            if issue.type in types:
+                issues.append(issue)
+
+        return issues
 
     def issues_by_state(self, filter=None):
         """
@@ -261,17 +257,15 @@ class GithubRepo:
 
     @property
     def types(self):
-        return ["story", "ticket", "task", "bug",
-                "feature", "question", "monitor", "unknown"]
+        return GithubRepo.TYPES
 
     @property
     def priorities(self):
-        return ["critical", "urgent", "normal", "minor"]
+        return GithubRepo.PRIORITIES
 
     @property
     def states(self):
-        return ["new", "accepted", "question",
-                "inprogress", "verification", "closed"]
+        return GithubRepo.STATES
 
     @property
     def milestones(self):
@@ -413,6 +407,13 @@ class GithubRepo:
 
         return "ffffff"
 
+    def _process_stories(self):
+        #make sure all stories are auto labeled correctly
+        for issue in self.issues:
+            story_name = Issue.get_story_name(issue.title)
+            if story_name is not None and issue.type != 'story':
+                issue.type = 'story'
+
     def process_issues(self, issues=[]):
         """
         find all todo's
@@ -433,6 +434,7 @@ class GithubRepo:
         #     issue.api.create_comment(comment)
         #     issue.api.edit(state='close')
 
+        self._process_stories()
         priorities_map = {
             'crit': 'critical',
             'mino': 'minor',
@@ -440,6 +442,7 @@ class GithubRepo:
             'urge': 'urgent',
         }
 
+        # process stories.
         stories_name = [story.story_name for story in self.stories]
 
         def get_story(name):
@@ -500,26 +503,31 @@ class GithubRepo:
             start = issue.title.split(":", 1)[0]
             if start not in stories_name:
                 continue
+
             story = get_story(start)
             if "type_task" not in issue.labels:
                 labels = issue.labels.copy()
                 labels.append("type_task")
                 issue.labels = labels
 
-            if "type_story" not in story.labels:
-                labels = story.labels.copy()
-                labels.append("type_story")
-                story.labels = labels
-
             # creaet link between story and tasks
             issue.link_to_story(story)
             story.add_task(issue)
 
-    def loadIssues(self):
-        for item in self.api.get_issues():
-            self.issues.append(Issue(self, githubObj=item))
-        self.issues_loaded=True
-        return self.issues
+    @property
+    def issues(self):
+        try:
+            self._lock.acquire()
+            if self._issues is None:
+                issues = []
+                for item in self.api.get_issues():
+                    issues.append(Issue(self, githubObj=item))
+
+                self._issues = issues
+        finally:
+            self._lock.release()
+
+        return self._issues
 
     def serialize2Markdown(self,path):
 

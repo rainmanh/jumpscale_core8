@@ -85,9 +85,8 @@ class CuisineInstallerDevelop:
             git clone https://github.com/google/brotli.git
             cd $tmpDir/brotli/
             python setup.py install
-            # cd tests
-            # make
-            # cd ..
+            cd tools
+            make
             cp $tmpDir/brotli/tools/bro /usr/local/bin/
             rm -rf $tmpDir/brotli
             """

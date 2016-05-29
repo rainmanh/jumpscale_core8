@@ -509,6 +509,7 @@ class Issue(Base):
         """
         If this issue is a task from a story, add link in to the story in the description
         """
+        import ipdb; ipdb.set_trace()
         if self.repo.api.id != story.repo.api.id:
             raise j.exceptions.Input("The task (%s) and the story (%s) have to be in the same Repository." % (self.title, story.task))
             # return
@@ -517,10 +518,11 @@ class Issue(Base):
             raise j.exceptions.Input("This issue (%s) is not a task" % self.title)
             # return
 
-        if self.body=="" or self.body==None:
-            return
+        body = self.body
+        if body is None:
+            body = ''
 
-        doc = j.data.markdown.getDocument(self.body)
+        doc = j.data.markdown.getDocument(body)
 
         change = False
         story_line_found = False
@@ -542,8 +544,7 @@ class Issue(Base):
 
         if change:
             self.logger.info("%s: link to story:%s" % (self, story))
-            self.ddict["body"] = str(doc)
-            self.api.edit(body=str(doc))
+            self.body = str(doc)
 
     def __str__(self):
         return "issue:%s" % self.title

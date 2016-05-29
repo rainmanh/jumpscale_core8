@@ -1642,7 +1642,6 @@ class InstallTools():
         if rc==2:#>0 and err.find("not open a connection")!=-1:
             #no ssh-agent found\
             print(result)
-            print(err)
             raise RuntimeError("Could not connect to ssh-agent, this is bug, ssh-agent should be loaded by now")
         elif rc==1:
             #no keys but agent loaded

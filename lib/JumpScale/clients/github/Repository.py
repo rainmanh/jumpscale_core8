@@ -19,7 +19,7 @@ MILESTONE_REPORT_TMP = Template('''\
 |:link: [#{{ issue.number }}](../../issues/{{ issue.number }})|\
 {{ issue.title }}|\
 {% if issue.isOpen %} :red_circle: Open/{{ issue.state|default('unknown',true)|capitalize }}{% else %}:large_blue_circle: Closed{% endif %}|\
-{{ issue.story_estimate|default('N/A', true)|trim }}|
+{% set eta, id = issue.story_estimate %}{% if eta %}[{{ eta|trim }}]({{ issue.url }}#issuecomment-{{ id }}){% else %}N/A{% endif %}|
 {% endfor %}
 {% endfor %}
 

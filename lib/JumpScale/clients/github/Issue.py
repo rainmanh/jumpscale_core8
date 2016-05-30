@@ -93,14 +93,14 @@ class Issue(Base):
     @property
     def story_estimate(self):
         if not len(self.comments):
-            return None
+            return None, None
         # find last comment with ETA
         for i in range(len(self.comments) - 1, -1, -1):
             last = self.comments[i]
             m = re_story_estimate.search(last['body'])
             if m is not None:
-                return m.group(1)
-        return None
+                return m.group(1), last['id']
+        return None, None
 
     @property
     def id(self):

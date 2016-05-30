@@ -22,7 +22,7 @@ class Cockpit():
         self.cuisine = cuisine
 
     @actionrun(action=True)
-    def build(self, start=True, bot_token='', jwt_key='', organization=''):
+    def build(self, start=True, bot_token='', jwt_key='', organization='', client_secret='', client_id='', redirect_uri='', itsyouonlinehost='https://itsyou.online'):
         """
         Build and Install cockpit
         If start is True, bot_token, jwt_key, organization should be specified
@@ -37,14 +37,14 @@ class Cockpit():
         self.link_code()
 
         if start:
-            self.start(bot_token, jwt_key, organization)
+            self.start(bot_token, jwt_key, organization, client_secret, client_id, redirect_uri, itsyouonlinehost)
 
-    def start(self, bot_token, jwt_key, organization):
+    def start(self, bot_token='', jwt_key='', organization='', client_secret='', client_id='', redirect_uri='', itsyouonlinehost='https://itsyou.online'):
         """
         bot_token: telegram token for cockpit bot
         """
-        self.create_config(bot_token, jwt_key, organization)
-        cmd = 'jspython cockpit --config $cfgDir/cockpit/config.toml'
+        self.create_config(bot_token, jwt_key, organization, client_secret, client_id, redirect_uri, itsyouonlinehost)
+        cmd = 'jspython cockpit start --config $cfgDir/cockpit/config.toml'
         self.cuisine.processmanager.ensure('cockpit', cmd=cmd, path='/opt/jumpscale8/apps/cockpit')
 
     def install_deps(self):
@@ -60,22 +60,30 @@ class Cockpit():
     def link_code(self):
         self.cuisine.core.file_link('$codeDir/github/jumpscale/jscockpit/app/', '$appDir/cockpit')
 
-    def create_config(self, bot_token, jwt_key, organization):
+    def create_config(self, bot_token, jwt_key, organization, client_secret, client_id, redirect_uri, itsyouonlinehost='https://itsyou.online'):
         cfg = {
+            'oauth': {
+                'client_secret': client_secret,
+                'client_id': client_id,
+                'redirect_uri': redirect_uri,
+                'organization': organization,
+                'jwt_key': jwt_key,
+                'itsyouonlinehost': itsyouonlinehost,
+            },
             'api': {
                 'ays': {
                     'host': 'localhost',
                     'port': 5000,
                     'active': True,
-                    'jwt_key': jwt_key,
-                    'organization': organization
                 }
             },
             'bot': {
                 'token': bot_token,
+                'active': True,
             },
             'mail': {
-                'port': 25
+                'port': 25,
+                'active': True,
             }
         }
         self.cuisine.core.createDir('$cfgDir/cockpit')

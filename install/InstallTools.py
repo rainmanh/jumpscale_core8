@@ -2379,6 +2379,7 @@ exec $JSBASE/bin/python3 -q "$@"
 
         C2_insystem="""#!/bin/bash
 # set -x
+source $base/env.sh
 exec python3 -q "$@"
         """
 
@@ -2396,6 +2397,7 @@ exec python3 -q "$@"
             else:
                 #in system
                 dest="/usr/local/bin/jspython"
+                C2_insystem = C2_insystem.replace('$base', basedir)
                 do.writeFile(dest,C2_insystem)
             do.chmod(dest, 0o770)
 

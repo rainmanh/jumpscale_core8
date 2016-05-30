@@ -339,14 +339,15 @@ class AtYourServiceRepo():
         return scope
 
     def _processProducerRoles(self,producerroles):
-        if producerroles=="*":
-            return "*"
-        elif producerroles=="":
-            producerroles=[]
-        elif producerroles.find(",")!=-1:
-            producerroles=[item for item in producerroles.split(",") if item.strip()!=""]
-        else:
-            producerroles=[producerroles.strip()]
+        if j.data.types.string.check(producerroles):
+            if producerroles=="*":
+                return "*"
+            elif producerroles=="":
+                producerroles=[]
+            elif producerroles.find(",")!=-1:
+                producerroles=[item for item in producerroles.split(",") if item.strip()!=""]
+            else:
+                producerroles=[producerroles.strip()]
         return producerroles
 
 
@@ -486,11 +487,11 @@ class AtYourServiceRepo():
         if force:
             self.setState(actions=["stop","uninstall"], role=role, instance=instance, state='DO')
 
-        run = self.getRun(role=role, instance=instance, action="stop", producerRoles=producerRoles, force=force)
+        run = self.getRun(action="stop",force=force)
         print("RUN:STOP")
         print(run)
         run.execute()
-        run = self.getRun(role=role, instance=instance, action="uninstall", producerRoles=producerRoles, force=force)
+        run = self.getRun(role=role,instance=instance,action="uninstall",force=force)
         print("RUN:UNINSTALL")
         print(run)
         run.execute()

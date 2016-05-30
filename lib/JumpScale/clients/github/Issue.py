@@ -7,6 +7,7 @@ from Milestone import RepoMilestone
 
 re_story_name = re.compile('.+\((.+)\)$')
 re_task_estimate = re.compile('.+\[([^\]]+)\]$')
+re_story_estimate = re.compile('^ETA:\s*(.+)$', re.MULTILINE)
 
 class Issue(Base):
 
@@ -83,8 +84,19 @@ class Issue(Base):
         return self.ddict["labels"][:]
 
     @property
-    def estimate(self):
+    def task_estimate(self):
         m = re_task_estimate.match(self.title)
+        if m is not None:
+            return m.group(1)
+        return None
+
+    @property
+    def story_estimate(self):
+        if not len(self.comments):
+            return None
+        # process last comments
+        last = self.comments[-1]
+        m = re_story_estimate.search(last)
         if m is not None:
             return m.group(1)
         return None
@@ -509,7 +521,6 @@ class Issue(Base):
         """
         If this issue is a task from a story, add link in to the story in the description
         """
-        import ipdb; ipdb.set_trace()
         if self.repo.api.id != story.repo.api.id:
             raise j.exceptions.Input("The task (%s) and the story (%s) have to be in the same Repository." % (self.title, story.task))
             # return

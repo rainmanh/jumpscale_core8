@@ -2,10 +2,25 @@ from JumpScale import j
 from Issue import Issue
 from Base import replacelabels
 import copy
+import base64
 import threading
 from Milestone import RepoMilestone
 from JumpScale.core.errorhandling.OurExceptions import Input
+from github.GithubException import UnknownObjectException
+from jinja2 import Template
 
+MILESTONE_REPORT_FILE = 'report.md'
+MILESTONE_REPORT_TMP = Template('''\
+{% for milestone, issues in milestones.items() %}
+## Milestone {{ milestone }}
+|Issue|Title|State|
+|-----|-----|-----|
+{%- for issue in issues %}
+|:link: [#{{ issue.number }}](../../issues/{{ issue.number }})|{{ issue.title }}|{% if issue.isOpen %} :red_circle: Open/{{ issue.state|default('unknown',true)|capitalize }}{% else %}:large_blue_circle: Closed{% endif %}|
+{% endfor %}
+{% endfor %}
+
+''')
 
 class GithubRepo:
     TYPES = ["story", "ticket", "task", "bug",
@@ -23,7 +38,7 @@ class GithubRepo:
         self._labels = None
         self._issues = None
         self._lock = threading.RLock()
-        self._milestones = []
+        self._milestones = None
 
     @property
     def api(self):
@@ -269,10 +284,9 @@ class GithubRepo:
 
     @property
     def milestones(self):
-        if self._milestones == []:
-            for ms in self.api.get_milestones():
-                milestoneObj = self.getMilestoneFromGithubObj(githubObj=ms)
-                self._milestones.append(milestoneObj)
+        if self._milestones is None:
+            self._milestones = list(map(lambda x: RepoMilestone(self, x), self.api.get_milestones()))
+
         return self._milestones
 
     @property
@@ -282,21 +296,6 @@ class GithubRepo:
     @property
     def milestoneNames(self):
         return [item.name for item in self.milestones]
-
-    def getMilestoneFromGithubObj(self, githubObj):
-
-        found = None
-        for item in self._milestones:
-            if int(githubObj.number) == int(item.number):
-                found = item
-
-        if found is None:
-            obj = RepoMilestone(self, githubObj=githubObj)
-            obj._ddict["number"] = githubObj.number
-            self._milestones.append(obj)
-            return obj
-        else:
-            return found
 
     def getMilestone(self, name, die=True):
         name = name.strip()
@@ -454,6 +453,16 @@ class GithubRepo:
         if issues == []:
             issues = self.issues
 
+        dev_repo = False
+         # Logic after this point is only for home and org repo
+        for typ in ['org_', 'proj_']:
+            if not self.fullname.lower().startswith(typ):
+                dev_repo = True
+                break
+
+        milestones = dict([('{m.number}:{m.title}'.format(m=m), m.title) for m in self.milestones])
+        report = dict()
+
         for issue in issues:
             for todo in issue.todo:
                 try:
@@ -492,13 +501,13 @@ class GithubRepo:
                     self.logger.warning("command %s not supported" % cmd)
 
             # Logic after this point is only for home and org repo
-            valid = False
-            for typ in ['org_', 'proj_']:
-                if not self.fullname.lower().startswith(typ):
-                    valid = True
-                    break
-            if not valid:
+            if not dev_repo:
                 continue
+
+            if issue.isStory:
+                ms = milestones.get(issue.milestone, 'Undefined')
+                report.setdefault(ms, [])
+                report[ms].append(issue)
 
             start = issue.title.split(":", 1)[0]
             if start not in stories_name:
@@ -512,7 +521,7 @@ class GithubRepo:
                 labels.append("type_task")
                 labels_dirty = True
 
-            if issue.estimate is None:
+            if issue.task_estimate is None:
                 if "task_no_estimation" not in labels:
                     labels.append("task_no_estimation")
                     labels_dirty = True
@@ -529,6 +538,37 @@ class GithubRepo:
             # creaet link between story and tasks
             issue.link_to_story(story)
             story.add_task(issue)
+
+        # end for
+        # process milestones
+        report = MILESTONE_REPORT_TMP.render(milestones=report)
+        self.SetFile(MILESTONE_REPORT_FILE, report)
+
+    def SetFile(self, path, content, message='update file'):
+        """
+        Creates or updates the file content at path with given content
+        :param path: file path `README.md`
+        :param content: Plain content of file
+        :return:
+        """
+        encoded = base64.encodebytes(content.encode())
+
+        params = {
+            'message': message,
+            'content': encoded.decode(),
+        }
+
+        try:
+            obj = self.api.get_contents(path)
+            params['sha'] = obj.sha
+        except UnknownObjectException:
+            pass
+
+        self.api._requester.requestJsonAndCheck(
+            'PUT',
+            self.api.url + '/contents/' + path,
+            input=params,
+        )
 
     @property
     def issues(self):

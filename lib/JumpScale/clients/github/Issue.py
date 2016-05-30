@@ -7,7 +7,7 @@ from Milestone import RepoMilestone
 
 re_story_name = re.compile('.+\((.+)\)$')
 re_task_estimate = re.compile('.+\[([^\]]+)\]$')
-re_story_estimate = re.compile('^ETA:\s*(.+)$', re.MULTILINE)
+re_story_estimate = re.compile('^ETA:\s*(.+)\s*$', re.MULTILINE)
 
 class Issue(Base):
 
@@ -94,11 +94,12 @@ class Issue(Base):
     def story_estimate(self):
         if not len(self.comments):
             return None
-        # process last comments
-        last = self.comments[-1]
-        m = re_story_estimate.search(last)
-        if m is not None:
-            return m.group(1)
+        # find last comment with ETA
+        for i in range(len(self.comments) - 1, -1, -1):
+            last = self.comments[i]
+            m = re_story_estimate.search(last['body'])
+            if m is not None:
+                return m.group(1)
         return None
 
     @property

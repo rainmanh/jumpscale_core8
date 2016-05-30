@@ -13,10 +13,13 @@ MILESTONE_REPORT_FILE = 'report.md'
 MILESTONE_REPORT_TMP = Template('''\
 {% for milestone, issues in milestones.items() %}
 ## Milestone {{ milestone }}
-|Issue|Title|State|
-|-----|-----|-----|
+|Issue|Title|State|ETA|
+|-----|-----|-----|---|
 {%- for issue in issues %}
-|:link: [#{{ issue.number }}](../../issues/{{ issue.number }})|{{ issue.title }}|{% if issue.isOpen %} :red_circle: Open/{{ issue.state|default('unknown',true)|capitalize }}{% else %}:large_blue_circle: Closed{% endif %}|
+|:link: [#{{ issue.number }}](../../issues/{{ issue.number }})|\
+{{ issue.title }}|\
+{% if issue.isOpen %} :red_circle: Open/{{ issue.state|default('unknown',true)|capitalize }}{% else %}:large_blue_circle: Closed{% endif %}|\
+{{ issue.story_estimate|default('N/A', true)|trim }}|
 {% endfor %}
 {% endfor %}
 

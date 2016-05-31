@@ -147,7 +147,7 @@ class PlatformType:
             self._osname = self._osname0.lower()
             if self._osname not in ["darwin"]:
 
-                rc, lsbcontent = self.executor.cuisine.core.run("test -e /etc/lsb-release && cat /etc/lsb-releaseqg", replaceArgs=False, action=False, showout=False, die=False)
+                rc, lsbcontent = self.executor.cuisine.core.run("cat /etc/lsb-releaseq", replaceArgs=False, action=False, showout=False, die=False)
                 if rc == 0:
                     import re
                     try:
@@ -163,6 +163,9 @@ class PlatformType:
                         if rc == 0:
                             self._osname = pkgman2dist[pkgman]
                             self._osversion = "unknown"
+                            break
+                    else:
+                        raise j.exceptions.RuntimeError("Couldn't define os version.")
 
         return self._osname
 

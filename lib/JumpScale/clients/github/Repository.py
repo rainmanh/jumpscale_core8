@@ -19,19 +19,19 @@ MILESTONE_REPORT_TMP = Template('''\
 # Summary
 |Milestone|ETA|
 |---------|---|
-{%- for milestone in milestones.values() %}
+{% for milestone in milestones.values() -%}
 |[{{ milestone.title }}](#milestone-{{ milestone.title | replace(' ', '-')| replace('.', '')| lower }})|{{ summary(milestone.title) }}|
-{%- endfor %}
+{% endfor %}
 |[No milestone](#no-milestone)|{{ summary('__no_milestone__') }}|
 
-{% for key, milestone in milestones.items() %}
+{% for key, milestone in milestones.items() -%}
 ## [Milestone {{ milestone.title }}](milestones/{{ key }}.md)
 
 {% set issues = report.get(milestone.title, []) %}
 |Issue|Title|State|ETA|
 |-----|-----|-----|---|
-{%- for issue in issues %}
-|:link: [#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
+{% for issue in issues -%}
+|[#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
 {{ issue.title }}|\
 {% if issue.isOpen %} :red_circle: Open/{{ issue.state|default('unknown',true)|capitalize }}{% else %}:large_blue_circle: Closed{% endif %}|\
 {% set eta, id = issue.story_estimate %}{% if eta %}[{{ eta|trim }}]({{ issue.url }}#issuecomment-{{ id }}){% else %}N/A{% endif %}|
@@ -42,8 +42,8 @@ MILESTONE_REPORT_TMP = Template('''\
 ## No milestone
 |Issue|Title|State|ETA|
 |-----|-----|-----|---|
-{%- for issue in report.get('__no_milestone__', []) %}
-|:link: [#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
+{% for issue in report.get('__no_milestone__', []) -%}
+|[#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
 {{ issue.title }}|\
 {% if issue.isOpen %} :red_circle: Open/{{ issue.state|default('unknown',true)|capitalize }}{% else %}:large_blue_circle: Closed{% endif %}|\
 {% set eta, id = issue.story_estimate %}{% if eta %}[{{ eta|trim }}]({{ issue.url }}#issuecomment-{{ id }}){% else %}N/A{% endif %}|
@@ -59,17 +59,17 @@ MILESTONE_DETAILS_TEMP = Template('''\
 
 |Issue|Title|State|Type|
 |-----|-----|-----|---|
-{%- for issue in issues %}
-{%- if issue.milestone == key and not issue.assignee %}
-|:link: [#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
+{% for issue in issues -%}
+{% if issue.milestone == key and not issue.assignee %}
+|[#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
 {{ issue.title }}|\
 {% if issue.isOpen %} :red_circle: Open/{{ issue.state|default('unknown',true)|capitalize }}{% else %}:large_blue_circle: Closed{% endif %}|\
 {{ issue.type }}|
-{%- endif %}
-{%- endfor %}
+{% endif %}
+{% endfor %}
 
 ## Issues per assignee
-{% for user, issues in assignees.items() %}
+{% for user, issues in assignees.items() -%}
 - [{{ user }}](#{{ user|replace(' ', '-')|replace('.', '')|lower }})
 {% endfor %}
 
@@ -78,20 +78,20 @@ MILESTONE_DETAILS_TEMP = Template('''\
 
 |Issue|Title|State|Type|
 |-----|-----|-----|----|
-{%- for issue in issues %}
-{%- if issue.milestone == key %}
-|:link: [#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
+{% for issue in issues -%}
+{% if issue.milestone == key %}
+|[#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
 {{ issue.title }}|\
 {% if issue.isOpen %} :red_circle: Open/{{ issue.state|default('unknown',true)|capitalize }}{% else %}:large_blue_circle: Closed{% endif %}|\
 {{ issue.type }}|
-{%- endif %}
-{%- endfor %}
+{% endif %}
+{% endfor %}
 {% endfor %}
 ''')
 
 ASSIGNEE_REPORT_TMP = Template('''\
 # Issues per assignee
-{% for user, issues in assignees.items() %}
+{% for user, issues in assignees.items() -%}
 - [{{ user }}](#{{ user|replace(' ', '-')|replace('.', '')|lower }})
 {% endfor %}
 
@@ -100,12 +100,12 @@ ASSIGNEE_REPORT_TMP = Template('''\
 
 |Issue|Title|State|Type|
 |-----|-----|-----|----|
-{%- for issue in issues %}
-|:link: [#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
+{% for issue in issues -%}
+|[#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
 {{ issue.title }}|\
 {% if issue.isOpen %} :red_circle: Open/{{ issue.state|default('unknown',true)|capitalize }}{% else %}:large_blue_circle: Closed{% endif %}|\
 {{ issue.type }}|
-{%- endfor %}
+{% endfor %}
 {% endfor %}
 ''')
 

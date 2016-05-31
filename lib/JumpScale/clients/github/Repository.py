@@ -18,8 +18,9 @@ MILESTONE_REPORT_TMP = Template('''\
 |Milestone|ETA|
 |---------|---|
 {%- for milestone in milestones.values() %}
-|[{{ milestone.title }}](#milestone-{{ milestone.title | replace(' ', '-')| replace('.', '')| lower }})|{{ summary(milestone) }}|
+|[{{ milestone.title }}](#milestone-{{ milestone.title | replace(' ', '-')| replace('.', '')| lower }})|{{ summary(milestone.title) }}|
 {%- endfor %}
+|[No milestone](#no-milestone)|{{ summary('__no_milestone__') }}|
 
 {% for key, milestone in milestones.items() %}
 ## Milestone {{ milestone.title }}
@@ -34,6 +35,16 @@ MILESTONE_REPORT_TMP = Template('''\
 {% endfor %}
 {% endfor %}
 
+
+## No milestone
+|Issue|Title|State|ETA|
+|-----|-----|-----|---|
+{%- for issue in report.get('__no_milestone__', []) %}
+|:link: [#{{ issue.number }}](../../issues/{{ issue.number }})|\
+{{ issue.title }}|\
+{% if issue.isOpen %} :red_circle: Open/{{ issue.state|default('unknown',true)|capitalize }}{% else %}:large_blue_circle: Closed{% endif %}|\
+{% set eta, id = issue.story_estimate %}{% if eta %}[{{ eta|trim }}]({{ issue.url }}#issuecomment-{{ id }}){% else %}N/A{% endif %}|
+{% endfor %}
 ''')
 
 class GithubRepo:
@@ -427,6 +438,49 @@ class GithubRepo:
             if story_name is not None and issue.type != 'story':
                 issue.type = 'story'
 
+    def _process_todos(self, issue):
+        priorities_map = {
+            'crit': 'critical',
+            'mino': 'minor',
+            'norm': 'normal',
+            'urge': 'urgent',
+        }
+
+        for todo in issue.todo:
+            try:
+                cmd, args = todo.split(' ', 1)
+            except Exception as e:
+                self.logger.warning("%s, cannot process todo for %s" % (str(e), todo))
+                continue
+
+            if cmd == 'move':
+                destination_repo = self.client.getRepo(args)
+                issue.move_to_repo(repo=destination_repo)
+                if issue.isStory:
+                    for task in issue.tasks:
+                        task.move_to_repo(repo=destination_repo)
+
+            elif cmd == 'p' or cmd == 'prio':
+                if len(args) == 4:
+                    prio = priorities_map[args]
+                else:
+                    prio = args
+
+                if prio not in priorities_map.values():
+                    # Try to set
+                    self.logger.warning(
+                        'Try to set an non supported priority : %s' % prio)
+                    continue
+
+                prio = "priority_%s" % prio
+                if prio not in issue.labels:
+                    labels = issue.labels
+                    labels.append(prio)
+                    issue.labels = labels
+            # elif cmd == 'delete':
+            #     delete(self, args)
+            else:
+                self.logger.warning("command %s not supported" % cmd)
     def process_issues(self, issues=[]):
         """
         find all todo's
@@ -447,15 +501,9 @@ class GithubRepo:
         #     issue.api.create_comment(comment)
         #     issue.api.edit(state='close')
 
-        self._process_stories()
-        priorities_map = {
-            'crit': 'critical',
-            'mino': 'minor',
-            'norm': 'normal',
-            'urge': 'urgent',
-        }
-
         # process stories.
+        self._process_stories()
+
         stories_name = [story.story_name for story in self.stories]
 
         def get_story(name):
@@ -478,48 +526,13 @@ class GithubRepo:
         report = dict()
 
         for issue in issues:
-            for todo in issue.todo:
-                try:
-                    cmd, args = todo.split(' ', 1)
-                except Exception as e:
-                    self.logger.warning("%s, cannot process todo for %s" % (str(e), todo))
-                    continue
-
-                if cmd == 'move':
-                    destination_repo = self.client.getRepo(args)
-                    issue.move_to_repo(repo=destination_repo)
-                    if issue.isStory:
-                        for task in issue.tasks:
-                            task.move_to_repo(repo=destination_repo)
-
-                elif cmd == 'p' or cmd == 'prio':
-                    if len(args) == 4:
-                        prio = priorities_map[args]
-                    else:
-                        prio = args
-
-                    if prio not in priorities_map.values():
-                        # Try to set
-                        self.logger.warning(
-                            'Try to set an non supported priority : %s' % prio)
-                        continue
-
-                    prio = "priority_%s" % prio
-                    if prio not in issue.labels:
-                        labels = issue.labels.copy()
-                        labels.append(prio)
-                        issue.labels = labels
-                # elif cmd == 'delete':
-                #     delete(self, args)
-                else:
-                    self.logger.warning("command %s not supported" % cmd)
-
+            self._process_todos(issue)
             # Logic after this point is only for home and org repo
             if not dev_repo:
                 continue
 
             if issue.isStory:
-                key = 'No Milestone'
+                key = '__no_milestone__'
                 if issue.milestone:
                     ms = milestones.get(issue.milestone, None)
                     if ms is not None:
@@ -558,10 +571,14 @@ class GithubRepo:
             issue.link_to_story(story)
             story.add_task(issue)
 
+        # generate views
+        self._generate_views(milestones, report)
+
+    def _generate_views(self, milestones, report):
         # end for
         # process milestones
         def summary(ms):
-            issues = report.get(ms.title, [])
+            issues = report.get(ms, [])
             seconds = 0
             for issue in issues:
                 eta, _ = issue.story_estimate

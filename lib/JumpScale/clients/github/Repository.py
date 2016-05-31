@@ -33,7 +33,7 @@ MILESTONE_REPORT_TMP = Template('''\
 {% for issue in issues -%}
 |[#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
 {{ issue.title }}|\
-{% if issue.isOpen %} :red_circle: Open/{{ issue.state|default('unknown',true)|capitalize }}{% else %}:large_blue_circle: Closed{% endif %}|\
+{{ state(issue.state) }}|\
 {% set eta, id = issue.story_estimate %}{% if eta %}[{{ eta|trim }}]({{ issue.url }}#issuecomment-{{ id }}){% else %}N/A{% endif %}|
 {% endfor %}
 {% endfor %}
@@ -45,7 +45,7 @@ MILESTONE_REPORT_TMP = Template('''\
 {% for issue in report.get('__no_milestone__', []) -%}
 |[#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
 {{ issue.title }}|\
-{% if issue.isOpen %} :red_circle: Open/{{ issue.state|default('unknown',true)|capitalize }}{% else %}:large_blue_circle: Closed{% endif %}|\
+{{ state(issue.state) }}|\
 {% set eta, id = issue.story_estimate %}{% if eta %}[{{ eta|trim }}]({{ issue.url }}#issuecomment-{{ id }}){% else %}N/A{% endif %}|
 {% endfor %}
 ''')
@@ -60,10 +60,10 @@ MILESTONE_DETAILS_TEMP = Template('''\
 |Issue|Title|State|Type|
 |-----|-----|-----|---|
 {% for issue in issues -%}
-{% if issue.milestone == key and not issue.assignee -%}
+{% if issue.milestone == key and not issue.assignee and issue.isOpen -%}
 |[#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
 {{ issue.title }}|\
-{% if issue.isOpen %} :red_circle: Open/{{ issue.state|default('unknown',true)|capitalize }}{% else %}:large_blue_circle: Closed{% endif %}|\
+{{ state(issue.state) }}|\
 {{ issue.type }}|
 {% endif -%}
 {% endfor %}
@@ -74,7 +74,7 @@ MILESTONE_DETAILS_TEMP = Template('''\
 {% endfor %}
 
 {% for user, issues in assignees.items() %}
-### {{ user }}
+### [{{ user }}](https://github.com/{{user}})
 
 |Issue|Title|State|Type|
 |-----|-----|-----|----|
@@ -82,7 +82,7 @@ MILESTONE_DETAILS_TEMP = Template('''\
 {% if issue.milestone == key -%}
 |[#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
 {{ issue.title }}|\
-{% if issue.isOpen %} :red_circle: Open/{{ issue.state|default('unknown',true)|capitalize }}{% else %}:large_blue_circle: Closed{% endif %}|\
+{{ state(issue.state) }}|\
 {{ issue.type }}|
 {% endif -%}
 {% endfor %}
@@ -92,18 +92,18 @@ MILESTONE_DETAILS_TEMP = Template('''\
 ASSIGNEE_REPORT_TMP = Template('''\
 # Issues per assignee
 {% for user, issues in assignees.items() -%}
-- [{{ user }}](#{{ user|replace(' ', '-')|replace('.', '')|lower }})
+- [{{ user }}](#{{ user|replace(' ', '-')|replace('.', '')|lower }}) has {{ issues|count }} assigned
 {% endfor %}
 
 {% for user, issues in assignees.items() %}
-## {{ user }}
+## [{{ user }}](https://github.com/{{user}})
 
 |Issue|Title|State|Type|
 |-----|-----|-----|----|
 {% for issue in issues -%}
 |[#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
 {{ issue.title }}|\
-{% if issue.isOpen %} :red_circle: Open/{{ issue.state|default('unknown',true)|capitalize }}{% else %}:large_blue_circle: Closed{% endif %}|\
+{{ state(issue.state) }}|\
 {{ issue.type }}|
 {% endfor %}
 {% endfor %}
@@ -653,24 +653,33 @@ class GithubRepo:
                     return 'Invalid time spec'
             return j.data.time.getSecondsInHR(seconds)
 
-        view = MILESTONE_REPORT_TMP.render(repo=self, report=report, milestones=milestones, summary=summary)
+        def state(s):
+            if s == 'verification':
+                return ':white_circle: Verification'
+            elif s == 'inprogress':
+                return ':large_blue_circle: In Progress'
+            else:
+                return ':red_circle: Open'
+
+        view = MILESTONE_REPORT_TMP.render(repo=self, report=report, milestones=milestones, summary=summary, state=state)
         self.SetFile(MILESTONE_REPORT_FILE, view)
 
         # group per user
         assignees = dict()
         for issue in issues:
-            if not issue.assignee:
+            if not issue.assignee or not issue.isOpen:
                 continue
+
             assignees.setdefault(issue.assignee, [])
             assignees[issue.assignee].append(issue)
 
         # generate milestone details page
         for key, milestone in milestones.items():
-            view = MILESTONE_DETAILS_TEMP.render(repo=self, key=key, milestone=milestone, issues=issues, assignees=assignees)
+            view = MILESTONE_DETAILS_TEMP.render(repo=self, key=key, milestone=milestone, issues=issues, assignees=assignees, state=state)
             self.SetFile("milestones/%s.md" % key, view)
 
         # assignee details page
-        view = ASSIGNEE_REPORT_TMP.render(repo=self, assignees=assignees)
+        view = ASSIGNEE_REPORT_TMP.render(repo=self, assignees=assignees, state=state)
         self.SetFile(ASSIGNEE_REPORT_FILE, view)
 
     def SetFile(self, path, content, message='update file'):

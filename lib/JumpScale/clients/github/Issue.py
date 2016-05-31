@@ -526,8 +526,8 @@ class Issue(Base):
             raise j.exceptions.Input("The task (%s) and the story (%s) have to be in the same Repository." % (self.title, story.task))
             # return
 
-        if not self.isTask:
-            raise j.exceptions.Input("This issue (%s) is not a task" % self.title)
+        # if not self.isTask:
+        #     raise j.exceptions.Input("This issue (%s) is not a task" % self.title)
             # return
 
         body = self.body

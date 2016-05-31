@@ -21,7 +21,7 @@ MILESTONE_REPORT_TMP = Template('''\
 |---------|---|
 {% for milestone in milestones.values() -%}
 |[{{ milestone.title }}](#milestone-{{ milestone.title | replace(' ', '-')| replace('.', '')| lower }})|{{ summary(milestone.title) }}|
-{% endfor %}
+{% endfor -%}
 |[No milestone](#no-milestone)|{{ summary('__no_milestone__') }}|
 
 {% for key, milestone in milestones.items() -%}
@@ -60,12 +60,12 @@ MILESTONE_DETAILS_TEMP = Template('''\
 |Issue|Title|State|Type|
 |-----|-----|-----|---|
 {% for issue in issues -%}
-{% if issue.milestone == key and not issue.assignee %}
+{% if issue.milestone == key and not issue.assignee -%}
 |[#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
 {{ issue.title }}|\
 {% if issue.isOpen %} :red_circle: Open/{{ issue.state|default('unknown',true)|capitalize }}{% else %}:large_blue_circle: Closed{% endif %}|\
 {{ issue.type }}|
-{% endif %}
+{% endif -%}
 {% endfor %}
 
 ## Issues per assignee
@@ -79,12 +79,12 @@ MILESTONE_DETAILS_TEMP = Template('''\
 |Issue|Title|State|Type|
 |-----|-----|-----|----|
 {% for issue in issues -%}
-{% if issue.milestone == key %}
+{% if issue.milestone == key -%}
 |[#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
 {{ issue.title }}|\
 {% if issue.isOpen %} :red_circle: Open/{{ issue.state|default('unknown',true)|capitalize }}{% else %}:large_blue_circle: Closed{% endif %}|\
 {{ issue.type }}|
-{% endif %}
+{% endif -%}
 {% endfor %}
 {% endfor %}
 ''')
@@ -594,7 +594,7 @@ class GithubRepo:
             if not dev_repo:
                 continue
 
-            if issue.isStory:
+            if issue.isStory and issue.isOpen:
                 key = '__no_milestone__'
                 if issue.milestone:
                     ms = milestones.get(issue.milestone, None)
@@ -705,7 +705,7 @@ class GithubRepo:
             self._lock.acquire()
             if self._issues is None:
                 issues = []
-                for item in self.api.get_issues():
+                for item in self.api.get_issues(state=''):
                     issues.append(Issue(self, githubObj=item))
 
                 self._issues = issues

@@ -1642,7 +1642,6 @@ class InstallTools():
         if rc==2:#>0 and err.find("not open a connection")!=-1:
             #no ssh-agent found\
             print(result)
-            print(err)
             raise RuntimeError("Could not connect to ssh-agent, this is bug, ssh-agent should be loaded by now")
         elif rc==1:
             #no keys but agent loaded
@@ -2380,6 +2379,7 @@ exec $JSBASE/bin/python3 -q "$@"
 
         C2_insystem="""#!/bin/bash
 # set -x
+source $base/env.sh
 exec python3 -q "$@"
         """
 
@@ -2397,6 +2397,7 @@ exec python3 -q "$@"
             else:
                 #in system
                 dest="/usr/local/bin/jspython"
+                C2_insystem = C2_insystem.replace('$base', basedir)
                 do.writeFile(dest,C2_insystem)
             do.chmod(dest, 0o770)
 
@@ -2504,7 +2505,7 @@ exec python3 -q "$@"
             do.executeCmds(cmds)
 
             do.executeInteractive("pip3 install colored-traceback")
-            do.executeInteractive("pip3 install xonsh")
+            #do.executeInteractive("pip3 install xonsh")
             do.executeInteractive("pip3 install pudb")
             do.executeInteractive("pip3 install tmuxp")
             do.executeInteractive("pip3 install colorlog")

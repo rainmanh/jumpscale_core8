@@ -12,6 +12,6 @@ if len(sys.argv)==2:
     exec(toexec)
 else:
     from IPython import embed
-    embed()
+    embed(colors='Linux')
 
     j.application.stop()

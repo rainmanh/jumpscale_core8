@@ -145,7 +145,9 @@ class Account:
             spaces.append(Space(self, space.struct))
         return spaces
 
-    def space_get(self, name, location="", create=True):
+    def space_get(self, name, location="", create=True,
+                  maxMemoryCapacity=-1, maxVDiskCapacity=-1, maxCPUCapacity=-1, maxNASCapacity=-1,
+                  maxArchiveCapacity=-1, maxNetworkOptTransfer=-1, maxNetworkPeerTransfer=-1, maxNumPublicIP=-1):
         """
         will get space if it exists,if not will create it
         to retrieve existing one location does not have to be specified
@@ -163,7 +165,15 @@ class Account:
                 self.client.api.cloudapi.cloudspaces.create(access=self.client.login,
                                                             name=name,
                                                             accountId=self.id,
-                                                            location=location)
+                                                            location=location,
+                                                            maxMemoryCapacity=maxMemoryCapacity,
+                                                            maxVDiskCapacity=maxVDiskCapacity,
+                                                            maxCPUCapacity=maxCPUCapacity,
+                                                            maxNASCapacity=maxNASCapacity,
+                                                            maxArchiveCapacity=maxArchiveCapacity,
+                                                            maxNetworkOptTransfer=maxNetworkOptTransfer,
+                                                            maxNetworkPeerTransfer=maxNetworkPeerTransfer,
+                                                            maxNumPublicIP=maxNumPublicIP)
                 self._spaces_cache.delete()
                 return self.space_get(name, location, False)
             else:
@@ -186,6 +196,19 @@ class Space:
         self._sizes_cache = j.data.redisdb.get("%s:size" % self._basekey, CACHETIME)
         self._images_cache = j.data.redisdb.get("%s:image" % self._basekey, CACHETIME)
         self._portforwardings_cache = j.data.redisdb.get("%s:portforwardings" % self._basekey, CACHETIME)
+
+    def save(self):
+        self.client.api.cloudapi.cloudspaces.update(cloudspaceId=self.model['id'],
+                                                    name=self.model['name'],
+                                                    maxMemoryCapacity=self.model['maxMemoryCapacity'],
+                                                    maxVDiskCapacity=self.model['maxVDiskCapacity'],
+                                                    maxCPUCapacity=self.model['maxCPUCapacity'],
+                                                    maxNASCapacity=self.model['maxNASCapacity'],
+                                                    maxArchiveCapacity=self.model['maxArchiveCapacity'],
+                                                    maxNetworkOptTransfer=self.model['maxNetworkOptTransfer'],
+                                                    maxNetworkPeerTransfer=self.model['maxNetworkPeerTransfer'],
+                                                    maxNumPublicIP=self.model['maxNumPublicIP']
+                                                    )
 
     @property
     def machines(self):
@@ -230,6 +253,22 @@ class Space:
             for item in self.client.api.cloudapi.portforwarding.list(cloudspaceId=self.id):
                 self._portforwardings_cache.set(item, id='%(publicIp)s:%(publicPort)s -> %(localIp)s:%(localPort)s' % item)
         return [x.struct for x in self._portforwardings_cache]
+
+    @property
+    def authorized_users(self):
+        return [u['userGroupId'] for u in self.model['acl']]
+
+    def authorize_user(self, username, right="ACDRUX"):
+        if username not in self.authorized_users:
+            self.client.api.cloudapi.cloudspaces.addUser(cloudspaceId=self.id, userId=username, accesstype=right)
+            self.refresh()
+        return True
+
+    def unauthorize_user(self, username):
+        if username in self.authorized_users:
+            self.client.api.cloudapi.cloudspaces.deleteUser(cloudspaceId=self.id, userId=username, recursivedelete=True)
+            self.refresh()
+        return True
 
     def size_find_id(self, memory=None, vcpus=None):
         if memory < 100:

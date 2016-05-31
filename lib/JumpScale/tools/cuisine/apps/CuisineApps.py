@@ -20,6 +20,8 @@ from apps.CuisineInfluxdb import Influxdb
 from apps.CuisineVulcand import Vulcand
 from apps.CuisineWeave import Weave
 from apps.CuisinePortal import CuisinePortal
+from apps.CuisineCockpit import Cockpit
+from apps.CuisineDeployerBot import DeployerBot
 
 
 import time
@@ -57,6 +59,8 @@ class CuisineApps:
         self._vulcand = None
         self._weave = None
         self._portal = None
+        self._cockpit = None
+        self._deployerbot = None
 
     @property
     def weave(self):
@@ -66,7 +70,7 @@ class CuisineApps:
             else:
                 raise AttributeError('Weave does not support LXC or Docker containers')
         return self._weave
-        
+
 
     @property
     def skydns(self):
@@ -151,6 +155,17 @@ class CuisineApps:
         if self._portal is None:
             self._portal = CuisinePortal(self.executor, self.cuisine)
         return self._portal
+
+    @property
+    def cockpit(self):
+        if self._cockpit is None:
+            self._cockpit = Cockpit(self.executor, self.cuisine)
+        return self._cockpit
+    @property
+    def deployerbot(self):
+        if self._deployerbot is None:
+            self._deployerbot = DeployerBot(self.executor, self.cuisine)
+        return self._deployerbot
 
     @actionrun(action=True)
     def installdeps(self):

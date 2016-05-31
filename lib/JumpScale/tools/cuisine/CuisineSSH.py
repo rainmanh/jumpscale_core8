@@ -150,8 +150,8 @@ class CuisineSSH:
         ret = None
 
         if self.cuisine.core.file_exists(keyf):
-            d = self.cuisine.core.file_read(keyf)
-            if self.cuisine.core.file_read(keyf).find(key[:-1]) == -1:
+            content = self.cuisine.core.file_read(keyf)
+            if content.find(key[:-1]) == -1:
                 self.cuisine.core.file_append(keyf, key)
                 ret = False
             else:

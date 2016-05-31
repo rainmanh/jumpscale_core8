@@ -479,6 +479,17 @@ class Issue(Base):
             j.exceptions.Input("This issue is not a story")
             return
 
+        def state(s):
+            s = s.lower()
+            if s == 'verification':
+                return ':white_circle: Verification'
+            elif s == 'inprogress':
+                return ':large_blue_circle: In Progress'
+            elif s == 'closed':
+                return ':white_check_mark: Closed'
+            else:
+                return ':red_circle: Open'
+
         task_table_found = False
         change = False
         doc = j.data.markdown.getDocument(self.body)
@@ -495,16 +506,16 @@ class Issue(Base):
                 if not "#%d" % task.number in existing_tasks:
                     self.logger.info("%s: add task:%s" % (self, task))
                     change = True
-                    table.addRow([task.state, task.title, "#%s" % task.number])
+                    table.addRow([state(task.state), task.title, "#%s" % task.number])
                     break
                 else:
                     # update task status if needed
                     for row in table.rows:
-                        state = 'open' if task.isOpen else 'closed'
-                        if row[2] == '#%s' % task.number and row[0] != state:
+                        current_state = state('open') if task.isOpen else state('closed')
+                        if row[2] == '#%s' % task.number and row[0] != current_state:
                             self.logger.info("%s: update task:%s" % (self, task))
                             change = True
-                            row[0] = state
+                            row[0] = state(current_state)
                             row[1] = task.title
                             break
 
@@ -512,7 +523,7 @@ class Issue(Base):
             change = True
             table = doc.addMDTable()
             table.addHeader(['status', 'title', 'link'])
-            table.addRow([task.state, task.title, "#%s" % task.number])
+            table.addRow([state(task.state), task.title, "#%s" % task.number])
 
         if change:
             self.ddict["body"] = str(doc)

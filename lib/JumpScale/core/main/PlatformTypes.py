@@ -147,12 +147,12 @@ class PlatformType:
             self._osname = self._osname0.lower()
             if self._osname not in ["darwin"]:
 
-                rc, lsbcontent = self.executor.cuisine.core.run("cat /etc/lsb-releaseq", replaceArgs=False, action=False, showout=False, die=False)
+                rc, lsbcontent = self.executor.cuisine.core.run("cat /etc/lsb-release", replaceArgs=False, action=False, showout=False, die=False)
                 if rc == 0:
                     import re
                     try:
-                        self._osname = re.findall("DISTRIB_ID=(\w+)", lsbcontent)[0]
-                        self._osversion = re.findall("DISTRIB_RELEASE=([\w.]+)", lsbcontent)[0]
+                        self._osname = re.findall("DISTRIB_ID=(\w+)", lsbcontent)[0].lower()
+                        self._osversion = re.findall("DISTRIB_RELEASE=([\w.]+)", lsbcontent)[0].lower()
                     except IndexError as e:
                         raise RuntimeError("Can't parse /etc/lsb-release")
                 else:

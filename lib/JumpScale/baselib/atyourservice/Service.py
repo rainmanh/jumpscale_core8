@@ -351,7 +351,6 @@ class Service:
 
         # manipulate the HRD's to mention the consume's to producers
         consumes = self.recipe.schema.consumeSchemaItemsGet()
-
         if consumes:
             for consumeitem in consumes:
 
@@ -385,8 +384,14 @@ class Service:
                         msg += "Require following instances:%s" % self.args[consumename]
                     raise j.exceptions.RuntimeError(msg)
 
-                for ays in ays_s:
+                # if producer has been removed from service, we need to remove it from the state
+                to_consume = set(ays_s)
+                current_producers = self.producers.get(consumeitem.consume_link, [])
+                to_unconsume = set(current_producers).difference(to_consume)
+                for ays in to_consume:
                     self.state.consume(aysi=ays)
+                for ays in to_unconsume:
+                    self.state.remove_producer(ays.role, ays.instance)
             self.state.save()
 
     def consume(self, input):

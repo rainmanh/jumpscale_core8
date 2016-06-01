@@ -28,24 +28,26 @@ MILESTONE_REPORT_TMP = Template('''\
 ## [Milestone {{ milestone.title }}](milestones/{{ key }}.md)
 
 {% set issues = report.get(milestone.title, []) %}
-|Issue|Title|State|ETA|
-|-----|-----|-----|---|
+|Issue|Title|State|Owner|ETA|
+|-----|-----|-----|-----|---|
 {% for issue in issues -%}
 |[#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
 {{ issue.title }}|\
 {{ state(issue.state) }}|\
+{% if issue.assignee %}[{{ issue.assignee }}](https://github.com/{{ issue.assignee }}){% endif %}|\
 {% set eta, id = issue.story_estimate %}{% if eta %}[{{ eta|trim }}]({{ issue.url }}#issuecomment-{{ id }}){% else %}N/A{% endif %}|
 {% endfor %}
 {% endfor %}
 
 
 ## No milestone
-|Issue|Title|State|ETA|
-|-----|-----|-----|---|
+|Issue|Title|State|Owner|ETA|
+|-----|-----|-----|-----|---|
 {% for issue in report.get('__no_milestone__', []) -%}
 |[#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
 {{ issue.title }}|\
 {{ state(issue.state) }}|\
+{% if issue.assignee %}[{{ issue.assignee }}](https://github.com/{{ issue.assignee }}){% endif %}|\
 {% set eta, id = issue.story_estimate %}{% if eta %}[{{ eta|trim }}]({{ issue.url }}#issuecomment-{{ id }}){% else %}N/A{% endif %}|
 {% endfor %}
 ''')
@@ -288,7 +290,7 @@ class GithubRepo:
 
         if github_issue:
             issue = Issue(repo=self, githubObj=github_issue)
-            self.issues.append(issue)
+            self._issues.append(issue)
             return issue
 
         if die:

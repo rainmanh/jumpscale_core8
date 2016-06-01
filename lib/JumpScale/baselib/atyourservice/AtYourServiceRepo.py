@@ -356,13 +356,12 @@ class AtYourServiceRepo():
         self._doinit()
         producerRoles=self._processProducerRoles(producerRoles)
 
-        if force:
-            self.setState(actions=[action],role=role,instance=instance,state="DO")
-
         if action not in ["init"]:
             for key,s in self.services.items():
                 if s.state.get("init")!="OK":
                     raise j.exceptions.Input("Cannot get run: %s:%s:%s because found a service not properly inited yet:%s, please rerun ays init"%(role,instance,action,s))
+        if force:
+            self.setState(actions=[action],role=role,instance=instance,state="DO")
 
         if action=="init":
             actions=["init"]

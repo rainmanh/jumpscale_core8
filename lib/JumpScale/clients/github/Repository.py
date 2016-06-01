@@ -247,7 +247,7 @@ class GithubRepo:
                         if item.name.startswith(filteritem):
                             ignoreDeleteDo=True
                     if ignoreDeleteDo==False:
-                        from pudb import set_trace; set_trace() 
+                        # from pudb import set_trace; set_trace()
                         item.delete()
                     self._labels = None
 
@@ -583,7 +583,7 @@ class GithubRepo:
         dev_repo = False
          # Logic after this point is only for home and org repo
         for typ in ['org_', 'proj_']:
-            if not self.fullname.lower().startswith(typ):
+            if not self.name.lower().startswith(typ):
                 dev_repo = True
                 break
 

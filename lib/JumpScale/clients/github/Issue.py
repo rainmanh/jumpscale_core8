@@ -515,7 +515,7 @@ class Issue(Base):
                         if row[2] == '#%s' % task.number and row[0] != current_state:
                             self.logger.info("%s: update task:%s" % (self, task))
                             change = True
-                            row[0] = state(current_state)
+                            row[0] = current_state
                             row[1] = task.title
                             break
 

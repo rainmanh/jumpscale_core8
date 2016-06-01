@@ -693,7 +693,8 @@ class GithubRepo:
         :param content: Plain content of file
         :return:
         """
-        encoded = base64.encodebytes(content.encode())
+        bytes = content.encode()
+        encoded = base64.encodebytes(bytes)
 
         params = {
             'message': message,
@@ -703,6 +704,8 @@ class GithubRepo:
         try:
             obj = self.api.get_contents(path)
             params['sha'] = obj.sha
+            if base64.decodebytes(obj.content.encode()) == bytes:
+                return
         except UnknownObjectException:
             pass
 

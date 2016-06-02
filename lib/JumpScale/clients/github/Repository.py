@@ -165,20 +165,16 @@ class GithubRepo:
 
     @property
     def labels(self):
-        try:
-            self._lock.acquire()
+        with self._lock:
             if self._labels is None:
                 self._labels = [item for item in self.api.get_labels()]
-        finally:
-            self._lock.release()
+
         return self._labels
 
     @property
     def stories(self):
         # walk overall issues find the stories (based on type)
         # only for home type repo, otherwise return []
-        # if not self.fullname.lower().endswith('home'):
-        #     return []
 
         return self.issues_by_type('story')
 
@@ -249,7 +245,6 @@ class GithubRepo:
                         if item.name.startswith(filteritem):
                             ignoreDeleteDo=True
                     if ignoreDeleteDo==False:
-                        # from pudb import set_trace; set_trace()
                         item.delete()
                     self._labels = None
 
@@ -377,7 +372,7 @@ class GithubRepo:
     @property
     def milestones(self):
         if self._milestones is None:
-            self._milestones = list(map(lambda x: RepoMilestone(self, x), self.api.get_milestones()))
+            self._milestones = [RepoMilestone(self, x) for x in self.api.get_milestones()]
 
         return self._milestones
 
@@ -509,10 +504,11 @@ class GithubRepo:
         }
 
         for todo in issue.todo:
-            try:
-                cmd, args = todo.split(' ', 1)
-            except Exception as e:
-                self.logger.warning("%s, cannot process todo for %s" % (str(e), todo))
+            cmd, _, args = todo.partition(' ')
+
+            if not args:
+                # it seems all commands requires arguments
+                self.logger.warning("cannot process todo for %s" % (todo,))
                 continue
 
             if cmd == 'move':
@@ -539,8 +535,6 @@ class GithubRepo:
                     labels = issue.labels
                     labels.append(prio)
                     issue.labels = labels
-            # elif cmd == 'delete':
-            #     delete(self, args)
             else:
                 self.logger.warning("command %s not supported" % cmd)
     def process_issues(self, issues=[]):
@@ -655,7 +649,7 @@ class GithubRepo:
                 return ':red_circle: Open'
 
         view = MILESTONE_REPORT_TMP.render(repo=self, report=report, milestones=milestones, summary=summary, state=state)
-        self.SetFile(MILESTONE_REPORT_FILE, view)
+        self.set_file(MILESTONE_REPORT_FILE, view)
 
         # group per user
         assignees = dict()
@@ -669,13 +663,13 @@ class GithubRepo:
         # generate milestone details page
         for key, milestone in milestones.items():
             view = MILESTONE_DETAILS_TEMP.render(repo=self, key=key, milestone=milestone, issues=issues, assignees=assignees, state=state)
-            self.SetFile("milestones/%s.md" % key, view)
+            self.set_file("milestones/%s.md" % key, view)
 
         # assignee details page
         view = ASSIGNEE_REPORT_TMP.render(repo=self, assignees=assignees, state=state)
-        self.SetFile(ASSIGNEE_REPORT_FILE, view)
+        self.set_file(ASSIGNEE_REPORT_FILE, view)
 
-    def SetFile(self, path, content, message='update file'):
+    def set_file(self, path, content, message='update file'):
         """
         Creates or updates the file content at path with given content
         :param path: file path `README.md`
@@ -706,16 +700,13 @@ class GithubRepo:
 
     @property
     def issues(self):
-        try:
-            self._lock.acquire()
+        with self._lock:
             if self._issues is None:
                 issues = []
                 for item in self.api.get_issues(state=''):
                     issues.append(Issue(self, githubObj=item))
 
                 self._issues = issues
-        finally:
-            self._lock.release()
 
         return self._issues
 

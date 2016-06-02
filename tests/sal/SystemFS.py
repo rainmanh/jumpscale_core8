@@ -109,10 +109,10 @@ def inc(x):
         assert_equal(fs.validateFilename('f/z'), False)
 
     def test_statPath_raises_typeerror_on_none(self):
-        assert_raises(fs.statPath(None), TypeError)
+        assert_raises(TypeError, fs.statPath, None)
 
     def test_statPath_raises_oserror_on_existent(self):
-        assert_raises(fs.statPath('000000me'), OSError)
+        assert_raises(OSError, fs.statPath, '000000me')
 
     def test_statPath_returns_stat(self):
         st = fs.statPath("/bin")

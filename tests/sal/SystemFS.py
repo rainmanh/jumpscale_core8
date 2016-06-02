@@ -2,9 +2,11 @@ from JumpScale import j
 fs=j.sal.fs
 from nose.tools import assert_equal, assert_not_equal, assert_raises, raises, assert_in, assert_not_in
 import os
+import shutil
 import os.path as path
 import codecs
 import hashlib
+import glob
 
 def hashfile(p):
     with open(p, 'rb') as f:
@@ -22,6 +24,9 @@ def readfile(f):
     with open(f) as fp:
         return fp.read()
 
+def writetofile(f, s):
+    with open(f, 'w') as fp:
+        fp.write(s)
 
 def touchone(f):
     open(f, 'w').close()
@@ -88,20 +93,64 @@ def inc(x):
         removemany(TestFS.FILES)
         removeone(TestFS.FILE)
 
+    def test_validateFilename_zerolength(self):
+        assert_equal(fs.validateFilename(''), False)
+
+    def test_validateFilename_gt255(self):
+        assert_equal(fs.validateFilename('f'*256), False)
+
+    def test_validateFilename_lt255(self):
+        assert_equal(fs.validateFilename('f'*255), True)
+
+    def test_validateFilename_null(self):
+        assert_equal(fs.validateFilename('f\0'), False)
+
+    def test_validateFilename_slash(self):
+        assert_equal(fs.validateFilename('f/z'), False)
+
+    def test_statPath_raises_typeerror_on_none(self):
+        assert_raises(fs.statPath(None), TypeError)
+
+    def test_statPath_raises_oserror_on_existent(self):
+        assert_raises(fs.statPath('000000me'), OSError)
+
+    def test_statPath_returns_stat(self):
+        st = fs.statPath("/bin")
+        assert_equal(isinstance(st, os.stat_result), True)
+
+    def test_copyFile(self):
+        t1=tmpify("file1")
+        t2=tmpify("file1copy")
+
+        #write somedata to t1
+        writetofile(t1, "Hello This is a TEXT")
+        fs.copyFile(t1, t2)
+        #assert it exists
+        assert_equal(path.exists(t2), True)
+        assert_equal(path.getsize(t1), path.getsize(t2))
+
+    def test_removeIrrelevantFiles(self):
+        #touch some irrelevant
+        if not os.path.exists("tdir"):
+            os.mkdir("tdir")
+        files = ['tdir/p1.pyc', 'tdir/p2.pyc', 'tdir/p2.bak', 'tdir/p3.py', 'tdir/p3.bak']
+        touchmany(files)
+        fs.removeIrrelevantFiles("tdir")
+        assert_equal(len(glob.glob("tdir/*.pyc")), 0)
+        assert_equal(len(glob.glob("tdir/*.bak")), 0)
+        shutil.rmtree("tdir")
+
     def test_getBaseName(self):
         assert_equal(path.basename(TestFS.FILE), fs.getBaseName(TestFS.FILE))
 
-    def test_getDirnName(self):
-        #assert_equal(path.dirname(TestFS.FILE)+os.sep, fs.getDirName(TestFS.FILE))
+    def test_getDirName(self):
         assert_equal(path.normpath(path.dirname(TestFS.FILE)), path.normpath(fs.getDirName(TestFS.FILE)))
 
     def test_getFileExtension(self):
-        #assert_equal(path.splitext(FILE)[1], fs.getFileExtension(FILE))
         assert_in(fs.getFileExtension(TestFS.FILE), path.splitext(TestFS.FILE)[1]) #splitext includes a dot
 
     def test_exists(self):
         assert_equal(fs.exists(TestFS.FILE), True)
-        #assert_equal(map(path.exists,TestFS.FILES), map(fs.exists, TestFS.FILES))
 
     def test_isDir(self):
         assert_equal(fs.isDir('/'), True)
@@ -112,7 +161,7 @@ def inc(x):
         assert_equal(fs.isFile(TestFS.FILE), True)
 
     def test_isLink(self):
-        #make simple link
+
         os.link('f1.py', 'f1linked.py')
         assert_equal(path.islink('f1linked.py'), fs.isLink('f1linked.py'))
         os.unlink('f1linked.py')
@@ -301,8 +350,8 @@ y=2
         assert_not_in("#", txt)
 
         removeone(f)
-    #def test_md5sum(self):
-    #    assert_equal(hashfile(TestFS.FILE), fs.md5sum(TestFS.FILE))
+    def test_md5sum(self):
+        assert_equal(hashfile(TestFS.FILE), fs.md5sum(TestFS.FILE))
 
     def test_createEmptyFile(self):
         #okay touch 0 size file and check if it's created and if its size=0

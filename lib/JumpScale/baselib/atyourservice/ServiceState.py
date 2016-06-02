@@ -25,19 +25,19 @@ class ServiceState():
         return dict
             key = action name
             val = state
-        state = {state}
+        state = 'INIT', 'ERROR', 'OK', 'DISABLED', 'DO', 'CHANGED', 'CHANGEDHRD', 'RUNNING'
         DO means: execute the action method as fast as you can
         INIT means it has not been started yet ever
-        """.format(state=','.join(VALID_STATES))
+        """
 
         return self._model["state"]
 
     def set(self, name, state="DO"):
         """
-        state = {state}
+        state = 'INIT', 'ERROR', 'OK', 'DISABLED', 'DO', 'CHANGED', 'CHANGEDHRD', 'RUNNING'
         DO means: execute the action method as fast as you can
         INIT means it has not been started yet ever
-        """.format(state=','.join(VALID_STATES))
+        """
 
         if state not in VALID_STATES:
             raise j.exceptions.Input("State needs to be in %s" % ','.join(VALID_STATES))
@@ -48,10 +48,10 @@ class ServiceState():
 
     def getSet(self, name, default="DO"):
         """
-        state = {state}
+        state = 'INIT', 'ERROR', 'OK', 'DISABLED', 'DO', 'CHANGED', 'CHANGEDHRD', 'RUNNING'
         DO means: execute the action method as fast as you can
         INIT means it has not been started yet ever
-        """.format(state=','.join(VALID_STATES))
+        """
         name = name.lower()
         if default not in VALID_STATES:
             raise j.exceptions.Input("State needs to be in %s" % ','.join(VALID_STATES))

@@ -5,8 +5,8 @@ import re
 from github.GithubObject import NotSet
 from Milestone import RepoMilestone
 
-re_story_name = re.compile('.+\((.+)\)$')
-re_task_estimate = re.compile('.+\[([^\]]+)\]$')
+re_story_name = re.compile('.+\((.+)\)\s*$')
+re_task_estimate = re.compile('.+\[([^\]]+)\]\s*$')
 re_story_estimate = re.compile('^ETA:\s*(.+)\s*$', re.MULTILINE)
 
 class Issue(Base):
@@ -22,7 +22,7 @@ class Issue(Base):
 
     @staticmethod
     def get_story_name(title):
-        m = re_story_name.match(title)
+        m = re_story_name.match(title.strip())
         if m is None:
             return None
 
@@ -87,7 +87,7 @@ class Issue(Base):
     def task_estimate(self):
         m = re_task_estimate.match(self.title)
         if m is not None:
-            return m.group(1)
+            return m.group(1).strip()
         return None
 
     @property
@@ -95,8 +95,7 @@ class Issue(Base):
         if not len(self.comments):
             return None, None
         # find last comment with ETA
-        for i in range(len(self.comments) - 1, -1, -1):
-            last = self.comments[i]
+        for last in reversed(self.comments):
             m = re_story_estimate.search(last['body'])
             if m is not None:
                 return m.group(1), last['id']
@@ -150,8 +149,7 @@ class Issue(Base):
             if label.startswith("type"):
                 items.append(label)
         if len(items) == 1:
-            _, _, typ = items[0].partition("_")
-            return typ
+            return items[0].partition("_")[-1]
 
         return ""
 
@@ -166,8 +164,7 @@ class Issue(Base):
             if label.startswith("priority"):
                 items.append(label)
         if len(items) == 1:
-            _, _, pri = items[0].partition("_")
-            return pri
+            return items[0].partition("_")[-1]
         else:
             self.priority = "normal"
             return self.priority
@@ -535,10 +532,6 @@ class Issue(Base):
         """
         if self.repo.api.id != story.repo.api.id:
             raise j.exceptions.Input("The task (%s) and the story (%s) have to be in the same Repository." % (self.title, story.task))
-            # return
-
-        # if not self.isTask:
-        #     raise j.exceptions.Input("This issue (%s) is not a task" % self.title)
             # return
 
         body = self.body

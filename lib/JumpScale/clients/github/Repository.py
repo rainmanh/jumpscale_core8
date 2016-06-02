@@ -490,11 +490,6 @@ class GithubRepo:
         if name.startswith("priority"):
             return("f9d0c4")  # roze
 
-        # if name in colors:
-        #     color=colors[name]
-        #     if color=="":
-        #         color="ffffff"
-        #     return color
 
         return "ffffff"
 
@@ -561,12 +556,6 @@ class GithubRepo:
         """
         # close command is irrelevent, if we have time to write a comment '!!close'
         # Then we have time to click the close button the issue directly
-
-        # def close(issue, comment=''):
-        #     if comment == '':
-        #         comment = 'Automatic closing'
-        #     issue.api.create_comment(comment)
-        #     issue.api.edit(state='close')
 
         # process stories.
         self._process_stories()

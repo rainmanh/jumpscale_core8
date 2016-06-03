@@ -488,6 +488,8 @@ class GithubRepo:
     def _process_stories(self):
         #make sure all stories are auto labeled correctly
         for issue in self.issues:
+            if issue.repo.type not in ['home', 'proj', 'milestone', 'org']:
+                continue
             story_name = Issue.get_story_name(issue.title)
             if story_name is not None and issue.type != 'story':
                 issue.type = 'story'

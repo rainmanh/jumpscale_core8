@@ -28,24 +28,26 @@ MILESTONE_REPORT_TMP = Template('''\
 ## [Milestone {{ milestone.title }}](milestones/{{ key }}.md)
 
 {% set issues = report.get(milestone.title, []) %}
-|Issue|Title|State|ETA|
-|-----|-----|-----|---|
+|Issue|Title|State|Owner|ETA|
+|-----|-----|-----|-----|---|
 {% for issue in issues -%}
 |[#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
 {{ issue.title }}|\
 {{ state(issue.state) }}|\
+{% if issue.assignee %}[{{ issue.assignee }}](https://github.com/{{ issue.assignee }}){% endif %}|\
 {% set eta, id = issue.story_estimate %}{% if eta %}[{{ eta|trim }}]({{ issue.url }}#issuecomment-{{ id }}){% else %}N/A{% endif %}|
 {% endfor %}
 {% endfor %}
 
 
 ## No milestone
-|Issue|Title|State|ETA|
-|-----|-----|-----|---|
+|Issue|Title|State|Owner|ETA|
+|-----|-----|-----|-----|---|
 {% for issue in report.get('__no_milestone__', []) -%}
 |[#{{ issue.number }}](https://github.com/{{ repo.fullname }}/issues/{{ issue.number }})|\
 {{ issue.title }}|\
 {{ state(issue.state) }}|\
+{% if issue.assignee %}[{{ issue.assignee }}](https://github.com/{{ issue.assignee }}){% endif %}|\
 {% set eta, id = issue.story_estimate %}{% if eta %}[{{ eta|trim }}]({{ issue.url }}#issuecomment-{{ id }}){% else %}N/A{% endif %}|
 {% endfor %}
 ''')
@@ -163,12 +165,10 @@ class GithubRepo:
 
     @property
     def labels(self):
-        try:
-            self._lock.acquire()
+        with self._lock:
             if self._labels is None:
                 self._labels = [item for item in self.api.get_labels()]
-        finally:
-            self._lock.release()
+
         return self._labels
 
     @property
@@ -242,7 +242,6 @@ class GithubRepo:
                         if item.name.startswith(filteritem):
                             ignoreDeleteDo=True
                     if ignoreDeleteDo==False:
-                        # from pudb import set_trace; set_trace()
                         item.delete()
                     self._labels = None
 
@@ -283,7 +282,7 @@ class GithubRepo:
 
         if github_issue:
             issue = Issue(repo=self, githubObj=github_issue)
-            self.issues.append(issue)
+            self._issues.append(issue)
             return issue
 
         if die:
@@ -370,7 +369,7 @@ class GithubRepo:
     @property
     def milestones(self):
         if self._milestones is None:
-            self._milestones = list(map(lambda x: RepoMilestone(self, x), self.api.get_milestones()))
+            self._milestones = [RepoMilestone(self, x) for x in self.api.get_milestones()]
 
         return self._milestones
 
@@ -483,11 +482,6 @@ class GithubRepo:
         if name.startswith("priority"):
             return("f9d0c4")  # roze
 
-        # if name in colors:
-        #     color=colors[name]
-        #     if color=="":
-        #         color="ffffff"
-        #     return color
 
         return "ffffff"
 
@@ -507,10 +501,11 @@ class GithubRepo:
         }
 
         for todo in issue.todo:
-            try:
-                cmd, args = todo.split(' ', 1)
-            except Exception as e:
-                self.logger.warning("%s, cannot process todo for %s" % (str(e), todo))
+            cmd, _, args = todo.partition(' ')
+
+            if not args:
+                # it seems all commands requires arguments
+                self.logger.warning("cannot process todo for %s" % (todo,))
                 continue
 
             if cmd == 'move':
@@ -537,8 +532,6 @@ class GithubRepo:
                     labels = issue.labels
                     labels.append(prio)
                     issue.labels = labels
-            # elif cmd == 'delete':
-            #     delete(self, args)
             else:
                 self.logger.warning("command %s not supported" % cmd)
     def process_issues(self, issues=[]):
@@ -554,12 +547,6 @@ class GithubRepo:
         """
         # close command is irrelevent, if we have time to write a comment '!!close'
         # Then we have time to click the close button the issue directly
-
-        # def close(issue, comment=''):
-        #     if comment == '':
-        #         comment = 'Automatic closing'
-        #     issue.api.create_comment(comment)
-        #     issue.api.edit(state='close')
 
         # process stories.
         self._process_stories()
@@ -659,7 +646,7 @@ class GithubRepo:
                 return ':red_circle: Open'
 
         view = MILESTONE_REPORT_TMP.render(repo=self, report=report, milestones=milestones, summary=summary, state=state)
-        self.SetFile(MILESTONE_REPORT_FILE, view)
+        self.set_file(MILESTONE_REPORT_FILE, view)
 
         # group per user
         assignees = dict()
@@ -673,20 +660,21 @@ class GithubRepo:
         # generate milestone details page
         for key, milestone in milestones.items():
             view = MILESTONE_DETAILS_TEMP.render(repo=self, key=key, milestone=milestone, issues=issues, assignees=assignees, state=state)
-            self.SetFile("milestones/%s.md" % key, view)
+            self.set_file("milestones/%s.md" % key, view)
 
         # assignee details page
         view = ASSIGNEE_REPORT_TMP.render(repo=self, assignees=assignees, state=state)
-        self.SetFile(ASSIGNEE_REPORT_FILE, view)
+        self.set_file(ASSIGNEE_REPORT_FILE, view)
 
-    def SetFile(self, path, content, message='update file'):
+    def set_file(self, path, content, message='update file'):
         """
         Creates or updates the file content at path with given content
         :param path: file path `README.md`
         :param content: Plain content of file
         :return:
         """
-        encoded = base64.encodebytes(content.encode())
+        bytes = content.encode()
+        encoded = base64.encodebytes(bytes)
 
         params = {
             'message': message,
@@ -696,6 +684,8 @@ class GithubRepo:
         try:
             obj = self.api.get_contents(path)
             params['sha'] = obj.sha
+            if base64.decodebytes(obj.content.encode()) == bytes:
+                return
         except UnknownObjectException:
             pass
 
@@ -707,16 +697,13 @@ class GithubRepo:
 
     @property
     def issues(self):
-        try:
-            self._lock.acquire()
+        with self._lock:
             if self._issues is None:
                 issues = []
                 for item in self.api.get_issues(state=''):
                     issues.append(Issue(self, githubObj=item))
 
                 self._issues = issues
-        finally:
-            self._lock.release()
 
         return self._issues
 

@@ -175,17 +175,12 @@ class GithubRepo:
     def stories(self):
         # walk overall issues find the stories (based on type)
         # only for home type repo, otherwise return []
-        # if not self.fullname.lower().endswith('home'):
-        #     return []
-
         return self.issues_by_type('story')
 
     @property
     def tasks(self):
         # walk overall issues find the stories (based on type)
         # only for home type repo, otherwise return []
-        # if not self.fullname.lower().endswith('home'):
-        #     return []
         return self.issues_by_type('task')
 
     def labelsSet(self, labels2set,ignoreDelete=["p_"],delete=True):

@@ -457,10 +457,8 @@ class AtYourServiceRepo():
     #     step = 1
     #     while todo != []:
 
-    #         if ask:
-    #             from IPython import embed
-    #             print ("DEBUG NOW ask in do, filter items")
-    #             embed()
+            # if ask:
+                # j.application.break_into_jshell("DEBUG NOW ask in do, filter items")
 
 
     #         print("execute state changes, nr services to process: %s in step:%s" % (len(todo), step))

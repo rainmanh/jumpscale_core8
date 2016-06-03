@@ -700,9 +700,7 @@ class Service:
     #         return None
     #     action=j.actions.add(method, kwargs={"ayskey":self.key}, die=True, stdOutput=False, \
     #             errorOutput=False, executeNow=True,force=True, showout=False, actionshow=True,selfGeneratorCode='selfobj=None')
-    #     from IPython import embed
-    #     print ("DEBUG NOW runaction")
-    #     embed()
+    #     j.application.break_into_jshell("DEBUG NOW runaction")
 
     #     return action
 
@@ -714,9 +712,7 @@ class Service:
     #     method=self._getActionMethodNode(name)
     #     if method==None:
     #         return None
-    #     from IPython import embed
-    #     print ("DEBUG NOW runaction node")
-    #     embed()
+    #     j.application.break_into_jshell("DEBUG NOW runaction node")
     #     return action
 
     # def _getActionMethodMgmt(self,action):

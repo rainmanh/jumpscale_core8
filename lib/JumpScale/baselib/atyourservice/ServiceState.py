@@ -157,9 +157,7 @@ class ServiceState():
         """
         walks over the recurring items and if too old will execute
         """
-        from IPython import embed
-        print("DEBUG NOW check recurring")
-        embed()
+        j.application.break_into_jshell("DEBUG NOW check recurring")
 
     @property
     def parent(self):

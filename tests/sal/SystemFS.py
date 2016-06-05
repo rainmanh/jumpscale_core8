@@ -7,6 +7,7 @@ import os.path as path
 import codecs
 import hashlib
 import glob
+from functools import partial
 
 def hashfile(p):
     with open(p, 'rb') as f:
@@ -143,6 +144,14 @@ def inc(x):
         assert_equal(len(glob.glob("tdir/*.bak")), 0)
         shutil.rmtree("tdir")
 
+    def test_removeLinks(self):
+        #create somelinks
+        links=list(map(tmpify, ['link1', 'link2','link3', 'link4']))
+        list(map(partial(os.symlink, 'f1.py'), links))
+        assert_equal(len(glob.glob("/tmp/link*")), 4)
+        fs.removeLinks("/tmp")
+        assert_equal(len(glob.glob("/tmp/link*")), 0)
+
     def test_renameDir(self):
         if not os.path.exists("tdir"):
             os.mkdir("tdir")
@@ -181,6 +190,18 @@ def inc(x):
     def test_convertFileDirnamesUnicodeToAscii(self):
         return True
 
+    def test_constructFilePathFromArray(self):
+        arr=["/home", "ahmed", "file.py"]
+        cpath=fs.constructFilePathFromArray(arr)
+        assert_equal(cpath, os.path.join(*arr))
+        assert_equal(cpath.endswith("/"), False)
+
+    def test_constructDirPathFromArray(self):
+        arr=["/home", "ahmed", "wspace"]
+        cpath=fs.constructDirPathFromArray(arr)
+        assert_equal(cpath, os.path.join(*arr)+os.path.sep)
+        assert_equal(cpath.endswith("/"), True)
+
 
     def test_getBaseName(self):
         assert_equal(path.basename(TestFS.FILE), fs.getBaseName(TestFS.FILE))
@@ -205,6 +226,13 @@ def inc(x):
         assert_equal(fs.isFile('/'), False)
         assert_equal(fs.isFile(TestFS.FILE), True)
 
+    def test_hardlinkFile(self):
+        fs.hardlinkFile('f1.py', 'f1hard.py')
+        assert_equal(os.path.exists('f1hard.py'), True)
+        os.remove('f1hard.py')
+
+    def test_hardlinkFileNoneSource(self):
+        assert_raises(TypeError, fs.hardlinkFile, None, 'whatever')
 
     def test_symlink(self):
         fs.symlink("f1.py", "f1symlink")

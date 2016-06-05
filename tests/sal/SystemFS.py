@@ -474,9 +474,11 @@ y=2
         os.rmdir(D)
 
     def test_pathNormalize(self):
+        cur=os.getcwd()
         os.chdir("/tmp")
         assert_equal(fs.pathNormalize("home/ahmed"), '/tmp/home/ahmed')
         assert_equal(fs.pathNormalize("home/ahmed", root='/'), '/home/ahmed' )
+        os.chdir(cur)
 
     def test_pathDirClean(self):
         assert_equal(fs.pathDirClean("/home/ahmed/sub"), "/home/ahmed/sub/")

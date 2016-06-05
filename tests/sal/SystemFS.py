@@ -36,7 +36,10 @@ def touchmany(fs):
 
 def removeone(f):
     if path.exists(f):
-        os.remove(f)
+        if os.path.islink(f):
+            os.unlink(f)
+        else:
+            os.remove(f)
 
 def removemany(fs):
     list(map(os.remove, fs))
@@ -87,11 +90,11 @@ def inc(x):
         with open(TestFS.FILE, 'w') as f:
             f.write(txt)
 
-
     #delete the 2 files created.
     def tearDown(self):
         removemany(TestFS.FILES)
         removeone(TestFS.FILE)
+
 
     def test_validateFilename_zerolength(self):
         assert_equal(fs.validateFilename(''), False)
@@ -140,6 +143,26 @@ def inc(x):
         assert_equal(len(glob.glob("tdir/*.bak")), 0)
         shutil.rmtree("tdir")
 
+    def test_renameDir(self):
+        if not os.path.exists("tdir"):
+            os.mkdir("tdir")
+
+        fs.renameDir("tdir", "tdirrenamed")
+        assert_equal(os.path.exists("tdir"), False)
+        assert_equal(os.path.exists("tdirrenamed"), True)
+
+        os.rmdir("tdirrenamed")
+
+    def test_convertFileDirenamesSpaceToUnderscore(self):
+        if not os.path.exists("t dir"):
+            os.mkdir("t dir")
+
+        fs.convertFileDirnamesSpaceToUnderscore("t dir")
+        assert_equal(os.path.exists("t dir"), False)
+        assert_equal(os.path.exists("t_dir"), True)
+        os.rmdir("t_dir")
+
+
     def test_getBaseName(self):
         assert_equal(path.basename(TestFS.FILE), fs.getBaseName(TestFS.FILE))
 
@@ -152,6 +175,9 @@ def inc(x):
     def test_exists(self):
         assert_equal(fs.exists(TestFS.FILE), True)
 
+    def test_exists_raises_typeerror(self):
+        assert_raises(TypeError, fs.exists, None)
+
     def test_isDir(self):
         assert_equal(fs.isDir('/'), True)
         assert_equal(fs.isDir(TestFS.FILE), False)
@@ -160,12 +186,63 @@ def inc(x):
         assert_equal(fs.isFile('/'), False)
         assert_equal(fs.isFile(TestFS.FILE), True)
 
+
+    def test_symlink(self):
+        fs.symlink("f1.py", "f1symlink")
+        assert_equal(path.islink("f1symlink"), True)
+        removeone("f1symlink")
+
+    def test_symlink_raises_typeerror(self):
+        assert_raises(TypeError, fs.symlink, None, "nonelink")
+
     def test_isLink(self):
 
-        os.link('f1.py', 'f1linked.py')
+        os.symlink('f1.py', 'f1linked.py')
         assert_equal(path.islink('f1linked.py'), fs.isLink('f1linked.py'))
         os.unlink('f1linked.py')
 
+    def test_dirEqual(self):
+        assert_equal(fs.dirEqual("/home/user1", "home\\user1"), True)
+        assert_equal(fs.dirEqual("/home/user1", "home\\user2"), False)
+
+    def test_checkDirOrLink(self):
+        f=tmpify("f1totest")
+        touchone(f)
+        assert_equal(fs.checkDirOrLink(f), False)
+        removeone(f)
+
+    def test_readlink(self):
+        f1=tmpify("flinktest")
+        touchone(f1)
+        f1link=tmpify("flinktestlink")
+        os.symlink(f1, f1link)
+        assert_equal(os.readlink(f1link), fs.readlink(f1link))
+        removemany([f1,f1link])
+
+    def test_checkDirOrLinkIsLinkToFile(self):
+        f1=tmpify("testfile")
+        if not os.path.exists(f1):
+            touchone(f1)
+        f1link=tmpify("testlink")
+        os.symlink(f1, f1link)
+        assert_equal(fs.checkDirOrLink(f1link), False)
+        removemany([f1,f1link])
+
+    def test_checkDirOrLinkIsLinkToDir(self):
+        d1=tmpify("testdir")
+        if not os.path.exists(d1):
+            os.mkdir(d1)
+        d1link=tmpify("testdirlink")
+        os.symlink(d1, d1link)
+        assert_equal(fs.checkDirOrLink(d1link), True)
+        os.rmdir(d1)
+        os.remove(d1link)
+
+    def test_checkDirOrLinkIsDir(self):
+
+        os.mkdir("myd")
+        assert_equal(fs.checkDirOrLink("myd"), True)
+        os.rmdir("myd")
 
     def test_getcwd(self):
         assert_equal(fs.getcwd(), os.getcwd())
@@ -215,6 +292,23 @@ def inc(x):
         assert_equal(path.exists(f), True)
         os.remove(f)
 
+    def test_remove(self):
+        f = tmpify("testtoremove")
+        touchone(f)
+        fs.remove(f)
+        assert_equal(os.path.exists(f), False)
+
+    def test_remove_raises_typeerror(self):
+        assert_raises(TypeError, fs.remove, None)
+
+    def test_remove_dir(self):
+        t=tmpify("TESTDIRTOREMOVE")
+        os.mkdir(t)
+        fs.removeDir(t)
+        assert_equal(os.path.exists(t), False)
+
+    def test_remove_dir_raises_typeerror(self):
+        assert_raises(TypeError, fs.removeDir, None)
 
     def test_listpyscripts(self):
         #touch 3 files
@@ -303,6 +397,9 @@ def inc(x):
         fs.unlinkFile(f)
         assert_equal(path.exists(f), False )
 
+    def test_readFile(self):
+        assert_equal(readfile(TestFS.FILE), fs.readFile(TestFS.FILE))
+
     def test_fileGetContents(self):
 
         assert_equal(readfile(TestFS.FILE), fs.fileGetContents(TestFS.FILE))
@@ -322,12 +419,13 @@ def inc(x):
 
     def test_isExecutable_others(self):
         #create file rwx-rw-rw
-        f='testfilex'
-        touchone(f)
+        f=tmpify('testfilex')
+        if not os.path.exists(f):
+            touchone(f)
         os.chmod(f, mode=447)
         os.chown(f, 0, 0)
-
-        assert_equal(fs.isExecutable(f), True)
+        #only is executable by the owner for now?
+        assert_equal(fs.isExecutable(f), False)
         removeone(f)
 
 
@@ -348,8 +446,8 @@ y=2
             fp.write(content)
         txt="".join(fs.fileGetUncommentedContents(f))
         assert_not_in("#", txt)
-
         removeone(f)
+
     def test_md5sum(self):
         assert_equal(hashfile(TestFS.FILE), fs.md5sum(TestFS.FILE))
 
@@ -360,6 +458,9 @@ y=2
         assert_equal(path.getsize('testempty'), 0)
 
         removeone('testempty')
+
+    def test_getParent(self):
+        assert_equal(os.path.dirname("/tmp/dir1/name"), fs.getParent("/tmp/dir1/name"))
 
     def test_pathClean(self):
         p="/home/ahmed/someone/st.py"
@@ -372,6 +473,17 @@ y=2
         assert_equal(path.exists(D), True)
         os.rmdir(D)
 
+    def test_pathNormalize(self):
+        os.chdir("/tmp")
+        assert_equal(fs.pathNormalize("home/ahmed"), '/tmp/home/ahmed')
+        assert_equal(fs.pathNormalize("home/ahmed", root='/'), '/home/ahmed' )
+
+    def test_pathDirClean(self):
+        assert_equal(fs.pathDirClean("/home/ahmed/sub"), "/home/ahmed/sub/")
+        assert_equal(fs.pathDirClean("/home/ahmed/sub/"), "/home/ahmed/sub/")
+
+    def test_processPathForDoubleDots(self):
+        assert_equal(fs.processPathForDoubleDots("/tmp/../dir1/name"), os.path.normpath("/tmp/../dir1/name"))
 
     def test_fileConvertLineEndingCRLF(self):
         return True

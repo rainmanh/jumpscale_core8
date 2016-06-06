@@ -442,6 +442,19 @@ def inc(x):
         fs.removeDirTree("/tmp/treetoremove")
         assert_equal(os.path.exists("/tmp/treetoremove"), False)
 
+    def test_removeDirTreePathIsLink(self):
+        os.symlink("f1.py", "f1linked")
+        fs.removeDirTree("f1linked")
+        assert_equal(os.path.exists("f1linked"), False)
+
+    def test_removeDirTreePathIsFile(self):
+        shutil.copy("f1.py", "f1copy")
+        fs.removeDirTree("f1copy")
+        assert_equal(os.path.exists("f1copy"), False)
+
+    def test_removeDirTree_raisesValueError(self):
+        assert_raises(ValueError, fs.removeDirTree, None)
+
     def test_listpyscripts(self):
         #touch 3 files
         d=tmpify('pyscriptstest/')

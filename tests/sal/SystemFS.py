@@ -162,7 +162,22 @@ def inc(x):
         shutil.rmtree("testcomp")
 
     def test_targzUncompress(self):
-        pass
+        os.chdir("/tmp")
+        if not os.path.exists("testcomp"):
+            os.mkdir("testcomp")
+        files = map(tmpify, ['testcomp/f1', 'testcomp/f2', 'testcomp/f3', 'testcomp/f4'])
+        touchmany(files)
+        fs.targzCompress("testcomp", "comp.tar.gz", destInTar='subcomp')
+        assert_equal(os.path.exists("comp.tar.gz"), True)
+
+        fs.targzUncompress("comp.tar.gz", "outdir")
+        assert_equal(os.path.exists("outdir"), True)
+        assert_equal(os.path.isdir("outdir"), True)
+        assert_equal(len(glob.glob('outdir/subcomp/*')), 4)
+        removeone("comp.tar.gz")
+        removemany(files)
+        shutil.rmtree("testcomp")
+        shutil.rmtree("outdir")
 
     def test_gzip(self):
         f1="fz"

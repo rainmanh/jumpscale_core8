@@ -1,6 +1,6 @@
 from JumpScale import j
 fs=j.sal.fs
-from nose.tools import assert_equal, assert_not_equal, assert_raises, raises, assert_in, assert_not_in
+from nose.tools import assert_equal, assert_not_equal, assert_raises, raises, assert_in, assert_not_in, assert_greater
 import os
 import shutil
 import os.path as path
@@ -8,6 +8,9 @@ import codecs
 import hashlib
 import glob
 from functools import partial
+import tarfile
+import sys
+
 
 def hashfile(p):
     with open(p, 'rb') as f:
@@ -121,6 +124,78 @@ def inc(x):
     def test_statPath_returns_stat(self):
         st = fs.statPath("/bin")
         assert_equal(isinstance(st, os.stat_result), True)
+
+    def test_pathRemoveDirPart(self):
+        p = "/home/ahmed/wspace/file1"
+        assert_equal(fs.pathRemoveDirPart(p, "/home/ahmed"), "wspace/file1")
+
+    def test_targzCompress_sourceDoesntExist(self):
+        assert_raises(j.exceptions.RuntimeError, fs.targzCompress, "creepypathdoesntexists", "dest")
+
+    def test_targzCompress(self):
+        os.chdir("/tmp")
+        if not os.path.exists("testcomp"):
+            os.mkdir("testcomp")
+        files=map(tmpify, ['testcomp/f1', 'testcomp/f2', 'testcomp/f3', 'testcomp/f4'])
+        touchmany(files)
+        fs.targzCompress("testcomp", "comp.tar.gz")
+        assert_equal(os.path.exists("comp.tar.gz"), True)
+
+        removeone("comp.tar.gz")
+        removemany(files)
+        shutil.rmtree("testcomp")
+
+
+    def test_targzCompressDestInTar(self):
+        os.chdir("/tmp")
+        if not os.path.exists("testcomp"):
+            os.mkdir("testcomp")
+        files = map(tmpify, ['testcomp/f1', 'testcomp/f2', 'testcomp/f3', 'testcomp/f4'])
+        touchmany(files)
+        fs.targzCompress("testcomp", "comp.tar.gz", destInTar='subcomp')
+        assert_equal(os.path.exists("comp.tar.gz"), True)
+
+        tf=tarfile.open("comp.tar.gz")
+        assert_equal(os.path.commonpath(tf.getnames()),  'subcomp')
+        removeone("comp.tar.gz")
+        removemany(files)
+        shutil.rmtree("testcomp")
+
+    def test_targzUncompress(self):
+        pass
+
+    def test_gzip(self):
+        f1="fz"
+        writetofile(f1, "helloaa da text")
+        fs.gzip(f1, "fz.gzipped")
+        assert_equal(os.path.exists("fz.gzipped"), True)
+        removemany(["fz", "fz.gzipped"])
+
+    def test_gunzip(self):
+        f1="fz"
+        writetofile(f1, "helloaa da text")
+        fs.gzip(f1, "fz.gzipped")
+        assert_equal(os.path.exists("fz.gzipped"), True)
+        fs.gunzip("fz.gzipped", "fzout")
+        assert_equal(os.path.exists("fzout",), True)
+        assert_equal(readfile(f1), readfile("fzout"))
+        removemany([f1, "fzout", "fz.gzipped"])
+
+
+    def test_grep(self):
+        writetofile("f1", "python 33")
+        writetofile("f2", "hey 24")
+        writetofile("f3", "oh 41")
+        oldstdout=sys.stdout
+        sys.stdout=open("/tmp/grepresult", "w")
+        fs.grep("f*", "\w+ \d\d")
+        sys.stdout.close()
+
+        assert_greater(len(readfile("/tmp/grepresult")), 0)
+
+        sys.stdout=oldstdout
+        removemany(["f1", "f2", "f3", "/tmp/grepresult"])
+
 
     def test_copyFile(self):
         t1=tmpify("file1")
@@ -356,6 +431,16 @@ def inc(x):
 
     def test_remove_dir_raises_typeerror(self):
         assert_raises(TypeError, fs.removeDir, None)
+
+    def test_removeDirTree(self):
+        os.chdir('/tmp')
+        os.mkdir('treetoremove')
+        os.mkdir('treetoremove/sub1')
+        os.mkdir('treetoremove/sub1/sub2')
+        writetofile('treetoremove/sub1/sub2/file',"hello world")
+
+        fs.removeDirTree("/tmp/treetoremove")
+        assert_equal(os.path.exists("/tmp/treetoremove"), False)
 
     def test_listpyscripts(self):
         #touch 3 files

@@ -429,6 +429,21 @@ def inc(x):
     def test_remove_dir_raises_typeerror(self):
         assert_raises(TypeError, fs.removeDir, None)
 
+    def test_copyDirTree(self):
+        os.chdir('/tmp')
+        os.mkdir('treetocopy')
+        os.mkdir('treetocopy/sub1')
+        os.mkdir('treetocopy/sub1/sub2')
+        writetofile('treetocopy/sub1/sub2/file', "hello world")
+        fs.copyDirTree("/tmp/treetocopy", "/tmp/copiedtree")
+
+        assert_equal(os.path.exists("/tmp/copiedtree"), True)
+        assert_equal(os.path.exists("/tmp/copiedtree/sub1/sub2/file"), True)
+
+
+        shutil.rmtree("/tmp/treetocopy")
+        shutil.rmtree("/tmp/copiedtree")
+
     def test_removeDirTree(self):
         os.chdir('/tmp')
         os.mkdir('treetoremove')

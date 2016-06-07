@@ -262,24 +262,6 @@ def inc(x):
         assert_equal(len(globbed), len(files))
         removemany(globbed)
 
-    ###SHOULD GO AWAY
-    def test_convertFileDirenamesSpaceToUnderscore(self):
-        return True
-        # if not os.path.exists("t dir"):
-        #     os.mkdir("t dir")
-        # if not os.path.exists("t dir/t dir"):
-        #     os.mkdir("t dir/t dir2")
-        #
-        # fs.convertFileDirnamesSpaceToUnderscore("t dir")
-        # assert_equal(os.path.exists("t dir"), False)
-        # assert_equal(os.path.exists("t_dir"), True)
-        # #os.rmdir("t_dir")
-
-
-    # SHOULD GO AWAY
-    def test_convertFileDirnamesUnicodeToAscii(self):
-        return True
-
     def test_constructFilePathFromArray(self):
         arr=["/home", "ahmed", "file.py"]
         cpath=fs.constructFilePathFromArray(arr)
@@ -647,8 +629,6 @@ y=2
     def test_processPathForDoubleDots(self):
         assert_equal(fs.processPathForDoubleDots("/tmp/../dir1/name"), os.path.normpath("/tmp/../dir1/name"))
 
-    def test_fileConvertLineEndingCRLF(self):
-        return True
 
     def test_getFolderMD5sum(self):
         return True

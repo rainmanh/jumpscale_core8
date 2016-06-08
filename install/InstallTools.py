@@ -2077,6 +2077,8 @@ class Installer():
                 
         os.environ.update(args2)
 
+        args2['SANDBOX']=int(args2['SANDBOX'])
+
         if EMAIL!="":
             self.gitConfig(FULLNAME,EMAIL)
 
@@ -2474,7 +2476,6 @@ exec python3 -q "$@"
             do.execute(cmd)
 
     def prepare(self,SANDBOX=0,base=""):
-        SANDBOX=int(SANDBOX)
         print ("prepare (sandbox:%s)"%SANDBOX)
         if base=="":
             base=self.BASE

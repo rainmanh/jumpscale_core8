@@ -565,6 +565,8 @@ class GithubRepo:
         if issues == []:
             issues = self.issues
 
+        issues = sorted(issues, key=lambda i: i.number)
+
         dev_repo = False
          # Logic after this point is only for home and org repo
         for typ in ['org_', 'proj_']:
@@ -572,7 +574,8 @@ class GithubRepo:
                 dev_repo = True
                 break
 
-        milestones = collections.OrderedDict([('{m.number}:{m.title}'.format(m=m), m) for m in self.milestones])
+        _ms = [('{m.number}:{m.title}'.format(m=m), m) for m in self.milestones]
+        milestones = collections.OrderedDict(sorted(_ms, key=lambda i: i[1].title))
         report = dict()
 
         for issue in issues:
@@ -659,6 +662,9 @@ class GithubRepo:
 
             assignees.setdefault(issue.assignee, [])
             assignees[issue.assignee].append(issue)
+
+        # sort the assignees dict.
+        assignees = collections.OrderedDict(sorted([(k, v) for k, v in assignees.items()], key=lambda i: i[0]))
 
         # generate milestone details page
         for key, milestone in milestones.items():

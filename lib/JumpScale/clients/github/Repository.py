@@ -5,6 +5,7 @@ import copy
 import base64
 import threading
 import collections
+import urllib
 from Milestone import RepoMilestone
 from JumpScale.core.errorhandling.OurExceptions import Input
 from github.GithubException import UnknownObjectException
@@ -417,13 +418,14 @@ class GithubRepo:
             if ms.body.strip() != tocheck.strip():
                 ms.body = tocheck
         else:
-            self._milestones = []
             due = j.data.time.epoch2pythonDateTime(int(j.data.time.any2epoch(deadline)))
             self.logger.info("Create milestone on %s: %s" % (self, title))
             body = getBody(description.strip(), name, owner)
             # workaround for https://github.com/PyGithub/PyGithub/issues/396
-            milestone = self.api.create_milestone(title=title, description=body)  # , due_on=due)
+            milestone = self.api.create_milestone(title=title, description=body)
             milestone.edit(title=title, due_on=due)
+
+            self._milestones.append(RepoMilestone(self, milestone))
 
     def deleteMilestone(self, name):
         if name.strip() == "":
@@ -690,6 +692,7 @@ class GithubRepo:
             'content': encoded.decode(),
         }
 
+        path = urllib.parse.quote(path)
         try:
             obj = self.api.get_contents(path)
             params['sha'] = obj.sha

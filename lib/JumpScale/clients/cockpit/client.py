@@ -20,7 +20,7 @@ class Client:
         self._client.url = base_uri
         self._jwt = jwt
         self._session = requests.Session()
-        self._session.headers = {"Authorization": "token " + jwt}
+        self._session.headers = {"Authorization": "Bearer " + jwt}
         self._patch_requests()
 
     def _patch_requests(self):

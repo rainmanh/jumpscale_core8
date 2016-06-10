@@ -59,7 +59,7 @@ class HRDType:
                 result=j.tools.console.askMultiline(question=descr)
                 result=self.typeclass.fromString(result)
 
-            elif ttype in ['int', 'interger']:
+            elif ttype in ['int', 'integer']:
                 result=j.tools.console.askInteger(question=descr,  defaultValue=self.default, minValue=self.minVal, \
                     maxValue=self.maxVal, retry=self.retry,validate=self.typeclass.check)
                 result=self.typeclass.fromString(result)
@@ -169,8 +169,7 @@ class HRDSchema:
                 try:
                     hrdtype.default=hrdtype.typeclass.get_default()
                 except:
-                    print ("issue in default from hrdtype")
-                    from pudb import set_trace; set_trace() 
+                    self._raiseError("issue in default from hrdtype")
 
             if tags.tagExists("descr"):
                 hrdtype.description=tags.tagGet("descr")

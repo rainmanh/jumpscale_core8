@@ -209,6 +209,15 @@ class CuisineCore:
         self._fqn = ""
         self.done=[]
 
+    def getenv(self):
+        res = {}
+        for line in self.cuisine.core.run("printenv", profile=False, showout=False,force=True, replaceArgs=False).splitlines():
+            if '=' in line:
+                name,val = line.split("=",1)
+                name = name.strip()
+                val = val.strip().strip("'").strip("\"")
+                res[name] = val
+        return res
 
     def reset_actions(self):
         j.actions.reset(self.runid)
@@ -227,41 +236,42 @@ class CuisineCore:
     @property
     def dir_paths(self):
         if self._dirs == {}:
-            res={}
-            if 'JSBASE' in os.environ:
-                res["base"]= os.environ["JSBASE"]
+            res = {}
+            env=self.getenv()
+            if 'JSBASE' in env:
+                res["base"] = env["JSBASE"]
             else:
                 if self.isMac:
-                    res["base"]= "%s/opt/jumpscale8/"%os.environ["HOME"]
+                    res["base"] = "%s/opt/jumpscale8/"%env["HOME"]
                 else:
-                    res["base"]= "/opt/jumpscale8/"
+                    res["base"] = "/opt/jumpscale8/"
             if self.isMac:
-                res["codeDir"]= "%s/opt/code/"%os.environ["HOME"]
+                res["codeDir"] = "%s/opt/code/"%env["HOME"]
             else:
-                res["codeDir"]= "/opt/code/"
+                res["codeDir"] = "/opt/code/"
             if self.isMac:
-                res["varDir"]= "%s/optvar/"%os.environ["HOME"]
+                res["varDir"] = "%s/optvar/"%env["HOME"]
             else:
-                res["varDir"]= "/optvar/"
-            res["appDir"]="%s/apps"%res["base"]
-            res['tmplsDir']="%s/templates" % res["base"]
-            res["binDir"]="%s/bin"%res["base"]
-            res["cfgDir"]="%s/cfg"%res["varDir"]
-            res["jsLibDir"]="%s/lib/JumpScale/"%res["base"]
-            res["libDir"]="%s/lib/"%res["base"]
-            res["homeDir"]=os.environ["HOME"]
-            res["logDir"]="%s/log"%res["varDir"]
-            res["pidDir"]="%s/pid"%res["varDir"]
-            res["tmpDir"]="%s/tmp"%res["varDir"]
-            res["hrdDir"]="%s/hrd"%res["varDir"]
-            self._dirs=res
+                res["varDir"] = "/optvar/"
+            res["appDir"] = "%s/apps"%res["base"]
+            res['tmplsDir'] = "%s/templates" % res["base"]
+            res["binDir"] = "%s/bin"%res["base"]
+            res["cfgDir"] = "%s/cfg"%res["varDir"]
+            res["jsLibDir"] = "%s/lib/JumpScale/"%res["base"]
+            res["libDir"] = "%s/lib/"%res["base"]
+            res["homeDir"] = os.environ["HOME"]
+            res["logDir"] = "%s/log"%res["varDir"]
+            res["pidDir"] = "%s/pid"%res["varDir"]
+            res["tmpDir"] = "%s/tmp"%res["varDir"]
+            res["hrdDir"] = "%s/hrd"%res["varDir"]
+            self._dirs = res
 
         if self.isMac:
-            self._dirs["optDir"]= "%s/opt/"%os.environ["HOME"]
+            self._dirs["optDir"]= "%s/opt/"%env["HOME"]
         else:
-            self._dirs["optDir"]= "/opt/"
+            self._dirs["optDir"] = "/opt/"
 
-        self._dirs["goDir"]= "%sgo/"%self._dirs["varDir"]
+        self._dirs["goDir"] = "%sgo/"%self._dirs["varDir"]
 
         return self._dirs
 
@@ -294,7 +304,7 @@ class CuisineCore:
         - $hostname
 
         """
-        if text:
+        if "$" in text:
             for key, var in self.dir_paths.items():
                 text = text.replace("$%s" % key, var)
             text = text.replace("$hostname", self.hostname)
@@ -307,8 +317,8 @@ class CuisineCore:
         """
         with mode_sudo():
             old = "127.0.0.1 localhost"
-            new = old + " " + system_uuid()
-            file_update('/etc/hosts', lambda x: text_replace_line(x, old, new)[0])
+            new = old + " " + self.system_uuid()
+            self.file_update('/etc/hosts', lambda x: text_replace_line(x, old, new)[0])
 
     def system_uuid(self):
         """Gets a machines UUID (Universally Unique Identifier)."""
@@ -349,7 +359,7 @@ class CuisineCore:
         return locale_data == locale
 
     def locale_ensure(self,locale):
-        if not locale_check(locale):
+        if not self.locale_check(locale):
             with fabric.context_managers.settings(warn_only=True):
                 self.sudo("/usr/share/locales/install-language-pack %s" % (locale,))
             self.sudo("dpkg-reconfigure locales")

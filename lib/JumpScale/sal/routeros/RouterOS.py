@@ -9,9 +9,10 @@ class RouterOSFactory:
 
     def get(self, host, login,password):
         return RouterOS(host, login,password)
-#!/usr/bin/python
 
-import sys, posix, time, md5, binascii, socket, select
+from hashlib import md5
+
+import sys, posix, time, binascii, socket, select
 import netaddr
 
 class ApiRos:

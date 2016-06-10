@@ -689,13 +689,8 @@ class SystemFS:
         return os.sep.join(parts)
 
     def getFileExtension(self,path):
-        return os.path.splitext(path)[1]
-        # extcand=path.split(".")
-        # if len(extcand)>0:
-        #     ext=extcand[-1]
-        # else:
-        #     ext=""
-        # return ext
+        ext = os.path.splitext(path)[1]
+        return ext.strip('.')
 
     def chown(self,path,user,group=None):
         from pwd import getpwnam

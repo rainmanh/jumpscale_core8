@@ -2,6 +2,7 @@ from JumpScale import j
 
 import Models
 import CockpitEventModels
+import OauthModels
 import inspect
 
 try:
@@ -49,3 +50,8 @@ class CockpitEvent(NameSpaceLoader):
     def __init__(self):
         self.__jslocation__ = "j.data.models.cockpit_event"
         super(CockpitEvent, self).__init__(CockpitEventModels)
+
+class Oauth(NameSpaceLoader):
+    def __init__(self):
+        self.__jslocation__ = "j.data.models.oauth"
+        super(Oauth, self).__init__(OauthModels)

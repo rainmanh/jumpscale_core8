@@ -12,7 +12,7 @@ class Issue(Base):
         self.repo = repo
         self._ddict = ddict
         self._githubObj = githubObj
-        self._comments = None
+        self._comments = ddict.get('comments', None)
         if githubObj is not None:
             self.load()
 

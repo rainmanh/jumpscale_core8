@@ -28,7 +28,6 @@ class GithubRepo:
         self._issues = None
         self._lock = threading.RLock()
         self._milestones = None
-        self.issues_loaded = False
 
     @property
     def api(self):

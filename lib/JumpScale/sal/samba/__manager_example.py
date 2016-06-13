@@ -1,7 +1,7 @@
 from JumpScale import j
 from manager import Samba
 
-s = j.ssh.samba.get(j.ssh.connect())
+s = j.ssh.samba
 
 print('========================')
 print('===   SAMBA SHARES   ===')

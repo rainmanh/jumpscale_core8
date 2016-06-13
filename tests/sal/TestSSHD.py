@@ -41,6 +41,27 @@ class TestSSHD(unittest.TestCase):
 
         self.assertEqual(len(self.sshd.keys), 2)
 
+    def test_key_exists_after_add(self):
+        self.sshd.addKey(self.key1)
+        self.sshd.addKey(self.key2)
+        self.sshd.commit()
+
+        self.assertEqual(len(self.sshd.keys), 2)
+        self.assertIn(self.key1, self.sshd.keys)
+
+    def test_key_doesntexists_after_delete(self):
+        self.sshd.addKey(self.key1)
+        self.sshd.addKey(self.key2)
+        self.sshd.commit()
+
+        self.assertEqual(len(self.sshd.keys), 2)
+        self.assertIn(self.key1, self.sshd.keys)
+
+        self.sshd.deleteKey(self.key1)
+        self.sshd.commit()
+        
+        self.assertNotIn(self.key1, self.sshd.keys)
+
     def test_erase(self):
         self.sshd.addKey(self.key1)
         self.sshd.addKey(self.key2)
@@ -64,6 +85,6 @@ class TestSSHD(unittest.TestCase):
 
         self.sshd.deleteKey(self.key2)
         self.sshd.commit()
-        
+
         self.assertEqual(len(self.sshd.keys), 1)
 

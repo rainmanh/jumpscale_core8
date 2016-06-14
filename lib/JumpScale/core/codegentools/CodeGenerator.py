@@ -1,7 +1,6 @@
 from JumpScale import j
 from CodeGeneratorModel import CodeGeneratorModel
 from CodeGeneratorActorLocal import CodeGeneratorActorLocal
-from CodeGeneratorActorRemote import CodeGeneratorActorRemote
 # from CodeGeneratorActorMethodGreenlet import CodeGeneratorActorMethodGreenlet
 # from CodeGeneratorWhoosh import CodeGeneratorWhoosh
 from CodeGeneratorActorTasklets import CodeGeneratorActorTasklets
@@ -83,18 +82,6 @@ class CodeGenerator:
         # spec=j.core.specparser.findSpec(appname=appname,actorname=actor,specname=actor,type=spectype,findOnlyOne=True)
         classs = self.generate(spec, type=type, typecheck=typecheck, dieInGenCode=dieInGenCode, codepath=codepath)
 
-        return classs
-
-    def getClassActorRemote(self, appname, actor, typecheck=True, dieInGenCode=True, instance=0, redis=False, wsclient=None, codepath=None):
-        spectype = "actor"
-        type = "actorremote"
-        key = "%s_%s_%s_%s_%s" % (type, appname, spectype, actor, actor)
-        # if self.classes.has_key(key):
-            # return self.classes[key]
-        spec = j.core.specparser.getActorSpec(appname, actor)
-        # spec=j.core.specparser.findSpec(appname=appname,actorname=actor,specname=actor,type=spectype,findOnlyOne=True)
-        classs = self.generate(spec, type=type, typecheck=typecheck, dieInGenCode=dieInGenCode,
-                               instance=instance, redis=redis, wsclient=wsclient, codepath=codepath)
         return classs
 
     def getClassesActorMethodGreenlet(self, appname, actor, typecheck=True, dieInGenCode=True):
@@ -189,8 +176,6 @@ class CodeGenerator:
             cg = CodeGeneratorActorLocal(spec, typecheck, dieInGenCode)
         elif spec.type == "actor" and type == "actorclass":
             cg = CodeGeneratorActorClass(spec, typecheck, dieInGenCode, codepath=codepath, args=args)
-        elif spec.type == "actor" and type == "actorremote":
-            cg = CodeGeneratorActorRemote(spec, typecheck, dieInGenCode, instance=instance, redis=redis, wsclient=wsclient, codepath=codepath)
         elif spec.type == "actor" and type == "tasklet":
             cg = CodeGeneratorActorTasklets(spec, codepath=codepath)
             cg.generate()

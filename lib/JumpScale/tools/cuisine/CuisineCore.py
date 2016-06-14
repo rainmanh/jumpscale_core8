@@ -208,6 +208,7 @@ class CuisineCore:
         self._hostname=""
         self._fqn = ""
         self.done=[]
+        self._js8sb = None
 
     def getenv(self):
         res = {}
@@ -228,9 +229,9 @@ class CuisineCore:
 
     @property
     def isJS8Sandbox(self):
-        if self._js8sb==None:
+        if self._js8sb is None:
             #@todo need to implement when sandbox, what is the right check?
-            self._js8sb=False
+            self._js8sb = False
         return self._js8sb
 
     @property

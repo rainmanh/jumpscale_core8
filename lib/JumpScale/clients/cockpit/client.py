@@ -27,6 +27,15 @@ class Client:
         # replace the requests module with a session that has JWT header
         client_lower.requests = self._session
 
+    def reloadAll(self, headers=None, query_params=None):
+        """
+        empty memory and reload all services
+        It is method for GET /ays/reload
+        """
+        resp = self._client.reloadAll(headers=headers, query_params=query_params)
+        resp.raise_for_status()
+        return resp.json()
+
     def listRepositories(self, headers=None, query_params=None):
         """
         list all repositorys

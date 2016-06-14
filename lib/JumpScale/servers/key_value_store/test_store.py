@@ -1,7 +1,6 @@
 from contextlib import contextmanager
 import unittest
 
-from servers.key_value_store.arakoon_store import ArakoonKeyValueStore
 from servers.key_value_store.fs_store import FileSystemKeyValueStore
 from servers.key_value_store.memory_store import MemoryKeyValueStore
 from JumpScale import j
@@ -135,59 +134,6 @@ class KeyValueStoreTestCaseBase:
         actual = self._store.listCategories()
         expected = [cat1, cat2]
         self.assertEqual(set(expected), set(actual))
-
-
-class ArakoonKeyValueStoreTestCase(unittest.TestCase,
-    KeyValueStoreTestCaseBase):
-
-    STORE_CLUSTER = 'test_cluster_name_1337'
-
-    def setUp(self):
-        '''
-        Cleans up and sets up a an Arakoon cluster.
-        '''
-
-        self.cleanUp()
-
-        cluster = j.manage.arakoon.getCluster(self.STORE_CLUSTER)
-        # Avoid conflicts with other cluster ports
-        cluster.setUp(1, basePort=54321)
-        cluster.start()
-
-        config = j.clients.arakoon.getClientConfig(self.STORE_CLUSTER)
-        config.generateFromServerConfig()
-
-        self._store = ArakoonKeyValueStore(self.STORE_CLUSTER,
-            self.STORE_NAMESPACE)
-
-    def tearDown(self):
-        self.cleanUp()
-
-    def cleanUp(self):
-        '''
-        Tears down the Arakoon test cluster and client and removes the
-        directories related to them.
-        '''
-
-        cluster = j.manage.arakoon.getCluster(self.STORE_CLUSTER)
-        cluster.stop()
-        cluster.tearDown()
-        cluster.remove()
-
-        dbDir = j.sal.fs.joinPaths(j.dirs.varDir, 'db', self.STORE_CLUSTER)
-        j.sal.fs.removeDirTree(dbDir)
-
-        logDir = j.sal.fs.joinPaths(j.dirs.logDir, self.STORE_CLUSTER)
-        j.sal.fs.removeDirTree(logDir)
-
-    def testFactory(self):
-        storeA = j.servers.kvs.getStore(KeyValueStoreType.ARAKOON,
-            self.STORE_CLUSTER, self.STORE_NAMESPACE)
-
-        storeB = j.servers.kvs.getArakoonStore(self.STORE_CLUSTER,
-            self.STORE_NAMESPACE)
-
-        self.assertEquals(storeA, storeB)
 
 
 class FileSystemKeyValueStoreTestCase(unittest.TestCase,

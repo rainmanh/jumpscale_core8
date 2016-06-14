@@ -267,12 +267,12 @@ class CuisineCore:
             res["hrdDir"] = "%s/hrd"%res["varDir"]
             self._dirs = res
 
-        if self.isMac:
-            self._dirs["optDir"]= "%s/opt/"%env["HOME"]
-        else:
-            self._dirs["optDir"] = "/opt/"
+            if self.isMac:
+                self._dirs["optDir"]= "%s/opt/"%env["HOME"]
+            else:
+                self._dirs["optDir"] = "/opt/"
 
-        self._dirs["goDir"] = "%sgo/"%self._dirs["varDir"]
+            self._dirs["goDir"] = "%sgo/"%self._dirs["varDir"]
 
         return self._dirs
 

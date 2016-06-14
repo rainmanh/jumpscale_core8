@@ -252,15 +252,14 @@ class Github(object):
             table.addRow([state(task.state), task.title, "#%s" % task.number])
 
         if change:
-            self.ddict["body"] = str(doc)
-            self.api.edit(body=str(doc))
+            story.api.edit(body=str(doc))
 
     def _task_link_to_story(self, story, task):
         """
         If this issue is a task from a story, add link in to the story in the description
         """
 
-        body = self.body
+        body = task.body
         if body is None:
             body = ''
 
@@ -287,7 +286,7 @@ class Github(object):
 
         if change:
             self.logger.info("%s: link to story:%s" % (self, story))
-            self.body = str(doc)
+            task.body = str(doc)
 
     def process_issues(self, repo, issues=None):
         """
@@ -370,8 +369,8 @@ class Github(object):
 
             # create link between story and tasks
             # linking logic
-            issue.link_to_story(story)
-            story.add_task(issue)
+            self._task_link_to_story(story, issue)
+            self._story_add_task(story, issue)
 
         # generate views
         self._generate_views(repo, milestones, issues, report)

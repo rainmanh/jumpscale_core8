@@ -378,18 +378,31 @@ class Github(object):
     def _generate_views(self, repo, milestones, issues, report):
         # end for
         # process milestones
+        def _story_deadline(issue):
+            eta, id = self._story_estimate(issue)
+            try:
+                return j.data.time.getEpochFuture(eta), id
+            except:
+                pass
+            try:
+                return j.data.time.any2epoch(eta), id
+            except:
+                pass
+
+            return 0, id
+
         def summary(ms):
             issues = report.get(ms, [])
-            seconds = 0
+            ts = 0
             for issue in issues:
-                eta, _ = self._story_estimate(issue)
-                if eta is None:
-                    return 'N/A'
-                try:
-                    seconds += j.data.time.getDeltaTime(eta)
-                except:
-                    return 'Invalid time spec'
-            return j.data.time.getSecondsInHR(seconds)
+                eta_stamp, _ = _story_deadline(issue)
+                if eta_stamp > ts:
+                    ts = eta_stamp
+
+            if ts:
+                return j.data.time.epoch2HRDate(ts)
+            else:
+                return 'N/A'
 
         def state(s):
             if s == 'verification':
@@ -400,7 +413,10 @@ class Github(object):
                 return ':red_circle: Open'
 
         def estimate(issue):
-            return self._story_estimate(issue)
+            eta, id = _story_deadline(issue)
+            if eta:
+                return j.data.time.epoch2HRDate(eta), id
+            return None, None
 
         view = MILESTONE_REPORT_TMP.render(repo=repo, report=report, milestones=milestones,
                                            summary=summary, state=state, estimate=estimate)

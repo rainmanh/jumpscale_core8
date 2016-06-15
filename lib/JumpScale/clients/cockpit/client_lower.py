@@ -8,6 +8,15 @@ class Client:
     def __init__(self):
         self.url = BASE_URI
 
+    def reloadAll(self, headers=None, query_params=None):
+        """
+        empty memory and reload all services
+        It is method for GET /ays/reload
+        """
+        uri = self.url + "/ays/reload"
+        uri = uri + build_query_string(query_params)
+        return requests.get(uri, headers=headers)
+
     def listRepositories(self, headers=None, query_params=None):
         """
         list all repositorys

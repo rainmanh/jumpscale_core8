@@ -8,6 +8,7 @@ class DNSMasq:
     def __init__(self):
         self.__jslocation__ = "j.sal.dnsmasq"
         self._configured = False
+        self.logger = j.logger.get("DNSMasq")
         self.executor= j.tools.executor.getLocal()
         self.cuisine= self.executor.cuisine
         self._configdir=""
@@ -55,7 +56,7 @@ class DNSMasq:
         contents += ',%s\n' % ipaddress
         te.appendReplaceLine('.*%s.*' % macaddress, contents)
         te.save()
-        self.reload()
+        self.restart()
 
     def removeHost(self, macaddress):
         """Removes a dhcp-host entry from dnsmasq.conf file"""
@@ -65,7 +66,7 @@ class DNSMasq:
         te = j.tools.code.getTextFileEditor(self._hosts)
         te.deleteLines('.*%s.*' % macaddress)
         te.save()
-        self.reload()
+        self.restart()
 
     def config(self,device="eth0",rangefrom="",rangeto="",deviceonly=True):
         """

@@ -30,29 +30,6 @@ class StoreFactory:
     #         self._cache[key] = MongoDBKeyValueStore(namespace)
     #     return self._cache[key]
 
-    def getArakoonStore(self, namespace='',serializers=[]):
-        '''
-        Gets an Arakoon key value store.
-
-        @param namespace: namespace of the store, defaults to None
-        @type namespace: String
-
-        @param defaultJSModelSerializer: default JSModel serializer
-        @type defaultJSModelSerializer: Object
-
-        @return: key value store
-        @rtype: ArakoonKeyValueStore
-        '''
-        from servers.key_value_store.arakoon_store import ArakoonKeyValueStore
-        if serializers==[]:
-            serializers=[j.data.serializer.serializers.getSerializerType('j')]
-        key = '%s_%s' % ("arakoon", namespace)
-        if key not in self._cache:
-            if namespace=="":
-                namespace="main"
-            self._cache[key] = ArakoonKeyValueStore(namespace,serializers=serializers)
-        return self._cache[key]
-
     def getFSStore(self, namespace='', baseDir=None,serializers=[]):
         '''
         Gets a file system key value store.

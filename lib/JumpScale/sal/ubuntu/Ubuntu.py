@@ -35,20 +35,19 @@ class Ubuntu:
         check if ubuntu or mint (which is based on ubuntu)
         """
         if not self._checked:
-            try:
-                import lsb_release
-                info = lsb_release.get_distro_information()['ID']
-                release = lsb_release.get_distro_information()['RELEASE']
-                if info != 'Ubuntu' and info !='LinuxMint':
-                    raise j.exceptions.RuntimeError("Only ubuntu or mint supported.")
-                if not (release.startswith("14") or release.startswith("15")):
+            osname = j.core.platformtype.myplatform.osname
+            osversion = j.core.platformtype.myplatform.osversion
+            if osname not in ('ubuntu', 'linuxmint'):
+                raise j.exceptions.RuntimeError("Only Ubuntu/Mint are supported")
+            # safe cast to the release to a number
+            else:
+                release = float(osversion)
+                if release < 14:
                     raise j.exceptions.RuntimeError("Only ubuntu version 14+ supported")
                 self._checked = True
-            except ImportError:
-                self._checked = False
-                if die:
-                    raise j.exceptions.RuntimeError("Only ubuntu or mint supported.")
+
         return self._checked
+
 
     def version_get(self):
         """
@@ -70,7 +69,7 @@ class Ubuntu:
         self.check()
         if j.data.types.list.check(packagenames):
             for packagename in packagenames:
-                self.checkInstall(packagename,cmdname)
+                self.apt_install_check(packagename,cmdname)
         else:
             packagename=packagenames
             result, out = self._local.execute("which %s" % cmdname, False)
@@ -101,7 +100,7 @@ class Ubuntu:
 
         self.check()
         if self._cache==None:
-            self.initApt()
+            self.apt_init()
 
         mainPackage = self._cache[packageName]
         versionPackage = mainPackage.versions[version].package
@@ -121,7 +120,7 @@ class Ubuntu:
         if installDeps:
             deb.check()
             for missingpkg in deb.missing_deps:
-                self.install(missingpkg)
+                self.apt_install(missingpkg)
         deb.install()
 
     def deb_download_install(self,url,removeDownloaded=False,minspeed=20):
@@ -150,7 +149,7 @@ class Ubuntu:
         self.logger.info("ubuntu remove package:%s"%packagename)
         self.check()
         if self._cache==None:
-            self.initApt()
+            self.apt_init()
         pkg = self._cache[packagename]
         if pkg.is_installed:
             pkg.mark_delete()
@@ -180,12 +179,12 @@ stop on runlevel [016]
             self._local.execute("initctl reload-configuration")
 
     def service_uninstall(self,servicename):
-        self.stopService(servicename)
+        self.service_stop(servicename)
         j.tools.path.get("/etc/init/%s.conf"%servicename).remove_p()
 
     def service_start(self, servicename):
-        self.log.debug("start service on ubuntu for:%s"%servicename)
-        if not self.statusService(servicename):
+        self.logger.debug("start service on ubuntu for:%s"%servicename)
+        if not self.service_status(servicename):
             cmd="sudo start %s" % servicename
             # print cmd
             return self._local.execute(cmd)
@@ -215,27 +214,21 @@ stop on runlevel [016]
     def apt_update(self, force=True):
         self.check()
         if self._cache==None:
-            self.initApt()
+            self.apt_init()
         self._cache.update()
 
     def apt_upgrade(self, force=True):
         self.check()
         if self._cache==None:
-            self.initApt()
-        self.updatePackageMetadata()
+            self.apt_init()
+        self.apt_update()
         self._cache.upgrade()
 
     def apt_get_cache_keys(self):
         return list(self._cache.keys())
 
     def apt_get_installed(self):
-        if self.installedPackageNames==[]:
-            result=[]
-            for key in self.getPackageNamesRepo():
-                p=self._cache[key]
-                if p.installed:
-                    self.installedPackageNames.append(p.name)
-        return self.installedPackageNames
+        return self.get_installed_package_names()
 
     def apt_get(self,name):
         return self._cache[name]
@@ -243,20 +236,35 @@ stop on runlevel [016]
     def apt_find_all(self,packagename):
         packagename=packagename.lower().strip().replace("_","").replace("_","")
         if self._cache==None:
-            self.initApt()
+            self.apt_init()
         result=[]
-        for item in self.getPackageNamesRepo():
+        for item in self._cache.keys():
             item2=item.replace("_","").replace("_","").lower()
             if item2.find(packagename)!=-1:
                 result.append(item)
         return result
 
+    def get_installed_package_names(self):
+        if self._cache is None:
+            self.apt_init()
+        if self._installed_pkgs is None:
+            self._installed_pkgs = []
+            for p in self._cache:
+                if p.is_installed:
+                    self._installed_pkgs.append(p.name)
+
+        return self._installed_pkgs
+
+    def is_pkg_installed(self, pkg):
+        return pkg in self._installed_pkgs
+
+
     def apt_find_installed(self,packagename):
         packagename=packagename.lower().strip().replace("_","").replace("_","")
         if self._cache==None:
-            self.initApt()
+            self.apt_init()
         result=[]
-        for item in self.getPackageNamesInstalled():
+        for item in self.get_installed_package_names():
             item2=item.replace("_","").replace("_","").lower()
             if item2.find(packagename)!=-1:
                 result.append(item)
@@ -265,7 +273,7 @@ stop on runlevel [016]
 
     def apt_find1_installed(self,packagename):
         self.logger.info("find 1 package in ubuntu")
-        res=self.findPackagesInstalled(packagename)
+        res=self.apt_find_installed(packagename)
         if len(res)==1:
             return res[0]
         elif len(res)>1:
@@ -277,7 +285,7 @@ stop on runlevel [016]
         return sourceslist.SourcesList()
 
     def apt_sources_uri_change(self, newuri):
-        src = self.listSources()
+        src = self.apt_sources_list()
         for entry in src.list:
             entry.uri = newuri
         src.save()

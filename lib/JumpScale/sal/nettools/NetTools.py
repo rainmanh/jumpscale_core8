@@ -239,7 +239,7 @@ class NetTools:
             return result
 
     def checkIpAddressIsLocal(self,ipaddr):
-        if ipaddr.strip() in self.getIpAdresses():
+        if ipaddr.strip() in self.getIpAddresses():
             return True
         else:
             return False

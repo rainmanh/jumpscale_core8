@@ -101,7 +101,7 @@ class Dirs:
         txt=txt.replace("$jslibextdir",self.libExtDir)
         txt=txt.replace("$jsbindir",self.binDir)
         txt=txt.replace("$nodeid",str(j.application.whoAmI.nid))
-        txt=txt.replace("$jumpscriptsdir", j.core.jumpscripts.basedir)
+        # txt=txt.replace("$jumpscriptsdir", j.core.jumpscripts.basedir)
         for key,value in list(additionalArgs.items()):
             txt=txt.replace("$%s"%key,str(value))
         return txt

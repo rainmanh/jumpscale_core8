@@ -26,7 +26,7 @@
    * [Examples](doc/AtYourService/Examples)
        * [Docker Example](doc/AtYourService/Examples/DockerExample.md)
        * [OVC Example](doc/AtYourService/Examples/OVCExample.md)
-* [Cuisine] (doc/Cuisine/Cuisine.md)
+* [Cuisine] (docs/Cuisine/Cuisine.md)
    * [Core](doc/Cuisine/CuisineCore.md)
    * [Installers](doc/Cuisine/CuisineInstallers.md)
 * [SAL](doc/SAL/Home.md)

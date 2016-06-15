@@ -313,7 +313,12 @@ class GithubRepo:
             if ms.body.strip() != tocheck.strip():
                 ms.body = tocheck
         else:
-            due = j.data.time.epoch2pythonDateTime(int(j.data.time.any2epoch(deadline)))
+            due = None
+            try:
+                due = j.data.time.epoch2pythonDateTime(int(j.data.time.any2epoch(deadline)))
+            except Exception as e:
+                self.logger.error('Bad date format %s: %s' % (deadline, e))
+
             self.logger.info("Create milestone on %s: %s" % (self, title))
             body = getBody(description.strip(), name, owner)
             # workaround for https://github.com/PyGithub/PyGithub/issues/396

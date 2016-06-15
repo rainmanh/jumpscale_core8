@@ -311,11 +311,11 @@ class Github(object):
 
         issues = sorted(issues, key=lambda i: i.number)
 
-        dev_repo = False
+        org_repo = False
          # Logic after this point is only for home and org repo
         for typ in ['org_', 'proj_']:
             if not repo.name.lower().startswith(typ):
-                dev_repo = True
+                org_repo = True
                 break
 
         _ms = [('{m.number}:{m.title}'.format(m=m), m) for m in repo.milestones]
@@ -325,7 +325,7 @@ class Github(object):
         for issue in issues:
             self._process_todos(issue)
             # Logic after this point is only for home and org repo
-            if not dev_repo:
+            if not org_repo:
                 continue
 
             if self._is_story(issue) and issue.isOpen:
@@ -372,8 +372,9 @@ class Github(object):
             self._task_link_to_story(story, issue)
             self._story_add_task(story, issue)
 
-        # generate views
-        self._generate_views(repo, milestones, issues, report)
+        if org_repo:
+            # generate views
+            self._generate_views(repo, milestones, issues, report)
 
     def _generate_views(self, repo, milestones, issues, report):
         # end for

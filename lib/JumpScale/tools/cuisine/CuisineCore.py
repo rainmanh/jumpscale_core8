@@ -260,7 +260,7 @@ class CuisineCore:
             res["cfgDir"] = "%s/cfg"%res["varDir"]
             res["jsLibDir"] = "%s/lib/JumpScale/"%res["base"]
             res["libDir"] = "%s/lib/"%res["base"]
-            res["homeDir"] = os.environ["HOME"]
+            res["homeDir"] = env["HOME"]
             res["logDir"] = "%s/log"%res["varDir"]
             res["pidDir"] = "%s/pid"%res["varDir"]
             res["tmpDir"] = "%s/tmp"%res["varDir"]
@@ -1012,6 +1012,7 @@ class CuisineCore:
         @param profile, execute the bash profile first
         """
         # print (cmd)
+        env = {}
         import copy
         if replaceArgs:
             cmd=self.args_replace(cmd)
@@ -1037,7 +1038,11 @@ class CuisineCore:
             cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
         else:
             cmd = 'bash -c "%s"' % cmd
-        rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)
+
+        path = self.executor.execute("echo $PATH")[1]
+        if "/usr/local/bin" not in path: 
+            env = {"PATH": "%s:/usr/local/bin" % path}
+        rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout, env=env)
         out = self._clean(out)
 
         if rc>0:
@@ -1077,7 +1082,7 @@ class CuisineCore:
                             next=True
 
                 if next:
-                    rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)
+                    rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout, env=env)
 
         if debug!=None:
             self.executor.debug=debugremember

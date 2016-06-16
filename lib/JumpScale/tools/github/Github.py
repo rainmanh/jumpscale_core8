@@ -151,9 +151,10 @@ class Github(object):
                 continue
 
             story_name = self._story_name(issue.title)
-            if story_name is not None and issue.type != 'story':
-                issue.type = 'story'
+            if story_name is not None:
                 stories[story_name] = issue
+                if issue.type != 'story':
+                    issue.type = 'story'
 
         return stories
 
@@ -234,7 +235,7 @@ class Github(object):
                 break
 
         if table is not None:
-            rows = filter(lambda r: r[2] == '#%s' % task.number, table.rows)
+            rows = [r for r in table.rows if r[2] == '#%s' % task.number]
             if rows:
                 row = rows[0]
                 current_state = state('open') if task.isOpen else state('closed')
@@ -285,7 +286,7 @@ class Github(object):
             doc.items.insert(0, title)
 
         if change:
-            self.logger.info("%s: link to story:%s" % (self, story))
+            self.logger.info("%s: link to story:%s" % (task, story))
             task.body = str(doc)
 
     def process_issues(self, repo, issues=None):

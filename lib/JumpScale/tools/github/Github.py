@@ -205,7 +205,7 @@ class Github(object):
         return issue.type == 'story'
 
 
-    def _story_add_task(self, story, task):
+    def _story_add_tasks(self, story, tasks):
         """
         If this issue is a story, add a link to a subtasks
         """
@@ -233,27 +233,16 @@ class Github(object):
             if item.type == 'table':
                 table = item
                 break
+        doc.items.remove(table)
+        table = doc.addMDTable()
+        table.addHeader(['status', 'title', 'link'])
+        for task in tasks:
+            self.logger.debug('issue: %s (state is %s)', task, task.state)
+            table.addRow([state(task.state), task.title, '#%s' % task.number])
 
-        if table is not None:
-            rows = [r for r in table.rows if r[2] == '#%s' % task.number]
-            if rows:
-                row = rows[0]
-                current_state = state('open') if task.isOpen else state('closed')
-                if row[0] != current_state or row[1] != task.title:
-                    row[0] = current_state
-                    row[1] = task.title
-                    change = True
-            else:
-                table.addRow([state(task.state), task.title, '#%s' % task.number])
-                change = True
-        else:
-            change = True
-            table = doc.addMDTable()
-            table.addHeader(['status', 'title', 'link'])
-            table.addRow([state(task.state), task.title, "#%s" % task.number])
-
-        if change:
-            story.api.edit(body=str(doc))
+        body = str(doc)
+        if body != story.body:
+            story.api.edit(body=body)
 
     def _task_link_to_story(self, story, task):
         """
@@ -309,6 +298,7 @@ class Github(object):
             issues = repo.issues
 
         stories = self._process_stories(issues)
+        stories_tasks = dict()
 
         issues = sorted(issues, key=lambda i: i.number)
 
@@ -371,7 +361,12 @@ class Github(object):
             # create link between story and tasks
             # linking logic
             self._task_link_to_story(story, issue)
-            self._story_add_task(story, issue)
+            tasks = stories_tasks.setdefault(story, [])
+            tasks.append(issue)
+
+        # update story links
+        for story, tasks in stories_tasks.items():
+            self._story_add_tasks(story, tasks)
 
         if org_repo:
             # generate views

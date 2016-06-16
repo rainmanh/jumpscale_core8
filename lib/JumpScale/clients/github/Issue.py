@@ -116,6 +116,9 @@ class Issue(Base):
     @property
     def state(self):
         states = []
+        if not self.isOpen:
+            return 'closed'
+
         for label in self.labels:
             if label.startswith("state"):
                 states.append(label)

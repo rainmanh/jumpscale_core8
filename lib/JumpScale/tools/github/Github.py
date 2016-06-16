@@ -216,31 +216,31 @@ class Github(object):
 
         def state(s):
             s = s.lower()
-            if s == 'verification':
-                return ':white_circle: Verification'
-            elif s == 'inprogress':
-                return ':large_blue_circle: In Progress'
-            elif s == 'closed':
-                return ':white_check_mark: Closed'
+            if s == 'closed':
+                return 'x'
             else:
-                return ':red_circle: Open'
+                return ' '
 
-        change = False
         doc = j.data.markdown.getDocument(story.body)
+        # remove all list items that start with - [
+        for item in reversed(doc.items):
+            if item.type != 'list':
+                break
+            if item.text.startswith('- ['):
+                doc.items.pop()
 
-        table = None
+        for task in tasks:
+            line = '- [%s] %s #%s' % (state(task.state), task.title, task.number)
+            doc.addMDListItem(0, line)
+
+        # drop the table for backward compatibility
         for item in doc.items:
             if item.type == 'table':
-                table = item
+                doc.items.remove(item)
                 break
-        doc.items.remove(table)
-        table = doc.addMDTable()
-        table.addHeader(['status', 'title', 'link'])
-        for task in tasks:
-            self.logger.debug('issue: %s (state is %s)', task, task.state)
-            table.addRow([state(task.state), task.title, '#%s' % task.number])
 
         body = str(doc)
+
         if body != story.body:
             story.api.edit(body=body)
 

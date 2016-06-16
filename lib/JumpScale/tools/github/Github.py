@@ -151,9 +151,10 @@ class Github(object):
                 continue
 
             story_name = self._story_name(issue.title)
-            if story_name is not None and issue.type != 'story':
-                issue.type = 'story'
+            if story_name is not None:
                 stories[story_name] = issue
+                if issue.type != 'story':
+                    issue.type = 'story'
 
         return stories
 
@@ -204,7 +205,7 @@ class Github(object):
         return issue.type == 'story'
 
 
-    def _story_add_task(self, story, task):
+    def _story_add_tasks(self, story, tasks):
         """
         If this issue is a story, add a link to a subtasks
         """
@@ -215,44 +216,33 @@ class Github(object):
 
         def state(s):
             s = s.lower()
-            if s == 'verification':
-                return ':white_circle: Verification'
-            elif s == 'inprogress':
-                return ':large_blue_circle: In Progress'
-            elif s == 'closed':
-                return ':white_check_mark: Closed'
+            if s == 'closed':
+                return 'x'
             else:
-                return ':red_circle: Open'
+                return ' '
 
-        change = False
         doc = j.data.markdown.getDocument(story.body)
+        # remove all list items that start with - [
+        for item in reversed(doc.items):
+            if item.type != 'list':
+                break
+            if item.text.startswith('- ['):
+                doc.items.pop()
 
-        table = None
+        for task in tasks:
+            line = '- [%s] %s #%s' % (state(task.state), task.title, task.number)
+            doc.addMDListItem(0, line)
+
+        # drop the table for backward compatibility
         for item in doc.items:
             if item.type == 'table':
-                table = item
+                doc.items.remove(item)
                 break
 
-        if table is not None:
-            rows = filter(lambda r: r[2] == '#%s' % task.number, table.rows)
-            if rows:
-                row = rows[0]
-                current_state = state('open') if task.isOpen else state('closed')
-                if row[0] != current_state or row[1] != task.title:
-                    row[0] = current_state
-                    row[1] = task.title
-                    change = True
-            else:
-                table.addRow([state(task.state), task.title, '#%s' % task.number])
-                change = True
-        else:
-            change = True
-            table = doc.addMDTable()
-            table.addHeader(['status', 'title', 'link'])
-            table.addRow([state(task.state), task.title, "#%s" % task.number])
+        body = str(doc)
 
-        if change:
-            story.api.edit(body=str(doc))
+        if body != story.body:
+            story.api.edit(body=body)
 
     def _task_link_to_story(self, story, task):
         """
@@ -285,7 +275,7 @@ class Github(object):
             doc.items.insert(0, title)
 
         if change:
-            self.logger.info("%s: link to story:%s" % (self, story))
+            self.logger.info("%s: link to story:%s" % (task, story))
             task.body = str(doc)
 
     def process_issues(self, repo, issues=None):
@@ -308,14 +298,15 @@ class Github(object):
             issues = repo.issues
 
         stories = self._process_stories(issues)
+        stories_tasks = dict()
 
         issues = sorted(issues, key=lambda i: i.number)
 
-        dev_repo = False
+        org_repo = False
          # Logic after this point is only for home and org repo
         for typ in ['org_', 'proj_']:
             if not repo.name.lower().startswith(typ):
-                dev_repo = True
+                org_repo = True
                 break
 
         _ms = [('{m.number}:{m.title}'.format(m=m), m) for m in repo.milestones]
@@ -325,7 +316,7 @@ class Github(object):
         for issue in issues:
             self._process_todos(issue)
             # Logic after this point is only for home and org repo
-            if not dev_repo:
+            if not org_repo:
                 continue
 
             if self._is_story(issue) and issue.isOpen:
@@ -370,10 +361,16 @@ class Github(object):
             # create link between story and tasks
             # linking logic
             self._task_link_to_story(story, issue)
-            self._story_add_task(story, issue)
+            tasks = stories_tasks.setdefault(story, [])
+            tasks.append(issue)
 
-        # generate views
-        self._generate_views(repo, milestones, issues, report)
+        # update story links
+        for story, tasks in stories_tasks.items():
+            self._story_add_tasks(story, tasks)
+
+        if org_repo:
+            # generate views
+            self._generate_views(repo, milestones, issues, report)
 
     def _generate_views(self, repo, milestones, issues, report):
         # end for

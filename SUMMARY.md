@@ -64,5 +64,3 @@
    * [Create a tool for j](doc/Howto/how_to_create_a_tool_for_j.md)
    * [Use the OpenvCloud APIs](doc/Howto/how_to_use_OVC_API.md)
    * [Use the Shell and debug](doc/Howto/how_to_use_the_shell_and_debug.md)
-
-

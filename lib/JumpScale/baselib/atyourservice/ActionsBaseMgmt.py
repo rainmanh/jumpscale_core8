@@ -44,15 +44,14 @@ class ActionsBaseMgmt:
             'expect_response': expect_response
         }
         redis.publish('telegram', out_evt.to_json())
-
-        data = redis.blpop(key, timeout=timeout)
-        if data is None:
-            raise j.exceptions.Timeout('timeout reached')
-
-        _, resp = data
-        resp = j.data.serializer.json.loads(resp)
-        if 'error' in resp:
-            raise j.exceptions.RuntimeError('Unexpected error: %s' % resp['error'])
-
         if expect_response:
-            return resp['response']
+            data = redis.blpop(key, timeout=timeout)
+            if data is None:
+                raise j.exceptions.Timeout('timeout reached')
+
+            _, resp = data
+            resp = j.data.serializer.json.loads(resp)
+            if 'error' in resp:
+                raise j.exceptions.RuntimeError('Unexpected error: %s' % resp['error'])
+
+                return resp['response']

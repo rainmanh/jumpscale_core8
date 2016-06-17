@@ -154,13 +154,10 @@ class MDListItem:
         self.type="list"
 
     def __repr__(self):
-        pre=""
+        pre = ''
         if self.level>1:
-            for i in range(self.level-1):
-                pre+="    "
-            return "%s %s"%(pre,self.text)
-        else:
-            return " %s"%(self.text)
+            pre = ' ' * (self.level - 1)
+        return "%s%s" % (pre, self.text)
 
     __str__=__repr__
 

@@ -55,6 +55,21 @@ class Issue(Base):
                     self._comments.append(obj)
         return self._comments
 
+    def reload_comments(self):
+        with self._lock:
+            self._comments = []
+            for comment in self.api.get_comments():
+                obj = {}
+                user = self.repo.client.getUserLogin(githubObj=comment.user)
+                obj["user"] = user
+                obj["url"] = comment.url
+                obj["id"] = comment.id
+                obj["body"] = comment.body
+                obj["time"] = j.data.time.any2HRDateTime(
+                    [comment.last_modified, comment.created_at])
+                self._comments.append(obj)
+        return self._comments
+
     @property
     def guid(self):
         return self.repo.fullname + "_" + str(self._ddict["number"])
@@ -116,6 +131,9 @@ class Issue(Base):
     @property
     def state(self):
         states = []
+        if not self.isOpen:
+            return 'closed'
+
         for label in self.labels:
             if label.startswith("state"):
                 states.append(label)

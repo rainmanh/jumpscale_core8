@@ -86,12 +86,8 @@ class RepoMilestone(Base):
 
     @deadline.setter
     def deadline(self, val):
-        due = None
-        try:
-            due = j.data.time.epoch2pythonDateTime(int(j.data.time.any2epoch(val)))
-        except Exception as e:
-            self.logger.error('Bad date format %s: %s' % (val, e))
-            
+        due = j.data.time.epoch2pythonDateTime(int(j.data.time.getEpochFuture(val)))
+
         self._ddict["deadline"] = val
         self.api.edit(title=self.title, due_on=due)
 

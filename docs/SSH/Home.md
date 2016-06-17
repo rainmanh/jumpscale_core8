@@ -1,12 +1,6 @@
-# System Management Over SSH
+## System Management over SSH
 
-Information how to work with SSH in Jumpscale.
+This section is about how to work with SSH in JumpScale.
 
-
-* [Ssh Basics](SSHBasics.html)
-* [Ssh Keys Agent](SSHKeysAgent.html)
-* [Ssh Remote System](SSHRemoteSystem.html)
-
-
-
-
+* [SSH Basics](SSHBasics.md)
+* [SSH Keys Agent](SSHKeysAgent.md)

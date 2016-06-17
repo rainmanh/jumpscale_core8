@@ -3,4 +3,4 @@
 This section is about how to work with SSH in JumpScale.
 
 * [SSH Basics](SSHBasics.md)
-* [SSH Keys Agent](SSHKeysAgent.md)
+* [SSH Agent Tips](SSHKeysAgent.md)

@@ -1,9 +1,10 @@
-## SALs = System Abstraction Layers
+## System Abstraction Layers (SALs)
 
-A thin abstraction layer is created called SAL and this makes it easy for the developer to interact with any system locally or remotely.
-To get started, we call the sal methods on the machine we want to do the configuration on.
+SALs are a thin abstraction layers making it easy for the developer to interact with any system locally or remotely.
 
-SALs include :
+To get started, we call the SAL methods on the machine we want to do the configuration on.
+
+SALs include:
 
 * [FileSystem](FS.md)
 * [Docker](Docker.md)

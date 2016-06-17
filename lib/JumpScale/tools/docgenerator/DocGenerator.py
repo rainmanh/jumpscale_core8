@@ -235,8 +235,9 @@ class DocGeneratorItem:
         content=j.sal.fs.fileGetContents(path)
         self.last_content=content
         self.last_path=path
-        self.last_dest=j.sal.fs.joinPaths(self.root,j.sal.fs.pathRemoveDirPart(path,self.source))
-        j.sal.fs.createDir(j.sal.fs.getDirName(self.last_dest))
+        self.last_dest=j.sal.fs.joinPaths(j.sal.fs.getDirName(path),j.sal.fs.getBaseName(path)[1:])
+        # self.last_dest=j.sal.fs.joinPaths(self.root,j.sal.fs.pathRemoveDirPart(path,self.source))
+        # j.sal.fs.createDir(j.sal.fs.getDirName(self.last_dest))
 
         regex="\$\{+\w+\(.*\)\}"
         for match in j.data.regex.yieldRegexMatches(regex, content, flags=0):

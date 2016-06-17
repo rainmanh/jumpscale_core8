@@ -34,9 +34,9 @@ class Redis:
 
             mkdir -p $tmpDir/build/redis
             cd $tmpDir/build/redis
-            wget http://download.redis.io/releases/redis-3.0.6.tar.gz
-            tar xzf redis-3.0.6.tar.gz
-            cd redis-3.0.6
+            wget http://download.redis.io/releases/redis-3.2.0.tar.gz
+            tar xzf redis-3.2.0.tar.gz
+            cd redis-3.2.0
             make
 
             rm -f /usr/local/bin/redis-server
@@ -50,8 +50,8 @@ class Redis:
             C="""
             set -ex
             mkdir -p $base/bin/
-            cp -f $tmpDir/build/redis/redis-3.0.6/src/redis-server $base/bin/
-            cp -f $tmpDir/build/redis/redis-3.0.6/src/redis-cli $base/bin/
+            cp -f $tmpDir/build/redis/redis-3.2.0/src/redis-server $base/bin/
+            cp -f $tmpDir/build/redis/redis-3.2.0/src/redis-cli $base/bin/
 
             rm -rf $base/apps/redis
             """

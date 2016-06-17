@@ -268,7 +268,7 @@ class CuisineCore:
             self._dirs = res
 
         if self.isMac:
-            self._dirs["optDir"]= "%s/opt/"%env["HOME"]
+            self._dirs["optDir"]= "%s/opt/"%self._dirs["homeDir"]
         else:
             self._dirs["optDir"] = "/opt/"
 

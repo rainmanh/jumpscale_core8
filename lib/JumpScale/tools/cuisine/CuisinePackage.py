@@ -93,11 +93,16 @@ class CuisinePackage:
             cmd="pacman -S %s  --noconfirm"%package
 
         elif self.cuisine.core.isMac:
+            if package in ["libpython3.4-dev", "python3.4-dev", "libpython3.5-dev", "python3.5-dev", "libffi-dev", "make", "build-essential", "libpq-dev", "libsqlite3-dev" ]:
+                return
 
             rc,out=self.cuisine.core.run("brew info --json=v1 %s"%package,showout=False,die=False)
             if rc==0:
                 info=j.data.serializer.json.loads(out)
                 return #means was installed
+            
+            if "wget" == package:
+                package = "%s --enable-iri" % package
 
             cmd="brew install %s "%package
 

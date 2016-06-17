@@ -11,6 +11,16 @@ re_float = re.compile(r'[0-9]*\.[0-9]+')
 re_digit = re.compile(r'[0-9]*')
 from builtins import str
 
+try:
+    import pygments.lexers
+    from pygments.formatters import get_formatter_by_name
+    pygmentsObj=True
+    import sys
+except:
+    pygmentsObj=False
+
+
+
 class Text:
 
     def __init__(self):
@@ -39,6 +49,19 @@ class Text:
             while res:
                 res,line=checknow(line,items)
             return line
+
+    def printCode(self,code,style="vim"):
+        """
+        will use pygments to format code
+        """
+        code=self.strip(code)
+        if pygmentsObj:
+            formatter=pygments.formatters.Terminal256Formatter(style=pygments.styles.get_style_by_name(style))
+            lexer = pygments.lexers.get_lexer_by_name("py", stripall=True)
+            code2 = pygments.highlight(code, lexer, formatter)
+            sys.stdout.write(code2)
+        else:            
+            print(code)
 
     def toStr(self,value, codec='utf-8'):
         if isinstance(value, bytes):

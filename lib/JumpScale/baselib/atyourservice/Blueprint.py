@@ -11,18 +11,23 @@ class Blueprint:
     """
     """
 
-    def __init__(self, aysrepo,path):
+    def __init__(self, aysrepo,path="",content=""):
         self.aysrepo=aysrepo
-        self.name = j.sal.fs.getBaseName(path)
-        self.path=path
+        if path!="":
+            self.name = j.sal.fs.getBaseName(path)
+            self.content=j.sal.fs.fileGetContents(path)
+        else:
+            self.name="unknown"
+            self.content=content
+        
         self.models=[]
         self._contentblocks=[]
+
         content=""
-        content0=j.sal.fs.fileGetContents(path)
 
         nr=0
         #we need to do all this work because the yaml parsing does not maintain order because its a dict
-        for line in content0.split("\n"):
+        for line in self.content.split("\n"):
             if len(line)>0 and line[0]=="#":
                 continue
             if content=="" and line.strip()=="":
@@ -36,13 +41,15 @@ class Blueprint:
 
             content+="%s\n"%line
 
+        #to process the last one
         self._add2models(content,nr)
         self._contentblocks=[]
 
         self.content=content0
+        self.hash=j.data.hash.md5_string(self.content)
 
 
-    def load(self,role=""):
+    def load(self,role="",instance=""):
         for model in self.models:
             if model!=None:
                 for key,item in model.items():
@@ -50,18 +57,22 @@ class Blueprint:
                         raise j.exceptions.Input("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'"%key)
                     aysname,aysinstance=key.lower().split("__",1)
 
+                    if instance!="" and aysinstance!=instance:
+                        log ("ignore load from blueprint for: %s:%s"%(aysname,aysinstance))
+                        continue
+
                     if aysname.find(".") != -1:
                         rolefound, _ = aysname.split(".", 1)
                     else:
                         rolefound = aysname
 
                     if role != "" and role != rolefound:
+                        log ("ignore load from blueprint based on role for: %s:%s"%(aysname,aysinstance))
                         continue
 
                     recipe=self.aysrepo.getRecipe(aysname,die=False)
 
                     if recipe==None:
-
                         #check if its a blueprintays, if yes then template name is different
                         aystemplate_name=aysname
                         if not aysname.startswith('blueprint.'):

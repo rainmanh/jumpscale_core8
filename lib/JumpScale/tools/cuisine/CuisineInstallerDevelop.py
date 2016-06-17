@@ -55,7 +55,12 @@ class CuisineInstallerDevelop:
     @actionrun(action=True)
     def pip(self):
         self.cuisine.installer.base()
-        self.python()
+        
+        if self.cuisine.core.isMac:
+            self.cuisine.core.run("easy_install pip")
+            self.python()
+            return
+        
         C="""
             #important remove olf pkg_resources, will conflict with new pip
             rm -rf /usr/lib/python3/dist-packages/pkg_resources
@@ -68,6 +73,7 @@ class CuisineInstallerDevelop:
         C="cd $tmpDir/;python3 get-pip.py"
         C=self.cuisine.core.args_replace(C)
         self.cuisine.core.run(C)
+
 
     @actionrun(action=True)
     def installJS8Deps(self):

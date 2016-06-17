@@ -1,9 +1,8 @@
-## SALs = System Abstraction Layers
+## System Abstraction Layers (SALs)
 
-A thin abstraction layer is created called SAL and this makes it easy for the developer to interact with any system locally or remotely.
-To get started, we call the sal methods on the machine we want to do the configuration on.
+A System Abstraction Layer (SAL) is a thin abstraction layer making it easy for the developer to interact with a system component locally or remotely.
 
-SALs include :
+As part of JumpScale 8 following SALs are included:
 
 * [FileSystem](FS.md)
 * [Docker](Docker.md)
@@ -30,4 +29,4 @@ SALs include :
 * [DNSMasq](Dnsmasq.md)
 * [AOE](AOE.md)
 
-You can find [more SALs](https://github.com/Jumpscale/jumpscale_core8/tree/master/lib/JumpScale/sal) for windows, unix, ssl, sslsigning, tls, nginx, qemu images.
+You can find [more SALs](https://github.com/Jumpscale/jumpscale_core8/tree/master/lib/JumpScale/sal) for Windows, Unix, SSL, SSL Signing, TLS, NGINX and QEMU images.

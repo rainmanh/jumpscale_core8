@@ -1,13 +1,17 @@
-# HostsFile
-Hostsfile is used to do different operations on your /etc/hosts `can be configured to work on a different path`
+## HostsFile
 
-## Accessing it
+Hostsfile is used to do different operations on your `/etc/hosts` file, witch can be configured to be in any other directory
+
+
+### Accessing it
+
 You can access fs by
-```
+```py
 h= j.sal.hostsfile.get()
 ```
 
-## How does `/etc/hosts` looks like ?
+### How does `/etc/hosts` look like?
+
 ```python
 In [25]: cat /etc/hosts
 127.0.0.1	localhost
@@ -19,8 +23,10 @@ ff02::2	ip6-allrouters
 172.17.0.2	myjs8xenial
 ```
 
-## How to use it ?
+### How to use it?
+
 1- Getting an instance of hostsfile manager
+
 ```python
 h=j.sal.hostsfile.get()
 In [23]: h
@@ -28,14 +34,14 @@ Out[23]: <HostFileFactory.HostFile at 0x7f7c9f4917b8>
 
 In [24]: h.hostfilePath
 Out[24]: '/etc/hosts'
-
 ```
-Note that: `hostfilePath` is a property, you can change the location of the source file if it's located elsewhere.
 
-2- You can use its simple interface to `add, remove, query and check if an IP exists`
+Note that `hostfilePath` is a property, you can change the location of the source file if it's located elsewhere.
+
+2- You can use its simple interface to add, remove, query and check if an IP exists
+
 ```python
-
-# checking if an ip exists in /etc/hosts
+# checking if an IP exists in /etc/hosts
 In [36]: h.existsIP("127.0.0.1")
 Out[36]: True
 
@@ -56,7 +62,6 @@ ff02::1	ip6-allnodes
 ff02::2	ip6-allrouters
 172.17.0.2	myjs8xenial
 127.0.0.3 somewhere.net
-
 
 # removing
 In [43]: h.remove("127.0.0.3")
@@ -82,5 +87,4 @@ Out[55]: ['myjs8xenial']
 
 In [56]: h.getNames("::1")
 Out[56]: ['localhost', 'ip6-localhost', 'ip6-loopback']
-
 ```

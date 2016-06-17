@@ -1,18 +1,24 @@
-# FS
+## FS
+
 FS is short for filesystem. It helps you doing many filesystem-related operations.
 
-## Accessing it
-You can access fs by
-```
+
+### Accessing it
+
+You can access `fs` as follows:
+```py
 j.sal.fs
 ```
-I'll use it as `fs` for the rest of the document
-```
+
+We'll use it as `fs` for the rest of the document:
+```py
 fs = j.sal.fs
 ```
 
-## Querying the system
-You can query many information about the system using helper functions like isFile, isAsciiFile, isBinaryFile, isDir, isEmptyDir, isMount, validateFilename, statPath
+
+### Querying the system
+
+You can query a lot of information about the system using helper functions like `sFile`, `isAsciiFile`, `isBinaryFile`, `isDir`, `isEmptyDir`, `isMount`, `validateFilename`, and `statPath`:
 
 ```python
 In [2]: fs.isAsciiFile("/etc/hosts")
@@ -66,10 +72,12 @@ In [35]: fs.statPath("/bin/ls")
 Out[35]: os.stat_result(st_mode=33261, st_ino=75, st_dev=43, st_nlink=1, st_uid=0, st_gid=0, st_size=126584, st_atime=1455802667, st_mtime=1455802667, st_ctime=1462283990)
 ```
 
-## Path Manipulation
-You can do many path isAbsolute, exists,, statPath, getBaseName, getDirName, getParent, getFileExtension, joinPaths
-```python
 
+### Path Manipulation
+
+You can do many path `isAbsolute`, `exists`, `statPath`, `getBaseName`, `getDirName`, `getParent`, `getFileExtension`, and `joinPaths`
+
+```python
 In [36]: path = "/bin/ls"
 
 In [37]: fs.exists(path)
@@ -103,14 +111,13 @@ Out[8]: '/'
 
 In [9]: fs.changeDir("/tmp")
 Out[9]: '/tmp'
-
 ```
 
-## Higher level dir/files manipulation
-You can manipulate files/dirs `create, update, read, delete` easily with j.sal.fs via many useful functions like fs.touch, fs.readFile, fs.writeFile, fs.md5sum, fs.copyFile, fs.moveFile, fs.list* , targzCompress, targzUncompress, gzip, gunzip, fs.removeIrreleventFiles, fs.remove, fs.removeDirTree
+### Higher level directory and files manipulation
+
+You can manipulate (create, update, read, delete) files and directories easily with `j.sal.fs` via many useful functions like `fs.touch`, `fs.readFile`, `fs.writeFile`, `fs.md5sum`, `fs.copyFile`, `fs.moveFile`, `fs.list*` , `targzCompress`, `targzUncompress`, `gzip`, `gunzip`, `fs.removeIrreleventFiles`, `fs.remove`, and `fs.removeDirTree`:
 
 ```python
-
 In [55]: mkdir testdir
 
 In [56]: cd testdir/
@@ -227,7 +234,4 @@ In [17]: fs.chmod("file1", 0o777)
 
 In [18]: ls -al file1
 -rwxrwxrwx 1 root root 20 Jun  9 09:26 file1*
-
 ```
-
-

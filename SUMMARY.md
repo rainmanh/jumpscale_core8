@@ -52,7 +52,6 @@
    * [RouterOs](docs/SAL/RouterOs.md)
    * [Rsync](docs/SAL/Rsync)
    * [UFW](docs/SAL/UFW.md)
-   * [DNSMasq](docs/SAL/Dnsmasq.md)
    * [AOE](docs/SAL/AOE.md)
 * [SSH Tools](docs/SSH/Home.md)
    * [SSH Basics](docs/SSH/SSHBasics.md)

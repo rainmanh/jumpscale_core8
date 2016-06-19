@@ -142,14 +142,14 @@ class CuisinePortal:
     @actionrun(action=True)
     def linkCode(self):
         self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        destjslib = self.cuisine.core.run("js 'print(j.do.getPythonLibSystem(jumpscale=True))'", showout=False)
+        destjslib = self.cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'", showout=False)
 
         self.cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self.cuisine.core.dir_paths[
                                     "codeDir"], "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
         self.cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" %
                                     self.cuisine.core.dir_paths["codeDir"], "%s/portal" % self.cuisine.core.dir_paths['jsLibDir'])
 
-        self.cuisine.core.run("js 'j.application.reload()'", showout=False, die=False)
+        self.cuisine.core.run("js --quiet 'j.application.reload()'", showout=False, die=False)
 
         if not self.portal_dir.endswith("/"):
             self.portal_dir += '/'
@@ -210,8 +210,8 @@ class CuisinePortal:
 
     @actionrun(action=True)
     def changeEve(self):
-        path = self.cuisine.core.run("js 'print(j)'")  # hack, make sure jumpscale has loaded lib before trying to print something
-        path = self.cuisine.core.run("js 'print(j.do.getPythonLibSystem(jumpscale=False))'")
+        path = self.cuisine.core.run("js --quiet 'print(j)'")  # hack, make sure jumpscale has loaded lib before trying to print something
+        path = self.cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=False))'")
         path = j.sal.fs.joinPaths(path, "eve_docs", "config.py")
         if not self.cuisine.core.file_exists(path):
             raise j.exceptions.RuntimeError("Cannot find:%s, to convert to python 3" % path)

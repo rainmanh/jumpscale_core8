@@ -1,14 +1,17 @@
 #!/usr/bin/env jspython
-
-
 from JumpScale import j
-
+import argparse
 j.application.start("jsshell")
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-q', '--quiet', default=False, action='store_true', help="Turn down logging")
+options, args = parser.parse_known_args()
+
+
 import sys
-if len(sys.argv)==2:
-    toexec=sys.argv[1]
-    toexec=toexec.strip("'\" ").strip("'\" ")    
+if len(args)==1:
+    toexec = args[0]
+    toexec=toexec.strip("'\" ").strip("'\" ")
     exec(toexec)
 else:
     from IPython import embed

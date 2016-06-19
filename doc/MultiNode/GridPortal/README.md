@@ -1,1 +1,0 @@
-@todo info about gridportal

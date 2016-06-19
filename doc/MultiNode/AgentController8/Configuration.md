@@ -1,2 +1,0 @@
-* [AgentController Configuration](ControllerConfiguration.md)
-* [Agent Configuration](AgentConfiguration.md)

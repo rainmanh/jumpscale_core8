@@ -1039,8 +1039,8 @@ class CuisineCore:
         else:
             cmd = 'bash -c "%s"' % cmd
 
-        path = self.executor.execute("echo $PATH")[1]
-        if "/usr/local/bin" not in path: 
+        path = self.executor.execute("echo $PATH", showout=False)[1]
+        if "/usr/local/bin" not in path:
             env = {"PATH": "%s:/usr/local/bin" % path}
         rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout, env=env)
         out = self._clean(out)

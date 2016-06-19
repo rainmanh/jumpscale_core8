@@ -214,7 +214,6 @@ class AtYourServiceRepo():
     @property
     def blueprints(self):
         """
-        only shows the ones which are on predefined location
         """
         if self._blueprints==[]:
             items=j.sal.fs.listFilesInDir(self.basepath+"/blueprints")
@@ -222,7 +221,7 @@ class AtYourServiceRepo():
             items=[item for item in items if item[0]!="_"]
             items.sort()
             for path in items:
-                self._addBlueprint(Blueprint(self,path=path))
+                self._blueprints.append(Blueprint(self,path))
         return self._blueprints
 
     # @property
@@ -243,45 +242,25 @@ class AtYourServiceRepo():
     #                     self._roletemplates[j.sal.fs.getBaseName(roletemplate)] = [j.sal.fs.joinPaths(roletemplate, rtpath) for rtpath in rtpaths]
     #     return self._roletemplates
 
-    def _addBlueprint(self,bp):
-        exists=False
-        #next will also make sure that default blueprints are loaded
-        for item in self.blueprints:
-            if item.hash==bp.hash:
-                exists=True
-        if exists==False:
-            self._blueprints.append(bp)
 
-    def blueprint(self,path="",content="",role="",instance=""):
+    def init(self,role="",instance="",hasAction="",include_disabled=False):
         self._doinit()
-        if path=="" and content=="":
-            for bp in self.blueprints:
-                bp.load(role=role,instance=instance)
-        else:
-            bp=Blueprint(path=path,content=content)
-            self._addBlueprint(bp)
-            bp.load(role=role,instance=instance)
-
-        self.init(role=role,instance=instance)
-        print ("blueprint done")
-
-    def init(self,role="",instance="",hasAction="",include_disabled=False,data=""):
-        self._doinit()
-        if role=="" and instance=="":
-            self.reset()
+        self.reset()
 
         self.setState(actions=["init"],role=role,instance=instance,state="INIT")
 
-        # # make sure the recipe's are loaded & initted
-        # for bp in self.blueprints:
-        #     bp.load(role=role,instance=instance) #make sure we only reload the blueprints which are relevant
+        # make sure the recipe's are loaded & initted
+        for bp in self.blueprints:
+            bp.load(role=role)
 
         for key,recipe in self.recipes.items():
+
             if role!="" and recipe.role==role:
                 continue
+
             recipe.init()
 
-        run = self.getRun(role=role,instance=instance,data=data,action="init")
+        run = self.getRun(role=role,instance=instance,action="init")
         run.execute()
 
         print ("init done")
@@ -448,19 +427,6 @@ class AtYourServiceRepo():
         if push:
             print ("PUSH")
             gitcl.push()
-
-    def update(self,branch="master"):        
-        j.atyourservice.updateTemplates()        
-        gitcl=j.clients.git.get(self.basepath)
-        if branch!="master":
-            gitcl.switchBranch(branch)
-        from IPython import embed
-        print ("DEBUG NOW sdsd")
-        embed()
-        p
-        
-        gitcl.pull()
-
 
     def _getChangedServices(self, action=None):
         changed = list()

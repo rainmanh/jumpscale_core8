@@ -16,222 +16,132 @@ def loadmodule(name, path):
 
 class DocGenerator:
     """
-    process all markdown files in a git repo, write a summary.md file
-    optionally call pdf gitbook generator to produce a pdf
     """
     def __init__(self):
         self.__jslocation__ = "j.tools.docgenerator"
+        self.source=""
+        self.gitdir=""
+        self.parentgitdir=""
+        self.data={}
+        mydir=j.sal.fs.getDirName(inspect.getfile(self.process))
+        if j.sal.fs.exists(j.sal.fs.joinPaths(mydir,"macros")):
+            code=""
+            for path in j.sal.fs.listFilesInDir(j.sal.fs.joinPaths(mydir,"macros"), recursive=True, filter="*.py", followSymlinks=True):
+                newdata=j.sal.fs.fileGetContents(path)
+                code+="%s\n\n%s"%(code,newdata)
 
-    def get(self,source="",pdfpath="",macrosPath=""):
-        """
-        will look for config.yaml in $source/config.yaml
-
-        @param source is the location where the markdown docs are which need to be processed
-            if not specified then will look for root of git repo and add docs
-            source = $gitrepoRootDir/docs
-
-        @param pdfpath if specified will generate a pdf using the gitbook tools (needs to be installed)
-            if pdfpath=="auto" then put $reponame.pdf in $dest dir
-
-        @param macropath if "" then will look for subdir macro from source dir
-
-        """
-        return DocGeneratorItem(source,pdfpath,macrosPath=macrosPath)
-
-
-class DocGeneratorItem:
-    """
-    """
-    def __init__(self,source="",pdfpath="",macrosPath=""):
-        if source=="":
-            source=j.sal.fs.getcwd()
-
-            source2=j.sal.fs.joinPaths(source,"docs")
-            if j.sal.fs.getBaseName(j.sal.fs.getcwd()) in ["docs","doc"]:
-                source=j.sal.fs.getcwd()
-            elif j.sal.fs.exists(path=source2):
-                source=source2
-            else:
-                counter=0
-                item=source
-                while not j.sal.fs.exists(j.sal.fs.joinPaths(item,".git")) and counter<10:
-                    item=j.sal.fs.getParent(item)
-                    counter+=1
-                if counter==10:
-                    raise j.exceptions.NotFound("Could not find .git in dir or parent dirs starting from:%s"%source)
-
-                source=j.sal.fs.joinPaths(item,"docs")
-                if not j.sal.fs.exists(path=source):
-                    source=j.sal.fs.joinPaths(item,"doc")
-
-        if not j.sal.fs.exists(path=source):
-            raise j.exceptions.NotFound("Cannot find source path:'%s'"%source)
-
-        self.source=source
-
-        configpath=j.sal.fs.joinPaths(self.source,"config.yaml")
-        if j.sal.fs.exists(path=configpath):
-            self.config=j.data.serializer.yaml.load(configpath)
+            code=code.replace("from JumpScale import j","")
+            code="from JumpScale import j\n\n"+code
+            codepath=j.sal.fs.joinPaths(j.dirs.tmpDir,"jumpscale8_docgenerator_macros.py")
+            j.sal.fs.writeFile(codepath,code)
+            self.macros=loadmodule("macros",codepath)
         else:
-            self.config={}
+            raise j.exceptions.Input("Could not find macros in %s"%mydir)
 
         self._contentPaths={}
-        self._macroCodepath=j.sal.fs.joinPaths(j.dirs.tmpDir,"jumpscale8_docgenerator_macros.py")
-        j.sal.fs.remove(self._macroCodepath)
-        self.loadMacros("self")
 
-        if macrosPath=="":
-            macrosPath = j.sal.fs.joinPaths(self.source,"macros")
 
-        if j.sal.fs.exists(path=macrosPath):
-            self.loadMacros(macrosPath)
+    def _loadContentPath(self,path):
+        base=j.sal.fs.getBaseName(path).lower()
+        base=base[:-3] #remove extension
+        if base not in self._contentPaths:
+            self._contentPaths[base]=path
 
-        if pdfpath=="auto":
-            basename=j.sal.fs.getBaseName(self.source)
-            if basename=="doc":
-                basename=j.sal.fs.getBaseName(j.sal.fs.getParent(self.source))
-            pdfpath = j.sal.fs.joinPaths(self.source,"%s.pdf"%basename)
+    def _loadContentPaths(self):
+        """
+        walk in right order over all files which we want to potentially use (include)
+        and remember their paths
+        """
 
-        self.pdfpath=pdfpath
+        #go lower then starting point
+        for path in j.sal.fs.listFilesInDir(self.source, recursive=True, filter="*.md", followSymlinks=True):
+            self._loadContentPath(path)
 
-        self.loadIncludes(self.source)
+        #walk up to the tree till .git
+        counter=0
+        item=self.source
+        while not j.sal.fs.exists(j.sal.fs.joinPaths(item,".git")) and counter<10:
+            for path2 in j.sal.fs.listFilesInDir(item, recursive=False, filter="*.md", followSymlinks=True):
+                self._loadContentPath(path2)
+            item=j.sal.fs.getParent(item)
+            counter+=1
 
-        #now go in configured git directories
+        if counter==10:
+            raise j.exceptions.NotFound("Could not find config.hrd in dir or parent dirs starting from:%s"%source)
+
+        #now go in marked directories
         if 'content.include' in self.config:
             for gititem in self.config['content.include']:
                 res=j.do.getGitRepoArgs(gititem)
                 gitpath=res[4]
                 if not j.sal.fs.exists(gitpath):
                     j.do.pullGitRepo(gititem)
-                self.load(gitpath)
+                for path2 in j.sal.fs.listFilesInDir(gitpath, recursive=True, filter="*.md", followSymlinks=True):
+                    # print (path2)
+                    if path2.find(".git")==-1:
+                        self._loadContentPath(path2)
 
-        self.data={}
+    def process(self,source="",dest=""):
+        if source=="":
+            source=j.sal.fs.getcwd()
 
+        counter=0
+        item=source
+        while not j.sal.fs.exists(j.sal.fs.joinPaths(item,"_input")) and counter<10:
+            item=j.sal.fs.getParent(item)
+            counter+=1
 
-    def loadMacros(self,path=""):
-        """
-        @param path if '' then will try to find macro dir in current dir
-        """
-        if path=="self":
-            mydir=j.sal.fs.getDirName(inspect.getfile(self.process))
-            macrodir=j.sal.fs.joinPaths(mydir,"macros")
-            return self.loadMacros(macrodir)
-        elif path=="":
-            mydir=j.sal.fs.getDirName(inspect.getfile(self.process))
-            return self.loadMacros(mydir)
-        
-        if not j.sal.fs.exists(path=path):
-            raise j.exceptions.Input("Cannot find path:'%s' for macro's, does it exist?")
+        if counter==10:
+            raise j.exceptions.NotFound("Could not find _input in dir or parent dirs starting from:%s"%source)
 
-        if j.sal.fs.exists(path=self._macroCodepath):
-            code=j.sal.fs.readFile(self._macroCodepath)
-        else:
-            code=""
+        self.root=item #is base of doc structure, self.source is starting point
+        self.source=j.sal.fs.joinPaths(self.root,"_input")
 
-        for path0 in j.sal.fs.listFilesInDir(path, recursive=True, filter="*.py", followSymlinks=True):
-            newdata=j.sal.fs.fileGetContents(path0)
-            code+="%s\n\n%s"%(code,newdata)
+        self.config=j.data.serializer.yaml.load(j.sal.fs.joinPaths(self.source,"config.yaml"))
 
-        code=code.replace("from JumpScale import j","")
-        code="from JumpScale import j\n\n"+code
-        
-        j.sal.fs.writeFile(self._macroCodepath,code)
-        self.macros=loadmodule("macros",self._macroCodepath)
+        #now look for git directory
 
-    def loadIncludes(self,path=""):
-        """
-        walk in right order over all files which we want to potentially use (include)
-        and remember their paths
-        if path=='' then will look for .git parent and start from there
+        yaml=""
 
-        if duplicate only the first found will be used
-
-        """
-
-        if path=="":
-            #walk up to the tree till .git
-            counter=0
-            item=self.source
-            while not j.sal.fs.exists(j.sal.fs.joinPaths(item,".git")) and counter<10:
-                for path2 in j.sal.fs.listFilesInDir(item, recursive=False, filter="*.md", followSymlinks=True):
-                    self._loadContentPath(path2)
-                item=j.sal.fs.getParent(item)
-                counter+=1
-
-            if counter==10:
-                raise j.exceptions.NotFound("Could not find config.hrd in dir or parent dirs starting from:%s"%source)
-
-            path=item
-
-        if not j.sal.fs.exists(path=path):
-            raise j.exceptions.NotFound("Cannot find source path in load:'%s'"%path)
+        def checkyaml(yaml,path):
+            if j.sal.fs.exists(j.sal.fs.joinPaths(path,"data.yaml")):
+                newdata=j.sal.fs.fileGetContents(j.sal.fs.joinPaths(path,"data.yaml"))
+                yaml="%s\n%s\n"%(newdata,yaml)
+            return yaml
 
 
-        def callbackForMatchDir(path,arg):
-            base=j.sal.fs.getBaseName(path)
-            if base.startswith("."):
-                return False
-            return True
+        counter=0
+        item=self.source
+        while not j.sal.fs.exists(j.sal.fs.joinPaths(item,".git")) and counter<10:
+            yaml=checkyaml(yaml,item)
+            item=j.sal.fs.getParent(item)
+            counter+=1
+        yaml=checkyaml(yaml,item)
 
-        def callbackForMatchFile(path,arg):
-            base=j.sal.fs.getBaseName(path)
-            if not j.sal.fs.getFileExtension(path)=="md":
-                return False
-            if base.startswith("_"):
-                return False
-            base=j.sal.fs.getBaseName(path).lower()
-            base=base[:-3] #remove extension
-            if base in ["summary"]:
-                return False
-            return True
+        if counter==10:
+            raise j.exceptions.NotFound("Are we in a .git repo? Could not find .git dir starting search from (parents):%s"%source)
 
-        def callbackFunctionFile(path,arg):
-            base=j.sal.fs.getBaseName(path).lower()
-            base=base[:-3] #remove extension
-            if base not in self._contentPaths:
-                self._contentPaths[base]=path
+        self.gitdir=item
 
-        j.sal.fs.walker.walkFunctional(self.source,callbackFunctionFile=callbackFunctionFile, callbackFunctionDir=None,arg="", \
-            callbackForMatchDir=callbackForMatchDir,callbackForMatchFile=callbackForMatchFile)
+        self.gitdir_parent=j.sal.fs.getParent(self.gitdir)
 
+        #@todo better errohandling
+        self.data=j.data.serializer.yaml.loads(yaml)
 
-    def process(self):
+        keys=[str(key) for key in self.data.keys()]
+        for key in keys:
+            if key.find(".")!=-1:
+                self.data[key.replace(".","_")]=self.data[key]
+                self.data.pop(key)
 
-        def callbackForMatchDir(path,arg):
-            base=j.sal.fs.getBaseName(path)
-            if base.startswith("."):
-                return False
-            return True
+        self._loadContentPaths()
 
-        def callbackForMatchFile(path,arg):
-            base=j.sal.fs.getBaseName(path)
-            return j.sal.fs.getFileExtension(path)=="md" and base.startswith("_")
-
-        def callbackFunctionDir(path,arg):
-            yamlfile= j.sal.fs.joinPaths(path,"data.yaml")
-            if j.sal.fs.exists(yamlfile):
-                newdata=j.data.serializer.yaml.load(yamlfile)
-
-                #dont know why we do this? something todo probably with mustache and dots?
-                keys=[str(key) for key in newdata.keys()]
-                for key in keys:
-                    if key.find(".")!=-1:
-                        newdata[key.replace(".","_")]=snewdata[key]
-                        newdata.pop(key)
-
-                #add new data, this way we get an ever updated dict structure
-                self.data.update(newdata)
-
-        def callbackFunctionFile(path,arg):
-            self._processFile(path)
-
-        callbackFunctionDir(self.source,"") #to make sure we use first data.yaml in root
-
-        j.sal.fs.walker.walkFunctional(self.source,callbackFunctionFile=callbackFunctionFile, callbackFunctionDir=callbackFunctionDir,arg="", \
-            callbackForMatchDir=callbackForMatchDir,callbackForMatchFile=callbackForMatchFile)
+        #process all files and do includes and other macro's
+        for path in j.sal.fs.listFilesInDir(self.source, recursive=True, filter="*.md", followSymlinks=True):
+            self.processFile(path)
 
 
-    def _processFile(self,path):
+    def processFile(self,path):
         content=j.sal.fs.fileGetContents(path)
         self.last_content=content
         self.last_path=path
@@ -251,7 +161,7 @@ class DocGeneratorItem:
                     #we found position where we are working
                     break
                 if line.startswith("#"):
-                    self.last_level=len(line.split(" ",1)[c0].strip())
+                    self.last_level=len(line.split(" ",1)[0].strip())
             try:
                 result=eval("self.macros."+methodcode)
             except Exception as e:

@@ -196,27 +196,30 @@ class SystemFSWalker:
 
     @staticmethod
     def _walkFunctional(path,callbackFunctionFile=None, callbackFunctionDir=None,arg="", callbackForMatchDir=None,callbackForMatchFile=None):
-        for path2 in j.sal.fs.listFilesAndDirsInDir(path,listSymlinks=True):
-            # print "walker path:%s"% path2
-            if j.sal.fs.isDir(path2, True):
-                # print "walker dirpath:%s"% path2
-                if callbackForMatchDir==None or callbackForMatchDir(path2,arg):
-                    #recurse
-                    # print "walker matchdir:%s"% path2
-                    if callbackFunctionDir==None:
+
+        paths=j.sal.fs.listFilesInDir(path,listSymlinks=True)
+        paths.sort()
+        for path2 in paths:
+            if callbackForMatchFile==False:
+                continue
+            if callbackForMatchFile==None or callbackForMatchFile(path2,arg):
+                #execute 
+                callbackFunctionFile(path2,arg)
+
+        paths=j.sal.fs.listDirsInDir(path)
+        paths.sort()
+        for path2 in paths:
+            # print "walker dirpath:%s"% path2
+            if callbackForMatchDir==None or callbackForMatchDir(path2,arg):
+                #recurse
+                # print "walker matchdir:%s"% path2
+                if callbackFunctionDir==None:
+                    j.sal.fs.walker._walkFunctional(path2,callbackFunctionFile, callbackFunctionDir,arg, callbackForMatchDir,callbackForMatchFile)
+                else:
+                    result=callbackFunctionDir(path2,arg)
+                    if result!=False:
+                        # print "walker recurse:%s"% path2
                         j.sal.fs.walker._walkFunctional(path2,callbackFunctionFile, callbackFunctionDir,arg, callbackForMatchDir,callbackForMatchFile)
-                    else:
-                        result=callbackFunctionDir(path2,arg)
-                        if result!=False:
-                            # print "walker recurse:%s"% path2
-                            j.sal.fs.walker._walkFunctional(path2,callbackFunctionFile, callbackFunctionDir,arg, callbackForMatchDir,callbackForMatchFile)
         
-            if j.sal.fs.isFile(path2, True):
-                # print "walker filepath:%s"% path2
-                if callbackForMatchFile==False:
-                    continue
-                if callbackForMatchFile==None or callbackForMatchFile(path2,arg):
-                    #execute 
-                    callbackFunctionFile(path2,arg)
 
 

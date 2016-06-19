@@ -151,7 +151,28 @@ class Service:
         if servicerecipe is not None:
             self.state.recipe = servicerecipe.name
             self.init(args=args)  # first time init
-            self.state.save()
+
+        # Set subscribed event into state
+        if self.recipe.template.hrd is not None:
+            for event, actions in self.recipe.template.hrd.getDictFromPrefix('events').items():
+                self.state.setEvents(event, actions)
+            # Set recurring into state
+            for action, period in self.recipe.template.hrd.getDictFromPrefix('recurring').items():
+                self.state.setRecurring(action, period)
+
+            # if service.hrd has remove some event action, update state to reflect that
+            actual = set(self.recipe.template.hrd.getDictFromPrefix('events').keys())
+            total = set(self.state.events.keys())
+            for action in total.difference(actual):
+                self.state.removeEvent(action)
+
+            # if service.hrd has remove some recurring action, update state to reflect that
+            actual = set(self.recipe.template.hrd.getDictFromPrefix('recurring').keys())
+            total = set(self.state.recurring.keys())
+            for action in total.difference(actual):
+                self.state.removeRecurring(action)
+
+        self.state.save()
 
     def reset(self):
         self._hrd = None
@@ -333,15 +354,6 @@ class Service:
                     self.actions.change_hrd_template(service=self, originalhrd=originalhrd)
                     self.hrd.save()
                     self.state.templateHRDHash = newTemplateHrdHash
-
-        # Set subscribed event into state
-        if self.recipe.template.hrd is not None:
-            for event, actions in self.recipe.template.hrd.getDictFromPrefix('events').items():
-                self.state.setEvents(event, actions)
-            # Set recurring into state
-            for action, period in self.recipe.template.hrd.getDictFromPrefix('recurring').items():
-                self.state.setRecurring(action, period)
-
         self.save()
 
     def _consumeFromSchema(self, args):

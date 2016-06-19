@@ -1,5 +1,5 @@
 
-# cuisine
+## Cuisine
 
 A set of very nice tools to do basic system management to a node.
 This is all based on https://github.com/sebastien/cuisine 

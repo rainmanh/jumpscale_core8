@@ -1,6 +1,6 @@
-# Summary
+## Summary
 
-* [Introduction](docs/README.md)
+* [Introduction](README.md)
 * [Getting Started](docs/GettingStarted/Home.md)
    * [Installation](docs/GettingStarted/Install.md)
    * [Components](docs/GettingStarted/Components.md)

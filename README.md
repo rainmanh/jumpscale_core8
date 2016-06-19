@@ -1,5 +1,5 @@
 JumpScale 8
-===========
+
 
 [![Join the chat at https://gitter.im/Jumpscale/jumpscale_core8](https://badges.gitter.im/Jumpscale/jumpscale_core8.svg)](https://gitter.im/Jumpscale/jumpscale_core8?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -12,4 +12,3 @@ Please check our [GitBook](https://gig.gitbooks.io/jumpscale8/content/) for a fu
 for install see
 
 [Install Instructions](https://gig.gitbooks.io/jumpscale8/content/GettingStarted/Install.html)
-

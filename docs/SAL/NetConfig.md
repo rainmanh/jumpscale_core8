@@ -1,4 +1,4 @@
-# NetConfig
+## NetConfig
 
 ```py
 j.sal.netconfig

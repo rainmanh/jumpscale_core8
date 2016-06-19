@@ -1,6 +1,7 @@
 import re
 import collections
 from jinja2 import Template
+from github.GithubObject import NotSet
 
 from JumpScale import j
 
@@ -125,6 +126,14 @@ class Github(object):
 
         return m.group(1)
 
+    def _story_tasks(self, name, issues):
+        tasks = []
+        for issue in issues:
+            story = issue.title.partition(':')[0].strip()
+            if story == name:
+                tasks.append(issue)
+        return tasks
+
     def _task_estimate(self, title):
         m = re_task_estimate.match(title)
         if m is not None:
@@ -158,7 +167,40 @@ class Github(object):
 
         return stories
 
-    def _process_todos(self, issue):
+    def _move_to_repo(self, issue, dest):
+        self.logger.info("%s: move to repo:%s" % (issue, dest))
+        ref = 'https://github.com/%s/issues/%s' % (issue.repo.fullname, issue.number)
+        body = "Issue moved from %s\n\n" % ref
+
+        for line in issue.api.body.splitlines():
+            if line.startswith("!!") or line.startswith(
+                    '### Tasks:') or line.startswith('### Part of Story'):
+                continue
+            body += "%s\n" % line
+
+        assignee = issue.api.assignee if issue.api.assignee else NotSet
+        labels = issue.api.labels if issue.api.labels else NotSet
+        moved_issue = dest.api.create_issue(title=issue.title, body=body,
+                                            assignee=assignee, labels=labels)
+        moved_issue.create_comment(self._create_comments_backlog(issue))
+        moved_ref = 'https://github.com/%s/issues/%s' % (dest.fullname, moved_issue.number)
+        issue.api.create_comment("Moved to %s" % moved_ref)
+        issue.api.edit(state='close')  # we shouldn't process todos from closed issues.
+
+    def _create_comments_backlog(self, issue):
+        out = "### backlog comments of '%s' (%s)\n\n" % (issue.title, issue.url)
+
+        for comment in issue.api.get_comments():
+            if comment.body.find("!! move") != -1:
+                continue
+            date = j.data.time.any2HRDateTime(
+                [comment.last_modified, comment.created_at])
+            out += "from @%s at %s\n" % (comment.user.login, date)
+            out += comment.body + "\n\n"
+            out += "---\n\n"
+        return out
+
+    def _process_todos(self, repo, issues):
         priorities_map = {
             'crit': 'critical',
             'mino': 'minor',
@@ -166,43 +208,51 @@ class Github(object):
             'urge': 'urgent',
         }
 
-        for todo in issue.todo:
-            cmd, _, args = todo.partition(' ')
+        client = repo.client
 
-            if not args:
-                # it seems all commands requires arguments
-                self.logger.warning("cannot process todo for %s" % (todo,))
+        for issue in issues:
+            #only process open issues.
+            if not issue.isOpen:
                 continue
 
-            if cmd == 'move':
-                destination_repo = self.client.getRepo(args)
-                issue.move_to_repo(repo=destination_repo)
-                if issue.isStory:
-                    for task in issue.tasks:
-                        task.move_to_repo(repo=destination_repo)
+            for todo in issue.todo:
+                cmd, _, args = todo.partition(' ')
 
-            elif cmd == 'p' or cmd == 'prio':
-                if len(args) == 4:
-                    prio = priorities_map[args]
-                else:
-                    prio = args
-
-                if prio not in priorities_map.values():
-                    # Try to set
-                    self.logger.warning(
-                        'Try to set an non supported priority : %s' % prio)
+                if not args:
+                    # it seems all commands requires arguments
+                    self.logger.warning("cannot process todo for %s" % (todo,))
                     continue
 
-                prio = "priority_%s" % prio
-                if prio not in issue.labels:
-                    labels = issue.labels
-                    labels.append(prio)
-                    issue.labels = labels
-            else:
-                self.logger.warning("command %s not supported" % cmd)
+                if cmd == 'move':
+                    destination_repo = client.getRepo(args)
+                    self._move_to_repo(issue, destination_repo)
+                    story_name = self._story_name(issue.title)
+                    if story_name is not None:
+                        for task in self._story_tasks(story_name, issues):
+                            self._move_to_repo(task, destination_repo)
+
+                elif cmd == 'p' or cmd == 'prio':
+                    if len(args) == 4:
+                        prio = priorities_map[args]
+                    else:
+                        prio = args
+
+                    if prio not in priorities_map.values():
+                        # Try to set
+                        self.logger.warning(
+                            'Try to set an non supported priority : %s' % prio)
+                        continue
+
+                    prio = "priority_%s" % prio
+                    if prio not in issue.labels:
+                        labels = issue.labels
+                        labels.append(prio)
+                        issue.labels = labels
+                else:
+                    self.logger.warning("command %s not supported" % cmd)
 
     def _is_story(self, issue):
-        return issue.type == 'story'
+        return issue.type == 'story' or self._story_name(issue.title) is not None
 
 
     def _story_add_tasks(self, story, tasks):
@@ -298,7 +348,7 @@ class Github(object):
             issues = repo.issues
 
         stories = self._process_stories(issues)
-        stories_tasks = dict()
+
 
         issues = sorted(issues, key=lambda i: i.number)
 
@@ -313,8 +363,13 @@ class Github(object):
         milestones = collections.OrderedDict(sorted(_ms, key=lambda i: i[1].title))
         report = dict()
 
+        self._process_todos(repo, issues)
+
+        if not org_repo:
+            return
+
+        stories_tasks = dict()
         for issue in issues:
-            self._process_todos(issue)
             # Logic after this point is only for home and org repo
             if not org_repo:
                 continue
@@ -329,7 +384,7 @@ class Github(object):
                 report.setdefault(key, [])
                 report[key].append(issue)
 
-            start = issue.title.partition(":")[0]
+            start = issue.title.partition(":")[0].strip()
             if start not in stories:
                 # task that doesn't belong to any story. We skip for now
                 # but i believe a different logic should be implemented
@@ -368,9 +423,7 @@ class Github(object):
         for story, tasks in stories_tasks.items():
             self._story_add_tasks(story, tasks)
 
-        if org_repo:
-            # generate views
-            self._generate_views(repo, milestones, issues, report)
+        self._generate_views(repo, milestones, issues, report)
 
     def _generate_views(self, repo, milestones, issues, report):
         # end for

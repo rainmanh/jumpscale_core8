@@ -29,12 +29,6 @@ class RepoMilestone(Base):
         self._ddict["title"] = self.api.title
         self._ddict["body"] = self.api.description
         self._ddict["number"] = self.api.number
-        self._ddict["name"] = ""
-        self._ddict["owner"] = ""
-
-        # load the props
-        self.owner
-        self.name
 
     @property
     def title(self):
@@ -46,27 +40,14 @@ class RepoMilestone(Base):
         self.api.edit(title=val)
 
     @property
-    def name(self):
-        """
-        is name, corresponds to ays instance of milestone who created this
-        """
-        if self._ddict["name"] == "":
-            self._ddict["name"] = self.tags.tagGet("name", default="")
-        if self._ddict["name"] == "":
-            return self.title
-        return self._ddict["name"]
+    def ddict(self):
+        if not self._ddict:
+            # no dict yet, fetch from github
+            self.load()
+        return self._ddict
 
     @property
-    def owner(self):
-        """
-        is name, corresponds to ays instance of milestone who created this
-        """
-        if self._ddict["owner"] == "":
-            self._ddict["owner"] = self.tags.tagGet("owner", default="")
-        return self._ddict["owner"]
-
-    @property
-    def descr(self):
+    def description(self):
         return self.bodyWithoutTags
 
     # synonym to let the tags of super class work

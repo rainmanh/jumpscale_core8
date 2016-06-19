@@ -3,6 +3,7 @@ import sys
 import os
 import socket
 import time
+import argparse
 import importlib
 import importlib.machinery
 
@@ -248,4 +249,9 @@ data=j.core.db.get("system.dirs.%s"%j.do.BASE)
 if data==None:
     j.application._config = j.data.hrd.get(path="%s/hrd/system"%basevar)
 
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-q', '--quiet', default=False, action='store_true', help="Turn down logging")
+options, args = parser.parse_known_args()
+j.logger.set_quiet(options.quiet)
 j.application.init()

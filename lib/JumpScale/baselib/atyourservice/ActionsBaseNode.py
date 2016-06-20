@@ -13,8 +13,8 @@ class ActionsBaseNode:
     def installFiles(self):
 
         #@todo (*1*) I think is not optimally designed, or we work with fuse or without
-        #if without we need to create a library function on e.g. AYSFS which allows someone to connect to G8OS Stor
-        #and then call this library to expand the content locally, this should be done through arguments  ($...)
+        # if without we need to create a library function on e.g. AYSFS which allows someone to connect to G8OS Stor
+        # and then call this library to expand the content locally, this should be done through arguments  ($...)
 
         from urllib.error import HTTPError
 
@@ -35,7 +35,7 @@ class ActionsBaseNode:
                     conn.download(url, mdPath)
                 except HTTPError as err:
                     print("Can't download flist file from %s: %s" % (url, err))
-                    continue # try from another client
+                    continue  # try from another client
 
                 content = j.sal.fs.fileGetContents(mdPath)
                 for line in content.splitlines():
@@ -47,8 +47,8 @@ class ActionsBaseNode:
                         if j.data.hash.md5(path) == hash:
                             continue
 
-                    url = "%s/dedupe/files/%s/%s/%s" %(addr, hash[0], hash[1], hash)
-                    value, unit = j.data.units.bytes.converToBestUnit(int(size)) #@todo typo?  (*1*)
+                    url = "%s/dedupe/files/%s/%s/%s" % (addr, hash[0], hash[1], hash)
+                    value, unit = j.data.units.bytes.converToBestUnit(int(size))  # @todo typo?  (*1*)
                     print("downloading %s (%s %s)" % (path, value, unit))
                     unit = unit if unit != '' else 'B'
                     conn.download(url, path)
@@ -153,28 +153,28 @@ class ActionsBaseNode:
         only use when you want to overrule
 
         """
-        if self.service.getProcessDicts()==[]:
+        if self.service.getProcessDicts() == []:
             return
 
         def start2(process, nbr=None):
 
-            cwd=process["cwd"]
+            cwd = process["cwd"]
             # args['process'] = process
             if nbr is None:
                 self.stop()
 
-            tcmd=process["cmd"]
-            if tcmd=="jspython":
-                tcmd="source %s/env.sh;jspython"%(j.dirs.base)
+            tcmd = process["cmd"]
+            if tcmd == "jspython":
+                tcmd = "source %s/env.sh;jspython" % (j.dirs.base)
 
-            targs=process["args"]
-            tuser=process["user"]
-            if tuser=="":
-                tuser="root"
-            tlog=self.service.hrd.getBool("process.log",default=True)
-            env=process["env"]
+            targs = process["args"]
+            tuser = process["user"]
+            if tuser == "":
+                tuser = "root"
+            tlog = self.service.hrd.getBool("process.log", default=True)
+            env = process["env"]
 
-            startupmethod=process["startupmanager"]
+            startupmethod = process["startupmanager"]
             domain, name = self._getDomainName(process)
             if nbr is not None:
                 name = "%s.%d" % (name, i)
@@ -183,31 +183,29 @@ class ActionsBaseNode:
             if startupmethod == 'upstart':
                 # check if we are in our docker image which uses myinit instead of upstart
                 if j.sal.fs.exists(path="/etc/my_init.d/"):
-                    cmd2="%s %s"%(tcmd,targs)
-                    extracmds=""
-                    if cmd2.find(";")!=-1:
-                        parts=cmd2.split(";")
-                        extracmds="\n".join(parts[:-1])
-                        cmd2=parts[-1]
+                    cmd2 = "%s %s" % (tcmd, targs)
+                    extracmds = ""
+                    if cmd2.find(";") != -1:
+                        parts = cmd2.split(";")
+                        extracmds = "\n".join(parts[:-1])
+                        cmd2 = parts[-1]
 
-                    C="#!/bin/sh\nset -e\ncd %s\nrm -f /var/log/%s.log\n%s\nexec %s >>/var/log/%s.log 2>&1\n"%(cwd,name,extracmds,cmd2,name)
-                    j.sal.fs.remove("/var/log/%s.log"%name)
-                    j.sal.fs.createDir("/etc/service/%s"%name)
-                    path2="/etc/service/%s/run"%name
+                    C = "#!/bin/sh\nset -e\ncd %s\nrm -f /var/log/%s.log\n%s\nexec %s >>/var/log/%s.log 2>&1\n" % (cwd, name, extracmds, cmd2, name)
+                    j.sal.fs.remove("/var/log/%s.log" % name)
+                    j.sal.fs.createDir("/etc/service/%s" % name)
+                    path2 = "/etc/service/%s/run" % name
                     j.sal.fs.writeFile(path2, C)
-                    j.sal.fs.chmod(path2,0o770)
-                    j.sal.process.execute("sv start %s"%name,die=False, outputToStdout=False,outputStderr=False, captureout=False)
+                    j.sal.fs.chmod(path2, 0o770)
+                    j.sal.process.execute("sv start %s" % name, die=False, outputToStdout=False, outputStderr=False, captureout=False)
                 else:
                     j.sal.ubuntu.serviceInstall(name, tcmd, pwd=cwd, env=env)
                     j.sal.ubuntu.startService(name)
 
-            elif startupmethod=="tmux":
-                j.tools.cuisine.local.tmux.executeInScreen(domain,name,tcmd+" "+targs,cwd=cwd, env=env,user=tuser)#, newscr=True)
+            elif startupmethod == "tmux":
+                j.tools.cuisine.local.tmux.executeInScreen(domain, name, tcmd + " " + targs, cwd=cwd, env=env, user=tuser)  # , newscr=True)
 
             else:
-                raise j.exceptions.RuntimeError("startup method not known or disabled:'%s'"%startupmethod)
-
-
+                raise j.exceptions.RuntimeError("startup method not known or disabled:'%s'" % startupmethod)
 
                 # if msg=="":
                 #     pids=self.getPids(ifNoPidFail=False,wait=False)
@@ -243,16 +241,16 @@ class ActionsBaseNode:
 
         isrunning = self.check_up()
         if isrunning is False:
-            msg=""
+            msg = ""
 
-            if self.service.getTCPPorts()==[0]:
+            if self.service.getTCPPorts() == [0]:
                 print('Done ...')
-            elif self.service.getTCPPorts()!=[]:
-                ports=",".join([str(item) for item in self.service.getTCPPorts()])
-                msg="Could not start:%s, could not connect to ports %s."%(self.service,ports)
-                j.events.opserror_critical(msg,"service.start.failed.ports")
+            elif self.service.getTCPPorts() != []:
+                ports = ",".join([str(item) for item in self.service.getTCPPorts()])
+                msg = "Could not start:%s, could not connect to ports %s." % (self.service, ports)
+                j.events.opserror_critical(msg, "service.start.failed.ports")
             else:
-                j.events.opserror_critical("could not start:%s"%self.service,"service.start.failed.other")
+                j.events.opserror_critical("could not start:%s" % self.service, "service.start.failed.other")
 
     def stop(self):
         """
@@ -261,7 +259,7 @@ class ActionsBaseNode:
         return True if stop was ok, if not this step will have failed & halt will be executed.
         """
 
-        if self.service.getProcessDicts()==[]:
+        if self.service.getProcessDicts() == []:
             return
 
         def stop_process(process, nbr=None):
@@ -269,33 +267,32 @@ class ActionsBaseNode:
 
             currentpids = (os.getpid(), os.getppid())
             for pid in self._get_pids([process]):
-                if pid not in currentpids :
+                if pid not in currentpids:
                     try:
                         j.sal.process.kill(-pid, signal.SIGTERM)
                     except Exception as e:
                         if e.message.find('Could not kill process with id %s.' % -pid) != -1:
                             j.sal.process.kill(pid, signal.SIGTERM)
 
-
-            startupmethod=process["startupmanager"]
+            startupmethod = process["startupmanager"]
             domain, name = self._getDomainName(process)
             log("Stopping %s:%s" % (domain, name))
             if nbr is not None:
                 name = "%s.%d" % (name, i)
 
-            if j.sal.fs.exists(path="/etc/my_init.d/%s"%name):
-                print("stop through myinitd:%s"%name)
-                j.sal.process.execute("sv stop %s"%name,die=False, outputToStdout=False,outputStderr=False, captureout=False)
+            if j.sal.fs.exists(path="/etc/my_init.d/%s" % name):
+                print("stop through myinitd:%s" % name)
+                j.sal.process.execute("sv stop %s" % name, die=False, outputToStdout=False, outputStderr=False, captureout=False)
             elif startupmethod == "upstart":
-                print("stop through upstart:%s"%name)
+                print("stop through upstart:%s" % name)
                 j.sal.ubuntu.stopService(name)
-            elif startupmethod=="tmux":
-                print("stop tmux:%s %s"%(domain,name))
+            elif startupmethod == "tmux":
+                print("stop tmux:%s %s" % (domain, name))
 
-                for tmuxkey,tmuxname in list(j.tools.cuisine.local.tmux.getWindows(domain).items()):
-                    if tmuxname==name:
-                        print("tmux kill:%s %s"%(tmuxkey,tmuxname))
-                        j.tools.cuisine.local.tmux.killWindow(domain,name)
+                for tmuxkey, tmuxname in list(j.tools.cuisine.local.tmux.getWindows(domain).items()):
+                    if tmuxname == name:
+                        print("tmux kill:%s %s" % (tmuxkey, tmuxname))
+                        j.tools.cuisine.local.tmux.killWindow(domain, name)
                         # print "killdone"
 
         if "$(service.name)" == 'redis':
@@ -311,7 +308,6 @@ class ActionsBaseNode:
                     stop_process(process)
 
         print("stop ok")
-
 
         return True
 
@@ -332,10 +328,10 @@ class ActionsBaseNode:
         """
         currentpids = (os.getpid(), os.getppid())
         for pid in self._get_pids():
-            if pid not in currentpids :
+            if pid not in currentpids:
                 j.sal.process.kill(pid, signal.SIGKILL)
         if not self.check_down(self.service):
-            j.events.opserror_critical("could not halt:%s"%self,"service.halt")
+            j.events.opserror_critical("could not halt:%s" % self, "service.halt")
         return True
 
     def check_up(self, wait=True):
@@ -352,7 +348,7 @@ class ActionsBaseNode:
                 # check if we are in our docker image which uses myinit instead of upstart
                 if j.sal.fs.exists(path="/etc/my_init.d/"):
                     _, res, _ = j.sal.process.execute("sv status %s" % name, die=False,
-                                             outputToStdout=False, outputStderr=False, captureout=True)
+                                                      outputToStdout=False, outputStderr=False, captureout=True)
                     if res.startswith('ok'):
                         return True
                     else:
@@ -371,20 +367,20 @@ class ActionsBaseNode:
                     for port in ports:
                         # need to do port checks
                         if wait:
-                            if j.sal.nettools.waitConnectionTest("localhost", port, timeout)==False:
+                            if j.sal.nettools.waitConnectionTest("localhost", port, timeout) == False:
                                 return False
                         elif j.sal.nettools.tcpPortConnectionTest('127.0.0.1', port) == False:
-                                return False
+                            return False
                 else:
                     # no ports defined
-                    filterstr=process["filterstr"].strip()
+                    filterstr = process["filterstr"].strip()
 
-                    if filterstr=="":
+                    if filterstr == "":
                         raise j.exceptions.RuntimeError("Process filterstr cannot be empty.")
 
                     start = j.data.time.getTimeEpoch()
                     now = start
-                    while now <= start+timeout:
+                    while now <= start + timeout:
                         if j.sal.process.checkProcessRunning(filterstr):
                             return True
                         now = j.data.time.getTimeEpoch()
@@ -409,43 +405,43 @@ class ActionsBaseNode:
         this happens on system where process is
         return True when down
         """
-        print("check down local:%s"%self.service)
+        print("check down local:%s" % self.service)
+
         def do(process):
             if not self.service.hrd.exists("process.cwd"):
                 return
 
-            ports=self.service.getTCPPorts()
+            ports = self.service.getTCPPorts()
 
-            if len(ports)>0:
-                timeout=process["timeout_stop"]
-                if timeout==0:
-                    timeout=2
+            if len(ports) > 0:
+                timeout = process["timeout_stop"]
+                if timeout == 0:
+                    timeout = 2
                 for port in ports:
-                    #need to do port checks
-                    if j.sal.nettools.waitConnectionTestStopped("localhost", port, timeout)==False:
+                    # need to do port checks
+                    if j.sal.nettools.waitConnectionTestStopped("localhost", port, timeout) == False:
                         return False
             else:
-                #no ports defined
-                filterstr=process["filterstr"].strip()
-                if filterstr=="":
+                # no ports defined
+                filterstr = process["filterstr"].strip()
+                if filterstr == "":
                     raise j.exceptions.RuntimeError("Process filterstr cannot be empty.")
-                return j.sal.process.checkProcessRunning(filterstr)==False
+                return j.sal.process.checkProcessRunning(filterstr) == False
 
         for process in self.service.getProcessDicts():
-            result=do(process)
-            if result==False:
+            result = do(process)
+            if result == False:
                 return False
         return True
 
-    def build(self, build_server=None, image_build=False, image_push=False,debug=True,syncLocalJumpscale=False):
+    def build(self, build_server=None, image_build=False, image_push=False, debug=True, syncLocalJumpscale=False):
         """
         build_server : node service where the the service will be build
         """
         log("build")
 
-
         if debug:
-            syncLocalJumpscale=True
+            syncLocalJumpscale = True
 
         if build_server is None:
             self.actions.build(self)
@@ -466,7 +462,7 @@ class ActionsBaseNode:
         else:
             dedupe_ns = "dedupe"
 
-        error=""
+        error = ""
 
         try:
             # make sure to clean old service that could still be in the ays_repo
@@ -499,8 +495,8 @@ class ActionsBaseNode:
             dockerExecutor.upload(self.path, self.path)
 
             if syncLocalJumpscale:
-                print ("upload jumpscale core lib to build docker.")
-                dockerExecutor.upload("/opt/code/github/jumpscale/jumpscale_core8/lib/","/opt/code/github/jumpscale/jumpscale_core8/lib/")
+                print("upload jumpscale core lib to build docker.")
+                dockerExecutor.upload("/opt/code/github/jumpscale/jumpscale_core8/lib/", "/opt/code/github/jumpscale/jumpscale_core8/lib/")
 
             print("start build of %s" % self)
             dockerExecutor.execute("ays build -n %s" % self.name)
@@ -524,13 +520,13 @@ class ActionsBaseNode:
             print('download flist file back into template directory')
             dockerExecutor.download("/tmp/aysfs/md/*", self.path)
         except Exception as e:
-            error=j.errorconditionhandler.parsePythonExceptionObject(e)
+            error = j.errorconditionhandler.parsePythonExceptionObject(e)
             eco.getBacktraceDetailed()
         finally:
-            if debug==False:
+            if debug == False:
                 docker_build.stop()
                 docker_build.removedata()
                 j.atyourservice.remove(name=docker_build.name, instance=docker_build.instance)
-            if error!="":
-                error="Could not build:%s\n%s"%(self,error)
-                j.events.opserror_critical(error,"ays.build")
+            if error != "":
+                error = "Could not build:%s\n%s" % (self, error)
+                j.events.opserror_critical(error, "ays.build")

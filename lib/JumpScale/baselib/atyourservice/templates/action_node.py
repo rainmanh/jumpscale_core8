@@ -7,7 +7,7 @@ class ActionsNode(ActionsBaseNode):
     """
     implement methods of this class to change behavior of lifecycle management of service
     """
-    
+
     # def prepare(self):
     #     """
     #     this gets executed before the files are downloaded & installed on approprate spots
@@ -47,7 +47,7 @@ class ActionsNode(ActionsBaseNode):
     #     """
     #     do checks to see if process(es) is (are) running.
     #     this happens on system where process is
-    #     """      
+    #     """
     #     return True
 
     # def check_down(self,wait=True):
@@ -55,8 +55,8 @@ class ActionsNode(ActionsBaseNode):
     #     do checks to see if process(es) are all down
     #     this happens on system where process is
     #     return True when down
-    #     """        
-    #     return True        
+    #     """
+    #     return True
 
     # def check_requirements(self):
     #     """
@@ -72,7 +72,6 @@ class ActionsNode(ActionsBaseNode):
     #     """
     #     return True
 
-    
     # def cleanup(self):
     #     """
     #     regular cleanup of env e.g. remove logfiles, ...
@@ -118,4 +117,3 @@ class ActionsNode(ActionsBaseNode):
     #     tests for the service to test its behavior
     #     """
     #     return True
-

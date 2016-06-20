@@ -142,8 +142,8 @@ class Service:
 
             self.hrd  # create empty hrd
 
-        self._key = "%s!%s" % (self.role,self.instance)
-        self._gkey = "%s!%s!%s" % (aysrepo.name,self.role,self.instance)
+        self._key = "%s!%s" % (self.role, self.instance)
+        self._gkey = "%s!%s!%s" % (aysrepo.name, self.role, self.instance)
 
         if self.state is None:
             self.state = ServiceState(self)
@@ -281,7 +281,7 @@ class Service:
                 producerSet = set()
                 # items=[item for item in items if item.strip()!=""]
                 for item in items:
-                    role,instance=item.split("!")
+                    role, instance = item.split("!")
                     service = self.aysrepo.getService(role=role, instance=instance)
                     producerSet.add(service)
 
@@ -603,14 +603,13 @@ class Service:
 
     def runAction(self, action):
         a = self.getAction(action)
-        if a==None:
-            raise j.exceptions.Input("Cannot find action:%s on %s"%(action,self))
+        if a is None:
+            raise j.exceptions.Input("Cannot find action:%s on %s" % (action, self))
 
         # when none means does not exist so does not have to be executed
         if a is not None:
             # if action not in ["init","input"]:
             return a(service=self)
-
 
     @property
     def action_methods(self):

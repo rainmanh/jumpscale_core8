@@ -36,27 +36,79 @@ def cli(nodebug):
 #     click.echo('new')
 
 @click.command()
-@click.option('--role', default="", help='optional role for ays instances to init')
-@click.option('--instance', default="", help='optional name of instance')
-def init(role="",instance=""):
+@click.option('--role','-r', default="", help='optional role for ays instances to init')
+@click.option('--instance','-i', default="", help='optional name of instance')
+@click.option('--data','-d', default="", help='data to populate a specific instance')
+def init(role="",instance="",data=""):
     """
-    as first step this command will look for blueprints (they are in your ays repo under path $aysdir/blueprints)
+==== BASE ====
+
+    when using data the data is passed to the specific instance
+    if data used the role & instance needs to be used
+
+    step1:
+    init will look for blueprints
+    (they are in your ays repo under path $aysdir/blueprints)
+
     they will be processed in sorted order
     the blueprints will be converted to ays instances
-    the changes with before (last time you did an init) will be shown
+
+
+    step2:
+    init will walk over all existing recipes (ays templates in local context)
+    and will see if recipe actions or hrd's changed
+    if there is change than all ays instance originating from this recipe's state will be changed
+    this will allow the further install action to execute on the change
+
+    if there is change in hrd then:
+        - change_hrd_template() on the ays instance actions is called
+    if there is change in ine if the actions methods then:
+        - change_method() on the ays instance actions is called
+    This allows action to manipulate the ays tree as result of change
+
+    step3:
+    init will walk over all existing ays instances
+    init will detect if instance.hrd got changed
+    if change than the change will be marked in the state file
+
+    if change in hrd then
+        - change_hrd_instance() will be called on ays instance actions
+
+    REMARK:
+    blueprints are no longer processed in init step, use the ays blueprint command
 
     """
-    atyourservice.init(role=role,instance=instance)
+    if data!="" and (role=="" or instance==""):
+        raise j.exceptions.Input("need to specify role & instance to pass data")
+
+    atyourservice.init(role=role,instance=instance,data=data)
 
 
-#@click.command()
-#@click.argument('servicekey')
-#@click.command()
-#def build(servicekey):
-#    """
-#    builds specific service
-#    """
-#    atyourservice.get(servicekey)
+@click.command()
+@click.argument('path',default='')
+@click.option('--role','-r', default="", help='optional role for ays instances to init')
+@click.option('--instance','-i', default="", help='optional name of instance')
+def blueprint(path, role, instance):
+    """
+    will process the blueprint(s) pointed to
+
+    it path is directory then all blueprints in directory will be processed (when not starting with _)
+    if is file than only that 1 file
+
+    if path=="" then blueprints found in $aysdir/blueprints will be processed
+
+    if role & instance specified then only the ays instances with specified role/instance will be processed
+    """
+    atyourservice.execute_blueprint(role=role, instance=instance, path=path)
+
+
+@click.command()
+@click.argument('servicekey')
+def build(servicekey):
+   """
+   builds specific service
+   """
+   atyourservice.get(servicekey)
 
 @click.command()
 def showactions():
@@ -81,14 +133,14 @@ def showactions():
 
 @click.command()
 @click.argument('action')
-@click.option('--role', default="", help='optional role for ays instances execute an action on')
-@click.option('--instance', default="", help='optional name of instance')
+@click.option('--role','-r', default="", help='optional role for ays instances execute an action on')
+@click.option('--instance','-i', default="", help='optional name of instance')
 @click.option('--force', default=False,  is_flag=True,help='force execution even if no change')
 @click.option('--producerroles', default="*",  help='roles of producers which will be taken into consideration, if * all')
 @click.option('--ask', default=False,  is_flag=True,help='ask on which service to execute the action')
 def do(action,role="",instance="",force=False,producerroles="*", ask=False):
     """
-    call an action
+    call an action (which is a method in the action file e.g. start/stop/export/...)
     """
     # allservices=all
     # atyourservice.do(action,role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
@@ -121,6 +173,8 @@ def install(role="",instance="",force=False,producerroles="*", ask=False):
 @click.option('--producerroles', default="*",  help='roles of producers which will be taken into consideration, if * all')
 def simulate(action,role="",instance="",force=False,producerroles="*"):
     """
+    is like do only does not execute it,
+    is ideal to figure out what would happen if you run a certain action
     """
     run=atyourservice.getRun(role=role,instance=instance,action=action,force=force,producerRoles=producerroles)
     print(run)
@@ -134,6 +188,8 @@ def simulate(action,role="",instance="",force=False,producerroles="*"):
 @click.option('--producerroles', default="",  help='roles of producers which will be taken into consideration, if empty then none')
 def setstate(action,state="DO",role="",instance="",force=False,producerroles=""):
     """
+    be careful what you do with this command
+    this sets the state of an ays instance manually
     """
     atyourservice.setState(actions=[action],role=role,instance=instance,state=state)
     run=atyourservice.getRun(role=role,instance=instance,action=action,force=False,producerRoles=producerroles)
@@ -153,6 +209,9 @@ def setstate(action,state="DO",role="",instance="",force=False,producerroles="")
 @click.argument('role')
 @click.argument('instance')
 def showproducers(role,instance):
+    '''
+    find the producers for this service & show
+    '''
     print ("producers:")
     ays=atyourservice.getService(role,instance)
     ays.printProducersRecursive()
@@ -169,8 +228,8 @@ def showparents(role,instance):
 
 
 @click.command()
-@click.option('--role', default='')
-@click.option('--instance', default='')
+@click.option('--role','-r', default='')
+@click.option('--instance','-i', default='')
 def list(role, instance):
     print("Installed services:")
     services = atyourservice.findServices(role=role, instance=instance)
@@ -187,7 +246,11 @@ def printlog(action):
 @click.command()
 def destroy():
     """
-    reset in current ays repo all services & recipe's
+    reset in current ays repo all services & recipe's in current repo (DANGEROUS)
+    all instances will be lost !!!
+
+    make sure to do a commit before you do a distroy, this will give you a chance to roll back.
+
     """
     j.actions.resetAll()
     atyourservice.destroy(False)
@@ -198,10 +261,12 @@ def destroy():
 @click.option('--message', '-m', help="Message as used in e.g. pull/push.", default='unknown')
 def test(cmd,name,message):
     """
+    there is a test suite for ays, this command allows to control the test suite
+
     cmds are
-     - doall
-     - push
-     - pull
+     - doall : execute all tests
+     - push : push modified tests to the repo
+     - pull : get the repo with the tests
     """
     tester=j.atyourservice.getTester(name)
     if cmd=="doall":
@@ -212,18 +277,30 @@ def test(cmd,name,message):
         tester.gitpull(message=message)
 
 @click.command()
-@click.option('--branch', '-b', help="Name of branch, can be used in pull request to do change mgmt.", default='master')
+@click.option('--branch', '-b', help="Name of branch, can be used in commit/push request to do change mgmt.", default='master')
 @click.option('--message', '-m', help="Message as used in e.g. pull/push.", default='')
 @click.option('--push','-p', default=False,  is_flag=True,help='if True then will push changes to git repo.')
 def commit(message,branch="master",push=False):
     """
+    commit the changes in the ays repo to git, can optionally push.
+    this is very important because it allows you to see change in ays repo.
     """
     atyourservice.commit(message,branch,push=push)
+
+@click.command()
+@click.option('--branch', '-b', help="Name of branch, can be used in pull request to do change mgmt.", default='master')
+def update(branch="master"):
+    """
+    update the metdata for the templates as well as the current ays repo
+    """
+    atyourservice.update(branch=branch)
 
 cli.add_command(simulate)
 cli.add_command(test)
 cli.add_command(setstate)
 cli.add_command(commit)
+cli.add_command(update)
+cli.add_command(blueprint)
 # cli.add_command(new)
 cli.add_command(destroy)
 cli.add_command(init)

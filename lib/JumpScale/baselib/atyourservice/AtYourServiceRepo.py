@@ -14,9 +14,10 @@ from AYSRun import AYSRun
 import colored_traceback
 colored_traceback.add_hook(always=True)
 
+
 class AtYourServiceRepo():
 
-    def __init__(self,name,path=""):
+    def __init__(self, name, path=""):
         self._init = False
 
         # self._justinstalled = []
@@ -25,81 +26,81 @@ class AtYourServiceRepo():
         self._services = {}
         self._recipes = {}
 
-        self._templates={}
+        self._templates = {}
 
         self.indocker = j.atyourservice.indocker
-        self.debug=j.atyourservice.debug
-        self.logger=j.atyourservice.logger
+        self.debug = j.atyourservice.debug
+        self.logger = j.atyourservice.logger
 
         self._todo = []
 
-        self.name=name
-        self.basepath=path
-        self._git=None
+        self.name = name
+        self.basepath = path
+        self._git = None
 
-        self._blueprints=[]
+        self._blueprints = {}
 
         # self._roletemplates = dict()
         self._servicesTree = {}
         # self._db=AYSDB()
 
     def _doinit(self):
-        j.actions.setRunId("ays_%s"%self.name)
+        j.actions.setRunId("ays_%s" % self.name)
 
     def reset(self):
         # self._db.reload()
         j.dirs._ays = None
         self._services = {}
         self._recipes = {}
-        self._templates={}
+        self._templates = {}
         # self._reposDone = {}
         self._todo = []
-        self._git=None
-        self._blueprints=[]
+        self._git = None
+        self._blueprints = {}
         self._servicesTree = {}
 
-    def destroy(self,uninstall=True):
+    def destroy(self, uninstall=True):
         if uninstall:
             self.uninstall()
-        j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath,"recipes"))
-        j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath,"services"))
+        j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath, "recipes"))
+        j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath, "services"))
 
     @property
     def basepath(self):
-        if self._basepath==None or self._basepath=="":
-            self.basepath=j.sal.fs.getcwd()
+        if self._basepath is None or self._basepath == "":
+            self.basepath = j.sal.fs.getcwd()
         return self._basepath
 
     @basepath.setter
-    def basepath(self,val):
+    def basepath(self, val):
         self.reset()
-        baseDir=val
+        baseDir = val
         if not j.sal.fs.exists(path=baseDir):
-            raise j.exceptions.Input("Can not find based dir for ays in %s"%baseDir)
+            raise j.exceptions.Input("Can not find based dir for ays in %s" % baseDir)
 
         while j.sal.fs.joinPaths(baseDir, ".ays") not in j.sal.fs.listFilesInDir(baseDir, recursive=False):
-            baseDir=j.sal.fs.getParent(baseDir)
-            baseDir=baseDir.rstrip("/")
+            baseDir = j.sal.fs.getParent(baseDir)
+            baseDir = baseDir.rstrip("/")
 
-            if baseDir.strip()=="":
+            if baseDir.strip() == "":
                 if 'darwin' in j.core.platformtype.myplatform.platformtypes:
-                    baseDir = "%s/ays/"%j.dirs.cfgDir
+                    baseDir = "%s/ays/" % j.dirs.cfgDir
                 else:
                     baseDir = "/etc/ays/local"
                 break
 
-        if baseDir.strip("/").strip()=="":
-            raise j.exceptions.Input("Can not find based dir for ays in %s, after looking for parents."%val)
+        if baseDir.strip("/").strip() == "":
+            raise j.exceptions.Input("Can not find based dir for ays in %s, after looking for parents." % val)
 
-        self._basepath=baseDir
-        for item in ["blueprints","recipes","services","servicetemplates"]:
-            #make sure basic dirs exist
-            j.sal.fs.createDir(j.sal.fs.joinPaths(self._basepath,item))
+        self._basepath = baseDir
+        for item in ["blueprints", "recipes", "services", "servicetemplates"]:
+            # make sure basic dirs exist
+            j.sal.fs.createDir(j.sal.fs.joinPaths(self._basepath, item))
 
     @property
     def git(self):
-        if self._git==None:
-            self._git=j.clients.git.get(basedir=self.basepath)
+        if self._git is None:
+            self._git = j.clients.git.get(basedir=self.basepath)
         return self._git
 
     # @property
@@ -112,14 +113,13 @@ class AtYourServiceRepo():
     #         self._type = "c"
     #     return self._type
 
-
     @property
     def templates(self):
         self._doinit()
-        if self._templates=={}:
-            #need to link to templates of factory and then overrule with the local ones
-            for key,template in j.atyourservice.templates.items():
-                self._templates[key]=template
+        if self._templates == {}:
+            # need to link to templates of factory and then overrule with the local ones
+            for key, template in j.atyourservice.templates.items():
+                self._templates[key] = template
 
         def load(domain, path):
             for servicepath in j.sal.fs.listDirsInDir(path, recursive=False):
@@ -135,7 +135,7 @@ class AtYourServiceRepo():
             exists = [True for aysfile in tocheck if j.sal.fs.exists('%s/%s' % (path, aysfile))]
             if exists:
                 templ = ServiceTemplate(path, domain=domain)
-                self._templates[templ.name]=templ #overrule the factory ones with the local ones
+                self._templates[templ.name] = templ  # overrule the factory ones with the local ones
 
         # load local templates
         path = j.sal.fs.joinPaths(self.basepath, "servicetemplates/")
@@ -156,10 +156,10 @@ class AtYourServiceRepo():
                 d = j.tools.path.get(domainpath)
                 for item in d.walkfiles("state.json"):
                     recipepath = j.sal.fs.getDirName(item)
-                    recipe=ServiceRecipe(self,recipepath)
+                    recipe = ServiceRecipe(self, recipepath)
                     if recipe.name in self._recipes:
-                        raise j.exceptions.Input("Found double recipe: %s"%recipe)
-                    self._recipes[recipe.name]=recipe
+                        raise j.exceptions.Input("Found double recipe: %s" % recipe)
+                    self._recipes[recipe.name] = recipe
         return self._recipes
 
     @property
@@ -172,8 +172,8 @@ class AtYourServiceRepo():
             for hrd_path in j.sal.fs.listFilesInDir(services_path, recursive=True, filter="state.yaml",
                                                     case_sensitivity='os', followSymlinks=True, listSymlinks=False):
                 service_path = j.sal.fs.getDirName(hrd_path)
-                service = Service(self,path=service_path, args=None)
-                self._services[service.key]=service
+                service = Service(self, path=service_path, args=None)
+                self._services[service.key] = service
         return self._services
 
     # def _nodechildren(self, service, parent=None, producers=[]):
@@ -211,61 +211,87 @@ class AtYourServiceRepo():
         self._servicesTree['producerconsumer'] = producers
         return self._servicesTree
 
+    def _list_blueprints(self):
+        if self._blueprints == {}:
+            items = j.sal.fs.listFilesInDir(j.sal.fs.joinPaths(self.basepath, "blueprints"))
+
+            for path in items:
+                bp = Blueprint(self, path=path)
+                if bp.hash not in self._blueprints:
+                    self._blueprints[bp.hash] = bp
+
+        list_bp = list(self._blueprints.values())
+        list_bp = sorted(list_bp, key=lambda bp: bp.name)
+        return list_bp
+
     @property
     def blueprints(self):
         """
+        only shows the ones which are on predefined location
         """
-        if self._blueprints==[]:
-            items=j.sal.fs.listFilesInDir(self.basepath+"/blueprints")
-            items=[item for item in items if item.find("_archive")==-1]
-            items=[item for item in items if item[0]!="_"]
-            items.sort()
-            for path in items:
-                self._blueprints.append(Blueprint(self,path))
-        return self._blueprints
+        blueprints = self._list_blueprints()
+        bps = []
+        for bp in blueprints:
+            if bp.path.find("__archive") == -1 and bp.path[0] != "_":
+                bps.append(bp)
+        return bps
 
-    # @property
-    # def roletemplates(self):
-    #     if self._roletemplates:
-    #         return self._roletemplates
-    #     templatespaths = [j.sal.fs.joinPaths(self.basepath, '_templates')]
-    #     for _, metapath in self._domains:
-    #         templatespaths.append(j.sal.fs.joinPaths(metapath, '_templates'))
-    #     templatespaths.reverse()
+    @property
+    def blueprints_archive(self):
+        """
+        Show the archived blueprints
+        """
+        blueprints = self._list_blueprints()
+        bps = []
+        for bp in blueprints:
+            if bp.path.find("__archive") != -1 or bp.path[0] == "_":
+                bps.append(bp)
+        return bps
 
-    #     for templatespath in templatespaths:
-    #         if j.sal.fs.exists(templatespath):
-    #             for roletemplate in j.sal.fs.listDirsInDir(templatespath):
-    #                 paths = ['schema_tmpl.hrd', 'actions_tmpl_mgmt.py', 'actions_tmpl_node.py']
-    #                 rtpaths = [path for path in paths if j.sal.fs.exists(j.sal.fs.joinPaths(templatespath, roletemplate, path))]
-    #                 if rtpaths:
-    #                     self._roletemplates[j.sal.fs.getBaseName(roletemplate)] = [j.sal.fs.joinPaths(roletemplate, rtpath) for rtpath in rtpaths]
-    #     return self._roletemplates
+    def archive_blueprint(self, bp):
+        if bp.path.find('__archive') == -1:
+            new_path = j.sal.fs.joinPaths(bp.path + '__archive')
+            j.sal.fs.moveFile(bp.path, new_path)
+            bp.path = new_path
 
+    def restore_blueprint(self, bp):
+        if bp.path.find('__archive') != -1:
+            new_path = bp.path.rstrip('__archive')
+            j.sal.fs.moveFile(bp.path, new_path)
+            bp.path = new_path
 
-    def init(self,role="",instance="",hasAction="",include_disabled=False):
+    def execute_blueprint(self, path="", content="", role="", instance=""):
         self._doinit()
-        self.reset()
+        if path == "" and content == "":
+            for bp in self.blueprints:
+                bp.load(role=role, instance=instance)
+        else:
+            bp = Blueprint(self, path=path, content=content)
+            if bp.hash not in self._blueprints:
+                self._blueprints[bp.hash] = bp
+            bp.load(role=role, instance=instance)
 
-        self.setState(actions=["init"],role=role,instance=instance,state="INIT")
+        self.init(role=role, instance=instance)
+        print("blueprint done")
 
-        # make sure the recipe's are loaded & initted
-        for bp in self.blueprints:
-            bp.load(role=role)
+    def init(self, role="", instance="", hasAction="", include_disabled=False, data=""):
+        self._doinit()
+        if role == "" and instance == "":
+            self.reset()
 
-        for key,recipe in self.recipes.items():
+        self.setState(actions=["init"], role=role, instance=instance, state="INIT")
 
-            if role!="" and recipe.role==role:
+        for key, recipe in self.recipes.items():
+            if role != "" and recipe.role == role:
                 continue
-
             recipe.init()
 
-        run = self.getRun(role=role,instance=instance,action="init")
+        run = self.getRun(role=role, instance=instance, data=data, action="init")
         run.execute()
 
-        print ("init done")
+        print("init done")
 
-    def getBlueprint(self,path):
+    def getBlueprint(self, path):
         self._doinit()
         for bp in self.blueprints:
             if bp.path == path:
@@ -296,9 +322,7 @@ class AtYourServiceRepo():
     #         return hrd.hrdGet()
     #     return None
 
-
-
-    def setState(self,actions=[],role="",instance="",state="DO"):
+    def setState(self, actions=[], role="", instance="", state="DO"):
         """
         get run with self.getRun...
 
@@ -308,20 +332,20 @@ class AtYourServiceRepo():
         self._doinit()
         if "install" in actions:
             if "init" not in actions:
-                actions.insert(0,"init")
+                actions.insert(0, "init")
 
         for action in actions:
             for key, service in self.services.items():
-                if role!="" and service.role!=role:
+                if role != "" and service.role != role:
                     continue
-                if instance!="" and service.instance!=instance:
+                if instance != "" and service.instance != instance:
                     continue
-                if service.getAction(action)==None:
+                if service.getAction(action) == None:
                     continue
                 service.state.set(action, state)
                 service.state.save()
 
-    def findActionScope(self,action,role="",instance="",producerRoles="*"):
+    def findActionScope(self, action, role="", instance="", producerRoles="*"):
         """
         find all services from role & instance and their producers
         only find producers wich have at least one of the actions
@@ -338,95 +362,101 @@ class AtYourServiceRepo():
             scope = scope.union(producer_valid)
         return scope
 
-    def _processProducerRoles(self,producerroles):
+    def _processProducerRoles(self, producerroles):
         if j.data.types.string.check(producerroles):
-            if producerroles=="*":
+            if producerroles == "*":
                 return "*"
-            elif producerroles=="":
-                producerroles=[]
-            elif producerroles.find(",")!=-1:
-                producerroles=[item for item in producerroles.split(",") if item.strip()!=""]
+            elif producerroles == "":
+                producerroles = []
+            elif producerroles.find(",") != -1:
+                producerroles = [item for item in producerroles.split(",") if item.strip() != ""]
             else:
-                producerroles=[producerroles.strip()]
+                producerroles = [producerroles.strip()]
         return producerroles
 
-
-
-    def getRun(self,role="",instance="",action="install",force=False,producerRoles="*"):
+    def getRun(self, role="", instance="", action="install", force=False, producerRoles="*", data=None):
         self._doinit()
-        producerRoles=self._processProducerRoles(producerRoles)
+        producerRoles = self._processProducerRoles(producerRoles)
 
         if action not in ["init"]:
-            for key,s in self.services.items():
-                if s.state.get("init")!="OK":
-                    raise j.exceptions.Input("Cannot get run: %s:%s:%s because found a service not properly inited yet:%s, please rerun ays init"%(role,instance,action,s))
+            for key, s in self.services.items():
+                if s.state.get("init") not in ["OK", "DO"]:
+                    error_msg = "Cannot get run: %s:%s:%s because found a service not properly inited yet.\n%s\n please rerun ays init" % (role, instance, action, s)
+                    self.logger.error(error_msg)
+                    raise j.exceptions.Input(error_msg, msgpub=error_msg)
         if force:
-            self.setState(actions=[action],role=role,instance=instance,state="DO")
+            self.setState(actions=[action], role=role, instance=instance, state="DO")
 
-        if action=="init":
-            actions=["init"]
+        if action == "init":
+            actions = ["init"]
         else:
             actions = ["install", action]
 
-        run=AYSRun(self)
+        run = AYSRun(self)
         for action0 in actions:
-            scope=self.findActionScope(action=action0,role=role,instance=instance,producerRoles=producerRoles)
-            todo=self._findTodo(action=action0,scope=scope,run=run,producerRoles=producerRoles)
-            while  todo != []:
-                newstep=True
+            scope = self.findActionScope(action=action0, role=role, instance=instance, producerRoles=producerRoles)
+            todo = self._findTodo(action=action0, scope=scope, run=run, producerRoles=producerRoles)
+            while todo != []:
+                newstep = True
                 for service in todo:
-                    if service.state.get(action0,die=False)!="OK":
-                        print ("DO:%s %s"%(action,service))
+                    if service.state.get(action0, die=False) != "OK":
+                        print("DO:%s %s" % (action, service))
                         if newstep:
-                            step=run.newStep(action=action0)
-                            newstep=False
+                            step = run.newStep(action=action0)
+                            newstep = False
                         step.addService(service)
                     if service in scope:
                         scope.remove(service)
-                todo=self._findTodo(action0,scope=scope,run=run,producerRoles=producerRoles)
+                todo = self._findTodo(action0, scope=scope, run=run, producerRoles=producerRoles)
         run.sort()
         return run
 
-    def _findTodo(self,action,scope,run,producerRoles):
-        if action=="" or action==None:
+    def _findTodo(self, action, scope, run, producerRoles):
+        if action == "" or action is None:
             raise RuntimeError("action cannot be empty")
-        if scope==[]:
+        if scope == []:
             return []
         todo = list()
-        waiting=False
+        waiting = False
         for service in scope:
-            if run.exists(service,action):
+            if run.exists(service, action):
                 continue
-            producersWaiting = service.getProducersRecursive(producers=set(), callers=set(),action=action,producerRoles=producerRoles)
-            #remove the ones which are already in previous runs
-            producersWaiting=[item for item in producersWaiting if run.exists(item,action)==False]
-            producersWaiting=[item for item in producersWaiting if item.state.get(action,die=False)!="OK"]
+            producersWaiting = service.getProducersRecursive(producers=set(), callers=set(), action=action, producerRoles=producerRoles)
+            # remove the ones which are already in previous runs
+            producersWaiting = [item for item in producersWaiting if run.exists(item, action) == False]
+            producersWaiting = [item for item in producersWaiting if item.state.get(action, die=False) != "OK"]
             # print ("findtodo: %s:\n%s"%(action,producersWaiting))
             if len(producersWaiting) == 0:
                 todo.append(service)
                 # if j.atyourservice.debug:
-                    # print("%s waiting for %s" % (service,action))
+                # print("%s waiting for %s" % (service,action))
             elif j.application.debug:
-                waiting=True
+                waiting = True
                 # print("%s has producers which need to execute action %s (dependencies not done yet)" % (service,action))
-        if todo==[] and waiting:
-            raise RuntimeError("cannot find todo's for action:%s in scope:%s.\n\nDEPENDENCY ERROR: could not resolve dependency chain."%(action,scope))
+        if todo == [] and waiting:
+            raise RuntimeError("cannot find todo's for action:%s in scope:%s.\n\nDEPENDENCY ERROR: could not resolve dependency chain." % (action, scope))
         return todo
 
-
-    def commit(self, message="", branch="master",push=True):
+    def commit(self, message="", branch="master", push=True):
         self._doinit()
-        if message=="":
-            message="log changes for repo:%s"%self.name
-        gitcl=j.clients.git.get(self.basepath)
-        if branch!="master":
+        if message == "":
+            message = "log changes for repo:%s" % self.name
+        gitcl = j.clients.git.get(self.basepath)
+        if branch != "master":
             gitcl.switchBranch(branch)
 
-        gitcl.commit(message,True)
+        gitcl.commit(message, True)
 
         if push:
-            print ("PUSH")
+            print("PUSH")
             gitcl.push()
+
+    def update(self, branch="master"):
+        j.atyourservice.updateTemplates()
+        gitcl = j.clients.git.get(self.basepath)
+        if branch != "master":
+            gitcl.switchBranch(branch)
+        gitcl.pull()
 
     def _getChangedServices(self, action=None):
         changed = list()
@@ -442,7 +472,6 @@ class AtYourServiceRepo():
                     changed.extend(producers)
         return changed
 
-
     # def do(self, action="install", role="", instance="", printonly=False, ignorestate=False, force=False, ask=False):
     #     self._doinit()
     #     #make sure actions which are relevant get their init & install done
@@ -457,9 +486,8 @@ class AtYourServiceRepo():
     #     step = 1
     #     while todo != []:
 
-            # if ask:
-                # j.application.break_into_jshell("DEBUG NOW ask in do, filter items")
-
+        # if ask:
+        # j.application.break_into_jshell("DEBUG NOW ask in do, filter items")
 
     #         print("execute state changes, nr services to process: %s in step:%s" % (len(todo), step))
     #         for i in range(len(todo)):
@@ -469,26 +497,26 @@ class AtYourServiceRepo():
 
     #         todo = self.findTodo(action=action)
 
-    def install(self,role="", instance="",force=True,producerRoles="*"):
+    def install(self, role="", instance="", force=True, producerRoles="*"):
         self._doinit()
         if force:
             self.setState(actions=["install"], role=role, instance=instance, state='DO')
 
-        run = self.getRun(action="install",force=force)
+        run = self.getRun(action="install", force=force)
         print("RUN:UNINSTALL")
         print(run)
         run.execute()
 
-    def uninstall(self,role="", instance="",force=True,producerRoles="*"):
+    def uninstall(self, role="", instance="", force=True, producerRoles="*"):
         self._doinit()
         if force:
-            self.setState(actions=["stop","uninstall"], role=role, instance=instance, state='DO')
+            self.setState(actions=["stop", "uninstall"], role=role, instance=instance, state='DO')
 
-        run = self.getRun(action="stop",force=force)
+        run = self.getRun(action="stop", force=force)
         print("RUN:STOP")
         print(run)
         run.execute()
-        run = self.getRun(role=role,instance=instance,action="uninstall",force=force)
+        run = self.getRun(role=role, instance=instance, action="uninstall", force=force)
         print("RUN:UNINSTALL")
         print(run)
         run.execute()
@@ -506,10 +534,9 @@ class AtYourServiceRepo():
     #     scope=findProducersScope(role=role,instance=instance,actions=["install"])
     #     self.do("install",scope)
 
-
     def findRecipes(self, name="", version="", role=''):
         res = []
-        domain="ays"
+        domain = "ays"
         for template in self.recipes:
             if not(name == "" or template.name == name):
                 # no match continue
@@ -524,7 +551,7 @@ class AtYourServiceRepo():
 
         return res
 
-    def findServices(self, instance="", parent=None, first=False, role="", hasAction="", include_disabled=False,templatename=""):
+    def findServices(self, instance="", parent=None, first=False, role="", hasAction="", include_disabled=False, templatename=""):
         res = []
 
         for key, service in self.services.items():
@@ -538,7 +565,7 @@ class AtYourServiceRepo():
                 continue
             if not(role == "" or role == service.role):
                 continue
-            if hasAction!="" and service.getAction(hasAction)==None:
+            if hasAction != "" and service.getAction(hasAction) == None:
                 continue
             # if not(node is None or service.isOnNode(node)):
             #     continue
@@ -573,7 +600,7 @@ class AtYourServiceRepo():
             self.findConsumersRecursive(service, out)
         return out
 
-    def new(self,  name="", instance="main",path=None, parent=None, args={},consume="", model=None):
+    def new(self, name="", instance="main", path=None, parent=None, args={}, consume="", model=None):
         """
         will create a new service from template
 
@@ -587,53 +614,53 @@ class AtYourServiceRepo():
         obj = recipe.newInstance(instance=instance, path=path, parent=parent, args=args, consume=consume, model=model)
         return obj
 
-    def remove(self,  name="", instance="",domain="", role=""):
+    def remove(self, name="", instance="", domain="", role=""):
         for service in self.findServices(domain=domain, name=name, instance=instance, role=role):
             if service in self.services:
                 self.services.remove(service)
             j.sal.fs.removeDirTree(service.path)
 
-    def getTemplate(self,  name, die=True):
+    def getTemplate(self, name, die=True):
         """
         @param first means, will only return first found template instance
         """
         if name in self.templates:
             return self.templates[name]
         if die:
-            raise j.exceptions.Input("Cannot find template with name:%s"%name)
+            raise j.exceptions.Input("Cannot find template with name:%s" % name)
 
     def existsTemplate(self, name):
-        if self.getTemplate(name,die=False)==None:
+        if self.getTemplate(name, die=False) == None:
             return False
         return True
 
     def existsRecipe(self, name):
-        if self.getRecipe(name,die=False)==None:
+        if self.getRecipe(name, die=False) == None:
             return False
         return True
 
     def getRecipe(self, name, die=True):
         if name in self.recipes:
-            recipe= self.recipes[name]
+            recipe = self.recipes[name]
             return recipe
         else:
-            template = self.getTemplate(name=name,die=die)
-            if die==False and template==None:
+            template = self.getTemplate(name=name, die=die)
+            if die == False and template == None:
                 return None
-            recipe=template.getRecipe(self)
-            self._recipes[recipe.name]=recipe
+            recipe = template.getRecipe(self)
+            self._recipes[recipe.name] = recipe
             return recipe
         if die:
-            raise j.exceptions.Input("Cannot find recipe with name:%s"%name)
+            raise j.exceptions.Input("Cannot find recipe with name:%s" % name)
 
     def getService(self, role, instance, die=True):
         """
         Return service indentifier by domain,name and instance
         throw error if service is not found or if more than one service is found
         """
-        if role.strip()=="" or instance.strip()=="":
+        if role.strip() == "" or instance.strip() == "":
             raise j.exceptions.Input("role or instance cannot be empty.")
-        key="%s!%s"%(role,instance)
+        key = "%s!%s" % (role, instance)
         if key in self.services:
             return self.services[key]
         if die:
@@ -648,8 +675,8 @@ class AtYourServiceRepo():
         key in format $reponame!$name!$instance@role ($version)
 
         """
-        if key.count("!")==2:
-            reponame,role,instance=key.split("!")
+        if key.count("!") == 2:
+            reponame, role, instance = key.split("!")
         else:
-            role,instance=key.split("!")
-        return self.getService(instance=instance,role=role, die=True)
+            role, instance = key.split("!")
+        return self.getService(instance=instance, role=role, die=True)

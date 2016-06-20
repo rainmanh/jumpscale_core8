@@ -19,9 +19,10 @@ class ActionsBaseMgmt:
         service.state.set(methodname, "CHANGED")
         service.state.save()
 
-    def ask_telegram(self, username, message, keyboard=[], expect_response=True, timeout=120, redis=None):
+    def ask_telegram(self, username=None, message='', keyboard=[], expect_response=True, timeout=120, redis=None, channel=None):
         """
         username: str, telegram username of the person you want to send the message to
+        channel: str, telegram channel where the bot is an admin
         message: str, message
         keyboard: list of str: optionnal content for telegram keyboard.
         expect_response: bool, if you want to wait for a response or not. if True, this method retuns the response
@@ -39,6 +40,7 @@ class ActionsBaseMgmt:
         out_evt.args = {
             'key': key,
             'username': username,
+            'channel': channel,
             'message': message,
             'keyboard': keyboard,
             'expect_response': expect_response

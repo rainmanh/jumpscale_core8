@@ -71,9 +71,9 @@ class Redis:
 
         self.cuisine.bash.addPath(j.sal.fs.joinPaths(self.cuisine.core.dir_paths["base"], "bin"), action=True)
 
-
-        redis_cli = j.clients.redis.getInstance(self.cuisine)
-        redis_cli.configureInstance(name, ip, port, maxram=maxram, appendonly=appendonly, \
+        j.clients.redis.executor=self.executor
+        j.clients.redis.cuisine=self.cuisine
+        j.clients.redis.configureInstance(name, ip, port, maxram=maxram, appendonly=appendonly, \
             snapshot=snapshot, slave=slave, ismaster=ismaster, passwd=passwd, unixsocket=False)
 
         if start:

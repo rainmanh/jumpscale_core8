@@ -15,7 +15,7 @@ class GitClient:
 
         while ".git" not in j.sal.fs.listDirsInDir(baseDir, recursive=False, dirNameOnly=True, findDirectorySymlinks=True):
             baseDir = j.sal.fs.getParent(baseDir)
-            
+
             if baseDir == "/":
                 break
 
@@ -31,12 +31,13 @@ class GitClient:
                 "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
         base = baseDir.split("/code/", 1)[1]
 
-        if base.count("/") != 2:
-            raise j.exceptions.Input(
-                "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
-
-
-        self.type, self.account, self.name = base.split("/",2)
+        if not base.startswith('cockpit'):
+            if base.count("/") != 2:
+                raise j.exceptions.Input(
+                    "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
+            self.type, self.account, self.name = base.split("/",2)
+        else:
+            self.type, self.account, self.name = 'github', 'cockpit', 'cockpit'
 
         self.baseDir=baseDir
 
@@ -62,7 +63,7 @@ class GitClient:
         # Load git when we absolutly need it cause it does not work in gevent mode
         import git
         if not self._repo:
-            j.sal.process.execute("git config --global http.sslVerify false")
+            j.tools.cuisine.local.core.run("git config --global http.sslVerify false")
             if not j.sal.fs.exists(self.baseDir):
                 self._clone()
             else:
@@ -95,7 +96,7 @@ class GitClient:
 
     def hasModifiedFiles(self):
         cmd = "cd %s;git status --porcelain" % self.baseDir
-        rc, out = j.sal.process.execute(cmd)
+        rc, out = j.tools.cuisine.local.core.run(cmd, die=False)
         for item in out.split("\n"):
             item = item.strip()
             if item == '':
@@ -118,7 +119,7 @@ class GitClient:
 
 
         cmd = "cd %s;git status --porcelain" % self.baseDir
-        rc, out = j.sal.process.execute(cmd)
+        rc, out = j.tools.cuisine.local.core.run(cmd)
         for item in out.split("\n"):
             item = item.strip()
             if item == '':
@@ -159,16 +160,13 @@ class GitClient:
     def getUntrackedFiles(self):
         return self.repo.untracked_files
 
-    def checkout(self,path):
+    def checkout(self, path):
         cmd = 'cd %s;git checkout %s' % (self.baseDir,path)
-        j.sal.process.execute(cmd)
+        j.tools.cuisine.local.core.run(cmd)
 
     def addRemoveFiles(self):
         cmd = 'cd %s;git add -A :/' % self.baseDir
-        j.sal.process.execute(cmd)
-        # result=self.getModifiedFiles()
-        # self.removeFiles(result["D"])
-        # self.addFiles(result["N"])
+        j.tools.cuisine.local.core.run(cmd)
 
     def addFiles(self, files=[]):
         if files != []:
@@ -184,12 +182,12 @@ class GitClient:
     def fetch(self):
         self.repo.git.fetch()
 
-    def commit(self, message='', addremove=True):        
+    def commit(self, message='', addremove=True):
         if addremove:
             self.addRemoveFiles()
         if self.hasModifiedFiles()==False:
             print ("no need to commit, no changed files")
-            return            
+            return
         return self.repo.index.commit(message)
 
     def push(self, force=False):
@@ -252,7 +250,7 @@ class GitClient:
             for line in lines:
                 diffs[line] = list() if line not in diffs else diffs[line]
                 diffs[line].append({'author': commit.author.name, 'commit': commit.hexsha})
-                
+
         return diffs
 
 

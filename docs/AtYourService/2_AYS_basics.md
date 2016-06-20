@@ -1,21 +1,29 @@
-### AtYourService Basics
+## AtYourService Basics
 
-#### AYS repos
+### AYS Repositories
 
-- Are git based repo's, they store the templates or the actual deployment
-- 2 types
-    - ays template repo = templates which can be used to start from
-    - ays repo = where install/deployment/monitoring happens
-    - see [AYS File Locations](AtYourServiceFileLocations.md)
+AYS repositories (repos) are Git repositories related to a service of which the full life cycle can be managed by AYS.
 
-#### AYS Templates, Recipes and Instances
+There are two types of AYS repos:
 
-*AYS Template*
+- **AYS Template Repo** is a repo containing all data from which an actual instance can be deployed
+- **AYS Repo** is a repo containing an actual deployed instance
 
-- Defines the full life cycle from pre-installation, over installation, to upgrades and monitoring of a service, all described in the template files:
+See [AYS File Locations](AtYourServiceFileLocations.md) for more details.
+
+
+### AYS Templates, Recipes and Instances
+
+#### AYS Template
+
+An AYS Template defines the full life cycle from pre-installation and installation, to upgrades and monitoring of a service, all described in the AYS template files:
     - service.hrd
     - schema.hrd
     - action*.py (2 types of action files)
+
+
+#### AYS Recipe
+
 - In a recipe we describe
     - Parameters relevant for a service instance
     - How to start/stop the instance
@@ -24,23 +32,18 @@
     - How to get stats from the instance
     - How to export/import the data
 
+- Recipes are the same as AYS Templates but they get copied into the AYS Repository
+- We copy these files to make sure they get version controlled together with the AYS Instances
+- The have the same content as the templates
 
-*AYS Recipe*
 
-- Recipe's are the same as AYS Templates but they get copied into the AYS Repository.
-- We copy these files to make sure they get version controlled together with the AYS Instances.
-- The have the same content as the templates!
-
-*Instances*
+#### Instances
 
 An instance is a deployed unique instance of an AtYourService.
 E.g. a docker application running on a host node, the application would be the service.
 
-The instances are
 
-#### Blueprints
-
-
+### Blueprints
 
 Example :
 ```

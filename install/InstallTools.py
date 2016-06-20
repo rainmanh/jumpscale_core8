@@ -1578,6 +1578,7 @@ class InstallTools():
 
         """
         #check if more than 1 agent
+        socketpath = self._getSSHSocketpath()
         res=[item for item in self.execute("ps aux|grep ssh-agent",False,False)[1].split("\n") if item.find("grep ssh-agent")==-1]
         res=[item for item in res if item.strip()!=""]
         res=[item for item in res if item[-2:]!="-l"]
@@ -1589,13 +1590,15 @@ class InstallTools():
             #means not right agent was loaded
             killfirst=True
             print ("ssh-agent is not using sshagent_socket")
+        if len(res) == 0 and self.exists(socketpath):
+            self.delete(socketpath)
 
         if killfirst:
             cmd="killall ssh-agent"
             # print(cmd)
             self.execute(cmd,showout=False, outputStderr=False,die=False)
             #remove previous socketpath
-            self.delete(self._getSSHSocketpath())
+            self.delete(socketpath)
             self.delete(self.joinPaths(self.TMP,"ssh-agent-pid"))
 
         if path==None:
@@ -1608,8 +1611,7 @@ class InstallTools():
             if not self.exists(path):
                 raise RuntimeError("Cannot find ssh key on %s"%path)
 
-        if not self.exists(self._getSSHSocketpath()):
-            socketpath=self._getSSHSocketpath()
+        if not self.exists(socketpath):
             #ssh-agent not loaded
             print("load ssh agent")
             rc,result = self.execute("ssh-agent -a %s"%socketpath,die=False,showout=False, outputStderr=False)
@@ -1628,6 +1630,7 @@ class InstallTools():
                     print(result)
                     print("END")
                     raise RuntimeError("Cannot find items in ssh-add -l")
+                self._initSSH_ENV(True)
                 pid=int(piditems[-1].split(" ")[-1].strip("; "))
                 self.writeFile(self.joinPaths(self.TMP,"ssh-agent-pid"),str(pid))
                 self.addSSHAgentToBashProfile()
@@ -1637,7 +1640,7 @@ class InstallTools():
 
         #ssh agent should be loaded because ssh-agent socket has been found
         # pid=int(self.readFile(self.joinPaths(self.TMP,"ssh-agent-pid")))
-        if "SSH_AUTH_SOCK" not in os.environ:
+        if os.environ.get("SSH_AUTH_SOCK") != socketpath:
             self._initSSH_ENV(True)
         rc,result = self.execute("ssh-add -l",die=False,showout=False, outputStderr=False)
         if rc==2:#>0 and err.find("not open a connection")!=-1:

@@ -70,6 +70,10 @@ class RedisFactory:
         self._config = {}
         self._cuisine = j.tools.cuisine.get()
 
+    def getInstance(self, cuisine):
+        self._cuisine = cuisine
+        return self
+
     def get(self, ipaddr, port, password="", fromcache=True):
         key = "%s_%s" % (ipaddr, port)
         if not fromcache:

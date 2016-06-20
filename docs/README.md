@@ -15,18 +15,20 @@
 
 ### How to get started
 
--   [Installation](GettingStarted/Install.md)
+-   [Installation](GettingStarted/Installation.md)
 -   [Getting Started](GettingStarted/Home.md)
 
 
-## More info
+### More info
 
-- Main GitHub repos:
-    - [JumpScale Core Repo](https://github.com/Jumpscale/jumpscale_core8)
-    - [AtYourService metadata](https://github.com/Jumpscale/ays_jumpscale8) 
-- Docs in other formats:
-    - [Jumpscale Docs In PDF](https://www.gitbook.com/download/pdf/book/gig/jumpscale8)
-    - [Jumpscale Docs In EBook (epub)](https://www.gitbook.com/download/epub/book/gig/jumpscale8)
+- Main GitHub repositories:
+    - [JumpScale Core](https://github.com/Jumpscale/jumpscale_core8)
+    - [AtYourService](https://github.com/Jumpscale/ays_jumpscale8) 
+    
+- Documentation in other formats:
+    - [PDF](https://www.gitbook.com/download/pdf/book/gig/jumpscale-core8)
+    - [ePub](https://www.gitbook.com/download/epub/book/gig/jumpscale-core8)
+    - [Mobi](https://www.gitbook.com/download/mobi/book/gig/jumpscale-core8)
 
 
 ### Known issues
@@ -36,9 +38,9 @@
 
 ### Help us improve JumpScale
 
-* For feedback, or to get access to this repo, contact us on info@incubaid.com
+* For feedback, or to get access to the repository on GitHub, contact us on info@incubaid.com.
 
 
 ### License
 
-[JumpScale](http://www.jumpscale.com/) is a BSD 2-Clause License
+[JumpScale](http://www.jumpscale.com/) is a BSD 2-Clause License.

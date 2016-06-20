@@ -43,13 +43,13 @@ To reload your services and templates at any point, the reload button will dump 
 The details pages offer further information.
 ### Template details
 
-![](Template-details.png)
+![](TemplateDetails.png)
 
 The templates details page shows information pertinent to the template; such as its domain, name, metadata path, installed instances (which point to the detail page of those services) and a code editor to easily configure the template.
 
 ### Service details
 
-![](Service-details.png)
+![](ServiceDetails.png)
 
 The service details page shows information pertinent to the service.
 It gives a link to the template used to install.
@@ -57,4 +57,3 @@ It gives a link to the template used to install.
 The code editors give a handy way to edit/configure services.
 
 You can also perform actions on the services through the action links to start/stop/restart the services.
-

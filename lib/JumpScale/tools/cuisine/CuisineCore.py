@@ -260,17 +260,17 @@ class CuisineCore:
             res["cfgDir"] = "%s/cfg"%res["varDir"]
             res["jsLibDir"] = "%s/lib/JumpScale/"%res["base"]
             res["libDir"] = "%s/lib/"%res["base"]
-            res["homeDir"] = env["HOME"]
+            res["homeDir"] = os.environ["HOME"]
             res["logDir"] = "%s/log"%res["varDir"]
             res["pidDir"] = "%s/pid"%res["varDir"]
             res["tmpDir"] = "%s/tmp"%res["varDir"]
             res["hrdDir"] = "%s/hrd"%res["varDir"]
             self._dirs = res
 
-        if self.isMac:
-            self._dirs["optDir"]= "%s/opt/"%self._dirs["homeDir"]
-        else:
-            self._dirs["optDir"] = "/opt/"
+            if self.isMac:
+                self._dirs["optDir"]= "%s/opt/"%env["HOME"]
+            else:
+                self._dirs["optDir"] = "/opt/"
 
             self._dirs["goDir"] = "%sgo/"%self._dirs["varDir"]
 
@@ -1012,7 +1012,6 @@ class CuisineCore:
         @param profile, execute the bash profile first
         """
         # print (cmd)
-        env = {}
         import copy
         if replaceArgs:
             cmd=self.args_replace(cmd)
@@ -1038,11 +1037,7 @@ class CuisineCore:
             cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
         else:
             cmd = 'bash -c "%s"' % cmd
-
-        path = self.executor.execute("echo $PATH", showout=False)[1]
-        if "/usr/local/bin" not in path:
-            env = {"PATH": "%s:/usr/local/bin" % path}
-        rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout, env=env)
+        rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)
         out = self._clean(out)
 
         if rc>0:
@@ -1082,7 +1077,7 @@ class CuisineCore:
                             next=True
 
                 if next:
-                    rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout, env=env)
+                    rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)
 
         if debug!=None:
             self.executor.debug=debugremember

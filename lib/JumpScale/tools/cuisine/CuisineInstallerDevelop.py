@@ -222,7 +222,7 @@ class CuisineInstallerDevelop:
     def dnspython3(self):
         C = """
             cd $tmpDir
-            wget http://www.dnspython.org/kits3/1.12.0/dnspython3-1.12.0.tar.gz
+            wget --remote-encoding=utf-8 http://www.dnspython.org/kits3/1.12.0/dnspython3-1.12.0.tar.gz
             tar -xf dnspython3-1.12.0.tar.gz
             cd dnspython3-1.12.0
             ./setup.py install

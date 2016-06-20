@@ -2,7 +2,7 @@
 
 > Note: parts of `at your service` documentation is deprecated. It's still heavily under refactoring.
 
-**AtYourService** is a self-healing application management framework for cloud infrastructure abd is by default installed with jumpscale
+**AtYourService** is a self-healing application management framework for cloud infrastructure and is by default installed with jumpscale
 
 It combines functions from:
 - Package manager like Ubuntu's ```apt-get```

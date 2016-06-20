@@ -33,10 +33,10 @@
 
 *Instances*
 
-In instance is a deployed unique instance of an AtYourService.
+An instance is a deployed unique instance of an AtYourService.
 E.g. a docker application running on a host node, the application would be the service.
 
-The instances are 
+The instances are
 
 #### Blueprints
 
@@ -73,57 +73,18 @@ Different format examples
 Version is added with ()
 + e.g. node.ssh (1.0), where "node.ssh" is the name of the service, which in this case contains a "." where "node" is the role of the service and "ssh" the name of the instance
 
-### AYS instances can be found using this key format
-
-e.g.
-```shell
-#find 1 service instance with role MongoDB and then start (if not started yet), if more than 1 then this will fail
-ays start -n @mongodb
-
-#find all service instances with role node and print their status
-ays status -n @node
-
-#find a service instance which has instance name ovh4
-ays status -n !ovh4
-
-```
-
-If more than 1 instance is found then there will be an error
-
 ### Each service has a role
 
 Role is first part of name, e.g. if the AYS service name is "node.ssh" the role = node
 
 Roles are used to define categories of AYS recipes e.g. AYS which define a node & how to execute commands on a node, another example of a role is e.g. ns
 
-### Init redis local or remote (example)
-
-local
-
-```
-ays init -n redis -i --data 'param.name:system param.port:7766 param.disk:0  param.mem:100 param.ip:127.0.0.1 param.unixsocket:0 param.passwd:'
-```
-
-remote
-
-```
-ays init -n node.ssh -i ovh4 --data "ip:94.13.18.89 ssh.port:22"
-
-ays init -n redis -i system --parent '!ovh4' --data 'param.name:system param.port:7766 param.disk:0  param.mem:100 param.ip:127.0.0.1 param.unixsocket:0 param.passwd:'
-
-```
-
-Notice how we use as key !ovh4 this means any ays with instance name ovh4 will be used (only if found 1)
-more complete way to specify would have been 'node.ssh!ovh4' or '!ovh4$node' #means instance ovh4 from role node
-
-Remark: install will only happen after 'ays apply'
-
 ### Producers & Consumers
 
 - Each service instance can consume a service delivered by a producer
 - A producer is another service instance delivering a service
 - The consumption of another service is specified in the schema.hrd file
-    - see [HRD](HRD.md) by keyword consume
+    - see [HRD](../BeyondBasics/HRD.html) by keyword consume
     - there is a special type of consumption which is called a parent, this defines our location in the ays repo filesystem (visualization) but also a child/parent relationship e.g. an app living inside a node.
 
 

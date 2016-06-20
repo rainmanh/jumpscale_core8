@@ -1465,15 +1465,16 @@ class InstallTools():
         if "SSH_AUTH_SOCK" not in os.environ:
             self._initSSH_ENV(True)
         cmd = "ssh-add -L"
-        rc, out  = self.execute(cmd,False,False,die=False)
-        if rc!=0:
-            if rc==1 and out.find("The agent has no identities")!=-1:
+        rc, out = self.execute(cmd,False,False,die=False)
+        if rc != 0:
+            if rc == 1 and out.find("The agent has no identities") != -1:
                 return []
-            raise RuntimeError("error during listing of keys :%s" % err)
+            raise RuntimeError("error during listing of keys :%s" % out)
+        keys = [line.split() for line in out.splitlines() if len(line.split()) == 3]
         if keyIncluded:
-            return [(item.split(" ")[2],item.split(" ")[1]) for item in out.splitlines()]
+            return list(map(lambda key: key[2:0:-1], keys))
         else:
-            return [item.split(" ")[2] for item in out.splitlines()]
+            return list(map(lambda key: key[2], keys))
 
     def authorizeSSHKey(self,remoteipaddr,keyname=None,login="root",passwd=None,sshport=22,removeothers=False,keypathpub=None,allow_agent=True):
         """
@@ -2074,7 +2075,7 @@ class Installer():
                 args2[var] = os.environ[var]
             else:
                 args2[var] = eval(var)
-                
+
         os.environ.update(args2)
 
         args2['SANDBOX']=int(args2['SANDBOX'])

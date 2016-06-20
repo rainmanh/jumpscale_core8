@@ -26,6 +26,7 @@ class Caddy:
     @actionrun(action=True)
     def build(self, ssl=False, start=True, dns=None):
         self.cuisine.golang.install()
+        self.cuisine.golang.clean_src_path()
         self.cuisine.golang.get("github.com/mholt/caddy/caddy", action=True)
         self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'caddy'), '$binDir')
         self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)

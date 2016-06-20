@@ -41,6 +41,7 @@ class Controller:
 
         #get repo
         url = "github.com/g8os/controller"
+        self.cuisine.golang.clean_src_path()
         self.cuisine.golang.godep(url)
 
         sourcepath = "$goDir/src/github.com/g8os/controller"

@@ -19,8 +19,8 @@ class Sender:
         finally:
             s.close()
 
-    def send(self, to, from_, subject, content):
-        msg = MIMEText(content)
+    def send(self, to, from_, subject, content, content_type='plain'):
+        msg = MIMEText(content, content_type)
         msg['Subject'] = subject
         if isinstance(to, str):
             msg['To'] = to

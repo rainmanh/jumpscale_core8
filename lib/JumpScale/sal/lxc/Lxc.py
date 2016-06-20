@@ -178,9 +178,9 @@ ipaddr=
         if not self.btrfsSubvolExists(nameFrom):
             raise j.exceptions.RuntimeError("could not find vol for %s"%nameFrom)
         if j.sal.fs.exists(path="%s/%s"%(self.basepath,NameDest)):
-            raise j.exceptions.RuntimeError("path %s exists, cannot copy to existing destination, destroy first."%nameFrom)            
+            raise j.exceptions.RuntimeError("path %s exists, cannot copy to existing destination, destroy first."%nameFrom)
         cmd="subvolume snapshot %s/%s %s/%s"%(self.basepath,nameFrom,self.basepath,NameDest)
-        self._btrfsExecute(cmd)    
+        self._btrfsExecute(cmd)
 
     def btrfsSubvolExists(self,name):
         subvols=self.btrfsSubvolList()
@@ -207,9 +207,9 @@ ipaddr=
     def importRsync(self,backupname,name,basename="",key="pub"):
         """
         @param basename is the name of a start of a machine locally, will be used as basis and then the source will be synced over it
-        """    
+        """
         ipaddr=j.application.config.get("jssync.addr")
-        path=self._getMachinePath(name)    
+        path=self._getMachinePath(name)
 
         self.btrfsSubvolNew(name)
 
@@ -226,13 +226,13 @@ ipaddr=
                 basepath+="/"
             if not j.sal.fs.exists(basepath):
                 raise j.exceptions.RuntimeError("cannot find base machine:%s"%basepath)
-            cmd="rsync -av -v %s %s --delete-after --modify-window=60 --size-only --compress --stats  --progress"%(basepath,path)            
+            cmd="rsync -av -v %s %s --delete-after --modify-window=60 --size-only --compress --stats  --progress"%(basepath,path)
             print(cmd)
             j.sal.process.executeWithoutPipe(cmd)
 
         cmd="rsync -av -v %s::download/%s/images/%s %s --delete-after --modify-window=60 --compress --stats  --progress"%(ipaddr,key,backupname,path)
         print(cmd)
-        j.sal.process.executeWithoutPipe(cmd)        
+        j.sal.process.executeWithoutPipe(cmd)
 
     def exportTgz(self,name,backupname):
         self.removeRedundantFiles(name)
@@ -247,13 +247,13 @@ ipaddr=
         return bpath
 
     def importTgz(self,backupname,name):
-        path=self._getMachinePath(name)        
+        path=self._getMachinePath(name)
         bpath= j.sal.fs.joinPaths(self.basepath,"backups","%s.tgz"%backupname)
         if not j.sal.fs.exists(bpath):
             raise j.exceptions.RuntimeError("cannot find import path:%s"%bpath)
         j.sal.fs.createDir(path)
 
-        cmd="cd %s;tar xzvf %s -C ."%(path,bpath)        
+        cmd="cd %s;tar xzvf %s -C ."%(path,bpath)
         j.sal.process.executeWithoutPipe(cmd)
 
     def create(self,name="",stdout=True,base="base",start=False,nameserver="8.8.8.8",replace=True):
@@ -264,7 +264,7 @@ ipaddr=
         if replace:
             if j.sal.fs.exists(self._getMachinePath(name)):
                 self.destroy(name)
-   
+
 
         running,stopped=self.list()
         machines=running+stopped
@@ -283,14 +283,14 @@ ipaddr=
         # out=self.execute(cmd)
 
         self.btrfsSubvolCopy(base,lxcname)
-       
+
         # if lxcname=="base":
         self._setConfig(lxcname,base)
 
         #is in path need to remove
         resolvconfpath=j.sal.fs.joinPaths(self._get_rootpath(name),"etc","resolv.conf")
         if j.sal.fs.isLink(resolvconfpath):
-            j.sal.fs.unlink(resolvconfpath)            
+            j.sal.fs.unlink(resolvconfpath)
 
         hostpath=j.sal.fs.joinPaths(self._get_rootpath(name),"etc","hostname")
         j.sal.fs.writeFile(filename=hostpath,contents=name)
@@ -309,10 +309,10 @@ ipaddr=
         out+="%s      %s\n"%("127.0.0.1",name)
         j.sal.fs.writeFile(filename=hostspath,contents=out)
 
-        j.sal.netconfig.setRoot(self._get_rootpath(name)) #makes sure the network config is done on right spot
+        j.sal.netconfig.root = self._get_rootpath(name) #makes sure the network config is done on right spot
 
-        j.sal.netconfig.reset()
-        j.sal.netconfig.setNameserver(nameserver)
+        j.sal.netconfig.interfaces_reset()
+        j.sal.netconfig.nameserver_set(nameserver)
 
         j.sal.netconfig.root=""#set back to normal
 
@@ -322,7 +322,7 @@ ipaddr=
             ipaddr=ipaddrs[name]
         else:
             #find free ip addr
-            import netaddr            
+            import netaddr
             existing=[netaddr.ip.IPAddress(item).value for item in  list(ipaddrs.values()) if item.strip()!=""]
             ip = netaddr.IPNetwork(j.application.config.get("lxc.mgmt.ip"))
             for i in range(ip.first+2,ip.last-2):
@@ -354,7 +354,7 @@ ipaddr=
             out+="%s\n"%line
         out+="%s      %s\n"%(self.getIp(name),name)
         j.sal.fs.writeFile(filename="/etc/hosts",contents=out)
-        
+
     def pushSSHKey(self,name):
         path=j.sal.fs.joinPaths(self._get_rootpath(name),"root",".ssh","authorized_keys")
         content=j.sal.fs.fileGetContents("/root/.ssh/id_dsa.pub")
@@ -373,7 +373,7 @@ ipaddr=
         alll=running+stopped
         print(("running:%s"%",".join(running)))
         print(("stopped:%s"%",".join(stopped)))
-        if name in running:            
+        if name in running:
             # cmd="lxc-destroy -n %s%s -f"%(self._prefix,name)
             cmd="lxc-kill -P %s -n %s%s"%(self.basepath,self._prefix,name)
             self.execute(cmd)
@@ -385,7 +385,7 @@ ipaddr=
 
         self.btrfsSubvolDelete(name)
         # #@todo put timeout in
-             
+
     def stop(self,name):
         # cmd="lxc-stop -n %s%s"%(self._prefix,name)
         cmd="lxc-stop -P %s -n %s%s"%(self.basepath,self._prefix,name)
@@ -413,13 +413,13 @@ ipaddr=
             if stdout:
                 print(msg)
             raise j.exceptions.RuntimeError(msg)
-    
+
         self.setHostName(name)
 
         ipaddr=self.getIp(name)
         print(("test ssh access to %s"%ipaddr))
-        timeout=time.time()+10        
-        while time.time()<timeout:  
+        timeout=time.time()+10
+        while time.time()<timeout:
             if j.sal.nettools.tcpPortConnectionTest(ipaddr,22):
                 return
             time.sleep(0.1)
@@ -430,7 +430,7 @@ ipaddr=
         print(("set pub network %s on %s" %(pubips,machinename)))
         machine_cfg_file = j.sal.fs.joinPaths(self.basepath, '%s%s' % (self._prefix, machinename), 'config')
         machine_ovs_file = j.sal.fs.joinPaths(self.basepath, '%s%s' % (self._prefix, machinename), 'ovsbr_%s'%bridge)
-        
+
         # mgmt = j.application.config.get('lxc.mgmt.ip')
         # netaddr.IPNetwork(mgmt)
 
@@ -450,7 +450,7 @@ if [ "$3" = "up" ] ; then
 /usr/bin/ovs-vsctl --may-exist add-port %s $5
 else
 /usr/bin/ovs-vsctl --if-exists del-port %s $5
-fi        
+fi
 """ % (bridge,bridge)
 
         j.sal.fs.writeFile(filename=machine_ovs_file,contents=Covs)
@@ -459,11 +459,6 @@ fi
 
         ed=j.tools.code.getTextFileEditor(machine_cfg_file)
         ed.setSection(netname,config)
-
-        j.sal.netconfig.setRoot(self._get_rootpath(machinename)) #makes sure the network config is done on right spot
-        for ipaddr in pubips:        
-            j.sal.netconfig.enableInterfaceStatic(dev=netname,ipaddr=ipaddr,gw=gateway,start=False)#do never start because is for lxc container, we only want to manipulate config
-        j.sal.netconfig.root=""#set back to normal
 
 
     def networkSetPrivateVXLan(self, name, vxlanid, ipaddresses):
@@ -508,12 +503,10 @@ lxc.pivotdir = lxc_putold
 #lxc.mount.entry=/var/lib/lxc/jumpscale $base/rootfs/jumpscale none defaults,bind 0 0
 #lxc.mount.entry=/var/lib/lxc/shared $base/rootfs/shared none defaults,bind 0 0
 lxc.mount = $base/fstab
-"""        
-        C=C.replace("$name",name)    
+"""
+        C=C.replace("$name",name)
         C=C.replace("$baseparent",baseparent)
         C=C.replace("$base",base)
         j.sal.fs.writeFile(machine_cfg_file,C)
         # j.sal.fs.createDir("%s/delta0/jumpscale"%base)
         # j.sal.fs.createDir("%s/delta0/shared"%base)
-        
-

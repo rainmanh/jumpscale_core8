@@ -128,7 +128,7 @@ class Ubuntu:
         will download to tmp if not there yet
         will then install
         """
-        j.sal.fs.changedir(j.dirs.tmpDir) #will go to tmp
+        j.sal.fs.changeDir(j.dirs.tmpDir) #will go to tmp
         path=j.sal.nettools.download(url,"")
         self.deb_install(path)
         if removeDownloaded:

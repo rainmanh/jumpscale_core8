@@ -9,7 +9,7 @@ colored_traceback.add_hook(always=True)
 
 class AtYourServiceTester():
 
-    def __init__(self, subname="main"):
+    def __init__(self, subname="fake_IT_env"):
 
         self.subname = subname
         self.basepath = j.sal.fs.joinPaths(j.dirs.codeDir, "github", "jumpscale", "jumpscale_ays8_testenv", subname)
@@ -24,6 +24,10 @@ class AtYourServiceTester():
         self.aysrepo = j.atyourservice.get(subname, self.basepath)
 
         self.logger = j.logger.get('j.atyourservicetester')
+
+        if self.subname != "fake_IT_env":
+            raise j.exceptions.Input("test only supported on fake_IT_env")
+
 
     @property
     def git(self):
@@ -46,7 +50,6 @@ class AtYourServiceTester():
         self.git.push()
 
     def doall(self):
-        self.gitpull()
         self.test_init()
         self.test_install()
         self.test_change_1template_method()
@@ -55,11 +58,10 @@ class AtYourServiceTester():
         self.test_change_instancehrd()
 
     def test_init(self):
-        if self.subname != "main":
-            raise j.exceptions.Input("test only supported on main")
         # test basic init
         # check that some required aysi are there (do some finds)
         # some other basic tests
+        self.aysrepo.execute_blueprint()
         self.aysrepo.init()
 
         # check that everything specified in the blueprint was inited.
@@ -83,8 +85,6 @@ class AtYourServiceTester():
         self.logger.info('All producers accounted for')
 
     def test_install(self):
-        if self.subname != "main":
-            raise j.exceptions.Input("test only supported on main")
         self.reset()
         self.aysrepo.init()
 
@@ -108,9 +108,6 @@ class AtYourServiceTester():
         # some other basic tests
 
     def test_change_1template_method(self):
-        if self.subname != "main":
-            raise j.exceptions.Input("test only supported on main")
-
         self.reset()
         self.aysrepo.init()
 
@@ -162,9 +159,6 @@ class AtYourServiceTester():
         # check that right ays were impacted and only the ones required (through state object)
 
     def test_change_1template_schema(self):
-        if self.subname != "main":
-            raise j.exceptions.Input("test only supported on main")
-
         self.reset()
         self.aysrepo.init()
 
@@ -206,9 +200,6 @@ class AtYourServiceTester():
         # do now same for remove of variable
 
     def test_change_blueprint(self):
-        if self.subname != "main":
-            raise j.exceptions.Input("test only supported on main")
-
         self.reset()
         self.aysrepo.init()
 
@@ -251,9 +242,6 @@ class AtYourServiceTester():
         # do now same for additional aysi in blueprint
 
     def test_change_instancehrd(self):
-        if self.subname != "main":
-            raise j.exceptions.Input("test only supported on main")
-
         self.reset()
         self.aysrepo.init()
 

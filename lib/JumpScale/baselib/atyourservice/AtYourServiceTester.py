@@ -7,7 +7,7 @@ import colored_traceback
 colored_traceback.add_hook(always=True)
 
 
-class AtYourServiceTester():
+class AtYourServiceTester:
 
     def __init__(self, subname="fake_IT_env"):
 
@@ -17,7 +17,7 @@ class AtYourServiceTester():
         # checkout a prepared ays test repo with some special ays templates to test behaviour & easy to check outcome
         if not j.sal.fs.exists(self.basepath):
             url = "git@github.com:Jumpscale/jumpscale_ays8_testenv.git"
-            repo = j.do.pullGitRepo(url)
+            j.do.pullGitRepo(url)
 
         self._git = None
 
@@ -27,7 +27,6 @@ class AtYourServiceTester():
 
         if self.subname != "fake_IT_env":
             raise j.exceptions.Input("test only supported on fake_IT_env")
-
 
     @property
     def git(self):

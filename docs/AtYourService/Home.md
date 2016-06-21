@@ -16,10 +16,11 @@ It combines functions such as:
 
 A service, either local or remote, is an abstraction for almost anything:
 
-- Simple package i.e `MongoDB`
-- A server cluster i.e `MongoDB cluster`
+- Simple package i.e `mongodb`
+- Server cluster i.e `mongodb cluster`
 - Datacenter infrastructure i.e `rack(s) or a cluster of machines`
-- Abstraction for several other services
+- Buisness logic i.e `user` and `team`
+- Abstraction for any number of other services
 
 
 **One command to rule them all**

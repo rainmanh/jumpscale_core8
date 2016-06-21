@@ -1,4 +1,4 @@
-## Lifecycle of an AYS
+## Life cycle of an AYS service instance
 
 - ##### *Step 1*: Template
     - defines which files to use if not part of our sandbox (js8 sandbox)

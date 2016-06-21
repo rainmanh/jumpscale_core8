@@ -6,52 +6,61 @@ AYS repositories (repos) are Git repositories related to a service of which the 
 
 There are two types of repos used by AYS:
 
-- **AYS Template Repo**
-    Repos containing all data (templates) from which an actual AYS instance can be deployed
-- **AYS Repo**
-    Repos containing an actual deployed instances.
+- **AYS Template Repos**
+    Git repositories containing all data (templates) from which an actual AYS instance can be deployed
+- **AYS Repos**
+    Git repositories containing actually deployed instances
 
 See [AYS File Locations](AtYourServiceFileLocations.md) for more details.
 
 
-### AYS Templates, Recipes and Instances
+### AYS service templates, recipes and instances
 
-#### AYS Template
+#### AYS service templates
 
-An AYS Template defines the full life cycle from pre-installation and installation, to upgrades and monitoring of a service, all described in the AYS template files:
+An AYS service template defines the full life cycle from pre-installation and installation to upgrades and monitoring of a service.
+
+More specifically an AYS service template describes:
+  - The Parameters to configure a service
+  - How to start/stop the service
+  - How to monitor the service
+  - How to configure the service
+  - How to get stats from the service
+  - How to export/import the data
+
+All this is described in the AYS service template files:
   - service.hrd
   - schema.hrd
   - actions.py
-
-- In a template we describe:
-    - Parameters to configure a service instance
-    - How to start/stop the instance
-    - How to monitor the instance
-    - How to configure the instance
-    - How to get stats from the instance
-    - How to export/import the data
     
-Read more about a service's [lifecycle](AtYourServiceLifecycle.html).
-
-#### AYS Recipe
-- Recipes are the same as AYS Templates but they get copied into the AYS Repository
-- We copy these files to make sure they get version controlled together with the AYS Instances
-- The have the same content as the templates
+Read the section about the [Life cycle of an AYS service instance](AtYourServiceLifecycle.html) for more details.
 
 
-#### Instances
+#### AYS service recipes
 
-An instance is a deployed unique instance of an AtYourService.
-E.g. a docker application running on a host node, the application would be the service.
+An AYS service *template* becomes (or is "coverted" into) an AYS service *recipe* when it gets copied into a local AYS repository, where it will be used for actually deploying one or more instances of the services.
+
+So an AYS service *recipe* is exactly the same as an AYS service *template*, it's like a "snapshot" of the service template.  
+
+Since an AYS service *recipe* is copied into an AYS Repo, it is version controlled.
 
 
-### Blueprints
-A blueprint a [yaml](http://yaml.org/) file that is the entry point to interacting with AYS. It describes how the deployment should look like.
+#### AYS service instances
 
-It does so by defining service instances and how they interact with each other.
+An AYS service *instance* is a deployed unique instance of an AYS *recipe* - or AYS *template*.
 
-Example :
-```
+For example a Docker application running on a host node is an AYS service instance of an AYS service template for that Docker application, for which there is a version-controlled AYS service recipe specific to that environment.
+
+
+### AYS blueprints
+
+An AYS *blueprint* is a [YAML](http://yaml.org/) file used as the entry point for interacting with AYS. It describes the deployment of a specific application.
+
+It does so by defining all service instances that make up a specific application and how these AYS services instances interact with each other.
+
+Example:
+
+```yaml
 redis_redis1:
   description:
     - "a description"
@@ -62,61 +71,71 @@ redis_redis2:
 
 myapp_test:
   redis: 'redis1, redis2'
-
 ```
 
+The above example is about the `test` application using two instances of the `Redis`.
 
-#### Each AtYourService instance has a unique key
 
-Key in format $domain|$name!$instance@role ($version)
+### Each AYS service has a name, a role and a version.
 
-Different format examples
+The *role* is the first part of name, and the version is added with ().
+
+For example in `node.ssh (1.0)`:
+- The name of the service is `node.ssh`, which in this case contains a `.` (dot) separating `node` as the role of the service and `ssh` the name of the instance
+- The version is 1.0
+
+Roles are used to define categories of AYS service recipes.
+
+
+### Each AYS service instance has a unique key
+
+This unique key is formatted as `$domain|$name!$instance@role ($version)`
+
+You can select one or more service instances by using the full key and just parts of the key:
+
 + $domain|$name!$instance
 + $name
 + !$instance
 + $name!$instance
 + @role
 
-Version is added with ()
-+ e.g. node.ssh (1.0), where "node.ssh" is the name of the service, which in this case contains a "." where "node" is the role of the service and "ssh" the name of the instance
 
-### Each service has a role
+### Producers & consumers
 
-Role is first part of name, e.g. if the AYS service name is "node.ssh" the role = node
+Each service instance can consume a service delivered by a producer. A producer is another service instance delivering a service.
 
-Roles are used to define categories of AYS recipes e.g. AYS which define a node & how to execute commands on a node, another example of a role is e.g. ns
+The consumption of another service is specified in the `schema.hrd` file of a service template ore recipe, using the `consunme` keyword. 
 
-### Producers & Consumers
+As an example of consumption, see the following `schema.hrd` specification:
 
-- Each service instance can consume a service delivered by a producer
-- A producer is another service instance delivering a service
-- The consumption of another service is specified in the schema.hrd file
-    - see [HRD](../BeyondBasics/HRD.html) by keyword `consume`
-- Example of consumption, in `schema.hrd`:
-```
+```yaml
 sshkey = descr:'authorized sshkey' consume:sshkey:1:2 auto
 ```
-This describes that this service consumes a minimum of `1` and a maximum of `2` sshkey instances. And that it should autocreate these instances if they don't already exist.
 
-  (minimum and maximum tags are optional. As well as `auto`)
+This describes that the service consumes a minimum of `1` and a maximum of `2` sshkey instances,  and that it should auto-create these instances if they don't already exist. Minimum and maximum tags are optional. As well as `auto`.
+
+See the section about [HRD](../BeyondBasics/HRD.html) files for more details.
+
 
 ### Parents
-* there is a special type of consumption which is called a *parent*, this defines our location in the ays repo filesystem (visualization) but also a child/parent relationship e.g. an app living inside a node.
-* child services also inherit their parents executor defined in `getExecutor` by default.
-* Example of parents in `schema.hrd`:
-```
+
+There is a special type of consumption which is called a *parent*.
+
+This defines the location in the AYS repo file system (visualization) but also a child/parent relationship, e.g. an app living inside a node.
+
+Child services also inherit their parents executor defined in `getExecutor` by default.
+
+Example of parents in `schema.hrd`:
+
+```yaml
 node = type:str parent:node auto
 ```
-This means that this service has a parent of role `node` and that it should auto create its parent if it doesn't already exist.
 
-  (`auto` tag is optional)
-
-
-### AtYourService Actions
-
-* Manages the life-cycle of your AYS
-* Defines the behavior of you AYS
-
-Read more about [Actions](5_AYS_actions.html)
+This means that the service has a parent of role `node` and that it should auto create its parent if it doesn't already exist. The `auto` tag is optional.
 
 
+### AYS actions
+
+AYS actions define the behavior of an AYS service, including the full life cycle.
+
+Read the section about [Actions](5_AYS_actions.html) for more details.

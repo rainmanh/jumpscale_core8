@@ -58,7 +58,7 @@ class Controller:
         self.cuisine.core.dir_remove("$tmplsDir/cfg/controller/extensions")
         self.cuisine.core.file_copy("%s/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale" % self.cuisine.core.dir_paths["codeDir"], "$tmplsDir/cfg/controller/jumpscripts/", recursive=True)
         self.cuisine.core.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/controller/extensions", recursive=True)
-        self.cuisine.core.file_copy("%s/agentcontroller.toml" % sourcepath, '$tmplsDir/controller/agentcontroller.toml')
+        self.cuisine.core.file_copy("%s/agentcontroller.toml" % sourcepath, '$tmplsDir/cfg/controller/agentcontroller.toml')
 
         if start:
             self.start()

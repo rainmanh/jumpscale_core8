@@ -103,68 +103,20 @@ This describes that this service consumes a minimum of `1` and a maximum of `2` 
 ### Parents
 * there is a special type of consumption which is called a *parent*, this defines our location in the ays repo filesystem (visualization) but also a child/parent relationship e.g. an app living inside a node.
 * child services also inherit their parents executor defined in `getExecutor` by default.
-Example of parents in `schema.hrd`:
+* Example of parents in `schema.hrd`:
 ```
 node = type:str parent:node auto
 ```
-This means that this service has a parent of role `node` and that it should auto create its parent if it doesn't already exist
-- (`auto` tag is optional)
+This means that this service has a parent of role `node` and that it should auto create its parent if it doesn't already exist.
+
+  (`auto` tag is optional)
 
 
 ### AtYourService Actions
 
-> This part is deprecated and need revision @rthursday @zaibon
+* Manages the life-cycle of your AYS
+* Defines the behavior of you AYS
 
-some remarks
-- the management actions as defined in actions_mgmt are always executed on server which is executing starting from the ays repo (the checkout out git repo)
-- the node actions are always executed on the node where the action needs to happen
-
-#### init
-
-- is the first action to be done, this action will init your repo with the required instances
-- process
-    - copy template files to appropriate destination (in your ays repo e.g. /Users/kristofdespiegeleer1/code/jumpscale/ays_core_it/services/sshkey!main)
-    - call actions.input
-        - goal is to manipulate the arguments which are the basis of the instance.hrd, this allows the system to avoid questions to be asked during install (because of @ASK statements in the instance.hrd files)
-        - in actions.input manipulate the 'args' argument to the method
-        - return True if action was ok
-        - ask the non configured items from schema.hrd (the @ASK commands, the ones not filled in in previous step
-    - call actions.hrd
-        - now the @ASK is resolved and the input arguments, this step allows to further manipulate the hrd files
-        - examples: create an ssh key and store in hrd file
-        - after this action the ays directory is up to date with all required configuration information
-        - information outside can be used to get info in hrd e.g. stats info from reality db
-    - apply all instance & service.hrd arguments on the action files in the deployed ays instance directory
-        - this means that all action files have all template arguments filled in
-
-### consume
+Read more about [Actions](5_AYS_actions.html)
 
 
-- 3 ways this can be done
-    - ```es=j.atyourservice.new(name='energyswitch', args=data, parent=location, consume=grid)```
-    - ```es.consume("grid")``` the services was already created before
-    - ```ays consume -n energyswitch!main -c grid``` #@todo
-- this specified how services depend on other services
-- the actions.consume action will be called
-- in blueprint a consumption can be specified by just filling in the appropriate property e.g. datacenter=gent if in the scheme datacenter was a possible e.g. parent
-
-#### install
-
-- deploys the ays on the node
-- process
-    - call actions_mgmt.install_pre
-    - call actions_node.prepare (will do e.g. installation of ubuntu services, better not to use)
-    - call actions_node.install
-    - call actions_mgmt.install_post
-        - its up to ays developer to call start method ...
-        - in this post action you can ask ```serviceObj.getNodeHrd()``` which will fetch the hrd back from node to mgmt side
-
-#### start/stop/export/import/....
-
-- calls specific actions in mgmt side (git repo) and node
-    - $name is the name of the action e.g. stop
-- process
-    - call actions_mgmt.$name_pre
-    - call actions_node.$name
-    - call actions_mgmt.$name_post
-        - in this post action you can ask ```serviceObj.getNodeHrd()``` which will fetch the hrd back from node to mgmt side

@@ -1,7 +1,5 @@
 ### AtYourService Definitions
 
-OLD - TO BE DELETED/RECYCLED
-
 #### AYS repos
 
 Are git based repos, they store the templates or the actual deployment

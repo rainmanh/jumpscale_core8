@@ -1,4 +1,4 @@
-## example how to use ays to automate vmachines in docker
+## Example how to use ays to automate vmachines in docker
 
 
 The following example will:

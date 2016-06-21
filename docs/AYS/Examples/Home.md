@@ -1,4 +1,4 @@
-## Examples of AYS usage
+## Examples of AYS Usage
 
-* [Docker](AtYourService/Examples/DockerExample.md)
-* [OVC](AtYourService/Examples/OVCExample.md)
+* [Docker](DockerExample.md)
+* [OVC](OVCExample.md)

@@ -76,6 +76,22 @@ Options:
   --help               Show this message and exit.
 ```
 
+- The process that takes places is:
+    - copy template files to appropriate destination (in your ays repo e.g. `/Users/kristofdespiegeleer1/code/jumpscale/ays_core_it/services/sshkey!main`)
+    - call actions.input
+        - goal is to manipulate the arguments which are the basis of the instance.hrd, this allows the system to avoid questions to be asked during install (because of @ASK statements in the instance.hrd files)
+        - in actions.input manipulate the 'args' argument to the method
+        - return True if action was ok
+        - ask the non configured items from schema.hrd (the @ASK commands, the ones not filled in in previous step
+    - call actions.hrd
+        - now the @ASK is resolved and the input arguments, this step allows to further manipulate the hrd files
+        - examples: create an ssh key and store in hrd file
+        - after this action the ays directory is up to date with all required configuration information
+        - information outside can be used to get info in hrd e.g. stats info from reality db
+    - apply all instance & service.hrd arguments on the action files in the deployed ays instance directory
+        - this means that all action files have all template arguments filled in
+
+
 #### ays init
 
 - the init step will see what needs to be done & detect all change to the system

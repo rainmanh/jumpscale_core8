@@ -22,11 +22,35 @@
     - All metadata repos are cloned as subdirs of ```/opt/code/$type/```
         - Repos from github are cloned into ```/opt/code/github```
         - Repos from other git repos are cloned into ```/opt/code/git/```
-        - So ```https://github.com/Jumpscale/ays_jumpscale8``` is cloned into ```/opt/code/github/jumppscale/ays_jumpscale8```
-    - Updating/cloning metadata repos:
-        - Manually cloning individual repos is achieved with ```git pull```
-        - Use ```ays mdupdate``` in order to update all existing repos and clone missing (not yet cloned) repos
+        - So ```https://github.com/Jumpscale/ays_jumpscale8``` is cloned into ```/opt/code/github/jumpscale/ays_jumpscale8```
+- Each AYS template defines these files:
+    * **service.hrd** 
+      * has information for recurring action methods
+      * has information for state changes (how to react on changes)
+      * has information about how to run processes
+    * **schema.hrd** 
+      * is schema for the metadata file relevant for an instance of a service
+      * has information about how services interact with each other through:
+          - Parentage
+          - Consumption
+          - Read more about these relationships in [AYS Basics](2_AYS_basics.html) in sections addressing *Producers & Consumers* and *Parents*
+      * has parameter definitions used to configure a service
+      * for example:
+          ```
+            image = type:str default:'ubuntu'
+            build = type:bool default:False
+            build.url = type:str
+            build.path = type:str default:''
+            ports = type:str list
 
+            sshkey = descr:'authorized sshkey' consume:sshkey:1:1 auto
+
+            os = type:str parent:'os'
+            docker = type:str consume:'app_docker':1 auto
+            docker.local = type:bool default:False
+          ```
+    * **actions.py** 
+      * defines the behavior of this service's actions.
 
 ### AYS Repo
 
@@ -36,24 +60,10 @@
 - a blueprint is a high level description of what needs to be be instantianated
 - 4 directories are relevant in such a ays repo
     - blueprints
-        - high level files they define what needs to be done
+        - high level files that define what needs to be done
     - servicetemplates
         - local set of ays templates
-        - if ays looks for a template starting from an ays repo, it will always look first in this directory if template found, if not then it will get it from the ays metadata template repo 
-        - **service.hrd** 
-          - is the main metadata file which is valid for all service instances
-          - has information for recurring action methods
-          - has information for state changes (how to react on changes)
-          - has information about code recipes
-          - has information about how to run processes
-        - **schema.hrd** 
-          - is schema for the metadata file relevant for 1 instance of a service
-        - **actions.py** 
-          - defines actions executed from the management location (a central location)
-        - **actions_node.py** 
-          - optional file, can be called from actions.py with j.actions ... method
-          - these methods will then be executed remotely
-          - these same methods (defs) can also be put in actions.py itself
+        - if ays looks for a template starting from an ays repo, it will always look first in this directory if template found, if not then it will get it from the ays metadata template repo
     - recipes
         - local copy of the ays template
         - made ready for consumption in relation to local ays repo  

@@ -31,6 +31,8 @@ class CuisineInstallerDevelop:
             """
         else:
             C = """
+            python3
+            postgresql
             libpython3.4-dev
             python3.4-dev
             libpython3.5-dev
@@ -56,6 +58,9 @@ class CuisineInstallerDevelop:
     def pip(self):
         self.cuisine.installer.base()
         self.python()
+        if self.cuisine.core.isMac:
+            return
+        
         C="""
             #important remove olf pkg_resources, will conflict with new pip
             rm -rf /usr/lib/python3/dist-packages/pkg_resources
@@ -207,9 +212,7 @@ class CuisineInstallerDevelop:
             C=self.cuisine.core.args_replace(C)
             self.cuisine.core.run(C)
         elif self.cuisine.core.isMac:
-            cmd = """sudo mkdir -p /opt
-            # sudo chown -R despiegk:root /opt
-            ruby -e \"$ (curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""""
+            cmd = "export TMPDIR=~/tmp;mkdir -p $TMPDIR;cd $TMPDIR;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh"
             self.cuisine.core.run(cmd)
         else:
             raise j.exceptions.RuntimeError("platform not supported yet")
@@ -219,7 +222,7 @@ class CuisineInstallerDevelop:
     def dnspython3(self):
         C = """
             cd $tmpDir
-            wget http://www.dnspython.org/kits3/1.12.0/dnspython3-1.12.0.tar.gz
+            wget --remote-encoding=utf-8 http://www.dnspython.org/kits3/1.12.0/dnspython3-1.12.0.tar.gz
             tar -xf dnspython3-1.12.0.tar.gz
             cd dnspython3-1.12.0
             ./setup.py install

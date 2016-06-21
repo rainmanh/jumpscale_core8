@@ -58,6 +58,9 @@ class CuisineGolang:
 
         # return self._gopath
 
+    def clean_src_path(self):
+        srcpath = self.cuisine.core.joinpaths(self.GOPATH, 'src')
+        self.cuisine.core.dir_remove(srcpath)
 
     @actionrun(action=True)
     def get(self,url):

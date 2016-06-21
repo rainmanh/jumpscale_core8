@@ -25,10 +25,10 @@ class CuisinePortal:
         To add spaces and actors, please use addSpace and addActor
         """
         self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        if not self.cuisine.core.isMac:
-            if not self.cuisine.installer.jumpscale_installed():
-                self.cuisine.installerdevelop.jumpscale8()
-            self.cuisine.pip.upgrade("pip")
+        # if not self.cuisine.core.isMac:
+        if not self.cuisine.installer.jumpscale_installed():
+            self.cuisine.installerdevelop.jumpscale8()
+        self.cuisine.pip.upgrade("pip")
         self.installDeps()
         self.getcode()
         self.linkCode()

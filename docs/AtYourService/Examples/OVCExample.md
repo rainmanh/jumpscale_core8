@@ -23,3 +23,30 @@ ays examples are stored in
 
 
 #@todo complete
+
+```
+
+g8_client__main:
+    g8.account: {g8.account}
+    g8.url: {g8.url}
+    g8.password: {g8.password}
+
+sshkey__main:
+
+vdcfarm__main:
+
+vdc__spacename:
+    vdcfarm: main
+
+
+node.ovc__vm:
+    vdc: spacename
+    ports: '80:80, 443:443, 18384:18384'
+    sshkey: 'main
+    os.image: 'Ubuntu 16.04 x64'
+
+os.ssh.ubuntu__os:
+    node: vm
+
+
+```

@@ -1,4 +1,4 @@
-### AtYourService remote execution (OUTDATED)
+### AYS Remote Execution (OUTDATED)
 
 AtYourService allows you to create and manage a full environment.
 In order to be able to contact the remote machines, you need to write the services that will handle these communications.

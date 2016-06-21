@@ -4,9 +4,7 @@ AYS repositories (repos) are Git repositories related to a service of which the 
 
 There are two types of repos used by AYS:
 
-- **AYS Template Repos**
-    Git repositories containing all data (templates) from which an actual AYS instance can be deployed
-- **AYS Repos**
-    Git repositories containing actually deployed instances
+- **AYS Template Repos** are Git repositories containing all data (templates) from which an actual AYS instance can be deployed
+- **AYS Repos** are Git repositories containing actually deployed instances
 
 See [AYS File Locations](AtYourServiceFileLocations.md) for more details.

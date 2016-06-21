@@ -3,7 +3,7 @@
 * Manages the life-cycle of your AYS
 * you need to implement one or more methods (actions) on your atyourservice actions.py file
 
-### usage of arguments
+### Usage of arguments
 
 Before the actions get executed the ays robot will apply the instance.hrd (is stored in ays instance directory) on the actions.py file
 
@@ -161,10 +161,4 @@ class ActionsBaseMgmt:
         """
         build the service
         """
-
-
-
-
 ```
-
-

@@ -1,4 +1,4 @@
-## ays command line
+## AYS Commands
 
 ### overview of commands
 

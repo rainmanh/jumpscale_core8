@@ -58,6 +58,7 @@ class Controller:
         self.cuisine.core.dir_remove("$tmplsDir/cfg/controller/extensions")
         self.cuisine.core.file_copy("%s/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale" % self.cuisine.core.dir_paths["codeDir"], "$tmplsDir/cfg/controller/jumpscripts/", recursive=True)
         self.cuisine.core.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/controller/extensions", recursive=True)
+        self.cuisine.core.file_copy("%s/agentcontroller.toml" % sourcepath, '$tmplsDir/controller/agentcontroller.toml')
 
         if start:
             self.start()
@@ -70,8 +71,7 @@ class Controller:
         self.cuisine.core.file_copy("$tmplsDir/cfg/controller", "$cfgDir/", recursive=True)
 
         # edit config
-        sourcepath = "$goDir/src/github.com/g8os/controller"
-        C = self.cuisine.core.file_read("%s/agentcontroller.toml" % sourcepath)
+        C = self.cuisine.core.file_read('$cfgDir/controller/agentcontroller.toml')
         cfg = j.data.serializer.toml.loads(C)
 
         cfgDir = self.cuisine.core.dir_paths['cfgDir']

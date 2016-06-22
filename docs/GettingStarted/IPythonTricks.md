@@ -1,12 +1,21 @@
-# IPython Tricks
+## IPython Tricks
 
-## How to play with the default loaded libraries
+The easiest way to get to know the JumpScale well is to start the IPython interactive shell.
+
+Execute the following command:
+
+```shell
+js
+```
+
+### Play with the default loaded libraries
 
 You can walk around in the JumpScale namespace by using `j.` and hit the tab key.
 
-## How to get info about a method for an JumpScale lib
 
-e.g. `j.sal.fs.createDir?`
+### Get info about a method for a JumpScale lib
+
+In the interactive shell type: `j.sal.fs.createDir?`
 
 ```python
 In [1]: j.sal.fs.createDir(?
@@ -19,11 +28,12 @@ if newdir was only given as a directory name, the new directory will be created 
 if newdir was given as a complete path with the directory name, the new directory will be created in the specified path
 ```
 
-## How to know where a library is on the file system
+### How to know where a library is on the file system
 
 See above, look at help of method, the *File: ...* shows where the file is that implements the method.
 
-## How to load extra modules in JumpScale script
+
+### How to load extra modules in JumpScale script
 
 Type `JumpScale.` and then hit the tab key:
 

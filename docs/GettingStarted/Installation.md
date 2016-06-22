@@ -97,18 +97,3 @@ installJS(self,base="",clean=False,insystem=True,GITHUBUSER="",GITHUBPASSWD="",C
 
         """
 ```
-
-
-### Test JumpScale
-
-The easiest way to get to know the framework well is to start an interactive shell, to test if that works, execute the following command:
-
-```shell
-js
-```
-
-You can also test using the JumpScale framework as a library in your code, to test if that works, execute the following command:
-```shell
-ipython
-from JumpScale import j
-```

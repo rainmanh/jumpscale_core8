@@ -1,19 +1,19 @@
 from JumpScale import j
 
-from ServiceRecipe import ServiceRecipe
-from Service import Service, loadmodule
-from ServiceTemplate import ServiceTemplate
+from JumpScale.baselib.atyourservice.ServiceRecipe import ServiceRecipe
+from JumpScale.baselib.atyourservice.Service import Service, loadmodule
+from JumpScale.baselib.atyourservice.ServiceTemplate import ServiceTemplate
 
-from ActionsBaseNode import ActionsBaseNode
-from ActionsBaseMgmt import ActionsBaseMgmt
-from ActionMethodDecorator import ActionMethodDecorator
+from JumpScale.baselib.atyourservice.ActionsBaseNode import ActionsBaseNode
+from JumpScale.baselib.atyourservice.ActionsBaseMgmt import ActionsBaseMgmt
+from JumpScale.baselib.atyourservice.ActionMethodDecorator import ActionMethodDecorator
 
-from AtYourServiceRepo import AtYourServiceRepo
+from JumpScale.baselib.atyourservice.AtYourServiceRepo import AtYourServiceRepo
 
-from AtYourServiceTester import AtYourServiceTester
+from JumpScale.baselib.atyourservice.AtYourServiceTester import AtYourServiceTester
 
 try:
-    from AtYourServiceSandboxer import *
+    from JumpScale.baselib.atyourservice.AtYourServiceSandboxer import *
 except:
     pass
 import os
@@ -66,11 +66,12 @@ class AtYourServiceFactory:
         self._repos = {}
         j.dirs._ays = None
 
+
     @property
     def repos(self):
         if self._repos == {}:
             for path in j.atyourservice.findAYSRepos():
-                name = j.sal.fs.getBaseName(path)
+                name = path.strip('/').replace('/', '.')
                 self._repos[name] = AtYourServiceRepo(name, path)
         return self._repos
 

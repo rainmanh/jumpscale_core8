@@ -194,7 +194,7 @@ class CuisineBootMediaInstaller:
         """
 
         init_tmpl = """\
-        #!/usr/bin/bash
+        #!{bash}
 
         mkdir /dev/pts
         mount -t devpts none /dev/pts
@@ -224,7 +224,12 @@ class CuisineBootMediaInstaller:
 
             fstab = textwrap.dedent(fstab_tmpl).format(rootuuid=rootuuid, bootuuid=bootuuid)
             self.cuisine.core.file_write("/mnt/root/etc/fstab", fstab)
-            init = textwrap.dedent(init_tmpl).format(gid=gid, nid=nid)
+
+            bash = '/usr/bin/bash'
+            if not j.sal.fs.exists('/mnt/root/usr/bin/bash'):
+                bash = '/bin/bash'
+
+            init = textwrap.dedent(init_tmpl).format(gid=gid, nid=nid, bash=bash)
             self.cuisine.core.file_write("/mnt/root/sbin/init", init, mode=755)
 
         self.formatCardDeployImage(url, deviceid=deviceid, part_type='gpt', post_install=configure)

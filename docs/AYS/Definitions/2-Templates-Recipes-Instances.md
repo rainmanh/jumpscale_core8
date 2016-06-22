@@ -7,7 +7,7 @@ An AYS service template defines the full life cycle from pre-installation and in
 
 More specifically an AYS service template describes:
 
-  - The Parameters to configure a service
+  - The parameters to configure a service
   - How to start/stop the service
   - How to monitor the service
   - How to configure the service
@@ -25,7 +25,7 @@ All this is described in the AYS service template files:
 
 An AYS service *template* becomes (or is "coverted" into) an AYS service *recipe* when it gets copied into a local AYS repository, where it will be used for actually deploying one or more instances of the services.
 
-So an AYS service *recipe* is exactly the same as an AYS service *template*, it's like a "snapshot" of the service template.  
+So an AYS service *recipe* is exactly the same as an AYS service *template*, it's like a "snapshot" of the service template.
 
 Since an AYS service *recipe* is copied into an AYS Repo, it is version controlled.
 

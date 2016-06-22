@@ -4,7 +4,7 @@ There is a special type of consumption which is called a *parent*.
 
 This defines the location in the AYS repo file system (visualization) but also a child/parent relationship, e.g. an app living inside a node.
 
-Child services also inherit their parents executor defined in `getExecutor` by default.
+Child services also inherit their parent's executor defined in `getExecutor` by default.
 
 Example of parents in `schema.hrd`:
 

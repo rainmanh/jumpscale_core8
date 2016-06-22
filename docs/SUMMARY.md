@@ -26,7 +26,6 @@
       * [AYS Service Unique Key](AYS/Definitions/4-Unique-Key.md)
       * [AYS Producers & Consumers](AYS/Definitions/5-Producers-Consumers.md)
       * [AYS Parents & Childs](AYS/Definitions/6-Parents-Childs.md)
-      * [AYS Service Actions](AYS/Definitions/7-Actions.md)
       * [AYS Blueprints](AYS/Definitions/8-Blueprints.md)
    * [Life Cycle of an AYS Service](AYS/Service-Lifecycle.md)
    * [AYS Commands](AYS/Commands.md)

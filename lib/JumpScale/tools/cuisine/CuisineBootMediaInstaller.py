@@ -199,7 +199,7 @@ class CuisineBootMediaInstaller:
         mkdir /dev/pts
         mount -t devpts none /dev/pts
         source /etc/profile
-        exec /sbin/core -gid {gid} -nid {nid} -roles g8os > /var/log/core.log 2>&1
+        exec /usr/bin/core -gid {gid} -nid {nid} -roles g8os > /var/log/core.log 2>&1
         """
 
         def configure(deviceid):
@@ -225,7 +225,7 @@ class CuisineBootMediaInstaller:
             fstab = textwrap.dedent(fstab_tmpl).format(rootuuid=rootuuid, bootuuid=bootuuid)
             self.cuisine.core.file_write("/mnt/root/etc/fstab", fstab)
             init = textwrap.dedent(init_tmpl).format(gid=gid, nid=nid)
-            self.cuisine.core.file_write("/mnt/sbin/init", init, mode=755)
+            self.cuisine.core.file_write("/mnt/root/sbin/init", init, mode=755)
 
         self.formatCardDeployImage(url, deviceid=deviceid, part_type='gpt', post_install=configure)
 

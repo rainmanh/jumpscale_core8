@@ -1,15 +1,16 @@
-## Example how to use ays to automate vmachines in docker
+## Automate the Creation Docker Containers
 
+(UNCOMPLETE)
 
 The following example will:
 
-- create docker node with ays called master
-- create docker node with ays called client
-- install jumpscale in both dockers
-- install jumpscale AgentController8 in master
-- install jumpscale agent8 in client
+- Create Docker container with AYS called master
+- Create Docker container with AYS called client
+- Install JumpScale on both Docker containers
+- Install JumpScale AgentController8 in master
+- Install JumpScale Agent8 in client
 
-requirements
+Requirements
 
 - all docker based
 - start from ubuntu 15.04 64 bit, use jsdocker way of working (see docs)

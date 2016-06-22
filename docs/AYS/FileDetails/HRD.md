@@ -1,6 +1,12 @@
-## Human Readable Data Format
+## HRD
 
-HRD, abreviation for Human Readeable Data, is the name of the file format used in the configuration files of JumpScale.
+HRD is the abreviation for **Human Readeable Data**.
+
+We use it as the file format of all configuration files of JumpScale.
+
+The system wide configuration files are in `/optvar/hrd/`.
+
+The HRD configuration files of the AYS service instances are all in `/optvar/hrd/apps`.
 
 
 ### Example of an HRD file

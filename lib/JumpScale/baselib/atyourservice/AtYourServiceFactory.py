@@ -50,7 +50,7 @@ class AtYourServiceFactory:
 
         self._test = None
 
-    def getTester(self, name="main"):
+    def getTester(self, name="fake_IT_env"):
         return AtYourServiceTester(name)
 
     def get(self, name, path=""):
@@ -144,15 +144,8 @@ class AtYourServiceFactory:
                 self._init = True
                 return
 
-            # j.actions.reset()
-
-            # j.do.debug=True
-
             if j.sal.fs.exists(path="/etc/my_init.d"):
                 self.indocker = True
-
-            # login=j.application.config.get("whoami.git.login").strip()
-            # passwd=j.application.config.getStr("whoami.git.passwd").strip()
 
             # always load base domaim
             items = j.application.config.getDictFromPrefix("atyourservice.metadata")
@@ -164,17 +157,12 @@ class AtYourServiceFactory:
                     raise j.exceptions.RuntimeError("url cannot be empty")
                 branch = items[domain].get('branch', 'master')
                 reponame = url.rpartition("/")[-1]
-                if not reponame in list(repos.keys()):
-                    # means git has not been pulled yet
-                    if login != "":
-                        dest = j.do.pullGitRepo(url, dest=None, login=login, passwd=passwd, depth=1, ignorelocalchanges=False, reset=False, branch=branch)
-                    else:
-                        dest = j.do.pullGitRepo(url, dest=None, depth=1, ignorelocalchanges=False, reset=False, branch=branch)
+                if reponame not in list(repos.keys()):
+                    dest = j.do.pullGitRepo(url, dest=None, depth=1, ignorelocalchanges=False, reset=False, branch=branch)
 
                 repos = j.do.getGitReposListLocal()
 
                 dest = repos[reponame]
-                # print "init %s" % domain
                 self._domains.append((domain, dest))
 
             self._init = True

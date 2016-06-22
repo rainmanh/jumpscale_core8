@@ -178,6 +178,7 @@ class CuisineInstallerDevelop:
         python-telegram-bot
         colorlog
         path.py
+        dnspython3
         """
         self.cuisine.pip.multiInstall(C,upgrade=True)
 
@@ -191,10 +192,6 @@ class CuisineInstallerDevelop:
 
         self.cuisine.apps.redis.build()
 
-        """
-        install dnspython3
-        """
-        self.dnspython3()
 
     @actionrun(action=True)
     def jumpscale8(self):
@@ -217,14 +214,3 @@ class CuisineInstallerDevelop:
         else:
             raise j.exceptions.RuntimeError("platform not supported yet")
 
-
-    @actionrun(action=True)
-    def dnspython3(self):
-        C = """
-            cd $tmpDir
-            wget --remote-encoding=utf-8 http://www.dnspython.org/kits3/1.12.0/dnspython3-1.12.0.tar.gz
-            tar -xf dnspython3-1.12.0.tar.gz
-            cd dnspython3-1.12.0
-            ./setup.py install
-            """
-        self.cuisine.core.run_script(C)

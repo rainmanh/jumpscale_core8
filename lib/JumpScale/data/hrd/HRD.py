@@ -121,6 +121,7 @@ class HRDItem:
         data=copy.copy(self.data)
         # print "process:%s |%s|"%(self,data)
         #check if link to other value $(...)
+        data = data or ''
         if data.find("$(")!=-1:
             items=j.tools.code.regex.findAll(r"\$\([\w.]*\)",data)
             if len(items)>0:

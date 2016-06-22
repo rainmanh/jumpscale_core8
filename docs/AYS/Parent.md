@@ -57,6 +57,3 @@ ays apply
 A service is also identified by its parent, so two services with the same domain/role/instance can exits if they have different parents.
 
 This is useful for grouping services of a certain location/node together. Then, performing any action is made easier.
-
-
-

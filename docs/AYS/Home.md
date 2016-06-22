@@ -1,6 +1,7 @@
 ## AYS Introduction
 
-> Note: parts of the **AtYourService** documentation is deprecated. It's still heavily under refactoring.
+> Note that parts of the **AtYourService** documentation is deprecated. It's still heavily being reviewed.
+
 
 **AtYourService** (AYS) is a self-healing application management framework for cloud infrastructure and is installed as part of a JumpScale installation.
 
@@ -12,14 +13,16 @@ It combines functions such as:
 - **Build Tool** like [ant](http://ant.apache.org)
 - **Monitoring Tool**
 
+
 **What is a service?**
 
 A service, either local or remote, is an abstraction for almost anything:
 
-- Simple package i.e `MongoDB`
-- A server cluster i.e `MongoDB cluster`
+- Simple package i.e `mongodb`
+- Server cluster i.e `mongodb cluster`
 - Datacenter infrastructure i.e `rack(s) or a cluster of machines`
-- Abstraction for several other services
+- Buisness logic i.e `user` and `team`
+- Abstraction for any number of other services
 
 
 **One command to rule them all**
@@ -30,3 +33,5 @@ We use only one command `ays` to control everything:
 - Install a service by executing `ays install`
 - Start all services: `ays start`
 - Stop all services: `ays stop`
+
+Next you will want to learn about the [AYS Definitions](Definition/0-Definitions.md).

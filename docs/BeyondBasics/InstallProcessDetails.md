@@ -1,11 +1,11 @@
-# Installation process details
+## Installation Process Details
 
-## Supported platforms
+### Supported platforms
 
 - Ubuntu 14+
 - Mac OSX Yosemite
 
-## Following environment variables influence the installation process
+### Following environment variables influence the installation process
 
 ```
 GITHUBUSER = ''
@@ -24,7 +24,7 @@ CODEDIR = '/opt/code'
 - GITHUBPASSWD: password used to connect to GitHub
 - JSGIT & AYSGIT: allow us to choose other installation sources for JumpScale as well as AtYourService repo
 
-## JumpScale installation process
+### JumpScale installation process
 
 Several scripts are involved to complete the installation:
 - [install.sh](https://github.com/Jumpscale/jumpscale_core8/blob/master/install/install.sh): this is the main entry point of the installation process, it will make sure that at least python3 and curl packages are installed, then it will download `bootstrap.py`, the second installation script, and run it it.

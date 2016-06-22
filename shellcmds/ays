@@ -256,10 +256,10 @@ def destroy():
     atyourservice.destroy(False)
 
 @click.command()
-@click.argument('cmd')
-@click.option('--name', '-n', help="Name of test.", default='main')
+@click.argument('cmd', default='doall')
+@click.option('--name', '-n', help="Name of test.", default='fake_IT_env')
 @click.option('--message', '-m', help="Message as used in e.g. pull/push.", default='unknown')
-def test(cmd,name,message):
+def test(cmd, name, message):
     """
     there is a test suite for ays, this command allows to control the test suite
 

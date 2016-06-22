@@ -216,9 +216,8 @@ class AtYourServiceRepo():
             items = j.sal.fs.listFilesInDir(j.sal.fs.joinPaths(self.basepath, "blueprints"))
 
             for path in items:
-                bp = Blueprint(self, path=path)
-                if bp.hash not in self._blueprints:
-                    self._blueprints[bp.hash] = bp
+                if path not in self._blueprints:
+                    self._blueprints[path] = Blueprint(self, path=path)
 
         list_bp = list(self._blueprints.values())
         list_bp = sorted(list_bp, key=lambda bp: bp.name)
@@ -267,8 +266,8 @@ class AtYourServiceRepo():
                 bp.load(role=role, instance=instance)
         else:
             bp = Blueprint(self, path=path, content=content)
-            if bp.hash not in self._blueprints:
-                self._blueprints[bp.hash] = bp
+            if bp.path not in self._blueprints:
+                self._blueprints[bp.path] = bp
             bp.load(role=role, instance=instance)
 
         self.init(role=role, instance=instance)

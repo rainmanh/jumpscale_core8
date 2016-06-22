@@ -1,8 +1,9 @@
 ## AYS Recurring
 
-### manipulate on service object
+### Manipulate on service object
+
 ```
-aysi=j.atyourservice.getServiceFromKey("datacenter!palmlab")
+aysi = j.atyourservice.getServiceFromKey("datacenter!palmlab")
 aysi.recurring.add(...)
 ```
 

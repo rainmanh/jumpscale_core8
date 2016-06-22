@@ -1,4 +1,4 @@
-# Building your own Docker image
+## Building your own Docker image
 
 We made this task very easy for you. 
 
@@ -10,7 +10,7 @@ Also you can customize your image and build it the same way as the examples in t
 - Make sure you have the latest version of docker installed
 - GNU make
 
-## Building the base images
+### Building the base images
 To start building the base images first clone and prepare the repository:
 
 ```bash
@@ -63,7 +63,7 @@ REPOSITORY                   TAG                 IMAGE ID            CREATED    
 jumpscale/ubuntu             15.04               6cc68f352eb8        20 hours ago        630.4 MB
 ```
 
-## Running the image
+### Running the image
 ```bash
 docker run --rm -ti --name test jumpscale/ubuntu:15.04
 ```
@@ -90,7 +90,7 @@ jumpscale       redis                main          1 RUNNING  9999
 
 > Installed AYS services already running.
 
-## To run the image with jsdocker
+### To run the image with jsdocker
 JumpScale comes with a command line tool that abstract working with dockers. To run a new jsdocker image simply do the following:
 
 ```bash

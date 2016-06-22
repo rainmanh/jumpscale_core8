@@ -1,4 +1,5 @@
-# How to build an AYS (NEEDS TO BE REWORKED)
+## How to Build an AYS Service (NEEDS TO BE REWORKED)
+
 @todo
 
 Building an AYS means creating the g8fs metadata of the services, if needed actually compiling source code into binary and then pushing the result of the build to an AYS File Store.  

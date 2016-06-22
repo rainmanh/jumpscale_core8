@@ -1,6 +1,6 @@
-# Shell and debugging
+## Shell and debugging
 
-## js
+### js
 
 In order to start the JumpScale shell just type 'js'.
 
@@ -17,7 +17,7 @@ object?   -> Details about 'object', use 'object??' for extra details.
 In [1]:
 ```
 
-## Import JumpScale in any Python script
+### Import JumpScale in any Python script
 
 e.g. try using ipython
 
@@ -30,7 +30,7 @@ Now underneath j there is a basic set of functionality available. Just type j an
 
 There are tons of extensions available which can be installed using jspackages (more about that later).
 
-## From an existing Python script start JumpScale and go to the debug shell
+### From an existing Python script start JumpScale and go to the debug shell
 
 ```python
 from JumpScale import j
@@ -44,7 +44,7 @@ embed()
 
 Your script will now stop and show you an ipython console in which you can inspect your code and work with all variables in an interactive way.
 
-## Alternative way of debugging ipdb
+### Alternative way of debugging ipdb
 
 Install ipdb `apt-get install python-ipdb` or `pip install ipdb`
 

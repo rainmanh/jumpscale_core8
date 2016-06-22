@@ -1,5 +1,4 @@
-
-# Writing a tool for j.tools
+## Writing a tool for j.tools
 
 1- Switch to the tools directory:
 
@@ -46,7 +45,7 @@ class Hello(object):
 5- You will need j.core.db.flushall()/j.core.db.flushdb() to force it to reread the tools directory
 
 6- Use it
-```
+```python
 In [4]: h=j.tools.hello
 
 In [5]: h=j.tools.hello.new("Konnichwa")
@@ -65,5 +64,4 @@ Out[8]: 'Konnichwa'
 
 In [9]: h.manytimes(3)
 Out[9]: 'Konnichwa Konnichwa Konnichwa !!!'
-
 ```

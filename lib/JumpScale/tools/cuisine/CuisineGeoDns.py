@@ -11,7 +11,7 @@ class actionrun(ActionDecorator):
 
 class Domain:
 
-    def __init__(self, name, cuisine, serial=None,  ttl=None, content="", max_hosts=2,  a_records={}, cname_records={}, ns=[]):
+    def __init__(self, name, cuisine, serial=1, ttl=None, content="", max_hosts=2,  a_records={}, cname_records={}, ns=[]):
         """
         @name = full domain name to be created or to edit
         @content = string with json of entire zone file to replace or create zonefile
@@ -111,7 +111,7 @@ class Domain:
             self.content["data"][key]["cname"] = val
 
         self.content["ttl"] = self.ttl
-        self.content["serial"] = self.serial
+        self.content["serial"] = (int(self.serial) + 1) if self.serial else 1
         self.content["max_hosts"] = self.max_hosts
         self.content["data"][""]["ns"] = self.ns
         config = j.data.serializer.json.dumps(self.content)
@@ -173,7 +173,7 @@ class CuisineGeoDns:
                 domains.append(basename.rstrip('.json'))
         return domains
 
-    def ensure_domain(self, domain_name, serial=None,  ttl=None, content=None, max_hosts=2,  a_records={}, cname_records={}, ns=[]):
+    def ensure_domain(self, domain_name, serial=1, ttl=600, content=None, max_hosts=2,  a_records={}, cname_records={}, ns=[]):
         """
         used to create a domain_name in dns server also updates if already exists
         @name = full domain name to be created or to edit
@@ -181,7 +181,7 @@ class CuisineGeoDns:
         @a_records = dict of a_records and their subdomains
         @cname_records = list of c_records and thier subdomains
         @ttl = time to live specified if predefined in content will be replaced
-        @serial = used as a uniques key
+        @serial = int, used as a uniques key, need to be incretented after every change of the domain.
         @ns = list of name servers
         """
         if self.cuisine.core.file_exists("$cfgDir/geodns/dns/%s.json" % domain_name):
@@ -202,7 +202,7 @@ class CuisineGeoDns:
         """
         delete domain object
         """
-        self.cuisine.core.dir_remove("$cfgDir/geodns/dns/%s.json" % domain_name)
+        self.cuisine.core.file_unlink("$cfgDir/geodns/dns/%s.json" % domain_name)
 
     def add_record(self, domain_name, subdomain, record_type, value, weight=100):
         """
@@ -218,8 +218,6 @@ class CuisineGeoDns:
         if record_type == "cname":
             domain_instance.add_cname_record(value, subdomain)
         return domain_instance.save()
-
-
 
     def get_record(self, domain_name, record_type, subdomain=None):
         """

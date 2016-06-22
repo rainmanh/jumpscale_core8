@@ -1,4 +1,4 @@
-## Parents & Childs
+## Parents & Children
 
 There is a special type of consumption which is called a *parent*.
 

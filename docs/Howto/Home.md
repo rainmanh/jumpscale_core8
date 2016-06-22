@@ -1,4 +1,4 @@
-# How to
+## How To
 
 * [Use Git](how_to_use_git.md)
 * [Create a tool for j](how_to_create_a_tool_for_j.md)

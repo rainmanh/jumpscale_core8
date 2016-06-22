@@ -1,4 +1,4 @@
-#### Blueprint
+## Blueprint
 
 The `blueprint` command will create all AYS service instances required for the application described by the blueprint.
 

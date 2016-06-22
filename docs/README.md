@@ -5,12 +5,12 @@
 
 ### Main features
 
-- A comprehensive library of convenient functions for system automation operations.
-- A system abstraction layer (SAL) that allows managing different types of applications and services.
-- A SSH management layer.
-- A full lifecycle management system for applications and services.
-- Management of grid of thousands remote nodes.
-- A portforwarding system to allow secure access to all your services.
+- A comprehensive library of convenient functions for system automation operations
+- A system abstraction layer (SAL) that allows managing different types of applications and services
+- A SSH management layer
+- A full life cycle management system for applications and services
+- Management of grid of thousands remote nodes
+- A port forwarding system to allow secure access to all your services
 
 
 ### How to get started
@@ -21,7 +21,7 @@
 
 ### More info
 
-- Main GitHub repositories:
+- GitHub repositories:
     - [JumpScale Core](https://github.com/Jumpscale/jumpscale_core8)
     - [AtYourService](https://github.com/Jumpscale/ays_jumpscale8) 
     
@@ -43,4 +43,4 @@
 
 ### License
 
-[JumpScale](http://www.jumpscale.com/) is a BSD 2-Clause License.
+[JumpScale](http://www.jumpscale.com/) is a BSD 2-Clause license.

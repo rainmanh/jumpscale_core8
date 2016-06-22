@@ -23,7 +23,7 @@ Before you start building service you need to make sure you have the correct ser
 
 Here is an example script to deploy a build infrastructure
 
-```
+```py
 #!/usr/local/bin/jspython
 
 from JumpScale import j

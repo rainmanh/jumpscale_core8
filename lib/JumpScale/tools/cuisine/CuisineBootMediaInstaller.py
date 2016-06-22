@@ -175,17 +175,19 @@ class CuisineBootMediaInstaller:
 
         self.formatCardDeployImage(url, deviceid=deviceid, part_type='msdos', post_install=configure)
 
-    def g8os(self, gid, nid, platform="amd64",deviceid=None):
+    def g8os(self, gid, nid, platform="amd64", deviceid=None, url=None):
         """
         if platform none then it will use self.cuisine.node.hwplatform
         
         example: hwplatform = rpi_2b, orangepi_plus,amd64
 
-        """        
-        if platform=="amd64":
-            url="https://stor.jumpscale.org/public/g8os.tgz"
-        else:
-            raise j.exceptions.Input("platform not supported yet")                
+        """
+        if url is None:
+            if platform == "amd64":
+                url = "https://stor.jumpscale.org/public/g8os.tgz"
+            else:
+                raise j.exceptions.Input("platform not supported yet")
+
         fstab_tmpl = """\
         PARTUUID={rootuuid}\t/\text4\trw,relatime,data=ordered\t0 1
         PARTUUID={bootuuid}\t/boot\tvfat\trw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro    0 2

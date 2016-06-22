@@ -1,9 +1,9 @@
 ## AYS Commands
 
-- [help](help.cmd)
-- [update](update.cmd)
+- [help](help.md)
+- [update](update.md)
 - [blueprint](blueprint.md)
-- [init](init.hrd)
+- [init](init.md)
 - [commit](commit.md)
 - [install](install.md)
 - [do](do.md)

@@ -59,7 +59,7 @@ j.core.db.flushall()/j.core.db.flushdb()
 ### 6. (Re)start the `js` session
 
 
-## 7. Use the new SAL
+### 7. Use the new SAL
 
 ```python
 In [1]: j.sal.hello.upper()

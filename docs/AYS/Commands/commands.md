@@ -1,0 +1,16 @@
+## AYS Commands
+
+- [help](help.cmd)
+- [update](update.cmd)
+- [blueprint](blueprint.md)
+- [init](init.hrd)
+- [commit](commit.md)
+- [install](install.md)
+- [do](do.md)
+- [simulate](simulate.md)
+- [list](list.md)
+- [destroy](destroy.md)
+- [test](test.md)
+- [showparents](showparents.md)
+- [showproducers](showproducers.md)
+- [setstate](setstate.md)

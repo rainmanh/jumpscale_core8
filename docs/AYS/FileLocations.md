@@ -1,4 +1,4 @@
-## AtYourService Files
+## AYS Files
 
 ### AYS Template Repo
 

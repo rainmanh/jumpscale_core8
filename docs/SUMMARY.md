@@ -68,7 +68,7 @@
    * [DiskManager](SAL/DiskManager.md)
    * [Dnsmasq](SAL/Dnsmasq.md) 
    * [OpenVSwitch](SAL/OpenVSwitch.md)
-   * [DHCP_ihc](SAL/DHCP_ihc.md)
+   * [DHCP_ihc](SAL/Dhcp_ihc.md)
    * [NetConfig](SAL/NetConfig.md)
    * [NetTools](SAL/NetTools.md)
    * [Samba](SAL/Samba.md)

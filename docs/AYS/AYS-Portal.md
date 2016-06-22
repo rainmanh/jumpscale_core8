@@ -1,12 +1,14 @@
 ## At Your Service Portal
 
-AYS services and templates are visualized in space [AYS](http://localhost:82/AYS).
+AYS services and templates are visualized in the **AYS Portal**.
+
+> Note that it is probably better to use the **Cockpit Portal** instead, check the [Cockpit Portal documentation](https://www.gitbook.com/book/gig/cockpit/details) for more details.
 
 ### Templates list
 
 ![Templates](AYS-Templates.png)
 
-The Templates page lists all the templates available on your system as well as configuration templates as defined in /optvar/hrd/system/atyourservice.hrd
+The **Templates** page lists all the AYS servive templates available on your system as well as configuration templates as defined in /optvar/hrd/system/atyourservice.hrd
 
 ```
 ays.1                          =
@@ -37,23 +39,26 @@ The services page lists installed services on the system as well as those config
 
 This makes it easy to see what services are available where as well as how they've been configured.
 
-
 To reload your services and templates at any point, the reload button will dump its database and reload everything from the freshly.
 
 The details pages offer further information.
+
+
 ### Template details
 
 ![](TemplateDetails.png)
 
-The templates details page shows information pertinent to the template; such as its domain, name, metadata path, installed instances (which point to the detail page of those services) and a code editor to easily configure the template.
+The **Templates Details** page shows information pertinent to the template; such as its domain, name, metadata path, installed instances (which point to the detail page of those services) and a code editor to easily configure the template.
+
 
 ### Service details
 
 ![](ServiceDetails.png)
 
-The service details page shows information pertinent to the service.
-It gives a link to the template used to install.
+The **Service Details** page shows information pertinent to a service instance.
 
-The code editors give a handy way to edit/configure services.
+It gives a link to the service template used to install.
 
-You can also perform actions on the services through the action links to start/stop/restart the services.
+The code editor gives a handy way to edit/configure the service instance.
+
+You can also perform actions on the service instances through the action links to start/stop/restart the services.

@@ -1,6 +1,8 @@
 ## How to Use Git Automated
 
-We have a handy tool `jscode` to make working with source code easier. 
+We have a handy tool `jscode` to make working with source code easier.
+
+The `jscode` shell command is a way for developers to develop on JumpScale, easily across all repositories.
 
 ```bash
 jscode --help
@@ -45,15 +47,52 @@ jscode init
 
 > If you entered a passphrase for your key, you will get asked for it when you do a relogin
 
+
 ### jscode status and jscode list
 - `jscode status` shows all the code repos status (if it has local modifications)
 - `jscode list` shows the remote `URLs`
 
+
 ### jscode commit
-Commit changes in a repo (or all repos) optionally commit to branch using the `-b` option.
+
+Commits changes in a repo (or all repos).
+
+Optionally commits to a branch using the `-b` option.
+
+```shell
+jscode commit -a jumpscale -r default_doc_jumpscale -m "example message"
+```
+
+If any of the arguments are not supplied by the user, they will be interactively asked.
+
+-   a: github account name
+-   r: repo name
+-   m: message
+
 
 ### jscode update
+
 Pulls all new remote changes to local clone.
 
+```shell
+jscode update
+```
+
 ### jscode push
-Pushes all local commit to remote.
+
+Pushes all local commitsto remote.
+
+```shell
+jscode push -m "message"
+```
+
+### status
+
+```shell
+jscode status
+
+#EXAMPLE
+STATUS: account reponame                  branch added:modified:deleted   insyncwithremote?   localrev       remoterev
+============================================================================================================================
+jumpscale       jumpscale_portal          unstable   a1  :m0  :d0         reposync:N          lrev:401       rrev:406
+```

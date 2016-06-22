@@ -50,7 +50,7 @@ class AtYourServiceFactory:
 
         self._test = None
 
-    def getTester(self, name="main"):
+    def getTester(self, name="fake_IT_env"):
         return AtYourServiceTester(name)
 
     def get(self, name, path=""):

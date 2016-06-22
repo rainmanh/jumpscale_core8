@@ -1,6 +1,7 @@
 ## AYS Introduction
 
-> Note: parts of the **AtYourService** documentation is deprecated. It's still heavily under refactoring.
+> Note that parts of the **AtYourService** documentation is deprecated. It's still heavily being reviewed.
+
 
 **AtYourService** (AYS) is a self-healing application management framework for cloud infrastructure and is installed as part of a JumpScale installation.
 
@@ -11,6 +12,7 @@ It combines functions such as:
 - **Configuration Management** like [ansible](http://www.ansible.com)
 - **Build Tool** like [ant](http://ant.apache.org)
 - **Monitoring Tool**
+
 
 **What is a service?**
 
@@ -31,3 +33,5 @@ We use only one command `ays` to control everything:
 - Install a service by executing `ays install`
 - Start all services: `ays start`
 - Stop all services: `ays stop`
+
+Next you will want to learn about the [AYS Definitions](Definition/0-Definitions.md).

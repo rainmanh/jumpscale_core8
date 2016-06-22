@@ -15,7 +15,9 @@ class Blueprint:
         self.aysrepo = aysrepo
         self.path = path
         if path != "":
-            self.name = j.sal.fs.getBaseName(path).rstrip('__archive')
+            self.name = j.sal.fs.getBaseName(path)
+            if self.name.endswith('__archive'):
+                self.name = self.name.rstrip('__archive')
             self.content = j.sal.fs.fileGetContents(path)
         else:
             self.name = 'unknown'

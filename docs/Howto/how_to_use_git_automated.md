@@ -1,4 +1,4 @@
-# How to use Git automated
+## How to Use Git Automated
 
 We have a handy tool `jscode` to make working with source code easier. 
 
@@ -32,7 +32,7 @@ optional arguments:
 
 ```
 
-## jscode init
+### jscode init
 
 ```bash
 jscode init
@@ -45,15 +45,15 @@ jscode init
 
 > If you entered a passphrase for your key, you will get asked for it when you do a relogin
 
-## jscode status and jscode list
+### jscode status and jscode list
 - `jscode status` shows all the code repos status (if it has local modifications)
 - `jscode list` shows the remote `URLs`
 
-## jscode commit
+### jscode commit
 Commit changes in a repo (or all repos) optionally commit to branch using the `-b` option.
 
-## jscode update
+### jscode update
 Pulls all new remote changes to local clone.
 
-## jscode push
+### jscode push
 Pushes all local commit to remote.

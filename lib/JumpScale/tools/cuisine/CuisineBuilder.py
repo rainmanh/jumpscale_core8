@@ -31,6 +31,7 @@ class CuisineBuilder:
         self.cuisine.apps.caddy.build(start=start)
         # self.cuisine.apps.skydns(start=start)
         self.cuisine.apps.influxdb.build(start=start)
+        self.cuisine.apps.cockpit.build(start=False)
         if not self.cuisine.core.isDocker and not self.cuisine.core.isLxc:
             self.cuisine.apps.weave.build(start=start)
         if sandbox:

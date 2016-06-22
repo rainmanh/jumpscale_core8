@@ -1,15 +1,15 @@
 ## JSCODE
 
-@todo this page is no longer up to date, please check jscode --help for more info.
-There were quite some changes in jumpscale 7.
+The `jscode` shell command is a way for developers to develop on JumpScale, easily across all repositories.
 
-JScode shellcommand is a way for developers to develop on JumpScale
-easily across all repos.
+This page is no longer up to date, since there were quite some changes in jumpscale 7.
 
-commit
-------
+Check `jscode --help` for more info.
 
-commit local changes to repo
+
+### commit
+
+Commits local changes to repo.
 
 ```shell
 jscode commit -a jumpscale -r default_doc_jumpscale -m "example message"
@@ -22,26 +22,23 @@ interactively asked
 -   r: repo name
 -   m: message
 
-push
-----
+### push
 
-push commited changes to repo
+Pushes commited changes to repo.
 
 ```shell
 jscode push -m "message"
 ```
 
-update
-------
+### update
 
-update code
+Update code.
 
 ```shell
 jscode update
 ```
 
-status
-------
+### status
 
 ```shell
 jscode status

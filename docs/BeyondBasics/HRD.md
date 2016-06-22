@@ -1,21 +1,11 @@
-## Human Readable Data
+## Human Readable Data Format
 
-### About HRD
+HRD, abreviation for Human Readeable Data, is the name of the file format used in the configuration files of JumpScale.
 
-* HRD is the configuration format in jumpscale.
-* Used in AtYourService configuration.
-* HRD is a more easily read and interpreted format for data, that is friendly to system engineers too.
-* Can even be used as a template engine!
-* It can be used to represent:
- * Configuration files
- * Database objects
 
-* * * * *
-
-### Example Of An HRD File
+### Example of an HRD file
 
 ```shell
-
 #!text
 bootstrap.ip=localhost
 bootstrap.login=root
@@ -23,15 +13,13 @@ bootstrap.passwd=rooter
 bootstrap.type=ssh
 ```
 
-* * * * *
+### HRD schema
 
-### HRD Schema
+An HRD schema defines the structure of an HRD file, based on which an HRD file can be generated.
 
-defines the structure of an HRD
-the schema can produce an HRD
+Example:
 
-example
-```
+```shell
 email = descr:'comma separated list of email addresses' type:email alias:'mail,mailaddr' @ask list
 mobile = descr:'comma separate list of mobile phone nrs' type:tel alias:'tel,landline' @ask list
 expire = descr:'format $day:$month:$year' type:date alias:till @ask
@@ -40,63 +28,55 @@ testf = type:float default:1.1
 testb = type:bool default:False
 ```
 
-properties
-- descr
-    - describes the field
-- type 
-    - str,email,int,float,bool,multiline,tel,ipaddr,date
-    - date = epoch (int)
-- default
-    - default value for this type
-- regex
-    - if you want to validate the entry against a regex
-- minval/maxval
-    - only relevant for int, what is min value for int & max
-- multichoice
-    - list of items people can select from e.g. ```'red,blue,orange'```
-- singlechoice
-    - like multichoice but can only select 1
-- alias
-    - alias for this property, can be list
-- @ask
-    - is a tag, if mentioned means we will ask for the value when not provided, if this is not mentioned then the default value will be used 
-- list
-    - tells the schema that the type is a list
-    - e.g. can be a list of ints, of strings, ...
-- id
-    - is tag
-    - identifies which field is the id
-    - if not specified name = $(instance) will be autoadded
-- consume
-    - format ```$role:$minamount:$maxamount,$role2:$min$max, ...```
+Properties of an HRD schema:
+
+- **descr** describes the field
+- **type** for specifying the type of data for the field
+    - Can be any of the following values: str, email, int, float, bool, multiline, tel, ipaddr, date
+    - Date = epoch (int)
+- **default** specifies the default value for the field
+- **regex** for validating the entry against a regex
+- **minval/maxval** for specifying minimum and maximum values for a field
+    - Only relevant for fields of type int
+- **multichoice** for specifying a list of items people can choose from, e.g. `'red,blue,orange'`
+- **singlechoice** for specifyng a single selection
+- **alias** for setting an alias name or multiple alias names for a field
+- **@ask** is a tag for specifying that the value needs to be provided for by the user
+    - If this is not mentioned then the default value will be used 
+- **list** to specify that the field is a list
+    - Can be a list of integers, strings, ...
+- **id** a tag for specifying that the field is the identifier
+    - If not specified name = $(instance) will be autoadded
+- **consume** to specify the dependencies to other services 
+    - Format `$role:$minamount:$maxamount,$role2:$min$max, ...`
     - $minamount-$maxamount is optional
-    - $role is role of other atyourservice e.g. node (consume service from a node)
-    - example: ```node:1:1,redis:1:3```
-    - the min-max are important because they define the dependency requirements e.g. node:1:1 means I need 1 node to be in good shape and if node is not there I cannot function myself.
-- parent
-    - specifies a role
-    - $role is role of other atyourservice e.g. node (consume service from a node)
-    - it acts like a consume ```$role:1:1``` but has special meaning
-    - when parent then the service instance will be subdir of parent in ays repo
-- parentauto
+    - $role is role of other AYS service, e.g. node (consume service from a node)
+    - Example: `node:1:1,redis:1:3`
+    - The min-max is important because they define the dependency requirements, e.g. node:1:1 means I need 1 node to be in good shape and if node is not there I cannot function myself.
+- **parent** for specifying the role
+    - $role is role of other AYS server, e.g. node (consume service from a node)
+    - Acts like consume `$role:1:1` but has special (operational) meaning
+    - When parent then the service instance will be subdir of parent in ays repo
+- **parentauto**
     - is tag to parent
     - means will automatically create the parent if it does not exist yet 
 
-consume example
-```python
+Consume example:
+
+```shell
 node = type:str list descr:'node on which we are installed' consume:node:1:1
 etcd = type:str list consume:etcd:3:3
 mongodb = type:str list consume:mongodb:1:3
 nameserver = type:str list consume:ns
 ```
 
-### get HRD from HRDSchema
+### Get HRD from HRD schema
 
 ```
 @todo 
 ```
 
-### Usage As Template Engine
+### Usage As template engine
 
 **Getting application instance HRD's**
 

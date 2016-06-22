@@ -1,27 +1,29 @@
-## How to Build an AYS Service (NEEDS TO BE REWORKED)
+## Building an AYS Service (NEEDS TO BE REWORKED)
 
-@todo
+Building an AYS service means creating the G8FS metadata of the services, if needed actually compiling source code into binary and then pushing the result of the build to an AYS File Store.  
 
-Building an AYS means creating the g8fs metadata of the services, if needed actually compiling source code into binary and then pushing the result of the build to an AYS File Store.  
+The services are build in a build server where a Docker container is spawn every time a new service needs to be build.
 
-The services are build in a build server where a docker container is spawn every time a new service needs to be build.  
-You need to specify in the ``service.hrd`` which docker images you want to use during the build process.
+You need to specify in the ``service.hrd`` which Docker images you want to use during the build process.
 
 ```
 build   =
     image: 'jumpscale/ubuntu1510_python',
     repo: 'https://github.com/Jumpscale/docker_ubuntu1510_python.git',
 ```
-``image``: is the name of the docker image to use  
-``repo`` is the url of a git repository where a Dockerfile is located. It's used if you want to build the image on the build server itself instead of downloading it from Docker hub.
 
-## Build server infrastructure
+``image`` is the name of the Docker image to use  
+``repo`` is the URL of a Git repository where a Dockerfile is located. It's used if you want to build the image on the build server itself instead of downloading it from Docker Hub.
 
-Before you start building service you need to make sure you have the correct service instance installed. You need:
+
+### Build server infrastructure
+
+Before you start building your service you need to make sure you have the following:
+
 - **Build server**: Any 'node' producer
-- **ays_stor_client.ssh**: At least one store client cause we need to know where to send the Metadata and binary files after the build.
+- **ays_stor_client.ssh**: At least one store client because we need to know where to send the metadata and binary files after the build
 
-Here is an example script to deploy a build infrastructure
+Here is an example script to deploy a build infrastructure:
 
 ```py
 #!/usr/local/bin/jspython
@@ -63,14 +65,12 @@ data = {
 }
 storclient1 = j.atyourservice.new(name='ays_stor_client.ssh',instance="storclient",args=data)
 storclient1.consume(ays_stor1)
-
-#######################################################
-
 ```
 
 ### Trigger a build
 
 With the ``ays`` command line:
+
 ```bash
 ays build -n redis --host 'node.ssh!buildserver' --build --push
 ```
@@ -83,26 +83,30 @@ Build:
   --push                push the docker image after building it.
   --debug               don't clean the docker_build after build. usefull to
                         debug if an error happen durin building
-
 ```
-Here we trigger the build of the redis service on the build server pointed by ``--host``.  
-``--build`` and ``--push`` specify that we want to build the docker image on the build server and then push it on Docker hub. These two flags are optional.
 
-In a Script:
+Here we trigger the build of the Redis service on the build server pointed by ``--host``.
+
+``--build`` and ``--push`` specify that we want to build the Docker image on the build server and then push it on Docker Hub. These two flags are optional.
+
+In a script:
+
 ```py
 redis = j.atyourservice.getTemplate(name='redis')
 redis.build(build_server='node.ssh!buildserver', image_build=False, image_push=False, debug=False)
 ```
 
 #### Metadata and binary files
-AYS FS uses two kind of files to recreate a file system:
+
+AYS FS uses two kinds of files to recreate a file system:
 - Metadata files
 - Binary files
 
-There is one metadata files by AYS templates or instance.
+There is one set metadata files per AYS service template or instance.
+
 This list contains all the files required by an AYS.
 
-The following is an excerpt of the metadata file of the ```jumpscale__base``` service.
+The following is an excerpt of the metadata files for the ```jumpscale__base``` service:
 ```
 /opt/jumpscale8/bin/jsnet|8a3e5e03a10ecc3601a1f14fbc371019|4857
 /opt/jumpscale8/bin/jsnode|793384b5bde2901461606146adbed382|5088
@@ -113,11 +117,12 @@ The following is an excerpt of the metadata file of the ```jumpscale__base``` se
 
 ```
 
-The format is   ```/$path/$name|$hash|$size```
+The format is `/$path/$name|$hash|$size`.
 
-The hash is an md5 hash of the content of the file. It's used to link the metadata with it's binary content. It also allow us to creates dedupe namespace where the binary content is never duplicated.
+The hash is an MD5 hash of the content of the file. It's used to link the metadata with it's binary content. It also allow us to creates dedupe namespace where the binary content is never duplicated.
 
 The binary content is stores in a directory structure with 3 levels.
+
 First two level are the first and second character of the hash of the file and the last level contain the actual binary file named with the full md5 hash.
 ```
 a
@@ -134,11 +139,14 @@ a
 ...
 ```
 
-## Build Method
-Every service need to have a build method in their actions_mgmt file.
-By default the build method just walk over the 'git.export' entries from the service HRD, download the files locally then create the metadata files and put the binary in the correct directory structure
+### Build method
+
+Every service needs to have a build method in their actions_mgmt file.
+
+By default the build method just walks over the `git.export` entries from the service HRD, downloads the files locally, and then create the metadata files and puts the binaries in the correct directory structure.
 
 This is the code of the default build method:
+
 ```py
 folders = serviceObj.installRecipe()
 

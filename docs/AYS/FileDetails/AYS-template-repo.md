@@ -1,4 +1,4 @@
-## AYS template repo
+## AYS Template Repo
 
 AYS template repositories contain all the metadata defining the life cycle of a service, from pre-installation to monitoring.
 

@@ -7,7 +7,7 @@ It's just a way of organizing your services and grouping them.
 Child services are created in a subdirectory of its parent.
 
 
-### To create a nested child service:
+### Create a nested child service
 
 @todo 
 

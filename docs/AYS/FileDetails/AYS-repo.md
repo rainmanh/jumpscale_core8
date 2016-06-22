@@ -1,4 +1,4 @@
-## AYS repo
+## AYS Repo
 
 This is the main repository from which services are deployed, executed, ...
 

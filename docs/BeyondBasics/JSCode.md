@@ -1,4 +1,4 @@
-## JSCODE
+## jscode
 
 The `jscode` shell command is a way for developers to develop on JumpScale, easily across all repositories.
 

@@ -1,4 +1,4 @@
-# FS Walker
+## FS Walker
 
 ```
 WARNING:
@@ -6,12 +6,11 @@ we need to improve the documentation on this page
 ```
 @todo check
 
-## Dependencies
+### Dependencies
 
--   You'll need to 'apt-get install python-regex' first (maybe no longer
-    required)
+You'll need to `apt-get install python-regex` first (maybe no longer required).
 
-## Example
+### Example
 
 ```python
 In [1]: fswalker = j.do.getWalker()
@@ -44,7 +43,7 @@ fswalker.statsPrint                 fswalker.walk
 
 Returns: '{files:[],dirs:[],links:[],...\$othertypes}'
 
-### Example
+#### Example
 
 ```python
 fswalker.find('.', False, False, {}, {'F': ['.pyc']}, True) 
@@ -76,7 +75,7 @@ match function selected the item.
 -   followlinks: defaults to False, if True would follow linked
     files/directories to walk within them.
 
-## Complex example with regular expression find combined with call back functions
+### Complex example with regular expression find combined with call back functions
 
 ```python
 pathRegexExcludes = {}
@@ -113,9 +112,8 @@ fswalker.walk('.',callbackFunctions,args,
                   [],pathRegexExcludes)
 ```
 
-## lastPath
+### lastPath
 
 -   fswalker.lastPath
 
-Returns a string representation of the last object. Empty string if none
-found.
+Returns a string representation of the last object. Empty string if none found.

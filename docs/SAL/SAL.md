@@ -16,7 +16,7 @@ As part of JumpScale 8 following SALs are included:
 * [DiskManager](DiskManager.md)
 * [Dnsmasq](Dnsmasq.md) 
 * [OpenVSwitch](OpenVSwitch.md)
-* [DHCP_ihc](DHCP_ihc.md)
+* [DHCP_ihc](Dhcp_ihc.md)
 * [NetConfig](NetConfig.md)
 * [NetTools](NetTools.md)
 * [Samba](Samba.md)

@@ -1,12 +1,11 @@
 ## Summary
 
 * [Introduction](README.md)
-* [Getting Started](GettingStarted/Home.md)
+* [Getting Started](GettingStarted/GettingStarted.md)
    * [Installation](GettingStarted/Installation.md)
    * [Components](GettingStarted/Components.md)
    * [IPythonTricks](GettingStarted/IPythonTricks.md)
 * [Beyond Basics](BeyondBasics/BeyondBasics.md)
-   * [Installation Process Details](BeyondBasics/InstallProcessDetails.md)
    * [AYS File System](BeyondBasics/AYS-FS.md)
 * [At Your Service](AYS/AYS-Introduction.md)
    * [Definitions](AYS/Definitions/0-Definitions.md)
@@ -40,7 +39,7 @@
       * [AYS Repo](AYS/FileDetails/AYS-repo.md)
       * [service.hrd](AYS/FileDetails/service.hrd.md)
       * [Parent/Child](AYS/FileDetails/Parent-Child.md)
-      * [HRD](AYS/FileDetails/HRD.md)
+      * [HRD Configuration Files](AYS/FileDetails/HRD.md)
    * [Building an AYS Service](AYS/Building.md)
    * [AYS Examples](AYS/Examples/Home.md)
        * [Docker Example](AYS/Examples/DockerExample.md)

@@ -4,4 +4,4 @@ AYS File Locations & Details
 - [AYS Repo](AYS-repo.md)
 - [service.hrd](service.hrd.md)
 - [Parent/Child](Parent-Child.md)
-- [HRD](HRD.md)
+- [HRD Configuration Files](HRD.md)

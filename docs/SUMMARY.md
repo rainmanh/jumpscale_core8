@@ -41,7 +41,6 @@
       * [service.hrd](AYS/FileDetails/service.hrd.md)
       * [Parent/Child](AYS/FileDetails/Parent-Child.md)
       * [HRD](AYS/FileDetails/HRD.md)
-   * [Human Readable Data Format](BeyondBasics/HRD.md)
    * [Building an AYS Service](AYS/Building.md)
    * [AYS Examples](AYS/Examples/Home.md)
        * [Docker Example](AYS/Examples/DockerExample.md)

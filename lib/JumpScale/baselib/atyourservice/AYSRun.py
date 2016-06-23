@@ -149,13 +149,14 @@ class AYSRun:
             else:
                 #need to load from db
                 self._load(id)
-                
-                
-    def _load(self,id):
-        data=self.db.get("run",str(id))
-        model=j.data.serializer.json.loads(data)
-        self.id=int(model["id"])
-        self.state=model["state"]
+
+    def _load(self, id):
+        if not self.db.exists("run", str(id)):
+            return
+        data = self.db.get("run", str(id))
+        model = j.data.serializer.json.loads(data)
+        self.id = int(model["id"])
+        self.state = model["state"]
         for stepmodel in model["steps"]:
             step=AYSRunStep(self, stepmodel["nr"], stepmodel["action"])
             for actionmodel in stepmodel["actions"]:

@@ -1,6 +1,6 @@
 ## js8
 
-`js8`is a small command line tool that helps to install JumpScale 8 from scratch using the [AYS File System](../AFS/AYS-FS.md)
+`js8`is a small command line tool that helps to install JumpScale 8 from scratch using the G8OS Virtual Filesystem.
 
 
 ### Installation of js8

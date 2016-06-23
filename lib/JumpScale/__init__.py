@@ -250,7 +250,7 @@ if data==None:
     j.application._config = j.data.hrd.get(path="%s/hrd/system"%basevar)
 
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('-q', '--quiet', default=False, action='store_true', help="Turn down logging")
 options, args = parser.parse_known_args()
 j.logger.set_quiet(options.quiet)

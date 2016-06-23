@@ -1,31 +1,28 @@
-## example how to use ays to automate creation of 2 machines in openvcloud or mothership1
+## Automate the Creation of 2 Virtual Machines in OpenvCloud
 
-following jumpscript will
+(UNCOMPLETE)
 
-- create ms1 node
-- inside ms1 node: (see DockerExample.md)
-    - create docker node with ays called master
-    - create docker node with ays called client
-    - install jumpscale in both dockers
-    - install jumpscale AgentController8 in master
-    - install jumpscale agent2 in client
-    - do a test where a command gets executed on client from master & return works
+Following JumpScript will:
 
-remarks
+- Create ms1 node
+- Inside ms1 node: (see DockerExample.md)
+    - Create a Docker container with AYS called master
+    - Create a Docker container with AYS called client
+    - Install JumpScale in both Docker containers
+    - Install JumpScale AgentController8 in master
+    - Install JumpScale Agent8 in client
+    - Do a test where a command gets executed on client from master & return works
 
-- all docker based
-- start from ubuntu 15.04 or 14.04 64 bit, use jsdocker way of working (see docs)
-- start from env arguments for ms1 passwd, rest in ays instance ovc_client
-- if passwd env arguments not filled in dynamically ask for it
-
-
-ays examples are stored in
+Remarks:
+- All Docker based
+- Start from Ubuntu 15.04 or 14.04 64 bit, use jsdocker way of working (see docs)
+- Start from env arguments for ms1 passwd, rest in ays instance ovc_client
+- If password env arguments not filled in dynamically ask for it
 
 
 #@todo complete
 
 ```
-
 g8_client__main:
     g8.account: {g8.account}
     g8.url: {g8.url}
@@ -38,7 +35,6 @@ vdcfarm__main:
 vdc__spacename:
     vdcfarm: main
 
-
 node.ovc__vm:
     vdc: spacename
     ports: '80:80, 443:443, 18384:18384'
@@ -47,6 +43,4 @@ node.ovc__vm:
 
 os.ssh.ubuntu__os:
     node: vm
-
-
 ```

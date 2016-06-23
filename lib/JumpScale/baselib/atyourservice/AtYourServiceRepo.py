@@ -45,7 +45,7 @@ class AtYourServiceRepo():
         self._load_blueprints()
         self.keephistory=keephistory
         if self.keephistory:
-            self.db=j.servers.kvs.getFSStore("ays_%s"%self.name)
+            self.db = j.servers.kvs.getFSStore("ays_%s"%self.name)
         else:
             self.db=None
 
@@ -371,15 +371,20 @@ class AtYourServiceRepo():
                 producerroles = [producerroles.strip()]
         return producerroles
 
-    def getRun(self, role="", instance="", action="install", force=False, producerRoles="*", data=None,id=0,simulate=False):
+    def listRuns(self):
+        runs = AYSRun(self).list()
+        return runs
+
+
+    def getRun(self, role="", instance="", action="install", force=False, producerRoles="*", data=None, id=0, simulate=False):
         """
         get a new run
-        if if!=0 then the run will be loaded from DB
+        if id !=0 then the run will be loaded from DB
         """
         self._doinit()
 
-        if id!=0:
-            run=AYSRun(self,id=id)
+        if id != 0:
+            run = AYSRun(self, id=id)
             return run
 
         producerRoles = self._processProducerRoles(producerRoles)
@@ -398,7 +403,7 @@ class AtYourServiceRepo():
         else:
             actions = ["install", action]
 
-        run = AYSRun(self,simulate=simulate)
+        run = AYSRun(self, simulate=simulate)
         for action0 in actions:
             scope = self.findActionScope(action=action0, role=role, instance=instance, producerRoles=producerRoles)
             todo = self._findTodo(action=action0, scope=scope, run=run, producerRoles=producerRoles)

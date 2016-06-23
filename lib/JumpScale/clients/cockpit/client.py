@@ -334,3 +334,23 @@ class Client:
         if resp.status_code != 200:
             raise j.exceptions.RuntimeError(resp.json()['error'])
         return resp.json()
+
+    def listRuns(self, repository, headers=None, query_params=None):
+        """
+        list all runs in the repository
+        It is method for GET /ays/repository/{repository}/aysrun
+        """
+        resp = self._client.listRuns(repository=repository, headers=headers, query_params=query_params)
+        if resp.status_code != 200:
+            raise j.exceptions.RuntimeError(resp.json()['error'])
+        return resp.json()
+
+    def getRun(self, aysrun, repository, headers=None, query_params=None):
+        """
+        Get an aysrun
+        It is method for GET /ays/repository/{repository}/aysrun/{aysrun}
+        """
+        resp = self._client.getRun(aysrun=aysrun, repository=repository, headers=headers, query_params=query_params)
+        if resp.status_code != 200:
+            raise j.exceptions.RuntimeError(resp.json()['error'])
+        return resp.json()

@@ -165,6 +165,9 @@ class AYSRun:
                 action=step.addService(aysi,model=actionmodel)
             self.steps.append(step)
 
+    def list(self):
+        return self.db.list('run')
+
     def delete(self):
         if self.db!=None:
             from IPython import embed

@@ -4,6 +4,7 @@ The AYS file system (AYS FS) is a FUSE file system that simplifies the distribut
 
 It is written in Go which makes it really simple to deploy on bare metal machines in order to bootstrap an environment, install JumpsScale and the AYS services.
 
+
 ### How it works
 
 #### Metadata and binary files

@@ -1,4 +1,4 @@
-## At Your Service Portal
+## AYS Portal
 
 AYS services and templates are visualized in the **AYS Portal**.
 

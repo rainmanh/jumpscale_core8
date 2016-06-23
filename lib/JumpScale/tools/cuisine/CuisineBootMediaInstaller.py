@@ -200,6 +200,8 @@ class CuisineBootMediaInstaller:
 
         mkdir /dev/pts
         mount -t devpts none /dev/pts
+        mount -o remount,rw /
+        
         source /etc/profile
         exec /usr/bin/core -gid {gid} -nid {nid} -roles g8os > /var/log/core.log 2>&1
         """

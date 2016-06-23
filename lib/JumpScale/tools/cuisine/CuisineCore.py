@@ -1043,7 +1043,7 @@ class CuisineCore:
             cmd = cmd.replace('"', '\\"')
         if self.sudomode:
             passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
-            cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
+            cmd = 'echo %s | sudo -SE bash -c "%s"' % (passwd, cmd)
         else:
             cmd = 'bash -c "%s"' % cmd
 

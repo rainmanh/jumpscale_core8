@@ -2,6 +2,7 @@
 
 # Click library has some problems with python3 when it comes to unicode: http://click.pocoo.org/5/python3/#python3-surrogates
 # to fix this we need to set the environ varialbes to export the locales
+
 import os
 os.environ['LC_ALL'] = 'C.UTF-8'
 os.environ['LANG'] = 'C.UTF-8'
@@ -47,14 +48,6 @@ def init(role="",instance="",data=""):
     if data used the role & instance needs to be used
 
     step1:
-    init will look for blueprints
-    (they are in your ays repo under path $aysdir/blueprints)
-
-    they will be processed in sorted order
-    the blueprints will be converted to ays instances
-
-
-    step2:
     init will walk over all existing recipes (ays templates in local context)
     and will see if recipe actions or hrd's changed
     if there is change than all ays instance originating from this recipe's state will be changed
@@ -66,7 +59,7 @@ def init(role="",instance="",data=""):
         - change_method() on the ays instance actions is called
     This allows action to manipulate the ays tree as result of change
 
-    step3:
+    step2:
     init will walk over all existing ays instances
     init will detect if instance.hrd got changed
     if change than the change will be marked in the state file
@@ -176,7 +169,7 @@ def simulate(action,role="",instance="",force=False,producerroles="*"):
     is like do only does not execute it,
     is ideal to figure out what would happen if you run a certain action
     """
-    run=atyourservice.getRun(role=role,instance=instance,action=action,force=force,producerRoles=producerroles)
+    run=atyourservice.getRun(role=role,instance=instance,action=action,force=force,producerRoles=producerroles,simulate=True)
     print(run)
 
 @click.command()
@@ -254,6 +247,7 @@ def destroy():
     """
     j.actions.resetAll()
     atyourservice.destroy(False)
+    j.application.reset()
 
 @click.command()
 @click.argument('cmd', default='doall')
@@ -295,6 +289,20 @@ def update(branch="master"):
     """
     atyourservice.update(branch=branch)
 
+@click.command()
+@click.argument('runid', default='0')
+def runinfo(runid=0):
+    """
+    print info about run, if not specified will be latest run
+    """
+    if runid==0:
+        runs=atyourservice.listRuns()
+        runid=runs[-1][0]
+    run=atyourservice.getRun(id=runid)
+    print(run)
+
+
+cli.add_command(runinfo)
 cli.add_command(simulate)
 cli.add_command(test)
 cli.add_command(setstate)

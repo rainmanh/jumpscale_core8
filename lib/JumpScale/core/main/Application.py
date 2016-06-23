@@ -39,6 +39,15 @@ class Application:
 
         self.interactive=True
 
+    def reset(self):
+        """
+        empties the core.db
+        """
+        for key in j.core.db.keys():
+            j.core.db.delete(key)
+        j.dirs.init()
+        self.reload()
+
     def reload(self):
         from JumpScale import findModules
         findModules()

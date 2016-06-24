@@ -49,8 +49,6 @@ class Client:
         """
         create a new repository
         It is method for POST /ays/repository
-
-        data: dict, {'path': '/path/to/repo', 'name': 'repo'}
         """
         data = j.data.serializer.json.dumps({'name': name})
         resp = self._client.createNewRepository(data=data, headers=headers, query_params=query_params)
@@ -314,7 +312,6 @@ class Client:
         Create new template
         It is method for POST /ays/repository/{repository}/template
 
-        data: dict, {'name': 'myTemplate', 'action_py': 'valid action file', schema_hrd: 'valid hrd schema'}
         """
         data = j.data.serializer.json.dumps({'name': 'myTemplate', 'action_py': 'valid action file', schema_hrd: 'valid hrd schema'})
         resp = self._client.createNewTemplate(data=data, repository=repository, headers=headers, query_params=query_params)

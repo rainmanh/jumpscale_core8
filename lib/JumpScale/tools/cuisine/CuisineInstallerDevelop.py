@@ -116,7 +116,8 @@ class CuisineInstallerDevelop:
         self.cuisine.core.run_script(C,force=False)
 
         C="""
-        cffi==1.5.2
+        # cffi==1.5.2
+        cffi
         paramiko
 
         msgpack-python
@@ -198,7 +199,7 @@ class CuisineInstallerDevelop:
     def jumpscale8(self):
         if self.cuisine.installer.jumpscale_installed():
             return
-        self.installJS8Deps()
+        self.installJS8Deps(force=False)
 
         if self.cuisine.core.isUbuntu or self.cuisine.core.isArch:
 
@@ -215,3 +216,31 @@ class CuisineInstallerDevelop:
         else:
             raise j.exceptions.RuntimeError("platform not supported yet")
 
+    @actionrun(action=True)
+    def cleanup(self):
+        C="""
+        #!/bin/bash
+        set +ex
+        apt-get clean
+        rm -rf /var/tmp/*
+        # rm -rf /var/lib/apt/lists/*
+        rm -f /etc/dpkg/dpkg.cfg.d/02apt-speedup
+        #rm -f /etc/ssh/ssh_host_*
+        """
+        C=self.cuisine.core.args_replace(C)
+        self.cuisine.core.run_script(C,force=True)
+
+    @actionrun(action=True)
+    def brotli(self):
+        C="""
+        cd /tmp
+        sudo rm -rf brotli/
+        git clone https://github.com/google/brotli.git
+        cd /tmp/brotli/
+        ./configure
+        make
+        cp /tmp/brotli/bin/bro /usr/local/bin/
+        rm -rf /tmp/brotli
+        """
+        C=self.cuisine.core.args_replace(C)
+        self.cuisine.core.run_script(C,force=True)

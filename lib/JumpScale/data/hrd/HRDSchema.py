@@ -249,6 +249,7 @@ class HRDSchema:
             if ttype.list:
                 try:
                     val = j.data.types.list.fromString(val, ttype=ttype.typeclass)
+                    ttype.hrd_ttype = "list"
                 except Exception as e:
                     msg = "Type '%s' check failed for LIST of values '%s'.\nError:%s" % (ttype.typeclass.NAME, val, e)
                     self._raiseError(msg)

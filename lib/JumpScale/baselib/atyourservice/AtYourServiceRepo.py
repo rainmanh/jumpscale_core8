@@ -506,18 +506,24 @@ class AtYourServiceRepo():
         print(run)
         run.execute()
 
-    def uninstall(self, role="", instance="", force=True, producerRoles="*"):
+    def uninstall(self, role="", instance="", force=True, producerRoles="*", printonly=printonly):
         self._doinit()
         if force:
             self.setState(actions=["stop", "uninstall"], role=role, instance=instance, state='DO')
 
         run = self.getRun(action="stop", force=force)
+        run.steps.reverse()
         print("RUN:STOP")
         print(run)
-        run.execute()
+        if not printonly:
+            run.execute()
+
         run = self.getRun(role=role, instance=instance, action="uninstall", force=force)
+        run.steps.reverse()
         print("RUN:UNINSTALL")
         print(run)
+        if not printonly:
+            run.execute()
         run.execute()
 
         # scope=self.findProducersScope(role=role,instance=instance,actions=["stop"])

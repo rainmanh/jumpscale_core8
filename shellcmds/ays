@@ -196,13 +196,13 @@ def setstate(action,state="DO",role="",instance="",force=False,producerroles="")
     print(run)
 
 
-# @click.command()
-# @click.option('--printonly', default=False,  is_flag=True,help='if set will not really execute, only show what would have been done')
-# def uninstall(printonly=False):
-#     """
-#     do uninstall
-#     """
-#     atyourservice.uninstall(printonly=printonly)
+@click.command()
+@click.option('--printonly', default=False, is_flag=True, help='if set will not really execute, only show what would have been done')
+def uninstall(printonly):
+    """
+    do uninstall
+    """
+    atyourservice.uninstall(printonly=printonly)
 
 
 @click.command()
@@ -306,7 +306,7 @@ cli.add_command(destroy)
 cli.add_command(init)
 # cli.add_command(apply)
 cli.add_command(install)
-# cli.add_command(uninstall)
+cli.add_command(uninstall)
 cli.add_command(do)
 cli.add_command(showproducers)
 cli.add_command(showparents)

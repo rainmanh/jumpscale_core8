@@ -267,7 +267,7 @@ class Docker:
             print('[+] starting aysfs: %s' % fs.getName())
             fs.start()
 
-    def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1510", nameserver=["8.8.8.8"],
+    def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1604", nameserver=["8.8.8.8"],
                replace=True, cpu=None, mem=0, jumpscale=False, ssh=True, myinit=True, sharecode=False,sshkeyname="",sshpubkey="",
                setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master", aysfs=[]):
 

@@ -1,5 +1,8 @@
 
-## use dockers without having jumpscale pre-installed
+## Working with Docker
+
+
+### Without having JumpScale pre-installed
 
 ```
 docker pull jumpscale/ubuntu1604_golang
@@ -13,16 +16,17 @@ export HOME=/root
 js
 ```
 
-you will now see a shell for jumpscale
+You will now see a shell for JumpScale.
 
-- an ssh server is installed in the docker, but you will have to remap port 22 to some other port on localhost e.g. 2022
+An SSH server is installed in the Docker container, but you will have to remap port 22 to some other port on localhost, e.g. 2022.
 
+Here's how:
 ```
 docker rm -f js
 docker run --rm -i -t -p 2022:22 --name="js" jumpscale/ubuntu1604_golang /sbin/my_init -- bash -l
 ```
 
-## use dockers starting from a machine where jumpscale is already installed
+### With JumpScale already installed
 
 ```
 docker pull despiegk/mc
@@ -38,10 +42,9 @@ jsdocker create -n kds -i jumpscale/ubuntu1604_golang -k mykey
 
 #to login
 ssh localhost -p 9022
-
 ```
 
-to list the dockers
+To list the Dockers containers:
 ```
 jsdocker list
 
@@ -52,12 +55,11 @@ jsdocker list
  owncloud             owncloud:live             localhost                       Up 24 hours
 
 ```
-## build dockers
 
+### Build Docker images
 
-
-- checkout repo: https://github.com/Jumpscale/dockers
-- go to https://github.com/Jumpscale/dockers/tree/master/js8/x86_64 and use the buildall command
+- Checkout repo: https://github.com/Jumpscale/dockers
+- Go to https://github.com/Jumpscale/dockers/tree/master/js8/x86_64 and use the `buildall` command
 
 ```
 Usage: buildall.py [OPTIONS]
@@ -78,12 +80,15 @@ Options:
 ```
 
 
-#### example where I use a remote machine to build
+#### Example using a remote machine to build
 
-- machine name is ovh4.
-- to use it remotely, docker & jumpscale needs to be pre-installed
-- I select e.g. 2 which will build a basic ubuntu
-- because I selected --push at end of operation the docker will be pused to docker hub, this will only work if you have rights
+
+For the example below:
+
+- Remote machine name is `ovh4`
+- Docker and JumpScale need to be pre-installed
+- When selecting e.g. 2 a basic Ubuntu 16.04 will be build
+- With `--push` option the Docker images will be pushed to Docker Hub, which will only work if you have rights
 
 ```
 bash-3.2$ python3 buildall.py --host ovh4:22 --push

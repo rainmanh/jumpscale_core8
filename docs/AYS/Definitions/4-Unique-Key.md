@@ -12,22 +12,10 @@ You can select one or more service instances by using the full key and just part
 + $name!$instance
 + @role
 
-AYS service instances can be identified using this key format, below some examples.
+AYS service instances can be identified using this key format.
 
-- Start (if not started yet) 1 service instance with role MongoDB, if more than 1 then this will fail:
-
-```shell
-ays start -n @mongodb
-```
-
-- Get the status of all service instances with role node:
-
-```shell
-ays status -n @node
-```
-
-- Get the status of a service instance which has instance name "ovh4", if more than 1 instance is found then there will be an error:
-
-```shell
-ays status -n !ovh4
+For example, in a `jsshell`:
+```bash
+repo = j.atyourservice.get('fake_IT_env')
+repo.getServiceFromKey('datacenter!ovh_germany1')
 ```

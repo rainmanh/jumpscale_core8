@@ -84,6 +84,7 @@ class Text:
 
 
     def toAscii(self,value,maxlen=0):
+        value=self.toStr(value)
         out=""
         for item in value:
             if ord(item)>127:

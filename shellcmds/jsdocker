@@ -59,7 +59,7 @@ def commit(name, tag, msg, force):
 @click.option('--cpu', help='cpu shares (min 0, max 1000)')
 @click.option('--memory', '-mem', help='Max memory in MB')
 @click.option('--sharecode', help='Share host /opt/code witch container', is_flag=True, type=bool)
-@click.option('--keyname', help='ssh-agent keyname to be used to push into container')
+@click.option('--keyname','-k', help='ssh-agent keyname to be used to push into container')
 @click.option('--pubkey', help='public sshkey to push into container')
 @click.option('--aysfs', help='use default jumpscale aysfs', is_flag=True, type=bool)
 def create(image, name, ports, volumes, cpu, memory, sharecode, keyname, pubkey, aysfs):

@@ -29,8 +29,10 @@ docker pull despiegk/mc
 
 #standard /tmp/docker/tmp will be mapped & /code to be same in docker
 #std port 9022 will be mapped to ssh (if only 1 docker)
-#-j will also install jumpscale (make sure you have it installed locally)
-jsdocker create -n kds -i jumpscale/ubuntu1604_golang
+#-k specifies ssh key to be used (name as loaded in ssh-agent)
+jsdocker create -n kds -i jumpscale/ubuntu1604_golang -k mykey
+
+#if no key specified, will create a local one if it doesn't exist yet and use that one
 
 #jsdocker new -n kds --ports "22:9022 7766:9766" --vols "/mydata:/mydata" --cpu 100
 

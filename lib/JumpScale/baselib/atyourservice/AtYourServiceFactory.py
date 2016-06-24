@@ -104,7 +104,7 @@ class AtYourServiceFactory:
             if exists:
                 templ = ServiceTemplate(path, domain=domain)
                 if templ.name in self._templates:
-                    raise j.exceptions.Input("Found double template: %s" % template)
+                    raise j.exceptions.Input("Found double template: %s" % templ.name)
                 self._templates[templ.name] = templ
 
         if not self._templates:

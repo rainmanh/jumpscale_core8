@@ -90,7 +90,7 @@ class Text:
             if ord(item)>127:
                 continue
             out+=item
-        out=out.encode('ascii','ignore')
+        # out=out.encode('ascii','ignore')
         out=out.replace('\x0b',"")
         out=out.replace('\x0c',"")
         out=out.replace("\r","")
@@ -98,7 +98,7 @@ class Text:
 
         if maxlen>0 and len(out)>maxlen:
             out=out[0:maxlen]
-
+        # out.decode()
         return out
 
     def indent(self,instr,nspaces=4,wrap=180,strip=True,indentchar=" "):

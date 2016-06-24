@@ -2,7 +2,9 @@
 
 * [Introduction](README.md)
 * [Getting Started](GettingStarted/GettingStarted.md)
-   * [Installation](GettingStarted/Installation.md)
+   * [Installation Linux Sandbox](GettingStarted/JS8.md)
+   * [Installation Development](GettingStarted/Installation.md)
+   * [Jumpscale Dockers](GettingStarted/JSDockers.md)
    * [Components](GettingStarted/Components.md)
    * [IPythonTricks](GettingStarted/IPythonTricks.md)
 * [AtYourService](AYS/AYS-Introduction.md)

@@ -497,7 +497,7 @@ class Docker:
 
         return "\n".join(out)
 
-    def build(self, path, tag, output=True):
+    def build(self, path, tag, output=True,force=False):
         """
         path: path of the directory that contains the docker file
         tag: tag to give to the image. e.g: 'jumpscale/myimage'
@@ -505,8 +505,11 @@ class Docker:
 
         return: strint containing the stdout
         """
+        #@todo implement force
         out = []
-        for l in self.client.build(path=path, tag=tag):
+        if force:
+            nocache=True
+        for l in self.client.build(path=path, tag=tag,nocache=nocache):
             line = j.data.serializer.json.loads(l)
             if 'stream' in line:
                 line = line['stream'].strip()

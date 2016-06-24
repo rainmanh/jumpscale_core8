@@ -39,6 +39,8 @@ class Application:
 
         self.interactive=True
 
+        self._fixlocale=False
+
     def reload(self):
         from JumpScale import findModules
         findModules()
@@ -57,6 +59,22 @@ class Application:
             print(msg)
             from IPython import embed;embed()
 
+    def fixlocale(self):
+        rc,locales=self.executor.execute("locale -a",showout=False,combinestdr=False)
+        locales=[item for item in locales.split("\n") if not item.startswith("locale:")]
+        if 'C.UTF-8' not in locales:
+            raise j.exceptions.RuntimeError("Cannot find C.UTF-8 in locale -a, cannot continue.")
+        # 'LANG': 'en_GB.UTF-8'
+        # os.environ["LC_ALL"]='C.UTF-8''
+        #TERMINFO
+        #export TERM=linux
+        #export TERMINFO=/etc/terminfo
+        from IPython import embed
+        print ("DEBUG NOW fix locale in application")
+        embed()
+        o
+
+
     def init(self):
         j.errorconditionhandler.setExceptHook()
 
@@ -65,6 +83,9 @@ class Application:
         mode = logging_cfg.get('mode', 'DEV')
         filter_module = logging_cfg.get('filter', [])
         j.logger.init(mode, level, filter_module)
+
+        if self._fixlocale:
+            self.fixlocale()
 
         self.logger = j.logger.get("j.application")
 

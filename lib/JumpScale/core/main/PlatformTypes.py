@@ -102,11 +102,18 @@ class PlatformType:
             self._platformtypes=[item for item in self._platformtypes if item!=""]
         return self._platformtypes
 
+
+
     @property
     def uname(self):
         if self._uname=="":
             rc,self._uname=self.executor.execute("uname -mnprs",showout=False)
             self._uname=self._uname.strip()
+            if self._uname.find("warning: setlocale")!=-1:
+                j.application._fixlocale=True
+                os.environ["LC_ALL"]='C.UTF-8'
+                os.environ["TERMINFO"]='xterm-256colors'
+                self._uname=self._uname.split("\n")[0]
             self._osname0,self._hostname0,self._version,self._cpu,self._platform=self.uname.split(" ")
         return self._uname
 

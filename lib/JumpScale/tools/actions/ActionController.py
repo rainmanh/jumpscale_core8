@@ -161,11 +161,13 @@ class ActionController:
         val2=j.data.serializer.json.dumps(val)
         j.core.db.hset("actions.stack",self.runid,val2)
 
-    def start(self, action,actionRecover=None,args={},die=True,stdOutput=False,errorOutput=True,retry=1,serviceObj=None,deps=[]):
-        """
-        same as add method but will execute immediately
-        """
-        self.add(action,actionRecover=actionRecover,args=args,die=die,stdOutput=stdOutput,errorOutput=errorOutput,retry=retry,serviceObj=serviceObj,deps=deps,executeNow=True)
+    # def start(self, action,actionRecover=None,args={},die=True,stdOutput=False,errorOutput=True,retry=1,serviceObj=None,deps=[],runid="",force=True):
+    #     """
+    #     same as add method but will execute immediately
+    #     """
+    #     if runid!="":
+    #         self.runid=runid
+    #     self.add(action,actionRecover=actionRecover,args=args,die=die,stdOutput=stdOutput,errorOutput=errorOutput,retry=retry,serviceObj=serviceObj,deps=deps,executeNow=True,force=force)
 
     def gettodo(self):
         todo=[]

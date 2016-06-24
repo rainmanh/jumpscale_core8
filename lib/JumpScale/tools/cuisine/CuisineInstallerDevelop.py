@@ -41,6 +41,7 @@ class CuisineInstallerDevelop:
         self.cuisine.package.multiInstall(C)
 
         C="""
+        autoconf
         libffi-dev
         gcc
         make

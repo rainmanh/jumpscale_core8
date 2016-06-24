@@ -60,6 +60,7 @@ class Application:
             from IPython import embed;embed()
 
     def fixlocale(self):
+        return
         rc,locales=self.executor.execute("locale -a",showout=False,combinestdr=False)
         locales=[item for item in locales.split("\n") if not item.startswith("locale:")]
         if 'C.UTF-8' not in locales:

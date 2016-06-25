@@ -216,6 +216,24 @@ class Client:
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
+    def listRuns(self, repository, headers=None, query_params=None):
+        """
+        list all runs in the repository
+        It is method for GET /ays/repository/{repository}/aysrun
+        """
+        uri = self.url + "/ays/repository/"+repository+"/aysrun"
+        uri = uri + build_query_string(query_params)
+        return self.session.get(uri, headers=headers)
+
+    def getRun(self, aysrun, repository, headers=None, query_params=None):
+        """
+        Get an aysrun
+        It is method for GET /ays/repository/{repository}/aysrun/{aysrun}
+        """
+        uri = self.url + "/ays/repository/"+repository+"/aysrun/"+aysrun
+        uri = uri + build_query_string(query_params)
+        return self.session.get(uri, headers=headers)
+
     def initRepository(self, data, repository, headers=None, query_params=None):
         """
         init repository

@@ -99,7 +99,7 @@ class FileSystemKeyValueStore(KeyValueStoreBase):
         categoryDir = self._getCategoryDir(category)
         filePaths = j.sal.fs.listFilesInDir(categoryDir, recursive=True)
         fileNames = [j.sal.fs.getBaseName(path) for path in filePaths]
-        fileNames = [ urllibparse.unquote(name) for name in fileNames ]
+        fileNames = [urllib.parse.unquote(name) for name in fileNames]
 
         if prefix:
             fileNames = [name for name in fileNames if name.startswith(prefix)]

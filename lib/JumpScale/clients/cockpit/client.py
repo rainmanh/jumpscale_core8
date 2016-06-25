@@ -49,8 +49,6 @@ class Client:
         """
         create a new repository
         It is method for POST /ays/repository
-
-        data: dict, {'path': '/path/to/repo', 'name': 'repo'}
         """
         data = j.data.serializer.json.dumps({'name': name})
         resp = self._client.createNewRepository(data=data, headers=headers, query_params=query_params)
@@ -110,7 +108,7 @@ class Client:
         }
         query_params = query_params or {}
         query_params.update(query)
-        
+
         resp = self._client.simulateAction(data=None, repository=repository, headers=headers, query_params=query_params)
         if resp.status_code != 200:
             raise j.exceptions.RuntimeError(resp.json()['error'])
@@ -131,7 +129,7 @@ class Client:
         }
         query_params = query_params or {}
         query_params.update(query)
-        
+
         resp = self._client.executeAction(data=None, repository=repository, headers=headers, query_params=query_params)
         if resp.status_code != 200:
             raise j.exceptions.RuntimeError(resp.json()['error'])
@@ -146,20 +144,18 @@ class Client:
         query = {'archived': archived}
         query_params = query_params or {}
         query_params.update(query)
-        
+
         resp = self._client.listBlueprints(repository=repository, headers=headers, query_params=query_params)
         if resp.status_code != 200:
             raise j.exceptions.RuntimeError(resp.json()['error'])
         return resp.json()
 
-    def createNewBlueprint(self, data, repository, headers=None, query_params=None):
+    def createNewBlueprint(self, repository, name, content, headers=None, query_params=None):
         """
         Create a new blueprint
         It is method for POST /ays/repository/{repository}/blueprint
-
-        data: dict, {'name': 'my_bp', content: 'valid yaml blueprint'}
         """
-        data = j.data.serializer.json.dumps(data)
+        data = j.data.serializer.json.dumps({'name': name, 'content': content})
         resp = self._client.createNewBlueprint(data=data, repository=repository, headers=headers, query_params=query_params)
         if resp.status_code != 201:
             raise j.exceptions.RuntimeError(resp.json()['error'])
@@ -170,7 +166,7 @@ class Client:
         Get a blueprint
         It is method for GET /ays/repository/{repository}/blueprint/{blueprint}
         """
-        resp = self._client.getBlueprint(blueprint=blueprint, repository=blueprint, headers=headers, query_params=query_params)
+        resp = self._client.getBlueprint(blueprint=blueprint, repository=repository, headers=headers, query_params=query_params)
         if resp.status_code != 200:
             raise j.exceptions.RuntimeError(resp.json()['error'])
         return resp.json()
@@ -186,20 +182,18 @@ class Client:
         }
         query_params = query_params or {}
         query_params.update(query)
-        
+
         resp = self._client.executeBlueprint(data=None, blueprint=blueprint, repository=repository, headers=headers, query_params=query_params)
         if resp.status_code != 200:
             raise j.exceptions.RuntimeError(resp.json()['error'])
         return resp.json()
 
-    def updateBlueprint(self, data, repository, blueprint, headers=None, query_params=None):
+    def updateBlueprint(self, repository, blueprint, content, headers=None, query_params=None):
         """
         Update existing blueprint
         It is method for PUT /ays/repository/{repository}/blueprint/{blueprint}
-
-        data: dict, {'name': 'my_bp', content: 'valid yaml blueprint'}
         """
-        data = j.data.serializer.json.dumps(data)
+        data = j.data.serializer.json.dumps({'name': blueprint, 'content': content})
         resp = self._client.updateBlueprint(data=data, blueprint=blueprint, repository=repository, headers=headers, query_params=query_params)
         if resp.status_code != 200:
             raise j.exceptions.RuntimeError(resp.json()['error'])
@@ -313,13 +307,13 @@ class Client:
             raise j.exceptions.RuntimeError(resp.json()['error'])
         return resp.json()
 
-    def createNewTemplate(self, data, repository, headers=None, query_params=None):
+    def createNewTemplate(self, repository, name, action, schema, headers=None, query_params=None):
         """
         Create new template
         It is method for POST /ays/repository/{repository}/template
 
-        data: dict, {'name': 'myTemplate', 'action_py': 'valid action file', schema_hrd: 'valid hrd schema'}
         """
+        data = j.data.serializer.json.dumps({'name': 'myTemplate', 'action_py': 'valid action file', schema_hrd: 'valid hrd schema'})
         resp = self._client.createNewTemplate(data=data, repository=repository, headers=headers, query_params=query_params)
         if resp.status_code != 200:
             raise j.exceptions.RuntimeError(resp.json()['error'])

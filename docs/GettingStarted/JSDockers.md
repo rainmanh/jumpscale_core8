@@ -1,7 +1,6 @@
 
 ## Working with Docker
 
-
 ### Without having JumpScale pre-installed
 
 ```
@@ -26,15 +25,38 @@ docker rm -f js
 docker run --rm -i -t -p 2022:22 --name="js" jumpscale/ubuntu1604_golang /sbin/my_init -- bash -l
 ```
 
-### With JumpScale already installed
+### With JumpScale already installed (recommended way)
+
+#### install docker with cuisine
+
+requirements
+- an ssh enabled ubuntu 16.04 server (here called myhost)
 
 ```
-docker pull despiegk/mc
+#open shell
+js
 
-#standard /tmp/docker/tmp will be mapped & /code to be same in docker
+#now inside the shell use following commands
+
+#establish connection to docker (ssh key already installed & loaded in ssh-agent, see ssh section in manual for more info)
+c=j.tools.cuisine.get("myhost") #can also use ipaddress
+#other example if other port
+c=j.tools.cuisine.get("192.168.4.4:2200")
+
+#install docker
+c.docker.install()
+
+#if jumpscale not installed yet
+c.install.jumpscale8() #will install jumpscale 8 using our virtual filesystem layer
+
+```
+
+now login into the ubuntu and you can use following commands
+```
+jsdocker create -n kds -i jumpscale/ubuntu1604_golang -k mykey
+
 #std port 9022 will be mapped to ssh (if only 1 docker)
 #-k specifies ssh key to be used (name as loaded in ssh-agent)
-jsdocker create -n kds -i jumpscale/ubuntu1604_golang -k mykey
 
 #if no key specified, will create a local one if it doesn't exist yet and use that one
 

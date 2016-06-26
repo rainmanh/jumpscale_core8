@@ -234,6 +234,24 @@ class Client:
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
+    def getSource(self, source, repository, headers=None, query_params=None):
+        """
+        gets source of hash in a repo
+        It is method for GET /ays/repository/{repository}/source/{source}
+        """
+        uri = self.url + "/ays/repository/"+repository+"/source/"+source
+        uri = uri + build_query_string(query_params)
+        return self.session.get(uri, headers=headers)
+
+    def getHRD(self, hrd, repository, headers=None, query_params=None):
+        """
+        gets hrd of hash in a repo
+        It is method for GET /ays/repository/{repository}/hrd/{hrd}
+        """
+        uri = self.url + "/ays/repository/"+repository+"/hrd/"+hrd
+        uri = uri + build_query_string(query_params)
+        return self.session.get(uri, headers=headers)
+
     def initRepository(self, data, repository, headers=None, query_params=None):
         """
         init repository

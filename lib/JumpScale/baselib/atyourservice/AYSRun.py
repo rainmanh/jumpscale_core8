@@ -166,7 +166,11 @@ class AYSRun:
             self.steps.append(step)
 
     def list(self):
-        return self.db.list('run')
+        runs = self.db.list('run_index')
+        return {run_id: self.db.get('run_index', run_id) for run_id in runs}
+
+    def getFile(self, ttype, hash):
+        return self.db.get(ttype, hash)
 
     def delete(self):
         if self.db!=None:

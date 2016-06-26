@@ -375,6 +375,11 @@ class AtYourServiceRepo():
         runs = AYSRun(self).list()
         return runs
 
+    def getSource(self, hash):
+        return AYSRun(self).getFile('source', hash)
+
+    def getHRD(self, hash):
+        return AYSRun(self).getFile('hrd', hash)
 
     def getRun(self, role="", instance="", action="install", force=False, producerRoles="*", data=None, id=0, simulate=False):
         """

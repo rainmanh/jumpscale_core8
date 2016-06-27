@@ -22,7 +22,7 @@ class Docker:
             self.base_url = 'unix://var/run/docker.sock'
         else:
             self.base_url = os.environ['DOCKER_HOST']
-        self.client = docker.Client(base_url=self.base_url)
+        self.client = docker.Client(base_url=self.base_url, timeout=120)
 
     @property
     def isWeaveEnabled(self):
@@ -480,8 +480,9 @@ class Docker:
         output: print progress as it pushes
         """
 
+        client = docker.Client(base_url=self.base_url, timeout=36000)
         out = []
-        for l in j.sal.docker.client.push(image, stream=True):
+        for l in client.push(image, stream=True):
             line = j.data.serializer.json.loads(l)
             id = line['id'] if 'id' in line else ''
             s = "%s " % id

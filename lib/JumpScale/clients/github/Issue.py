@@ -88,7 +88,10 @@ class Issue(Base):
     @body.setter
     def body(self, val):
         self._ddict["body"] = val
-        self.api.edit(body=self._ddict['body'])
+        try:
+            self.api.edit(body=self._ddict['body'])
+        except Exception as e:
+            self.logger.error('Failed to update the issue body: %s' % e)
 
     @property
     def time(self):

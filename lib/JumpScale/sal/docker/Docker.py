@@ -492,6 +492,9 @@ class Docker:
                 detail = line['progressDetail']
                 progress = line['progress']
                 s += " %50s " % progress
+            if 'error' in line:
+                message = line['errorDetail']['message']
+                raise j.exceptions.RuntimeError(message)
             if output:
                 print(s)
             out.append(s)

@@ -30,7 +30,7 @@ class CuisineDocker:
                 self.cuisine.core.run_script(C)
             if not self.cuisine.core.command_check('docker-compose'):
                 C = """
-                curl -L https://github.com/docker/compose/releases/download/1.6.2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+                curl -L https://github.com/docker/compose/releases/download/1.8.0-rc1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
                 chmod +x /usr/local/bin/docker-compose
                 """
                 self.cuisine.core.run_script(C)
@@ -93,12 +93,12 @@ class CuisineDocker:
     def ubuntuBuild(self, push=False):
 
         dest = self.cuisine.git.pullRepo('https://github.com/Jumpscale/dockers.git', ssh=False)
-        path = self.cuisine.core.joinpaths(dest, 'js8/x86_64/2_ubuntu1510')
+        path = self.cuisine.core.joinpaths(dest, 'js8/x86_64/2_ubuntu1604')
 
         C = """
         set -ex
         cd %s
-        docker build -t jumpscale/ubuntu1510 --no-cache .
+        docker build -t jumpscale/ubuntu1604 --no-cache .
         """ % path
         self.cuisine.core.run_script(C)
 
@@ -106,7 +106,7 @@ class CuisineDocker:
             C = """
             set -ex
             cd %s
-            docker push jumpscale/ubuntu1510
+            docker push jumpscale/ubuntu1604
             """ % path
             self.cuisine.core.run_script(C)
 
@@ -121,7 +121,7 @@ class CuisineDocker:
         return conn_str
 
     @actionrun(action=True, force=True)
-    def ubuntu(self, name="ubuntu1", image='jumpscale/ubuntu1510', ports=None, volumes=None, pubkey=None, aydofs=False):
+    def ubuntu(self, name="ubuntu1", image='jumpscale/ubuntu1604', ports=None, volumes=None, pubkey=None, aydofs=False):
         """
         will return connection string which can be used for getting a cuisine connection as follows:
             j.tools.cuisine.get(connstr)

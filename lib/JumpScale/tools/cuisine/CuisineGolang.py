@@ -36,7 +36,11 @@ class CuisineGolang:
         optdir = self.cuisine.core.dir_paths["optDir"]
         goDir = self.cuisine.core.dir_paths['goDir']
         self.cuisine.bash.environSet("GOPATH", goDir)
-        self.cuisine.bash.environSet("GOROOT", '/usr/local/go')
+
+        if self.cuisine.core.isMac:
+            self.cuisine.bash.environSet("GOROOT", '/usr/local/Cellar/go/1.6.2/libexec')
+        else:
+            self.cuisine.bash.environSet("GOROOT", '/usr/local/go')
 
         self.cuisine.bash.addPath(self.cuisine.core.joinpaths(goDir, 'bin'))
         self.cuisine.bash.addPath("/usr/local/go/bin/")

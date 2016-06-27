@@ -2,8 +2,13 @@
 
 ## principle
 
-- our aysfs = Atyourservice file system exposes the js8 sandbox
-
+- you develop you code files on you local machine (e.g. your local Linux os Mac OSX)
+- you have a local installed jumpscale & you have your git repo's checked out locally
+- you have 1 or more typically ubuntu 16.04 machines running in server mode with SSH enabled & your public SSH key enabled
+   - on this sever you have the jumpscale installed in debug or in sandboxed mode  
+- the j.tools.develop... tools help you to keep the code up to date & to upgrade/manage your remote development machine
+   - the sync tools in the development tools will sync you local changes while you are using your editor to develop
+   - over ssh you can test your program om the remote machine 
 
 ## how to connect & debug a remote sandboxed js8
 
@@ -13,7 +18,7 @@
 #format="localhost,ovh4,anode:2222,192.168.6.5:23"
 #this will be remembered in local redis for further usage
 j.tools.develop.init()
-j.tools.develop.jumpscale8sb(rw=True, synclocalcode=True, resetstate=True, monitor=True)
+j.tools.develop.jumpscale8(rw=True, synclocalcode=True, resetstate=True, monitor=True)
 ```
 
 at end of process you will see something like

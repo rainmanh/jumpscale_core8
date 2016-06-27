@@ -2,6 +2,7 @@
 
 # Click library has some problems with python3 when it comes to unicode: http://click.pocoo.org/5/python3/#python3-surrogates
 # to fix this we need to set the environ varialbes to export the locales
+
 import os
 os.environ['LC_ALL'] = 'C.UTF-8'
 os.environ['LANG'] = 'C.UTF-8'
@@ -11,7 +12,8 @@ from JumpScale import j
 import click
 
 cwd = j.sal.fs.getcwd()
-atyourservice=j.atyourservice.get(j.sal.fs.getBaseName(cwd), cwd)
+atyourservice = j.atyourservice.get(j.sal.fs.getBaseName(cwd), cwd)
+
 
 @click.group()
 @click.option('--nodebug', default=False, help='disable debug mode', is_flag=True)
@@ -35,11 +37,12 @@ def cli(nodebug):
 
 #     click.echo('new')
 
+
 @click.command()
-@click.option('--role','-r', default="", help='optional role for ays instances to init')
-@click.option('--instance','-i', default="", help='optional name of instance')
-@click.option('--data','-d', default="", help='data to populate a specific instance')
-def init(role="",instance="",data=""):
+@click.option('--role', '-r', default="", help='optional role for ays instances to init')
+@click.option('--instance', '-i', default="", help='optional name of instance')
+@click.option('--data', '-d', default="", help='data to populate a specific instance')
+def init(role="", instance="", data=""):
     """
 ==== BASE ====
 
@@ -47,14 +50,6 @@ def init(role="",instance="",data=""):
     if data used the role & instance needs to be used
 
     step1:
-    init will look for blueprints
-    (they are in your ays repo under path $aysdir/blueprints)
-
-    they will be processed in sorted order
-    the blueprints will be converted to ays instances
-
-
-    step2:
     init will walk over all existing recipes (ays templates in local context)
     and will see if recipe actions or hrd's changed
     if there is change than all ays instance originating from this recipe's state will be changed
@@ -66,7 +61,7 @@ def init(role="",instance="",data=""):
         - change_method() on the ays instance actions is called
     This allows action to manipulate the ays tree as result of change
 
-    step3:
+    step2:
     init will walk over all existing ays instances
     init will detect if instance.hrd got changed
     if change than the change will be marked in the state file
@@ -78,16 +73,16 @@ def init(role="",instance="",data=""):
     blueprints are no longer processed in init step, use the ays blueprint command
 
     """
-    if data!="" and (role=="" or instance==""):
+    if data != "" and (role == "" or instance == ""):
         raise j.exceptions.Input("need to specify role & instance to pass data")
 
-    atyourservice.init(role=role,instance=instance,data=data)
+    atyourservice.init(role=role, instance=instance, data=data)
 
 
 @click.command()
-@click.argument('path',default='')
-@click.option('--role','-r', default="", help='optional role for ays instances to init')
-@click.option('--instance','-i', default="", help='optional name of instance')
+@click.argument('path', default='')
+@click.option('--role', '-r', default="", help='optional role for ays instances to init')
+@click.option('--instance', '-i', default="", help='optional name of instance')
 def blueprint(path, role, instance):
     """
     will process the blueprint(s) pointed to
@@ -105,10 +100,11 @@ def blueprint(path, role, instance):
 @click.command()
 @click.argument('servicekey')
 def build(servicekey):
-   """
-   builds specific service
-   """
-   atyourservice.get(servicekey)
+    """
+    builds specific service
+    """
+    atyourservice.get(servicekey)
+
 
 @click.command()
 def showactions():
@@ -116,10 +112,10 @@ def showactions():
     shows all services with relevant actions
     """
     atyourservice.alog
-    for key,service in atyourservice.services.items():
-        print ("%s"%service)
-        for key,action in service.actions.items():
-            print ("- %-20s %s"%(key,action))
+    for key, service in atyourservice.services.items():
+        print ("%s" % service)
+        for key, action in service.actions.items():
+            print ("- %-20s %s" % (key, action))
 
 
 # @click.command()
@@ -133,34 +129,35 @@ def showactions():
 
 @click.command()
 @click.argument('action')
-@click.option('--role','-r', default="", help='optional role for ays instances execute an action on')
-@click.option('--instance','-i', default="", help='optional name of instance')
-@click.option('--force', default=False,  is_flag=True,help='force execution even if no change')
-@click.option('--producerroles', default="*",  help='roles of producers which will be taken into consideration, if * all')
-@click.option('--ask', default=False,  is_flag=True,help='ask on which service to execute the action')
-def do(action,role="",instance="",force=False,producerroles="*", ask=False):
+@click.option('--role', '-r', default="", help='optional role for ays instances execute an action on')
+@click.option('--instance', '-i', default="", help='optional name of instance')
+@click.option('--force', default=False, is_flag=True, help='force execution even if no change')
+@click.option('--producerroles', default="*", help='roles of producers which will be taken into consideration, if * all')
+@click.option('--ask', default=False, is_flag=True, help='ask on which service to execute the action')
+def do(action, role="", instance="", force=False, producerroles="*", ask=False):
     """
     call an action (which is a method in the action file e.g. start/stop/export/...)
     """
     # allservices=all
     # atyourservice.do(action,role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
-    run=atyourservice.getRun(role=role,instance=instance,action=action,force=force,producerRoles=producerroles)
+    run = atyourservice.getRun(role=role, instance=instance, action=action, force=force, producerRoles=producerroles)
     print(run)
     run.execute()
+
 
 @click.command()
 @click.option('--role', default="", help='optional role for ays instances execute an action on')
 @click.option('--instance', default="", help='optional name of instance')
-@click.option('--force', default=False,  is_flag=True,help='if True then will ignore state of service action.')
-@click.option('--producerroles', default="*",  help='roles of producers which will be taken into consideration, if * all')
-@click.option('--ask', default=False,  is_flag=True,help='ask on which service to execute the action')
-def install(role="",instance="",force=False,producerroles="*", ask=False):
+@click.option('--force', default=False, is_flag=True, help='if True then will ignore state of service action.')
+@click.option('--producerroles', default="*", help='roles of producers which will be taken into consideration, if * all')
+@click.option('--ask', default=False, is_flag=True, help='ask on which service to execute the action')
+def install(role="", instance="", force=False, producerroles="*", ask=False):
     """
     make it reality
     if you want more finegrained controle please use the do cmd
     """
     # atyourservice.do("install",role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
-    run = atyourservice.getRun(role=role,instance=instance,action="install",force=force,producerRoles=producerroles)
+    run = atyourservice.getRun(role=role, instance=instance, action="install", force=force, producerRoles=producerroles)
     print(run)
     run.execute()
 
@@ -169,30 +166,31 @@ def install(role="",instance="",force=False,producerroles="*", ask=False):
 @click.argument('action')
 @click.option('--role', default="", help='optional role for ays instances execute an action on')
 @click.option('--instance', default="", help='optional name of instance')
-@click.option('--force', default=False,  is_flag=True,help='if True then will ignore state of service action.')
-@click.option('--producerroles', default="*",  help='roles of producers which will be taken into consideration, if * all')
-def simulate(action,role="",instance="",force=False,producerroles="*"):
+@click.option('--force', default=False, is_flag=True, help='if True then will ignore state of service action.')
+@click.option('--producerroles', default="*", help='roles of producers which will be taken into consideration, if * all')
+def simulate(action, role="", instance="", force=False, producerroles="*"):
     """
     is like do only does not execute it,
     is ideal to figure out what would happen if you run a certain action
     """
-    run=atyourservice.getRun(role=role,instance=instance,action=action,force=force,producerRoles=producerroles)
+    run = atyourservice.getRun(role=role, instance=instance, action=action, force=force, producerRoles=producerroles, simulate=True)
     print(run)
+
 
 @click.command()
 @click.argument('action')
 @click.option('--state', default="DO", help='state to set')
 @click.option('--role', default="", help='optional role for ays instances execute an action on')
 @click.option('--instance', default="", help='optional name of instance')
-@click.option('--force', default=False,  is_flag=True,help='if True then will ignore state of service action.')
-@click.option('--producerroles', default="",  help='roles of producers which will be taken into consideration, if empty then none')
-def setstate(action,state="DO",role="",instance="",force=False,producerroles=""):
+@click.option('--force', default=False, is_flag=True, help='if True then will ignore state of service action.')
+@click.option('--producerroles', default="", help='roles of producers which will be taken into consideration, if empty then none')
+def setstate(action, state="DO", role="", instance="", force=False, producerroles=""):
     """
     be careful what you do with this command
     this sets the state of an ays instance manually
     """
-    atyourservice.setState(actions=[action],role=role,instance=instance,state=state)
-    run=atyourservice.getRun(role=role,instance=instance,action=action,force=False,producerRoles=producerroles)
+    atyourservice.setState(actions=[action], role=role, instance=instance, state=state)
+    run = atyourservice.getRun(role=role, instance=instance, action=action, force=False, producerRoles=producerroles)
     print(run)
 
 
@@ -208,33 +206,35 @@ def setstate(action,state="DO",role="",instance="",force=False,producerroles="")
 @click.command()
 @click.argument('role')
 @click.argument('instance')
-def showproducers(role,instance):
+def showproducers(role, instance):
     '''
     find the producers for this service & show
     '''
     print ("producers:")
-    ays=atyourservice.getService(role,instance)
+    ays = atyourservice.getService(role, instance)
     ays.printProducersRecursive()
+
 
 @click.command()
 @click.argument('role')
 @click.argument('instance')
-def showparents(role,instance):
-    ays=atyourservice.getService(role,instance)
-    out="parents:\n"
+def showparents(role, instance):
+    ays = atyourservice.getService(role, instance)
+    out = "parents:\n"
     for parent in ays.parents:
-        out+="- %s\n"%parent
+        out += "- %s\n" % parent
     print (out)
 
 
 @click.command()
-@click.option('--role','-r', default='')
-@click.option('--instance','-i', default='')
+@click.option('--role', '-r', default='')
+@click.option('--instance', '-i', default='')
 def list(role, instance):
     print("Installed services:")
     services = atyourservice.findServices(role=role, instance=instance)
     for s in sorted(services, key=lambda service: service.role):
         print("%s!%s" % (s.role, s.instance))
+
 
 @click.command()
 @click.option('--action', '-a', default=None)
@@ -242,6 +242,7 @@ def printlog(action):
     action_name, out = atyourservice.alog.getActionOuput(action)
     print("Output of last action: %s\n" % action_name)
     print(out)
+
 
 @click.command()
 def destroy():
@@ -254,6 +255,8 @@ def destroy():
     """
     j.actions.resetAll()
     atyourservice.destroy(False)
+    j.application.reset()
+
 
 @click.command()
 @click.argument('cmd', default='doall')
@@ -268,24 +271,26 @@ def test(cmd, name, message):
      - push : push modified tests to the repo
      - pull : get the repo with the tests
     """
-    tester=j.atyourservice.getTester(name)
-    if cmd=="doall":
+    tester = j.atyourservice.getTester(name)
+    if cmd == "doall":
         tester.doall()
-    elif cmd=="push":
+    elif cmd == "push":
         tester.gitpush(message=message)
-    elif cmd=="pull":
+    elif cmd == "pull":
         tester.gitpull(message=message)
+
 
 @click.command()
 @click.option('--branch', '-b', help="Name of branch, can be used in commit/push request to do change mgmt.", default='master')
 @click.option('--message', '-m', help="Message as used in e.g. pull/push.", default='')
-@click.option('--push','-p', default=False,  is_flag=True,help='if True then will push changes to git repo.')
-def commit(message,branch="master",push=False):
+@click.option('--push', '-p', default=False, is_flag=True, help='if True then will push changes to git repo.')
+def commit(message, branch="master", push=False):
     """
     commit the changes in the ays repo to git, can optionally push.
     this is very important because it allows you to see change in ays repo.
     """
-    atyourservice.commit(message,branch,push=push)
+    atyourservice.commit(message, branch, push=push)
+
 
 @click.command()
 @click.option('--branch', '-b', help="Name of branch, can be used in pull request to do change mgmt.", default='master')
@@ -295,6 +300,18 @@ def update(branch="master"):
     """
     atyourservice.update(branch=branch)
 
+
+@click.command()
+@click.argument('runid', default=0)
+def runinfo(runid=0):
+    """
+    print info about run, if not specified will be latest run
+    """
+    run = atyourservice.getRun(id=runid)
+    print(run)
+
+
+cli.add_command(runinfo)
 cli.add_command(simulate)
 cli.add_command(test)
 cli.add_command(setstate)

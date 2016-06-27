@@ -30,6 +30,7 @@ A service, either local or remote, is an abstraction for almost anything:
 
 We use only one command `ays` to control everything:
 
+- Convert a blue print to one or more ays instanves by `ays blueprint`
 - Configure all dependencies of a given service by executing `ays init` on the AYS repository of the service
 - Install a service by executing `ays install`
 - Start all services: `ays start`
@@ -41,9 +42,9 @@ Next you will want to learn about:
 
 - [AYS Definitions](Definitions/0-Definitions.md)
 - [Life Cycle of an AYS Service](Service-Lifecycle.md)
-- [AYS File System](AYS-FS.md)
-- [AYS Portal](AYS-Portal.md)
 - [AYS Commands](Commands/commands.md)
 - [AYS File Locations & Details](FileDetails/FileDetails.md)
+- [AYS File System](AYS-FS.md)
+- [AYS Portal](AYS-Portal.md)
 - [Building an AYS Service](Building.md)
 - [AYS Examples](Examples/Home.md)

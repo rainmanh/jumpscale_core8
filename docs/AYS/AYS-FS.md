@@ -1,6 +1,6 @@
 ## AYS File System
 
-The AYS file system (AYS FS) is a FUSE file system that simplifies the distribution of files over the grids.
+The AYS file system (AYS FS) is a virtual file system that simplifies the distribution of files over the grids.
 
 It is written in Go which makes it really simple to deploy on bare metal machines in order to bootstrap an environment, install JumpsScale and the AYS services.
 
@@ -57,7 +57,7 @@ When starting, the AYS file system
 - Looks for the AYS services that need to be exposed in the FUSE and download the corresponding metadata files from a store
 - Then as the user opens files, the AYS file system will download the binary files and cache them locally
 
-In an OpenvCloud environment, multiple layers of caching are available.
+In a typical environment, multiple layers of caching are available.
 
 To speed up the downloading of the files, some 'grid caches' can exists. These are used the same way as the stores, but they are populated by the AYS FS as it downloads files and located in the local network of the OpenvCloud nodes.
 

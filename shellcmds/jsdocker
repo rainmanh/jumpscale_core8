@@ -26,7 +26,7 @@ def list(name, parsable):
         print(j.data.serializer.json.dumps(infos))
 
 @click.command()
-@click.option('--image', '-i', default='jumpscale/ubuntu1510', help='docker image to pull')
+@click.option('--image', '-i', default='jumpscale/ubuntu1604_golang', help='docker image to pull')
 def pull(image):
     j.sal.docker.pull(image)
 
@@ -52,14 +52,14 @@ def commit(name, tag, msg, force):
 
 
 @click.command()
-@click.option('--image', '-i', default='jumpscale/ubuntu1510', help='image to use', show_default=True)
+@click.option('--image', '-i', default='jumpscale/ubuntu1604', help='image to use', show_default=True)
 @click.option('--name', '-n', help='name to give to the container')
 @click.option('--ports', '-p', help='format "22:8022 80:8080"  the first arg e.g. 22 is the port in the container')
 @click.option('--volumes', '-v', help='format: "/var/insidemachine:/var/inhost # /var/1:/var/1 # ...')
 @click.option('--cpu', help='cpu shares (min 0, max 1000)')
 @click.option('--memory', '-mem', help='Max memory in MB')
 @click.option('--sharecode', help='Share host /opt/code witch container', is_flag=True, type=bool)
-@click.option('--keyname', help='ssh-agent keyname to be used to push into container')
+@click.option('--keyname','-k', help='ssh-agent keyname to be used to push into container')
 @click.option('--pubkey', help='public sshkey to push into container')
 @click.option('--aysfs', help='use default jumpscale aysfs', is_flag=True, type=bool)
 def create(image, name, ports, volumes, cpu, memory, sharecode, keyname, pubkey, aysfs):

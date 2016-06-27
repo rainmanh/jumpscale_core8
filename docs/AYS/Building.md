@@ -8,8 +8,8 @@ You need to specify in the ``service.hrd`` which Docker images you want to use d
 
 ```
 build   =
-    image: 'jumpscale/ubuntu1510_python',
-    repo: 'https://github.com/Jumpscale/docker_ubuntu1510_python.git',
+    image: 'jumpscale/ubuntu1604_python',
+    repo: 'https://github.com/Jumpscale/docker_ubuntu1604_python.git',
 ```
 
 ``image`` is the name of the Docker image to use  

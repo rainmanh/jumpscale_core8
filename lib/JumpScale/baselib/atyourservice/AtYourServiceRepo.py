@@ -10,14 +10,13 @@ from JumpScale.baselib.atyourservice.Blueprint import Blueprint
 from JumpScale.baselib.atyourservice.AYSRun import AYSRun
 # from AYSdb import *
 
-
 import colored_traceback
 colored_traceback.add_hook(always=True)
 
 
 class AtYourServiceRepo():
 
-    def __init__(self, name, path=""):
+    def __init__(self, name, path="",keephistory=True):
         self._init = False
 
         # self._justinstalled = []
@@ -35,7 +34,7 @@ class AtYourServiceRepo():
         self._todo = []
 
         self.name = name
-        self.basepath = path
+        self._basepath = path
         self._git = None
 
         self._blueprints = {}
@@ -43,6 +42,12 @@ class AtYourServiceRepo():
         # self._roletemplates = dict()
         self._servicesTree = {}
         # self._db=AYSDB()
+        self._load_blueprints()
+        self.keephistory=keephistory
+        if self.keephistory:
+            self.db = j.servers.kvs.getFSStore("ays_%s"%self.name)
+        else:
+            self.db=None
 
     def _doinit(self):
         j.actions.setRunId("ays_%s" % self.name)
@@ -57,6 +62,7 @@ class AtYourServiceRepo():
         self._todo = []
         self._git = None
         self._blueprints = {}
+        self._load_blueprints()
         self._servicesTree = {}
 
     def destroy(self, uninstall=True):
@@ -64,6 +70,7 @@ class AtYourServiceRepo():
             self.uninstall()
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath, "recipes"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath, "services"))
+        self.db.destroy()
 
     @property
     def basepath(self):
@@ -211,13 +218,11 @@ class AtYourServiceRepo():
         self._servicesTree['producerconsumer'] = producers
         return self._servicesTree
 
-    def _list_blueprints(self):
-        if self._blueprints == {}:
-            items = j.sal.fs.listFilesInDir(j.sal.fs.joinPaths(self.basepath, "blueprints"))
-
-            for path in items:
-                if path not in self._blueprints:
-                    self._blueprints[path] = Blueprint(self, path=path)
+    def _load_blueprints(self):
+        items = j.sal.fs.listFilesInDir(j.sal.fs.joinPaths(self.basepath, "blueprints"))
+        for path in items:
+            if path not in self._blueprints:
+                self._blueprints[path] = Blueprint(self, path=path)
 
         list_bp = list(self._blueprints.values())
         list_bp = sorted(list_bp, key=lambda bp: bp.name)
@@ -228,36 +233,29 @@ class AtYourServiceRepo():
         """
         only shows the ones which are on predefined location
         """
-        blueprints = self._list_blueprints()
         bps = []
-        for bp in blueprints:
-            if bp.path.find("__archive") == -1 and bp.path[0] != "_":
+        for path,bp in self._blueprints.items():
+            if bp.active:
                 bps.append(bp)
         return bps
 
+
     @property
-    def blueprints_archive(self):
+    def blueprints_disabled(self):
         """
-        Show the archived blueprints
+        Show the disabled blueprints
         """
-        blueprints = self._list_blueprints()
         bps = []
-        for bp in blueprints:
-            if bp.path.find("__archive") != -1 or bp.path[0] == "_":
+        for path,bp in self._blueprints.items():
+            if bp.active==False:
                 bps.append(bp)
         return bps
 
     def archive_blueprint(self, bp):
-        if bp.path.find('__archive') == -1:
-            new_path = j.sal.fs.joinPaths(bp.path + '__archive')
-            j.sal.fs.moveFile(bp.path, new_path)
-            bp.path = new_path
+        raise RuntimeError("no longer supported, use bp.disable()")
 
     def restore_blueprint(self, bp):
-        if bp.path.find('__archive') != -1:
-            new_path = bp.path.rstrip('__archive')
-            j.sal.fs.moveFile(bp.path, new_path)
-            bp.path = new_path
+        raise RuntimeError("no longer supported, use bp.enable()")
 
     def execute_blueprint(self, path="", content="", role="", instance=""):
         self._doinit()
@@ -373,8 +371,27 @@ class AtYourServiceRepo():
                 producerroles = [producerroles.strip()]
         return producerroles
 
-    def getRun(self, role="", instance="", action="install", force=False, producerRoles="*", data=None):
+    def listRuns(self):
+        runs = AYSRun(self).list()
+        return runs
+
+    def getSource(self, hash):
+        return AYSRun(self).getFile('source', hash)
+
+    def getHRD(self, hash):
+        return AYSRun(self).getFile('hrd', hash)
+
+    def getRun(self, role="", instance="", action="install", force=False, producerRoles="*", data=None, id=0, simulate=False):
+        """
+        get a new run
+        if id !=0 then the run will be loaded from DB
+        """
         self._doinit()
+
+        if id != 0:
+            run = AYSRun(self, id=id)
+            return run
+
         producerRoles = self._processProducerRoles(producerRoles)
 
         if action not in ["init"]:
@@ -391,7 +408,7 @@ class AtYourServiceRepo():
         else:
             actions = ["install", action]
 
-        run = AYSRun(self)
+        run = AYSRun(self, simulate=simulate)
         for action0 in actions:
             scope = self.findActionScope(action=action0, role=role, instance=instance, producerRoles=producerRoles)
             todo = self._findTodo(action=action0, scope=scope, run=run, producerRoles=producerRoles)
@@ -407,7 +424,7 @@ class AtYourServiceRepo():
                     if service in scope:
                         scope.remove(service)
                 todo = self._findTodo(action0, scope=scope, run=run, producerRoles=producerRoles)
-        run.sort()
+        # run.sort()
         return run
 
     def _findTodo(self, action, scope, run, producerRoles):

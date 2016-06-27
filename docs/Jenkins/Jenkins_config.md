@@ -22,7 +22,7 @@ Steps:
  ```
 docker rm -v $(docker ps -a -q -f status=exited)
 docker rmi $(docker images -f "dangling=true" -q)
-docker build js8/x86_64/2_ubuntu1510/
-docker build js8/x86_64/3_ubuntu1510_python3/
-docker build js8/x86_64/4_ubuntu1510_js8/
+docker build js8/x86_64/2_ubuntu1604/
+docker build js8/x86_64/3_ubuntu1604_python3/
+docker build js8/x86_64/4_ubuntu1604_js8/
  ``` 

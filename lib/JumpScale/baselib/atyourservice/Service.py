@@ -626,6 +626,11 @@ class Service:
         a = getattr(self.actions, action)
         return a
 
+    def getActionSource(self,action):
+        if action not in self.action_methods:
+            return ""
+        return j.data.text.strip(inspect.getsource(self.action_methods[action]))
+
     def _getDisabledProducers(self):
         producers = dict()
         for key, items in self.hrd.getDictFromPrefix("producer").items():

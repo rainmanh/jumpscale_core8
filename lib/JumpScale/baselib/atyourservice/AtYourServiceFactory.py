@@ -55,12 +55,12 @@ class AtYourServiceFactory:
 
     def get(self, name, path=""):
         self._doinit()
-        if name not in self._repos:
+        if name not in self.repos:
             if j.sal.fs.exists(path) and j.sal.fs.isDir(path):
                 self._repos[name] = AtYourServiceRepo(name, path)
             else:
                 path = j.sal.fs.getcwd()
-        return self._repos[name]
+        return self.repos[name]
 
     def reset(self):
         self._repos = {}

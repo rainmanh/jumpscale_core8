@@ -23,7 +23,7 @@ if [ "$(uname)" == "Darwin" ]; then
     export CODEDIR=~/opt/code
     
     if [ -z"$JSBASE" ]; then 
-        export JSBASE='$HOME/opt/jumpscale8'
+        export JSBASE="$HOME/opt/jumpscale8"
     fi
     rm -rf $TMPDIR
     mkdir -p $TMPDIR

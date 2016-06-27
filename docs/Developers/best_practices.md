@@ -1,9 +1,5 @@
 # Best Practices
 
-## debugging a remote deployment using ssh
-
-- see 
-
 ## path manipulation
 
 - please no longer use ```j.system.fs```, use ```j.tools.path.get(...``` check out doc to returned path object

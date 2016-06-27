@@ -181,6 +181,7 @@ class CuisineInstallerDevelop:
         colorlog
         path.py
         dnspython3
+        packet-python
         """
         self.cuisine.pip.multiInstall(C,upgrade=True)
 

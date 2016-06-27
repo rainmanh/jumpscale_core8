@@ -22,7 +22,7 @@ class Docker:
             self.base_url = 'unix://var/run/docker.sock'
         else:
             self.base_url = os.environ['DOCKER_HOST']
-        self.client = docker.Client(base_url=self.base_url)
+        self.client = docker.Client(base_url=self.base_url, timeout=120)
 
     @property
     def isWeaveEnabled(self):

@@ -59,3 +59,27 @@ class TestAtYourServiceFactory(unittest.TestCase):
                 j.sal.fs.getBaseName.side_effect = ['test', 'test']
                 actual_result = ays_factory.repos
                 self.assertEquals(len(actual_result), 2)
+
+    def test_get(self):
+        """
+        Test getting repo by name while multiple repos with the same name exists
+        """
+        with mock.patch("JumpScale.j") as j_mock:
+            with mock.patch("JumpScale.baselib.atyourservice.AtYourServiceRepo.AtYourServiceRepo") as ays_repo_mock:
+                from JumpScale import j
+                from JumpScale.baselib.atyourservice.AtYourServiceRepo import AtYourServiceRepo
+                import JumpScale.baselib.atyourservice.AtYourServiceFactory
+                from JumpScale.core.errorhandling import OurExceptions
+                JumpScale.baselib.atyourservice.AtYourServiceFactory.j = j
+                JumpScale.baselib.atyourservice.AtYourServiceFactory.AtYourServiceRepo = AtYourServiceRepo
+                from JumpScale.baselib.atyourservice.AtYourServiceFactory import AtYourServiceFactory
+                ays_factory = AtYourServiceFactory()
+                repo1 = AtYourServiceRepo()
+                repo1.name = 'test'
+                repo1.basepath = 'path1'
+                repo2 = AtYourServiceRepo()
+                repo2.name = 'test'
+                repo2.bsasepath = 'path2'
+                ays_factory._repos = {'path1': repo1, 'path2': repo2}
+                j.exceptions.RuntimeError = OurExceptions.RuntimeError
+                self.assertRaises(OurExceptions.RuntimeError, ays_factory.get, 'test')

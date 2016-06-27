@@ -54,13 +54,37 @@ class AtYourServiceFactory:
         return AtYourServiceTester(name)
 
     def get(self, name, path=""):
+        """
+        Get a repo by name or path
+
+        @param name: Name of the repo to retrieve
+        @type name: str
+
+        @param path:    Path of the repo
+        @type path:     str
+
+        @return:    @AtYourServiceRepo object
+        """
         self._doinit()
-        if name not in self.repos:
-            if j.sal.fs.exists(path) and j.sal.fs.isDir(path):
-                self._repos[name] = AtYourServiceRepo(name, path)
+        if path:
+            if path not in self.repos:
+                if j.sal.fs.exists(path) and j.sal.fs.isDir(path):
+                    self._repos[path] = AtYourServiceRepo(name, path)
+
+        else:
+            # we want to retrieve  repo by name
+            result = [repo for repo in self.repos.values() if repo.name == name]
+            if not result:
+                path = path = j.sal.fs.getcwd()
+                self._repos[path] = AtYourServiceRepo(name, path)
+            elif len(result) > 1:
+                msg = "Multiple AYS repos with name %s found under locations [%s]. Please use j.atyourservice.get(name=<name>, path=<path>) instead" % \
+                        (name, ','.join([repo.basepath for repo in result]))
+                raise j.exceptions.RuntimeError(msg)
             else:
-                path = j.sal.fs.getcwd()
-        return self.repos[name]
+                path = result[0].basepath
+
+        return self.repos[path]
 
     def reset(self):
         self._repos = {}
@@ -71,8 +95,8 @@ class AtYourServiceFactory:
     def repos(self):
         if self._repos == {}:
             for path in j.atyourservice.findAYSRepos():
-                name = path.strip('/').replace('/', '.')
-                self._repos[name] = AtYourServiceRepo(name, path)
+                name = j.sal.fs.getBaseName(path)
+                self._repos[path] = AtYourServiceRepo(name, path)
         return self._repos
 
     @property

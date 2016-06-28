@@ -30,8 +30,6 @@ class Influxdb:
         if self.cuisine.core.isMac:
             self.cuisine.package.mdupdate()
             self.cuisine.package.install('influxdb')
-            self.cuisine.core.dir_ensure("$tmplsDir/cfg/influxdb")
-            self.cuisine.core.file_copy("/usr/local/etc/influxdb.conf", "$tmplsDir/cfg/influxdb/influxdb.conf")
         if self.cuisine.core.isUbuntu:
             self.cuisine.core.dir_ensure("$tmplsDir/cfg/influxdb")
             C= """

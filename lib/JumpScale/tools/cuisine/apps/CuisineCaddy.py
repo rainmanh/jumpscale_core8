@@ -58,7 +58,7 @@ class Caddy:
 
     def start(self, ssl):
         cpath = self.cuisine.core.args_replace("$cfgDir/caddy/caddyfile.conf")
-        self.cuisine.core.file_copy("$tmplsDir/cfg/caddy", "$cfgDir/", recursive=True)
+        self.cuisine.core.file_copy("$tmplsDir/cfg/caddy", "$cfgDir/caddy", recursive=True)
 
         #adjust confguration file
         conf = self.cuisine.core.file_read(cpath)

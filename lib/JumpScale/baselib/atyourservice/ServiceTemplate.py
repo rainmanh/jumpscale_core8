@@ -2,8 +2,8 @@
 
 from JumpScale import j
 
-from Service import *
-from ServiceRecipe import *
+from JumpScale.baselib.atyourservice.Service import *
+from JumpScale.baselib.atyourservice.ServiceRecipe import *
 
 
 class ServiceTemplate:

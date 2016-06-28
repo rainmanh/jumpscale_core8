@@ -1,19 +1,19 @@
 from JumpScale import j
 
-from ServiceRecipe import ServiceRecipe
-from Service import Service, loadmodule
-from ServiceTemplate import ServiceTemplate
+from JumpScale.baselib.atyourservice.ServiceRecipe import ServiceRecipe
+from JumpScale.baselib.atyourservice.Service import Service, loadmodule
+from JumpScale.baselib.atyourservice.ServiceTemplate import ServiceTemplate
 
-from ActionsBaseNode import ActionsBaseNode
-from ActionsBaseMgmt import ActionsBaseMgmt
-from ActionMethodDecorator import ActionMethodDecorator
+from JumpScale.baselib.atyourservice.ActionsBaseNode import ActionsBaseNode
+from JumpScale.baselib.atyourservice.ActionsBaseMgmt import ActionsBaseMgmt
+from JumpScale.baselib.atyourservice.ActionMethodDecorator import ActionMethodDecorator
 
-from AtYourServiceRepo import AtYourServiceRepo
+from JumpScale.baselib.atyourservice.AtYourServiceRepo import AtYourServiceRepo
 
-from AtYourServiceTester import AtYourServiceTester
+from JumpScale.baselib.atyourservice.AtYourServiceTester import AtYourServiceTester
 
 try:
-    from AtYourServiceSandboxer import *
+    from JumpScale.baselib.atyourservice.AtYourServiceSandboxer import *
 except:
     pass
 import os
@@ -53,25 +53,54 @@ class AtYourServiceFactory:
     def getTester(self, name="fake_IT_env"):
         return AtYourServiceTester(name)
 
-    def get(self, name, path=""):
+    def get(self, name="", path=""):
+        """
+        Get a repo by name or path
+
+        @param name: Name of the repo to retrieve
+        @type name: str
+
+        @param path:    Path of the repo
+        @type path:     str
+
+        @return:    @AtYourServiceRepo object
+        """
         self._doinit()
-        if name not in self.repos:
-            if j.sal.fs.exists(path) and j.sal.fs.isDir(path):
-                self._repos[name] = AtYourServiceRepo(name, path)
-            else:
+        if path:
+            if path not in self.repos:
+                if j.sal.fs.exists(path) and j.sal.fs.isDir(path):
+                    if not name:
+                        name = j.sal.fs.getBaseName(path)
+                    self._repos[path] = AtYourServiceRepo(name, path)
+
+        else:
+            # we want to retrieve  repo by name
+            result = [repo for repo in self.repos.values() if repo.name == name]
+            if not result:
                 path = j.sal.fs.getcwd()
-        return self.repos[name]
+                if not name:
+                    name = j.sal.fs.getBaseName(path)
+                self._repos[path] = AtYourServiceRepo(name, path)
+            elif len(result) > 1:
+                msg = "Multiple AYS repos with name %s found under locations [%s]. Please use j.atyourservice.get(path=<path>) instead" % \
+                        (name, ','.join([repo.basepath for repo in result]))
+                raise j.exceptions.RuntimeError(msg)
+            else:
+                path = result[0].basepath
+
+        return self.repos[path]
 
     def reset(self):
         self._repos = {}
         j.dirs._ays = None
+
 
     @property
     def repos(self):
         if self._repos == {}:
             for path in j.atyourservice.findAYSRepos():
                 name = j.sal.fs.getBaseName(path)
-                self._repos[name] = AtYourServiceRepo(name, path)
+                self._repos[path] = AtYourServiceRepo(name, path)
         return self._repos
 
     @property

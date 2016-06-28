@@ -5,7 +5,7 @@ import io
 import imp
 import sys
 import inspect
-from JumpScale.baselib.atyourservice.ServiceState import ServiceState
+from ServiceState import ServiceState
 
 
 def loadmodule(name, path):

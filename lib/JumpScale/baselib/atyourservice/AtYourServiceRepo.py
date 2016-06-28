@@ -506,7 +506,7 @@ class AtYourServiceRepo():
         print(run)
         run.execute()
 
-    def uninstall(self, role="", instance="", force=True, producerRoles="*", printonly=printonly):
+    def uninstall(self, role="", instance="", force=True, producerRoles="*", printonly=False):
         self._doinit()
         if force:
             self.setState(actions=["stop", "uninstall"], role=role, instance=instance, state='DO')

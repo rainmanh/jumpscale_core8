@@ -24,6 +24,8 @@ class Base:
     def bodyWithoutTags(self):
         # remove the tag lines from the body
         out = ""
+        if self.body == None:
+            return ""
         for line in self.body.split("\n"):
             if line.startswith("##") and not line.startswith("###"):
                 continue

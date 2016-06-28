@@ -212,7 +212,7 @@ class CuisineCore:
 
     def getenv(self):
         res = {}
-        for line in self.cuisine.core.run("printenv", profile=False, showout=False,force=True, replaceArgs=False).splitlines():
+        for line in self.cuisine.core.run("printenv", profile=False, showout=False,force=True, replaceArgs=False, action=False).splitlines():
             if '=' in line:
                 name,val = line.split("=",1)
                 name = name.strip()
@@ -531,10 +531,10 @@ class CuisineCore:
     def hostname(self):
         if self._hostname=="":
             if self.isMac:
-                self._hostname=self.run("hostname",showout=False,replaceArgs=False)
+                self._hostname=self.run("hostname",showout=False,replaceArgs=False, action=False)
             else:
                 hostfile="/etc/hostname"
-                self._hostname= self.run("cat %s"%hostfile,showout=False,replaceArgs=False).strip().split(".",1)[0]
+                self._hostname= self.run("cat %s"%hostfile,showout=False,replaceArgs=False, action=False).strip().split(".",1)[0]
         return self._hostname
 
     @hostname.setter

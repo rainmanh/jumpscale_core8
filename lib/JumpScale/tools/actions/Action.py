@@ -292,6 +292,7 @@ class Action:
     @method.setter
     def method(self,val):
         source = "".join(inspect.getsourcelines(val)[0])
+        source = self.selfobj.cuisine.core.args_replace(source)
         if source != "" and source[-1] != "\n":
             source += "\n"
         if source.strip().startswith("@"):
@@ -534,7 +535,6 @@ class Action:
         return self._selfobj
 
     def execute(self):
-
         self.check() #see about changed source code
 
         # if "$" in self.sourceToExecute:
@@ -563,7 +563,7 @@ class Action:
             ok=False
             err = ''
 
-            while self.state != "ERROR" and ok==False and counter<self.retry+1:
+            while ok==False and counter<self.retry+1:
                 
                 kwargs=self.kwargs
 
@@ -628,7 +628,7 @@ class Action:
                 self.stdouterr += j.tools.console.getOutput()
 
 
-            if rcode > 0 or self.state=="ERROR":
+            if rcode > 0:
                 if self.die:
                     for action in self.getWhoDependsOnMe():
                         if action.state=="ERRORCHILD":

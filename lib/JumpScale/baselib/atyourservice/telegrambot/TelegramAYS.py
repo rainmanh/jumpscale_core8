@@ -14,6 +14,7 @@ class TelegramAYS:
     #
     # initializing
     #
+
     def __init__(self, token, rootpath='/opt/code/telegram-projects/'):
         self.token = token
         self.rootpath = rootpath
@@ -486,6 +487,7 @@ class TelegramAYS:
         # check if it's a blueprint
         try:
             yaml = j.data.serializer.yaml.loads(update.message.text)
+
             def generate_unique_name():
                 name = '%s.yaml' % j.data.time.getLocalTimeHRForFilesystem()
                 path = '%s/%s' % (self._currentBlueprintsPath(username), name)

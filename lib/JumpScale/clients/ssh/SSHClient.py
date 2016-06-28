@@ -264,6 +264,7 @@ class SSHClient:
                     elif line == 'E':
                         err_eof = True
                     continue
+                line=j.data.text.toAscii(line)
                 if chan == 'O':
                     if showout:
                         print((line.strip()))

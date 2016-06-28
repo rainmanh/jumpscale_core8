@@ -22,6 +22,7 @@ import os
 import colored_traceback
 colored_traceback.add_hook(always=True)
 
+
 class AtYourServiceFactory:
 
     def __init__(self):
@@ -41,41 +42,42 @@ class AtYourServiceFactory:
         # self.sync = AtYourServiceSync()
         # self._reposDone = {}
 
-        self.debug=j.core.db.get("atyourservice.debug")==1
+        self.debug = j.core.db.get("atyourservice.debug") == 1
 
-        self.logger=j.logger.get('j.atyourservice')
+        self.logger = j.logger.get('j.atyourservice')
 
-        self._repos={}
+        self._repos = {}
 
-        self._test=None
+        self._test = None
 
-    def getTester(self,name="main"):
+    def getTester(self, name="fake_IT_env"):
         return AtYourServiceTester(name)
 
-    def get(self,name,path=""):
+    def get(self, name, path=""):
         self._doinit()
-        if path=="":
-            path=j.sal.fs.getcwd()
-        if not name in self._repos:
-            self._repos[name]=AtYourServiceRepo(name,path)
-        return self._repos[name]
-
+        if name not in self.repos:
+            if j.sal.fs.exists(path) and j.sal.fs.isDir(path):
+                self._repos[name] = AtYourServiceRepo(name, path)
+            else:
+                path = j.sal.fs.getcwd()
+        return self.repos[name]
 
     def reset(self):
-        self._repos
+        self._repos = {}
         j.dirs._ays = None
 
     @property
     def repos(self):
-        for path in j.atyourservice.findAYSRepos():
-            name = j.sal.fs.getBaseName(path)
-            self._repos[name] = AtYourServiceRepo(name, path)
+        if self._repos == {}:
+            for path in j.atyourservice.findAYSRepos():
+                name = j.sal.fs.getBaseName(path)
+                self._repos[name] = AtYourServiceRepo(name, path)
         return self._repos
 
     @property
     def sandboxer(self):
-        if self._sandboxer==None:
-            self._sandboxer=AtYourServiceSandboxer()
+        if self._sandboxer is None:
+            self._sandboxer = AtYourServiceSandboxer()
         return self._sandboxer
 
     @property
@@ -86,6 +88,7 @@ class AtYourServiceFactory:
     @property
     def templates(self):
         self._doinit()
+
         def load(domain, path):
             for servicepath in j.sal.fs.listDirsInDir(path, recursive=False):
                 dirname = j.sal.fs.getBaseName(servicepath)
@@ -101,8 +104,8 @@ class AtYourServiceFactory:
             if exists:
                 templ = ServiceTemplate(path, domain=domain)
                 if templ.name in self._templates:
-                    raise j.exceptions.Input("Found double template: %s"%template)
-                self._templates[templ.name]=templ
+                    raise j.exceptions.Input("Found double template: %s" % template)
+                self._templates[templ.name] = templ
 
         if not self._templates:
             self._doinit()
@@ -112,8 +115,6 @@ class AtYourServiceFactory:
                 load(domain, domainpath)
 
         return self._templates
-
-
 
     # @property
     # def roletemplates(self):
@@ -143,41 +144,28 @@ class AtYourServiceFactory:
                 self._init = True
                 return
 
-            # j.actions.reset()
-
-            # j.do.debug=True
-
             if j.sal.fs.exists(path="/etc/my_init.d"):
-                self.indocker=True
-
-            # login=j.application.config.get("whoami.git.login").strip()
-            # passwd=j.application.config.getStr("whoami.git.passwd").strip()
+                self.indocker = True
 
             # always load base domaim
-            items=j.application.config.getDictFromPrefix("atyourservice.metadata")
-            repos=j.do.getGitReposListLocal()
+            items = j.application.config.getDictFromPrefix("atyourservice.metadata")
+            repos = j.do.getGitReposListLocal()
 
             for domain in list(items.keys()):
-                url=items[domain]['url']
-                if url.strip()=="":
+                url = items[domain]['url']
+                if url.strip() == "":
                     raise j.exceptions.RuntimeError("url cannot be empty")
-                branch=items[domain].get('branch', 'master')
-                reponame=url.rpartition("/")[-1]
-                if not reponame in list(repos.keys()):
-                    # means git has not been pulled yet
-                    if login!="":
-                        dest=j.do.pullGitRepo(url,dest=None,login=login,passwd=passwd,depth=1,ignorelocalchanges=False,reset=False,branch=branch)
-                    else:
-                        dest=j.do.pullGitRepo(url,dest=None,depth=1,ignorelocalchanges=False,reset=False,branch=branch)
+                branch = items[domain].get('branch', 'master')
+                reponame = url.rpartition("/")[-1]
+                if reponame not in list(repos.keys()):
+                    dest = j.do.pullGitRepo(url, dest=None, depth=1, ignorelocalchanges=False, reset=False, branch=branch)
 
-                repos=j.do.getGitReposListLocal()
+                repos = j.do.getGitReposListLocal()
 
-                dest=repos[reponame]
-                # print "init %s" % domain
-                self._domains.append((domain,dest))
+                dest = repos[reponame]
+                self._domains.append((domain, dest))
 
-            self._init=True
-
+            self._init = True
 
     def createAYSRepo(self, path):
         j.sal.fs.createDir(path)
@@ -218,8 +206,8 @@ class AtYourServiceFactory:
     def getActionMethodDecorator(self):
         return ActionMethodDecorator
 
-    def getBlueprint(self,aysrepo,path):
-        return Blueprint(aysrepo,path)
+    def getBlueprint(self, aysrepo, path):
+        return Blueprint(aysrepo, path)
 
     # def getRoleTemplateClass(self, role, ttype):
     #     if role not in self.roletemplates:
@@ -245,7 +233,6 @@ class AtYourServiceFactory:
     #         return hrd.hrdGet()
     #     return None
 
-
     def findTemplates(self, name="", domain="", role=''):
         res = []
         for template in self.templates:
@@ -262,29 +249,29 @@ class AtYourServiceFactory:
 
         return res
 
-    def findAYSRepos(self):
-        return (root for root, dirs, files in os.walk(j.dirs.codeDir) if '.ays' in files)
+    def findAYSRepos(self, path=j.dirs.codeDir):
+        return (root for root, dirs, files in os.walk(path) if '.ays' in files)
 
-    def getService(self,key,die=True):
-        if key.count("!")!=2:
-            raise j.exceptions.Input("key:%s needs to be $reponame!$role!$instance"%key)
-        reponame,role,instance=key.split("!",2)
+    def getService(self, key, die=True):
+        if key.count("!") != 2:
+            raise j.exceptions.Input("key:%s needs to be $reponame!$role!$instance" % key)
+        reponame, role, instance = key.split("!", 2)
         if reponame not in self._repos:
             if die:
-                raise j.exceptions.Input("service repo %s does not exist, could not retrieve ays service:%s"%(reponame,key))
+                raise j.exceptions.Input("service repo %s does not exist, could not retrieve ays service:%s" % (reponame, key))
             else:
                 return None
-        repo=self._repos[reponame]
-        return repo.getService(role=role,instance=instance,die=die)
+        repo = self._repos[reponame]
+        return repo.getService(role=role, instance=instance, die=die)
 
-    def getTemplate(self,  name, die=True):
+    def getTemplate(self, name, die=True):
         """
         @param first means, will only return first found template instance
         """
         if name in self.templates:
             return self.templates[name]
         if die:
-            raise j.exceptions.Input("Cannot find template with name:%s"%name)
+            raise j.exceptions.Input("Cannot find template with name:%s" % name)
         # if first:
         #     return self.findTemplates(domain=domain, name=name, version=version, role=role, first=first)
         # else:
@@ -302,7 +289,7 @@ class AtYourServiceFactory:
         #     return res[0]
 
     def existsTemplate(self, name):
-        if self.getTemplate(name,die=False)==None:
+        if self.getTemplate(name, die=False) is None:
             return False
         return True
 

@@ -1007,7 +1007,7 @@ class InstallTools():
         s.quit()
 
     def execute(self, command , showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[], \
-                        ok=[], captureout=True, die=True, async=False, executor=None):
+                        ok=[], captureout=True, die=True, async=False, executor=None, combinestdr=True):
         """
         @param errors is array of statements if found then exit as error
         return rc,out
@@ -1016,7 +1016,7 @@ class InstallTools():
         # print "EXEC:"
         # print command
         if executor:
-            return executor.execute(command, die=die, checkok=False, async=async,  showout=True, combinestdr=outputStderr, timeout=timeout)
+            return executor.execute(command, die=die, checkok=False, async=async,  showout=True, combinestdr=combinestdr, timeout=timeout)
         os.environ["PYTHONUNBUFFERED"]="1"
         ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -1146,7 +1146,7 @@ class InstallTools():
             else:
                 raise RuntimeError("Could not execute cmd:\n'%s'\nout:\n%s"%(command,out))
 
-        if err!="":
+        if err!="" and combinestdr:
             out=out+"\nSTDERR:\n"+err
 
         return rc,out
@@ -1465,15 +1465,16 @@ class InstallTools():
         if "SSH_AUTH_SOCK" not in os.environ:
             self._initSSH_ENV(True)
         cmd = "ssh-add -L"
-        rc, out  = self.execute(cmd,False,False,die=False)
-        if rc!=0:
-            if rc==1 and out.find("The agent has no identities")!=-1:
+        rc, out = self.execute(cmd,False,False,die=False)
+        if rc != 0:
+            if rc == 1 and out.find("The agent has no identities") != -1:
                 return []
-            raise RuntimeError("error during listing of keys :%s" % err)
+            raise RuntimeError("error during listing of keys :%s" % out)
+        keys = [line.split() for line in out.splitlines() if len(line.split()) == 3]
         if keyIncluded:
-            return [(item.split(" ")[2],item.split(" ")[1]) for item in out.splitlines()]
+            return list(map(lambda key: key[2:0:-1], keys))
         else:
-            return [item.split(" ")[2] for item in out.splitlines()]
+            return list(map(lambda key: key[2], keys))
 
     def authorizeSSHKey(self,remoteipaddr,keyname=None,login="root",passwd=None,sshport=22,removeothers=False,keypathpub=None,allow_agent=True):
         """
@@ -1577,6 +1578,7 @@ class InstallTools():
 
         """
         #check if more than 1 agent
+        socketpath = self._getSSHSocketpath()
         res=[item for item in self.execute("ps aux|grep ssh-agent",False,False)[1].split("\n") if item.find("grep ssh-agent")==-1]
         res=[item for item in res if item.strip()!=""]
         res=[item for item in res if item[-2:]!="-l"]
@@ -1588,13 +1590,15 @@ class InstallTools():
             #means not right agent was loaded
             killfirst=True
             print ("ssh-agent is not using sshagent_socket")
+        if len(res) == 0 and self.exists(socketpath):
+            self.delete(socketpath)
 
         if killfirst:
             cmd="killall ssh-agent"
             # print(cmd)
             self.execute(cmd,showout=False, outputStderr=False,die=False)
             #remove previous socketpath
-            self.delete(self._getSSHSocketpath())
+            self.delete(socketpath)
             self.delete(self.joinPaths(self.TMP,"ssh-agent-pid"))
 
         if path==None:
@@ -1607,8 +1611,7 @@ class InstallTools():
             if not self.exists(path):
                 raise RuntimeError("Cannot find ssh key on %s"%path)
 
-        if not self.exists(self._getSSHSocketpath()):
-            socketpath=self._getSSHSocketpath()
+        if not self.exists(socketpath):
             #ssh-agent not loaded
             print("load ssh agent")
             rc,result = self.execute("ssh-agent -a %s"%socketpath,die=False,showout=False, outputStderr=False)
@@ -1627,6 +1630,7 @@ class InstallTools():
                     print(result)
                     print("END")
                     raise RuntimeError("Cannot find items in ssh-add -l")
+                self._initSSH_ENV(True)
                 pid=int(piditems[-1].split(" ")[-1].strip("; "))
                 self.writeFile(self.joinPaths(self.TMP,"ssh-agent-pid"),str(pid))
                 self.addSSHAgentToBashProfile()
@@ -1636,7 +1640,7 @@ class InstallTools():
 
         #ssh agent should be loaded because ssh-agent socket has been found
         # pid=int(self.readFile(self.joinPaths(self.TMP,"ssh-agent-pid")))
-        if "SSH_AUTH_SOCK" not in os.environ:
+        if os.environ.get("SSH_AUTH_SOCK") != socketpath:
             self._initSSH_ENV(True)
         rc,result = self.execute("ssh-add -l",die=False,showout=False, outputStderr=False)
         if rc==2:#>0 and err.find("not open a connection")!=-1:
@@ -2074,7 +2078,7 @@ class Installer():
                 args2[var] = os.environ[var]
             else:
                 args2[var] = eval(var)
-                
+
         os.environ.update(args2)
 
         args2['SANDBOX']=int(args2['SANDBOX'])
@@ -2520,105 +2524,6 @@ exec python3 -q "$@"
         apt-get upgrade -y
         """
         do.executeCmds(CMDS)
-
-
-    # def prepareUbuntu15Development(self,js=True,updateUbuntu=True):
-    #     self.cleanSystem()
-    #     print("prepare ubuntu for development")
-
-    #     if updateUbuntu:
-    #         self.updateUpgradeUbuntu()
-
-
-    #     CMDS="""
-    #     apt-get install mc git ssh openssl ca-certificates -y
-    #     apt-get install byobu tmux libmhash2 -y
-    #     #libpython-all-dev python-redis python-hiredis
-    #     apt-get install libpython3.5-dev python3.5-dev libffi-dev gcc build-essential autoconf libtool pkg-config libpq-dev -f
-    #     apt-get install libsqlite3-dev -f
-    #     apt-get install net-tools sudo -f
-    #     """
-    #     do.executeCmds(CMDS)
-
-
-    #     print("INSTALLPIP")
-    #     self.installpip()
-
-    #     print("install python parts")
-
-    #     CMDS="""
-    #     rm -f /usr/bin/python
-    #     rm -f /usr/bin/python3
-    #     ln -s /usr/bin/python3.5 /usr/bin/python
-    #     ln -s /usr/bin/python3.5 /usr/bin/python3
-
-    #     #pip3 install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
-
-    #     pip3 install paramiko
-
-    #     pip3 install msgpack-python
-    #     pip3 install redis
-    #     pip3 install credis
-    #     pip3 install aioredis
-
-    #     pip3 install mongoengine
-
-    #     pip3 install bcrypt
-    #     pip3 install blosc
-    #     pip3 install bson
-    #     pip3 install certifi
-    #     pip3 install docker-py
-
-    #     pip3 install gitlab3
-    #     pip3 install gitpython
-    #     pip3 install html2text
-
-    #     # pip3 install pysqlite
-
-    #     pip3 install influxdb
-    #     pip3 install ipdb
-    #     pip3 install ipython --upgrade
-    #     pip3 install jinja2
-    #     pip3 install netaddr
-
-    #     #pip3 install numpy
-
-    #     pip3 install reparted
-    #     pip3 install pytoml
-    #     pip3 install pystache
-    #     pip3 install pymongo
-    #     pip3 install psycopg2
-    #     pip3 install pathtools
-    #     pip3 install psutil
-
-    #     pip3 install pytz
-    #     pip3 install requests
-    #     pip3 install sqlalchemy
-    #     pip3 install urllib3
-    #     # pip3 install zmq
-    #     pip3 install pyyaml
-    #     pip3 install websocket
-    #     pip3 install marisa-trie
-    #     pip3 install pylzma
-    #     pip3 install ujson
-    #     """
-    #     do.executeCmds(CMDS)
-
-    #     if js:
-    #         self.installJS(clean=False)
-    #     print("done")
-
-
-
-    # def installDocker(self):
-    #     if not do.exists(path="/usr/lib/apt/methods/https"):
-    #         do.execute("apt-get install apt-transport-https -y")
-
-    #     if not do.exists(path="/etc/apt/sources.list.d/docker.list"):
-    #         do.execute("apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9",showout=False, outputStderr=False,die=False)
-    #         do.writeFile("/etc/apt/sources.list.d/docker.list","deb https://get.docker.com/ubuntu docker main\n")
-    #         do.execute("apt-get update")
-    #         do.execute("apt-get install lxc-docker -y",die=False)
 
     def gitConfig(self,name,email):
         if name=="":

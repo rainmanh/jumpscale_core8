@@ -11,6 +11,16 @@ re_float = re.compile(r'[0-9]*\.[0-9]+')
 re_digit = re.compile(r'[0-9]*')
 from builtins import str
 
+try:
+    import pygments.lexers
+    from pygments.formatters import get_formatter_by_name
+    pygmentsObj=True
+    import sys
+except:
+    pygmentsObj=False
+
+
+
 class Text:
 
     def __init__(self):
@@ -40,6 +50,19 @@ class Text:
                 res,line=checknow(line,items)
             return line
 
+    def printCode(self,code,style="vim"):
+        """
+        will use pygments to format code
+        """
+        code=self.strip(code)
+        if pygmentsObj:
+            formatter=pygments.formatters.Terminal256Formatter(style=pygments.styles.get_style_by_name(style))
+            lexer = pygments.lexers.get_lexer_by_name("py", stripall=True)
+            code2 = pygments.highlight(code, lexer, formatter)
+            sys.stdout.write(code2)
+        else:            
+            print(code)
+
     def toStr(self,value, codec='utf-8'):
         if isinstance(value, bytes):
             value = value.decode(codec)
@@ -61,12 +84,13 @@ class Text:
 
 
     def toAscii(self,value,maxlen=0):
+        value=self.toStr(value)
         out=""
         for item in value:
             if ord(item)>127:
                 continue
             out+=item
-        out=out.encode('ascii','ignore')
+        # out=out.encode('ascii','ignore')
         out=out.replace('\x0b',"")
         out=out.replace('\x0c',"")
         out=out.replace("\r","")
@@ -74,7 +98,7 @@ class Text:
 
         if maxlen>0 and len(out)>maxlen:
             out=out[0:maxlen]
-
+        # out.decode()
         return out
 
     def indent(self,instr,nspaces=4,wrap=180,strip=True,indentchar=" "):

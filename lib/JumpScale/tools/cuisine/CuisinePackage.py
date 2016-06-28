@@ -53,6 +53,8 @@ class CuisinePackage:
         if self.cuisine.core.isUbuntu:
             self.cuisine.core.run("apt-get update")
         elif self.cuisine.core.isMac:
+            location = self.cuisine.core.command_location("brew")
+            self.cuisine.core.run("chown root %s" % location)
             self.cuisine.core.run("brew update")
         elif self.cuisine.core.isArch:
             self.cuisine.core.run("pacman -Syy")
@@ -93,11 +95,20 @@ class CuisinePackage:
             cmd="pacman -S %s  --noconfirm"%package
 
         elif self.cuisine.core.isMac:
+            if package in ["libpython3.4-dev", "python3.4-dev", "libpython3.5-dev", "python3.5-dev", "libffi-dev", "make", "build-essential", "libpq-dev", "libsqlite3-dev" ]:
+                return
 
-            rc,out=self.cuisine.core.run("brew info --json=v1 %s"%package,showout=False,die=False)
-            if rc==0:
-                info=j.data.serializer.json.loads(out)
+            installed = self.cuisine.core.run("brew list")
+            if package in installed:
                 return #means was installed
+                
+            # rc,out=self.cuisine.core.run("brew info --json=v1 %s"%package,showout=False,die=False)
+            # if rc==0:
+            #     info=j.data.serializer.json.loads(out)
+            #     return #means was installed
+            
+            if "wget" == package:
+                package = "%s --enable-iri" % package
 
             cmd="brew install %s "%package
 

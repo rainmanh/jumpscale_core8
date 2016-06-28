@@ -291,7 +291,7 @@ class GithubRepo:
             return None
 
     def createMilestone(self, name, title, description="", deadline="", owner=""):
-
+        self.logger.debug('Attempt to create milestone "%s" [%s] deadline %s' % (name, title, deadline))
         def getBody(descr, name, owner):
             out = "%s\n\n" % descr
             out += "## name:%s\n" % name
@@ -313,7 +313,7 @@ class GithubRepo:
             if ms.body.strip() != tocheck.strip():
                 ms.body = tocheck
         else:
-            due = j.data.time.epoch2pythonDateTime(int(j.data.time.any2epoch(deadline)))
+            due = j.data.time.epoch2pythonDateTime(int(j.data.time.getEpochFuture(deadline)))
             self.logger.info("Create milestone on %s: %s" % (self, title))
             body = getBody(description.strip(), name, owner)
             # workaround for https://github.com/PyGithub/PyGithub/issues/396

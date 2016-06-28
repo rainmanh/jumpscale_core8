@@ -12,8 +12,8 @@ class ServiceTemplate:
         self.path = path
 
         base = j.sal.fs.getBaseName(path)
-        self.name=base
-        
+        self.name = base
+
         if base.find("__") != -1:
             self.domain, self.name = base.split("__", 1)
         else:

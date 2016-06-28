@@ -15,22 +15,20 @@ class Debug(ModelBase, Document):
     cmd_post = ListField(StringField())
     restart = ListField(StringField())
 
-    storpath=StringField(default="/tmp/aysfs")
-    namespace=StringField(default="dedupe")
+    storpath = StringField(default="/tmp/aysfs")
+    namespace = StringField(default="dedupe")
 
-    port=IntField(default=22)
+    port = IntField(default=22)
 
-    populate_host_cache=BooleanField(default=False)
-    populate_grid_cache=BooleanField(default=False)
-    populate_master_cache=BooleanField(default=False)
+    populate_host_cache = BooleanField(default=False)
+    populate_grid_cache = BooleanField(default=False)
+    populate_master_cache = BooleanField(default=False)
 
     # def clean(self):
     #     ModelBase.clean(self)
 
 
-
 class AtYourServiceSandboxer:
-
 
     def __init__(self, name="main"):
         j.data.models.system.addModel(Debug)
@@ -40,34 +38,34 @@ class AtYourServiceSandboxer:
 
     @property
     def cuisine_host(self):
-        if self._cl==None:
-            self._cl=j.clients.ssh.get(self.model.host,self.model.port).cuisine
+        if self._cl is None:
+            self._cl = j.clients.ssh.get(self.model.host, self.model.port).cuisine
         return self._cl
 
     @property
     def cuisine_cache(self):
-        if self._clcache==None:
-            self._clcache=j.clients.ssh.get(self.model.cache,22).cuisine
+        if self._clcache is None:
+            self._clcache = j.clients.ssh.get(self.model.cache, 22).cuisine
         return self._clcache
 
     @property
     def cuisine_master(self):
-        if self._clcache==None:
-            self._clcache=j.clients.ssh.get("stor.jumpscale.org",22).cuisine
+        if self._clcache is None:
+            self._clcache = j.clients.ssh.get("stor.jumpscale.org", 22).cuisine
         return self._clcache
 
-    def addSandboxSource(self,sourcepath,filter=None,dest="jumpscale8/bin"):
+    def addSandboxSource(self, sourcepath, filter=None, dest="jumpscale8/bin"):
         """
         sourcepath can be directory or file
         filter can only be used when sourcepath is directory
         filter e.g. *.py or something*something or start*.*
         """
-        path="%s___%s___%s"%(sourcepath,filter,dest)
+        path = "%s___%s___%s" % (sourcepath, filter, dest)
         if path not in self.model.sandboxpaths:
             self.model.sandboxpaths.append(path)
         self.model.save()
 
-    def addPath(self,path):
+    def addPath(self, path):
         """
         path to upload to remote aysfs
         """
@@ -78,44 +76,44 @@ class AtYourServiceSandboxer:
     def reset(self):
         j.sal.fs.remove(self.model.storpath)
 
-    def setHost(self,host,port=22):
-        self.model.host=host
-        self.model.port=port
+    def setHost(self, host, port=22):
+        self.model.host = host
+        self.model.port = port
         self.model.save()
 
-    def setCache(self,host):
-        self.model.cache=host
+    def setCache(self, host):
+        self.model.cache = host
         self.model.save()
 
-    def setNamespace(self,namespace):
-        self.model.namespace=namespace
+    def setNamespace(self, namespace):
+        self.model.namespace = namespace
         self.model.save()
 
-    def addCmdPre(self,cmd):
+    def addCmdPre(self, cmd):
         if cmd not in self.model.cmd_pre:
             self.model.cmd_pre.append(cmd)
         self.model.save()
 
-    def addCmdPost(self,cmd):
+    def addCmdPost(self, cmd):
         if cmd not in self.model.cmd_post:
             self.model.cmd_post.append(cmd)
         self.model.save()
 
-    def addRestart(self,name):
+    def addRestart(self, name):
         if name not in self.model.restart:
             self.model.restart.append(name)
         self.model.save()
 
     def enableHostCacheUpdate(self):
-        self.model.populate_host_cache=True
+        self.model.populate_host_cache = True
         self.model.save()
 
     def enableGridCacheUpdate(self):
-        self.model.populate_grid_cache=True
+        self.model.populate_grid_cache = True
         self.model.save()
 
     def enableMasterCacheUpdate(self):
-        self.model.populate_master_cache=True
+        self.model.populate_master_cache = True
         self.model.save()
 
     def resetCaches(self):
@@ -139,40 +137,40 @@ class AtYourServiceSandboxer:
     #         cmd= "aysfs -auto /opt"
     #         self.cuisine_host.tmux_execute(cmd,interactive=True)
 
-    def _upload(self,desthost,destpath):
-        if desthost=="":
+    def _upload(self, desthost, destpath):
+        if desthost == "":
             return
-        cmd ="rsync  -rlptgo --partial --exclude '*.egg-info*/' --exclude '*.dist-info*/' --exclude '*.egg-info*' "
-        cmd +="--exclude '*.pyc' --exclude '*.bak' --exclude '*__pycache__*'  -e 'ssh -o StrictHostKeyChecking=no -p 22' "
-        cmd +="'/tmp/aysfs/files/' 'root@%s:%s'"%(desthost,destpath)
-        print (cmd)
+        cmd = "rsync  -rlptgo --partial --exclude '*.egg-info*/' --exclude '*.dist-info*/' --exclude '*.egg-info*' "
+        cmd += "--exclude '*.pyc' --exclude '*.bak' --exclude '*__pycache__*'  -e 'ssh -o StrictHostKeyChecking=no -p 22' "
+        cmd += "'/tmp/aysfs/files/' 'root@%s:%s'" % (desthost, destpath)
+        print(cmd)
         j.sal.process.execute(cmd)
 
     def buildJumpscaleMetadata(self):
         from JumpScale import findModules
         findModules()
 
-    def sandbox(self,python=True):
+    def sandbox(self, python=True):
         """
         look for all files in self.paths and copy to the sandbox
         """
-        print ("START SANDBOX")
+        print("START SANDBOX")
         if python:
-            paths=[]
+            paths = []
             paths.append("/usr/lib/python3.5/")
             paths.append("/usr/local/lib/python3.5/dist-packages")
             paths.append("/usr/lib/python3/dist-packages")
 
-            excludeFileRegex=["/xml/","-tk/","/xml","/lib2to3","-34m-",".egg-info"]
-            excludeDirRegex=["/JumpScale","\.dist-info","config-x86_64-linux-gnu","pygtk"]
+            excludeFileRegex = ["/xml/", "-tk/", "/xml", "/lib2to3", "-34m-", ".egg-info"]
+            excludeDirRegex = ["/JumpScale", "\.dist-info", "config-x86_64-linux-gnu", "pygtk"]
 
-            dest = "%s/lib"%j.dirs.base
+            dest = "%s/lib" % j.dirs.base
 
             for path in paths:
-                j.tools.sandboxer.copyTo(path,dest,excludeFileRegex=excludeFileRegex,excludeDirRegex=excludeDirRegex)
+                j.tools.sandboxer.copyTo(path, dest, excludeFileRegex=excludeFileRegex, excludeDirRegex=excludeDirRegex)
 
-            if not j.sal.fs.exists("%s/bin/python"%j.dirs.base):
-                j.sal.fs.copyFile("/usr/bin/python3.5","%s/bin/python"%j.dirs.base)
+            if not j.sal.fs.exists("%s/bin/python" % j.dirs.base):
+                j.sal.fs.copyFile("/usr/bin/python3.5", "%s/bin/python" % j.dirs.base)
 
         # for item in self.model.paths:
         #     sourcepath,filter,dest=item.split("___")
@@ -185,11 +183,11 @@ class AtYourServiceSandboxer:
         #     else:
         #         j.sal.fs.copyFile(sourcepath,dest)
 
-        j.tools.sandboxer.sandboxLibs("%s/lib"%j.dirs.base,recursive=True)
-        j.tools.sandboxer.sandboxLibs("%s/bin"%j.dirs.base,recursive=True)
-        print ("SANDBOXING DONE, ALL OK IF TILL HERE, A Segfault can happen because we have overwritten ourselves.")
+        j.tools.sandboxer.sandboxLibs("%s/lib" % j.dirs.base, recursive=True)
+        j.tools.sandboxer.sandboxLibs("%s/bin" % j.dirs.base, recursive=True)
+        print("SANDBOXING DONE, ALL OK IF TILL HERE, A Segfault can happen because we have overwritten ourselves.")
 
-    def buildUpload(self,sandbox=True):
+    def buildUpload(self, sandbox=True):
         """
         """
         # self.reset()
@@ -199,12 +197,12 @@ class AtYourServiceSandboxer:
             self.sandbox()
 
         for path in self.model.paths:
-            print ("DEDUPE:%s"%path)
+            print("DEDUPE:%s" % path)
             j.tools.sandboxer.dedupe(path, storpath=self.model.storpath, name="0", reset=False, append=True)
 
-        if self.model.host!="":
+        if self.model.host != "":
             try:
-                #check if we can find aysfs, if not install
+                # check if we can find aysfs, if not install
                 self.cuisine_host.run("which aysfs")
             except:
                 self.installAYSFS()
@@ -213,7 +211,7 @@ class AtYourServiceSandboxer:
             #     keepsymlinks=False, deletefirst=False, overwriteFiles=False, rsync=True, ssh=True, sshport=self.model.port, recursive=True)
 
         if self.model.populate_grid_cache:
-            self._upload(self.model.cache,"/mnt/ays/cache/dedupe/")
+            self._upload(self.model.cache, "/mnt/ays/cache/dedupe/")
 
         if self.model.populate_host_cache:
             pass
@@ -240,9 +238,8 @@ class AtYourServiceSandboxer:
             else:
                 raise j.exceptions.RuntimeError('some files didnt upload properly. %s' % ("\n".join(error_files)))
 
-            metadataPath = j.sal.fs.joinPaths(self.model.storpath, "md","0.flist")
-            j.sal.fs.copyDirTree(metadataPath, "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist",overwriteFiles=True, rsync=True, ssh=True)
-
+            metadataPath = j.sal.fs.joinPaths(self.model.storpath, "md", "0.flist")
+            j.sal.fs.copyDirTree(metadataPath, "root@stor.jumpscale.org:/mnt/Storage/openvcloud/ftp/ays/md/jumpscale.flist", overwriteFiles=True, rsync=True, ssh=True)
 
         # if self.model.host!="":
         #     j.sal.fs.copyDirTree(self.model.storpath+"/md/0.flist","root@%s:/etc/ays/local/"%(self.model.host),overwriteFiles=True, rsync=True, ssh=True, sshport=self.model.port)
@@ -258,19 +255,15 @@ class AtYourServiceSandboxer:
             # self.cuisine_host.run("umount -fl /opt;echo")
             # self.cuisine_host.file_unlink("/etc/ays/local/md/0.flist")
 
-
-
-
         # self.cuisine_master.run("chown -R ays:root /mnt/Storage/openvcloud/ftp/ays/master/dedupe/")
 
-
-    def buildUpload_JS(self,sandbox=False,name="main"):
+    def buildUpload_JS(self, sandbox=False, name="main"):
 
         j.sal.fs.createDir("/usr/local/lib/python3.5/site-packages")
         # j.sal.fs.symlink("%s/lib/JumpScale/"%j.dirs.base,"/usr/local/lib/python3.5/site-packages/JumpScale/")
         # j.sal.fs.symlink("%s/lib/JumpScale/"%j.dirs.base,"/root/.ipython/JumpScale/")
 
-        self.model.paths=[]
+        self.model.paths = []
         # d.setNamespace("dedupe")
         self.addPath(j.dirs.base)
         self.enableMasterCacheUpdate()
@@ -279,17 +272,16 @@ class AtYourServiceSandboxer:
     def destroyfileserver(self):
         self.cuisine_master.run("rm -rf /mnt/Storage/openvcloud/ftp/ays/master/;mkdir -p /mnt/Storage/openvcloud/ftp/ays/master/dedupe/")
 
-
-
     def __str__(self):
         return str(self.model)
-    __repr__=__str__
+    __repr__ = __str__
+
 
 class AtYourServiceDebugFactory:
 
     @property
     def doc(self):
-        D="""
+        D = """
     example usage:
     ```
     #ALL IN ONE to only update master
@@ -324,17 +316,16 @@ class AtYourServiceDebugFactory:
     """
         print(D)
 
-    def get(self,name="main"):
+    def get(self, name="main"):
         """
         """
-        d=AtYourServiceDebug(name=name)
+        d = AtYourServiceDebug(name=name)
         return d
 
-    def buildUpload(self,name="main"):
-        d=self.get(name=name)
+    def buildUpload(self, name="main"):
+        d = self.get(name=name)
         d.buildUpload()
 
-
-    def buildUpload_master(self,name="master"):
-        d=self.get(name=name)
+    def buildUpload_master(self, name="master"):
+        d = self.get(name=name)
         d.buildUpload_JS()

@@ -36,7 +36,11 @@ class CuisineGolang:
         optdir = self.cuisine.core.dir_paths["optDir"]
         goDir = self.cuisine.core.dir_paths['goDir']
         self.cuisine.bash.environSet("GOPATH", goDir)
-        self.cuisine.bash.environSet("GOROOT", '/usr/local/go')
+
+        if self.cuisine.core.isMac:
+            self.cuisine.bash.environSet("GOROOT", '/usr/local/Cellar/go/1.6.2/libexec')
+        else:
+            self.cuisine.bash.environSet("GOROOT", '/usr/local/go')
 
         self.cuisine.bash.addPath(self.cuisine.core.joinpaths(goDir, 'bin'))
         self.cuisine.bash.addPath("/usr/local/go/bin/")
@@ -58,6 +62,9 @@ class CuisineGolang:
 
         # return self._gopath
 
+    def clean_src_path(self):
+        srcpath = self.cuisine.core.joinpaths(self.GOPATH, 'src')
+        self.cuisine.core.dir_remove(srcpath)
 
     @actionrun(action=True)
     def get(self,url):

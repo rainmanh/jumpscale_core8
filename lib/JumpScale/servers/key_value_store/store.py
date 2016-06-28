@@ -393,3 +393,25 @@ class KeyValueStoreBase:#, metaclass=ABCMeta):
             return data
 
         self.getModifySet("subscribers",category,modfunction,subscriberid=subscriberid,db=self,lastProcessedId=lastProcessedId)
+
+    def set_dedupe(self,category,data):
+        """
+        will return unique key which references the data, if it exists or not
+        """
+        if data=="" or data==None:
+            return ""
+        if len(data)<32:
+            return data
+        md5=j.data.hash.md5_string(data)
+        if not self.exists(category,md5):
+            self.set(category,md5,data)
+        return md5
+
+    def get_dedupe(self,category,key):
+        if len(key)<32:
+            return key.encode()
+        return self.get(category,key)
+        
+
+
+

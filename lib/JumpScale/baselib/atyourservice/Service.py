@@ -142,8 +142,8 @@ class Service:
 
             self.hrd  # create empty hrd
 
-        self._key = "%s!%s" % (self.role,self.instance)
-        self._gkey = "%s!%s!%s" % (aysrepo.name,self.role,self.instance)
+        self._key = "%s!%s" % (self.role, self.instance)
+        self._gkey = "%s!%s!%s" % (aysrepo.name, self.role, self.instance)
 
         if self.state is None:
             self.state = ServiceState(self)
@@ -151,7 +151,28 @@ class Service:
         if servicerecipe is not None:
             self.state.recipe = servicerecipe.name
             self.init(args=args)  # first time init
-            self.state.save()
+
+        # Set subscribed event into state
+        if self.recipe.template.hrd is not None:
+            for event, actions in self.recipe.template.hrd.getDictFromPrefix('events').items():
+                self.state.setEvents(event, actions)
+            # Set recurring into state
+            for action, period in self.recipe.template.hrd.getDictFromPrefix('recurring').items():
+                self.state.setRecurring(action, period)
+
+            # if service.hrd has remove some event action, update state to reflect that
+            actual = set(self.recipe.template.hrd.getDictFromPrefix('events').keys())
+            total = set(self.state.events.keys())
+            for action in total.difference(actual):
+                self.state.removeEvent(action)
+
+            # if service.hrd has remove some recurring action, update state to reflect that
+            actual = set(self.recipe.template.hrd.getDictFromPrefix('recurring').keys())
+            total = set(self.state.recurring.keys())
+            for action in total.difference(actual):
+                self.state.removeRecurring(action)
+
+        self.state.save()
 
     def reset(self):
         self._hrd = None
@@ -260,7 +281,7 @@ class Service:
                 producerSet = set()
                 # items=[item for item in items if item.strip()!=""]
                 for item in items:
-                    role,instance=item.split("!")
+                    role, instance = item.split("!")
                     service = self.aysrepo.getService(role=role, instance=instance)
                     producerSet.add(service)
 
@@ -333,15 +354,6 @@ class Service:
                     self.actions.change_hrd_template(service=self, originalhrd=originalhrd)
                     self.hrd.save()
                     self.state.templateHRDHash = newTemplateHrdHash
-
-        # Set subscribed event into state
-        if self.recipe.template.hrd is not None:
-            for event, actions in self.recipe.template.hrd.getDictFromPrefix('events').items():
-                self.state.setEvents(event, actions)
-            # Set recurring into state
-            for action, period in self.recipe.template.hrd.getDictFromPrefix('recurring').items():
-                self.state.setRecurring(action, period)
-
         self.save()
 
     def _consumeFromSchema(self, args):
@@ -591,14 +603,13 @@ class Service:
 
     def runAction(self, action):
         a = self.getAction(action)
-        if a==None:
-            raise j.exceptions.Input("Cannot find action:%s on %s"%(action,self))
+        if a is None:
+            raise j.exceptions.Input("Cannot find action:%s on %s" % (action, self))
 
         # when none means does not exist so does not have to be executed
         if a is not None:
             # if action not in ["init","input"]:
             return a(service=self)
-
 
     @property
     def action_methods(self):
@@ -614,6 +625,11 @@ class Service:
             return None
         a = getattr(self.actions, action)
         return a
+
+    def getActionSource(self,action):
+        if action not in self.action_methods:
+            return ""
+        return j.data.text.strip(inspect.getsource(self.action_methods[action]))
 
     def _getDisabledProducers(self):
         producers = dict()

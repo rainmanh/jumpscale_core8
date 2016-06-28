@@ -38,6 +38,7 @@ class LoggerFactory:
         # Modes
         self.PRODUCTION = PRODUCTION
         self.DEV = DEV
+        self._quiet = False
 
         self._logger = logging.getLogger(self.root_logger_name)
         self._logger.addHandler(logging.NullHandler())
@@ -70,6 +71,10 @@ class LoggerFactory:
             logger.enable_only_me
         return logger
 
+
+    def set_quiet(self, quiet):
+        self._quiet = quiet
+
     def set_mode(self, mode):
         if j.data.types.string.check(mode):
             if mode in _name_to_mode:
@@ -99,7 +104,9 @@ class LoggerFactory:
         self._logger.setLevel(logging.DEBUG)
         self._logger.propagate = False
         logging.lastResort = None
-        for h in self.handlers.values():
+        for k, h in self.handlers.items():
+            if k == 'console' and self._quiet:
+                continue
             self._logger.addHandler(h)
 
     def __fileRotateHandler(self, name='jumpscale'):

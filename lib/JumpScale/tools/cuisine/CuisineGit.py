@@ -17,6 +17,9 @@ class CuisineGit:
             dest = self.cuisine.core.args_replace(dest)
 
         self.cuisine.core.dir_ensure(dest)
+        keys = self.cuisine.core.run("ssh-keyscan -H github.com")
+        self.cuisine.core.file_append("$homeDir/.ssh/known_hosts", keys)
+        self.cuisine.core.file_attribs("$homeDir/.ssh/known_hosts", mode=600)
 
         return j.do.pullGitRepo(url=url,dest=dest,login=login,passwd=passwd,depth=depth,\
             ignorelocalchanges=ignorelocalchanges,reset=reset,branch=branch,revision=revision, ssh=ssh,executor=self.executor)

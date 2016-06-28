@@ -1,10 +1,10 @@
 from JumpScale import j
 
-from JumpScale.data.markdown.mistune import *
+# from JumpScale.data.markdown.mistune import *
 
-from pygments import highlight
-from pygments.lexers import get_lexer_by_name
-from pygments.formatters import HtmlFormatter
+# from pygments import highlight
+# from pygments.lexers import get_lexer_by_name
+# from pygments.formatters import HtmlFormatter
 
 import copy
 
@@ -57,8 +57,6 @@ They talk about PyGithub
 
 """
 
-
-from JumpScale.data.markdown.mistune import *
 
 class MDTable:
     def __init__(self):
@@ -156,13 +154,10 @@ class MDListItem:
         self.type="list"
 
     def __repr__(self):
-        pre=""
+        pre = ''
         if self.level>1:
-            for i in range(self.level-1):
-                pre+="    "
-            return "%s %s"%(pre,self.text)
-        else:
-            return " %s"%(self.text)
+            pre = ' ' * (self.level - 1)
+        return "%s%s" % (pre, self.text)
 
     __str__=__repr__
 
@@ -535,32 +530,54 @@ class MarkdownDocument:
 
 
 
-# md=MarkdownDocument(example)
-
-# test={}
-# test["descr"]="""
-# Tables
-
-# Tables aren't part of the core Markdown spec, but they are part of GFM and Markdown Here supports them. They are an easy way of adding tables to your email -- a task that would otherwise require copy-pasting from another application.
-
-# Colons can be used to align columns.
-
-# """
-# test["nr"]=3
-# test["subd"]={"nr2":3,"item":"sss"}
-
-# md.addMDData(test,"test","myguid")
-
-# test["nr"]=4
-# md.addMDData(test,"test","myguid2")
-
-# md2=MarkdownDocument(str(md))
-
-# print (md2.getHashList("test"))
 
 class MarkdownFactory:
     def __init__(self):
         self.__jslocation__="j.data.markdown"
+
+    def help(self,run=False):
+        """
+        @param execute, if execute will execute in shell & give you control to manipulate at end
+        """
+        C="""
+
+        md=MarkdownDocument(example)
+
+        # COMON EXAMPLES
+        md.addMDHeader(2,"this is title on level 2")
+
+        table=md.addMDTable()
+        table.addHeader(["name","descr"])
+        table.addRow(["ghent","best town ever"])
+        table.addRow(["antwerp","trying to be best town ever"])
+
+        # EXAMPLE TO ADD DATA IN MARKDOWN
+        # test={}
+        # test["descr"]="some description"
+        # test["nr"]=3
+        # test["subd"]={"nr2":3,"item":"sss"}
+
+        # md.addMDData(test,"test","myguid")
+
+        # test["nr"]=4
+        # md.addMDData(test,"test","myguid2")
+
+        # md2=MarkdownDocument(str(md))
+
+        # print (md2.getHashList("test"))
+
+        print(md)
+        """
+        # print (j.data.text.strip(C))
+        j.data.text.printCode(C)        
+        C=j.data.text.strip(C)
+        if run:
+            exec(C)
+            from IPython import embed
+            print ("Shell for help for markdown factory:")
+            embed()
+            
+
 
     def getDocument(self,content="",path=""):
         """

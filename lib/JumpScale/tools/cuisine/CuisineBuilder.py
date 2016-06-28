@@ -22,15 +22,17 @@ class CuisineBuilder:
         self.cuisine.apps.mongodb.build(start=start)
         self.cuisine.apps.portal.install(start=start)
         self.cuisine.apps.redis.build(start=start, force=True)
-        self.cuisine.apps.core.build(start=start)
+        if not self.cuisine.core.isMac:
+            self.cuisine.apps.core.build(start=start)
+            self.cuisine.apps.fs.build(start=False)
         self.cuisine.apps.syncthing.build(start=start)
         self.cuisine.apps.controller.build(start=start)
-        self.cuisine.apps.fs.build(start=False)
         self.cuisine.apps.stor.build(start=start)
         self.cuisine.apps.etcd.build(start=start)
         self.cuisine.apps.caddy.build(start=start)
         # self.cuisine.apps.skydns(start=start)
         self.cuisine.apps.influxdb.build(start=start)
+        self.cuisine.apps.cockpit.build(start=False)
         if not self.cuisine.core.isDocker and not self.cuisine.core.isLxc:
             self.cuisine.apps.weave.build(start=start)
         if sandbox:

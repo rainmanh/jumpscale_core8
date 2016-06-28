@@ -41,6 +41,7 @@ class Controller:
 
         #get repo
         url = "github.com/g8os/controller"
+        self.cuisine.golang.clean_src_path()
         self.cuisine.golang.godep(url)
 
         sourcepath = "$goDir/src/github.com/g8os/controller"
@@ -52,11 +53,11 @@ class Controller:
         self.cuisine.core.file_move("%s/controller" % sourcepath, "$binDir/controller")
 
 
-
         #file copy
         self.cuisine.core.dir_remove("$tmplsDir/cfg/controller/extensions")
         self.cuisine.core.file_copy("%s/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale" % self.cuisine.core.dir_paths["codeDir"], "$tmplsDir/cfg/controller/jumpscripts/", recursive=True)
         self.cuisine.core.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/controller/extensions", recursive=True)
+        self.cuisine.core.file_copy("%s/agentcontroller.toml" % sourcepath, '$tmplsDir/cfg/controller/agentcontroller.toml')
 
         if start:
             self.start()
@@ -66,11 +67,10 @@ class Controller:
         from xml.etree import ElementTree
 
         self.cuisine.core.dir_ensure("$cfgDir/controller/")
-        self.cuisine.core.file_copy("$tmplsDir/cfg/controller", "$cfgDir/", recursive=True)
+        self.cuisine.core.file_copy("$tmplsDir/cfg/controller", "$cfgDir/", recursive=True, overwrite=True)
 
         # edit config
-        sourcepath = "$goDir/src/github.com/g8os/controller"
-        C = self.cuisine.core.file_read("%s/agentcontroller.toml" % sourcepath)
+        C = self.cuisine.core.file_read('$cfgDir/controller/agentcontroller.toml')
         cfg = j.data.serializer.toml.loads(C)
 
         cfgDir = self.cuisine.core.dir_paths['cfgDir']

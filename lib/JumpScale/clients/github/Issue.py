@@ -2,7 +2,6 @@ import threading
 from JumpScale import j
 from Base import Base
 from Base import replacelabels
-from github.GithubObject import NotSet
 from Milestone import RepoMilestone
 
 
@@ -55,6 +54,21 @@ class Issue(Base):
                     self._comments.append(obj)
         return self._comments
 
+    def reload_comments(self):
+        with self._lock:
+            self._comments = []
+            for comment in self.api.get_comments():
+                obj = {}
+                user = self.repo.client.getUserLogin(githubObj=comment.user)
+                obj["user"] = user
+                obj["url"] = comment.url
+                obj["id"] = comment.id
+                obj["body"] = comment.body
+                obj["time"] = j.data.time.any2HRDateTime(
+                    [comment.last_modified, comment.created_at])
+                self._comments.append(obj)
+        return self._comments
+
     @property
     def guid(self):
         return self.repo.fullname + "_" + str(self._ddict["number"])
@@ -74,7 +88,10 @@ class Issue(Base):
     @body.setter
     def body(self, val):
         self._ddict["body"] = val
-        self.api.edit(body=self._ddict['body'])
+        try:
+            self.api.edit(body=self._ddict['body'])
+        except Exception as e:
+            self.logger.error('Failed to update the issue body: %s' % e)
 
     @property
     def time(self):
@@ -116,6 +133,9 @@ class Issue(Base):
     @property
     def state(self):
         states = []
+        if not self.isOpen:
+            return 'closed'
+
         for label in self.labels:
             if label.startswith("state"):
                 states.append(label)
@@ -277,44 +297,10 @@ class Issue(Base):
         return self._todo
 
     @property
-    def isStory(self):
-        if self.type == 'story' or self.story_name != '':
-            return True
-        return False
-
-    @property
     def isTask(self):
         if self.type == 'task' or self.title.lower().endswith('task'):
             return True
         return False
-
-    def move_to_repo(self, repo):
-        self.logger.info("%s: move to repo:%s" % (self, repo))
-        body = "Issue moved from %s\n\n" % self.api.url
-        for line in self.api.body.splitlines():
-            if line.startswith("!!") or line.startswith(
-                    '### Tasks:') or line.startswith('### Part of Story'):
-                continue
-            body += "%s\n" % line
-        assignee = self.api.assignee if self.api.assignee else NotSet
-        labels = self.api.labels if self.api.labels else NotSet
-        moved_issue = repo.api.create_issue(title=self.title, body=body,
-                                            assignee=assignee, labels=labels)
-        moved_issue.create_comment(self._create_comments_backlog())
-        self.api.create_comment("Moved to %s" % moved_issue.url)
-        self.api.edit(state='close')
-
-    def _create_comments_backlog(self):
-        out = "### backlog comments of '%s' (%s)\n\n" % (self.title, self.url)
-        for comment in self.api.get_comments():
-            if comment.body.find("!! move") != -1:
-                continue
-            date = j.data.time.any2HRDateTime(
-                [comment.last_modified, comment.created_at])
-            out += "from @%s at %s\n" % (comment.user.login, date)
-            out += comment.body + "\n\n"
-            out += "---\n\n"
-        return out
 
     def __str__(self):
         return "issue:%s" % self.title

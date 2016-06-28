@@ -31,6 +31,8 @@ class CuisineInstallerDevelop:
             """
         else:
             C = """
+            python3
+            postgresql
             libpython3.4-dev
             python3.4-dev
             libpython3.5-dev
@@ -39,6 +41,7 @@ class CuisineInstallerDevelop:
         self.cuisine.package.multiInstall(C)
 
         C="""
+        autoconf
         libffi-dev
         gcc
         make
@@ -56,6 +59,9 @@ class CuisineInstallerDevelop:
     def pip(self):
         self.cuisine.installer.base()
         self.python()
+        if self.cuisine.core.isMac:
+            return
+        
         C="""
             #important remove olf pkg_resources, will conflict with new pip
             rm -rf /usr/lib/python3/dist-packages/pkg_resources
@@ -110,7 +116,8 @@ class CuisineInstallerDevelop:
         self.cuisine.core.run_script(C,force=False)
 
         C="""
-        cffi==1.5.2
+        # cffi==1.5.2
+        cffi
         paramiko
 
         msgpack-python
@@ -173,6 +180,7 @@ class CuisineInstallerDevelop:
         python-telegram-bot
         colorlog
         path.py
+        dnspython3
         """
         self.cuisine.pip.multiInstall(C,upgrade=True)
 
@@ -186,16 +194,12 @@ class CuisineInstallerDevelop:
 
         self.cuisine.apps.redis.build()
 
-        """
-        install dnspython3
-        """
-        self.dnspython3()
 
     @actionrun(action=True)
     def jumpscale8(self):
         if self.cuisine.installer.jumpscale_installed():
             return
-        self.installJS8Deps()
+        self.installJS8Deps(force=False)
 
         if self.cuisine.core.isUbuntu or self.cuisine.core.isArch:
 
@@ -207,21 +211,57 @@ class CuisineInstallerDevelop:
             C=self.cuisine.core.args_replace(C)
             self.cuisine.core.run(C)
         elif self.cuisine.core.isMac:
-            cmd = """sudo mkdir -p /opt
-            # sudo chown -R despiegk:root /opt
-            ruby -e \"$ (curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""""
+            cmd = "export TMPDIR=~/tmp;mkdir -p $TMPDIR;cd $TMPDIR;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh"
             self.cuisine.core.run(cmd)
         else:
             raise j.exceptions.RuntimeError("platform not supported yet")
 
+    @actionrun(action=True)
+
+    def cleanup(self):
+        C="""
+        #!/bin/bash
+        set +ex
+        apt-get clean
+        rm -rf /var/tmp/*
+        # rm -rf /var/lib/apt/lists/*
+        rm -f /etc/dpkg/dpkg.cfg.d/02apt-speedup
+        #rm -f /etc/ssh/ssh_host_*
+        """
+        C=self.cuisine.core.args_replace(C)
+        self.cuisine.core.run_script(C,force=True)
 
     @actionrun(action=True)
-    def dnspython3(self):
-        C = """
-            cd $tmpDir
-            wget http://www.dnspython.org/kits3/1.12.0/dnspython3-1.12.0.tar.gz
-            tar -xf dnspython3-1.12.0.tar.gz
-            cd dnspython3-1.12.0
-            ./setup.py install
-            """
+    def brotli(self):
+        C="""
+        cd /tmp
+        sudo rm -rf brotli/
+        git clone https://github.com/google/brotli.git
+        cd /tmp/brotli/
+        ./configure
+        make
+        cp /tmp/brotli/bin/bro /usr/local/bin/
+        rm -rf /tmp/brotli
+        """
+        C=self.cuisine.core.args_replace(C)
+        self.cuisine.core.run_script(C,force=True)
+    def xrdp(self):
+        """
+        builds a full xrdp, this can take a while
+        """
+        C="""
+        cd /root
+        git clone https://github.com/scarygliders/X11RDP-o-Matic.git
+        cd X11RDP-o-Matic
+        bash X11rdp-o-matic.sh
+        ln -fs /usr/bin/Xvfb /etc/X11/X
+        apt-get update
+        apt-get install  -y --force-yes lxde lxtask
+        echo 'pgrep -U $(id -u) lxsession | grep -v ^$_LXSESSION_PID | xargs --no-run-if-empty kill' > /bin/lxcleanup.sh
+        chmod +x /bin/lxcleanup.sh
+        echo '@lxcleanup.sh' >> /etc/xdg/lxsession/LXDE/autostart
+        echo '#!/bin/sh -xe\nrm -rf /tmp/* /var/run/xrdp/* && service xrdp start && startx' > /bin/rdp.sh 
+        chmod +x /bin/rdp.sh
+        """
         self.cuisine.core.run_script(C)
+

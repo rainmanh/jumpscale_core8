@@ -212,7 +212,7 @@ class CuisineCore:
 
     def getenv(self):
         res = {}
-        for line in self.cuisine.core.run("printenv", profile=False, showout=False,force=True, replaceArgs=False).splitlines():
+        for line in self.cuisine.core.run("printenv", profile=False, showout=False,force=True, replaceArgs=False, action=False).splitlines():
             if '=' in line:
                 name,val = line.split("=",1)
                 name = name.strip()
@@ -260,19 +260,19 @@ class CuisineCore:
             res["cfgDir"] = "%s/cfg"%res["varDir"]
             res["jsLibDir"] = "%s/lib/JumpScale/"%res["base"]
             res["libDir"] = "%s/lib/"%res["base"]
-            res["homeDir"] = os.environ["HOME"]
+            res["homeDir"] = env["HOME"]
             res["logDir"] = "%s/log"%res["varDir"]
             res["pidDir"] = "%s/pid"%res["varDir"]
             res["tmpDir"] = "%s/tmp"%res["varDir"]
             res["hrdDir"] = "%s/hrd"%res["varDir"]
             self._dirs = res
 
-        if self.isMac:
-            self._dirs["optDir"]= "%s/opt/"%env["HOME"]
-        else:
-            self._dirs["optDir"] = "/opt/"
+            if self.isMac:
+                self._dirs["optDir"]= "%s/opt/"%env["HOME"]
+            else:
+                self._dirs["optDir"] = "/opt/"
 
-        self._dirs["goDir"] = "%sgo/"%self._dirs["varDir"]
+            self._dirs["goDir"] = "%sgo/"%self._dirs["varDir"]
 
         return self._dirs
 
@@ -531,10 +531,10 @@ class CuisineCore:
     def hostname(self):
         if self._hostname=="":
             if self.isMac:
-                self._hostname=self.run("hostname",showout=False,replaceArgs=False)
+                self._hostname=self.run("hostname",showout=False,replaceArgs=False, action=False)
             else:
                 hostfile="/etc/hostname"
-                self._hostname= self.run("cat %s"%hostfile,showout=False,replaceArgs=False).strip().split(".",1)[0]
+                self._hostname= self.run("cat %s"%hostfile,showout=False,replaceArgs=False, action=False).strip().split(".",1)[0]
         return self._hostname
 
     @hostname.setter
@@ -790,8 +790,16 @@ class CuisineCore:
         if recursive:
             cmd += "-r "
         if not overwrite:
-            cmd += "--no-clobber "
+            if self.isMac:
+                cmd += " -n "
+            else:
+                cmd += " --no-clobber "
+
         cmd += '%s %s' % (source, dest)
+
+        if self.isMac:
+            cmd += " 2>&1 >/dev/null ;True"
+            
         self.run(cmd)
 
 
@@ -1012,6 +1020,7 @@ class CuisineCore:
         @param profile, execute the bash profile first
         """
         # print (cmd)
+        env = {}
         import copy
         if replaceArgs:
             cmd=self.args_replace(cmd)
@@ -1034,10 +1043,15 @@ class CuisineCore:
             cmd = cmd.replace('"', '\\"')
         if self.sudomode:
             passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
-            cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
+            cmd = 'echo %s | sudo -SE bash -c "%s"' % (passwd, cmd)
         else:
             cmd = 'bash -c "%s"' % cmd
-        rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)
+
+        path = self.executor.execute("echo $PATH", showout=False)[1]
+        if "/usr/local/bin" not in path: 
+            env = {"PATH": "%s:/usr/local/bin" % path}
+        rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout, env=env)
+
         out = self._clean(out)
 
         if rc>0:
@@ -1077,7 +1091,7 @@ class CuisineCore:
                             next=True
 
                 if next:
-                    rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)
+                    rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout, env=env)
 
         if debug!=None:
             self.executor.debug=debugremember

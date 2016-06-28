@@ -34,9 +34,9 @@ class Redis:
 
             mkdir -p $tmpDir/build/redis
             cd $tmpDir/build/redis
-            wget http://download.redis.io/releases/redis-3.0.6.tar.gz
-            tar xzf redis-3.0.6.tar.gz
-            cd redis-3.0.6
+            wget http://download.redis.io/releases/redis-3.2.0.tar.gz
+            tar xzf redis-3.2.0.tar.gz
+            cd redis-3.2.0
             make
 
             rm -f /usr/local/bin/redis-server
@@ -50,8 +50,8 @@ class Redis:
             C="""
             set -ex
             mkdir -p $base/bin/
-            cp -f $tmpDir/build/redis/redis-3.0.6/src/redis-server $base/bin/
-            cp -f $tmpDir/build/redis/redis-3.0.6/src/redis-cli $base/bin/
+            cp -f $tmpDir/build/redis/redis-3.2.0/src/redis-server $base/bin/
+            cp -f $tmpDir/build/redis/redis-3.2.0/src/redis-cli $base/bin/
 
             rm -rf $base/apps/redis
             """
@@ -71,9 +71,9 @@ class Redis:
 
         self.cuisine.bash.addPath(j.sal.fs.joinPaths(self.cuisine.core.dir_paths["base"], "bin"), action=True)
 
-        j.clients.redis.executor=self.executor
-        j.clients.redis.cuisine=self.cuisine
-        j.clients.redis.configureInstance(name, ip, port, maxram=maxram, appendonly=appendonly, \
+
+        redis_cli = j.clients.redis.getInstance(self.cuisine)
+        redis_cli.configureInstance(name, ip, port, maxram=maxram, appendonly=appendonly, \
             snapshot=snapshot, slave=slave, ismaster=ismaster, passwd=passwd, unixsocket=False)
 
         if start:

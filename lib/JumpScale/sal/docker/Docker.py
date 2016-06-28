@@ -22,7 +22,7 @@ class Docker:
             self.base_url = 'unix://var/run/docker.sock'
         else:
             self.base_url = os.environ['DOCKER_HOST']
-        self.client = docker.Client(base_url=self.base_url)
+        self.client = docker.Client(base_url=self.base_url, timeout=120)
 
     @property
     def isWeaveEnabled(self):
@@ -267,7 +267,7 @@ class Docker:
             print('[+] starting aysfs: %s' % fs.getName())
             fs.start()
 
-    def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1510", nameserver=["8.8.8.8"],
+    def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1604", nameserver=["8.8.8.8"],
                replace=True, cpu=None, mem=0, jumpscale=False, ssh=True, myinit=True, sharecode=False,sshkeyname="",sshpubkey="",
                setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master", aysfs=[]):
 
@@ -389,7 +389,7 @@ class Docker:
             cmd = "sh -c \"mkdir -p /var/run/screen;chmod 777 /var/run/screen; /var/run/screen;exec >/dev/tty 2>/dev/tty </dev/tty && /sbin/my_init -- /usr/bin/screen -s bash\""
             cmd = "sh -c \" /sbin/my_init -- bash -l\""
         else:
-            cmd = None
+            cmd = "/bin/sh" 
 
         print(("install docker with name '%s'" % name))
 
@@ -480,8 +480,9 @@ class Docker:
         output: print progress as it pushes
         """
 
+        client = docker.Client(base_url=self.base_url, timeout=36000)
         out = []
-        for l in j.sal.docker.client.push(image, stream=True):
+        for l in client.push(image, stream=True):
             line = j.data.serializer.json.loads(l)
             id = line['id'] if 'id' in line else ''
             s = "%s " % id
@@ -491,13 +492,16 @@ class Docker:
                 detail = line['progressDetail']
                 progress = line['progress']
                 s += " %50s " % progress
+            if 'error' in line:
+                message = line['errorDetail']['message']
+                raise j.exceptions.RuntimeError(message)
             if output:
                 print(s)
             out.append(s)
 
         return "\n".join(out)
 
-    def build(self, path, tag, output=True):
+    def build(self, path, tag, output=True,force=False):
         """
         path: path of the directory that contains the docker file
         tag: tag to give to the image. e.g: 'jumpscale/myimage'
@@ -505,8 +509,11 @@ class Docker:
 
         return: strint containing the stdout
         """
+        #@todo implement force
         out = []
-        for l in self.client.build(path=path, tag=tag):
+        if force:
+            nocache=True
+        for l in self.client.build(path=path, tag=tag,nocache=nocache):
             line = j.data.serializer.json.loads(l)
             if 'stream' in line:
                 line = line['stream'].strip()

@@ -111,14 +111,6 @@ class Arakoon:
         if start:
             self.start("arakoon")
 
-    def _config(self, ip, client_port=7080, messaging_port=10000):
-        cfg_path = self.cuisine.args_replace('$cfgDir/arakoon/arakoon.ini')
-        self.cuisine.dir_ensure(j.sal.fs.getParent(cfg_path))
-        if self.cuisine.file_exists(cfg_path):
-            self.cuisine.file_unlink(cfg_path)
-        f = j.tools.inifile.new(cfg_path)
-        f.new
-
     def start(self, name="arakoon"):
         which = self.cuisine.core.command_location("arakoon")
         self.cuisine.core.dir_ensure('$varDir/data/arakoon')

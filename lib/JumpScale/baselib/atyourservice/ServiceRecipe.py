@@ -4,10 +4,10 @@ from JumpScale import j
 import copy
 import inspect
 
-from JumpScale.baselib.atyourservice.ServiceTemplate import ServiceTemplate
+from ServiceTemplate import ServiceTemplate
 
 
-from JumpScale.baselib.atyourservice.Service import Service, loadmodule
+from Service import Service, loadmodule
 
 DECORATORCODE = """
 ActionMethodDecorator=j.atyourservice.getActionMethodDecorator()

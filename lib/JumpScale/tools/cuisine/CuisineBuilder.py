@@ -24,9 +24,9 @@ class CuisineBuilder:
         self.cuisine.apps.redis.build(start=start, force=True)
         if not self.cuisine.core.isMac:
             self.cuisine.apps.core.build(start=start)
-            self.cuisine.apps.fs.build(start=False)
         self.cuisine.apps.syncthing.build(start=start)
         self.cuisine.apps.controller.build(start=start)
+        self.cuisine.apps.fs.build(start=False)
         self.cuisine.apps.stor.build(start=start)
         self.cuisine.apps.etcd.build(start=start)
         self.cuisine.apps.caddy.build(start=start)

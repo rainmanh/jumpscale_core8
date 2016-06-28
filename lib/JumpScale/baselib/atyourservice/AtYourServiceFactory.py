@@ -53,7 +53,7 @@ class AtYourServiceFactory:
     def getTester(self, name="fake_IT_env"):
         return AtYourServiceTester(name)
 
-    def get(self, name, path=""):
+    def get(self, name="", path=""):
         """
         Get a repo by name or path
 
@@ -69,16 +69,20 @@ class AtYourServiceFactory:
         if path:
             if path not in self.repos:
                 if j.sal.fs.exists(path) and j.sal.fs.isDir(path):
+                    if not name:
+                        name = j.sal.fs.getBaseName(path)
                     self._repos[path] = AtYourServiceRepo(name, path)
 
         else:
             # we want to retrieve  repo by name
             result = [repo for repo in self.repos.values() if repo.name == name]
             if not result:
-                path = path = j.sal.fs.getcwd()
+                path = j.sal.fs.getcwd()
+                if not name:
+                    name = j.sal.fs.getBaseName(path)
                 self._repos[path] = AtYourServiceRepo(name, path)
             elif len(result) > 1:
-                msg = "Multiple AYS repos with name %s found under locations [%s]. Please use j.atyourservice.get(name=<name>, path=<path>) instead" % \
+                msg = "Multiple AYS repos with name %s found under locations [%s]. Please use j.atyourservice.get(path=<path>) instead" % \
                         (name, ','.join([repo.basepath for repo in result]))
                 raise j.exceptions.RuntimeError(msg)
             else:

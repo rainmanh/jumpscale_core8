@@ -22,6 +22,7 @@ from apps.CuisineWeave import Weave
 from apps.CuisinePortal import CuisinePortal
 from apps.CuisineCockpit import Cockpit
 from apps.CuisineDeployerBot import DeployerBot
+from apps.CuisineArakoon import Arakoon
 
 
 import time
@@ -61,6 +62,7 @@ class CuisineApps:
         self._portal = None
         self._cockpit = None
         self._deployerbot = None
+        self._arakoon = None
 
     @property
     def weave(self):
@@ -166,6 +168,12 @@ class CuisineApps:
         if self._deployerbot is None:
             self._deployerbot = DeployerBot(self.executor, self.cuisine)
         return self._deployerbot
+
+    @property
+    def arakoon(self):
+        if self._arakoon is None:
+            self._arakoon = Arakoon(self.executor, self.cuisine)
+        return self._arakoon
 
     @actionrun(action=True)
     def installdeps(self):

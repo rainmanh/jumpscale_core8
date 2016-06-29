@@ -63,10 +63,13 @@ class CuisineGolang:
         C='''
         go get -u github.com/Jumpscale/go-raml
         set -ex
+        cd $GOPATH/src/github.com/jteeuwen/go-bindata/go-bindata
+        go build 
+        go install 
         cd $GOPATH/src/github.com/Jumpscale/go-raml
         sh build.sh
         '''
-        j.tools.cuisine.local.core.run_script(C)
+        self.cuisine.core.run_script(C, profile=True)
 
     @property
     def GOPATH(self):

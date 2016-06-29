@@ -54,7 +54,7 @@ class CuisinePackage:
             self.cuisine.core.run("apt-get update")
         elif self.cuisine.core.isMac:
             location = self.cuisine.core.command_location("brew")
-            self.cuisine.core.run("chown root %s" % location)
+            # self.cuisine.core.run("sudo chown root %s" % location)
             self.cuisine.core.run("brew update")
         elif self.cuisine.core.isArch:
             self.cuisine.core.run("pacman -Syy")

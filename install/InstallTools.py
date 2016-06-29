@@ -1743,7 +1743,8 @@ class InstallTools():
 
         return repository_host, repository_type, repository_account, repository_name, dest, repository_url
 
-    def pullGitRepo(self,url="",dest=None,login=None,passwd=None,depth=1,ignorelocalchanges=False,reset=False,branch=None,revision=None, ssh="auto",executor=None,codeDir=None):
+    def pullGitRepo(self,url="",dest=None,login=None,passwd=None,depth=1,ignorelocalchanges=False,\
+        reset=False,branch=None,revision=None, ssh="auto",executor=None,codeDir=None,onlyIfExists=False):
         """
         will clone or update repo
         if dest == None then clone underneath: /opt/code/$type/$account/$repo
@@ -1762,6 +1763,9 @@ class InstallTools():
         base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh,codeDir=codeDir,executor=executor)
 
         exists = self.exists(dest) if not executor else executor.exists(dest)
+
+        if onlyIfExists and exists==False:
+            return
 
         if dest is None and branch is None:
             branch = "master"

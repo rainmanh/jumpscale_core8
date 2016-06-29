@@ -1,7 +1,7 @@
 from JumpScale import j
 import re
 from io import StringIO
-
+import os
 from JumpScale.tools.cuisine.ActionDecorator import ActionDecorator
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
@@ -33,17 +33,38 @@ class Profile:
         # load path
         if 'PATH' in self._env:
             path = self._env['PATH']
-            self._path = set(path.split(':'))
+            _path = set(path.split(':'))
         else:
-            self._path = set()
-            self._path.add('${PATH}')
-            self._path.add(binDir)
+            _path = set()
+            # self._path.add('${PATH}')
+            if binDir!=None:
+                _path.add(binDir)
+
+        for item in _path:
+            if item in [None,"${PATH}"]:
+                continue
+            if item.strip()=="":
+                continue            
+            self.addPath(item)
+
+        self._env.pop('PATH')
+
 
     def addPath(self, path):
-        self._path.add(path)
+        path=path.strip()
+        path=path.replace("//","/")
+        path=path.replace("//","/")
+        path=path.rstrip("/")
+        if not path in self._path:
+            self._path.add(path)
 
     def addInclude(self, path):
-        self._includes.add(path)
+        path=path.strip()
+        path=path.replace("//","/")
+        path=path.replace("//","/")
+        path=path.rstrip("/")
+        if not path in self._includes:        
+            self._includes.add(path)
 
     @property
     def path(self):
@@ -58,7 +79,7 @@ class Profile:
     def dump(self):
         parts = ['${PATH}']
         parts.extend(self.path)
-        self._env['PATH'] = ':'.join(set(self._path))
+        self._env['PATH'] = ':'.join(set(self._path))+':${PATH}'
 
         content = StringIO()
         content.write('# environment variables\n')
@@ -69,6 +90,8 @@ class Profile:
         content.write('# includes\n')
         for path in self._includes:
             content.write('source %s\n' % path)
+
+        self._env.pop('PATH')
 
         return content.getvalue()
 
@@ -146,6 +169,7 @@ class Bash:
         Set environ
         """
         self._environ[key] = val
+        os.environ[key]=val
         self.profile.set(key, val)
         self.cuisine.core.file_write(self.profilePath, self.profile.dump())
         self.reset()
@@ -223,3 +247,25 @@ class Bash:
     def include(self, path):
         self.profile.addInclude(path)
         self.cuisine.core.file_write(self.profilePath, self.profile.dump(),showout=False)
+
+    @actionrun(action=True)
+    def getLocaleItems(self,force=False):
+        out=self.cuisine.core.run("locale -a")
+        return out.split("\n")
+
+
+    @actionrun(action=True)
+    def fixlocale(self):
+        items=self.getLocaleItems()
+        if "en_US.UTF-8" in items:
+            self.environSet("LC_ALL","en_US.UTF-8")
+            self.environSet("LANG","en_US.UTF-8")
+            return
+        elif "C.UTF-8" in items:
+            self.environSet("LC_ALL","C.UTF-8")
+            self.environSet("LANG","C.UTF-8")
+            return
+
+        raise j.exceptions.Input("Cannot find C.UTF-8, cannot fix locale's")
+            
+

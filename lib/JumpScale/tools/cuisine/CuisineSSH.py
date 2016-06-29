@@ -115,22 +115,22 @@ class CuisineSSH:
             return ips
 
     @actionrun(force=True)
-    def keygen(self,user, keytype="dsa"):
+    def keygen(self,user="root", keytype="rsa",name="default"):
         """Generates a pair of ssh keys in the user's home .ssh directory."""
         user=user.strip()
-        d = self.user.check(user)
+        d = self.cuisine.user.check(user)
         assert d, "User does not exist: %s" % (user)
         home = d["home"]
-        key_file = home + "/.ssh/id_%s.pub" % keytype
-        if not self.cuisine.core.file_exists(key_file):
+        path='%s/.ssh/%s'%(home,name)
+        if not self.cuisine.core.file_exists(path+".pub"):
             self.cuisine.core.dir_ensure(home + "/.ssh", mode="0700", owner=user, group=user)
-            self.cuisine.core.run("ssh-keygen -q -t %s -f '%s/.ssh/id_%s' -N ''" %
-                (keytype, home, keytype))
-            self.cuisine.core.file_attribs(home + "/.ssh/id_%s" % keytype, owner=user, group=user)
-            self.cuisine.core.file_attribs(home + "/.ssh/id_%s.pub" % keytype, owner=user, group=user)
-            return key_file
+            
+            self.cuisine.core.run("ssh-keygen -q -t %s -f %s -N ''" % (keytype, path))
+            self.cuisine.core.file_attribs(path, owner=user, group=user)
+            self.cuisine.core.file_attribs("%s.pub"%path, owner=user, group=user)
+            return "%s.pub"%path
         else:
-            return key_file
+            return "%s.pub"%path
 
     @actionrun(force=True)
     def authorize(self,user, key):

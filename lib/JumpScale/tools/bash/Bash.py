@@ -47,7 +47,7 @@ class Profile:
                 continue            
             self.addPath(item)
 
-        self._env.pop('PATH')
+        self._env.pop('PATH', None)
 
 
     def addPath(self, path):

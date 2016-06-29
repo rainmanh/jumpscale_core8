@@ -1007,7 +1007,7 @@ class InstallTools():
         s.quit()
 
     def execute(self, command , showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[], \
-                        ok=[], captureout=True, die=True, async=False, executor=None, combinestdr=True):
+                        ok=[], captureout=True, die=True, async=False, executor=None, combinestdr=False):
         """
         @param errors is array of statements if found then exit as error
         return rc,out

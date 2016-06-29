@@ -348,3 +348,25 @@ class Client:
         if resp.status_code != 200:
             raise j.exceptions.RuntimeError(resp.json()['error'])
         return resp.json()
+
+    def getSource(self, source, repository, headers=None, query_params=None):
+        """
+        param:repository where source is
+        param: hash hash of source file
+        result json of source
+        """
+        resp = self._client.getSource(source=source, repository=repository, headers=headers, query_params=query_params)
+        if resp.status_code != 200:
+            raise j.exceptions.RuntimeError(resp.json()['error'])
+        return resp.json()
+
+    def getHRD(self, hrd, repository, headers=None, query_params=None):
+        """
+        param:repository where source is
+        param: hash hash of hrd file
+        result json of hrd
+        """
+        resp = self._client.getHRD(hrd=hrd, repository=repository, headers=headers, query_params=query_params)
+        if resp.status_code != 200:
+            raise j.exceptions.RuntimeError(resp.json()['error'])
+        return resp.json()

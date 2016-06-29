@@ -47,7 +47,7 @@ class Container:
             self._cuisine = j.tools.cuisine.get(self.executor)
         return self._cuisine
 
-    def run(self, name, cmd):
+    def run(self, cmd):
         cmd2 = "docker exec -i -t %s %s" % (self.name, cmd)
         j.sal.process.executeWithoutPipe(cmd2)
 
@@ -70,10 +70,10 @@ class Container:
 
         ddir = j.sal.fs.getDirName(dest)
         cmd = "mkdir -p %s" % (ddir)
-        self.run(name, cmd)
+        self.run(cmd)
 
         cmd = "cp -r /var/jumpscale/%s/%s %s" % (rndd, source_name, dest)
-        self.run(self.name, cmd)
+        self.run(cmd)
         j.sal.fs.remove(temp)
 
 

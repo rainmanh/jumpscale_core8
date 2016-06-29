@@ -292,6 +292,7 @@ class Action:
     @method.setter
     def method(self,val):
         source = "".join(inspect.getsourcelines(val)[0])
+        source = self.selfobj.cuisine.core.args_replace(source)
         if source != "" and source[-1] != "\n":
             source += "\n"
         if source.strip().startswith("@"):

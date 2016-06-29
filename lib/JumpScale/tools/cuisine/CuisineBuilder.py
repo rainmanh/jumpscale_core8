@@ -22,7 +22,8 @@ class CuisineBuilder:
         self.cuisine.apps.mongodb.build(start=start)
         self.cuisine.apps.portal.install(start=start)
         self.cuisine.apps.redis.build(start=start, force=True)
-        self.cuisine.apps.core.build(start=start)
+        if not self.cuisine.core.isMac:
+            self.cuisine.apps.core.build(start=start)
         self.cuisine.apps.syncthing.build(start=start)
         self.cuisine.apps.controller.build(start=start)
         self.cuisine.apps.fs.build(start=False)

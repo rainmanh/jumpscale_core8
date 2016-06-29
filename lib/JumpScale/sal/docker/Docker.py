@@ -22,7 +22,7 @@ class Docker:
             self.base_url = 'unix://var/run/docker.sock'
         else:
             self.base_url = os.environ['DOCKER_HOST']
-        self.client = docker.Client(base_url=self.base_url)
+        self.client = docker.Client(base_url=self.base_url, timeout=120)
 
     @property
     def isWeaveEnabled(self):
@@ -389,7 +389,7 @@ class Docker:
             cmd = "sh -c \"mkdir -p /var/run/screen;chmod 777 /var/run/screen; /var/run/screen;exec >/dev/tty 2>/dev/tty </dev/tty && /sbin/my_init -- /usr/bin/screen -s bash\""
             cmd = "sh -c \" /sbin/my_init -- bash -l\""
         else:
-            cmd = None
+            cmd = "/bin/sh" 
 
         print(("install docker with name '%s'" % name))
 
@@ -482,8 +482,9 @@ class Docker:
         output: print progress as it pushes
         """
 
+        client = docker.Client(base_url=self.base_url, timeout=36000)
         out = []
-        for l in j.sal.docker.client.push(image, stream=True):
+        for l in client.push(image, stream=True):
             line = j.data.serializer.json.loads(l)
             id = line['id'] if 'id' in line else ''
             s = "%s " % id
@@ -493,6 +494,9 @@ class Docker:
                 detail = line['progressDetail']
                 progress = line['progress']
                 s += " %50s " % progress
+            if 'error' in line:
+                message = line['errorDetail']['message']
+                raise j.exceptions.RuntimeError(message)
             if output:
                 print(s)
             out.append(s)

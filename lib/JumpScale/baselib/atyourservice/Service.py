@@ -15,7 +15,6 @@ def loadmodule(name, path):
     if key in modulecache:
         return modulecache[key]
     parentname = ".".join(name.split(".")[:-1])
-    print(key)
     sys.modules[parentname] = __package__
     mod = imp.load_source(name, path)
     modulecache[key] = mod

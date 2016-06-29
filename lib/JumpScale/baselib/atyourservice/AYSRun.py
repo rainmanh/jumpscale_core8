@@ -1,4 +1,12 @@
 from JumpScale import j
+import traceback
+import colored_traceback
+
+colored_traceback.add_hook(always=True)
+
+import pygments.lexers
+from pygments.formatters import get_formatter_by_name
+
 
 class AYSRunStepAction:
     """
@@ -16,6 +24,7 @@ class AYSRunStepAction:
         self._service_model=None
         self._service_hrd=None
         self._source=None
+        self.logger = j.atyourservice.logger
 
     @property
     def model(self):
@@ -55,15 +64,31 @@ class AYSRunStepAction:
             self._source=self.runstep.run.db.get_dedupe("source",self.model["source"]).decode()
         return self._source
 
+    def _print_error(self, error):
+        formatter = pygments.formatters.Terminal256Formatter(style=pygments.styles.get_style_by_name("vim"))
+
+        if error.__str__() != "":
+            self.logger.error("\n*TRACEBACK*********************************************************************************\n")
+
+            lexer = pygments.lexers.get_lexer_by_name("pytb", stripall=True)
+            tb_colored = pygments.highlight(error.__str__(), lexer, formatter)
+            print(tb_colored)
+
+        self.logger.error("\n\n******************************************************************************************\n")
+
     def execute(self):        
         try:
             self.result=self.service.runAction(self.runstep.action)
         except Exception as e:
-            j.actions.last.print()
+            if j.actions.last:
+                j.actions.last.print()
+                self.result=j.actions.last.str
+            else:
+                self._print_error(e)
+                self.result = e.__str__()
             self.state="ERROR"
             self.runstep.state="ERROR"
             self.runstep.run.state="ERROR"
-            self.result=j.actions.last.str
             return False
         self.state="OK"
         return True

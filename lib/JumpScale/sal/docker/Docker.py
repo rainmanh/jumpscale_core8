@@ -398,9 +398,9 @@ class Docker:
             self.logger.info(volskeys)
             self.logger.info(binds)
 
+        hostname = None if self.isWeaveEnabled else name.replace('_', '-')
         host_config = self.client.create_host_config(privileged=privileged) if privileged else None
 
-        hostname = None if self.isWeaveEnabled else name
         res = self.client.create_container(image=base, command=cmd, hostname=hostname, user="root", \
                 detach=detach, stdin_open=False, tty=True, mem_limit=mem, ports=list(portsdict.keys()), environment=None, volumes=volskeys,  \
                 network_disabled=False, name=name, entrypoint=None, cpu_shares=cpu, working_dir=None, domainname=None, memswap_limit=None, host_config=host_config)

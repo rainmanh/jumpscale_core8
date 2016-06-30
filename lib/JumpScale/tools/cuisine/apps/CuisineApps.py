@@ -23,6 +23,7 @@ from apps.CuisinePortal import CuisinePortal
 from apps.CuisineCockpit import Cockpit
 from apps.CuisineDeployerBot import DeployerBot
 from apps.CuisineArakoon import Arakoon
+from apps.CuisineVolumeDriver import VolumeDriver
 
 
 import time
@@ -63,6 +64,7 @@ class CuisineApps:
         self._cockpit = None
         self._deployerbot = None
         self._arakoon = None
+        self._volumedriver = None
 
     @property
     def weave(self):
@@ -174,6 +176,12 @@ class CuisineApps:
         if self._arakoon is None:
             self._arakoon = Arakoon(self.executor, self.cuisine)
         return self._arakoon
+
+    @property
+    def volumedriver(self):
+        if self._volumedriver is None:
+            self._volumedriver = VolumeDriver(self.executor, self.cuisine)
+        return self._volumedriver
 
     @actionrun(action=True)
     def installdeps(self):

@@ -182,13 +182,14 @@ class Container:
         self.cleanAysfs()
 
         try:
-            self.client.kill(self.id)
-        except Exception as e:
-            print ("could not kill:%s"%self.id)
-        try:
+            if self.isRunning():
+                self.client.kill(self.id)
             self.client.remove_container(self.id)
         except Exception as e:
-            print ("could not kill:%s"%self.id)
+            self.logger.error("could not kill:%s" % self.id)
+        finally:
+            if self.id in j.sal.docker._containers:
+                del j.sal.docker._containers[self.id]
 
     def stop(self):
         self.cleanAysfs()

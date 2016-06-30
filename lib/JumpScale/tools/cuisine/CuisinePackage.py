@@ -79,10 +79,13 @@ class CuisinePackage:
             raise j.exceptions.RuntimeError("could not upgrade, platform not supported")
 
     @actionrun(action=True)
-    def install(self,package):
+    def install(self, package, allow_unauthenticated=False):
 
         if self.cuisine.core.isUbuntu:
-            cmd="apt-get install %s -y"%package
+            cmd = "apt-get install -y "
+            if allow_unauthenticated:
+                cmd += ' --allow-unauthenticated '
+            cmd += package
 
         elif self.cuisine.core.isArch:
             if package.startswith("python3"):
@@ -101,12 +104,12 @@ class CuisinePackage:
             installed = self.cuisine.core.run("brew list")
             if package in installed:
                 return #means was installed
-                
+
             # rc,out=self.cuisine.core.run("brew info --json=v1 %s"%package,showout=False,die=False)
             # if rc==0:
             #     info=j.data.serializer.json.loads(out)
             #     return #means was installed
-            
+
             if "wget" == package:
                 package = "%s --enable-iri" % package
 
@@ -134,7 +137,7 @@ class CuisinePackage:
             return out
 
 
-    def multiInstall(self,packagelist):
+    def multiInstall(self, packagelist, allow_unauthenticated=False):
         """
         @param packagelist is text file and each line is name of package
 
@@ -153,7 +156,7 @@ class CuisinePackage:
             dep=dep.strip()
             if dep==None or dep=="":
                 continue
-            self.install(dep)
+            self.install(dep, allow_unauthenticated=allow_unauthenticated)
 
     @actionrun()
     def start(self,package):

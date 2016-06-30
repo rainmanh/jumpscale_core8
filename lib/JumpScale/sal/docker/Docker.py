@@ -13,6 +13,7 @@ class Docker:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.docker"
+        self.logger = j.logger.get('j.sal.docker')
         self._basepath = "/mnt/vmstor/docker"
         self._weaveEnabled = None
         self._prefix = ""
@@ -184,7 +185,6 @@ class Docker:
         if path[-1]!="/":
             path+="/"
         cmd="rsync -a %s %s::upload/%s/images/%s --delete-after --modify-window=60 --compress --stats  --progress --exclude '.Trash*'"%(path,ipaddr,key,backupname)
-        # print cmd
         j.sal.process.executeWithoutPipe(cmd)
 
     def removeRedundantFiles(self,name):
@@ -219,11 +219,11 @@ class Docker:
             if not j.sal.fs.exists(basepath):
                 raise j.exceptions.RuntimeError("cannot find base machine:%s"%basepath)
             cmd="rsync -av -v %s %s --delete-after --modify-window=60 --size-only --compress --stats  --progress"%(basepath,path)
-            print(cmd)
+            self.logger.info(cmd)
             j.sal.process.executeWithoutPipe(cmd)
 
         cmd="rsync -av -v %s::download/%s/images/%s %s --delete-after --modify-window=60 --compress --stats  --progress"%(ipaddr,key,backupname,path)
-        print(cmd)
+        self.logger.info(cmd)
         j.sal.process.executeWithoutPipe(cmd)
 
     def exportTgz(self,name,backupname):
@@ -253,18 +253,18 @@ class Docker:
     def _init_aysfs(self, fs, dockname):
         if fs.isUnique():
             if not fs.isRunning():
-                print('[+] starting unique aysfs: %s' % fs.getName())
+                self.logger.info('starting unique aysfs: %s' % fs.getName())
                 fs.start()
 
             else:
-                print('[+] skipping aysfs: %s (unique running)' % fs.getName())
+                self.logger.info('skipping aysfs: %s (unique running)' % fs.getName())
 
         else:
             fs.setName('%s-%s' % (dockname, fs.getName()))
             if fs.isRunning():
                 fs.stop()
 
-            print('[+] starting aysfs: %s' % fs.getName())
+            self.logger.info('starting aysfs: %s' % fs.getName())
             fs.start()
 
     def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1604", nameserver=["8.8.8.8"],
@@ -278,7 +278,7 @@ class Docker:
         #@todo (*1*) change way how we deal with ssh keys, put authorization file in filesystem before docker starts don't use ssh to push them, will be much faster and easier
         """
         name = name.lower().strip()
-        print(("create:%s" % name))
+        self.logger.info(("create:%s" % name))
 
         running = [item.name for item in self.containersRunning]
 
@@ -287,7 +287,7 @@ class Docker:
                 j.events.opserror_critical("Cannot create machine with name %s, because it does already exists.")
         else:
             if self.exists(name):
-                print("remove existing container %s" % name)
+                self.logger.info("remove existing container %s" % name)
                 container = self.get(name)
                 if container:
                     container.destroy()
@@ -321,7 +321,7 @@ class Docker:
                 for port in range(9022, 9190):
                     if not j.sal.nettools.tcpPortConnectionTest(self.docker_host, port):
                         portsdict[22] = port
-                        print(("SSH PORT WILL BE ON:%s" % port))
+                        self.logger.info(("ssh port will be on:%s" % port))
                         break
 
         volsdict = {}
@@ -343,7 +343,7 @@ class Docker:
         # """
 
         if sharecode and j.sal.fs.exists(path="/opt/code"):
-            print("share jumpscale code")
+            self.logger.info("share jumpscale code enable")
             if "/opt/code" not in volsdict:
                 volsdict["/opt/code"] = "/opt/code"
 
@@ -364,9 +364,9 @@ class Docker:
                 key, val = item.split(":", 1)
                 volsdictro[str(key).strip()] = str(val).strip()
 
-        print("MAP:")
+        self.logger.info("Volumes map:")
         for src1, dest1 in list(volsdict.items()):
-            print(" %-20s %s" % (src1, dest1))
+            self.logger.info(" %-20s %s" % (src1, dest1))
 
         binds = {}
         volskeys = []  # is location in docker
@@ -382,7 +382,7 @@ class Docker:
             volskeys.append(key)
 
         if base not in self.getImages():
-            print("download docker")
+            self.logger.info("download docker image %s" % base)
             self.pull(base)
 
         if base.startswith("jumpscale/ubuntu1604"):
@@ -391,12 +391,12 @@ class Docker:
         else:
             cmd = "/bin/sh" 
 
-        print(("install docker with name '%s'" % name))
+        self.logger.info(("install docker with name '%s'" % name))
 
         if vols != "":
-            print("VOLUMES")
-            print(volskeys)
-            print(binds)
+            self.logger.info("Volumes")
+            self.logger.info(volskeys)
+            self.logger.info(binds)
 
         hostname = None if self.isWeaveEnabled else name
         res = self.client.create_container(image=base, command=cmd, hostname=hostname, user="root", \
@@ -435,7 +435,7 @@ class Docker:
                 # else:
                 #     print("set root passwd to %s" % rootpasswd)
                 #     container.cexecutor.execute("echo \"root:%s\"|chpasswd" % rootpasswd,showout=False)
-                
+
                 container.executor.execute("echo \"root:%s\"|chpasswd" % j.data.idgenerator.generateGUID(),showout=False)
 
             if not self.isWeaveEnabled:
@@ -498,7 +498,7 @@ class Docker:
                 message = line['errorDetail']['message']
                 raise j.exceptions.RuntimeError(message)
             if output:
-                print(s)
+                self.logger.info(s)
             out.append(s)
 
         return "\n".join(out)
@@ -520,7 +520,7 @@ class Docker:
             if 'stream' in line:
                 line = line['stream'].strip()
                 if output:
-                    print(line)
+                    self.logger.info(line)
                 out.append(line)
 
         return "\n".join(out)

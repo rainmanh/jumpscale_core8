@@ -17,7 +17,7 @@ class Docker:
         self._basepath = "/mnt/vmstor/docker"
         self._weaveEnabled = None
         self._prefix = ""
-        self._containers = []
+        self._containers = {}
         self._names = []
         if 'DOCKER_HOST' not in os.environ or os.environ['DOCKER_HOST'] == "":
             self.base_url = 'unix://var/run/docker.sock'
@@ -74,15 +74,15 @@ class Docker:
 
     @property
     def containers(self):
-        if self._containers==[]:
+        if self._containers == {}:
             for item in self.client.containers(all=all):
                 try:
                     name = str(item["Names"][0].strip("/").strip())
                 except:
                     continue
                 id = str(item["Id"].strip())
-                self._containers.append(Container(name, id, self.client))
-        return self._containers
+                self._containers[id] = Container(name, id, self.client)
+        return list(self._containers.values())
 
     @property
     def containerNamesRunning(self):
@@ -423,6 +423,7 @@ class Docker:
 
 
         container = Container(name, id, self.client, host=self.docker_host)
+        self._containers[id] = container
 
         if ssh:
             # time.sleep(0.5)  # give time to docker to start

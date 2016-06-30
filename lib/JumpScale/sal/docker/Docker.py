@@ -268,7 +268,7 @@ class Docker:
             fs.start()
 
     def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1604", nameserver=["8.8.8.8"],
-               replace=True, cpu=None, mem=0, ssh=True, sharecode=False,sshkeyname="",sshpubkey="",
+               replace=True, cpu=None, mem=0, ssh=True, myinit=True, sharecode=False,sshkeyname="",sshpubkey="",
                setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master", aysfs=[]):
 
         """
@@ -385,11 +385,11 @@ class Docker:
             self.logger.info("download docker image %s" % base)
             self.pull(base)
 
-        if base.startswith("jumpscale/ubuntu1604"):
+        if base.startswith("jumpscale/ubuntu1604") or myinit is True:
             cmd = "sh -c \"mkdir -p /var/run/screen;chmod 777 /var/run/screen; /var/run/screen;exec >/dev/tty 2>/dev/tty </dev/tty && /sbin/my_init -- /usr/bin/screen -s bash\""
             cmd = "sh -c \" /sbin/my_init -- bash -l\""
         else:
-            cmd = "/bin/sh" 
+            cmd = None
 
         self.logger.info(("install docker with name '%s'" % name))
 

@@ -269,7 +269,7 @@ class Docker:
 
     def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1604", nameserver=["8.8.8.8"],
                replace=True, cpu=None, mem=0, jumpscale=False, ssh=True, myinit=True, sharecode=False,sshkeyname="",sshpubkey="",
-               setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master", aysfs=[]):
+               setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master", aysfs=[], detach=False, privileged=False):
 
         """
         @param ports in format as follows  "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
@@ -398,10 +398,12 @@ class Docker:
             print(volskeys)
             print(binds)
 
+        host_config = self.client.create_host_config(privileged=privileged) if privileged else None
+
         hostname = None if self.isWeaveEnabled else name
         res = self.client.create_container(image=base, command=cmd, hostname=hostname, user="root", \
-                detach=False, stdin_open=False, tty=True, mem_limit=mem, ports=list(portsdict.keys()), environment=None, volumes=volskeys,  \
-                network_disabled=False, name=name, entrypoint=None, cpu_shares=cpu, working_dir=None, domainname=None, memswap_limit=None)
+                detach=detach, stdin_open=False, tty=True, mem_limit=mem, ports=list(portsdict.keys()), environment=None, volumes=volskeys,  \
+                network_disabled=False, name=name, entrypoint=None, cpu_shares=cpu, working_dir=None, domainname=None, memswap_limit=None, host_config=host_config)
 
         if res["Warnings"] is not None:
             raise j.exceptions.RuntimeError("Could not create docker, res:'%s'" % res)

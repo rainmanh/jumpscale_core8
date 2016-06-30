@@ -22,7 +22,8 @@ class CuisineBuilder:
         self.cuisine.apps.mongodb.build(start=start)
         self.cuisine.apps.portal.install(start=start)
         self.cuisine.apps.redis.build(start=start, force=True)
-        self.cuisine.apps.core.build(start=start)
+        if not self.cuisine.core.isMac:
+            self.cuisine.apps.core.build(start=start)
         self.cuisine.apps.syncthing.build(start=start)
         self.cuisine.apps.controller.build(start=start)
         self.cuisine.apps.fs.build(start=False)
@@ -60,8 +61,10 @@ class CuisineBuilder:
 
         return url_opt
 
-    def _sandbox_python(self, python=True):
+    def sandbox_python(self, python=True):
         print("START SANDBOX")
+        if self.cuisine.executor.type!="local":
+            raise j.exceptions.RuntimeError("only supports cuisine in local mode")
         if python:
             paths = []
             paths.append("/usr/lib/python3.5/")
@@ -84,10 +87,13 @@ class CuisineBuilder:
         print("SANDBOXING DONE, ALL OK IF TILL HERE, A Segfault can happen because we have overwritten ourselves.")
 
     def dedupe(self, dedupe_path, namespace, store_addr, output_dir='/tmp/sandboxer', sandbox_python=True):
+        if self.cuisine.executor.type!="local":
+            raise j.exceptions.RuntimeError("only supports cuisine in local mode")
+
         self.cuisine.core.dir_remove(output_dir)
 
         if sandbox_python:
-            self._sandbox_python()
+            self.sandbox_python()
 
         if not j.data.types.list.check(dedupe_path):
             dedupe_path = [dedupe_path]

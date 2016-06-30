@@ -38,8 +38,16 @@ class Application:
             self.sandbox=False
 
         self.interactive=True
-
         self._fixlocale=False
+
+    def reset(self):
+        """
+        empties the core.db
+        """
+        for key in j.core.db.keys():
+            j.core.db.delete(key)
+        j.dirs.init()
+        self.reload()
 
     def reload(self):
         from JumpScale import findModules
@@ -58,6 +66,8 @@ class Application:
         if self.debug is True:
             print(msg)
             from IPython import embed;embed()
+        else:
+            raise j.exceptions.RuntimeError("Can't break into jsshell in production mode.")
 
     def fixlocale(self):
         return

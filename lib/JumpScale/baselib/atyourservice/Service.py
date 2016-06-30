@@ -8,10 +8,16 @@ import inspect
 from ServiceState import ServiceState
 
 
+modulecache = {}
+
 def loadmodule(name, path):
+    key = path
+    if key in modulecache:
+        return modulecache[key]
     parentname = ".".join(name.split(".")[:-1])
     sys.modules[parentname] = __package__
     mod = imp.load_source(name, path)
+    modulecache[key] = mod
     return mod
 
 
@@ -625,6 +631,11 @@ class Service:
             return None
         a = getattr(self.actions, action)
         return a
+
+    def getActionSource(self,action):
+        if action not in self.action_methods:
+            return ""
+        return j.data.text.strip(inspect.getsource(self.action_methods[action]))
 
     def _getDisabledProducers(self):
         producers = dict()

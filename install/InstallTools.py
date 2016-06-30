@@ -1007,7 +1007,7 @@ class InstallTools():
         s.quit()
 
     def execute(self, command , showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[], \
-                        ok=[], captureout=True, die=True, async=False, executor=None):
+                        ok=[], captureout=True, die=True, async=False, executor=None, combinestdr=False):
         """
         @param errors is array of statements if found then exit as error
         return rc,out
@@ -1016,7 +1016,7 @@ class InstallTools():
         # print "EXEC:"
         # print command
         if executor:
-            return executor.execute(command, die=die, checkok=False, async=async,  showout=True, combinestdr=outputStderr, timeout=timeout)
+            return executor.execute(command, die=die, checkok=False, async=async,  showout=True, combinestdr=combinestdr, timeout=timeout)
         os.environ["PYTHONUNBUFFERED"]="1"
         ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -1146,7 +1146,7 @@ class InstallTools():
             else:
                 raise RuntimeError("Could not execute cmd:\n'%s'\nout:\n%s"%(command,out))
 
-        if err!="":
+        if err!="" and combinestdr:
             out=out+"\nSTDERR:\n"+err
 
         return rc,out
@@ -1743,7 +1743,8 @@ class InstallTools():
 
         return repository_host, repository_type, repository_account, repository_name, dest, repository_url
 
-    def pullGitRepo(self,url="",dest=None,login=None,passwd=None,depth=1,ignorelocalchanges=False,reset=False,branch=None,revision=None, ssh="auto",executor=None,codeDir=None):
+    def pullGitRepo(self,url="",dest=None,login=None,passwd=None,depth=1,ignorelocalchanges=False,\
+        reset=False,branch=None,revision=None, ssh="auto",executor=None,codeDir=None,onlyIfExists=False):
         """
         will clone or update repo
         if dest == None then clone underneath: /opt/code/$type/$account/$repo
@@ -1762,6 +1763,9 @@ class InstallTools():
         base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh,codeDir=codeDir,executor=executor)
 
         exists = self.exists(dest) if not executor else executor.exists(dest)
+
+        if onlyIfExists and exists==False:
+            return
 
         if dest is None and branch is None:
             branch = "master"

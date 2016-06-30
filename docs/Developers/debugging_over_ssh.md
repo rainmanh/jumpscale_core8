@@ -2,7 +2,46 @@
 
 ## principle
 
-- our aysfs = Atyourservice file system exposes the js8 sandbox
+- you develop you code files on you local machine (e.g. your local Linux os Mac OSX)
+- you have a local installed jumpscale & you have your git repo's checked out locally
+- you have 1 or more typically ubuntu 16.04 machines running in server mode with SSH enabled & your public SSH key enabled
+   - on this sever you have the jumpscale installed in debug or in sandboxed mode  
+- the j.tools.develop... tools help you to keep the code up to date & to upgrade/manage your remote development machine
+   - the sync tools in the development tools will sync you local changes while you are using your editor to develop
+   - over ssh you can test your program om the remote machine 
+
+## step1: create connection
+
+```
+j.tools.develop.init("ovh4:22")
+```
+
+now all other commands can be used on j.tools.develop...
+
+
+## step2: how to sync a local code tree to a remote one
+
+- all changes will be monitored constantly and synced
+
+```
+j.tools.develop.syncCode(ask=False, monitor=False, rsyncdelete=False, reset=False)
+
+Docstring:
+sync all code to the remote destinations
+
+@param reset=True, means we remove the destination first
+@param ask=True means ask which repo's to sync (will get remembered in redis)
+
+File:      ~/opt/jumpscale8/lib/JumpScale/tools/develop/DevelopTools.py
+```
+
+example
+```
+j.tools.develop.syncCode(True,True,True)
+#will ask which dirs to sync and than start the monitor, will remove changes at other side
+
+DO NOT USE GIT ON REMOTE SITE, ONLY ON LOCAL ONE
+```
 
 
 ## how to connect & debug a remote sandboxed js8
@@ -13,7 +52,7 @@
 #format="localhost,ovh4,anode:2222,192.168.6.5:23"
 #this will be remembered in local redis for further usage
 j.tools.develop.init()
-j.tools.develop.jumpscale8sb(rw=True, synclocalcode=True, resetstate=True, monitor=True)
+j.tools.develop.jumpscale8(rw=True, synclocalcode=True, resetstate=True, monitor=True)
 ```
 
 at end of process you will see something like
@@ -73,8 +112,3 @@ if for whatever reason the monitoring doesn't start, try with reset=True
 
 Whatever the tool has been initialized with will be remembered when used a 2nd time.
 
-## how launch a remote js shell or execute a python script in debug mode
-
-```
-
-```

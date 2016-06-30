@@ -229,8 +229,9 @@ class HRD(HRDBase):
             self.read()
 
     def set(self,key,value="",persistent=True,comments="",temp=False,ttype=None,data=""):
-        """
-        """
+        if ttype == "str":
+            if not value.startswith("'"):
+                value="'%s'"%value
         # if key=="milestone.category" and value!="":
         #     print(value)
         #     from pudb import set_trace; set_trace() 
@@ -238,7 +239,7 @@ class HRD(HRDBase):
         # print "set:%s %s |%s|"%(key,value,data)
         if self.prefixWithName:
             if self.name=="":
-                raise j.exceptions.RuntimeError("name cannot be empoty when prefixWithName used.")
+                raise j.exceptions.RuntimeError("name cannot be empty when prefixWithName used.")
             key = key.replace('%s.' % self.name, '')
         if key not in self.items:
             self.items[key]=HRDItem(name=key,hrd=self,ttype=ttype,data=value,comments="")

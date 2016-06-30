@@ -63,8 +63,9 @@ class DebugSSHNode:
         self.port = sshport
 
         #lets test tcp on 22 if not then 9022 which are our defaults
-        test=j.sal.nettools.tcpPortConnectionTest(self.addr,self.port,2)
+        test=j.sal.nettools.tcpPortConnectionTest(self.addr,self.port,3)
         if test==False:
+            print ("could not connect to %s:%s, will try port 9022"%(self.add,self.port))
             if self.port==22:
                 test= j.sal.nettools.tcpPortConnectionTest(self.addr,9022,1)
                 if test:
@@ -127,8 +128,10 @@ class DevelopToolsFactory:
         H = """
         example to use #@todo change python3... to js... (but not working on osx yet)
         js 'j.tools.develop.init("ovh4,ovh3")'
-        js 'j.tools.develop.installJSSandbox(rw=True)' #will install overlay sandbox wich can be editted
-        js 'j.tools.develop.syncCode(True)'
+        js 'j.tools.develop.jumpscale8(rw=True)' #will install overlay sandbox wich can be editted
+        js 'j.tools.develop.jumpscale8develop()'
+        js 'j.tools.develop.syncCode(ask=True,monitor=False,rsyncdelete=False,reset=False)'
+
         if you now go onto e.g. ovh4 you will see on /opt/... all changes reflected which you make locally
 
         example output:
@@ -164,10 +167,21 @@ class DevelopToolsFactory:
         define which nodes to init,
         format = ["localhost", "ovh4", "anode:2222", "192.168.6.5:23"]
         this will be remembered in local redis for further usage
+
+        format can also be a string e.g. ovh4,ovh3:2022
+
         """
         self._nodes = []
+        if j.data.types.string.check(nodes):
+            nodes2=[]
+            if "," in nodes:
+                nodes2= [item.strip() for item in nodes.split(",") if item.strip()!=""]
+            else:
+                nodes2 = [nodes]            
+            nodes=nodes2    
         if not j.data.types.list.check(nodes):
-            nodes = [nodes]
+            raise j.exception.Input("nodes need to be list or string, got:%s"%nodes)
+        
         j.core.db.set("debug.nodes", ','.join(nodes))
 
     @property
@@ -250,7 +264,6 @@ class DevelopToolsFactory:
                 items = j.sal.fs.listDirsInDir(path)
             chosen = j.tools.console.askChoiceMultiple(items)
             j.core.db.set("debug.codepaths", ",".join(chosen))
-
 
         if reset:
             raise j.exceptions.RuntimeError("not implemented")

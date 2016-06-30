@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from JumpScale import j
-
+import copy
 
 
 
@@ -10,10 +10,11 @@ class Container:
     def __init__(self, name, id, client, host="localhost"):
 
         self.client = client
+        self.logger = j.logger.get('j.sal.docker.container')
 
-        self.host = host
+        self.host = copy.copy(host)
         self.name = name
-        self.id=id
+        self.id=copy.copy(id)
 
         self._ssh_port = None
 
@@ -47,7 +48,7 @@ class Container:
             self._cuisine = j.tools.cuisine.get(self.executor)
         return self._cuisine
 
-    def run(self, name, cmd):
+    def run(self, cmd):
         cmd2 = "docker exec -i -t %s %s" % (self.name, cmd)
         j.sal.process.executeWithoutPipe(cmd2)
 
@@ -70,16 +71,18 @@ class Container:
 
         ddir = j.sal.fs.getDirName(dest)
         cmd = "mkdir -p %s" % (ddir)
-        self.run(name, cmd)
+        self.run(cmd)
 
         cmd = "cp -r /var/jumpscale/%s/%s %s" % (rndd, source_name, dest)
-        self.run(self.name, cmd)
+        self.run(cmd)
         j.sal.fs.remove(temp)
 
 
     @property
     def info(self):
-        return self.client.inspect_container(self.id)
+        self.logger.info('read info of container %s:%s' % (self.name, self.id))
+        info = self.client.inspect_container(self.id)
+        return info
 
     def isRunning(self):
         return self.info["State"]["Running"]==True
@@ -111,43 +114,13 @@ class Container:
             mem += mem0
             cpu += cpu0
             if stdout:
-                print(("%s%-35s %-5s mem:%-8s" % (pre, child.name, child.pid, mem0)))
+                self.logger.info(("%s%-35s %-5s mem:%-8s" % (pre, child.name, child.pid, mem0)))
             result.append([child.name, child.pid, mem0, child.parent.name])
         cpu = children[0].get_cpu_percent()
         result.append([mem, cpu])
         if stdout:
-            print(("TOTAL: mem:%-8s cpu:%-8s" % (mem, cpu)))
+            self.logger.info(("TOTAL: mem:%-8s cpu:%-8s" % (mem, cpu)))
         return result
-
-    def installJumpscale(self, branch="master"):
-        raise j.exceptions.RuntimeError("not implemented")
-        # print("Install jumpscale8")
-        # # c = self.getSSH(name)
-        #
-        # c.fabric.state.output["running"] = True
-        # c.fabric.state.output["stdout"] = True
-        # c.fabric.api.env['shell_env'] = {"JSBRANCH": branch, "AYSBRANCH": branch}
-        # c.run("cd /tmp;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh")
-        # c.run("cd /opt/code/github/jumpscale/jumpscale_core8;git remote set-url origin git@github.com:Jumpscale/jumpscale_core8.git")
-        # c.run("cd /opt/code/github/jumpscale/ays_jumpscale8;git remote set-url origin git@github.com:Jumpscale/ays_jumpscale8.git")
-        # c.fabric.state.output["running"] = False
-        # c.fabric.state.output["stdout"] = False
-        #
-        # C = """
-        # Host *
-        #     StrictHostKeyChecking no
-        # """
-        # c.file_write("/root/.ssh/config", C)
-        # if not j.sal.fs.exists(path="/root/.ssh/config"):
-        #     j.sal.fs.writeFile("/root/.ssh/config", C)
-        # C2 = """
-        # apt-get install language-pack-en
-        # # apt-get install make
-        # locale-gen
-        # echo "installation done" > /tmp/ok
-        # """
-        # ssh_port = self.getPubPortForInternalPort(name, 22)
-        # j.do.executeBashScript(content=C2, remote="localhost", sshport=ssh_port)
 
     def setHostName(self, hostname):
         self.cuisine.core.sudo("echo '%s' > /etc/hostname" % hostname)
@@ -165,27 +138,32 @@ class Container:
 
         raise j.exceptions.Input("cannot find publicport for ssh?")
 
-    def pushSSHKey(self, keyname="", sshpubkey="", local=True):
+    def pushSSHKey(self, keyname="", sshpubkey="", generateSSHKey=True):
         keys = set()
-        if local:
-            dir = j.tools.path.get('/root/.ssh')
-            for file in dir.listdir("*.pub"):
-                keys.add(file.text())
 
-        if sshpubkey and j.data.types.string.check(sshpubkey):
-            keys.add(sshpubkey)
+        home=j.tools.cuisine.local.bash.home
 
-        if keyname is not None and keyname != '':
+        if sshpubkey!="":
+            key=sshpubkey
+        else:
             if not j.do.checkSSHAgentAvailable:
                 j.do.loadSSHAgent()
 
-            key = j.do.getSSHKeyFromAgentPub(keyname)
-            if key:
-                keys.add(key)
+            if keyname!="":
+                key = j.do.getSSHKeyFromAgentPub(keyname)
+            else:
+                key = j.do.getSSHKeyFromAgentPub("docker_default",die=False)
+                if key==None:
+                    dir = j.tools.path.get('%s/.ssh'%home)
+                    if dir.listdir("docker_default.pub")==[]:
+                        #key does not exist, lets create one
+                        j.tools.cuisine.local.ssh.keygen(name="docker_default")
+                    key=j.sal.fs.readFile(filename="%s/.ssh/docker_default.pub"%home)
+                    #load the key
+                    j.tools.cuisine.local.core.run("ssh-add %s/.ssh/docker_default"%home)
 
-        j.sal.fs.writeFile(filename="/root/.ssh/known_hosts", contents="")
-        for key in keys:
-            self.cuisine.ssh.authorize("root", key)
+        j.sal.fs.writeFile(filename="%s/.ssh/known_hosts"%home, contents="")
+        self.cuisine.ssh.authorize("root", key)
 
         return list(keys)
 
@@ -198,19 +176,20 @@ class Container:
             # stopping any running aysfs linked
             if aysfs.isRunning():
                 aysfs.stop()
-                print("[+] aysfs stopped")
+                self.logger.info("[+] aysfs stopped")
 
     def destroy(self):
         self.cleanAysfs()
 
         try:
-            self.client.kill(self.id)
-        except Exception as e:
-            print ("could not kill:%s"%self.id)
-        try:
+            if self.isRunning():
+                self.client.kill(self.id)
             self.client.remove_container(self.id)
         except Exception as e:
-            print ("could not kill:%s"%self.id)
+            self.logger.error("could not kill:%s" % self.id)
+        finally:
+            if self.id in j.sal.docker._containers:
+                del j.sal.docker._containers[self.id]
 
     def stop(self):
         self.cleanAysfs()

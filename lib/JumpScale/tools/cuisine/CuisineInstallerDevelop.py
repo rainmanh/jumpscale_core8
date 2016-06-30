@@ -61,7 +61,7 @@ class CuisineInstallerDevelop:
         self.python()
         if self.cuisine.core.isMac:
             return
-        
+
         C="""
             #important remove olf pkg_resources, will conflict with new pip
             rm -rf /usr/lib/python3/dist-packages/pkg_resources
@@ -84,20 +84,16 @@ class CuisineInstallerDevelop:
         self.pip(action=True)
 
         if not self.cuisine.core.isArch:
-            #install brotli
-            C="""
-            cd $tmpDir/
-            sudo rm -rf brotli/
-            git clone https://github.com/google/brotli.git
+            # install brotli
+            C = """
+            cd $tmpDir; git clone https://github.com/google/brotli.git
             cd $tmpDir/brotli/
             python setup.py install
-            cd tools
-            make
-            cp $tmpDir/brotli/tools/bro /usr/local/bin/
-            rm -rf $tmpDir/brotli
+            make bro
+            cp bin/bro $binDir/bro
             """
-            C=self.cuisine.core.args_replace(C)
-            self.cuisine.core.run_script(C,force=False)
+            C = self.cuisine.core.args_replace(C)
+            self.cuisine.core.run_script(C, force=False)
 
         #python etcd
         C="""
@@ -218,6 +214,7 @@ class CuisineInstallerDevelop:
             raise j.exceptions.RuntimeError("platform not supported yet")
 
     @actionrun(action=True)
+
     def cleanup(self):
         C="""
         #!/bin/bash
@@ -245,3 +242,22 @@ class CuisineInstallerDevelop:
         """
         C=self.cuisine.core.args_replace(C)
         self.cuisine.core.run_script(C,force=True)
+    def xrdp(self):
+        """
+        builds a full xrdp, this can take a while
+        """
+        C="""
+        cd /root
+        git clone https://github.com/scarygliders/X11RDP-o-Matic.git
+        cd X11RDP-o-Matic
+        bash X11rdp-o-matic.sh
+        ln -fs /usr/bin/Xvfb /etc/X11/X
+        apt-get update
+        apt-get install  -y --force-yes lxde lxtask
+        echo 'pgrep -U $(id -u) lxsession | grep -v ^$_LXSESSION_PID | xargs --no-run-if-empty kill' > /bin/lxcleanup.sh
+        chmod +x /bin/lxcleanup.sh
+        echo '@lxcleanup.sh' >> /etc/xdg/lxsession/LXDE/autostart
+        echo '#!/bin/sh -xe\nrm -rf /tmp/* /var/run/xrdp/* && service xrdp start && startx' > /bin/rdp.sh
+        chmod +x /bin/rdp.sh
+        """
+        self.cuisine.core.run_script(C)

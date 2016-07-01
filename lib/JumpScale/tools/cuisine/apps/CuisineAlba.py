@@ -167,6 +167,8 @@ class Alba:
         self._install_deps_etcd()
 
     def _build(self, version='6.0.0'):
+        repo = self.cuisine.git.pullRepo('https://github.com/openvstorage/alba', depth=None)
+        
         """
         str_repl = {
             'workspace': self.cuisine.core.dir_paths['tmpDir'],
@@ -178,9 +180,11 @@ class Alba:
         """
 
         build_script = """
-        docker run -i -t -e UID=${UID} -v ${PWD}:/home/jenkins/alba -w /home/jenkins/alba alba_ubuntu_16_04 bash -l
-        cd alba/ && make
-        """ % str_repl
+        docker start build-ubuntu1604-alba
+        ssh + cd alba/ && make
+        
+        ## docker run -i -t -e UID=${UID} -v ${PWD}:/home/jenkins/alba -w /home/jenkins/alba build-ubuntu1604-alba bash -l
+        """
         
         print(build_script)
         

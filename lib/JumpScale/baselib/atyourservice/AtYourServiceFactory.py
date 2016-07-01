@@ -66,29 +66,12 @@ class AtYourServiceFactory:
         @return:    @AtYourServiceRepo object
         """
         self._doinit()
-        if path:
-            if path not in self.repos:
-                if j.sal.fs.exists(path) and j.sal.fs.isDir(path):
-                    if not name:
-                        name = j.sal.fs.getBaseName(path)
-                    self._repos[path] = AtYourServiceRepo(name, path)
-
-        else:
-            # we want to retrieve  repo by name
-            result = [repo for repo in self.repos.values() if repo.name == name]
-            if not result:
-                path = j.sal.fs.getcwd()
-                if not name:
-                    name = j.sal.fs.getBaseName(path)
-                self._repos[path] = AtYourServiceRepo(name, path)
-            elif len(result) > 1:
-                msg = "Multiple AYS repos with name %s found under locations [%s]. Please use j.atyourservice.get(path=<path>) instead" % \
-                        (name, ','.join([repo.basepath for repo in result]))
-                raise j.exceptions.RuntimeError(msg)
+        if name not in self.repos:
+            if j.sal.fs.exists(path) and j.sal.fs.isDir(path):
+                self._repos[name] = AtYourServiceRepo(name, path)
             else:
-                path = result[0].basepath
-
-        return self.repos[path]
+                path = j.sal.fs.getcwd()
+        return self.repos[name]
 
     def reset(self):
         self._repos = {}
@@ -100,7 +83,7 @@ class AtYourServiceFactory:
         if self._repos == {}:
             for path in j.atyourservice.findAYSRepos():
                 name = j.sal.fs.getBaseName(path)
-                self._repos[path] = AtYourServiceRepo(name, path)
+                self._repos[name] = AtYourServiceRepo(name, path)
         return self._repos
 
     @property

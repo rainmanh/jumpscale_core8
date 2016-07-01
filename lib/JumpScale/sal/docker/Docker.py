@@ -385,7 +385,7 @@ class Docker:
             print("download docker")
             self.pull(base)
 
-        if base=="jumpscale/ubuntu1604":
+        if base.startswith("jumpscale/ubuntu1604"):
             cmd = "sh -c \"mkdir -p /var/run/screen;chmod 777 /var/run/screen; /var/run/screen;exec >/dev/tty 2>/dev/tty </dev/tty && /sbin/my_init -- /usr/bin/screen -s bash\""
             cmd = "sh -c \" /sbin/my_init -- bash -l\""
         else:

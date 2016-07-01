@@ -25,6 +25,7 @@ from apps.CuisineDeployerBot import DeployerBot
 from apps.CuisineHadoop import Hadoop
 from apps.CuisineArakoon import Arakoon
 from apps.CuisineVolumeDriver import VolumeDriver
+from apps.CuisineAlba import Alba
 
 import time
 
@@ -65,6 +66,7 @@ class CuisineApps:
         self._deployerbot = None
         self._arakoon = None
         self._volumedriver = None
+        self._alba = None
         self._hadoop = None
 
     @property
@@ -183,6 +185,12 @@ class CuisineApps:
         if self._volumedriver is None:
             self._volumedriver = VolumeDriver(self.executor, self.cuisine)
         return self._volumedriver
+
+    @property
+    def alba(self):
+        if self._alba is None:
+            self._alba = Alba(self.executor, self.cuisine)
+        return self._alba
 
     @property
     def hadoop(self):

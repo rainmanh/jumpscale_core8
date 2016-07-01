@@ -219,13 +219,46 @@ class Tmux:
 
         main=window.getPane(name="main",killothers=True)
 
-        out=main.splitVertical("out")
-        cmds=out.splitVertical("cmds")
+        cmds1=main.splitVertical("cmds1")
+        cmds2=cmds1.splitVertical("cmds2")
 
-        o3=cmds.splitHorizontal("o3")
-        o1=cmds
-        o1.name="o1"
+        cmds1_3=cmds1.splitHorizontal("cmds1_3")
+        cmds1_1=cmds1
+        cmds1_1.name="cmds1_1"
 
-        o2=o1.splitHorizontal("o2")
-        o4=o3.splitHorizontal("o4")
-        j.application.break_into_jshell("DEBUG NOW oioioi")
+        cmds2_3=cmds2.splitHorizontal("cmds2_3")
+        cmds2_1=cmds2
+        cmds2_1.name="cmds2_1"
+
+        for item in (main,cmds1_1,cmds1_3,cmds2_1,cmds2_3):
+            item.mgmt.send_keys("clear")
+
+        return (main,cmds1_1,cmds1_3,cmds2_1,cmds2_3)
+
+
+        # o3=cmds1.splitHorizontal("o3")
+        # o1=cmds1
+        # o1.name="o1"
+
+        # o2=o1.splitHorizontal("o2")
+        # o4=o3.splitHorizontal("o4")
+
+        # o3=cmds1.splitHorizontal("o3")
+        # o1=cmds1
+        # o1.name="o1"
+
+        # # o2=o1.splitHorizontal("o2")
+        # # o4=o3.splitHorizontal("o4")
+
+        # o1.mgmt.send_keys("clear")
+        # o2.mgmt.send_keys("clear")
+        # o3.mgmt.send_keys("clear")
+        # o4.mgmt.send_keys("clear")
+        # main.mgmt.send_keys("clear")
+        # o1.mgmt.send_keys("clear")
+        
+        # from IPython import embed
+        # print ("DEBUG NOW sdsd")
+        # embed()
+        # p
+        

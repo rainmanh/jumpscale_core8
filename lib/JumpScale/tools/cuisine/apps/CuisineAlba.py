@@ -41,7 +41,7 @@ class Alba:
         build-essential m4 apt-utils libffi-dev libssl-dev libbz2-dev libgmp3-dev libev-dev libsnappy-dev \
         libxen-dev help2man pkg-config time aspcud wget rsync darcs git unzip protobuf-compiler libgcrypt20-dev \
         libjerasure-dev yasm automake python-dev python-pip debhelper psmisc strace curl g++ libgflags-dev \
-        sudo libtool libboost-all-dev fuse sysstat ncurses-dev
+        sudo libtool libboost-all-dev fuse sysstat ncurses-dev librdmacm-dev
         """
         self.cuisine.package.multiInstall(apt_deps, allow_unauthenticated=True)
         
@@ -62,7 +62,7 @@ class Alba:
         opam_deps = """ocamlfind ssl.0.5.2 camlbz2 snappy sexplib bisect lwt.2.5.1 camltc \
         cstruct ctypes ctypes-foreign uuidm zarith mirage-no-xen.1 quickcheck.1.0.2 \
         cmdliner conf-libev depext kinetic-client tiny_json ppx_deriving.3.1 \
-        ppx_deriving_yojson core.113.00.00 redis uri.1.9.1 result
+        ppx_deriving_yojson core.113.00.00 redis uri.1.9.1 result ordma
         """
         
         self.cuisine.core.run_script('source $tmpDir/opam.env && opam update && opam install -y %s' % opam_deps, profile=True)
@@ -168,26 +168,6 @@ class Alba:
 
     def _build(self, version='6.0.0'):
         repo = self.cuisine.git.pullRepo('https://github.com/openvstorage/alba', depth=None)
+        self.cuisine.core.run_script('source $tmpDir/opam.env && cd %s; make' % repo, profile=True)
         
-        """
-        str_repl = {
-            'workspace': self.cuisine.core.dir_paths['tmpDir'],
-            'version': version,
-        }
-        str_repl['volumedriver'] = self.cuisine.git.pullRepo('https://github.com/openvstorage/volumedriver', depth=None)
-        str_repl['buildtools'] = self.cuisine.git.pullRepo('https://github.com/openvstorage/volumedriver-buildtools', depth=None)
-        self.cuisine.core.run('cd %(volumedriver)s;git checkout tags/%(version)s' % str_repl)
-        """
-
-        build_script = """
-        docker start build-ubuntu1604-alba
-        ssh + cd alba/ && make
         
-        ## docker run -i -t -e UID=${UID} -v ${PWD}:/home/jenkins/alba -w /home/jenkins/alba build-ubuntu1604-alba bash -l
-        """
-        
-        print(build_script)
-        
-        # OUTPUT: ./ocaml/alba.native version
-        
-        # self.cuisine.core.run_script(build_script)

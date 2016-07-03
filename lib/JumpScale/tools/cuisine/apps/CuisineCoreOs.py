@@ -57,7 +57,11 @@ class Core:
         self.cuisine.core.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
         self.cuisine.core.file_copy("%s/g8os.toml" % sourcepath, "$tmplsDir/cfg/core")
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/core/conf/")
-        self.cuisine.core.file_copy("{0}sshd.toml {0}basic.toml {0}sshd.toml".format(sourcepath+"/conf/"), "$tmplsDir/cfg/core/conf/", recursive=True)
+        self.cuisine.core.file_copy("{0}basic.jumpscripts.toml {0}basic.syncthing.toml".format(sourcepath+"/conf/"), "$tmplsDir/cfg/core/conf/", recursive=True)
+        if self.cuisine.core.isArch:
+            self.cuisine.core.file_copy("{0}sshd-arch.toml".format(sourcepath+"/conf.extra/"), "$tmplsDir/cfg/core/conf/", recursive=True)
+        if self.cuisine.core.isUbuntu:
+            self.cuisine.core.file_copy("{0}sshd-ubuntu.toml".format(sourcepath+"/conf.extra/"), "$tmplsDir/cfg/core/conf/", recursive=True)    
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/core/extensions/syncthing")
         self.cuisine.core.file_copy("$binDir/syncthing", "$tmplsDir/cfg/core/extensions/syncthing/")
 

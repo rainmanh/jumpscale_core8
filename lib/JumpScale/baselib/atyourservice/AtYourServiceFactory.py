@@ -53,7 +53,18 @@ class AtYourServiceFactory:
     def getTester(self, name="fake_IT_env"):
         return AtYourServiceTester(name)
 
-    def get(self, name, path=""):
+    def get(self, name="", path=""):
+        """
+        Get a repo by name or path
+
+        @param name: Name of the repo to retrieve
+        @type name: str
+
+        @param path:    Path of the repo
+        @type path:     str
+
+        @return:    @AtYourServiceRepo object
+        """
         self._doinit()
         if name not in self.repos:
             if j.sal.fs.exists(path) and j.sal.fs.isDir(path):
@@ -65,6 +76,7 @@ class AtYourServiceFactory:
     def reset(self):
         self._repos = {}
         j.dirs._ays = None
+
 
     @property
     def repos(self):
@@ -335,7 +347,7 @@ class AtYourServiceFactory:
         return self.__repr__()
 
     # def telegramBot(self, token, start=True):
-    #     from JumpScale.baselib.atyourservice.telegrambot.TelegramAYS import TelegramAYS
+    #     from telegrambot.TelegramAYS import TelegramAYS
     #     bot = TelegramAYS(token)
     #     if start:
     #         bot.run()

@@ -201,7 +201,6 @@ class JSCuisine:
             self._net=CuisineNet(self.executor,self)
         return self._net
 
-
     @property
     def user(self):
         if self._user==None:
@@ -219,7 +218,6 @@ class JSCuisine:
         if self._git==None:
             self._git=CuisineGit(self.executor,self)
         return self._git
-
 
     @property
     def processmanager(self):

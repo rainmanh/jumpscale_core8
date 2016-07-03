@@ -11,13 +11,15 @@ from JumpScale import j
 
 import click
 
-cwd = j.sal.fs.getcwd()
-atyourservice = j.atyourservice.get(j.sal.fs.getBaseName(cwd), cwd)
-
+cwd = None
+atyourservice = None
 
 @click.group()
 @click.option('--nodebug', default=False, help='disable debug mode', is_flag=True)
 def cli(nodebug):
+    global cwd, atyourservice
+    cwd = j.sal.fs.getcwd()
+    atyourservice = j.atyourservice.get(j.sal.fs.getBaseName(cwd), cwd)
     atyourservice.debug = not nodebug
 
 # @click.command()
@@ -111,10 +113,9 @@ def showactions():
     """
     shows all services with relevant actions
     """
-    atyourservice.alog
     for key, service in atyourservice.services.items():
         print ("%s" % service)
-        for key, action in service.actions.items():
+        for key, action in service.action_methods.items():
             print ("- %-20s %s" % (key, action))
 
 

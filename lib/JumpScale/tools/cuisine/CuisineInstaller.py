@@ -142,6 +142,8 @@ class CuisineInstaller:
     def base(self):
         self.clean()
 
+        self.cuisine.bash.fixlocale()
+
         if self.cuisine.core.isMac:
             C=""
         else:

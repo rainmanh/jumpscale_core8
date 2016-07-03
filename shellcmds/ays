@@ -111,10 +111,9 @@ def showactions():
     """
     shows all services with relevant actions
     """
-    atyourservice.alog
     for key, service in atyourservice.services.items():
         print ("%s" % service)
-        for key, action in service.actions.items():
+        for key, action in service.action_methods.items():
             print ("- %-20s %s" % (key, action))
 
 

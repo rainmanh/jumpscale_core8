@@ -22,23 +22,6 @@ def cli(nodebug):
     atyourservice = j.atyourservice.get(j.sal.fs.getBaseName(cwd), cwd)
     atyourservice.debug = not nodebug
 
-# @click.command()
-# @click.argument('name')
-# @click.argument('instance')
-# @click.option('--count', default=1, help='number of instances you want to create, default is 1')
-# @click.option('--domain', default="", help='optional domain of ays')
-# @click.option('--version', default="", help='optional version of ays')
-# def new(name,instance,count=1,domain="",version=""):
-#     """
-#     @arg name: name of ays template to use
-#     @arg instance: the name for the instance
-#     """
-#     from ptpython.repl import embed
-#     print ("DEBUG NOW new")
-#     embed(globals(), locals())
-
-#     click.echo('new')
-
 
 @click.command()
 @click.option('--role', '-r', default="", help='optional role for ays instances to init')
@@ -119,15 +102,6 @@ def showactions():
             print ("- %-20s %s" % (key, action))
 
 
-# @click.command()
-# @click.option('--ask', default=False, is_flag=True, help='ask on which service to execute the action')
-# def apply(printonly=False, all=False, ask=False):
-#     """
-#     """
-#     allservices = all
-#     atyourservice.apply(printonly=printonly)
-
-
 @click.command()
 @click.argument('action')
 @click.option('--role', '-r', default="", help='optional role for ays instances execute an action on')
@@ -139,8 +113,6 @@ def do(action, role="", instance="", force=False, producerroles="*", ask=False):
     """
     call an action (which is a method in the action file e.g. start/stop/export/...)
     """
-    # allservices=all
-    # atyourservice.do(action,role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
     run = atyourservice.getRun(role=role, instance=instance, action=action, force=force, producerRoles=producerroles)
     print(run)
     run.execute()
@@ -157,7 +129,6 @@ def install(role="", instance="", force=False, producerroles="*", ask=False):
     make it reality
     if you want more finegrained controle please use the do cmd
     """
-    # atyourservice.do("install",role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
     run = atyourservice.getRun(role=role, instance=instance, action="install", force=force, producerRoles=producerroles)
     print(run)
     run.execute()
@@ -195,15 +166,6 @@ def setstate(action, state="DO", role="", instance="", force=False, producerrole
     print(run)
 
 
-# @click.command()
-# @click.option('--printonly', default=False,  is_flag=True,help='if set will not really execute, only show what would have been done')
-# def uninstall(printonly=False):
-#     """
-#     do uninstall
-#     """
-#     atyourservice.uninstall(printonly=printonly)
-
-
 @click.command()
 @click.argument('role')
 @click.argument('instance')
@@ -220,6 +182,12 @@ def showproducers(role, instance):
 @click.argument('role')
 @click.argument('instance')
 def showparents(role, instance):
+    """
+    Shows parents of a service
+    :param role:
+    :param instance:
+    :return:
+    """
     ays = atyourservice.getService(role, instance)
     out = "parents:\n"
     for parent in ays.parents:
@@ -231,6 +199,12 @@ def showparents(role, instance):
 @click.option('--role', '-r', default='')
 @click.option('--instance', '-i', default='')
 def list(role, instance):
+    """
+    listing installed services.
+    :param role:
+    :param instance:
+    :return:
+    """
     print("Installed services:")
     services = atyourservice.findServices(role=role, instance=instance)
     for s in sorted(services, key=lambda service: service.role):
@@ -311,24 +285,15 @@ cli.add_command(setstate)
 cli.add_command(commit)
 cli.add_command(update)
 cli.add_command(blueprint)
-# cli.add_command(new)
 cli.add_command(destroy)
 cli.add_command(init)
-# cli.add_command(apply)
 cli.add_command(install)
-# cli.add_command(uninstall)
 cli.add_command(do)
 cli.add_command(showproducers)
 cli.add_command(showparents)
 cli.add_command(showactions)
 cli.add_command(list)
-# cli.add_command(debug)
 
-# print (sys.excepthook)
 
 if __name__ == '__main__':
     cli()
-    # cli(standalone_mode=False)
-
-# j.application.stop()
-# j.logger.enabled = False

@@ -74,11 +74,56 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
         export JSBASE='/opt/jumpscale8'
     fi
     export TMPDIR=/tmp
-elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
+elif [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
     # Do something under Windows NT platform
-    echo 'windows'
-    echo "CODE NOT COMPLETE FOR WINDOWS IN install.sh"
-    exit
+        # Do something under Mac OS X platform
+    #echo 'install brew'
+    #ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    export LANG=C; export LC_ALL=C
+    apt-cyg install curl
+    apt-cyg install wget 
+    apt-cyg install python3
+    apt-cyg install make
+    apt-cyg install libffi-devel
+    apt-cyg install unzip 
+
+    python3 -m ensurepip
+    ln -sf /usr/bin/python3 /usr/bin/python 
+    apt-cyg install git
+
+    pip3 install cryptography==1.4
+    pip3 install --upgrade paramiko 
+    pip3 install --upgrade pip setuptools
+    pip3 install --upgrade ipdb
+    pip3 install --upgrade requests
+    pip3 install --upgrade watchdog
+    pip3 install --upgrade mongoengine
+    # pip3 install dulwich
+    pip3 install --upgrade gitpython
+    pip3 install --upgrade click
+    pip3 install --upgrade ptpython
+    pip3 install --upgrade pymux
+    pip3 install --upgrade ptpdb
+
+    export TMPDIR=/tmp
+
+    #install redis
+    cd $TMPDIR
+    rm -rf Redis
+    mkdir Redis
+    cd Redis 
+    wget https://github.com/MSOpenTech/redis/releases/download/win-3.2.100/Redis-x64-3.2.100.zip
+    unzip Redis-x64-3.2.100.zip
+    chmod +x redis-server.exe
+    cp -f  redis-server.exe /usr/local/bin  
+    chmod +x redis-cli.exe
+    cp -f  redis-cli.exe /usr/local/bin  
+
+    if [ -z"$JSBASE" ]; then
+        export JSBASE="$HOME/opt/jumpscale8"
+    fi
+    mkdir -p $TMPDIR
+    cd $TMPDIR
 fi
 
 

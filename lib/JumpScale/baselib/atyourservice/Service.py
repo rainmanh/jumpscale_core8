@@ -367,18 +367,23 @@ class Service:
         if self.recipe.schema is None:
             return
 
+        self.logger.debug('[_consumeFromSchema] args %s' % args)
+
         # manipulate the HRD's to mention the consume's to producers
         consumes = self.recipe.schema.consumeSchemaItemsGet()
         if consumes:
             for consumeitem in consumes:
-
                 # parent exists
                 role = consumeitem.consume_link
                 consumename = consumeitem.name
 
                 instancenames = []
                 if consumename in args:
-                    instancenames = args[consumename]
+                    # args[consumename] can be a list or a string, we need to convert it to a list
+                    if type(args[consumename]) == str:
+                        instancenames = [args[consumename]]
+                    else:
+                        instancenames = args[consumename]
 
                 ays_s = list()
                 candidates = self.aysrepo.findServices(role=consumeitem.consume_link)
@@ -386,6 +391,7 @@ class Service:
                     if len(instancenames) > 0:
                         ays_s = [candidate for candidate in candidates if candidate.instance in instancenames]
                     else:
+                        self.logger.debug('[_consumeFromSchema] No instance specificed for consumed service %s' % consumename)
                         ays_s = candidates
 
                 # autoconsume

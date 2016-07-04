@@ -322,7 +322,6 @@ cli.add_command(showproducers)
 cli.add_command(showparents)
 cli.add_command(showactions)
 cli.add_command(list)
-cli.add_command(printlog)
 # cli.add_command(debug)
 
 # print (sys.excepthook)

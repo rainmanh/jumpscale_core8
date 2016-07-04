@@ -108,7 +108,7 @@ class TestCuisineBuilder(unittest.TestCase):
             cuisine_builder = CuisineBuilder(executor, cuisine)
             cuisine_builder.cuisine.core.run = mock.MagicMock()
             expected_output = 'fake_store/static/js8_opt.flist'
-            actual_output = cuisine_builder.sandbox(stor_addr='fake_store')
+            actual_output = cuisine_builder.sandbox(stor_addr='fake_store', stor_name="")
             self.assertEquals(expected_output, actual_output)
 
 

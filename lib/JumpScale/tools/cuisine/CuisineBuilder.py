@@ -14,7 +14,7 @@ class CuisineBuilder:
         self.executor = executor
         self.cuisine = cuisine
 
-    def all(self, start=False, sandbox=False, stor_addr=None):
+    def all(self, start=False, sandbox=False, stor_addr=None, stor_name=""):
         self.cuisine.installerdevelop.pip()
         self.cuisine.installerdevelop.python()
         if not self.cuisine.installer.jumpscale_installed():
@@ -38,9 +38,9 @@ class CuisineBuilder:
         if sandbox:
             if not stor_addr:
                 raise j.exceptions.RuntimeError("Store address should be specified if sandboxing enable.")
-            self.sandbox(stor_addr)
+            self.sandbox(stor_addr, stor_name)
 
-    def sandbox(self, stor_addr, python=True):
+    def sandbox(self, stor_addr, stor_name, python=True):
         """
         stor_addr : addr to the store you want to populate. e.g.: https://stor.jumpscale.org/storx
         python : do you want to sandbox python too ? if you have segfault after trying sandboxing python, re run with python=False
@@ -55,7 +55,7 @@ class CuisineBuilder:
         self.cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self.cuisine.core.dir_paths["codeDir"], "%s/portal" % self.cuisine.core.dir_paths['jsLibDir'])
 
         # start sandboxing
-        cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], 'js8_opt', '%s', sandbox_python=%s)" % (stor_addr, python)
+        cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], %s + 'js8_opt', '%s', sandbox_python=%s)" % (stor_name, stor_addr, python)
         self.cuisine.core.run('js "%s"' % cmd)
         url_opt = '%s/static/js8_opt.flist' % stor_addr
 

@@ -238,14 +238,6 @@ def list(role, instance):
 
 
 @click.command()
-@click.option('--action', '-a', default=None)
-def printlog(action):
-    action_name, out = atyourservice.alog.getActionOuput(action)
-    print("Output of last action: %s\n" % action_name)
-    print(out)
-
-
-@click.command()
 def destroy():
     """
     reset in current ays repo all services & recipe's in current repo (DANGEROUS)

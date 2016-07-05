@@ -482,8 +482,7 @@ class CuisineCore:
             return default
 
         frame = self.file_base64(location)
-
-        return base64.b64decode(frame).decode()
+        return base64.decodebytes(frame.encode()).decode()
 
 
     def file_exists(self,location):
@@ -814,22 +813,11 @@ class CuisineCore:
     # SEE: http://stackoverflow.com/questions/22982673/is-there-any-function-to-get-the-md5sum-value-of-file-in-linux
 
     #
-    def file_base64(self,location):
+    def file_base64(self, location):
         """Returns the base64-encoded content of the file at the given location."""
-        location=self.args_replace(location)
-        sudomode = self.sudomode
-        res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
-        if res.find("command not found")!=-1:
-            #print could not find python need to install
-            self.cuisine.package.install("python3.5")
-            res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
-        self.sudomode = sudomode
-        return res
+        location = self.args_replace(location)
+        return self.run("cat {0} | base64".format(shell_safe((location))),debug=False,checkok=False,showout=False)
 
-        # else:
-        # return self.run("cat {0} | openssl base64".format(shell_safe((location))))
-
-    #
     def file_sha256(self,location):
         """Returns the SHA-256 sum (as a hex string) for the remote file at the given location."""
         # NOTE: In some cases, self.sudo can output errors in here -- but the errors will

@@ -28,11 +28,10 @@ class Hadoop:
         self.cuisine.installer.base()
 
         if self.cuisine.core.isUbuntu:
-            self.cuisine.core.dir_ensure("$tmplsDir/cfg/influxdb")
             C= """\
             apt-get install -y apt-get install openjdk-7-jre
             cd $tmpDir
-            wget -c https://s3.amazonaws.com/influxdb/influxdb-0.10.0-1_linux_amd64.tar.gz
+            wget -c http://www-us.apache.org/dist/hadoop/common/hadoop-2.7.2/hadoop-2.7.2.tar.gz
             tar -xf hadoop-2.7.2.tar.gz -C /opt/
             """
             C = self.cuisine.bash.replaceEnvironInText(C)

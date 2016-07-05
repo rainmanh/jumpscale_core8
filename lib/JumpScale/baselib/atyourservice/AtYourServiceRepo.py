@@ -146,7 +146,8 @@ class AtYourServiceRepo():
 
         # load local templates
         path = j.sal.fs.joinPaths(self.basepath, "servicetemplates/")
-        load(self.name, path)
+        if j.sal.fs.exists(path):
+            load(self.name, path)
 
         return self._templates
 

@@ -1050,7 +1050,7 @@ class CuisineCore:
         path = self.executor.execute("echo $PATH", showout=False)[1]
         if "/usr/local/bin" not in path: 
             env = {"PATH": "%s:/usr/local/bin" % path}
-        rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout, env=env)
+        rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=False,showout=showout, env=env)
 
         out = self._clean(out)
 
@@ -1091,7 +1091,7 @@ class CuisineCore:
                             next=True
 
                 if next:
-                    rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout, env=env)
+                    rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=False,showout=showout, env=env)
 
         if debug!=None:
             self.executor.debug=debugremember

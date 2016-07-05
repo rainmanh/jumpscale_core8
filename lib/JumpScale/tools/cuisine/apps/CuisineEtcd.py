@@ -68,8 +68,6 @@ class Etcd:
         self.cuisine.processmanager.ensure("etcd", cmd)
 
 
-
-
     def _etcd_cluster_cmd(self, host, peers=[]):
         """
         return the command to execute to launch etcd as a static cluster
@@ -88,13 +86,12 @@ class Etcd:
         cluster = cluster.rstrip(",")
 
         host = host.lstrip("http://").lstrip('https://')
-        cmd = """
-    $binDir/etcd -name infra{i} -initial-advertise-peer-urls http://{host}:2380 \
+        cmd = """$binDir/etcd -name infra{i} -initial-advertise-peer-urls http://{host}:2380 \
       -listen-peer-urls http://{host}:2380 \
       -listen-client-urls http://{host}:2379,http://127.0.0.1:2379,http://{host}:4001,http://127.0.0.1:4001 \
       -advertise-client-urls http://{host}:2379,http://{host}:4001 \
       -initial-cluster-token etcd-cluster-1 \
       -initial-cluster {cluster} \
-      -initial-cluster-state new
+      -initial-cluster-state new \
     """.format(host=host, cluster=cluster, i=number)
-        return cmd
+        return self.cuisine.core.args_replace(cmd)

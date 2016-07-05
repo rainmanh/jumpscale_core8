@@ -456,9 +456,26 @@ class SessionCache(ModelBase, Document):
     kwargs = DictField()
     _creation_time = IntField(default=j.data.time.getTimeEpoch())
     _accessed_time = IntField(default=j.data.time.getTimeEpoch())
+    _expire_at = IntField(default=None)
     guid = StringField()
-    meta = extend(default_meta, {'indexes': [
-        {'fields': ['epoch'], 'expireAfterSeconds': 432000}
-    ], 'allow_inheritance': True, "db_alias": DB})
+    meta = extend(default_meta, {'indexes':
+                                    [{'fields': ['epoch'], 'expireAfterSeconds': 432000}],
+                                 'allow_inheritance': True,
+                                 'db_alias': DB})
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def _save_redis(self, obj):
+        key = self._getKey(obj.guid)
+        indexes = self._meta['indexes']
+        expire = next(iter(indexes), {}).get('expireAfterSeconds', None)
+        raw = j.data.serializer.json.dumps(obj.to_dict())
+        j.core.db.set(key, raw)
+        if self._expire_at:
+            j.core.db.expireat(self._getKey(self.guid), self._expire_at)
+        elif expire:
+            j.core.db.expire(key, expire)
+        return obj
 
 del EmbeddedDocument

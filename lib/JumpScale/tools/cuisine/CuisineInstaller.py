@@ -92,7 +92,7 @@ class CuisineInstaller:
                 rm -rf /optrw
                 """
             self.cuisine.core.run_script(C, action=True,force=True)
-            
+
 
         C = """
             wget https://stor.jumpscale.org/storx/static/js8 -O /usr/local/bin/js8
@@ -132,12 +132,12 @@ class CuisineInstaller:
     @actionrun(action=True)
     def libvirt(self):
         """
-        do not use in containers or VMs only actual machines @todo not tested 
+        do not use in containers or VMs only actual machines @todo not tested
         """
         #@todo need to check and exit if required (*1*)
         self.cuisine.package.install('libvirt-dev')
         self.cuisine.pip.install("libvirt-python==1.3.2", upgrade=False)
-        
+
     @actionrun(action=True)
     def base(self):
         self.clean()
@@ -167,6 +167,8 @@ class CuisineInstaller:
             out+="mkdir -p %s\n"%item
         self.cuisine.core.run_script(out)
 
+        self.cuisine.package.mdupdate()
+
         if not self.cuisine.core.isMac:
             self.cuisine.package.install("fuse")
 
@@ -174,7 +176,6 @@ class CuisineInstaller:
             self.cuisine.package.install("wpa_actiond") #is for wireless auto start capability
             self.cuisine.package.install("redis-server")
 
-        self.cuisine.package.mdupdate()
         self.cuisine.package.multiInstall(C)
         self.cuisine.package.upgrade()
         self.cuisine.package.clean()
@@ -190,7 +191,7 @@ class CuisineInstaller:
         self.cuisine.core.run(cmd)
 
         """
-        example config 
+        example config
             config='''
                 home:
                   guest2: ['123456']
@@ -242,8 +243,8 @@ class CuisineInstaller:
 
         self.cuisine.btrfs.subvolumeCreate(root)
 
-            # 
-            # 
+            #
+            #
 
         if config=="":
             authorizer="    pyftpdlib.authorizers.UnixAuthorizer"
@@ -309,7 +310,7 @@ class CuisineInstaller:
 
         C=C.replace("$port",str(port))
         C=C.replace("$authorizers",authorizer)
-        
+
         self.cuisine.core.dir_ensure("/etc/ftpserver")
 
         self.cuisine.core.file_write("/etc/ftpserver/start.py",C)

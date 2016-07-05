@@ -42,14 +42,16 @@ class Etcd:
 
         cd $goDir/src/$REPO_PATH
 
-        git checkout v2.2.2
+        # first checkout master to prevent error if already in detached mode
+        git checkout master
+        git checkout v3.0.1
 
         go get -d .
 
-
-        CGO_ENABLED=0 go build -a -installsuffix cgo -ldflags "-s -X ${REPO_PATH}/version.GitSHA=v2.2.2" -o $binDir/etcd .
-
+        CGO_ENABLED=0 go build $GO_BUILD_FLAGS -installsuffix cgo -ldflags "-s -X ${REPO_PATH}/cmd/vendor/${REPO_PATH}/version.GitSHA=${GIT_SHA}" -o $binDir/etcd ${REPO_PATH}/cmd
+        CGO_ENABLED=0 go build $GO_BUILD_FLAGS -installsuffix cgo -ldflags "-s" -o $binDir/etcdctl ${REPO_PATH}/cmd/etcdctl
         """
+
         C=self.cuisine.bash.replaceEnvironInText(C)
         self.cuisine.core.run_script(C,profile=True, action=True)
         self.cuisine.bash.addPath("$base/bin", action=True)
@@ -68,7 +70,7 @@ class Etcd:
 
 
 
-    def _etcd_cluster_cmd(self, host, peers=[]):    
+    def _etcd_cluster_cmd(self, host, peers=[]):
         """
         return the command to execute to launch etcd as a static cluster
         @host, string. host of this node in the cluster e.g: http://etcd1.com
@@ -96,4 +98,3 @@ class Etcd:
       -initial-cluster-state new
     """.format(host=host, cluster=cluster, i=number)
         return cmd
-

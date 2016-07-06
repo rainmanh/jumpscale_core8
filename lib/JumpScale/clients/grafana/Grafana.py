@@ -46,7 +46,6 @@ class GrafanaClient:
         self._session.auth = auth
 
     def updateDashboard(self, dashboard):
-        import ipdb; ipdb.set_trace()
         url = os.path.join(self._url, 'api/dashboards/db')
         data = {'dashboard': dashboard, 'overwrite': True}
         result = self._session.post(url, json=data, verify=self._verify_ssl)

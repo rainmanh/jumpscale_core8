@@ -196,7 +196,7 @@ class Container:
     def restart(self):
         self.client.restart(self.id)
 
-    def commit(self, imagename, msg="", delete=True, force=False):
+    def commit(self, imagename, msg="", delete=True, force=False, **kwargs):
         """
         imagename: name of the image to commit. e.g: jumpscale/myimage
         delete: bool, delete current image before doing commit
@@ -206,7 +206,7 @@ class Container:
             res = j.sal.docker.client.images(imagename)
             if len(res) > 0:
                 self.client.remove_image(imagename, force=force)
-        self.client.commit(self.id, imagename, message=msg)
+        self.client.commit(self.id, imagename, message=msg, **kwargs)
 
     def uploadFile(self, source, dest):
         """

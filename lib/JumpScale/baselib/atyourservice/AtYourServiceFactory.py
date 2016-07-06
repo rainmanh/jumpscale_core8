@@ -1,19 +1,19 @@
 from JumpScale import j
 
-from ServiceRecipe import ServiceRecipe
-from Service import Service, loadmodule
-from ServiceTemplate import ServiceTemplate
+from JumpScale.baselib.atyourservice.ServiceRecipe import ServiceRecipe
+from JumpScale.baselib.atyourservice.Service import Service, loadmodule
+from JumpScale.baselib.atyourservice.ServiceTemplate import ServiceTemplate
 
-from ActionsBaseNode import ActionsBaseNode
-from ActionsBaseMgmt import ActionsBaseMgmt
-from ActionMethodDecorator import ActionMethodDecorator
+from JumpScale.baselib.atyourservice.ActionsBaseNode import ActionsBaseNode
+from JumpScale.baselib.atyourservice.ActionsBaseMgmt import ActionsBaseMgmt
+from JumpScale.baselib.atyourservice.ActionMethodDecorator import ActionMethodDecorator
 
-from AtYourServiceRepo import AtYourServiceRepo
+from JumpScale.baselib.atyourservice.AtYourServiceRepo import AtYourServiceRepo
 
-from AtYourServiceTester import AtYourServiceTester
+from JumpScale.baselib.atyourservice.AtYourServiceTester import AtYourServiceTester
 
 try:
-    from AtYourServiceSandboxer import *
+    from JumpScale.baselib.atyourservice.AtYourServiceSandboxer import *
 except:
     pass
 import os
@@ -53,9 +53,25 @@ class AtYourServiceFactory:
     def getTester(self, name="fake_IT_env"):
         return AtYourServiceTester(name)
 
+    def exist(self, name):
+        """
+        Check if a repo with the given name exist or not, if multiple repos found with the same name, an exception is raised
+
+        @param name: name of the repo
+        @type name: str
+
+        @returns:   True if exist, Flase if it doesnt, raises exception if mulitple found with the same name
+        """
+        result = [repo for repo in self.repos.values() if repo.name == name]
+        if len(result) > 1:
+            msg = "Multiple AYS repos with name %s found under locations [%s]. Please use j.atyourservice.get(path=<path>) instead" % \
+                    (name, ','.join([repo.basepath for repo in result]))
+            raise j.exceptions.RuntimeError(msg)
+        return result
+
     def get(self, name="", path=""):
         """
-        Get a repo by name or path
+        Get a repo by name or path, if repo does not exist, it will be created
 
         @param name: Name of the repo to retrieve
         @type name: str
@@ -66,12 +82,29 @@ class AtYourServiceFactory:
         @return:    @AtYourServiceRepo object
         """
         self._doinit()
-        if name not in self.repos:
-            if j.sal.fs.exists(path) and j.sal.fs.isDir(path):
-                self._repos[name] = AtYourServiceRepo(name, path)
-            else:
+        if path:
+            if path not in self.repos:
+                if j.sal.fs.exists(path) and j.sal.fs.isDir(path):
+                    if not name:
+                        name = j.sal.fs.getBaseName(path)
+                    self._repos[path] = AtYourServiceRepo(name, path)
+
+        else:
+            # we want to retrieve  repo by name
+            result = [repo for repo in self.repos.values() if repo.name == name]
+            if not result:
                 path = j.sal.fs.getcwd()
-        return self.repos[name]
+                if not name:
+                    name = j.sal.fs.getBaseName(path)
+                self._repos[path] = AtYourServiceRepo(name, path)
+            elif len(result) > 1:
+                msg = "Multiple AYS repos with name %s found under locations [%s]. Please use j.atyourservice.get(path=<path>) instead" % \
+                        (name, ','.join([repo.basepath for repo in result]))
+                raise j.exceptions.RuntimeError(msg)
+            else:
+                path = result[0].basepath
+
+        return self.repos[path]
 
     def reset(self):
         self._repos = {}
@@ -83,7 +116,7 @@ class AtYourServiceFactory:
         if self._repos == {}:
             for path in j.atyourservice.findAYSRepos():
                 name = j.sal.fs.getBaseName(path)
-                self._repos[name] = AtYourServiceRepo(name, path)
+                self._repos[path] = AtYourServiceRepo(name, path)
         return self._repos
 
     @property
@@ -187,9 +220,9 @@ class AtYourServiceFactory:
         j.tools.cuisine.local.core.run('git init')
         j.sal.nettools.download('https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
         name = j.sal.fs.getBaseName(path)
-        self._repos[name] = AtYourServiceRepo(name, path)
+        self._repos[path] = AtYourServiceRepo(name, path)
         print("AYS Repo created at %s" % path)
-        return self._repos[name]
+        return self._repos[path]
 
     def updateTemplates(self, repos=[]):
         """
@@ -268,12 +301,12 @@ class AtYourServiceFactory:
         if key.count("!") != 2:
             raise j.exceptions.Input("key:%s needs to be $reponame!$role!$instance" % key)
         reponame, role, instance = key.split("!", 2)
-        if reponame not in self._repos:
+        if not self.exist(name=reponame):
             if die:
                 raise j.exceptions.Input("service repo %s does not exist, could not retrieve ays service:%s" % (reponame, key))
             else:
                 return None
-        repo = self._repos[reponame]
+        repo = self.get(name=reponame)
         return repo.getService(role=role, instance=instance, die=die)
 
     def getTemplate(self, name, die=True):
@@ -347,7 +380,7 @@ class AtYourServiceFactory:
         return self.__repr__()
 
     # def telegramBot(self, token, start=True):
-    #     from telegrambot.TelegramAYS import TelegramAYS
+    #     from JumpScale.baselib.atyourservice.telegrambot.TelegramAYS import TelegramAYS
     #     bot = TelegramAYS(token)
     #     if start:
     #         bot.run()

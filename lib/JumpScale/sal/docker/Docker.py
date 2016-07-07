@@ -268,7 +268,7 @@ class Docker:
             fs.start()
 
     def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1604", nameserver=["8.8.8.8"],
-               replace=True, cpu=None, mem=0, jumpscale=False, ssh=True, myinit=True, sharecode=False,sshkeyname="",sshpubkey="",
+               replace=True, cpu=None, mem=0, ssh=True, myinit=True, sharecode=False,sshkeyname="",sshpubkey="",
                setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master", aysfs=[], detach=False, privileged=False):
 
         """
@@ -330,17 +330,6 @@ class Docker:
             for item in items:
                 key, val = item.split(":", 1)
                 volsdict[str(key).strip()] = str(val).strip()
-
-        # """
-        # j.sal.fs.createDir("/var/jumpscale")
-        # if "/var/jumpscale" not in volsdict:
-        #     volsdict["/var/jumpscale"] = "/var/docker/%s" % name
-        # j.sal.fs.createDir("/var/docker/%s" % name)
-
-        # tmppath = "/tmp/dockertmp/%s" % name
-        # j.sal.fs.createDir(tmppath)
-        # volsdict[tmppath] = "/tmp"
-        # """
 
         if sharecode and j.sal.fs.exists(path="/opt/code"):
             self.logger.info("share jumpscale code enable")
@@ -432,15 +421,12 @@ class Docker:
             container.pushSSHKey(keyname=sshkeyname, sshpubkey=sshpubkey)
 
             if setrootrndpasswd:
-                # if rootpasswd is None or rootpasswd == '':
-                #     print("set default root passwd (gig1234)")
-                #     container.executor.execute("echo \"root:gig1234\"|chpasswd",showout=False)
-                # else:
-                #     print("set root passwd to %s" % rootpasswd)
-                #     container.cexecutor.execute("echo \"root:%s\"|chpasswd" % rootpasswd,showout=False)
-
-                container.executor.execute("echo \"root:%s\"|chpasswd" % j.data.idgenerator.generateGUID(),showout=False)
-
+                if rootpasswd is None or rootpasswd == '':
+                    print("set default root passwd (gig1234)")
+                    container.executor.execute("echo \"root:gig1234\"|chpasswd",showout=False)
+                else:
+                    print("set root passwd to %s" % rootpasswd)
+                    container.cexecutor.execute("echo \"root:%s\"|chpasswd" % rootpasswd,showout=False)
             if not self.isWeaveEnabled:
                 container.setHostName(name)
 

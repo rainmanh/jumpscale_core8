@@ -470,8 +470,8 @@ class Docker:
         image: str, name of the image
         output: print progress as it pushes
         """
-
-        client = docker.Client(base_url=self.base_url, timeout=36000)
+        previous_timeout = client.timeout
+        client.timeout = 36000
         out = []
         for l in client.push(image, stream=True):
             line = j.data.serializer.json.loads(l)
@@ -489,6 +489,8 @@ class Docker:
             if output:
                 self.logger.info(s)
             out.append(s)
+
+        client.timeout = previous_timeout
 
         return "\n".join(out)
 

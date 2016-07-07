@@ -204,11 +204,17 @@ class Container:
         delete: bool, delete current image before doing commit
         force: bool, force delete
         """
+        previous_timeout = self.client.timeout
+        self.client.timeout = 3600
+
         if delete:
             res = j.sal.docker.client.images(imagename)
             if len(res) > 0:
                 self.client.remove_image(imagename, force=force)
         self.client.commit(self.id, imagename, message=msg, **kwargs)
+
+        self.client.timeout = previous_timeout
+
 
     def uploadFile(self, source, dest):
         """

@@ -50,7 +50,7 @@ class Offliner:
 
         cmd+="wget ‐‐execute robots=off --recursive --no-clobber --page-requisites --html-extension --convert-links"
         cmd+=" --restrict-file-names=windows ‐‐continue ‐‐user-agent=Mozilla"
-        # --no-parent 
+        cmd+=" --no-parent"
         cmd+=" -l %s"%level
         if docElementsOnly:
             cmd+=" ‐‐accept jpg,gif,png,jpeg,html,htm,css,js"

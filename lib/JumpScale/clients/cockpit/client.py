@@ -12,12 +12,13 @@ class Client:
     without modifying the upper interface of the client.
     """
 
-    def __init__(self, base_uri, jwt):
+    def __init__(self, base_uri, jwt, verify_ssl=True):
         """
         base_uri: str, URL of the cockpit api. e.g: https://mycockpit.com/api
         jwt: str, json web token from itsyou.online
         """
         self._client = client_lower.Client()
+        self._client._verify_ssl = verify_ssl
         self._client.url = base_uri
         self._jwt = jwt
         self._client.session.headers = {

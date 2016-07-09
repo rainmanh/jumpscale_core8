@@ -298,9 +298,8 @@ class SSHClient:
         if retcode == 0 and out == '' and len(err) > 0:
             out = err
 
-        if combinestdr == True:
-            if err != '':
-                out = "%s\nSTDERR:%s"%(out, err)
+        if combinestdr and err.strip():
+            out = "%s\nSTDERR:%s"%(out, err)
         if retcode > 0:
             if die:
                 raise j.exceptions.RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, out, err))

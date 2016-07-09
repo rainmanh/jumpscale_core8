@@ -22,7 +22,7 @@ from apps.CuisineWeave import Weave
 from apps.CuisinePortal import CuisinePortal
 from apps.CuisineCockpit import Cockpit
 from apps.CuisineDeployerBot import DeployerBot
-
+from apps.CuisineHadoop import Hadoop
 
 import time
 
@@ -61,6 +61,7 @@ class CuisineApps:
         self._portal = None
         self._cockpit = None
         self._deployerbot = None
+        self._hadoop = None
 
     @property
     def weave(self):
@@ -166,6 +167,12 @@ class CuisineApps:
         if self._deployerbot is None:
             self._deployerbot = DeployerBot(self.executor, self.cuisine)
         return self._deployerbot
+
+    @property
+    def hadoop(self):
+        if self._hadoop is None:
+            self._hadoop = Hadoop(self.executor, self.cuisine)
+        return self._hadoop
 
     @actionrun(action=True)
     def installdeps(self):

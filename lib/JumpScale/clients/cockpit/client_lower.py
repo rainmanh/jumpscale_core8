@@ -7,6 +7,7 @@ BASE_URI = "http://js8:5000"
 class Client:
     def __init__(self):
         self.url = BASE_URI
+        self._verify_ssl = True
         self.session = requests.Session()
 
     def webhooks_github_post(self, data, headers=None, query_params=None):
@@ -34,7 +35,7 @@ class Client:
         """
         uri = self.url + "/ays/reload"
         uri = uri + build_query_string(query_params)
-        return self.session.get(uri, headers=headers)
+        return self.session.get(uri, headers=headers, verify=self._verify_ssl)
 
     def listRepositories(self, headers=None, query_params=None):
         """
@@ -43,7 +44,7 @@ class Client:
         """
         uri = self.url + "/ays/repository"
         uri = uri + build_query_string(query_params)
-        return self.session.get(uri, headers=headers)
+        return self.session.get(uri, headers=headers, verify=self._verify_ssl)
 
     def createNewRepository(self, data, headers=None, query_params=None):
         """
@@ -52,7 +53,7 @@ class Client:
         """
         uri = self.url + "/ays/repository"
         uri = uri + build_query_string(query_params)
-        return self.session.post(uri, data, headers=headers)
+        return self.session.post(uri, data, headers=headers, verify=self._verify_ssl)
 
     def getRepository(self, repository, headers=None, query_params=None):
         """
@@ -61,7 +62,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository
         uri = uri + build_query_string(query_params)
-        return self.session.get(uri, headers=headers)
+        return self.session.get(uri, headers=headers, verify=self._verify_ssl)
 
     def deleteRepository(self, repository, headers=None, query_params=None):
         """
@@ -70,7 +71,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository
         uri = uri + build_query_string(query_params)
-        return self.session.delete(uri, headers=headers)
+        return self.session.delete(uri, headers=headers, verify=self._verify_ssl)
 
     def listBlueprints(self, repository, headers=None, query_params=None):
         """
@@ -79,7 +80,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/blueprint"
         uri = uri + build_query_string(query_params)
-        return self.session.get(uri, headers=headers)
+        return self.session.get(uri, headers=headers, verify=self._verify_ssl)
 
     def createNewBlueprint(self, data, repository, headers=None, query_params=None):
         """
@@ -88,7 +89,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/blueprint"
         uri = uri + build_query_string(query_params)
-        return self.session.post(uri, data, headers=headers)
+        return self.session.post(uri, data, headers=headers, verify=self._verify_ssl)
 
     def getBlueprint(self, blueprint, repository, headers=None, query_params=None):
         """
@@ -97,7 +98,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/blueprint/"+blueprint
         uri = uri + build_query_string(query_params)
-        return self.session.get(uri, headers=headers)
+        return self.session.get(uri, headers=headers, verify=self._verify_ssl)
 
     def executeBlueprint(self, data, blueprint, repository, headers=None, query_params=None):
         """
@@ -106,7 +107,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/blueprint/"+blueprint
         uri = uri + build_query_string(query_params)
-        return self.session.post(uri, data, headers=headers)
+        return self.session.post(uri, data, headers=headers, verify=self._verify_ssl)
 
     def updateBlueprint(self, data, blueprint, repository, headers=None, query_params=None):
         """
@@ -115,7 +116,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/blueprint/"+blueprint
         uri = uri + build_query_string(query_params)
-        return self.session.put(uri, data, headers=headers)
+        return self.session.put(uri, data, headers=headers, verify=self._verify_ssl)
 
     def deleteBlueprint(self, blueprint, repository, headers=None, query_params=None):
         """
@@ -124,7 +125,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/blueprint/"+blueprint
         uri = uri + build_query_string(query_params)
-        return self.session.delete(uri, headers=headers)
+        return self.session.delete(uri, headers=headers, verify=self._verify_ssl)
 
     def archiveBlueprint(self, data, blueprint, repository, headers=None, query_params=None):
         """
@@ -133,7 +134,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/blueprint/"+blueprint+"/archive"
         uri = uri + build_query_string(query_params)
-        return self.session.put(uri, data, headers=headers)
+        return self.session.put(uri, data, headers=headers, verify=self._verify_ssl)
 
     def restoreBlueprint(self, data, blueprint, repository, headers=None, query_params=None):
         """
@@ -142,7 +143,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/blueprint/"+blueprint+"/restore"
         uri = uri + build_query_string(query_params)
-        return self.session.put(uri, data, headers=headers)
+        return self.session.put(uri, data, headers=headers, verify=self._verify_ssl)
 
     def listServices(self, repository, headers=None, query_params=None):
         """
@@ -151,7 +152,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/service"
         uri = uri + build_query_string(query_params)
-        return self.session.get(uri, headers=headers)
+        return self.session.get(uri, headers=headers, verify=self._verify_ssl)
 
     def listServicesByRole(self, role, repository, headers=None, query_params=None):
         """
@@ -160,7 +161,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/service/"+role
         uri = uri + build_query_string(query_params)
-        return self.session.get(uri, headers=headers)
+        return self.session.get(uri, headers=headers, verify=self._verify_ssl)
 
     def getServiceByInstance(self, instance, role, repository, headers=None, query_params=None):
         """
@@ -169,7 +170,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/service/"+role+"/"+instance
         uri = uri + build_query_string(query_params)
-        return self.session.get(uri, headers=headers)
+        return self.session.get(uri, headers=headers, verify=self._verify_ssl)
 
     def deleteServiceByInstance(self, instance, role, repository, headers=None, query_params=None):
         """
@@ -178,7 +179,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/service/"+role+"/"+instance
         uri = uri + build_query_string(query_params)
-        return self.session.delete(uri, headers=headers)
+        return self.session.delete(uri, headers=headers, verify=self._verify_ssl)
 
     def listServiceActions(self, instance, role, repository, headers=None, query_params=None):
         """
@@ -187,7 +188,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/service/"+role+"/"+instance+"/action"
         uri = uri + build_query_string(query_params)
-        return self.session.get(uri, headers=headers)
+        return self.session.get(uri, headers=headers, verify=self._verify_ssl)
 
     def listTemplates(self, repository, headers=None, query_params=None):
         """
@@ -196,7 +197,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/template"
         uri = uri + build_query_string(query_params)
-        return self.session.get(uri, headers=headers)
+        return self.session.get(uri, headers=headers, verify=self._verify_ssl)
 
     def createNewTemplate(self, data, repository, headers=None, query_params=None):
         """
@@ -205,7 +206,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/template"
         uri = uri + build_query_string(query_params)
-        return self.session.post(uri, data, headers=headers)
+        return self.session.post(uri, data, headers=headers, verify=self._verify_ssl)
 
     def getTemplate(self, template, repository, headers=None, query_params=None):
         """
@@ -214,7 +215,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/template/"+template
         uri = uri + build_query_string(query_params)
-        return self.session.get(uri, headers=headers)
+        return self.session.get(uri, headers=headers, verify=self._verify_ssl)
 
     def listRuns(self, repository, headers=None, query_params=None):
         """
@@ -223,7 +224,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/aysrun"
         uri = uri + build_query_string(query_params)
-        return self.session.get(uri, headers=headers)
+        return self.session.get(uri, headers=headers, verify=self._verify_ssl)
 
     def getRun(self, aysrun, repository, headers=None, query_params=None):
         """
@@ -232,7 +233,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/aysrun/"+aysrun
         uri = uri + build_query_string(query_params)
-        return self.session.get(uri, headers=headers)
+        return self.session.get(uri, headers=headers, verify=self._verify_ssl)
 
     def getSource(self, source, repository, headers=None, query_params=None):
         """
@@ -241,7 +242,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/source/"+source
         uri = uri + build_query_string(query_params)
-        return self.session.get(uri, headers=headers)
+        return self.session.get(uri, headers=headers, verify=self._verify_ssl)
 
     def getHRD(self, hrd, repository, headers=None, query_params=None):
         """
@@ -250,7 +251,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/hrd/"+hrd
         uri = uri + build_query_string(query_params)
-        return self.session.get(uri, headers=headers)
+        return self.session.get(uri, headers=headers, verify=self._verify_ssl)
 
     def initRepository(self, data, repository, headers=None, query_params=None):
         """
@@ -259,7 +260,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/init"
         uri = uri + build_query_string(query_params)
-        return self.session.post(uri, data, headers=headers)
+        return self.session.post(uri, data, headers=headers, verify=self._verify_ssl)
 
     def simulateAction(self, data, repository, headers=None, query_params=None):
         """
@@ -268,7 +269,7 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/simulate"
         uri = uri + build_query_string(query_params)
-        return self.session.post(uri, data, headers=headers)
+        return self.session.post(uri, data, headers=headers, verify=self._verify_ssl)
 
     def executeAction(self, data, repository, headers=None, query_params=None):
         """
@@ -277,4 +278,4 @@ class Client:
         """
         uri = self.url + "/ays/repository/"+repository+"/execute"
         uri = uri + build_query_string(query_params)
-        return self.session.post(uri, data, headers=headers)
+        return self.session.post(uri, data, headers=headers, verify=self._verify_ssl)

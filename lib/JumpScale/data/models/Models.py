@@ -1,7 +1,7 @@
 
 from mongoengine.fields import IntField, StringField, ListField, BooleanField, DictField, EmbeddedDocumentField, FloatField
 from mongoengine import DoesNotExist, EmbeddedDocument, Document
-import crypt
+import fcrypt as crypt
 import hmac
 from JumpScale import j
 

@@ -1,6 +1,6 @@
 
 from JumpScale import j
-import crypt
+import fcrypt as crypt
 
 
 def shell_safe( path ):

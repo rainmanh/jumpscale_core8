@@ -196,7 +196,7 @@ class SSHClient:
                 self._connection_ok = True
         return self._connection_ok
 
-    def execute(self, cmd, showout=True, die=True, combinestdr=True):
+    def execute(self, cmd, showout=True, die=True, combinestdr=False):
         """
         run cmd & return
         return: (retcode,out_err)
@@ -298,6 +298,8 @@ class SSHClient:
         if retcode == 0 and out == '' and len(err) > 0:
             out = err
 
+        if combinestdr and err.strip():
+            out = "%s\nSTDERR:%s"%(out, err)
         if retcode > 0:
             if die:
                 raise j.exceptions.RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, out, err))

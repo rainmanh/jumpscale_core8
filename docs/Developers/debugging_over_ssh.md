@@ -10,6 +10,40 @@
    - the sync tools in the development tools will sync you local changes while you are using your editor to develop
    - over ssh you can test your program om the remote machine 
 
+## step1: create connection
+
+```
+j.tools.develop.init("ovh4:22")
+```
+
+now all other commands can be used on j.tools.develop...
+
+
+## step2: how to sync a local code tree to a remote one
+
+- all changes will be monitored constantly and synced
+
+```
+j.tools.develop.syncCode(ask=False, monitor=False, rsyncdelete=False, reset=False)
+
+Docstring:
+sync all code to the remote destinations
+
+@param reset=True, means we remove the destination first
+@param ask=True means ask which repo's to sync (will get remembered in redis)
+
+File:      ~/opt/jumpscale8/lib/JumpScale/tools/develop/DevelopTools.py
+```
+
+example
+```
+j.tools.develop.syncCode(True,True,True)
+#will ask which dirs to sync and than start the monitor, will remove changes at other side
+
+DO NOT USE GIT ON REMOTE SITE, ONLY ON LOCAL ONE
+```
+
+
 ## how to connect & debug a remote sandboxed js8
 
 
@@ -78,8 +112,3 @@ if for whatever reason the monitoring doesn't start, try with reset=True
 
 Whatever the tool has been initialized with will be remembered when used a 2nd time.
 
-## how launch a remote js shell or execute a python script in debug mode
-
-```
-
-```

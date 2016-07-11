@@ -63,8 +63,9 @@ class DebugSSHNode:
         self.port = sshport
 
         #lets test tcp on 22 if not then 9022 which are our defaults
-        test=j.sal.nettools.tcpPortConnectionTest(self.addr,self.port,2)
+        test=j.sal.nettools.tcpPortConnectionTest(self.addr,self.port,3)
         if test==False:
+            print ("could not connect to %s:%s, will try port 9022"%(self.add,self.port))
             if self.port==22:
                 test= j.sal.nettools.tcpPortConnectionTest(self.addr,9022,1)
                 if test:
@@ -172,11 +173,15 @@ class DevelopToolsFactory:
         """
         self._nodes = []
         if j.data.types.string.check(nodes):
-            nodes=[]
+            nodes2=[]
             if "," in nodes:
-                nodes= [item.strip() for item in nodes.split(",") if item.strip()!=""]
+                nodes2= [item.strip() for item in nodes.split(",") if item.strip()!=""]
             else:
-                nodes = [nodes]                
+                nodes2 = [nodes]            
+            nodes=nodes2    
+        if not j.data.types.list.check(nodes):
+            raise j.exception.Input("nodes need to be list or string, got:%s"%nodes)
+        
         j.core.db.set("debug.nodes", ','.join(nodes))
 
     @property
@@ -259,12 +264,6 @@ class DevelopToolsFactory:
                 items = j.sal.fs.listDirsInDir(path)
             chosen = j.tools.console.askChoiceMultiple(items)
             j.core.db.set("debug.codepaths", ",".join(chosen))
-
-        from IPython import embed
-        print ("DEBUG NOW sdsd")
-        embed()
-        p
-        
 
         if reset:
             raise j.exceptions.RuntimeError("not implemented")

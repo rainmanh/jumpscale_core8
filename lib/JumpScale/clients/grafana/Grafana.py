@@ -8,8 +8,8 @@ class GrafanaFactory:
     def __init__(self):
         self.__jslocation__ = "j.clients.grafana"
 
-    def get(self, url="http://localhost:3000", username="admin", password="admin"):
-        return GrafanaClient(url, username, password)
+    def get(self, url="http://localhost:3000", username="admin", password="admin", verify_ssl=True):
+        return GrafanaClient(url, username, password, verify_ssl=verify_ssl)
 
     def getByInstance(self, instance=None):
         if instance is None or instance == '':
@@ -25,9 +25,10 @@ class GrafanaFactory:
 
 
 class GrafanaClient:
-    def __init__(self, url, username, password):
+    def __init__(self, url, username, password, verify_ssl=True):
         self._url = url
         self.setAuth(username, password)
+        self._verify_ssl = verify_ssl
 
     def ping(self):
         url = os.path.join(self._url, 'api/org/')
@@ -47,12 +48,12 @@ class GrafanaClient:
     def updateDashboard(self, dashboard):
         url = os.path.join(self._url, 'api/dashboards/db')
         data = {'dashboard': dashboard, 'overwrite': True}
-        result = self._session.post(url, json=data)
+        result = self._session.post(url, json=data, verify=self._verify_ssl)
         return result.json()
 
     def listDashBoards(self):
         url = os.path.join(self._url, 'api/search/')
-        return self._session.get(url).json()
+        return self._session.get(url, verify=self._verify_ssl).json()
 
     def isAuthenticated(self):
         url = os.path.join(self._url, 'api/org/')
@@ -60,7 +61,7 @@ class GrafanaClient:
 
     def delete(self, dashboard):
         url = os.path.join(self._url, 'api/dashboards', dashboard['uri'])
-        return self._session.delete(url)
+        return self._session.delete(url, verify=self._verify_ssl)
 
     def changePassword(self, newpassword):
         url = os.path.join(self._url, 'api/user/password')
@@ -71,8 +72,8 @@ class GrafanaClient:
 
     def listDataSources(self):
         url = os.path.join(self._url, 'api/datasources/')
-        return self._session.get(url).json()
+        return self._session.get(url, verify=self._verify_ssl).json()
 
     def addDataSource(self, data):
         url = os.path.join(self._url, 'api/datasources/')
-        return self._session.post(url, json=data).json()
+        return self._session.post(url, json=data, verify=self._verify_ssl).json()

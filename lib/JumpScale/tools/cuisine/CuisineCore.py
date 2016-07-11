@@ -212,7 +212,7 @@ class CuisineCore:
 
     def getenv(self):
         res = {}
-        for line in self.cuisine.core.run("printenv", profile=False, showout=False,force=True, replaceArgs=False, action=False).splitlines():
+        for line in self.cuisine.core.run("printenv", profile=False, showout=False,force=True, replaceArgs=False).splitlines():
             if '=' in line:
                 name,val = line.split("=",1)
                 name = name.strip()
@@ -482,8 +482,7 @@ class CuisineCore:
             return default
 
         frame = self.file_base64(location)
-
-        return base64.b64decode(frame).decode()
+        return base64.decodebytes(frame.encode()).decode()
 
 
     def file_exists(self,location):
@@ -531,10 +530,10 @@ class CuisineCore:
     def hostname(self):
         if self._hostname=="":
             if self.isMac:
-                self._hostname=self.run("hostname",showout=False,replaceArgs=False, action=False)
+                self._hostname=self.run("hostname",showout=False,replaceArgs=False)
             else:
                 hostfile="/etc/hostname"
-                self._hostname= self.run("cat %s"%hostfile,showout=False,replaceArgs=False, action=False).strip().split(".",1)[0]
+                self._hostname= self.run("cat %s"%hostfile,showout=False,replaceArgs=False).strip().split(".",1)[0]
         return self._hostname
 
     @hostname.setter
@@ -814,22 +813,11 @@ class CuisineCore:
     # SEE: http://stackoverflow.com/questions/22982673/is-there-any-function-to-get-the-md5sum-value-of-file-in-linux
 
     #
-    def file_base64(self,location):
+    def file_base64(self, location):
         """Returns the base64-encoded content of the file at the given location."""
-        location=self.args_replace(location)
-        sudomode = self.sudomode
-        res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
-        if res.find("command not found")!=-1:
-            #print could not find python need to install
-            self.cuisine.package.install("python3.5")
-            res=self.run("cat {0} | python3 -c 'import sys,base64;sys.stdout.write(base64.b64encode(sys.stdin.read().encode()).decode())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
-        self.sudomode = sudomode
-        return res
+        location = self.args_replace(location)
+        return self.run("cat {0} | base64".format(shell_safe((location))),debug=False,checkok=False,showout=False)
 
-        # else:
-        # return self.run("cat {0} | openssl base64".format(shell_safe((location))))
-
-    #
     def file_sha256(self,location):
         """Returns the SHA-256 sum (as a hex string) for the remote file at the given location."""
         # NOTE: In some cases, self.sudo can output errors in here -- but the errors will
@@ -1050,7 +1038,7 @@ class CuisineCore:
         path = self.executor.execute("echo $PATH", showout=False)[1]
         if "/usr/local/bin" not in path: 
             env = {"PATH": "%s:/usr/local/bin" % path}
-        rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout, env=env)
+        rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=False,showout=showout, env=env)
 
         out = self._clean(out)
 
@@ -1091,7 +1079,7 @@ class CuisineCore:
                             next=True
 
                 if next:
-                    rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout, env=env)
+                    rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=False,showout=showout, env=env)
 
         if debug!=None:
             self.executor.debug=debugremember

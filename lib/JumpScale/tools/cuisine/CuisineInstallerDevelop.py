@@ -217,19 +217,11 @@ class CuisineInstallerDevelop:
             raise j.exceptions.RuntimeError("platform not supported yet")
 
     @actionrun(action=True)
-
     def cleanup(self):
-        C="""
-        #!/bin/bash
-        set +ex
-        apt-get clean
-        rm -rf /var/tmp/*
-        # rm -rf /var/lib/apt/lists/*
-        rm -f /etc/dpkg/dpkg.cfg.d/02apt-speedup
-        #rm -f /etc/ssh/ssh_host_*
-        """
-        C=self.cuisine.core.args_replace(C)
-        self.cuisine.core.run_script(C,force=True)
+        self.cuisine.core.run("apt-get clean")
+        self.cuisine.core.dir_remove("/var/tmp/*")
+        self.cuisine.core.dir_remove("/etc/dpkg/dpkg.cfg.d/02apt-speedup")
+
 
     @actionrun(action=True)
     def brotli(self):

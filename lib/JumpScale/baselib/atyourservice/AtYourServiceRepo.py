@@ -1,13 +1,13 @@
 from JumpScale import j
 
-from ServiceRecipe import ServiceRecipe
-from Service import Service, loadmodule
-from ActionsBaseNode import ActionsBaseNode
-from ActionsBaseMgmt import ActionsBaseMgmt
-from ServiceTemplate import ServiceTemplate
-from ActionMethodDecorator import ActionMethodDecorator
-from Blueprint import Blueprint
-from AYSRun import AYSRun
+from JumpScale.baselib.atyourservice.ServiceRecipe import ServiceRecipe
+from JumpScale.baselib.atyourservice.Service import Service, loadmodule
+from JumpScale.baselib.atyourservice.ActionsBaseNode import ActionsBaseNode
+from JumpScale.baselib.atyourservice.ActionsBaseMgmt import ActionsBaseMgmt
+from JumpScale.baselib.atyourservice.ServiceTemplate import ServiceTemplate
+from JumpScale.baselib.atyourservice.ActionMethodDecorator import ActionMethodDecorator
+from JumpScale.baselib.atyourservice.Blueprint import Blueprint
+from JumpScale.baselib.atyourservice.AYSRun import AYSRun
 # from AYSdb import *
 
 import colored_traceback
@@ -146,7 +146,8 @@ class AtYourServiceRepo():
 
         # load local templates
         path = j.sal.fs.joinPaths(self.basepath, "servicetemplates/")
-        load(self.name, path)
+        if j.sal.fs.exists(path):
+            load(self.name, path)
 
         return self._templates
 

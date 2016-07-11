@@ -268,7 +268,7 @@ class Docker:
             fs.start()
 
     def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1604", nameserver=["8.8.8.8"],
-               replace=True, cpu=None, mem=0, jumpscale=False, ssh=True, myinit=True, sharecode=False,sshkeyname="",sshpubkey="",
+               replace=True, cpu=None, mem=0, ssh=True, sharecode=False,sshkeyname="",sshpubkey="",
                setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master", aysfs=[]):
 
         """
@@ -331,16 +331,16 @@ class Docker:
                 key, val = item.split(":", 1)
                 volsdict[str(key).strip()] = str(val).strip()
 
-        """
-        j.sal.fs.createDir("/var/jumpscale")
-        if "/var/jumpscale" not in volsdict:
-            volsdict["/var/jumpscale"] = "/var/docker/%s" % name
-        j.sal.fs.createDir("/var/docker/%s" % name)
+        # """
+        # j.sal.fs.createDir("/var/jumpscale")
+        # if "/var/jumpscale" not in volsdict:
+        #     volsdict["/var/jumpscale"] = "/var/docker/%s" % name
+        # j.sal.fs.createDir("/var/docker/%s" % name)
 
-        tmppath = "/tmp/dockertmp/%s" % name
-        j.sal.fs.createDir(tmppath)
-        volsdict[tmppath] = "/tmp"
-        """
+        # tmppath = "/tmp/dockertmp/%s" % name
+        # j.sal.fs.createDir(tmppath)
+        # volsdict[tmppath] = "/tmp"
+        # """
 
         if sharecode and j.sal.fs.exists(path="/opt/code"):
             print("share jumpscale code")
@@ -385,7 +385,7 @@ class Docker:
             print("download docker")
             self.pull(base)
 
-        if myinit:
+        if base.startswith("jumpscale/ubuntu1604"):
             cmd = "sh -c \"mkdir -p /var/run/screen;chmod 777 /var/run/screen; /var/run/screen;exec >/dev/tty 2>/dev/tty </dev/tty && /sbin/my_init -- /usr/bin/screen -s bash\""
             cmd = "sh -c \" /sbin/my_init -- bash -l\""
         else:
@@ -418,7 +418,8 @@ class Docker:
 
 
         res = self.client.start(container=id, binds=binds, port_bindings=portsdict, lxc_conf=None, \
-            publish_all_ports=False, links=None, privileged=False, dns=nameserver, dns_search=None, volumes_from=None, network_mode=None)
+            publish_all_ports=False, links=None, privileged=False, dns=nameserver, dns_search=None, \
+            volumes_from=None, network_mode=None)
 
 
         container = Container(name, id, self.client, host=self.docker_host)
@@ -427,18 +428,19 @@ class Docker:
             # time.sleep(0.5)  # give time to docker to start
             container.pushSSHKey(keyname=sshkeyname, sshpubkey=sshpubkey)
 
-            if jumpscale:
-                container.installJumpscale(jumpscalebranch)
-
             if setrootrndpasswd:
-                if rootpasswd is None or rootpasswd == '':
-                    print("set default root passwd (gig1234)")
-                    container.executor.execute("echo \"root:gig1234\"|chpasswd",showout=False)
-                else:
-                    print("set root passwd to %s" % rootpasswd)
-                    container.cexecutor.execute("echo \"root:%s\"|chpasswd" % rootpasswd,showout=False)
+                # if rootpasswd is None or rootpasswd == '':
+                #     print("set default root passwd (gig1234)")
+                #     container.executor.execute("echo \"root:gig1234\"|chpasswd",showout=False)
+                # else:
+                #     print("set root passwd to %s" % rootpasswd)
+                #     container.cexecutor.execute("echo \"root:%s\"|chpasswd" % rootpasswd,showout=False)
+                
+                container.executor.execute("echo \"root:%s\"|chpasswd" % j.data.idgenerator.generateGUID(),showout=False)
+
             if not self.isWeaveEnabled:
                 container.setHostName(name)
+
         return container
 
     def getImages(self):

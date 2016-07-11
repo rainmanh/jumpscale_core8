@@ -51,7 +51,7 @@ class CuisineUser:
         if uid:
             options.append("-u '%s'" % (uid))
         #if group exists already but is not specified, useradd fails
-        if not gid and self.group_check(name):
+        if not gid and self.cuisine.group.check(name):
             gid = name
         if gid:
             options.append("-g '%s'" % (gid))

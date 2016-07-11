@@ -231,7 +231,7 @@ class Space:
             raise j.exceptions.RuntimeError("Cloud space has been deleted")
         self.account._spaces_cache.set(cloudspace, id=self.id)
 
-    def machine_create(self, name, memsize=2, vcpus=1, disksize=10, image="Ubuntu 15.10 x64"):
+    def machine_create(self, name, memsize=2, vcpus=1, disksize=10, datadisks=[], image="Ubuntu 15.10 x64"):
         """
         @param memsize in MB or GB
         for now vcpu's is ignored (waiting for openvcloud)
@@ -242,7 +242,7 @@ class Space:
         if name in self.machines:
             raise j.exceptions.RuntimeError("Name is not unique, already exists in %s"%self)
         print ("cloudspaceid:%s name:%s size:%s image:%s disksize:%s"%(self.id,name,sizeId,imageId,disksize))
-        self.client.api.cloudapi.machines.create(cloudspaceId=self.id, name=name, sizeId=sizeId, imageId=imageId, disksize=disksize)
+        self.client.api.cloudapi.machines.create(cloudspaceId=self.id, name=name, sizeId=sizeId, imageId=imageId, disksize=disksize, datadisks=datadisks)
         self.reset()
         return self.machines[name]
 

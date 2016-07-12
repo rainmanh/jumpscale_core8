@@ -257,11 +257,11 @@ class Bash:
     @actionrun(action=True)
     def fixlocale(self):
         items=self.getLocaleItems()
-        if "en_US.UTF-8" in items:
+        if "en_US.UTF-8" in items or "en_US.utf8" in items:
             self.environSet("LC_ALL","en_US.UTF-8")
             self.environSet("LANG","en_US.UTF-8")
             return
-        elif "C.UTF-8" in items:
+        elif "C.UTF-8" in items or "c.utf8" in items:
             self.environSet("LC_ALL","C.UTF-8")
             self.environSet("LANG","C.UTF-8")
             return

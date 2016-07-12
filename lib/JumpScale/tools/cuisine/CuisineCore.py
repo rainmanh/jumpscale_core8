@@ -1130,10 +1130,12 @@ class CuisineCore:
         content+="\necho **DONE**\n"
 
         path="$tmpDir/%s.sh"%j.data.idgenerator.generateRandomInt(0, 10000)
-        if not self.isMac:
-            self.file_write(location=path, content=content, mode=0o770, owner="root", group="root",showout=False)
-        else:
+        if self.isMac:
             self.file_write(location=path, content=content, mode=0o770,showout=False)
+        elif self.isCygwin:
+            self.file_write(location=path, content=content, showout=False)
+        else:
+            self.file_write(location=path, content=content, mode=0o770, owner="root", group="root",showout=False)
 
         rc,out=self.run("bash %s"%path,showout=True,die=False)
         out = self._clean(out)

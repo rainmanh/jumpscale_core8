@@ -167,10 +167,13 @@ class HRDSchema:
                 else:
                     hrdtype.default = hrdtype.typeclass.fromString(tags.tagGet("default"))
             else:
-                try:
-                    hrdtype.default = hrdtype.typeclass.get_default()
-                except:
-                    self._raiseError("issue in default from hrdtype")
+                if hrdtype.list == True:
+                    hrdtype.default = []
+                else:
+                    try:
+                        hrdtype.default = hrdtype.typeclass.get_default()
+                    except:
+                        self._raiseError("issue in default from hrdtype")
 
             if tags.tagExists("descr"):
                 hrdtype.description = tags.tagGet("descr")

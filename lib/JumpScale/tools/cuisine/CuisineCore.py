@@ -242,15 +242,15 @@ class CuisineCore:
             if 'JSBASE' in env:
                 res["base"] = env["JSBASE"]
             else:
-                if self.isMac:
+                if self.isMac or self.isCygwin:
                     res["base"] = "%s/opt/jumpscale8/"%env["HOME"]
                 else:
                     res["base"] = "/opt/jumpscale8/"
-            if self.isMac:
+            if self.isMac or self.isCygwin:
                 res["codeDir"] = "%s/opt/code/"%env["HOME"]
             else:
                 res["codeDir"] = "/opt/code/"
-            if self.isMac:
+            if self.isMac or self.isCygwin:
                 res["varDir"] = "%s/optvar/"%env["HOME"]
             else:
                 res["varDir"] = "/optvar/"
@@ -267,7 +267,7 @@ class CuisineCore:
             res["hrdDir"] = "%s/hrd"%res["varDir"]
             self._dirs = res
 
-            if self.isMac:
+            if self.isMac or self.isCygwin:
                 self._dirs["optDir"]= "%s/opt/"%env["HOME"]
             else:
                 self._dirs["optDir"] = "/opt/"
@@ -530,7 +530,7 @@ class CuisineCore:
     @property
     def hostname(self):
         if self._hostname=="":
-            if self.isMac:
+            if self.isMac or self.isCygwin:
                 self._hostname=self.run("hostname",showout=False,replaceArgs=False)
             else:
                 hostfile="/etc/hostname"
@@ -1268,15 +1268,19 @@ class CuisineCore:
 
     @property
     def isUbuntu(self):
-        return "ubuntu" in self.cuisine.platformtype.platformtypes
+        return "ubuntu" in self.cuisine.platformtype.platformtypes[0]
 
     @property
     def isArch(self):
-        return "arch" in self.cuisine.platformtype.platformtypes
+        return "arch" in self.cuisine.platformtype.platformtypes[0]
 
     @property
     def isMac(self):
-        return "darwin" in self.cuisine.platformtype.platformtypes
+        return "darwin" in self.cuisine.platformtype.platformtypes[0]
+
+    @property
+    def isCygwin(self):
+        return "cygwin" in self.cuisine.platformtype.platformtypes[0]
 
     def __str__(self):
         return "cuisine:core:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))

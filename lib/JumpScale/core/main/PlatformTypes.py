@@ -152,7 +152,7 @@ class PlatformType:
             self._osversion=""
             self.uname
             self._osname = self._osname0.lower()
-            if self._osname not in ["darwin"]:
+            if self._osname not in ["darwin"] and not self._osname.startswith("cygwin"):
 
                 rc, lsbcontent = self.executor.cuisine.core.run("cat /etc/lsb-release", replaceArgs=False, action=False, showout=False, die=False)
                 if rc == 0:

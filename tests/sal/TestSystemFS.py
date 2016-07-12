@@ -25,8 +25,9 @@ def stripbom(b):
     return b.decode(encoding='utf_8_sig')
 
 def readfile(f):
-    with open(f) as fp:
-        return fp.read()
+    if os.path.exists(f):
+        with open(f) as fp:
+            return fp.read()
 
 def writetofile(f, s):
     with open(f, 'w') as fp:
@@ -46,7 +47,10 @@ def removeone(f):
             os.remove(f)
 
 def removemany(fs):
-    list(map(os.remove, fs))
+    try:
+        list(map(os.remove, fs))
+    except:
+        pass
 
 def getcwdfpath(f):
     return os.getcwd()+f
@@ -78,9 +82,10 @@ def isbinary(filename):
 
 class TestFS(object):
     FILES=['f1.py', 'f2.py', 'f3.py']
-    FILE='/tmp/hello.py'
+    FILE='hello.py'
     #create 2 files in the start.
     def setUp(self):
+        os.chdir('/tmp')
         touchmany(TestFS.FILES)
         txt="""
 a=1
@@ -133,7 +138,6 @@ def inc(x):
         assert_raises(j.exceptions.RuntimeError, fs.targzCompress, "creepypathdoesntexists", "dest")
 
     def test_targzCompress(self):
-        os.chdir("/tmp")
         if not os.path.exists("testcomp"):
             os.mkdir("testcomp")
         files=map(tmpify, ['testcomp/f1', 'testcomp/f2', 'testcomp/f3', 'testcomp/f4'])
@@ -147,7 +151,6 @@ def inc(x):
 
 
     def test_targzCompressDestInTar(self):
-        os.chdir("/tmp")
         if not os.path.exists("testcomp"):
             os.mkdir("testcomp")
         files = map(tmpify, ['testcomp/f1', 'testcomp/f2', 'testcomp/f3', 'testcomp/f4'])
@@ -162,7 +165,6 @@ def inc(x):
         shutil.rmtree("testcomp")
 
     def test_targzUncompress(self):
-        os.chdir("/tmp")
         if not os.path.exists("testcomp"):
             os.mkdir("testcomp")
         files = map(tmpify, ['testcomp/f1', 'testcomp/f2', 'testcomp/f3', 'testcomp/f4'])
@@ -279,7 +281,7 @@ def inc(x):
         assert_equal(path.basename(TestFS.FILE), fs.getBaseName(TestFS.FILE))
 
     def test_getDirName(self):
-        assert_equal(path.normpath(path.dirname(TestFS.FILE)), path.normpath(fs.getDirName(TestFS.FILE)))
+        assert_equal(path.normpath(path.dirname('/home/ahmed/file1.py')), path.normpath(fs.getDirName('/home/ahmed/file1.py')))
 
     def test_getFileExtension(self):
         assert_in(fs.getFileExtension(TestFS.FILE), path.splitext(TestFS.FILE)[1]) #splitext includes a dot
@@ -430,22 +432,21 @@ def inc(x):
         assert_raises(TypeError, fs.removeDir, None)
 
     def test_copyDirTree(self):
-        os.chdir('/tmp')
         os.mkdir('treetocopy')
         os.mkdir('treetocopy/sub1')
         os.mkdir('treetocopy/sub1/sub2')
         writetofile('treetocopy/sub1/sub2/file', "hello world")
-        fs.copyDirTree("/tmp/treetocopy", "/tmp/copiedtree")
+        fs.copyDirTree("treetocopy", "copiedtree")
 
-        assert_equal(os.path.exists("/tmp/copiedtree"), True)
-        assert_equal(os.path.exists("/tmp/copiedtree/sub1/sub2/file"), True)
+        assert_equal(os.path.exists("copiedtree"), True)
+        assert_equal(os.path.exists("copiedtree/sub1/sub2/file"), True)
 
 
-        shutil.rmtree("/tmp/treetocopy")
-        shutil.rmtree("/tmp/copiedtree")
+        shutil.rmtree("treetocopy")
+        shutil.rmtree("copiedtree")
 
     def test_removeDirTree(self):
-        os.chdir('/tmp')
+
         os.mkdir('treetoremove')
         os.mkdir('treetoremove/sub1')
         os.mkdir('treetoremove/sub1/sub2')
@@ -631,11 +632,8 @@ y=2
         os.rmdir(D)
 
     def test_pathNormalize(self):
-        cur=os.getcwd()
-        os.chdir("/tmp")
         assert_equal(fs.pathNormalize("home/ahmed"), '/tmp/home/ahmed')
         assert_equal(fs.pathNormalize("home/ahmed", root='/'), '/home/ahmed' )
-        os.chdir(cur)
 
     def test_pathDirClean(self):
         assert_equal(fs.pathDirClean("/home/ahmed/sub"), "/home/ahmed/sub/")

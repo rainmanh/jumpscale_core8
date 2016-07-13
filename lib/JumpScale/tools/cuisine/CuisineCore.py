@@ -1007,7 +1007,7 @@ class CuisineCore:
         self.sudomode = sudomode
 
     @actionrun(action=True,force=True)
-    def run(self,cmd,die=True,debug=None,checkok=False,showout=True,profile=False,replaceArgs=True,check_is_ok=False):
+    def run(self,cmd,die=True,debug=None,checkok=False,showout=True,profile=False,replaceArgs=True,check_is_ok=False, combinestdr=False):
         """
         @param profile, execute the bash profile first
         """
@@ -1042,7 +1042,7 @@ class CuisineCore:
         path = self.executor.execute("echo $PATH", showout=False)[1]
         if "/usr/local/bin" not in path: 
             env = {"PATH": "%s:/usr/local/bin" % path}
-        rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=False,showout=showout, env=env)
+        rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=combinestdr,showout=showout, env=env)
 
         out = self._clean(out)
 

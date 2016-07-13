@@ -426,6 +426,11 @@ class Docker:
 
         if ssh:
             # time.sleep(0.5)  # give time to docker to start
+            if sshkeyname==None:
+                sshkeyname=""
+            if sshpubkey==None:
+                sshpubkey=""
+
             container.pushSSHKey(keyname=sshkeyname, sshpubkey=sshpubkey)
 
             if setrootrndpasswd:

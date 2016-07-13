@@ -133,10 +133,13 @@ class CuisineSSH:
         else:
             return "%s.pub"%path
 
-    @actionrun(force=True)
+    # @actionrun(force=True)
     def authorize(self,user, key):
         """Adds the given key to the '.ssh/authorized_keys' for the given
         user."""
+
+        if key==None or key.strip()=="":
+            raise j.exceptions.Input("key cannot be empty")
         sudomode = self.cuisine.core.sudomode
         self.cuisine.core.sudomode = True
 

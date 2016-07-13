@@ -142,10 +142,10 @@ class Container:
 
         home=j.tools.cuisine.local.bash.home
 
-        if sshpubkey!="":
+        if sshpubkey!="" and sshpubkey!=None:
             key=sshpubkey
         else:
-            if not j.do.checkSSHAgentAvailable:
+            if not j.do.checkSSHAgentAvailable():
                 j.do.loadSSHAgent()
 
             if keyname!="":
@@ -162,6 +162,11 @@ class Container:
                     j.tools.cuisine.local.core.run("ssh-add %s/.ssh/docker_default"%home)
 
         j.sal.fs.writeFile(filename="%s/.ssh/known_hosts"%home, contents="")
+
+        if key==None or key.strip()=="":
+            raise j.exceptions.Input("ssh key cannot be empty (None)")
+
+
         self.cuisine.ssh.authorize("root", key)
 
         return list(keys)

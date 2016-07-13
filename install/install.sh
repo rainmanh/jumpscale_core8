@@ -43,6 +43,8 @@ if [ "$(uname)" == "Darwin" ]; then
     pip3 install --upgrade ptpython
     pip3 install --upgrade pymux
     pip3 install --upgrade ptpdb
+    pip3 install --upgrade http://carey.geek.nz/code/python-fcrypt/fcrypt-1.3.1.tar.gz
+
 
     export TMPDIR=~/tmp
 
@@ -104,6 +106,7 @@ elif [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
     pip3 install --upgrade ptpython
     pip3 install --upgrade pymux
     pip3 install --upgrade ptpdb
+    pip3 install --upgrade http://carey.geek.nz/code/python-fcrypt/fcrypt-1.3.1.tar.gz
 
     export TMPDIR=/tmp
 

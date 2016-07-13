@@ -129,6 +129,7 @@ class CuisineInstallerDevelop:
 
         certifi
         docker-py
+        http://carey.geek.nz/code/python-fcrypt/fcrypt-1.3.1.tar.gz
 
         gitlab3
         gitpython

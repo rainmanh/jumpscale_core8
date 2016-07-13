@@ -113,7 +113,7 @@ class CuisinePackage:
             cmd="brew install %s "%package
 
         elif self.cuisine.core.isCygwin:
-            if package in sudo ["sudo"]:
+            if package in ["sudo", "net-tools"]:
                 return
 
             cmd = "apt-cyg install %s" % package

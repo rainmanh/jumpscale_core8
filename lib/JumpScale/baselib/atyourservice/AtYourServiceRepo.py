@@ -225,9 +225,9 @@ class AtYourServiceRepo():
             if path not in self._blueprints:
                 self._blueprints[path] = Blueprint(self, path=path)
 
-        list_bp = list(self._blueprints.values())
-        list_bp = sorted(list_bp, key=lambda bp: bp.name)
-        return list_bp
+        # list_bp = list(self._blueprints.values())
+        # list_bp = sorted(list_bp, key=lambda bp: bp.name)
+        # return list_bp
 
     @property
     def blueprints(self):
@@ -235,9 +235,11 @@ class AtYourServiceRepo():
         only shows the ones which are on predefined location
         """
         bps = []
-        for path,bp in self._blueprints.items():
+        for path, bp in self._blueprints.items():
             if bp.active:
                 bps.append(bp)
+
+        bps = sorted(bps, key=lambda bp: bp.name)
         return bps
 
 
@@ -250,6 +252,7 @@ class AtYourServiceRepo():
         for path,bp in self._blueprints.items():
             if bp.active==False:
                 bps.append(bp)
+        bps = sorted(bps, key=lambda bp: bp.name)
         return bps
 
     def archive_blueprint(self, bp):

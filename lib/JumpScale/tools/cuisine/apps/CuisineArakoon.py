@@ -138,6 +138,7 @@ class ArakoonCluster(object):
         super(ArakoonCluster, self).__init__()
         self.id = id
         self.cuisine = cuisine
+        self.plugins = []
         self.nodes = []
 
     def add_node(self, ip, home='$varDir/data/arakoon', client_port=7080, messaging_port=10000, log_level='info'):
@@ -158,6 +159,9 @@ class ArakoonCluster(object):
         cluster = cluster[:-2]
         f.addParam('global', 'cluster', cluster)
         f.addParam('global', 'cluster_id', self.id)
+        if len(self.plugins) > 0:
+            plugins = ', '.join(self.plugins)
+            f.addParam('plugins', plugins)
 
         for node in self.nodes:
             f.addSection(node.id)

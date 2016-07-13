@@ -51,6 +51,7 @@ class CuisineInstallerDevelop:
         pkg-config
         libpq-dev
         libsqlite3-dev
+        vim
         #net-tools
         """
         self.cuisine.package.multiInstall(C)

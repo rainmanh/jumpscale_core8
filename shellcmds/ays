@@ -165,8 +165,8 @@ def install(role="", instance="", force=False, producerroles="*", ask=False):
 
 @click.command()
 @click.argument('action')
-@click.option('--role', default="", help='optional role for ays instances execute an action on')
-@click.option('--instance', default="", help='optional name of instance')
+@click.option('--role', '-r', default="", help='optional role for ays instances execute an action on')
+@click.option('--instance', '-i', default="", help='optional name of instance')
 @click.option('--force', default=False, is_flag=True, help='if True then will ignore state of service action.')
 @click.option('--producerroles', default="*", help='roles of producers which will be taken into consideration, if * all')
 def simulate(action, role="", instance="", force=False, producerroles="*"):

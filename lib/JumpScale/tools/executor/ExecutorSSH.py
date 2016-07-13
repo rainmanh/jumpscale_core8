@@ -5,8 +5,8 @@ import os
 class ExecutorSSH(ExecutorBase):
 
     def __init__(self, addr, port, dest_prefixes={},login="root",\
-            passwd=None,debug=False,checkok=True,allow_agent=True, \
-            look_for_keys=True,pushkey=None,pubkey=""):
+            passwd=None, debug=False, allow_agent=True, \
+            look_for_keys=True,pushkey=None,pubkey="", checkok=True, timeout=5):
         ExecutorBase.__init__(self, dest_prefixes=dest_prefixes,debug=debug,checkok=checkok)
         self.logger = j.logger.get("j.tools.executor.ssh")
         self.id = '%s:%s:%s' % (addr, port, login)
@@ -23,8 +23,7 @@ class ExecutorSSH(ExecutorBase):
         self.pubkey=pubkey
         self._sshclient=None
         self.type="ssh"
-        if checkok:
-            self.sshclient.connectTest()
+        self.timeout = timeout
 
     @property
     def login(self):
@@ -59,7 +58,7 @@ class ExecutorSSH(ExecutorBase):
     @property
     def sshclient(self):
         if self._sshclient==None:
-            self._sshclient=j.clients.ssh.get(self.addr,self.port,login=self.login,passwd=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys)
+            self._sshclient=j.clients.ssh.get(self.addr,self.port,login=self.login,passwd=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys, timeout=self.timeout)
             if self.pushkey is not None:
                 #lets push the ssh key as specified
                 if j.sal.fs.exists(self.pushkey):

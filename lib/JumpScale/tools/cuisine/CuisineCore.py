@@ -1041,6 +1041,10 @@ class CuisineCore:
 
         if '"' in cmd:
             cmd = cmd.replace('"', '\\"')
+            
+        if self.isCygwin:
+            self.sudomode = False
+
         if self.sudomode:
             passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
             cmd = 'echo %s | sudo -SE bash -c "%s"' % (passwd, cmd)

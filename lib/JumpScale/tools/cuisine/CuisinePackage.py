@@ -112,6 +112,11 @@ class CuisinePackage:
 
             cmd="brew install %s "%package
 
+        elif self.cuisine.core.isCygwin:
+            if package in sudo ["sudo"]:
+                return
+
+            cmd = "apt-cyg install %s" % package
         else:
             raise j.exceptions.RuntimeError("could not install:%s, platform not supported"%package)
 

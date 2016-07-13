@@ -60,6 +60,7 @@ class CuisineSSH:
             done.append(item)
         return done
 
+    @actionrun(force=True)
     def scan(self,range=None,ips={},port=22):
         """
         @param range in format 192.168.0.0/24

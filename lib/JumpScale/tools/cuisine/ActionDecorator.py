@@ -7,7 +7,7 @@ import sys
 
 class ActionDecorator:
 
-    def __init__(self,action=True,force=False,actionshow=True):
+    def __init__(self,action=True,force=True,actionshow=True):
         self.action=action
         self.force=force
         self.actionshow=actionshow
@@ -51,10 +51,10 @@ class ActionDecorator:
                 args=args[1:]
                 cm=cm.replace("$id",cuisine.core.id)  #replace the code which has the constructor code for the selfobj to work on
                 j.actions.setRunId(cuisine.core.runid)
+
                 action0=j.actions.add(action=func, actionRecover=None,args=args,kwargs=kwargs,die=True,stdOutput=True,\
                     errorOutput=True,retry=0,executeNow=True,selfGeneratorCode=cm,force=force,actionshow=actionshow)
                 
-
                 if action0.state!="OK":
                     if "die" in kwargs:
                         if kwargs["die"]==False:

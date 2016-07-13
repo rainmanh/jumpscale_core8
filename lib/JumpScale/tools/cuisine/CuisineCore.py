@@ -617,7 +617,7 @@ class CuisineCore:
             hostfile="/etc/hosts"
             self.file_write(hostfile,val)
 
-
+    @actionrun(action=True,force=True)
     def file_write(self,location, content, mode=None, owner=None, group=None, check=False,sudo=False,replaceArgs=False,strip=True,showout=True):
         if strip:
             content=j.data.text.strip(content)
@@ -649,7 +649,7 @@ class CuisineCore:
 
         self.file_attribs(location, mode=mode, owner=owner, group=group)
 
-
+    @actionrun(action=True,force=True)
     def file_ensure(self,location, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         location."""
@@ -782,6 +782,7 @@ class CuisineCore:
         self.file_attribs(destination, mode, owner, group)
 
 
+    @actionrun(action=True,force=True)
     def file_copy(self, source, dest, recursive=False, overwrite=False):
         source=self.args_replace(source)
         dest=self.args_replace(dest)
@@ -802,6 +803,7 @@ class CuisineCore:
         self.run(cmd)
 
 
+    @actionrun(action=True,force=True)
     def file_move(self, source, dest, recursive=False):
         self.file_copy(source,dest,recursive)
         self.file_unlink(source)
@@ -818,6 +820,7 @@ class CuisineCore:
         location = self.args_replace(location)
         return self.run("cat {0} | base64".format(shell_safe((location))),debug=False,checkok=False,showout=False)
 
+    @actionrun(action=True,force=True)  
     def file_sha256(self,location):
         """Returns the SHA-256 sum (as a hex string) for the remote file at the given location."""
         # NOTE: In some cases, self.sudo can output errors in here -- but the errors will
@@ -832,6 +835,7 @@ class CuisineCore:
         #     return self.run('openssl dgst -sha256 %s' % (location)).split("\n")[-1].split(")= ",1)[-1].strip()
 
     #
+    @actionrun(action=True,force=True)    
     def file_md5(self, location):
         """Returns the MD5 sum (as a hex string) for the remote file at the given location."""
         # NOTE: In some cases, self.sudo can output errors in here -- but the errors will
@@ -862,7 +866,7 @@ class CuisineCore:
             path += "%s%s" %(seperator, arg)
         return path
 
-
+    @actionrun(action=True,force=True)
     def dir_attribs(self,location, mode=None, owner=None, group=None, recursive=False,showout=False):
         """Updates the mode/owner/group for the given remote directory."""
         location=self.args_replace(location)
@@ -877,14 +881,14 @@ class CuisineCore:
         if group:
             self.run('chgrp %s %s %s' % (recursive, group, location),showout=False)
 
-
+    @actionrun(action=True,force=True)
     def dir_exists(self,location):
         """Tells if there is a remote directory at the given location."""
         location=self.args_replace(location)
         # print ("dir exists:%s"%location)
         return self.run('test -d %s && echo **OK** ; true' % (location),showout=False,check_is_ok=True)
 
-
+    @actionrun(action=True,force=True)
     def dir_remove(self,location, recursive=True):
         """ Removes a directory """
         location=self.args_replace(location)
@@ -896,7 +900,7 @@ class CuisineCore:
         if self.dir_exists(location):
             return self.run('rm -%sf %s && echo **OK** ; true' % (flag, location),showout=False)
 
-
+    @actionrun(action=True,force=True)
     def dir_ensure(self,location, recursive=True, mode=None, owner=None, group=None):
         """Ensures that there is a remote directory at the given location,
         optionally updating its mode/owner/group.
@@ -911,7 +915,7 @@ class CuisineCore:
 
     createDir=dir_ensure
 
-
+    @actionrun(action=True,force=True)
     def fs_find(self,path,recursive=True,pattern="",findstatement="",type="",contentsearch="",extendinfo=False):
         """
         @param findstatement can be used if you want to use your own find arguments

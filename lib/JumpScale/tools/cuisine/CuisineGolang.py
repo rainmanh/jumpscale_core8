@@ -81,6 +81,7 @@ class CuisineGolang:
 
         # return self._gopath
 
+    @actionrun(action=True)
     def clean_src_path(self):
         srcpath = self.cuisine.core.joinpaths(self.GOPATH, 'src')
         self.cuisine.core.dir_remove(srcpath)

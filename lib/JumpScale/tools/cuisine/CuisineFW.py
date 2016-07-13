@@ -1,6 +1,12 @@
 
 from JumpScale import j
 
+from ActionDecorator import ActionDecorator
+class actionrun(ActionDecorator):
+    def __init__(self,*args,**kwargs):
+        ActionDecorator.__init__(self,*args,**kwargs)
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.fw"
+
 
 class CuisineFW:
 
@@ -21,6 +27,7 @@ class CuisineFW:
                 self._ufw_enabled = not "inactive" in self.cuisine.core.run("ufw status")
         return self._ufw_enabled
 
+    @actionrun(action=True)
     def ufw_enable(self):
         if not self.ufw_enabled:
             if not self.cuisine.core.isMac:
@@ -59,12 +66,14 @@ class CuisineFW:
                 ip = line.split(" ", 1)[0]
                 self._ufw_deny[ip] = "*"
 
+    @actionrun(action=True)
     def allowIncoming(self, port, protocol='tcp'):
         if self.cuisine.core.isMac:
             return
         self.ufw_enable()
         self.cuisine.core.run("ufw allow %s/%s" % (port, protocol))
 
+    @actionrun(action=True)
     def denyIncoming(self, port):
         if self.cuisine.core.isMac:
             return
@@ -72,6 +81,7 @@ class CuisineFW:
         self.ufw_enable()
         self.cuisine.core.run("ufw deny %s" % port)
 
+    @actionrun(action=True,force=True)
     def flush(self):
         C = """
         ufw disable

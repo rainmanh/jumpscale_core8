@@ -2,6 +2,13 @@
 from JumpScale import j
 import re
 
+from ActionDecorator import ActionDecorator
+class actionrun(ActionDecorator):
+    def __init__(self,*args,**kwargs):
+        ActionDecorator.__init__(self,*args,**kwargs)
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.process"
+
+
 class CuisineProcess:
 
     def __init__(self,executor,cuisine):
@@ -9,7 +16,6 @@ class CuisineProcess:
         self.cuisine=cuisine
 
     
-
     def tcpport_check(self,port,prefix=""):
         res=[]
         for item in self.info_get(prefix):
@@ -91,6 +97,7 @@ class CuisineProcess:
         return result 
 
 
+    @actionrun(action=True,force=True)
     def info_get(self,prefix=""):
         if prefix=="":
             return self._info_get()
@@ -100,6 +107,7 @@ class CuisineProcess:
                 res.append(item)        
         return res
 
+    @actionrun(action=True,force=True)
     def find(self,name, exact=False):
         """Returns the pids of processes with the given name. If exact is `False`
         it will return the list of all processes that start with the given
@@ -129,6 +137,7 @@ class CuisineProcess:
         return res
 
 
+    @actionrun(action=True,force=True)
     def kill(self,name, signal=9, exact=False):
         """Kills the given processes with the given name. If exact is `False`
         it will return the list of all processes that start with the given

@@ -537,9 +537,6 @@ class Action:
 
         self.check() #see about changed source code
 
-        # if "$" in self.sourceToExecute:
-        #     raise RuntimeError("$ should not be there")
-
         j.actions.addToStack(self)
 
         if self.state == "OK" and self.force==False:
@@ -547,6 +544,7 @@ class Action:
                 self.logger.info("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
             j.actions.delFromStack(self)
             return
+            
 
         self.logger.info("  * %-20s: %s" % (self.name, self._args10line))
 

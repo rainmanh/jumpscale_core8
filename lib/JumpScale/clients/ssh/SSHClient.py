@@ -126,19 +126,29 @@ class SSHClient:
             self.logger.info('ssh new client to %s@%s:%s' % (self.login, self.addr, self.port))
 
             start = j.data.time.getTimeEpoch()
-            timeout = 20
+            timeout = 60
+            inerror=False
             while start + timeout > j.data.time.getTimeEpoch():
                 try:
+                    j.tools.console.hideOutput()
                     self._client = paramiko.SSHClient()
                     self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                    self._client.connect(self.addr, self.port, username=self.login, password=self.passwd, allow_agent=self.allow_agent, look_for_keys=self.look_for_keys, timeout=1)
+                    self._client.connect(self.addr, self.port, username=self.login, \
+                        password=self.passwd, allow_agent=self.allow_agent, look_for_keys=self.look_for_keys, timeout=2.0,banner_timeout=3.0)
                     break
-                except:
+                except Exception as e:
+                    inerror=True
+                    j.tools.console.enableOutput()
+                    print ("error in connecting ssh:%s"%e)
                     self.reset()
                     time.sleep(1)
                     continue
             if self._client is None:
                 raise j.exceptions.RuntimeError('Impossible to create SSH connection to %s:%s' % (self.addr, self.port))
+
+            if inerror:
+                #means got through
+                print ("SSH connection OK")
 
         return self._client
 

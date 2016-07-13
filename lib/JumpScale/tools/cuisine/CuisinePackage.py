@@ -75,6 +75,8 @@ class CuisinePackage:
             self.cuisine.core.run("pacman -Syu --noconfirm;pacman -Sc --noconfirm")
         elif self.cuisine.core.isMac:
             self.cuisine.core.run("brew upgrade")
+        elif self.cuisine.core.isCygwin:
+            self.cuisine.core.run("apt-cyg")
         else:
             raise j.exceptions.RuntimeError("could not upgrade, platform not supported")
 
@@ -116,7 +118,11 @@ class CuisinePackage:
             if package in ["sudo", "net-tools"]:
                 return
 
-            cmd = "apt-cyg install %s" % package
+            installed = self.cuisine.core.run("apt-cyg list&").splitlines()
+            if package in installed:
+                return #means was installed
+
+            cmd = "apt-cyg install %s&" % package
         else:
             raise j.exceptions.RuntimeError("could not install:%s, platform not supported"%package)
 

@@ -615,7 +615,15 @@ class Text:
             return str(obj)
         elif j.data.types.list.check(obj):
             obj.sort()
-            obj=[item for item in obj if item.strip()!="" or item.strip()!="''"]
+            tmp = []
+            for item in obj:
+                if item is None:
+                    continue
+                if isinstance(item, str):
+                    if item.strip()=="" or item.strip()=="''":
+                        continue
+                tmp.append(item)
+            obj = tmp
             # if not canBeDict:
             #     raise j.exceptions.RuntimeError("subitem cannot be list or dict for:%s"%obj)
             if multiline:

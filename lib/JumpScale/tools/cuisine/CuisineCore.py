@@ -1042,7 +1042,7 @@ class CuisineCore:
         if '"' in cmd:
             cmd = cmd.replace('"', '\\"')
             
-        if self.isCygwin:
+        if "cygwin" in self.executor.execute("uname -a", showout=False)[1]:
             self.sudomode = False
 
         if self.sudomode:

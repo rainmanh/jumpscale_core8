@@ -278,11 +278,17 @@ class AtYourServiceRepo():
             self.reset()
 
         self.setState(actions=["init"], role=role, instance=instance, state="INIT")
-
         for key, recipe in self.recipes.items():
             if role != "" and recipe.role == role:
                 continue
             recipe.init()
+            for inst in recipe.listInstances():
+                service = recipe.aysrepo.getService(role=recipe.role, instance=inst, die=False)
+                print("RESETTING SERVICE roles %s inst %s instance %s "%(recipe.role, inst, instance))
+                service.update_hrd()
+
+            #import pudb; pu.db
+            #recipe.newInstance(instance=key, args={})
 
         run = self.getRun(role=role, instance=instance, data=data, action="init")
         run.execute()

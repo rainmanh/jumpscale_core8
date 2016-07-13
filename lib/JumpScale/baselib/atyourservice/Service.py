@@ -308,6 +308,11 @@ class Service:
     def save(self):
         self.state.save()
 
+    def update_hrd(self):
+        if self.recipe.template.schema is not None:
+            self._hrd = self.recipe.template.schema.hrdGet(hrd=self.hrd, args={})
+            self._hrd.path = j.sal.fs.joinPaths(self.path, "instance.hrd")
+
     def init(self, args={}):
 
         if args is None:
@@ -318,7 +323,7 @@ class Service:
         # run the args manipulation action as an action
         self.state.save()
         args = self.actions.input(self, self.recipe, self.role, self.instance, args)
-
+        
         originalhrd = j.data.hrd.get(content=str(self.hrd))
 
         # apply args

@@ -1007,7 +1007,7 @@ class CuisineCore:
         self.sudomode = sudomode
 
     @actionrun(action=True,force=True)
-    def run(self,cmd,die=True,debug=None,checkok=False,showout=True,profile=False,replaceArgs=True,check_is_ok=False, combinestdr=False):
+    def run(self,cmd,die=True,debug=None,checkok=False,showout=True,profile=False,replaceArgs=True,check_is_ok=False, combinestdr=True):
         """
         @param profile, execute the bash profile first
         """

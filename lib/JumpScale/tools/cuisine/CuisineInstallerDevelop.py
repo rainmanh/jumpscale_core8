@@ -193,7 +193,8 @@ class CuisineInstallerDevelop:
             """
             self.cuisine.pip.multiInstall(C,upgrade=True)
 
-        self.cuisine.apps.redis.build()
+        if  not self.cuisine.core.isCygwin:
+            self.cuisine.apps.redis.build()
 
 
     @actionrun(action=True)

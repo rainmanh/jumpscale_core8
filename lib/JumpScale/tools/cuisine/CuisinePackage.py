@@ -76,7 +76,7 @@ class CuisinePackage:
         elif self.cuisine.core.isMac:
             self.cuisine.core.run("brew upgrade")
         elif self.cuisine.core.isCygwin:
-            self.cuisine.core.run("apt-cyg")
+            return # no such functionality in apt-cyg
         else:
             raise j.exceptions.RuntimeError("could not upgrade, platform not supported")
 
@@ -224,8 +224,20 @@ class CuisinePackage:
             self.cuisine.core.run(cmd)
             if agressive:
                 self.cuisine.core.run("pacman -Qdttq",showout=False)
+
         elif self.cuisine.core.isMac:
-            pass
+            if package:  
+                self.cuisine.core.run("brew cleanup %s" % package)
+                self.cuisine.core.run("brew remove %s" % package)
+            else:
+                self.cuisine.core.run("brew cleanup")
+        
+        elif self.cuisine.core.isCygwin:
+            if package:
+                self.cuisine.core.run("apt-cyg remove %s" % package)
+            else:
+                pass
+
         else:
             raise j.exceptions.RuntimeError("could not package clean:%s, platform not supported"%package)
 

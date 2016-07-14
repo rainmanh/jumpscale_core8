@@ -1274,19 +1274,19 @@ class CuisineCore:
 
     @property
     def isUbuntu(self):
-        return "ubuntu" in self.cuisine.platformtype.platformtypes[0]
+        return "ubuntu" in self.cuisine.platformtype.platformtypes
 
     @property
     def isArch(self):
-        return "arch" in self.cuisine.platformtype.platformtypes[0]
+        return "arch" in self.cuisine.platformtype.platformtypes
 
     @property
     def isMac(self):
-        return "darwin" in self.cuisine.platformtype.platformtypes[0]
+        return "darwin" in self.cuisine.platformtype.platformtypes
 
     @property
     def isCygwin(self):
-        return "cygwin" in self.cuisine.platformtype.platformtypes[0]
+        return "cygwin" in self.cuisine.platformtype.platformtypes
 
     def __str__(self):
         return "cuisine:core:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))

@@ -36,6 +36,11 @@ class InstallTools():
             self.TYPE="WIN"
             self.BASE="%s/"%os.environ["JSBASE"].replace("\\","/")
 
+        elif platform.system().lower()=="cygwin_nt-10.0" :
+            self.TYPE="WIN"
+            self.BASE="%s/opt/jumpscale8"%os.environ["HOME"]
+            self.VARDIR="%s/optvar"%os.environ["HOME"]
+
         elif sys.platform.startswith("darwin"):
             self.TYPE="OSX"
             self.BASE="%s/opt/jumpscale8"%os.environ["HOME"]
@@ -60,8 +65,7 @@ class InstallTools():
             self.CODEDIR=os.environ["CODEDIR"]
         else:
             if self.TYPE.startswith("WIN"):
-                raise RuntimeError("todo")
-                self.CODEDIR="/opt/code"
+                self.CODEDIR="%s/opt/code"%os.environ["HOME"]
             elif self.TYPE.startswith("OSX"):
                 self.CODEDIR="%s/opt/code"%os.environ["HOME"]
             else:
@@ -108,12 +112,12 @@ class InstallTools():
         return "/usr/local/bin/"
 
     def getPythonLibSystem(self,jumpscale=False):
-        PYTHONVERSION = os.environ.get('PYTHONVERSION', '3.5')
+        PYTHONVERSION = platform.python_version()
         do=self
         if do.TYPE.startswith("OSX"):
             destjs="/usr/local/lib/python3.5/site-packages"
         elif do.TYPE.startswith("WIN"):
-            raise RuntimeError("do")
+            destjs = "/usr/lib/python3.4/site-packages"
         else:
             if PYTHONVERSION == '2':
                 destjs ="/usr/local/lib/python/dist-packages"
@@ -2107,8 +2111,7 @@ class Installer():
         if do.TYPE.startswith("OSX"):
             do.delete("/usr/local/lib/python2.7/site-packages/JumpScale")
             do.delete("/usr/local/lib/python3.5/site-packages/JumpScale")
-        elif do.TYPE.startswith("WIN"):
-            raise RuntimeError("do")
+
 
         destjs=do.getPythonLibSystem(jumpscale=True)
         do.delete(destjs)

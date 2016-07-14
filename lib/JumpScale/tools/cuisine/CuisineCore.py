@@ -242,15 +242,15 @@ class CuisineCore:
             if 'JSBASE' in env:
                 res["base"] = env["JSBASE"]
             else:
-                if self.isMac:
+                if self.isMac or self.isCygwin:
                     res["base"] = "%s/opt/jumpscale8/"%env["HOME"]
                 else:
                     res["base"] = "/opt/jumpscale8/"
-            if self.isMac:
+            if self.isMac or self.isCygwin:
                 res["codeDir"] = "%s/opt/code/"%env["HOME"]
             else:
                 res["codeDir"] = "/opt/code/"
-            if self.isMac:
+            if self.isMac or self.isCygwin:
                 res["varDir"] = "%s/optvar/"%env["HOME"]
             else:
                 res["varDir"] = "/optvar/"
@@ -267,7 +267,7 @@ class CuisineCore:
             res["hrdDir"] = "%s/hrd"%res["varDir"]
             self._dirs = res
 
-            if self.isMac:
+            if self.isMac or self.isCygwin:
                 self._dirs["optDir"]= "%s/opt/"%env["HOME"]
             else:
                 self._dirs["optDir"] = "/opt/"
@@ -480,7 +480,6 @@ class CuisineCore:
             assert self.file_exists(location), "cuisine.file_read: file does not exists {0}".format(location)
         elif not self.file_exists(location):
             return default
-
         frame = self.file_base64(location)
         return base64.decodebytes(frame.encode()).decode()
 
@@ -529,7 +528,7 @@ class CuisineCore:
     @property
     def hostname(self):
         if self._hostname=="":
-            if self.isMac:
+            if self.isMac or self.isCygwin:
                 self._hostname=self.run("hostname",showout=False,replaceArgs=False)
             else:
                 hostfile="/etc/hostname"
@@ -818,7 +817,7 @@ class CuisineCore:
     def file_base64(self, location):
         """Returns the base64-encoded content of the file at the given location."""
         location = self.args_replace(location)
-        return self.run("cat {0} | base64".format(shell_safe((location))),debug=False,checkok=False,showout=False)
+        return self.run("cat {0} | base64".format(shell_safe((location))),debug=False,checkok=False,showout=False, combinestdr=False)
 
     @actionrun(action=True,force=True)  
     def file_sha256(self,location):
@@ -1033,6 +1032,10 @@ class CuisineCore:
 
         if '"' in cmd:
             cmd = cmd.replace('"', '\\"')
+            
+        if "cygwin" in self.executor.execute("uname -a", showout=False)[1].lower():
+            self.sudomode = False
+
         if self.sudomode:
             passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
             cmd = 'echo %s | sudo -SE bash -c "%s"' % (passwd, cmd)
@@ -1122,10 +1125,12 @@ class CuisineCore:
         content+="\necho **DONE**\n"
 
         path="$tmpDir/%s.sh"%j.data.idgenerator.generateRandomInt(0, 10000)
-        if not self.isMac:
-            self.file_write(location=path, content=content, mode=0o770, owner="root", group="root",showout=False)
-        else:
+        if self.isMac:
             self.file_write(location=path, content=content, mode=0o770,showout=False)
+        elif self.isCygwin:
+            self.file_write(location=path, content=content, showout=False)
+        else:
+            self.file_write(location=path, content=content, mode=0o770, owner="root", group="root",showout=False)
 
         rc,out=self.run("bash %s"%path,showout=True,die=False)
         out = self._clean(out)
@@ -1269,6 +1274,10 @@ class CuisineCore:
     @property
     def isMac(self):
         return "darwin" in self.cuisine.platformtype.platformtypes
+
+    @property
+    def isCygwin(self):
+        return "cygwin" in self.cuisine.platformtype.platformtypes
 
     def __str__(self):
         return "cuisine:core:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))

@@ -126,6 +126,7 @@ class CuisineInstallerDevelop:
 
         certifi
         docker-py
+        http://carey.geek.nz/code/python-fcrypt/fcrypt-1.3.1.tar.gz
 
         gitlab3
         gitpython
@@ -190,7 +191,8 @@ class CuisineInstallerDevelop:
             """
             self.cuisine.pip.multiInstall(C,upgrade=True)
 
-        self.cuisine.apps.redis.build()
+        if  not self.cuisine.core.isCygwin:
+            self.cuisine.apps.redis.build()
 
 
     @actionrun(action=True)

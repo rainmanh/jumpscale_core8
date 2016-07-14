@@ -528,7 +528,7 @@ class SystemFS:
         self.logger.debug('Join paths %s'%(str(args)))
         if args is None:
             raise TypeError('Not enough parameters %s'%(str(args)))
-        if j.core.platformtype.myplatform.isWindows():
+        if os.sys.platform.startswith("win"):
             args2=[]
             for item in args:
                 item=item.replace("/","\\")

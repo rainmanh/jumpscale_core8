@@ -28,7 +28,7 @@ class CuisineInstaller:
     @actionrun(action=True)
     def clean(self):
         self.cuisine.core.dir_ensure(self.cuisine.core.dir_paths["tmpDir"])
-        if not self.cuisine.core.isMac:
+        if not self.cuisine.core.isMac and not self.cuisine.core.isCygwin:
             C = """
                 set +ex
                 # pkill redis-server #will now kill too many redis'es, should only kill the one not in docker
@@ -169,7 +169,7 @@ class CuisineInstaller:
 
         self.cuisine.package.mdupdate()
 
-        if not self.cuisine.core.isMac:
+        if not self.cuisine.core.isMac and not self.cuisine.core.isCygwin:
             self.cuisine.package.install("fuse")
 
         if self.cuisine.core.isArch:

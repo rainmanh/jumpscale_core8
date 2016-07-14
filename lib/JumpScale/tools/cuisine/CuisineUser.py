@@ -1,6 +1,10 @@
 
 from JumpScale import j
-import crypt
+
+try:
+    import fcrypt as crypt 
+except ImportError:
+    import crypt
 
 
 def shell_safe( path ):

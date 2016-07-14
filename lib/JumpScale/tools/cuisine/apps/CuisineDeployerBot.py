@@ -28,7 +28,7 @@ class DeployerBot():
         If start is True, token g8_addresses, dns and oauth should be specified
         """
         self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        if not self.cuisine.core.isMac:
+        if not self.cuisine.core.isMac and not self.cuisine.core.isCygwin:
             self.cuisine.installerdevelop.jumpscale8()
             self.cuisine.pip.upgrade("pip")
 

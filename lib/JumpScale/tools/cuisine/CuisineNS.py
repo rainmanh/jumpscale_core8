@@ -111,5 +111,5 @@ class CuisineNS:
 
         for ns in nameservers:
             content += 'nameserver %s\n' % ns
-        self.file_write('/etc/resolv.conf', content)
+        self.cuisine.core.file_write('/etc/resolv.conf', content)
 

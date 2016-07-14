@@ -480,7 +480,6 @@ class CuisineCore:
             assert self.file_exists(location), "cuisine.file_read: file does not exists {0}".format(location)
         elif not self.file_exists(location):
             return default
-
         frame = self.file_base64(location)
         return base64.decodebytes(frame.encode()).decode()
 
@@ -818,7 +817,7 @@ class CuisineCore:
     def file_base64(self, location):
         """Returns the base64-encoded content of the file at the given location."""
         location = self.args_replace(location)
-        return self.run("cat {0} | base64".format(shell_safe((location))),debug=False,checkok=False,showout=False)
+        return self.run("cat {0} | base64".format(shell_safe((location))),debug=False,checkok=False,showout=False, combinestdr=False)
 
     @actionrun(action=True,force=True)  
     def file_sha256(self,location):

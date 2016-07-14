@@ -35,9 +35,6 @@ class ActionDecorator:
             else:
                 force = self.force
 
-            # action=False
-            # force=True
-
             if action:
                 cuisine = args[0].cuisine
                 func_file = func.__code__.co_filename

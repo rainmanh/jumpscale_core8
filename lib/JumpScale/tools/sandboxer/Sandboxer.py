@@ -234,7 +234,6 @@ class Sandboxer:
             out = "%s|%s|%s\n" % (src, md5, stat.st_size)
             return out
 
-
         if reset:
             j.sal.fs.removeDirTree(storpath)
         storpath2 = j.sal.fs.joinPaths(storpath, "files")

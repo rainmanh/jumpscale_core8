@@ -465,10 +465,7 @@ class Docker:
     def removeImages(self,tag="<none>:<none>"):
         for item in self.client.images():
             if tag in item["RepoTags"]:
-                try:
-                    self.client.remove_image(item["Id"])
-                except:
-                    pass
+                self.client.remove_image(item["Id"])
 
     def ping(self):
 
@@ -479,6 +476,14 @@ class Docker:
         return True
 
     def destroyAll(self):
+
+        for container in self.containers:
+            container.destroy()
+
+        self.removeImages()
+
+
+    def _destroyAllKill(self):
 
         if self.ping():
         
@@ -498,7 +503,7 @@ class Docker:
 
     def removeDocker(self):
 
-        self.destroyAll()
+        self._destroyAllKill()
 
         rc,out=j.sal.process.execute("mount")
         mountpoints=[]

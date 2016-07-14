@@ -35,8 +35,10 @@ class CuisinePortal:
         self.serviceconnect(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip,
                             influxport=influxport, grafanaip=grafanaip, grafanaport=grafanaport)
 
-    def install(self, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
-        self._install(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip, influxport=influxport, grafanaip=grafanaip, grafanaport=grafanaport, login=login, passwd=passwd)
+    def install(self, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, \
+            grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
+        self._install(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip, influxport=influxport, \
+            grafanaip=grafanaip, grafanaport=grafanaport, login=login, passwd=passwd)
         if start:
             self.start()
 

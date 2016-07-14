@@ -128,13 +128,14 @@ class Container:
 
     def getPubPortForInternalPort(self, port):
 
-        for key,portsDict in self.info["NetworkSettings"]["Ports"].items():
-            if key.startswith(str(port)):
-                # if "PublicPort" not in port2:
-                #     raise j.exceptions.Input("cannot find publicport for ssh?")
-                portsfound=[int(item['HostPort']) for item in portsDict]
-                if len(portsfound)>0:
-                    return portsfound[0]
+        if not self.info["NetworkSettings"]["Ports"]==None:
+            for key,portsDict in self.info["NetworkSettings"]["Ports"].items():
+                if key.startswith(str(port)):
+                    # if "PublicPort" not in port2:
+                    #     raise j.exceptions.Input("cannot find publicport for ssh?")
+                    portsfound=[int(item['HostPort']) for item in portsDict]
+                    if len(portsfound)>0:
+                        return portsfound[0]
 
         raise j.exceptions.Input("cannot find publicport for ssh?")
 

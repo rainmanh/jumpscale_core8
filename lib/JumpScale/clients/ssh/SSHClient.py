@@ -25,10 +25,10 @@ class SSHClientFactory:
     def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True, look_for_keys=True, timeout=5, die=True):
         key = "%s_%s_%s_%s" % (addr, port, login, j.data.hash.md5_string(str(passwd)))
         if key not in self.cache:
-            self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent, allow_agent=allow_agent, \
+            cl = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent, allow_agent=allow_agent, \
                 look_for_keys=look_for_keys, timeout=timeout)
 
-            ret = self.cache[key].connectTest(timeout=timeout, die=die)
+            ret = cl.connectTest(timeout=timeout, die=die)
             if ret is False:
                 err = "Cannot connect over ssh:%s %s" % (addr, port)
                 if die:
@@ -36,6 +36,9 @@ class SSHClientFactory:
                 else:
                     self.logger.error(err)
                     return False
+
+            self.cache[key]=cl
+            
 
         return self.cache[key]
 
@@ -171,9 +174,8 @@ class SSHClient:
                 break
             except (SSHException, socket.error) as e:
                 err = e
-                self.logger.error("Unexpected error. abording connection")
+                self.logger.error("Unexpected error in socket connection for ssh. abording connection and try again.")
                 self.logger.error(e)
-                j.clients.ssh.removeFromCache(self)
                 self._client.close()
                 self.reset()
                 time.sleep(1)

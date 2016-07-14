@@ -19,11 +19,26 @@ class Docker:
         self._prefix = ""
         self._containers = {}
         self._names = []
+
         if 'DOCKER_HOST' not in os.environ or os.environ['DOCKER_HOST'] == "":
             self.base_url = 'unix://var/run/docker.sock'
         else:
             self.base_url = os.environ['DOCKER_HOST']
         self.client = docker.Client(base_url=self.base_url, timeout=120)
+
+    def init(self):
+        d=j.sal.disklayout.findDisk(mountpoint="/storage")
+        if d!=None:
+            #we found a disk, lets make sure its in fstab
+            d.setAutoMount()
+            dockerpath="%s/docker"%d.mountpoint
+            dockerpath=dockerpath.replace("//",'/')
+            if dockerpath not in j.sal.btrfs.subvolumeList(d.mountpoint):
+                #have to create the dockerpath
+                j.sal.btrfs.subvolumeCreate(dockerpath)
+                # j.sal.fs.createDir("/storage/docker")
+                j.sal.fs.copyDirTree( "/var/lib/docker",dockerpath)                
+                j.sal.fs.symlink("/storage/docker", "/var/lib/docker", overwriteTarget=True)
 
     @property
     def isWeaveEnabled(self):
@@ -32,9 +47,9 @@ class Docker:
             self._weaveEnabled = (rc == 0)
         return self._weaveEnabled
 
-    def connectRemoteTCP(self, base_url):
-        self.base_url = base_url
-        self.client = docker.Client(base_url=base_url)
+    # def connectRemoteTCP(self, base_url):
+    #     self.base_url = base_url
+    #     self.client = docker.Client(base_url=base_url)
 
     @property
     def docker_host(self):
@@ -444,14 +459,27 @@ class Docker:
     def removeImages(self,tag="<none>:<none>"):
         for item in self.client.images():
             if tag in item["RepoTags"]:
-                self.client.remove_image(item["Id"])
+                try:
+                    self.client.remove_image(item["Id"])
+                except:
+                    pass
 
     def destroyAll(self):
         for container in self.containers:
             container.destroy()
 
+        self.removeImages()
+
+        j.sal.btrfs.subvolumesDelete('/var/lib/docker/btrfs/subvolumes')
+
+        for item in j.sal.fs.listDirsInDir("/var/lib/docker/volumes"):
+            j.sal.fs.removeDirTree(item)
+
+        "var/lib/docker/btrfs/"
+
     def resetDocker(self):
-        self.destroyContainers()
+        # self.destroyContainers()
+        self.destroyAll()
 
         rc,out=j.sal.process.execute("mount")
         mountpoints=[]
@@ -475,6 +503,7 @@ class Docker:
         image: str, name of the image
         output: print progress as it pushes
         """
+        client=self.client
         previous_timeout = client.timeout
         client.timeout = 36000
         out = []

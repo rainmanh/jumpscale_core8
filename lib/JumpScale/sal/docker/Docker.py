@@ -27,6 +27,9 @@ class Docker:
         self.client = docker.Client(base_url=self.base_url, timeout=120)
 
     def init(self):
+
+        j.do.execute("systemctl stop docker")
+
         d=j.sal.disklayout.findDisk(mountpoint="/storage")
         if d!=None:
             #we found a disk, lets make sure its in fstab
@@ -36,9 +39,12 @@ class Docker:
             if dockerpath not in j.sal.btrfs.subvolumeList(d.mountpoint):
                 #have to create the dockerpath
                 j.sal.btrfs.subvolumeCreate(dockerpath)
-                # j.sal.fs.createDir("/storage/docker")
-                j.sal.fs.copyDirTree( "/var/lib/docker",dockerpath)                
-                j.sal.fs.symlink("/storage/docker", "/var/lib/docker", overwriteTarget=True)
+        # j.sal.fs.createDir("/storage/docker")
+        j.sal.fs.copyDirTree( "/var/lib/docker",dockerpath)                
+        j.sal.fs.symlink("/storage/docker", "/var/lib/docker", overwriteTarget=True)
+
+        j.do.execute("systemctl start docker")
+
 
     @property
     def isWeaveEnabled(self):
@@ -403,7 +409,7 @@ class Docker:
             self.logger.info(binds)
 
         hostname = None if self.isWeaveEnabled else name.replace('_', '-')
-        host_config = self.client.create_host_config(privileged=privileged) if privileged else None
+        host_config = self.client.create_host_config(privileged=privileged) if privileged else None            
 
         res = self.client.create_container(image=base, command=cmd, hostname=hostname, user="root", \
                 detach=detach, stdin_open=False, tty=True, mem_limit=mem, ports=list(portsdict.keys()), environment=None, volumes=volskeys,  \
@@ -464,21 +470,34 @@ class Docker:
                 except:
                     pass
 
+    def ping(self):
+
+        try:
+            self.client.ping()
+        except Exception as e:
+            return False
+        return True
+
     def destroyAll(self):
-        for container in self.containers:
-            container.destroy()
 
-        self.removeImages()
+        if self.ping():
+        
+            for container in self.containers:
+                container.destroy()
 
-        j.sal.btrfs.subvolumesDelete('/var/lib/docker/btrfs/subvolumes')
+            self.removeImages()
 
-        for item in j.sal.fs.listDirsInDir("/var/lib/docker/volumes"):
-            j.sal.fs.removeDirTree(item)
+        j.do.execute("systemctl stop docker")
 
-        "var/lib/docker/btrfs/"
+        if j.sal.fs.exists(path="/var/lib/docker/btrfs/subvolumes"):
+            j.sal.btrfs.subvolumesDelete('/var/lib/docker/btrfs/subvolumes')
 
-    def resetDocker(self):
-        # self.destroyContainers()
+        if j.sal.fs.exists(path="/var/lib/docker/volumes"):
+            for item in j.sal.fs.listDirsInDir("/var/lib/docker/volumes"):
+                j.sal.fs.removeDirTree(item)
+
+    def removeDocker(self):
+
         self.destroyAll()
 
         rc,out=j.sal.process.execute("mount")
@@ -491,9 +510,21 @@ class Docker:
         for mountpoint in mountpoints:
             j.sal.btrfs.subvolumesDelete(mountpoint,"/docker/")
 
+        j.sal.btrfs.subvolumesDelete("/storage","docker")
+
         j.sal.process.execute("apt-get remove docker-engine -y")
-        j.sal.process.execute("rm -rf /var/lib/docker")
-        j.sal.process.execute("apt-get install docker-engine -y")
+        # j.sal.process.execute("rm -rf /var/lib/docker")
+
+        j.sal.fs.removeDirTree("/var/lib/docker")
+
+
+    def reInstallDocker(self):
+
+        self.removeDocker()
+
+        j.tools.cuisine.local.docker.install(force=True)
+        
+        self.init()
 
     def pull(self, imagename):
         self.client.import_image_from_image(imagename)

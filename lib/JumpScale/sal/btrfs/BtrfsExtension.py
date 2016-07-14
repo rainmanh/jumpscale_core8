@@ -33,11 +33,11 @@ class BtrfsExtension:
         self.__listpattern = re.compile("^ID (?P<id>\d+).+?path (?P<name>.+)$", re.MULTILINE)
         self._executor = j.tools.executor.getLocal()
 
-    def __btrfs(self, command, action, *args):
+    def __btrfs(self, command, action,*args):
         cmd = "%s %s %s %s" % (BASECMD, command, action, " ".join(['"%s"' % a for a in args]))
         code, out = self._executor.execute(cmd, die=False)
 
-        if code:
+        if code>0:            
             raise j.exceptions.RuntimeError(out)
 
         return out
@@ -106,7 +106,10 @@ class BtrfsExtension:
         """
         for path2 in self.subvolumeList(path, filter=filter):
             print ("delete:%s" % path2)
-            self.subvolumeDelete(path2)
+            try:
+                self.subvolumeDelete(path2)
+            except:
+                pass
 
     def deviceAdd(self, path, dev):
         """

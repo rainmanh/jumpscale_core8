@@ -13,10 +13,11 @@ class Docker:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.docker"
+        self.logger = j.logger.get('j.sal.docker')
         self._basepath = "/mnt/vmstor/docker"
         self._weaveEnabled = None
         self._prefix = ""
-        self._containers = []
+        self._containers = {}
         self._names = []
         if 'DOCKER_HOST' not in os.environ or os.environ['DOCKER_HOST'] == "":
             self.base_url = 'unix://var/run/docker.sock'
@@ -73,15 +74,15 @@ class Docker:
 
     @property
     def containers(self):
-        if self._containers==[]:
+        if self._containers == {}:
             for item in self.client.containers(all=all):
                 try:
                     name = str(item["Names"][0].strip("/").strip())
                 except:
                     continue
                 id = str(item["Id"].strip())
-                self._containers.append(Container(name, id, self.client))
-        return self._containers
+                self._containers[id] = Container(name, id, self.client)
+        return list(self._containers.values())
 
     @property
     def containerNamesRunning(self):
@@ -184,7 +185,6 @@ class Docker:
         if path[-1]!="/":
             path+="/"
         cmd="rsync -a %s %s::upload/%s/images/%s --delete-after --modify-window=60 --compress --stats  --progress --exclude '.Trash*'"%(path,ipaddr,key,backupname)
-        # print cmd
         j.sal.process.executeWithoutPipe(cmd)
 
     def removeRedundantFiles(self,name):
@@ -219,11 +219,11 @@ class Docker:
             if not j.sal.fs.exists(basepath):
                 raise j.exceptions.RuntimeError("cannot find base machine:%s"%basepath)
             cmd="rsync -av -v %s %s --delete-after --modify-window=60 --size-only --compress --stats  --progress"%(basepath,path)
-            print(cmd)
+            self.logger.info(cmd)
             j.sal.process.executeWithoutPipe(cmd)
 
         cmd="rsync -av -v %s::download/%s/images/%s %s --delete-after --modify-window=60 --compress --stats  --progress"%(ipaddr,key,backupname,path)
-        print(cmd)
+        self.logger.info(cmd)
         j.sal.process.executeWithoutPipe(cmd)
 
     def exportTgz(self,name,backupname):
@@ -253,23 +253,23 @@ class Docker:
     def _init_aysfs(self, fs, dockname):
         if fs.isUnique():
             if not fs.isRunning():
-                print('[+] starting unique aysfs: %s' % fs.getName())
+                self.logger.info('starting unique aysfs: %s' % fs.getName())
                 fs.start()
 
             else:
-                print('[+] skipping aysfs: %s (unique running)' % fs.getName())
+                self.logger.info('skipping aysfs: %s (unique running)' % fs.getName())
 
         else:
             fs.setName('%s-%s' % (dockname, fs.getName()))
             if fs.isRunning():
                 fs.stop()
 
-            print('[+] starting aysfs: %s' % fs.getName())
+            self.logger.info('starting aysfs: %s' % fs.getName())
             fs.start()
 
     def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1604", nameserver=["8.8.8.8"],
-               replace=True, cpu=None, mem=0, ssh=True, sharecode=False,sshkeyname="",sshpubkey="",
-               setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master", aysfs=[]):
+               replace=True, cpu=None, mem=0, ssh=True, myinit=True, sharecode=False,sshkeyname="",sshpubkey="",
+               setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master", aysfs=[], detach=False, privileged=False):
 
         """
         @param ports in format as follows  "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
@@ -278,7 +278,7 @@ class Docker:
         #@todo (*1*) change way how we deal with ssh keys, put authorization file in filesystem before docker starts don't use ssh to push them, will be much faster and easier
         """
         name = name.lower().strip()
-        print(("create:%s" % name))
+        self.logger.info(("create:%s" % name))
 
         running = [item.name for item in self.containersRunning]
 
@@ -287,7 +287,7 @@ class Docker:
                 j.events.opserror_critical("Cannot create machine with name %s, because it does already exists.")
         else:
             if self.exists(name):
-                print("remove existing container %s" % name)
+                self.logger.info("remove existing container %s" % name)
                 container = self.get(name)
                 if container:
                     container.destroy()
@@ -321,7 +321,7 @@ class Docker:
                 for port in range(9022, 9190):
                     if not j.sal.nettools.tcpPortConnectionTest(self.docker_host, port):
                         portsdict[22] = port
-                        print(("SSH PORT WILL BE ON:%s" % port))
+                        self.logger.info(("ssh port will be on:%s" % port))
                         break
 
         volsdict = {}
@@ -331,19 +331,8 @@ class Docker:
                 key, val = item.split(":", 1)
                 volsdict[str(key).strip()] = str(val).strip()
 
-        # """
-        # j.sal.fs.createDir("/var/jumpscale")
-        # if "/var/jumpscale" not in volsdict:
-        #     volsdict["/var/jumpscale"] = "/var/docker/%s" % name
-        # j.sal.fs.createDir("/var/docker/%s" % name)
-
-        # tmppath = "/tmp/dockertmp/%s" % name
-        # j.sal.fs.createDir(tmppath)
-        # volsdict[tmppath] = "/tmp"
-        # """
-
         if sharecode and j.sal.fs.exists(path="/opt/code"):
-            print("share jumpscale code")
+            self.logger.info("share jumpscale code enable")
             if "/opt/code" not in volsdict:
                 volsdict["/opt/code"] = "/opt/code"
 
@@ -364,9 +353,9 @@ class Docker:
                 key, val = item.split(":", 1)
                 volsdictro[str(key).strip()] = str(val).strip()
 
-        print("MAP:")
+        self.logger.info("Volumes map:")
         for src1, dest1 in list(volsdict.items()):
-            print(" %-20s %s" % (src1, dest1))
+            self.logger.info(" %-20s %s" % (src1, dest1))
 
         binds = {}
         volskeys = []  # is location in docker
@@ -382,26 +371,28 @@ class Docker:
             volskeys.append(key)
 
         if base not in self.getImages():
-            print("download docker")
+            self.logger.info("download docker image %s" % base)
             self.pull(base)
 
-        if base.startswith("jumpscale/ubuntu1604"):
+        if base.startswith("jumpscale/ubuntu1604") or myinit is True:
             cmd = "sh -c \"mkdir -p /var/run/screen;chmod 777 /var/run/screen; /var/run/screen;exec >/dev/tty 2>/dev/tty </dev/tty && /sbin/my_init -- /usr/bin/screen -s bash\""
             cmd = "sh -c \" /sbin/my_init -- bash -l\""
         else:
-            cmd = "/bin/sh" 
+            cmd = None
 
-        print(("install docker with name '%s'" % name))
+        self.logger.info(("install docker with name '%s'" % name))
 
         if vols != "":
-            print("VOLUMES")
-            print(volskeys)
-            print(binds)
+            self.logger.info("Volumes")
+            self.logger.info(volskeys)
+            self.logger.info(binds)
 
-        hostname = None if self.isWeaveEnabled else name
+        hostname = None if self.isWeaveEnabled else name.replace('_', '-')
+        host_config = self.client.create_host_config(privileged=privileged) if privileged else None
+
         res = self.client.create_container(image=base, command=cmd, hostname=hostname, user="root", \
-                detach=False, stdin_open=False, tty=True, mem_limit=mem, ports=list(portsdict.keys()), environment=None, volumes=volskeys,  \
-                network_disabled=False, name=name, entrypoint=None, cpu_shares=cpu, working_dir=None, domainname=None, memswap_limit=None)
+                detach=detach, stdin_open=False, tty=True, mem_limit=mem, ports=list(portsdict.keys()), environment=None, volumes=volskeys,  \
+                network_disabled=False, name=name, entrypoint=None, cpu_shares=cpu, working_dir=None, domainname=None, memswap_limit=None, host_config=host_config)
 
         if res["Warnings"] is not None:
             raise j.exceptions.RuntimeError("Could not create docker, res:'%s'" % res)
@@ -423,6 +414,7 @@ class Docker:
 
 
         container = Container(name, id, self.client, host=self.docker_host)
+        self._containers[id] = container
 
         if ssh:
             # time.sleep(0.5)  # give time to docker to start
@@ -434,15 +426,12 @@ class Docker:
             container.pushSSHKey(keyname=sshkeyname, sshpubkey=sshpubkey)
 
             if setrootrndpasswd:
-                # if rootpasswd is None or rootpasswd == '':
-                #     print("set default root passwd (gig1234)")
-                #     container.executor.execute("echo \"root:gig1234\"|chpasswd",showout=False)
-                # else:
-                #     print("set root passwd to %s" % rootpasswd)
-                #     container.cexecutor.execute("echo \"root:%s\"|chpasswd" % rootpasswd,showout=False)
-                
-                container.executor.execute("echo \"root:%s\"|chpasswd" % j.data.idgenerator.generateGUID(),showout=False)
-
+                if rootpasswd is None or rootpasswd == '':
+                    print("set default root passwd (gig1234)")
+                    container.executor.execute("echo \"root:gig1234\"|chpasswd",showout=False)
+                else:
+                    print("set root passwd to %s" % rootpasswd)
+                    container.cexecutor.execute("echo \"root:%s\"|chpasswd" % rootpasswd,showout=False)
             if not self.isWeaveEnabled:
                 container.setHostName(name)
 
@@ -486,8 +475,8 @@ class Docker:
         image: str, name of the image
         output: print progress as it pushes
         """
-
-        client = docker.Client(base_url=self.base_url, timeout=36000)
+        previous_timeout = client.timeout
+        client.timeout = 36000
         out = []
         for l in client.push(image, stream=True):
             line = j.data.serializer.json.loads(l)
@@ -503,8 +492,10 @@ class Docker:
                 message = line['errorDetail']['message']
                 raise j.exceptions.RuntimeError(message)
             if output:
-                print(s)
+                self.logger.info(s)
             out.append(s)
+
+        client.timeout = previous_timeout
 
         return "\n".join(out)
 
@@ -525,7 +516,7 @@ class Docker:
             if 'stream' in line:
                 line = line['stream'].strip()
                 if output:
-                    print(line)
+                    self.logger.info(line)
                 out.append(line)
 
         return "\n".join(out)

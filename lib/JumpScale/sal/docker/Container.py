@@ -10,6 +10,7 @@ class Container:
     def __init__(self, name, id, client, host="localhost"):
 
         self.client = client
+        self.logger = j.logger.get('j.sal.docker.container')
 
         self.host = copy.copy(host)
         self.name = name
@@ -79,8 +80,8 @@ class Container:
 
     @property
     def info(self):
-        print ("info:%s"%self.id)
-        info= self.client.inspect_container(self.id)
+        self.logger.info('read info of container %s:%s' % (self.name, self.id))
+        info = self.client.inspect_container(self.id)
         return info
 
     def isRunning(self):
@@ -113,12 +114,12 @@ class Container:
             mem += mem0
             cpu += cpu0
             if stdout:
-                print(("%s%-35s %-5s mem:%-8s" % (pre, child.name, child.pid, mem0)))
+                self.logger.info(("%s%-35s %-5s mem:%-8s" % (pre, child.name, child.pid, mem0)))
             result.append([child.name, child.pid, mem0, child.parent.name])
         cpu = children[0].get_cpu_percent()
         result.append([mem, cpu])
         if stdout:
-            print(("TOTAL: mem:%-8s cpu:%-8s" % (mem, cpu)))
+            self.logger.info(("TOTAL: mem:%-8s cpu:%-8s" % (mem, cpu)))
         return result
 
     def setHostName(self, hostname):
@@ -180,19 +181,20 @@ class Container:
             # stopping any running aysfs linked
             if aysfs.isRunning():
                 aysfs.stop()
-                print("[+] aysfs stopped")
+                self.logger.info("[+] aysfs stopped")
 
     def destroy(self):
         self.cleanAysfs()
 
         try:
-            self.client.kill(self.id)
-        except Exception as e:
-            print ("could not kill:%s"%self.id)
-        try:
+            if self.isRunning():
+                self.client.kill(self.id)
             self.client.remove_container(self.id)
         except Exception as e:
-            print ("could not kill:%s"%self.id)
+            self.logger.error("could not kill:%s" % self.id)
+        finally:
+            if self.id in j.sal.docker._containers:
+                del j.sal.docker._containers[self.id]
 
     def stop(self):
         self.cleanAysfs()
@@ -207,11 +209,17 @@ class Container:
         delete: bool, delete current image before doing commit
         force: bool, force delete
         """
+        previous_timeout = self.client.timeout
+        self.client.timeout = 3600
+
         if delete:
             res = j.sal.docker.client.images(imagename)
             if len(res) > 0:
                 self.client.remove_image(imagename, force=force)
         self.client.commit(self.id, imagename, message=msg, **kwargs)
+
+        self.client.timeout = previous_timeout
+
 
     def uploadFile(self, source, dest):
         """

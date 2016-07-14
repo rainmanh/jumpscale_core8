@@ -352,8 +352,6 @@ class Action:
         elif "$" in s:
             s=j.dirs.replaceTxtDirVars(s)
 
-        if "$(" in s:
-            raise RuntimeError("$() should not be there, probably hrd has not been set")
         return s
 
     @property
@@ -443,7 +441,7 @@ class Action:
 
     @args.setter
     def args(self,val):
-        
+
         if val == ():
             self._args = ""
         else:
@@ -562,7 +560,7 @@ class Action:
             err = ''
 
             while ok==False and counter<self.retry+1:
-                
+
                 kwargs=self.kwargs
 
                 if self.dynamicArguments !="":

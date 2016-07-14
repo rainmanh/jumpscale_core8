@@ -18,7 +18,7 @@ class Blueprint:
         if path != "":
             self.name = j.sal.fs.getBaseName(path)
             if self.name[0]=="_":
-                self.active=False 
+                self.active=False
             self.name = self.name.lstrip('_')
             self.content = j.sal.fs.fileGetContents(path)
         else:

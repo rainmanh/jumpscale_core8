@@ -1,9 +1,13 @@
 
 from mongoengine.fields import IntField, StringField, ListField, BooleanField, DictField, EmbeddedDocumentField, FloatField
 from mongoengine import DoesNotExist, EmbeddedDocument, Document
-import fcrypt as crypt
 import hmac
 from JumpScale import j
+
+try:
+    import fcrypt as crypt 
+except ImportError:
+    import crypt
 
 DB = 'jumpscale_system'
 

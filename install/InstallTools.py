@@ -2145,6 +2145,11 @@ class Installer():
         dest="%s/bin"%base
         do.symlinkFilesInDir(src, dest)
 
+        #link _ays completion
+        src = "%s/github/jumpscale/jumpscale_core8/install/_ays"%do.CODEDIR
+        dest="/etc/bash_completion.d/_ays"
+        do.symlink(src,dest)
+        
         #link python
         src="/usr/bin/python3.5"
         if do.exists(src):

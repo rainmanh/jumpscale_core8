@@ -4,6 +4,7 @@
 
 - Ubuntu 14+
 - Mac OSX Yosemite
+- Windows 10 (cygwin)
 
 
 ### Requirements
@@ -43,6 +44,20 @@ cd /tmp; rm -f install.sh; curl -k https://raw.githubusercontent.com/Jumpscale/j
 export TMPDIR=~/tmp;mkdir -p $TMPDIR;cd $TMPDIR;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh
 ```
 
+### Windows 10 Cygwin
+ - install [cygwin](https://cygwin.com/install.html)
+ - Make sure on setup select  curl, gcc, paramiko 
+ - Install apt-cyg through:
+
+```shell
+ lynx -source rawgit.com/transcode-open/apt-cyg/master/apt-cyg > apt-cyg
+install apt-cyg /bin
+```
+Then to install jumpscale use :
+```shell
+cd /tmp; rm -f install.sh; curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh
+```
+
 ### Reset your system
 
 If your installation failed or if you want to remove your current installation, you can execute the following commands:
@@ -51,6 +66,7 @@ If your installation failed or if you want to remove your current installation, 
 export TMPDIR=~/tmp;cd $TMPDIR;rm -f reset.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/reset.sh > reset.sh;bash reset.sh
 ```
 
+```
 
 ###  Environment variables that influence the installation process
 

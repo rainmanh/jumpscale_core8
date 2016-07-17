@@ -5,10 +5,10 @@ from ActionDecorator import ActionDecorator
 class actionrun(ActionDecorator):
     def __init__(self,*args,**kwargs):
         ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.fw"
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.ufw"
 
 
-class CuisineFW:
+class CuisineUFW:
 
     def __init__(self, executor, cuisine):
         self.executor = executor

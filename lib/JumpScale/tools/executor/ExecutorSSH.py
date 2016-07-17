@@ -58,7 +58,7 @@ class ExecutorSSH(ExecutorBase):
     @property
     def sshclient(self):
         if self._sshclient==None:
-            self._sshclient=j.clients.ssh.get(self.addr,self.port,login=self.login,passwd=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys, timeout=self.timeout)
+            self._sshclient=j.clients.ssh.get(self.addr,self.port,login=self.login,passwd=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys, timeout=self.timeout,usecache=False)
             if self.pushkey is not None:
                 #lets push the ssh key as specified
                 if j.sal.fs.exists(self.pushkey):

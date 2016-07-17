@@ -131,8 +131,8 @@ class CuisineGeoDns:
         installs and builds geodns from github.com/abh/geodns
         """
         # deps
-        self.cuisine.golang.install()
-        self.cuisine.package.install("libgeoip-dev")
+        self.cuisine.golang.install(force=False)
+        self.cuisine.package.install("libgeoip-dev",force=False)
 
         # build
         self.cuisine.golang.get("github.com/abh/geodns")

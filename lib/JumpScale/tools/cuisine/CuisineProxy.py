@@ -178,15 +178,24 @@ class CuisineProxy:
 
         self.cuisine.core.file_write("/etc/privoxy/user.action",USERACTION,force=True)
 
-        cmd="privoxy --no-daemon /etc/privoxy/config"
-        pm=self.cuisine.processmanager.get("tmux")
-        pm.ensure("privoxy",cmd)#in tmux will always restart
+
+        self.start()
 
         print("http://config.privoxy.org/")
         print ("http://config.privoxy.org/show-status")
         print("http://config.privoxy.org/show-request")
         print("http://config.privoxy.org/show-url-info")
 
+
+
+    def start(self):
+
+        cmd="privoxy --no-daemon /etc/privoxy/config"
+        pm=self.cuisine.processmanager.get("tmux")
+        pm.ensure("privoxy",cmd)#in tmux will always restart
+
+        cmd="polipo -c /etc/polipo/config"
+        pm.ensure("polipo",cmd) #in tmux will always restart
 
     @actionrun(action=True)
     def installCacheProxy(self,storagemntpoint="/storage",btrfs=False):
@@ -350,9 +359,7 @@ class CuisineProxy:
 
         self.removeFromSystemD(force=False)
 
-        cmd="polipo -c /etc/polipo/config"
-        pm=self.cuisine.processmanager.get("tmux")
-        pm.ensure("polipo",cmd) #in tmux will always restart
+
 
 
 

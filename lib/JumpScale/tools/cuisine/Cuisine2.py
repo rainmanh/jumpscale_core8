@@ -17,7 +17,7 @@ from apps.CuisineApps import CuisineApps
 from CuisineBuilder import CuisineBuilder
 from CuisineGroup import CuisineGroup
 from CuisineGolang import CuisineGolang
-from CuisineFW import CuisineFW
+from CuisineUFW import CuisineUFW
 from CuisineDocker import CuisineDocker
 from ProcessManagerFactory import ProcessManagerFactory
 from CuisineSSHReflector import CuisineSSHReflector
@@ -29,6 +29,7 @@ from CuisineGeoDns import CuisineGeoDns
 from CuisineCore import CuisineCore
 from CuisinePNode import CuisinePNode
 from CuisineStor import CuisineStor
+from CuisineLua import CuisineLua
 
 class JSCuisine:
 
@@ -56,7 +57,7 @@ class JSCuisine:
         self._avahi=None
         self._tmux=None
         self._golang=None
-        self._fw=None
+        self._ufw=None
         self.cuisine=self
         self._fqn=""
         self._dnsmasq=None
@@ -72,7 +73,7 @@ class JSCuisine:
         self.bootmediaInstaller=CuisineBootMediaInstaller(self.executor,self)
         self.vrouter=CuisineVRouter(self.executor,self)
         self.tmux=CuisineTmux(self.executor,self)
-
+        self.lua=CuisineLua(self.executor,self)
         self.pnode=CuisinePNode(self.executor,self)
 
         self.stor = CuisineStor(self.executor,self)
@@ -106,10 +107,10 @@ class JSCuisine:
         return self._pip
 
     @property
-    def fw(self):
-        if self._fw==None:
-            self._fw=CuisineFW(self.executor,self)
-        return self._fw
+    def ufw(self):
+        if self._ufw==None:
+            self._ufw=CuisineUFW(self.executor,self)
+        return self._ufw
 
     @property
     def golang(self):

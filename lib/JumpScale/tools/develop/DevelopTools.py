@@ -292,7 +292,7 @@ class DevelopToolsFactory:
         j.actions.reset()
 
 
-    def syncCode(self, ask=False,monitor=False,rsyncdelete=False,reset=False):
+    def syncCode(self, ask=False,monitor=False,rsyncdelete=True,reset=False):
         """
         sync all code to the remote destinations
 

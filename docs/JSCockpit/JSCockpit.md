@@ -1,4 +1,5 @@
-## JSCockpit
+## Cockpit
 
-- a cockpit is our management solution which allows you to deploy self healing applications on top of existing clouds 
-- please read doc on https://gig.gitbooks.io/cockpit/content/
+The **Cockpit** is the JumpScale management solution for deploying self-healing applications.
+
+For more information check the [G8 Cockpit GitBook](https://gig.gitbooks.io/cockpit/content/).

@@ -88,9 +88,9 @@ class NodeBase(MonitorTools):
 
         if not dieOnError:
             with warn_only():
-                res = self.ssh.core.run(cmd)
+                _, res, _ = self.ssh.core.run(cmd)
         else:
-            res = self.ssh.core.run(cmd)
+            _, res, _ = self.ssh.core.run(cmd)
 
         return res
 

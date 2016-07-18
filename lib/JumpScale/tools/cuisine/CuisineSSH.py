@@ -61,17 +61,17 @@ class CuisineSSH:
         return done
 
     @actionrun(force=True)
-    def scan(self,range=None,ips={},port=22):
+    def scan(self, range=None, ips={}, port=22):
         """
         @param range in format 192.168.0.0/24
         if range not specified then will take all ranges of local ip addresses (nics)
         """
-        if range==None:
-            res=self.cuisine.net.get_info()
+        if not range:
+            res = self.cuisine.net.get_info()
             for item in res:
-                cidr=item['cidr']
+                cidr = item['cidr']
 
-                name=item['name']
+                name = item['name']
                 if not name.startswith("docker") and name not in ["lo"]:
                     if len(item['ip'])>0:
                         ip=item['ip'][0]
@@ -82,13 +82,13 @@ class CuisineSSH:
         else:
             try:
                 # out=self.cuisine.core.run("nmap -p 22 %s | grep for"%range,showout=False)
-                out=self.cuisine.core.run("nmap %s -p %s --open -oX $tmpDir/nmap"%(range,port),showout=False,force=False,action=True)
+                _, out, _ = self.cuisine.core.run("nmap %s -p %s --open -oX $tmpDir/nmap" % (range, port), showout=False, force=False, action=True)
             except Exception as e:
                 if str(e).find("command not found")!=-1:
                     self.cuisine.package.install("nmap")
                     # out=self.cuisine.core.run("nmap -p 22 %s | grep for"%range)
-                    out=self.cuisine.core.run("nmap %s -p %s --open -oX $tmpDir/nmap"%(range,port),showout=False,force=False,action=True)
-            out=self.cuisine.core.file_read("$tmpDir/nmap")
+                    _, out, _ = self.cuisine.core.run("nmap %s -p %s --open -oX $tmpDir/nmap" % (range, port), showout=False, force=False, action=True)
+            out = self.cuisine.core.file_read("$tmpDir/nmap")
             import xml.etree.ElementTree as ET
             root = ET.fromstring(out)
             for child in root:
@@ -125,7 +125,7 @@ class CuisineSSH:
         path='%s/.ssh/%s'%(home,name)
         if not self.cuisine.core.file_exists(path+".pub"):
             self.cuisine.core.dir_ensure(home + "/.ssh", mode="0700", owner=user, group=user)
-            
+
             self.cuisine.core.run("ssh-keygen -q -t %s -f %s -N ''" % (keytype, path))
             self.cuisine.core.file_attribs(path, owner=user, group=user)
             self.cuisine.core.file_attribs("%s.pub"%path, owner=user, group=user)
@@ -234,27 +234,25 @@ class CuisineSSH:
         """
         @path is path to private key
         """
-        print ("add ssh key to ssh-agent: %s"%path)
-        self.cuisine.core.run("ssh-add -d '%s'"%path,die=False,showout=False)
-        keys=self.cuisine.core.run("ssh-add -l",showout=False)
+        print("add ssh key to ssh-agent: %s" % path)
+        self.cuisine.core.run("ssh-add -d '%s'" % path, die=False, showout=False)
+        _, keys, _ = self.cuisine.core.run("ssh-add -l", showout=False)
         if path in keys:
             raise j.exceptions.RuntimeError("ssh-key is still loaded in ssh-agent, please remove manually")
-        self.cuisine.core.run("ssh-add '%s'"%path,showout=False)
+        self.cuisine.core.run("ssh-add '%s'" % path, showout=False)
 
     @actionrun(force=True)
-    def sshagent_remove(self,path):
+    def sshagent_remove(self, path):
         """
         @path is path to private key
         """
-        print ("remove ssh key to ssh-agent: %s"%path)
-        self.cuisine.core.run("ssh-add -d '%s'"%path,die=False,showout=False)
-        keys=self.cuisine.core.run("ssh-add -l",showout=False)
+        print("remove ssh key to ssh-agent: %s" % path)
+        self.cuisine.core.run("ssh-add -d '%s'" % path, die=False, showout=False)
+        _, keys, _ = self.cuisine.core.run("ssh-add -l", showout=False)
         if path in keys:
             raise j.exceptions.RuntimeError("ssh-key is still loaded in ssh-agent, please remove manually")
-
 
     def __str__(self):
         return "cuisine.ssh:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
 
-
-    __repr__=__str__
+    __repr__ = __str__

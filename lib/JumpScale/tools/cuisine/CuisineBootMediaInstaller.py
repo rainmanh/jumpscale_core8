@@ -57,7 +57,7 @@ class CuisineBootMediaInstaller:
 
     def _findDevices(self):
         devs = []
-        for line in self.cuisine.core.run("lsblk -b -o TYPE,NAME,SIZE").split("\n"):
+        for line in self.cuisine.core.run("lsblk -b -o TYPE,NAME,SIZE")[1].split("\n"):
             if line.startswith("disk"):
                 while line.find("  ") > 0:
                     line = line.replace("  ", " ")
@@ -119,7 +119,7 @@ class CuisineBootMediaInstaller:
     def ubuntu(self, platform="amd64",deviceid=None):
         """
         if platform none then it will use self.cuisine.node.hwplatform
-        
+
         example: hwplatform = rpi_2b, orangepi_plus,amd64
 
         """
@@ -135,27 +135,27 @@ class CuisineBootMediaInstaller:
     def debian(self, platform="orangepi_plus",deviceid=None):
         """
         if platform none then it will use self.cuisine.node.hwplatform
-        
+
         example: hwplatform = rpi_2b, orangepi_plus,amd64
 
-        """        
+        """
         if platform=="orangepi_plus":
             raise RuntimeError("not implemented")
         else:
-            raise j.exceptions.Input("platform not supported yet")        
+            raise j.exceptions.Input("platform not supported yet")
         # self.formatCardDeployImage(url, deviceid=deviceid)
 
     def arch(self, platform="rpi_2b",deviceid=None):
         """
         if platform none then it will use self.cuisine.node.hwplatform
-        
+
         example: hwplatform = rpi_2b, orangepi_plus,amd64
 
-        """        
+        """
         if platform=="rpi_2b":
             url = "http://archlinuxarm.org/os/ArchLinuxARM-rpi-2-latest.tar.gz"
         else:
-            raise j.exceptions.Input("platform not supported yet")        
+            raise j.exceptions.Input("platform not supported yet")
         self.formatCardDeployImage(url, deviceid=deviceid)
 
     def g8os_arm(self, url, gid, nid, deviceid=None):
@@ -180,7 +180,7 @@ class CuisineBootMediaInstaller:
     def g8os(self, gid, nid, platform="amd64", deviceid=None, url=None):
         """
         if platform none then it will use self.cuisine.node.hwplatform
-        
+
         example: hwplatform = rpi_2b, orangepi_plus,amd64
 
         """
@@ -201,7 +201,7 @@ class CuisineBootMediaInstaller:
         mkdir /dev/pts
         mount -t devpts none /dev/pts
         mount -o remount,rw /
-        
+
         source /etc/profile
         exec /usr/bin/core -gid {gid} -nid {nid} -roles g8os > /var/log/core.log 2>&1
         """
@@ -209,8 +209,8 @@ class CuisineBootMediaInstaller:
         def configure(deviceid):
             # get UUID of device
             import textwrap
-            bootuuid = self.cuisine.core.run('blkid /dev/%s1 -o value -s PARTUUID' % deviceid)
-            rootuuid = self.cuisine.core.run('blkid /dev/%s2 -o value -s PARTUUID' % deviceid)
+            _1, bootuuid, _1 = self.cuisine.core.run('blkid /dev/%s1 -o value -s PARTUUID' % deviceid)
+            _2, rootuuid, _2 = self.cuisine.core.run('blkid /dev/%s2 -o value -s PARTUUID' % deviceid)
 
             self.cuisine.core.run('mount -t sysfs none /mnt/root/sys')
             self.cuisine.core.run('mount -t devtmpfs none /mnt/root/dev')

@@ -263,7 +263,7 @@ class InstallTools():
                 cmd += "--rsync-path='mkdir -p %s && rsync' " % self.getParent(destpath)
             cmd += " '%s' '%s'" % (source, dest)
             print (cmd)
-            rc,out=self.execute(cmd)
+            rc, out, err=self.execute(cmd)
             print (rc)
             print (out)
             return
@@ -848,18 +848,18 @@ class InstallTools():
 
     #########NON FS
 
-    def download(self,url,to="",overwrite=True,retry=3,timeout=0,login="",passwd="",minspeed=0,multithread=False,curl=False):
+    def download(self, url, to="", overwrite=True, retry=3, timeout=0, login="", passwd="", minspeed=0, multithread=False, curl=False):
         """
         @return path of downloaded file
         @param minspeed is kbytes per sec e.g. 50, if less than 50 kbytes during 10 min it will restart the download (curl only)
         @param when multithread True then will use aria2 download tool to get multiple threads
         """
-        def download(url,to,retry=3):
-            if timeout==0:
+        def download(url, to, retry=3):
+            if timeout == 0:
                 handle = urlopen(url)
             else:
-                handle = urlopen(url,timeout=timeout)
-            nr=0
+                handle = urlopen(url, timeout=timeout)
+            nr = 0
             while nr < retry+1:
                 try:
                     with open(to, 'wb') as out:
@@ -871,7 +871,7 @@ class InstallTools():
                     out.close()
                     return
                 except Exception as e:
-                    print("DOWNLOAD ERROR:%s\n%s"%(url,e))
+                    print("DOWNLOAD ERROR:%s\n%s" % (url, e))
                     try:
                         handle.close()
                     except:
@@ -881,7 +881,7 @@ class InstallTools():
                     except:
                         pass
                     handle = urlopen(url)
-                    nr+=1
+                    nr += 1
 
 
         # os.chdir(self.TMP)
@@ -911,25 +911,25 @@ class InstallTools():
             else:
                 user=""
 
-            cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s"%(url,to,user,minsp,retry,timeout)
+            cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s" % (url, to, user, minsp, retry, timeout)
             if self.exists(to):
                 cmd += " -C -"
             print(cmd)
-            self.delete("%s.downloadok"%to)
-            rc, out = self.execute(cmd, die=False)
-            if rc == 33: # resume is not support try again withouth resume
+            self.delete("%s.downloadok" % to)
+            rc, out, err = self.execute(cmd, die=False)
+            if rc == 33:  # resume is not support try again withouth resume
                 self.delete(to)
-                cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s"%(url,to,user,minsp,retry,timeout)
-                rc, out = self.execute(cmd, die=False)
-            if rc > 0:
+                cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s" % (url, to, user, minsp, retry, timeout)
+                rc, out, err = self.execute(cmd, die=False)
+            if rc:
                 raise RuntimeError("Could not download:{}.\nErrorcode: {}".format(url, rc))
             else:
-                self.touch("%s.downloadok"%to)
+                self.touch("%s.downloadok" % to)
         elif multithread:
             raise RuntimeError("not implemented yet")
         else:
-            download(url,to,retry)
-            self.touch("%s.downloadok"%to)
+            download(url, to, retry)
+            self.touch("%s.downloadok" % to)
 
         return to
 
@@ -979,7 +979,7 @@ class InstallTools():
             if cmd.strip()=="" or cmd[0]=="#":
                 continue
             cmd=cmd.strip()
-            rc,out=self.execute(cmd, showout, outputStderr,useShell ,log,cwd,timeout,errors,ok,captureout,die)
+            rc, out, err = self.execute(cmd, showout, outputStderr,useShell ,log,cwd,timeout,errors,ok,captureout,die)
             rc_.append(str(rc))
             out_+=out
 
@@ -1065,7 +1065,7 @@ class InstallTools():
                 while not self.stream.closed and not self._stopped:
                     buf = ''
                     buf = self.stream.readline()
-                    if len(buf)>0:
+                    if len(buf) > 0:
                         self.queue.put((self.flag, buf))
                     else:
                         break
@@ -1081,11 +1081,11 @@ class InstallTools():
         outReader.start()
         errReader.start()
 
-        start=time.time()
+        start = time.time()
 
-        err=""
-        out=""
-        rc=1000
+        err = ""
+        out = ""
+        rc = 1000
 
         out_eof = False
         err_eof = False
@@ -1093,8 +1093,7 @@ class InstallTools():
         while not out_eof or not err_eof:
             # App still working
             try:
-                chan,line = inp.get(block=True, timeout = 1.0)
-                #print chan, line
+                chan, line = inp.get(block=True, timeout=1.0)
                 if chan == 'T':
                     if line == 'O':
                         out_eof = True
@@ -1124,7 +1123,7 @@ class InstallTools():
                     if outputStderr:
                         print(("E:%s"%line.strip()))
                     if captureout:
-                        err+=line
+                        err += line
 
             except queue.Empty:
                 pass
@@ -1133,27 +1132,22 @@ class InstallTools():
                     print("TIMEOUT")
                     rc=999
                     p.kill()
-
                     break
 
-        if rc!=999:
+        if rc != 999:
             outReader.join()
             errReader.join()
             p.wait()
-        if rc==1000:
+        if rc == 1000:
             rc = p.returncode
 
-
-        if rc>0 and die:
-            if err!="":
-                raise RuntimeError("Could not execute cmd:\n'%s'\nerr:\n%s"%(command,err))
+        if rc and die:
+            if err:
+                raise RuntimeError("Could not execute cmd:\n'%s'\nerr:\n%s" % (command,err))
             else:
-                raise RuntimeError("Could not execute cmd:\n'%s'\nout:\n%s"%(command,out))
+                raise RuntimeError("Could not execute cmd:\n'%s'\nout:\n%s" % (command, out))
 
-        if err!="" and combinestdr:
-            out=out+"\nSTDERR:\n"+err
-
-        return rc,out
+        return rc, out, err
 
     def executeInteractive(self,command):
         exitcode = os.system(command)
@@ -1458,22 +1452,21 @@ class InstallTools():
                 content=content.decode()
                 return content
         if die:
-            raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l"%keyname)
+            raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l" % keyname)
         return None
 
-
-    def listSSHKeyFromAgent(self,keyIncluded=False):
+    def listSSHKeyFromAgent(self, keyIncluded=False):
         """
         returns list of paths
         """
         if "SSH_AUTH_SOCK" not in os.environ:
             self._initSSH_ENV(True)
         cmd = "ssh-add -L"
-        rc, out = self.execute(cmd,False,False,die=False)
-        if rc != 0:
+        rc, out, err = self.execute(cmd, False, False, die=False)
+        if rc:
             if rc == 1 and out.find("The agent has no identities") != -1:
                 return []
-            raise RuntimeError("error during listing of keys :%s" % out)
+            raise RuntimeError("error during listing of keys :%s" % err)
         keys = [line.split() for line in out.splitlines() if len(line.split()) == 3]
         if keyIncluded:
             return list(map(lambda key: key[2:0:-1], keys))
@@ -1514,7 +1507,7 @@ class InstallTools():
                 keypathpub="/root/.ssh/id_rsa"
             else:
                 #get from ssh-agent
-                rc,out =self.execute("ssh-add -L")
+                rc, out, err =self.execute("ssh-add -L")
                 for line in out.split("\n"):
                     if line.endswith(".ssh/%s"%keyname):
                         keypathpub=self.getTmpPath(keyname)
@@ -1661,7 +1654,7 @@ class InstallTools():
     def checkSSHAgentAvailable(self):
         if "SSH_AUTH_SOCK" not in os.environ:
             self._initSSH_ENV(True)
-        rc,out = self.execute("ssh-add -l",showout=False, outputStderr=False,die=False)
+        rc, out, err = self.execute("ssh-add -l",showout=False, outputStderr=False,die=False)
         if rc!=0:
             return False
         else:
@@ -1776,7 +1769,7 @@ class InstallTools():
         elif branch is None and dest is not None and exists:
             # if we don't specify the branch, try to find the currently checkedout branch
             cmd = 'cd %s; git rev-parse --abbrev-ref HEAD' % dest
-            rc, out = self.execute(cmd, die=False, showout=False, executor=executor)
+            rc, out, err = self.execute(cmd, die=False, showout=False, executor=executor)
             if rc == 0:
                 branch = out.strip()
             else:  # if we can't retreive current branch, use master as default
@@ -1900,12 +1893,12 @@ class InstallTools():
             cmd="cd %s;git pull origin %s"%(path,branch)
             self.executeInteractive(cmd)
 
-    def getGitBranch(self,path):
+    def getGitBranch(self, path):
 
         # if we don't specify the branch, try to find the currently checkedout branch
         cmd = 'cd %s;git rev-parse --abbrev-ref HEAD' % path
         try:
-            rc, out = self.execute(cmd, showout=False, outputStderr=False)
+            rc, out, err = self.execute(cmd, showout=False, outputStderr=False)
             if rc == 0:
                 branch = out.strip()
             else:  # if we can't retreive current branch, use master as default

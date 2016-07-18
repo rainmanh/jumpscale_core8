@@ -103,19 +103,19 @@ class CuisineTmux:
         cmd = 'tmux list-sessions -F "#{session_name}"'
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        rc, out, err = self.executor.execute(cmd, die=False,showout=False)
-        if err:
-            out = ""
-        return [name.strip() for name in out.split()]
+        exitcode, output = self.executor.execute(cmd, die=False,showout=False)
+        if exitcode != 0:
+            output = ""
+        return [name.strip() for name in output.split()]
 
     def getPid(self, session, name, user=None):
         cmd = 'tmux list-panes -t "%s" -F "#{pane_pid};#{window_name}" -a' % session
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        rc, out, err = self.executor.execute(cmd, die=False,showout=False)
-        if err:
+        exitcode, output = self.executor.execute(cmd, die=False,showout=False)
+        if exitcode > 0:
             return None
-        for line in out.split():
+        for line in output.split():
             pid, windowname = line.split(';')
             if windowname == name:
                 return int(pid)
@@ -127,10 +127,10 @@ class CuisineTmux:
         cmd = 'tmux list-windows -F "#{window_index}:#{window_name}" -t "%s"' % session
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        rc, out, err = self.executor.execute(cmd, die=False,showout=False, checkok=False)
-        if err:
+        exitcode, output = self.executor.execute(cmd, die=False,showout=False, checkok=False)
+        if exitcode != 0:
             return result
-        for line in out.split():
+        for line in output.split():
             idx, name = line.split(':', 1)
             result[int(idx)] = name
         return result

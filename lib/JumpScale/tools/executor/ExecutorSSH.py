@@ -86,26 +86,28 @@ class ExecutorSSH(ExecutorBase):
         if env:
             self.env.update(env)
         self.logger.info("cmd: %s" % cmds)
-        cmds2 = self._transformCmds(cmds,die,checkok=checkok)
+        cmds2=self._transformCmds(cmds,die,checkok=checkok)
+
 
         if cmds.find("\n") != -1:
             if showout:
-                self.logger.info("EXECUTESCRIPT} %s:%s:\n%s" % (self.addr, self.port, cmds))
+                self.logger.info("EXECUTESCRIPT} %s:%s:\n%s"%(self.addr,self.port,cmds))
             else:
-                self.logger.debug("EXECUTESCRIPT} %s:%s:\n%s"%(self.addr, self.port, cmds))
-            rc, out = j.do.executeBashScript(content=cmds2, path=None, die=die, remote=self.addr, sshport=self.port)
+                self.logger.debug("EXECUTESCRIPT} %s:%s:\n%s"%(self.addr,self.port,cmds))
+            retcode,out=j.do.executeBashScript(content=cmds2,path=None,die=die,remote=self.addr,sshport=self.port)
         else:
             # online command, we use cuisine
             if showout:
-                self.logger.info("EXECUTE %s:%s: %s"%(self.addr, self.port, cmds))
+                self.logger.info("EXECUTE %s:%s: %s"%(self.addr,self.port,cmds))
             else:
-                self.logger.debug("EXECUTE %s:%s: %s"%(self.addr, self.port, cmds))
-            rc, out = self.sshclient.execute(cmds2, die=die, showout=showout, combinestdr=combinestdr)
+                self.logger.debug("EXECUTE %s:%s: %s"%(self.addr,self.port,cmds))
+            retcode,out=self.sshclient.execute(cmds2,die=die,showout=showout, combinestdr=combinestdr)
 
         if checkok and die:
-            self.docheckok(cmds, out)
+            self.docheckok(cmds,out)
 
-        return rc, out
+        return (retcode,out)
+
 
     def upload(self, source, dest, dest_prefix="",recursive=True, createdir=True):
 

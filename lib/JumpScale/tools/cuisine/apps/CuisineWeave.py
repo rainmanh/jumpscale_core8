@@ -44,14 +44,14 @@ class Weave:
             self.start(peer)
 
     def start(self, peer=None):
-        rc, out, err = self.cuisine.core.run("weave status", profile=True, die=False, showout=False)
+        rc, out = self.cuisine.core.run("weave status", profile=True, die=False, showout=False)
         if rc != 0:
             cmd = 'weave launch'
             if peer:
                 cmd += ' %s' % peer
             self.cuisine.core.run(cmd, profile=True)
 
-        _, env, _ = self.cuisine.core.run('weave env', profile=True)
+        env = self.cuisine.core.run('weave env', profile=True)
         ss = env[len('export'):].strip().split(' ')
         for entry in ss:
             splitted = entry.split('=')

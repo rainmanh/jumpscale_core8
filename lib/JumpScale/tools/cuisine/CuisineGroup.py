@@ -23,7 +23,7 @@ class CuisineGroup:
         '{"name":<str>,"gid":<str>}' if the group has no members
         or
         'None' if the group does not exists."""
-        _, data, _ = self.cuisine.core.run("getent group | egrep '^%s:' ; true" % (name))
+        data = self.cuisine.core.run("getent group | egrep '^%s:' ; true" % (name))
         if len(data.split(":")) == 4:
             name, _, gid, members = data.split(":", 4)
             return dict(name=name, gid=gid,
@@ -72,7 +72,7 @@ class CuisineGroup:
             """remove the given user from the given group."""
             assert self.check(group), "Group does not exist: %s" % (group)
             if self.user_check(group, user):
-                    for_user = self.cuisine.core.run("getent group | egrep -v '^%s:' | grep '%s' | awk -F':' '{print $1}' | grep -v %s; true" % (group, user, user))[1].splitlines()
+                    for_user = self.cuisine.core.run("getent group | egrep -v '^%s:' | grep '%s' | awk -F':' '{print $1}' | grep -v %s; true" % (group, user, user)).splitlines()
                     if for_user:
                             self.cuisine.core.sudo("usermod -G '%s' '%s'" % (",".join(for_user), user))
                     else:
@@ -84,7 +84,7 @@ class CuisineGroup:
         deletes its user as well.
         """
         assert self.check(group), "Group does not exist: %s" % (group)
-        _, members_of_group, _ = self.cuisine.core.run("getent group %s | awk -F':' '{print $4}'" % group)
+        members_of_group = self.cuisine.core.run("getent group %s | awk -F':' '{print $4}'" % group)
         members = members_of_group.split(",")
         is_primary_group = self.user_check(name=group)
         if wipe:

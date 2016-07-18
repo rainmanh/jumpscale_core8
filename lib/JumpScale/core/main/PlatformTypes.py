@@ -105,17 +105,19 @@ class PlatformType:
             self._platformtypes=[item for item in self._platformtypes if item!=""]
         return self._platformtypes
 
+
+
     @property
     def uname(self):
-        if not self._uname:
-            rc, self._uname, err = self.executor.execute("uname -mnprs", showout=False)
-            self._uname = self._uname.strip()
-            if self._uname.find("warning: setlocale") != -1:
-                j.application._fixlocale = True
-                os.environ["LC_ALL"] = 'C.UTF-8'
-                os.environ["TERMINFO"] = 'xterm-256colors'
-                self._uname = self._uname.split("\n")[0]
-            self._osname0, self._hostname0, self._version, self._cpu, self._platform = self.uname.split(" ")
+        if self._uname=="":
+            rc,self._uname=self.executor.execute("uname -mnprs",showout=False)
+            self._uname=self._uname.strip()
+            if self._uname.find("warning: setlocale")!=-1:
+                j.application._fixlocale=True
+                os.environ["LC_ALL"]='C.UTF-8'
+                os.environ["TERMINFO"]='xterm-256colors'
+                self._uname=self._uname.split("\n")[0]
+            self._osname0,self._hostname0,self._version,self._cpu,self._platform=self.uname.split(" ")
         return self._uname
 
     @property
@@ -155,7 +157,7 @@ class PlatformType:
             self._osname = self._osname0.lower()
             if self._osname not in ["darwin"] and not self._osname.startswith("cygwin"):
 
-                rc, lsbcontent, err = self.executor.cuisine.core.run("cat /etc/lsb-release", replaceArgs=False, action=False, showout=False, die=False)
+                rc, lsbcontent = self.executor.cuisine.core.run("cat /etc/lsb-release", replaceArgs=False, action=False, showout=False, die=False)
                 if rc == 0:
                     import re
                     try:
@@ -166,7 +168,7 @@ class PlatformType:
                 else:
                     pkgman2dist = {'pacman':'arch', 'apt-get': 'ubuntu', 'yum':'fedora'}
                     for pkgman, dist in pkgman2dist.items():
-                        rc, _, err = self.executor.cuisine.core.run("which %s" % pkgman, showout=False, replaceArgs=False, die=False,
+                        rc, _ = self.executor.cuisine.core.run("which %s" % pkgman, showout=False, replaceArgs=False, die=False,
                                                                action=False)
                         if rc == 0:
                             self._osname = pkgman2dist[pkgman]

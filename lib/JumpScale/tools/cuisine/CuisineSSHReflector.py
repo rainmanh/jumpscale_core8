@@ -69,7 +69,7 @@ class CuisineSSHReflector:
         self.cuisine.core.run("chmod 0644 /home/sshreflector/.ssh/*")
         self.cuisine.core.run("chown -R sshreflector:sshreflector /home/sshreflector/.ssh/")
 
-        _, cpath, _ = self.cuisine.core.run("which dropbear")
+        cpath=self.cuisine.core.run("which dropbear")
 
         cmd="%s -R -F -E -p 9222 -w -s -g -K 20 -I 60"%cpath
         self.cuisine.processmanager.ensure("reflector", cmd, descr='')
@@ -183,7 +183,7 @@ class CuisineSSHReflector:
             self.cuisine.core.run("ssh -i /root/.ssh/reflector -o StrictHostKeyChecking=no sshreflector@%s -p %s 'ls /'"%(rname,reflport))
             print ("OK")
 
-            _, cpath, _ = self.cuisine.core.run("which autossh")
+            cpath=self.cuisine.core.run("which autossh")
             cmd="%s -M 0 -N -o ExitOnForwardFailure=yes -o \"ServerAliveInterval 60\" -o \"ServerAliveCountMax 3\" -R %s:localhost:22 sshreflector@%s -p %s -i /root/.ssh/reflector"%(cpath,newport,rname,reflport)
             self.cuisine.processmanager.ensure("autossh_%s"%rname_short, cmd, descr='')
 

@@ -83,10 +83,10 @@ class CuisineUser:
         """
         assert name!=None or uid!=None,     "check: either `uid` or `name` should be given"
         assert name is None or uid is None,"check: `uid` and `name` both given, only one should be provided"
-        if name is not None:
-            _, d, _ = self.cuisine.core.run("getent passwd | egrep '^%s:' ; true" % (name))
-        elif uid is not None:
-            _, d, _ = self.cuisine.core.run("getent passwd | egrep '^.*:.*:%s:' ; true" % (uid))
+        if name != None:
+            d = self.cuisine.core.run("getent passwd | egrep '^%s:' ; true" % (name))
+        elif uid != None:
+            d = self.cuisine.core.run("getent passwd | egrep '^.*:.*:%s:' ; true" % (uid))
         results = {}
         s = None
         if d:

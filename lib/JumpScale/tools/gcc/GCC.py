@@ -107,7 +107,7 @@ class GCC_Mgmt():
             containers.append("%s:%s" % (node.addr, ssh_port))
 
             # needed cause weave already listen on port 53 on the host
-            _, ip, _ = node.cuisine.core.run("jsdocker getip -n %s" % name)
+            ip = node.cuisine.core.run("jsdocker getip -n %s" % name)
             node.cuisine.core.run("iptables -t nat -A PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination %s:53" % ip, action=True)
 
         j.core.db.set("gcc.docker_nodes", ','.join(containers))

@@ -18,7 +18,7 @@ class Avahi:
         b.cuisine=cuisine
         b.executor=executor
         return b
-
+        
     @actionrun(action=True)
     def install(self):
         if self.cuisine.core.isUbuntu:
@@ -140,7 +140,7 @@ class Avahi:
     @actionrun(force=True)
     def getServices(self):
         cmd = "avahi-browse -a -r -t"
-        result, output, err = self.cuisine.core.run(cmd,die=False,force=True)
+        result, output = self.cuisine.core.run(cmd,die=False,force=True)
         if result > 0:
             raise j.exceptions.RuntimeError(
                 "cannot use avahi command line to find services, please check avahi is installed on system (ubunutu apt-get install avahi-utils)\nCmd Used:%s" % cmd)
@@ -172,21 +172,21 @@ class Avahi:
     def resolveAddress(self, ipAddress):
         """
         Resolve the ip address to its hostname
-
+        
         @param ipAddress: the ip address to resolve
         @type ipAddress: string
-
+        
         @return: the hostname attached to the ip address
         """
         # do some validation
         if not j.sal.nettools.validateIpAddress(ipAddress):
             raise ValueError('Invalid Ip Address')
         cmd = 'avahi-resolve-address %s'
-        rc, out, err = self.cuisine.core.run(cmd % ipAddress, die=False, showout=False)
-        if rc or not out:  # if the ouput string is '' then something is wrong
+        exitCode, output = self.cuisine.core.run(cmd % ipAddress, die=False, showout=False)
+        if exitCode or not output:  # if the ouput string is '' then something is wrong
             raise j.exceptions.RuntimeError('Cannot resolve the hostname of ipaddress: %s' % ipAddress)
-        out = out.strip()
-        hostname = out.split('\t')[-1]
+        output = output.strip()
+        hostname = output.split('\t')[-1]
         # remove the trailing .local
         hostname = hostname.replace('.local', '')
         return hostname

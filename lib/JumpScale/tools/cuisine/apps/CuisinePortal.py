@@ -144,7 +144,7 @@ class CuisinePortal:
     @actionrun(action=True)
     def linkCode(self):
         self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        _, destjslib, _ = self.cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'", showout=False)
+        destjslib = self.cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'", showout=False)
 
         self.cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self.cuisine.core.dir_paths[
                                     "codeDir"], "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
@@ -212,8 +212,8 @@ class CuisinePortal:
 
     @actionrun(action=True)
     def changeEve(self):
-        path = self.cuisine.core.run("js --quiet 'print(j)'")[1]  # hack, make sure jumpscale has loaded lib before trying to print something
-        path = self.cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=False))'")[1]
+        path = self.cuisine.core.run("js --quiet 'print(j)'")  # hack, make sure jumpscale has loaded lib before trying to print something
+        path = self.cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=False))'")
         path = j.sal.fs.joinPaths(path, "eve_docs", "config.py")
         if not self.cuisine.core.file_exists(path):
             raise j.exceptions.RuntimeError("Cannot find:%s, to convert to python 3" % path)
@@ -251,11 +251,11 @@ class CuisinePortal:
         # wait for the admin user to be created by portal
         timeout = 60
         start = time.time()
-        resp = self.cuisine.core.run('jsuser list', showout=False, force=True)[1]
+        resp = self.cuisine.core.run('jsuser list', showout=False, force=True)
         while resp.find('admin') == -1 and start + timeout > time.time():
             try:
                 time.sleep(2)
-                resp = self.cuisine.core.run('jsuser list', showout=False, force=True)[1]
+                resp = self.cuisine.core.run('jsuser list', showout=False, force=True)
             except:
                 continue
 

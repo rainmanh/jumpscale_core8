@@ -141,7 +141,7 @@ class CuisineDocker:
             cmd += " --aysfs"
         self.cuisine.core.run(cmd, profile=True)
         cmd = "jsdocker list --name {name} --parsable".format(name=name)
-        _, out, _ = self.cuisine.core.run(cmd, profile=True)
+        out = self.cuisine.core.run(cmd, profile=True)
         info = j.data.serializer.json.loads(out)
 
         port = info[0]["port"]

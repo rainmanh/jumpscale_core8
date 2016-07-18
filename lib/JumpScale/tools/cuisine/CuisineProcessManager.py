@@ -33,7 +33,7 @@ class CuisineSystemd(ProcessManagerBase):
         @return [$name]
         """
         cmd='systemctl  --no-pager -l -t service list-unit-files'
-        out=self.cuisine.core.run(cmd,showout=False)[1]
+        out=self.cuisine.core.run(cmd,showout=False)
         p = re.compile(u"(?P<name>[\S]*).service *(?P<state>[\S]*)")
         result=[]
         for line in out.split("\n"):
@@ -143,7 +143,7 @@ class CuisineRunit(ProcessManagerBase):
 
         for service in self.cuisine.core.fs_find("/etc/service/", recursive=False)[1:]:
             service = service.split("/etc/service/")[1]
-            status = self.cuisine.core.run("sv  status /etc/service/%s" %service)[1].split(":")[0]
+            status = self.cuisine.core.run("sv  status /etc/service/%s" %service).split(":")[0]
             result.append(service)
         return result
 
@@ -178,7 +178,7 @@ exec $cmd
         #     self.cuisine.core.file_link( "/etc/getty-5", "/etc/service")
         self.cuisine.core.file_ensure("/etc/service/%s/run" % name,mode="+x")
         self.cuisine.core.file_write("/etc/service/%s/run" % name, sv_text)
-
+        
         # waiting for runsvdir to populate service directory monitor
         remain = 300
         while not self.cuisine.core.dir_exists("/etc/service/%s/supervise" % name):
@@ -186,7 +186,7 @@ exec $cmd
             if remain == 0:
                 self.logger.warn('/etc/service/%s/supervise: still not exists, check if runsvdir is running, start may fail.' % name)
                 break
-
+            
             time.sleep(0.2)
 
         self.start(name)
@@ -223,8 +223,8 @@ class CuisineTmuxec(ProcessManagerBase):
 
     def list(self,prefix=""):
         if self.cuisine.core.command_check("tmux"):
-            rc, result, err = self.cuisine.core.run("tmux lsw 2> /dev/null || true", profile=True, die=False)
-            if err:
+            rc, result = self.cuisine.core.run("tmux lsw 2> /dev/null || true", profile=True, die=False)
+            if rc > 0 :
                 return []
             res=result.splitlines()
             res=[item.split("(")[0] for item in res]

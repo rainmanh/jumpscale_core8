@@ -170,7 +170,7 @@ class MongoInstance(Startable):
         if self.private_port:
             args += " --port %s"%(self.private_port)
         if self.replica:
-            args += " --replSet %s" % (self.replica)
+            args += " --replSet %s" % (self.replica) 
         if self.configdb:
             args += " --configdb %s" % (self.configdb)
         return '$binDir/' + cmd + args
@@ -185,7 +185,7 @@ class MongoInstance(Startable):
     @Startable.ensure_started
     def execute(self, cmd):
         for i in range(5):
-            rc, out, err = self.cuisine.core.run("LC_ALL=C $binDir/mongo --port %s --eval '%s'"%(self.private_port ,cmd.replace("\\","\\\\").replace("'","\\'")), die=False)
+            rc, out = self.cuisine.core.run("LC_ALL=C $binDir/mongo --port %s --eval '%s'"%(self.private_port ,cmd.replace("\\","\\\\").replace("'","\\'")), die=False)
             if not rc and out.find('errmsg') == -1:
                 print('command executed %s'%(cmd))
                 break

@@ -81,10 +81,13 @@ class CuisinePackage:
             raise j.exceptions.RuntimeError("could not upgrade, platform not supported")
 
     @actionrun(action=True)
-    def install(self,package):
+    def install(self, package, allow_unauthenticated=False):
 
         if self.cuisine.core.isUbuntu:
-            cmd="apt-get install %s -y"%package
+            cmd = "apt-get install -y "
+            if allow_unauthenticated:
+                cmd += ' --allow-unauthenticated '
+            cmd += package
 
         elif self.cuisine.core.isArch:
             if package.startswith("python3"):
@@ -100,15 +103,15 @@ class CuisinePackage:
             if package in ["libpython3.4-dev", "python3.4-dev", "libpython3.5-dev", "python3.5-dev", "libffi-dev", "make", "build-essential", "libpq-dev", "libsqlite3-dev" ]:
                 return
 
-            installed = self.cuisine.core.run("brew list")
+            _, installed, _ = self.cuisine.core.run("brew list")
             if package in installed:
                 return #means was installed
-                
+
             # rc,out=self.cuisine.core.run("brew info --json=v1 %s"%package,showout=False,die=False)
             # if rc==0:
             #     info=j.data.serializer.json.loads(out)
             #     return #means was installed
-            
+
             if "wget" == package:
                 package = "%s --enable-iri" % package
 
@@ -118,7 +121,7 @@ class CuisinePackage:
             if package in ["sudo", "net-tools"]:
                 return
 
-            installed = self.cuisine.core.run("apt-cyg list&").splitlines()
+            installed= self.cuisine.core.run("apt-cyg list&")[1].splitlines()
             if package in installed:
                 return #means was installed
 
@@ -128,7 +131,7 @@ class CuisinePackage:
 
         mdupdate=False
         while True:
-            rc,out=self.cuisine.core.run(cmd,die=False)
+            rc, out, err = self.cuisine.core.run(cmd,die=False)
 
             if rc>0:
                 if mdupdate==True:
@@ -145,7 +148,7 @@ class CuisinePackage:
             return out
 
 
-    def multiInstall(self,packagelist):
+    def multiInstall(self, packagelist, allow_unauthenticated=False):
         """
         @param packagelist is text file and each line is name of package
 
@@ -164,7 +167,7 @@ class CuisinePackage:
             dep=dep.strip()
             if dep==None or dep=="":
                 continue
-            self.install(dep)
+            self.install(dep, allow_unauthenticated=allow_unauthenticated)
 
     @actionrun()
     def start(self,package):
@@ -185,7 +188,7 @@ class CuisinePackage:
                 if not p: continue
                 # The most reliable way to detect success is to use the command status
                 # and suffix it with OK. This won't break with other locales.
-                status = self.cuisine.core.run("dpkg-query -W -f='${Status} ' %s && echo **OK**;true" % p)
+                _, status, _ = self.cuisine.core.run("dpkg-query -W -f='${Status} ' %s && echo **OK**;true" % p)
                 if not status.endswith("OK") or "not-installed" in status:
                     self.install(p)
                     res[p]=False
@@ -226,12 +229,12 @@ class CuisinePackage:
                 self.cuisine.core.run("pacman -Qdttq",showout=False)
 
         elif self.cuisine.core.isMac:
-            if package:  
+            if package:
                 self.cuisine.core.run("brew cleanup %s" % package)
                 self.cuisine.core.run("brew remove %s" % package)
             else:
                 self.cuisine.core.run("brew cleanup")
-        
+
         elif self.cuisine.core.isCygwin:
             if package:
                 self.cuisine.core.run("apt-cyg remove %s" % package)

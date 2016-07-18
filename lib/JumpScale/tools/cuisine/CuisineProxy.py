@@ -75,7 +75,7 @@ class CuisineProxy:
             #enable-edit-actions 1
 
             # permit-access  192.168.45.64/26
-            # deny-access    192.168.45.73    www.dirty-stuff.example.com        
+            # deny-access    192.168.45.73    www.dirty-stuff.example.com
 
             #if proxy acl's to parent
             enable-proxy-authentication-forwarding 0
@@ -83,11 +83,11 @@ class CuisineProxy:
             #if parent
             #forward  / localhost:8123
             forward         192.168.*.*/     .
-            forward           localhost/     .  
+            forward           localhost/     .
 
             forwarded-connect-retries  0
 
-            accept-intercepted-requests 0      
+            accept-intercepted-requests 0
 
 
             keep-alive-timeout 5
@@ -143,8 +143,8 @@ class CuisineProxy:
             *.flac
             *tucows*
 
-            +filter{shockwave-flash} 
-            +filter{crude-parental} 
+            +filter{shockwave-flash}
+            +filter{crude-parental}
 
             { allow-all-cookies }
 
@@ -341,7 +341,7 @@ class CuisineProxy:
 
         self.cuisine.core.run("killall polipo",die=False)
 
-        cmd=self.cuisine.core.run("which polipo")
+        _, cmd, _ = self.cuisine.core.run("which polipo")
 
         print ("INSTALL OK")
         print ("to see status: point webbrowser to")

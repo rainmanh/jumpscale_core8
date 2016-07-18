@@ -161,7 +161,7 @@ class Sandboxer:
             callbackForMatchDir=callbackForMatchDir, callbackForMatchFile=callbackForMatchFile)
 
     def sandbox_python3(self):
-        j.tools.cuisine.local.builder.sandbox_python()   
+        j.tools.cuisine.local.builder.sandbox_python()
 
     def dedupe(self, path, storpath, name, excludeFiltersExt=["pyc","bak"],append=False,reset=False,removePrefix="",compress=True,delete=False,verify=True, excludeDirs=[]):
         def _calculatePaths(src, removePrefix):
@@ -234,9 +234,8 @@ class Sandboxer:
             out = "%s|%s|%s\n" % (src, md5, stat.st_size)
             return out
 
-
         if reset:
-            j.sal.fs.remove(storpath)
+            j.sal.fs.removeDirTree(storpath)
         storpath2 = j.sal.fs.joinPaths(storpath, "files")
         j.sal.fs.createDir(storpath2)
         j.sal.fs.createDir(j.sal.fs.joinPaths(storpath, "md"))

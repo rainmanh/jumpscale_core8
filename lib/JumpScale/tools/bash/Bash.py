@@ -44,7 +44,7 @@ class Profile:
             if item in [None,"${PATH}"]:
                 continue
             if item.strip()=="":
-                continue            
+                continue
             self.addPath(item)
 
         self._env.pop('PATH', None)
@@ -63,7 +63,7 @@ class Profile:
         path=path.replace("//","/")
         path=path.replace("//","/")
         path=path.rstrip("/")
-        if not path in self._includes:        
+        if not path in self._includes:
             self._includes.add(path)
 
     @property
@@ -133,13 +133,13 @@ class Bash:
     def environ(self):
         if self._environ=={}:
             res={}
-            for line in self.cuisine.core.run("printenv", profile=True, showout=False,force=True).splitlines():
+            for line in self.cuisine.core.run("printenv", profile=True, showout=False,force=True)[1].splitlines():
                 if '=' in line:
-                    name,val=line.split("=",1)
-                    name=name.strip()
-                    val=val.strip().strip("'").strip("\"")
-                    res[name]=val
-            self._environ=res
+                    name, val = line.split("=", 1)
+                    name = name.strip()
+                    val = val.strip().strip("'").strip("\"")
+                    res[name] = val
+            self._environ = res
         merge = self._environ.copy()
         merge.update(self.profile.environ)
         return merge
@@ -148,7 +148,7 @@ class Bash:
     def home(self):
         if not self._home:
             res={}
-            for line in self.cuisine.core.run("printenv", profile=False, showout=False,force=True).splitlines():
+            for line in self.cuisine.core.run("printenv", profile=False, showout=False,force=True)[1].splitlines():
                 if '=' in line:
                     name, val=line.split("=", 1)
                     name=name.strip()
@@ -198,15 +198,14 @@ class Bash:
         self.reset()
         return None
 
-
-    def cmdGetPath(self,cmd,die=True):
+    def cmdGetPath(self, cmd, die=True):
         """
         checks cmd Exists and returns the path
         """
-        rc,out=self.cuisine.core.run("which %s"%cmd,die=False,showout=False,action=False,profile=True, force=True)
-        if rc>0:
+        rc, out, err = self.cuisine.core.run("which %s" % cmd, die=False, showout=False, action=False, profile=True, force=True)
+        if rc > 0:
             if die:
-                raise j.exceptions.RuntimeError("Did not find command: %s"%cmd)
+                raise j.exceptions.RuntimeError("Did not find command: %s" % cmd)
             else:
                 return False
         return out.split("\n")[-1]
@@ -250,7 +249,7 @@ class Bash:
 
     @actionrun(action=True)
     def getLocaleItems(self,force=False):
-        out=self.cuisine.core.run("locale -a")
+        out = self.cuisine.core.run("locale -a")[1]
         return out.split("\n")
 
 
@@ -267,5 +266,5 @@ class Bash:
             return
 
         raise j.exceptions.Input("Cannot find C.UTF-8, cannot fix locale's")
-            
+
 

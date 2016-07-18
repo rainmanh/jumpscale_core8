@@ -6,55 +6,87 @@ import time, os, sys
 
 class MyFSEventHandler(FileSystemEventHandler):
 
-    def catch_all_handler(self, event):
+    def handler(self, event,action="copy"):
+        changedfile = event.src_path
         if event.is_directory:
-            return
-            # j.tools.develop.syncCode()
-        else:
-            changedfile = event.src_path
-            for node in j.tools.develop.nodes:
-                if node.cuisine.core.isJS8Sandbox:
-                    sep = "jumpscale_core8/lib/JumpScale/"
-                    sep_cmds = "jumpscale_core8/shellcmds/"
-                    if changedfile.find(sep) != -1:
-                        dest0 = changedfile.split(sep)[1]
-                        dest = "/opt/jumpscale8/lib/JumpScale/%s" % (dest0)
-                    elif changedfile.find(sep_cmds) != -1:
-                        dest0 = changedfile.split(sep_cmds)[1]
-                        dest = "/opt/jumpscale8/bin/%s" % (dest0)
-                    elif changedfile.find("/.git/") != -1:
-                        return
-                    elif changedfile.find("/__pycache__/") != -1:
-                        return
-                    elif j.sal.fs.getBaseName(changedfile) in ["InstallTools.py", "ExtraTools.py"]:
-                        base = j.sal.fs.getBaseName(changedfile)
-                        dest = "/opt/jumpscale8/lib/JumpScale/%s" % (base)
-                    else:
-                        destpart = changedfile.split("jumpscale/", 1)[-1]
-                        dest = "/opt/code/%s" % destpart
-                else:
-                    destpart = changedfile.split("code/", 1)[-1]
-                    dest = "/opt/code/%s" % destpart
+            if changedfile.find("/.git") != -1:
+                return
+            elif changedfile.find("/__pycache__/") != -1:
+                return
 
-                print("copy: %s %s:%s" % (changedfile, node, dest))
-                try:
-                    node.ftpclient.put(changedfile, dest)
-                except Exception as e:
-                    print(e)
-                    j.tools.develop.syncCode()
+            if event.event_type=="modified":
+                return
+            
+            j.tools.develop.syncCode()
+        else:
+            error=False
+            for node in j.tools.develop.nodes:
+                if error==False:
+                    if node.cuisine.core.isJS8Sandbox:
+                        sep = "jumpscale_core8/lib/JumpScale/"
+                        sep_cmds = "jumpscale_core8/shellcmds/"
+                        if changedfile.find(sep) != -1:
+                            dest0 = changedfile.split(sep)[1]
+                            dest = "/opt/jumpscale8/lib/JumpScale/%s" % (dest0)
+                        elif changedfile.find(sep_cmds) != -1:
+                            dest0 = changedfile.split(sep_cmds)[1]
+                            dest = "/opt/jumpscale8/bin/%s" % (dest0)
+                        elif changedfile.find("/.git/") != -1:
+                            return
+                        elif changedfile.find("/__pycache__/") != -1:
+                            return
+                        elif j.sal.fs.getBaseName(changedfile) in ["InstallTools.py", "ExtraTools.py"]:
+                            base = j.sal.fs.getBaseName(changedfile)
+                            dest = "/opt/jumpscale8/lib/JumpScale/%s" % (base)
+                        else:
+                            destpart = changedfile.split("jumpscale/", 1)[-1]
+                            dest = "/opt/code/%s" % destpart
+                    else:
+                        if changedfile.find("/.git/") != -1:
+                            return
+                        elif changedfile.find("/__pycache__/") != -1:
+                            return
+                        else:
+                            destpart = changedfile.split("code/", 1)[-1]
+                            dest = "/opt/code/%s" % destpart
+
+                    if action=="copy":
+                        print("copy: %s %s:%s" % (changedfile, node, dest))
+                        try:
+                            node.ftpclient.put(changedfile, dest)
+                        except Exception as e:
+                            error=True
+                    elif action=="delete":
+                        print("delete: %s %s:%s" % (changedfile, node, dest))
+                        try: 
+                            node.ftpclient.remove(dest)
+                        except Exception as e:
+                            if "No such file" in str(e):
+                                return
+                            else:
+                                raise RuntimeError(e)
+                    else:
+                        raise j.exceptions.RuntimeError("unsupported action:%s"%action)
+
+                    if error:
+                        print(e)
+                        j.tools.develop.syncCode()
+                        break
+
 
 
     def on_moved(self, event):
-        self.catch_all_handler(event)
+        j.tools.develop.syncCode()
+        self.handler(event,action="delete")
 
     def on_created(self, event):
-        self.catch_all_handler(event)
+        self.handler(event)
 
     def on_deleted(self, event):
-        self.catch_all_handler(event)
+        self.handler(event,action="delete")
 
     def on_modified(self, event):
-        self.catch_all_handler(event)
+        self.handler(event)
 
 class DebugSSHNode:
 
@@ -175,10 +207,20 @@ class DevelopToolsFactory:
         if j.data.types.string.check(nodes):
             nodes2=[]
             if "," in nodes:
-                nodes2= [item.strip() for item in nodes.split(",") if item.strip()!=""]
+                nodes2=[]
+                for it in nodes.split(","):
+                    it=it.strip()
+                    if it=="":
+                        continue
+                    if it not in nodes2:
+                        nodes2.append(it)
             else:
-                nodes2 = [nodes]            
+                if nodes.strip()=="":
+                    nodes2=[]
+                else:
+                    nodes2 = [nodes.strip()]            
             nodes=nodes2    
+
         if not j.data.types.list.check(nodes):
             raise j.exception.Input("nodes need to be list or string, got:%s"%nodes)
         
@@ -268,7 +310,14 @@ class DevelopToolsFactory:
         if reset:
             raise j.exceptions.RuntimeError("not implemented")
 
-        codepaths = j.core.db.get("debug.codepaths").decode().split(",")
+        codepaths = []
+        for it in j.core.db.get("debug.codepaths").decode().split(","):
+            it=it.strip()
+            if it=="":
+                continue
+            if it not in codepaths:
+                codepaths.append(it)
+            
         for source in codepaths:
             destpart = source.split("jumpscale/", 1)[-1]
             for node in self.nodes:
@@ -305,7 +354,7 @@ class DevelopToolsFactory:
                     raise j.exceptions.RuntimeError("only ssh nodes supported")
 
         if monitor:
-            self.monitorChanges()
+            self.monitorChanges(sync=False,reset=False)
 
     def monitorChanges(self,sync=True,reset=False):
         """

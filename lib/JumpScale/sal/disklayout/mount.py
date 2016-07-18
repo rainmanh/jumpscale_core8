@@ -1,7 +1,7 @@
 from JumpScale import j
 
-# class MountError(Exception):
-#     pass
+class MountError(Exception):
+    pass
 
 
 class Mount:
@@ -52,7 +52,7 @@ class Mount:
         Umount partition
         """
         try:
-            j.tools.executor.getLocal().execute(self._unmount)
+            j.tools.executor.getLocal().execute(self._umount)
             if self._autoClean:
                 j.tools.path.get(self.path).rmtree()
         except Exception as e:

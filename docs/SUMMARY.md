@@ -41,7 +41,7 @@
 * [Developers](Developers/Developers.md)
    * [ssh debug!](Developers/debugging_over_ssh.md) 
    * [best practices](Developers/best_practices.md)
-* [JSCockpit](JSCockpit/JSCockpit.md)
+* [Cockpit](JSCockpit/JSCockpit.md)
 * [SALs](SAL/SAL.md)
    * [FileSystem](SAL/FS.md)
    * [Docker](SAL/Docker.md)

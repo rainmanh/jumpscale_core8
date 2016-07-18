@@ -225,19 +225,17 @@ class AtYourServiceRepo():
             if path not in self._blueprints:
                 self._blueprints[path] = Blueprint(self, path=path)
 
-        list_bp = list(self._blueprints.values())
-        list_bp = sorted(list_bp, key=lambda bp: bp.name)
-        return list_bp
-
     @property
     def blueprints(self):
         """
         only shows the ones which are on predefined location
         """
         bps = []
-        for path,bp in self._blueprints.items():
+        for path, bp in self._blueprints.items():
             if bp.active:
                 bps.append(bp)
+
+        bps = sorted(bps, key=lambda bp: bp.name)
         return bps
 
 
@@ -250,6 +248,7 @@ class AtYourServiceRepo():
         for path,bp in self._blueprints.items():
             if bp.active==False:
                 bps.append(bp)
+        bps = sorted(bps, key=lambda bp: bp.name)
         return bps
 
     def archive_blueprint(self, bp):
@@ -530,18 +529,24 @@ class AtYourServiceRepo():
         print(run)
         run.execute()
 
-    def uninstall(self, role="", instance="", force=True, producerRoles="*"):
+    def uninstall(self, role="", instance="", force=True, producerRoles="*", printonly=False):
         self._doinit()
         if force:
             self.setState(actions=["stop", "uninstall"], role=role, instance=instance, state='DO')
 
         run = self.getRun(action="stop", force=force)
+        run.steps.reverse()
         print("RUN:STOP")
         print(run)
-        run.execute()
+        if not printonly:
+            run.execute()
+
         run = self.getRun(role=role, instance=instance, action="uninstall", force=force)
+        run.steps.reverse()
         print("RUN:UNINSTALL")
         print(run)
+        if not printonly:
+            run.execute()
         run.execute()
 
         # scope=self.findProducersScope(role=role,instance=instance,actions=["stop"])

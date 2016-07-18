@@ -33,11 +33,11 @@ class BtrfsExtension:
         self.__listpattern = re.compile("^ID (?P<id>\d+).+?path (?P<name>.+)$", re.MULTILINE)
         self._executor = j.tools.executor.getLocal()
 
-    def __btrfs(self, command, action, *args):
+    def __btrfs(self, command, action,*args):
         cmd = "%s %s %s %s" % (BASECMD, command, action, " ".join(['"%s"' % a for a in args]))
         code, out = self._executor.execute(cmd, die=False)
 
-        if code:
+        if code>0:            
             raise j.exceptions.RuntimeError(out)
 
         return out
@@ -88,6 +88,7 @@ class BtrfsExtension:
         result = []
         for m in self.__listpattern.finditer(out):
             item = m.groupdict()
+            # subpath=j.sal.fs.pathRemoveDirPart(item["name"].lstrip("/"),path.lstrip("/"))
             path2 = path + "/" + item["name"]
             path2 = path2.replace("//", "/")
             if item["name"].startswith("@"):
@@ -95,7 +96,7 @@ class BtrfsExtension:
             if filter != "":
                 if path2.find(filter) == -1:
                     continue
-            result.append((item["name"], path2))
+            result.append(path2)
         return result
 
     def subvolumesDelete(self, path, filter=""):
@@ -103,9 +104,12 @@ class BtrfsExtension:
         delete all subvols starting from path
         filter e.g. /docker/
         """
-        for id, path2 in self.subvolumeList(path, filter=filter):
+        for path2 in self.subvolumeList(path, filter=filter):
             print ("delete:%s" % path2)
-            self.subvolumeDelete(path2)
+            try:
+                self.subvolumeDelete(path2)
+            except:
+                pass
 
     def deviceAdd(self, path, dev):
         """

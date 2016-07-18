@@ -43,7 +43,7 @@ def lsblk(device=None):
         command = COMMAND
         if device:
             command = '%s %s' % (COMMAND, device)
-        rc, output = _executor.execute(command)
+        rc, output, err = _executor.execute(command)
     except Exception as e:
         raise LsblkError(e)
 

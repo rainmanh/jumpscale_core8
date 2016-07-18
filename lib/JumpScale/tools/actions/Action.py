@@ -537,12 +537,12 @@ class Action:
 
         j.actions.addToStack(self)
 
-        if self.state == "OK" and self.force==False:
+        if self.state == "OK" and not self.force:
             if self.actionshow:
                 self.logger.info("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
             j.actions.delFromStack(self)
             return
-            
+
 
         self.logger.info("  * %-20s: %s" % (self.name, self._args10line))
 

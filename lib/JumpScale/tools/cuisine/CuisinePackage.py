@@ -121,7 +121,7 @@ class CuisinePackage:
             if package in ["sudo", "net-tools"]:
                 return
 
-            installed = self.cuisine.core.run("apt-cyg list&").splitlines()
+            _, installed, _ = self.cuisine.core.run("apt-cyg list&")[1].splitlines()
             if package in installed:
                 return #means was installed
 
@@ -229,12 +229,12 @@ class CuisinePackage:
                 self.cuisine.core.run("pacman -Qdttq",showout=False)
 
         elif self.cuisine.core.isMac:
-            if package:  
+            if package:
                 self.cuisine.core.run("brew cleanup %s" % package)
                 self.cuisine.core.run("brew remove %s" % package)
             else:
                 self.cuisine.core.run("brew cleanup")
-        
+
         elif self.cuisine.core.isCygwin:
             if package:
                 self.cuisine.core.run("apt-cyg remove %s" % package)

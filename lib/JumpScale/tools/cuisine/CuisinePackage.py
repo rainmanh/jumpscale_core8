@@ -103,7 +103,7 @@ class CuisinePackage:
             if package in ["libpython3.4-dev", "python3.4-dev", "libpython3.5-dev", "python3.5-dev", "libffi-dev", "make", "build-essential", "libpq-dev", "libsqlite3-dev" ]:
                 return
 
-            installed = self.cuisine.core.run("brew list")
+            _, installed, _ = self.cuisine.core.run("brew list")
             if package in installed:
                 return #means was installed
 
@@ -131,7 +131,7 @@ class CuisinePackage:
 
         mdupdate=False
         while True:
-            rc,out=self.cuisine.core.run(cmd,die=False)
+            rc, out, err = self.cuisine.core.run(cmd,die=False)
 
             if rc>0:
                 if mdupdate==True:
@@ -188,7 +188,7 @@ class CuisinePackage:
                 if not p: continue
                 # The most reliable way to detect success is to use the command status
                 # and suffix it with OK. This won't break with other locales.
-                status = self.cuisine.core.run("dpkg-query -W -f='${Status} ' %s && echo **OK**;true" % p)
+                _, status, _ = self.cuisine.core.run("dpkg-query -W -f='${Status} ' %s && echo **OK**;true" % p)
                 if not status.endswith("OK") or "not-installed" in status:
                     self.install(p)
                     res[p]=False

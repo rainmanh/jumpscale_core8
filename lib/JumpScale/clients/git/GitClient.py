@@ -96,7 +96,7 @@ class GitClient:
 
     def hasModifiedFiles(self):
         cmd = "cd %s;git status --porcelain" % self.baseDir
-        rc, out = j.tools.cuisine.local.core.run(cmd, die=False)
+        rc, out, err = j.tools.cuisine.local.core.run(cmd, die=False)
         for item in out.split("\n"):
             item = item.strip()
             if item == '':
@@ -119,7 +119,7 @@ class GitClient:
 
 
         cmd = "cd %s;git status --porcelain" % self.baseDir
-        rc, out = j.tools.cuisine.local.core.run(cmd)
+        rc, out, err = j.tools.cuisine.local.core.run(cmd)
         for item in out.split("\n"):
             item = item.strip()
             if item == '':

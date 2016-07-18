@@ -139,8 +139,8 @@ class Ubuntu:
         list files of dpkg
         if regex used only output the ones who are matching regex
         """
-        rc, out = self._local.execute("dpkg -L %s" % pkgname)
-        if regex!="":
+        rc, out, err = self._local.execute("dpkg -L %s" % pkgname)
+        if regex != "":
             return j.tools.code.regex.findAll(regex, out)
         else:
             return out.split("\n")

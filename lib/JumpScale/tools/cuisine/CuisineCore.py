@@ -1031,7 +1031,7 @@ class CuisineCore:
 
         if '"' in cmd:
             cmd = cmd.replace('"', '\\"')
-            
+
         if "cygwin" in self.executor.execute("uname -a", showout=False)[1].lower():
             self.sudomode = False
 
@@ -1104,21 +1104,7 @@ class CuisineCore:
             print('Output: %s' % out)
             print('Error: %s' % err)
 
-        class OutpuMap:
-            def __init__(self, rc, out, err):
-                self.rc = rc
-                self.out = out
-                self.err = err
-
-            def __iter__(self):
-                return iter((self.rc, self.out, self.err))
-
-            def __str__(self):
-                return self.out
-
-            __repr__ = __str__
-
-        return OutpuMap(rc, out, err)
+        return rc, out, err
 
     def cd(self,path):
         path=self.args_replace(path)

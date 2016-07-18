@@ -302,7 +302,8 @@ class SSHClient:
         if rc and die:
             raise j.exceptions.RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, out, err))
 
-        self.logger.error(err)
+        if err:
+            self.logger.error(err)
         return rc, out, err
 
     def close(self):

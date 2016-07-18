@@ -17,6 +17,7 @@ class CuisineGit:
             dest = self.cuisine.core.args_replace(dest)
 
         self.cuisine.core.dir_ensure(dest,force=False)
+        self.cuisine.core.dir_ensure('$homeDir/.ssh')
         keys = self.cuisine.core.run("ssh-keyscan -H github.com",force=False)[1]
         self.cuisine.core.file_append("$homeDir/.ssh/known_hosts", keys)
         self.cuisine.core.file_attribs("$homeDir/.ssh/known_hosts", mode=600)

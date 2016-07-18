@@ -121,7 +121,7 @@ class CuisinePackage:
             if package in ["sudo", "net-tools"]:
                 return
 
-            _, installed, _ = self.cuisine.core.run("apt-cyg list&")[1].splitlines()
+            installed= self.cuisine.core.run("apt-cyg list&")[1].splitlines()
             if package in installed:
                 return #means was installed
 

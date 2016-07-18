@@ -419,7 +419,7 @@ class InstallTools():
         if checkJunction and self.isWindows():
             cmd="junction %s" % path
             try:
-                rc, result = self.execute(cmd)
+                rc, result, err = self.execute(cmd)
             except Exception as e:
                 raise RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s."%cmd)
             if rc != 0:
@@ -967,9 +967,9 @@ class InstallTools():
         if remote!=None:
             tmppathdest="/tmp/do.sh"
             self.execute("scp -P %s %s root@%s:%s "%(sshport,path2,remote,tmppathdest),die=die)
-            res=self.execute("ssh -A -p %s root@%s 'bash %s'"%(sshport,remote,tmppathdest),die=die)
+            _, res, _ = self.execute("ssh -A -p %s root@%s 'bash %s'"%(sshport,remote,tmppathdest),die=die)
         else:
-            res=self.execute("bash %s"%path2,die=die,  showout=showout, outputStderr=outputStderr)
+            _, res, _= self.execute("bash %s"%path2,die=die,  showout=showout, outputStderr=outputStderr)
         return res
 
     def executeCmds(self,cmdstr, showout=True, outputStderr=True,useShell = True,log=True,cwd=None,timeout=120,errors=[],ok=[],captureout=True,die=True):
@@ -1311,7 +1311,7 @@ class InstallTools():
     def whoami(self):
         if self._whoami!=None:
             return self._whoami
-        rc, result =self.execute("whoami",die=False,showout=False, outputStderr=False)
+        rc, result, err =self.execute("whoami",die=False,showout=False, outputStderr=False)
         if rc>0:
             #could not start ssh-agent
             raise RuntimeError("Could not call whoami,\nstdout:%s\nstderr:%s\n"%(result,err))
@@ -1611,7 +1611,7 @@ class InstallTools():
         if not self.exists(socketpath):
             #ssh-agent not loaded
             print("load ssh agent")
-            rc,result = self.execute("ssh-agent -a %s"%socketpath,die=False,showout=False, outputStderr=False)
+            rc, result, err = self.execute("ssh-agent -a %s"%socketpath,die=False,showout=False, outputStderr=False)
 
             if rc>0:
                 #could not start ssh-agent
@@ -1639,7 +1639,7 @@ class InstallTools():
         # pid=int(self.readFile(self.joinPaths(self.TMP,"ssh-agent-pid")))
         if os.environ.get("SSH_AUTH_SOCK") != socketpath:
             self._initSSH_ENV(True)
-        rc,result = self.execute("ssh-add -l",die=False,showout=False, outputStderr=False)
+        rc, result, err = self.execute("ssh-add -l",die=False,showout=False, outputStderr=False)
         if rc==2:#>0 and err.find("not open a connection")!=-1:
             #no ssh-agent found\
             print(result)
@@ -1835,7 +1835,7 @@ class InstallTools():
         """
         @param cmdname is cmd to check e.g. curl
         """
-        res = self.execute("which %s" % cmdname, False)
+        _, res, _ = self.execute("which %s" % cmdname, False)
         if res[0] == 0:
             return True
         else:
@@ -2142,7 +2142,7 @@ class Installer():
         src = "%s/github/jumpscale/jumpscale_core8/install/_ays"%do.CODEDIR
         dest="/etc/bash_completion.d/_ays"
         do.symlink(src,dest)
-        
+
         #link python
         src="/usr/bin/python3.5"
         if do.exists(src):

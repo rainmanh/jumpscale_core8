@@ -38,7 +38,7 @@ class SSHClientFactory:
                     return False
 
             self.cache[key]=cl
-            
+
 
         return self.cache[key]
 
@@ -202,7 +202,7 @@ class SSHClient:
 
         return True
 
-    def execute(self, cmd, showout=True, die=True, combinestdr=False):
+    def execute(self, cmd, showout=True, die=True):
         """
         run cmd & return
         return: (retcode,out_err)
@@ -297,23 +297,13 @@ class SSHClient:
         stdout.close()
         stderr.close()
 
-        retcode = ch.recv_exit_status()
+        rc = ch.recv_exit_status()
 
-        # can happend that some command only output on stderr but we still want to retreive the output.
-        # if return code is valid we use stderr as output value
-        if retcode == 0 and out == '' and len(err) > 0:
-            out = err
+        if rc and die:
+            raise j.exceptions.RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, out, err))
 
-        if combinestdr and err.strip():
-            out = "%s\nSTDERR:%s"%(out, err)
-        if retcode > 0:
-            if die:
-                raise j.exceptions.RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, out, err))
-            else:
-                self.logger.error(err)
-                out = err
-
-        return (retcode, out)
+        self.logger.error(err)
+        return rc, out, err
 
     def close(self):
         if self.client is not None:

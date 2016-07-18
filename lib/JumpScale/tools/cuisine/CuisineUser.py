@@ -29,7 +29,7 @@ class CuisineUser:
         name = name.strip()
         passwd = passwd.strip()
 
-        encoded_password = crypt.crypt(passwd)
+        encoded_password = j.sal.unix.crypt(passwd)
         if encrypted_passwd:
             self.cuisine.core.sudo("usermod -p '%s' %s" % (encoded_password, name))
         else:

@@ -1090,7 +1090,7 @@ class CuisineCore:
                             next = True
 
                 if next:
-                    rc, out, err = self.executor.execute(cmd, checkok=checkok, die=False, combinestdr=False, showout=showout, env=env)
+                    rc, out, err = self.executor.execute(cmd, checkok=checkok, die=False, showout=showout, env=env)
 
         if debug:
             self.executor.debug = debugremember

@@ -77,7 +77,7 @@ class ExecutorSSH(ExecutorBase):
 
         return self._sshclient
 
-    def execute(self, cmds, die=True,checkok=None, async=False, showout=True, combinestdr=True,timeout=0, env={}):
+    def execute(self, cmds, die=True,checkok=None, async=False, showout=True,timeout=0, env={}):
         """
         @param naked means will not manipulate cmd's to show output in different way
         @param async is not used method, but is only used for interface comaptibility
@@ -100,12 +100,12 @@ class ExecutorSSH(ExecutorBase):
                 self.logger.info("EXECUTE %s:%s: %s"%(self.addr, self.port, cmds))
             else:
                 self.logger.debug("EXECUTE %s:%s: %s"%(self.addr, self.port, cmds))
-            rc, out = self.sshclient.execute(cmds2, die=die, showout=showout, combinestdr=combinestdr)
+            rc, out, err = self.sshclient.execute(cmds2, die=die, showout=showout)
 
         if checkok and die:
             self.docheckok(cmds, out)
 
-        return rc, out
+        return rc, out, err
 
     def upload(self, source, dest, dest_prefix="",recursive=True, createdir=True):
 

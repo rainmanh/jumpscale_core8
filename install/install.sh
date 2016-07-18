@@ -83,6 +83,7 @@ elif [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
     #ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     export LANG=C; export LC_ALL=C
     apt-cyg install curl
+    apt-cyg install openssl-devel
     apt-cyg install wget 
     apt-cyg install python3
     apt-cyg install make

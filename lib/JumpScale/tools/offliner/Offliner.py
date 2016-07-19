@@ -48,8 +48,8 @@ class Offliner:
             cmd+="cd %s;"%dest
             j.sal.fs.createDir(dest)
 
-        cmd+="wget ‐‐execute robots=off --recursive --no-clobber --page-requisites --html-extension --convert-links"
-        cmd+=" --restrict-file-names=windows ‐‐continue ‐‐user-agent=Mozilla"
+        cmd+="wget --execute robots=off --recursive --no-clobber --page-requisites --html-extension --convert-links"
+        cmd+=" --restrict-file-names=windows --continue --user-agent=Mozilla"
         cmd+=" --no-parent"
         cmd+=" -l %s"%level
         if docElementsOnly:
@@ -90,7 +90,7 @@ class Offliner:
 
 
     def getPDFs(self,url,dest=""):
-        "‐‐accept=pdf"
+        "--accept=pdf"
 
 
     # def getSites(self,urls,dest="",level=5,docElementsOnly=True,restrictToDomain=True):

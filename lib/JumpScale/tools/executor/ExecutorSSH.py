@@ -93,7 +93,7 @@ class ExecutorSSH(ExecutorBase):
                 self.logger.info("EXECUTESCRIPT} %s:%s:\n%s" % (self.addr, self.port, cmds))
             else:
                 self.logger.debug("EXECUTESCRIPT} %s:%s:\n%s"%(self.addr, self.port, cmds))
-            rc, out = j.do.executeBashScript(content=cmds2, path=None, die=die, remote=self.addr, sshport=self.port)
+            rc, out, err = j.do.executeBashScript(content=cmds2, path=None, die=die, remote=self.addr, sshport=self.port)
         else:
             # online command, we use cuisine
             if showout:

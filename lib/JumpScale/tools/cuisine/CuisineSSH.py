@@ -23,10 +23,9 @@ class CuisineSSH:
         login="root"
         res=[]
         for item in self.scan(range=range):
-            print ("test for login/passwd on %s"%item)
-            client=j.clients.ssh.get(item,port,login,passwd)
+            print ("test for login/passwd on %s"%item)            
             try:
-                testoutput=client.connectTest(timeout=1,die=False)
+                client = j.clients.ssh.get(item, port, login, passwd, timeout=1, die=False)
             except Exception as e:
                 print ("  NOT OK")
                 continue

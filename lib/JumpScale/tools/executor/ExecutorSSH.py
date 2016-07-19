@@ -58,7 +58,7 @@ class ExecutorSSH(ExecutorBase):
     @property
     def sshclient(self):
         if self._sshclient==None:
-            self._sshclient=j.clients.ssh.get(self.addr,self.port,login=self.login,passwd=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys, timeout=self.timeout)
+            self._sshclient=j.clients.ssh.get(self.addr, self.port, login=self.login, passwd=self.passwd, allow_agent=self.allow_agent, look_for_keys=self.look_for_keys, timeout=self.timeout, key_filename=self.pushkey)
             if self.pushkey is not None:
                 #lets push the ssh key as specified
                 if j.sal.fs.exists(self.pushkey):
@@ -93,7 +93,8 @@ class ExecutorSSH(ExecutorBase):
                 self.logger.info("EXECUTESCRIPT} %s:%s:\n%s" % (self.addr, self.port, cmds))
             else:
                 self.logger.debug("EXECUTESCRIPT} %s:%s:\n%s"%(self.addr, self.port, cmds))
-            rc, out, err = j.do.executeBashScript(content=cmds2, path=None, die=die, remote=self.addr, sshport=self.port)
+            sshkey = self.sshclient.key_filename or ""
+            rc, out, err = j.do.executeBashScript(content=cmds2, path=None, die=die, remote=self.addr, sshport=self.port, sshkey=sshkey)
         else:
             # online command, we use cuisine
             if showout:

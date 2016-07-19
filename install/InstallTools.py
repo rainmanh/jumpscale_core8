@@ -943,7 +943,7 @@ class InstallTools():
             return True
         return False
 
-    def executeBashScript(self,content="",path=None,die=True,remote=None,sshport=22,  showout=True, outputStderr=True):
+    def executeBashScript(self,content="",path=None,die=True,remote=None,sshport=22, showout=True, outputStderr=True, sshkey=""):
         """
         @param remote can be ip addr or hostname of remote, if given will execute cmds there
         """
@@ -966,8 +966,12 @@ class InstallTools():
 
         if remote!=None:
             tmppathdest="/tmp/do.sh"
-            self.execute("scp -P %s %s root@%s:%s "%(sshport,path2,remote,tmppathdest),die=die)
-            rc, res, err = self.execute("ssh -A -p %s root@%s 'bash %s'"%(sshport,remote,tmppathdest),die=die)
+            if sshkey:
+                if not self.getSSHKeyPathFromAgent(sshkey, die=False):
+                    self.execute('ssh-add %s' % sshkey)
+                sshkey = '-i %s ' % sshkey.replace('!', '\!')
+            self.execute("scp %s -oStrictHostKeyChecking=no -P %s %s root@%s:%s "%(sshkey, sshport, path2, remote, tmppathdest), die=die)
+            rc, res, err = self.execute("ssh %s -oStrictHostKeyChecking=no -A -p %s root@%s 'bash %s'" % (sshkey, sshport, remote, tmppathdest), die=die)
         else:
             rc, res, err = self.execute("bash %s"%path2,die=die,  showout=showout, outputStderr=outputStderr)
         return rc, res, err
@@ -1011,7 +1015,7 @@ class InstallTools():
         s.quit()
 
     def execute(self, command , showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[], \
-                        ok=[], captureout=True, die=True, async=False, executor=None, combinestdr=False):
+                        ok=[], captureout=True, die=True, async=False, executor=None):
         """
         @param errors is array of statements if found then exit as error
         return rc,out
@@ -1398,12 +1402,6 @@ class InstallTools():
 
             keys=self.listFilesInDir(path,filter="*.pub")
 
-            if len(keys)>4:
-                if die:
-                    raise RuntimeError("Found too many sshkeys in dir:%s"%path)
-                else:
-                    print("WARNING could not load SSH keys, there were more than 4 in %s"%path)
-                    return
 
             keysloaded=self.listSSHKeyFromAgent()
             for keypath in keys:

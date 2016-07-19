@@ -1011,7 +1011,7 @@ class InstallTools():
         s.quit()
 
     def execute(self, command , showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[], \
-                        ok=[], captureout=True, die=True, async=False, executor=None, combinestdr=False):
+                        ok=[], captureout=True, die=True, async=False, executor=None):
         """
         @param errors is array of statements if found then exit as error
         return rc,out
@@ -1020,7 +1020,7 @@ class InstallTools():
         # print "EXEC:"
         # print command
         if executor:
-            return executor.execute(command, die=die, checkok=False, async=async,  showout=True, combinestdr=combinestdr, timeout=timeout)
+            return executor.execute(command, die=die, checkok=False, async=async,  showout=True, timeout=timeout)
         os.environ["PYTHONUNBUFFERED"]="1"
         ON_POSIX = 'posix' in sys.builtin_module_names
 

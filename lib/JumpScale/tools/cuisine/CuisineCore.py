@@ -483,26 +483,24 @@ class CuisineCore:
         frame = self.file_base64(location)
         return base64.decodebytes(frame.encode()).decode()
 
+    def _check_is_ok(self, cmd, location):
+        location = self.args_replace(location)
+        cmd += ' %s' % location
+        rc, out, err = self.run(cmd, showout=False, die=False)
+        return not rc
 
-    def file_exists(self,location):
+    def file_exists(self, location):
         """Tests if there is a *remote* file at the given location."""
-        location=self.args_replace(location)
-        return self.run('test -e %s && echo **OK** ; true' % (location),showout=False,check_is_ok=True)
+        return self._check_is_ok('test -e', location)
 
+    def file_is_file(self, location):
+        return self._check_is_ok('test -f', location)
 
-    def file_is_file(self,location):
-        location=self.args_replace(location)
-        return self.run("test -f %s && echo **OK** ; true" % (location),showout=False,check_is_ok=True)
+    def file_is_dir(self, location):
+        return self._check_is_ok('test -d', location)
 
-
-    def file_is_dir(self,location):
-        location=self.args_replace(location)
-        return self.run("test -d %s && echo **OK** ; true" % (location),showout=False,check_is_ok=True)
-
-
-    def file_is_link(self,location):
-        location=self.args_replace(location)
-        return self.run("test -L %s && echo **OK** ; true" % (location),showout=False,check_is_ok=True)
+    def file_is_link(self, location):
+        return self._check_is_ok('test -L', location)
 
 
     def file_attribs(self,location, mode=None, owner=None, group=None):
@@ -817,7 +815,7 @@ class CuisineCore:
     def file_base64(self, location):
         """Returns the base64-encoded content of the file at the given location."""
         location = self.args_replace(location)
-        return self.run("cat {0} | base64".format(shell_safe((location))),debug=False,checkok=False,showout=False, combinestdr=False)[1]
+        return self.run("cat {0} | base64".format(shell_safe((location))),debug=False,checkok=False,showout=False)[1]
 
     @actionrun(action=True,force=True)
     def file_sha256(self,location):
@@ -883,9 +881,8 @@ class CuisineCore:
     @actionrun(action=True,force=True)
     def dir_exists(self,location):
         """Tells if there is a remote directory at the given location."""
-        location=self.args_replace(location)
         # print ("dir exists:%s"%location)
-        return self.run('test -d %s && echo **OK** ; true' % (location),showout=False,check_is_ok=True)
+        return self._check_is_ok('test -d', location)
 
     @actionrun(action=True,force=True)
     def dir_remove(self,location, recursive=True):
@@ -1006,7 +1003,7 @@ class CuisineCore:
         self.sudomode = sudomode
 
     @actionrun(action=True, force=True)
-    def run(self, cmd, die=True, debug=None, checkok=False, showout=True, profile=False, replaceArgs=True, check_is_ok=False, combinestdr=True):
+    def run(self, cmd, die=True, debug=None, checkok=False, showout=True, profile=False, replaceArgs=True):
         """
         @param profile, execute the bash profile first
         """
@@ -1096,9 +1093,6 @@ class CuisineCore:
             self.executor.debug = debugremember
 
         out = out.strip()
-
-        if check_is_ok:
-            return out.find("**OK**") != -1
 
         if showout:
             print('Output: %s' % out)

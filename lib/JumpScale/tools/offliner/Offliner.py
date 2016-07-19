@@ -53,7 +53,7 @@ class Offliner:
         cmd+=" --no-parent"
         cmd+=" -l %s"%level
         if docElementsOnly:
-            cmd+=" ‐‐accept jpg,gif,png,jpeg,html,htm,css,js"
+            cmd+=" --accept jpg,gif,png,jpeg,html,htm,css,js"
         if restrictToDomain:
             parsed=urlparse(url)
             domain=parsed.netloc

@@ -116,12 +116,10 @@ elif [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
     rm -rf Redis
     mkdir Redis
     cd Redis 
-    wget https://github.com/MSOpenTech/redis/releases/download/win-3.2.100/Redis-x64-3.2.100.zip
+    wget -O Redis-x64-3.2.100.zip https://github.com/MSOpenTech/redis/releases/download/win-3.2.100/Redis-x64-3.2.100.zip
     unzip Redis-x64-3.2.100.zip
     chmod +x redis-server.exe
     cp -f  redis-server.exe /usr/local/bin  
-    chmod +x redis-cli.exe
-    cp -f  redis-cli.exe /usr/local/bin  
 
     if [ -z"$JSBASE" ]; then
         export JSBASE="$HOME/opt/jumpscale8"

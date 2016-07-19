@@ -21,7 +21,7 @@ class JSCuisineFactory:
             self._local = JSCuisine(j.tools.executor.getLocal())
         return self._local
 
-    def getPushKey(self,addr='localhost:22',login="root",passwd="",keyname="",pubkey=""):
+    def getPushKey(self,addr='localhost:22',login="root",passwd="",keyname="",pubkey="", passphrase=None):
         """
         will try to login if not ok then will try to push key with passwd
         will push local key to remote, if not specified will list & you can select
@@ -38,7 +38,7 @@ class JSCuisineFactory:
         executor=None
         if passwd=="":
             #@todo fix (*1*),goal is to test if ssh works, get some weird paramiko issues or timeout is too long
-            res=j.clients.ssh.get(addr, port=port, login=login, passwd="",allow_agent=True, look_for_keys=True,timeout=0.5,die=False)
+            res = j.clients.ssh.get(addr, port=port, login=login, passwd="", allow_agent=True, look_for_keys=True, timeout=0.5, key_filename=keyname, passphrase=passphrase, die=False)
             if res!=False:
                 executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login)
             else:
@@ -66,7 +66,7 @@ class JSCuisineFactory:
             executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login,passwd=passwd,pushkey=key,pubkey=pubkey)
 
         j.clients.ssh.cache={}
-        executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login)#should now work with key only
+        executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login, pushkey=pushkey)  # should now work with key only
 
         cuisine = JSCuisine(executor)
         self._cuisines_instance[executor.id] = cuisine

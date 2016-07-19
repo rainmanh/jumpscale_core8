@@ -58,12 +58,6 @@ def stringify( value ):
     else:
         return str(value)
 
-def shell_safe(path):
-    SHELL_ESCAPE            = " '\";`|"
-    """Makes sure that the given path/string is escaped and safe for shell"""
-    path = "".join([("\\" + _) if _ in SHELL_ESCAPE else _ for _ in path])
-    return path
-
 
 # def is_ok( text ):
 #     """Tells if the given text ends with "OK", swallowing trailing blanks."""
@@ -209,6 +203,13 @@ class CuisineCore:
         self._fqn = ""
         self.done = []
         self._js8sb = None
+
+
+    def shell_safe(self, path):
+        SHELL_ESCAPE            = " '\";`|"
+        """Makes sure that the given path/string is escaped and safe for shell"""
+        path= "".join([("\\" + _) if _ in SHELL_ESCAPE else _ for _ in path])
+        return path
 
     def getenv(self):
         res = {}
@@ -393,7 +394,7 @@ class CuisineCore:
         else:
             return self.run("cp -a {0} {1}".format(
                 location,
-                shell_safe(backup_location)
+                self.shell_safe(backup_location)
             ))[1]
 
     def file_get_tmp_path(self,basepath=""):
@@ -759,7 +760,7 @@ class CuisineCore:
     def file_unlink(self,path):
         path=self.args_replace(path)
         if self.file_exists(path):
-            self.run("unlink %s" % (shell_safe(path)), showout=False)
+            self.run("unlink %s" % (self.shell_safe(path)), showout=False)
 
 
     def file_link(self,source, destination, symbolic=True, mode=None, owner=None, group=None):
@@ -773,9 +774,9 @@ class CuisineCore:
         if self.file_is_link(destination):
             self.file_unlink(destination)
         if symbolic:
-            self.run('ln -sf %s %s' % (shell_safe(source), shell_safe(destination)))
+            self.run('ln -sf %s %s' % (self.shell_safe(source), self.shell_safe(destination)))
         else:
-            self.run('ln -f %s %s' % (shell_safe(source), shell_safe(destination)))
+            self.run('ln -f %s %s' % (self.shell_safe(source), self.shell_safe(destination)))
         self.file_attribs(destination, mode, owner, group)
 
 
@@ -815,7 +816,7 @@ class CuisineCore:
     def file_base64(self, location):
         """Returns the base64-encoded content of the file at the given location."""
         location = self.args_replace(location)
-        return self.run("cat {0} | base64".format(shell_safe((location))),debug=False,checkok=False,showout=False)[1]
+        return self.run("cat {0} | base64".format(self.shell_safe((location))),debug=False,checkok=False,showout=False)[1]
 
     @actionrun(action=True,force=True)
     def file_sha256(self,location):
@@ -825,7 +826,7 @@ class CuisineCore:
         # be on the safe side.
         location=self.args_replace(location)
         if self.file_exists(location):
-            return self.run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)[1]
+            return self.run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(self.shell_safe((location))),debug=False,checkok=False,showout=False)[1]
         else:
             return None
         # else:
@@ -841,7 +842,7 @@ class CuisineCore:
         # if cuisine_env[OPTION_HASH] == "python":
         location=self.args_replace(location)
         if self.file_exists(location):
-            return self.run("md5sum {0} | cut -f 1 -d ' '".format(shell_safe((location))),debug=False,checkok=False,showout=False)[1]
+            return self.run("md5sum {0} | cut -f 1 -d ' '".format(self.shell_safe((location))),debug=False,checkok=False,showout=False)[1]
         else:
             return None
         # else:

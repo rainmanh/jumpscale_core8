@@ -967,10 +967,10 @@ class InstallTools():
         if remote!=None:
             tmppathdest="/tmp/do.sh"
             self.execute("scp -P %s %s root@%s:%s "%(sshport,path2,remote,tmppathdest),die=die)
-            _, res, _ = self.execute("ssh -A -p %s root@%s 'bash %s'"%(sshport,remote,tmppathdest),die=die)
+            rc, res, err = self.execute("ssh -A -p %s root@%s 'bash %s'"%(sshport,remote,tmppathdest),die=die)
         else:
-            _, res, _= self.execute("bash %s"%path2,die=die,  showout=showout, outputStderr=outputStderr)
-        return res
+            rc, res, err = self.execute("bash %s"%path2,die=die,  showout=showout, outputStderr=outputStderr)
+        return rc, res, err
 
     def executeCmds(self,cmdstr, showout=True, outputStderr=True,useShell = True,log=True,cwd=None,timeout=120,errors=[],ok=[],captureout=True,die=True):
         rc_=[]

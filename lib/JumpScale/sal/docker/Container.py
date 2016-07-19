@@ -31,7 +31,7 @@ class Container:
     @property
     def sshclient(self):
         if self._sshclient is None:
-            self.executor.sshclient.connectTest(timeout=10)
+            self.executor.sshclient.get(addr=self.host, port=self.ssh_port, login='root', passwd="gig1234", timeout=10)
             self._sshclient = self.executor.sshclient
         return self._sshclient
 
@@ -39,7 +39,6 @@ class Container:
     def executor(self):
         if self._executor is None:
             self._executor = j.tools.executor.getSSHBased(addr=self.host, port=self.ssh_port, login='root', passwd="gig1234")
-            self._executor.sshclient.connectTest(timeout=10)
         return self._executor
 
     @property

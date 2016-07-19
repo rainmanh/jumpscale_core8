@@ -1020,7 +1020,7 @@ class InstallTools():
         # print "EXEC:"
         # print command
         if executor:
-            return executor.execute(command, die=die, checkok=False, async=async,  showout=True, combinestdr=combinestdr, timeout=timeout)
+            return executor.execute(command, die=die, checkok=False, async=async,  showout=True, timeout=timeout)
         os.environ["PYTHONUNBUFFERED"]="1"
         ON_POSIX = 'posix' in sys.builtin_module_names
 

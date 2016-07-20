@@ -35,6 +35,15 @@ class Client:
             raise j.exceptions.RuntimeError(errormsg)
         return resp.json()
 
+    def updateCockpit(self, headers=None, query_params=None):
+        """
+        update the cockpit to the last version
+        It is method for POST /cockpit/update
+        """
+        resp = self._client.update(data=None, headers=headers, query_params=query_params)
+        self._assert_response(resp)
+        return resp.json()
+
     def reloadAll(self, headers=None, query_params=None):
         """
         empty memory and reload all services

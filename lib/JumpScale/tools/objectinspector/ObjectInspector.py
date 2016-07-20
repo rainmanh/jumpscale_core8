@@ -193,17 +193,16 @@ class ObjectInspector:
             for modname in j.sal.fs.listDirsInDir(path,False,True,True):
                 if modname not in ignore:
                     toexec="import JumpScale.%s.%s"%(item,modname)
-                    print(toexec)
                     try:
                         exec(toexec)
                     except Exception as e:
-                        print(("COULD NOT IMPORT %s"%toexec))
+                        self.logger.error(("COULD NOT IMPORT %s"%toexec))
                         errors+="**%s**\n\n"%toexec
                         errors+="%s\n\n"%e
         return errors
 
     def raiseError(self,errormsg):
-        print("ERROR:%s"%errormsg)
+        self.logger.error("ERROR:%s"%errormsg)
         errormsg=errormsg.strip()
         errormsg=errormsg.strip("-")
         errormsg=errormsg.strip("*")
@@ -244,7 +243,7 @@ class ObjectInspector:
         @param object is start object
         @param objectLocationPath is full location name in object tree e.g. j.sal.fs , no need to fill in
         """
-        print(objectLocationPath)
+        self.logger.debug(objectLocationPath)
 
         # if parent is None:
         #     self.visited = []
@@ -268,7 +267,7 @@ class ObjectInspector:
         if obj not in self.visited and obj:
             self.visited.append(obj)
         else:
-            print("RECURSIVE:%s" % objectLocationPath)
+            self.logger.debug("RECURSIVE:%s" % objectLocationPath)
             return
 
         attrs = dir(obj)
@@ -303,8 +302,6 @@ class ObjectInspector:
 
             try:
                 objattribute = eval("obj.%s" % objattributename)
-                if isinstance(objattribute, (str, bool, int, float, dict, list, tuple)):
-                    continue
             except Exception as e:
                 self.logger.error(e)
                 self.raiseError("cannot eval %s" % objectLocationPath2)
@@ -312,7 +309,7 @@ class ObjectInspector:
 
             if objattributename.upper() == objattributename:
                 # is special type or constant
-                print("special type: %s" % objectLocationPath2)
+                self.logger.debug("special type: %s" % objectLocationPath2)
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?7\n" % objectLocationPath2, True)
 
             elif objattributename == "_getFactoryEnabledClasses":
@@ -323,16 +320,18 @@ class ObjectInspector:
                         else:
                             objectLocationPath2 = objectLocationPath + "." + name
                         self._processClass(name, objectLocationPath2, obj)
-                        self.inspect(objectLocationPath=objectLocationPath2, recursive=True, parent=obj, obj=obj2)
+                        if not isinstance(objattribute, (str, bool, int, float, dict, list, tuple)):
+                            self.inspect(objectLocationPath=objectLocationPath2, recursive=True, parent=obj, obj=obj2)
                 except Exception as e:
-                    print("the _getFactoryEnabledClasses gives error")
+                    self.logger.error("the _getFactoryEnabledClasses gives error")
                     import ipdb
 
             elif str(type(objattribute)).find("'instance'") != -1 or str(type(objattribute)).find("<class") != -1 or str(type(objattribute)).find("'classobj'") != -1:
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?8\n" % objectLocationPath2, True)
-                print("class or instance: %s" % objectLocationPath2)
+                self.logger.debug("class or instance: %s" % objectLocationPath2)
                 try:
-                    self.inspect(objectLocationPath2, parent=objattribute)
+                    if not isinstance(objattribute, (str, bool, int, float, dict, list, tuple)):
+                        self.inspect(objectLocationPath2, parent=objattribute)
                 except Exception as e:
                     self.logger.error(e)
 
@@ -343,21 +342,20 @@ class ObjectInspector:
                     methodpath = inspect.getabsfile(objattribute)
                     if not methodpath.startswith(self.base):
                         self.classDocs.pop(objectLocationPath2, "")
-                        print("SKIPPED:%s" % objectLocationPath2)
+                        self.logger.log("SKIPPED:%s" % objectLocationPath2)
                         return
                 except Exception as e:
                     self.logger.error(e)
-                    continue
 
                 source, params = self._processMethod(objattributename, objattribute, objectLocationPath2, obj)
-                print("instancemethod: %s" % objectLocationPath2)
+                self.logger.debug("instancemethod: %s" % objectLocationPath2)
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?4(%s)\n" % (objectLocationPath2, params), True)
 
             elif str(type(objattribute)).find("'str'") != -1 or str(type(objattribute)).find("'type'") != -1 or str(type(objattribute)).find("'list'") != -1\
                 or str(type(objattribute)).find("'bool'") != -1 or str(type(objattribute)).find("'int'") != -1 or str(type(objattribute)).find("'NoneType'") != -1\
                     or str(type(objattribute)).find("'dict'") != -1 or str(type(objattribute)).find("'property'") != -1 or str(type(objattribute)).find("'tuple'") != -1:
                 # is instancemethod
-                print("property: %s" % objectLocationPath2)
+                self.logger.debug("property: %s" % objectLocationPath2)
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?8\n" % objectLocationPath2, True)
 
             else:

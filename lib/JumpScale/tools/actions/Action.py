@@ -660,9 +660,8 @@ class Action:
                     # if j.actions.stack==[]:
                     # print("error in action: %s"%self)
                     self.logger.error("error in action: %s"%self)
-                    sys.exit(1)
                     # else:
-                    #     raise j.exceptions.RuntimeError("error in action: %s"%self)
+                    raise j.exceptions.RuntimeError("error in action: %s"%self)
             else:
                 self.state = "OK"
 

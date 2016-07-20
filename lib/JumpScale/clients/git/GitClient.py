@@ -73,6 +73,12 @@ class GitClient:
     def init(self):
         self.repo
 
+    def getBranchOrTag(self):
+        try:
+            return 'tag', self.repo.git.describe('--tags')
+        except:
+            return 'branch', self.branchName
+
     def switchBranch(self, branchName, create=True):  # NOQA
         if create:
             import git

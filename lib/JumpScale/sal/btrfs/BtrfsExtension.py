@@ -65,16 +65,16 @@ class BtrfsExtension:
         if not self._executor.cuisine.core.dir_exists(path):
             return False
 
-        rc,res=self._executor.execute("btrfs subvolume list %s"%path  ,checkok=False,die=False) 
+        rc, res, err =self._executor.execute("btrfs subvolume list %s"%path  ,checkok=False,die=False)
 
-        if rc>0:
+        if rc > 0:
             if res.find("can't access")!=-1:
                 if self._executor.cuisine.core.dir_exists(path):
                     raise j.exceptions.RuntimeError("Path %s exists put is not btrfs subvolume, cannot continue."%path)        
                 else:
                     return False
             else:
-                raise j.exceptions.RuntimeError("BUG:%s"%res)
+                raise j.exceptions.RuntimeError("BUG:%s" % err)
 
         return True
         

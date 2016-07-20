@@ -56,12 +56,11 @@ bash install.sh
 ### Windows 10 (Cygwin)
 
  - Install [Cygwin](https://cygwin.com/install.html)
- - When installing cygwin search for the following packages in the package menu and select them by clicking on the skip
- word adajacent to them :
-     - [curl](https://curl.haxx.se/), under net ,
-     - [gcc-g+_+ :gnu compiler collection(c ++)](https://en.wikipedia.org/wiki/GNU_Compiler_Collection), under devel ,  
-     - [mc](https://www.midnight-commander.org/), under shell,
-     - [Paramiko](http://www.paramiko.org/) , under python 
+ - When installing Cygwin search for the following packages in the package menu and select them:
+     - [curl](https://curl.haxx.se/), under net
+     - [gcc-g+_+ :gnu compiler collection(c ++)](https://en.wikipedia.org/wiki/GNU_Compiler_Collection), under devel  
+     - [mc](https://www.midnight-commander.org/), under shell
+     - [Paramiko](http://www.paramiko.org/), under python
  - Install apt-cyg through:
 
 ```shell

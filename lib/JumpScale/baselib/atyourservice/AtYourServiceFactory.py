@@ -32,6 +32,7 @@ class AtYourServiceFactory:
 
         self._domains = []
         self._templates = {}
+        self._sandboxer = None
 
         # self.hrd = None
 

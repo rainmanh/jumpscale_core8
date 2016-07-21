@@ -32,8 +32,10 @@ grep $(hostname) /etc/hosts || sed -i "s/.1 localhost/.1 localhost $(hostname)/g
 ```
 
 Then you can run the following command:
-```
-cd /tmp; rm -f install.sh; curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh
+```shell
+cd /tmp
+rm -f install.sh
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh
 ```
 
 ### Mac OSX
@@ -42,14 +44,23 @@ cd /tmp; rm -f install.sh; curl -k https://raw.githubusercontent.com/Jumpscale/j
 - Go to the shell in Mac OSX:
 
 ```shell
-export TMPDIR=~/tmp;mkdir -p $TMPDIR;cd $TMPDIR;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh
+export TMPDIR=~/tmp
+mkdir -p $TMPDIR
+cd $TMPDIR
+rm -f install.sh
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh
+bash install.sh
 ```
 
 
 ### Windows 10 (Cygwin)
 
  - Install [Cygwin](https://cygwin.com/install.html)
- - Make sure to select curl, [GCC](https://en.wikipedia.org/wiki/GNU_Compiler_Collection) and [Paramiko](http://www.paramiko.org/) during setup
+ - When installing Cygwin search for the following packages in the package menu and select them:
+     - [curl](https://curl.haxx.se/), under net
+     - [gcc-g+_+ :gnu compiler collection(c ++)](https://en.wikipedia.org/wiki/GNU_Compiler_Collection), under devel  
+     - [mc](https://www.midnight-commander.org/), under shell
+     - [Paramiko](http://www.paramiko.org/), under python
  - Install apt-cyg through:
 
 ```shell
@@ -60,7 +71,10 @@ install apt-cyg /bin
 Then to install JumpScale:
 
 ```shell
-cd /tmp; rm -f install.sh; curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh
+cd /tmp
+rm -f install.sh
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh
+bash install.sh
 ```
 
 ### Reset your system
@@ -68,7 +82,11 @@ cd /tmp; rm -f install.sh; curl -k https://raw.githubusercontent.com/Jumpscale/j
 If your installation failed or if you want to remove your current installation, you can execute the following commands:
 
 ```shell
-export TMPDIR=~/tmp;cd $TMPDIR;rm -f reset.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/reset.sh > reset.sh;bash reset.sh
+export TMPDIR=~/tmp
+cd $TMPDIR
+rm -f reset.sh
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/reset.sh > reset.sh
+bash reset.sh
 ```
 
 

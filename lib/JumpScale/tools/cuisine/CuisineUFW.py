@@ -19,12 +19,12 @@ class CuisineUFW:
 
     @property
     def ufw_enabled(self):
-        if self._ufw_enabled == None:
+        if not self._ufw_enabled:
             if not self.cuisine.core.isMac:
                 if self.cuisine.bash.cmdGetPath("ufw", die=False) == False:
                     self.cuisine.package.install("ufw")
                     self.cuisine.bash.cmdGetPath("ufw")
-                self._ufw_enabled = not "inactive" in self.cuisine.core.run("ufw status")
+                self._ufw_enabled = not "inactive" in self.cuisine.core.run("ufw status")[1]
         return self._ufw_enabled
 
     @actionrun(action=True)
@@ -55,7 +55,7 @@ class CuisineUFW:
 
     def _ufw_status(self):
         self.ufw_enable()
-        out = self.cuisine.core.run("ufw status", action=True, force=True)
+        _, out, _ = self.cuisine.core.run("ufw status", action=True, force=True)
         for line in out.splitlines():
             if line.find("(v6)") != -1:
                 continue
@@ -95,11 +95,11 @@ class CuisineUFW:
         self.cuisine.core.run_script(C)
 
     def show(self):
-        a=self.ufw_rules_allow
-        b=self.ufw_rules_deny
-        print ("ALLOW")
-        print (a)
-        print ("DENY")
-        print (b)
+        a = self.ufw_rules_allow
+        b = self.ufw_rules_deny
+        print("ALLOW")
+        print(a)
+        print("DENY")
+        print(b)
 
         # print(self.cuisine.core.run("iptables -t nat -nvL"))

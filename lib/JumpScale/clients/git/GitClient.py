@@ -63,8 +63,8 @@ class GitClient:
         # Load git when we absolutly need it cause it does not work in gevent mode
         import git
         if not self._repo:
-            j.tools.cuisine.local.core.run("git config --global http.sslVerify false")
             if not j.sal.fs.exists(self.baseDir):
+                j.tools.cuisine.local.core.run("git config --global http.sslVerify false")
                 self._clone()
             else:
                 self._repo = git.Repo(self.baseDir)
@@ -72,6 +72,12 @@ class GitClient:
 
     def init(self):
         self.repo
+
+    def getBranchOrTag(self):
+        try:
+            return 'tag', self.repo.git.describe('--tags')
+        except:
+            return 'branch', self.branchName
 
     def switchBranch(self, branchName, create=True):  # NOQA
         if create:
@@ -96,7 +102,7 @@ class GitClient:
 
     def hasModifiedFiles(self):
         cmd = "cd %s;git status --porcelain" % self.baseDir
-        rc, out = j.tools.cuisine.local.core.run(cmd, die=False)
+        rc, out, err = j.tools.cuisine.local.core.run(cmd, die=False)
         for item in out.split("\n"):
             item = item.strip()
             if item == '':
@@ -119,7 +125,7 @@ class GitClient:
 
 
         cmd = "cd %s;git status --porcelain" % self.baseDir
-        rc, out = j.tools.cuisine.local.core.run(cmd)
+        rc, out, err = j.tools.cuisine.local.core.run(cmd)
         for item in out.split("\n"):
             item = item.strip()
             if item == '':

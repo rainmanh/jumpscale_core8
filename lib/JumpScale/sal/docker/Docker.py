@@ -49,7 +49,7 @@ class Docker:
     @property
     def isWeaveEnabled(self):
         if self._weaveEnabled is None:
-            rc, ou = j.tools.cuisine.local.core.run('weave status', die=False, showout=False)
+            rc, out, err = j.tools.cuisine.local.core.run('weave status', die=False, showout=False)
             self._weaveEnabled = (rc == 0)
         return self._weaveEnabled
 

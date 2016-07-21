@@ -58,7 +58,11 @@ class ExecutorSSH(ExecutorBase):
     @property
     def sshclient(self):
         if self._sshclient==None:
+<<<<<<< HEAD
             self._sshclient=j.clients.ssh.get(self.addr,self.port,login=self.login,passwd=self.passwd,allow_agent=self.allow_agent, look_for_keys=self.look_for_keys, timeout=self.timeout,usecache=False)
+=======
+            self._sshclient=j.clients.ssh.get(self.addr, self.port, login=self.login, passwd=self.passwd, allow_agent=self.allow_agent, look_for_keys=self.look_for_keys, timeout=self.timeout, key_filename=self.pushkey)
+>>>>>>> d6a9a4c7aa4fcc0dd04578b3be8919224c5321cf
             if self.pushkey is not None:
                 #lets push the ssh key as specified
                 if j.sal.fs.exists(self.pushkey):
@@ -77,7 +81,7 @@ class ExecutorSSH(ExecutorBase):
 
         return self._sshclient
 
-    def execute(self, cmds, die=True,checkok=None, async=False, showout=True, combinestdr=True,timeout=0, env={}):
+    def execute(self, cmds, die=True,checkok=None, async=False, showout=True,timeout=0, env={}):
         """
         @param naked means will not manipulate cmd's to show output in different way
         @param async is not used method, but is only used for interface comaptibility
@@ -86,28 +90,27 @@ class ExecutorSSH(ExecutorBase):
         if env:
             self.env.update(env)
         self.logger.info("cmd: %s" % cmds)
-        cmds2=self._transformCmds(cmds,die,checkok=checkok)
-
+        cmds2 = self._transformCmds(cmds,die,checkok=checkok)
 
         if cmds.find("\n") != -1:
             if showout:
-                self.logger.info("EXECUTESCRIPT} %s:%s:\n%s"%(self.addr,self.port,cmds))
+                self.logger.info("EXECUTESCRIPT} %s:%s:\n%s" % (self.addr, self.port, cmds))
             else:
-                self.logger.debug("EXECUTESCRIPT} %s:%s:\n%s"%(self.addr,self.port,cmds))
-            retcode,out=j.do.executeBashScript(content=cmds2,path=None,die=die,remote=self.addr,sshport=self.port)
+                self.logger.debug("EXECUTESCRIPT} %s:%s:\n%s"%(self.addr, self.port, cmds))
+            sshkey = self.sshclient.key_filename or ""
+            rc, out, err = j.do.executeBashScript(content=cmds2, path=None, die=die, remote=self.addr, sshport=self.port, sshkey=sshkey)
         else:
             # online command, we use cuisine
             if showout:
-                self.logger.info("EXECUTE %s:%s: %s"%(self.addr,self.port,cmds))
+                self.logger.info("EXECUTE %s:%s: %s"%(self.addr, self.port, cmds))
             else:
-                self.logger.debug("EXECUTE %s:%s: %s"%(self.addr,self.port,cmds))
-            retcode,out=self.sshclient.execute(cmds2,die=die,showout=showout, combinestdr=combinestdr)
+                self.logger.debug("EXECUTE %s:%s: %s"%(self.addr, self.port, cmds))
+            rc, out, err = self.sshclient.execute(cmds2, die=die, showout=showout)
 
         if checkok and die:
-            self.docheckok(cmds,out)
+            self.docheckok(cmds, out)
 
-        return (retcode,out)
-
+        return rc, out, err
 
     def upload(self, source, dest, dest_prefix="",recursive=True, createdir=True):
 

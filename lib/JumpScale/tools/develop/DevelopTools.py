@@ -90,14 +90,16 @@ class MyFSEventHandler(FileSystemEventHandler):
 
 class DebugSSHNode:
 
-    def __init__(self, addr="localhost", sshport=22):
+    def __init__(self, addr="localhost", sshport=22, key_filename=None, passphrase=None):
         self.addr = addr
         self.port = sshport
+        self.key_filename = key_filename
+        self.passphrase = passphrase
 
         #lets test tcp on 22 if not then 9022 which are our defaults
         test=j.sal.nettools.tcpPortConnectionTest(self.addr,self.port,3)
         if test==False:
-            print ("could not connect to %s:%s, will try port 9022"%(self.add,self.port))
+            print ("could not connect to %s:%s, will try port 9022"%(self.addr,self.port))
             if self.port==22:
                 test= j.sal.nettools.tcpPortConnectionTest(self.addr,9022,1)
                 if test:
@@ -130,7 +132,7 @@ class DebugSSHNode:
     def sshclient(self):
         if self._sshclient == None:
             if self.port != 0:
-                self._sshclient = j.clients.ssh.get(self.addr, port=self.port)
+                self._sshclient = j.clients.ssh.get(self.addr, port=self.port, key_filename=self.key_filename, passphrase=self.passphrase)
             else:
                 return None
         return self._sshclient
@@ -235,17 +237,17 @@ class DevelopToolsFactory:
 
             for item in nodes.split(","):
                 if item.find(":") != -1:
-                    addr, sshport = item.split(":")
+                    addr, sshport, key_filename, passphrase = item.split(":")
                     addr = addr.strip()
                     sshport = int(sshport)
-
                 else:
                     addr = item.strip()
                     if addr != "localhost":
                         sshport = 22
                     else:
                         sshport = 0
-                self._nodes.append(DebugSSHNode(addr, sshport))
+                    key_filename = None
+                self._nodes.append(DebugSSHNode(addr, sshport, key_filename, passphrase))
         return self._nodes
 
     def jumpscale8sb(self, rw=False,synclocalcode=False,monitor=False,resetstate=False):

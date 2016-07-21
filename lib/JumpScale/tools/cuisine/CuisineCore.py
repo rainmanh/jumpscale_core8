@@ -58,12 +58,6 @@ def stringify( value ):
     else:
         return str(value)
 
-def shell_safe( path ):
-    SHELL_ESCAPE            = " '\";`|"
-    """Makes sure that the given path/string is escaped and safe for shell"""
-    path= "".join([("\\" + _) if _ in SHELL_ESCAPE else _ for _ in path])
-    return path
-
 
 # def is_ok( text ):
 #     """Tells if the given text ends with "OK", swallowing trailing blanks."""
@@ -193,26 +187,33 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self,*args,**kwargs)
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.core"
 
-class CuisineCore:
 
-    def __init__(self,executor,cuisine):
+class CuisineCore:
+    def __init__(self, executor, cuisine):
         self.logger = j.logger.get("j.tools.cuisine.core", enable_only_me=True)
-        self.cd="/"
-        self._dirs={}
+        self.cd = "/"
+        self._dirs = {}
         self.sudomode = False
         self.__cgroup = None
 
         self.executor = executor
-        self.cuisine=cuisine
+        self.cuisine = cuisine
         self.runid = self.id
-        self._hostname=""
+        self._hostname = ""
         self._fqn = ""
-        self.done=[]
+        self.done = []
         self._js8sb = None
+
+
+    def shell_safe(self, path):
+        SHELL_ESCAPE            = " '\";`|"
+        """Makes sure that the given path/string is escaped and safe for shell"""
+        path= "".join([("\\" + _) if _ in SHELL_ESCAPE else _ for _ in path])
+        return path
 
     def getenv(self):
         res = {}
-        for line in self.cuisine.core.run("printenv", profile=False, showout=False,force=True, replaceArgs=False).splitlines():
+        for line in self.cuisine.core.run("printenv", profile=False, showout=False,force=True, replaceArgs=False)[1].splitlines():
             if '=' in line:
                 name,val = line.split("=",1)
                 name = name.strip()
@@ -393,8 +394,8 @@ class CuisineCore:
         else:
             return self.run("cp -a {0} {1}".format(
                 location,
-                shell_safe(backup_location)
-            ))
+                self.shell_safe(backup_location)
+            ))[1]
 
     def file_get_tmp_path(self,basepath=""):
         if basepath=="":
@@ -441,11 +442,11 @@ class CuisineCore:
                     cmd += " -C -"
                 self.logger.info(cmd)
                 self.file_unlink("%s.downloadok"%to)
-                rc, out = self.run(cmd, die=False)
-                if rc == 33: # resume is not support try again withouth resume
+                rc, out, err = self.run(cmd, die=False)
+                if rc == 33:  # resume is not support try again withouth resume
                     self.file_unlink(to)
                     cmd = "curl -L '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s"%(url,to,user,minsp,retry,timeout)
-                    rc, out = self.run(cmd, die=False)
+                    rc, out, err = self.run(cmd, die=False)
                 if rc > 0:
                     raise j.exceptions.RuntimeError("Could not download:{}.\nErrorcode: {}".format(url, rc))
                 else:
@@ -483,26 +484,24 @@ class CuisineCore:
         frame = self.file_base64(location)
         return base64.decodebytes(frame.encode()).decode()
 
+    def _check_is_ok(self, cmd, location):
+        location = self.args_replace(location)
+        cmd += ' %s' % location
+        rc, out, err = self.run(cmd, showout=False, die=False)
+        return not rc
 
-    def file_exists(self,location):
+    def file_exists(self, location):
         """Tests if there is a *remote* file at the given location."""
-        location=self.args_replace(location)
-        return self.run('test -e %s && echo **OK** ; true' % (location),showout=False,check_is_ok=True)
+        return self._check_is_ok('test -e', location)
 
+    def file_is_file(self, location):
+        return self._check_is_ok('test -f', location)
 
-    def file_is_file(self,location):
-        location=self.args_replace(location)
-        return self.run("test -f %s && echo **OK** ; true" % (location),showout=False,check_is_ok=True)
+    def file_is_dir(self, location):
+        return self._check_is_ok('test -d', location)
 
-
-    def file_is_dir(self,location):
-        location=self.args_replace(location)
-        return self.run("test -d %s && echo **OK** ; true" % (location),showout=False,check_is_ok=True)
-
-
-    def file_is_link(self,location):
-        location=self.args_replace(location)
-        return self.run("test -L %s && echo **OK** ; true" % (location),showout=False,check_is_ok=True)
+    def file_is_link(self, location):
+        return self._check_is_ok('test -L', location)
 
 
     def file_attribs(self,location, mode=None, owner=None, group=None):
@@ -519,7 +518,7 @@ class CuisineCore:
         """
         location=self.args_replace(location)
         if self.file_exists(location):
-            fs_check = self.run('stat %s %s' % (location, '--format="%a %U %G"'),showout=False)
+            fs_check = self.run('stat %s %s' % (location, '--format="%a %U %G"'),showout=False)[1]
             (mode, owner, group) = fs_check.split(' ')
             return {'mode': mode, 'owner': owner, 'group': group}
         else:
@@ -529,10 +528,10 @@ class CuisineCore:
     def hostname(self):
         if self._hostname=="":
             if self.isMac or self.isCygwin:
-                self._hostname=self.run("hostname",showout=False,replaceArgs=False)
+                self._hostname=self.run("hostname",showout=False,replaceArgs=False)[1]
             else:
                 hostfile="/etc/hostname"
-                self._hostname= self.run("cat %s"%hostfile,showout=False,replaceArgs=False).strip().split(".",1)[0]
+                self._hostname= self.run("cat %s"%hostfile,showout=False,replaceArgs=False)[1].strip().split(".",1)[0]
         return self._hostname
 
     @hostname.setter
@@ -761,7 +760,7 @@ class CuisineCore:
     def file_unlink(self,path):
         path=self.args_replace(path)
         if self.file_exists(path):
-            self.run("unlink %s" % (shell_safe(path)),showout=False)
+            self.run("unlink %s" % (self.shell_safe(path)), showout=False)
 
 
     def file_link(self,source, destination, symbolic=True, mode=None, owner=None, group=None):
@@ -775,9 +774,9 @@ class CuisineCore:
         if self.file_is_link(destination):
             self.file_unlink(destination)
         if symbolic:
-            self.run('ln -sf %s %s' % (shell_safe(source), shell_safe(destination)))
+            self.run('ln -sf %s %s' % (self.shell_safe(source), self.shell_safe(destination)))
         else:
-            self.run('ln -f %s %s' % (shell_safe(source), shell_safe(destination)))
+            self.run('ln -f %s %s' % (self.shell_safe(source), self.shell_safe(destination)))
         self.file_attribs(destination, mode, owner, group)
 
 
@@ -798,7 +797,7 @@ class CuisineCore:
 
         if self.isMac:
             cmd += " 2>&1 >/dev/null ;True"
-            
+
         self.run(cmd)
 
 
@@ -817,9 +816,9 @@ class CuisineCore:
     def file_base64(self, location):
         """Returns the base64-encoded content of the file at the given location."""
         location = self.args_replace(location)
-        return self.run("cat {0} | base64".format(shell_safe((location))),debug=False,checkok=False,showout=False, combinestdr=False)
+        return self.run("cat {0} | base64".format(self.shell_safe((location))),debug=False,checkok=False,showout=False)[1]
 
-    @actionrun(action=True,force=True)  
+    @actionrun(action=True,force=True)
     def file_sha256(self,location):
         """Returns the SHA-256 sum (as a hex string) for the remote file at the given location."""
         # NOTE: In some cases, self.sudo can output errors in here -- but the errors will
@@ -827,14 +826,14 @@ class CuisineCore:
         # be on the safe side.
         location=self.args_replace(location)
         if self.file_exists(location):
-            return self.run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(shell_safe((location))),debug=False,checkok=False,showout=False)
+            return self.run("cat {0} | python -c 'import sys,hashlib;sys.stdout.write(hashlib.sha256(sys.stdin.read()).hexdigest())'".format(self.shell_safe((location))),debug=False,checkok=False,showout=False)[1]
         else:
             return None
         # else:
         #     return self.run('openssl dgst -sha256 %s' % (location)).split("\n")[-1].split(")= ",1)[-1].strip()
 
     #
-    @actionrun(action=True,force=True)    
+    @actionrun(action=True,force=True)
     def file_md5(self, location):
         """Returns the MD5 sum (as a hex string) for the remote file at the given location."""
         # NOTE: In some cases, self.sudo can output errors in here -- but the errors will
@@ -843,7 +842,7 @@ class CuisineCore:
         # if cuisine_env[OPTION_HASH] == "python":
         location=self.args_replace(location)
         if self.file_exists(location):
-            return self.run("md5sum {0} | cut -f 1 -d ' '".format(shell_safe((location))),debug=False,checkok=False,showout=False)
+            return self.run("md5sum {0} | cut -f 1 -d ' '".format(self.shell_safe((location))),debug=False,checkok=False,showout=False)[1]
         else:
             return None
         # else:
@@ -883,9 +882,8 @@ class CuisineCore:
     @actionrun(action=True,force=True)
     def dir_exists(self,location):
         """Tells if there is a remote directory at the given location."""
-        location=self.args_replace(location)
         # print ("dir exists:%s"%location)
-        return self.run('test -d %s && echo **OK** ; true' % (location),showout=False,check_is_ok=True)
+        return self._check_is_ok('test -d', location)
 
     @actionrun(action=True,force=True)
     def dir_remove(self,location, recursive=True):
@@ -897,7 +895,7 @@ class CuisineCore:
         if recursive:
             flag = 'r'
         if self.dir_exists(location):
-            return self.run('rm -%sf %s && echo **OK** ; true' % (flag, location),showout=False)
+            return self.run('rm -%sf %s && echo **OK** ; true' % (flag, location),showout=False)[1]
 
     @actionrun(action=True,force=True)
     def dir_ensure(self,location, recursive=True, mode=None, owner=None, group=None):
@@ -961,7 +959,7 @@ class CuisineCore:
         if contentsearch!="":
             cmd+=" -print0 | xargs -r -0 grep -l '%s'"%contentsearch
 
-        out=self.run(cmd,showout=False)
+        out=self.run(cmd,showout=False)[1]
         # print (cmd)
         self.logger.debug(cmd)
 
@@ -1002,37 +1000,36 @@ class CuisineCore:
     def sudo(self, cmd, die=True,showout=True):
         sudomode = self.sudomode
         self.sudomode = True
-        return self.run(cmd, die=die,showout=showout)
+        return self.run(cmd, die=die, showout=showout)
         self.sudomode = sudomode
 
-    @actionrun(action=True,force=True)
-    def run(self,cmd,die=True,debug=None,checkok=False,showout=True,profile=False,replaceArgs=True,check_is_ok=False, combinestdr=True):
+    @actionrun(action=True, force=True)
+    def run(self, cmd, die=True, debug=None, checkok=False, showout=True, profile=False, replaceArgs=True):
         """
         @param profile, execute the bash profile first
         """
         # print (cmd)
         env = {}
-        import copy
         if replaceArgs:
-            cmd=self.args_replace(cmd)
-        self.executor.curpath=self.cd
+            cmd = self.args_replace(cmd)
+        self.executor.curpath = self.cd
         # print ("CMD:'%s'"%cmd)
-        if debug!=None:
-            debugremember=copy.copy(debug)
-            self.executor.debug=debug
+        if debug:
+            debugremember = copy.copy(debug)
+            self.executor.debug = debug
 
         if profile:
-            ppath=self.cuisine.bash.profilePath
+            ppath = self.cuisine.bash.profilePath
             if ppath:
-                cmd=". %s && %s"%(ppath,cmd)
+                cmd = ". %s && %s" % (ppath, cmd)
             if showout:
-                self.logger.info("PROFILECMD:%s"%cmd)
+                self.logger.info("PROFILECMD:%s" % cmd)
             else:
-                self.logger.debug("PROFILECMD:%s"%cmd)
+                self.logger.debug("PROFILECMD:%s" % cmd)
 
         if '"' in cmd:
             cmd = cmd.replace('"', '\\"')
-            
+
         if "cygwin" in self.executor.execute("uname -a", showout=False)[1].lower():
             self.sudomode = False
 
@@ -1043,64 +1040,66 @@ class CuisineCore:
             cmd = 'bash -c "%s"' % cmd
 
         path = self.executor.execute("echo $PATH", showout=False)[1]
-        if "/usr/local/bin" not in path: 
+        if "/usr/local/bin" not in path:
             env = {"PATH": "%s:/usr/local/bin" % path}
-        rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=combinestdr,showout=showout, env=env)
+        rc, out, err = self.executor.execute(cmd, checkok=checkok, die=False, showout=showout, env=env)
 
         out = self._clean(out)
 
-        if rc>0:
-            items2check=["sudo","wget","curl","git","openssl"]
-            next=True
-            while next==True:
-                next=False
-                if out.find("target not found: python3")!=-1 and not "python" in self.done:
+        # If command fails and die is true, raise error
+        if rc and die:
+            raise j.exceptions.RuntimeError('%s, %s' % (cmd, err))
+
+        # if result code is not zero
+        if not rc:
+            items2check = ["sudo", "wget", "curl", "git", "openssl"]
+            next = True
+            while next:
+                next = False
+                if out.find("target not found: python3") != -1 and "python" not in self.done:
                     self.done.append("python")
                     if self.isArch:
                         self.cuisine.package.install("python3")
                     else:
                         self.cuisine.package.install("python3.5")
-                    next=True
+                    next = True
 
-                if out.find("pip3: command not found")!=-1 and not "pip" in self.done:
+                if out.find("pip3: command not found") != -1 and "pip" not in self.done:
 
                     self.done.append("pip")
                     self.cuisine.installerdevelop.pip()
-                    next=True
+                    next = True
 
-                if out.lower().find("fatal error")!=-1 and out.lower().find("python.h")!=-1 \
-                            and out.lower().find("no such")!=-1\
-                            and not "pythondevel" in self.done:
+                if out.lower().find("fatal error") != -1 and out.lower().find("python.h") != -1 \
+                            and out.lower().find("no such") != -1\
+                            and "pythondevel" not in self.done:
 
                     j.application.break_into_jshell("DEBUG NOW pythondevel not found")
 
                     self.done.append("pythondevel")
                     self.cuisine.installer.pythonDevelop()
-                    next=True
+                    next = True
 
                 for package in items2check:
-                    if out.find("not found")!=-1 and  out.find(package)!=-1:
-                        if not package in self.done:
+                    if out.find("not found") != -1 and out.find(package) != -1:
+                        if package not in self.done:
                             self.done.append(package)
                             self.cuisine.installer.base()
-                            next=True
+                            next = True
 
                 if next:
-                    rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=False,showout=showout, env=env)
+                    rc, out, err = self.executor.execute(cmd, checkok=checkok, die=False, showout=showout, env=env)
 
-        if debug!=None:
-            self.executor.debug=debugremember
-        if rc>0 and die:
-            raise j.exceptions.RuntimeError("could not execute %s,OUT:\n%s**NOSTACK**"%(cmd,out))
-        out=out.strip()
-        # print("output run: %s" % out)
+        if debug:
+            self.executor.debug = debugremember
 
-        if check_is_ok:
-            return out.find("**OK**")!=-1
-        if die==False:
-            return rc,out
-        else:
-            return out
+        out = out.strip()
+
+        if showout:
+            print('Output: %s' % out)
+            print('Error: %s' % err)
+
+        return rc, out, err
 
     def cd(self,path):
         path=self.args_replace(path)
@@ -1109,20 +1108,20 @@ class CuisineCore:
     def pwd(self):
         return self.cd
 
-    @actionrun(action=True,force=True)
-    def run_script(self,content,die=True,profile=False):
+    @actionrun(action=True, force=True)
+    def run_script(self, content, die=True, profile=False):
         self.logger.info("RUN SCRIPT:")
-        content=self.args_replace(content)
-        content=j.data.text.strip(content)
+        content = self.args_replace(content)
+        content = j.data.text.strip(content)
         self.logger.info(content)
 
-        if content[-1]!="\n":
-            content+="\n"
+        if content[-1] != "\n":
+            content += "\n"
         if profile:
-            ppath=self.cuisine.bash.profilePath
-            if ppath!=None:
-                content=". %s\n%s\n"%(ppath,content)
-        content+="\necho **DONE**\n"
+            ppath = self.cuisine.bash.profilePath
+            if ppath:
+                content = ". %s\n%s\n" % (ppath, content)
+        content += "\necho **DONE**\n"
 
         path="$tmpDir/%s.sh"%j.data.idgenerator.generateRandomInt(0, 10000)
         if self.isMac:
@@ -1132,7 +1131,7 @@ class CuisineCore:
         else:
             self.file_write(location=path, content=content, mode=0o770, owner="root", group="root",showout=False)
 
-        rc,out=self.run("bash %s"%path,showout=True,die=False)
+        rc, out, err = self.run("bash %s" % path, showout=True, die=False)
         out = self._clean(out)
 
         self.file_unlink(path)
@@ -1141,10 +1140,9 @@ class CuisineCore:
         # print (path)
         # print(content)
 
-
-        lastline=out.split("\n")[-1]
-        if (rc>0 or out.find("**DONE**")==-1) and die:
-            raise Exception("Could not execute bash script **NOSTACK** .\n%s\n"%(content))
+        lastline = out.split("\n")[-1]
+        if (rc > 0 or out.find("**DONE**") == -1) and die:
+            raise Exception("Could not execute bash script **NOSTACK** .\n%s\n" % (content))
 
         return "\n".join(out.split("\n")[:-1])
 
@@ -1156,11 +1154,11 @@ class CuisineCore:
     #
     # =============================================================================
 
-    def command_check(self,command):
+    def command_check(self, command):
         """Tests if the given command is available on the system."""
-        command=self.args_replace(command)
-        rc,out= self.run("which '%s'"%command,die=False,showout=False, profile=True)
-        return rc==0
+        command = self.args_replace(command)
+        rc, out, err = self.run("which '%s'"%command,die=False,showout=False, profile=True)
+        return rc == 0
 
     def command_location(self,command):
         """
@@ -1216,7 +1214,7 @@ class CuisineCore:
             script="from JumpScale import j\n\n%s"%script
         path="$tmpDir/jumpscript_temp_%s.py"%j.data.idgenerator.generateRandomInt(1,10000)
         self.file_write(path,script)
-        out=self.run("jspython %s"%path)
+        out = self.run("jspython %s" % path)[1]
         self.file_unlink(path)
         return out
 
@@ -1235,7 +1233,7 @@ class CuisineCore:
         j.sal.fs.writeFile(path, script)
         self.file_upload_binary(path, path)
 
-        out = self.run("python %s" % path)
+        out = self.run("python %s" % path)[1]
 
         j.sal.fs.remove(path)
         self.file_unlink(path)

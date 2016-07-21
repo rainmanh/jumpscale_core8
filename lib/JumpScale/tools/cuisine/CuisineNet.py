@@ -52,7 +52,7 @@ class CuisineNet:
             res=self.cuisine.net.get_info()
             for item in res:
                 cidr=item['cidr']
-                
+
                 name=item['name']
                 if not name.startswith("docker") and name not in ["lo"]:
                     if len(item['ip'])>0:
@@ -61,20 +61,20 @@ class CuisineNet:
                         range=str(ipn.network)+"/%s"%cidr
                         ips=self.findnodes(range,ips)
             return ips
-        else:            
+        else:
             try:
-                out=self.cuisine.core.run("nmap %s -n -sP | grep report | awk '{print $5}'"%range,showout=False)
+                _, out, _ = self.cuisine.core.run("nmap %s -n -sP | grep report | awk '{print $5}'"%range,showout=False)
             except Exception as e:
                 if str(e).find("command not found")!=-1:
                     self.cuisine.package.install("nmap")
-                    out=self.cuisine.core.run("nmap %s -n -sP | grep report | awk '{print $5}'"%range,showout=False)
+                    _, out, _ = self.cuisine.core.run("nmap %s -n -sP | grep report | awk '{print $5}'"%range,showout=False)
             for line in out.splitlines():
                 ip=line.strip()
-                if ip not in ips:                    
+                if ip not in ips:
                     ips.append(ip)
             return ips
 
-        
+
 
     def get_info(self,device=None):
         """
@@ -110,13 +110,13 @@ class CuisineNet:
                         result[key].append(value)
             if j.data.types.list.check(result['cidr']):
                 if len(result['cidr'])==0:
-                    result['cidr']=0                 
-                else:   
-                    result['cidr']=int(result['cidr'][0])        
+                    result['cidr']=0
+                else:
+                    result['cidr']=int(result['cidr'][0])
             return result
 
         def getNetworkInfo():
-            output =self.cuisine.core.run("ip a", showout=False)
+            _, output, _ = self.cuisine.core.run("ip a", showout=False)
             for m in IPBLOCKS.finditer(output):
                 block = m.group('block')
                 yield parseBlock(block)
@@ -127,10 +127,10 @@ class CuisineNet:
             if nic["name"]==device:
                 return nic
             res.append(nic)
-        
+
         if device!=None:
             raise j.exceptions.RuntimeError("could not find device")
-        return res            
+        return res
 
     def getNetObject(self,device):
         n=self.get_info(device)

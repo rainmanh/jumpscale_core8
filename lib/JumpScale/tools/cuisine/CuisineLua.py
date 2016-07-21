@@ -38,4 +38,4 @@ class CuisineLua:
         self.cuisine.core.run("luarocks install %s"%name)
 
 
-    local socket = require("socket")
+    # local socket = require("socket")

@@ -139,7 +139,6 @@ class Alba:
             && ./install_rocksdb.sh \
             && make build install
         """
-
         return
 
     def _install_deps_etcd(self):

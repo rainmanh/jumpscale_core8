@@ -59,7 +59,8 @@ class BtrfsExtension:
         """
         full path to volume
         """
-        self.__btrfs("subvolume", "delete", path)
+        if not self.subvolumeExists(path):
+            self.__btrfs("subvolume", "delete", path)
 
     def subvolumeExists(self, path):
         if not self._executor.cuisine.core.dir_exists(path):

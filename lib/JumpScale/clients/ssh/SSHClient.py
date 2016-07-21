@@ -22,14 +22,28 @@ class SSHClientFactory:
             client.close()
         self.cache={}
 
+# # <<<<<<< HEAD
+#     def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True, \
+#         look_for_keys=True, timeout=5, die=True,usecache=True):
+#         key = "%s_%s_%s_%s" % (addr, port, login, j.data.hash.md5_string(str(passwd)))
+#         if key not in self.cache or usecache==False:
+#             cl = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent, allow_agent=allow_agent, \
+#                 look_for_keys=look_for_keys, timeout=timeout)
+
+#             ret = cl.connectTest(timeout=timeout, die=die)
+#             if ret is False:
+# # =======
+
+
     def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True, look_for_keys=True,
-            timeout=5, key_filename=None, passphrase=None, die=True):
+            timeout=5, key_filename=None, passphrase=None, die=True,usecache=True):
         key = "%s_%s_%s_%s" % (addr, port, login, j.data.hash.md5_string(str(passwd)))
-        if key not in self.cache:
+        if key not in self.cache or usecache==False:
             try:
                 cl = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent, allow_agent=allow_agent,
-                               look_for_keys=look_for_keys, key_filename=key_filename, passphrase=passphrase, timeout=timeout)
+                               look_for_keys=look_for_keys,key_filename=key_filename, passphrase=passphrase, timeout=timeout)
             except Exception as e:
+# >>>>>>> d6a9a4c7aa4fcc0dd04578b3be8919224c5321cf
                 err = "Cannot connect over ssh:%s %s" % (addr, port)
                 if die:
                     raise e

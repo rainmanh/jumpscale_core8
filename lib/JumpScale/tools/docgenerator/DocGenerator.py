@@ -216,7 +216,7 @@ class DocGeneratorItem:
                 keys=[str(key) for key in newdata.keys()]
                 for key in keys:
                     if key.find(".")!=-1:
-                        newdata[key.replace(".","_")]=snewdata[key]
+                        newdata[key.replace(".","_")]=newdata[key]
                         newdata.pop(key)
 
                 #add new data, this way we get an ever updated dict structure

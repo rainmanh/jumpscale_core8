@@ -7,6 +7,7 @@ import time, os, sys
 class MyFSEventHandler(FileSystemEventHandler):
 
     def handler(self, event,action="copy"):
+        e=""
         changedfile = event.src_path
         if event.is_directory:
             if changedfile.find("/.git") != -1:
@@ -90,39 +91,45 @@ class MyFSEventHandler(FileSystemEventHandler):
 
 class DebugSSHNode:
 
-    def __init__(self, addr="localhost", sshport=22, key_filename=None, passphrase=None):
+    def __init__(self, addr="localhost", sshport=22):
         self.addr = addr
         self.port = sshport
-        self.key_filename = key_filename
-        self.passphrase = passphrase
+        self.connected=None
 
-        #lets test tcp on 22 if not then 9022 which are our defaults
-        test=j.sal.nettools.tcpPortConnectionTest(self.addr,self.port,3)
-        if test==False:
-            print ("could not connect to %s:%s, will try port 9022"%(self.addr,self.port))
-            if self.port==22:
-                test= j.sal.nettools.tcpPortConnectionTest(self.addr,9022,1)
-                if test:
-                    self.port=9022
-        if test==False:
-            raise j.exceptions.RuntimeError("Cannot connect to %s:%s"%(self.addr,self.port))
+    def test(self):
+        if self.connected==None:
+            #lets test tcp on 22 if not then 9022 which are our defaults
+            test=j.sal.nettools.tcpPortConnectionTest(self.addr,self.port,3)
+            if test==False:
+                print ("could not connect to %s:%s, will try port 9022"%(self.addr,self.port))
+                if self.port==22:
+                    test= j.sal.nettools.tcpPortConnectionTest(self.addr,9022,1)
+                    if test:
+                        self.port=9022
+            if test==False:
+                raise j.exceptions.RuntimeError("Cannot connect to %s:%s"%(self.addr,self.port))
 
-        self._platformType = None
-        self._sshclient = None
-        self._ftpclient = None
+            self._platformType = None
+            self._sshclient = None
+            self._ftpclient = None
+
+            self.connected=True
 
     @property
     def ftpclient(self):
+        self.test()
         if self._ftpclient == None:
             self._ftpclient = self.sshclient.getSFTP()
         return self._ftpclient
 
     @property
     def executor(self):
+        self.test()
         return self.cuisine.executor
 
     @property
     def cuisine(self):
+        self.test()
         if self.port == 0:
             return j.tools.cuisine.local
         else:
@@ -130,18 +137,19 @@ class DebugSSHNode:
 
     @property
     def sshclient(self):
+        self.test()
         if self._sshclient == None:
             if self.port != 0:
-                self._sshclient = j.clients.ssh.get(self.addr, port=self.port, key_filename=self.key_filename, passphrase=self.passphrase)
+                self._sshclient = j.clients.ssh.get(self.addr, port=self.port)
             else:
                 return None
         return self._sshclient
 
-    @property
-    def platformType(self):
-        if self._platformType != None:
-            j.application.break_into_jshell("platformtype")
-        return self._platformType
+    # @property
+    # def platformType(self):
+    #     if self._platformType != None:
+    #         j.application.break_into_jshell("platformtype")
+    #     return self._platformType
 
 
 
@@ -196,7 +204,7 @@ class DevelopToolsFactory:
         """
         print (H)
 
-    def init(self, nodes=["localhost"]):
+    def init(self, nodes=[]):
         """
         define which nodes to init,
         format = ["localhost", "ovh4", "anode:2222", "192.168.6.5:23"]
@@ -225,8 +233,12 @@ class DevelopToolsFactory:
 
         if not j.data.types.list.check(nodes):
             raise j.exception.Input("nodes need to be list or string, got:%s"%nodes)
+
+        if nodes==[]:
+            j.core.db.set("debug.nodes", "")
+        else:
         
-        j.core.db.set("debug.nodes", ','.join(nodes))
+            j.core.db.set("debug.nodes", ','.join(nodes))
 
     @property
     def nodes(self):
@@ -234,6 +246,8 @@ class DevelopToolsFactory:
             if j.core.db.get("debug.nodes") == None:
                 self.init()
             nodes = j.core.db.get("debug.nodes").decode()
+            if nodes=="":
+                return []
 
             for item in nodes.split(","):
                 if item.find(":") != -1:
@@ -247,7 +261,7 @@ class DevelopToolsFactory:
                     else:
                         sshport = 0
                     key_filename = None
-                self._nodes.append(DebugSSHNode(addr, sshport, key_filename, passphrase))
+                self._nodes.append(DebugSSHNode(addr, sshport))
         return self._nodes
 
     def jumpscale8sb(self, rw=False,synclocalcode=False,monitor=False,resetstate=False):
@@ -291,10 +305,12 @@ class DevelopToolsFactory:
             self.monitor
 
     def resetState(self):
+        j.actions.setRunId("developtools")
         j.actions.reset()
+        self.init()
 
 
-    def syncCode(self, ask=False,monitor=False,rsyncdelete=False,reset=False):
+    def syncCode(self, ask=False,monitor=False,rsyncdelete=True,reset=False):
         """
         sync all code to the remote destinations
 

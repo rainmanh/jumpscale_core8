@@ -33,6 +33,8 @@ class Client:
             except:
                 errormsg = resp.text
             raise j.exceptions.RuntimeError(errormsg)
+        if code == 204:
+            return
         return resp.json()
 
     def updateCockpit(self, headers=None, query_params=None):
@@ -286,8 +288,7 @@ class Client:
         It is method for DELETE /ays/repository/{repository}/service/{role}/{instance}
         """
         resp = self._client.deleteServiceByInstance(instance=instance, role=role, repository=repository, headers=headers, query_params=query_params)
-        self._assert_response(resp, 204)
-        return
+        return self._assert_response(resp, 204)
 
     def listServiceActions(self, instance, role, repository, headers=None, query_params=None):
         """

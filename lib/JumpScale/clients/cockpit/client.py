@@ -53,6 +53,19 @@ class Client:
         self._assert_response(resp)
         return resp.json()
 
+    def addTemplateRepo(self, url, branch, headers=None, query_params=None):
+        """
+        add a new service template repository
+        It is method for POST /ays/template
+        """
+        data = j.data.serializer.json.dumps({
+            'url': url,
+            'branch': branch,
+        })
+        resp = self._client.addTemplateRepo(data=data, headers=headers, query_params=query_params)
+        self._assert_response(resp, code=201)
+        return resp.json()
+
     def listRepositories(self, headers=None, query_params=None):
         """
         list all repositorys

@@ -37,6 +37,16 @@ class Client:
         uri = self.url + "/ays/reload"
         return self.session.get(uri, headers=headers, params=query_params)
 
+    def addTemplateRepo(self, data, headers=None, query_params=None):
+        """
+        add a new service template repository
+        It is method for POST /ays/template
+        """
+        if self.auth_header:
+            self.session.headers.update({"Authorization":self.auth_header})
+
+        uri = self.url + "/ays/template"
+        return self.session.post(uri, data, headers=headers, params=query_params)
 
     def listRepositories(self, headers=None, query_params=None):
         """

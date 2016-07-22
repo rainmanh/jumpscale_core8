@@ -35,10 +35,10 @@ class BtrfsExtension:
 
     def __btrfs(self, command, action,*args):
         cmd = "%s %s %s %s" % (BASECMD, command, action, " ".join(['"%s"' % a for a in args]))
-        code, out = self._executor.execute(cmd, die=False)
+        code, out, err = self._executor.execute(cmd, die=False)
 
         if code>0:            
-            raise j.exceptions.RuntimeError(out)
+            raise j.exceptions.RuntimeError(err)
 
         return out
 
@@ -59,22 +59,23 @@ class BtrfsExtension:
         """
         full path to volume
         """
-        self.__btrfs("subvolume", "delete", path)
+        if not self.subvolumeExists(path):
+            self.__btrfs("subvolume", "delete", path)
 
     def subvolumeExists(self, path):
         if not self._executor.cuisine.core.dir_exists(path):
             return False
 
-        rc,res=self._executor.execute("btrfs subvolume list %s"%path  ,checkok=False,die=False) 
+        rc, res, err =self._executor.execute("btrfs subvolume list %s"%path  ,checkok=False,die=False)
 
-        if rc>0:
+        if rc > 0:
             if res.find("can't access")!=-1:
                 if self._executor.cuisine.core.dir_exists(path):
                     raise j.exceptions.RuntimeError("Path %s exists put is not btrfs subvolume, cannot continue."%path)        
                 else:
                     return False
             else:
-                raise j.exceptions.RuntimeError("BUG:%s"%res)
+                raise j.exceptions.RuntimeError("BUG:%s" % err)
 
         return True
         

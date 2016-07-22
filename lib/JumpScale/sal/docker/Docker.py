@@ -208,13 +208,13 @@ class Docker:
         cmd="rsync -a %s %s::upload/%s/images/%s --delete-after --modify-window=60 --compress --stats  --progress --exclude '.Trash*'"%(path,ipaddr,key,backupname)
         j.sal.process.executeWithoutPipe(cmd)
 
-    def removeRedundantFiles(self,name):
-        raise j.exceptions.RuntimeError("not implemented")
-        basepath=self._getMachinePath(name)
-        j.sal.fs.removeIrrelevantFiles(basepath,followSymlinks=False)
+    # def removeRedundantFiles(self,name):
+    #     raise j.exceptions.RuntimeError("not implemented")
+    #     basepath=self._getMachinePath(name)
+    #     j.sal.fs.removeIrrelevantFiles(basepath,followSymlinks=False)
 
-        toremove="%s/rootfs/var/cache/apt/archives/"%basepath
-        j.sal.fs.removeDirTree(toremove)
+    #     toremove="%s/rootfs/var/cache/apt/archives/"%basepath
+    #     j.sal.fs.removeDirTree(toremove)
 
     def importRsync(self,backupname,name,basename="",key="pub"):
         """

@@ -35,6 +35,15 @@ class Client:
             raise j.exceptions.RuntimeError(errormsg)
         return resp.json()
 
+    def updateCockpit(self, headers=None, query_params=None):
+        """
+        update the cockpit to the last version
+        It is method for POST /cockpit/update
+        """
+        resp = self._client.update(data=None, headers=headers, query_params=query_params)
+        self._assert_response(resp)
+        return resp.json()
+
     def reloadAll(self, headers=None, query_params=None):
         """
         empty memory and reload all services
@@ -42,6 +51,19 @@ class Client:
         """
         resp = self._client.reloadAll(headers=headers, query_params=query_params)
         self._assert_response(resp)
+        return resp.json()
+
+    def addTemplateRepo(self, url, branch, headers=None, query_params=None):
+        """
+        add a new service template repository
+        It is method for POST /ays/template
+        """
+        data = j.data.serializer.json.dumps({
+            'url': url,
+            'branch': branch,
+        })
+        resp = self._client.addTemplateRepo(data=data, headers=headers, query_params=query_params)
+        self._assert_response(resp, code=201)
         return resp.json()
 
     def listRepositories(self, headers=None, query_params=None):

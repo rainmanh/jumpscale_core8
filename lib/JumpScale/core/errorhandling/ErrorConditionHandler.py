@@ -218,7 +218,7 @@ class ErrorConditionHandler:
             eco.tracebackSet(tb,exceptionObject)
 
             if len(eco.traceback)>10000:
-                eco.traceback=errorobject.traceback[:10000]
+                eco.traceback=eco.traceback[:10000]
 
         # if "message" in exceptionObject.__dict__:
         #     errorobject.exceptioninfo = j.data.serializer.json.dumps({'message': exceptionObject.message})

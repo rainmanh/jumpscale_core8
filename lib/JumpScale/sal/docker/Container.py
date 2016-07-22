@@ -58,23 +58,23 @@ class Container:
         self.copy(path, path)
         self.run("chmod 770 %s;%s" % (path, path))
 
-    def copy(self, src, dest):
-        rndd = j.data.idgenerator.generateRandomInt(10, 1000000)
-        temp = "/var/docker/%s/%s" % (self.name, rndd)
-        j.sal.fs.createDir(temp)
-        source_name = j.sal.fs.getBaseName(src)
-        if j.sal.fs.isDir(src):
-            j.sal.fs.copyDirTree(src, j.sal.fs.joinPaths(temp, source_name))
-        else:
-            j.sal.fs.copyFile(src, j.sal.fs.joinPaths(temp, source_name))
+    # def copy(self, src, dest):
+    #     rndd = j.data.idgenerator.generateRandomInt(10, 1000000)
+    #     temp = "/var/docker/%s/%s" % (self.name, rndd)
+    #     j.sal.fs.createDir(temp)
+    #     source_name = j.sal.fs.getBaseName(src)
+    #     if j.sal.fs.isDir(src):
+    #         j.sal.fs.copyDirTree(src, j.sal.fs.joinPaths(temp, source_name))
+    #     else:
+    #         j.sal.fs.copyFile(src, j.sal.fs.joinPaths(temp, source_name))
 
-        ddir = j.sal.fs.getDirName(dest)
-        cmd = "mkdir -p %s" % (ddir)
-        self.run(cmd)
+    #     ddir = j.sal.fs.getDirName(dest)
+    #     cmd = "mkdir -p %s" % (ddir)
+    #     self.run(cmd)
 
-        cmd = "cp -r /var/jumpscale/%s/%s %s" % (rndd, source_name, dest)
-        self.run(cmd)
-        j.sal.fs.remove(temp)
+    #     cmd = "cp -r /var/jumpscale/%s/%s %s" % (rndd, source_name, dest)
+    #     self.run(cmd)
+    #     j.sal.fs.remove(temp)
 
 
     @property
@@ -89,37 +89,37 @@ class Container:
     def getIp(self):
         return self.info['NetworkSettings']['IPAddress']
 
-    def getProcessList(self, stdout=True):
-        """
-        @return [["$name",$pid,$mem,$parent],....,[$mem,$cpu]]
-        last one is sum of mem & cpu
-        """
-        raise j.exceptions.RuntimeError("not implemented")
-        pid = self.getPid()
-        children = list()
-        children = self._getChildren(pid, children)
-        result = list()
-        pre = ""
-        mem = 0.0
-        cpu = 0.0
-        cpu0 = 0.0
-        prevparent = ""
-        for child in children:
-            if child.parent.name != prevparent:
-                pre += ".."
-                prevparent = child.parent.name
-            # cpu0=child.get_cpu_percent()
-            mem0 = int(round(child.get_memory_info().rss / 1024, 0))
-            mem += mem0
-            cpu += cpu0
-            if stdout:
-                self.logger.info(("%s%-35s %-5s mem:%-8s" % (pre, child.name, child.pid, mem0)))
-            result.append([child.name, child.pid, mem0, child.parent.name])
-        cpu = children[0].get_cpu_percent()
-        result.append([mem, cpu])
-        if stdout:
-            self.logger.info(("TOTAL: mem:%-8s cpu:%-8s" % (mem, cpu)))
-        return result
+    # def getProcessList(self, stdout=True):
+    #     """
+    #     @return [["$name",$pid,$mem,$parent],....,[$mem,$cpu]]
+    #     last one is sum of mem & cpu
+    #     """
+    #     raise j.exceptions.RuntimeError("not implemented")
+    #     pid = self.getPid()
+    #     children = list()
+    #     children = self._getChildren(pid, children)
+    #     result = list()
+    #     pre = ""
+    #     mem = 0.0
+    #     cpu = 0.0
+    #     cpu0 = 0.0
+    #     prevparent = ""
+    #     for child in children:
+    #         if child.parent.name != prevparent:
+    #             pre += ".."
+    #             prevparent = child.parent.name
+    #         # cpu0=child.get_cpu_percent()
+    #         mem0 = int(round(child.get_memory_info().rss / 1024, 0))
+    #         mem += mem0
+    #         cpu += cpu0
+    #         if stdout:
+    #             self.logger.info(("%s%-35s %-5s mem:%-8s" % (pre, child.name, child.pid, mem0)))
+    #         result.append([child.name, child.pid, mem0, child.parent.name])
+    #     cpu = children[0].get_cpu_percent()
+    #     result.append([mem, cpu])
+    #     if stdout:
+    #         self.logger.info(("TOTAL: mem:%-8s cpu:%-8s" % (mem, cpu)))
+    #     return result
 
     def setHostName(self, hostname):
         self.cuisine.core.sudo("echo '%s' > /etc/hostname" % hostname)

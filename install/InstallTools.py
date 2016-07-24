@@ -1051,7 +1051,7 @@ class InstallTools():
 
         # print(":: Executing {} with LD_LIBRARY_PATH: {}".format(command, os.environ.get('LD_LIBRARY_PATH', None)))
         p=Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX, \
-                    shell=useShell, env=os.environ,universal_newlines=True,cwd=cwd,bufsize=0,**popenargs)
+                    shell=useShell, env=os.environ, universal_newlines=True,cwd=cwd,bufsize=0,**popenargs)
 
         if async:
             return p
@@ -1068,13 +1068,20 @@ class InstallTools():
             def run(self):
                 while not self.stream.closed and not self._stopped:
                     buf = ''
-                    buf = self.stream.readline()
+
+                    try:
+                        buf = self.stream.readline()
+                    except Exception:
+                        import pudb;pu.db
+
                     if len(buf) > 0:
                         self.queue.put((self.flag, buf))
                     else:
                         break
                 self.queue.put(('T', self.flag))
 
+        import codecs
+        import pudb;pu.db
         serr = p.stderr
         sout = p.stdout
         inp = queue.Queue()

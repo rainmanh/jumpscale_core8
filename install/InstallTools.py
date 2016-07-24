@@ -2479,8 +2479,9 @@ exec python3 -q "$@"
 
     def installpip(self):
         if not do.exists(do.joinPaths(do.TMP,"get-pip.py")):
-            cmd="cd %s;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python get-pip.py"%do.TMP
-            do.execute(cmd)
+            if not do.TYPE.startswith("WIN"):
+                cmd="cd %s;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python get-pip.py"%do.TMP
+                do.execute(cmd)
 
     def prepare(self,SANDBOX=0,base=""):
         print ("prepare (sandbox:%s)"%SANDBOX)

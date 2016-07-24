@@ -282,11 +282,14 @@ class Client:
         self._assert_response(resp)
         return resp.json()
 
-    def deleteServiceByInstance(self, instance, role, repository, headers=None, query_params=None):
+    def deleteServiceByInstance(self, instance, role, repository, uninstall=False, headers=None, query_params=None):
         """
         uninstall and delete a service
         It is method for DELETE /ays/repository/{repository}/service/{role}/{instance}
         """
+        query_params = query_params or {}
+        query_params.update({'uninstall': uninstall})
+
         resp = self._client.deleteServiceByInstance(instance=instance, role=role, repository=repository, headers=headers, query_params=query_params)
         return self._assert_response(resp, 204)
 

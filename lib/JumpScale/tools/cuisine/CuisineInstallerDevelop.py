@@ -180,6 +180,7 @@ class CuisineInstallerDevelop:
         path.py
         dnspython3
         packet-python
+        pillow
         """
         self.cuisine.pip.multiInstall(C,upgrade=True)
 

@@ -46,7 +46,6 @@ class MonitoringService():
         print(j.clients.openvcloud.get().getRemoteNodes())
         """ % config.base_path
 
-# node_status = {'domain': '', 'name': '', 'instance': '', 'priority': '', 'status': '', 'ports': []}
 
     def get_remote_nodes(self):
         """

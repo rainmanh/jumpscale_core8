@@ -181,6 +181,8 @@ class CuisineInstallerDevelop:
         dnspython3
         packet-python
         """
+        if not self.cuisine.core.isCygwin:
+            C += "pillow"
         self.cuisine.pip.multiInstall(C,upgrade=True)
 
 

@@ -20,7 +20,7 @@ class ErrorConditionObject(BaseException):
     @param type #BUG,INPUT,MONITORING,OPERATIONS,PERFORMANCE,UNKNOWN  
     @param level #1:critical, 2:warning, 3:info see j.enumerators.ErrorConditionLevel
     """
-    def __init__(self,ddict={},msg="",msgpub="",category="",level=1,type="UNKNOWN",tb=None, data=None,tags=""):
+    def __init__(self,ddict={},msg="",msgpub="",category="",level=1,type="UNKNOWN",tb=None, data=None,tags="", limit=30):
         if ddict!={}:
             self.__dict__=ddict
         else:
@@ -37,6 +37,7 @@ class ErrorConditionObject(BaseException):
             self.level=int(level) #1:critical, 2:warning, 3:info see j.enumerators.ErrorConditionLevel.
             self.data = data
             self.tags=tags
+            self._limit = limit 
             
             if len(btkis)>0:                
                 self.code=btkis[-1][0]
@@ -86,10 +87,14 @@ class ErrorConditionObject(BaseException):
         # tb=e.__traceback__
         type=None        
         tblist=traceback.format_exception(type, exceptionObject, tb)
-        
+
         self._traceback=""
 
         ignore=["click/core.py","ipython"]
+
+
+        if self._limit and len(tblist)>self._limit:
+            tblist = tblist[-self._limit:]
 
         for item in tblist:
             for ignoreitem in ignore:

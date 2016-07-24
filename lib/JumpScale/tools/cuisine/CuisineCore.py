@@ -1000,8 +1000,10 @@ class CuisineCore:
     def sudo(self, cmd, die=True,showout=True):
         sudomode = self.sudomode
         self.sudomode = True
-        return self.run(cmd, die=die, showout=showout)
-        self.sudomode = sudomode
+        try:
+            return self.run(cmd, die=die, showout=showout)
+        finally:
+            self.sudomode = sudomode
 
     @actionrun(action=True, force=True)
     def run(self, cmd, die=True, debug=None, checkok=False, showout=True, profile=False, replaceArgs=True):

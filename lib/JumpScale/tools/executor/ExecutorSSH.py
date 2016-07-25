@@ -59,6 +59,7 @@ class ExecutorSSH(ExecutorBase):
     def sshclient(self):
         if self._sshclient is None:
             if self.pushkey is not None:
+                path = None
                 #lets push the ssh key as specified
                 if j.sal.fs.exists(self.pushkey):
                     path=self.pushkey

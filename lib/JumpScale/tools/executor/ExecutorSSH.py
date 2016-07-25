@@ -59,6 +59,7 @@ class ExecutorSSH(ExecutorBase):
     def sshclient(self):
         if self._sshclient is None:
             path = None
+            pubkey = None
             if self.pushkey is not None:
                 #lets push the ssh key as specified
                 if j.sal.fs.exists(self.pushkey):
@@ -76,7 +77,7 @@ class ExecutorSSH(ExecutorBase):
             self._sshclient = j.clients.ssh.get(self.addr, self.port, login=self.login, passwd=self.passwd,
                                                 allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,
                                                 key_filename=path, passphrase=None,
-                                                timeout=self.timeout,usecache=False)  # TODO: add passphrase
+                                                timeout=self.timeout, usecache=False)  # TODO: add passphrase
             if pubkey:
                 self._sshclient.ssh_authorize("root", pubkey)
 

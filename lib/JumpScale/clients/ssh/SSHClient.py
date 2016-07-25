@@ -148,6 +148,7 @@ class SSHClient:
                     self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,
                                          pkey=self.pkey, allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,
                                          timeout=2.0, banner_timeout=3.0)
+                    self._client.invoke_shell()
                     break
                 except (BadHostKeyException, AuthenticationException) as e:
                     # Can't recover, no point in waiting. Exiting now

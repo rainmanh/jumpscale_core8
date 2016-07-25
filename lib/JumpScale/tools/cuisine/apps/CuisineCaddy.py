@@ -69,9 +69,10 @@ class Caddy:
 
         self.cuisine.processmanager.stop("caddy")  # will also kill
 
-        fw = self.cuisine.core.run("ufw status 2> /dev/null", die=False)[0]
+        fw = not self.cuisine.core.run("ufw status 2> /dev/null", die=False)[0]
+
         if ssl:
-            # Do if "ufw status 2> /dev/null" didn't run properly
+            # Do if not  "ufw status 2> /dev/null" didn't run properly
             if fw:
                 self.cuisine.ufw.allowIncoming(443)
                 self.cuisine.ufw.allowIncoming(80)

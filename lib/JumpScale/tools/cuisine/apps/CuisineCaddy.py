@@ -73,9 +73,9 @@ class Caddy:
         if ssl:
             # Do if "ufw status 2> /dev/null" didn't run properly
             if fw:
-                self.cuisine.fw.allowIncoming(443)
-                self.cuisine.fw.allowIncoming(80)
-                self.cuisine.fw.allowIncoming(22)
+                self.cuisine.ufw.allowIncoming(443)
+                self.cuisine.ufw.allowIncoming(80)
+                self.cuisine.ufw.allowIncoming(22)
 
             if self.cuisine.process.tcpport_check(80, "") or self.cuisine.process.tcpport_check(443, ""):
                 raise RuntimeError("port 80 or 443 are occupied, cannot install caddy")
@@ -86,8 +86,8 @@ class Caddy:
 
             PORTS = ":80"
             if fw:
-                self.cuisine.fw.allowIncoming(80)
-                self.cuisine.fw.allowIncoming(22)
+                self.cuisine.ufw.allowIncoming(80)
+                self.cuisine.ufw.allowIncoming(22)
 
         cmd = self.cuisine.bash.cmdGetPath("caddy")
         self.cuisine.processmanager.ensure("caddy", '%s -conf=%s -email=info@greenitglobe.com' % (cmd, cpath))

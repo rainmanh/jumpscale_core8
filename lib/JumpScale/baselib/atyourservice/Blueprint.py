@@ -1,17 +1,14 @@
 from JumpScale import j
+import yaml
 
 CATEGORY = "ays:bp"
-
-
-def log(msg, level=2):
-    j.logger.log(msg, level=level, category=CATEGORY)
-
 
 class Blueprint:
     """
     """
 
     def __init__(self, aysrepo, path="", content=""):
+        self.logger = j.logger.get('j.atyourservice.blueprint')
         self.aysrepo = aysrepo
         self.path = path
         self.active=True
@@ -61,7 +58,7 @@ class Blueprint:
                     aysname, aysinstance = key.lower().split("__", 1)
 
                     if instance != "" and aysinstance != instance:
-                        log("ignore load from blueprint for: %s:%s" % (aysname, aysinstance))
+                        self.logger.info("ignore load from blueprint for: %s:%s" % (aysname, aysinstance))
                         continue
 
                     if aysname.find(".") != -1:
@@ -70,7 +67,7 @@ class Blueprint:
                         rolefound = aysname
 
                     if role != "" and role != rolefound:
-                        log("ignore load from blueprint based on role for: %s:%s" % (aysname, aysinstance))
+                        self.logger.info("ignore load from blueprint based on role for: %s:%s" % (aysname, aysinstance))
                         continue
 
                     recipe = self.aysrepo.getRecipe(aysname, die=False)

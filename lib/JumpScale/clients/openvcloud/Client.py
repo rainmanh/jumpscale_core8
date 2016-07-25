@@ -63,8 +63,9 @@ class Client:
         self._login = login
         self.api = j.clients.portal.get(url, port)
 
+        self._isms1 = 'mothership1' in url
         self.__login(password, secret)
-        if 'mothership1' in url:
+        if self._isms1:
             jsonpath = os.path.join(os.path.dirname(__file__), 'ms1.json')
             self.api.load_swagger(file=jsonpath, group='cloudapi')
             patchMS1(self.api)
@@ -77,7 +78,10 @@ class Client:
 
     def __login(self, password, secret):
         if not secret:
-            secret = self.api.cloudapi.users.authenticate(username=self._login, password=password)
+            if self._isms1:
+                secret = self.api.cloudapi.users.authenticate(username=self._login, password=password)
+            else:
+                secret = self.api.system.usermanager.authenticate(name=self._login, secret=password)
         self.api._session.cookies.clear()  # make sure cookies are empty, clear guest cookie
         self.api._session.cookies['beaker.session.id'] = secret
 

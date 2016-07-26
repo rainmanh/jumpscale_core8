@@ -25,10 +25,15 @@ class SSHClientFactory:
     def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True, look_for_keys=True,
             timeout=5, key_filename=None, passphrase=None, die=True, usecache=True):
         key = "%s_%s_%s_%s" % (addr, port, login, j.data.hash.md5_string(str(passwd)))
+        if key in self.cache and usecache:
+            try:
+                if not self.cache[key].transport.is_active():
+                    usecache = False
+            except Exception:
+                usecache = False
         if key not in self.cache or usecache is False:
             self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent, allow_agent=allow_agent,
                                         look_for_keys=look_for_keys, key_filename=key_filename, passphrase=passphrase, timeout=timeout)
-
         return self.cache[key]
 
     def removeFromCache(self, client):
@@ -148,7 +153,6 @@ class SSHClient:
                     self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,
                                          pkey=self.pkey, allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,
                                          timeout=2.0, banner_timeout=3.0)
-                    self._client.invoke_shell()
                     break
                 except (BadHostKeyException, AuthenticationException) as e:
                     # Can't recover, no point in waiting. Exiting now

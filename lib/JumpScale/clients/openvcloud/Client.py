@@ -318,6 +318,10 @@ class Space:
         """
         self._machines_cache.delete()
 
+    def delete(self):
+        self.client.api.cloudapi.cloudspaces.delete(cloudspaceId=self.id)
+
+
     def __repr__(self):
         return "space: %s (%s)"%(self.model["name"],self.id)
 

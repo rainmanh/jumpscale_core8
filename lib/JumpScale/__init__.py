@@ -97,8 +97,7 @@ j.portal.tools = Loader('j.portal.tools')
 
 
 
-from .InstallTools import InstallTools, do
-from .InstallTools import Installer
+from .InstallTools import InstallTools, do, Installer
 j.do=do
 j.do.installer=Installer()
 
@@ -111,12 +110,12 @@ import importlib
 
 def redisinit():
     import redis
-    
+
     if  j.do.TYPE.startswith("WIN"):
         j.core.db=redis.Redis()
     else:
         j.core.db=redis.Redis(unix_socket_path='/tmp/redis.sock')
-    
+
     try:
         j.core.db.set("internal.last",0)
     except:

@@ -41,9 +41,9 @@ class Arakoon:
 
             opam_root = self.cuisine.core.args_replace('$tmpDir/OPAM')
             cmd = "$opam config env --root=%s --dot-profile %s" % (opam_root, self.cuisine.bash.profilePath)
-            rc, opam_env = self.cuisine.core.run(cmd, die=False, profile=True)
+            rc, out, err = self.cuisine.core.run(cmd, die=False, profile=True)
 
-            cmd = 'cd %s && eval `%s` && make' % (dest, opam_env)
+            cmd = 'cd %s && eval `%s` && make' % (dest, out)
             self.cuisine.core.run_script(cmd, profile=True)
 
             self.cuisine.core.file_copy('%s/arakoon.native' % dest, "$binDir/arakoon", overwrite=True)
@@ -66,7 +66,7 @@ class Arakoon:
         self.cuisine.core.run(cmd, profile=True)
 
         cmd = "opam config env --root=%s --dot-profile %s" % (opam_root, self.cuisine.bash.profilePath)
-        rc, opam_env = self.cuisine.core.run(cmd, die=False, profile=True)
+        rc, out, err = self.cuisine.core.run(cmd, die=False, profile=True)
 
         self.logger.info("start installation of ocaml pacakges")
         cmd="""eval `%s` && \
@@ -97,7 +97,7 @@ class Arakoon:
         core.113.00.00 \
         redis \
         uri.1.9.1 \
-        result""" % opam_env
+        result""" % out
         self.cuisine.core.run_script(cmd, profile=True)
 
     def _install_deps(self):

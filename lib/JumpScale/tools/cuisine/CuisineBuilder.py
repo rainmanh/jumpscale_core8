@@ -8,12 +8,14 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.builder"
 
-class CuisineBuilder:
+base=j.tools.cuisine.getBaseClass()
+class CuisineBuilder(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
         self.cuisine = cuisine
 
+    @actionrun()
     def all(self, start=False, sandbox=False, stor_addr=None, stor_name=""):
         if self.cuisine.core.isMac and not stor_name:
             stor_name="osx10.11"
@@ -42,6 +44,7 @@ class CuisineBuilder:
                 raise j.exceptions.RuntimeError("Store address should be specified if sandboxing enable.")
             self.sandbox(stor_addr, stor_name)
 
+    @actionrun()
     def sandbox(self, stor_addr, stor_name, python=True):
         """
         stor_addr : addr to the store you want to populate. e.g.: https://stor.jumpscale.org/storx
@@ -66,6 +69,7 @@ class CuisineBuilder:
 
         return url_opt
 
+    @actionrun()
     def sandbox_python(self, python=True):
         print("START SANDBOX")
         if self.cuisine.executor.type!="local":
@@ -98,6 +102,7 @@ class CuisineBuilder:
         j.tools.sandboxer.sandboxLibs("%s/bin" % self.cuisine.core.dir_paths['base'], recursive=True)
         print("SANDBOXING DONE, ALL OK IF TILL HERE, A Segfault can happen because we have overwritten ourselves.")
 
+    @actionrun()
     def dedupe(self, dedupe_path, namespace, store_addr, output_dir='/tmp/sandboxer', sandbox_python=True):
         if self.cuisine.executor.type!="local":
             raise j.exceptions.RuntimeError("only supports cuisine in local mode")

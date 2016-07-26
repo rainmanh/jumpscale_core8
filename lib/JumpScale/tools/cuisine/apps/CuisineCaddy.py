@@ -16,8 +16,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.caddy"
 
-
-class Caddy:
+base=j.tools.cuisine.getBaseClass()
+class Caddy(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -55,6 +55,7 @@ class Caddy:
         if start:
             self.start(ssl)
 
+    @actionrun(force=True)
     def start(self, ssl):
         cpath = self.cuisine.core.args_replace("$cfgDir/caddy/caddyfile.conf")
         self.cuisine.core.file_copy("$tmplsDir/cfg/caddy", "$cfgDir/caddy", recursive=True)
@@ -93,6 +94,7 @@ class Caddy:
         self.cuisine.processmanager.ensure("caddy", '%s -conf=%s -email=info@greenitglobe.com' % (cmd, cpath))
 
 
+    @actionrun()
     def caddyConfig(self,sectionname,config):
         """
         config format see https://caddyserver.com/docs/caddyfile

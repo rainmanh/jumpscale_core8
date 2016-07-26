@@ -13,16 +13,22 @@ def shell_safe( path ):
     path= "".join([("\\" + _) if _ in SHELL_ESCAPE else _ for _ in path])
     return path
 
+from ActionDecorator import ActionDecorator
+class actionrun(ActionDecorator):
+    def __init__(self,*args,**kwargs):
+        ActionDecorator.__init__(self,*args,**kwargs)
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.user"
 
 
-class CuisineUser:
+base=j.tools.cuisine.getBaseClass()
+class CuisineUser(base):
 
     def __init__(self,executor,cuisine):
         self.executor=executor
         self.cuisine=cuisine
 
 
-
+    @actionrun()
     def passwd(self, name, passwd, encrypted_passwd=False):
         """Sets the given user password."""
         print("set user:%s passwd for %s"%(name,self))
@@ -40,7 +46,7 @@ class CuisineUser:
             self.cuisine.core.run("echo \"%s:%s\" | chpasswd"%(name, passwd))
         #executor = j.tools.executor.getSSHBased(self.executor.addr, self.executor.port, name, passwd, checkok=True)
 
-
+    @actionrun()
     def create(self,name, passwd=None, home=None, uid=None, gid=None, shell=None,
         uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None, createhome=True):
         """Creates the user with the given name, optionally giving a
@@ -73,6 +79,7 @@ class CuisineUser:
         if passwd:
             self.passwd(name=name,passwd=passwd,encrypted_passwd=encrypted_passwd)
 
+    @actionrun()
     def check(self,name=None, uid=None, need_passwd=True):
         """Checks if there is a user defined with the given name,
         returning its information as a
@@ -101,6 +108,7 @@ class CuisineUser:
         else:
             return None
 
+    @actionrun()
     def ensure(self,name, passwd=None, home=None, uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True,group=None):
         """Ensures that the given users exists, optionally updating their
         passwd/home/uid/gid/shell."""
@@ -126,7 +134,7 @@ class CuisineUser:
         if group!=None:
             self.cuisine.group.user_add(group=group, user=name)
 
-
+    @actionrun()
     def remove(self,name, rmhome=None):
         """Removes the user with the given name, optionally
         removing the home directory and mail spool."""
@@ -135,7 +143,7 @@ class CuisineUser:
             options.append("-r")
         self.cuisine.core.sudo("userdel %s '%s'" % (" ".join(options), name))
 
-
+    @actionrun()
     def list(self):
         users=self.cuisine.core.fs_find("/home",recursive=False)
         users=[j.sal.fs.getBaseName(item) for item in users if (item.strip()!="" and item.strip("/")!="home")]

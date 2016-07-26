@@ -11,8 +11,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self,*args,**kwargs)
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.vrouter"
 
-
-class CuisineVRouter:
+base=j.tools.cuisine.getBaseClass()
+class CuisineVRouter(base):
 
     def __init__(self,executor,cuisine):
         self.executor=executor

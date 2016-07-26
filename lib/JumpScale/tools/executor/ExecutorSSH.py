@@ -9,7 +9,7 @@ class ExecutorSSH(ExecutorBase):
             look_for_keys=True,pushkey=None,pubkey="", checkok=True, timeout=5):
         ExecutorBase.__init__(self, dest_prefixes=dest_prefixes,debug=debug,checkok=checkok)
         self.logger = j.logger.get("j.tools.executor.ssh")
-        self.id = '%s:%s:%s' % (addr, port, login)
+        self.id = '%s:%s' % (addr, port) #do not put login name in key, 
         self.addr = addr
         self._port = int(port)
         self._login=login
@@ -85,22 +85,23 @@ class ExecutorSSH(ExecutorBase):
         """
         if env:
             self.env.update(env)
-        self.logger.info("cmd: %s" % cmds)
+        if showout:
+            self.logger.debug("cmd: %s" % cmds)
         cmds2 = self._transformCmds(cmds,die,checkok=checkok)
 
         if cmds.find("\n") != -1:
             if showout:
                 self.logger.info("EXECUTESCRIPT} %s:%s:\n%s" % (self.addr, self.port, cmds))
-            else:
-                self.logger.debug("EXECUTESCRIPT} %s:%s:\n%s"%(self.addr, self.port, cmds))
+            # else:
+            #     self.logger.debug("EXECUTESCRIPT} %s:%s:\n%s"%(self.addr, self.port, cmds))
             sshkey = self.sshclient.key_filename or ""
             rc, out, err = j.do.executeBashScript(content=cmds2, path=None, die=die, remote=self.addr, sshport=self.port, sshkey=sshkey)
         else:
             # online command, we use cuisine
             if showout:
                 self.logger.info("EXECUTE %s:%s: %s"%(self.addr, self.port, cmds))
-            else:
-                self.logger.debug("EXECUTE %s:%s: %s"%(self.addr, self.port, cmds))
+            # else:
+            #     self.logger.debug("EXECUTE %s:%s: %s"%(self.addr, self.port, cmds))
             rc, out, err = self.sshclient.execute(cmds2, die=die, showout=showout)
 
         if checkok and die:

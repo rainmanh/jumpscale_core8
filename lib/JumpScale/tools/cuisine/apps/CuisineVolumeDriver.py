@@ -17,8 +17,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.volumedriver"
 
-
-class VolumeDriver:
+base=j.tools.cuisine.getBaseClass()
+class VolumeDriver(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -30,6 +30,7 @@ class VolumeDriver:
         self._install_deps()
         self._build()
 
+    @actionrun()
     def _install_deps(self):
         self.cuisine.core.file_write('/etc/apt/sources.list.d/ovsaptrepo.list', 'deb http://apt.openvstorage.org unstable main')
         self.cuisine.package.update()
@@ -58,6 +59,7 @@ class VolumeDriver:
         """
         self.cuisine.package.multiInstall(apt_deps, allow_unauthenticated=True)
 
+    @actionrun()
     def _build(self, version='6.0.0'):
         workspace = self.cuisine.core.args_replace("$tmpDir/volumedriver-workspace")
         self.cuisine.core.dir_ensure(workspace)

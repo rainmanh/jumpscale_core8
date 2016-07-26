@@ -55,18 +55,28 @@ class ActionController:
         return self.actions[actionkey]
 
 
-    def reset(self, all=False, item=None):
+    def reset(self, all=False, item=None,prefix=None):
+        """
+        @param is the key under actions we need to remove
+        """
         if all is True:
             for item in j.core.db.keys("actions.*"):
                 item = item.decode().split(".", 1)[1]
                 self.logger.info("delete:%s" % item)
-                self.reset(item=item)
+                self.reset(item=item,prefix=prefix)
         else:
-            self._actions = {}
-            if item is None:
-                j.core.db.delete("actions.%s"%self.runid)
+            if prefix==None:
+                self._actions = {}
+                if item is None:
+                    j.core.db.delete("actions.%s"%self.runid)
+                else:
+                    j.core.db.delete("actions.%s"%item)
             else:
-                j.core.db.delete("actions.%s"%item)
+                key="actions.%s"%self.runid
+                for hkey in j.core.db.hkeys(key):
+                    hkey=hkey.decode()
+                    if hkey.startswith(prefix):
+                        j.core.db.hdel(key,hkey)
 
     def resetAll(self):
         self.reset(True)

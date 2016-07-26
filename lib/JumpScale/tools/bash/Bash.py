@@ -248,7 +248,7 @@ class Bash:
         self.cuisine.core.file_write(self.profilePath, self.profile.dump(),showout=False)
 
     @actionrun(action=True)
-    def getLocaleItems(self,force=False):
+    def getLocaleItems(self,force=False,showout=False):
         out = self.cuisine.core.run("locale -a")[1]
         return out.split("\n")
 

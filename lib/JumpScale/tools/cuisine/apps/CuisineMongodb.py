@@ -16,8 +16,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.mongodb"
 
-
-class Mongodb:
+base=j.tools.cuisine.getBaseClass()
+class Mongodb(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -57,11 +57,13 @@ class Mongodb:
 
         self.cuisine.core.dir_ensure('$varDir/data/mongodb')
 
+    @actionrun()
     def build(self, start=True):
         self._build()
         if start:
             self.start("mongod")
-
+    
+    @actionrun(force=True)
     def start(self, name="mongod"):
         which = self.cuisine.core.command_location("mongod")
         self.cuisine.core.dir_ensure('$varDir/data/mongodb')

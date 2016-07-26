@@ -14,8 +14,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.syncthing"
 
-
-class Syncthing:
+base=j.tools.cuisine.getBaseClass()
+class Syncthing(base):
     
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -101,6 +101,7 @@ class Syncthing:
         if start:
             self.start()
 
+    @actionrun(force=True)
     def start(self):
         self.cuisine.core.dir_ensure("$cfgDir")
         self.cuisine.core.file_copy("$tmplsDir/cfg/syncthing/", "$cfgDir", recursive=True)

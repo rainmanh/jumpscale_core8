@@ -219,8 +219,9 @@ class StorScripts():
         print(targ)
         
         """ % (root, j.data.serializer.json.dumps(keys), target)
-        
-class CuisineStor():
+
+base=j.tools.cuisine.getBaseClass()
+class CuisineStor(base):
     def __init__(self, executor, cuisine):
         self.executor = executor
         self.cuisine = cuisine

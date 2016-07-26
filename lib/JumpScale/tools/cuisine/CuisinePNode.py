@@ -1,6 +1,14 @@
 from JumpScale import j
 
-class CuisinePNode():
+from ActionDecorator import ActionDecorator
+class actionrun(ActionDecorator):
+    def __init__(self,*args,**kwargs):
+        ActionDecorator.__init__(self,*args,**kwargs)
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.pnode"
+
+
+base=j.tools.cuisine.getBaseClass()
+class CuisinePNode(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -42,6 +50,7 @@ class CuisinePNode():
 
         return device
 
+    @actionrun()
     def _getNeededPartitions(self):
         needed = []
 
@@ -67,6 +76,7 @@ class CuisinePNode():
 
         return final
 
+    @actionrun()
     def _getDisks(self):
         devices = self.cuisine.core.run('lsblk -n -l -o NAME,TYPE')[1].splitlines()
         disks = []
@@ -77,6 +87,7 @@ class CuisinePNode():
 
         return disks
 
+    @actionrun()
     def _getDisksWithExclude(self, disks, exclude):
         for disk in disks:
             for keep in exclude:
@@ -88,17 +99,20 @@ class CuisinePNode():
 
         return disks
 
+    @actionrun()
     def _eraseDisk(self, disk):
         disk = self._ensureDevName(disk)
 
         self.cuisine.core.run("dd if=/dev/zero of=%s bs=4M count=1" % disk)
 
+    @actionrun()
     def _getPartitionsOnDisk(self, disk):
         disk = self._ensureDevName(disk)
         partitions = self.cuisine.core.run('ls %s*' % disk)[1].splitlines()
 
         return partitions
 
+    @actionrun()
     def _unmountDisk(self, disk):
         """
         Unmount all partitions in disk
@@ -108,6 +122,7 @@ class CuisinePNode():
         for partition in partitions:
             self.cuisine.core.run('umount %s' % partition, die=False)
 
+    @actionrun()
     def erase(self,keepRoot=True):
         """
         if keepRoot == True:
@@ -133,6 +148,7 @@ class CuisinePNode():
         # commit changes to the kernel
         self.cuisine.core.run("partprobe")
 
+    @actionrun()
     def importRoot(self, source="/image.tar.gz", destination="/"):
         """
         Import and extract an archive to the filesystem
@@ -141,6 +157,7 @@ class CuisinePNode():
         cmd = 'tar -zpxf %s -C %s' % (source, destination)
         self.cuisine.core.run(cmd)
 
+    @actionrun()
     def exportRoot(self, source="/", destination="/image.tar.gz",excludes=["\.pyc","__pycache__"]):
         """
         Create an archive of a remote file system
@@ -151,6 +168,7 @@ class CuisinePNode():
         #@todo (*1*) implement excludes (does not have to be regex is other method more easy)
 
 
+    @actionrun()
     def exportRootStor(self, storspace,plistname,source="/",excludes=["\.pyc","__pycache__"],removetmpdir=True):
         """
         reason to do this is that we will use this to then make the step to g8os with g8osfs (will be very small step then)
@@ -159,11 +177,13 @@ class CuisinePNode():
         #@todo (*1*) implement using CuisineStor space
         pass
 
+    @actionrun()
     def importRootDedupe(self, storspace,plistname, destination="/mnt/",removetmpdir=True):
         #@todo (*1*) implement using CuisineStor space
         pass
 
 
+    @actionrun()
     def formatStorage(self, keepRoot=True, mountpoint="/storage"):
         """
         use btrfs to format/mount the disks
@@ -201,18 +221,20 @@ class CuisinePNode():
             #check if no mounted btrfs partition yet and create if required
             self.cuisine.btrfs.subvolumeCreate(mountpoint)
 
+    @actionrun()
     def buildG8OSImage(self):
         """
 
         """
         #@todo cuisine enable https://github.com/g8os/builder
 
+    @actionrun()
     def buildArchImage(self):
         """
 
         """
 
-
+    @actionrun()
     def installArch(self,rootsize=5):
         """
         install arch on $rootsize GB root partition
@@ -222,7 +244,7 @@ class CuisinePNode():
         #manual partitioning
         #get tgz from url="https://stor.jumpscale.org/public/ubuntu....tgz"
 
-
+    @actionrun()
     def installG8OS(self,rootsize=5):
         """
         install g8os on $rootsize GB root partition

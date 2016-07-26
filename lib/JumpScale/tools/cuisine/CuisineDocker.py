@@ -14,7 +14,8 @@ class actionrun(ActionDecorator):
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.docker"
 
 
-class CuisineDocker:
+base=j.tools.cuisine.getBaseClass()
+class CuisineDocker(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -38,6 +39,7 @@ class CuisineDocker:
             self.cuisine.package.install("docker")
             self.cuisine.package.install("docker-compose")
 
+    @actionrun()
     def archBuild(self):  # @todo (*2*)
         C = """
         FROM base/archlinux:latest
@@ -110,6 +112,7 @@ class CuisineDocker:
             """ % path
             self.cuisine.core.run_script(C)
 
+    @actionrun()
     def enableSSH(self, conn_str):
         c2 = j.tools.cuisine.get(conn_str)
         # change passwd

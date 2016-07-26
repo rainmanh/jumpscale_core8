@@ -16,12 +16,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.fs"
 
-
-class Fs:
-
-    def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+base=j.tools.cuisine.getBaseClass()
+class Fs(base):
 
     @actionrun(action=True)
     def build(self, start=False):
@@ -57,6 +53,7 @@ class Fs:
         if start:
             self.start()
 
+    @actionrun(force=True)
     def start(self):
         self.cuisine.core.file_copy("$tmplsDir/cfg/fs", "$cfgDir", recursive=True)
         self.cuisine.processmanager.ensure('fs', cmd="$binDir/fs -c $cfgDir/fs/config.toml")

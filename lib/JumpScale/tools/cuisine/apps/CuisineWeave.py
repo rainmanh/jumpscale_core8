@@ -16,8 +16,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.weave"
 
-
-class Weave:
+base=j.tools.cuisine.getBaseClass()
+class Weave(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -43,6 +43,7 @@ class Weave:
         if start:
             self.start(peer)
 
+    @actionrun()
     def start(self, peer=None):
         rc, out, err = self.cuisine.core.run("weave status", profile=True, die=False, showout=False)
         if rc != 0:

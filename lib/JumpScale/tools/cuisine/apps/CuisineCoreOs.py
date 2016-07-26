@@ -16,8 +16,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.core"
 
-
-class Core:
+base=j.tools.cuisine.getBaseClass()
+class Core(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -69,6 +69,7 @@ class Core:
         if start:
             self.start(nid, gid)
 
+    @actionrun(force=True)
     def start(self, nid, gid, controller_url="http://127.0.0.1:8966"):
         """
         if this is run on the sam e machine as a controller instance run controller first as the

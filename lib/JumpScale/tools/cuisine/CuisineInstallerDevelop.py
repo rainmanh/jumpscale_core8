@@ -10,8 +10,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self,*args,**kwargs)
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installerdevelop"
 
-
-class CuisineInstallerDevelop:
+base=j.tools.cuisine.getBaseClass()
+class CuisineInstallerDevelop(base):
 
     def __init__(self,executor,cuisine):
         self.executor=executor
@@ -221,6 +221,8 @@ class CuisineInstallerDevelop:
         self.cuisine.core.run("apt-get clean")
         self.cuisine.core.dir_remove("/var/tmp/*")
         self.cuisine.core.dir_remove("/etc/dpkg/dpkg.cfg.d/02apt-speedup")
+        self.cuisine.core.dir_remove("$tmpDir")
+        self.cuisine.core.dir_ensure("$tmpDir")
 
 
     @actionrun(action=True)
@@ -237,6 +239,8 @@ class CuisineInstallerDevelop:
         """
         C=self.cuisine.core.args_replace(C)
         self.cuisine.core.run_script(C,force=True)
+
+    @actionrun()
     def xrdp(self):
         """
         builds a full xrdp, this can take a while

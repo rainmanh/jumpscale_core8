@@ -3,7 +3,8 @@ import time
 import re
 
 #not using cuisine.tmux.executeInScreen
-class ProcessManagerBase:
+base=j.tools.cuisine.getBaseClass()
+class ProcessManagerBase(base):
 
     def __init__(self,executor,cuisine):
         self.executor = executor
@@ -160,12 +161,12 @@ class CuisineRunit(ProcessManagerBase):
             envstr += "export %s=%s\n" % (name0, value)
 
         sv_text ="""#!/bin/sh
-set -e
-echo $descrs
-$env
-cd $path
-exec $cmd
-"""
+        set -e
+        echo $descrs
+        $env
+        cd $path
+        exec $cmd
+        """
         sv_text = sv_text.replace("$env", envstr)
         sv_text = sv_text.replace("$path", path)
         sv_text = sv_text.replace("$cmd",cmd)

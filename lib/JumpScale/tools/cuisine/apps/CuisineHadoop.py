@@ -16,12 +16,10 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.hadoop"
 
+base=j.tools.cuisine.getBaseClass()
+class Hadoop(base):
 
-class Hadoop:
 
-    def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
 
     @actionrun(action=True)
     def _build(self):
@@ -44,5 +42,6 @@ class Hadoop:
         else:
             raise NotImplementedError("unsupported platform")
 
+    @actionrun()
     def build(self):
         self._build()

@@ -78,10 +78,13 @@ class JSCuisine:
 
         self.stor = CuisineStor(self.executor,self)
 
-
+        self.reset=self.core.reset
 
 
         self.done=[]
+
+    def reset_actions(self):
+        j.actions.reset(self.runid)
 
     @property
     def btrfs(self):

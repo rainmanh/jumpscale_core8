@@ -11,8 +11,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self,*args,**kwargs)
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.sshreflector"
 
-
-class CuisineSSHReflector:
+base=j.tools.cuisine.getBaseClass()
+class CuisineSSHReflector(base):
 
     def __init__(self,executor,cuisine):
         self.executor=executor
@@ -190,7 +190,7 @@ class CuisineSSHReflector:
             print ("On %s:%s remote SSH port:%s"%(remotecuisine.core.executor.addr,port,newport))
 
 
-    # @actionrun()
+    @actionrun(force=True)
     def createconnection(self,remoteids):
         """
         @param remoteids are the id's of the reflectors e.g. 'ovh3,ovh5:3333'

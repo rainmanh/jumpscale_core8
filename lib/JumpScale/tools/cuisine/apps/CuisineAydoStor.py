@@ -16,8 +16,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.stor"
 
-
-class AydoStor:
+base=j.tools.cuisine.getBaseClass()
+class AydoStor(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -52,6 +52,7 @@ class AydoStor:
         if start:
             self.start(addr)
 
+    @actionrun(force=True)
     def start(self, addr):
         res = addr.split(":")
         if len(res) == 2:

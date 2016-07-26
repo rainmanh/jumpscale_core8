@@ -118,8 +118,8 @@ class Domain:
         self.cuisine.core.file_write("$cfgDir/geodns/dns/%s.json" % self.name, config)
         return config
 
-
-class CuisineGeoDns:
+base=j.tools.cuisine.getBaseClass()
+class CuisineGeoDns(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -145,6 +145,7 @@ class CuisineGeoDns:
         self.cuisine.core.file_copy(
             "$tmplsDir/cfg/geodns", "$cfgDir/", recursive=True)
 
+    @actionrun(force=True)
     def start(self, ip="0.0.0.0", port="5053", config_dir="$cfgDir/geodns/dns/", identifier="geodns_main", cpus="1", tmux=False):
         """
         starts geodns server with given params
@@ -173,6 +174,7 @@ class CuisineGeoDns:
                 domains.append(basename.rstrip('.json'))
         return domains
 
+    @actionrun()
     def ensure_domain(self, domain_name, serial=1, ttl=600, content=None, max_hosts=2,  a_records={}, cname_records={}, ns=[]):
         """
         used to create a domain_name in dns server also updates if already exists
@@ -190,6 +192,7 @@ class CuisineGeoDns:
         domain_instance.save()
         return domain_instance
 
+    @actionrun()
     def get_domain(self, domain_name):
         """
         get domain object with dict of relevant records
@@ -198,12 +201,14 @@ class CuisineGeoDns:
             raise Exception("domain_name not created")
         return self.ensure_domain(domain_name)
 
+    @actionrun()
     def del_domain(self, domain_name):
         """
         delete domain object
         """
         self.cuisine.core.file_unlink("$cfgDir/geodns/dns/%s.json" % domain_name)
 
+    @actionrun()
     def add_record(self, domain_name, subdomain, record_type, value, weight=100):
         """
         @domain_name = domin object name : string
@@ -219,6 +224,7 @@ class CuisineGeoDns:
             domain_instance.add_cname_record(value, subdomain)
         return domain_instance.save()
 
+    @actionrun()
     def get_record(self, domain_name, record_type, subdomain=None):
         """
         returns a dict of record/s and related subdomains within domain
@@ -230,6 +236,7 @@ class CuisineGeoDns:
             record = domain_instance.get_cname_record(subdomain)
         return record
 
+    @actionrun()
     def del_record(self, domain_name, record_type, subdomain, value, full=True):
         """
         delete record and/or entire subdomain

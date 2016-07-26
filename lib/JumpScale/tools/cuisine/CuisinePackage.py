@@ -8,8 +8,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self,*args,**kwargs)
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.package"
 
-
-class CuisinePackage:
+base=j.tools.cuisine.getBaseClass()
+class CuisinePackage(base):
 
     def __init__(self,executor,cuisine):
         self.logger = j.logger.get('j.tools.cuisine.package')
@@ -147,7 +147,7 @@ class CuisinePackage:
 
             return out
 
-
+    @actionrun()
     def multiInstall(self, packagelist, allow_unauthenticated=False):
         """
         @param packagelist is text file and each line is name of package

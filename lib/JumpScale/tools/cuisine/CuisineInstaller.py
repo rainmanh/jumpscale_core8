@@ -10,8 +10,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self,*args,**kwargs)
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installer"
 
-
-class CuisineInstaller:
+base=j.tools.cuisine.getBaseClass()
+class CuisineInstaller(base):
 
     def __init__(self,executor,cuisine):
         self.executor=executor
@@ -139,7 +139,7 @@ class CuisineInstaller:
         self.cuisine.pip.install("libvirt-python==1.3.2", upgrade=False)
 
     @actionrun(action=True)
-    def base(self):
+    def base(self,force=False):
         self.clean()
 
         self.cuisine.bash.fixlocale()

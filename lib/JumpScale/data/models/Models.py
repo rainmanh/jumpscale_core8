@@ -1,9 +1,13 @@
 
 from mongoengine.fields import IntField, StringField, ListField, BooleanField, DictField, EmbeddedDocumentField, FloatField
 from mongoengine import DoesNotExist, EmbeddedDocument, Document
-import crypt
 import hmac
 from JumpScale import j
+
+try:
+    import fcrypt as crypt 
+except ImportError:
+    import crypt
 
 DB = 'jumpscale_system'
 
@@ -436,17 +440,17 @@ class User(ModelBase, Document):
 
     def authenticate(username, passwd):
         for user in User.find({'name': username}):
-            if hmac.compare_digest(user.passwd, crypt.crypt(passwd, user.passwd)):
+            if hmac.compare_digest(user.passwd, j.sal.unix.crypt(passwd, user.passwd)):
                 return True
         return False
 
     def save(user):
         if not user.id:
-            user.passwd = crypt.crypt(user.passwd)
+            user.passwd = j.sal.unix.crypt(user.passwd)
         else:
             olduser = User.get(user.id)
             if olduser.passwd != user.passwd:  # change passwd
-                user.passwd = crypt.crypt(user.passwd)
+                user.passwd = j.sal.unix.crypt(user.passwd)
         super(ModelBase, user).save()
 
 

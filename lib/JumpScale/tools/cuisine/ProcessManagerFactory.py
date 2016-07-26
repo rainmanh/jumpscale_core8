@@ -15,7 +15,7 @@ class ProcessManagerFactory:
         return self.cuisine.core.command_check("sv")
 
     def get_prefered(self):
-        for pm in ["systemd", "sv", "tmux"]:
+        for pm in ["systemd", "sv","tmux"]:
             if self.is_available( pm):
                 return pm
     
@@ -30,6 +30,10 @@ class ProcessManagerFactory:
             return False
 
     def get(self, pm = None):
+        """
+        pm is tmux, systemd or sv 
+        (sv=runit)
+        """
         if pm == None:
             pm = self.get_prefered()
         else:

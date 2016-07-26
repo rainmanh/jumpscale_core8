@@ -8,7 +8,7 @@ class CuisineGit:
 
 
     def pullRepo(self,url,dest=None,login=None,passwd=None,depth=1,\
-            ignorelocalchanges=True,reset=False,branch=None,revision=None, ssh="first"):        
+            ignorelocalchanges=True,reset=False,branch=None,revision=None, ssh="first"):
 
         if dest==None:
             base,provider,account,repo,dest,url=j.do.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh,codeDir=self.cuisine.core.dir_paths["codeDir"])
@@ -16,8 +16,10 @@ class CuisineGit:
         else:
             dest = self.cuisine.core.args_replace(dest)
 
-        self.cuisine.core.dir_ensure(dest)
-        keys = self.cuisine.core.run("ssh-keyscan -H github.com")
+        self.cuisine.core.dir_ensure(dest,force=False)
+        self.cuisine.core.dir_ensure('$homeDir/.ssh')
+        keys = self.cuisine.core.run("ssh-keyscan -H github.com",force=False)[1]
+        self.cuisine.core.dir_ensure('$homeDir/.ssh')
         self.cuisine.core.file_append("$homeDir/.ssh/known_hosts", keys)
         self.cuisine.core.file_attribs("$homeDir/.ssh/known_hosts", mode=600)
 

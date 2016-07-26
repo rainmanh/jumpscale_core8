@@ -32,6 +32,7 @@ class AtYourServiceFactory:
 
         self._domains = []
         self._templates = {}
+        self._sandboxer = None
 
         # self.hrd = None
 
@@ -107,9 +108,14 @@ class AtYourServiceFactory:
         return self.repos[path]
 
     def reset(self):
+        for repo in self._repos.values():
+            repo._templates = {}
+            repo._services = {}
         self._repos = {}
+        self._domains = []
+        self._templates = {}
         j.dirs._ays = None
-
+        self._init = False
 
     @property
     def repos(self):
@@ -149,7 +155,7 @@ class AtYourServiceFactory:
             if exists:
                 templ = ServiceTemplate(path, domain=domain)
                 if templ.name in self._templates:
-                    raise j.exceptions.Input("Found double template: %s" % template)
+                    raise j.exceptions.Input("Found double template: %s" % templ.name)
                 self._templates[templ.name] = templ
 
         if not self._templates:

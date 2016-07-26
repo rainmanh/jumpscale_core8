@@ -19,8 +19,8 @@ class CuisineInstaller:
 
     @actionrun(action=True)
     def jumpscale_installed(self, die=False):
-        rc1, out1 = self.cuisine.core.run('which js8', die=False)
-        rc2, out2 = self.cuisine.core.run ('which js' , die=False)
+        rc1, out1, err = self.cuisine.core.run('which js8', die=False)
+        rc2, out2, err = self.cuisine.core.run ('which js' , die=False)
         if (rc1 == 0 and out1) or (rc2 == 0 and out2):
             return True
         return False
@@ -28,7 +28,7 @@ class CuisineInstaller:
     @actionrun(action=True)
     def clean(self):
         self.cuisine.core.dir_ensure(self.cuisine.core.dir_paths["tmpDir"])
-        if not self.cuisine.core.isMac:
+        if not self.cuisine.core.isMac and not self.cuisine.core.isCygwin:
             C = """
                 set +ex
                 # pkill redis-server #will now kill too many redis'es, should only kill the one not in docker
@@ -92,7 +92,7 @@ class CuisineInstaller:
                 rm -rf /optrw
                 """
             self.cuisine.core.run_script(C, action=True,force=True)
-            
+
 
         C = """
             wget https://stor.jumpscale.org/storx/static/js8 -O /usr/local/bin/js8
@@ -132,12 +132,12 @@ class CuisineInstaller:
     @actionrun(action=True)
     def libvirt(self):
         """
-        do not use in containers or VMs only actual machines @todo not tested 
+        do not use in containers or VMs only actual machines @todo not tested
         """
         #@todo need to check and exit if required (*1*)
         self.cuisine.package.install('libvirt-dev')
         self.cuisine.pip.install("libvirt-python==1.3.2", upgrade=False)
-        
+
     @actionrun(action=True)
     def base(self):
         self.clean()
@@ -167,14 +167,15 @@ class CuisineInstaller:
             out+="mkdir -p %s\n"%item
         self.cuisine.core.run_script(out)
 
-        if not self.cuisine.core.isMac:
+        self.cuisine.package.mdupdate()
+
+        if not self.cuisine.core.isMac and not self.cuisine.core.isCygwin:
             self.cuisine.package.install("fuse")
 
         if self.cuisine.core.isArch:
             self.cuisine.package.install("wpa_actiond") #is for wireless auto start capability
             self.cuisine.package.install("redis-server")
 
-        self.cuisine.package.mdupdate()
         self.cuisine.package.multiInstall(C)
         self.cuisine.package.upgrade()
         self.cuisine.package.clean()
@@ -183,14 +184,14 @@ class CuisineInstaller:
     @actionrun(action=True)
     def ftpserver(self,root="/storage/ftpserver",config="",port=2121):
 
-        self.cuisine.fw.ufw_enable()
-        self.cuisine.fw.allowIncoming(port)
+        self.cuisine.ufw.ufw_enable()
+        self.cuisine.ufw.allowIncoming(port)
 
         cmd="sudo ufw allow 50000:65535/tcp"
         self.cuisine.core.run(cmd)
 
         """
-        example config 
+        example config
             config='''
                 home:
                   guest2: ['123456']
@@ -242,8 +243,8 @@ class CuisineInstaller:
 
         self.cuisine.btrfs.subvolumeCreate(root)
 
-            # 
-            # 
+            #
+            #
 
         if config=="":
             authorizer="    pyftpdlib.authorizers.UnixAuthorizer"
@@ -309,7 +310,7 @@ class CuisineInstaller:
 
         C=C.replace("$port",str(port))
         C=C.replace("$authorizers",authorizer)
-        
+
         self.cuisine.core.dir_ensure("/etc/ftpserver")
 
         self.cuisine.core.file_write("/etc/ftpserver/start.py",C)

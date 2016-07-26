@@ -21,9 +21,9 @@ class CuisineGolang:
     @actionrun(action=True)
     def install(self):
         self.cuisine.installer.base()
-        rc, out = self.cuisine.core.run("go version", die=False,showout=False,action=True)
+        rc, out, err = self.cuisine.core.run("go version", die=False,showout=False,action=True)
         if rc > 0 or "1.6" not in out:
-            if self.cuisine.core.isMac or self.cuisine.core.isArch:                
+            if self.cuisine.core.isMac or self.cuisine.core.isArch:
                 self.cuisine.core.run(cmd="rm -rf /usr/local/go", die=False)
                 # if self.cuisine.core.isMac:
                 #     self.cuisine.core.run("brew uninstall --force go")
@@ -64,8 +64,8 @@ class CuisineGolang:
         go get -u github.com/Jumpscale/go-raml
         set -ex
         cd $GOPATH/src/github.com/jteeuwen/go-bindata/go-bindata
-        go build 
-        go install 
+        go build
+        go install
         cd $GOPATH/src/github.com/Jumpscale/go-raml
         sh build.sh
         '''
@@ -81,6 +81,7 @@ class CuisineGolang:
 
         # return self._gopath
 
+    @actionrun(action=True)
     def clean_src_path(self):
         srcpath = self.cuisine.core.joinpaths(self.GOPATH, 'src')
         self.cuisine.core.dir_remove(srcpath)

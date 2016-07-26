@@ -67,6 +67,7 @@ class UnixSystem:
         else:
             return output[:-1]
 
+
     def getMachineInfo(self):
         '''Get memory and CPU info about this machine
 
@@ -451,6 +452,21 @@ class UnixSystem:
         except KeyError:
             return False
         return True
+
+    def crypt(self, word, salt=None):
+        """
+        Return a string representing the one-way hash of a password, with a salt
+        prepended.
+        """
+        try:
+            import crypt
+        except ImportError :
+            import fcrypt as crypt 
+            import string
+            from random import SystemRandom
+            salt = j.data.idgenerator.generateXCharID(2)
+
+        return crypt.crypt(word, salt)
 
     def disableUnixUser(self,username):
         """Disables a given unix user

@@ -69,7 +69,7 @@ def create(image, name, ports, volumes, cpu, memory, sharecode, keyname, pubkey,
         aysfspts.append(j.sal.aysfs.getJumpscale())
 
     j.sal.docker.create(name=name, stdout=True, base=image, ports=ports, vols=volumes,
-             volsro=None, cpu=cpu, mem=memory, jumpscale=False, sharecode=sharecode,\
+             volsro=None, cpu=cpu, mem=memory, sharecode=sharecode,\
              sshkeyname=keyname, sshpubkey=pubkey, rootpasswd=None, jumpscalebranch=None,\
              aysfs=aysfspts)
 

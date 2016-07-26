@@ -19,6 +19,8 @@ atyourservice = None
 def cli(nodebug):
     global cwd, atyourservice
     cwd = j.sal.fs.getcwd()
+    if cwd not in j.atyourservice.repos:
+        raise j.exceptions.AYSNotFound("You're currently not in an AYS repo. Available repos are: \n\t%s\nPlease cd into an AYS repo before performing an AYS action" % '\n\t'.join(j.atyourservice.repos.keys()))
     atyourservice = j.atyourservice.get(j.sal.fs.getBaseName(cwd), cwd)
     atyourservice.debug = not nodebug
 
@@ -165,8 +167,8 @@ def install(role="", instance="", force=False, producerroles="*", ask=False):
 
 @click.command()
 @click.argument('action')
-@click.option('--role', default="", help='optional role for ays instances execute an action on')
-@click.option('--instance', default="", help='optional name of instance')
+@click.option('--role', '-r', default="", help='optional role for ays instances execute an action on')
+@click.option('--instance', '-i', default="", help='optional name of instance')
 @click.option('--force', default=False, is_flag=True, help='if True then will ignore state of service action.')
 @click.option('--producerroles', default="*", help='roles of producers which will be taken into consideration, if * all')
 def simulate(action, role="", instance="", force=False, producerroles="*"):
@@ -195,13 +197,13 @@ def setstate(action, state="DO", role="", instance="", force=False, producerrole
     print(run)
 
 
-# @click.command()
-# @click.option('--printonly', default=False,  is_flag=True,help='if set will not really execute, only show what would have been done')
-# def uninstall(printonly=False):
-#     """
-#     do uninstall
-#     """
-#     atyourservice.uninstall(printonly=printonly)
+@click.command()
+@click.option('--printonly', default=False, is_flag=True, help='if set will not really execute, only show what would have been done')
+def uninstall(printonly):
+    """
+    do uninstall
+    """
+    atyourservice.uninstall(printonly=printonly)
 
 
 @click.command()
@@ -232,6 +234,7 @@ def showparents(role, instance):
 @click.option('--instance', '-i', default='')
 def list(role, instance):
     print("Installed services:")
+    print("-------------------")
     services = atyourservice.findServices(role=role, instance=instance)
     for s in sorted(services, key=lambda service: service.role):
         print("%s!%s" % (s.role, s.instance))
@@ -316,7 +319,7 @@ cli.add_command(destroy)
 cli.add_command(init)
 # cli.add_command(apply)
 cli.add_command(install)
-# cli.add_command(uninstall)
+cli.add_command(uninstall)
 cli.add_command(do)
 cli.add_command(showproducers)
 cli.add_command(showparents)

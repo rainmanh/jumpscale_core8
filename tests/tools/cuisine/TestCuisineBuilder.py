@@ -31,6 +31,7 @@ class TestCuisineBuilder(unittest.TestCase):
             cuisine.installer.jumpscale_installed.return_value = False
             cuisine.core.isDocker = False
             cuisine.core.isLxc = False
+            cuisine.core.isMac = False
             cuisine_builder.all()
             self.assertTrue(cuisine.installerdevelop.pip.called)
             self.assertTrue(cuisine.installerdevelop.python.called)

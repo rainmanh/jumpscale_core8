@@ -36,6 +36,11 @@ class InstallTools():
             self.TYPE="WIN"
             self.BASE="%s/"%os.environ["JSBASE"].replace("\\","/")
 
+        elif platform.system().lower()=="cygwin_nt-10.0" :
+            self.TYPE="WIN"
+            self.BASE="%s/opt/jumpscale8"%os.environ["HOME"]
+            self.VARDIR="%s/optvar"%os.environ["HOME"]
+
         elif sys.platform.startswith("darwin"):
             self.TYPE="OSX"
             self.BASE="%s/opt/jumpscale8"%os.environ["HOME"]
@@ -60,8 +65,7 @@ class InstallTools():
             self.CODEDIR=os.environ["CODEDIR"]
         else:
             if self.TYPE.startswith("WIN"):
-                raise RuntimeError("todo")
-                self.CODEDIR="/opt/code"
+                self.CODEDIR="%s/opt/code"%os.environ["HOME"]
             elif self.TYPE.startswith("OSX"):
                 self.CODEDIR="%s/opt/code"%os.environ["HOME"]
             else:
@@ -108,12 +112,12 @@ class InstallTools():
         return "/usr/local/bin/"
 
     def getPythonLibSystem(self,jumpscale=False):
-        PYTHONVERSION = os.environ.get('PYTHONVERSION', '3.5')
+        PYTHONVERSION = platform.python_version()
         do=self
         if do.TYPE.startswith("OSX"):
             destjs="/usr/local/lib/python3.5/site-packages"
         elif do.TYPE.startswith("WIN"):
-            raise RuntimeError("do")
+            destjs = "/usr/lib/python3.4/site-packages"
         else:
             if PYTHONVERSION == '2':
                 destjs ="/usr/local/lib/python/dist-packages"
@@ -259,7 +263,7 @@ class InstallTools():
                 cmd += "--rsync-path='mkdir -p %s && rsync' " % self.getParent(destpath)
             cmd += " '%s' '%s'" % (source, dest)
             print (cmd)
-            rc,out=self.execute(cmd)
+            rc, out, err=self.execute(cmd)
             print (rc)
             print (out)
             return
@@ -415,7 +419,7 @@ class InstallTools():
         if checkJunction and self.isWindows():
             cmd="junction %s" % path
             try:
-                rc, result = self.execute(cmd)
+                rc, result, err = self.execute(cmd)
             except Exception as e:
                 raise RuntimeError("Could not execute junction cmd, is junction installed? Cmd was %s."%cmd)
             if rc != 0:
@@ -844,18 +848,18 @@ class InstallTools():
 
     #########NON FS
 
-    def download(self,url,to="",overwrite=True,retry=3,timeout=0,login="",passwd="",minspeed=0,multithread=False,curl=False):
+    def download(self, url, to="", overwrite=True, retry=3, timeout=0, login="", passwd="", minspeed=0, multithread=False, curl=False):
         """
         @return path of downloaded file
         @param minspeed is kbytes per sec e.g. 50, if less than 50 kbytes during 10 min it will restart the download (curl only)
         @param when multithread True then will use aria2 download tool to get multiple threads
         """
-        def download(url,to,retry=3):
-            if timeout==0:
+        def download(url, to, retry=3):
+            if timeout == 0:
                 handle = urlopen(url)
             else:
-                handle = urlopen(url,timeout=timeout)
-            nr=0
+                handle = urlopen(url, timeout=timeout)
+            nr = 0
             while nr < retry+1:
                 try:
                     with open(to, 'wb') as out:
@@ -867,7 +871,7 @@ class InstallTools():
                     out.close()
                     return
                 except Exception as e:
-                    print("DOWNLOAD ERROR:%s\n%s"%(url,e))
+                    print("DOWNLOAD ERROR:%s\n%s" % (url, e))
                     try:
                         handle.close()
                     except:
@@ -877,7 +881,7 @@ class InstallTools():
                     except:
                         pass
                     handle = urlopen(url)
-                    nr+=1
+                    nr += 1
 
 
         # os.chdir(self.TMP)
@@ -907,25 +911,25 @@ class InstallTools():
             else:
                 user=""
 
-            cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s"%(url,to,user,minsp,retry,timeout)
+            cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s" % (url, to, user, minsp, retry, timeout)
             if self.exists(to):
                 cmd += " -C -"
             print(cmd)
-            self.delete("%s.downloadok"%to)
-            rc, out = self.execute(cmd, die=False)
-            if rc == 33: # resume is not support try again withouth resume
+            self.delete("%s.downloadok" % to)
+            rc, out, err = self.execute(cmd, die=False)
+            if rc == 33:  # resume is not support try again withouth resume
                 self.delete(to)
-                cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s"%(url,to,user,minsp,retry,timeout)
-                rc, out = self.execute(cmd, die=False)
-            if rc > 0:
+                cmd = "curl '%s' -o '%s' %s %s --connect-timeout 5 --retry %s --retry-max-time %s" % (url, to, user, minsp, retry, timeout)
+                rc, out, err = self.execute(cmd, die=False)
+            if rc:
                 raise RuntimeError("Could not download:{}.\nErrorcode: {}".format(url, rc))
             else:
-                self.touch("%s.downloadok"%to)
+                self.touch("%s.downloadok" % to)
         elif multithread:
             raise RuntimeError("not implemented yet")
         else:
-            download(url,to,retry)
-            self.touch("%s.downloadok"%to)
+            download(url, to, retry)
+            self.touch("%s.downloadok" % to)
 
         return to
 
@@ -939,7 +943,7 @@ class InstallTools():
             return True
         return False
 
-    def executeBashScript(self,content="",path=None,die=True,remote=None,sshport=22,  showout=True, outputStderr=True):
+    def executeBashScript(self,content="",path=None,die=True,remote=None,sshport=22, showout=True, outputStderr=True, sshkey=""):
         """
         @param remote can be ip addr or hostname of remote, if given will execute cmds there
         """
@@ -962,11 +966,15 @@ class InstallTools():
 
         if remote!=None:
             tmppathdest="/tmp/do.sh"
-            self.execute("scp -P %s %s root@%s:%s "%(sshport,path2,remote,tmppathdest),die=die)
-            res=self.execute("ssh -A -p %s root@%s 'bash %s'"%(sshport,remote,tmppathdest),die=die)
+            if sshkey:
+                if not self.getSSHKeyPathFromAgent(sshkey, die=False):
+                    self.execute('ssh-add %s' % sshkey)
+                sshkey = '-i %s ' % sshkey.replace('!', '\!')
+            self.execute("scp %s -oStrictHostKeyChecking=no -P %s %s root@%s:%s "%(sshkey, sshport, path2, remote, tmppathdest), die=die)
+            rc, res, err = self.execute("ssh %s -oStrictHostKeyChecking=no -A -p %s root@%s 'bash %s'" % (sshkey, sshport, remote, tmppathdest), die=die)
         else:
-            res=self.execute("bash %s"%path2,die=die,  showout=showout, outputStderr=outputStderr)
-        return res
+            rc, res, err = self.execute("bash %s"%path2,die=die,  showout=showout, outputStderr=outputStderr)
+        return rc, res, err
 
     def executeCmds(self,cmdstr, showout=True, outputStderr=True,useShell = True,log=True,cwd=None,timeout=120,errors=[],ok=[],captureout=True,die=True):
         rc_=[]
@@ -975,7 +983,7 @@ class InstallTools():
             if cmd.strip()=="" or cmd[0]=="#":
                 continue
             cmd=cmd.strip()
-            rc,out=self.execute(cmd, showout, outputStderr,useShell ,log,cwd,timeout,errors,ok,captureout,die)
+            rc, out, err = self.execute(cmd, showout, outputStderr,useShell ,log,cwd,timeout,errors,ok,captureout,die)
             rc_.append(str(rc))
             out_+=out
 
@@ -1007,7 +1015,7 @@ class InstallTools():
         s.quit()
 
     def execute(self, command , showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[], \
-                        ok=[], captureout=True, die=True, async=False, executor=None, combinestdr=False):
+                        ok=[], captureout=True, die=True, async=False, executor=None):
         """
         @param errors is array of statements if found then exit as error
         return rc,out
@@ -1016,7 +1024,7 @@ class InstallTools():
         # print "EXEC:"
         # print command
         if executor:
-            return executor.execute(command, die=die, checkok=False, async=async,  showout=True, combinestdr=combinestdr, timeout=timeout)
+            return executor.execute(command, die=die, checkok=False, async=async,  showout=True, timeout=timeout)
         os.environ["PYTHONUNBUFFERED"]="1"
         ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -1061,7 +1069,7 @@ class InstallTools():
                 while not self.stream.closed and not self._stopped:
                     buf = ''
                     buf = self.stream.readline()
-                    if len(buf)>0:
+                    if len(buf) > 0:
                         self.queue.put((self.flag, buf))
                     else:
                         break
@@ -1077,11 +1085,11 @@ class InstallTools():
         outReader.start()
         errReader.start()
 
-        start=time.time()
+        start = time.time()
 
-        err=""
-        out=""
-        rc=1000
+        err = ""
+        out = ""
+        rc = 1000
 
         out_eof = False
         err_eof = False
@@ -1089,8 +1097,7 @@ class InstallTools():
         while not out_eof or not err_eof:
             # App still working
             try:
-                chan,line = inp.get(block=True, timeout = 1.0)
-                #print chan, line
+                chan, line = inp.get(block=True, timeout=1.0)
                 if chan == 'T':
                     if line == 'O':
                         out_eof = True
@@ -1120,7 +1127,7 @@ class InstallTools():
                     if outputStderr:
                         print(("E:%s"%line.strip()))
                     if captureout:
-                        err+=line
+                        err += line
 
             except queue.Empty:
                 pass
@@ -1129,27 +1136,22 @@ class InstallTools():
                     print("TIMEOUT")
                     rc=999
                     p.kill()
-
                     break
 
-        if rc!=999:
+        if rc != 999:
             outReader.join()
             errReader.join()
             p.wait()
-        if rc==1000:
+        if rc == 1000:
             rc = p.returncode
 
-
-        if rc>0 and die:
-            if err!="":
-                raise RuntimeError("Could not execute cmd:\n'%s'\nerr:\n%s"%(command,err))
+        if rc and die:
+            if err:
+                raise RuntimeError("Could not execute cmd:\n'%s'\nerr:\n%s" % (command,err))
             else:
-                raise RuntimeError("Could not execute cmd:\n'%s'\nout:\n%s"%(command,out))
+                raise RuntimeError("Could not execute cmd:\n'%s'\nout:\n%s" % (command, out))
 
-        if err!="" and combinestdr:
-            out=out+"\nSTDERR:\n"+err
-
-        return rc,out
+        return rc, out, err
 
     def executeInteractive(self,command):
         exitcode = os.system(command)
@@ -1313,7 +1315,7 @@ class InstallTools():
     def whoami(self):
         if self._whoami!=None:
             return self._whoami
-        rc, result =self.execute("whoami",die=False,showout=False, outputStderr=False)
+        rc, result, err =self.execute("whoami",die=False,showout=False, outputStderr=False)
         if rc>0:
             #could not start ssh-agent
             raise RuntimeError("Could not call whoami,\nstdout:%s\nstderr:%s\n"%(result,err))
@@ -1400,12 +1402,6 @@ class InstallTools():
 
             keys=self.listFilesInDir(path,filter="*.pub")
 
-            if len(keys)>4:
-                if die:
-                    raise RuntimeError("Found too many sshkeys in dir:%s"%path)
-                else:
-                    print("WARNING could not load SSH keys, there were more than 4 in %s"%path)
-                    return
 
             keysloaded=self.listSSHKeyFromAgent()
             for keypath in keys:
@@ -1454,22 +1450,21 @@ class InstallTools():
                 content=content.decode()
                 return content
         if die:
-            raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l"%keyname)
+            raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l" % keyname)
         return None
 
-
-    def listSSHKeyFromAgent(self,keyIncluded=False):
+    def listSSHKeyFromAgent(self, keyIncluded=False):
         """
         returns list of paths
         """
         if "SSH_AUTH_SOCK" not in os.environ:
             self._initSSH_ENV(True)
         cmd = "ssh-add -L"
-        rc, out = self.execute(cmd,False,False,die=False)
-        if rc != 0:
+        rc, out, err = self.execute(cmd, False, False, die=False)
+        if rc:
             if rc == 1 and out.find("The agent has no identities") != -1:
                 return []
-            raise RuntimeError("error during listing of keys :%s" % out)
+            raise RuntimeError("error during listing of keys :%s" % err)
         keys = [line.split() for line in out.splitlines() if len(line.split()) == 3]
         if keyIncluded:
             return list(map(lambda key: key[2:0:-1], keys))
@@ -1510,7 +1505,7 @@ class InstallTools():
                 keypathpub="/root/.ssh/id_rsa"
             else:
                 #get from ssh-agent
-                rc,out =self.execute("ssh-add -L")
+                rc, out, err =self.execute("ssh-add -L")
                 for line in out.split("\n"):
                     if line.endswith(".ssh/%s"%keyname):
                         keypathpub=self.getTmpPath(keyname)
@@ -1614,7 +1609,7 @@ class InstallTools():
         if not self.exists(socketpath):
             #ssh-agent not loaded
             print("load ssh agent")
-            rc,result = self.execute("ssh-agent -a %s"%socketpath,die=False,showout=False, outputStderr=False)
+            rc, result, err = self.execute("ssh-agent -a %s"%socketpath,die=False,showout=False, outputStderr=False)
 
             if rc>0:
                 #could not start ssh-agent
@@ -1642,7 +1637,7 @@ class InstallTools():
         # pid=int(self.readFile(self.joinPaths(self.TMP,"ssh-agent-pid")))
         if os.environ.get("SSH_AUTH_SOCK") != socketpath:
             self._initSSH_ENV(True)
-        rc,result = self.execute("ssh-add -l",die=False,showout=False, outputStderr=False)
+        rc, result, err = self.execute("ssh-add -l",die=False,showout=False, outputStderr=False)
         if rc==2:#>0 and err.find("not open a connection")!=-1:
             #no ssh-agent found\
             print(result)
@@ -1657,7 +1652,7 @@ class InstallTools():
     def checkSSHAgentAvailable(self):
         if "SSH_AUTH_SOCK" not in os.environ:
             self._initSSH_ENV(True)
-        rc,out = self.execute("ssh-add -l",showout=False, outputStderr=False,die=False)
+        rc, out, err = self.execute("ssh-add -l",showout=False, outputStderr=False,die=False)
         if rc!=0:
             return False
         else:
@@ -1772,7 +1767,7 @@ class InstallTools():
         elif branch is None and dest is not None and exists:
             # if we don't specify the branch, try to find the currently checkedout branch
             cmd = 'cd %s; git rev-parse --abbrev-ref HEAD' % dest
-            rc, out = self.execute(cmd, die=False, showout=False, executor=executor)
+            rc, out, err = self.execute(cmd, die=False, showout=False, executor=executor)
             if rc == 0:
                 branch = out.strip()
             else:  # if we can't retreive current branch, use master as default
@@ -1838,7 +1833,7 @@ class InstallTools():
         """
         @param cmdname is cmd to check e.g. curl
         """
-        res = self.execute("which %s" % cmdname, False)
+        _, res, _ = self.execute("which %s" % cmdname, False)
         if res[0] == 0:
             return True
         else:
@@ -1896,12 +1891,12 @@ class InstallTools():
             cmd="cd %s;git pull origin %s"%(path,branch)
             self.executeInteractive(cmd)
 
-    def getGitBranch(self,path):
+    def getGitBranch(self, path):
 
         # if we don't specify the branch, try to find the currently checkedout branch
         cmd = 'cd %s;git rev-parse --abbrev-ref HEAD' % path
         try:
-            rc, out = self.execute(cmd, showout=False, outputStderr=False)
+            rc, out, err = self.execute(cmd, showout=False, outputStderr=False)
             if rc == 0:
                 branch = out.strip()
             else:  # if we can't retreive current branch, use master as default
@@ -2107,8 +2102,7 @@ class Installer():
         if do.TYPE.startswith("OSX"):
             do.delete("/usr/local/lib/python2.7/site-packages/JumpScale")
             do.delete("/usr/local/lib/python3.5/site-packages/JumpScale")
-        elif do.TYPE.startswith("WIN"):
-            raise RuntimeError("do")
+
 
         destjs=do.getPythonLibSystem(jumpscale=True)
         do.delete(destjs)
@@ -2141,6 +2135,11 @@ class Installer():
 
         dest="%s/bin"%base
         do.symlinkFilesInDir(src, dest)
+
+        #link _ays completion
+        src = "%s/github/jumpscale/jumpscale_core8/install/_ays"%do.CODEDIR
+        dest="/etc/bash_completion.d/_ays"
+        do.symlink(src,dest)
 
         #link python
         src="/usr/bin/python3.5"
@@ -2480,8 +2479,9 @@ exec python3 -q "$@"
 
     def installpip(self):
         if not do.exists(do.joinPaths(do.TMP,"get-pip.py")):
-            cmd="cd %s;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python get-pip.py"%do.TMP
-            do.execute(cmd)
+            if not do.TYPE.startswith("WIN"):
+                cmd="cd %s;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python get-pip.py"%do.TMP
+                do.execute(cmd)
 
     def prepare(self,SANDBOX=0,base=""):
         print ("prepare (sandbox:%s)"%SANDBOX)

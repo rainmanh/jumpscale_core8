@@ -167,10 +167,13 @@ class HRDSchema:
                 else:
                     hrdtype.default = hrdtype.typeclass.fromString(tags.tagGet("default"))
             else:
-                try:
-                    hrdtype.default = hrdtype.typeclass.get_default()
-                except:
-                    self._raiseError("issue in default from hrdtype")
+                if hrdtype.list == True:
+                    hrdtype.default = []
+                else:
+                    try:
+                        hrdtype.default = hrdtype.typeclass.get_default()
+                    except:
+                        self._raiseError("issue in default from hrdtype")
 
             if tags.tagExists("descr"):
                 hrdtype.description = tags.tagGet("descr")
@@ -245,7 +248,6 @@ class HRDSchema:
                         val = ttype.ask()
                 else:
                     continue  # no need to further process, already exists in hrd
-
             if ttype.list:
                 try:
                     val = j.data.types.list.fromString(val, ttype=ttype.typeclass)
@@ -257,7 +259,7 @@ class HRDSchema:
 
                 if j.data.types.list.check(val) and len(val) == 1:
                     val = val[0]  # this to resolve some customer types or yaml inconsistencies, if only 1 member we can use as a non list
-
+                    #if not val.endswith(","): val = val +","
                 if j.data.types.string.check(val):
                     while len(val) > 0 and (val[0] in [" ['"] or val[-1] in ["' ]"]):
                         val = val.strip()

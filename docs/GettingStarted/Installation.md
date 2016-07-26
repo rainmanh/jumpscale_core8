@@ -4,6 +4,7 @@
 
 - Ubuntu 14+
 - Mac OSX Yosemite
+- Windows 10 (Cygwin)
 
 
 ### Requirements
@@ -11,11 +12,12 @@
 - Python 3.5
 - curl
 
+
 ### Ubuntu
 
 Use the below installation script to make your life easy.
 
-Note: if you can install it as root, do it, otherwise please use `sudo -s -H`
+> Note: If you can install it as root, do it, otherwise please use `sudo -s -H`
 
 ```shell
 sudo -s -H
@@ -24,14 +26,16 @@ apt-get -y dist-upgrade
 apt-get install -y python3.5 curl
 ```
 
-If you are using an image of Ubuntu prepared by OpenvCloud , please be sure the hostname is well set:
+If you are using an image of Ubuntu prepared for [OpenvCloud](https://gig.gitbooks.io/ovcdoc_public/content/), please be sure the hostname is well set:
 ```
 grep $(hostname) /etc/hosts || sed -i "s/.1 localhost/.1 localhost $(hostname)/g" /etc/hosts
 ```
 
 Then you can run the following command:
-```
-cd /tmp; rm -f install.sh; curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh
+```shell
+cd /tmp
+rm -f install.sh
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh
 ```
 
 ### Mac OSX
@@ -40,7 +44,37 @@ cd /tmp; rm -f install.sh; curl -k https://raw.githubusercontent.com/Jumpscale/j
 - Go to the shell in Mac OSX:
 
 ```shell
-export TMPDIR=~/tmp;mkdir -p $TMPDIR;cd $TMPDIR;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh
+export TMPDIR=~/tmp
+mkdir -p $TMPDIR
+cd $TMPDIR
+rm -f install.sh
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh
+bash install.sh
+```
+
+
+### Windows 10 (Cygwin)
+
+ - Install [Cygwin](https://cygwin.com/install.html)
+ - When installing Cygwin search for the following packages in the package menu and select them:
+     - [curl](https://curl.haxx.se/), under net
+     - [gcc-g+_+ :gnu compiler collection(c ++)](https://en.wikipedia.org/wiki/GNU_Compiler_Collection), under devel  
+     - [mc](https://www.midnight-commander.org/), under shell
+     - [Paramiko](http://www.paramiko.org/), under python
+ - Install apt-cyg through:
+
+```shell
+lynx -source rawgit.com/transcode-open/apt-cyg/master/apt-cyg > apt-cyg
+install apt-cyg /bin
+```
+
+Then to install JumpScale:
+
+```shell
+cd /tmp
+rm -f install.sh
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh
+bash install.sh
 ```
 
 ### Reset your system
@@ -48,7 +82,11 @@ export TMPDIR=~/tmp;mkdir -p $TMPDIR;cd $TMPDIR;rm -f install.sh;curl -k https:/
 If your installation failed or if you want to remove your current installation, you can execute the following commands:
 
 ```shell
-export TMPDIR=~/tmp;cd $TMPDIR;rm -f reset.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/reset.sh > reset.sh;bash reset.sh
+export TMPDIR=~/tmp
+cd $TMPDIR
+rm -f reset.sh
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/reset.sh > reset.sh
+bash reset.sh
 ```
 
 

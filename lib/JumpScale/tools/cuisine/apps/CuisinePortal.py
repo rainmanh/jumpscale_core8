@@ -35,8 +35,10 @@ class CuisinePortal:
         self.serviceconnect(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip,
                             influxport=influxport, grafanaip=grafanaip, grafanaport=grafanaport)
 
-    def install(self, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
-        self._install(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip, influxport=influxport, grafanaip=grafanaip, grafanaport=grafanaport, login=login, passwd=passwd)
+    def install(self, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, \
+            grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
+        self._install(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip, influxport=influxport, \
+            grafanaip=grafanaip, grafanaport=grafanaport, login=login, passwd=passwd)
         if start:
             self.start()
 
@@ -142,7 +144,7 @@ class CuisinePortal:
     @actionrun(action=True)
     def linkCode(self):
         self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        destjslib = self.cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'", showout=False)
+        _, destjslib, _ = self.cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'", showout=False)
 
         self.cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self.cuisine.core.dir_paths[
                                     "codeDir"], "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
@@ -210,8 +212,8 @@ class CuisinePortal:
 
     @actionrun(action=True)
     def changeEve(self):
-        path = self.cuisine.core.run("js --quiet 'print(j)'")  # hack, make sure jumpscale has loaded lib before trying to print something
-        path = self.cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=False))'")
+        path = self.cuisine.core.run("js --quiet 'print(j)'")[1]  # hack, make sure jumpscale has loaded lib before trying to print something
+        path = self.cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=False))'")[1]
         path = j.sal.fs.joinPaths(path, "eve_docs", "config.py")
         if not self.cuisine.core.file_exists(path):
             raise j.exceptions.RuntimeError("Cannot find:%s, to convert to python 3" % path)
@@ -249,11 +251,11 @@ class CuisinePortal:
         # wait for the admin user to be created by portal
         timeout = 60
         start = time.time()
-        resp = self.cuisine.core.run('jsuser list', showout=False, force=True)
+        resp = self.cuisine.core.run('jsuser list', showout=False, force=True)[1]
         while resp.find('admin') == -1 and start + timeout > time.time():
             try:
                 time.sleep(2)
-                resp = self.cuisine.core.run('jsuser list', showout=False, force=True)
+                resp = self.cuisine.core.run('jsuser list', showout=False, force=True)[1]
             except:
                 continue
 

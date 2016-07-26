@@ -217,7 +217,7 @@ class SystemFS:
         self.__jslocation__="j.sal.fs"
         self.logger = j.logger.get("j.sal.fs")
         self.logger.disabled=True
-        
+
         self.walker = SystemFSWalker()
 
     def copyFile(self, fileFrom, to, createDirIfNeeded=False, overwriteFile=True):
@@ -434,9 +434,9 @@ class SystemFS:
             if createdir:
                 cmd += "--rsync-path='mkdir -p %s && rsync' " % self.getParent(dstpath)
             cmd += " '%s' '%s'" % (src, dst)
-            print (cmd)
+            print(cmd)
 
-            return j.tools.cuisine.local.core.run(cmd)
+            return j.tools.cuisine.local.core.run(cmd)[1]
 
 
     def removeDirTree(self, path, onlyLogWarningOnRemoveError=False):
@@ -528,7 +528,7 @@ class SystemFS:
         self.logger.debug('Join paths %s'%(str(args)))
         if args is None:
             raise TypeError('Not enough parameters %s'%(str(args)))
-        if j.core.platformtype.myplatform.isWindows():
+        if os.sys.platform.startswith("win"):
             args2=[]
             for item in args:
                 item=item.replace("/","\\")

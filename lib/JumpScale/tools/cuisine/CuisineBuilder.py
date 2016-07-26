@@ -55,14 +55,14 @@ class CuisineBuilder:
         self.cuisine.core.dir_ensure('%s' % self.cuisine.core.dir_paths['libDir'])
         if self.cuisine.core.isMac:
             self.cuisine.core.file_link('/usr/local/lib/python3.5/site-packages/JumpScale/', '%s/JumpScale' % self.cuisine.core.dir_paths['libDir'])
-        else:    
+        else:
             self.cuisine.core.file_link('/usr/local/lib/python3.5/dist-packages/JumpScale', '%s/JumpScale' % self.cuisine.core.dir_paths['libDir'])
         self.cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self.cuisine.core.dir_paths["codeDir"], "%s/portal" % self.cuisine.core.dir_paths['jsLibDir'])
 
         # start sandboxing
         cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], '%s' + 'js8_opt', '%s', sandbox_python=%s)" % (stor_name, stor_addr, python)
         self.cuisine.core.run('js "%s"' % cmd)
-        url_opt = '%s/static/%sjs8_opt.flist' % (stor_addr, stor_name) 
+        url_opt = '%s/static/%sjs8_opt.flist' % (stor_addr, stor_name)
 
         return url_opt
 

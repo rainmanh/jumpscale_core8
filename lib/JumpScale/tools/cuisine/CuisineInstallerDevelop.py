@@ -51,6 +51,7 @@ class CuisineInstallerDevelop:
         pkg-config
         libpq-dev
         libsqlite3-dev
+        vim
         #net-tools
         """
         self.cuisine.package.multiInstall(C)
@@ -61,7 +62,7 @@ class CuisineInstallerDevelop:
         self.python()
         if self.cuisine.core.isMac:
             return
-        
+
         C="""
             #important remove olf pkg_resources, will conflict with new pip
             rm -rf /usr/lib/python3/dist-packages/pkg_resources
@@ -84,20 +85,16 @@ class CuisineInstallerDevelop:
         self.pip(action=True)
 
         if not self.cuisine.core.isArch:
-            #install brotli
-            C="""
-            cd $tmpDir/
-            sudo rm -rf brotli/
-            git clone https://github.com/google/brotli.git
+            # install brotli
+            C = """
+            cd $tmpDir; git clone https://github.com/google/brotli.git
             cd $tmpDir/brotli/
             python setup.py install
-            cd tools
-            make
-            cp $tmpDir/brotli/tools/bro /usr/local/bin/
-            rm -rf $tmpDir/brotli
+            make bro
+            cp bin/bro $binDir/bro
             """
-            C=self.cuisine.core.args_replace(C)
-            self.cuisine.core.run_script(C,force=False)
+            C = self.cuisine.core.args_replace(C)
+            self.cuisine.core.run_script(C, force=False)
 
         #python etcd
         C="""
@@ -129,6 +126,7 @@ class CuisineInstallerDevelop:
 
         certifi
         docker-py
+        http://carey.geek.nz/code/python-fcrypt/fcrypt-1.3.1.tar.gz
 
         gitlab3
         gitpython
@@ -181,7 +179,10 @@ class CuisineInstallerDevelop:
         colorlog
         path.py
         dnspython3
+        packet-python
         """
+        if not self.cuisine.core.isCygwin:
+            C += "pillow"
         self.cuisine.pip.multiInstall(C,upgrade=True)
 
 
@@ -192,7 +193,8 @@ class CuisineInstallerDevelop:
             """
             self.cuisine.pip.multiInstall(C,upgrade=True)
 
-        self.cuisine.apps.redis.build()
+        if  not self.cuisine.core.isCygwin:
+            self.cuisine.apps.redis.build()
 
 
     @actionrun(action=True)
@@ -252,8 +254,7 @@ class CuisineInstallerDevelop:
         echo 'pgrep -U $(id -u) lxsession | grep -v ^$_LXSESSION_PID | xargs --no-run-if-empty kill' > /bin/lxcleanup.sh
         chmod +x /bin/lxcleanup.sh
         echo '@lxcleanup.sh' >> /etc/xdg/lxsession/LXDE/autostart
-        echo '#!/bin/sh -xe\nrm -rf /tmp/* /var/run/xrdp/* && service xrdp start && startx' > /bin/rdp.sh 
+        echo '#!/bin/sh -xe\nrm -rf /tmp/* /var/run/xrdp/* && service xrdp start && startx' > /bin/rdp.sh
         chmod +x /bin/rdp.sh
         """
         self.cuisine.core.run_script(C)
-

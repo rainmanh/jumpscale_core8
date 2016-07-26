@@ -1,5 +1,5 @@
 from JumpScale import j
-from client import Client
+from JumpScale.clients.cockpit.client import  Client
 import requests
 
 

@@ -1,6 +1,10 @@
 
 from JumpScale import j
-import crypt
+
+try:
+    import fcrypt as crypt 
+except ImportError:
+    import crypt
 
 
 def shell_safe( path ):
@@ -25,7 +29,7 @@ class CuisineUser:
         name = name.strip()
         passwd = passwd.strip()
 
-        encoded_password = crypt.crypt(passwd)
+        encoded_password = j.sal.unix.crypt(passwd)
         if encrypted_passwd:
             self.cuisine.core.sudo("usermod -p '%s' %s" % (encoded_password, name))
         else:
@@ -51,7 +55,7 @@ class CuisineUser:
         if uid:
             options.append("-u '%s'" % (uid))
         #if group exists already but is not specified, useradd fails
-        if not gid and self.group_check(name):
+        if not gid and self.cuisine.group.check(name):
             gid = name
         if gid:
             options.append("-g '%s'" % (gid))
@@ -79,10 +83,10 @@ class CuisineUser:
         """
         assert name!=None or uid!=None,     "check: either `uid` or `name` should be given"
         assert name is None or uid is None,"check: `uid` and `name` both given, only one should be provided"
-        if name != None:
-            d = self.cuisine.core.run("getent passwd | egrep '^%s:' ; true" % (name))
-        elif uid != None:
-            d = self.cuisine.core.run("getent passwd | egrep '^.*:.*:%s:' ; true" % (uid))
+        if name is not None:
+            _, d, _ = self.cuisine.core.run("getent passwd | egrep '^%s:' ; true" % (name))
+        elif uid is not None:
+            _, d, _ = self.cuisine.core.run("getent passwd | egrep '^.*:.*:%s:' ; true" % (uid))
         results = {}
         s = None
         if d:

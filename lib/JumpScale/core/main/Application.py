@@ -71,9 +71,9 @@ class Application:
 
     def fixlocale(self):
         return
-        rc,locales=self.executor.execute("locale -a",showout=False,combinestdr=False)
-        locales=[item for item in locales.split("\n") if not item.startswith("locale:")]
-        if 'C.UTF-8' not in locales:
+        rc, out, err = self.executor.execute("locale -a", showout=False)
+        out = [item for item in out.split("\n") if not item.startswith("locale:")]
+        if 'C.UTF-8' not in out:
             raise j.exceptions.RuntimeError("Cannot find C.UTF-8 in locale -a, cannot continue.")
         # 'LANG': 'en_GB.UTF-8'
         # os.environ["LC_ALL"]='C.UTF-8''

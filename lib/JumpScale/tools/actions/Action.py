@@ -352,8 +352,6 @@ class Action:
         elif "$" in s:
             s=j.dirs.replaceTxtDirVars(s)
 
-        if "$(" in s:
-            raise RuntimeError("$() should not be there, probably hrd has not been set")
         return s
 
     @property
@@ -443,7 +441,7 @@ class Action:
 
     @args.setter
     def args(self,val):
-        
+
         if val == ():
             self._args = ""
         else:
@@ -537,16 +535,14 @@ class Action:
 
         self.check() #see about changed source code
 
-        # if "$" in self.sourceToExecute:
-        #     raise RuntimeError("$ should not be there")
-
         j.actions.addToStack(self)
 
-        if self.state == "OK" and self.force==False:
+        if self.state == "OK" and not self.force:
             if self.actionshow:
                 self.logger.info("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
             j.actions.delFromStack(self)
             return
+
 
         self.logger.info("  * %-20s: %s" % (self.name, self._args10line))
 
@@ -564,7 +560,7 @@ class Action:
             err = ''
 
             while ok==False and counter<self.retry+1:
-                
+
                 kwargs=self.kwargs
 
                 if self.dynamicArguments !="":
@@ -664,9 +660,8 @@ class Action:
                     # if j.actions.stack==[]:
                     # print("error in action: %s"%self)
                     self.logger.error("error in action: %s"%self)
-                    sys.exit(1)
                     # else:
-                    #     raise j.exceptions.RuntimeError("error in action: %s"%self)
+                    raise j.exceptions.RuntimeError("error in action: %s"%self)
             else:
                 self.state = "OK"
 

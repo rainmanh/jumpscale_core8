@@ -1,5 +1,5 @@
 from JumpScale import j
-
+import time
 import tmuxp
 
 class Session:
@@ -55,6 +55,7 @@ class Session:
         if self.existsWindow("ignore") and removeIgnore:
             self.delWindow("ignore")
 
+
         return window
 
 
@@ -71,8 +72,15 @@ class Window:
         self.name=window.get("window_name")
         self.session=session
         self.mgmt=window
+        self.panes=[]
         self.id=window.get("window_id")
         self._reload()
+
+    @property
+    def paneNames(self):
+        names=[pane.name for pane in self.panes]
+        return names
+    
 
     def _reload(self):
         if len(self.mgmt.panes)==1:
@@ -94,12 +102,14 @@ class Window:
         return False
 
 
-    def getPane(self,name,killothers=False):
+    def getPane(self,name,killothers=False,clear=False):
         """
        if there is only 1 and name is not same then name will be set
         """
         if len(self.panes)==1:
             self.panes[0].name=name
+            if clear:
+                self.panes[0].mgmt.send_keys("clear")
             return self.panes[0]
         for pane in self.panes:
             if pane.name==name:
@@ -107,6 +117,8 @@ class Window:
                     for pane2 in self.panes:
                         if pane2.name!=name:
                             pane2.kill()
+                if clear:
+                    pane.mgmt.send_keys("clear")
                 return pane
         raise j.exceptions.RuntimeError("Could not find pane:%s.%s"%(self.name,name))
 
@@ -115,7 +127,6 @@ class Window:
         self.mgmt.select_window()
 
     def kill(self):
-        # from pudb import set_trace; set_trace()
         if len(self.session.windows.keys())<2:
             self.session.getWindow(name="ignore")
         print ("KILL %s"%self.name)
@@ -137,6 +148,7 @@ class Pane:
     def select(self):
         self.mgmt.select_pane()
 
+
     def _split(self,name,ext="-v"):
         self.select()
         j.sal.tmux.execute("split-window %s"%ext)
@@ -152,11 +164,66 @@ class Pane:
         self.window.panes.append(pane)
         return pane
 
-    def splitVertical(self,name):
-        return self._split(name,"-v")
+    def splitVertical(self,name2,name1="",clear=False):
+        res=self._split(name2,"-v")
+        if name1!="":
+            self.name=name1
+        if clear:
+            res.mgmt.send_keys("clear")
+        return res 
 
-    def splitHorizontal(self,name):
-        return  self._split(name,"-h")
+    def splitHorizontal(self,name2,name1="",clear=False):
+        res=self._split(name2,"-h")
+        if name1!="":
+            self.name=name1
+        if clear:
+            res.mgmt.send_keys("clear")
+        return res 
+
+    def do(self,cmd,wait=False):
+        j.core.db.hset("tmux.%s"%self.window.name,self.name,"%s"%j.data.time.getTimeEpoch())
+        #set exit code and date in front
+        cmd2="echo HSET tmux.%s %s %s:$? | redis-cli -s /tmp/redis.sock -x"%\
+            (self.window.name,self.name,j.data.time.getTimeEpoch())
+        cmdall=cmd+";"+cmd2
+        # print (cmd)
+        self.mgmt.send_keys(cmdall)
+        if wait:
+            return self.wait()
+
+    def resetState(self):
+        """
+        make sure that previous exit code is removed and all is clean for next run
+        """
+        j.core.db.hset("tmux.%s"%self.window.name,self.name,"")
+
+    def check(self):
+        res=j.core.db.hget("tmux.%s"%self.window.name,self.name)
+        if res=="":
+            return ""
+        res=res.decode()
+        if ":" in res:
+            epoch,rc=res.split(":")
+            state="OK"
+        else:
+            state="INIT"
+            rc=0
+            epoch=res            
+
+        epoch=int(epoch)
+        rc=int(rc)
+        if rc>0:
+            state="ERROR"
+
+        # duration=j.data.time.getTimeEpoch()-epoch
+        return state,epoch,rc        
+
+    def wait(self):
+        while True:
+            state,epoch,rc=self.check()
+            if state!="INIT":
+                return state,epoch,rc 
+            time.sleep(0.1)
 
     def __repr__(self):
         return ("panel:%s:%s"%(self.id,self.name))
@@ -213,19 +280,23 @@ class Tmux:
         cmd="tmux %s"%cmd
         j.do.execute(cmd,showout=False)
 
-    def createPanes4Actions(self,sessionName="main",windowName="actions",reset=True):
-        session=self.getSession(sessionName,firstWindow="main")
+    def createPanes4x4(self,sessionName="main",windowName="actions",reset=True):
+        session=self.getSession(sessionName,firstWindow=windowName)
         window=session.getWindow(windowName,reset=reset)
 
-        main=window.getPane(name="main",killothers=True)
+        a=window.getPane(name="main",killothers=True)
+        b=a.splitVertical("b")
+        a.splitVertical("2","1")
+        b.splitVertical("4","3")
 
-        out=main.splitVertical("out")
-        cmds=out.splitVertical("cmds")
+        for paneName in window.paneNames:
+            a=window.getPane(paneName)
+            count=a.name
+            b=a.splitHorizontal("b")#first split
+            a.splitHorizontal("P%s2"%count,"P%s1"%count)
+            b.splitHorizontal("P%s4"%count,"P%s3"%count)
 
-        o3=cmds.splitHorizontal("o3")
-        o1=cmds
-        o1.name="o1"
+        for pane in window.panes:
+            pane.do("clear;echo %s"%pane.name)
 
-        o2=o1.splitHorizontal("o2")
-        o4=o3.splitHorizontal("o4")
-        j.application.break_into_jshell("DEBUG NOW oioioi")
+        return window

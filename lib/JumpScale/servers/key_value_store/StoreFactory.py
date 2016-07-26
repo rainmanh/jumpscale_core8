@@ -103,3 +103,21 @@ class StoreFactory:
         if key not in self._cache:
             self._cache[key] = LevelDBKeyValueStore(namespace=namespace,basedir=basedir,serializers=serializers)
         return self._cache[key]
+
+    def getTarantoolDBStore(self, namespace='',host='localhost',port=6379,db=0,password='',serializers=[]):
+        '''
+        Gets a leveldb key value store.
+
+        @param name: name of the store
+        @type name: String
+
+        @param namespace: namespace of the store, defaults to ''
+        @type namespace: String
+
+        @return: key value store
+        '''
+        from servers.key_value_store.tarantool_store import TarantoolStore
+        key = '%s_%s' % ("tarantooldb", namespace)
+        if key not in self._cache:
+            self._cache[key] = TarantoolStore(namespace=namespace,host='localhost',port=6379,db=0,password='',serializers=serializers)
+        return self._cache[key]

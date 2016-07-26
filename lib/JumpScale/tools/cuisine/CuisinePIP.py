@@ -36,6 +36,10 @@ class CuisinePIP:
         if self.cuisine.core.isArch:
             if package in ["credis","blosc","psycopg2"]:
                 return
+
+        if self.cuisine.core.isCygwin and package in ["psycopg2", "psutil", "zmq"]:
+            return 
+            
         cmd="pip3 install %s"%package
         if upgrade:
             cmd+=" --upgrade"

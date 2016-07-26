@@ -21,142 +21,264 @@ class CuisineProxy:
         self.executor=executor
         self.cuisine=cuisine
 
+    @actionrun(action=True,force=False)
+    def removeFromSystemD(self):
+        pm=self.cuisine.processmanager.get("systemd")
+        pm.remove("polipo")
+        pm.remove("privoxy")
 
     @actionrun(action=True)
-    def installWebProxyServer(self):
+    def installFilterProxy(self,port=8124,forward=True):
+        """
+        installs privoxy
+        """
+        self.cuisine.ufw.ufw_enable(force=False)
+        self.cuisine.ufw.allowIncoming(port,force=False)
+        self.cuisine.package.install("privoxy",force=False)
 
-        self.cuisine.fw.ufw_enable()
-        self.cuisine.fw.allowIncoming(8123)
+        CONFIG="""
+            #trust-info-url  http://www.example.com/why_we_block.html
+            #admin-address privoxy-admin@example.com
+            #confdir /usr/local/etc/privoxy
+            confdir /etc/privoxy
+            #logdir $vardir/privoxy
+            logfile logfile
 
-        self.cuisine.btrfs.subvolumeCreate("/storage/polipo_cache")
+            actionsfile match-all.action # Actions that are applied to all sites and maybe overruled later on.
+            actionsfile default.action   # Main actions file
+            actionsfile user.action      # User customizations
+            filterfile default.filter
+            filterfile user.filter      # User customizations
 
-        self.cuisine.package.install("polipo")
+            debug     1 # Log the destination for each request Privoxy let through. See also debug 1024.
+            # debug     2 # show each connection status
+            # debug     4 # show I/O status
+            # debug     8 # show header parsing
+            # debug    16 # log all data written to the network
+            # debug    32 # debug force feature
+            # debug    64 # debug regular expression filters
+            debug   128 # debug redirects
+            # debug   256 # debug GIF de-animation
+            # debug   512 # Common Log Format
+            debug  1024 # Log the destination for requests Privoxy didn't let through, and the reason why.
+            debug  2048 # CGI user interface
+            debug  4096 # Startup banner and warnings.
+            debug  8192 # Non-fatal errors
+            # debug 32768 # log all data read from the network
+            debug 65536 # Log the applying actions
+
+            listen-address  0.0.0.0:$port
+
+            enforce-blocks 1
+
+            #web ui
+            #enable-edit-actions 1
+
+            # permit-access  192.168.45.64/26
+            # deny-access    192.168.45.73    www.dirty-stuff.example.com
+
+            #if proxy acl's to parent
+            enable-proxy-authentication-forwarding 0
+
+            #if parent
+            #forward  / localhost:8123
+            forward         192.168.*.*/     .
+            forward           localhost/     .
+
+            forwarded-connect-retries  0
+
+            accept-intercepted-requests 0
+
+
+            keep-alive-timeout 5
+            tolerate-pipelining 1
+            # connection-sharing 1
+
+            """
+        CONFIG=CONFIG.replace("$port",str(port))
+        CONFIG=j.data.text.strip(CONFIG)
+
+        if forward:
+            self.installCacheProxy(force=False)
+            CONFIG+="forward  / localhost:8123\n"
+
+        self.cuisine.core.file_write("/etc/privoxy/config",CONFIG,force=True)
+
+        self.removeFromSystemD(force=False)
+
+        USERACTION="""
+            {{alias}}
+
+            +crunch-all-cookies = +crunch-incoming-cookies +crunch-outgoing-cookies
+            -crunch-all-cookies = -crunch-incoming-cookies -crunch-outgoing-cookies
+             allow-all-cookies  = -crunch-all-cookies -session-cookies-only -filter{content-cookies}
+             allow-popups       = -filter{all-popups} -filter{unsolicited-popups}
+            +block-as-image     = +block{Blocked image request.} +handle-as-image
+            -block-as-image     = -block
+
+            fragile     = -block -crunch-all-cookies -filter -fast-redirects -hide-referer -prevent-compression
+            shop        = -crunch-all-cookies allow-popups
+
+            myfilters   = +filter{html-annoyances} +filter{js-annoyances} +filter{all-popups}\
+                          +filter{webbugs} +filter{banners-by-size}
+
+            allow-ads   = -block -filter{banners-by-size} -filter{banners-by-link}
+
+            #BLOCK
+            {+block{Update stop.} +handle-as-empty-document}
+            .apple.com
+            .microsoft.com
+            *update*
+            *download*
+            *.mp4
+            *.mp3
+            *.mkv
+            *youtube*
+            *youporn*
+            *samsung*
+            *windows*
+            *android*
+            *itunes*
+            *deezer*
+            *.flac
+            *tucows*
+
+            +filter{shockwave-flash}
+            +filter{crude-parental}
+
+            { allow-all-cookies }
+
+            { -filter{all-popups} }
+            .banking.example.com
+
+            #ignore all below
+            { -filter }
+            .tldp.org
+            #/(.*/)?selfhtml/
+
+            { +block{Nasty ads.} }
+            www.example.com/nasty-ads/sponsor.gif
+
+            { +block-as-image }
+            .doubleclick.net
+            /Realmedia/ads/
+            ar.atwola.com/
+
+            { fragile }
+            .forbes.com
+
+            { allow-ads }
+            #.sourceforge.net
+
+            { +set-image-blocker{blank} }
+
+            """
+
+        USERACTION=j.data.text.strip(USERACTION)
+
+        self.cuisine.core.file_write("/etc/privoxy/user.action",USERACTION,force=True)
+
+
+        self.start()
+
+        print("http://config.privoxy.org/")
+        print ("http://config.privoxy.org/show-status")
+        print("http://config.privoxy.org/show-request")
+        print("http://config.privoxy.org/show-url-info")
+
+
+
+    def start(self):
+
+        cmd="privoxy --no-daemon /etc/privoxy/config"
+        pm=self.cuisine.processmanager.get("tmux")
+        pm.ensure("privoxy",cmd)#in tmux will always restart
+
+        cmd="polipo -c /etc/polipo/config"
+        pm.ensure("polipo",cmd) #in tmux will always restart
+
+    @actionrun(action=True)
+    def installCacheProxy(self,storagemntpoint="/storage",btrfs=False):
+
+        port=8123
+
+        self.cuisine.ufw.ufw_enable(force=False)
+        self.cuisine.ufw.allowIncoming(port,force=False)
+
+
+        if not self.cuisine.core.dir_exists(storagemntpoint,force=True):
+            raise j.exceptions.RuntimeError("Cannot find storage mountpoint:%s"%storagemntpoint)
+
+        cachedir="%s/polipo_cache"%storagemntpoint
+
+        if btrfs:
+            self.cuisine.btrfs.subvolumeCreate(cachedir,force=False)
+        else:
+            self.cuisine.core.dir_ensure(cachedir,force=False)
+
+
+        self.cuisine.package.install("polipo",force=False)
 
         forbiddentunnels="""
-        # simple case, exact match of hostnames
-        www.massfuel.com
+            # simple case, exact match of hostnames
+            www.massfuel.com
 
-        # match hostname against regexp
-        \.hitbox\.
+            # match hostname against regexp
+            \.hitbox\.
 
-        # match hostname and port against regexp
-        # this will block tunnels to example.com but also  www.example.com
-        # for ports in the range 600-999
-        # Also watch for effects of 'tunnelAllowedPorts'
-        example.com\:[6-9][0-9][0-9]
+            # match hostname and port against regexp
+            # this will block tunnels to example.com but also  www.example.com
+            # for ports in the range 600-999
+            # Also watch for effects of 'tunnelAllowedPorts'
+            example.com\:[6-9][0-9][0-9]
 
-        # random examples
-        \.liveperson\.
-        \.atdmt\.com
-        .*doubleclick\.net
-        .*webtrekk\.de
-        ^count\..*
-        .*\.offerstrategy\.com
-        .*\.ivwbox\.de
-        .*adwords.*
-        .*\.sitestat\.com
-        \.xiti\.com
-        webtrekk\..*
-        """
+            # random examples
+            \.liveperson\.
+            \.atdmt\.com
+            .*doubleclick\.net
+            .*webtrekk\.de
+            ^count\..*
+            .*\.offerstrategy\.com
+            .*\.ivwbox\.de
+            .*adwords.*
+            .*\.sitestat\.com
+            \.xiti\.com
+            webtrekk\..*
+            """
         self.cuisine.core.file_write("/etc/polipo/forbiddenTunnels",forbiddentunnels)
 
         # dnsNameServer
 
         CONFIG="""
-            ### Basic configuration
-            ### *******************
-
-            # Uncomment one of these if you want to allow remote clients to
-            # connect:
-
-            # proxyAddress = "::0"        # both IPv4 and IPv6
             proxyAddress = "0.0.0.0"    # IPv4 only
-
-            # If you do that, you'll want to restrict the set of hosts allowed to
-            # connect:
-
             # allowedClients = 127.0.0.1, 134.157.168.57
-            # allowedClients = 127.0.0.1, 134.157.168.0/24
 
-            # Uncomment this if you want your Polipo to identify itself by
-            # something else than the host name:
-
-            # proxyName = "polipo.example.org"
-
-            # Uncomment this if there's only one user using this instance of Polipo:
-
-            # cacheIsShared = false
-
-            # Uncomment this if you want to use a parent proxy:
+            #authCredentials = midori:midori
 
             # parentProxy = "squid.example.org:3128"
-
-            # Uncomment this if you want to use a parent SOCKS proxy:
-
             # socksParentProxy = "localhost:9050"
             # socksProxyType = socks5
 
             # Uncomment this if you want to scrub private information from the log:
-
             # scrubLogs = true
 
-
             ### Memory
-            ### ******
-
-            # Uncomment this if you want Polipo to use a ridiculously small amount
-            # of memory (a hundred C-64 worth or so):
-
-            # chunkHighMark = 819200
-            # objectHighMark = 128
-
-            # Uncomment this if you've got plenty of memory:
-
             chunkHighMark = 100331648
             objectHighMark = 16384
 
-
             ### On-disk data
-            ### ************
-
-            # Uncomment this if you want to disable the on-disk cache:
-
-            # diskCacheRoot = ""
-
-            # Uncomment this if you want to put the on-disk cache in a
-            # non-standard location:
-
-            diskCacheRoot = "/storage/polipo_cache/"
-
-            # Uncomment this if you want to disable the local web server:
-
-            # localDocumentRoot = ""
-
-            # Uncomment this if you want to enable the pages under /polipo/index?
-            # and /polipo/servers?.  This is a serious privacy leak if your proxy
-            # is shared.
-
-            # disableIndexing = false
-            # disableServersList = false
-
+            diskCacheRoot = "$cachedir"
 
             ### Domain Name System
             ### ******************
 
             # Uncomment this if you want to contact IPv4 hosts only (and make DNS
             # queries somewhat faster):
-
-            # dnsQueryIPv6 = no
-
-            # Uncomment this if you want Polipo to prefer IPv4 to IPv6 for
-            # double-stack hosts:
-
-            # dnsQueryIPv6 = reluctantly
+            dnsQueryIPv6 = no
 
             # Uncomment this to disable Polipo's DNS resolver and use the system's
             # default resolver instead.  If you do that, Polipo will freeze during
             # every DNS query:
-
             # dnsUseGethostbyname = yes
 
 
@@ -217,22 +339,28 @@ class CuisineProxy:
 
             disableIndexing = false
 
-            """
-        self.cuisine.core.file_write("/etc/polipo/config",CONFIG)
+            #enable-compression 1
+            #can be till 9
+            #compression-level 9
 
+            """
+
+        CONFIG=CONFIG.replace("$cachedir",cachedir)
+        self.cuisine.core.file_write("/etc/polipo/config",CONFIG,force=True)
 
         self.cuisine.core.run("killall polipo",die=False)
 
-        cmd=self.cuisine.core.run("which polipo")
-
-        self.cuisine.processmanager.ensure("polipo",cmd)
+        _, cmd, _ = self.cuisine.core.run("which polipo")
 
         print ("INSTALL OK")
         print ("to see status: point webbrowser to")
-        print ("http://%s:8123/polipo/status?"%self.cuisine.core.executor.addr)
-        print ("configure your webproxy client to use %s on tcp port 8123"%self.cuisine.core.executor.addr)
+        print ("http://%s:%s/polipo/status?"%(self.cuisine.core.executor.addr,port))
+        print ("configure your webproxy client to use %s on tcp port %s"%(self.cuisine.core.executor.addr,port))
 
-        # self.cuisine.avahi.install()
+        self.removeFromSystemD(force=False)
+
+
+
 
 
     def configureClient(self,addr="",port=8123):

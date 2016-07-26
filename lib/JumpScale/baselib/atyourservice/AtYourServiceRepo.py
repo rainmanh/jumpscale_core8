@@ -430,7 +430,11 @@ class AtYourServiceRepo():
                     if service in scope:
                         scope.remove(service)
                 todo = self._findTodo(action0, scope=scope, run=run, producerRoles=producerRoles)
-        # run.sort()
+
+        # these are destructive actions, they need to happens in reverse order in the dependency tree
+        if action in ['uninstall', 'removedata', 'cleanup', 'halt', 'stop']:
+            run.reverse()
+
         return run
 
     def _findTodo(self, action, scope, run, producerRoles):
@@ -447,14 +451,12 @@ class AtYourServiceRepo():
             # remove the ones which are already in previous runs
             producersWaiting = [item for item in producersWaiting if run.exists(item, action) == False]
             producersWaiting = [item for item in producersWaiting if item.state.get(action, die=False) != "OK"]
-            # print ("findtodo: %s:\n%s"%(action,producersWaiting))
+
             if len(producersWaiting) == 0:
                 todo.append(service)
-                # if j.atyourservice.debug:
-                # print("%s waiting for %s" % (service,action))
             elif j.application.debug:
                 waiting = True
-                # print("%s has producers which need to execute action %s (dependencies not done yet)" % (service,action))
+
         if todo == [] and waiting:
             raise RuntimeError("cannot find todo's for action:%s in scope:%s.\n\nDEPENDENCY ERROR: could not resolve dependency chain." % (action, scope))
         return todo
@@ -494,31 +496,6 @@ class AtYourServiceRepo():
                     changed.extend(producers)
         return changed
 
-    # def do(self, action="install", role="", instance="", printonly=False, ignorestate=False, force=False, ask=False):
-    #     self._doinit()
-    #     #make sure actions which are relevant get their init & install done
-    #     if action != "init" and action != "uninstall":
-    #         self.do("init",role=role,instance=instance)
-
-    #     if action != "init" and action != "install" and action != "uninstall":
-    #         self.do("install",role=role,instance=instance)
-
-    #     todo = self.findTodo(action=action,role=role,instance=instance,force=force,ignorestate=ignorestate or printonly)
-
-    #     step = 1
-    #     while todo != []:
-
-        # if ask:
-        # j.application.break_into_jshell("DEBUG NOW ask in do, filter items")
-
-    #         print("execute state changes, nr services to process: %s in step:%s" % (len(todo), step))
-    #         for i in range(len(todo)):
-    #             service = todo[i]
-    #             print ("DO:%s %s"%(service,action))
-    #             service.runAction(action, printonly=printonly,ignorestate= ignorestate, force=force)
-
-    #         todo = self.findTodo(action=action)
-
     def install(self, role="", instance="", force=True, producerRoles="*"):
         self._doinit()
         if force:
@@ -535,32 +512,17 @@ class AtYourServiceRepo():
             self.setState(actions=["stop", "uninstall"], role=role, instance=instance, state='DO')
 
         run = self.getRun(action="stop", force=force)
-        run.steps.reverse()
         print("RUN:STOP")
         print(run)
         if not printonly:
             run.execute()
 
         run = self.getRun(role=role, instance=instance, action="uninstall", force=force)
-        run.steps.reverse()
         print("RUN:UNINSTALL")
         print(run)
         if not printonly:
             run.execute()
         run.execute()
-
-        # scope=self.findProducersScope(role=role,instance=instance,actions=["stop"])
-        # self.do("stop",scope)
-        # scope=self.findProducersScope(role=role,instance=instance,actions=["uninstall"])
-        # self.do("uninstall",scope)
-
-    # def install(self,role="", instance="",printonly=False,ignorestate=False,force=False):
-    #     self._doinit()
-    #     if force:
-    #         self.forceAction(action="install",role=role,instance=instance,saveState=True)
-
-    #     scope=findProducersScope(role=role,instance=instance,actions=["install"])
-    #     self.do("install",scope)
 
     def findRecipes(self, name="", version="", role=''):
         res = []

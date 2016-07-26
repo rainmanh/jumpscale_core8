@@ -108,9 +108,14 @@ class AtYourServiceFactory:
         return self.repos[path]
 
     def reset(self):
+        for repo in self._repos.values():
+            repo._templates = {}
+            repo._services = {}
         self._repos = {}
+        self._domains = []
+        self._templates = {}
         j.dirs._ays = None
-
+        self._init = False
 
     @property
     def repos(self):

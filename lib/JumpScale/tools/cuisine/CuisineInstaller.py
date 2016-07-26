@@ -184,8 +184,8 @@ class CuisineInstaller(base):
     @actionrun(action=True)
     def ftpserver(self,root="/storage/ftpserver",config="",port=2121):
 
-        self.cuisine.fw.ufw_enable()
-        self.cuisine.fw.allowIncoming(port)
+        self.cuisine.ufw.ufw_enable()
+        self.cuisine.ufw.allowIncoming(port)
 
         cmd="sudo ufw allow 50000:65535/tcp"
         self.cuisine.core.run(cmd)

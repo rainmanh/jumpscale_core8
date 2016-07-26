@@ -35,10 +35,10 @@ class BtrfsExtension:
 
     def __btrfs(self, command, action,*args):
         cmd = "%s %s %s %s" % (BASECMD, command, action, " ".join(['"%s"' % a for a in args]))
-        code, out = self._executor.execute(cmd, die=False)
+        code, out, err = self._executor.execute(cmd, die=False)
 
         if code>0:            
-            raise j.exceptions.RuntimeError(out)
+            raise j.exceptions.RuntimeError(err)
 
         return out
 

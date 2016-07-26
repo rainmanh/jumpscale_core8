@@ -33,6 +33,8 @@ class Client:
             except:
                 errormsg = resp.text
             raise j.exceptions.RuntimeError(errormsg)
+        if code == 204:
+            return
         return resp.json()
 
     def updateCockpit(self, headers=None, query_params=None):
@@ -51,6 +53,19 @@ class Client:
         """
         resp = self._client.reloadAll(headers=headers, query_params=query_params)
         self._assert_response(resp)
+        return resp.json()
+
+    def addTemplateRepo(self, url, branch, headers=None, query_params=None):
+        """
+        add a new service template repository
+        It is method for POST /ays/template
+        """
+        data = j.data.serializer.json.dumps({
+            'url': url,
+            'branch': branch,
+        })
+        resp = self._client.addTemplateRepo(data=data, headers=headers, query_params=query_params)
+        self._assert_response(resp, code=201)
         return resp.json()
 
     def listRepositories(self, headers=None, query_params=None):
@@ -267,14 +282,16 @@ class Client:
         self._assert_response(resp)
         return resp.json()
 
-    def deleteServiceByInstance(self, instance, role, repository, headers=None, query_params=None):
+    def deleteServiceByInstance(self, instance, role, repository, uninstall=False, headers=None, query_params=None):
         """
         uninstall and delete a service
         It is method for DELETE /ays/repository/{repository}/service/{role}/{instance}
         """
+        query_params = query_params or {}
+        query_params.update({'uninstall': uninstall})
+
         resp = self._client.deleteServiceByInstance(instance=instance, role=role, repository=repository, headers=headers, query_params=query_params)
-        self._assert_response(resp, 204)
-        return
+        return self._assert_response(resp, 204)
 
     def listServiceActions(self, instance, role, repository, headers=None, query_params=None):
         """

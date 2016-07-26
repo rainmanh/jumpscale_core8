@@ -1047,8 +1047,10 @@ class CuisineCore(base):
     def sudo(self, cmd, die=True,showout=True):
         sudomode = self.sudomode
         self.sudomode = True
-        return self.run(cmd, die=die, showout=showout)
-        self.sudomode = sudomode
+        try:
+            return self.run(cmd, die=die, showout=showout)
+        finally:
+            self.sudomode = sudomode
 
     @actionrun()
     def run(self, cmd, die=True, debug=None, checkok=False, showout=True, profile=False, replaceArgs=True):
@@ -1082,7 +1084,7 @@ class CuisineCore(base):
 
         if self.sudomode:
             passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
-            cmd = 'echo %s | sudo -SE bash -c "%s"' % (passwd, cmd)
+            cmd = 'echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, cmd)
         else:
             cmd = 'bash -c "%s"' % cmd
 

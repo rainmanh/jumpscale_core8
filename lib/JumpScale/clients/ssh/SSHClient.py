@@ -18,13 +18,14 @@ class SSHClientFactory:
         self.cache = {}
 
     def reset(self):
-        for key,client in self.cache.items():
+        for key, client in self.cache.items():
             client.close()
-        self.cache={}
+        self.cache = {}
 
     def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True, look_for_keys=True,
-            timeout=5, key_filename=None, passphrase=None, die=True,usecache=True):
+            timeout=5, key_filename=None, passphrase=None, die=True, usecache=True):
         key = "%s_%s_%s_%s" % (addr, port, login, j.data.hash.md5_string(str(passwd)))
+
         if key not in self.cache or usecache==False:
             try:
                 cl = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent, allow_agent=allow_agent,
@@ -39,7 +40,6 @@ class SSHClientFactory:
                     return None
 
             self.cache[key]=cl
-
 
         return self.cache[key]
 
@@ -129,10 +129,9 @@ class SSHClient:
 
     @property
     def transport(self):
-        # if self.client is None:
-        #     raise j.exceptions.RuntimeError("Could not connect to %s:%s" % (self.addr, self.port))
+        if self.client is None:
+            raise j.exceptions.RuntimeError("Could not connect to %s:%s" % (self.addr, self.port))
         return self.client.get_transport()
-        # return self._transport
 
     @property
     def client(self):
@@ -167,7 +166,8 @@ class SSHClient:
                     # Can't recover, no point in waiting. Exiting now
                     self.logger.error("Authentification error. Aborting connection")
                     self.logger.error(e)
-                    break
+                    raise j.exceptions.RuntimeError(str(e))
+
                 except (SSHException, socket.error) as e:
                     self.logger.error("Unexpected error in socket connection for ssh. Aborting connection and try again.")
                     self.logger.error(e)
@@ -175,11 +175,13 @@ class SSHClient:
                     self.reset()
                     time.sleep(1)
                     continue
+
                 except Exception as e:
                     from pudb import set_trace; set_trace() 
                     j.clients.ssh.removeFromCache(self)
                     msg = "Could not connect to ssh on %s@%s:%s. Error was: %s" % (self.login, self.addr, self.port, e)
                     raise j.exceptions.RuntimeError(msg)
+
             if self._client is None:
                 raise j.exceptions.RuntimeError('Impossible to create SSH connection to %s:%s' % (self.addr, self.port))
 

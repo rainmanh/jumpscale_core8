@@ -186,7 +186,7 @@ class MongoReplica(Startable):
 
     def _prepare_json_all(self):
         reprs = [repr(i) for i in self.all]
-        return ", ".join(["{ _id: %s, host: \"%s\" }" % (i, k)for i, k in enumerate(reprs)])
+        return ", ".join(["{ _id: %s, host: \"%s\" , priority: %f}" % (i, k, 1.0 / i) for i, k in enumerate(reprs)])
 
     def _prepare_init(self):
         cfg = "configsvr: true,version:1," if self.configsvr else ""

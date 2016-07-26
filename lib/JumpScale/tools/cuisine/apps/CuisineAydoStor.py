@@ -60,7 +60,7 @@ class AydoStor(base):
         else:
             addr, port = res[0], '8090'
 
-            self.cuisine.fw.allowIncoming(port)
+            self.cuisine.ufw.allowIncoming(port)
             if self.cuisine.process.tcpport_check(port, ""):
                 raise RuntimeError(
                     "port %d is occupied, cannot start stor" % port)

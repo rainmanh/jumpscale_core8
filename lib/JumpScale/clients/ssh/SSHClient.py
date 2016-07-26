@@ -148,7 +148,9 @@ class SSHClient:
                         self.allow_agent = False
                         self.look_for_keys = False
                         self.pkey = paramiko.RSAKey.from_private_key_file(self.key_filename, password=self.passphrase)
-                        if not j.do.getSSHKeyPathFromAgent(self.key_filename, die=False):
+                        if not j.do.checkSSHAgentAvailable():
+                            j.do.loadSSHAgent()
+                        if not j.do.getSSHKeyPathFromAgent(j.sal.fs.getBaseName(self.key_filename), die=False):
                             j.do.execute('ssh-add %s' % self.key_filename)
                     self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,
                                          pkey=self.pkey, allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,

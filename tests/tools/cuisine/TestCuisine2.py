@@ -103,7 +103,7 @@ class TestCuisine2(unittest.TestCase):
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
-            self.assertIsNotNone(cuisine.fw)
+            self.assertIsNotNone(cuisine.ufw)
 
     def test_create_cuisine2_golang(self):
         """

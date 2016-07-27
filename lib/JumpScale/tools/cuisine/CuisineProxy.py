@@ -32,8 +32,8 @@ class CuisineProxy:
         """
         installs privoxy
         """
-        self.cuisine.fw.ufw_enable(force=False)
-        self.cuisine.fw.allowIncoming(port,force=False)
+        self.cuisine.ufw.ufw_enable(force=False)
+        self.cuisine.ufw.allowIncoming(port,force=False)
         self.cuisine.package.install("privoxy",force=False)
 
         CONFIG="""
@@ -202,8 +202,8 @@ class CuisineProxy:
 
         port=8123
 
-        self.cuisine.fw.ufw_enable(force=False)
-        self.cuisine.fw.allowIncoming(port,force=False)
+        self.cuisine.ufw.ufw_enable(force=False)
+        self.cuisine.ufw.allowIncoming(port,force=False)
 
 
         if not self.cuisine.core.dir_exists(storagemntpoint,force=True):

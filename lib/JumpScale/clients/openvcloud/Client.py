@@ -63,8 +63,9 @@ class Client:
         self._login = login
         self.api = j.clients.portal.get(url, port)
 
+        self._isms1 = 'mothership1' in url
         self.__login(password, secret)
-        if 'mothership1' in url:
+        if self._isms1:
             jsonpath = os.path.join(os.path.dirname(__file__), 'ms1.json')
             self.api.load_swagger(file=jsonpath, group='cloudapi')
             patchMS1(self.api)
@@ -77,7 +78,10 @@ class Client:
 
     def __login(self, password, secret):
         if not secret:
-            secret = self.api.cloudapi.users.authenticate(username=self._login, password=password)
+            if self._isms1:
+                secret = self.api.cloudapi.users.authenticate(username=self._login, password=password)
+            else:
+                secret = self.api.system.usermanager.authenticate(name=self._login, secret=password)
         self.api._session.cookies.clear()  # make sure cookies are empty, clear guest cookie
         self.api._session.cookies['beaker.session.id'] = secret
 
@@ -314,6 +318,10 @@ class Space:
         """
         self._machines_cache.delete()
 
+    def delete(self):
+        self.client.api.cloudapi.cloudspaces.delete(cloudspaceId=self.id)
+
+
     def __repr__(self):
         return "space: %s (%s)"%(self.model["name"],self.id)
 
@@ -396,7 +404,7 @@ class Machine:
             raise j.exceptions.RuntimeError("Could not get IP Address for machine %(name)s" % machine)
         return machineip, machine
 
-    def get_ssh_connection(self):
+    def get_ssh_connection(self, requested_sshport=None):
         """
         Will get a cuisine executor for the machine.
         Will attempt to create a portforwarding
@@ -416,11 +424,13 @@ class Machine:
                 sshport = int(portforward['publicPort'])
                 break
             usedports.add(int(portforward['publicPort']))
+        if not requested_sshport:
+            requested_sshport = 2200
+            while requested_sshport in usedports:
+                requested_sshport += 1
         if not sshport:
-            sshport = 2200
-            while sshport in usedports:
-                sshport += 1
-            self.create_portforwarding(sshport, 22)
+            self.create_portforwarding(requested_sshport, 22)
+            sshport = requested_sshport
         login = machine['accounts'][0]['login']
         password = machine['accounts'][0]['password']
         return j.tools.executor.getSSHBased(publicip, sshport, login, password)         #@todo we need tow work with keys (*2*)

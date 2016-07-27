@@ -7,34 +7,17 @@ CACHETIME = 60
 class Factory:
     def __init__(self):
         self.__jslocation__ = "j.clients.openvcloud"
-        self._clientsdb = j.data.redisdb.get("openvcloud:main:client")
         self._clients = {}
 
     def get(self, url, login, password=None, secret=None, port=443):
         dbkey = "%s:%s" % (url, login)
         if dbkey in self._clients:
             return self._clients[dbkey]
-        if self._clientsdb.exists(dbkey):
-            cl = self.get_from_db(dbkey)
         else:
-            data = {"url": url, "login" : login, "password": password, "secret": secret, "port": port}
             cl = Client(url, login, password, secret, port)
-            self._clientsdb.set(data, id=dbkey)
 
         self._clients[dbkey] = cl
         return cl
-
-    def get_from_db(self, dbkey):
-        data = self._clientsdb.get(id=dbkey)
-        return Client(url=data.struct["url"], login=data.struct["login"], password=data.struct["password"],
-                    secret=data.struct["secret"], port=data.struct["port"])
-
-    @property
-    def clients(self):
-        if self._clients == {}:
-            for data in self._clientsdb:
-                self._clients[data.name] = self.get_from_db(data.name)
-        return self._clients
 
 
 def patchMS1(api):

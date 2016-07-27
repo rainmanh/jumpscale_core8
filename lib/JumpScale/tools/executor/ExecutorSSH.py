@@ -58,6 +58,7 @@ class ExecutorSSH(ExecutorBase):
     @property
     def sshclient(self):
         if self._sshclient is None:
+            pubkey = None
             path = None
             if self.pushkey is not None:
                 #lets push the ssh key as specified

@@ -404,7 +404,7 @@ class Machine:
             raise j.exceptions.RuntimeError("Could not get IP Address for machine %(name)s" % machine)
         return machineip, machine
 
-    def get_ssh_connection(self):
+    def get_ssh_connection(self, requested_sshport=None):
         """
         Will get a cuisine executor for the machine.
         Will attempt to create a portforwarding
@@ -424,11 +424,13 @@ class Machine:
                 sshport = int(portforward['publicPort'])
                 break
             usedports.add(int(portforward['publicPort']))
+        if not requested_sshport:
+            requested_sshport = 2200
+            while requested_sshport in usedports:
+                requested_sshport += 1
         if not sshport:
-            sshport = 2200
-            while sshport in usedports:
-                sshport += 1
-            self.create_portforwarding(sshport, 22)
+            self.create_portforwarding(requested_sshport, 22)
+            sshport = requested_sshport
         login = machine['accounts'][0]['login']
         password = machine['accounts'][0]['password']
         return j.tools.executor.getSSHBased(publicip, sshport, login, password)         #@todo we need tow work with keys (*2*)

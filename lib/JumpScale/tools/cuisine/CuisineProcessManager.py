@@ -182,7 +182,7 @@ class CuisineRunit(ProcessManagerBase):
 
         # waiting for runsvdir to populate service directory monitor
         remain = 300
-        while not self.cuisine.core.dir_exists("/etc/service/%s/supervise" % name):
+        while not self.cuisine.core.dir_exists("/etc/service/%s/supervise" % name, force=True):
             remain = remain - 1
             if remain == 0:
                 self.logger.warn('/etc/service/%s/supervise: still not exists, check if runsvdir is running, start may fail.' % name)

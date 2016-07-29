@@ -1051,7 +1051,10 @@ class InstallTools():
 
         # print(":: Executing {} with LD_LIBRARY_PATH: {}".format(command, os.environ.get('LD_LIBRARY_PATH', None)))
         p=Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX, \
-                    shell=useShell, env=os.environ,universal_newlines=True,cwd=cwd,bufsize=0,**popenargs)
+                    shell=useShell, env=os.environ, universal_newlines=True,cwd=cwd,bufsize=0,**popenargs)
+        
+        p.stdout = io.TextIOWrapper(p.stdout.buffer, encoding="UTF-8")
+        p.stderr = io.TextIOWrapper(p.stderr.buffer, encoding="UTF-8")
 
         if async:
             return p
@@ -1068,13 +1071,20 @@ class InstallTools():
             def run(self):
                 while not self.stream.closed and not self._stopped:
                     buf = ''
-                    buf = self.stream.readline()
+
+                    try:
+                        buf = self.stream.readline()
+                    except Exception:
+                        import pudb;pu.db
+
                     if len(buf) > 0:
                         self.queue.put((self.flag, buf))
                     else:
                         break
                 self.queue.put(('T', self.flag))
 
+        import codecs
+        import pudb;pu.db
         serr = p.stderr
         sout = p.stdout
         inp = queue.Queue()
@@ -2093,6 +2103,7 @@ class Installer():
 
         self.prepare(SANDBOX=args2['SANDBOX'],base= args2['JSBASE'])
 
+        do.execute("ssh-keyscan github.com >> /root/.ssh/known_hosts; ssh-keyscan git.aydo.com >> /root/.ssh/known_hosts", showout=False)
         print ("pull core")
         do.pullGitRepo(args2['JSGIT'],branch=args2['JSBRANCH'], depth=1, ssh="first")
         src="%s/github/jumpscale/jumpscale_core8/lib/JumpScale"%do.CODEDIR

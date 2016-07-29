@@ -12,12 +12,14 @@ class ServiceState():
         self.service = service
 
         self._path = j.sal.fs.joinPaths(self.service.path, "state.yaml")
+        self.load()
+        self._changed = False
+
+    def load(self):
         if j.sal.fs.exists(path=self._path):
             self._model = j.data.serializer.yaml.load(self._path)
         else:
             self._model = {"parent": "", "producers": {}, "state": {}, "recurring": {}, "events": {}, "templateHRDHash": "", "instanceHRDHash": "", "recipe": ""}
-
-        self._changed = False
 
     @property
     def methods(self):

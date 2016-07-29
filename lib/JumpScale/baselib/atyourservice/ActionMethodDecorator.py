@@ -72,6 +72,7 @@ class ActionMethodDecorator:
                 # this is safe for e.g.gevent usage, should always return recipe which is alike for all
                 selfGeneratorCode = "service=j.atyourservice.getService('%s');selfobj=service.actions" % aysikey
 
+                j.actions.setRunId('ays_%s_%s_%s' % (service.aysrepo.name, service.templatename, service.instance))
                 action0 = j.actions.add(action=func, actionRecover=None, args=args, kwargs=kwargs, die=False, stdOutput=True,
                                         errorOutput=True, retry=0, executeNow=False, force=True, actionshow=actionshow, dynamicArguments=dargs, selfGeneratorCode=selfGeneratorCode)
 

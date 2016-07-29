@@ -231,24 +231,17 @@ class Bash:
 
         return self._profile
 
-
-    @actionrun(action=True,force=True)
     def addPath(self, path):
         self.profile.addPath(path)
         self.write()
 
     def write(self):
-        print (self.profile.dump())
-        # profile=self.profile.dump()
-        # from pudb import set_trace; set_trace() 
         self.cuisine.core.file_write(self.profilePath, self.profile.dump(),showout=False)
 
-    @actionrun(action=True,force=True)
     def environRemove(self, key, val=None):
         self.profile.remove(key)
         self.write()
 
-    @actionrun(action=True,force=True)
     def include(self, path):
         self.profile.addInclude(path)
         self.write()
@@ -272,5 +265,3 @@ class Bash:
             return
 
         raise j.exceptions.Input("Cannot find C.UTF-8, cannot fix locale's")
-
-

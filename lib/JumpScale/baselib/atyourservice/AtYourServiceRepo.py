@@ -49,6 +49,7 @@ class AtYourServiceRepo():
         else:
             self.db=None
 
+
     def _doinit(self):
         j.actions.setRunId("ays_%s" % self.name)
 
@@ -220,10 +221,12 @@ class AtYourServiceRepo():
         return self._servicesTree
 
     def _load_blueprints(self):
-        items = j.sal.fs.listFilesInDir(j.sal.fs.joinPaths(self.basepath, "blueprints"))
-        for path in items:
-            if path not in self._blueprints:
-                self._blueprints[path] = Blueprint(self, path=path)
+        bpdir=j.sal.fs.joinPaths(self.basepath, "blueprints")
+        if j.sal.fs.exists(path=bpdir):
+            items = j.sal.fs.listFilesInDir(bpdir)
+            for path in items:
+                if path not in self._blueprints:
+                    self._blueprints[path] = Blueprint(self, path=path)
 
     @property
     def blueprints(self):

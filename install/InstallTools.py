@@ -2035,9 +2035,6 @@ class Installer():
         JSGIT="https://github.com/Jumpscale/jumpscale_core8.git",JSBRANCH="master",\
         AYSGIT="https://github.com/Jumpscale/ays_jumpscale8",AYSBRANCH="master",SANDBOX='0',EMAIL="",FULLNAME=""):
         """
-        @param pythonversion is 2 or 3 (3 no longer tested and prob does not work)
-        if 3 and base not specified then base becomes /opt/jumpscale83
-
         @param insystem means use system packaging system to deploy dependencies like python & python packages
         @param codedir is the location where the code will be installed, code which get's checked out from github
         @param base is location of root of JumpScale
@@ -2052,11 +2049,6 @@ class Installer():
         copybinary=True
 
         tmpdir=do.TMP
-
-        # if "PYTHONVERSION" in os.environ:
-        #     PYTHONVERSION = os.environ["PYTHONVERSION"]
-        # else:
-        #     PYTHONVERSION = "3.5"
 
         if base!="":
             os.environ["JSBASE"]=base

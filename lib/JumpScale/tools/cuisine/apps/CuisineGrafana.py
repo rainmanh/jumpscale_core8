@@ -201,7 +201,7 @@ class Grafana(base):
             dataDir = self.cuisine.core.args_replace("$varDir/data/grafana")
 
             logDir = '%s/log' % (dataDir)
-            
+
             C = """
             set -ex
             cd $tmpDir
@@ -212,7 +212,7 @@ class Grafana(base):
             #wget https://grafanarel.s3.amazonaws.com/builds/grafana-2.6.0.linux-x64.tar.gz
             #tar -xvzf grafana-2.6.0.linux-x64.tar.gz
             #cd grafana-2.6.0
-            
+
             cp bin/grafana-server $binDir
             cp bin/grafana-cli $binDir
             mkdir -p $tmplsDir/cfg/grafana
@@ -228,10 +228,10 @@ class Grafana(base):
             print ("DEBUG NOW sdsd")
             embed()
             p
-            
+
 
             self.cuisine.core.run_script(C, profile=True, action=True)
-            self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
+            self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"))
             cfg = self.cuisine.core.file_read("$tmplsDir/cfg/grafana/conf/defaults.ini")
             cfg = cfg.replace('data = data', 'data = %s' % (dataDir))
             cfg = cfg.replace('logs = data/log', 'logs = %s' % (logDir))

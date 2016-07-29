@@ -39,7 +39,7 @@ class Weave(base):
         self.cuisine.docker.install()
         self.cuisine.package.ensure('curl')
         self.cuisine.core.run_script(C, profile=True)
-        self.cuisine.bash.addPath(j.sal.fs.getParent(binPath), action=True)
+        self.cuisine.bash.addPath(j.sal.fs.getParent(binPath))
         if start:
             self.start(peer)
 

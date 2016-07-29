@@ -16,7 +16,7 @@ class actionrun(ActionDecorator):
 
 base=j.tools.cuisine.getBaseClass()
 class Redis(base):
-    
+
     @actionrun(action=True)
     def build(self,name="main",ip="localhost", port=6379, maxram=200, appendonly=True,snapshot=False,slave=(),ismaster=False,passwd=None,unixsocket=True,start=True):
         self.cuisine.installer.base()
@@ -65,7 +65,7 @@ class Redis(base):
             if cmd!=dest:
                 self.cuisine.core.file_copy(cmd,dest)
 
-        self.cuisine.bash.addPath(j.sal.fs.joinPaths(self.cuisine.core.dir_paths["base"], "bin"), action=True)
+        self.cuisine.bash.addPath(j.sal.fs.joinPaths(self.cuisine.core.dir_paths["base"], "bin"))
 
 
         redis_cli = j.clients.redis.getInstance(self.cuisine)

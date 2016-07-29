@@ -52,7 +52,7 @@ class Etcd(base):
 
         C=self.cuisine.bash.replaceEnvironInText(C)
         self.cuisine.core.run_script(C,profile=True, action=True)
-        self.cuisine.bash.addPath("$base/bin", action=True)
+        self.cuisine.bash.addPath("$base/bin")
 
         if start:
             self.start(host, peers)

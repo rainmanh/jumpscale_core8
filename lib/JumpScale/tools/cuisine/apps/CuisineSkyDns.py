@@ -27,7 +27,7 @@ class SkyDns(base):
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/skynetservices/skydns",action=True)
         self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'skydns'), '$binDir', action=True)
-        self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
+        self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"))
 
         if start:
             self.start()

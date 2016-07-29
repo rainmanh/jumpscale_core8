@@ -83,18 +83,7 @@ class CuisineInstallerDevelop(base):
 
         self.python()
         self.pip(action=True)
-
-        if not self.cuisine.core.isArch:
-            # install brotli
-            C = """
-            cd $tmpDir; git clone https://github.com/google/brotli.git
-            cd $tmpDir/brotli/
-            python setup.py install
-            make bro
-            cp bin/bro $binDir/bro
-            """
-            C = self.cuisine.core.args_replace(C)
-            self.cuisine.core.run_script(C, force=False)
+        self.brotli()
 
         #python etcd
         C="""
@@ -235,7 +224,7 @@ class CuisineInstallerDevelop(base):
         git clone https://github.com/google/brotli.git
         cd /tmp/brotli/
         ./configure
-        make
+        make bro
         cp /tmp/brotli/bin/bro /usr/local/bin/
         rm -rf /tmp/brotli
         """

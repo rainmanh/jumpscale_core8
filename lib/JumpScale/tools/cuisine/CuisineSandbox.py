@@ -65,7 +65,7 @@ class CuisineSandbox(base):
         copy_script="""
         j.sal.fs.removeDirTree("$out/$name/jumpscale8/")
         j.sal.fs.copyDirTree("/opt/jumpscale8/","$out/$name/jumpscale8",deletefirst=True,ignoredir=['.egg-info', '.dist-info','__pycache__'],ignorefiles=['.egg-info',"*.pyc"])
-        j.sal.fs.removeIrrelevantFiles($out)
+        j.sal.fs.removeIrrelevantFiles("$out")
         """
         copy_script=copy_script.replace("$name",name)
         copy_script=copy_script.replace("$out",destination)

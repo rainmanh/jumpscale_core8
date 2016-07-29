@@ -290,8 +290,7 @@ class Docker:
 
     def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1604", nameserver=["8.8.8.8"],
                replace=True, cpu=None, mem=0, ssh=True, myinit=True, sharecode=False,sshkeyname="",sshpubkey="",
-               setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master", aysfs=[], detach=False, privileged=False):
-
+               setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master", aysfs=[], detach=False, privileged=False,getIfExists=True):
         """
         @param ports in format as follows  "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
         @param vols in format as follows "/var/insidemachine:/var/inhost # /var/1:/var/1 # ..."   '#' is separator
@@ -302,10 +301,13 @@ class Docker:
         self.logger.info(("create:%s" % name))
 
         running = [item.name for item in self.containersRunning]
-
+      
         if not replace:
             if name in self.containerNamesRunning:
-                j.events.opserror_critical("Cannot create machine with name %s, because it does already exists.")
+                if getIfExists:
+                    return self.get(name=name)
+                else:
+                    j.events.opserror_critical("Cannot create machine with name %s, because it does already exists.")
         else:
             if self.exists(name):
                 self.logger.info("remove existing container %s" % name)

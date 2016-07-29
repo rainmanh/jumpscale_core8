@@ -43,15 +43,18 @@ class CacheCategory():
         key="cuisine:cache:%s"%self.runid
         hkey="%s:%s"%(self.cat,id)
         if self.keepInMem and id in self.memcache and refresh==False:
-            return self.memcache[id]
-        val=j.core.db.hget(key,hkey)
-        if val!=None and refresh==False:
-            val=j.data.serializer.json.loads(val)
-            return val
+            if self.memcache[id] not in ["",None]:
+                return self.memcache[id]
+        if refresh==False:
+            val=j.core.db.hget(key,hkey)
+            if val !=None:
+                val=j.data.serializer.json.loads(val)
+                if val!=None and val !="":    
+                    return val
         if method!=None:
             val=method(**kwargs)
-            if val==None:
-                raise j.exceptions.RuntimeError("method cannot return None")
+            if val==None or val=="":
+                raise j.exceptions.RuntimeError("method cannot return None or empty string.")
             self.set(id,val)
             if self.keepInMem:
                 self.memcache[id]=val

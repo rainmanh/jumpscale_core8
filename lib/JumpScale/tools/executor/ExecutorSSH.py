@@ -77,8 +77,8 @@ class ExecutorSSH(ExecutorBase):
                                                 allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,
                                                 key_filename=path, passphrase=None,
                                                 timeout=self.timeout,usecache=False)  # TODO: add passphrase
-            if pubkey:
-                self._sshclient.ssh_authorize("root", pubkey)
+            if self.pubkey!="":
+                self._sshclient.ssh_authorize("root", self.pubkey)
 
         return self._sshclient
 

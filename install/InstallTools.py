@@ -1052,9 +1052,10 @@ class InstallTools():
         # print(":: Executing {} with LD_LIBRARY_PATH: {}".format(command, os.environ.get('LD_LIBRARY_PATH', None)))
         p=Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX, \
                     shell=useShell, env=os.environ, universal_newlines=True,cwd=cwd,bufsize=0,**popenargs)
-        
-        p.stdout = io.TextIOWrapper(p.stdout.buffer, encoding="UTF-8")
-        p.stderr = io.TextIOWrapper(p.stderr.buffer, encoding="UTF-8")
+
+        ##BROKE execution on my mac? return was empty string        
+        # p.stdout = io.TextIOWrapper(p.stdout.buffer, encoding="UTF-8")
+        # p.stderr = io.TextIOWrapper(p.stderr.buffer, encoding="UTF-8")
 
         if async:
             return p
@@ -1070,12 +1071,8 @@ class InstallTools():
 
             def run(self):
                 while not self.stream.closed and not self._stopped:
-                    buf = ''
 
-                    try:
-                        buf = self.stream.readline()
-                    except Exception:
-                        import pudb;pu.db
+                    buf = self.stream.readline()
 
                     if len(buf) > 0:
                         self.queue.put((self.flag, buf))
@@ -1083,8 +1080,8 @@ class InstallTools():
                         break
                 self.queue.put(('T', self.flag))
 
-        import codecs
-        import pudb;pu.db
+        # import codecs
+
         serr = p.stderr
         sout = p.stdout
         inp = queue.Queue()
@@ -1155,7 +1152,12 @@ class InstallTools():
         if rc == 1000:
             rc = p.returncode
 
-        if rc and die:
+        if rc>0 and die:
+            from IPython import embed
+            print ("DEBUG NOW p")
+            embed()
+            p
+            
             if err:
                 raise RuntimeError("Could not execute cmd:\n'%s'\nerr:\n%s" % (command,err))
             else:

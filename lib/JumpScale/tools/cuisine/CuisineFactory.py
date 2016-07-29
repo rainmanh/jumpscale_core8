@@ -16,7 +16,7 @@ class CuisineBase:
 
     def reset_actions(self,prefix=""):        
         prefix="%s.%s"%(self.classname,prefix)            
-        j.actions.reset(self.id,prefix=prefix)
+        j.actions.reset(runid=self.id,prefix=prefix)
 
     def reset(self):
         j.actions.reset(self.id)

@@ -36,15 +36,13 @@ class Influxdb(base):
             C= """
             set -ex
             cd $tmpDir
-            wget https://dl.influxdata.com/influxdb/releases/influxdb-0.13.0_linux_amd64.tar.gz
-            tar xvfz influxdb-0.13.0_linux_amd64.tar.gz
-            cp influxdb-0.13.0-1/usr/bin/influxd $binDir
-            cp influxdb-0.13.0-1/etc/influxdb/influxdb.conf $tmplsDir/cfg/influxdb/influxdb.conf"""
+            curl -sL https://repos.influxdata.com/influxdb.key | sudo apt-key add -
+            source /etc/lsb-release
+            echo "deb https://repos.influxdata.com/${DISTRIB_ID,,} ${DISTRIB_CODENAME} stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
+            apt-get install influxdb
+            """
             self.cuisine.core.run_script(C, profile=True, action=True)
-            from IPython import embed
-            print ("DEBUG NOW test influx")
-            embed()
-            
+            #@todo need to link into bindir            
             self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
         else:
             raise RuntimeError("cannot install, unsuported platform")
@@ -70,7 +68,26 @@ class Influxdb(base):
 
     @actionrun()
     def build(self, start=True):
+
         raise RuntimeError("not implemented")
+
+        if self.cuisine.core.isUbuntu:
+            self.cuisine.core.dir_ensure("$tmplsDir/cfg/influxdb",force=False)
+            C= """
+            set -ex
+            cd $tmpDir
+            wget https://dl.influxdata.com/influxdb/releases/influxdb-0.13.0_linux_amd64.tar.gz
+            tar xvfz influxdb-0.13.0_linux_amd64.tar.gz
+            cp influxdb-0.13.0-1/usr/bin/influxd $binDir
+            cp influxdb-0.13.0-1/etc/influxdb/influxdb.conf $tmplsDir/cfg/influxdb/influxdb.conf"""
+            self.cuisine.core.run_script(C, profile=True, action=True)
+            from IPython import embed
+            print ("DEBUG NOW test influx")
+            embed()
+        else:
+            raise RuntimeError("not implemented")
+
+            
 
     @actionrun(force=True)
     def start(self):

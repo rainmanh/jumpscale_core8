@@ -179,19 +179,6 @@ class CuisineInstaller(base):
         self.cuisine.package.multiInstall(C)
         self.cuisine.package.upgrade()
 
-        # make sure brotli is installed
-        if not self.cuisine.core.command_check('bro'):        
-            bro_script = """
-            set -ex
-            cd $tmpDir; git clone https://github.com/google/brotli.git
-            cd $tmpDir/brotli/
-            python setup.py install
-            make bro
-            cp bin/bro /usr/local/bin/bro
-            rm -rf cd $tmpDir/brotli/
-            """
-            self.cuisine.core.run_script(bro_script)
-
         self.cuisine.package.clean()
 
 

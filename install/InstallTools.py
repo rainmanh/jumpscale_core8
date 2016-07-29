@@ -1053,7 +1053,7 @@ class InstallTools():
         p=Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX, \
                     shell=useShell, env=os.environ, universal_newlines=True,cwd=cwd,bufsize=0,**popenargs)
 
-        ##BROKE execution on my mac? return was empty string        
+        ##BROKE execution on my mac? return was empty string
         # p.stdout = io.TextIOWrapper(p.stdout.buffer, encoding="UTF-8")
         # p.stderr = io.TextIOWrapper(p.stderr.buffer, encoding="UTF-8")
 
@@ -1152,12 +1152,7 @@ class InstallTools():
         if rc == 1000:
             rc = p.returncode
 
-        if rc>0 and die:
-            from IPython import embed
-            print ("DEBUG NOW p")
-            embed()
-            p
-            
+        if rc > 0 and die:
             if err:
                 raise RuntimeError("Could not execute cmd:\n'%s'\nerr:\n%s" % (command,err))
             else:

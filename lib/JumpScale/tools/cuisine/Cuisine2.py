@@ -2,7 +2,7 @@
 from JumpScale import j
 
 
-
+from CuisineSandbox import CuisineSandbox
 from CuisineInstaller import CuisineInstaller
 from CuisineInstallerDevelop import CuisineInstallerDevelop
 from CuisinePackage import CuisinePackage
@@ -75,7 +75,7 @@ class JSCuisine:
         self.tmux=CuisineTmux(self.executor,self)
         self.lua=CuisineLua(self.executor,self)
         self.pnode=CuisinePNode(self.executor,self)
-
+        self.sandbox=CuisineSandbox(self.executor,self)
         self.stor = CuisineStor(self.executor,self)
 
         self.reset=self.core.reset

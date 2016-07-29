@@ -171,10 +171,10 @@ class Bash:
         self._environ[key] = val
         os.environ[key]=val
         self.profile.set(key, val)
-        self.cuisine.core.file_write(self.profilePath, self.profile.dump())
+        self.write()
         self.reset()
 
-    @actionrun(action=True)
+    @actionrun(force=True)
     def setOurProfile(self):
         mpath=j.sal.fs.joinPaths(self.home,".profile")
         mpath2=j.sal.fs.joinPaths(self.home,".profile_js")
@@ -225,27 +225,33 @@ class Bash:
     def profile(self):
         if not self._profile:
             content = ""
-            if self._profilePath == "" and self.cuisine.core.file_exists(self.profilePath):
+            if self._profilePath == "" and self.cuisine.core.file_exists(self.profilePath,force=True):
                 content = self.cuisine.core.file_read(self.profilePath)
             self._profile = Profile(content, self.cuisine.core.dir_paths["binDir"])
 
         return self._profile
 
 
-    @actionrun(action=True)
+    @actionrun(action=True,force=True)
     def addPath(self, path):
         self.profile.addPath(path)
+        self.write()
+
+    def write(self):
+        print (self.profile.dump())
+        # profile=self.profile.dump()
+        # from pudb import set_trace; set_trace() 
         self.cuisine.core.file_write(self.profilePath, self.profile.dump(),showout=False)
 
-    @actionrun(action=True)
+    @actionrun(action=True,force=True)
     def environRemove(self, key, val=None):
         self.profile.remove(key)
-        self.cuisine.core.file_write(self.profilePath, self.profile.dump(),showout=False)
+        self.write()
 
-    @actionrun(action=True)
+    @actionrun(action=True,force=True)
     def include(self, path):
         self.profile.addInclude(path)
-        self.cuisine.core.file_write(self.profilePath, self.profile.dump(),showout=False)
+        self.write()
 
     @actionrun(action=True)
     def getLocaleItems(self,force=False,showout=False):

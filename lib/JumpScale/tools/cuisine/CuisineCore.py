@@ -1233,7 +1233,7 @@ class CuisineCore(base):
         script=j.data.text.strip(script)
 
         if print:
-            self.cuisine.core.pprint(content)
+            self.cuisine.core.pprint(script)
 
 
         if script.find("from JumpScale import j")==-1:

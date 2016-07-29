@@ -24,7 +24,7 @@ class Caddy(base):
         self.cuisine = cuisine
 
     @actionrun(action=True)
-    def build(self, ssl=False, start=True, dns=None):
+    def install(self, ssl=False, start=True, dns=None):
         self.cuisine.core.file_download('https://github.com/mholt/caddy/releases/download/v0.8.2/caddy_linux_amd64.tar.gz', '$tmpDir/caddy_linux_amd64.tar.gz')
         self.cuisine.core.run('cd $tmpDir; tar xvf $tmpDir/caddy_linux_amd64.tar.gz')
         self.cuisine.core.file_copy('$tmpDir/caddy', '$binDir')

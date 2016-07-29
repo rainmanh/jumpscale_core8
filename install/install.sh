@@ -78,9 +78,6 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     export TMPDIR=/tmp
 elif [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
     # Do something under Windows NT platform
-        # Do something under Mac OS X platform
-    #echo 'install brew'
-    #ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     export LANG=C; export LC_ALL=C
     apt-cyg install curl
     apt-cyg install openssl-devel
@@ -135,4 +132,3 @@ curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/inst
 
 cd $TMPDIR
 python3 bootstrap.py
-js 'j.tools.cuisine.local.installerdevelop.installJS8Deps()'

@@ -220,6 +220,23 @@ class CuisinePackage(base):
                 return self._apt_get("-y --purge remove %s" % package)
             else:
                 self.cuisine.core.run("apt-get autoremove -y")
+
+            self._apt_get("autoclean")
+            C="""
+            apt-get clean
+            rm -rf /bd_build
+            rm -rf /tmp/* /var/tmp/*
+            rm -f /etc/dpkg/dpkg.cfg.d/02apt-speedup
+
+            find -regex '.*__pycache__.*' -delete
+            rm -rf /var/log
+            mkdir -p /var/log/apt
+            rm -rf /var/tmp
+            mkdir -p /var/tmp
+            
+            """
+            self.cuisine.core.run_script(C)
+
         elif self.cuisine.core.isArch:
             cmd="pacman -Sc"
             if agressive:
@@ -253,17 +270,7 @@ class CuisinePackage(base):
         elif self.isMac:
             self.cuisine.core.run("pacman -Rs %s"%package)
 
-    @actionrun(action=True,force=True)
-    def clean(self):
-        if self.cuisine.core.isUbuntu:
-            self._apt_get("autoclean")
-            C="""
-            apt-get clean
-            rm -rf /bd_build
-            rm -rf /tmp/* /var/tmp/*
-            rm -f /etc/dpkg/dpkg.cfg.d/02apt-speedup
-            """
-            self.cuisine.core.run_script(C)
+
 
     def __repr__(self):
         return "cuisine.package:%s:%s"%(self.executor.addr,self.executor.port)

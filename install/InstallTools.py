@@ -2031,7 +2031,7 @@ class Installer():
         do.pullGitRepo(url='git@github.com:Jumpscale/docs.git',ssh="first")
 
 
-    def installJS(self,base="",clean=False,insystem=True,GITHUBUSER="",GITHUBPASSWD="",CODEDIR="",\
+    def installJS(self,base="",clean=True,insystem=True,GITHUBUSER="",GITHUBPASSWD="",CODEDIR="",\
         JSGIT="https://github.com/Jumpscale/jumpscale_core8.git",JSBRANCH="master",\
         AYSGIT="https://github.com/Jumpscale/ays_jumpscale8",AYSBRANCH="master",SANDBOX='0',EMAIL="",FULLNAME=""):
         """
@@ -2362,12 +2362,6 @@ class Installer():
         # pythonversion = '3' if os.environ.get('PYTHONVERSION') == '3' else ''
 
 
-#         C2="""#!/bin/bash
-# # set -x
-# source {env}
-# # echo $base/bin/python "$@"
-# {base}/bin/python -q -B -s -S "$@"
-#         """
 
         C2="""#!/bin/bash
 # set -x

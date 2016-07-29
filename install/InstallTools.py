@@ -2480,7 +2480,7 @@ exec python3 -q "$@"
     def prepare(self,SANDBOX=0,base=""):
         print ("prepare (sandbox:%s)"%SANDBOX)
         if base=="":
-            base=self.BASE
+            base=do.BASE
         if do.TYPE!=("UBUNTU64"):
             SANDBOX=0
 

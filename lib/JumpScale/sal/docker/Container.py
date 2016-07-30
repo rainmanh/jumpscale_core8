@@ -136,6 +136,10 @@ class Container:
                     if len(portsfound)>0:
                         return portsfound[0]
 
+        if  self.isRunning()==False:
+            raise j.exceptions.RuntimeError("docker %s is not running cannot get pub port."%self)
+        
+
         raise j.exceptions.Input("cannot find publicport for ssh?")
 
     def pushSSHKey(self, keyname="", sshpubkey="", generateSSHKey=True):

@@ -1104,10 +1104,6 @@ class CuisineCore(base):
 
         out = out.strip()
 
-        if showout:
-            print('Output: %s' % out)
-            print('Error: %s' % err)
-
         self.reset_actions()
         
         return rc, out, err

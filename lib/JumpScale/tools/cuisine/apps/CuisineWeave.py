@@ -24,7 +24,7 @@ class Weave(base):
         self.cuisine = cuisine
 
     @actionrun(action=True)
-    def build(self, start=True, peer=None, jumpscalePath=True):
+    def install(self, start=True, peer=None, jumpscalePath=True):
         if jumpscalePath:
             binPath = self.cuisine.core.joinpaths(
                 self.cuisine.core.dir_paths['binDir'], 'weave')

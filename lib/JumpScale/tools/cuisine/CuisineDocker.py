@@ -21,6 +21,10 @@ class CuisineDocker(base):
         self.executor = executor
         self.cuisine = cuisine
 
+
+    def machine_create(self):
+        pass
+
     @actionrun(action=True,force=False)
     def install(self):
         if self.cuisine.core.isUbuntu:
@@ -153,15 +157,7 @@ class CuisineDocker(base):
             return "%s:%s" % (host, port)
         else:
             return "%s:%s" % (self.executor.addr, port)
-
-    @actionrun(action=True)
-    def ubuntuSystemd(self, name="ubuntu1"):
-        """
-        start ubuntu 15.10 which is using systemd  #@todo (*2*)
-        will have to do same tricks as with arch below
-        """
-        pass
-
+ 
     @actionrun(action=True)
     def archSystemd(self, name="arch1"):
         """

@@ -29,11 +29,11 @@ class CuisineSandbox(base):
         sandbox_script = """
         cuisine = j.tools.cuisine.local
         paths = []
+        paths.append("/usr/lib/python3/dist-packages")
         paths.append("/usr/lib/python3.5/")
         paths.append("/usr/local/lib/python3.5/dist-packages")
-        paths.append("/usr/lib/python3/dist-packages")
 
-        excludeFileRegex=["-tk/", "/lib2to3", "-34m-", ".egg-info"]
+        excludeFileRegex=["-tk/", "/lib2to3", "-34m-", ".egg-info","lsb_release"]
         excludeDirRegex=["/JumpScale", "\.dist-info", "config-x86_64-linux-gnu", "pygtk"]
 
         dest = j.sal.fs.joinPaths(cuisine.core.dir_paths['base'], 'lib')
@@ -41,11 +41,13 @@ class CuisineSandbox(base):
         for path in paths:
             j.tools.sandboxer.copyTo(path, dest, excludeFileRegex=excludeFileRegex, excludeDirRegex=excludeDirRegex)
 
-        if not j.sal.fs.exists("%s/bin/python" % cuisine.core.dir_paths['base']):
-            j.sal.fs.copyFile("/usr/bin/python3.5", "%s/bin/python" % cuisine.core.dir_paths['base'])
+        base=cuisine.core.dir_paths['base']
 
-        j.tools.sandboxer.sandboxLibs("%s/lib" % cuisine.core.dir_paths['base'], recursive=True)
-        j.tools.sandboxer.sandboxLibs("%s/bin" % cuisine.core.dir_paths['base'], recursive=True)
+        if not j.sal.fs.exists("%s/bin/python" % base):
+            j.sal.fs.symlink("%s/bin/python3" % base,"%s/bin/python3.5" % base)
+
+        j.tools.sandboxer.sandboxLibs("%s/lib" % base, recursive=True)
+        j.tools.sandboxer.sandboxLibs("%s/bin" % base, recursive=True)
         """
         print("start sandboxing")
         self.cuisine.core.execute_jumpscript(sandbox_script)

@@ -40,7 +40,7 @@ class ActionDecorator:
             else:
                 force = self.force
 
-            if action:
+            if False and action:
                 cuisine = args[0].cuisine
                 func_file = func.__code__.co_filename
                 imports = list()
@@ -54,6 +54,9 @@ class ActionDecorator:
                 args = args[1:]
                 cm = cm.replace("$id", cuisine.core.id)  # replace the code which has the constructor code for the selfobj to work on
                 j.actions.setRunId(cuisine.core.runid)
+
+                #overrule for debug
+                force=True
 
                 action0=j.actions.add(action=func, actionRecover=None,args=args,kwargs=kwargs,die=True,stdOutput=True,\
                     errorOutput=True,retry=0,executeNow=True,selfGeneratorCode=cm,force=force,actionshow=actionshow,showout=actionshow)

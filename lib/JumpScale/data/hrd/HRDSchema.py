@@ -118,6 +118,8 @@ class HRDSchema:
         raise j.exceptions.RuntimeError(msg)
 
     def process(self, content):
+        import collections
+        self.fieldsforcapnp = collections.OrderedDict()
         for line in content.split("\n"):
             line = line.strip()
             if line.startswith("#") or line == "":
@@ -224,11 +226,47 @@ class HRDSchema:
 
             if line.find("@ask") != -1 or line.find("@ASK") != -1:
                 hrdtype.doAsk = True
-
+            self.fieldsforcapnp[name] = hrdtype
             self.items[name] = hrdtype
             self.items_with_alias[name] = hrdtype
             for alias in hrdtype.alias:
                 self.items_with_alias[alias] = hrdtype
+
+    def asCapnpSchema(self):
+        typesmap = {
+            'str': 'Text',
+            'int': 'UInt32',
+            'integer': 'UInt32',
+            'bool'   : 'Bool',
+            'float'  : 'Float32',
+
+        }
+        fid = 0
+        serializeddata = ""
+
+        for k, ttype in self.fieldsforcapnp.items():
+
+            if ttype.list != True:
+                serializeddata += "\t" + k + " @%d :%s;\n" % (fid, typesmap[ttype.hrd_ttype])
+            else:
+                serializeddata += "\t" + k + " @%d :List(%s);\n" % (fid, typesmap[ttype.hrd_ttype])
+            fid += 1
+
+
+        template =  """
+
+@%s ;
+
+struct wrapper{
+
+%s
+
+}
+
+        """%(j.data.idgenerator.generateXCharID(20), serializeddata)
+
+
+        print(template)
 
     def hrdGet(self, hrd=None, args={}, path=None):
         """

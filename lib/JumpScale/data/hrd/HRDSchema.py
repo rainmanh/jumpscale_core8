@@ -266,7 +266,7 @@ struct wrapper{
         """%(j.data.idgenerator.generateXCharID(20), serializeddata)
 
 
-        print(template)
+        return template
 
     def hrdGet(self, hrd=None, args={}, path=None):
         """

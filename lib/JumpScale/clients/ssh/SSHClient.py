@@ -21,7 +21,8 @@ class SSHClientFactory:
             client.close()
         self.cache = {}
 
-    def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True, look_for_keys=True,
+    def get(self, addr='', port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True,
+            look_for_keys=True,
             timeout=5, key_filename=None, passphrase=None, die=True, usecache=True):
         """
         gets an ssh client.
@@ -42,6 +43,7 @@ class SSHClientFactory:
         If password is passed, sshclient will try to authenticated with login/passwd.
         If key_filename is passed, it will override look_for_keys and allow_agent and try to connect with this key. 
         """
+
         key = "%s_%s_%s_%s" % (addr, port, login, j.data.hash.md5_string(str(passwd)))
 
         if key not in self.cache or usecache==False:
@@ -107,7 +109,7 @@ class SSHClientFactory:
 
 class SSHClient:
 
-    def __init__(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True,
+    def __init__(self, addr='', port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True,
                  look_for_keys=True, key_filename=None, passphrase=None, timeout=5.0):
         self.port = port
         self.addr = addr
@@ -133,6 +135,36 @@ class SSHClient:
         self._transport = None
         self._client = None
         self._cuisine = None
+        self.usesproxy = False
+
+    def connectViaProxy(self, host):
+        self.usesproxy = True
+        client = paramiko.SSHClient()
+        client._policy = paramiko.WarningPolicy()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        import os.path
+        ssh_config = paramiko.SSHConfig()
+        user_config_file = os.path.expanduser("~/.ssh/config")
+        if j.sal.fs.exists(user_config_file):
+            with open(user_config_file) as f:
+                ssh_config.parse(f)
+        options = ssh_config.lookup(host)
+        cfg = {'hostname': options['hostname'], 'username': options["user"], "port":int(options['port'])}
+        self.addr = options['hostname']
+        self.user = options['user']
+
+        if "identityfile" in options :
+            cfg['key_filename'] = options['identityfile']
+            self.key_filename = cfg['key_filename']
+
+        if 'proxycommand' in options:
+            cfg['sock'] = paramiko.ProxyCommand(options['proxycommand'])
+        cfg['timeout'] = 5
+        cfg['allow_agent'] = True
+        cfg['banner_timeout'] = 5
+        self.forward_agent = True
+        self._client = client
+        self._client.connect(**cfg)
 
     def _test_local_agent(self):
         """
@@ -195,7 +227,6 @@ class SSHClient:
                     continue
 
                 except Exception as e:
-                    from pudb import set_trace; set_trace() 
                     j.clients.ssh.removeFromCache(self)
                     msg = "Could not connect to ssh on %s@%s:%s. Error was: %s" % (self.login, self.addr, self.port, e)
                     raise j.exceptions.RuntimeError(msg)

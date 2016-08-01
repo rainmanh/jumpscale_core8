@@ -4,7 +4,7 @@ import os
 
 class ExecutorSSH(ExecutorBase):
 
-    def __init__(self, addr, port, dest_prefixes={},login="root",\
+    def __init__(self, addr='', port=22, dest_prefixes={},login="root",\
             passwd=None, debug=False, allow_agent=True, \
             look_for_keys=True,pushkey=None,pubkey="", checkok=True, timeout=5):
         ExecutorBase.__init__(self, dest_prefixes=dest_prefixes,debug=debug,checkok=checkok)
@@ -24,6 +24,10 @@ class ExecutorSSH(ExecutorBase):
         self._sshclient=None
         self.type="ssh"
         self.timeout = timeout
+
+    def getSSHViaProxy(self, host):
+        self._sshclient = j.clients.ssh.get()
+        self._sshclient.connectViaProxy(host)
 
     @property
     def login(self):

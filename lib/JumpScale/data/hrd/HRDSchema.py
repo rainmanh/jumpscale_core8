@@ -257,7 +257,7 @@ class HRDSchema:
 
 @%s ;
 
-struct wrapper{
+struct schema{
 
 %s
 

@@ -260,30 +260,6 @@ class AtYourServiceFactory:
     def getBlueprint(self, aysrepo, path):
         return Blueprint(aysrepo, path)
 
-    # def getRoleTemplateClass(self, role, ttype):
-    #     if role not in self.roletemplates:
-    #         raise j.exceptions.RuntimeError('Role template %s does not exist' % role)
-    #     roletemplatepaths = self.roletemplates[role]
-    #     for roletemplatepath in roletemplatepaths:
-    #         if ttype in j.sal.fs.getBaseName(roletemplatepath):
-    #             modulename = "JumpScale.atyourservice.roletemplate.%s.%s" % (role, ttype)
-    #             mod = loadmodule(modulename, roletemplatepath)
-    #             return mod.Actions
-    #     return None
-
-    # def getRoleTemplateHRD(self, role):
-    #     if role not in self.roletemplates:
-    #         raise j.exceptions.RuntimeError('Role template %s does not exist' % role)
-    #     roletemplatepaths = self.roletemplates[role]
-    #     hrdpaths = [path for path in roletemplatepaths if j.sal.fs.getFileExtension(path) == 'hrd']
-    #     if hrdpaths:
-    #         hrd = j.data.hrd.getSchema(hrdpaths[0])
-    #         for path in hrdpaths[1:]:
-    #             hrdtemp = j.data.hrd.getSchema(path)
-    #             hrd.items.update(hrdtemp.items)
-    #         return hrd.hrdGet()
-    #     return None
-
     def findTemplates(self, name="", domain="", role=''):
         res = []
         for template in self.templates:
@@ -300,8 +276,15 @@ class AtYourServiceFactory:
 
         return res
 
-    def findAYSRepos(self, path=j.dirs.codeDir):
-        return (root for root, dirs, files in os.walk(path) if '.ays' in files)
+    def findAYSRepos(self, path=""):
+        #default do NOT run over all code repo's
+        if path=="":
+            path=j.sal.fs.getcwd()
+        res= (root for root, dirs, files in os.walk(path) if '.ays' in files)
+        res=[str(item) for item in res]
+        if len(res)==0:
+            raise j.exceptions.Input("Cannot find AYS repo in:%s, need to find a .ays file in root of ays repo."%path)
+        return res
 
     def getService(self, key, die=True):
         if key.count("!") != 2:

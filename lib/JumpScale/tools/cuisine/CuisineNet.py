@@ -3,7 +3,8 @@ from JumpScale import j
 import netaddr
 import re
 
-class CuisineNet:
+base=j.tools.cuisine.getBaseClass()
+class CuisineNet(base):
 
     def __init__(self,executor,cuisine):
         self.executor=executor

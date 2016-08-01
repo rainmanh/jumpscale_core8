@@ -1051,7 +1051,11 @@ class InstallTools():
 
         # print(":: Executing {} with LD_LIBRARY_PATH: {}".format(command, os.environ.get('LD_LIBRARY_PATH', None)))
         p=Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX, \
-                    shell=useShell, env=os.environ,universal_newlines=True,cwd=cwd,bufsize=0,**popenargs)
+                    shell=useShell, env=os.environ, universal_newlines=True,cwd=cwd,bufsize=0,**popenargs)
+
+        ##BROKE execution on my mac? return was empty string
+        # p.stdout = io.TextIOWrapper(p.stdout.buffer, encoding="UTF-8")
+        # p.stderr = io.TextIOWrapper(p.stderr.buffer, encoding="UTF-8")
 
         if async:
             return p
@@ -1067,13 +1071,16 @@ class InstallTools():
 
             def run(self):
                 while not self.stream.closed and not self._stopped:
-                    buf = ''
+
                     buf = self.stream.readline()
+
                     if len(buf) > 0:
                         self.queue.put((self.flag, buf))
                     else:
                         break
                 self.queue.put(('T', self.flag))
+
+        # import codecs
 
         serr = p.stderr
         sout = p.stdout
@@ -1145,7 +1152,7 @@ class InstallTools():
         if rc == 1000:
             rc = p.returncode
 
-        if rc and die:
+        if rc > 0 and die:
             if err:
                 raise RuntimeError("Could not execute cmd:\n'%s'\nerr:\n%s" % (command,err))
             else:
@@ -2024,13 +2031,10 @@ class Installer():
         do.pullGitRepo(url='git@github.com:Jumpscale/docs.git',ssh="first")
 
 
-    def installJS(self,base="",clean=False,insystem=True,GITHUBUSER="",GITHUBPASSWD="",CODEDIR="",\
+    def installJS(self,base="",clean=True,insystem=True,GITHUBUSER="",GITHUBPASSWD="",CODEDIR="",\
         JSGIT="https://github.com/Jumpscale/jumpscale_core8.git",JSBRANCH="master",\
         AYSGIT="https://github.com/Jumpscale/ays_jumpscale8",AYSBRANCH="master",SANDBOX='0',EMAIL="",FULLNAME=""):
         """
-        @param pythonversion is 2 or 3 (3 no longer tested and prob does not work)
-        if 3 and base not specified then base becomes /opt/jumpscale83
-
         @param insystem means use system packaging system to deploy dependencies like python & python packages
         @param codedir is the location where the code will be installed, code which get's checked out from github
         @param base is location of root of JumpScale
@@ -2045,11 +2049,6 @@ class Installer():
         copybinary=True
 
         tmpdir=do.TMP
-
-        # if "PYTHONVERSION" in os.environ:
-        #     PYTHONVERSION = os.environ["PYTHONVERSION"]
-        # else:
-        #     PYTHONVERSION = "3.5"
 
         if base!="":
             os.environ["JSBASE"]=base
@@ -2093,6 +2092,7 @@ class Installer():
 
         self.prepare(SANDBOX=args2['SANDBOX'],base= args2['JSBASE'])
 
+        do.execute("ssh-keyscan github.com >> /root/.ssh/known_hosts; ssh-keyscan git.aydo.com >> /root/.ssh/known_hosts", showout=False)
         print ("pull core")
         do.pullGitRepo(args2['JSGIT'],branch=args2['JSBRANCH'], depth=1, ssh="first")
         src="%s/github/jumpscale/jumpscale_core8/lib/JumpScale"%do.CODEDIR
@@ -2362,12 +2362,6 @@ class Installer():
         # pythonversion = '3' if os.environ.get('PYTHONVERSION') == '3' else ''
 
 
-#         C2="""#!/bin/bash
-# # set -x
-# source {env}
-# # echo $base/bin/python "$@"
-# {base}/bin/python -q -B -s -S "$@"
-#         """
 
         C2="""#!/bin/bash
 # set -x
@@ -2486,7 +2480,7 @@ exec python3 -q "$@"
     def prepare(self,SANDBOX=0,base=""):
         print ("prepare (sandbox:%s)"%SANDBOX)
         if base=="":
-            base=self.BASE
+            base=do.BASE
         if do.TYPE!=("UBUNTU64"):
             SANDBOX=0
 

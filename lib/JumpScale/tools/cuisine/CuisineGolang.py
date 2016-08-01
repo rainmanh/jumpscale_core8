@@ -11,8 +11,8 @@ class actionrun(ActionDecorator):
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.golang"
 
 
-
-class CuisineGolang:
+base=j.tools.cuisine.getBaseClass()
+class CuisineGolang(base):
 
     def __init__(self,executor,cuisine):
         self.executor=executor

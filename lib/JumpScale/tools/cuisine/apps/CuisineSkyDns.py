@@ -15,8 +15,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.skydns"
 
-
-class SkyDns:
+base=j.tools.cuisine.getBaseClass()
+class SkyDns(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -27,11 +27,12 @@ class SkyDns:
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/skynetservices/skydns",action=True)
         self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'skydns'), '$binDir', action=True)
-        self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
+        self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"))
 
         if start:
             self.start()
 
+    @actionrun(force=True)
     def start(self):
         cmd = self.cuisine.bash.cmdGetPath("skydns")
         self.cuisine.processmanager.ensure("skydns", cmd + " -addr 0.0.0.0:53")

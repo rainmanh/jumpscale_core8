@@ -8,8 +8,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.portal"
 
-
-class CuisinePortal:
+base=j.tools.cuisine.getBaseClass()
+class CuisinePortal(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -35,6 +35,7 @@ class CuisinePortal:
         self.serviceconnect(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip,
                             influxport=influxport, grafanaip=grafanaip, grafanaport=grafanaport)
 
+    @actionrun()
     def install(self, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, \
             grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
         self._install(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip, influxport=influxport, \
@@ -247,6 +248,7 @@ class CuisinePortal:
     def stop(self):
         self.cuisine.processmanager.stop('portal')
 
+    @actionrun()
     def set_admin_password(self, passwd):
         # wait for the admin user to be created by portal
         timeout = 60

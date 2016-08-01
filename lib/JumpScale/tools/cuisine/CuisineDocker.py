@@ -14,11 +14,16 @@ class actionrun(ActionDecorator):
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.docker"
 
 
-class CuisineDocker:
+base=j.tools.cuisine.getBaseClass()
+class CuisineDocker(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
         self.cuisine = cuisine
+
+
+    def machine_create(self):
+        pass
 
     @actionrun(action=True,force=False)
     def install(self):
@@ -38,6 +43,7 @@ class CuisineDocker:
             self.cuisine.package.install("docker")
             self.cuisine.package.install("docker-compose")
 
+    @actionrun()
     def archBuild(self):  # @todo (*2*)
         C = """
         FROM base/archlinux:latest
@@ -110,6 +116,7 @@ class CuisineDocker:
             """ % path
             self.cuisine.core.run_script(C)
 
+    @actionrun()
     def enableSSH(self, conn_str):
         c2 = j.tools.cuisine.get(conn_str)
         # change passwd
@@ -150,15 +157,7 @@ class CuisineDocker:
             return "%s:%s" % (host, port)
         else:
             return "%s:%s" % (self.executor.addr, port)
-
-    @actionrun(action=True)
-    def ubuntuSystemd(self, name="ubuntu1"):
-        """
-        start ubuntu 15.10 which is using systemd  #@todo (*2*)
-        will have to do same tricks as with arch below
-        """
-        pass
-
+ 
     @actionrun(action=True)
     def archSystemd(self, name="arch1"):
         """

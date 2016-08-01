@@ -1805,9 +1805,9 @@ class InstallTools():
                         cmd="cd %s;git -c http.sslVerify=false pull"%dest
                 else:
                     if branch!=None:
-                        cmd="cd %s;git pull origin %s"%(dest,branch)
+                        cmd="cd %s; git fetch ; git reset --hard origin/%s"%(dest,branch)
                     else:
-                        cmd="cd %s;git pull"%dest
+                        cmd="cd %s; git fetch ; git reset --hard origin/master"%dest
                 self.execute(cmd, timeout=600, executor=executor)
         else:
             print(("git clone %s -> %s"%(url,dest)))
@@ -2092,7 +2092,8 @@ class Installer():
 
         self.prepare(SANDBOX=args2['SANDBOX'],base= args2['JSBASE'])
 
-        do.execute("ssh-keyscan github.com >> /root/.ssh/known_hosts; ssh-keyscan git.aydo.com >> /root/.ssh/known_hosts", showout=False)
+        do.execute("mkdir -p %s/.ssh/" % os.environ["HOME"])       
+        do.execute("ssh-keyscan github.com 2> /dev/null  >> {0}/.ssh/known_hosts; ssh-keyscan git.aydo.com 2> /dev/null >> {0}/.ssh/known_hosts".format(os.environ["HOME"]), showout=False)
         print ("pull core")
         do.pullGitRepo(args2['JSGIT'],branch=args2['JSBRANCH'], depth=1, ssh="first")
         src="%s/github/jumpscale/jumpscale_core8/lib/JumpScale"%do.CODEDIR

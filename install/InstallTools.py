@@ -1069,21 +1069,21 @@ class InstallTools():
                 self._stopped = False
                 self.setDaemon(True)
 
-            def run(self):
+            def run(self):  
                 while not self.stream.closed and not self._stopped:
-
                     buf = self.stream.readline()
-
                     if len(buf) > 0:
                         self.queue.put((self.flag, buf))
                     else:
                         break
+                self.stream.close()
                 self.queue.put(('T', self.flag))
+
 
         # import codecs
 
-        serr = p.stderr
-        sout = p.stdout
+        serr = os.fdopen(p.stderr.fileno(), 'r', encoding='UTF-8')
+        sout =os.fdopen(p.stdout.fileno(), 'r', encoding='UTF-8')
         inp = queue.Queue()
 
         outReader = StreamReader(sout, inp, 'O')

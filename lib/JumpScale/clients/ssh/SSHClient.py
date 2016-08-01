@@ -149,6 +149,7 @@ class SSHClient:
             with open(user_config_file) as f:
                 ssh_config.parse(f)
         options = ssh_config.lookup(host)
+        self.host = host
         cfg = {'hostname': options['hostname'], 'username': options["user"], "port":int(options['port'])}
         self.addr = options['hostname']
         self.user = options['user']
@@ -162,9 +163,12 @@ class SSHClient:
         cfg['timeout'] = 5
         cfg['allow_agent'] = True
         cfg['banner_timeout'] = 5
+        self.cfg=cfg
         self.forward_agent = True
         self._client = client
         self._client.connect(**cfg)
+
+        return self._client
 
     def _test_local_agent(self):
         """
@@ -225,12 +229,10 @@ class SSHClient:
                     self.reset()
                     time.sleep(1)
                     continue
-
                 except Exception as e:
                     j.clients.ssh.removeFromCache(self)
                     msg = "Could not connect to ssh on %s@%s:%s. Error was: %s" % (self.login, self.addr, self.port, e)
                     raise j.exceptions.RuntimeError(msg)
-
             if self._client is None:
                 raise j.exceptions.RuntimeError('Impossible to create SSH connection to %s:%s' % (self.addr, self.port))
 
@@ -372,9 +374,13 @@ class SSHClient:
 
     @property
     def cuisine(self):
-        if self._cuisine is None:
+        if not self.usesproxy and self._cuisine is None:
             executor = j.tools.executor.getSSHBased(self.addr, self.port, self.login, self.passwd)
             self._cuisine = executor.cuisine
+        if self.usesproxy:
+            ex = j.tools.executor.getSSHViaProxy(self.host)
+            self._cuisine = j.tools.cuisine.get()
+            self._cuisine.executor = ex
         return self._cuisine
 
     def ssh_authorize(self, user, key):

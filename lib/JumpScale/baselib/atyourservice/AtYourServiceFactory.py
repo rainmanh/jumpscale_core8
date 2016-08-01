@@ -19,6 +19,14 @@ except:
 import os
 
 
+import sys
+if "." not in sys.path:
+    sys.path.append(".")
+
+import capnp
+import aysmodel_capnp as AYSModel
+
+
 import colored_traceback
 colored_traceback.add_hook(always=True)
 
@@ -50,6 +58,10 @@ class AtYourServiceFactory:
         self._repos = {}
 
         self._test = None
+
+        self.db=j.servers.kvs.getRedisStore("ays") #for now in redis but this will change to tarantool
+
+        self.AYSModel=AYSModel        
 
     def getTester(self, name="fake_IT_env"):
         return AtYourServiceTester(name)

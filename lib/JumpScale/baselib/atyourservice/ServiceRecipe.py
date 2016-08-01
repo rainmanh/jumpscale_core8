@@ -25,6 +25,7 @@ class RecipeState():
     def __init__(self, recipe):
         self.recipe = recipe
 
+
         self._path = j.sal.fs.joinPaths(self.recipe.path, "state.json")
         if j.sal.fs.exists(path=self._path):
             self._model = j.data.serializer.json.load(self._path)
@@ -75,6 +76,7 @@ class RecipeState():
             self.recipe.logger.info("Recipe state Changed, writen to disk.")
             out = j.data.serializer.json.dumps(self._model, True, True)
             j.sal.fs.writeFile(filename=self._path, contents=out)
+            self.recipe.save2db()
             self.changed = False
 
     def __repr__(self):
@@ -115,6 +117,22 @@ class ServiceRecipe(ServiceTemplate):
         if not j.sal.fs.exists(path=self.path):
             j.sal.fs.createDir(self.path)
             self.init()
+
+        resdb=j.atyourservice.db.get("recipe",self.name)
+
+        if resdb==None:
+            self.saveToDB()
+
+    def saveToDB(self):
+
+        from IPython import embed
+        print ("DEBUG NOW save2db")
+        embed()
+        model=j.atyourservice.AYSModel.Actor.new_message()
+        model.role=self.name
+
+        # resdb=j.atyourservice.db.get("recipe",self.recipe.name)
+
 
     def _init_props(self):
         self._hrd = None

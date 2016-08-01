@@ -75,7 +75,7 @@ class ServiceTemplate:
         return self._schema
 
     @property
-    def model(self):
+    def model_mongo(self):
         if self._mongoModel is None:
             if j.sal.fs.exists(self.path_mongo_model):
                 modulename = "JumpScale.atyourservice.%s.%s.model" % (self.domain, self.name)

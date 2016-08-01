@@ -230,6 +230,23 @@ class HRDSchema:
             for alias in hrdtype.alias:
                 self.items_with_alias[alias] = hrdtype
 
+    def capnpSchemaGet(self):
+        """
+        create schema for capnp for this hrd schema
+        important
+        - order is respected (cannot change the id's of capnp schema)
+        - need to store a unique id in the hrd schema so we know that we need to reuse this
+        """
+
+        #@todo (*1*)
+
+        from IPython import embed
+        print ("DEBUG NOW sdsd")
+        embed()
+        p
+        
+
+
     def hrdGet(self, hrd=None, args={}, path=None):
         """
         populate hrd out of the schema

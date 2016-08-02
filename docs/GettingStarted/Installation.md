@@ -41,6 +41,11 @@ curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/insta
 ### Mac OSX
 
 - Make sure Brew and curl are installed
+```
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+brew install curl
+```
+
 - Go to the shell in Mac OSX:
 
 ```shell

@@ -1127,7 +1127,10 @@ class InstallTools():
 
                 if chan=='O':
                     if showout:
-                        print((line.strip()))
+                        try:
+                            print((line.strip()))
+                        except:
+                            pass
                     if captureout:
                         out+=line
                 elif chan=='E':

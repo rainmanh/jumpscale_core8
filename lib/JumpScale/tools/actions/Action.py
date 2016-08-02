@@ -465,11 +465,13 @@ class Action:
     def _args1line(self):
         out=""
         for arg in self.args:
-            out+="%s,"%arg
+            if not arg in ["showout","force","replaceArgs"]:
+                out+="%s,"%arg
         out=out.strip(",")
         out+="|"
         for key,arg in self.kwargs.items():
-            out+="%s!%s,"%(key,arg)
+            if not key in ["showout","force","replaceArgs"]:
+                out+="%s!%s,"%(key,arg)
         out=out.strip(",")
         args=out.strip()
         if len(args)>60:
@@ -480,12 +482,14 @@ class Action:
     def _args10line(self):
         out=""
         for arg in self.args:
-            out+="%s,"%arg
+            if not arg in ["showout","force","replaceArgs"]:
+                out+="%s,"%arg
         out=out.strip(",")
         if len(self.kwargs.items())>0:
             out+=" | "
             for key,arg in self.kwargs.items():
-                out+="%s:%s,"%(key,str(arg).strip())
+                if not key in ["showout","force","replaceArgs"]:
+                    out+="%s:%s,"%(key,str(arg).strip())
         out=out.strip()
         out=out.strip(",|")
         out=out.strip()
@@ -537,14 +541,20 @@ class Action:
 
         j.actions.addToStack(self)
 
+        if "showout" in self.kwargs:
+            if self.kwargs["showout"]==False:
+                self.actionshow=False
+
         if self.state == "OK" and not self.force:
             if self.actionshow:
-                self.logger.info("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
+                name=self.name+" (REPEAT)"
+                self.logger.info("  * %-20s: %-80s" % (name, self._args1line))
             j.actions.delFromStack(self)
             return
 
-
-        self.logger.info("  * %-20s: %s" % (self.name, self._args10line))
+        if self.actionshow:
+            args2print=self._args10line
+            self.logger.info("  * %-20s: %-80s" % (self.name, args2print))
 
         if self._stdOutput == False:
             j.tools.console.hideOutput()
@@ -659,7 +669,7 @@ class Action:
                 if self.die:
                     # if j.actions.stack==[]:
                     # print("error in action: %s"%self)
-                    self.logger.error("error in action: %s"%self)
+                    # self.logger.error("error in action: %s"%self)
                     # else:
                     raise j.exceptions.RuntimeError("error in action: %s"%self)
             else:

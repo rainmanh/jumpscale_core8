@@ -11,8 +11,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self,*args,**kwargs)
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.proxy"
 
-
-class CuisineProxy:
+base=j.tools.cuisine.getBaseClass()
+class CuisineProxy(base):
     """
     all methods to do to allow a local lan to work more efficient with internet e.g. cache for apt-get, web proxy, ...
     """
@@ -27,7 +27,7 @@ class CuisineProxy:
         pm.remove("polipo")
         pm.remove("privoxy")
 
-    @actionrun(action=True)
+    @actionrun()
     def installFilterProxy(self,port=8124,forward=True):
         """
         installs privoxy
@@ -187,7 +187,7 @@ class CuisineProxy:
         print("http://config.privoxy.org/show-url-info")
 
 
-
+    @actionrun(force=True)
     def start(self):
 
         cmd="privoxy --no-daemon /etc/privoxy/config"
@@ -362,7 +362,7 @@ class CuisineProxy:
 
 
 
-
+    @actionrun()
     def configureClient(self,addr="",port=8123):
         if addr=="":
             addr=self.cuisine.executor.addr

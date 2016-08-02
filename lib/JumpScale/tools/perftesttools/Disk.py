@@ -32,7 +32,7 @@ class Disk:
     def initDiskXFS(self):
         self.initDisk(fs='xfs')
 
-    def initDiskBTFS(self):
+    def initDiskBTRFS(self):
         self.initDisk(fs='btrfs')
 
     def mount(self):

@@ -1051,7 +1051,11 @@ class InstallTools():
 
         # print(":: Executing {} with LD_LIBRARY_PATH: {}".format(command, os.environ.get('LD_LIBRARY_PATH', None)))
         p=Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX, \
-                    shell=useShell, env=os.environ,universal_newlines=True,cwd=cwd,bufsize=0,**popenargs)
+                    shell=useShell, env=os.environ, universal_newlines=True,cwd=cwd,bufsize=0,**popenargs)
+
+        ##BROKE execution on my mac? return was empty string
+        # p.stdout = io.TextIOWrapper(p.stdout.buffer, encoding="UTF-8")
+        # p.stderr = io.TextIOWrapper(p.stderr.buffer, encoding="UTF-8")
 
         if async:
             return p
@@ -1065,18 +1069,21 @@ class InstallTools():
                 self._stopped = False
                 self.setDaemon(True)
 
-            def run(self):
+            def run(self):  
                 while not self.stream.closed and not self._stopped:
-                    buf = ''
                     buf = self.stream.readline()
                     if len(buf) > 0:
                         self.queue.put((self.flag, buf))
                     else:
                         break
+                self.stream.close()
                 self.queue.put(('T', self.flag))
 
-        serr = p.stderr
-        sout = p.stdout
+
+        # import codecs
+
+        serr = os.fdopen(p.stderr.fileno(), 'r', encoding='UTF-8')
+        sout =os.fdopen(p.stdout.fileno(), 'r', encoding='UTF-8')
         inp = queue.Queue()
 
         outReader = StreamReader(sout, inp, 'O')
@@ -1120,7 +1127,10 @@ class InstallTools():
 
                 if chan=='O':
                     if showout:
-                        print((line.strip()))
+                        try:
+                            print((line.strip()))
+                        except:
+                            pass
                     if captureout:
                         out+=line
                 elif chan=='E':
@@ -1145,7 +1155,7 @@ class InstallTools():
         if rc == 1000:
             rc = p.returncode
 
-        if rc and die:
+        if rc > 0 and die:
             if err:
                 raise RuntimeError("Could not execute cmd:\n'%s'\nerr:\n%s" % (command,err))
             else:
@@ -1798,9 +1808,9 @@ class InstallTools():
                         cmd="cd %s;git -c http.sslVerify=false pull"%dest
                 else:
                     if branch!=None:
-                        cmd="cd %s;git pull origin %s"%(dest,branch)
+                        cmd="cd %s; git fetch ; git reset --hard origin/%s"%(dest,branch)
                     else:
-                        cmd="cd %s;git pull"%dest
+                        cmd="cd %s; git fetch ; git reset --hard origin/master"%dest
                 self.execute(cmd, timeout=600, executor=executor)
         else:
             print(("git clone %s -> %s"%(url,dest)))
@@ -2024,13 +2034,10 @@ class Installer():
         do.pullGitRepo(url='git@github.com:Jumpscale/docs.git',ssh="first")
 
 
-    def installJS(self,base="",clean=False,insystem=True,GITHUBUSER="",GITHUBPASSWD="",CODEDIR="",\
+    def installJS(self,base="",clean=True,insystem=True,GITHUBUSER="",GITHUBPASSWD="",CODEDIR="",\
         JSGIT="https://github.com/Jumpscale/jumpscale_core8.git",JSBRANCH="master",\
         AYSGIT="https://github.com/Jumpscale/ays_jumpscale8",AYSBRANCH="master",SANDBOX='0',EMAIL="",FULLNAME=""):
         """
-        @param pythonversion is 2 or 3 (3 no longer tested and prob does not work)
-        if 3 and base not specified then base becomes /opt/jumpscale83
-
         @param insystem means use system packaging system to deploy dependencies like python & python packages
         @param codedir is the location where the code will be installed, code which get's checked out from github
         @param base is location of root of JumpScale
@@ -2045,11 +2052,6 @@ class Installer():
         copybinary=True
 
         tmpdir=do.TMP
-
-        # if "PYTHONVERSION" in os.environ:
-        #     PYTHONVERSION = os.environ["PYTHONVERSION"]
-        # else:
-        #     PYTHONVERSION = "3.5"
 
         if base!="":
             os.environ["JSBASE"]=base
@@ -2093,6 +2095,8 @@ class Installer():
 
         self.prepare(SANDBOX=args2['SANDBOX'],base= args2['JSBASE'])
 
+        do.execute("mkdir -p %s/.ssh/" % os.environ["HOME"])       
+        do.execute("ssh-keyscan github.com 2> /dev/null  >> {0}/.ssh/known_hosts; ssh-keyscan git.aydo.com 2> /dev/null >> {0}/.ssh/known_hosts".format(os.environ["HOME"]), showout=False)
         print ("pull core")
         do.pullGitRepo(args2['JSGIT'],branch=args2['JSBRANCH'], depth=1, ssh="first")
         src="%s/github/jumpscale/jumpscale_core8/lib/JumpScale"%do.CODEDIR
@@ -2137,9 +2141,9 @@ class Installer():
         do.symlinkFilesInDir(src, dest)
 
         #link _ays completion
-        src = "%s/github/jumpscale/jumpscale_core8/install/_ays"%do.CODEDIR
-        dest="/etc/bash_completion.d/_ays"
-        do.symlink(src,dest)
+        #src = "%s/github/jumpscale/jumpscale_core8/install/_ays"%do.CODEDIR
+        #dest="/etc/bash_completion.d/_ays"
+        #do.symlink(src,dest)
 
         #link python
         src="/usr/bin/python3.5"
@@ -2362,12 +2366,6 @@ class Installer():
         # pythonversion = '3' if os.environ.get('PYTHONVERSION') == '3' else ''
 
 
-#         C2="""#!/bin/bash
-# # set -x
-# source {env}
-# # echo $base/bin/python "$@"
-# {base}/bin/python -q -B -s -S "$@"
-#         """
 
         C2="""#!/bin/bash
 # set -x
@@ -2486,7 +2484,7 @@ exec python3 -q "$@"
     def prepare(self,SANDBOX=0,base=""):
         print ("prepare (sandbox:%s)"%SANDBOX)
         if base=="":
-            base=self.BASE
+            base=do.BASE
         if do.TYPE!=("UBUNTU64"):
             SANDBOX=0
 

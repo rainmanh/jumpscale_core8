@@ -16,12 +16,10 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.hadoop"
 
+base=j.tools.cuisine.getBaseClass()
+class Hadoop(base):
 
-class Hadoop:
 
-    def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
 
     @actionrun(action=True)
     def _build(self):
@@ -37,12 +35,13 @@ class Hadoop:
             C = self.cuisine.bash.replaceEnvironInText(C)
             C = self.cuisine.core.args_replace(C)
             self.cuisine.core.run_script(C, profile=True, action=True)
-            self.cuisine.bash.addPath("/opt/hadoop-2.7.2/bin", action=True)
-            self.cuisine.bash.addPath("/opt/hadoop-2.7.2/sbin", action=True)
+            self.cuisine.bash.addPath("/opt/hadoop-2.7.2/bin")
+            self.cuisine.bash.addPath("/opt/hadoop-2.7.2/sbin")
             self.cuisine.bash.environSet("JAVA_HOME", "/usr/lib/jvm/java-7-openjdk-amd64")
             self.cuisine.bash.environSet("HADOOP_PREFIX", "/opt/hadoop-2.7.2/")
         else:
             raise NotImplementedError("unsupported platform")
 
+    @actionrun()
     def build(self):
         self._build()

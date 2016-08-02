@@ -2,14 +2,21 @@ from JumpScale import j
 import time
 import os
 
+from ActionDecorator import ActionDecorator
+class actionrun(ActionDecorator):
+    def __init__(self,*args,**kwargs):
+        ActionDecorator.__init__(self,*args,**kwargs)
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.tmux"
 
 
-class CuisineTmux:
+base=j.tools.cuisine.getBaseClass()
+class CuisineTmux(base):
 
     def __init__(self,executor,cuisine):
         self.executor=executor
         self.cuisine=cuisine
 
+    @actionrun()
     def createSession(self, sessionname, screens, user=None):
         """
         @param name is name of session
@@ -42,6 +49,7 @@ class CuisineTmux:
                     cmd = "sudo -u %s -i %s" % (user, cmd)
                 self.executor.execute(cmd,showout=False)
 
+    @actionrun()
     def executeInScreen(self, sessionname, screenname, cmd, wait=0, cwd=None, env=None, user="root", tmuxuser=None,reset=True):
         """
         @param sessionname Name of the tmux session
@@ -99,6 +107,7 @@ class CuisineTmux:
 
             time.sleep(wait)
 
+    @actionrun()
     def getSessions(self, user=None):
         cmd = 'tmux list-sessions -F "#{session_name}"'
         if user:
@@ -108,6 +117,7 @@ class CuisineTmux:
             out = ""
         return [name.strip() for name in out.split()]
 
+    @actionrun()
     def getPid(self, session, name, user=None):
         cmd = 'tmux list-panes -t "%s" -F "#{pane_pid};#{window_name}" -a' % session
         if user:
@@ -121,6 +131,7 @@ class CuisineTmux:
                 return int(pid)
         return None
 
+    @actionrun()
     def getWindows(self, session, attemps=5, user=None):
         result = dict()
 
@@ -135,6 +146,7 @@ class CuisineTmux:
             result[int(idx)] = name
         return result
 
+    @actionrun()
     def createWindow(self, session, name, user=None, cmd=None):
         if session not in self.getSessions(user=user):
             return self.createSession(session, [name], user=user)
@@ -145,6 +157,7 @@ class CuisineTmux:
                 cmd = "sudo -u %s -i %s" % (user, cmd)
             self.executor.execute(cmd,showout=False)
 
+    @actionrun()
     def logWindow(self, session, name, filename, user=None):
         pane = self._getPane(session, name, user=user)
         if pane:
@@ -153,6 +166,7 @@ class CuisineTmux:
                 cmd = "sudo -u %s -i %s" % (user, cmd)
             self.executor.execute(cmd,showout=False)
 
+    @actionrun()
     def windowExists(self, session, name, user=None):
         if session in self.getSessions(user=user):
             if name in list(self.getWindows(session, user=user).values()):
@@ -167,6 +181,7 @@ class CuisineTmux:
         result = "%s:%s" % (session, remap[name])
         return result
 
+    @actionrun()
     def killWindow(self, session, name, user=None):
         try:
             pane = self._getPane(session, name, user=user)
@@ -177,18 +192,21 @@ class CuisineTmux:
             cmd = "sudo -u %s -i %s" % (user, cmd)
         self.executor.execute(cmd, die=False,showout=False)
 
+    @actionrun()
     def killSessions(self, user=None):
         cmd = "tmux kill-server"
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
         self.executor.execute(cmd, die=False,showout=False)  # todo checking
 
+    @actionrun()
     def killSession(self, sessionname, user=None):
         cmd = "tmux kill-session -t '%s'" % sessionname
         if user:
             cmd = "sudo -u %s -i %s" % (user, cmd)
         self.executor.execute(cmd, die=False,showout=False)  # todo checking
 
+    @actionrun()
     def attachSession(self, sessionname, windowname=None, user=None):
         if windowname:
             pane = self._getPane(sessionname, windowname, user=user)
@@ -201,6 +219,7 @@ class CuisineTmux:
             cmd = "sudo -u %s -i %s" % (user, cmd)
         self.executor.execute(cmd,showout=False)
 
+    @actionrun()
     def configure(self,restartTmux=False,xonsh=False):
         C="""
 

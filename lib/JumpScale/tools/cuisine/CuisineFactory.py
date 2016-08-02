@@ -2,11 +2,44 @@ from JumpScale import j
 
 from Cuisine2 import *
 
+class CuisineBase:
+
+    def __init__(self, executor, cuisine):
+        self.executor = executor
+        self.cuisine = cuisine    
+
+    @property
+    def classname(self):
+        if "_classname" not in self.__dict__:
+            self._classname=str(self.__class__).split(".")[-1].strip("'>")
+        return self._classname
+
+    def reset_actions(self,prefix=""):        
+        prefix="%s.%s"%(self.classname,prefix)            
+        j.actions.reset(runid=self.id,prefix=prefix)
+
+    def reset(self):
+        j.actions.reset(self.id)
+        j.data.cache.reset(self.id)
+
+    @property
+    def id(self):
+        return self.executor.id
+    
+    @property
+    def cache(self):
+        if "_cache" not in self.__dict__:
+            self._cache=j.data.cache.get(self.id,self.classname,keepInMem=False,reset=False)
+        return self._cache
+        
 class JSCuisineFactory:
     def __init__(self):
         self.__jslocation__ = "j.tools.cuisine"
         self._local=None
         self._cuisines_instance = {}
+
+    def getBaseClass(self):
+        return CuisineBase
 
     def reset(self, cuisine):
         """

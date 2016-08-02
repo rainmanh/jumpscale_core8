@@ -85,74 +85,72 @@ class PlatformType:
 
     def __init__(self,name="",executor=None):
         self.myplatform=name
-        self._platformtypes={}
-        self._uname=""
-        self._is64bit=None
-        self._osversion=""
-        self._hostname=""
-        self._osname=""
+        # self._platformtypes={}
+        # self._uname=""
+        # self._is64bit=None
+        # self._osversion=""
+        # self._hostname=""
+        # self._osname=""
         if executor==None:
             self.executor=j.tools.executor.getLocal()
         else:
             self.executor=executor
+        self.cache=j.data.cache.get(self.executor.id,"platformtype",keepInMem=False,reset=False)
+
         if name=="":
             self._getPlatform()
 
     @property
     def platformtypes(self):
-        if self._platformtypes=={}:
-            self._platformtypes=j.core.platformtype.getParents(self.myplatform)
-            self._platformtypes=[item for item in self._platformtypes if item!=""]
-        return self._platformtypes
+        def get():
+            platformtypes=j.core.platformtype.getParents(self.myplatform)
+            platformtypes=[item for item in platformtypes if item!=""]
+            return platformtypes
+        return self.cache.get("platformtypes",get)
 
     @property
     def uname(self):
-        if not self._uname:
-            rc, self._uname, err = self.executor.execute("uname -mnprs", showout=False)
+        def get():
+            rc, self._uname, err = self.executor.execute("uname -mnprs",showout=False)
             self._uname = self._uname.strip()
             if self._uname.find("warning: setlocale") != -1:
                 j.application._fixlocale = True
                 os.environ["LC_ALL"] = 'C.UTF-8'
                 os.environ["TERMINFO"] = 'xterm-256colors'
-                self._uname = self._uname.split("\n")[0]
-            self._osname0, self._hostname0, self._version, self._cpu, self._platform = self.uname.split(" ")
+            _uname = self._uname.split("\n")[0]
+            return _uname            
+        self._uname=self.cache.get("uname",get)                        
+        self._osname0, self._hostname0, self._version, self._cpu, self._platform = self._uname.split(" ")
         return self._uname
 
     @property
     def hostname(self):
-        if self._hostname=="":
-            self.uname
-            self._hostname=self._hostname0.split(".")[0]
-        return self._hostname
+        self.uname
+        return self._hostname0.split(".")[0]
 
     @property
     def is64bit(self):
-        if self._is64bit==None:
-            self.uname
-            self._is64bit="64" in self._cpu
+        self.uname
+        self._is64bit="64" in self._cpu
         return self._is64bit
 
     @property
     def is32bit(self):
-        if self._is64bit==None:
-            self.uname
-            self._is64bit="32" in self._cpu
+        self.uname
+        self._is64bit="32" in self._cpu
         return self._is64bit
 
     @property
     def osversion(self):
-        if self._osversion=="":
-            self.osname #will populate the version
-            if self._osversion=="":
-                raise j.exceptions.RuntimeError("could not define osversion")
-        return self._osversion
+        self.osname #will populate the version
+        return self.cache.get("osversion")
 
     @property
     def osname(self):
-        if self._osname == "":
-            self._osversion=""
+        def get():
             self.uname
             self._osname = self._osname0.lower()
+            self._osversion = "unknown"
             if self._osname not in ["darwin"] and not self._osname.startswith("cygwin"):
 
                 rc, lsbcontent, err = self.executor.cuisine.core.run("cat /etc/lsb-release", replaceArgs=False, action=False, showout=False, die=False)
@@ -170,12 +168,14 @@ class PlatformType:
                                                                action=False)
                         if rc == 0:
                             self._osname = pkgman2dist[pkgman]
-                            self._osversion = "unknown"
+                            
                             break
                     else:
                         raise j.exceptions.RuntimeError("Couldn't define os version.")
+            self.cache.set("osversion",self._osversion)
+            return self._osname
 
-        return self._osname
+        return self.cache.get("osname",get)
 
     def checkMatch(self,match):
         """

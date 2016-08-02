@@ -1,12 +1,20 @@
 
 from JumpScale import j
 
-class CuisineGit:
+from ActionDecorator import ActionDecorator
+class actionrun(ActionDecorator):
+    def __init__(self,*args,**kwargs):
+        ActionDecorator.__init__(self,*args,**kwargs)
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.git"
+
+
+base=j.tools.cuisine.getBaseClass()
+class CuisineGit(base):
     def __init__(self,executor,cuisine):
         self.executor=executor
         self.cuisine=cuisine
 
-
+    @actionrun()
     def pullRepo(self,url,dest=None,login=None,passwd=None,depth=1,\
             ignorelocalchanges=True,reset=False,branch=None,revision=None, ssh="first"):
 
@@ -25,3 +33,5 @@ class CuisineGit:
 
         return j.do.pullGitRepo(url=url,dest=dest,login=login,passwd=passwd,depth=depth,\
             ignorelocalchanges=ignorelocalchanges,reset=reset,branch=branch,revision=revision, ssh=ssh,executor=self.executor)
+
+        self.cuisine.reset_actions()

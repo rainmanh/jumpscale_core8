@@ -14,12 +14,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.redis"
 
-
-class Redis:
-    
-    def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+base=j.tools.cuisine.getBaseClass()
+class Redis(base):
 
     @actionrun(action=True)
     def build(self,name="main",ip="localhost", port=6379, maxram=200, appendonly=True,snapshot=False,slave=(),ismaster=False,passwd=None,unixsocket=True,start=True):
@@ -69,7 +65,7 @@ class Redis:
             if cmd!=dest:
                 self.cuisine.core.file_copy(cmd,dest)
 
-        self.cuisine.bash.addPath(j.sal.fs.joinPaths(self.cuisine.core.dir_paths["base"], "bin"), action=True)
+        self.cuisine.bash.addPath(j.sal.fs.joinPaths(self.cuisine.core.dir_paths["base"], "bin"))
 
 
         redis_cli = j.clients.redis.getInstance(self.cuisine)
@@ -79,6 +75,7 @@ class Redis:
         if start:
             self.start(name)
 
+    @actionrun(force=True)
     def start(self, name="main"):
         dpath,cpath=j.clients.redis._getPaths(name)
         cmd="$binDir/redis-server %s"%cpath

@@ -14,8 +14,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.controller"
 
-
-class Controller:
+base=j.tools.cuisine.getBaseClass()
+class Controller(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -62,6 +62,7 @@ class Controller:
         if start:
             self.start(listen_addr=listen_addr)
 
+    @actionrun(force=True)
     def start(self, listen_addr=[]):
         """
         @param listen_addr list of addresse on which the REST API of the controller should listen to

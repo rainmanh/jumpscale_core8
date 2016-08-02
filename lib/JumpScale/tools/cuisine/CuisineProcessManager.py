@@ -3,7 +3,8 @@ import time
 import re
 
 #not using cuisine.tmux.executeInScreen
-class ProcessManagerBase:
+base=j.tools.cuisine.getBaseClass()
+class ProcessManagerBase(base):
 
     def __init__(self,executor,cuisine):
         self.executor = executor
@@ -160,12 +161,12 @@ class CuisineRunit(ProcessManagerBase):
             envstr += "export %s=%s\n" % (name0, value)
 
         sv_text ="""#!/bin/sh
-set -e
-echo $descrs
-$env
-cd $path
-exec $cmd
-"""
+        set -e
+        echo $descrs
+        $env
+        cd $path
+        exec $cmd
+        """
         sv_text = sv_text.replace("$env", envstr)
         sv_text = sv_text.replace("$path", path)
         sv_text = sv_text.replace("$cmd",cmd)
@@ -181,7 +182,7 @@ exec $cmd
 
         # waiting for runsvdir to populate service directory monitor
         remain = 300
-        while not self.cuisine.core.dir_exists("/etc/service/%s/supervise" % name):
+        while not self.cuisine.core.dir_exists("/etc/service/%s/supervise" % name, force=True):
             remain = remain - 1
             if remain == 0:
                 self.logger.warn('/etc/service/%s/supervise: still not exists, check if runsvdir is running, start may fail.' % name)

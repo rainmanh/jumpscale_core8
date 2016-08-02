@@ -15,7 +15,7 @@ class Docker:
         self.__jslocation__ = "j.sal.docker"
         self.logger = j.logger.get('j.sal.docker')
         self._basepath = "/mnt/vmstor/docker"
-        self._weaveEnabled = None
+        self._weaveSocket = None
         self._prefix = ""
         self._containers = {}
         self._names = []
@@ -46,16 +46,36 @@ class Docker:
         j.do.execute("systemctl start docker")
 
 
+        self.weaveIsActive
+
     @property
-    def isWeaveEnabled(self):
-        if self._weaveEnabled is None:
-            rc, out, err = j.tools.cuisine.local.core.run('weave status', die=False, showout=False)
-            self._weaveEnabled = (rc == 0)
-        return self._weaveEnabled
+    def weaveIsActive(self):
+        return self._weaveSocket!="" and self._weaveSocket!=None
+
+
+    @property
+    def weavesocket(self):
+        if self._weaveSocket==None:
+            rc,self._weaveSocket=j.sal.process.execute("weave env",die=False)
+            if rc>0:
+                print("weave not found, do not forget to start if installed.")
+                self._weaveSocket=""
+            else:
+                self._weaveSocket=self._weaveSocket.split("=")[1]
+                self._weaveSocket=self._weaveSocket.strip()
+                # self.client = docker.Client(base_url=self._weaveSocket)
+        return self._weaveSocket
+
+    def weaveInstall(self,ufw=False):
+        j.tools.cuisine.local.apps.weave.install(start=True)
+        if ufw:
+            j.tools.cuisine.local.ufw.allowIncoming(6783)
+            j.tools.cuisine.local.ufw.allowIncoming(6783,protocol="udp")  
+
 
     # def connectRemoteTCP(self, base_url):
     #     self.base_url = base_url
-    #     self.client = docker.Client(base_url=base_url)
+    #     self.client = docker.Client(base_url=weavesocket)
 
     @property
     def docker_host(self):
@@ -168,13 +188,18 @@ class Docker:
         @return list of dicts
 
         """
+        self.weavesocket
         res = []
         for item in self.client.containers():
             name = item["Names"][0].strip(" /")
             sshport = ""
+            
             for port in item["Ports"]:
                 if port["PrivatePort"] == 22:
-                    sshport = port["PublicPort"]
+                    if "PublicPort" in port:
+                        sshport = port["PublicPort"]
+                    else:
+                        sshport=None
             res.append([name, item["Image"], self.docker_host, sshport, item["Status"]])
 
         return res
@@ -183,6 +208,7 @@ class Docker:
         """
         return detailed info
         """
+        self.weavesocket
         return self.client.containers()
 
     def get(self, name, die=True):
@@ -290,22 +316,28 @@ class Docker:
 
     def create(self, name="", ports="", vols="", volsro="", stdout=True, base="jumpscale/ubuntu1604", nameserver=["8.8.8.8"],
                replace=True, cpu=None, mem=0, ssh=True, myinit=True, sharecode=False,sshkeyname="",sshpubkey="",
-               setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master", aysfs=[], detach=False, privileged=False):
-
+               setrootrndpasswd=True,rootpasswd="",jumpscalebranch="master", aysfs=[], detach=False, privileged=False,getIfExists=True,weavenet=False):
         """
         @param ports in format as follows  "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
         @param vols in format as follows "/var/insidemachine:/var/inhost # /var/1:/var/1 # ..."   '#' is separator
         @param sshkeyname : use ssh-agent (can even do remote through ssh -A) and then specify key you want to use in docker
         #@todo (*1*) change way how we deal with ssh keys, put authorization file in filesystem before docker starts don't use ssh to push them, will be much faster and easier
         """
+
+        #check there is weave
+        self.weavesocket
+
         name = name.lower().strip()
         self.logger.info(("create:%s" % name))
 
         running = [item.name for item in self.containersRunning]
-
+      
         if not replace:
             if name in self.containerNamesRunning:
-                j.events.opserror_critical("Cannot create machine with name %s, because it does already exists.")
+                if getIfExists:
+                    return self.get(name=name)
+                else:
+                    j.events.opserror_critical("Cannot create machine with name %s, because it does already exists.")
         else:
             if self.exists(name):
                 self.logger.info("remove existing container %s" % name)
@@ -408,7 +440,7 @@ class Docker:
             self.logger.info(volskeys)
             self.logger.info(binds)
 
-        hostname = None if self.isWeaveEnabled else name.replace('_', '-')
+        hostname = None if self.weaveIsActive else name.replace('_', '-')
         host_config = self.client.create_host_config(privileged=privileged) if privileged else None            
 
         res = self.client.create_container(image=base, command=cmd, hostname=hostname, user="root", \
@@ -420,7 +452,7 @@ class Docker:
 
         id = res["Id"]
 
-        if self.isWeaveEnabled:
+        if self.weaveIsActive:
             nameserver = None
 
         for k, v in portsdict.items():
@@ -430,7 +462,7 @@ class Docker:
 
 
         res = self.client.start(container=id, binds=binds, port_bindings=portsdict, lxc_conf=None, \
-            publish_all_ports=False, links=None, privileged=False, dns=nameserver, dns_search=None, \
+            publish_all_ports=False, links=None, privileged=privileged, dns=nameserver, dns_search=None, \
             volumes_from=None, network_mode=None)
 
 
@@ -453,7 +485,7 @@ class Docker:
                 else:
                     print("set root passwd to %s" % rootpasswd)
                     container.cexecutor.execute("echo \"root:%s\"|chpasswd" % rootpasswd,showout=False)
-            if not self.isWeaveEnabled:
+            if not self.weaveIsActive:
                 container.setHostName(name)
 
         return container
@@ -468,19 +500,22 @@ class Docker:
                 self.client.remove_image(item["Id"])
 
     def ping(self):
-
+        self.weavesocket
         try:
             self.client.ping()
         except Exception as e:
             return False
         return True
 
-    def destroyAll(self):
+    def destroyAll(self,removeimages=False):
 
         for container in self.containers:
+            if "weave" in container.name:
+                continue            
             container.destroy()
 
-        self.removeImages()
+        if removeimages:
+            self.removeImages()
 
 
     def _destroyAllKill(self):
@@ -502,7 +537,6 @@ class Docker:
                 j.sal.fs.removeDirTree(item)
 
     def removeDocker(self):
-
         self._destroyAllKill()
 
         rc,out=j.sal.process.execute("mount")

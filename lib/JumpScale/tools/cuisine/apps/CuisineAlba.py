@@ -17,8 +17,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.alba"
 
-
-class Alba:
+base=j.tools.cuisine.getBaseClass()
+class Alba(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -28,11 +28,12 @@ class Alba:
         self.ocaml_version = '4.02.3'
         self.opam_root = None
 
-    @actionrun(action=True)
+    @actionrun()
     def build(self, start=True):
         self._install_deps()
         self._build()
 
+    @actionrun()
     def _install_deps_opam(self):
         self.cuisine.package.update()
         self.cuisine.package.upgrade(distupgrade=True)
@@ -67,6 +68,7 @@ class Alba:
 
         self.cuisine.core.run_script('source $tmpDir/opam.env && opam update && opam install -y %s' % opam_deps, profile=True)
 
+    @actionrun()
     def _install_deps_intel_storage(self):
         url = 'https://01.org/sites/default/files/downloads/intelr-storage-acceleration-library-open-source-version/isa-l-2.14.0.tar.gz'
         self.cuisine.core.file_download(url, to='$tmpDir/isa-l-2.14.0.tar.gz')
@@ -84,6 +86,7 @@ class Alba:
         """
         return
 
+    @actionrun()
     def _install_deps_cpp(self):
         self.cuisine.package.multiInstall("libgtest-dev cmake", allow_unauthenticated=True)
         self.cuisine.core.run('cd /usr/src/gtest && cmake . && make && mv libg* /usr/lib/')
@@ -97,7 +100,8 @@ class Alba:
         """
 
         return
-
+    
+    @actionrun()
     def _install_deps_arakoon(self):
         aradest = self.cuisine.git.pullRepo('https://github.com/openvstorage/arakoon.git', depth=None, ssh=False)
         pfx = 'cd %s && source $tmpDir/opam.env' % aradest
@@ -123,6 +127,7 @@ class Alba:
         """
         return
 
+    @actionrun()
     def _install_deps_orocksdb(self):
         commit = '8bc61d8a451a2724399247abf76643aa7b2a07e9'
         orodest = self.cuisine.git.pullRepo('https://github.com/domsj/orocksdb.git', depth=None, ssh=False)
@@ -141,6 +146,7 @@ class Alba:
         """
         return
 
+    @actionrun()
     def _install_deps_etcd(self):
         url = 'https://github.com/coreos/etcd/releases/download/v2.2.4/etcd-v2.2.4-linux-amd64.tar.gz'
         self.cuisine.core.file_download(url, to='$tmpDir/etcd-v2.2.4-linux-amd64.tar.gz')
@@ -158,6 +164,7 @@ class Alba:
 
         return
 
+    @actionrun()
     def _install_deps(self):
         self._install_deps_opam()
         self._install_deps_intel_storage()
@@ -166,6 +173,7 @@ class Alba:
         self._install_deps_orocksdb()
         self._install_deps_etcd()
 
+    @actionrun()
     def _build(self):
         repo = self.cuisine.git.pullRepo('https://github.com/openvstorage/alba', depth=None, ssh=False)
         self.cuisine.core.run('cd %s; git checkout ubuntu-16.04' % repo)

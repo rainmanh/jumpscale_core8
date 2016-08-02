@@ -10,8 +10,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self,*args,**kwargs)
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installerdevelop"
 
-
-class CuisineInstallerDevelop:
+base=j.tools.cuisine.getBaseClass()
+class CuisineInstallerDevelop(base):
 
     def __init__(self,executor,cuisine):
         self.executor=executor
@@ -83,18 +83,7 @@ class CuisineInstallerDevelop:
 
         self.python()
         self.pip(action=True)
-
-        if not self.cuisine.core.isArch:
-            # install brotli
-            C = """
-            cd $tmpDir; git clone https://github.com/google/brotli.git
-            cd $tmpDir/brotli/
-            python setup.py install
-            make bro
-            cp bin/bro $binDir/bro
-            """
-            C = self.cuisine.core.args_replace(C)
-            self.cuisine.core.run_script(C, force=False)
+        self.brotli()
 
         #python etcd
         C="""
@@ -223,6 +212,9 @@ class CuisineInstallerDevelop:
         self.cuisine.core.run("apt-get clean")
         self.cuisine.core.dir_remove("/var/tmp/*")
         self.cuisine.core.dir_remove("/etc/dpkg/dpkg.cfg.d/02apt-speedup")
+        self.cuisine.core.dir_remove("$tmpDir")
+        self.cuisine.core.dir_ensure("$tmpDir")
+
 
 
     @actionrun(action=True)
@@ -233,12 +225,14 @@ class CuisineInstallerDevelop:
         git clone https://github.com/google/brotli.git
         cd /tmp/brotli/
         ./configure
-        make
+        make bro
         cp /tmp/brotli/bin/bro /usr/local/bin/
         rm -rf /tmp/brotli
         """
         C=self.cuisine.core.args_replace(C)
         self.cuisine.core.run_script(C,force=True)
+
+    @actionrun()
     def xrdp(self):
         """
         builds a full xrdp, this can take a while

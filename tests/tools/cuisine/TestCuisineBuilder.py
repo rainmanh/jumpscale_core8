@@ -44,7 +44,7 @@ class TestCuisineBuilder(unittest.TestCase):
             self.assertTrue(cuisine.apps.fs.build.called)
             self.assertTrue(cuisine.apps.stor.build.called)
             self.assertTrue(cuisine.apps.etcd.build.called)
-            self.assertTrue(cuisine.apps.caddy.build.called)
+            self.assertTrue(cuisine.apps.caddy.install.called)
             self.assertTrue(cuisine.apps.influxdb.build.called)
             self.assertTrue(cuisine.apps.weave.build.called)
 

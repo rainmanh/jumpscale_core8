@@ -34,7 +34,7 @@ class AydoStor(base):
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/g8os/stor", action=True)
         self.cuisine.core.file_copy(self.cuisine.core.joinpaths(
-            self.cuisine.core.dir_paths['goDir'], 'bin', 'stor'), '$base/bin')
+            self.cuisine.core.dir_paths['goDir'], 'bin', 'stor'), '$base/bin', overwrite=True)
         self.cuisine.bash.addPath("$base/bin")
 
         self.cuisine.processmanager.stop("stor")  # will also kill

@@ -323,7 +323,7 @@ class Service:
         # run the args manipulation action as an action
         self.state.save()
         args = self.actions.input(self, self.recipe, self.role, self.instance, args)
-        
+
         originalhrd = j.data.hrd.get(content=str(self.hrd))
 
         # apply args
@@ -701,6 +701,20 @@ class Service:
         for consumer in self._getConsumers(include_disabled=True):
             consumer.enable()
             consumer.start()
+
+    def reload(self):
+        # reload instance.hrd
+        hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
+        if not j.sal.fs.exists(path=hrdpath):
+            self._hrd == "EMPTY"
+        self._hrd = j.data.hrd.get(path=hrdpath, prefixWithName=False)
+
+        # reload model if any
+        model_path = j.sal.fs.joinPaths(self.path, "model.yaml")
+        if j.sal.fs.exists(model_path):
+            self._model = j.data.serializer.yaml.loads(j.sal.fs.fileGetContents(model_path))
+
+        self.state.load()
 
     # @property
     # def action_methods_node(self):

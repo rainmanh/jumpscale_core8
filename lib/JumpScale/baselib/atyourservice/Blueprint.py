@@ -1,17 +1,14 @@
 from JumpScale import j
+import yaml
 
 CATEGORY = "ays:bp"
-
-
-def log(msg, level=2):
-    j.logger.log(msg, level=level, category=CATEGORY)
-
 
 class Blueprint:
     """
     """
 
     def __init__(self, aysrepo, path="", content=""):
+        self.logger = j.logger.get('j.atyourservice.blueprint')
         self.aysrepo = aysrepo
         self.path = path
         self.active=True
@@ -24,6 +21,12 @@ class Blueprint:
         else:
             self.name = 'unknown'
             self.content = content
+
+        try:
+            j.data.serializer.yaml.loads(self.content)
+        except yaml.YAMLError:
+            msg = 'Yaml format of the blueprint is not valid.'
+            raise j.exceptions.Input(message=msg, msgpub=msg)
 
         self.models = []
         self._contentblocks = []
@@ -61,7 +64,7 @@ class Blueprint:
                     aysname, aysinstance = key.lower().split("__", 1)
 
                     if instance != "" and aysinstance != instance:
-                        log("ignore load from blueprint for: %s:%s" % (aysname, aysinstance))
+                        self.logger.info("ignore load from blueprint for: %s:%s" % (aysname, aysinstance))
                         continue
 
                     if aysname.find(".") != -1:
@@ -70,7 +73,7 @@ class Blueprint:
                         rolefound = aysname
 
                     if role != "" and role != rolefound:
-                        log("ignore load from blueprint based on role for: %s:%s" % (aysname, aysinstance))
+                        self.logger.info("ignore load from blueprint based on role for: %s:%s" % (aysname, aysinstance))
                         continue
 
                     recipe = self.aysrepo.getRecipe(aysname, die=False)
@@ -141,6 +144,21 @@ class Blueprint:
             j.sal.fs.moveFile(self.path,newpath)
             self.path=newpath
             self.active=True
+
+    def validate(self):
+        services = []
+        for model in self.models:
+            if model is not None:
+                for key, item in model.items():
+                    if key.find("__") == -1:
+                        self.logger.error("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
+                        return False
+
+                    aysname, aysinstance = key.lower().split("__", 1)
+                    if aysname not in self.aysrepo.templates:
+                        self.logger.error("Service template %s not found. Can't execute this blueprint" % aysname)
+                        return False
+        return True
 
     def __str__(self):
         return "%s:%s" % (self.name, self.hash)

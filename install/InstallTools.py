@@ -1069,21 +1069,21 @@ class InstallTools():
                 self._stopped = False
                 self.setDaemon(True)
 
-            def run(self):
+            def run(self):  
                 while not self.stream.closed and not self._stopped:
-
                     buf = self.stream.readline()
-
                     if len(buf) > 0:
                         self.queue.put((self.flag, buf))
                     else:
                         break
+                self.stream.close()
                 self.queue.put(('T', self.flag))
+
 
         # import codecs
 
-        serr = p.stderr
-        sout = p.stdout
+        serr = os.fdopen(p.stderr.fileno(), 'r', encoding='UTF-8')
+        sout =os.fdopen(p.stdout.fileno(), 'r', encoding='UTF-8')
         inp = queue.Queue()
 
         outReader = StreamReader(sout, inp, 'O')
@@ -1127,7 +1127,10 @@ class InstallTools():
 
                 if chan=='O':
                     if showout:
-                        print((line.strip()))
+                        try:
+                            print((line.strip()))
+                        except:
+                            pass
                     if captureout:
                         out+=line
                 elif chan=='E':
@@ -1805,9 +1808,9 @@ class InstallTools():
                         cmd="cd %s;git -c http.sslVerify=false pull"%dest
                 else:
                     if branch!=None:
-                        cmd="cd %s;git pull origin %s"%(dest,branch)
+                        cmd="cd %s; git fetch ; git reset --hard origin/%s"%(dest,branch)
                     else:
-                        cmd="cd %s;git pull"%dest
+                        cmd="cd %s; git fetch ; git reset --hard origin/master"%dest
                 self.execute(cmd, timeout=600, executor=executor)
         else:
             print(("git clone %s -> %s"%(url,dest)))
@@ -2092,7 +2095,8 @@ class Installer():
 
         self.prepare(SANDBOX=args2['SANDBOX'],base= args2['JSBASE'])
 
-        do.execute("ssh-keyscan github.com >> /root/.ssh/known_hosts; ssh-keyscan git.aydo.com >> /root/.ssh/known_hosts", showout=False)
+        do.execute("mkdir -p %s/.ssh/" % os.environ["HOME"])       
+        do.execute("ssh-keyscan github.com 2> /dev/null  >> {0}/.ssh/known_hosts; ssh-keyscan git.aydo.com 2> /dev/null >> {0}/.ssh/known_hosts".format(os.environ["HOME"]), showout=False)
         print ("pull core")
         do.pullGitRepo(args2['JSGIT'],branch=args2['JSBRANCH'], depth=1, ssh="first")
         src="%s/github/jumpscale/jumpscale_core8/lib/JumpScale"%do.CODEDIR
@@ -2137,9 +2141,9 @@ class Installer():
         do.symlinkFilesInDir(src, dest)
 
         #link _ays completion
-        src = "%s/github/jumpscale/jumpscale_core8/install/_ays"%do.CODEDIR
-        dest="/etc/bash_completion.d/_ays"
-        do.symlink(src,dest)
+        #src = "%s/github/jumpscale/jumpscale_core8/install/_ays"%do.CODEDIR
+        #dest="/etc/bash_completion.d/_ays"
+        #do.symlink(src,dest)
 
         #link python
         src="/usr/bin/python3.5"

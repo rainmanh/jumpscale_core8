@@ -33,7 +33,7 @@ class CuisineBuilder(base):
         self.cuisine.apps.controller.build(start=start)
         self.cuisine.apps.stor.build(start=start)
         self.cuisine.apps.etcd.build(start=start)
-        self.cuisine.apps.caddy.build(start=start)
+        self.cuisine.apps.caddy.install(start=start)
         # self.cuisine.apps.skydns(start=start)
         self.cuisine.apps.influxdb.build(start=start)
         self.cuisine.apps.cockpit.build(start=False)

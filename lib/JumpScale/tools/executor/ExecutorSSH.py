@@ -6,7 +6,12 @@ class ExecutorSSH(ExecutorBase):
 
     def __init__(self, addr, port, dest_prefixes={},login="root",\
             passwd=None, debug=False, allow_agent=True, \
-            look_for_keys=True,pushkey=None,pubkey="", checkok=True, timeout=5):
+            look_for_keys=True, checkok=True, timeout=5):
+        """
+        @param pubkey  is the public key to push
+        """
+
+
         ExecutorBase.__init__(self, dest_prefixes=dest_prefixes,debug=debug,checkok=checkok)
         self.logger = j.logger.get("j.tools.executor.ssh")
         self.id = '%s:%s' % (addr, port) #do not put login name in key, 
@@ -19,8 +24,6 @@ class ExecutorSSH(ExecutorBase):
             allow_agent=False
         self.allow_agent=allow_agent
         self.look_for_keys=look_for_keys
-        self.pushkey=pushkey
-        self.pubkey=pubkey
         self._sshclient=None
         self.type="ssh"
         self.timeout = timeout
@@ -58,30 +61,31 @@ class ExecutorSSH(ExecutorBase):
     @property
     def sshclient(self):
         if self._sshclient is None:
-            pubkey = None
             path = None
-            if self.pushkey is not None:
-                #lets push the ssh key as specified
-                if j.sal.fs.exists(self.pushkey):
-                    path=self.pushkey
-                else:
-                    homedir=os.environ["HOME"]
-                    path="%s/.ssh/%s.pub"%(homedir,self.pushkey)
-                if self.pubkey=="":
-                    pubkey=self.pubkey
-                if j.sal.fs.exists(path):
-                    pubkey=j.sal.fs.fileGetContents(path)
-                else:
-                    raise j.exceptions.RuntimeError("Could not find key:%s"%path)
-
             self._sshclient = j.clients.ssh.get(self.addr, self.port, login=self.login, passwd=self.passwd,
                                                 allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,
                                                 key_filename=path, passphrase=None,
-                                                timeout=self.timeout,usecache=False)  # TODO: add passphrase
-            if self.pubkey!="":
-                self._sshclient.ssh_authorize("root", self.pubkey)
+                                                timeout=self.timeout, usecache=False)  # TODO: add passphrase fo sshkeys (not urgent)
 
         return self._sshclient
+
+    def pushPubKey(self,pubkey):
+        """
+        lets push the ssh key as specified
+        """
+        if j.sal.fs.exists(self.pushkey):
+            path=self.pushkey
+        else:
+            homedir=os.environ["HOME"]
+            path="%s/.ssh/%s.pub"%(homedir,self.pushkey)
+        if self.pubkey=="":
+            pubkey=self.pubkey
+        if j.sal.fs.exists(path):
+            pubkey=j.sal.fs.fileGetContents(path)
+        else:
+            raise j.exceptions.RuntimeError("Could not find key:%s"%path)
+        self._sshclient.ssh_authorize("root", pubkey)
+
 
     def execute(self, cmds, die=True,checkok=None, async=False, showout=True,timeout=0, env={}):
         """

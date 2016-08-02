@@ -44,20 +44,15 @@ class SSHClientFactory:
         """
         key = "%s_%s_%s_%s" % (addr, port, login, j.data.hash.md5_string(str(passwd)))
 
-        if key not in self.cache or usecache==False:
+        if key in self.cache and usecache:
             try:
-                cl = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent, allow_agent=allow_agent,
-                               look_for_keys=look_for_keys,key_filename=key_filename, passphrase=passphrase, timeout=timeout)
-            except Exception as e:
-                err = "Cannot connect over ssh:%s %s" % (addr, port)
-                if die:
-                    raise e
-                else:
-                    self.logger.error(err)
-                    self.logger.error(e)
-                    return None
-
-            self.cache[key]=cl
+                if not self.cache[key].transport.is_active():
+                    usecache = False
+            except Exception:
+                usecache = False
+        if key not in self.cache or usecache is False:
+            self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent, allow_agent=allow_agent,
+                                        look_for_keys=look_for_keys, key_filename=key_filename, passphrase=passphrase, timeout=timeout)
 
         return self.cache[key]
 
@@ -174,7 +169,9 @@ class SSHClient:
                         self.allow_agent = False
                         self.look_for_keys = False
                         self.pkey = paramiko.RSAKey.from_private_key_file(self.key_filename, password=self.passphrase)
-                        if not j.do.getSSHKeyPathFromAgent(self.key_filename, die=False):
+                        if not j.do.checkSSHAgentAvailable():
+                            j.do.loadSSHAgent()
+                        if not j.do.getSSHKeyPathFromAgent(j.sal.fs.getBaseName(self.key_filename), die=False):
                             j.do.execute('ssh-add %s' % self.key_filename)
                     self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,
                                          pkey=self.pkey, allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,

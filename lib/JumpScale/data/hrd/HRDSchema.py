@@ -118,6 +118,8 @@ class HRDSchema:
         raise j.exceptions.RuntimeError(msg)
 
     def process(self, content):
+        import collections
+        self.fieldsforcapnp = collections.OrderedDict()
         for line in content.split("\n"):
             line = line.strip()
             if line.startswith("#") or line == "":
@@ -224,27 +226,54 @@ class HRDSchema:
 
             if line.find("@ask") != -1 or line.find("@ASK") != -1:
                 hrdtype.doAsk = True
-
+            self.fieldsforcapnp[name] = hrdtype
             self.items[name] = hrdtype
             self.items_with_alias[name] = hrdtype
             for alias in hrdtype.alias:
                 self.items_with_alias[alias] = hrdtype
 
-    def capnpSchemaGet(self):
+
+    def asCapnpSchema(self):
         """
         create schema for capnp for this hrd schema
         important
         - order is respected (cannot change the id's of capnp schema)
         - need to store a unique id in the hrd schema so we know that we need to reuse this
-        """
+        """        
+        typesmap = {
+            'str': 'Text',
+            'int': 'UInt32',
+            'integer': 'UInt32',
+            'bool'   : 'Bool',
+            'float'  : 'Float32',
 
-        #@todo (*1*)
+        }
+        fid = 0
+        serializeddata = ""
 
-        from IPython import embed
-        print ("DEBUG NOW sdsd")
-        embed()
-        p
-        
+        for k, ttype in self.fieldsforcapnp.items():
+
+            if ttype.list != True:
+                serializeddata += "\t" + k + " @%d :%s;\n" % (fid, typesmap[ttype.hrd_ttype])
+            else:
+                serializeddata += "\t" + k + " @%d :List(%s);\n" % (fid, typesmap[ttype.hrd_ttype])
+            fid += 1
+
+
+        template =  """
+
+@%s ;
+
+struct schema{
+
+%s
+
+}
+
+        """%(j.data.idgenerator.generateXCharID(20), serializeddata)
+
+
+        return template
 
 
     def hrdGet(self, hrd=None, args={}, path=None):

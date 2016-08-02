@@ -56,4 +56,4 @@ class ActionsBaseMgmt:
             if 'error' in resp:
                 raise j.exceptions.RuntimeError('Unexpected error: %s' % resp['error'])
 
-                return resp['response']
+            return resp['response']

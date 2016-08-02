@@ -73,7 +73,7 @@ class HRDItem:
             self.data=data
 
         if self.ttype == 'str':
-            if not value.startswith("'"):
+            if not value.startswith("'") and not value.startswith('"') :
                 self.value = "'%s'" % value
         if comments!="":
             self.comments=comments
@@ -139,7 +139,6 @@ class HRDItem:
                         replacewith = j.data.text.pythonObjToStr(self.hrd.get("%s.%s" % (self.hrd.name,item2)), multiline=False, partial=partial)
                         data=data.replace(item,replacewith)
                         # data=data.replace("//","/")
-
         data=j.data.text._dealWithList(data)
 
         if data.find("@ASK")!=-1 and ask:
@@ -181,7 +180,7 @@ class HRDItem:
                 for item in self.value.split(","):
                     if item.strip()=="":
                         continue
-                    currentobj.append(j.data.text.machinetext2val(item.strip()))
+                    currentobj.append(j.data.text.machinetext2val(item.strip()).strip('"').strip("'"))
                 self.value=currentobj
 
         elif self.ttype=="binary":
@@ -230,7 +229,7 @@ class HRD(HRDBase):
 
     def set(self,key,value="",persistent=True,comments="",temp=False,ttype=None,data=""):
         if ttype == "str":
-            if not value.startswith("'"):
+            if not value.startswith("'") and not value.startswith('"'):
                 value="'%s'"%value
         # if key=="milestone.category" and value!="":
         #     print(value)
@@ -327,6 +326,7 @@ class HRD(HRDBase):
 
     def _recognizeType(self,content):
         content=j.data.text.replaceQuotes(content,"something")
+        content = content.strip(" ")
         if content.lower().find("@ask")!=-1:
             return "ask"
         elif content.startswith(('"', "'")):

@@ -379,8 +379,7 @@ class SSHClient:
             self._cuisine = executor.cuisine
         if self.usesproxy:
             ex = j.tools.executor.getSSHViaProxy(self.host)
-            self._cuisine = j.tools.cuisine.get()
-            self._cuisine.executor = ex
+            self._cuisine = j.tools.cuisine.get(self)
         return self._cuisine
 
     def ssh_authorize(self, user, key):

@@ -28,7 +28,7 @@ class ExecutorSSH(ExecutorBase):
     def getSSHViaProxy(self, host):
         self._sshclient = j.clients.ssh.get()
         self._sshclient.connectViaProxy(host)
-        return self._sshclient
+        return self
 
     @property
     def login(self):
@@ -131,9 +131,6 @@ class ExecutorSSH(ExecutorBase):
             overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,\
             ssh=True, sshport=self.port,recursive=recursive, createdir=createdir)
 
-    @property
-    def cuisine(self):
-        return self.sshclient.cuisine
 
     def download(self, source, dest, source_prefix="",recursive=True):
         if source_prefix != "":

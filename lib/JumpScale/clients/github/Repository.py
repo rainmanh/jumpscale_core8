@@ -206,7 +206,7 @@ class GithubRepo:
         """
         res = {}
         for item in self.states:
-            res[item] = {}
+            res[item] = []
             for issue in self.issues:
                 if issue.state == item:
                     if filter is None or filter(issue):
@@ -219,7 +219,7 @@ class GithubRepo:
         """
         res = {}
         for item in self.priorities:
-            res[item] = {}
+            res[item] = []
             for issue in self.issues:
                 if issue.priority == item:
                     if filter is None or filter(issue):

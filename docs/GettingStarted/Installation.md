@@ -44,6 +44,13 @@ curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/insta
 ```
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 brew install curl
+brew install python3
+```
+
+- install pip3
+```
+sudo -s
+cd ~/tmp;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python3 get-pip.py
 ```
 
 - Go to the shell in Mac OSX:

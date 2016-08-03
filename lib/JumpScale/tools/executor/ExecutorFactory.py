@@ -61,9 +61,9 @@ class ExecutorFactory:
                                                debug=debug,
                                                allow_agent=allow_agent,
                                                look_for_keys=look_for_keys,
-                                               pushkey=pushkey,
-                                               pubkey=pubkey,
                                                timeout=timeout)
+
+            self._executors[key].authenticate(pubkey, pushkey)
         return self._executors[key]
 
     def getSSHViaProxy(self, host):

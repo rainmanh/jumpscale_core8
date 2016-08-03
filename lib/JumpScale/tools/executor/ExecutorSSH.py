@@ -6,7 +6,7 @@ class ExecutorSSH(ExecutorBase):
 
     def __init__(self, addr='', port=22, dest_prefixes={},login="root",\
             passwd=None, debug=False, allow_agent=True, \
-            look_for_keys=True, pushkey=None, pubkey="", checkok=True, timeout=5):
+            look_for_keys=True, checkok=True, timeout=5):
         """
         :param pubkey: the content of the public key to authenticate the client with
         :param pushkey: full path to the public key to use for authenticate or the name
@@ -27,8 +27,6 @@ class ExecutorSSH(ExecutorBase):
             allow_agent=False
         self.allow_agent=allow_agent
         self.look_for_keys=look_for_keys
-        self.pushkey = pushkey
-        self.pubkey = pubkey
         self._sshclient=None
         self.type="ssh"
         self.timeout = timeout
@@ -76,15 +74,12 @@ class ExecutorSSH(ExecutorBase):
                                                 allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,
                                                 key_filename=path, passphrase=None,
                                                 timeout=self.timeout, usecache=False)  # TODO: add passphrase fo sshkeys (not urgent)
-            #Note: this is required for client authentication. We don't use the ssh-agent anymore
-            #because it gives lots of issues (maintaining keys, and the limit of how may keys it can hold
-            self._authorize(self.pubkey, self.pushkey)
 
         return self._sshclient
 
-    def _authorize(self, pubkey, pushkey=None):
+    def authenticate(self, pubkey, pushkey=None):
         """
-        This will authorize the ssh client to access the target machine
+        This will authenticate the ssh client to access the target machine
         using the given pubkey, If pushkey is set, that key will be loaded,
         and used instead.
 

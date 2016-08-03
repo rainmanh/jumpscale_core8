@@ -75,11 +75,22 @@ class ExecutorSSH(ExecutorBase):
                                                 timeout=self.timeout, usecache=False)  # TODO: add passphrase fo sshkeys (not urgent)
             #Note: this is required for client authentication. We don't use the ssh-agent anymore
             #because it gives lots of issues (maintaining keys, and the limit of how may keys it can hold
-            self._pushPubKey(self.pubkey, self.pushkey)
+            self._authorize(self.pubkey, self.pushkey)
 
         return self._sshclient
 
-    def _pushPubKey(self, pubkey, pushkey=None):
+    def _authorize(self, pubkey, pushkey=None):
+        """
+        This will authorize the ssh client to access the target machine
+        using the given pubkey, If pushkey is set, that key will be loaded,
+        and used instead.
+
+        :param pubkey: Public key to authenticate with.
+        :param pushkey: Path to public key to use, path can be full path to a file
+                        or just a name of the key (without the .pub extension) and
+                        in that case the file will be loaded from $HOME/.ssh/<pushkey>.pub
+        :return:
+        """
         if pushkey is not None:
             if j.sal.fs.exists(pushkey):
                 path = pushkey

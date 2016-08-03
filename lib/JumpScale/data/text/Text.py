@@ -914,11 +914,11 @@ class Text:
         @return [("something1","$(Something)"),...
         """
         import re
-        p = re.compile(r'\$\([\w\.\-\_]*\)')
-        res=re.findall(p,text)
-        res2=[(item.strip("$").strip("()").lower(),item) for item in res if item not in res]
-        return res2
-
+        p = re.compile(r'\$\(([\w\.\-\_]+)\)')
+        result = set()
+        for m in re.finditer(p, text):
+            result.add((m.group(1).lower(), m.group(0)))
+        return list(result)
 
     def existsTemplateVars(self,text):
         """
@@ -935,10 +935,9 @@ class Text:
         @return changes,text
         changes = {key:newval, ...}
         """
-        changes={}
+        changes = {}
         for key,match in self.getTemplateVars(text):
-
             if key in args:
-                text=self.replace(match,args[key])
-                changes[key]=args[key]
-        return changes,text
+                text = text.replace(match,args[key])
+                changes[key] = args[key]
+        return changes, text

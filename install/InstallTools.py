@@ -2367,13 +2367,13 @@ class Installer():
 
 
 
-        C2="""#!/bin/bash
+        C2="""#!/bin/sh
 # set -x
 source $base/env.sh
 exec $JSBASE/bin/python3 -q "$@"
         """
 
-        C2_insystem="""#!/bin/bash
+        C2_insystem="""#!/bin/sh
 # set -x
 source $base/env.sh
 exec python3 -q "$@"

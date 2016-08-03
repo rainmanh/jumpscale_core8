@@ -8,7 +8,10 @@ class ExecutorSSH(ExecutorBase):
             passwd=None, debug=False, allow_agent=True, \
             look_for_keys=True, pushkey=None, pubkey="", checkok=True, timeout=5):
         """
-        @param pubkey  is the public key to push
+        :param pubkey: the content of the public key to authenticate the client with
+        :param pushkey: full path to the public key to use for authenticate or the name
+                        of the file (without the .pub extension). In the later case the
+                        file will be loaded from $HOME/.ssh/<pushkey>.pub
         """
 
 

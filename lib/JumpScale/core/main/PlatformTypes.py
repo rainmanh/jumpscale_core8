@@ -28,6 +28,7 @@ class PlatformTypes:
         self._platformParents["linux64"]=["linux"]
         self._platformParents["unix32"]=["unix"]
         self._platformParents["unix64"]=["unix"]
+        self._platformParents["alpine"]=["linux64"]
         self._platformParents["ubuntu"]=["linux"]
         self._platformParents["ubuntu64"]=["ubuntu","linux64"]
         self._platformParents["ubuntu32"]=["ubuntu","linux32"]
@@ -162,7 +163,7 @@ class PlatformType:
                     except IndexError as e:
                         raise RuntimeError("Can't parse /etc/lsb-release")
                 else:
-                    pkgman2dist = {'pacman':'arch', 'apt-get': 'ubuntu', 'yum':'fedora'}
+                    pkgman2dist = {'pacman':'arch', 'apt-get': 'ubuntu', 'yum':'fedora', 'apk': 'alpine'}
                     for pkgman, dist in pkgman2dist.items():
                         rc, _, err = self.executor.cuisine.core.run("which %s" % pkgman, showout=False, replaceArgs=False, die=False,
                                                                action=False)

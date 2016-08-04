@@ -99,7 +99,7 @@ class JSCuisineFactory:
             executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login,passwd=passwd,pushkey=key,pubkey=pubkey)
 
         j.clients.ssh.cache={}
-        executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login, pushkey=pushkey)  # should now work with key only
+        executor=j.tools.executor.getSSHBased(addr=addr, port=port,login=login, pushkey=key)  # should now work with key only
 
         cuisine = JSCuisine(executor)
         self._cuisines_instance[executor.id] = cuisine

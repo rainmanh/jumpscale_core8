@@ -19,9 +19,10 @@ atyourservice = None
 def cli(nodebug):
     global cwd, atyourservice
     cwd = j.sal.fs.getcwd()
-    if cwd not in j.atyourservice.repos:
-        raise j.exceptions.AYSNotFound("You're currently not in an AYS repo. Available repos are: \n\t%s\nPlease cd into an AYS repo before performing an AYS action" % '\n\t'.join(j.atyourservice.repos.keys()))
-    atyourservice = j.atyourservice.get(j.sal.fs.getBaseName(cwd), cwd)
+    try:
+        atyourservice = j.atyourservice.get(j.sal.fs.getBaseName(cwd), cwd)
+    except j.exceptions.Input:
+        raise j.exceptions.AYSNotFound("You're currently not in an AYS repo. Please cd into an AYS repo before performing an AYS action")
     atyourservice.debug = not nodebug
 
 # @click.command()

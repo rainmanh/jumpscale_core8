@@ -817,7 +817,7 @@ class CuisineCore(base):
 
 
     @actionrun()
-    def file_copy(self, source, dest, recursive=False, overwrite=False):
+    def file_copy(self, source, dest, recursive=False, overwrite=True):
         source=self.args_replace(source)
         dest=self.args_replace(dest)
         cmd = "cp -v "

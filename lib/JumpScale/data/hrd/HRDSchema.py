@@ -232,61 +232,34 @@ class HRDSchema:
             for alias in hrdtype.alias:
                 self.items_with_alias[alias] = hrdtype
 
-    def _sanitize_key(self, key):
-        """
-        make sure the key of an HRD schema has a valid format for Capnp Schema
-        e.g.:
-            ssh.port becomes sshPort
-        """
-        separator = ['_', '.']
-        for sep in separator:
-            if key.find(sep) != -1:
-                ss = key.split(sep)
-                key = ss[0]
-                for s in ss[1:]:
-                    key += s.capitalize()
-        return key
-
     def asCapnpSchema(self):
-        """
-        create schema for capnp for this hrd schema
-        important
-        - order is respected (cannot change the id's of capnp schema)
-        - need to store a unique id in the hrd schema so we know that we need to reuse this
-        """        
         typesmap = {
             'str': 'Text',
-            'multiline': 'Text',
             'int': 'UInt32',
             'integer': 'UInt32',
-            'bool': 'Bool',
-            'float': 'Float32',
+            'bool'   : 'Bool',
+            'float'  : 'Float32',
+
         }
         fid = 0
-        rc, schema_id, err = j.tools.cuisine.local.core.run('capnp id', showout=False)
-        if rc != 0:
-            raise j.exceptions.RuntimeError("Can't generate an capnp ID: %s" % err)
         serializeddata = ""
 
         for k, ttype in self.fieldsforcapnp.items():
-            k = self._sanitize_key(k)
 
-            if ttype.list is not True:
+            if ttype.list != True:
                 serializeddata += "\t" + k + " @%d :%s;\n" % (fid, typesmap[ttype.hrd_ttype])
             else:
                 serializeddata += "\t" + k + " @%d :List(%s);\n" % (fid, typesmap[ttype.hrd_ttype])
             fid += 1
 
-        template = """
-%s;
-struct Schema {
+
+        template =  """
+
+@%s ;
+
+struct schema{
+
 %s
-}
-
-""" % (schema_id, serializeddata)
-
-
-        return template
 
 }
 
@@ -294,7 +267,6 @@ struct Schema {
 
 
         return template
-
 
     def hrdGet(self, hrd=None, args={}, path=None):
         """

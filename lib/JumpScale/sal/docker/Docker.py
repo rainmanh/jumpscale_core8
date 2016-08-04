@@ -60,7 +60,7 @@ class Docker:
             if rc > 0:
                 print("weave not found, do not forget to start if installed.")
                 self._weaveSocket = ""
-            self._weaveSocket.strip()
+            self._weaveSocket = self._weaveSocket.strip()
             
         return self._weaveSocket
 

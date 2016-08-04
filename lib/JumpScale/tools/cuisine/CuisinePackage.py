@@ -151,6 +151,7 @@ class CuisinePackage(base):
     def multiInstall(self, packagelist, allow_unauthenticated=False):
         """
         @param packagelist is text file and each line is name of package
+        can also be list
 
         e.g.
             # python
@@ -158,16 +159,29 @@ class CuisinePackage(base):
 
         @param runid, if specified actions will be used to execute
         """
-        for dep in packagelist.split("\n"):
-            dep=dep.strip()
-            if dep.strip()=="":
-                continue
-            if dep.strip()[0]=="#":
-                continue
-            dep=dep.strip()
-            if dep==None or dep=="":
-                continue
-            self.install(dep, allow_unauthenticated=allow_unauthenticated)
+        previous_sudo = self.cuisine.core.sudomode
+        try:
+            self.cuisine.core.sudomode = True
+
+            if j.data.types.string.check(packagelist):
+                packages = packagelist.split("\n")
+            elif j.data.types.list.check(packagelist):
+                packages = packagelist
+            else:
+                raise j.exceptions.Input('packagelist should be string or a list. received a %s' % type(packagelist))
+
+            for dep in packages:
+                dep = dep.strip()
+                if dep.strip() == "":
+                    continue
+                if dep.strip()[0] == "#":
+                    continue
+                dep = dep.strip()
+                if dep is None or dep == "":
+                    continue
+                self.install(dep, allow_unauthenticated=allow_unauthenticated)
+        finally:
+            self.cuisine.core.sudomode = previous_sudo
 
     @actionrun()
     def start(self,package):
@@ -233,7 +247,7 @@ class CuisinePackage(base):
             mkdir -p /var/log/apt
             rm -rf /var/tmp
             mkdir -p /var/tmp
-            
+
             """
             self.cuisine.core.run_script(C)
 

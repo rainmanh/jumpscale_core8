@@ -56,14 +56,12 @@ class Docker:
     @property
     def weavesocket(self):
         if self._weaveSocket==None:
-            rc,self._weaveSocket=j.sal.process.execute("weave env",die=False)
-            if rc>0:
+            rc, self._weaveSocket = j.sal.process.execute("eval $(weave env) && echo $DOCKER_HOST", die=False)
+            if rc > 0:
                 print("weave not found, do not forget to start if installed.")
-                self._weaveSocket=""
-            else:
-                self._weaveSocket=self._weaveSocket.split("=")[1]
-                self._weaveSocket=self._weaveSocket.strip()
-                # self.client = docker.Client(base_url=self._weaveSocket)
+                self._weaveSocket = ""
+            self._weaveSocket.strip()
+            
         return self._weaveSocket
 
     def weaveInstall(self,ufw=False):

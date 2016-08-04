@@ -38,7 +38,7 @@ class Container:
     @property
     def executor(self):
         if self._executor is None:
-            self._executor = j.tools.executor.getSSHBased(addr=self.host, port=self.ssh_port, login='root', passwd="gig1234")
+            self._executor = j.tools.executor.getSSHBased(addr=self.host, port=self.ssh_port, login='root', passwd="gig1234", usecache=False)
         return self._executor
 
     @property

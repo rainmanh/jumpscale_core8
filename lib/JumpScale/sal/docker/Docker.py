@@ -45,13 +45,9 @@ class Docker:
 
         j.do.execute("systemctl start docker")
 
-
-        self.weaveIsActive
-
     @property
     def weaveIsActive(self):
-        return self._weaveSocket!="" and self._weaveSocket!=None
-
+        return bool(self.weaveSocket)
 
     @property
     def weavesocket(self):

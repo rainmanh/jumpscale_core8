@@ -47,7 +47,7 @@ class Docker:
 
     @property
     def weaveIsActive(self):
-        return bool(self.weaveSocket)
+        return bool(self.weavesocket)
 
     @property
     def weavesocket(self):

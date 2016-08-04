@@ -16,7 +16,7 @@ class CuisineSandbox(base):
         self.cuisine=cuisine
 
     @actionrun(force=True)
-    def do(self,destination="/out"):
+    def do(self,destination="/out",reset=False):
         """
         @todo specify what comes in /out
 
@@ -54,8 +54,13 @@ class CuisineSandbox(base):
 
         name="js8"
 
+        if reset:            
+            print("remove previous build info")
+            j.tools.cuisine.local.core.dir_remove("%s/%s"%(destination,name))
+
+        j.tools.cuisine.local.core.dir_remove("%s/%s/"%(destination,name))
+
         dedupe_script = """
-        j.sal.fs.removeDirTree("$out/$name")
         j.tools.sandboxer.dedupe('/opt', storpath='$out/$name', name='js8_opt', reset=False, append=True, excludeDirs=['/opt/code'])
         """
         dedupe_script=dedupe_script.replace("$name",name)

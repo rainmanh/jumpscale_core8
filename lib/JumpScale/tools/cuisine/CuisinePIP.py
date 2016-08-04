@@ -38,8 +38,8 @@ class CuisinePIP(base):
                 return
 
         if self.cuisine.core.isCygwin and package in ["psycopg2", "psutil", "zmq"]:
-            return 
-            
+            return
+
         cmd="pip3 install %s"%package
         if upgrade:
             cmd+=" --upgrade"
@@ -56,10 +56,10 @@ class CuisinePIP(base):
         return self.cuisine.core.run('pip3 uninstall %s' %(package))
 
     @actionrun()
-    def multiInstall(self,packagelist,upgrade=False):
+    def multiInstall(self,packagelist, upgrade=False):
         """
         @param packagelist is text file and each line is name of package
-        can also be list @todo
+        can also be list
 
         e.g.
             # influxdb
@@ -75,16 +75,23 @@ class CuisinePIP(base):
 
         @param runid, if specified actions will be used to execute
         """
-        self.cuisine.core.set_sudomode()
-        for dep in packagelist.split("\n"):
-            dep=dep.strip()
-            if dep.strip()=="":
-                continue
-            if dep.strip()[0]=="#":
-                continue
-            self.install(dep,upgrade,action=True,force=False)
+        previous_sudo = self.cuisine.core.sudomode
+        try:
+            self.cuisine.core.sudomode = True
 
+            if j.data.types.string.check(packagelist):
+                packages = packagelist.split("\n")
+            elif j.data.types.list.check(packagelist):
+                packages = packagelist
+            else:
+                raise j.exceptions.Input('packagelist should be string or a list. received a %s' % type(packagelist))
 
-
-        
-
+                for dep in packages:
+                    dep = dep.strip()
+                    if dep.strip() == "":
+                        continue
+                    if dep.strip()[0] == "#":
+                        continue
+                    self.install(dep, upgrade, action=True, force=False)
+        finally:
+            self.cuisine.core.sudomode = previous_sudo

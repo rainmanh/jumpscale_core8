@@ -30,6 +30,7 @@ from CuisineCore import CuisineCore
 from CuisinePNode import CuisinePNode
 from CuisineStor import CuisineStor
 from CuisineLua import CuisineLua
+from CuisineCapnp import CuisineCapnp
 
 class JSCuisine:
 
@@ -65,6 +66,7 @@ class JSCuisine:
         self._js8sb=None
         self._geodns=None
         self._builder=None
+        self._capnp = None
 
         self.core=CuisineCore(self.executor,self)
 
@@ -228,6 +230,12 @@ class JSCuisine:
         if self._processmanager==None:
             self._processmanager = ProcessManagerFactory(self).get()
         return self._processmanager
+
+    @property
+    def capnp(self):
+        if self._capnp is None:
+            self._capnp = CuisineCapnp(self.executor, self)
+        return self._capnp
 
 
     def __str__(self):

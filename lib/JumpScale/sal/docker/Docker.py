@@ -440,7 +440,8 @@ class Docker:
             self.logger.info(volskeys)
             self.logger.info(binds)
 
-        hostname = None if self.weaveIsActive else name.replace('_', '-')
+        # hostname = None if self.weaveIsActive else 
+        hostname=name.replace('_', '-')
         host_config = self.client.create_host_config(privileged=privileged) if privileged else None            
 
         res = self.client.create_container(image=base, command=cmd, hostname=hostname, user="root", \

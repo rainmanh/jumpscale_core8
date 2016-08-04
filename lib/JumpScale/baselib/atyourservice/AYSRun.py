@@ -76,7 +76,7 @@ class AYSRunStepAction:
 
         self.logger.error("\n\n******************************************************************************************\n")
 
-    def execute(self):        
+    def execute(self):
         try:
             self.result=self.service.runAction(self.runstep.action)
         except Exception as e:
@@ -93,7 +93,7 @@ class AYSRunStepAction:
         self.state="OK"
         return True
 
-    def __repr__(self):     
+    def __repr__(self):
         out="runstep action: %s!%s (%s)\n"%(self.service.key,self.name,self.state)
         if self.service_model!="":
             out+="model:\n%s\n\n"%j.data.text.indent(self.service_model)
@@ -125,7 +125,7 @@ class AYSRunStep:
     def exists(self, aysi):
         return aysi.key in self.actions
 
-    def execute(self):        
+    def execute(self):
         for key,stepaction in self.actions.items():
             stepaction.execute()
 
@@ -139,7 +139,7 @@ class AYSRunStep:
         m["action"]=self.action
         m["nr"]=self.nr
         m["state"]=self.state
-        return m        
+        return m
 
     def __repr__(self):
         out = "step:%s (%s)\n"%(self.nr,self.state)
@@ -257,17 +257,23 @@ class AYSRun:
                         out+="STEP:%s, ACTION:%s"%(step.nr,step.action)
                         out+=self.db.get_dedupe("source",action.model["source"]).decode()
                         out+=action.result
-        return out        
+        return out
 
+    def reverse(self):
+        i = len(self.steps)
+        for step in self.steps:
+            step.nr = i
+            i -= 1
+        self.steps.reverse()
 
     def save(self):
         if self.db!=None:
             #will remember in KVS
             self.db.set("run",str(self.id),j.data.serializer.json.dumps(self.model))
-            self.db.set("run_index",str(self.id),"%s|%s"%(self.timestamp,self.state))            
+            self.db.set("run_index",str(self.id),"%s|%s"%(self.timestamp,self.state))
 
     def execute(self):
-        # j.actions.setRunId("ays_run_%s"%self.id)        
+        # j.actions.setRunId("ays_run_%s"%self.id)
         for step in self.steps:
             step.execute()
             if self.state=="ERROR":
@@ -276,7 +282,7 @@ class AYSRun:
                 raise j.exceptions.RuntimeError(self.error)
         self.state="OK"
         self.save()
-        
+
 
     @property
     def model(self):

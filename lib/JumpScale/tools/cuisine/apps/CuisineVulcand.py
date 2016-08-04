@@ -16,8 +16,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.vulcand"
 
-
-class Vulcand:
+base=j.tools.cuisine.getBaseClass()
+class Vulcand(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -56,4 +56,4 @@ class Vulcand:
         '''
         C=self.cuisine.bash.replaceEnvironInText(C)
         self.cuisine.core.run_script(C,profile=True)
-        self.cuisine.bash.addPath("$base/bin",action=True)
+        self.cuisine.bash.addPath("$base/bin")

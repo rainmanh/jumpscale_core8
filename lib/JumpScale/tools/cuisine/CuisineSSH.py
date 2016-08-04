@@ -11,8 +11,8 @@ class actionrun(ActionDecorator):
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.golang"
 
 
-
-class CuisineSSH:
+base=j.tools.cuisine.getBaseClass()
+class CuisineSSH(base):
 
     def __init__(self,executor,cuisine):
         self.executor=executor
@@ -137,17 +137,17 @@ class CuisineSSH:
         """Adds the given key to the '.ssh/authorized_keys' for the given
         user."""
 
-        if key==None or key.strip()=="":
+        if key is None or key.strip() == "":
             raise j.exceptions.Input("key cannot be empty")
         sudomode = self.cuisine.core.sudomode
         self.cuisine.core.sudomode = True
 
-        user=user.strip()
+        user = user.strip()
         d = self.cuisine.user.check(user, need_passwd=False)
-        if d==None:
-            raise j.exceptions.RuntimeError("did not find user:%s"%user)
+        if d is None:
+            raise j.exceptions.RuntimeError("did not find user:%s" % user)
         group = d["gid"]
-        keyf  = d["home"] + "/.ssh/authorized_keys"
+        keyf = d["home"] + "/.ssh/authorized_keys"
         if key[-1] != "\n":
             key += "\n"
         ret = None
@@ -162,7 +162,7 @@ class CuisineSSH:
         else:
             # Make sure that .ssh directory exists, see #42
             self.cuisine.core.dir_ensure(j.sal.fs.getDirName(keyf), owner=user, group=group, mode="700")
-            self.cuisine.core.file_write(keyf, key,             owner=user, group=group, mode="600")
+            self.cuisine.core.file_write(keyf, key, owner=user, group=group, mode="600")
             ret = False
 
         self.cuisine.core.sudomode = sudomode

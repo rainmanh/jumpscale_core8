@@ -16,8 +16,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.stor"
 
-
-class AydoStor:
+base=j.tools.cuisine.getBaseClass()
+class AydoStor(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -34,7 +34,7 @@ class AydoStor:
         self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/g8os/stor", action=True)
         self.cuisine.core.file_copy(self.cuisine.core.joinpaths(
-            self.cuisine.core.dir_paths['goDir'], 'bin', 'stor'), '$base/bin')
+            self.cuisine.core.dir_paths['goDir'], 'bin', 'stor'), '$base/bin', overwrite=True)
         self.cuisine.bash.addPath("$base/bin")
 
         self.cuisine.processmanager.stop("stor")  # will also kill
@@ -52,6 +52,7 @@ class AydoStor:
         if start:
             self.start(addr)
 
+    @actionrun(force=True)
     def start(self, addr):
         res = addr.split(":")
         if len(res) == 2:

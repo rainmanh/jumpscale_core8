@@ -12,11 +12,11 @@ def cli():
 def list(name, parsable):
     running = j.sal.docker.status()
     if not parsable:
-        print(" %-20s %-25s %-20s %-10s %s" % ("Name", "Imange", "host", "ssh port", "status"))
+        print(" %-25s %-80s %-20s %-10s %s" % ("Name", "Image", "host", "ssh port", "status"))
         for name2, image, host, port, status in running:
             if name and name != name2:
                 continue
-            print(" %-20s %-25s %-20s %-10s %s" % (name2, image, host, port, status))
+            print(" %-25s %-80s %-20s %-10s %s" % (name2, image, host, port, status))
     else:
         infos = []
         for name2, image, host, port, status in running:
@@ -82,8 +82,9 @@ def getIP(name):
 
 
 @click.command()
-def destroyAll():
-    j.sal.docker.destroyAll()
+@click.option('--removeimages', '-r', default=False, is_flag=True,help='also destroy images')
+def destroyAll(removeimages):
+    j.sal.docker.destroyAll(removeimages=removeimages)
 
 @click.command()
 def resetDocker():

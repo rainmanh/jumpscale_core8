@@ -3,7 +3,6 @@ from JumpScale import j
 import paramiko
 from paramiko.ssh_exception import SSHException, BadHostKeyException, AuthenticationException
 import time
-import io
 import socket
 
 import threading
@@ -24,16 +23,46 @@ class SSHClientFactory:
 
     def get(self, addr, port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True, look_for_keys=True,
             timeout=5, key_filename=None, passphrase=None, die=True, usecache=True):
+        """
+        gets an ssh client.
+        @param addr: the server to connect to
+        @param port: port to connect to
+        @param login: the username to authenticate as
+        @param passwd: leave empty if logging in with sshkey
+        @param stdout: show output
+        @param foward_agent: fowrward all keys to new connection
+        @param allow_agent: set to False to disable connecting to the SSH agent
+        @param look_for_keys: set to False to disable searching for discoverable private key files in ~/.ssh/
+        @param timeout: an optional timeout (in seconds) for the TCP connect
+        @param key_filename: the filename to try for authentication
+        @param passphrase: a password to use for unlocking a private key
+        @param die: die on error
+        @param usecache: use cached client. False to get a new connection
+
+        If password is passed, sshclient will try to authenticated with login/passwd.
+        If key_filename is passed, it will override look_for_keys and allow_agent and try to connect with this key. 
+        """
         key = "%s_%s_%s_%s" % (addr, port, login, j.data.hash.md5_string(str(passwd)))
-        if key not in self.cache or usecache is False:
-            self.cache[key] = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent, allow_agent=allow_agent,
-                                        look_for_keys=look_for_keys, key_filename=key_filename, passphrase=passphrase, timeout=timeout)
+
+        if key not in self.cache or usecache==False:
+            try:
+                cl = SSHClient(addr, port, login, passwd, stdout=stdout, forward_agent=forward_agent, allow_agent=allow_agent,
+                               look_for_keys=look_for_keys,key_filename=key_filename, passphrase=passphrase, timeout=timeout)
+            except Exception as e:
+                err = "Cannot connect over ssh:%s %s" % (addr, port)
+                if die:
+                    raise e
+                else:
+                    self.logger.error(err)
+                    self.logger.error(e)
+                    return None
+
+            self.cache[key]=cl
 
         return self.cache[key]
 
     def removeFromCache(self, client):
         key = "%s_%s_%s_%s" % (client.addr, client.port, client.login, j.data.hash.md5_string(str(client.passwd)))
-        client.close()
         if key in self.cache:
             self.cache.pop(key)
 
@@ -128,14 +157,16 @@ class SSHClient:
             self.logger.info("Test connection to %s:%s" % (self.addr, self.port))
             start = j.data.time.getTimeEpoch()
 
+
+
             if j.sal.nettools.waitConnectionTest(self.addr, self.port, self.timeout) is False:
                 self.logger.error("Cannot connect to ssh server %s:%s" % (self.addr, self.port))
                 return None
 
             start = j.data.time.getTimeEpoch()
             while start + self.timeout > j.data.time.getTimeEpoch():
+                j.tools.console.hideOutput()
                 try:
-                    j.tools.console.hideOutput()
                     self._client = paramiko.SSHClient()
                     self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
                     self.pkey = None
@@ -164,6 +195,7 @@ class SSHClient:
                     continue
 
                 except Exception as e:
+                    from pudb import set_trace; set_trace() 
                     j.clients.ssh.removeFromCache(self)
                     msg = "Could not connect to ssh on %s@%s:%s. Error was: %s" % (self.login, self.addr, self.port, e)
                     raise j.exceptions.RuntimeError(msg)

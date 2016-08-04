@@ -7,7 +7,6 @@ import time, os, sys
 class MyFSEventHandler(FileSystemEventHandler):
 
     def handler(self, event,action="copy"):
-        e=""
         changedfile = event.src_path
         if event.is_directory:
             if changedfile.find("/.git") != -1:
@@ -50,7 +49,7 @@ class MyFSEventHandler(FileSystemEventHandler):
                         else:
                             destpart = changedfile.split("code/", 1)[-1]
                             dest = "/opt/code/%s" % destpart
-
+                    e=""
                     if action=="copy":
                         print("copy: %s %s:%s" % (changedfile, node, dest))
                         try:
@@ -70,7 +69,10 @@ class MyFSEventHandler(FileSystemEventHandler):
                         raise j.exceptions.RuntimeError("unsupported action:%s"%action)
 
                     if error:
-                        print(e)
+                        try:
+                            print(e)
+                        except:
+                            pass
                         j.tools.develop.syncCode()
                         break
 

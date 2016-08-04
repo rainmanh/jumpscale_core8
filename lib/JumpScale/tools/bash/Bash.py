@@ -171,10 +171,10 @@ class Bash:
         self._environ[key] = val
         os.environ[key]=val
         self.profile.set(key, val)
-        self.cuisine.core.file_write(self.profilePath, self.profile.dump())
+        self.write()
         self.reset()
 
-    @actionrun(action=True)
+    @actionrun(force=True)
     def setOurProfile(self):
         mpath=j.sal.fs.joinPaths(self.home,".profile")
         mpath2=j.sal.fs.joinPaths(self.home,".profile_js")
@@ -225,30 +225,29 @@ class Bash:
     def profile(self):
         if not self._profile:
             content = ""
-            if self._profilePath == "" and self.cuisine.core.file_exists(self.profilePath):
+            if self._profilePath == "" and self.cuisine.core.file_exists(self.profilePath,force=True):
                 content = self.cuisine.core.file_read(self.profilePath)
             self._profile = Profile(content, self.cuisine.core.dir_paths["binDir"])
 
         return self._profile
 
-
-    @actionrun(action=True)
     def addPath(self, path):
         self.profile.addPath(path)
+        self.write()
+
+    def write(self):
         self.cuisine.core.file_write(self.profilePath, self.profile.dump(),showout=False)
 
-    @actionrun(action=True)
     def environRemove(self, key, val=None):
         self.profile.remove(key)
-        self.cuisine.core.file_write(self.profilePath, self.profile.dump(),showout=False)
+        self.write()
 
-    @actionrun(action=True)
     def include(self, path):
         self.profile.addInclude(path)
-        self.cuisine.core.file_write(self.profilePath, self.profile.dump(),showout=False)
+        self.write()
 
     @actionrun(action=True)
-    def getLocaleItems(self,force=False):
+    def getLocaleItems(self,force=False,showout=False):
         out = self.cuisine.core.run("locale -a")[1]
         return out.split("\n")
 
@@ -266,5 +265,3 @@ class Bash:
             return
 
         raise j.exceptions.Input("Cannot find C.UTF-8, cannot fix locale's")
-
-

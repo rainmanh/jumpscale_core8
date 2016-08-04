@@ -8,8 +8,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self,*args,**kwargs)
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.package"
 
-
-class CuisinePackage:
+base=j.tools.cuisine.getBaseClass()
+class CuisinePackage(base):
 
     def __init__(self,executor,cuisine):
         self.logger = j.logger.get('j.tools.cuisine.package')
@@ -147,7 +147,7 @@ class CuisinePackage:
 
             return out
 
-
+    @actionrun()
     def multiInstall(self, packagelist, allow_unauthenticated=False):
         """
         @param packagelist is text file and each line is name of package
@@ -220,6 +220,23 @@ class CuisinePackage:
                 return self._apt_get("-y --purge remove %s" % package)
             else:
                 self.cuisine.core.run("apt-get autoremove -y")
+
+            self._apt_get("autoclean")
+            C="""
+            apt-get clean
+            rm -rf /bd_build
+            rm -rf /tmp/* /var/tmp/*
+            rm -f /etc/dpkg/dpkg.cfg.d/02apt-speedup
+
+            find -regex '.*__pycache__.*' -delete
+            rm -rf /var/log
+            mkdir -p /var/log/apt
+            rm -rf /var/tmp
+            mkdir -p /var/tmp
+            
+            """
+            self.cuisine.core.run_script(C)
+
         elif self.cuisine.core.isArch:
             cmd="pacman -Sc"
             if agressive:
@@ -252,6 +269,8 @@ class CuisinePackage:
                 self._apt_get("autoclean")
         elif self.isMac:
             self.cuisine.core.run("pacman -Rs %s"%package)
+
+
 
     def __repr__(self):
         return "cuisine.package:%s:%s"%(self.executor.addr,self.executor.port)

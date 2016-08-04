@@ -16,12 +16,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.etcd"
 
-
-class Etcd:
-
-    def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+base=j.tools.cuisine.getBaseClass()
+class Etcd(base):
 
     @actionrun(action=True)
     def build(self,start=True, host=None, peers=[]):
@@ -56,7 +52,7 @@ class Etcd:
 
         C=self.cuisine.bash.replaceEnvironInText(C)
         self.cuisine.core.run_script(C,profile=True, action=True)
-        self.cuisine.bash.addPath("$base/bin", action=True)
+        self.cuisine.bash.addPath("$base/bin")
 
         if start:
             self.start(host, peers)

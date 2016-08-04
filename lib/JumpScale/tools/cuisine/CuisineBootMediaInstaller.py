@@ -12,13 +12,13 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.bootmediaInstaller"
 
-
-class CuisineBootMediaInstaller:
+base=j.tools.cuisine.getBaseClass()
+class CuisineBootMediaInstaller(base):
     def __init__(self, executor, cuisine):
         self.executor = executor
         self.cuisine = cuisine
 
-    # @actionrun(action=True)
+    @actionrun(force=True)
     def _downloadImage(self, url, redownload=False):
         base = url.split("/")[-1]
         downloadpath = "$tmpDir/%s" % base
@@ -32,29 +32,33 @@ class CuisineBootMediaInstaller:
 
         return base
 
+    @actionrun(force=True)
     def _partition(self, deviceid, type):
         cmd = "parted -s /dev/%s mklabel %s mkpart primary fat32 2 200M set 1 boot on mkpart primary ext4 200M 100%%" % (deviceid, type)
         self.cuisine.core.run(cmd)
-
+    
+    @actionrun(force=True)
     def _umount(self, deviceid):
         self.cuisine.core.run("umount /mnt/root/boot", die=False)
         self.cuisine.core.run("umount /mnt/root", die=False)
         self.cuisine.core.run("umount /dev/%s1" % deviceid, die=False)
         self.cuisine.core.run("umount /dev/%s2" % deviceid, die=False)
 
+    @actionrun(force=True)
     def _mount(self, deviceid):
         self.cuisine.core.run("mkfs.ext4 -F /dev/%s2" % deviceid)
         self.cuisine.core.run("mkdir -p /mnt/root && mount /dev/%s2 /mnt/root" % deviceid)
         self.cuisine.core.run("mkfs.vfat -F32 /dev/%s1" % deviceid)
         self.cuisine.core.run("mkdir -p /mnt/root/boot && mount /dev/%s1 /mnt/root/boot" % deviceid)
 
-
+    @actionrun()
     def _install(self, base):
         # We use bsdtar to support pi2 arm images.
         self.cuisine.core.run("cd $tmpDir && bsdtar -vxpf %s -C /mnt/root" % base)
         self.cuisine.core.run("sync")
         self.cuisine.core.run("echo 'PermitRootLogin=yes'>>'/mnt/root/etc/ssh/sshd_config'")
 
+    @actionrun()
     def _findDevices(self):
         devs = []
         for line in self.cuisine.core.run("lsblk -b -o TYPE,NAME,SIZE")[1].split("\n"):
@@ -77,6 +81,7 @@ class CuisineBootMediaInstaller:
                 "could not find flash disk device, (need to find at least 1 of 8,16 or 32 GB size)" % devs)
         return devs
 
+    @actionrun(force=True)
     def formatCardDeployImage(self, url, deviceid=None, part_type='msdos', post_install=None):
         """
         will only work if 1 or more sd cards found of 4 or 8 or 16 or 32 GB, be careful will overwrite the card
@@ -116,6 +121,7 @@ class CuisineBootMediaInstaller:
 
         return devs
 
+    @actionrun(force=True)
     def ubuntu(self, platform="amd64",deviceid=None):
         """
         if platform none then it will use self.cuisine.node.hwplatform
@@ -132,6 +138,7 @@ class CuisineBootMediaInstaller:
         cmd = 'dd if=%s of=/dev/%s bs=4000' % (path, deviceid)
         self.cuisine.core.sudo(cmd)
 
+    @actionrun(force=True)
     def debian(self, platform="orangepi_plus",deviceid=None):
         """
         if platform none then it will use self.cuisine.node.hwplatform
@@ -145,6 +152,7 @@ class CuisineBootMediaInstaller:
             raise j.exceptions.Input("platform not supported yet")
         # self.formatCardDeployImage(url, deviceid=deviceid)
 
+    @actionrun(force=True)
     def arch(self, platform="rpi_2b",deviceid=None):
         """
         if platform none then it will use self.cuisine.node.hwplatform
@@ -158,6 +166,7 @@ class CuisineBootMediaInstaller:
             raise j.exceptions.Input("platform not supported yet")
         self.formatCardDeployImage(url, deviceid=deviceid)
 
+    @actionrun(force=True)
     def g8os_arm(self, url, gid, nid, deviceid=None):
         init_tmpl = """\
         #!/usr/bin/bash
@@ -177,6 +186,7 @@ class CuisineBootMediaInstaller:
 
         self.formatCardDeployImage(url, deviceid=deviceid, part_type='msdos', post_install=configure)
 
+    @actionrun(force=True)
     def g8os(self, gid, nid, platform="amd64", deviceid=None, url=None):
         """
         if platform none then it will use self.cuisine.node.hwplatform

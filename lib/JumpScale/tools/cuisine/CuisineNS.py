@@ -2,13 +2,21 @@
 from JumpScale import j
 import re
 
-class CuisineNS:
+from ActionDecorator import ActionDecorator
+class actionrun(ActionDecorator):
+    def __init__(self,*args,**kwargs):
+        ActionDecorator.__init__(self,*args,**kwargs)
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.ns"
+
+
+base=j.tools.cuisine.getBaseClass()
+class CuisineNS(base):
 
     def __init__(self,executor,cuisine):
         self.executor=executor
         self.cuisine=cuisine
 
-    
+    @actionrun()    
     def hostfile_get(self):
         """
         """
@@ -27,6 +35,7 @@ class CuisineNS:
         result.pop('255.255.255.255',"")
         return result
 
+    @actionrun()
     def hostfile_set_multiple(self,names=[],remove=[]):
         """
         @param names [[$ipaddr,$name]]
@@ -58,6 +67,7 @@ class CuisineNS:
         #@todo need to do ipv6
         self.cuisine.core.hostfile=C
 
+    @actionrun()
     def hostfile_set_fromlocal(self):
         """
         read local hostnames & transfer them to current cuisine
@@ -80,7 +90,7 @@ class CuisineNS:
 
         self.hostfile_set_multiple(res2send)
 
-
+    @actionrun()
     def hostfile_set(self,name,ipaddr):
         return self.hostfile_set_multiple([[ipaddr,name]])
 

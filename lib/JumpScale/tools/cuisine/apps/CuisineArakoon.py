@@ -17,8 +17,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.arakoon"
 
-
-class Arakoon:
+base=j.tools.cuisine.getBaseClass()
+class Arakoon(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -50,6 +50,7 @@ class Arakoon:
 
         self.cuisine.core.dir_ensure('$varDir/data/arakoon')
 
+    @actionrun()
     def _install_ocaml(self):
         self.logger.info("download opam installer")
         self.cuisine.core.file_download('https://raw.github.com/ocaml/opam/master/shell/opam_installer.sh', to='$tmpDir/opam_installer.sh')
@@ -100,10 +101,12 @@ class Arakoon:
         result""" % out
         self.cuisine.core.run_script(cmd, profile=True)
 
+    @actionrun()        
     def _install_deps(self):
         apt_deps = "libev-dev libssl-dev libsnappy-dev libgmp3-dev ocaml ocaml-native-compilers camlp4-extra opam aspcud libbz2-dev protobuf-compiler m4 pkg-config"
         self.cuisine.package.multiInstall(apt_deps)
 
+    @actionrun()
     def build(self, start=True):
         self._install_deps()
         self._install_ocaml()
@@ -111,6 +114,7 @@ class Arakoon:
         if start:
             self.start("arakoon")
 
+    @actionrun(force=True)
     def start(self, name="arakoon"):
         which = self.cuisine.core.command_location("arakoon")
         self.cuisine.core.dir_ensure('$varDir/data/arakoon')
@@ -118,6 +122,7 @@ class Arakoon:
         self.cuisine.process.kill("arakoon")
         self.cuisine.processmanager.ensure("arakoon", cmd=cmd, env={}, path="")
 
+    @actionrun()
     def create_cluster(self, id):
         return ArakoonCluster(id, self.cuisine)
 

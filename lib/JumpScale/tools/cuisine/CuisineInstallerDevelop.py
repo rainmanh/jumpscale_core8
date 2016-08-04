@@ -169,6 +169,8 @@ class CuisineInstallerDevelop(base):
         path.py
         dnspython3
         packet-python
+        gspread
+        oauth2client
         """
         if not self.cuisine.core.isCygwin:
             C += "pillow"

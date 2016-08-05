@@ -7,7 +7,7 @@ import socket
 
 import threading
 import queue
-
+import inspect
 
 class SSHClientFactory:
 
@@ -148,19 +148,32 @@ class SSHClient:
     @property
     def transport(self):
         if self.client is None:
+            curframe = inspect.currentframe()
+            calframes = inspect.getouterframes(curframe, 8)
+            stack = ['FILE:%s, LINE:%s, NAME: %s' % (calframe[1], calframe[2], calframe[3]) for calframe in calframes]
+            self.logger.error(
+            '''\t ERROR WAS:
+            %s
+            ''' % '\n\t'.join(stack))
+
             raise j.exceptions.RuntimeError("Could not connect to %s:%s" % (self.addr, self.port))
         return self.client.get_transport()
 
     @property
     def client(self):
         if self._client is None:
-            self.logger.info("Test connection to %s:%s" % (self.addr, self.port))
+            self.logger.info("Test connection to %s:%s:%s" % (self.addr, self.port, self.login))
             start = j.data.time.getTimeEpoch()
 
-
-
             if j.sal.nettools.waitConnectionTest(self.addr, self.port, self.timeout) is False:
-                self.logger.error("Cannot connect to ssh server %s:%s" % (self.addr, self.port))
+                curframe = inspect.currentframe()
+                calframes = inspect.getouterframes(curframe, 8)
+                stack = ['FILE:%s, LINE:%s, NAME: %s' % (calframe[1], calframe[2], calframe[3]) for calframe in calframes]
+                self.logger.error(
+                '''\t ERROR WAS:
+                %s
+                ''' % '\n\t'.join(stack))
+                self.logger.error("Cannot connect to ssh server %s:%s with login:%s and using sshkey:%s" % (self.addr, self.port, self.login, self.key_filename))
                 return None
 
             start = j.data.time.getTimeEpoch()
@@ -171,22 +184,37 @@ class SSHClient:
                     self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
                     self.pkey = None
                     if self.key_filename:
-                        self.allow_agent = False
+                        # self.allow_agent = False
                         self.look_for_keys = False
                         self.pkey = paramiko.RSAKey.from_private_key_file(self.key_filename, password=self.passphrase)
+                        if not j.do.checkSSHAgentAvailable():
+                            j.do.loadSSHAgent()
                         if not j.do.getSSHKeyPathFromAgent(self.key_filename, die=False):
-                            j.do.execute('ssh-add %s' % self.key_filename)
+                            j.do.loadSSHKeys(self.key_filename)
                     self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,
                                          pkey=self.pkey, allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,
                                          timeout=2.0, banner_timeout=3.0)
                     break
                 except (BadHostKeyException, AuthenticationException) as e:
-                    # Can't recover, no point in waiting. Exiting now
+                    curframe = inspect.currentframe()
+                    calframes = inspect.getouterframes(curframe, 8)
+                    stack = ['FILE:%s, LINE:%s, NAME: %s' % (calframe[1], calframe[2], calframe[3]) for calframe in calframes]
+                    self.logger.error(
+                    '''\t ERROR WAS:
+                    %s
+                    ''' % '\n\t'.join(stack))
                     self.logger.error("Authentification error. Aborting connection")
                     self.logger.error(e)
                     raise j.exceptions.RuntimeError(str(e))
 
                 except (SSHException, socket.error) as e:
+                    curframe = inspect.currentframe()
+                    calframes = inspect.getouterframes(curframe, 8)
+                    stack = ['FILE:%s, LINE:%s, NAME: %s' % (calframe[1], calframe[2], calframe[3]) for calframe in calframes]
+                    self.logger.error(
+                    '''\t ERROR WAS:
+                    %s
+                    ''' % '\n\t'.join(stack))
                     self.logger.error("Unexpected error in socket connection for ssh. Aborting connection and try again.")
                     self.logger.error(e)
                     self._client.close()
@@ -342,7 +370,9 @@ class SSHClient:
     @property
     def cuisine(self):
         if self._cuisine is None:
-            executor = j.tools.executor.getSSHBased(self.addr, self.port, self.login, self.passwd)
+            executor = j.tools.executor.getSSHBased(self.addr, self.port, self.login, self.passwd, debug=self.debug, allow_agent=self.allow_agent,
+                                                    look_for_keys=self.look_for_keys, pushkey=self.pushkey, pubkey=self.pubkey, timeout=self.timeout,
+                                                    usecache=self.usecache)
             self._cuisine = executor.cuisine
         return self._cuisine
 

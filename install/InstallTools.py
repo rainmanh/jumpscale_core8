@@ -1157,7 +1157,7 @@ class InstallTools():
 
         if rc > 0 and die:
             if err:
-                raise RuntimeError("Could not execute cmd:\n'%s'\nerr:\n%s" % (command,err))
+                raise RuntimeError("Could not execute cmd:\n'%s'\nerr:\n%s" % (command, err))
             else:
                 raise RuntimeError("Could not execute cmd:\n'%s'\nout:\n%s" % (command, out))
 
@@ -1660,9 +1660,13 @@ class InstallTools():
 
 
     def checkSSHAgentAvailable(self):
+        if not self.exists(self._getSSHSocketpath()):
+            return False
         if "SSH_AUTH_SOCK" not in os.environ:
             self._initSSH_ENV(True)
         rc, out, err = self.execute("ssh-add -l",showout=False, outputStderr=False,die=False)
+        if 'The agent has no identities.' in out:
+            return True
         if rc!=0:
             return False
         else:

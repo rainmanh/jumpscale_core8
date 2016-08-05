@@ -87,8 +87,9 @@ class Blueprint:
                                 aystemplate_name = blueaysname
 
                         recipe = self.aysrepo.getRecipe(aystemplate_name)  # will load recipe if it doesn't exist yet
-                    if len(self.aysrepo.findServices(role = role, instance = aysinstance))==0:
-                        #if it's not there, create it.
+
+                    if not len(self.aysrepo.findServices(role=recipe.role, instance=aysinstance)):
+                        # if it's not there, create it.
                         aysi = recipe.newInstance(instance=aysinstance, args=item)
 
     def _add2models(self, content, nr):

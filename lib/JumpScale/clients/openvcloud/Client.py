@@ -4,13 +4,14 @@ import os
 
 CACHETIME = 60
 
+
 class Factory:
     def __init__(self):
         self.__jslocation__ = "j.clients.openvcloud"
         self._clients = {}
 
     def get(self, url, login, password=None, secret=None, port=443):
-        dbkey = "%s:%s" % (url, login)
+        dbkey = "%s:%s:%s" % (url, login, j.data.hash.md5_string(password))
         if dbkey in self._clients:
             return self._clients[dbkey]
         else:
@@ -32,11 +33,11 @@ def patchMS1(api):
         wrapper.__doc__ = method.__doc__
         return wrapper
 
-
     api.cloudapi.portforwarding.list = patchmethod(api.cloudapi.portforwarding.list, {'cloudspaceId': 'cloudspaceid'})
     api.cloudapi.portforwarding.delete = patchmethod(api.cloudapi.portforwarding.delete, {'cloudspaceId': 'cloudspaceid'})
     api.cloudapi.portforwarding.create = patchmethod(api.cloudapi.portforwarding.create,
                                                      {'cloudspaceId': 'cloudspaceid', 'machineId': 'vmid'})
+
 
 class Client:
     def __init__(self, url, login, password=None, secret=None, port=443):
@@ -44,7 +45,11 @@ class Client:
             raise ValueError("Either secret or password should be given")
         self._url = url
         self._login = login
+        self._password = j.data.hash.md5_string(password)  # portal support login with md5 of the password
+        self._secret = secret
         self.api = j.clients.portal.get(url, port)
+        # patch handle the case where the connection dies because of inactivity
+        self.__patch_portal_client(self.api)
 
         self._isms1 = 'mothership1' in url
         self.__login(password, secret)
@@ -56,8 +61,21 @@ class Client:
             self.api.load_swagger(group='cloudapi')
 
         self._basekey = "openvcloud:%s:%s" % (self._url, self._login)
-        self._accounts_cache = j.data.redisdb.get("%s:accounts"% (self._basekey), CACHETIME)
-        self._locations_cache = j.data.redisdb.get("%s:locations"% (self._basekey), CACHETIME)
+        self._accounts_cache = j.data.redisdb.get("%s:accounts" % (self._basekey), CACHETIME)
+        self._locations_cache = j.data.redisdb.get("%s:locations" % (self._basekey), CACHETIME)
+
+    def __patch_portal_client(self, api):
+        # try to relogin in the case the connection is dead because of inactivity
+        origcall = api.__call__
+
+        def patch_call(that, *args, **kwargs):
+            try:
+                return origcall(that, *args, **kwargs)
+            except ApiError:
+                if ApiError.response.status_code == 419:
+                    self._login(self._password, self._secret)
+
+        api.__call__ = patch_call
 
     def __login(self, password, secret):
         if not secret:
@@ -68,11 +86,10 @@ class Client:
         self.api._session.cookies.clear()  # make sure cookies are empty, clear guest cookie
         self.api._session.cookies['beaker.session.id'] = secret
 
-
     @property
     def accounts(self):
         if not self._accounts_cache:
-            #load from api
+            # load from api
             for item in self.api.cloudapi.accounts.list():
                 self._accounts_cache.set(item)
         accounts = []
@@ -93,7 +110,6 @@ class Client:
             if account.model['name'] == name:
                 return account
         raise KeyError("Not account with name %s" % name)
-
 
     def reset(self):
         """
@@ -123,7 +139,7 @@ class Account:
     @property
     def spaces(self):
         if not self._spaces_cache:
-            #load from api
+            # load from api
             for item in self.client.api.cloudapi.cloudspaces.list():
                 if item['accountId'] == self.model['id']:
                     self._spaces_cache.set(item, id=item['id'])

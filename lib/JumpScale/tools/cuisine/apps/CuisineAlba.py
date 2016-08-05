@@ -52,6 +52,7 @@ class Alba(base):
 
         # self.cuisine.core.run('wget https://raw.github.com/ocaml/opam/master/shell/opam_installer.sh')
         self.cuisine.core.file_download('https://raw.github.com/ocaml/opam/master/shell/opam_installer.sh', to='$tmpDir/opam_installer.sh')
+        self.cuisine.core.run('sed -i "/read -p/d" $tmpDir/opam_installer.sh') # remove any confirmation
         self.cuisine.core.run('bash $tmpDir/opam_installer.sh $binDir %s' % self.ocaml_version, profile=True)
 
         cmd = 'opam init --root=%s --comp %s -a --dot-profile %s' % (self.opam_root, self.ocaml_version, self.cuisine.bash.profilePath)
@@ -103,7 +104,7 @@ class Alba(base):
     
     @actionrun()
     def _install_deps_arakoon(self):
-        aradest = self.cuisine.git.pullRepo('https://github.com/openvstorage/arakoon.git', depth=None, ssh=False)
+        aradest = self.cuisine.git.pullRepo('https://github.com/openvstorage/arakoon.git', branch="1.9", depth=None, ssh=False)
         pfx = 'cd %s && source $tmpDir/opam.env' % aradest
 
         self.cuisine.core.run('%s && git pull && git checkout tags/1.9.3' % pfx)
@@ -129,6 +130,10 @@ class Alba(base):
 
     @actionrun()
     def _install_deps_orocksdb(self):
+        if self.cuisine.core.file_exists('$tmpDir/OPAM/4.02.3/lib/rocks/META'):
+            print('rocks already found')
+            return
+
         commit = '8bc61d8a451a2724399247abf76643aa7b2a07e9'
         orodest = self.cuisine.git.pullRepo('https://github.com/domsj/orocksdb.git', depth=None, ssh=False)
         pfx = 'cd %s && source $tmpDir/opam.env' % orodest
@@ -175,10 +180,10 @@ class Alba(base):
 
     @actionrun()
     def _build(self):
-        repo = self.cuisine.git.pullRepo('https://github.com/openvstorage/alba', depth=None, ssh=False)
-        self.cuisine.core.run('cd %s; git checkout ubuntu-16.04' % repo)
+        repo = self.cuisine.git.pullRepo('https://github.com/openvstorage/alba', branch="ubuntu-16.04", depth=None, ssh=False)
         self.cuisine.core.run_script('source $tmpDir/opam.env && cd %s; make' % repo, profile=True)
         self.cuisine.core.file_copy('%s/ocaml/alba.native' % repo, '$binDir/alba')
         self.cuisine.core.file_copy('%s/ocaml/albamgr_plugin.cmxs' % repo, '$binDir/albamgr_plugin.cmxs')
         self.cuisine.core.file_copy('%s/ocaml/nsm_host_plugin.cmxs' % repo, '$binDir/nsm_host_plugin.cmxs')
         self.cuisine.core.file_copy('%s/ocaml/disk_failure_tests.native' % repo, '$binDir/disk_failure_tests.native')
+        

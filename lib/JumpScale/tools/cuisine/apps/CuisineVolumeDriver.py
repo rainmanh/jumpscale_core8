@@ -75,7 +75,7 @@ class VolumeDriver(base):
 
         self.cuisine.core.file_link(str_repl['buildtools'], j.sal.fs.joinPaths(workspace, 'volumedriver-buildtools'))
         self.cuisine.core.file_link(str_repl['volumedriver'], j.sal.fs.joinPaths(workspace, 'volumedriver'))
-
+        
         build_script = """
         export WORKSPACE=%(workspace)s
         export RUN_TESTS=no
@@ -87,5 +87,6 @@ class VolumeDriver(base):
         cd ${WORKSPACE}
         ./volumedriver/src/buildscripts/jenkins-release-dev.sh ${WORKSPACE}/volumedriver
         """ % str_repl
+        
         self.cuisine.core.run_script(build_script)
         self.cuisine.core.file_copy('$tmpDir/volumedriver-workspace/volumedriver/build/bin/*', '$binDir')

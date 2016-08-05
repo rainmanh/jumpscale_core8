@@ -130,40 +130,6 @@ class SSHClient:
         self._transport = None
         self._client = None
         self._cuisine = None
-        self.usesproxy = False
-
-    def connectViaProxy(self, host):
-        self.usesproxy = True
-        client = paramiko.SSHClient()
-        client._policy = paramiko.WarningPolicy()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        import os.path
-        ssh_config = paramiko.SSHConfig()
-        user_config_file = os.path.expanduser("~/.ssh/config")
-        if j.sal.fs.exists(user_config_file):
-            with open(user_config_file) as f:
-                ssh_config.parse(f)
-        options = ssh_config.lookup(host)
-        self.host = host
-        cfg = {'hostname': options['hostname'], 'username': options["user"], "port":int(options['port'])}
-        self.addr = options['hostname']
-        self.user = options['user']
-
-        if "identityfile" in options :
-            cfg['key_filename'] = options['identityfile']
-            self.key_filename = cfg['key_filename']
-
-        if 'proxycommand' in options:
-            cfg['sock'] = paramiko.ProxyCommand(options['proxycommand'])
-        cfg['timeout'] = 5
-        cfg['allow_agent'] = True
-        cfg['banner_timeout'] = 5
-        self.cfg=cfg
-        self.forward_agent = True
-        self._client = client
-        self._client.connect(**cfg)
-
-        return self._client
 
     def _test_local_agent(self):
         """
@@ -371,12 +337,9 @@ class SSHClient:
 
     @property
     def cuisine(self):
-        if not self.usesproxy and self._cuisine is None:
+        if self._cuisine is None:
             executor = j.tools.executor.getSSHBased(self.addr, self.port, self.login, self.passwd)
             self._cuisine = executor.cuisine
-        if self.usesproxy:
-            ex = j.tools.executor.getSSHViaProxy(self.host)
-            self._cuisine = j.tools.cuisine.get(self)
         return self._cuisine
 
     def ssh_authorize(self, user, key):

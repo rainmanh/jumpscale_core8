@@ -2337,6 +2337,8 @@ class Installer():
 
         export PATH=$JSBASE/bin:$PATH
 
+        export LUA_PATH="/opt/jumpscale8/lib/lua/?.lua;./?.lua;/opt/jumpscale8/lib/lua/?/?.lua;/opt/jumpscale8/lib/lua/tarantool/?.lua;/opt/jumpscale8/lib/lua/?/init.lua"
+
         $pythonhome
         export PYTHONPATH=$pythonpath
 

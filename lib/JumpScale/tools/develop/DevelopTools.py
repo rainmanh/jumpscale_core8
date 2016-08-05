@@ -171,7 +171,7 @@ class DevelopToolsFactory:
     def help(self):
         H = """
         example to use #@todo change python3... to js... (but not working on osx yet)
-        js 'j.tools.develop.init("ovh4,ovh3")'
+        js 'j.tools.develop.init("ovh4,ovh3:2222")'
         js 'j.tools.develop.jumpscale8(rw=True)' #will install overlay sandbox wich can be editted
         js 'j.tools.develop.jumpscale8develop()'
         js 'j.tools.develop.syncCode(ask=True,monitor=False,rsyncdelete=False,reset=False)'
@@ -252,10 +252,10 @@ class DevelopToolsFactory:
                 return []
 
             for item in nodes.split(","):
-                if item.find(":") != -1:
+                if item.find(":") != -1 and len( item.split(":"))==2:
+                    addr, sshport= item.split(":")
+                elif item.find(":") != -1 and len( item.split(":"))==4:
                     addr, sshport, key_filename, passphrase = item.split(":")
-                    addr = addr.strip()
-                    sshport = int(sshport)
                 else:
                     addr = item.strip()
                     if addr != "localhost":
@@ -263,6 +263,8 @@ class DevelopToolsFactory:
                     else:
                         sshport = 0
                     key_filename = None
+                addr = addr.strip()
+                sshport = int(sshport)
                 self._nodes.append(DebugSSHNode(addr, sshport))
         return self._nodes
 

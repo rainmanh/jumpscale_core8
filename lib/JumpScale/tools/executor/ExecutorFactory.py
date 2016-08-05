@@ -66,12 +66,6 @@ class ExecutorFactory:
             self._executors[key].authenticate(pubkey, pushkey)
         return self._executors[key]
 
-    def getSSHViaProxy(self, host):
-        executor = ExecutorSSH()
-        executor.getSSHViaProxy(host)
-        self._executors[host] = executor
-        return executor
-
     def getJSAgentBased(self, agentControllerClientKey, debug=False, checkok=False):
         return ExecutorAgent2(addr, debug=debug, checkok=debug)
 

@@ -224,7 +224,7 @@ class CuisineCore(base):
     def isJS8Sandbox(self):
         def get():
             #@todo need to implement when sandbox, what is the right check?
-            return False
+            return self.file_exists("/opt/jumpscale8/bin/libasn1.so.8")        
         return self.cache.get("isJS8Sandbox",get)        
 
     @property

@@ -31,10 +31,6 @@ class ExecutorSSH(ExecutorBase):
         self.type="ssh"
         self.timeout = timeout
 
-    def getSSHViaProxy(self, host):
-        self._sshclient = j.clients.ssh.get()
-        self._sshclient.connectViaProxy(host)
-        return self
 
     @property
     def login(self):

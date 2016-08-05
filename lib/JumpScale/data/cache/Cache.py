@@ -30,6 +30,8 @@ class Cache:
             j.core.db.delete(key)
 
 
+
+
 class CacheCategory():
 
     def __init__(self,runid,cat,keepInMem=False):
@@ -69,7 +71,7 @@ class CacheCategory():
 
     def reset(self):
         j.data.cache.reset(self.runid)
-        if keepInMem:
+        if self.keepInMem:
             self.memcache={}        
 
 

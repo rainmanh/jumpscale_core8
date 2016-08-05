@@ -113,6 +113,10 @@ class CuisineLua(base):
         self.cuisine.core.run_script(C)
 
 
+        #REQUIRED IN BASH
+        #export LUA_PATH=$JSBASE/lib/lua/?.lua;./?.lua;$JSBASE/lib/lua/?/?.lua;$JSBASE/lib/lua/?/init.lua
+
+
 
     @actionrun(action=True)
     def package(self,name):

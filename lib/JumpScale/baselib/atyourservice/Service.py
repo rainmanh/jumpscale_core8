@@ -149,7 +149,7 @@ class Service:
             self.hrd  # create empty hrd
 
         self._key = "%s!%s" % (self.role, self.instance)
-        self._gkey = "%s!%s!%s" % (aysrepo.name, self.role, self.instance)
+        self._gkey = "%s!%s!%s" % (aysrepo.basepath, self.role, self.instance)
 
         if self.state is None:
             self.state = ServiceState(self)

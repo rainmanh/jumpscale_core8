@@ -2,10 +2,10 @@
 
 (UNCOMPLETE)
 
-Following JumpScript will:
+Following blueprint will:
 
-- Create ms1 node
-- Inside ms1 node: (see DockerExample.md)
+- Create VM
+- Inside the VM: (see DockerExample.md)
     - Create a Docker container with AYS called master
     - Create a Docker container with AYS called client
     - Install JumpScale in both Docker containers

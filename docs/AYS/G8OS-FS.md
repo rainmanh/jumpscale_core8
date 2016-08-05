@@ -1,6 +1,6 @@
-## AYS File System
+## G8OS FileSystem (G8OS FS)
 
-The AYS file system (AYS FS) is a virtual file system that simplifies the distribution of files over the grids.
+G8OS FS is a virtual file system that simplifies the distribution of files over the grids.
 
 It is written in Go which makes it really simple to deploy on bare metal machines in order to bootstrap an environment, install JumpsScale and the AYS services.
 
@@ -9,7 +9,7 @@ It is written in Go which makes it really simple to deploy on bare metal machine
 
 #### Metadata and binary files
 
-The AYS FS uses two kinds of files to recreate a file system: 
+The G8OS FS uses two kinds of files to recreate a file system:
 - Metadata files
 - Binary files
 
@@ -49,7 +49,7 @@ a
 ...
 ```
 
-### AYS FS workflow
+### G8OS FS workflow
 
 When starting, the AYS file system
 
@@ -59,6 +59,6 @@ When starting, the AYS file system
 
 In a typical environment, multiple layers of caching are available.
 
-To speed up the downloading of the files, some 'grid caches' can exists. These are used the same way as the stores, but they are populated by the AYS FS as it downloads files and located in the local network of the OpenvCloud nodes.
+To speed up the downloading of the files, some 'grid caches' can exists. These are used the same way as the stores, but they are populated by the G8OS FS as it downloads files and located in the local network of the OpenvCloud nodes.
 
-The AYS FS will always first look into its local cache for the binary files. If can't find them, it will look into the 'grid caches', and if not found there it will download them from a store.
+The G8OS FS will always first look into its local cache for the binary files. If can't find them, it will look into the 'grid caches', and if not found there it will download them from a store.

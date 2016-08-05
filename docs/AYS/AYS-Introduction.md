@@ -15,9 +15,9 @@ It combines functions such as:
 - **Monitoring Tool**
 
 
-### What is a service?**
+### What is a service?
 
-A service, either local or remote, is an abstraction for almost anything:
+A service, either local is an abstraction for almost anything:
 
 - Simple package i.e `mongodb`
 - Server cluster i.e `mongodb cluster`
@@ -30,11 +30,12 @@ A service, either local or remote, is an abstraction for almost anything:
 
 We use only one command `ays` to control everything:
 
-- Convert a blue print to one or more ays instanves by `ays blueprint`
+- Convert a blueprint to one or more ays instances by `ays blueprint`
 - Configure all dependencies of a given service by executing `ays init` on the AYS repository of the service
 - Install a service by executing `ays install`
 - Start all services: `ays start`
 - Stop all services: `ays stop`
+- check `ays --help` for a complete list of available commands
 
 ### Next
 
@@ -44,7 +45,6 @@ Next you will want to learn about:
 - [Life Cycle of an AYS Service](Service-Lifecycle.md)
 - [AYS Commands](Commands/commands.md)
 - [AYS File Locations & Details](FileDetails/FileDetails.md)
-- [AYS File System](AYS-FS.md)
-- [AYS Portal](AYS-Portal.md)
+- [AYS File System](G8OS-FS.md)
 - [Building an AYS Service](Building.md)
 - [AYS Examples](Examples/Home.md)

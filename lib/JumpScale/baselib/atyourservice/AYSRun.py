@@ -89,9 +89,14 @@ class AYSRunStepAction(Process):
     def run(self):
         try:
             self.result = self.service.runAction(self.runstep.action)
+            self.logger.debug('running stepaction: %s' % self.service)
+            self.logger.debug('\tresult:%s' % self.result)
             self.result_q.put(self.result)
         except Exception as e:
+            self.logger.debug('running stepaction with error: %s' % self.service)
+            self.logger.debug('\tresult:%s' % self.result)
             self.error_q.put(self._str_error(e))
+            self.result_q.put(self.result)
             raise e
 
     def __repr__(self):
@@ -127,13 +132,16 @@ class AYSRunStep:
         return aysi.key in self.actions
 
     def execute(self):
-        for key, stepaction in self.actions.items():
-            stepaction.start()
+        self.run.aysrepo.logger.debug('***************')
+        self.run.aysrepo.logger.debug('\n\t'.join(list(self.actions.keys())))
 
-        for key, stepaction in self.actions.items():
-            stepaction.join()
-            if stepaction.exitcode != 0:
+        for stepaction in self.actions.values(): stepaction.start()
+        for stepaction in self.actions.values(): stepaction.join()
+
+        for stepaction in self.actions.values():
+            if not stepaction.error_q.empty():
                 print(stepaction.error_q.get())
+                stepaction.result = stepaction.result_q.get()
                 stepaction.state = "ERROR"
                 self.state = "ERROR"
                 self.run.state = "ERROR"
@@ -269,7 +277,7 @@ class AYSRun:
                     if action.state == "ERROR":
                         out += "STEP:%s, ACTION:%s" % (step.nr, step.action)
                         out += self.db.get_dedupe("source", action.model["source"]).decode()
-                        out += action.result
+                        out += str(action.result or '')
         return out
 
     def reverse(self):

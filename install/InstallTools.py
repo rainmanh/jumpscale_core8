@@ -2503,14 +2503,17 @@ exec python3 -q "$@"
             pip3 install ipython
             pip3 install redis
             pip3 install netaddr
+            pip3 install pycapnp
+            pip3 install path.py
+            pip3 install colored-traceback
+            pip3 install pudb
+            pip3 install colorlog
+            pip3 install msgpack-python
             """
             do.executeCmds(cmds)
 
-            do.executeInteractive("pip3 install colored-traceback")
             #do.executeInteractive("pip3 install xonsh")
-            do.executeInteractive("pip3 install pudb")
-            do.executeInteractive("pip3 install tmuxp")
-            do.executeInteractive("pip3 install colorlog")
+            # do.executeInteractive("pip3 install tmuxp")
 
             if sys.platform.startswith('win'):
                 raise RuntimeError("Cannot find JSBASE, needs to be set as env var")

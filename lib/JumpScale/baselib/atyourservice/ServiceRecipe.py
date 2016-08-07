@@ -76,7 +76,7 @@ class RecipeState():
             self.recipe.logger.info("Recipe state Changed, writen to disk.")
             out = j.data.serializer.json.dumps(self._model, True, True)
             j.sal.fs.writeFile(filename=self._path, contents=out)
-            self.recipe.save2db()
+            # self.recipe.save2db()
             self.changed = False
 
     def __repr__(self):
@@ -124,7 +124,7 @@ class ServiceRecipe(ServiceTemplate):
             self.saveToDB()
 
     def saveToDB(self):
-
+        return
         from IPython import embed
         print ("DEBUG NOW save2db")
         embed()

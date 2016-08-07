@@ -1,5 +1,7 @@
 from JumpScale import j
 
+#@todo can we make all of this lazy loading (*2*)
+
 from JumpScale.data.serializers.SerializerInt import SerializerInt
 from JumpScale.data.serializers.SerializerTime import SerializerTime
 from JumpScale.data.serializers.SerializerBase64 import SerializerBase64
@@ -8,7 +10,10 @@ from JumpScale.data.serializers.SerializerDict import SerializerDict
 from JumpScale.data.serializers.SerializerBlowfish import SerializerBlowfish
 from JumpScale.data.serializers.SerializerUJson import SerializerUJson
 from JumpScale.data.serializers.SerializerYAML import SerializerYAML
-from JumpScale.data.serializers.SerializerTOML import SerializerTOML
+try:
+    from JumpScale.data.serializers.SerializerTOML import SerializerTOML
+except:
+    pass
 
 
 class SerializersFactory:
@@ -26,7 +31,10 @@ class SerializersFactory:
         self.blowfish = SerializerBlowfish()
         self.json=SerializerUJson()
         self.yaml=SerializerYAML()
-        self.toml=SerializerTOML()
+        try:
+            self.toml=SerializerTOML()
+        except:
+            pass
 
     def get(self,serializationstr,key=""):
         """

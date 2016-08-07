@@ -70,6 +70,7 @@ class CuisineLua(base):
 
         luarocks install lua-capnproto
         luarocks install lua-cjson
+        luarocks install penlight
 
         ## tarantool packages
 

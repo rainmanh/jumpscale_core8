@@ -286,9 +286,9 @@ class AtYourServiceFactory:
 
     def getService(self, key, die=True):
         if key.count("!") != 2:
-            raise j.exceptions.Input("key:%s needs to be $reponame!$role!$instance" % key)
+            raise j.exceptions.Input("key:%s needs to be $repopath!$role!$instance" % key)
         repopath, role, instance = key.split("!", 2)
-        if not self.exist(path=reponame):
+        if not self.exist(path=repopath):
             if die:
                 raise j.exceptions.Input("service repo %s does not exist, could not retrieve ays service:%s" % (repopath, key))
             else:

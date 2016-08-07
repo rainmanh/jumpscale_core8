@@ -68,9 +68,6 @@ class CuisinePortal(base):
         # docker-py
         # dominate
         # ecdsa
-        eve
-        eve_docs
-        eve-mongoengine
         # Events
         # Flask
         # Flask-Bootstrap
@@ -136,7 +133,6 @@ class CuisinePortal(base):
         # zmq
         """
         self.cuisine.pip.multiInstall(deps)
-        self.changeEve()
 
     @actionrun(action=True)
     def getcode(self):
@@ -210,15 +206,6 @@ class CuisinePortal(base):
         hrd.save()
         self.cuisine.core.file_write(dest_cfg, str(hrd))
         j.sal.fs.remove(tmp)
-
-    @actionrun(action=True)
-    def changeEve(self):
-        path = self.cuisine.core.run("js --quiet 'print(j)'")[1]  # hack, make sure jumpscale has loaded lib before trying to print something
-        path = self.cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=False))'")[1]
-        path = j.sal.fs.joinPaths(path, "eve_docs", "config.py")
-        if not self.cuisine.core.file_exists(path):
-            raise j.exceptions.RuntimeError("Cannot find:%s, to convert to python 3" % path)
-        self.cuisine.core.run("2to3-3.5 -f all -w %s" % path)
 
     @actionrun(action=True, force=True)
     def start(self, passwd=None):

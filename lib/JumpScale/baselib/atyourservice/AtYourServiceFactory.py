@@ -54,21 +54,26 @@ class AtYourServiceFactory:
     def getTester(self, name="fake_IT_env"):
         return AtYourServiceTester(name)
 
-    def exist(self, name):
+    def exist(self, path):
         """
-        Check if a repo with the given name exist or not, if multiple repos found with the same name, an exception is raised
+        Check if a repo at the given path exist or not, if multiple repos found under that path, an exception is raised
 
         @param name: name of the repo
         @type name: str
 
         @returns:   True if exist, Flase if it doesnt, raises exception if mulitple found with the same name
         """
-        result = [repo for repo in self.repos.values() if repo.name == name]
+        try:
+            result = self.findAYSRepos(path=path)
+        except j.exceptions.Input:
+            # doesnt exists
+            return False
+
         if len(result) > 1:
-            msg = "Multiple AYS repos with name %s found under locations [%s]. Please use j.atyourservice.get(path=<path>) instead" % \
-                    (name, ','.join([repo.basepath for repo in result]))
-            raise j.exceptions.RuntimeError(msg)
-        return result
+            msg = "Multiple AYS repos found under %s: \n%s\n" % (path, '\n'.join(result))
+            raise j.exceptions.Input(msg)
+
+        return True
 
     def get(self, name="", path=""):
         """
@@ -84,7 +89,7 @@ class AtYourServiceFactory:
         """
         self._doinit()
         if path:
-            if path not in self.repos:
+            if path not in self._repos:
                 if j.sal.fs.exists(path) and j.sal.fs.isDir(path):
                     if not name:
                         name = j.sal.fs.getBaseName(path)
@@ -92,7 +97,7 @@ class AtYourServiceFactory:
 
         else:
             # we want to retrieve  repo by name
-            result = [repo for repo in self.repos.values() if repo.name == name]
+            result = [repo for repo in self._repos.values() if repo.name == name]
             if not result:
                 path = j.sal.fs.getcwd()
                 if not name:
@@ -105,7 +110,7 @@ class AtYourServiceFactory:
             else:
                 path = result[0].basepath
 
-        return self.repos[path]
+        return self._repos[path]
 
     def reset(self):
         for repo in self._repos.values():
@@ -117,13 +122,6 @@ class AtYourServiceFactory:
         j.dirs._ays = None
         self._init = False
 
-    @property
-    def repos(self):
-        if self._repos == {}:
-            for path in j.atyourservice.findAYSRepos():
-                name = j.sal.fs.getBaseName(path)
-                self._repos[path] = AtYourServiceRepo(name, path)
-        return self._repos
 
     @property
     def sandboxer(self):
@@ -290,7 +288,7 @@ class AtYourServiceFactory:
         if key.count("!") != 2:
             raise j.exceptions.Input("key:%s needs to be $reponame!$role!$instance" % key)
         reponame, role, instance = key.split("!", 2)
-        if not self.exist(name=reponame):
+        if not self.exist(path=reponame):
             if die:
                 raise j.exceptions.Input("service repo %s does not exist, could not retrieve ays service:%s" % (reponame, key))
             else:

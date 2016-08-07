@@ -505,7 +505,7 @@ class AtYourServiceRepo():
             self.setState(actions=["install"], role=role, instance=instance, state='DO')
 
         run = self.getRun(action="install", force=force)
-        print("RUN:UNINSTALL")
+        print("RUN:INSTALL")
         print(run)
         run.execute()
 

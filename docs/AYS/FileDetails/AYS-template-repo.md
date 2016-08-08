@@ -1,6 +1,6 @@
 ## AYS Template Repo
 
-AYS template repositories contain all the metadata defining the life cycle of a service, from pre-installation to monitoring.
+AYS service template repositories contain all the metadata defining the lifecycle of a service, from pre-installation to monitoring.
 
 An example is [ays_jumpscale8](https://github.com/Jumpscale/ays_jumpscale8), defining the full life cycle of all JumpScale services.
 

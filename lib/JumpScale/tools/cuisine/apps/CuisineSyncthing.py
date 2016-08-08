@@ -91,8 +91,9 @@ class Syncthing(base):
         url = "https://github.com/syncthing/syncthing.git"
         self.cuisine.core.dir_remove('$goDir/src/github.com/syncthing/syncthing')
         dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='$goDir/src/github.com/syncthing/syncthing', ssh=False, depth=None)
-        self.cuisine.core.run('cd %s && godep restore' % dest, profile=True)
-        self.cuisine.core.run("cd %s && ./build.sh noupgrade" % dest, profile=True)
+        self.cuisine.core.run('cd %s; go run build.go build' % dest, profile=True)
+        #self.cuisine.core.run('cd %s && godep restore' % dest, profile=True)
+        #self.cuisine.core.run("cd %s && ./build.sh noupgrade" % dest, profile=True)
 
         #copy bin
         self.cuisine.core.file_copy(self.cuisine.core.joinpaths(dest, 'syncthing'), "$goDir/bin/", recursive=True)

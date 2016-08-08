@@ -17,7 +17,7 @@
       * [Parents & Children](AYS/Definitions/6-Parents-Children.md)
       * [Service Actions](AYS/Definitions/7-Actions.md)
       * [Blueprints](AYS/Definitions/8-Blueprints.md)
-   * [Life Cycle of an AYS Service](AYS/Service-Lifecycle.md)
+   * [Lifecycle of an AYS Service](AYS/Service-Lifecycle.md)
    * [Commands](AYS/Commands/commands.md)
        * [blueprint](AYS/Commands/blueprint.md)
        * [init](AYS/Commands/init.md)

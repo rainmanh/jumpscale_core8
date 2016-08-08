@@ -1,5 +1,5 @@
 from JumpScale import j
-
+import random
 
 class HRDType:
     def __init__(self):
@@ -264,9 +264,8 @@ class HRDSchema:
             'float': 'Float32',
         }
         fid = 0
-        rc, schema_id, err = j.tools.cuisine.local.core.run('capnp id', showout=False)
-        if rc != 0:
-            raise j.exceptions.RuntimeError("Can't generate an capnp ID: %s" % err)
+        # the bitwise is for validating the id check capnp/parser.c++
+        schema_id = hex(random.randint(0, 2**64) | 1 << 63)
         serializeddata = ""
 
         for k, ttype in self.fieldsforcapnp.items():
@@ -279,7 +278,7 @@ class HRDSchema:
             fid += 1
 
         template = """
-%s;
+@%s;
 struct Schema {
 %s
 }

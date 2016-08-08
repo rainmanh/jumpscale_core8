@@ -11,16 +11,14 @@ from JumpScale import j
 
 import click
 
-cwd = None
 atyourservice = None
 
 @click.group()
 @click.option('--nodebug', default=False, help='disable debug mode', is_flag=True)
 def cli(nodebug):
-    global cwd, atyourservice
-    cwd = j.sal.fs.getcwd()
+    global atyourservice
     try:
-        atyourservice = j.atyourservice.get(j.sal.fs.getBaseName(cwd), cwd)
+        atyourservice = j.atyourservice.repoGet()
     except j.exceptions.Input:
         raise j.exceptions.AYSNotFound("You're currently not in an AYS repo. Please cd into an AYS repo before performing an AYS action")
     atyourservice.debug = not nodebug

@@ -76,9 +76,9 @@ class Blueprint:
                         self.logger.info("ignore load from blueprint based on role for: %s:%s" % (aysname, aysinstance))
                         continue
 
-                    recipe = self.aysrepo.getRecipe(aysname, die=False)
+                    Actor = self.aysrepo.getActor(aysname, die=False)
 
-                    if recipe is None:
+                    if Actor is None:
                         # check if its a blueprintays, if yes then template name is different
                         aystemplate_name = aysname
                         if not aysname.startswith('blueprint.'):
@@ -86,11 +86,11 @@ class Blueprint:
                             if self.aysrepo.existsTemplate(blueaysname):
                                 aystemplate_name = blueaysname
 
-                        recipe = self.aysrepo.getRecipe(aystemplate_name)  # will load recipe if it doesn't exist yet
+                        Actor = self.aysrepo.getActor(aystemplate_name)  # will load Actor if it doesn't exist yet
 
-                    if not len(self.aysrepo.findServices(role=recipe.role, instance=aysinstance)):
+                    if not len(self.aysrepo.findServices(role=Actor.role, instance=aysinstance)):
                         # if it's not there, create it.
-                        aysi = recipe.newInstance(instance=aysinstance, args=item)
+                        aysi = Actor.newInstance(instance=aysinstance, args=item)
 
     def _add2models(self, content, nr):
         # make sure we don't process double

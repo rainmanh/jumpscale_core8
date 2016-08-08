@@ -9,7 +9,7 @@ Following 4 directories are relevant in an AYS repo:
     - **blueprints**
         - YAML files defining what needs to be done
         
-    - **servicetemplates**
+    - **ActorTemplates**
         - Local set of AYS service templates
         - AYS will always first look here for an AYS service template, and if not found here check the AYS configuration file (`/optvar/hrd/system/atyourservice.hrd`) as discussed above to know where to get the AYS service template
         

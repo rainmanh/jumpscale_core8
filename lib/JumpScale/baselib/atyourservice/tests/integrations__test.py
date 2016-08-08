@@ -25,7 +25,7 @@ class AYSTestBase(unittest.TestCase):
         """
         self.tmp_dir = j.sal.fs.getTmpDirPath()
         self.services_dir = j.sal.fs.joinPaths(self.tmp_dir, 'services')
-        self.templates_dir = j.sal.fs.joinPaths(self.tmp_dir, 'servicetemplates')
+        self.templates_dir = j.sal.fs.joinPaths(self.tmp_dir, 'ActorTemplates')
         self.domain = j.sal.fs.getBaseName(self.tmp_dir)
         # create ays directories
         j.sal.fs.createDir(self.tmp_dir)

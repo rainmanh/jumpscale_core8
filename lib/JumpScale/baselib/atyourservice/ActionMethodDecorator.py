@@ -69,7 +69,7 @@ class ActionMethodDecorator:
 
             if action:
 
-                # this is safe for e.g.gevent usage, should always return recipe which is alike for all
+                # this is safe for e.g.gevent usage, should always return Actor which is alike for all
                 selfGeneratorCode = "service=j.atyourservice.getService('%s');selfobj=service.actions" % aysikey
 
                 j.actions.setRunId('ays_%s_%s_%s' % (service.aysrepo.name, service.templatename, service.instance))

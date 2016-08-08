@@ -29,7 +29,7 @@ def getProcessDicts(service, args={}):
     musthave = ["cmd", "args", "prio", "env", "cwd", "timeout_start",
                 "timeout_start", "ports", "startupmanager", "filterstr", "name", "user"]
 
-    procs = service.recipe.hrd.getListFromPrefixEachItemDict("process", musthave=musthave, defaults=defaults, aredict=[
+    procs = service.Actor.hrd.getListFromPrefixEachItemDict("process", musthave=musthave, defaults=defaults, aredict=[
         'env'], arelist=["ports"], areint=["prio", "timeout_start", "timeout_start"])
     for process in procs:
         counter += 1
@@ -39,8 +39,8 @@ def getProcessDicts(service, args={}):
         if "name" not in process or process["name"].strip() == "":
             process["name"] = "%s_%s" % (service.name, service.instance)
 
-        if service.recipe.hrd.exists("env.process.%s" % counter):
-            process["env"] = service.recipe.hrd.getDict("env.process.%s" % counter)
+        if service.Actor.hrd.exists("env.process.%s" % counter):
+            process["env"] = service.Actor.hrd.getDict("env.process.%s" % counter)
 
         if not isinstance(process["env"], dict):
             raise j.exceptions.RuntimeError("process env needs to be dict")
@@ -50,7 +50,7 @@ def getProcessDicts(service, args={}):
 
 class Service:
 
-    def __init__(self, aysrepo, servicerecipe=None, instance=None, path="", args={}, originator=None, parent=None, model=None):
+    def __init__(self, aysrepo, Actor=None, instance=None, path="", args={}, originator=None, parent=None, model=None):
         """
         """
         self.aysrepo = aysrepo
@@ -69,36 +69,36 @@ class Service:
 
         if path != "" and j.sal.fs.exists(path):
             self._role, self._instance = j.sal.fs.getBaseName(path).split("!")
-            self._recipe = None
+            self._Actor = None
             self.path = path
-            servicerecipe = None
+            Actor = None
         else:
             if not j.data.types.string.check(instance) or instance == "":
                 raise j.exceptions.Input("Instance needs to be a string.")
 
-            if j.data.types.string.check(servicerecipe):
-                raise j.exceptions.RuntimeError("no longer supported, pass servicerecipe")
+            if j.data.types.string.check(Actor):
+                raise j.exceptions.RuntimeError("no longer supported, pass Actor")
 
-            if servicerecipe is None:
-                raise j.exceptions.RuntimeError("service recipe cannot be None if path not specified")
+            if Actor is None:
+                raise j.exceptions.RuntimeError("service Actor cannot be None if path not specified")
 
             if instance is None:
                 raise j.exceptions.RuntimeError("instance needs to be specified")
 
             self._instance = instance.lower()
-            self._role = servicerecipe.name.split(".")[0]
+            self._role = Actor.name.split(".")[0]
 
             self.path = j.sal.fs.joinPaths(self.aysrepo.basepath, "services", "%s!%s" % (self.role, instance))
 
             parentkey = ""
             if parent is None:
-                if servicerecipe.schema is not None:
+                if Actor.schema is not None:
                     # CHECK PARENTS !
-                    parent_recipe_item = servicerecipe.schema.parentSchemaItemGet()
+                    parent_Actor_item = Actor.schema.parentSchemaItemGet()
 
-                    if parent_recipe_item is not None and parent_recipe_item.parent is not None and parent_recipe_item.parent != "":
+                    if parent_Actor_item is not None and parent_Actor_item.parent is not None and parent_Actor_item.parent != "":
 
-                        ays_template_name = parent_recipe_item.parent
+                        ays_template_name = parent_Actor_item.parent
 
                         # parent exists
                         if '.' in ays_template_name:
@@ -108,22 +108,22 @@ class Service:
 
                         # parent.name is name of element in scheme which points to item we are filling in
                         parentinstance = ""
-                        if parent_recipe_item.name in args:
+                        if parent_Actor_item.name in args:
                             # has been speficied or empty
-                            parentinstance = args[parent_recipe_item.name].strip()
+                            parentinstance = args[parent_Actor_item.name].strip()
                         elif parentrole in args:
                             # has been speficied or empty
                             parentinstance = args[parentrole].strip()
 
                         if parentinstance != "":
                             aysi = self.aysrepo.getService(role=parentrole, instance=parentinstance, die=True)
-                        elif parent_recipe_item.auto:
+                        elif parent_Actor_item.auto:
                             aysi = self.aysrepo.getService(role=parentrole, instance="main", die=False)
                             if aysi is None:
-                                parent_recipe = self.aysrepo.getRecipe(name=parent_recipe_item.name)
-                                aysi = parent_recipe.newInstance(instance="main", args={})
+                                parent_Actor = self.aysrepo.getActor(name=parent_Actor_item.name)
+                                aysi = parent_Actor.newInstance(instance="main", args={})
                         else:
-                            raise j.exceptions.Input("Parent '%s' needs to be specified or put on autocreation in recipe:%s, now instance:%s" % (parent_recipe_item.name, servicerecipe, self.instance))
+                            raise j.exceptions.Input("Parent '%s' needs to be specified or put on autocreation in Actor:%s, now instance:%s" % (parent_Actor_item.name, Actor, self.instance))
 
                         parentkey = aysi.key
                         parent = aysi
@@ -140,7 +140,7 @@ class Service:
 
             j.sal.fs.createDir(self.path)
 
-            if servicerecipe.template.schema is None and servicerecipe.template.hrd is None:
+            if Actor.template.schema is None and Actor.template.hrd is None:
                 self._hrd = "EMPTY"
 
             if model is not None:
@@ -154,26 +154,26 @@ class Service:
         if self.state is None:
             self.state = ServiceState(self)
 
-        if servicerecipe is not None:
-            self.state.recipe = servicerecipe.name
+        if Actor is not None:
+            self.state.Actor = Actor.name
             self.init(args=args)  # first time init
 
         # Set subscribed event into state
-        if self.recipe.template.hrd is not None:
-            for event, actions in self.recipe.template.hrd.getDictFromPrefix('events').items():
+        if self.Actor.template.hrd is not None:
+            for event, actions in self.Actor.template.hrd.getDictFromPrefix('events').items():
                 self.state.setEvents(event, actions)
             # Set recurring into state
-            for action, period in self.recipe.template.hrd.getDictFromPrefix('recurring').items():
+            for action, period in self.Actor.template.hrd.getDictFromPrefix('recurring').items():
                 self.state.setRecurring(action, period)
 
             # if service.hrd has remove some event action, update state to reflect that
-            actual = set(self.recipe.template.hrd.getDictFromPrefix('events').keys())
+            actual = set(self.Actor.template.hrd.getDictFromPrefix('events').keys())
             total = set(self.state.events.keys())
             for action in total.difference(actual):
                 self.state.removeEvent(action)
 
             # if service.hrd has remove some recurring action, update state to reflect that
-            actual = set(self.recipe.template.hrd.getDictFromPrefix('recurring').keys())
+            actual = set(self.Actor.template.hrd.getDictFromPrefix('recurring').keys())
             total = set(self.state.recurring.keys())
             for action in total.difference(actual):
                 self.state.removeRecurring(action)
@@ -191,7 +191,7 @@ class Service:
         self._producers = None
         self._parentChain = None
         self._parent = None
-        self._recipe = None
+        self._Actor = None
         self._model = None
 
     @property
@@ -211,14 +211,14 @@ class Service:
         return self._instance
 
     @property
-    def recipe(self):
-        if self._recipe is None:
-            self._recipe = self.aysrepo.getRecipe(name=self.state.recipe)
-        return self._recipe
+    def Actor(self):
+        if self._Actor is None:
+            self._Actor = self.aysrepo.getActor(name=self.state.Actor)
+        return self._Actor
 
     @property
     def templatename(self):
-        return self.state.recipe
+        return self.state.Actor
 
     @property
     def dnsNames(self):
@@ -309,8 +309,8 @@ class Service:
         self.state.save()
 
     def update_hrd(self):
-        if self.recipe.template.schema is not None:
-            self._hrd = self.recipe.template.schema.hrdGet(hrd=self.hrd, args={})
+        if self.Actor.template.schema is not None:
+            self._hrd = self.Actor.template.schema.hrdGet(hrd=self.hrd, args={})
             self._hrd.path = j.sal.fs.joinPaths(self.path, "instance.hrd")
 
     def init(self, args={}):
@@ -322,7 +322,7 @@ class Service:
 
         # run the args manipulation action as an action
         self.state.save()
-        args = self.actions.input(self, self.recipe, self.role, self.instance, args)
+        args = self.actions.input(self, self.Actor, self.role, self.instance, args)
 
         originalhrd = j.data.hrd.get(content=str(self.hrd))
 
@@ -330,8 +330,8 @@ class Service:
         if self._hrd == "EMPTY":
             self._hrd = None
         else:
-            if self.recipe.template.schema is not None:
-                self._hrd = self.recipe.template.schema.hrdGet(hrd=self.hrd, args=args)
+            if self.Actor.template.schema is not None:
+                self._hrd = self.Actor.template.schema.hrdGet(hrd=self.hrd, args=args)
                 self._hrd.path = j.sal.fs.joinPaths(self.path, "instance.hrd")
             else:
                 if args != {}:
@@ -354,14 +354,14 @@ class Service:
                 self.hrd.save()
             self.state.instanceHRDHash = newInstanceHrdHash
 
-        if self.recipe.template.hrd is not None:
+        if self.Actor.template.hrd is not None:
             if self._hrd == "EMPTY":
                 self._hrd = None
-            newTemplateHrdHash = j.data.hash.md5_string(str(self.recipe.template.hrd))
+            newTemplateHrdHash = j.data.hash.md5_string(str(self.Actor.template.hrd))
             if self.state.templateHRDHash != newTemplateHrdHash:
                 # the template hash changed
                 if self.hrd is not None:
-                    self.hrd.applyTemplate(template=self.recipe.template.hrd, args={}, prefix='')
+                    self.hrd.applyTemplate(template=self.Actor.template.hrd, args={}, prefix='')
                     self.actions.change_hrd_template(service=self, originalhrd=originalhrd)
                     self.hrd.save()
                     self.state.templateHRDHash = newTemplateHrdHash
@@ -369,13 +369,13 @@ class Service:
 
     def _consumeFromSchema(self, args):
 
-        if self.recipe.schema is None:
+        if self.Actor.schema is None:
             return
 
         self.logger.debug('[_consumeFromSchema] args %s' % args)
 
         # manipulate the HRD's to mention the consume's to producers
-        consumes = self.recipe.schema.consumeSchemaItemsGet()
+        consumes = self.Actor.schema.consumeSchemaItemsGet()
         if consumes:
             for consumeitem in consumes:
                 # parent exists
@@ -616,7 +616,7 @@ class Service:
 
     @property
     def actions(self):
-        return self.recipe.get_actions(service=self)
+        return self.Actor.get_actions(service=self)
 
     def runAction(self, action):
         a = self.getAction(action)
@@ -716,11 +716,13 @@ class Service:
 
         self.state.load()
 
+
+
     # @property
     # def action_methods_node(self):
     #     if self._action_methods_node is None or not self._rememberActions:
-    #         if j.sal.fs.exists(path=self.recipe.path_actions_node):
-    #             action_methods_node = self._loadActions(self.recipe.path_actions_node,"node")
+    #         if j.sal.fs.exists(path=self.Actor.path_actions_node):
+    #             action_methods_node = self._loadActions(self.Actor.path_actions_node,"node")
     #         else:
     #             action_methods_node = j.atyourservice.getActionsBaseClassNode()()
 

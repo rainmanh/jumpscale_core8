@@ -19,7 +19,7 @@ class ServiceState():
         if j.sal.fs.exists(path=self._path):
             self._model = j.data.serializer.yaml.load(self._path)
         else:
-            self._model = {"parent": "", "producers": {}, "state": {}, "recurring": {}, "events": {}, "templateHRDHash": "", "instanceHRDHash": "", "recipe": ""}
+            self._model = {"parent": "", "producers": {}, "state": {}, "recurring": {}, "events": {}, "templateHRDHash": "", "instanceHRDHash": "", "Actor": ""}
 
     @property
     def methods(self):
@@ -82,12 +82,12 @@ class ServiceState():
         self._changed = changed
 
     @property
-    def recipe(self):
-        return self._model["recipe"]
+    def Actor(self):
+        return self._model["Actor"]
 
-    @recipe.setter
-    def recipe(self, recipe):
-        self._model["recipe"] = recipe
+    @Actor.setter
+    def Actor(self, Actor):
+        self._model["Actor"] = Actor
         self.changed = True
 
     @property

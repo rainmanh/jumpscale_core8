@@ -1,77 +1,5 @@
 @0x93c1ac9f09464fd4;
 
-struct Service {
-  name @0 :Text;
-  #role of service e.g. node.ssh
-  role @1 :Text;
-
-  #FQDN of actor who owns this service
-  actor @2 :Text;
-
-  parent @3 :ServicePointer;
-
-  producers @4 :List(ServicePointer);
-
-  struct ServicePointer {
-    name @0 :Text;
-    role @1 :Text;
-    #domain name of actor who owns this service pointed too
-    actorFQDN @2 :Text;
-    #defines which rights this service has to the other service e.g. owner or not
-    key @3 :Text;
-  }
-
-  actions @5 :List(Action);
-  struct Action {
-    name @0 :Text;
-    #unique key for action (hash of code inside action)
-    key @1 :Text;
-  }
-
-  recurring @6 :List(Recurring);
-  struct Recurring {
-    #period in seconds
-    action @0 :Text;
-    period @1 :UInt32;
-    #needs to be bool
-    #if True then will keep log of what happened, otherwise only when error
-    log @2 :UInt32;
-  }
-
-  state @7 :State;
-  enum State {
-    new @0;
-    init @1;
-    installing @2;
-    ok @3;
-    error @4;
-    disabled @5;
-    changed @6;
-  }
-
-  configdata @8 :Data;
-
-  hashes @9 :Hashes;
-  struct Hashes {
-    configdata @0 :Text;
-    actorActions @1 :Text;
-    actorData @2 :Text;
-  }
-
-  key @10 :Text;
-
-
-  gitrepos @11 :List(GitRepo);
-  struct GitRepo {
-    #git url
-    url @0 :Text;
-    #path in repo
-    path @1 :Text;
-  }  
-
-}
-
-
 struct Actor {
 
   state @0 :State;
@@ -145,6 +73,80 @@ struct Actor {
 
 
 }
+
+struct Service {
+  name @0 :Text;
+  #role of service e.g. node.ssh
+  role @1 :Text;
+
+  #FQDN of actor who owns this service
+  actor @2 :Text;
+
+  parent @3 :ServicePointer;
+
+  producers @4 :List(ServicePointer);
+
+  struct ServicePointer {
+    name @0 :Text;
+    role @1 :Text;
+    #domain name of actor who owns this service pointed too
+    actorFQDN @2 :Text;
+    #defines which rights this service has to the other service e.g. owner or not
+    key @3 :Text;
+  }
+
+  actions @5 :List(Action);
+  struct Action {
+    name @0 :Text;
+    #unique key for action (hash of code inside action)
+    key @1 :Text;
+  }
+
+  recurring @6 :List(Recurring);
+  struct Recurring {
+    #period in seconds
+    action @0 :Text;
+    period @1 :UInt32;
+    #needs to be bool
+    #if True then will keep log of what happened, otherwise only when error
+    log @2 :UInt32;
+  }
+
+  state @7 :State;
+  enum State {
+    new @0;
+    init @1;
+    installing @2;
+    ok @3;
+    error @4;
+    disabled @5;
+    changed @6;
+  }
+
+  configdata @8 :Data;
+
+  hashes @9 :Hashes;
+  struct Hashes {
+    configdata @0 :Text;
+    actorActions @1 :Text;
+    actorData @2 :Text;
+  }
+
+  key @10 :Text;
+
+
+  gitrepos @11 :List(GitRepo);
+  struct GitRepo {
+    #git url
+    url @0 :Text;
+    #path in repo
+    path @1 :Text;
+  }  
+
+}
+
+
+
 
 struct ActorIndex {
   actors @0 :List(IndexItem);

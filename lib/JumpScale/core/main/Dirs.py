@@ -56,8 +56,6 @@ class Dirs:
         self.hrd =  os.path.join(j.application.config.get("system.paths.hrd"),"system")
         self.homeDir=os.environ["HOME"]
 
-        self._ays=None
-
         self._createDir(os.path.join(self.base,"libext"))
         self._createDir(self.tmplsDir)
 
@@ -124,16 +122,6 @@ class Dirs:
                 os.makedirs(path)
         except:
             pass
-
-
-    # @property
-    # def ays(self):
-    #     if self._ays!=None:
-    #         return self._ays
-    #     path = j.atyourservice.basepath
-    #     self._ays= j.sal.fs.joinPaths(path,"services")
-    #     j.sal.fs.createDir(self._ays)
-    #     return self._ays
 
 
     def _getParent(self, path):

@@ -4,7 +4,7 @@ from JumpScale import j
 import copy
 import inspect
 
-from JumpScale.baselib.atyourservice.ServiceTemplate import ServiceTemplate
+from JumpScale.baselib.atyourservice.ActorTemplate import ActorTemplate
 
 
 from JumpScale.baselib.atyourservice.Service import Service, loadmodule
@@ -20,13 +20,16 @@ class action(ActionMethodDecorator):
 """
 
 
-class RecipeState():
+class ActorState():
+    """
+    is state object for actor, what was last state after installing
+    """
 
-    def __init__(self, recipe):
-        self.recipe = recipe
+    def __init__(self, Actor):
+        self.Actor = Actor
 
 
-        self._path = j.sal.fs.joinPaths(self.recipe.path, "state.json")
+        self._path = j.sal.fs.joinPaths(self.Actor.path, "state.json")
         if j.sal.fs.exists(path=self._path):
             self._model = j.data.serializer.json.load(self._path)
         else:
@@ -35,6 +38,22 @@ class RecipeState():
         self.changed = False
         self._changes = {}
         self._methodsList = []
+
+        self.db=j.atyourservice.kvs.get("actor")
+
+        if self.db.exists(self.hrkey)==False:
+            self.saveToDB()   
+
+    def saveToDB(self):
+        return
+        from IPython import embed
+        print ("DEBUG NOW save2db")
+        embed()
+        model=j.atyourservice.AYSModel.Actor.new_message()
+        model.role=self.name
+
+        # resdb=j.atyourservice.db.get("Actor",self.Actor.name)
+
 
     def addMethod(self, name="", source="", isDefaultMethod=False):
         if source != "":
@@ -73,10 +92,10 @@ class RecipeState():
 
     def save(self):
         if self.changed:
-            self.recipe.logger.info("Recipe state Changed, writen to disk.")
+            self.Actor.logger.info("Actor state Changed, writen to disk.")
             out = j.data.serializer.json.dumps(self._model, True, True)
             j.sal.fs.writeFile(filename=self._path, contents=out)
-            # self.recipe.save2db()
+            # self.Actor.save2db()
             self.changed = False
 
     def __repr__(self):
@@ -88,93 +107,37 @@ class RecipeState():
     __str__ = __repr__
 
 
-class ServiceRecipe(ServiceTemplate):
+class Actor(ActorTemplate):
 
-    def __init__(self, aysrepo, path="", template=None):
+    def __init__(self,aysrepo,template):
+        """
+        """
 
+        self.name=template.name
+        self.role = self.name.split(".", 1)[0]
+
+        self.template = template
         self.aysrepo = aysrepo
 
-        self.logger = self.aysrepo.logger
+        self.domain=self.template.domain
 
-        if path != "":
-            if not j.sal.fs.exists(path):
-                raise j.exceptions.RuntimeError("Could not find path for recipe")
-            self.name = j.sal.fs.getBaseName(path)
-            self._path = path
-        else:
-            if template is None:
-                raise RuntimeError("template cannot be None")
-            self.name = template.name
-            self._path = None
+        self.path = j.sal.fs.joinPaths(aysrepo.basepath, "actors", template.name)
+
+        self.logger = j.atyourservice.logger
 
         self._init_props()
 
-        self.state = RecipeState(self)
-
-        self.role = self.name.split(".", 1)[0]
-
         # copy the files
-        if not j.sal.fs.exists(path=self.path):
-            j.sal.fs.createDir(self.path)
-            self.init()
+        if not j.sal.fs.exists(path=self.path):            
+            self.copyFilesFromTemplate()
 
-        resdb=j.atyourservice.db.get("recipe",self.name)
+        self.state = ActorState(self)
 
-        if resdb==None:
-            self.saveToDB()
+#### INIT
 
-    def saveToDB(self):
-        return
-        from IPython import embed
-        print ("DEBUG NOW save2db")
-        embed()
-        model=j.atyourservice.AYSModel.Actor.new_message()
-        model.role=self.name
+    def copyFilesFromTemplate(self):
 
-        # resdb=j.atyourservice.db.get("recipe",self.recipe.name)
-
-
-    def _init_props(self):
-        self._hrd = None
-        self._schema = None
-        self._actions = None
-        self._name = None
-        self._domain = None
-        self._recipe = None
-        self._template = None
-        self.path_hrd_template = j.sal.fs.joinPaths(self.path, "service.hrd")
-        self.path_hrd_schema = j.sal.fs.joinPaths(self.path, "schema.hrd")
-        self.path_actions = j.sal.fs.joinPaths(self.path, "actions.py")
-        self.path_actions_node = j.sal.fs.joinPaths(self.path, "actions_node.py")
-        # self.path_mongo_model = j.sal.fs.joinPaths(self.path, "model.py")
-
-    @property
-    def path(self):
-        if self._path is None:
-            self._path = j.sal.fs.joinPaths(self.aysrepo.basepath, "recipes", self.template.name)
-        return self._path
-
-    @property
-    def template(self):
-        if self._template is None:
-            self._template = self.aysrepo.getTemplate(self.name)
-        return self._template
-
-    @property
-    def domain(self):
-        if self._domain is None:
-            self._domain = self.template.domain
-        return self._domain
-
-    @property
-    def recipe(self):
-        if self._recipe is None:
-            self._recipe = self.aysrepo.getRecipe(self.name)
-        return self._recipe
-
-    def init(self):
-
-        self.state._changes = {}
+        j.sal.fs.createDir(self.path)
 
         if j.sal.fs.exists(self.template.path_hrd_template):
             j.sal.fs.copyFile(self.template.path_hrd_template, self.path_hrd_template)
@@ -184,10 +147,9 @@ class ServiceRecipe(ServiceTemplate):
             j.sal.fs.copyFile(self.template.path_actions_node, self.path_actions_node)
         if j.sal.fs.exists(self.template.path_mongo_model):
             j.sal.fs.copyFile(self.template.path_mongo_model, self.path_mongo_model)
+        
 
         self._writeActionsFile()
-
-        self.state.save()
 
     def _writeActionsFile(self):
         self._out = ""
@@ -276,15 +238,16 @@ class ServiceRecipe(ServiceTemplate):
                     service.actions.change_method(service, methodname=key)
         self.state._changes = {}
 
-    def get_actions(self, service):
+
+#### SERVICE
+    def serviceActionsGet(self, service):
         modulename = "JumpScale.atyourservice.%s.%s" % (self.name, service.instance)
         mod = loadmodule(modulename, self.path_actions)
         return mod.Actions()
 
-    def newInstance(self, instance="main", args={}, path='', parent=None, consume="", originator=None, model=None):
+    def serviceCreate(self, instance="main", args={}, path='', parent=None, consume="", originator=None, model=None):
         """
         """
-
         if parent is not None and instance == "main":
             instance = parent.instance
 
@@ -294,7 +257,7 @@ class ServiceRecipe(ServiceTemplate):
 
         if service is not None:
             # print("NEWINSTANCE: Service instance %s!%s  exists." % (self.name, instance))
-            service._recipe = self
+            service._Actor = self
             service.init(args=args)
             if model is not None:
                 service.model = model
@@ -312,7 +275,7 @@ class ServiceRecipe(ServiceTemplate):
             if j.sal.fs.isDir(fullpath):
                 j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (self.role, instance, fullpath))
 
-            service = Service(aysrepo=self.aysrepo, servicerecipe=self, instance=instance, args=args, path="", parent=parent, originator=originator, model=model)
+            service = Service(aysrepo=self.aysrepo, Actor=self, instance=instance, args=args, path="", parent=parent, originator=originator, model=model)
 
             self.aysrepo._services[service.key] = service
 
@@ -322,118 +285,17 @@ class ServiceRecipe(ServiceTemplate):
 
         return service
 
-    def downloadfiles(self):
-        """
-        this method download any required files for this recipe as defined in the template.hrd
-        Use this method when building a service to have all the files ready to sandboxing
 
-        @return list of tuples containing the source and destination of the files defined in the recipeitem
-                [(src, dest)]
-        """
-        dirList = []
-        # download
-        for recipeitem in self.hrd_template.getListFromPrefix("web.export"):
-            if "dest" not in recipeitem:
-                j.events.opserror_critical(msg="could not find dest in hrditem for %s %s" % (recipeitem, self), category="ays.servicetemplate")
-
-            fullurl = "%s/%s" % (recipeitem['url'],
-                                 recipeitem['source'].lstrip('/'))
-            dest = recipeitem['dest']
-            dest = j.application.config.applyOnContent(dest)
-            destdir = j.sal.fs.getDirName(dest)
-            j.sal.fs.createDir(destdir)
-            # validate md5sum
-            if recipeitem.get('checkmd5', 'false').lower() == 'true' and j.sal.fs.exists(dest):
-                remotemd5 = j.sal.nettools.download(
-                    '%s.md5sum' % fullurl, '-').split()[0]
-                localmd5 = j.data.hash.md5(dest)
-                if remotemd5 != localmd5:
-                    j.sal.fs.remove(dest)
-                else:
-                    continue
-            elif j.sal.fs.exists(dest):
-                j.sal.fs.remove(dest)
-            j.sal.nettools.download(fullurl, dest)
-
-        for recipeitem in self.hrd_template.getListFromPrefix("git.export"):
-            if "platform" in recipeitem:
-                if not j.core.platformtype.myplatform.checkMatch(recipeitem["platform"]):
-                    continue
-
-            # pull the required repo
-            dest0 = self.aysrepo._getRepo(recipeitem['url'], recipeitem=recipeitem)
-            src = "%s/%s" % (dest0, recipeitem['source'])
-            src = src.replace("//", "/")
-            if "dest" not in recipeitem:
-                j.events.opserror_critical(msg="could not find dest in hrditem for %s %s" % (recipeitem, self), category="ays.servicetemplate")
-            dest = recipeitem['dest']
-
-            dest = j.application.config.applyOnContent(dest)
-            src = j.application.config.applyOnContent(src)
-
-            if "link" in recipeitem and str(recipeitem["link"]).lower() == 'true':
-                # means we need to only list files & one by one link them
-                link = True
-            else:
-                link = False
-
-            if src[-1] == "*":
-                src = src.replace("*", "")
-                if "nodirs" in recipeitem and str(recipeitem["nodirs"]).lower() == 'true':
-                    # means we need to only list files & one by one link them
-                    nodirs = True
-                else:
-                    nodirs = False
-
-                items = j.sal.fs.listFilesInDir(
-                    path=src, recursive=False, followSymlinks=False, listSymlinks=False)
-                if nodirs is False:
-                    items += j.sal.fs.listDirsInDir(
-                        path=src, recursive=False, dirNameOnly=False, findDirectorySymlinks=False)
-
-                raise RuntimeError("getshort_key does not even exist")
-                items = [(item, "%s/%s" % (dest, j.sal.fs.getshort_key(item)), link)
-                         for item in items]
-            else:
-                items = [(src, dest, link)]
-
-            out = []
-            for src, dest, link in items:
-                delete = recipeitem.get('overwrite', 'true').lower() == "true"
-                if dest.strip() == "":
-                    raise j.exceptions.RuntimeError(
-                        "a dest in coderecipe cannot be empty for %s" % self)
-                if dest[0] != "/":
-                    dest = "/%s" % dest
-                else:
-                    if link:
-                        if not j.sal.fs.exists(dest):
-                            j.sal.fs.createDir(j.sal.fs.getParent(dest))
-                            j.sal.fs.symlink(src, dest)
-                        elif delete:
-                            j.sal.fs.remove(dest)
-                            j.sal.fs.symlink(src, dest)
-                    else:
-                        print(("copy: %s->%s" % (src, dest)))
-                        if j.sal.fs.isDir(src):
-                            j.sal.fs.createDir(j.sal.fs.getParent(dest))
-                            j.sal.fs.copyDirTree(
-                                src, dest, eraseDestination=False, overwriteFiles=delete)
-                        else:
-                            j.sal.fs.copyFile(
-                                src, dest, True, overwriteFile=delete)
-                out.append((src, dest))
-                dirList.extend(out)
-
-        return dirList
-
-    def listInstances(self):
+    @property
+    def services(self):
         """
         return a list of instance name for this template
         """
         services = self.aysrepo.findServices(templatename=self.name)
         return [service.instance for service in services]
 
+
+#### GENERIC
     def upload2AYSfs(self, path):
         """
         tell the ays filesystem about this directory which will be uploaded to ays filesystem
@@ -441,4 +303,111 @@ class ServiceRecipe(ServiceTemplate):
         j.tools.sandboxer.dedupe(path, storpath="/tmp/aysfs", name="md", reset=False, append=True)
 
     def __repr__(self):
-        return "Recipe: %-15s" % (self.name)
+        return "Actor: %-15s" % (self.name)
+
+
+    # def downloadfiles(self):
+    #     """
+    #     this method download any required files for this Actor as defined in the template.hrd
+    #     Use this method when building a service to have all the files ready to sandboxing
+
+    #     @return list of tuples containing the source and destination of the files defined in the Actoritem
+    #             [(src, dest)]
+    #     """
+    #     dirList = []
+    #     # download
+    #     for Actoritem in self.hrd_template.getListFromPrefix("web.export"):
+    #         if "dest" not in Actoritem:
+    #             j.events.opserror_critical(msg="could not find dest in hrditem for %s %s" % (Actoritem, self), category="ays.ActorTemplate")
+
+    #         fullurl = "%s/%s" % (Actoritem['url'],
+    #                              Actoritem['source'].lstrip('/'))
+    #         dest = Actoritem['dest']
+    #         dest = j.application.config.applyOnContent(dest)
+    #         destdir = j.sal.fs.getDirName(dest)
+    #         j.sal.fs.createDir(destdir)
+    #         # validate md5sum
+    #         if Actoritem.get('checkmd5', 'false').lower() == 'true' and j.sal.fs.exists(dest):
+    #             remotemd5 = j.sal.nettools.download(
+    #                 '%s.md5sum' % fullurl, '-').split()[0]
+    #             localmd5 = j.data.hash.md5(dest)
+    #             if remotemd5 != localmd5:
+    #                 j.sal.fs.remove(dest)
+    #             else:
+    #                 continue
+    #         elif j.sal.fs.exists(dest):
+    #             j.sal.fs.remove(dest)
+    #         j.sal.nettools.download(fullurl, dest)
+
+    #     for Actoritem in self.hrd_template.getListFromPrefix("git.export"):
+    #         if "platform" in Actoritem:
+    #             if not j.core.platformtype.myplatform.checkMatch(Actoritem["platform"]):
+    #                 continue
+
+    #         # pull the required repo
+    #         dest0 = self.aysrepo._getRepo(Actoritem['url'], Actoritem=Actoritem)
+    #         src = "%s/%s" % (dest0, Actoritem['source'])
+    #         src = src.replace("//", "/")
+    #         if "dest" not in Actoritem:
+    #             j.events.opserror_critical(msg="could not find dest in hrditem for %s %s" % (Actoritem, self), category="ays.ActorTemplate")
+    #         dest = Actoritem['dest']
+
+    #         dest = j.application.config.applyOnContent(dest)
+    #         src = j.application.config.applyOnContent(src)
+
+    #         if "link" in Actoritem and str(Actoritem["link"]).lower() == 'true':
+    #             # means we need to only list files & one by one link them
+    #             link = True
+    #         else:
+    #             link = False
+
+    #         if src[-1] == "*":
+    #             src = src.replace("*", "")
+    #             if "nodirs" in Actoritem and str(Actoritem["nodirs"]).lower() == 'true':
+    #                 # means we need to only list files & one by one link them
+    #                 nodirs = True
+    #             else:
+    #                 nodirs = False
+
+    #             items = j.sal.fs.listFilesInDir(
+    #                 path=src, recursive=False, followSymlinks=False, listSymlinks=False)
+    #             if nodirs is False:
+    #                 items += j.sal.fs.listDirsInDir(
+    #                     path=src, recursive=False, dirNameOnly=False, findDirectorySymlinks=False)
+
+    #             raise RuntimeError("getshort_key does not even exist")
+    #             items = [(item, "%s/%s" % (dest, j.sal.fs.getshort_key(item)), link)
+    #                      for item in items]
+    #         else:
+    #             items = [(src, dest, link)]
+
+    #         out = []
+    #         for src, dest, link in items:
+    #             delete = Actoritem.get('overwrite', 'true').lower() == "true"
+    #             if dest.strip() == "":
+    #                 raise j.exceptions.RuntimeError(
+    #                     "a dest in codeActor cannot be empty for %s" % self)
+    #             if dest[0] != "/":
+    #                 dest = "/%s" % dest
+    #             else:
+    #                 if link:
+    #                     if not j.sal.fs.exists(dest):
+    #                         j.sal.fs.createDir(j.sal.fs.getParent(dest))
+    #                         j.sal.fs.symlink(src, dest)
+    #                     elif delete:
+    #                         j.sal.fs.remove(dest)
+    #                         j.sal.fs.symlink(src, dest)
+    #                 else:
+    #                     print(("copy: %s->%s" % (src, dest)))
+    #                     if j.sal.fs.isDir(src):
+    #                         j.sal.fs.createDir(j.sal.fs.getParent(dest))
+    #                         j.sal.fs.copyDirTree(
+    #                             src, dest, eraseDestination=False, overwriteFiles=delete)
+    #                     else:
+    #                         j.sal.fs.copyFile(
+    #                             src, dest, True, overwriteFile=delete)
+    #             out.append((src, dest))
+    #             dirList.extend(out)
+
+    #     return dirList
+

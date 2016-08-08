@@ -7,54 +7,66 @@ It's just a way of organizing your services and grouping them.
 Child services are created in a subdirectory of its parent.
 
 
-### Create a nested child service
+### Example:
 
-@todo 
+Considering the following blueprint:
 
-```shell
-# Create a parent node
-ays init -n node.local -i test --data 'jumpscale.install:False jumpscale.update:False'
+```yaml
+datacenter__eu:
+    location: 'Europe'
+    description: 'Main datacenter in Europe'
 
-# Init a service that has the node as its parent:
-ays init -n test --parent '!test@node'
-
-# Apply these changes
-ays apply
+datacenter__us:
+    location: 'USA'
+    description: 'Main datacenter in USA'
 
 
-# File structure will look like this:
--- node!test
-    |-- actions.py
-    |-- instance.hrd
-    |-- instance_old.hrd
-    |-- rolename!test
-    |   |-- actions.py
-    |   |-- instance.hrd
-    |   |-- instance_old.hrd
-    |   |-- state.hrd
-    |   `-- template.hrd
-    |-- state.hrd
-    |-- template.hrd
-    |-- test4!test
-    |   |-- actions.py
-    |   |-- instance.hrd
-    |   |-- instance_old.hrd
-    |   |-- state.hrd
-    |   `-- template.hrd
-    |-- test5!test
-    |   |-- actions.py
-    |   |-- instance.hrd
-    |   |-- instance_old.hrd
-    |   |-- state.hrd
-    |   `-- template.hrd
-    `-- test!test
-        |-- actions.py
-        |-- instance.hrd
-        |-- instance_old.hrd
-        |-- state.hrd
-        `-- template.hrd
+rack__storage1:
+    datacenter: 'eu'
+    location: 'room1'
+    description: 'rack for storage node'
+
+rack__storage2:
+    datacenter: 'eu'
+    location: 'room1'
+    description: 'rack for storage node'
+
+rack__cpu1:
+    datacenter: 'us'
+    location: 'east building'
+    description: 'rack for cpu node'
+
+rack__storage4:
+    datacenter: 'us'
+    location: 'west buuilding'
+    description: 'rack for cpu node'
 ```
 
-A service is also identified by its parent, so two services with the same domain/role/instance can exits if they have different parents.
+In this example the `rack` service use the datacenter service as parent.  
+After execution of the command `ays blueprint`, the service tree will look like that:
 
-This is useful for grouping services of a certain location/node together. Then, performing any action is made easier.
+```shell
+$ tree services/
+services/
+├── datacenter!eu
+│   ├── instance.hrd
+│   ├── rack!storage1
+│   │   ├── instance.hrd
+│   │   └── state.yaml
+│   ├── rack!storage2
+│   │   ├── instance.hrd
+│   │   └── state.yaml
+│   └── state.yaml
+└── datacenter!us
+    ├── instance.hrd
+    ├── rack!cpu1
+    │   ├── instance.hrd
+    │   └── state.yaml
+    ├── rack!storage4
+    │   ├── instance.hrd
+    │   └── state.yaml
+    └── state.yaml
+
+6 directories, 12 files
+
+```

@@ -1,4 +1,4 @@
-## Building an AYS Service (NEEDS TO BE REWORKED)
+## Building an AYS Service (DEPRECATED)
 
 Building an AYS service means creating the G8FS metadata of the services, if needed actually compiling source code into binary and then pushing the result of the build to an AYS File Store.  
 

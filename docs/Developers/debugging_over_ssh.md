@@ -1,29 +1,32 @@
-# Debugging Over SSH
+## Debugging over SSH
 
-## principle
 
-- you develop you code files on you local machine (e.g. your local Linux os Mac OSX)
-- you have a local installed jumpscale & you have your git repo's checked out locally
-- you have 1 or more typically ubuntu 16.04 machines running in server mode with SSH enabled & your public SSH key enabled
-   - on this sever you have the jumpscale installed in debug or in sandboxed mode  
-- the j.tools.develop... tools help you to keep the code up to date & to upgrade/manage your remote development machine
-   - the sync tools in the development tools will sync you local changes while you are using your editor to develop
-   - over ssh you can test your program om the remote machine 
+### principle
 
-## step1: create connection
+- You develop your code files on your local machine (e.g. your local Linux or Mac OSX)
+   - JumpScale is locally installed
+   - Git repos are checked out locally
+- You have 1 or more (typically Ubuntu 16.04) machines running in server mode with SSH enabled and your public SSH key enabled
+   - On this sever you have the JumpScale installed in debug or in sandboxed mode  
+- The j.tools.develop... tools help you to keep the code up to date and to upgrade/manage your remote development machine
+   - The sync tools in the development tools will sync your local changes while you are using your editor to develop
+   - Over ssh you can test your program on the remote machine 
 
-```
+
+### Step 1: Create connection
+
+```python
 j.tools.develop.init("ovh4:22")
 ```
 
-now all other commands can be used on j.tools.develop...
+Now all other commands can be used on j.tools.develop...
 
 
-## step2: how to sync a local code tree to a remote one
+### Step 2: Sync a local code tree to a remote one
 
-- all changes will be monitored constantly and synced
+All changes will be monitored constantly and synced:
 
-```
+```python
 j.tools.develop.syncCode(ask=False, monitor=False, rsyncdelete=False, reset=False)
 
 Docstring:
@@ -35,19 +38,19 @@ sync all code to the remote destinations
 File:      ~/opt/jumpscale8/lib/JumpScale/tools/develop/DevelopTools.py
 ```
 
-example
-```
+Example:
+
+```python
 j.tools.develop.syncCode(True,True,True)
 #will ask which dirs to sync and than start the monitor, will remove changes at other side
 
 DO NOT USE GIT ON REMOTE SITE, ONLY ON LOCAL ONE
 ```
 
+### How to connect & debug a remote sandboxed js8
 
-## how to connect & debug a remote sandboxed js8
 
-
-```sh
+```shell
 #define which nodes to init,
 #format="localhost,ovh4,anode:2222,192.168.6.5:23"
 #this will be remembered in local redis for further usage
@@ -77,26 +80,33 @@ Make a selection please:
 the selection made will be remembered when used in later sessions.
 
 
-## how to force to sync the code
+### How to force to sync the code
 
-```sh
+```shell
 #sync all code to the remote destinations
 #@param reset=True, means we remove the destination first
 #@param ask=True means ask which repo's to sync (will get remembered in redis)
 j.tools.develop.syncCode(reset=True,ask=False,monitor=False,rsyncdelete=False)
 ```
-this will sync all chosen code to the debug node
 
-## how to start the monitor
+This will sync all chosen code to the debug node.
+
+
+### how to start the monitor
+
 The monitor is a very nice tool to allow remote debugging.
-It will check local changes & then over ssh send it to the remote node when change happens locally.
+
+It will check local changes and then over ssh send it to the remote node when change happens locally.
+
 This allows you to use a local editor even when the bandwidth is not good towards the node you want to debug upon.
 
-```sh
+```shell
 j.tools.develop.monitorChanges(sync=True,reset=False)
 ```
-result something like
-```sh
+
+Result something like:
+
+```shell
 In [1]: j.tools.debug.monitorChanges(sync=True,reset=False)
 EXECUTE ovh4:22: mkdir -p /optrw/code/dockers
 
@@ -108,7 +118,6 @@ monitor:/Users/kristofdespiegeleer1/opt/code/github/jumpscale/jumpscale_core8
 copy: /Users/kristofdespiegeleer1/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/debug/Debug.py debugnode:ovh4:/optrw/jumpscale8/lib/JumpScale/tools/debug/Debug.py
 ```
 
-if for whatever reason the monitoring doesn't start, try with reset=True
+If for whatever reason the monitoring doesn't start, try with `reset=True`.
 
-Whatever the tool has been initialized with will be remembered when used a 2nd time.
-
+Whatever the tool has been initialized with will be remembered when used a second time.

@@ -279,7 +279,9 @@ class AtYourServiceRepo():
         if role == "" and instance == "":
             self.reset()
 
-        self.setState(actions=["init"], role=role, instance=instance, state="INIT")
+        for k, sv in self.services.items():
+            if sv.state == '':
+                self.setState(actions=["init"], role=role, instance=instance, state="INIT")
         for key, recipe in self.recipes.items():
             if role != "" and recipe.role == role:
                 continue

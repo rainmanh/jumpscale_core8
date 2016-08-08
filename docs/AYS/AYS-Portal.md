@@ -4,6 +4,7 @@ AYS services and templates are visualized in the **AYS Portal**.
 
 > Note that it is probably better to use the **Cockpit Portal** instead, check the [Cockpit Portal documentation](https://www.gitbook.com/book/gig/cockpit/details) for more details.
 
+
 ### Templates list
 
 ![Templates](AYS-Templates.png)

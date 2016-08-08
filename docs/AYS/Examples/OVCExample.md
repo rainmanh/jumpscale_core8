@@ -4,8 +4,8 @@
 
 Following blueprint will:
 
-- Create VM
-- Inside the VM: (see DockerExample.md)
+- Create a virtual machine
+- Inside the virtual machine: (see the [Docker example](DockerExample.md) for more details)
     - Create a Docker container with AYS called master
     - Create a Docker container with AYS called client
     - Install JumpScale in both Docker containers

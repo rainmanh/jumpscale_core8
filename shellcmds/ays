@@ -13,14 +13,16 @@ import click
 
 atyourservice = None
 
+
 @click.group()
 @click.option('--nodebug', default=False, help='disable debug mode', is_flag=True)
 def cli(nodebug):
     global atyourservice
-    try:
-        atyourservice = j.atyourservice.repoGet()
-    except j.exceptions.Input:
-        raise j.exceptions.AYSNotFound("You're currently not in an AYS repo. Please cd into an AYS repo before performing an AYS action")
+    atyourservice = j.atyourservice.repoGet()
+    # try:
+    #     atyourservice = j.atyourservice.repoGet()
+    # except j.exceptions.Input:
+    #     raise j.exceptions.AYSNotFound("You're currently not in an AYS repo. Please cd into an AYS repo before performing an AYS action")
     atyourservice.debug = not nodebug
 
 # @click.command()
@@ -115,9 +117,9 @@ def showactions():
     shows all services with relevant actions
     """
     for key, service in atyourservice.services.items():
-        print ("%s" % service)
+        print("%s" % service)
         for key, action in service.action_methods.items():
-            print ("- %-20s %s" % (key, action))
+            print("- %-20s %s" % (key, action))
 
 
 # @click.command()
@@ -212,7 +214,7 @@ def showproducers(role, instance):
     '''
     find the producers for this service & show
     '''
-    print ("producers:")
+    print("producers:")
     ays = atyourservice.getService(role, instance)
     ays.printProducersRecursive()
 
@@ -225,7 +227,7 @@ def showparents(role, instance):
     out = "parents:\n"
     for parent in ays.parents:
         out += "- %s\n" % parent
-    print (out)
+    print(out)
 
 
 @click.command()

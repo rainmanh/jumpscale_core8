@@ -13,7 +13,7 @@ from JumpScale.baselib.atyourservice.AtYourServiceRepo import AtYourServiceRepo
 from JumpScale.baselib.atyourservice.AtYourServiceTester import AtYourServiceTester
 from JumpScale.baselib.atyourservice.AtYourServiceDB import *
 
-#THINK NO LONGER NEEDED
+# THINK NO LONGER NEEDED
 # try:
 #     from JumpScale.baselib.atyourservice.AtYourServiceSandboxer import *
 # except:
@@ -59,12 +59,11 @@ class AtYourServiceFactory:
 
         self._test = None
 
-        self.AYSModel=AYSModel    
+        self.AYSModel = AYSModel
 
-        self.kvs=AtYourServiceDBFactory()  
+        self.kvs = AtYourServiceDBFactory()
 
-
-    def _doinit(self,force=False):
+    def _doinit(self, force=False):
 
         if force:
             self.reset()
@@ -81,11 +80,11 @@ class AtYourServiceFactory:
 
             codeDir = j.tools.path.get(j.dirs.codeDir)
             if codeDir.access(os.W_OK):
-                #can access the opt dir, lets update the atyourservice metadata
+                # can access the opt dir, lets update the atyourservice metadata
 
                 items = j.application.config.getDictFromPrefix("atyourservice.metadata")
-                
-                new=False
+
+                new = False
                 for domain in list(items.keys()):
                     url = items[domain]['url']
                     if url.strip() == "":
@@ -94,25 +93,25 @@ class AtYourServiceFactory:
                     templateReponame = url.rpartition("/")[-1]
                     if templateReponame not in list(templateRepos.keys()):
                         dest = j.do.pullGitRepo(url, dest=None, depth=1, ignorelocalchanges=False, reset=False, branch=branch)
-                        new=True
+                        new = True
 
                 if new:
-                    #if we downloaded then we need to update the list
+                    # if we downloaded then we need to update the list
                     templateRepos = j.do.getGitReposListLocal()
 
-            for templateRepo in templateRepos:
-                from IPython import embed
-                print ("DEBUG NOW sdsdsd template repo")
-                embed()
-                
-                gitrepo=j.clients.git.get()
-                for templ in self._getActorTemplates(gitrepo,path):
+            for key, repopath in templateRepos.items():
+                gitrepo = j.clients.git.get(repopath)
+                for templ in self._getActorTemplates(gitrepo, repopath):
                     self._templates[templ.name] = templ
 
-            #check if current dir is ays templateRepo, if yes load
+            from IPython import embed
+            print("DEBUG NOW doinit")
+            embed()
+            p
+
             self.reposLoad()
 
-            self._init = True    
+            self._init = True
 
     def reset(self):
         for templateRepo in self._templateRepos.values():
@@ -125,7 +124,7 @@ class AtYourServiceFactory:
         self._init = False
 
 
-#### TEMPLATES
+# TEMPLATES
 
     @property
     def actorTemplates(self):
@@ -136,10 +135,9 @@ class AtYourServiceFactory:
             self._doinit()
 
             from IPython import embed
-            print ("DEBUG NOW actor templates")
+            print("DEBUG NOW actor templates")
             embed()
             p
-                      
 
         return self._templates
 
@@ -179,35 +177,38 @@ class AtYourServiceFactory:
 
         return res
 
-
-    def _getActorTemplates(self,gitrepo, path="",result=[]):
+    def _getActorTemplates(self, gitrepo, path="", result=[], ays_in_path_check=True):
         """
         path is absolute path (if specified)
         """
-        if path=="":
-            path=gitrepo.path
-        
+
+        if ays_in_path_check and not gitrepo.name.startswith("ays_"):
+            return result
+
+        if path == "":
+            path = gitrepo.path
+
         if not j.sal.fs.exists(path=path):
-            raise j.exceptions.Input("Cannot find path for ays templates:%s"%path)
+            raise j.exceptions.Input("Cannot find path for ays templates:%s" % path)
 
         dirname = j.sal.fs.getBaseName(path)
-        if dirname.startswith("_") or dirname.startswith(".") :
+        if dirname.startswith("_") or dirname.startswith("."):
             return result
-        
-        #check if this is already an actortemplate dir, if not no need to recurse
-        tocheck = ['schema.hrd', 'service.hrd', 'actions_mgmt.py', 'actions_node.py', 'model.py', 'actions.py',"model.capnp"]
+
+        # check if this is already an actortemplate dir, if not no need to recurse
+        tocheck = ['schema.hrd', 'service.hrd', 'actions_mgmt.py', 'actions_node.py', 'model.py', 'actions.py', "model.capnp"]
         exists = [True for aysfile in tocheck if j.sal.fs.exists('%s/%s' % (path, aysfile))]
-        if len(exists)>0:
-            result.append(ActorTemplate(gitrepo,path))
+        if len(exists) > 0:
+            result.append(ActorTemplate(gitrepo, path))
             if templ.name in self._templates:
                 raise j.exceptions.Input("Found double template: %s" % templ.name)
         else:
-            #not ays actor so lets see for subdirs
+            # not ays actor so lets see for subdirs
             for servicepath in j.sal.fs.listDirsInDir(path, recursive=False):
                 dirname = j.sal.fs.getBaseName(servicepath)
                 # print "dirname:%s"%dirname
                 if not (dirname.startswith(".") or dirname.startswith("_")):
-                    result=self._getActorTemplates(gitrepo,j.sal.fs.joinPaths(path,dirname),result)
+                    result = self._getActorTemplates(gitrepo, servicepath, result)
         return result
 
     def actorTemplateGet(self, name, die=True):
@@ -225,8 +226,8 @@ class AtYourServiceFactory:
         if self.getTemplate(name, die=False) is None:
             return False
         return True
-     
-#### REPOS
+
+# REPOS
 
     def repoCreate(self, path):
         self._doinit()
@@ -242,7 +243,6 @@ class AtYourServiceFactory:
         self._doinit(True)
         return self._templateRepos[path]
 
-
     def reposLoad(self, path=""):
         """
         load templateRepo's from path
@@ -250,80 +250,71 @@ class AtYourServiceFactory:
 
         """
         self._doinit()
-        if path=="":
-            path=j.sal.fs.getcwd()
-        
-        if j.sal.fs.exists(path=j.sal.fs.joinPaths(path,".ays")):
-            #are in root of ays dir
-            self.repoLoad(path) 
+        if path == "":
+            path = j.sal.fs.getcwd()
+
+        if j.sal.fs.exists(path=j.sal.fs.joinPaths(path, ".ays")):
+            # are in root of ays dir
+            self.repoLoad(path)
             return
 
-        #WALK down, find repo's below
-        res= (root for root, dirs, files in os.walk(path) if '.ays' in files)
-        res=[str(item) for item in res]
+        # WALK down, find repo's below
+        res = (root for root, dirs, files in os.walk(path) if '.ays' in files)
+        res = [str(item) for item in res]
 
-        if len(res)==0:
-            #now walk up & see if we find .ays in dir above
-            while path!="":                
-                if j.sal.fs.exists(path=j.sal.fs.joinPaths(path,".ays")):
-                    self.repoLoad(path) 
+        if len(res) == 0:
+            # now walk up & see if we find .ays in dir above
+            while path != "":
+                if j.sal.fs.exists(path=j.sal.fs.joinPaths(path, ".ays")):
+                    self.repoLoad(path)
                     return
-                path=j.sal.fs.getParent(path)
-                path=path.strip("/").strip()
+                path = j.sal.fs.getParent(path)
+                path = path.strip("/").strip()
 
-        if len(res)==0:
-            #did not find ays dir up or down
-            raise j.exceptions.Input("Cannot find AYS repo in:%s, need to find a .ays file in root of aysrepo, did walk up & down."%path)
+        if len(res) == 0:
+            # did not find ays dir up or down
+            raise j.exceptions.Input("Cannot find AYS repo in:%s, need to find a .ays file in root of aysrepo, did walk up & down." % path)
 
-        #now load the repo's
+        # now load the repo's
         for path in res:
-            self.repoLoad(path)   
+            self.repoLoad(path)
 
-    def repoLoad(self, path=""):
+    def repoLoad(self, path):
         self._doinit()
-        if not j.sal.fs.exists(path=path):
-            raise j.exceptions.Input("Cannot find ays templateRepo on path:%s"%path)
 
+        if not j.sal.fs.exists(path=path):
+            raise j.exceptions.Input("Cannot find ays templateRepo on path:%s" % path)
 
         def findGitPath(gitpath):
-            while gitpath!="":                
-                if j.sal.fs.exists(gitpath=j.sal.fs.joinPaths(gitpath,".git")):
+            while gitpath != "":
+                if j.sal.fs.exists(gitpath=j.sal.fs.joinPaths(gitpath, ".git")):
                     return gitpath
-                gitpath=j.sal.fs.getParent(gitpath)
-                gitpath=gitpath.strip("/").strip()
-            raise j.exceptions.Input("Cannot find git path in:%s"%gitpath)
+                gitpath = j.sal.fs.getParent(gitpath)
+                gitpath = gitpath.strip("/").strip()
+            raise j.exceptions.Input("Cannot find git path in:%s" % gitpath)
 
-        gitpath=findGitPath(path)
+        gitpath = findGitPath(path)
 
-        gitrepo=j.clients.git.get(gitpath) #@todo (*1*) move into git.get
+        gitrepo = j.clients.git.get(gitpath)  # @todo (*1*) move into git.get
 
-        name=j.sal.fs.getBaseName(path)
-        if not name.startswith("ays_"):
-            raise j.exceptions.Input("AYS name:'%s' needs to start with ays_"%name)
-        name=name[4:]
+        name = j.sal.fs.getBaseName(path)
 
-        from IPython import embed
-        print ("DEBUG NOW loadAYSRepo")
-        embed()
-        p
-        
         if name in self._templateRepos:
-            raise j.exceptions.Input("AYS templateRepo with name:%s already exists, cannot have duplicate names."%name)
+            raise j.exceptions.Input("AYS templateRepo with name:%s already exists, cannot have duplicate names." % name)
 
+        self._templateRepos[name] = AtYourServiceRepo(name, gitrepo, path)
 
     def repoGet(self, name=""):
         """
         @return:    @AtYourServiceRepo object
         """
-        from pudb import set_trace; set_trace() 
         self._doinit()
 
-        
-            # basename=j.sal.fs.getBaseName(cwd)
+        # basename=j.sal.fs.getBaseName(cwd)
         from IPython import embed
-        print ("DEBUG NOW get repo")
+        print("DEBUG NOW get repo")
         embed()
-        
+
         if path:
             if path not in self._templateRepos:
                 if j.sal.fs.exists(path) and j.sal.fs.isDir(path):
@@ -341,7 +332,7 @@ class AtYourServiceFactory:
                 self._templateRepos[path] = AtYourServiceRepo(name, path)
             elif len(result) > 1:
                 msg = "Multiple AYS templateRepos with name %s found under locations [%s]. Please use j.atyourservice.get(path=<path>) instead" % \
-                        (name, ','.join([templateRepo.basepath for templateRepo in result]))
+                    (name, ','.join([templateRepo.basepath for templateRepo in result]))
                 raise j.exceptions.RuntimeError(msg)
             else:
                 path = result[0].basepath
@@ -349,8 +340,7 @@ class AtYourServiceFactory:
         return self._templateRepos[path]
 
 
-
-#### SERVICE
+# SERVICE
 
     def serviceGet(self, key, die=True):
         self._doinit()
@@ -366,12 +356,11 @@ class AtYourServiceFactory:
         return templateRepo.getService(role=role, instance=instance, die=die)
 
 
-#### FACTORY
+# FACTORY
 
     def getAYSTester(self, name="fake_IT_env"):
         self._init()
         return AtYourServiceTester(name)
-
 
     @property
     def domains(self):
@@ -380,9 +369,6 @@ class AtYourServiceFactory:
         """
         self._doinit()
         return self._domains
-
-
-
 
     def getActionsBaseClassNode(self):
         return ActionsBaseNode
@@ -393,15 +379,12 @@ class AtYourServiceFactory:
     def getActionMethodDecorator(self):
         return ActionMethodDecorator
 
-
-
     # def telegramBot(self, token, start=True):
     #     from JumpScale.baselib.atyourservice.telegrambot.TelegramAYS import TelegramAYS
     #     bot = TelegramAYS(token)
     #     if start:
     #         bot.run()
     #     return bot
-
 
     # def _parseKey(self, key):
     #     """

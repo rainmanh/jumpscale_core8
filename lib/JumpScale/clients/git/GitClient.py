@@ -19,12 +19,10 @@ class GitClient:
             if baseDir == "/":
                 break
 
+        baseDir = baseDir.rstrip("/")
 
-
-        baseDir=baseDir.rstrip("/")
-
-        if baseDir.strip()=="":
-            raise j.exceptions.RuntimeError("could not find basepath for .git in %s"%baseDir)
+        if baseDir.strip() == "":
+            raise j.exceptions.RuntimeError("could not find basepath for .git in %s" % baseDir)
 
         if baseDir.find("/code/") == -1:
             raise j.exceptions.Input(
@@ -35,11 +33,11 @@ class GitClient:
             if base.count("/") != 2:
                 raise j.exceptions.Input(
                     "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
-            self.type, self.account, self.name = base.split("/",2)
+            self.type, self.account, self.name = base.split("/", 2)
         else:
             self.type, self.account, self.name = 'github', 'cockpit', 'cockpit'
 
-        self.baseDir=baseDir
+        self.baseDir = baseDir
 
         # if len(self.repo.remotes) != 1:
         #     raise j.exceptions.Input("git repo on %s is corrupt could not find remote url" % baseDir)
@@ -48,7 +46,7 @@ class GitClient:
         return str(self.__dict__)
 
     def __str__(self):
-        return self.__repr__
+        return self.__repr__()
 
     @property
     def remoteUrl(self):
@@ -90,14 +88,14 @@ class GitClient:
         self.repo.git.checkout(branchName)
 
     def checkFilesWaitingForCommit(self):
-        res=self.getModifiedFiles()
-        if res["D"]!=[]:
+        res = self.getModifiedFiles()
+        if res["D"] != []:
             return True
-        if res["M"]!=[]:
+        if res["M"] != []:
             return True
-        if res["N"]!=[]:
+        if res["N"] != []:
             return True
-        if res["R"]!=[]:
+        if res["R"] != []:
             return True
 
     def hasModifiedFiles(self):
@@ -110,19 +108,18 @@ class GitClient:
             return True
         return False
 
-    def getModifiedFiles(self,collapse=False,ignore=[]):
+    def getModifiedFiles(self, collapse=False, ignore=[]):
         result = {}
         result["D"] = []
         result["N"] = []
         result["M"] = []
         result["R"] = []
 
-        def checkignore(ignore,path):
+        def checkignore(ignore, path):
             for item in ignore:
-                if path.find(item)!=-1:
+                if path.find(item) != -1:
                     return True
             return False
-
 
         cmd = "cd %s;git status --porcelain" % self.baseDir
         rc, out, err = j.tools.cuisine.local.core.run(cmd)
@@ -132,11 +129,11 @@ class GitClient:
                 continue
             state, _, _file = item.partition(" ")
             if state == '??':
-                if checkignore(ignore,_file):
+                if checkignore(ignore, _file):
                     continue
                 result["N"].append(_file)
-            if state in ["D","N","R","M"]:
-                if checkignore(ignore,_file):
+            if state in ["D", "N", "R", "M"]:
+                if checkignore(ignore, _file):
                     continue
                 if _file not in result[state]:
                     result[state].append(_file)
@@ -144,7 +141,7 @@ class GitClient:
         for diff in self.repo.index.diff(None):
             #@todo does not work, did not show my changes !!! (*1*)
             path = diff.a_blob.path
-            if checkignore(ignore,path):
+            if checkignore(ignore, path):
                 continue
             if diff.deleted_file:
                 if path not in result["D"]:
@@ -160,14 +157,14 @@ class GitClient:
                     result["M"].append(path)
 
         if collapse:
-            result=result["N"]+result["M"]+result["R"]+result["D"]
+            result = result["N"]+result["M"]+result["R"]+result["D"]
         return result
 
     def getUntrackedFiles(self):
         return self.repo.untracked_files
 
     def checkout(self, path):
-        cmd = 'cd %s;git checkout %s' % (self.baseDir,path)
+        cmd = 'cd %s;git checkout %s' % (self.baseDir, path)
         j.tools.cuisine.local.core.run(cmd)
 
     def addRemoveFiles(self):
@@ -191,8 +188,8 @@ class GitClient:
     def commit(self, message='', addremove=True):
         if addremove:
             self.addRemoveFiles()
-        if self.hasModifiedFiles()==False:
-            print ("no need to commit, no changed files")
+        if self.hasModifiedFiles() == False:
+            print("no need to commit, no changed files")
             return
         return self.repo.index.commit(message)
 
@@ -213,11 +210,11 @@ class GitClient:
         @param toepoch = ending epoch
         @return
         """
-        commits = self.getCommitRefs(fromref=fromref, toref=toref, fromepoch=fromepoch, toepoch=toepoch, author=author, paths=paths,files=True)
+        commits = self.getCommitRefs(fromref=fromref, toref=toref, fromepoch=fromepoch, toepoch=toepoch, author=author, paths=paths, files=True)
         files = [f for commit in commits for f in commit[3]]
         return list(set(files))
 
-    def getCommitRefs(self, fromref='', toref='', fromepoch=None, toepoch=None, author=None, paths=None,files=False):
+    def getCommitRefs(self, fromref='', toref='', fromepoch=None, toepoch=None, author=None, paths=None, files=False):
         """
         @return [[$epoch, $ref, $author]] if no files (default)
         @return [[$epoch, $ref, $author, $files]] if files
@@ -258,8 +255,6 @@ class GitClient:
                 diffs[line].append({'author': commit.author.name, 'commit': commit.hexsha})
 
         return diffs
-
-
 
     def patchGitignore(self):
         gitignore = '''# Byte-compiled / optimized / DLL files

@@ -16,7 +16,7 @@ colored_traceback.add_hook(always=True)
 
 class AtYourServiceRepo():
 
-    def __init__(self, path=""):
+    def __init__(self, name, gitrepo, path):
         self._init = False
 
         # self._justinstalled = []
@@ -33,15 +33,11 @@ class AtYourServiceRepo():
 
         self._todo = []
 
-        from IPython import embed
-        print ("DEBUG NOW init repo do path")
-        embed()
-        p
-        
-        
+        self.path = path
+
+        self.git = gitrepo
+
         self.name = name
-        self._basepath = path
-        self._git = None
 
         self._blueprints = {}
 
@@ -51,33 +47,10 @@ class AtYourServiceRepo():
         self._load_blueprints()
 
 
-#### INIT
+# INIT
 
     def _doinit(self):
         j.actions.setRunId("ays_%s" % self.name)
-
-    def init(self, role="", instance="", hasAction="", include_disabled=False, data=""):
-        self._doinit()
-        if role == "" and instance == "":
-            self.reset()
-
-        self.setState(actions=["init"], role=role, instance=instance, state="INIT")
-        for key, Actor in self.Actors.items():
-            if role != "" and Actor.role == role:
-                continue
-            Actor.init()
-            for inst in Actor.listInstances():
-                service = Actor.aysrepo.getService(role=Actor.role, instance=inst, die=False)
-                print("RESETTING SERVICE roles %s inst %s instance %s "%(Actor.role, inst, instance))
-                service.update_hrd()
-
-            #import pudb; pu.db
-            #Actor.newInstance(instance=key, args={})
-
-        run = self.getRun(role=role, instance=instance, data=data, action="init")
-        run.execute()
-
-        print("init done")
 
     def reset(self):
         # self._db.reload()
@@ -95,67 +68,34 @@ class AtYourServiceRepo():
     def destroy(self, uninstall=True):
         if uninstall:
             self.uninstall()
-        j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath, "Actors"))
-        j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.basepath, "services"))
+        j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "Actors"))
+        j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "services"))
         self.db.destroy()
-
-    @property
-    def basepath(self):
-        if self._basepath is None or self._basepath == "":
-            self.basepath = j.sal.fs.getcwd()
-        return self._basepath
-
-    @basepath.setter
-    def basepath(self, val):
-        self.reset()
-        baseDir = val
-        if not j.sal.fs.exists(path=baseDir):
-            raise j.exceptions.Input("Can not find based dir for ays in %s" % baseDir)
-
-        while j.sal.fs.joinPaths(baseDir, ".ays") not in j.sal.fs.listFilesInDir(baseDir, recursive=False):
-            baseDir = j.sal.fs.getParent(baseDir)
-            baseDir = baseDir.rstrip("/")
-
-            if baseDir.strip() == "":
-                if 'darwin' in j.core.platformtype.myplatform.platformtypes:
-                    baseDir = "%s/ays/" % j.dirs.cfgDir
-                else:
-                    baseDir = "/etc/ays/local"
-                break
-
-        if baseDir.strip("/").strip() == "":
-            raise j.exceptions.Input("Can not find based dir for ays in %s, after looking for parents." % val)
-
-        self._basepath = baseDir
-        for item in ["blueprints", "Actors", "services", "ActorTemplates"]:
-            # make sure basic dirs exist
-            j.sal.fs.createDir(j.sal.fs.joinPaths(self._basepath, item))
 
     @property
     def git(self):
         if self._git is None:
-            self._git = j.clients.git.get(basedir=self.basepath)
+            self._git = j.clients.git.get(basedir=self.path)
         return self._git
 
-##### ACTORS
+# ACTORS
 
-    def actorGetState(self,actorFQN, key):
+    def actorGetState(self, actorFQN, key):
         """
         talk with actor through actor API, find based on FQN = Fully Qualified Name
         key is unique key to find the actor, also defines our rights on the actor
         """
         from IPython import embed
-        print ("DEBUG NOW getActorStateObject")
+        print("DEBUG NOW getActorStateObject")
         embed()
-        s        
+        s
 
-
-    def actorCreate(self,actorTemplate):
+    def actorCreate(self, actorTemplate):
         """
         will look for name inside & create actor from it
         """
 
-        actor=Actor(self,actorTemplate.name)
+        actor = Actor(self, actorTemplate.name)
         return actor
 
     def actorGet(self, name, die=True):
@@ -165,8 +105,7 @@ class AtYourServiceRepo():
         else:
             if die == False:
                 return None
-            raise j.exceptions.Input("Cannot find Actor with name:%s" % name) 
-
+            raise j.exceptions.Input("Cannot find Actor with name:%s" % name)
 
     def actorExists(self, name):
         if self.getActor(name, die=False) == None:
@@ -177,7 +116,7 @@ class AtYourServiceRepo():
     def actors(self):
         self._doinit()
         if not self._actors:
-            aysrepopath = self.basepath
+            aysrepopath = self.path
             if aysrepopath is not None:
                 # load local templates
                 domainpath = j.sal.fs.joinPaths(aysrepopath, "actors")
@@ -190,7 +129,7 @@ class AtYourServiceRepo():
                     if Actor.name in self._actors:
                         raise j.exceptions.Input("Found double actor: %s" % actor)
                     self._actors[Actor.name] = Actor
-        return self._actors  
+        return self._actors
 
     def actorsFind(self, name="", version="", role=''):
         res = []
@@ -209,7 +148,7 @@ class AtYourServiceRepo():
 
         return res
 
-#### TEMPLATES
+# TEMPLATES
 
     @property
     def templates(self):
@@ -222,13 +161,12 @@ class AtYourServiceRepo():
                 self._templates[key] = template
 
         # load local templates
-        path = j.sal.fs.joinPaths(self.basepath, "actorTemplates")
-        for template in j.atyourservice._getActorTemplates(self.git,path=path):
+        path = j.sal.fs.joinPaths(self.path, "actorTemplates")
+        for template in j.atyourservice._getActorTemplates(self.git, path=path, ays_in_path_check=False):
             if template.name in self._templates:
-                raise j.exceptions.Input("Found double template: %s starting from repo:%s" % (templ.name,self))
+                raise j.exceptions.Input("Found double template: %s starting from repo:%s" % (templ.name, self))
             self._templates[template.name] = template
         return self._templates
-
 
     def templateGet(self, name, die=True):
         """
@@ -244,7 +182,7 @@ class AtYourServiceRepo():
             return False
         return True
 
-#### SERVICES
+# SERVICES
 
     def serviceGet(self, role, instance, die=True):
         """
@@ -278,7 +216,7 @@ class AtYourServiceRepo():
     def services(self):
         self._doinit()
         if self._services == {}:
-            services_path = j.sal.fs.joinPaths(self.basepath, "services")
+            services_path = j.sal.fs.joinPaths(self.path, "services")
             if not j.sal.fs.exists(services_path):
                 return {}
             for hrd_path in j.sal.fs.listFilesInDir(services_path, recursive=True, filter="state.yaml",
@@ -329,7 +267,6 @@ class AtYourServiceRepo():
                 service.state.set(action, state)
                 service.state.save()
 
-
     def servicesFind(self, instance="", parent=None, first=False, role="", hasAction="", include_disabled=False, templatename=""):
         res = []
 
@@ -379,10 +316,10 @@ class AtYourServiceRepo():
             self.findConsumersRecursive(service, out)
         return out
 
-#### BLUEPRINTS
+# BLUEPRINTS
 
     def _load_blueprints(self):
-        bpdir=j.sal.fs.joinPaths(self.basepath, "blueprints")
+        bpdir = j.sal.fs.joinPaths(self.path, "blueprints")
         if j.sal.fs.exists(path=bpdir):
             items = j.sal.fs.listFilesInDir(bpdir)
             for path in items:
@@ -408,12 +345,12 @@ class AtYourServiceRepo():
         Show the disabled blueprints
         """
         bps = []
-        for path,bp in self._blueprints.items():
-            if bp.active==False:
+        for path, bp in self._blueprints.items():
+            if bp.active == False:
                 bps.append(bp)
         bps = sorted(bps, key=lambda bp: bp.name)
         return bps
-    
+
     def blueprintExecute(self, path="", content="", role="", instance=""):
         self._doinit()
         if path == "" and content == "":
@@ -435,7 +372,7 @@ class AtYourServiceRepo():
                 return bp
         return Blueprint(self, path)
 
-#### RUN related
+# RUN related
 
     def runFindActionScope(self, action, role="", instance="", producerRoles="*"):
         """
@@ -469,9 +406,9 @@ class AtYourServiceRepo():
     @property
     def runs(self):
         from IPython import embed
-        print ("DEBUG NOW do")
+        print("DEBUG NOW do")
         embed()
-        
+
         runs = AYSRun(self).list()
         return runs
 
@@ -557,7 +494,6 @@ class AtYourServiceRepo():
             raise RuntimeError("cannot find todo's for action:%s in scope:%s.\n\nDEPENDENCY ERROR: could not resolve dependency chain." % (action, scope))
         return todo
 
-
     def _getChangedServices(self, action=None):
         changed = list()
         if not action:
@@ -572,13 +508,36 @@ class AtYourServiceRepo():
                     changed.extend(producers)
         return changed
 
-#### ACTIONS 
+# ACTIONS
+
+    def init(self, role="", instance="", hasAction="", include_disabled=False, data=""):
+        self._doinit()
+        if role == "" and instance == "":
+            self.reset()
+
+        self.setState(actions=["init"], role=role, instance=instance, state="INIT")
+        for key, Actor in self.Actors.items():
+            if role != "" and Actor.role == role:
+                continue
+            Actor.init()
+            for inst in Actor.listInstances():
+                service = Actor.aysrepo.getService(role=Actor.role, instance=inst, die=False)
+                print("RESETTING SERVICE roles %s inst %s instance %s " % (Actor.role, inst, instance))
+                service.update_hrd()
+
+            #import pudb; pu.db
+            #Actor.newInstance(instance=key, args={})
+
+        run = self.getRun(role=role, instance=instance, data=data, action="init")
+        run.execute()
+
+        print("init done")
 
     def commit(self, message="", branch="master", push=True):
         self._doinit()
         if message == "":
             message = "log changes for repo:%s" % self.name
-        gitcl = j.clients.git.get(self.basepath)
+        gitcl = j.clients.git.get(self.path)
         if branch != "master":
             gitcl.switchBranch(branch)
 
@@ -590,11 +549,10 @@ class AtYourServiceRepo():
 
     def update(self, branch="master"):
         j.atyourservice.updateTemplates()
-        gitcl = j.clients.git.get(self.basepath)
+        gitcl = j.clients.git.get(self.path)
         if branch != "master":
             gitcl.switchBranch(branch)
         gitcl.pull()
-
 
     def install(self, role="", instance="", force=True, producerRoles="*"):
         self._doinit()
@@ -623,7 +581,3 @@ class AtYourServiceRepo():
         if not printonly:
             run.execute()
         run.execute()
-
-
-
-

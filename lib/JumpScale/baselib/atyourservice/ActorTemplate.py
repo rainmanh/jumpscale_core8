@@ -8,36 +8,34 @@ from JumpScale.baselib.atyourservice.Actor import *
 
 class ActorTemplate:
 
-    def __init__(self, gitrepo,path):
+    def __init__(self, gitrepo, path):
 
-
-        #path is path in gitrepo or absolute path
+        # path is path in gitrepo or absolute path
 
         if j.sal.fs.exists(path=path):
-            #we know its absolute
-            relpath=j.sal.fs.pathRemoveDirPart(path,gitrepo.baseDir, removeTrailingSlash=True)
-            #path is now relative path
+            # we know its absolute
+            relpath = j.sal.fs.pathRemoveDirPart(path, gitrepo.baseDir, removeTrailingSlash=True)
+            # path is now relative path
         else:
-            relpath=path
-            path=j.sal.fs.joinPaths(gitrepo.baseDir,path)
+            relpath = path
+            path = j.sal.fs.joinPaths(gitrepo.baseDir, path)
             if not j.sal.fs.exists(path=path):
-                raise j.exceptions.Input("Cannot find path for template:%s"%path)
+                raise j.exceptions.Input("Cannot find path for template:%s" % path)
 
         self.path = path
-        self.pathRelative=relpath
+        self.pathRelative = relpath
 
         base = j.sal.fs.getBaseName(relpath)
         self.name = base
 
-        self.domain=j.sal.fs.getBaseName(gitrepo.baseDir)
+        self.domain = j.sal.fs.getBaseName(gitrepo.baseDir)
 
         if not self.domain.startswith("ays_"):
-            raise j.exceptions.Input("name of ays template git repo should start with ays_, now:%s"%gitrepo.baseDir)
+            raise j.exceptions.Input("name of ays template git repo should start with ays_, now:%s" % gitrepo.baseDir)
 
-        self.domain=self.domain[4:]
+        self.domain = self.domain[4:]
 
         self._init_props()
-
 
     def _init_props(self):
 
@@ -45,7 +43,7 @@ class ActorTemplate:
         self._schema = None
         self._actions = None
         self._mongoModel = None
-        self._capnpSchema = None        
+        self._capnpSchema = None
 
         self.path_hrd_template = j.sal.fs.joinPaths(self.path, "service.hrd")
         self.path_hrd_schema = j.sal.fs.joinPaths(self.path, "schema.hrd")
@@ -55,7 +53,6 @@ class ActorTemplate:
         self.path_capnp_schema = j.sal.fs.joinPaths(self.path, "model.capnp")
 
         self.role = self.name.split('.')[0]
-
 
     @property
     def hrd(self):
@@ -96,17 +93,15 @@ class ActorTemplate:
         self._schema = j.data.hrd.getSchema(hrdpath)
         return self._schema
 
-
     @property
     def schema_capnp(self):
         if self._capnpSchema is None:
             if j.sal.fs.exists(self.path_capnp_schema):
                 from IPython import embed
-                print ("DEBUG NOW implement schema capnp")
-                embed()                
+                print("DEBUG NOW implement schema capnp")
+                embed()
                 self._capnpSchema = ""
         return self._capnpSchema
-
 
     @property
     def model_mongo(self):

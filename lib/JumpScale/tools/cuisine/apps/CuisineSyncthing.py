@@ -90,12 +90,13 @@ class Syncthing(base):
         #build
         url = "https://github.com/syncthing/syncthing.git"
         self.cuisine.core.dir_remove('$goDir/src/github.com/syncthing/syncthing')
-        dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='$goDir/src/github.com/syncthing/syncthing', ssh=False, depth=None)
-        self.cuisine.core.run('cd %s && godep restore' % dest, profile=True)
-        self.cuisine.core.run("cd %s && ./build.sh noupgrade" % dest, profile=True)
+        self.cuisine.golang.clean_src_path()
+        dest = self.cuisine.git.pullRepo(url, dest='$goDir/src/github.com/syncthing/syncthing', ssh=False, depth=1)
+        self.cuisine.golang.get("github.com/golang/lint/golint")
+        self.cuisine.core.run("cd %s && go run build.go -version v0.11.25 -no-upgrade"% dest , profile=True)
 
         #copy bin
-        self.cuisine.core.file_copy(self.cuisine.core.joinpaths(dest, 'syncthing'), "$goDir/bin/", recursive=True)
+        self.cuisine.core.file_copy(self.cuisine.core.joinpaths(dest, 'bin/syncthing'), "$goDir/bin/", recursive=True)
         self.cuisine.core.file_copy("$goDir/bin/syncthing", "$binDir", recursive=True)
 
         if start:

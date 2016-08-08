@@ -5,11 +5,9 @@ The life cycle of any service can be managed by AYS.
 
 ### Step 1: Create an AYS service template
 
-A service becomes an AYS service when an AYS service template is created for that service.
-
 An AYS service template defines:
 
-    - Which files to use, this happens through code recipes, which define how to use code from e.g. GitHub
+    - Relations between this service and other services. This is done through consumption.
     - How to start/stop the service
     - How to monitor the service
     - How to backup/restore the service
@@ -48,12 +46,24 @@ The `ìnstance.hrd` has all the configuration settings for that AYS service inst
 
 ### Step 5: Deploy & manage the AYS service instance
 
-This is starts when you actually install the AYS service instance.
+This starts when you actually install the AYS service instance.
 
-The installation 
+The installation
 
     - Applies changes to reality
     - This can for instance be the provisioning of database content
     - All types of actions now are possible on the AYS service instance
 
 If anything changes to what was described in the previous steps, this will automatically impact the instalation.
+
+### Step 6: Update the version of a service
+
+Imagine you have some service instances already deployed and a new version of that service is available. There can be multiple scenarios.
+
+1. The new version only bring some change in the `actions.py` file, then you have to:
+    - Download the new version of the template. Usually a simple `git pull` on the AYS templates repository is enough.
+    - Execute the command `ays init`. Init action will walk over of the service recipe and update the `actions.py` file to the same version as the template of this service.
+
+2. The new version bring new fields in the schema, then you have to:
+    - Add these new field and their value to the blueprint.
+    - execute `ays blueprint`. This command will walk over the blueprints and update the `instance.hrd` accordingly. If there is some new fields they will be added to the `instance.hrd` of your instances.

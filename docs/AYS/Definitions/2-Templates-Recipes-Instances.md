@@ -19,7 +19,7 @@ All this is described in the AYS service template files:
   - service.hrd
   - schema.hrd
   - actions.py
-    
+
 
 ### AYS service recipes
 

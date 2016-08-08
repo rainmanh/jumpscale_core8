@@ -6,13 +6,10 @@ We use it as the file format of all configuration files of JumpScale.
 
 The system wide configuration files are in `/optvar/hrd/`.
 
-The HRD configuration files of the AYS service instances are all in `/optvar/hrd/apps`.
-
 
 ### Example of an HRD file
 
 ```shell
-#!text
 bootstrap.ip=localhost
 bootstrap.login=root
 bootstrap.passwd=rooter
@@ -48,12 +45,12 @@ Properties of an HRD schema:
 - **singlechoice** for specifyng a single selection
 - **alias** for setting an alias name or multiple alias names for a field
 - **@ask** is a tag for specifying that the value needs to be provided for by the user
-    - If this is not mentioned then the default value will be used 
+    - If this is not mentioned then the default value will be used
 - **list** to specify that the field is a list
     - Can be a list of integers, strings, ...
 - **id** a tag for specifying that the field is the identifier
     - If not specified name = $(instance) will be autoadded
-- **consume** to specify the dependencies to other services 
+- **consume** to specify the dependencies to other services
     - Format `$role:$minamount:$maxamount,$role2:$min$max, ...`
     - $minamount-$maxamount is optional
     - $role is role of other AYS service, e.g. node (consume service from a node)
@@ -65,7 +62,7 @@ Properties of an HRD schema:
     - When parent then the service instance will be subdir of parent in ays repo
 - **parentauto**
     - is tag to parent
-    - means will automatically create the parent if it does not exist yet 
+    - means will automatically create the parent if it does not exist yet
 
 Consume example:
 
@@ -79,7 +76,7 @@ nameserver = type:str list consume:ns
 ### Get HRD from HRD schema
 
 ```
-@todo 
+@todo
 ```
 
 ### Usage As template engine

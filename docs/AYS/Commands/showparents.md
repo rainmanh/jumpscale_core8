@@ -1,13 +1,14 @@
 ## Showparents
 
-```
-ays showparent --help
-Usage: ays [OPTIONS] COMMAND [ARGS]...
+  Display the list of parent of a specific service instance.
 
-Error: No such command "showparent".
-bash-3.2$ ays showparents --help
+```
+ays showparents --help
 Usage: ays showparents [OPTIONS] ROLE INSTANCE
+
+  Display the list of parent of a specific service instance.
 
 Options:
   --help  Show this message and exit.
+
 ```

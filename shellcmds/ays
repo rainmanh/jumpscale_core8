@@ -223,6 +223,9 @@ def showproducers(role, instance):
 @click.argument('role')
 @click.argument('instance')
 def showparents(role, instance):
+    """
+    Display the list of parent of a specific service instance.
+    """
     ays = atyourservice.getService(role, instance)
     out = "parents:\n"
     for parent in ays.parents:
@@ -234,6 +237,9 @@ def showparents(role, instance):
 @click.option('--role', '-r', default='')
 @click.option('--instance', '-i', default='')
 def list(role, instance):
+    """
+    The list command lists all service instances with specific role and instance name.
+    """
     print("Installed services:")
     print("-------------------")
     services = atyourservice.findServices(role=role, instance=instance)

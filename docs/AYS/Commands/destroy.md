@@ -9,7 +9,7 @@ Usage: ays destroy [OPTIONS]
   reset in current ays repo all services & recipe's in current repo
   (DANGEROUS) all instances will be lost !!!
 
-  make sure to do a commit before you do a distroy, this will give you a
+  make sure to do a commit before you do a destroy, this will give you a
   chance to roll back.
 
 Options:

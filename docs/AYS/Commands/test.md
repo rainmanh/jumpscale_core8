@@ -6,7 +6,7 @@ The `test` command is used for controlling the AYS test suite.
 ays test --help
 Usage: ays test [OPTIONS] CMD
 
-  there is a test suite for ays, this command allows to control the test
+  There is a test suite for ays, this command allows to control the test
   suite
 
   cmds are  - doall : execute all tests  - push : push modified tests to the

@@ -2,6 +2,7 @@
 
 > Note that parts of the **AtYourService** documentation is deprecated. It's still heavily being reviewed.
 
+
 ### What is AYS?
 
 AYS is a self-healing application management framework for cloud infrastructure and is installed as part of a JumpScale installation.
@@ -17,7 +18,7 @@ It combines functions such as:
 
 ### What is a service?
 
-A service, either local is an abstraction for almost anything:
+A service is an abstraction for almost anything:
 
 - Simple package i.e `mongodb`
 - Server cluster i.e `mongodb cluster`
@@ -30,12 +31,13 @@ A service, either local is an abstraction for almost anything:
 
 We use only one command `ays` to control everything:
 
-- Convert a blueprint to one or more ays instances by `ays blueprint`
+- Convert a blueprint to one or more AYS service instances by executing `ays blueprint`
 - Configure all dependencies of a given service by executing `ays init` on the AYS repository of the service
 - Install a service by executing `ays install`
 - Start all services: `ays start`
 - Stop all services: `ays stop`
 - check `ays --help` for a complete list of available commands
+
 
 ### Next
 

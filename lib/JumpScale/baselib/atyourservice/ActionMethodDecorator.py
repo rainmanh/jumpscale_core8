@@ -56,7 +56,7 @@ class ActionMethodDecorator:
                     dargs = {}
                     if j.data.types.string.check(kwargs['service']):
                         aysikey = kwargs['service']
-                        service = j.atyourservice.getService[aysikey]
+                        service = j.atyourservice.getService(aysikey)
                     else:
                         service = kwargs['service']
                         aysikey = service.gkey
@@ -80,7 +80,7 @@ class ActionMethodDecorator:
                     action0.hrd = service.hrd
                 action0._method = None
                 action0.save()
-
+                
                 service.logger.info("Execute Action:%s %s" % (service, func.__name__))
                 action0.execute()
 

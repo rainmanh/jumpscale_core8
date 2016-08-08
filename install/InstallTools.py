@@ -2144,10 +2144,12 @@ class Installer():
         dest="%s/bin"%base
         do.symlinkFilesInDir(src, dest)
 
-        #link _ays completion
-        #src = "%s/github/jumpscale/jumpscale_core8/install/_ays"%do.CODEDIR
-        #dest="/etc/bash_completion.d/_ays"
-        #do.symlink(src,dest)
+        #create ays,jsdocker completion based on click magic variables
+        with open(os.path.expanduser("~/.bashrc"), "a") as f:
+            f.write('''
+eval "$(_AYS_COMPLETE=source ays)"
+eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
+            ''')
 
         #link python
         src="/usr/bin/python3.5"

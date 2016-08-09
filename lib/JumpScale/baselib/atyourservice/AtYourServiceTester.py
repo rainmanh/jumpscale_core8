@@ -33,7 +33,7 @@ class AtYourServiceTester:
     @property
     def git(self):
         if self._git is None:
-            self._git = j.clients.git.get(self.basepath)
+            self._git = j.clients.git.get(self.basepath, check_path=False)
         return self._git
 
     def reset(self):

@@ -4,13 +4,15 @@ import re
 
 from JumpScale import j
 
+
 class HostFileFactory:
+
     def __init__(self):
         self.__jslocation__ = "j.sal.hostsfile"
 
-
     def get(self):
         return HostFile()
+
 
 class HostFile:
 
@@ -25,7 +27,7 @@ class HostFile:
         """
         # get content of hostsfile
         filecontents = j.sal.fs.fileGetContents(self.hostfilePath)
-        searchObj = re.search('^%s\s.*\n' %ip, filecontents, re.MULTILINE)
+        searchObj = re.search('^%s\s.*\n' % ip, filecontents, re.MULTILINE)
         if searchObj:
             filecontents = filecontents.replace(searchObj.group(0), '')
             j.sal.fs.writeFile(self.hostfilePath, filecontents)
@@ -39,7 +41,7 @@ class HostFile:
         """
         # get content of hostsfile
         filecontents = j.sal.fs.fileGetContents(self.hostfilePath)
-        res = re.search('^%s\s' %ip, filecontents, re.MULTILINE)
+        res = re.search('^%s\s' % ip, filecontents, re.MULTILINE)
         if res:
             return True
         else:
@@ -52,16 +54,16 @@ class HostFile:
         @return: List of machinehostnames
         """
 
-        if self.existsIP( ip):
+        if self.existsIP(ip):
             filecontents = j.sal.fs.fileGetContents(self.hostfilePath)
-            searchObj = re.search('^%s\s.*\n' %ip, filecontents, re.MULTILINE)
+            searchObj = re.search('^%s\s.*\n' % ip, filecontents, re.MULTILINE)
             hostnames = searchObj.group(0).strip().split()
             hostnames.pop(0)
             return hostnames
         else:
             return []
 
-    def set(self,ip,hostname):
+    def set(self, ip, hostname):
         """Update a hostfile to contain the basic information install
         @param hostsfile: File where hosts are defined
         @param ip: Ip of the machine to add/modify
@@ -70,12 +72,13 @@ class HostFile:
         if isinstance(hostname, str):
             hostname = hostname.split()
         filecontents = j.sal.fs.fileGetContents(self.hostfilePath)
-        searchObj = re.search('^%s\s.*\n' %ip, filecontents, re.MULTILINE)
+        searchObj = re.search('^%s\s.*\n' % ip, filecontents, re.MULTILINE)
 
         hostnames = ' '.join(hostname)
         if searchObj:
-            filecontents = filecontents.replace(searchObj.group(0), '%s %s\n' %(ip, hostnames))
+            filecontents = filecontents.replace(
+                searchObj.group(0), '%s %s\n' % (ip, hostnames))
         else:
-            filecontents += '%s %s\n' %(ip, hostnames)
+            filecontents += '%s %s\n' % (ip, hostnames)
 
         j.sal.fs.writeFile(self.hostfilePath, filecontents)

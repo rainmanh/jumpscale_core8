@@ -6,6 +6,7 @@ import os
 import inspect
 import gevent
 
+
 class Handler:
     ORDER = 50
 
@@ -20,6 +21,7 @@ class Handler:
 
     def escalate(self, alert, users):
         pass
+
 
 class AlertService:
 

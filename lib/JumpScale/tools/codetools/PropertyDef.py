@@ -1,7 +1,7 @@
 
 class PropertyDef:
 
-    def __init__(self,classDef, name="", defaultVal="", type="", comments="", isArray=False, isDict=False,dictKey="",decorators=None):
+    def __init__(self, classDef, name="", defaultVal="", type="", comments="", isArray=False, isDict=False, dictKey="", decorators=None):
         if name.startswith("__"):
             self.name = name[2:]
             self.modifier = "property"
@@ -11,21 +11,21 @@ class PropertyDef:
         else:
             self.name = name
             self.modifier = "normal"
-            
-        self.classDef=classDef
-        self.defaultVal=defaultVal
-        self.type=type
-        self.comment=comments
-        self.isArray=isArray
-        
+
+        self.classDef = classDef
+        self.defaultVal = defaultVal
+        self.type = type
+        self.comment = comments
+        self.isArray = isArray
+
         if decorators is None:
-            self.decorators=[]
+            self.decorators = []
         else:
-            self.decorators=decorators
-            
-        self.foundgetter=False
-        self.foundsetter=False
-        self.isDict=isDict
-        self.dictKey=dictKey
-        self.isPrivate=False
-        self.isProperty=False
+            self.decorators = decorators
+
+        self.foundgetter = False
+        self.foundsetter = False
+        self.isDict = isDict
+        self.dictKey = dictKey
+        self.isPrivate = False
+        self.isProperty = False

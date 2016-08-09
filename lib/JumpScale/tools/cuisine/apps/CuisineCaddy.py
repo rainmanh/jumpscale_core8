@@ -16,7 +16,9 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.caddy"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class Caddy(base):
 
     def __init__(self, executor, cuisine):
@@ -25,7 +27,8 @@ class Caddy(base):
 
     @actionrun(action=True)
     def install(self, ssl=False, start=True, dns=None):
-        self.cuisine.core.file_download('https://github.com/mholt/caddy/releases/download/v0.8.2/caddy_linux_amd64.tar.gz', '$tmpDir/caddy_linux_amd64.tar.gz')
+        self.cuisine.core.file_download(
+            'https://github.com/mholt/caddy/releases/download/v0.8.2/caddy_linux_amd64.tar.gz', '$tmpDir/caddy_linux_amd64.tar.gz')
         self.cuisine.core.run('cd $tmpDir; tar xvf $tmpDir/caddy_linux_amd64.tar.gz')
         self.cuisine.core.file_copy('$tmpDir/caddy', '$binDir')
         self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"))
@@ -60,13 +63,11 @@ class Caddy(base):
         cpath = self.cuisine.core.args_replace("$cfgDir/caddy/caddyfile.conf")
         self.cuisine.core.file_copy("$tmplsDir/cfg/caddy", "$cfgDir/caddy", recursive=True)
 
-        #adjust confguration file
+        # adjust confguration file
         conf = self.cuisine.core.file_read(cpath)
         conf.replace("$tmplsDir/cfg", "$cfgDir")
         conf = self.cuisine.core.args_replace(conf)
         self.cuisine.core.file_write("$cfgDir/caddy/caddyfile.conf", conf, replaceArgs=True)
-
-
 
         self.cuisine.processmanager.stop("caddy")  # will also kill
 
@@ -94,9 +95,8 @@ class Caddy(base):
         cmd = self.cuisine.bash.cmdGetPath("caddy")
         self.cuisine.processmanager.ensure("caddy", '%s -conf=%s -email=info@greenitglobe.com' % (cmd, cpath))
 
-
     @actionrun()
-    def caddyConfig(self,sectionname,config):
+    def caddyConfig(self, sectionname, config):
         """
         config format see https://caddyserver.com/docs/caddyfile
         """

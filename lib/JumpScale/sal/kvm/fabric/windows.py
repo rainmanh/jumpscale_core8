@@ -1,7 +1,6 @@
 #@todo (*2*)
 
 
-
 @task
 def setupNetwork(ifaces):
     with settings(user='Administrator'):

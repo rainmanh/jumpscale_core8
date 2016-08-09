@@ -2,15 +2,16 @@ from JumpScale import j
 
 from HTML2Text import *
 
+
 class HTMLFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.tools.html"
-        
+
     def html2text(self, html):
         """
         """
-        html=str(html, errors='ignore')
+        html = str(html, errors='ignore')
         encoding = "utf-8"
         html = html.decode(encoding)
         h = HTML2Text()
@@ -21,7 +22,7 @@ class HTMLFactory:
         #     h.emphasis_mark = '*'
         #     h.strong_mark = '__'
 
-        h.body_width = 0 
+        h.body_width = 0
         # h.list_indent = options.list_indent
         # h.ignore_emphasis = options.ignore_emphasis
         # h.ignore_links = options.ignore_links
@@ -30,9 +31,7 @@ class HTMLFactory:
         # h.hide_strikethrough = options.hide_strikethrough
         # h.escape_snob = options.escape_snob
 
-        text=h.handle(html)
+        text = h.handle(html)
         text.encode('utf-8')
 
         return text
-        
-

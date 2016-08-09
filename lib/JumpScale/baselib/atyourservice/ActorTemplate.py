@@ -14,13 +14,15 @@ class ActorTemplate:
 
         if j.sal.fs.exists(path=path):
             # we know its absolute
-            relpath = j.sal.fs.pathRemoveDirPart(path, gitrepo.baseDir, removeTrailingSlash=True)
+            relpath = j.sal.fs.pathRemoveDirPart(
+                path, gitrepo.baseDir, removeTrailingSlash=True)
             # path is now relative path
         else:
             relpath = path
             path = j.sal.fs.joinPaths(gitrepo.baseDir, path)
             if not j.sal.fs.exists(path=path):
-                raise j.exceptions.Input("Cannot find path for template:%s" % path)
+                raise j.exceptions.Input(
+                    "Cannot find path for template:%s" % path)
 
         self.path = path
         self.pathRelative = relpath
@@ -31,7 +33,8 @@ class ActorTemplate:
         self.domain = j.sal.fs.getBaseName(gitrepo.baseDir)
 
         if not self.domain.startswith("ays_"):
-            raise j.exceptions.Input("name of ays template git repo should start with ays_, now:%s" % gitrepo.baseDir)
+            raise j.exceptions.Input(
+                "name of ays template git repo should start with ays_, now:%s" % gitrepo.baseDir)
 
         self.domain = self.domain[4:]
 
@@ -48,7 +51,8 @@ class ActorTemplate:
         self.path_hrd_template = j.sal.fs.joinPaths(self.path, "service.hrd")
         self.path_hrd_schema = j.sal.fs.joinPaths(self.path, "schema.hrd")
         self.path_actions = j.sal.fs.joinPaths(self.path, "actions.py")
-        self.path_actions_node = j.sal.fs.joinPaths(self.path, "actions_node.py")
+        self.path_actions_node = j.sal.fs.joinPaths(
+            self.path, "actions_node.py")
         self.path_mongo_model = j.sal.fs.joinPaths(self.path, "model.py")
         self.path_capnp_schema = j.sal.fs.joinPaths(self.path, "model.capnp")
 
@@ -107,7 +111,8 @@ class ActorTemplate:
     def model_mongo(self):
         if self._mongoModel is None:
             if j.sal.fs.exists(self.path_mongo_model):
-                modulename = "JumpScale.atyourservice.%s.%s.model" % (self.domain, self.name)
+                modulename = "JumpScale.atyourservice.%s.%s.model" % (
+                    self.domain, self.name)
                 mod = loadmodule(modulename, self.path_mongo_model)
                 self._mongoModel = mod.Model()
         return self._mongoModel

@@ -2,6 +2,7 @@ import threading as __threading
 __LOCALIZERS = {}
 __lock = __threading.RLock()
 
+
 def getlocalizer(id, path):
     from locale import Localizer
     if id in __LOCALIZERS:

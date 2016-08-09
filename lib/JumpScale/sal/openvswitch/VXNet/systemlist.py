@@ -8,7 +8,7 @@ from netaddr import *
 
 def acquire_lock(path):
     """
-	little tool to do EAGAIN until lockfile released
+        little tool to do EAGAIN until lockfile released
     :param path:
     :return: path
     """
@@ -37,35 +37,38 @@ def get_nic_params():
     nictypes = {}
     bridges = get_all_bridges()
     namespaces = get_all_namespaces()
+
     def populatenictypes(lines, namespace=None):
         for l in lines:
-            if not 'state' in l: continue
+            if not 'state' in l:
+                continue
             entry = l.strip().split()
             intf = entry[1].rstrip(':')
-            if intf == 'lo' : continue
+            if intf == 'lo':
+                continue
             nictypes[intf] = {}
-            if 'vxlan' in entry :
-                want = ('state','id' ,'mtu','id','group','dev','port')
-                params = parse_ipl_line(entry,want)
+            if 'vxlan' in entry:
+                want = ('state', 'id', 'mtu', 'id', 'group', 'dev', 'port')
+                params = parse_ipl_line(entry, want)
                 params['type'] = 'vxlan'
             elif 'veth' in entry:
-                want = ('state','id','mtu')
-                params = parse_ipl_line(entry,want)
-                params['peer'] = find_veth_peer(intf,ns=namespace)
+                want = ('state', 'id', 'mtu')
+                params = parse_ipl_line(entry, want)
+                params['peer'] = find_veth_peer(intf, ns=namespace)
                 params['type'] = 'veth'
             elif 'tun' in entry:
-                want = ('state','id','mtu')
-                params = parse_ipl_line(entry,want)
+                want = ('state', 'id', 'mtu')
+                params = parse_ipl_line(entry, want)
                 params['type'] = 'tun'
             elif intf in bridges:
-                want = ('state','id','mtu')
-                params = parse_ipl_line(entry,want)
+                want = ('state', 'id', 'mtu')
+                params = parse_ipl_line(entry, want)
                 params['type'] = 'bridge'
             else:
-                want = ('state','id','mtu')
-                params = parse_ipl_line(entry,want)
+                want = ('state', 'id', 'mtu')
+                params = parse_ipl_line(entry, want)
             nictypes[intf]['params'] = params
-            if  namespace == None:
+            if namespace == None:
                 nictypes[intf]['detail'] = get_nic_detail(intf)
                 nictypes[intf]['namespace'] = None
             else:
@@ -79,10 +82,10 @@ def get_nic_params():
     nictypes = populatenictypes(lines)
     # all namespaces
     for ns in namespaces:
-        cmd = '%s netns exec %s %s -o -d link show' % (ip,ns,ip)
-        (r,s,e) = doexec(cmd.split())
+        cmd = '%s netns exec %s %s -o -d link show' % (ip, ns, ip)
+        (r, s, e) = doexec(cmd.split())
         lines = s.readlines()
-        nictypes = dict(list(populatenictypes(lines,namespace=ns).items()) + list(nictypes.items()))
+        nictypes = dict(list(populatenictypes(lines, namespace=ns).items()) + list(nictypes.items()))
     return nictypes
 
 
@@ -99,65 +102,69 @@ def parse_ipl_line(line, params):
         elif p == 'id':
             nicsettings[p] = line[0].rstrip(':')
         else:
-            nicsettings[p] = line[line.index(p)+1]  #watch out for index out of range
+            nicsettings[p] = line[line.index(p) + 1]  # watch out for index out of range
     return nicsettings
 
 
 def get_nic_detail(interface):
-    prefix= '/sys/class/net'
+    prefix = '/sys/class/net'
     # every interface has a mac
-    carrier = None; speed = None; peer = None
+    carrier = None
+    speed = None
+    peer = None
 
     # TODO (*2*) Should it give errors if paths don't exist?
     addr = ''
-    if os.path.exists(os.path.join(prefix,interface,"address")):
-        with open(os.path.join(prefix,interface,"address")) as f:
+    if os.path.exists(os.path.join(prefix, interface, "address")):
+        with open(os.path.join(prefix, interface, "address")) as f:
             addr = f.readline().strip()
     # if linked to somewhere in pci it prolly is physical
     typ = 'UNKNOWN'
-    if os.path.exists(os.path.join(prefix,interface)):
-        if 'pci' in os.readlink(os.path.join(prefix,interface)):
+    if os.path.exists(os.path.join(prefix, interface)):
+        if 'pci' in os.readlink(os.path.join(prefix, interface)):
             typ = 'PHYS'
-        elif 'virtual' in os.readlink(os.path.join(prefix,interface)):
+        elif 'virtual' in os.readlink(os.path.join(prefix, interface)):
             typ = 'VIRT'
 
     if typ == 'PHYS':
         # verify if link has carrier
-        (r,s,e) = doexec(['ethtool',interface])
+        (r, s, e) = doexec(['ethtool', interface])
         # Link Detected and  speed
         out = s.readlines()
         for i in out:
             string = i.strip().split(':')
-            if string[0] == 'Link detected' :
+            if string[0] == 'Link detected':
                 carrier = True if string[1].strip() == 'yes' else False
         if carrier == True:
             for i in out:
-                string=i.strip().split(':')
-                if string[0] == 'Speed' : speed = string[1].strip()
-    return [typ,addr,carrier,speed]
+                string = i.strip().split(':')
+                if string[0] == 'Speed':
+                    speed = string[1].strip()
+    return [typ, addr, carrier, speed]
 
 
-def find_veth_peer(interface,ns=None):
+def find_veth_peer(interface, ns=None):
     """
     Left or right part of veth
     @param interface:
     @return: name
     """
-    cmd = '%s -S %s'% (ethtool, interface)
+    cmd = '%s -S %s' % (ethtool, interface)
     if ns != None:
-        cmd = '%s netns exec %s ' % (ip,ns) + cmd
-    r,s,e = doexec(cmd.split())
-    a=s.readlines()
+        cmd = '%s netns exec %s ' % (ip, ns) + cmd
+    r, s, e = doexec(cmd.split())
+    a = s.readlines()
     peer = [int(x.split(':')[1].rstrip()) for x in a if 'ifindex' in x]
-    if len(peer) > 0 :
+    if len(peer) > 0:
         return peer[0]
-    else: return None
+    else:
+        return None
 
 
 def add_ips_to(physlayout):
     fullset = {}
     iplist = get_ip_addrs()
-    for key in iplist: # you can have interfaces without ip
+    for key in iplist:  # you can have interfaces without ip
         fullset[key] = physlayout[key]
         fullset[key]['ipaddrs'] = iplist[key]
     # merge rest
@@ -174,14 +181,17 @@ def get_ip_addrs(onlypermanent=False, namespace=None):
         cmd = '%s -o addr show' % ip
     else:
         cmd = '%s netns exec %s %s -o addr show' % (ip, namespace, ip)
-    (r,s,e) = doexec(cmd.split())
+    (r, s, e) = doexec(cmd.split())
     lines = s.readlines()
     iplist = {}
     for l in lines:
         i = l.strip().split()
-        if not 'forever' in l and onlypermanent: continue
-        iface = i[1].rstrip(':'); ipstr = i[3]
-        if iface == 'lo' : continue
+        if not 'forever' in l and onlypermanent:
+            continue
+        iface = i[1].rstrip(':')
+        ipstr = i[3]
+        if iface == 'lo':
+            continue
         ipobj = IPNetwork(ipstr)
         if iface not in iplist:
             iplist[iface] = {}
@@ -194,34 +204,40 @@ def get_ip_addrs(onlypermanent=False, namespace=None):
 
 def isup(interface):
     cmd = '%s -o link show dev %s' % interface
-    r,s,e = doexec(cmd.split())
-    line = s.readlines() ; l = line[0].strip().split()
+    r, s, e = doexec(cmd.split())
+    line = s.readlines()
+    l = line[0].strip().split()
     state = l[2].lstrip('<').rstrip('>').split(',')
     if 'UP' in state:
         return True
     return False
 
 
-def getnetworkstructure(onlypermanent=True,without_ip=False):
+def getnetworkstructure(onlypermanent=True, without_ip=False):
     """
 
     @param onlypermanent:
     @param without_ip:
     @return:
     """
-    (r,s,e) = doexec('ip -o addr show'.split())
+    (r, s, e) = doexec('ip -o addr show'.split())
     interfaces = s.readlines()
     s = {}
     for l in interfaces:
         i = l.split()
-        if not 'forever' in l and onlypermanent and not without_ip: continue
-        id = re.match('\d+',i[0]).group()
-        intf = i[1]; inet = i[2]; ipstr = i[3]
-        if intf not in s: s[intf] = {}
+        if not 'forever' in l and onlypermanent and not without_ip:
+            continue
+        id = re.match('\d+', i[0]).group()
+        intf = i[1]
+        inet = i[2]
+        ipstr = i[3]
+        if intf not in s:
+            s[intf] = {}
         s[intf]['id'] = id
-        if inet not in s[intf]: s[intf][inet] = []
+        if inet not in s[intf]:
+            s[intf][inet] = []
         s[intf][inet].append(IPNetwork(ipstr))
-        nictype,mac,carrier,speed = get_nic_detail(intf)
+        nictype, mac, carrier, speed = get_nic_detail(intf)
         s[intf]['nictype'] = nictype
         s[intf]['mac'] = mac
         if carrier:
@@ -230,7 +246,7 @@ def getnetworkstructure(onlypermanent=True,without_ip=False):
     return s
 
 
-def cleanup_flows(bridge_name,interface):
+def cleanup_flows(bridge_name, interface):
     """
     flows of which ports do not exist any more get removed (generic cleanup)
     @param bridge_name:
@@ -272,6 +288,7 @@ def get_attached_mac_port(virt_vif):
         send_to_syslog("No matching virt port found in get_attached_mac_port(virt_vif)")
         sys.exit(0)
 
+
 def get_bridge_name(vif_name):
     """
     @param vif_name:
@@ -308,6 +325,6 @@ def clear_vswitch_rules(bridge_name, port):
     doexec([ofctl, "del-flows", bridge_name, "in_port=%s" % port])
 
 
-if __name__ =='__main__':
+if __name__ == '__main__':
     a = get_nic_params()
     pprint_dict(a)

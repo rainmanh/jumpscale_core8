@@ -80,7 +80,7 @@ class GithubRepo:
         # only for home type repo, otherwise return []
         return self.issues_by_type('task')
 
-    def labelsSet(self, labels2set,ignoreDelete=["p_"],delete=True):
+    def labelsSet(self, labels2set, ignoreDelete=["p_"], delete=True):
         """
         @param ignore all labels starting with ignore will not be deleted
         """
@@ -133,12 +133,13 @@ class GithubRepo:
             labelstowalk = copy.copy(self.labels)
             for item in labelstowalk:
                 if item.name not in labels2set:
-                    self.logger.info("delete label: %s %s" % (self.fullname, item.name))
-                    ignoreDeleteDo=False
+                    self.logger.info("delete label: %s %s" %
+                                     (self.fullname, item.name))
+                    ignoreDeleteDo = False
                     for filteritem in ignoreDelete:
                         if item.name.startswith(filteritem):
-                            ignoreDeleteDo=True
-                    if ignoreDeleteDo==False:
+                            ignoreDeleteDo = True
+                    if ignoreDeleteDo == False:
                         item.delete()
                     self._labels = None
 
@@ -183,7 +184,8 @@ class GithubRepo:
             return issue
 
         if die:
-            raise j.exceptions.Input("cannot find issue:%s in repo:%s" % (issueNumber, self))
+            raise j.exceptions.Input(
+                "cannot find issue:%s in repo:%s" % (issueNumber, self))
         else:
             i = Issue(self)
             i._ddict["number"] = issueNumber
@@ -266,7 +268,8 @@ class GithubRepo:
     @property
     def milestones(self):
         if self._milestones is None:
-            self._milestones = [RepoMilestone(self, x) for x in self.api.get_milestones()]
+            self._milestones = [RepoMilestone(self, x)
+                                for x in self.api.get_milestones()]
 
         return self._milestones
 
@@ -286,12 +289,15 @@ class GithubRepo:
             if name == item.name.strip() or name == item.title.strip():
                 return item
         if die:
-            raise j.exceptions.Input("Could not find milestone with name:%s" % name)
+            raise j.exceptions.Input(
+                "Could not find milestone with name:%s" % name)
         else:
             return None
 
     def createMilestone(self, name, title, description="", deadline="", owner=""):
-        self.logger.debug('Attempt to create milestone "%s" [%s] deadline %s' % (name, title, deadline))
+        self.logger.debug(
+            'Attempt to create milestone "%s" [%s] deadline %s' % (name, title, deadline))
+
         def getBody(descr, name, owner):
             out = "%s\n\n" % descr
             out += "## name:%s\n" % name
@@ -313,11 +319,13 @@ class GithubRepo:
             if ms.body.strip() != tocheck.strip():
                 ms.body = tocheck
         else:
-            due = j.data.time.epoch2pythonDateTime(int(j.data.time.getEpochFuture(deadline)))
+            due = j.data.time.epoch2pythonDateTime(
+                int(j.data.time.getEpochFuture(deadline)))
             self.logger.info("Create milestone on %s: %s" % (self, title))
             body = getBody(description.strip(), name, owner)
             # workaround for https://github.com/PyGithub/PyGithub/issues/396
-            milestone = self.api.create_milestone(title=title, description=body)
+            milestone = self.api.create_milestone(
+                title=title, description=body)
             milestone.edit(title=title, due_on=due)
 
             self._milestones.append(RepoMilestone(self, milestone))
@@ -331,7 +339,8 @@ class GithubRepo:
             ms.api.delete()
             self._milestones = []
         except Input:
-            self.logger.info("Milestone '%s' doesn't exist. no need to delete" % name)
+            self.logger.info(
+                "Milestone '%s' doesn't exist. no need to delete" % name)
 
     def _labelSubset(self, cat):
         res = []
@@ -380,7 +389,6 @@ class GithubRepo:
         if name.startswith("priority"):
             return("f9d0c4")  # roze
 
-
         return "ffffff"
 
     def set_file(self, path, content, message='update file'):
@@ -426,29 +434,28 @@ class GithubRepo:
 
         return self._issues
 
-    def serialize2Markdown(self,path):
+    def serialize2Markdown(self, path):
 
-        md=j.data.markdown.getDocument()
+        md = j.data.markdown.getDocument()
         md.addMDHeader(1, "Issues")
 
-        res=self.issues_by_type_state()
+        res = self.issues_by_type_state()
 
         for type in self.types:
-            typeheader=False
+            typeheader = False
             for state in self.states:
-                issues=res[type][state]
-                stateheader=False
+                issues = res[type][state]
+                stateheader = False
                 for issue in issues:
-                    if typeheader==False:
-                        md.addMDHeader(2, "Type:%s"%type)
-                        typeheader=True
-                    if stateheader==False:
-                        md.addMDHeader(3, "State:%s"%state)
-                        stateheader=True
+                    if typeheader == False:
+                        md.addMDHeader(2, "Type:%s" % type)
+                        typeheader = True
+                    if stateheader == False:
+                        md.addMDHeader(3, "State:%s" % state)
+                        stateheader = True
                     md.addMDBlock(str(issue.getMarkdown()))
 
-        j.sal.fs.writeFile(path,str(md))
-
+        j.sal.fs.writeFile(path, str(md))
 
     def __str__(self):
         return "gitrepo:%s" % self.fullname

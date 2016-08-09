@@ -11,8 +11,6 @@ class NetworkingError(Exception):
     pass
 
 
-
-
 class UnixNetworkManager:
 
     def __init__(self):
@@ -31,7 +29,7 @@ class UnixNetworkManager:
         Result (ip, netmask, gateway)
         """
         self._nicExists(device)
-        cmd  = 'echo `ip a | grep %s | sed -n 2p | xargs | cut -d " " -f 2`' % device
+        cmd = 'echo `ip a | grep %s | sed -n 2p | xargs | cut -d " " -f 2`' % device
         rc, res = self._executor.execute(cmd)
         ipmask = netaddr.IPNetwork(res)
         netmask = str(ipmask.netmask)
@@ -80,11 +78,9 @@ class UnixNetworkManager:
     @property
     def nics(self):
         if self._nics is None:
-            rc, ifaces =  self._executor.execute('ls --color=never -1 /sys/class/net')
+            rc, ifaces = self._executor.execute('ls --color=never -1 /sys/class/net')
             self._nics = [iface for iface in ifaces.splitlines() if iface]
         return self._nics
-
-
 
     def commit(self, device=None):
         #- make sure loopback exist

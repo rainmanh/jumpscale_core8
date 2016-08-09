@@ -5,19 +5,18 @@ import os
 import netaddr
 
 
-
-
 class Lxc:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.lxc"
-        self._prefix="" #no longer use prefixes
+        self._prefix = ""  # no longer use prefixes
         self._basepath = None
 
     def execute(self, command):
         env = os.environ.copy()
         env.pop('PYTHONPATH', None)
-        (exitcode, stdout, stderr) = j.sal.process.run(command, showOutput=False, captureOutput=True, stopOnError=False, env=env)
+        (exitcode, stdout, stderr) = j.sal.process.run(
+            command, showOutput=False, captureOutput=True, stopOnError=False, env=env)
         if exitcode != 0:
             raise j.exceptions.RuntimeError("Failed to execute %s: Error: %s, %s" % (command, stdout, stderr))
         return stdout
@@ -28,28 +27,28 @@ class Lxc:
             if j.application.config.exists('lxc.basepath'):
                 self._basepath = j.application.config.get('lxc.basepath')
             else:
-                self._basepath="/mnt/vmstor/lxc" #btrfs subvol create
+                self._basepath = "/mnt/vmstor/lxc"  # btrfs subvol create
             if not j.sal.fs.exists(path=self._basepath):
                 raise j.exceptions.RuntimeError("only btrfs lxc supported for now")
         return self._basepath
 
-    def _getChildren(self,pid,children):
-        process=j.sal.process.getProcessObject(pid)
+    def _getChildren(self, pid, children):
+        process = j.sal.process.getProcessObject(pid)
         children.append(process)
         for child in process.get_children():
-            children=self._getChildren(child.pid,children)
+            children = self._getChildren(child.pid, children)
         return children
 
-    def _get_rootpath(self,name):
-        rootpath=j.sal.fs.joinPaths(self.basepath, '%s%s' % (self._prefix, name), 'rootfs')
+    def _get_rootpath(self, name):
+        rootpath = j.sal.fs.joinPaths(self.basepath, '%s%s' % (self._prefix, name), 'rootfs')
         return rootpath
 
-    def _getMachinePath(self,machinename,append=""):
-        if machinename=="":
+    def _getMachinePath(self, machinename, append=""):
+        if machinename == "":
             raise j.exceptions.RuntimeError("Cannot be empty")
-        base = j.sal.fs.joinPaths( self.basepath,'%s%s' % (self._prefix, machinename))
-        if append!="":
-            base=j.sal.fs.joinPaths(base,append)
+        base = j.sal.fs.joinPaths(self.basepath, '%s%s' % (self._prefix, machinename))
+        if append != "":
+            base = j.sal.fs.joinPaths(base, append)
         return base
 
     def list(self):
@@ -57,51 +56,51 @@ class Lxc:
         names of running & stopped machines
         @return (running,stopped)
         """
-        cmd="lxc-ls --fancy  -P %s"%self.basepath
-        out=self.execute(cmd)
+        cmd = "lxc-ls --fancy  -P %s" % self.basepath
+        out = self.execute(cmd)
 
         stopped = []
         running = []
         current = None
         for line in out.split("\n"):
             line = line.strip()
-            if line.find('RUNNING')!=-1:
+            if line.find('RUNNING') != -1:
                 current = running
-            elif line.find('STOPPED')!=-1:
+            elif line.find('STOPPED') != -1:
                 current = stopped
             else:
                 continue
-            name=line.split(" ")[0]
-            if name.find(self._prefix)==0:
-                name=name.replace(self._prefix,"")
+            name = line.split(" ")[0]
+            if name.find(self._prefix) == 0:
+                name = name.replace(self._prefix, "")
                 current.append(name)
         running.sort()
         stopped.sort()
-        return (running,stopped)
+        return (running, stopped)
 
-    def getIp(self,name,fail=True):
-        hrd=self.getConfig(name)
+    def getIp(self, name, fail=True):
+        hrd = self.getConfig(name)
         return hrd.get("ipaddr")
 
-    def getConfig(self,name):
-        configpath=j.sal.fs.joinPaths(self.basepath, '%s%s' % (self._prefix, name),"jumpscaleconfig.hrd")
+    def getConfig(self, name):
+        configpath = j.sal.fs.joinPaths(self.basepath, '%s%s' % (self._prefix, name), "jumpscaleconfig.hrd")
         if not j.sal.fs.exists(path=configpath):
-            content="""
+            content = """
 ipaddr=
 """
-            j.sal.fs.writeFile(configpath,contents=content)
-        return j.data.hrd.get( path=configpath)
+            j.sal.fs.writeFile(configpath, contents=content)
+        return j.data.hrd.get(path=configpath)
 
-    def getPid(self,name,fail=True):
-        out=self.execute("lxc-info -n %s%s -p"%(self._prefix,name))
-        pid=0
+    def getPid(self, name, fail=True):
+        out = self.execute("lxc-info -n %s%s -p" % (self._prefix, name))
+        pid = 0
         for line in out.splitlines():
-            line=line.strip().lower()
+            line = line.strip().lower()
             name, pid = line.split(':')
             pid = int(pid.strip())
-        if pid==0:
+        if pid == 0:
             if fail:
-                raise j.exceptions.RuntimeError("machine:%s is not running"%name)
+                raise j.exceptions.RuntimeError("machine:%s is not running" % name)
             else:
                 return 0
         return pid
@@ -113,230 +112,234 @@ ipaddr=
         """
         pid = self.getPid(name)
         children = list()
-        children=self._getChildren(pid,children)
+        children = self._getChildren(pid, children)
         result = list()
-        pre=""
-        mem=0.0
-        cpu=0.0
-        cpu0=0.0
-        prevparent=""
+        pre = ""
+        mem = 0.0
+        cpu = 0.0
+        cpu0 = 0.0
+        prevparent = ""
         for child in children:
             if child.parent.name != prevparent:
-                pre+=".."
-                prevparent=child.parent.name
+                pre += ".."
+                prevparent = child.parent.name
             # cpu0=child.get_cpu_percent()
-            mem0=int(round(child.get_memory_info().rss/1024,0))
-            mem+=mem0
-            cpu+=cpu0
+            mem0 = int(round(child.get_memory_info().rss / 1024, 0))
+            mem += mem0
+            cpu += cpu0
             if stdout:
-                print(("%s%-35s %-5s mem:%-8s" % (pre,child.name, child.pid, mem0)))
-            result.append([child.name,child.pid,mem0,child.parent.name])
-        cpu=children[0].get_cpu_percent()
-        result.append([mem,cpu])
+                print(("%s%-35s %-5s mem:%-8s" % (pre, child.name, child.pid, mem0)))
+            result.append([child.name, child.pid, mem0, child.parent.name])
+        cpu = children[0].get_cpu_percent()
+        result.append([mem, cpu])
         if stdout:
             print(("TOTAL: mem:%-8s cpu:%-8s" % (mem, cpu)))
         return result
 
-    def exportRsync(self,name,backupname,key="pub"):
+    def exportRsync(self, name, backupname, key="pub"):
         self.removeRedundantFiles(name)
-        ipaddr=j.application.config.get("jssync.addr")
-        path=self._getMachinePath(name)
+        ipaddr = j.application.config.get("jssync.addr")
+        path = self._getMachinePath(name)
         if not j.sal.fs.exists(path):
-            raise j.exceptions.RuntimeError("cannot find machine:%s"%path)
-        if backupname[-1]!="/":
-            backupname+="/"
-        if path[-1]!="/":
-            path+="/"
-        cmd="rsync -a %s %s::upload/%s/images/%s --delete-after --modify-window=60 --compress --stats  --progress --exclude '.Trash*'"%(path,ipaddr,key,backupname)
+            raise j.exceptions.RuntimeError("cannot find machine:%s" % path)
+        if backupname[-1] != "/":
+            backupname += "/"
+        if path[-1] != "/":
+            path += "/"
+        cmd = "rsync -a %s %s::upload/%s/images/%s --delete-after --modify-window=60 --compress --stats  --progress --exclude '.Trash*'" % (
+            path, ipaddr, key, backupname)
         # print cmd
         j.sal.process.executeWithoutPipe(cmd)
 
-    def _btrfsExecute(self,cmd):
-        cmd="btrfs %s"%cmd
+    def _btrfsExecute(self, cmd):
+        cmd = "btrfs %s" % cmd
         print(cmd)
         return self.execute(cmd)
 
     def btrfsSubvolList(self):
-        out=self._btrfsExecute("subvolume list %s"%self.basepath)
-        res=[]
+        out = self._btrfsExecute("subvolume list %s" % self.basepath)
+        res = []
         for line in out.split("\n"):
-            if line.strip()=="":
+            if line.strip() == "":
                 continue
-            if line.find("path ")!=-1:
-                path=line.split("path ")[-1]
-                path=path.strip("/")
-                path=path.replace("lxc/","")
+            if line.find("path ") != -1:
+                path = line.split("path ")[-1]
+                path = path.strip("/")
+                path = path.replace("lxc/", "")
                 res.append(path)
         return res
 
-    def btrfsSubvolNew(self,name):
+    def btrfsSubvolNew(self, name):
         if not self.btrfsSubvolExists(name):
-            cmd="subvolume create %s/%s"%(self.basepath,name)
+            cmd = "subvolume create %s/%s" % (self.basepath, name)
             self._btrfsExecute(cmd)
 
-    def btrfsSubvolCopy(self,nameFrom,NameDest):
+    def btrfsSubvolCopy(self, nameFrom, NameDest):
         if not self.btrfsSubvolExists(nameFrom):
-            raise j.exceptions.RuntimeError("could not find vol for %s"%nameFrom)
-        if j.sal.fs.exists(path="%s/%s"%(self.basepath,NameDest)):
-            raise j.exceptions.RuntimeError("path %s exists, cannot copy to existing destination, destroy first."%nameFrom)
-        cmd="subvolume snapshot %s/%s %s/%s"%(self.basepath,nameFrom,self.basepath,NameDest)
+            raise j.exceptions.RuntimeError("could not find vol for %s" % nameFrom)
+        if j.sal.fs.exists(path="%s/%s" % (self.basepath, NameDest)):
+            raise j.exceptions.RuntimeError(
+                "path %s exists, cannot copy to existing destination, destroy first." % nameFrom)
+        cmd = "subvolume snapshot %s/%s %s/%s" % (self.basepath, nameFrom, self.basepath, NameDest)
         self._btrfsExecute(cmd)
 
-    def btrfsSubvolExists(self,name):
-        subvols=self.btrfsSubvolList()
+    def btrfsSubvolExists(self, name):
+        subvols = self.btrfsSubvolList()
         # print subvols
         return name in subvols
 
-    def btrfsSubvolDelete(self,name):
+    def btrfsSubvolDelete(self, name):
         if self.btrfsSubvolExists(name):
-            cmd="subvolume delete %s/%s"%(self.basepath,name)
+            cmd = "subvolume delete %s/%s" % (self.basepath, name)
             self._btrfsExecute(cmd)
-        path="%s/%s"%(self.basepath,name)
+        path = "%s/%s" % (self.basepath, name)
         if j.sal.fs.exists(path=path):
             j.sal.fs.removeDirTree(path)
         if self.btrfsSubvolExists(name):
-            raise j.exceptions.RuntimeError("vol cannot exist:%s"%name)
+            raise j.exceptions.RuntimeError("vol cannot exist:%s" % name)
 
-    def removeRedundantFiles(self,name):
-        basepath=self._getMachinePath(name)
-        j.sal.fs.removeIrrelevantFiles(basepath,followSymlinks=False)
+    def removeRedundantFiles(self, name):
+        basepath = self._getMachinePath(name)
+        j.sal.fs.removeIrrelevantFiles(basepath, followSymlinks=False)
 
-        toremove="%s/rootfs/var/cache/apt/archives/"%basepath
+        toremove = "%s/rootfs/var/cache/apt/archives/" % basepath
         j.sal.fs.removeDirTree(toremove)
 
-    def importRsync(self,backupname,name,basename="",key="pub"):
+    def importRsync(self, backupname, name, basename="", key="pub"):
         """
         @param basename is the name of a start of a machine locally, will be used as basis and then the source will be synced over it
         """
-        ipaddr=j.application.config.get("jssync.addr")
-        path=self._getMachinePath(name)
+        ipaddr = j.application.config.get("jssync.addr")
+        path = self._getMachinePath(name)
 
         self.btrfsSubvolNew(name)
 
         # j.sal.fs.createDir(path)
 
-        if backupname[-1]!="/":
-            backupname+="/"
-        if path[-1]!="/":
-            path+="/"
+        if backupname[-1] != "/":
+            backupname += "/"
+        if path[-1] != "/":
+            path += "/"
 
-        if basename!="":
-            basepath=self._getMachinePath(basename)
-            if basepath[-1]!="/":
-                basepath+="/"
+        if basename != "":
+            basepath = self._getMachinePath(basename)
+            if basepath[-1] != "/":
+                basepath += "/"
             if not j.sal.fs.exists(basepath):
-                raise j.exceptions.RuntimeError("cannot find base machine:%s"%basepath)
-            cmd="rsync -av -v %s %s --delete-after --modify-window=60 --size-only --compress --stats  --progress"%(basepath,path)
+                raise j.exceptions.RuntimeError("cannot find base machine:%s" % basepath)
+            cmd = "rsync -av -v %s %s --delete-after --modify-window=60 --size-only --compress --stats  --progress" % (
+                basepath, path)
             print(cmd)
             j.sal.process.executeWithoutPipe(cmd)
 
-        cmd="rsync -av -v %s::download/%s/images/%s %s --delete-after --modify-window=60 --compress --stats  --progress"%(ipaddr,key,backupname,path)
+        cmd = "rsync -av -v %s::download/%s/images/%s %s --delete-after --modify-window=60 --compress --stats  --progress" % (
+            ipaddr, key, backupname, path)
         print(cmd)
         j.sal.process.executeWithoutPipe(cmd)
 
-    def exportTgz(self,name,backupname):
+    def exportTgz(self, name, backupname):
         self.removeRedundantFiles(name)
-        path=self._getMachinePath(name)
-        bpath= j.sal.fs.joinPaths(self.basepath,"backups")
+        path = self._getMachinePath(name)
+        bpath = j.sal.fs.joinPaths(self.basepath, "backups")
         if not j.sal.fs.exists(path):
-            raise j.exceptions.RuntimeError("cannot find machine:%s"%path)
+            raise j.exceptions.RuntimeError("cannot find machine:%s" % path)
         j.sal.fs.createDir(bpath)
-        bpath= j.sal.fs.joinPaths(bpath,"%s.tgz"%backupname)
-        cmd="cd %s;tar Szcf %s ."%(path,bpath)
+        bpath = j.sal.fs.joinPaths(bpath, "%s.tgz" % backupname)
+        cmd = "cd %s;tar Szcf %s ." % (path, bpath)
         j.sal.process.executeWithoutPipe(cmd)
         return bpath
 
-    def importTgz(self,backupname,name):
-        path=self._getMachinePath(name)
-        bpath= j.sal.fs.joinPaths(self.basepath,"backups","%s.tgz"%backupname)
+    def importTgz(self, backupname, name):
+        path = self._getMachinePath(name)
+        bpath = j.sal.fs.joinPaths(self.basepath, "backups", "%s.tgz" % backupname)
         if not j.sal.fs.exists(bpath):
-            raise j.exceptions.RuntimeError("cannot find import path:%s"%bpath)
+            raise j.exceptions.RuntimeError("cannot find import path:%s" % bpath)
         j.sal.fs.createDir(path)
 
-        cmd="cd %s;tar xzvf %s -C ."%(path,bpath)
+        cmd = "cd %s;tar xzvf %s -C ." % (path, bpath)
         j.sal.process.executeWithoutPipe(cmd)
 
-    def create(self,name="",stdout=True,base="base",start=False,nameserver="8.8.8.8",replace=True):
+    def create(self, name="", stdout=True, base="base", start=False, nameserver="8.8.8.8", replace=True):
         """
         @param name if "" then will be an incremental nr
         """
-        print(("create:%s"%name))
+        print(("create:%s" % name))
         if replace:
             if j.sal.fs.exists(self._getMachinePath(name)):
                 self.destroy(name)
 
-
-        running,stopped=self.list()
-        machines=running+stopped
-        if name=="":
-            nr=0#max
+        running, stopped = self.list()
+        machines = running + stopped
+        if name == "":
+            nr = 0  # max
             for m in machines:
                 if j.data.types.int.checkString(m):
                     if int(m) > nr:
-                        nr=int(m)
+                        nr = int(m)
             nr += 1
             name = nr
-        lxcname="%s%s"%(self._prefix,name)
+        lxcname = "%s%s" % (self._prefix, name)
 
         # cmd="lxc-clone --snapshot -B overlayfs -B btrfs -o %s -n %s -p %s -P %s"%(base,lxcname,self.basepath,self.basepath)
         # print cmd
         # out=self.execute(cmd)
 
-        self.btrfsSubvolCopy(base,lxcname)
+        self.btrfsSubvolCopy(base, lxcname)
 
         # if lxcname=="base":
-        self._setConfig(lxcname,base)
+        self._setConfig(lxcname, base)
 
-        #is in path need to remove
-        resolvconfpath=j.sal.fs.joinPaths(self._get_rootpath(name),"etc","resolv.conf")
+        # is in path need to remove
+        resolvconfpath = j.sal.fs.joinPaths(self._get_rootpath(name), "etc", "resolv.conf")
         if j.sal.fs.isLink(resolvconfpath):
             j.sal.fs.unlink(resolvconfpath)
 
-        hostpath=j.sal.fs.joinPaths(self._get_rootpath(name),"etc","hostname")
-        j.sal.fs.writeFile(filename=hostpath,contents=name)
+        hostpath = j.sal.fs.joinPaths(self._get_rootpath(name), "etc", "hostname")
+        j.sal.fs.writeFile(filename=hostpath, contents=name)
 
-        #add host in own hosts file
-        hostspath=j.sal.fs.joinPaths(self._get_rootpath(name),"etc","hosts")
-        lines=j.sal.fs.fileGetContents(hostspath)
-        out=""
+        # add host in own hosts file
+        hostspath = j.sal.fs.joinPaths(self._get_rootpath(name), "etc", "hosts")
+        lines = j.sal.fs.fileGetContents(hostspath)
+        out = ""
         for line in lines:
-            line=line.strip()
-            if line.strip()=="" or line[0]=="#":
+            line = line.strip()
+            if line.strip() == "" or line[0] == "#":
                 continue
-            if line.find(name)!=-1:
+            if line.find(name) != -1:
                 continue
-            out+="%s\n"%line
-        out+="%s      %s\n"%("127.0.0.1",name)
-        j.sal.fs.writeFile(filename=hostspath,contents=out)
+            out += "%s\n" % line
+        out += "%s      %s\n" % ("127.0.0.1", name)
+        j.sal.fs.writeFile(filename=hostspath, contents=out)
 
-        j.sal.netconfig.root = self._get_rootpath(name) #makes sure the network config is done on right spot
+        j.sal.netconfig.root = self._get_rootpath(name)  # makes sure the network config is done on right spot
 
         j.sal.netconfig.interfaces_reset()
         j.sal.netconfig.nameserver_set(nameserver)
 
-        j.sal.netconfig.root=""#set back to normal
+        j.sal.netconfig.root = ""  # set back to normal
 
-        hrd=self.getConfig(name)
-        ipaddrs=j.application.config.getDict("lxc.mgmt.ipaddresses")
+        hrd = self.getConfig(name)
+        ipaddrs = j.application.config.getDict("lxc.mgmt.ipaddresses")
         if name in ipaddrs:
-            ipaddr=ipaddrs[name]
+            ipaddr = ipaddrs[name]
         else:
-            #find free ip addr
+            # find free ip addr
             import netaddr
-            existing=[netaddr.ip.IPAddress(item).value for item in  list(ipaddrs.values()) if item.strip()!=""]
+            existing = [netaddr.ip.IPAddress(item).value for item in list(ipaddrs.values()) if item.strip() != ""]
             ip = netaddr.IPNetwork(j.application.config.get("lxc.mgmt.ip"))
-            for i in range(ip.first+2,ip.last-2):
+            for i in range(ip.first + 2, ip.last - 2):
                 if i not in existing:
-                    ipaddr=str(netaddr.ip.IPAddress(i))
+                    ipaddr = str(netaddr.ip.IPAddress(i))
                     break
-            ipaddrs[name]=ipaddr
-            j.application.config.setDict("lxc.mgmt.ipaddresses",ipaddrs)
+            ipaddrs[name] = ipaddr
+            j.application.config.setDict("lxc.mgmt.ipaddresses", ipaddrs)
 
         # mgmtiprange=j.application.config.get("lxc.management.iprange")
-        self.networkSet( name,netname="mgmt0", bridge="lxc", pubips=["%s/24"%ipaddr]) #@todo make sure other ranges also supported
+        # @todo make sure other ranges also supported
+        self.networkSet(name, netname="mgmt0", bridge="lxc", pubips=["%s/24" % ipaddr])
 
-        #set ipaddr in hrd file
-        hrd.set("ipaddr",ipaddr)
+        # set ipaddr in hrd file
+        hrd.set("ipaddr", ipaddr)
 
         if start:
             return self.start(name)
@@ -345,91 +348,91 @@ ipaddr=
 
         return self.getIp(name)
 
-    def setHostName(self,name):
-        lines=j.sal.fs.fileGetContents("/etc/hosts")
-        out=""
+    def setHostName(self, name):
+        lines = j.sal.fs.fileGetContents("/etc/hosts")
+        out = ""
         for line in lines.split("\n"):
-            if line.find(name)!=-1:
+            if line.find(name) != -1:
                 continue
-            out+="%s\n"%line
-        out+="%s      %s\n"%(self.getIp(name),name)
-        j.sal.fs.writeFile(filename="/etc/hosts",contents=out)
+            out += "%s\n" % line
+        out += "%s      %s\n" % (self.getIp(name), name)
+        j.sal.fs.writeFile(filename="/etc/hosts", contents=out)
 
-    def pushSSHKey(self,name):
-        path=j.sal.fs.joinPaths(self._get_rootpath(name),"root",".ssh","authorized_keys")
-        content=j.sal.fs.fileGetContents("/root/.ssh/id_dsa.pub")
-        j.sal.fs.writeFile(filename=path,contents="%s\n"%content)
-        path=j.sal.fs.joinPaths(self._get_rootpath(name),"root",".ssh","known_hosts")
-        j.sal.fs.writeFile(filename=path,contents="")
+    def pushSSHKey(self, name):
+        path = j.sal.fs.joinPaths(self._get_rootpath(name), "root", ".ssh", "authorized_keys")
+        content = j.sal.fs.fileGetContents("/root/.ssh/id_dsa.pub")
+        j.sal.fs.writeFile(filename=path, contents="%s\n" % content)
+        path = j.sal.fs.joinPaths(self._get_rootpath(name), "root", ".ssh", "known_hosts")
+        j.sal.fs.writeFile(filename=path, contents="")
 
     def destroyAll(self):
-        running,stopped=self.list()
-        alll=running+stopped
+        running, stopped = self.list()
+        alll = running + stopped
         for item in alll:
             self.destroy(item)
 
-    def destroy(self,name):
-        running,stopped=self.list()
-        alll=running+stopped
-        print(("running:%s"%",".join(running)))
-        print(("stopped:%s"%",".join(stopped)))
+    def destroy(self, name):
+        running, stopped = self.list()
+        alll = running + stopped
+        print(("running:%s" % ",".join(running)))
+        print(("stopped:%s" % ",".join(stopped)))
         if name in running:
             # cmd="lxc-destroy -n %s%s -f"%(self._prefix,name)
-            cmd="lxc-kill -P %s -n %s%s"%(self.basepath,self._prefix,name)
+            cmd = "lxc-kill -P %s -n %s%s" % (self.basepath, self._prefix, name)
             self.execute(cmd)
         while name in running:
-            running,stopped=self.list()
+            running, stopped = self.list()
             time.sleep(0.1)
             print("wait stop")
-            alll=running+stopped
+            alll = running + stopped
 
         self.btrfsSubvolDelete(name)
         # #@todo put timeout in
 
-    def stop(self,name):
+    def stop(self, name):
         # cmd="lxc-stop -n %s%s"%(self._prefix,name)
-        cmd="lxc-stop -P %s -n %s%s"%(self.basepath,self._prefix,name)
+        cmd = "lxc-stop -P %s -n %s%s" % (self.basepath, self._prefix, name)
         self.execute(cmd)
 
-    def start(self,name,stdout=True,test=True):
-        print(("start:%s"%name))
-        cmd="lxc-start -d -P %s -n %s%s"%(self.basepath,self._prefix,name)
+    def start(self, name, stdout=True, test=True):
+        print(("start:%s" % name))
+        cmd = "lxc-start -d -P %s -n %s%s" % (self.basepath, self._prefix, name)
         print(cmd)
         # cmd="lxc-start -d -n %s%s"%(self._prefix,name)
         self.execute(cmd)
-        start=time.time()
-        now=start
-        found=False
-        while now<start+20:
-            running=self.list()[0]
+        start = time.time()
+        now = start
+        found = False
+        while now < start + 20:
+            running = self.list()[0]
             if name in running:
-                found=True
+                found = True
                 break
             time.sleep(0.2)
-            now=time.time()
+            now = time.time()
 
-        if found==False:
-            msg= "could not start new machine, did not start in 20 sec."
+        if found == False:
+            msg = "could not start new machine, did not start in 20 sec."
             if stdout:
                 print(msg)
             raise j.exceptions.RuntimeError(msg)
 
         self.setHostName(name)
 
-        ipaddr=self.getIp(name)
-        print(("test ssh access to %s"%ipaddr))
-        timeout=time.time()+10
-        while time.time()<timeout:
-            if j.sal.nettools.tcpPortConnectionTest(ipaddr,22):
+        ipaddr = self.getIp(name)
+        print(("test ssh access to %s" % ipaddr))
+        timeout = time.time() + 10
+        while time.time() < timeout:
+            if j.sal.nettools.tcpPortConnectionTest(ipaddr, 22):
                 return
             time.sleep(0.1)
-        raise j.exceptions.RuntimeError("Could not connect to machine %s over port 22 (ssh)"%ipaddr)
+        raise j.exceptions.RuntimeError("Could not connect to machine %s over port 22 (ssh)" % ipaddr)
 
-    def networkSet(self, machinename,netname="pub0",pubips=[],bridge="public",gateway=None):
-        bridge=bridge.lower()
-        print(("set pub network %s on %s" %(pubips,machinename)))
+    def networkSet(self, machinename, netname="pub0", pubips=[], bridge="public", gateway=None):
+        bridge = bridge.lower()
+        print(("set pub network %s on %s" % (pubips, machinename)))
         machine_cfg_file = j.sal.fs.joinPaths(self.basepath, '%s%s' % (self._prefix, machinename), 'config')
-        machine_ovs_file = j.sal.fs.joinPaths(self.basepath, '%s%s' % (self._prefix, machinename), 'ovsbr_%s'%bridge)
+        machine_ovs_file = j.sal.fs.joinPaths(self.basepath, '%s%s' % (self._prefix, machinename), 'ovsbr_%s' % bridge)
 
         # mgmt = j.application.config.get('lxc.mgmt.ip')
         # netaddr.IPNetwork(mgmt)
@@ -441,35 +444,34 @@ lxc.network.flags = up
 lxc.network.name = %s
 lxc.network.script.up = $basedir/%s/ovsbr_%s
 lxc.network.script.down = $basedir/%s/ovsbr_%s
-'''  % (machinename,netname,netname,machinename,bridge,machinename,bridge)
-        config=config.replace("$basedir",self.basepath)
+'''  % (machinename, netname, netname, machinename, bridge, machinename, bridge)
+        config = config.replace("$basedir", self.basepath)
 
-        Covs="""
+        Covs = """
 #!/bin/bash
 if [ "$3" = "up" ] ; then
 /usr/bin/ovs-vsctl --may-exist add-port %s $5
 else
 /usr/bin/ovs-vsctl --if-exists del-port %s $5
 fi
-""" % (bridge,bridge)
+""" % (bridge, bridge)
 
-        j.sal.fs.writeFile(filename=machine_ovs_file,contents=Covs)
+        j.sal.fs.writeFile(filename=machine_ovs_file, contents=Covs)
 
         j.sal.fs.chmod(machine_ovs_file, 0o755)
 
-        ed=j.tools.code.getTextFileEditor(machine_cfg_file)
-        ed.setSection(netname,config)
-
+        ed = j.tools.code.getTextFileEditor(machine_cfg_file)
+        ed.setSection(netname, config)
 
     def networkSetPrivateVXLan(self, name, vxlanid, ipaddresses):
         raise j.exceptions.RuntimeError("not implemented")
 
-    def _setConfig(self,name,parent):
+    def _setConfig(self, name, parent):
         print("SET CONFIG")
-        base=self._getMachinePath(name)
-        baseparent=self._getMachinePath(parent)
-        machine_cfg_file = self._getMachinePath(name,'config')
-        C="""
+        base = self._getMachinePath(name)
+        baseparent = self._getMachinePath(parent)
+        machine_cfg_file = self._getMachinePath(name, 'config')
+        C = """
 lxc.tty = 4
 lxc.pts = 1024
 lxc.arch = x86_64
@@ -504,9 +506,9 @@ lxc.pivotdir = lxc_putold
 #lxc.mount.entry=/var/lib/lxc/shared $base/rootfs/shared none defaults,bind 0 0
 lxc.mount = $base/fstab
 """
-        C=C.replace("$name",name)
-        C=C.replace("$baseparent",baseparent)
-        C=C.replace("$base",base)
-        j.sal.fs.writeFile(machine_cfg_file,C)
+        C = C.replace("$name", name)
+        C = C.replace("$baseparent", baseparent)
+        C = C.replace("$base", base)
+        j.sal.fs.writeFile(machine_cfg_file, C)
         # j.sal.fs.createDir("%s/delta0/jumpscale"%base)
         # j.sal.fs.createDir("%s/delta0/shared"%base)

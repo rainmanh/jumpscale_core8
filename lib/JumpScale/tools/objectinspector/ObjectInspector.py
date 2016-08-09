@@ -1,25 +1,26 @@
 
 from JumpScale import j
 
-
-    # api codes
+# api codes
 # 4 function with params
 # 7 ???
 # 8 property
 
 import inspect
 
-class Arg:
-    def __init__(self,name,defaultvalue):
-        self.name=name
-        self.defaultvalue=defaultvalue
 
-    def __str__(self):        
-        out=""
-        if self.defaultvalue!=None:
-            out+="- %s = %s\n"%(self.name,self.defaultvalue)
+class Arg:
+
+    def __init__(self, name, defaultvalue):
+        self.name = name
+        self.defaultvalue = defaultvalue
+
+    def __str__(self):
+        out = ""
+        if self.defaultvalue != None:
+            out += "- %s = %s\n" % (self.name, self.defaultvalue)
         else:
-            out+="- %s\n"%(self.name)
+            out += "- %s\n" % (self.name)
         return out
 
     def __repr__(self):
@@ -27,58 +28,59 @@ class Arg:
 
 
 class MethodDoc:
-    def __init__(self,method,name,classdoc):
-        self.classdoc=classdoc
-        self.params=[]
+
+    def __init__(self, method, name, classdoc):
+        self.classdoc = classdoc
+        self.params = []
 
         inspected = inspect.getargspec(method)
         params = ""
-        if inspected.defaults!=None:
-            counter=len(inspected.defaults)-len(inspected.args)
+        if inspected.defaults != None:
+            counter = len(inspected.defaults) - len(inspected.args)
         else:
-            counter=-99999
-            
+            counter = -99999
+
         for param in inspected.args:
-            if inspected.defaults!=None and counter>-1:
-                defval=inspected.defaults[counter]     
+            if inspected.defaults != None and counter > -1:
+                defval = inspected.defaults[counter]
                 if j.data.types.string.check(defval):
-                    defval="'%s'"%defval
+                    defval = "'%s'" % defval
             else:
-                defval=None
-            counter+=1
-            if param!="self":
-                self.params.append(Arg(param,defval))
+                defval = None
+            counter += 1
+            if param != "self":
+                self.params.append(Arg(param, defval))
 
-        if inspected.varargs!=None:
-            self.params.append(Arg("*%s"%inspected.varargs,None))
+        if inspected.varargs != None:
+            self.params.append(Arg("*%s" % inspected.varargs, None))
 
-        if inspected.keywords!=None:
-            self.params.append(Arg("**%s"%inspected.keywords,None))
+        if inspected.keywords != None:
+            self.params.append(Arg("**%s" % inspected.keywords, None))
 
-        self.comments=inspect.getdoc(method)
-        if self.comments==None:
-            self.comments=""        
-        self.comments=j.data.text.strip(self.comments)
-        self.comments=j.data.text.wrap(self.comments,90)
+        self.comments = inspect.getdoc(method)
+        if self.comments == None:
+            self.comments = ""
+        self.comments = j.data.text.strip(self.comments)
+        self.comments = j.data.text.wrap(self.comments, 90)
 
-        self.linenr=inspect.getsourcelines(method)[1]
-        self.name=name
+        self.linenr = inspect.getsourcelines(method)[1]
+        self.name = name
 
         # self.methodline=inspect.getsourcelines(method)[0][0].strip().replace("self, ","").replace("self,","").replace("self","").replace(":","")
 
     def __str__(self):
-        
-        out=""
-        out+="#### def %s \n\n"%(self.name)
-        out+="##### arguments\n\n"
-        if self.params!=[]:
-            for param in self.params:
-                out+=str(param)
-            out+="\n"
 
-        if self.comments!=None and self.comments.strip()!="":
-            out+="##### comments\n\n"
-            out+="```\n"+self.comments+"\n```\n\n"
+        out = ""
+        out += "#### def %s \n\n" % (self.name)
+        out += "##### arguments\n\n"
+        if self.params != []:
+            for param in self.params:
+                out += str(param)
+            out += "\n"
+
+        if self.comments != None and self.comments.strip() != "":
+            out += "##### comments\n\n"
+            out += "```\n" + self.comments + "\n```\n\n"
 
         return out
 
@@ -87,15 +89,16 @@ class MethodDoc:
 
 
 class ClassDoc:
-    def __init__(self,classobj,location):
-        self.location=location
-        self.methods={}
-        self.comments=inspect.getdoc(classobj)
-        module=inspect.getmodule(classobj)
-        self.path=inspect.getabsfile(module)
-        self.errors=""
-        self.properties=[]
-        for key,val in classobj.__dict__.items():
+
+    def __init__(self, classobj, location):
+        self.location = location
+        self.methods = {}
+        self.comments = inspect.getdoc(classobj)
+        module = inspect.getmodule(classobj)
+        self.path = inspect.getabsfile(module)
+        self.errors = ""
+        self.properties = []
+        for key, val in classobj.__dict__.items():
             if key.startswith("_"):
                 continue
             # self.properties[key]=val
@@ -105,67 +108,65 @@ class ClassDoc:
         for method in self.methods:
             return inspect.getabsfile(method)
 
-    def addMethod(self,name,method):
+    def addMethod(self, name, method):
         try:
             source = inspect.getsource(method)
         except:
             self.errors += '#### Error trying to add %s source in %s.\n' % (name, self.location)
-        
-        print("ADD METHOD:%s %s"%(self.path,name))
-        md=MethodDoc(method,name,self)
-        self.methods[name]=md
 
-        return source,md.params
+        print("ADD METHOD:%s %s" % (self.path, name))
+        md = MethodDoc(method, name, self)
+        self.methods[name] = md
 
-    def write(self,dest):
-        dest2=j.sal.fs.joinPaths(dest, self.location.split(".")[1],"%s.md"%self.location)
-        destdir= j.sal.fs.getDirName(dest2)
+        return source, md.params
+
+    def write(self, dest):
+        dest2 = j.sal.fs.joinPaths(dest, self.location.split(".")[1], "%s.md" % self.location)
+        destdir = j.sal.fs.getDirName(dest2)
         j.sal.fs.createDir(destdir)
-        content=str(self)
-        content=content.replace("\n\n\n","\n\n")
-        content=content.replace("\n\n\n","\n\n")
-        content=content.replace("\n\n\n","\n\n")
+        content = str(self)
+        content = content.replace("\n\n\n", "\n\n")
+        content = content.replace("\n\n\n", "\n\n")
+        content = content.replace("\n\n\n", "\n\n")
 
-        #ugly temp hack, better to do with regex
-        content=content.replace("\{","$%[")
-        content=content.replace("\}","$%]")
-        content=content.replace("{","\{")
-        content=content.replace("}","\}")
-        content=content.replace("$%]","\}")
-        content=content.replace("$%[","\{")
+        # ugly temp hack, better to do with regex
+        content = content.replace("\{", "$%[")
+        content = content.replace("\}", "$%]")
+        content = content.replace("{", "\{")
+        content = content.replace("}", "\}")
+        content = content.replace("$%]", "\}")
+        content = content.replace("$%[", "\{")
 
-        j.sal.fs.writeFile(filename=dest2,contents=content)
+        j.sal.fs.writeFile(filename=dest2, contents=content)
         return dest2
-        
-        
+
     def __str__(self):
-        C="<!-- toc -->\n"
-        C+="## %s\n\n"%self.location
-        C+="- %s\n"%self.path
-        if self.properties!=[]:    
-            C+="- Properties\n"    
+        C = "<!-- toc -->\n"
+        C += "## %s\n\n" % self.location
+        C += "- %s\n" % self.path
+        if self.properties != []:
+            C += "- Properties\n"
             for prop in self.properties:
-                C+="    - %s\n"%prop
-        C+="\n### Methods\n"
-        C+="\n"
+                C += "    - %s\n" % prop
+        C += "\n### Methods\n"
+        C += "\n"
 
-        if self.comments!=None:
-            C+="\n%s\n\n"%self.comments
+        if self.comments != None:
+            C += "\n%s\n\n" % self.comments
 
-        keys=list(self.methods.keys())
+        keys = list(self.methods.keys())
         keys.sort()
         for key in keys:
-            method=self.methods[key]
-            C2=str(method)
-            C+=C2
+            method = self.methods[key]
+            C2 = str(method)
+            C += C2
             # C+=j.data.text.prefix("    ",C2)
 
-        
         return C
-            
 
     def __repr__(self):
         return self.__str__()
+
 
 class ObjectInspector:
 
@@ -177,65 +178,65 @@ class ObjectInspector:
         self.__jslocation__ = "j.tools.objectinspector"
         # self.apiFileLocation = j.sal.fs.joinPaths(j.dirs.cfgDir, "codecompletionapi", "jumpscale.api")
         # j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.cfgDir, "codecompletionapi"))
-        self.classDocs={}
-        self.visited=[]
+        self.classDocs = {}
+        self.visited = []
         self.root = None
         self.manager = None
         self.logger = j.logger.get('j.tools.objectinspector')
 
-    def importAllLibs(self,ignore=[],base="%s/lib/JumpScale/"%j.dirs.base):
-        self.base=base
-        towalk=j.sal.fs.listDirsInDir(base, recursive=False, dirNameOnly=True, findDirectorySymlinks=True)        
-        errors="### errors while trying to import libraries\n\n"
+    def importAllLibs(self, ignore=[], base="%s/lib/JumpScale/" % j.dirs.base):
+        self.base = base
+        towalk = j.sal.fs.listDirsInDir(base, recursive=False, dirNameOnly=True, findDirectorySymlinks=True)
+        errors = "### errors while trying to import libraries\n\n"
         for item in towalk:
-            
-            path="%s/%s"%(base,item)
-            for modname in j.sal.fs.listDirsInDir(path,False,True,True):
+
+            path = "%s/%s" % (base, item)
+            for modname in j.sal.fs.listDirsInDir(path, False, True, True):
                 if modname not in ignore:
-                    toexec="import JumpScale.%s.%s"%(item,modname)
+                    toexec = "import JumpScale.%s.%s" % (item, modname)
                     try:
                         exec(toexec)
                     except Exception as e:
-                        self.logger.error(("COULD NOT IMPORT %s"%toexec))
-                        errors+="**%s**\n\n"%toexec
-                        errors+="%s\n\n"%e
+                        self.logger.error(("COULD NOT IMPORT %s" % toexec))
+                        errors += "**%s**\n\n" % toexec
+                        errors += "%s\n\n" % e
         return errors
 
-    def raiseError(self,errormsg):
-        self.logger.error("ERROR:%s"%errormsg)
-        errormsg=errormsg.strip()
-        errormsg=errormsg.strip("-")
-        errormsg=errormsg.strip("*")
-        errormsg=errormsg.strip()
-        errormsg="* %s\n"%errormsg
-        j.sal.fs.writeFile(filename="%s/errors.md"%self.dest,contents=errormsg,append=True)
+    def raiseError(self, errormsg):
+        self.logger.error("ERROR:%s" % errormsg)
+        errormsg = errormsg.strip()
+        errormsg = errormsg.strip("-")
+        errormsg = errormsg.strip("*")
+        errormsg = errormsg.strip()
+        errormsg = "* %s\n" % errormsg
+        j.sal.fs.writeFile(filename="%s/errors.md" % self.dest, contents=errormsg, append=True)
 
-    def generateDocs(self,dest,ignore=[]):
-        self.dest=dest
-        self.apiFileLocation="%s/jumpscale.api"%self.dest
-        j.sal.fs.writeFile("%s/errors.md"%dest,"")
+    def generateDocs(self, dest, ignore=[]):
+        self.dest = dest
+        self.apiFileLocation = "%s/jumpscale.api" % self.dest
+        j.sal.fs.writeFile("%s/errors.md" % dest, "")
         j.sal.fs.createDir(self.dest)
-        self.errors=self.importAllLibs(ignore=ignore)
+        self.errors = self.importAllLibs(ignore=ignore)
         self.inspect()
         j.sal.fs.createDir(dest)
-        j.sal.fs.writeFile(filename="%s/errors.md"%dest,contents=self.errors,append=True)
+        j.sal.fs.writeFile(filename="%s/errors.md" % dest, contents=self.errors, append=True)
         self.writeDocs(dest)
 
-    def _processMethod(self, name,method,path,classobj):
-        if classobj==None:
+    def _processMethod(self, name, method, path, classobj):
+        if classobj == None:
             raise j.exceptions.RuntimeError("cannot be None")
 
-        classpath=".".join(path.split(".")[:-1])
-        
-        if classpath not in self.classDocs:
-            self.classDocs[classpath]=ClassDoc(classobj,classpath)
-        obj=self.classDocs[classpath]
-        return obj.addMethod(name,method)
+        classpath = ".".join(path.split(".")[:-1])
 
-    def _processClass(self, name,path,classobj):        
+        if classpath not in self.classDocs:
+            self.classDocs[classpath] = ClassDoc(classobj, classpath)
+        obj = self.classDocs[classpath]
+        return obj.addMethod(name, method)
+
+    def _processClass(self, name, path, classobj):
         if path not in self.classDocs:
-            self.classDocs[path]=ClassDoc(classobj,path)
-        obj=self.classDocs[path]
+            self.classDocs[path] = ClassDoc(classobj, path)
+        obj = self.classDocs[path]
 
     def inspect(self, objectLocationPath="j", recursive=True, parent=None, obj=None):
         """
@@ -290,7 +291,6 @@ class ObjectInspector:
             if item in ignore:
                 return False
             return True
-
 
         # if objectLocationPath == 'j.actions.logger.disabled':
             # import ipdb; ipdb.set_trace()
@@ -362,27 +362,25 @@ class ObjectInspector:
                 pass
                 # print((str(type(objattribute)) + " " + objectLocationPath2))
 
-    def writeDocs(self,path):
-        todelete=[]
-        summary={}
-        for key,doc in list(self.classDocs.items()):
-            key2=".".join(key.split(".")[0:2])
+    def writeDocs(self, path):
+        todelete = []
+        summary = {}
+        for key, doc in list(self.classDocs.items()):
+            key2 = ".".join(key.split(".")[0:2])
             if key2 not in summary:
-                summary[key2]={}
-            dest=doc.write(path)
-            #remember gitbook info
-            summary[key2][key]=j.sal.fs.pathRemoveDirPart(dest,self.dest)
+                summary[key2] = {}
+            dest = doc.write(path)
+            # remember gitbook info
+            summary[key2][key] = j.sal.fs.pathRemoveDirPart(dest, self.dest)
 
-        summarytxt=""
-        keys1=list(summary.keys())
+        summarytxt = ""
+        keys1 = list(summary.keys())
         keys1.sort()
         for key1 in keys1:
-            summarytxt+="* %s\n"%(key1)
-            keys2=list(summary[key1].keys())
+            summarytxt += "* %s\n" % (key1)
+            keys2 = list(summary[key1].keys())
             keys2.sort()
             for key2 in keys2:
-                summarytxt+="    * [%s](%s)\n"%(key2,summary[key1][key2])
+                summarytxt += "    * [%s](%s)\n" % (key2, summary[key1][key2])
 
-        j.sal.fs.writeFile(filename="%s/SUMMARY.md"%(self.dest),contents=summarytxt)
-        
-
+        j.sal.fs.writeFile(filename="%s/SUMMARY.md" % (self.dest), contents=summarytxt)

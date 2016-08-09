@@ -3,9 +3,8 @@ from JumpScale import j
 #@todo (*2*) is double with previous one, fix
 
 
-
-
 class NginxManager:
+
     def __init__(self, path='/etc/nginx/nginx.conf'):
         self._path = j.tools.path.get(path)
         self._executor = j.tools.executor.getLocal()
@@ -39,6 +38,7 @@ class NginxManager:
 
 
 class NginxBaseConfig:
+
     def __init__(self, config=None):
         self._properties = list()
         for key, value in config:
@@ -56,6 +56,7 @@ class NginxBaseConfig:
 
 
 class NginxConfig(NginxBaseConfig):
+
     def __init__(self, content=None):
         self.http = None
         self.events = None
@@ -102,6 +103,7 @@ class NginxEvents(NginxBaseConfig):
 
 
 class NginxHTTP(NginxBaseConfig):
+
     def __init__(self, config=None):
         self.servers = list()
         super(NginxHTTP, self).__init__(config)
@@ -117,6 +119,7 @@ class NginxHTTP(NginxBaseConfig):
 
 
 class NginxServer(NginxBaseConfig):
+
     def __init__(self, config=None):
         self.locations = list()
         super(NginxServer, self).__init__(config)
@@ -132,12 +135,15 @@ class NginxServer(NginxBaseConfig):
 
 
 class NginxLocation(NginxBaseConfig):
+
     def __init__(self, path=None, config=None):
         self.path = path
         super(NginxLocation, self).__init__(config)
 
+
 class NginxManagerFactory:
     # def _getFactoryEnabledClasses(self):
     #     return ([("","NginxManager",NginxManager()),("server","NginxServer",NginxServer())])
+
     def get(self,  path='/etc/nginx/nginx.conf'):
         return NginxManager(path)

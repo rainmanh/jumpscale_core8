@@ -1,5 +1,8 @@
 
-import sys, os, threading, time
+import sys
+import os
+import threading
+import time
 import os.path
 import ctypes
 from JumpScale import j
@@ -34,8 +37,6 @@ from JumpScale import j
 import shutil
 
 
-
-
 class WindowsSystem:
 
     mythreads = []
@@ -51,18 +52,15 @@ class WindowsSystem:
         self.logger = j .logger.get("j.sal.windows")
         self.__dict__ = self.__shared_state
 
-
-    def checkFileToIgnore(self,path):
+    def checkFileToIgnore(self, path):
         if j.core.platformtype.myplatform.isWindows():
             ignore = False
-            filename=j.sal.fs.getBaseName(path)
-            if filename[0:2]=="~$":
+            filename = j.sal.fs.getBaseName(path)
+            if filename[0:2] == "~$":
                 ignore = True
             return ignore
         else:
             return False
-
-
 
     def createStartMenuShortcut(self, description, executable, workingDir, startMenuSubdir="", iconLocation=None, createDesktopShortcut=False, putInStartup=False):
         '''Create a shortcut in the Start menu
@@ -91,35 +89,41 @@ class WindowsSystem:
         if not j.sal.fs.exists("%s\\%s" % (startmenu, startMenuSubdir)):
             j.sal.fs.createDir("%s\\%s" % (startmenu, startMenuSubdir))
 
-        shortcut_startmenu = pythoncom.CoCreateInstance(shell.CLSID_ShellLink, None, pythoncom.CLSCTX_INPROC_SERVER, shell.IID_IShellLink)
+        shortcut_startmenu = pythoncom.CoCreateInstance(
+            shell.CLSID_ShellLink, None, pythoncom.CLSCTX_INPROC_SERVER, shell.IID_IShellLink)
         shortcut_startmenu.SetPath(executable)
         shortcut_startmenu.SetDescription(description)
         if not iconLocation is None:
             shortcut_startmenu.SetIconLocation(iconLocation, 0)
         shortcut_startmenu.SetWorkingDirectory(workingDir)
-        shortcut_startmenu.QueryInterface(pythoncom.IID_IPersistFile).Save("%s\\%s\\%s.lnk" % (startmenu, startMenuSubdir, description), 0)
+        shortcut_startmenu.QueryInterface(pythoncom.IID_IPersistFile).Save(
+            "%s\\%s\\%s.lnk" % (startmenu, startMenuSubdir, description), 0)
 
         if putInStartup:
             startupfolder = self.getStartupPath()
             if not j.sal.fs.exists(startupfolder):
                 j.sal.fs.createDir(startupfolder)
-            shortcut_startup = pythoncom.CoCreateInstance(shell.CLSID_ShellLink, None, pythoncom.CLSCTX_INPROC_SERVER, shell.IID_IShellLink)
+            shortcut_startup = pythoncom.CoCreateInstance(
+                shell.CLSID_ShellLink, None, pythoncom.CLSCTX_INPROC_SERVER, shell.IID_IShellLink)
             shortcut_startup.SetPath(executable)
             shortcut_startup.SetDescription(description)
             if not iconLocation is None:
                 shortcut_startup.SetIconLocation(iconLocation, 0)
             shortcut_startup.SetWorkingDirectory(workingDir)
-            shortcut_startup.QueryInterface(pythoncom.IID_IPersistFile).Save("%s\\%s.lnk" % (startupfolder, description),0)
+            shortcut_startup.QueryInterface(pythoncom.IID_IPersistFile).Save(
+                "%s\\%s.lnk" % (startupfolder, description), 0)
 
         if createDesktopShortcut:
             desktopfolder = self.getDesktopPath()
-            shortcut_desktop = pythoncom.CoCreateInstance(shell.CLSID_ShellLink, None, pythoncom.CLSCTX_INPROC_SERVER, shell.IID_IShellLink)
+            shortcut_desktop = pythoncom.CoCreateInstance(
+                shell.CLSID_ShellLink, None, pythoncom.CLSCTX_INPROC_SERVER, shell.IID_IShellLink)
             shortcut_desktop.SetPath(executable)
             shortcut_desktop.SetDescription(description)
             if not iconLocation is None:
                 shortcut_desktop.SetIconLocation(iconLocation, 0)
             shortcut_desktop.SetWorkingDirectory(workingDir)
-            shortcut_desktop.QueryInterface(pythoncom.IID_IPersistFile).Save("%s\\%s.lnk" % (desktopfolder, description),0)
+            shortcut_desktop.QueryInterface(pythoncom.IID_IPersistFile).Save(
+                "%s\\%s.lnk" % (desktopfolder, description), 0)
 
         j.tools.console.echo('Shortcuts created')
 
@@ -134,7 +138,8 @@ class WindowsSystem:
         while driveletter.endswith(":") or driveletter.endswith("\\") or driveletter.endswith("/"):
             driveletter = driveletter[:-1]
         if not len(driveletter) == 1:
-            raise ValueError("Wrong parameter for WindowsSystem.isNTFSVolume: [%s] is not a valid drive letter." % driveletter)
+            raise ValueError(
+                "Wrong parameter for WindowsSystem.isNTFSVolume: [%s] is not a valid drive letter." % driveletter)
         fTest = '%s:\\' % driveletter
         volumeInformation = win32api.GetVolumeInformation(fTest)
         fileSystem = volumeInformation[4]
@@ -182,14 +187,13 @@ class WindowsSystem:
         acl.AddAccessAllowedAce(win32file.FILE_ALL_ACCESS, everyone)
         sd.SetSecurityDescriptorDacl(1, acl, 0)
 
-        if filepath == "":# it's a dir
+        if filepath == "":  # it's a dir
             _grantDir(dirpath, sd)
         else:
             _grantFile(os.path.join(dirpath, filepath), sd)
 
-
-
     _isVistaUACEnabled = None
+
     def isVistaUACEnabled(self):
         """
         Return boolean indicating whether this is a Windows Vista system with
@@ -209,18 +213,20 @@ class WindowsSystem:
         value = 'EnableLUA'
         if not self.registryHasValue(hkey, key, value):
             self._isVistaUACEnabled = False
-        elif self.getValueFromRegKey(hkey, key, value)==0:
+        elif self.getValueFromRegKey(hkey, key, value) == 0:
             self._isVistaUACEnabled = False
         else:
             self._isVistaUACEnabled = True
         return self._isVistaUACEnabled
 
     _userIsAdministrator = None
+
     def userIsAdministrator(self):
         '''Verifies if the logged on user has administrative rights'''
         if self._userIsAdministrator != None:
             return self._userIsAdministrator
-        import win32net, win32netcon
+        import win32net
+        import win32netcon
         username = win32api.GetUserName()
         privileges = win32net.NetUserGetInfo(None, username, 1)
         if privileges['priv'] == win32netcon.USER_PRIV_ADMIN:
@@ -232,8 +238,12 @@ class WindowsSystem:
     def getAppDataPath(self):
         """ Returns the windows "APPDATA" folder in Unicode format. """
         # We retrieve the APPDATA path using the WinAPI in Unicode format.
-        # We could read the environment variable "APPDATA" instead, but this variable is encoded in a DOS-style characterset (called "CodePage") depending on the system locale. It's difficult to handle this encoding correctly in Python.
-        return shell.SHGetFolderPath(0, shellcon.CSIDL_APPDATA, 0, 0) + os.sep # See http://msdn2.microsoft.com/en-us/library/bb762181(VS.85).aspx for information about this function.
+        # We could read the environment variable "APPDATA" instead, but this
+        # variable is encoded in a DOS-style characterset (called "CodePage")
+        # depending on the system locale. It's difficult to handle this encoding
+        # correctly in Python.
+        # See http://msdn2.microsoft.com/en-us/library/bb762181(VS.85).aspx for information about this function.
+        return shell.SHGetFolderPath(0, shellcon.CSIDL_APPDATA, 0, 0) + os.sep
 
     def getUsersHomeDir(self):
         return os.path.expanduser("~")
@@ -243,25 +253,30 @@ class WindowsSystem:
         import tempfile
         return tempfile.gettempdir()
 
-
     def getLocalAppDataPath(self):
         """ Returns the windows "APPDATA" folder in Unicode format. """
         # We retrieve the APPDATA path using the WinAPI in Unicode format.
-        # We could read the environment variable "APPDATA" instead, but this variable is encoded in a DOS-style characterset (called "CodePage") depending on the system locale. It's difficult to handle this encoding correctly in Python.
-        return shell.SHGetFolderPath(0, shellcon.CSIDL_LOCAL_APPDATA, 0, 0) + os.sep # See http://msdn2.microsoft.com/en-us/library/bb762181(VS.85).aspx for information about this function.
+        # We could read the environment variable "APPDATA" instead, but this
+        # variable is encoded in a DOS-style characterset (called "CodePage")
+        # depending on the system locale. It's difficult to handle this encoding
+        # correctly in Python.
+        # See http://msdn2.microsoft.com/en-us/library/bb762181(VS.85).aspx for information about this function.
+        return shell.SHGetFolderPath(0, shellcon.CSIDL_LOCAL_APPDATA, 0, 0) + os.sep
 
     def getStartMenuProgramsPath(self):
         """ Returns the windows "START MENU/PROGRAMS" folder in Unicode format. """
-        return shell.SHGetFolderPath(0, shellcon.CSIDL_PROGRAMS, 0, 0) + os.sep # See http://msdn2.microsoft.com/en-us/library/bb762181(VS.85).aspx for information about this function.
+        return shell.SHGetFolderPath(0, shellcon.CSIDL_PROGRAMS, 0, 0) + os.sep  # See http://msdn2.microsoft.com/en-us/library/bb762181(VS.85).aspx for information about this function.
 
     def getStartupPath(self):
         """ Returns the windows "START MENU/STARTUP" folder in Unicode format. """
-        return shell.SHGetFolderPath(0, shellcon.CSIDL_STARTUP, 0, 0) + os.sep # See http://msdn2.microsoft.com/en-us/library/bb762181(VS.85).aspx for information about this function.
+        return shell.SHGetFolderPath(0, shellcon.CSIDL_STARTUP, 0, 0) + os.sep  # See http://msdn2.microsoft.com/en-us/library/bb762181(VS.85).aspx for information about this function.
 
     def getDesktopPath(self):
         """ Returns the windows "DESKTOP" folder in Unicode format. """
-        return j.sal.fs.joinPaths(self.getUsersHomeDir(),"Desktop")
-        # return shell.SHGetFolderPath(0, shellcon.CSIDL_DESKTOP, 0, 0) + os.sep # See http://msdn2.microsoft.com/en-us/library/bb762181(VS.85).aspx for information about this function.
+        return j.sal.fs.joinPaths(self.getUsersHomeDir(), "Desktop")
+        # return shell.SHGetFolderPath(0, shellcon.CSIDL_DESKTOP, 0, 0) + os.sep #
+        # See http://msdn2.microsoft.com/en-us/library/bb762181(VS.85).aspx for
+        # information about this function.
 
     def _getHiveAndKey(self, fullKey):
         '''Split a windows registry key in two parts: the hive (hkey) and the registry key
@@ -276,17 +291,17 @@ class WindowsSystem:
         '''
         regfile.addSection(fullKey)
         values = self.enumRegKeyValues(fullKey)
-        for value in values: # Add all values from current key
-            paramName = "\"%s\""%(value[0])
+        for value in values:  # Add all values from current key
+            paramName = "\"%s\"" % (value[0])
             paramType = value[2]
             if paramType.exportPrefix:
-                paramValue = "%s:%s"%(paramType.exportPrefix, value[1])
+                paramValue = "%s:%s" % (paramType.exportPrefix, value[1])
             else:
-                paramValue = "\"%s\""%(value[1])
+                paramValue = "\"%s\"" % (value[1])
             regfile.addParam(fullKey, paramName, paramValue)
         subkeys = self.enumRegKeySubkeys(fullKey)
-        for subkey in subkeys: # Recursively go through all subkeys
-            self._addValuesRecursively(regfile, "%s\\%s"%(fullKey, subkey))
+        for subkey in subkeys:  # Recursively go through all subkeys
+            self._addValuesRecursively(regfile, "%s\\%s" % (fullKey, subkey))
         regfile.write()
 
     def importRegKeysFromString(self, string):
@@ -304,22 +319,23 @@ class WindowsSystem:
             params = regfile.getParams(section)
             for param in params:
                 value = regfile.getValue(section, param, True)
-                param = param[1:-1] #Remove leading and trailing quote
+                param = param[1:-1]  # Remove leading and trailing quote
                 valueType = None
                 if not value.startswith('"'):
                     prefix, value = value.split(':', 1)
                     valueType = WinRegValueType.findByExportPrefix(prefix)
                     if valueType == WinRegValueType.MULTI_STRING:
-                        #convert string representation of an array to a real array
+                        # convert string representation of an array to a real array
                         value = [eval(item) for item in value[1:-1].split(',')]
                     elif valueType == WinRegValueType.DWORD:
                         value = int(value)
                 else:
                     valueType = WinRegValueType.STRING
-                    value = value[1:-1] #Remove leading and trailing quote
+                    value = value[1:-1]  # Remove leading and trailing quote
 
                 # Write the value to the registry
-                self.logger.info("Adding '%s' to registry in key '%s' with value '%s' and type '%s'"%(param, section, value, valueType))
+                self.logger.info("Adding '%s' to registry in key '%s' with value '%s' and type '%s'" %
+                                 (param, section, value, valueType))
                 self.setValueFromRegKey(section, param, value, valueType)
 
     def importRegKeysFromFile(self, path):
@@ -423,8 +439,8 @@ class WindowsSystem:
         hkey, key = self._getHiveAndKey(key)
         aReg = reg.ConnectRegistry(None, hkey)
         aKey = reg.OpenKey(aReg, key)
-        result=[]
-        index=0
+        result = []
+        index = 0
 
         # The function EnumKey() retrieves the name of one subkey each time it is called.
         # It is typically called repeatedly, until an EnvironmentError exception
@@ -487,13 +503,13 @@ class WindowsSystem:
         @param passwd(optional): password of the user
         raise an exception if user already exists
         """
-        self.logger.info('Adding system user %s'%userName)
+        self.logger.info('Adding system user %s' % userName)
 
         if self.isSystemUser(userName):
-            raise ValueError('User %s Already Exist'%userName)
+            raise ValueError('User %s Already Exist' % userName)
 
         userDict = {}
-        userDict ['name'] = userName
+        userDict['name'] = userName
 
         if password != None:
             userDict['password'] = password
@@ -504,25 +520,25 @@ class WindowsSystem:
 
         if self.isSystemUser(userName):
 
-            self.logger.info('User %s Added successfully'%userN)
+            self.logger.info('User %s Added successfully' % userN)
 
     def isSystemUser(self, userName):
         """
         Check if user is valid system User
         @param userName: name of the user
         """
-        self.logger.info('Checking if user %s exists'%userName)
+        self.logger.info('Checking if user %s exists' % userName)
 
         if userName in self.listSystemUsers():
-            self.logger.info('User %s exists'%userName)
+            self.logger.info('User %s exists' % userName)
 
             return True
 
-        self.logger.info('User %s doesnt exist'%userName)
+        self.logger.info('User %s doesnt exist' % userName)
 
         return False
 
-    def listSystemUsers (self):
+    def listSystemUsers(self):
         """
         List system users
         @return: list of system user names
@@ -538,20 +554,20 @@ class WindowsSystem:
         Delete a system user
         @param userName: name of the user to delete
         """
-        self.logger.info('Deleting User %s'%userName)
+        self.logger.info('Deleting User %s' % userName)
 
         if self.isSystemUser(userName):
             win32net.NetUserDel(None, userName)
 
             if not self.isSystemUser(userName):
-                self.logger.info('User %s deleted successfully'%userName)
+                self.logger.info('User %s deleted successfully' % userName)
 
                 return True
 
-            self.logger.info('Failed to delete user %s'%userName)
+            self.logger.info('Failed to delete user %s' % userName)
 
         else:
-            raise j.exceptions.RuntimeError("User %s is not a system user"%userName)
+            raise j.exceptions.RuntimeError("User %s is not a system user" % userName)
 
     def getSystemUserSid(self, userName):
         """
@@ -560,7 +576,7 @@ class WindowsSystem:
         @return: security identifier of the user
         @rtype: string
         """
-        self.logger.info('Getting User %s\'s SID'%userName)
+        self.logger.info('Getting User %s\'s SID' % userName)
 
         if self.isSystemUser(userName) or userName == 'everyone':
 
@@ -568,12 +584,12 @@ class WindowsSystem:
             pySid = info[0]
             sid = win32security.ConvertSidToStringSid(pySid)
 
-            self.logger.info('User\'s SID is %s'%str(sid))
+            self.logger.info('User\'s SID is %s' % str(sid))
 
             return sid
 
         else:
-            raise j.exceptions.RuntimeError('Failed to Get User %s\'s SID'%userName)
+            raise j.exceptions.RuntimeError('Failed to Get User %s\'s SID' % userName)
 
     def createService(self, serviceName, displayName, binPath, args=None):
         """
@@ -589,15 +605,15 @@ class WindowsSystem:
         pgDataDir = j.sal.fs.joinPaths(j.dirs.baseDir, 'apps','postgresql8', 'Data')
         j.system.windows.createService(serviceName, displayName , '%s\\pg_ctl.exe','runservice -W -N %s -D %s'%(serviceName, pgDataDir))
         """
-        self.logger.info('Creating Service %s'%serviceName)
+        self.logger.info('Creating Service %s' % serviceName)
 
         if not j.sal.fs.isFile(binPath):
-            raise ValueError('binPath %s is not a valid file'%binPath)
+            raise ValueError('binPath %s is not a valid file' % binPath)
 
         executableString = binPath
 
         if args != None:
-            executableString = "%s %s"%(executableString, args)
+            executableString = "%s %s" % (executableString, args)
 
         """
         Open an sc handle to use for creating a service
@@ -625,9 +641,9 @@ class WindowsSystem:
             @param acctName: account name of service, or None
             @param password: password for service account , or None
             """
-            hs = win32service.CreateService(hscm, serviceName, displayName, win32service.SERVICE_ALL_ACCESS, \
-                                            win32service.SERVICE_WIN32_OWN_PROCESS, win32service.SERVICE_DEMAND_START, \
-                                            win32service.SERVICE_ERROR_NORMAL, executableString, None, \
+            hs = win32service.CreateService(hscm, serviceName, displayName, win32service.SERVICE_ALL_ACCESS,
+                                            win32service.SERVICE_WIN32_OWN_PROCESS, win32service.SERVICE_DEMAND_START,
+                                            win32service.SERVICE_ERROR_NORMAL, executableString, None,
                                             0, None, None, None)
 
             win32service.CloseServiceHandle(hs)
@@ -636,7 +652,7 @@ class WindowsSystem:
             win32service.CloseServiceHandle(hscm)
 
         if self.isServiceInstalled(serviceName):
-            self.logger.info('Service %s Created Successfully'%serviceName)
+            self.logger.info('Service %s Created Successfully' % serviceName)
             return True
 
     def removeService(self, serviceName):
@@ -657,7 +673,7 @@ class WindowsSystem:
         win32service.CloseServiceHandle(serviceHandler)
 
         if not self.isServiceInstalled(serviceName):
-            self.logger.info('Service %s removed Successfully'%serviceName)
+            self.logger.info('Service %s removed Successfully' % serviceName)
 
             return True
 
@@ -668,26 +684,25 @@ class WindowsSystem:
         @return: True if service is running
         @rtype: boolean
         """
-        isRunning =  win32serviceutil.QueryServiceStatus(serviceName)[1] == win32service.SERVICE_RUNNING
-        self.logger.info('Service %s isRunning = %s'%(serviceName, isRunning))
+        isRunning = win32serviceutil.QueryServiceStatus(serviceName)[1] == win32service.SERVICE_RUNNING
+        self.logger.info('Service %s isRunning = %s' % (serviceName, isRunning))
 
         return isRunning
-
 
     def isServiceInstalled(self, serviceName):
         """
         Check if service is installed
         @rtype: boolean
         """
-        self.logger.info('Checking if service %s is installed'%serviceName)
+        self.logger.info('Checking if service %s is installed' % serviceName)
 
         if serviceName in self.listServices():
 
-            self.logger.info('Service %s is installed'%serviceName)
+            self.logger.info('Service %s is installed' % serviceName)
 
             return True
 
-        self.logger.info('Service %s is not installed'%serviceName)
+        self.logger.info('Service %s is not installed' % serviceName)
 
         return False
 
@@ -719,10 +734,10 @@ class WindowsSystem:
             if self.isServiceRunning(serviceName):
                 return True
 
-            self.logger.info('Failed to start service %s '%serviceName)
+            self.logger.info('Failed to start service %s ' % serviceName)
 
         else:
-            self.logger.info('Service %s is already running'%serviceName)
+            self.logger.info('Service %s is already running' % serviceName)
 
         return False
 
@@ -742,10 +757,10 @@ class WindowsSystem:
 
                 return True
 
-            self.logger.info('Failed to stop service %s'%serviceName)
+            self.logger.info('Failed to stop service %s' % serviceName)
 
         else:
-            self.logger.info('Service %s is not running'%serviceName)
+            self.logger.info('Service %s is not running' % serviceName)
 
     def listRunningProcessesIds(self):
         """
@@ -767,60 +782,60 @@ class WindowsSystem:
 
         # j.sal.process.execute()
         processes = self._wmi.InstancesOf('Win32_Process')
-        result = [[process.Properties_('Name').Value,process.Properties_("processid").Value,process.Properties_("Commandline").Value] for process in processes]
+        result = [[process.Properties_('Name').Value, process.Properties_(
+            "processid").Value, process.Properties_("Commandline").Value] for process in processes]
 
         return result
 
-    def killProcessesFromCommandLines(self,tokill=[]):
+    def killProcessesFromCommandLines(self, tokill=[]):
         """
         @param tokill is list of list or list of str (when list of list each item of list will be checked)
 
         """
-        for name,id,cmdline in self.listRunningProcesses():
-            if cmdline==None:
-                cmdline=""
-            cmdline=cmdline.lower().replace("  ","").replace("  ","")
+        for name, id, cmdline in self.listRunningProcesses():
+            if cmdline == None:
+                cmdline = ""
+            cmdline = cmdline.lower().replace("  ", "").replace("  ", "")
             for item in tokill:
                 if j.data.types.string.check(item):
-                    itemlist=[item]
+                    itemlist = [item]
                 elif j.data.types.list.check(item):
-                    itemlist=item
+                    itemlist = item
                 else:
                     raise j.exceptions.RuntimeError("Can only process string or list")
-                found=True
+                found = True
                 for item2 in itemlist:
-                    if cmdline.find(item2)==-1:
-                        found=False
+                    if cmdline.find(item2) == -1:
+                        found = False
                 if found:
                     j.sal.process.kill(id)
 
-    def checkProcessesExist(self,tocheck=[]):
+    def checkProcessesExist(self, tocheck=[]):
         """
         @param tokill is list of list or list of str (when list of list each item of list will be checked)
 
         """
-        for name,id,cmdline in self.listRunningProcesses():
-            if cmdline==None:
-                cmdline=""
-            cmdline=cmdline.lower().replace("  ","").replace("  ","")
-            foundmaster=False
+        for name, id, cmdline in self.listRunningProcesses():
+            if cmdline == None:
+                cmdline = ""
+            cmdline = cmdline.lower().replace("  ", "").replace("  ", "")
+            foundmaster = False
             for item in tocheck:
                 if j.data.types.string.check(item):
-                    itemlist=[item]
+                    itemlist = [item]
                 elif j.data.types.list.check(item):
-                    itemlist=item
+                    itemlist = item
                 else:
                     raise j.exceptions.RuntimeError("Can only process string or list")
-                found=True
+                found = True
                 for item2 in itemlist:
-                    if cmdline.find(item2)==-1:
-                        found=False
+                    if cmdline.find(item2) == -1:
+                        found = False
                 if found:
-                    foundmaster=True
-            if foundmaster==False:
+                    foundmaster = True
+            if foundmaster == False:
                 return False
         return True
-
 
     def isPidAlive(self, pid):
         """
@@ -829,14 +844,14 @@ class WindowsSystem:
         @type: int
         @rtype: boolean
         """
-        self.logger.info('Checking if pid %s is alive'%pid)
+        self.logger.info('Checking if pid %s is alive' % pid)
 
         if pid in self.listRunningProcessesIds():
-            self.logger.info('Pid %s is alive'%pid)
+            self.logger.info('Pid %s is alive' % pid)
 
             return True
 
-        self.logger.info('Pid %s is not alive'%pid)
+        self.logger.info('Pid %s is not alive' % pid)
 
         return False
 
@@ -848,17 +863,17 @@ class WindowsSystem:
         @return: the pid (or None if Failed)
         @rtype: int
         """
-        self.logger.info('Retreiving the pid of process %s'%process)
+        self.logger.info('Retreiving the pid of process %s' % process)
 
-        processInfo = self._wmi.ExecQuery('select * from Win32_Process where Name="%s"'%process)
+        processInfo = self._wmi.ExecQuery('select * from Win32_Process where Name="%s"' % process)
 
         if len(processInfo) > 0:
             pid = processInfo[0].Properties_('ProcessId').Value
-            self.logger.info('Process %s\'s id is %d'%(process, pid))
+            self.logger.info('Process %s\'s id is %d' % (process, pid))
 
             return pid
 
-        self.logger.info('Failed to retreive the pid of process %s'%process)
+        self.logger.info('Failed to retreive the pid of process %s' % process)
 
         return None
 
@@ -871,17 +886,17 @@ class WindowsSystem:
         @param min: (int) minimal threads that should run.
         @return status: (int) when ok, 1 when not ok.
         """
-        processInfo = self._wmi.ExecQuery('select * from Win32_Process where Name="%s"'%process)
+        processInfo = self._wmi.ExecQuery('select * from Win32_Process where Name="%s"' % process)
 
         if len(processInfo) >= min:
-            self.logger.info('Process %s is running with %d threads'%(process, min))
+            self.logger.info('Process %s is running with %d threads' % (process, min))
             return 0
 
-        elif len(processInfo)  == 0:
-            self.logger.info('Process %s is not running'%(process))
+        elif len(processInfo) == 0:
+            self.logger.info('Process %s is not running' % (process))
 
         else:
-            self.logger.info('Process %s is running with %d thread(s)'%(process, len(processInfo)))
+            self.logger.info('Process %s is running with %d thread(s)' % (process, len(processInfo)))
 
         return 1
 
@@ -892,9 +907,9 @@ class WindowsSystem:
         @param process: (str) the process that should have the pid
         @return status: (int) 0 when ok, 1 when not ok.
         """
-        self.logger.info('Check if process %s\'s Id is %d'%(process, pid))
+        self.logger.info('Check if process %s\'s Id is %d' % (process, pid))
 
-        processInfo = self._wmi.ExecQuery('select * from Win32_Process where Name="%s"'%process)
+        processInfo = self._wmi.ExecQuery('select * from Win32_Process where Name="%s"' % process)
 
         if len(processInfo) > 0:
             processesIds = [process.Properties_('ProcessId').Value for process in processInfo]
@@ -904,7 +919,7 @@ class WindowsSystem:
                 if processId == pid:
                     return 0
 
-        self.logger.info('Process %s\'s Id is %d and not %d'%(process, processId, pid))
+        self.logger.info('Process %s\'s Id is %d and not %d' % (process, processId, pid))
 
         return 1
 
@@ -927,7 +942,7 @@ class WindowsSystem:
         @param dir: path of the dir
         @param userName: name of the user to add to the acl of the dir tree
         """
-        self.logger.info('Granting access to Dir Tree %s'%dirPath)
+        self.logger.info('Granting access to Dir Tree %s' % dirPath)
 
         if j.sal.fs.isDir(dirPath):
             self.grantAccessToFile(dirPath, userName)
@@ -935,8 +950,8 @@ class WindowsSystem:
             for subDir in j.sal.fs.walkExtended(dirPath, recurse=1):
                 self.grantAccessToFile(subDir, userName)
         else:
-            self.logger.info('%s is not a valid directory'%dirPath)
-            raise IOError('Directory %s does not exist'%dirPath)
+            self.logger.info('%s is not a valid directory' % dirPath)
+            raise IOError('Directory %s does not exist' % dirPath)
 
     def grantAccessToFile(self, filePath, userName='everyone'):
         """
@@ -944,24 +959,26 @@ class WindowsSystem:
         @param file: path of the file/dir
         @param userName: name of the user to add to the acl of the file/dir
         """
-        self.logger.info('Granting access to file %s'%filePath)
+        self.logger.info('Granting access to file %s' % filePath)
         import ntsecuritycon as con
         if j.sal.fs.isFile(filePath) or j.sal.fs.isDir(filePath):
 
             info = win32security.DACL_SECURITY_INFORMATION
             sd = win32security.GetFileSecurity(filePath, info)
             acl = self.getFileACL(filePath)
-            user, domain, acType = win32security.LookupAccountName ("", userName)
+            user, domain, acType = win32security.LookupAccountName("", userName)
 
-            acl.AddAccessAllowedAce(win32security.ACL_REVISION, con.FILE_GENERIC_READ | con.FILE_GENERIC_WRITE | con.FILE_DELETE_CHILD | con.DELETE | win32file.FILE_SHARE_DELETE, user)
+            acl.AddAccessAllowedAce(win32security.ACL_REVISION, con.FILE_GENERIC_READ | con.FILE_GENERIC_WRITE |
+                                    con.FILE_DELETE_CHILD | con.DELETE | win32file.FILE_SHARE_DELETE, user)
             sd.SetSecurityDescriptorDacl(1, acl, 0)
-            win32security.SetFileSecurity (filePath, win32security.DACL_SECURITY_INFORMATION, sd)
+            win32security.SetFileSecurity(filePath, win32security.DACL_SECURITY_INFORMATION, sd)
 
         else:
-            self.logger.info('File/Directory %s is not valid'%filePath)
+            self.logger.info('File/Directory %s is not valid' % filePath)
 
-            raise IOError('FilePath %s does not exist'%filePath)
-    def pm_removeDirTree(self, dirPath, force = False, errorHandler = None):
+            raise IOError('FilePath %s does not exist' % filePath)
+
+    def pm_removeDirTree(self, dirPath, force=False, errorHandler=None):
         """
         Recusrively removes files and folders from a given path
         @param dirPath: path of the dir
@@ -971,40 +988,40 @@ class WindowsSystem:
             if j.sal.fs.isDir(dirPath):
                 if force:
                     fileMode = win32file.GetFileAttributesW(dirPath)
-                    for file in j.sal.fs.walk(dirPath,recurse=1):
-                        self.logger.info('Changing attributes on %s'%fileMode)
-                        win32file.SetFileAttributesW(file, fileMode &  ~win32file.FILE_ATTRIBUTE_HIDDEN)
+                    for file in j.sal.fs.walk(dirPath, recurse=1):
+                        self.logger.info('Changing attributes on %s' % fileMode)
+                        win32file.SetFileAttributesW(file, fileMode & ~win32file.FILE_ATTRIBUTE_HIDDEN)
                 if errorHandler != None:
-                    shutil.rmtree(dirPath, onerror = errorHandler)
+                    shutil.rmtree(dirPath, onerror=errorHandler)
                 else:
                     shutil.rmtree(dirPath)
             else:
-                raise ValueError("Specified path: %s is not a Directory in System.removeDirTree"% dirPath)
+                raise ValueError("Specified path: %s is not a Directory in System.removeDirTree" % dirPath)
 
-    def checkProgramExists(self,programName):
+    def checkProgramExists(self, programName):
         """
         this is a not too well implemented check to see if a program is installed, it just checks if it can be executed without an error message
         @return when 0 then ok, when 1 not found, when 2 an error but don't know what
         """
         try:
-            returncode,output=j.sal.process.execute(programName)
+            returncode, output = j.sal.process.execute(programName)
         except Exception as inst:
-            if inst.args[1].lower().find("cannot find the file specified")!=-1:
+            if inst.args[1].lower().find("cannot find the file specified") != -1:
                 return 1
             else:
                 return 2
         return 0
 
-    def clipboardSet(self,text):
+    def clipboardSet(self, text):
         self.initKernel()
         CF_UNICODETEXT = 13
         GHND = 66
-        if text==None:
-                return
+        if text == None:
+            return
 
-        if type(text)==type(''):
-            text = str(text,'mbcs')
-        bufferSize = (len(text)+1)*2
+        if type(text) == type(''):
+            text = str(text, 'mbcs')
+        bufferSize = (len(text) + 1) * 2
         hGlobalMem = ctypes.windll.kernel32.GlobalAlloc(ctypes.c_int(GHND), ctypes.c_int(bufferSize))
         ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
         lpGlobalMem = ctypes.windll.kernel32.GlobalLock(ctypes.c_int(hGlobalMem))
@@ -1017,9 +1034,9 @@ class WindowsSystem:
 
     def clipboardGet(self):
         self.initKernel()
-        #Get required functions, strcpy..
+        # Get required functions, strcpy..
         strcpy = ctypes.cdll.msvcrt.strcpy
-        ocb = ctypes.windll.user32.OpenClipboard    #Basic Clipboard functions
+        ocb = ctypes.windll.user32.OpenClipboard  # Basic Clipboard functions
         ecb = ctypes.windll.user32.EmptyClipboard
         gcd = ctypes.windll.user32.GetClipboardData
         scd = ctypes.windll.user32.SetClipboardData
@@ -1029,27 +1046,27 @@ class WindowsSystem:
         gul = ctypes.windll.kernel32.GlobalUnlock
         GMEM_DDESHARE = 0x2000
 
-        ocb(0) # Open Clip, Default task
-        pcontents = gcd(1) # 1 means CF_TEXT.. too lazy to get the token thingy ...
+        ocb(0)  # Open Clip, Default task
+        pcontents = gcd(1)  # 1 means CF_TEXT.. too lazy to get the token thingy ...
         data = ctypes.c_char_p(pcontents).value
-        #gul(pcontents) ?
+        # gul(pcontents) ?
         ccb()
         return data
 
-    def addActionToShell(self,name,descr,cmd):
+    def addActionToShell(self, name, descr, cmd):
         """
         add action in windows explorer on top of file & dir
         """
-        if descr=="":
-            descr=name
+        if descr == "":
+            descr = name
         import winreg as winreg
-        for item in ["*","Directory"]:
-            key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT,r'%s\shell\%s'%(item,name))
-            key2 = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT,r'%s\shell\%s\Command'%(item,name))
-            winreg.SetValueEx(key,"",None,winreg.REG_SZ,"%s "%descr)
-            winreg.SetValueEx(key,"Icon",None,winreg.REG_SZ,"")
-            winreg.SetValueEx(key,"Position",None,winreg.REG_SZ,"Top")
-            winreg.SetValueEx(key,"",None,winreg.REG_SZ,"%s "%descr)
+        for item in ["*", "Directory"]:
+            key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, r'%s\shell\%s' % (item, name))
+            key2 = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, r'%s\shell\%s\Command' % (item, name))
+            winreg.SetValueEx(key, "", None, winreg.REG_SZ, "%s " % descr)
+            winreg.SetValueEx(key, "Icon", None, winreg.REG_SZ, "")
+            winreg.SetValueEx(key, "Position", None, winreg.REG_SZ, "Top")
+            winreg.SetValueEx(key, "", None, winreg.REG_SZ, "%s " % descr)
             #winreg.SetValueEx(key2,"",None,winreg.REG_SZ,r'cmd.exe /s /k pushd "%V"')
-            winreg.SetValueEx(key2,"",None,winreg.REG_SZ,cmd)
+            winreg.SetValueEx(key2, "", None, winreg.REG_SZ, cmd)
             winreg.CloseKey(key)

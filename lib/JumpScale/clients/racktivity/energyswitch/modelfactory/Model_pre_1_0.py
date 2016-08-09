@@ -1,4 +1,5 @@
 class Master:
+
     def __init__(self, parent):
         self._parent = parent
         self._moduleID = "M1"
@@ -9,11 +10,13 @@ class Master:
             self._moduleID, "F00624%03d%03d%03d%03d" % (int(ip[0]), int(ip[1]), int(ip[2]), int(ip[3])), "")
 
     def getSNMPTrapRecvIP(self, portnumber=0):  # pylint: disable=W0613
-        ipaddress = self._parent.client.getAttribute(self._moduleID, "F00624000040000000001")
+        ipaddress = self._parent.client.getAttribute(
+            self._moduleID, "F00624000040000000001")
         return 0, "%d.%d.%d.%d" % (ipaddress[0], ipaddress[1], ipaddress[2], ipaddress[3])
 
 
 class Power:
+
     def __init__(self, parent):
         self._parent = parent
         self._moduleID = "P1"
@@ -34,7 +37,8 @@ class Power:
         return 0
 
     def getCurrentPriorOff(self, portnumber=1, length=1):
-        raw = self._parent.client.getAttribute(self._moduleID, "F00208000080000000001")
+        raw = self._parent.client.getAttribute(
+            self._moduleID, "F00208000080000000001")
         count = 0
 
         result = []
@@ -50,7 +54,8 @@ class Power:
         return 0
 
     def getStatePortCur(self, portnumber=1, length=1):
-        val = ord(self._parent.client.getAttribute(self._moduleID, "F00241000010000000001"))
+        val = ord(self._parent.client.getAttribute(
+            self._moduleID, "F00241000010000000001"))
 
         result = []
         for i in range(portnumber, portnumber + length):
@@ -60,10 +65,12 @@ class Power:
     def setPortState(self, value, portnumber=1):
         if value == 1:  # power on
             val = 1 << (8 - portnumber)
-            self._parent.client.resetAttribute(self._moduleID, "OR00146%03d" % val)
+            self._parent.client.resetAttribute(
+                self._moduleID, "OR00146%03d" % val)
         else:  # power off
             val = 256 + ~(1 << (8 - portnumber))
-            self._parent.client.resetAttribute(self._moduleID, "AR00146%03d" % val)
+            self._parent.client.resetAttribute(
+                self._moduleID, "AR00146%03d" % val)
         return 0
 
     def getPowerPointer(self):
@@ -102,7 +109,8 @@ class Power:
             # power / app power
             result = []
             for i in range(0, len(values[7])):
-                val = values[7][i] / float(values[15][i]) if values[15][i] else 0.0
+                val = values[7][i] / \
+                    float(values[15][i]) if values[15][i] else 0.0
                 result.append(val * 100)
             return result
 
@@ -172,7 +180,8 @@ class Power:
             if not pointer[2]:
                 continue
 
-            value = self._parent.client.getAttribute(self._moduleID, pointer[2])
+            value = self._parent.client.getAttribute(
+                self._moduleID, pointer[2])
 
             # convert if any function is specified
             if len(pointer) > 3:

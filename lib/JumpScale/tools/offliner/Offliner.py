@@ -36,31 +36,30 @@ class Offliner:
     def __init__(self):
         self.__jslocation__ = "j.tools.offliner"
 
-
     # @asyncio.coroutine
-    def getSiteDownloadCmd(self,url,dest="",level=5,docElementsOnly=True,restrictToDomain=True):
+    def getSiteDownloadCmd(self, url, dest="", level=5, docElementsOnly=True, restrictToDomain=True):
         """
         download all docs from url to dest
         if dest=="" then use current dir and use url as subdir
         """
-        cmd=""
-        if dest!="":
-            cmd+="cd %s;"%dest
+        cmd = ""
+        if dest != "":
+            cmd += "cd %s;" % dest
             j.sal.fs.createDir(dest)
 
-        cmd+="wget --execute robots=off --recursive --no-clobber --page-requisites --html-extension --convert-links"
-        cmd+=" --restrict-file-names=windows --continue --user-agent=Mozilla"
-        cmd+=" --no-parent"
-        cmd+=" -l %s"%level
+        cmd += "wget --execute robots=off --recursive --no-clobber --page-requisites --html-extension --convert-links"
+        cmd += " --restrict-file-names=windows --continue --user-agent=Mozilla"
+        cmd += " --no-parent"
+        cmd += " -l %s" % level
         if docElementsOnly:
-            cmd+=" --accept jpg,gif,png,jpeg,html,htm,css,js"
+            cmd += " --accept jpg,gif,png,jpeg,html,htm,css,js"
         if restrictToDomain:
-            parsed=urlparse(url)
-            domain=parsed.netloc
-            cmd+=" --domains %s"%domain
-     
-        cmd+=" %s"%url
-        print (cmd)
+            parsed = urlparse(url)
+            domain = parsed.netloc
+            cmd += " --domains %s" % domain
+
+        cmd += " %s" % url
+        print(cmd)
         return cmd
 
         # # Create the subprocess, redirect the standard output into a pipe
@@ -86,24 +85,19 @@ class Offliner:
         # # method of the protocol
         # data = bytes(protocol.output)
         # return data.decode('ascii').rstrip()
-            
 
-
-    def getPDFs(self,url,dest=""):
+    def getPDFs(self, url, dest=""):
         "--accept=pdf"
-
 
     # def getSites(self,urls,dest="",level=5,docElementsOnly=True,restrictToDomain=True):
     #     # loop = asyncio.get_event_loop()
     #     # tasks=[]
     #     # for url in urls:
     #     #     tasks.append(asyncio.ensure_future(self._getSite(url,dest,level,docElementsOnly,restrictToDomain)))
-    #     # loop.run_until_complete(asyncio.wait(tasks))        
+    #     # loop.run_until_complete(asyncio.wait(tasks))
     #     # loop.close()
 
     #     for url in urls:
 
 
-
-
-#examples from http://www.labnol.org/software/wget-command-examples/28750/
+# examples from http://www.labnol.org/software/wget-command-examples/28750/

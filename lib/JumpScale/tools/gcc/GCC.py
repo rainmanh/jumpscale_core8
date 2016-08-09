@@ -2,6 +2,7 @@
 from JumpScale import j
 from JumpScale.tools.develop.DevelopTools import DebugSSHNode
 
+
 class GCC:
 
     def __init__(self):
@@ -23,7 +24,8 @@ class GCC:
         return GCC_Mgmt(nodes)
 
     def authorizeNode(self, addr, passwd, keyname, login="root", port=22):
-        j.tools.executor.getSSHBased(addr=addr, port=port, login=login, passwd=passwd, debug=False, checkok=True, allow_agent=True, look_for_keys=True, pushkey=keyname)
+        j.tools.executor.getSSHBased(addr=addr, port=port, login=login, passwd=passwd,
+                                     debug=False, checkok=True, allow_agent=True, look_for_keys=True, pushkey=keyname)
 
 
 class GCC_Mgmt():
@@ -102,13 +104,14 @@ class GCC_Mgmt():
             self._installHostApp(node, weave_peer, force=force)
 
             print("Create docker container on %s" % node.addr)
-            name = 'gcc-%s' % (i+1)
+            name = 'gcc-%s' % (i + 1)
             ssh_port = node.cuisine.docker.ubuntu(name, ports="80:80 443:443 53/udp:54", pubkey=pubkey, force=force)
             containers.append("%s:%s" % (node.addr, ssh_port))
 
             # needed cause weave already listen on port 53 on the host
             _, ip, _ = node.cuisine.core.run("jsdocker getip -n %s" % name)
-            node.cuisine.core.run("iptables -t nat -A PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination %s:53" % ip, action=True)
+            node.cuisine.core.run(
+                "iptables -t nat -A PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination %s:53" % ip, action=True)
 
         j.core.db.set("gcc.docker_nodes", ','.join(containers))
 

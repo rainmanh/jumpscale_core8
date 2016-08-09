@@ -16,17 +16,17 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.hadoop"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class Hadoop(base):
-
-
 
     @actionrun(action=True)
     def _build(self):
         self.cuisine.installer.base()
 
         if self.cuisine.core.isUbuntu:
-            C= """\
+            C = """\
             apt-get install -y apt-get install openjdk-7-jre
             cd $tmpDir
             wget -c http://www-us.apache.org/dist/hadoop/common/hadoop-2.7.2/hadoop-2.7.2.tar.gz

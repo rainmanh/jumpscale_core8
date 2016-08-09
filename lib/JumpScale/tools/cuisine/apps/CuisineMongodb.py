@@ -12,11 +12,14 @@ the build doesnt place anyfile outside opt as it will be used in aysfs mounted s
 
 
 class actionrun(ActionDecorator):
+
     def __init__(self, *args, **kwargs):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.mongodb"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class Mongodb(base):
 
     def __init__(self, executor, cuisine):
@@ -62,7 +65,7 @@ class Mongodb(base):
         self._build()
         if start:
             self.start("mongod")
-    
+
     @actionrun(force=True)
     def start(self, name="mongod"):
         which = self.cuisine.core.command_location("mongod")
@@ -73,18 +76,19 @@ class Mongodb(base):
 
     def mongoCluster(self, shards_nodes, config_nodes, mongos_nodes, shards_replica_set_counts=1, unique=""):
         args = []
-        for i in [shards_nodes,config_nodes,mongos_nodes]:
+        for i in [shards_nodes, config_nodes, mongos_nodes]:
             cuisines = []
             for k in i:
                 cuisines.append(MongoInstance(j.tools.cuisine.get(k['executor']), addr=k.get('addr', None), private_port=k['private_port'],
                                               public_port=k.get('public_port'), dbdir=k.get('dbdir')))
             args.append(cuisines)
-        return self._mongoCluster(args[0], args[1], args[2], shards_replica_set_counts = shards_replica_set_counts, unique = unique)
+        return self._mongoCluster(args[0], args[1], args[2], shards_replica_set_counts=shards_replica_set_counts, unique=unique)
 
-    def _mongoCluster(self, shards_css, config_css, mongos_css, shards_replica_set_counts = 1, unique = ""):
-        shards_replicas = [shards_css[i:i+shards_replica_set_counts] for i in range(0, len(shards_css), shards_replica_set_counts)]
-        shards = [MongoReplica(i, name = "%s_sh_%d"%(unique, num)) for num, i in enumerate(shards_replicas)]
-        cfg = MongoConfigSvr(config_css, name = "%s_cfg"%(unique))
+    def _mongoCluster(self, shards_css, config_css, mongos_css, shards_replica_set_counts=1, unique=""):
+        shards_replicas = [shards_css[i:i + shards_replica_set_counts]
+                           for i in range(0, len(shards_css), shards_replica_set_counts)]
+        shards = [MongoReplica(i, name="%s_sh_%d" % (unique, num)) for num, i in enumerate(shards_replicas)]
+        cfg = MongoConfigSvr(config_css, name="%s_cfg" % (unique))
         cluster = MongoCluster(mongos_css, cfg, shards)
         cluster.install()
         cluster.start()
@@ -92,6 +96,7 @@ class Mongodb(base):
 
 
 class Startable:
+
     def __init__(self):
         self.installed = False
         self.started = False
@@ -132,6 +137,7 @@ class Startable:
 
 
 class MongoInstance(Startable):
+
     def __init__(self, cuisine, addr=None, private_port=27021, public_port=None, type_="shard", replica='', configdb='', dbdir=None):
         super().__init__()
         self.cuisine = cuisine
@@ -154,7 +160,7 @@ class MongoInstance(Startable):
     def _install(self):
         super()._install()
         self.cuisine.core.dir_ensure(self.dbdir)
-        return self.cuisine.apps.mongodb.build(start = False)
+        return self.cuisine.apps.mongodb.build(start=False)
 
     def _gen_service_name(self):
         name = "ourmongos" if self.type_ == "mongos" else "ourmongod"
@@ -168,9 +174,9 @@ class MongoInstance(Startable):
         if self.type_ == "cfg":
             args += " --configsvr"
         if self.type_ != "mongos":
-             args += " --dbpath %s"%(self.dbdir)
+            args += " --dbpath %s" % (self.dbdir)
         if self.private_port:
-            args += " --port %s"%(self.private_port)
+            args += " --port %s" % (self.private_port)
         if self.replica:
             args += " --replSet %s" % (self.replica)
         if self.configdb:
@@ -187,21 +193,24 @@ class MongoInstance(Startable):
     @Startable.ensure_started
     def execute(self, cmd):
         for i in range(5):
-            rc, out, err = self.cuisine.core.run("LC_ALL=C $binDir/mongo --port %s --eval '%s'"%(self.private_port ,cmd.replace("\\","\\\\").replace("'","\\'")), die=False)
+            rc, out, err = self.cuisine.core.run("LC_ALL=C $binDir/mongo --port %s --eval '%s'" %
+                                                 (self.private_port, cmd.replace("\\", "\\\\").replace("'", "\\'")), die=False)
             if not rc and out.find('errmsg') == -1:
-                print('command executed %s'%(cmd))
+                print('command executed %s' % (cmd))
                 break
             sleep(3)
         else:
-            print('cannot execute command %s'%(cmd))
+            print('cannot execute command %s' % (cmd))
         return rc, out
 
     def __repr__(self):
-        return "%s:%s"%(self.addr, self.public_port)
+        return "%s:%s" % (self.addr, self.public_port)
 
     __str__ = __repr__
 
+
 class MongoSInstance(Startable):
+
     def __init__(self, nodes, configdb):
         super().__init__()
         self.nodes = nodes
@@ -218,13 +227,15 @@ class MongoSInstance(Startable):
 
     @Startable.ensure_started
     def add_shard(self, replica):
-        self.nodes[0].execute("sh.addShard( \"%s\" )"%(replica))
+        self.nodes[0].execute("sh.addShard( \"%s\" )" % (replica))
 
     def add_shards(self, replicas):
         return [self.add_shard(i) for i in replicas]
 
+
 class MongoCluster(Startable):
-    def __init__(self, nodes, configdb, shards, unique = ""):
+
+    def __init__(self, nodes, configdb, shards, unique=""):
         super().__init__()
         self.nodes = nodes
         self.configdb = configdb
@@ -247,8 +258,10 @@ class MongoCluster(Startable):
         self.mongos.start()
         [i.start() for i in self.shards]
 
+
 class MongoReplica(Startable):
-    def __init__(self, nodes, primary = None, name = "", configsvr = False):
+
+    def __init__(self, nodes, primary=None, name="", configsvr=False):
         super().__init__()
         if not primary:
             primary = nodes[0]
@@ -267,11 +280,11 @@ class MongoReplica(Startable):
 
     def _prepare_json_all(self):
         reprs = [repr(i) for i in self.all]
-        return ", ".join(["{ _id: %s, host: \"%s\" }"%(i,k)for i,k in enumerate(reprs)])
+        return ", ".join(["{ _id: %s, host: \"%s\" }" % (i, k)for i, k in enumerate(reprs)])
 
     def _prepare_init(self):
         cfg = "configsvr: true,version:1," if self.configsvr else ""
-        return """rs.initiate( {_id: "%s",%smembers: [%s]} )"""%(self.name, cfg, self._prepare_json_all())
+        return """rs.initiate( {_id: "%s",%smembers: [%s]} )""" % (self.name, cfg, self._prepare_json_all())
 
     def _install(self):
         super()._install()
@@ -285,15 +298,17 @@ class MongoReplica(Startable):
             i.start()
 
     def __repr__(self):
-        return "%s/%s"%(self.name, self.primary)
+        return "%s/%s" % (self.name, self.primary)
 
     __str__ = __repr__
 
+
 class MongoConfigSvr(Startable):
-    def __init__(self, nodes, primary = None, name = ""):
+
+    def __init__(self, nodes, primary=None, name=""):
         super().__init__()
         self.name = name
-        self.rep = MongoReplica(nodes, primary, name = self.name, configsvr = True)
+        self.rep = MongoReplica(nodes, primary, name=self.name, configsvr=True)
 
     @Startable.ensure_installed
     def _start(self):
@@ -306,50 +321,48 @@ class MongoConfigSvr(Startable):
     __str__ = __repr__
 
 
-
 if __name__ == "__main__":
     Mongodb.mongoCluster(
         [{
-        "executor": j.tools.executor.getSSHBased(addr="127.0.0.1", port=22,login="root",passwd="rooter"),
-        "public_port": 27021,
-        "private_port": 27021,
-        "dbdir": "$varDir/db2/data"
+            "executor": j.tools.executor.getSSHBased(addr="127.0.0.1", port=22, login="root", passwd="rooter"),
+            "public_port": 27021,
+            "private_port": 27021,
+            "dbdir": "$varDir/db2/data"
         }, {
-        "executor": j.tools.executor.getSSHBased(addr="127.0.0.1", port=22,login="root",passwd="rooter"),
-        "public_port": 27022,
-        "private_port": 27022,
-        "dbdir": "$varDir/db2/data"
+            "executor": j.tools.executor.getSSHBased(addr="127.0.0.1", port=22, login="root", passwd="rooter"),
+            "public_port": 27022,
+            "private_port": 27022,
+            "dbdir": "$varDir/db2/data"
         }, {
-        "executor": j.tools.executor.getSSHBased(addr="127.0.0.1", port=22,login="root",passwd="rooter"),
-        "public_port": 27023,
-        "private_port": 27023,
-        "dbdir": "$varDir/db2/data"
+            "executor": j.tools.executor.getSSHBased(addr="127.0.0.1", port=22, login="root", passwd="rooter"),
+            "public_port": 27023,
+            "private_port": 27023,
+            "dbdir": "$varDir/db2/data"
         }, {
-        "executor": j.tools.executor.getSSHBased(addr="127.0.0.1", port=22,login="root",passwd="rooter"),
-        "public_port": 27024,
-        "private_port": 27024,
-        "dbdir": "$varDir/db2/data"
+            "executor": j.tools.executor.getSSHBased(addr="127.0.0.1", port=22, login="root", passwd="rooter"),
+            "public_port": 27024,
+            "private_port": 27024,
+            "dbdir": "$varDir/db2/data"
         }],
         [{
-        "executor": j.tools.executor.getSSHBased(addr="127.0.0.1", port=22,login="root",passwd="rooter"),
-        "public_port": 27025,
-        "private_port": 27025,
-        "dbdir": "$varDir/db2/data"
+            "executor": j.tools.executor.getSSHBased(addr="127.0.0.1", port=22, login="root", passwd="rooter"),
+            "public_port": 27025,
+            "private_port": 27025,
+            "dbdir": "$varDir/db2/data"
         }, {
-        "executor": j.tools.executor.getSSHBased(addr="127.0.0.1", port=22,login="root",passwd="rooter"),
-        "public_port": 27026,
-        "private_port": 27026,
-        "dbdir": "$varDir/db2/data"
+            "executor": j.tools.executor.getSSHBased(addr="127.0.0.1", port=22, login="root", passwd="rooter"),
+            "public_port": 27026,
+            "private_port": 27026,
+            "dbdir": "$varDir/db2/data"
         }],
         [{
-        "executor": j.tools.executor.getSSHBased(addr="127.0.0.1", port=22,login="root",passwd="rooter"),
-        "public_port": 27027,
-        "private_port": 27027,
-        "dbdir": "$varDir/db2/data"
+            "executor": j.tools.executor.getSSHBased(addr="127.0.0.1", port=22, login="root", passwd="rooter"),
+            "public_port": 27027,
+            "private_port": 27027,
+            "dbdir": "$varDir/db2/data"
         }, {
-        "executor": j.tools.executor.getSSHBased(addr="127.0.0.1", port=22,login="root",passwd="rooter"),
-        "public_port": 27028,
-        "private_port": 27028,
-        "dbdir": "$varDir/db2/data"
+            "executor": j.tools.executor.getSSHBased(addr="127.0.0.1", port=22, login="root", passwd="rooter"),
+            "public_port": 27028,
+            "private_port": 27028,
+            "dbdir": "$varDir/db2/data"
         }], 2)
-

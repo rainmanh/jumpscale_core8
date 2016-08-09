@@ -100,7 +100,8 @@ class MongoInstance(Startable):
     @Startable.ensure_started
     def execute(self, cmd):
         for i in range(5):
-            rc, out, err = self.cuisine.core.run("LC_ALL=C $binDir/mongo --port %s --eval '%s'" % (self.private_port ,cmd.replace("\\","\\\\").replace("'","\\'")), die=False)
+            rc, out, err = self.cuisine.core.run("LC_ALL=C $binDir/mongo --port %s --eval '%s'" %
+                                                 (self.private_port, cmd.replace("\\", "\\\\").replace("'", "\\'")), die=False)
             if not rc and out.find('errmsg') == -1:
                 print('command executed %s' % (cmd))
                 break
@@ -239,7 +240,8 @@ def mongoCluster(shards_nodes, config_nodes, mongos_nodes, shards_replica_set_co
 
 
 def _mongoCluster(shards_css, config_css, mongos_css, shards_replica_set_counts=1, unique=""):
-    shards_replicas = [shards_css[i:i+shards_replica_set_counts] for i in range(0, len(shards_css), shards_replica_set_counts)]
+    shards_replicas = [shards_css[i:i + shards_replica_set_counts]
+                       for i in range(0, len(shards_css), shards_replica_set_counts)]
     shards = [MongoReplica(i, name="%s_sh_%d" % (unique, num)) for num, i in enumerate(shards_replicas)]
     cfg = MongoConfigSvr(config_css, name="%s_cfg" % (unique))
     cluster = MongoCluster(mongos_css, cfg, shards)

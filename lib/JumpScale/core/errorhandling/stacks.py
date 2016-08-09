@@ -42,7 +42,8 @@ def get_lines_from_file(filename, lineno, context_lines, loader=None, module_nam
             #     fullname = self._fix_name(fullname)
             #   File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/pkgutil.py", line 262, in _fix_name
             #     "module %s" % (self.fullname, fullname))
-            # ImportError: Loader for module cProfile cannot handle module __main__
+            # ImportError: Loader for module cProfile cannot handle module
+            # __main__
             source = None
         if source is not None:
             source = source.splitlines()
@@ -67,15 +68,18 @@ def get_lines_from_file(filename, lineno, context_lines, loader=None, module_nam
             if match:
                 encoding = match.group(1)
                 break
-        source = [six.text_type(sline, encoding, 'replace') for sline in source]
+        source = [six.text_type(sline, encoding, 'replace')
+                  for sline in source]
 
     lower_bound = max(0, lineno - context_lines)
     upper_bound = min(lineno + 1 + context_lines, len(source))
 
     try:
-        pre_context = [line.strip('\r\n') for line in source[lower_bound:lineno]]
+        pre_context = [line.strip('\r\n')
+                       for line in source[lower_bound:lineno]]
         context_line = source[lineno].strip('\r\n')
-        post_context = [line.strip('\r\n') for line in source[(lineno + 1):upper_bound]]
+        post_context = [line.strip('\r\n')
+                        for line in source[(lineno + 1):upper_bound]]
     except IndexError:
         # the file may have changed since it was loaded into memory
         return None, None, None
@@ -175,7 +179,7 @@ def iter_stack_frames(frames=None):
         yield frame, lineno
 
 
-def get_stack_info(frames):#, transformer=transform):
+def get_stack_info(frames):  # , transformer=transform):
     """
     Given a list of frames, returns a list of stack information
     dictionary objects that are JSON-ready.
@@ -218,7 +222,8 @@ def get_stack_info(frames):#, transformer=transform):
             lineno -= 1
 
         if lineno is not None and abs_path:
-            pre_context, context_line, post_context = get_lines_from_file(abs_path, lineno, 5, loader, module_name)
+            pre_context, context_line, post_context = get_lines_from_file(
+                abs_path, lineno, 5, loader, module_name)
         else:
             pre_context, context_line, post_context = None, None, None
 
@@ -226,7 +231,8 @@ def get_stack_info(frames):#, transformer=transform):
         # This changes /foo/site-packages/baz/bar.py into baz/bar.py
         try:
             base_filename = sys.modules[module_name.split('.', 1)[0]].__file__
-            filename = abs_path.split(base_filename.rsplit('/', 2)[0], 1)[-1][1:]
+            filename = abs_path.split(
+                base_filename.rsplit('/', 2)[0], 1)[-1][1:]
         except:
             filename = abs_path
 

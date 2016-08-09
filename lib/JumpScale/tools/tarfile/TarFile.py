@@ -6,6 +6,7 @@ import tarfile
 # NOTE: When implementing, see documentation on the 'errorlevel' attribute of
 # the Python TarFile object
 
+
 class TarFileFactory:
     READ = 'r'
     WRITE = 'w'
@@ -16,6 +17,7 @@ class TarFileFactory:
 
     def get(self, path, mode=READ):
         return TarFile(path, mode)
+
 
 class TarFile:
     '''Handle tar files'''
@@ -42,7 +44,7 @@ class TarFile:
 
         elif mode is TarFileFactory.WRITE:
             self._tar = tarfile.open(path, 'w')
-            
+
         else:
             raise ValueError('Invalid mode')
 

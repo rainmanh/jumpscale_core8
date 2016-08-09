@@ -19,7 +19,6 @@ from JumpScale.data.time.TimeInterval import TimeInterval as TimeIntervalUnit
 #@todo make sure we use proper names & add to right cuisine module
 
 
-
 def user_in_group(username, groupname):
     '''Check whether a given user is member of a given group
 
@@ -48,6 +47,7 @@ def user_in_group(username, groupname):
 
 
 class UnixSystem:
+
     def __init__(self):
         self.__jslocation__ = "j.sal.unix"
         self.logger = j.logger.get("j.sal.unix")
@@ -61,12 +61,11 @@ class UnixSystem:
         @type var: string
         '''
         #@todo there are better ways of doing this
-        exitcode, output = j.sal.process.execute(". %s > /dev/null && echo $%s"%(file,var))
-        if exitcode !=0:
+        exitcode, output = j.sal.process.execute(". %s > /dev/null && echo $%s" % (file, var))
+        if exitcode != 0:
             return ""
         else:
             return output[:-1]
-
 
     def getMachineInfo(self):
         '''Get memory and CPU info about this machine
@@ -79,19 +78,19 @@ class UnixSystem:
         nrcpu = 0
         if j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
             memcontent = j.sal.fs.fileGetContents("/proc/meminfo")
-            match = re.search("^MemTotal\:\s+(\d+)\s+kB$",memcontent, re.MULTILINE)
+            match = re.search("^MemTotal\:\s+(\d+)\s+kB$", memcontent, re.MULTILINE)
             if match:
-                #algorithme to round the memory again
-                mem_in_gb = int(match.group(1))/(1024.0**2)
-                percisions = 2 # means 1 / 2 GB precision
-                #we use ceil because we can only loose memory used by system
-                mem = int((math.ceil((mem_in_gb*percisions))/percisions)*1024)
+                # algorithme to round the memory again
+                mem_in_gb = int(match.group(1)) / (1024.0**2)
+                percisions = 2  # means 1 / 2 GB precision
+                # we use ceil because we can only loose memory used by system
+                mem = int((math.ceil((mem_in_gb * percisions)) / percisions) * 1024)
             cpucontent = j.sal.fs.fileGetContents("/proc/cpuinfo")
             matches = re.findall("^cpu\sMHz\s+:\s(\d+)\.\d+$", cpucontent, re.MULTILINE)
             if matches:
                 nrcpu = len(matches)
                 cpumhz = int(matches[0])
-            return mem,cpumhz,nrcpu
+            return mem, cpumhz, nrcpu
         elif j.core.platformtype.myplatform.isSolaris():
             command = "prtconf | grep Memory | awk '{print $3}'"
             (exitcoude, output) = j.sal.process.execute(command)
@@ -101,7 +100,7 @@ class UnixSystem:
             tuples = output.strip().split("\n")
             nrcpu = len(tuples)
             cpumhz = int(tuples[0])
-            return mem,cpumhz,nrcpu
+            return mem, cpumhz, nrcpu
         else:
             raise j.exceptions.RuntimeError(" System.getMachineInfo not supported on this platform")
 
@@ -125,17 +124,25 @@ class UnixSystem:
 
         # Configuration dependent on the time interval
         if unit == TimeIntervalUnit.MINUTES:
-            allowedIntervals = [1,2,3,4,5,6,10,12,15,20,30]
-            unitRange = 60; startAt = 0; unitPlace = 1;
+            allowedIntervals = [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30]
+            unitRange = 60
+            startAt = 0
+            unitPlace = 1
         elif unit == TimeIntervalUnit.HOURS:
-            allowedIntervals = [1,2,3,4,6,8,12]
-            unitRange = 24; startAt = 0; unitPlace = 2
+            allowedIntervals = [1, 2, 3, 4, 6, 8, 12]
+            unitRange = 24
+            startAt = 0
+            unitPlace = 2
         elif unit == TimeIntervalUnit.DAYS:
-            allowedIntervals = list(range(1,16)) # 1,2,...,16
-            unitRange = 31; startAt = 1; unitPlace = 3
+            allowedIntervals = list(range(1, 16))  # 1,2,...,16
+            unitRange = 31
+            startAt = 1
+            unitPlace = 3
         elif unit == TimeIntervalUnit.MONTHS:
-            allowedIntervals = [1,2,3,4,6]
-            unitRange = 12; startAt = 1; unitPlace = 4
+            allowedIntervals = [1, 2, 3, 4, 6]
+            unitRange = 12
+            startAt = 1
+            unitPlace = 4
         else:
             raise ValueError("This function only supports these interval units: minutes, hours, days and months.")
 
@@ -151,20 +158,24 @@ class UnixSystem:
             if interval == 1:
                 crontabItem = "*"
             else:
-                # Solaris crontab doesn't know the "*/x" syntax, we have to contruct options like "0,15,30,45" to run a command every quarter of an hour.
+                # Solaris crontab doesn't know the "*/x" syntax, we have to contruct
+                # options like "0,15,30,45" to run a command every quarter of an hour.
                 crontabItem = ",".join([str(i) for i in range(startAt, unitRange + startAt, interval)])
         else:
             raise j.exceptions.RuntimeError("Platform not supported.")
 
         # These lines generate strings like "0 0 */3 * * " specifing options for the crontab command.
-        randomRanges = [(0,60), (0,3), (1,29)] # Execute command between x:00 and x:59 if they run hourly, between 0:00 and 2:59 if they run daily and on any day if they run monthly.
+        # Execute command between x:00 and x:59 if they run hourly, between 0:00
+        # and 2:59 if they run daily and on any day if they run monthly.
+        randomRanges = [(0, 60), (0, 3), (1, 29)]
         crontabOptions = " ".join([str(random.randrange(t[0], t[1])) for t in randomRanges[:(unitPlace - 1)]])
         if not unitPlace == 1:
             crontabOptions = crontabOptions + " "
         crontabOptions = crontabOptions + crontabItem + " "
         crontabOptions = crontabOptions + "* " * (5 - unitPlace)
         if j.core.platformtype.myplatform.isLinux():
-            crontabOptions = crontabOptions + "root    " # The Vixie cron (for Linux) has an extra option: username of running process.
+            # The Vixie cron (for Linux) has an extra option: username of running process.
+            crontabOptions = crontabOptions + "root    "
 
         # Construct output redirection
         if logFilePath == None:
@@ -190,14 +201,15 @@ class UnixSystem:
             crontabLines[commandFoundInCrontab] = (crontabOptions + commandToExecute + crontabOutputRedir)
 
         # Backup old crontab file and write modifications new crontab file.
-        j.sal.fs.copyFile(crontabFilePath, crontabFilePath + ".backup") # Create backup
+        j.sal.fs.copyFile(crontabFilePath, crontabFilePath + ".backup")  # Create backup
         if j.core.platformtype.myplatform.isSolaris():
             self.writeFile(crontabFilePath + "_new", "\n".join(crontabLines) + "\n")
             # On Solaris, we need to call the crontab command to activate the changes.
             self.execute("crontab " + crontabFilePath + "_new")
             self.removeFile(crontabFilePath + "_new")
         elif j.core.platformtype.myplatform.isLinux() or j.core.platformtype.myplatform.isESX():
-            # On Linux, we edit the system-wide crontab of Vixie Cron, so don't have to run the "crontab" command to be sure changes have effect.
+            # On Linux, we edit the system-wide crontab of Vixie Cron, so don't have
+            # to run the "crontab" command to be sure changes have effect.
             j.sal.fs.writeFile(crontabFilePath, "\n".join(crontabLines) + "\n")
         else:
             raise j.exceptions.RuntimeError("Platform not supported.")
@@ -215,7 +227,7 @@ class UnixSystem:
         import signal
         os.killpg(os.getpgid(pid), signal.SIGKILL)
 
-    def chown(self, path, user, group,recursive=False):
+    def chown(self, path, user, group, recursive=False):
         """
         Chown a file
         @param path: the path of a file or a directory to be chown
@@ -229,31 +241,31 @@ class UnixSystem:
         """
         if not group:
             group = 'root'
-        j.logger.log('Chown %s:%s %s'%(user,group,path),8)
-        uid=pwd.getpwnam(user).pw_uid
-        if group==None:
-            gid=grp.getgrnam(group).gr_gid
+        j.logger.log('Chown %s:%s %s' % (user, group, path), 8)
+        uid = pwd.getpwnam(user).pw_uid
+        if group == None:
+            gid = grp.getgrnam(group).gr_gid
         else:
-            gid=grp.getgrnam(group).gr_gid
+            gid = grp.getgrnam(group).gr_gid
         os.chown(path, uid, gid)
         if recursive:
-            files=j.sal.fs.walk(path,return_folders=1,return_files=1,recurse=-1)
+            files = j.sal.fs.walk(path, return_folders=1, return_files=1, recurse=-1)
             for file in files:
-                os.chown(file,uid,gid)
+                os.chown(file, uid, gid)
 
-
-    def chmod(self, root, mode, recurse=0, dirPattern='*', filePattern='*', dirs = True, files = True):
+    def chmod(self, root, mode, recurse=0, dirPattern='*', filePattern='*', dirs=True, files=True):
         """
         Chmod based on system.fs.walk
         """
-        j.logger.log('Chmod %s'%root,8)
+        j.logger.log('Chmod %s' % root, 8)
         if j.sal.fs.isFile(root):
             os.chmod(root, mode)
         else:
-            items = j.sal.fs.walkExtended( root = root, recurse = recurse, dirPattern = dirPattern, filePattern = filePattern, dirs = dirs, files = files)
+            items = j.sal.fs.walkExtended(root=root, recurse=recurse, dirPattern=dirPattern,
+                                          filePattern=filePattern, dirs=dirs, files=files)
 
             for item in items:
-                os.chmod(item,mode)
+                os.chmod(item, mode)
 
     def executeAsUser(self, command, username, **kwargs):
         '''Execute a given command as a specific user
@@ -368,9 +380,9 @@ class UnixSystem:
             command = "useradd"
             options = []
             if groupname and not j.sal.unix.unixGroupExists(groupname):
-                raise j.exceptions.RuntimeError('Failed to add user because group %s does not exist' %groupname)
+                raise j.exceptions.RuntimeError('Failed to add user because group %s does not exist' % groupname)
             if groupname and j.sal.unix.unixGroupExists(groupname):
-                options.append("-g %s" %(groupname))
+                options.append("-g %s" % (groupname))
             if shell:
                 options.append("-s %s" % shell)
             if homedir:
@@ -381,12 +393,12 @@ class UnixSystem:
 
             if exitCode:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
-                raise j.exceptions.RuntimeError('Failed to add user %s, error: %s' % \
-                                    (username,output))
-            if homedir!=None:
+                raise j.exceptions.RuntimeError('Failed to add user %s, error: %s' %
+                                                (username, output))
+            if homedir != None:
                 j.sal.fs.createDir(homedir)
-                j.sal.fs.chown(homedir,username)
-                j.sal.fs.chmod(homedir,0o700)
+                j.sal.fs.chown(homedir, username)
+                j.sal.fs.chmod(homedir, 0o700)
 
         else:
             j.logger.log("User %s already exists" % username, 4)
@@ -400,12 +412,12 @@ class UnixSystem:
         @type groupname : string
         '''
         if not j.sal.unix.unixGroupExists(groupname):
-            j.logger.log("Group [%s] does not exist, creating an entry" %groupname, 5)
-            exitCode, stdout, stderr = j.sal.process.run("groupadd %s" %groupname, stopOnError=False)
+            j.logger.log("Group [%s] does not exist, creating an entry" % groupname, 5)
+            exitCode, stdout, stderr = j.sal.process.run("groupadd %s" % groupname, stopOnError=False)
 
             if exitCode:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
-                raise j.exceptions.RuntimeError('Failed to add group %s, error: %s' %(groupname,output))
+                raise j.exceptions.RuntimeError('Failed to add group %s, error: %s' % (groupname, output))
         else:
             j.logger.log("Group %s already exists" % groupname, 4)
 
@@ -438,7 +450,7 @@ class UnixSystem:
             return False
         return True
 
-    def unixGroupExists(self,groupname):
+    def unixGroupExists(self, groupname):
         """Checks if a given group already exists in the system
 
         @param groupname: Name of the group to check for
@@ -460,15 +472,15 @@ class UnixSystem:
         """
         try:
             import crypt
-        except ImportError :
-            import fcrypt as crypt 
+        except ImportError:
+            import fcrypt as crypt
             import string
             from random import SystemRandom
             salt = j.data.idgenerator.generateXCharID(2)
 
         return crypt.crypt(word, salt)
 
-    def disableUnixUser(self,username):
+    def disableUnixUser(self, username):
         """Disables a given unix user
 
         @param username: Name of the user to disable
@@ -478,15 +490,15 @@ class UnixSystem:
         if not j.sal.unix.unixUserExists(username):
             raise ValueError("User [%s] does not exist, cannot disable user" % username)
         else:
-            command = 'passwd %s -l' %username
+            command = 'passwd %s -l' % username
             exitCode, stdout, stderr = j.sal.process.run(command, stopOnError=False)
 
             if exitCode:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
-                raise j.exceptions.RuntimeError('Failed to disable user %s, error: %s' %(username,output))
+                raise j.exceptions.RuntimeError('Failed to disable user %s, error: %s' % (username, output))
             return True
 
-    def enableUnixUser(self,username):
+    def enableUnixUser(self, username):
         """Enables a given unix user
 
         @param username: Name of the user to enable
@@ -496,15 +508,15 @@ class UnixSystem:
         if not j.sal.unix.unixUserExists(username):
             raise ValueError("User [%s] does not exist, cannot enable user" % username)
         else:
-            command = 'passwd %s -u' %username
+            command = 'passwd %s -u' % username
             exitCode, stdout, stderr = j.sal.process.run(command, stopOnError=False)
 
             if exitCode:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
-                raise j.exceptions.RuntimeError('Failed to enable user %s, error: %s' %(username,output))
+                raise j.exceptions.RuntimeError('Failed to enable user %s, error: %s' % (username, output))
             return True
 
-    def removeUnixUser(self, username, removehome=False,die=True):
+    def removeUnixUser(self, username, removehome=False, die=True):
         """Remove a given unix user
 
         @param username: Name of the user to remove
@@ -523,10 +535,10 @@ class UnixSystem:
 
             if exitCode:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
-                raise j.exceptions.RuntimeError('Failed to remove user %s, error: %s' %(username,output))
+                raise j.exceptions.RuntimeError('Failed to remove user %s, error: %s' % (username, output))
             return True
 
-    def setUnixUserPassword(self,username, password):
+    def setUnixUserPassword(self, username, password):
         """Set a password on unix user
 
         @param username: Name of the user to enable
@@ -539,12 +551,12 @@ class UnixSystem:
         if not j.sal.unix.unixUserExists(username):
             raise ValueError("User [%s] does not exist, cannot set password" % username)
         else:
-            command = "echo '%s:%s' | chpasswd" %(username, password)
+            command = "echo '%s:%s' | chpasswd" % (username, password)
             exitCode, stdout, stderr = j.sal.process.run(command, stopOnError=False)
 
             if exitCode:
                 output = '\n'.join(('Stdout:', stdout, 'Stderr:', stderr, ))
-                raise j.exceptions.RuntimeError('Failed to set password on user %s, error: %s' %(username,output))
+                raise j.exceptions.RuntimeError('Failed to set password on user %s, error: %s' % (username, output))
             return True
 
     @staticmethod
@@ -599,12 +611,12 @@ class UnixSystem:
 
         @raise RuntimeError: System does not support fork(2)
         '''
-        #We display a warning here when threads are discovered in the current
-        #process, because forking a threaded application is a pretty bad idea.
-        #This is not an in-depth check, since it only checks whether any
-        #threads were created using threading.Thread. On HPUX and maybe some
-        #other UNIXes we could use pthread_is_multithreaded_np, but this is
-        #not available on Linux at least.
+        # We display a warning here when threads are discovered in the current
+        # process, because forking a threaded application is a pretty bad idea.
+        # This is not an in-depth check, since it only checks whether any
+        # threads were created using threading.Thread. On HPUX and maybe some
+        # other UNIXes we could use pthread_is_multithreaded_np, but this is
+        # not available on Linux at least.
         if not hasattr(os, 'fork'):
             raise j.exceptions.RuntimeError(
                 'os.fork not found, daemon mode not supported on your system')
@@ -616,25 +628,25 @@ class UnixSystem:
 
         pid = os.fork()
         if pid == 0:
-            #First child
-            #Become session leader...
+            # First child
+            # Become session leader...
             os.setsid()
 
-            #Double fork
+            # Double fork
             pid = os.fork()
             if pid == 0:
-                #Second child
+                # Second child
                 if umask >= 0:
                     os.umask(umask)
                 if chdir:
                     os.chdir(chdir)
             else:
-                #First child is useless now
+                # First child is useless now
                 os._exit(0)
         else:
             return False, os.getpid()
 
-        #Close all FDs
+        # Close all FDs
         import resource
         maxfd = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
         if maxfd == resource.RLIM_INFINITY:
@@ -650,21 +662,21 @@ class UnixSystem:
             except OSError:
                 pass
 
-        #Open fd0 to /dev/null
+        # Open fd0 to /dev/null
         redirect = getattr(os, 'devnull', '/dev/null')
         os.open(redirect, os.O_RDWR)
 
-        #dup to stdout and stderr
+        # dup to stdout and stderr
         os.dup2(0, 1)
         os.dup2(0, 2)
 
         return True, os.getpid()
 
-    def checkApplicationInstalled(self,appname):
+    def checkApplicationInstalled(self, appname):
         """
         check if app is installed,  if yes return True
         """
-        result,out=j.sal.process.execute("which %s" % appname,die=False)
-        if result==0 and len(out)>5:
+        result, out = j.sal.process.execute("which %s" % appname, die=False)
+        if result == 0 and len(out) > 5:
             return True
         return False

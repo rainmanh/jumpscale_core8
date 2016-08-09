@@ -9,20 +9,24 @@ please ensure that the start and build methods are separate and
 the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
 """
 
+
 class actionrun(ActionDecorator):
+
     def __init__(self, *args, **kwargs):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.redis"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class Redis(base):
 
     @actionrun(action=True)
-    def build(self,name="main",ip="localhost", port=6379, maxram=200, appendonly=True,snapshot=False,slave=(),ismaster=False,passwd=None,unixsocket=True,start=True):
+    def build(self, name="main", ip="localhost", port=6379, maxram=200, appendonly=True, snapshot=False, slave=(), ismaster=False, passwd=None, unixsocket=True, start=True):
         self.cuisine.installer.base()
         if self.cuisine.core.isUbuntu:
 
-            C="""
+            C = """
             #!/bin/bash
             set -ex
 
@@ -39,11 +43,11 @@ class Redis(base):
             rm -f /usr/local/bin/redis-cli
 
             """
-            C=self.cuisine.bash.replaceEnvironInText(C)
-            C=self.cuisine.core.args_replace(C)
+            C = self.cuisine.bash.replaceEnvironInText(C)
+            C = self.cuisine.core.args_replace(C)
             self.cuisine.core.run_script(C)
-            #move action
-            C="""
+            # move action
+            C = """
             set -ex
             mkdir -p $base/bin/
             cp -f $tmpDir/build/redis/redis-3.2.0/src/redis-server $base/bin/
@@ -51,32 +55,31 @@ class Redis(base):
 
             rm -rf $base/apps/redis
             """
-            C=self.cuisine.bash.replaceEnvironInText(C)
-            C=self.cuisine.core.args_replace(C)
+            C = self.cuisine.bash.replaceEnvironInText(C)
+            C = self.cuisine.core.args_replace(C)
             self.cuisine.core.run_script(C)
         else:
-            if self.cuisine.core.command_check("redis-server")==False:
+            if self.cuisine.core.command_check("redis-server") == False:
                 if self.cuisine.core.isMac:
                     self.cuisine.package.install("redis")
                 else:
                     self.cuisine.package.install("redis-server")
-            cmd=self.cuisine.core.command_location("redis-server")
-            dest="%s/redis-server"%self.cuisine.core.dir_paths["binDir"]
-            if cmd!=dest:
-                self.cuisine.core.file_copy(cmd,dest)
+            cmd = self.cuisine.core.command_location("redis-server")
+            dest = "%s/redis-server" % self.cuisine.core.dir_paths["binDir"]
+            if cmd != dest:
+                self.cuisine.core.file_copy(cmd, dest)
 
         self.cuisine.bash.addPath(j.sal.fs.joinPaths(self.cuisine.core.dir_paths["base"], "bin"))
 
-
         redis_cli = j.clients.redis.getInstance(self.cuisine)
-        redis_cli.configureInstance(name, ip, port, maxram=maxram, appendonly=appendonly, \
-            snapshot=snapshot, slave=slave, ismaster=ismaster, passwd=passwd, unixsocket=False)
+        redis_cli.configureInstance(name, ip, port, maxram=maxram, appendonly=appendonly,
+                                    snapshot=snapshot, slave=slave, ismaster=ismaster, passwd=passwd, unixsocket=False)
 
         if start:
             self.start(name)
 
     @actionrun(force=True)
     def start(self, name="main"):
-        dpath,cpath=j.clients.redis._getPaths(name)
-        cmd="$binDir/redis-server %s"%cpath
-        self.cuisine.processmanager.ensure(name="redis_%s" % name,cmd=cmd,env={},path='$binDir')
+        dpath, cpath = j.clients.redis._getPaths(name)
+        cmd = "$binDir/redis-server %s" % cpath
+        self.cuisine.processmanager.ensure(name="redis_%s" % name, cmd=cmd, env={}, path='$binDir')

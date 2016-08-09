@@ -8,12 +8,16 @@ from ActionDecorator import ActionDecorator
 
 
 class actionrun(ActionDecorator):
+
     def __init__(self, *args, **kwargs):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.bootmediaInstaller"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class CuisineBootMediaInstaller(base):
+
     def __init__(self, executor, cuisine):
         self.executor = executor
         self.cuisine = cuisine
@@ -34,9 +38,10 @@ class CuisineBootMediaInstaller(base):
 
     @actionrun(force=True)
     def _partition(self, deviceid, type):
-        cmd = "parted -s /dev/%s mklabel %s mkpart primary fat32 2 200M set 1 boot on mkpart primary ext4 200M 100%%" % (deviceid, type)
+        cmd = "parted -s /dev/%s mklabel %s mkpart primary fat32 2 200M set 1 boot on mkpart primary ext4 200M 100%%" % (
+            deviceid, type)
         self.cuisine.core.run(cmd)
-    
+
     @actionrun(force=True)
     def _umount(self, deviceid):
         self.cuisine.core.run("umount /mnt/root/boot", die=False)
@@ -122,14 +127,14 @@ class CuisineBootMediaInstaller(base):
         return devs
 
     @actionrun(force=True)
-    def ubuntu(self, platform="amd64",deviceid=None):
+    def ubuntu(self, platform="amd64", deviceid=None):
         """
         if platform none then it will use self.cuisine.node.hwplatform
 
         example: hwplatform = rpi_2b, orangepi_plus,amd64
 
         """
-        if platform=="amd64":
+        if platform == "amd64":
             name = self._downloadImage("http://releases.ubuntu.com/15.10/ubuntu-15.10-server-amd64.iso")
         else:
             raise j.exceptions.Input("platform not supported yet")
@@ -139,28 +144,28 @@ class CuisineBootMediaInstaller(base):
         self.cuisine.core.sudo(cmd)
 
     @actionrun(force=True)
-    def debian(self, platform="orangepi_plus",deviceid=None):
+    def debian(self, platform="orangepi_plus", deviceid=None):
         """
         if platform none then it will use self.cuisine.node.hwplatform
 
         example: hwplatform = rpi_2b, orangepi_plus,amd64
 
         """
-        if platform=="orangepi_plus":
+        if platform == "orangepi_plus":
             raise RuntimeError("not implemented")
         else:
             raise j.exceptions.Input("platform not supported yet")
         # self.formatCardDeployImage(url, deviceid=deviceid)
 
     @actionrun(force=True)
-    def arch(self, platform="rpi_2b",deviceid=None):
+    def arch(self, platform="rpi_2b", deviceid=None):
         """
         if platform none then it will use self.cuisine.node.hwplatform
 
         example: hwplatform = rpi_2b, orangepi_plus,amd64
 
         """
-        if platform=="rpi_2b":
+        if platform == "rpi_2b":
             url = "http://archlinuxarm.org/os/ArchLinuxARM-rpi-2-latest.tar.gz"
         else:
             raise j.exceptions.Input("platform not supported yet")
@@ -228,7 +233,8 @@ class CuisineBootMediaInstaller(base):
             self.cuisine.core.run('mount -t proc none /mnt/root/proc')
 
             # add g8os section.
-            self.cuisine.core.run('chroot /mnt/root grub-install --target=x86_64-efi --efi-directory=/boot --modules="part_gpt ext2 fat"  --removable')
+            self.cuisine.core.run(
+                'chroot /mnt/root grub-install --target=x86_64-efi --efi-directory=/boot --modules="part_gpt ext2 fat"  --removable')
             self.cuisine.core.run('chroot /mnt/root grub-mkconfig -o /boot/grub/grub.cfg')
 
             self.cuisine.core.run('umount /mnt/root/sys')
@@ -250,6 +256,6 @@ class CuisineBootMediaInstaller(base):
 
     def __str__(self):
         return "cuisine.bootmediaInstaller:%s:%s" % (
-        getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
+            getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
 
     __repr__ = __str__

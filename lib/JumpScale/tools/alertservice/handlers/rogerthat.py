@@ -3,9 +3,11 @@ from JumpScale.clients.rogerthat.rogerthatservice import GeventWSServer
 from JumpScale.tools.alertservice.AlertService import Handler
 import gevent
 
+
 class RogerThatAlerter(Handler):
     ORDER = 10
-    ANSWERS = [{'id': 'accepted', 'caption': 'Accept', 'action': '', 'type': 'button'},{'id': 'escalate', 'caption': 'Escalate', 'action': '', 'type': 'button'}]
+    ANSWERS = [{'id': 'accepted', 'caption': 'Accept', 'action': '', 'type': 'button'},
+               {'id': 'escalate', 'caption': 'Escalate', 'action': '', 'type': 'button'}]
 
     def __init__(self, service):
         self.service = service
@@ -30,17 +32,19 @@ class RogerThatAlerter(Handler):
         message = self.makeMessage(alert)
         answers = self.ANSWERS[:]
         url = self.service.getUrl(alert)
-        answers.append({'id': 'details', 'caption': 'Details', 'action': url, 'type':'button'})
+        answers.append({'id': 'details', 'caption': 'Details', 'action': url, 'type': 'button'})
         flags = self.rogerthathandler.client.FLAG_SHARED_MEMBERS
         alertflags = self.rogerthathandler.client.ALERT_FLAG_VIBRATE | self.rogerthathandler.client.ALERT_FLAG_RING_5
         uiflags = self.rogerthathandler.client.FLAG_WAIT_FOR_NEXT_MESSAGE
-        message_id = self.rogerthathandler.send_message(message=message, members=emails, answers=answers, tag=alert['guid'], flags=flags, alert_flags=alertflags, ui_flags=uiflags)
+        message_id = self.rogerthathandler.send_message(message=message, members=emails, answers=answers, tag=alert[
+                                                        'guid'], flags=flags, alert_flags=alertflags, ui_flags=uiflags)
         alert['message_id'] = message_id
         self.service.rediscl.hset('alerts', alert['guid'], json.dumps(alert))
         return users
 
     def updateState(self, alert):
-        self.rogerthathandler.send_message(message="User %(assigned_user)s has accepted " % alert, flags=17, parent_message_key=alert['message_id'], alert_flags=0)
+        self.rogerthathandler.send_message(message="User %(assigned_user)s has accepted " %
+                                           alert, flags=17, parent_message_key=alert['message_id'], alert_flags=0)
 
     def start(self):
         return gevent.spawn(self.rogerthatserver.start)
@@ -51,6 +55,7 @@ Level: %(level)s
 Message: %(errormessage)s
 """  % alert
         return message
+
 
 class RogerThatHandler:
     API_KEY = j.application.config.get('rogerthat.apikey')
@@ -81,7 +86,8 @@ class RogerThatHandler:
                 self.alerter.log("Callback from %s with %s" % (user['id'], params['answer_id']))
             elif self.alerter.scl.alert.exists(alertguid):
                 if params['answer_id'] == 'accepted':
-                    self.alerts_client.update(state='ACCEPTED', alert=params['tag'], comment='Via Rogerthat', username=user['id'])
+                    self.alerts_client.update(state='ACCEPTED', alert=params[
+                                              'tag'], comment='Via Rogerthat', username=user['id'])
                 elif params['answer_id'] == 'escalate':
                     self.alerts_client.escalate(alert=params['tag'], comment='Via Rogerthat', username=user['id'])
             else:

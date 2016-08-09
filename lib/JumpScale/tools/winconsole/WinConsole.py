@@ -1,21 +1,26 @@
 from JumpScale import j
 
+
 class WinConsoleFactory:
+
     def get(self):
         return WinConsole()
+
 
 class WinConsole:
     """
     methods to work with console on windows
-    """    
+    """
+
     def __init__(self):
         """
         """
         self.__jslocation__ = "j.tools.winconsole"
-        if not  j.core.platformtype.myplatform.isWindows():
+        if not j.core.platformtype.myplatform.isWindows():
             raise j.exceptions.RuntimeError("Only supported on windows.")
-        self.configpath=j.sal.fs.joinPaths(j.dirs.tmpDir,"consolecfg",str(j.data.idgenerator.generateRandomInt(1,1000))+".xml")
-        self.config="""
+        self.configpath = j.sal.fs.joinPaths(j.dirs.tmpDir, "consolecfg", str(
+            j.data.idgenerator.generateRandomInt(1, 1000)) + ".xml")
+        self.config = """
 
 <?xml version="1.0"?>
 <settings>
@@ -115,27 +120,26 @@ $tabs
 
 
         """
-        self.config=self.config.replace("$base",j.dirs.base)
-        self.tabs=[]
-        self.tabCmd=[]
-        self.addTab("console","","")
-        self.addTab("jshell","","jshell.bat")
-
+        self.config = self.config.replace("$base", j.dirs.base)
+        self.tabs = []
+        self.tabCmd = []
+        self.addTab("console", "", "")
+        self.addTab("jshell", "", "jshell.bat")
 
     def writeConfig(self):
-        tabs=""
+        tabs = ""
         for tab in self.tabs:
-            tabs+="%s\n"%tab
-        config=self.config.replace("$tabs",tabs)
+            tabs += "%s\n" % tab
+        config = self.config.replace("$tabs", tabs)
         j.sal.fs.createDir(j.sal.fs.getDirName(self.configpath))
-        j.sal.fs.writeFile(self.configpath,config)                
+        j.sal.fs.writeFile(self.configpath, config)
 
-    def addTab(self,name,startdir,cmd):
-        if startdir=="":
+    def addTab(self, name, startdir, cmd):
+        if startdir == "":
             # startdir=j.dirs.base
-            startdir=j.sal.fs.getcwd()
+            startdir = j.sal.fs.getcwd()
 
-        C="""
+        C = """
         <tab title="$name" use_default_icon="0">
             <console shell="$cmd" init_dir="$base" run_as_user="0" user=""/>
             <cursor style="0" r="255" g="255" b="255"/>
@@ -145,30 +149,23 @@ $tabs
                 </image>
             </background>
         </tab>"""
-        C=C.replace("$name",name)
-        C=C.replace("$base",startdir)
-        C=C.replace("$cmd",cmd)
+        C = C.replace("$name", name)
+        C = C.replace("$base", startdir)
+        C = C.replace("$cmd", cmd)
         self.tabs.append(C)
-        cmd2="%s\\%s"%(startdir,cmd)
-        self.tabCmd.append([name,startdir,cmd2])
-
+        cmd2 = "%s\\%s" % (startdir, cmd)
+        self.tabCmd.append([name, startdir, cmd2])
 
     def start(self):
         self.writeConfig()
-        cwd=j.sal.fs.getcwd()
-        j.sal.fs.changeDir(j.sal.fs.joinPaths(j.dirs.base,"appsbin","console"))
-        cmd="start console.exe -c \"%s\"" % self.configpath.replace("\\\\","\\")
-        for name,startdir,cmd2 in self.tabCmd:
+        cwd = j.sal.fs.getcwd()
+        j.sal.fs.changeDir(j.sal.fs.joinPaths(j.dirs.base, "appsbin", "console"))
+        cmd = "start console.exe -c \"%s\"" % self.configpath.replace("\\\\", "\\")
+        for name, startdir, cmd2 in self.tabCmd:
             # startdir=startdir.replace("/","\\")
             # startdir=startdir.replace("\\\\","\\")
-            cmd+=" -t %s "% (name)
+            cmd += " -t %s " % (name)
 
         # j.sal.process.execute(cmd)
         j.sal.process.executeWithoutPipe(cmd)
         j.sal.fs.changeDir(cwd)
-
-        
-        
-
-
-

@@ -5,22 +5,27 @@ import os
 import socket
 
 from ActionDecorator import ActionDecorator
-class actionrun(ActionDecorator):
-    def __init__(self,*args,**kwargs):
-        ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installer"
 
-base=j.tools.cuisine.getBaseClass()
+
+class actionrun(ActionDecorator):
+
+    def __init__(self, *args, **kwargs):
+        ActionDecorator.__init__(self, *args, **kwargs)
+        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installer"
+
+base = j.tools.cuisine.getBaseClass()
+
+
 class CuisineInstaller(base):
 
-    def __init__(self,executor,cuisine):
-        self.executor=executor
-        self.cuisine=cuisine
+    def __init__(self, executor, cuisine):
+        self.executor = executor
+        self.cuisine = cuisine
 
     @actionrun(action=True)
     def jumpscale_installed(self, die=False):
         rc1, out1, err = self.cuisine.core.run('which js8', die=False)
-        rc2, out2, err = self.cuisine.core.run ('which js' , die=False)
+        rc2, out2, err = self.cuisine.core.run('which js', die=False)
         if (rc1 == 0 and out1) or (rc2 == 0 and out2):
             return True
         return False
@@ -50,8 +55,7 @@ class CuisineInstaller(base):
                 echo "OK"
                 """
 
-        self.cuisine.core.run_script(C,die=False)
-
+        self.cuisine.core.run_script(C, die=False)
 
     @actionrun(action=True)
     def jumpscale8(self, rw=False, reset=False):
@@ -68,7 +72,6 @@ class CuisineInstaller(base):
         self.clean()
         self.base()
 
-
         C = """
             js8 stop
             set -ex
@@ -80,7 +83,7 @@ class CuisineInstaller(base):
             rm -f /usr/local/bin/js
             rm -fr /opt/*
             """
-        self.cuisine.core.run_script(C, action=True,force=True)
+        self.cuisine.core.run_script(C, action=True, force=True)
 
         if not self.cuisine.core.isUbuntu:
             raise j.exceptions.RuntimeError("not supported yet")
@@ -91,8 +94,7 @@ class CuisineInstaller(base):
                 rm -rf /opt
                 rm -rf /optrw
                 """
-            self.cuisine.core.run_script(C, action=True,force=True)
-
+            self.cuisine.core.run_script(C, action=True, force=True)
 
         C = """
             wget https://stor.jumpscale.org/storx/static/js8 -O /usr/local/bin/js8
@@ -100,7 +102,7 @@ class CuisineInstaller(base):
             cd /
             mkdir -p $base
             """
-        self.cuisine.core.run_script(C, action=True,force=True)
+        self.cuisine.core.run_script(C, action=True, force=True)
 
         """
         install jumpscale8 sandbox in read or readwrite mode
@@ -114,7 +116,7 @@ class CuisineInstaller(base):
             C += "./js8 -rw init"
         else:
             C += "./js8 init"
-        self.cuisine.core.run_script(C, action=True,force=True)
+        self.cuisine.core.run_script(C, action=True, force=True)
 
         start = j.data.time.epoch
         timeout = 30
@@ -127,7 +129,7 @@ class CuisineInstaller(base):
                 self.cuisine.bash.include('/opt/jumpscale8/env.sh')
                 break
 
-        print ("* re-login into your shell to have access to js, because otherwise the env arguments are not set properly.")
+        print("* re-login into your shell to have access to js, because otherwise the env arguments are not set properly.")
 
     @actionrun(action=True)
     def libvirt(self):
@@ -139,21 +141,21 @@ class CuisineInstaller(base):
         self.cuisine.pip.install("libvirt-python==1.3.2", upgrade=False)
 
     @actionrun(action=True)
-    def base(self,force=False):
+    def base(self, force=False):
         self.clean()
 
         self.cuisine.bash.fixlocale()
 
         if self.cuisine.core.isMac:
-            C=""
+            C = ""
         else:
-            C="""
+            C = """
             sudo
             net-tools
             python3
             """
 
-        C+="""
+        C += """
         openssl
         wget
         curl
@@ -161,10 +163,10 @@ class CuisineInstaller(base):
         mc
         tmux
         """
-        out=""
-        #make sure all dirs exist
-        for key,item in self.cuisine.core.dir_paths.items():
-            out+="mkdir -p %s\n"%item
+        out = ""
+        # make sure all dirs exist
+        for key, item in self.cuisine.core.dir_paths.items():
+            out += "mkdir -p %s\n" % item
         self.cuisine.core.run_script(out)
 
         self.cuisine.package.mdupdate()
@@ -173,7 +175,7 @@ class CuisineInstaller(base):
             self.cuisine.package.install("fuse")
 
         if self.cuisine.core.isArch:
-            self.cuisine.package.install("wpa_actiond") #is for wireless auto start capability
+            self.cuisine.package.install("wpa_actiond")  # is for wireless auto start capability
             self.cuisine.package.install("redis-server")
 
         self.cuisine.package.multiInstall(C)
@@ -181,14 +183,13 @@ class CuisineInstaller(base):
 
         self.cuisine.package.clean()
 
-
     @actionrun(action=True)
-    def ftpserver(self,root="/storage/ftpserver",config="",port=2121):
+    def ftpserver(self, root="/storage/ftpserver", config="", port=2121):
 
         self.cuisine.ufw.ufw_enable()
         self.cuisine.ufw.allowIncoming(port)
 
-        cmd="sudo ufw allow 50000:65535/tcp"
+        cmd = "sudo ufw allow 50000:65535/tcp"
         self.cuisine.core.run(cmd)
 
         """
@@ -229,7 +230,7 @@ class CuisineInstaller(base):
 
         """
 
-        #DEBUG
+        # DEBUG
         # config='''
         # home:
         #   guest2: ['123456']
@@ -244,31 +245,32 @@ class CuisineInstaller(base):
 
         self.cuisine.btrfs.subvolumeCreate(root)
 
-            #
-            #
+        #
+        #
 
-        if config=="":
-            authorizer="    pyftpdlib.authorizers.UnixAuthorizer"
+        if config == "":
+            authorizer = "    pyftpdlib.authorizers.UnixAuthorizer"
         else:
-            authorizer=""
-            configmodel=j.data.serializer.yaml.loads(config)
-            for key,obj in configmodel.items():
-                self.cuisine.btrfs.subvolumeCreate(j.sal.fs.joinPaths(root,key))
-                for user,obj2 in obj.items():
+            authorizer = ""
+            configmodel = j.data.serializer.yaml.loads(config)
+            for key, obj in configmodel.items():
+                self.cuisine.btrfs.subvolumeCreate(j.sal.fs.joinPaths(root, key))
+                for user, obj2 in obj.items():
                     if user.lower() == "anonymous":
-                        authorizer+="    authorizer.add_anonymous('%s')\n"%j.sal.fs.joinPaths(root,key)
+                        authorizer += "    authorizer.add_anonymous('%s')\n" % j.sal.fs.joinPaths(root, key)
                     else:
-                        if len(obj2)==1:
-                            #no rights
-                            rights="elradfmwM"
-                            secret=obj2[0]
-                        elif len(obj2)==2:
-                            secret,rights=obj2
+                        if len(obj2) == 1:
+                            # no rights
+                            rights = "elradfmwM"
+                            secret = obj2[0]
+                        elif len(obj2) == 2:
+                            secret, rights = obj2
                         else:
-                            raise j.exceptions.Input("wrong format in ftp config:%s, for user:%s"%(config,user))
-                        authorizer+="    authorizer.add_user('%s', '%s', '%s', perm='%s')\n"%(user,secret,j.sal.fs.joinPaths(root,key),rights)
+                            raise j.exceptions.Input("wrong format in ftp config:%s, for user:%s" % (config, user))
+                        authorizer += "    authorizer.add_user('%s', '%s', '%s', perm='%s')\n" % (user,
+                                                                                                  secret, j.sal.fs.joinPaths(root, key), rights)
 
-        C="""
+        C = """
         from pyftpdlib.authorizers import DummyAuthorizer
         from pyftpdlib.handlers import FTPHandler
         from pyftpdlib.servers import FTPServer
@@ -307,23 +309,20 @@ class CuisineInstaller(base):
         if __name__ == '__main__':
             main()
         """
-        C=j.data.text.strip(C)
+        C = j.data.text.strip(C)
 
-        C=C.replace("$port",str(port))
-        C=C.replace("$authorizers",authorizer)
+        C = C.replace("$port", str(port))
+        C = C.replace("$authorizers", authorizer)
 
         self.cuisine.core.dir_ensure("/etc/ftpserver")
 
-        self.cuisine.core.file_write("/etc/ftpserver/start.py",C)
+        self.cuisine.core.file_write("/etc/ftpserver/start.py", C)
 
+        self.cuisine.processmanager.ensure("polipo", cmd)
 
-        self.cuisine.processmanager.ensure("polipo",cmd)
-
-        self.cuisine.processmanager.ensure("pyftpserver","python3 /etc/ftpserver/start.py")
-
+        self.cuisine.processmanager.ensure("pyftpserver", "python3 /etc/ftpserver/start.py")
 
     def __str__(self):
         return "cuisine.installer:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
 
-
-    __repr__=__str__
+    __repr__ = __str__

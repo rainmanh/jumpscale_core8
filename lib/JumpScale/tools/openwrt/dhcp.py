@@ -8,6 +8,7 @@ class DHCPError(Exception):
 
 
 class Interface(BaseServiceSection):
+
     @property
     def name(self):
         """
@@ -67,6 +68,7 @@ class Interface(BaseServiceSection):
 
 
 class Host(BaseServiceSection):
+
     @property
     def name(self):
         """
@@ -112,6 +114,7 @@ class Host(BaseServiceSection):
 
 
 class PXE(BaseServiceSection):
+
     @property
     def filename(self):
         return self._section.get('filename', '')

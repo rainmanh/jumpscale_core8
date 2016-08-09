@@ -6,6 +6,7 @@ from utils import get_msg_path, get_json_msg
 
 
 class EmailTool:
+
     def __init__(self):
         self.__jslocation__ = "j.tools.email"
 
@@ -16,7 +17,7 @@ class EmailTool:
         :return: list
 
         """
-        return j.core.db.lrange('mails.queue', -1*n, -1)
+        return j.core.db.lrange('mails.queue', -1 * n, -1)
 
     def getLast(self, num=100):
         """

@@ -16,7 +16,7 @@ class KeyValueStoreType(str):
         self.REDIS = 'redis'
 
 
-class KeyValueStoreBase:#, metaclass=ABCMeta):
+class KeyValueStoreBase:  # , metaclass=ABCMeta):
     '''KeyValueStoreBase defines a store interface.'''
 
     def __init__(self, serializers=[]):
@@ -36,7 +36,7 @@ class KeyValueStoreBase:#, metaclass=ABCMeta):
             if not attr.__doc__ and\
                hasattr(KeyValueStoreBase, attrName) and\
                not attrName.startswith('_')\
-            and isinstance(attr, collections.Callable):
+               and isinstance(attr, collections.Callable):
 
                 baseAttr = getattr(KeyValueStoreBase, attrName)
                 attr.__doc__ = baseAttr.__doc__
@@ -62,24 +62,23 @@ class KeyValueStoreBase:#, metaclass=ABCMeta):
     def checkChangeLog(self):
         pass
 
-    def serialize(self,value):
+    def serialize(self, value):
         for serializer in self.serializers:
             value = serializer.dumps(value)
         return value
 
-    def unserialize(self,value):
+    def unserialize(self, value):
         for serializer in self.unserializers:
             if value is not None:
                 value = serializer.loads(value)
         return value
 
-
-    def cacheSet(self,key,value,expirationInSecondsFromNow=60):
-        #time in minutes for expiration
-        ttime=j.data.time.getTimeEpoch()
-        value=[ttime+expirationInSecondsFromNow,value]
-        if key=="":
-            key=j.data.idgenerator.generateGUID()
+    def cacheSet(self, key, value, expirationInSecondsFromNow=60):
+        # time in minutes for expiration
+        ttime = j.data.time.getTimeEpoch()
+        value = [ttime + expirationInSecondsFromNow, value]
+        if key == "":
+            key = j.data.idgenerator.generateGUID()
         self.set("cache", key, value)
         return key
         # if nrMinutesExpiration>0:
@@ -91,18 +90,17 @@ class KeyValueStoreBase:#, metaclass=ABCMeta):
         #     tt=j.data.time.getHourId()
         #     actor.dbmem.set("hcache_%s"%tt, key, "")
 
-    def cacheGet(self,key,deleteAfterGet=False):
-        r=self.get("cache",key)
+    def cacheGet(self, key, deleteAfterGet=False):
+        r = self.get("cache", key)
         if deleteAfterGet:
             self.delete("cache", key)
         return r[1]
 
-    def cacheDelete(self,key):
+    def cacheDelete(self, key):
         self.delete("cache", key)
 
-    def cacheExists(self,key):
-        return self.exists("cache",key)
-
+    def cacheExists(self, key):
+        return self.exists("cache", key)
 
     def cacheList(self):
 
@@ -112,10 +110,10 @@ class KeyValueStoreBase:#, metaclass=ABCMeta):
             return []
 
     def cacheExpire(self):
-        now=j.data.time.getTimeEpoch()
+        now = j.data.time.getTimeEpoch()
         for key in self.list():
-            expiretime,val=self.get(key)
-            if expiretime>now:
+            expiretime, val = self.get(key)
+            if expiretime > now:
                 self.delete("cache", key)
 
     @abstractmethod
@@ -190,7 +188,7 @@ class KeyValueStoreBase:#, metaclass=ABCMeta):
         @rtype: Boolean
         '''
 
-    def lock(self,locktype, info="",timeout=5,timeoutwait=0, force=False):
+    def lock(self, locktype, info="", timeout=5, timeoutwait=0, force=False):
         """
         if locked will wait for time specified
         @param locktype of lock is in style machine.disk.import  (dot notation)
@@ -200,22 +198,22 @@ class KeyValueStoreBase:#, metaclass=ABCMeta):
         @param force, if force will erase lock when timeout is reached
         @return None
         """
-        category="lock"
-        lockfree=self._lockWait(locktype, timeoutwait)
+        category = "lock"
+        lockfree = self._lockWait(locktype, timeoutwait)
         if not lockfree:
-            if force==False:
-                raise j.exceptions.RuntimeError("Cannot lock %s %s"%(locktype, info))
+            if force == False:
+                raise j.exceptions.RuntimeError("Cannot lock %s %s" % (locktype, info))
         value = [self.id, j.data.time.getTimeEpoch() + timeout, info]
         encodedValue = j.data.serializer.json.dumps(value)
         self.settest(category, locktype, encodedValue)
 
-    def lockCheck(self,locktype):
+    def lockCheck(self, locktype):
         """
         @param locktype of lock is in style machine.disk.import  (dot notation)
         @return result,id,lockEnd,info  (lockEnd is time when lock times out, info is descr of lock, id is who locked)
                        result is False when free, True when lock is active
         """
-        if self.exists("lock",locktype):
+        if self.exists("lock", locktype):
             encodedValue = self.get("lock", locktype)
             try:
                 id, lockEnd, info = j.data.serializer.json.loads(encodedValue)
@@ -224,49 +222,49 @@ class KeyValueStoreBase:#, metaclass=ABCMeta):
                 raise ValueError("Invalid lock type %s" % locktype)
 
             if j.data.time.getTimeEpoch() > lockEnd:
-                self.delete("lock",locktype)
-                return False,0,0,""
+                self.delete("lock", locktype)
+                return False, 0, 0, ""
             value = [True, id, lockEnd, info]
             return value
         else:
-            return False,0,0,""
+            return False, 0, 0, ""
 
-    def _lockWait(self, locktype,timeoutwait=0):
+    def _lockWait(self, locktype, timeoutwait=0):
         """
         wait till lock free
         @return True when free, False when unable to free
         """
-        locked,id, lockEnd,info=self.lockCheck(locktype)
+        locked, id, lockEnd, info = self.lockCheck(locktype)
         if locked:
-            start=j.data.time.getTimeEpoch()
+            start = j.data.time.getTimeEpoch()
             if lockEnd + timeoutwait < start:
-                #the lock was already timed out so is free
+                # the lock was already timed out so is free
                 return True
 
             while True:
-                now=j.data.time.getTimeEpoch()
-                if now>start+timeoutwait:
+                now = j.data.time.getTimeEpoch()
+                if now > start + timeoutwait:
                     return False
                 if now > lockEnd:
                     return True
                 time.sleep(0.1)
         return True
 
-    def unlock(self, locktype,timeoutwait=0, force=False):
+    def unlock(self, locktype, timeoutwait=0, force=False):
         """
         @param locktype of lock is in style machine.disk.import  (dot notation)
         """
-        lockfree=self._lockWait(locktype, timeoutwait)
+        lockfree = self._lockWait(locktype, timeoutwait)
         if not lockfree:
-            if force==False:
+            if force == False:
                 raise j.exceptions.RuntimeError("Cannot unlock %s" % locktype)
-        self.delete("lock",locktype)
+        self.delete("lock", locktype)
 
     def incrementReset(self, incrementtype, newint=0):
         """
         @param incrementtype : type of increment is in style machine.disk.nrdisk  (dot notation)
         """
-        self.set("increment", incrementtype,str(newint))
+        self.set("increment", incrementtype, str(newint))
 
     def increment(self, incrementtype):
         """
@@ -274,9 +272,9 @@ class KeyValueStoreBase:#, metaclass=ABCMeta):
         """
         if not self.exists("increment", incrementtype):
             self.set("increment", incrementtype, "1")
-            incr=1
+            incr = 1
         else:
-            rawOldIncr = self.get("increment",incrementtype)
+            rawOldIncr = self.get("increment", incrementtype)
             if not rawOldIncr.isdigit():
                 raise ValueError("Increment type %s does not have a digit value: %s" % (incrementtype, rawOldIncr))
             oldIncr = int(rawOldIncr)
@@ -287,15 +285,15 @@ class KeyValueStoreBase:#, metaclass=ABCMeta):
     def getNrRecords(self, incrementtype):
         if not self.exists("increment", incrementtype):
             self.set("increment", incrementtype, "1")
-            incr=1
-        return int(self.get("increment",incrementtype))
+            incr = 1
+        return int(self.get("increment", incrementtype))
 
     def settest(self, category, key, value):
         """
         if well stored return True
         """
         self.set(category, key, value)
-        if self.get(category, key)==value:
+        if self.get(category, key) == value:
             return True
         return False
 
@@ -326,24 +324,24 @@ class KeyValueStoreBase:#, metaclass=ABCMeta):
         """
         return j.data.time.getTimeEpoch()
 
-    def getModifySet(self,category,key,modfunction,**kwargs):
+    def getModifySet(self, category, key, modfunction, **kwargs):
         """
         get value
         give as parameter to modfunction
         try to set by means of testset, if not succesfull try again, will use random function to maximize chance to set
         @param kwargs are other parameters as required (see usage in subscriber function)
         """
-        counter=0
-        while counter<30:
-            data=self.get(category, key)
-            data2=modfunction(data)
+        counter = 0
+        while counter < 30:
+            data = self.get(category, key)
+            data2 = modfunction(data)
             if self.settest(category, key, data2):
-                break  #go out  of loop, could store well
-            time.time.sleep(float(j.data.idgenerator.generateRandomInt(1,10))/50)
-            counter+=1
+                break  # go out  of loop, could store well
+            time.time.sleep(float(j.data.idgenerator.generateRandomInt(1, 10)) / 50)
+            counter += 1
         return data2
 
-    def subscribe(self,subscriberid,category,startid=0):
+    def subscribe(self, subscriberid, category, startid=0):
         """
         each subscriber is identified by a key
         in db there is a dict stored on key for category = category of this method
@@ -351,67 +349,66 @@ class KeyValueStoreBase:#, metaclass=ABCMeta):
         {"kristof":[lastaccessedTime,lastId],"pol":...}
 
         """
-        if not self.exists("subscribers",category):
-            data={subscriberid:[self.now(),startid]}
+        if not self.exists("subscribers", category):
+            data = {subscriberid: [self.now(), startid]}
         else:
-            if startid!=0:
-                if not self.exists(category,startid):
-                    raise j.exceptions.RuntimeError("Cannot find %s:%s in db, cannot subscribe, select valid startid" % (category,startid))
+            if startid != 0:
+                if not self.exists(category, startid):
+                    raise j.exceptions.RuntimeError(
+                        "Cannot find %s:%s in db, cannot subscribe, select valid startid" % (category, startid))
 
-                def modfunction(data,subscriberid,db,startid):
-                    data[subscriberid]=[db.now(),startid]
+                def modfunction(data, subscriberid, db, startid):
+                    data[subscriberid] = [db.now(), startid]
                     return data
 
-                self.getModifySet("subscribers",category,modfunction,subscriberid=subscriberid,db=self,startid=startid)
+                self.getModifySet("subscribers", category, modfunction,
+                                  subscriberid=subscriberid, db=self, startid=startid)
 
-    def subscriptionGetNextItem(self,subscriberid,category,autoConfirm=True):
+    def subscriptionGetNextItem(self, subscriberid, category, autoConfirm=True):
         """
         get next item from subscription
         returns
            False,None when no next
            True,the data when a next
         """
-        if not self.exists("subscribers",category):
+        if not self.exists("subscribers", category):
             raise j.exceptions.RuntimeError("cannot find subscription")
-        data=self.get("subscribers",category)
+        data = self.get("subscribers", category)
         if subscriberid not in data:
             raise j.exceptions.RuntimeError("cannot find subscriber")
-        lastaccesstime,lastid=data[subscriberid]
-        lastid+=1
-        if not self.exists(category,startid):
-            return False,None
+        lastaccesstime, lastid = data[subscriberid]
+        lastid += 1
+        if not self.exists(category, startid):
+            return False, None
         else:
-            return True,self.get(category,startid)
+            return True, self.get(category, startid)
         if autoConfirm:
-            self.subscriptionAdvance(subscriberid,category,lastid)
-        return self.get(category,key)
+            self.subscriptionAdvance(subscriberid, category, lastid)
+        return self.get(category, key)
 
-    def subscriptionAdvance(self,subscriberid,category,lastProcessedId):
+    def subscriptionAdvance(self, subscriberid, category, lastProcessedId):
 
-        def modfunction(data,subscriberid,db,lastProcessedId):
-            data[subscriberid]=[db.now(),lastProcessedId]
+        def modfunction(data, subscriberid, db, lastProcessedId):
+            data[subscriberid] = [db.now(), lastProcessedId]
             return data
 
-        self.getModifySet("subscribers",category,modfunction,subscriberid=subscriberid,db=self,lastProcessedId=lastProcessedId)
+        self.getModifySet("subscribers", category, modfunction, subscriberid=subscriberid,
+                          db=self, lastProcessedId=lastProcessedId)
 
-    def set_dedupe(self,category,data):
+    def set_dedupe(self, category, data):
         """
         will return unique key which references the data, if it exists or not
         """
-        if data=="" or data==None:
+        if data == "" or data == None:
             return ""
-        if len(data)<32:
+        if len(data) < 32:
             return data
-        md5=j.data.hash.md5_string(data)
-        if not self.exists(category,md5):
-            self.set(category,md5,data)
+        md5 = j.data.hash.md5_string(data)
+        if not self.exists(category, md5):
+            self.set(category, md5, data)
         return md5
 
-    def get_dedupe(self,category,key):
-        if len(key)<32:
+    def get_dedupe(self, category, key):
+        if len(key) < 32:
             return key.encode()
-        return self.get(category,key)
-        
-
-
-
+        return self.get(category, key)

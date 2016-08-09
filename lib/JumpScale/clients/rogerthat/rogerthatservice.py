@@ -5,15 +5,14 @@ from gevent.pywsgi import WSGIServer
 import time
 
 
-
 def jsonrpc(func):
     def wrapper(s, environ, start_response):
-        if not environ["REQUEST_METHOD"]=='POST':
+        if not environ["REQUEST_METHOD"] == 'POST':
             return s.invalidRequest()
 
         service_key = environ['HTTP_X_NUNTIUZ_SERVICE_KEY']
         if not s._authenticateRequest(service_key):
-           return s.invalidRequest()
+            return s.invalidRequest()
 
         data = environ['wsgi.input'].read()
         msg = dict()
@@ -31,11 +30,13 @@ def jsonrpc(func):
                 print(e)
                 result = s.invalidRequest()
 
-        statuscode = '500 Internal Server Error' if result.get('error') else '200 OK'
+        statuscode = '500 Internal Server Error' if result.get(
+            'error') else '200 OK'
         result = j.data.serializer.json.dumps(result)
         start_response(statuscode, (('Content-type', 'application/json-rpc'),))
         return result
     return wrapper
+
 
 class GeventWSServer:
     SERVICEKEY = j.application.config.get('rogerthat.servicekey')
@@ -48,7 +49,8 @@ class GeventWSServer:
         self.server = WSGIServer((self.addr, self.port), self.rpcRequest)
 
     def invalidRequest(self):
-        msg = {'error': {'code': -32600, 'message': 'Invalid Request'}, 'id': None, 'jsonrpc': '2.0'}
+        msg = {'error': {'code': -32600, 'message': 'Invalid Request'},
+               'id': None, 'jsonrpc': '2.0'}
         return msg
 
     def _authenticateRequest(self, service_key):
@@ -68,7 +70,6 @@ class GeventWSServer:
     def process_update(self, status=None, answer_id=None, received_timestamp=None, member=None, user_details=None, message_key=None, parent_message_key=None, tag=None, acked_timestamp=None, service_identity=None, result_key=None):
         message_key = parent_message_key if parent_message_key else message_key
 
-
         # return
         for al in j.tools.watchdog.manager.fetchAllAlerts():
             if al['message_id'] == message_key:
@@ -76,31 +77,38 @@ class GeventWSServer:
 
         if alert:
             if alert['escalationstate'] == 'L1' and answer_id == 'yes':
-                wde = j.tools.watchdog.manager.getWatchdogEvent(alert['gguid'], alert['nid'], alert['category'])
+                wde = j.tools.watchdog.manager.getWatchdogEvent(
+                    alert['gguid'], alert['nid'], alert['category'])
                 wde.escalationstate = 'C'
                 wde.escalationepoch = time.time()
                 j.tools.watchdog.manager.setWatchdogEvent(wde)
-                answers = [{'id': 'yes', 'caption': 'Accept', 'action': '', 'type': 'button'},]
-                self.send_message(str(wde), [member,], answers, message_key)
+                answers = [{'id': 'yes', 'caption': 'Accept',
+                            'action': '', 'type': 'button'}, ]
+                self.send_message(str(wde), [member, ], answers, message_key)
                 return None
             elif alert['escalationstate'] == 'C' and answer_id == 'yes':
-                wde = j.tools.watchdog.manager.getWatchdogEvent(alert['gguid'], alert['nid'], alert['category'])
+                wde = j.tools.watchdog.manager.getWatchdogEvent(
+                    alert['gguid'], alert['nid'], alert['category'])
                 wde.escalationstate = 'A'
                 wde.escalationepoch = time.time()
                 j.tools.watchdog.manager.setWatchdogEvent(wde)
-                answers = [{'id': 'yes', 'caption': 'Resolve', 'action': '', 'type': 'button'},]
-                self.send_message(str(wde), [member,], answers, message_key)
+                answers = [{'id': 'yes', 'caption': 'Resolve',
+                            'action': '', 'type': 'button'}, ]
+                self.send_message(str(wde), [member, ], answers, message_key)
                 return None
             elif alert['escalationstate'] == 'A' and answer_id == 'yes':
-                wde = j.tools.watchdog.manager.getWatchdogEvent(alert['gguid'], alert['nid'], alert['category'])
+                wde = j.tools.watchdog.manager.getWatchdogEvent(
+                    alert['gguid'], alert['nid'], alert['category'])
                 wde.escalationstate = 'R'
                 wde.escalationepoch = time.time()
                 j.tools.watchdog.manager.setWatchdogEvent(wde)
-                answers = [{'id': 'yes', 'caption': 'Close', 'action': '', 'type': 'button'},]
-                self.send_message(str(wde), [member,], answers, message_key)
+                answers = [{'id': 'yes', 'caption': 'Close',
+                            'action': '', 'type': 'button'}, ]
+                self.send_message(str(wde), [member, ], answers, message_key)
                 return None
             elif alert['escalationstate'] == 'R' and answer_id == 'yes':
-                wde = j.tools.watchdog.manager.getWatchdogEvent(alert['gguid'], alert['nid'], alert['category'])
+                wde = j.tools.watchdog.manager.getWatchdogEvent(
+                    alert['gguid'], alert['nid'], alert['category'])
                 j.tools.watchdog.manager.deleteAlert(wde)
                 return None
 

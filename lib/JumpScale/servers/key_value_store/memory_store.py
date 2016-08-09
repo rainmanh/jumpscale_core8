@@ -2,6 +2,7 @@ from servers.key_value_store.store import KeyValueStoreBase
 
 NAMESPACES = dict()
 
+
 class MemoryKeyValueStore(KeyValueStoreBase):
 
     def __init__(self, namespace=None):
@@ -14,22 +15,21 @@ class MemoryKeyValueStore(KeyValueStoreBase):
     def checkChangeLog(self):
         pass
 
-
     def get(self, category, key):
-        key=str(key)
+        key = str(key)
         if not self.exists(category, key):
-            raise j.exceptions.RuntimeError("Could not find object with category %s key %s"%(category,key))
+            raise j.exceptions.RuntimeError("Could not find object with category %s key %s" % (category, key))
         return self.db[category][key]
 
     def set(self, category, key, value):
-        key=str(key)
+        key = str(key)
         if category not in self.db:
             self.db[category] = dict()
 
         self.db[category][key] = value
 
     def delete(self, category, key):
-        key=str(key)
+        key = str(key)
         #self._assertExists(category, key)
         if self.exists(category, key):
             del(self.db[category][key])
@@ -38,17 +38,17 @@ class MemoryKeyValueStore(KeyValueStoreBase):
             del(self.db[category])
 
     def exists(self, category, key):
-        key=str(key)
+        key = str(key)
         if category in self.db and key in self.db[category]:
             return True
         else:
             return False
 
     def list(self, category="", prefix=""):
-        if category=="":
-            res=[]
+        if category == "":
+            res = []
             for category in list(self.db.keys()):
-                res+= [k for k in self.db[category] if k.startswith(prefix)]
+                res += [k for k in self.db[category] if k.startswith(prefix)]
             return res
         else:
             self._assertCategoryExists(category)

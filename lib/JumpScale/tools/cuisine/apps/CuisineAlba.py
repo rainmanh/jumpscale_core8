@@ -17,7 +17,9 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.alba"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class Alba(base):
 
     def __init__(self, executor, cuisine):
@@ -51,14 +53,17 @@ class Alba(base):
         self.opam_root = self.cuisine.core.args_replace('$tmpDir/OPAM')
 
         # self.cuisine.core.run('wget https://raw.github.com/ocaml/opam/master/shell/opam_installer.sh')
-        self.cuisine.core.file_download('https://raw.github.com/ocaml/opam/master/shell/opam_installer.sh', to='$tmpDir/opam_installer.sh')
-        self.cuisine.core.run('sed -i "/read -p/d" $tmpDir/opam_installer.sh') # remove any confirmation
+        self.cuisine.core.file_download(
+            'https://raw.github.com/ocaml/opam/master/shell/opam_installer.sh', to='$tmpDir/opam_installer.sh')
+        self.cuisine.core.run('sed -i "/read -p/d" $tmpDir/opam_installer.sh')  # remove any confirmation
         self.cuisine.core.run('bash $tmpDir/opam_installer.sh $binDir %s' % self.ocaml_version, profile=True)
 
-        cmd = 'opam init --root=%s --comp %s -a --dot-profile %s' % (self.opam_root, self.ocaml_version, self.cuisine.bash.profilePath)
+        cmd = 'opam init --root=%s --comp %s -a --dot-profile %s' % (
+            self.opam_root, self.ocaml_version, self.cuisine.bash.profilePath)
         self.cuisine.core.run(cmd, profile=True)
 
-        cmd = "opam config env --root=%s --dot-profile %s > $tmpDir/opam.env" % (self.opam_root, self.cuisine.bash.profilePath)
+        cmd = "opam config env --root=%s --dot-profile %s > $tmpDir/opam.env" % (
+            self.opam_root, self.cuisine.bash.profilePath)
         self.cuisine.core.run(cmd, die=False, profile=True)
 
         opam_deps = """ocamlfind ssl.0.5.2 camlbz2 snappy sexplib bisect lwt.2.5.1 camltc \
@@ -67,7 +72,8 @@ class Alba(base):
         ppx_deriving_yojson core.113.00.00 redis uri.1.9.1 result ordma
         """
 
-        self.cuisine.core.run_script('source $tmpDir/opam.env && opam update && opam install -y %s' % opam_deps, profile=True)
+        self.cuisine.core.run_script(
+            'source $tmpDir/opam.env && opam update && opam install -y %s' % opam_deps, profile=True)
 
     @actionrun()
     def _install_deps_intel_storage(self):
@@ -101,10 +107,11 @@ class Alba(base):
         """
 
         return
-    
+
     @actionrun()
     def _install_deps_arakoon(self):
-        aradest = self.cuisine.git.pullRepo('https://github.com/openvstorage/arakoon.git', branch="1.9", depth=None, ssh=False)
+        aradest = self.cuisine.git.pullRepo(
+            'https://github.com/openvstorage/arakoon.git', branch="1.9", depth=None, ssh=False)
         pfx = 'cd %s && source $tmpDir/opam.env' % aradest
 
         self.cuisine.core.run('%s && git pull && git checkout tags/1.9.3' % pfx)
@@ -180,10 +187,10 @@ class Alba(base):
 
     @actionrun()
     def _build(self):
-        repo = self.cuisine.git.pullRepo('https://github.com/openvstorage/alba', branch="ubuntu-16.04", depth=None, ssh=False)
+        repo = self.cuisine.git.pullRepo('https://github.com/openvstorage/alba',
+                                         branch="ubuntu-16.04", depth=None, ssh=False)
         self.cuisine.core.run_script('source $tmpDir/opam.env && cd %s; make' % repo, profile=True)
         self.cuisine.core.file_copy('%s/ocaml/alba.native' % repo, '$binDir/alba')
         self.cuisine.core.file_copy('%s/ocaml/albamgr_plugin.cmxs' % repo, '$binDir/albamgr_plugin.cmxs')
         self.cuisine.core.file_copy('%s/ocaml/nsm_host_plugin.cmxs' % repo, '$binDir/nsm_host_plugin.cmxs')
         self.cuisine.core.file_copy('%s/ocaml/disk_failure_tests.native' % repo, '$binDir/disk_failure_tests.native')
-        

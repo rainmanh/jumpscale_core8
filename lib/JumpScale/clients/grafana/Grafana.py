@@ -5,6 +5,7 @@ import os
 
 
 class GrafanaFactory:
+
     def __init__(self):
         self.__jslocation__ = "j.clients.grafana"
 
@@ -13,9 +14,11 @@ class GrafanaFactory:
 
     def getByInstance(self, instance=None):
         if instance is None or instance == '':
-            service = j.atyourservice.findServices(role="grafana_client", first=True)
+            service = j.atyourservice.findServices(
+                role="grafana_client", first=True)
         else:
-            service = j.atyourservice.findServices(role="grafana_client", instance=instance, first=True)
+            service = j.atyourservice.findServices(
+                role="grafana_client", instance=instance, first=True)
         hrd = service.hrd
 
         url = hrd.get("param.url")
@@ -25,6 +28,7 @@ class GrafanaFactory:
 
 
 class GrafanaClient:
+
     def __init__(self, url, username, password, verify_ssl=True):
         self._url = url
         self.setAuth(username, password)

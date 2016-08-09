@@ -14,7 +14,9 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.deployerbot"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class DeployerBot(base):
 
     @actionrun(action=True)
@@ -50,7 +52,8 @@ class DeployerBot(base):
         see https://github.com/Jumpscale/jscockpit/blob/master/deploy_bot/README.md for example
         """
         self.create_config(token=token, g8_addresses=g8_addresses, dns=dns, oauth=oauth)
-        cmd = self.cuisine.core.args_replace('jspython $appDir/deployer_bot/telegram-bot --config $cfgDir/deployerbot/config.toml')
+        cmd = self.cuisine.core.args_replace(
+            'jspython $appDir/deployer_bot/telegram-bot --config $cfgDir/deployerbot/config.toml')
         cwd = self.cuisine.core.args_replace('$appDir/deployer_bot')
         self.cuisine.processmanager.ensure('deployerbot', cmd=cmd, path=cwd)
 

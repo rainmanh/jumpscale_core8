@@ -9,9 +9,12 @@ from servers.key_value_store.store import KeyValueStoreType
 if not q._init_called:
     from JumpScale.core.InitBase import q
 
+
 class PatchedTimeContext:
+
     def __init__(self, time):
         self.time = time
+
 
 @contextmanager
 def pathed_time(t):
@@ -27,6 +30,7 @@ def pathed_time(t):
         yield ctx
     finally:
         j.data.time.getTimeEpoch = origGetTimeEpoch
+
 
 class KeyValueStoreTestCaseBase:
 
@@ -124,7 +128,7 @@ class KeyValueStoreTestCaseBase:
         after = j.data.time.getTimeEpoch()
         difference = after - before
         self.assert_(difference > (timeout - 1), "It seems like the original "
-                "lock was not held long enough")
+                     "lock was not held long enough")
 
     def testListCategories(self):
         cat1 = "category 1"
@@ -137,7 +141,7 @@ class KeyValueStoreTestCaseBase:
 
 
 class FileSystemKeyValueStoreTestCase(unittest.TestCase,
-    KeyValueStoreTestCaseBase):
+                                      KeyValueStoreTestCaseBase):
 
     def setUp(self):
         self._storeBaseDir = j.sal.fs.joinPaths(j.dirs.tmpDir)
@@ -145,24 +149,25 @@ class FileSystemKeyValueStoreTestCase(unittest.TestCase,
         self.cleanUp()
 
         self._store = FileSystemKeyValueStore(self.STORE_NAME,
-            self.STORE_NAMESPACE,  self._storeBaseDir)
+                                              self.STORE_NAMESPACE,  self._storeBaseDir)
 
     def tearDown(self):
         self.cleanUp()
 
     def cleanUp(self):
         self._storeDir = j.sal.fs.joinPaths(j.dirs.tmpDir, self.STORE_NAME,
-            self.STORE_NAMESPACE)
+                                            self.STORE_NAMESPACE)
         j.sal.fs.removeDirTree(self._storeDir)
 
     def testFactory(self):
         storeA = j.servers.kvs.getStore(KeyValueStoreType.FS,
-            self.STORE_NAME, self.STORE_NAMESPACE)
+                                        self.STORE_NAME, self.STORE_NAMESPACE)
 
         storeB = j.servers.kvs.getFSStore(self.STORE_NAME,
-            self.STORE_NAMESPACE)
+                                          self.STORE_NAMESPACE)
 
         self.assertEquals(storeA, storeB)
+
 
 class MemoryKeyValueStoreTestCase(unittest.TestCase, KeyValueStoreTestCaseBase):
 
@@ -171,9 +176,9 @@ class MemoryKeyValueStoreTestCase(unittest.TestCase, KeyValueStoreTestCaseBase):
 
     def testFactory(self):
         storeA = j.servers.kvs.getStore(KeyValueStoreType.MEMORY,
-            self.STORE_NAME, self.STORE_NAMESPACE)
+                                        self.STORE_NAME, self.STORE_NAMESPACE)
 
         storeB = j.servers.kvs.getMemoryStore(self.STORE_NAME,
-            self.STORE_NAMESPACE)
+                                              self.STORE_NAMESPACE)
 
         self.assertEquals(storeA, storeB)

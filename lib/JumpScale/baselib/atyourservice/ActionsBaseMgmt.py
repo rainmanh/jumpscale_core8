@@ -54,6 +54,7 @@ class ActionsBaseMgmt:
             _, resp = data
             resp = j.data.serializer.json.loads(resp)
             if 'error' in resp:
-                raise j.exceptions.RuntimeError('Unexpected error: %s' % resp['error'])
+                raise j.exceptions.RuntimeError(
+                    'Unexpected error: %s' % resp['error'])
 
             return resp['response']

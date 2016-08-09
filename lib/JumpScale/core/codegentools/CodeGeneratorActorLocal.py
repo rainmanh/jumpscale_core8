@@ -8,7 +8,8 @@ class CodeGeneratorActorLocal(CodeGeneratorBase):
     def __init__(self, spec, typecheck=True, dieInGenCode=True):
         CodeGeneratorBase.__init__(self, spec, typecheck, dieInGenCode)
 
-        self.actorpath = j.sal.fs.joinPaths(j.core.codegenerator.codepath, spec.appname, spec.actorname)
+        self.actorpath = j.sal.fs.joinPaths(
+            j.core.codegenerator.codepath, spec.appname, spec.actorname)
         j.sal.fs.createDir(self.actorpath)
         self.type = "actorlocal"
 
@@ -23,13 +24,15 @@ class CodeGeneratorActorLocal(CodeGeneratorBase):
             descr = method.description
 
         for var in method.vars:
-            descr += "param:%s %s" % (var.name, self.descrTo1Line(var.description))
+            descr += "param:%s %s" % (var.name,
+                                      self.descrTo1Line(var.description))
             if var.defaultvalue != None:
                 descr += " default=%s" % var.defaultvalue
             descr += "\n"
 
         if method.result != None:
-            descr += "result %s %s\n" % (method.result.type, self.descrTo1Line(method.result.description))
+            descr += "result %s %s\n" % (method.result.type,
+                                         self.descrTo1Line(method.result.description))
 
         if descr != "":
             s += j.tools.code.indent("\"\"\"\n%s\n\"\"\"\n" % descr, 1)

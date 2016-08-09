@@ -29,7 +29,7 @@ class ZDaemon(GeventLoop):
 
         self.port = port
 
-        if port==None:
+        if port == None:
             raise j.exceptions.RuntimeError("Port cannot be none")
 
         self.nrCmdGreenlets = nrCmdGreenlets
@@ -70,7 +70,8 @@ class ZDaemon(GeventLoop):
         for i in range(self.nrCmdGreenlets):
             workers.append(gevent.spawn(self.repCmdServer))
 
-        j.logger.log("init cmd channel on port:%s for daemon:%s" % (self.port, self.name), level=5, category="zdaemon.init")
+        j.logger.log("init cmd channel on port:%s for daemon:%s" %
+                     (self.port, self.name), level=5, category="zdaemon.init")
 
         while True:
             socks = dict(poller.poll())
@@ -84,11 +85,11 @@ class ZDaemon(GeventLoop):
                 frontend.send_multipart(parts[1:])  # @todo dont understand why I need to remove first part of parts?
 
     def start(self, mainloop=None):
-        print(("starting %s"%self.name))
+        print(("starting %s" % self.name))
         self.schedule("cmdGreenlet", self.cmdGreenlet)
         self.startClock()
 
-        print(("start %s on port:%s"%(self.name,self.port)))
+        print(("start %s on port:%s" % (self.name, self.port)))
         if mainloop != None:
             mainloop()
         else:
@@ -101,7 +102,6 @@ class ZDaemon(GeventLoop):
     #     self.schedule("returok", self.datachannelReturnok)
     #     self.schedule("watchdog",self.watchdogCheck)
     #     self.schedule("watchdogReset",self.watchdogReset)
-
 
     # def datachannelProcessor(self, port):
     #     context = zmq.Context()
@@ -180,6 +180,5 @@ class ZDaemon(GeventLoop):
     #     while True:
     #         gevent.sleep(10)
     # self.watchdog = {}  # reset watchdog table
-
 
     #

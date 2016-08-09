@@ -4,6 +4,7 @@ import json
 
 
 class ApiError(Exception):
+
     def __init__(self, response):
         msg = '%s %s' % (response.status_code, response.reason)
         try:
@@ -24,6 +25,7 @@ class ApiError(Exception):
 
 
 class BaseResource:
+
     def __init__(self, session, url):
         self._session = session
         self._url = url
@@ -47,6 +49,7 @@ class BaseResource:
 
 
 class Resource(BaseResource):
+
     def __init__(self, ip, port, secret, path):
         session = requests.Session()
 
@@ -71,7 +74,8 @@ class Resource(BaseResource):
                 api = getattr(api, path)
             docstring = methodspec['post']['description']
             for param in methodspec['post'].get('parameters', list()):
-                param['type'] = param['type'] if 'type' in param else str(param.get('$ref', 'unknown'))
+                param['type'] = param['type'] if 'type' in param else str(
+                    param.get('$ref', 'unknown'))
                 docstring += """
                 :param %(name)s: %(description)s required %(required)s
                 :type %(name)s: %(type)s""" % param

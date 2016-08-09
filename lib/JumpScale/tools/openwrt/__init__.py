@@ -10,5 +10,4 @@
 # j.tools.openwrt._register('dhcp', cb)
 
 #@todo need to do for all the others (dns, ...)
-#AS EXCEPTION USE j.clients.ssh to execute these items !!!!
-
+# AS EXCEPTION USE j.clients.ssh to execute these items !!!!

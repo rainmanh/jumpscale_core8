@@ -6,7 +6,9 @@ import unittest
 import new
 from io import BytesIO
 
+
 class Tee:
+
     def __init__(self, *fobjs):
         self.fileobjs = fobjs
 
@@ -21,7 +23,9 @@ class Tee:
 
 PRINTSTR = "\r%s %s"
 
+
 class TestResult(unittest.result.TestResult):
+
     def __init__(self, debug=False):
         super(TestResult, self).__init__()
         self.tests = dict()
@@ -85,16 +89,18 @@ class TestResult(unittest.result.TestResult):
         sys.stderr = self._original_stdout
         sys.stdout = self._original_stdout
 
-class Test:
-    def __init__(self,db,testmodule):
-        self.db=db
-        self.testmodule = testmodule
-        self.eco=None
 
-    def execute(self,testrunname,debug=False):
-        print(("\n##TEST:%s %s"%(self.db.organization,self.db.name)))
-        res = {'total': 0, 'error': 0, 'success': 0, 'failed': 0 }
-        self.db.starttime = time.time() 
+class Test:
+
+    def __init__(self, db, testmodule):
+        self.db = db
+        self.testmodule = testmodule
+        self.eco = None
+
+    def execute(self, testrunname, debug=False):
+        print(("\n##TEST:%s %s" % (self.db.organization, self.db.name)))
+        res = {'total': 0, 'error': 0, 'success': 0, 'failed': 0}
+        self.db.starttime = time.time()
         self.db.state = 'OK'
         result = TestResult(debug)
         suite = unittest.defaultTestLoader.loadTestsFromModule(self.testmodule)
@@ -102,7 +108,7 @@ class Test:
         for test, buffer in list(result.tests.items()):
             res['total'] += 1
             name = test._testMethodName[5:]
-            self.db.output[name]=buffer.getvalue()
+            self.db.output[name] = buffer.getvalue()
             if test in result.errors or test in result.failure:
                 if test in result.errors:
                     res['error'] += 1
@@ -116,9 +122,9 @@ class Test:
                     if self.db.state != 'ERROR':
                         self.db.state == 'FAILURE'
                 with j.logger.nostdout():
-                    eco=j.errorconditionhandler.parsePythonExceptionObject(error[1], error[2])
-                    eco.tags="testrunner testrun:%s org:%s testgroup:%s testname:%s testpath:%s" % (self.db.testrun,\
-                        self.db.organization, self.db.name,name,self.db.path)
+                    eco = j.errorconditionhandler.parsePythonExceptionObject(error[1], error[2])
+                    eco.tags = "testrunner testrun:%s org:%s testgroup:%s testname:%s testpath:%s" % (self.db.testrun,
+                                                                                                      self.db.organization, self.db.name, name, self.db.path)
                     eco.process()
                     self.db.result[name] = eco.guid
                 print(("Fail in test %s" % name))
@@ -133,11 +139,11 @@ class Test:
         return res
 
     def __str__(self):
-        out=""
-        for key,val in list(self.db.__dict__.items()):
-            if key[0]!="_" and key not in ["source","output"]:
-                out+="%-35s :  %s\n"%(key,val)
-        items=out.split("\n")
+        out = ""
+        for key, val in list(self.db.__dict__.items()):
+            if key[0] != "_" and key not in ["source", "output"]:
+                out += "%-35s :  %s\n" % (key, val)
+        items = out.split("\n")
         items.sort()
         return "\n".join(items)
 
@@ -145,52 +151,55 @@ class Test:
 
 
 class FakeTestObj:
+
     def __init__(self):
         self.source = dict()
         self.output = dict()
         self.teststates = dict()
         self.result = dict()
 
+
 class TestEngine:
+
     def __init__(self):
         self.__jslocation__ = "j.tools.testengine"
-        self.paths=[]
-        self.tests=[]
-        self.outputpath="%s/apps/gridportal/base/Tests/TestRuns/"%j.dirs.base
+        self.paths = []
+        self.tests = []
+        self.outputpath = "%s/apps/gridportal/base/Tests/TestRuns/" % j.dirs.base
 
-    def initTests(self,noOsis, osisip="127.0.0.1",login="",passwd=""): #@todo implement remote osis
+    def initTests(self, noOsis, osisip="127.0.0.1", login="", passwd=""):  # @todo implement remote osis
         self.noOsis = noOsis
 
     def _patchTest(self, testmod):
         if hasattr(testmod, 'TEST') and not isinstance(testmod.TEST, unittest.TestCase):
             testmod.TEST = new.classobj('TEST', (testmod.TEST, unittest.TestCase), {})
 
-    def runTests(self,testrunname=None,debug=False):
+    def runTests(self, testrunname=None, debug=False):
 
-        if testrunname==None:
-            testrunname=j.data.time.getLocalTimeHRForFilesystem()
+        if testrunname == None:
+            testrunname = j.data.time.getLocalTimeHRForFilesystem()
 
         for path in self.paths:
-            print(("scan dir: %s"%path))
+            print(("scan dir: %s" % path))
             if j.sal.fs.isDir(path):
-                for item in j.sal.fs.listFilesInDir(path,filter="*__test.py",recursive=True):
+                for item in j.sal.fs.listFilesInDir(path, filter="*__test.py", recursive=True):
                     self.testFile(testrunname, item)
             elif j.sal.fs.isFile(path):
                 self.testFile(testrunname, path)
 
-        priority={}
+        priority = {}
         for test in self.tests:
             if test.db.priority not in priority:
-                priority[test.db.priority]=[]    
+                priority[test.db.priority] = []
             priority[test.db.priority].append(test)
-        prio=list(priority.keys())
+        prio = list(priority.keys())
         prio.sort()
         results = list()
         for key in prio:
             for test in priority[key]:
-                #now sorted
+                # now sorted
                 # print test
-                results.append(test.execute(testrunname=testrunname,debug=debug))
+                results.append(test.execute(testrunname=testrunname, debug=debug))
                 if not self.noOsis:
                     guid, change, new = self.osis.set(test.db)
         total = sum(x['total'] for x in results)
@@ -203,53 +212,47 @@ class TestEngine:
             print(('%s Failed' % failed))
         print('')
 
-
     def testFile(self, testrunname, filepath):
         if self.noOsis:
-            testdb = FakeTestObj() 
+            testdb = FakeTestObj()
         else:
-            testdb=self.osis.new()
+            testdb = self.osis.new()
 
-        name=j.sal.fs.getBaseName(filepath).replace("__test.py","").lower()
+        name = j.sal.fs.getBaseName(filepath).replace("__test.py", "").lower()
         testmod = imp.load_source(name, filepath)
         self._patchTest(testmod)
 
         if not hasattr(testmod, 'enable') or not testmod.enable:
             return
 
-        test=Test(testdb,testmod)
+        test = Test(testdb, testmod)
 
-        test.db.author=testmod.author
-        test.db.descr=testmod.descr.strip()
-        test.db.organization=testmod.organization
-        test.db.version=testmod.version
-        test.db.categories=testmod.category.split(",")
-        test.db.enable=testmod.enable
-        test.db.license=testmod.license
-        test.db.priority=testmod.priority
-        test.db.gid=j.application.whoAmI.gid
-        test.db.nid=j.application.whoAmI.nid
+        test.db.author = testmod.author
+        test.db.descr = testmod.descr.strip()
+        test.db.organization = testmod.organization
+        test.db.version = testmod.version
+        test.db.categories = testmod.category.split(",")
+        test.db.enable = testmod.enable
+        test.db.license = testmod.license
+        test.db.priority = testmod.priority
+        test.db.gid = j.application.whoAmI.gid
+        test.db.nid = j.application.whoAmI.nid
         test.db.state = 'INIT'
         test.db.teststates = dict()
-        test.db.testrun=testrunname
-        test.db.name=name
-        test.db.path=filepath
-        test.db.priority=testmod.priority
-        test.db.id=0
+        test.db.testrun = testrunname
+        test.db.name = name
+        test.db.path = filepath
+        test.db.priority = testmod.priority
+        test.db.id = 0
 
-        C=j.sal.fs.fileGetContents(filepath)
-        methods=j.tools.code.regex.extractBlocks(C,["def test"])
+        C = j.sal.fs.fileGetContents(filepath)
+        methods = j.tools.code.regex.extractBlocks(C, ["def test"])
         for method in methods:
-            methodname=method.split("\n")[0][len("    def test_"):].split("(")[0]
-            methodsource="\n".join([item.strip() for item in method.split("\n")[1:] if item.strip()!=""])
-            test.db.source[methodname]=methodsource
+            methodname = method.split("\n")[0][len("    def test_"):].split("(")[0]
+            methodsource = "\n".join([item.strip() for item in method.split("\n")[1:] if item.strip() != ""])
+            test.db.source[methodname] = methodsource
 
         if not self.noOsis:
             guid, _, _ = self.osis.set(test.db)
             test.db = self.osis.get(guid)
         self.tests.append(test)
-
-
-
-
-

@@ -5,15 +5,17 @@ import sys
 
 from urllib.parse import urlencode, urlparse, urlunparse
 import urllib.parse
-import urllib.request, urllib.error
+import urllib.request
+import urllib.error
 
 
-
-HTTP_CREATED = 201 #from practical examples, authorization created returns 201
+HTTP_CREATED = 201  # from practical examples, authorization created returns 201
 HTTP_OK = 200
-HTTP_NO_CONTENT = 204 #An authorization token was created and provided to the client in the Location header.
-HTTP_AUTH_REQUIRED = 401 # Authorization required.
-HTTP_FORBIDDEN = 403  #Authentication failed.
+# An authorization token was created and provided to the client in the
+# Location header.
+HTTP_NO_CONTENT = 204
+HTTP_AUTH_REQUIRED = 401  # Authorization required.
+HTTP_FORBIDDEN = 403  # Authentication failed.
 HTTP_NOT_FOUND = 404
 
 STATUS_OK = set([HTTP_CREATED, HTTP_OK, HTTP_NO_CONTENT])
@@ -21,7 +23,9 @@ STATUS_AUTH_REQ = set([HTTP_AUTH_REQUIRED, HTTP_FORBIDDEN])
 
 AUTHORIZATION_HEADER = 'Authorization'
 
+
 class HTTPError(Exception):
+
     def __init__(self, httperror, url):
         msg = 'Could not open http connection to url %s' % url
         data = ''
@@ -36,11 +40,12 @@ class HTTPError(Exception):
     def __str__(self):
         return "%s:\n %s" % (self.status_code, self.msg)
 
+
 class Connection:
-    
+
     def __init__(self):
         pass
-        
+
     def simpleAuth(self, url, username, password):
         req = urllib.request.Request(url)
         auth = '%s:%s' % (username, password)
@@ -49,50 +54,53 @@ class Connection:
 
         try:
             handle = urllib.request.urlopen(req)
-            return handle 
+            return handle
         except IOError as e:
             print(e)
-            
-            
+
     def get(self, url, data=None, headers=None, **params):
         """
         @params is parameters as used in get e.g. name="kds",color="red"
         @headers e.g. headers={'content-type':'text/plain'}  (this is the default)        
         """
-        response = self._http_request(url, headers=headers, method='GET', **params) #@todo P1 fix & check
+        response = self._http_request(
+            url, headers=headers, method='GET', **params)  # @todo P1 fix & check
         return response
-    
-    def post(self, url, data=None,headers=None, **params):
+
+    def post(self, url, data=None, headers=None, **params):
         """
         @data is the raw aata which will be posted, if not params will be converted to json
         @params @question what are the params for?
         @headers e.g. headers={'content-type':'text/plain'}  (this is the default)
         """
-        if headers==None:
-            headers={'content-type':'text/plain'}               
-            
-        #print data
-        response = self._http_request(url, data=data, headers=headers, method='POST',**params)
+        if headers == None:
+            headers = {'content-type': 'text/plain'}
+
+        # print data
+        response = self._http_request(
+            url, data=data, headers=headers, method='POST', **params)
         return response
-    
+
     def put(self, url, data=None, headers=None, **params):
-        response = self._http_request(url, data=data, headers=headers, method='PUT', **params)
+        response = self._http_request(
+            url, data=data, headers=headers, method='PUT', **params)
         return response
-        
+
     def delete(self, url, data=None, headers=None, **params):
-        response = self._http_request(url, data=data, headers=headers, method='DELETE', **params)
+        response = self._http_request(
+            url, data=data, headers=headers, method='DELETE', **params)
         return response
-    
-    def download(self, fileUrl, downloadPath, customHeaders=None,report=False):
+
+    def download(self, fileUrl, downloadPath, customHeaders=None, report=False):
         '''
         Download a file from server to a local path
-        
+
         @param fileUrl: url of an existing file that has its data available on server (sent earlier)
         @param downloadPath: local directory to download into
         @param customHeaders: allows this method to be used to retrieve edited copies of an image
         @return: True
         '''
-        
+
         # # _urlopener    = urllib.request.FancyURLopener()
         # _urlopener=urllib2.urlopen
         # if customHeaders:
@@ -100,15 +108,16 @@ class Connection:
         #         _urlopener.addheader(k, v)
         # _urlopener.retrieve(fileUrl, downloadPath, None, None)
         # return True
-        
-        url=fileUrl
+
+        url = fileUrl
         u = urllib.request.urlopen(url)
 
         scheme, netloc, path, query, fragment = urllib.parse.urlsplit(url)
 
         with open(downloadPath, 'wb') as f:
             meta = u.info()
-            meta_func = meta.getheaders if hasattr(meta, 'getheaders') else meta.get_all
+            meta_func = meta.getheaders if hasattr(
+                meta, 'getheaders') else meta.get_all
             meta_length = meta_func("Content-Length")
             file_size = None
             if meta_length:
@@ -128,22 +137,24 @@ class Connection:
                 if report:
                     status = "{0:16}".format(file_size_dl)
                     if file_size:
-                        status += "   [{0:6.2f}%]".format(file_size_dl * 100 / file_size)
+                        status += "   [{0:6.2f}%]".format(
+                            file_size_dl * 100 / file_size)
                     status += chr(13)
                     print(status)
 
     def _updateUrlParams(self, url, **kwargs):
         _scheme, _netloc, _url, _params, _query, _fragment = urlparse(url)
         params = urllib.parse.parse_qs(_query)
-        for k, v in list(params.items()):#parse_qs puts the values in a list which corrupts the url later on
+        # parse_qs puts the values in a list which corrupts the url later on
+        for k, v in list(params.items()):
             params[k] = v.pop() if isinstance(v, list) else v
-            
+
         for k, v in list(kwargs.items()):
-            if v is not None: params[k] = v
+            if v is not None:
+                params[k] = v
         _query = urllib.parse.urlencode(params)
         return urlunparse((_scheme, _netloc, _url, _params, _query, _fragment))
-    
-    
+
     def _http_request(self, url, data=None, headers=None, method=None, **kwargs):
         url = self._updateUrlParams(url, **kwargs)
         data = data or kwargs.get('data', None)
@@ -162,14 +173,16 @@ class Connection:
         except Exception as e:
             print(e)
             raise HTTPError(e, url)
-        
+
         #if resp.code in STATUS_AUTH_REQ: raise AuthorizationError('Not logged in or token expired')
         if resp.code not in (STATUS_OK):
-            raise Exception('unexpected HTTP response status %s: %s'%resp.code, resp)
+            raise Exception(
+                'unexpected HTTP response status %s: %s' % resp.code, resp)
         return resp
 
 
 class HttpClient:
+
     def __init__(self):
         self.__jslocation__ = "j.clients.http"
 

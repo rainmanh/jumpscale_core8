@@ -1,12 +1,14 @@
 from JumpScale import j
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
-import time, os, sys
+import time
+import os
+import sys
 
 
 class MyFSEventHandler(FileSystemEventHandler):
 
-    def handler(self, event,action="copy"):
+    def handler(self, event, action="copy"):
         changedfile = event.src_path
         if event.is_directory:
             if changedfile.find("/.git") != -1:
@@ -14,14 +16,14 @@ class MyFSEventHandler(FileSystemEventHandler):
             elif changedfile.find("/__pycache__/") != -1:
                 return
 
-            if event.event_type=="modified":
+            if event.event_type == "modified":
                 return
-            
+
             j.tools.develop.syncCode()
         else:
-            error=False
+            error = False
             for node in j.tools.develop.nodes:
-                if error==False:
+                if error == False:
                     if node.cuisine.core.isJS8Sandbox:
                         sep = "jumpscale_core8/lib/JumpScale/"
                         sep_cmds = "jumpscale_core8/shellcmds/"
@@ -49,16 +51,16 @@ class MyFSEventHandler(FileSystemEventHandler):
                         else:
                             destpart = changedfile.split("code/", 1)[-1]
                             dest = "/opt/code/%s" % destpart
-                    e=""
-                    if action=="copy":
+                    e = ""
+                    if action == "copy":
                         print("copy: %s %s:%s" % (changedfile, node, dest))
                         try:
                             node.ftpclient.put(changedfile, dest)
                         except Exception as e:
-                            error=True
-                    elif action=="delete":
+                            error = True
+                    elif action == "delete":
                         print("delete: %s %s:%s" % (changedfile, node, dest))
-                        try: 
+                        try:
                             node.ftpclient.remove(dest)
                         except Exception as e:
                             if "No such file" in str(e):
@@ -66,7 +68,7 @@ class MyFSEventHandler(FileSystemEventHandler):
                             else:
                                 raise RuntimeError(e)
                     else:
-                        raise j.exceptions.RuntimeError("unsupported action:%s"%action)
+                        raise j.exceptions.RuntimeError("unsupported action:%s" % action)
 
                     if error:
                         try:
@@ -76,46 +78,45 @@ class MyFSEventHandler(FileSystemEventHandler):
                         j.tools.develop.syncCode()
                         break
 
-
-
     def on_moved(self, event):
         j.tools.develop.syncCode()
-        self.handler(event,action="delete")
+        self.handler(event, action="delete")
 
     def on_created(self, event):
         self.handler(event)
 
     def on_deleted(self, event):
-        self.handler(event,action="delete")
+        self.handler(event, action="delete")
 
     def on_modified(self, event):
         self.handler(event)
+
 
 class DebugSSHNode:
 
     def __init__(self, addr="localhost", sshport=22):
         self.addr = addr
         self.port = sshport
-        self.connected=None
+        self.connected = None
 
     def test(self):
-        if self.connected==None:
-            #lets test tcp on 22 if not then 9022 which are our defaults
-            test=j.sal.nettools.tcpPortConnectionTest(self.addr,self.port,3)
-            if test==False:
-                print ("could not connect to %s:%s, will try port 9022"%(self.addr,self.port))
-                if self.port==22:
-                    test= j.sal.nettools.tcpPortConnectionTest(self.addr,9022,1)
+        if self.connected == None:
+            # lets test tcp on 22 if not then 9022 which are our defaults
+            test = j.sal.nettools.tcpPortConnectionTest(self.addr, self.port, 3)
+            if test == False:
+                print("could not connect to %s:%s, will try port 9022" % (self.addr, self.port))
+                if self.port == 22:
+                    test = j.sal.nettools.tcpPortConnectionTest(self.addr, 9022, 1)
                     if test:
-                        self.port=9022
-            if test==False:
-                raise j.exceptions.RuntimeError("Cannot connect to %s:%s"%(self.addr,self.port))
+                        self.port = 9022
+            if test == False:
+                raise j.exceptions.RuntimeError("Cannot connect to %s:%s" % (self.addr, self.port))
 
             self._platformType = None
             self._sshclient = None
             self._ftpclient = None
 
-            self.connected=True
+            self.connected = True
 
     @property
     def ftpclient(self):
@@ -152,8 +153,6 @@ class DebugSSHNode:
     #     if self._platformType != None:
     #         j.application.break_into_jshell("platformtype")
     #     return self._platformType
-
-
 
     def __str__(self):
         return "debugnode:%s" % self.addr
@@ -204,7 +203,7 @@ class DevelopToolsFactory:
         ```
 
         """
-        print (H)
+        print(H)
 
     def init(self, nodes=[]):
         """
@@ -217,29 +216,29 @@ class DevelopToolsFactory:
         """
         self._nodes = []
         if j.data.types.string.check(nodes):
-            nodes2=[]
+            nodes2 = []
             if "," in nodes:
-                nodes2=[]
+                nodes2 = []
                 for it in nodes.split(","):
-                    it=it.strip()
-                    if it=="":
+                    it = it.strip()
+                    if it == "":
                         continue
                     if it not in nodes2:
                         nodes2.append(it)
             else:
-                if nodes.strip()=="":
-                    nodes2=[]
+                if nodes.strip() == "":
+                    nodes2 = []
                 else:
-                    nodes2 = [nodes.strip()]            
-            nodes=nodes2    
+                    nodes2 = [nodes.strip()]
+            nodes = nodes2
 
         if not j.data.types.list.check(nodes):
-            raise j.exception.Input("nodes need to be list or string, got:%s"%nodes)
+            raise j.exception.Input("nodes need to be list or string, got:%s" % nodes)
 
-        if nodes==[]:
+        if nodes == []:
             j.core.db.set("debug.nodes", "")
         else:
-        
+
             j.core.db.set("debug.nodes", ','.join(nodes))
 
     @property
@@ -248,13 +247,13 @@ class DevelopToolsFactory:
             if j.core.db.get("debug.nodes") == None:
                 self.init()
             nodes = j.core.db.get("debug.nodes").decode()
-            if nodes=="":
+            if nodes == "":
                 return []
 
             for item in nodes.split(","):
-                if item.find(":") != -1 and len( item.split(":"))==2:
-                    addr, sshport= item.split(":")
-                elif item.find(":") != -1 and len( item.split(":"))==4:
+                if item.find(":") != -1 and len(item.split(":")) == 2:
+                    addr, sshport = item.split(":")
+                elif item.find(":") != -1 and len(item.split(":")) == 4:
                     addr, sshport, key_filename, passphrase = item.split(":")
                 else:
                     addr = item.strip()
@@ -268,7 +267,7 @@ class DevelopToolsFactory:
                 self._nodes.append(DebugSSHNode(addr, sshport))
         return self._nodes
 
-    def jumpscale8sb(self, rw=False,synclocalcode=False,monitor=False,resetstate=False):
+    def jumpscale8sb(self, rw=False, synclocalcode=False, monitor=False, resetstate=False):
         """
         install jumpscale, will be done as sandbox over fuse layer for linux
 
@@ -280,7 +279,7 @@ class DevelopToolsFactory:
 
         for node in self.nodes:
             node.cuisine.installer.base()
-            node.cuisine.installer.jumpscale8(rw=rw,reset=resetstate)
+            node.cuisine.installer.jumpscale8(rw=rw, reset=resetstate)
 
         if synclocalcode:
             self.syncCode()
@@ -288,7 +287,7 @@ class DevelopToolsFactory:
         if monitor:
             self.monitor
 
-    def jumpscale8develop(self, rw=False,resetstate=False):
+    def jumpscale8develop(self, rw=False, resetstate=False):
         """
         install jumpscale, install in development mode
 
@@ -313,8 +312,7 @@ class DevelopToolsFactory:
         j.actions.reset()
         self.init()
 
-
-    def syncCode(self, ask=False,monitor=False,rsyncdelete=True,reset=False):
+    def syncCode(self, ask=False, monitor=False, rsyncdelete=True, reset=False):
         """
         sync all code to the remote destinations
 
@@ -334,20 +332,20 @@ class DevelopToolsFactory:
 
         codepaths = []
         for it in j.core.db.get("debug.codepaths").decode().split(","):
-            it=it.strip()
-            if it=="":
+            it = it.strip()
+            if it == "":
                 continue
             if it not in codepaths:
                 codepaths.append(it)
-            
+
         for source in codepaths:
             destpart = source.split("jumpscale/", 1)[-1]
             for node in self.nodes:
                 if node.port != 0:
 
                     if not node.cuisine.core.isJS8Sandbox:
-                        #non sandboxed mode, need to sync to \
-                        dest="root@%s:/opt/code/%s"%(node.addr, source.split("code/", 1)[1])
+                        # non sandboxed mode, need to sync to \
+                        dest = "root@%s:/opt/code/%s" % (node.addr, source.split("code/", 1)[1])
                     else:
                         dest = "root@%s:/opt/code/%s" % (node.addr, destpart)
 
@@ -355,37 +353,41 @@ class DevelopToolsFactory:
                         dest = "root@%s:/opt/jumpscale8/lib/JumpScale/" % node.addr
                         source2 = source + "/lib/JumpScale/"
 
-                        j.sal.fs.copyDirTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True,rsyncdelete=rsyncdelete)
+                        j.sal.fs.copyDirTree(source2, dest, ignoredir=[
+                                             '.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True, rsyncdelete=rsyncdelete)
 
                         source2 = source + "/install/InstallTools.py"
                         dest = "root@%s:/opt/jumpscale8/lib/JumpScale/InstallTools.py" % node.addr
-                        j.sal.fs.copyDirTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=False)
+                        j.sal.fs.copyDirTree(source2, dest, ignoredir=[
+                                             '.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=False)
 
                         source2 = source + "/install/ExtraTools.py"
                         dest = "root@%s:/opt/jumpscale8/lib/JumpScale/ExtraTools.py" % node.addr
-                        j.sal.fs.copyDirTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=False)
+                        j.sal.fs.copyDirTree(source2, dest, ignoredir=[
+                                             '.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=False)
 
                     else:
                         node.cuisine.core.run("mkdir -p /opt/code/%s" % source.split("code/", 1)[1])
                         if node.cuisine.core.isJS8Sandbox:
-                            rsyncdelete2=True
+                            rsyncdelete2 = True
                         else:
-                            rsyncdelete2=rsyncdelete
-                        j.sal.fs.copyDirTree(source, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True,rsyncdelete=rsyncdelete2)
+                            rsyncdelete2 = rsyncdelete
+                        j.sal.fs.copyDirTree(source, dest, ignoredir=[
+                                             '.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True, rsyncdelete=rsyncdelete2)
                 else:
                     raise j.exceptions.RuntimeError("only ssh nodes supported")
 
         if monitor:
-            self.monitorChanges(sync=False,reset=False)
+            self.monitorChanges(sync=False, reset=False)
 
-    def monitorChanges(self,sync=True,reset=False):
+    def monitorChanges(self, sync=True, reset=False):
         """
         look for changes in directories which are being pushed & if found push to remote nodes
         """
         event_handler = MyFSEventHandler()
         observer = Observer()
         if sync or j.core.db.get("debug.codepaths") == None:
-            self.syncCode(monitor=False,rsyncdelete=False,reset=reset)
+            self.syncCode(monitor=False, rsyncdelete=False, reset=reset)
         codepaths = j.core.db.get("debug.codepaths").decode().split(",")
         for source in codepaths:
             print("monitor:%s" % source)

@@ -3,14 +3,16 @@ import uuid
 # from JumpScale.core.system.text import Text
 from SerializerBase import *
 
+
 class SerializerHRD(SerializerBase):
+
     def __init__(self):
         self.__jslocation__ = "j.data.serializer.hrd"
         self._primitiveTypes = (int, str, float, bool)
         self.__escape = str(uuid.uuid1())
 
     def _formatPrepends(self, prepend, type):
-        prepend = prepend+'.' if prepend and prepend[-1] != '.' else prepend
+        prepend = prepend + '.' if prepend and prepend[-1] != '.' else prepend
         return '%s = %s\n' % (prepend, type)
 
     def dumps(self, data, prepend=''):
@@ -34,7 +36,7 @@ class SerializerHRD(SerializerBase):
             if isinstance(k, str) and '..' in k:
                 k = k.replace('..', self.__escape)
             if not (isinstance(v, self._primitiveTypes)):
-                v = self.dumps(v, '%s%s.' % (prepend,k))
+                v = self.dumps(v, '%s%s.' % (prepend, k))
                 dictified += v
             else:
                 k = k.replace(self.__escape, '..')
@@ -63,8 +65,6 @@ class SerializerHRD(SerializerBase):
                     listified += '%s = %s\n' % (listprepend[:-1], item)
         return listified
 
-
-
     def loads(self, data):
         dataresult = [] if data.startswith('[') else {}
         for line in data.splitlines():
@@ -74,7 +74,8 @@ class SerializerHRD(SerializerBase):
                 return line
             key, value = line.split('=')
             key = key.replace('..', self.__escape)
-            dataresult = self._processKey(key.strip(), value.strip(), dataresult)
+            dataresult = self._processKey(
+                key.strip(), value.strip(), dataresult)
         return dataresult
 
     def _processKey(self, key, value, result):

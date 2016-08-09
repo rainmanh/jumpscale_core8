@@ -3,20 +3,26 @@
 from JumpScale import j
 
 from ActionDecorator import ActionDecorator
+
+
 class actionrun(ActionDecorator):
-    def __init__(self,*args,**kwargs):
-        ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.sandbox"
+
+    def __init__(self, *args, **kwargs):
+        ActionDecorator.__init__(self, *args, **kwargs)
+        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.sandbox"
 
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class CuisineSandbox(base):
-    def __init__(self,executor,cuisine):
-        self.executor=executor
-        self.cuisine=cuisine
+
+    def __init__(self, executor, cuisine):
+        self.executor = executor
+        self.cuisine = cuisine
 
     @actionrun(force=True)
-    def do(self,destination="/out",reset=False):
+    def do(self, destination="/out", reset=False):
         """
         @todo specify what comes in /out
 
@@ -24,7 +30,7 @@ class CuisineSandbox(base):
 
         self.cuisine.package.mdupdate()
 
-        self.cuisine.core.file_copy('/usr/local/bin/jspython', '$binDir')        
+        self.cuisine.core.file_copy('/usr/local/bin/jspython', '$binDir')
 
         sandbox_script = """
         cuisine = j.tools.cuisine.local
@@ -52,30 +58,28 @@ class CuisineSandbox(base):
         print("start sandboxing")
         self.cuisine.core.execute_jumpscript(sandbox_script)
 
-        name="js8"
+        name = "js8"
 
-        if reset:            
+        if reset:
             print("remove previous build info")
-            j.tools.cuisine.local.core.dir_remove("%s/%s"%(destination,name))
+            j.tools.cuisine.local.core.dir_remove("%s/%s" % (destination, name))
 
-        j.tools.cuisine.local.core.dir_remove("%s/%s/"%(destination,name))
+        j.tools.cuisine.local.core.dir_remove("%s/%s/" % (destination, name))
 
         dedupe_script = """
         j.tools.sandboxer.dedupe('/opt', storpath='$out/$name', name='js8_opt', reset=False, append=True, excludeDirs=['/opt/code'])
         """
-        dedupe_script=dedupe_script.replace("$name",name)
-        dedupe_script=dedupe_script.replace("$out",destination)
+        dedupe_script = dedupe_script.replace("$name", name)
+        dedupe_script = dedupe_script.replace("$out", destination)
         print("start dedupe")
         self.cuisine.core.execute_jumpscript(dedupe_script)
 
-
-        copy_script="""
+        copy_script = """
         j.sal.fs.removeDirTree("$out/$name/jumpscale8/")
         j.sal.fs.copyDirTree("/opt/jumpscale8/","$out/$name/jumpscale8",deletefirst=True,ignoredir=['.egg-info', '.dist-info','__pycache__'],ignorefiles=['.egg-info',"*.pyc"])
         j.sal.fs.removeIrrelevantFiles("$out")
         """
-        copy_script=copy_script.replace("$name",name)
-        copy_script=copy_script.replace("$out",destination)
+        copy_script = copy_script.replace("$name", name)
+        copy_script = copy_script.replace("$out", destination)
         print("start copy sandbox")
         self.cuisine.core.execute_jumpscript(copy_script)
-

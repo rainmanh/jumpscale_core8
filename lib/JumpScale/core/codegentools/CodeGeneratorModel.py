@@ -13,8 +13,10 @@ class CodeGeneratorModel(CodeGeneratorBase):
         value = ""
         pre = ""
         init = ""
-        typemap = {'bool': 'boolean', 'str': 'string', 'dict': 'dictionary', 'int': 'integer'}
-        defaultmap = {'int': '0', 'str': '""', 'float': '0.0', 'bool': 'True', 'list': 'list()', 'dict': 'dict()'}
+        typemap = {'bool': 'boolean', 'str': 'string',
+                   'dict': 'dictionary', 'int': 'integer'}
+        defaultmap = {'int': '0', 'str': '""', 'float': '0.0',
+                      'bool': 'True', 'list': 'list()', 'dict': 'dict()'}
         if '(' in type:
             type = type[0:type.index('(')]
 
@@ -26,20 +28,24 @@ if not isinstance(value, %(type)s) and value is not None:
         msg="property %(name)s input error, needs to be %(type)s, specfile: %(specfile)s, name model: %(modelname)s, value was:" + str(value)
         raise TypeError(msg)
 """ % {'name': name, 'fulltype': typemap.get(type, type), 'type': type,
-       'specfile': self.spec.specpath.replace("\\", "/"), 'modelname': self.spec.name}
+            'specfile': self.spec.specpath.replace("\\", "/"), 'modelname': self.spec.name}
 
         if type in defaultmap:
             init = "self._P_%s=%s" % (name, defaultmap.get(type))
         else:
-            specfound = j.core.specparser.findSpec(query=type, findFromSpec=self.spec)
+            specfound = j.core.specparser.findSpec(
+                query=type, findFromSpec=self.spec)
 
             if specfound.type == "enumeration":
                 init = "self._P_%s=0" % name  # is the unknown type
                 j.core.codegenerator.generate(specfound, type="enumerator")
-                name, path = j.core.codegenerator.getCodeId(specfound, type="enumerator")
+                name, path = j.core.codegenerator.getCodeId(
+                    specfound, type="enumerator")
                 if name not in j.core.codegenerator.classes:
-                    raise j.exceptions.RuntimeError("generation was not successfull for %s, there should be a classes populated" % name)
-                enumerationcheck = "j.enumerators.%s" % name.split("enumeration_")[1]
+                    raise j.exceptions.RuntimeError(
+                        "generation was not successfull for %s, there should be a classes populated" % name)
+                enumerationcheck = "j.enumerators.%s" % name.split("enumeration_")[
+                    1]
                 s = "%s.check(value) or isinstance(value, int)" % enumerationcheck
                 type = "enumerator:%s or int" % type
                 value = "int(value)"
@@ -131,7 +137,6 @@ return self._P_{name}[-1]\n
 
         self.content += "\n%s" % j.tools.code.indent(s, 2)
 
-
     def addInitExtras(self):
         # following code will be loaded at runtime
         if self.spec.rootobject:
@@ -149,24 +154,28 @@ return self._P_{name}[-1]\n
             self.addClass(baseclass="j.tools.code.classGetJSModelBase()")
 
         for prop in self.spec.properties:
-            self.addProperty(propertyname=prop.name, type=prop.type, default=prop.default, description=prop.description)
+            self.addProperty(propertyname=prop.name, type=prop.type,
+                             default=prop.default, description=prop.description)
 
         if "guid" not in [item.name for item in self.spec.properties]:
-            self.addProperty(propertyname="guid", type="str", default="", description="unique guid for object")
+            self.addProperty(propertyname="guid", type="str",
+                             default="", description="unique guid for object")
 
         if self.spec.rootobject:
-            self.addProperty(propertyname="_meta", type="list", default=[], description="metainfo")
+            self.addProperty(propertyname="_meta", type="list",
+                             default=[], description="metainfo")
 
         # if "id" not in [item.name for item in self.spec.properties]:
             #self.addProperty( propertyname="id", type="int", default="", description="unique id for object")
 
         for prop in self.spec.properties:
 
-                rtype, spec = j.core.specparser.getSpecFromTypeStr(self.spec.appname, self.spec.actorname, prop.type)
-                # print str(rtype)+" : "+str(spec)
-                if rtype != None and rtype != "object" and rtype != "enum":
-                    if spec not in ["int", "bool", "float", "str"]:
-                        self.addNewObjectMethod(prop.name, rtype, spec)
+            rtype, spec = j.core.specparser.getSpecFromTypeStr(
+                self.spec.appname, self.spec.actorname, prop.type)
+            # print str(rtype)+" : "+str(spec)
+            if rtype != None and rtype != "object" and rtype != "enum":
+                if spec not in ["int", "bool", "float", "str"]:
+                    self.addNewObjectMethod(prop.name, rtype, spec)
 
         self.addInitExtras()
 

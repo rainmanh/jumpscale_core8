@@ -16,7 +16,9 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.fs"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class Fs(base):
 
     @actionrun(action=True)
@@ -49,7 +51,8 @@ class Fs(base):
         self.cuisine.core.file_copy("$goDir/src/github.com/g8os/fs/fs", "$base/bin")
         self.cuisine.core.file_write("$goDir/src/github.com/g8os/fs/config/config.toml", content)
         self.cuisine.core.file_copy("$goDir/src/github.com/g8os/fs/config/config.toml", "$tmplsDir/cfg/fs")
-        self.cuisine.core.file_download("https://stor.jumpscale.org/storx/static/js8_opt.flist", "$tmplsDir/cfg/fs/js8_opt.flist")
+        self.cuisine.core.file_download(
+            "https://stor.jumpscale.org/storx/static/js8_opt.flist", "$tmplsDir/cfg/fs/js8_opt.flist")
         if start:
             self.start()
 

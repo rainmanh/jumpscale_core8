@@ -4,6 +4,7 @@ import time
 
 #@TODO very early spec, needs to be done todo (*3*) despiegk
 
+
 class LogDumper:
     """
     dump the info to log files, 

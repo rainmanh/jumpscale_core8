@@ -2,6 +2,7 @@
 
 from PrimitiveTypes import *
 
+
 class YAML():
     '''Generic dictionary type'''
 
@@ -30,10 +31,13 @@ class YAML():
     def toString(self, v):
         return j.data.serializer.yaml.dumps(v)
 
+
 class JSON():
+
     def __init__(self):
         self.NAME = 'json'
         self.BASETYPE = 'dictionary'
+
 
 class Dictionary:
     '''Generic dictionary type'''
@@ -64,7 +68,7 @@ class Dictionary:
             return s
 
     def toString(self, v):
-        return j.data.serializer.json.dumps(v,True,True)
+        return j.data.serializer.json.dumps(v, True, True)
 
 
 class List:

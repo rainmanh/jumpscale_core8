@@ -2,7 +2,8 @@ from JumpScale import j
 
 from collections import OrderedDict
 
-VALID_STATES = ['INIT', 'ERROR', 'OK', 'DISABLED', 'DO', 'CHANGED', 'CHANGEDHRD', 'RUNNING']
+VALID_STATES = ['INIT', 'ERROR', 'OK', 'DISABLED',
+                'DO', 'CHANGED', 'CHANGEDHRD', 'RUNNING']
 
 
 class ServiceState():
@@ -19,7 +20,8 @@ class ServiceState():
         if j.sal.fs.exists(path=self._path):
             self._model = j.data.serializer.yaml.load(self._path)
         else:
-            self._model = {"parent": "", "producers": {}, "state": {}, "recurring": {}, "events": {}, "templateHRDHash": "", "instanceHRDHash": "", "Actor": ""}
+            self._model = {"parent": "", "producers": {}, "state": {}, "recurring": {
+            }, "events": {}, "templateHRDHash": "", "instanceHRDHash": "", "Actor": ""}
 
     @property
     def methods(self):
@@ -42,7 +44,8 @@ class ServiceState():
         """
 
         if state not in VALID_STATES:
-            raise j.exceptions.Input("State needs to be in %s" % ','.join(VALID_STATES))
+            raise j.exceptions.Input(
+                "State needs to be in %s" % ','.join(VALID_STATES))
         name = name.lower()
         if name not in self._model["state"] or self._model["state"][name] != state:
             self._model["state"][name] = state
@@ -56,7 +59,8 @@ class ServiceState():
         """
         name = name.lower()
         if default not in VALID_STATES:
-            raise j.exceptions.Input("State needs to be in %s" % ','.join(VALID_STATES))
+            raise j.exceptions.Input(
+                "State needs to be in %s" % ','.join(VALID_STATES))
         if name not in self._model["state"]:
             self._model["state"][name] = default
             self.changed = True
@@ -69,7 +73,8 @@ class ServiceState():
             return self._model["state"][name]
         else:
             if die:
-                raise j.exceptions.Input("Cannot find state with name %s" % name)
+                raise j.exceptions.Input(
+                    "Cannot find state with name %s" % name)
             else:
                 return None
 
@@ -246,11 +251,14 @@ class ServiceState():
                 methods[actionname] = [actionstate, period, int(last)]
 
             out = "### actions\n\n"
-            out += "| %-20s | %-10s | %-10s | %-30s |\n" % ("name", "state", "period", "last")
-            out += "| %-20s | %-10s | %-10s | %-30s |\n" % ("---", "---", "---", "---")
+            out += "| %-20s | %-10s | %-10s | %-30s |\n" % (
+                "name", "state", "period", "last")
+            out += "| %-20s | %-10s | %-10s | %-30s |\n" % (
+                "---", "---", "---", "---")
             for actionname, obj in methods.items():
                 actionstate, period, last = obj
-                out += "| %-20s | %-10s | %-10s | %-30s |\n" % (actionname, actionstate, period, last)
+                out += "| %-20s | %-10s | %-10s | %-30s |\n" % (
+                    actionname, actionstate, period, last)
             out += "\n"
 
         return out

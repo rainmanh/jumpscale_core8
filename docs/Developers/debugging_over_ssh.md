@@ -1,3 +1,5 @@
+
+
 ## Debugging over SSH
 
 
@@ -7,10 +9,10 @@
    - JumpScale is locally installed
    - Git repos are checked out locally
 - You have 1 or more (typically Ubuntu 16.04) machines running in server mode with SSH enabled and your public SSH key enabled
-   - On this sever you have the JumpScale installed in debug or in sandboxed mode  
+   - On this sever you have the JumpScale installed in debug or in sandboxed mode
 - The j.tools.develop... tools help you to keep the code up to date and to upgrade/manage your remote development machine
    - The sync tools in the development tools will sync your local changes while you are using your editor to develop
-   - Over ssh you can test your program on the remote machine 
+   - Over ssh you can test your program on the remote machine
 
 
 ### Step 1: Create connection

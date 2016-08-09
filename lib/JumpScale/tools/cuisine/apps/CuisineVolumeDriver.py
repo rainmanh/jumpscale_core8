@@ -17,7 +17,9 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.volumedriver"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class VolumeDriver(base):
 
     def __init__(self, executor, cuisine):
@@ -32,7 +34,8 @@ class VolumeDriver(base):
 
     @actionrun()
     def _install_deps(self):
-        self.cuisine.core.file_write('/etc/apt/sources.list.d/ovsaptrepo.list', 'deb http://apt.openvstorage.org unstable main')
+        self.cuisine.core.file_write('/etc/apt/sources.list.d/ovsaptrepo.list',
+                                     'deb http://apt.openvstorage.org unstable main')
         self.cuisine.package.update()
         self.cuisine.package.upgrade(distupgrade=True)
 
@@ -70,12 +73,13 @@ class VolumeDriver(base):
         }
 
         str_repl['volumedriver'] = self.cuisine.git.pullRepo('https://github.com/openvstorage/volumedriver', depth=None)
-        str_repl['buildtools'] = self.cuisine.git.pullRepo('https://github.com/openvstorage/volumedriver-buildtools', depth=None)
+        str_repl['buildtools'] = self.cuisine.git.pullRepo(
+            'https://github.com/openvstorage/volumedriver-buildtools', depth=None)
         self.cuisine.core.run('cd %(volumedriver)s;git checkout tags/%(version)s' % str_repl)
 
         self.cuisine.core.file_link(str_repl['buildtools'], j.sal.fs.joinPaths(workspace, 'volumedriver-buildtools'))
         self.cuisine.core.file_link(str_repl['volumedriver'], j.sal.fs.joinPaths(workspace, 'volumedriver'))
-        
+
         build_script = """
         export WORKSPACE=%(workspace)s
         export RUN_TESTS=no
@@ -87,6 +91,6 @@ class VolumeDriver(base):
         cd ${WORKSPACE}
         ./volumedriver/src/buildscripts/jenkins-release-dev.sh ${WORKSPACE}/volumedriver
         """ % str_repl
-        
+
         self.cuisine.core.run_script(build_script)
         self.cuisine.core.file_copy('$tmpDir/volumedriver-workspace/volumedriver/build/bin/*', '$binDir')

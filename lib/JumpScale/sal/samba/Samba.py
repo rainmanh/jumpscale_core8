@@ -11,9 +11,8 @@ EXCEPT_SHARES = ['global', 'printers', 'homes']
 BASEPATH = '/VNASSHARE/'
 
 
-
-
 class SMBUser:
+
     def __init__(self,  verbose=False):
         # self._smb = cmd_sambatool(self._stdout, self._stderr)
         self._local = j.tools.executor.getLocal()
@@ -66,6 +65,7 @@ class SMBUser:
 
 
 class SMBShare:
+
     def __init__(self):
         self._config = SambaConfigParser()
         self._load()
@@ -145,6 +145,7 @@ class SMBShare:
 
 
 class SMBSubShare:
+
     def __init__(self):
         j.tools.path.get(BASEPATH).mkdir_p()
         self._local = j.tools.executor.getLocal()
@@ -196,6 +197,7 @@ class SMBSubShare:
 
 
 class Samba:
+
     def __init__(self):
         self.__jslocation__ = "j.sal.samba"
         self._local = j.tools.executor.getLocal()

@@ -2,24 +2,27 @@ from JumpScale.clients.racktivity.energyswitch.common import convert
 from JumpScale.clients.racktivity.energyswitch.common.GUIDTable import Value
 from JumpScale.clients.racktivity.energyswitch.modelfactory.models.common.Master_0_0_4_4 import Model as Master
 
+
 class Model(Master):
+
     def __init__(self, parent):
         super(Model, self).__init__(parent)
 
         self._guidTable.update({
-             37:Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),
-             38:Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),
-             39:Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=1\nlength=2\nunit='min'\nscale=0"),
-             40:Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=1\nlength=2\nunit='%'\nscale=1"),
-             10073:Value(u"type='TYPE_STRING'\nsize=16\nlength=16\nunit=''\nscale=0"),#SNMP Trap Community String
-             10156:Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),
-             10157:Value(u"type='TYPE_STRING'\nsize=32\nlength=32\nunit=''\nscale=0"),
-             10158:Value(u"type='TYPE_STRING'\nsize=64\nlength=64\nunit=''\nscale=0"),
-             10159:Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='%'\nscale=1"),
-             10160:Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='%'\nscale=1"),
+            37: Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            38: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            39: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=1\nlength=2\nunit='min'\nscale=0"),
+            40: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=1\nlength=2\nunit='%'\nscale=1"),
+            # SNMP Trap Community String
+            10073: Value(u"type='TYPE_STRING'\nsize=16\nlength=16\nunit=''\nscale=0"),
+            10156: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),
+            10157: Value(u"type='TYPE_STRING'\nsize=32\nlength=32\nunit=''\nscale=0"),
+            10158: Value(u"type='TYPE_STRING'\nsize=64\nlength=64\nunit=''\nscale=0"),
+            10159: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='%'\nscale=1"),
+            10160: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='%'\nscale=1"),
         })
 
-    #UPSPresent
+    # UPSPresent
     def getUPSPresent(self):
         moduleID = "M1"
         guid = 37
@@ -27,7 +30,7 @@ class Model(Master):
         data = self._parent.client.getAttribute(moduleID, guid, 0)
         return self._parent.getObjectFromData(data, valDef)
 
-    #UPSStatus
+    # UPSStatus
     def getUPSStatus(self):
         moduleID = "M1"
         guid = 38
@@ -35,7 +38,7 @@ class Model(Master):
         data = self._parent.client.getAttribute(moduleID, guid, 0)
         return self._parent.getObjectFromData(data, valDef)
 
-    #UPSEstimatedRunTime
+    # UPSEstimatedRunTime
     def getUPSEstimatedRunTime(self):
         moduleID = "M1"
         guid = 39
@@ -43,7 +46,7 @@ class Model(Master):
         data = self._parent.client.getAttribute(moduleID, guid, 0)
         return self._parent.getObjectFromData(data, valDef)
 
-    #UPSBatteryLevel
+    # UPSBatteryLevel
     def getUPSBatteryLevel(self):
         moduleID = "M1"
         guid = 40
@@ -52,28 +55,31 @@ class Model(Master):
         return self._parent.getObjectFromData(data, valDef)
 
     def getSNMPTrapCommunityRead(self):
-        guid =  10073
+        guid = 10073
         moduleID = 'M1'
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setSNMPTrapCommunityRead(self, value):
-        guid =  10073
+        guid = 10073
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
-    #SSOIPAddress
+    # SSOIPAddress
     def setSSOIPAddress(self, ip):
         moduleID = "M1"
         guid = 10156
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(ip, valDef), 0)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(ip, valDef), 0)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     def getSSOIPAddress(self):
@@ -83,20 +89,22 @@ class Model(Master):
         data = self._parent.client.getAttribute(moduleID, guid, 0)
         return self._parent.getObjectFromData(data, valDef)
 
-    #SSOLoginCredentials
+    # SSOLoginCredentials
     def setSSOLoginCredentials(self, credentials):
         moduleID = "M1"
         guid = 10157
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(credentials, valDef), 0)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(credentials, valDef), 0)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
-    #SSOGracefullShutdown
+    # SSOGracefullShutdown
     def setSSOGracefullShutdown(self, url):
         moduleID = "M1"
         guid = 10158
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(url, valDef), 0)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(url, valDef), 0)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     def getSSOGracefullShutdown(self):
@@ -106,12 +114,13 @@ class Model(Master):
         data = self._parent.client.getAttribute(moduleID, guid, 0)
         return self._parent.getObjectFromData(data, valDef)
 
-    #UPSWarningLevel
+    # UPSWarningLevel
     def setUPSWarningLevel(self, level):
         moduleID = "M1"
         guid = 10159
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(level, valDef), 0)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(level, valDef), 0)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     def getUPSWarningLevel(self):
@@ -121,12 +130,13 @@ class Model(Master):
         data = self._parent.client.getAttribute(moduleID, guid, 0)
         return self._parent.getObjectFromData(data, valDef)
 
-    #UPSOffLevel
+    # UPSOffLevel
     def setUPSOffLevel(self, level):
         moduleID = "M1"
         guid = 10160
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(level, valDef), 0)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(level, valDef), 0)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     def getUPSOffLevel(self):

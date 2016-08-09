@@ -8,64 +8,62 @@ from VXNet import netclasses as netcl
 from VXNet.utils import *
 
 
-
-
 class NetConfigFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.openvswitch"
-        self._layout=None
-        self.PHYSMTU = 2000 # will fit all switches
+        self._layout = None
+        self.PHYSMTU = 2000  # will fit all switches
         self._executor = j.tools.executor.getLocal()
 
-
-    def getConfigFromSystem(self,reload=False):
+    def getConfigFromSystem(self, reload=False):
         """
         walk over system and get configuration, result is dict
         """
-        if self._layout==None or reload:
-            self._layout=vxlan.NetLayout()
+        if self._layout == None or reload:
+            self._layout = vxlan.NetLayout()
             self._layout.load()
         # add_ips_to(self._layout)  #@todo fix
         return self._layout.nicdetail
 
-    def _exec(self,cmd,failOnError=True):
+    def _exec(self, cmd, failOnError=True):
         print(cmd)
-        rc,out=self._executor.execute(cmd, die=failOnError)
+        rc, out = self._executor.execute(cmd, die=failOnError)
         return out
 
     def removeOldConfig(self):
-        cmd="brctl show"
+        cmd = "brctl show"
         for line in self._exec(cmd).split("\n"):
-            if line.strip()=="" or line.find("bridge name")!=-1:
+            if line.strip() == "" or line.find("bridge name") != -1:
                 continue
-            name=line.split("\t")[0]
-            self._exec("ip link set %s down"%name)
-            self._exec("brctl delbr %s"%name)
+            name = line.split("\t")[0]
+            self._exec("ip link set %s down" % name)
+            self._exec("brctl delbr %s" % name)
 
-        for intname,data in list(self.getConfigFromSystem(reload=True).items()):
+        for intname, data in list(self.getConfigFromSystem(reload=True).items()):
             if "PHYS" in data["detail"]:
                 continue
-            if intname =="ovs-system":
+            if intname == "ovs-system":
                 continue
-            self._exec("ovs-vsctl del-br %s"%intname,False)
+            self._exec("ovs-vsctl del-br %s" % intname, False)
 
-        out=self._exec("virsh net-list",False)
-        if out.find("virsh: not found")==-1:
-            state="start"
+        out = self._exec("virsh net-list", False)
+        if out.find("virsh: not found") == -1:
+            state = "start"
             for line in out.split("\n"):
-                if state=="found":
-                    if line.strip()=="":
+                if state == "found":
+                    if line.strip() == "":
                         continue
-                    line=line.replace("\t"," ")
-                    name=line.split(" ")[0]
-                    self._exec("virsh net-destroy %s"%name,False)
-                    self._exec("virsh net-undefine %s"%name,False)
+                    line = line.replace("\t", " ")
+                    name = line.split(" ")[0]
+                    self._exec("virsh net-destroy %s" % name, False)
+                    self._exec("virsh net-undefine %s" % name, False)
 
-                if line.find("----")!=-1:
-                    state="found"
+                if line.find("----") != -1:
+                    state = "found"
 
-        j.tools.path.get("/etc/default/lxc-net").write_text("USE_LXC_BRIDGE=\"false\"", append=True) #@todo UGLY use editor !!!
+        j.tools.path.get("/etc/default/lxc-net").write_text("USE_LXC_BRIDGE=\"false\"",
+                                                            append=True)  # @todo UGLY use editor !!!
 
         # Not used and expensive self.getConfigFromSystem(reload=True)
 
@@ -80,11 +78,11 @@ class NetConfigFactory:
     def printConfigFromSystem(self):
         pprint.pprint(self.getConfigFromSystem())
 
-    def newBridge(self,name,interface=None):
+    def newBridge(self, name, interface=None):
         """
         @param interface interface where to connect this bridge to
         """
-        br=netcl.Bridge(name)
+        br = netcl.Bridge(name)
         br.create()
         if interface is not None:
             br.connect(interface)
@@ -94,12 +92,12 @@ class NetConfigFactory:
 
     def ensureVXNet(self, networkid, backend):
         vxnet = vxlan.VXNet(networkid, backend)
-        vxnet.innamespace=False
+        vxnet.innamespace = False
         vxnet.inbridge = True
         vxnet.apply()
         return vxnet
 
-    def createVXLanBridge(self, networkid, backend,bridgename=None):
+    def createVXLanBridge(self, networkid, backend, bridgename=None):
         """
         Creates a proper vxlan interface and bridge based on a backplane
         """
@@ -112,20 +110,20 @@ class NetConfigFactory:
         bridge.connect(vxlan.name)
         return vxlan
 
-    def getType(self,interfaceName):
-        layout=self.getConfigFromSystem()
+    def getType(self, interfaceName):
+        layout = self.getConfigFromSystem()
         if interfaceName not in layout:
-            raise j.exceptions.RuntimeError("cannot find interface %s"%interfaceName)
-        interf=layout[interfaceName]
+            raise j.exceptions.RuntimeError("cannot find interface %s" % interfaceName)
+        interf = layout[interfaceName]
         if "type" in interf["params"]:
             return interf["params"]["type"]
         return None
 
-    def setBackplaneDhcp(self,interfacename="eth0",backplanename="Public"):
+    def setBackplaneDhcp(self, interfacename="eth0", backplanename="Public"):
         """
         DANGEROUS, will remove old configuration
         """
-        C="""
+        C = """
 auto $BPNAME
 allow-ovs $BPNAME
 iface $BPNAME inet dhcp
@@ -139,18 +137,18 @@ iface $iname inet manual
  ovs_type OVSPort
  up ip link set $iname mtu $MTU
 """
-        C=C.replace("$BPNAME", str(backplanename))
-        C=C.replace("$iname", interfacename)
-        C=C.replace("$MTU", str(self.PHYSMTU))
+        C = C.replace("$BPNAME", str(backplanename))
+        C = C.replace("$iname", interfacename)
+        C = C.replace("$MTU", str(self.PHYSMTU))
 
-        ed=j.tools.code.getTextFileEditor("/etc/network/interfaces")
-        ed.setSection(backplanename,C)
+        ed = j.tools.code.getTextFileEditor("/etc/network/interfaces")
+        ed.setSection(backplanename, C)
 
-    def setBackplaneNoAddress(self,interfacename="eth0",backplanename=1):
+    def setBackplaneNoAddress(self, interfacename="eth0", backplanename=1):
         """
         DANGEROUS, will remove old configuration
         """
-        C="""
+        C = """
 auto $BPNAME
 allow-ovs $BPNAME
 iface $BPNAME inet manual
@@ -163,17 +161,17 @@ iface $iname inet manual
   ovs_type OVSPort
   up ip link set $iname mtu $MTU
 """
-        C=C.replace("$BPNAME", str(backplanename))
-        C=C.replace("$iname", interfacename)
-        C=C.replace("$MTU", str(self.PHYSMTU)) # strings here
-        ed=j.tools.code.getTextFileEditor("/etc/network/interfaces")
-        ed.setSection(backplanename,C)
+        C = C.replace("$BPNAME", str(backplanename))
+        C = C.replace("$iname", interfacename)
+        C = C.replace("$MTU", str(self.PHYSMTU))  # strings here
+        ed = j.tools.code.getTextFileEditor("/etc/network/interfaces")
+        ed.setSection(backplanename, C)
 
-    def configureStaticAddress(self,interfacename="eth0",ipaddr="192.168.10.10/24",gw=None):
+    def configureStaticAddress(self, interfacename="eth0", ipaddr="192.168.10.10/24", gw=None):
         """
         Configure a static address
         """
-        C="""
+        C = """
 auto $interface
 allow-ovs $interface
 iface $interface inet static
@@ -181,26 +179,25 @@ iface $interface inet static
  netmask $mask
  $gw
 """
-        n=netaddr.IPNetwork(ipaddr)
+        n = netaddr.IPNetwork(ipaddr)
 
-        C=C.replace("$interface", interfacename)
-        C=C.replace("$ipbase", str(n.ip))
-        C=C.replace("$mask", str(n.netmask))
+        C = C.replace("$interface", interfacename)
+        C = C.replace("$ipbase", str(n.ip))
+        C = C.replace("$mask", str(n.netmask))
         if gw:
-            C=C.replace("$gw", "gateway %s"%gw)
+            C = C.replace("$gw", "gateway %s" % gw)
         else:
-            C=C.replace("$gw", "")
+            C = C.replace("$gw", "")
 
-        ed=j.tools.code.getTextFileEditor("/etc/network/interfaces")
-        ed.setSection(interfacename,C)
+        ed = j.tools.code.getTextFileEditor("/etc/network/interfaces")
+        ed.setSection(interfacename, C)
         ed.save()
 
-
-    def setBackplaneNoAddressWithBond(self,bondname, bondinterfaces,backplanename='backplane'):
+    def setBackplaneNoAddressWithBond(self, bondname, bondinterfaces, backplanename='backplane'):
         """
         DANGEROUS, will remove old configuration
         """
-        C="""
+        C = """
 auto $BPNAME
 allow-ovs $BPNAME
 iface $BPNAME inet manual
@@ -219,25 +216,23 @@ iface $bondname inet manual
         disable_ipv6 = ''
         for interface in bondinterfaces:
             interfaces += '%s ' % interface
-            disable_ipv6 += 'pre-up ip l set %s mtu 2000 \n up sysctl -w net.ipv6.conf.%s.disable_ipv6=1 \n' % (interface, interface)
-        C=C.replace("$BPNAME", str(backplanename))
-        C=C.replace("$bondname", bondname)
-        C=C.replace("$MTU", str(self.PHYSMTU))
-        C=C.replace("$bondinterfaces" , interfaces)
-        C=C.replace("$disable_ipv6" , disable_ipv6)
+            disable_ipv6 += 'pre-up ip l set %s mtu 2000 \n up sysctl -w net.ipv6.conf.%s.disable_ipv6=1 \n' % (
+                interface, interface)
+        C = C.replace("$BPNAME", str(backplanename))
+        C = C.replace("$bondname", bondname)
+        C = C.replace("$MTU", str(self.PHYSMTU))
+        C = C.replace("$bondinterfaces", interfaces)
+        C = C.replace("$disable_ipv6", disable_ipv6)
 
-        ed=j.tools.code.getTextFileEditor("/etc/network/interfaces")
-        ed.setSection(backplanename,C)
+        ed = j.tools.code.getTextFileEditor("/etc/network/interfaces")
+        ed.setSection(backplanename, C)
         ed.save()
 
-
-
-
-    def setBackplane(self,interfacename="eth0",backplanename=1,ipaddr="192.168.10.10/24",gw=""):
+    def setBackplane(self, interfacename="eth0", backplanename=1, ipaddr="192.168.10.10/24", gw=""):
         """
         DANGEROUS, will remove old configuration
         """
-        C="""
+        C = """
 auto $BPNAME
 allow-ovs $BPNAME
 iface $BPNAME inet static
@@ -254,26 +249,26 @@ iface $iname inet manual
  ovs_type OVSPort
  up ip link set $iname mtu $MTU
 """
-        n=netaddr.IPNetwork(ipaddr)
-        C=C.replace("$BPNAME", str(backplanename))
-        C=C.replace("$iname", interfacename)
-        C=C.replace("$ipbase", str(n.ip))
-        C=C.replace("$mask", str(n.netmask))
-        C=C.replace("$MTU", str(self.PHYSMTU))
-        if gw!="" and gw!=None:
-            C=C.replace("$gw", "gateway %s"%gw)
+        n = netaddr.IPNetwork(ipaddr)
+        C = C.replace("$BPNAME", str(backplanename))
+        C = C.replace("$iname", interfacename)
+        C = C.replace("$ipbase", str(n.ip))
+        C = C.replace("$mask", str(n.netmask))
+        C = C.replace("$MTU", str(self.PHYSMTU))
+        if gw != "" and gw != None:
+            C = C.replace("$gw", "gateway %s" % gw)
         else:
-            C=C.replace("$gw", "")
+            C = C.replace("$gw", "")
 
-        ed=j.tools.code.getTextFileEditor("/etc/network/interfaces")
-        ed.setSection(backplanename,C)
+        ed = j.tools.code.getTextFileEditor("/etc/network/interfaces")
+        ed.setSection(backplanename, C)
         ed.save()
 
-    def setBackplaneWithBond(self,bondname, bondinterfaces,backplanename='backplane',ipaddr="192.168.10.10/24",gw=""):
+    def setBackplaneWithBond(self, bondname, bondinterfaces, backplanename='backplane', ipaddr="192.168.10.10/24", gw=""):
         """
         DANGEROUS, will remove old configuration
         """
-        C="""
+        C = """
 auto $BPNAME
 allow-ovs $BPNAME
 iface $BPNAME inet static
@@ -292,47 +287,46 @@ iface $bondname inet manual
  ovs_options bond_mode=balance-tcp lacp=active bond_fake_iface=false other_config:lacp-time=fast bond_updelay=2000 bond_downdelay=400
  $disable_ipv6
 """
-        n=netaddr.IPNetwork(ipaddr)
+        n = netaddr.IPNetwork(ipaddr)
         interfaces = ''
         disable_ipv6 = ''
         for interface in bondinterfaces:
             interfaces += '%s ' % interface
-            disable_ipv6 += 'pre-up ip l set %s mtu 2000 \n up sysctl -w net.ipv6.conf.%s.disable_ipv6=1 \n' % (interface, interface)
-        C=C.replace("$BPNAME", str(backplanename))
-        C=C.replace("$bondname", bondname)
-        C=C.replace("$ipbase", str(n.ip))
-        C=C.replace("$mask", str(n.netmask))
-        C=C.replace("$MTU", str(self.PHYSMTU))
-        if gw!="" and gw!=None:
-            C=C.replace("$gw", "gateway %s"%gw)
+            disable_ipv6 += 'pre-up ip l set %s mtu 2000 \n up sysctl -w net.ipv6.conf.%s.disable_ipv6=1 \n' % (
+                interface, interface)
+        C = C.replace("$BPNAME", str(backplanename))
+        C = C.replace("$bondname", bondname)
+        C = C.replace("$ipbase", str(n.ip))
+        C = C.replace("$mask", str(n.netmask))
+        C = C.replace("$MTU", str(self.PHYSMTU))
+        if gw != "" and gw != None:
+            C = C.replace("$gw", "gateway %s" % gw)
         else:
-            C=C.replace("$gw", "")
-        C=C.replace("$bondinterfaces" , interfaces)
-        C=C.replace("$disable_ipv6" , disable_ipv6)
+            C = C.replace("$gw", "")
+        C = C.replace("$bondinterfaces", interfaces)
+        C = C.replace("$disable_ipv6", disable_ipv6)
 
-        ed=j.tools.code.getTextFileEditor("/etc/network/interfaces")
-        ed.setSection(backplanename,C)
+        ed = j.tools.code.getTextFileEditor("/etc/network/interfaces")
+        ed.setSection(backplanename, C)
         ed.save()
 
-
-    def applyconfig(self,interfacenameToExclude=None,backplanename=None):
+    def applyconfig(self, interfacenameToExclude=None, backplanename=None):
         """
         DANGEROUS, will remove old configuration
         """
-        for intname,data in list(self.getConfigFromSystem(reload=True).items()):
-            if "PHYS" in data["detail"] and intname!=interfacenameToExclude:
+        for intname, data in list(self.getConfigFromSystem(reload=True).items()):
+            if "PHYS" in data["detail"] and intname != interfacenameToExclude:
                 self._exec("ip addr flush dev %s" % intname, False)
-                self._exec("ip link set %s down"%intname,False)
+                self._exec("ip link set %s down" % intname, False)
 
-        if backplanename!=None:
-            self._exec("ifdown %s"%backplanename, failOnError=False)
+        if backplanename != None:
+            self._exec("ifdown %s" % backplanename, failOnError=False)
             # self._exec("ifup %s"%backplanename, failOnError=True)
 
         #@todo need to do more checks here that it came up and retry couple of times if it did not
         #@ can do this by investigating self.getConfigFromSystem
 
         self._executor.execute("/etc/init.d/openvswitch-switch restart")
-
 
         print((self._exec("ip a", failOnError=True)))
         print((self._exec("ovs-vsctl show", failOnError=True)))
@@ -341,5 +335,5 @@ iface $bondname inet manual
         """
         Reasonable defaults  : mode=balance-tcp, lacp=active,fast, bondname=brname-Bond, all vlans allowed
         """
-        br = netcl.BondBridge(name,interfaces)
+        br = netcl.BondBridge(name, interfaces)
         br.create()

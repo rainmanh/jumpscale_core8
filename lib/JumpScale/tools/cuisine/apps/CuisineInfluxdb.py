@@ -16,11 +16,13 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.influxdb"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class Influxdb(base):
 
     @actionrun(action=True)
-    def install(self,dependencies=True, start=False):
+    def install(self, dependencies=True, start=False):
 
         if dependencies:
             self.cuisine.installer.base()
@@ -32,8 +34,8 @@ class Influxdb(base):
             self.cuisine.core.file_copy("/usr/local/etc/influxdb.conf", "$tmplsDir/cfg/influxdb/influxdb.conf")
 
         elif self.cuisine.core.isUbuntu:
-            self.cuisine.core.dir_ensure("$tmplsDir/cfg/influxdb",force=False)
-            C= """
+            self.cuisine.core.dir_ensure("$tmplsDir/cfg/influxdb", force=False)
+            C = """
             set -ex
             cd $tmpDir
             wget https://dl.influxdata.com/influxdb/releases/influxdb-0.13.0_linux_amd64.tar.gz
@@ -59,7 +61,7 @@ class Influxdb(base):
         self.cuisine.core.file_write('$cfgDir/influxdb/influxdb.conf', j.data.serializer.toml.dumps(cfg))
         cmd = "%s -config $cfgDir/influxdb/influxdb.conf" % (binPath)
         cmd = self.cuisine.core.args_replace(cmd)
-        self.cuisine.core.file_write("/opt/jumpscale8/bin/start_influxdb.sh",cmd,777,replaceArgs=True)
+        self.cuisine.core.file_write("/opt/jumpscale8/bin/start_influxdb.sh", cmd, 777, replaceArgs=True)
 
         if start:
             self.start()

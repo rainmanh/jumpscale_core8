@@ -72,16 +72,16 @@ class JSCuisineFactory:
             port = 22
 
         executor = None
-        if passwd == "":
+        if not passwd:
             #TODO: fix *1,goal is to test if ssh works, get some weird paramiko issues or timeout is too long
             res = j.clients.ssh.get(addr, port=port, login=login, passwd="", allow_agent=True,
                                     look_for_keys=True, timeout=0.5, key_filename=keyname, passphrase=passphrase, die=False)
-            if res != False:
-                executor = j.tools.executor.getSSHBased(addr=addr, port=port, login=login)
+            if res is not False:
+                executor = j.tools.executor.getSSHBased(addr=addr, port=port, login=login, pushkey=keyname, passphrase=passphrase)
             else:
                 passwd = j.tools.console.askPassword("please specify root passwd", False)
 
-        if pubkey == "" and executor == None:
+        if pubkey == "" and executor is None:
             if keyname == "":
                 rc, out = j.sal.process.execute("ssh-add -l")
                 keys = []
@@ -99,7 +99,7 @@ class JSCuisineFactory:
         else:
             key = None
 
-        if executor == None:
+        if executor is None:
             executor = j.tools.executor.getSSHBased(
                 addr=addr, port=port, login=login, passwd=passwd, pushkey=key, pubkey=pubkey)
 

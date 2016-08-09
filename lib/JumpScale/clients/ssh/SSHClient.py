@@ -171,14 +171,6 @@ class SSHClient:
             start = j.data.time.getTimeEpoch()
 
             if j.sal.nettools.waitConnectionTest(self.addr, self.port, self.timeout) is False:
-                curframe = inspect.currentframe()
-                calframes = inspect.getouterframes(curframe, 8)
-                stack = ['FILE:%s, LINE:%s, NAME: %s' % (calframe[1], calframe[2], calframe[
-                                                         3]) for calframe in calframes]
-                self.logger.error(
-                    '''\t ERROR WAS:
-                %s
-                ''' % '\n\t'.join(stack))
                 self.logger.error("Cannot connect to ssh server %s:%s with login:%s and using sshkey:%s" % (
                     self.addr, self.port, self.login, self.key_filename))
                 return None
@@ -388,7 +380,7 @@ class SSHClient:
     def cuisine(self):
         if self._cuisine is None:
             executor = j.tools.executor.getSSHBased(self.addr, self.port, self.login, self.passwd, allow_agent=self.allow_agent,
-                                                    look_for_keys=self.look_for_keys, timeout=self.timeout,
+                                                    look_for_keys=self.look_for_keys, pushkey=self.key_filename, timeout=self.timeout,
                                                     usecache=False)
             self._cuisine = executor.cuisine
         return self._cuisine

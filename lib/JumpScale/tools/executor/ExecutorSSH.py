@@ -64,15 +64,18 @@ class ExecutorSSH(ExecutorBase):
     @property
     def sshclient(self):
         if self._sshclient is None:
-            path = None
-            self._sshclient = j.clients.ssh.get(self.addr, self.port, login=self.login, passwd=self.passwd,
+            return self._getSSHClient()
+        return self._sshclient
+
+    def _getSSHClient(self, key_filename=None, passphrase=None):
+        self._sshclient = j.clients.ssh.get(self.addr, self.port, login=self.login, passwd=self.passwd,
                                                 allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,
-                                                key_filename=path, passphrase=None,
+                                                key_filename=key_filename, passphrase=passphrase,
                                                 timeout=self.timeout, usecache=False)  # TODO: add passphrase fo sshkeys (not urgent)
 
         return self._sshclient
 
-    def authenticate(self, pubkey, pushkey=None):
+    def authenticate(self, pubkey=None, pushkey=None, passphrase=None):
         """
         This will authenticate the ssh client to access the target machine
         using the given pubkey, If pushkey is set, that key will be loaded,
@@ -84,20 +87,26 @@ class ExecutorSSH(ExecutorBase):
                         in that case the file will be loaded from $HOME/.ssh/<pushkey>.pub
         :return:
         """
-        if pushkey is not None:
+        if not pubkey:
             if j.sal.fs.exists(pushkey):
                 path = pushkey
             else:
-                homedir = os.environ["HOME"]
-                path = "%s/.ssh/%s.pub" % (homedir, pushkey)
+                if j.do.checkSSHAgentAvailable():
+                    path = j.do.getSSHKeyPathFromAgent(pushkey, die=False)
+                    path = '%s' % path
+                if not path:
+                    homedir = os.environ["HOME"]
+                    path = "%s/.ssh/%s" % (homedir, pushkey)
 
-            if j.sal.fs.exists(path):
-                pubkey = j.sal.fs.fileGetContents(path)
-            else:
-                raise j.exceptions.RuntimeError("Could not find key:%s" % path)
+        self._getSSHClient(path, passphrase)  # should be the correct client now
+        self._sshclient._cuisine = self.cuisine
 
-        if pubkey != "":
-            self._sshclient.ssh_authorize("root", pubkey)
+        path = '%s.pub' % path
+        if j.sal.fs.exists(path):
+            pubkey = j.sal.fs.fileGetContents(path)
+        else:
+            raise j.exceptions.RuntimeError("Could not find key:%s" % path)
+        self._sshclient.ssh_authorize("root", pubkey)
 
     def execute(self, cmds, die=True, checkok=None, async=False, showout=True, timeout=0, env={}):
         """

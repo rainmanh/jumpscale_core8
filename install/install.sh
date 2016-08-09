@@ -79,6 +79,8 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
 elif [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
     # Do something under Windows NT platform
     export LANG=C; export LC_ALL=C
+    lynx -source rawgit.com/transcode-open/apt-cyg/master/apt-cyg > apt-cyg
+    install apt-cyg /bin
     apt-cyg install curl
     apt-cyg install openssl-devel
     apt-cyg install wget 

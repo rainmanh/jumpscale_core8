@@ -241,7 +241,7 @@ class PlatformType:
     def isVirtualBox(self):
         '''Check whether the system supports VirtualBox'''
         if self.isWindows():
-            #@TODO P3 Implement proper check if VBox on Windows is supported
+            # TODO: P3 Implement proper check if VBox on Windows is supported
             return False
         exitcode, stdout, stderr = j.sal.process.run(
             'lsmod |grep vboxdrv |grep -v grep', stopOnError=False)

@@ -56,7 +56,7 @@ class ActionsBaseNode:
                     unit = unit if unit != '' else 'B'
                     conn.download(url, path)
 
-                    # @TODO need a way to know if the file need to be executable or not
+                    # TODO: need a way to know if the file need to be executable or not
                     j.sal.fs.chmod(path, 0o775)
 
                 break
@@ -88,7 +88,7 @@ class ActionsBaseNode:
                     j.sal.fs.copyDirTree(
                         src, path, deletefirst=False, overwriteFiles=False, ssh=True, sshport=port, recursive=False)
 
-                    # @TODO need a way to know if the file need to be executable or not
+                    # TODO: need a way to know if the file need to be executable or not
                     j.sal.fs.chmod(path, 0o775)
 
                 break

@@ -84,5 +84,3 @@ Bringing all bridges down and set specified interface with an IP address or on d
 j.sal.netconfig.interface_configure_dhcp_waitdown(interface, ipaddr, gateway, mask, config)
 # config is a boolean variable that if set True then will store in linux configuration files
 ```
-
-@todo

@@ -105,7 +105,7 @@ remarks
     <jumpscripts.md>
     </jumpscripts.md>
 
-  - @TODO format needs to be different for a jumpscript then specified in Jumpscripts.md
+  - TODO: format needs to be different for a jumpscript then specified in Jumpscripts.md
 
 - if no domain/name path or content need to be specified, content get's prio otherwise read from path
 

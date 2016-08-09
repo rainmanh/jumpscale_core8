@@ -231,7 +231,7 @@ class RemoteSystemProcess(_remoteSystemObject):
         @return: represents the exitcode plus the output and error output (if enabled by withError) of the executed command. If exitcode is not zero then the executed command returned with errors
         """
 
-        #@Todo: Timeout, outputToStdout, loglevel not used
+        # TODO: Timeout, outputToStdout, loglevel not used
         # are they usefull are simply there for backwards compatibility?
 
         if j.core.platformtype.has_parent("unix"):
@@ -791,7 +791,7 @@ class RemoteSystemPortForward(_remoteSystemObject):
         if inThread:
             # Start a thread with the server -- that thread will then start one
             # more thread for each request
-            # @todo: Find a way to stop the forward without havinf to stop the process
+            # TODO: Find a way to stop the forward without having to stop the process
             server_thread = threading.Thread(target=LocalForwardServer(('', localPort), SubHandler).serve_forever)
             # Exit the server thread when the main thread terminates
             server_thread.setDaemon(True)

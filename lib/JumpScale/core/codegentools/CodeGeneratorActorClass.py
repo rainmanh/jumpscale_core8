@@ -55,7 +55,7 @@ class CodeGeneratorActorClass(CodeGeneratorBase):
 #             """
 #         elif methodcall == "datatables":
 #             s = """
-# return self.models.{modelname}.datatables() #@todo
+# return self.models.{modelname}.datatables()
 #             """
 #         elif methodcall == "create":
 #             s = """
@@ -181,7 +181,7 @@ self.appname="{appname}"
                 raise j.exceptions.RuntimeError(
                     "Cannot find default db, there needs to be fs,mem or arakoon specified as db on aktor level.")
 
-            if False:  # "redis" in dbtypes: #@todo
+            if False:  # TODO: "redis" in dbtypes:
                 if j.portal.server.active.rediscfg != None and appname != "system":
                     redisip, redisport, redisdb, rediskey = j.portal.server.active.startConnectRedisServer(
                         appname, actorname)

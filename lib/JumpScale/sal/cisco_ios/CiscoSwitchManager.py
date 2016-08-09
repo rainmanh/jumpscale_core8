@@ -20,7 +20,7 @@ class CiscoSwitch:
 
         R1 = Router(hostname=host, logfile='cisco.log')
         login_cmd = 'telnet ' + host
-        login_expect = '#'  # .format(hostname)  #@TODO NEEDS TO BE ADJUSTED
+        login_expect = '#'  # .format(hostname)  # TODO: NEEDS TO BE ADJUSTED
         out = R1.login(login_cmd, login, password, login_expect)
         # if out != R1._LOGIN_USERNAME_PROMPTS:
         #     R1.logout()
@@ -34,7 +34,7 @@ class CiscoSwitch:
         self.host = host
         self.login = login
         self.password = password
-        # if res != True: #adjust to check @TODO
+        # if res != True: # TODO: adjust to check
         #     raise j.exceptions.RuntimeError("Could not login into cisco switch: %s"%host)
 
         # inputsentence = []

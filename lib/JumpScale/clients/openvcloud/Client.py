@@ -8,16 +8,18 @@ CACHETIME = 60
 class Factory:
     def __init__(self):
         self.__jslocation__ = "j.clients.openvcloud"
-        self._clients = {}
+        # self._clients = {}
 
     def get(self, url, login, password=None, secret=None, port=443):
         dbkey = "%s:%s:%s" % (url, login, j.data.hash.md5_string(password))
-        if dbkey in self._clients:
-            return self._clients[dbkey]
-        else:
-            cl = Client(url, login, password, secret, port)
+        # if dbkey in self._clients:
+        #     return self._clients[dbkey]
+        # else:
+        #     cl = Client(url, login, password, secret, port)
 
-        self._clients[dbkey] = cl
+        # self._clients[dbkey] = cl
+
+        cl = Client(url, login, password, secret, port)
         return cl
 
 

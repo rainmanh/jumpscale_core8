@@ -106,7 +106,7 @@ class AtomEditor:
                 for k,v in snippets.items():
                     if k in merged:
                         merged[k].update(snippets[k])
-        with open("~/.atom/snippets.cson", 'w') as out:
+        with open(os.path.expanduser("~/.atom/snippets.cson", 'w')) as out:
             cson.dump(merged, out)
 
 
@@ -120,8 +120,8 @@ class AtomEditor:
 
     def installPythonExtensions(self):
         """
+        pip installs flake8, autopep8.
         """
-        # TODO: *1 implement atom plugin install
 
         C = """
         pip3 install autopep8

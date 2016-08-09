@@ -3,7 +3,6 @@
 from JumpScale import j
 
 from JumpScale.baselib.atyourservice.Service import *
-from JumpScale.baselib.atyourservice.Actor import *
 
 
 class ActorTemplate:

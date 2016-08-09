@@ -16,7 +16,7 @@ colored_traceback.add_hook(always=True)
 
 class AtYourServiceRepo():
 
-    def __init__(self, name, gitrepo, path, keephistory=True):
+    def __init__(self, name, gitrepo, path):
         self._init = False
 
         # self._justinstalled = []
@@ -44,12 +44,7 @@ class AtYourServiceRepo():
         # self._roletemplates = dict()
         self._servicesTree = {}
 
-        self._load_blueprints()
-        self.keephistory = keephistory
-        if self.keephistory:
-            self.db = j.servers.kvs.getFSStore("ays_%s" % self.name)
-        else:
-            self.db = None
+        self._db = None
 
 
 # INIT
@@ -75,13 +70,18 @@ class AtYourServiceRepo():
             self.uninstall()
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "Actors"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "services"))
-        self.db.destroy()
+        # self.db.destroy()
 
     @property
     def git(self):
         if self._git is None:
             self._git = j.clients.git.get(basedir=self.path, check_path=False)
         return self._git
+
+    @property
+    def db(self):
+        self._db = j.atyourservice.kvs.get(self.path)
+        return self._db
 
 # ACTORS
 

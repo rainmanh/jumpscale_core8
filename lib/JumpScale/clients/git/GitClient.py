@@ -30,7 +30,7 @@ class GitClient:
                 "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
         base = baseDir.split("/code/", 1)[1]
 
-        if not base.startswith('cockpit') or check_path:
+        if not base.startswith('cockpit') and check_path:
             if base.count("/") != 2:
                 raise j.exceptions.Input(
                     "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")

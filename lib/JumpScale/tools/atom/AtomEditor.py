@@ -1,6 +1,7 @@
-
 from JumpScale import j
-
+import os
+import cson
+import inspect
 
 class AtomEditor:
 
@@ -11,6 +12,7 @@ class AtomEditor:
     @property
     def packages(self):
         """
+        Lists all atom packages installed on your system.
         """
         if self._packages == []:
             cmd = "apm list -b"
@@ -32,15 +34,6 @@ class AtomEditor:
         rc, out = j.sal.process.execute(cmd, die=True, outputToStdout=False, ignoreErrorOutput=False)
 
     def installAll(self):
-        # TODO: *1 bug in installPackagesAll see below, 3x same & cache?
-        """
-        [Tue09 09:42] - ...umpScale/sal/process/SystemProcess.py:1336 - INFO     - exec:apm list -b
-        [Tue09 09:42] - ...umpScale/sal/process/SystemProcess.py:1383 - INFO     - system.process.execute [apm list -b]
-        [Tue09 09:42] - ...umpScale/sal/process/SystemProcess.py:1336 - INFO     - exec:apm list -b
-        [Tue09 09:42] - ...umpScale/sal/process/SystemProcess.py:1383 - INFO     - system.process.execute [apm list -b]
-        [Tue09 09:42] - ...umpScale/sal/process/SystemProcess.py:1336 - INFO     - exec:apm list -b
-        [Tue09 09:42] - ...umpScale/sal/process/SystemProcess.py:1383 - INFO     - system.process.execute [apm list -b]
-        """
         self.installPythonExtensions()
         self.installPackagesAll()
         self.installSnippets()
@@ -51,6 +44,7 @@ class AtomEditor:
         self.installPackagesPython()
 
     def installPackagesMarkdown(self):
+        "Installs packages for markdown"
         items = """
         language-markdown
         markdown-format
@@ -61,9 +55,9 @@ class AtomEditor:
         """
         for item in items.split("\n"):
             self.installPackage(item)
-        self._packages = []
 
     def installPackagesPython(self):
+        "Installs main python packages."
         items = """
         language-capnproto
         todo-manager
@@ -79,29 +73,48 @@ class AtomEditor:
         """
         for item in items.split("\n"):
             self.installPackage(item)
-        self._packages = []
 
     def installPackagesRaml(self):
+        "Installs RAML api-workbench package."
         items = """
         api-workbench
         """
         for item in items.split("\n"):
             self.installPackage(item)
-        self._packages = []
 
     def installSnippets(self):
-        # TODO: *1 get snippets.cson & copy to right directory
+        """Adds Jumpscale snippets to your atom snippets file."""
+
+        # Note : to add more snippets you they need to be on the same 'key'
+        # so we will do a snippets merge based on keys.
+        merged = {}
+        atomlocalsnippets = os.path.expanduser("~/.atom/snippets.cson")
+        if os.path.exists(atomlocalsnippets):
+            with open(atomlocalsnippets) as f:
+                merged = cson.load(f)
+        snippetspath = os.path.join(os.path.dirname(inspect.getfile(self.__class__)), "snippets.cson")
+        if os.path.exists(snippetspath):
+            with open(snippetspath)  as jssnippets:
+                snippets = cson.load(jssnippets)
+                for k,v in snippets.items():
+                    if k in merged:
+                        merged[k].update(snippets[k])
+        with open(os.path.expanduser("~/.atom/snippets.cson", 'w')) as out:
+            cson.dump(merged, out)
+
 
     def generateJummpscaleAutocompletion(self):
         # TODO: *1 use j.tools.objectinspector.inspect() (FIX) and generate jedi
         # code completion, check in ATOM that it works, needs to be installed
         # automatically
+        pass
+
         # TODO: walk over all jumpscale extensions & create autocompletion for atom and copy to appropriate directory
 
     def installPythonExtensions(self):
         """
+        pip installs flake8, autopep8.
         """
-        # TODO: *1 implement atom plugin install
 
         C = """
         pip3 install autopep8
@@ -109,3 +122,4 @@ class AtomEditor:
         pip3 install flake8-docstrings
         """
         rc, out = j.sal.process.execute(C, die=True, outputToStdout=False, ignoreErrorOutput=False)
+

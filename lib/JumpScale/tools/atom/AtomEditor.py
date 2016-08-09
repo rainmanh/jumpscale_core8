@@ -12,6 +12,7 @@ class AtomEditor:
     @property
     def packages(self):
         """
+        Lists all atom packages installed on your system.
         """
         if self._packages == []:
             cmd = "apm list -b"
@@ -33,15 +34,6 @@ class AtomEditor:
         rc, out = j.sal.process.execute(cmd, die=True, outputToStdout=False, ignoreErrorOutput=False)
 
     def installAll(self):
-        # TODO: *1 bug in installPackagesAll see below, 3x same & cache?
-        """
-        [Tue09 09:42] - ...umpScale/sal/process/SystemProcess.py:1336 - INFO     - exec:apm list -b
-        [Tue09 09:42] - ...umpScale/sal/process/SystemProcess.py:1383 - INFO     - system.process.execute [apm list -b]
-        [Tue09 09:42] - ...umpScale/sal/process/SystemProcess.py:1336 - INFO     - exec:apm list -b
-        [Tue09 09:42] - ...umpScale/sal/process/SystemProcess.py:1383 - INFO     - system.process.execute [apm list -b]
-        [Tue09 09:42] - ...umpScale/sal/process/SystemProcess.py:1336 - INFO     - exec:apm list -b
-        [Tue09 09:42] - ...umpScale/sal/process/SystemProcess.py:1383 - INFO     - system.process.execute [apm list -b]
-        """
         self.installPythonExtensions()
         self.installPackagesAll()
         self.installSnippets()
@@ -52,6 +44,7 @@ class AtomEditor:
         self.installPackagesPython()
 
     def installPackagesMarkdown(self):
+        "Installs packages for markdown"
         items = """
         language-markdown
         markdown-format
@@ -62,9 +55,9 @@ class AtomEditor:
         """
         for item in items.split("\n"):
             self.installPackage(item)
-        self._packages = []
 
     def installPackagesPython(self):
+        "Installs main python packages."
         items = """
         language-capnproto
         todo-manager
@@ -80,20 +73,20 @@ class AtomEditor:
         """
         for item in items.split("\n"):
             self.installPackage(item)
-        self._packages = []
 
     def installPackagesRaml(self):
+        "Installs RAML api-workbench package."
         items = """
         api-workbench
         """
         for item in items.split("\n"):
             self.installPackage(item)
-        self._packages = []
 
     def installSnippets(self):
-        #add to ~/.atom/snippets.cson
-        #NOTE: If we just append -> it'll overwrite it. We need to merge on keys not to lose old snippets the user got.
-        #So we merge on KEY.
+        """Adds Jumpscale snippets to your atom snippets file."""
+
+        # Note : to add more snippets you they need to be on the same 'key'
+        # so we will do a snippets merge based on keys.
         merged = {}
         atomlocalsnippets = os.path.expanduser("~/.atom/snippets.cson")
         if os.path.exists(atomlocalsnippets):

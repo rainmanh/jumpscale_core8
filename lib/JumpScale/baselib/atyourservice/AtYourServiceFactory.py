@@ -12,8 +12,9 @@ from JumpScale.baselib.atyourservice.AtYourServiceRepo import AtYourServiceRepo
 
 from JumpScale.baselib.atyourservice.AtYourServiceTester import AtYourServiceTester
 from JumpScale.baselib.atyourservice.AtYourServiceDB import AtYourServiceDB, AtYourServiceDBFactory
-# import capnp
-# import aysmodel_capnp as AYSModel
+
+import capnp
+import aysmodel_capnp as AYSModel
 
 import colored_traceback
 
@@ -59,7 +60,7 @@ class AtYourServiceFactory:
 
         self._test = None
 
-        # self.AYSModel = AYSModel
+        self.AYSModel = AYSModel
 
         self.kvs = AtYourServiceDBFactory()
 

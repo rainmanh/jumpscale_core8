@@ -181,7 +181,6 @@ class AtYourServiceFactory:
         """
         path is absolute path (if specified)
         """
-
         if ays_in_path_check and not gitrepo.name.startswith("ays_"):
             return result
 
@@ -217,6 +216,19 @@ class AtYourServiceFactory:
                     result = self._getActorTemplates(
                         gitrepo, servicepath, result)
         return result
+
+    def getService(self, key, die=True):
+        if key.count("!") != 2:
+            raise j.exceptions.Input("key:%s needs to be $repopath!$role!$instance" % key)
+        repopath, role, instance = key.split("!", 2)
+        if not self.exist(path=repopath):
+            if die:
+                raise j.exceptions.Input("service repo %s does not exist, could not retrieve ays service:%s" % (repopath, key))
+            else:
+                return None
+        repo = self.get(path=repopath)
+        return repo.getService(role=role, instance=instance, die=die)
+
 
     def actorTemplateGet(self, name, die=True):
         """

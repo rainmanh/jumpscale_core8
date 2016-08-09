@@ -74,9 +74,7 @@ class AtYourServiceFactory:
                 self.indocker = True
 
             # see if all specified ays templateRepo's are downloaded
-            # if we don't have write permissin on /opt don't try do download
-            # service templates
-
+            # if we don't have write permissin on /opt don't try do download service templates
             templateRepos = j.do.getGitReposListLocal()
 
             codeDir = j.tools.path.get(j.dirs.codeDir)
@@ -104,13 +102,14 @@ class AtYourServiceFactory:
                     templateRepos = j.do.getGitReposListLocal()
 
             for key, repopath in templateRepos.items():
-                gitrepo = j.clients.git.get(repopath)
+                gitrepo = j.clients.git.get(repopath, check_path=False)
+                self._templates.setdefault(gitrepo.name, {})
                 for templ in self._getActorTemplates(gitrepo, repopath):
-                    self._templates[templ.name] = templ
-
+                    self._templates[gitrepo.name][templ.name] = templ
+            self._init = True
             self.reposLoad()
 
-            self._init = True
+        self._init = True
 
     def reset(self):
         for templateRepo in self._templateRepos.values():
@@ -182,7 +181,6 @@ class AtYourServiceFactory:
         """
         path is absolute path (if specified)
         """
-
         if ays_in_path_check and not gitrepo.name.startswith("ays_"):
             return result
 
@@ -199,15 +197,16 @@ class AtYourServiceFactory:
 
         # check if this is already an actortemplate dir, if not no need to
         # recurse
-        tocheck = ['schema.hrd', 'service.hrd', 'actions_mgmt.py',
-                   'actions_node.py', 'model.py', 'actions.py', "model.capnp"]
-        exists = [True for aysfile in tocheck if j.sal.fs.exists(
-            '%s/%s' % (path, aysfile))]
+        if 'recipe' in path: # should't be getting recipes. Investigate
+            return result
+        tocheck = ['schema.hrd', 'service.hrd', 'actions_mgmt.py', 'actions_node.py', 'model.py', 'actions.py', "model.capnp"]
+        exists = [True for aysfile in tocheck if j.sal.fs.exists('%s/%s' % (path, aysfile))]
         if len(exists) > 0:
-            result.append(ActorTemplate(gitrepo, path))
-            if templ.name in self._templates:
-                raise j.exceptions.Input(
-                    "Found double template: %s" % templ.name)
+            templ = ActorTemplate(gitrepo, path)
+            if templ.name in self._templates[gitrepo.name]:
+                self.logger.debug('found %s in %s and %s' % (templ.name, path, self._templates[gitrepo.name][templ.name].path))
+                raise j.exceptions.Input("Found double template: %s" % templ.name)
+            result.append(templ)
         else:
             # not ays actor so lets see for subdirs
             for servicepath in j.sal.fs.listDirsInDir(path, recursive=False):
@@ -217,6 +216,19 @@ class AtYourServiceFactory:
                     result = self._getActorTemplates(
                         gitrepo, servicepath, result)
         return result
+
+    def getService(self, key, die=True):
+        if key.count("!") != 2:
+            raise j.exceptions.Input("key:%s needs to be $repopath!$role!$instance" % key)
+        repopath, role, instance = key.split("!", 2)
+        if not self.exist(path=repopath):
+            if die:
+                raise j.exceptions.Input("service repo %s does not exist, could not retrieve ays service:%s" % (repopath, key))
+            else:
+                return None
+        repo = self.get(path=repopath)
+        return repo.getService(role=role, instance=instance, die=die)
+
 
     def actorTemplateGet(self, name, die=True):
         """
@@ -282,8 +294,8 @@ class AtYourServiceFactory:
 
         if len(res) == 0:
             # did not find ays dir up or down
-            raise j.exceptions.Input(
-                "Cannot find AYS repo in:%s, need to find a .ays file in root of aysrepo, did walk up & down." % path)
+            j.logger.log('No AYS repos found in %s. need to find a .ays file in root of aysrepo, did walk up & down' % path)
+        #     raise j.exceptions.Input("Cannot find AYS repo in:%s, need to find a .ays file in root of aysrepo, did walk up & down." % path)
 
         # now load the repo's
         for path in res:
@@ -296,17 +308,8 @@ class AtYourServiceFactory:
             raise j.exceptions.Input(
                 "Cannot find ays templateRepo on path:%s" % path)
 
-        def findGitPath(gitpath):
-            while gitpath != "":
-                if j.sal.fs.exists(gitpath=j.sal.fs.joinPaths(gitpath, ".git")):
-                    return gitpath
-                gitpath = j.sal.fs.getParent(gitpath)
-                gitpath = gitpath.strip("/").strip()
-            raise j.exceptions.Input("Cannot find git path in:%s" % gitpath)
-
-        gitpath = findGitPath(path)
-
-        gitrepo = j.clients.git.get(gitpath)  # @todo (*1*) move into git.get
+        gitpath = j.clients.git.findGitPath(path)
+        gitrepo = j.clients.git.get(gitpath, check_path=False)
 
         name = j.sal.fs.getBaseName(path)
 
@@ -316,23 +319,17 @@ class AtYourServiceFactory:
 
         self._templateRepos[name] = AtYourServiceRepo(name, gitrepo, path)
 
-    def repoGet(self, name=""):
+    def repoGet(self, path=""):
         """
         @return:    @AtYourServiceRepo object
         """
         self._doinit()
 
-        # basename=j.sal.fs.getBaseName(cwd)
-        from IPython import embed
-        print("DEBUG NOW get repo")
-        embed()
-
+        name = j.sal.fs.getBaseName(path)
         if path:
             if path not in self._templateRepos:
                 if j.sal.fs.exists(path) and j.sal.fs.isDir(path):
-                    if not name:
-                        name = j.sal.fs.getBaseName(path)
-                    self._templateRepos[path] = AtYourServiceRepo(name, path)
+                    self._templateRepos[path] = AtYourServiceRepo(name=name, gitrepo=j.clients.git.findGitPath(path), path=path)
 
         else:
             # we want to retrieve  templateRepo by name
@@ -342,7 +339,7 @@ class AtYourServiceFactory:
                 path = j.sal.fs.getcwd()
                 if not name:
                     name = j.sal.fs.getBaseName(path)
-                self._templateRepos[path] = AtYourServiceRepo(name, path)
+                self._templateRepos[path] = AtYourServiceRepo(name, gitrepo=j.clients.git.findGitPath(path), path=path)
             elif len(result) > 1:
                 msg = "Multiple AYS templateRepos with name %s found under locations [%s]. Please use j.atyourservice.get(path=<path>) instead" % \
                     (name, ','.join(

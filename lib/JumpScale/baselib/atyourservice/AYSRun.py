@@ -104,6 +104,7 @@ class AYSRunStepAction(Process):
             self.logger.debug(
                 'running stepaction with error: %s' % self.service)
             self.logger.debug('\tresult:%s' % self.result)
+            self.logger.debug('\error:%s' % self._str_error(e))
             self.error_q.put(self._str_error(e))
             self.result_q.put(self.result)
             raise e
@@ -152,9 +153,8 @@ class AYSRunStep:
             stepaction.join()
 
         for stepaction in self.actions.values():
-            if not stepaction.error_q.empty():
-                print(stepaction.error_q.get())
-                stepaction.result = stepaction.result_q.get()
+            if not stepaction.exitcode != 0:
+                stepaction.result = stepaction.error_q.get()
                 stepaction.state = "ERROR"
                 self.state = "ERROR"
                 self.run.state = "ERROR"

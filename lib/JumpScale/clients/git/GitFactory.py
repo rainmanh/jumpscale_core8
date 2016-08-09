@@ -9,13 +9,13 @@ class GitFactory:
         self.__jslocation__ = "j.clients.git"
         self.logger = j.logger.get('j.clients.git')
 
-    def get(self, basedir=""):
+    def get(self, basedir="", check_path=True):
         """
         PLEASE USE SSH, see http://gig.gitbooks.io/jumpscale/content/Howto/how_to_use_git.html for more details
         """
         if basedir == "":
             basedir = j.sal.fs.getcwd()
-        return GitClient(basedir)
+        return GitClient(basedir, check_path=check_path)
 
     def find(self, account=None, name=None, interactive=False, returnGitClient=False):  # NOQA
         """
@@ -124,3 +124,11 @@ class GitFactory:
             result = repos
 
         return result
+
+    def findGitPath(self, path):
+        while path != "":
+            if j.sal.fs.exists(path=j.sal.fs.joinPaths(path, ".git")):
+                return path
+            path = j.sal.fs.getParent(path)
+            path = path.strip("/").strip()
+        raise j.exceptions.Input("Cannot find git path in:%s" % path)

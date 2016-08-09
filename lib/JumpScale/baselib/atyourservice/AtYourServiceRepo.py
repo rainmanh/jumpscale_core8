@@ -16,7 +16,7 @@ colored_traceback.add_hook(always=True)
 
 class AtYourServiceRepo():
 
-    def __init__(self, name, gitrepo, path):
+    def __init__(self, name, gitrepo, path, keephistory=True):
         self._init = False
 
         # self._justinstalled = []
@@ -35,7 +35,7 @@ class AtYourServiceRepo():
 
         self.path = path
 
-        self.git = gitrepo
+        self._git = gitrepo
 
         self.name = name
 
@@ -45,6 +45,11 @@ class AtYourServiceRepo():
         self._servicesTree = {}
 
         self._load_blueprints()
+        self.keephistory = keephistory
+        if self.keephistory:
+            self.db = j.servers.kvs.getFSStore("ays_%s" % self.name)
+        else:
+            self.db = None
 
 
 # INIT
@@ -75,7 +80,7 @@ class AtYourServiceRepo():
     @property
     def git(self):
         if self._git is None:
-            self._git = j.clients.git.get(basedir=self.path)
+            self._git = j.clients.git.get(basedir=self.path, check_path=False)
         return self._git
 
 # ACTORS
@@ -373,6 +378,7 @@ class AtYourServiceRepo():
         print("blueprint done")
 
     def blueprintGet(self, path):
+
         self._doinit()
         for bp in self.blueprints:
             if bp.path == path:
@@ -562,7 +568,7 @@ class AtYourServiceRepo():
         self._doinit()
         if message == "":
             message = "log changes for repo:%s" % self.name
-        gitcl = j.clients.git.get(self.path)
+        gitcl = j.clients.git.get(self.path, check_path=False)
         if branch != "master":
             gitcl.switchBranch(branch)
 
@@ -574,7 +580,7 @@ class AtYourServiceRepo():
 
     def update(self, branch="master"):
         j.atyourservice.updateTemplates()
-        gitcl = j.clients.git.get(self.path)
+        gitcl = j.clients.git.get(self.path, check_path=False)
         if branch != "master":
             gitcl.switchBranch(branch)
         gitcl.pull()
@@ -586,7 +592,7 @@ class AtYourServiceRepo():
                           instance=instance, state='DO')
 
         run = self.getRun(action="install", force=force)
-        print("RUN:UNINSTALL")
+        print("RUN:INSTALL")
         print(run)
         run.execute()
 

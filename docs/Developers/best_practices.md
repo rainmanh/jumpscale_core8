@@ -32,28 +32,7 @@ pip3 install flake8
 pip3 install flake8-docstrings
 ```
 
-- must have extension
 
-  - Python Autopep8
-  - Python Tools
-  - Python Indent
-  - Linter Python Pep8
-  - Linter Flake8
-  - Autocomplete Python
-  - Git Time Machine
-  - todo-manager
-  - bottom-dock
-
-- if you work with markdown
-
-  - Markdown Mindmap
-  - Markdown Scroll Sync
-  - Linter Markdown
-  - Markdown Pdf
-  - Markdown Toc
-  - Markdown Folder
-  - Language Markdown
-  - Tool Bar Markdown Writer
 
 - if you work with raml (API definition format)
 

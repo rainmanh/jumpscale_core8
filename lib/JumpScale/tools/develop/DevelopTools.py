@@ -358,16 +358,3 @@ class DevelopToolsFactory:
                 time.sleep(0.1)
         except KeyboardInterrupt:
             pass
-
-    def installAtomPlugins(self):
-        """
-        """
-        # TODO: *1 implement atom plugin install
-
-        C = """
-        pip3 install autopep8
-        pip3 install flake8
-        pip3 install flake8-docstrings
-        """
-
-        # TODO: walk over all jumpscale extensions & create autocompletion for atom and copy to appropriate directory

@@ -300,12 +300,12 @@ class AtYourServiceRepo():
         if first:
             if len(res) == 0:
                 raise j.exceptions.Input("cannot find service %s|%s:%s (%s)" % (
-                    domain, name, instance, version), "ays.findServices")
+                    domain, name, instance, version), "ays.servicesFind")
             return res[0]
         return res
 
     def serviceFindProducer(self, producercategory, instancename):
-        for item in self.findServices(instance=instancename):
+        for item in self.servicesFind(instance=instancename):
             if producercategory in item.categories:
                 return item
 
@@ -314,7 +314,7 @@ class AtYourServiceRepo():
         @return set of services that consumes target
         """
         result = set()
-        for service in self.findServices():
+        for service in self.servicesFind():
             if target.isConsumedBy(service):
                 result.add(service)
         return result
@@ -394,7 +394,7 @@ class AtYourServiceRepo():
         """
         # create a scope in which we need to find work
         producerRoles = self._processProducerRoles(producerRoles)
-        scope = set(self.findServices(
+        scope = set(self.servicesFind(
             role=role, instance=instance, hasAction=action))
         for service in scope:
             producer_candidates = service.getProducersRecursive(
@@ -468,7 +468,7 @@ class AtYourServiceRepo():
 
         run = AYSRun(self, simulate=simulate)
         for action0 in actions:
-            scope = self.findActionScope(
+            scope = self.runFindActionScope(
                 action=action0, role=role, instance=instance, producerRoles=producerRoles)
             todo = self._findTodo(
                 action=action0, scope=scope, run=run, producerRoles=producerRoles)

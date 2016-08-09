@@ -1,6 +1,7 @@
 from JumpScale import j
 import logging
 
+
 class JSLogger(logging.Logger):
 
     def __init__(self, name):
@@ -39,12 +40,12 @@ class JSLogger(logging.Logger):
         if self.isEnabledFor(logging.CRITICAL):
             eco = j.errorconditionhandler.getErrorConditionObject(
                 ddict={}, msg=msg, msgpub=msg, category=self.name,
-                level=logging.CRITICAL, type=logging.getLevelName(logging.CRITICAL),
+                level=logging.CRITICAL, type=logging.getLevelName(
+                    logging.CRITICAL),
                 tb=None, tags='')
             j.errorconditionhandler._send2Redis(eco)
 
             self._log(logging.CRITICAL, msg, args, **kwargs)
-
 
     def enable_only_me(self):
         """
@@ -62,5 +63,6 @@ class JSLogger(logging.Logger):
         Disable filtering on only this logger
         """
         if self.__only_me and 'console' in j.logger.handlers:
-            j.logger.handlers['console'].removeFilter(self.custom_filters['only_me'])
+            j.logger.handlers['console'].removeFilter(
+                self.custom_filters['only_me'])
             self.__only_me = False

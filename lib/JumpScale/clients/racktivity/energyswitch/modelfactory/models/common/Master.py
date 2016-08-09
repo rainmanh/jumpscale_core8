@@ -4,11 +4,14 @@ from JumpScale.clients.racktivity.energyswitch.modelfactory.models.common.BaseMo
 
 
 class Master(BaseModule):
+
     def __init__(self, parent):
         super(Master, self).__init__(parent)
         self._guidTable.update({
-            10001: Value(u"type='TYPE_STRING'\nsize=32\nlength=32\nunit=''\nscale=0"),  # ModuleName
-            10087: Value(u"type='TYPE_EVENTFLAGS'\nsize=1\nlength=1\nunit=''\nscale=0")  # TemperatureWarningEvent
+            # ModuleName
+            10001: Value(u"type='TYPE_STRING'\nsize=32\nlength=32\nunit=''\nscale=0"),
+            # TemperatureWarningEvent
+            10087: Value(u"type='TYPE_EVENTFLAGS'\nsize=1\nlength=1\nunit=''\nscale=0")
         })
 
     def getModuleName(self):
@@ -17,7 +20,8 @@ class Master(BaseModule):
         length = 1
         moduleID = 'M1'
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setModuleName(self, value):
@@ -25,22 +29,24 @@ class Master(BaseModule):
         portnumber = 0
         moduleID = 'M1'
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
-    #The pointer
+    # The pointer
     def getMasterPointer(self):
         moduleID = "M1"
         return self._getPointerData(moduleID)
 
-    #TemperatureWarningEvent
+    # TemperatureWarningEvent
     def getTemperatureWarningEvent(self):
         guid = 10087
         moduleID = 'M1'
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setTemperatureWarningEvent(self, value):
@@ -48,5 +54,6 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)

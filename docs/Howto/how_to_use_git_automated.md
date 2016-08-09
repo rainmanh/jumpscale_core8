@@ -1,4 +1,4 @@
-## How to Use Git Automated
+# How to Use Git Automated
 
 We have a handy tool `jscode` to make working with source code easier.
 
@@ -31,10 +31,9 @@ optional arguments:
   -f, --force           auto answer yes on every question
   -d, --deletechanges   will delete all changes when doing update
   -o, --onlychanges     will only do an action where modified files are found
-
 ```
 
-### jscode init
+## jscode init
 
 ```bash
 jscode init
@@ -47,13 +46,12 @@ jscode init
 
 > If you entered a passphrase for your key, you will get asked for it when you do a relogin
 
+## jscode status and jscode list
 
-### jscode status and jscode list
 - `jscode status` shows all the code repos status (if it has local modifications)
 - `jscode list` shows the remote `URLs`
 
-
-### jscode commit
+## jscode commit
 
 Commits changes in a repo (or all repos).
 
@@ -65,12 +63,11 @@ jscode commit -a jumpscale -r default_doc_jumpscale -m "example message"
 
 If any of the arguments are not supplied by the user, they will be interactively asked.
 
--   a: github account name
--   r: repo name
--   m: message
+- a: github account name
+- r: repo name
+- m: message
 
-
-### jscode update
+## jscode update
 
 Pulls all new remote changes to local clone.
 
@@ -78,7 +75,7 @@ Pulls all new remote changes to local clone.
 jscode update
 ```
 
-### jscode push
+## jscode push
 
 Pushes all local commitsto remote.
 
@@ -86,7 +83,7 @@ Pushes all local commitsto remote.
 jscode push -m "message"
 ```
 
-### status
+## status
 
 ```shell
 jscode status

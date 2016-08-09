@@ -2,6 +2,7 @@ from JumpScale import j
 
 from servers.key_value_store.fs_store import FileSystemKeyValueStore
 
+
 class StoreFactory:
     '''
     The key value store factory provides logic to retrieve store instances. It
@@ -30,7 +31,7 @@ class StoreFactory:
     #         self._cache[key] = MongoDBKeyValueStore(namespace)
     #     return self._cache[key]
 
-    def getFSStore(self, namespace='', baseDir=None,serializers=[]):
+    def getFSStore(self, namespace='', baseDir=None, serializers=[]):
         '''
         Gets a file system key value store.
 
@@ -46,15 +47,15 @@ class StoreFactory:
         @return: key value store
         @rtype: FileSystemKeyValueStore
         '''
-        
-        if serializers==[]:
-            serializers=[j.data.serializer.serializers.getMessagePack()]
+
+        if serializers == []:
+            serializers = [j.data.serializer.serializers.getMessagePack()]
 
         key = '%s_%s' % ("fs", namespace)
         if key not in self._cache:
-            if namespace=="":
-                namespace="main"
-            self._cache[key] = FileSystemKeyValueStore(namespace, baseDir=baseDir,serializers=serializers)
+            if namespace == "":
+                namespace = "main"
+            self._cache[key] = FileSystemKeyValueStore(namespace, baseDir=baseDir, serializers=serializers)
         return self._cache[key]
 
     def getMemoryStore(self, namespace=None):
@@ -67,7 +68,7 @@ class StoreFactory:
         from servers.key_value_store.memory_store import MemoryKeyValueStore
         return MemoryKeyValueStore(namespace)
 
-    def getRedisStore(self, namespace='',host='localhost',port=6379,db=0,password='',serializers=None,masterdb=None,changelog=True):
+    def getRedisStore(self, namespace='', host='localhost', port=6379, db=0, password='', serializers=None, masterdb=None, changelog=True):
         '''
         Gets a memory key value store.
 
@@ -83,10 +84,11 @@ class StoreFactory:
         from servers.key_value_store.redis_store import RedisKeyValueStore
         key = '%s_%s_%s' % ("redis", port, namespace)
         if key not in self._cache:
-            self._cache[key] = RedisKeyValueStore(namespace=namespace,host=host,port=port,db=db,password=password,serializers=serializers,masterdb=masterdb, changelog=changelog)
+            self._cache[key] = RedisKeyValueStore(namespace=namespace, host=host, port=port, db=db,
+                                                  password=password, serializers=serializers, masterdb=masterdb, changelog=changelog)
         return self._cache[key]
 
-    def getLevelDBStore(self, namespace='',basedir=None,serializers=[]):
+    def getLevelDBStore(self, namespace='', basedir=None, serializers=[]):
         '''
         Gets a leveldb key value store.
 
@@ -101,10 +103,10 @@ class StoreFactory:
         from servers.key_value_store.leveldb_store import LevelDBKeyValueStore
         key = '%s_%s' % ("leveldb", namespace)
         if key not in self._cache:
-            self._cache[key] = LevelDBKeyValueStore(namespace=namespace,basedir=basedir,serializers=serializers)
+            self._cache[key] = LevelDBKeyValueStore(namespace=namespace, basedir=basedir, serializers=serializers)
         return self._cache[key]
 
-    def getTarantoolDBStore(self, namespace='',host='localhost',port=6379,db=0,password='',serializers=[]):
+    def getTarantoolDBStore(self, namespace='', host='localhost', port=6379, db=0, password='', serializers=[]):
         '''
         Gets a leveldb key value store.
 
@@ -119,5 +121,6 @@ class StoreFactory:
         from servers.key_value_store.tarantool_store import TarantoolStore
         key = '%s_%s' % ("tarantooldb", namespace)
         if key not in self._cache:
-            self._cache[key] = TarantoolStore(namespace=namespace,host='localhost',port=6379,db=0,password='',serializers=serializers)
+            self._cache[key] = TarantoolStore(namespace=namespace, host='localhost',
+                                              port=6379, db=0, password='', serializers=serializers)
         return self._cache[key]

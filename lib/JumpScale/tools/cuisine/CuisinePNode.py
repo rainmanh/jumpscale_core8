@@ -1,13 +1,18 @@
 from JumpScale import j
 
 from ActionDecorator import ActionDecorator
+
+
 class actionrun(ActionDecorator):
-    def __init__(self,*args,**kwargs):
-        ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.pnode"
+
+    def __init__(self, *args, **kwargs):
+        ActionDecorator.__init__(self, *args, **kwargs)
+        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.pnode"
 
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class CuisinePNode(base):
 
     def __init__(self, executor, cuisine):
@@ -40,10 +45,10 @@ class CuisinePNode(base):
 
         return None
 
-
     """
     Disk stuff
     """
+
     def _ensureDevName(self, device):
         if not device.startswith("/dev"):
             return "/dev/%s" % device
@@ -123,7 +128,7 @@ class CuisinePNode(base):
             self.cuisine.core.run('umount %s' % partition, die=False)
 
     @actionrun()
-    def erase(self,keepRoot=True):
+    def erase(self, keepRoot=True):
         """
         if keepRoot == True:
             find boot/root/swap partitions and leave them untouched (check if mirror, leave too)
@@ -158,30 +163,28 @@ class CuisinePNode(base):
         self.cuisine.core.run(cmd)
 
     @actionrun()
-    def exportRoot(self, source="/", destination="/image.tar.gz",excludes=["\.pyc","__pycache__"]):
+    def exportRoot(self, source="/", destination="/image.tar.gz", excludes=["\.pyc", "__pycache__"]):
         """
         Create an archive of a remote file system
         @param excludes is list of regex matches not to include while doing export
         """
         cmd = 'tar -zpcf %s --exclude=%s --one-file-system %s' % (destination, destination, source)
         self.cuisine.core.run(cmd)
-        #@todo (*1*) implement excludes (does not have to be regex is other method more easy)
-
+        #TODO: *1 implement excludes (does not have to be regex is other method more easy)
 
     @actionrun()
-    def exportRootStor(self, storspace,plistname,source="/",excludes=["\.pyc","__pycache__"],removetmpdir=True):
+    def exportRootStor(self, storspace, plistname, source="/", excludes=["\.pyc", "__pycache__"], removetmpdir=True):
         """
         reason to do this is that we will use this to then make the step to g8os with g8osfs (will be very small step then)
 
         """
-        #@todo (*1*) implement using CuisineStor space
+        #TODO: *1 implement using CuisineStor space
         pass
 
     @actionrun()
-    def importRootDedupe(self, storspace,plistname, destination="/mnt/",removetmpdir=True):
-        #@todo (*1*) implement using CuisineStor space
+    def importRootDedupe(self, storspace, plistname, destination="/mnt/", removetmpdir=True):
+        #TODO: *1 implement using CuisineStor space
         pass
-
 
     @actionrun()
     def formatStorage(self, keepRoot=True, mountpoint="/storage"):
@@ -190,7 +193,7 @@ class CuisinePNode(base):
         use metadata & data in raid1 (if at least 2 disk)
         make sure they are in fstab so survices reboot
         """
-        if self.hwplatform!="amd64":
+        if self.hwplatform != "amd64":
             raise j.exceptions.Input("only amd64 hw platform supported")
 
         # grab the list of all disks on the machine
@@ -209,7 +212,7 @@ class CuisinePNode(base):
         for disk in disks:
             setup.append(self._ensureDevName(disk))
 
-        if not len(setup)==0:
+        if not len(setup) == 0:
 
             disklist = ' '.join(setup)
 
@@ -218,7 +221,7 @@ class CuisinePNode(base):
             self.cuisine.core.run('mount %s %s' % (setup[0], mountpoint))
 
         else:
-            #check if no mounted btrfs partition yet and create if required
+            # check if no mounted btrfs partition yet and create if required
             self.cuisine.btrfs.subvolumeCreate(mountpoint)
 
     @actionrun()
@@ -226,7 +229,7 @@ class CuisinePNode(base):
         """
 
         """
-        #@todo cuisine enable https://github.com/g8os/builder
+        #TODO: cuisine enable https://github.com/g8os/builder
 
     @actionrun()
     def buildArchImage(self):
@@ -235,22 +238,21 @@ class CuisinePNode(base):
         """
 
     @actionrun()
-    def installArch(self,rootsize=5):
+    def installArch(self, rootsize=5):
         """
         install arch on $rootsize GB root partition
         """
-        if self.hwplatform!="amd64":
+        if self.hwplatform != "amd64":
             raise j.exceptions.Input("only amd64 hw platform supported")
-        #manual partitioning
-        #get tgz from url="https://stor.jumpscale.org/public/ubuntu....tgz"
+        # manual partitioning
+        # get tgz from url="https://stor.jumpscale.org/public/ubuntu....tgz"
 
     @actionrun()
-    def installG8OS(self,rootsize=5):
+    def installG8OS(self, rootsize=5):
         """
         install g8os on $rootsize GB root partition
         """
-        if self.hwplatform!="amd64":
+        if self.hwplatform != "amd64":
             raise j.exceptions.Input("only amd64 hw platform supported")
-        #manual partitioning
-        #get tgz from url="https://stor.jumpscale.org/public/ubuntu....tgz"
-
+        # manual partitioning
+        # get tgz from url="https://stor.jumpscale.org/public/ubuntu....tgz"

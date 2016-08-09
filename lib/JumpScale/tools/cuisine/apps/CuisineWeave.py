@@ -16,7 +16,9 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.weave"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class Weave(base):
 
     def __init__(self, executor, cuisine):

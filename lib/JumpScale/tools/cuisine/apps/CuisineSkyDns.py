@@ -11,11 +11,14 @@ the build doesnt place anyfile outside opt as it will be used in aysfs mounted s
 
 
 class actionrun(ActionDecorator):
+
     def __init__(self, *args, **kwargs):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.skydns"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class SkyDns(base):
 
     def __init__(self, executor, cuisine):
@@ -25,7 +28,7 @@ class SkyDns(base):
     @actionrun(action=True)
     def build(self, start=True):
         self.cuisine.golang.install()
-        self.cuisine.golang.get("github.com/skynetservices/skydns",action=True)
+        self.cuisine.golang.get("github.com/skynetservices/skydns", action=True)
         self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'skydns'), '$binDir', action=True)
         self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"))
 

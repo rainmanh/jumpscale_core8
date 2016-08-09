@@ -7,9 +7,8 @@ sizerec = re.compile("^(?P<size>[\d\.]+)(?P<unit>[A-Z])")
 virtualsizerec = re.compile("\((?P<size>[\d\.]+)\sbytes\)")
 
 
-
-
 class QemuImg:
+
     def __init__(self):
         self.__jslocation__ = "j.sal.qemu_img"
 
@@ -47,7 +46,8 @@ class QemuImg:
         if baseImage:
             command = '%s -b %s' % (command, baseImage)
 
-        command = '%(command)s -f %(diskImageFormat)s %(fileName)s' % {'command': command, 'diskImageFormat': diskImageFormat, 'fileName': fileName}
+        command = '%(command)s -f %(diskImageFormat)s %(fileName)s' % {
+            'command': command, 'diskImageFormat': diskImageFormat, 'fileName': fileName}
 
         if size != None:
             command = '%(command)s %(size)sK' % {'command': command, 'size': size}

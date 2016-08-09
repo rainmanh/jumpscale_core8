@@ -3,17 +3,19 @@ from JumpScale import j
 Provides the Params object and the ParamsFactory that is used in the Q-Tree
 """
 
+
 class ParamsFactory:
     """
     This factory can create new Params objects
     """
+
     def __init__(self):
         self.__jslocation__ = "j.data.params"
 
     def get(self, dictObject={}):
         """
         Create and return a new Params object
-        
+
         @param dictObject when dict given then dict will be converted into params
         @return: a new Params object
         @rtype: Params
@@ -31,10 +33,12 @@ class ParamsFactory:
         """
         return isinstance(p, Params)
 
+
 class Params:
+
     def __init__(self, dictObject=None):
-        if dictObject!=None:
-            self.__dict__ = dictObject      
+        if dictObject != None:
+            self.__dict__ = dictObject
 
     def merge(self, otherParams):
         self.__dict__.update(otherParams.__dict__)
@@ -48,7 +52,7 @@ class Params:
     def __getitem__(self, key):
         return self.__dict__[key]
 
-    def expandParamsAsDict(self,**kwargs):
+    def expandParamsAsDict(self, **kwargs):
         """
         adds paramsExtra, tags & params from requestContext if it exists
         return as dict
@@ -70,28 +74,28 @@ class Params:
 
 
         """
-        params=self
-        params2=params.getDict()
-        if "paramsExtra" in params and params.paramsExtra!=None:
+        params = self
+        params2 = params.getDict()
+        if "paramsExtra" in params and params.paramsExtra != None:
             params2.update(params.paramsExtra)
-        if "requestContext" in params and params.requestContext!=None:
+        if "requestContext" in params and params.requestContext != None:
             params2.update(params.requestContext.params)
-        if "tags" in params and params2["tags"]!="":
+        if "tags" in params and params2["tags"] != "":
             params2.update(params2["tags"].getDict())
-        for item in ["requestContext","tags","paramsExtra"]:
+        for item in ["requestContext", "tags", "paramsExtra"]:
             if item in params:
                 params2.pop(item)
 
-        if len(kwargs)==0:
+        if len(kwargs) == 0:
             return params2
 
-        result={}
+        result = {}
         for key in list(kwargs.keys()):
             if key in params2:
-                result[key]=params2[key]
+                result[key] = params2[key]
         return result
 
-    def expandParams(self,**kwargs):
+    def expandParams(self, **kwargs):
         """
         adds paramsExtra, tags & params from requestContext if it exists
         returns params but not needed because params just get modified to have all these extra arguments/params as properties
@@ -100,28 +104,29 @@ class Params:
 
         """
         def getArgs(d):
-            r={}
-            reserved=["name","doc","macro","macrostr","cmdstr","page","tags"]
+            r = {}
+            reserved = ["name", "doc", "macro",
+                        "macrostr", "cmdstr", "page", "tags"]
             for key in list(d.keys()):
                 if key in reserved:
-                    r["arg_%s"%key]=d[key]
+                    r["arg_%s" % key] = d[key]
                 else:
-                    r[key]=d[key]
+                    r[key] = d[key]
             return r
 
-        if "paramsExtra" in self and self.paramsExtra!=None:
+        if "paramsExtra" in self and self.paramsExtra != None:
             self.setDict(getArgs(self.paramsExtra))
             # self.pop("paramsExtra")
-        if "requestContext" in self and self.requestContext!=None:
+        if "requestContext" in self and self.requestContext != None:
             self.setDict(getArgs(self.requestContext.params))
             # self.pop("requestContext")
-        if "tags" in self and self.tags!="":
+        if "tags" in self and self.tags != "":
             self.setDict(getArgs(self.tags.getDict()))
             # self.pop("tags")
 
         for argname in list(kwargs.keys()):
             if argname not in self.__dict__:
-                self.__dict__[argname]=kwargs[argname]
+                self.__dict__[argname] = kwargs[argname]
 
         return self
 
@@ -137,7 +142,7 @@ class Params:
             return default
         return tag
 
-    def pop(self,key):
+    def pop(self, key):
         if key in self:
             self.__dict__.pop(key)
 
@@ -147,7 +152,7 @@ class Params:
     def getDict(self):
         return self.__dict__
 
-    def setDict(self,dictObject):
+    def setDict(self, dictObject):
         self.__dict__.update(dictObject)
 
     def extend(self, params):
@@ -165,7 +170,7 @@ class Params:
             d = params
         else:
             raise TypeError("Argument params is of an unknown type %s" %
-                    type(params))
+                            type(params))
 
         self.__dict__.update(d)
 

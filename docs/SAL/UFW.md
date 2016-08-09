@@ -1,54 +1,55 @@
-## UFW
+# UFW
 
-```py
+```python
 j.sal.ufw
 ```
 
-### This library allows the user to configure the uncomplicated firewall(UFW) by doing the following:
+## This library allows the user to configure the uncomplicated firewall(UFW) by doing the following:
 
-* Enabling and disabling the firewall
+- Enabling and disabling the firewall
 
-```py
+```python
 j.sal.ufw.enabled(value)
 ```
 
-* Getting the current status of the firewall
+- Getting the current status of the firewall
 
-```py
+```python
 j.sal.ufw.enabled()
 ```
 
-* Adding, removing and listing firewal rules
+- Adding, removing and listing firewal rules
 
-```py
+```python
 j.sal.ufw.addRule(action, source, destination)
 j.sal.ufw.removeRule(rule)
 j.sal.ufw.rules()
 ```
 
-* These are the supported actions:
-  * ACTION_ALLOW_IN
-  * ACTION_ALLOW_OUT
-  * ACTION_DENY_IN
-  * ACTION_DENY_OUT
-  * ACTION_REJECT_IN
-  * ACTION_REJECT_OUT
- 
-* Resetting the firewall by deleting all the rules
+- These are the supported actions:
 
-```py
+  - ACTION_ALLOW_IN
+  - ACTION_ALLOW_OUT
+  - ACTION_DENY_IN
+  - ACTION_DENY_OUT
+  - ACTION_REJECT_IN
+  - ACTION_REJECT_OUT
+
+- Resetting the firewall by deleting all the rules
+
+```python
 j.sal.ufw.reset()
 ```
 
-* Opening and closing ports
+- Opening and closing ports
 
-```py
+```python
 j.sal.ufw.portOpen(port)
 j.sal.ufw.portClose(port)
 ```
 
 The `commit`method must be called to apply all pending changes to the firwall:
 
-```py
+```python
 j.sal.ufw.commit()
 ```

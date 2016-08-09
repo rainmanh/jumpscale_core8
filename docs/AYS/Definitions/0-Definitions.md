@@ -1,4 +1,4 @@
-## AYS Definitions
+# AYS Definitions
 
 - [AYS Repositories](1-Repositories.md)
 - [AYS Templates, Recipes & Instances](2-Templates-Recipes-Instances.md)

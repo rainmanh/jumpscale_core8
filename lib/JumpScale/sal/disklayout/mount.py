@@ -1,16 +1,19 @@
 from JumpScale import j
 
+
 class MountError(Exception):
     pass
 
 
 class Mount:
+
     def __init__(self,  device, path=None, options=''):
         self._device = device
         self._path = path
         self._autoClean = False
         if self._path is None:
-            self._path = j.tools.path.get('/tmp').joinpath(j.data.idgenerator.generateXCharID(8))
+            self._path = j.tools.path.get(
+                '/tmp').joinpath(j.data.idgenerator.generateXCharID(8))
             self._autoClean = True
         self._options = options
 

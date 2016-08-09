@@ -133,6 +133,7 @@ class QSocketServer:
 
 
 class QSocketServerFactory:
+
     def __init__(self):
         self.__jslocation__ = "j.servers.socketserver"
 

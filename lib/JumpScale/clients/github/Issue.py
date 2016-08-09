@@ -6,6 +6,7 @@ from Milestone import RepoMilestone
 
 
 class Issue(Base):
+
     def __init__(self, repo, ddict={}, githubObj=None):
         self.logger = j.logger.get('j.clients.github.issue')
         self.repo = repo
@@ -40,11 +41,13 @@ class Issue(Base):
 
         with self._lock:
             if self._comments is None:
-                self.logger.debug("Loading comments for issue: %s" % self.number)
+                self.logger.debug(
+                    "Loading comments for issue: %s" % self.number)
                 self._comments = []
                 for comment in self.api.get_comments():
                     obj = {}
-                    user = self.repo.client.getUserLogin(githubObj=comment.user)
+                    user = self.repo.client.getUserLogin(
+                        githubObj=comment.user)
                     obj["user"] = user
                     obj["url"] = comment.url
                     obj["id"] = comment.id
@@ -107,7 +110,8 @@ class Issue(Base):
 
     @property
     def labels(self):
-        #we return a copy so changing the list doesn't actually change the ddict value
+        # we return a copy so changing the list doesn't actually change the
+        # ddict value
         return self._ddict["labels"][:]
 
     @property
@@ -273,7 +277,8 @@ class Issue(Base):
         self._ddict["time"] = j.data.time.any2HRDateTime(
             [self.api.last_modified, self.api.created_at])
 
-        self.logger.debug("LOAD:%s %s" % (self.repo.fullname, self._ddict["title"]))
+        self.logger.debug("LOAD:%s %s" %
+                          (self.repo.fullname, self._ddict["title"]))
 
         if self.api.milestone is None:
             self._ddict["milestone"] = ""

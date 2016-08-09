@@ -1,4 +1,4 @@
-## cuisine.ssh
+# cuisine.ssh
 
 The `cuisine.ssh` module for remote SSH management.
 
@@ -11,6 +11,6 @@ Examples of methods inside `ssh`:
 - **sshagent_add**: ldd a pair of keys to a runnig ssh agent
 - **sshagent_remove**: lemove a pair of keys to a runnig ssh agent
 - **test_login**: lest ssh login for a range of ips using a password
-- **test_login_pushkey**: lest ssh login for a range of ips using a public key     
+- **test_login_pushkey**: lest ssh login for a range of ips using a public key
 - **unauthorize**: lemoves the given key from the remote '.ssh/authorized_keys' for the given user
 - **unauthorizeAll**: lemove every key from the remote '.ssh/authorized_keys'

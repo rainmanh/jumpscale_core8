@@ -3,6 +3,7 @@ import yaml
 
 CATEGORY = "ays:bp"
 
+
 class Blueprint:
     """
     """
@@ -11,11 +12,11 @@ class Blueprint:
         self.logger = j.logger.get('j.atyourservice.blueprint')
         self.aysrepo = aysrepo
         self.path = path
-        self.active=True
+        self.active = True
         if path != "":
             self.name = j.sal.fs.getBaseName(path)
-            if self.name[0]=="_":
-                self.active=False
+            if self.name[0] == "_":
+                self.active = False
             self.name = self.name.lstrip('_')
             self.content = j.sal.fs.fileGetContents(path)
         else:
@@ -34,7 +35,8 @@ class Blueprint:
         content = ""
 
         nr = 0
-        # we need to do all this work because the yaml parsing does not maintain order because its a dict
+        # we need to do all this work because the yaml parsing does not
+        # maintain order because its a dict
         for line in self.content.split("\n"):
             if len(line) > 0 and line[0] == "#":
                 continue
@@ -60,11 +62,13 @@ class Blueprint:
             if model is not None:
                 for key, item in model.items():
                     if key.find("__") == -1:
-                        raise j.exceptions.Input("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
+                        raise j.exceptions.Input(
+                            "Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
                     aysname, aysinstance = key.lower().split("__", 1)
 
                     if instance != "" and aysinstance != instance:
-                        self.logger.info("ignore load from blueprint for: %s:%s" % (aysname, aysinstance))
+                        self.logger.info(
+                            "ignore load from blueprint for: %s:%s" % (aysname, aysinstance))
                         continue
 
                     if aysname.find(".") != -1:
@@ -73,24 +77,28 @@ class Blueprint:
                         rolefound = aysname
 
                     if role != "" and role != rolefound:
-                        self.logger.info("ignore load from blueprint based on role for: %s:%s" % (aysname, aysinstance))
+                        self.logger.info(
+                            "ignore load from blueprint based on role for: %s:%s" % (aysname, aysinstance))
                         continue
 
                     Actor = self.aysrepo.getActor(aysname, die=False)
 
                     if Actor is None:
-                        # check if its a blueprintays, if yes then template name is different
+                        # check if its a blueprintays, if yes then template
+                        # name is different
                         aystemplate_name = aysname
                         if not aysname.startswith('blueprint.'):
                             blueaysname = 'blueprint.%s' % aysname
                             if self.aysrepo.existsTemplate(blueaysname):
                                 aystemplate_name = blueaysname
 
-                        Actor = self.aysrepo.getActor(aystemplate_name)  # will load Actor if it doesn't exist yet
+                        # will load Actor if it doesn't exist yet
+                        Actor = self.aysrepo.getActor(aystemplate_name)
 
                     if not len(self.aysrepo.findServices(role=Actor.role, instance=aysinstance)):
                         # if it's not there, create it.
-                        aysi = Actor.newInstance(instance=aysinstance, args=item)
+                        aysi = Actor.newInstance(
+                            instance=aysinstance, args=item)
 
     def _add2models(self, content, nr):
         # make sure we don't process double
@@ -100,7 +108,8 @@ class Blueprint:
         try:
             model = j.data.serializer.yaml.loads(content)
         except Exception as e:
-            msg = "Could not process blueprint (load from yaml):\npath:'%s',\nline: '%s', content:\n######\n\n%s\n######\nerror:%s" % (self.path, nr, content, e)
+            msg = "Could not process blueprint (load from yaml):\npath:'%s',\nline: '%s', content:\n######\n\n%s\n######\nerror:%s" % (
+                self.path, nr, content, e)
             raise j.exceptions.Input(msg)
 
         self.models.append(model)
@@ -112,7 +121,8 @@ class Blueprint:
             if model is not None:
                 for key, item in model.items():
                     if key.find("__") == -1:
-                        raise j.exceptions.Input("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
+                        raise j.exceptions.Input(
+                            "Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
 
                     aysname, aysinstance = key.lower().split("__", 1)
                     if aysname.find(".") != -1:
@@ -120,7 +130,8 @@ class Blueprint:
                     else:
                         rolefound = aysname
 
-                    service = self.aysrepo.getService(role=rolefound, instance=aysinstance, die=False)
+                    service = self.aysrepo.getService(
+                        role=rolefound, instance=aysinstance, die=False)
                     if service:
                         services.append(service)
 
@@ -128,23 +139,23 @@ class Blueprint:
 
     def disable(self):
         if self.active:
-            base=j.sal.fs.getBaseName(self.path)
-            dirpath=j.sal.fs.getDirName(self.path)
-            newpath=j.sal.fs.joinPaths(dirpath,"_%s"%base)
-            j.sal.fs.moveFile(self.path,newpath)
-            self.path=newpath
-            self.active=False
+            base = j.sal.fs.getBaseName(self.path)
+            dirpath = j.sal.fs.getDirName(self.path)
+            newpath = j.sal.fs.joinPaths(dirpath, "_%s" % base)
+            j.sal.fs.moveFile(self.path, newpath)
+            self.path = newpath
+            self.active = False
 
     def enable(self):
-        if self.active==False:
-            base=j.sal.fs.getBaseName(self.path)
+        if self.active == False:
+            base = j.sal.fs.getBaseName(self.path)
             if base.startswith("_"):
-                base=base[1:]
-            dirpath=j.sal.fs.getDirName(self.path)
-            newpath=j.sal.fs.joinPaths(dirpath,base)
-            j.sal.fs.moveFile(self.path,newpath)
-            self.path=newpath
-            self.active=True
+                base = base[1:]
+            dirpath = j.sal.fs.getDirName(self.path)
+            newpath = j.sal.fs.joinPaths(dirpath, base)
+            j.sal.fs.moveFile(self.path, newpath)
+            self.path = newpath
+            self.active = True
 
     def validate(self):
         services = []
@@ -152,12 +163,14 @@ class Blueprint:
             if model is not None:
                 for key, item in model.items():
                     if key.find("__") == -1:
-                        self.logger.error("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
+                        self.logger.error(
+                            "Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
                         return False
 
                     aysname, aysinstance = key.lower().split("__", 1)
                     if aysname not in self.aysrepo.templates:
-                        self.logger.error("Service template %s not found. Can't execute this blueprint" % aysname)
+                        self.logger.error(
+                            "Service template %s not found. Can't execute this blueprint" % aysname)
                         return False
         return True
 

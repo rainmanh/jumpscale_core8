@@ -16,7 +16,9 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.grafana"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class Grafana(base):
 
     @actionrun()
@@ -178,10 +180,10 @@ class Grafana(base):
         self.cuisine.core.file_write('$tmplsDir/cfg/grafana/public/dashboards/scriptedagent.js', scriptedagent)
 
     @actionrun()
-    def install(self,start=True, influx_addr='127.0.0.1', influx_port=8086, port=3000):
+    def install(self, start=True, influx_addr='127.0.0.1', influx_port=8086, port=3000):
 
         if self.cuisine.core.isUbuntu:
-            cmd="""
+            cmd = """
             cd $tmpDir
             wget https://grafanarel.s3.amazonaws.com/builds/grafana_3.1.0-1468321182_amd64.deb
             sudo apt-get install -y adduser libfontconfig
@@ -192,10 +194,9 @@ class Grafana(base):
             self.cuisine.core.run_script(C, profile=True, action=True)
 
             from IPython import embed
-            print ("DEBUG NOW sdsd")
+            print("DEBUG NOW sdsd")
             embed()
             p
-
 
         elif self.cuisine.core.isLinux:
             dataDir = self.cuisine.core.args_replace("$varDir/data/grafana")
@@ -221,14 +222,13 @@ class Grafana(base):
             """ % (logDir)
 
             # C = self.cuisine.bash.replaceEnvironInText(j.data.text.strip(C))
-            #next is for debug purposes
+            # next is for debug purposes
             self.cuisine.core.pprint(C)
             self.cuisine.core.run_script(C, profile=True, action=True)
             from IPython import embed
-            print ("DEBUG NOW sdsd")
+            print("DEBUG NOW sdsd")
             embed()
             p
-
 
             self.cuisine.core.run_script(C, profile=True, action=True)
             self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"))
@@ -237,19 +237,18 @@ class Grafana(base):
             cfg = cfg.replace('logs = data/log', 'logs = %s' % (logDir))
             self.cuisine.core.file_write("$tmplsDir/cfg/grafana/conf/defaults.ini", cfg)
 
-
         else:
-          raise RuntimeError("platform not supported")
+            raise RuntimeError("platform not supported")
 
-        influx_addr='127.0.0.1'
-        influx_port=8086
-        port=3000
+        influx_addr = '127.0.0.1'
+        influx_port = 8086
+        port = 3000
         cfg = self.cuisine.core.file_read('$tmplsDir/cfg/grafana/conf/defaults.ini')
         cfg = cfg.replace("http_port = 3000", "http_port = %i" % (port))
         self.cuisine.core.file_write('$cfgDir/grafana/grafana.ini', cfg)
         cmd = "$binDir/grafana-server --config=$cfgDir/grafana/grafana.ini\n"
         cmd = self.cuisine.core.args_replace(cmd)
-        self.cuisine.core.file_write("/opt/jumpscale8/bin/start_grafana.sh",cmd,777,replaceArgs=True)
+        self.cuisine.core.file_write("/opt/jumpscale8/bin/start_grafana.sh", cmd, 777, replaceArgs=True)
 
     @actionrun()
     def build(self, start=True, influx_addr='127.0.0.1', influx_port=8086, port=3000):

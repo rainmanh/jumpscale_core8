@@ -1,4 +1,4 @@
-## cuisine.package
+# cuisine.package
 
 The `cuisine.package` module is for dealing with package managers.
 

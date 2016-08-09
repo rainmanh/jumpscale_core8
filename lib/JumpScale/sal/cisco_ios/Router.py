@@ -15,7 +15,8 @@ IOS_XR = 'IOS XR'
 MORE_OUTPUT_PROMPT = " --More-- "
 STRIP_ASCII_CHAR = '\x08'
 
-#TODO: Fix STRIP_ASCII_CHAR
+# TODO: Fix STRIP_ASCII_CHAR
+
 
 def printable_out(str_in):
     # In case of --More--
@@ -25,7 +26,9 @@ def printable_out(str_in):
     str_out = [x for x in str_in if x in string.printable]
     return str_out
 
+
 class Router:
+
     def __init__(self, hostname, software=IOS, logfile=None, **kwargs):
         self.hostname = hostname
         self.software = software        # IOS or IOS XR
@@ -59,21 +62,21 @@ class Router:
         if logfile is None:
             direc = os.getcwd()
             logfilename = (self.hostname + '-' +
-                       time.strftime("%m-%d-%Y_%H-%M-%S") +
-                       '.log')
+                           time.strftime("%m-%d-%Y_%H-%M-%S") +
+                           '.log')
             logfile = os.path.join(direc, logfilename)
 
         self._log('Console Logs are in {0}'.format(logfile))
         self._console_logfile = logfile
         self._console_log = None
 
-    def login(self, cmd, username=None, password=None,final_prompt=None):
+    def login(self, cmd, username=None, password=None, final_prompt=None):
         """
         Tries to Login. Returns the final matched string
         """
         os.environ["TERM"] = "dumb"
         self._log("Giving cmd: '{0}'".format(repr(cmd)))
-        self._pexpect_session = pexpect.spawn(cmd, env = {"TERM": "dumb"})
+        self._pexpect_session = pexpect.spawn(cmd, env={"TERM": "dumb"})
         self._pexpect_session.timeout = 60
 
         self._console_log = open(self._console_logfile, 'w+')
@@ -94,11 +97,9 @@ class Router:
         i = self._pexpect_session.expect(expect_list)
         matched = expect_list[i]
 
-
-
         if i == expect_list.index(self._LOGIN_YES_PROMPTS):
             matched = self.exec_cmd("yes", expects=expect_list,
-                              return_matched=True)
+                                    return_matched=True)
             try:
                 i = expect_list.index(matched)
             except ValueError:
@@ -110,7 +111,7 @@ class Router:
             if username == None:
                 self._exit("Username not provided")
             matched = self.exec_cmd(username, expects=expect_list,
-                              return_matched=True)
+                                    return_matched=True)
             try:
                 i = expect_list.index(matched)
             except ValueError:
@@ -122,7 +123,8 @@ class Router:
 
             if password == None:
                 self._exit("Password not provided")
-            matched = self.exec_cmd(password, expects=expect_list,return_matched=True)
+            matched = self.exec_cmd(
+                password, expects=expect_list, return_matched=True)
             try:
                 i = expect_list.index(matched)
             except ValueError:
@@ -181,7 +183,7 @@ class Router:
         if return_matched is True and return_output is True:
             return_output = False
 
-        return_output=True
+        return_output = True
 
         prompt = kwargs.get('prompt')
         self._log('Giving cmd: {0}'.format(cmd))
@@ -193,7 +195,8 @@ class Router:
             expects = [expects]
 
         # Order of this list should be considered while modifying the code
-        expects = (expects + [MORE_OUTPUT_PROMPT] + [self._prompt_current] +[pexpect.EOF])
+        expects = (expects + [MORE_OUTPUT_PROMPT] +
+                   [self._prompt_current] + [pexpect.EOF])
         i = self._pexpect_session.expect(expects)
         output = self._pexpect_session.before
         output = output.replace(cmd, '').strip()
@@ -205,7 +208,7 @@ class Router:
             msg = ("""Expected Prompt not found
                       Match list: {0}
                       Output After Prompt: '{1}'""".format(expects,
-                             repr(self._pexpect_session.after)))
+                                                           repr(self._pexpect_session.after)))
             self._exit(msg)
 
         elif i != len(expects) - 2:       # If not Current Prompt
@@ -233,8 +236,8 @@ class Router:
                         msg = ("""Expected Prompt not found
                                   Match list: {0}
                                   Output After Prompt: '{1}'"""
-                                  """""".format(new_expects,
-                                        repr(self._pexpect_session.after)))
+                               """""".format(new_expects,
+                                             repr(self._pexpect_session.after)))
                         self._exit(msg)
                     elif j == 1:
                         self._log('{0} stopped showing. Matched {1} finally'
@@ -283,7 +286,7 @@ class Router:
                 self._pexpect_session.expect(expect_list)
             except Exception as e:
                 msg1 = ('Exception caught during closing '
-                       'connection: {0}'.format(e))
+                        'connection: {0}'.format(e))
                 self._log(msg1, level='ERROR')
             finally:
                 self._pexpect_session.close(True)
@@ -300,24 +303,27 @@ class Router:
         if msg != '':
             raise Exception(msg)
 
+
 def main():
     # Testing
     from Localhost import Localhost
     hostname = 'R1'
-    R1 = Router(hostname, logfile='C:\\Barik\\MyPythonWinProject\\SyslogAutomation\\TEST\\Log.log')
+    R1 = Router(
+        hostname, logfile='C:\\Barik\\MyPythonWinProject\\SyslogAutomation\\TEST\\Log.log')
     login_cmd = 'telnet ' + hostname + '.com'
     username = 'abarik'
     password = '123'
     Localhost1 = Localhost()
     #password = Localhost1.get_rsa_token()
     #login_expect = hostname
-    #login_expect = hostname + '#'
+    # login_expect = hostname + '#'
     login_expect = '{0}#|{0}>'.format(hostname)
     out = R1.login(login_cmd, username, password, login_expect)
     if out != R1._LOGIN_USERNAME_PROMPTS:
         R1.logout()
         time.sleep(60)
-        R1 = Router(hostname, logfile='C:\\Barik\\MyPythonWinProject\\SyslogAutomation\\TEST\\Log1.log')
+        R1 = Router(
+            hostname, logfile='C:\\Barik\\MyPythonWinProject\\SyslogAutomation\\TEST\\Log1.log')
         password = Localhost1.get_rsa_token()
         out = R1.login(login_cmd, username, password, login_expect)
         print((repr(R1.exec_cmd('show clock'))))

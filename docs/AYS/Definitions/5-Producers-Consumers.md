@@ -1,4 +1,4 @@
-## Producers & Consumers
+# Producers & Consumers
 
 Each service instance can consume a service delivered by a producer. A producer is another service instance delivering a service.
 

@@ -1,4 +1,4 @@
--- @todo has never been debugged
+-- TODO: has never been debugged
 
 local key = KEYS[1]
 local json = ARGV[1]

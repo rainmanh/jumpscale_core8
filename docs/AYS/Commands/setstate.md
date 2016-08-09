@@ -1,4 +1,4 @@
-## Setstate
+# Setstate
 
 ```shell
 ays setstate --help
@@ -15,5 +15,4 @@ Options:
   --producerroles TEXT  roles of producers which will be taken into
                         consideration, if empty then none
   --help                Show this message and exit.
-
 ```

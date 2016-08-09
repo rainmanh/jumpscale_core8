@@ -2,6 +2,7 @@
 from CuisineProcessManager import CuisineRunit, CuisineTmuxec, CuisineSystemd
 from JumpScale import j
 
+
 class ProcessManagerFactory:
 
     def __init__(self, cuisine):
@@ -15,10 +16,10 @@ class ProcessManagerFactory:
         return self.cuisine.core.command_check("sv")
 
     def get_prefered(self):
-        for pm in ["systemd", "sv","tmux"]:
-            if self.is_available( pm):
+        for pm in ["systemd", "sv", "tmux"]:
+            if self.is_available(pm):
                 return pm
-    
+
     def is_available(self, pm):
         if pm == "systemd":
             return self.systemdOK()
@@ -29,7 +30,7 @@ class ProcessManagerFactory:
         else:
             return False
 
-    def get(self, pm = None):
+    def get(self, pm=None):
         """
         pm is tmux, systemd or sv 
         (sv=runit)
@@ -38,7 +39,7 @@ class ProcessManagerFactory:
             pm = self.get_prefered()
         else:
             if not self.is_available(pm):
-                return j.errorconditionhandler.raiseCritical('%s processmanager is not available on your system'%(pm))
+                return j.errorconditionhandler.raiseCritical('%s processmanager is not available on your system' % (pm))
 
         if pm not in self.pms:
             if pm == "systemd":

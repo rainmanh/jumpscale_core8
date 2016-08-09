@@ -1,30 +1,27 @@
 from JumpScale import j
 
 
-
-
 class DNSMasq:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.dnsmasq"
         self._configured = False
         self.logger = j.logger.get("DNSMasq")
-        self.executor= j.tools.executor.getLocal()
-        self.cuisine= self.executor.cuisine
-        self._configdir=""
+        self.executor = j.tools.executor.getLocal()
+        self.cuisine = self.executor.cuisine
+        self._configdir = ""
 
-    def install(self,start=True):
+    def install(self, start=True):
         self.cuisine.systemd.remove("dnsmasq")
         self.cuisine.process.kill("dnsmasq")
         self.cuisine.package.install("dnsmasq")
         self.config()
         if start:
-            cmd=self.cuisine.bash.cmdGetPath("dnsmasq")
-            self.cuisine.systemd.ensure("dnsmasq",cmd)
+            cmd = self.cuisine.bash.cmdGetPath("dnsmasq")
+            self.cuisine.systemd.ensure("dnsmasq", cmd)
 
     def restart(self):
         self.cuisine.systemd.restart("dnsmasq")
-
 
     def setConfigPath(self, config_path=None):
         if not config_path:
@@ -37,16 +34,16 @@ class DNSMasq:
         self._leasesfile = self._configdir.joinpath('dnsmasq.leases')
         self._configfile = self._configdir.joinpath('dnsmasq.conf')
         self._configured = True
-    
+
     def _checkFile(self, filename):
         filepath = j.tools.path.get(filename)
         if not filepath.exists():
             filepath.touch()
-         
 
     def addHost(self, macaddress, ipaddress, name=None):
         if not self._configured:
-            raise Exception('Please run first setConfigPath to select the correct paths')
+            raise Exception(
+                'Please run first setConfigPath to select the correct paths')
         """Adds a dhcp-host entry to dnsmasq.conf file"""
         self._checkFile(self._hosts)
         te = j.tools.code.getTextFileEditor(self._hosts)
@@ -61,21 +58,22 @@ class DNSMasq:
     def removeHost(self, macaddress):
         """Removes a dhcp-host entry from dnsmasq.conf file"""
         if not self._configured:
-            raise Exception('Please run first setConfigPath to select the correct paths')
+            raise Exception(
+                'Please run first setConfigPath to select the correct paths')
         self._checkFile(self._hosts)
         te = j.tools.code.getTextFileEditor(self._hosts)
         te.deleteLines('.*%s.*' % macaddress)
         te.save()
         self.restart()
 
-    def config(self,device="eth0",rangefrom="",rangeto="",deviceonly=True):
+    def config(self, device="eth0", rangefrom="", rangeto="", deviceonly=True):
         """
         if rangefrom & rangeto not specified then will serve full local range minus bottomn 10 & top 10 addr
         """
-        if rangefrom=="" or rangeto=="":
-            rangefrom,rangeto=self.cuisine.net.getNetRange(device)
+        if rangefrom == "" or rangeto == "":
+            rangefrom, rangeto = self.cuisine.net.getNetRange(device)
 
-        C="""
+        C = """
 
         # Listen on this specific port instead of the standard DNS port (53). 
         # Setting this to zero completely disables DNS function,
@@ -735,8 +733,8 @@ class DNSMasq:
 
         """
         if deviceonly:
-            C=C.replace("#interface=","interface=%s"%device)
-        C=C.replace("$dhcprange","%s,%s"%(rangefrom,rangeto))
+            C = C.replace("#interface=", "interface=%s" % device)
+        C = C.replace("$dhcprange", "%s,%s" % (rangefrom, rangeto))
         self.cuisine.core.dir_ensure("/etc/dnsmasq.d/")
         self.cuisine.core.dir_ensure("$varDir/dnsmasq")
-        self.cuisine.core.file_write("/etc/dnsmasq.conf",C,replaceArgs=True)
+        self.cuisine.core.file_write("/etc/dnsmasq.conf", C, replaceArgs=True)

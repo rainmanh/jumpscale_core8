@@ -1,4 +1,4 @@
-## cuisine.processmanager
+# cuisine.processmanager
 
 The `cuisine.processmanager` module is for process management.
 
@@ -14,19 +14,17 @@ Examples for methods in `processmanager`:
 - **list**: list all processes
 - **startAll**: starts all recognized processes
 
-### Currently supported process managers:
+## Currently supported process managers:
 
-#### Systemd
+### Systemd
 
-Systemd is a process manager that uses the utility `systemctl` to start and stop services.
-Systemd keeps strack of a service by keeping a `.service` file under `/etc/systemd/system/`.
+Systemd is a process manager that uses the utility `systemctl` to start and stop services. Systemd keeps strack of a service by keeping a `.service` file under `/etc/systemd/system/`.
 
-#### RunIt
+### RunIt
 
-RunIt is a process manager that uses the utility `sv` to start and stop services.
-RunIt keeps track of services by keeping a directory with the name of the service under `/etc/service/`, the directory has an executable file 'run' that gets executed by the shell to bootstrap the service.
+RunIt is a process manager that uses the utility `sv` to start and stop services. RunIt keeps track of services by keeping a directory with the name of the service under `/etc/service/`, the directory has an executable file 'run' that gets executed by the shell to bootstrap the service.
 
-#### Tmux
+### Tmux
 
 Tmux is the default process manager. The process manager module uses it in case that there is no other available process manager on the target system that is supported.
 

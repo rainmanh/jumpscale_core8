@@ -4,6 +4,7 @@ import netaddr
 
 from ActionDecorator import ActionDecorator
 
+
 class actionrun(ActionDecorator):
 
     def __init__(self, *args, **kwargs):
@@ -11,29 +12,31 @@ class actionrun(ActionDecorator):
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.golang"
 
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class CuisineSSH(base):
 
-    def __init__(self,executor,cuisine):
-        self.executor=executor
-        self.cuisine=cuisine
+    def __init__(self, executor, cuisine):
+        self.executor = executor
+        self.cuisine = cuisine
 
     @actionrun(force=True)
-    def test_login(self,passwd,port=22,range=None,onlyplatform="arch"):
-        login="root"
-        res=[]
+    def test_login(self, passwd, port=22, range=None, onlyplatform="arch"):
+        login = "root"
+        res = []
         for item in self.scan(range=range):
-            print ("test for login/passwd on %s"%item)            
+            print("test for login/passwd on %s" % item)
             try:
                 client = j.clients.ssh.get(item, port, login, passwd, timeout=1, die=False)
             except Exception as e:
-                print ("  NOT OK")
+                print("  NOT OK")
                 continue
-            if testoutput==False:
-                print ("  NOT OK")
+            if testoutput == False:
+                print("  NOT OK")
                 continue
-            executor=j.tools.executor.getSSHBased(item,port,login,passwd,checkok=True)
-            if onlyplatform!="":
+            executor = j.tools.executor.getSSHBased(item, port, login, passwd, checkok=True)
+            if onlyplatform != "":
                 if not str(executor.cuisine.platformtype).startswith(onlyplatform):
                     continue
             print("  RESPONDED!!!")
@@ -41,21 +44,21 @@ class CuisineSSH(base):
         return res
 
     @actionrun(force=True)
-    def test_login_pushkey(self,passwd,keyname,port=22,range=None,changepasswdto="",onlyplatform="arch"):
+    def test_login_pushkey(self, passwd, keyname, port=22, range=None, changepasswdto="", onlyplatform="arch"):
         """
         """
-        login="root"
-        done=[]
-        for item in self.test_login(passwd,port,range,onlyplatform=onlyplatform):
-            keypath=j.sal.fs.joinPaths(self.cuisine.bash.environ["HOME"],".ssh",keyname+".pub")
+        login = "root"
+        done = []
+        for item in self.test_login(passwd, port, range, onlyplatform=onlyplatform):
+            keypath = j.sal.fs.joinPaths(self.cuisine.bash.environ["HOME"], ".ssh", keyname + ".pub")
             if j.sal.fs.exists(keypath):
-                key=j.sal.fs.fileGetContents(keypath)
-                executor=j.tools.executor.getSSHBased(item,port,login,passwd,checkok=True)
-                executor.cuisine.ssh.authorize(user="root",key=key)
-                if changepasswdto!="":
+                key = j.sal.fs.fileGetContents(keypath)
+                executor = j.tools.executor.getSSHBased(item, port, login, passwd, checkok=True)
+                executor.cuisine.ssh.authorize(user="root", key=key)
+                if changepasswdto != "":
                     executor.cuisine.user.passwd(login, changepasswdto, encrypted_passwd=False)
             else:
-                raise j.exceptions.RuntimeError("Cannot find key:%s"%keypath)
+                raise j.exceptions.RuntimeError("Cannot find key:%s" % keypath)
             done.append(item)
         return done
 
@@ -72,38 +75,40 @@ class CuisineSSH(base):
 
                 name = item['name']
                 if not name.startswith("docker") and name not in ["lo"]:
-                    if len(item['ip'])>0:
-                        ip=item['ip'][0]
-                        ipn=netaddr.IPNetwork(ip+"/"+str(cidr))
-                        range=str(ipn.network)+"/%s"%cidr
-                        ips=self.scan(range,ips)
+                    if len(item['ip']) > 0:
+                        ip = item['ip'][0]
+                        ipn = netaddr.IPNetwork(ip + "/" + str(cidr))
+                        range = str(ipn.network) + "/%s" % cidr
+                        ips = self.scan(range, ips)
             return ips
         else:
             try:
                 # out=self.cuisine.core.run("nmap -p 22 %s | grep for"%range,showout=False)
-                _, out, _ = self.cuisine.core.run("nmap %s -p %s --open -oX $tmpDir/nmap" % (range, port), showout=False, force=False, action=True)
+                _, out, _ = self.cuisine.core.run("nmap %s -p %s --open -oX $tmpDir/nmap" %
+                                                  (range, port), showout=False, force=False, action=True)
             except Exception as e:
-                if str(e).find("command not found")!=-1:
+                if str(e).find("command not found") != -1:
                     self.cuisine.package.install("nmap")
                     # out=self.cuisine.core.run("nmap -p 22 %s | grep for"%range)
-                    _, out, _ = self.cuisine.core.run("nmap %s -p %s --open -oX $tmpDir/nmap" % (range, port), showout=False, force=False, action=True)
+                    _, out, _ = self.cuisine.core.run("nmap %s -p %s --open -oX $tmpDir/nmap" %
+                                                      (range, port), showout=False, force=False, action=True)
             out = self.cuisine.core.file_read("$tmpDir/nmap")
             import xml.etree.ElementTree as ET
             root = ET.fromstring(out)
             for child in root:
-                if child.tag=="host":
-                    ip=None
-                    mac=None
+                if child.tag == "host":
+                    ip = None
+                    mac = None
                     for addr in child.findall("address"):
-                        if addr.get("addrtype")=="ipv4":
-                            ip=addr.get("addr")
+                        if addr.get("addrtype") == "ipv4":
+                            ip = addr.get("addr")
 
                     for addr in child.findall("address"):
-                        if addr.get("addrtype")=="mac":
-                            mac=addr.get("addr")
+                        if addr.get("addrtype") == "mac":
+                            mac = addr.get("addr")
 
-                    if ip!=None:
-                        ips[ip]={"mac":mac}
+                    if ip != None:
+                        ips[ip] = {"mac": mac}
 
             # for line in out.split("\n"):
             #     ip=line.split("for")[1].strip()
@@ -115,25 +120,25 @@ class CuisineSSH(base):
             return ips
 
     @actionrun(force=True)
-    def keygen(self,user="root", keytype="rsa",name="default"):
+    def keygen(self, user="root", keytype="rsa", name="default"):
         """Generates a pair of ssh keys in the user's home .ssh directory."""
-        user=user.strip()
+        user = user.strip()
         d = self.cuisine.user.check(user)
         assert d, "User does not exist: %s" % (user)
         home = d["home"]
-        path='%s/.ssh/%s'%(home,name)
-        if not self.cuisine.core.file_exists(path+".pub"):
+        path = '%s/.ssh/%s' % (home, name)
+        if not self.cuisine.core.file_exists(path + ".pub"):
             self.cuisine.core.dir_ensure(home + "/.ssh", mode="0700", owner=user, group=user)
 
             self.cuisine.core.run("ssh-keygen -q -t %s -f %s -N ''" % (keytype, path))
             self.cuisine.core.file_attribs(path, owner=user, group=user)
-            self.cuisine.core.file_attribs("%s.pub"%path, owner=user, group=user)
-            return "%s.pub"%path
+            self.cuisine.core.file_attribs("%s.pub" % path, owner=user, group=user)
+            return "%s.pub" % path
         else:
-            return "%s.pub"%path
+            return "%s.pub" % path
 
     # @actionrun(force=True)
-    def authorize(self,user, key):
+    def authorize(self, user, key):
         """Adds the given key to the '.ssh/authorized_keys' for the given
         user."""
 
@@ -169,15 +174,16 @@ class CuisineSSH(base):
         return ret
 
     @actionrun(force=True)
-    def unauthorize(self,user, key):
+    def unauthorize(self, user, key):
         """Removes the given key to the remote '.ssh/authorized_keys' for the given
         user."""
-        key   = key.strip()
-        d     = user.check(user, need_passwd=False)
+        key = key.strip()
+        d = user.check(user, need_passwd=False)
         group = d["gid"]
-        keyf  = d["home"] + "/.ssh/authorized_keys"
+        keyf = d["home"] + "/.ssh/authorized_keys"
         if self.cuisine.core.file_exists(keyf):
-            self.cuisine.core.file_write(keyf, "\n".join(_ for _ in file_read(keyf).split("\n") if _.strip() != key), owner=user, group=group, mode="600")
+            self.cuisine.core.file_write(keyf, "\n".join(_ for _ in file_read(keyf).split(
+                "\n") if _.strip() != key), owner=user, group=group, mode="600")
             return True
         else:
             return False
@@ -191,9 +197,8 @@ class CuisineSSH(base):
         self.cuisine.core.dir_remove("/root/.ssh/known_hosts")
         self.cuisine.core.dir_remove("/root/.ssh/authorized_keys")
 
-
     @actionrun(force=False)
-    def enableAccess(self,keys,backdoorpasswd,backdoorlogin="backdoor",user="root"):
+    def enableAccess(self, keys, backdoorpasswd, backdoorlogin="backdoor", user="root"):
         """
         make sure we can access the environment
         keys are a list of ssh pub keys
@@ -201,8 +206,9 @@ class CuisineSSH(base):
 
         # leave here is to make sure we have a backdoor for when something goes wrong further
         print("create backdoor")
-        self.cuisine.user.ensure(backdoorlogin, passwd=backdoorpasswd, home=None, uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True, group="root")
-        self.cuisine.core.run("rm -fr /home/%s/.ssh/"%backdoorlogin)
+        self.cuisine.user.ensure(backdoorlogin, passwd=backdoorpasswd, home=None, uid=None,
+                                 gid=None, shell=None, fullname=None, encrypted_passwd=True, group="root")
+        self.cuisine.core.run("rm -fr /home/%s/.ssh/" % backdoorlogin)
         self.cuisine.group.user_add('sudo', '$(system.backdoor.login)')
 
         print("test backdoor")
@@ -229,7 +235,7 @@ class CuisineSSH(base):
         print("enable access done.")
 
     @actionrun(force=True)
-    def sshagent_add(self,path,removeFirst=True):
+    def sshagent_add(self, path, removeFirst=True):
         """
         @path is path to private key
         """

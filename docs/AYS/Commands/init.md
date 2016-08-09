@@ -1,4 +1,4 @@
-## Init
+# Init
 
 The `init` command will see what needs to be done and detect all changes to the system.
 
@@ -16,12 +16,12 @@ Usage: ays init [OPTIONS]
 
       if there is change in hrd then: 
       - change_hrd_template() on the ays instance actions is called
-       
+
       if there is change in the actions methods then: 
       - change_method() on the ays instance actions is called. This allows action to manipulate the ays tree as result of change
 
       Step 2: init will walk over all existing ays instances, and detect if instance.hrd got changed
-      
+
       if change than the change will be marked in the state file
 
       if change in hrd then
@@ -35,7 +35,8 @@ Options:
   -i, --instance TEXT  optional name of instance
   -d, --data TEXT      data to populate a specific instance
   --help               Show this message and exit.
-````
+`
+```
 
 Data can be passed to the `init` command to fill in the HRDs. In that case `role` and `instance` needs to be specified.
 

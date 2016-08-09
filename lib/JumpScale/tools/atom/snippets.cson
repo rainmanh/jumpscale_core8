@@ -1,0 +1,20 @@
+'.source.python':
+  'ipshell':
+    'prefix': 'ipshell'
+    'body': """
+        from IPython import embed
+        print ("DEBUG NOW $1")
+        embed()
+        raise RuntimeError(\"stop debug here\")
+        """
+  'debug':
+    'prefix': 'debug'
+    'body': """
+        from pudb import set_trace; set_trace()
+        """
+  'writefile':
+        'prefix':'writefile'
+        'body':'j.sal.fs.writeFile(filename=$1, contents=$2, append=False)'
+  'execute':
+        'prefix':'execute'
+        'body':'rc,out=j.sal.process.execute($1, die=True, outputToStdout=False, ignoreErrorOutput=False)'

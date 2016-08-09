@@ -42,32 +42,34 @@ __docformat__ = 'reStructuredText en'
 DEFAULT_SIZE = 16
 """Default size of a new LRUCache object, if no 'size' argument is given."""
 
+
 class CacheKeyError(KeyError):
     """Error raised when cache requests fail
-    
+
     When a cache record is accessed which no longer exists (or never did),
     this error is raised. To avoid it, you may want to check for the existence
     of a cache record before reading or deleting it."""
     pass
 
+
 class LRUCache:
-    
+
     class __Node:
         """Record of a cached value. Not for public consumption."""
-        
+
         def __init__(self, key, obj, timestamp):
             object.__init__(self)
             self.key = key
             self.obj = obj
             self.atime = timestamp
             self.mtime = self.atime
-	    
+
         def __cmp__(self, other):
             return cmp(self.atime, other.atime)
 
         def __repr__(self):
             return "<%s %s => %s (%s)>" % \
-                   (self.__class__, self.key, self.obj, \
+                   (self.__class__, self.key, self.obj,
                     time.asctime(time.localtime(self.atime)))
 
     def __init__(self, size=DEFAULT_SIZE):
@@ -76,20 +78,20 @@ class LRUCache:
             raise ValueError(size)
         elif type(size) is not type(0):
             raise TypeError(size)
-        object.__init__(self)	
+        object.__init__(self)
         self.__heap = []
         self.__dict = {}
         self.size = size
         """Maximum size of the cache.
         If more than 'size' elements are added to the cache,
         the least-recently-used ones will be discarded."""
-	
+
     def __len__(self):
         return len(self.__heap)
-    
+
     def __contains__(self, key):
         return key in self.__dict
-    
+
     def __setitem__(self, key, obj):
         if key in self.__dict:
             node = self.__dict[key]
@@ -105,7 +107,7 @@ class LRUCache:
             node = self.__Node(key, obj, time.time())
             self.__dict[key] = node
             heappush(self.__heap, node)
-	
+
     def __getitem__(self, key):
         if key not in self.__dict:
             raise CacheKeyError(key)
@@ -114,7 +116,7 @@ class LRUCache:
             node.atime = time.time()
             heapify(self.__heap)
             return node.obj
-	
+
     def __delitem__(self, key):
         if key not in self.__dict:
             raise CacheKeyError(key)
@@ -139,7 +141,7 @@ class LRUCache:
             while len(self.__heap) > value:
                 lru = heappop(self.__heap)
                 del self.__dict[lru.key]
-	    
+
     def __repr__(self):
         return "<%s (%d elements)>" % (str(self.__class__), len(self.__heap))
 

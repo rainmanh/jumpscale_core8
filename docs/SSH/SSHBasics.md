@@ -1,6 +1,6 @@
-## SSH Basic Connection Tool using Cuisine
+# SSH Basic Connection Tool using Cuisine
 
-### Connect using an SSH agent
+## Connect using an SSH agent
 
 ```bash
 executor = j.tools.executor.getSSHBased(addr='localhost', port=22)
@@ -14,19 +14,19 @@ Out[2]:
  '')
 ```
 
-### Connect using username and password
+## Connect using username and password
 
 ```bash
 executor=j.tools.executor.getSSHBased(addr='localhost', port=22, login="root", passwd="1234")
 ```
 
-### Connect using local SSH private key
+## Connect using local SSH private key
 
 ```bash
 executor=j.tools.executor.getSSHBased(addr='localhost', port=22, login="root", passwd="1234", pushkey="ovh_install")
 ```
 
-### Connect using ssh-agent
+## Connect using ssh-agent
 
 ```bash
 cl=j.clients.ssh.get(addr='remote', login='root', port=22, timeout=10)

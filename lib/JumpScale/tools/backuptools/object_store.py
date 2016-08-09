@@ -16,17 +16,17 @@ class ObjectStore:
     def list_objects(self, poolname):
         return self.conn.list_objects(poolname)
 
-    def delete_object(self,poolname,key):
+    def delete_object(self, poolname, key):
         return self.conn.delete_object(poolname, key)
 
-    def get_object(self,poolname,key):
+    def get_object(self, poolname, key):
         return self.conn.get_object(poolname, key)
 
     def create_pool(self, poolname):
         return self.conn.create_pool(poolname)
 
     def delete_pool(self, poolname):
-        return  self.conn.delete_pool(poolname)
+        return self.conn.delete_pool(poolname)
 
     def set_object(self, poolname, key, contents):
         return self.conn.set_object(poolname, key, contents)
@@ -41,13 +41,14 @@ class S3ObjectStore:
     from boto.s3.key import Key
     from boto.s3 import connection
 
-
     def connect(self, aws_access_key_id, aws_secret_access_key, host, is_secure, callingformat='ORDINARY'):
         if callingformat == 'ORDINARY':
             calling_format = boto.s3.connection.OrdinaryCallingFormat()
-            self.store_connection = boto.connect_s3(aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key, host=host, calling_format=calling_format)
+            self.store_connection = boto.connect_s3(
+                aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key, host=host, calling_format=calling_format)
         else:
-            self.store_connection = boto.connect_s3(aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key, host=host)
+            self.store_connection = boto.connect_s3(
+                aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key, host=host)
 
     def list_pools(self):
         pools = []
@@ -61,7 +62,6 @@ class S3ObjectStore:
 
     def delete_pool(self, poolname):
         self.store_connection.delete_bucket(poolname)
-
 
     def list_objects(self, poolname):
         bucket = self.store_connection.get_bucket(poolname)
@@ -91,15 +91,14 @@ class S3ObjectStore:
         return content
 
 
-
 #import rados
 
 class RadosObjectStore:
 
     def connect(self, conffile=''):
         import rados
-        self.cluster = rados.Rados(conffile = conffile)
-        self.cluster.connect() 
+        self.cluster = rados.Rados(conffile=conffile)
+        self.cluster.connect()
 
     def list_pools(self):
         pools = self.cluster.list_pools()
@@ -111,7 +110,6 @@ class RadosObjectStore:
 
     def delete_pool(self, poolname):
         self.cluster.delete_pool(poolname)
-
 
     def list_objects(self, poolname):
         objects = []
@@ -155,27 +153,3 @@ class RadosObjectStore:
         finally:
             ioctx.close()
         return content
-
-
-
-
-
-
-        
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-

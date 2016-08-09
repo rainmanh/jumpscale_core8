@@ -5,7 +5,6 @@ import mount
 import lsblk
 
 
-
 _formatters = {
     # specific format command per filesystem.
     'ntfs': lambda name, fstype: 'mkfs.ntfs -f {name}'.format(name=name)
@@ -23,21 +22,27 @@ def _default_formatter(name, fstype):
         fstype=fstype,
         name=name
     )
+
+
 class PartitionError(Exception):
     pass
+
 
 class FormatError(Exception):
     pass
 
+
 class DiskError(Exception):
     pass
 
+
 class BlkInfo:
+
     def __init__(self,  name, type, size):
         self.name = name
         self.type = type
         self.size = int(size)
-        self.hrd=None
+        self.hrd = None
 
     def __str__(self):
         return '%s %s' % (self.name, self.size)
@@ -100,9 +105,9 @@ class BlkInfo:
         Configure partition auto mount `fstab` on `mountpath` defined in HRD
         """
 
-        if self.hrd==None:
-            path= self.mountpoint
-            if path=="":
+        if self.hrd == None:
+            path = self.mountpoint
+            if path == "":
                 raise RuntimeError("path cannot be empty")
             path = j.tools.path.get(path)
         else:
@@ -110,7 +115,7 @@ class BlkInfo:
         path.makedirs_p()
 
         fstabpath = j.tools.path.get('/etc/fstab')
-        fstab = fstabpath.text().splitlines()        
+        fstab = fstabpath.text().splitlines()
 
         for i in range(len(fstab) - 1, -1, -1):
             line = fstab[i]
@@ -156,28 +161,30 @@ class DiskInfo(BlkInfo):
     """
     Represents a disk
     """
-    def __init__(self,  name, size,mountpoint="",fstype="",uuid=""):
+
+    def __init__(self,  name, size, mountpoint="", fstype="", uuid=""):
         super(DiskInfo, self).__init__(name, 'disk', size)
-        self.mountpoint=mountpoint
-        self.fstype=fstype
-        self.uuid=uuid
+        self.mountpoint = mountpoint
+        self.fstype = fstype
+        self.uuid = uuid
         self.partitions = list()
         self._executor = j.tools.executor.getLocal()
         # self.mirrors=[]
-        self.mirror_devices=[]
-        if self.fstype=="btrfs":
-            devsfound=[]
-            out=j.sal.process.execute("btrfs filesystem show %s"%self.name)[1]
+        self.mirror_devices = []
+        if self.fstype == "btrfs":
+            devsfound = []
+            out = j.sal.process.execute(
+                "btrfs filesystem show %s" % self.name)[1]
             for line in out.split("\n"):
-                line=line.strip()
+                line = line.strip()
                 if line.startswith("devid "):
-                    dev=line.split("/dev/")[-1]
-                    dev=dev.strip(" /")
+                    dev = line.split("/dev/")[-1]
+                    dev = dev.strip(" /")
                     devsfound.append(dev)
-            if len(devsfound)>1:
-                #found mirror
-                self.mirror_devices=["/dev/%s"%item for item in devsfound if "/dev/%s"%item!=name]
-
+            if len(devsfound) > 1:
+                # found mirror
+                self.mirror_devices = [
+                    "/dev/%s" % item for item in devsfound if "/dev/%s" % item != name]
 
     # def _getpart(self):
     #     rc, ptable = self._executor.execute(
@@ -230,8 +237,6 @@ class DiskInfo(BlkInfo):
             return
 
         return start, start + size
-
-
 
     def format(self, size, hrd):
         """
@@ -314,18 +319,18 @@ class DiskInfo(BlkInfo):
                 partition.delete()
 
 
-
 class PartitionInfo(BlkInfo):
-    def __init__(self,  name, size, uuid, fstype, mount,device):
+
+    def __init__(self,  name, size, uuid, fstype, mount, device):
         super(PartitionInfo, self).__init__(name, 'part', size)
         self.uuid = uuid
         self.fstype = fstype
         self.mountpoint = mount
         self.hrd = None
-        self.device=device        
+        self.device = device
         self._invalid = False
 
-        self.mount=device.mount
+        self.mount = device.mount
 
     @property
     def invalid(self):
@@ -425,5 +430,3 @@ class PartitionInfo(BlkInfo):
         self.unsetAutoMount()
 
         self._invalid = True
-
-

@@ -1,13 +1,15 @@
-## Send Mail
+# Send Mail
 
-### Install
+## Install
+
 ```
 ays install -n mailclient
 ```
 
 This will ask for appropriate info about mail server.
 
-### Usage
+## Usage
+
 ```
 j.clients.email.send(self, recipients, sender, subject, message, files=None, mimetype=None)
 Docstring:
@@ -25,7 +27,8 @@ Docstring:
 @type mimetype: string
 ```
 
-### Example
+## Example
+
 ```
 import JumpScale.baselib.mailclient
 j.clients.email.send("kristof@incubaid.com","kristof@incubaid.com","test","test")

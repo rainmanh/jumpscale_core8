@@ -132,7 +132,8 @@ class AtYourServiceRepo():
                     Actorpath = j.sal.fs.getDirName(item)
                     Actor = Actor(self, Actorpath)
                     if Actor.name in self._actors:
-                        raise j.exceptions.Input("Found double actor: %s" % actor)
+                        raise j.exceptions.Input(
+                            "Found double actor: %s" % actor)
                     self._actors[Actor.name] = Actor
         return self._actors
 
@@ -161,7 +162,8 @@ class AtYourServiceRepo():
         """
         self._doinit()
         if self._templates == {}:
-            # need to link to templates of factory and then overrule with the local ones
+            # need to link to templates of factory and then overrule with the
+            # local ones
             for key, template in j.atyourservice.templates.items():
                 self._templates[key] = template
 
@@ -169,7 +171,8 @@ class AtYourServiceRepo():
         path = j.sal.fs.joinPaths(self.path, "actorTemplates")
         for template in j.atyourservice._getActorTemplates(self.git, path=path, ays_in_path_check=False):
             if template.name in self._templates:
-                raise j.exceptions.Input("Found double template: %s starting from repo:%s" % (templ.name, self))
+                raise j.exceptions.Input(
+                    "Founmonitd double template: %s starting from repo:%s" % (templ.name, self))
             self._templates[template.name] = template
         return self._templates
 
@@ -180,7 +183,8 @@ class AtYourServiceRepo():
         if name in self.templates:
             return self.templates[name]
         if die:
-            raise j.exceptions.Input("Cannot find template with name:%s" % name)
+            raise j.exceptions.Input(
+                "Cannot find template with name:%s" % name)
 
     def templateExists(self, name):
         if self.getTemplate(name, die=False) == None:
@@ -200,7 +204,8 @@ class AtYourServiceRepo():
         if key in self.services:
             return self.services[key]
         if die:
-            raise j.exceptions.Input("Cannot get ays service '%s', did not find" % key, "ays.getservice")
+            raise j.exceptions.Input(
+                "Cannot get ays service '%s', did not find" % key, "ays.getservice")
         else:
             return None
 
@@ -244,7 +249,8 @@ class AtYourServiceRepo():
             for _, producerinstances in service.producers.items():
                 for producer in producerinstances:
                     producers.append([child.key, producer.key])
-            parents["children"].append(self._nodechildren(service, {"children": [], "name": servicekey}, producers))
+            parents["children"].append(self._nodechildren(
+                service, {"children": [], "name": servicekey}, producers))
         self._servicesTree['parentchild'] = parents
         self._servicesTree['producerconsumer'] = producers
         return self._servicesTree
@@ -293,7 +299,8 @@ class AtYourServiceRepo():
             res.append(service)
         if first:
             if len(res) == 0:
-                raise j.exceptions.Input("cannot find service %s|%s:%s (%s)" % (domain, name, instance, version), "ays.findServices")
+                raise j.exceptions.Input("cannot find service %s|%s:%s (%s)" % (
+                    domain, name, instance, version), "ays.findServices")
             return res[0]
         return res
 
@@ -386,11 +393,14 @@ class AtYourServiceRepo():
         """
         # create a scope in which we need to find work
         producerRoles = self._processProducerRoles(producerRoles)
-        scope = set(self.findServices(role=role, instance=instance, hasAction=action))
+        scope = set(self.findServices(
+            role=role, instance=instance, hasAction=action))
         for service in scope:
-            producer_candidates = service.getProducersRecursive(producers=set(), callers=set(), action=action, producerRoles=producerRoles)
+            producer_candidates = service.getProducersRecursive(
+                producers=set(), callers=set(), action=action, producerRoles=producerRoles)
             if producerRoles != '*':
-                producer_valid = [item for item in producer_candidates if item.role in producerRoles]
+                producer_valid = [
+                    item for item in producer_candidates if item.role in producerRoles]
             else:
                 producer_valid = producer_candidates
             scope = scope.union(producer_valid)
@@ -403,7 +413,8 @@ class AtYourServiceRepo():
             elif producerroles == "":
                 producerroles = []
             elif producerroles.find(",") != -1:
-                producerroles = [item for item in producerroles.split(",") if item.strip() != ""]
+                producerroles = [item for item in producerroles.split(
+                    ",") if item.strip() != ""]
             else:
                 producerroles = [producerroles.strip()]
         return producerroles
@@ -441,11 +452,13 @@ class AtYourServiceRepo():
         if action not in ["init"]:
             for key, s in self.services.items():
                 if s.state.get("init") not in ["OK", "DO"]:
-                    error_msg = "Cannot get run: %s:%s:%s because found a service not properly inited yet.\n%s\n please rerun ays init" % (role, instance, action, s)
+                    error_msg = "Cannot get run: %s:%s:%s because found a service not properly inited yet.\n%s\n please rerun ays init" % (
+                        role, instance, action, s)
                     self.logger.error(error_msg)
                     raise j.exceptions.Input(error_msg, msgpub=error_msg)
         if force:
-            self.setState(actions=[action], role=role, instance=instance, state="DO")
+            self.setState(actions=[action], role=role,
+                          instance=instance, state="DO")
 
         if action == "init":
             actions = ["init"]
@@ -454,8 +467,10 @@ class AtYourServiceRepo():
 
         run = AYSRun(self, simulate=simulate)
         for action0 in actions:
-            scope = self.findActionScope(action=action0, role=role, instance=instance, producerRoles=producerRoles)
-            todo = self._findTodo(action=action0, scope=scope, run=run, producerRoles=producerRoles)
+            scope = self.findActionScope(
+                action=action0, role=role, instance=instance, producerRoles=producerRoles)
+            todo = self._findTodo(
+                action=action0, scope=scope, run=run, producerRoles=producerRoles)
             while todo != []:
                 newstep = True
                 for service in todo:
@@ -467,9 +482,11 @@ class AtYourServiceRepo():
                         step.addService(service)
                     if service in scope:
                         scope.remove(service)
-                todo = self._findTodo(action0, scope=scope, run=run, producerRoles=producerRoles)
+                todo = self._findTodo(
+                    action0, scope=scope, run=run, producerRoles=producerRoles)
 
-        # these are destructive actions, they need to happens in reverse order in the dependency tree
+        # these are destructive actions, they need to happens in reverse order
+        # in the dependency tree
         if action in ['uninstall', 'removedata', 'cleanup', 'halt', 'stop']:
             run.reverse()
 
@@ -485,10 +502,13 @@ class AtYourServiceRepo():
         for service in scope:
             if run.exists(service, action):
                 continue
-            producersWaiting = service.getProducersRecursive(producers=set(), callers=set(), action=action, producerRoles=producerRoles)
+            producersWaiting = service.getProducersRecursive(
+                producers=set(), callers=set(), action=action, producerRoles=producerRoles)
             # remove the ones which are already in previous runs
-            producersWaiting = [item for item in producersWaiting if run.exists(item, action) == False]
-            producersWaiting = [item for item in producersWaiting if item.state.get(action, die=False) != "OK"]
+            producersWaiting = [
+                item for item in producersWaiting if run.exists(item, action) == False]
+            producersWaiting = [item for item in producersWaiting if item.state.get(
+                action, die=False) != "OK"]
 
             if len(producersWaiting) == 0:
                 todo.append(service)
@@ -496,7 +516,8 @@ class AtYourServiceRepo():
                 waiting = True
 
         if todo == [] and waiting:
-            raise RuntimeError("cannot find todo's for action:%s in scope:%s.\n\nDEPENDENCY ERROR: could not resolve dependency chain." % (action, scope))
+            raise RuntimeError(
+                "cannot find todo's for action:%s in scope:%s.\n\nDEPENDENCY ERROR: could not resolve dependency chain." % (action, scope))
         return todo
 
     def _getChangedServices(self, action=None):
@@ -520,20 +541,24 @@ class AtYourServiceRepo():
         if role == "" and instance == "":
             self.reset()
 
-        self.setState(actions=["init"], role=role, instance=instance, state="INIT")
+        self.setState(actions=["init"], role=role,
+                      instance=instance, state="INIT")
         for key, Actor in self.Actors.items():
             if role != "" and Actor.role == role:
                 continue
             Actor.init()
             for inst in Actor.listInstances():
-                service = Actor.aysrepo.getService(role=Actor.role, instance=inst, die=False)
-                print("RESETTING SERVICE roles %s inst %s instance %s " % (Actor.role, inst, instance))
+                service = Actor.aysrepo.getService(
+                    role=Actor.role, instance=inst, die=False)
+                print("RESETTING SERVICE roles %s inst %s instance %s " %
+                      (Actor.role, inst, instance))
                 service.update_hrd()
 
             #import pudb; pu.db
             #Actor.newInstance(instance=key, args={})
 
-        run = self.getRun(role=role, instance=instance, data=data, action="init")
+        run = self.getRun(role=role, instance=instance,
+                          data=data, action="init")
         run.execute()
 
         print("init done")
@@ -562,7 +587,8 @@ class AtYourServiceRepo():
     def install(self, role="", instance="", force=True, producerRoles="*"):
         self._doinit()
         if force:
-            self.setState(actions=["install"], role=role, instance=instance, state='DO')
+            self.setState(actions=["install"], role=role,
+                          instance=instance, state='DO')
 
         run = self.getRun(action="install", force=force)
         print("RUN:UNINSTALL")
@@ -572,7 +598,8 @@ class AtYourServiceRepo():
     def uninstall(self, role="", instance="", force=True, producerRoles="*", printonly=False):
         self._doinit()
         if force:
-            self.setState(actions=["stop", "uninstall"], role=role, instance=instance, state='DO')
+            self.setState(actions=["stop", "uninstall"],
+                          role=role, instance=instance, state='DO')
 
         run = self.getRun(action="stop", force=force)
         print("RUN:STOP")
@@ -580,7 +607,8 @@ class AtYourServiceRepo():
         if not printonly:
             run.execute()
 
-        run = self.getRun(role=role, instance=instance, action="uninstall", force=force)
+        run = self.getRun(role=role, instance=instance,
+                          action="uninstall", force=force)
         print("RUN:UNINSTALL")
         print(run)
         if not printonly:

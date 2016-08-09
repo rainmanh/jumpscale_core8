@@ -5,23 +5,28 @@ from JumpScale import j
 # import socket
 
 from ActionDecorator import ActionDecorator
+
+
 class actionrun(ActionDecorator):
-    def __init__(self,*args,**kwargs):
-        ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.golang"
+
+    def __init__(self, *args, **kwargs):
+        ActionDecorator.__init__(self, *args, **kwargs)
+        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.golang"
 
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class CuisineGolang(base):
 
-    def __init__(self,executor,cuisine):
-        self.executor=executor
-        self.cuisine=cuisine
+    def __init__(self, executor, cuisine):
+        self.executor = executor
+        self.cuisine = cuisine
 
     @actionrun(action=True)
     def install(self):
         self.cuisine.installer.base()
-        rc, out, err = self.cuisine.core.run("go version", die=False,showout=False,action=True)
+        rc, out, err = self.cuisine.core.run("go version", die=False, showout=False, action=True)
         if rc > 0 or "1.6" not in out:
             if self.cuisine.core.isMac or self.cuisine.core.isArch:
                 self.cuisine.core.run(cmd="rm -rf /usr/local/go", die=False)
@@ -31,7 +36,7 @@ class CuisineGolang(base):
             elif "ubuntu" in self.cuisine.platformtype.platformtypes:
                 # self.cuisine.core.run("apt-get install golang -y --force-yes")
                 downl = "https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz"
-                self.cuisine.core.file_download(downl,"/usr/local",overwrite=False,retry=3,timeout=0,expand=True)
+                self.cuisine.core.file_download(downl, "/usr/local", overwrite=False, retry=3, timeout=0, expand=True)
             else:
                 raise j.exceptions.RuntimeError("platform not supported")
 
@@ -60,7 +65,7 @@ class CuisineGolang(base):
 
     @actionrun(action=True)
     def goraml(self):
-        C='''
+        C = '''
         go get -u github.com/Jumpscale/go-raml
         set -ex
         cd $GOPATH/src/github.com/jteeuwen/go-bindata/go-bindata
@@ -87,11 +92,11 @@ class CuisineGolang(base):
         self.cuisine.core.dir_remove(srcpath)
 
     @actionrun(action=True)
-    def get(self,url):
+    def get(self, url):
         """
         e.g. url=github.com/tools/godep
         """
-        self.cuisine.core.run('go get -v -u %s'%url, profile=True)
+        self.cuisine.core.run('go get -v -u %s' % url, profile=True)
 
     @actionrun(action=True)
     def godep(self, url, branch=None, depth=1):
@@ -102,5 +107,6 @@ class CuisineGolang(base):
 
         pullurl = "git@%s.git" % url.replace('/', ':', 1)
 
-        dest = self.cuisine.git.pullRepo(pullurl, branch=branch, depth=depth, dest='%s/src/%s' % (GOPATH, url), ssh=False)
+        dest = self.cuisine.git.pullRepo(pullurl, branch=branch, depth=depth,
+                                         dest='%s/src/%s' % (GOPATH, url), ssh=False)
         self.cuisine.core.run('cd %s && godep restore' % dest, profile=True)

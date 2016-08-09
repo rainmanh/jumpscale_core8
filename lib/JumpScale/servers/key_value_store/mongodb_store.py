@@ -5,16 +5,17 @@ import pymongo
 from pymongo import MongoClient
 
 
-
-
 import time
+
 
 def chunks(l, n):
     for i in range(0, len(l), n):
-        yield l[i:i+n]
+        yield l[i:i + n]
+
 
 class MongoDBKeyValueStore(KeyValueStoreBase):
-    def __init__(self,namespace="",host='localhost',port=7771,db=0,password='', serializers=[],masterdb=None, changelog=True):
+
+    def __init__(self, namespace="", host='localhost', port=7771, db=0, password='', serializers=[], masterdb=None, changelog=True):
         raise j.exceptions.RuntimeError("not implemented")
         self.namespace = namespace
 
@@ -22,35 +23,34 @@ class MongoDBKeyValueStore(KeyValueStoreBase):
 
         KeyValueStoreBase.__init__(self, [])
 
-
     def get(self, category, key):
         categoryKey = self._getCategoryKey(category, key)
 
         value = self.redisclient.get(categoryKey)
         return self.unserialize(value)
 
-    def set(self, category, key, value,expire=0):
+    def set(self, category, key, value, expire=0):
         """
         @param expire is in seconds when value will expire
         """
         if j.data.types.dict.check(value):
             if "guid" in value:
-                guid=value.pop("guid")
-                value["_id"]=guid
+                guid = value.pop("guid")
+                value["_id"] = guid
             # value = j.data.serializer.json.dumps(value)
             categoryKey = self._getCategoryKey(category, key)
             # from IPython import embed
             # print "DEBUG NOW set"
             # embed()
-            
+
             self.redisclient.set(categoryKey, value)
         else:
             raise j.exceptions.RuntimeError("Only support dicts in set")
 
     def delete(self, category, key):
         if self.hasmaster:
-            self.writedb.delete(category,key)
-            self.addToChangeLog(category, key,action='D')
+            self.writedb.delete(category, key)
+            self.addToChangeLog(category, key, action='D')
         else:
             categoryKey = self._getCategoryKey(category, key)
             # self._assertExists(categoryKey)

@@ -43,35 +43,43 @@ class AYSRunStepAction(Process):
             if self.service.model is None:
                 m["model"] = ""
             else:
-                m["model"] = self.runstep.run.db.set_dedupe("model", j.data.serializer.json.dumps(self.service.model))
-            m["hrd"] = self.runstep.run.db.set_dedupe("hrd", str(self.service.hrd))
-            m["source"] = self.runstep.run.db.set_dedupe("source", self.service.getActionSource(self.runstep.action))
+                m["model"] = self.runstep.run.db.set_dedupe(
+                    "model", j.data.serializer.json.dumps(self.service.model))
+            m["hrd"] = self.runstep.run.db.set_dedupe(
+                "hrd", str(self.service.hrd))
+            m["source"] = self.runstep.run.db.set_dedupe(
+                "source", self.service.getActionSource(self.runstep.action))
             self._model = m
         return self._model
 
     @property
     def service_model(self):
         if self._service_model is None:
-            self._service_model = self.runstep.run.db.get_dedupe("model", self.model["model"]).decode()
+            self._service_model = self.runstep.run.db.get_dedupe(
+                "model", self.model["model"]).decode()
             if self._service_model != "":
-                self._service_model = j.data.serializer.json.loads(self._service_model)
+                self._service_model = j.data.serializer.json.loads(
+                    self._service_model)
         return self._service_model
 
     @property
     def service_hrd(self):
         if self._service_hrd is None:
-            self._service_hrd = self.runstep.run.db.get_dedupe("hrd", self.model["hrd"]).decode()
+            self._service_hrd = self.runstep.run.db.get_dedupe(
+                "hrd", self.model["hrd"]).decode()
         return self._service_hrd
 
     @property
     def source(self):
         if self._source is None:
-            self._source = self.runstep.run.db.get_dedupe("source", self.model["source"]).decode()
+            self._source = self.runstep.run.db.get_dedupe(
+                "source", self.model["source"]).decode()
         return self._source
 
     def _str_error(self, error):
         out = ''
-        formatter = pygments.formatters.Terminal256Formatter(style=pygments.styles.get_style_by_name("vim"))
+        formatter = pygments.formatters.Terminal256Formatter(
+            style=pygments.styles.get_style_by_name("vim"))
 
         if error.__str__() != "":
             out += "\n*TRACEBACK*********************************************************************************\n"
@@ -93,14 +101,16 @@ class AYSRunStepAction(Process):
             self.logger.debug('\tresult:%s' % self.result)
             self.result_q.put(self.result)
         except Exception as e:
-            self.logger.debug('running stepaction with error: %s' % self.service)
+            self.logger.debug(
+                'running stepaction with error: %s' % self.service)
             self.logger.debug('\tresult:%s' % self.result)
             self.error_q.put(self._str_error(e))
             self.result_q.put(self.result)
             raise e
 
     def __repr__(self):
-        out = "runstep action: %s!%s (%s)\n" % (self.service.key, self.name, self.state)
+        out = "runstep action: %s!%s (%s)\n" % (
+            self.service.key, self.name, self.state)
         if self.service_model != "":
             out += "model:\n%s\n\n" % j.data.text.indent(self.service_model)
         if self.service_hrd != "":
@@ -125,7 +135,8 @@ class AYSRunStep:
 
     def addService(self, aysi, model=None):
         if aysi.key not in self.actions:
-            self.actions[aysi.key] = AYSRunStepAction(self, aysi, model=model, result_q=Queue(), error_q=Queue())
+            self.actions[aysi.key] = AYSRunStepAction(
+                self, aysi, model=model, result_q=Queue(), error_q=Queue())
         return self.actions[aysi.key]
 
     def exists(self, aysi):
@@ -135,8 +146,10 @@ class AYSRunStep:
         self.run.aysrepo.logger.debug('***************')
         self.run.aysrepo.logger.debug('\n\t'.join(list(self.actions.keys())))
 
-        for stepaction in self.actions.values(): stepaction.start()
-        for stepaction in self.actions.values(): stepaction.join()
+        for stepaction in self.actions.values():
+            stepaction.start()
+        for stepaction in self.actions.values():
+            stepaction.join()
 
         for stepaction in self.actions.values():
             if not stepaction.error_q.empty():
@@ -166,7 +179,8 @@ class AYSRunStep:
         out = "step:%s (%s)\n" % (self.nr, self.state)
         for key, stepaction in self.actions.items():
             service = stepaction.service
-            out += "- %-50s ! %-15s %s \n" % (service, self.action, stepaction.state)
+            out += "- %-50s ! %-15s %s \n" % (service,
+                                              self.action, stepaction.state)
         return out
 
     __str__ = __repr__
@@ -276,7 +290,8 @@ class AYSRun:
                 for key, action in step.actions.items():
                     if action.state == "ERROR":
                         out += "STEP:%s, ACTION:%s" % (step.nr, step.action)
-                        out += self.db.get_dedupe("source", action.model["source"]).decode()
+                        out += self.db.get_dedupe("source",
+                                                  action.model["source"]).decode()
                         out += str(action.result or '')
         return out
 
@@ -290,8 +305,10 @@ class AYSRun:
     def save(self):
         if self.db is not None:
             # will remember in KVS
-            self.db.set("run", str(self.id), j.data.serializer.json.dumps(self.model))
-            self.db.set("run_index", str(self.id), "%s|%s" % (self.timestamp, self.state))
+            self.db.set("run", str(self.id),
+                        j.data.serializer.json.dumps(self.model))
+            self.db.set("run_index", str(self.id), "%s|%s" %
+                        (self.timestamp, self.state))
 
     def execute(self):
         # j.actions.setRunId("ays_run_%s"%self.id)

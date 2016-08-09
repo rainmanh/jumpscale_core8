@@ -28,7 +28,6 @@ class ActorState():
     def __init__(self, Actor):
         self.Actor = Actor
 
-
         self._path = j.sal.fs.joinPaths(self.Actor.path, "state.json")
         if j.sal.fs.exists(path=self._path):
             self._model = j.data.serializer.json.load(self._path)
@@ -39,27 +38,27 @@ class ActorState():
         self._changes = {}
         self._methodsList = []
 
-        self.db=j.atyourservice.kvs.get("actor")
+        self.db = j.atyourservice.kvs.get("actor")
 
-        if self.db.exists(self.hrkey)==False:
-            self.saveToDB()   
+        if self.db.exists(self.hrkey) == False:
+            self.saveToDB()
 
     def saveToDB(self):
         return
         from IPython import embed
-        print ("DEBUG NOW save2db")
+        print("DEBUG NOW save2db")
         embed()
-        model=j.atyourservice.AYSModel.Actor.new_message()
-        model.role=self.name
+        model = j.atyourservice.AYSModel.Actor.new_message()
+        model.role = self.name
 
         # resdb=j.atyourservice.db.get("Actor",self.Actor.name)
-
 
     def addMethod(self, name="", source="", isDefaultMethod=False):
         if source != "":
             if name in ["input", "init"]:
                 if source.find("$(") != -1:
-                    raise j.exceptions.Input("Action method:%s should not have template variable '$(...' in sourcecode for init or input method." % (self))
+                    raise j.exceptions.Input(
+                        "Action method:%s should not have template variable '$(...' in sourcecode for init or input method." % (self))
 
             if not isDefaultMethod:
                 newhash = j.data.hash.md5_string(source)
@@ -109,45 +108,49 @@ class ActorState():
 
 class Actor(ActorTemplate):
 
-    def __init__(self,aysrepo,template):
+    def __init__(self, aysrepo, template):
         """
         """
 
-        self.name=template.name
+        self.name = template.name
         self.role = self.name.split(".", 1)[0]
 
         self.template = template
         self.aysrepo = aysrepo
 
-        self.domain=self.template.domain
+        self.domain = self.template.domain
 
-        self.path = j.sal.fs.joinPaths(aysrepo.basepath, "actors", template.name)
+        self.path = j.sal.fs.joinPaths(
+            aysrepo.basepath, "actors", template.name)
 
         self.logger = j.atyourservice.logger
 
         self._init_props()
 
         # copy the files
-        if not j.sal.fs.exists(path=self.path):            
+        if not j.sal.fs.exists(path=self.path):
             self.copyFilesFromTemplate()
 
         self.state = ActorState(self)
 
-#### INIT
+# INIT
 
     def copyFilesFromTemplate(self):
 
         j.sal.fs.createDir(self.path)
 
         if j.sal.fs.exists(self.template.path_hrd_template):
-            j.sal.fs.copyFile(self.template.path_hrd_template, self.path_hrd_template)
+            j.sal.fs.copyFile(self.template.path_hrd_template,
+                              self.path_hrd_template)
         if j.sal.fs.exists(self.template.path_hrd_schema):
-            j.sal.fs.copyFile(self.template.path_hrd_schema, self.path_hrd_schema)
+            j.sal.fs.copyFile(self.template.path_hrd_schema,
+                              self.path_hrd_schema)
         if j.sal.fs.exists(self.template.path_actions_node):
-            j.sal.fs.copyFile(self.template.path_actions_node, self.path_actions_node)
+            j.sal.fs.copyFile(self.template.path_actions_node,
+                              self.path_actions_node)
         if j.sal.fs.exists(self.template.path_mongo_model):
-            j.sal.fs.copyFile(self.template.path_mongo_model, self.path_mongo_model)
-        
+            j.sal.fs.copyFile(self.template.path_mongo_model,
+                              self.path_mongo_model)
 
         self._writeActionsFile()
 
@@ -163,7 +166,8 @@ class Actor(ActorTemplate):
             content = "class Actions(ActionsBaseMgmt):\n\n"
 
         if content.find("class action(ActionMethodDecorator)") != -1:
-            raise j.exceptions.Input("There should be no decorator specified in %s" % self.path_actions)
+            raise j.exceptions.Input(
+                "There should be no decorator specified in %s" % self.path_actions)
 
         content = "%s\n\n%s" % (DECORATORCODE, content)
 
@@ -222,7 +226,8 @@ class Actor(ActorTemplate):
         # add missing methods
         for actionname in actionmethodsRequired:
             if actionname not in self.state.methods:
-                am = self.state.addMethod(name=actionname, isDefaultMethod=True)
+                am = self.state.addMethod(
+                    name=actionname, isDefaultMethod=True)
                 #not found
                 if actionname == "input":
                     content += '\n\n    def input(self, service, name, role, instance, serviceargs):\n        return serviceargs\n'
@@ -239,9 +244,10 @@ class Actor(ActorTemplate):
         self.state._changes = {}
 
 
-#### SERVICE
+# SERVICE
     def serviceActionsGet(self, service):
-        modulename = "JumpScale.atyourservice.%s.%s" % (self.name, service.instance)
+        modulename = "JumpScale.atyourservice.%s.%s" % (
+            self.name, service.instance)
         mod = loadmodule(modulename, self.path_actions)
         return mod.Actions()
 
@@ -253,7 +259,8 @@ class Actor(ActorTemplate):
 
         instance = instance.lower()
 
-        service = self.aysrepo.getService(role=self.role, instance=instance, die=False)
+        service = self.aysrepo.getService(
+            role=self.role, instance=instance, die=False)
 
         if service is not None:
             # print("NEWINSTANCE: Service instance %s!%s  exists." % (self.name, instance))
@@ -273,9 +280,11 @@ class Actor(ActorTemplate):
                 fullpath = j.sal.fs.joinPaths(ppath, key)
 
             if j.sal.fs.isDir(fullpath):
-                j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (self.role, instance, fullpath))
+                j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (
+                    self.role, instance, fullpath))
 
-            service = Service(aysrepo=self.aysrepo, Actor=self, instance=instance, args=args, path="", parent=parent, originator=originator, model=model)
+            service = Service(aysrepo=self.aysrepo, Actor=self, instance=instance,
+                              args=args, path="", parent=parent, originator=originator, model=model)
 
             self.aysrepo._services[service.key] = service
 
@@ -284,7 +293,6 @@ class Actor(ActorTemplate):
         service.consume(consume)
 
         return service
-
 
     @property
     def services(self):
@@ -295,21 +303,22 @@ class Actor(ActorTemplate):
         return [service.instance for service in services]
 
 
-#### GENERIC
+# GENERIC
     def upload2AYSfs(self, path):
         """
         tell the ays filesystem about this directory which will be uploaded to ays filesystem
         """
-        j.tools.sandboxer.dedupe(path, storpath="/tmp/aysfs", name="md", reset=False, append=True)
+        j.tools.sandboxer.dedupe(
+            path, storpath="/tmp/aysfs", name="md", reset=False, append=True)
 
     def __repr__(self):
         return "Actor: %-15s" % (self.name)
 
-
     # def downloadfiles(self):
     #     """
     #     this method download any required files for this Actor as defined in the template.hrd
-    #     Use this method when building a service to have all the files ready to sandboxing
+    # Use this method when building a service to have all the files ready to
+    # sandboxing
 
     #     @return list of tuples containing the source and destination of the files defined in the Actoritem
     #             [(src, dest)]
@@ -373,7 +382,8 @@ class Actor(ActorTemplate):
     #                 path=src, recursive=False, followSymlinks=False, listSymlinks=False)
     #             if nodirs is False:
     #                 items += j.sal.fs.listDirsInDir(
-    #                     path=src, recursive=False, dirNameOnly=False, findDirectorySymlinks=False)
+    # path=src, recursive=False, dirNameOnly=False,
+    # findDirectorySymlinks=False)
 
     #             raise RuntimeError("getshort_key does not even exist")
     #             items = [(item, "%s/%s" % (dest, j.sal.fs.getshort_key(item)), link)
@@ -410,4 +420,3 @@ class Actor(ActorTemplate):
     #             dirList.extend(out)
 
     #     return dirList
-

@@ -28,7 +28,7 @@ class StorxClient:
         self.path = o.path
 
     def _postURLStore(self, path):
-        return  urljoin(self.base_url, j.sal.fs.joinPaths(self.path, "store", path)).rstrip('/')
+        return urljoin(self.base_url, j.sal.fs.joinPaths(self.path, "store", path)).rstrip('/')
 
     def _getURLStore(self, namespace, hash):
         return urljoin(self.base_url, j.sal.fs.joinPaths(self.path, "store", namespace, hash)).rstrip('/')
@@ -54,7 +54,8 @@ class StorxClient:
         resp = None
         with open(file_path, 'rb') as f:
             # streaming upload, avoid reading all file in memory
-            resp = self.session.post(url, data=f, headers={'Content-Type': 'application/octet-stream'})
+            resp = self.session.post(url, data=f, headers={
+                                     'Content-Type': 'application/octet-stream'})
             resp.raise_for_status()
 
         return resp.json()["Hash"]
@@ -159,7 +160,8 @@ class StorxClient:
         resp = None
         with open(file_path, 'rb') as f:
             # streaming upload, avoid reading all file in memory
-            resp = self.session.post(url, data=f, headers={'Content-Type': 'application/octet-stream'})
+            resp = self.session.post(url, data=f, headers={
+                                     'Content-Type': 'application/octet-stream'})
             resp.raise_for_status()
 
         return True

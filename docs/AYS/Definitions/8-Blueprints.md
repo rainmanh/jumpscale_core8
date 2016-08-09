@@ -1,6 +1,6 @@
-## AYS Blueprints
+# AYS Blueprints
 
-An AYS *blueprint* is a [YAML](http://yaml.org/) file used as the entry point for interacting with AYS. It describes the deployment of a specific application.
+An AYS _blueprint_ is a [YAML](http://yaml.org/) file used as the entry point for interacting with AYS. It describes the deployment of a specific application.
 
 It does so by defining all service instances that make up a specific application and how these AYS services instances interact with each other.
 

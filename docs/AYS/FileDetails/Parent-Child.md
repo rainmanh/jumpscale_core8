@@ -1,4 +1,4 @@
-## AYS Parent/Child Relationship
+# AYS Parent/Child Relationship
 
 A service can be a parent for other services.
 
@@ -6,8 +6,7 @@ It's just a way of organizing your services and grouping them.
 
 Child services are created in a subdirectory of its parent.
 
-
-### Example:
+## Example:
 
 Considering the following blueprint:
 
@@ -42,31 +41,30 @@ rack__storage4:
     description: 'rack for cpu node'
 ```
 
-In this example the `rack` service use the datacenter service as parent.  
+In this example the `rack` service use the datacenter service as parent.<br>
 After execution of the command `ays blueprint`, the service tree will look like that:
 
 ```shell
 $ tree services/
 services/
 ├── datacenter!eu
-│   ├── instance.hrd
-│   ├── rack!storage1
-│   │   ├── instance.hrd
-│   │   └── state.yaml
-│   ├── rack!storage2
-│   │   ├── instance.hrd
-│   │   └── state.yaml
-│   └── state.yaml
+│   ├── instance.hrd
+│   ├── rack!storage1
+│   │   ├── instance.hrd
+│   │   └── state.yaml
+│   ├── rack!storage2
+│   │   ├── instance.hrd
+│   │   └── state.yaml
+│   └── state.yaml
 └── datacenter!us
     ├── instance.hrd
     ├── rack!cpu1
-    │   ├── instance.hrd
-    │   └── state.yaml
+    │   ├── instance.hrd
+    │   └── state.yaml
     ├── rack!storage4
-    │   ├── instance.hrd
-    │   └── state.yaml
+    │   ├── instance.hrd
+    │   └── state.yaml
     └── state.yaml
 
 6 directories, 12 files
-
 ```

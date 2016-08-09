@@ -7,20 +7,21 @@ DEFAULTSECT = "DEFAULT"
 Override from https://github.com/enthought/Python-2.7.3/blob/master/Lib/ConfigParser.py
 """
 
+
 class SambaConfigParser(configparser.ConfigParser):
     OPTCRE_SMB = re.compile(
         r'(?P<option>[^=\s][^=]*)'          # very permissive!
         r'\s*(?P<vi>[=])\s*'                 # any number of space/tab,
-                                              # followed by separator
-                                              # (either =), followed
-                                              # by any # space/tab
+        # followed by separator
+        # (either =), followed
+        # by any # space/tab
         r'(?P<value>.*)$'                     # everything up to eol
-        )
-        
+    )
+
     def _read(self, fp, fpname):
         # override optcre to allow colon on key
         self._optcre = self.OPTCRE_SMB
-        
+
         """Parse a sectioned setup file.
         The sections in setup file contains a title line at the top,
         indicated by a name in square brackets (`[]'), plus key/value
@@ -81,7 +82,7 @@ class SambaConfigParser(configparser.ConfigParser):
                                 # ';' is a comment delimiter only if it follows
                                 # a spacing character
                                 pos = optval.find(';')
-                                if pos != -1 and optval[pos-1].isspace():
+                                if pos != -1 and optval[pos - 1].isspace():
                                     optval = optval[:pos]
                             optval = optval.strip()
                             # allow empty values

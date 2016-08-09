@@ -2,12 +2,17 @@
 from JumpScale import j
 
 from ActionDecorator import ActionDecorator
-class actionrun(ActionDecorator):
-    def __init__(self,*args,**kwargs):
-        ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.ufw"
 
-base=j.tools.cuisine.getBaseClass()
+
+class actionrun(ActionDecorator):
+
+    def __init__(self, *args, **kwargs):
+        ActionDecorator.__init__(self, *args, **kwargs)
+        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.ufw"
+
+base = j.tools.cuisine.getBaseClass()
+
+
 class CuisineUFW(base):
 
     def __init__(self, executor, cuisine):
@@ -81,7 +86,7 @@ class CuisineUFW(base):
         self.ufw_enable()
         self.cuisine.core.run("ufw deny %s" % port)
 
-    @actionrun(action=True,force=True)
+    @actionrun(action=True, force=True)
     def flush(self):
         C = """
         ufw disable

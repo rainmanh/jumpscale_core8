@@ -307,7 +307,7 @@ class BlockLexer:
 
             rest = len(item)
             if i != length - 1 and rest:
-                _next = item[rest-1] == '\n'
+                _next = item[rest - 1] == '\n'
                 if not loose:
                     loose = _next
 
@@ -935,6 +935,7 @@ class Markdown:
     :param inline: An inline lexer class or instance.
     :param block: A block lexer class or instance.
     """
+
     def __init__(self, renderer=None, inline=None, block=None, **kwargs):
         if not renderer:
             renderer = Renderer(**kwargs)

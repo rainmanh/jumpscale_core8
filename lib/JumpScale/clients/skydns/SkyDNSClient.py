@@ -32,12 +32,12 @@ class SkyDNSClient:
     def _replyParser(self, r):
         if r.status_code == 401:
             return {"error": "not authorized"}
-        
+
         if r.status_code == 404:
             return {"error": "endpoint not found"}
-        
+
         return r.json()
-        
+
     def read(self, endpoint):
         link = self.mkurl(endpoint)
 
@@ -84,14 +84,15 @@ class SkyDNSClient:
 
     def setRecordMX(self, name, target, priority=20, ttl=3600):
         key = self._hostKey(name)
-        self.write(key, {'host': target, 'priority': priority, 'ttl': ttl, 'mail': True})
+        self.write(key, {'host': target, 'priority': priority,
+                         'ttl': ttl, 'mail': True})
         return self.read(key)
-    
+
     def setRecordTXT(self, name, content, ttl=3600):
         key = self._hostKey(name)
         self.write(key, {'text': content, 'ttl': ttl})
         return self.read(key)
-        
+
     def removeRecordA(self, name):
         key = self._hostKey(name)
         self.delete(key)
@@ -109,6 +110,7 @@ class SkyDNSClient:
             elif j.data.types.dict.check(value):
                 host = value['host']
             else:
-                raise j.exceptions.RuntimeError("Bad response format (%s)", resp)
+                raise j.exceptions.RuntimeError(
+                    "Bad response format (%s)", resp)
             return (True, host)
         return (False, None)

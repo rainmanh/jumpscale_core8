@@ -1,5 +1,6 @@
 
-#@todo (*3*)
+#TODO: *3
+
 
 @task
 def setupNetwork(ifaces):

@@ -9,6 +9,7 @@ NUM_WORKERS = 4
 
 
 class BaseDumper:
+
     def __init__(self, cidr, ports=[6379]):
         logging.root.setLevel(logging.INFO)
 

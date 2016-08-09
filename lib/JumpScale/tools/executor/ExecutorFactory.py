@@ -49,8 +49,8 @@ class ExecutorFactory:
     def getLocal(self, jumpscale=False, debug=False, checkok=False):
         return ExecutorLocal(debug=debug, checkok=debug)
 
-    def getSSHBased(self, addr="localhost", port=22, login="root", passwd=None, debug=False, allow_agent=True, \
-        look_for_keys=True, pushkey=None, pubkey="", timeout=5,usecache=True):
+    def getSSHBased(self, addr="localhost", port=22, login="root", passwd=None, debug=False, allow_agent=True,
+                    look_for_keys=True, pushkey=None, pubkey="", timeout=5, usecache=True):
         """
         returns an ssh-based executor where:
         allow_agent: uses the ssh-agent to connect
@@ -60,7 +60,7 @@ class ExecutorFactory:
         usecache: gets cached executor if available. False to get a new one.
         """
         key = '%s:%s:%s' % (addr, port, login)
-        if key not in self._executors or usecache==False:
+        if key not in self._executors or usecache == False:
             print("ssh no cache")
             self._executors[key] = ExecutorSSH(addr=addr,
                                                port=port,

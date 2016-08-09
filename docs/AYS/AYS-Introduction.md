@@ -1,8 +1,8 @@
-## AYS Introduction
+# AYS Introduction
 
 > Note that parts of the **AtYourService** documentation is deprecated. It's still heavily being reviewed.
 
-### What is AYS?
+## What is AYS?
 
 AYS is a self-healing application management framework for cloud infrastructure and is installed as part of a JumpScale installation.
 
@@ -14,8 +14,7 @@ It combines functions such as:
 - **Build Tool** like [ant](http://ant.apache.org)
 - **Monitoring Tool**
 
-
-### What is a service?
+## What is a service?
 
 A service, either local is an abstraction for almost anything:
 
@@ -25,8 +24,7 @@ A service, either local is an abstraction for almost anything:
 - Buisness logic i.e `user` and `team`
 - Abstraction for any number of other services
 
-
-### One command to rule them all
+## One command to rule them all
 
 We use only one command `ays` to control everything:
 
@@ -37,7 +35,7 @@ We use only one command `ays` to control everything:
 - Stop all services: `ays stop`
 - check `ays --help` for a complete list of available commands
 
-### Next
+## Next
 
 Next you will want to learn about:
 

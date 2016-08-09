@@ -2,7 +2,6 @@ from libcloud.compute.providers import get_driver
 from JumpScale import j
 
 
-
 class AmazonProvider:
 
     def __init__(self):
@@ -20,7 +19,8 @@ class AmazonProvider:
     def connect(self, access_key_id, secret_access_key):
         if not self.region:
             raise j.exceptions.RuntimeError('Region must be set first')
-        self._client = get_driver(self.region)(access_key_id, secret_access_key)
+        self._client = get_driver(self.region)(
+            access_key_id, secret_access_key)
 
     def find_size(self, size_id):
         return [s for s in self._client.list_sizes(self.region) if s.id.lower().find(size_id.lower()) != -1]
@@ -53,12 +53,14 @@ class AmazonProvider:
         for machine in machines:
             if machine['name'] == machine_name:
                 if machine['status'] != 'running':
-                    raise j.exceptions.RuntimeError('Machine "%s" is not running' % machine_name)
+                    raise j.exceptions.RuntimeError(
+                        'Machine "%s" is not running' % machine_name)
                 host = machine['public_ips'][0]
                 break
 
         if not host:
-            raise j.exceptions.RuntimeError('Could not find machine: %s' % machine_name)
+            raise j.exceptions.RuntimeError(
+                'Could not find machine: %s' % machine_name)
         rapi = j.tools.cuisine.get(j.tools.executor.get(host, login='ubuntu'))
         if sudo:
             return rapi.core.sudo(command)

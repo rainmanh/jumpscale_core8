@@ -9,14 +9,18 @@ please ensure that the start and build methods are separate and
 the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
 """
 
+
 class actionrun(ActionDecorator):
+
     def __init__(self, *args, **kwargs):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.syncthing"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class Syncthing(base):
-    
+
     def __init__(self, executor, cuisine):
         self.executor = executor
         self.cuisine = cuisine
@@ -28,7 +32,7 @@ class Syncthing(base):
         """
         self.cuisine.apps.installdeps()
 
-        config="""
+        config = """
         <configuration version="11">
             <folder id="default" path="$homeDir/Sync" ro="false" rescanIntervalS="60" ignorePerms="false" autoNormalize="false">
                 <device id="H7MBKSF-XNFETHA-2ERDXTB-JQCAXTA-BBTTLJN-23TN5BZ-4CL7KLS-FYCISAR"></device>
@@ -79,23 +83,24 @@ class Syncthing(base):
             </options>
         </configuration>
         """
-        #create config file
+        # create config file
         content = self.cuisine.core.args_replace(config)
         content = content.replace("$lclAddrs",  "0.0.0.0", 1)
-        content = content.replace ("$port", "8384", 1)
+        content = content.replace("$port", "8384", 1)
 
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/syncthing/")
         self.cuisine.core.file_write("$tmplsDir/cfg/syncthing/config.xml", content)
 
-        #build
+        # build
         url = "https://github.com/syncthing/syncthing.git"
         self.cuisine.core.dir_remove('$goDir/src/github.com/syncthing/syncthing')
-        dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='$goDir/src/github.com/syncthing/syncthing', ssh=False, depth=None)
+        dest = self.cuisine.git.pullRepo(
+            url, branch="v0.11.25",  dest='$goDir/src/github.com/syncthing/syncthing', ssh=False, depth=None)
         self.cuisine.core.run('cd %s; go run build.go build' % dest, profile=True)
         #self.cuisine.core.run('cd %s && godep restore' % dest, profile=True)
         #self.cuisine.core.run("cd %s && ./build.sh noupgrade" % dest, profile=True)
 
-        #copy bin
+        # copy bin
         self.cuisine.core.file_copy(self.cuisine.core.joinpaths(dest, 'syncthing'), "$goDir/bin/", recursive=True)
         self.cuisine.core.file_copy("$goDir/bin/syncthing", "$binDir", recursive=True)
 
@@ -108,7 +113,8 @@ class Syncthing(base):
         self.cuisine.core.file_copy("$tmplsDir/cfg/syncthing/", "$cfgDir", recursive=True)
 
         GOPATH = self.cuisine.bash.environGet('GOPATH')
-        env={}
-        env["TMPDIR"]=self.cuisine.core.dir_paths["tmpDir"]
+        env = {}
+        env["TMPDIR"] = self.cuisine.core.dir_paths["tmpDir"]
         pm = self.cuisine.processmanager.get("tmux")
-        pm.ensure(name="syncthing", cmd="./syncthing -home  $cfgDir/syncthing", path=self.cuisine.core.joinpaths(GOPATH, "bin"))
+        pm.ensure(name="syncthing", cmd="./syncthing -home  $cfgDir/syncthing",
+                  path=self.cuisine.core.joinpaths(GOPATH, "bin"))

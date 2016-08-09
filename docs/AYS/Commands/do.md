@@ -1,4 +1,4 @@
-## Do
+# Do
 
 The `do` command if for calling an action of a service instance.
 

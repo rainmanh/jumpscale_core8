@@ -15,24 +15,26 @@ class GridFactory:
         self.brokerClient = None
         # self.zobjects = ZCoreModelsFactory()
         self.id = None
-        self.nid=None
+        self.nid = None
         self.config = None
         self.roles = list()
         self._healthchecker = None
-    
+
     @property
     def healthchecker(self):
         if not self._healthchecker:
             self._healthchecker = GridHealthChecker()
         return self._healthchecker
 
-    def _loadConfig(self,test=True):
+    def _loadConfig(self, test=True):
         if "config" not in j.application.__dict__:
-            raise RuntimeWarning("Grid/Broker is not configured please run configureBroker/configureNode first and restart jshell")
+            raise RuntimeWarning(
+                "Grid/Broker is not configured please run configureBroker/configureNode first and restart jshell")
         self.config = j.application.config
 
         if self.config == None:
-            raise RuntimeWarning("Grid/Broker is not configured please run configureBroker/configureNode first and restart jshell")
+            raise RuntimeWarning(
+                "Grid/Broker is not configured please run configureBroker/configureNode first and restart jshell")
 
         self.id = j.application.whoAmI.gid
         self.nid = j.application.whoAmI.nid
@@ -40,19 +42,20 @@ class GridFactory:
         if test:
 
             if self.id == 0:
-                j.errorconditionhandler.raiseInputError(msgpub="Grid needs grid id to be filled in in grid config file", message="", category="", die=True)
+                j.errorconditionhandler.raiseInputError(
+                    msgpub="Grid needs grid id to be filled in in grid config file", message="", category="", die=True)
 
             if self.nid == 0:
-                j.errorconditionhandler.raiseInputError(msgpub="Grid needs grid node id (grid.nid) to be filled in in grid config file", message="", category="", die=True)
+                j.errorconditionhandler.raiseInputError(
+                    msgpub="Grid needs grid node id (grid.nid) to be filled in in grid config file", message="", category="", die=True)
 
-
-    def init(self,description="",instance=1):
+    def init(self, description="", instance=1):
         self._loadConfig(test=False)
 
         roles = list()
         if self.config.exists("grid.node.roles"):
             roles = j.application.config.getList('grid.node.roles')
-        roles = [ role.lower() for role in roles ]
+        roles = [role.lower() for role in roles]
         self.roles = roles
         j.logger.consoleloglevel = 5
 

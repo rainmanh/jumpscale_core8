@@ -6,37 +6,42 @@ import time
 import socket
 
 from ActionDecorator import ActionDecorator
-class actionrun(ActionDecorator):
-    def __init__(self,*args,**kwargs):
-        ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.proxy"
 
-base=j.tools.cuisine.getBaseClass()
+
+class actionrun(ActionDecorator):
+
+    def __init__(self, *args, **kwargs):
+        ActionDecorator.__init__(self, *args, **kwargs)
+        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.proxy"
+
+base = j.tools.cuisine.getBaseClass()
+
+
 class CuisineProxy(base):
     """
     all methods to do to allow a local lan to work more efficient with internet e.g. cache for apt-get, web proxy, ...
     """
 
-    def __init__(self,executor,cuisine):
-        self.executor=executor
-        self.cuisine=cuisine
+    def __init__(self, executor, cuisine):
+        self.executor = executor
+        self.cuisine = cuisine
 
-    @actionrun(action=True,force=False)
+    @actionrun(action=True, force=False)
     def removeFromSystemD(self):
-        pm=self.cuisine.processmanager.get("systemd")
+        pm = self.cuisine.processmanager.get("systemd")
         pm.remove("polipo")
         pm.remove("privoxy")
 
     @actionrun()
-    def installFilterProxy(self,port=8124,forward=True):
+    def installFilterProxy(self, port=8124, forward=True):
         """
         installs privoxy
         """
         self.cuisine.ufw.ufw_enable(force=False)
-        self.cuisine.ufw.allowIncoming(port,force=False)
-        self.cuisine.package.install("privoxy",force=False)
+        self.cuisine.ufw.allowIncoming(port, force=False)
+        self.cuisine.package.install("privoxy", force=False)
 
-        CONFIG="""
+        CONFIG = """
             #trust-info-url  http://www.example.com/why_we_block.html
             #admin-address privoxy-admin@example.com
             #confdir /usr/local/etc/privoxy
@@ -95,18 +100,18 @@ class CuisineProxy(base):
             # connection-sharing 1
 
             """
-        CONFIG=CONFIG.replace("$port",str(port))
-        CONFIG=j.data.text.strip(CONFIG)
+        CONFIG = CONFIG.replace("$port", str(port))
+        CONFIG = j.data.text.strip(CONFIG)
 
         if forward:
             self.installCacheProxy(force=False)
-            CONFIG+="forward  / localhost:8123\n"
+            CONFIG += "forward  / localhost:8123\n"
 
-        self.cuisine.core.file_write("/etc/privoxy/config",CONFIG,force=True)
+        self.cuisine.core.file_write("/etc/privoxy/config", CONFIG, force=True)
 
         self.removeFromSystemD(force=False)
 
-        USERACTION="""
+        USERACTION = """
             {{alias}}
 
             +crunch-all-cookies = +crunch-incoming-cookies +crunch-outgoing-cookies
@@ -174,52 +179,48 @@ class CuisineProxy(base):
 
             """
 
-        USERACTION=j.data.text.strip(USERACTION)
+        USERACTION = j.data.text.strip(USERACTION)
 
-        self.cuisine.core.file_write("/etc/privoxy/user.action",USERACTION,force=True)
-
+        self.cuisine.core.file_write("/etc/privoxy/user.action", USERACTION, force=True)
 
         self.start()
 
         print("http://config.privoxy.org/")
-        print ("http://config.privoxy.org/show-status")
+        print("http://config.privoxy.org/show-status")
         print("http://config.privoxy.org/show-request")
         print("http://config.privoxy.org/show-url-info")
-
 
     @actionrun(force=True)
     def start(self):
 
-        cmd="privoxy --no-daemon /etc/privoxy/config"
-        pm=self.cuisine.processmanager.get("tmux")
-        pm.ensure("privoxy",cmd)#in tmux will always restart
+        cmd = "privoxy --no-daemon /etc/privoxy/config"
+        pm = self.cuisine.processmanager.get("tmux")
+        pm.ensure("privoxy", cmd)  # in tmux will always restart
 
-        cmd="polipo -c /etc/polipo/config"
-        pm.ensure("polipo",cmd) #in tmux will always restart
+        cmd = "polipo -c /etc/polipo/config"
+        pm.ensure("polipo", cmd)  # in tmux will always restart
 
     @actionrun(action=True)
-    def installCacheProxy(self,storagemntpoint="/storage",btrfs=False):
+    def installCacheProxy(self, storagemntpoint="/storage", btrfs=False):
 
-        port=8123
+        port = 8123
 
         self.cuisine.ufw.ufw_enable(force=False)
-        self.cuisine.ufw.allowIncoming(port,force=False)
+        self.cuisine.ufw.allowIncoming(port, force=False)
 
+        if not self.cuisine.core.dir_exists(storagemntpoint, force=True):
+            raise j.exceptions.RuntimeError("Cannot find storage mountpoint:%s" % storagemntpoint)
 
-        if not self.cuisine.core.dir_exists(storagemntpoint,force=True):
-            raise j.exceptions.RuntimeError("Cannot find storage mountpoint:%s"%storagemntpoint)
-
-        cachedir="%s/polipo_cache"%storagemntpoint
+        cachedir = "%s/polipo_cache" % storagemntpoint
 
         if btrfs:
-            self.cuisine.btrfs.subvolumeCreate(cachedir,force=False)
+            self.cuisine.btrfs.subvolumeCreate(cachedir, force=False)
         else:
-            self.cuisine.core.dir_ensure(cachedir,force=False)
+            self.cuisine.core.dir_ensure(cachedir, force=False)
 
+        self.cuisine.package.install("polipo", force=False)
 
-        self.cuisine.package.install("polipo",force=False)
-
-        forbiddentunnels="""
+        forbiddentunnels = """
             # simple case, exact match of hostnames
             www.massfuel.com
 
@@ -245,11 +246,11 @@ class CuisineProxy(base):
             \.xiti\.com
             webtrekk\..*
             """
-        self.cuisine.core.file_write("/etc/polipo/forbiddenTunnels",forbiddentunnels)
+        self.cuisine.core.file_write("/etc/polipo/forbiddenTunnels", forbiddentunnels)
 
         # dnsNameServer
 
-        CONFIG="""
+        CONFIG = """
             proxyAddress = "0.0.0.0"    # IPv4 only
             # allowedClients = 127.0.0.1, 134.157.168.57
 
@@ -345,40 +346,34 @@ class CuisineProxy(base):
 
             """
 
-        CONFIG=CONFIG.replace("$cachedir",cachedir)
-        self.cuisine.core.file_write("/etc/polipo/config",CONFIG,force=True)
+        CONFIG = CONFIG.replace("$cachedir", cachedir)
+        self.cuisine.core.file_write("/etc/polipo/config", CONFIG, force=True)
 
-        self.cuisine.core.run("killall polipo",die=False)
+        self.cuisine.core.run("killall polipo", die=False)
 
         _, cmd, _ = self.cuisine.core.run("which polipo")
 
-        print ("INSTALL OK")
-        print ("to see status: point webbrowser to")
-        print ("http://%s:%s/polipo/status?"%(self.cuisine.core.executor.addr,port))
-        print ("configure your webproxy client to use %s on tcp port %s"%(self.cuisine.core.executor.addr,port))
+        print("INSTALL OK")
+        print("to see status: point webbrowser to")
+        print("http://%s:%s/polipo/status?" % (self.cuisine.core.executor.addr, port))
+        print("configure your webproxy client to use %s on tcp port %s" % (self.cuisine.core.executor.addr, port))
 
         self.removeFromSystemD(force=False)
 
-
-
-
     @actionrun()
-    def configureClient(self,addr="",port=8123):
-        if addr=="":
-            addr=self.cuisine.executor.addr
-        config='Acquire::http::Proxy "http://%s:%s";'%(addr,port)
+    def configureClient(self, addr="", port=8123):
+        if addr == "":
+            addr = self.cuisine.executor.addr
+        config = 'Acquire::http::Proxy "http://%s:%s";' % (addr, port)
         if self.cuisine.cuisine.platformtype.myplatform.startswith("ubuntu"):
-            f=self.cuisine.core.file_read("/etc/apt/apt.conf","")
-            f+="\n%s\n"%config
-            self.cuisine.core.file_write("/etc/apt/apt.conf",f)
+            f = self.cuisine.core.file_read("/etc/apt/apt.conf", "")
+            f += "\n%s\n" % config
+            self.cuisine.core.file_write("/etc/apt/apt.conf", f)
         else:
             raise RuntimeError("not implemented yet")
         j.application.break_into_jshell("DEBUG NOW configure client")
 
-
-
     def __str__(self):
         return "cuisine.proxy:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
 
-
-    __repr__=__str__
+    __repr__ = __str__

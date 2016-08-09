@@ -2,13 +2,17 @@ from JumpScale import j
 from JumpScale.core.errorhandling.OurExceptions import BaseJSException
 import traceback
 
+
 class AuthenticationError(BaseJSException):
     pass
+
 
 class MethodNotFoundException(BaseJSException):
     pass
 
+
 class RemoteException(BaseJSException):
+
     def __init__(self, message="", eco=None):
         self.message = message
         backtrace = traceback.format_stack()[:-1]

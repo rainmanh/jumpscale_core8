@@ -17,11 +17,8 @@ class UFWError(Exception):
     pass
 
 
-
-
-
-
 class UFWRule:
+
     def __init__(self, action=None, source=None, destination=None, number=None):
         self._number = number
         self._source = source
@@ -54,11 +51,13 @@ class UFWRule:
 
 
 class UFWOperation:
+
     def cmd(self):
         raise NotImplemented()
 
 
 class StatusOp(UFWOperation):
+
     def __init__(self, status=None):
         self._status = status
 
@@ -67,11 +66,13 @@ class StatusOp(UFWOperation):
 
 
 class ResetOp(UFWOperation):
+
     def cmd(self):
         return '--force reset'
 
 
 class RuleOp(UFWOperation):
+
     def __init__(self, rule=None, add=True):
         self._add = add
         self._rule = rule

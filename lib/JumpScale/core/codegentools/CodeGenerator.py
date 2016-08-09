@@ -21,7 +21,8 @@ class CodeGenerator:
         j.sal.fs.createDir(self.codepath)
         if self.codepath not in sys.path:
             sys.path.append(self.codepath)
-        j.sal.fs.writeFile(j.sal.fs.joinPaths(self.codepath, "__init__.py"), "")
+        j.sal.fs.writeFile(j.sal.fs.joinPaths(
+            self.codepath, "__init__.py"), "")
         self.appdir = j.sal.fs.getcwd()
 
     def setTarget(self, target):
@@ -64,10 +65,11 @@ class CodeGenerator:
         type = "actorlocal"
         # key="%s_%s_%s_%s_%s" % (type,appname,spectype,actor,actor)
         # if self.classes.has_key(key):
-            # return self.classes[key]
+        # return self.classes[key]
         spec = j.core.specparser.getActorSpec(appname, actor)
         # spec=j.core.specparser.findSpec(appname=appname,actorname=actor,specname=actor,type=spectype,findOnlyOne=True)
-        classs = self.generate(spec, type=type, typecheck=typecheck, dieInGenCode=dieInGenCode)
+        classs = self.generate(
+            spec, type=type, typecheck=typecheck, dieInGenCode=dieInGenCode)
         return classs
 
     def getActorClass(self, appname, actor, typecheck=True, dieInGenCode=True, codepath=None):
@@ -77,10 +79,11 @@ class CodeGenerator:
         type = "actorclass"
         # key="%s_%s_%s_%s_%s" % (type,appname,spectype,actor,actor)
         # if self.classes.has_key(key):
-            # return self.classes[key]
+        # return self.classes[key]
         spec = j.core.specparser.getActorSpec(appname, actor)
         # spec=j.core.specparser.findSpec(appname=appname,actorname=actor,specname=actor,type=spectype,findOnlyOne=True)
-        classs = self.generate(spec, type=type, typecheck=typecheck, dieInGenCode=dieInGenCode, codepath=codepath)
+        classs = self.generate(spec, type=type, typecheck=typecheck,
+                               dieInGenCode=dieInGenCode, codepath=codepath)
 
         return classs
 
@@ -92,10 +95,11 @@ class CodeGenerator:
         type = "actormethodgreenlet"
         key = "%s_%s_%s_%s_%s" % (type, appname, spectype, actor, actor)
         # if self.classes.has_key(key):
-            # return self.classes[key]
+        # return self.classes[key]
         spec = j.core.specparser.getActorSpec(appname, actor)
         # spec=j.core.specparser.findSpec(appname=appname,actorname=actor,specname=actor,type=spectype,findOnlyOne=True)
-        classs = self.generate(spec, type=type, typecheck=typecheck, dieInGenCode=dieInGenCode)
+        classs = self.generate(
+            spec, type=type, typecheck=typecheck, dieInGenCode=dieInGenCode)
         return classs
 
     def getClassJSModel(self, appname, actor, modelname, typecheck=True, dieInGenCode=True, codepath=""):
@@ -109,29 +113,31 @@ class CodeGenerator:
             return self.classes[key]
         # spec=j.core.specparser.findSpec(appname=appname,actorname=actor,specname=modelname,type=spectype,findOnlyOne=True)
         spec = j.core.specparser.getModelSpec(appname, actor, modelname)
-        classs = self.generate(spec, type=type, typecheck=typecheck, dieInGenCode=dieInGenCode, codepath=codepath)
+        classs = self.generate(spec, type=type, typecheck=typecheck,
+                               dieInGenCode=dieInGenCode, codepath=codepath)
         return classs
 
     def getCodeJSModel(self, appname, actor, modelname, typecheck=True, dieInGenCode=True, codepath=""):
         """
-        """        
+        """
         spectype = "model"
         type = "JSModel"
         spec = j.core.specparser.getModelSpec(appname, actor, modelname)
-        cg = CodeGeneratorModel(spec, typecheck=True, dieInGenCode=dieInGenCode)
-        code=cg.generate()        
+        cg = CodeGeneratorModel(spec, typecheck=True,
+                                dieInGenCode=dieInGenCode)
+        code = cg.generate()
         return code
 
     def getCodeEveModel(self, appname, actor, modelname, typecheck=True, dieInGenCode=True, codepath=""):
         """
-        """        
+        """
         spectype = "model"
         type = "EveModel"
         spec = j.core.specparser.getModelSpec(appname, actor, modelname)
-        cg = CodeGeneratorEveModel(spec, typecheck=typecheck, dieInGenCode=dieInGenCode, codepath=codepath)
+        cg = CodeGeneratorEveModel(
+            spec, typecheck=typecheck, dieInGenCode=dieInGenCode, codepath=codepath)
         code = cg.generate()
         return code
-
 
     # def getClassWhoosh(self,appname,actor,modelname,typecheck=True,dieInGenCode=True):
     #     """
@@ -152,9 +158,11 @@ class CodeGenerator:
         type = "enumeration"
         key = "%s_%s_%s_%s_%s" % (type, appname, spectype, actor, enumname)
         # if self.classes.has_key(key):
-            # return self.classes[key]
-        spec = j.core.specparser.findSpec(appname=appname, actorname=actor, specname=enumname, type=spectype, findOnlyOne=True)
-        self.generate(spec, type=type, typecheck=typecheck, dieInGenCode=dieInGenCode)
+        # return self.classes[key]
+        spec = j.core.specparser.findSpec(
+            appname=appname, actorname=actor, specname=enumname, type=spectype, findOnlyOne=True)
+        self.generate(spec, type=type, typecheck=typecheck,
+                      dieInGenCode=dieInGenCode)
         return None
 
     def getCodeId(self, spec, type):
@@ -169,13 +177,15 @@ class CodeGenerator:
         param: dieInGenCode  if true means in generated code we will die when something uneforeseen happens
         return: dict of classes if more than 1 otherwise just the class
         """
-        name, path = self._getCodeLocation(type, spec.appname, spec.type, spec.actorname, spec.name)
+        name, path = self._getCodeLocation(
+            type, spec.appname, spec.type, spec.actorname, spec.name)
         # path is location in a var dir where code will be generated, is always overwritten
         # if not self.generated.has_key(name):
         if spec.type == "actor" and type == "actorlocal":
             cg = CodeGeneratorActorLocal(spec, typecheck, dieInGenCode)
         elif spec.type == "actor" and type == "actorclass":
-            cg = CodeGeneratorActorClass(spec, typecheck, dieInGenCode, codepath=codepath, args=args)
+            cg = CodeGeneratorActorClass(
+                spec, typecheck, dieInGenCode, codepath=codepath, args=args)
         elif spec.type == "actor" and type == "tasklet":
             cg = CodeGeneratorActorTasklets(spec, codepath=codepath)
             cg.generate()
@@ -186,7 +196,6 @@ class CodeGenerator:
             raise j.exceptions.RuntimeError(emsg + " {category:spec.generate}")
 
         code = cg.generate()
-
 
         if not returnClass:
             return
@@ -215,11 +224,13 @@ class CodeGenerator:
                 classs = self._import(name, cg.getClassName(subitem), path)
                 if classs != None:
                     result[subitem] = classs
-                self.generated[name + "_%s" % subitem] = cg.getClassName(subitem)
+                self.generated[name + "_%s" %
+                               subitem] = cg.getClassName(subitem)
 
         else:
             if classpath != None:
-                result = self._import(cg.getClassName(), cg.getClassName(), path)                    
+                result = self._import(
+                    cg.getClassName(), cg.getClassName(), path)
             else:
                 result = self._import(name, cg.getClassName(), path)
 
@@ -229,7 +240,8 @@ class CodeGenerator:
 
     def _getCodeLocation(self, type, appname, spectype, specactor, specname):
         specname = specname.replace(".", "_")
-        name = "%s_%s_%s_%s_%s" % (type, appname, spectype, specactor, specname)
+        name = "%s_%s_%s_%s_%s" % (
+            type, appname, spectype, specactor, specname)
         path = j.sal.fs.joinPaths(self.codepath, name + ".py")
         return name, path
 
@@ -251,8 +263,10 @@ class CodeGenerator:
 
         # if getclass:
         try:
-            exec(compile("import imp;imp.reload(%s)" % name, '<string>', 'exec'), ns)
-            exec(compile("classs=%s.%s" % (name, classname), '<string>', 'exec'), ns)
+            exec(compile("import imp;imp.reload(%s)" %
+                         name, '<string>', 'exec'), ns)
+            exec(compile("classs=%s.%s" %
+                         (name, classname), '<string>', 'exec'), ns)
 
             # self.classes[name]=classs
             return ns['classs']

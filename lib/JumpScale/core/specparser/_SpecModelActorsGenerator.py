@@ -1,23 +1,25 @@
 from JumpScale import j
+
+
 class SpecModelActorsGenerator:
 
-    def __init__(self,appname,actorname,specpath,typecheck=True,dieInGenCode=True):
-        self.content=""
-        self.typecheck=typecheck
-        self.die=dieInGenCode
-        self.appname=appname
-        self.actorname=actorname
-        self.specpath=specpath
+    def __init__(self, appname, actorname, specpath, typecheck=True, dieInGenCode=True):
+        self.content = ""
+        self.typecheck = typecheck
+        self.die = dieInGenCode
+        self.appname = appname
+        self.actorname = actorname
+        self.specpath = specpath
 
-    def descrTo1Line(self,descr):
-        if descr=="":
+    def descrTo1Line(self, descr):
+        if descr == "":
             return descr
-        descr=descr.strip()
-        descr=descr.replace("\n","\\n")
+        descr = descr.strip()
+        descr = descr.replace("\n", "\\n")
         return descr
 
-    def addModel(self,modelname,actorname,spec):
-        s="""
+    def addModel(self, modelname, actorname, spec):
+        s = """
 [actor]
 	\"\"\"
 	is actor to manipulate JSModel {name}
@@ -61,7 +63,7 @@ class SpecModelActorsGenerator:
 	method:model_{name}_find
 		\"\"\"
 		query to model {name}
-        @todo how to query
+        TODO: how to query
         example: name=aname
         secret key needs to be given
 		\"\"\"
@@ -85,49 +87,48 @@ class SpecModelActorsGenerator:
 
 
 """
-        s=s.replace("{name}",modelname)
-        s=s.replace("{actorname}",actorname)
-        s+=('    method:model_{0}_create\n        \"\"\"\n        Create a new model\n        \"\"\"\n        @tasklettemplate:create\n'.format(modelname))
+        s = s.replace("{name}", modelname)
+        s = s.replace("{actorname}", actorname)
+        s += ('    method:model_{0}_create\n        \"\"\"\n        Create a new model\n        \"\"\"\n        @tasklettemplate:create\n'.format(modelname))
         for prop in spec.properties:
             if prop.type == 'int' and prop.name == 'id':
                 continue
             default = "" if prop.default is None else prop.default
-            s+=('        var:{0} {1},{3},{2}\n'.format(prop.name, prop.type,
-               prop.description, default))
-        s+=('        result:json\n')
-        self.content+=s
-       
+            s += ('        var:{0} {1},{3},{2}\n'.format(prop.name, prop.type,
+                                                         prop.description, default))
+        s += ('        result:json\n')
+        self.content += s
 
     def generate(self):
-        
-        specnames=[item for item in list(j.core.specparser.specs.keys()) if item.find("model_%s_%s"%(self.appname,self.actorname))==0]
-     
+
+        specnames = [item for item in list(j.core.specparser.specs.keys()) if item.find(
+            "model_%s_%s" % (self.appname, self.actorname)) == 0]
 
         for specname in specnames:
             print(("##generate %s" % specname))
 
+            spec = j.core.specparser.specs[specname]
 
-            spec=j.core.specparser.specs[specname]
-
-            if spec.tags!=None and spec.tags.find("nocrud")!=-1:
-                #if no crud should be generated go to next
+            if spec.tags != None and spec.tags.find("nocrud") != -1:
+                # if no crud should be generated go to next
                 continue
 
             if spec.rootobject:
-                modelactorname=spec.name.replace(".","_")
-                modelactorname="%s_model_%s" % (spec.actorname,modelactorname)
-                filename=modelactorname+".spec"
-                specpath=j.sal.fs.joinPaths(self.specpath,filename)
+                modelactorname = spec.name.replace(".", "_")
+                modelactorname = "%s_model_%s" % (
+                    spec.actorname, modelactorname)
+                filename = modelactorname + ".spec"
+                specpath = j.sal.fs.joinPaths(self.specpath, filename)
 
                 j.sal.fs.createDir(j.sal.fs.getDirName(specpath))
 
                 if j.sal.fs.exists(specpath):
-                    content=j.sal.fs.fileGetContents(specpath)
-                    if content.find("##DONOTGENERATE##")!=-1:
-                        specpath=j.sal.fs.joinPaths(self.specpath,spec.name.lower(),"_modelactors.spec")
+                    content = j.sal.fs.fileGetContents(specpath)
+                    if content.find("##DONOTGENERATE##") != -1:
+                        specpath = j.sal.fs.joinPaths(
+                            self.specpath, spec.name.lower(), "_modelactors.spec")
 
-                self.addModel(spec.name,modelactorname, spec)
+                self.addModel(spec.name, modelactorname, spec)
 
-                j.sal.fs.writeFile(specpath,self.content)
-                self.content=""
-
+                j.sal.fs.writeFile(specpath, self.content)
+                self.content = ""

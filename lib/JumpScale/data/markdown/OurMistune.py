@@ -6,6 +6,7 @@ from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 
+
 class MDRenderer:
     """
     markdown renderer
@@ -32,17 +33,17 @@ class MDRenderer:
         :param code: text content of the code block.
         :param lang: language of the given code.
         """
-        code="""
+        code = """
         
         ```$lang
         $code
         ```
 
         """
-        if lang==None:
-            lang=""
-        code.replace("$lang",lang)
-        code.replace("$code",code)
+        if lang == None:
+            lang = ""
+        code.replace("$lang", lang)
+        code.replace("$code", code)
         return code
 
     def block_quote(self, text):
@@ -50,9 +51,9 @@ class MDRenderer:
 
         :param text: text content of the blockquote.
         """
-        out=""
+        out = ""
         for line in text.split("\n"):
-            out+="> %s\n"%line
+            out += "> %s\n" % line
         return out
 
     def block_html(self, html):
@@ -73,12 +74,12 @@ class MDRenderer:
         :param level: a number for the header level, for example: 1.
         :param raw: raw text content of the header.
         """
-        if raw!=None:
+        if raw != None:
             return raw
-        h=""
+        h = ""
         for item in range(level):
-            h+="#"
-        return "%s %s"%(h,text)
+            h += "#"
+        return "%s %s" % (h, text)
 
     def hrule(self):
         """Rendering method for ``<hr>`` tag."""

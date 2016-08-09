@@ -42,9 +42,10 @@ class RemoteSystem:
     name = "j.tools.ssh_remotesystem"
 
     exceptions = Exceptions
+
     def __init__(self):
         self.__jslocation__ = "j.tools.ssh_remotesystem"
-        self.connections={}
+        self.connections = {}
 
     def connect(self, ip, login="", password="", timeout=5.0, port=22):
         """Creates a connection object to a remote system via ssh.
@@ -56,11 +57,11 @@ class RemoteSystem:
         @rtype: RemoteSystemConnection
         """
 
-        print ("ssh remote system connection:%s:%s timeout(%s)"%(ip,port,timeout))
+        print("ssh remote system connection:%s:%s timeout(%s)" % (ip, port, timeout))
         # if not j.data.types.ipaddress.check(ip):
         #     raise InvalidIpAddressError("IP address is not a valid IPv4 address")
 
-        key="%s_%s_%s_%s"%(ip,login,password,port)
+        key = "%s_%s_%s_%s" % (ip, login, password, port)
         if key in self.connections:
             return self.connections[key]
 
@@ -83,7 +84,7 @@ class RemoteSystem:
                 reraise = True
             if reraise:
                 raise
-        self.connections[key]=remoteConnection
+        self.connections[key] = remoteConnection
         return remoteConnection
 
 
@@ -93,11 +94,11 @@ class RemoteSystemConnection:
         self._closed = False
         self._ipaddress = ip
         self._port = port
-        print ("ssh remote system connection:%s:%s timeout(%s)"%(ip,port,timeout))
+        print("ssh remote system connection:%s:%s timeout(%s)" % (ip, port, timeout))
         self._client = paramiko.SSHClient()
         self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        if password=="":
-            self._client.connect(hostname=ip, timeout=timeout,port=port, allow_agent=True, look_for_keys=True)
+        if password == "":
+            self._client.connect(hostname=ip, timeout=timeout, port=port, allow_agent=True, look_for_keys=True)
         else:
             self._client.connect(ip, username=login, password=password, timeout=timeout, port=port)
         self._process = None
@@ -139,7 +140,8 @@ class RemoteSystemConnection:
 
     ipaddress = property(fget=_getIpAddress, doc="IP address of the machine you are connected to")
 
-    portforward = property(fget=_getPortForward, doc="Executes remote and local port forwarding using the connecting machine as ssh server")
+    portforward = property(fget=_getPortForward,
+                           doc="Executes remote and local port forwarding using the connecting machine as ssh server")
 
 
 class _remoteSystemObject:
@@ -201,9 +203,11 @@ class RemoteSystemProcess(_remoteSystemObject):
         # print 'Error:'    + myErr
         # print 'ExitCode:' + str(exitcode)
 
-        # Only die if exitcode != 0, error != '' is not enough to conclude that the process went wrong because it may only be warnings!
+        # Only die if exitcode != 0, error != '' is not enough to conclude that
+        # the process went wrong because it may only be warnings!
         if die and exitcode != 0:
-            raise j.exceptions.RuntimeError("Process terminated with non 0 exitcode, got exitcode %s.\nout:%s\nerror:%s" % (str(exitcode), myOut, myErr))
+            raise j.exceptions.RuntimeError(
+                "Process terminated with non 0 exitcode, got exitcode %s.\nout:%s\nerror:%s" % (str(exitcode), myOut, myErr))
 
         return exitcode, myOut, myErr
 
@@ -262,11 +266,14 @@ class RemoteSystemProcess(_remoteSystemObject):
 
         if dieOnError and exitcode == 1000:
             message = "Process terminated with unknown exitcode!!.\nOutput:\n%s.\nError:\n%s\n" % (output, error)
-            j.errorconditionhandler.raiseOperationalCritical(message, category="system.remote.execute.fatalerror", die=True)
+            j.errorconditionhandler.raiseOperationalCritical(
+                message, category="system.remote.execute.fatalerror", die=True)
 
         if dieOnError and exitcode != 0:
-            message = "Process terminated with non 0 exitcode, got exitcode: " + str(exitcode) + " and Error:\n" + error + "\n\nOutput:\n" + output
-            j.errorconditionhandler.raiseOperationalCritical(message, category="system.remote.execute.fatalerror", die=True)
+            message = "Process terminated with non 0 exitcode, got exitcode: " + \
+                str(exitcode) + " and Error:\n" + error + "\n\nOutput:\n" + output
+            j.errorconditionhandler.raiseOperationalCritical(
+                message, category="system.remote.execute.fatalerror", die=True)
 
         return exitcode, output, error
 
@@ -464,7 +471,8 @@ class RemoteSystemFS(_remoteSystemObject):
         @raise TypeError: src or dst is empty
         """
         if ((src is None) or (dst is None)):
-            raise TypeError('Not enough parameters passed in system.fs.copyDirTree to copy directory from %s to %s ' % (src, dst))
+            raise TypeError(
+                'Not enough parameters passed in system.fs.copyDirTree to copy directory from %s to %s ' % (src, dst))
         stdin, stdout, stderr = self._connection.exec_command('uname -s')
         solaris = False
         for line in stdout:
@@ -502,7 +510,7 @@ class RemoteSystemFS(_remoteSystemObject):
         - destination: string (path directory to be copied to...should not already exist)
           if destination no specified will use same location as source
         """
-        #@todo check and fix
+        #TODO: check and fix
         raise j.exceptions.RuntimeError("not fully implemented yet")
         if destination == "":
             destination = source
@@ -539,18 +547,22 @@ class RemoteSystemFS(_remoteSystemObject):
 
         self.logger.info('Move file from %s to %s' % (source, destination), 6)
         if not source or not destination:
-            raise ValueError("Not enough parameters given to remote.system.fs.moveFile: move from %s, to %s" % (source, destination))
+            raise ValueError("Not enough parameters given to remote.system.fs.moveFile: move from %s, to %s" %
+                             (source, destination))
         try:
             if(self.isFile(source)):
                 if(self.isDir(destination)):
                     self.copyFile(source, destination)
                     self.removeFile(source)
                 else:
-                    raise j.exceptions.RuntimeError("The specified destination path in system.fs.moveFile does not exist: %s" % destination)
+                    raise j.exceptions.RuntimeError(
+                        "The specified destination path in system.fs.moveFile does not exist: %s" % destination)
             else:
-                raise j.exceptions.RuntimeError("The specified source path in system.fs.moveFile does not exist: %s" % source)
+                raise j.exceptions.RuntimeError(
+                    "The specified source path in system.fs.moveFile does not exist: %s" % source)
         except:
-            raise j.exceptions.RuntimeError("File could not be moved...in remote.system.fs.moveFile: from %s to %s " % (source, destination))
+            raise j.exceptions.RuntimeError(
+                "File could not be moved...in remote.system.fs.moveFile: from %s to %s " % (source, destination))
 
     def isFile(self, name):
         """Check if the specified file exists for the given path
@@ -597,7 +609,8 @@ class RemoteSystemFS(_remoteSystemObject):
                     sf.remove(path)
                     self.logger.info('Done removing file with path: %s' % path)
                 except:
-                    raise j.exceptions.RuntimeError("File with path: %s could not be removed\nDetails: %s" % (path, sys.exc_info()[0]))
+                    raise j.exceptions.RuntimeError(
+                        "File with path: %s could not be removed\nDetails: %s" % (path, sys.exc_info()[0]))
                 finally:
                     sf.close()
             else:
@@ -630,7 +643,8 @@ class RemoteSystemFS(_remoteSystemObject):
                 cmd = 'cp %s %s' % (fileFrom, fileTo)
                 self._connection.exec_command(cmd)
             else:
-                raise j.exceptions.RuntimeError("Cannot copy file, file: %s does not exist in system.fs.copyFile" % fileFrom)
+                raise j.exceptions.RuntimeError(
+                    "Cannot copy file, file: %s does not exist in system.fs.copyFile" % fileFrom)
         except:
             raise j.exceptions.RuntimeError("Failed to copy file from %s to %s" % (fileFrom, fileTo))
 
@@ -669,7 +683,7 @@ class RemotePortForwardHander:
         (origin_addr, origin_port) = xxx_todo_changeme
         (server_addr, server_port) = xxx_todo_changeme1
         self.logger.info('port_forward_handler:accept  New connection: "%s" %s" "%s" "%s" "%s" "%s"' %
-                     (id(self), id(channel), origin_addr, origin_port, server_addr, server_port))
+                         (id(self), id(channel), origin_addr, origin_port, server_addr, server_port))
         self.logger.info('port_forward_handler:accept  channel.fileno: %s' % channel.fileno())
 
         if (server_addr, server_port) not in self.forwards:
@@ -692,11 +706,12 @@ class RemotePortForwardHander:
         try:
             sock.connect((local_address, local_port))
         except Exception as e:
-            self.logger.info('port_forward_handler:handle Forwarding request to %s:%d failed: %r' % (local_address, local_port, e))
+            self.logger.info('port_forward_handler:handle Forwarding request to %s:%d failed: %r' %
+                             (local_address, local_port, e))
             return
 
         self.logger.info('port_forward_handler:handle Connected!  Tunnel open %r -> %r' %
-                     (channel.getpeername(), (local_address, local_port)))
+                         (channel.getpeername(), (local_address, local_port)))
 
         while True:
             r, w, x = select.select([sock, channel], [], [])
@@ -711,7 +726,8 @@ class RemotePortForwardHander:
                     break
                 sock.send(data)
 
-        self.logger.info('port_forward_handler:handle Tunnel closed from %r to %s' % (channel.getpeername(), (local_address, local_port)))
+        self.logger.info('port_forward_handler:handle Tunnel closed from %r to %s' %
+                         (channel.getpeername(), (local_address, local_port)))
 
         channel.close()
         sock.close()
@@ -796,9 +812,11 @@ class RemoteSystemPortForward(_remoteSystemObject):
         if pid != -1:
             exitCode, output = self.process.killProcess(pid)
             if exitCode:
-                raise j.exceptions.RuntimeError('Failed to cancel remote port forwarding for remote port %s. Reason: %s' % (serverPort, output))
+                raise j.exceptions.RuntimeError(
+                    'Failed to cancel remote port forwarding for remote port %s. Reason: %s' % (serverPort, output))
             return True
-        raise j.exceptions.RuntimeError('Failed to cancel remote port forwarding for remote port %s. Reason: %s' % (serverPort, output))
+        raise j.exceptions.RuntimeError(
+            'Failed to cancel remote port forwarding for remote port %s. Reason: %s' % (serverPort, output))
 
 
 class LocalForwardServer(socketserver.ThreadingTCPServer):
@@ -816,16 +834,16 @@ class LocalPortForwardHandler(socketserver.BaseRequestHandler):
                                                    requestPeername)
         except Exception as e:
             self.logger.error('Incoming request to %s:%d failed: %s' % (self.chain_host,
-                                                                   self.chain_port,
-                                                                   repr(e)))
+                                                                        self.chain_port,
+                                                                        repr(e)))
             return
         if chan is None:
             self.logger.error('Incoming request to %s:%d was rejected by the SSH server.' %
-                        (self.chain_host, self.chain_port))
+                              (self.chain_host, self.chain_port))
             return
 
         self.logger.error('Connected!  Tunnel open %r -> %r -> %r' % (requestPeername,
-                                                                 chan.getpeername(), (self.chain_host, self.chain_port)))
+                                                                      chan.getpeername(), (self.chain_host, self.chain_port)))
         while True:
             r, w, x = select.select([self.request, chan], [], [])
             if self.request in r:

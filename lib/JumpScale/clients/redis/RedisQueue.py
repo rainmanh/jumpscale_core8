@@ -2,10 +2,11 @@
 
 class RedisQueue:
     """Simple Queue with Redis Backend"""
-    def __init__(self, redis,name, namespace='queue'):
+
+    def __init__(self, redis, name, namespace='queue'):
         """The default connection parameters are: host='localhost', port=9999, db=0"""
-        self.__db= redis
-        self.key = '%s:%s' %(namespace, name)
+        self.__db = redis
+        self.key = '%s:%s' % (namespace, name)
 
     def qsize(self):
         """Return the approximate size of the queue."""

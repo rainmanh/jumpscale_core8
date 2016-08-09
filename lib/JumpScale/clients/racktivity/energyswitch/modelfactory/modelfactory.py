@@ -10,9 +10,12 @@ from JumpScale.clients.racktivity.energyswitch.common.GUIDTable import Value
 
 
 class ModelFactory:
-    FIRMWARE_ID = (10004, 0, 1, Value(u"type='TYPE_STRING'\nsize=8\nlength=8\nunit=''\nscale=0"))
-    MODULE_INFO = (40031, 0, 1, Value(u"type='TYPE_VERSION_FULL'\nsize=4\nLength=4\nunit=''\nscale=0"))
-    FIRMWARE_INFO = (10002, 0, 1, Value(u"type='TYPE_VERSION_FULL'\nsize=4\nlength=4\nunit=''\nscale=0"))
+    FIRMWARE_ID = (10004, 0, 1, Value(
+        u"type='TYPE_STRING'\nsize=8\nlength=8\nunit=''\nscale=0"))
+    MODULE_INFO = (40031, 0, 1, Value(
+        u"type='TYPE_VERSION_FULL'\nsize=4\nLength=4\nunit=''\nscale=0"))
+    FIRMWARE_INFO = (10002, 0, 1, Value(
+        u"type='TYPE_VERSION_FULL'\nsize=4\nlength=4\nunit=''\nscale=0"))
 
     def __init__(self, client, rtf=None):
         self._client = client
@@ -45,30 +48,38 @@ class ModelFactory:
                 if code == 16:
                     return None
 
-                # check if this is firmware version 1.0 as this didn't support module versions
+                # check if this is firmware version 1.0 as this didn't support
+                # module versions
                 code, version = self._get_firmware_version()
                 if code:
-                    raise j.exceptions.RuntimeError("Can't get the firmware version of the device (%s)" % self._ip)
+                    raise j.exceptions.RuntimeError(
+                        "Can't get the firmware version of the device (%s)" % self._ip)
 
                 version = str(version)
                 if version.startswith("1.0"):
                     from JumpScale.clients.racktivity.energyswitch.modelfactory import Model_firmware_1_0  # pylint: disable=W0404
                     return getattr(Model_firmware_1_0, class_name)
                 else:
-                    raise j.exceptions.RuntimeError("Can't get the module version of %s (%s)" % (module_id, self._ip))
+                    raise j.exceptions.RuntimeError(
+                        "Can't get the module version of %s (%s)" % (module_id, self._ip))
 
         # get the closest model
         parts = str(module_version).split(".")
-        tuple_version = (int(parts[0]), int(parts[1]), int(parts[2]), int(parts[3]))
+        tuple_version = (int(parts[0]), int(
+            parts[1]), int(parts[2]), int(parts[3]))
         int_version = self._convert_version_to_int(tuple_version)
-        version = self._get_closest_version(int_version, class_name, str(module_version))
+        version = self._get_closest_version(
+            int_version, class_name, str(module_version))
 
         try:
-            model_class = "models.%s.%s_%s" % (self._model_dir, class_name, version.replace(".", "_"))
-            model = __import__(model_class, globals(), locals(), fromlist=["Model"], level=1)
+            model_class = "models.%s.%s_%s" % (
+                self._model_dir, class_name, version.replace(".", "_"))
+            model = __import__(model_class, globals(),
+                               locals(), fromlist=["Model"], level=1)
             return model.Model
         except RuntimeError:
-            raise j.exceptions.RuntimeError("Unsupported module version '%s' for %s (%s)" % (version, module_id, self._ip))
+            raise j.exceptions.RuntimeError(
+                "Unsupported module version '%s' for %s (%s)" % (version, module_id, self._ip))
 
     def _get_module_version(self, module_id):
         guid, portnumber, length, valdef = self.MODULE_INFO
@@ -106,48 +117,55 @@ class ModelFactory:
             filename = os.path.basename(path).rsplit('.', 1)[0]
             parts = filename.split("_")
             if len(parts) == 5:
-                tuple_version = (int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4]))
+                tuple_version = (int(parts[1]), int(
+                    parts[2]), int(parts[3]), int(parts[4]))
                 int_version = self._convert_version_to_int(tuple_version)
                 version = "%d.%d.%d.%d" % tuple_version
                 return (int_version, version)
             return None, None
 
         def get_models_from_disk(self, model_dir_path):
-            models = self._list_dir_filtered(model_dir_path, name_filter="Master_*.py*")
+            models = self._list_dir_filtered(
+                model_dir_path, name_filter="Master_*.py*")
             for model in models:
                 int_version, version = get_version(model)
                 if version:
                     self._master_models[int_version] = version
-            #get power models
-            models = self._list_dir_filtered(model_dir_path, name_filter="Power_*.py*")
+            # get power models
+            models = self._list_dir_filtered(
+                model_dir_path, name_filter="Power_*.py*")
             for model in models:
                 int_version, version = get_version(model)
                 if version:
                     self._power_models[int_version] = version
 
-            #get sensor models
-            models = self._list_dir_filtered(model_dir_path, name_filter="Sensor_*.py*")
+            # get sensor models
+            models = self._list_dir_filtered(
+                model_dir_path, name_filter="Sensor_*.py*")
             for model in models:
                 int_version, version = get_version(model)
                 if version:
                     self._sensor_models[int_version] = version
 
-            #get display models
-            models = self._list_dir_filtered(model_dir_path, name_filter="Display_*.py*")
+            # get display models
+            models = self._list_dir_filtered(
+                model_dir_path, name_filter="Display_*.py*")
             for model in models:
                 int_version, version = get_version(model)
                 if version:
                     self._display_models[int_version] = version
 
-            #get slave_power models
-            models = self._list_dir_filtered(model_dir_path, name_filter="SlavePower_*.py*")
+            # get slave_power models
+            models = self._list_dir_filtered(
+                model_dir_path, name_filter="SlavePower_*.py*")
             for model in models:
                 int_version, version = get_version(model)
                 if version:
                     self._slave_power_models[int_version] = version
 
         def get_models_from_egg(self, egg_path, model_dir_path):
-            rel_path = os.path.relpath(path=model_dir_path, start=egg_path) + os.path.sep
+            rel_path = os.path.relpath(
+                path=model_dir_path, start=egg_path) + os.path.sep
             search_str = r'^%s(.*\.pyc?$)' % rel_path
             master_str = r'^%s(Master_.*\.pyc?$)' % rel_path
             power_str = r'^%s(Power_.*\.pyc?$)' % rel_path
@@ -182,7 +200,8 @@ class ModelFactory:
 
         # get master models, power models, and sensor models
         print(os.path.dirname(__file__), "models", self._model_dir)
-        model_dir_path = os.path.join(os.path.dirname(__file__), "models", self._model_dir)
+        model_dir_path = os.path.join(os.path.dirname(
+            __file__), "models", self._model_dir)
         match = re.search(r'.*\.egg', model_dir_path)
         if not match:  # outside an egg, so listing files will work
             get_models_from_disk(self, model_dir_path)
@@ -211,7 +230,8 @@ class ModelFactory:
                 closest_diff = diff
 
         if closest not in models:
-            msg = "Unable to find valid model for %s %s (%s)" % (class_name, version_str, self._ip)
+            msg = "Unable to find valid model for %s %s (%s)" % (
+                class_name, version_str, self._ip)
             raise Exception(msg)
 
         return models[closest]
@@ -236,7 +256,8 @@ class ModelFactory:
                 if mm:
                     return mm
             except (RuntimeError, AttributeError) as e:
-                logging.warning("Failed to get module info of %s", module_id, exc_info=e)
+                logging.warning("Failed to get module info of %s",
+                                module_id, exc_info=e)
 
         return None
 
@@ -251,7 +272,8 @@ class ModelFactory:
                 if mm:
                     return mm
             except (RuntimeError, AttributeError)as e:
-                logging.warning("Failed to get module info of %s", module_id, exc_info=e)
+                logging.warning("Failed to get module info of %s",
+                                module_id, exc_info=e)
 
         return None
 
@@ -266,6 +288,7 @@ class ModelFactory:
                 if mm:
                     return mm
             except (RuntimeError, AttributeError)as e:
-                logging.warning("Failed to get module info of %s", module_id, exc_info=e)
+                logging.warning("Failed to get module info of %s",
+                                module_id, exc_info=e)
 
         return None

@@ -80,6 +80,7 @@ class UCISection(collections.OrderedDict):
 
 
 class UCI:
+
     def __init__(self, package):
         self._package = package
         self._sections = list()

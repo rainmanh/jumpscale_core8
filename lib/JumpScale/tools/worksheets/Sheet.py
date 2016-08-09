@@ -85,7 +85,8 @@ class Row(j.tools.code.classGetBase()):
             for m in months:
                 val = self.cells[m]
                 if val == None:
-                    raise j.exceptions.RuntimeError("Cannot aggregrate row %s from group %s,\n%s" % (self.name, self.groupname, self.cells))
+                    raise j.exceptions.RuntimeError("Cannot aggregrate row %s from group %s,\n%s" %
+                                                    (self.name, self.groupname, self.cells))
                 if self.aggregateAction == "T" or self.aggregateAction == "AVG":
                     result += val
                 if self.aggregateAction == "MIN":
@@ -119,9 +120,9 @@ class Row(j.tools.code.classGetBase()):
         """
         # tointerpolate=[]
         # for item in self.cells:
-            # if item==0.0:
-                # item=None
-            # tointerpolate.append(item)
+        # if item==0.0:
+        # item=None
+        # tointerpolate.append(item)
         if start == None:
             start = 0
         if stop == None:
@@ -150,7 +151,8 @@ class Row(j.tools.code.classGetBase()):
         variation = int(float(variation) * 100.0)
         roundd = self.ttype in ["perc", "int"]
         for x in range(start, stop + 1):
-            self.cells[x] = self.cells[x] - variation / 200 + float(j.data.idgenerator.generateRandomInt(1, variation)) / 100
+            self.cells[x] = self.cells[x] - variation / 200 + \
+                float(j.data.idgenerator.generateRandomInt(1, variation)) / 100
             if roundd:
                 self.cells[x] = int(self.cells[x])
 
@@ -358,7 +360,8 @@ class Row(j.tools.code.classGetBase()):
                     maxval = 0.0
                     for item in splitted:
                         if len(item.split(":")) != 2:
-                            raise j.exceptions.RuntimeError("text2row input not properly formatted: %s, subpart: %s" % (data, item))
+                            raise j.exceptions.RuntimeError(
+                                "text2row input not properly formatted: %s, subpart: %s" % (data, item))
                         pos, value = item.split(":")
                         pos = int(pos) + (12 * year)
                         if start == None and interp:
@@ -625,21 +628,21 @@ class Sheet(j.tools.code.classGetBase()):
         #"""
         # print "churn:%s" % churn
         # if churn=="1000%":
-            # row.setDefaultValue(0.0)
-            # return row
+        # row.setDefaultValue(0.0)
+        # return row
         # delay=int(round(delay,0))
         # for delaynr in range(0,delay):
-            # row.cells[delaynr]=start
+        # row.cells[delaynr]=start
         # for colid in range(0,int(self.nrcols)):
-            # nractive=float(start)
-            # if (colid-int(nrmonths))<0:
-                # start2=0
-            # else:
-                # start2=colid-int(nrmonths)
-            # for monthprevid in range(start2,colid+1):
-                # nractive+=float(self.cells[monthprevid])*((1-float(churn)/12)**(colid-monthprevid))
-            # if colid+delay<row.nrcols:
-                # row.cells[colid+delay]=nractive
+        # nractive=float(start)
+        # if (colid-int(nrmonths))<0:
+        # start2=0
+        # else:
+        # start2=colid-int(nrmonths)
+        # for monthprevid in range(start2,colid+1):
+        # nractive+=float(self.cells[monthprevid])*((1-float(churn)/12)**(colid-monthprevid))
+        # if colid+delay<row.nrcols:
+        # row.cells[colid+delay]=nractive
 
         # row.round()
         # return row
@@ -750,26 +753,26 @@ class Sheet(j.tools.code.classGetBase()):
         #out=[0.0 for item in range(self.nrcols)]
         # nrmax=self.nrcols
         # for i in range(delay):
-            # out[i]=defValue
+        # out[i]=defValue
         # i=delay
         # row=self.getRow(rowName)
         # for cell in row.cells:
-            # if i<nrmax:
-                # out[i]=cell
-            # else:
-                # break
-            # i+=1
+        # if i<nrmax:
+        # out[i]=cell
+        # else:
+        # break
+        # i+=1
         # i=0
         # if copy2otherRowName != None:
-            # check if row already exists
-            # if not self.rows.has_key(copy2otherRowName):
-                # self.addRow(copy2otherRowName,"float")
-            # dest=copy2otherRowName
+        # check if row already exists
+        # if not self.rows.has_key(copy2otherRowName):
+        # self.addRow(copy2otherRowName,"float")
+        # dest=copy2otherRowName
         # else:
-            # dest=rowName
+        # dest=rowName
 
         # for month in range(self.nrcols):
-            # self.setCell(dest,month,out[month])
+        # self.setCell(dest,month,out[month])
 
         # return self.rows[dest]
 

@@ -3,12 +3,15 @@ from JumpScale import j
 import random
 import imp
 
+
 class InvalidTaskletName(ValueError):
+
     def __init__(self, name):
         ValueError.__init__(self, "Invalid tasklet name %s" % name)
 
 
 class InvalidTaskletFunction(RuntimeError):
+
     def __init__(self, name, path):
         RuntimeError.__init__(self,
                               'Function %s in %s doesn\'t match required '
@@ -16,6 +19,7 @@ class InvalidTaskletFunction(RuntimeError):
 
 
 class TaskletEngineFactory:
+
     def __init__(self):
         self.__jslocation__ = "j.tools.taskletengine"
 
@@ -32,6 +36,7 @@ class TaskletEngineFactory:
 
 
 class Tasklet:
+
     def __init__(self):
         self.name = ""
         self.taskletsStepname = ""
@@ -46,7 +51,8 @@ class Tasklet:
             params = j.data.params.get(params)
         else:
             if not j.data.params.isParams(params):
-                raise j.exceptions.RuntimeError("Params need to be a params object, cannot execute tasklet: %s" % self.path)
+                raise j.exceptions.RuntimeError(
+                    "Params need to be a params object, cannot execute tasklet: %s" % self.path)
         if not hasattr(self.module, 'match') or self.module.match(j, params, service, tags, self):
             params = self.module.main(j, params, service, tags, self)
         return params
@@ -75,22 +81,25 @@ class Tasklet:
         return params
 
     def __repr__(self):
-        s = "%s %s__%s priority:%s name:%s" % (self.path, self.taskletsStepid, self.taskletsStepname, self.priority, self.name)
+        s = "%s %s__%s priority:%s name:%s" % (self.path, self.taskletsStepid,
+                                               self.taskletsStepname, self.priority, self.name)
         return s
 
 
 class TaskletEngineGroup:
+
     def __init__(self, path=""):
         self.taskletEngines = {}
-        if path!="":
+        if path != "":
             self.addTasklets(path)
 
     def addTasklets(self, path):
         taskletdirs = j.sal.fs.listDirsInDir(path, False, True)
-        nr=0
+        nr = 0
         for taskletgroupname in taskletdirs:
             # print "####%s######"%taskletgroupname
-            self.taskletEngines[taskletgroupname.lower().strip()] = TaskletEngine(j.sal.fs.joinPaths(path, taskletgroupname))
+            self.taskletEngines[taskletgroupname.lower().strip()] = TaskletEngine(
+                j.sal.fs.joinPaths(path, taskletgroupname))
 
     def hasGroup(self, name):
         """
@@ -118,6 +127,7 @@ class TaskletEngineGroup:
 
 
 class TaskletEngine:
+
     def __init__(self, path):
         """
         @param path from which tasklets will be loaded
@@ -263,7 +273,8 @@ class TaskletEngine:
             params = j.data.params.get(params)
         else:
             if not j.data.params.isParams(params):
-                raise j.exceptions.RuntimeError("Params need to be a params object, cannot execute tasklet: %s" % self.path)
+                raise j.exceptions.RuntimeError(
+                    "Params need to be a params object, cannot execute tasklet: %s" % self.path)
 
         if 'result' not in params:
             params.result = None

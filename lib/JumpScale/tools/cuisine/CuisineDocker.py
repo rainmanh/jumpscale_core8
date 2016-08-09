@@ -14,18 +14,19 @@ class actionrun(ActionDecorator):
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.docker"
 
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class CuisineDocker(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
         self.cuisine = cuisine
 
-
     def machine_create(self):
         pass
 
-    @actionrun(action=True,force=False)
+    @actionrun(action=True, force=False)
     def install(self):
         if self.cuisine.core.isUbuntu:
             if not self.cuisine.core.command_check('docker'):
@@ -44,7 +45,7 @@ class CuisineDocker(base):
             self.cuisine.package.install("docker-compose")
 
     @actionrun()
-    def archBuild(self):  # @todo (*2*)
+    def archBuild(self):  # TODO: *2
         C = """
         FROM base/archlinux:latest
 
@@ -157,11 +158,11 @@ class CuisineDocker(base):
             return "%s:%s" % (host, port)
         else:
             return "%s:%s" % (self.executor.addr, port)
- 
+
     @actionrun(action=True)
     def archSystemd(self, name="arch1"):
         """
-        start arch which is using systemd  #@todo (*2*) there is an issue with tty, cannot install anything (see in arch builder)
+        start arch which is using systemd  #TODO: *2 there is an issue with tty, cannot install anything (see in arch builder)
         """
         if not self.cuisine.core.isArch:
             raise j.exceptions.RuntimeError("not supported")
@@ -195,4 +196,5 @@ class CuisineDocker(base):
         self.cuisine.core.run_script(C)
 
         # self.cuisine.core.run("docker run -d --name %s -v /tmp2/cgroup:/sys/fs/cgroup:ro -v /tmp2/%s/run:/run:rw tozd/ubuntu-systemd"%(name,name))
-        self.cuisine.core.run("docker run -d --name %s -v /tmp2/cgroup:/sys/fs/cgroup:ro -v /tmp2/%s/run:/run:rw arch" % (name, name))
+        self.cuisine.core.run(
+            "docker run -d --name %s -v /tmp2/cgroup:/sys/fs/cgroup:ro -v /tmp2/%s/run:/run:rw arch" % (name, name))

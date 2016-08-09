@@ -3,12 +3,16 @@ from JumpScale import j
 
 from ActionDecorator import ActionDecorator
 
+
 class actionrun(ActionDecorator):
+
     def __init__(self, *args, **kwargs):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.builder"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class CuisineBuilder(base):
 
     def __init__(self, executor, cuisine):
@@ -18,7 +22,7 @@ class CuisineBuilder(base):
     @actionrun()
     def all(self, start=False, sandbox=False, stor_addr=None, stor_name=""):
         if self.cuisine.core.isMac and not stor_name:
-            stor_name="osx10.11"
+            stor_name = "osx10.11"
         self.cuisine.installerdevelop.pip()
         self.cuisine.installerdevelop.python()
         if not self.cuisine.installer.jumpscale_installed():
@@ -57,13 +61,17 @@ class CuisineBuilder(base):
         self.cuisine.core.dir_remove('%s/*' % self.cuisine.core.dir_paths['libDir'])
         self.cuisine.core.dir_ensure('%s' % self.cuisine.core.dir_paths['libDir'])
         if self.cuisine.core.isMac:
-            self.cuisine.core.file_link('/usr/local/lib/python3.5/site-packages/JumpScale/', '%s/JumpScale' % self.cuisine.core.dir_paths['libDir'])
+            self.cuisine.core.file_link('/usr/local/lib/python3.5/site-packages/JumpScale/',
+                                        '%s/JumpScale' % self.cuisine.core.dir_paths['libDir'])
         else:
-            self.cuisine.core.file_link('/usr/local/lib/python3.5/dist-packages/JumpScale', '%s/JumpScale' % self.cuisine.core.dir_paths['libDir'])
-        self.cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self.cuisine.core.dir_paths["codeDir"], "%s/portal" % self.cuisine.core.dir_paths['jsLibDir'])
+            self.cuisine.core.file_link('/usr/local/lib/python3.5/dist-packages/JumpScale',
+                                        '%s/JumpScale' % self.cuisine.core.dir_paths['libDir'])
+        self.cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" %
+                                    self.cuisine.core.dir_paths["codeDir"], "%s/portal" % self.cuisine.core.dir_paths['jsLibDir'])
 
         # start sandboxing
-        cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], '%s' + 'js8_opt', '%s', sandbox_python=%s)" % (stor_name, stor_addr, python)
+        cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], '%s' + 'js8_opt', '%s', sandbox_python=%s)" % (
+            stor_name, stor_addr, python)
         self.cuisine.core.run('js "%s"' % cmd)
         url_opt = '%s/static/%sjs8_opt.flist' % (stor_addr, stor_name)
 
@@ -72,7 +80,7 @@ class CuisineBuilder(base):
     @actionrun()
     def sandbox_python(self, python=True):
         print("START SANDBOX")
-        if self.cuisine.executor.type!="local":
+        if self.cuisine.executor.type != "local":
             raise j.exceptions.RuntimeError("only supports cuisine in local mode")
         if python:
             paths = []
@@ -84,8 +92,8 @@ class CuisineBuilder(base):
                 paths.append("/usr/local/lib/python3.5/dist-packages")
                 paths.append("/usr/lib/python3/dist-packages")
 
-            excludeFileRegex=["-tk/", "/lib2to3", "-34m-", ".egg-info"]
-            excludeDirRegex=["/JumpScale", "\.dist-info", "config-x86_64-linux-gnu", "pygtk"]
+            excludeFileRegex = ["-tk/", "/lib2to3", "-34m-", ".egg-info"]
+            excludeDirRegex = ["/JumpScale", "\.dist-info", "config-x86_64-linux-gnu", "pygtk"]
 
             dest = j.sal.fs.joinPaths(self.cuisine.core.dir_paths['base'], 'lib')
 
@@ -104,7 +112,7 @@ class CuisineBuilder(base):
 
     @actionrun()
     def dedupe(self, dedupe_path, namespace, store_addr, output_dir='/tmp/sandboxer', sandbox_python=True):
-        if self.cuisine.executor.type!="local":
+        if self.cuisine.executor.type != "local":
             raise j.exceptions.RuntimeError("only supports cuisine in local mode")
 
         self.cuisine.core.dir_remove(output_dir)
@@ -117,7 +125,8 @@ class CuisineBuilder(base):
 
         for path in dedupe_path:
             print("DEDUPE:%s" % path)
-            j.tools.sandboxer.dedupe(path, storpath=output_dir, name=namespace, reset=False, append=True, excludeDirs=['/opt/code'])
+            j.tools.sandboxer.dedupe(path, storpath=output_dir, name=namespace,
+                                     reset=False, append=True, excludeDirs=['/opt/code'])
 
         store_client = j.clients.storx.get(store_addr)
         files_path = j.sal.fs.joinPaths(output_dir, 'files')
@@ -138,4 +147,4 @@ class CuisineBuilder(base):
 
         metadataPath = j.sal.fs.joinPaths(output_dir, "md", "%s.flist" % namespace)
         print('uploading %s' % metadataPath)
-        store_client.putStaticFile(namespace+".flist", metadataPath)
+        store_client.putStaticFile(namespace + ".flist", metadataPath)

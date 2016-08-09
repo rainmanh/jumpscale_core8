@@ -6,6 +6,7 @@ from email.mime.image import MIMEImage
 
 
 class Sender:
+
     def __init__(self, username, password, host, port):
         self._host = host
         self._port = port

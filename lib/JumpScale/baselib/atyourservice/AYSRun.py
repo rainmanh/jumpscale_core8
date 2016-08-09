@@ -325,9 +325,9 @@ class AYSRun:
     def save(self):
         if self.db is not None:
             # will remember in KVS
-            self.db.set("run", str(self.id),
+            self.db.set("run %s" % str(self.id),
                         j.data.serializer.json.dumps(self.model))
-            self.db.set("run_index", str(self.id), "%s|%s" %
+            self.db.set("run_index %s" % str(self.id), "%s|%s" %
                         (self.timestamp, self.state))
 
     def execute(self):

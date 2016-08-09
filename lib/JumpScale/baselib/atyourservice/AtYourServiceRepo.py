@@ -80,7 +80,7 @@ class AtYourServiceRepo():
 
     @property
     def db(self):
-        self._db = j.atyourservice.kvs.get(self.path)
+        self._db = j.atyourservice.kvs.get(self.name)
         return self._db
 
 # ACTORS

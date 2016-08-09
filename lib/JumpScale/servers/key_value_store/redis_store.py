@@ -156,3 +156,6 @@ class RedisKeyValueStore(KeyValueStoreBase):
     def _categoryExists(self, category):
         categoryKey = self._getCategoryKey(category, "")
         return bool(self._client.prefix(categoryKey, 1))
+
+    def destroy(self):
+        self.redisclient.flushdb()

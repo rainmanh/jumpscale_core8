@@ -62,7 +62,7 @@ class AtYourServiceRepo():
         self._todo = []
         self._git = None
         self._blueprints = {}
-        self._load_blueprints()
+        # self._load_blueprints()
         self._servicesTree = {}
 
     def destroy(self, uninstall=True):
@@ -70,7 +70,7 @@ class AtYourServiceRepo():
             self.uninstall()
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "Actors"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "services"))
-        # self.db.destroy()
+        self.db.destroy()
 
     @property
     def git(self):
@@ -104,8 +104,8 @@ class AtYourServiceRepo():
         return actor
 
     def actorGet(self, name, die=True):
-        if name in self.Actors:
-            Actor = self.Actors[name]
+        if name in self.actors:
+            Actor = self.actors[name]
             return Actor
         else:
             if die == False:
@@ -140,7 +140,7 @@ class AtYourServiceRepo():
     def actorsFind(self, name="", version="", role=''):
         res = []
         domain = "ays"
-        for template in self.Actors:
+        for template in self.actors:
             if not(name == "" or template.name == name):
                 # no match continue
                 continue
@@ -542,9 +542,9 @@ class AtYourServiceRepo():
         if role == "" and instance == "":
             self.reset()
 
-        self.setState(actions=["init"], role=role,
+        self.serviceSetState(actions=["init"], role=role,
                       instance=instance, state="INIT")
-        for key, Actor in self.Actors.items():
+        for key, Actor in self.actors.items():
             if role != "" and Actor.role == role:
                 continue
             Actor.init()
@@ -558,7 +558,7 @@ class AtYourServiceRepo():
             #import pudb; pu.db
             #Actor.newInstance(instance=key, args={})
 
-        run = self.getRun(role=role, instance=instance,
+        run = self.runGet(role=role, instance=instance,
                           data=data, action="init")
         run.execute()
 

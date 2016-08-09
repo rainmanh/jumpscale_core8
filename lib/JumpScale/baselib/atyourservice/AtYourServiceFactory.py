@@ -307,7 +307,6 @@ class AtYourServiceFactory:
         if not j.sal.fs.exists(path=path):
             raise j.exceptions.Input(
                 "Cannot find ays templateRepo on path:%s" % path)
-
         gitpath = j.clients.git.findGitPath(path)
         gitrepo = j.clients.git.get(gitpath, check_path=False)
 

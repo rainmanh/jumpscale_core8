@@ -20,10 +20,20 @@ class AtYourServiceDB():
 
     def get(self, key):
         from IPython import embed
-        print("DEBUG NOW set")
+        print("DEBUG NOW get")
         embed()
 
     def delete(self, key):
         from IPython import embed
-        print("DEBUG NOW set")
+        print("DEBUG NOW delete")
+        embed()
+
+    def increment(self, key):
+        from IPython import embed
+        print("DEBUG NOW increment")
+        embed()
+
+    def destroy(self):
+        from IPython import embed
+        print("DEBUG NOW destroy")
         embed()

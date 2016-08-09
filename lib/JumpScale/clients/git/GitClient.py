@@ -35,6 +35,9 @@ class GitClient:
                 raise j.exceptions.Input(
                     "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
             self.type, self.account, self.name = base.split("/", 2)
+        elif not check_path:
+            path_parts = base.split('/')
+            self.type, self.account, self.name = 'github', '', j.sal.fs.getBaseName(base)
         else:
             self.type, self.account, self.name = 'github', 'cockpit', 'cockpit'
 

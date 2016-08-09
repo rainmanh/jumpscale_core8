@@ -1,6 +1,7 @@
-
 from JumpScale import j
-
+import os
+import cson
+import inspect
 
 class AtomEditor:
 
@@ -90,12 +91,31 @@ class AtomEditor:
         self._packages = []
 
     def installSnippets(self):
-        # TODO: *1 get snippets.cson & copy to right directory
+        #add to ~/.atom/snippets.cson
+        #NOTE: If we just append -> it'll overwrite it. We need to merge on keys not to lose old snippets the user got.
+        #So we merge on KEY.
+        merged = {}
+        atomlocalsnippets = os.path.expanduser("~/.atom/snippets.cson")
+        if os.path.exists(atomlocalsnippets):
+            with open(atomlocalsnippets) as f:
+                merged = cson.load(f)
+        snippetspath = os.path.join(os.path.dirname(inspect.getfile(self.__class__)), "snippets.cson")
+        if os.path.exists(snippetspath):
+            with open(snippetspath)  as jssnippets:
+                snippets = cson.load(jssnippets)
+                for k,v in snippets.items():
+                    if k in merged:
+                        merged[k].update(snippets[k])
+        with open("~/.atom/snippets.cson", 'w') as out:
+            cson.dump(merged, out)
+
 
     def generateJummpscaleAutocompletion(self):
         # TODO: *1 use j.tools.objectinspector.inspect() (FIX) and generate jedi
         # code completion, check in ATOM that it works, needs to be installed
         # automatically
+        pass
+
         # TODO: walk over all jumpscale extensions & create autocompletion for atom and copy to appropriate directory
 
     def installPythonExtensions(self):
@@ -109,3 +129,4 @@ class AtomEditor:
         pip3 install flake8-docstrings
         """
         rc, out = j.sal.process.execute(C, die=True, outputToStdout=False, ignoreErrorOutput=False)
+

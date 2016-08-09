@@ -58,32 +58,53 @@ class ExecutorSSH(ExecutorBase):
     @property
     def sshclient(self):
         if self._sshclient is None:
-            pubkey = None
-            path = None
-            if self.pushkey is not None:
-                #lets push the ssh key as specified
-                if j.sal.fs.exists(self.pushkey):
-                    path=self.pushkey
-                else:
-                    homedir=os.environ["HOME"]
-                    path="%s/.ssh/%s.pub"%(homedir,self.pushkey)
-                if self.pubkey=="":
-                    pubkey=self.pubkey
-                if j.sal.fs.exists(path):
-                    pubkey=j.sal.fs.fileGetContents(path)
-                else:
-                    raise j.exceptions.RuntimeError("Could not find key:%s"%path)
+            return self._getSSHClient()
+        return self._sshclient
 
-            self._sshclient = j.clients.ssh.get(self.addr, self.port, login=self.login, passwd=self.passwd,
+    def _getSSHClient(self, key_filename=None, passphrase=None):
+        self._sshclient = j.clients.ssh.get(self.addr, self.port, login=self.login, passwd=self.passwd,
                                                 allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,
-                                                key_filename=path, passphrase=None,
-                                                timeout=self.timeout,usecache=False)  # TODO: add passphrase
-            if self.pubkey!="":
-                self._sshclient.ssh_authorize("root", self.pubkey)
+                                                key_filename=key_filename, passphrase=passphrase,
+                                                timeout=self.timeout, usecache=False)  # TODO: add passphrase fo sshkeys (not urgent)
 
         return self._sshclient
 
-    def execute(self, cmds, die=True,checkok=None, async=False, showout=True,timeout=0, env={}):
+    def authenticate(self, pubkey=None, pushkey=None, passphrase=None):
+        """
+        This will authenticate the ssh client to access the target machine
+        using the given pubkey, If pushkey is set, that key will be loaded,
+        and used instead.
+
+        :param pubkey: Public key to authenticate with.
+        :param pushkey: Path to public key to use, path can be full path to a file
+                        or just a name of the key (without the .pub extension) and
+                        in that case the file will be loaded from $HOME/.ssh/<pushkey>.pub
+        :return:
+        """
+        path = pubkey
+
+        if not pubkey:
+            if j.sal.fs.exists(pushkey):
+                path = pushkey
+            else:
+                if j.do.checkSSHAgentAvailable():
+                    path = j.do.getSSHKeyPathFromAgent(pushkey, die=False)
+                    path = '%s' % path
+                if not path:
+                    homedir = os.environ["HOME"]
+                    path = "%s/.ssh/%s" % (homedir, pushkey)
+
+        self._getSSHClient(path, passphrase)  # should be the correct client now
+        self._sshclient._cuisine = self.cuisine
+
+        path = '%s.pub' % path
+        if j.sal.fs.exists(path):
+            pubkey = j.sal.fs.fileGetContents(path)
+        else:
+            raise j.exceptions.RuntimeError("Could not find key:%s" % path)
+        self._sshclient.ssh_authorize("root", pubkey)
+
+    def execute(self, cmds, die=True, checkok=None, async=False, showout=True, timeout=0, env={}):
         """
         @param naked means will not manipulate cmd's to show output in different way
         @param async is not used method, but is only used for interface comaptibility

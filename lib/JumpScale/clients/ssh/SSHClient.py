@@ -160,7 +160,8 @@ class SSHClient:
 
 
             if j.sal.nettools.waitConnectionTest(self.addr, self.port, self.timeout) is False:
-                self.logger.error("Cannot connect to ssh server %s:%s" % (self.addr, self.port))
+                self.logger.error("Cannot connect to ssh server %s:%s with login:%s and using sshkey:%s" % (
+                    self.addr, self.port, self.login, self.key_filename))
                 return None
 
             start = j.data.time.getTimeEpoch()
@@ -342,7 +343,9 @@ class SSHClient:
     @property
     def cuisine(self):
         if self._cuisine is None:
-            executor = j.tools.executor.getSSHBased(self.addr, self.port, self.login, self.passwd)
+            executor = j.tools.executor.getSSHBased(self.addr, self.port, self.login, self.passwd, allow_agent=self.allow_agent,
+                                                    look_for_keys=self.look_for_keys, pushkey=self.key_filename, timeout=self.timeout,
+                                                    usecache=False)
             self._cuisine = executor.cuisine
         return self._cuisine
 

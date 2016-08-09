@@ -84,8 +84,7 @@ class HRDBase:
         lst = str(lst)
         if j.data.types.string.check(lst):
             items = [item.strip() for item in lst.split(",")]
-            items = [item.strip('"').strip("'")
-                     for item in items if item != ""]
+            items = [item.strip('"').strip("'") for item in items if item != ""]
             return items
         raise j.exceptions.RuntimeError("no list for %s" % key)
 
@@ -343,7 +342,7 @@ class HRDBase:
                         out.append("")
 
             if not isinstance(hrditem.data, str):
-                #TODO: fix this bug
+                # TODO: fix this bug
                 # raise j.exceptions.RuntimeError("BUG SHOULD ALWAYS BE STR")
                 pass
 

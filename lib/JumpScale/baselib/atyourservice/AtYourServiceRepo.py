@@ -373,6 +373,7 @@ class AtYourServiceRepo():
         print("blueprint done")
 
     def blueprintGet(self, path):
+
         self._doinit()
         for bp in self.blueprints:
             if bp.path == path:

@@ -1,6 +1,6 @@
 # Life Cycle of an AYS Service Instance
 
-The life cycle of any service can be managed by AYS.
+The lifecycle of any service can be managed by AYS.
 
 ## Step 1: Create an AYS service template
 
@@ -18,14 +18,14 @@ An AYS service template is stored in an **AYS template repository** or locally i
 
 ## Step 2: Create AYS blueprints using the AYS service
 
-A service is typically deployed as part of a bigger solution, including other services, and that;s where the AYS Blueprint is used for.
+A service is typically deployed as part of a bigger solution, including other services, and that's where the AYS Blueprint is used for.
 
 An AYS blueprint defines:
 
 ```
 - Services that will be used or created
-- Producers to be consumed (dependencies)  
-- Parent services to be consumed  
+- Producers to be consumed (dependencies)
+- Parent services to be consumed
 - Attributes per service
 ```
 

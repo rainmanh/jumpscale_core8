@@ -3,7 +3,7 @@ from JumpScale import j
 
 class GitClient:
 
-    def __init__(self, baseDir):  # NOQA
+    def __init__(self, baseDir, check_path=True):  # NOQA
 
         self._repo = None
         if not j.sal.fs.exists(path=baseDir):
@@ -29,7 +29,7 @@ class GitClient:
                 "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
         base = baseDir.split("/code/", 1)[1]
 
-        if not base.startswith('cockpit'):
+        if not base.startswith('cockpit') or check_path:
             if base.count("/") != 2:
                 raise j.exceptions.Input(
                     "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")

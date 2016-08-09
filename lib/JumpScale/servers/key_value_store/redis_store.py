@@ -141,7 +141,9 @@ class RedisKeyValueStore(KeyValueStoreBase):
         return keys
 
     def listCategories(self):
-        return list(self.categories.keys())
+        categories = self.redisclient.keys('*:*')
+        categories = [category.decode() for category in categories]
+        return categories
 
     def _getCategoryKey(self, category, key):
         return '%s:%s' % (category, key)

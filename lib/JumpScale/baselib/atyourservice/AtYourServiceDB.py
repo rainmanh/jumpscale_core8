@@ -11,27 +11,23 @@ class AtYourServiceDBFactory():
 class AtYourServiceDB():
 
     def __init__(self, category):
+        self.category = category
         self.db = j.servers.kvs.getRedisStore("ays", changelog=False)
 
     def set(self, key, obj):
-        from IPython import embed
-        print("DEBUG NOW set")
-        embed()
+        self.db.set(self.category, key, obj)
+
+    def set(self, category, key, obj):
+        self.db.set(category, key, obj)
 
     def get(self, key):
-        from IPython import embed
-        print("DEBUG NOW get")
-        embed()
+        return self.db.get(self.category, key)
 
     def delete(self, key):
-        from IPython import embed
-        print("DEBUG NOW delete")
-        embed()
+        self.db.delete(self.category, key)
 
     def increment(self, key):
-        from IPython import embed
-        print("DEBUG NOW increment")
-        embed()
+        self.db.increment(key)
 
     def destroy(self):
         from IPython import embed

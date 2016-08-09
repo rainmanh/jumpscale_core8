@@ -1818,7 +1818,7 @@ class SystemProcess:
                     return gd['cmd'].strip()
             return None
         else:
-            #@todo needs to be validated on mac & windows
+            #TODO: needs to be validated on mac & windows
             import psutil
             for process in psutil.process_iter():
                 try:

@@ -9,7 +9,7 @@ class RegexTemplates_FindLines:
     """
     regexexamples which find lines
     """
-    #@todo for all methods do input checking  (id:20)
+    #TODO: for all methods do input checking  (id:20)
 
     def findCommentlines(self):
         return "^( *#).*"
@@ -67,7 +67,7 @@ class RegexMatch:
 
 
 class RegexTools:
-    #@todo doe some propper error handling with re, now obscure errors  (id:21)
+    #TODO: doe some propper error handling with re, now obscure errors  (id:21)
 
     def __init__(self):
         self.__jslocation__ = "j.data.regex"

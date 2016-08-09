@@ -106,7 +106,7 @@ class ActionMethodDecorator:
             else:
                 result = func(that, *args, **kwargs)
 
-                #@todo escalation does not happen well
+                #TODO: escalation does not happen well
                 # try:
                 #     result = func(that, *args, **kwargs)
                 # except Exception as e:

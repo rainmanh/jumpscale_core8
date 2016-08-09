@@ -45,7 +45,7 @@ class CuisineDocker(base):
             self.cuisine.package.install("docker-compose")
 
     @actionrun()
-    def archBuild(self):  # @todo (*2*)
+    def archBuild(self):  # TODO: *2
         C = """
         FROM base/archlinux:latest
 
@@ -162,7 +162,7 @@ class CuisineDocker(base):
     @actionrun(action=True)
     def archSystemd(self, name="arch1"):
         """
-        start arch which is using systemd  #@todo (*2*) there is an issue with tty, cannot install anything (see in arch builder)
+        start arch which is using systemd  #TODO: *2 there is an issue with tty, cannot install anything (see in arch builder)
         """
         if not self.cuisine.core.isArch:
             raise j.exceptions.RuntimeError("not supported")

@@ -121,7 +121,7 @@ class CuisineLua(base):
 
     @actionrun(action=True)
     def package(self, name):
-        #@todo need to check for e.g. openwrt
+        #TODO: need to check for e.g. openwrt
         self.cuisine.core.run("luarocks install %s" % name)
 
     # local socket = require("socket")

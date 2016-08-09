@@ -64,7 +64,7 @@ class Connection:
         @headers e.g. headers={'content-type':'text/plain'}  (this is the default)        
         """
         response = self._http_request(
-            url, headers=headers, method='GET', **params)  # @todo P1 fix & check
+            url, headers=headers, method='GET', **params)  # TODO: P1 fix & check
         return response
 
     def post(self, url, data=None, headers=None, **params):

@@ -134,9 +134,9 @@ class CuisineInstaller(base):
     @actionrun(action=True)
     def libvirt(self):
         """
-        do not use in containers or VMs only actual machines @todo not tested
+        do not use in containers or VMs only actual machines TODO: not tested
         """
-        #@todo need to check and exit if required (*1*)
+        #TODO: need to check and exit if required *1
         self.cuisine.package.install('libvirt-dev')
         self.cuisine.pip.install("libvirt-python==1.3.2", upgrade=False)
 

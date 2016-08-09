@@ -82,7 +82,7 @@ class ZDaemon(GeventLoop):
 
             if socks.get(backend) == zmq.POLLIN:
                 parts = backend.recv_multipart()
-                frontend.send_multipart(parts[1:])  # @todo dont understand why I need to remove first part of parts?
+                frontend.send_multipart(parts[1:])  # TODO: dont understand why I need to remove first part of parts?
 
     def start(self, mainloop=None):
         print(("starting %s" % self.name))

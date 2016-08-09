@@ -1,4 +1,4 @@
-## Cockpit
+# Cockpit
 
 The **Cockpit** is the JumpScale management solution for deploying self-healing applications.
 

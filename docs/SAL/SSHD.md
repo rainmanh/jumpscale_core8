@@ -1,22 +1,22 @@
-## SSHD
+# SSHD
 
 The SSHD SAL helps to manage `~/.authorized_keys` file, allowing you to list, add and remove keys and also helps to disable password logins.
- 
+
 You can Access it as follows:
 
-```py
+```python
 j.sal.sshd
 ```
 
 We'll be using it as sshd in what follows:
 
-```py
+```python
 sshd = j.sal.sshd
 ```
 
-* Initial settings 
+- Initial settings
 
-```py
+```python
 In [44]: ls /root/.ssh/
 authorized_keys  id_rsa  id_rsa.pub  known_hosts
 
@@ -32,12 +32,12 @@ In [47]: sshd=j.sal.sshd
 In [48]: sshd.
 sshd.SSH_AUTHORIZED_KEYS  sshd.commit               sshd.erase
 sshd.SSH_ROOT             sshd.deleteKey            sshd.keys
-sshd.addKey               sshd.disableNonKeyAccess  
+sshd.addKey               sshd.disableNonKeyAccess
 ```
 
- * Accessing the .SSH directory can be done via `SSH_ROOT` attribute
+- Accessing the .SSH directory can be done via `SSH_ROOT` attribute
 
- * Accessing the path of the authorized_keys is done via `SSH_AUTHORIZED_KEYS` attribute
+- Accessing the path of the authorized_keys is done via `SSH_AUTHORIZED_KEYS` attribute
 
 ```python
 
@@ -48,9 +48,9 @@ In [49]: sshd.SSH_AUTHORIZED_KEYS
 Out[49]: path('/root/.ssh/authorized_keys')
 ```
 
-* Adding and deleting public keys is done via `addKey/deleteKey`
+- Adding and deleting public keys is done via `addKey/deleteKey`
 
-* Note that you need to call `commit` to execute the transactions on the `authorized_keys` file
+- Note that you need to call `commit` to execute the transactions on the `authorized_keys` file
 
 ```python
 In [50]: k=j.sal.fs 
@@ -75,22 +75,22 @@ In [55]: sshd.deleteKey(k)
 In [56]: sshd.commit()
 ```
 
-* The `keys` property is used to list the keys in authorized keys
+- The `keys` property is used to list the keys in authorized keys
 
-```py
+```python
 In [58]: sshd.keys  
 Out[58]: []
 
 In [59]: cat /root/.ssh/authorized_keys
 ```
 
-* Erase all public keys from the list of authorized keys
+- Erase all public keys from the list of authorized keys
 
 ```python
 sshd.erase()
 ```
 
-* Disabling password login, done by adding `PasswordAuthentication no` to your `/etc/ssh/sshd_config`
+- Disabling password login, done by adding `PasswordAuthentication no` to your `/etc/ssh/sshd_config`
 
 ```python
 sshd.disableNonKeyAccess()

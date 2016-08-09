@@ -43,7 +43,7 @@ def xonsh_edit(args, stdin=None):
         cmd = "open -a Sublime\ Text %s" % path
 
     elif j.sal.fs.exists("/usr/bin/subl"):
-        raise j.exceptions.RuntimeError("please implement xonsh_edit for linux")  # @todo (*2*)
+        raise j.exceptions.RuntimeError("please implement xonsh_edit for linux")  # TODO: *2
     else:
         raise j.exceptions.RuntimeError("Did not find editor")
 

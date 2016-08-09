@@ -80,7 +80,7 @@ class Core(base):
         core will consume the avialable syncthing port and will cause a problem
         """
 
-        # @todo this will break code if two instances on same machine
+        # TODO: this will break code if two instances on same machine
         if not nid:
             nid = 1
         if not gid:
@@ -114,7 +114,7 @@ class Core(base):
         self.cuisine.apps.mongodb.start()
         self.cuisine.apps.redis.start()
         print("connection test ok to agentcontroller")
-        #@todo (*1*) need to implement to work on node
+        #TODO: *1 need to implement to work on node
         env = {}
         env["TMPDIR"] = self.cuisine.core.dir_paths["tmpDir"]
         cmd = "$binDir/core -nid %s -gid %s -c $cfgDir/core/g8os.toml" % (

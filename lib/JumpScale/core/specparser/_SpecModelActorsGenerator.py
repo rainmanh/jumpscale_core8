@@ -63,7 +63,7 @@ class SpecModelActorsGenerator:
 	method:model_{name}_find
 		\"\"\"
 		query to model {name}
-        @todo how to query
+        TODO: how to query
         example: name=aname
         secret key needs to be given
 		\"\"\"

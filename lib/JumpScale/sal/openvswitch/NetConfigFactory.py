@@ -23,7 +23,7 @@ class NetConfigFactory:
         if self._layout == None or reload:
             self._layout = vxlan.NetLayout()
             self._layout.load()
-        # add_ips_to(self._layout)  #@todo fix
+        # add_ips_to(self._layout)  #TODO: fix
         return self._layout.nicdetail
 
     def _exec(self, cmd, failOnError=True):
@@ -63,7 +63,7 @@ class NetConfigFactory:
                     state = "found"
 
         j.tools.path.get("/etc/default/lxc-net").write_text("USE_LXC_BRIDGE=\"false\"",
-                                                            append=True)  # @todo UGLY use editor !!!
+                                                            append=True)  # TODO: UGLY use editor !!!
 
         # Not used and expensive self.getConfigFromSystem(reload=True)
 
@@ -323,7 +323,7 @@ iface $bondname inet manual
             self._exec("ifdown %s" % backplanename, failOnError=False)
             # self._exec("ifup %s"%backplanename, failOnError=True)
 
-        #@todo need to do more checks here that it came up and retry couple of times if it did not
+        #TODO: need to do more checks here that it came up and retry couple of times if it did not
         #@ can do this by investigating self.getConfigFromSystem
 
         self._executor.execute("/etc/init.d/openvswitch-switch restart")

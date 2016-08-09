@@ -11,12 +11,12 @@ from JumpScale import j
 from JumpScale.data.time.TimeInterval import TimeInterval as TimeIntervalUnit
 #from JumpScale.core.decorators import deprecated
 
-#@todo (*3*) fix, move to other sal's
+#TODO: *3 fix, move to other sal's
 
-#@todo cron needs to be moved into SAL
-#@todo move many of these methods to cuisine2 (our cuisine) or to system if more appropriate
-#@todo this file needs to go away
-#@todo make sure we use proper names & add to right cuisine module
+#TODO: cron needs to be moved into SAL
+#TODO: move many of these methods to cuisine2 (our cuisine) or to system if more appropriate
+#TODO: this file needs to go away
+#TODO: make sure we use proper names & add to right cuisine module
 
 
 def user_in_group(username, groupname):
@@ -60,7 +60,7 @@ class UnixSystem:
         @param var: Variable name
         @type var: string
         '''
-        #@todo there are better ways of doing this
+        #TODO: there are better ways of doing this
         exitcode, output = j.sal.process.execute(". %s > /dev/null && echo $%s" % (file, var))
         if exitcode != 0:
             return ""

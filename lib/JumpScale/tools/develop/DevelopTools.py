@@ -2,8 +2,8 @@ from JumpScale import j
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 import time
-import os
-import sys
+# import os
+# import sys
 
 
 class MyFSEventHandler(FileSystemEventHandler):
@@ -68,7 +68,7 @@ class MyFSEventHandler(FileSystemEventHandler):
                             else:
                                 raise RuntimeError(e)
                     else:
-                        raise j.exceptions.RuntimeError("unsupported action:%s" % action)
+                        raise j.exceptions.RuntimeE
 
                     if error:
                         try:
@@ -100,7 +100,7 @@ class DebugSSHNode:
         self.connected = None
 
     def test(self):
-        if self.connected == None:
+        if self.connected is None:
             # lets test tcp on 22 if not then 9022 which are our defaults
             test = j.sal.nettools.tcpPortConnectionTest(self.addr, self.port, 3)
             if test == False:
@@ -267,46 +267,6 @@ class DevelopToolsFactory:
                 self._nodes.append(DebugSSHNode(addr, sshport))
         return self._nodes
 
-    def jumpscale8sb(self, rw=False, synclocalcode=False, monitor=False, resetstate=False):
-        """
-        install jumpscale, will be done as sandbox over fuse layer for linux
-
-        @input rw, if True will put overlay filesystem on top of /opt -> /opt which will allow you to manipulate/debug the install
-        @input synclocalcode, sync the local github code to the node (jumpscale) (only when in rw mode)
-        @input reset, remove old code (only used when rw mode)
-        @input monitor detect local changes & sync (only used when rw mode)
-        """
-
-        for node in self.nodes:
-            node.cuisine.installer.base()
-            node.cuisine.installer.jumpscale8(rw=rw, reset=resetstate)
-
-        if synclocalcode:
-            self.syncCode()
-
-        if monitor:
-            self.monitor
-
-    def jumpscale8develop(self, rw=False, resetstate=False):
-        """
-        install jumpscale, install in development mode
-
-        @input rw, if True will put overlay filesystem on top of /opt -> /opt which will allow you to manipulate/debug the install
-        @input synclocalcode, sync the local github code to the node (jumpscale) (only when in rw mode)
-        @input reset, remove old code (only used when rw mode)
-        @input monitor detect local changes & sync (only used when rw mode)
-        """
-
-        for node in self.nodes:
-            node.cuisine.installer.base()
-            node.cuisine.installerdevelop.jumpscale8()
-
-        if synclocalcode:
-            self.syncCode()
-
-        if monitor:
-            self.monitor
-
     def resetState(self):
         j.actions.setRunId("developtools")
         j.actions.reset()
@@ -398,3 +358,16 @@ class DevelopToolsFactory:
                 time.sleep(0.1)
         except KeyboardInterrupt:
             pass
+
+    def installAtomPlugins(self):
+        """
+        """
+        # TODO: *1 implement atom plugin install
+
+        C = """
+        pip3 install autopep8
+        pip3 install flake8
+        pip3 install flake8-docstrings
+        """
+
+        # TODO: walk over all jumpscale extensions & create autocompletion for atom and copy to appropriate directory

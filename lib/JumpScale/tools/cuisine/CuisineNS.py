@@ -69,7 +69,7 @@ class CuisineNS(base):
             names2 = " ".join(names)
             C += "%-19s %s\n" % (addr, names2)
 
-        #@todo need to do ipv6
+        #TODO: need to do ipv6
         self.cuisine.core.hostfile = C
 
     @actionrun()

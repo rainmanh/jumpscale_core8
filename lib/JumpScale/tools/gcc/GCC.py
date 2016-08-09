@@ -165,7 +165,7 @@ class GCC_Mgmt():
     def healthcheck(self):
         """
         """
-        #@todo (*3*) implement some healthchecks done over agentcontrollers
+        #TODO: *3 implement some healthchecks done over agentcontrollers
         #- check diskpace
         #- check cpu
         #- check that 3 are there
@@ -214,4 +214,4 @@ class GCC_aydostor():
 
     def ns_addHost(addr, dnsinfo):  # to be further defined
         pass
-        #@todo use https over caddy to speak to etcd to configure skydns
+        #TODO: use https over caddy to speak to etcd to configure skydns

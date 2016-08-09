@@ -48,7 +48,7 @@ class CloudSystemFS:
     def copyFile(self, sourcepath, destinationpath, tempdir=j.dirs.tmpDir):
         """
         export specified file to destination
-        @todo needs to be copied onto cloudapi aswell
+        TODO: needs to be copied onto cloudapi aswell
 
         @param sourcepath: location of the file to export
         @type sourcepath: string
@@ -222,7 +222,7 @@ class CloudSystemFS:
     def importFile(self, sourcepath, destinationpath, tempdir=j.dirs.tmpDir):
         """
         import specified file to machine path
-        @todo needs to be copied onto cloudapi aswell
+        TODO: needs to be copied onto cloudapi aswell
 
         @param sourcepath: location to import the file from. e.g. ftp://login:passwd@10.10.1.1/myroot/drive_c_kds.vdi
         @type sourcepath: string
@@ -235,7 +235,7 @@ class CloudSystemFS:
     def exportDir(self, sourcepath, destinationpath, recursive=True, tempdir=j.dirs.tmpDir):
         """
         export specified folder to destination
-        @todo needs to be copied onto cloudapi aswell
+        TODO: needs to be copied onto cloudapi aswell
 
         @param sourcepath:       location to export. e.g. ftp://login:passwd@10.10.1.1/myroot/drive_c_kds.vdi
         @type sourcepath:        string
@@ -264,7 +264,7 @@ class CloudSystemFS:
     def importDir(self, sourcepath, destinationpath, tempdir=j.dirs.tmpDir):
         """
         import specified dir to machine path
-        @todo needs to be copied onto cloudapi aswell
+        TODO: needs to be copied onto cloudapi aswell
 
         @param sourcepath: location to import the dir from. e.g. ftp://login:passwd@10.10.1.1/myroot/mymachine1/
         @type sourcepath: string

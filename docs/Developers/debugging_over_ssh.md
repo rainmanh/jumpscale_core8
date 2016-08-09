@@ -1,21 +1,22 @@
+# Debugging over SSH
 
-
-## Debugging over SSH
-
-
-### principle
+## principle
 
 - You develop your code files on your local machine (e.g. your local Linux or Mac OSX)
-   - JumpScale is locally installed
-   - Git repos are checked out locally
+
+  - JumpScale is locally installed
+  - Git repos are checked out locally
+
 - You have 1 or more (typically Ubuntu 16.04) machines running in server mode with SSH enabled and your public SSH key enabled
-   - On this sever you have the JumpScale installed in debug or in sandboxed mode
+
+  - On this sever you have the JumpScale installed in debug or in sandboxed mode
+
 - The j.tools.develop... tools help you to keep the code up to date and to upgrade/manage your remote development machine
-   - The sync tools in the development tools will sync your local changes while you are using your editor to develop
-   - Over ssh you can test your program on the remote machine
 
+  - The sync tools in the development tools will sync your local changes while you are using your editor to develop
+  - Over ssh you can test your program on the remote machine
 
-### Step 1: Create connection
+## Step 1: Create connection
 
 ```python
 j.tools.develop.init("ovh4:22")
@@ -23,8 +24,7 @@ j.tools.develop.init("ovh4:22")
 
 Now all other commands can be used on j.tools.develop...
 
-
-### Step 2: Sync a local code tree to a remote one
+## Step 2: Sync a local code tree to a remote one
 
 All changes will be monitored constantly and synced:
 
@@ -49,8 +49,7 @@ j.tools.develop.syncCode(True,True,True)
 DO NOT USE GIT ON REMOTE SITE, ONLY ON LOCAL ONE
 ```
 
-### How to connect & debug a remote sandboxed js8
-
+## How to connect & debug a remote sandboxed js8
 
 ```shell
 #define which nodes to init,
@@ -61,6 +60,7 @@ j.tools.develop.jumpscale8(rw=True, synclocalcode=True, resetstate=True, monitor
 ```
 
 at end of process you will see something like
+
 ```sh
 login to machine & do
 cd /optrw/jumpscale8;source env.sh;js
@@ -79,10 +79,10 @@ Make a selection please:
 
    Select Nr, use comma separation if more e.g. "1,4", * is all, 0 is None: 5,7
 ```
+
 the selection made will be remembered when used in later sessions.
 
-
-### How to force to sync the code
+## How to force to sync the code
 
 ```shell
 #sync all code to the remote destinations
@@ -93,8 +93,7 @@ j.tools.develop.syncCode(reset=True,ask=False,monitor=False,rsyncdelete=False)
 
 This will sync all chosen code to the debug node.
 
-
-### how to start the monitor
+## how to start the monitor
 
 The monitor is a very nice tool to allow remote debugging.
 

@@ -1,108 +1,111 @@
-## LXC
+# LXC
 
-```py
+```python
 j.sal.lxc
 ```
 
 Helps you with your LXC containers.
 
-### Usage
+## Usage
 
-* List all containers
+- List all containers
 
-```py
+```python
 j.sal.lxc.list()
 ```
 
-* Creating a container
+- Creating a container
 
-```py
+```python
 j.sal.lxc.create(self,name="",stdout=True,base="base",start=False,nameserver="8.8.8.8",replace=True):
 ```
 
-* Start a container
+- Start a container
 
-```py
+```python
 j.sal.lxc.start(name,stdout=True,test=True)
 ```
 
-* Stopping a container
+- Stopping a container
 
-```py
+```python
 j.sal.lxc.stop(name)
 ```
 
-* Destroy a container
+- Destroy a container
 
-```py
+```python
 j.sal.lxc.destroy(name)
 ```
 
-* Destroy all containers
-```py
-j.sal.lxc.destroyAll()
-```
+- Destroy all containers
 
-* Remove redundant files (.bak, .pyc)
+  ```python
+  j.sal.lxc.destroyAll()
+  ```
 
-```py
+- Remove redundant files (.bak, .pyc)
+
+```python
 j.sal.lxc.removeRedundantFiles(name)
 ```
 
-* Export a container as TGZ tarball
+- Export a container as TGZ tarball
 
-```py
+```python
 j.sal.lxc.exportTgz(name,backupname)
 ```
 
-* Import a container from a TGZ tarball
+- Import a container from a TGZ tarball
 
-```py
+```python
 j.sal.lxc.importTgz(backupname,name)
 ```
 
-* Export a container via rsync
+- Export a container via rsync
 
-```py
+```python
 j.sal.lxc.exportRsync(name,backupname,key="pub")
 ```
 
-* Import a container from rsync
+- Import a container from rsync
 
-```py
+```python
 j.sal.lxc.importRsync(backupname,name,basename="",key="pub")
 ```
 
-* Get process list
+- Get process list
 
-```py
+```python
 j.sal.lxc.getProcessList(name, stdout=True)
 ```
 
-* Get PID 
-```py
-j.sal.lxc.getPid(name,fail=True)
-```
+- Get PID
 
-* Set hostname
+  ```python
+  j.sal.lxc.getPid(name,fail=True)
+  ```
 
-```py
+- Set hostname
+
+```python
 j.sal.lxc.setHostName(name)
 ```
 
-* Getting the Ip
-```py
-j.sal.lxc.getIP()
-```
+- Getting the Ip
 
-* Setting up a network
+  ```python
+  j.sal.lxc.getIP()
+  ```
 
-```py
+- Setting up a network
+
+```python
 j.sal.lxc.networkSet(self, machinename,netname="pub0",pubips=[],bridge="public",gateway=None)
 ```
 
-* Pushing SSH key 
+- Pushing SSH key
 
-```py
+```python
 j.sal.lxc.pushSSHKey(name)
 ```

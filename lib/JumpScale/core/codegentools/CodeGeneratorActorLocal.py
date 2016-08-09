@@ -67,7 +67,7 @@ if params.has_key("result"):
 else:
     return params
 """
-        #@todo need to complete the code for te.execute(self, params, service=None, job=None, tags=None, groupname='main')
+        #TODO: need to complete the code for te.execute(self, params, service=None, job=None, tags=None, groupname='main')
         s = s.replace("{key}", key)
 
         self.content += j.tools.code.indent(s, 2)

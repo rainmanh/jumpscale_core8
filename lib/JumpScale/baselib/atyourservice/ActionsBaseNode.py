@@ -12,7 +12,7 @@ class ActionsBaseNode:
 
     def installFiles(self):
 
-        #@todo (*1*) I think is not optimally designed, or we work with fuse or without
+        #TODO: *1 I think is not optimally designed, or we work with fuse or without
         # if without we need to create a library function on e.g. AYSFS which allows someone to connect to G8OS Stor
         # and then call this library to expand the content locally, this should
         # be done through arguments  ($...)
@@ -51,7 +51,7 @@ class ActionsBaseNode:
                     url = "%s/dedupe/files/%s/%s/%s" % (
                         addr, hash[0], hash[1], hash)
                     value, unit = j.data.units.bytes.converToBestUnit(
-                        int(size))  # @todo typo?  (*1*)
+                        int(size))  # TODO: typo?  *1
                     print("downloading %s (%s %s)" % (path, value, unit))
                     unit = unit if unit != '' else 'B'
                     conn.download(url, path)

@@ -149,7 +149,7 @@ class Docker:
     @property
     def basepath(self):
         self._basepath = '/mnt/data/docker'
-        #@todo needs to fetch values out of hrd
+        #TODO: needs to fetch values out of hrd
         # if not self._basepath:
         #     if j.application.config.exists('docker.basepath'):
         #         self._basepath = j.application.config.get('docker.basepath')
@@ -327,7 +327,7 @@ class Docker:
         @param ports in format as follows  "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
         @param vols in format as follows "/var/insidemachine:/var/inhost # /var/1:/var/1 # ..."   '#' is separator
         @param sshkeyname : use ssh-agent (can even do remote through ssh -A) and then specify key you want to use in docker
-        #@todo (*1*) change way how we deal with ssh keys, put authorization file in filesystem before docker starts don't use ssh to push them, will be much faster and easier
+        #TODO: *1 change way how we deal with ssh keys, put authorization file in filesystem before docker starts don't use ssh to push them, will be much faster and easier
         """
 
         # check there is weave
@@ -614,7 +614,7 @@ class Docker:
 
         return: strint containing the stdout
         """
-        #@todo implement force
+        #TODO: implement force
         out = []
         if force:
             nocache = True

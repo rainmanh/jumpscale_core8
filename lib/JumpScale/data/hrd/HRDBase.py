@@ -343,7 +343,7 @@ class HRDBase:
                         out.append("")
 
             if not isinstance(hrditem.data, str):
-                #@todo fix this bug
+                #TODO: fix this bug
                 # raise j.exceptions.RuntimeError("BUG SHOULD ALWAYS BE STR")
                 pass
 

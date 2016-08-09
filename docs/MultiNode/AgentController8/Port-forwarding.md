@@ -1,14 +1,18 @@
-#Introduction
+# Introduction
+
 Agent comes integrated with `hubble` for port-forwarding and tunneling over `web socket`. And it works with no extra charges, or external dependencies.
 
-#Configuration
+# Configuration
+
 ```toml
 [hubble]
 controllers = []
 ```
+
 The `hubble` section in the agent config file defines which controllers are allowed to forward 'hubble_tunnel_*' commands. An empty list means all controllers defined under the `controllers` section are allowed.
 
-#How to use
+# How to use
+
 Imagine a setup that looks like the following
 
 - Controller
@@ -21,6 +25,7 @@ Fire a `js` shell and do the following:
 client = j.clients.agentcontroller.get(password='rooter')
 client.tunnel_open(1, 1, 2222, '1.2', '127.0.0.1', 22)
 ```
+
 This basically asks `agent 1.1` to open a tunnel that listens on it's local node on port `2222`, all received connections are gonna be tunneled to `agent 1.2` to `127.0.0.1:22` (which is `agent 1.2` localhost)
 
 You can list all active tunnels on an agent by doing this
@@ -32,6 +37,7 @@ print tunnels
 ```
 
 Or close it like this:
+
 ```python
 client.tunnel_close(1, 1, 2222, '1.2', '127.0.0.1', 22)
 ```

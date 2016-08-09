@@ -44,7 +44,7 @@ class CuisineTmux(base):
         cmd = "tmux new-session -d -s %s -n %s" % (sessionname, screens[0])
         if user is not None:
             cmd = "sudo -u %s -i %s" % (user, cmd)
-        # j.sal.process.run(cmd, env=env)  #@todo does not work in python3
+        # j.sal.process.run(cmd, env=env)  #TODO: does not work in python3
         self.executor.execute(cmd, showout=False)
         # now add the other screens to it
         if len(screens) > 1:

@@ -13,10 +13,10 @@ class CuisineNet(base):
         self.cuisine = cuisine
 
     def netconfig(self, interface, ipaddr, cidr=24, gateway=None, dns="8.8.8.8", masquerading=False):
-        raise j.exceptions.RuntimeError("please implement using systemd")  # @todo (*2*)
+        raise j.exceptions.RuntimeError("please implement using systemd")  # TODO: *2
 
     def netconfig(self, interface):
-        raise j.exceptions.RuntimeError("please implement using systemd")  # @todo (*2*)
+        raise j.exceptions.RuntimeError("please implement using systemd")  # TODO: *2
 
     @property
     def nics(self):

@@ -24,8 +24,8 @@ class ExecutorBase:
         self.logger = j.logger.get("j.tools.executor")
         self.env = {}
         self.curpath = ""
-        self.platformtype = "linux"  # @todo need to create propery and evaluate
-        self.jumpscale = True  # @todo need to create propery and evaluate
+        self.platformtype = "linux"  # TODO: need to create propery and evaluate
+        self.jumpscale = True  # TODO: need to create propery and evaluate
         self.id = None
 
         self._cuisine = None

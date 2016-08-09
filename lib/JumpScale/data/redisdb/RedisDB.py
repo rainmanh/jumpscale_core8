@@ -11,7 +11,7 @@ class RedisDB:
         """
         @param path in form of someting:something:...
 
-        @todo (*2*) please describe and give example
+        TODO: *2 please describe and give example
 
         """
         return RedisDBList(path, expiration)

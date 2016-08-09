@@ -1,6 +1,6 @@
 from JumpScale import j
 
-#@todo (*2*) is double with previous one, fix
+#TODO: *2 is double with previous one, fix
 
 
 class NginxManager:

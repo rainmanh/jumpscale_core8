@@ -24,7 +24,7 @@ class CuisineSandbox(base):
     @actionrun(force=True)
     def do(self, destination="/out", reset=False):
         """
-        @todo specify what comes in /out
+        TODO: specify what comes in /out
 
         """
 

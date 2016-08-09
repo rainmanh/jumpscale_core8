@@ -1,4 +1,4 @@
-#@todo test (*2*)
+#TODO: test *2
 
 import time
 import socket

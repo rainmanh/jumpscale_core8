@@ -46,7 +46,7 @@ class FileSystemKeyValueStore(KeyValueStoreBase):
         @param contents: string (file contents to be written)
         """
         fp = open(filename, "wb")
-        fp.write(contents)  # @todo P1 will this also raise an error and not be catched by the finally
+        fp.write(contents)  # TODO: P1 will this also raise an error and not be catched by the finally
         fp.close()
 
     def get(self, category, key):

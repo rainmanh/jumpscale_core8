@@ -249,7 +249,7 @@ class PlatformType:
 
     def isHyperV(self):
         '''Check whether the system supports HyperV'''
-        #@todo should be moved to _getPlatform & proper parent definition
+        #TODO: should be moved to _getPlatform & proper parent definition
         if self.isWindows():
             import winreg as wr
             try:

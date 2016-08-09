@@ -72,7 +72,7 @@ class CodeManager:
         """
         self.rootpath = path
         files = []
-        # @todo P1 this is not very nice, should be done in one go, also make sure we don't descend in .hg dirs
+        # TODO: P1 this is not very nice, should be done in one go, also make sure we don't descend in .hg dirs
         files.extend(j.sal.fs.listFilesInDir(path, True, filter="*.py"))
         files.extend(j.sal.fs.listFilesInDir(path, True, filter="*.txt"))
         files.extend(j.sal.fs.listFilesInDir(path, True, filter="*.md"))
@@ -542,9 +542,9 @@ class CodeManagerFile:
         return id1
 
     def _findTasks(self, text, path, fullPath):
-        #@todo S2 do same for remarks & questions
+        #TODO: S2 do same for remarks & questions
         def findTodoVariants(line):
-            variants = ["@todo:", "@todo :", "@todo"]
+            variants = ["@todo:", "TODO: :", "@todo"]
             for variant in variants:
                 if line.strip().find(variant) == 0:
                     return variant

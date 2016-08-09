@@ -328,9 +328,9 @@ class ErrorConditionObject(BaseException):
     #     sep="\n"+"-"*90+"\n"
     #     result = ''
     #     if not tracebackObject:
-    #         return "" #@todo needs to be fixed so it does work
+    #         return "" #TODO: needs to be fixed so it does work
     #     if tracebackObject==None:
-    #         tracebackObject = inspect.currentframe()  #@todo does not work
+    #         tracebackObject = inspect.currentframe()  #TODO: does not work
     #     frames = inspect.getinnerframes(tracebackObject, 16)
     #     nrlines=0
     #     for (frame, filename, lineno, fun, context, idx) in frames:

@@ -1,4 +1,4 @@
-#@todo (*2*)
+#TODO: *2
 
 
 @task

@@ -19,4 +19,4 @@ class RsyncFactory:
     def getClientSecret(self, addr="localhost", port=873, secret=""):
         return RsyncClientSecret(addr, port, secret)
 
-#@todo (*2*) there seems to be overlap here, multiple files not on right location
+#TODO: *2 there seems to be overlap here, multiple files not on right location

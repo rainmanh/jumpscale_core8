@@ -71,7 +71,7 @@ class TextFileEditor:
         replace the matched line with line being processed by the functionreplaceFunction(argument,lineWhichMatches)
 
         """
-        #@todo add good logging statements everywhere   (id:49)
+        #TODO: add good logging statements everywhere   (id:49)
         self.content = j.tools.code.regex.replaceLines(replaceFunction, argument, self.content, includes, excludes)
         self.save()
 

@@ -76,7 +76,7 @@ class AggregatorClient:
             gid = IntField()    
             aid = IntField(default=0)
             pid = IntField(default=0)
-            jid = StringField(default='')  #@todo (*2*) is this right, string???
+            jid = StringField(default='')  #TODO: *2 is this right, string???
             masterjid = IntField(default=0)  = mjid
             appname = StringField(default="")
             category = StringField(default="")

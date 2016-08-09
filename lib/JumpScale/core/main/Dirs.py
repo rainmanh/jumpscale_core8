@@ -133,7 +133,7 @@ class Dirs:
         Returns the parent of the path:
         /dir1/dir2/file_or_dir -> /dir1/dir2/
         /dir1/dir2/            -> /dir1/
-        @todo why do we have 2 implementations which are almost the same see getParentDirName()
+        TODO: why do we have 2 implementations which are almost the same see getParentDirName()
         """
         parts = path.split(os.sep)
         if parts[-1] == '':
@@ -204,7 +204,7 @@ class Dirs:
 
     # def checkInProtectedDir(self,path):
     #     return
-    #     #@todo reimplement if still required
+    #     #TODO: reimplement if still required
     #     path=j.sal.fs.pathNormalize(path)
     #     for item in self.protectedDirs :
     #         if path.find(item)!=-1:
@@ -212,6 +212,6 @@ class Dirs:
     #     return False
 
     def __str__(self):
-        return str(self.__dict__)  # @todo P3 implement (thisnis not working)
+        return str(self.__dict__)  # TODO: P3 implement (thisnis not working)
 
     __repr__ = __str__

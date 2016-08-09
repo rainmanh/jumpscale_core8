@@ -30,7 +30,7 @@ class SyncthingClient:
         self.sshport = sshport
         self.rootpasswd = rootpasswd
         self.port = port
-        #@todo need to be https
+        #TODO: need to be https
         self.syncthing_url = 'http://%s:%s/rest' % (self.addr, self.port)
         self.syncthing_apikey = apikey
         self._config = None

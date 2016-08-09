@@ -1,7 +1,7 @@
 
 from JumpScale import j
 
-#@todo P2 S4 :eduard TextLineEditor tool does not work any more, is a pitty because ideal to parse config files on a filesystem (id:83)
+#TODO: P2 S4 :eduard TextLineEditor tool does not work any more, is a pitty because ideal to parse config files on a filesystem (id:83)
 
 
 class TextLineEditor:

@@ -120,7 +120,7 @@ class CiscoSwitch:
         self.download(path, j.sal.fs.joinPaths(destinationdir, path))
 
     def download(self, path, dest):
-        #@todo now sure how that works on cisco sw
+        #TODO: now sure how that works on cisco sw
         from ftplib import FTP
         ftp = FTP(host=self.host, user=self.login, passwd=self.password)
         ftp.retrbinary('RETR %s' % path, open(dest, 'wb').write)

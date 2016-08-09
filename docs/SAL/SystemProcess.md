@@ -1,180 +1,179 @@
-## SystemProcess
+# SystemProcess
 
 `j.sal.process` helps you to do many tasks/inspection on processes.
 
+## Available helpers
 
-### Available helpers
+- Execute a command without using a pipe
 
-* Execute a command without using a pipe
-
-```py
+```python
  executeWithoutPipe(self, command, die = True, printCommandToStdout = False)
 ```
 
-* Execute a command asynchronously 
+- Execute a command asynchronously
 
-```py
+```python
  executeAsync(self, command, args = [], printCommandToStdout = False, redirectStreams = True, argsInCommand = False, useShell = None, outputToStdout=True):
 ```
 
-* Execute independently `nohup` 
+- Execute independently `nohup`
 
-```py
+```python
  executeIndependant(self,cmd)
 ```
 
-* Executing a Python script
+- Executing a Python script
 
-```py
+```python
   executeScript(self, scriptName)
 ```
 
-* @FIXME: execute a command in a sandbox
+- @FIXME: execute a command in a sandbox
 
-```py
+```python
 executeInSandbox(self, command, timeout=0)
 ```
 
-* Executing `code` given that code is a defined function
+- Executing `code` given that code is a defined function
 
-```py
+```python
 executeCode(self, code, params=None)
 ```
 
-* Check if a PID is alive
+- Check if a PID is alive
 
-```py
+```python
 isPidAlive(self, pid)
 ```
 
-* Get PIDs of a certain process
+- Get PIDs of a certain process
 
-```py
+```python
 getPidsByFilter(self,filterstr)
 ```
 
-> Note: It's usually used like this ```j.sal.process.getPidsByFilter("pyth")``` and It will return the PIDs of all processed filtered by the word pyth
+> Note: It's usually used like this `j.sal.process.getPidsByFilter("pyth")` and It will return the PIDs of all processed filtered by the word pyth
 
-```py
+```python
 checkstart(self,cmd,filterstr,nrtimes=1,retry=1)
 ```
 
-```py
+```python
 checkstop(self,cmd,filterstr,retry=1,nrinstances=0)
 ```
 
-```py
+```python
 getProcessPid(self, process)
 ```
 
-```py
+```python
 getMyProcessObject(self)
 ```
 
-```py
+```python
 getProcessObject(self,pid)
 ```
 
-* Get the PIDss of processes started by `user`
+- Get the PIDss of processes started by `user`
 
-```py
+```python
 getProcessPidsFromUser(self,user)
 ```
 
-* Kill processes by user
+- Kill processes by user
 
-```py
+```python
 killUserProcesses(self,user)
 ```
 
-```py
+```python
 getSimularProcesses(self)
 ```
 
- * Check if a process is running
+- Check if a process is running
 
-```py
+```python
 checkProcessRunning(self, process, min=1)
 ```
 
-```py
+```python
 checkProcessForPid(self, pid, process)
 ```
 
-* Set environment variables 
+- Set environment variables
 
-```py
+```python
 setEnvironmentVariable(self, varnames, varvalues)
 ```
 
-* Get the pid of processes using port `port`
+- Get the pid of processes using port `port`
 
-```py
+```python
 getPidsByPort(self, port)
 ```
 
-* Kill a process by its name
+- Kill a process by its name
 
-```py
+```python
 killProcessByName(self,name,sig=None)
 ```
 
-* Kill process on port `port`
+- Kill process on port `port`
 
-```py
+```python
 killProcessByPort(self,port)
 ```
 
-```py
+```python
 getProcessByPort(self, port)
 ```
 
-* Check if an app `appname` is active
+- Check if an app `appname` is active
 
-```py
+```python
 appCheckActive(self,appname)
 ```
 
-* Get the number of instances of app `appname`
+- Get the number of instances of app `appname`
 
-```py
+```python
 appNrInstances(self,appname)
 ```
 
-* Get the number of active instances of app `appname`
+- Get the number of active instances of app `appname`
 
-```py
+```python
 appNrInstancesActive(self,appname)
 ```
 
-* Get the environment of `pid`
+- Get the environment of `pid`
 
-```py
+```python
 getEnviron(self, pid)
 ```
 
-* Get all of the `pids` of app `appname`
+- Get all of the `pids` of app `appname`
 
-```py
+```python
 appGetPids(self,appname)
 ```
 
-```py
+```python
 appsGetNames(self)
 ```
 
-* Get a list of all defunct processes
+- Get a list of all defunct processes
 
-```py
+```python
 getDefunctProcesses(self)
 ```
 
-```py
+```python
 appsGet(self)
 ```
 
-* Get all active PIDs of app `appname`
+- Get all active PIDs of app `appname`
 
-```py
+```python
 appGetPidsActive(self,appname)
 ```

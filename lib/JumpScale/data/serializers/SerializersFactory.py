@@ -1,6 +1,6 @@
 from JumpScale import j
 
-#@todo can we make all of this lazy loading (*2*)
+#TODO: can we make all of this lazy loading *2
 
 from JumpScale.data.serializers.SerializerInt import SerializerInt
 from JumpScale.data.serializers.SerializerTime import SerializerTime

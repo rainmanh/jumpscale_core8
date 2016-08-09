@@ -1,38 +1,39 @@
+# easy client
 
-## easy client
-
-### init
+## init
 
 - the current j.ac.get goes to j.ac.getAdvanced(...)
 
 - j.ac.get(... gets new client)
 
-### execution of cmds, jumpscripts
+## execution of cmds, jumpscripts
 
-#### get client
+### get client
+
 ```python
 cl=j.ac.get()
 ```
 
-#### basic execution of remote commands (like our j.do.execute ...)
+### basic execution of remote commands (like our j.do.execute ...)
 
 ```python
 rc,stdout,stderror=cl.execute(cmd,path=None,gid=None,nid=None,roles=[],die=True,timeout=5,data="")
 ```
-* cmd is e.g. 'ls /' no separate args
-* path is where to execute the cmd 
-* data send to jumpscript over stdin (data can be anything !!!,text, binary, ...)
-* if nid specified then roles not used, roles=[] means we ignore it and then we execute over gid & nid
-    * gid==None: means all gids
-    * nid==None: means all nids
 
->Q: Does this mean when roles is given (nid=None) we should fanout by default (to all agents that satisfies the set of given roles). I think we need to add a specific `fanout` flag in case roles is given so we either run
-on all `nids` or execute on 1 agent that satisfies the roles
+- cmd is e.g. 'ls /' no separate args
+- path is where to execute the cmd
+- data send to jumpscript over stdin (data can be anything !!!,text, binary, ...)
+- if nid specified then roles not used, roles=[] means we ignore it and then we execute over gid & nid
 
-* die is std True
-* timeout is std 5 sec, if timeout raise an error
-* if more than 1 agent involved, then output is concatenation per agent of
-    
+  - gid==None: means all gids
+  - nid==None: means all nids
+
+> Q: Does this mean when roles is given (nid=None) we should fanout by default (to all agents that satisfies the set of given roles). I think we need to add a specific `fanout` flag in case roles is given so we either run on all `nids` or execute on 1 agent that satisfies the roles
+
+- die is std True
+- timeout is std 5 sec, if timeout raise an error
+- if more than 1 agent involved, then output is concatenation per agent of
+
 how to do output when more than 1 agent involved
 
 ```bash
@@ -50,7 +51,6 @@ $agent ($gid,$nid)
 $stdout
 #######################################################
 ...
-
 ```
 
 > Q: Why this weird not machine friendly format, why not return a list of tubles instead liek [(rc, stdout, stderr), ...]
@@ -58,16 +58,17 @@ $stdout
 - only show ##ERROR if there was an error
 - only show ##RC if RC>0
 
-#### execute a bash script
+### execute a bash script
 
 ```python
 rc,stdout,stderror=cl.executeBash(cmds,gid=None,nid=None,roles=[],die=True,timeout=5)
 ```
-* cmds is content (string) to execute in bash format
-* remark: no data to std in support here, believe not required & wanted for bash scripts
-* output see execute cmd above
 
-#### execute a jumpscript
+- cmds is content (string) to execute in bash format
+- remark: no data to std in support here, believe not required & wanted for bash scripts
+- output see execute cmd above
+
+### execute a jumpscript
 
 format of a jumpscript is
 
@@ -78,7 +79,8 @@ def action(arg1="",arg2=""):
     result = arg2 + 1
     return result
 ```
-- remark: no need to specify ```from JumpScale import j``` this gets added automatically
+
+- remark: no need to specify `from JumpScale import j` this gets added automatically
 
 how to use
 
@@ -96,23 +98,34 @@ there are 4 ways to execute a jumpscript
 
 remarks
 
-* domain & name does not have to be specified 
-    * if specified then jumpscript needs to be in right location see [Jumpscripts.md](Jumpscripts.md)
-    * @TODO format needs to be different for a jumpscript then specified in Jumpscripts.md
-* if no domain/name path or content need to be specified, content get's prio otherwise read from path
-    * implementation remark: make sure from jumpscale import get's removed (otherwise double, because i gets reinserted)
-* data send to jumpscript over stdin (data can be anything !!!,text, binary, ...)
+- domain & name does not have to be specified
 
-> Do we really need to send data over stdin to the script? This can be implemented but I really don't see a use case
-since you can send anything (including binary) using the `args`.
+  - if specified then jumpscript needs to be in right location see 
 
-* args is what will be send to the action(**args) 
-* if nid specified then roles not used, roles=[] means we ignore it and then we execute over gid & nid
-    * gid==None: means all gids
-    * nid==None: means all nids
-* result is return of script
-    * impl detail: will have to prepend script with jumpscale import & postpend to print the result in right format to our logging mechanism can pick it up
-* timeout is in seconds, if it takes longer then error with clean eco as result ! (jumpscale eco obj)
+    <jumpscripts.md>
+    </jumpscripts.md>
+
+  - @TODO format needs to be different for a jumpscript then specified in Jumpscripts.md
+
+- if no domain/name path or content need to be specified, content get's prio otherwise read from path
+
+  - implementation remark: make sure from jumpscale import get's removed (otherwise double, because i gets reinserted)
+
+- data send to jumpscript over stdin (data can be anything !!!,text, binary, ...)
+
+> Do we really need to send data over stdin to the script? This can be implemented but I really don't see a use case since you can send anything (including binary) using the `args`.
+
+- args is what will be send to the action(**args)
+- if nid specified then roles not used, roles=[] means we ignore it and then we execute over gid & nid
+
+  - gid==None: means all gids
+  - nid==None: means all nids
+
+- result is return of script
+
+  - impl detail: will have to prepend script with jumpscale import & postpend to print the result in right format to our logging mechanism can pick it up
+
+- timeout is in seconds, if it takes longer then error with clean eco as result ! (jumpscale eco obj)
 
 example to use with method
 
@@ -120,11 +133,10 @@ example to use with method
 def printMyName(myname=""):
     print "myname:%s"%myname
     return myname
-    
+
 results=cl.executeJumpscript(method= printMyName,roles=["*"],die=True,timeout=5,data="",args={"myname":"itsme"})
 for result in results:
     print result
-
 ```
 
 - remark when executing multiple its better to use the async method see below
@@ -132,14 +144,15 @@ for result in results:
 implementation remarks
 
 - error in jumpscript (ECO)
-    - new errorhandler is created who dumps the output as json & gets captured (log level 8 or 9)
-    - this info can get back serialzed as eco & returned to job.error in case there was error
-- jumpscripts should be send without syncthing & and only unique content send (use hashing) see https://github.com/Jumpscale/AgentController8/issues/6
 
-#### async execution of a jumpscript
+  - new errorhandler is created who dumps the output as json & gets captured (log level 8 or 9)
+  - this info can get back serialzed as eco & returned to job.error in case there was error
 
-all above cmds are always executed synchronously, so we wait till timeout !!!
-the method below is better for execution of many tasks over many agents
+- jumpscripts should be send without syncthing & and only unique content send (use hashing) see <https://github.com/Jumpscale/AgentController8/issues/6>
+
+### async execution of a jumpscript
+
+all above cmds are always executed synchronously, so we wait till timeout !!! the method below is better for execution of many tasks over many agents
 
 ```python
 jobs=cl.executeJumpscriptAsync(domain="",name="",content="",path="",method=None,\
@@ -172,8 +185,7 @@ for job in jobs:
         ...
 ```
 
-
-### agent & process info
+## agent & process info
 
 ```
 cl=j.ac.get()
@@ -197,12 +209,9 @@ for agent in agents:
         ...
 
     #make sure when properties are used that if agent is error or unreachable right errorcondition is thrown (j.events....)
-
-
-
 ```
 
-### sync
+## sync
 
 ```
 cl=j.ac.get()
@@ -220,8 +229,6 @@ print share.insync (means all peerst have the same data for this share !!!)
 
 share.attach(git,nid,path,readonly=False)
 #readonly means that destinations will not be able to modify
-
-
 ```
 
 example with master to 2 agents remote
@@ -232,17 +239,14 @@ cl=j.ac.get()
 share_downloads=cl.sync_createshare(1,1,"/opt/downloads",ignore=["*.pyc","*.bak","*/.git/*"])
 share_downloads.attach(1,2,"/opt/downloads",readonly=True)
 share_downloads.attach(1,3,"/opt/downloads",readonly=True)
-
 ```
 
 some of the syncthing agents will have to expose their port to internet, otherwise this will not work, this is not job of this interface
 
-
-### portforward
+## portforward
 
 ```
 cl=j.ac.get()
 cl.tunnel_create(...)
 #make sure you check if agents relevant are accesible and if not tell
-
 ```

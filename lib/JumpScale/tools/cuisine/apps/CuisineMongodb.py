@@ -44,7 +44,7 @@ class Mongodb(base):
                 url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
             elif self.cuisine.core.isArch:
                 self.cuisine.package.install("mongodb")
-            elif self.cuisine.core.isMac:  # @todo better platform mgmt
+            elif self.cuisine.core.isMac:  # TODO: better platform mgmt
                 url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
             else:
                 raise RuntimeError("unsupported platform")

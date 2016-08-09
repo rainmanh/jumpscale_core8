@@ -473,7 +473,7 @@ class Machine:
             sshport = requested_sshport
         login = machine['accounts'][0]['login']
         password = machine['accounts'][0]['password']
-        # @todo we need tow work with keys (*2*)
+        # TODO: we need tow work with keys *2
         return j.tools.executor.getSSHBased(publicip, sshport, login, password)
 
     def __repr__(self):

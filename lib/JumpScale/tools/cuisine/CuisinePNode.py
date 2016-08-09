@@ -170,7 +170,7 @@ class CuisinePNode(base):
         """
         cmd = 'tar -zpcf %s --exclude=%s --one-file-system %s' % (destination, destination, source)
         self.cuisine.core.run(cmd)
-        #@todo (*1*) implement excludes (does not have to be regex is other method more easy)
+        #TODO: *1 implement excludes (does not have to be regex is other method more easy)
 
     @actionrun()
     def exportRootStor(self, storspace, plistname, source="/", excludes=["\.pyc", "__pycache__"], removetmpdir=True):
@@ -178,12 +178,12 @@ class CuisinePNode(base):
         reason to do this is that we will use this to then make the step to g8os with g8osfs (will be very small step then)
 
         """
-        #@todo (*1*) implement using CuisineStor space
+        #TODO: *1 implement using CuisineStor space
         pass
 
     @actionrun()
     def importRootDedupe(self, storspace, plistname, destination="/mnt/", removetmpdir=True):
-        #@todo (*1*) implement using CuisineStor space
+        #TODO: *1 implement using CuisineStor space
         pass
 
     @actionrun()
@@ -229,7 +229,7 @@ class CuisinePNode(base):
         """
 
         """
-        #@todo cuisine enable https://github.com/g8os/builder
+        #TODO: cuisine enable https://github.com/g8os/builder
 
     @actionrun()
     def buildArchImage(self):

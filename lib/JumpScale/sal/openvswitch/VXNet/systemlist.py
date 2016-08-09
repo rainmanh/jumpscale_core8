@@ -113,7 +113,7 @@ def get_nic_detail(interface):
     speed = None
     peer = None
 
-    # TODO (*2*) Should it give errors if paths don't exist?
+    # TODO *2 Should it give errors if paths don't exist?
     addr = ''
     if os.path.exists(os.path.join(prefix, interface, "address")):
         with open(os.path.join(prefix, interface, "address")) as f:

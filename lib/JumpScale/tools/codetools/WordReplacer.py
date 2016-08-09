@@ -151,7 +151,7 @@ class WordReplacer:
     def removeConfluenceLinks(self, text):
         """
         find [...] and remove the [ and the ]
-        @todo 2  (id:19)
+        TODO: 2  (id:19)
         """
         raise j.exceptions.RuntimeError("todo needs to be done, is not working now")
 

@@ -671,7 +671,7 @@ class SpecParserFactory:
         if spec.type != spec.type.lower().strip():
             emsg = "type %s of spec %s should be lowercase & no spaces" % (
                 spec.type, key)
-            # @todo P2 the errorcondition handler does not deal with this format to escalate categories
+            # TODO: P2 the errorcondition handler does not deal with this format to escalate categories
             raise j.exceptions.RuntimeError(emsg + " {category:specs.input}")
         if spec.name != spec.name.lower().strip():
             emsg = "name %s of spec %s should be lowercase & no spaces" % (

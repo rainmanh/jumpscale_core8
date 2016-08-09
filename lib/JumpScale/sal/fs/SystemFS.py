@@ -1591,7 +1591,7 @@ class SystemFS:
         try:
             names = os.listdir(root)
         except os.error:
-            return result  # @todo P2 is this correct?
+            return result  # TODO: P2 is this correct?
 
         dirPattern = dirPattern or '*'
         dirPatList = dirPattern.split(';')

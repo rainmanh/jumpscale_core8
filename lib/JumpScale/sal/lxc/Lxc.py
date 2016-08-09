@@ -335,7 +335,7 @@ ipaddr=
             j.application.config.setDict("lxc.mgmt.ipaddresses", ipaddrs)
 
         # mgmtiprange=j.application.config.get("lxc.management.iprange")
-        # @todo make sure other ranges also supported
+        # TODO: make sure other ranges also supported
         self.networkSet(name, netname="mgmt0", bridge="lxc", pubips=["%s/24" % ipaddr])
 
         # set ipaddr in hrd file
@@ -387,7 +387,7 @@ ipaddr=
             alll = running + stopped
 
         self.btrfsSubvolDelete(name)
-        # #@todo put timeout in
+        # #TODO: put timeout in
 
     def stop(self, name):
         # cmd="lxc-stop -n %s%s"%(self._prefix,name)

@@ -142,7 +142,7 @@ class GitClient:
                     result[state].append(_file)
 
         for diff in self.repo.index.diff(None):
-            #@todo does not work, did not show my changes !!! (*1*)
+            #TODO: does not work, did not show my changes !!! *1
             path = diff.a_blob.path
             if checkignore(ignore, path):
                 continue
@@ -252,7 +252,7 @@ class GitClient:
         format:
         {'line': [{'commit sha': '', 'author': 'author'}]}
         """
-        # TODO (*3*) limit to max number?
+        # TODO *3 limit to max number?
         diffs = dict()
         blame = self.repo.blame(self.branchName, path)
         for commit, lines in blame:

@@ -181,7 +181,7 @@ class SystemFSWalker:
         test: /foo/bar/file4
 
         @param root: Filesystem root to crawl (string)
-        #@todo complete
+        #TODO: complete
 
         '''
         # We want to work with full paths, even if a non-absolute path is

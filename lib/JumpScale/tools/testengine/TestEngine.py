@@ -167,7 +167,7 @@ class TestEngine:
         self.tests = []
         self.outputpath = "%s/apps/gridportal/base/Tests/TestRuns/" % j.dirs.base
 
-    def initTests(self, noOsis, osisip="127.0.0.1", login="", passwd=""):  # @todo implement remote osis
+    def initTests(self, noOsis, osisip="127.0.0.1", login="", passwd=""):  # TODO: implement remote osis
         self.noOsis = noOsis
 
     def _patchTest(self, testmod):

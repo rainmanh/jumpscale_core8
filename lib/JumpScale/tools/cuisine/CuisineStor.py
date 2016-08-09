@@ -312,13 +312,13 @@ class CuisineStor(base):
             if self.config["httpserver"]["running"] == False:
                 # start caddy in tmux, there should be cuisine extension for this
                 pass
-                #@todo (*1*) has not been implemented
+                #TODO: *1 has not been implemented
 
         if "rsyncserver" in self.config:
             if self.config["rsyncserver"]["running"] == False:
                 # start rsync in tmux, there should be cuisine extension for this
                 pass
-                #@todo (*1*) has not been implemented
+                #TODO: *1 has not been implemented
 
 
 class StorSpace(object):
@@ -609,7 +609,7 @@ class StorSpace(object):
             - metadataStorspace!=None then use other storspace for uploading the plist
         - remove tmpdir if removetmpdir=True
         """
-        #@todo maxim: specs have not been implemented, lets discuss what we will do and what not
+        #TODO: maxim: specs have not been implemented, lets discuss what we will do and what not
         if not host:
             host = j.tools.executor.getLocal()
 
@@ -750,7 +750,7 @@ class StorSpace(object):
         """
         Generate a flist for the path contents
         """
-        #@todo maxim, the original format was not a dict, this is not ideal, if you have a big directory this will explode ! it needs to go back to original text format & processing on disk directly not in mem
+        #TODO: maxim, the original format was not a dict, this is not ideal, if you have a big directory this will explode ! it needs to go back to original text format & processing on disk directly not in mem
         flist = {}
 
         for file in j.sal.fs.walk(path, recurse=True):

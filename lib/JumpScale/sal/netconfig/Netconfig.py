@@ -1,7 +1,7 @@
 from JumpScale import j
 import netaddr
 
-#@todo rewrite all to use the executor and only the executor (*3*)
+#TODO: rewrite all to use the executor and only the executor *3
 # MAYBE WE SHOULD STANDARDISE ON ARCH LINUX & USE SYSTEMDNETWORKING
 
 
@@ -173,7 +173,7 @@ class Netconfig:
 
     def interfaces_restart(self, dev=None):
         if dev == None:
-            #@todo (***) loop over devs
+            #TODO: (***) loop over devs
             pass
 
         self.log("restart:%s" % devToApplyTo)

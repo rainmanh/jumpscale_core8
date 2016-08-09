@@ -35,7 +35,7 @@ class AlertService:
         self.handlers = list()
         self.timers = dict()
         self.loadHandlers()
-        # TODO (*3*) ---> get mongoengine connection from AYS
+        # TODO *3 ---> get mongoengine connection from AYS
         j.data.models.system.connect2mongo()
 
     def getUsersForLevel(self, level):

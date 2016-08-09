@@ -1,38 +1,38 @@
-## DNSmasq
+# DNSmasq
 
-```py
+```python
 j.sal.dnsmasq
 ```
 
-## This library enables the user to install and configure the Dnsmasq service by doing the following:
+# This library enables the user to install and configure the Dnsmasq service by doing the following:
 
-* Installing Dnsmasq
+- Installing Dnsmasq
 
-```py
+```python
 j.sal.dnsmasq.install(start=True)
 ```
 
-* Restarting Dnsmasq
+- Restarting Dnsmasq
 
-```py
+```python
 j.sal.dnsmasq.restart()
 ```
 
-* Adding or removing a dhcp-host entry to dnsmasq.conf file
+- Adding or removing a dhcp-host entry to dnsmasq.conf file
 
-```py
+```python
 j.sal.dnsmasq.addHost(macaddress, ipaddress, name=None)
 j.sal.dnsmasq.removeHost(macaddress)
 ```
 
-* Set configuration files path
+- Set configuration files path
 
-```py
+```python
 j.sal.dnsmasq.setConfigPath(config_path=None)
 ```
 
-* Configuring dnsmasq on interfaces
+- Configuring dnsmasq on interfaces
 
-```py
+```python
 j.sal.dnsmasq.config(interface="eth0",rangefrom="",rangeto="",deviceonly=True)
 ```

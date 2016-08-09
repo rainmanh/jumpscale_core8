@@ -55,7 +55,7 @@ class TarantoolQueue:
 
         self.db.call("queue.tube.%s:put" % self.name, item, args)
         # else:
-        #     #@todo does not work yet? don't know how to pass
+        #     #TODO: does not work yet? don't know how to pass
         #     self.db.call("queue.tube.%s:put"%self.name,item)
 
     def get(self, timeout=1000, autoAcknowledge=True):

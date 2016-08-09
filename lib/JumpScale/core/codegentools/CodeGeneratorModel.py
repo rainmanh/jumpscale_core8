@@ -140,7 +140,7 @@ return self._P_{name}[-1]\n
     def addInitExtras(self):
         # following code will be loaded at runtime
         if self.spec.rootobject:
-            s = """self._P__meta=["{appname}","{actorname}","{modelname}",{version}] #@todo version not implemented now, just already foreseen"""
+            s = """self._P__meta=["{appname}","{actorname}","{modelname}",{version}] #TODO: version not implemented now, just already foreseen"""
             s = s.replace("{appname}", self.spec.appname)
             s = s.replace("{actorname}", self.spec.actorname)
             s = s.replace("{modelname}", self.spec.name)

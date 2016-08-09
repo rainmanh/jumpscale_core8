@@ -1,7 +1,7 @@
 ## Debugging over SSH
 
 
-### principle
+### Principle
 
 - You develop your code files on your local machine (e.g. your local Linux or Mac OSX)
    - JumpScale is locally installed

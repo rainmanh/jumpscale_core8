@@ -1056,6 +1056,7 @@ class InstallTools():
         ##BROKE execution on my mac? return was empty string
         # p.stdout = io.TextIOWrapper(p.stdout.buffer, encoding="UTF-8")
         # p.stderr = io.TextIOWrapper(p.stderr.buffer, encoding="UTF-8")
+
         if async:
             return p
 
@@ -1075,7 +1076,9 @@ class InstallTools():
                         self.queue.put((self.flag, buf))
                     else:
                         break
+                self.stream.close()
                 self.queue.put(('T', self.flag))
+
 
         # import codecs
 
@@ -1152,8 +1155,6 @@ class InstallTools():
         if rc == 1000:
             rc = p.returncode
 
-        sout.close()
-        serr.close()
         if rc > 0 and die:
             if err:
                 raise RuntimeError("Could not execute cmd:\n'%s'\nerr:\n%s" % (command,err))

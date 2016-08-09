@@ -306,7 +306,7 @@ class AtYourServiceFactory:
 
         gitpath = findGitPath(path)
 
-        gitrepo = j.clients.git.get(gitpath)  # @todo (*1*) move into git.get
+        gitrepo = j.clients.git.get(gitpath)  # TODO: *1 move into git.get
 
         name = j.sal.fs.getBaseName(path)
 

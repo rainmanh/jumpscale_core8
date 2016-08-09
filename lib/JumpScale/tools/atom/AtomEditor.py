@@ -41,6 +41,7 @@ class AtomEditor:
         [Tue09 09:42] - ...umpScale/sal/process/SystemProcess.py:1336 - INFO     - exec:apm list -b
         [Tue09 09:42] - ...umpScale/sal/process/SystemProcess.py:1383 - INFO     - system.process.execute [apm list -b]
         """
+        self.installPythonExtensions()
         self.installPackagesAll()
         self.installSnippets()
 
@@ -95,3 +96,16 @@ class AtomEditor:
         # TODO: *1 use j.tools.objectinspector.inspect() (FIX) and generate jedi
         # code completion, check in ATOM that it works, needs to be installed
         # automatically
+        # TODO: walk over all jumpscale extensions & create autocompletion for atom and copy to appropriate directory
+
+    def installPythonExtensions(self):
+        """
+        """
+        # TODO: *1 implement atom plugin install
+
+        C = """
+        pip3 install autopep8
+        pip3 install flake8
+        pip3 install flake8-docstrings
+        """
+        rc, out = j.sal.process.execute(C, die=True, outputToStdout=False, ignoreErrorOutput=False)

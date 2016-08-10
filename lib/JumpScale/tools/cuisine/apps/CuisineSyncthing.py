@@ -16,7 +16,7 @@ class actionrun(ActionDecorator):
 
 base=j.tools.cuisine.getBaseClass()
 class Syncthing(base):
-    
+
     def __init__(self, executor, cuisine):
         self.executor = executor
         self.cuisine = cuisine
@@ -91,8 +91,7 @@ class Syncthing(base):
         url = "https://github.com/syncthing/syncthing.git"
         self.cuisine.core.dir_remove('$goDir/src/github.com/syncthing/syncthing')
         dest = self.cuisine.git.pullRepo(url, branch="v0.11.25",  dest='$goDir/src/github.com/syncthing/syncthing', ssh=False, depth=None)
-        self.cuisine.core.run('cd %s && godep restore' % dest, profile=True)
-        self.cuisine.core.run("cd %s && ./build.sh noupgrade" % dest, profile=True)
+        self.cuisine.core.run('cd %s; go run build.go build' % dest, profile=True)
 
         #copy bin
         self.cuisine.core.file_copy(self.cuisine.core.joinpaths(dest, 'syncthing'), "$goDir/bin/", recursive=True)
@@ -106,8 +105,5 @@ class Syncthing(base):
         self.cuisine.core.dir_ensure("$cfgDir")
         self.cuisine.core.file_copy("$tmplsDir/cfg/syncthing/", "$cfgDir", recursive=True)
 
-        GOPATH = self.cuisine.bash.environGet('GOPATH')
-        env={}
-        env["TMPDIR"]=self.cuisine.core.dir_paths["tmpDir"]
         pm = self.cuisine.processmanager.get("tmux")
-        pm.ensure(name="syncthing", cmd="./syncthing -home  $cfgDir/syncthing", path=self.cuisine.core.joinpaths(GOPATH, "bin"))
+        pm.ensure(name="syncthing", cmd="./syncthing -home  $cfgDir/syncthing", path=self.cuisine.core.dir_paths['binDir'])

@@ -18,6 +18,7 @@ from CuisineBuilder import CuisineBuilder
 from CuisineGroup import CuisineGroup
 from CuisineGolang import CuisineGolang
 from CuisineUFW import CuisineUFW
+from CuisineFW import CuisineFW
 from CuisineDocker import CuisineDocker
 from ProcessManagerFactory import ProcessManagerFactory
 from CuisineSSHReflector import CuisineSSHReflector
@@ -80,6 +81,7 @@ class JSCuisine:
         self.pnode = CuisinePNode(self.executor, self)
         self.sandbox = CuisineSandbox(self.executor, self)
         self.stor = CuisineStor(self.executor, self)
+        self.fw = CuisineFW(self.executor, self)
 
         self.reset = self.core.reset
 

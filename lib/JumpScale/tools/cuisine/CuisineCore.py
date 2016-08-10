@@ -244,7 +244,7 @@ class CuisineCore(base):
     @property
     def isJS8Sandbox(self):
         def get():
-            #TODO: need to implement when sandbox, what is the right check?
+            # TODO: need to implement when sandbox, what is the right check?
             return self.file_exists("/opt/jumpscale8/bin/libasn1.so.8")
         return self.cache.get("isJS8Sandbox", get)
 
@@ -1126,8 +1126,8 @@ class CuisineCore(base):
     def pwd(self):
         return self.cd
 
-    @actionrun()
-    def run_script(self, content, die=True, profile=False, print=True):
+    # @actionrun()
+    def run_script(self, content, die=True, profile=False, interpreter="bash", tmux=False):
         self.logger.info("RUN SCRIPT:")
 
         if print:
@@ -1143,7 +1143,10 @@ class CuisineCore(base):
             ppath = self.cuisine.bash.profilePath
             if ppath:
                 content = ". %s\n%s\n" % (ppath, content)
-        content += "\necho **DONE**\n"
+        if interpreter == "bash":
+            content += "\necho **DONE**\n"
+        elif interpreter.startswith("python"):
+            content += "\nprint('**DONE**\\n')\n"
 
         path = "$tmpDir/%s.sh" % j.data.idgenerator.generateRandomInt(0, 10000)
         if self.isMac:
@@ -1153,8 +1156,18 @@ class CuisineCore(base):
         else:
             self.file_write(location=path, content=content, mode=0o770, owner="root", group="root", showout=False)
 
-        rc, out, err = self.run("bash %s" % path, showout=True, die=False)
-        out = self._clean(out)
+        cmd = "cd $tmpDir;%s %s" % (interpreter, path)
+        cmd = self.args_replace(cmd)
+        if tmux:
+            self.cuisine.tmux.executeInScreen("cmd", "cmd", cmd + " > /tmp/cmdout 2>&1",
+                                              wait=True, reset=True)
+            out = self.file_read("/tmp/cmdout")
+            print(out)
+            rc = 0
+            err = ""
+        else:
+            rc, out, err = self.run(cmd, showout=True, die=False)
+            out = self._clean(out)
 
         self.file_unlink(path)
 

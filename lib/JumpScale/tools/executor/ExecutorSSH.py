@@ -97,7 +97,9 @@ class ExecutorSSH(ExecutorBase):
                 raise j.exceptions.RuntimeError("Could not find key:%s" % path)
 
         if pubkey != "":
-            self._sshclient.ssh_authorize("root", pubkey)
+            # if self.sshclient is None:
+            #     raise j.exceptions.Input(message="sshclient is None", level=1, source="", tags="", msgpub="")
+            self.sshclient.ssh_authorize("root", pubkey)
 
     def execute(self, cmds, die=True, checkok=None, async=False, showout=True, timeout=0, env={}):
         """

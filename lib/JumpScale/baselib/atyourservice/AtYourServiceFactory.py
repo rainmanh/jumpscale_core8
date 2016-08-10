@@ -12,7 +12,8 @@ from JumpScale.baselib.atyourservice.AtYourServiceRepo import AtYourServiceRepo
 
 from JumpScale.baselib.atyourservice.AtYourServiceTester import AtYourServiceTester
 from JumpScale.baselib.atyourservice.AtYourServiceDB import AtYourServiceDB, AtYourServiceDBFactory
-# import capnp
+
+import capnp
 import aysmodel_capnp as AYSModel
 
 import colored_traceback
@@ -197,14 +198,16 @@ class AtYourServiceFactory:
 
         # check if this is already an actortemplate dir, if not no need to
         # recurse
-        if 'recipe' in path: # should't be getting recipes. Investigate
+        if 'recipe' in path:  # should't be getting recipes. Investigate
             return result
-        tocheck = ['schema.hrd', 'service.hrd', 'actions_mgmt.py', 'actions_node.py', 'model.py', 'actions.py', "model.capnp"]
+        tocheck = ['schema.hrd', 'service.hrd', 'actions_mgmt.py',
+                   'actions_node.py', 'model.py', 'actions.py', "model.capnp"]
         exists = [True for aysfile in tocheck if j.sal.fs.exists('%s/%s' % (path, aysfile))]
         if len(exists) > 0:
             templ = ActorTemplate(gitrepo, path)
             if templ.name in self._templates[gitrepo.name]:
-                self.logger.debug('found %s in %s and %s' % (templ.name, path, self._templates[gitrepo.name][templ.name].path))
+                self.logger.debug('found %s in %s and %s' %
+                                  (templ.name, path, self._templates[gitrepo.name][templ.name].path))
                 raise j.exceptions.Input("Found double template: %s" % templ.name)
             result.append(templ)
         else:
@@ -223,12 +226,12 @@ class AtYourServiceFactory:
         repopath, role, instance = key.split("!", 2)
         if not self.exist(path=repopath):
             if die:
-                raise j.exceptions.Input("service repo %s does not exist, could not retrieve ays service:%s" % (repopath, key))
+                raise j.exceptions.Input(
+                    "service repo %s does not exist, could not retrieve ays service:%s" % (repopath, key))
             else:
                 return None
         repo = self.get(path=repopath)
         return repo.getService(role=role, instance=instance, die=die)
-
 
     def actorTemplateGet(self, name, die=True):
         """
@@ -329,7 +332,8 @@ class AtYourServiceFactory:
         if path:
             if path not in self._templateRepos:
                 if j.sal.fs.exists(path) and j.sal.fs.isDir(path):
-                    self._templateRepos[path] = AtYourServiceRepo(name=name, gitrepo=j.clients.git.findGitPath(path), path=path)
+                    self._templateRepos[path] = AtYourServiceRepo(
+                        name=name, gitrepo=j.clients.git.findGitPath(path), path=path)
 
         else:
             # we want to retrieve  templateRepo by name

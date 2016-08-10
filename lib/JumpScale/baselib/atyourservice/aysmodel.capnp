@@ -28,7 +28,7 @@ struct Actor {
   }
 
   key @5 :Text;
-  ownerkey @6 :Text;
+  ownerKey @6 :Text;
 
   actionsTemplate @7 :List(Action);
   struct Action {
@@ -62,7 +62,7 @@ struct Actor {
   origin @12 :Origin;
   struct Origin {
     #link to git which hosts this template for the actor
-    giturl @0 :Text;
+    gitUrl @0 :Text;
     #path in that repo
     path @1 :Text;
   }
@@ -127,18 +127,18 @@ struct Service {
     changed @5;
   }
 
-  configdata @8 :Data;
+  configData @8 :Data;
 
   hashes @9 :Hashes;
   struct Hashes {
-    configdata @0 :Text;
+    configData @0 :Text;
     actorActions @1 :Text;
     actorData @2 :Text;
   }
 
-  key @10 :Text
+  key @10 :Text;
 
-  gitrepos @11 :List(GitRepo);
+  gitRepos @11 :List(GitRepo);
   struct GitRepo {
     #git url
     url @0 :Text;
@@ -158,21 +158,21 @@ struct ActionCode {
   guid @0 :Text;
 
   #name of the method e.g. install
-  actionName @1 :Text;
+  name @1 :Text;
 
   #actor name e.g. node.ssh, is unique over all actors in world
   actorName @2 :Text;
 
   code @3 :Text;
 
-  lastmoddate @4: UInt32;
+  lastModDate @4: UInt32;
 }
 
 struct Run {
     #this object is hosted by actor based on FQDN
 
     #unique id globally for this job = constructed out of blake hash of :  tbd
-    runguid @0 :Text;
+    guid @0 :Text;
 
     #FQDN of a specific actor which can run multiple jobs & orchestrate work
     aysControllerFQDN @1 :Text;
@@ -184,7 +184,7 @@ struct Run {
       #list of jobs which need to be executed, key alone is enough to fetch the job info
       jobs @2 :List(Job);
       struct Job {
-          jobguid @0 :Text;
+          guid @0 :Text;
 
           #NEXT IS CACHED INFO, THE MAIN SOURCE OF NEXT INFO IS IN Job
           #BUT is good practice will make all run very much faster& allow fast vizualization
@@ -207,10 +207,10 @@ struct Run {
         error @3;
     }
 
-    lastmoddate @4: UInt32;
+    lastMoDdate @4: UInt32;
 
     #which step is running right now, can only move to net one if previous one was completed
-    currentstep @5: UInt16;
+    currentStep @5: UInt16;
 
 }
 
@@ -219,7 +219,7 @@ struct Job {
   #this object is hosted by actor based on FQDN
 
   #unique id globally for this job = constructed out of blake hash of :  actorFQDN+actionCodeGUID+epochInMilisec
-  jobguid @0 :Text;
+  guid @0 :Text;
 
   #role of service e.g. node.ssh
   actorName @1 :Text;
@@ -255,19 +255,19 @@ struct Job {
       err @1; #std err from executing in console
       msg @2; #std log message
       alert @3; #alert e.g. result of error
-      errormsg @4: #info from error
-      trace @5: #e.g. stacktrace
+      errormsg @4; #info from error
+      trace @5; #e.g. stacktrace
     }
     tags @4 :Text;
   }
 
   #info which is input for the action
-  datacapnp @8 :Data;
+  dataCapnp @8 :Data;
   #any other format e.g. binary or text or ... is up to actionmethod to deserialize & use
-  databin @9 :Data;
+  dataBin @9 :Data;
 
   #can e.g. delete
-  ownerkey @10 :Text;
+  ownerKey @10 :Text;
 
   #is the last current state
   state @11 :State;
@@ -279,7 +279,7 @@ struct Job {
   }
 
   #is the run which asked for this job
-  runguid @12 :Text;
+  runGuid @12 :Text;
 
   #json serialized result (dict), if any
   result @13 :Text;

@@ -13,6 +13,7 @@ from pygments.formatters import get_formatter_by_name
 class JOB(Process):
     """
     is what needs to be done for 1 specific action for a service
+    is 1 specific action
     """
 
     def __init__(self, runstep, service, model=None, result_q=None, error_q=None):

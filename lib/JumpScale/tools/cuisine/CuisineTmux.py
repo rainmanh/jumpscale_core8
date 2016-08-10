@@ -27,12 +27,15 @@ class CuisineTmux(base):
         @param name is name of session
         @screens is list with nr of screens required in session and their names (is [$screenname,...])
         """
-        if 'ubuntu' in j.core.platformtype.myplatform.platformtypes:
-            if not self.cuisine.core.command_check("tmux"):
-                self.cuisine.package.install("tmux")
-        else:
-            if not j.do.checkInstalled("tmux"):
-                raise j.exceptions.RuntimeError("Cannnot use tmux, please install tmux")
+        # if 'ubuntu' in j.core.platformtype.myplatform.platformtypes:
+        if not self.cuisine.core.command_check("tmux"):
+            self.cuisine.package.install("tmux")
+        # else:
+        #     from IPython import embed
+        #     print("DEBUG NOW sdsd")
+        #     embed()
+        #     raise RuntimeError("stop debug here")
+        #     raise j.exceptions.RuntimeError(message="only support ubuntu", level=1, source="", tags="", msgpub="")
 
         self.killSession(sessionname)
         if len(screens) < 1:
@@ -55,7 +58,7 @@ class CuisineTmux(base):
                 self.executor.execute(cmd, showout=False)
 
     @actionrun()
-    def executeInScreen(self, sessionname, screenname, cmd, wait=0, cwd=None, env=None, user="root", tmuxuser=None, reset=True):
+    def executeInScreen(self, sessionname, screenname, cmd, wait=0, cwd=None, env=None, user="root", tmuxuser=None, reset=False, replaceArgs=False):
         """
         @param sessionname Name of the tmux session
         @type sessionname str
@@ -74,6 +77,9 @@ class CuisineTmux(base):
         envstr = ""
         for name, value in list(env.items()):
             envstr += "export %s=%s\n" % (name, value)
+
+        if replaceArgs:
+            cmd = self.cuisine.core.args_replace(cmd)
 
         # Escape the double quote character in cmd
         cmd = cmd.replace('"', r'\"')

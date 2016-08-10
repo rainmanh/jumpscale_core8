@@ -42,7 +42,7 @@ class SSHClientFactory:
         @param usecache: use cached client. False to get a new connection
 
         If password is passed, sshclient will try to authenticated with login/passwd.
-        If key_filename is passed, it will override look_for_keys and allow_agent and try to connect with this key. 
+        If key_filename is passed, it will override look_for_keys and allow_agent and try to connect with this key.
         """
 
         key = "%s_%s_%s_%s" % (
@@ -319,11 +319,13 @@ class SSHClient:
                 line = j.data.text.toAscii(line)
                 if chan == 'O':
                     if showout:
-                        print((line.strip()))
+                        print(line.rstrip())
+                        # print((line.strip()))
                     out += line
                 elif chan == 'E':
                     if showout:
-                        print((line.strip()))
+                        print(line.rstrip())
+                        # print((line.strip()))
                     err += line
             except queue.Empty:
                 pass

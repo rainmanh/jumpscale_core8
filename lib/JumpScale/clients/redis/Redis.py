@@ -59,6 +59,15 @@ class Redis(redis.Redis):
             client = redis.Redis(**self.connection_pool.connection_kwargs)
             return RedisQueue(client, name, namespace=namespace)
 
+    def createStoredProcedure(self, path):
+        if not j.sal.fs.exists(path, followlinks=True):
+            path0 = j.sal.fs.joinPaths(j.sal.fs.getcwd(), path)
+        if not j.sal.fs.exists(path0, followlinks=True):
+            j.exceptions.Input(message="cannot find stored procedure on path:%s" %
+                               path, level=1, source="", tags="", msgpub="")
+        lua = j.sal.fs.fileGetContents(path)
+        return self.register_script(lua)
+
 
 class RedisFactory:
 
@@ -725,9 +734,9 @@ class RedisFactory:
         if ismaster:
             slave = False
 
-#        if unixsocket:
-#            C = C.replace("# unixsocket %s/redis/$name/redis.sock" % j.dirs.varDir, "unixsocket %s/redis/$name/redis.sock" % j.dirs.varDir)
-#            C = C.replace("# unixsocketperm 755", "unixsocketperm 770")
+        #        if unixsocket:
+        #            C = C.replace("# unixsocket %s/redis/$name/redis.sock" % j.dirs.varDir, "unixsocket %s/redis/$name/redis.sock" % j.dirs.varDir)
+        #            C = C.replace("# unixsocketperm 755", "unixsocketperm 770")
 
         if appendonly or ismaster:
             C = C.replace("$appendonly", "yes")

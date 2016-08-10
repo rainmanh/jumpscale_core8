@@ -94,7 +94,7 @@ class AtYourServiceFactory:
                     branch = items[domain].get('branch', 'master')
                     templateReponame = url.rpartition("/")[-1]
                     if templateReponame not in list(templateRepos.keys()):
-                        dest = j.do.pullGitRepo(
+                        j.do.pullGitRepo(
                             url, dest=None, depth=1, ignorelocalchanges=False, reset=False, branch=branch)
                         new = True
 
@@ -194,12 +194,14 @@ class AtYourServiceFactory:
         # recurse
         if 'recipe' in path:  # should't be getting recipes. Investigate
             return result
-        tocheck = ['schema.hrd', 'service.hrd', 'actions_mgmt.py', 'actions_node.py', 'model.py', 'actions.py', "model.capnp"]
+        tocheck = ['schema.hrd', 'service.hrd', 'actions_mgmt.py',
+                   'actions_node.py', 'model.py', 'actions.py', "model.capnp"]
         exists = [True for aysfile in tocheck if j.sal.fs.exists('%s/%s' % (path, aysfile))]
         if len(exists) > 0:
             templ = ActorTemplate(gitrepo, path)
             if templ.name in self._templates[gitrepo.name]:
-                self.logger.debug('found %s in %s and %s' % (templ.name, path, self._templates[gitrepo.name][templ.name].path))
+                self.logger.debug('found %s in %s and %s' %
+                                  (templ.name, path, self._templates[gitrepo.name][templ.name].path))
                 raise j.exceptions.Input("Found double template: %s" % templ.name)
             result.append(templ)
         else:
@@ -218,7 +220,8 @@ class AtYourServiceFactory:
         repopath, role, instance = key.split("!", 2)
         if not self.exist(path=repopath):
             if die:
-                raise j.exceptions.Input("service repo %s does not exist, could not retrieve ays service:%s" % (repopath, key))
+                raise j.exceptions.Input(
+                    "service repo %s does not exist, could not retrieve ays service:%s" % (repopath, key))
             else:
                 return None
         repo = self.get(path=repopath)
@@ -322,7 +325,8 @@ class AtYourServiceFactory:
         if path:
             if path not in self._templateRepos:
                 if j.sal.fs.exists(path) and j.sal.fs.isDir(path):
-                    self._templateRepos[path] = AtYourServiceRepo(name=name, gitrepo=j.clients.git.findGitPath(path), path=path)
+                    self._templateRepos[path] = AtYourServiceRepo(
+                        name=name, gitrepo=j.clients.git.findGitPath(path), path=path)
 
         else:
             # we want to retrieve  templateRepo by name

@@ -31,3 +31,15 @@ class AtYourServiceDB():
 
     def exists(self, key):
         return self.db.exists(self.category, key)
+
+    def getQueue(self, queue):
+        return self.db.redisclient.getQueue(queue)
+
+    def hset(self, name, key, value):
+        # is not compatible with other kvs's. Not good. Rethink
+        self.db.redisclient.hset(name, key, value)
+        return True
+
+    def hget(self, name, key):
+        # is not compatible with other kvs's. Not good. Rethink
+        return self.db.redisclient.hget(name, key)

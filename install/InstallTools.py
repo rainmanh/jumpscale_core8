@@ -1082,8 +1082,10 @@ class InstallTools():
 
         # import codecs
 
-        serr = os.fdopen(p.stderr.fileno(), 'r', encoding='UTF-8')
-        sout =os.fdopen(p.stdout.fileno(), 'r', encoding='UTF-8')
+        serr = p.stderr
+        sout = p.stdout
+        #serr = os.fdopen(p.stderr.fileno(), 'r', encoding='UTF-8')
+        #sout =os.fdopen(p.stdout.fileno(), 'r', encoding='UTF-8')
         inp = queue.Queue()
 
         outReader = StreamReader(sout, inp, 'O')

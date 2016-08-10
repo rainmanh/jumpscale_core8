@@ -276,13 +276,13 @@ class AtYourServiceRepo():
                 service.state.set(action, state)
                 service.state.save()
 
-    def servicesFind(self, name="", parent=None, first=False, role="", hasAction="", include_disabled=False, templatename=""):
+    def servicesFind(self, instance="", parent=None, first=False, role="", hasAction="", include_disabled=False, templatename=""):
         res = []
 
         for key, service in self.services.items():
             # if service._state and service._state.hrd.getBool('disabled', False) and not include_disabled:
             #     continue
-            if not(name == "" or service.name == name):
+            if not(instance == "" or service.instance == instance):
                 continue
             if not(parent is None or service.parent == parent):
                 continue
@@ -298,7 +298,7 @@ class AtYourServiceRepo():
         if first:
             if len(res) == 0:
                 raise j.exceptions.Input("cannot find service %s|%s:%s (%s)" % (
-                    domain, name, instance, version), "ays.servicesFind")
+                    domain, service.templatename, instance, version), "ays.servicesFind")
             return res[0]
         return res
 

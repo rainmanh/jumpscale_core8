@@ -7,19 +7,19 @@ import sys
 import inspect
 from JumpScale.baselib.atyourservice.ServiceState import ServiceState
 
-
-modulecache = {}
-
-
-def loadmodule(name, path):
-    key = path
-    if key in modulecache:
-        return modulecache[key]
-    parentname = ".".join(name.split(".")[:-1])
-    sys.modules[parentname] = __package__
-    mod = imp.load_source(name, path)
-    modulecache[key] = mod
-    return mod
+#
+# modulecache = {}
+#
+#
+# def loadmodule(name, path):
+#     key = path
+#     if key in modulecache:
+#         return modulecache[key]
+#     parentname = ".".join(name.split(".")[:-1])
+#     sys.modules[parentname] = __package__
+#     mod = imp.load_source(name, path)
+#     modulecache[key] = mod
+#     return mod
 
 
 def getProcessDicts(service, args={}):

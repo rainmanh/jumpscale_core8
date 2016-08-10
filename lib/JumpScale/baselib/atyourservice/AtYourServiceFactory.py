@@ -11,9 +11,9 @@ from JumpScale.baselib.atyourservice.ActionMethodDecorator import ActionMethodDe
 from JumpScale.baselib.atyourservice.AtYourServiceRepo import AtYourServiceRepo
 
 from JumpScale.baselib.atyourservice.AtYourServiceTester import AtYourServiceTester
-from JumpScale.baselib.atyourservice.AtYourServiceDB import AtYourServiceDB, AtYourServiceDBFactory
+from JumpScale.baselib.atyourservice.AtYourServiceDB import AtYourServiceDBFactory
 
-import capnp
+# import capnp
 import aysmodel_capnp as AYSModel
 
 import colored_traceback
@@ -94,7 +94,7 @@ class AtYourServiceFactory:
                     branch = items[domain].get('branch', 'master')
                     templateReponame = url.rpartition("/")[-1]
                     if templateReponame not in list(templateRepos.keys()):
-                        dest = j.do.pullGitRepo(
+                        j.do.pullGitRepo(
                             url, dest=None, depth=1, ignorelocalchanges=False, reset=False, branch=branch)
                         new = True
 
@@ -134,9 +134,9 @@ class AtYourServiceFactory:
             self._doinit()
 
             from IPython import embed
-            print("DEBUG NOW actor templates")
+            print("DEBUG NOW actorTemplates")
             embed()
-            p
+            raise RuntimeError("stop debug here")
 
         return self._templates
 

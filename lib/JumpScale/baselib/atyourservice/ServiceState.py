@@ -5,6 +5,8 @@ from collections import OrderedDict
 VALID_STATES = ['INIT', 'ERROR', 'OK', 'DISABLED',
                 'DO', 'CHANGED', 'CHANGEDHRD', 'RUNNING']
 
+# TODO: *1 need to use capnp model
+
 
 class ServiceState():
 

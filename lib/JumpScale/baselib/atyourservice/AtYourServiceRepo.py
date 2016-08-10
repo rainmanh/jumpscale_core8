@@ -1,11 +1,11 @@
 from JumpScale import j
 
 from JumpScale.baselib.atyourservice.Actor import Actor
-from JumpScale.baselib.atyourservice.Service import Service, loadmodule
-from JumpScale.baselib.atyourservice.ActionsBaseNode import ActionsBaseNode
-from JumpScale.baselib.atyourservice.ActionsBaseMgmt import ActionsBaseMgmt
-from JumpScale.baselib.atyourservice.ActorTemplate import ActorTemplate
-from JumpScale.baselib.atyourservice.ActionMethodDecorator import ActionMethodDecorator
+# from JumpScale.baselib.atyourservice.Service import Service, loadmodule
+# from JumpScale.baselib.atyourservice.ActionsBaseNode import ActionsBaseNode
+# from JumpScale.baselib.atyourservice.ActionsBaseMgmt import ActionsBaseMgmt
+# from JumpScale.baselib.atyourservice.ActorTemplate import ActorTemplate
+# from JumpScale.baselib.atyourservice.ActionMethodDecorator import ActionMethodDecorator
 from JumpScale.baselib.atyourservice.Blueprint import Blueprint
 from JumpScale.baselib.atyourservice.AYSRun import AYSRun
 # from AYSdb import *
@@ -90,10 +90,7 @@ class AtYourServiceRepo():
         talk with actor through actor API, find based on FQN = Fully Qualified Name
         key is unique key to find the actor, also defines our rights on the actor
         """
-        from IPython import embed
-        print("DEBUG NOW getActorStateObject")
-        embed()
-        s
+        raise NotImplemented()
 
     def actorCreate(self, actorTemplate):
         """
@@ -278,13 +275,13 @@ class AtYourServiceRepo():
                 service.state.set(action, state)
                 service.state.save()
 
-    def servicesFind(self, instance="", parent=None, first=False, role="", hasAction="", include_disabled=False, templatename=""):
+    def servicesFind(self, name="", parent=None, first=False, role="", hasAction="", include_disabled=False, templatename=""):
         res = []
 
         for key, service in self.services.items():
             # if service._state and service._state.hrd.getBool('disabled', False) and not include_disabled:
             #     continue
-            if not(instance == "" or service.instance == instance):
+            if not(name == "" or service.name == name):
                 continue
             if not(parent is None or service.parent == parent):
                 continue
@@ -543,7 +540,7 @@ class AtYourServiceRepo():
             self.reset()
 
         self.serviceSetState(actions=["init"], role=role,
-                      instance=instance, state="INIT")
+                             instance=instance, state="INIT")
         for key, Actor in self.actors.items():
             if role != "" and Actor.role == role:
                 continue

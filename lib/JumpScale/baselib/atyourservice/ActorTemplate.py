@@ -68,7 +68,7 @@ class ActorTemplate:
             # check if we can find it in other ays template
             if self.name.find(".") != -1:
                 name0 = self.name.split(".", 1)[0]
-                templ = j.atyourservice.getTemplate(name=name0, die=False)
+                templ = j.atyourservice.templateGet(name=name0, die=False)
                 if templ is not None:
                     self._hrd = templ._hrd
                     self.path_hrd_template = templ.path_hrd_template
@@ -116,7 +116,7 @@ class ActorTemplate:
                 self._mongoModel = mod.Model()
         return self._mongoModel
 
-    def getActor(self, aysrepo):
+    def actorGet(self, aysrepo):
         from JumpScale.baselib.atyourservice.Actor import Actor
         return Actor(aysrepo, template=self)
 

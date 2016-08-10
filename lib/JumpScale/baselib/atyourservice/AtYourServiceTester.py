@@ -62,7 +62,7 @@ class AtYourServiceTester:
         # test basic init
         # check that some required aysi are there (do some finds)
         # some other basic tests
-        self.aysrepo.execute_blueprint()
+        self.aysrepo.blueprintExecute()
         self.aysrepo.init()
 
         # check that everything specified in the blueprint was inited.
@@ -93,7 +93,7 @@ class AtYourServiceTester:
         self.aysrepo.init()
 
         run_services = list()
-        run = self.aysrepo.getRun(action='install')
+        run = self.aysrepo.runGet(action='install')
         for run_step in run.steps:
             for service in run_step.services:
                 state = service.state.get(run_step.action, die=False)
@@ -123,8 +123,8 @@ class AtYourServiceTester:
         blueprint_templates = [
             key.split('__')[0] for model in random_blueprint.models for key in model]
 
-        templates_with_action_files = [self.aysrepo.getTemplate(
-            template).path_actions for template in blueprint_templates if j.sal.fs.exists(self.aysrepo.getTemplate(template).path_actions)]
+        templates_with_action_files = [self.aysrepo.templateGet(
+            template).path_actions for template in blueprint_templates if j.sal.fs.exists(self.aysrepo.templateGet(template).path_actions)]
         template_path = random.choice(templates_with_action_files)
         data = j.sal.fs.fileGetContents(template_path).splitlines()
         method_lines = [indx for indx in range(0, len(
@@ -188,8 +188,8 @@ class AtYourServiceTester:
         blueprint_templates = [
             key.split('__')[0] for model in random_blueprint.models for key in model]
 
-        templates_with_schema = [self.aysrepo.getTemplate(template).path_hrd_schema for template in blueprint_templates if j.sal.fs.exists(
-            self.aysrepo.getTemplate(template).path_hrd_schema)]
+        templates_with_schema = [self.aysrepo.templateGet(template).path_hrd_schema for template in blueprint_templates if j.sal.fs.exists(
+            self.aysrepo.templateGet(template).path_hrd_schema)]
         schema_path = random.choice(templates_with_schema)
         service_role = j.sal.fs.getBaseName(
             j.sal.fs.getDirName(schema_path)).split('.')[0]

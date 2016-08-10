@@ -130,7 +130,7 @@ class Service:
                             aysi = self.aysrepo.getService(
                                 role=parentrole, instance="main", die=False)
                             if aysi is None:
-                                parent_Actor = self.aysrepo.getActor(
+                                parent_Actor = self.aysrepo.actorGet(
                                     name=parent_Actor_item.name)
                                 aysi = parent_Actor.newInstance(
                                     instance="main", args={})
@@ -231,7 +231,7 @@ class Service:
     @property
     def Actor(self):
         if self._Actor is None:
-            self._Actor = self.aysrepo.getActor(name=self.state.Actor)
+            self._Actor = self.aysrepo.actorGet(name=self.state.Actor)
         return self._Actor
 
     @property

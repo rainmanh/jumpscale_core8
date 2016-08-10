@@ -91,7 +91,7 @@ class AtYourServiceRepo():
         key is unique key to find the actor, also defines our rights on the actor
         """
         from IPython import embed
-        print("DEBUG NOW getActorStateObject")
+        print("DEBUG NOW actorGetStateObject")
         embed()
         s
 
@@ -113,7 +113,7 @@ class AtYourServiceRepo():
             raise j.exceptions.Input("Cannot find Actor with name:%s" % name)
 
     def actorExists(self, name):
-        if self.getActor(name, die=False) == None:
+        if self.actorGet(name, die=False) == None:
             return False
         return True
 
@@ -164,15 +164,15 @@ class AtYourServiceRepo():
         if self._templates == {}:
             # need to link to templates of factory and then overrule with the
             # local ones
-            for key, template in j.atyourservice.templates.items():
+            for key, template in j.atyourservice.actorTemplates.items():
                 self._templates[key] = template
 
         # load local templates
         path = j.sal.fs.joinPaths(self.path, "actorTemplates")
-        for template in j.atyourservice._getActorTemplates(self.git, path=path, ays_in_path_check=False):
+        for template in j.atyourservice._actorTemplatesGet(self.git, path=path, ays_in_path_check=False):
             if template.name in self._templates:
                 raise j.exceptions.Input(
-                    "Founmonitd double template: %s starting from repo:%s" % (templ.name, self))
+                    "found double template: %s starting from repo:%s" % (template.name, self))
             self._templates[template.name] = template
         return self._templates
 
@@ -187,7 +187,7 @@ class AtYourServiceRepo():
                 "Cannot find template with name:%s" % name)
 
     def templateExists(self, name):
-        if self.getTemplate(name, die=False) == None:
+        if self.templateGet(name, die=False) == None:
             return False
         return True
 
@@ -257,7 +257,7 @@ class AtYourServiceRepo():
 
     def serviceSetState(self, actions=[], role="", instance="", state="DO"):
         """
-        get run with self.getRun...
+        get run with self.runGet...
 
         will not mark if state in skipIfIn
 
@@ -365,6 +365,7 @@ class AtYourServiceRepo():
 
     def blueprintExecute(self, path="", content="", role="", instance=""):
         self._doinit()
+        self._load_blueprints()
         if path == "" and content == "":
             for bp in self.blueprints:
                 bp.load(role=role, instance=instance)
@@ -591,7 +592,7 @@ class AtYourServiceRepo():
             self.setState(actions=["install"], role=role,
                           instance=instance, state='DO')
 
-        run = self.getRun(action="install", force=force)
+        run = self.runGet(action="install", force=force)
         print("RUN:INSTALL")
         print(run)
         run.execute()
@@ -602,13 +603,13 @@ class AtYourServiceRepo():
             self.setState(actions=["stop", "uninstall"],
                           role=role, instance=instance, state='DO')
 
-        run = self.getRun(action="stop", force=force)
+        run = self.runGet(action="stop", force=force)
         print("RUN:STOP")
         print(run)
         if not printonly:
             run.execute()
 
-        run = self.getRun(role=role, instance=instance,
+        run = self.runGet(role=role, instance=instance,
                           action="uninstall", force=force)
         print("RUN:UNINSTALL")
         print(run)

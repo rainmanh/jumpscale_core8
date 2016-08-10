@@ -105,7 +105,7 @@ class AtYourServiceFactory:
             for key, repopath in templateRepos.items():
                 gitrepo = j.clients.git.get(repopath, check_path=False)
                 self._templates.setdefault(gitrepo.name, {})
-                for templ in self._getActorTemplates(gitrepo, repopath):
+                for templ in self._actorTemplatesGet(gitrepo, repopath):
                     self._templates[gitrepo.name][templ.name] = templ
             self._init = True
             self.reposLoad()
@@ -132,12 +132,6 @@ class AtYourServiceFactory:
         """
         if not self._templates:
             self._doinit()
-
-            from IPython import embed
-            print("DEBUG NOW actor templates")
-            embed()
-            p
-
         return self._templates
 
     def actorTemplatesUpdate(self, templateRepos=[]):
@@ -178,7 +172,7 @@ class AtYourServiceFactory:
 
         return res
 
-    def _getActorTemplates(self, gitrepo, path="", result=[], ays_in_path_check=True):
+    def _actorTemplatesGet(self, gitrepo, path="", result=[], ays_in_path_check=True):
         """
         path is absolute path (if specified)
         """
@@ -198,7 +192,7 @@ class AtYourServiceFactory:
 
         # check if this is already an actortemplate dir, if not no need to
         # recurse
-        if 'recipe' in path: # should't be getting recipes. Investigate
+        if 'recipe' in path:  # should't be getting recipes. Investigate
             return result
         tocheck = ['schema.hrd', 'service.hrd', 'actions_mgmt.py', 'actions_node.py', 'model.py', 'actions.py', "model.capnp"]
         exists = [True for aysfile in tocheck if j.sal.fs.exists('%s/%s' % (path, aysfile))]
@@ -214,7 +208,7 @@ class AtYourServiceFactory:
                 dirname = j.sal.fs.getBaseName(servicepath)
                 # print "dirname:%s"%dirname
                 if not (dirname.startswith(".") or dirname.startswith("_")):
-                    result = self._getActorTemplates(
+                    result = self._actorTemplatesGet(
                         gitrepo, servicepath, result)
         return result
 
@@ -230,7 +224,6 @@ class AtYourServiceFactory:
         repo = self.get(path=repopath)
         return repo.getService(role=role, instance=instance, die=die)
 
-
     def actorTemplateGet(self, name, die=True):
         """
         get an actor template
@@ -244,7 +237,7 @@ class AtYourServiceFactory:
 
     def actorTemplateExists(self, name):
         self._doinit()
-        if self.getTemplate(name, die=False) is None:
+        if self.templateGet(name, die=False) is None:
             return False
         return True
 

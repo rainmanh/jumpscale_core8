@@ -81,7 +81,7 @@ class Blueprint:
                             "ignore load from blueprint based on role for: %s:%s" % (aysname, aysinstance))
                         continue
 
-                    Actor = self.aysrepo.getActor(aysname, die=False)
+                    Actor = self.aysrepo.actorGet(aysname, die=False)
 
                     if Actor is None:
                         # check if its a blueprintays, if yes then template
@@ -89,11 +89,11 @@ class Blueprint:
                         aystemplate_name = aysname
                         if not aysname.startswith('blueprint.'):
                             blueaysname = 'blueprint.%s' % aysname
-                            if self.aysrepo.existsTemplate(blueaysname):
+                            if self.aysrepo.templateExists(blueaysname):
                                 aystemplate_name = blueaysname
 
                         # will load Actor if it doesn't exist yet
-                        Actor = self.aysrepo.getActor(aystemplate_name)
+                        Actor = self.aysrepo.actorGet(aystemplate_name)
 
                     if not len(self.aysrepo.findServices(role=Actor.role, instance=aysinstance)):
                         # if it's not there, create it.

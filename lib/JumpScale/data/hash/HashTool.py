@@ -3,6 +3,7 @@ from JumpScale import j
 # import ExtraTools
 
 import hashlib
+from pyblake2 import blake2b
 
 
 class HashTool:
@@ -178,6 +179,53 @@ def crc32_file(path):
     with open(path, 'rb') as fd:
         return crc32_fd(fd)
 
+def blake2(s):
+    '''Calculate blake2 hash of input string
+
+    @param s: String value to hash
+    @type s: string
+
+    @returns: blake2 hash of the input value
+    @rtype: number
+    '''
+    if j.data.types.string.check(s):
+        s = s.encode()
+    h = blake2b(s)
+    return h.hexdigest()
+
+def blake2_fd(fd):
+    '''Calculate blake2 hash of content available on an FD
+
+    Blocks of the blocksize used by the hashing algorithm will be read from
+    the given FD, which should be a file-like object (i.e. it should
+    implement C{read(number)}).
+
+    @param fd: FD to read
+    @type fd: object
+
+    @returns: blake2 hash of data available on C{fd}
+    @rtype: number
+    '''
+    data = fd.read()
+    value = blake2(data)
+    del data
+    return value
+
+def blake2_file(path):
+    '''Calculate blake2 hash of data available in a file
+
+    The file will be opened in read/binary mode and blocks of the blocksize
+    used by the hashing implementation will be read.
+
+    @param path: Path to file to calculate content hash
+    @type path: string
+
+    @returns: blake2 hash of data available in the given file
+    @rtype: number
+    '''
+    with open(path, 'rb') as fd:
+        return blake2_fd(fd)
+
 # def hashMd5(s):
 #     if isinstance(s, str):
 #         s = s.encode('utf-8')
@@ -185,7 +233,9 @@ def crc32_file(path):
 #     return impl.hexdigest()
 
 SUPPORTED_ALGORITHMS.append('crc32')
+SUPPORTED_ALGORITHMS.append('blake2')
 __all__.extend(('crc32', 'crc32_fd', 'crc32_file', ))
+__all__.extend(('blake2', 'blake2_fd', 'blake2_file', ))
 
 SUPPORTED_ALGORITHMS = tuple(SUPPORTED_ALGORITHMS)
 

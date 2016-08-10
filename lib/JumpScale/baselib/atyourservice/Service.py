@@ -94,7 +94,7 @@ class Service:
             self._role = Actor.name.split(".")[0]
 
             self.path = j.sal.fs.joinPaths(
-                self.aysrepo.basepath, "services", "%s!%s" % (self.role, instance))
+                self.aysrepo.path, "services", "%s!%s" % (self.role, instance))
 
             parentkey = ""
             if parent is None:
@@ -163,7 +163,7 @@ class Service:
             self.hrd  # create empty hrd
 
         self._key = "%s!%s" % (self.role, self.instance)
-        self._gkey = "%s!%s!%s" % (aysrepo.basepath, self.role, self.instance)
+        self._gkey = "%s!%s!%s" % (aysrepo.path, self.role, self.instance)
 
         if self.state is None:
             self.state = ServiceState(self)
@@ -344,8 +344,7 @@ class Service:
 
         # run the args manipulation action as an action
         self.state.save()
-        args = self.actions.input(
-            self, self.Actor, self.role, self.instance, args)
+        args = self.actions.input(self, self.Actor, self.role, self.instance, args)
 
         originalhrd = j.data.hrd.get(content=str(self.hrd))
 

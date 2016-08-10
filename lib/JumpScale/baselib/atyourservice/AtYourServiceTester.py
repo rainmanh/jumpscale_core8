@@ -12,18 +12,18 @@ class AtYourServiceTester:
     def __init__(self, subname="fake_IT_env"):
 
         self.subname = subname
-        self.basepath = j.sal.fs.joinPaths(
+        self.path = j.sal.fs.joinPaths(
             j.dirs.codeDir, "github", "jumpscale", "jumpscale_ays8_testenv", subname)
 
         # checkout a prepared ays test repo with some special ays templates to
         # test behaviour & easy to check outcome
-        if not j.sal.fs.exists(self.basepath):
+        if not j.sal.fs.exists(self.path):
             url = "git@github.com:Jumpscale/jumpscale_ays8_testenv.git"
             j.do.pullGitRepo(url)
 
         self._git = None
 
-        self.aysrepo = j.atyourservice.get(subname, self.basepath)
+        self.aysrepo = j.atyourservice.get(subname, self.path)
 
         self.logger = j.logger.get('j.atyourservicetester')
 
@@ -33,7 +33,7 @@ class AtYourServiceTester:
     @property
     def git(self):
         if self._git is None:
-            self._git = j.clients.git.get(self.basepath, check_path=False)
+            self._git = j.clients.git.get(self.path, check_path=False)
         return self._git
 
     def reset(self):
@@ -71,7 +71,7 @@ class AtYourServiceTester:
                 for key, _ in model.items():
                     aysrole, aysinstance = key.split('__')
                     aysrole = aysrole.split('.')[0]
-                    assert len(j.sal.fs.walk(j.sal.fs.joinPaths(self.basepath, 'services'), recurse=1, pattern='%s!%s' % (aysrole, aysinstance),
+                    assert len(j.sal.fs.walk(j.sal.fs.joinPaths(self.path, 'services'), recurse=1, pattern='%s!%s' % (aysrole, aysinstance),
                                              return_folders=1, return_files=0)) == 1, '%s!%s not init-ed' % (aysrole, aysinstance)
         self.logger.info('Blueprint services all accounted for')
 

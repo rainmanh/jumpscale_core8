@@ -1,13 +1,12 @@
 from JumpScale import j
 
-# import JumpScale.baselib.actions
 import copy
 import inspect
 
 from JumpScale.baselib.atyourservice.ActorTemplate import ActorTemplate
 
 
-from JumpScale.baselib.atyourservice.Service import Service, loadmodule
+from JumpScale.baselib.atyourservice.Service import Service
 
 DECORATORCODE = """
 ActionMethodDecorator=j.atyourservice.getActionMethodDecorator()
@@ -20,63 +19,51 @@ class action(ActionMethodDecorator):
 """
 
 
+VALID_STATE = ['new', 'ok', 'error', 'disabled']
+
+
 class ActorState():
     """
     is state object for actor, what was last state after installing
     """
 
-    def __init__(self, Actor):
-        self.Actor = Actor
-
-        self._path = j.sal.fs.joinPaths(self.Actor.path, "state.json")
-        if j.sal.fs.exists(path=self._path):
-            self._model = j.data.serializer.json.load(self._path)
-        else:
-            self._model = {"methods": {}}
-
-        self.changed = False
+    def __init__(self, actor):
+        self.db = {
+            'actor': j.atyourservice.kvs.get("actor"),
+            'action_code': j.atyourservice.kvs.get("action_code")
+        }
+        self.actor = actor
+        self.logger = actor.logger
         self._changes = {}
         self._methodsList = []
 
-        self.db = j.atyourservice.kvs.get("actor")
+        self._model = None
+        self._producers = None
+        self._actions_templates = None
+        self._recurringTemplate = None
 
-        if self.db.exists(self.hrkey) == False:
-            self.saveToDB()
+        if not self.db['actor'].exists(self.actor.key):
+            self._populate_model()
+        else:
+            self.load()
 
-    def saveToDB(self):
-        return
-        from IPython import embed
-        print("DEBUG NOW save2db")
-        embed()
-        model = j.atyourservice.AYSModel.Actor.new_message()
-        model.role = self.name
+    @property
+    def state(self):
+        """State can be: new, ok, error, disabled"""
+        return self._model.state
 
-        # resdb=j.atyourservice.db.get("Actor",self.Actor.name)
-
-    def addMethod(self, name="", source="", isDefaultMethod=False):
-        if source != "":
-            if name in ["input", "init"]:
-                if source.find("$(") != -1:
-                    raise j.exceptions.Input(
-                        "Action method:%s should not have template variable '$(...' in sourcecode for init or input method." % (self))
-
-            if not isDefaultMethod:
-                newhash = j.data.hash.md5_string(source)
-                if name not in self._model["methods"] or newhash != self._model["methods"][name]:
-                    self._changes[name] = True
-                    self._model["methods"][name] = newhash
-                    self.changed = True
-            else:
-                self._model["methods"][name] = ""
-
-    def methodChanged(self, name):
-        if name in self._changes:
-            return True
-        return False
+    @state.setter
+    def state(self, value):
+        if value not in VALID_STATE:
+            raise j.exceptions.Input("State can't be set to %s. Valid value are %s" % (value, ','.join(VALID_STATE)))
+        self._model.state = value
 
     @property
     def methods(self):
-        return self._model["methods"]
+        methods = {}
+        for action_code in self._model.actionsTemplate:
+            methods[action_code.name] = action_code.actionCodeKey
+        return methods
 
     @property
     def methodslist(self):
@@ -89,13 +76,81 @@ class ActorState():
                 self._methodsList.append(self.methods[key])
         return self._methodsList
 
+    def _populate_model(self):
+        if self._model is None:
+            self._model = j.atyourservice.AYSModel.Actor.new_message()
+
+        self._model.state = 'new'
+        self._model.name = self.actor.name
+        self._model.actorFQDN = self.actor.FQDN
+        # self._model.parent = j.atyourservice.AYSModel.Actor.ActorPointer.new_message()  # TODO
+        self._producers = self._model.init_resizable_list('producers')
+        self._model.key = self.actor.key
+        self._model.ownerKey = self.actor.ownerKey
+        self._actions_templates = self._model.init_resizable_list('actionsTemplate')
+        self._recurringTemplate = self._model.init_resizable_list('recurringTemplate')
+        self._model.serviceDataSchema = ''  # TODO
+        self._model.actorDataSchema = ''  # TODO
+        self._model.serviceDataSchema = ''  # TODO
+        self._model.hashes = j.atyourservice.AYSModel.Actor.Hashes.new_message()
+        self._model.hashes.serviceDataSchema = ''  # TODO
+        self._model.hashes.serviceDataSchema = ''  # TODO
+        self._model.hashes.actorDataSchema = ''  # TODO
+        self._model.hashes.actions = ''  # TODO
+        self._model.origin = j.atyourservice.AYSModel.Actor.Origin.new_message()
+        self._model.origin.gitUrl = ''  # TODO
+        self._model.origin.path = ''  # TODO
+        self._model.serviceDataUI = ''  # TODO
+        self._model.actorDataUI = ''  # TODO
+
     def save(self):
-        if self.changed:
-            self.Actor.logger.info("Actor state Changed, writen to disk.")
-            out = j.data.serializer.json.dumps(self._model, True, True)
-            j.sal.fs.writeFile(filename=self._path, contents=out)
-            # self.Actor.save2db()
-            self.changed = False
+        # need to call finish on DynamicResizableListBuilder to prevent leaks
+        for builder in [self._actions_templates, self._producers, self._recurringTemplate]:
+            if builder is not None:
+                builder.finish()
+
+        self._model.state = 'ok'
+        self.logger.debug('save actor from db. key:%s' % self.actor.key)
+        self.db['actor'].set(self.actor.key, self._model.to_bytes())
+
+    def load(self):
+        self.logger.debug('load actor from db. key:%s' % self.actor.key)
+        buff = self.db['actor'].get(self.actor.key)
+        # builder to true so we can change the content of the model
+        self._model = j.atyourservice.AYSModel.Actor.from_bytes(buff, builder=True)
+
+    def addMethod(self, name="", source="", isDefaultMethod=False):
+        if source != "":
+            if name in ["input", "init"] and source.find("$(") != -1:
+                raise j.exceptions.Input("Action method:%s should not have template variable '$(...' in sourcecode for init or input method." % self)
+
+            guid = j.data.hash.blake2_string(self.actor.name + source)
+
+            # if new method or new code
+            if not self.db['action_code'].exists(guid):
+                # create new actionCode model
+                action_code = j.atyourservice.AYSModel.ActionCode.new_message()
+                action_code.guid = guid
+                action_code.name = name
+                action_code.actorName = self.actor.name
+                action_code.code = source
+                action_code.lastModDate = j.data.time.epoch
+
+                # put pointer to actionCode to actor model
+                action = self._actions_templates.add()
+                action.name = name
+                action.actionCodeKey = guid
+
+                # save into db
+                self.db['action_code'].set(guid, action_code.to_bytes())
+                self._changes[name] = True
+                self.changed = True
+                self.logger.debug('action %s added to db' % name)
+
+    def methodChanged(self, name):
+        if name in self._changes:
+            return True
+        return False
 
     def __repr__(self):
         out = ""
@@ -114,24 +169,28 @@ class Actor(ActorTemplate):
 
         self.name = template.name
         self.role = self.name.split(".", 1)[0]
+        self.FQDN = ''  # @TODO
+        self.producers = []
+        self.key = ''
+        self.ownerKey = ''
 
         self.template = template
         self.aysrepo = aysrepo
 
         self.domain = self.template.domain
 
-        self.path = j.sal.fs.joinPaths(
-            aysrepo.basepath, "actors", template.name)
+        self.path = j.sal.fs.joinPaths(aysrepo.path, "actors", template.name)
 
         self.logger = j.atyourservice.logger
 
         self._init_props()
 
+        self.state = ActorState(self)
         # copy the files
         if not j.sal.fs.exists(path=self.path):
             self.copyFilesFromTemplate()
+        self.state.save()
 
-        self.state = ActorState(self)
 
 # INIT
 
@@ -140,17 +199,13 @@ class Actor(ActorTemplate):
         j.sal.fs.createDir(self.path)
 
         if j.sal.fs.exists(self.template.path_hrd_template):
-            j.sal.fs.copyFile(self.template.path_hrd_template,
-                              self.path_hrd_template)
+            j.sal.fs.copyFile(self.template.path_hrd_template, self.path_hrd_template)
         if j.sal.fs.exists(self.template.path_hrd_schema):
-            j.sal.fs.copyFile(self.template.path_hrd_schema,
-                              self.path_hrd_schema)
+            j.sal.fs.copyFile(self.template.path_hrd_schema, self.path_hrd_schema)
         if j.sal.fs.exists(self.template.path_actions_node):
-            j.sal.fs.copyFile(self.template.path_actions_node,
-                              self.path_actions_node)
+            j.sal.fs.copyFile(self.template.path_actions_node, self.path_actions_node)
         if j.sal.fs.exists(self.template.path_mongo_model):
-            j.sal.fs.copyFile(self.template.path_mongo_model,
-                              self.path_mongo_model)
+            j.sal.fs.copyFile(self.template.path_mongo_model, self.path_mongo_model)
 
         self._writeActionsFile()
 
@@ -166,8 +221,7 @@ class Actor(ActorTemplate):
             content = "class Actions(ActionsBaseMgmt):\n\n"
 
         if content.find("class action(ActionMethodDecorator)") != -1:
-            raise j.exceptions.Input(
-                "There should be no decorator specified in %s" % self.path_actions)
+            raise j.exceptions.Input("There should be no decorator specified in %s" % self.path_actions)
 
         content = "%s\n\n%s" % (DECORATORCODE, content)
 
@@ -178,7 +232,7 @@ class Actor(ActorTemplate):
         amSource = ""
         amName = ""
 
-        # DO NOT CHANGE TO USE PYTHON PARSING UTILS
+        # DO NOT CHANGE TO USE PYTHO N PARSING UTILS
         lines = content.splitlines()
         size = len(lines)
         i = 0
@@ -226,9 +280,8 @@ class Actor(ActorTemplate):
         # add missing methods
         for actionname in actionmethodsRequired:
             if actionname not in self.state.methods:
-                am = self.state.addMethod(
-                    name=actionname, isDefaultMethod=True)
-                #not found
+                am = self.state.addMethod(name=actionname, isDefaultMethod=True)
+                # not found
                 if actionname == "input":
                     content += '\n\n    def input(self, service, name, role, instance, serviceargs):\n        return serviceargs\n'
                 else:
@@ -246,8 +299,7 @@ class Actor(ActorTemplate):
 
 # SERVICE
     def serviceActionsGet(self, service):
-        modulename = "JumpScale.atyourservice.%s.%s" % (
-            self.name, service.instance)
+        modulename = "JumpScale.atyourservice.%s.%s" % (self.name, service.instance)
         mod = loadmodule(modulename, self.path_actions)
         return mod.Actions()
 
@@ -259,8 +311,7 @@ class Actor(ActorTemplate):
 
         instance = instance.lower()
 
-        service = self.aysrepo.getService(
-            role=self.role, instance=instance, die=False)
+        service = self.aysrepo.serviceGet(role=self.role, instance=instance, die=False)
 
         if service is not None:
             # print("NEWINSTANCE: Service instance %s!%s  exists." % (self.name, instance))
@@ -276,7 +327,7 @@ class Actor(ActorTemplate):
             elif parent is not None:
                 fullpath = j.sal.fs.joinPaths(parent.path, key)
             else:
-                ppath = j.sal.fs.joinPaths(self.aysrepo.basepath, "services")
+                ppath = j.sal.fs.joinPaths(self.aysrepo.path, "services")
                 fullpath = j.sal.fs.joinPaths(ppath, key)
 
             if j.sal.fs.isDir(fullpath):

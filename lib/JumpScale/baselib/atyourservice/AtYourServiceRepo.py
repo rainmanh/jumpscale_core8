@@ -132,8 +132,7 @@ class AtYourServiceRepo():
                     Actorpath = j.sal.fs.getDirName(item)
                     Actor = Actor(self, Actorpath)
                     if Actor.name in self._actors:
-                        raise j.exceptions.Input(
-                            "Found double actor: %s" % actor)
+                        raise j.exceptions.Input("Found double actor: %s" % actor)
                     self._actors[Actor.name] = Actor
         return self._actors
 
@@ -169,11 +168,11 @@ class AtYourServiceRepo():
 
         # load local templates
         path = j.sal.fs.joinPaths(self.path, "actorTemplates")
-        for template in j.atyourservice._actorTemplatesGet(self.git, path=path, ays_in_path_check=False):
-            if template.name in self._templates:
-                raise j.exceptions.Input(
-                    "found double template: %s starting from repo:%s" % (template.name, self))
-            self._templates[template.name] = template
+        if j.sal.fs.exists(path):
+            for template in j.atyourservice._actorTemplatesGet(self.git, path=path, ays_in_path_check=False):
+                # here we want to overrides the global templates with local one. so having duplicate name is normal
+                self._templates[template.name] = template
+
         return self._templates
 
     def templateGet(self, name, die=True):
@@ -204,8 +203,7 @@ class AtYourServiceRepo():
         if key in self.services:
             return self.services[key]
         if die:
-            raise j.exceptions.Input(
-                "Cannot get ays service '%s', did not find" % key, "ays.getservice")
+            raise j.exceptions.Input("Cannot get ays service '%s', did not find" % key, "ays.getservice")
         else:
             return None
 
@@ -550,10 +548,8 @@ class AtYourServiceRepo():
                 continue
             Actor.init()
             for inst in Actor.listInstances():
-                service = Actor.aysrepo.getService(
-                    role=Actor.role, instance=inst, die=False)
-                print("RESETTING SERVICE roles %s inst %s instance %s " %
-                      (Actor.role, inst, instance))
+                service = Actor.aysrepo.getService(role=Actor.role, instance=inst, die=False)
+                print("RESETTING SERVICE roles %s inst %s instance %s " % (Actor.role, inst, instance))
                 service.update_hrd()
 
             #import pudb; pu.db

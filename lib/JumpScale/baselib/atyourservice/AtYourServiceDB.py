@@ -28,3 +28,6 @@ class AtYourServiceDB():
 
     def destroy(self):
         self.db.destroy()
+
+    def exists(self, key):
+        return self.db.exists(self.category, key)

@@ -67,9 +67,9 @@ class Domain:
         record = [ip, weight]
         if subdomain in self._a_records:
             for i, val in enumerate(self._a_records[subdomain]):
-                    if ip == val[0]:
-                        self._a_records[subdomain][i] = record
-                        return
+                if ip == val[0]:
+                    self._a_records[subdomain][i] = record
+                    return
             else:
                 return self._a_records[subdomain].append(record)
 
@@ -87,8 +87,8 @@ class Domain:
         if full:
             return self._a_records.pop(subdomain)
         for i, val in enumerate(self._a_records[subdomain]):
-                if ip == val[0]:
-                    return self._a_records[subdomain].pop(i)
+            if ip == val[0]:
+                return self._a_records[subdomain].pop(i)
 
     def add_cname_record(self, value, subdomain=""):
         self._cname_records[subdomain] = value
@@ -118,7 +118,9 @@ class Domain:
         self.cuisine.core.file_write("$cfgDir/geodns/dns/%s.json" % self.name, config)
         return config
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class CuisineGeoDns(base):
 
     def __init__(self, executor, cuisine):
@@ -132,7 +134,7 @@ class CuisineGeoDns(base):
         """
         # deps
         self.cuisine.golang.install(force=False)
-        self.cuisine.package.install("libgeoip-dev",force=False)
+        self.cuisine.package.install("libgeoip-dev", force=False)
 
         # build
         self.cuisine.golang.get("github.com/abh/geodns")
@@ -152,7 +154,8 @@ class CuisineGeoDns(base):
         """
         if self.cuisine.core.dir_exists(config_dir):
             self.cuisine.core.dir_ensure(config_dir)
-        cmd = "$binDir/geodns -interface %s -port %s -config=%s -identifier=%s -cpus=%s" % (ip, str(port), config_dir, identifier, str(cpus))
+        cmd = "$binDir/geodns -interface %s -port %s -config=%s -identifier=%s -cpus=%s" % (
+            ip, str(port), config_dir, identifier, str(cpus))
         if tmux:
             pm = self.cuisine.processmanager.get("tmux")
             pm.ensure(name=identifier, cmd=cmd, env={}, path="$binDir")
@@ -169,7 +172,7 @@ class CuisineGeoDns(base):
     def domains(self):
         domains = []
         if self.cuisine.core.file_exists('$cfgDir/geodns/dns'):
-            for path in self.cuisine.core.fs_find('$cfgDir/geodns/dns/',type='f', pattern='*.json', recursive=False):
+            for path in self.cuisine.core.fs_find('$cfgDir/geodns/dns/', type='f', pattern='*.json', recursive=False):
                 basename = j.sal.fs.getBaseName(path)
                 domains.append(basename.rstrip('.json'))
         return domains
@@ -188,7 +191,8 @@ class CuisineGeoDns(base):
         """
         if self.cuisine.core.file_exists("$cfgDir/geodns/dns/%s.json" % domain_name):
             content = self.cuisine.core.file_read("$cfgDir/geodns/dns/%s.json" % domain_name)
-        domain_instance = Domain(domain_name, self.cuisine, serial, ttl, content, max_hosts, a_records, cname_records, ns)
+        domain_instance = Domain(domain_name, self.cuisine, serial, ttl, content,
+                                 max_hosts, a_records, cname_records, ns)
         domain_instance.save()
         return domain_instance
 

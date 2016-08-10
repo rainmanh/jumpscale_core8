@@ -1,4 +1,4 @@
-## cuisine.docker
+# cuisine.docker
 
 The `cuisine.docker` module is a client for Docker.
 

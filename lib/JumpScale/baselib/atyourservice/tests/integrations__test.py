@@ -42,7 +42,9 @@ class AYSTestBase(unittest.TestCase):
     def tearDownClass(self):
         if j.sal.fs.exists(path=self.tmp_dir):
             j.sal.fs.removeDirTree(self.tmp_dir)
-            j.sal.fs.changeDir("/opt")  # need to move in an existing folder otherwise unittest gives errors
+            # need to move in an existing folder otherwise unittest gives
+            # errors
+            j.sal.fs.changeDir("/opt")
 
         # reset ays status
         j.atyourservice.services = []

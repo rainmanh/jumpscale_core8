@@ -2,6 +2,7 @@ from JumpScale import j
 
 
 class TornadoFactory:
+
     def __init__(self):
         self.__jslocation__ = "j.servers.tornado"
 
@@ -36,8 +37,7 @@ class TornadoFactory:
         cl = DaemonClient(org=org, user=user, passwd=passwd, ssl=ssl, transport=trans)
         return cl.getCmdClient(category)
 
-
-    def getHAClient(self, connections, category="core", org="myorg", user="root", passwd="passwd", ssl=False, roles=[],id=None,timeout=60, reconnect=False):
+    def getHAClient(self, connections, category="core", org="myorg", user="root", passwd="passwd", ssl=False, roles=[], id=None, timeout=60, reconnect=False):
         from TornadoTransport import TornadoHATransport
         from servers.serverbase.DaemonClient import DaemonClient
         trans = TornadoHATransport(connections, timeout)

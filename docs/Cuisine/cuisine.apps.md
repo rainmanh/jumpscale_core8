@@ -1,4 +1,4 @@
-## cuisine.apps
+# cuisine.apps
 
 The `cuisine.apps` module is for application management.
 
@@ -8,7 +8,7 @@ Examples of methods inside an application:
 - **start**: starts an application
 - **stop**: stops an application
 
-### Applications that are currently supported
+## Applications that are currently supported
 
 ```
 cockpit

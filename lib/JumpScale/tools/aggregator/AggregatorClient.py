@@ -12,6 +12,7 @@ Log = collections.namedtuple('Log', 'level message node epoch tags')
 
 
 class AggregatorClient:
+
     def __init__(self, redis, nodename):
         self.redis = redis
         self._sha = dict()
@@ -53,7 +54,8 @@ class AggregatorClient:
         """
         if timestamp is None:
             timestamp = int(time.time())  # seconds
-        res = self.redis.evalsha(self._sha["stat"], 1, key, measurement, value, str(timestamp), type, tags, self.nodename)
+        res = self.redis.evalsha(self._sha["stat"], 1, key, measurement, value,
+                                 str(timestamp), type, tags, self.nodename)
 
         return res
 
@@ -74,7 +76,7 @@ class AggregatorClient:
             gid = IntField()    
             aid = IntField(default=0)
             pid = IntField(default=0)
-            jid = StringField(default='')  #@todo (*2*) is this right, string???
+            jid = StringField(default='')  #TODO: *2 is this right, string???
             masterjid = IntField(default=0)  = mjid
             appname = StringField(default="")
             category = StringField(default="")

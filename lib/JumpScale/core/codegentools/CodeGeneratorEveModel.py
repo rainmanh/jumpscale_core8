@@ -1,6 +1,7 @@
 from JumpScale import j
 from CodeGeneratorBase import CodeGeneratorBase
 
+
 class CodeGeneratorEveModel(CodeGeneratorBase):
 
     def __init__(self, spec, typecheck=True, dieInGenCode=True, codepath=''):
@@ -25,4 +26,3 @@ class CodeGeneratorEveModel(CodeGeneratorBase):
         result += "'type': %s" % prop.type
         result += '},'
         return result
-

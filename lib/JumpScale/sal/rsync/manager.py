@@ -4,7 +4,6 @@ from JumpScale import j
 from io import StringIO
 
 
-
 CONFIG_FILE = '/etc/rsyncd.conf'
 
 # EXPORT_OPT_REGEXT = re.compile('^(?:([\w/]+)|"([\w\s/]+)")\s+(.+)$')
@@ -15,9 +14,8 @@ class RsyncError(Exception):
     pass
 
 
-
-
 class RsyncModule:
+
     def __init__(self, name=None):
         self.name = name
         self.params = {}
@@ -42,7 +40,9 @@ class RsyncModule:
     def __repr__(self):
         return str(self)
 
+
 class Rsync:
+
     def __init__(self):
         self._local = j.tools.executor.getLocal()
         self._modules = None
@@ -80,7 +80,7 @@ class Rsync:
                 elif line.find('=') != -1:
                     i = line.find('=')
                     key = line[:i].strip()
-                    value = line[i+1:].strip()
+                    value = line[i + 1:].strip()
                     if currentModule is None:
                         # global param
                         globalParams[key] = value
@@ -185,11 +185,10 @@ class Rsync:
         return str(self)
 
 
-
 class RsyncFactory:
-    
+
     def _getFactoryEnabledClasses(self):
-        return (("","RsyncModule",RsyncModule()),("","Rsync",Rsync()))    
+        return (("", "RsyncModule", RsyncModule()), ("", "Rsync", Rsync()))
 
     def get(self):
         return Rsync()

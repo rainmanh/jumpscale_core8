@@ -1,22 +1,26 @@
 from JumpScale import j
 
 from tools.cuisine.ActionDecorator import ActionDecorator
+
+
 class actionrun(ActionDecorator):
-    def __init__(self,*args,**kwargs):
-        ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.avahi"
+
+    def __init__(self, *args, **kwargs):
+        ActionDecorator.__init__(self, *args, **kwargs)
+        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.avahi"
 
 
 class Avahi:
+
     def __init__(self):
         self.__jslocation__ = "j.tools.avahi"
-        self.cuisine=j.tools.cuisine.get()
-        self.executor=self.cuisine.executor
+        self.cuisine = j.tools.cuisine.get()
+        self.executor = self.cuisine.executor
 
-    def get(self,cuisine,executor):
-        b=Avahi()
-        b.cuisine=cuisine
-        b.executor=executor
+    def get(self, cuisine, executor):
+        b = Avahi()
+        b.cuisine = cuisine
+        b.executor = executor
         return b
 
     @actionrun(action=True)
@@ -27,10 +31,9 @@ class Avahi:
         if self.cuisine.core.isArch:
             self.cuisine.package.install("avahi")
 
+        configfile = "/etc/avahi/avahi-daemon.conf"
 
-        configfile="/etc/avahi/avahi-daemon.conf"
-
-        C="""
+        C = """
         [server]
         host-name=$hostname
         domain-name=$domains
@@ -80,20 +83,21 @@ class Avahi:
         rlimit-stack=4194304
         rlimit-nproc=3
         """
-        domains="%s.%s"%(self.cuisine.grid,self.cuisine.domain)
-        C=C.replace("$hostname",self.cuisine.core.name)
-        C=C.replace("$domains",domains)
-        self.cuisine.core.file_write(configfile,C)
+        domains = "%s.%s" % (self.cuisine.grid, self.cuisine.domain)
+        C = C.replace("$hostname", self.cuisine.core.name)
+        C = C.replace("$domains", domains)
+        self.cuisine.core.file_write(configfile, C)
 
         if self.cuisine.core.isUbuntu:
-            pre=""
+            pre = ""
         else:
-            pre="/usr"
-        self.cuisine.core.file_link(source="%s/lib/systemd/system/avahi-daemon.service", destination="/etc/systemd/system/multi-user.target.wants/avahi-daemon.service", symbolic=True, mode=None, owner=None, group=None)
-        self.cuisine.core.file_link(source="%s/lib/systemd/system/docker.socket", destination="/etc/systemd/system/sockets.target.wants/docker.socket", symbolic=True, mode=None, owner=None, group=None)
+            pre = "/usr"
+        self.cuisine.core.file_link(source="%s/lib/systemd/system/avahi-daemon.service",
+                                    destination="/etc/systemd/system/multi-user.target.wants/avahi-daemon.service", symbolic=True, mode=None, owner=None, group=None)
+        self.cuisine.core.file_link(source="%s/lib/systemd/system/docker.socket",
+                                    destination="/etc/systemd/system/sockets.target.wants/docker.socket", symbolic=True, mode=None, owner=None, group=None)
 
         self.cuisine.systemd.start("avahi-daemon")
-
 
     def _servicePath(self, servicename):
         path = "/etc/avahi/services"
@@ -140,7 +144,7 @@ class Avahi:
     @actionrun(force=True)
     def getServices(self):
         cmd = "avahi-browse -a -r -t"
-        result, output, err = self.cuisine.core.run(cmd,die=False,force=True)
+        result, output, err = self.cuisine.core.run(cmd, die=False, force=True)
         if result > 0:
             raise j.exceptions.RuntimeError(
                 "cannot use avahi command line to find services, please check avahi is installed on system (ubunutu apt-get install avahi-utils)\nCmd Used:%s" % cmd)
@@ -161,10 +165,14 @@ class Avahi:
             if len(lineitemsout) < 2 or len(lineitemsout) > 3:
                 s.servicename = lineitemsout[0]
 
-            s.hostname = j.tools.code.regex.getINIAlikeVariableFromText(" *hostname *", item).replace("[", "").replace("]", "").strip()
-            s.address = j.tools.code.regex.getINIAlikeVariableFromText(" *address *", item).replace("[", "").replace("]", "").strip()
-            s.port = j.tools.code.regex.getINIAlikeVariableFromText(" *port *", item).replace("[", "").replace("]", "").strip()
-            s.txt = j.tools.code.regex.getINIAlikeVariableFromText(" *txt *", item).replace("[", "").replace("]", "").strip()
+            s.hostname = j.tools.code.regex.getINIAlikeVariableFromText(
+                " *hostname *", item).replace("[", "").replace("]", "").strip()
+            s.address = j.tools.code.regex.getINIAlikeVariableFromText(
+                " *address *", item).replace("[", "").replace("]", "").strip()
+            s.port = j.tools.code.regex.getINIAlikeVariableFromText(
+                " *port *", item).replace("[", "").replace("]", "").strip()
+            s.txt = j.tools.code.regex.getINIAlikeVariableFromText(
+                " *txt *", item).replace("[", "").replace("]", "").strip()
             avahiservices._add(s)
         return avahiservices
 
@@ -204,8 +212,8 @@ class AvahiServices:
         """
         @return True/False,resultOfServices   #avoids having to wait twice for avahi query
         """
-        res=self.find(hostname,partofname,partofdescription,port)
-        return (len(res)>0,res)
+        res = self.find(hostname, partofname, partofdescription, port)
+        return (len(res) > 0, res)
 
     def find(self, hostname="", partofname="", partofdescription="", port=0):
         def check1(service, hostname):

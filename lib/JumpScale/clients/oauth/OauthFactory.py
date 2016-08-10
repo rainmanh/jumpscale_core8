@@ -1,9 +1,9 @@
 import os
 
 
-
 from JumpScale import j
 from OauthInstance import *
+
 
 class OauthFactory:
 

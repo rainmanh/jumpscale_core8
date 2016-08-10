@@ -60,6 +60,7 @@ class RunArgs:
 
     This job will not get executed until no other commands running on the same queue.
     """
+
     def __init__(self, domain=None, name=None, max_time=0, max_restart=0, working_dir=None,
                  recurring_period=0, stats_interval=0, args=None, loglevels='*',
                  loglevels_db=None, loglevels_ac=None, queue=None):
@@ -195,6 +196,7 @@ class RunArgs:
 
 
 class Base:
+
     def __init__(self, client, id, gid, nid):
         self._client = client
         self._id = id
@@ -227,8 +229,10 @@ class Job(Base):
     """
     Job Information
     """
+
     def __init__(self, client, jobdata):
-        super(Job, self).__init__(client, jobdata['id'], jobdata['gid'], jobdata['nid'])
+        super(Job, self).__init__(client, jobdata[
+            'id'], jobdata['gid'], jobdata['nid'])
         self._redis = client._redis
         self._set_job(jobdata)
 
@@ -377,6 +381,7 @@ class BaseCmd(Base):
     Base command. You never need to create an instance of this class, always use :func:`acclient.Client.cmd` or any of
     the other shortcuts.
     """
+
     def __init__(self, client, id, gid, nid):
         super(BaseCmd, self).__init__(client, id, gid, nid)
 
@@ -396,6 +401,7 @@ class Cmd(BaseCmd):
     You probably don't need to make an instance of this class manually. Alway use :func:`acclient.Client.cmd` or
     ony of the client shortcuts.
     """
+
     def __init__(self, client, id, gid, nid, cmd, args, data, roles, fanout, tags):
         if not isinstance(args, RunArgs):
             raise ValueError('Invalid arguments')
@@ -517,9 +523,11 @@ class Client:
     :param port: Redis port
     :param password: (optional) redis password
     """
+
     def __init__(self, address='localhost', port=6379, password=None):
         # Initializing redis client
-        self._redis = j.clients.redis.get(ipaddr=address, port=port, password=password, fromcache=True)
+        self._redis = j.clients.redis.get(
+            ipaddr=address, port=port, password=password, fromcache=True)
         # Check the connectivity
         self._redis.ping()
 
@@ -622,7 +630,8 @@ class Client:
         """
         List all scheduled jobs
         """
-        cmd = self.cmd(0, 0, 'controller', RunArgs(name='scheduler_list'), roles=['*'])
+        cmd = self.cmd(0, 0, 'controller', RunArgs(
+            name='scheduler_list'), roles=['*'])
         result = cmd.get_next_result(GET_INFO_TIMEOUT)
 
         return self._load_json_or_die(result)
@@ -631,7 +640,8 @@ class Client:
         """
         Remove a scheduled job by ID
         """
-        cmd = self.cmd(0, 0, 'controller', RunArgs(name='scheduler_remove'), data=j.data.serializer.json.dumps(str(id)), roles=['*'])
+        cmd = self.cmd(0, 0, 'controller', RunArgs(name='scheduler_remove'),
+                       data=j.data.serializer.json.dumps(str(id)), roles=['*'])
         if validate_queued:
             result = cmd.get_next_result(GET_INFO_TIMEOUT)
             return self._load_json_or_die(result)
@@ -640,7 +650,8 @@ class Client:
         """
         Remove a scheduled job by ID
         """
-        cmd = self.cmd(0, 0, 'controller', RunArgs(name='scheduler_remove_prefix'), data=j.data.serializer.json.dumps(str(prefix)), roles=['*'])
+        cmd = self.cmd(0, 0, 'controller', RunArgs(name='scheduler_remove_prefix'),
+                       data=j.data.serializer.json.dumps(str(prefix)), roles=['*'])
         if validate_queued:
             result = cmd.get_next_result(GET_INFO_TIMEOUT)
             return self._load_json_or_die(result)
@@ -668,7 +679,8 @@ class Client:
         if cmdargs is not None and not isinstance(cmdargs, list):
             raise ValueError('cmdargs must be a list')
 
-        args = RunArgs().update(args).update({'name': executable, 'args': cmdargs})
+        args = RunArgs().update(args).update(
+            {'name': executable, 'args': cmdargs})
 
         return self.cmd(gid=gid, nid=nid, cmd=CMD_EXECUTE, args=args, data=data, id=id, roles=roles,
                         fanout=fanout, tags=tags)
@@ -691,8 +703,9 @@ class Client:
         :type roles: list
         :param fanout: Fanout job to all agents with given role (only effective if role is set)
         """
-        runargs = RunArgs().update(runargs).update({'domain': domain, 'name': name})
-        return self.cmd(gid, nid, CMD_EXECUTE_JUMPSCRIPT, runargs,j.data.serializer.json.dumps(args), roles=roles,
+        runargs = RunArgs().update(runargs).update(
+            {'domain': domain, 'name': name})
+        return self.cmd(gid, nid, CMD_EXECUTE_JUMPSCRIPT, runargs, j.data.serializer.json.dumps(args), roles=roles,
                         fanout=fanout, tags=tags)
 
     def execute_jumpscript_content(self, gid, nid, content, args={}, runargs=None, roles=None, fanout=False, tags=None):
@@ -715,54 +728,62 @@ class Client:
     def _load_json_or_die(self, result):
         if result.state == 'SUCCESS':
             if result.level != LEVEL_JSON:
-                raise AgentException("Expected json data got response level '%d'" % result.level)
+                raise AgentException(
+                    "Expected json data got response level '%d'" % result.level)
             return jsonLoads(result.data)
         else:
             error = result.data or result.streams[1]
             raise AgentException(
-                'Job {job} failed with state: {job.state} and message: "{error}"'.format(job=result, error=error)
+                'Job {job} failed with state: {job.state} and message: "{error}"'.format(
+                    job=result, error=error)
             )
 
     def get_cpu_info(self, gid, nid):
         """
         Get CPU info of the agent node
         """
-        result = self.cmd(gid, nid, CMD_GET_CPU_INFO, RunArgs()).get_next_result(GET_INFO_TIMEOUT)
+        result = self.cmd(gid, nid, CMD_GET_CPU_INFO, RunArgs()
+                          ).get_next_result(GET_INFO_TIMEOUT)
         return self._load_json_or_die(result)
 
     def get_disk_info(self, gid, nid):
         """
         Get disk info of the agent node
         """
-        result = self.cmd(gid, nid, CMD_GET_DISK_INFO, RunArgs()).get_next_result(GET_INFO_TIMEOUT)
+        result = self.cmd(gid, nid, CMD_GET_DISK_INFO, RunArgs()
+                          ).get_next_result(GET_INFO_TIMEOUT)
         return self._load_json_or_die(result)
 
     def get_mem_info(self, gid, nid):
         """
         Get MEM info of the agent node
         """
-        result = self.cmd(gid, nid, CMD_GET_MEM_INFO, RunArgs()).get_next_result(GET_INFO_TIMEOUT)
+        result = self.cmd(gid, nid, CMD_GET_MEM_INFO, RunArgs()
+                          ).get_next_result(GET_INFO_TIMEOUT)
         return self._load_json_or_die(result)
 
     def get_nic_info(self, gid, nid):
         """
         Get NIC info of the agent node
         """
-        result = self.cmd(gid, nid, CMD_GET_NIC_INFO, RunArgs()).get_next_result(GET_INFO_TIMEOUT)
+        result = self.cmd(gid, nid, CMD_GET_NIC_INFO, RunArgs()
+                          ).get_next_result(GET_INFO_TIMEOUT)
         return self._load_json_or_die(result)
 
     def get_os_info(self, gid, nid):
         """
         Get OS info of the agent node
         """
-        result = self.cmd(gid, nid, CMD_GET_OS_INFO, RunArgs()).get_next_result(GET_INFO_TIMEOUT)
+        result = self.cmd(gid, nid, CMD_GET_OS_INFO, RunArgs()
+                          ).get_next_result(GET_INFO_TIMEOUT)
         return self._load_json_or_die(result)
 
     def get_aggregated_stats(self, gid, nid):
         """
         Get OS info of the agent node
         """
-        result = self.cmd(gid, nid, CMD_GET_AGGREGATED_STATS, RunArgs()).get_next_result(GET_INFO_TIMEOUT)
+        result = self.cmd(gid, nid, CMD_GET_AGGREGATED_STATS,
+                          RunArgs()).get_next_result(GET_INFO_TIMEOUT)
         stats = self._load_json_or_die(result)
         stats.pop('cmd', None)
         return stats
@@ -781,7 +802,8 @@ class Client:
         jqueue = 'cmd.%s.queued' % id
         event = self._redis.brpoplpush(jqueue, jqueue, timeout)
         if event == '' or event is None:
-            raise ResultTimeout('Timedout while waiting for jobs to get queued, is agent controller working?')
+            raise ResultTimeout(
+                'Timedout while waiting for jobs to get queued, is agent controller working?')
 
         results = self._redis.hgetall('jobresult:%s' % id)
         return dict(list(map(wrap_jobs, list(results.values()))))
@@ -827,8 +849,6 @@ class Client:
 
         return all_jobs
 
-
-
     def get_msgs(self, gid, nid, jobid, levels='*', limit=20):
         """
         Query and return log messages stored on agent side.
@@ -846,7 +866,8 @@ class Client:
             'levels': levels,
         }
 
-        result = self.cmd(gid, nid, CMD_GET_MSGS, RunArgs(), j.data.serializer.json.dumps(query)).get_next_result()
+        result = self.cmd(gid, nid, CMD_GET_MSGS, RunArgs(),
+                          j.data.serializer.json.dumps(query)).get_next_result()
         return self._load_json_or_die(result)
 
     def reverse_tunnel_open(self, local, gid, nid, ip, remote):
@@ -868,7 +889,8 @@ class Client:
         }
 
         args = RunArgs(name='tunnel_open')
-        result = self.cmd(None, None, 'controller', args, j.data.serializer.json.dumps(request), roles=['*']).get_next_result(GET_INFO_TIMEOUT)
+        result = self.cmd(None, None, 'controller', args, j.data.serializer.json.dumps(
+            request), roles=['*']).get_next_result(GET_INFO_TIMEOUT)
         return self._load_json_or_die(result)
 
     def reverse_tunnel_close(self, local, gid, nid, ip, remote):
@@ -890,7 +912,8 @@ class Client:
         }
 
         args = RunArgs(name='tunnel_close')
-        result = self.cmd(None, None, 'controller', args, j.data.serializer.json.dumps(request), roles=['*']).get_next_result(GET_INFO_TIMEOUT)
+        result = self.cmd(None, None, 'controller', args, j.data.serializer.json.dumps(
+            request), roles=['*']).get_next_result(GET_INFO_TIMEOUT)
         return self._load_json_or_die(result)
 
     def reverse_tunnel_list(self):
@@ -899,7 +922,8 @@ class Client:
         """
 
         args = RunArgs(name='tunnel_list')
-        result = self.cmd(None, None, 'controller', args, roles=['*']).get_next_result(GET_INFO_TIMEOUT)
+        result = self.cmd(None, None, 'controller', args, roles=[
+                          '*']).get_next_result(GET_INFO_TIMEOUT)
         return self._load_json_or_die(result)
 
     def tunnel_open(self, gid, nid, local, gateway, ip, remote):
@@ -929,7 +953,8 @@ class Client:
             'remote': int(remote)
         }
 
-        result = self.cmd(gid, nid, CMD_TUNNEL_OPEN, RunArgs(), j.data.serializer.json.dumps(request)).get_next_result(GET_INFO_TIMEOUT)
+        result = self.cmd(gid, nid, CMD_TUNNEL_OPEN, RunArgs(
+        ), j.data.serializer.json.dumps(request)).get_next_result(GET_INFO_TIMEOUT)
         return self._load_json_or_die(result)
 
     def tunnel_close(self, gid, nid, local, gateway, ip, remote):
@@ -947,7 +972,8 @@ class Client:
             'remote': int(remote)
         }
 
-        result = self.cmd(gid, nid, CMD_TUNNEL_CLOSE, RunArgs(), j.data.serializer.json.dumps(request)).get_next_result(GET_INFO_TIMEOUT)
+        result = self.cmd(gid, nid, CMD_TUNNEL_CLOSE, RunArgs(
+        ), j.data.serializer.json.dumps(request)).get_next_result(GET_INFO_TIMEOUT)
         if result.state != 'SUCCESS':
             raise AgentException(result.data)
 
@@ -956,7 +982,8 @@ class Client:
         Return all opened connection that are open from the agent over the agent-controller it
         received this command from
         """
-        result = self.cmd(gid, nid, CMD_TUNNEL_LIST, RunArgs()).get_next_result(GET_INFO_TIMEOUT)
+        result = self.cmd(gid, nid, CMD_TUNNEL_LIST, RunArgs()
+                          ).get_next_result(GET_INFO_TIMEOUT)
         return self._load_json_or_die(result)
 
     def get_cmds(self, start=0, count=100):

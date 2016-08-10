@@ -1,11 +1,12 @@
-## Telegram BOT
+# Telegram BOT
 
 this page is not really unique to jumpscale, but is very useful to create your own robots on top of Jumpscale.
 
 We use the excellent library from
-- https://github.com/eternnoir/pyTelegramBotAPI
 
-### create your own bot on telegram
+- <https://github.com/eternnoir/pyTelegramBotAPI>
+
+## create your own bot on telegram
 
 - go to your telegram chat app
 - look for BotFather user (find user)
@@ -14,6 +15,7 @@ We use the excellent library from
 ```
 /newbot
 ```
+
 follow the instructions
 
 ```python
@@ -41,8 +43,7 @@ Use this token to access the HTTP API:
 For a description of the Bot API, see this page: https://core.telegram.org/bots/api
 ```
 
-
-### sample code
+## sample code
 
 of course use your own generated key
 
@@ -210,7 +211,7 @@ def process_debug(message):
 
     from IPython import embed
     embed()
-    
+
 
 
 #MAIN
@@ -233,7 +234,7 @@ sound - audio
 location - show dubai location
 debug - go into ipshell in telegram robot on server
 
-"""```
+"""
+```
 
 now go to your chat app & look for user jumpscale_bot (ofcourse needs to be your chosen name)
-

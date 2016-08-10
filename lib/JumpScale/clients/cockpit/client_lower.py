@@ -4,6 +4,7 @@ BASE_URI = "http://js8:5000"
 
 
 class Client:
+
     def __init__(self):
         self.url = BASE_URI
         self.session = requests.Session()
@@ -13,18 +14,16 @@ class Client:
         ''' set authorization header value'''
         self.auth_header = val
 
-
     def update(self, data, headers=None, query_params=None):
         """
         update the cockpit to the last version
         It is method for POST /cockpit/update
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
         uri = self.url + "/cockpit/update"
         return self.session.post(uri, data, headers=headers, params=query_params)
-
 
     def reloadAll(self, headers=None, query_params=None):
         """
@@ -32,7 +31,7 @@ class Client:
         It is method for GET /ays/reload
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
         uri = self.url + "/ays/reload"
         return self.session.get(uri, headers=headers, params=query_params)
@@ -43,7 +42,7 @@ class Client:
         It is method for POST /ays/template
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
         uri = self.url + "/ays/template"
         return self.session.post(uri, data, headers=headers, params=query_params)
@@ -54,11 +53,10 @@ class Client:
         It is method for GET /ays/repository
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
         uri = self.url + "/ays/repository"
         return self.session.get(uri, headers=headers, params=query_params)
-
 
     def createNewRepository(self, data, headers=None, query_params=None):
         """
@@ -66,11 +64,10 @@ class Client:
         It is method for POST /ays/repository
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
         uri = self.url + "/ays/repository"
         return self.session.post(uri, data, headers=headers, params=query_params)
-
 
     def getRepository(self, repository, headers=None, query_params=None):
         """
@@ -78,11 +75,10 @@ class Client:
         It is method for GET /ays/repository/{repository}
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository
+        uri = self.url + "/ays/repository/" + repository
         return self.session.get(uri, headers=headers, params=query_params)
-
 
     def deleteRepository(self, repository, headers=None, query_params=None):
         """
@@ -90,11 +86,10 @@ class Client:
         It is method for DELETE /ays/repository/{repository}
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository
+        uri = self.url + "/ays/repository/" + repository
         return self.session.delete(uri, headers=headers, params=query_params)
-
 
     def initRepository(self, data, repository, headers=None, query_params=None):
         """
@@ -102,11 +97,10 @@ class Client:
         It is method for POST /ays/repository/{repository}/init
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/init"
+        uri = self.url + "/ays/repository/" + repository + "/init"
         return self.session.post(uri, data, headers=headers, params=query_params)
-
 
     def listBlueprints(self, repository, headers=None, query_params=None):
         """
@@ -114,11 +108,10 @@ class Client:
         It is method for GET /ays/repository/{repository}/blueprint
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/blueprint"
+        uri = self.url + "/ays/repository/" + repository + "/blueprint"
         return self.session.get(uri, headers=headers, params=query_params)
-
 
     def createNewBlueprint(self, data, repository, headers=None, query_params=None):
         """
@@ -126,11 +119,10 @@ class Client:
         It is method for POST /ays/repository/{repository}/blueprint
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/blueprint"
+        uri = self.url + "/ays/repository/" + repository + "/blueprint"
         return self.session.post(uri, data, headers=headers, params=query_params)
-
 
     def getBlueprint(self, blueprint, repository, headers=None, query_params=None):
         """
@@ -138,11 +130,10 @@ class Client:
         It is method for GET /ays/repository/{repository}/blueprint/{blueprint}
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/blueprint/"+blueprint
+        uri = self.url + "/ays/repository/" + repository + "/blueprint/" + blueprint
         return self.session.get(uri, headers=headers, params=query_params)
-
 
     def executeBlueprint(self, data, blueprint, repository, headers=None, query_params=None):
         """
@@ -150,11 +141,10 @@ class Client:
         It is method for POST /ays/repository/{repository}/blueprint/{blueprint}
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/blueprint/"+blueprint
+        uri = self.url + "/ays/repository/" + repository + "/blueprint/" + blueprint
         return self.session.post(uri, data, headers=headers, params=query_params)
-
 
     def updateBlueprint(self, data, blueprint, repository, headers=None, query_params=None):
         """
@@ -162,11 +152,10 @@ class Client:
         It is method for PUT /ays/repository/{repository}/blueprint/{blueprint}
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/blueprint/"+blueprint
+        uri = self.url + "/ays/repository/" + repository + "/blueprint/" + blueprint
         return self.session.put(uri, data, headers=headers, params=query_params)
-
 
     def deleteBlueprint(self, blueprint, repository, headers=None, query_params=None):
         """
@@ -174,11 +163,10 @@ class Client:
         It is method for DELETE /ays/repository/{repository}/blueprint/{blueprint}
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/blueprint/"+blueprint
+        uri = self.url + "/ays/repository/" + repository + "/blueprint/" + blueprint
         return self.session.delete(uri, headers=headers, params=query_params)
-
 
     def archiveBlueprint(self, data, blueprint, repository, headers=None, query_params=None):
         """
@@ -186,11 +174,11 @@ class Client:
         It is method for PUT /ays/repository/{repository}/blueprint/{blueprint}/archive
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/blueprint/"+blueprint+"/archive"
+        uri = self.url + "/ays/repository/" + repository + \
+            "/blueprint/" + blueprint + "/archive"
         return self.session.put(uri, data, headers=headers, params=query_params)
-
 
     def restoreBlueprint(self, data, blueprint, repository, headers=None, query_params=None):
         """
@@ -198,11 +186,11 @@ class Client:
         It is method for PUT /ays/repository/{repository}/blueprint/{blueprint}/restore
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/blueprint/"+blueprint+"/restore"
+        uri = self.url + "/ays/repository/" + repository + \
+            "/blueprint/" + blueprint + "/restore"
         return self.session.put(uri, data, headers=headers, params=query_params)
-
 
     def listServices(self, repository, headers=None, query_params=None):
         """
@@ -210,11 +198,10 @@ class Client:
         It is method for GET /ays/repository/{repository}/service
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/service"
+        uri = self.url + "/ays/repository/" + repository + "/service"
         return self.session.get(uri, headers=headers, params=query_params)
-
 
     def listServicesByRole(self, role, repository, headers=None, query_params=None):
         """
@@ -222,11 +209,10 @@ class Client:
         It is method for GET /ays/repository/{repository}/service/{role}
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/service/"+role
+        uri = self.url + "/ays/repository/" + repository + "/service/" + role
         return self.session.get(uri, headers=headers, params=query_params)
-
 
     def getServiceByInstance(self, instance, role, repository, headers=None, query_params=None):
         """
@@ -234,11 +220,11 @@ class Client:
         It is method for GET /ays/repository/{repository}/service/{role}/{instance}
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/service/"+role+"/"+instance
+        uri = self.url + "/ays/repository/" + \
+            repository + "/service/" + role + "/" + instance
         return self.session.get(uri, headers=headers, params=query_params)
-
 
     def deleteServiceByInstance(self, instance, role, repository, headers=None, query_params=None):
         """
@@ -246,11 +232,11 @@ class Client:
         It is method for DELETE /ays/repository/{repository}/service/{role}/{instance}
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/service/"+role+"/"+instance
+        uri = self.url + "/ays/repository/" + \
+            repository + "/service/" + role + "/" + instance
         return self.session.delete(uri, headers=headers, params=query_params)
-
 
     def listServiceActions(self, instance, role, repository, headers=None, query_params=None):
         """
@@ -258,11 +244,11 @@ class Client:
         It is method for GET /ays/repository/{repository}/service/{role}/{instance}/action
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/service/"+role+"/"+instance+"/action"
+        uri = self.url + "/ays/repository/" + repository + \
+            "/service/" + role + "/" + instance + "/action"
         return self.session.get(uri, headers=headers, params=query_params)
-
 
     def listTemplates(self, repository, headers=None, query_params=None):
         """
@@ -270,11 +256,10 @@ class Client:
         It is method for GET /ays/repository/{repository}/template
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/template"
+        uri = self.url + "/ays/repository/" + repository + "/template"
         return self.session.get(uri, headers=headers, params=query_params)
-
 
     def createNewTemplate(self, data, repository, headers=None, query_params=None):
         """
@@ -282,11 +267,10 @@ class Client:
         It is method for POST /ays/repository/{repository}/template
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/template"
+        uri = self.url + "/ays/repository/" + repository + "/template"
         return self.session.post(uri, data, headers=headers, params=query_params)
-
 
     def getTemplate(self, template, repository, headers=None, query_params=None):
         """
@@ -294,11 +278,10 @@ class Client:
         It is method for GET /ays/repository/{repository}/template/{template}
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/template/"+template
+        uri = self.url + "/ays/repository/" + repository + "/template/" + template
         return self.session.get(uri, headers=headers, params=query_params)
-
 
     def listRuns(self, repository, headers=None, query_params=None):
         """
@@ -306,11 +289,10 @@ class Client:
         It is method for GET /ays/repository/{repository}/aysrun
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/aysrun"
+        uri = self.url + "/ays/repository/" + repository + "/aysrun"
         return self.session.get(uri, headers=headers, params=query_params)
-
 
     def getRun(self, aysrun, repository, headers=None, query_params=None):
         """
@@ -318,11 +300,10 @@ class Client:
         It is method for GET /ays/repository/{repository}/aysrun/{aysrun}
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/aysrun/"+aysrun
+        uri = self.url + "/ays/repository/" + repository + "/aysrun/" + aysrun
         return self.session.get(uri, headers=headers, params=query_params)
-
 
     def simulateAction(self, data, repository, headers=None, query_params=None):
         """
@@ -330,11 +311,10 @@ class Client:
         It is method for POST /ays/repository/{repository}/simulate
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/simulate"
+        uri = self.url + "/ays/repository/" + repository + "/simulate"
         return self.session.post(uri, data, headers=headers, params=query_params)
-
 
     def executeAction(self, data, repository, headers=None, query_params=None):
         """
@@ -342,11 +322,10 @@ class Client:
         It is method for POST /ays/repository/{repository}/execute
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/execute"
+        uri = self.url + "/ays/repository/" + repository + "/execute"
         return self.session.post(uri, data, headers=headers, params=query_params)
-
 
     def getSource(self, source, repository, headers=None, query_params=None):
         """
@@ -354,11 +333,10 @@ class Client:
         It is method for GET /ays/repository/{repository}/source/{source}
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/source/"+source
+        uri = self.url + "/ays/repository/" + repository + "/source/" + source
         return self.session.get(uri, headers=headers, params=query_params)
-
 
     def getHRD(self, hrd, repository, headers=None, query_params=None):
         """
@@ -366,11 +344,10 @@ class Client:
         It is method for GET /ays/repository/{repository}/hrd/{hrd}
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
-        uri = self.url + "/ays/repository/"+repository+"/hrd/"+hrd
+        uri = self.url + "/ays/repository/" + repository + "/hrd/" + hrd
         return self.session.get(uri, headers=headers, params=query_params)
-
 
     def webhooks_github_post(self, data, headers=None, query_params=None):
         """
@@ -378,11 +355,10 @@ class Client:
         It is method for POST /webhooks/github
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
         uri = self.url + "/webhooks/github"
         return self.session.post(uri, data, headers=headers, params=query_params)
-
 
     def oauth_callback_get(self, headers=None, query_params=None):
         """
@@ -390,7 +366,7 @@ class Client:
         It is method for GET /oauth/callback
         """
         if self.auth_header:
-            self.session.headers.update({"Authorization":self.auth_header})
+            self.session.headers.update({"Authorization": self.auth_header})
 
         uri = self.url + "/oauth/callback"
         return self.session.get(uri, headers=headers, params=query_params)

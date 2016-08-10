@@ -7,7 +7,9 @@ import time
 
 import requests
 
+
 class TornadoTransport(Transport):
+
     def __init__(self, addr="127.0.0.1", port=9999, timeout=60):
 
         self.timeout = timeout
@@ -40,45 +42,46 @@ class TornadoTransport(Transport):
         """
         headers = {'content-type': 'application/text'}
         data2 = j.servers.base._serializeBinSend(category, cmd, data, sendformat, returnformat, self._id)
-        start=j.data.time.getTimeEpoch()
+        start = j.data.time.getTimeEpoch()
         if self.timeout:
             timeout = self.timeout
         if retry:
-            rcv=None
-            while rcv==None:
-                now=j.data.time.getTimeEpoch()
-                if now>start+timeout:
+            rcv = None
+            while rcv == None:
+                now = j.data.time.getTimeEpoch()
+                if now > start + timeout:
                     break
                 try:
                     rcv = requests.post(url=self.url, data=data2, headers=headers, timeout=timeout)
                 except Exception as e:
-                    if str(e).find("Connection refused")!=-1:
-                        print(("retry connection to %s"%self.url))
+                    if str(e).find("Connection refused") != -1:
+                        print(("retry connection to %s" % self.url))
                         time.sleep(0.1)
                     else:
-                        raise j.exceptions.RuntimeError("error to send msg to %s,error was %s"%(self.url,e))
+                        raise j.exceptions.RuntimeError("error to send msg to %s,error was %s" % (self.url, e))
 
         else:
             print("NO RETRY ON REQUEST TORNADO TRANSPORT")
-            rcv = requests.post(self.url, data=data2, headers=headers,timeout=timeout)
+            rcv = requests.post(self.url, data=data2, headers=headers, timeout=timeout)
 
-        if rcv==None:
-            eco=j.errorconditionhandler.getErrorConditionObject(msg='timeout on request to %s'%self.url, msgpub='', \
-                category='tornado.transport')
+        if rcv == None:
+            eco = j.errorconditionhandler.getErrorConditionObject(msg='timeout on request to %s' % self.url, msgpub='',
+                                                                  category='tornado.transport')
             s = j.data.serializer.serializers.get('j')
-            return "4","j",s.dumps(eco.__dict__)
-                    
-        if rcv.ok==False:
-            eco=j.errorconditionhandler.getErrorConditionObject(msg='error 500 from webserver on %s'%self.url, msgpub='', \
-                category='tornado.transport')
+            return "4", "j", s.dumps(eco.__dict__)
+
+        if rcv.ok == False:
+            eco = j.errorconditionhandler.getErrorConditionObject(msg='error 500 from webserver on %s' % self.url, msgpub='',
+                                                                  category='tornado.transport')
             s = j.data.serializer.serializers.get('j')
-            return "6","j",s.dumps(eco.__dict__)
+            return "6", "j", s.dumps(eco.__dict__)
 
         content = rcv.content.decode('utf-8')
         return j.servers.base._unserializeBinReturn(content)
 
 
 class TornadoHATransport(TCPHATransport):
+
     def __init__(self, connections, timeout=None):
         TCPHATransport.__init__(self, connections, TornadoTransport, timeout)
 

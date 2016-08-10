@@ -5,6 +5,7 @@ class RealityCapture:
     """
     RealityCapture schedules monitoring on remote nodes given the gid and nid
     """
+
     def __init__(self):
         self.__jslocation__ = "j.tools.realitycapture"
 

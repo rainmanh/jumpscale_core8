@@ -2,10 +2,9 @@ from JumpScale import j
 from TLS import TLS
 
 
-
-
 class TLSFactory:
     """Factory class to deal with TLS, key and certificate generation"""
+
     def __init__(self):
         self.__jslocation__ = "j.tools.tls"
 

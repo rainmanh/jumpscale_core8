@@ -1,29 +1,29 @@
-## HostsFile
+# HostsFile
 
 Hostsfile is used to do different operations on your `/etc/hosts` file, witch can be configured to be in any other directory
 
-
-### Accessing it
+## Accessing it
 
 You can access fs by
-```py
+
+```python
 h= j.sal.hostsfile.get()
 ```
 
-### How does `/etc/hosts` look like?
+## How does `/etc/hosts` look like?
 
 ```python
 In [25]: cat /etc/hosts
-127.0.0.1	localhost
-::1	localhost ip6-localhost ip6-loopback
-fe00::0	ip6-localnet
-ff00::0	ip6-mcastprefix
-ff02::1	ip6-allnodes
-ff02::2	ip6-allrouters
-172.17.0.2	myjs8xenial
+127.0.0.1    localhost
+::1    localhost ip6-localhost ip6-loopback
+fe00::0    ip6-localnet
+ff00::0    ip6-mcastprefix
+ff02::1    ip6-allnodes
+ff02::2    ip6-allrouters
+172.17.0.2    myjs8xenial
 ```
 
-### How to use it?
+## How to use it?
 
 1- Getting an instance of hostsfile manager
 
@@ -54,26 +54,26 @@ Out[38]: False
 # adding
 In [39]: h.set("127.0.0.3", "somewhere.net")
 In [42]: cat /etc/hosts
-127.0.0.1	localhost
-::1	localhost ip6-localhost ip6-loopback
-fe00::0	ip6-localnet
-ff00::0	ip6-mcastprefix
-ff02::1	ip6-allnodes
-ff02::2	ip6-allrouters
-172.17.0.2	myjs8xenial
+127.0.0.1    localhost
+::1    localhost ip6-localhost ip6-loopback
+fe00::0    ip6-localnet
+ff00::0    ip6-mcastprefix
+ff02::1    ip6-allnodes
+ff02::2    ip6-allrouters
+172.17.0.2    myjs8xenial
 127.0.0.3 somewhere.net
 
 # removing
 In [43]: h.remove("127.0.0.3")
 
 In [44]: cat /etc/hosts
-127.0.0.1	localhost
-::1	localhost ip6-localhost ip6-loopback
-fe00::0	ip6-localnet
-ff00::0	ip6-mcastprefix
-ff02::1	ip6-allnodes
-ff02::2	ip6-allrouters
-172.17.0.2	myjs8xenial
+127.0.0.1    localhost
+::1    localhost ip6-localhost ip6-loopback
+fe00::0    ip6-localnet
+ff00::0    ip6-mcastprefix
+ff02::1    ip6-allnodes
+ff02::2    ip6-allrouters
+172.17.0.2    myjs8xenial
 
 # Get names by IP
 In [53]: h.getNames("127.0.0.1")

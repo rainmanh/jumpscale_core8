@@ -3,8 +3,6 @@ from JumpScale import j
 import os
 
 
-
-
 class AysFsFactory:
 
     def __init__(self):
@@ -28,7 +26,8 @@ class AysFsFactory:
 
         js8opt = AysFs('jumpscale', cuisine)
         js8opt.setUnique()
-        js8opt.addMount('/aysfs/docker/jumpscale', 'RO', '/aysfs/flist/js8_opt.flist', prefix='/opt')
+        js8opt.addMount('/aysfs/docker/jumpscale', 'RO',
+                        '/aysfs/flist/js8_opt.flist', prefix='/opt')
         js8opt.addBackend('/ays/backend/jumpscale', 'js8_opt')
         js8opt.addStor()
         return js8opt
@@ -37,7 +36,8 @@ class AysFsFactory:
         self._getFlist('js8_optvar')
 
         js8optvar = AysFs('optvar', cuisine)
-        js8optvar.addMount('/aysfs/docker/$NAME', 'OL', '/aysfs/flist/js8_optvar.flist', prefix='/optvar')
+        js8optvar.addMount('/aysfs/docker/$NAME', 'OL',
+                           '/aysfs/flist/js8_optvar.flist', prefix='/optvar')
         js8optvar.addBackend('/ays/backend/$NAME', 'js8_optvar')
         js8optvar.addStor()
         return js8optvar
@@ -90,21 +90,24 @@ class AysFs:
 
     def loadConfig(self):
         config_path = self.getConfig()
-        
+
         if not j.sal.fs.exists(config_path):
             return False
-        
+
         cfg = j.data.serializer.toml.load(config_path)
-        
+
         for mount in cfg['mount']:
-            self.addMount(mount['path'], mount['mode'], mount['flist'], mount['backend'])
-        
+            self.addMount(mount['path'], mount['mode'],
+                          mount['flist'], mount['backend'])
+
         for name, backend in cfg['backend'].items():
-            self.addBackend(backend['path'], backend['namespace'], backend['stor'], name=name)
-        
+            self.addBackend(backend['path'], backend[
+                            'namespace'], backend['stor'], name=name)
+
         for name, store in cfg['aydostor'].items():
-            self.addStor(remote=store['addr'], username=store['login'], password=store['passwd'], name=name)
-        
+            self.addStor(remote=store['addr'], username=store[
+                         'login'], password=store['passwd'], name=name)
+
         return True
 
     def addMount(self, path, mode, flist=None, backend='default', prefix=''):
@@ -217,7 +220,8 @@ class AysFs:
 
         print('[+] preparing mountpoints')
         for mount in self.mounts:
-            # force umount (cannot stat folder if Transport endpoint is not connected)
+            # force umount (cannot stat folder if Transport endpoint is not
+            # connected)
             self.unmount(mount['path'])
 
             if not j.sal.fs.exists(mount['path']):
@@ -244,26 +248,28 @@ class AysFs:
         self.tmux.killWindow('aysfs', config_path)
 
         for mount in self.mounts:
-            # force umount (cannot stat folder if Transport endpoint is not connected)
+            # force umount (cannot stat folder if Transport endpoint is not
+            # connected)
             self.unmount(mount['path'])
 
     def isRunning(self):
         config = self.getConfig()
-        
+
         # if window doesn't exists, we can stop now
         if not self.tmux.windowExists('aysfs', config):
             return False
-        
+
         # checking if the process on the window is aysfs or does it died
-        parent = j.sal.process.getProcessObject(self.tmux.getPid('aysfs', self.getConfig()))
-        
+        parent = j.sal.process.getProcessObject(
+            self.tmux.getPid('aysfs', self.getConfig()))
+
         # if no children, nothing is running
         if len(parent.children()) == 0:
             return False
-        
+
         for child in parent.children():
             # we got it
             if child.name() == 'aysfs':
                 return True
-        
+
         return False

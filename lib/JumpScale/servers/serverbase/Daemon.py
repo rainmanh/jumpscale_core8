@@ -5,7 +5,6 @@ import inspect
 import time
 
 
-
 class Session:
 
     def __init__(self, ddict):
@@ -44,13 +43,13 @@ class DaemonCMDS:
     def getpubkeyserver(self, session):
         return self.daemon.keystor.getPubKey(self.daemon.sslorg, self.daemon.ssluser, returnAsString=True)
 
-    def registersession(self, sessiondata, ssl,session):
+    def registersession(self, sessiondata, ssl, session):
         """
         @param sessiondata is encrypted data (SSL)
         """
         # ser=j.data.serializer.serializers.getMessagePack()
         # sessiondictstr=ser.loads(data)
-        print(("register session:%s "%session))
+        print(("register session:%s " % session))
         # for k, v in list(sessiondata.items()):
         #     if isinstance(k, bytes):
         #         sessiondata.pop(k)
@@ -79,7 +78,7 @@ class DaemonCMDS:
         eco = j.errorconditionhandler.getErrorConditionObject(ddict=eco)
         self.daemon.eventhandlingTE.executeV2(eco=eco, history=self.daemon.eventsMemLog)
 
-    def introspect(self, cat,session=None):
+    def introspect(self, cat, session=None):
         methods = {}
         interface = self.daemon.cmdsInterfaces[cat]
         for name, method in inspect.getmembers(interface, inspect.ismethod):
@@ -89,8 +88,9 @@ class DaemonCMDS:
             # Remove the 'session' parameter
             if 'session' in args.args:
                 session_index = args.args.index('session')
-                if session_index!=len(args.args)-1:
-                    raise j.exceptions.RuntimeError("session arg needs to be last argument of method. Cat:%s Method:%s \nArgs:%s"%(cat,name,args))
+                if session_index != len(args.args) - 1:
+                    raise j.exceptions.RuntimeError(
+                        "session arg needs to be last argument of method. Cat:%s Method:%s \nArgs:%s" % (cat, name, args))
                 del args.args[session_index]
                 if args.defaults:
                     session_default_index = session_index - len(args.args) - 1
@@ -105,7 +105,7 @@ class DaemonCMDS:
 class Daemon:
 
     def __init__(self, name=None):
-        j.application.interactive = False # make sure errorhandler does not require input we are daemon
+        j.application.interactive = False  # make sure errorhandler does not require input we are daemon
         self.name = name
         self._command_handlers = {}     # A cache used by command_handler()
         self.cmds = {}
@@ -144,20 +144,21 @@ class Daemon:
     def encrypt(self, message, session):
         if session and session.encrkey:
             if not hasattr(session, 'publickey'):
-                session.publickey = self.keystor.getPubKey(user=session.user, organization=session.organization, returnAsString=True)
+                session.publickey = self.keystor.getPubKey(
+                    user=session.user, organization=session.organization, returnAsString=True)
             return self.keystor.encrypt(self.sslorg, self.ssluser, "", "", message, False, pubkeyReader=session.publickey)[0]
         else:
             return message
 
-    def addCMDsInterface(self, cmdInterfaceClass, category,proxy=False):
+    def addCMDsInterface(self, cmdInterfaceClass, category, proxy=False):
         if category not in self.cmdsInterfaces:
             self.cmdsInterfaces[category] = []
-        if proxy==False:
-            obj=cmdInterfaceClass(self)
+        if proxy == False:
+            obj = cmdInterfaceClass(self)
         else:
-            obj=cmdInterfaceClass()
-            self.cmdsInterfacesProxy[category]=obj
-        self.cmdsInterfaces[category]=obj
+            obj = cmdInterfaceClass()
+            self.cmdsInterfacesProxy[category] = obj
+        self.cmdsInterfaces[category] = obj
 
     def command_handler(self, command_category, command):
         """
@@ -173,7 +174,6 @@ class Daemon:
             self._command_handlers[cache_key] = getattr(command_interface, command, None)
 
         return self._command_handlers.get(cache_key, None)
-
 
     def processRPC(self, cmd, data, returnformat, session, category=""):
         """
@@ -204,24 +204,26 @@ class Daemon:
                 #     data[k] = v
 
                 if "_agentid" in data:
-                    if data["_agentid"]!=0:
-                        cmds=self.cmdsInterfaces["agent"]
-                        gid=j.application.whoAmI.gid
-                        nid=int(data["_agentid"])
+                    if data["_agentid"] != 0:
+                        cmds = self.cmdsInterfaces["agent"]
+                        gid = j.application.whoAmI.gid
+                        nid = int(data["_agentid"])
                         data.pop("_agentid")
-                        category2=category.replace("processmanager_","")
-                        scriptid="%s_%s" % (category2, cmd)
-                        job=cmds.scheduleCmd(gid,nid,cmdcategory=category2,jscriptid=scriptid,cmdname=cmd,args=data,queue="internal",log=False,timeout=60,roles=[],session=session,wait=True)
+                        category2 = category.replace("processmanager_", "")
+                        scriptid = "%s_%s" % (category2, cmd)
+                        job = cmds.scheduleCmd(gid, nid, cmdcategory=category2, jscriptid=scriptid, cmdname=cmd,
+                                               args=data, queue="internal", log=False, timeout=60, roles=[], session=session, wait=True)
                         jobqueue = cmds._getJobQueue(job["guid"])
-                        jobr=jobqueue.get(True,60)
+                        jobr = jobqueue.get(True, 60)
                         if not jobr:
-                            eco = j.errorconditionhandler.getErrorConditionObject(msg="Command %s.%s with args: %s timeout" % (category2, cmd, data))
-                            return returnCodes.ERROR,returnformat,eco.__dict__
-                        jobr=j.data.serializer.json.loads(jobr)
-                        if jobr["state"]!="OK":
-                            return jobr["resultcode"],returnformat,jobr["result"]
+                            eco = j.errorconditionhandler.getErrorConditionObject(
+                                msg="Command %s.%s with args: %s timeout" % (category2, cmd, data))
+                            return returnCodes.ERROR, returnformat, eco.__dict__
+                        jobr = j.data.serializer.json.loads(jobr)
+                        if jobr["state"] != "OK":
+                            return jobr["resultcode"], returnformat, jobr["result"]
                         else:
-                            return returnCodes.OK,returnformat,jobr["result"]
+                            return returnCodes.OK, returnformat, jobr["result"]
                     else:
 
                         data.pop("_agentid")
@@ -238,21 +240,19 @@ class Daemon:
             # print eco
             # eco.errormessage += "\nfunction arguments were:%s\n" % str(inspect.getargspec(ffunction).args)
             data.pop('session', None)
-            if len(str(data))>1024:
-                data="too much data to show."
-
+            if len(str(data)) > 1024:
+                data = "too much data to show."
 
             eco.errormessage = \
                 "ERROR IN RPC CALL %s: %s. (Session:%s)\nData:%s\n" % (cmd, eco.errormessage, session, data)
 
             eco.process()
             eco.__dict__.pop("tb", None)
-            eco.tb=None
+            eco.tb = None
             errorres = eco.__dict__
-            return returnCodes.ERROR, returnformat, errorres 
+            return returnCodes.ERROR, returnformat, errorres
 
         return returnCodes.OK, returnformat, result
-
 
     def getSession(self, cmd, sessionid):
         if sessionid in self.sessions:
@@ -288,8 +288,8 @@ class Daemon:
                 ser = j.data.serializer.serializers.get(informat, key=self.key)
                 data = ser.loads(data)
         except Exception as e:
-            eco=j.errorconditionhandler.parsePythonExceptionObject(e)
-            eco.tb=""
+            eco = j.errorconditionhandler.parsePythonExceptionObject(e)
+            eco.tb = ""
             return returnCodes.SERIALIZATIONERRORIN, "m", self.errorconditionserializer.dumps(eco.__dict__)
 
         parts = self.processRPC(cmd, data, returnformat=returnformat, session=session, category=category)
@@ -298,16 +298,17 @@ class Daemon:
         #     returnformat = returnformat.decode('utf-8', 'ignore')
         if returnformat != "":  # is
             returnser = j.data.serializer.serializers.get(returnformat, key=session.encrkey)
-            error=0
+            error = 0
             try:
                 data = self.encrypt(returnser.dumps(parts[2]), session)
             except Exception as e:
-                error=1
-            if error==1:
+                error = 1
+            if error == 1:
                 try:
                     data = self.encrypt(returnser.dumps(parts[2].__dict__), session)
                 except:
-                    eco = j.errorconditionhandler.getErrorConditionObject(msg="could not serialize result from %s"%cmd)
+                    eco = j.errorconditionhandler.getErrorConditionObject(
+                        msg="could not serialize result from %s" % cmd)
                     return returnCodes.SERIALIZATIONERROROUT, "m", self.errorconditionserializer.dumps(eco.__dict__)
         else:
             data = parts[2]

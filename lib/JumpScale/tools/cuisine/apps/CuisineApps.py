@@ -34,12 +34,16 @@ please ensure that the start and build methods are separate and
 the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
 """
 
+
 class actionrun(ActionDecorator):
+
     def __init__(self, *args, **kwargs):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class CuisineApps(base):
 
     def __init__(self, executor, cuisine):
@@ -77,7 +81,6 @@ class CuisineApps(base):
             else:
                 raise AttributeError('Weave does not support LXC or Docker containers')
         return self._weave
-
 
     @property
     def skydns(self):
@@ -168,6 +171,7 @@ class CuisineApps(base):
         if self._cockpit is None:
             self._cockpit = Cockpit(self.executor, self.cuisine)
         return self._cockpit
+
     @property
     def deployerbot(self):
         if self._deployerbot is None:

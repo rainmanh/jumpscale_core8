@@ -8,7 +8,7 @@ colored_traceback.add_hook(always=True)
 
 class ActionDecorator:
 
-    #DO NOT CHANGE, FORCE SHOULD BE FALSE BY DEFAULT, OTERHWISE DANGEROUS
+    # DO NOT CHANGE, FORCE SHOULD BE FALSE BY DEFAULT, OTERHWISE DANGEROUS
     def __init__(self, action=True, force=False, actionshow=True):
         self.action = action
         self.force = force
@@ -21,8 +21,8 @@ class ActionDecorator:
             cm = self.selfobjCode
 
             if "showout" in kwargs:
-                if kwargs["showout"]==False:
-                    self.actionshow=False
+                if kwargs["showout"] == False:
+                    self.actionshow = False
 
             # this makes sure we show the action on terminal
             if "actionshow" in kwargs:
@@ -52,16 +52,17 @@ class ActionDecorator:
                         imports.append(line)
                 kwargs["imports"] = imports
                 args = args[1:]
-                cm = cm.replace("$id", cuisine.core.id)  # replace the code which has the constructor code for the selfobj to work on
+                # replace the code which has the constructor code for the selfobj to work on
+                cm = cm.replace("$id", cuisine.core.id)
                 j.actions.setRunId(cuisine.core.runid)
 
-                #overrule for debug
-                force=True
+                # overrule for debug
+                force = True
 
-                action0=j.actions.add(action=func, actionRecover=None,args=args,kwargs=kwargs,die=True,stdOutput=True,\
-                    errorOutput=True,retry=0,executeNow=True,selfGeneratorCode=cm,force=force,actionshow=actionshow,showout=actionshow)
-                
-                if action0.state!="OK":
+                action0 = j.actions.add(action=func, actionRecover=None, args=args, kwargs=kwargs, die=True, stdOutput=True,
+                                        errorOutput=True, retry=0, executeNow=True, selfGeneratorCode=cm, force=force, actionshow=actionshow, showout=actionshow)
+
+                if action0.state != "OK":
 
                     if "die" in kwargs:
                         if kwargs["die"] == False:

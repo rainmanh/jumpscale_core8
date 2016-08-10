@@ -1,9 +1,8 @@
 from JumpScale import j
 
 
-
-
 class TLS:
+
     def __init__(self, cfsslService=None, path=None):
         super(TLS, self).__init__()
         self._local = j.tools.executor.getLocal()
@@ -82,8 +81,8 @@ class TLS:
         cmd = 'cfssl gencert -initca %s | cfssljson -bare %s' % (ca_csr_path, ca_cert_path)
         self._local.execute(cmd)
 
-        cert_path = ca_cert_path+".pem"
-        key_path = ca_cert_path+"-key.pem"
+        cert_path = ca_cert_path + ".pem"
+        key_path = ca_cert_path + "-key.pem"
         output = "certificate generated at %s and key at %s" % (cert_path, key_path)
         print(output)
 

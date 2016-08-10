@@ -29,7 +29,7 @@ class CodeGeneratorActorClass(CodeGeneratorBase):
 
 #         if methodcall == "set":
 #             s = """
-# return self.models.{modelname}.set(data)            
+# return self.models.{modelname}.set(data)
 #             """
 #         elif methodcall == "get":
 #             s = """
@@ -43,11 +43,11 @@ class CodeGeneratorActorClass(CodeGeneratorBase):
 #             """
 #         elif methodcall == "list":
 #             s = """
-# return self.models.{modelname}.list()            
+# return self.models.{modelname}.list()
 #             """
 #         elif methodcall == "find":
 #             s = """
-# return self.models.{modelname}.find(query)            
+# return self.models.{modelname}.find(query)
 #             """
 #         elif methodcall == "new":
 #             s = """
@@ -55,7 +55,7 @@ class CodeGeneratorActorClass(CodeGeneratorBase):
 #             """
 #         elif methodcall == "datatables":
 #             s = """
-# return self.models.{modelname}.datatables() #@todo
+# return self.models.{modelname}.datatables()
 #             """
 #         elif methodcall == "create":
 #             s = """
@@ -88,7 +88,8 @@ class CodeGeneratorActorClass(CodeGeneratorBase):
             descr = method.description
 
         for var in method.vars:
-            descr += "param:%s %s" % (var.name, self.descrTo1Line(var.description))
+            descr += "param:%s %s" % (var.name,
+                                      self.descrTo1Line(var.description))
             if var.defaultvalue != None:
                 descr += " default=%s" % var.defaultvalue
             descr += "\n"
@@ -101,7 +102,8 @@ class CodeGeneratorActorClass(CodeGeneratorBase):
             descr += "\n"
 
         if descr != "":
-            s += j.tools.code.indent("\"\"\"\n%s\n\"\"\"\n" % descr.strip('\n'), 1)
+            s += j.tools.code.indent("\"\"\"\n%s\n\"\"\"\n" %
+                                     descr.strip('\n'), 1)
 
         params = ['self']
         paramsd = list()
@@ -154,7 +156,8 @@ self.appname="{appname}"
         s = ""
 
         if self.tags.tagExists("dbtype"):
-            dbtypes = [item.lower() for item in self.tags.tagGet("dbtype").split(",")]
+            dbtypes = [item.lower()
+                       for item in self.tags.tagGet("dbtype").split(",")]
             ok = False
             if "arakoon" in dbtypes:
                 s += """self.dbarakoon=j.servers.kvs.getArakoonStore("main", namespace="{appname}_{actorname},serializers=[j.data.serializer.serializers.getSerializerType('j')]")\n"""
@@ -175,12 +178,15 @@ self.appname="{appname}"
                     s += "self.db=self.dbfs\n"
 
             if ok == False:
-                raise j.exceptions.RuntimeError("Cannot find default db, there needs to be fs,mem or arakoon specified as db on aktor level.")
+                raise j.exceptions.RuntimeError(
+                    "Cannot find default db, there needs to be fs,mem or arakoon specified as db on aktor level.")
 
-            if False:  # "redis" in dbtypes: #@todo
+            if False:  # TODO: "redis" in dbtypes:
                 if j.portal.server.active.rediscfg != None and appname != "system":
-                    redisip, redisport, redisdb, rediskey = j.portal.server.active.startConnectRedisServer(appname, actorname)
-                    actorobject.dbredis = j.servers.kvs.getRedisStore(namespace="", host=redisip, port=redisport, db=redisdb, key=rediskey)
+                    redisip, redisport, redisdb, rediskey = j.portal.server.active.startConnectRedisServer(
+                        appname, actorname)
+                    actorobject.dbredis = j.servers.kvs.getRedisStore(
+                        namespace="", host=redisip, port=redisport, db=redisdb, key=rediskey)
                     actorobject.dbredis.getQueue = actorobject.dbredis.redisclient.getQueue
                 if dbtypes.index("redis") == 0:
                     actorobject.db = actorobject.dbredis
@@ -213,7 +219,7 @@ self.appname="{appname}"
         #     method = osisMethods[methodname]
         #     self.addMethod(method)
 
-        # # write class file        
+        # # write class file
         # ppath = j.sal.fs.joinPaths(self.codepath, "%s_%s_osis.py" % (self.spec.appname, self.spec.actorname))
         # if j.sal.fs.exists(path=ppath):
         #     ppath = j.sal.fs.joinPaths(self.codepath, "%s_%s_osis.gen.py" % (self.spec.appname, self.spec.actorname))
@@ -221,7 +227,7 @@ self.appname="{appname}"
         #     from IPython import embed
         #     print "DEBUG NOW opopop"
         #     embed()
-            
+
         # j.sal.fs.writeFile(ppath, self.getContent())
 
         # main methods
@@ -231,7 +237,8 @@ self.appname="{appname}"
         # bcls = "%s_%s_osis" % (self.spec.appname, self.spec.actorname)
         # extraimport = "from %s import %s\n" % (bcls, bcls)
         # self.addClass(className="%s_%s" % (self.spec.appname, self.spec.actorname), baseclass=bcls, extraImport=extraimport)
-        self.addClass(className="%s_%s" % (self.spec.appname, self.spec.actorname))
+        self.addClass(className="%s_%s" %
+                      (self.spec.appname, self.spec.actorname))
 
         self.addInitExtras()
 

@@ -1,14 +1,16 @@
-## How to use Docker
+# How to use Docker
 
 Make sure you have the latest JumpScale installed.
 
-### Install Docker
+## Install Docker
+
 ```bash
 ays init -n docker
 ays apply
 ```
 
-### Use Docker
+## Use Docker
+
 We already have a base Docker image ready to use `despiegk/mc`. You also can [building your own Docker image](how_to_build_Docker_image_with_JumpScale.md).
 
 ```bash
@@ -36,7 +38,8 @@ ays init -n redis
 ays apply
 ```
 
-### Commit your changes
+## Commit your changes
+
 When you setup your apps, and you are happy with your pre-set Docker container, you can commit your changes for later use or distribution by doing the following:
 
 ```bash
@@ -57,7 +60,8 @@ docker commit test myimage
 docker run -d -p 9022:22 -v /opt/code/:/opt/code myimage /sbin/my_init
 ```
 
-### Use Docker extension to start Docker containers
+## Use Docker extension to start Docker containers
+
 Here is an example script on how to use `JumpScale` Docker extension to manage your docker machines.
 
 [do.py](https://github.com/Jumpscale/play7/blob/master/docker_jumpscale_development/do.py)
@@ -92,5 +96,4 @@ if __name__ == '__main__':
 
     port = info['NetworkSettings']['Ports']['22/tcp'][0]['HostPort']
     print "SSH port of docker is: %s" % port
-
 ```

@@ -10,22 +10,22 @@ except:
     import xonsh
 
 
-#from pudb import set_trace; set_trace()    
+#from pudb import set_trace; set_trace()
 
 
 class Xonsh:
+
     def __init__(self):
         self.__jslocation__ = "j.tools.xonsh"
-        self.executor=j.tools.executor.getLocal()
-        self.cuisine=self.executor.cuisine
-        
+        self.executor = j.tools.executor.getLocal()
+        self.cuisine = self.executor.cuisine
 
     def configAll(self):
         self.config()
         self.configTmux(True)
 
     def config(self):
-        C="""
+        C = """
         from JumpScale import j
         $XONSH_SHOW_TRACEBACK = True
         $XONSH_STORE_STDOUT = True
@@ -46,13 +46,7 @@ class Xonsh:
 
 
         """
-        self.cuisine.core.file_write("$homeDir/.xonshrc",C)
+        self.cuisine.core.file_write("$homeDir/.xonshrc", C)
 
-
-    def configTmux(self,restart=True):
-        self.cuisine.tmux.configure(restart,True)
-
-
-
-
-
+    def configTmux(self, restart=True):
+        self.cuisine.tmux.configure(restart, True)

@@ -16,7 +16,9 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.core"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class Core(base):
 
     def __init__(self, executor, cuisine):
@@ -57,14 +59,16 @@ class Core(base):
         self.cuisine.core.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/core", recursive=True)
         self.cuisine.core.file_copy("%s/g8os.toml" % sourcepath, "$tmplsDir/cfg/core")
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/core/conf/")
-        self.cuisine.core.file_copy("{0}basic.jumpscripts.toml {0}basic.syncthing.toml".format(sourcepath+"/conf/"), "$tmplsDir/cfg/core/conf/", recursive=True)
+        self.cuisine.core.file_copy("{0}basic.jumpscripts.toml {0}basic.syncthing.toml".format(
+            sourcepath + "/conf/"), "$tmplsDir/cfg/core/conf/", recursive=True)
         if self.cuisine.core.isArch:
-            self.cuisine.core.file_copy("{0}sshd-arch.toml".format(sourcepath+"/conf.extra/"), "$tmplsDir/cfg/core/conf/", recursive=True)
+            self.cuisine.core.file_copy("{0}sshd-arch.toml".format(sourcepath + "/conf.extra/"),
+                                        "$tmplsDir/cfg/core/conf/", recursive=True)
         if self.cuisine.core.isUbuntu:
-            self.cuisine.core.file_copy("{0}sshd-ubuntu.toml".format(sourcepath+"/conf.extra/"), "$tmplsDir/cfg/core/conf/", recursive=True)    
+            self.cuisine.core.file_copy("{0}sshd-ubuntu.toml".format(sourcepath +
+                                                                     "/conf.extra/"), "$tmplsDir/cfg/core/conf/", recursive=True)
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/core/extensions/syncthing")
         self.cuisine.core.file_copy("$binDir/syncthing", "$tmplsDir/cfg/core/extensions/syncthing/")
-
 
         if start:
             self.start(nid, gid)
@@ -76,7 +80,7 @@ class Core(base):
         core will consume the avialable syncthing port and will cause a problem
         """
 
-        # @todo this will break code if two instances on same machine
+        # TODO: this will break code if two instances on same machine
         if not nid:
             nid = 1
         if not gid:
@@ -97,9 +101,11 @@ class Core(base):
         cfg["controllers"] = {"main": {"url": controller_url}}
         cfg["extension"]["sync"]["cwd"] = self.cuisine.core.joinpaths(cfgdir, "/core/extensions")
         cfg["extension"]["jumpscript"]["cwd"] = self.cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscript")
-        cfg["extension"]["jumpscript_content"]["cwd"] = self.cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscript")
+        cfg["extension"]["jumpscript_content"]["cwd"] = self.cuisine.core.joinpaths(
+            cfgdir, "/core/extensions/jumpscript")
         cfg["extension"]["js_daemon"]["cwd"] = self.cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscript")
-        cfg["extension"]["js_daemon"]["env"]["JUMPSCRIPTS_HOME"] = self.cuisine.core.joinpaths(cfgdir, "/core/jumpscripts/")
+        cfg["extension"]["js_daemon"]["env"][
+            "JUMPSCRIPTS_HOME"] = self.cuisine.core.joinpaths(cfgdir, "/core/jumpscripts/")
         cfg["logging"]["db"]["address"] = self.cuisine.core.joinpaths(cfgdir, "/core/logs")
         C = j.data.serializer.toml.dumps(cfg)
 
@@ -108,7 +114,7 @@ class Core(base):
         self.cuisine.apps.mongodb.start()
         self.cuisine.apps.redis.start()
         print("connection test ok to agentcontroller")
-        #@todo (*1*) need to implement to work on node
+        #TODO: *1 need to implement to work on node
         env = {}
         env["TMPDIR"] = self.cuisine.core.dir_paths["tmpDir"]
         cmd = "$binDir/core -nid %s -gid %s -c $cfgDir/core/g8os.toml" % (

@@ -1,46 +1,46 @@
-## Samba
+# Samba
 
-```py
+```python
 j.sal.samba
 ```
 
-### This library enables the user to do the followig:
+## This library enables the user to do the followig:
 
-* Add, remove, list Samba shares
+- Add, remove, list Samba shares
 
-```py
+```python
 j.sal.samba.addShare(sharename, path, options)
     # options variable is a dictionary of options
 j.sal.samba.removeShare(sharename)
 j.sal.samba.listShares()
 ```
 
-* Add, remove, list Samba subshares
+- Add, remove, list Samba subshares
 
-```py
+```python
 j.sal.samba.addSubShare(sharename, sharepath)
 j.sal.samba.removeSubShare(sharename, sharepath)
 j.sal.samba.listSubShares(path)
 ```
 
-* Searches for a share or a subshare with it's name and returns it as an object
+- Searches for a share or a subshare with it's name and returns it as an object
 
-```py
+```python
 j.sal.samba.getShare(sharename)
 j.sal.samba.getSubShare(sharename)
 ```
 
-* Add, remove, list Samba users
+- Add, remove, list Samba users
 
-```py
+```python
 j.sal.samba.addUser(username, password)
 j.sal.samba.removeUser(username)
 j.sal.samba.listUsers()
 ```
 
-* Granting and Revoking users' access over shares
+- Granting and Revoking users' access over shares
 
-```py
+```python
 j.sal.samba.grantaccess(username, sharename, sharepath, readonly)
 j.sal.samba.revokeaccess(username, sharename, sharepath, readonly)
     # readonly is a boolean variable
@@ -50,8 +50,7 @@ The method `commit` must be called to apply all pending changes to shares:
 
 `j.sal.samba.commitShare()`
 
-
-### Here is an example:
+## Here is an example:
 
 ```python
 from JumpScale import j

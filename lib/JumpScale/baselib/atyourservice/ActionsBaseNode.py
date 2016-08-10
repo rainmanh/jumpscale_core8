@@ -12,9 +12,10 @@ class ActionsBaseNode:
 
     def installFiles(self):
 
-        #@todo (*1*) I think is not optimally designed, or we work with fuse or without
+        #TODO: *1 I think is not optimally designed, or we work with fuse or without
         # if without we need to create a library function on e.g. AYSFS which allows someone to connect to G8OS Stor
-        # and then call this library to expand the content locally, this should be done through arguments  ($...)
+        # and then call this library to expand the content locally, this should
+        # be done through arguments  ($...)
 
         from urllib.error import HTTPError
 
@@ -47,13 +48,15 @@ class ActionsBaseNode:
                         if j.data.hash.md5(path) == hash:
                             continue
 
-                    url = "%s/dedupe/files/%s/%s/%s" % (addr, hash[0], hash[1], hash)
-                    value, unit = j.data.units.bytes.converToBestUnit(int(size))  # @todo typo?  (*1*)
+                    url = "%s/dedupe/files/%s/%s/%s" % (
+                        addr, hash[0], hash[1], hash)
+                    value, unit = j.data.units.bytes.converToBestUnit(
+                        int(size))  # TODO: typo?  *1
                     print("downloading %s (%s %s)" % (path, value, unit))
                     unit = unit if unit != '' else 'B'
                     conn.download(url, path)
 
-                    # @TODO need a way to know if the file need to be executable or not
+                    # TODO: need a way to know if the file need to be executable or not
                     j.sal.fs.chmod(path, 0o775)
 
                 break
@@ -63,7 +66,8 @@ class ActionsBaseNode:
                 port = client.hrd.getInt('ssh.port')
                 root = client.hrd.getStr('root')
                 src = '%s:%s/dedupe/md/%s' % (addr, root, flist)
-                j.sal.fs.copyDirTree(src, mdPath, deletefirst=True, overwriteFiles=True, ssh=True, sshport=port, recursive=False)
+                j.sal.fs.copyDirTree(
+                    src, mdPath, deletefirst=True, overwriteFiles=True, ssh=True, sshport=port, recursive=False)
 
                 content = j.sal.fs.fileGetContents(mdPath)
                 for line in content.splitlines():
@@ -75,13 +79,16 @@ class ActionsBaseNode:
                         if j.data.hash.md5(path) == hash:
                             continue
 
-                    src = "%s:%s/dedupe/files/%s/%s/%s" % (addr, root, hash[0], hash[1], hash)
-                    value, unit = j.data.units.bytes.converToBestUnit(int(size))
+                    src = "%s:%s/dedupe/files/%s/%s/%s" % (
+                        addr, root, hash[0], hash[1], hash)
+                    value, unit = j.data.units.bytes.converToBestUnit(
+                        int(size))
                     unit = unit if unit != '' else 'B'
                     print("downloading %s (%s %s)" % (path, value, unit))
-                    j.sal.fs.copyDirTree(src, path, deletefirst=False, overwriteFiles=False, ssh=True, sshport=port, recursive=False)
+                    j.sal.fs.copyDirTree(
+                        src, path, deletefirst=False, overwriteFiles=False, ssh=True, sshport=port, recursive=False)
 
-                    # @TODO need a way to know if the file need to be executable or not
+                    # TODO: need a way to know if the file need to be executable or not
                     j.sal.fs.chmod(path, 0o775)
 
                 break
@@ -129,7 +136,8 @@ class ActionsBaseNode:
 
             if self.service.hrd_template.exists("ubuntu.packages"):
                 packages = self.service.hrd_template.getList("ubuntu.packages")
-                packages = [pkg.strip() for pkg in packages if pkg.strip() != ""]
+                packages = [pkg.strip()
+                            for pkg in packages if pkg.strip() != ""]
                 if packages:
                     j.sal.ubuntu.apt_install(" ".join(packages))
                     # j.sal.process.execute("apt-get install -y -f %s" % " ".join(packages), die=True)
@@ -181,7 +189,8 @@ class ActionsBaseNode:
             log("Starting %s:%s" % (domain, name))
 
             if startupmethod == 'upstart':
-                # check if we are in our docker image which uses myinit instead of upstart
+                # check if we are in our docker image which uses myinit instead
+                # of upstart
                 if j.sal.fs.exists(path="/etc/my_init.d/"):
                     cmd2 = "%s %s" % (tcmd, targs)
                     extracmds = ""
@@ -190,22 +199,26 @@ class ActionsBaseNode:
                         extracmds = "\n".join(parts[:-1])
                         cmd2 = parts[-1]
 
-                    C = "#!/bin/sh\nset -e\ncd %s\nrm -f /var/log/%s.log\n%s\nexec %s >>/var/log/%s.log 2>&1\n" % (cwd, name, extracmds, cmd2, name)
+                    C = "#!/bin/sh\nset -e\ncd %s\nrm -f /var/log/%s.log\n%s\nexec %s >>/var/log/%s.log 2>&1\n" % (
+                        cwd, name, extracmds, cmd2, name)
                     j.sal.fs.remove("/var/log/%s.log" % name)
                     j.sal.fs.createDir("/etc/service/%s" % name)
                     path2 = "/etc/service/%s/run" % name
                     j.sal.fs.writeFile(path2, C)
                     j.sal.fs.chmod(path2, 0o770)
-                    j.sal.process.execute("sv start %s" % name, die=False, outputToStdout=False, outputStderr=False, captureout=False)
+                    j.sal.process.execute(
+                        "sv start %s" % name, die=False, outputToStdout=False, outputStderr=False, captureout=False)
                 else:
                     j.sal.ubuntu.service_install(name, tcmd, pwd=cwd, env=env)
                     j.sal.ubuntu.service_start(name)
 
             elif startupmethod == "tmux":
-                j.tools.cuisine.local.tmux.executeInScreen(domain, name, tcmd + " " + targs, cwd=cwd, env=env, user=tuser)  # , newscr=True)
+                j.tools.cuisine.local.tmux.executeInScreen(
+                    domain, name, tcmd + " " + targs, cwd=cwd, env=env, user=tuser)  # , newscr=True)
 
             else:
-                raise j.exceptions.RuntimeError("startup method not known or disabled:'%s'" % startupmethod)
+                raise j.exceptions.RuntimeError(
+                    "startup method not known or disabled:'%s'" % startupmethod)
 
                 # if msg=="":
                 #     pids=self.getPids(ifNoPidFail=False,wait=False)
@@ -246,11 +259,14 @@ class ActionsBaseNode:
             if self.service.getTCPPorts() == [0]:
                 print('Done ...')
             elif self.service.getTCPPorts() != []:
-                ports = ",".join([str(item) for item in self.service.getTCPPorts()])
-                msg = "Could not start:%s, could not connect to ports %s." % (self.service, ports)
+                ports = ",".join([str(item)
+                                  for item in self.service.getTCPPorts()])
+                msg = "Could not start:%s, could not connect to ports %s." % (
+                    self.service, ports)
                 j.events.opserror_critical(msg, "service.start.failed.ports")
             else:
-                j.events.opserror_critical("could not start:%s" % self.service, "service.start.failed.other")
+                j.events.opserror_critical(
+                    "could not start:%s" % self.service, "service.start.failed.other")
 
     def stop(self):
         """
@@ -282,7 +298,8 @@ class ActionsBaseNode:
 
             if j.sal.fs.exists(path="/etc/my_init.d/%s" % name):
                 print("stop through myinitd:%s" % name)
-                j.sal.process.execute("sv stop %s" % name, die=False, outputToStdout=False, outputStderr=False, captureout=False)
+                j.sal.process.execute("sv stop %s" % name, die=False,
+                                      outputToStdout=False, outputStderr=False, captureout=False)
             elif startupmethod == "upstart":
                 print("stop through upstart:%s" % name)
                 j.sal.ubuntu.service_stop(name)
@@ -319,7 +336,8 @@ class ActionsBaseNode:
             for port in self.service.getTCPPorts(process):
                 pids.update(j.sal.process.getPidsByPort(port))
             if process.get('filterstr', None):
-                pids.update(j.sal.process.getPidsByFilter(process['filterstr']))
+                pids.update(j.sal.process.getPidsByFilter(
+                    process['filterstr']))
         return list(pids)
 
     def halt(self):
@@ -331,7 +349,8 @@ class ActionsBaseNode:
             if pid not in currentpids:
                 j.sal.process.kill(pid, signal.SIGKILL)
         if not self.check_down(self.service):
-            j.events.opserror_critical("could not halt:%s" % self, "service.halt")
+            j.events.opserror_critical(
+                "could not halt:%s" % self, "service.halt")
         return True
 
     def check_up(self, wait=True):
@@ -345,7 +364,8 @@ class ActionsBaseNode:
                 domain, name = self._getDomainName(process)
                 if nbr is not None:
                     name = "%s.%d" % (name, i)
-                # check if we are in our docker image which uses myinit instead of upstart
+                # check if we are in our docker image which uses myinit instead
+                # of upstart
                 if j.sal.fs.exists(path="/etc/my_init.d/"):
                     _, res, _ = j.sal.process.execute("sv status %s" % name, die=False,
                                                       outputToStdout=False, outputStderr=False, captureout=True)
@@ -376,7 +396,8 @@ class ActionsBaseNode:
                     filterstr = process["filterstr"].strip()
 
                     if filterstr == "":
-                        raise j.exceptions.RuntimeError("Process filterstr cannot be empty.")
+                        raise j.exceptions.RuntimeError(
+                            "Process filterstr cannot be empty.")
 
                     start = j.data.time.getTimeEpoch()
                     now = start
@@ -425,7 +446,8 @@ class ActionsBaseNode:
                 # no ports defined
                 filterstr = process["filterstr"].strip()
                 if filterstr == "":
-                    raise j.exceptions.RuntimeError("Process filterstr cannot be empty.")
+                    raise j.exceptions.RuntimeError(
+                        "Process filterstr cannot be empty.")
                 return j.sal.process.checkProcessRunning(filterstr) == False
 
         for process in self.service.getProcessDicts():
@@ -449,8 +471,10 @@ class ActionsBaseNode:
 
         build_host = None
         if j.data.types.string.check(build_server):
-            domain, name, instance, role = j.atyourservice._parseKey(build_server)
-            build_host = j.atyourservice.getService(domain=domain, name=name, instance=instance, role=role)
+            domain, name, instance, role = j.atyourservice._parseKey(
+                build_server)
+            build_host = j.atyourservice.getService(
+                domain=domain, name=name, instance=instance, role=role)
         else:
             build_host = build_server
 
@@ -465,7 +489,8 @@ class ActionsBaseNode:
         error = ""
 
         try:
-            # make sure to clean old service that could still be in the ays_repo
+            # make sure to clean old service that could still be in the
+            # ays_repo
             j.atyourservice.remove(name='docker_build', instance=self.name)
 
             data = {
@@ -475,7 +500,8 @@ class ActionsBaseNode:
                 'docker.upload': image_push,
             }
             print("init docker_build")
-            docker_build = j.atyourservice.new(name='docker_build', instance=self.name, args=data, parent=build_host)
+            docker_build = j.atyourservice.new(
+                name='docker_build', instance=self.name, args=data, parent=build_host)
 
             print("deploy docker on build server %s" % build_host)
             j.atyourservice.apply()  # deploy docker in build server
@@ -485,18 +511,23 @@ class ActionsBaseNode:
 
             # remove key from know hosts, cause this is liklely that the key will change at each build because
             # we hit a newly created docker container each time.
-            j.sal.process.execute('ssh-keygen -f "/root/.ssh/known_hosts" -R [%s]:%s' % (docker_addr, docker_port))
+            j.sal.process.execute(
+                'ssh-keygen -f "/root/.ssh/known_hosts" -R [%s]:%s' % (docker_addr, docker_port))
 
-            dockerExecutor = j.tools.executor.getSSHBased(docker_addr, docker_port)
-            # clean service tempates in docker to be sure we have the local version.
+            dockerExecutor = j.tools.executor.getSSHBased(
+                docker_addr, docker_port)
+            # clean service tempates in docker to be sure we have the local
+            # version.
             if dockerExecutor.cuisine.core.dir_exists(self.path):
-                dockerExecutor.cuisine.core.dir_remove(self.path, recursive=True)
+                dockerExecutor.cuisine.core.dir_remove(
+                    self.path, recursive=True)
             # upload local template inside the docker.
             dockerExecutor.upload(self.path, self.path)
 
             if syncLocalJumpscale:
                 print("upload jumpscale core lib to build docker.")
-                dockerExecutor.upload("/opt/code/github/jumpscale/jumpscale_core8/lib/", "/opt/code/github/jumpscale/jumpscale_core8/lib/")
+                dockerExecutor.upload("/opt/code/github/jumpscale/jumpscale_core8/lib/",
+                                      "/opt/code/github/jumpscale/jumpscale_core8/lib/")
 
             print("start build of %s" % self)
             dockerExecutor.execute("ays build -n %s" % self.name)
@@ -526,7 +557,8 @@ class ActionsBaseNode:
             if debug == False:
                 docker_build.stop()
                 docker_build.removedata()
-                j.atyourservice.remove(name=docker_build.name, instance=docker_build.instance)
+                j.atyourservice.remove(
+                    name=docker_build.name, instance=docker_build.instance)
             if error != "":
                 error = "Could not build:%s\n%s" % (self, error)
                 j.events.opserror_critical(error, "ays.build")

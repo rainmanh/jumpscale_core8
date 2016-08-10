@@ -4,12 +4,14 @@ from handlers.DemoHandlerMS1 import *
 from TelegramBot import *
 import os
 
+
 class TelegramFactory:
+
     def __init__(self):
         self.__jslocation__ = "j.tools.telegrambot"
 
     def _getFactoryEnabledClasses(self):
-        return ([("","TelegramBot",TelegramBot())])  
+        return ([("", "TelegramBot", TelegramBot())])
 
     def get(self, telegramkey=""):
         """
@@ -18,10 +20,10 @@ class TelegramFactory:
         set as follows: export telegram=1124...
         """
 
-        if telegramkey=="":
+        if telegramkey == "":
             if "telegram" not in os.environ:
                 raise j.exceptions.Input("Cannot find env var telegram please in shell do: export telegram=1124...")
-            telegramkey=os.environ["telegram"]
+            telegramkey = os.environ["telegram"]
 
         return TelegramBot(telegramkey)
 
@@ -31,7 +33,7 @@ class TelegramFactory:
         tg.addDemoHandler()
         tg.start()
         """
-        tg=self.get()
+        tg = self.get()
         tg.addDemoHandler()
         tg.start()
 
@@ -44,9 +46,9 @@ class TelegramFactory:
         handler = DemoHandlerMS1()
         tg.api.add_handler(handler)
         tg.start()
-        
+
         """
-        tg=j.tools.telegrambot.get()
+        tg = j.tools.telegrambot.get()
         handler = DemoHandlerMS1()
         tg.api.add_handler(handler)
-        tg.start() 
+        tg.start()

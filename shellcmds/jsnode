@@ -18,7 +18,7 @@ parser.add_argument('--roles', dest='roles', required=False, type=str,
 
 # check redis is there if not try to start
 
-# TODO (*2*) ---> Re-add when AYS is ready
+# TODO *2 ---> Re-add when AYS is ready
 #if not j.clients.redis.isRunning('system'):
 #    raise j.exceptions.RuntimeError("System redis is not installed")
 
@@ -56,7 +56,7 @@ def _deleteNode(nid):
     print('Node %s deleted successfully' % (nid))
 
 if opts.action in ['delete', 'enable', 'disable', 'addrole', 'list', 'deleterole']:
-    # TODO (*3*) get mongoengine connection from AYS
+    # TODO *3 get mongoengine connection from AYS
     j.data.models.system.connect2mongo()
 
     if opts.action == 'list':

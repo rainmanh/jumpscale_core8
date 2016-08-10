@@ -16,17 +16,18 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.vulcand"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class Vulcand(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
         self.cuisine = cuisine
 
-
     @actionrun(action=True)
     def build(self):
-        C='''
+        C = '''
         #!/bin/bash
         set -e
         source /bd_build/buildconfig
@@ -54,6 +55,6 @@ class Vulcand(base):
         rm -rf $goDir
 
         '''
-        C=self.cuisine.bash.replaceEnvironInText(C)
-        self.cuisine.core.run_script(C,profile=True)
+        C = self.cuisine.bash.replaceEnvironInText(C)
+        self.cuisine.core.run_script(C, profile=True)
         self.cuisine.bash.addPath("$base/bin")

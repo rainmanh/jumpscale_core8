@@ -1,4 +1,4 @@
-## IPython Tricks
+# IPython Tricks
 
 The easiest way to get to know the JumpScale well is to start the IPython interactive shell.
 
@@ -8,12 +8,11 @@ Execute the following command:
 js
 ```
 
-### Play with the default loaded libraries
+## Play with the default loaded libraries
 
 You can walk around in the JumpScale namespace by using `j.` and hit the tab key.
 
-
-### Get info about a method for a JumpScale lib
+## Get info about a method for a JumpScale lib
 
 In the interactive shell type: `j.sal.fs.createDir?`
 
@@ -28,12 +27,11 @@ if newdir was only given as a directory name, the new directory will be created 
 if newdir was given as a complete path with the directory name, the new directory will be created in the specified path
 ```
 
-### How to know where a library is on the file system
+## How to know where a library is on the file system
 
-See above, look at help of method, the *File: ...* shows where the file is that implements the method.
+See above, look at help of method, the _File: ..._ shows where the file is that implements the method.
 
-
-### How to load extra modules in JumpScale script
+## How to load extra modules in JumpScale script
 
 Type `JumpScale.` and then hit the tab key:
 
@@ -45,9 +43,9 @@ This will show you which libs can be imported.
 
 The only relevant ones for now to start with are:
 
--   JumpScale.baselib: a standard set of quite a lot of base libraries
--   JumpScale.grid: the core grid system
--   JumpScale.portal: the core portal system
+- JumpScale.baselib: a standard set of quite a lot of base libraries
+- JumpScale.grid: the core grid system
+- JumpScale.portal: the core portal system
 
 To drill deeper:
 

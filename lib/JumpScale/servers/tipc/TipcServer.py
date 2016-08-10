@@ -2,7 +2,6 @@ from JumpScale import j
 import socket
 
 
-
 class TipcServer:
 
     def __init__(self, servaddr, sslorg=None, ssluser=None, sslkeyvaluestor=None):
@@ -13,7 +12,7 @@ class TipcServer:
         self.daemon = j.servers.base.getDaemon(sslorg=sslorg, ssluser=ssluser, sslkeyvaluestor=sslkeyvaluestor)
 
     def start(self):
-  
+
         self.socket = socket.socket(family=socket.AF_TIPC, type=socket.SOCK_RDM)
         self.socket.bind(self.srvaddr)
         print(('server started, addr:', self.socket.getsockname()))
@@ -24,8 +23,8 @@ class TipcServer:
 
     def handleData(self, data, addr):
         category, cmd, cmddata, informat, returnformat, sessionid = j.servers.base._unserializeBinSend(data)
-        resultcode, returnformat, result = self.daemon.processRPCUnSerialized(cmd, informat, returnformat, cmddata, \
-            sessionid, category=category)
+        resultcode, returnformat, result = self.daemon.processRPCUnSerialized(cmd, informat, returnformat, cmddata,
+                                                                              sessionid, category=category)
         return j.servers.base._serializeBinReturn(resultcode, returnformat, result)
 
     def addCMDsInterface(self, MyCommands, category=""):

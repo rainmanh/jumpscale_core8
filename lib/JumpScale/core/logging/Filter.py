@@ -1,7 +1,9 @@
 from JumpScale import j
 
+
 class ModuleFilter:
     """ModuleFilter filter out given modules"""
+
     def __init__(self, modules):
         """
         modules is an iterable containing the name of the modules to filter

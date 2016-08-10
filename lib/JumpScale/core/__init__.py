@@ -21,7 +21,8 @@ def _setup_stacktrace_hook():
 
         try:
             import sys
-            outputs.append((sys.stderr.write, sys.stderr.flush, lambda: None, ))
+            outputs.append(
+                (sys.stderr.write, sys.stderr.flush, lambda: None, ))
         except Exception:
             pass
 
@@ -202,10 +203,7 @@ def _setup_stacktrace_hook():
 try:
     _setup_stacktrace_hook()
 except Exception as e:
-    print ("could not install stacktrace hook")
+    print("could not install stacktrace hook")
     pass
 # Remove the no longer needed function
 del _setup_stacktrace_hook
-
-
-

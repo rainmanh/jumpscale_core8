@@ -5,13 +5,14 @@ import hmac
 from JumpScale import j
 
 try:
-    import fcrypt as crypt 
+    import fcrypt as crypt
 except ImportError:
     import crypt
 
 DB = 'jumpscale_system'
 
 default_meta = {'allow_inheritance': True, "db_alias": DB}
+
 
 def extend(a, b):
     if isinstance(a, list):
@@ -27,11 +28,14 @@ def extend(a, b):
     else:
         return b
 
+
 class ModelBase:
     DoesNotExist = DoesNotExist
 
-    gid = IntField(default=lambda: j.application.whoAmI.gid if j.application.whoAmI else 0)
-    nid = IntField(default=lambda: j.application.whoAmI.nid if j.application.whoAmI else 0)
+    gid = IntField(
+        default=lambda: j.application.whoAmI.gid if j.application.whoAmI else 0)
+    nid = IntField(
+        default=lambda: j.application.whoAmI.nid if j.application.whoAmI else 0)
     epoch = IntField(default=j.data.time.getTimeEpoch)
     meta = default_meta
 
@@ -154,12 +158,14 @@ class Errorcondition(ModelBase, Document):
     gid = IntField(required=True)
     aid = IntField(default=0)
     pid = IntField(default=0)
-    jid = StringField(default='')  #@todo (*2*) is this right, string???
+    jid = StringField(default='')  # TODO: *2 is this right, string???
     masterjid = IntField(default=0)
     appname = StringField(default="")
     level = IntField(default=1, required=True)
-    type = StringField(choices=("BUG", "PERF", "OPS", "UNKNOWN"), default="UNKNOWN", required=True)
-    state = StringField(choices=("NEW", "ALERT", "CLOSED"), default="NEW", required=True)
+    type = StringField(choices=("BUG", "PERF", "OPS", "UNKNOWN"),
+                       default="UNKNOWN", required=True)
+    state = StringField(choices=("NEW", "ALERT", "CLOSED"),
+                        default="NEW", required=True)
     # StringField() <--- available starting version 0.9
     errormessage = StringField(default="")
     errormessagePub = StringField(default="")  # StringField()
@@ -185,8 +191,10 @@ class Log(ModelBase, Document):
     appname = StringField(default="")
     level = IntField(default=1, required=True)
     message = StringField(default='')
-    type = StringField(choices=("BUG", "PERF", "OPS", "UNKNOWN"), default="UNKNOWN", required=True)
-    state = StringField(choices=("NEW", "ALERT", "CLOSED"), default="NEW", required=True)
+    type = StringField(choices=("BUG", "PERF", "OPS", "UNKNOWN"),
+                       default="UNKNOWN", required=True)
+    state = StringField(choices=("NEW", "ALERT", "CLOSED"),
+                        default="NEW", required=True)
     # StringField() <--- available starting version 0.9
     category = StringField(default="")
     tags = StringField(default="")
@@ -214,7 +222,8 @@ class Job(EmbeddedDocument):
     data = StringField(default='')
     streams = ListField(StringField())
     level = IntField()
-    state = StringField(required=True, choices=('SUCCESS', 'ERROR', 'TIMEOUT', 'KILLED', 'QUEUED', 'RUNNING'))
+    state = StringField(required=True, choices=(
+        'SUCCESS', 'ERROR', 'TIMEOUT', 'KILLED', 'QUEUED', 'RUNNING'))
     starttime = IntField()
     time = IntField()
     tags = StringField()
@@ -258,6 +267,7 @@ class Audit(ModelBase, Document):
         {'fields': ['epoch'], 'expireAfterSeconds': 3600 * 24 * 5}
     ], 'allow_inheritance': True, "db_alias": DB})
 
+
 class Disk(ModelBase, Document):
     partnr = IntField()
     path = StringField(default='')
@@ -290,12 +300,13 @@ class VDisk(ModelBase, Document):
     role = ListField(StringField())
     type = ListField(StringField())
     order = IntField()
-    devicename = StringField(default='') #if known device name in vmachine
+    devicename = StringField(default='')  # if known device name in vmachine
     lastcheck = IntField(default=j.data.time.getTimeEpoch())
     backup = BooleanField()
     backuplocation = StringField()
-    backuptime  = IntField(default=j.data.time.getTimeEpoch())
+    backuptime = IntField(default=j.data.time.getTimeEpoch())
     backupexpiration = IntField()
+
 
 class Alert(ModelBase, Document):
     username = StringField(default='')
@@ -305,7 +316,8 @@ class Alert(ModelBase, Document):
     # dot notation e.g. machine.start.failed
     category = StringField(default='')
     tags = StringField(default='')  # e.g. machine:2323
-    state = StringField(choices=("NEW","ALERT","CLOSED"), default='NEW', required=True)
+    state = StringField(choices=("NEW", "ALERT", "CLOSED"),
+                        default='NEW', required=True)
     history = ListField(DictField())
     # first time there was an error condition linked to this alert
     inittime = IntField(default=j.data.time.getTimeEpoch())
@@ -331,7 +343,8 @@ class Machine(ModelBase, Document):
     ipaddr = ListField(StringField())
     active = BooleanField()
     # STARTED,STOPPED,RUNNING,FROZEN,CONFIGURED,DELETED
-    state = StringField(choices=("STARTED","STOPPED","RUNNING","FROZEN","CONFIGURED","DELETED"), default='CONFIGURED', required=True)
+    state = StringField(choices=("STARTED", "STOPPED", "RUNNING", "FROZEN",
+                                 "CONFIGURED", "DELETED"), default='CONFIGURED', required=True)
     mem = IntField()  # $in MB
     cpucore = IntField()
     description = StringField(default='')
@@ -405,7 +418,8 @@ class Test(ModelBase, Document):
     name = StringField(default='')
     testrun = StringField(default='')
     path = StringField(default='')
-    state = StringField(choices=("OK", "ERROR", "DISABLED"), default='OK', required=True)
+    state = StringField(choices=("OK", "ERROR", "DISABLED"),
+                        default='OK', required=True)
     priority = IntField()  # lower is highest priority
     organization = StringField(default='')
     author = StringField(default='')
@@ -463,7 +477,7 @@ class SessionCache(ModelBase, Document):
     _expire_at = IntField(default=None)
     guid = StringField()
     meta = extend(default_meta, {'indexes':
-                                    [{'fields': ['epoch'], 'expireAfterSeconds': 432000}],
+                                 [{'fields': ['epoch'], 'expireAfterSeconds': 432000}],
                                  'allow_inheritance': True,
                                  'db_alias': DB})
 

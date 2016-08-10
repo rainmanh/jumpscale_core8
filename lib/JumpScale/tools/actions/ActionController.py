@@ -8,8 +8,10 @@ from JumpScale import j
 from Action import *
 import traceback
 
+
 class ActionController:
     '''Manager controlling actions'''
+
     def __init__(self, _output=None, _width=70):
         self.__jslocation__ = "j.actions"
         self.logger = j.logger.get("j.actions")
@@ -17,7 +19,7 @@ class ActionController:
         # self._width = _width
         self.rememberDone = False
         self._actions = {}
-        self.lastOnes=[]
+        self.lastOnes = []
         self.last = None
         self._runid = j.core.db.get("actions.runid").decode() if j.core.db.exists("actions.runid") else None
         showonly = j.core.db.hget("actions.showonly", self._runid)
@@ -26,36 +28,35 @@ class ActionController:
         else:
             self._showonly = showonly.decode() == "1"
 
-    def setRunId(self, runid,reset=False):
+    def setRunId(self, runid, reset=False):
         self._runid = str(runid)
         j.core.db.set("actions.runid", self._runid.encode())
         if reset:
-            j.core.db.delete("actions.%s"%self.runid)
+            j.core.db.delete("actions.%s" % self.runid)
 
     @property
     def showonly(self):
         return self._showonly
 
     @showonly.setter
-    def showonly(self,val):
-        if val=="1" or val==1 or val:
-            j.core.db.hset("actions.showonly",self._runid,"1".encode())
-            self._showonly=True
+    def showonly(self, val):
+        if val == "1" or val == 1 or val:
+            j.core.db.hset("actions.showonly", self._runid, "1".encode())
+            self._showonly = True
         else:
-            j.core.db.hset("actions.showonly",self._runid,"0".encode())
-            self._showonly=False
+            j.core.db.hset("actions.showonly", self._runid, "0".encode())
+            self._showonly = False
 
     @property
     def runid(self):
-        if self._runid=="" or self._runid==None:
+        if self._runid == "" or self._runid == None:
             raise j.exceptions.RuntimeError("runid cannot be empty, please set with j.actions.setRunId(...)")
         return str(self._runid)
 
-    def get(self,actionkey):
+    def get(self, actionkey):
         return self.actions[actionkey]
 
-
-    def reset(self, all=False, runid=None,prefix=None):
+    def reset(self, all=False, runid=None, prefix=None):
         """
         @param is the key under actions we need to remove
         """
@@ -63,37 +64,37 @@ class ActionController:
             for item in j.core.db.keys("actions.*"):
                 item = item.decode().split(".", 1)[1]
                 self.logger.info("delete:%s" % item)
-                self.reset(runid=item,prefix=prefix)
+                self.reset(runid=item, prefix=prefix)
         else:
-            if prefix==None:
+            if prefix == None:
                 self._actions = {}
                 if runid is None:
-                    j.core.db.delete("actions.%s"%self.runid)
+                    j.core.db.delete("actions.%s" % self.runid)
                 else:
-                    self._runid=runid
-                    j.core.db.delete("actions.%s"%runid)
+                    self._runid = runid
+                    j.core.db.delete("actions.%s" % runid)
             else:
-                if runid!=None:
-                    self._runid=runid
-                key="actions.%s"%self.runid
+                if runid != None:
+                    self._runid = runid
+                key = "actions.%s" % self.runid
                 for hkey in j.core.db.hkeys(key):
-                    hkey=hkey.decode()
+                    hkey = hkey.decode()
                     if hkey.startswith(prefix):
-                        j.core.db.hdel(key,hkey)
+                        j.core.db.hdel(key, hkey)
 
     def resetAll(self):
         self.reset(True)
 
-    def setState(self,state="INIT"):
-        for key,action in self.actions.items():
-            action.state=state
+    def setState(self, state="INIT"):
+        for key, action in self.actions.items():
+            action.state = state
             action.save()
 
     def selectAction(self):
         return j.tools.console.askChoice(j.actions.actions)
 
-    def add(self, action,actionRecover=None,args=(),kwargs={},die=True,stdOutput=False,errorOutput=True,retry=0,serviceObj=None,\
-            deps=None,executeNow=True,selfGeneratorCode="",force=True,showout=None,actionshow=True,dynamicArguments={}):
+    def add(self, action, actionRecover=None, args=(), kwargs={}, die=True, stdOutput=False, errorOutput=True, retry=0, serviceObj=None,
+            deps=None, executeNow=True, selfGeneratorCode="", force=True, showout=None, actionshow=True, dynamicArguments={}):
         '''
         self.doc is in doc string of method
         specify recover actions in the description
@@ -118,33 +119,32 @@ class ActionController:
 
         # from pudb import set_trace; set_trace()
 
-        if showout==True:
-            stdOutput=True
-        if showout==False:
-            stdOutput=False
+        if showout == True:
+            stdOutput = True
+        if showout == False:
+            stdOutput = False
 
-        l=traceback.format_stack()
-        tbline=l[-2].split("\n")[0].replace("'","")
-        fpath,linenr,remaining=tbline.split(",",2)
-        fpath=fpath.split("\"")[1].strip()
-        linenr=int(linenr.split(" ")[-1])
+        l = traceback.format_stack()
+        tbline = l[-2].split("\n")[0].replace("'", "")
+        fpath, linenr, remaining = tbline.split(",", 2)
+        fpath = fpath.split("\"")[1].strip()
+        linenr = int(linenr.split(" ")[-1])
 
         if j.data.types.dict.check(args):
             raise j.exceptions.RuntimeError("cannot create action: args should be a list, kwargs a dict, input error")
 
-        action=Action(action,runid=self.runid,actionRecover=actionRecover,args=args,kwargs=kwargs,die=die,stdOutput=stdOutput,errorOutput=errorOutput,\
-            retry=retry,serviceObj=serviceObj,deps=deps,selfGeneratorCode=selfGeneratorCode,force=force,actionshow=actionshow,dynamicArguments=dynamicArguments)
+        action = Action(action, runid=self.runid, actionRecover=actionRecover, args=args, kwargs=kwargs, die=die, stdOutput=stdOutput, errorOutput=errorOutput,
+                        retry=retry, serviceObj=serviceObj, deps=deps, selfGeneratorCode=selfGeneratorCode, force=force, actionshow=actionshow, dynamicArguments=dynamicArguments)
 
-        action.calling_linenr=linenr
-        action.calling_path=fpath
+        action.calling_linenr = linenr
+        action.calling_path = fpath
 
-
-        while len(self.lastOnes)>100:
+        while len(self.lastOnes) > 100:
             self.lastOnes.pop()
         self.lastOnes.append(action)
 
-        self._actions[action.key]=action
-        self.last=action
+        self._actions[action.key] = action
+        self.last = action
         if executeNow:
             # print ("ACTION ADD:%s"%action.key)
             action.execute()
@@ -152,27 +152,27 @@ class ActionController:
             action.save(True)
         return action
 
-    def addToStack(self,action):
+    def addToStack(self, action):
         if action not in self.stack:
             self.stack.append(action)
 
-    def delFromStack(self,action):
+    def delFromStack(self, action):
         if action in self.stack:
             self.stack.pop(self.stack.index(action))
 
     @property
     def stack(self):
-        val=j.core.db.hget("actions.stack",self.runid)
-        if val==None:
-            val2=[]
+        val = j.core.db.hget("actions.stack", self.runid)
+        if val == None:
+            val2 = []
         else:
-            val2=j.data.serializer.json.loads(val)
+            val2 = j.data.serializer.json.loads(val)
         return val2
 
     @stack.setter
-    def stack(self,val):
-        val2=j.data.serializer.json.dumps(val)
-        j.core.db.hset("actions.stack",self.runid,val2)
+    def stack(self, val):
+        val2 = j.data.serializer.json.dumps(val)
+        j.core.db.hset("actions.stack", self.runid, val2)
 
     # def start(self, action,actionRecover=None,args={},die=True,stdOutput=False,errorOutput=True,retry=1,serviceObj=None,deps=[],runid="",force=True):
     #     """
@@ -183,8 +183,8 @@ class ActionController:
     #     self.add(action,actionRecover=actionRecover,args=args,die=die,stdOutput=stdOutput,errorOutput=errorOutput,retry=retry,serviceObj=serviceObj,deps=deps,executeNow=True,force=force)
 
     def gettodo(self):
-        todo=[]
-        for key,action in self.actions.items():
+        todo = []
+        for key, action in self.actions.items():
             if action.readyForExecute:
                 todo.append(action)
         return todo
@@ -201,21 +201,18 @@ class ActionController:
                     raise j.exceptions.RuntimeError("cannot execute run:%s, failed action." % (runid))
             todo = self.gettodo()
 
-
     @property
     def actions(self):
-        if self._actions=={}:
-            for key in j.core.db.hkeys("actions.%s"%self.runid):
-                a=Action(runid=self.runid,key=key)
-                self._actions[a.key]=a
+        if self._actions == {}:
+            for key in j.core.db.hkeys("actions.%s" % self.runid):
+                a = Action(runid=self.runid, key=key)
+                self._actions[a.key] = a
         return self._actions
 
     # def showAll(self):
     #     self.showonly=True
 
     #     self.showonly=False
-
-
 
     # def showCompleted(self):
     #     pass

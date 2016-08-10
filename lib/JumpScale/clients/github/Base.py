@@ -38,7 +38,7 @@ class Base:
     def tags(self):
         if "_tags" not in self.__dict__:
             lineAll = ""
-            if self.body==None:
+            if self.body == None:
                 self._tags = j.data.tags.getObject("")
                 return self._tags
             for line in self.body.split("\n"):

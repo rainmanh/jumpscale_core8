@@ -5,9 +5,8 @@ from RedisQueue import RedisQueue
 import itertools
 
 
-
-
 class RedisDict(dict):
+
     def __init__(self, client, key):
         self._key = key
         self._client = client
@@ -44,10 +43,12 @@ class RedisDict(dict):
     def iteritems(self):
         allkeys = self._client.hgetalldict(self._key)
         for key, value in list(allkeys.items()):
-            yield key ,j.data.serializer.json.loads(value)
+            yield key, j.data.serializer.json.loads(value)
+
 
 class Redis(redis.Redis):
     hgetalldict = redis.Redis.hgetall
+
     def getDict(self, key):
         return RedisDict(self, key)
 
@@ -57,6 +58,16 @@ class Redis(redis.Redis):
         else:
             client = redis.Redis(**self.connection_pool.connection_kwargs)
             return RedisQueue(client, name, namespace=namespace)
+
+    def createStoredProcedure(self, path):
+        if not j.sal.fs.exists(path, followlinks=True):
+            path0 = j.sal.fs.joinPaths(j.sal.fs.getcwd(), path)
+        if not j.sal.fs.exists(path0, followlinks=True):
+            j.exceptions.Input(message="cannot find stored procedure on path:%s" %
+                               path, level=1, source="", tags="", msgpub="")
+        lua = j.sal.fs.fileGetContents(path)
+        return self.register_script(lua)
+
 
 class RedisFactory:
 
@@ -86,11 +97,12 @@ class RedisFactory:
 
         if not instance in self._config:
             # hrd = j.application.getAppInstanceHRD(name="redis", instance=instance, parent=None)
-            hrd = j.atyourservice.getService(role='redis', instance=instance).hrd
+            hrd = j.atyourservice.getService(
+                role='redis', instance=instance).hrd
             password = hrd.get('param.passwd')
             port = hrd.getInt('param.port')
             password = None if not password.strip() else password
-            self._config[instance] = {'password': password, 'port':port}
+            self._config[instance] = {'password': password, 'port': port}
 
         return Redis('localhost', self._config[instance]['port'], password=self._config[instance]['password'])
 
@@ -99,7 +111,8 @@ class RedisFactory:
             return RedisQueue(self.get(ipaddr, port, fromcache=False), name, namespace=namespace)
         key = "%s_%s_%s_%s" % (ipaddr, port, name, namespace)
         if key not in self._redisq:
-            self._redisq[key] = RedisQueue(self.get(ipaddr, port), name, namespace=namespace)
+            self._redisq[key] = RedisQueue(
+                self.get(ipaddr, port), name, namespace=namespace)
         return self._redisq[key]
 
     def getPort(self, name):
@@ -109,7 +122,8 @@ class RedisFactory:
             if line.find("port") == 0:
                 port = int(line.split("port ")[1])
                 return port
-        raise j.exceptions.RuntimeError("Could not find redis port in config file %s" % cpath)
+        raise j.exceptions.RuntimeError(
+            "Could not find redis port in config file %s" % cpath)
 
     def isRunning(self, name):
         # tmpl = j.atyourservice.findTemplates('','redis')[0]
@@ -124,7 +138,8 @@ class RedisFactory:
             return False
 
     def _getPaths(self, name):
-        dpath = j.sal.fs.joinPaths(self._cuisine.core.dir_paths["varDir"], 'redis', name)
+        dpath = j.sal.fs.joinPaths(self._cuisine.core.dir_paths[
+                                   "varDir"], 'redis', name)
         cpath = j.sal.fs.joinPaths(dpath, "redis.conf")
         return (dpath, cpath)
 
@@ -139,12 +154,12 @@ class RedisFactory:
         self._cuisine.core.dir_remove(dpath)
         self._cuisine.core.dir_ensure(dpath)
 
-    def configureInstance(self, name, ip="localhost", port=6379, maxram=200, appendonly=True,snapshot=False,slave=(),ismaster=False,passwd=None,unixsocket=False):
+    def configureInstance(self, name, ip="localhost", port=6379, maxram=200, appendonly=True, snapshot=False, slave=(), ismaster=False, passwd=None, unixsocket=False):
         """
         @param maxram = MB of ram
         slave example: (192.168.10.10,8888,asecret)   (ip,port,secret)
         """
-        cmd='sysctl vm.overcommit_memory=1'
+        cmd = 'sysctl vm.overcommit_memory=1'
         self._cuisine.core.run(cmd, die=False, showout=False)
 
         self.emptyInstance(name)
@@ -704,23 +719,24 @@ class RedisFactory:
         """
 
         if unixsocket:
-            C = C.replace("# unixsocket $vardir/redis/$name/redis.sock", "unixsocket $vardir/redis/$name/redis.sock")
+            C = C.replace("# unixsocket $vardir/redis/$name/redis.sock",
+                          "unixsocket $vardir/redis/$name/redis.sock")
             C = C.replace("# unixsocketperm 755", "unixsocketperm 770")
 
         C = C.replace("$name", name)
         C = C.replace("$maxram", str(maxram))
         if port != "":
-             port = "port %s" % port
+            port = "port %s" % port
         C = C.replace("$port", str(port))
         C = C.replace("$vardir", self._cuisine.core.dir_paths["varDir"])
         C = C.replace("$bind", ip)
 
         if ismaster:
-            slave=False
+            slave = False
 
-#        if unixsocket:
-#            C = C.replace("# unixsocket %s/redis/$name/redis.sock" % j.dirs.varDir, "unixsocket %s/redis/$name/redis.sock" % j.dirs.varDir)
-#            C = C.replace("# unixsocketperm 755", "unixsocketperm 770")
+        #        if unixsocket:
+        #            C = C.replace("# unixsocket %s/redis/$name/redis.sock" % j.dirs.varDir, "unixsocket %s/redis/$name/redis.sock" % j.dirs.varDir)
+        #            C = C.replace("# unixsocketperm 755", "unixsocketperm 770")
 
         if appendonly or ismaster:
             C = C.replace("$appendonly", "yes")
@@ -728,30 +744,27 @@ class RedisFactory:
             C = C.replace("$appendonly", "no")
 
         if slave:
-            CONTENT="slaveof %s %s\n"%(slave[0],slave[1])
-            if slave[2]!="":
-                CONTENT+="masterauth %s\n"%slave[2]
-            C = C.replace("$slave",CONTENT)
+            CONTENT = "slaveof %s %s\n" % (slave[0], slave[1])
+            if slave[2] != "":
+                CONTENT += "masterauth %s\n" % slave[2]
+            C = C.replace("$slave", CONTENT)
         else:
-            C = C.replace("$slave","")
+            C = C.replace("$slave", "")
 
-        
-        
         if snapshot:
             C = C.replace("$snapshot", "save 30 1")
         else:
-            C = C.replace("$snapshot","")
-        
-        if passwd!=None:
-            C = C.replace("$passwd", "requirepass %s"%passwd)
-        else:
-            C = C.replace("$passwd","")
-        
-        if ismaster:
-            C=C.replace("#appendfsync always","appendfsync always")
+            C = C.replace("$snapshot", "")
 
-        dpath,cpath=self._getPaths(name)
+        if passwd != None:
+            C = C.replace("$passwd", "requirepass %s" % passwd)
+        else:
+            C = C.replace("$passwd", "")
+
+        if ismaster:
+            C = C.replace("#appendfsync always", "appendfsync always")
+
+        dpath, cpath = self._getPaths(name)
         dbpath = j.sal.fs.joinPaths(dpath, "db")
         self._cuisine.core.dir_ensure(dbpath)
         self._cuisine.core.file_write(cpath, C)
-

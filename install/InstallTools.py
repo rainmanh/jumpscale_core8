@@ -102,7 +102,7 @@ class InstallTools():
     #     from IPython import embed
     #     print((44))
     #     embed()
-    #     #@todo not working yet
+    #     #TODO: not working yet
 
     def log(self,msg, level=None):
         if self.debug:
@@ -317,7 +317,7 @@ class InstallTools():
                         os.symlink(linkto,dstname)
                     except:
                         pass
-                        #@todo very ugly change
+                        #TODO: very ugly change
                 elif self.isDir(srcname):
                     #print "1:%s %s"%(srcname,dstname)
                     self.copyTree(srcname, dstname, keepsymlinks, deletefirst,overwriteFiles=overwriteFiles ,ignoredir=ignoredir)
@@ -774,7 +774,7 @@ class InstallTools():
         Returns the parent of the path:
         /dir1/dir2/file_or_dir -> /dir1/dir2/
         /dir1/dir2/            -> /dir1/
-        @todo why do we have 2 implementations which are almost the same see getParentDirName()
+        TODO: why do we have 2 implementations which are almost the same see getParentDirName()
         """
         parts = path.split(os.sep)
         if parts[-1] == '':
@@ -1424,7 +1424,7 @@ class InstallTools():
 
     def getSSHKeyPathFromAgent(self,keyname,die=True):
         try:
-            #@todo why do we use subprocess here and not self.execute?
+            #TODO: why do we use subprocess here and not self.execute?
             out=subprocess.check_output(["ssh-add","-L"])
         except:
             return None
@@ -1448,7 +1448,7 @@ class InstallTools():
 
     def getSSHKeyFromAgentPub(self,keyname,die=True):
         try:
-            #@todo why do we use subprocess here and not self.execute?
+            #TODO: why do we use subprocess here and not self.execute?
             out=subprocess.check_output(["ssh-add","-L"])
         except:
             return None
@@ -1878,7 +1878,7 @@ class InstallTools():
         if not or more than 1 there will be error
         @param provider e.g. git, github
         """
-        #@todo make sure we use gitlab or github account if properly filled in
+        #TODO: make sure we use gitlab or github account if properly filled in
         repos=self.getGitReposListLocal(provider,account,name)
         for name,path in list(repos.items()):
             print(("push git repo:%s"%path))

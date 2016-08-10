@@ -3,7 +3,7 @@ from JumpScale import j
 
 class GitClient:
 
-    def __init__(self, baseDir):  # NOQA
+    def __init__(self, baseDir, check_path=True):  # NOQA
 
         self._repo = None
         if not j.sal.fs.exists(path=baseDir):
@@ -22,18 +22,22 @@ class GitClient:
         baseDir = baseDir.rstrip("/")
 
         if baseDir.strip() == "":
-            raise j.exceptions.RuntimeError("could not find basepath for .git in %s" % baseDir)
+            raise j.exceptions.RuntimeError(
+                "could not find basepath for .git in %s" % baseDir)
 
         if baseDir.find("/code/") == -1:
             raise j.exceptions.Input(
                 "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
         base = baseDir.split("/code/", 1)[1]
 
-        if not base.startswith('cockpit'):
+        if not base.startswith('cockpit') and check_path:
             if base.count("/") != 2:
                 raise j.exceptions.Input(
                     "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
             self.type, self.account, self.name = base.split("/", 2)
+        elif not check_path:
+            path_parts = base.split('/')
+            self.type, self.account, self.name = 'github', '', j.sal.fs.getBaseName(base)
         else:
             self.type, self.account, self.name = 'github', 'cockpit', 'cockpit'
 
@@ -58,11 +62,13 @@ class GitClient:
 
     @property
     def repo(self):
-        # Load git when we absolutly need it cause it does not work in gevent mode
+        # Load git when we absolutly need it cause it does not work in gevent
+        # mode
         import git
         if not self._repo:
             if not j.sal.fs.exists(self.baseDir):
-                j.tools.cuisine.local.core.run("git config --global http.sslVerify false")
+                j.tools.cuisine.local.core.run(
+                    "git config --global http.sslVerify false")
                 self._clone()
             else:
                 self._repo = git.Repo(self.baseDir)
@@ -139,7 +145,7 @@ class GitClient:
                     result[state].append(_file)
 
         for diff in self.repo.index.diff(None):
-            #@todo does not work, did not show my changes !!! (*1*)
+            #TODO: does not work, did not show my changes !!! *1
             path = diff.a_blob.path
             if checkignore(ignore, path):
                 continue
@@ -157,7 +163,7 @@ class GitClient:
                     result["M"].append(path)
 
         if collapse:
-            result = result["N"]+result["M"]+result["R"]+result["D"]
+            result = result["N"] + result["M"] + result["R"] + result["D"]
         return result
 
     def getUntrackedFiles(self):
@@ -210,7 +216,8 @@ class GitClient:
         @param toepoch = ending epoch
         @return
         """
-        commits = self.getCommitRefs(fromref=fromref, toref=toref, fromepoch=fromepoch, toepoch=toepoch, author=author, paths=paths, files=True)
+        commits = self.getCommitRefs(fromref=fromref, toref=toref, fromepoch=fromepoch,
+                                     toepoch=toepoch, author=author, paths=paths, files=True)
         files = [f for commit in commits for f in commit[3]]
         return list(set(files))
 
@@ -235,9 +242,11 @@ class GitClient:
         commits = list()
         for commit in list(self.repo.iter_commits(paths=paths, **kwargs)):
             if files:
-                commits.append((commit.authored_date, commit.hexsha, commit.author.name, list(commit.stats.files.keys())))
+                commits.append((commit.authored_date, commit.hexsha,
+                                commit.author.name, list(commit.stats.files.keys())))
             else:
-                commits.append((commit.authored_date, commit.hexsha, commit.author.name))
+                commits.append(
+                    (commit.authored_date, commit.hexsha, commit.author.name))
         return commits
 
     def getFileChanges(self, path):
@@ -246,13 +255,14 @@ class GitClient:
         format:
         {'line': [{'commit sha': '', 'author': 'author'}]}
         """
-        # TODO (*3*) limit to max number?
+        # TODO *3 limit to max number?
         diffs = dict()
         blame = self.repo.blame(self.branchName, path)
         for commit, lines in blame:
             for line in lines:
                 diffs[line] = list() if line not in diffs else diffs[line]
-                diffs[line].append({'author': commit.author.name, 'commit': commit.hexsha})
+                diffs[line].append(
+                    {'author': commit.author.name, 'commit': commit.hexsha})
 
         return diffs
 

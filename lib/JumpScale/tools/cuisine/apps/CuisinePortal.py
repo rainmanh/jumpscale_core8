@@ -4,11 +4,14 @@ from ActionDecorator import ActionDecorator
 
 
 class actionrun(ActionDecorator):
+
     def __init__(self, *args, **kwargs):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.portal"
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine.getBaseClass()
+
+
 class CuisinePortal(base):
 
     def __init__(self, executor, cuisine):
@@ -36,10 +39,10 @@ class CuisinePortal(base):
                             influxport=influxport, grafanaip=grafanaip, grafanaport=grafanaport)
 
     @actionrun()
-    def install(self, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, \
-            grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
-        self._install(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip, influxport=influxport, \
-            grafanaip=grafanaip, grafanaport=grafanaport, login=login, passwd=passwd)
+    def install(self, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086,
+                grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
+        self._install(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip, influxport=influxport,
+                      grafanaip=grafanaip, grafanaport=grafanaport, login=login, passwd=passwd)
         if start:
             self.start()
 
@@ -141,7 +144,8 @@ class CuisinePortal(base):
     @actionrun(action=True)
     def linkCode(self):
         self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        _, destjslib, _ = self.cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'", showout=False)
+        _, destjslib, _ = self.cuisine.core.run(
+            "js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'", showout=False)
 
         self.cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self.cuisine.core.dir_paths[
                                     "codeDir"], "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
@@ -171,25 +175,31 @@ class CuisinePortal(base):
         self.cuisine.core.file_ensure('%s/base/home/home.md' % self.main_portal_dir)
 
         self.cuisine.core.dir_ensure('$tmplsDir/cfg/portal')
-        self.cuisine.core.file_copy(j.sal.fs.joinPaths(self.cuisine.core.dir_paths["codeDir"], 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'), '$tmplsDir/cfg/portal/config.hrd')
+        self.cuisine.core.file_copy(j.sal.fs.joinPaths(self.cuisine.core.dir_paths[
+                                    "codeDir"], 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'), '$tmplsDir/cfg/portal/config.hrd')
 
-        self.cuisine.core.file_copy(j.sal.fs.joinPaths(self.cuisine.core.dir_paths["codeDir"], 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'), self.main_portal_dir)
-        content = self.cuisine.core.file_read(j.sal.fs.joinPaths(self.cuisine.core.dir_paths["codeDir"], 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'))
+        self.cuisine.core.file_copy(j.sal.fs.joinPaths(self.cuisine.core.dir_paths[
+                                    "codeDir"], 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'), self.main_portal_dir)
+        content = self.cuisine.core.file_read(j.sal.fs.joinPaths(self.cuisine.core.dir_paths[
+                                              "codeDir"], 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'))
         configHRD = j.data.hrd.get(content=content, prefixWithName=False)
         configHRD.set('param.cfg.appdir', j.sal.fs.joinPaths(self.portal_dir, 'portalbase'))
         self.cuisine.core.file_write(j.sal.fs.joinPaths(self.main_portal_dir, 'config.hrd'), content=str(configHRD))
-        self.cuisine.core.file_copy("%s/jslib/old/images" % self.portal_dir, "%s/jslib/old/elfinder" % self.portal_dir, recursive=True)
+        self.cuisine.core.file_copy("%s/jslib/old/images" % self.portal_dir,
+                                    "%s/jslib/old/elfinder" % self.portal_dir, recursive=True)
 
     @actionrun(action=True)
     def addSpace(self, spacepath):
         spacename = j.sal.fs.getBaseName(spacepath)
-        dest_dir = j.sal.fs.joinPaths(self.cuisine.core.dir_paths['varDir'], 'cfg', 'portals', 'main', 'base', spacename)
+        dest_dir = j.sal.fs.joinPaths(self.cuisine.core.dir_paths[
+                                      'varDir'], 'cfg', 'portals', 'main', 'base', spacename)
         self.cuisine.core.file_link(spacepath, dest_dir)
 
     @actionrun(action=True)
     def addActor(self, actorpath):
         actorname = j.sal.fs.getBaseName(actorpath)
-        dest_dir = j.sal.fs.joinPaths(self.cuisine.core.dir_paths['varDir'], 'cfg', 'portals', 'main', 'base', actorname)
+        dest_dir = j.sal.fs.joinPaths(self.cuisine.core.dir_paths[
+                                      'varDir'], 'cfg', 'portals', 'main', 'base', actorname)
         self.cuisine.core.file_link(actorpath, dest_dir)
 
     @actionrun(action=True)

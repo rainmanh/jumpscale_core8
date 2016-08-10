@@ -10,21 +10,21 @@ struct Actor {
     disabled @3;
   }
 
-  #role of service e.g. node.ssh
-  role @1 :Text;
+  #name of actor e.g. node.ssh (role is the first part of it)
+  name @1 :Text;
 
   #dns name of actor who owns this service
   actorFQDN @2 :Text;
 
-  parentTemplate @3 :ActorPointer;
+  parent @3 :ActorPointer;
 
-  producersTemplate @4 :List(ActorPointer);
+  producers @4 :List(ActorPointer);
 
   struct ActorPointer {
-    role @0 :Text;
-    actorDN @1 :Text;    
-    #defines which rights this actor has to the other actor e.g. owner or not
-    key @2 :Text;
+    name @0 :Text;
+    actorFQDN @1 :Text;
+    maxServices @2 :UInt8;
+    actorKey @3 :Text;
   }
 
   key @5 :Text;
@@ -33,9 +33,8 @@ struct Actor {
   actionsTemplate @7 :List(Action);
   struct Action {
     name @0 :Text;
-    #unique key for action (hash of code inside action)
-    key @1 :Text;
-    code @2 :Text;
+    #unique key for code of action (see below)
+    actionCodeKey @1 :Text;
   }
 
   recurringTemplate @8 :List(Recurring);
@@ -47,6 +46,7 @@ struct Actor {
     log @2 :Bool;
   }
 
+  #capnp
   serviceDataSchema @9 :Text;
   actorDataSchema @10 :Text;
 
@@ -62,7 +62,7 @@ struct Actor {
   origin @12 :Origin;
   struct Origin {
     #link to git which hosts this template for the actor
-    giturl @0 :Void;
+    giturl @0 :Text;
     #path in that repo
     path @1 :Text;
   }
@@ -75,12 +75,14 @@ struct Actor {
 }
 
 struct Service {
+  #is the unique deployed name of the service of a specific actor name e.g. myhost
   name @0 :Text;
-  #role of service e.g. node.ssh
-  role @1 :Text;
+
+  #name of actor e.g. node.ssh
+  actorName @1 :Text;
 
   #FQDN of actor who owns this service
-  actor @2 :Text;
+  actorFQDN @2 :Text;
 
   parent @3 :ServicePointer;
 
@@ -88,18 +90,21 @@ struct Service {
 
   struct ServicePointer {
     name @0 :Text;
-    role @1 :Text;
+    actorName @1 :Text;
     #domain name of actor who owns this service pointed too
     actorFQDN @2 :Text;
     #defines which rights this service has to the other service e.g. owner or not
     key @3 :Text;
+
   }
 
   actions @5 :List(Action);
   struct Action {
+    #e.g. install
     name @0 :Text;
-    #unique key for action (hash of code inside action)
-    key @1 :Text;
+    #unique key for code of action (see below)
+    actionCodeKey @1 :Text;
+    state @2: State;
   }
 
   recurring @6 :List(Recurring);
@@ -115,12 +120,11 @@ struct Service {
   state @7 :State;
   enum State {
     new @0;
-    init @1;
-    installing @2;
-    ok @3;
-    error @4;
-    disabled @5;
-    changed @6;
+    installing @1;
+    ok @2;
+    error @3;
+    disabled @4;
+    changed @5;
   }
 
   configdata @8 :Data;
@@ -132,8 +136,7 @@ struct Service {
     actorData @2 :Text;
   }
 
-  key @10 :Text;
-
+  key @10 :Text
 
   gitrepos @11 :List(GitRepo);
   struct GitRepo {
@@ -141,18 +144,144 @@ struct Service {
     url @0 :Text;
     #path in repo
     path @1 :Text;
-  }  
+  }
+
+}
+
+#is one specific piece of code which can be executed
+#is owned by a ACTOR_TEMPLATE specified by actor_name e.g. node.ssh
+#this is used to know which code was executed and what exactly the code was
+struct ActionCode {
+
+  #is blake hash constructed out of actor_name+code
+  #unique over world !
+  guid @0 :Text;
+
+  #name of the method e.g. install
+  actionName @1 :Text;
+
+  #actor name e.g. node.ssh, is unique over all actors in world
+  actorName @2 :Text;
+
+  code @3 :Text;
+
+  lastmoddate @4: UInt32;
+}
+
+struct Run {
+    #this object is hosted by actor based on FQDN
+
+    #unique id globally for this job = constructed out of blake hash of :  tbd
+    runguid @0 :Text;
+
+    #FQDN of a specific actor which can run multiple jobs & orchestrate work
+    aysControllerFQDN @1 :Text;
+
+    steps @2 :List(RunStep);
+    struct RunStep {
+      epoch @0: UInt32;
+      state @1 :State;
+      #list of jobs which need to be executed, key alone is enough to fetch the job info
+      jobs @2 :List(Job);
+      struct Job {
+          jobguid @0 :Text;
+
+          #NEXT IS CACHED INFO, THE MAIN SOURCE OF NEXT INFO IS IN Job
+          #BUT is good practice will make all run very much faster& allow fast vizualization
+          state @1 :State;
+          #e.g. node.ssh
+          actorName @2 :Text;
+          #name e.g. install
+          actionName @3 :Text;
+          #name of service run by actor e.g. myhost
+          serviceName @4 :Text;
+      }
+    }
+
+    #state of run in general
+    state @3 :State;
+    enum State {
+        new @0;
+        running @1;
+        ok @2;
+        error @3;
+    }
+
+    lastmoddate @4: UInt32;
+
+    #which step is running right now, can only move to net one if previous one was completed
+    currentstep @5: UInt16;
 
 }
 
 
+struct Job {
+  #this object is hosted by actor based on FQDN
 
+  #unique id globally for this job = constructed out of blake hash of :  actorFQDN+actionCodeGUID+epochInMilisec
+  jobguid @0 :Text;
 
-struct ActorIndex {
-  actors @0 :List(IndexItem);
-  struct IndexItem {
-    role @0 :Text;
-    key @1 :Text;
+  #role of service e.g. node.ssh
+  actorName @1 :Text;
+
+  #name e.g. install
+  actionName @2 :Text;
+
+  #FQDN of actor who owns this service
+  actorFQDN @3 :Text;
+
+  #name of service run by actor e.g. myhost
+  serviceName @4 :Text;
+
+  #has link to code which needs to be executed
+  actionCodeGUID @5 :Text;
+
+  stateChanges @6 :List(StateChange);
+
+  struct StateChange {
+    epoch @0: UInt32;
+    state @1 :State;
   }
+
+  logs @7 :List(LogEntry);
+
+  struct LogEntry {
+    epoch @0: UInt32;
+    log @1 :Text;
+    level @2 :Int8; #levels as used in jumpscale
+    category @3 :Cat;
+    enum Cat {
+      out @0; #std out from executing in console
+      err @1; #std err from executing in console
+      msg @2; #std log message
+      alert @3; #alert e.g. result of error
+      errormsg @4: #info from error
+      trace @5: #e.g. stacktrace
+    }
+    tags @4 :Text;
+  }
+
+  #info which is input for the action
+  datacapnp @8 :Data;
+  #any other format e.g. binary or text or ... is up to actionmethod to deserialize & use
+  databin @9 :Data;
+
+  #can e.g. delete
+  ownerkey @10 :Text;
+
+  #is the last current state
+  state @11 :State;
+  enum State {
+      new @0;
+      running @1;
+      ok @2;
+      error @3;
+  }
+
+  #is the run which asked for this job
+  runguid @12 :Text;
+
+  #json serialized result (dict), if any
+  result @13 :Text;
 
 }

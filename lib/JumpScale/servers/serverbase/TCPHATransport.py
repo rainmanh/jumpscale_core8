@@ -2,6 +2,7 @@ from JumpScale import j
 from servers.serverbase.DaemonClient import Transport
 import time
 
+
 def retry(func):
     def wrapper(self, *args, **kwargs):
         try:
@@ -9,16 +10,18 @@ def retry(func):
                 clientfunc = getattr(self._client, func.__name__)
                 return clientfunc(*args, **kwargs)
         except:
-            pass # we will execute the reconnect
+            pass  # we will execute the reconnect
         self._connection[2] = time.time()
         self.connect(self._id)
         clientfunc = getattr(self._client, func.__name__)
         return clientfunc(*args, **kwargs)
     return wrapper
 
+
 class TCPHATransport(Transport):
+
     def __init__(self, connections, clientclass, *args, **kwargs):
-        self._connections = [ [ip, port, 0] for ip, port in connections ]
+        self._connections = [[ip, port, 0] for ip, port in connections]
         self._timeout = 60
         self._args = args
         self._kwargs = kwargs
@@ -44,16 +47,16 @@ class TCPHATransport(Transport):
                         return
                 except Exception as e:
                     print(("Error occured %s" % e))
-                    pass # invalidate the client
+                    pass  # invalidate the client
                 if self._client:
                     self._client.close()
                 connection[2] = time.time()
-        ips = [ "%s:%s" % (con[0], con[1]) for con in self._connections ]
+        ips = ["%s:%s" % (con[0], con[1]) for con in self._connections]
         msg = "Failed to connect to %s" % (", ".join(ips))
         j.events.opserror_critical(msg)
 
     @retry
-    def sendMsg(self, category, cmd, data, sendformat="", returnformat="",timeout=None):
+    def sendMsg(self, category, cmd, data, sendformat="", returnformat="", timeout=None):
         pass
 
     def close(self):

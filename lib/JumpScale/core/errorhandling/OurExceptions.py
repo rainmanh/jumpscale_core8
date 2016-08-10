@@ -5,8 +5,8 @@ class BaseJSException(Exception):
 
     def __init__(self, message="", level=1, source="", actionkey="", eco=None, tags="", msgpub=""):
         if j.data.types.string.check(level):
-            level=1
-            tags="cat:%s"%level
+            level = 1
+            tags = "cat:%s" % level
         super().__init__(message)
         j.errorconditionhandler.setExceptHook()
         self.message = message
@@ -114,6 +114,7 @@ class NotFound(BaseJSException):
         super().__init__(message, level, source, actionkey, eco, tags, msgpub)
         self.type = "notfound"
         self.codetrace = False
+
 
 class Timeout(BaseJSException):
 

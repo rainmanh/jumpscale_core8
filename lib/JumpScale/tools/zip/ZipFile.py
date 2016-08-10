@@ -23,6 +23,7 @@ class ZipFileFactory:
 
 class ZipFile:
     '''Handle zip files'''
+
     def __init__(self, path, mode=ZipFileFactory.READ):
         '''Create a new ZipFile object
 
@@ -38,16 +39,16 @@ class ZipFile:
         if mode is ZipFileFactory.READ:
             if not j.sal.fs.isFile(path):
                 raise ValueError(
-                        'Provided path %s is not an existing file' % path)
+                    'Provided path %s is not an existing file' % path)
             if not zipfile.is_zipfile(path):
                 raise ValueError(
-                        'Provided path %s is not a valid zip archive' % path)
+                    'Provided path %s is not a valid zip archive' % path)
             self._zip = zipfile.ZipFile(path, 'r')
-            #TODO Make this optional?
+            # TODO Make this optional?
             result = self._zip.testzip()
             if result is not None:
-                raise j.exceptions.RuntimeError('Trying to open broken zipfile, first broken file is %s' % \
-                        result)
+                raise j.exceptions.RuntimeError('Trying to open broken zipfile, first broken file is %s' %
+                                                result)
 
         else:
             raise ValueError('Invalid mode')
@@ -78,7 +79,7 @@ class ZipFile:
         if folder:
             files = (f for f in files if os.path.normpath(f).startswith(folder))
 
-        #normpath to strip occasional ./ etc
+        # normpath to strip occasional ./ etc
         for f in (os.path.normpath(_f) for _f in files if not _f.endswith('/')):
             dirname = os.path.dirname(f)
             basename = os.path.basename(f)
@@ -87,9 +88,9 @@ class ZipFile:
             j.sal.fs.createDir(outdir)
             outfile_path = j.sal.fs.joinPaths(outdir, basename)
 
-            #On Windows we get some \ vs / in path issues. Check whether the
-            #provided filename works, if not, retry replacing \ with /, and use
-            #this one if found.
+            # On Windows we get some \ vs / in path issues. Check whether the
+            # provided filename works, if not, retry replacing \ with /, and use
+            # this one if found.
             try:
                 self._zip.getinfo(f)
             except KeyError:
@@ -104,7 +105,7 @@ class ZipFile:
                     f = f_
 
             data = self._zip.read(f)
-            #We need binary write
+            # We need binary write
             self.logger.info('Writing file %s' % outfile_path)
             fd = open(outfile_path, 'wb')
             fd.write(data)

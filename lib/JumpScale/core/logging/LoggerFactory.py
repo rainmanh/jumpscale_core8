@@ -25,6 +25,7 @@ _name_to_mode = {
     "DEV": DEV
 }
 
+
 class LoggerFactory:
 
     def __init__(self):
@@ -71,7 +72,6 @@ class LoggerFactory:
             logger.enable_only_me
         return logger
 
-
     def set_quiet(self, quiet):
         self._quiet = quiet
 
@@ -112,9 +112,10 @@ class LoggerFactory:
     def __fileRotateHandler(self, name='jumpscale'):
         if not j.do.exists("%s/log/" % j.do.VARDIR):
             j.do.createDir("%s/log/" % j.do.VARDIR)
-        filename = "%s/log/%s.log" % (j.do.VARDIR,name)
+        filename = "%s/log/%s.log" % (j.do.VARDIR, name)
         formatter = logging.Formatter(FILE_FORMAT)
-        fh = logging.handlers.TimedRotatingFileHandler(filename, when='D', interval=1, backupCount=7, encoding=None, delay=False, utc=False, atTime=None)
+        fh = logging.handlers.TimedRotatingFileHandler(
+            filename, when='D', interval=1, backupCount=7, encoding=None, delay=False, utc=False, atTime=None)
         fh.setLevel(logging.DEBUG)
         fh.setFormatter(formatter)
         return fh
@@ -141,11 +142,12 @@ class LoggerFactory:
         return ch
 
     def __redisHandler(self, redis_client=None):
-            if redis_client is None:
-                self.redis_client = j.core.db
+        if redis_client is None:
+            self.redis_client = j.core.db
 
 
 class LimitFormater(ColoredFormatter):
+
     def __init__(self, fmt, datefmt, reset, log_colors, secondary_log_colors, style, lenght):
         super(LimitFormater, self).__init__(
             fmt=fmt,

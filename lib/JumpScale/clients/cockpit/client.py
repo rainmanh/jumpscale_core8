@@ -42,7 +42,8 @@ class Client:
         update the cockpit to the last version
         It is method for POST /cockpit/update
         """
-        resp = self._client.update(data=None, headers=headers, query_params=query_params)
+        resp = self._client.update(
+            data=None, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -51,7 +52,8 @@ class Client:
         empty memory and reload all services
         It is method for GET /ays/reload
         """
-        resp = self._client.reloadAll(headers=headers, query_params=query_params)
+        resp = self._client.reloadAll(
+            headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -64,7 +66,8 @@ class Client:
             'url': url,
             'branch': branch,
         })
-        resp = self._client.addTemplateRepo(data=data, headers=headers, query_params=query_params)
+        resp = self._client.addTemplateRepo(
+            data=data, headers=headers, query_params=query_params)
         self._assert_response(resp, code=201)
         return resp.json()
 
@@ -73,7 +76,8 @@ class Client:
         list all repositorys
         It is method for GET /ays/repository
         """
-        resp = self._client.listRepositories(headers=headers, query_params=query_params)
+        resp = self._client.listRepositories(
+            headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -83,7 +87,8 @@ class Client:
         It is method for POST /ays/repository
         """
         data = j.data.serializer.json.dumps({'name': name})
-        resp = self._client.createNewRepository(data=data, headers=headers, query_params=query_params)
+        resp = self._client.createNewRepository(
+            data=data, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -92,7 +97,8 @@ class Client:
         Get information of a repository
         It is method for GET /ays/repository/{repository}
         """
-        resp = self._client.getRepository(repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.getRepository(
+            repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -101,7 +107,8 @@ class Client:
         Delete a repository
         It is method for DELETE /ays/repository/{repository}
         """
-        resp = self._client.deleteRepository(repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.deleteRepository(
+            repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp, 204)
         return resp.json()
 
@@ -117,7 +124,8 @@ class Client:
         query_params = query_params or {}
         query_params.update(query)
 
-        resp = self._client.initRepository(repository=repository, data=None, headers=headers, query_params=query_params)
+        resp = self._client.initRepository(
+            repository=repository, data=None, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -136,7 +144,8 @@ class Client:
         query_params = query_params or {}
         query_params.update(query)
 
-        resp = self._client.simulateAction(data=None, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.simulateAction(
+            data=None, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -156,7 +165,8 @@ class Client:
         query_params = query_params or {}
         query_params.update(query)
 
-        resp = self._client.executeAction(data=None, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.executeAction(
+            data=None, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -170,7 +180,8 @@ class Client:
         query_params = query_params or {}
         query_params.update(query)
 
-        resp = self._client.listBlueprints(repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.listBlueprints(
+            repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -180,7 +191,8 @@ class Client:
         It is method for POST /ays/repository/{repository}/blueprint
         """
         data = j.data.serializer.json.dumps({'name': name, 'content': content})
-        resp = self._client.createNewBlueprint(data=data, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.createNewBlueprint(
+            data=data, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp, 201)
         return resp.json()
 
@@ -189,7 +201,8 @@ class Client:
         Get a blueprint
         It is method for GET /ays/repository/{repository}/blueprint/{blueprint}
         """
-        resp = self._client.getBlueprint(blueprint=blueprint, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.getBlueprint(
+            blueprint=blueprint, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -205,7 +218,8 @@ class Client:
         query_params = query_params or {}
         query_params.update(query)
 
-        resp = self._client.executeBlueprint(data=None, blueprint=blueprint, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.executeBlueprint(
+            data=None, blueprint=blueprint, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -214,8 +228,10 @@ class Client:
         Update existing blueprint
         It is method for PUT /ays/repository/{repository}/blueprint/{blueprint}
         """
-        data = j.data.serializer.json.dumps({'name': blueprint, 'content': content})
-        resp = self._client.updateBlueprint(data=data, blueprint=blueprint, repository=repository, headers=headers, query_params=query_params)
+        data = j.data.serializer.json.dumps(
+            {'name': blueprint, 'content': content})
+        resp = self._client.updateBlueprint(
+            data=data, blueprint=blueprint, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -224,7 +240,8 @@ class Client:
         delete blueprint
         It is method for DELETE /ays/repository/{repository}/blueprint/{blueprint}
         """
-        resp = self._client.deleteBlueprint(blueprint=blueprint, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.deleteBlueprint(
+            blueprint=blueprint, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp, 204)
         return resp.json()
 
@@ -233,7 +250,8 @@ class Client:
         archive blueprint
         It is method for PUT /ays/repository/{repository}/blueprint/{blueprint}/archive
         """
-        resp = self._client.archiveBlueprint(data=None, blueprint=blueprint, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.archiveBlueprint(
+            data=None, blueprint=blueprint, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -242,7 +260,8 @@ class Client:
         archive blueprint
         It is method for PUT /ays/repository/{repository}/blueprint/{blueprint}/restore
         """
-        resp = self._client.restoreBlueprint(data=None, blueprint=blueprint, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.restoreBlueprint(
+            data=None, blueprint=blueprint, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -251,7 +270,8 @@ class Client:
         List all services in the repository
         It is method for GET /ays/repository/{repository}/service
         """
-        resp = self._client.listServices(repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.listServices(
+            repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -260,7 +280,8 @@ class Client:
         List all services of role 'role' in the repository
         It is method for GET /ays/repository/{repository}/service/{role}
         """
-        resp = self._client.listServicesByRole(role=role, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.listServicesByRole(
+            role=role, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -269,7 +290,8 @@ class Client:
         Perform an action on all service with the role 'role'
         It is method for POST /ays/repository/{repository}/service/{role}/action/{action}
         """
-        resp = self._client.executeServiceActionByRole(data=None, action=action, role=role, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.executeServiceActionByRole(
+            data=None, action=action, role=role, repository=repository, headers=headers, query_params=query_params)
         resp.raise_for_status()
         return resp.json()
 
@@ -278,7 +300,8 @@ class Client:
         Get a service instance
         It is method for GET /ays/repository/{repository}/service/{role}/{instance}
         """
-        resp = self._client.getServiceByInstance(instance=instance, role=role, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.getServiceByInstance(
+            instance=instance, role=role, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -290,7 +313,8 @@ class Client:
         query_params = query_params or {}
         query_params.update({'uninstall': uninstall})
 
-        resp = self._client.deleteServiceByInstance(instance=instance, role=role, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.deleteServiceByInstance(
+            instance=instance, role=role, repository=repository, headers=headers, query_params=query_params)
         return self._assert_response(resp, 204)
 
     def listServiceActions(self, instance, role, repository, headers=None, query_params=None):
@@ -298,7 +322,8 @@ class Client:
         Get list of action available on this service
         It is method for GET /ays/repository/{repository}/service/{role}/{instance}/action
         """
-        resp = self._client.listServiceActions(instance=instance, role=role, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.listServiceActions(
+            instance=instance, role=role, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -307,7 +332,8 @@ class Client:
         Perform an action on a services
         It is method for POST /ays/repository/{repository}/service/{role}/{instance}/{action}
         """
-        resp = self._client.executeServiceActionByInstance(data=None, action=action, instance=instance, role=role, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.executeServiceActionByInstance(
+            data=None, action=action, instance=instance, role=role, repository=repository, headers=headers, query_params=query_params)
         resp.raise_for_status()
         return resp.json()
 
@@ -316,7 +342,8 @@ class Client:
         list all templates
         It is method for GET /ays/repository/{repository}/template
         """
-        resp = self._client.listTemplates(repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.listTemplates(
+            repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -326,8 +353,10 @@ class Client:
         It is method for POST /ays/repository/{repository}/template
 
         """
-        data = j.data.serializer.json.dumps({'name': 'myTemplate', 'action_py': 'valid action file', 'schema_hrd': 'valid hrd schema'})
-        resp = self._client.createNewTemplate(data=data, repository=repository, headers=headers, query_params=query_params)
+        data = j.data.serializer.json.dumps(
+            {'name': 'myTemplate', 'action_py': 'valid action file', 'schema_hrd': 'valid hrd schema'})
+        resp = self._client.createNewTemplate(
+            data=data, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -336,7 +365,8 @@ class Client:
         Get a template
         It is method for GET /ays/repository/{repository}/template/{template}
         """
-        resp = self._client.getTemplate(template=template, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.getTemplate(
+            template=template, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -345,7 +375,8 @@ class Client:
         list all runs in the repository
         It is method for GET /ays/repository/{repository}/aysrun
         """
-        resp = self._client.listRuns(repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.listRuns(
+            repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -354,7 +385,8 @@ class Client:
         Get an aysrun
         It is method for GET /ays/repository/{repository}/aysrun/{aysrun}
         """
-        resp = self._client.getRun(aysrun=aysrun, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.getRun(
+            aysrun=aysrun, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -364,7 +396,8 @@ class Client:
         param: hash hash of source file
         result json of source
         """
-        resp = self._client.getSource(source=source, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.getSource(
+            source=source, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 
@@ -374,6 +407,7 @@ class Client:
         param: hash hash of hrd file
         result json of hrd
         """
-        resp = self._client.getHRD(hrd=hrd, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.getHRD(
+            hrd=hrd, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()

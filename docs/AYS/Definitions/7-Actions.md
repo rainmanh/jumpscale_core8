@@ -1,10 +1,9 @@
-## AYS Actions
+# AYS Actions
 
-* Manages the life cycle of your AYS
-* you need to implement one or more methods (actions) on your atyourservice actions.py file
+- Manages the life cycle of your AYS
+- you need to implement one or more methods (actions) on your atyourservice actions.py file
 
-
-### Usage of arguments
+## Usage of arguments
 
 Before the actions get executed AYS will apply the `instance.hrd` (as stored in AYS instance directory) on the `actions.py` file.
 
@@ -28,13 +27,13 @@ def somemethod(self):
 
 This would print: `ays__datacenter_palmlab`
 
-### Example:
+## Example:
 
 **actions.py**:
 
 These actions get executed when the AYS robot runs. This file is stored in the AYS template directory:
 
- ```python
+```python
 class ActionsBaseMgmt:
     """
     implement methods of this class to change behavior of lifecycle management of service

@@ -2,12 +2,17 @@
 from JumpScale import j
 
 from ActionDecorator import ActionDecorator
-class actionrun(ActionDecorator):
-    def __init__(self,*args,**kwargs):
-        ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.ufw"
 
-base=j.tools.cuisine.getBaseClass()
+
+class actionrun(ActionDecorator):
+
+    def __init__(self, *args, **kwargs):
+        ActionDecorator.__init__(self, *args, **kwargs)
+        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.ufw"
+
+base = j.tools.cuisine.getBaseClass()
+
+
 class CuisineUFW(base):
 
     def __init__(self, executor, cuisine):
@@ -21,6 +26,9 @@ class CuisineUFW(base):
     def ufw_enabled(self):
         if not self._ufw_enabled:
             if not self.cuisine.core.isMac:
+                if self.cuisine.bash.cmdGetPath("nft", die=False) is not False:
+                    self._ufw_enabled = False
+                    print("cannot use ufw, nft installed")
                 if self.cuisine.bash.cmdGetPath("ufw", die=False) == False:
                     self.cuisine.package.install("ufw")
                     self.cuisine.bash.cmdGetPath("ufw")
@@ -31,10 +39,16 @@ class CuisineUFW(base):
     def ufw_enable(self):
         if not self.ufw_enabled:
             if not self.cuisine.core.isMac:
+                if self.cuisine.bash.cmdGetPath("nft", die=False) is not False:
+                    self._fw_enabled = False
+                    raise j.exceptions.RuntimeError("Cannot use ufw, nft installed")
                 if self.executor.type != 'local':
                     self.cuisine.core.run("ufw allow %s" % self.executor.port)
                 self.cuisine.core.run("echo \"y\" | ufw enable")
-                self._ufw_enabled = True
+                self._fw_enabled = True
+                return True
+        raise j.exceptions.Input(message="cannot enable ufw, not supported or ",
+                                 level=1, source="", tags="", msgpub="")
         return True
 
     @property
@@ -81,7 +95,7 @@ class CuisineUFW(base):
         self.ufw_enable()
         self.cuisine.core.run("ufw deny %s" % port)
 
-    @actionrun(action=True,force=True)
+    @actionrun(action=True, force=True)
     def flush(self):
         C = """
         ufw disable

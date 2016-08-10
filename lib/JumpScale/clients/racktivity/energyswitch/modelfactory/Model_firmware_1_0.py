@@ -5,10 +5,12 @@ from JumpScale.clients.racktivity.energyswitch.modelfactory.models.common.BaseMo
 
 
 class Master(BaseModule):
+
     def __init__(self, parent):
         super(Master, self).__init__(parent)
 
-        self._pointerGuids = [(1, 1), (2, 1), (3, 1), (11, 1), (14, 1), (17, 1), (18, 1), (20, 1), (5006, 1), (5007, 1)]
+        self._pointerGuids = [(1, 1), (2, 1), (3, 1), (11, 1),
+                              (14, 1), (17, 1), (18, 1), (20, 1), (5006, 1), (5007, 1)]
 
         self._guidTable.update({
             1: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=1\nlength=1\nunit=''\nscale=0"),
@@ -172,7 +174,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setCurrentTime(self, value):
@@ -180,7 +183,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'Temperature' GUID  11 Data type TYPE_SIGNED_NUMBER
@@ -191,7 +195,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def getMinTemperature(self):
@@ -200,7 +205,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'MaxTemperature' GUID  5007 Data type TYPE_SIGNED_NUMBER_WITH_TS
@@ -211,7 +217,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'AdminLogin' GUID 10067 Data type TYPE_STRING
@@ -221,7 +228,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'UDPUser' GUID  40013 Data type TYPE_COMMAND
@@ -231,7 +239,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'Address' GUID  10000 Data type TYPE_UNSIGNED_NUMBER
@@ -240,7 +249,8 @@ class Master(BaseModule):
         guid = 10000
         moduleID = 'M1'
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'ModuleName' GUID  10001 Data type TYPE_STRING
@@ -250,7 +260,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'FirmwareVersion' GUID  10002 Data type TYPE_VERSION
@@ -260,7 +271,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'HardwareVersion' GUID  10003 Data type TYPE_VERSION
@@ -270,7 +282,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'FirmwareID' GUID  10004 Data type TYPE_STRING
@@ -280,7 +293,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'HardwareID' GUID  10005 Data type TYPE_STRING
@@ -290,7 +304,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'RackName' GUID  10006 Data type TYPE_STRING
@@ -301,7 +316,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setRackName(self, value):
@@ -309,7 +325,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'RackPosition' GUID  10007 Data type TYPE_STRING
@@ -320,7 +337,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setRackPosition(self, value):
@@ -328,7 +346,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'DoHotReset' GUID  40014 Data type TYPE_COMMAND
@@ -338,7 +357,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(1, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(1, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'TemperatureUnitSelector' GUID  10010 Data type TYPE_ENUM
@@ -348,7 +368,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setTemperatureUnitSelector(self, value):
@@ -356,7 +377,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'IPAddress' GUID  10011 Data type TYPE_IP
@@ -367,7 +389,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setIPAddress(self, value):
@@ -375,7 +398,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'SubNetMask' GUID  10012 Data type TYPE_SUBNETMASK
@@ -386,7 +410,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setSubNetMask(self, value):
@@ -394,7 +419,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'StdGateWay' GUID  10013 Data type TYPE_IP
@@ -405,7 +431,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setStdGateWay(self, value):
@@ -413,7 +440,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'DnsServer' GUID  10014 Data type TYPE_IP
@@ -424,7 +452,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setDnsServer(self, value):
@@ -432,7 +461,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'MAC' GUID  10015 Data type TYPE_MAC
@@ -443,7 +473,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'DHCPEnable' GUID  10016 Data type TYPE_ENUM
@@ -454,7 +485,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setDHCPEnable(self, value):
@@ -462,7 +494,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'NTPServer' GUID  10017 Data type TYPE_IP
@@ -473,7 +506,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setNTPServer(self, value):
@@ -481,7 +515,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'UseDefaultNTPServer' GUID  10018 Data type TYPE_ENUM
@@ -491,7 +526,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setUseDefaultNTPServer(self, value):
@@ -499,7 +535,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'UseNTP' GUID  10019 Data type TYPE_ENUM
@@ -508,7 +545,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'SNMPTrapRecvIP' GUID  10020 Data type TYPE_IP
@@ -519,7 +557,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setSNMPTrapRecvIP(self, value):
@@ -527,7 +566,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'SNMPTrapRecvPort' GUID  10021 Data type TYPE_UNSIGNED_NUMBER
@@ -537,7 +577,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setSNMPTrapRecvPort(self, value):
@@ -545,7 +586,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'SNMPCommunityRead' GUID  10022 Data type TYPE_STRING
@@ -555,7 +597,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setSNMPCommunityRead(self, value):
@@ -563,7 +606,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'SNMPCommunityWrite' GUID  10023 Data type TYPE_STRING
@@ -573,7 +617,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setSNMPCommunityWrite(self, value):
@@ -581,7 +626,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'SNMPControl' GUID  10024 Data type TYPE_ENUM
@@ -591,7 +637,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setSNMPControl(self, value):
@@ -599,7 +646,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'LDAPServer' GUID  10028 Data type TYPE_IP
@@ -609,7 +657,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setLDAPServer(self, value):
@@ -617,7 +666,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'UseLDAPServer' GUID  10029 Data type TYPE_ENUM
@@ -626,7 +676,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(1, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(1, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'Beeper' GUID  10030 Data type TYPE_UNSIGNED_NUMBER
@@ -637,7 +688,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setBeeper(self, value):
@@ -645,7 +697,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'DisplayLock' GUID  10031 Data type TYPE_ENUM
@@ -655,7 +708,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setDisplayLock(self, value):
@@ -663,7 +717,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'DisplayTimeOn' GUID  10032 Data type TYPE_UNSIGNED_NUMBER
@@ -673,7 +728,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setDisplayTimeOn(self, value):
@@ -681,7 +737,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'DisplayRotation' GUID  10033 Data type TYPE_ENUM
@@ -691,7 +748,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setDisplayRotation(self, value):
@@ -699,17 +757,20 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
-    # Attribute 'MinTemperatureWarning' GUID  10052 Data type TYPE_SIGNED_NUMBER
+    # Attribute 'MinTemperatureWarning' GUID  10052 Data type
+    # TYPE_SIGNED_NUMBER
     def getMinTemperatureWarning(self):
         guid = 10052
         moduleID = 'M1'
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMinTemperatureWarning(self, value):
@@ -717,17 +778,20 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
-    # Attribute 'MaxTemperatureWarning' GUID  10053 Data type TYPE_SIGNED_NUMBER
+    # Attribute 'MaxTemperatureWarning' GUID  10053 Data type
+    # TYPE_SIGNED_NUMBER
     def getMaxTemperatureWarning(self):
         guid = 10053
         moduleID = 'M1'
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMaxTemperatureWarning(self, value):
@@ -735,7 +799,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'Startuptime' GUID  10066 Data type TYPE_UNSIGNED_NUMBER
@@ -745,7 +810,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'JumpBoot' GUID  40000 Data type TYPE_COMMAND
@@ -756,7 +822,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(1, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(1, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'GotoFactoryMode' GUID  40002 Data type TYPE_COMMAND
@@ -765,18 +832,21 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(1, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(1, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'ModNum' GUID  40007 Data type TYPE_UNSIGNED_NUMBER
-    # To retrieve the number of modules connected to the device. The device itself is treated as module 0.
+    # To retrieve the number of modules connected to the device. The device
+    # itself is treated as module 0.
     def getModNum(self):
         guid = 40007
         moduleID = 'M1'
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'ModInfo' GUID  40008 Data type TYPE_COMMAND
@@ -784,7 +854,8 @@ class Master(BaseModule):
         guid = 40008
         moduleID = 'M1'
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'ApplyIPSettings' GUID  40009 Data type TYPE_COMMAND
@@ -793,7 +864,8 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(1, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(1, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'DHCPReset' GUID  40010 Data type TYPE_COMMAND
@@ -803,18 +875,21 @@ class Master(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(1, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(1, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'CurrentIP' GUID  14 Data type TYPE_IP
-    # Gives the current IP. When DHCP is on, you can see here what ip is given by the DHCP server
+    # Gives the current IP. When DHCP is on, you can see here what ip is given
+    # by the DHCP server
     def getCurrentIP(self):
         guid = 14
         moduleID = 'M1'
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'TotalCurrent' GUID  17 Data type TYPE_UNSIGNED_NUMBER
@@ -825,7 +900,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'TotalRealPower' GUID  18 Data type TYPE_UNSIGNED_NUMBER
@@ -836,7 +912,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'TotalActiveEnergy' GUID  20 Data type TYPE_UNSIGNED_NUMBER
@@ -847,7 +924,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'MonitorAutoRefresh' GUID  50010 Data type TYPE_POINTER
@@ -858,7 +936,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'Role' GUID  40011 Data type TYPE_ENUM
@@ -869,7 +948,8 @@ class Master(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setUserLoginAndPassword(self, name, password):
@@ -880,7 +960,8 @@ class Master(BaseModule):
         name = name.ljust(16, "\0")  # pylint: disable=W1401
         password = password.ljust(16, "\0")  # pylint: disable=W1401
         value = name + password
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     def setRestrictedLoginAndPassword(self, name, password):
@@ -891,7 +972,8 @@ class Master(BaseModule):
         name = name.ljust(16, "\0")  # pylint: disable=W1401
         password = password.ljust(16, "\0")  # pylint: disable=W1401
         value = name + password
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     def setAdminLoginAndPassword(self, name, password):
@@ -902,7 +984,8 @@ class Master(BaseModule):
         name = name.ljust(16, "\0")  # pylint: disable=W1401
         password = password.ljust(16, "\0")  # pylint: disable=W1401
         value = name + password
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # The pointer
@@ -912,6 +995,7 @@ class Master(BaseModule):
 
 
 class Power(BaseModule):
+
     def __init__(self, parent):
         super(Power, self).__init__(parent)
 
@@ -1115,7 +1199,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'Voltage' GUID  4 Data type TYPE_UNSIGNED_NUMBER
@@ -1125,7 +1210,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'Frequency' GUID  5 Data type TYPE_UNSIGNED_NUMBER
@@ -1135,7 +1221,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'Current' GUID  6 Data type TYPE_UNSIGNED_NUMBER
@@ -1143,7 +1230,8 @@ class Power(BaseModule):
     def getCurrent(self, moduleID, portnumber=1, length=1):
         guid = 6
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'Power' GUID  7 Data type TYPE_UNSIGNED_NUMBER
@@ -1151,7 +1239,8 @@ class Power(BaseModule):
     def getPower(self, moduleID, portnumber=1, length=1):
         guid = 7
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'StatePortCur' GUID  8 Data type TYPE_ENUM
@@ -1159,7 +1248,8 @@ class Power(BaseModule):
     def getStatePortCur(self, moduleID, portnumber=1, length=1):
         guid = 8
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'ActiveEnergy' GUID  9 Data type TYPE_UNSIGNED_NUMBER
@@ -1167,7 +1257,8 @@ class Power(BaseModule):
     def getActiveEnergy(self, moduleID, portnumber=1, length=1):
         guid = 9
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'ApparentEnergy' GUID  10 Data type TYPE_UNSIGNED_NUMBER
@@ -1175,7 +1266,8 @@ class Power(BaseModule):
     def getApparentEnergy(self, moduleID, portnumber=1, length=1):
         guid = 10
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'Temperature' GUID  11 Data type TYPE_SIGNED_NUMBER
@@ -1185,7 +1277,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'MaxCurrent' GUID  5000 Data type TYPE_UNSIGNED_NUMBER_WITH_TS
@@ -1193,7 +1286,8 @@ class Power(BaseModule):
     def getMaxCurrent(self, moduleID, portnumber=1, length=1):
         guid = 5000
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def resetMaxCurrent(self, moduleID, portnumber=1):
@@ -1207,7 +1301,8 @@ class Power(BaseModule):
     def getMaxPower(self, moduleID, portnumber=1, length=1):
         guid = 5001
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def resetMaxPower(self, moduleID, portnumber=1):
@@ -1223,7 +1318,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def resetMaxTotalCurrent(self, moduleID):
@@ -1240,7 +1336,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def resetMaxTotalPower(self, moduleID):
@@ -1257,7 +1354,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def resetMaxVoltage(self, moduleID):
@@ -1275,7 +1373,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def resetMinVoltage(self, moduleID):
@@ -1293,7 +1392,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def resetMinTemperature(self, moduleID):
@@ -1311,7 +1411,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def resetMaxTemperature(self, moduleID):
@@ -1327,7 +1428,8 @@ class Power(BaseModule):
     def getAddress(self, moduleID, portnumber=1, length=1):
         guid = 10000
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'ModuleName' GUID  10001 Data type TYPE_STRING
@@ -1337,14 +1439,16 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setModuleName(self, moduleID, value):
         guid = 10001
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'FirmwareVersion' GUID  10002 Data type TYPE_VERSION
@@ -1354,7 +1458,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'HardwareVersion' GUID  10003 Data type TYPE_VERSION
@@ -1364,7 +1469,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'FirmwareID' GUID  10004 Data type TYPE_STRING
@@ -1374,7 +1480,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'HardwareID' GUID  10005 Data type TYPE_STRING
@@ -1384,7 +1491,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'TemperatureUnitSelector' GUID  10010 Data type TYPE_ENUM
@@ -1393,14 +1501,16 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setTemperatureUnitSelector(self, moduleID, value):
         guid = 10010
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'PortName' GUID  10034 Data type TYPE_STRING
@@ -1408,21 +1518,25 @@ class Power(BaseModule):
     def getPortName(self, moduleID, portnumber=1, length=1):
         guid = 10034
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setPortName(self, moduleID, value, portnumber=1):
         guid = 10034
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'PortState' GUID  10035 Data type TYPE_ENUM
-    # The state of the port, only used to set the port state, see current port state to get the port state
+    # The state of the port, only used to set the port state, see current port
+    # state to get the port state
     def setPortState(self, moduleID, value, portnumber=1):
         guid = 10035
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'CurrentPriorOff' GUID  10036 Data type TYPE_UNSIGNED_NUMBER
@@ -1430,13 +1544,15 @@ class Power(BaseModule):
     def getCurrentPriorOff(self, moduleID, portnumber=1, length=1):
         guid = 10036
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setCurrentPriorOff(self, moduleID, value, portnumber=1):
         guid = 10036
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'DelayOn' GUID  10037 Data type TYPE_UNSIGNED_NUMBER
@@ -1444,13 +1560,15 @@ class Power(BaseModule):
     def getDelayOn(self, moduleID, portnumber=1, length=1):
         guid = 10037
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setDelayOn(self, moduleID, value, portnumber=1):
         guid = 10037
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'MaxCurrentOff' GUID  10038 Data type TYPE_UNSIGNED_NUMBER
@@ -1458,13 +1576,15 @@ class Power(BaseModule):
     def getMaxCurrentOff(self, moduleID, portnumber=1, length=1):
         guid = 10038
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMaxCurrentOff(self, moduleID, value, portnumber=1):
         guid = 10038
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'MaxCurrentWarning' GUID  10039 Data type TYPE_UNSIGNED_NUMBER
@@ -1472,13 +1592,15 @@ class Power(BaseModule):
     def getMaxCurrentWarning(self, moduleID, portnumber=1, length=1):
         guid = 10039
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMaxCurrentWarning(self, moduleID, value, portnumber=1):
         guid = 10039
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'MaxPowerOff' GUID  10040 Data type TYPE_UNSIGNED_NUMBER
@@ -1486,13 +1608,15 @@ class Power(BaseModule):
     def getMaxPowerOff(self, moduleID, portnumber=1, length=1):
         guid = 10040
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMaxPowerOff(self, moduleID, value, portnumber=1):
         guid = 10040
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'MaxPowerWarning' GUID  10041 Data type TYPE_UNSIGNED_NUMBER
@@ -1500,13 +1624,15 @@ class Power(BaseModule):
     def getMaxPowerWarning(self, moduleID, portnumber=1, length=1):
         guid = 10041
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMaxPowerWarning(self, moduleID, value, portnumber=1):
         guid = 10041
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'MaxTotalCurrentOff' GUID  10042 Data type TYPE_UNSIGNED_NUMBER
@@ -1516,14 +1642,16 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMaxTotalCurrentOff(self, moduleID, value):
         guid = 10042
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'MaxTotalCurrentWarning' GUID  10043 Data type TYPE_UNSIGNED_NUMBER
@@ -1533,14 +1661,16 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMaxTotalCurrentWarning(self, moduleID, value):
         guid = 10043
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'MaxTotalPowerOff' GUID  10044 Data type TYPE_UNSIGNED_NUMBER
@@ -1550,14 +1680,16 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMaxTotalPowerOff(self, moduleID, value):
         guid = 10044
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'MaxTotalPowerWarning' GUID  10045 Data type TYPE_UNSIGNED_NUMBER
@@ -1567,14 +1699,16 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMaxTotalPowerWarning(self, moduleID, value):
         guid = 10045
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'MaxVoltageOff' GUID  10046 Data type TYPE_UNSIGNED_NUMBER
@@ -1584,14 +1718,16 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMaxVoltageOff(self, moduleID, value):
         guid = 10046
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'MaxVoltageWarning' GUID  10047 Data type TYPE_UNSIGNED_NUMBER
@@ -1601,14 +1737,16 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMaxVoltageWarning(self, moduleID, value):
         guid = 10047
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'MinVoltageOff' GUID  10048 Data type TYPE_UNSIGNED_NUMBER
@@ -1618,14 +1756,16 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMinVoltageOff(self, moduleID, value):
         guid = 10048
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'MinVoltageWarning' GUID  10049 Data type TYPE_UNSIGNED_NUMBER
@@ -1635,14 +1775,16 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMinVoltageWarning(self, moduleID, value):
         guid = 10049
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'ActiveEnergyReset' GUID  10050 Data type TYPE_UNSIGNED_NUMBER_WITH_TS
@@ -1650,7 +1792,8 @@ class Power(BaseModule):
     def doActiveEnergyReset(self, moduleID):
         guid = 10050
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(1, valDef))
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(1, valDef))
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'ApparentEnergyReset' GUID  10051 Data type TYPE_UNSIGNED_NUMBER_WITH_TS
@@ -1658,39 +1801,46 @@ class Power(BaseModule):
     def doApparentEnergyReset(self, moduleID, portnumber=1):
         guid = 10051
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(1, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(1, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
-    # Attribute 'MinTemperatureWarning' GUID  10052 Data type TYPE_SIGNED_NUMBER
+    # Attribute 'MinTemperatureWarning' GUID  10052 Data type
+    # TYPE_SIGNED_NUMBER
     def getMinTemperatureWarning(self, moduleID):
         guid = 10052
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMinTemperatureWarning(self, moduleID, value):
         guid = 10052
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
-    # Attribute 'MaxTemperatureWarning' GUID  10053 Data type TYPE_SIGNED_NUMBER
+    # Attribute 'MaxTemperatureWarning' GUID  10053 Data type
+    # TYPE_SIGNED_NUMBER
     def getMaxTemperatureWarning(self, moduleID):
         guid = 10053
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMaxTemperatureWarning(self, moduleID, value):
         guid = 10053
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'Startuptime' GUID  10066 Data type TYPE_UNSIGNED_NUMBER
@@ -1699,7 +1849,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'PowerCycleTime' GUID  10099 Data type TYPE_UNSIGNED_NUMBER
@@ -1707,13 +1858,15 @@ class Power(BaseModule):
     def getPowerCycleTime(self, moduleID, portnumber=1, length=1):
         guid = 10099
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setPowerCycleTime(self, moduleID, value, portnumber=1):
         guid = 10099
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'JumpBoot' GUID  40000 Data type TYPE_COMMAND
@@ -1724,14 +1877,16 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setJumpBoot(self, moduleID, value):
         guid = 40000
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'GotoFactoryMode' GUID  40002 Data type TYPE_COMMAND
@@ -1739,7 +1894,8 @@ class Power(BaseModule):
         guid = 40002
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'ApparentPower' GUID  15 Data type TYPE_UNSIGNED_NUMBER
@@ -1747,7 +1903,8 @@ class Power(BaseModule):
     def getApparentPower(self, moduleID, portnumber=1, length=1):
         guid = 15
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'ModInfo' GUID  40008 Data type TYPE_COMMAND
@@ -1756,7 +1913,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'PowerFactor' GUID  16 Data type TYPE_UNSIGNED_NUMBER
@@ -1764,7 +1922,8 @@ class Power(BaseModule):
     def getPowerFactor(self, moduleID, portnumber=1, length=1):
         guid = 16
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'MinCurrent' GUID  5010 Data type TYPE_UNSIGNED_NUMBER_WITH_TS
@@ -1772,7 +1931,8 @@ class Power(BaseModule):
     def getMinCurrent(self, moduleID, portnumber=1, length=1):
         guid = 5010
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'MinPower' GUID  5011 Data type TYPE_UNSIGNED_NUMBER_WITH_TS
@@ -1780,7 +1940,8 @@ class Power(BaseModule):
     def getMinPower(self, moduleID, portnumber=1, length=1):
         guid = 5011
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'MinPowerFactor' GUID  5012 Data type TYPE_UNSIGNED_NUMBER_WITH_TS
@@ -1788,7 +1949,8 @@ class Power(BaseModule):
     def getMinPowerFactor(self, moduleID, portnumber=1, length=1):
         guid = 5012
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'MaxPowerFactor' GUID  5013 Data type TYPE_UNSIGNED_NUMBER_WITH_TS
@@ -1796,7 +1958,8 @@ class Power(BaseModule):
     def getMaxPowerFactor(self, moduleID, portnumber=1, length=1):
         guid = 5013
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'BootJumpApp' GUID  60001 Data type TYPE_COMMAND
@@ -1805,7 +1968,8 @@ class Power(BaseModule):
         guid = 60001
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'TotalCurrent' GUID  17 Data type TYPE_UNSIGNED_NUMBER
@@ -1815,7 +1979,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'TotalRealPower' GUID  18 Data type TYPE_UNSIGNED_NUMBER
@@ -1825,7 +1990,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'TotalApparentPower' GUID  19 Data type TYPE_UNSIGNED_NUMBER
@@ -1835,7 +2001,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'TotalActiveEnergy' GUID  20 Data type TYPE_UNSIGNED_NUMBER
@@ -1845,7 +2012,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'TotalApparentEnergy' GUID  21 Data type TYPE_UNSIGNED_NUMBER
@@ -1855,7 +2023,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'TotalPowerFactor' GUID  22 Data type TYPE_UNSIGNED_NUMBER
@@ -1865,7 +2034,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'MinTotalCurrent' GUID  5014 Data type TYPE_UNSIGNED_NUMBER_WITH_TS
@@ -1875,7 +2045,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'MinTotalPower' GUID  5015 Data type TYPE_UNSIGNED_NUMBER_WITH_TS
@@ -1885,7 +2056,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'MinTotalPowerFactor' GUID  5016 Data type TYPE_UNSIGNED_NUMBER_WITH_TS
@@ -1895,7 +2067,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'MaxTotalPowerFactor' GUID  5017 Data type TYPE_UNSIGNED_NUMBER_WITH_TS
@@ -1905,7 +2078,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'ActiveTotalEnergyReset' GUID  10071 Data type TYPE_UNSIGNED_NUMBER_WITH_TS
@@ -1914,7 +2088,8 @@ class Power(BaseModule):
         guid = 10071
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(1, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(1, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'ApparentTotalEnergyReset' GUID  10072 Data type TYPE_UNSIGNED_NUMBER_WITH_TS
@@ -1923,7 +2098,8 @@ class Power(BaseModule):
         guid = 10072
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(1, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(1, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'MonitorAutoRefresh' GUID  50010 Data type TYPE_POINTER
@@ -1933,7 +2109,8 @@ class Power(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'DoHotReset' GUID  40014 Data type TYPE_COMMAND
@@ -1942,7 +2119,8 @@ class Power(BaseModule):
         guid = 40014
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(1, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(1, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # The pointer

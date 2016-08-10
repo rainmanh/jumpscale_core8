@@ -2,25 +2,29 @@
 from JumpScale import j
 
 from ActionDecorator import ActionDecorator
-class actionrun(ActionDecorator):
-    def __init__(self,*args,**kwargs):
-        ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.pip"
 
-base=j.tools.cuisine.getBaseClass()
+
+class actionrun(ActionDecorator):
+
+    def __init__(self, *args, **kwargs):
+        ActionDecorator.__init__(self, *args, **kwargs)
+        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.pip"
+
+base = j.tools.cuisine.getBaseClass()
+
+
 class CuisinePIP(base):
 
-    def __init__(self,executor,cuisine):
-        self.executor=executor
-        self.cuisine=cuisine
-
+    def __init__(self, executor, cuisine):
+        self.executor = executor
+        self.cuisine = cuisine
 
     # -----------------------------------------------------------------------------
     # PIP PYTHON PACKAGE MANAGER
     # -----------------------------------------------------------------------------
 
     @actionrun(action=True)
-    def upgrade(self,package):
+    def upgrade(self, package):
         '''
         The "package" argument, defines the name of the package that will be upgraded.
         '''
@@ -28,35 +32,35 @@ class CuisinePIP(base):
         self.cuisine.core.run('pip3 install --upgrade %s' % (package))
 
     @actionrun()
-    def install(self,package=None,upgrade=False):
+    def install(self, package=None, upgrade=False):
         '''
         The "package" argument, defines the name of the package that will be installed.
         '''
         self.cuisine.core.set_sudomode()
         if self.cuisine.core.isArch:
-            if package in ["credis","blosc","psycopg2"]:
+            if package in ["credis", "blosc", "psycopg2"]:
                 return
 
         if self.cuisine.core.isCygwin and package in ["psycopg2", "psutil", "zmq"]:
             return
 
-        cmd="pip3 install %s"%package
+        cmd = "pip3 install %s" % package
         if upgrade:
-            cmd+=" --upgrade"
+            cmd += " --upgrade"
         self.cuisine.core.run(cmd)
 
     @actionrun()
-    def remove(self,package):
+    def remove(self, package):
         '''
         The "package" argument, defines the name of the package that will be ensured.
         The argument "r" referes to the requirements file that will be used by pip and
         is equivalent to the "-r" parameter of pip.
         Either "package" or "r" needs to be provided
         '''
-        return self.cuisine.core.run('pip3 uninstall %s' %(package))
+        return self.cuisine.core.run('pip3 uninstall %s' % (package))
 
     @actionrun()
-    def multiInstall(self,packagelist, upgrade=False):
+    def multiInstall(self, packagelist, upgrade=False):
         """
         @param packagelist is text file and each line is name of package
         can also be list

@@ -14,9 +14,8 @@ class NFSError(Exception):
     pass
 
 
-
-
 class NFSExport:
+
     def __init__(self, path=""):
         self.__jslocation__ = "j.sal.nfs"
         self._path = j.tools.path.get(path)
@@ -55,6 +54,7 @@ class NFSExport:
 
 
 class NFS:
+
     def __init__(self):
         self._exports = None
         self._executor = j.tools.executor.getLocal()

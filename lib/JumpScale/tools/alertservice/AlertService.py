@@ -6,6 +6,7 @@ import os
 import inspect
 import gevent
 
+
 class Handler:
     ORDER = 50
 
@@ -21,6 +22,7 @@ class Handler:
     def escalate(self, alert, users):
         pass
 
+
 class AlertService:
 
     def __init__(self):
@@ -33,7 +35,7 @@ class AlertService:
         self.handlers = list()
         self.timers = dict()
         self.loadHandlers()
-        # TODO (*3*) ---> get mongoengine connection from AYS
+        # TODO *3 ---> get mongoengine connection from AYS
         j.data.models.system.connect2mongo()
 
     def getUsersForLevel(self, level):

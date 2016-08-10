@@ -15,7 +15,7 @@ class MainHandlerRPC(tornado.web.RequestHandler):
     def initialize(self, server):
         self.server = server
 
-    def responseRaw(self,data,start_response):
+    def responseRaw(self, data, start_response):
         start_response('200 OK', [('Content-Type', 'text/plain')])
         return [data]
 
@@ -26,7 +26,8 @@ class MainHandlerRPC(tornado.web.RequestHandler):
             return self.handleJSONRPC()
         else:
             category, cmd, data2, informat, returnformat, sessionid = j.servers.base._unserializeBinSend(data)
-            resultcode, returnformat, result = self.server.daemon.processRPCUnSerialized(cmd, informat, returnformat, data2, sessionid, category=category)
+            resultcode, returnformat, result = self.server.daemon.processRPCUnSerialized(
+                cmd, informat, returnformat, data2, sessionid, category=category)
             data3 = j.servers.base._serializeBinReturn(resultcode, returnformat, result)
             self.write(data3)
             self.flush()
@@ -48,7 +49,8 @@ class MainHandlerRPC(tornado.web.RequestHandler):
             category, cmd = method_name.split('.', 1)
             sessionid = params.pop('sessionid', None)
             session = self.server.daemon.getSession(sessionid=sessionid, cmd=cmd)
-            return_code, return_format, data = self.server.daemon.processRPC(cmd, params, 'j', session, category=category)
+            return_code, return_format, data = self.server.daemon.processRPC(
+                cmd, params, 'j', session, category=category)
             if return_code == returnCodes.OK:
                 result = {'result': data, 'id': payload['id'], 'jsonrpc': '2.0'}
             else:
@@ -63,6 +65,7 @@ class MainHandlerRPC(tornado.web.RequestHandler):
 
         self.write(j.data.serializer.json.dumps(result))
         self.flush()
+
 
 class TornadoServer:
 
@@ -91,4 +94,3 @@ class TornadoServer:
 
     def _stack_context_handle_exception(self, *kwargs):
         print(kwargs)
-        

@@ -59,14 +59,16 @@ def _calculate_offset(date, local_tz):
     otherwise return 0
     """
     if local_tz:
-        #handle year before 1970 most sytem there is no timezone information before 1970.
+        # handle year before 1970 most sytem there is no timezone information
+        # before 1970.
         if date.year < 1970:
             # Use 1972 because 1970 doesn't have a leap day
             t = time.mktime(date.replace(year=1972).timetuple)
         else:
             t = time.mktime(date.timetuple())
 
-        # handle daylightsaving, if daylightsaving use altzone, otherwise use timezone
+        # handle daylightsaving, if daylightsaving use altzone, otherwise use
+        # timezone
         if time.localtime(t).tm_isdst:
             return -time.altzone
         else:

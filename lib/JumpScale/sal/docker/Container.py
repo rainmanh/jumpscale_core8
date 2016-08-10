@@ -252,9 +252,9 @@ class Container:
     __repr__ = __str__
 
     # def setHostName(self,name,hostname):
-    #     return #@todo
+    #     return # TODO:
     #     c=self.getSSH(name)
-    #     #@todo
+    #     # TODO:
     #     # c.run("echo '%s' > /etc/hostname;hostname %s"%(hostname,hostname))
     #
 

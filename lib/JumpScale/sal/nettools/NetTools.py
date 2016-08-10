@@ -469,7 +469,7 @@ class NetTools:
 
         REMARK: format changed because there was bug which could not work with bridges
 
-        @TODO change for windows
+        TODO: change for windows
 
         """
         netaddr = {}

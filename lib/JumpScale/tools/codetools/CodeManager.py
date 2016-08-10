@@ -542,7 +542,7 @@ class CodeManagerFile:
         return id1
 
     def _findTasks(self, text, path, fullPath):
-        #TODO: S2 do same for remarks & questions
+        # TODO: S2 do same for remarks & questions
         def findTodoVariants(line):
             variants = ["@todo:", "TODO: :", "@todo"]
             for variant in variants:

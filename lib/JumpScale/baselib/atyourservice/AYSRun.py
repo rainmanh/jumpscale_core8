@@ -95,6 +95,7 @@ class AYSRunStepAction(Process):
         return out
 
     def run(self):
+        # for parallelized runs
         try:
             self.result = self.service.runAction(self.runstep.action)
             self.logger.debug('running stepaction: %s' % self.service)
@@ -108,6 +109,24 @@ class AYSRunStepAction(Process):
             self.error_q.put(self._str_error(e))
             self.result_q.put(self.result)
             raise e
+
+    def execute(self):
+        # for squential runs
+        try:
+            self.result = self.service.runAction(self.runstep.action)
+        except Exception as e:
+            if j.actions.last:
+                j.actions.last.print()
+                self.result = j.actions.last.str
+            else:
+                self._print_error(e)
+                self.result = e.__str__()
+            self.state = "ERROR"
+            self.runstep.state = "ERROR"
+            self.runstep.run.state = "ERROR"
+            return False
+        self.state = "OK"
+        return True
 
     def __repr__(self):
         out = "runstep action: %s!%s (%s)\n" % (
@@ -144,24 +163,25 @@ class AYSRunStep:
         return aysi.key in self.actions
 
     def execute(self):
-        self.run.aysrepo.logger.debug('***************')
-        self.run.aysrepo.logger.debug('\n\t'.join(list(self.actions.keys())))
+        if j.atyourservice.parallelize:
+            for stepaction in self.actions.values():
+                stepaction.start()
+            for stepaction in self.actions.values():
+                stepaction.join()
 
-        for stepaction in self.actions.values():
-            stepaction.start()
-        for stepaction in self.actions.values():
-            stepaction.join()
-
-        for stepaction in self.actions.values():
-            if not stepaction.exitcode != 0:
-                stepaction.result = stepaction.error_q.get()
-                stepaction.state = "ERROR"
-                self.state = "ERROR"
-                self.run.state = "ERROR"
-            else:
-                stepaction.result = stepaction.result_q.get()
-                stepaction.state = "OK"
-                stepaction.service.reload()
+            for stepaction in self.actions.values():
+                if not stepaction.exitcode != 0:
+                    stepaction.result = stepaction.error_q.get()
+                    stepaction.state = "ERROR"
+                    self.state = "ERROR"
+                    self.run.state = "ERROR"
+                else:
+                    stepaction.result = stepaction.result_q.get()
+                    stepaction.state = "OK"
+                    stepaction.service.reload()
+        else:
+            for key, stepaction in self.actions.items():
+                stepaction.execute()
 
     @property
     def model(self):
@@ -305,9 +325,9 @@ class AYSRun:
     def save(self):
         if self.db is not None:
             # will remember in KVS
-            self.db.set("run", str(self.id),
+            self.db.set("run %s" % str(self.id),
                         j.data.serializer.json.dumps(self.model))
-            self.db.set("run_index", str(self.id), "%s|%s" %
+            self.db.set("run_index %s" % str(self.id), "%s|%s" %
                         (self.timestamp, self.state))
 
     def execute(self):

@@ -29,7 +29,7 @@ Then place this file under in
 
 # use of std client
 
-# @todo
+# TODO:
 
 ## use client_advanced
 

@@ -176,7 +176,7 @@ class ObjectInspector:
 
     def __init__(self):
         self.__jslocation__ = "j.tools.objectinspector"
-        # self.apiFileLocation = j.sal.fs.joinPaths(j.dirs.cfgDir, "codecompletionapi", "jumpscale.api")
+        self.apiFileLocation = j.sal.fs.joinPaths(j.dirs.cfgDir, "codecompletionapi", "jumpscale.api")
         # j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.cfgDir, "codecompletionapi"))
         self.classDocs = {}
         self.visited = []
@@ -238,7 +238,8 @@ class ObjectInspector:
             self.classDocs[path] = ClassDoc(classobj, path)
         obj = self.classDocs[path]
 
-    def inspect(self, objectLocationPath="j", recursive=True, parent=None, obj=None):
+    def inspect(self, objectLocationPath="j.sal", recursive=True, parent=None, obj=None):
+
         """
         walk over objects in memory and create code completion api in jumpscale cfgDir under codecompletionapi
         @param object is start object
@@ -248,7 +249,6 @@ class ObjectInspector:
 
         # if parent is None:
         #     self.visited = []
-
         if obj == None:
             try:
                 # objectNew = eval("%s" % objectLocationPath2)
@@ -256,7 +256,6 @@ class ObjectInspector:
             except:
                 self.raiseError("could not eval:%s" % objectLocationPath)
                 return
-
         # only process our files
         try:
             if not obj.__file__.startswith(self.base):
@@ -293,13 +292,12 @@ class ObjectInspector:
             return True
 
         # if objectLocationPath == 'j.actions.logger.disabled':
-            # import ipdb; ipdb.set_trace()
+
 
         attrs = [item for item in attrs if check(item)]
 
         for objattributename in attrs:
             objectLocationPath2 = "%s.%s" % (objectLocationPath, objattributename)
-
             try:
                 objattribute = eval("obj.%s" % objattributename)
             except Exception as e:
@@ -325,18 +323,10 @@ class ObjectInspector:
                 except Exception as e:
                     self.logger.error("the _getFactoryEnabledClasses gives error")
                     import ipdb
-
-            elif str(type(objattribute)).find("'instance'") != -1 or str(type(objattribute)).find("<class") != -1 or str(type(objattribute)).find("'classobj'") != -1:
-                j.sal.fs.writeFile(self.apiFileLocation, "%s?8\n" % objectLocationPath2, True)
-                self.logger.debug("class or instance: %s" % objectLocationPath2)
-                try:
-                    if not isinstance(objattribute, (str, bool, int, float, dict, list, tuple)):
-                        self.inspect(objectLocationPath2, parent=objattribute)
-                except Exception as e:
-                    self.logger.error(e)
-
-            elif str(type(objattribute)).find("'instancemethod'") != -1 or str(type(objattribute)).find("'function'") != -1\
-                    or str(type(objattribute)).find("'staticmethod'") != -1 or str(type(objattribute)).find("'classmethod'") != -1:
+            elif str(type(objattribute)).find("method") != -1 or str(type(objattribute)).find(
+                    "'instancemethod'") != -1 or str(type(objattribute)).find("'function'") != -1 \
+                    or str(type(objattribute)).find("'staticmethod'") != -1 or str(type(objattribute)).find(
+                "'classmethod'") != -1:
                 # is instancemethod
                 try:
                     methodpath = inspect.getabsfile(objattribute)
@@ -350,6 +340,17 @@ class ObjectInspector:
                 source, params = self._processMethod(objattributename, objattribute, objectLocationPath2, obj)
                 self.logger.debug("instancemethod: %s" % objectLocationPath2)
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?4(%s)\n" % (objectLocationPath2, params), True)
+
+            elif str(type(objattribute)).find("type") != -1 or str(type(objattribute)).find("<class") != -1 or str(type(objattribute)).find("'instance'") != -1 or str(type(objattribute)).find("'classobj'") != -1:
+                j.sal.fs.writeFile(self.apiFileLocation, "%s?8\n" % objectLocationPath2, True)
+                self.logger.debug("class or instance: %s" % objectLocationPath2)
+                try:
+                    if not isinstance(objattribute, (str, bool, int, float, dict, list, tuple)):
+                        self.inspect(objectLocationPath2, parent=objattribute)
+                except Exception as e:
+                    self.logger.error(e)
+
+
 
             elif str(type(objattribute)).find("'str'") != -1 or str(type(objattribute)).find("'type'") != -1 or str(type(objattribute)).find("'list'") != -1\
                 or str(type(objattribute)).find("'bool'") != -1 or str(type(objattribute)).find("'int'") != -1 or str(type(objattribute)).find("'NoneType'") != -1\

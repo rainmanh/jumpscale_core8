@@ -130,5 +130,4 @@ class GitFactory:
             if j.sal.fs.exists(path=j.sal.fs.joinPaths(path, ".git")):
                 return path
             path = j.sal.fs.getParent(path)
-            path = path.strip("/").strip()
         raise j.exceptions.Input("Cannot find git path in:%s" % path)

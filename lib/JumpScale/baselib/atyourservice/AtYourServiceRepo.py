@@ -16,7 +16,7 @@ colored_traceback.add_hook(always=True)
 
 class AtYourServiceRepo():
 
-    def __init__(self, name, gitrepo, path, keephistory=True):
+    def __init__(self, name, gitrepo, path):
         self._init = False
 
         # self._justinstalled = []
@@ -44,12 +44,7 @@ class AtYourServiceRepo():
         # self._roletemplates = dict()
         self._servicesTree = {}
 
-        self._load_blueprints()
-        self.keephistory = keephistory
-        if self.keephistory:
-            self.db = j.servers.kvs.getFSStore("ays_%s" % self.name)
-        else:
-            self.db = None
+        self._db = None
 
 
 # INIT
@@ -67,7 +62,7 @@ class AtYourServiceRepo():
         self._todo = []
         self._git = None
         self._blueprints = {}
-        self._load_blueprints()
+        # self._load_blueprints()
         self._servicesTree = {}
 
     def destroy(self, uninstall=True):
@@ -82,6 +77,11 @@ class AtYourServiceRepo():
         if self._git is None:
             self._git = j.clients.git.get(basedir=self.path, check_path=False)
         return self._git
+
+    @property
+    def db(self):
+        self._db = j.atyourservice.kvs.get(self.name)
+        return self._db
 
 # ACTORS
 
@@ -104,8 +104,8 @@ class AtYourServiceRepo():
         return actor
 
     def actorGet(self, name, die=True):
-        if name in self.Actors:
-            Actor = self.Actors[name]
+        if name in self.actors:
+            Actor = self.actors[name]
             return Actor
         else:
             if die == False:
@@ -140,7 +140,7 @@ class AtYourServiceRepo():
     def actorsFind(self, name="", version="", role=''):
         res = []
         domain = "ays"
-        for template in self.Actors:
+        for template in self.actors:
             if not(name == "" or template.name == name):
                 # no match continue
                 continue
@@ -300,12 +300,12 @@ class AtYourServiceRepo():
         if first:
             if len(res) == 0:
                 raise j.exceptions.Input("cannot find service %s|%s:%s (%s)" % (
-                    domain, name, instance, version), "ays.findServices")
+                    domain, name, instance, version), "ays.servicesFind")
             return res[0]
         return res
 
     def serviceFindProducer(self, producercategory, instancename):
-        for item in self.findServices(instance=instancename):
+        for item in self.servicesFind(instance=instancename):
             if producercategory in item.categories:
                 return item
 
@@ -314,7 +314,7 @@ class AtYourServiceRepo():
         @return set of services that consumes target
         """
         result = set()
-        for service in self.findServices():
+        for service in self.servicesFind():
             if target.isConsumedBy(service):
                 result.add(service)
         return result
@@ -394,7 +394,7 @@ class AtYourServiceRepo():
         """
         # create a scope in which we need to find work
         producerRoles = self._processProducerRoles(producerRoles)
-        scope = set(self.findServices(
+        scope = set(self.servicesFind(
             role=role, instance=instance, hasAction=action))
         for service in scope:
             producer_candidates = service.getProducersRecursive(
@@ -468,7 +468,7 @@ class AtYourServiceRepo():
 
         run = AYSRun(self, simulate=simulate)
         for action0 in actions:
-            scope = self.findActionScope(
+            scope = self.runFindActionScope(
                 action=action0, role=role, instance=instance, producerRoles=producerRoles)
             todo = self._findTodo(
                 action=action0, scope=scope, run=run, producerRoles=producerRoles)
@@ -542,9 +542,9 @@ class AtYourServiceRepo():
         if role == "" and instance == "":
             self.reset()
 
-        self.setState(actions=["init"], role=role,
+        self.serviceSetState(actions=["init"], role=role,
                       instance=instance, state="INIT")
-        for key, Actor in self.Actors.items():
+        for key, Actor in self.actors.items():
             if role != "" and Actor.role == role:
                 continue
             Actor.init()
@@ -558,7 +558,7 @@ class AtYourServiceRepo():
             #import pudb; pu.db
             #Actor.newInstance(instance=key, args={})
 
-        run = self.getRun(role=role, instance=instance,
+        run = self.runGet(role=role, instance=instance,
                           data=data, action="init")
         run.execute()
 

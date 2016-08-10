@@ -642,7 +642,7 @@ class Console:
         return '\n'.join(lines)
 
     def getOutput(self):
-        pass  # @todo
+        pass  # TODO: Implement this method
         return ""
 
     def hideOutput(self):

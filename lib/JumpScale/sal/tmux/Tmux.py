@@ -25,6 +25,7 @@ class Session:
             wname = w.get("window_name")
             if name == wname:
                 w.kill_window()
+        j.core.db.delete("tmux:pane:%s" % self.name)
         self.reload()
 
     def existsWindow(self, name):
@@ -41,12 +42,13 @@ class Session:
 
         for window in self.windows:
             if window.name == name:
+                # is right construct, means we found a window, now we can safely remove ignore
                 if self.existsWindow("ignore") and removeIgnore:
                     self.delWindow("ignore")
-                return self.windows[name]
+                return window
 
         print("create window:%s" % name)
-
+        j.core.db.delete("tmux:pane:%s" % name)
         res = self.mgmt.new_window(name, start_directory=start_directory, attach=attach)
 
         window = Window(self, res)
@@ -142,8 +144,20 @@ class Pane:
     def __init__(self, window, pane):
         self.mgmt = pane
         self.id = pane.get("pane_id")
-        self.name = pane.get("pane_title")
         self.window = window
+
+    @property
+    def name(self):
+        res = j.core.db.hget("tmux:%s:name" % self.window.name, str(self.id))
+        if res is None:
+            return ""
+        else:
+            res = res.decode()
+            return res
+
+    @name.setter
+    def name(self, name):
+        j.core.db.hset("tmux:%s:name" % self.window.name, str(self.id), name)
 
     def select(self):
         self.mgmt.select_pane()
@@ -179,10 +193,10 @@ class Pane:
             res.mgmt.send_keys("clear")
         return res
 
-    def do(self, cmd, wait=False):
-        j.core.db.hset("tmux.%s" % self.window.name, self.name, "%s" % j.data.time.getTimeEpoch())
+    def execute(self, cmd, wait=False):
+        j.core.db.hset("tmux:%s:exec" % self.window.name, self.name, "%s" % j.data.time.getTimeEpoch())
         # set exit code and date in front
-        cmd2 = "echo HSET tmux.%s %s %s:$? | redis-cli -s /tmp/redis.sock -x" %\
+        cmd2 = "echo HSET tmux:%s:exec %s %s:$? | redis-cli -s /tmp/redis.sock -x > /dev/null 2>&1" %\
             (self.window.name, self.name, j.data.time.getTimeEpoch())
         cmdall = cmd + ";" + cmd2
         # print (cmd)
@@ -194,10 +208,10 @@ class Pane:
         """
         make sure that previous exit code is removed and all is clean for next run
         """
-        j.core.db.hset("tmux.%s" % self.window.name, self.name, "")
+        j.core.db.hset("tmux:%s:exec" % self.window.name, self.name, "")
 
     def check(self):
-        res = j.core.db.hget("tmux.%s" % self.window.name, self.name)
+        res = j.core.db.hget("tmux:%s:exec" % self.window.name, self.name)
         if res == "":
             return ""
         res = res.decode()
@@ -282,19 +296,25 @@ class Tmux:
         session = self.getSession(sessionName, firstWindow=windowName)
         window = session.getWindow(windowName, reset=reset)
 
-        a = window.getPane(name="main", killothers=True)
+        if len(window.panes) == 16 and reset == False:
+            return window
+
+        a = window.getPane(name=windowName, killothers=True)
         b = a.splitVertical("b")
         a.splitVertical("2", "1")
         b.splitVertical("4", "3")
 
         for paneName in window.paneNames:
             a = window.getPane(paneName)
-            count = a.name
+            try:
+                count = int(a.name.decode())
+            except:
+                count = int(a.name)
             b = a.splitHorizontal("b")  # first split
             a.splitHorizontal("P%s2" % count, "P%s1" % count)
             b.splitHorizontal("P%s4" % count, "P%s3" % count)
 
         for pane in window.panes:
-            pane.do("clear;echo %s" % pane.name)
+            pane.execute("clear;echo %s" % pane.name)
 
         return window

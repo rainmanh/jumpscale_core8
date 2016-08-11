@@ -20,18 +20,14 @@ class RedisQueue:
         """Put item into the queue."""
         self.__db.rpush(self.key, item)
 
-    def get(self, block=True, timeout=None):
-        """Remove and return an item from the queue. 
-
-        If optional args block is true and timeout is None (the default), block
-        if necessary until an item is available."""
-        if block:
+    def get(self, timeout=20):
+        """Remove and return an item from the queue."""
+        if timeout > 0:
             item = self.__db.blpop(self.key, timeout=timeout)
             if item:
                 item = item[1]
         else:
             item = self.__db.lpop(self.key)
-
         return item
 
     def fetch(self, block=True, timeout=None):

@@ -2,6 +2,8 @@ from JumpScale import j
 
 from Worker import Worker
 
+import inspect
+
 
 class JobController:
     """
@@ -14,11 +16,11 @@ class JobController:
         self.db = j.atyourservice.db.job
         self._init = False
         self._queue = None
+        curdir = j.sal.fs.getDirName(inspect.getsourcefile(self.__init__))
 
-        from IPython import embed
-        print("DEBUG NOW sdsdsds")
-        embed()
-        raise RuntimeError("stop debug here")
+        self._workerPath = j.sal.fs.joinPaths(curdir, "Worker.py")
+
+        self.tmux = j.sal.tmux.createPanes4x4("workers", "actions", False)
 
     @property
     def queue(self):
@@ -27,10 +29,14 @@ class JobController:
         return self._queue
 
     def startWorkers(self, nrworkers=8):
-        from IPython import embed
-        print("DEBUG NOW start workers")
-        embed()
-        raise RuntimeError("stop debug here")
+
+        paneNames = [pane.name for pane in self.tmux.panes]
+        paneNames.sort()
+        for i in range(nrworkers):
+            name = paneNames[i]
+            pane = self.tmux.getPane(name)
+            cmd = "python3 %s -q worker%s" % (self._workerPath, i)
+            pane.execute(cmd)
 
     def executeJob(self, jobguid):
         """

@@ -262,6 +262,7 @@ struct Job {
       running @1;
       ok @2;
       error @3;
+      abort @4;
   }
 
   #is the run which asked for this job

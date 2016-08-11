@@ -2,9 +2,9 @@
 from JumpScale import j
 import sys
 import time
-import psutil
+# import psutil
 from JumpScale.tools import cmdutils
-from jobcontroller import JobController
+
 import multiprocessing
 
 import os
@@ -22,21 +22,12 @@ def restart_program():
 
 class Worker(object):
 
-    def __init__(self, queuename, logpath):
+    def __init__(self, queuename):
         self.actions = {}
         self.clients = dict()
         self.acclient = None
-        self.job_controller = JobController()
         self.queuename = queuename
-        self.init()
         self.starttime = time.time()
-        self.logpath = logpath
-        self.logFile = None
-        # if self.logpath:
-        #     self.logFile = open(self.logpath, 'w', 0)
-
-    def init(self):
-        self.job_controller.delete_all("workers:action:%s" % self.queuename)
 
     def processAction(self, action):
         self.job_controller.delete("workers:action:%s" % self.queuename)
@@ -104,7 +95,8 @@ class Worker(object):
                 continue
             if job:
                 try:
-                    import ipdb; ipdb.set_trace()
+                    import ipdb
+                    ipdb.set_trace()
                     job.timeStart = time.time()
                     status, result = self.execute(**job.args)
                     self.job_controller.delete("workers:inqueuetest", job.guid())
@@ -149,14 +141,16 @@ class Worker(object):
         try:
             acclient = self.getClient(job)
         except Exception as e:
-            j.exceptions.RuntimeError("could not report job in error to agentcontroller", category='workers.errorreporting', e=e)
+            j.exceptions.RuntimeError("could not report job in error to agentcontroller",
+                                      category='workers.errorreporting', e=e)
             return
 
         def reportJob():
             try:
                 acclient.notifyWorkCompleted(job.__dict__)
             except Exception as e:
-                j.exceptions.RuntimeError("could not report job in error to agentcontroller", category='workers.errorreporting', e=e)
+                j.exceptions.RuntimeError("could not report job in error to agentcontroller",
+                                          category='workers.errorreporting', e=e)
                 return
 
         # jumpscripts coming from AC
@@ -185,8 +179,8 @@ class Worker(object):
 if __name__ == '__main__':
     parser = cmdutils.ArgumentParser()
     parser.add_argument("-q", '--queuename', help='Queue name', required=True)
-    parser.add_argument("-i", '--instance', help='JSAgent instance', required=True)
-    parser.add_argument("-lp", '--logpath', help='Logging file path', required=False, default=None)
+    # parser.add_argument("-i", '--instance', help='JSAgent instance', required=True)
+    # parser.add_argument("-lp", '--logpath', help='Logging file path', required=False, default=None)
 
     opts = parser.parse_args()
 
@@ -195,5 +189,5 @@ if __name__ == '__main__':
     j.logger.consoleloglevel = 2
     j.logger.maxlevel = 7
 
-    worker = Worker(opts.queuename, opts.logpath)
+    worker = Worker(opts.queuename)
     worker.run()

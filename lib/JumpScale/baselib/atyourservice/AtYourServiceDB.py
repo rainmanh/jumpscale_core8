@@ -4,9 +4,7 @@ from JumpScale import j
 import capnp
 import aysmodel_capnp as AYSModel
 
-from ActorModel import ActorModel
-from JobModel import JobModel
-
+from .Models import ActorModel, JobModel, RunModel, ServiceModel
 
 class AtYourServiceDBFactory():
 
@@ -14,6 +12,7 @@ class AtYourServiceDBFactory():
         self.AYSModel = AYSModel
         self.actor = ModelFactory("Actor")
         self.job = ModelFactory("Job")
+        self.run = ModelFactory("Run")
         # self.service = ModelFactory("Service")
         # self.actioncode = ModelFactory("ActionCode")
         # self.run = ModelFactory("Run")
@@ -27,7 +26,7 @@ class ModelFactory():
     def __init__(self, category):
         self.category = category
         self._db = AtYourServiceDB(category=category)  # is the abstraction layer to low level db
-        self._modelClass = eval(self.category + "Model")
+        self._modelClass = eval(self.category + "Model." + self.category + "Model")
 
     def new(self):
         model = self._modelClass(self.category, self._db)

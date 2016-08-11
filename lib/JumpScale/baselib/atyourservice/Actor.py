@@ -10,7 +10,7 @@ from JumpScale.baselib.atyourservice.Service import Service
 
 DECORATORCODE = """
 ActionMethodDecorator=j.atyourservice.getActionMethodDecorator()
-ActionsBaseMgmt=j.atyourservice.getActionsBaseClassMgmt()
+ActionsBase=j.atyourservice.getActionsBaseClass()
 
 class action(ActionMethodDecorator):
     def __init__(self,*args,**kwargs):
@@ -76,7 +76,7 @@ class Actor(ActorTemplate):
         if j.sal.fs.exists(self.template.path_actions):
             content = j.sal.fs.fileGetContents(self.template.path_actions)
         else:
-            content = "class Actions(ActionsBaseMgmt):\n\n"
+            content = "class Actions(ActionsBase):\n\n"
 
         if content.find("class action(ActionMethodDecorator)") != -1:
             raise j.exceptions.Input("There should be no decorator specified in %s" % self.path_actions)

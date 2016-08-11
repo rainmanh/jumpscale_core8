@@ -1,6 +1,6 @@
 from JumpScale import j
 
-from ModelBase import ModelBase
+from .ModelBase import ModelBase
 
 
 class JobModel(ModelBase):
@@ -20,6 +20,18 @@ class JobModel(ModelBase):
         for i, item in enumerate(olditems):
             newlist[i] = item
         return newlist[-1]
+
+    def log_new(self, **kwargs):
+        olditems = [item.to_dict() for item in self.dbobj.logs]
+        newlist = self.dbobj.init("logs", len(olditems) + 1)
+        for i, item in enumerate(olditems):
+            newlist[i] = item
+        log = newlist[-1]
+
+        for k, v in kwargs.items():
+            if hasattr(log, k):
+                setattr(log, k, v)
+        return log
 
     @property
     def state(self):

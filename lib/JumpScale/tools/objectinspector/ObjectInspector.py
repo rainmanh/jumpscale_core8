@@ -9,6 +9,8 @@ from JumpScale import j
 import inspect
 
 
+
+
 class Arg:
 
     def __init__(self, name, defaultvalue):
@@ -117,7 +119,6 @@ class ClassDoc:
         print("ADD METHOD:%s %s" % (self.path, name))
         md = MethodDoc(method, name, self)
         self.methods[name] = md
-
         return source, md.params
 
     def write(self, dest):
@@ -183,6 +184,22 @@ class ObjectInspector:
         self.root = None
         self.manager = None
         self.logger = j.logger.get('j.tools.objectinspector')
+        self.compl = """
+import abc
+
+class MyNewClass(object):
+    __metaclass__ = abc.ABCMeta
+
+
+class Faker(): pass\n
+"""
+        level=0
+        self.compl2 = """
+
+
+"""
+        from collections import OrderedDict
+        self.jstree = OrderedDict() # jstree['j.sal']={'unix': unixobject, 'fs': fsobject}
 
     def importAllLibs(self, ignore=[], base="%s/lib/JumpScale/" % j.dirs.base):
         self.base = base
@@ -211,13 +228,23 @@ class ObjectInspector:
         errormsg = "* %s\n" % errormsg
         j.sal.fs.writeFile(filename="%s/errors.md" % self.dest, contents=errormsg, append=True)
 
-    def generateDocs(self, dest, ignore=[]):
+    def generateDocs(self, dest, ignore=[], objpath="j.sal"):
         self.dest = dest
         self.apiFileLocation = "%s/jumpscale.api" % self.dest
         j.sal.fs.writeFile("%s/errors.md" % dest, "")
         j.sal.fs.createDir(self.dest)
         self.errors = self.importAllLibs(ignore=ignore)
-        self.inspect()
+        objectLocationPath = objpath
+        if objectLocationPath.count(".") > 0:
+            # write its parts in self.compl file first
+            parts = objectLocationPath.split(".")
+            readsofar = parts[0]
+            for idx, part in enumerate(parts):
+                self.compl += readsofar + " = Faker()\n"
+                if idx<len(parts)-1:
+                    readsofar += "." + parts[idx+1]
+
+        self.inspect(objectLocationPath)
         j.sal.fs.createDir(dest)
         j.sal.fs.writeFile(filename="%s/errors.md" % dest, contents=self.errors, append=True)
         self.writeDocs(dest)
@@ -271,6 +298,7 @@ class ObjectInspector:
             return
 
         attrs = dir(obj)
+
         # try:
         #     for item in obj._getAttributeNames():
         #         if item not in attrs:
@@ -295,9 +323,12 @@ class ObjectInspector:
 
 
         attrs = [item for item in attrs if check(item)]
+        def attrib(name, type, doc=None, objectpath=None):
+                return (name, type, doc, objectpath)
 
         for objattributename in attrs:
             objectLocationPath2 = "%s.%s" % (objectLocationPath, objattributename)
+            self.jstree[objectLocationPath2] = []
             try:
                 objattribute = eval("obj.%s" % objattributename)
             except Exception as e:
@@ -309,6 +340,8 @@ class ObjectInspector:
                 # is special type or constant
                 self.logger.debug("special type: %s" % objectLocationPath2)
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?7\n" % objectLocationPath2, True)
+                self.compl +=objectLocationPath2 + " = Faker()\n"
+                self.jstree[objectLocationPath2]=attrib(objattributename, "const", objectLocationPath2)
 
             elif objattributename == "_getFactoryEnabledClasses":
                 try:
@@ -320,6 +353,7 @@ class ObjectInspector:
                         self._processClass(name, objectLocationPath2, obj)
                         if not isinstance(objattribute, (str, bool, int, float, dict, list, tuple)):
                             self.inspect(objectLocationPath=objectLocationPath2, recursive=True, parent=obj, obj=obj2)
+
                 except Exception as e:
                     self.logger.error("the _getFactoryEnabledClasses gives error")
                     import ipdb
@@ -340,10 +374,27 @@ class ObjectInspector:
                 source, params = self._processMethod(objattributename, objattribute, objectLocationPath2, obj)
                 self.logger.debug("instancemethod: %s" % objectLocationPath2)
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?4(%s)\n" % (objectLocationPath2, params), True)
+                self.compl += "%s = lambda *args, **kwargs: None\n"%(objectLocationPath2)
+                self.compl += "%s.__doc__ = '''%s'''\n" % (objectLocationPath2, objattribute.__doc__)
+                self.jstree[objectLocationPath2]=attrib(objattributename, "method", objattribute.__doc__, objectLocationPath2)
+
+            elif str(type(objattribute)).find("'str'") != -1 or str(type(objattribute)).find("'type'") != -1 or str(type(objattribute)).find("'list'") != -1\
+                or str(type(objattribute)).find("'bool'") != -1 or str(type(objattribute)).find("'int'") != -1 or str(type(objattribute)).find("'NoneType'") != -1\
+                    or str(type(objattribute)).find("'dict'") != -1 or str(type(objattribute)).find("'property'") != -1 or str(type(objattribute)).find("'tuple'") != -1:
+                # is instancemethod
+                self.logger.debug("property: %s" % objectLocationPath2)
+                j.sal.fs.writeFile(self.apiFileLocation, "%s?8\n" % objectLocationPath2, True)
+                self.compl +="%s = Faker()\n"%(objectLocationPath2)
+                self.jstree[objectLocationPath2]=attrib(objattributename, "property",
+                                                               objattribute.__doc__, objectLocationPath2)
 
             elif str(type(objattribute)).find("type") != -1 or str(type(objattribute)).find("<class") != -1 or str(type(objattribute)).find("'instance'") != -1 or str(type(objattribute)).find("'classobj'") != -1:
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?8\n" % objectLocationPath2, True)
+                self.compl +="%s = Faker() \n"%objectLocationPath2
                 self.logger.debug("class or instance: %s" % objectLocationPath2)
+                self.compl += "%s.__doc__ = '''%s'''\n" % (objectLocationPath2, objattribute.__doc__)
+                self.jstree[objectLocationPath2]=attrib(objattributename, "class",
+                                                                            objattribute.__doc__, objectLocationPath2)
                 try:
                     if not isinstance(objattribute, (str, bool, int, float, dict, list, tuple)):
                         self.inspect(objectLocationPath2, parent=objattribute)
@@ -352,18 +403,12 @@ class ObjectInspector:
 
 
 
-            elif str(type(objattribute)).find("'str'") != -1 or str(type(objattribute)).find("'type'") != -1 or str(type(objattribute)).find("'list'") != -1\
-                or str(type(objattribute)).find("'bool'") != -1 or str(type(objattribute)).find("'int'") != -1 or str(type(objattribute)).find("'NoneType'") != -1\
-                    or str(type(objattribute)).find("'dict'") != -1 or str(type(objattribute)).find("'property'") != -1 or str(type(objattribute)).find("'tuple'") != -1:
-                # is instancemethod
-                self.logger.debug("property: %s" % objectLocationPath2)
-                j.sal.fs.writeFile(self.apiFileLocation, "%s?8\n" % objectLocationPath2, True)
-
             else:
                 pass
                 # print((str(type(objattribute)) + " " + objectLocationPath2))
 
     def writeDocs(self, path):
+        print(self.compl)
         todelete = []
         summary = {}
         for key, doc in list(self.classDocs.items()):
@@ -373,6 +418,7 @@ class ObjectInspector:
             dest = doc.write(path)
             # remember gitbook info
             summary[key2][key] = j.sal.fs.pathRemoveDirPart(dest, self.dest)
+
 
         summarytxt = ""
         keys1 = list(summary.keys())
@@ -385,3 +431,8 @@ class ObjectInspector:
                 summarytxt += "    * [%s](%s)\n" % (key2, summary[key1][key2])
 
         j.sal.fs.writeFile(filename="%s/SUMMARY.md" % (self.dest), contents=summarytxt)
+
+        j.sal.fs.writeFile(filename="%s/compl.py"%self.dest, contents=self.compl)
+        import json
+        with open("/tmp/out.json", 'w') as f:
+            json.dump(self.jstree,  f, indent=4, sort_keys=True)

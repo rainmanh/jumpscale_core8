@@ -64,7 +64,6 @@ class GitClient:
         import git
         if not self._repo:
             if not j.sal.fs.exists(self.baseDir):
-                j.tools.cuisine.local.core.run("git config --global http.sslVerify false")
                 self._clone()
             else:
                 self._repo = git.Repo(self.baseDir)

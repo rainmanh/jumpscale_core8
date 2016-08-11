@@ -1803,9 +1803,9 @@ class InstallTools():
                 if url.find("http")!=-1:
                     print("http")
                     if branch!=None:
-                        cmd="cd %s;git -c http.sslVerify=false pull origin %s"%(dest,branch)
+                        cmd="cd %s;git pull origin %s"%(dest,branch)
                     else:
-                        cmd="cd %s;git -c http.sslVerify=false pull"%dest
+                        cmd="cd %s;git pull"%dest
                 else:
                     if branch!=None:
                         cmd="cd %s; git fetch ; git reset --hard origin/%s"%(dest,branch)
@@ -1819,9 +1819,9 @@ class InstallTools():
                  extra = "--depth=%s" % depth
             if url.find("http")!=-1:
                 if branch!=None:
-                    cmd="cd %s;git -c http.sslVerify=false clone %s --single-branch -b %s %s %s"%(self.getParent(dest),extra, branch,url,dest)
+                    cmd="cd %s;git clone %s --single-branch -b %s %s %s"%(self.getParent(dest),extra, branch,url,dest)
                 else:
-                    cmd="cd %s;git -c http.sslVerify=false clone %s  %s %s"%(self.getParent(dest),extra,url,dest)
+                    cmd="cd %s;git clone %s  %s %s"%(self.getParent(dest),extra,url,dest)
             else:
                 if branch!=None:
                     cmd="cd %s;git clone %s --single-branch -b %s %s %s"%(self.getParent(dest),extra, branch,url,dest)

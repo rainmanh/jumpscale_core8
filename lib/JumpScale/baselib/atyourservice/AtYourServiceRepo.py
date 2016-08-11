@@ -3,7 +3,7 @@ from JumpScale import j
 from JumpScale.baselib.atyourservice.Actor import Actor
 # from JumpScale.baselib.atyourservice.Service import Service, loadmodule
 # from JumpScale.baselib.atyourservice.ActionsBaseNode import ActionsBaseNode
-# from JumpScale.baselib.atyourservice.ActionsBaseMgmt import ActionsBaseMgmt
+# from JumpScale.baselib.atyourservice.ActionsBase import ActionsBase
 # from JumpScale.baselib.atyourservice.actorTemplate import actorTemplate
 # from JumpScale.baselib.atyourservice.ActionMethodDecorator import ActionMethodDecorator
 from JumpScale.baselib.atyourservice.Blueprint import Blueprint
@@ -37,6 +37,7 @@ class AtYourServiceRepo():
         self.path = path
 
         self._git = gitrepo
+        self._db = None
 
         self.name = name
 
@@ -78,6 +79,11 @@ class AtYourServiceRepo():
             self._git = j.clients.git.get(basedir=self.path, check_path=False)
         return self._git
 
+    @property
+    def db(self):
+        if not self._db:
+            self._db = j.atyourservice.db.getDB('ays')
+        return self._db
 
 # ACTORS
 

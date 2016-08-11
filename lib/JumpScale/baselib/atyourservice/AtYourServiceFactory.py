@@ -4,8 +4,7 @@ from JumpScale import j
 # from JumpScale.baselib.atyourservice.Service import Service, loadmodule
 from JumpScale.baselib.atyourservice.ActorTemplate import ActorTemplate
 
-from JumpScale.baselib.atyourservice.ActionsBaseNode import ActionsBaseNode
-from JumpScale.baselib.atyourservice.ActionsBaseMgmt import ActionsBaseMgmt
+from JumpScale.baselib.atyourservice.ActionsBase import ActionsBase
 from JumpScale.baselib.atyourservice.ActionMethodDecorator import ActionMethodDecorator
 
 from JumpScale.baselib.atyourservice.AtYourServiceRepo import AtYourServiceRepo
@@ -369,11 +368,8 @@ class AtYourServiceFactory:
         self._doinit()
         return self._domains
 
-    def getActionsBaseClassNode(self):
-        return ActionsBaseNode
-
-    def getActionsBaseClassMgmt(self):
-        return ActionsBaseMgmt
+    def getActionsBaseClass(self):
+        return ActionsBase
 
     def getActionMethodDecorator(self):
         return ActionMethodDecorator

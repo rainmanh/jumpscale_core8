@@ -1,6 +1,6 @@
 from JumpScale import j
 
-from JumpScale.baselib.atyourservice.ModelBase import ModelBase
+from JumpScale.baselib.atyourservice.models.ModelBase import ModelBase
 
 
 class ActorModel(ModelBase):
@@ -57,26 +57,81 @@ class ActorModel(ModelBase):
                 self._methodsList.append(self.methods[key])
         return self._methodsList
 
+#### recurringTemplate
+    @property
+    def recurringTemplate(self):
+        return self.dbobj.recurringTemplate
+
+    def recurringTemplateNew(self, *kwargs):
+        olditems = [item.to_dict() for item in self.dbobj.recurringTemplate]
+        newlist = self.dbobj.init("recurringTemplate", len(olditems) + 1)
+        for i, item in enumerate(olditems):
+            newlist[i] = item
+        recurringTemplate = newlist[-1]
+        for k, v in kwargs.items():
+            if hasattr(recurringTemplate, k):
+                setattr(recurringTemplate, k, v)
+        return recurringTemplate
+
+#### actionServiceTemplates
+    @property
+    def actionsServicesTemplate(self):
+        return self.dbobj.actionsServicesTemplate
+
+    def actionsServicesTemplateNew(self, **kwargs):
+        olditems = [item.to_dict() for item in self.dbobj.actionsServicesTemplate]
+        newlist = self.dbobj.init("actionsServicesTemplate", len(olditems) + 1)
+        for i, item in enumerate(olditems):
+            newlist[i] = item
+        actionsServicesTemplate = newlist[-1]
+
+        for k, v in kwargs.items():
+            if hasattr(actionsServicesTemplate, k):
+                setattr(actionsServicesTemplate, k, v)
+        return actionsServicesTemplate
+
+#### actionsActor
+    @property
+    def actionsActor(self):
+        return self.dbobj.actionsActor
+
+    def actionsActorNew(self, **kwargs):
+        olditems = [item.to_dict() for item in self.dbobj.actionsActor]
+        newlist = self.dbobj.init("actionsActor", len(olditems) + 1)
+        for i, item in enumerate(olditems):
+            newlist[i] = item
+        actionsActor = newlist[-1]
+        for k, v in kwargs.items():
+            if hasattr(actionsActor, k):
+                setattr(actionsActor, k, v)
+
+#### producers
+    @property
+    def producers(self):
+        return self.dbobj.producers
+
+    def producerNew(self, **kwargs):
+        olditems = [item.to_dict() for item in self.dbobj.producers]
+        newlist = self.dbobj.init("producers", len(olditems) + 1)
+        for i, item in enumerate(olditems):
+            newlist[i] = item
+        producer = newlist[-1]
+
+        for k, v in kwargs.items():
+            if hasattr(producer, k):
+                setattr(producer, k, v)
+
+        return producer
+
+#### model methods
     def _post_init(self):
         # self.db.parent = j.atyourservice.AYSModel.actor.actorPointer.new_message()  # TODO
-        # self._producers = self.dbobj.init_resizable_list('producers')
-        self._actions_templates = self.dbobj.init_resizable_list('actionsServicesTemplate')
-        self._actions_actor = self.dbobj.init_resizable_list('actionsActor')
-        # self._recurringTemplate = self.dbobj.init_resizable_list('recurringTemplate')
-        self.dbobj.name = self.actor.name
         self.dbobj.key = j.data.idgenerator.generateGUID()
         self.dbobj.ownerKey = j.data.idgenerator.generateGUID()
+        self.dbobj.name = self.actor.name
 
     def _pre_save(self):
-        # if self.isChanged:
-        #     new_list = self.dbobj.init('actionsServicesTemplate', len(self._actions_templates))
-        #     for i, action in enumerate(self._actions_templates):
-        #         new_list[i] = action
-
-        # need to call finish on DynamicResizableListBuilder to prevent leaks
-        for builder in [self._actions_templates, self._producers, self._recurringTemplate, self._actions_actor]:
-            if builder is not None:
-                builder.finish()
+        pass
 
     def _get_key(self):
         if self.dbobj.name == "":
@@ -104,11 +159,9 @@ class ActorModel(ModelBase):
                 action_code.save()
 
                 # put pointer to actionCode to actor model
-                action = self._actions_templates.add()
-                # action = self._capnp.Action.new_message()
+                action = self.actionsServicesTemplateNew()
                 action.name = name
                 action.actionCodeKey = guid
-                # self._actions_templates.append(action)
 
                 self._changes[name] = True
 

@@ -119,13 +119,13 @@ class ProcessManager():
         self.dir_actions = j.sal.fs.joinPaths(self.dir_data, "actions")
         j.sal.fs.createDir(self.dir_data)
 
-        self.aysdb = j.atyourservice.kvs.get('agent')
+        self.aysdb = j.atyourservice.db.getDB('agent')
 
         self.redis_queues = {}
-        self.redis_queues["io"] = self.aysdb.getQueue("workers:work:io")
-        self.redis_queues["hypervisor"] = self.aysdb.getQueue("workers:work:hypervisor")
+        # self.redis_queues["io"] = self.aysdb.getQueue("workers:work:io")
+        # self.redis_queues["hypervisor"] = self.aysdb.getQueue("workers:work:hypervisor")
         self.redis_queues["default"] = self.aysdb.getQueue("workers:work:default")
-        self.redis_queues["process"] = self.aysdb.getQueue("workers:work:process")
+        # self.redis_queues["process"] = self.aysdb.getQueue("workers:work:process")
 
         self.pm = j.tools.cuisine.local.processmanager.get('tmux')
 
@@ -140,7 +140,7 @@ class ProcessManager():
 
     def _workerStart(self):
         pwd = '/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/baselib/atyourservice/AYSManager'
-        for qname in ["default", "io", "process", "hypervisor"]:
+        for qname in ["default"]:  # , "io", "process", "hypervisor"]:
             p = Process()
             p.domain = 'workers'
             p.name = '%s' % qname

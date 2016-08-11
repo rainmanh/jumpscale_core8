@@ -2,14 +2,14 @@
 from JumpScale import j
 import sys
 import time
-import psutil
+# import psutil
 from JumpScale.tools import cmdutils
-from jobcontroller import JobController
-import multiprocessing
+
+# import multiprocessing
 
 import os
 
-RUNTIME = 24 * 3600
+RUNTIME = 2 * 3600
 
 
 def restart_program():
@@ -22,64 +22,24 @@ def restart_program():
 
 class Worker(object):
 
-    def __init__(self, queuename, logpath):
-        self.actions = {}
-        self.clients = dict()
-        self.acclient = None
-        self.job_controller = JobController()
-        self.queuename = queuename
-        self.init()
+    def __init__(self, queuename):
+        self._queuename = queuename
         self.starttime = time.time()
-        self.logpath = logpath
-        self.logFile = None
-        # if self.logpath:
-        #     self.logFile = open(self.logpath, 'w', 0)
-
-    def init(self):
-        self.job_controller.delete_all("workers:action:%s" % self.queuename)
+        self.actions = {}
+        self._cmdQueue = None
 
     def processAction(self, action):
-        self.job_controller.delete("workers:action:%s" % self.queuename)
+        action = self.internalCMDQueue.get(timeout=0)
         if action == "RESTART":
             self.log("RESTART ASKED")
             j.application.stop(0, True)
             restart_program()
 
-        if action == "RELOAD":
-            self.log("RELOAD ASKED")
-            self.actions = {}
-
-    def execute(self, *args, **kwargs):
-        if self.debug:
-            result = self.module.action(*args, **kwargs)
-            return True, result
-        else:
-            def helper(pipe):
-                try:
-                    result = self.executeInProcess(*args, **kwargs)
-                    pipe.send(result)
-                except Exception as e:
-                    try:
-                        result = self._getECO(e)
-                    except Exception as e:
-                        msg = 'Failed parsing original exception: %s' % e
-                        result = j.exception.RuntimeError(msg=msg)
-                    pipe.send((False, result))
-
-            ppipe, cpipe = multiprocessing.Pipe()
-            proc = multiprocessing.Process(target=helper, args=(cpipe,))
-            proc.start()
-            cpipe.close()
-            proc.join(self.timeout)
-            if proc.is_alive():
-                proc.terminate()
-                return False, "TIMEOUT"
-            try:
-                return ppipe.recv()
-            except:
-                msg = 'Job died unexpectedly'
-                result = j.exception.RuntimeError(msg=msg)
-                return False, result
+    @property
+    def internalCMDQueue(self):
+        if self._cmdQueue is None:
+            self._cmdQueue = j.core.jobcontroller.db._db.getQueue('workers:cmds:%s' % self._queuename)
+        return self._cmdQueue
 
     def run(self):
         self.log("STARTED")
@@ -87,24 +47,33 @@ class Worker(object):
             if self.starttime + RUNTIME < time.time():
                 self.log("Running for %s seconds restarting" % RUNTIME)
                 restart_program()
+
+            self.processAction()
+
             try:
                 self.log("check if work")
-                job = self.job_controller.queue_pop(self.queuename, timeout=10)
-                jtype = None  # figure out how to set/get jtype. For now, None is wonderful
+                job = j.core.jobcontroller.queue.get()
             except Exception as e:
                 if str(e).find("Could not find queue to execute job") != -1:
                     # create queue
                     self.log("could not find queue")
-                else:
-                    j.exceptions.RuntimeError("Could not get work from redis, is redis running?", "workers.getwork", e)
-                time.sleep(10)
+                    continue
+                print("could not get job from queue, error:%s" % e)
                 continue
-            if jtype == "action":
-                self.processAction(job)
-                continue
+
+            if job is not None:
+                try:
+                    job.execute()
+                except Exception as e:
+                    from IPython import embed
+                    print("DEBUG NOW error in job execution")
+                    embed()
+                    raise RuntimeError("stop debug here")
+
             if job:
                 try:
-                    import ipdb; ipdb.set_trace()
+                    import ipdb
+                    ipdb.set_trace()
                     job.timeStart = time.time()
                     status, result = self.execute(**job.args)
                     self.job_controller.delete("workers:inqueuetest", job.guid())
@@ -149,14 +118,16 @@ class Worker(object):
         try:
             acclient = self.getClient(job)
         except Exception as e:
-            j.exceptions.RuntimeError("could not report job in error to agentcontroller", category='workers.errorreporting', e=e)
+            j.exceptions.RuntimeError("could not report job in error to agentcontroller",
+                                      category='workers.errorreporting', e=e)
             return
 
         def reportJob():
             try:
                 acclient.notifyWorkCompleted(job.__dict__)
             except Exception as e:
-                j.exceptions.RuntimeError("could not report job in error to agentcontroller", category='workers.errorreporting', e=e)
+                j.exceptions.RuntimeError("could not report job in error to agentcontroller",
+                                          category='workers.errorreporting', e=e)
                 return
 
         # jumpscripts coming from AC
@@ -178,15 +149,12 @@ class Worker(object):
             print(msg)
         except IOError:
             pass
-        if self.logFile != None:
-            msg = msg + "\n"
-            self.logFile.write(msg)
 
 if __name__ == '__main__':
     parser = cmdutils.ArgumentParser()
     parser.add_argument("-q", '--queuename', help='Queue name', required=True)
-    parser.add_argument("-i", '--instance', help='JSAgent instance', required=True)
-    parser.add_argument("-lp", '--logpath', help='Logging file path', required=False, default=None)
+    # parser.add_argument("-i", '--instance', help='JSAgent instance', required=True)
+    # parser.add_argument("-lp", '--logpath', help='Logging file path', required=False, default=None)
 
     opts = parser.parse_args()
 
@@ -195,5 +163,5 @@ if __name__ == '__main__':
     j.logger.consoleloglevel = 2
     j.logger.maxlevel = 7
 
-    worker = Worker(opts.queuename, opts.logpath)
+    worker = Worker(opts.queuename)
     worker.run()

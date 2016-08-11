@@ -1,6 +1,6 @@
 from JumpScale import j
 
-from JumpScale.baselib.atyourservice.ModelBase import ModelBase
+from JumpScale.baselib.atyourservice.models.ModelBase import ModelBase
 
 
 class ActionCodeModel(ModelBase):

@@ -6,7 +6,7 @@ import imp
 import sys
 import inspect
 import capnp
-from JumpScale.baselib.atyourservice.ServiceModel import ServiceModel
+from JumpScale.baselib.atyourservice.models.ServiceModel import ServiceModel
 
 
 def getProcessDicts(service, args={}):
@@ -175,7 +175,6 @@ class Service:
                 self.model.removeRecurring(action)
 
         self.model.save()
-        import ipdb; ipdb.set_trace()
 
     def reset(self):
         self._hrd = None

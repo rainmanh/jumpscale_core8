@@ -1,7 +1,7 @@
 from JumpScale import j
 
 
-class ActionsBaseMgmt:
+class ActionsBase:
 
     def change_hrd_template(self, service, originalhrd):
         for methodname, obj in service.state.methods.items():

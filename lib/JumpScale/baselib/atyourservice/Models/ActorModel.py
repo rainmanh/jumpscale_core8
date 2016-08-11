@@ -1,6 +1,6 @@
 from JumpScale import j
 
-from ModelBase import ModelBase
+from .ModelBase import ModelBase
 
 
 class ActorModel(ModelBase):
@@ -30,20 +30,77 @@ class ActorModel(ModelBase):
                 self._methodsList.append(self.methods[key])
         return self._methodsList
 
+#### recurringTemplate
+    @property
+    def recurringTemplate(self):
+        return self.dbobj.recurringTemplate
+
+    def recurring_template_new(self, *kwargs):
+        olditems = [item.to_dict() for item in self.dbobj.recurringTemplate]
+        newlist = self.dbobj.init("recurringTemplate", len(olditems) + 1)
+        for i, item in enumerate(olditems):
+            newlist[i] = item
+        recurringTemplate = newlist[-1]
+        for k, v in kwargs.items():
+            if hasattr(recurringTemplate, k):
+                setattr(recurringTemplate, k, v)
+        return recurringTemplate
+
+#### actionServiceTemplates
+    @property
+    def actionsServicesTemplate(self):
+        return self.dbobj.actionsServicesTemplate
+
+    def actions_services_template_new(self, **kwargs):
+        olditems = [item.to_dict() for item in self.dbobj.actionsServicesTemplate]
+        newlist = self.dbobj.init("actionsServicesTemplate", len(olditems) + 1)
+        for i, item in enumerate(olditems):
+            newlist[i] = item
+        actionsServicesTemplate = newlist[-1]
+
+        for k, v in kwargs.items():
+            if hasattr(actionsServicesTemplate, k):
+                setattr(actionsServicesTemplate, k, v)
+        return actionsServicesTemplate
+
+#### actionsActor
+    @property
+    def actionsActor(self):
+        return self.dbobj.actionsActor
+
+    def actions_actor_new(self, **kwargs):
+        olditems = [item.to_dict() for item in self.dbobj.actionsActor]
+        newlist = self.dbobj.init("actionsActor", len(olditems) + 1)
+        for i, item in enumerate(olditems):
+            newlist[i] = item
+        actionsActor = newlist[-1]
+        for k, v in kwargs.items():
+            if hasattr(actionsActor, k):
+                setattr(actionsActor, k, v)
+
+#### producers
+    @property
+    def producers(self):
+        return self.dbobj.producers
+
+    def producer_new(self, **kwargs):
+        olditems = [item.to_dict() for item in self.dbobj.producers]
+        newlist = self.dbobj.init("producers", len(olditems) + 1)
+        for i, item in enumerate(olditems):
+            newlist[i] = item
+        producer = newlist[-1]
+
+        for k, v in kwargs.items():
+            if hasattr(producer, k):
+                setattr(producer, k, v)
+
+        return producer
+
+#### model methods
     def _post_init(self):
         # self.db.parent = j.atyourservice.AYSModel.actor.actorPointer.new_message()  # TODO
-        self._producers = self.dbobj.init_resizable_list('producers')
-        self.dbobj.init_resizable_list('actionsServicesTemplate')
-        self.dbobj.init_resizable_list('actionsActor')
-        self._recurringTemplate = self.dbobj.init_resizable_list('recurringTemplate')
         self.dbobj.key = j.data.idgenerator.generateGUID()
         self.dbobj.ownerKey = j.data.idgenerator.generateGUID()
-
-    def _pre_save(self):
-        # need to call finish on DynamicResizableListBuilder to prevent leaks
-        for builder in [self.dbobj.actionsActor, self.dbobj.actionsServicesTemplate, self._producers, self._recurringTemplate]:
-            if builder is not None:
-                builder.finish()
 
     def _get_key(self):
         if self.dbobj.name == "":

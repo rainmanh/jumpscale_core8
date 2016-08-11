@@ -35,7 +35,7 @@ class ActorModel(ModelBase):
     def recurringTemplate(self):
         return self.dbobj.recurringTemplate
 
-    def recurring_template_new(self, *kwargs):
+    def recurringTemplateNew(self, *kwargs):
         olditems = [item.to_dict() for item in self.dbobj.recurringTemplate]
         newlist = self.dbobj.init("recurringTemplate", len(olditems) + 1)
         for i, item in enumerate(olditems):
@@ -51,7 +51,7 @@ class ActorModel(ModelBase):
     def actionsServicesTemplate(self):
         return self.dbobj.actionsServicesTemplate
 
-    def actions_services_template_new(self, **kwargs):
+    def actionsServicesTemplateNew(self, **kwargs):
         olditems = [item.to_dict() for item in self.dbobj.actionsServicesTemplate]
         newlist = self.dbobj.init("actionsServicesTemplate", len(olditems) + 1)
         for i, item in enumerate(olditems):
@@ -68,7 +68,7 @@ class ActorModel(ModelBase):
     def actionsActor(self):
         return self.dbobj.actionsActor
 
-    def actions_actor_new(self, **kwargs):
+    def actionsActorNew(self, **kwargs):
         olditems = [item.to_dict() for item in self.dbobj.actionsActor]
         newlist = self.dbobj.init("actionsActor", len(olditems) + 1)
         for i, item in enumerate(olditems):
@@ -83,7 +83,7 @@ class ActorModel(ModelBase):
     def producers(self):
         return self.dbobj.producers
 
-    def producer_new(self, **kwargs):
+    def producerNew(self, **kwargs):
         olditems = [item.to_dict() for item in self.dbobj.producers]
         newlist = self.dbobj.init("producers", len(olditems) + 1)
         for i, item in enumerate(olditems):

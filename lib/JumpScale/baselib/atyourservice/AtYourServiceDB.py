@@ -4,7 +4,8 @@ from JumpScale import j
 import capnp
 import aysmodel_capnp as AYSModel
 
-from .Models import ActorModel, JobModel, RunModel, ServiceModel
+from .models import ActorModel, JobModel, RunModel, ServiceModel, ActionCodeModel
+
 
 class AtYourServiceDBFactory():
 
@@ -14,8 +15,8 @@ class AtYourServiceDBFactory():
         self.job = ModelFactory("Job")
         self.run = ModelFactory("Run")
         # self.service = ModelFactory("Service")
-        # self.actioncode = ModelFactory("ActionCode")
-        # self.run = ModelFactory("Run")
+        self.actioncode = ModelFactory("ActionCode")
+        self.run = ModelFactory("Run")
 
     def getDB(self, category):
         return AtYourServiceDB(category)

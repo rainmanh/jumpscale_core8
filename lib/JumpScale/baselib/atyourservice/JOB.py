@@ -10,35 +10,13 @@ import pygments.lexers
 from pygments.formatters import get_formatter_by_name
 
 
-class Job(Process):
+class Job():
     """
     is what needs to be done for 1 specific action for a service
     """
 
     def __init__(self):
         self.logger = j.atyourservice.logger
-
-    @property
-    def actioncodeObj(self):
-
-    @property
-    def method(self):
-        if self.source == "":
-            raise j.exceptions.RuntimeError("source cannot be empty")
-        if self._method == None:
-            # j.sal.fs.changeDir(basepath)
-            loader = importlib.machinery.SourceFileLoader(self.name, self.sourceToExecutePath)
-            handle = loader.load_module(self.name)
-            self._method = eval("handle.%s" % self.name)
-
-        return self._method
-
-    @property
-    def source(self):
-        if self._source is None:
-            self._source = self.runstep.run.db.get_dedupe(
-                "source", self.model["source"]).decode()
-        return self._source
 
     def _str_error(self, error):
         out = ''

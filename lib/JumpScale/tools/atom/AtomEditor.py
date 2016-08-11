@@ -103,13 +103,18 @@ class AtomEditor:
             cson.dump(merged, out)
 
 
-    def generateJummpscaleAutocompletion(self):
-        # TODO: *1 use j.tools.objectinspector.inspect() (FIX) and generate jedi
-        # code completion, check in ATOM that it works, needs to be installed
-        # automatically
-        pass
+    def generateJumpscaleAutocompletion(self, dest='/tmp/tempd/jedicomp.txt'):
+        apifile = "/tmp/tempd/jumpscale.api"
+        jedicomp = "/tmp/tempd/jedi.comp"
+        names = ""
+        import re
+        with open(apifile) as f:
 
-        # TODO: walk over all jumpscale extensions & create autocompletion for atom and copy to appropriate directory
+            with open(jedicomp, "w") as jedout:
+                for x in re.finditer("(\w.+)\?", f.read()):
+                    name=x.group(0).strip("?")
+                    jedout.write(name+"= None \n")
+
 
     def installPythonExtensions(self):
         """

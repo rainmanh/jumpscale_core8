@@ -1,18 +1,15 @@
 from JumpScale import j
 
-# try:
-#     import sortedcontainers
-# except:
-#     os.execute("pip3 install sortedcontainers")
-#     import sortedcontainers
-
 
 class ModelBase():
 
-    def __init__(self, category, db, key=""):
+    def __init__(self, category, db=None, key=""):
+        self.logger = j.atyourservice.logger
         self._category = category
+        if db is None:
+            db = j.atyourservice.db.getDB(category)
         self._db = db
-        if key != "":
+        if key != "" and self._db.exists(key):
             # will get from db
             self.load(key=key)
         else:

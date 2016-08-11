@@ -302,8 +302,7 @@ class AtYourServiceFactory:
         name = j.sal.fs.getBaseName(path)
 
         if name in self._templateRepos:
-            raise j.exceptions.Input(
-                "AYS templateRepo with name:%s already exists at %s, cannot have duplicate names." % (name, path))
+            raise j.exceptions.Input("AYS templateRepo with name:%s already exists at %s, cannot have duplicate names." % (name, path))
 
         self._templateRepos[path] = AtYourServiceRepo(name, gitrepo, path)
 
@@ -322,8 +321,7 @@ class AtYourServiceFactory:
 
         else:
             # we want to retrieve  templateRepo by name
-            result = [templateRepo for templateRepo in self._templateRepos.values(
-            ) if templateRepo.name == name]
+            result = [templateRepo for templateRepo in self._templateRepos.values() if templateRepo.name == name]
             if not result:
                 path = j.sal.fs.getcwd()
                 if not name:
@@ -331,8 +329,7 @@ class AtYourServiceFactory:
                 self._templateRepos[path] = AtYourServiceRepo(name, gitrepo=j.clients.git.findGitPath(path), path=path)
             elif len(result) > 1:
                 msg = "Multiple AYS templateRepos with name %s found under locations [%s]. Please use j.atyourservice.get(path=<path>) instead" % \
-                    (name, ','.join(
-                        [templateRepo.path for templateRepo in result]))
+                    (name, ','.join([templateRepo.path for templateRepo in result]))
                 raise j.exceptions.RuntimeError(msg)
             else:
                 path = result[0].path

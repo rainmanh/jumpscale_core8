@@ -8,6 +8,7 @@ from JumpScale.baselib.atyourservice.Actor import Actor
 # from JumpScale.baselib.atyourservice.ActionMethodDecorator import ActionMethodDecorator
 from JumpScale.baselib.atyourservice.Blueprint import Blueprint
 from JumpScale.baselib.atyourservice.AYSRun import AYSRun
+from JumpScale.baselib.atyourservice.Service import Service
 # from AYSdb import *
 
 import colored_traceback

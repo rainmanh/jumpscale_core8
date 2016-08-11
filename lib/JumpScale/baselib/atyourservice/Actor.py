@@ -2,10 +2,11 @@ from JumpScale import j
 
 import copy
 import inspect
+import imp
+import sys
 
 from JumpScale.baselib.atyourservice.ActorTemplate import ActorTemplate
-
-
+from JumpScale.baselib.atyourservice.ActorModel import ActorModel
 from JumpScale.baselib.atyourservice.Service import Service
 
 DECORATORCODE = """
@@ -18,6 +19,17 @@ class action(ActionMethodDecorator):
 
 """
 
+modulecache = {}
+def loadmodule(name, path):
+    key = path
+    if key in modulecache:
+        return modulecache[key]
+    parentname = ".".join(name.split(".")[:-1])
+    sys.modules[parentname] = __package__
+    mod = imp.load_source(name, path)
+    modulecache[key] = mod
+    return mod
+
 
 class Actor(ActorTemplate):
 
@@ -25,17 +37,18 @@ class Actor(ActorTemplate):
         """
         """
 
+        self.template = template
+        self.aysrepo = aysrepo
         self.name = template.name
+        self.domain = self.template.domain
         self.role = self.name.split(".", 1)[0]
         self.FQDN = ''  # @TODO
         self.producers = []
         self.key = ''
         self.ownerKey = ''
 
-        self.template = template
-        self.aysrepo = aysrepo
-
-        self.domain = self.template.domain
+        # private
+        self._schema = None
 
         self.path = j.sal.fs.joinPaths(aysrepo.path, "actors", template.name)
 
@@ -43,19 +56,26 @@ class Actor(ActorTemplate):
 
         self._init_props()
 
-        self.state = ActorModel(self)
+        self.model = ActorModel(self, key=self.name)
         # copy the files
         if not j.sal.fs.exists(path=self.path):
             self.copyFilesFromTemplate()
-        self.state.save()
+            if j.sal.fs.exists(self.path_hrd_schema):
+                self.model.dbobj.serviceDataSchema = j.sal.fs.fileGetContents(self.path_hrd_schema)
 
+        self.model.save()
+        self.model._changes = {}
+
+    @property
+    def schema(self):
+        if self._schema is None:
+            self._schema = j.data.hrd.getSchema(content=self.model.dbobj.serviceDataSchema)
+        return self._schema
 
 # INIT
 
     def copyFilesFromTemplate(self):
-
         j.sal.fs.createDir(self.path)
-
         if j.sal.fs.exists(self.template.path_hrd_template):
             j.sal.fs.copyFile(self.template.path_hrd_template, self.path_hrd_template)
         if j.sal.fs.exists(self.template.path_hrd_schema):
@@ -105,7 +125,7 @@ class Actor(ActorTemplate):
 
             if state == "MAIN" and linestrip.startswith("@"):
                 if amSource != "":
-                    self.state.addMethod(amName, amSource)
+                    self.model.addMethod(amName, amSource)
                 amSource = ""
                 amName = ""
                 i += 1
@@ -113,7 +133,7 @@ class Actor(ActorTemplate):
 
             if state == "MAIN" and linestrip.startswith("def"):
                 if amSource != "":
-                    self.state.addMethod(amName, amSource)
+                    self.model.addMethod(amName, amSource)
                 amSource = linestrip + "\n"
                 amName = linestrip.split("(", 1)[0][4:].strip()
                 # make sure the required method have the action() decorator
@@ -131,14 +151,14 @@ class Actor(ActorTemplate):
 
         # process the last one
         if amSource != "":
-            self.state.addMethod(amName, amSource)
+            self.model.addMethod(amName, amSource)
 
         content = '\n'.join(lines)
 
         # add missing methods
         for actionname in actionmethodsRequired:
-            if actionname not in self.state.methods:
-                am = self.state.addMethod(name=actionname, isDefaultMethod=True)
+            if actionname not in self.model.methods_service_templates:
+                am = self.model.addMethod(name=actionname, isDefaultMethod=True)
                 # not found
                 if actionname == "input":
                     content += '\n\n    def input(self, service, name, role, instance, serviceargs):\n        return serviceargs\n'
@@ -147,12 +167,11 @@ class Actor(ActorTemplate):
 
         j.sal.fs.writeFile(self.path_actions, content)
 
-        for key, _ in self.state.methods.items():
-            if self.state.methodChanged(key):
+        for key, _ in self.model.methods_service_templates.items():
+            if self.model.methodChanged(key):
                 self.logger.info("method:%s    %s changed" % (key, self))
-                for service in self.aysrepo.findServices(templatename=self.name):
-                    service.actions.change_method(service, methodname=key)
-        self.state._changes = {}
+                # for service in self.aysrepo.findServices(templatename=self.name):
+                    # service.actions.change_method(service, methodname=key)
 
 
 # SERVICE

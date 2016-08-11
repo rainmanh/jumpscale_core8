@@ -5,21 +5,8 @@ import io
 import imp
 import sys
 import inspect
-from JumpScale.baselib.atyourservice.ServiceState import ServiceState
-
-#
-# modulecache = {}
-#
-#
-# def loadmodule(name, path):
-#     key = path
-#     if key in modulecache:
-#         return modulecache[key]
-#     parentname = ".".join(name.split(".")[:-1])
-#     sys.modules[parentname] = __package__
-#     mod = imp.load_source(name, path)
-#     modulecache[key] = mod
-#     return mod
+import capnp
+from JumpScale.baselib.atyourservice.ServiceModel import ServiceModel
 
 
 def getProcessDicts(service, args={}):
@@ -55,20 +42,21 @@ class Service:
     def __init__(self, aysrepo, actor=None, instance=None, path="", args={}, originator=None, parent=None, model=None):
         """
         """
+        self.logger = aysrepo.logger
         self.aysrepo = aysrepo
+        self.actor = actor
+        self._hrd = None
 
         if args is None:
             args = {}
 
-        self.logger = self.aysrepo.logger
-
-        self.reset()
-
-        self.originator = originator
-
-        self.state = None
-        self._action_methods = None
-
+        # self.reset()
+        #
+        # self.originator = originator
+        #
+        self.model = None
+        # self._action_methods = None
+        #
         if path != "" and j.sal.fs.exists(path):
             self._role, self._instance = j.sal.fs.getBaseName(path).split("!")
             self._actor = None
@@ -79,22 +67,18 @@ class Service:
                 raise j.exceptions.Input("Instance needs to be a string.")
 
             if j.data.types.string.check(actor):
-                raise j.exceptions.RuntimeError(
-                    "no longer supported, pass actor")
+                raise j.exceptions.RuntimeError("no longer supported, pass actor")
 
             if actor is None:
-                raise j.exceptions.RuntimeError(
-                    "service actor cannot be None if path not specified")
+                raise j.exceptions.RuntimeError("service actor cannot be None")
 
             if instance is None:
-                raise j.exceptions.RuntimeError(
-                    "instance needs to be specified")
+                raise j.exceptions.RuntimeError("instance needs to be specified")
 
             self._instance = instance.lower()
             self._role = actor.name.split(".")[0]
 
-            self.path = j.sal.fs.joinPaths(
-                self.aysrepo.path, "services", "%s!%s" % (self.role, instance))
+            self.path = j.sal.fs.joinPaths(self.aysrepo.path, "services", "%s!%s" % (self.role, instance))
 
             parentkey = ""
             if parent is None:
@@ -117,23 +101,18 @@ class Service:
                         parentinstance = ""
                         if parent_actor_item.name in args:
                             # has been speficied or empty
-                            parentinstance = args[
-                                parent_actor_item.name].strip()
+                            parentinstance = args[parent_actor_item.name].strip()
                         elif parentrole in args:
                             # has been speficied or empty
                             parentinstance = args[parentrole].strip()
 
                         if parentinstance != "":
-                            aysi = self.aysrepo.getService(
-                                role=parentrole, instance=parentinstance, die=True)
+                            aysi = self.aysrepo.serviceGet(role=parentrole, instance=parentinstance, die=True)
                         elif parent_actor_item.auto:
-                            aysi = self.aysrepo.getService(
-                                role=parentrole, instance="main", die=False)
+                            aysi = self.aysrepo.serviceGet(role=parentrole, instance="main", die=True)
                             if aysi is None:
-                                parent_actor = self.aysrepo.actorGet(
-                                    name=parent_actor_item.name)
-                                aysi = parent_actor.newInstance(
-                                    instance="main", args={})
+                                parent_actor = self.aysrepo.actorGet(name=parent_actor_item.name)
+                                aysi = parent_actor.newInstance(instance="main", args={})
                         else:
                             raise j.exceptions.Input("Parent '%s' needs to be specified or put on autocreation in actor:%s, now instance:%s" % (
                                 parent_actor_item.name, actor, self.instance))
@@ -144,59 +123,59 @@ class Service:
                 parentkey = parent.key
 
             if parentkey != "":
-                self.path = j.sal.fs.joinPaths(
-                    parent.path, "%s!%s" % (self.role, self.instance))
-                self.state = ServiceState(self)
-                self.state.parent = parentkey
+                self.path = j.sal.fs.joinPaths(parent.path, "%s!%s" % (self.role, self.instance))
+                # self.model = ServiceModel(self)
+                # self.model.parent = parentkey
             else:
                 if self.path == "":
                     raise j.exceptions.Input("path cannot be empty")
 
             j.sal.fs.createDir(self.path)
 
-            if actor.template.schema is None and actor.template.hrd is None:
-                self._hrd = "EMPTY"
+            # if actor.template.schema is None and actor.template.hrd is None:
+                # self._hrd = "EMPTY"
 
-            if model is not None:
-                self.model = model
+            # if model is not None:
+            #     self.model = model
 
-            self.hrd  # create empty hrd
+            # self.hrd  # create empty hrd
 
         self._key = "%s!%s" % (self.role, self.instance)
         self._gkey = "%s!%s!%s" % (aysrepo.path, self.role, self.instance)
 
-        if self.state is None:
-            self.state = ServiceState(self)
+        if self.model is None:
+            self.model = ServiceModel(self)
+
+        self.hrd
 
         if actor is not None:
-            self.state.actor = actor.name
+            self.model.actor = actor.name
             self.init(args=args)  # first time init
 
         # Set subscribed event into state
         if self.actor.template.hrd is not None:
             for event, actions in self.actor.template.hrd.getDictFromPrefix('events').items():
-                self.state.setEvents(event, actions)
+                self.model.setEvents(event, actions)
             # Set recurring into state
             for action, period in self.actor.template.hrd.getDictFromPrefix('recurring').items():
-                self.state.setRecurring(action, period)
+                self.model.setRecurring(action, period)
 
             # if service.hrd has remove some event action, update state to
             # reflect that
-            actual = set(
-                self.actor.template.hrd.getDictFromPrefix('events').keys())
-            total = set(self.state.events.keys())
+            actual = set(self.actor.template.hrd.getDictFromPrefix('events').keys())
+            total = set(self.model.events.keys())
             for action in total.difference(actual):
-                self.state.removeEvent(action)
+                self.model.removeEvent(action)
 
             # if service.hrd has remove some recurring action, update state to
             # reflect that
-            actual = set(self.actor.template.hrd.getDictFromPrefix(
-                'recurring').keys())
-            total = set(self.state.recurring.keys())
+            actual = set(self.actor.template.hrd.getDictFromPrefix('recurring').keys())
+            total = set(self.model.recurring.keys())
             for action in total.difference(actual):
-                self.state.removeRecurring(action)
+                self.model.removeRecurring(action)
 
-        self.state.save()
+        self.model.save()
+        import ipdb; ipdb.set_trace()
 
     def reset(self):
         self._hrd = None
@@ -228,15 +207,15 @@ class Service:
     def instance(self):
         return self._instance
 
-    @property
-    def actor(self):
-        if self._actor is None:
-            self._actor = self.aysrepo.actorGet(name=self.state.actor)
-        return self._actor
+    # @property
+    # def actor(self):
+    #     if self._actor is None:
+    #         self._actor = self.aysrepo.actorGet(name=self.model.actor)
+    #     return self._actor
 
     @property
     def templatename(self):
-        return self.state.actor
+        return self.model.actor
 
     @property
     def dnsNames(self):
@@ -258,52 +237,59 @@ class Service:
     @property
     def parent(self):
         if self._parent is None:
-            if self.state.parent != "":
+            if self.model.parent != "":
                 self._parent = self.aysrepo.getServiceFromKey(
-                    self.state.parent)
+                    self.model.parent)
         return self._parent
 
     @property
     def hrd(self):
-        if self._hrd == "EMPTY":
-            return None
         if self._hrd is None:
-            hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
-            if not j.sal.fs.exists(path=hrdpath):
-                self._hrd == "EMPTY"
-                return None
-            self._hrd = j.data.hrd.get(path=hrdpath, prefixWithName=False)
-
+            schema_path = j.sal.fs.joinPaths(self.path, 'schema.capnp')
+            if not j.sal.fs.exists(schema_path):
+                j.sal.fs.writeFile(schema_path, self.actor.schema.asCapnpSchema())
+                capnp_models = capnp.load(schema_path)
+                self._hrd = capnp_models.Schema.new_message()
         return self._hrd
+        # if self._hrd == "EMPTY":
+            # return None
+        # if self._hrd is None:
+        #     hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
+        #     if not j.sal.fs.exists(path=hrdpath):
+        #         self._hrd == "EMPTY"
+        #         return None
+        #     self._hrd = j.data.hrd.get(path=hrdpath, prefixWithName=False)
 
-    def hrdCreate(self):
-        hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
-        self._hrd = j.data.hrd.get(path=hrdpath, prefixWithName=False)
+        # return self._hrd
 
-    @property
-    def model(self):
-        if self._model is None:
-            model_path = j.sal.fs.joinPaths(self.path, "model.yaml")
-            if j.sal.fs.exists(model_path):
-                self._model = j.data.serializer.yaml.loads(
-                    j.sal.fs.fileGetContents(model_path))
-        return self._model
+    # def hrdCreate(self):
+    #     hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
+    #     self._hrd = j.data.hrd.get(path=hrdpath, prefixWithName=False)
 
-    @model.setter
-    def model(self, model):
-        self._hrd = "EMPTY"
-        if j.data.types.dict.check(model):
-            self._model = model
-            model_path = j.sal.fs.joinPaths(self.path, "model.yaml")
-            j.data.serializer.yaml.dump(model_path, model)
-        else:
-            raise NotImplementedError("only support yaml format at the moment")
+    # @property
+    # def model(self):
+    #     if self._model is None:
+    #         model_path = j.sal.fs.joinPaths(self.path, "model.yaml")
+    #         if j.sal.fs.exists(model_path):
+    #             self._model = j.data.serializer.yaml.loads(
+    #                 j.sal.fs.fileGetContents(model_path))
+    #     return self._model
+    #
+    # @model.setter
+    # def model(self, model):
+    #     self._hrd = "EMPTY"
+    #     if j.data.types.dict.check(model):
+    #         self._model = model
+    #         model_path = j.sal.fs.joinPaths(self.path, "model.yaml")
+    #         j.data.serializer.yaml.dump(model_path, model)
+    #     else:
+    #         raise NotImplementedError("only support yaml format at the moment")
 
     @property
     def producers(self):
         if self._producers is None:
             self._producers = {}
-            for key, items in self.state.producers.items():
+            for key, items in self.model.producers.items():
                 producerSet = set()
                 # items=[item for item in items if item.strip()!=""]
                 for item in items:
@@ -317,7 +303,7 @@ class Service:
 
     def remove_producer(self, role, instance):
         key = "%s!%s" % (role, instance)
-        self.state.remove_producer(role, instance)
+        self.model.remove_producer(role, instance)
         self._producers[role].remove(key)
 
     @property
@@ -327,23 +313,22 @@ class Service:
         return self._executor
 
     def save(self):
-        self.state.save()
+        self.model.save()
 
     def update_hrd(self):
         if self.actor.template.schema is not None:
-            self._hrd = self.actor.template.schema.hrdGet(
-                hrd=self.hrd, args={})
+            self._hrd = self.actor.template.schema.hrdGet(hrd=self.hrd, args={})
             self._hrd.path = j.sal.fs.joinPaths(self.path, "instance.hrd")
 
     def init(self, args={}):
-
+        return
         if args is None:
             args = {}
 
         self.logger.info('INIT service: %s' % self)
 
         # run the args manipulation action as an action
-        self.state.save()
+        self.model.save()
         args = self.actions.input(self, self.actor, self.role, self.instance, args)
 
         originalhrd = j.data.hrd.get(content=str(self.hrd))
@@ -353,8 +338,7 @@ class Service:
             self._hrd = None
         else:
             if self.actor.template.schema is not None:
-                self._hrd = self.actor.template.schema.hrdGet(
-                    hrd=self.hrd, args=args)
+                self._hrd = self.actor.template.schema.hrdGet(hrd=self.hrd, args=args)
                 self._hrd.path = j.sal.fs.joinPaths(self.path, "instance.hrd")
             else:
                 if args != {}:
@@ -366,24 +350,24 @@ class Service:
 
         if self.hrd is not None:
             self.hrd.save()
-        self.state.save()
+        self.model.save()
         self._consumeFromSchema(args)
         self.actions.init(service=self)
 
         if self.hrd is not None:
             newInstanceHrdHash = j.data.hash.md5_string(str(self.hrd))
-            if self.state.instanceHRDHash != newInstanceHrdHash:
+            if self.model.instanceHRDHash != newInstanceHrdHash:
                 self.actions.change_hrd_instance(
                     service=self, originalhrd=originalhrd)
                 self.hrd.save()
-            self.state.instanceHRDHash = newInstanceHrdHash
+            self.model.instanceHRDHash = newInstanceHrdHash
 
         if self.actor.template.hrd is not None:
             if self._hrd == "EMPTY":
                 self._hrd = None
             newTemplateHrdHash = j.data.hash.md5_string(
                 str(self.actor.template.hrd))
-            if self.state.templateHRDHash != newTemplateHrdHash:
+            if self.model.templateHRDHash != newTemplateHrdHash:
                 # the template hash changed
                 if self.hrd is not None:
                     self.hrd.applyTemplate(
@@ -391,7 +375,7 @@ class Service:
                     self.actions.change_hrd_template(
                         service=self, originalhrd=originalhrd)
                     self.hrd.save()
-                    self.state.templateHRDHash = newTemplateHrdHash
+                    self.model.templateHRDHash = newTemplateHrdHash
         self.save()
 
     def _consumeFromSchema(self, args):
@@ -455,10 +439,10 @@ class Service:
                     consumeitem.consume_link, [])
                 to_unconsume = set(current_producers).difference(to_consume)
                 for ays in to_consume:
-                    self.state.consume(aysi=ays)
+                    self.model.consume(aysi=ays)
                 for ays in to_unconsume:
-                    self.state.remove_producer(ays.role, ays.instance)
-            self.state.save()
+                    self.model.remove_producer(ays.role, ays.instance)
+            self.model.save()
 
     def consume(self, input):
         """
@@ -492,7 +476,7 @@ class Service:
                                          category='AYS.consume', msgpub='Type of input to consume not valid. Only support list, string or Service object')
 
             for ays in toConsume:
-                self.state.consume(aysi=ays)
+                self.model.consume(aysi=ays)
 
     def getProducersRecursive(self, producers=set(), callers=set(), action="", producerRoles="*"):
         for role, producers2 in self.producers.items():
@@ -732,7 +716,7 @@ class Service:
                 consumer.disable()
 
         self.log("disable instance")
-        self.state.hrd.set('disabled', True)
+        self.model.hrd.set('disabled', True)
 
     def _canBeEnabled(self):
         for role, producers in list(self.producers.items()):
@@ -749,7 +733,7 @@ class Service:
                 "%s cannot be enabled because one or more of its producers is disabled" % self)
             return
 
-        self.state.hrd.set('disabled', False)
+        self.model.hrd.set('disabled', False)
         self.log("Enable instance")
         for consumer in self._getConsumers(include_disabled=True):
             consumer.enable()
@@ -768,7 +752,7 @@ class Service:
             self._model = j.data.serializer.yaml.loads(
                 j.sal.fs.fileGetContents(model_path))
 
-        self.state.load()
+        self.model.load()
 
     # @property
     # def action_methods_node(self):

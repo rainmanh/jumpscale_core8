@@ -1,29 +1,70 @@
 from JumpScale import j
-
+from JumpScale.baselib.atyourservice.ModelBase import ModelBase
 from collections import OrderedDict
 
-VALID_STATES = ['INIT', 'ERROR', 'OK', 'DISABLED',
-                'DO', 'CHANGED', 'CHANGEDHRD', 'RUNNING']
-
-# TODO: *1 need to use capnp model
+VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
 
-class ServiceState():
+class ServiceModel(ModelBase):
 
-    def __init__(self, service):
-
+    def __init__(self, service, category='', db=None, key=''):
+        self._capnp = j.atyourservice.db.AYSModel.Service
         self.service = service
+        self._hrd = None
 
-        self._path = j.sal.fs.joinPaths(self.service.path, "state.yaml")
-        self.load()
-        self._changed = False
+        super(ServiceModel, self).__init__(category=category, db=db, key=key)
+        self.changed = False
 
-    def load(self):
-        if j.sal.fs.exists(path=self._path):
-            self._model = j.data.serializer.yaml.load(self._path)
-        else:
-            self._model = {"parent": "", "producers": {}, "state": {}, "recurring": {
-            }, "events": {}, "templateHRDHash": "", "instanceHRDHash": "", "actor": ""}
+    def _post_init(self):
+        # self.db.parent = j.atyourservice.AYSModel.actor.actorPointer.new_message()  # TODO
+        self.dbobj.name = self.service.key
+        # self.dbobj.actor
+        self.dbobj.key = j.data.idgenerator.generateGUID()
+
+
+    def _pre_save(self):
+        pass
+
+
+    def producers_add(self):
+        olditems = [item.to_dict() for item in self.dbobj.producers]
+        newlist = self.dbobj.init("producers", len(olditems), 1)
+        for i, item in enumerate(olditems):
+            newlist[i] = item
+        return newlist[-1]
+
+    def actions_add(self):
+        olditems = [item.to_dict() for item in self.dbobj.actions]
+        newlist = self.dbobj.init("actions", len(olditems), 1)
+        for i, item in enumerate(olditems):
+            newlist[i] = item
+        return newlist[-1]
+
+    def _get_action_model(self, name):
+        for action in self.dbobj.actions:
+            if action.name == name:
+                return action
+        raise j.exceptions.NotFound("Can't find method with name %s" % name)
+
+    def recurring_add(self):
+        olditems = [item.to_dict() for item in self.dbobj.recurring]
+        newlist = self.dbobj.init("recurring", len(olditems),  1)
+        for i, item in enumerate(olditems):
+            newlist[i] = item
+        return newlist[-1]
+
+    def _get_recurring_model(self, action_name):
+        for recurring in self.dbobj.recurring:
+            if recurring.action == action_name:
+                return recurring
+        raise j.exceptions.NotFound("Can't find recurring with name %s" % action_name)
+
+    def git_repo_add(self):
+        olditems = [item.to_dict() for item in self.dbobj.gitRepos]
+        newlist = self.dbobj.init("gitRepos", len(olditems),  1)
+        for i, item in enumerate(olditems):
+            newlist[i] = item
+        return newlist[-1]
 
     @property
     def methods(self):
@@ -35,8 +76,9 @@ class ServiceState():
         DO means: execute the action method as fast as you can
         INIT means it has not been started yet ever
         """
-
-        return self._model["state"]
+        methos = {}
+        for action in self.dbobj.actions:
+            methos[action.name] = action.state
 
     def set(self, name, state="DO"):
         """
@@ -46,74 +88,56 @@ class ServiceState():
         """
 
         if state not in VALID_STATES:
-            raise j.exceptions.Input(
-                "State needs to be in %s" % ','.join(VALID_STATES))
+            raise j.exceptions.Input("State needs to be in %s" % ','.join(VALID_STATES))
         name = name.lower()
-        if name not in self._model["state"] or self._model["state"][name] != state:
-            self._model["state"][name] = state
+        try:
+            action = self._get_action_model(name)
+        except j.exceptions.NotFound:
+            action = self.actions_add()
+            action.name = name
+
+        if state != action.state:
+            action.state = state
             self.changed = True
 
-    def getSet(self, name, default="DO"):
-        """
-        state = 'INIT', 'ERROR', 'OK', 'DISABLED', 'DO', 'CHANGED', 'CHANGEDHRD', 'RUNNING'
-        DO means: execute the action method as fast as you can
-        INIT means it has not been started yet ever
-        """
-        name = name.lower()
-        if default not in VALID_STATES:
-            raise j.exceptions.Input(
-                "State needs to be in %s" % ','.join(VALID_STATES))
-        if name not in self._model["state"]:
-            self._model["state"][name] = default
-            self.changed = True
-        else:
-            return self._model["state"][name]
+        return action
 
     def get(self, name, die=True):
         name = name.lower()
-        if name in self._model["state"]:
-            return self._model["state"][name]
-        else:
+        try:
+            return self._get_action_model(name)
+        except j.exceptions.NotFound as e:
             if die:
-                raise j.exceptions.Input(
-                    "Cannot find state with name %s" % name)
+                raise e
             else:
                 return None
 
-    @property
-    def changed(self):
-        return self._changed
+    # @property
+    # def actor(self):
+    #     return self._model["actor"]
 
-    @changed.setter
-    def changed(self, changed):
-        self._changed = changed
+    # @actor.setter
+    # def actor(self, actor):
+    #     self._model["actor"] = actor
+    #     self.changed = True
 
-    @property
-    def actor(self):
-        return self._model["actor"]
-
-    @actor.setter
-    def actor(self, actor):
-        self._model["actor"] = actor
-        self.changed = True
-
-    @property
-    def instanceHRDHash(self):
-        return self._model["instanceHRDHash"]
-
-    @instanceHRDHash.setter
-    def instanceHRDHash(self, instanceHRDHash):
-        self._model["instanceHRDHash"] = instanceHRDHash
-        self.changed = True
-
-    @property
-    def templateHRDHash(self):
-        return self._model["templateHRDHash"]
-
-    @templateHRDHash.setter
-    def templateHRDHash(self, templateHRDHash):
-        self._model["templateHRDHash"] = templateHRDHash
-        self.changed = True
+    # @property
+    # def instanceHRDHash(self):
+    #     return self._model["instanceHRDHash"]
+    #
+    # @instanceHRDHash.setter
+    # def instanceHRDHash(self, instanceHRDHash):
+    #     self._model["instanceHRDHash"] = instanceHRDHash
+    #     self.changed = True
+    #
+    # @property
+    # def templateHRDHash(self):
+    #     return self._model["templateHRDHash"]
+    #
+    # @templateHRDHash.setter
+    # def templateHRDHash(self, templateHRDHash):
+    #     self._model["templateHRDHash"] = templateHRDHash
+    #     self.changed = True
 
     @property
     def recurring(self):
@@ -125,20 +149,32 @@ class ServiceState():
         lastrun = epoch
         period = e.g. 1h, 1d, ...
         """
-        return self._model["recurring"]
+        recurrings = {}
+        for recurring in self.dbobj.recurring:
+            recurrings[recurring.name] = (recurring.period, recurring.lastRun)
+        return recurrings
 
     def setRecurring(self, name, period):
         """
         """
         name = name.lower()
-        if name not in self._model["recurring"] or self._model["recurring"][name][0] != period:
-            self._model["recurring"][name] = [period, 0]
+        try:
+            recurring = self._get_recurring_model(name)
+        except j.exceptions.NotFound as e:
+            recurring = self.recurring_add()
+            recurring.action = name
+            recurring.lastRun = 0
+
+        if recurring.period != period:
+            recurring.period = period
             self.changed = True
 
     def removeRecurring(self, name):
-        if name in self._model['recurring']:
-            del self._model['recurring'][name]
-            self.changed = True
+        # TODO if needed
+        raise NotImplementedError
+        # if name in self._model['recurring']:
+        #     del self._model['recurring'][name]
+        #     self.changed = True
 
     @property
     def events(self):
@@ -204,7 +240,7 @@ class ServiceState():
         key = "%s!%s" % (role, instance)
         if key in self.producers[role]:
             self.producers[role].remove(key)
-            self._changed = True
+            self.changed = True
         self.save()
 
     def consume(self, producerkey="", aysi=None):

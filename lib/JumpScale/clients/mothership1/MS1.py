@@ -136,7 +136,7 @@ class MS1:
         if self.db.exists("ms1", "ms1:cache:%s:sizes" % spacesecret):
             return j.data.serializer.json.loads(self.db.get('ms1', "ms1:cache:%s:sizes" % spacesecret))
         api = self.getApiConnection(spacesecret)
-        #sizes_actor = api.getActor('cloudapi', 'sizes')
+        #sizes_actor = api.getactor('cloudapi', 'sizes')
         try:
             sizes = api.cloudapi.sizes.list(cloudspaceId=cloudspaceId)
         except TypeError:
@@ -295,7 +295,7 @@ class MS1:
         return machine_id, self.vars["space.ip.pub"], (int(self.vars["machine.last.tcp.port"]) if self.vars["machine.last.tcp.port"] else 22)
 
     def getMachineObject(self, spacesecret, name, **args):
-        api, machine_id, cloudspace_id = self._getMachineApiActorId(
+        api, machine_id, cloudspace_id = self._getMachineApiactorId(
             spacesecret, name)
         machine = api.cloudapi.machines.get(machineId=machine_id)
         return machine
@@ -330,7 +330,7 @@ class MS1:
         machines = api.cloudapi.machines.list(cloudspaceId=cloudspace_id)
         return machines
 
-    def _getMachineApiActorId(self, spacesecret, name, **args):
+    def _getMachineApiactorId(self, spacesecret, name, **args):
         api = self.getApiConnection(spacesecret)
         cloudspace_id = self.getCloudspaceId(spacesecret)
         machine_id = [machine['id'] for machine in api.cloudapi.machines.list(
@@ -344,7 +344,7 @@ class MS1:
     def deleteMachine(self, spacesecret, name, **args):
         self.sendUserMessage("delete machine: %s" % (name))
         try:
-            api, machine_id, cloudspace_id = self._getMachineApiActorId(
+            api, machine_id, cloudspace_id = self._getMachineApiactorId(
                 spacesecret, name)
         except Exception as e:
             if str(e).find("Could not find machine") != -1:
@@ -361,7 +361,7 @@ class MS1:
         return "OK"
 
     def startMachine(self, spacesecret, name, **args):
-        api, machine_id, cloudspace_id = self._getMachineApiActorId(
+        api, machine_id, cloudspace_id = self._getMachineApiactorId(
             spacesecret, name)
         try:
             api.cloudapi.machines.start(machineId=machine_id)
@@ -370,7 +370,7 @@ class MS1:
         return "OK"
 
     def stopMachine(self, spacesecret, name, **args):
-        api, machine_id, cloudspace_id = self._getMachineApiActorId(
+        api, machine_id, cloudspace_id = self._getMachineApiactorId(
             spacesecret, name)
         try:
             api.cloudapi.machines.stop(machineId=machine_id)
@@ -379,7 +379,7 @@ class MS1:
         return "OK"
 
     def snapshotMachine(self, spacesecret, name, snapshotname, **args):
-        api, machine_id, cloudspace_id = self._getMachineApiActorId(
+        api, machine_id, cloudspace_id = self._getMachineApiactorId(
             spacesecret, name)
         try:
             api.cloudapi.machines.snapshot(
@@ -403,7 +403,7 @@ class MS1:
 
     def _createPortForwardRule(self, spacesecret, name, machineport, pubip, pubipport, protocol):
         # self.sendUserMessage("Create PFW rule:%s %s %s"%(pubip,pubipport,protocol),args=args)
-        api, machine_id, cloudspace_id = self._getMachineApiActorId(
+        api, machine_id, cloudspace_id = self._getMachineApiactorId(
             spacesecret, name)
         if pubip == "":
             cloudspace = api.cloudapi.cloudspaces.get(
@@ -438,7 +438,7 @@ class MS1:
         if int(size) < 1:
             raise j.exceptions.Input('min size is 1 GB')
 
-        api, machine_id, cloudspace_id = self._getMachineApiActorId(
+        api, machine_id, cloudspace_id = self._getMachineApiactorId(
             spaceSecret, vmName)
 
         vmStatus = api.cloudapi.machines.get(machineId=machine_id)
@@ -453,7 +453,7 @@ class MS1:
 
     def _deletePortForwardRule(self, spacesecret, name, pubip, pubipport, protocol):
         # self.sendUserMessage("Delete PFW rule:%s %s %s"%(pubip,pubipport,protocol),args=args)
-        api, machine_id, cloudspace_id = self._getMachineApiActorId(
+        api, machine_id, cloudspace_id = self._getMachineApiactorId(
             spacesecret, name)
         if pubip == "":
             cloudspace = api.cloudapi.cloudspaces.get(
@@ -502,7 +502,7 @@ class MS1:
         return self.vars
 
     def listPortforwarding(self, spacesecret, name, **args):
-        api, machine_id, cloudspace_id = self._getMachineApiActorId(
+        api, machine_id, cloudspace_id = self._getMachineApiactorId(
             spacesecret, name)
 
         machine = api.cloudapi.machines.get(machineId=machine_id)
@@ -523,7 +523,7 @@ class MS1:
         return items
 
     def _getSSHConnection(self, spacesecret, name, sshkey=None, **args):
-        api, machine_id, cloudspace_id = self._getMachineApiActorId(
+        api, machine_id, cloudspace_id = self._getMachineApiactorId(
             spacesecret, name)
 
         machine = api.cloudapi.machines.get(machineId=machine_id)

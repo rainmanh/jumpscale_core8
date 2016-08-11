@@ -30,7 +30,7 @@ def getProcessDicts(service, args={}):
     musthave = ["cmd", "args", "prio", "env", "cwd", "timeout_start",
                 "timeout_start", "ports", "startupmanager", "filterstr", "name", "user"]
 
-    procs = service.Actor.hrd.getListFromPrefixEachItemDict("process", musthave=musthave, defaults=defaults, aredict=[
+    procs = service.actor.hrd.getListFromPrefixEachItemDict("process", musthave=musthave, defaults=defaults, aredict=[
         'env'], arelist=["ports"], areint=["prio", "timeout_start", "timeout_start"])
     for process in procs:
         counter += 1
@@ -40,8 +40,8 @@ def getProcessDicts(service, args={}):
         if "name" not in process or process["name"].strip() == "":
             process["name"] = "%s_%s" % (service.name, service.instance)
 
-        if service.Actor.hrd.exists("env.process.%s" % counter):
-            process["env"] = service.Actor.hrd.getDict(
+        if service.actor.hrd.exists("env.process.%s" % counter):
+            process["env"] = service.actor.hrd.getDict(
                 "env.process.%s" % counter)
 
         if not isinstance(process["env"], dict):
@@ -52,7 +52,7 @@ def getProcessDicts(service, args={}):
 
 class Service:
 
-    def __init__(self, aysrepo, Actor=None, instance=None, path="", args={}, originator=None, parent=None, model=None):
+    def __init__(self, aysrepo, actor=None, instance=None, path="", args={}, originator=None, parent=None, model=None):
         """
         """
         self.aysrepo = aysrepo
@@ -71,40 +71,40 @@ class Service:
 
         if path != "" and j.sal.fs.exists(path):
             self._role, self._instance = j.sal.fs.getBaseName(path).split("!")
-            self._Actor = None
+            self._actor = None
             self.path = path
-            Actor = None
+            actor = None
         else:
             if not j.data.types.string.check(instance) or instance == "":
                 raise j.exceptions.Input("Instance needs to be a string.")
 
-            if j.data.types.string.check(Actor):
+            if j.data.types.string.check(actor):
                 raise j.exceptions.RuntimeError(
-                    "no longer supported, pass Actor")
+                    "no longer supported, pass actor")
 
-            if Actor is None:
+            if actor is None:
                 raise j.exceptions.RuntimeError(
-                    "service Actor cannot be None if path not specified")
+                    "service actor cannot be None if path not specified")
 
             if instance is None:
                 raise j.exceptions.RuntimeError(
                     "instance needs to be specified")
 
             self._instance = instance.lower()
-            self._role = Actor.name.split(".")[0]
+            self._role = actor.name.split(".")[0]
 
             self.path = j.sal.fs.joinPaths(
                 self.aysrepo.path, "services", "%s!%s" % (self.role, instance))
 
             parentkey = ""
             if parent is None:
-                if Actor.schema is not None:
+                if actor.schema is not None:
                     # CHECK PARENTS !
-                    parent_Actor_item = Actor.schema.parentSchemaItemGet()
+                    parent_actor_item = actor.schema.parentSchemaItemGet()
 
-                    if parent_Actor_item is not None and parent_Actor_item.parent is not None and parent_Actor_item.parent != "":
+                    if parent_actor_item is not None and parent_actor_item.parent is not None and parent_actor_item.parent != "":
 
-                        ays_template_name = parent_Actor_item.parent
+                        ays_template_name = parent_actor_item.parent
 
                         # parent exists
                         if '.' in ays_template_name:
@@ -115,10 +115,10 @@ class Service:
                         # parent.name is name of element in scheme which points
                         # to item we are filling in
                         parentinstance = ""
-                        if parent_Actor_item.name in args:
+                        if parent_actor_item.name in args:
                             # has been speficied or empty
                             parentinstance = args[
-                                parent_Actor_item.name].strip()
+                                parent_actor_item.name].strip()
                         elif parentrole in args:
                             # has been speficied or empty
                             parentinstance = args[parentrole].strip()
@@ -126,17 +126,17 @@ class Service:
                         if parentinstance != "":
                             aysi = self.aysrepo.getService(
                                 role=parentrole, instance=parentinstance, die=True)
-                        elif parent_Actor_item.auto:
+                        elif parent_actor_item.auto:
                             aysi = self.aysrepo.getService(
                                 role=parentrole, instance="main", die=False)
                             if aysi is None:
-                                parent_Actor = self.aysrepo.actorGet(
-                                    name=parent_Actor_item.name)
-                                aysi = parent_Actor.newInstance(
+                                parent_actor = self.aysrepo.actorGet(
+                                    name=parent_actor_item.name)
+                                aysi = parent_actor.newInstance(
                                     instance="main", args={})
                         else:
-                            raise j.exceptions.Input("Parent '%s' needs to be specified or put on autocreation in Actor:%s, now instance:%s" % (
-                                parent_Actor_item.name, Actor, self.instance))
+                            raise j.exceptions.Input("Parent '%s' needs to be specified or put on autocreation in actor:%s, now instance:%s" % (
+                                parent_actor_item.name, actor, self.instance))
 
                         parentkey = aysi.key
                         parent = aysi
@@ -154,7 +154,7 @@ class Service:
 
             j.sal.fs.createDir(self.path)
 
-            if Actor.template.schema is None and Actor.template.hrd is None:
+            if actor.template.schema is None and actor.template.hrd is None:
                 self._hrd = "EMPTY"
 
             if model is not None:
@@ -168,29 +168,29 @@ class Service:
         if self.state is None:
             self.state = ServiceState(self)
 
-        if Actor is not None:
-            self.state.Actor = Actor.name
+        if actor is not None:
+            self.state.actor = actor.name
             self.init(args=args)  # first time init
 
         # Set subscribed event into state
-        if self.Actor.template.hrd is not None:
-            for event, actions in self.Actor.template.hrd.getDictFromPrefix('events').items():
+        if self.actor.template.hrd is not None:
+            for event, actions in self.actor.template.hrd.getDictFromPrefix('events').items():
                 self.state.setEvents(event, actions)
             # Set recurring into state
-            for action, period in self.Actor.template.hrd.getDictFromPrefix('recurring').items():
+            for action, period in self.actor.template.hrd.getDictFromPrefix('recurring').items():
                 self.state.setRecurring(action, period)
 
             # if service.hrd has remove some event action, update state to
             # reflect that
             actual = set(
-                self.Actor.template.hrd.getDictFromPrefix('events').keys())
+                self.actor.template.hrd.getDictFromPrefix('events').keys())
             total = set(self.state.events.keys())
             for action in total.difference(actual):
                 self.state.removeEvent(action)
 
             # if service.hrd has remove some recurring action, update state to
             # reflect that
-            actual = set(self.Actor.template.hrd.getDictFromPrefix(
+            actual = set(self.actor.template.hrd.getDictFromPrefix(
                 'recurring').keys())
             total = set(self.state.recurring.keys())
             for action in total.difference(actual):
@@ -209,7 +209,7 @@ class Service:
         self._producers = None
         self._parentChain = None
         self._parent = None
-        self._Actor = None
+        self._actor = None
         self._model = None
 
     @property
@@ -229,14 +229,14 @@ class Service:
         return self._instance
 
     @property
-    def Actor(self):
-        if self._Actor is None:
-            self._Actor = self.aysrepo.actorGet(name=self.state.Actor)
-        return self._Actor
+    def actor(self):
+        if self._actor is None:
+            self._actor = self.aysrepo.actorGet(name=self.state.actor)
+        return self._actor
 
     @property
     def templatename(self):
-        return self.state.Actor
+        return self.state.actor
 
     @property
     def dnsNames(self):
@@ -330,8 +330,8 @@ class Service:
         self.state.save()
 
     def update_hrd(self):
-        if self.Actor.template.schema is not None:
-            self._hrd = self.Actor.template.schema.hrdGet(
+        if self.actor.template.schema is not None:
+            self._hrd = self.actor.template.schema.hrdGet(
                 hrd=self.hrd, args={})
             self._hrd.path = j.sal.fs.joinPaths(self.path, "instance.hrd")
 
@@ -344,7 +344,7 @@ class Service:
 
         # run the args manipulation action as an action
         self.state.save()
-        args = self.actions.input(self, self.Actor, self.role, self.instance, args)
+        args = self.actions.input(self, self.actor, self.role, self.instance, args)
 
         originalhrd = j.data.hrd.get(content=str(self.hrd))
 
@@ -352,8 +352,8 @@ class Service:
         if self._hrd == "EMPTY":
             self._hrd = None
         else:
-            if self.Actor.template.schema is not None:
-                self._hrd = self.Actor.template.schema.hrdGet(
+            if self.actor.template.schema is not None:
+                self._hrd = self.actor.template.schema.hrdGet(
                     hrd=self.hrd, args=args)
                 self._hrd.path = j.sal.fs.joinPaths(self.path, "instance.hrd")
             else:
@@ -378,16 +378,16 @@ class Service:
                 self.hrd.save()
             self.state.instanceHRDHash = newInstanceHrdHash
 
-        if self.Actor.template.hrd is not None:
+        if self.actor.template.hrd is not None:
             if self._hrd == "EMPTY":
                 self._hrd = None
             newTemplateHrdHash = j.data.hash.md5_string(
-                str(self.Actor.template.hrd))
+                str(self.actor.template.hrd))
             if self.state.templateHRDHash != newTemplateHrdHash:
                 # the template hash changed
                 if self.hrd is not None:
                     self.hrd.applyTemplate(
-                        template=self.Actor.template.hrd, args={}, prefix='')
+                        template=self.actor.template.hrd, args={}, prefix='')
                     self.actions.change_hrd_template(
                         service=self, originalhrd=originalhrd)
                     self.hrd.save()
@@ -396,13 +396,13 @@ class Service:
 
     def _consumeFromSchema(self, args):
 
-        if self.Actor.schema is None:
+        if self.actor.schema is None:
             return
 
         self.logger.debug('[_consumeFromSchema] args %s' % args)
 
         # manipulate the HRD's to mention the consume's to producers
-        consumes = self.Actor.schema.consumeSchemaItemsGet()
+        consumes = self.actor.schema.consumeSchemaItemsGet()
         if consumes:
             for consumeitem in consumes:
                 # parent exists
@@ -661,7 +661,7 @@ class Service:
 
     @property
     def actions(self):
-        return self.Actor.get_actions(service=self)
+        return self.actor.get_actions(service=self)
 
     def runAction(self, action):
         a = self.getAction(action)
@@ -773,8 +773,8 @@ class Service:
     # @property
     # def action_methods_node(self):
     #     if self._action_methods_node is None or not self._rememberActions:
-    #         if j.sal.fs.exists(path=self.Actor.path_actions_node):
-    #             action_methods_node = self._loadActions(self.Actor.path_actions_node,"node")
+    #         if j.sal.fs.exists(path=self.actor.path_actions_node):
+    #             action_methods_node = self._loadActions(self.actor.path_actions_node,"node")
     #         else:
     #             action_methods_node = j.atyourservice.getActionsBaseClassNode()()
 

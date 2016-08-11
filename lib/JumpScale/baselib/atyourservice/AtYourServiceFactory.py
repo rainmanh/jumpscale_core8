@@ -1,6 +1,6 @@
 from JumpScale import j
 
-# from JumpScale.baselib.atyourservice.Actor import Actor
+# from JumpScale.baselib.atyourservice.actor import actor
 # from JumpScale.baselib.atyourservice.Service import Service, loadmodule
 from JumpScale.baselib.atyourservice.ActorTemplate import ActorTemplate
 
@@ -11,10 +11,8 @@ from JumpScale.baselib.atyourservice.ActionMethodDecorator import ActionMethodDe
 from JumpScale.baselib.atyourservice.AtYourServiceRepo import AtYourServiceRepo
 
 from JumpScale.baselib.atyourservice.AtYourServiceTester import AtYourServiceTester
-from JumpScale.baselib.atyourservice.AtYourServiceDB import AtYourServiceDB, AtYourServiceDBFactory
+from JumpScale.baselib.atyourservice.AtYourServiceDB import AtYourServiceDBFactory
 
-import capnp
-import aysmodel_capnp as AYSModel
 
 import colored_traceback
 
@@ -60,9 +58,7 @@ class AtYourServiceFactory:
 
         self._test = None
 
-        self.AYSModel = AYSModel
-
-        self.kvs = AtYourServiceDBFactory()
+        self.db = AtYourServiceDBFactory()
 
     def _doinit(self, force=False):
 
@@ -100,6 +96,7 @@ class AtYourServiceFactory:
                     # if we downloaded then we need to update the list
                     templateRepos = j.do.getGitReposListLocal()
 
+            # load global templates
             for domain, repo_info in global_templates_repos.items():
                 _, _, _, _, repo_path, _ = j.do.getGitRepoArgs(repo_info['url'])
                 gitrepo = j.clients.git.get(repo_path, check_path=False)
@@ -130,7 +127,7 @@ class AtYourServiceFactory:
         """
         these are actor templates usable for all ays templateRepo's
         """
-        if not self._templates:
+        if self._templates == {}:
             self._doinit()
         return self._templates
 
@@ -176,7 +173,6 @@ class AtYourServiceFactory:
         """
         path is absolute path (if specified)
         """
-
         if path == "":
             path = gitrepo.path
 
@@ -205,7 +201,8 @@ class AtYourServiceFactory:
             # not ays actor so lets see for subdirs
             for servicepath in j.sal.fs.listDirsInDir(path, recursive=False):
                 dirname = j.sal.fs.getBaseName(servicepath)
-                result = self._actorTemplatesGet(gitrepo, servicepath, result)
+                if not dirname.startswith("."):
+                    result = self._actorTemplatesGet(gitrepo, servicepath, result)
 
         return result
 
@@ -246,10 +243,11 @@ class AtYourServiceFactory:
             raise j.exceptions.Input("Directory %s already exists. Can't create AYS repo at the same location." % path)
         j.sal.fs.createDir(path)
         j.sal.fs.createEmptyFile(j.sal.fs.joinPaths(path, '.ays'))
-        j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'ActorTemplates'))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'actorTemplates'))
         j.sal.fs.createDir(j.sal.fs.joinPaths(path, 'blueprints'))
         j.tools.cuisine.local.core.run('git init')
-        j.sal.nettools.download('https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
+        j.sal.nettools.download(
+            'https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
         name = j.sal.fs.getBaseName(path)
         git_repo = j.clients.git.get(path)
         self._templateRepos[path] = AtYourServiceRepo(name=name, gitrepo=git_repo, path=path)
@@ -304,7 +302,8 @@ class AtYourServiceFactory:
         name = j.sal.fs.getBaseName(path)
 
         if name in self._templateRepos:
-            raise j.exceptions.Input("AYS templateRepo with name:%s already exists at %s, cannot have duplicate names." % (name, path))
+            raise j.exceptions.Input(
+                "AYS templateRepo with name:%s already exists at %s, cannot have duplicate names." % (name, path))
 
         self._templateRepos[path] = AtYourServiceRepo(name, gitrepo, path)
 

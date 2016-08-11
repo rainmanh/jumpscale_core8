@@ -1,5 +1,5 @@
 from JumpScale import j
-from actorgen import ActorGen
+from actorgen import actorGen
 import jinja2
 import urllib.parse
 
@@ -111,8 +111,8 @@ class SwaggerGen:
         server = self._renderServer(self.server)
         j.sal.fs.writeFile(outputPath, server.strip())
 
-    def generateActors(self, destpath):
-        ActorGen(self).generate(destpath)
+    def generateactors(self, destpath):
+        actorGen(self).generate(destpath)
 
     def generateClient(self, outputPath):
         if len(self.server['handlers']) == 0:

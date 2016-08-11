@@ -30,14 +30,15 @@ struct Actor {
   key @5 :Text;
   ownerKey @6 :Text;
 
-  actionsTemplate @7 :List(Action);
+  actionsServicesTemplate @7 :List(Action);
+  actionsActor @8 :List(Action);
   struct Action {
     name @0 :Text;
     #unique key for code of action (see below)
     actionCodeKey @1 :Text;
   }
 
-  recurringTemplate @8 :List(Recurring);
+  recurringTemplate @9 :List(Recurring);
   struct Recurring {
     #period in seconds
     action @0 :Text;
@@ -47,17 +48,8 @@ struct Actor {
   }
 
   #capnp
-  serviceDataSchema @9 :Text;
-  actorDataSchema @10 :Text;
-
-  hashes @11 :Hashes;
-  struct Hashes {
-    #capnp schema for the service
-    serviceDataSchema @0 :Text;
-    #capnp schema for the actor, whatever is stored here is valid for each service
-    actorDataSchema @1 :Text;
-    actions @2 :Text;
-  }
+  serviceDataSchema @10 :Text;
+  actorDataSchema @11 :Text;
 
   origin @12 :Origin;
   struct Origin {
@@ -70,6 +62,7 @@ struct Actor {
   #python script which interactively asks for the information when not filled in
   serviceDataUI @13 :Text;
   actorDataUI @14 :Text;
+
 
 
 }
@@ -99,6 +92,7 @@ struct Service {
   }
 
   actions @5 :List(Action);
+
   struct Action {
     #e.g. install
     name @0 :Text;
@@ -129,16 +123,9 @@ struct Service {
 
   configData @8 :Data;
 
-  hashes @9 :Hashes;
-  struct Hashes {
-    configData @0 :Text;
-    actorActions @1 :Text;
-    actorData @2 :Text;
-  }
+  key @9 :Text;
 
-  key @10 :Text;
-
-  gitRepos @11 :List(GitRepo);
+  gitRepos @10 :List(GitRepo);
   struct GitRepo {
     #git url
     url @0 :Text;

@@ -112,7 +112,7 @@ class ActionsBaseNode:
         this gets executed before the files are downloaded & installed on approprate spots
         this gets done remotely
         typically used to prepare a system e.g. make sure appropriate updates or packages installed
-        the next step will copy files from the Actor's to the destination locations on the target (if binary git repo's used)
+        the next step will copy files from the actor's to the destination locations on the target (if binary git repo's used)
         """
         if 'ubuntu' in j.core.platformtype.myplatform.platformtypes:
 

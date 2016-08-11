@@ -1,5 +1,5 @@
 from JumpScale import j
-# from SpecModelActorsGenerator import SpecModelActorsGenerator
+# from SpecModelactorsGenerator import SpecModelactorsGenerator
 
 
 class Specbase(j.tools.code.classGetBase()):
@@ -42,7 +42,7 @@ class SpecEnum(Specbase):
                 self.enums.append(line.strip())
 
 
-class SpecActor(Specbase):
+class Specactor(Specbase):
 
     def __init__(self, name, descr, tags, specpath, linenr):
         Specbase.__init__(self, linenr)
@@ -61,7 +61,7 @@ class SpecActor(Specbase):
         pass
 
 
-class SpecActorMethod(Specbase):
+class SpecactorMethod(Specbase):
 
     def __init__(self, linenr):
         Specbase.__init__(self, linenr)
@@ -101,7 +101,7 @@ class SpecActorMethod(Specbase):
 
                     default = self.getDefaultValue(ttype, default)
 
-                    spec = SpecActorMethodVar(
+                    spec = SpecactorMethodVar(
                         varname, descr, tags, linenr, default, ttype)
                     spec.comment = comments
                     self.vars.append(spec)
@@ -120,7 +120,7 @@ class SpecActorMethod(Specbase):
                     return parser.raiseError("Only var & result support on line, syntaxerror.", line0, linenr)
 
 
-class SpecActorMethodVar(Specbase):
+class SpecactorMethodVar(Specbase):
 
     def __init__(self, name, descr, tags, linenr, default, ttype):
         Specbase.__init__(self, linenr)
@@ -233,10 +233,10 @@ class SpecBlock:
             if len(list(j.core.specparser.specs.keys())) > 0 and self.type == "actor":
                 key = "%s_%s" % (self.appname, self.actorname)
                 if key in j.core.specparser.actornames:
-                    spec = j.core.specparser.getActorSpec(
+                    spec = j.core.specparser.getactorSpec(
                         self.appname, self.actorname, False)
             if spec == None:
-                spec = SpecActor(self.name, self.descr, self.tags,
+                spec = Specactor(self.name, self.descr, self.tags,
                                  self.parser.path, self.startline)
                 spec.actorname = self.actorname
                 spec.appname = self.appname
@@ -245,7 +245,7 @@ class SpecBlock:
             if spec.actorname not in j.core.specparser.app_actornames[self.appname]:
                 j.core.specparser.app_actornames[
                     self.appname].append(spec.actorname)
-            currentitemClass = SpecActorMethod
+            currentitemClass = SpecactorMethod
 
         elif self.type == "enumeration":
             ttypeId = "enumeration"
@@ -596,7 +596,7 @@ class SpecParserFactory:
             else:
                 return False
 
-    def getActorSpec(self, app, name, raiseError=True):
+    def getactorSpec(self, app, name, raiseError=True):
         key = "actor_%s_%s_%s" % (app, name, "")
         if key in self.specs:
             return self.specs[key]
@@ -800,7 +800,7 @@ class SpecParserFactory:
     def init(self):
         self.__init__()
 
-    def removeSpecsForActor(self, appname, actorname):
+    def removeSpecsForactor(self, appname, actorname):
         appname = appname.lower()
         actorname = actorname.lower()
         if appname in self.appnames:
@@ -839,7 +839,7 @@ class SpecParserFactory:
 
         SpecDirParser(specpath, appname, actorname=actorname)
         # generate specs for model actors
-        # smg=SpecModelActorsGenerator(appname,actorname,specpath)
+        # smg=SpecModelactorsGenerator(appname,actorname,specpath)
         # smg.generate()
 
         # parse again to include the just generated specs

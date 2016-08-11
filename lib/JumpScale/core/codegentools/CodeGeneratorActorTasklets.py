@@ -15,7 +15,7 @@ def match(j, params, service, tags, tasklet):
 """
 
 
-class CodeGeneratorActorTasklets(CodeGeneratorBase):
+class CodeGeneratoractorTasklets(CodeGeneratorBase):
 
     def __init__(self, spec, typecheck=True, dieInGenCode=True, overwrite=False, codepath=None):
         overwrite = False  # can never overwrite

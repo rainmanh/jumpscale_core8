@@ -19,148 +19,6 @@ class action(ActionMethodDecorator):
 """
 
 
-VALID_STATE = ['new', 'ok', 'error', 'disabled']
-
-
-class ActorState():
-    """
-    is state object for actor, what was last state after installing
-    """
-
-    def __init__(self, actor):
-        self.db = {
-            'actor': j.atyourservice.kvs.get("actor"),
-            'action_code': j.atyourservice.kvs.get("action_code")
-        }
-        self.actor = actor
-        self.logger = actor.logger
-        self._changes = {}
-        self._methodsList = []
-
-        self._model = None
-        self._producers = None
-        self._actions_templates = None
-        self._recurringTemplate = None
-
-        if not self.db['actor'].exists(self.actor.key):
-            self._populate_model()
-        else:
-            self.load()
-
-    @property
-    def state(self):
-        """State can be: new, ok, error, disabled"""
-        return self._model.state
-
-    @state.setter
-    def state(self, value):
-        if value not in VALID_STATE:
-            raise j.exceptions.Input("State can't be set to %s. Valid value are %s" % (value, ','.join(VALID_STATE)))
-        self._model.state = value
-
-    @property
-    def methods(self):
-        methods = {}
-        for action_code in self._model.actionsTemplate:
-            methods[action_code.name] = action_code.actionCodeKey
-        return methods
-
-    @property
-    def methodslist(self):
-        """
-        sorted methods
-        """
-        if self._methodsList == []:
-            keys = sorted([item for item in self.methods.keys()])
-            for key in keys:
-                self._methodsList.append(self.methods[key])
-        return self._methodsList
-
-    def _populate_model(self):
-        if self._model is None:
-            self._model = j.atyourservice.AYSModel.Actor.new_message()
-
-        self._model.state = 'new'
-        self._model.name = self.actor.name
-        self._model.actorFQDN = self.actor.FQDN
-        # self._model.parent = j.atyourservice.AYSModel.Actor.ActorPointer.new_message()  # TODO
-        self._producers = self._model.init_resizable_list('producers')
-        self._model.key = self.actor.key
-        self._model.ownerKey = self.actor.ownerKey
-        self._actions_templates = self._model.init_resizable_list('actionsTemplate')
-        self._recurringTemplate = self._model.init_resizable_list('recurringTemplate')
-        self._model.serviceDataSchema = ''  # TODO
-        self._model.actorDataSchema = ''  # TODO
-        self._model.serviceDataSchema = ''  # TODO
-        self._model.hashes = j.atyourservice.AYSModel.Actor.Hashes.new_message()
-        self._model.hashes.serviceDataSchema = ''  # TODO
-        self._model.hashes.serviceDataSchema = ''  # TODO
-        self._model.hashes.actorDataSchema = ''  # TODO
-        self._model.hashes.actions = ''  # TODO
-        self._model.origin = j.atyourservice.AYSModel.Actor.Origin.new_message()
-        self._model.origin.gitUrl = ''  # TODO
-        self._model.origin.path = ''  # TODO
-        self._model.serviceDataUI = ''  # TODO
-        self._model.actorDataUI = ''  # TODO
-
-    def save(self):
-        # need to call finish on DynamicResizableListBuilder to prevent leaks
-        for builder in [self._actions_templates, self._producers, self._recurringTemplate]:
-            if builder is not None:
-                builder.finish()
-
-        self._model.state = 'ok'
-        self.logger.debug('save actor from db. key:%s' % self.actor.key)
-        self.db['actor'].set(self.actor.key, self._model.to_bytes())
-
-    def load(self):
-        self.logger.debug('load actor from db. key:%s' % self.actor.key)
-        buff = self.db['actor'].get(self.actor.key)
-        # builder to true so we can change the content of the model
-        self._model = j.atyourservice.AYSModel.Actor.from_bytes(buff, builder=True)
-
-    def addMethod(self, name="", source="", isDefaultMethod=False):
-        if source != "":
-            if name in ["input", "init"] and source.find("$(") != -1:
-                raise j.exceptions.Input("Action method:%s should not have template variable '$(...' in sourcecode for init or input method." % self)
-
-            guid = j.data.hash.blake2_string(self.actor.name + source)
-
-            # if new method or new code
-            if not self.db['action_code'].exists(guid):
-                # create new actionCode model
-                action_code = j.atyourservice.AYSModel.ActionCode.new_message()
-                action_code.guid = guid
-                action_code.name = name
-                action_code.actorName = self.actor.name
-                action_code.code = source
-                action_code.lastModDate = j.data.time.epoch
-
-                # put pointer to actionCode to actor model
-                action = self._actions_templates.add()
-                action.name = name
-                action.actionCodeKey = guid
-
-                # save into db
-                self.db['action_code'].set(guid, action_code.to_bytes())
-                self._changes[name] = True
-                self.changed = True
-                self.logger.debug('action %s added to db' % name)
-
-    def methodChanged(self, name):
-        if name in self._changes:
-            return True
-        return False
-
-    def __repr__(self):
-        out = ""
-        for item in self.methodslist:
-            out += "%s\n" % item
-        return out
-
-    __str__ = __repr__
-
-
 class Actor(ActorTemplate):
 
     def __init__(self, aysrepo, template):
@@ -185,7 +43,7 @@ class Actor(ActorTemplate):
 
         self._init_props()
 
-        self.state = ActorState(self)
+        self.state = ActorModel(self)
         # copy the files
         if not j.sal.fs.exists(path=self.path):
             self.copyFilesFromTemplate()
@@ -315,7 +173,7 @@ class Actor(ActorTemplate):
 
         if service is not None:
             # print("NEWINSTANCE: Service instance %s!%s  exists." % (self.name, instance))
-            service._Actor = self
+            service._actor = self
             service.init(args=args)
             if model is not None:
                 service.model = model
@@ -334,7 +192,7 @@ class Actor(ActorTemplate):
                 j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (
                     self.role, instance, fullpath))
 
-            service = Service(aysrepo=self.aysrepo, Actor=self, instance=instance,
+            service = Service(aysrepo=self.aysrepo, actor=self, instance=instance,
                               args=args, path="", parent=parent, originator=originator, model=model)
 
             self.aysrepo._services[service.key] = service
@@ -363,31 +221,31 @@ class Actor(ActorTemplate):
             path, storpath="/tmp/aysfs", name="md", reset=False, append=True)
 
     def __repr__(self):
-        return "Actor: %-15s" % (self.name)
+        return "actor: %-15s" % (self.name)
 
     # def downloadfiles(self):
     #     """
-    #     this method download any required files for this Actor as defined in the template.hrd
+    #     this method download any required files for this actor as defined in the template.hrd
     # Use this method when building a service to have all the files ready to
     # sandboxing
 
-    #     @return list of tuples containing the source and destination of the files defined in the Actoritem
+    #     @return list of tuples containing the source and destination of the files defined in the actoritem
     #             [(src, dest)]
     #     """
     #     dirList = []
     #     # download
-    #     for Actoritem in self.hrd_template.getListFromPrefix("web.export"):
-    #         if "dest" not in Actoritem:
-    #             j.events.opserror_critical(msg="could not find dest in hrditem for %s %s" % (Actoritem, self), category="ays.ActorTemplate")
+    #     for actoritem in self.hrd_template.getListFromPrefix("web.export"):
+    #         if "dest" not in actoritem:
+    #             j.events.opserror_critical(msg="could not find dest in hrditem for %s %s" % (actoritem, self), category="ays.actorTemplate")
 
-    #         fullurl = "%s/%s" % (Actoritem['url'],
-    #                              Actoritem['source'].lstrip('/'))
-    #         dest = Actoritem['dest']
+    #         fullurl = "%s/%s" % (actoritem['url'],
+    #                              actoritem['source'].lstrip('/'))
+    #         dest = actoritem['dest']
     #         dest = j.application.config.applyOnContent(dest)
     #         destdir = j.sal.fs.getDirName(dest)
     #         j.sal.fs.createDir(destdir)
     #         # validate md5sum
-    #         if Actoritem.get('checkmd5', 'false').lower() == 'true' and j.sal.fs.exists(dest):
+    #         if actoritem.get('checkmd5', 'false').lower() == 'true' and j.sal.fs.exists(dest):
     #             remotemd5 = j.sal.nettools.download(
     #                 '%s.md5sum' % fullurl, '-').split()[0]
     #             localmd5 = j.data.hash.md5(dest)
@@ -399,23 +257,23 @@ class Actor(ActorTemplate):
     #             j.sal.fs.remove(dest)
     #         j.sal.nettools.download(fullurl, dest)
 
-    #     for Actoritem in self.hrd_template.getListFromPrefix("git.export"):
-    #         if "platform" in Actoritem:
-    #             if not j.core.platformtype.myplatform.checkMatch(Actoritem["platform"]):
+    #     for actoritem in self.hrd_template.getListFromPrefix("git.export"):
+    #         if "platform" in actoritem:
+    #             if not j.core.platformtype.myplatform.checkMatch(actoritem["platform"]):
     #                 continue
 
     #         # pull the required repo
-    #         dest0 = self.aysrepo._getRepo(Actoritem['url'], Actoritem=Actoritem)
-    #         src = "%s/%s" % (dest0, Actoritem['source'])
+    #         dest0 = self.aysrepo._getRepo(actoritem['url'], actoritem=actoritem)
+    #         src = "%s/%s" % (dest0, actoritem['source'])
     #         src = src.replace("//", "/")
-    #         if "dest" not in Actoritem:
-    #             j.events.opserror_critical(msg="could not find dest in hrditem for %s %s" % (Actoritem, self), category="ays.ActorTemplate")
-    #         dest = Actoritem['dest']
+    #         if "dest" not in actoritem:
+    #             j.events.opserror_critical(msg="could not find dest in hrditem for %s %s" % (actoritem, self), category="ays.actorTemplate")
+    #         dest = actoritem['dest']
 
     #         dest = j.application.config.applyOnContent(dest)
     #         src = j.application.config.applyOnContent(src)
 
-    #         if "link" in Actoritem and str(Actoritem["link"]).lower() == 'true':
+    #         if "link" in actoritem and str(actoritem["link"]).lower() == 'true':
     #             # means we need to only list files & one by one link them
     #             link = True
     #         else:
@@ -423,7 +281,7 @@ class Actor(ActorTemplate):
 
     #         if src[-1] == "*":
     #             src = src.replace("*", "")
-    #             if "nodirs" in Actoritem and str(Actoritem["nodirs"]).lower() == 'true':
+    #             if "nodirs" in actoritem and str(actoritem["nodirs"]).lower() == 'true':
     #                 # means we need to only list files & one by one link them
     #                 nodirs = True
     #             else:
@@ -444,10 +302,10 @@ class Actor(ActorTemplate):
 
     #         out = []
     #         for src, dest, link in items:
-    #             delete = Actoritem.get('overwrite', 'true').lower() == "true"
+    #             delete = actoritem.get('overwrite', 'true').lower() == "true"
     #             if dest.strip() == "":
     #                 raise j.exceptions.RuntimeError(
-    #                     "a dest in codeActor cannot be empty for %s" % self)
+    #                     "a dest in codeactor cannot be empty for %s" % self)
     #             if dest[0] != "/":
     #                 dest = "/%s" % dest
     #             else:

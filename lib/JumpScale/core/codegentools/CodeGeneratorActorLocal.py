@@ -3,7 +3,7 @@ from JumpScale import j
 from CodeGeneratorBase import CodeGeneratorBase
 
 
-class CodeGeneratorActorLocal(CodeGeneratorBase):
+class CodeGeneratoractorLocal(CodeGeneratorBase):
 
     def __init__(self, spec, typecheck=True, dieInGenCode=True):
         CodeGeneratorBase.__init__(self, spec, typecheck, dieInGenCode)

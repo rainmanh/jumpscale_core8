@@ -337,7 +337,7 @@ class TelegramAYS:
 
         # cleaning
         j.sal.fs.removeDirTree('%s/alog' % self._currentProjectPath(username))
-        j.sal.fs.removeDirTree('%s/Actors' %
+        j.sal.fs.removeDirTree('%s/actors' %
                                self._currentProjectPath(username))
         j.sal.fs.removeDirTree('%s/services' %
                                self._currentProjectPath(username))

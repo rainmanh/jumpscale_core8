@@ -1,4 +1,4 @@
-# tutorial how to create a plugin for ActorTemplate
+# tutorial how to create a plugin for actorTemplate
 
 ## plugin which calls a jumpscale function
 

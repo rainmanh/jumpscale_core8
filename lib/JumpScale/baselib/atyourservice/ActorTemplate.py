@@ -117,8 +117,8 @@ class ActorTemplate:
         return self._mongoModel
 
     def actorGet(self, aysrepo):
-        from JumpScale.baselib.atyourservice.Actor import Actor
-        return Actor(aysrepo, template=self)
+        from JumpScale.baselib.atyourservice.actor import actor
+        return actor(aysrepo, template=self)
 
     def __repr__(self):
         return "template: %-15s:%s" % (self.domain, self.name)

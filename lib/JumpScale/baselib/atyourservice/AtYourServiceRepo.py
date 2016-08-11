@@ -4,7 +4,7 @@ from JumpScale.baselib.atyourservice.Actor import Actor
 # from JumpScale.baselib.atyourservice.Service import Service, loadmodule
 # from JumpScale.baselib.atyourservice.ActionsBaseNode import ActionsBaseNode
 # from JumpScale.baselib.atyourservice.ActionsBaseMgmt import ActionsBaseMgmt
-# from JumpScale.baselib.atyourservice.ActorTemplate import ActorTemplate
+# from JumpScale.baselib.atyourservice.actorTemplate import actorTemplate
 # from JumpScale.baselib.atyourservice.ActionMethodDecorator import ActionMethodDecorator
 from JumpScale.baselib.atyourservice.Blueprint import Blueprint
 from JumpScale.baselib.atyourservice.AYSRun import AYSRun
@@ -44,8 +44,6 @@ class AtYourServiceRepo():
         # self._roletemplates = dict()
         self._servicesTree = {}
 
-        self._db = None
-
 
 # INIT
 
@@ -68,8 +66,9 @@ class AtYourServiceRepo():
     def destroy(self, uninstall=True):
         if uninstall:
             self.uninstall()
-        j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "Actors"))
+        j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "actors"))
         j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "services"))
+        j.sal.fs.removeDirTree(j.sal.fs.joinPaths(self.path, "recipes"))  # for old time sake
         self.db.destroy()
 
     @property
@@ -78,14 +77,10 @@ class AtYourServiceRepo():
             self._git = j.clients.git.get(basedir=self.path, check_path=False)
         return self._git
 
-    @property
-    def db(self):
-        self._db = j.atyourservice.kvs.get(self.name)
-        return self._db
 
 # ACTORS
 
-    def actorGetState(self, actorFQN, key):
+    def actorGetState(self, key, actorFQN=""):
         """
         talk with actor through actor API, find based on FQN = Fully Qualified Name
         key is unique key to find the actor, also defines our rights on the actor
@@ -100,17 +95,17 @@ class AtYourServiceRepo():
         will look for name inside & create actor from it
         """
 
-        actor = Actor(self, actorTemplate.name)
+        actor = actor(self, actorTemplate.name)
         return actor
 
     def actorGet(self, name, die=True):
         if name in self.actors:
-            Actor = self.actors[name]
-            return Actor
+            actor = self.actors[name]
+            return actor
         else:
             if die == False:
                 return None
-            raise j.exceptions.Input("Cannot find Actor with name:%s" % name)
+            raise j.exceptions.Input("Cannot find actor with name:%s" % name)
 
     def actorExists(self, name):
         if self.actorGet(name, die=False) == None:
@@ -129,11 +124,11 @@ class AtYourServiceRepo():
                     return {}
                 d = j.tools.path.get(domainpath)
                 for item in d.walkfiles("state.json"):
-                    Actorpath = j.sal.fs.getDirName(item)
-                    Actor = Actor(self, Actorpath)
-                    if Actor.name in self._actors:
+                    actorpath = j.sal.fs.getDirName(item)
+                    actor = actor(self, actorpath)
+                    if actor.name in self._actors:
                         raise j.exceptions.Input("Found double actor: %s" % actor)
-                    self._actors[Actor.name] = Actor
+                    self._actors[actor.name] = actor
         return self._actors
 
     def actorsFind(self, name="", version="", role=''):
@@ -543,17 +538,16 @@ class AtYourServiceRepo():
 
         self.serviceSetState(actions=["init"], role=role,
                              instance=instance, state="INIT")
-        for key, Actor in self.actors.items():
-            if role != "" and Actor.role == role:
+        for key, actor in self.actors.items():
+            if role != "" and actor.role == role:
                 continue
-            Actor.init()
-            for inst in Actor.listInstances():
-                service = Actor.aysrepo.getService(role=Actor.role, instance=inst, die=False)
-                print("RESETTING SERVICE roles %s inst %s instance %s " % (Actor.role, inst, instance))
+            actor.init()
+            for inst in actor.listInstances():
+                service = actor.aysrepo.getService(role=actor.role, instance=inst, die=False)
+                print("RESETTING SERVICE roles %s inst %s instance %s " % (actor.role, inst, instance))
                 service.update_hrd()
 
-            #import pudb; pu.db
-            #Actor.newInstance(instance=key, args={})
+            #actor.newInstance(instance=key, args={})
 
         run = self.runGet(role=role, instance=instance,
                           data=data, action="init")

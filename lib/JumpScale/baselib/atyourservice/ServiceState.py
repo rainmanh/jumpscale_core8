@@ -23,7 +23,7 @@ class ServiceState():
             self._model = j.data.serializer.yaml.load(self._path)
         else:
             self._model = {"parent": "", "producers": {}, "state": {}, "recurring": {
-            }, "events": {}, "templateHRDHash": "", "instanceHRDHash": "", "Actor": ""}
+            }, "events": {}, "templateHRDHash": "", "instanceHRDHash": "", "actor": ""}
 
     @property
     def methods(self):
@@ -89,12 +89,12 @@ class ServiceState():
         self._changed = changed
 
     @property
-    def Actor(self):
-        return self._model["Actor"]
+    def actor(self):
+        return self._model["actor"]
 
-    @Actor.setter
-    def Actor(self, Actor):
-        self._model["Actor"] = Actor
+    @actor.setter
+    def actor(self, actor):
+        self._model["actor"] = actor
         self.changed = True
 
     @property

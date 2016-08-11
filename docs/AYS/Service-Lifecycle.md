@@ -14,7 +14,7 @@ An AYS service template defines:
 - Any other relevant action which can be done on the AYS service
 ```
 
-An AYS service template is stored in an **AYS template repository** or locally in the `ActorTemplates` directory of an **AYS repository**.
+An AYS service template is stored in an **AYS template repository** or locally in the `actorTemplates` directory of an **AYS repository**.
 
 ## Step 2: Create AYS blueprints using the AYS service
 

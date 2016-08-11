@@ -1,11 +1,55 @@
 
 from JumpScale import j
 
+import capnp
+import aysmodel_capnp as AYSModel
+
+from ActorModel import ActorModel
+
 
 class AtYourServiceDBFactory():
 
-    def get(self, name):
-        return AtYourServiceDB(name)
+    def __init__(self):
+        self.AYSModel = AYSModel
+        self._actor = None
+
+    @property
+    def actor(self):
+        if self._actor == None:
+            self._actor = ModelFactory("Actor")
+        return self._actor
+        # self.job = ModelFactory("Job")
+        # self.service = ModelFactory("Service")
+        # self.actioncode = ModelFactory("ActionCode")
+        # self.run = ModelFactory("Run")
+
+    def getDB(self, category):
+        return AtYourServiceDB(category)
+
+
+class ModelFactory():
+
+    def __init__(self, category):
+        self.category = category
+        self._db = AtYourServiceDB(category=category)  # is the abstraction layer to low level db
+        self._modelClass = eval(self.category + "Model")
+
+    def new(self):
+        model = self._modelClass(self.category, self._db)
+        return model
+
+    def get(self, key):
+        model = self._modelClass(self.category, self._db, key=key)
+        return model
+
+    def delete(self, key):
+        self._db.delete(self.category, key)
+
+    def destroy(self):
+        self._db.destroy()
+
+    def exists(self, key):
+        return self._db.exists(self.category, key)
 
 
 class AtYourServiceDB():

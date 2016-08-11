@@ -25,7 +25,7 @@ class CuisinePortal(base):
         """
         grafanaip and port should be the external ip of the machine
         Portal install will only install the portal and libs. No spaces but the system ones will be add by default.
-        To add spaces and actors, please use addSpace and addActor
+        To add spaces and actors, please use addSpace and addactor
         """
         self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
         # if not self.cuisine.core.isMac:
@@ -196,7 +196,7 @@ class CuisinePortal(base):
         self.cuisine.core.file_link(spacepath, dest_dir)
 
     @actionrun(action=True)
-    def addActor(self, actorpath):
+    def addactor(self, actorpath):
         actorname = j.sal.fs.getBaseName(actorpath)
         dest_dir = j.sal.fs.joinPaths(self.cuisine.core.dir_paths[
                                       'varDir'], 'cfg', 'portals', 'main', 'base', actorname)

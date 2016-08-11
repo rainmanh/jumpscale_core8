@@ -72,7 +72,7 @@ class ActionMethodDecorator:
 
             if action:
 
-                # this is safe for e.g.gevent usage, should always return Actor
+                # this is safe for e.g.gevent usage, should always return actor
                 # which is alike for all
                 selfGeneratorCode = "service=j.atyourservice.getService('%s');selfobj=service.actions" % aysikey
 

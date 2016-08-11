@@ -205,8 +205,7 @@ struct Run {
 struct Job {
   #this object is hosted by actor based on FQDN
 
-  #unique id globally for this job = constructed out of blake hash of :  actorFQDN+actionCodeGUID+epochInMilisec
-  guid @0 :Text;
+  key @0 :Text;
 
   #role of service e.g. node.ssh
   actorName @1 :Text;

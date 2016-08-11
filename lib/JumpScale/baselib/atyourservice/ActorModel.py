@@ -33,14 +33,15 @@ class ActorModel(ModelBase):
     def _post_init(self):
         # self.db.parent = j.atyourservice.AYSModel.actor.actorPointer.new_message()  # TODO
         self._producers = self.dbobj.init_resizable_list('producers')
-        self._actions_templates = self.dbobj.init_resizable_list('actionsTemplate')
+        self.dbobj.init_resizable_list('actionsServicesTemplate')
+        self.dbobj.init_resizable_list('actionsActor')
         self._recurringTemplate = self.dbobj.init_resizable_list('recurringTemplate')
         self.dbobj.key = j.data.idgenerator.generateGUID()
         self.dbobj.ownerKey = j.data.idgenerator.generateGUID()
 
     def _pre_save(self):
         # need to call finish on DynamicResizableListBuilder to prevent leaks
-        for builder in [self._actions_templates, self._producers, self._recurringTemplate]:
+        for builder in [self.dbobj.actionsActor, self.dbobj.actionsServicesTemplate, self._producers, self._recurringTemplate]:
             if builder is not None:
                 builder.finish()
 

@@ -10,7 +10,7 @@ import pygments.lexers
 from pygments.formatters import get_formatter_by_name
 
 
-class JOB(Process):
+class Job(Process):
     """
     is what needs to be done for 1 specific action for a service
     is 1 specific action

@@ -1,6 +1,6 @@
 from JumpScale import j
 import time
-import tmuxp
+import libtmux as tmuxp
 
 
 class Session:

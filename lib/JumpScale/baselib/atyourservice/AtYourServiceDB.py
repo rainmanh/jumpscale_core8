@@ -5,20 +5,15 @@ import capnp
 import aysmodel_capnp as AYSModel
 
 from ActorModel import ActorModel
+from JobModel import JobModel
 
 
 class AtYourServiceDBFactory():
 
     def __init__(self):
         self.AYSModel = AYSModel
-        self._actor = None
-
-    @property
-    def actor(self):
-        if self._actor == None:
-            self._actor = ModelFactory("Actor")
-        return self._actor
-        # self.job = ModelFactory("Job")
+        self.actor = ModelFactory("Actor")
+        self.job = ModelFactory("Job")
         # self.service = ModelFactory("Service")
         # self.actioncode = ModelFactory("ActionCode")
         # self.run = ModelFactory("Run")

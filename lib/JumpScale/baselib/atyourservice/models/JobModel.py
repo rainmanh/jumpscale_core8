@@ -1,5 +1,5 @@
 from JumpScale import j
-from .ModelBase import ModelBase
+from JumpScale.baselib.atyourservice.models.ModelBase import ModelBase
 import importlib
 
 

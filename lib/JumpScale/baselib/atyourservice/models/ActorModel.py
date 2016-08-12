@@ -1,31 +1,58 @@
 from JumpScale import j
 
-from .ModelBase import ModelBase
+from JumpScale.baselib.atyourservice.models.ModelBase import ModelBase
 
 
 class ActorModel(ModelBase):
     """
-    is state object for actor, what was last state after installing
+    Model Class for an Actor object
     """
 
-    def __init__(self, category, db, key=""):
+    def __init__(self, actor, category="", db=None, key=""):
         self._capnp = j.atyourservice.db.AYSModel.Actor
+        self.actor = actor
+        self._actions_templates = None
+        self._actions_actor = None
+        self._producers = None
+        self._recurringTemplate = None
+        self._changes = {}
+
         ModelBase.__init__(self, category, db, key)
 
     @property
-    def methods(self):
+    def methods_service_templates(self):
         methods = {}
-        for action_code in self.db.actionsTemplate:
+        for action_code in self.dbobj.actionsServicesTemplate:
+            methods[action_code.name] = action_code.actionCodeKey
+        return methods
+        # for action_code in self._actions_templates:
+        #     methods[action_code.name] = action_code.actionCodeKey
+
+    @property
+    def methods_actor(self):
+        methods = {}
+        for action_code in self.dbobj.actionsActor:
             methods[action_code.name] = action_code.actionCodeKey
         return methods
 
     @property
-    def methodslist(self):
+    def methods_service_list(self):
         """
-        sorted methods
+        sorted methods of the services managed by this actor
         """
         if self._methodsList == []:
-            keys = sorted([item for item in self.methods.keys()])
+            keys = sorted([item for item in self.methods_service_templates.keys()])
+            for key in keys:
+                self._methodsList.append(self.methods[key])
+        return self._methodsList
+
+    @property
+    def methods_actor_list(self):
+        """
+        Sorted methods of the actor
+        """
+        if self._methodsList == []:
+            keys = sorted([item for item in self.methods_actor.keys()])
             for key in keys:
                 self._methodsList.append(self.methods[key])
         return self._methodsList
@@ -35,7 +62,7 @@ class ActorModel(ModelBase):
     def recurringTemplate(self):
         return self.dbobj.recurringTemplate
 
-    def recurring_template_new(self, *kwargs):
+    def recurringTemplateNew(self, *kwargs):
         olditems = [item.to_dict() for item in self.dbobj.recurringTemplate]
         newlist = self.dbobj.init("recurringTemplate", len(olditems) + 1)
         for i, item in enumerate(olditems):
@@ -51,7 +78,7 @@ class ActorModel(ModelBase):
     def actionsServicesTemplate(self):
         return self.dbobj.actionsServicesTemplate
 
-    def actions_services_template_new(self, **kwargs):
+    def actionsServicesTemplateNew(self, **kwargs):
         olditems = [item.to_dict() for item in self.dbobj.actionsServicesTemplate]
         newlist = self.dbobj.init("actionsServicesTemplate", len(olditems) + 1)
         for i, item in enumerate(olditems):
@@ -68,7 +95,7 @@ class ActorModel(ModelBase):
     def actionsActor(self):
         return self.dbobj.actionsActor
 
-    def actions_actor_new(self, **kwargs):
+    def actionsActorNew(self, **kwargs):
         olditems = [item.to_dict() for item in self.dbobj.actionsActor]
         newlist = self.dbobj.init("actionsActor", len(olditems) + 1)
         for i, item in enumerate(olditems):
@@ -83,7 +110,7 @@ class ActorModel(ModelBase):
     def producers(self):
         return self.dbobj.producers
 
-    def producer_new(self, **kwargs):
+    def producerNew(self, **kwargs):
         olditems = [item.to_dict() for item in self.dbobj.producers]
         newlist = self.dbobj.init("producers", len(olditems) + 1)
         for i, item in enumerate(olditems):
@@ -101,6 +128,10 @@ class ActorModel(ModelBase):
         # self.db.parent = j.atyourservice.AYSModel.actor.actorPointer.new_message()  # TODO
         self.dbobj.key = j.data.idgenerator.generateGUID()
         self.dbobj.ownerKey = j.data.idgenerator.generateGUID()
+        self.dbobj.name = self.actor.name
+
+    def _pre_save(self):
+        pass
 
     def _get_key(self):
         if self.dbobj.name == "":
@@ -116,29 +147,36 @@ class ActorModel(ModelBase):
             guid = j.data.hash.blake2_string(self.actor.name + source)
 
             # if new method or new code
-            if not self.dbobj['action_code'].exists(guid):
+            if not j.atyourservice.db.action_code.exists(guid):
                 # create new actionCode model
-                action_code = j.atyourservice.AYSModel.ActionCode.new_message()
-                action_code.guid = guid
-                action_code.name = name
-                action_code.actorName = self.actor.name
-                action_code.code = source
-                action_code.lastModDate = j.data.time.epoch
+                action_code = j.atyourservice.db.action_code.new()
+                action_code.model.guid = guid
+                action_code.model.name = name
+                action_code.model.actorName = self.actor.name
+                action_code.model.code = source
+                action_code.model.lastModDate = j.data.time.epoch
+                # save action_code into db
+                action_code.save()
 
                 # put pointer to actionCode to actor model
-                action = self._actions_templates.add()
+                action = self.actionsServicesTemplateNew()
                 action.name = name
                 action.actionCodeKey = guid
 
-                # save into db
-                self.dbobj['action_code'].set(guid, action_code.to_bytes())
                 self._changes[name] = True
-                self.changed = True
+
                 self.logger.debug('action %s added to db' % name)
 
     def methodChanged(self, name):
         if name in self._changes:
             return True
+        return False
+
+    @property
+    def isChanged(self):
+        for v in self._changes.values():
+            if v is True:
+                return True
         return False
 
     # def __repr__(self):

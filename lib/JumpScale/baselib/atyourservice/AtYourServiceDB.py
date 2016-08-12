@@ -4,7 +4,7 @@ from JumpScale import j
 import capnp
 import aysmodel_capnp as AYSModel
 
-from .models import ActorModel, JobModel, RunModel, ServiceModel, ActionCodeModel
+from JumpScale.baselib.atyourservice.models import ActorModel, JobModel, RunModel, ServiceModel, ActionCodeModel
 
 
 class AtYourServiceDBFactory():
@@ -13,9 +13,8 @@ class AtYourServiceDBFactory():
         self.AYSModel = AYSModel
         self.actor = ModelFactory("Actor")
         self.job = ModelFactory("Job")
-        self.run = ModelFactory("Run")
-        # self.service = ModelFactory("Service")
-        self.actioncode = ModelFactory("ActionCode")
+        self.action_code = ModelFactory("ActionCode")
+        self.service = ModelFactory("Service")
         self.run = ModelFactory("Run")
 
     def getDB(self, category):
@@ -30,21 +29,21 @@ class ModelFactory():
         self._modelClass = eval(self.category + "Model." + self.category + "Model")
 
     def new(self):
-        model = self._modelClass(self.category, self._db)
+        model = self._modelClass(category=self.category, db=self._db)
         return model
 
     def get(self, key):
-        model = self._modelClass(self.category, self._db, key=key)
+        model = self._modelClass(category=self.category, db=self._db, key=key)
         return model
 
     def delete(self, key):
-        self._db.delete(self.category, key)
+        self._db.delete(key=key)
 
     def destroy(self):
         self._db.destroy()
 
     def exists(self, key):
-        return self._db.exists(self.category, key)
+        return self._db.exists(key=key)
 
 
 class AtYourServiceDB():

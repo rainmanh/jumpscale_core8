@@ -106,9 +106,10 @@ struct Service {
     #period in seconds
     action @0 :Text;
     period @1 :UInt32;
-    #needs to be bool
-    #if True then will keep log of what happened, otherwise only when error
-    log @2 :UInt32;
+    lastRun @2: UInt32;
+    # needs to be bool
+    # if True then will keep log of what happened, otherwise only when error
+    log @3: Bool;
   }
 
   state @7 :State;
@@ -122,6 +123,7 @@ struct Service {
   }
 
   configData @8 :Data;
+  # bytes version of the content of schema.hrd after translation to canpn
 
   key @9 :Text;
 

@@ -117,7 +117,7 @@ class Actor(ActorTemplate):
         amSource = ""
         amName = ""
         amDecorator = ""
-        amMethodLine = ""
+        amMethodArgs = {}
 
         # DO NOT CHANGE TO USE PYTHON PARSING UTILS
         lines = content.splitlines()
@@ -130,11 +130,11 @@ class Actor(ActorTemplate):
 
             if state == "DEF" and (linestrip.startswith("@") or linestrip.startswith("def")):
                 # means we are at end of def to new one
-                self.model.addMethod(amName, amSource, amDecorator, amMethodLine)
+                self.addAction(amName, amSource, amDecorator, amMethodArgs)
                 amSource = ""
                 amName = ""
                 amDecorator = ""
-                amMethodLine = ""
+                amMethodArgs = {}
                 continue
 
             if state is not "INIT" and linestrip.startswith("@"):
@@ -143,7 +143,11 @@ class Actor(ActorTemplate):
 
             if state == "MAIN" and linestrip.startswith("def"):
                 state = "DEF"
-                amMethodLine = linestrip
+                from IPython import embed
+                print("DEBUG NOW defline")
+                embed()
+                raise RuntimeError("stop debug here")
+                amMethodArgs
                 amName = linestrip.split("(", 1)[0][4:].strip()
                 if amDecorator == "":
                     if amName in actorMethods:
@@ -157,28 +161,37 @@ class Actor(ActorTemplate):
 
         # process the last one
         if amName != "":
-            self.model.addMethod(amName, amSource, amDecorator, amMethodLine)
-
-        content = '\n'.join(lines)
-
-        # add missing methods
+            self.addAction(amName, amSource, amDecorator, amMethodArgs)
 
         for actionname in actionmethodsRequired:
-            from IPython import embed
-            print("DEBUG NOW sdsfds")
-            embed()
-            raise RuntimeError("stop debug here")
-            if actionname not in self.model.dbobj.actions.keys():
+            if actionname not in self.model.actionsSortedList:
                 # self.addAction(name=actionname, isDefaultMethod=True)
                 # not found
                 if actionname == "input":
-                    content += '\n\n    def input(self, service, name, role, instance, serviceargs):\n        return serviceargs\n'
+                    self.addAction(amName="input", amSource="", amDecorator="actor",
+                                   amMethodArgs={"service": "", "name": "", "role": "", "instance": ""})
                 else:
-                    content += "\n\n    @service()\n    def %s(self, service):\n        return True\n" % actionname
+                    self.addAction(amName=actionname, amSource="", amDecorator="service",
+                                   amMethodArgs={"service": ""})
 
-        j.sal.fs.writeFile(self.path_actions, content)
+        # add missing methods
+        j.sal.fs.writeFile(self.path_actions, self.model.actionsSourceCode)
 
-    def addAction(self, name, source):
+    def addAction(self, amName, amSource, amDecorator, amMethodArgs):
+        actionKey = j.data.hash.blake2_string(self.name + amSource)
+        change = False
+        if not j.atyourservice.db.actionCode.exists(actionKey):
+            # need to create new object
+            change = True
+            ac = j.atyourservice.db.actionCode.new()
+            ac.dbobj.code = amSource
+            ac.dbobj.actorName = self.name
+            ac.dbobj.guid = actionKey
+            ac.dbobj.name = amName
+            for key, val in amMethodArgs.items():
+                ac.argAdd(key, val)  # will check for duplicates
+            ac.dbobj.lastModDate = j.data.time.epoch
+
         from IPython import embed
         print("DEBUG addAction ")
         embed()
@@ -273,7 +286,8 @@ class Actor(ActorTemplate):
     #     # download
     #     for actoritem in self.hrd_template.getListFromPrefix("web.export"):
     #         if "dest" not in actoritem:
-    #             j.events.opserror_critical(msg="could not find dest in hrditem for %s %s" % (actoritem, self), category="ays.actorTemplate")
+    # j.events.opserror_critical(msg="could not find dest in hrditem for %s
+    # %s" % (actoritem, self), category="ays.actorTemplate")
 
     #         fullurl = "%s/%s" % (actoritem['url'],
     #                              actoritem['source'].lstrip('/'))

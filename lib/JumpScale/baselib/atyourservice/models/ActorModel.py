@@ -47,6 +47,13 @@ class ActorModel(ModelBase):
 
 # actions
 
+    @property
+    def actionsSourceCode(self):
+        from IPython import embed
+        print("DEBUG NOW actionsSourceCode")
+        embed()
+        raise RuntimeError("stop debug here")
+
     def actionAdd(self, name, actionCodeKey="", type="service"):
         """
         name @0 :Text;

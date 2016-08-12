@@ -13,7 +13,7 @@ class AtYourServiceDBFactory():
         self.AYSModel = AYSModel
         self.actor = ModelFactory("Actor")
         self.job = ModelFactory("Job")
-        self.action_code = ModelFactory("ActionCode")
+        self.actionCode = ModelFactory("ActionCode")
         self.service = ModelFactory("Service")
         self.run = ModelFactory("Run")
 

@@ -22,3 +22,25 @@ class ActionCodeModel(ModelBase):
         if self.model.guid == "":
             raise j.exceptions.Input(message="guid cannot be empty", level=1, source="", tags="", msgpub="")
         return self.model.guid
+
+    def argAdd(self, name, defval=""):
+        """
+        name @0: Text;
+        defval @1: Data;
+        """
+        for item in self.dbobj.args:
+            if item.name == name:
+                item.defval = defval
+                return
+        obj = self.argumentNewObj()
+        obj.name = name
+        obj.defval = defval
+        return obj
+
+    def argumentNewObj(self):
+        olditems = [item.to_dict() for item in self.dbobj.args]
+        newlist = self.dbobj.init("args", len(olditems) + 1)
+        for i, item in enumerate(olditems):
+            newlist[i] = item
+        ooo = newlist[-1]
+        return ooo

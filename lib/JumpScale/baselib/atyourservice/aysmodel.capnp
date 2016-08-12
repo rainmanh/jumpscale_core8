@@ -160,6 +160,12 @@ struct ActionCode {
   code @3 :Text;
 
   lastModDate @4: UInt32;
+
+  args @5 :List(Argument);
+  struct Argument {
+    name @0: Text;
+    defval @1: Data;
+    }
 }
 
 struct Run {

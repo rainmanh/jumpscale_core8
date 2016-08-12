@@ -1,6 +1,7 @@
 from JumpScale import j
 from JumpScale.baselib.atyourservice.models.ModelBase import ModelBase
 import importlib
+import inspect
 
 
 class JobModel(ModelBase):
@@ -76,7 +77,7 @@ class JobModel(ModelBase):
         raise RuntimeError("stop debug here")
 
     @property
-    def method(self):
+    def actionMethod(self):
         """
         is python method which can be executed
         """
@@ -89,6 +90,30 @@ class JobModel(ModelBase):
             self._method = eval("handle.%s" % self.name)
 
         return self._method
+
+    @actionMethod.setter
+    def actionMethod(self, val):
+        """
+        will inspect the method
+        """
+        source = "".join(inspect.getsourcelines(val)[0])
+        if source != "" and source[-1] != "\n":
+            source += "\n"
+        if source.strip().startswith("@"):
+            # decorator needs to be removed (first line)
+            source = "\n".join(source.split("\n")[1:])
+        source = j.data.text.strip(source)
+        # self._name = source.split("\n")[0].strip().replace("def ", "").split("(")[0].strip()
+        # self._path = inspect.getsourcefile(val).replace("//", "/")
+        # self._doc=inspect.getdoc(self.method)
+        # if self._doc==None:
+        #     self._doc=""
+        # if self._doc!="" and self._doc[-1]!="\n":
+        #     self._doc+="\n"
+        from IPython import embed
+        print("DEBUG NOW actionMethod")
+        embed()
+        raise RuntimeError("stop debug here")
 
     @property
     def source(self):

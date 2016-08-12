@@ -64,36 +64,39 @@ class Blueprint:
                     if key.find("__") == -1:
                         raise j.exceptions.Input(
                             "Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'" % key)
-                    aysname, aysinstance = key.lower().split("__", 1)
+                    actorname, bpinstance = key.lower().split("__", 1)
 
-                    if instance != "" and aysinstance != instance:
+                    if instance != "" and bpinstance != instance:
                         self.logger.info(
-                            "ignore load from blueprint for: %s:%s" % (aysname, aysinstance))
+                            "ignore load from blueprint for: %s:%s" % (actorname, bpinstance))
                         continue
 
-                    if aysname.find(".") != -1:
-                        rolefound, _ = aysname.split(".", 1)
+                    if actorname.find(".") != -1:
+                        rolefound, _ = actorname.split(".", 1)
                     else:
-                        rolefound = aysname
+                        rolefound = actorname
 
                     if role != "" and role != rolefound:
                         self.logger.info(
-                            "ignore load from blueprint based on role for: %s:%s" % (aysname, aysinstance))
+                            "ignore load from blueprint based on role for: %s:%s" % (actorname, bpinstance))
                         continue
 
-                    actor = self.aysrepo.actorGet(aysname, die=False)
+                    # check if we can find actorname and if not then check if there is a blueprint.  name...
+                    if not self.aysrepo.templateExists(actorname) and not actorname.startswith('blueprint.'):
+                        blueaysname = 'blueprint.%s' % actorname
+                        if self.aysrepo.templateExists(blueaysname):
+                            actorname = blueaysname
 
-                    if actor is None:
-                        # check if its a blueprintays, if yes then template
-                        # name is different
-                        aystemplate_name = aysname
-                        if not aysname.startswith('blueprint.'):
-                            blueaysname = 'blueprint.%s' % aysname
-                            if self.aysrepo.templateExists(blueaysname):
-                                aystemplate_name = blueaysname
+                    if not self.aysrepo.templateExists(actorname):
+                        raise j.exceptions.Input(message="Cannot find actor:%s" %
+                                                 actorname, level=1, source="", tags="", msgpub="")
 
-                        # will load actor if it doesn't exist yet
-                        actor = self.aysrepo.actorGet(aystemplate_name)
+                    actor = self.aysrepo.actorGet(actorname, reload=True)
+
+                    from IPython import embed
+                    print("DEBUG NOW load blueprint")
+                    embed()
+                    raise RuntimeError("stop debug here")
 
                     if not len(self.aysrepo.findServices(role=actor.role, instance=aysinstance)):
                         # if it's not there, create it.
@@ -158,7 +161,6 @@ class Blueprint:
             self.active = True
 
     def validate(self):
-        services = []
         for model in self.models:
             if model is not None:
                 for key, item in model.items():

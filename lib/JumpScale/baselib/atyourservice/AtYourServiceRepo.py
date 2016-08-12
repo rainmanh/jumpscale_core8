@@ -18,12 +18,10 @@ colored_traceback.add_hook(always=True)
 class AtYourServiceRepo():
 
     def __init__(self, name, gitrepo, path):
+
         self._init = False
 
-        # self._justinstalled = []
-        self._type = None
-
-        self._services = {}
+        # self._services = {}
         self._actors = {}
 
         self._templates = {}
@@ -36,7 +34,8 @@ class AtYourServiceRepo():
 
         self.path = path
 
-        self._git = gitrepo
+        self.git = gitrepo
+
         self._db = None
 
         self.name = name
@@ -50,7 +49,7 @@ class AtYourServiceRepo():
 # INIT
 
     def _doinit(self):
-        j.actions.setRunId("ays_%s" % self.name)
+        pass
 
     def reset(self):
         # self._db.reload()
@@ -60,7 +59,6 @@ class AtYourServiceRepo():
         self._templates = {}
         # self._reposDone = {}
         self._todo = []
-        self._git = None
         self._blueprints = {}
         # self._load_blueprints()
         self._servicesTree = {}
@@ -74,12 +72,6 @@ class AtYourServiceRepo():
         self.db.destroy()
 
     @property
-    def git(self):
-        if self._git is None:
-            self._git = j.clients.git.get(basedir=self.path, check_path=False)
-        return self._git
-
-    @property
     def db(self):
         if not self._db:
             self._db = j.atyourservice.db.getDB('ays')
@@ -87,55 +79,36 @@ class AtYourServiceRepo():
 
 # ACTORS
 
-    def actorGetState(self, key, actorFQN=""):
-        """
-        talk with actor through actor API, find based on FQN = Fully Qualified Name
-        key is unique key to find the actor, also defines our rights on the actor
-        """
-        from IPython import embed
-        print("DEBUG NOW actorGetStateObject")
-        embed()
-        s
-
-    def actorCreate(self, actorTemplate):
+    def actorCreate(self, name):
         """
         will look for name inside & create actor from it
         """
-
-        actor = actor(self, actorTemplate.name)
+        actorTemplate = self.templateGet(name)
+        actor = Actor(self, actorTemplate)
+        self._actors[actor.name] = actor
         return actor
 
-    def actorGet(self, name, die=True):
-        if name in self.actors:
-            actor = self.actors[name]
-            return actor
-        else:
-            if die == False:
-                return None
-            raise j.exceptions.Input("Cannot find actor with name:%s" % name)
+    def actorGet(self, name, reload=False):
+        if name in self._actors:
+            obj = self._actors[name]
+        obj = self.actorCreate(name)
+        if reload:
+            obj.loadFromFS()
+        return obj
 
     def actorExists(self, name):
-        if self.actorGet(name, die=False) == None:
-            return False
-        return True
+        if name in self._actors:
+            return True
+        return j.atyourservice.db.actor.exists(name)
 
     @property
     def actors(self):
         self._doinit()
         if not self._actors:
-            aysrepopath = self.path
-            if aysrepopath is not None:
-                # load local templates
-                domainpath = j.sal.fs.joinPaths(aysrepopath, "actors")
-                if not j.sal.fs.exists(domainpath):
-                    return {}
-                d = j.tools.path.get(domainpath)
-                for item in d.walkfiles("state.json"):
-                    actorpath = j.sal.fs.getDirName(item)
-                    actor = actor(self, actorpath)
-                    if actor.name in self._actors:
-                        raise j.exceptions.Input("Found double actor: %s" % actor)
-                    self._actors[actor.name] = actor
+            from IPython import embed
+            print("DEBUG NOW actors")
+            embed()
+            raise RuntimeError("stop debug here")
         return self._actors
 
     def actorsFind(self, name="", version="", role=''):
@@ -169,9 +142,9 @@ class AtYourServiceRepo():
                 self._templates[key] = template
 
         # load local templates
-        path = j.sal.fs.joinPaths(self.path, "actorTemplates")
+        path = j.sal.fs.joinPaths(self.path, "actortemplates")
         if j.sal.fs.exists(path):
-            for template in j.atyourservice._actorTemplatesGet(self.git, path=path, ays_in_path_check=False):
+            for template in j.atyourservice._actorTemplatesGet(self.git, path=path, aysrepo=self):
                 # here we want to overrides the global templates with local one. so having duplicate name is normal
                 self._templates[template.name] = template
 
@@ -566,22 +539,20 @@ class AtYourServiceRepo():
         self._doinit()
         if message == "":
             message = "log changes for repo:%s" % self.name
-        gitcl = j.clients.git.get(self.path, check_path=False)
         if branch != "master":
-            gitcl.switchBranch(branch)
+            self.git.switchBranch(branch)
 
-        gitcl.commit(message, True)
+        self.git.commit(message, True)
 
         if push:
             print("PUSH")
-            gitcl.push()
+            self.git.push()
 
     def update(self, branch="master"):
         j.atyourservice.updateTemplates()
-        gitcl = j.clients.git.get(self.path, check_path=False)
         if branch != "master":
-            gitcl.switchBranch(branch)
-        gitcl.pull()
+            self.git.switchBranch(branch)
+        self.git.pull()
 
     def install(self, role="", instance="", force=True, producerRoles="*"):
         self._doinit()

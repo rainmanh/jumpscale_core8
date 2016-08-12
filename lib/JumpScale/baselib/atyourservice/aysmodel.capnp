@@ -1,4 +1,4 @@
-@0x93c1ac9f09464fd4;
+@0x93c1ac9f09464fd6;
 
 struct Actor {
 
@@ -30,15 +30,20 @@ struct Actor {
   key @5 :Text;
   ownerKey @6 :Text;
 
-  actionsServicesTemplate @7 :List(Action);
-  actionsActor @8 :List(Action);
+  actions @7 :List(Action);
   struct Action {
     name @0 :Text;
     #unique key for code of action (see below)
     actionCodeKey @1 :Text;
+    type @2 :Type;
+    enum Type {
+      actor @0;
+      service @1;
+      node @2;
+    }
   }
 
-  recurringTemplate @9 :List(Recurring);
+  recurringTemplate @8 :List(Recurring);
   struct Recurring {
     #period in seconds
     action @0 :Text;
@@ -48,10 +53,10 @@ struct Actor {
   }
 
   #capnp
-  serviceDataSchema @10 :Text;
-  actorDataSchema @11 :Text;
+  serviceDataSchema @9 :Text;
+  actorDataSchema @10 :Text;
 
-  origin @12 :Origin;
+  origin @11 :Origin;
   struct Origin {
     #link to git which hosts this template for the actor
     gitUrl @0 :Text;
@@ -60,8 +65,8 @@ struct Actor {
   }
 
   #python script which interactively asks for the information when not filled in
-  serviceDataUI @13 :Text;
-  actorDataUI @14 :Text;
+  serviceDataUI @12 :Text;
+  actorDataUI @13 :Text;
 
 
 
@@ -249,16 +254,18 @@ struct Job {
     tags @4 :Text;
   }
 
-  #info which is input for the action
-  dataCapnp @8 :Data;
-  #any other format e.g. binary or text or ... is up to actionmethod to deserialize & use
-  dataBin @9 :Data;
+  #info which is input for the action, will be given to methods as service=...
+  argsCapnp @8 :Data;
+  #any other format e.g. binary or text or ... is up to actionmethod to deserialize & use, normally, will be given to method as data=...
+  argsData @9 :Data;
+  #dict which will be given to method as **args
+  argsJson @10 :Data;
 
   #can e.g. delete
-  ownerKey @10 :Text;
+  ownerKey @11 :Text;
 
   #is the last current state
-  state @11 :State;
+  state @12 :State;
   enum State {
       new @0;
       running @1;
@@ -267,9 +274,9 @@ struct Job {
   }
 
   #is the run which asked for this job
-  runGuid @12 :Text;
+  runGuid @13 :Text;
 
   #json serialized result (dict), if any
-  result @13 :Text;
+  result @14 :Text;
 
 }

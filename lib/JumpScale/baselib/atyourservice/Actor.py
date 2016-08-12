@@ -10,16 +10,13 @@ from JumpScale.baselib.atyourservice.ActorTemplate import ActorTemplate
 from JumpScale.baselib.atyourservice.Service import Service
 
 DECORATORCODE = """
-ActionMethodDecorator=j.atyourservice.getActionMethodDecorator()
 ActionsBase=j.atyourservice.getActionsBaseClass()
-
-class action(ActionMethodDecorator):
-    def __init__(self,*args,**kwargs):
-        ActionMethodDecorator.__init__(self,*args,**kwargs)
 
 """
 
 modulecache = {}
+
+
 def loadmodule(name, path):
     key = path
     if key in modulecache:
@@ -39,16 +36,8 @@ class Actor(ActorTemplate):
 
         self.template = template
         self.aysrepo = aysrepo
-        self.name = template.name
-        self.domain = self.template.domain
-        self.role = self.name.split(".", 1)[0]
-        self.FQDN = ''  # @TODO
-        self.producers = []
-        self.key = ''
-        self.ownerKey = ''
 
-        # private
-        self._schema = None
+        self.name = aysrepo.name
 
         self.path = j.sal.fs.joinPaths(aysrepo.path, "actors", template.name)
 
@@ -56,15 +45,18 @@ class Actor(ActorTemplate):
 
         self._init_props()
 
-        self.model = ActorModel(self, key=self.name)
+        if j.atyourservice.db.actor.exists(self.name):
+            self.model = j.atyourservice.db.actor.new()
+            self.model.dbobj.name = self.name
+        else:
+            self.model = j.atyourservice.db.actor.get(key=self.name)
+            self.model.dbobj.name = self.name
+
         # copy the files
         if not j.sal.fs.exists(path=self.path):
-            self.copyFilesFromTemplate()
-            if j.sal.fs.exists(self.path_hrd_schema):
-                self.model.dbobj.serviceDataSchema = j.sal.fs.fileGetContents(self.path_hrd_schema)
+            self.loadFromFS()
 
         self.model.save()
-        self.model._changes = {}
 
     @property
     def schema(self):
@@ -74,24 +66,39 @@ class Actor(ActorTemplate):
 
 # INIT
 
-    def copyFilesFromTemplate(self):
+    def loadFromFS(self):
+        """
+        get content from fs and load in object
+        """
+        self.copyFilesFromTemplates()
+        from IPython import embed
+        print("DEBUG NOW sdsds")
+        embed()
+        raise RuntimeError("stop debug here")
+        if j.sal.fs.exists(self.path_hrd_schema):
+            # self.model.dbobj.serviceDataSchema = j.sal.fs.fileGetContents(self.path_hrd_schema)
+            from IPython import embed
+            print("DEBUG NOW hrd schema in actor")
+            embed()
+            raise RuntimeError("stop debug here")
+
+    def copyFilesFromTemplates(self):
         j.sal.fs.createDir(self.path)
-        if j.sal.fs.exists(self.template.path_hrd_template):
-            j.sal.fs.copyFile(self.template.path_hrd_template, self.path_hrd_template)
-        if j.sal.fs.exists(self.template.path_hrd_schema):
-            j.sal.fs.copyFile(self.template.path_hrd_schema, self.path_hrd_schema)
-        if j.sal.fs.exists(self.template.path_actions_node):
-            j.sal.fs.copyFile(self.template.path_actions_node, self.path_actions_node)
-        if j.sal.fs.exists(self.template.path_mongo_model):
-            j.sal.fs.copyFile(self.template.path_mongo_model, self.path_mongo_model)
+        # look for all keys which start with path_ copy these from template to local actor in fs
+        for key in self.__dict__.keys():
+            if key.startswith("path_"):
+                if j.sal.fs.exists(self.template.__dict__[key], followlinks=True):
+                    j.sal.fs.copyFile(self.template.__dict__[key], self.__dict__[key])
 
-        self._writeActionsFile()
+        self._processActionsFile()
 
-    def _writeActionsFile(self):
+    def _processActionsFile(self):
         self._out = ""
 
         actionmethodsRequired = ["input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
                                  "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata", "consume"]
+
+        actorMethods = ["input", "build"]
 
         if j.sal.fs.exists(self.template.path_actions):
             content = j.sal.fs.fileGetContents(self.template.path_actions)
@@ -109,75 +116,86 @@ class Actor(ActorTemplate):
         state = "INIT"
         amSource = ""
         amName = ""
+        amDecorator = ""
+        amMethodLine = ""
 
-        # DO NOT CHANGE TO USE PYTHO N PARSING UTILS
+        # DO NOT CHANGE TO USE PYTHON PARSING UTILS
         lines = content.splitlines()
-        size = len(lines)
-        i = 0
 
-        while i < size:
-            line = lines[i]
+        for line in lines:
             linestrip = line.strip()
             if state == "INIT" and linestrip.startswith("class Actions"):
                 state = "MAIN"
-                i += 1
                 continue
 
-            if state == "MAIN" and linestrip.startswith("@"):
-                if amSource != "":
-                    self.model.addMethod(amName, amSource)
+            if state == "DEF" and (linestrip.startswith("@") or linestrip.startswith("def")):
+                # means we are at end of def to new one
+                self.model.addMethod(amName, amSource, amDecorator, amMethodLine)
                 amSource = ""
                 amName = ""
-                i += 1
+                amDecorator = ""
+                amMethodLine = ""
+                continue
+
+            if state is not "INIT" and linestrip.startswith("@"):
+                amDecorator = linestrip
                 continue
 
             if state == "MAIN" and linestrip.startswith("def"):
-                if amSource != "":
-                    self.model.addMethod(amName, amSource)
-                amSource = linestrip + "\n"
+                state = "DEF"
+                amMethodLine = linestrip
                 amName = linestrip.split("(", 1)[0][4:].strip()
-                # make sure the required method have the action() decorator
-                if amName in actionmethodsRequired and not lines[i - 1].strip().startswith('@') and amName not in ["input"]:
-                    lines.insert(i, '\n    @action()')
-                    size += 1
-                    i += 1
-
-                i += 1
+                if amDecorator == "":
+                    if amName in actorMethods:
+                        amDecorator = "@actor"
+                    else:
+                        amDecorator = "@service"
                 continue
 
-            if amName != "":
+            if state == "DEF":
                 amSource += "%s\n" % line[4:]
-            i += 1
 
         # process the last one
-        if amSource != "":
-            self.model.addMethod(amName, amSource)
+        if amName != "":
+            self.model.addMethod(amName, amSource, amDecorator, amMethodLine)
 
         content = '\n'.join(lines)
 
         # add missing methods
+
         for actionname in actionmethodsRequired:
-            if actionname not in self.model.methods_service_templates:
-                am = self.model.addMethod(name=actionname, isDefaultMethod=True)
+            from IPython import embed
+            print("DEBUG NOW sdsfds")
+            embed()
+            raise RuntimeError("stop debug here")
+            if actionname not in self.model.dbobj.actions.keys():
+                # self.addAction(name=actionname, isDefaultMethod=True)
                 # not found
                 if actionname == "input":
                     content += '\n\n    def input(self, service, name, role, instance, serviceargs):\n        return serviceargs\n'
                 else:
-                    content += "\n\n    @action()\n    def %s(self, service):\n        return True\n" % actionname
+                    content += "\n\n    @service()\n    def %s(self, service):\n        return True\n" % actionname
 
         j.sal.fs.writeFile(self.path_actions, content)
 
-        for key, _ in self.model.methods_service_templates.items():
-            if self.model.methodChanged(key):
-                self.logger.info("method:%s    %s changed" % (key, self))
-                # for service in self.aysrepo.findServices(templatename=self.name):
-                    # service.actions.change_method(service, methodname=key)
-
+    def addAction(self, name, source):
+        from IPython import embed
+        print("DEBUG addAction ")
+        embed()
+        raise RuntimeError("stop debug here")
+        # actionAdd(self, name, actionCodeKey="", type="service")
 
 # SERVICE
-    def serviceActionsGet(self, service):
-        modulename = "JumpScale.atyourservice.%s.%s" % (self.name, service.instance)
-        mod = loadmodule(modulename, self.path_actions)
+    def _serviceTemplateActionsGet(self):
+        path_actions = j.sal.fs.joinPaths(self.path, "actions.py")
+        modulename = "JumpScale.atyourservice.%s.servicetemplate" % (self.name)
+        mod = loadmodule(modulename, path_actions)
+        return mod.Actions()
+
+    def _actorActionsGet(self, service):
+        path_actions = j.sal.fs.joinPaths(self.path, "actions_actor.py")
+        modulename = "JumpScale.atyourservice.%s.%s.actor" % (self.name)
+        mod = loadmodule(modulename, path_actions)
         return mod.Actions()
 
     def serviceCreate(self, instance="main", args={}, path='', parent=None, consume="", originator=None, model=None):

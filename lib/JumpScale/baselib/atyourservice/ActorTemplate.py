@@ -7,7 +7,7 @@ from JumpScale.baselib.atyourservice.Service import *
 
 class ActorTemplate:
 
-    def __init__(self, gitrepo, path):
+    def __init__(self, gitrepo, path, aysrepo=None):
 
         # path is path in gitrepo or absolute path
 
@@ -29,13 +29,17 @@ class ActorTemplate:
         base = j.sal.fs.getBaseName(relpath)
         self.name = base
 
-        self.domain = j.sal.fs.getBaseName(gitrepo.baseDir)
+        if aysrepo is None:
+            # means the template comes from an ays repo
+            self.domain = j.sal.fs.getBaseName(gitrepo.baseDir)
+            if not self.domain.startswith("ays_"):
+                raise j.exceptions.Input(
+                    "name of ays template git repo should start with ays_, now:%s" % gitrepo.baseDir)
+            self.domain = self.domain[4:]
+        else:
+            self.domain = j.sal.fs.getDirName(aysrepo.path, True)
 
-        if not self.domain.startswith("ays_"):
-            raise j.exceptions.Input(
-                "name of ays template git repo should start with ays_, now:%s" % gitrepo.baseDir)
-
-        self.domain = self.domain[4:]
+        self.aysrepo = aysrepo
 
         self._init_props()
 
@@ -47,11 +51,9 @@ class ActorTemplate:
         self._mongoModel = None
         self._capnpSchema = None
 
-        self.path_hrd_template = j.sal.fs.joinPaths(self.path, "service.hrd")
-        self.path_hrd_schema = j.sal.fs.joinPaths(self.path, "schema.hrd")
+        self.path_hrd_actor = j.sal.fs.joinPaths(self.path, "actor.hrd")
         self.path_actions = j.sal.fs.joinPaths(self.path, "actions.py")
-        self.path_actions_node = j.sal.fs.joinPaths(
-            self.path, "actions_node.py")
+        self.path_hrd_schema = j.sal.fs.joinPaths(self.path, "schema.hrd")
         self.path_mongo_model = j.sal.fs.joinPaths(self.path, "model.py")
         self.path_capnp_schema = j.sal.fs.joinPaths(self.path, "model.capnp")
 

@@ -8,127 +8,109 @@ class ActorModel(ModelBase):
     Model Class for an Actor object
     """
 
-    def __init__(self, actor, category="", db=None, key=""):
+    def __init__(self, category="", db=None, key=""):
         self._capnp = j.atyourservice.db.AYSModel.Actor
-        self.actor = actor
-        self._actions_templates = None
-        self._actions_actor = None
-        self._producers = None
-        self._recurringTemplate = None
-        self._changes = {}
-
         ModelBase.__init__(self, category, db, key)
 
     @property
-    def methods_service_templates(self):
-        methods = {}
-        for action_code in self.dbobj.actionsServicesTemplate:
-            methods[action_code.name] = action_code.actionCodeKey
-        return methods
-        # for action_code in self._actions_templates:
-        #     methods[action_code.name] = action_code.actionCodeKey
-
-    @property
-    def methods_actor(self):
-        methods = {}
-        for action_code in self.dbobj.actionsActor:
-            methods[action_code.name] = action_code.actionCodeKey
-        return methods
-
-    @property
-    def methods_service_list(self):
-        """
-        sorted methods of the services managed by this actor
-        """
-        if self._methodsList == []:
-            keys = sorted([item for item in self.methods_service_templates.keys()])
-            for key in keys:
-                self._methodsList.append(self.methods[key])
-        return self._methodsList
-
-    @property
-    def methods_actor_list(self):
+    def actionsSortedList(self):
         """
         Sorted methods of the actor
         """
-        if self._methodsList == []:
-            keys = sorted([item for item in self.methods_actor.keys()])
-            for key in keys:
-                self._methodsList.append(self.methods[key])
-        return self._methodsList
+        if len(self.dbobj.actions) == 0:
+            return []
+        keys = sorted([item for item in self.actions.keys()])
+        return keys
 
-#### recurringTemplate
-    @property
-    def recurringTemplate(self):
-        return self.dbobj.recurringTemplate
+# recurringTemplate
+    def recurringTemplateAdd(self, name, period=3600, log=True):
+        """
+        #period in seconds
+        name @0 :Text; name of action
+        period @1 :UInt32;
+        #if True then will keep log of what happened, otherwise only when error
+        log @2 :Bool;
+        """
+        obj = self.recurringTemplateNewObj()
+        obj.name = name
+        obj.period = period
+        obj.log = log
+        return obj
 
-    def recurringTemplateNew(self, *kwargs):
+    def recurringTemplateNewObj(self, *kwargs):
         olditems = [item.to_dict() for item in self.dbobj.recurringTemplate]
         newlist = self.dbobj.init("recurringTemplate", len(olditems) + 1)
         for i, item in enumerate(olditems):
             newlist[i] = item
         recurringTemplate = newlist[-1]
-        for k, v in kwargs.items():
-            if hasattr(recurringTemplate, k):
-                setattr(recurringTemplate, k, v)
         return recurringTemplate
 
-#### actionServiceTemplates
-    @property
-    def actionsServicesTemplate(self):
-        return self.dbobj.actionsServicesTemplate
+# actions
 
-    def actionsServicesTemplateNew(self, **kwargs):
-        olditems = [item.to_dict() for item in self.dbobj.actionsServicesTemplate]
-        newlist = self.dbobj.init("actionsServicesTemplate", len(olditems) + 1)
+    def actionAdd(self, name, actionCodeKey="", type="service"):
+        """
+        name @0 :Text;
+        #unique key for code of action (see below)
+        actionCodeKey @1 :Text;
+        type: actor,node,service
+        """
+        if name in ["init", "build"]:
+            type = "actor"
+        obj = self.actionsNewObj()
+        obj.name = name
+        obj.actionCodeKey = actionCodeKey
+        obj.type = type
+        return obj
+
+    def actionsNewObj(self):
+        olditems = [item.to_dict() for item in self.dbobj.actions]
+        newlist = self.dbobj.init("actions", len(olditems) + 1)
         for i, item in enumerate(olditems):
             newlist[i] = item
-        actionsServicesTemplate = newlist[-1]
+        action = newlist[-1]
+        return action
 
-        for k, v in kwargs.items():
-            if hasattr(actionsServicesTemplate, k):
-                setattr(actionsServicesTemplate, k, v)
-        return actionsServicesTemplate
+    def parentSet(self, name, actorFQDN="", actorKey=""):
+        """
+        name @0 :Text;
+        actorFQDN :Text;
+        actorKey  :Text;
+        """
+        obj = self.parent
+        obj.maxServices = 1
+        obj.actorFQDN = actorFQDN
+        obj.actorKey = actorKey
+        obj.name = name
+        return obj
 
-#### actionsActor
-    @property
-    def actionsActor(self):
-        return self.dbobj.actionsActor
+# producers
+    def producerAdd(self, name, maxServices=1, actorFQDN="", actorKey=""):
+        """
+        name @0 :Text;
+        actorFQDN @1 :Text;
+        maxServices @2 :UInt8;
+        actorKey  @3 :Text;
+        """
+        obj = self.producerNewObj()
+        obj.maxServices = maxServices
+        obj.actorFQDN = actorFQDN
+        obj.actorKey = actorKey
+        obj.name = name
+        return obj
 
-    def actionsActorNew(self, **kwargs):
-        olditems = [item.to_dict() for item in self.dbobj.actionsActor]
-        newlist = self.dbobj.init("actionsActor", len(olditems) + 1)
-        for i, item in enumerate(olditems):
-            newlist[i] = item
-        actionsActor = newlist[-1]
-        for k, v in kwargs.items():
-            if hasattr(actionsActor, k):
-                setattr(actionsActor, k, v)
-
-#### producers
-    @property
-    def producers(self):
-        return self.dbobj.producers
-
-    def producerNew(self, **kwargs):
+    def producerNewObj(self):
         olditems = [item.to_dict() for item in self.dbobj.producers]
         newlist = self.dbobj.init("producers", len(olditems) + 1)
         for i, item in enumerate(olditems):
             newlist[i] = item
         producer = newlist[-1]
-
-        for k, v in kwargs.items():
-            if hasattr(producer, k):
-                setattr(producer, k, v)
-
         return producer
 
-#### model methods
+# model methods
     def _post_init(self):
         # self.db.parent = j.atyourservice.AYSModel.actor.actorPointer.new_message()  # TODO
         self.dbobj.key = j.data.idgenerator.generateGUID()
         self.dbobj.ownerKey = j.data.idgenerator.generateGUID()
-        self.dbobj.name = self.actor.name
 
     def _pre_save(self):
         pass

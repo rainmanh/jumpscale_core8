@@ -15,15 +15,9 @@ atyourservice = None
 
 @click.group()
 @click.option('--nodebug', default=False, help='disable debug mode', is_flag=True)
-@click.option('--parallelize', default=False, help='Run AYS in parallelized mode', is_flag=True)
-def cli(nodebug, parallelize):
+def cli(nodebug):
     global atyourservice
-    j.atyourservice.parallelize = parallelize
     atyourservice = j.atyourservice.repoGet()
-    # try:
-    #     atyourservice = j.atyourservice.repoGet()
-    # except j.exceptions.Input:
-    #     raise j.exceptions.AYSNotFound("You're currently not in an AYS repo. Please cd into an AYS repo before performing an AYS action")
     atyourservice.debug = not nodebug
 
 # @click.command()

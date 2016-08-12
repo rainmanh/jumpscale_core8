@@ -77,6 +77,9 @@ class JobModel(ModelBase):
 
     @property
     def method(self):
+        """
+        is python method which can be executed
+        """
         if self.source == "":
             raise j.exceptions.RuntimeError("source cannot be empty")
         if self._method == None:

@@ -160,7 +160,7 @@ class AtYourServiceRepo():
                 "Cannot find template with name:%s" % name)
 
     def templateExists(self, name):
-        if self.templateGet(name, die=False) == None:
+        if self.templateGet(name, die=False) is None:
             return False
         return True
 

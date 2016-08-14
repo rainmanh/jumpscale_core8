@@ -19,9 +19,9 @@ class ActionCodeModel(ModelBase):
         pass
 
     def _get_key(self):
-        if self.model.guid == "":
+        if self.dbobj.guid == "":
             raise j.exceptions.Input(message="guid cannot be empty", level=1, source="", tags="", msgpub="")
-        return self.model.guid
+        return self.dbobj.guid
 
     def argAdd(self, name, defval=""):
         """

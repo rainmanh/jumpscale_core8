@@ -269,6 +269,7 @@ class HRDSchema:
                     key += s.capitalize()
         return key
 
+    @property
     def asCapnpSchema(self):
         """
         create schema for capnp for this hrd schema

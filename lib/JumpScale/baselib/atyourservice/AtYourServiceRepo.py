@@ -92,7 +92,8 @@ class AtYourServiceRepo():
         if name in self._actors:
             obj = self._actors[name]
         obj = self.actorCreate(name)
-        #@TODO: reload
+        if reload:
+            obj.loadFromFS()
         return obj
 
     def actorExists(self, name):

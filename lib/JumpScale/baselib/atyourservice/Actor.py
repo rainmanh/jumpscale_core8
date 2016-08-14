@@ -37,19 +37,17 @@ class Actor(ActorTemplate):
         self.template = template
         self.aysrepo = aysrepo
 
-        self.name = aysrepo.name
-
         self.path = j.sal.fs.joinPaths(aysrepo.path, "actors", template.name)
 
         self.logger = j.atyourservice.logger
 
         self._init_props()
 
-        if j.atyourservice.db.actor.exists(self.name):
+        if j.atyourservice.db.actor.exists(template.name):
             self.model = j.atyourservice.db.actor.new()
-            self.model.dbobj.name = self.name
+            self.model.dbobj.name = self.template.name
         else:
-            self.model = j.atyourservice.db.actor.get(key=self.name)
+            self.model = j.atyourservice.db.actor.get(key=template.name)
             self.model.dbobj.name = self.name
 
         # copy the files
@@ -191,6 +189,7 @@ class Actor(ActorTemplate):
             for key, val in amMethodArgs.items():
                 ac.argAdd(key, val)  # will check for duplicates
             ac.dbobj.lastModDate = j.data.time.epoch
+            ac.save()
 
         from IPython import embed
         print("DEBUG addAction ")

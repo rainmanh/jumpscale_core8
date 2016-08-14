@@ -70,15 +70,9 @@ bash install.sh
  - Install [Cygwin](https://cygwin.com/install.html)
  - When installing Cygwin search for the following packages in the package menu and select them:
      - [curl](https://curl.haxx.se/), under net
-     - [gcc-g+_+ :gnu compiler collection(c ++)](https://en.wikipedia.org/wiki/GNU_Compiler_Collection), under devel  
-     - [mc](https://www.midnight-commander.org/), under shell
+     - [gcc-g++ :gnu compiler collection(c ++)](https://en.wikipedia.org/wiki/GNU_Compiler_Collection), under devel  
      - [Paramiko](http://www.paramiko.org/), under python
  - Install apt-cyg through:
-
-```shell
-lynx -source rawgit.com/transcode-open/apt-cyg/master/apt-cyg > apt-cyg
-install apt-cyg /bin
-```
 
 Then to install JumpScale:
 

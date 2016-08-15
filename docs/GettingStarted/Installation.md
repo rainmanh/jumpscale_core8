@@ -72,7 +72,7 @@ bash install.sh
      - [curl](https://curl.haxx.se/), under net
      - [gcc-g++ :gnu compiler collection(c ++)](https://en.wikipedia.org/wiki/GNU_Compiler_Collection), under devel  
      - [Paramiko](http://www.paramiko.org/), under python
- - Install apt-cyg through:
+     - [lynx](http://lynx.browser.org/lynx.html), under web
 
 Then to install JumpScale:
 

@@ -10,6 +10,20 @@ import pygments.lexers
 from pygments.formatters import get_formatter_by_name
 
 
+modulecache = {}
+
+
+def loadmodule(name, path):
+    key = path
+    if key in modulecache:
+        return modulecache[key]
+    parentname = ".".join(name.split(".")[:-1])
+    sys.modules[parentname] = __package__
+    mod = imp.load_source(name, path)
+    modulecache[key] = mod
+    return mod
+
+
 class Job():
     """
     is what needs to be done for 1 specific action for a service

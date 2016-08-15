@@ -19,10 +19,9 @@ class ActorModel(ModelBase):
         """
         if len(self.dbobj.actions) == 0:
             return []
-        keys = sorted([item for item in self.actions.keys()])
+        keys = sorted([item.name for item in self.dbobj.actions])
         return keys
 
-# recurringTemplate
     def recurringTemplateAdd(self, name, period=3600, log=True):
         """
         #period in seconds
@@ -49,10 +48,36 @@ class ActorModel(ModelBase):
 
     @property
     def actionsSourceCode(self):
-        from IPython import embed
-        print("DEBUG NOW actionsSourceCode")
-        embed()
-        raise RuntimeError("stop debug here")
+        out = ""
+        for action in self.dbobj.actions:
+            from pudb import set_trace
+            set_trace()
+            actionCodeKey = action.actionCodeKey
+            actionCode = j.atyourservice.db.actionCode.get(actionCodeKey)
+
+            defstr = "@%s\n" % action.type
+            defstr += "def %s (" % actionCode.dbobj.name
+            for arg in actionCode.dbobj.args:
+                defstr += "%s = %s," % (arg.name, arg.defval)
+            defstr.rstrip(",")
+            defstr += "):\n"
+
+            if actionCode.dbobj.code != "":
+                from IPython import embed
+                print("DEBUG NOW actionsSourceCode")
+                embed()
+                raise RuntimeError("stop debug here")
+            else:
+                defstr += "    pass\n\n"
+
+            out += defstr
+        return out
+
+    def actionGet(self, name):
+        for act in self.dbobj.actions:
+            if act.name == name:
+                return act
+        return None
 
     def actionAdd(self, name, actionCodeKey="", type="service"):
         """
@@ -133,7 +158,7 @@ class ActorModel(ModelBase):
                 raise j.exceptions.Input(
                     "Action method:%s should not have template variable '$(...' in sourcecode for init or input method." % self)
 
-            guid = j.data.hash.blake2_string(self.actor.name + source)
+            guid = j.data.hash.md5_string(self.actor.name + source)
 
             # if new method or new code
             if not j.atyourservice.db.action_code.exists(guid):

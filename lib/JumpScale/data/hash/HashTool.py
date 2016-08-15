@@ -3,7 +3,7 @@ from JumpScale import j
 # import ExtraTools
 
 import hashlib
-from pyblake2 import blake2b
+# from pyblake2 import blake2b
 
 
 class HashTool:
@@ -179,6 +179,7 @@ def crc32_file(path):
     with open(path, 'rb') as fd:
         return crc32_fd(fd)
 
+
 def blake2(s):
     '''Calculate blake2 hash of input string
 
@@ -192,6 +193,7 @@ def blake2(s):
         s = s.encode()
     h = blake2b(s)
     return h.hexdigest()
+
 
 def blake2_fd(fd):
     '''Calculate blake2 hash of content available on an FD
@@ -210,6 +212,7 @@ def blake2_fd(fd):
     value = blake2(data)
     del data
     return value
+
 
 def blake2_file(path):
     '''Calculate blake2 hash of data available in a file

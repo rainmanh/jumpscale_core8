@@ -7,6 +7,7 @@ import argparse
 import importlib
 import importlib.machinery
 
+
 if sys.platform.startswith("darwin") or sys.platform.startswith("cygwin"):
 
     base = "%s/opt/jumpscale8" % os.environ["HOME"]

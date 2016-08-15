@@ -270,7 +270,7 @@ class HRDSchema:
         return key
 
     @property
-    def asCapnpSchema(self):
+    def capnpSchema(self):
         """
         create schema for capnp for this hrd schema
         important

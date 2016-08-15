@@ -6,7 +6,7 @@ import imp
 import sys
 
 from JumpScale.baselib.atyourservice.models.ActorModel import ActorModel
-from JumpScale.baselib.atyourservice.ActorTemplate import ActorTemplate
+from JumpScale.baselib.atyourservice.ActorTemplate import ActorTemplate, ActorBase
 from JumpScale.baselib.atyourservice.Service import Service
 
 DECORATORCODE = """
@@ -14,21 +14,8 @@ ActionsBase=j.atyourservice.getActionsBaseClass()
 
 """
 
-modulecache = {}
 
-
-def loadmodule(name, path):
-    key = path
-    if key in modulecache:
-        return modulecache[key]
-    parentname = ".".join(name.split(".")[:-1])
-    sys.modules[parentname] = __package__
-    mod = imp.load_source(name, path)
-    modulecache[key] = mod
-    return mod
-
-
-class Actor(ActorTemplate):
+class Actor(ActorBase):
 
     def __init__(self, aysrepo, template):
         """
@@ -41,20 +28,20 @@ class Actor(ActorTemplate):
 
         self.logger = j.atyourservice.logger
 
+        self.name = self.template.name
+
         self._init_props()
 
         if j.atyourservice.db.actor.exists(template.name):
             self.model = j.atyourservice.db.actor.new()
-            self.model.dbobj.name = self.template.name
         else:
             self.model = j.atyourservice.db.actor.get(key=template.name)
-            self.model.dbobj.name = self.name
+
+        self.model.dbobj.name = self.name
 
         # copy the files
-        if not j.sal.fs.exists(path=self.path):
+        if True or not j.sal.fs.exists(path=self.path):
             self.loadFromFS()
-
-        self.model.save()
 
     @property
     def schema(self):
@@ -69,16 +56,25 @@ class Actor(ActorTemplate):
         get content from fs and load in object
         """
         self.copyFilesFromTemplates()
+
+        # hrd schema to capnp
+        if j.sal.fs.exists(self.path_hrd_schema_actor):
+            if self.model.dbobj.actorDataSchema != self.template.schemaActor.capnpSchema:
+                self.processChange("schema_actor")
+                self.model.dbobj.actorDataSchema = self.template.schemaActor.capnpSchema
+        if j.sal.fs.exists(self.path_hrd_schema_service):
+            if self.model.dbobj.serviceDataSchema != self.template.schemaService.capnpSchema:
+                self.processChange("schema_service")
+                self.model.dbobj.serviceDataSchema = self.template.schemaService.capnpSchema
+
+        scode = self.model.actionsSourceCode
+
         from IPython import embed
-        print("DEBUG NOW sdsds")
+        print("DEBUG NOW sdsd")
         embed()
         raise RuntimeError("stop debug here")
-        if j.sal.fs.exists(self.path_hrd_schema):
-            # self.model.dbobj.serviceDataSchema = j.sal.fs.fileGetContents(self.path_hrd_schema)
-            from IPython import embed
-            print("DEBUG NOW hrd schema in actor")
-            embed()
-            raise RuntimeError("stop debug here")
+
+        self.model.save()
 
     def copyFilesFromTemplates(self):
         j.sal.fs.createDir(self.path)
@@ -98,8 +94,8 @@ class Actor(ActorTemplate):
 
         actorMethods = ["input", "build"]
 
-        if j.sal.fs.exists(self.template.path_actions):
-            content = j.sal.fs.fileGetContents(self.template.path_actions)
+        if j.sal.fs.exists(self.template._path_actions):
+            content = j.sal.fs.fileGetContents(self.template._path_actions)
         else:
             content = "class Actions(ActionsBase):\n\n"
 
@@ -128,7 +124,7 @@ class Actor(ActorTemplate):
 
             if state == "DEF" and (linestrip.startswith("@") or linestrip.startswith("def")):
                 # means we are at end of def to new one
-                self.addAction(amName, amSource, amDecorator, amMethodArgs)
+                self._addAction(amName, amSource, amDecorator, amMethodArgs)
                 amSource = ""
                 amName = ""
                 amDecorator = ""
@@ -159,28 +155,26 @@ class Actor(ActorTemplate):
 
         # process the last one
         if amName != "":
-            self.addAction(amName, amSource, amDecorator, amMethodArgs)
+            self._addAction(amName, amSource, amDecorator, amMethodArgs)
 
         for actionname in actionmethodsRequired:
             if actionname not in self.model.actionsSortedList:
                 # self.addAction(name=actionname, isDefaultMethod=True)
                 # not found
                 if actionname == "input":
-                    self.addAction(amName="input", amSource="", amDecorator="actor",
-                                   amMethodArgs={"service": "", "name": "", "role": "", "instance": ""})
+                    self._addAction(amName="input", amSource="", amDecorator="actor",
+                                    amMethodArgs={"service": "", "name": "", "role": "", "instance": ""})
                 else:
-                    self.addAction(amName=actionname, amSource="", amDecorator="service",
-                                   amMethodArgs={"service": ""})
+                    self._addAction(amName=actionname, amSource="", amDecorator="service",
+                                    amMethodArgs={"service": ""})
 
         # add missing methods
-        j.sal.fs.writeFile(self.path_actions, self.model.actionsSourceCode)
+        j.sal.fs.writeFile(self._path_actions, self.model.actionsSourceCode)
 
-    def addAction(self, amName, amSource, amDecorator, amMethodArgs):
-        actionKey = j.data.hash.blake2_string(self.name + amSource)
-        change = False
+    def _addAction(self, amName, amSource, amDecorator, amMethodArgs):
+        actionKey = j.data.hash.md5_string(self.name + amSource)
         if not j.atyourservice.db.actionCode.exists(actionKey):
             # need to create new object
-            change = True
             ac = j.atyourservice.db.actionCode.new()
             ac.dbobj.code = amSource
             ac.dbobj.actorName = self.name
@@ -191,24 +185,25 @@ class Actor(ActorTemplate):
             ac.dbobj.lastModDate = j.data.time.epoch
             ac.save()
 
-        from IPython import embed
-        print("DEBUG addAction ")
-        embed()
-        raise RuntimeError("stop debug here")
-        # actionAdd(self, name, actionCodeKey="", type="service")
+        if amName in ["init", "build"]:
+            atype = 'actor'
+        else:
+            atype = 'service'
+
+        oldaction = self.model.actionGet(amName)
+        if oldaction is None:
+            self.processChange("action_%s" % amName)
+            self.model.actionAdd(amName, actionCodeKey=actionKey, type=atype)
+        elif oldaction.actionCodeKey != actionKey:
+            self.processChange("action_%s" % amName)
+            oldaction.actionCodeKey = actionKey
+
+    def processChange(self, changeCategory):
+        """e.g. action_install"""
+        # TODO: implement change mgmt
+        pass
 
 # SERVICE
-    def _serviceTemplateActionsGet(self):
-        path_actions = j.sal.fs.joinPaths(self.path, "actions.py")
-        modulename = "JumpScale.atyourservice.%s.servicetemplate" % (self.name)
-        mod = loadmodule(modulename, path_actions)
-        return mod.Actions()
-
-    def _actorActionsGet(self, service):
-        path_actions = j.sal.fs.joinPaths(self.path, "actions_actor.py")
-        modulename = "JumpScale.atyourservice.%s.%s.actor" % (self.name)
-        mod = loadmodule(modulename, path_actions)
-        return mod.Actions()
 
     def serviceCreate(self, instance="main", args={}, path='', parent=None, consume="", originator=None, model=None):
         """
@@ -262,12 +257,12 @@ class Actor(ActorTemplate):
 
 
 # GENERIC
-    def upload2AYSfs(self, path):
-        """
-        tell the ays filesystem about this directory which will be uploaded to ays filesystem
-        """
-        j.tools.sandboxer.dedupe(
-            path, storpath="/tmp/aysfs", name="md", reset=False, append=True)
+    # def upload2AYSfs(self, path):
+    #     """
+    #     tell the ays filesystem about this directory which will be uploaded to ays filesystem
+    #     """
+    #     j.tools.sandboxer.dedupe(
+    #         path, storpath="/tmp/aysfs", name="md", reset=False, append=True)
 
     def __repr__(self):
         return "actor: %-15s" % (self.name)

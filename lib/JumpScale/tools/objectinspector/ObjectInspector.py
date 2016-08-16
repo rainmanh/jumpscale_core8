@@ -1,5 +1,6 @@
 
 from JumpScale import j
+import os
 
 # api codes
 # 4 function with params
@@ -28,6 +29,9 @@ class Arg:
     def __repr__(self):
         return self.__str__()
 
+
+def attrib(name, type, doc=None, objectpath=None, filepath=None, extra=None):
+    return (name, type, doc, objectpath, filepath, extra)
 
 class MethodDoc:
 
@@ -202,7 +206,7 @@ class Faker(): pass\n
         self.jstree = OrderedDict() # jstree['j.sal']={'unix': unixobject, 'fs': fsobject}
 
     def importAllLibs(self, ignore=[], base="%s/lib/JumpScale/" % j.dirs.base):
-        self.base = base
+        self.base = os.path.normpath(base)
         towalk = j.sal.fs.listDirsInDir(base, recursive=False, dirNameOnly=True, findDirectorySymlinks=True)
         errors = "### errors while trying to import libraries\n\n"
         for item in towalk:
@@ -234,6 +238,7 @@ class Faker(): pass\n
         j.sal.fs.writeFile("%s/errors.md" % dest, "")
         j.sal.fs.createDir(self.dest)
         self.errors = self.importAllLibs(ignore=ignore)
+        #self.errors = ''
         objectLocationPath = objpath
         if objectLocationPath.count(".") > 0:
             # write its parts in self.compl file first
@@ -243,7 +248,27 @@ class Faker(): pass\n
                 self.compl += readsofar + " = Faker()\n"
                 if idx<len(parts)-1:
                     readsofar += "." + parts[idx+1]
+        objname = ''
+        filepath = ''
+        if '.' in objpath:
+            objname = objpath.split(".")[-1]
+        else:
+            objname = objpath
+        try:
+            obj = eval(objpath)
+            if "__file__" in dir(obj):
+                filepath = inspect.getabsfile(obj.__file__)
+                if not filepath.startswith(self.base):
+                    return
+            else:
 
+                filepath = inspect.getfile(obj.__class__)
+                if not filepath.startswith(self.base):
+                    return
+        except: pass
+
+
+        self.jstree[objectLocationPath]=attrib(objname, "class", 'emptydocs', objectLocationPath)
         self.inspect(objectLocationPath)
         j.sal.fs.createDir(dest)
         j.sal.fs.writeFile(filename="%s/errors.md" % dest, contents=self.errors, append=True)
@@ -273,9 +298,9 @@ class Faker(): pass\n
         @param objectLocationPath is full location name in object tree e.g. j.sal.fs , no need to fill in
         """
         self.logger.debug(objectLocationPath)
-
         # if parent is None:
         #     self.visited = []
+
         if obj == None:
             try:
                 # objectNew = eval("%s" % objectLocationPath2)
@@ -285,8 +310,15 @@ class Faker(): pass\n
                 return
         # only process our files
         try:
-            if not obj.__file__.startswith(self.base):
-                return
+            if "__file__" in dir(obj):
+                filepath = inspect.getabsfile(obj.__file__)
+                filepath = os.path.normpath(filepath)
+                if not filepath.startswith(self.base):
+                    return
+            else:
+                clsfile = inspect.getfile(obj.__class__)
+                clsfile = os.path.normpath(clsfile)
+                if not clsfile.startswith(self.base): return
         except Exception as e:
             # print "COULD NOT DEFINE FILE OF:%s"%objectLocationPath
             pass
@@ -296,7 +328,6 @@ class Faker(): pass\n
         else:
             self.logger.debug("RECURSIVE:%s" % objectLocationPath)
             return
-
         attrs = dir(obj)
 
         # try:
@@ -323,12 +354,11 @@ class Faker(): pass\n
 
 
         attrs = [item for item in attrs if check(item)]
-        def attrib(name, type, doc=None, objectpath=None, filepath=None, extra=None):
-                return (name, type, doc, objectpath, filepath, extra)
+
+
         for objattributename in attrs:
             filepath = None
             objectLocationPath2 = "%s.%s" % (objectLocationPath, objattributename)
-            self.jstree[objectLocationPath2] = []
             try:
                 objattribute = eval("obj.%s" % objattributename)
             except Exception as e:
@@ -379,7 +409,7 @@ class Faker(): pass\n
                 self.compl += "%s.__doc__ = '''%s'''\n" % (objectLocationPath2, objattribute.__doc__)
                 self.jstree[objectLocationPath2]=attrib(objattributename, "method", objattribute.__doc__, objectLocationPath2, filepath, methodargs)
 
-            elif str(type(objattribute)).find("'str'") != -1 or str(type(objattribute)).find("'type'") != -1 or str(type(objattribute)).find("'list'") != -1\
+            elif str(type(objattribute)).find("'str'") != -1 or str(type(objattribute)).find("'list'") != -1\
                 or str(type(objattribute)).find("'bool'") != -1 or str(type(objattribute)).find("'int'") != -1 or str(type(objattribute)).find("'NoneType'") != -1\
                     or str(type(objattribute)).find("'dict'") != -1 or str(type(objattribute)).find("'property'") != -1 or str(type(objattribute)).find("'tuple'") != -1:
                 # is instancemethod
@@ -388,6 +418,7 @@ class Faker(): pass\n
                 self.compl +="%s = Faker()\n"%(objectLocationPath2)
                 self.jstree[objectLocationPath2]=attrib(objattributename, "property",
                                                                objattribute.__doc__, objectLocationPath2)
+
 
             elif str(type(objattribute)).find("type") != -1 or str(type(objattribute)).find("<class") != -1 or str(type(objattribute)).find("'instance'") != -1 or str(type(objattribute)).find("'classobj'") != -1:
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?8\n" % objectLocationPath2, True)
@@ -405,14 +436,12 @@ class Faker(): pass\n
                 except Exception as e:
                     self.logger.error(e)
 
-
-
             else:
                 pass
                 # print((str(type(objattribute)) + " " + objectLocationPath2))
 
     def writeDocs(self, path):
-        print(self.compl)
+        #print(self.compl)
         todelete = []
         summary = {}
         for key, doc in list(self.classDocs.items()):
@@ -438,5 +467,7 @@ class Faker(): pass\n
 
         j.sal.fs.writeFile(filename="%s/compl.py"%self.dest, contents=self.compl)
         import json
-        with open("%s/out.json"%self.dest, 'w') as f:
-            json.dump(self.jstree,  f, indent=4, sort_keys=True)
+        with open("%s/out.pickled"%self.dest, 'wb') as f:
+            import pickle
+            pickle.dump(self.jstree, f)
+            #json.dump(self.jstree,  f, indent=4, sort_keys=True)

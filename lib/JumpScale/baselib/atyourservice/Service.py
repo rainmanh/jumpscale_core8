@@ -246,7 +246,7 @@ class Service:
         if self._hrd is None:
             schema_path = j.sal.fs.joinPaths(self.path, 'schema.capnp')
             if not j.sal.fs.exists(schema_path):
-                j.sal.fs.writeFile(schema_path, self.actor.schema.asCapnpSchema())
+                j.sal.fs.writeFile(schema_path, self.actor.schema.capnpSchema)
                 capnp_models = capnp.load(schema_path)
                 self._hrd = capnp_models.Schema.new_message()
         return self._hrd

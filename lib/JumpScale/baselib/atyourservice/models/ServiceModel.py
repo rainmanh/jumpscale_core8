@@ -26,40 +26,40 @@ class ServiceModel(ModelBase):
         pass
 
 
-    def producers_add(self):
+    def producersAdd(self):
         olditems = [item.to_dict() for item in self.dbobj.producers]
         newlist = self.dbobj.init("producers", len(olditems), 1)
         for i, item in enumerate(olditems):
             newlist[i] = item
         return newlist[-1]
 
-    def actions_add(self):
+    def actionsAdd(self):
         olditems = [item.to_dict() for item in self.dbobj.actions]
         newlist = self.dbobj.init("actions", len(olditems), 1)
         for i, item in enumerate(olditems):
             newlist[i] = item
         return newlist[-1]
 
-    def _get_action_model(self, name):
+    def _getActionModel(self, name):
         for action in self.dbobj.actions:
             if action.name == name:
                 return action
         raise j.exceptions.NotFound("Can't find method with name %s" % name)
 
-    def recurring_add(self):
+    def recurringAdd(self):
         olditems = [item.to_dict() for item in self.dbobj.recurring]
         newlist = self.dbobj.init("recurring", len(olditems),  1)
         for i, item in enumerate(olditems):
             newlist[i] = item
         return newlist[-1]
 
-    def _get_recurring_model(self, action_name):
+    def _getRecurringModel(self, action_name):
         for recurring in self.dbobj.recurring:
             if recurring.action == action_name:
                 return recurring
         raise j.exceptions.NotFound("Can't find recurring with name %s" % action_name)
 
-    def git_repo_add(self):
+    def gitRepoAdd(self):
         olditems = [item.to_dict() for item in self.dbobj.gitRepos]
         newlist = self.dbobj.init("gitRepos", len(olditems),  1)
         for i, item in enumerate(olditems):
@@ -91,9 +91,9 @@ class ServiceModel(ModelBase):
             raise j.exceptions.Input("State needs to be in %s" % ','.join(VALID_STATES))
         name = name.lower()
         try:
-            action = self._get_action_model(name)
+            action = self._getActionModel(name)
         except j.exceptions.NotFound:
-            action = self.actions_add()
+            action = self.actionsAdd()
             action.name = name
 
         if state != action.state:
@@ -105,7 +105,7 @@ class ServiceModel(ModelBase):
     def get(self, name, die=True):
         name = name.lower()
         try:
-            return self._get_action_model(name)
+            return self._getActionModel(name)
         except j.exceptions.NotFound as e:
             if die:
                 raise e
@@ -159,9 +159,9 @@ class ServiceModel(ModelBase):
         """
         name = name.lower()
         try:
-            recurring = self._get_recurring_model(name)
+            recurring = self._getRecurringModel(name)
         except j.exceptions.NotFound as e:
-            recurring = self.recurring_add()
+            recurring = self.recurringAdd()
             recurring.action = name
             recurring.lastRun = 0
 

@@ -21,7 +21,6 @@ class AtYourServiceRepo():
 
         self._init = False
 
-        # self._services = {}
         self._actors = {}
 
         self._templates = {}
@@ -43,7 +42,8 @@ class AtYourServiceRepo():
         self._blueprints = {}
 
         # self._roletemplates = dict()
-        self._servicesTree = {}
+
+        self._services = {}
 
 
 # INIT

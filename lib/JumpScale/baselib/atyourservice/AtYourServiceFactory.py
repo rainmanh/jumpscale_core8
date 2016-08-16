@@ -153,7 +153,7 @@ class AtYourServiceFactory:
 
     def actorTemplatesFind(self, name="", domain="", role=''):
         res = []
-        for template in self.templates:
+        for template in self.actorTemplates:
             if not(name == "" or template.name == name):
                 # no match continue
                 continue
@@ -228,8 +228,8 @@ class AtYourServiceFactory:
         get an actor template
         """
         self._doinit()
-        if name in self.templates:
-            return self.templates[name]
+        if name in self.actorTemplates:
+            return self.actorTemplates[name]
         if die:
             raise j.exceptions.Input("Cannot find template with name:%s" % name)
 

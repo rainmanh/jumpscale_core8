@@ -50,8 +50,6 @@ class ActorModel(ModelBase):
     def actionsSourceCode(self):
         out = ""
         for action in self.dbobj.actions:
-            from pudb import set_trace
-            set_trace()
             actionCodeKey = action.actionCodeKey
             actionCode = j.atyourservice.db.actionCode.get(actionCodeKey)
 
@@ -62,12 +60,7 @@ class ActorModel(ModelBase):
             defstr.rstrip(",")
             defstr += "):\n"
 
-            if actionCode.dbobj.code != "":
-                from IPython import embed
-                print("DEBUG NOW actionsSourceCode")
-                embed()
-                raise RuntimeError("stop debug here")
-            else:
+            if not actionCode.dbobj.code:
                 defstr += "    pass\n\n"
 
             out += defstr

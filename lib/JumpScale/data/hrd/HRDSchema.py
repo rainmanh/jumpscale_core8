@@ -119,6 +119,7 @@ class HRDSchema:
         self.items = {}
         self.items_with_alias = {}
         self.content = content
+        self.fieldsforcapnp = {}
         if content != "":
             self.process(content)
 

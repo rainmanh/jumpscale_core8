@@ -147,7 +147,7 @@ struct Service {
 #this is used to know which code was executed and what exactly the code was
 struct ActionCode {
 
-  #is blake hash constructed out of actor_name+code
+  #is blake hash constructed out of actor_name+name+code
   #unique over world !
   guid @0 :Text;
 

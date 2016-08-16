@@ -31,6 +31,7 @@ class Actor(ActorBase):
         self.name = self.template.name
 
         self._init_props()
+        self._schema = None
 
         if j.atyourservice.db.actor.exists(template.name):
             self.model = j.atyourservice.db.actor.new()
@@ -68,12 +69,6 @@ class Actor(ActorBase):
                 self.model.dbobj.serviceDataSchema = self.template.schemaService.capnpSchema
 
         scode = self.model.actionsSourceCode
-
-        from IPython import embed
-        print("DEBUG NOW sdsd")
-        embed()
-        raise RuntimeError("stop debug here")
-
         self.model.save()
 
     def copyFilesFromTemplates(self):
@@ -129,7 +124,7 @@ class Actor(ActorBase):
                 amName = ""
                 amDecorator = ""
                 amMethodArgs = {}
-                continue
+                state = 'MAIN'
 
             if state is not "INIT" and linestrip.startswith("@"):
                 amDecorator = linestrip
@@ -137,18 +132,22 @@ class Actor(ActorBase):
 
             if state == "MAIN" and linestrip.startswith("def"):
                 state = "DEF"
-                from IPython import embed
-                print("DEBUG NOW defline")
-                embed()
-                raise RuntimeError("stop debug here")
-                amMethodArgs
-                amName = linestrip.split("(", 1)[0][4:].strip()
+                definition, args = linestrip.split("(", 1)
+                args = args.rstrip('):')
+                for arg in args.split(','):
+                    if '=' in arg:
+                        argname, default = arg.split('=', 1)
+                    else:
+                        argname = arg
+                        default = ""
+                    amMethodArgs[argname.strip()] = default.strip()
+                amName = definition[4:].strip()
+                self.logger.debug('amName: %s' % amName)
                 if amDecorator == "":
                     if amName in actorMethods:
                         amDecorator = "@actor"
                     else:
                         amDecorator = "@service"
-                continue
 
             if state == "DEF":
                 amSource += "%s\n" % line[4:]
@@ -172,7 +171,7 @@ class Actor(ActorBase):
         j.sal.fs.writeFile(self._path_actions, self.model.actionsSourceCode)
 
     def _addAction(self, amName, amSource, amDecorator, amMethodArgs):
-        actionKey = j.data.hash.md5_string(self.name + amSource)
+        actionKey = j.data.hash.md5_string(self.name + amName + amSource)
         if not j.atyourservice.db.actionCode.exists(actionKey):
             # need to create new object
             ac = j.atyourservice.db.actionCode.new()

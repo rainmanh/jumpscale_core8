@@ -93,15 +93,10 @@ class Blueprint:
 
                     actor = self.aysrepo.actorGet(actorname, reload=True)
 
-                    from IPython import embed
-                    print("DEBUG NOW load blueprint")
-                    embed()
-                    raise RuntimeError("stop debug here")
-
-                    if not len(self.aysrepo.findServices(role=actor.role, instance=aysinstance)):
+                    if not len(self.aysrepo.servicesFind(role=actor.role, instance=bpinstance)):
                         # if it's not there, create it.
-                        aysi = actor.newInstance(
-                            instance=aysinstance, args=item)
+                        aysi = actor.serviceCreate(
+                            instance=bpinstance, args=item)
 
     def _add2models(self, content, nr):
         # make sure we don't process double

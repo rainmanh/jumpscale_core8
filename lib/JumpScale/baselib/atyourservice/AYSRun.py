@@ -23,7 +23,7 @@ class AYSRunStep:
 
     def addService(self, aysi, model=None):
         if aysi.key not in self.actions:
-            self.actions[aysi.key] = JOB(
+            self.actions[aysi.key] = job(
                 self, aysi, model=model, result_q=Queue(), error_q=Queue())
         return self.actions[aysi.key]
 

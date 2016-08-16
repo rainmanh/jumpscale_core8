@@ -1068,9 +1068,13 @@ class InstallTools:
 
             out = yield from _read_stream(showout, proc.stdout)
             err = yield from _read_stream(showout, proc.stderr)
-            
-            yield from asyncio.wait_for(proc.wait(), timeout)
-            return proc.returncode, out, err
+            rc = 0
+            try:
+                yield from asyncio.wait_for(proc.wait(), timeout)
+            except asyncio.TimeoutError:
+                return rc, out, err
+            else:
+                return proc.returncode, out, err
 
         
         # Get get and run coroutines using asyncio

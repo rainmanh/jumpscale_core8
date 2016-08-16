@@ -111,7 +111,7 @@ class PlatformType:
     @property
     def uname(self):
         def get():
-            rc, self._uname, err = self.executor.execute("uname -mnprs",showout=False)
+            rc, self._uname, err = self.executor.execute("uname -mnprs",showout=False, timeout=10)
             self._uname = self._uname.strip()
             if self._uname.find("warning: setlocale") != -1:
                 j.application._fixlocale = True
@@ -119,7 +119,7 @@ class PlatformType:
                 os.environ["TERMINFO"] = 'xterm-256colors'
             _uname = self._uname.split("\n")[0]
             return _uname            
-        self._uname=self.cache.get("uname",get)                        
+        self._uname=self.cache.get("uname",get)     
         self._osname0, self._hostname0, self._version, self._cpu, self._platform = self._uname.split(" ")
         return self._uname
 

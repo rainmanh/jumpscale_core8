@@ -10,12 +10,12 @@ class ExecutorFactory:
         self.__jslocation__ = "j.tools.executor"
         self._executors = {}
 
-    def pushkey(self, addr, passwd, keyname="",pubkey="", port=22, login="root"):
+    def pushkey(self, addr, passwd, keyname="", pubkey="", port=22, login="root"):
         """
         @param keyname is name of key (pub)
         @param pubkey is the content of the pub key
         """
-        ExecutorSSH(addr, port=port, login=login, passwd=passwd, pushkey=keyname,pubkey=pubkey)
+        ExecutorSSH(addr, port=port, login=login, passwd=passwd, pushkey=keyname, pubkey=pubkey)
 
     def get(self, executor="localhost"):
         """
@@ -49,11 +49,37 @@ class ExecutorFactory:
     def getLocal(self, jumpscale=False, debug=False, checkok=False):
         return ExecutorLocal(debug=debug, checkok=debug)
 
-    def getSSHBased(self, addr="localhost", port=22, login="root", passwd=None, debug=False, checkok=True, allow_agent=True, look_for_keys=True, pushkey=None,pubkey=""):
+    def getSSHBased(self, addr="localhost", port=22, login="root", passwd=None, debug=False, allow_agent=True, \
+        look_for_keys=True, pushkey=None, pubkey="", timeout=5,usecache=True):
         key = '%s:%s:%s' % (addr, port, login)
-        if key not in self._executors:
-            self._executors[key] = ExecutorSSH(addr, port=port, login=login, passwd=passwd, debug=debug, checkok=checkok, allow_agent=allow_agent, look_for_keys=look_for_keys, pushkey=pushkey,pubkey=pubkey)
+        if key not in self._executors or usecache==False:
+            print("ssh no cache")
+            self._executors[key] = ExecutorSSH(addr=addr,
+                                               port=port,
+                                               login=login,
+                                               passwd=passwd,
+                                               debug=debug,
+                                               allow_agent=allow_agent,
+                                               look_for_keys=look_for_keys,
+                                               pushkey=pushkey,
+                                               pubkey=pubkey,
+                                               timeout=timeout)
         return self._executors[key]
 
     def getJSAgentBased(self, agentControllerClientKey, debug=False, checkok=False):
         return ExecutorAgent2(addr, debug=debug, checkok=debug)
+
+    def reset(self, executor):
+        """
+        reset remove the executor passed in argument from the cache.
+        """
+        if j.data.types.string.check(executor):
+            key = executor
+        elif executor.type == 'ssh':
+            key = '%s:%s:%s' % (executor.addr, executor.port, executor.login)
+        else:
+            raise j.exceptions.Input(message='executor type not recognize.')
+        if key in self._executors:
+            exe = self._executors[key]
+            j.tools.cuisine.reset(exe.cuisine)
+            del self._executors[key]

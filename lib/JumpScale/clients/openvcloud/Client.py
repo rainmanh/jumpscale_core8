@@ -4,37 +4,21 @@ import os
 
 CACHETIME = 60
 
+
 class Factory:
     def __init__(self):
         self.__jslocation__ = "j.clients.openvcloud"
-        self._clientsdb = j.data.redisdb.get("openvcloud:main:client")
         self._clients = {}
 
     def get(self, url, login, password=None, secret=None, port=443):
-        dbkey = "%s:%s" % (url, login)
+        dbkey = "%s:%s:%s" % (url, login, j.data.hash.md5_string(password))
         if dbkey in self._clients:
             return self._clients[dbkey]
-        if self._clientsdb.exists(dbkey):
-            cl = self.get_from_db(dbkey)
         else:
-            data = {"url": url, "login" : login, "password": password, "secret": secret, "port": port}
             cl = Client(url, login, password, secret, port)
-            self._clientsdb.set(data, id=dbkey)
 
         self._clients[dbkey] = cl
         return cl
-
-    def get_from_db(self, dbkey):
-        data = self._clientsdb.get(id=dbkey)
-        return Client(url=data.struct["url"], login=data.struct["login"], password=data.struct["password"],
-                    secret=data.struct["secret"], port=data.struct["port"])
-
-    @property
-    def clients(self):
-        if self._clients == {}:
-            for data in self._clientsdb:
-                self._clients[data.name] = self.get_from_db(data.name)
-        return self._clients
 
 
 def patchMS1(api):
@@ -49,11 +33,11 @@ def patchMS1(api):
         wrapper.__doc__ = method.__doc__
         return wrapper
 
-
     api.cloudapi.portforwarding.list = patchmethod(api.cloudapi.portforwarding.list, {'cloudspaceId': 'cloudspaceid'})
     api.cloudapi.portforwarding.delete = patchmethod(api.cloudapi.portforwarding.delete, {'cloudspaceId': 'cloudspaceid'})
     api.cloudapi.portforwarding.create = patchmethod(api.cloudapi.portforwarding.create,
                                                      {'cloudspaceId': 'cloudspaceid', 'machineId': 'vmid'})
+
 
 class Client:
     def __init__(self, url, login, password=None, secret=None, port=443):
@@ -61,10 +45,15 @@ class Client:
             raise ValueError("Either secret or password should be given")
         self._url = url
         self._login = login
+        self._password = j.data.hash.md5_string(password)  # portal support login with md5 of the password
+        self._secret = secret
         self.api = j.clients.portal.get(url, port)
+        # patch handle the case where the connection dies because of inactivity
+        self.__patch_portal_client(self.api)
 
+        self._isms1 = 'mothership1' in url
         self.__login(password, secret)
-        if 'mothership1' in url:
+        if self._isms1:
             jsonpath = os.path.join(os.path.dirname(__file__), 'ms1.json')
             self.api.load_swagger(file=jsonpath, group='cloudapi')
             patchMS1(self.api)
@@ -72,20 +61,35 @@ class Client:
             self.api.load_swagger(group='cloudapi')
 
         self._basekey = "openvcloud:%s:%s" % (self._url, self._login)
-        self._accounts_cache = j.data.redisdb.get("%s:accounts"% (self._basekey), CACHETIME)
-        self._locations_cache = j.data.redisdb.get("%s:locations"% (self._basekey), CACHETIME)
+        self._accounts_cache = j.data.redisdb.get("%s:accounts" % (self._basekey), CACHETIME)
+        self._locations_cache = j.data.redisdb.get("%s:locations" % (self._basekey), CACHETIME)
+
+    def __patch_portal_client(self, api):
+        # try to relogin in the case the connection is dead because of inactivity
+        origcall = api.__call__
+
+        def patch_call(that, *args, **kwargs):
+            try:
+                return origcall(that, *args, **kwargs)
+            except ApiError:
+                if ApiError.response.status_code == 419:
+                    self._login(self._password, self._secret)
+
+        api.__call__ = patch_call
 
     def __login(self, password, secret):
         if not secret:
-            secret = self.api.cloudapi.users.authenticate(username=self._login, password=password)
+            if self._isms1:
+                secret = self.api.cloudapi.users.authenticate(username=self._login, password=password)
+            else:
+                secret = self.api.system.usermanager.authenticate(name=self._login, secret=password)
         self.api._session.cookies.clear()  # make sure cookies are empty, clear guest cookie
         self.api._session.cookies['beaker.session.id'] = secret
-
 
     @property
     def accounts(self):
         if not self._accounts_cache:
-            #load from api
+            # load from api
             for item in self.api.cloudapi.accounts.list():
                 self._accounts_cache.set(item)
         accounts = []
@@ -106,7 +110,6 @@ class Client:
             if account.model['name'] == name:
                 return account
         raise KeyError("Not account with name %s" % name)
-
 
     def reset(self):
         """
@@ -136,7 +139,7 @@ class Account:
     @property
     def spaces(self):
         if not self._spaces_cache:
-            #load from api
+            # load from api
             for item in self.client.api.cloudapi.cloudspaces.list():
                 if item['accountId'] == self.model['id']:
                     self._spaces_cache.set(item, id=item['id'])
@@ -231,7 +234,7 @@ class Space:
             raise j.exceptions.RuntimeError("Cloud space has been deleted")
         self.account._spaces_cache.set(cloudspace, id=self.id)
 
-    def machine_create(self, name, memsize=2, vcpus=1, disksize=10, image="Ubuntu 15.10 x64"):
+    def machine_create(self, name, memsize=2, vcpus=1, disksize=10, datadisks=[], image="Ubuntu 15.10 x64"):
         """
         @param memsize in MB or GB
         for now vcpu's is ignored (waiting for openvcloud)
@@ -242,7 +245,7 @@ class Space:
         if name in self.machines:
             raise j.exceptions.RuntimeError("Name is not unique, already exists in %s"%self)
         print ("cloudspaceid:%s name:%s size:%s image:%s disksize:%s"%(self.id,name,sizeId,imageId,disksize))
-        self.client.api.cloudapi.machines.create(cloudspaceId=self.id, name=name, sizeId=sizeId, imageId=imageId, disksize=disksize)
+        self.client.api.cloudapi.machines.create(cloudspaceId=self.id, name=name, sizeId=sizeId, imageId=imageId, disksize=disksize, datadisks=datadisks)
         self.reset()
         return self.machines[name]
 
@@ -313,6 +316,10 @@ class Space:
         """
         """
         self._machines_cache.delete()
+
+    def delete(self):
+        self.client.api.cloudapi.cloudspaces.delete(cloudspaceId=self.id)
+
 
     def __repr__(self):
         return "space: %s (%s)"%(self.model["name"],self.id)
@@ -396,7 +403,7 @@ class Machine:
             raise j.exceptions.RuntimeError("Could not get IP Address for machine %(name)s" % machine)
         return machineip, machine
 
-    def get_ssh_connection(self):
+    def get_ssh_connection(self, requested_sshport=None):
         """
         Will get a cuisine executor for the machine.
         Will attempt to create a portforwarding
@@ -416,11 +423,13 @@ class Machine:
                 sshport = int(portforward['publicPort'])
                 break
             usedports.add(int(portforward['publicPort']))
+        if not requested_sshport:
+            requested_sshport = 2200
+            while requested_sshport in usedports:
+                requested_sshport += 1
         if not sshport:
-            sshport = 2200
-            while sshport in usedports:
-                sshport += 1
-            self.create_portforwarding(sshport, 22)
+            self.create_portforwarding(requested_sshport, 22)
+            sshport = requested_sshport
         login = machine['accounts'][0]['login']
         password = machine['accounts'][0]['password']
         return j.tools.executor.getSSHBased(publicip, sshport, login, password)         #@todo we need tow work with keys (*2*)

@@ -7,9 +7,9 @@ import colored_traceback
 colored_traceback.add_hook(always=True)
 
 
-class AtYourServiceTester():
+class AtYourServiceTester:
 
-    def __init__(self, subname="main"):
+    def __init__(self, subname="fake_IT_env"):
 
         self.subname = subname
         self.basepath = j.sal.fs.joinPaths(j.dirs.codeDir, "github", "jumpscale", "jumpscale_ays8_testenv", subname)
@@ -17,18 +17,20 @@ class AtYourServiceTester():
         # checkout a prepared ays test repo with some special ays templates to test behaviour & easy to check outcome
         if not j.sal.fs.exists(self.basepath):
             url = "git@github.com:Jumpscale/jumpscale_ays8_testenv.git"
-            repo = j.do.pullGitRepo(url)
+            j.do.pullGitRepo(url)
 
         self._git = None
 
         self.aysrepo = j.atyourservice.get(subname, self.basepath)
 
-
         self.logger = j.logger.get('j.atyourservicetester')
+
+        if self.subname != "fake_IT_env":
+            raise j.exceptions.Input("test only supported on fake_IT_env")
 
     @property
     def git(self):
-        if self._git == None:
+        if self._git is None:
             self._git = j.clients.git.get(self.basepath)
         return self._git
 
@@ -47,7 +49,6 @@ class AtYourServiceTester():
         self.git.push()
 
     def doall(self):
-        self.gitpull()
         self.test_init()
         self.test_install()
         self.test_change_1template_method()
@@ -56,11 +57,10 @@ class AtYourServiceTester():
         self.test_change_instancehrd()
 
     def test_init(self):
-        if self.subname != "main":
-            raise j.exceptions.Input("test only supported on main")
         # test basic init
         # check that some required aysi are there (do some finds)
         # some other basic tests
+        self.aysrepo.execute_blueprint()
         self.aysrepo.init()
 
         # check that everything specified in the blueprint was inited.
@@ -70,7 +70,7 @@ class AtYourServiceTester():
                     aysrole, aysinstance = key.split('__')
                     aysrole = aysrole.split('.')[0]
                     assert len(j.sal.fs.walk(j.sal.fs.joinPaths(self.basepath, 'services'), recurse=1, pattern='%s!%s' % (aysrole, aysinstance),
-                               return_folders=1, return_files=0)) == 1, '%s!%s not init-ed' % (aysrole, aysinstance)
+                                             return_folders=1, return_files=0)) == 1, '%s!%s not init-ed' % (aysrole, aysinstance)
         self.logger.info('Blueprint services all accounted for')
 
         # Make sure all children are subdirectories of parents
@@ -84,8 +84,6 @@ class AtYourServiceTester():
         self.logger.info('All producers accounted for')
 
     def test_install(self):
-        if self.subname != "main":
-            raise j.exceptions.Input("test only supported on main")
         self.reset()
         self.aysrepo.init()
 
@@ -98,7 +96,7 @@ class AtYourServiceTester():
                     continue
                 assert state[0] != 'ERROR', "%s state was %s" % (service, state)
                 run_services.append(service)
-                missing_producers = [aysi for  producers in service.producers.values() for aysi in producers if aysi not in run_services]
+                missing_producers = [aysi for producers in service.producers.values() for aysi in producers if aysi not in run_services]
                 assert not missing_producers, 'Producers should have already run! producer %s of service %s hasn\'t' % (missing_producers, service)
         self.logger.info('No errors in install simulation')
         self.logger.info('Producers always preceding consumers! Order is correct')
@@ -109,9 +107,6 @@ class AtYourServiceTester():
         # some other basic tests
 
     def test_change_1template_method(self):
-        if self.subname != "main":
-            raise j.exceptions.Input("test only supported on main")
-
         self.reset()
         self.aysrepo.init()
 
@@ -121,7 +116,7 @@ class AtYourServiceTester():
         templates_with_action_files = [self.aysrepo.getTemplate(template).path_actions for template in blueprint_templates if j.sal.fs.exists(self.aysrepo.getTemplate(template).path_actions)]
         template_path = random.choice(templates_with_action_files)
         data = j.sal.fs.fileGetContents(template_path).splitlines()
-        method_lines = [indx for indx in range(0, len(data)-1) if data[indx].startswith('    def ') and 'init' not in data[indx]]
+        method_lines = [indx for indx in range(0, len(data) - 1) if data[indx].startswith('    def ') and 'init' not in data[indx]]
         random_method_line = random.choice(method_lines)
         random_method = data[random_method_line].split('def')[1].strip().split('(')[0]
 
@@ -129,7 +124,7 @@ class AtYourServiceTester():
 
         data = j.sal.fs.fileGetContents(template_path).splitlines()
         original = data.copy()
-        method_lines = [indx for indx in range(0, len(data)-1) if data[indx].startswith('    def ')]
+        method_lines = [indx for indx in range(0, len(data) - 1) if data[indx].startswith('    def ')]
         random_method = data[random_method_line].split('def')[1].strip().split('(')[0]
         random_method_line = random.choice(method_lines)
 
@@ -163,9 +158,6 @@ class AtYourServiceTester():
         # check that right ays were impacted and only the ones required (through state object)
 
     def test_change_1template_schema(self):
-        if self.subname != "main":
-            raise j.exceptions.Input("test only supported on main")
-
         self.reset()
         self.aysrepo.init()
 
@@ -207,9 +199,6 @@ class AtYourServiceTester():
         # do now same for remove of variable
 
     def test_change_blueprint(self):
-        if self.subname != "main":
-            raise j.exceptions.Input("test only supported on main")
-
         self.reset()
         self.aysrepo.init()
 
@@ -252,9 +241,6 @@ class AtYourServiceTester():
         # do now same for additional aysi in blueprint
 
     def test_change_instancehrd(self):
-        if self.subname != "main":
-            raise j.exceptions.Input("test only supported on main")
-
         self.reset()
         self.aysrepo.init()
 

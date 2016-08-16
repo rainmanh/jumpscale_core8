@@ -12,10 +12,9 @@ class ActionsTmpl(ActionsBaseTmpl):
     #     init function of the service object, always done on @ys central side
     #     """
     #     return True
-    
+
     # def build(self,serviceObj):
     #     """
     #     build instructions for the service, make sure the builded service ends up in right directory, this means where otherwise binaries would run from
-    #     """        
+    #     """
     #     pass
-

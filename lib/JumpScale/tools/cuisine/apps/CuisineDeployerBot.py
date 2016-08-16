@@ -14,12 +14,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.deployerbot"
 
-
-class DeployerBot():
-
-    def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+base=j.tools.cuisine.getBaseClass()
+class DeployerBot(base):
 
     @actionrun(action=True)
     def build(self, start=True, token=None, g8_addresses=None, dns=None, oauth=None):
@@ -28,7 +24,7 @@ class DeployerBot():
         If start is True, token g8_addresses, dns and oauth should be specified
         """
         self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        if not self.cuisine.core.isMac:
+        if not self.cuisine.core.isMac and not self.cuisine.core.isCygwin:
             self.cuisine.installerdevelop.jumpscale8()
             self.cuisine.pip.upgrade("pip")
 
@@ -39,6 +35,7 @@ class DeployerBot():
         if start:
             self.start(token=token, g8_addresses=g8_addresses, dns=dns, oauth=oauth)
 
+    @actionrun(force=True)
     def start(self, token=None, g8_addresses=None, dns=None, oauth=None):
         """
         token: telegram bot token received from @botfather
@@ -57,6 +54,7 @@ class DeployerBot():
         cwd = self.cuisine.core.args_replace('$appDir/deployer_bot')
         self.cuisine.processmanager.ensure('deployerbot', cmd=cmd, path=cwd)
 
+    @actionrun()
     def install_deps(self):
         deps = """
         flask
@@ -64,9 +62,11 @@ class DeployerBot():
         """
         self.cuisine.pip.multiInstall(deps, upgrade=True)
 
+    @actionrun()
     def link_code(self):
         self.cuisine.core.file_link('$codeDir/github/jumpscale/jscockpit/deploy_bot/', '$appDir/deployer_bot')
 
+    @actionrun()
     def create_config(self, token=None, g8_addresses=None, dns=None, oauth=None):
         """
         token: telegram bot token received from @botfather

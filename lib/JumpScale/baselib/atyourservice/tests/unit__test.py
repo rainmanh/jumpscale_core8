@@ -57,9 +57,9 @@ class AYSKey(unittest.TestCase):
         for test in self.test_table:
             domain, name, instance, role = j.atyourservice._parseKey(test['key'])
             self.assertEqual(domain, test['expect']['domain'], "domain should be %s, found %s" % (test['expect']['domain'], domain))
-            self.assertEqual(name, test['expect']['name'],  "name should be %s, found %s" % (test['expect']['name'], name))
-            self.assertEqual(instance, test['expect']['instance'],  "instance should be %s, found %s" % (test['expect']['instance'], instance))
-            self.assertEqual(role, test['expect']['role'],  "role should be %s, found %s" % (test['expect']['role'], role))
+            self.assertEqual(name, test['expect']['name'], "name should be %s, found %s" % (test['expect']['name'], name))
+            self.assertEqual(instance, test['expect']['instance'], "instance should be %s, found %s" % (test['expect']['instance'], instance))
+            self.assertEqual(role, test['expect']['role'], "role should be %s, found %s" % (test['expect']['role'], role))
 
 if __name__ == '__main__':
     unittest.main()

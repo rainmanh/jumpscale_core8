@@ -15,7 +15,7 @@ from stat import ST_MTIME
 from SystemFSWalker import *
 
 
-# We import only jumpscale as the j.system.fs is used before jumpscale is initialized. Thus the q cannot be imported yet
+# We import only jumpscale as the j.sal.fs is used before jumpscale is initialized. Thus the q cannot be imported yet
 
 
 from JumpScale import j
@@ -217,7 +217,7 @@ class SystemFS:
         self.__jslocation__="j.sal.fs"
         self.logger = j.logger.get("j.sal.fs")
         self.logger.disabled=True
-        
+
         self.walker = SystemFSWalker()
 
     def copyFile(self, fileFrom, to, createDirIfNeeded=False, overwriteFile=True):
@@ -434,9 +434,9 @@ class SystemFS:
             if createdir:
                 cmd += "--rsync-path='mkdir -p %s && rsync' " % self.getParent(dstpath)
             cmd += " '%s' '%s'" % (src, dst)
-            print (cmd)
+            print(cmd)
 
-            return j.tools.cuisine.local.core.run(cmd)
+            return j.tools.cuisine.local.core.run(cmd)[1]
 
 
     def removeDirTree(self, path, onlyLogWarningOnRemoveError=False):
@@ -528,7 +528,7 @@ class SystemFS:
         self.logger.debug('Join paths %s'%(str(args)))
         if args is None:
             raise TypeError('Not enough parameters %s'%(str(args)))
-        if j.core.platformtype.myplatform.isWindows():
+        if os.sys.platform.startswith("win"):
             args2=[]
             for item in args:
                 item=item.replace("/","\\")
@@ -689,13 +689,8 @@ class SystemFS:
         return os.sep.join(parts)
 
     def getFileExtension(self,path):
-        return os.path.splitext(path)[1]
-        # extcand=path.split(".")
-        # if len(extcand)>0:
-        #     ext=extcand[-1]
-        # else:
-        #     ext=""
-        # return ext
+        ext = os.path.splitext(path)[1]
+        return ext.strip('.')
 
     def chown(self,path,user,group=None):
         from pwd import getpwnam
@@ -1542,8 +1537,6 @@ class SystemFS:
                                                     files           = files )
 
         return result
-
-    #WalkExtended = deprecated('j.sal.fs.WalkExtended','j.sal.fs.walkExtended', '3.2')(walkExtended)
 
     def walk(self, root, recurse=0, pattern='*', return_folders=0, return_files=1, followSoftlinks=True, str=False, depth=None):
         """This is to provide ScanDir similar function

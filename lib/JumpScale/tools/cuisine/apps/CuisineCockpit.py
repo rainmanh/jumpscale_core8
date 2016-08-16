@@ -14,8 +14,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.cockpit"
 
-
-class Cockpit():
+base=j.tools.cuisine.getBaseClass()
+class Cockpit(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -28,7 +28,7 @@ class Cockpit():
         If start is True, bot_token, jwt_key, organization should be specified
         """
         self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        if not self.cuisine.core.isMac:
+        if not self.cuisine.core.isMac and not self.cuisine.core.isCygwin:
             self.cuisine.installerdevelop.jumpscale8()
             self.cuisine.pip.upgrade("pip")
 
@@ -39,6 +39,7 @@ class Cockpit():
         if start:
             self.start(bot_token, jwt_key, organization, client_secret, client_id, redirect_uri, itsyouonlinehost)
 
+    @actionrun(force=True)
     def start(self, bot_token='', jwt_key='', organization='', client_secret='', client_id='', redirect_uri='', itsyouonlinehost='https://itsyou.online'):
         """
         bot_token: telegram token for cockpit bot
@@ -47,6 +48,7 @@ class Cockpit():
         cmd = 'jspython cockpit start --config $cfgDir/cockpit/config.toml'
         self.cuisine.processmanager.ensure('cockpit', cmd=cmd, path='/opt/jumpscale8/apps/cockpit')
 
+    @actionrun()
     def install_deps(self):
         deps = """
         cryptography
@@ -57,9 +59,11 @@ class Cockpit():
         """
         self.cuisine.pip.multiInstall(deps, upgrade=True)
 
+    @actionrun()
     def link_code(self):
         self.cuisine.core.file_link('$codeDir/github/jumpscale/jscockpit/jscockpit/', '$appDir/cockpit')
 
+    @actionrun()
     def create_config(self, bot_token, jwt_key, organization, client_secret, client_id, redirect_uri, itsyouonlinehost='https://itsyou.online'):
         cfg = {
             'oauth': {

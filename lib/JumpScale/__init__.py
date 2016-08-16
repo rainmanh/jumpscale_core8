@@ -3,10 +3,11 @@ import sys
 import os
 import socket
 import time
+import argparse
 import importlib
 import importlib.machinery
 
-if sys.platform.startswith("darwin"):
+if sys.platform.startswith("darwin") or sys.platform.startswith("cygwin"):
 
     base="%s/opt/jumpscale8"%os.environ["HOME"]
     basevar="%s/optvar"%os.environ["HOME"]
@@ -96,8 +97,7 @@ j.portal.tools = Loader('j.portal.tools')
 
 
 
-from .InstallTools import InstallTools, do
-from .InstallTools import Installer
+from .InstallTools import InstallTools, do, Installer
 j.do=do
 j.do.installer=Installer()
 
@@ -110,7 +110,12 @@ import importlib
 
 def redisinit():
     import redis
-    j.core.db=redis.Redis(unix_socket_path='/tmp/redis.sock')
+
+    if  j.do.TYPE.startswith("WIN"):
+        j.core.db=redis.Redis()
+    else:
+        j.core.db=redis.Redis(unix_socket_path='/tmp/redis.sock')
+
     try:
         j.core.db.set("internal.last",0)
     except:
@@ -124,6 +129,10 @@ if j.core.db==None:
     if j.do.TYPE.startswith("OSX"):
         #--port 0
         cmd="redis-server --unixsocket /tmp/redis.sock --maxmemory 100000000 --daemonize yes"
+        print ("start redis in background")
+        os.system(cmd)
+    elif j.do.TYPE.startswith("WIN"):
+        cmd="redis-server --maxmemory 100000000 & "
         print ("start redis in background")
         os.system(cmd)
     else:
@@ -248,4 +257,9 @@ data=j.core.db.get("system.dirs.%s"%j.do.BASE)
 if data==None:
     j.application._config = j.data.hrd.get(path="%s/hrd/system"%basevar)
 
+
+parser = argparse.ArgumentParser(add_help=False)
+parser.add_argument('-q', '--quiet', default=False, action='store_true', help="Turn down logging")
+options, args = parser.parse_known_args()
+j.logger.set_quiet(options.quiet)
 j.application.init()

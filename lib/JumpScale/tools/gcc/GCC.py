@@ -107,7 +107,7 @@ class GCC_Mgmt():
             containers.append("%s:%s" % (node.addr, ssh_port))
 
             # needed cause weave already listen on port 53 on the host
-            ip = node.cuisine.core.run("jsdocker getip -n %s" % name)
+            _, ip, _ = node.cuisine.core.run("jsdocker getip -n %s" % name)
             node.cuisine.core.run("iptables -t nat -A PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination %s:53" % ip, action=True)
 
         j.core.db.set("gcc.docker_nodes", ','.join(containers))
@@ -130,7 +130,7 @@ class GCC_Mgmt():
         node.cuisine.apps.skydns.build(start=True, force=force)
         node.cuisine.apps.aydostore(start=True, addr='127.0.0.1:8090', backend="$varDir/aydostor", force=force)
         # node.cuisine.apps.agentcontroller(start=True, force=force)
-        node.cuisine.apps.caddy.build(ssl=True, start=True, dns=node.addr, force=force)
+        node.cuisine.apps.caddy.install(ssl=True, start=True, dns=node.addr, force=force)
         self._configCaddy(node)
         self._configSkydns(node)
 

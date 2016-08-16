@@ -12,16 +12,16 @@ class ExecutorLocal(ExecutorBase):
         self.id = 'localhost'
         self.addr = 'localhost'
 
-    def execute(self, cmds, die=True, checkok=None, async=False,showout=True, combinestdr=True,timeout=0, env={}):
+    def execute(self, cmds, die=True, checkok=None, async=False, showout=True, outputStderr=False, timeout=0, env={}):
         if env:
             self.env.update(env)
-        # cmds = self._transformCmds(cmds, die, checkok=checkok)
+
         if cmds.find('\n') == -1:
             if self.debug:
-                print("EXECUTOR:%s"%cmds)
-            return j.do.execute(cmds, die=die, async=async,showout=showout, outputStderr=showout)
+                print("EXECUTOR:%s" % cmds)
+            return j.do.execute(cmds, die=die, async=async, showout=showout, outputStderr=outputStderr)
         if self.debug:
-            print("EXECUTOR:\n%s\n"%cmds)
+            print("EXECUTOR:\n%s\n" % cmds)
 
         return j.sal.process.execute(command=cmds, die=die)
 

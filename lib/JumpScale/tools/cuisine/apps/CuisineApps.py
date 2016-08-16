@@ -22,7 +22,10 @@ from apps.CuisineWeave import Weave
 from apps.CuisinePortal import CuisinePortal
 from apps.CuisineCockpit import Cockpit
 from apps.CuisineDeployerBot import DeployerBot
-
+from apps.CuisineHadoop import Hadoop
+from apps.CuisineArakoon import Arakoon
+from apps.CuisineVolumeDriver import VolumeDriver
+from apps.CuisineAlba import Alba
 
 import time
 
@@ -36,8 +39,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps"
 
-
-class CuisineApps:
+base=j.tools.cuisine.getBaseClass()
+class CuisineApps(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -61,6 +64,10 @@ class CuisineApps:
         self._portal = None
         self._cockpit = None
         self._deployerbot = None
+        self._arakoon = None
+        self._volumedriver = None
+        self._alba = None
+        self._hadoop = None
 
     @property
     def weave(self):
@@ -166,6 +173,30 @@ class CuisineApps:
         if self._deployerbot is None:
             self._deployerbot = DeployerBot(self.executor, self.cuisine)
         return self._deployerbot
+
+    @property
+    def arakoon(self):
+        if self._arakoon is None:
+            self._arakoon = Arakoon(self.executor, self.cuisine)
+        return self._arakoon
+
+    @property
+    def volumedriver(self):
+        if self._volumedriver is None:
+            self._volumedriver = VolumeDriver(self.executor, self.cuisine)
+        return self._volumedriver
+
+    @property
+    def alba(self):
+        if self._alba is None:
+            self._alba = Alba(self.executor, self.cuisine)
+        return self._alba
+
+    @property
+    def hadoop(self):
+        if self._hadoop is None:
+            self._hadoop = Hadoop(self.executor, self.cuisine)
+        return self._hadoop
 
     @actionrun(action=True)
     def installdeps(self):

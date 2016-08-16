@@ -8,8 +8,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self,*args,**kwargs)
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.package"
 
-
-class CuisinePackage:
+base=j.tools.cuisine.getBaseClass()
+class CuisinePackage(base):
 
     def __init__(self,executor,cuisine):
         self.logger = j.logger.get('j.tools.cuisine.package')
@@ -53,6 +53,8 @@ class CuisinePackage:
         if self.cuisine.core.isUbuntu:
             self.cuisine.core.run("apt-get update")
         elif self.cuisine.core.isMac:
+            location = self.cuisine.core.command_location("brew")
+            # self.cuisine.core.run("sudo chown root %s" % location)
             self.cuisine.core.run("brew update")
         elif self.cuisine.core.isArch:
             self.cuisine.core.run("pacman -Syy")
@@ -73,14 +75,19 @@ class CuisinePackage:
             self.cuisine.core.run("pacman -Syu --noconfirm;pacman -Sc --noconfirm")
         elif self.cuisine.core.isMac:
             self.cuisine.core.run("brew upgrade")
+        elif self.cuisine.core.isCygwin:
+            return # no such functionality in apt-cyg
         else:
             raise j.exceptions.RuntimeError("could not upgrade, platform not supported")
 
     @actionrun(action=True)
-    def install(self,package):
+    def install(self, package, allow_unauthenticated=False):
 
         if self.cuisine.core.isUbuntu:
-            cmd="apt-get install %s -y"%package
+            cmd = "apt-get install -y "
+            if allow_unauthenticated:
+                cmd += ' --allow-unauthenticated '
+            cmd += package
 
         elif self.cuisine.core.isArch:
             if package.startswith("python3"):
@@ -93,20 +100,38 @@ class CuisinePackage:
             cmd="pacman -S %s  --noconfirm"%package
 
         elif self.cuisine.core.isMac:
+            if package in ["libpython3.4-dev", "python3.4-dev", "libpython3.5-dev", "python3.5-dev", "libffi-dev", "make", "build-essential", "libpq-dev", "libsqlite3-dev" ]:
+                return
 
-            rc,out=self.cuisine.core.run("brew info --json=v1 %s"%package,showout=False,die=False)
-            if rc==0:
-                info=j.data.serializer.json.loads(out)
+            _, installed, _ = self.cuisine.core.run("brew list")
+            if package in installed:
                 return #means was installed
+
+            # rc,out=self.cuisine.core.run("brew info --json=v1 %s"%package,showout=False,die=False)
+            # if rc==0:
+            #     info=j.data.serializer.json.loads(out)
+            #     return #means was installed
+
+            if "wget" == package:
+                package = "%s --enable-iri" % package
 
             cmd="brew install %s "%package
 
+        elif self.cuisine.core.isCygwin:
+            if package in ["sudo", "net-tools"]:
+                return
+
+            installed= self.cuisine.core.run("apt-cyg list&")[1].splitlines()
+            if package in installed:
+                return #means was installed
+
+            cmd = "apt-cyg install %s&" % package
         else:
             raise j.exceptions.RuntimeError("could not install:%s, platform not supported"%package)
 
         mdupdate=False
         while True:
-            rc,out=self.cuisine.core.run(cmd,die=False)
+            rc, out, err = self.cuisine.core.run(cmd,die=False)
 
             if rc>0:
                 if mdupdate==True:
@@ -122,8 +147,8 @@ class CuisinePackage:
 
             return out
 
-
-    def multiInstall(self,packagelist):
+    @actionrun()
+    def multiInstall(self, packagelist, allow_unauthenticated=False):
         """
         @param packagelist is text file and each line is name of package
 
@@ -142,7 +167,7 @@ class CuisinePackage:
             dep=dep.strip()
             if dep==None or dep=="":
                 continue
-            self.install(dep)
+            self.install(dep, allow_unauthenticated=allow_unauthenticated)
 
     @actionrun()
     def start(self,package):
@@ -163,7 +188,7 @@ class CuisinePackage:
                 if not p: continue
                 # The most reliable way to detect success is to use the command status
                 # and suffix it with OK. This won't break with other locales.
-                status = self.cuisine.core.run("dpkg-query -W -f='${Status} ' %s && echo **OK**;true" % p)
+                _, status, _ = self.cuisine.core.run("dpkg-query -W -f='${Status} ' %s && echo **OK**;true" % p)
                 if not status.endswith("OK") or "not-installed" in status:
                     self.install(p)
                     res[p]=False
@@ -195,6 +220,23 @@ class CuisinePackage:
                 return self._apt_get("-y --purge remove %s" % package)
             else:
                 self.cuisine.core.run("apt-get autoremove -y")
+
+            self._apt_get("autoclean")
+            C="""
+            apt-get clean
+            rm -rf /bd_build
+            rm -rf /tmp/* /var/tmp/*
+            rm -f /etc/dpkg/dpkg.cfg.d/02apt-speedup
+
+            find -regex '.*__pycache__.*' -delete
+            rm -rf /var/log
+            mkdir -p /var/log/apt
+            rm -rf /var/tmp
+            mkdir -p /var/tmp
+            
+            """
+            self.cuisine.core.run_script(C)
+
         elif self.cuisine.core.isArch:
             cmd="pacman -Sc"
             if agressive:
@@ -202,8 +244,20 @@ class CuisinePackage:
             self.cuisine.core.run(cmd)
             if agressive:
                 self.cuisine.core.run("pacman -Qdttq",showout=False)
+
         elif self.cuisine.core.isMac:
-            pass
+            if package:
+                self.cuisine.core.run("brew cleanup %s" % package)
+                self.cuisine.core.run("brew remove %s" % package)
+            else:
+                self.cuisine.core.run("brew cleanup")
+
+        elif self.cuisine.core.isCygwin:
+            if package:
+                self.cuisine.core.run("apt-cyg remove %s" % package)
+            else:
+                pass
+
         else:
             raise j.exceptions.RuntimeError("could not package clean:%s, platform not supported"%package)
 
@@ -215,6 +269,8 @@ class CuisinePackage:
                 self._apt_get("autoclean")
         elif self.isMac:
             self.cuisine.core.run("pacman -Rs %s"%package)
+
+
 
     def __repr__(self):
         return "cuisine.package:%s:%s"%(self.executor.addr,self.executor.port)

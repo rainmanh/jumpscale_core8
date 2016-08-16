@@ -1,7 +1,5 @@
 import re
 
-
-
 from JumpScale import j
 import mount
 import lsblk
@@ -39,6 +37,7 @@ class BlkInfo:
         self.name = name
         self.type = type
         self.size = int(size)
+        self.hrd=None
 
     def __str__(self):
         return '%s %s' % (self.name, self.size)
@@ -46,53 +45,177 @@ class BlkInfo:
     def __repr__(self):
         return str(self)
 
+    def mount(self):
+        """
+        Mount partition to `mountpath` defined in HRD
+        """
+        if self.invalid:
+            raise PartitionError('Partition is invalid')
+
+        if self.hrd is None:
+            raise PartitionError('No HRD attached to disk')
+
+        path = self.hrd.get('mountpath')
+        mnt = mount.Mount(self.name, path)
+        mnt.mount()
+        self.refresh()
+
+    def umount(self):
+        """
+        Unmount partition
+        """
+        if self.invalid:
+            raise PartitionError('Partition is invalid')
+
+        if self.hrd is None:
+            raise PartitionError('No HRD attached to disk')
+
+        path = self.hrd.get('mountpath')
+        mnt = mount.Mount(self.name, path)
+        mnt.umount()
+        self.refresh()
+
+    def unsetAutoMount(self):
+        """
+        remote partition from fstab
+        """
+        fstabpath = j.tools.path.get('/etc/fstab')
+        fstab = fstabpath.text().splitlines()
+        dirty = False
+
+        for i in range(len(fstab) - 1, -1, -1):
+            line = fstab[i]
+            if line.startswith('UUID=%s' % self.uuid):
+                del fstab[i]
+                dirty = True
+
+        if not dirty:
+            return
+
+        fstabpath.write_text('\n'.join(fstab))
+        fstabpath.chmod(644)
+
+    def setAutoMount(self, options='defaults', _dump=0, _pass=0):
+        """
+        Configure partition auto mount `fstab` on `mountpath` defined in HRD
+        """
+
+        if self.hrd==None:
+            path= self.mountpoint
+            if path=="":
+                raise RuntimeError("path cannot be empty")
+            path = j.tools.path.get(path)
+        else:
+            path = j.tools.path.get(self.hrd.get('mountpath'))
+        path.makedirs_p()
+
+        fstabpath = j.tools.path.get('/etc/fstab')
+        fstab = fstabpath.text().splitlines()        
+
+        for i in range(len(fstab) - 1, -1, -1):
+            line = fstab[i]
+            if line.startswith('UUID=%s' % self.uuid):
+                del fstab[i]
+                dirty = True
+                break
+
+        if path is None:
+            return
+
+        entry = ('UUID={uuid}\t{path}\t{fstype}' +
+                 '\t{options}\t{_dump}\t{_pass}\n').format(
+            uuid=self.uuid,
+            path=path,
+            fstype=self.fstype,
+            options=options,
+            _dump=_dump,
+            _pass=_pass
+        )
+
+        fstab.append(entry)
+
+        fstabpath.write_text('\n'.join(fstab)),
+        fstabpath.chmod(644)
+
+    def _validateHRD(self, hrd):
+        for field in ['filesystem', 'mountpath', 'protected', 'type']:
+            if not hrd.exists(field):
+                raise PartitionError(
+                    'Invalid hrd, missing mandatory field "%s"' % field
+                )
+            if field in _hrd_validators:
+                validator = _hrd_validators[field]
+                value = hrd.get(field)
+                if not validator(value):
+                    raise PartitionError('Invalid valud for %s: %s' % (
+                        field, value
+                    ))
+
 
 class DiskInfo(BlkInfo):
     """
     Represents a disk
     """
-    def __init__(self,  name, size):
+    def __init__(self,  name, size,mountpoint="",fstype="",uuid=""):
         super(DiskInfo, self).__init__(name, 'disk', size)
+        self.mountpoint=mountpoint
+        self.fstype=fstype
+        self.uuid=uuid
         self.partitions = list()
         self._executor = j.tools.executor.getLocal()
+        # self.mirrors=[]
+        self.mirror_devices=[]
+        if self.fstype=="btrfs":
+            devsfound=[]
+            out=j.sal.process.execute("btrfs filesystem show %s"%self.name)[1]
+            for line in out.split("\n"):
+                line=line.strip()
+                if line.startswith("devid "):
+                    dev=line.split("/dev/")[-1]
+                    dev=dev.strip(" /")
+                    devsfound.append(dev)
+            if len(devsfound)>1:
+                #found mirror
+                self.mirror_devices=["/dev/%s"%item for item in devsfound if "/dev/%s"%item!=name]
 
-    def _getpart(self):
-        rc, ptable = self._executor.execute(
-            'parted -sm {name} unit B print'.format(name=self.name)
-        )
-        read_disk_next = False
-        disk = {}
-        partitions = []
-        for line in ptable.splitlines():
-            line = line.strip()
-            if line == 'BYT;':
-                read_disk_next = True
-                continue
 
-            parts = line.split(':')
-            if read_disk_next:
-                # /dev/sdb:8589934592B:scsi:512:512:gpt:ATA VBOX HARDDISK;
-                size = int(parts[1][:-1])
-                table = parts[5]
+    # def _getpart(self):
+    #     rc, ptable = self._executor.execute(
+    #         'parted -sm {name} unit B print'.format(name=self.name)
+    #     )
+    #     read_disk_next = False
+    #     disk = {}
+    #     partitions = []
+    #     for line in ptable.splitlines():
+    #         line = line.strip()
+    #         if line == 'BYT;':
+    #             read_disk_next = True
+    #             continue
 
-                disk.update(
-                    size=size,
-                    table=table,
-                )
-                read_disk_next = False
-                continue
+    #         parts = line.split(':')
+    #         if read_disk_next:
+    #             # /dev/sdb:8589934592B:scsi:512:512:gpt:ATA VBOX HARDDISK;
+    #             size = int(parts[1][:-1])
+    #             table = parts[5]
 
-            # 1:1048576B:2097151B:1048576B:btrfs:primary:;
-            partition = {
-                'number': int(parts[0]),
-                'start': int(parts[1][:-1]),
-                'end': int(parts[2][:-1]),
-            }
+    #             disk.update(
+    #                 size=size,
+    #                 table=table,
+    #             )
+    #             read_disk_next = False
+    #             continue
 
-            partitions.append(partition)
+    #         # 1:1048576B:2097151B:1048576B:btrfs:primary:;
+    #         partition = {
+    #             'number': int(parts[0]),
+    #             'start': int(parts[1][:-1]),
+    #             'end': int(parts[2][:-1]),
+    #         }
 
-        disk['partitions'] = partitions
-        return disk
+    #         partitions.append(partition)
+
+    #     disk['partitions'] = partitions
+    #     return disk
 
     def _findFreeSpot(self, parts, size):
         if size > parts['size']:
@@ -108,19 +231,7 @@ class DiskInfo(BlkInfo):
 
         return start, start + size
 
-    def _validateHRD(self, hrd):
-        for field in ['filesystem', 'mountpath', 'protected', 'type']:
-            if not hrd.exists(field):
-                raise PartitionError(
-                    'Invalid hrd, missing mandatory field "%s"' % field
-                )
-            if field in _hrd_validators:
-                validator = _hrd_validators[field]
-                value = hrd.get(field)
-                if not validator(value):
-                    raise PartitionError('Invalid valud for %s: %s' % (
-                        field, value
-                    ))
+
 
     def format(self, size, hrd):
         """
@@ -169,7 +280,8 @@ class DiskInfo(BlkInfo):
             size=size,
             uuid='',
             fstype='',
-            mount=''
+            mount='',
+            device=self
         )
 
         partition.hrd = hrd
@@ -202,15 +314,18 @@ class DiskInfo(BlkInfo):
                 partition.delete()
 
 
+
 class PartitionInfo(BlkInfo):
-    def __init__(self,  name, size, uuid, fstype, mount):
+    def __init__(self,  name, size, uuid, fstype, mount,device):
         super(PartitionInfo, self).__init__(name, 'part', size)
         self.uuid = uuid
         self.fstype = fstype
         self.mountpoint = mount
         self.hrd = None
-
+        self.device=device        
         self._invalid = False
+
+        self.mount=device.mount
 
     @property
     def invalid(self):
@@ -311,93 +426,4 @@ class PartitionInfo(BlkInfo):
 
         self._invalid = True
 
-    def mount(self):
-        """
-        Mount partition to `mountpath` defined in HRD
-        """
-        if self.invalid:
-            raise PartitionError('Partition is invalid')
 
-        if self.hrd is None:
-            raise PartitionError('No HRD attached to disk')
-
-        path = self.hrd.get('mountpath')
-        mnt = mount.Mount(self.name, path)
-        mnt.mount()
-        self.refresh()
-
-    def umount(self):
-        """
-        Unmount partition
-        """
-        if self.invalid:
-            raise PartitionError('Partition is invalid')
-
-        if self.hrd is None:
-            raise PartitionError('No HRD attached to disk')
-
-        path = self.hrd.get('mountpath')
-        mnt = mount.Mount(self.name, path)
-        mnt.umount()
-        self.refresh()
-
-    def unsetAutoMount(self):
-        """
-        remote partition from fstab
-        """
-        fstabpath = j.tools.path.get('/etc/fstab')
-        fstab = fstabpath.text().splitlines()
-        dirty = False
-
-        for i in range(len(fstab) - 1, -1, -1):
-            line = fstab[i]
-            if line.startswith('UUID=%s' % self.uuid):
-                del fstab[i]
-                dirty = True
-
-        if not dirty:
-            return
-
-        fstabpath.write_text('\n'.join(fstab))
-        fstabpath.chmod(644)
-
-    def setAutoMount(self, options='defaults', _dump=0, _pass=0):
-        """
-        Configure partition auto mount `fstab` on `mountpath` defined in HRD
-        """
-        path = j.tools.path.get(self.hrd.get('mountpath'))
-        path.makedirs_p()
-
-        fstabpath = j.tools.path.get('/etc/fstab')
-        fstab = fstabpath.text().splitlines()
-        dirty = False
-
-        try:
-            for i in range(len(fstab) - 1, -1, -1):
-                line = fstab[i]
-                if line.startswith('UUID=%s' % self.uuid):
-                    del fstab[i]
-                    dirty = True
-                    break
-
-            if path is None:
-                return
-
-            entry = ('UUID={uuid}\t{path}\t{fstype}' +
-                     '\t{options}\t{_dump}\t{_pass}').format(
-                uuid=self.uuid,
-                path=path,
-                fstype=self.fstype,
-                options=options,
-                _dump=_dump,
-                _pass=_pass
-            )
-
-            fstab.append(entry)
-            dirty = True
-        finally:
-            if not dirty:
-                return
-
-            fstabpath.write_text('\n'.join(fstab)),
-            fstabpath.chmod(644)

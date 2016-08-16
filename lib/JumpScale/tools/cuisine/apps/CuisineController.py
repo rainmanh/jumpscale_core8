@@ -14,15 +14,15 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.controller"
 
-
-class Controller:
+base=j.tools.cuisine.getBaseClass()
+class Controller(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
         self.cuisine = cuisine
 
     @actionrun(action=True)
-    def build(self, start=True):
+    def build(self, start=True, listen_addr=[]):
         """
         config: https://github.com/g8os/controller.git
         """
@@ -41,6 +41,7 @@ class Controller:
 
         #get repo
         url = "github.com/g8os/controller"
+        self.cuisine.golang.clean_src_path()
         self.cuisine.golang.godep(url)
 
         sourcepath = "$goDir/src/github.com/g8os/controller"
@@ -52,26 +53,34 @@ class Controller:
         self.cuisine.core.file_move("%s/controller" % sourcepath, "$binDir/controller")
 
 
-
         #file copy
         self.cuisine.core.dir_remove("$tmplsDir/cfg/controller/extensions")
         self.cuisine.core.file_copy("%s/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale" % self.cuisine.core.dir_paths["codeDir"], "$tmplsDir/cfg/controller/jumpscripts/", recursive=True)
         self.cuisine.core.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/controller/extensions", recursive=True)
+        self.cuisine.core.file_copy("%s/agentcontroller.toml" % sourcepath, '$tmplsDir/cfg/controller/agentcontroller.toml')
 
         if start:
-            self.start()
+            self.start(listen_addr=listen_addr)
 
-    def start(self):
+    @actionrun(force=True)
+    def start(self, listen_addr=[]):
+        """
+        @param listen_addr list of addresse on which the REST API of the controller should listen to
+        e.g: [':80', '127.0.0.1:888']
+        """
         import hashlib
         from xml.etree import ElementTree
 
         self.cuisine.core.dir_ensure("$cfgDir/controller/")
-        self.cuisine.core.file_copy("$tmplsDir/cfg/controller", "$cfgDir/", recursive=True)
+        self.cuisine.core.file_copy("$tmplsDir/cfg/controller", "$cfgDir/", recursive=True, overwrite=True)
 
         # edit config
-        sourcepath = "$goDir/src/github.com/g8os/controller"
-        C = self.cuisine.core.file_read("%s/agentcontroller.toml" % sourcepath)
+        C = self.cuisine.core.file_read('$cfgDir/controller/agentcontroller.toml')
         cfg = j.data.serializer.toml.loads(C)
+
+        listen = cfg['listen']
+        for addr in listen_addr:
+            listen.append({'address': addr})
 
         cfgDir = self.cuisine.core.dir_paths['cfgDir']
         cfg["events"]["python_path"] = self.cuisine.core.joinpaths(cfgDir, "/controller/extensions:/opt/jumpscale8/lib")

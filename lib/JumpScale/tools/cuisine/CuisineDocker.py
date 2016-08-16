@@ -14,11 +14,16 @@ class actionrun(ActionDecorator):
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.docker"
 
 
-class CuisineDocker:
+base=j.tools.cuisine.getBaseClass()
+class CuisineDocker(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
         self.cuisine = cuisine
+
+
+    def machine_create(self):
+        pass
 
     @actionrun(action=True,force=False)
     def install(self):
@@ -30,7 +35,7 @@ class CuisineDocker:
                 self.cuisine.core.run_script(C)
             if not self.cuisine.core.command_check('docker-compose'):
                 C = """
-                curl -L https://github.com/docker/compose/releases/download/1.6.2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+                curl -L https://github.com/docker/compose/releases/download/1.8.0-rc1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
                 chmod +x /usr/local/bin/docker-compose
                 """
                 self.cuisine.core.run_script(C)
@@ -38,6 +43,7 @@ class CuisineDocker:
             self.cuisine.package.install("docker")
             self.cuisine.package.install("docker-compose")
 
+    @actionrun()
     def archBuild(self):  # @todo (*2*)
         C = """
         FROM base/archlinux:latest
@@ -93,12 +99,12 @@ class CuisineDocker:
     def ubuntuBuild(self, push=False):
 
         dest = self.cuisine.git.pullRepo('https://github.com/Jumpscale/dockers.git', ssh=False)
-        path = self.cuisine.core.joinpaths(dest, 'js8/x86_64/2_ubuntu1510')
+        path = self.cuisine.core.joinpaths(dest, 'js8/x86_64/2_ubuntu1604')
 
         C = """
         set -ex
         cd %s
-        docker build -t jumpscale/ubuntu1510 --no-cache .
+        docker build -t jumpscale/ubuntu1604 --no-cache .
         """ % path
         self.cuisine.core.run_script(C)
 
@@ -106,10 +112,11 @@ class CuisineDocker:
             C = """
             set -ex
             cd %s
-            docker push jumpscale/ubuntu1510
+            docker push jumpscale/ubuntu1604
             """ % path
             self.cuisine.core.run_script(C)
 
+    @actionrun()
     def enableSSH(self, conn_str):
         c2 = j.tools.cuisine.get(conn_str)
         # change passwd
@@ -121,10 +128,10 @@ class CuisineDocker:
         return conn_str
 
     @actionrun(action=True, force=True)
-    def ubuntu(self, name="ubuntu1", image='jumpscale/ubuntu1510', ports=None, volumes=None, pubkey=None, aydofs=False):
+    def ubuntu(self, name="ubuntu1", image='jumpscale/ubuntu1604', ports=None, volumes=None, pubkey=None, aydofs=False):
         """
         will return connection string which can be used for getting a cuisine connection as follows:
-            j.cuisine.get(connstr)
+            j.tools.cuisine.get(connstr)
         @param ports e.g. 2022,2023
         @param volumes e.g. format: "/var/insidemachine:/var/inhost # /var/1:/var/1
         @param ports e.g. format "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
@@ -141,7 +148,7 @@ class CuisineDocker:
             cmd += " --aysfs"
         self.cuisine.core.run(cmd, profile=True)
         cmd = "jsdocker list --name {name} --parsable".format(name=name)
-        out = self.cuisine.core.run(cmd, profile=True)
+        _, out, _ = self.cuisine.core.run(cmd, profile=True)
         info = j.data.serializer.json.loads(out)
 
         port = info[0]["port"]
@@ -150,15 +157,7 @@ class CuisineDocker:
             return "%s:%s" % (host, port)
         else:
             return "%s:%s" % (self.executor.addr, port)
-
-    @actionrun(action=True)
-    def ubuntuSystemd(self, name="ubuntu1"):
-        """
-        start ubuntu 15.10 which is using systemd  #@todo (*2*)
-        will have to do same tricks as with arch below
-        """
-        pass
-
+ 
     @actionrun(action=True)
     def archSystemd(self, name="arch1"):
         """

@@ -7,7 +7,7 @@ class ActionsMgmt(ActionsBaseMgmt):
     """
     implement methods of this class to change behavior of lifecycle management of service for mgmt class which runs locally
     """
-    
+
     # def prepare(self,serviceObj):
     #     """
     #     this gets executed before the files are downloaded & installed on approprate spots
@@ -47,7 +47,7 @@ class ActionsMgmt(ActionsBaseMgmt):
     #     """
     #     do checks to see if process(es) is (are) running.
     #     this happens on system where process is
-    #     """      
+    #     """
     #     return True
 
     # def check_down(self,serviceObj,wait=True)):
@@ -55,8 +55,8 @@ class ActionsMgmt(ActionsBaseMgmt):
     #     do checks to see if process(es) are all down
     #     this happens on system where process is
     #     return True when down
-    #     """        
-    #     return True        
+    #     """
+    #     return True
 
     # def check_requirements(self,serviceObj):
     #     """

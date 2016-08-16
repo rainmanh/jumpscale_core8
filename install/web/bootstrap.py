@@ -42,27 +42,8 @@ if not os.path.exists(path):
 
 from importlib import util
 spec=util.spec_from_file_location("InstallTools",path)
+
 InstallTools=spec.loader.load_module()
-# module=importlib.util.module_from_spec(spec)
-
-
-# from IPython import embed
-# embed()
-
-
-# done=""
-# counter=0
-# while done!="OK" and counter<10:
-#     try:
-#         import InstallTools
-#         # from InstallTools import InstallTools
-#         # InstallTools = __import__('InstallTools')
-#         done="OK"
-#     except Exception as e:
-#         print (e)
-#         print ("import again")
-#         counter+=1
-#         time.sleep(1)
 
 do = InstallTools.do
 
@@ -74,12 +55,12 @@ do = InstallTools.do
 #FROM now on there is a do. variable which has many features, please investigate
 
 
-if "DEVELOP" in os.environ:
-    do.installer.prepareUbuntu15Development()
+print("prepare system for jumpscale8")
+do.installer.prepare()
 
 print("install jumpscale8")
 do.installer.installJS()
 
 from JumpScale import j
 
-#j.system....
+#j.sal....

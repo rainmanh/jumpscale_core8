@@ -16,8 +16,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.mongodb"
 
-
-class Mongodb:
+base=j.tools.cuisine.getBaseClass()
+class Mongodb(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -57,11 +57,13 @@ class Mongodb:
 
         self.cuisine.core.dir_ensure('$varDir/data/mongodb')
 
+    @actionrun()
     def build(self, start=True):
         self._build()
         if start:
             self.start("mongod")
-
+    
+    @actionrun(force=True)
     def start(self, name="mongod"):
         which = self.cuisine.core.command_location("mongod")
         self.cuisine.core.dir_ensure('$varDir/data/mongodb')
@@ -170,7 +172,7 @@ class MongoInstance(Startable):
         if self.private_port:
             args += " --port %s"%(self.private_port)
         if self.replica:
-            args += " --replSet %s" % (self.replica) 
+            args += " --replSet %s" % (self.replica)
         if self.configdb:
             args += " --configdb %s" % (self.configdb)
         return '$binDir/' + cmd + args
@@ -185,7 +187,7 @@ class MongoInstance(Startable):
     @Startable.ensure_started
     def execute(self, cmd):
         for i in range(5):
-            rc, out = self.cuisine.core.run("LC_ALL=C $binDir/mongo --port %s --eval '%s'"%(self.private_port ,cmd.replace("\\","\\\\").replace("'","\\'")), die=False)
+            rc, out, err = self.cuisine.core.run("LC_ALL=C $binDir/mongo --port %s --eval '%s'"%(self.private_port ,cmd.replace("\\","\\\\").replace("'","\\'")), die=False)
             if not rc and out.find('errmsg') == -1:
                 print('command executed %s'%(cmd))
                 break

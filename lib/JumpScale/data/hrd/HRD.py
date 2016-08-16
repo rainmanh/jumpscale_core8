@@ -73,7 +73,7 @@ class HRDItem:
             self.data=data
 
         if self.ttype == 'str':
-            if not value.startswith("'"):
+            if not value.startswith("'") and not value.startswith('"') :
                 self.value = "'%s'" % value
         if comments!="":
             self.comments=comments
@@ -121,6 +121,7 @@ class HRDItem:
         data=copy.copy(self.data)
         # print "process:%s |%s|"%(self,data)
         #check if link to other value $(...)
+        data = data or ''
         if data.find("$(")!=-1:
             items=j.tools.code.regex.findAll(r"\$\([\w.]*\)",data)
             if len(items)>0:
@@ -138,7 +139,6 @@ class HRDItem:
                         replacewith = j.data.text.pythonObjToStr(self.hrd.get("%s.%s" % (self.hrd.name,item2)), multiline=False, partial=partial)
                         data=data.replace(item,replacewith)
                         # data=data.replace("//","/")
-
         data=j.data.text._dealWithList(data)
 
         if data.find("@ASK")!=-1 and ask:
@@ -180,7 +180,7 @@ class HRDItem:
                 for item in self.value.split(","):
                     if item.strip()=="":
                         continue
-                    currentobj.append(j.data.text.machinetext2val(item.strip()))
+                    currentobj.append(j.data.text.machinetext2val(item.strip()).strip('"').strip("'"))
                 self.value=currentobj
 
         elif self.ttype=="binary":
@@ -228,8 +228,9 @@ class HRD(HRDBase):
             self.read()
 
     def set(self,key,value="",persistent=True,comments="",temp=False,ttype=None,data=""):
-        """
-        """
+        if ttype == "str":
+            if not value.startswith("'") and not value.startswith('"'):
+                value="'%s'"%value
         # if key=="milestone.category" and value!="":
         #     print(value)
         #     from pudb import set_trace; set_trace() 
@@ -237,7 +238,7 @@ class HRD(HRDBase):
         # print "set:%s %s |%s|"%(key,value,data)
         if self.prefixWithName:
             if self.name=="":
-                raise j.exceptions.RuntimeError("name cannot be empoty when prefixWithName used.")
+                raise j.exceptions.RuntimeError("name cannot be empty when prefixWithName used.")
             key = key.replace('%s.' % self.name, '')
         if key not in self.items:
             self.items[key]=HRDItem(name=key,hrd=self,ttype=ttype,data=value,comments="")
@@ -325,6 +326,7 @@ class HRD(HRDBase):
 
     def _recognizeType(self,content):
         content=j.data.text.replaceQuotes(content,"something")
+        content = content.strip(" ")
         if content.lower().find("@ask")!=-1:
             return "ask"
         elif content.startswith(('"', "'")):

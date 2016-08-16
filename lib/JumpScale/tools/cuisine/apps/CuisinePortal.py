@@ -8,8 +8,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.portal"
 
-
-class CuisinePortal:
+base=j.tools.cuisine.getBaseClass()
+class CuisinePortal(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
@@ -25,18 +25,21 @@ class CuisinePortal:
         To add spaces and actors, please use addSpace and addActor
         """
         self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        if not self.cuisine.core.isMac:
-            if not self.cuisine.installer.jumpscale_installed():
-                self.cuisine.installerdevelop.jumpscale8()
-            self.cuisine.pip.upgrade("pip")
+        # if not self.cuisine.core.isMac:
+        if not self.cuisine.installer.jumpscale_installed():
+            self.cuisine.installerdevelop.jumpscale8()
+        self.cuisine.pip.upgrade("pip")
         self.installDeps()
         self.getcode()
         self.linkCode()
         self.serviceconnect(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip,
                             influxport=influxport, grafanaip=grafanaip, grafanaport=grafanaport)
 
-    def install(self, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
-        self._install(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip, influxport=influxport, grafanaip=grafanaip, grafanaport=grafanaport, login=login, passwd=passwd)
+    @actionrun()
+    def install(self, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, \
+            grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
+        self._install(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip, influxport=influxport, \
+            grafanaip=grafanaip, grafanaport=grafanaport, login=login, passwd=passwd)
         if start:
             self.start()
 
@@ -65,9 +68,6 @@ class CuisinePortal:
         # docker-py
         # dominate
         # ecdsa
-        eve
-        eve_docs
-        eve-mongoengine
         # Events
         # Flask
         # Flask-Bootstrap
@@ -133,7 +133,6 @@ class CuisinePortal:
         # zmq
         """
         self.cuisine.pip.multiInstall(deps)
-        self.changeEve()
 
     @actionrun(action=True)
     def getcode(self):
@@ -142,14 +141,14 @@ class CuisinePortal:
     @actionrun(action=True)
     def linkCode(self):
         self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        destjslib = self.cuisine.core.run("js 'print(j.do.getPythonLibSystem(jumpscale=True))'", showout=False)
+        _, destjslib, _ = self.cuisine.core.run("js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'", showout=False)
 
         self.cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self.cuisine.core.dir_paths[
                                     "codeDir"], "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
         self.cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" %
                                     self.cuisine.core.dir_paths["codeDir"], "%s/portal" % self.cuisine.core.dir_paths['jsLibDir'])
 
-        self.cuisine.core.run("js 'j.application.reload()'", showout=False, die=False)
+        self.cuisine.core.run("js --quiet 'j.application.reload()'", showout=False, die=False)
 
         if not self.portal_dir.endswith("/"):
             self.portal_dir += '/'
@@ -208,15 +207,6 @@ class CuisinePortal:
         self.cuisine.core.file_write(dest_cfg, str(hrd))
         j.sal.fs.remove(tmp)
 
-    @actionrun(action=True)
-    def changeEve(self):
-        path = self.cuisine.core.run("js 'print(j)'")  # hack, make sure jumpscale has loaded lib before trying to print something
-        path = self.cuisine.core.run("js 'print(j.do.getPythonLibSystem(jumpscale=False))'")
-        path = j.sal.fs.joinPaths(path, "eve_docs", "config.py")
-        if not self.cuisine.core.file_exists(path):
-            raise j.exceptions.RuntimeError("Cannot find:%s, to convert to python 3" % path)
-        self.cuisine.core.run("2to3-3.5 -f all -w %s" % path)
-
     @actionrun(action=True, force=True)
     def start(self, passwd=None):
         """
@@ -245,15 +235,16 @@ class CuisinePortal:
     def stop(self):
         self.cuisine.processmanager.stop('portal')
 
+    @actionrun()
     def set_admin_password(self, passwd):
         # wait for the admin user to be created by portal
         timeout = 60
         start = time.time()
-        resp = self.cuisine.core.run('jsuser list', showout=False, force=True)
+        resp = self.cuisine.core.run('jsuser list', showout=False, force=True)[1]
         while resp.find('admin') == -1 and start + timeout > time.time():
             try:
                 time.sleep(2)
-                resp = self.cuisine.core.run('jsuser list', showout=False, force=True)
+                resp = self.cuisine.core.run('jsuser list', showout=False, force=True)[1]
             except:
                 continue
 

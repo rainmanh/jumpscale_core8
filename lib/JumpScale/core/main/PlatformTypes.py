@@ -33,15 +33,18 @@ class PlatformTypes:
         self._platformParents["ubuntu32"]=["ubuntu","linux32"]
         self._platformParents["mint64"]=["mint","ubuntu64"]
         self._platformParents["mint32"]=["mint","ubuntu32"]
-        self._platformParents["cygwin"]=["linux32"]
         self._platformParents["win"]=["generic"]
         self._platformParents["win32"]=["win"]
         self._platformParents["win64"]=["win"]
         self._platformParents["win7"]=["win"]
         self._platformParents["win8"]=["win"]
         self._platformParents["vista"]=["win"]
+        self._platformParents["cygwin32"] = ["cygwin"]
+        self._platformParents["cygwin64"] = ["cygwin"]
         self._platformParents["win2008_64"]=["win64"]
         self._platformParents["win2012_64"]=["win64"]
+        self._platformParents["cygwin_nt-10.064"] = ["win64", "cygwin64"]
+        self._platformParents["cygwin_nt-10.032"] = ["win32", "cygwin32"]
         self._platformParents["arch"]=["linux"]
         self._platformParents["arch32"]=["arch","linux32"]
         self._platformParents["arch64"]=["arch","linux64"]
@@ -82,72 +85,75 @@ class PlatformType:
 
     def __init__(self,name="",executor=None):
         self.myplatform=name
-        self._platformtypes={}
-        self._uname=""
-        self._is64bit=None
-        self._osversion=""
-        self._hostname=""
-        self._osname=""
+        # self._platformtypes={}
+        # self._uname=""
+        # self._is64bit=None
+        # self._osversion=""
+        # self._hostname=""
+        # self._osname=""
         if executor==None:
             self.executor=j.tools.executor.getLocal()
         else:
             self.executor=executor
+        self.cache=j.data.cache.get(self.executor.id,"platformtype",keepInMem=False,reset=False)
+
         if name=="":
             self._getPlatform()
 
     @property
     def platformtypes(self):
-        if self._platformtypes=={}:
-            self._platformtypes=j.core.platformtype.getParents(self.myplatform)
-            self._platformtypes=[item for item in self._platformtypes if item!=""]
-        return self._platformtypes
+        def get():
+            platformtypes=j.core.platformtype.getParents(self.myplatform)
+            platformtypes=[item for item in platformtypes if item!=""]
+            return platformtypes
+        return self.cache.get("platformtypes",get)
 
     @property
     def uname(self):
-        if self._uname=="":
-            rc,self._uname=self.executor.execute("uname -mnprs",showout=False)
-            self._uname=self._uname.strip()
-            self._osname0,self._hostname0,self._version,self._cpu,self._platform=self.uname.split(" ")
+        def get():
+            rc, self._uname, err = self.executor.execute("uname -mnprs",showout=False)
+            self._uname = self._uname.strip()
+            if self._uname.find("warning: setlocale") != -1:
+                j.application._fixlocale = True
+                os.environ["LC_ALL"] = 'C.UTF-8'
+                os.environ["TERMINFO"] = 'xterm-256colors'
+            _uname = self._uname.split("\n")[0]
+            return _uname            
+        self._uname=self.cache.get("uname",get)                        
+        self._osname0, self._hostname0, self._version, self._cpu, self._platform = self._uname.split(" ")
         return self._uname
 
     @property
     def hostname(self):
-        if self._hostname=="":
-            self.uname
-            self._hostname=self._hostname0.split(".")[0]
-        return self._hostname
+        self.uname
+        return self._hostname0.split(".")[0]
 
     @property
     def is64bit(self):
-        if self._is64bit==None:
-            self.uname
-            self._is64bit="64" in self._cpu
+        self.uname
+        self._is64bit="64" in self._cpu
         return self._is64bit
 
     @property
     def is32bit(self):
-        if self._is64bit==None:
-            self.uname
-            self._is64bit="32" in self._cpu
+        self.uname
+        self._is64bit="32" in self._cpu
         return self._is64bit
 
     @property
     def osversion(self):
-        if self._osversion=="":
-            self.osname #will populate the version
-            if self._osversion=="":
-                raise j.exceptions.RuntimeError("could not define osversion")
-        return self._osversion
+        self.osname #will populate the version
+        return self.cache.get("osversion")
 
     @property
     def osname(self):
-        if self._osname == "":
-            self._osversion=""
+        def get():
             self.uname
             self._osname = self._osname0.lower()
-            if self._osname not in ["darwin"]:
+            self._osversion = "unknown"
+            if self._osname not in ["darwin"] and not self._osname.startswith("cygwin"):
 
-                rc, lsbcontent = self.executor.cuisine.core.run("cat /etc/lsb-release", replaceArgs=False, action=False, showout=False, die=False)
+                rc, lsbcontent, err = self.executor.cuisine.core.run("cat /etc/lsb-release", replaceArgs=False, action=False, showout=False, die=False)
                 if rc == 0:
                     import re
                     try:
@@ -158,16 +164,18 @@ class PlatformType:
                 else:
                     pkgman2dist = {'pacman':'arch', 'apt-get': 'ubuntu', 'yum':'fedora'}
                     for pkgman, dist in pkgman2dist.items():
-                        rc, _ = self.executor.cuisine.core.run("which %s" % pkgman, showout=False, replaceArgs=False, die=False,
+                        rc, _, err = self.executor.cuisine.core.run("which %s" % pkgman, showout=False, replaceArgs=False, die=False,
                                                                action=False)
                         if rc == 0:
                             self._osname = pkgman2dist[pkgman]
-                            self._osversion = "unknown"
+                            
                             break
                     else:
                         raise j.exceptions.RuntimeError("Couldn't define os version.")
+            self.cache.set("osversion",self._osversion)
+            return self._osname
 
-        return self._osname
+        return self.cache.get("osname",get)
 
     def checkMatch(self,match):
         """
@@ -215,7 +223,7 @@ class PlatformType:
 
     def isXen(self):
         '''Checks whether Xen support is enabled'''
-        return j.sal.process.checkProcess('xen') == 0
+        return j.sal.process.checkProcessRunning('xen') == 0
 
     def isVirtualBox(self):
         '''Check whether the system supports VirtualBox'''

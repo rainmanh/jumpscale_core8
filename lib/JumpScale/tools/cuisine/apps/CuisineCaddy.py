@@ -16,19 +16,19 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.caddy"
 
-
-class Caddy:
+base=j.tools.cuisine.getBaseClass()
+class Caddy(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
         self.cuisine = cuisine
 
     @actionrun(action=True)
-    def build(self, ssl=False, start=True, dns=None):
-        self.cuisine.golang.install()
-        self.cuisine.golang.get("github.com/mholt/caddy", action=True)
-        self.cuisine.core.file_copy(self.cuisine.core.joinpaths('$goDir', 'bin', 'caddy'), '$binDir')
-        self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
+    def install(self, ssl=False, start=True, dns=None):
+        self.cuisine.core.file_download('https://github.com/mholt/caddy/releases/download/v0.8.2/caddy_linux_amd64.tar.gz', '$tmpDir/caddy_linux_amd64.tar.gz')
+        self.cuisine.core.run('cd $tmpDir; tar xvf $tmpDir/caddy_linux_amd64.tar.gz')
+        self.cuisine.core.file_copy('$tmpDir/caddy', '$binDir')
+        self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"))
 
         if ssl and dns:
             addr = dns
@@ -55,6 +55,7 @@ class Caddy:
         if start:
             self.start(ssl)
 
+    @actionrun(force=True)
     def start(self, ssl):
         cpath = self.cuisine.core.args_replace("$cfgDir/caddy/caddyfile.conf")
         self.cuisine.core.file_copy("$tmplsDir/cfg/caddy", "$cfgDir/caddy", recursive=True)
@@ -68,12 +69,15 @@ class Caddy:
 
 
         self.cuisine.processmanager.stop("caddy")  # will also kill
-        fw = not self.cuisine.core.run("ufw status 2> /dev/null || echo **OK**", die=False, check_is_ok=True )
+
+        fw = not self.cuisine.core.run("ufw status 2> /dev/null", die=False)[0]
+
         if ssl:
+            # Do if not  "ufw status 2> /dev/null" didn't run properly
             if fw:
-                self.cuisine.fw.allowIncoming(443)
-                self.cuisine.fw.allowIncoming(80)
-                self.cuisine.fw.allowIncoming(22)
+                self.cuisine.ufw.allowIncoming(443)
+                self.cuisine.ufw.allowIncoming(80)
+                self.cuisine.ufw.allowIncoming(22)
 
             if self.cuisine.process.tcpport_check(80, "") or self.cuisine.process.tcpport_check(443, ""):
                 raise RuntimeError("port 80 or 443 are occupied, cannot install caddy")
@@ -84,13 +88,14 @@ class Caddy:
 
             PORTS = ":80"
             if fw:
-                self.cuisine.fw.allowIncoming(80)
-                self.cuisine.fw.allowIncoming(22)
+                self.cuisine.ufw.allowIncoming(80)
+                self.cuisine.ufw.allowIncoming(22)
 
         cmd = self.cuisine.bash.cmdGetPath("caddy")
         self.cuisine.processmanager.ensure("caddy", '%s -conf=%s -email=info@greenitglobe.com' % (cmd, cpath))
 
 
+    @actionrun()
     def caddyConfig(self,sectionname,config):
         """
         config format see https://caddyserver.com/docs/caddyfile

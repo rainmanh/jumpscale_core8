@@ -1,9 +1,13 @@
 
 from mongoengine.fields import IntField, StringField, ListField, BooleanField, DictField, EmbeddedDocumentField, FloatField
 from mongoengine import DoesNotExist, EmbeddedDocument, Document
-import crypt
 import hmac
 from JumpScale import j
+
+try:
+    import fcrypt as crypt 
+except ImportError:
+    import crypt
 
 DB = 'jumpscale_system'
 
@@ -436,17 +440,17 @@ class User(ModelBase, Document):
 
     def authenticate(username, passwd):
         for user in User.find({'name': username}):
-            if hmac.compare_digest(user.passwd, crypt.crypt(passwd, user.passwd)):
+            if hmac.compare_digest(user.passwd, j.sal.unix.crypt(passwd, user.passwd)):
                 return True
         return False
 
     def save(user):
         if not user.id:
-            user.passwd = crypt.crypt(user.passwd)
+            user.passwd = j.sal.unix.crypt(user.passwd)
         else:
             olduser = User.get(user.id)
             if olduser.passwd != user.passwd:  # change passwd
-                user.passwd = crypt.crypt(user.passwd)
+                user.passwd = j.sal.unix.crypt(user.passwd)
         super(ModelBase, user).save()
 
 
@@ -456,9 +460,26 @@ class SessionCache(ModelBase, Document):
     kwargs = DictField()
     _creation_time = IntField(default=j.data.time.getTimeEpoch())
     _accessed_time = IntField(default=j.data.time.getTimeEpoch())
+    _expire_at = IntField(default=None)
     guid = StringField()
-    meta = extend(default_meta, {'indexes': [
-        {'fields': ['epoch'], 'expireAfterSeconds': 432000}
-    ], 'allow_inheritance': True, "db_alias": DB})
+    meta = extend(default_meta, {'indexes':
+                                    [{'fields': ['epoch'], 'expireAfterSeconds': 432000}],
+                                 'allow_inheritance': True,
+                                 'db_alias': DB})
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def _save_redis(self, obj):
+        key = self._getKey(obj.guid)
+        indexes = self._meta['indexes']
+        expire = next(iter(indexes), {}).get('expireAfterSeconds', None)
+        raw = j.data.serializer.json.dumps(obj.to_dict())
+        j.core.db.set(key, raw)
+        if self._expire_at:
+            j.core.db.expireat(self._getKey(self.guid), self._expire_at)
+        elif expire:
+            j.core.db.expire(key, expire)
+        return obj
 
 del EmbeddedDocument

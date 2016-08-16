@@ -352,8 +352,6 @@ class Action:
         elif "$" in s:
             s=j.dirs.replaceTxtDirVars(s)
 
-        if "$(" in s:
-            raise RuntimeError("$() should not be there, probably hrd has not been set")
         return s
 
     @property
@@ -443,7 +441,7 @@ class Action:
 
     @args.setter
     def args(self,val):
-        
+
         if val == ():
             self._args = ""
         else:
@@ -467,11 +465,13 @@ class Action:
     def _args1line(self):
         out=""
         for arg in self.args:
-            out+="%s,"%arg
+            if not arg in ["showout","force","replaceArgs"]:
+                out+="%s,"%arg
         out=out.strip(",")
         out+="|"
         for key,arg in self.kwargs.items():
-            out+="%s!%s,"%(key,arg)
+            if not key in ["showout","force","replaceArgs"]:
+                out+="%s!%s,"%(key,arg)
         out=out.strip(",")
         args=out.strip()
         if len(args)>60:
@@ -482,12 +482,14 @@ class Action:
     def _args10line(self):
         out=""
         for arg in self.args:
-            out+="%s,"%arg
+            if not arg in ["showout","force","replaceArgs"]:
+                out+="%s,"%arg
         out=out.strip(",")
         if len(self.kwargs.items())>0:
             out+=" | "
             for key,arg in self.kwargs.items():
-                out+="%s:%s,"%(key,str(arg).strip())
+                if not key in ["showout","force","replaceArgs"]:
+                    out+="%s:%s,"%(key,str(arg).strip())
         out=out.strip()
         out=out.strip(",|")
         out=out.strip()
@@ -537,18 +539,22 @@ class Action:
 
         self.check() #see about changed source code
 
-        # if "$" in self.sourceToExecute:
-        #     raise RuntimeError("$ should not be there")
-
         j.actions.addToStack(self)
 
-        if self.state == "OK" and self.force==False:
+        if "showout" in self.kwargs:
+            if self.kwargs["showout"]==False:
+                self.actionshow=False
+
+        if self.state == "OK" and not self.force:
             if self.actionshow:
-                self.logger.info("  * %-20s: %-80s (ALREADY DONE)" % (self.name, self._args1line))
+                name=self.name+" (REPEAT)"
+                self.logger.info("  * %-20s: %-80s" % (name, self._args1line))
             j.actions.delFromStack(self)
             return
 
-        self.logger.info("  * %-20s: %s" % (self.name, self._args10line))
+        if self.actionshow:
+            args2print=self._args10line
+            self.logger.info("  * %-20s: %-80s" % (self.name, args2print))
 
         if self._stdOutput == False:
             j.tools.console.hideOutput()
@@ -563,8 +569,8 @@ class Action:
             ok=False
             err = ''
 
-            while self.state != "ERROR" and ok==False and counter<self.retry+1:
-                
+            while ok==False and counter<self.retry+1:
+
                 kwargs=self.kwargs
 
                 if self.dynamicArguments !="":
@@ -628,7 +634,7 @@ class Action:
                 self.stdouterr += j.tools.console.getOutput()
 
 
-            if rcode > 0 or self.state=="ERROR":
+            if rcode > 0:
                 if self.die:
                     for action in self.getWhoDependsOnMe():
                         if action.state=="ERRORCHILD":
@@ -663,10 +669,9 @@ class Action:
                 if self.die:
                     # if j.actions.stack==[]:
                     # print("error in action: %s"%self)
-                    self.logger.error("error in action: %s"%self)
-                    sys.exit(1)
+                    # self.logger.error("error in action: %s"%self)
                     # else:
-                    #     raise j.exceptions.RuntimeError("error in action: %s"%self)
+                    raise j.exceptions.RuntimeError("error in action: %s"%self)
             else:
                 self.state = "OK"
 

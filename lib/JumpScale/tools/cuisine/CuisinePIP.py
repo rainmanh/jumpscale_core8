@@ -7,8 +7,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self,*args,**kwargs)
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.pip"
 
-
-class CuisinePIP:
+base=j.tools.cuisine.getBaseClass()
+class CuisinePIP(base):
 
     def __init__(self,executor,cuisine):
         self.executor=executor
@@ -27,7 +27,7 @@ class CuisinePIP:
         self.cuisine.core.set_sudomode()
         self.cuisine.core.run('pip3 install --upgrade %s' % (package))
 
-    @actionrun(action=True,force=False)
+    @actionrun()
     def install(self,package=None,upgrade=False):
         '''
         The "package" argument, defines the name of the package that will be installed.
@@ -36,6 +36,10 @@ class CuisinePIP:
         if self.cuisine.core.isArch:
             if package in ["credis","blosc","psycopg2"]:
                 return
+
+        if self.cuisine.core.isCygwin and package in ["psycopg2", "psutil", "zmq"]:
+            return 
+            
         cmd="pip3 install %s"%package
         if upgrade:
             cmd+=" --upgrade"

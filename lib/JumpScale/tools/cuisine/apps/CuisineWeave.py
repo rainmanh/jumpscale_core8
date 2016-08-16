@@ -16,15 +16,15 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.weave"
 
-
-class Weave:
+base=j.tools.cuisine.getBaseClass()
+class Weave(base):
 
     def __init__(self, executor, cuisine):
         self.executor = executor
         self.cuisine = cuisine
 
     @actionrun(action=True)
-    def build(self, start=True, peer=None, jumpscalePath=True):
+    def install(self, start=True, peer=None, jumpscalePath=True):
         if jumpscalePath:
             binPath = self.cuisine.core.joinpaths(
                 self.cuisine.core.dir_paths['binDir'], 'weave')
@@ -39,19 +39,20 @@ class Weave:
         self.cuisine.docker.install()
         self.cuisine.package.ensure('curl')
         self.cuisine.core.run_script(C, profile=True)
-        self.cuisine.bash.addPath(j.sal.fs.getParent(binPath), action=True)
+        self.cuisine.bash.addPath(j.sal.fs.getParent(binPath))
         if start:
             self.start(peer)
 
+    @actionrun()
     def start(self, peer=None):
-        rc, out = self.cuisine.core.run("weave status", profile=True, die=False, showout=False)
+        rc, out, err = self.cuisine.core.run("weave status", profile=True, die=False, showout=False)
         if rc != 0:
             cmd = 'weave launch'
             if peer:
                 cmd += ' %s' % peer
             self.cuisine.core.run(cmd, profile=True)
 
-        env = self.cuisine.core.run('weave env', profile=True)
+        _, env, _ = self.cuisine.core.run('weave env', profile=True)
         ss = env[len('export'):].strip().split(' ')
         for entry in ss:
             splitted = entry.split('=')

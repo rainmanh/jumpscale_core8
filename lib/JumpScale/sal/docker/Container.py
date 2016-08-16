@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from JumpScale import j
-
+import copy
 
 
 
@@ -10,10 +10,11 @@ class Container:
     def __init__(self, name, id, client, host="localhost"):
 
         self.client = client
+        self.logger = j.logger.get('j.sal.docker.container')
 
-        self.host = host
+        self.host = copy.copy(host)
         self.name = name
-        self.id=id
+        self.id=copy.copy(id)
 
         self._ssh_port = None
 
@@ -30,7 +31,7 @@ class Container:
     @property
     def sshclient(self):
         if self._sshclient is None:
-            self.executor.sshclient.connectTest(timeout=10)
+            self.executor.sshclient.get(addr=self.host, port=self.ssh_port, login='root', passwd="gig1234", timeout=10)
             self._sshclient = self.executor.sshclient
         return self._sshclient
 
@@ -38,7 +39,6 @@ class Container:
     def executor(self):
         if self._executor is None:
             self._executor = j.tools.executor.getSSHBased(addr=self.host, port=self.ssh_port, login='root', passwd="gig1234")
-            self._executor.sshclient.connectTest(timeout=10)
         return self._executor
 
     @property
@@ -47,7 +47,7 @@ class Container:
             self._cuisine = j.tools.cuisine.get(self.executor)
         return self._cuisine
 
-    def run(self, name, cmd):
+    def run(self, cmd):
         cmd2 = "docker exec -i -t %s %s" % (self.name, cmd)
         j.sal.process.executeWithoutPipe(cmd2)
 
@@ -58,28 +58,30 @@ class Container:
         self.copy(path, path)
         self.run("chmod 770 %s;%s" % (path, path))
 
-    def copy(self, src, dest):
-        rndd = j.data.idgenerator.generateRandomInt(10, 1000000)
-        temp = "/var/docker/%s/%s" % (self.name, rndd)
-        j.sal.fs.createDir(temp)
-        source_name = j.sal.fs.getBaseName(src)
-        if j.sal.fs.isDir(src):
-            j.sal.fs.copyDirTree(src, j.sal.fs.joinPaths(temp, source_name))
-        else:
-            j.sal.fs.copyFile(src, j.sal.fs.joinPaths(temp, source_name))
+    # def copy(self, src, dest):
+    #     rndd = j.data.idgenerator.generateRandomInt(10, 1000000)
+    #     temp = "/var/docker/%s/%s" % (self.name, rndd)
+    #     j.sal.fs.createDir(temp)
+    #     source_name = j.sal.fs.getBaseName(src)
+    #     if j.sal.fs.isDir(src):
+    #         j.sal.fs.copyDirTree(src, j.sal.fs.joinPaths(temp, source_name))
+    #     else:
+    #         j.sal.fs.copyFile(src, j.sal.fs.joinPaths(temp, source_name))
 
-        ddir = j.sal.fs.getDirName(dest)
-        cmd = "mkdir -p %s" % (ddir)
-        self.run(name, cmd)
+    #     ddir = j.sal.fs.getDirName(dest)
+    #     cmd = "mkdir -p %s" % (ddir)
+    #     self.run(cmd)
 
-        cmd = "cp -r /var/jumpscale/%s/%s %s" % (rndd, source_name, dest)
-        self.run(self.name, cmd)
-        j.sal.fs.remove(temp)
+    #     cmd = "cp -r /var/jumpscale/%s/%s %s" % (rndd, source_name, dest)
+    #     self.run(cmd)
+    #     j.sal.fs.remove(temp)
 
 
     @property
     def info(self):
-        return self.client.inspect_container(self.id)
+        self.logger.info('read info of container %s:%s' % (self.name, self.id))
+        info = self.client.inspect_container(self.id)
+        return info
 
     def isRunning(self):
         return self.info["State"]["Running"]==True
@@ -87,67 +89,37 @@ class Container:
     def getIp(self):
         return self.info['NetworkSettings']['IPAddress']
 
-    def getProcessList(self, stdout=True):
-        """
-        @return [["$name",$pid,$mem,$parent],....,[$mem,$cpu]]
-        last one is sum of mem & cpu
-        """
-        raise j.exceptions.RuntimeError("not implemented")
-        pid = self.getPid()
-        children = list()
-        children = self._getChildren(pid, children)
-        result = list()
-        pre = ""
-        mem = 0.0
-        cpu = 0.0
-        cpu0 = 0.0
-        prevparent = ""
-        for child in children:
-            if child.parent.name != prevparent:
-                pre += ".."
-                prevparent = child.parent.name
-            # cpu0=child.get_cpu_percent()
-            mem0 = int(round(child.get_memory_info().rss / 1024, 0))
-            mem += mem0
-            cpu += cpu0
-            if stdout:
-                print(("%s%-35s %-5s mem:%-8s" % (pre, child.name, child.pid, mem0)))
-            result.append([child.name, child.pid, mem0, child.parent.name])
-        cpu = children[0].get_cpu_percent()
-        result.append([mem, cpu])
-        if stdout:
-            print(("TOTAL: mem:%-8s cpu:%-8s" % (mem, cpu)))
-        return result
-
-    def installJumpscale(self, branch="master"):
-        raise j.exceptions.RuntimeError("not implemented")
-        # print("Install jumpscale8")
-        # # c = self.getSSH(name)
-        #
-        # c.fabric.state.output["running"] = True
-        # c.fabric.state.output["stdout"] = True
-        # c.fabric.api.env['shell_env'] = {"JSBRANCH": branch, "AYSBRANCH": branch}
-        # c.run("cd /tmp;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh")
-        # c.run("cd /opt/code/github/jumpscale/jumpscale_core8;git remote set-url origin git@github.com:Jumpscale/jumpscale_core8.git")
-        # c.run("cd /opt/code/github/jumpscale/ays_jumpscale8;git remote set-url origin git@github.com:Jumpscale/ays_jumpscale8.git")
-        # c.fabric.state.output["running"] = False
-        # c.fabric.state.output["stdout"] = False
-        #
-        # C = """
-        # Host *
-        #     StrictHostKeyChecking no
-        # """
-        # c.file_write("/root/.ssh/config", C)
-        # if not j.sal.fs.exists(path="/root/.ssh/config"):
-        #     j.sal.fs.writeFile("/root/.ssh/config", C)
-        # C2 = """
-        # apt-get install language-pack-en
-        # # apt-get install make
-        # locale-gen
-        # echo "installation done" > /tmp/ok
-        # """
-        # ssh_port = self.getPubPortForInternalPort(name, 22)
-        # j.do.executeBashScript(content=C2, remote="localhost", sshport=ssh_port)
+    # def getProcessList(self, stdout=True):
+    #     """
+    #     @return [["$name",$pid,$mem,$parent],....,[$mem,$cpu]]
+    #     last one is sum of mem & cpu
+    #     """
+    #     raise j.exceptions.RuntimeError("not implemented")
+    #     pid = self.getPid()
+    #     children = list()
+    #     children = self._getChildren(pid, children)
+    #     result = list()
+    #     pre = ""
+    #     mem = 0.0
+    #     cpu = 0.0
+    #     cpu0 = 0.0
+    #     prevparent = ""
+    #     for child in children:
+    #         if child.parent.name != prevparent:
+    #             pre += ".."
+    #             prevparent = child.parent.name
+    #         # cpu0=child.get_cpu_percent()
+    #         mem0 = int(round(child.get_memory_info().rss / 1024, 0))
+    #         mem += mem0
+    #         cpu += cpu0
+    #         if stdout:
+    #             self.logger.info(("%s%-35s %-5s mem:%-8s" % (pre, child.name, child.pid, mem0)))
+    #         result.append([child.name, child.pid, mem0, child.parent.name])
+    #     cpu = children[0].get_cpu_percent()
+    #     result.append([mem, cpu])
+    #     if stdout:
+    #         self.logger.info(("TOTAL: mem:%-8s cpu:%-8s" % (mem, cpu)))
+    #     return result
 
     def setHostName(self, hostname):
         self.cuisine.core.sudo("echo '%s' > /etc/hostname" % hostname)
@@ -155,37 +127,52 @@ class Container:
 
     def getPubPortForInternalPort(self, port):
 
-        for key,portsDict in self.info["NetworkSettings"]["Ports"].items():
-            if key.startswith(str(port)):
-                # if "PublicPort" not in port2:
-                #     raise j.exceptions.Input("cannot find publicport for ssh?")
-                portsfound=[int(item['HostPort']) for item in portsDict]
-                if len(portsfound)>0:
-                    return portsfound[0]
+        if not self.info["NetworkSettings"]["Ports"]==None:
+            for key,portsDict in self.info["NetworkSettings"]["Ports"].items():
+                if key.startswith(str(port)):
+                    # if "PublicPort" not in port2:
+                    #     raise j.exceptions.Input("cannot find publicport for ssh?")
+                    portsfound=[int(item['HostPort']) for item in portsDict]
+                    if len(portsfound)>0:
+                        return portsfound[0]
+
+        if  self.isRunning()==False:
+            raise j.exceptions.RuntimeError("docker %s is not running cannot get pub port."%self)
+        
 
         raise j.exceptions.Input("cannot find publicport for ssh?")
 
-    def pushSSHKey(self, keyname="", sshpubkey="", local=True):
+    def pushSSHKey(self, keyname="", sshpubkey="", generateSSHKey=True):
         keys = set()
-        if local:
-            dir = j.tools.path.get('/root/.ssh')
-            for file in dir.listdir("*.pub"):
-                keys.add(file.text())
 
-        if sshpubkey and j.data.types.string.check(sshpubkey):
-            keys.add(sshpubkey)
+        home=j.tools.cuisine.local.bash.home
 
-        if keyname is not None and keyname != '':
-            if not j.do.checkSSHAgentAvailable:
+        if sshpubkey!="" and sshpubkey!=None:
+            key=sshpubkey
+        else:
+            if not j.do.checkSSHAgentAvailable():
                 j.do.loadSSHAgent()
 
-            key = j.do.getSSHKeyFromAgentPub(keyname)
-            if key:
-                keys.add(key)
+            if keyname!="":
+                key = j.do.getSSHKeyFromAgentPub(keyname)
+            else:
+                key = j.do.getSSHKeyFromAgentPub("docker_default",die=False)
+                if key==None:
+                    dir = j.tools.path.get('%s/.ssh'%home)
+                    if dir.listdir("docker_default.pub")==[]:
+                        #key does not exist, lets create one
+                        j.tools.cuisine.local.ssh.keygen(name="docker_default")
+                    key=j.sal.fs.readFile(filename="%s/.ssh/docker_default.pub"%home)
+                    #load the key
+                    j.tools.cuisine.local.core.run("ssh-add %s/.ssh/docker_default"%home)
 
-        j.sal.fs.writeFile(filename="/root/.ssh/known_hosts", contents="")
-        for key in keys:
-            self.cuisine.ssh.authorize("root", key)
+        j.sal.fs.writeFile(filename="%s/.ssh/known_hosts"%home, contents="")
+
+        if key==None or key.strip()=="":
+            raise j.exceptions.Input("ssh key cannot be empty (None)")
+
+
+        self.cuisine.ssh.authorize("root", key)
 
         return list(keys)
 
@@ -198,19 +185,20 @@ class Container:
             # stopping any running aysfs linked
             if aysfs.isRunning():
                 aysfs.stop()
-                print("[+] aysfs stopped")
+                self.logger.info("[+] aysfs stopped")
 
     def destroy(self):
         self.cleanAysfs()
 
         try:
-            self.client.kill(self.id)
-        except Exception as e:
-            print ("could not kill:%s"%self.id)
-        try:
+            if self.isRunning():
+                self.client.kill(self.id)
             self.client.remove_container(self.id)
         except Exception as e:
-            print ("could not kill:%s"%self.id)
+            self.logger.error("could not kill:%s" % self.id)
+        finally:
+            if self.id in j.sal.docker._containers:
+                del j.sal.docker._containers[self.id]
 
     def stop(self):
         self.cleanAysfs()
@@ -219,17 +207,26 @@ class Container:
     def restart(self):
         self.client.restart(self.id)
 
-    def commit(self, imagename, msg="", delete=True, force=False):
+    def commit(self, imagename, msg="", delete=True, force=False, push=False,**kwargs):
         """
         imagename: name of the image to commit. e.g: jumpscale/myimage
         delete: bool, delete current image before doing commit
         force: bool, force delete
         """
+        previous_timeout = self.client.timeout
+        self.client.timeout = 3600
+
         if delete:
             res = j.sal.docker.client.images(imagename)
             if len(res) > 0:
                 self.client.remove_image(imagename, force=force)
-        self.client.commit(self.id, imagename, message=msg)
+        self.client.commit(self.id, imagename, message=msg, **kwargs)
+
+        self.client.timeout = previous_timeout
+
+        if push:
+            j.sal.docker.push(imagename)
+
 
     def uploadFile(self, source, dest):
         """

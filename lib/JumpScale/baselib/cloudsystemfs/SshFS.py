@@ -19,7 +19,7 @@ class SshFS:
         """
         Initialize connection
         """
-        self.logger = j.logger.get('j.sal.cloudfs.Cifs')
+        self.logger = j.logger.get('j.sal.cloudfs.SshFS')
         self.is_dir = is_dir
         self.recursive = recursive
         self.end_type = end_type

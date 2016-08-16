@@ -2,13 +2,20 @@
 from JumpScale import j
 import re
 
-class CuisineProcess:
+from ActionDecorator import ActionDecorator
+class actionrun(ActionDecorator):
+    def __init__(self,*args,**kwargs):
+        ActionDecorator.__init__(self,*args,**kwargs)
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.process"
+
+
+base=j.tools.cuisine.getBaseClass()
+class CuisineProcess(base):
 
     def __init__(self,executor,cuisine):
         self.executor=executor
         self.cuisine=cuisine
 
-    
 
     def tcpport_check(self,port,prefix=""):
         res=[]
@@ -41,7 +48,7 @@ class CuisineProcess:
         result=[]
         if "linux" in self.cuisine.platformtype.platformtypes:
             cmdlinux='netstat -lntp'
-            out=self.cuisine.core.run(cmdlinux,showout=False)
+            _, out, _ = self.cuisine.core.run(cmdlinux,showout=False)
             #to troubleshoot https://regex101.com/#python
             p = re.compile(u"tcp *(?P<receive>[0-9]*) *(?P<send>[0-9]*) *(?P<local>[0-9*.]*):(?P<localport>[0-9*]*) *(?P<remote>[0-9.*]*):(?P<remoteport>[0-9*]*) *(?P<state>[A-Z]*) *(?P<pid>[0-9]*)/(?P<process>\w*)")
             for line in out.split("\n"):
@@ -59,7 +66,7 @@ class CuisineProcess:
             # # out=self.cuisine.core.run(cmd)
             # p = re.compile(u"tcp4 *(?P<rec>[0-9]*) *(?P<send>[0-9]*) *(?P<local>[0-9.*]*) *(?P<remote>[0-9.*]*) *LISTEN")
             cmd="lsof -i 4tcp -sTCP:LISTEN -FpcRn"
-            out=self.cuisine.core.run(cmd,showout=False)
+            _, out, _ = self.cuisine.core.run(cmd,showout=False)
             d={}
             for line in out.split("\n"):
                 if line.startswith("p"):
@@ -75,10 +82,10 @@ class CuisineProcess:
                     try:
                         d["localport"]=int(b)
                     except:
-                        d["localport"]=0                        
+                        d["localport"]=0
                     result.append(d)
 
-        else:            
+        else:
             raise j.exceptions.RuntimeError("platform not supported")
 
         for d in result:
@@ -88,18 +95,20 @@ class CuisineProcess:
                 else:
                     d[item]=int(d[item])
 
-        return result 
+        return result
 
 
+    @actionrun(action=True,force=True)
     def info_get(self,prefix=""):
         if prefix=="":
             return self._info_get()
         res=[]
         for item in self._info_get():
             if item["process"].lower().startswith(prefix):
-                res.append(item)        
+                res.append(item)
         return res
 
+    @actionrun(action=True,force=True)
     def find(self,name, exact=False):
         """Returns the pids of processes with the given name. If exact is `False`
         it will return the list of all processes that start with the given
@@ -108,12 +117,15 @@ class CuisineProcess:
         # NOTE: ps -A seems to be the only way to not have the grep appearing
         # as well
         RE_SPACES               = re.compile("[\s\t]+")
-        if is_string: processes = self.cuisine.core.run("ps -A | grep {0} ; true".format(name),replaceArgs=False)
-        else:         processes = self.cuisine.core.run("ps -A",replaceArgs=False)
+
+        cmd = "ps -A | grep {0} ; true".format(name) if is_string else "ps -A"
+        processes = self.cuisine.core.run(cmd, replaceArgs=False)[1]
+
         res = []
         for line in processes.split("\n"):
-            if not line.strip(): continue
-            line = RE_SPACES.split(line,3)
+            if not line.strip():
+                continue
+            line = RE_SPACES.split(line, 3)
             # 3010 pts/1    00:00:07 gunicorn
             # PID  TTY      TIME     CMD
             # 0    1        2        3
@@ -129,6 +141,7 @@ class CuisineProcess:
         return res
 
 
+    @actionrun(action=True,force=True)
     def kill(self,name, signal=9, exact=False):
         """Kills the given processes with the given name. If exact is `False`
         it will return the list of all processes that start with the given

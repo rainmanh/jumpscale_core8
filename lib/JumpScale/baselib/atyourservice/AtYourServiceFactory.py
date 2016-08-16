@@ -1,19 +1,19 @@
 from JumpScale import j
 
-from ServiceRecipe import ServiceRecipe
-from Service import Service, loadmodule
-from ServiceTemplate import ServiceTemplate
+from JumpScale.baselib.atyourservice.ServiceRecipe import ServiceRecipe
+from JumpScale.baselib.atyourservice.Service import Service, loadmodule
+from JumpScale.baselib.atyourservice.ServiceTemplate import ServiceTemplate
 
-from ActionsBaseNode import ActionsBaseNode
-from ActionsBaseMgmt import ActionsBaseMgmt
-from ActionMethodDecorator import ActionMethodDecorator
+from JumpScale.baselib.atyourservice.ActionsBaseNode import ActionsBaseNode
+from JumpScale.baselib.atyourservice.ActionsBaseMgmt import ActionsBaseMgmt
+from JumpScale.baselib.atyourservice.ActionMethodDecorator import ActionMethodDecorator
 
-from AtYourServiceRepo import AtYourServiceRepo
+from JumpScale.baselib.atyourservice.AtYourServiceRepo import AtYourServiceRepo
 
-from AtYourServiceTester import AtYourServiceTester
+from JumpScale.baselib.atyourservice.AtYourServiceTester import AtYourServiceTester
 
 try:
-    from AtYourServiceSandboxer import *
+    from JumpScale.baselib.atyourservice.AtYourServiceSandboxer import *
 except:
     pass
 import os
@@ -21,6 +21,7 @@ import os
 
 import colored_traceback
 colored_traceback.add_hook(always=True)
+
 
 class AtYourServiceFactory:
 
@@ -31,6 +32,7 @@ class AtYourServiceFactory:
 
         self._domains = []
         self._templates = {}
+        self._sandboxer = None
 
         # self.hrd = None
 
@@ -41,41 +43,90 @@ class AtYourServiceFactory:
         # self.sync = AtYourServiceSync()
         # self._reposDone = {}
 
-        self.debug=j.core.db.get("atyourservice.debug")==1
+        self.debug = j.core.db.get("atyourservice.debug") == 1
 
-        self.logger=j.logger.get('j.atyourservice')
+        self.logger = j.logger.get('j.atyourservice')
 
-        self._repos={}
+        self._repos = {}
 
-        self._test=None
+        self._test = None
 
-    def getTester(self,name="main"):
+    def getTester(self, name="fake_IT_env"):
         return AtYourServiceTester(name)
 
-    def get(self,name,path=""):
-        self._doinit()
-        if path=="":
-            path=j.sal.fs.getcwd()
-        if not name in self._repos:
-            self._repos[name]=AtYourServiceRepo(name,path)
-        return self._repos[name]
+    def exist(self, path):
+        """
+        Check if a repo at the given path exist or not, if multiple repos found under that path, an exception is raised
 
+        @param name: name of the repo
+        @type name: str
+
+        @returns:   True if exist, Flase if it doesnt, raises exception if mulitple found with the same name
+        """
+        try:
+            result = self.findAYSRepos(path=path)
+        except j.exceptions.Input:
+            # doesnt exists
+            return False
+
+        if len(result) > 1:
+            msg = "Multiple AYS repos found under %s: \n%s\n" % (path, '\n'.join(result))
+            raise j.exceptions.Input(msg)
+
+        return True
+
+    def get(self, name="", path=""):
+        """
+        Get a repo by name or path, if repo does not exist, it will be created
+
+        @param name: Name of the repo to retrieve
+        @type name: str
+
+        @param path:    Path of the repo
+        @type path:     str
+
+        @return:    @AtYourServiceRepo object
+        """
+        self._doinit()
+        if path:
+            if path not in self._repos:
+                if j.sal.fs.exists(path) and j.sal.fs.isDir(path):
+                    if not name:
+                        name = j.sal.fs.getBaseName(path)
+                    self._repos[path] = AtYourServiceRepo(name, path)
+
+        else:
+            # we want to retrieve  repo by name
+            result = [repo for repo in self._repos.values() if repo.name == name]
+            if not result:
+                path = j.sal.fs.getcwd()
+                if not name:
+                    name = j.sal.fs.getBaseName(path)
+                self._repos[path] = AtYourServiceRepo(name, path)
+            elif len(result) > 1:
+                msg = "Multiple AYS repos with name %s found under locations [%s]. Please use j.atyourservice.get(path=<path>) instead" % \
+                        (name, ','.join([repo.basepath for repo in result]))
+                raise j.exceptions.RuntimeError(msg)
+            else:
+                path = result[0].basepath
+
+        return self._repos[path]
 
     def reset(self):
-        self._repos
+        for repo in self._repos.values():
+            repo._templates = {}
+            repo._services = {}
+        self._repos = {}
+        self._domains = []
+        self._templates = {}
         j.dirs._ays = None
+        self._init = False
 
-    @property
-    def repos(self):
-        for path in j.atyourservice.findAYSRepos():
-            name = j.sal.fs.getBaseName(path)
-            self._repos[name] = AtYourServiceRepo(name, path)
-        return self._repos
 
     @property
     def sandboxer(self):
-        if self._sandboxer==None:
-            self._sandboxer=AtYourServiceSandboxer()
+        if self._sandboxer is None:
+            self._sandboxer = AtYourServiceSandboxer()
         return self._sandboxer
 
     @property
@@ -86,6 +137,7 @@ class AtYourServiceFactory:
     @property
     def templates(self):
         self._doinit()
+
         def load(domain, path):
             for servicepath in j.sal.fs.listDirsInDir(path, recursive=False):
                 dirname = j.sal.fs.getBaseName(servicepath)
@@ -101,8 +153,8 @@ class AtYourServiceFactory:
             if exists:
                 templ = ServiceTemplate(path, domain=domain)
                 if templ.name in self._templates:
-                    raise j.exceptions.Input("Found double template: %s"%template)
-                self._templates[templ.name]=templ
+                    raise j.exceptions.Input("Found double template: %s" % templ.name)
+                self._templates[templ.name] = templ
 
         if not self._templates:
             self._doinit()
@@ -112,8 +164,6 @@ class AtYourServiceFactory:
                 load(domain, domainpath)
 
         return self._templates
-
-
 
     # @property
     # def roletemplates(self):
@@ -143,41 +193,28 @@ class AtYourServiceFactory:
                 self._init = True
                 return
 
-            # j.actions.reset()
-
-            # j.do.debug=True
-
             if j.sal.fs.exists(path="/etc/my_init.d"):
-                self.indocker=True
-
-            # login=j.application.config.get("whoami.git.login").strip()
-            # passwd=j.application.config.getStr("whoami.git.passwd").strip()
+                self.indocker = True
 
             # always load base domaim
-            items=j.application.config.getDictFromPrefix("atyourservice.metadata")
-            repos=j.do.getGitReposListLocal()
+            items = j.application.config.getDictFromPrefix("atyourservice.metadata")
+            repos = j.do.getGitReposListLocal()
 
             for domain in list(items.keys()):
-                url=items[domain]['url']
-                if url.strip()=="":
+                url = items[domain]['url']
+                if url.strip() == "":
                     raise j.exceptions.RuntimeError("url cannot be empty")
-                branch=items[domain].get('branch', 'master')
-                reponame=url.rpartition("/")[-1]
-                if not reponame in list(repos.keys()):
-                    # means git has not been pulled yet
-                    if login!="":
-                        dest=j.do.pullGitRepo(url,dest=None,login=login,passwd=passwd,depth=1,ignorelocalchanges=False,reset=False,branch=branch)
-                    else:
-                        dest=j.do.pullGitRepo(url,dest=None,depth=1,ignorelocalchanges=False,reset=False,branch=branch)
+                branch = items[domain].get('branch', 'master')
+                reponame = url.rpartition("/")[-1]
+                if reponame not in list(repos.keys()):
+                    dest = j.do.pullGitRepo(url, dest=None, depth=1, ignorelocalchanges=False, reset=False, branch=branch)
 
-                repos=j.do.getGitReposListLocal()
+                repos = j.do.getGitReposListLocal()
 
-                dest=repos[reponame]
-                # print "init %s" % domain
-                self._domains.append((domain,dest))
+                dest = repos[reponame]
+                self._domains.append((domain, dest))
 
-            self._init=True
-
+            self._init = True
 
     def createAYSRepo(self, path):
         j.sal.fs.createDir(path)
@@ -187,9 +224,9 @@ class AtYourServiceFactory:
         j.tools.cuisine.local.core.run('git init')
         j.sal.nettools.download('https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore', j.sal.fs.joinPaths(path, '.gitignore'))
         name = j.sal.fs.getBaseName(path)
-        self._repos[name] = AtYourServiceRepo(name, path)
+        self._repos[path] = AtYourServiceRepo(name, path)
         print("AYS Repo created at %s" % path)
-        return self._repos[name]
+        return self._repos[path]
 
     def updateTemplates(self, repos=[]):
         """
@@ -218,33 +255,8 @@ class AtYourServiceFactory:
     def getActionMethodDecorator(self):
         return ActionMethodDecorator
 
-    def getBlueprint(self,aysrepo,path):
-        return Blueprint(aysrepo,path)
-
-    # def getRoleTemplateClass(self, role, ttype):
-    #     if role not in self.roletemplates:
-    #         raise j.exceptions.RuntimeError('Role template %s does not exist' % role)
-    #     roletemplatepaths = self.roletemplates[role]
-    #     for roletemplatepath in roletemplatepaths:
-    #         if ttype in j.sal.fs.getBaseName(roletemplatepath):
-    #             modulename = "JumpScale.atyourservice.roletemplate.%s.%s" % (role, ttype)
-    #             mod = loadmodule(modulename, roletemplatepath)
-    #             return mod.Actions
-    #     return None
-
-    # def getRoleTemplateHRD(self, role):
-    #     if role not in self.roletemplates:
-    #         raise j.exceptions.RuntimeError('Role template %s does not exist' % role)
-    #     roletemplatepaths = self.roletemplates[role]
-    #     hrdpaths = [path for path in roletemplatepaths if j.sal.fs.getFileExtension(path) == 'hrd']
-    #     if hrdpaths:
-    #         hrd = j.data.hrd.getSchema(hrdpaths[0])
-    #         for path in hrdpaths[1:]:
-    #             hrdtemp = j.data.hrd.getSchema(path)
-    #             hrd.items.update(hrdtemp.items)
-    #         return hrd.hrdGet()
-    #     return None
-
+    def getBlueprint(self, aysrepo, path):
+        return Blueprint(aysrepo, path)
 
     def findTemplates(self, name="", domain="", role=''):
         res = []
@@ -262,29 +274,36 @@ class AtYourServiceFactory:
 
         return res
 
-    def findAYSRepos(self):
-        return (root for root, dirs, files in os.walk(j.dirs.codeDir) if '.ays' in files)
+    def findAYSRepos(self, path=""):
+        #default do NOT run over all code repo's
+        if path=="":
+            path=j.sal.fs.getcwd()
+        res= (root for root, dirs, files in os.walk(path) if '.ays' in files)
+        res=[str(item) for item in res]
+        if len(res)==0:
+            raise j.exceptions.Input("Cannot find AYS repo in:%s, need to find a .ays file in root of ays repo."%path)
+        return res
 
-    def getService(self,key,die=True):
-        if key.count("!")!=2:
-            raise j.exceptions.Input("key:%s needs to be $reponame!$role!$instance"%key)
-        reponame,role,instance=key.split("!",2)
-        if reponame not in self._repos:
+    def getService(self, key, die=True):
+        if key.count("!") != 2:
+            raise j.exceptions.Input("key:%s needs to be $reponame!$role!$instance" % key)
+        reponame, role, instance = key.split("!", 2)
+        if not self.exist(path=reponame):
             if die:
-                raise j.exceptions.Input("service repo %s does not exist, could not retrieve ays service:%s"%(reponame,key))
+                raise j.exceptions.Input("service repo %s does not exist, could not retrieve ays service:%s" % (reponame, key))
             else:
                 return None
-        repo=self._repos[reponame]
-        return repo.getService(role=role,instance=instance,die=die)
+        repo = self.get(name=reponame)
+        return repo.getService(role=role, instance=instance, die=die)
 
-    def getTemplate(self,  name, die=True):
+    def getTemplate(self, name, die=True):
         """
         @param first means, will only return first found template instance
         """
         if name in self.templates:
             return self.templates[name]
         if die:
-            raise j.exceptions.Input("Cannot find template with name:%s"%name)
+            raise j.exceptions.Input("Cannot find template with name:%s" % name)
         # if first:
         #     return self.findTemplates(domain=domain, name=name, version=version, role=role, first=first)
         # else:
@@ -302,7 +321,7 @@ class AtYourServiceFactory:
         #     return res[0]
 
     def existsTemplate(self, name):
-        if self.getTemplate(name,die=False)==None:
+        if self.getTemplate(name, die=False) is None:
             return False
         return True
 

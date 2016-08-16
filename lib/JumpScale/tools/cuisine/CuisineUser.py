@@ -1,6 +1,10 @@
 
 from JumpScale import j
-import crypt
+
+try:
+    import fcrypt as crypt 
+except ImportError:
+    import crypt
 
 
 def shell_safe( path ):
@@ -9,23 +13,29 @@ def shell_safe( path ):
     path= "".join([("\\" + _) if _ in SHELL_ESCAPE else _ for _ in path])
     return path
 
+from ActionDecorator import ActionDecorator
+class actionrun(ActionDecorator):
+    def __init__(self,*args,**kwargs):
+        ActionDecorator.__init__(self,*args,**kwargs)
+        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.user"
 
 
-class CuisineUser:
+base=j.tools.cuisine.getBaseClass()
+class CuisineUser(base):
 
     def __init__(self,executor,cuisine):
         self.executor=executor
         self.cuisine=cuisine
 
 
-
+    @actionrun()
     def passwd(self, name, passwd, encrypted_passwd=False):
         """Sets the given user password."""
         print("set user:%s passwd for %s"%(name,self))
         name = name.strip()
         passwd = passwd.strip()
 
-        encoded_password = crypt.crypt(passwd)
+        encoded_password = j.sal.unix.crypt(passwd)
         if encrypted_passwd:
             self.cuisine.core.sudo("usermod -p '%s' %s" % (encoded_password, name))
         else:
@@ -36,7 +46,7 @@ class CuisineUser:
             self.cuisine.core.run("echo \"%s:%s\" | chpasswd"%(name, passwd))
         #executor = j.tools.executor.getSSHBased(self.executor.addr, self.executor.port, name, passwd, checkok=True)
 
-
+    @actionrun()
     def create(self,name, passwd=None, home=None, uid=None, gid=None, shell=None,
         uid_min=None, uid_max=None, encrypted_passwd=True, fullname=None, createhome=True):
         """Creates the user with the given name, optionally giving a
@@ -51,7 +61,7 @@ class CuisineUser:
         if uid:
             options.append("-u '%s'" % (uid))
         #if group exists already but is not specified, useradd fails
-        if not gid and self.group_check(name):
+        if not gid and self.cuisine.group.check(name):
             gid = name
         if gid:
             options.append("-g '%s'" % (gid))
@@ -69,6 +79,7 @@ class CuisineUser:
         if passwd:
             self.passwd(name=name,passwd=passwd,encrypted_passwd=encrypted_passwd)
 
+    @actionrun()
     def check(self,name=None, uid=None, need_passwd=True):
         """Checks if there is a user defined with the given name,
         returning its information as a
@@ -79,10 +90,10 @@ class CuisineUser:
         """
         assert name!=None or uid!=None,     "check: either `uid` or `name` should be given"
         assert name is None or uid is None,"check: `uid` and `name` both given, only one should be provided"
-        if name != None:
-            d = self.cuisine.core.run("getent passwd | egrep '^%s:' ; true" % (name))
-        elif uid != None:
-            d = self.cuisine.core.run("getent passwd | egrep '^.*:.*:%s:' ; true" % (uid))
+        if name is not None:
+            _, d, _ = self.cuisine.core.run("getent passwd | egrep '^%s:' ; true" % (name))
+        elif uid is not None:
+            _, d, _ = self.cuisine.core.run("getent passwd | egrep '^.*:.*:%s:' ; true" % (uid))
         results = {}
         s = None
         if d:
@@ -97,6 +108,7 @@ class CuisineUser:
         else:
             return None
 
+    @actionrun()
     def ensure(self,name, passwd=None, home=None, uid=None, gid=None, shell=None, fullname=None, encrypted_passwd=True,group=None):
         """Ensures that the given users exists, optionally updating their
         passwd/home/uid/gid/shell."""
@@ -122,7 +134,7 @@ class CuisineUser:
         if group!=None:
             self.cuisine.group.user_add(group=group, user=name)
 
-
+    @actionrun()
     def remove(self,name, rmhome=None):
         """Removes the user with the given name, optionally
         removing the home directory and mail spool."""
@@ -131,7 +143,7 @@ class CuisineUser:
             options.append("-r")
         self.cuisine.core.sudo("userdel %s '%s'" % (" ".join(options), name))
 
-
+    @actionrun()
     def list(self):
         users=self.cuisine.core.fs_find("/home",recursive=False)
         users=[j.sal.fs.getBaseName(item) for item in users if (item.strip()!="" and item.strip("/")!="home")]

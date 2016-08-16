@@ -126,6 +126,11 @@ class ServiceState():
             self._model["recurring"][name] = [period, 0]
             self.changed = True
 
+    def removeRecurring(self, name):
+        if name in self._model['recurring']:
+            del self._model['recurring'][name]
+            self.changed = True
+
     @property
     def events(self):
         """
@@ -146,12 +151,19 @@ class ServiceState():
         if event not in self._model["events"]:
             change = True
         else:
-            if self._model["events"][event].sort() != actions.sort():
+            self._model["events"][event].sort()
+            actions.sort()
+            if self._model["events"][event] != actions:
                 change = True
 
         if change:
             self._model["events"][event] = actions
         self.changed = change
+
+    def removeEvent(self, event):
+        if event in self._model['events']:
+            del self._model['events'][event]
+            self.changed = True
 
     def check(self):
         """

@@ -16,39 +16,35 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self, *args, **kwargs)
         self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.influxdb"
 
-
-class Influxdb:
-
-    def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+base=j.tools.cuisine.getBaseClass()
+class Influxdb(base):
 
     @actionrun(action=True)
-    def _build(self):
-        self.cuisine.installer.base()
+    def install(self,dependencies=True, start=False):
+
+        if dependencies:
+            self.cuisine.installer.base()
+            self.cuisine.package.mdupdate()
 
         if self.cuisine.core.isMac:
-            self.cuisine.package.mdupdate()
             self.cuisine.package.install('influxdb')
-        if self.cuisine.core.isUbuntu:
             self.cuisine.core.dir_ensure("$tmplsDir/cfg/influxdb")
+            self.cuisine.core.file_copy("/usr/local/etc/influxdb.conf", "$tmplsDir/cfg/influxdb/influxdb.conf")
+
+        elif self.cuisine.core.isUbuntu:
+            self.cuisine.core.dir_ensure("$tmplsDir/cfg/influxdb",force=False)
             C= """
-    cd $tmpDir
-    wget https://s3.amazonaws.com/influxdb/influxdb-0.10.0-1_linux_amd64.tar.gz
-    tar xvfz influxdb-0.10.0-1_linux_amd64.tar.gz
-    cp influxdb-0.10.0-1/usr/bin/influxd $binDir
-    cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $tmplsDir/cfg/influxdb/influxdb.conf"""
-            C = self.cuisine.bash.replaceEnvironInText(C)
-            C = self.cuisine.core.args_replace(C)
+            set -ex
+            cd $tmpDir
+            wget https://dl.influxdata.com/influxdb/releases/influxdb-0.13.0_linux_amd64.tar.gz
+            tar xvfz influxdb-0.13.0_linux_amd64.tar.gz
+            cp influxdb-0.13.0-1/usr/bin/influxd $binDir
+            cp influxdb-0.13.0-1/etc/influxdb/influxdb.conf $tmplsDir/cfg/influxdb/influxdb.conf"""
             self.cuisine.core.run_script(C, profile=True, action=True)
-            self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
+            self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"))
+        else:
+            raise RuntimeError("cannot install, unsuported platform")
 
-    def build(self, start=True):
-        self._build()
-        if start:
-            self.start()
-
-    def start(self):
         binPath = self.cuisine.bash.cmdGetPath('influxd')
         self.cuisine.core.dir_ensure("$varDir/data/influxdb")
         self.cuisine.core.dir_ensure("$varDir/data/influxdb/meta")
@@ -61,6 +57,20 @@ class Influxdb:
         cfg['data']['wal-dir'] = "$varDir/data/influxdb/data"
         self.cuisine.core.dir_ensure('$cfgDir/influxdb')
         self.cuisine.core.file_write('$cfgDir/influxdb/influxdb.conf', j.data.serializer.toml.dumps(cfg))
+        cmd = "%s -config $cfgDir/influxdb/influxdb.conf" % (binPath)
+        cmd = self.cuisine.core.args_replace(cmd)
+        self.cuisine.core.file_write("/opt/jumpscale8/bin/start_influxdb.sh",cmd,777,replaceArgs=True)
+
+        if start:
+            self.start()
+
+    @actionrun()
+    def build(self, start=True):
+        raise RuntimeError("not implemented")
+
+    @actionrun(force=True)
+    def start(self):
+        binPath = self.cuisine.bash.cmdGetPath('influxd')
         cmd = "%s -config $cfgDir/influxdb/influxdb.conf" % (binPath)
         self.cuisine.process.kill("influxdb")
         self.cuisine.processmanager.ensure("influxdb", cmd=cmd, env={}, path="")

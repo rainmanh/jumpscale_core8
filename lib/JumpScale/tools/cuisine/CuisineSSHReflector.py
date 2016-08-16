@@ -11,8 +11,8 @@ class actionrun(ActionDecorator):
         ActionDecorator.__init__(self,*args,**kwargs)
         self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.sshreflector"
 
-
-class CuisineSSHReflector:
+base=j.tools.cuisine.getBaseClass()
+class CuisineSSHReflector(base):
 
     def __init__(self,executor,cuisine):
         self.executor=executor
@@ -69,7 +69,7 @@ class CuisineSSHReflector:
         self.cuisine.core.run("chmod 0644 /home/sshreflector/.ssh/*")
         self.cuisine.core.run("chown -R sshreflector:sshreflector /home/sshreflector/.ssh/")
 
-        cpath=self.cuisine.core.run("which dropbear")
+        _, cpath, _ = self.cuisine.core.run("which dropbear")
 
         cmd="%s -R -F -E -p 9222 -w -s -g -K 20 -I 60"%cpath
         self.cuisine.processmanager.ensure("reflector", cmd, descr='')
@@ -183,14 +183,14 @@ class CuisineSSHReflector:
             self.cuisine.core.run("ssh -i /root/.ssh/reflector -o StrictHostKeyChecking=no sshreflector@%s -p %s 'ls /'"%(rname,reflport))
             print ("OK")
 
-            cpath=self.cuisine.core.run("which autossh")
+            _, cpath, _ = self.cuisine.core.run("which autossh")
             cmd="%s -M 0 -N -o ExitOnForwardFailure=yes -o \"ServerAliveInterval 60\" -o \"ServerAliveCountMax 3\" -R %s:localhost:22 sshreflector@%s -p %s -i /root/.ssh/reflector"%(cpath,newport,rname,reflport)
             self.cuisine.processmanager.ensure("autossh_%s"%rname_short, cmd, descr='')
 
             print ("On %s:%s remote SSH port:%s"%(remotecuisine.core.executor.addr,port,newport))
 
 
-    # @actionrun()
+    @actionrun(force=True)
     def createconnection(self,remoteids):
         """
         @param remoteids are the id's of the reflectors e.g. 'ovh3,ovh5:3333'

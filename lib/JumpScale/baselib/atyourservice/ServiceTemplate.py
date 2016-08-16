@@ -2,8 +2,8 @@
 
 from JumpScale import j
 
-from Service import *
-from ServiceRecipe import *
+from JumpScale.baselib.atyourservice.Service import *
+from JumpScale.baselib.atyourservice.ServiceRecipe import *
 
 
 class ServiceTemplate:
@@ -12,8 +12,8 @@ class ServiceTemplate:
         self.path = path
 
         base = j.sal.fs.getBaseName(path)
-        self.name=base
-        
+        self.name = base
+
         if base.find("__") != -1:
             self.domain, self.name = base.split("__", 1)
         else:
@@ -84,7 +84,7 @@ class ServiceTemplate:
         return self._mongoModel
 
     def getRecipe(self, aysrepo):
-        from ServiceRecipe import ServiceRecipe
+        from JumpScale.baselib.atyourservice.ServiceRecipe import ServiceRecipe
         return ServiceRecipe(aysrepo, template=self)
 
     def __repr__(self):

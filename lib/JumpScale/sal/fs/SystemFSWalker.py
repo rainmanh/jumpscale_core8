@@ -198,11 +198,12 @@ class SystemFSWalker:
     def _walkFunctional(path,callbackFunctionFile=None, callbackFunctionDir=None,arg="", callbackForMatchDir=None,callbackForMatchFile=None):
         for path2 in j.sal.fs.listFilesAndDirsInDir(path,listSymlinks=True):
             # print "walker path:%s"% path2
+            path2=path2.strip()
             if j.sal.fs.isDir(path2, True):
-                # print "walker dirpath:%s"% path2
+                print ("walker dirpath:%s"% path2)
                 if callbackForMatchDir==None or callbackForMatchDir(path2,arg):
                     #recurse
-                    # print "walker matchdir:%s"% path2
+                    print ("walker matchdir:%s"% path2)
                     if callbackFunctionDir==None:
                         j.sal.fs.walker._walkFunctional(path2,callbackFunctionFile, callbackFunctionDir,arg, callbackForMatchDir,callbackForMatchFile)
                     else:

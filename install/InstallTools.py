@@ -1040,8 +1040,7 @@ class InstallTools:
             proc = Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX, \
                     shell=useShell, env=os.environ, universal_newlines=True, cwd=cwd, bufsize=0)
             return proc
-        
-        
+
         @asyncio.coroutine
         def _read_stream(_showout, stream):
             """coroutine to read prints output based on stream"""
@@ -1060,19 +1059,19 @@ class InstallTools:
 
         @asyncio.coroutine
         def _execute(cmd):
-            out = ''
-            err = ''
-
             # Create subprocess to execute command, and wait until it's created
-            proc = yield from asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+            proc = yield from asyncio.create_subprocess_shell(cmd,
+                                                              stdout=asyncio.subprocess.PIPE,
+                                                              stderr=asyncio.subprocess.PIPE,
+                                                              close_fds=True)
 
             out = yield from _read_stream(showout, proc.stdout)
-            err = yield from _read_stream(showout, proc.stderr)
-            rc = 0
+            err = yield from _read_stream(outputStderr, proc.stderr)
+
             try:
                 yield from asyncio.wait_for(proc.wait(), timeout)
             except asyncio.TimeoutError:
-                return rc, out, err
+                return 124, out, err
             else:
                 return proc.returncode, out, err
 

@@ -71,7 +71,7 @@ class MDTable:
                 self.header[nr]=" . "
 
     def addRow(self,cols):
-        if len(cols)!=len(self.header):
+        if len(cols) != len(self.header):
             raise j.exceptions.Input("cols need to be same size as header. %s vs %s"%(len(cols),len(self.header)))
         for nr in range(len(cols)):
             if cols[nr]==None or cols[nr].strip()=="":
@@ -268,7 +268,7 @@ class MarkdownDocument:
 
     def __init__(self,content="",path=""):
 
-        if path!="":
+        if path != "":
             content=j.sal.fs.fileGetContents(path)
 
         self._content=content
@@ -280,7 +280,6 @@ class MarkdownDocument:
 
 
     def _findFancyHeaders(self):
-
         out=[]
         for line in self.content.split("\n"):
             if line.startswith("===="):
@@ -439,7 +438,7 @@ class MarkdownDocument:
             if state=="TABLE":
                 if linestripped.startswith("|") and linestripped.endswith("|") and line.find("---")!=-1:
                     continue
-                cols=[item.strip() for item in line.split("|") if item.strip()!=""]
+                cols= [item.strip() for item in line.strip().strip('|').split("|")]
                 table.addRow(cols)
                 continue
 

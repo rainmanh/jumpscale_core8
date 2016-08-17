@@ -131,7 +131,6 @@ class Actor(ActorBase):
                 continue
 
             if state == "MAIN" and linestrip.startswith("def"):
-                state = "DEF"
                 definition, args = linestrip.split("(", 1)
                 args = args.rstrip('):')
                 for arg in args.split(','):
@@ -148,6 +147,8 @@ class Actor(ActorBase):
                         amDecorator = "@actor"
                     else:
                         amDecorator = "@service"
+                state = "DEF"
+                continue
 
             if state == "DEF":
                 amSource += "%s\n" % line[4:]

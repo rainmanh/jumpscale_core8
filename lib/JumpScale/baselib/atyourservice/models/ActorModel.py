@@ -56,12 +56,17 @@ class ActorModel(ModelBase):
             defstr = "@%s\n" % action.type
             defstr += "def %s (" % actionCode.dbobj.name
             for arg in actionCode.dbobj.args:
-                defstr += "%s = '%s'," % (arg.name, arg.defval.decode())
-            defstr = defstr.rstrip(",")
+                default = ""
+                if arg.defval.decode().strip():
+                    default = "='%s'" % arg.defval.decode()
+                defstr += "%s%s, " % (arg.name, default)
+            defstr = defstr.rstrip(", ")
             defstr += "):\n"
 
             if not actionCode.dbobj.code:
                 defstr += "    pass\n\n"
+            else:
+                defstr += "%s\n" % actionCode.dbobj.code
 
             out += defstr
         return out

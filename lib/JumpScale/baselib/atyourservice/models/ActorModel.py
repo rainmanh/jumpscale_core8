@@ -56,8 +56,8 @@ class ActorModel(ModelBase):
             defstr = "@%s\n" % action.type
             defstr += "def %s (" % actionCode.dbobj.name
             for arg in actionCode.dbobj.args:
-                defstr += "%s = %s," % (arg.name, arg.defval)
-            defstr.rstrip(",")
+                defstr += "%s = '%s'," % (arg.name, arg.defval.decode())
+            defstr = defstr.rstrip(",")
             defstr += "):\n"
 
             if not actionCode.dbobj.code:

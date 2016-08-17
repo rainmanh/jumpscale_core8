@@ -91,7 +91,7 @@ class Blueprint:
                         raise j.exceptions.Input(message="Cannot find actor:%s" %
                                                  actorname, level=1, source="", tags="", msgpub="")
 
-                    actor = self.aysrepo.actorGet(actorname, reload=True)
+                    actor = self.aysrepo.actorGet(actorname, reload=False)
 
                     if not len(self.aysrepo.servicesFind(role=actor.role, instance=bpinstance)):
                         # if it's not there, create it.

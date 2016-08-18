@@ -1077,12 +1077,13 @@ class InstallTools:
             else:
                 return proc.returncode, out, err
 
-        
-        # Get get and run coroutines using asyncio
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        rc, out, err = loop.run_until_complete(_execute(command))
-        loop.close()
+        try:
+            # Get get and run coroutines using asyncio
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            rc, out, err = loop.run_until_complete(_execute(command))
+        finally:
+            loop.close()
 
         if rc > 0 and die:
             if err:

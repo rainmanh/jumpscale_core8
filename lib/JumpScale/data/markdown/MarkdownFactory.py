@@ -457,8 +457,7 @@ class MarkdownDocument:
             if state == "TABLE":
                 if linestripped.startswith("|") and linestripped.endswith("|") and line.find("---") != -1:
                     continue
-                cols = [item.strip()
-                        for item in line.split("|") if item.strip() != ""]
+                cols= [item.strip() for item in line.strip().strip('|').split("|")]
                 table.addRow(cols)
                 continue
 

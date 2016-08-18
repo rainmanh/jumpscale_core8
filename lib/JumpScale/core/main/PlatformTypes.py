@@ -115,8 +115,7 @@ class PlatformType:
     @property
     def uname(self):
         def get():
-            rc, self._uname, err = self.executor.execute(
-                "uname -mnprs", showout=False)
+            rc, self._uname, err = self.executor.execute("uname -mnprs", showout=False, timeout=3, die=False)
             self._uname = self._uname.strip()
             if self._uname.find("warning: setlocale") != -1:
                 j.application._fixlocale = True

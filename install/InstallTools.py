@@ -1088,15 +1088,14 @@ class InstallTools:
             except Exception:
                 loop = uvloop.new_event_loop()
                 asyncio.set_event_loop(loop)
+            rc, out, err = loop.run_until_complete(_execute(command))
+            loop.close()
         else:
-            try:
-                loop = asyncio.get_event_loop()
-            except:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-        
-        rc, out, err = loop.run_until_complete(_execute(command))
-        loop.close()
+            loop = asyncio.get_event_loop()
+            rc, out, err = loop.run_until_complete(_execute(command))
+            loop.stop()
+            loop.run_forever()
+       
 
         if rc > 0 and die:
             if err:

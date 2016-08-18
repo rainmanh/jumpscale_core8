@@ -102,20 +102,6 @@ class AtomEditor:
         with open(os.path.expanduser("~/.atom/snippets.cson", 'w')) as out:
             cson.dump(merged, out)
 
-
-    def generateJumpscaleAutocompletion(self, dest='/tmp/tempd/jedicomp.txt'):
-        apifile = "/tmp/tempd/jumpscale.api"
-        jedicomp = "/tmp/tempd/jedi.comp"
-        names = ""
-        import re
-        with open(apifile) as f:
-
-            with open(jedicomp, "w") as jedout:
-                for x in re.finditer("(\w.+)\?", f.read()):
-                    name=x.group(0).strip("?")
-                    jedout.write(name+"= None \n")
-
-
     def installPythonExtensions(self):
         """
         pip installs flake8, autopep8.
@@ -127,4 +113,3 @@ class AtomEditor:
         pip3 install flake8-docstrings
         """
         rc, out = j.sal.process.execute(C, die=True, outputToStdout=False, ignoreErrorOutput=False)
-

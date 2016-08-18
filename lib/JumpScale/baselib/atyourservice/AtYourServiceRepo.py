@@ -15,7 +15,7 @@ import colored_traceback
 colored_traceback.add_hook(always=True)
 
 
-class AtYourServiceRepo():
+class AtYourServiceRepo:
 
     def __init__(self, name, gitrepo, path):
 
@@ -105,10 +105,8 @@ class AtYourServiceRepo():
     def actors(self):
         self._doinit()
         if not self._actors:
-            from IPython import embed
-            print("DEBUG NOW actors")
-            embed()
-            raise RuntimeError("stop debug here")
+            actornames = j.atyourservice.db.actor.list()
+            self._actors = {actorname: Actor(self, self.templateGet(actorname)) for actorname in actornames}
         return self._actors
 
     def actorsFind(self, name="", version="", role=''):
@@ -202,7 +200,7 @@ class AtYourServiceRepo():
             services_path = j.sal.fs.joinPaths(self.path, "services")
             if not j.sal.fs.exists(services_path):
                 return {}
-            for hrd_path in j.sal.fs.listFilesInDir(services_path, recursive=True, filter="state.yaml",
+            for hrd_path in j.sal.fs.listFilesInDir(services_path, recursive=True, filter="schema.capnp",
                                                     case_sensitivity='os', followSymlinks=True, listSymlinks=False):
                 service_path = j.sal.fs.getDirName(hrd_path)
                 service = Service(self, path=service_path, args=None)
@@ -521,9 +519,7 @@ class AtYourServiceRepo():
         for key, actor in self.actors.items():
             if role != "" and actor.role == role:
                 continue
-            actor.init()
-            for inst in actor.listInstances():
-                service = actor.aysrepo.getService(role=actor.role, instance=inst, die=False)
+            for service in actor.services:
                 print("RESETTING SERVICE roles %s inst %s instance %s " % (actor.role, inst, instance))
                 service.update_hrd()
 

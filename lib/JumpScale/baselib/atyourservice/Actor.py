@@ -4,6 +4,7 @@ import copy
 import inspect
 import imp
 import sys
+import capnp
 
 from JumpScale.baselib.atyourservice.models.ActorModel import ActorModel
 from JumpScale.baselib.atyourservice.ActorTemplate import ActorTemplate, ActorBase
@@ -41,13 +42,13 @@ class Actor(ActorBase):
         self.model.dbobj.name = self.name
 
         # copy the files
-        if True or not j.sal.fs.exists(path=self.path):
+        if not j.sal.fs.exists(path=self.path):
             self.loadFromFS()
 
     @property
     def schema(self):
         if self._schema is None:
-            self._schema = j.data.hrd.getSchema(content=self.model.dbobj.serviceDataSchema)
+            self._schema = capnp.load(self.path_capnp_schema_actor)
         return self._schema
 
 # INIT
@@ -57,8 +58,9 @@ class Actor(ActorBase):
         get content from fs and load in object
         """
         self.copyFilesFromTemplates()
-
+        self.logger.debug("loading actor: %s" % self)
         # hrd schema to capnp
+        j.sal.fs.writeFile(self.path_capnp_schema_actor, self.template.schemaActor.capnpSchema)
         if j.sal.fs.exists(self.path_hrd_schema_actor):
             if self.model.dbobj.actorDataSchema != self.template.schemaActor.capnpSchema:
                 self.processChange("schema_actor")

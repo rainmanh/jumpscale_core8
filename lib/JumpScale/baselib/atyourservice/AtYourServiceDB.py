@@ -45,6 +45,8 @@ class ModelFactory():
     def exists(self, key):
         return self._db.exists(key=key)
 
+    def list(self):
+        return self._db.list()
 
 class AtYourServiceDB():
 
@@ -81,3 +83,7 @@ class AtYourServiceDB():
     def hget(self, name, key):
         # is not compatible with other kvs's. Not good. Rethink
         return self.db.redisclient.hget(name, key)
+
+    def list(self):
+        # is not compatible with other kvs's. Not good. Rethink
+        return self.db.list(self.category, "")

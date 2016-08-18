@@ -302,6 +302,10 @@ class HRDSchema:
                     " @%d :List(%s);\n" % (fid, typesmap[ttype.hrd_ttype])
             fid += 1
 
+        if self.path:
+            actorname = j.sal.fs.getBaseName(j.sal.fs.getParent(self.path))
+            serializeddata += "\t actor @%d :Text;\n" % (fid)
+
         template = """
 @%s;
 struct Schema {

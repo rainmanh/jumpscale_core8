@@ -46,6 +46,7 @@ class Service:
         self.aysrepo = aysrepo
         self.actor = actor
         self._hrd = None
+        self._instance = instance
 
         if args is None:
             args = {}
@@ -58,8 +59,13 @@ class Service:
         # self._action_methods = None
         #
         if path != "" and j.sal.fs.exists(path):
-            self._role, self._instance = j.sal.fs.getBaseName(path).split("!")
-            self._actor = None
+            schema_path = j.sal.fs.joinPaths(path, 'schema.capnp')
+            if j.sal.fs.exists(schema_path):
+                self.model = capnp.load(schema_path)
+                self._role = self.model
+            else:
+                self._role, self._instance = j.sal.fs.getBaseName(path).split("!")
+                self._actor = None
             self.path = path
             actor = None
         else:
@@ -84,6 +90,10 @@ class Service:
             if parent is None:
                 if actor.schema is not None:
                     # CHECK PARENTS !
+                    from IPython import embed
+                    print("DEBUG NOW service parents")		
+                    embed()
+
                     parent_actor_item = actor.schema.parentSchemaItemGet()
 
                     if parent_actor_item is not None and parent_actor_item.parent is not None and parent_actor_item.parent != "":
@@ -148,9 +158,11 @@ class Service:
 
         self.hrd
 
-        if actor is not None:
-            self.model.actor = actor.name
-            self.init(args=args)  # first time init
+        if not actor:
+            self.actor = self.aysrepo.actorGet(self.templatename)
+
+        self.model.actor = actor.name
+        self.init(args=args)  # first time init
 
         # Set subscribed event into state
         if self.actor.template.hrd is not None:

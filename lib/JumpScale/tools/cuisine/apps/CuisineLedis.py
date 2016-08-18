@@ -22,8 +22,8 @@ base = j.tools.cuisine.getBaseClass()
 class Ledis(base):
 
     @actionrun(action=True)
-    def build(self, backend="leveldb", start=True):
-        #self.cuisine.installer.base()
+    def build(self, backend="leveldb"):
+        self.cuisine.installer.base()
         if self.cuisine.core.isUbuntu:
 
             C = """
@@ -35,35 +35,29 @@ class Ledis(base):
             source dev.sh
 
             make
-            make install
             """
-            #self.cuisine.golang.install()
+            self.cuisine.golang.install()
             self.cuisine.git.pullRepo("https://github.com/siddontang/ledisdb", dest="$goDir/src/github.com/siddontang/ledisdb")
-            #self.cuisine.golang.godep("github.com/siddontang/ledisdb", action=True)
-            ledisdir = self.cuisine.core.args_replace("$goDir/src/github.com/siddontang/ledisdb")
+
 
             #set the backend in the server config
+            ledisdir = self.cuisine.core.args_replace("$goDir/src/github.com/siddontang/ledisdb")
 
             configcontent = self.cuisine.core.file_read(os.path.join(ledisdir, "config", "config.toml"))
-            #import pudb; pu.db
+            ledisdir = self.cuisine.core.args_replace("$goDir/src/github.com/siddontang/ledisdb")
 
             if backend == "rocksdb":
                 self._preparerocksdb()
             elif backend == "leveldb":
                 rc, out, err = self._prepareleveldb()
-
+            else:
+                raise NotImplementedError
             configcontent.replace('db_name = "leveldb"', 'db_name = "%s"'%backend)
 
-            self.cuisine.core.file_write("$tmplsDir/cfg/ledisconfig.toml", configcontent)
+            self.cuisine.core.file_write("/tmp/ledisconfig.toml", configcontent)
 
             script = C.format(ledisdir=ledisdir)
-            #import pudb; pu.db
             out = self.cuisine.core.run_script(script, profile=True)
-            self.cuisine.core.file_copy("{ledisdir}/bin/*".format(ledisdir=ledisdir), dest="$binDir")
-            self.cuisine.core.file_copy("{ledisdir}/dev.sh".format(ledisdir=ledisdir), dest="$tmplsDir/ledisdev.sh")
-
-        if start:
-            self.start()
 
     def _prepareleveldb(self):
         #execute the build script in tools/build_leveldb.sh
@@ -77,6 +71,17 @@ class Ledis(base):
         raise NotImplementedError
 
     @actionrun(force=True)
+    def install(self, start=True):
+        ledisdir = self.cuisine.core.args_replace("$goDir/src/github.com/siddontang/ledisdb")
+
+        #rc, out, err = self.cuisine.core.run("cd {ledisdir} && source dev.sh && make install".format(ledisdir=ledisdir), profile=True)
+        self.cuisine.core.file_copy("/tmp/ledisconfig.toml", dest="$tmplsDir/cfg/ledisconfig.toml")
+        self.cuisine.core.file_copy("{ledisdir}/bin/*".format(ledisdir=ledisdir), dest="$binDir")
+        self.cuisine.core.file_copy("{ledisdir}/dev.sh".format(ledisdir=ledisdir), dest="$tmplsDir/ledisdev.sh")
+
+        if start:
+            self.start()
+
     def start(self):
         cmd = "source $tmplsDir/ledisdev.sh && $binDir/ledis-server -config $tmplsDir/cfg/ledisconfig.toml"
         self.cuisine.processmanager.ensure(name='ledis', cmd=cmd)

@@ -21,6 +21,9 @@ import queue
 import re
 import inspect
 
+if sys.platform != 'cygwin':
+    import uvloop
+
 
 
 class InstallTools:
@@ -1021,7 +1024,7 @@ class InstallTools:
 
         s.quit()
 
-    def execute(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0,
+    def execute(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=1,
                         captureout=True, die=True, async=False, executor=None):
 
         """
@@ -1087,13 +1090,22 @@ class InstallTools:
             else:
                 return proc.returncode, out, err
 
-        try:
+        if sys.platform != 'cygwin':
             # Get get and run coroutines using asyncio
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+            try:
+                asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+                loop = asyncio.get_event_loop()
+            except Exception:
+                loop = uvloop.new_event_loop()
+                asyncio.set_event_loop(loop)
             rc, out, err = loop.run_until_complete(_execute(command))
-        finally:
             loop.close()
+        else:
+            loop = asyncio.get_event_loop()
+            rc, out, err = loop.run_until_complete(_execute(command))
+            loop.stop()
+            loop.run_forever()
+       
 
         if rc > 0 and die:
             if err:

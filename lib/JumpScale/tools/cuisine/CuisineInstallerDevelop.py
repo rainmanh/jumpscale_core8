@@ -172,8 +172,6 @@ class CuisineInstallerDevelop(base):
         gspread
         oauth2client
         """
-        if not self.cuisine.core.isCygwin:
-            C += "pillow"
         self.cuisine.pip.multiInstall(C,upgrade=True)
 
 

@@ -1021,7 +1021,7 @@ class InstallTools:
 
         s.quit()
 
-    def execute(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=None,
+    def execute(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0,
                         captureout=True, die=True, async=False, executor=None):
 
         """
@@ -1072,8 +1072,7 @@ class InstallTools:
             # Create subprocess to execute command, and wait until it's created
             proc = yield from asyncio.create_subprocess_shell(cmd,
                                                               stdout=asyncio.subprocess.PIPE,
-                                                              stderr=asyncio.subprocess.PIPE,
-                                                              close_fds=True)
+                                                              stderr=asyncio.subprocess.PIPE)
 
             out = yield from _read_stream(showout, proc.stdout)
             err = yield from _read_stream(outputStderr, proc.stderr)
@@ -1081,16 +1080,20 @@ class InstallTools:
             try:
                 yield from asyncio.wait_for(proc.wait(), timeout)
             except asyncio.TimeoutError:
-                return 124, out, err
+                # send return of timeout if out is empty and error is not
+                if not out and err:
+                    return 124, out, err
+                return 0, out, err
             else:
                 return proc.returncode, out, err
 
-        
-        # Get get and run coroutines using asyncio
-        loop = asyncio.get_event_loop()
-        rc, out, err = loop.run_until_complete(_execute(command))
-        loop.stop()
-        loop.run_forever()
+        try:
+            # Get get and run coroutines using asyncio
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            rc, out, err = loop.run_until_complete(_execute(command))
+        finally:
+            loop.close()
 
         if rc > 0 and die:
             if err:

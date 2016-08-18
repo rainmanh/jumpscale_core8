@@ -41,14 +41,24 @@ class Actor(ActorBase):
         self.model.dbobj.name = self.name
 
         # copy the files
+        # TOO: needs to be real check (after debug)
         if True or not j.sal.fs.exists(path=self.path):
             self.loadFromFS()
 
     @property
-    def schema(self):
+    def schemaServiceCapnp(self):
         if self._schema is None:
-            self._schema = j.data.hrd.getSchema(content=self.model.dbobj.serviceDataSchema)
+            self._schema = j.data.capnp.getSchema("aysservice_%s" % self.name, self.model.dbobj.serviceDataSchema)
         return self._schema
+
+    @property
+    def schemaServiceHRD(self):
+        return j.data.hrd.getSchema(content=self.model.dbobj.serviceDataSchemaHRD)
+
+    @property
+    def schemaActorHRD(self):
+        return j.data.hrd.getSchema(content=self.model.dbobj.serviceDataActorHRD)
+
 
 # INIT
 
@@ -63,12 +73,15 @@ class Actor(ActorBase):
             if self.model.dbobj.actorDataSchema != self.template.schemaActor.capnpSchema:
                 self.processChange("schema_actor")
                 self.model.dbobj.actorDataSchema = self.template.schemaActor.capnpSchema
+                self.model.dbobj.actorDataSchemaHRD = j.sal.fs.fileGetContents(self.path_hrd_schema_actor)
         if j.sal.fs.exists(self.path_hrd_schema_service):
             if self.model.dbobj.serviceDataSchema != self.template.schemaService.capnpSchema:
                 self.processChange("schema_service")
                 self.model.dbobj.serviceDataSchema = self.template.schemaService.capnpSchema
+                self.model.dbobj.serviceDataSchemaHRD = j.sal.fs.fileGetContents(self.path_hrd_schema_service)
 
         scode = self.model.actionsSourceCode
+
         self.model.save()
 
     def copyFilesFromTemplates(self):
@@ -204,11 +217,9 @@ class Actor(ActorBase):
 
 # SERVICE
 
-    def serviceCreate(self, instance="main", args={}, path='', parent=None, consume="", originator=None, model=None):
+    def serviceCreate(self, instance="main", args={}):
         """
         """
-        if parent is not None and instance == "main":
-            instance = parent.instance
 
         instance = instance.lower()
 
@@ -216,33 +227,48 @@ class Actor(ActorBase):
 
         if service is not None:
             # print("NEWINSTANCE: Service instance %s!%s  exists." % (self.name, instance))
-            service._actor = self
-            service.init(args=args)
-            if model is not None:
-                service.model = model
+            return service
         else:
+            service = Service(self.aysrepo, self.role, instance)
             key = "%s!%s" % (self.role, instance)
+            dbobj = service.model.dbobj
+            dbobj.role = self.role
+            dbobj.name = instance
+            dbobj.actorName = self.name
+            dbobj.capnpSchema = self.model.dbobj.serviceDataSchema
 
-            if path:
-                fullpath = path
-            elif parent is not None:
+            configdata = self.schemaServiceCapnp.new_message(**args)
+            dbobj.configData = configdata.to_bytes_packed()
+
+            r = service.model.gitRepoAdd()
+
+            r.url = self.aysrepo.git.remoteUrl
+
+            parent = self.schemaServiceHRD.parentSchemaItemGet()
+            if parent != None:
+                from IPython import embed
+                print("DEBUG NOW found parent")
+                embed()
+                raise RuntimeError("stop debug here")
+
+            producers = self.schemaServiceHRD.consumeSchemaItemsGet()
+            if producers != []:
+                from IPython import embed
+                print("DEBUG NOW producers")
+                embed()
+                raise RuntimeError("stop debug here")
+
+            if parent is not None:
                 fullpath = j.sal.fs.joinPaths(parent.path, key)
             else:
                 ppath = j.sal.fs.joinPaths(self.aysrepo.path, "services")
                 fullpath = j.sal.fs.joinPaths(ppath, key)
 
-            if j.sal.fs.isDir(fullpath):
-                j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (
-                    self.role, instance, fullpath))
+            r.path = fullpath
 
-            service = Service(aysrepo=self.aysrepo, actor=self, instance=instance,
-                              args=args, path="", parent=parent, originator=originator, model=model)
+            service.model.save()
 
-            self.aysrepo._services[service.key] = service
-
-            # service.init(args=args)
-
-        service.consume(consume)
+            service.processChange("init")
 
         return service
 

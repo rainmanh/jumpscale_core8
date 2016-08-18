@@ -68,6 +68,8 @@ struct Actor {
   serviceDataUI @12 :Text;
   actorDataUI @13 :Text;
 
+  serviceDataSchemaHRD @14 :Text;
+  actorDataSchemaHRD @15 :Text;
 
 
 }
@@ -130,9 +132,13 @@ struct Service {
   configData @8 :Data;
   # bytes version of the content of schema.hrd after translation to canpn
 
-  key @9 :Text;
+  #schema of config data in textual format
+  capnpSchema @9 :Text;
 
-  gitRepos @10 :List(GitRepo);
+  key @10 :Text;
+  role @11 :Text;
+
+  aysRepos @12 :List(GitRepo);
   struct GitRepo {
     #git url
     url @0 :Text;

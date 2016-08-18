@@ -7,24 +7,19 @@ VALID_STATES = ['new', 'installing', 'ok', 'error', 'disabled', 'changed']
 
 class ServiceModel(ModelBase):
 
-    def __init__(self, service, category='', db=None, key=''):
+    def __init__(self, category='', db=None, key=''):
         self._capnp = j.atyourservice.db.AYSModel.Service
-        self.service = service
-        self._hrd = None
-
         super(ServiceModel, self).__init__(category=category, db=db, key=key)
-        self.changed = False
 
     def _post_init(self):
-        # self.db.parent = j.atyourservice.AYSModel.actor.actorPointer.new_message()  # TODO
-        self.dbobj.name = self.service.key
-        # self.dbobj.actor
         self.dbobj.key = j.data.idgenerator.generateGUID()
 
+    def _get_key(self):
+        # return a unique key to be used in db (std the key but can be overriden)
+        return self.dbobj.role + "!" + self.dbobj.instance
 
     def _pre_save(self):
         pass
-
 
     def producersAdd(self):
         olditems = [item.to_dict() for item in self.dbobj.producers]
@@ -301,11 +296,11 @@ class ServiceModel(ModelBase):
 
         return out
 
-    def save(self):
-        if self.changed:
-            # self.service.logger.info ("State Changed, writen to disk.")
-            j.data.serializer.yaml.dump(self._path, self.model)
-            self.changed = False
+    # def save(self):
+    #     if self.changed:
+    #         # self.service.logger.info ("State Changed, writen to disk.")
+    #         j.data.serializer.yaml.dump(self._path, self.model)
+    #         self.changed = False
 
     def __repr__(self):
         return str(self.wiki)

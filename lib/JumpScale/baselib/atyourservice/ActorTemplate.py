@@ -20,7 +20,7 @@ class ActorBase:
         self.path_hrd_actor = j.sal.fs.joinPaths(self.path, "actor.hrd")
         self._path_actions = j.sal.fs.joinPaths(self.path, "actions.py")
         self.path_hrd_schema_actor = j.sal.fs.joinPaths(self.path, "schema_actor.hrd")
-        self.path_hrd_schema_service = j.sal.fs.joinPaths(self.path, "schema_service.hrd")
+        self.path_hrd_schema_service = j.sal.fs.joinPaths(self.path, "schema.hrd")
         self.path_capnp_schema_actor = j.sal.fs.joinPaths(self.path, "actor.capnp")
         self.path_capnp_schema_service = j.sal.fs.joinPaths(self.path, "service.capnp")
         self.path_mongo_model = j.sal.fs.joinPaths(self.path, "model.py")

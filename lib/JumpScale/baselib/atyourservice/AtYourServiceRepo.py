@@ -175,25 +175,15 @@ class AtYourServiceRepo():
         if role.strip() == "" or instance.strip() == "":
             raise j.exceptions.Input("role or instance cannot be empty.")
         key = "%s!%s" % (role, instance)
-        if key in self.services:
-            return self.services[key]
-        if die:
-            raise j.exceptions.Input("Cannot get ays service '%s', did not find" % key, "ays.getservice")
-        else:
-            return None
-
-        return res[0]
-
-    def serviceGetFromKey(self, key):
-        """
-        key in format $reponame!$name!$instance@role ($version)
-
-        """
-        if key.count("!") == 2:
-            reponame, role, instance = key.split("!")
-        else:
-            role, instance = key.split("!")
-        return self.getService(instance=instance, role=role, die=True)
+        if j.atyourservice.db.service.exists(key) == False:
+            if die is False:
+                return None
+            else:
+                raise j.exceptions.Input("Cannot get ays service '%s', did not find" % key, "ays.getservice")
+        from IPython import embed
+        print("DEBUG NOW service get")
+        embed()
+        raise RuntimeError("stop debug here")
 
     @property
     def services(self):

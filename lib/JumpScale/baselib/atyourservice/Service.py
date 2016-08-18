@@ -39,23 +39,26 @@ def getProcessDicts(service, args={}):
 
 class Service:
 
-    def __init__(self, aysrepo, actor=None, instance=None, path="", args={}, originator=None, parent=None, model=None):
+    def __init__(self, aysrepo, role, instance):
         """
         """
         self.logger = aysrepo.logger
         self.aysrepo = aysrepo
-        self.actor = actor
-        self._hrd = None
 
-        if args is None:
-            args = {}
+        self.key = role + "!" + instance
 
-        # self.reset()
-        #
-        # self.originator = originator
-        #
-        self.model = None
-        # self._action_methods = None
+        if j.atyourservice.db.service.exists(self.key):
+            self.model = j.atyourservice.db.service.new()
+        else:
+            self.model = j.atyourservice.db.service.get(self.key)
+
+        return
+
+        # copy the files
+        # TOO: needs to be real check (after debug)
+        if True or not j.sal.fs.exists(path=self.path):
+            self.loadFromFS()
+
         #
         if path != "" and j.sal.fs.exists(path):
             self._role, self._instance = j.sal.fs.getBaseName(path).split("!")
@@ -133,7 +136,7 @@ class Service:
             j.sal.fs.createDir(self.path)
 
             # if actor.template.schema is None and actor.template.hrd is None:
-                # self._hrd = "EMPTY"
+            # self._hrd = "EMPTY"
 
             # if model is not None:
             #     self.model = model
@@ -188,23 +191,14 @@ class Service:
         self._parentChain = None
         self._parent = None
         self._actor = None
-        self._model = None
-
-    @property
-    def key(self):
-        return self._key
-
-    @property
-    def gkey(self):
-        return self._gkey
 
     @property
     def role(self):
-        return self._role
+        return self.model.dbobj.role
 
     @property
     def instance(self):
-        return self._instance
+        return self.model.dbobj.instance
 
     # @property
     # def actor(self):
@@ -251,7 +245,7 @@ class Service:
                 self._hrd = capnp_models.Schema.new_message()
         return self._hrd
         # if self._hrd == "EMPTY":
-            # return None
+        # return None
         # if self._hrd is None:
         #     hrdpath = j.sal.fs.joinPaths(self.path, "instance.hrd")
         #     if not j.sal.fs.exists(path=hrdpath):
@@ -319,14 +313,17 @@ class Service:
             self._hrd = self.actor.template.schema.hrdGet(hrd=self.hrd, args={})
             self._hrd.path = j.sal.fs.joinPaths(self.path, "instance.hrd")
 
+    def processChange(self, item):
+        pass
+
     def init(self, args={}):
-        return
-        if args is None:
-            args = {}
 
         self.logger.info('INIT service: %s' % self)
 
-        # run the args manipulation action as an action
+        # j.sal.fs.createDir(self.model.dbobj.origin.path)
+
+        # TODO: call init action
+
         self.model.save()
         args = self.actions.input(self, self.actor, self.role, self.instance, args)
 

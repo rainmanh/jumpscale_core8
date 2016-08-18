@@ -44,3 +44,9 @@ class ActionCodeModel(ModelBase):
             newlist[i] = item
         ooo = newlist[-1]
         return ooo
+
+    def capnpClass(self):
+        from IPython import embed
+        print("DEBUG NOW capnpClass")
+        embed()
+        raise RuntimeError("stop debug here")

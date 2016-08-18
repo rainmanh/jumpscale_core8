@@ -26,6 +26,7 @@ from apps.CuisineHadoop import Hadoop
 from apps.CuisineArakoon import Arakoon
 from apps.CuisineVolumeDriver import VolumeDriver
 from apps.CuisineAlba import Alba
+from apps.CuisineLedis import Ledis
 
 import time
 
@@ -72,6 +73,7 @@ class CuisineApps(base):
         self._volumedriver = None
         self._alba = None
         self._hadoop = None
+        self._ledis = None
 
     @property
     def weave(self):
@@ -201,6 +203,12 @@ class CuisineApps(base):
         if self._hadoop is None:
             self._hadoop = Hadoop(self.executor, self.cuisine)
         return self._hadoop
+
+    @property
+    def ledis(self):
+        if self._ledis is None:
+            self._ledis = Ledis(self.executor, self.cuisine)
+        return self._ledis
 
     @actionrun(action=True)
     def installdeps(self):

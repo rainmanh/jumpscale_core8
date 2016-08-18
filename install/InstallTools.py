@@ -1092,8 +1092,7 @@ class InstallTools:
             loop = asyncio.get_event_loop()
         
         rc, out, err = loop.run_until_complete(_execute(command))
-        loop.stop()
-        loop.run_forever()
+        loop.close()
 
         if rc > 0 and die:
             if err:

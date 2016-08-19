@@ -95,13 +95,13 @@ class CuisineInstallerDevelop(base):
         python3 setup.py install
         """
         C = self.cuisine.core.args_replace(C)
-        self.cuisine.core.run_script(C, force=False)
+        self.cuisine.core.run_script(C)
 
         # gevent
         C = """
         pip3 install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
         """
-        self.cuisine.core.run_script(C, force=False)
+        self.cuisine.core.run_script(C)
 
         C = """
         # cffi==1.5.2
@@ -192,7 +192,7 @@ class CuisineInstallerDevelop(base):
     def jumpscale8(self):
         if self.cuisine.installer.jumpscale_installed():
             return
-        self.installJS8Deps(force=False)
+        self.installJS8Deps()
 
         if self.cuisine.core.isUbuntu or self.cuisine.core.isArch:
 

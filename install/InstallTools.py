@@ -10,6 +10,7 @@ import subprocess
 import time
 import fnmatch
 import signal
+import asyncio
 from sys import argv
 from subprocess import Popen, PIPE
 import os
@@ -17,16 +18,15 @@ import io
 import threading
 from threading import Thread, Lock
 import queue
-import os
-# import smtplib
 import re
 import inspect
 
-# from JumpScale import j
+if sys.platform != 'cygwin':
+    import uvloop
 
 
-class InstallTools():
 
+class InstallTools:
     def __init__(self, debug=False):
 
         self.TMP = tempfile.gettempdir().replace("\\", "/")
@@ -985,7 +985,7 @@ class InstallTools():
             rc, res, err = self.execute("bash %s" % path2, die=die,  showout=showout, outputStderr=outputStderr)
         return rc, res, err
 
-    def executeCmds(self, cmdstr, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=120, errors=[], ok=[], captureout=True, die=True):
+    def executeCmds(self, cmdstr, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=120, captureout=True, die=True):
         rc_ = []
         out_ = ""
         for cmd in cmdstr.split("\n"):
@@ -993,7 +993,7 @@ class InstallTools():
                 continue
             cmd = cmd.strip()
             rc, out, err = self.execute(cmd, showout, outputStderr, useShell, log,
-                                        cwd, timeout, errors, ok, captureout, die)
+                                        cwd, timeout, captureout, die)
             rc_.append(str(rc))
             out_ += out
 
@@ -1024,148 +1024,88 @@ class InstallTools():
 
         s.quit()
 
-    def execute(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[],
-                ok=[], captureout=True, die=True, async=False, executor=None):
+    def execute(self, command, showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=1,
+                        captureout=True, die=True, async=False, executor=None):
+
         """
-        @param errors is array of statements if found then exit as error
-        return rc,out
+        Execute command
+        @param command: Command to be executed
+        @param showout: print output line by line while processing the command
+        @param outputStderr: print error line by line while processing the command
+        @param useShell: Execute command as a shell command
+        @param log:
+        @param cwd: If cwd is not None, the function changes the working directory to cwd before executing the child
+        @param timeout: If not None, raise TimeoutError if command execution time > timeout 
+        @param captureout: If True, returns output of cmd. Else, it returns empty str
+        @param die: If True, raises error if cmd failed. else, fails silently and returns error in the output
+        @param async: If true, return Process object. DO CLOSE THE PROCESS AFTER FINISHING BY process.wait()
+        @param executor: If not None returns output of executor.execute(....)
+        @return: (returncode, output, error). output and error defaults to empty string 
         """
 
-        # print "EXEC:"
-        # print command
         if executor:
             return executor.execute(command, die=die, checkok=False, async=async,  showout=True, timeout=timeout)
-        os.environ["PYTHONUNBUFFERED"] = "1"
-        ON_POSIX = 'posix' in sys.builtin_module_names
-
-        popenargs = {}
-        if hasattr(subprocess, "_mswindows"):
-            mswindows = subprocess._mswindows
-        else:
-            mswindows = subprocess.mswindows
-
-        if not mswindows:
-            # Reset all signals before calling execlp but after forking. This
-            # fixes Python issue 1652 (http://bugs.python.org/issue1652) and
-            # jumpscale ticket 189
-            def reset_signals():
-                '''Reset all signals to SIG_DFL'''
-                for i in range(1, signal.NSIG):
-                    if signal.getsignal(i) != signal.SIG_DFL:
-                        try:
-                            signal.signal(i, signal.SIG_DFL)
-                        except OSError:
-                            # Skip, can't set this signal
-                            pass
-            popenargs["preexec_fn"] = reset_signals
-
-        # print(":: Executing {} with LD_LIBRARY_PATH: {}".format(command, os.environ.get('LD_LIBRARY_PATH', None)))
-        p = Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX,
-                  shell=useShell, env=os.environ, universal_newlines=True, cwd=cwd, bufsize=0, **popenargs)
-
-        # BROKE execution on my mac? return was empty string
-        # p.stdout = io.TextIOWrapper(p.stdout.buffer, encoding="UTF-8")
-        # p.stderr = io.TextIOWrapper(p.stderr.buffer, encoding="UTF-8")
 
         if async:
-            return p
+            os.environ["PYTHONUNBUFFERED"] = "1"
+            ON_POSIX = 'posix' in sys.builtin_module_names
 
-        class StreamReader(threading.Thread):
+            proc = Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX, \
+                    shell=useShell, env=os.environ, universal_newlines=True, cwd=cwd, bufsize=0)
+            return proc
 
-            def __init__(self, stream, queue, flag):
-                super(StreamReader, self).__init__()
-                self.stream = stream
-                self.queue = queue
-                self.flag = flag
-                self._stopped = False
-                self.setDaemon(True)
-
-            def run(self):
-                while not self.stream.closed and not self._stopped:
-                    buf = self.stream.readline()
-                    if len(buf) > 0:
-                        self.queue.put((self.flag, buf))
-                    else:
-                        break
-                self.stream.close()
-                self.queue.put(('T', self.flag))
-
-        # import codecs
-
-        serr = p.stderr
-        sout = p.stdout
-        #serr = os.fdopen(p.stderr.fileno(), 'r', encoding='UTF-8')
-        #sout =os.fdopen(p.stdout.fileno(), 'r', encoding='UTF-8')
-        inp = queue.Queue()
-
-        outReader = StreamReader(sout, inp, 'O')
-        errReader = StreamReader(serr, inp, 'E')
-
-        outReader.start()
-        errReader.start()
-
-        start = time.time()
-
-        err = ""
-        out = ""
-        rc = 1000
-
-        out_eof = False
-        err_eof = False
-
-        while not out_eof or not err_eof:
-            # App still working
-            try:
-                chan, line = inp.get(block=True, timeout=1.0)
-                if chan == 'T':
-                    if line == 'O':
-                        out_eof = True
-                    elif line == 'E':
-                        err_eof = True
-                    continue
-
-                if ok != []:
-                    for item in ok:
-                        if line.find(item) != -1:
-                            rc = 0
-                            break
-                if errors != []:
-                    for item in errors:
-                        if line.find(item) != -1:
-                            rc = 997
-                            break
-                    if rc == 997 or rc == 0:
-                        break
-
-                if chan == 'O':
-                    if showout:
-                        try:
-                            print((line.strip()))
-                        except:
-                            pass
-                    if captureout:
-                        out += line
-                elif chan == 'E':
-                    if outputStderr:
-                        print(("E:%s" % line.strip()))
-                    if captureout:
-                        err += line
-
-            except queue.Empty:
-                pass
-            if timeout > 0:
-                if time.time() > start + timeout:
-                    print("TIMEOUT")
-                    rc = 999
-                    p.kill()
+        @asyncio.coroutine
+        def _read_stream(_showout, stream):
+            """coroutine to read prints output based on stream"""
+            out = ''
+            while True:
+                line = yield from stream.readline()
+                if not line:
                     break
 
-        if rc != 999:
-            outReader.join()
-            errReader.join()
-            p.wait()
-        if rc == 1000:
-            rc = p.returncode
+                _line = line.decode('UTF-8').strip()
+                if _showout:
+                    print(_line)
+                if captureout:
+                    out += _line + '\n'
+            return out
+
+        @asyncio.coroutine
+        def _execute(cmd):
+            # Create subprocess to execute command, and wait until it's created
+            proc = yield from asyncio.create_subprocess_shell(cmd,
+                                                              stdout=asyncio.subprocess.PIPE,
+                                                              stderr=asyncio.subprocess.PIPE)
+
+            out = yield from _read_stream(showout, proc.stdout)
+            err = yield from _read_stream(outputStderr, proc.stderr)
+
+            try:
+                yield from asyncio.wait_for(proc.wait(), timeout)
+            except asyncio.TimeoutError:
+                # send return of timeout if out is empty and error is not
+                if not out and err:
+                    return 124, out, err
+                return 0, out, err
+            else:
+                return proc.returncode, out, err
+
+        if sys.platform != 'cygwin':
+            # Get get and run coroutines using asyncio
+            try:
+                asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+                loop = asyncio.get_event_loop()
+            except Exception:
+                loop = uvloop.new_event_loop()
+                asyncio.set_event_loop(loop)
+            rc, out, err = loop.run_until_complete(_execute(command))
+            loop.close()
+        else:
+            loop = asyncio.get_event_loop()
+            rc, out, err = loop.run_until_complete(_execute(command))
+            loop.stop()
+            loop.run_forever()
+       
 
         if rc > 0 and die:
             if err:
@@ -1519,6 +1459,7 @@ class InstallTools():
         # cmd="scp %s %s@%s:~/%s"%(keypath,login,remoteipaddr,self.getBaseName(keypath))
         # j.do.executeInteractive(cmd)
 
+
         import paramiko
         paramiko.util.log_to_file("/tmp/paramiko.log")
         ssh = paramiko.SSHClient()
@@ -1832,9 +1773,9 @@ class InstallTools():
                 if url.find("http") != -1:
                     print("http")
                     if branch != None:
-                        cmd = "cd %s;git -c http.sslVerify=false pull origin %s" % (dest, branch)
+                        cmd = "cd %s;git pull origin %s" % (dest, branch)
                     else:
-                        cmd = "cd %s;git -c http.sslVerify=false pull" % dest
+                        cmd = "cd %s;git pull" % dest
                 else:
                     if branch != None:
                         cmd = "cd %s; git fetch ; git reset --hard origin/%s" % (dest, branch)
@@ -1848,10 +1789,10 @@ class InstallTools():
                 extra = "--depth=%s" % depth
             if url.find("http") != -1:
                 if branch != None:
-                    cmd = "cd %s;git -c http.sslVerify=false clone %s --single-branch -b %s %s %s" % (
+                    cmd = "cd %s;git clone %s --single-branch -b %s %s %s" % (
                         self.getParent(dest), extra, branch, url, dest)
                 else:
-                    cmd = "cd %s;git -c http.sslVerify=false clone %s  %s %s" % (self.getParent(dest), extra, url, dest)
+                    cmd = "cd %s;git clone %s  %s %s" % (self.getParent(dest), extra, url, dest)
             else:
                 if branch != None:
                     cmd = "cd %s;git clone %s --single-branch -b %s %s %s" % (
@@ -2125,7 +2066,7 @@ class Installer():
 
         self.debug = True
 
-        self.prepare(SANDBOX=args2['SANDBOX'], base=args2['JSBASE'])
+        self.prepare(SANDBOX=args2['SANDBOX'],base= args2['JSBASE'])
 
         do.execute("mkdir -p %s/.ssh/" % os.environ["HOME"])
         do.execute("ssh-keyscan github.com 2> /dev/null  >> {0}/.ssh/known_hosts; ssh-keyscan git.aydo.com 2> /dev/null >> {0}/.ssh/known_hosts".format(

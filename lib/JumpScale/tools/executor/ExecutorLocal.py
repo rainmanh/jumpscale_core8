@@ -19,7 +19,7 @@ class ExecutorLocal(ExecutorBase):
         if cmds.find('\n') == -1:
             if self.debug:
                 print("EXECUTOR:%s" % cmds)
-            return j.do.execute(cmds, die=die, async=async, showout=showout, outputStderr=outputStderr)
+            return j.do.execute(cmds, die=die, async=async, showout=showout, outputStderr=outputStderr, timeout=timeout)
         if self.debug:
             print("EXECUTOR:\n%s\n" % cmds)
 

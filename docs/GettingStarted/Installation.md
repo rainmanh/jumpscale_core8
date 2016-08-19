@@ -1,17 +1,19 @@
-# Installation
+## Installation
 
-## Supported platforms
+### Supported platforms
 
 - Ubuntu 14+
 - Mac OSX Yosemite
 - Windows 10 (Cygwin)
 
-## Requirements
+
+### Requirements
 
 - Python 3.5
 - curl
 
-## Ubuntu
+
+### Ubuntu
 
 Use the below installation script to make your life easy.
 
@@ -25,35 +27,31 @@ apt-get install -y python3.5 curl
 ```
 
 If you are using an image of Ubuntu prepared for [OpenvCloud](https://gig.gitbooks.io/ovcdoc_public/content/), please be sure the hostname is well set:
-
 ```
 grep $(hostname) /etc/hosts || sed -i "s/.1 localhost/.1 localhost $(hostname)/g" /etc/hosts
 ```
 
 Then you can run the following command:
-
 ```shell
 cd /tmp
 rm -f install.sh
 curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh
 ```
 
-## Mac OSX
+### Mac OSX
 
 - Make sure Brew and curl are installed
-
-  ```
-  /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-  brew install curl
-  brew install python3
-  ```
+```
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+brew install curl
+brew install python3
+```
 
 - install pip3
-
-  ```
-  sudo -s
-  cd ~/tmp;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python3 get-pip.py
-  ```
+```
+sudo -s
+cd ~/tmp;curl -k https://bootstrap.pypa.io/get-pip.py > get-pip.py;python3 get-pip.py
+```
 
 - Go to the shell in Mac OSX:
 
@@ -66,22 +64,15 @@ curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/insta
 bash install.sh
 ```
 
-## Windows 10 (Cygwin)
 
-- Install [Cygwin](https://cygwin.com/install.html)
-- When installing Cygwin search for the following packages in the package menu and select them:
+### Windows 10 (Cygwin)
 
-  - [curl](https://curl.haxx.se/), under net
-  - [gcc-g+_+ :gnu compiler collection(c ++)](https://en.wikipedia.org/wiki/GNU_Compiler_Collection), under devel
-  - [mc](https://www.midnight-commander.org/), under shell
-  - [Paramiko](http://www.paramiko.org/), under python
-
-- Install apt-cyg through:
-
-```shell
-lynx -source rawgit.com/transcode-open/apt-cyg/master/apt-cyg > apt-cyg
-install apt-cyg /bin
-```
+ - Install [Cygwin](https://cygwin.com/install.html)
+ - When installing Cygwin search for the following packages in the package menu and select them:
+     - [curl](https://curl.haxx.se/), under net
+     - [gcc-g++ :gnu compiler collection(c ++)](https://en.wikipedia.org/wiki/GNU_Compiler_Collection), under devel  
+     - [Paramiko](http://www.paramiko.org/), under python
+     - [lynx](http://lynx.browser.org/lynx.html), under web
 
 Then to install JumpScale:
 
@@ -92,7 +83,7 @@ curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/insta
 bash install.sh
 ```
 
-## Reset your system
+### Reset your system
 
 If your installation failed or if you want to remove your current installation, you can execute the following commands:
 
@@ -104,7 +95,8 @@ curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/insta
 bash reset.sh
 ```
 
-## Environment variables that influence the installation process
+
+###  Environment variables that influence the installation process
 
 ```
 GITHUBUSER = ''
@@ -123,7 +115,8 @@ CODEDIR = '/opt/code'
 - GITHUBPASSWD: password used to connect to GitHub
 - JSGIT & AYSGIT: allow us to choose other installation sources for JumpScale as well as AtYourService repo
 
-## More detailed about installation process
+
+### More detailed about installation process
 
 Several scripts are involved to complete the installation:
 

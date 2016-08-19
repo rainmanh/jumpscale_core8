@@ -137,7 +137,7 @@ class RedisKeyValueStore(KeyValueStoreBase):
         fullkeys = self.redisclient.keys("%s*" % prefix)
         keys = list()
         for key in fullkeys:
-            keys.append(key[lprefix:])
+            keys.append(key[lprefix:].decode())
         return keys
 
     def listCategories(self):

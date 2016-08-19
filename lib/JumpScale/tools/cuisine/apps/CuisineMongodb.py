@@ -28,7 +28,7 @@ class Mongodb(base):
 
     @actionrun(action=True)
     def _build(self):
-        self.cuisine.installer.base()
+        # self.cuisine.installer.base()
         exists = self.cuisine.core.command_check("mongod")
 
         if exists:
@@ -47,6 +47,10 @@ class Mongodb(base):
             elif self.cuisine.core.isMac:  # TODO: better platform mgmt
                 url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
             else:
+                from IPython import embed
+                print("DEBUG NOW sds")
+                embed()
+                raise RuntimeError("stop debug here")
                 raise RuntimeError("unsupported platform")
                 return
 

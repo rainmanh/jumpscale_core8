@@ -30,7 +30,7 @@ class Etcd(base):
         @host, string. host of this node in the cluster e.g: http://etcd1.com
         @peer, list of string, list of all node in the cluster. [http://etcd1.com, http://etcd2.com, http://etcd3.com]
         """
-        self.cuisine.golang.install()
+        # self.cuisine.golang.install()
         C = """
         set -ex
         ORG_PATH="github.com/coreos"

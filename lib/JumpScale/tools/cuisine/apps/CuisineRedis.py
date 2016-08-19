@@ -23,7 +23,7 @@ class Redis(base):
 
     @actionrun(action=True)
     def build(self, name="main", ip="localhost", port=6379, maxram=200, appendonly=True, snapshot=False, slave=(), ismaster=False, passwd=None, unixsocket=True, start=True):
-        self.cuisine.installer.base()
+        # self.cuisine.installer.base()
         if self.cuisine.core.isUbuntu:
 
             C = """

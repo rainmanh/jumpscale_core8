@@ -33,7 +33,7 @@ class AydoStor(base):
         @input backend, directory where to save the data push to the store
         """
         self.cuisine.core.dir_remove("%s/src" % self.cuisine.bash.environGet('GOPATH'))
-        self.cuisine.golang.install()
+        # self.cuisine.golang.install()
         self.cuisine.golang.get("github.com/g8os/stor", action=True)
         self.cuisine.core.file_copy(self.cuisine.core.joinpaths(
             self.cuisine.core.dir_paths['goDir'], 'bin', 'stor'), '$base/bin', overwrite=True)

@@ -10,6 +10,8 @@ class ActionDecorator:
 
     # DO NOT CHANGE, FORCE SHOULD BE FALSE BY DEFAULT, OTERHWISE DANGEROUS
     def __init__(self, action=True, force=False, actionshow=True):
+        # for now lets do without actions
+        action = False
         self.action = action
         self.force = force
         self.actionshow = actionshow

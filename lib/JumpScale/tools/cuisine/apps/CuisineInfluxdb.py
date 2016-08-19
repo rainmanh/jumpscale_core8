@@ -22,7 +22,7 @@ base = j.tools.cuisine.getBaseClass()
 class Influxdb(base):
 
     @actionrun(action=True)
-    def install(self, dependencies=True, start=False):
+    def install(self, dependencies=False, start=False):
 
         if dependencies:
             self.cuisine.installer.base()

@@ -23,7 +23,7 @@ class Ledis(base):
 
     @actionrun(action=True)
     def build(self, backend="leveldb"):
-        self.cuisine.installer.base()
+        # self.cuisine.installer.base()
         if self.cuisine.core.isUbuntu:
 
             C = """
@@ -37,10 +37,10 @@ class Ledis(base):
             make
             """
             self.cuisine.golang.install()
-            self.cuisine.git.pullRepo("https://github.com/siddontang/ledisdb", dest="$goDir/src/github.com/siddontang/ledisdb")
+            self.cuisine.git.pullRepo("https://github.com/siddontang/ledisdb",
+                                      dest="$goDir/src/github.com/siddontang/ledisdb")
 
-
-            #set the backend in the server config
+            # set the backend in the server config
             ledisdir = self.cuisine.core.args_replace("$goDir/src/github.com/siddontang/ledisdb")
 
             configcontent = self.cuisine.core.file_read(os.path.join(ledisdir, "config", "config.toml"))
@@ -52,7 +52,7 @@ class Ledis(base):
                 rc, out, err = self._prepareleveldb()
             else:
                 raise NotImplementedError
-            configcontent.replace('db_name = "leveldb"', 'db_name = "%s"'%backend)
+            configcontent.replace('db_name = "leveldb"', 'db_name = "%s"' % backend)
 
             self.cuisine.core.file_write("/tmp/ledisconfig.toml", configcontent)
 
@@ -60,10 +60,10 @@ class Ledis(base):
             out = self.cuisine.core.run_script(script, profile=True)
 
     def _prepareleveldb(self):
-        #execute the build script in tools/build_leveldb.sh
+        # execute the build script in tools/build_leveldb.sh
         # it will install snappy/leveldb in /usr/local{snappy/leveldb} directories
         ledisdir = self.cuisine.core.args_replace("$goDir/src/github.com/siddontang/ledisdb")
-        #leveldb_build file : ledisdir/tools/build_leveldb.sh
+        # leveldb_build file : ledisdir/tools/build_leveldb.sh
         rc, out, err = self.cuisine.core.run("bash {ledisdir}/tools/build_leveldb.sh".format(ledisdir=ledisdir))
         return rc, out, err
 

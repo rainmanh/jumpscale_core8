@@ -25,7 +25,7 @@ class CuisineGolang(base):
 
     @actionrun(action=True)
     def install(self):
-        self.cuisine.installer.base()
+        # self.cuisine.installer.base()
         rc, out, err = self.cuisine.core.run("go version", die=False, showout=False, action=True)
         if rc > 0 or "1.6" not in out:
             if self.cuisine.core.isMac or self.cuisine.core.isArch:

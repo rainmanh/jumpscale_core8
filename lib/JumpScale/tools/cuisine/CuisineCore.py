@@ -1126,7 +1126,7 @@ class CuisineCore(base):
     def pwd(self):
         return self.cd
 
-    # @actionrun()
+    @actionrun()
     def run_script(self, content, die=True, profile=False, interpreter="bash", tmux=False):
         self.logger.info("RUN SCRIPT:")
 

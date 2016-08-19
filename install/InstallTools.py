@@ -21,8 +21,9 @@ import queue
 import re
 import inspect
 
-if sys.platform != 'cygwin':
-    import uvloop
+
+# if sys.platform != 'cygwin':
+#     import uvloop
 
 
 
@@ -1035,12 +1036,12 @@ class InstallTools:
         @param useShell: Execute command as a shell command
         @param log:
         @param cwd: If cwd is not None, the function changes the working directory to cwd before executing the child
-        @param timeout: If not None, raise TimeoutError if command execution time > timeout 
+        @param timeout: If not None, raise TimeoutError if command execution time > timeout
         @param captureout: If True, returns output of cmd. Else, it returns empty str
         @param die: If True, raises error if cmd failed. else, fails silently and returns error in the output
         @param async: If true, return Process object. DO CLOSE THE PROCESS AFTER FINISHING BY process.wait()
         @param executor: If not None returns output of executor.execute(....)
-        @return: (returncode, output, error). output and error defaults to empty string 
+        @return: (returncode, output, error). output and error defaults to empty string
         """
 
         if executor:
@@ -1105,7 +1106,7 @@ class InstallTools:
             rc, out, err = loop.run_until_complete(_execute(command))
             loop.stop()
             loop.run_forever()
-       
+
 
         if rc > 0 and die:
             if err:

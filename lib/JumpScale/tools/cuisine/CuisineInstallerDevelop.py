@@ -1,21 +1,23 @@
 from JumpScale import j
 
 
-
-
-
 from ActionDecorator import ActionDecorator
-class actionrun(ActionDecorator):
-    def __init__(self,*args,**kwargs):
-        ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installerdevelop"
 
-base=j.tools.cuisine.getBaseClass()
+
+class actionrun(ActionDecorator):
+
+    def __init__(self, *args, **kwargs):
+        ActionDecorator.__init__(self, *args, **kwargs)
+        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.installerdevelop"
+
+base = j.tools.cuisine.getBaseClass()
+
+
 class CuisineInstallerDevelop(base):
 
-    def __init__(self,executor,cuisine):
-        self.executor=executor
-        self.cuisine=cuisine
+    def __init__(self, executor, cuisine):
+        self.executor = executor
+        self.cuisine = cuisine
 
     @actionrun(action=True)
     def python(self):
@@ -40,7 +42,7 @@ class CuisineInstallerDevelop(base):
             """
         self.cuisine.package.multiInstall(C)
 
-        C="""
+        C = """
         autoconf
         libffi-dev
         gcc
@@ -63,45 +65,48 @@ class CuisineInstallerDevelop(base):
         if self.cuisine.core.isMac:
             return
 
-        C="""
+        C = """
             #important remove olf pkg_resources, will conflict with new pip
             rm -rf /usr/lib/python3/dist-packages/pkg_resources
             cd $tmpDir/
             rm -rf get-pip.py
             wget --remote-encoding=utf-8 https://bootstrap.pypa.io/get-pip.py
             """
-        C=self.cuisine.core.args_replace(C)
+        C = self.cuisine.core.args_replace(C)
         self.cuisine.core.run_script(C)
-        C="cd $tmpDir/;python3 get-pip.py"
-        C=self.cuisine.core.args_replace(C)
+        C = "cd $tmpDir/;python3 get-pip.py"
+        C = self.cuisine.core.args_replace(C)
         self.cuisine.core.run(C)
 
     @actionrun(action=True)
     def installJS8Deps(self):
-        #make sure base is done & env is clean
-        self.cuisine.installer.base()
+        # make sure base is done & env is clean
+        # self.cuisine.installer.base()
 
         self.python()
         self.pip(action=True)
         self.brotli()
 
-        #python etcd
-        C="""
+        self.cuisine.pip.install('pytoml')
+        self.cuisine.pip.install('pygo')
+
+        # python etcd
+        C = """
         cd $tmpDir/
         git clone https://github.com/jplana/python-etcd.git
         cd python-etcd
         python3 setup.py install
         """
-        C=self.cuisine.core.args_replace(C)
-        self.cuisine.core.run_script(C,force=False)
+        C = self.cuisine.core.args_replace(C)
+        self.cuisine.core.run_script(C, force=False)
 
-        #gevent
-        C="""
+        # gevent
+        C = """
         pip3 install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
         """
-        self.cuisine.core.run_script(C,force=False)
+        self.cuisine.core.run_script(C, force=False)
 
-        C="""
+        C = """
         # cffi==1.5.2
         cffi
         paramiko
@@ -172,19 +177,17 @@ class CuisineInstallerDevelop(base):
         gspread
         oauth2client
         """
-        self.cuisine.pip.multiInstall(C,upgrade=True)
+        self.cuisine.pip.multiInstall(C, upgrade=True)
 
-
-        if self.cuisine.platformtype.osname!="debian":
-            C="""
+        if self.cuisine.platformtype.osname != "debian":
+            C = """
             blosc
             bcrypt
             """
-            self.cuisine.pip.multiInstall(C,upgrade=True)
+            self.cuisine.pip.multiInstall(C, upgrade=True)
 
-        if  not self.cuisine.core.isCygwin:
+        if not self.cuisine.core.isCygwin:
             self.cuisine.apps.redis.build()
-
 
     @actionrun(action=True)
     def jumpscale8(self):
@@ -195,11 +198,11 @@ class CuisineInstallerDevelop(base):
         if self.cuisine.core.isUbuntu or self.cuisine.core.isArch:
 
             if self.cuisine.core.dir_exists("/usr/local/lib/python3.4/dist-packages"):
-                linkcmd="mkdir -p /usr/local/lib/python3.5/dist-packages/JumpScale;ln -s /usr/local/lib/python3.5/dist-packages/JumpScale /usr/local/lib/python3.4/dist-packages/JumpScale"
+                linkcmd = "mkdir -p /usr/local/lib/python3.5/dist-packages/JumpScale;ln -s /usr/local/lib/python3.5/dist-packages/JumpScale /usr/local/lib/python3.4/dist-packages/JumpScale"
                 self.cuisine.core.run(linkcmd)
 
-            C='cd $tmpDir/;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh'
-            C=self.cuisine.core.args_replace(C)
+            C = 'cd $tmpDir/;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh'
+            C = self.cuisine.core.args_replace(C)
             self.cuisine.core.run(C)
         elif self.cuisine.core.isMac:
             cmd = "export TMPDIR=~/tmp;mkdir -p $TMPDIR;cd $TMPDIR;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh"
@@ -215,11 +218,9 @@ class CuisineInstallerDevelop(base):
         self.cuisine.core.dir_remove("$tmpDir")
         self.cuisine.core.dir_ensure("$tmpDir")
 
-
-
     @actionrun(action=True)
     def brotli(self):
-        C="""
+        C = """
         cd /tmp
         sudo rm -rf brotli/
         git clone https://github.com/google/brotli.git
@@ -229,15 +230,15 @@ class CuisineInstallerDevelop(base):
         cp /tmp/brotli/bin/bro /usr/local/bin/
         rm -rf /tmp/brotli
         """
-        C=self.cuisine.core.args_replace(C)
-        self.cuisine.core.run_script(C,force=True)
+        C = self.cuisine.core.args_replace(C)
+        self.cuisine.core.run_script(C, force=True)
 
     @actionrun()
     def xrdp(self):
         """
         builds a full xrdp, this can take a while
         """
-        C="""
+        C = """
         cd /root
         git clone https://github.com/scarygliders/X11RDP-o-Matic.git
         cd X11RDP-o-Matic

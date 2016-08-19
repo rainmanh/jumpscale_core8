@@ -29,7 +29,7 @@ class Arakoon(base):
 
     @actionrun(action=True)
     def _build(self):
-        self.cuisine.installer.base()
+        # self.cuisine.installer.base()
         exists = self.cuisine.core.command_check("arakoon")
 
         if exists:

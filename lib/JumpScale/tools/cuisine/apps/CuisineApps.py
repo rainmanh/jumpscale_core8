@@ -212,8 +212,8 @@ class CuisineApps(base):
 
     @actionrun(action=True)
     def installdeps(self):
-        self.cuisine.installer.base()
-        self.cuisine.golang.install()
-        self.cuisine.pip.upgrade('pip')
-        self.cuisine.pip.install('pytoml')
-        self.cuisine.pip.install('pygo')
+        pass
+        # NO NEED TO DO ITS UPTO USER OF CUISINE TO MAKE SURE REQUIREMENTS ARE MET
+        # self.cuisine.installer.base()
+        # self.cuisine.golang.install()
+        # self.cuisine.pip.upgrade('pip')

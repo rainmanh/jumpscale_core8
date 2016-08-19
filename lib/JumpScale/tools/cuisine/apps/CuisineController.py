@@ -31,7 +31,6 @@ class Controller(base):
         config: https://github.com/g8os/controller.git
         """
         # deps
-        self.cuisine.apps.installdeps()
         self.cuisine.apps.redis.build(start=False)
         self.cuisine.apps.mongodb.build(start=False)
         self.cuisine.apps.syncthing.build(start=False)

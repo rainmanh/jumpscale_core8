@@ -134,7 +134,9 @@ class CuisinePortal(base):
         Werkzeug
         wheel
         # zmq
+        pillow
         """
+        self.cuisine.package.install("libjpeg-dev")
         self.cuisine.pip.multiInstall(deps)
 
     @actionrun(action=True)

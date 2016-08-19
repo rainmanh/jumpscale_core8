@@ -27,6 +27,10 @@ class ModelBase():
         # return a unique key to be used in db (std the key but can be overriden)
         return self.dbobj.key
 
+    def index(self, db):
+        # put indexes in db as specified
+        pass
+
     def load(self, key=""):
         """
         please do not use key when loading, will use predefined one, only relevant in init

@@ -45,6 +45,8 @@ class AtYourServiceRepo():
 
         self._services = {}
 
+        self.indexdb = j.atyourservice.db.getIndexDB(self.name)
+
 
 # INIT
 
@@ -165,11 +167,26 @@ class AtYourServiceRepo():
             return False
         return True
 
+    def actorTemplatesFind(self, name="", domain="", role=''):
+        res = []
+        for template in self.templates:
+            if not(name == "" or template.name == name):
+                # no match continue
+                continue
+            if not(domain == "" or template.domain == domain):
+                # no match continue
+                continue
+            if not (role == '' or template.role == role):
+                # no match continue
+                continue
+            res.append(template)
+        return res
+
 # SERVICES
 
     def serviceGet(self, role, instance, die=True):
         """
-        Return service indentifier by domain,name and instance
+        Return service indentifier by role and instance
         throw error if service is not found or if more than one service is found
         """
         if role.strip() == "" or instance.strip() == "":
@@ -186,18 +203,11 @@ class AtYourServiceRepo():
         raise RuntimeError("stop debug here")
 
     @property
-    def services(self):
-        self._doinit()
-        if self._services == {}:
-            services_path = j.sal.fs.joinPaths(self.path, "services")
-            if not j.sal.fs.exists(services_path):
-                return {}
-            for hrd_path in j.sal.fs.listFilesInDir(services_path, recursive=True, filter="state.yaml",
-                                                    case_sensitivity='os', followSymlinks=True, listSymlinks=False):
-                service_path = j.sal.fs.getDirName(hrd_path)
-                service = Service(self, path=service_path, args=None)
-                self._services[service.key] = service
-        return self._services
+    def serviceKeys(self):
+        from IPython import embed
+        print("DEBUG NOW serviceKeys")
+        embed()
+        raise RuntimeError("stop debug here")
 
     @property
     def servicesTree(self):

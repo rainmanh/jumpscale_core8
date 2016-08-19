@@ -15,12 +15,6 @@ from JumpScale.baselib.atyourservice.AtYourServiceDB import AtYourServiceDBFacto
 
 import colored_traceback
 
-# THINK NO LONGER NEEDED
-# try:
-#     from JumpScale.baselib.atyourservice.AtYourServiceSandboxer import *
-# except:
-#     pass
-
 import os
 
 
@@ -81,7 +75,6 @@ class AtYourServiceFactory:
 
                 global_templates_repos = j.application.config.getDictFromPrefix("atyourservice.metadata")
 
-                # new = False
                 for domain in list(global_templates_repos.keys()):
                     url = global_templates_repos[domain]['url']
                     if url.strip() == "":
@@ -90,11 +83,6 @@ class AtYourServiceFactory:
                     templateReponame = url.rpartition("/")[-1]
                     if templateReponame not in list(localGitRepos.keys()):
                         j.do.pullGitRepo(url, dest=None, depth=1, ignorelocalchanges=False, reset=False, branch=branch)
-                        # new = True
-
-                # if new:
-                #     # if we downloaded then we need to update the list
-                #     localGitRepos = j.do.getGitReposListLocal()
 
             # load global templates
             for domain, repo_info in global_templates_repos.items():
@@ -170,6 +158,7 @@ class AtYourServiceFactory:
     def _actorTemplatesGet(self, gitrepo, path="", result=[], aysrepo=None):
         """
         path is absolute path (if specified)
+        this is used in factory as well as in repo code, this is the code which actually finds the templates
         """
         if path == "":
             path = gitrepo.path
@@ -209,35 +198,6 @@ class AtYourServiceFactory:
                     result = self._actorTemplatesGet(gitrepo, servicepath, result, aysrepo=aysrepo)
 
         return result
-
-    def getService(self, key, die=True):
-        if key.count("!") != 2:
-            raise j.exceptions.Input("key:%s needs to be $repopath!$role!$instance" % key)
-        repopath, role, instance = key.split("!", 2)
-        if not self.exist(path=repopath):
-            if die:
-                raise j.exceptions.Input(
-                    "service repo %s does not exist, could not retrieve ays service:%s" % (repopath, key))
-            else:
-                return None
-        repo = self.get(path=repopath)
-        return repo.getService(role=role, instance=instance, die=die)
-
-    def actorTemplateGet(self, name, die=True):
-        """
-        get an actor template
-        """
-        self._doinit()
-        if name in self.actorTemplates:
-            return self.actorTemplates[name]
-        if die:
-            raise j.exceptions.Input("Cannot find template with name:%s" % name)
-
-    def actorTemplateExists(self, name):
-        self._doinit()
-        if self.templateGet(name, die=False) is None:
-            return False
-        return True
 
 # REPOS
 
@@ -337,25 +297,6 @@ class AtYourServiceFactory:
             else:
                 raise j.exceptions.Input(
                     message="found more than 1 repo, cannot define which one to use", level=1, source="", tags="", msgpub="")
-
-
-# SERVICE
-
-    def serviceGet(self, key, die=True):
-        self._doinit()
-        if key.count("!") != 2:
-            raise j.exceptions.Input(
-                "key:%s needs to be $templateReponame!$role!$instance" % key)
-        templateReponame, role, instance = key.split("!", 2)
-        if not self.templateRepoExist(name=templateReponame):
-            if die:
-                raise j.exceptions.Input(
-                    "service templateRepo %s does not exist, could not retrieve ays service:%s" % (templateReponame, key))
-            else:
-                return None
-        templateRepo = self.get(name=templateReponame)
-        return templateRepo.getService(role=role, instance=instance, die=die)
-
 
 # FACTORY
 

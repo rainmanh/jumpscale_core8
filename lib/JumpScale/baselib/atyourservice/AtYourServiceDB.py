@@ -20,6 +20,14 @@ class AtYourServiceDBFactory():
     def getDB(self, category):
         return AtYourServiceDB(category)
 
+    def getIndexDB(self, category):
+        """
+        db=j.servers.kvs.getRedisStore("ays", changelog=False)
+        """
+        # TODO: not urgent but will have to use different db for index
+        pre = "index_"
+        return AtYourServiceDB(pre + category)
+
 
 class ModelFactory():
 
@@ -48,9 +56,12 @@ class ModelFactory():
 
 class AtYourServiceDB():
 
-    def __init__(self, category):
+    def __init__(self, category, db=None):
         self.category = category
-        self.db = j.servers.kvs.getRedisStore("ays", changelog=False)
+        if db == None:
+            self.db = j.servers.kvs.getRedisStore("ays", changelog=False)
+        else:
+            self.db = db
 
     def set(self, key, obj):
         self.db.set(self.category, key, obj)
@@ -81,3 +92,7 @@ class AtYourServiceDB():
     def hget(self, name, key):
         # is not compatible with other kvs's. Not good. Rethink
         return self.db.redisclient.hget(name, key)
+
+    def hkeys(self, name):
+        # is not compatible with other kvs's. Not good. Rethink
+        return self.db.redisclient.hkeys(name)

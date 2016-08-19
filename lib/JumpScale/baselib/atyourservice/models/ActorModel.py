@@ -12,6 +12,13 @@ class ActorModel(ModelBase):
         self._capnp = j.atyourservice.db.AYSModel.Actor
         ModelBase.__init__(self, category, db, key)
 
+    def index(self, db):
+        # put indexes in db as specified
+        from IPython import embed
+        print("DEBUG NOW cache actor")
+        embed()
+        raise RuntimeError("stop debug here")
+
     @property
     def actionsSortedList(self):
         """

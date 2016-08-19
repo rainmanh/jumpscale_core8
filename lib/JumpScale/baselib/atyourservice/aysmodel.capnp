@@ -138,7 +138,7 @@ struct Service {
   key @10 :Text;
   role @11 :Text;
 
-  aysRepos @12 :List(GitRepo);
+  gitRepos @12 :List(GitRepo);
   struct GitRepo {
     #git url
     url @0 :Text;

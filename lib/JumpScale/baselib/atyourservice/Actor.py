@@ -15,6 +15,8 @@ ActionsBase=j.atyourservice.getActionsBaseClass()
 """
 
 
+
+
 class Actor(ActorBase):
 
     def __init__(self, aysrepo, template):
@@ -238,7 +240,24 @@ class Actor(ActorBase):
             dbobj.actorName = self.name
             dbobj.capnpSchema = self.model.dbobj.serviceDataSchema
 
-            configdata = self.schemaServiceCapnp.new_message(**args)
+            try:
+                configdata = self.schemaServiceCapnp.new_message(**args)
+            except Exception as e:
+                if str(e).find("has no such member") != -1:
+                    msg = "cannot create service from arguments\n"
+                    msg += "actor:'%s' servicename:'%s'" % (self.name, instance)
+                    msg += "arguments:\n%s\n" % j.data.serializer.json.dumps(args, sort_keys=True, indent=True)
+                    msg += "schema:\n%s" % dbobj.capnpSchema
+                    ee = str(e).split("stack:")[0]
+                    ee = ee.split("failed:")[1]
+                    msg += "capnperror:%s" % ee
+                    from IPython import embed
+                    print("DEBUG NOW 98")
+                    embed()
+                    raise RuntimeError("stop debug here")
+                    raise j.exceptions.Input(message=msg, level=1, source="", tags="", msgpub="")
+
+                raise e
             dbobj.configData = configdata.to_bytes_packed()
 
             r = service.model.gitRepoAdd()

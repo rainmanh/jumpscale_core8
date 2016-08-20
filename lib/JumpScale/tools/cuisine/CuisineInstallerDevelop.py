@@ -211,12 +211,59 @@ class CuisineInstallerDevelop(base):
             raise j.exceptions.RuntimeError("platform not supported yet")
 
     @actionrun(action=True)
-    def cleanup(self):
+    def cleanup(self, aggressive=False):
         self.cuisine.core.run("apt-get clean")
         self.cuisine.core.dir_remove("/var/tmp/*")
         self.cuisine.core.dir_remove("/etc/dpkg/dpkg.cfg.d/02apt-speedup")
         self.cuisine.core.dir_remove("$tmpDir")
         self.cuisine.core.dir_ensure("$tmpDir")
+
+        self.cuisine.core.dir_remove("$goDir/src/*", force=True)
+        self.cuisine.core.dir_remove("$tmpDir/*", force=True)
+        self.cuisine.core.dir_remove("$varDir/data/*", force=True)
+        self.cuisine.core.dir_remove('/opt/code/github/domsj', True)
+        self.cuisine.core.dir_remove('/opt/code/github/openvstorage', True)
+
+        C = """
+        cd /opt;find . -name '*.pyc' -delete
+        cd /opt;find . -name '*.log' -delete
+        cd /opt;find . -name '__pycache__' -delete
+        """
+        self.cuisine.core.run_script(C)
+
+        if aggressive:
+            C = """
+            set -ex
+            cd /
+            find -regex '.*__pycache__.*' -delete
+            rm -rf /var/log
+            mkdir -p /var/log/apt
+            rm -rf /var/tmp
+            mkdir -p /var/tmp
+            rm -rf /usr/share/doc
+            mkdir -p /usr/share/doc
+            rm -rf /usr/share/gcc-5
+            rm -rf /usr/share/gdb
+            rm -rf /usr/share/gitweb
+            rm -rf /usr/share/info
+            rm -rf /usr/share/lintian
+            rm -rf /usr/share/perl
+            rm -rf /usr/share/perl5
+            rm -rf /usr/share/pyshared
+            rm -rf /usr/share/python*
+            rm -rf /usr/share/zsh
+
+            rm -rf /usr/share/locale-langpack/en_AU
+            rm -rf /usr/share/locale-langpack/en_CA
+            rm -rf /usr/share/locale-langpack/en_GB
+            rm -rf /usr/share/man
+
+            rm -rf /usr/lib/python*
+            rm -rf /usr/lib/valgrind
+
+            rm -rf /usr/bin/python*
+            """
+            self.cuisine.core.run_script(C)
 
     @actionrun(action=True)
     def brotli(self):

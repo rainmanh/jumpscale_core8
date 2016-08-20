@@ -21,7 +21,7 @@ base = j.tools.cuisine.getBaseClass()
 
 class Etcd(base):
 
-    @actionrun(action=True)
+    
     def build(self, start=True, host=None, peers=[]):
         """
         Build and start etcd
@@ -30,7 +30,7 @@ class Etcd(base):
         @host, string. host of this node in the cluster e.g: http://etcd1.com
         @peer, list of string, list of all node in the cluster. [http://etcd1.com, http://etcd2.com, http://etcd3.com]
         """
-        # self.cuisine.golang.install()
+        # self._cuisine.golang.install()
         C = """
         set -ex
         ORG_PATH="github.com/coreos"
@@ -52,20 +52,20 @@ class Etcd(base):
         CGO_ENABLED=0 go build $GO_BUILD_FLAGS -installsuffix cgo -ldflags "-s" -o $binDir/etcdctl ${REPO_PATH}/cmd/etcdctl
         """
 
-        C = self.cuisine.bash.replaceEnvironInText(C)
-        self.cuisine.core.run_script(C, profile=True, action=True)
-        self.cuisine.bash.addPath("$base/bin")
+        C = self._cuisine.bash.replaceEnvironInText(C)
+        self._cuisine.core.run_script(C, profile=True)
+        self._cuisine.bash.addPath("$base/bin")
 
         if start:
             self.start(host, peers)
 
     def start(self, host=None, peers=None):
-        self.cuisine.process.kill("etcd")
+        self._cuisine.process.kill("etcd")
         if host and peers:
             cmd = self._etcd_cluster_cmd(host, peers)
         else:
             cmd = '$binDir/etcd'
-        self.cuisine.processmanager.ensure("etcd", cmd)
+        self._cuisine.processmanager.ensure("etcd", cmd)
 
     def _etcd_cluster_cmd(self, host, peers=[]):
         """
@@ -93,4 +93,4 @@ class Etcd(base):
       -initial-cluster {cluster} \
       -initial-cluster-state new \
     """.format(host=host, cluster=cluster, i=number)
-        return self.cuisine.core.args_replace(cmd)
+        return self._cuisine.core.args_replace(cmd)

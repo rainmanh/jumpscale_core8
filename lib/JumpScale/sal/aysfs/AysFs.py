@@ -46,9 +46,9 @@ class AysFsFactory:
 class AysFs:
 
     def __init__(self, name, cuisine=None):
-        self.cuisine = cuisine
-        if self.cuisine is None:
-            self.cuisine = j.tools.cuisine.local
+        self._cuisine = cuisine
+        if self._cuisine is None:
+            self._cuisine = j.tools.cuisine.local
 
         self.mounts = []
         self.backends = []
@@ -57,7 +57,7 @@ class AysFs:
         self.root = '/aysfs'
         self.name = name.replace('/', '-')
         self.unique = False
-        self.tmux = self.cuisine.tmux
+        self.tmux = self._cuisine.tmux
 
         self.defstor = 'https://stor.jumpscale.org/storx'
 
@@ -191,7 +191,7 @@ class AysFs:
         return j.data.serializer.toml.dumps(config)
 
     def unmount(self, path):
-        self.cuisine.core.run('umount %s; exit 0' % path)
+        self._cuisine.core.run('umount %s; exit 0' % path)
 
     def _ensure_path(self, path):
         if not j.sal.fs.exists(path):

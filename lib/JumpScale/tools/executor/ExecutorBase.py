@@ -94,7 +94,7 @@ class ExecutorBase:
     def cuisine(self):
         if self._cuisine == None:
             self._cuisine = j.tools.cuisine.get(self)
-            self._cuisine.executor = self
+            self._cuisine._executor = self
             try:
                 self._cuisine.sshclient = self.sshclient
             except:
@@ -102,4 +102,4 @@ class ExecutorBase:
         return self._cuisine
 
     def exists(self, path):
-        return self.cuisine.core.file_exists(path)
+        return self._cuisine.core.file_exists(path)

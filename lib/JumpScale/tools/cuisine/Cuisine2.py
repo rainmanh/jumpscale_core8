@@ -38,7 +38,7 @@ class JSCuisine:
 
     def __init__(self, executor):
 
-        self.executor = executor
+        self._executor = executor
         self.runid = self.id
 
         self._installer = None
@@ -61,7 +61,7 @@ class JSCuisine:
         self._tmux = None
         self._golang = None
         self._ufw = None
-        self.cuisine = self
+        self._cuisine = self
         self._fqn = ""
         self._dnsmasq = None
         self._docker = None
@@ -70,18 +70,18 @@ class JSCuisine:
         self._builder = None
         self._capnp = None
 
-        self.core = CuisineCore(self.executor, self)
+        self.core = CuisineCore(self._executor, self)
 
-        self.sshreflector = CuisineSSHReflector(self.executor, self)
-        self.proxy = CuisineProxy(self.executor, self)
-        self.bootmediaInstaller = CuisineBootMediaInstaller(self.executor, self)
-        self.vrouter = CuisineVRouter(self.executor, self)
-        self.tmux = CuisineTmux(self.executor, self)
-        self.lua = CuisineLua(self.executor, self)
-        self.pnode = CuisinePNode(self.executor, self)
-        self.sandbox = CuisineSandbox(self.executor, self)
-        self.stor = CuisineStor(self.executor, self)
-        self.fw = CuisineFW(self.executor, self)
+        self.sshreflector = CuisineSSHReflector(self._executor, self)
+        self.proxy = CuisineProxy(self._executor, self)
+        self.bootmediaInstaller = CuisineBootMediaInstaller(self._executor, self)
+        self.vrouter = CuisineVRouter(self._executor, self)
+        self.tmux = CuisineTmux(self._executor, self)
+        self.lua = CuisineLua(self._executor, self)
+        self.pnode = CuisinePNode(self._executor, self)
+        self.sandbox = CuisineSandbox(self._executor, self)
+        self.stor = CuisineStor(self._executor, self)
+        self.fw = CuisineFW(self._executor, self)
 
         self.reset = self.core.reset
 
@@ -92,101 +92,101 @@ class JSCuisine:
 
     @property
     def btrfs(self):
-        j.sal.btrfs._executor = self.executor
+        j.sal.btrfs._executor = self._executor
         return j.sal.btrfs
 
     @property
     def package(self):
         if self._package == None:
-            self._package = CuisinePackage(self.executor, self)
+            self._package = CuisinePackage(self._executor, self)
         return self._package
 
     @property
     def process(self):
         if self._process == None:
-            self._process = CuisineProcess(self.executor, self)
+            self._process = CuisineProcess(self._executor, self)
         return self._process
 
     @property
     def pip(self):
         if self._pip == None:
-            self._pip = CuisinePIP(self.executor, self)
+            self._pip = CuisinePIP(self._executor, self)
         return self._pip
 
     @property
     def ufw(self):
         if self._ufw == None:
-            self._ufw = CuisineUFW(self.executor, self)
+            self._ufw = CuisineUFW(self._executor, self)
         return self._ufw
 
     @property
     def golang(self):
         if self._golang == None:
-            self._golang = CuisineGolang(self.executor, self)
+            self._golang = CuisineGolang(self._executor, self)
         return self._golang
 
     @property
     def geodns(self):
         if self._geodns == None:
-            self._geodns = CuisineGeoDns(self.executor, self)
+            self._geodns = CuisineGeoDns(self._executor, self)
         return self._geodns
 
     @property
     def apps(self):
         if self._apps == None:
-            self._apps = CuisineApps(self.executor, self)
+            self._apps = CuisineApps(self._executor, self)
         return self._apps
 
     @property
     def builder(self):
         if self._builder == None:
-            self._builder = CuisineBuilder(self.executor, self)
+            self._builder = CuisineBuilder(self._executor, self)
         return self._builder
 
     @property
     def id(self):
-        return self.executor.id
+        return self._executor.id
 
     @property
     def platformtype(self):
         if self._platformtype == None:
-            self._platformtype = j.core.platformtype.get(self.executor)
+            self._platformtype = j.core.platformtype.get(self._executor)
         return self._platformtype
 
     @property
     def installer(self):
         if self._installer == None:
-            self._installer = CuisineInstaller(self.executor, self)
+            self._installer = CuisineInstaller(self._executor, self)
         return self._installer
 
     @property
     def installerdevelop(self):
         if self._installerdevelop == None:
-            self._installerdevelop = CuisineInstallerDevelop(self.executor, self)
+            self._installerdevelop = CuisineInstallerDevelop(self._executor, self)
         return self._installerdevelop
 
     @property
     def ns(self):
         if self._ns == None:
-            self._ns = CuisineNS(self.executor, self)
+            self._ns = CuisineNS(self._executor, self)
         return self._ns
 
     @property
     def docker(self):
         if self._docker == None:
-            self._docker = CuisineDocker(self.executor, self)
+            self._docker = CuisineDocker(self._executor, self)
         return self._docker
 
     @property
     def ssh(self):
         if self._ssh == None:
-            self._ssh = CuisineSSH(self.executor, self)
+            self._ssh = CuisineSSH(self._executor, self)
         return self._ssh
 
     @property
     def avahi(self):
         if self._avahi == None:
-            self._avahi = j.tools.avahi.get(self, self.executor)
+            self._avahi = j.tools.avahi.get(self, self._executor)
         return self._avahi
 
     @property
@@ -194,37 +194,37 @@ class JSCuisine:
         if self._dnsmasq == None:
             self._dnsmasq = j.sal.dnsmasq
             self._dnsmasq.cuisine = self
-            self._dnsmasq.executor = self.executor
+            self._dnsmasq.executor = self._executor
         return self._dnsmasq
 
     @property
     def bash(self):
         if self._bash == None:
-            self._bash = j.tools.bash.get(self, self.executor)
+            self._bash = j.tools.bash.get(self, self._executor)
         return self._bash
 
     @property
     def net(self):
         if self._net == None:
-            self._net = CuisineNet(self.executor, self)
+            self._net = CuisineNet(self._executor, self)
         return self._net
 
     @property
     def user(self):
         if self._user == None:
-            self._user = CuisineUser(self.executor, self)
+            self._user = CuisineUser(self._executor, self)
         return self._user
 
     @property
     def group(self):
         if self._group == None:
-            self._group = CuisineGroup(self.executor, self)
+            self._group = CuisineGroup(self._executor, self)
         return self._group
 
     @property
     def git(self):
         if self._git == None:
-            self._git = CuisineGit(self.executor, self)
+            self._git = CuisineGit(self._executor, self)
         return self._git
 
     @property
@@ -236,10 +236,10 @@ class JSCuisine:
     @property
     def capnp(self):
         if self._capnp is None:
-            self._capnp = CuisineCapnp(self.executor, self)
+            self._capnp = CuisineCapnp(self._executor, self)
         return self._capnp
 
     def __str__(self):
-        return "cuisine:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
+        return "cuisine:%s:%s" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))
 
     __repr__ = __str__

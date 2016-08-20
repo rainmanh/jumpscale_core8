@@ -6,8 +6,8 @@ from Cuisine2 import *
 class CuisineBase:
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
     @property
     def classname(self):
@@ -25,7 +25,7 @@ class CuisineBase:
 
     @property
     def id(self):
-        return self.executor.id
+        return self._executor.id
 
     @property
     def cache(self):

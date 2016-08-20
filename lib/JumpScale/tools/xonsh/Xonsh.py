@@ -18,7 +18,7 @@ class Xonsh:
     def __init__(self):
         self.__jslocation__ = "j.tools.xonsh"
         self.executor = j.tools.executor.getLocal()
-        self.cuisine = self.executor.cuisine
+        self._cuisine = self.executor.cuisine
 
     def configAll(self):
         self.config()
@@ -46,7 +46,7 @@ class Xonsh:
 
 
         """
-        self.cuisine.core.file_write("$homeDir/.xonshrc", C)
+        self._cuisine.core.file_write("$homeDir/.xonshrc", C)
 
     def configTmux(self, restart=True):
-        self.cuisine.tmux.configure(restart, True)
+        self._cuisine.tmux.configure(restart, True)

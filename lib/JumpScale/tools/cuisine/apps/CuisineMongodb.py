@@ -23,28 +23,28 @@ base = j.tools.cuisine.getBaseClass()
 class Mongodb(base):
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
-    @actionrun(action=True)
+
     def _build(self):
 
-        exists = self.cuisine.core.command_check("mongod")
+        exists = self._cuisine.core.command_check("mongod")
 
         if exists:
-            cmd = self.cuisine.core.command_location("mongod")
-            dest = "%s/mongod" % self.cuisine.core.dir_paths["binDir"]
+            cmd = self._cuisine.core.command_location("mongod")
+            dest = "%s/mongod" % self._cuisine.core.dir_paths["binDir"]
             if j.sal.fs.pathClean(cmd) != j.sal.fs.pathClean(dest):
-                self.cuisine.core.file_copy(cmd, dest)
+                self._cuisine.core.file_copy(cmd, dest)
         else:
-            appbase = self.cuisine.core.dir_paths["binDir"]
+            appbase = self._cuisine.core.dir_paths["binDir"]
 
             url = None
-            if self.cuisine.core.isUbuntu:
+            if self._cuisine.core.isUbuntu:
                 url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
-            elif self.cuisine.core.isArch:
-                self.cuisine.package.install("mongodb")
-            elif self.cuisine.core.isMac:  # TODO: better platform mgmt
+            elif self._cuisine.core.isArch:
+                self._cuisine.package.install("mongodb")
+            elif self._cuisine.core.isMac:  # TODO: better platform mgmt
                 url = 'https://fastdl.mongodb.org/osx/mongodb-osx-x86_64-3.2.1.tgz'
             else:
                 from IPython import embed
@@ -55,30 +55,30 @@ class Mongodb(base):
                 return
 
             if url:
-                self.cuisine.core.file_download(url, to="$tmpDir", overwrite=False, expand=True)
-                tarpath = self.cuisine.core.fs_find("$tmpDir", recursive=True, pattern="*mongodb*.tgz", type='f')[0]
-                self.cuisine.core.file_expand(tarpath, "$tmpDir")
-                extracted = self.cuisine.core.fs_find("$tmpDir", recursive=True, pattern="*mongodb*", type='d')[0]
-                for file in self.cuisine.core.fs_find('%s/bin/' % extracted, type='f'):
-                    self.cuisine.core.file_copy(file, appbase)
+                self._cuisine.core.file_download(url, to="$tmpDir", overwrite=False, expand=True)
+                tarpath = self._cuisine.core.fs_find("$tmpDir", recursive=True, pattern="*mongodb*.tgz", type='f')[0]
+                self._cuisine.core.file_expand(tarpath, "$tmpDir")
+                extracted = self._cuisine.core.fs_find("$tmpDir", recursive=True, pattern="*mongodb*", type='d')[0]
+                for file in self._cuisine.core.fs_find('%s/bin/' % extracted, type='f'):
+                    self._cuisine.core.file_copy(file, appbase)
 
-        self.cuisine.core.dir_ensure('$varDir/data/mongodb')
+        self._cuisine.core.dir_ensure('$varDir/data/mongodb')
 
-    @actionrun()
+
     def build(self, start=True, dependencies=False):
         if dependencies:
-            self.cuisine.installer.base()
+            self._cuisine.installer.base()
         self._build()
         if start:
             self.start("mongod")
 
-    @actionrun(force=True)
+
     def start(self, name="mongod"):
-        which = self.cuisine.core.command_location("mongod")
-        self.cuisine.core.dir_ensure('$varDir/data/mongodb')
+        which = self._cuisine.core.command_location("mongod")
+        self._cuisine.core.dir_ensure('$varDir/data/mongodb')
         cmd = "%s --dbpath $varDir/data/mongodb" % which
-        self.cuisine.process.kill("mongod")
-        self.cuisine.processmanager.ensure("mongod", cmd=cmd, env={}, path="")
+        self._cuisine.process.kill("mongod")
+        self._cuisine.processmanager.ensure("mongod", cmd=cmd, env={}, path="")
 
     def mongoCluster(self, shards_nodes, config_nodes, mongos_nodes, shards_replica_set_counts=1, unique=""):
         args = []
@@ -146,7 +146,7 @@ class MongoInstance(Startable):
 
     def __init__(self, cuisine, addr=None, private_port=27021, public_port=None, type_="shard", replica='', configdb='', dbdir=None):
         super().__init__()
-        self.cuisine = cuisine
+        self._cuisine = cuisine
         if not addr:
             self.addr = cuisine.core.executor.addr
         else:
@@ -165,8 +165,8 @@ class MongoInstance(Startable):
 
     def _install(self):
         super()._install()
-        self.cuisine.core.dir_ensure(self.dbdir)
-        return self.cuisine.apps.mongodb.build(start=False)
+        self._cuisine.core.dir_ensure(self.dbdir)
+        return self._cuisine.apps.mongodb.build(start=False)
 
     def _gen_service_name(self):
         name = "ourmongos" if self.type_ == "mongos" else "ourmongod"
@@ -193,13 +193,13 @@ class MongoInstance(Startable):
     def _start(self):
         super()._start()
         print("starting: ", self._gen_service_name(), self._gen_service_cmd())
-        a = self.cuisine.processmanager.ensure(self._gen_service_name(), self._gen_service_cmd())
+        a = self._cuisine.processmanager.ensure(self._gen_service_name(), self._gen_service_cmd())
         return a
 
     @Startable.ensure_started
     def execute(self, cmd):
         for i in range(5):
-            rc, out, err = self.cuisine.core.run("LC_ALL=C $binDir/mongo --port %s --eval '%s'" %
+            rc, out, err = self._cuisine.core.run("LC_ALL=C $binDir/mongo --port %s --eval '%s'" %
                                                  (self.private_port, cmd.replace("\\", "\\\\").replace("'", "\\'")), die=False)
             if not rc and out.find('errmsg') == -1:
                 print('command executed %s' % (cmd))

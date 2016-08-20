@@ -20,31 +20,31 @@ base = j.tools.cuisine.getBaseClass()
 class CuisineDocker(base):
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
     def machine_create(self):
         pass
 
-    @actionrun(action=True, force=False)
+    
     def install(self):
-        if self.cuisine.core.isUbuntu:
-            if not self.cuisine.core.command_check('docker'):
+        if self._cuisine.core.isUbuntu:
+            if not self._cuisine.core.command_check('docker'):
                 C = """
                 wget -qO- https://get.docker.com/ | sh
                 """
-                self.cuisine.core.run_script(C)
-            if not self.cuisine.core.command_check('docker-compose'):
+                self._cuisine.core.run_script(C)
+            if not self._cuisine.core.command_check('docker-compose'):
                 C = """
                 curl -L https://github.com/docker/compose/releases/download/1.8.0-rc1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
                 chmod +x /usr/local/bin/docker-compose
                 """
-                self.cuisine.core.run_script(C)
-        if self.cuisine.core.isArch:
-            self.cuisine.package.install("docker")
-            self.cuisine.package.install("docker-compose")
+                self._cuisine.core.run_script(C)
+        if self._cuisine.core.isArch:
+            self._cuisine.package.install("docker")
+            self._cuisine.package.install("docker-compose")
 
-    @actionrun()
+    
     def archBuild(self):  # TODO: *2
         C = """
         FROM base/archlinux:latest
@@ -86,28 +86,28 @@ class CuisineDocker(base):
         CMD ["/usr/sbin/init"]
 
         """
-        self.cuisine.core.run("rm -rf $tmpDir/docker;mkdir $tmpDir/docker")
-        self.cuisine.core.file_write("$tmpDir/docker/Dockerfile", C)
+        self._cuisine.core.run("rm -rf $tmpDir/docker;mkdir $tmpDir/docker")
+        self._cuisine.core.file_write("$tmpDir/docker/Dockerfile", C)
 
         C = """
         set -ex
         cd $tmpDir/docker
         docker build -t arch .
         """
-        self.cuisine.core.run_script(C)
+        self._cuisine.core.run_script(C)
 
-    @actionrun(action=True)
+    
     def ubuntuBuild(self, push=False):
 
-        dest = self.cuisine.git.pullRepo('https://github.com/Jumpscale/dockers.git', ssh=False)
-        path = self.cuisine.core.joinpaths(dest, 'js8/x86_64/2_ubuntu1604')
+        dest = self._cuisine.git.pullRepo('https://github.com/Jumpscale/dockers.git', ssh=False)
+        path = self._cuisine.core.joinpaths(dest, 'js8/x86_64/2_ubuntu1604')
 
         C = """
         set -ex
         cd %s
         docker build -t jumpscale/ubuntu1604 --no-cache .
         """ % path
-        self.cuisine.core.run_script(C)
+        self._cuisine.core.run_script(C)
 
         if push:
             C = """
@@ -115,9 +115,9 @@ class CuisineDocker(base):
             cd %s
             docker push jumpscale/ubuntu1604
             """ % path
-            self.cuisine.core.run_script(C)
+            self._cuisine.core.run_script(C)
 
-    @actionrun()
+    
     def enableSSH(self, conn_str):
         c2 = j.tools.cuisine.get(conn_str)
         # change passwd
@@ -128,7 +128,7 @@ class CuisineDocker(base):
 
         return conn_str
 
-    @actionrun(action=True, force=True)
+    
     def ubuntu(self, name="ubuntu1", image='jumpscale/ubuntu1604', ports=None, volumes=None, pubkey=None, aydofs=False):
         """
         will return connection string which can be used for getting a cuisine connection as follows:
@@ -147,9 +147,9 @@ class CuisineDocker(base):
             cmd += " --volumes '%s'" % volumes
         if aydofs:
             cmd += " --aysfs"
-        self.cuisine.core.run(cmd, profile=True)
+        self._cuisine.core.run(cmd, profile=True)
         cmd = "jsdocker list --name {name} --parsable".format(name=name)
-        _, out, _ = self.cuisine.core.run(cmd, profile=True)
+        _, out, _ = self._cuisine.core.run(cmd, profile=True)
         info = j.data.serializer.json.loads(out)
 
         port = info[0]["port"]
@@ -157,14 +157,14 @@ class CuisineDocker(base):
             host = info[0]['host']
             return "%s:%s" % (host, port)
         else:
-            return "%s:%s" % (self.executor.addr, port)
+            return "%s:%s" % (self._executor.addr, port)
 
-    @actionrun(action=True)
+    
     def archSystemd(self, name="arch1"):
         """
         start arch which is using systemd  #TODO: *2 there is an issue with tty, cannot install anything (see in arch builder)
         """
-        if not self.cuisine.core.isArch:
+        if not self._cuisine.core.isArch:
             raise j.exceptions.RuntimeError("not supported")
 
         C = """
@@ -176,7 +176,7 @@ class CuisineDocker(base):
         mkdir -p /tmp2/cgroup/systemd
         mount --bind /sys/fs/cgroup/systemd /tmp2/cgroup/systemd
         """
-        self.cuisine.core.run_script(C)
+        self._cuisine.core.run_script(C)
 
         C = """
         set +ex
@@ -193,8 +193,8 @@ class CuisineDocker(base):
         """
         C = C.replace("$name", name)
         print(C)
-        self.cuisine.core.run_script(C)
+        self._cuisine.core.run_script(C)
 
-        # self.cuisine.core.run("docker run -d --name %s -v /tmp2/cgroup:/sys/fs/cgroup:ro -v /tmp2/%s/run:/run:rw tozd/ubuntu-systemd"%(name,name))
-        self.cuisine.core.run(
+        # self._cuisine.core.run("docker run -d --name %s -v /tmp2/cgroup:/sys/fs/cgroup:ro -v /tmp2/%s/run:/run:rw tozd/ubuntu-systemd"%(name,name))
+        self._cuisine.core.run(
             "docker run -d --name %s -v /tmp2/cgroup:/sys/fs/cgroup:ro -v /tmp2/%s/run:/run:rw arch" % (name, name))

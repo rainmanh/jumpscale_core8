@@ -48,8 +48,8 @@ base = j.tools.cuisine.getBaseClass()
 class CuisineApps(base):
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
         # imported properties
         self._skydns = None
@@ -78,8 +78,8 @@ class CuisineApps(base):
     @property
     def weave(self):
         if self._weave is None:
-            if not self.cuisine.core.isDocker and not self.cuisine.core.isLxc:
-                self._weave = Weave(self.executor, self.cuisine)
+            if not self._cuisine.core.isDocker and not self._cuisine.core.isLxc:
+                self._weave = Weave(self._executor, self._cuisine)
             else:
                 raise AttributeError('Weave does not support LXC or Docker containers')
         return self._weave
@@ -87,133 +87,133 @@ class CuisineApps(base):
     @property
     def skydns(self):
         if self._skydns is None:
-            self._skydns = SkyDns(self.executor, self.cuisine)
+            self._skydns = SkyDns(self._executor, self._cuisine)
         return self._skydns
 
     @property
     def caddy(self):
         if self._caddy is None:
-            self._caddy = Caddy(self.executor, self.cuisine)
+            self._caddy = Caddy(self._executor, self._cuisine)
         return self._caddy
 
     @property
     def stor(self):
         if self._stor is None:
-            self._stor = AydoStor(self.executor, self.cuisine)
+            self._stor = AydoStor(self._executor, self._cuisine)
         return self._stor
 
     @property
     def syncthing(self):
         if self._syncthing is None:
-            self._syncthing = Syncthing(self.executor, self.cuisine)
+            self._syncthing = Syncthing(self._executor, self._cuisine)
         return self._syncthing
 
     @property
     def redis(self):
         if self._redis is None:
-            self._redis = Redis(self.executor, self.cuisine)
+            self._redis = Redis(self._executor, self._cuisine)
         return self._redis
 
     @property
     def mongodb(self):
         if self._mongodb is None:
-            self._mongodb = Mongodb(self.executor, self.cuisine)
+            self._mongodb = Mongodb(self._executor, self._cuisine)
         return self._mongodb
 
     @property
     def fs(self):
         if self._fs is None:
-            self._fs = Fs(self.executor, self.cuisine)
+            self._fs = Fs(self._executor, self._cuisine)
         return self._fs
 
     @property
     def etcd(self):
         if self._etcd is None:
-            self._etcd = Etcd(self.executor, self.cuisine)
+            self._etcd = Etcd(self._executor, self._cuisine)
         return self._etcd
 
     @property
     def controller(self):
         if self._controller is None:
-            self._controller = Controller(self.executor, self.cuisine)
+            self._controller = Controller(self._executor, self._cuisine)
         return self._controller
 
     @property
     def core(self):
         if self._core is None:
-            self._core = Core(self.executor, self.cuisine)
+            self._core = Core(self._executor, self._cuisine)
         return self._core
 
     @property
     def grafana(self):
         if self._grafana is None:
-            self._grafana = Grafana(self.executor, self.cuisine)
+            self._grafana = Grafana(self._executor, self._cuisine)
         return self._grafana
 
     @property
     def influxdb(self):
         if self._influxdb is None:
-            self._influxdb = Influxdb(self.executor, self.cuisine)
+            self._influxdb = Influxdb(self._executor, self._cuisine)
         return self._influxdb
 
     @property
     def vulcand(self):
         if self._vulcand is None:
-            self._vulcand = Vulcand(self.executor, self.cuisine)
+            self._vulcand = Vulcand(self._executor, self._cuisine)
         return self._vulcand
 
     @property
     def portal(self):
         if self._portal is None:
-            self._portal = CuisinePortal(self.executor, self.cuisine)
+            self._portal = CuisinePortal(self._executor, self._cuisine)
         return self._portal
 
     @property
     def cockpit(self):
         if self._cockpit is None:
-            self._cockpit = Cockpit(self.executor, self.cuisine)
+            self._cockpit = Cockpit(self._executor, self._cuisine)
         return self._cockpit
 
     @property
     def deployerbot(self):
         if self._deployerbot is None:
-            self._deployerbot = DeployerBot(self.executor, self.cuisine)
+            self._deployerbot = DeployerBot(self._executor, self._cuisine)
         return self._deployerbot
 
     @property
     def arakoon(self):
         if self._arakoon is None:
-            self._arakoon = Arakoon(self.executor, self.cuisine)
+            self._arakoon = Arakoon(self._executor, self._cuisine)
         return self._arakoon
 
     @property
     def volumedriver(self):
         if self._volumedriver is None:
-            self._volumedriver = VolumeDriver(self.executor, self.cuisine)
+            self._volumedriver = VolumeDriver(self._executor, self._cuisine)
         return self._volumedriver
 
     @property
     def alba(self):
         if self._alba is None:
-            self._alba = Alba(self.executor, self.cuisine)
+            self._alba = Alba(self._executor, self._cuisine)
         return self._alba
 
     @property
     def hadoop(self):
         if self._hadoop is None:
-            self._hadoop = Hadoop(self.executor, self.cuisine)
+            self._hadoop = Hadoop(self._executor, self._cuisine)
         return self._hadoop
 
     @property
     def ledis(self):
         if self._ledis is None:
-            self._ledis = Ledis(self.executor, self.cuisine)
+            self._ledis = Ledis(self._executor, self._cuisine)
         return self._ledis
 
-    @actionrun(action=True)
+    
     def installdeps(self):
         pass
         # NO NEED TO DO ITS UPTO USER OF CUISINE TO MAKE SURE REQUIREMENTS ARE MET
-        # self.cuisine.installer.base()
-        # self.cuisine.golang.install()
-        # self.cuisine.pip.upgrade('pip')
+        # self._cuisine.installer.base()
+        # self._cuisine.golang.install()
+        # self._cuisine.pip.upgrade('pip')

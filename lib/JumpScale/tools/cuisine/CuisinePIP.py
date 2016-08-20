@@ -16,40 +16,40 @@ base = j.tools.cuisine.getBaseClass()
 class CuisinePIP(base):
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
     # -----------------------------------------------------------------------------
     # PIP PYTHON PACKAGE MANAGER
     # -----------------------------------------------------------------------------
 
-    @actionrun(action=True)
+    
     def upgrade(self, package):
         '''
         The "package" argument, defines the name of the package that will be upgraded.
         '''
-        self.cuisine.core.set_sudomode()
-        self.cuisine.core.run('pip3 install --upgrade %s' % (package))
+        self._cuisine.core.set_sudomode()
+        self._cuisine.core.run('pip3 install --upgrade %s' % (package))
 
-    @actionrun()
+    
     def install(self, package=None, upgrade=False):
         '''
         The "package" argument, defines the name of the package that will be installed.
         '''
-        self.cuisine.core.set_sudomode()
-        if self.cuisine.core.isArch:
+        self._cuisine.core.set_sudomode()
+        if self._cuisine.core.isArch:
             if package in ["credis", "blosc", "psycopg2"]:
                 return
 
-        if self.cuisine.core.isCygwin and package in ["psycopg2", "psutil", "zmq"]:
+        if self._cuisine.core.isCygwin and package in ["psycopg2", "psutil", "zmq"]:
             return
 
         cmd = "pip3 install %s" % package
         if upgrade:
             cmd += " --upgrade"
-        self.cuisine.core.run(cmd)
+        self._cuisine.core.run(cmd)
 
-    @actionrun()
+    
     def remove(self, package):
         '''
         The "package" argument, defines the name of the package that will be ensured.
@@ -57,9 +57,9 @@ class CuisinePIP(base):
         is equivalent to the "-r" parameter of pip.
         Either "package" or "r" needs to be provided
         '''
-        return self.cuisine.core.run('pip3 uninstall %s' % (package))
+        return self._cuisine.core.run('pip3 uninstall %s' % (package))
 
-    @actionrun()
+    
     def multiInstall(self, packagelist, upgrade=False):
         """
         @param packagelist is text file and each line is name of package
@@ -79,9 +79,9 @@ class CuisinePIP(base):
 
         @param runid, if specified actions will be used to execute
         """
-        previous_sudo = self.cuisine.core.sudomode
+        previous_sudo = self._cuisine.core.sudomode
         try:
-            self.cuisine.core.sudomode = True
+            self._cuisine.core.sudomode = True
 
             if j.data.types.string.check(packagelist):
                 packages = packagelist.split("\n")
@@ -96,6 +96,6 @@ class CuisinePIP(base):
                         continue
                     if dep.strip()[0] == "#":
                         continue
-                    self.install(dep, upgrade, action=True, force=False)
+                    self.install(dep)
         finally:
-            self.cuisine.core.sudomode = previous_sudo
+            self._cuisine.core.sudomode = previous_sudo

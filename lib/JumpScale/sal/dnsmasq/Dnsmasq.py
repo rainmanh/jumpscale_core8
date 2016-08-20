@@ -8,20 +8,20 @@ class DNSMasq:
         self._configured = False
         self.logger = j.logger.get("DNSMasq")
         self.executor = j.tools.executor.getLocal()
-        self.cuisine = self.executor.cuisine
+        self._cuisine = self.executor.cuisine
         self._configdir = ""
 
     def install(self, start=True):
-        self.cuisine.systemd.remove("dnsmasq")
-        self.cuisine.process.kill("dnsmasq")
-        self.cuisine.package.install("dnsmasq")
+        self._cuisine.systemd.remove("dnsmasq")
+        self._cuisine.process.kill("dnsmasq")
+        self._cuisine.package.install("dnsmasq")
         self.config()
         if start:
-            cmd = self.cuisine.bash.cmdGetPath("dnsmasq")
-            self.cuisine.systemd.ensure("dnsmasq", cmd)
+            cmd = self._cuisine.bash.cmdGetPath("dnsmasq")
+            self._cuisine.systemd.ensure("dnsmasq", cmd)
 
     def restart(self):
-        self.cuisine.systemd.restart("dnsmasq")
+        self._cuisine.systemd.restart("dnsmasq")
 
     def setConfigPath(self, config_path=None):
         if not config_path:
@@ -71,7 +71,7 @@ class DNSMasq:
         if rangefrom & rangeto not specified then will serve full local range minus bottomn 10 & top 10 addr
         """
         if rangefrom == "" or rangeto == "":
-            rangefrom, rangeto = self.cuisine.net.getNetRange(device)
+            rangefrom, rangeto = self._cuisine.net.getNetRange(device)
 
         C = """
 
@@ -735,6 +735,6 @@ class DNSMasq:
         if deviceonly:
             C = C.replace("#interface=", "interface=%s" % device)
         C = C.replace("$dhcprange", "%s,%s" % (rangefrom, rangeto))
-        self.cuisine.core.dir_ensure("/etc/dnsmasq.d/")
-        self.cuisine.core.dir_ensure("$varDir/dnsmasq")
-        self.cuisine.core.file_write("/etc/dnsmasq.conf", C, replaceArgs=True)
+        self._cuisine.core.dir_ensure("/etc/dnsmasq.d/")
+        self._cuisine.core.dir_ensure("$varDir/dnsmasq")
+        self._cuisine.core.file_write("/etc/dnsmasq.conf", C, replaceArgs=True)

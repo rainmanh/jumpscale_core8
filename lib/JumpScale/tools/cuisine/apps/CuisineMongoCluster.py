@@ -47,7 +47,7 @@ class MongoInstance(Startable):
 
     def __init__(self, cuisine, addr=None, private_port=27021, public_port=None, type_="shard", replica='', configdb='', dbdir=None):
         super().__init__()
-        self.cuisine = cuisine
+        self._cuisine = cuisine
         if not addr:
             self.addr = cuisine.core.executor.addr
         else:
@@ -66,8 +66,8 @@ class MongoInstance(Startable):
 
     def _install(self):
         super()._install()
-        self.cuisine.core.dir_ensure(self.dbdir)
-        return self.cuisine.apps.mongodb.build(start=False)
+        self._cuisine.core.dir_ensure(self.dbdir)
+        return self._cuisine.apps.mongodb.build(start=False)
 
     def _gen_service_name(self):
         name = "ourmongos" if self.type_ == "mongos" else "ourmongod"
@@ -94,13 +94,13 @@ class MongoInstance(Startable):
     def _start(self):
         super()._start()
         print("starting: ", self._gen_service_name(), self._gen_service_cmd())
-        a = self.cuisine.processmanager.ensure(self._gen_service_name(), self._gen_service_cmd())
+        a = self._cuisine.processmanager.ensure(self._gen_service_name(), self._gen_service_cmd())
         return a
 
     @Startable.ensure_started
     def execute(self, cmd):
         for i in range(5):
-            rc, out, err = self.cuisine.core.run("LC_ALL=C $binDir/mongo --port %s --eval '%s'" %
+            rc, out, err = self._cuisine.core.run("LC_ALL=C $binDir/mongo --port %s --eval '%s'" %
                                                  (self.private_port, cmd.replace("\\", "\\\\").replace("'", "\\'")), die=False)
             if not rc and out.find('errmsg') == -1:
                 print('command executed %s' % (cmd))

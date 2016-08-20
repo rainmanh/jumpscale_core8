@@ -22,10 +22,10 @@ base = j.tools.cuisine.getBaseClass()
 class Vulcand(base):
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
-    @actionrun(action=True)
+    
     def build(self):
         C = '''
         #!/bin/bash
@@ -55,6 +55,6 @@ class Vulcand(base):
         rm -rf $goDir
 
         '''
-        C = self.cuisine.bash.replaceEnvironInText(C)
-        self.cuisine.core.run_script(C, profile=True)
-        self.cuisine.bash.addPath("$base/bin")
+        C = self._cuisine.bash.replaceEnvironInText(C)
+        self._cuisine.core.run_script(C, profile=True)
+        self._cuisine.bash.addPath("$base/bin")

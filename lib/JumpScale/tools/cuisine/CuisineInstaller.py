@@ -19,21 +19,21 @@ base = j.tools.cuisine.getBaseClass()
 class CuisineInstaller(base):
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
-    @actionrun(action=True)
+    
     def jumpscale_installed(self, die=False):
-        rc1, out1, err = self.cuisine.core.run('which js8', die=False)
-        rc2, out2, err = self.cuisine.core.run('which js', die=False)
+        rc1, out1, err = self._cuisine.core.run('which js8', die=False)
+        rc2, out2, err = self._cuisine.core.run('which js', die=False)
         if (rc1 == 0 and out1) or (rc2 == 0 and out2):
             return True
         return False
 
-    @actionrun(action=True)
+    
     def clean(self):
-        self.cuisine.core.dir_ensure(self.cuisine.core.dir_paths["tmpDir"])
-        if not self.cuisine.core.isMac and not self.cuisine.core.isCygwin:
+        self._cuisine.core.dir_ensure(self._cuisine.core.dir_paths["tmpDir"])
+        if not self._cuisine.core.isMac and not self._cuisine.core.isCygwin:
             C = """
                 set +ex
                 # pkill redis-server #will now kill too many redis'es, should only kill the one not in docker
@@ -55,9 +55,9 @@ class CuisineInstaller(base):
                 echo "OK"
                 """
 
-        self.cuisine.core.run_script(C, die=False)
+        self._cuisine.core.run_script(C, die=False)
 
-    @actionrun(action=True)
+    
     def jumpscale8(self, rw=False, reset=False):
         """
         install jumpscale, will be done as sandbox
@@ -83,9 +83,9 @@ class CuisineInstaller(base):
             rm -f /usr/local/bin/js
             rm -fr /opt/*
             """
-        self.cuisine.core.run_script(C, action=True, force=True)
+        self._cuisine.core.run_script(C)
 
-        if not self.cuisine.core.isUbuntu:
+        if not self._cuisine.core.isUbuntu:
             raise j.exceptions.RuntimeError("not supported yet")
 
         if reset:
@@ -94,7 +94,7 @@ class CuisineInstaller(base):
                 rm -rf /opt
                 rm -rf /optrw
                 """
-            self.cuisine.core.run_script(C, action=True, force=True)
+            self._cuisine.core.run_script(C)
 
         C = """
             wget https://stor.jumpscale.org/storx/static/js8 -O /usr/local/bin/js8
@@ -102,7 +102,7 @@ class CuisineInstaller(base):
             cd /
             mkdir -p $base
             """
-        self.cuisine.core.run_script(C, action=True, force=True)
+        self._cuisine.core.run_script(C)
 
         """
         install jumpscale8 sandbox in read or readwrite mode
@@ -116,37 +116,37 @@ class CuisineInstaller(base):
             C += "./js8 -rw init"
         else:
             C += "./js8 init"
-        self.cuisine.core.run_script(C, action=True, force=True)
+        self._cuisine.core.run_script(C)
 
         start = j.data.time.epoch
         timeout = 30
         while start + timeout > j.data.time.epoch:
-            if not self.cuisine.core.file_exists('/opt/jumpscale8/bin/jspython'):
+            if not self._cuisine.core.file_exists('/opt/jumpscale8/bin/jspython'):
                 time.sleep(2)
             else:
-                self.cuisine.core.file_link('/opt/jumpscale8/bin/jspython', '/usr/local/bin/jspython')
-                self.cuisine.core.file_link('/opt/jumpscale8/bin/js', '/usr/local/bin/js')
-                self.cuisine.bash.include('/opt/jumpscale8/env.sh')
+                self._cuisine.core.file_link('/opt/jumpscale8/bin/jspython', '/usr/local/bin/jspython')
+                self._cuisine.core.file_link('/opt/jumpscale8/bin/js', '/usr/local/bin/js')
+                self._cuisine.bash.include('/opt/jumpscale8/env.sh')
                 break
 
         print("* re-login into your shell to have access to js, because otherwise the env arguments are not set properly.")
 
-    @actionrun(action=True)
+    
     def libvirt(self):
         """
         do not use in containers or VMs only actual machines TODO: not tested
         """
         #TODO: need to check and exit if required *1
-        self.cuisine.package.install('libvirt-dev')
-        self.cuisine.pip.install("libvirt-python==1.3.2", upgrade=False)
+        self._cuisine.package.install('libvirt-dev')
+        self._cuisine.pip.install("libvirt-python==1.3.2", upgrade=False)
 
-    @actionrun(action=True)
-    def base(self, force=False):
+    
+    def base(self):
         self.clean()
 
-        self.cuisine.bash.fixlocale()
+        self._cuisine.bash.fixlocale()
 
-        if self.cuisine.core.isMac:
+        if self._cuisine.core.isMac:
             C = ""
         else:
             C = """
@@ -165,32 +165,32 @@ class CuisineInstaller(base):
         """
         out = ""
         # make sure all dirs exist
-        for key, item in self.cuisine.core.dir_paths.items():
+        for key, item in self._cuisine.core.dir_paths.items():
             out += "mkdir -p %s\n" % item
-        self.cuisine.core.run_script(out)
+        self._cuisine.core.run_script(out)
 
-        self.cuisine.package.mdupdate()
+        self._cuisine.package.mdupdate()
 
-        if not self.cuisine.core.isMac and not self.cuisine.core.isCygwin:
-            self.cuisine.package.install("fuse")
+        if not self._cuisine.core.isMac and not self._cuisine.core.isCygwin:
+            self._cuisine.package.install("fuse")
 
-        if self.cuisine.core.isArch:
-            self.cuisine.package.install("wpa_actiond")  # is for wireless auto start capability
-            self.cuisine.package.install("redis-server")
+        if self._cuisine.core.isArch:
+            self._cuisine.package.install("wpa_actiond")  # is for wireless auto start capability
+            self._cuisine.package.install("redis-server")
 
-        self.cuisine.package.multiInstall(C)
-        self.cuisine.package.upgrade()
+        self._cuisine.package.multiInstall(C)
+        self._cuisine.package.upgrade()
 
-        self.cuisine.package.clean()
+        self._cuisine.package.clean()
 
-    @actionrun(action=True)
+    
     def ftpserver(self, root="/storage/ftpserver", config="", port=2121):
 
-        self.cuisine.ufw.ufw_enable()
-        self.cuisine.ufw.allowIncoming(port)
+        self._cuisine.ufw.ufw_enable()
+        self._cuisine.ufw.allowIncoming(port)
 
         cmd = "sudo ufw allow 50000:65535/tcp"
-        self.cuisine.core.run(cmd)
+        self._cuisine.core.run(cmd)
 
         """
         example config
@@ -240,10 +240,10 @@ class CuisineInstaller(base):
         #   anonymous: []
         # '''
 
-        self.cuisine.installer.base()
-        self.cuisine.pip.install("pyftpdlib")
+        self._cuisine.installer.base()
+        self._cuisine.pip.install("pyftpdlib")
 
-        self.cuisine.btrfs.subvolumeCreate(root)
+        self._cuisine.btrfs.subvolumeCreate(root)
 
         #
         #
@@ -254,7 +254,7 @@ class CuisineInstaller(base):
             authorizer = ""
             configmodel = j.data.serializer.yaml.loads(config)
             for key, obj in configmodel.items():
-                self.cuisine.btrfs.subvolumeCreate(j.sal.fs.joinPaths(root, key))
+                self._cuisine.btrfs.subvolumeCreate(j.sal.fs.joinPaths(root, key))
                 for user, obj2 in obj.items():
                     if user.lower() == "anonymous":
                         authorizer += "    authorizer.add_anonymous('%s')\n" % j.sal.fs.joinPaths(root, key)
@@ -314,15 +314,15 @@ class CuisineInstaller(base):
         C = C.replace("$port", str(port))
         C = C.replace("$authorizers", authorizer)
 
-        self.cuisine.core.dir_ensure("/etc/ftpserver")
+        self._cuisine.core.dir_ensure("/etc/ftpserver")
 
-        self.cuisine.core.file_write("/etc/ftpserver/start.py", C)
+        self._cuisine.core.file_write("/etc/ftpserver/start.py", C)
 
-        self.cuisine.processmanager.ensure("polipo", cmd)
+        self._cuisine.processmanager.ensure("polipo", cmd)
 
-        self.cuisine.processmanager.ensure("pyftpserver", "python3 /etc/ftpserver/start.py")
+        self._cuisine.processmanager.ensure("pyftpserver", "python3 /etc/ftpserver/start.py")
 
     def __str__(self):
-        return "cuisine.installer:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
+        return "cuisine.installer:%s:%s" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))
 
     __repr__ = __str__

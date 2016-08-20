@@ -16,17 +16,16 @@ base = j.tools.cuisine.getBaseClass()
 class CuisineInstallerDevelop(base):
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
-    @actionrun(action=True)
     def python(self):
-        if self.cuisine.platformtype.osname == "debian":
+        if self._cuisine.platformtype.osname == "debian":
             C = """
             libpython3.4-dev
             python3.4-dev
             """
-        elif self.cuisine.platformtype.osname == 'ubuntu' and self.cuisine.platformtype.osversion == '16.04':
+        elif self._cuisine.platformtype.osname == 'ubuntu' and self._cuisine.platformtype.osversion == '16.04':
             C = """
             libpython3.5-dev
             python3.5-dev
@@ -40,7 +39,7 @@ class CuisineInstallerDevelop(base):
             libpython3.5-dev
             python3.5-dev
             """
-        self.cuisine.package.multiInstall(C)
+        self._cuisine.package.multiInstall(C)
 
         C = """
         autoconf
@@ -56,13 +55,12 @@ class CuisineInstallerDevelop(base):
         vim
         #net-tools
         """
-        self.cuisine.package.multiInstall(C)
+        self._cuisine.package.multiInstall(C)
 
-    @actionrun(action=True)
     def pip(self):
-        self.cuisine.installer.base()
+        self._cuisine.installer.base()
         self.python()
-        if self.cuisine.core.isMac:
+        if self._cuisine.core.isMac:
             return
 
         C = """
@@ -72,23 +70,22 @@ class CuisineInstallerDevelop(base):
             rm -rf get-pip.py
             wget --remote-encoding=utf-8 https://bootstrap.pypa.io/get-pip.py
             """
-        C = self.cuisine.core.args_replace(C)
-        self.cuisine.core.run_script(C)
+        C = self._cuisine.core.args_replace(C)
+        self._cuisine.core.run_script(C)
         C = "cd $tmpDir/;python3 get-pip.py"
-        C = self.cuisine.core.args_replace(C)
-        self.cuisine.core.run(C)
+        C = self._cuisine.core.args_replace(C)
+        self._cuisine.core.run(C)
 
-    @actionrun(action=True)
     def installJS8Deps(self):
         # make sure base is done & env is clean
-        # self.cuisine.installer.base()
+        # self._cuisine.installer.base()
 
         self.python()
         self.pip(action=True)
         self.brotli()
 
-        self.cuisine.pip.install('pytoml')
-        self.cuisine.pip.install('pygo')
+        self._cuisine.pip.install('pytoml')
+        self._cuisine.pip.install('pygo')
 
         # python etcd
         C = """
@@ -97,14 +94,14 @@ class CuisineInstallerDevelop(base):
         cd python-etcd
         python3 setup.py install
         """
-        C = self.cuisine.core.args_replace(C)
-        self.cuisine.core.run_script(C, force=False)
+        C = self._cuisine.core.args_replace(C)
+        self._cuisine.core.run_script(C)
 
         # gevent
         C = """
         pip3 install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
         """
-        self.cuisine.core.run_script(C, force=False)
+        self._cuisine.core.run_script(C)
 
         C = """
         # cffi==1.5.2
@@ -177,59 +174,57 @@ class CuisineInstallerDevelop(base):
         gspread
         oauth2client
         """
-        self.cuisine.pip.multiInstall(C, upgrade=True)
+        self._cuisine.pip.multiInstall(C, upgrade=True)
 
-        if self.cuisine.platformtype.osname != "debian":
+        if self._cuisine.platformtype.osname != "debian":
             C = """
             blosc
             bcrypt
             """
-            self.cuisine.pip.multiInstall(C, upgrade=True)
+            self._cuisine.pip.multiInstall(C, upgrade=True)
 
-        if not self.cuisine.core.isCygwin:
-            self.cuisine.apps.redis.build()
+        if not self._cuisine.core.isCygwin:
+            self._cuisine.apps.redis.build()
 
-    @actionrun(action=True)
     def jumpscale8(self):
-        if self.cuisine.installer.jumpscale_installed():
+        if self._cuisine.installer.jumpscale_installed():
             return
         self.installJS8Deps(force=False)
 
-        if self.cuisine.core.isUbuntu or self.cuisine.core.isArch:
+        if self._cuisine.core.isUbuntu or self._cuisine.core.isArch:
 
-            if self.cuisine.core.dir_exists("/usr/local/lib/python3.4/dist-packages"):
+            if self._cuisine.core.dir_exists("/usr/local/lib/python3.4/dist-packages"):
                 linkcmd = "mkdir -p /usr/local/lib/python3.5/dist-packages/JumpScale;ln -s /usr/local/lib/python3.5/dist-packages/JumpScale /usr/local/lib/python3.4/dist-packages/JumpScale"
-                self.cuisine.core.run(linkcmd)
+                self._cuisine.core.run(linkcmd)
 
             C = 'cd $tmpDir/;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh'
-            C = self.cuisine.core.args_replace(C)
-            self.cuisine.core.run(C)
-        elif self.cuisine.core.isMac:
+            C = self._cuisine.core.args_replace(C)
+            self._cuisine.core.run(C)
+        elif self._cuisine.core.isMac:
             cmd = "export TMPDIR=~/tmp;mkdir -p $TMPDIR;cd $TMPDIR;rm -f install.sh;curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/master/install/install.sh > install.sh;bash install.sh"
-            self.cuisine.core.run(cmd)
+            self._cuisine.core.run(cmd)
         else:
             raise j.exceptions.RuntimeError("platform not supported yet")
 
-    @actionrun(action=True)
     def cleanup(self, aggressive=False):
-        self.cuisine.core.run("apt-get clean")
-        self.cuisine.core.dir_remove("/var/tmp/*")
-        self.cuisine.core.dir_remove("/etc/dpkg/dpkg.cfg.d/02apt-speedup")
-        self.cuisine.core.dir_remove("$tmpDir")
-        self.cuisine.core.dir_ensure("$tmpDir")
+        self._cuisine.core.run("apt-get clean")
+        self._cuisine.core.dir_remove("/var/tmp/*")
+        self._cuisine.core.dir_remove("/etc/dpkg/dpkg.cfg.d/02apt-speedup")
+        self._cuisine.core.dir_remove("$tmpDir")
+        self._cuisine.core.dir_ensure("$tmpDir")
 
-        self.cuisine.core.dir_remove("$goDir/src/*", force=True)
-        self.cuisine.core.dir_remove("$tmpDir/*", force=True)
-        self.cuisine.core.dir_remove("$varDir/data/*", force=True)
-        self.cuisine.core.dir_remove('/opt/code/github/domsj', True)
-        self.cuisine.core.dir_remove('/opt/code/github/openvstorage', True)
+        self._cuisine.core.dir_remove("$goDir/src/*")
+        self._cuisine.core.dir_remove("$tmpDir/*")
+        self._cuisine.core.dir_remove("$varDir/data/*")
+        self._cuisine.core.dir_remove('/opt/code/github/domsj', True)
+        self._cuisine.core.dir_remove('/opt/code/github/openvstorage', True)
 
         C = """
         cd /opt;find . -name '*.pyc' -delete
         cd /opt;find . -name '*.log' -delete
         cd /opt;find . -name '__pycache__' -delete
         """
-        self.cuisine.core.run_script(C)
+        self._cuisine.core.run_script(C)
 
         if aggressive:
             C = """
@@ -263,9 +258,8 @@ class CuisineInstallerDevelop(base):
 
             rm -rf /usr/bin/python*
             """
-            self.cuisine.core.run_script(C)
+            self._cuisine.core.run_script(C)
 
-    @actionrun(action=True)
     def brotli(self):
         C = """
         cd /tmp
@@ -277,10 +271,9 @@ class CuisineInstallerDevelop(base):
         cp /tmp/brotli/bin/bro /usr/local/bin/
         rm -rf /tmp/brotli
         """
-        C = self.cuisine.core.args_replace(C)
-        self.cuisine.core.run_script(C, force=True)
+        C = self._cuisine.core.args_replace(C)
+        self._cuisine.core.run_script(C)
 
-    @actionrun()
     def xrdp(self):
         """
         builds a full xrdp, this can take a while
@@ -299,4 +292,4 @@ class CuisineInstallerDevelop(base):
         echo '#!/bin/sh -xe\nrm -rf /tmp/* /var/run/xrdp/* && service xrdp start && startx' > /bin/rdp.sh
         chmod +x /bin/rdp.sh
         """
-        self.cuisine.core.run_script(C)
+        self._cuisine.core.run_script(C)

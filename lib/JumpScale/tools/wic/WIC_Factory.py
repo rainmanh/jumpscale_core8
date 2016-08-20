@@ -100,7 +100,7 @@ class WIC:
         embed()
         p
 
-        self.cuisine
+        self._cuisine
 
     def update(self):
         '''

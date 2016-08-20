@@ -20,7 +20,7 @@ class ZeroNetConfig():
 class ZeroNetConfigHost():
 
     def __init__(self, addr):
-        self.cuisine = j.tools.cuisine.get(addr)
+        self._cuisine = j.tools.cuisine.get(addr)
 
         # self.db = j.clients.redis.get("localhost", 3629)
         self.db = j.core.db

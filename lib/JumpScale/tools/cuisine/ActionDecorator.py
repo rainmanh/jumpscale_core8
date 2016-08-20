@@ -9,7 +9,7 @@ colored_traceback.add_hook(always=True)
 class ActionDecorator:
 
     # DO NOT CHANGE, FORCE SHOULD BE FALSE BY DEFAULT, OTERHWISE DANGEROUS
-    def __init__(self, action=True, force=False, actionshow=True):
+    def __init__(self, actionshow=True):
         # for now lets do without actions
         action = False
         self.action = action

@@ -18,19 +18,19 @@ base = j.tools.cuisine.getBaseClass()
 class CuisineSandbox(base):
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
-    @actionrun(force=True)
+    
     def do(self, destination="/out", reset=False):
         """
         TODO: specify what comes in /out
 
         """
 
-        self.cuisine.package.mdupdate()
+        self._cuisine.package.mdupdate()
 
-        self.cuisine.core.file_copy('/usr/local/bin/jspython', '$binDir')
+        self._cuisine.core.file_copy('/usr/local/bin/jspython', '$binDir')
 
         sandbox_script = """
         cuisine = j.tools.cuisine.local
@@ -56,7 +56,7 @@ class CuisineSandbox(base):
         j.tools.sandboxer.sandboxLibs("%s/bin" % base, recursive=True)
         """
         print("start sandboxing")
-        self.cuisine.core.execute_jumpscript(sandbox_script)
+        self._cuisine.core.execute_jumpscript(sandbox_script)
 
         name = "js8"
 
@@ -72,7 +72,7 @@ class CuisineSandbox(base):
         dedupe_script = dedupe_script.replace("$name", name)
         dedupe_script = dedupe_script.replace("$out", destination)
         print("start dedupe")
-        self.cuisine.core.execute_jumpscript(dedupe_script)
+        self._cuisine.core.execute_jumpscript(dedupe_script)
 
         copy_script = """
         j.sal.fs.removeDirTree("$out/$name/jumpscale8/")
@@ -82,4 +82,4 @@ class CuisineSandbox(base):
         copy_script = copy_script.replace("$name", name)
         copy_script = copy_script.replace("$out", destination)
         print("start copy sandbox")
-        self.cuisine.core.execute_jumpscript(copy_script)
+        self._cuisine.core.execute_jumpscript(copy_script)

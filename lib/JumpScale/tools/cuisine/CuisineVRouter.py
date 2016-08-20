@@ -20,10 +20,10 @@ base = j.tools.cuisine.getBaseClass()
 class CuisineVRouter(base):
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
-    @actionrun(action=True)
+    
     def accesspoint(self, passphrase, name="", dns="8.8.8.8", interface="wlan0"):
         """
         create an accesspoint
@@ -37,16 +37,16 @@ class CuisineVRouter(base):
         if name != "":
             hostname = name
         else:
-            _, hostname, _ = self.cuisine.core.run("hostname")
+            _, hostname, _ = self._cuisine.core.run("hostname")
         #--dhcp-dns 192.168.0.149
-        _, cpath, _ = self.cuisine.core.run("which create_ap")
+        _, cpath, _ = self._cuisine.core.run("which create_ap")
         cmd2 = '%s %s eth0 gig_%s %s -d' % (cpath, interface, hostname, passphrase)
 
         giturl = "https://github.com/oblique/create_ap"
-        self.cuisine.pullGitRepo(url=giturl, dest=None, login=None, passwd=None, depth=1,
+        self._cuisine.pullGitRepo(url=giturl, dest=None, login=None, passwd=None, depth=1,
                                  ignorelocalchanges=True, reset=True, branch=None, revision=None, ssh=False)
 
-        self.cuisine.core.run("cp /opt/code/create_ap/create_ap /usr/local/bin/")
+        self._cuisine.core.run("cp /opt/code/create_ap/create_ap /usr/local/bin/")
 
         START1 = """
         [Unit]
@@ -64,10 +64,10 @@ class CuisineVRouter(base):
         [Install]
         WantedBy=multi-user.target
         """
-        pm = self.cuisine.processmanager.get("systemd")
+        pm = self._cuisine.processmanager.get("systemd")
         pm.ensure("ap", cmd2, descr="accesspoint for local admin", systemdunit=START1)
 
     def __str__(self):
-        return "cuisine.vrouter:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
+        return "cuisine.vrouter:%s:%s" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))
 
     __repr__ = __str__

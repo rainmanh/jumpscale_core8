@@ -23,23 +23,23 @@ class CuisineProxy(base):
     """
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
-    @actionrun(action=True, force=False)
+    
     def removeFromSystemD(self):
-        pm = self.cuisine.processmanager.get("systemd")
+        pm = self._cuisine.processmanager.get("systemd")
         pm.remove("polipo")
         pm.remove("privoxy")
 
-    @actionrun()
+    
     def installFilterProxy(self, port=8124, forward=True):
         """
         installs privoxy
         """
-        self.cuisine.ufw.ufw_enable(force=False)
-        self.cuisine.ufw.allowIncoming(port, force=False)
-        self.cuisine.package.install("privoxy", force=False)
+        self._cuisine.ufw.ufw_enable(force=False)
+        self._cuisine.ufw.allowIncoming(port)
+        self._cuisine.package.install("privoxy")
 
         CONFIG = """
             #trust-info-url  http://www.example.com/why_we_block.html
@@ -107,7 +107,7 @@ class CuisineProxy(base):
             self.installCacheProxy(force=False)
             CONFIG += "forward  / localhost:8123\n"
 
-        self.cuisine.core.file_write("/etc/privoxy/config", CONFIG, force=True)
+        self._cuisine.core.file_write("/etc/privoxy/config", CONFIG)
 
         self.removeFromSystemD(force=False)
 
@@ -181,7 +181,7 @@ class CuisineProxy(base):
 
         USERACTION = j.data.text.strip(USERACTION)
 
-        self.cuisine.core.file_write("/etc/privoxy/user.action", USERACTION, force=True)
+        self._cuisine.core.file_write("/etc/privoxy/user.action", USERACTION)
 
         self.start()
 
@@ -190,35 +190,35 @@ class CuisineProxy(base):
         print("http://config.privoxy.org/show-request")
         print("http://config.privoxy.org/show-url-info")
 
-    @actionrun(force=True)
+    
     def start(self):
 
         cmd = "privoxy --no-daemon /etc/privoxy/config"
-        pm = self.cuisine.processmanager.get("tmux")
+        pm = self._cuisine.processmanager.get("tmux")
         pm.ensure("privoxy", cmd)  # in tmux will always restart
 
         cmd = "polipo -c /etc/polipo/config"
         pm.ensure("polipo", cmd)  # in tmux will always restart
 
-    @actionrun(action=True)
+    
     def installCacheProxy(self, storagemntpoint="/storage", btrfs=False):
 
         port = 8123
 
-        self.cuisine.ufw.ufw_enable(force=False)
-        self.cuisine.ufw.allowIncoming(port, force=False)
+        self._cuisine.ufw.ufw_enable(force=False)
+        self._cuisine.ufw.allowIncoming(port)
 
-        if not self.cuisine.core.dir_exists(storagemntpoint, force=True):
+        if not self._cuisine.core.dir_exists(storagemntpoint):
             raise j.exceptions.RuntimeError("Cannot find storage mountpoint:%s" % storagemntpoint)
 
         cachedir = "%s/polipo_cache" % storagemntpoint
 
         if btrfs:
-            self.cuisine.btrfs.subvolumeCreate(cachedir, force=False)
+            self._cuisine.btrfs.subvolumeCreate(cachedir)
         else:
-            self.cuisine.core.dir_ensure(cachedir, force=False)
+            self._cuisine.core.dir_ensure(cachedir)
 
-        self.cuisine.package.install("polipo", force=False)
+        self._cuisine.package.install("polipo")
 
         forbiddentunnels = """
             # simple case, exact match of hostnames
@@ -246,7 +246,7 @@ class CuisineProxy(base):
             \.xiti\.com
             webtrekk\..*
             """
-        self.cuisine.core.file_write("/etc/polipo/forbiddenTunnels", forbiddentunnels)
+        self._cuisine.core.file_write("/etc/polipo/forbiddenTunnels", forbiddentunnels)
 
         # dnsNameServer
 
@@ -347,33 +347,33 @@ class CuisineProxy(base):
             """
 
         CONFIG = CONFIG.replace("$cachedir", cachedir)
-        self.cuisine.core.file_write("/etc/polipo/config", CONFIG, force=True)
+        self._cuisine.core.file_write("/etc/polipo/config", CONFIG)
 
-        self.cuisine.core.run("killall polipo", die=False)
+        self._cuisine.core.run("killall polipo", die=False)
 
-        _, cmd, _ = self.cuisine.core.run("which polipo")
+        _, cmd, _ = self._cuisine.core.run("which polipo")
 
         print("INSTALL OK")
         print("to see status: point webbrowser to")
-        print("http://%s:%s/polipo/status?" % (self.cuisine.core.executor.addr, port))
-        print("configure your webproxy client to use %s on tcp port %s" % (self.cuisine.core.executor.addr, port))
+        print("http://%s:%s/polipo/status?" % (self._cuisine.core.executor.addr, port))
+        print("configure your webproxy client to use %s on tcp port %s" % (self._cuisine.core.executor.addr, port))
 
         self.removeFromSystemD(force=False)
 
-    @actionrun()
+    
     def configureClient(self, addr="", port=8123):
         if addr == "":
-            addr = self.cuisine.executor.addr
+            addr = self._cuisine._executor.addr
         config = 'Acquire::http::Proxy "http://%s:%s";' % (addr, port)
-        if self.cuisine.cuisine.platformtype.myplatform.startswith("ubuntu"):
-            f = self.cuisine.core.file_read("/etc/apt/apt.conf", "")
+        if self._cuisine.cuisine.platformtype.myplatform.startswith("ubuntu"):
+            f = self._cuisine.core.file_read("/etc/apt/apt.conf", "")
             f += "\n%s\n" % config
-            self.cuisine.core.file_write("/etc/apt/apt.conf", f)
+            self._cuisine.core.file_write("/etc/apt/apt.conf", f)
         else:
             raise RuntimeError("not implemented yet")
         j.application.break_into_jshell("DEBUG NOW configure client")
 
     def __str__(self):
-        return "cuisine.proxy:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
+        return "cuisine.proxy:%s:%s" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))
 
     __repr__ = __str__

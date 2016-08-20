@@ -16,8 +16,8 @@ base = j.tools.cuisine.getBaseClass()
 class CuisinePNode(base):
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
         self.defaultArch = ['amd64', 'i686']
 
@@ -26,7 +26,7 @@ class CuisinePNode(base):
         """
         example: hwplatform = rpi_2b, orangepi_plus, amd64
         """
-        _, arch, _ = self.cuisine.core.run('uname -m')
+        _, arch, _ = self._cuisine.core.run('uname -m')
 
         # generic detection
         if arch == "x86_64":
@@ -37,10 +37,10 @@ class CuisinePNode(base):
 
         # more precise detection
         if arch == "armv7l":
-            if self.cuisine.core.dir_exists('/sys/class/bcm2708_vcio'):
+            if self._cuisine.core.dir_exists('/sys/class/bcm2708_vcio'):
                 return "rpi_2b"
 
-            if self.cuisine.core.file_exists('/dev/mmcblk1boot0'):
+            if self._cuisine.core.file_exists('/dev/mmcblk1boot0'):
                 return 'orangepi_plus'
 
         return None
@@ -55,11 +55,11 @@ class CuisinePNode(base):
 
         return device
 
-    @actionrun()
+    
     def _getNeededPartitions(self):
         needed = []
 
-        mounts = self.cuisine.core.file_read('/proc/mounts').splitlines()
+        mounts = self._cuisine.core.file_read('/proc/mounts').splitlines()
         for line in mounts:
             # keep root partition
             if " / " in line:
@@ -69,7 +69,7 @@ class CuisinePNode(base):
             if " /boot " in line:
                 needed.append(line)
 
-        swaps = self.cuisine.core.file_read('/proc/swaps').splitlines()
+        swaps = self._cuisine.core.file_read('/proc/swaps').splitlines()
         for line in swaps:
             # keep swap
             if line.startswith('/'):
@@ -81,9 +81,9 @@ class CuisinePNode(base):
 
         return final
 
-    @actionrun()
+    
     def _getDisks(self):
-        devices = self.cuisine.core.run('lsblk -n -l -o NAME,TYPE')[1].splitlines()
+        devices = self._cuisine.core.run('lsblk -n -l -o NAME,TYPE')[1].splitlines()
         disks = []
 
         for line in devices:
@@ -92,7 +92,7 @@ class CuisinePNode(base):
 
         return disks
 
-    @actionrun()
+    
     def _getDisksWithExclude(self, disks, exclude):
         for disk in disks:
             for keep in exclude:
@@ -104,20 +104,20 @@ class CuisinePNode(base):
 
         return disks
 
-    @actionrun()
+    
     def _eraseDisk(self, disk):
         disk = self._ensureDevName(disk)
 
-        self.cuisine.core.run("dd if=/dev/zero of=%s bs=4M count=1" % disk)
+        self._cuisine.core.run("dd if=/dev/zero of=%s bs=4M count=1" % disk)
 
-    @actionrun()
+    
     def _getPartitionsOnDisk(self, disk):
         disk = self._ensureDevName(disk)
-        partitions = self.cuisine.core.run('ls %s*' % disk)[1].splitlines()
+        partitions = self._cuisine.core.run('ls %s*' % disk)[1].splitlines()
 
         return partitions
 
-    @actionrun()
+    
     def _unmountDisk(self, disk):
         """
         Unmount all partitions in disk
@@ -125,9 +125,9 @@ class CuisinePNode(base):
         partitions = self._getPartitionsOnDisk(disk)
 
         for partition in partitions:
-            self.cuisine.core.run('umount %s' % partition, die=False)
+            self._cuisine.core.run('umount %s' % partition, die=False)
 
-    @actionrun()
+    
     def erase(self, keepRoot=True):
         """
         if keepRoot == True:
@@ -151,28 +151,28 @@ class CuisinePNode(base):
             self._eraseDisk(disk)
 
         # commit changes to the kernel
-        self.cuisine.core.run("partprobe")
+        self._cuisine.core.run("partprobe")
 
-    @actionrun()
+    
     def importRoot(self, source="/image.tar.gz", destination="/"):
         """
         Import and extract an archive to the filesystem
 
         """
         cmd = 'tar -zpxf %s -C %s' % (source, destination)
-        self.cuisine.core.run(cmd)
+        self._cuisine.core.run(cmd)
 
-    @actionrun()
+    
     def exportRoot(self, source="/", destination="/image.tar.gz", excludes=["\.pyc", "__pycache__"]):
         """
         Create an archive of a remote file system
         @param excludes is list of regex matches not to include while doing export
         """
         cmd = 'tar -zpcf %s --exclude=%s --one-file-system %s' % (destination, destination, source)
-        self.cuisine.core.run(cmd)
+        self._cuisine.core.run(cmd)
         #TODO: *1 implement excludes (does not have to be regex is other method more easy)
 
-    @actionrun()
+    
     def exportRootStor(self, storspace, plistname, source="/", excludes=["\.pyc", "__pycache__"], removetmpdir=True):
         """
         reason to do this is that we will use this to then make the step to g8os with g8osfs (will be very small step then)
@@ -181,12 +181,12 @@ class CuisinePNode(base):
         #TODO: *1 implement using CuisineStor space
         pass
 
-    @actionrun()
+    
     def importRootDedupe(self, storspace, plistname, destination="/mnt/", removetmpdir=True):
         #TODO: *1 implement using CuisineStor space
         pass
 
-    @actionrun()
+    
     def formatStorage(self, keepRoot=True, mountpoint="/storage"):
         """
         use btrfs to format/mount the disks
@@ -216,28 +216,28 @@ class CuisinePNode(base):
 
             disklist = ' '.join(setup)
 
-            self.cuisine.core.run('mkfs.btrfs -d raid1 %s' % disklist)
-            self.cuisine.core.dir_ensure(mountpoint)
-            self.cuisine.core.run('mount %s %s' % (setup[0], mountpoint))
+            self._cuisine.core.run('mkfs.btrfs -d raid1 %s' % disklist)
+            self._cuisine.core.dir_ensure(mountpoint)
+            self._cuisine.core.run('mount %s %s' % (setup[0], mountpoint))
 
         else:
             # check if no mounted btrfs partition yet and create if required
-            self.cuisine.btrfs.subvolumeCreate(mountpoint)
+            self._cuisine.btrfs.subvolumeCreate(mountpoint)
 
-    @actionrun()
+    
     def buildG8OSImage(self):
         """
 
         """
         #TODO: cuisine enable https://github.com/g8os/builder
 
-    @actionrun()
+    
     def buildArchImage(self):
         """
 
         """
 
-    @actionrun()
+    
     def installArch(self, rootsize=5):
         """
         install arch on $rootsize GB root partition
@@ -247,7 +247,7 @@ class CuisinePNode(base):
         # manual partitioning
         # get tgz from url="https://stor.jumpscale.org/public/ubuntu....tgz"
 
-    @actionrun()
+    
     def installG8OS(self, rootsize=5):
         """
         install g8os on $rootsize GB root partition

@@ -21,7 +21,7 @@ base = j.tools.cuisine.getBaseClass()
 
 class Fs(base):
 
-    @actionrun(action=True)
+    
     def build(self, start=False):
         content = """
         [[mount]]
@@ -44,19 +44,19 @@ class Fs(base):
             login=""
             passwd=""
         """
-        self.cuisine.golang.install()
-        self.cuisine.golang.godep("github.com/g8os/fs", action=True)
-        self.cuisine.core.run("cd %s && go build ." % "$goDir/src/github.com/g8os/fs", profile=True)
-        self.cuisine.core.dir_ensure("$tmplsDir/cfg/fs")
-        self.cuisine.core.file_copy("$goDir/src/github.com/g8os/fs/fs", "$base/bin")
-        self.cuisine.core.file_write("$goDir/src/github.com/g8os/fs/config/config.toml", content)
-        self.cuisine.core.file_copy("$goDir/src/github.com/g8os/fs/config/config.toml", "$tmplsDir/cfg/fs")
-        self.cuisine.core.file_download(
+        self._cuisine.golang.install()
+        self._cuisine.golang.godep("github.com/g8os/fs")
+        self._cuisine.core.run("cd %s && go build ." % "$goDir/src/github.com/g8os/fs", profile=True)
+        self._cuisine.core.dir_ensure("$tmplsDir/cfg/fs")
+        self._cuisine.core.file_copy("$goDir/src/github.com/g8os/fs/fs", "$base/bin")
+        self._cuisine.core.file_write("$goDir/src/github.com/g8os/fs/config/config.toml", content)
+        self._cuisine.core.file_copy("$goDir/src/github.com/g8os/fs/config/config.toml", "$tmplsDir/cfg/fs")
+        self._cuisine.core.file_download(
             "https://stor.jumpscale.org/storx/static/js8_opt.flist", "$tmplsDir/cfg/fs/js8_opt.flist")
         if start:
             self.start()
 
-    @actionrun(force=True)
+    
     def start(self):
-        self.cuisine.core.file_copy("$tmplsDir/cfg/fs", "$cfgDir", recursive=True)
-        self.cuisine.processmanager.ensure('fs', cmd="$binDir/fs -c $cfgDir/fs/config.toml")
+        self._cuisine.core.file_copy("$tmplsDir/cfg/fs", "$cfgDir", recursive=True)
+        self._cuisine.processmanager.ensure('fs', cmd="$binDir/fs -c $cfgDir/fs/config.toml")

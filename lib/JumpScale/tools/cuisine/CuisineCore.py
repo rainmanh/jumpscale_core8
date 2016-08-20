@@ -217,8 +217,8 @@ class CuisineCore(base):
     def __init__(self, executor, cuisine):
         self.logger = j.logger.get("j.tools.cuisine.core", enable_only_me=True)
         # print ("***NEW CORE***")
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
         self.cd = "/"
         self.sudomode = False
         self.runid = self.id
@@ -232,7 +232,7 @@ class CuisineCore(base):
     def getenv(self, refresh=False):
         def get():
             res = {}
-            for line in self.cuisine.core.run("printenv", profile=False, showout=False, force=True, replaceArgs=False)[1].splitlines():
+            for line in self._cuisine.core.run("printenv", profile=False, showout=False, replaceArgs=False)[1].splitlines():
                 if '=' in line:
                     name, val = line.split("=", 1)
                     name = name.strip()
@@ -378,12 +378,10 @@ class CuisineCore(base):
     #
     # =============================================================================
 
-    @actionrun()
     def locale_check(self, locale):
         locale_data = self.sudo("locale -a | egrep '^%s$' ; true" % (locale,))
         return locale_data == locale
 
-    @actionrun()
     def locale_ensure(self, locale):
         if not self.locale_check(locale):
             with fabric.context_managers.settings(warn_only=True):
@@ -480,7 +478,6 @@ class CuisineCore(base):
         if expand:
             self.file_expand(to, destdir)
 
-    @actionrun()
     def file_expand(self, path, to):
         path = self.args_replace(path)
         to = self.args_replace(to)
@@ -491,13 +488,11 @@ class CuisineCore(base):
             raise j.exceptions.RuntimeError("not supported yet")
         self.reset_actions()
 
-    @actionrun()
     def touch(self, path):
         path = self.args_replace(path)
         self.file_write(path, "")
         self.reset_actions()
 
-    @actionrun()
     def file_read(self, location, default=None):
         import base64
         """Reads the *remote* file at the given location, if default is not `None`,
@@ -517,31 +512,25 @@ class CuisineCore(base):
         self.reset_actions()
         return not rc
 
-    @actionrun()
     def file_exists(self, location):
         """Tests if there is a *remote* file at the given location."""
         return self._check_is_ok('test -e', location)
 
-    @actionrun()
     def file_is_file(self, location):
         return self._check_is_ok('test -f', location)
 
-    @actionrun()
     def file_is_dir(self, location):
         return self._check_is_ok('test -d', location)
 
-    @actionrun()
     def file_is_link(self, location):
         return self._check_is_ok('test -L', location)
 
-    @actionrun()
     def file_attribs(self, location, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         location."""
         location = self.args_replace(location)
         return self.dir_attribs(location, mode, owner, group, False)
 
-    @actionrun()
     def file_attribs_get(self, location):
         """Return mode, owner, and group for remote path.
         Return mode, owner, and group if remote path exists, 'None'
@@ -559,7 +548,7 @@ class CuisineCore(base):
     def hostname(self):
         def get():
             if self.isMac or self.isCygwin:
-                hostname = self.run("hostname", showout=False, replaceArgs=False, force=False)[1]
+                hostname = self.run("hostname")[1]
             else:
                 hostfile = "/etc/hostname"
                 hostname = self.run("cat %s" % hostfile, showout=False, replaceArgs=False,
@@ -602,7 +591,7 @@ class CuisineCore(base):
 
     @property
     def ns(self):
-        return self.cuisine.ns
+        return self._cuisine.ns
 
     @property
     def fqn(self):
@@ -650,7 +639,6 @@ class CuisineCore(base):
             hostfile = "/etc/hosts"
             self.file_write(hostfile, val)
 
-    @actionrun()
     def file_write(self, location, content, mode=None, owner=None, group=None, check=False, sudo=False, replaceArgs=False, strip=True, showout=True):
 
         self.logger.info("write content in %s" % location)
@@ -664,7 +652,7 @@ class CuisineCore(base):
         # if showout:
         #     print ("filewrite: %s"%location)
 
-        self.dir_ensure(j.sal.fs.getParent(location), force=False)
+        self.dir_ensure(j.sal.fs.getParent(location))
 
         content2 = content.encode('utf-8')
 
@@ -688,7 +676,6 @@ class CuisineCore(base):
 
         self.reset_actions()
 
-    @actionrun()
     def file_ensure(self, location, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         location."""
@@ -714,12 +701,12 @@ class CuisineCore(base):
     def file_upload_binary(self, local, remote):
         """Uploads (stream) the local file to the remote location"""
         local = self.args_replace(local)
-        if self.executor.type == "local":
+        if self._executor.type == "local":
             if local == remote:
                 return
             self.file_copy(local, remote)
         else:
-            sftp = self.executor.sshclient.getSFTP()
+            sftp = self._executor.sshclient.getSFTP()
             output = sftp.open(remote, mode='w+')
             input = open(local, "rb")
             self._file_stream(input, output)
@@ -735,7 +722,7 @@ class CuisineCore(base):
         if remote_md5 == local_md5:
             return
 
-        ftp = self.executor.sshclient.getSFTP()
+        ftp = self._executor.sshclient.getSFTP()
         content = j.tools.path.get(local).text()
         with ftp.open(remote, mode='w+') as f:
             f.write(content)
@@ -746,7 +733,7 @@ class CuisineCore(base):
         """Downloads (stream) the remote file to the local location"""
         local = self.args_replace(local)
 
-        sftp = self.executor.sshclient.getSFTP()
+        sftp = self._executor.sshclient.getSFTP()
 
         output = open(local, "w+b")
         input = sftp.open(remote, mode='r')
@@ -767,7 +754,6 @@ class CuisineCore(base):
         content = self.file_read(remote)
         f.write_text(content)
 
-    @actionrun()
     def file_update(self, location, updater=lambda x: x):
         """Updates the content of the given by passing the existing
         content of the remote file at the given location to the 'updater'
@@ -795,7 +781,6 @@ class CuisineCore(base):
 
         return True
 
-    @actionrun()
     def file_append(self, location, content, mode=None, owner=None, group=None):
         """Appends the given content to the remote file at the given
         location, optionally updating its mode/owner/group."""
@@ -807,14 +792,12 @@ class CuisineCore(base):
 
         self.reset_actions()
 
-    @actionrun()
     def file_unlink(self, path):
         path = self.args_replace(path)
         if self.file_exists(path):
             self.run("unlink %s" % (self.shell_safe(path)), showout=False)
             self.reset_actions()
 
-    @actionrun()
     def file_link(self, source, destination, symbolic=True, mode=None, owner=None, group=None):
         """Creates a (symbolic) link between source and destination on the remote host,
         optionally setting its mode/owner/group."""
@@ -833,7 +816,6 @@ class CuisineCore(base):
             self.reset_actions()
         self.file_attribs(destination, mode, owner, group)
 
-    @actionrun()
     def file_copy(self, source, dest, recursive=False, overwrite=True):
         source = self.args_replace(source)
         dest = self.args_replace(dest)
@@ -855,7 +837,6 @@ class CuisineCore(base):
 
         self.reset_actions()
 
-    @actionrun()
     def file_move(self, source, dest, recursive=False):
         self.file_copy(source, dest, recursive)
         self.file_unlink(source)
@@ -865,13 +846,11 @@ class CuisineCore(base):
     # SEE: https://github.com/sebastien/cuisine/pull/184#issuecomment-102336443
     # SEE: http://stackoverflow.com/questions/22982673/is-there-any-function-to-get-the-md5sum-value-of-file-in-linux
 
-    @actionrun()
     def file_base64(self, location):
         """Returns the base64-encoded content of the file at the given location."""
         location = self.args_replace(location)
         return self.run("cat {0} | base64".format(self.shell_safe((location))), debug=False, checkok=False, showout=False)[1]
 
-    @actionrun()
     def file_sha256(self, location):
         """Returns the SHA-256 sum (as a hex string) for the remote file at the given location."""
         # NOTE: In some cases, self.sudo can output errors in here -- but the errors will
@@ -886,7 +865,7 @@ class CuisineCore(base):
         #     return self.run('openssl dgst -sha256 %s' % (location)).split("\n")[-1].split(")= ",1)[-1].strip()
 
     #
-    @actionrun()
+
     def file_md5(self, location):
         """Returns the MD5 sum (as a hex string) for the remote file at the given location."""
         # NOTE: In some cases, self.sudo can output errors in here -- but the errors will
@@ -916,7 +895,6 @@ class CuisineCore(base):
             path += "%s%s" % (seperator, arg)
         return path
 
-    @actionrun()
     def dir_attribs(self, location, mode=None, owner=None, group=None, recursive=False, showout=False):
         """Updates the mode/owner/group for the given remote directory."""
         location = self.args_replace(location)
@@ -931,13 +909,11 @@ class CuisineCore(base):
         if group:
             self.run('chgrp %s %s %s' % (recursive, group, location), showout=False)
 
-    @actionrun(action=True)
     def dir_exists(self, location):
         """Tells if there is a remote directory at the given location."""
         # print ("dir exists:%s"%location)
         return self._check_is_ok('test -d', location)
 
-    @actionrun()
     def dir_remove(self, location, recursive=True):
         """ Removes a directory """
         self.reset_actions(prefix="")
@@ -951,7 +927,6 @@ class CuisineCore(base):
             self.reset_actions()
             return self.run('rm -%sf %s && echo **OK** ; true' % (flag, location), showout=False)[1]
 
-    @actionrun()
     def dir_ensure(self, location, recursive=True, mode=None, owner=None, group=None):
         """Ensures that there is a remote directory at the given location,
         optionally updating its mode/owner/group.
@@ -971,7 +946,6 @@ class CuisineCore(base):
 
     createDir = dir_ensure
 
-    @actionrun()
     def fs_find(self, path, recursive=True, pattern="", findstatement="", type="", contentsearch="", extendinfo=False):
         """
         @param findstatement can be used if you want to use your own find arguments
@@ -1045,8 +1019,8 @@ class CuisineCore(base):
     # -----------------------------------------------------------------------------
 
     def _clean(self, output):
-        if self.sudomode and hasattr(self.executor, 'login'):
-            dirt = '[sudo] password for %s: ' % self.executor.login
+        if self.sudomode and hasattr(self._executor, 'login'):
+            dirt = '[sudo] password for %s: ' % self._executor.login
             if output.find(dirt) != -1:
                 output = output.lstrip(dirt)
         return output
@@ -1054,7 +1028,6 @@ class CuisineCore(base):
     def set_sudomode(self):
         self.sudomode = True
 
-    @actionrun()
     def sudo(self, cmd, die=True, showout=True):
         sudomode = self.sudomode
         self.sudomode = True
@@ -1063,7 +1036,6 @@ class CuisineCore(base):
         finally:
             self.sudomode = sudomode
 
-    @actionrun()
     def run(self, cmd, die=True, debug=None, checkok=False, showout=True, profile=False, replaceArgs=True):
         """
         @param profile, execute the bash profile first
@@ -1072,14 +1044,14 @@ class CuisineCore(base):
         env = {}
         if replaceArgs:
             cmd = self.args_replace(cmd)
-        self.executor.curpath = self.cd
+        self._executor.curpath = self.cd
         # print ("CMD:'%s'"%cmd)
         if debug:
             debugremember = copy.copy(debug)
-            self.executor.debug = debug
+            self._executor.debug = debug
 
         if profile:
-            ppath = self.cuisine.bash.profilePath
+            ppath = self._cuisine.bash.profilePath
             if ppath:
                 cmd = ". %s && %s" % (ppath, cmd)
             if showout:
@@ -1090,19 +1062,19 @@ class CuisineCore(base):
         if '"' in cmd:
             cmd = cmd.replace('"', '\\"')
 
-        if "cygwin" in self.executor.execute("uname -a", showout=False)[1].lower():
+        if "cygwin" in self._executor.execute("uname -a", showout=False)[1].lower():
             self.sudomode = False
 
         if self.sudomode:
-            passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
+            passwd = self._executor.passwd if hasattr(self._executor, "passwd") else ''
             cmd = 'echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, cmd)
         else:
             cmd = 'bash -c "%s"' % cmd
 
-        path = self.executor.execute("echo $PATH", showout=False)[1]
+        path = self._executor.execute("echo $PATH", showout=False)[1]
         if "/usr/local/bin" not in path:
             env = {"PATH": "%s:/usr/local/bin" % path}
-        rc, out, err = self.executor.execute(cmd, checkok=checkok, die=False, showout=showout, env=env)
+        rc, out, err = self._executor.execute(cmd, checkok=checkok, die=False, showout=showout, env=env)
 
         out = self._clean(out)
 
@@ -1111,7 +1083,7 @@ class CuisineCore(base):
             raise j.exceptions.RuntimeError('%s, %s' % (cmd, err))
 
         if debug:
-            self.executor.debug = debugremember
+            self._executor.debug = debugremember
 
         out = out.strip()
 
@@ -1126,12 +1098,11 @@ class CuisineCore(base):
     def pwd(self):
         return self.cd
 
-    @actionrun()
     def run_script(self, content, die=True, profile=False, interpreter="bash", tmux=False):
         self.logger.info("RUN SCRIPT:")
 
         if print:
-            self.cuisine.core.pprint(content)
+            self._cuisine.core.pprint(content)
 
         content = self.args_replace(content)
         content = j.data.text.strip(content)
@@ -1140,7 +1111,7 @@ class CuisineCore(base):
         if content[-1] != "\n":
             content += "\n"
         if profile:
-            ppath = self.cuisine.bash.profilePath
+            ppath = self._cuisine.bash.profilePath
             if ppath:
                 content = ". %s\n%s\n" % (ppath, content)
         if interpreter == "bash":
@@ -1159,7 +1130,7 @@ class CuisineCore(base):
         cmd = "cd $tmpDir;%s %s" % (interpreter, path)
         cmd = self.args_replace(cmd)
         if tmux:
-            self.cuisine.tmux.executeInScreen("cmd", "cmd", cmd + " > /tmp/cmdout 2>&1",
+            self._cuisine.tmux.executeInScreen("cmd", "cmd", cmd + " > /tmp/cmdout 2>&1",
                                               wait=True, reset=True)
             out = self.file_read("/tmp/cmdout")
             print(out)
@@ -1189,22 +1160,19 @@ class CuisineCore(base):
     #
     # =============================================================================
 
-    @actionrun()
     def command_check(self, command):
         """Tests if the given command is available on the system."""
         command = self.args_replace(command)
         rc, out, err = self.run("which '%s'" % command, die=False, showout=False, profile=True)
         return rc == 0
 
-    @actionrun()
     def command_location(self, command):
         """
         return location of cmd
         """
         command = self.args_replace(command)
-        return self.cuisine.bash.cmdGetPath(command)
+        return self._cuisine.bash.cmdGetPath(command)
 
-    @actionrun()
     def command_ensure(self, command, package=None):
         """Ensures that the given command is present, if not installs the
         package with the given name, which is the same as the command by
@@ -1213,7 +1181,7 @@ class CuisineCore(base):
         if package is None:
             package = command
         if not self.command_check(command):
-            self.cuisine.package.install(package)
+            self._cuisine.package.install(package)
         assert self.command_check(command), \
             "Command was not installed, check for errors: %s" % (command)
 
@@ -1223,7 +1191,6 @@ class CuisineCore(base):
     #
     # =============================================================================
 
-    @actionrun()
     def tmux_execute_jumpscript(self, script, sessionname="ssh", screenname="js"):
         """
         execute a jumpscript (script as content) in a remote tmux command, the stdout will be returned
@@ -1240,7 +1207,6 @@ class CuisineCore(base):
         self.reset_actions()
         return out
 
-    @actionrun()
     def execute_jumpscript(self, script, print=True):
         """
         execute a jumpscript (script as content) in a remote tmux command, the stdout will be returned
@@ -1249,7 +1215,7 @@ class CuisineCore(base):
         script = j.data.text.strip(script)
 
         if print:
-            self.cuisine.core.pprint(script)
+            self._cuisine.core.pprint(script)
 
         if script.find("from JumpScale import j") == -1:
             script = "from JumpScale import j\n\n%s" % script
@@ -1260,7 +1226,6 @@ class CuisineCore(base):
         self.reset_actions()
         return out
 
-    @actionrun(action=True, force=True)
     def execute_python(self, script):
         """
         execute a python script (script as content) in a remote tmux command, the stdout will be returned
@@ -1304,21 +1269,21 @@ class CuisineCore(base):
 
     @property
     def isUbuntu(self):
-        return "ubuntu" in self.cuisine.platformtype.platformtypes
+        return "ubuntu" in self._cuisine.platformtype.platformtypes
 
     @property
     def isArch(self):
-        return "arch" in self.cuisine.platformtype.platformtypes
+        return "arch" in self._cuisine.platformtype.platformtypes
 
     @property
     def isMac(self):
-        return "darwin" in self.cuisine.platformtype.platformtypes
+        return "darwin" in self._cuisine.platformtype.platformtypes
 
     @property
     def isCygwin(self):
-        return "cygwin" in self.cuisine.platformtype.platformtypes
+        return "cygwin" in self._cuisine.platformtype.platformtypes
 
     def __str__(self):
-        return "cuisine:core:%s:%s" % (getattr(self.executor, 'addr', 'local'), getattr(self.executor, 'port', ''))
+        return "cuisine:core:%s:%s" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))
 
     __repr__ = __str__

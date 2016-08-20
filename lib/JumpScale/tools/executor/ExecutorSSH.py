@@ -95,7 +95,7 @@ class ExecutorSSH(ExecutorBase):
                     path = "%s/.ssh/%s" % (homedir, pushkey)
 
         self._getSSHClient(path, passphrase)  # should be the correct client now
-        self._sshclient._cuisine = self.cuisine
+        self._sshclient._cuisine = self._cuisine
 
         path = '%s.pub' % path
         if j.sal.fs.exists(path):

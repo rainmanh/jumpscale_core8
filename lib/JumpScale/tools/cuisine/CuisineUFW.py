@@ -16,8 +16,8 @@ base = j.tools.cuisine.getBaseClass()
 class CuisineUFW(base):
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
         self._ufw_allow = {}
         self._ufw_deny = {}
         self._ufw_enabled = None
@@ -25,26 +25,26 @@ class CuisineUFW(base):
     @property
     def ufw_enabled(self):
         if not self._ufw_enabled:
-            if not self.cuisine.core.isMac:
-                if self.cuisine.bash.cmdGetPath("nft", die=False) is not False:
+            if not self._cuisine.core.isMac:
+                if self._cuisine.bash.cmdGetPath("nft", die=False) is not False:
                     self._ufw_enabled = False
                     print("cannot use ufw, nft installed")
-                if self.cuisine.bash.cmdGetPath("ufw", die=False) == False:
-                    self.cuisine.package.install("ufw")
-                    self.cuisine.bash.cmdGetPath("ufw")
-                self._ufw_enabled = not "inactive" in self.cuisine.core.run("ufw status")[1]
+                if self._cuisine.bash.cmdGetPath("ufw", die=False) == False:
+                    self._cuisine.package.install("ufw")
+                    self._cuisine.bash.cmdGetPath("ufw")
+                self._ufw_enabled = not "inactive" in self._cuisine.core.run("ufw status")[1]
         return self._ufw_enabled
 
-    @actionrun(action=True)
+    
     def ufw_enable(self):
         if not self.ufw_enabled:
-            if not self.cuisine.core.isMac:
-                if self.cuisine.bash.cmdGetPath("nft", die=False) is not False:
+            if not self._cuisine.core.isMac:
+                if self._cuisine.bash.cmdGetPath("nft", die=False) is not False:
                     self._fw_enabled = False
                     raise j.exceptions.RuntimeError("Cannot use ufw, nft installed")
-                if self.executor.type != 'local':
-                    self.cuisine.core.run("ufw allow %s" % self.executor.port)
-                self.cuisine.core.run("echo \"y\" | ufw enable")
+                if self._executor.type != 'local':
+                    self._cuisine.core.run("ufw allow %s" % self._executor.port)
+                self._cuisine.core.run("echo \"y\" | ufw enable")
                 self._fw_enabled = True
                 return True
         raise j.exceptions.Input(message="cannot enable ufw, not supported or ",
@@ -53,7 +53,7 @@ class CuisineUFW(base):
 
     @property
     def ufw_rules_allow(self):
-        if self.cuisine.core.isMac:
+        if self._cuisine.core.isMac:
             return {}
         if self._ufw_allow == {}:
             self._ufw_status()
@@ -61,7 +61,7 @@ class CuisineUFW(base):
 
     @property
     def ufw_rules_deny(self):
-        if self.cuisine.core.isMac:
+        if self._cuisine.core.isMac:
             return {}
         if self._ufw_deny == {}:
             self._ufw_status()
@@ -69,7 +69,7 @@ class CuisineUFW(base):
 
     def _ufw_status(self):
         self.ufw_enable()
-        _, out, _ = self.cuisine.core.run("ufw status", action=True, force=True)
+        _, out, _ = self._cuisine.core.run("ufw status")
         for line in out.splitlines():
             if line.find("(v6)") != -1:
                 continue
@@ -80,22 +80,22 @@ class CuisineUFW(base):
                 ip = line.split(" ", 1)[0]
                 self._ufw_deny[ip] = "*"
 
-    @actionrun(action=True)
+    
     def allowIncoming(self, port, protocol='tcp'):
-        if self.cuisine.core.isMac:
+        if self._cuisine.core.isMac:
             return
         self.ufw_enable()
-        self.cuisine.core.run("ufw allow %s/%s" % (port, protocol))
+        self._cuisine.core.run("ufw allow %s/%s" % (port, protocol))
 
-    @actionrun(action=True)
+    
     def denyIncoming(self, port):
-        if self.cuisine.core.isMac:
+        if self._cuisine.core.isMac:
             return
 
         self.ufw_enable()
-        self.cuisine.core.run("ufw deny %s" % port)
+        self._cuisine.core.run("ufw deny %s" % port)
 
-    @actionrun(action=True, force=True)
+    
     def flush(self):
         C = """
         ufw disable
@@ -106,7 +106,7 @@ class CuisineUFW(base):
         iptables --table nat --delete-chain
         iptables --table filter --delete-chain
         """
-        self.cuisine.core.run_script(C)
+        self._cuisine.core.run_script(C)
 
     def show(self):
         a = self.ufw_rules_allow
@@ -116,4 +116,4 @@ class CuisineUFW(base):
         print("DENY")
         print(b)
 
-        # print(self.cuisine.core.run("iptables -t nat -nvL"))
+        # print(self._cuisine.core.run("iptables -t nat -nvL"))

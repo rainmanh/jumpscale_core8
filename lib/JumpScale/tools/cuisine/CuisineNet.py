@@ -9,8 +9,8 @@ base = j.tools.cuisine.getBaseClass()
 class CuisineNet(base):
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
     def netconfig(self, interface, ipaddr, cidr=24, gateway=None, dns="8.8.8.8", masquerading=False):
         raise j.exceptions.RuntimeError("please implement using systemd")  # TODO: *2
@@ -38,7 +38,7 @@ class CuisineNet(base):
 
     @property
     def defaultgw(self):
-        return self.cuisine.core.run("ip r | grep 'default' | awk {'print $3'}")
+        return self._cuisine.core.run("ip r | grep 'default' | awk {'print $3'}")
 
     @defaultgw.setter
     def defaultgw(self, val):
@@ -51,7 +51,7 @@ class CuisineNet(base):
         find nodes which are active around
         """
         if range == None:
-            res = self.cuisine.net.get_info()
+            res = self._cuisine.net.get_info()
             for item in res:
                 cidr = item['cidr']
 
@@ -65,12 +65,12 @@ class CuisineNet(base):
             return ips
         else:
             try:
-                _, out, _ = self.cuisine.core.run(
+                _, out, _ = self._cuisine.core.run(
                     "nmap %s -n -sP | grep report | awk '{print $5}'" % range, showout=False)
             except Exception as e:
                 if str(e).find("command not found") != -1:
-                    self.cuisine.package.install("nmap")
-                    _, out, _ = self.cuisine.core.run(
+                    self._cuisine.package.install("nmap")
+                    _, out, _ = self._cuisine.core.run(
                         "nmap %s -n -sP | grep report | awk '{print $5}'" % range, showout=False)
             for line in out.splitlines():
                 ip = line.strip()
@@ -118,7 +118,7 @@ class CuisineNet(base):
             return result
 
         def getNetworkInfo():
-            _, output, _ = self.cuisine.core.run("ip a", showout=False)
+            _, output, _ = self._cuisine.core.run("ip a", showout=False)
             for m in IPBLOCKS.finditer(output):
                 block = m.group('block')
                 yield parseBlock(block)

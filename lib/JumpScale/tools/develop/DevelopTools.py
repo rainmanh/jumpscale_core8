@@ -128,7 +128,7 @@ class DebugSSHNode:
     @property
     def executor(self):
         self.test()
-        return self.cuisine.executor
+        return self._cuisine._executor
 
     @property
     def cuisine(self):

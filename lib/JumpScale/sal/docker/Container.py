@@ -122,8 +122,8 @@ class Container:
     #     return result
 
     def setHostName(self, hostname):
-        self.cuisine.core.sudo("echo '%s' > /etc/hostname" % hostname)
-        self.cuisine.core.sudo("echo %s >> /etc/hosts" % hostname)
+        self._cuisine.core.sudo("echo '%s' > /etc/hostname" % hostname)
+        self._cuisine.core.sudo("echo %s >> /etc/hosts" % hostname)
 
     def getPubPortForInternalPort(self, port):
 
@@ -173,7 +173,7 @@ class Container:
         if key == None or key.strip() == "":
             raise j.exceptions.Input("ssh key cannot be empty (None)")
 
-        self.cuisine.ssh.authorize("root", key)
+        self._cuisine.ssh.authorize("root", key)
 
         return list(keys)
 
@@ -239,11 +239,11 @@ class Container:
         get a file located at source in the host to dest on the host
 
         """
-        if not self.cuisine.core.file_exists(source):
+        if not self._cuisine.core.file_exists(source):
             raise j.exceptions.Input(msg="%s not found in container" % source)
         ddir = j.sal.fs.getDirName(dest)
         j.sal.fs.createDir(ddir)
-        content = self.cuisine.core.file_read(source)
+        content = self._cuisine.core.file_read(source)
         j.sal.fs.writeFile(dest, content)
 
     def __str__(self):

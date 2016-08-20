@@ -15,17 +15,17 @@ base = j.tools.cuisine.getBaseClass()
 class CuisineLua(base):
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
-    @actionrun(action=True)
+    
     def install(self):
         """
         installs and builds geodns from github.com/abh/geodns
         """
         # deps
-        self.cuisine.package.install("lua5.1", force=False)
-        self.cuisine.package.install("luarocks", force=False)
+        self._cuisine.package.install("lua5.1")
+        self._cuisine.package.install("luarocks")
 
         url = "https://raw.githubusercontent.com/zserge/luash/master/sh.lua"
         # check http://zserge.com/blog/luash.html
@@ -114,14 +114,14 @@ class CuisineLua(base):
 
         sudo luarocks install lightningmdb
         """
-        self.cuisine.core.run_script(C)
+        self._cuisine.core.run_script(C)
 
         # REQUIRED IN BASH
         # export LUA_PATH=$JSBASE/lib/lua/?.lua;./?.lua;$JSBASE/lib/lua/?/?.lua;$JSBASE/lib/lua/?/init.lua
 
-    @actionrun(action=True)
+    
     def package(self, name):
         #TODO: need to check for e.g. openwrt
-        self.cuisine.core.run("luarocks install %s" % name)
+        self._cuisine.core.run("luarocks install %s" % name)
 
     # local socket = require("socket")

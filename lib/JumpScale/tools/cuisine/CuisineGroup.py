@@ -17,18 +17,18 @@ base = j.tools.cuisine.getBaseClass()
 class CuisineGroup(base):
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
-    @actionrun()
+    
     def create(self, name, gid=None):
         """Creates a group with the given name, and optionally given gid."""
         options = []
         if gid:
             options.append("-g '%s'" % (gid))
-        self.cuisine.core.sudo("groupadd %s '%s'" % (" ".join(options), name))
+        self._cuisine.core.sudo("groupadd %s '%s'" % (" ".join(options), name))
 
-    @actionrun()
+    
     def check(self, name):
         """Checks if there is a group defined with the given name,
         returning its information as:
@@ -37,7 +37,7 @@ class CuisineGroup(base):
         '{"name":<str>,"gid":<str>}' if the group has no members
         or
         'None' if the group does not exists."""
-        _, data, _ = self.cuisine.core.run("getent group | egrep '^%s:' ; true" % (name))
+        _, data, _ = self._cuisine.core.run("getent group | egrep '^%s:' ; true" % (name))
         if len(data.split(":")) == 4:
             name, _, gid, members = data.split(":", 4)
             return dict(name=name, gid=gid,
@@ -48,7 +48,7 @@ class CuisineGroup(base):
         else:
             return None
 
-    @actionrun()
+    
     def ensure(self, name, gid=None):
         """Ensures that the group with the given name (and optional gid)
         exists."""
@@ -57,9 +57,9 @@ class CuisineGroup(base):
             self.create(name, gid)
         else:
             if gid != None and d.get("gid") != gid:
-                self.cuisine.core.sudo("groupmod -g %s '%s'" % (gid, name))
+                self._cuisine.core.sudo("groupmod -g %s '%s'" % (gid, name))
 
-    @actionrun()
+    
     def user_check(self, group, user):
         """Checks if the given user is a member of the given group. It
         will return 'False' if the group does not exist."""
@@ -69,14 +69,14 @@ class CuisineGroup(base):
         else:
             return user in d["members"]
 
-    @actionrun()
+    
     def user_add(self, group, user):
         """Adds the given user/list of users to the given group/groups."""
         assert self.check(group), "Group does not exist: %s" % (group)
         if not self.user_check(group, user):
-            self.cuisine.core.sudo("usermod -a -G '%s' '%s'" % (group, user))
+            self._cuisine.core.sudo("usermod -a -G '%s' '%s'" % (group, user))
 
-    @actionrun()
+    
     def user_ensure(self, group, user):
         """Ensure that a given user is a member of a given group."""
         d = self.check(group)
@@ -86,26 +86,26 @@ class CuisineGroup(base):
         if user not in d["members"]:
             self.user_add(group, user)
 
-    @actionrun()
+    
     def user_del(self, group, user):
         """remove the given user from the given group."""
         assert self.check(group), "Group does not exist: %s" % (group)
         if self.user_check(group, user):
-            for_user = self.cuisine.core.run(
+            for_user = self._cuisine.core.run(
                 "getent group | egrep -v '^%s:' | grep '%s' | awk -F':' '{print $1}' | grep -v %s; true" % (group, user, user))[1].splitlines()
             if for_user:
-                self.cuisine.core.sudo("usermod -G '%s' '%s'" % (",".join(for_user), user))
+                self._cuisine.core.sudo("usermod -G '%s' '%s'" % (",".join(for_user), user))
             else:
-                self.cuisine.core.sudo("usermod -G '' '%s'" % (user))
+                self._cuisine.core.sudo("usermod -G '' '%s'" % (user))
 
-    @actionrun()
+    
     def remove(self, group=None, wipe=False):
         """ Removes the given group, this implies to take members out the group
         if there are any.  If wipe=True and the group is a primary one,
         deletes its user as well.
         """
         assert self.check(group), "Group does not exist: %s" % (group)
-        _, members_of_group, _ = self.cuisine.core.run("getent group %s | awk -F':' '{print $4}'" % group)
+        _, members_of_group, _ = self._cuisine.core.run("getent group %s | awk -F':' '{print $4}'" % group)
         members = members_of_group.split(",")
         is_primary_group = self.user_check(name=group)
         if wipe:
@@ -113,11 +113,11 @@ class CuisineGroup(base):
                 for user in members:
                     self.user_del(group, user)
             if is_primary_group:
-                self.cuisine.user.remove(group)
+                self._cuisine.user.remove(group)
             else:
-                self.cuisine.core.sudo("groupdel %s" % group)
+                self._cuisine.core.sudo("groupdel %s" % group)
         elif not is_primary_group:
             if len(members_of_group):
                 for user in members:
                     self.user_del(group, user)
-            self.cuisine.core.sudo("groupdel %s" % group)
+            self._cuisine.core.sudo("groupdel %s" % group)

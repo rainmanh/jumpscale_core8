@@ -15,16 +15,16 @@ base = j.tools.cuisine.getBaseClass()
 class CuisineCapnp(base):
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
-    @actionrun(action=True)
+    
     def install(self):
         """
         install capnp
         """
-        self.cuisine.package.mdupdate()
-        self.cuisine.package.multiInstall(['curl', 'make', 'g++', 'python-dev'])
+        self._cuisine.package.mdupdate()
+        self._cuisine.package.multiInstall(['curl', 'make', 'g++', 'python-dev'])
 
         # c++ deps libs
         script = """
@@ -36,6 +36,6 @@ class CuisineCapnp(base):
         make -j6 check
         sudo make install
         """
-        self.cuisine.core.run_script(script)
+        self._cuisine.core.run_script(script)
         # install python pacakge
-        self.cuisine.pip.multiInstall(['cython', 'setuptools', 'pycapnp'], upgrade=True)
+        self._cuisine.pip.multiInstall(['cython', 'setuptools', 'pycapnp'], upgrade=True)

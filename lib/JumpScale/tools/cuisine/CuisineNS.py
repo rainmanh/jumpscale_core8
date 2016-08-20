@@ -18,15 +18,15 @@ base = j.tools.cuisine.getBaseClass()
 class CuisineNS(base):
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
-    @actionrun()
+    
     def hostfile_get(self):
         """
         """
         result = {}
-        for line in self.cuisine.core.hostfile.splitlines():
+        for line in self._cuisine.core.hostfile.splitlines():
             ipaddr_found = re.search(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b', line)
             if ipaddr_found != None:
                 ipaddr_found = ipaddr_found.group()
@@ -40,7 +40,7 @@ class CuisineNS(base):
         result.pop('255.255.255.255', "")
         return result
 
-    @actionrun()
+    
     def hostfile_set_multiple(self, names=[], remove=[]):
         """
         @param names [[$ipaddr,$name]]
@@ -70,9 +70,9 @@ class CuisineNS(base):
             C += "%-19s %s\n" % (addr, names2)
 
         #TODO: need to do ipv6
-        self.cuisine.core.hostfile = C
+        self._cuisine.core.hostfile = C
 
-    @actionrun()
+    
     def hostfile_set_fromlocal(self):
         """
         read local hostnames & transfer them to current cuisine
@@ -95,7 +95,7 @@ class CuisineNS(base):
 
         self.hostfile_set_multiple(res2send)
 
-    @actionrun()
+    
     def hostfile_set(self, name, ipaddr):
         return self.hostfile_set_multiple([[ipaddr, name]])
 
@@ -105,7 +105,7 @@ class CuisineNS(base):
         can set & get
         @param nameservers [$nserver1,$nserver2]
         """
-        file = self.cuisine.core.file_read('/etc/resolv.conf')
+        file = self._cuisine.core.file_read('/etc/resolv.conf')
         results = []
         for line in file.splitlines():
             nameserver = re.search(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b', line)
@@ -126,4 +126,4 @@ class CuisineNS(base):
 
         for ns in nameservers:
             content += 'nameserver %s\n' % ns
-        self.cuisine.core.file_write('/etc/resolv.conf', content)
+        self._cuisine.core.file_write('/etc/resolv.conf', content)

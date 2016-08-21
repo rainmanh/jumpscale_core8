@@ -5,6 +5,8 @@ from JumpScale import j
 
 from JumpScale.tools import cmdutils
 
+# TODO: *1 rewrite this using click
+
 # import sys
 # import time
 
@@ -57,7 +59,7 @@ if opts.action == 'init':
 
     username = input('Git Username: ')
     email = input('Git Email: ')
-    j.do.loadSSHAgent(createkeys=False,keyname=username)
+    j.do.loadSSHAgent(createkeys=False, keyname=username)
     os.system('git config --global user.name "%s"' % username)
     os.system('git config --global user.email "%s"' % email)
 
@@ -73,22 +75,22 @@ repos = j.clients.git.find(opts.accounts, opts.name, interactive=True, returnGit
 repos = [(r.type, r.account, r.name, r.branchName, r, r.baseDir) for r in repos]
 
 
-C="""
+C = """
 Host *
    StrictHostKeyChecking no
    UserKnownHostsFile=/dev/null
 """
 
 if j.core.platformtype.myplatform.isLinux():
-    path=j.sal.fs.joinPaths(os.environ["HOME"],".ssh","config")
+    path = j.sal.fs.joinPaths(os.environ["HOME"], ".ssh", "config")
     if not j.sal.fs.exists(path):
-        j.sal.fs.writeFile(path,C)
+        j.sal.fs.writeFile(path, C)
 
 if opts.action == "status":
     print("\n\nSTATUS: account reponame                  " +
-           "branch added:modified:deleted   insyncwithremote?   localrev       remoterev")
+          "branch added:modified:deleted   insyncwithremote?   localrev       remoterev")
     print("==============================================" +
-           "===========================================================================")
+          "===========================================================================")
 
 
 for provider, account, reponame, branch, client, path in repos:
@@ -122,7 +124,7 @@ for provider, account, reponame, branch, client, path in repos:
                          ignorelocalchanges=opts.deletechanges, reset=False, branch=opts.branch)
         continue
 
-    # is dirty hack, am sure there are better ways (@TODO)
+    # TODO: is dirty hack, am sure there are better ways
     if opts.action == "push":
         print(("push git repo:%s" % path))
         j.do.pushGitRepos(message=opts.message, name=reponame, update=True, provider=provider, account=account)
@@ -155,8 +157,8 @@ for provider, account, reponame, branch, client, path in repos:
             reposync = "N"
 
         print("%-15s %-25s %-10s n%-3s:m%-3s:d%-3s:r%-6s reposync:%-9s  lrev:%-9s rrev:%-5s" %
-               (account, reponame, client.branchName, len(mods["N"]), len(mods["M"]), len(mods["D"]),
-                len(mods["R"]), reposync, lrev, remotelastrevision))
+              (account, reponame, client.branchName, len(mods["N"]), len(mods["M"]), len(mods["D"]),
+               len(mods["R"]), reposync, lrev, remotelastrevision))
 
     if opts.action in ['commit']:
         if nrmods == 0:

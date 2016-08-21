@@ -1,12 +1,14 @@
 from JumpScale import j
 
+
 class PerformanceTraceFactory:
     """
     """
+
     def __init__(self):
         self.__jslocation__ = "j.tools.performancetrace"
-    
-    def profile(self,methodstatement, locals={},globals={}):
+
+    def profile(self, methodstatement, locals={}, globals={}):
         """
         create a wrapper method which has no args and then pass that wrapper method to this method as first arg
         method is passed as a string e.g. 'listDirTest()'
@@ -21,8 +23,8 @@ class PerformanceTraceFactory:
         """
         import cProfile
         import pstats
-        path=j.sal.fs.joinPaths(j.dirs.tmpDir,"perftest","%s.log"%j.data.idgenerator.generateRandomInt(1,10000))        
-        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.tmpDir,"perftest"))        
+        path = j.sal.fs.joinPaths(j.dirs.tmpDir, "perftest", "%s.log" % j.data.idgenerator.generateRandomInt(1, 10000))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.tmpDir, "perftest"))
         globs = {
             '__file__': "afile",
             '__name__': '__main__',
@@ -36,7 +38,3 @@ class PerformanceTraceFactory:
         p1.strip_dirs().sort_stats('time').print_stats(100)
         j.sal.fs.removeDirTree(path)
         return p1
-
-
-
-

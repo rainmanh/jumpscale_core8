@@ -6,12 +6,15 @@ import time
 # import urllib.request, urllib.parse, urllib.error
 
 try:
-    import urllib.request, urllib.parse, urllib.error
+    import urllib.request
+    import urllib.parse
+    import urllib.error
 except:
     import urllib.parse as urllib
 
 
 class GraphiteClient:
+
     def __init__(self):
         self.__jslocation__ = "j.clients.graphite"
         self._SERVER = '127.0.0.1'
@@ -19,17 +22,15 @@ class GraphiteClient:
         self._GRAPHITE_PORT = 8081
         self._url = "http://%s:%s/render" % (self._SERVER, self._GRAPHITE_PORT)
 
-        
         # self.sock.connect((self.CARBON_SERVER, self.CARBON_PORT))
 
-
-    def send(self,msg):
+    def send(self, msg):
         """
         e.g. foo.bar.baz 20
         """
-        out=""
+        out = ""
         for line in msg.split("\n"):
-            out+='%s %d\n'%(line,int(time.time()))
+            out += '%s %d\n' % (line, int(time.time()))
         sock = socket.socket()
         sock.connect((self._SERVER, self._CARBON_PORT))
         sock.sendall(out)

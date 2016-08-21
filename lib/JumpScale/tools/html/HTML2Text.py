@@ -14,28 +14,39 @@ except NameError:
     setattr(__builtins__, 'True', 1)
     setattr(__builtins__, 'False', 0)
 
+
 def has_key(x, y):
-    if hasattr(x, 'has_key'): return y in x
-    else: return y in x
+    if hasattr(x, 'has_key'):
+        return y in x
+    else:
+        return y in x
 
 try:
     import html.entities as htmlentitydefs
     import urllib as urlparse
     import html.parser as HTMLParser
-except ImportError: #Python3
+except ImportError:  # Python3
     import html.entities as htmlentitydefs
     import urllib.parse as urlparse
     import html.parser as HTMLParser
 
-try: #Python3
+try:  # Python3
     import urllib.request as urllib
 except:
-    import urllib.request, urllib.parse, urllib.error
-    
-import optparse, re, sys, codecs, types
+    import urllib.request
+    import urllib.parse
+    import urllib.error
 
-try: from textwrap import wrap
-except: pass
+import optparse
+import re
+import sys
+import codecs
+import types
+
+try:
+    from textwrap import wrap
+except:
+    pass
 
 # Use Unicode characters instead of their ascii psuedo-replacements
 UNICODE_SNOB = 0
@@ -65,24 +76,27 @@ IGNORE_EMPHASIS = False
 
 ### Entity Nonsense ###
 
+
 def name2cp(k):
-    if k == 'apos': return ord("'")
-    if hasattr(htmlentitydefs, "name2codepoint"): # requires Python 2.3
+    if k == 'apos':
+        return ord("'")
+    if hasattr(htmlentitydefs, "name2codepoint"):  # requires Python 2.3
         return html.entities.name2codepoint[k]
     else:
         k = html.entities.entitydefs[k]
-        if k.startswith("&#") and k.endswith(";"): return int(k[2:-1]) # not in latin-1
+        if k.startswith("&#") and k.endswith(";"):
+            return int(k[2:-1])  # not in latin-1
         return ord(codecs.latin_1_decode(k)[0])
 
-unifiable = {'rsquo':"'", 'lsquo':"'", 'rdquo':'"', 'ldquo':'"',
-'copy':'(C)', 'mdash':'--', 'nbsp':' ', 'rarr':'->', 'larr':'<-', 'middot':'*',
-'ndash':'-', 'oelig':'oe', 'aelig':'ae',
-'agrave':'a', 'aacute':'a', 'acirc':'a', 'atilde':'a', 'auml':'a', 'aring':'a',
-'egrave':'e', 'eacute':'e', 'ecirc':'e', 'euml':'e',
-'igrave':'i', 'iacute':'i', 'icirc':'i', 'iuml':'i',
-'ograve':'o', 'oacute':'o', 'ocirc':'o', 'otilde':'o', 'ouml':'o',
-'ugrave':'u', 'uacute':'u', 'ucirc':'u', 'uuml':'u',
-'lrm':'', 'rlm':''}
+unifiable = {'rsquo': "'", 'lsquo': "'", 'rdquo': '"', 'ldquo': '"',
+             'copy': '(C)', 'mdash': '--', 'nbsp': ' ', 'rarr': '->', 'larr': '<-', 'middot': '*',
+             'ndash': '-', 'oelig': 'oe', 'aelig': 'ae',
+             'agrave': 'a', 'aacute': 'a', 'acirc': 'a', 'atilde': 'a', 'auml': 'a', 'aring': 'a',
+             'egrave': 'e', 'eacute': 'e', 'ecirc': 'e', 'euml': 'e',
+             'igrave': 'i', 'iacute': 'i', 'icirc': 'i', 'iuml': 'i',
+             'ograve': 'o', 'oacute': 'o', 'ocirc': 'o', 'otilde': 'o', 'ouml': 'o',
+             'ugrave': 'u', 'uacute': 'u', 'ucirc': 'u', 'uuml': 'u',
+             'lrm': '', 'rlm': ''}
 
 unifiable_n = {}
 
@@ -91,6 +105,7 @@ for k in list(unifiable.keys()):
 
 ### End Entity Nonsense ###
 
+
 def onlywhite(line):
     """Return true if the line does only consist of whitespace characters."""
     for c in line:
@@ -98,16 +113,21 @@ def onlywhite(line):
             return c is ' '
     return line
 
+
 def hn(tag):
     if tag[0] == 'h' and len(tag) == 2:
         try:
             n = int(tag[1])
-            if n in range(1, 10): return n
-        except ValueError: return 0
+            if n in range(1, 10):
+                return n
+        except ValueError:
+            return 0
+
 
 def dumb_property_dict(style):
     """returns a hash of css attributes"""
-    return dict([(x.strip(), y.strip()) for x, y in [z.split(':', 1) for z in style.split(';') if ':' in z]]);
+    return dict([(x.strip(), y.strip()) for x, y in [z.split(':', 1) for z in style.split(';') if ':' in z]])
+
 
 def dumb_css_parser(data):
     """returns a hash of css selectors, each of which contains a hash of css attributes"""
@@ -119,13 +139,14 @@ def dumb_css_parser(data):
         importIndex = data.find('@import')
 
     # parse the css. reverted from dictionary compehension in order to support older pythons
-    elements =  [x.split('{') for x in data.split('}') if '{' in x.strip()]
+    elements = [x.split('{') for x in data.split('}') if '{' in x.strip()]
     try:
         elements = dict([(a.strip(), dumb_property_dict(b)) for a, b in elements])
     except ValueError:
-        elements = {} # not that important
+        elements = {}  # not that important
 
     return elements
+
 
 def element_style(attrs, style_def, parent_style):
     """returns a hash of the 'final' style attributes of the element"""
@@ -139,6 +160,7 @@ def element_style(attrs, style_def, parent_style):
         style.update(immediate_style)
     return style
 
+
 def google_list_style(style):
     """finds out whether this is an ordered or unordered list"""
     if 'list-style-type' in style:
@@ -147,11 +169,13 @@ def google_list_style(style):
             return 'ul'
     return 'ol'
 
+
 def google_has_height(style):
     """check if the style of the element has the 'height' attribute explicitly defined"""
     if 'height' in style:
         return True
     return False
+
 
 def google_text_emphasis(style):
     """return a list of all emphasis modifiers of the element"""
@@ -164,6 +188,7 @@ def google_text_emphasis(style):
         emphasis.append(style['font-weight'])
     return emphasis
 
+
 def google_fixed_width_font(style):
     """check if the css of the current element defines a fixed width font"""
     font_family = ''
@@ -173,6 +198,7 @@ def google_fixed_width_font(style):
         return True
     return False
 
+
 def list_numbering_start(attrs):
     """extract numbering from list element attributes"""
     if 'start' in attrs:
@@ -180,7 +206,9 @@ def list_numbering_start(attrs):
     else:
         return 0
 
+
 class HTML2Text(html.parser.HTMLParser):
+
     def __init__(self, out=None, baseurl=''):
         html.parser.HTMLParser.__init__(self)
 
@@ -241,10 +269,11 @@ class HTML2Text(html.parser.HTMLParser):
         self.abbr_list = {}  # stack of abbreviations to write later
         self.baseurl = baseurl
 
-        try: del unifiable_n[name2cp('nbsp')]
-        except KeyError: pass
+        try:
+            del unifiable_n[name2cp('nbsp')]
+        except KeyError:
+            pass
         unifiable['nbsp'] = '&nbsp_place_holder;'
-
 
     def feed(self, data):
         data = data.replace("</' + 'script>", "</ignore>")
@@ -257,7 +286,8 @@ class HTML2Text(html.parser.HTMLParser):
 
     def outtextf(self, s):
         self.outtextlist.append(s)
-        if s: self.lastWasNL = s[-1] == '\n'
+        if s:
+            self.lastWasNL = s[-1] == '\n'
 
     def close(self):
         html.parser.HTMLParser.close(self)
@@ -292,7 +322,8 @@ class HTML2Text(html.parser.HTMLParser):
 
             If the set of attributes is not found, returns None
         """
-        if not has_key(attrs, 'href'): return None
+        if not has_key(attrs, 'href'):
+            return None
 
         i = -1
         for a in self.a:
@@ -301,13 +332,14 @@ class HTML2Text(html.parser.HTMLParser):
 
             if has_key(a, 'href') and a['href'] == attrs['href']:
                 if has_key(a, 'title') or has_key(attrs, 'title'):
-                        if (has_key(a, 'title') and has_key(attrs, 'title') and
+                    if (has_key(a, 'title') and has_key(attrs, 'title') and
                             a['title'] == attrs['title']):
-                            match = True
+                        match = True
                 else:
                     match = True
 
-            if match: return i
+            if match:
+                return i
 
     def drop_last(self, nLetters):
         if not self.quiet:
@@ -319,11 +351,11 @@ class HTML2Text(html.parser.HTMLParser):
         parent_emphasis = google_text_emphasis(parent_style)
 
         # handle Google's text emphasis
-        strikethrough =  'line-through' in tag_emphasis and self.hide_strikethrough
+        strikethrough = 'line-through' in tag_emphasis and self.hide_strikethrough
         bold = 'bold' in tag_emphasis and not 'bold' in parent_emphasis
         italic = 'italic' in tag_emphasis and not 'italic' in parent_emphasis
         fixed = google_fixed_width_font(tag_style) and not \
-                google_fixed_width_font(parent_style) and not self.pre
+            google_fixed_width_font(parent_style) and not self.pre
 
         if start:
             # crossed-out text must be handled before other attributes
@@ -372,7 +404,7 @@ class HTML2Text(html.parser.HTMLParser):
                     self.o(self.emphasis_mark)
             # space is only allowed after *all* emphasis marks
             if (bold or italic) and not self.emphasis:
-                    self.o(" ")
+                self.o(" ")
             if strikethrough:
                 self.quiet -= 1
 
@@ -391,7 +423,7 @@ class HTML2Text(html.parser.HTMLParser):
             parent_style = {}
             if start:
                 if self.tag_stack:
-                  parent_style = self.tag_stack[-1][2]
+                    parent_style = self.tag_stack[-1][2]
                 tag_style = element_style(attrs, self.style_def, parent_style)
                 self.tag_stack.append((tag, attrs, tag_style))
             else:
@@ -403,10 +435,10 @@ class HTML2Text(html.parser.HTMLParser):
             self.p()
             if start:
                 self.inheader = True
-                self.o(hn(tag)*"#" + ' ')
+                self.o(hn(tag) * "#" + ' ')
             else:
                 self.inheader = False
-                return # prevent redundant emphasis marks on headers
+                return  # prevent redundant emphasis marks on headers
 
         if tag in ['p', 'div']:
             if self.google_doc:
@@ -417,7 +449,8 @@ class HTML2Text(html.parser.HTMLParser):
             else:
                 self.p()
 
-        if tag == "br" and start: self.o("  \n")
+        if tag == "br" and start:
+            self.o("  \n")
 
         if tag == "hr" and start:
             self.p()
@@ -425,38 +458,47 @@ class HTML2Text(html.parser.HTMLParser):
             self.p()
 
         if tag in ["head", "style", 'script']:
-            if start: self.quiet += 1
-            else: self.quiet -= 1
+            if start:
+                self.quiet += 1
+            else:
+                self.quiet -= 1
 
         if tag == "style":
-            if start: self.style += 1
-            else: self.style -= 1
+            if start:
+                self.style += 1
+            else:
+                self.style -= 1
 
         if tag in ["body"]:
-            self.quiet = 0 # sites like 9rules.com never close <head>
+            self.quiet = 0  # sites like 9rules.com never close <head>
 
         if tag == "blockquote":
             if start:
-                self.p(); self.o('> ', 0, 1); self.start = 1
+                self.p()
+                self.o('> ', 0, 1)
+                self.start = 1
                 self.blockquote += 1
             else:
                 self.blockquote -= 1
                 self.p()
 
-        if tag in ['em', 'i', 'u'] and not self.ignore_emphasis: self.o(self.emphasis_mark)
-        if tag in ['strong', 'b'] and not self.ignore_emphasis: self.o(self.strong_mark)
+        if tag in ['em', 'i', 'u'] and not self.ignore_emphasis:
+            self.o(self.emphasis_mark)
+        if tag in ['strong', 'b'] and not self.ignore_emphasis:
+            self.o(self.strong_mark)
         if tag in ['del', 'strike', 's']:
             if start:
-                self.o("<"+tag+">")
+                self.o("<" + tag + ">")
             else:
-                self.o("</"+tag+">")
+                self.o("</" + tag + ">")
 
         if self.google_doc:
             if not self.inheader:
                 # handle some font attributes, but leave headers clean
                 self.handle_emphasis(start, tag_style, parent_style)
 
-        if tag in ["code", "tt"] and not self.pre: self.o('`') #TODO: `` `this` ``
+        if tag in ["code", "tt"] and not self.pre:
+            self.o('`')  # TODO: `` `this` ``
         if tag == "abbr":
             if start:
                 self.abbr_title = None
@@ -514,10 +556,14 @@ class HTML2Text(html.parser.HTMLParser):
                         self.a.append(attrs)
                     self.o("[" + str(attrs['count']) + "]")
 
-        if tag == 'dl' and start: self.p()
-        if tag == 'dt' and not start: self.pbr()
-        if tag == 'dd' and start: self.o('    ')
-        if tag == 'dd' and not start: self.pbr()
+        if tag == 'dl' and start:
+            self.p()
+        if tag == 'dt' and not start:
+            self.pbr()
+        if tag == 'dd' and start:
+            self.o('    ')
+        if tag == 'dd' and not start:
+            self.pbr()
 
         if tag in ["ol", "ul"]:
             # Google Docs create sub lists as top level lists
@@ -529,9 +575,10 @@ class HTML2Text(html.parser.HTMLParser):
                 else:
                     list_style = tag
                 numbering_start = list_numbering_start(attrs)
-                self.list.append({'name':list_style, 'num':numbering_start})
+                self.list.append({'name': list_style, 'num': numbering_start})
             else:
-                if self.list: self.list.pop()
+                if self.list:
+                    self.list.pop()
             self.lastWasList = True
         else:
             self.lastWasList = False
@@ -539,21 +586,26 @@ class HTML2Text(html.parser.HTMLParser):
         if tag == 'li':
             self.pbr()
             if start:
-                if self.list: li = self.list[-1]
-                else: li = {'name':'ul', 'num':0}
+                if self.list:
+                    li = self.list[-1]
+                else:
+                    li = {'name': 'ul', 'num': 0}
                 if self.google_doc:
                     nest_count = self.google_nest_count(tag_style)
                 else:
                     nest_count = len(self.list)
-                self.o("  " * nest_count) #TODO: line up <ol><li>s > 9 correctly.
-                if li['name'] == "ul": self.o(self.ul_item_mark + " ")
+                self.o("  " * nest_count)  # TODO: line up <ol><li>s > 9 correctly.
+                if li['name'] == "ul":
+                    self.o(self.ul_item_mark + " ")
                 elif li['name'] == "ol":
                     li['num'] += 1
-                    self.o(str(li['num'])+". ")
+                    self.o(str(li['num']) + ". ")
                 self.start = 1
 
-        if tag in ["table", "tr"] and start: self.p()
-        if tag == 'td': self.pbr()
+        if tag in ["table", "tr"] and start:
+            self.p()
+        if tag == 'td':
+            self.pbr()
 
         if tag == "pre":
             if start:
@@ -592,28 +644,30 @@ class HTML2Text(html.parser.HTMLParser):
                 if data and data[0] == ' ':
                     self.space = 1
                     data = data[1:]
-            if not data and not force: return
+            if not data and not force:
+                return
 
             if self.startpre:
-                #self.out(" :") #TODO: not output when already one there
+                # self.out(" :") #TODO: not output when already one there
                 if not data.startswith("\n"):  # <pre>stuff...
                     data = "\n" + data
 
             bq = (">" * self.blockquote)
-            if not (force and data and data[0] == ">") and self.blockquote: bq += " "
+            if not (force and data and data[0] == ">") and self.blockquote:
+                bq += " "
 
             if self.pre:
                 if not self.list:
                     bq += "    "
-                #else: list content is already partially indented
+                # else: list content is already partially indented
                 for i in range(len(self.list)):
                     bq += "    "
-                data = data.replace("\n", "\n"+bq)
+                data = data.replace("\n", "\n" + bq)
 
             if self.startpre:
                 self.startpre = 0
                 if self.list:
-                    data = data.lstrip("\n") # use existing initial indentation
+                    data = data.lstrip("\n")  # use existing initial indentation
 
             if self.start:
                 self.space = 0
@@ -627,27 +681,31 @@ class HTML2Text(html.parser.HTMLParser):
                 self.space = 0
 
             if self.p_p:
-                self.out((self.br_toggle+'\n'+bq)*self.p_p)
+                self.out((self.br_toggle + '\n' + bq) * self.p_p)
                 self.space = 0
                 self.br_toggle = ''
 
             if self.space:
-                if not self.lastWasNL: self.out(' ')
+                if not self.lastWasNL:
+                    self.out(' ')
                 self.space = 0
 
             if self.a and ((self.p_p == 2 and self.links_each_paragraph) or force == "end"):
-                if force == "end": self.out("\n")
+                if force == "end":
+                    self.out("\n")
 
                 newa = []
                 for link in self.a:
                     if self.outcount > link['outcount']:
-                        self.out("   ["+ str(link['count']) +"]: " + urllib.parse.urljoin(self.baseurl, link['href']))
-                        if has_key(link, 'title'): self.out(" ("+link['title']+")")
+                        self.out("   [" + str(link['count']) + "]: " + urllib.parse.urljoin(self.baseurl, link['href']))
+                        if has_key(link, 'title'):
+                            self.out(" (" + link['title'] + ")")
                         self.out("\n")
                     else:
                         newa.append(link)
 
-                if self.a != newa: self.out("\n") # Don't need an extra line when nothing was done.
+                if self.a != newa:
+                    self.out("\n")  # Don't need an extra line when nothing was done.
 
                 self.a = newa
 
@@ -660,7 +718,8 @@ class HTML2Text(html.parser.HTMLParser):
             self.outcount += 1
 
     def handle_data(self, data):
-        if r'\/script>' in data: self.quiet -= 1
+        if r'\/script>' in data:
+            self.quiet -= 1
 
         if self.style:
             self.style_def.update(dumb_css_parser(data))
@@ -681,7 +740,7 @@ class HTML2Text(html.parser.HTMLParser):
     def unknown_decl(self, data): pass
 
     def charref(self, name):
-        if name[0] in ['x','X']:
+        if name[0] in ['x', 'X']:
             c = int(name[1:], 16)
         else:
             c = int(name)
@@ -691,28 +750,32 @@ class HTML2Text(html.parser.HTMLParser):
         else:
             try:
                 return chr(c)
-            except NameError: #Python3
+            except NameError:  # Python3
                 return chr(c)
 
     def entityref(self, c):
         if not self.unicode_snob and c in list(unifiable.keys()):
             return unifiable[c]
         else:
-            try: name2cp(c)
-            except KeyError: return "&" + c + ';'
+            try:
+                name2cp(c)
+            except KeyError:
+                return "&" + c + ';'
             else:
                 try:
                     return chr(name2cp(c))
-                except NameError: #Python3
+                except NameError:  # Python3
                     return chr(name2cp(c))
 
     def replaceEntities(self, s):
         s = s.group(1)
         if s[0] == "#":
             return self.charref(s[1:])
-        else: return self.entityref(s)
+        else:
+            return self.entityref(s)
 
     r_unescape = re.compile(r"&(#?[xX]?(?:[0-9a-fA-F]+|\w{1,8}));")
+
     def unescape(self, s):
         return self.r_unescape.sub(self.replaceEntities, s)
 
@@ -722,7 +785,6 @@ class HTML2Text(html.parser.HTMLParser):
         if 'margin-left' in style:
             nest_count = int(style['margin-left'][:-2]) / self.google_list_indent
         return nest_count
-
 
     def optwrap(self, text):
         """Wrap all paragraphs in the provided text."""
@@ -782,6 +844,7 @@ md_backslash_matcher = re.compile(r'''
     ''' % re.escape(slash_chars),
     flags=re.VERBOSE)
 
+
 def skipwrap(para):
     # If the text begins with four spaces or one tab, it's a code block; don't wrap
     if para[0:4] == '    ' or para[0] == '\t':
@@ -802,25 +865,30 @@ def skipwrap(para):
         return True
     return False
 
+
 def wrapwrite(text):
     text = text.encode('utf-8')
-    try: #Python3
+    try:  # Python3
         sys.stdout.buffer.write(text)
     except AttributeError:
         sys.stdout.write(text)
 
+
 def html2text(html, baseurl=''):
     h = HTML2Text(baseurl=baseurl)
     return h.handle(html)
+
 
 def unescape(s, unicode_snob=False):
     h = HTML2Text()
     h.unicode_snob = unicode_snob
     return h.unescape(s)
 
+
 def escape_md(text):
     """Escapes markdown-sensitive characters within other markdown constructs."""
     return md_chars_matcher.sub(r"\\\1", text)
+
 
 def escape_md_section(text, snob=False):
     """Escapes markdown-sensitive characters across whole document sections."""
@@ -839,25 +907,25 @@ def main():
     p = optparse.OptionParser('%prog [(filename|url) [encoding]]',
                               version='%prog ' + __version__)
     p.add_option("--ignore-emphasis", dest="ignore_emphasis", action="store_true",
-        default=IGNORE_EMPHASIS, help="don't include any formatting for emphasis")
+                 default=IGNORE_EMPHASIS, help="don't include any formatting for emphasis")
     p.add_option("--ignore-links", dest="ignore_links", action="store_true",
-        default=IGNORE_ANCHORS, help="don't include any formatting for links")
+                 default=IGNORE_ANCHORS, help="don't include any formatting for links")
     p.add_option("--ignore-images", dest="ignore_images", action="store_true",
-        default=IGNORE_IMAGES, help="don't include any formatting for images")
+                 default=IGNORE_IMAGES, help="don't include any formatting for images")
     p.add_option("-g", "--google-doc", action="store_true", dest="google_doc",
-        default=False, help="convert an html-exported Google Document")
+                 default=False, help="convert an html-exported Google Document")
     p.add_option("-d", "--dash-unordered-list", action="store_true", dest="ul_style_dash",
-        default=False, help="use a dash rather than a star for unordered list items")
+                 default=False, help="use a dash rather than a star for unordered list items")
     p.add_option("-e", "--asterisk-emphasis", action="store_true", dest="em_style_asterisk",
-        default=False, help="use an asterisk rather than an underscore for emphasized text")
+                 default=False, help="use an asterisk rather than an underscore for emphasized text")
     p.add_option("-b", "--body-width", dest="body_width", action="store", type="int",
-        default=BODY_WIDTH, help="number of characters per output line, 0 for no wrap")
+                 default=BODY_WIDTH, help="number of characters per output line, 0 for no wrap")
     p.add_option("-i", "--google-list-indent", dest="list_indent", action="store", type="int",
-        default=GOOGLE_LIST_INDENT, help="number of pixels Google indents nested lists")
+                 default=GOOGLE_LIST_INDENT, help="number of pixels Google indents nested lists")
     p.add_option("-s", "--hide-strikethrough", action="store_true", dest="hide_strikethrough",
-        default=False, help="hide strike-through text. only relevant when -g is specified as well")
+                 default=False, help="hide strike-through text. only relevant when -g is specified as well")
     p.add_option("--escape-all", action="store_true", dest="escape_snob",
-        default=False, help="Escape all special characters.  Output is less readable, but avoids corner case formatting issues.")
+                 default=False, help="Escape all special characters.  Output is less readable, but avoids corner case formatting issues.")
     (options, args) = p.parse_args()
 
     # process input
@@ -895,7 +963,8 @@ def main():
     data = data.decode(encoding)
     h = HTML2Text(baseurl=baseurl)
     # handle options
-    if options.ul_style_dash: h.ul_item_mark = '-'
+    if options.ul_style_dash:
+        h.ul_item_mark = '-'
     if options.em_style_asterisk:
         h.emphasis_mark = '*'
         h.strong_mark = '__'

@@ -13,6 +13,7 @@ import sys
 import time
 import itertools
 
+
 def find_gids_for_uid(uid):
     '''Find all GIDs of groups the user with given name belongs to
 
@@ -109,7 +110,7 @@ def change_uid_gid(uid, gid):
     # possible setgid() fails once we impersonated another user
     if gid is not None and not hasattr(os, 'setgid'):
         raise j.exceptions.RuntimeError('GID provided but setgid() not available on this '
-                           'platform')
+                                        'platform')
     if gid is not None:
         os.setgid(gid)
 
@@ -124,7 +125,7 @@ def change_uid_gid(uid, gid):
 
     if uid is not None and not hasattr(os, 'setuid'):
         raise j.exceptions.RuntimeError('UID provided by setuid() not available on this '
-                           'platform')
+                                        'platform')
     if uid is not None:
         os.setuid(uid)
 
@@ -177,10 +178,10 @@ def daemonize(stdout, stderr, chdir='/', umask=0):
 
     @raise RuntimeError: System does not support fork(2)
     '''
-    #pylint: disable-msg=R0912
+    # pylint: disable-msg=R0912
     if not hasattr(os, 'fork'):
         raise j.exceptions.RuntimeError(
-                'os.fork not found, daemon mode not supported on your system')
+            'os.fork not found, daemon mode not supported on your system')
 
     def check_output_permissions(file_):
         '''
@@ -220,11 +221,11 @@ def daemonize(stdout, stderr, chdir='/', umask=0):
 
                 if user:
                     raise j.exceptions.RuntimeError('User %s has no permissions to open '
-                                       'file \'%s\' for writing' % \
-                                       (user, file_))
+                                                    'file \'%s\' for writing' %
+                                                    (user, file_))
                 else:
                     raise j.exceptions.RuntimeError('Current user has no permissions to '
-                                       'open file \'%s\' for writing' % file_)
+                                                    'open file \'%s\' for writing' % file_)
             else:
                 raise
         else:
@@ -238,20 +239,20 @@ def daemonize(stdout, stderr, chdir='/', umask=0):
 
     pid = os.fork()
     if pid == 0:
-        #First child
-        #Become session leader...
+        # First child
+        # Become session leader...
         os.setsid()
 
-        #Double fork
+        # Double fork
         pid = os.fork()
         if pid == 0:
-            #Second child
+            # Second child
             if umask >= 0:
                 os.umask(umask)
             if chdir:
                 os.chdir(chdir)
         else:
-            #First child is useless now
+            # First child is useless now
             print(('CHILDPID=%d' % pid))
             if hasattr(os, 'getuid'):
                 print(('UID=%d' % os.getuid()))
@@ -261,7 +262,7 @@ def daemonize(stdout, stderr, chdir='/', umask=0):
     else:
         return False, os.getpid()
 
-    #Close all FDs
+    # Close all FDs
     import resource
     maxfd = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
     if maxfd == resource.RLIM_INFINITY:
@@ -275,7 +276,7 @@ def daemonize(stdout, stderr, chdir='/', umask=0):
 
     def close_safe(fd):
         '''Close a file descriptor ignoring any exception it generates'''
-        #pylint: disable-msg=W0704
+        # pylint: disable-msg=W0704
         try:
             os.close(fd)
         except OSError:
@@ -290,11 +291,11 @@ def daemonize(stdout, stderr, chdir='/', umask=0):
     for fd in range(3, maxfd):
         close_safe(fd)
 
-    #Open fd0 to /dev/null
+    # Open fd0 to /dev/null
     redirect = getattr(os, 'devnull', '/dev/null')
     os.open(redirect, os.O_RDWR)
 
-    #dup to stdout and stderr
+    # dup to stdout and stderr
     if not stdout:
         os.dup2(0, 1)
     else:
@@ -310,24 +311,25 @@ def daemonize(stdout, stderr, chdir='/', umask=0):
 
     return True, os.getpid()
 
+
 def main():
     '''Main entry point'''
     import optparse
     parser = optparse.OptionParser()
     parser.add_option('-d', '--daemonize', dest='daemonize',
-            help='daemonize the child process', action='store_true')
+                      help='daemonize the child process', action='store_true')
     parser.add_option('-o', '--stdout', dest='stdout',
-            help='file to redirect stdout output', metavar='FILE')
+                      help='file to redirect stdout output', metavar='FILE')
     parser.add_option('-e', '--stderr', dest='stderr',
-            help='file to redirect stderr output', metavar='FILE')
+                      help='file to redirect stderr output', metavar='FILE')
     parser.add_option('-u', '--uid', dest='uid',
-            help='UID of user to setuid() to before running the daemon ' \
-                 'process', metavar='UID', type='int')
+                      help='UID of user to setuid() to before running the daemon '
+                      'process', metavar='UID', type='int')
     parser.add_option('-g', '--gid', dest='gid',
-            help='GID of group to setgid() to before running the daemon ' \
-                 'process', metavar='GID', type='int')
+                      help='GID of group to setgid() to before running the daemon '
+                      'process', metavar='GID', type='int')
 
-    #Only parse until a '--' argument
+    # Only parse until a '--' argument
     if not '--' in sys.argv:
         raise j.exceptions.RuntimeError('No -- argument found')
 
@@ -337,10 +339,10 @@ def main():
 
     if not options.daemonize and options.stdout:
         raise j.exceptions.RuntimeError('Stdout redirection is not available in '
-                           'foreground mode')
+                                        'foreground mode')
     if not options.daemonize and options.stderr:
         raise j.exceptions.RuntimeError('Stderr redirection is not available in '
-                           'foreground mode')
+                                        'foreground mode')
 
     if options.stdout and not os.path.isdir(os.path.dirname(options.stdout)):
         raise ValueError('Folder of stdout file does not exist')
@@ -353,7 +355,7 @@ def main():
         daemon, _ = daemonize(options.stdout, options.stderr)
 
         if not daemon:
-            #Give first fork time to print daemon info
+            # Give first fork time to print daemon info
             time.sleep(0.2)
             return
 
@@ -367,7 +369,7 @@ def main():
     import signal
     for i in range(1, signal.NSIG):
         if signal.getsignal(i) != signal.SIG_DFL:
-            #pylint: disable-msg=W0704
+            # pylint: disable-msg=W0704
             try:
                 signal.signal(i, signal.SIG_DFL)
             except RuntimeError:

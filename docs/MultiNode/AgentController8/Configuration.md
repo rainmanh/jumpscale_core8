@@ -1,2 +1,2 @@
-* [AgentController Configuration](ControllerConfiguration.md)
-* [Agent Configuration](AgentConfiguration.md)
+- [AgentController Configuration](ControllerConfiguration.md)
+- [Agent Configuration](AgentConfiguration.md)

@@ -8,13 +8,15 @@ import os
 # except:
 #     import urllib.parse as urllibparse
 
-import urllib.request, urllib.parse, urllib.error
+import urllib.request
+import urllib.parse
+import urllib.error
 
 SAFECHARS = " "
 
+
 class FileSystemKeyValueStore(KeyValueStoreBase):
     EXTENSION = ""
-
 
     def __init__(self, namespace="", baseDir=None, serializers=None):
 
@@ -24,13 +26,13 @@ class FileSystemKeyValueStore(KeyValueStoreBase):
             baseDir = j.sal.fs.joinPaths(j.dirs.varDir, 'db')
 
         #self.id = j.application.getUniqueMachineId()
-        self.dbpath = j.sal.fs.joinPaths(baseDir,namespace)
+        self.dbpath = j.sal.fs.joinPaths(baseDir, namespace)
 
-        #if not j.sal.fs.exists(self.dbpath):
-            #j.sal.fs.createDir(self.dbpath)
+        # if not j.sal.fs.exists(self.dbpath):
+        # j.sal.fs.createDir(self.dbpath)
 
-    def fileGetContents(self,filename):
-        fp = open(filename,"rb")
+    def fileGetContents(self, filename):
+        fp = open(filename, "rb")
         data = fp.read()
         fp.close()
         return data
@@ -38,31 +40,29 @@ class FileSystemKeyValueStore(KeyValueStoreBase):
     def checkChangeLog(self):
         pass
 
-
-    def writeFile(self,filename, contents):
+    def writeFile(self, filename, contents):
         """
         Open a file and write file contents, close file afterwards
         @param contents: string (file contents to be written)
         """
-        fp = open(filename,"wb")
-        fp.write(contents)  #@todo P1 will this also raise an error and not be catched by the finally
+        fp = open(filename, "wb")
+        fp.write(contents)  # TODO: P1 will this also raise an error and not be catched by the finally
         fp.close()
-
 
     def get(self, category, key):
         # self._assertExists(category, key)
         storePath = self._getStorePath(category, key)
         if not os.path.exists(storePath):
-            raise KeyError("Could not find key:'%s' in category:'%s'"%(key,category))        
+            raise KeyError("Could not find key:'%s' in category:'%s'" % (key, category))
         value = self.fileGetContents(storePath)
         return self.unserialize(value)
 
     def set(self, category, key, value):
-        storePath = self._getStorePath(category, key,True)
-        self.writeFile(storePath,self.serialize(value))
+        storePath = self._getStorePath(category, key, True)
+        self.writeFile(storePath, self.serialize(value))
 
-    def destroy(self,category=""):
-        if category!="":
+    def destroy(self, category=""):
+        if category != "":
             categoryDir = self._getCategoryDir(category)
             j.sal.fs.removeDirTree(categoryDir)
         else:
@@ -116,17 +116,16 @@ class FileSystemKeyValueStore(KeyValueStoreBase):
     def _getCategoryDir(self, category):
         return j.sal.fs.joinPaths(self.dbpath, category)
 
-    def _getStorePath(self, category, key,createIfNeeded=True):
+    def _getStorePath(self, category, key, createIfNeeded=True):
         key = j.data.text.toStr(key)
         key = urllib.parse.quote(key, SAFECHARS)
         origkey = key
-        if len(key)<4:
+        if len(key) < 4:
             key = key + (4 - len(key)) * '_'
 
-        ddir=self.dbpath+"/"+category+"/"+key[0:2]+"/"+key[2:4]
+        ddir = self.dbpath + "/" + category + "/" + key[0:2] + "/" + key[2:4]
 
         if createIfNeeded and not os.path.exists(ddir):
             os.makedirs(ddir)
 
         return ddir + "/" + origkey + self.EXTENSION
-

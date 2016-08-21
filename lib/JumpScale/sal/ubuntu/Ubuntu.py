@@ -1,20 +1,22 @@
 from JumpScale import j
 
+
 class Ubuntu:
+
     def __init__(self):
         self.__jslocation__ = "j.sal.ubuntu"
         self.logger = j.logger.get("j.sal.ubuntu")
         self._aptupdated = False
         self._checked = False
-        self._cache=None
-        self.installedPackageNames=[]
+        self._cache = None
+        self.installedPackageNames = []
         self._local = j.tools.executor.getLocal()
 
     def apt_init(self):
         try:
             import apt
         except ImportError:
-            #we dont wont jshell to break, self.check will take of this
+            # we dont wont jshell to break, self.check will take of this
             return
         apt.apt_pkg.init()
         if hasattr(apt.apt_pkg, 'Config'):
@@ -27,8 +29,8 @@ class Ubuntu:
         except:
             pass
         self._cache = apt.Cache()
-        self.aptCache=self._cache
-        self.apt=apt
+        self.aptCache = self._cache
+        self.apt = apt
 
     def check(self, die=True):
         """
@@ -48,7 +50,6 @@ class Ubuntu:
 
         return self._checked
 
-
     def version_get(self):
         """
         returns codename,descr,id,release
@@ -56,10 +57,8 @@ class Ubuntu:
         """
         self.check()
         import lsb_release
-        result=lsb_release.get_distro_information()
-        return result["CODENAME"].lower().strip(),result["DESCRIPTION"],result["ID"].lower().strip(),result["RELEASE"],
-
-
+        result = lsb_release.get_distro_information()
+        return result["CODENAME"].lower().strip(), result["DESCRIPTION"], result["ID"].lower().strip(), result["RELEASE"],
 
     def apt_install_check(self, packagenames, cmdname):
         """
@@ -69,9 +68,9 @@ class Ubuntu:
         self.check()
         if j.data.types.list.check(packagenames):
             for packagename in packagenames:
-                self.apt_install_check(packagename,cmdname)
+                self.apt_install_check(packagename, cmdname)
         else:
-            packagename=packagenames
+            packagename = packagenames
             result, out = self._local.execute("which %s" % cmdname, False)
             if result != 0:
                 self.apt_install(packagename)
@@ -79,13 +78,13 @@ class Ubuntu:
                 return
             result, out = self._local.execute("which %s" % cmdname, False)
             if result != 0:
-                raise j.exceptions.RuntimeError("Could not install package %s and check for command %s." % (packagename, cmdname))
+                raise j.exceptions.RuntimeError(
+                    "Could not install package %s and check for command %s." % (packagename, cmdname))
 
     def apt_install(self, packagename):
 
-        cmd='apt-get install %s --force-yes -y'%packagename
+        cmd = 'apt-get install %s --force-yes -y' % packagename
         self._local.execute(cmd)
-
 
     def apt_install_version(self, packageName, version):
         '''
@@ -99,7 +98,7 @@ class Ubuntu:
         '''
 
         self.check()
-        if self._cache==None:
+        if self._cache == None:
             self.apt_init()
 
         mainPackage = self._cache[packageName]
@@ -113,7 +112,7 @@ class Ubuntu:
 
     def deb_install(self, path, installDeps=True):
         self.check()
-        if self._cache==None:
+        if self._cache == None:
             self.apt_init()
         import apt.debfile
         deb = apt.debfile.DebPackage(path, cache=self._cache)
@@ -123,18 +122,18 @@ class Ubuntu:
                 self.apt_install(missingpkg)
         deb.install()
 
-    def deb_download_install(self,url,removeDownloaded=False,minspeed=20):
+    def deb_download_install(self, url, removeDownloaded=False, minspeed=20):
         """
         will download to tmp if not there yet
         will then install
         """
-        j.sal.fs.changeDir(j.dirs.tmpDir) #will go to tmp
-        path=j.sal.nettools.download(url,"")
+        j.sal.fs.changeDir(j.dirs.tmpDir)  # will go to tmp
+        path = j.sal.nettools.download(url, "")
         self.deb_install(path)
         if removeDownloaded:
             j.tools.path.get(path).rmtree_p()
 
-    def pkg_list(self,pkgname,regex=""):
+    def pkg_list(self, pkgname, regex=""):
         """
         list files of dpkg
         if regex used only output the ones who are matching regex
@@ -146,9 +145,9 @@ class Ubuntu:
             return out.split("\n")
 
     def pkg_remove(self, packagename):
-        self.logger.info("ubuntu remove package:%s"%packagename)
+        self.logger.info("ubuntu remove package:%s" % packagename)
         self.check()
-        if self._cache==None:
+        if self._cache == None:
             self.apt_init()
         pkg = self._cache[packagename]
         if pkg.is_installed:
@@ -158,8 +157,8 @@ class Ubuntu:
         self._cache.commit()
         self._cache.clear()
 
-    def service_install(self,servicename, daemonpath, args='', respawn=True, pwd=None,env=None,reload=True):
-        C="""
+    def service_install(self, servicename, daemonpath, args='', respawn=True, pwd=None, env=None, reload=True):
+        C = """
 start on runlevel [2345]
 stop on runlevel [016]
 """
@@ -167,59 +166,59 @@ stop on runlevel [016]
             C += "respawn\n"
         if pwd:
             C += "chdir %s\n" % pwd
-        if env!=None:
-            for key,value in list(env.items()):
-                C+="env %s=%s\n"%(key,value)
-        C+="exec %s %s\n"%(daemonpath,args)
+        if env != None:
+            for key, value in list(env.items()):
+                C += "env %s=%s\n" % (key, value)
+        C += "exec %s %s\n" % (daemonpath, args)
 
-        C=j.dirs.replaceTxtDirVars(C)
+        C = j.dirs.replaceTxtDirVars(C)
 
         j.tools.path.get("/etc/init/%s.conf" % servicename).write_text(C)
         if reload:
             self._local.execute("initctl reload-configuration")
 
-    def service_uninstall(self,servicename):
+    def service_uninstall(self, servicename):
         self.service_stop(servicename)
-        j.tools.path.get("/etc/init/%s.conf"%servicename).remove_p()
+        j.tools.path.get("/etc/init/%s.conf" % servicename).remove_p()
 
     def service_start(self, servicename):
-        self.logger.debug("start service on ubuntu for:%s"%servicename)
+        self.logger.debug("start service on ubuntu for:%s" % servicename)
         if not self.service_status(servicename):
-            cmd="sudo start %s" % servicename
+            cmd = "sudo start %s" % servicename
             # print cmd
             return self._local.execute(cmd)
 
     def service_stop(self, servicename):
-        cmd="sudo stop %s" % servicename
+        cmd = "sudo stop %s" % servicename
         # print cmd
-        return self._local.execute(cmd,False)
+        return self._local.execute(cmd, False)
 
     def service_restart(self, servicename):
-        return self._local.execute("sudo restart %s" % servicename,False)
+        return self._local.execute("sudo restart %s" % servicename, False)
 
     def service_status(self, servicename):
-        exitcode, output = self._local.execute("sudo status %s" % servicename,False)
+        exitcode, output = self._local.execute("sudo status %s" % servicename, False)
         parts = output.split(' ')
-        if len(parts) >=2 and parts[1].startswith('start'):
+        if len(parts) >= 2 and parts[1].startswith('start'):
             return True
 
         return False
 
     def service_disable_start_boot(self, servicename):
-         self._local.execute("update-rc.d -f %s remove" % servicename)
+        self._local.execute("update-rc.d -f %s remove" % servicename)
 
     def service_enable_start_boot(self, servicename):
-         self._local.execute("update-rc.d -f %s defaults" % servicename)
+        self._local.execute("update-rc.d -f %s defaults" % servicename)
 
     def apt_update(self, force=True):
         self.check()
-        if self._cache==None:
+        if self._cache == None:
             self.apt_init()
         self._cache.update()
 
     def apt_upgrade(self, force=True):
         self.check()
-        if self._cache==None:
+        if self._cache == None:
             self.apt_init()
         self.apt_update()
         self._cache.upgrade()
@@ -230,17 +229,17 @@ stop on runlevel [016]
     def apt_get_installed(self):
         return self.get_installed_package_names()
 
-    def apt_get(self,name):
+    def apt_get(self, name):
         return self._cache[name]
 
-    def apt_find_all(self,packagename):
-        packagename=packagename.lower().strip().replace("_","").replace("_","")
-        if self._cache==None:
+    def apt_find_all(self, packagename):
+        packagename = packagename.lower().strip().replace("_", "").replace("_", "")
+        if self._cache == None:
             self.apt_init()
-        result=[]
+        result = []
         for item in self._cache.keys():
-            item2=item.replace("_","").replace("_","").lower()
-            if item2.find(packagename)!=-1:
+            item2 = item.replace("_", "").replace("_", "").lower()
+            if item2.find(packagename) != -1:
                 result.append(item)
         return result
 
@@ -258,27 +257,25 @@ stop on runlevel [016]
     def is_pkg_installed(self, pkg):
         return pkg in self._installed_pkgs
 
-
-    def apt_find_installed(self,packagename):
-        packagename=packagename.lower().strip().replace("_","").replace("_","")
-        if self._cache==None:
+    def apt_find_installed(self, packagename):
+        packagename = packagename.lower().strip().replace("_", "").replace("_", "")
+        if self._cache == None:
             self.apt_init()
-        result=[]
+        result = []
         for item in self.get_installed_package_names():
-            item2=item.replace("_","").replace("_","").lower()
-            if item2.find(packagename)!=-1:
+            item2 = item.replace("_", "").replace("_", "").lower()
+            if item2.find(packagename) != -1:
                 result.append(item)
         return result
 
-
-    def apt_find1_installed(self,packagename):
+    def apt_find1_installed(self, packagename):
         self.logger.info("find 1 package in ubuntu")
-        res=self.apt_find_installed(packagename)
-        if len(res)==1:
+        res = self.apt_find_installed(packagename)
+        if len(res) == 1:
             return res[0]
-        elif len(res)>1:
-            raise j.exceptions.RuntimeError("Found more than 1 package for %s"%packagename)
-        raise j.exceptions.RuntimeError("Could not find package %s"%packagename)
+        elif len(res) > 1:
+            raise j.exceptions.RuntimeError("Found more than 1 package for %s" % packagename)
+        raise j.exceptions.RuntimeError("Could not find package %s" % packagename)
 
     def apt_sources_list(self):
         from aptsources import sourceslist
@@ -290,15 +287,14 @@ stop on runlevel [016]
             entry.uri = newuri
         src.save()
 
-    def apt_sources_uri_add(self,url):
-        url = url.replace(";",":")
-        name = url.replace("\\","/").replace("http://", "").replace("https://", "").split("/")[0]
+    def apt_sources_uri_add(self, url):
+        url = url.replace(";", ":")
+        name = url.replace("\\", "/").replace("http://", "").replace("https://", "").split("/")[0]
         path = j.tools.path.get("/etc/apt/sources.list.d/%s.list" % name)
         path.write_text("deb %s\n" % url)
 
-
     def whoami(self):
-        rc,result=self._local.execute("whoami")
+        rc, result = self._local.execute("whoami")
         return result.strip()
 
     def checkroot(self):

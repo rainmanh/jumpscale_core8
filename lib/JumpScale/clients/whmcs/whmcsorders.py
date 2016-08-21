@@ -4,7 +4,9 @@ from JumpScale.clients.whmcs import phpserialize
 
 SSL_VERIFY = False
 
+
 class whmcsorders:
+
     def __init__(self, authenticationparams, url):
         self._authenticationparams = authenticationparams
         self._url = url
@@ -13,37 +15,37 @@ class whmcsorders:
         actualrequestparams = dict()
         actualrequestparams.update(requestparams)
         actualrequestparams.update(self._authenticationparams)
-        response = requests.post(self._url, data=actualrequestparams, verify=SSL_VERIFY)
+        response = requests.post(
+            self._url, data=actualrequestparams, verify=SSL_VERIFY)
         return response
 
     def add_order(self, userId, productId, name, cloudbrokerId, status='Active'):
-        
+
         request_params = dict(
 
-                    action = 'addorder',
-                    name=name,
-                    status=status,
-                    pid = productId,
-                    clientid = userId,
-                    billingcycle = 'monthly',
-                    paymentmethod = 'paypal',
-                    customfields = base64.b64encode(phpserialize.dumps([cloudbrokerId])),
-                    noemail = True,
-                    skipvalidation= True
+            action='addorder',
+            name=name,
+            status=status,
+            pid=productId,
+            clientid=userId,
+            billingcycle='monthly',
+            paymentmethod='paypal',
+            customfields=base64.b64encode(phpserialize.dumps([cloudbrokerId])),
+            noemail=True,
+            skipvalidation=True
 
-                    )
-        
+        )
+
         response = self._call_whmcs_api(request_params)
         return response.ok
 
-
     def list_orders(self):
-        
+
         request_params = dict(
-                    action = 'getorders',
-                    limitnum = 10000000,
-                    responsetype = 'json'
-                    )
+            action='getorders',
+            limitnum=10000000,
+            responsetype='json'
+        )
 
         response = self._call_whmcs_api(request_params)
         if response.ok:
@@ -52,14 +54,14 @@ class whmcsorders:
                 return orders['orders']['order']
             return []
         else:
-          raise
-      
+            raise
+
     def delete_order(self, orderId):
         request_params = dict(
-                    action = 'deleteorder',
-                    orderid=orderId,
-                    responsetype = 'json'
-                    )
-        
+            action='deleteorder',
+            orderid=orderId,
+            responsetype='json'
+        )
+
         response = self._call_whmcs_api(request_params)
         return response.ok

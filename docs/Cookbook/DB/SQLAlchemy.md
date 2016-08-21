@@ -1,10 +1,10 @@
-## Cookbook SQL Alchemy
+# Cookbook SQL Alchemy
 
-### init
+## init
 
 - create a dir in which all following files will be stored
 
-### Model.py
+## Model.py
 
 this is the file which will build your database model
 
@@ -110,13 +110,12 @@ listen(User.firstname, 'set', db.validate_lower_strip, retval=True)
 listen(User.lastname, 'set', db.validate_lower_strip, retval=True)
 listen(User.git_aydo, 'set', db.validate_lower_strip, retval=True)
 listen(User.git_github, 'set', db.validate_lower_strip, retval=True)
-
 ```
 
-### Example.py
-
+## Example.py
 
 example to use your model
+
 ```
 from JumpScale import j
 from Model import *
@@ -128,9 +127,8 @@ sql=db.get(sqlitepath=j.dirs.varDir+"/toml.db",tomlpath='/tmp/data',connectionst
 u=User(id="kds")
 sql.session.add(u)
 sql.session.commit()
-
 ```
 
-### Fine example
+## Fine example
 
-@todo
+### TODO:

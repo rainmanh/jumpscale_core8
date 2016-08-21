@@ -5,6 +5,7 @@ BASE_URI = "https://itsyou.online/api/"
 
 
 class Client:
+
     def __init__(self):
         self.url = BASE_URI
         self.session = requests.Session()
@@ -23,7 +24,7 @@ class Client:
         Get the list of notifications, these are pending invitations or approvals
         It is method for GET /users/{username}/notifications
         """
-        uri = self.url + "/users/"+username+"/notifications"
+        uri = self.url + "/users/" + username + "/notifications"
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -32,7 +33,7 @@ class Client:
         Get the list organizations a user is owner or member of
         It is method for GET /users/{username}/organizations
         """
-        uri = self.url + "/users/"+username+"/organizations"
+        uri = self.url + "/users/" + username + "/organizations"
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -41,7 +42,8 @@ class Client:
         Accept membership in organization
         It is method for POST /users/{username}/organizations/{globalid}/roles/{role}
         """
-        uri = self.url + "/users/"+username+"/organizations/"+globalid+"/roles/"+role
+        uri = self.url + "/users/" + username + \
+            "/organizations/" + globalid + "/roles/" + role
         uri = uri + build_query_string(query_params)
         return self.session.post(uri, data, headers=headers)
 
@@ -50,7 +52,8 @@ class Client:
         Reject membership invitation in an organization.
         It is method for DELETE /users/{username}/organizations/{globalid}/roles/{role}
         """
-        uri = self.url + "/users/"+username+"/organizations/"+globalid+"/roles/"+role
+        uri = self.url + "/users/" + username + \
+            "/organizations/" + globalid + "/roles/" + role
         uri = uri + build_query_string(query_params)
         return self.session.delete(uri, headers=headers)
 
@@ -58,7 +61,7 @@ class Client:
         """
         It is method for GET /users/{username}
         """
-        uri = self.url + "/users/"+username
+        uri = self.url + "/users/" + username
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -67,7 +70,7 @@ class Client:
         Update the user his firstname and lastname
         It is method for PUT /users/{username}/name
         """
-        uri = self.url + "/users/"+username+"/name"
+        uri = self.url + "/users/" + username + "/name"
         uri = uri + build_query_string(query_params)
         return self.session.put(uri, data, headers=headers)
 
@@ -76,7 +79,7 @@ class Client:
         Update the user his password
         It is method for PUT /users/{username}/password
         """
-        uri = self.url + "/users/"+username+"/password"
+        uri = self.url + "/users/" + username + "/password"
         uri = uri + build_query_string(query_params)
         return self.session.put(uri, data, headers=headers)
 
@@ -85,7 +88,7 @@ class Client:
         Get a list of the user his email addresses.
         It is method for GET /users/{username}/emailaddresses
         """
-        uri = self.url + "/users/"+username+"/emailaddresses"
+        uri = self.url + "/users/" + username + "/emailaddresses"
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -94,7 +97,7 @@ class Client:
         Register a new email address
         It is method for POST /users/{username}/emailaddresses
         """
-        uri = self.url + "/users/"+username+"/emailaddresses"
+        uri = self.url + "/users/" + username + "/emailaddresses"
         uri = uri + build_query_string(query_params)
         return self.session.post(uri, data, headers=headers)
 
@@ -103,7 +106,7 @@ class Client:
         Updates the label and/or value of an email address
         It is method for PUT /users/{username}/emailaddresses/{label}
         """
-        uri = self.url + "/users/"+username+"/emailaddresses/"+label
+        uri = self.url + "/users/" + username + "/emailaddresses/" + label
         uri = uri + build_query_string(query_params)
         return self.session.put(uri, data, headers=headers)
 
@@ -112,7 +115,7 @@ class Client:
         Removes an email address
         It is method for DELETE /users/{username}/emailaddresses/{label}
         """
-        uri = self.url + "/users/"+username+"/emailaddresses/"+label
+        uri = self.url + "/users/" + username + "/emailaddresses/" + label
         uri = uri + build_query_string(query_params)
         return self.session.delete(uri, headers=headers)
 
@@ -121,7 +124,7 @@ class Client:
         Sends validation email to email address
         It is method for POST /users/{username}/emailaddresses/{label}/validate
         """
-        uri = self.url + "/users/"+username+"/emailaddresses/"+label+"/validate"
+        uri = self.url + "/users/" + username + "/emailaddresses/" + label + "/validate"
         uri = uri + build_query_string(query_params)
         return self.session.post(uri, data, headers=headers)
 
@@ -130,7 +133,7 @@ class Client:
         Lists the API keys
         It is method for GET /users/{username}/apikeys
         """
-        uri = self.url + "/users/"+username+"/apikeys"
+        uri = self.url + "/users/" + username + "/apikeys"
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -139,7 +142,7 @@ class Client:
         Adds an APIKey to the user
         It is method for POST /users/{username}/apikeys
         """
-        uri = self.url + "/users/"+username+"/apikeys"
+        uri = self.url + "/users/" + username + "/apikeys"
         uri = uri + build_query_string(query_params)
         return self.session.post(uri, data, headers=headers)
 
@@ -148,7 +151,7 @@ class Client:
         Get an API key by label
         It is method for GET /users/{username}/apikeys/{label}
         """
-        uri = self.url + "/users/"+username+"/apikeys/"+label
+        uri = self.url + "/users/" + username + "/apikeys/" + label
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -157,7 +160,7 @@ class Client:
         Updates the label for the api key
         It is method for PUT /users/{username}/apikeys/{label}
         """
-        uri = self.url + "/users/"+username+"/apikeys/"+label
+        uri = self.url + "/users/" + username + "/apikeys/" + label
         uri = uri + build_query_string(query_params)
         return self.session.put(uri, data, headers=headers)
 
@@ -166,7 +169,7 @@ class Client:
         Removes an API key
         It is method for DELETE /users/{username}/apikeys/{label}
         """
-        uri = self.url + "/users/"+username+"/apikeys/"+label
+        uri = self.url + "/users/" + username + "/apikeys/" + label
         uri = uri + build_query_string(query_params)
         return self.session.delete(uri, headers=headers)
 
@@ -175,7 +178,7 @@ class Client:
         Unlink Github Account
         It is method for DELETE /users/{username}/github
         """
-        uri = self.url + "/users/"+username+"/github"
+        uri = self.url + "/users/" + username + "/github"
         uri = uri + build_query_string(query_params)
         return self.session.delete(uri, headers=headers)
 
@@ -184,7 +187,7 @@ class Client:
         Delete the associated facebook account
         It is method for DELETE /users/{username}/facebook
         """
-        uri = self.url + "/users/"+username+"/facebook"
+        uri = self.url + "/users/" + username + "/facebook"
         uri = uri + build_query_string(query_params)
         return self.session.delete(uri, headers=headers)
 
@@ -192,7 +195,7 @@ class Client:
         """
         It is method for GET /users/{username}/info
         """
-        uri = self.url + "/users/"+username+"/info"
+        uri = self.url + "/users/" + username + "/info"
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -200,7 +203,7 @@ class Client:
         """
         It is method for GET /users/{username}/validate
         """
-        uri = self.url + "/users/"+username+"/validate"
+        uri = self.url + "/users/" + username + "/validate"
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -208,7 +211,7 @@ class Client:
         """
         It is method for GET /users/{username}/addresses
         """
-        uri = self.url + "/users/"+username+"/addresses"
+        uri = self.url + "/users/" + username + "/addresses"
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -217,7 +220,7 @@ class Client:
         Register a new address
         It is method for POST /users/{username}/addresses
         """
-        uri = self.url + "/users/"+username+"/addresses"
+        uri = self.url + "/users/" + username + "/addresses"
         uri = uri + build_query_string(query_params)
         return self.session.post(uri, data, headers=headers)
 
@@ -225,7 +228,7 @@ class Client:
         """
         It is method for GET /users/{username}/addresses/{label}
         """
-        uri = self.url + "/users/"+username+"/addresses/"+label
+        uri = self.url + "/users/" + username + "/addresses/" + label
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -234,7 +237,7 @@ class Client:
         Update the label and/or value of an existing address.
         It is method for PUT /users/{username}/addresses/{label}
         """
-        uri = self.url + "/users/"+username+"/addresses/"+label
+        uri = self.url + "/users/" + username + "/addresses/" + label
         uri = uri + build_query_string(query_params)
         return self.session.put(uri, data, headers=headers)
 
@@ -243,7 +246,7 @@ class Client:
         Removes an address
         It is method for DELETE /users/{username}/addresses/{label}
         """
-        uri = self.url + "/users/"+username+"/addresses/"+label
+        uri = self.url + "/users/" + username + "/addresses/" + label
         uri = uri + build_query_string(query_params)
         return self.session.delete(uri, headers=headers)
 
@@ -251,7 +254,7 @@ class Client:
         """
         It is method for GET /users/{username}/banks
         """
-        uri = self.url + "/users/"+username+"/banks"
+        uri = self.url + "/users/" + username + "/banks"
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -260,7 +263,7 @@ class Client:
         Create new bank account
         It is method for POST /users/{username}/banks
         """
-        uri = self.url + "/users/"+username+"/banks"
+        uri = self.url + "/users/" + username + "/banks"
         uri = uri + build_query_string(query_params)
         return self.session.post(uri, data, headers=headers)
 
@@ -268,7 +271,7 @@ class Client:
         """
         It is method for GET /users/{username}/banks/{label}
         """
-        uri = self.url + "/users/"+username+"/banks/"+label
+        uri = self.url + "/users/" + username + "/banks/" + label
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -277,7 +280,7 @@ class Client:
         Update an existing bankaccount and label.
         It is method for PUT /users/{username}/banks/{label}
         """
-        uri = self.url + "/users/"+username+"/banks/"+label
+        uri = self.url + "/users/" + username + "/banks/" + label
         uri = uri + build_query_string(query_params)
         return self.session.put(uri, data, headers=headers)
 
@@ -286,7 +289,7 @@ class Client:
         Delete a BankAccount
         It is method for DELETE /users/{username}/banks/{label}
         """
-        uri = self.url + "/users/"+username+"/banks/"+label
+        uri = self.url + "/users/" + username + "/banks/" + label
         uri = uri + build_query_string(query_params)
         return self.session.delete(uri, headers=headers)
 
@@ -294,7 +297,7 @@ class Client:
         """
         It is method for GET /users/{username}/phonenumbers
         """
-        uri = self.url + "/users/"+username+"/phonenumbers"
+        uri = self.url + "/users/" + username + "/phonenumbers"
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -303,7 +306,7 @@ class Client:
         Register a new phonenumber
         It is method for POST /users/{username}/phonenumbers
         """
-        uri = self.url + "/users/"+username+"/phonenumbers"
+        uri = self.url + "/users/" + username + "/phonenumbers"
         uri = uri + build_query_string(query_params)
         return self.session.post(uri, data, headers=headers)
 
@@ -311,7 +314,7 @@ class Client:
         """
         It is method for GET /users/{username}/phonenumbers/{label}
         """
-        uri = self.url + "/users/"+username+"/phonenumbers/"+label
+        uri = self.url + "/users/" + username + "/phonenumbers/" + label
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -320,7 +323,7 @@ class Client:
         Update the label and/or value of an existing phonenumber.
         It is method for PUT /users/{username}/phonenumbers/{label}
         """
-        uri = self.url + "/users/"+username+"/phonenumbers/"+label
+        uri = self.url + "/users/" + username + "/phonenumbers/" + label
         uri = uri + build_query_string(query_params)
         return self.session.put(uri, data, headers=headers)
 
@@ -329,7 +332,7 @@ class Client:
         Removes a phonenumber
         It is method for DELETE /users/{username}/phonenumbers/{label}
         """
-        uri = self.url + "/users/"+username+"/phonenumbers/"+label
+        uri = self.url + "/users/" + username + "/phonenumbers/" + label
         uri = uri + build_query_string(query_params)
         return self.session.delete(uri, headers=headers)
 
@@ -338,7 +341,7 @@ class Client:
         Sends validation text to phone numbers
         It is method for POST /users/{username}/phonenumbers/{label}/activate
         """
-        uri = self.url + "/users/"+username+"/phonenumbers/"+label+"/activate"
+        uri = self.url + "/users/" + username + "/phonenumbers/" + label + "/activate"
         uri = uri + build_query_string(query_params)
         return self.session.post(uri, data, headers=headers)
 
@@ -347,7 +350,7 @@ class Client:
         Verifies a phone number
         It is method for PUT /users/{username}/phonenumbers/{label}/activate
         """
-        uri = self.url + "/users/"+username+"/phonenumbers/"+label+"/activate"
+        uri = self.url + "/users/" + username + "/phonenumbers/" + label + "/activate"
         uri = uri + build_query_string(query_params)
         return self.session.put(uri, data, headers=headers)
 
@@ -356,7 +359,7 @@ class Client:
         Get the contracts where the user is 1 of the parties. Order descending by date.
         It is method for GET /users/{username}/contracts
         """
-        uri = self.url + "/users/"+username+"/contracts"
+        uri = self.url + "/users/" + username + "/contracts"
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -365,7 +368,7 @@ class Client:
         Create a new contract.
         It is method for POST /users/{username}/contracts
         """
-        uri = self.url + "/users/"+username+"/contracts"
+        uri = self.url + "/users/" + username + "/contracts"
         uri = uri + build_query_string(query_params)
         return self.session.post(uri, data, headers=headers)
 
@@ -374,7 +377,7 @@ class Client:
         Get the list of authorizations.
         It is method for GET /users/{username}/authorizations
         """
-        uri = self.url + "/users/"+username+"/authorizations"
+        uri = self.url + "/users/" + username + "/authorizations"
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -383,7 +386,7 @@ class Client:
         Get the authorization for a specific organization.
         It is method for GET /users/{username}/authorizations/{grantedTo}
         """
-        uri = self.url + "/users/"+username+"/authorizations/"+grantedTo
+        uri = self.url + "/users/" + username + "/authorizations/" + grantedTo
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -392,7 +395,7 @@ class Client:
         Modify which information an organization is able to see.
         It is method for PUT /users/{username}/authorizations/{grantedTo}
         """
-        uri = self.url + "/users/"+username+"/authorizations/"+grantedTo
+        uri = self.url + "/users/" + username + "/authorizations/" + grantedTo
         uri = uri + build_query_string(query_params)
         return self.session.put(uri, data, headers=headers)
 
@@ -401,7 +404,7 @@ class Client:
         Remove the authorization for an organization, the granted organization will no longer have access the user's information.
         It is method for DELETE /users/{username}/authorizations/{grantedTo}
         """
-        uri = self.url + "/users/"+username+"/authorizations/"+grantedTo
+        uri = self.url + "/users/" + username + "/authorizations/" + grantedTo
         uri = uri + build_query_string(query_params)
         return self.session.delete(uri, headers=headers)
 
@@ -419,7 +422,7 @@ class Client:
         Get organization info
         It is method for GET /organizations/{globalid}
         """
-        uri = self.url + "/organizations/"+globalid
+        uri = self.url + "/organizations/" + globalid
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -428,7 +431,7 @@ class Client:
         Create a new suborganization.
         It is method for POST /organizations/{globalid}
         """
-        uri = self.url + "/organizations/"+globalid
+        uri = self.url + "/organizations/" + globalid
         uri = uri + build_query_string(query_params)
         return self.session.post(uri, data, headers=headers)
 
@@ -437,7 +440,7 @@ class Client:
         Update organization info
         It is method for PUT /organizations/{globalid}
         """
-        uri = self.url + "/organizations/"+globalid
+        uri = self.url + "/organizations/" + globalid
         uri = uri + build_query_string(query_params)
         return self.session.put(uri, data, headers=headers)
 
@@ -445,7 +448,7 @@ class Client:
         """
         It is method for GET /organizations/{globalid}/tree
         """
-        uri = self.url + "/organizations/"+globalid+"/tree"
+        uri = self.url + "/organizations/" + globalid + "/tree"
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -454,7 +457,7 @@ class Client:
         Assign a member to organization.
         It is method for POST /organizations/{globalid}/members
         """
-        uri = self.url + "/organizations/"+globalid+"/members"
+        uri = self.url + "/organizations/" + globalid + "/members"
         uri = uri + build_query_string(query_params)
         return self.session.post(uri, data, headers=headers)
 
@@ -463,7 +466,7 @@ class Client:
         Remove a member from organization
         It is method for DELETE /organizations/{globalid}/members/{username}
         """
-        uri = self.url + "/organizations/"+globalid+"/members/"+username
+        uri = self.url + "/organizations/" + globalid + "/members/" + username
         uri = uri + build_query_string(query_params)
         return self.session.delete(uri, headers=headers)
 
@@ -472,7 +475,7 @@ class Client:
         Invite a user to become owner of an organization.
         It is method for POST /organizations/{globalid}/owners
         """
-        uri = self.url + "/organizations/"+globalid+"/owners"
+        uri = self.url + "/organizations/" + globalid + "/owners"
         uri = uri + build_query_string(query_params)
         return self.session.post(uri, data, headers=headers)
 
@@ -481,7 +484,7 @@ class Client:
         Remove an owner from organization
         It is method for DELETE /organizations/{globalid}/owners/{username}
         """
-        uri = self.url + "/organizations/"+globalid+"/owners/"+username
+        uri = self.url + "/organizations/" + globalid + "/owners/" + username
         uri = uri + build_query_string(query_params)
         return self.session.delete(uri, headers=headers)
 
@@ -490,7 +493,7 @@ class Client:
         Get the contracts where the organization is 1 of the parties. Order descending by date.
         It is method for GET /organizations/{globalid}/contracts
         """
-        uri = self.url + "/organizations/"+globalid+"/contracts"
+        uri = self.url + "/organizations/" + globalid + "/contracts"
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -499,7 +502,7 @@ class Client:
         Create a new contract.
         It is method for POST /organizations/{globalid}/contracts
         """
-        uri = self.url + "/organizations/"+globalid+"/contracts"
+        uri = self.url + "/organizations/" + globalid + "/contracts"
         uri = uri + build_query_string(query_params)
         return self.session.post(uri, data, headers=headers)
 
@@ -508,7 +511,7 @@ class Client:
         Get the list of pending invitations for users to join this organization.
         It is method for GET /organizations/{globalid}/invitations
         """
-        uri = self.url + "/organizations/"+globalid+"/invitations"
+        uri = self.url + "/organizations/" + globalid + "/invitations"
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -517,7 +520,7 @@ class Client:
         Cancel a pending invitation.
         It is method for DELETE /organizations/{globalid}/invitations/{username}
         """
-        uri = self.url + "/organizations/"+globalid+"/invitations/"+username
+        uri = self.url + "/organizations/" + globalid + "/invitations/" + username
         uri = uri + build_query_string(query_params)
         return self.session.delete(uri, headers=headers)
 
@@ -526,7 +529,7 @@ class Client:
         Get the list of active api keys.
         It is method for GET /organizations/{globalid}/apikeys
         """
-        uri = self.url + "/organizations/"+globalid+"/apikeys"
+        uri = self.url + "/organizations/" + globalid + "/apikeys"
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -535,7 +538,7 @@ class Client:
         Create a new API Key, a secret itself should not be provided, it will be generated serverside.
         It is method for POST /organizations/{globalid}/apikeys
         """
-        uri = self.url + "/organizations/"+globalid+"/apikeys"
+        uri = self.url + "/organizations/" + globalid + "/apikeys"
         uri = uri + build_query_string(query_params)
         return self.session.post(uri, data, headers=headers)
 
@@ -543,7 +546,7 @@ class Client:
         """
         It is method for GET /organizations/{globalid}/apikeys/{label}
         """
-        uri = self.url + "/organizations/"+globalid+"/apikeys/"+label
+        uri = self.url + "/organizations/" + globalid + "/apikeys/" + label
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -552,7 +555,7 @@ class Client:
         Updates the label or other properties of a key.
         It is method for PUT /organizations/{globalid}/apikeys/{label}
         """
-        uri = self.url + "/organizations/"+globalid+"/apikeys/"+label
+        uri = self.url + "/organizations/" + globalid + "/apikeys/" + label
         uri = uri + build_query_string(query_params)
         return self.session.put(uri, data, headers=headers)
 
@@ -561,7 +564,7 @@ class Client:
         Removes an API key
         It is method for DELETE /organizations/{globalid}/apikeys/{label}
         """
-        uri = self.url + "/organizations/"+globalid+"/apikeys/"+label
+        uri = self.url + "/organizations/" + globalid + "/apikeys/" + label
         uri = uri + build_query_string(query_params)
         return self.session.delete(uri, headers=headers)
 
@@ -570,7 +573,7 @@ class Client:
         Creates a new DNS name associated with an organization
         It is method for POST /organizations/{globalid}/dns/{dnsname}
         """
-        uri = self.url + "/organizations/"+globalid+"/dns/"+dnsname
+        uri = self.url + "/organizations/" + globalid + "/dns/" + dnsname
         uri = uri + build_query_string(query_params)
         return self.session.post(uri, data, headers=headers)
 
@@ -579,7 +582,7 @@ class Client:
         Updates an existing DNS name associated with an organization
         It is method for PUT /organizations/{globalid}/dns/{dnsname}
         """
-        uri = self.url + "/organizations/"+globalid+"/dns/"+dnsname
+        uri = self.url + "/organizations/" + globalid + "/dns/" + dnsname
         uri = uri + build_query_string(query_params)
         return self.session.put(uri, data, headers=headers)
 
@@ -588,7 +591,7 @@ class Client:
         Removes a DNS name
         It is method for DELETE /organizations/{globalid}/dns/{dnsname}
         """
-        uri = self.url + "/organizations/"+globalid+"/dns/"+dnsname
+        uri = self.url + "/organizations/" + globalid + "/dns/" + dnsname
         uri = uri + build_query_string(query_params)
         return self.session.delete(uri, headers=headers)
 
@@ -615,7 +618,7 @@ class Client:
         Get organization info
         It is method for GET /companies/{globalId}
         """
-        uri = self.url + "/companies/"+globalId
+        uri = self.url + "/companies/" + globalId
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -624,7 +627,7 @@ class Client:
         Update existing company. Updating ``globalId`` is not allowed.
         It is method for PUT /companies/{globalId}
         """
-        uri = self.url + "/companies/"+globalId
+        uri = self.url + "/companies/" + globalId
         uri = uri + build_query_string(query_params)
         return self.session.put(uri, data, headers=headers)
 
@@ -633,7 +636,7 @@ class Client:
         Get the contracts where the organization is 1 of the parties. Order descending by date.
         It is method for GET /companies/{globalId}/contracts
         """
-        uri = self.url + "/companies/"+globalId+"/contracts"
+        uri = self.url + "/companies/" + globalId + "/contracts"
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -642,7 +645,7 @@ class Client:
         Create a new contract.
         It is method for POST /companies/{globalId}/contracts
         """
-        uri = self.url + "/companies/"+globalId+"/contracts"
+        uri = self.url + "/companies/" + globalId + "/contracts"
         uri = uri + build_query_string(query_params)
         return self.session.post(uri, data, headers=headers)
 
@@ -650,7 +653,7 @@ class Client:
         """
         It is method for GET /companies/{globalId}/info
         """
-        uri = self.url + "/companies/"+globalId+"/info"
+        uri = self.url + "/companies/" + globalId + "/info"
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -658,7 +661,7 @@ class Client:
         """
         It is method for GET /companies/{globalId}/validate
         """
-        uri = self.url + "/companies/"+globalId+"/validate"
+        uri = self.url + "/companies/" + globalId + "/validate"
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -667,7 +670,7 @@ class Client:
         Get a contract
         It is method for GET /contracts/{contractId}
         """
-        uri = self.url + "/contracts/"+contractId
+        uri = self.url + "/contracts/" + contractId
         uri = uri + build_query_string(query_params)
         return self.session.get(uri, headers=headers)
 
@@ -676,6 +679,6 @@ class Client:
         Sign a contract
         It is method for POST /contracts/{contractId}/signatures
         """
-        uri = self.url + "/contracts/"+contractId+"/signatures"
+        uri = self.url + "/contracts/" + contractId + "/signatures"
         uri = uri + build_query_string(query_params)
         return self.session.post(uri, data, headers=headers)

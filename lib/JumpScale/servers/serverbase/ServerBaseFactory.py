@@ -6,6 +6,7 @@ import struct
 
 
 class ServerBaseFactory:
+
     def __init__(self):
         self.__jslocation__ = "j.servers.base"
 
@@ -99,8 +100,8 @@ class ServerBaseFactory:
         lensendformat = len(sendformat)
         lensessionid = len(sessionid)
         return struct.pack("<IIIIII", lencategory, lencmd, lendata, lensendformat, lenreturnformat, lensessionid)\
-                           + category.encode() + cmd.encode() + data.encode() + sendformat.encode()\
-                           + returnformat.encode() + sessionid.encode()
+            + category.encode() + cmd.encode() + data.encode() + sendformat.encode()\
+            + returnformat.encode() + sessionid.encode()
 
     def _unserializeBinSend(self, data):
         """
@@ -126,6 +127,6 @@ class ServerBaseFactory:
         """
         return resultcode,returnformat,result
         """
-        resultcode=data[0:1]
+        resultcode = data[0:1]
         lenreturnformat, lendata = struct.unpack("<II", data[1:9])
         return (resultcode.decode(), data[9:lenreturnformat + 9].decode(), data[lenreturnformat + 9:].decode())

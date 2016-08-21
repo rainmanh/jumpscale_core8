@@ -6,33 +6,33 @@ import M2Crypto as m2c
 
 # PASSWD="apasswd_now2easy"
 
+
 def empty_callback():
     return None
 
-#howto used from http://e1ven.com/2011/04/06/how-to-use-m2crypto-tutorial/
-
-
+# howto used from http://e1ven.com/2011/04/06/how-to-use-m2crypto-tutorial/
 
 
 class SSL:
+
     def __init__(self):
         self.__jslocation__ = "j.sal.ssl"
 
-    def getSSLHandler(self,keyvaluestor=None):
+    def getSSLHandler(self, keyvaluestor=None):
         """
         default keyvaluestor=j.servers.kvs.getFSStore("sslkeys", serializers=[])  #make sure to use no serializers
         pass another keyvaluestor if required (first do 'import JumpScale.servers.key_value_store')
         """
-        if keyvaluestor==None:
-            keyvaluestor=j.servers.kvs.getFSStore("sslkeys", serializers=[])
+        if keyvaluestor == None:
+            keyvaluestor = j.servers.kvs.getFSStore("sslkeys", serializers=[])
         return KeyStor(keyvaluestor)
 
 
 class KeyStor:
 
-    def __init__(self,keyvaluestor=None):
-        self.keys={}
-        self.db=keyvaluestor
+    def __init__(self, keyvaluestor=None):
+        self.keys = {}
+        self.db = keyvaluestor
 
     def createKeyPair(self, organization="", user="", path=""):
         """
@@ -103,40 +103,38 @@ class KeyStor:
         self.keys[cachekey] = key
         return key
 
-
-    def getPrivKey(self,organization,user):
-        key=self._getKey(organization,user,"private")
+    def getPrivKey(self, organization, user):
+        key = self._getKey(organization, user, "private")
         return key
 
-    def getPubKey(self,organization,user,returnAsString=False,pubkeyReader=""):
-        key=self._getKey(organization,user,"public",returnAsString,keyoverrule=pubkeyReader)
+    def getPubKey(self, organization, user, returnAsString=False, pubkeyReader=""):
+        key = self._getKey(organization, user, "public", returnAsString, keyoverrule=pubkeyReader)
         return key
 
-    def setPubKey(self,organization,user,pemstr):
-        key=self.db.set(organization,"%s_%s"%("public",user),pemstr)
+    def setPubKey(self, organization, user, pemstr):
+        key = self.db.set(organization, "%s_%s" % ("public", user), pemstr)
 
     def test(self):
         """
         """
-        org="myorg.com"
-        self.createKeyPair(org,"alice")
-        self.createKeyPair(org,"bob")
-        msg,signature= self.encrypt(org,"alice","bob","this is a test message.")
+        org = "myorg.com"
+        self.createKeyPair(org, "alice")
+        self.createKeyPair(org, "bob")
+        msg, signature = self.encrypt(org, "alice", "bob", "this is a test message.")
         print("msg")
         print(msg)
         print("signature")
         print(signature)
         print("decrypt")
-        print((self.decrypt(org,"alice","bob",msg,signature)))
+        print((self.decrypt(org, "alice", "bob", msg, signature)))
 
-
-    def perftest(self,nrrounds=1000,sign=True):
+    def perftest(self, nrrounds=1000, sign=True):
         start = time.time()
-        org="myorg.com"
-        print(("\n\nstart perftest for encryption, nrrounds:%s"%nrrounds))
+        org = "myorg.com"
+        print(("\n\nstart perftest for encryption, nrrounds:%s" % nrrounds))
         for i in range(nrrounds):
-            msg,signature= self.encrypt(org,"alice","bob","this is a test message.",sign=sign)
-            self.decrypt(org,"alice","bob",msg,signature)
+            msg, signature = self.encrypt(org, "alice", "bob", "this is a test message.", sign=sign)
+            self.decrypt(org, "alice", "bob", msg, signature)
         stop = time.time()
         nritems = nrrounds / (stop - start)
         #print(("nrrounds items per sec: %s" % nritems))
@@ -180,27 +178,27 @@ class KeyStor:
 
         return CipherText2, signature
 
-    def decrypt(self,orgsender,sender,orgreader,reader,message,signature=None,base64=True):
+    def decrypt(self, orgsender, sender, orgreader, reader, message, signature=None, base64=True):
         # print "decrypt org:%s for:%s from:%s\nmessage:%s"%(organization,reader,sender,message)
-        ReadRSA=self.getPrivKey(orgreader,reader)
+        ReadRSA = self.getPrivKey(orgreader, reader)
         if base64:
-            message2=message.decode("base64")
+            message2 = message.decode("base64")
         else:
-            message2=message
-        plainText = ReadRSA.private_decrypt (message2, m2c.RSA.pkcs1_oaep_padding)
+            message2 = message
+        plainText = ReadRSA.private_decrypt(message2, m2c.RSA.pkcs1_oaep_padding)
 
-        if signature!=None:
+        if signature != None:
             if base64:
-                signature2=signature.decode("base64")
+                signature2 = signature.decode("base64")
             else:
-                signature2=signature
+                signature2 = signature
 
-            PubKey = self.getPubKey(orgsender,sender)
+            PubKey = self.getPubKey(orgsender, sender)
 
-            MsgDigest = m2c.EVP.MessageDigest ('sha1')
-            MsgDigest.update (message2)
+            MsgDigest = m2c.EVP.MessageDigest('sha1')
+            MsgDigest.update(message2)
 
-            if not PubKey.verify_rsassa_pss (MsgDigest.digest (), signature2) == 1:
+            if not PubKey.verify_rsassa_pss(MsgDigest.digest(), signature2) == 1:
                 raise j.exceptions.RuntimeError("Could not verify the message")
 
         return plainText

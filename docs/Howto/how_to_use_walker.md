@@ -1,81 +1,70 @@
-## FS Walker
+# FS Walker
 
 ```
 WARNING:
 we need to improve the documentation on this page
 ```
-@todo check
 
-### Dependencies
+#TODO: *3 check FS Walker
+
+## Dependencies
 
 You'll need to `apt-get install python-regex` first (maybe no longer required).
 
-### Example
+## Example
 
 ```python
 In [1]: fswalker = j.do.getWalker()
 In [2]: fswalker.
 
-fswalker.find                       fswalker.lastPath                   
+fswalker.find                       fswalker.lastPath
 fswalker.statsAdd                   fswalker.statsSize
-fswalker.fs                         fswalker.log      
+fswalker.fs                         fswalker.log
 fswalker.statsNr                    fswalker.statsStart
-fswalker.getCallBackMatchFunctions  fswalker.stats                      
+fswalker.getCallBackMatchFunctions  fswalker.stats
 fswalker.statsPrint                 fswalker.walk
 ```
 
-### Find
+## Find
 
 ```python
 `fswalker.find(self, root, includeFolders=False, includeLinks=False, pathRegexIncludes={}, pathRegexExcludes={}, followlinks=False, childrenRegexExcludes=['.*/log/.*', '/dev/.*', '/proc/.*'], mdserverclient=None)`
 ```
 
--   root: root path to find from.
--   includeFolders: defaults to False. In this case, only files are
-    matched.
--   includeLinks: defaults to False. In this case, links are not
-    included in the search results.
--   pathRegexIncludes/Excludes: match paths to array of regex
-    expressions {[]} to be included/excluded.
--   childrenRegexExcludes: Excludes children with regex matching any of
-    the given list from the results.
--   mdserverclient: To search on metadata from another server.
+- root: root path to find from.
+- includeFolders: defaults to False. In this case, only files are matched.
+- includeLinks: defaults to False. In this case, links are not included in the search results.
+- pathRegexIncludes/Excludes: match paths to array of regex expressions {[]} to be included/excluded.
+- childrenRegexExcludes: Excludes children with regex matching any of the given list from the results.
+- mdserverclient: To search on metadata from another server.
 
 Returns: '{files:[],dirs:[],links:[],...\$othertypes}'
 
-#### Example
+### Example
 
 ```python
-fswalker.find('.', False, False, {}, {'F': ['.pyc']}, True) 
+fswalker.find('.', False, False, {}, {'F': ['.pyc']}, True)
 #Finds all files that are not of type pyc listed under this directory
 ```
 
-### Walk
+## Walk
 
-Walk through filesystem and execute a method per file and dirname if the
-match function selected the item.
+Walk through filesystem and execute a method per file and dirname if the match function selected the item.
 
 ```python
 `fswalker.walk(self, root, callbackFunctions={}, arg=None, callbackMatchFunctions={}, followlinks=False, childrenRegexExcludes=['.*/log/.*', '/dev/.*', '/proc/.*'], pathRegexIncludes={}, pathRegexExcludes={}, mdserverclient=None)`
 ```
 
--   root: Where to start the walk from
--   callbackFunctions: callback functions to be executed to matched
-    files/directories/links walked upon.
--   arg: the first argument to be passed along to the callback function
-    (can be used to initiate the callback function)
--   callbackMatchFunctions: callback functions which control the
-    criteria whether to select an item
--   includeFolders: defaults to False. In this case, only files are
-    walked upon.
--   pathRegexIncludes/Excludes: includes everything by default. No paths
-    are excluded. To do so, through a list of regexes.
--   depths: list of depth values e.g. only return depth 0 & 1 (would
-    mean first dir depth and then 1 more deep)
--   followlinks: defaults to False, if True would follow linked
-    files/directories to walk within them.
+- root: Where to start the walk from
+- callbackFunctions: callback functions to be executed to matched files/directories/links walked upon.
+- arg: the first argument to be passed along to the callback function (can be used to initiate the callback function)
+- callbackMatchFunctions: callback functions which control the criteria whether to select an item
+- includeFolders: defaults to False. In this case, only files are walked upon.
+- pathRegexIncludes/Excludes: includes everything by default. No paths are excluded. To do so, through a list of regexes.
+- depths: list of depth values e.g. only return depth 0 & 1 (would mean first dir depth and then 1 more deep)
+- followlinks: defaults to False, if True would follow linked files/directories to walk within them.
 
-### Complex example with regular expression find combined with call back functions
+## Complex example with regular expression find combined with call back functions
 
 ```python
 pathRegexExcludes = {}
@@ -108,12 +97,12 @@ args["metadata"]="something"
 args["data"]="data"
 
 fswalker.walk('.',callbackFunctions,args,
-                  callbackMatchFunctions,childrenRegexExcludes, 
+                  callbackMatchFunctions,childrenRegexExcludes,
                   [],pathRegexExcludes)
 ```
 
-### lastPath
+## lastPath
 
--   fswalker.lastPath
+- fswalker.lastPath
 
 Returns a string representation of the last object. Empty string if none found.

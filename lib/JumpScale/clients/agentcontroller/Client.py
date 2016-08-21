@@ -3,6 +3,7 @@ import simple
 
 
 class ACFactory:
+
     def __init__(self):
         self.__jslocation__ = "j.clients.agentcontroller"
 

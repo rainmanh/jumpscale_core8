@@ -2,7 +2,7 @@ from JumpScale import j
 try:
     import grequests as requests
 except:
-    cmd='pip3 install grequests'
+    cmd = 'pip3 install grequests'
     j.sal.process.execute(cmd)
     import grequests as requests
 
@@ -22,6 +22,7 @@ try:
     import io
 except ImportError:
     pass  # io is requiered in python3 but not available in python2
+
 
 class Telegram:
     """This class wraps the (almost) whole Telegram API and offers a
@@ -55,19 +56,19 @@ class Telegram:
         self.loopingUpdateHandler = False
         self.lastID = 0
         self.handlers = []
-        self.debug=False
+        self.debug = False
 
     def send_request(self, action, params={}, files=[]):
         """Wraps the url building and sends the requst to Telegram's servers.
         Returns the processed data in JSON or a JSON object containing the
         error message."""
         url = "{}{}/{}".format(self.api_url, self.access_token, action)
-        
+
         r = requests.post(url, params=params, files=files)
 
-        #for async lib (use when using grequests)
+        # for async lib (use when using grequests)
         r = requests.map([r])
-        r=r[0]
+        r = r[0]
 
         # print url
         # print params
@@ -75,7 +76,7 @@ class Telegram:
             return r.json()
         except ValueError:
             print(("There has been a parsing error on this message : {}"
-                  .format(r.text)))
+                   .format(r.text)))
             return {"ok": False,
                     "why": "Parsing Error",
                     "message": r.text}
@@ -214,8 +215,8 @@ class Telegram:
             notifications = self.get_updates(self.lastID)
             if notifications["ok"] is True:
                 for notification in notifications['result']:
-                    self.lastID = max(self.lastID, notification["update_id"])+1
-                    message = Message(notification["message"])                    
+                    self.lastID = max(self.lastID, notification["update_id"]) + 1
+                    message = Message(notification["message"])
                     self.call_handlers(message)
             else:
                 print(("Oops, something went bad : {}".format(notifications)))

@@ -11,6 +11,7 @@ except:
 
 
 class NameSpaceLoader:
+
     def __init__(self, modelsmodule):
         self._module = modelsmodule
         mongoengine.register_connection(self._module.DB, self._module.DB)
@@ -40,12 +41,14 @@ class NameSpaceLoader:
 
 
 class System(NameSpaceLoader):
+
     def __init__(self):
         self.__jslocation__ = "j.data.models.system"
         super(System, self).__init__(Models)
 
 
 class CockpitEvent(NameSpaceLoader):
+
     def __init__(self):
         self.__jslocation__ = "j.data.models.cockpit_event"
         super(CockpitEvent, self).__init__(CockpitEventModels)

@@ -22,8 +22,6 @@ root.partitionnr=
 """
 
 
-
-
 class KVM:
 
     def __init__(self):
@@ -77,7 +75,8 @@ class KVM:
         """
         machines = self.LibvirtUtil.list_domains()
         running = [machine for machine in machines if machine['state'] == 1]
-        stopped = [machine for machine in machines if machine['state'] == 5 and j.sal.fs.exists(j.sal.fs.joinPaths(self.vmpath, machine['name']))]
+        stopped = [machine for machine in machines if machine[
+            'state'] == 5 and j.sal.fs.exists(j.sal.fs.joinPaths(self.vmpath, machine['name']))]
         return (running, stopped)
 
     def listSnapshots(self, name):
@@ -85,7 +84,7 @@ class KVM:
         return [s['name'] for s in self.LibvirtUtil.listSnapshots(machine_hrd.get('name'))]
 
     def getIp(self, name):
-        #info will be fetched from hrd in vm directory
+        # info will be fetched from hrd in vm directory
         machine_hrd = self.getConfig(name)
         if machine_hrd:
             return machine_hrd.get("bootstrap.ip")
@@ -110,7 +109,8 @@ class KVM:
         return ips
 
     def _getAllVMs(self):
-        result = j.sal.fs.listDirsInDir(self.vmpath, recursive=False, dirNameOnly=True, findDirectorySymlinks=True)
+        result = j.sal.fs.listDirsInDir(
+            self.vmpath, recursive=False, dirNameOnly=True, findDirectorySymlinks=True)
         result.remove('images')
         return result
 
@@ -121,23 +121,23 @@ class KVM:
         """
         find first ip addr which is free
         """
-        ips=self._getAllMachinesIps()
-        addr=[]
-        for key,ip in list(ips.items()):
+        ips = self._getAllMachinesIps()
+        addr = []
+        for key, ip in list(ips.items()):
             if pub:
                 addr.append(int(ip[1].split(".")[-1].strip()))
             else:
                 addr.append(int(ip[0].split(".")[-1].strip()))
 
-        for i in range(2,252):
+        for i in range(2, 252):
             if i not in addr:
                 if pub:
                     return '10.0.0.%s' % i
                 else:
                     return '192.168.66.%s' % i
 
-        j.events.opserror_critical("could not find free ip addr for KVM in 192.168.66.0/24 range","kvm.ipaddr.find")
-
+        j.events.opserror_critical(
+            "could not find free ip addr for KVM in 192.168.66.0/24 range", "kvm.ipaddr.find")
 
     def create(self, name, baseimage, replace=True, description='', size=10, memory=512, cpu_count=1, bridges=None):
         """
@@ -177,11 +177,13 @@ class KVM:
         else:
             if j.sal.fs.exists(self._getRootPath(name)):
                 print('Error creating machine "%s"' % name)
-                raise j.exceptions.RuntimeError('Machine "%s" already exists, please explicitly specify replace=True(default) if you want to create a vmachine with the same name' % name)
+                raise j.exceptions.RuntimeError(
+                    'Machine "%s" already exists, please explicitly specify replace=True(default) if you want to create a vmachine with the same name' % name)
         j.sal.fs.createDir(self._getRootPath(name))
         print('Creating machine %s...' % name)
         try:
-            self.LibvirtUtil.create_node(name, baseimage, bridges=bridges, size=size, memory=memory, cpu_count=cpu_count)
+            self.LibvirtUtil.create_node(
+                name, baseimage, bridges=bridges, size=size, memory=memory, cpu_count=cpu_count)
         except Exception as e:
             print('Error creating machine "%s"' % name)
             print('Rolling back machine creation...')
@@ -190,7 +192,8 @@ class KVM:
         domain = self.LibvirtUtil.connection.lookupByName(name)
         imagehrd = self.images[baseimage]
         hrdfile = j.sal.fs.joinPaths(self._getRootPath(name), 'main.hrd')
-        # assume that login and passwd are provided in the image hrd config file
+        # assume that login and passwd are provided in the image hrd config
+        # file
         hrdcontents = '''id=%s
 name=%s
 image=%s
@@ -209,7 +212,7 @@ bootstrap.ip=%s
 bootstrap.login=%s
 bootstrap.passwd=%s
 bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imagehrd.get('ostype'), imagehrd.get('arch'), imagehrd.get('version'), description, imagehrd.get('root.partitionnr', '1'),
-        memory, size, cpu_count, imagehrd.get('shell', ''), imagehrd.get('fabric.module'), imagehrd.get('pub.ip'), imagehrd.get('bootstrap.ip'), imagehrd.get('bootstrap.login'), imagehrd.get('bootstrap.passwd'))
+                         memory, size, cpu_count, imagehrd.get('shell', ''), imagehrd.get('fabric.module'), imagehrd.get('pub.ip'), imagehrd.get('bootstrap.ip'), imagehrd.get('bootstrap.login'), imagehrd.get('bootstrap.passwd'))
         j.sal.fs.writeFile(hrdfile, hrdcontents)
         print('Machine %s created successfully' % name)
 
@@ -270,8 +273,6 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
         except:
             pass
 
-
-
     def snapshot(self, name, snapshotname, disktype='all', snapshottype='external'):
         """
         take a snapshot of the disk(s)
@@ -281,12 +282,14 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
         print('Creating snapshot %s for machine %s' % (snapshotname, name))
         machine_hrd = self.getConfig(name)
         try:
-            self.LibvirtUtil.snapshot(machine_hrd.get('name'), snapshotname, snapshottype=snapshottype)
+            self.LibvirtUtil.snapshot(machine_hrd.get(
+                'name'), snapshotname, snapshottype=snapshottype)
             print('Done')
         except:
             pass
 
-    # def deleteSnapsho is not working properly .. has to do with libvirtutil itself .. todo
+    # def deleteSnapsho is not working properly .. has to do with libvirtutil
+    # itself .. todo
     def deleteSnapshot(self, name, snapshotname):
         '''
         deletes a vmachine snapshot
@@ -296,7 +299,8 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
         machine_hrd = self.getConfig(name)
         print('Deleting snapshot %s for machine %s' % (snapshotname, name))
         if snapshotname not in self.listSnapshots(name):
-            print("Couldn't find snapshot %s for machine %s" % (snapshotname, name))
+            print("Couldn't find snapshot %s for machine %s" %
+                  (snapshotname, name))
             return
         self.LibvirtUtil.deleteSnapshot(name, snapshotname)
 
@@ -307,10 +311,13 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
         """
         machine_hrd = self.getConfig(name)
         if not machine_hrd:
-            raise j.exceptions.RuntimeError('Machine "%s" does not exist' % name)
+            raise j.exceptions.RuntimeError(
+                'Machine "%s" does not exist' % name)
         if snapshotname not in self.listSnapshots(name):
-            raise j.exceptions.RuntimeError('Machine "%s" does not have a snapshot named "%s"' % (name, snapshotname))
-        print(('Mounting snapshot "%s" of mahcine "%s" on "%s"' % (snapshotname, name, location)))
+            raise j.exceptions.RuntimeError(
+                'Machine "%s" does not have a snapshot named "%s"' % (name, snapshotname))
+        print(('Mounting snapshot "%s" of mahcine "%s" on "%s"' %
+               (snapshotname, name, location)))
         if not j.sal.fs.exists(location):
             print(('Location "%s" does not exist, it will be created' % location))
             j.sal.fs.createDir(location)
@@ -319,19 +326,23 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
         if 'nbd' not in modules:
             j.sal.process.execute('modprobe nbd max_part=8')
         self._cleanNbdMount(location, dev)
-        qcow2_images = j.sal.fs.listFilesInDir(j.sal.fs.joinPaths(self.vmpath, name), filter='*.qcow2')
+        qcow2_images = j.sal.fs.listFilesInDir(
+            j.sal.fs.joinPaths(self.vmpath, name), filter='*.qcow2')
         snapshot_path = None
         for qi in qcow2_images:
             if snapshotname in qi:
                 snapshot_path = qi
                 break
         if not snapshot_path:
-            raise j.exceptions.RuntimeError('Could not find snapshot "%s" path' % snapshotname)
-        j.sal.process.execute('qemu-nbd --connect=%s %s' % (dev, snapshot_path))
+            raise j.exceptions.RuntimeError(
+                'Could not find snapshot "%s" path' % snapshotname)
+        j.sal.process.execute('qemu-nbd --connect=%s %s' %
+                              (dev, snapshot_path))
         if not partitionnr:
             partitionnr = machine_hrd.get('root.partitionnr', '1')
         j.sal.process.execute('mount %sp%s %s' % (dev, partitionnr, location))
-        print(('Snapshot "%s" of mahcine "%s" was successfully mounted on "%s"' % (snapshotname, name, location)))
+        print(('Snapshot "%s" of mahcine "%s" was successfully mounted on "%s"' % (
+            snapshotname, name, location)))
 
     def unmountSnapshot(self, location='/mnt/1', dev='/dev/nbd1'):
         self._cleanNbdMount(location, dev)
@@ -344,6 +355,3 @@ bootstrap.type=ssh''' % (domain.UUIDString(), name, imagehrd.get('name'), imageh
             print(('location "%s" is already unmounted' % location))
         print(('Disconnecting dev "%s"' % dev))
         j.sal.process.execute('qemu-nbd -d %s' % dev)
-
-
-

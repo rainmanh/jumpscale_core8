@@ -1,4 +1,4 @@
-## List
+# List
 
 The `list` command lists all service instances with specific role and instance name.
 

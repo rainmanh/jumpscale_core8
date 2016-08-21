@@ -1,6 +1,7 @@
 
 
 class CommandDispatcher:
+
     def __init__(self):
         self.commands = {}
 
@@ -12,5 +13,5 @@ class CommandDispatcher:
             # Match '/command' or '/command [anything]' and not '/commandFOO'
             line = message.text
             if line == command\
-               or line.startswith(command+" ") or line.startswith(command+'@'):
+               or line.startswith(command + " ") or line.startswith(command + '@'):
                 callback(tg, message)

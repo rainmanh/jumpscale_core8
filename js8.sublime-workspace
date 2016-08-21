@@ -1844,7 +1844,7 @@
 			],
 			[
 				"listactors",
-				"jumpscale_portal/lib/portal/portalloaders/ActorsInfo.py"
+				"jumpscale_portal/lib/portal/portalloaders/actorsInfo.py"
 			],
 			[
 				"cloudspace",
@@ -1864,7 +1864,7 @@
 			],
 			[
 				"system/actordo",
-				"jumpscale_portal/apps/portalbase/wiki/System/ActorsDocs/ActorsDocs.wiki"
+				"jumpscale_portal/apps/portalbase/wiki/System/actorsDocs/actorsDocs.wiki"
 			],
 			[
 				"cloudapi",

@@ -4,7 +4,6 @@ from JumpScale import j
 import time
 
 
-
 class DigitalOcean:
 
     def __init__(self):
@@ -39,7 +38,7 @@ class DigitalOcean:
     def create_machine(self, name, image, size, location, ssh_key_name, ssh_key_file):
         self.import_keypair(ssh_key_name, ssh_key_file)
         time.sleep(5)
-        return self._client.create_node(name=name, image=image, size=size, location=location, ex_ssh_key_ids=[ssh_key_name,])
+        return self._client.create_node(name=name, image=image, size=size, location=location, ex_ssh_key_ids=[ssh_key_name, ])
 
     def execute_command(self, machine_name, command, sudo=False):
         machines = self.list_machines()
@@ -50,7 +49,8 @@ class DigitalOcean:
                 break
 
         if not host:
-            raise j.exceptions.RuntimeError('Could not find machine: %s' % machine_name)
+            raise j.exceptions.RuntimeError(
+                'Could not find machine: %s' % machine_name)
         rapi = j.tools.cuisine.get(j.tools.executor.get(host))
         if sudo:
             return rapi.core.sudo(command)

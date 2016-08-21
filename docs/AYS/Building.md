@@ -1,10 +1,10 @@
-## Building an AYS Service (DEPRECATED)
+# Building an AYS Service (DEPRECATED)
 
-Building an AYS service means creating the G8FS metadata of the services, if needed actually compiling source code into binary and then pushing the result of the build to an AYS File Store.  
+Building an AYS service means creating the G8FS metadata of the services, if needed actually compiling source code into binary and then pushing the result of the build to an AYS File Store.
 
 The services are build in a build server where a Docker container is spawn every time a new service needs to be build.
 
-You need to specify in the ``service.hrd`` which Docker images you want to use during the build process.
+You need to specify in the `service.hrd` which Docker images you want to use during the build process.
 
 ```
 build   =
@@ -12,11 +12,10 @@ build   =
     repo: 'https://github.com/Jumpscale/docker_ubuntu1604_python.git',
 ```
 
-``image`` is the name of the Docker image to use  
-``repo`` is the URL of a Git repository where a Dockerfile is located. It's used if you want to build the image on the build server itself instead of downloading it from Docker Hub.
+`image` is the name of the Docker image to use<br>
+`repo` is the URL of a Git repository where a Dockerfile is located. It's used if you want to build the image on the build server itself instead of downloading it from Docker Hub.
 
-
-### Build server infrastructure
+## Build server infrastructure
 
 Before you start building your service you need to make sure you have the following:
 
@@ -25,7 +24,7 @@ Before you start building your service you need to make sure you have the follow
 
 Here is an example script to deploy a build infrastructure:
 
-```py
+```python
 #!/usr/local/bin/jspython
 
 from JumpScale import j
@@ -67,9 +66,9 @@ storclient1 = j.atyourservice.new(name='ays_stor_client.ssh',instance="storclien
 storclient1.consume(ays_stor1)
 ```
 
-### Trigger a build
+## Trigger a build
 
-With the ``ays`` command line:
+With the `ays` command line:
 
 ```bash
 ays build -n redis --host 'node.ssh!buildserver' --build --push
@@ -85,20 +84,21 @@ Build:
                         debug if an error happen durin building
 ```
 
-Here we trigger the build of the Redis service on the build server pointed by ``--host``.
+Here we trigger the build of the Redis service on the build server pointed by `--host`.
 
-``--build`` and ``--push`` specify that we want to build the Docker image on the build server and then push it on Docker Hub. These two flags are optional.
+`--build` and `--push` specify that we want to build the Docker image on the build server and then push it on Docker Hub. These two flags are optional.
 
 In a script:
 
-```py
+```python
 redis = j.atyourservice.getTemplate(name='redis')
 redis.build(build_server='node.ssh!buildserver', image_build=False, image_push=False, debug=False)
 ```
 
-#### Metadata and binary files
+### Metadata and binary files
 
 AYS FS uses two kinds of files to recreate a file system:
+
 - Metadata files
 - Binary files
 
@@ -106,7 +106,8 @@ There is one set metadata files per AYS service template or instance.
 
 This list contains all the files required by an AYS.
 
-The following is an excerpt of the metadata files for the ```jumpscale__base``` service:
+The following is an excerpt of the metadata files for the `jumpscale__base` service:
+
 ```
 /opt/jumpscale8/bin/jsnet|8a3e5e03a10ecc3601a1f14fbc371019|4857
 /opt/jumpscale8/bin/jsnode|793384b5bde2901461606146adbed382|5088
@@ -114,7 +115,6 @@ The following is an excerpt of the metadata files for the ```jumpscale__base``` 
 /opt/jumpscale8/bin/jsprocess_monitor|127546640e1f98c3d35bbd03153a1e17|248
 /opt/jumpscale8/bin/jsprocess_startAllReset|e839ddaa3d391c9d099cb513d538c62b|184
 /opt/jumpscale8/bin/jsprocess|397f026a662f1316421b78e8c6c5b5f7|4506
-
 ```
 
 The format is `/$path/$name|$hash|$size`.
@@ -124,22 +124,23 @@ The hash is an MD5 hash of the content of the file. It's used to link the metada
 The binary content is stores in a directory structure with 3 levels.
 
 First two level are the first and second character of the hash of the file and the last level contain the actual binary file named with the full md5 hash.
+
 ```
 a
 ├── 0
-│   ├── a001d62d00fbeb0f1ef4e77e5d8c5e3d
-│   ├── a0237c980711ed468f39b5c178ccf875
-│   ├── a03e021c3623542e16c47df9799ff8a5
-│   ├── a043b3974df8701a8d3cf686690795f8
+│   ├── a001d62d00fbeb0f1ef4e77e5d8c5e3d
+│   ├── a0237c980711ed468f39b5c178ccf875
+│   ├── a03e021c3623542e16c47df9799ff8a5
+│   ├── a043b3974df8701a8d3cf686690795f8
 ├── 1
-│   ├── a12abc97671995529a05ae1fa73120c9
-│   ├── a134ce45aa49528684f9bbc6c2e8042c
-│   ├── a139377c7036f280449d8a6746501c18
-│   ├── a13bc16af414cc4bdfb9d554c50842d9
+│   ├── a12abc97671995529a05ae1fa73120c9
+│   ├── a134ce45aa49528684f9bbc6c2e8042c
+│   ├── a139377c7036f280449d8a6746501c18
+│   ├── a13bc16af414cc4bdfb9d554c50842d9
 ...
 ```
 
-### Build method
+## Build method
 
 Every service needs to have a build method in their actions_mgmt file.
 
@@ -147,7 +148,7 @@ By default the build method just walks over the `git.export` entries from the se
 
 This is the code of the default build method:
 
-```py
+```python
 folders = serviceObj.installRecipe()
 
 for src, dest in folders:

@@ -5,19 +5,19 @@ j.application.start("pertests")
 
 def singleLocalNodeTest():
     settings = j.application.getAppInstanceHRD(name='vnas_setup', instance='main', domain='openvcloud')
-    
+
     frontend_ip = settings.getStr('addr.frontend.master')
-    
+
     j.tools.perftesttools.init(monitorNodeIp="localhost", sshPort=22, redispasswd="", testname="vnas")
 
     monitor = j.tools.perftesttools.getNodeMonitor()
     # host = j.tools.perftesttools.getNodeHost("192.168.103.248", 22, name="host1")
 
-    nas = j.tools.perftesttools.getNodeNAS(frontend_ip, 22, fstype="xfs", role='vnas', name="nas1", debugdisk="/dev/sda")
+    nas = j.tools.perftesttools.getNodeNAS(frontend_ip, 22, fstype="xfs",
+                                           role='vnas', name="nas1", debugdisk="/dev/sda")
     # nas.autoInitDisks(nbrdisk=2)
     nas.createLoopDev(size=500, backend_file='/storage/vnas/loop_device')
-    nas.ready() # call ready when all disks ready
-
+    nas.ready()  # call ready when all disks ready
 
     nas.perftester.sequentialReadWrite(size="2000m", nrfiles=1)
 
@@ -60,7 +60,6 @@ def singleLocalNodeTest():
 #         host=j.tools.perftesttools.getNodeHost(ipaddr,22)
 #         hosts.append(host)
 #         host.startMonitor(cpu=1,disks=0,net=0)
-
 
 
 # multiNodeMultDiskStripTest()

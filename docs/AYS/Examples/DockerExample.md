@@ -1,4 +1,4 @@
-## Automate the Creation Docker Containers
+# Automate the Creation Docker Containers
 
 (UNCOMPLETE)
 
@@ -15,7 +15,7 @@ Requirements
 - all docker based
 - start from ubuntu 15.04 64 bit, use jsdocker way of working (see docs)
 
-## todo complete
+# todo complete
 
 ```
 datacenter__ovh_germany1:
@@ -68,5 +68,4 @@ os.ssh.ubuntu__docker_client:
   node: 'client'
   g8os_fs: False
   agent: true
-
 ```

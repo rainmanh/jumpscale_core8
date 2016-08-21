@@ -2,12 +2,12 @@ from JumpScale import j
 import netifaces
 
 
-
-
 class DHCP:
+
     def __init__(self):
-        self.__jslocation__="j.sal.dhcp_ihc"
-        self.configPath = j.tools.path.get('/etc').joinpath('dhcp3', 'dhcpd.conf')
+        self.__jslocation__ = "j.sal.dhcp_ihc"
+        self.configPath = j.tools.path.get(
+            '/etc').joinpath('dhcp3', 'dhcpd.conf')
         self._executor = j.tools.executor.getLocal()
 
     def configure(self, ipFrom, ipTo, interface):

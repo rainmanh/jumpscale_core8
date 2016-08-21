@@ -1,6 +1,6 @@
-## Cuisine
+# Cuisine
 
-The JumpScale implementation of Cuisine is a fork of the original Cuisine as available on GitHub: https://github.com/sebastien/cuisine 
+The JumpScale implementation of Cuisine is a fork of the original Cuisine as available on GitHub: <https://github.com/sebastien/cuisine>
 
 Cuisine provides [Chef](https://en.wikipedia.org/wiki/Chef_(software)-like funcionality for [Fabric](http://www.fabfile.org/).
 
@@ -8,22 +8,22 @@ Cuisine makes it easy to automate server installations and create configuration 
 
 Cuisine takes an `executor` object as an argument, though wich you connect locally or remotelly.
 
-#### Local
+## Local
 
-```py
+```python
 executor = j.tools.executor.getLocal()
 cuisine = j.tools.cuisine.get(executor)
 # or simply j.tools.cuisine.local
 ```
 
-#### Remote
+## Remote
 
-```py
+```python
 executor = j.tools.executor.getSSHBased(addr, port, login,passwd)
 cuisine = j.tools.cuisine.get(executor)
 ```
 
-#### Cuisine Modules
+## Cuisine Modules
 
 - [cuisine.core](cuisine.core.md)
 - [cuisine.bash](cuisine.bash.md)

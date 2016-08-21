@@ -1,13 +1,18 @@
 from JumpScale import j
 
-import urllib.request, urllib.error, urllib.parse
+import urllib.request
+import urllib.error
+import urllib.parse
+
 
 class RogerthatFactory:
+
     def __init__(self):
         self.__jslocation__ = "j.clients.rogerthat"
 
     def get(self, api_key):
         return Rogerthat(api_key)
+
 
 class Rogerthat:
     self.logger = j.logger.get("j.clients.rogerthat")
@@ -39,9 +44,11 @@ class Rogerthat:
         self._url = 'https://rogerth.at/api/1'
 
     def _raw_request(self, method, params):
-        data = {'id': j.data.idgenerator.generateGUID(), 'method': method, 'params': params}
+        data = {'id': j.data.idgenerator.generateGUID(), 'method': method,
+                'params': params}
         json_data = j.data.serializer.json.dumps(data)
-        headers = {'Content-Type': 'application/json-rpc; charset=utf-8', 'X-Nuntiuz-API-key': self._api_key}
+        headers = {'Content-Type': 'application/json-rpc; charset=utf-8',
+                   'X-Nuntiuz-API-key': self._api_key}
         request = urllib.request.Request(self._url, json_data, headers)
         response = urllib.request.urlopen(request)
         if response.getcode() == 200:
@@ -69,7 +76,6 @@ class Rogerthat:
             params['ui_flags'] = ui_flags
         return self._raw_request('messaging.send', params)
 
-
     def send_broadcast(self, broadcast_type, message, flags=0, parent_message_key=None, answers=None, dismiss_button_ui_flags=0, alert_flags=0, branding=None, tag=None, context=None):
         params = {'message': message, 'flags': flags}
         params['parent_message_key'] = parent_message_key
@@ -81,7 +87,6 @@ class Rogerthat:
         params['context'] = context
         params['broadcast_type'] = broadcast_type
         return self._raw_request('messaging.broadcast', params)
-
 
     def retreive_users(self):
         params = {'service_identity': '+default+', 'cursor': None}

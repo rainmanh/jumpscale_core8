@@ -1,6 +1,8 @@
 from JumpScale.clients.racktivity.energyswitch.common import convert
 
+
 class BaseModule:
+
     def __init__(self, parent):
         self._parent = parent
         self._guidTable = {}
@@ -33,6 +35,3 @@ class BaseModule:
         for idx, info in enumerate(paramInfo):
             result[info[0]] = array[idx]
         return result
-
-
-

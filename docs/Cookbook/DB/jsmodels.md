@@ -1,9 +1,8 @@
-## JSModels
+# JSModels
 
 These are easy to use models which can be cached in redis & stored to mongodb.
 
-
-### create a model
+## create a model
 
 ```python
 from mongoengine.fields import *
@@ -38,8 +37,6 @@ def findall(obj):
 print(repoEmptyObj2.findByMethod(findall))
 
 print(repoEmptyObj2.hash)
-
-
 ```
 
-### 
+# #

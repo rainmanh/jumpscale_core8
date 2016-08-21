@@ -9,7 +9,6 @@ from base import DNS
 from JumpScale import j
 
 
-
 class Zone:
     CONFIG_FILES_DIR = j.tools.path.get('/etc/bind/')
     NON_ZONE_FILES = ['/etc/bind/named.conf.options']
@@ -29,12 +28,14 @@ class Zone:
         configs = []
         zonesfiles = []
         for configfile in ['named.conf.local', 'named.conf']:
-            configs.append(''.join(os.path.join(Zone.CONFIG_FILES_DIR, configfile)))
+            configs.append(''.join(os.path.join(
+                Zone.CONFIG_FILES_DIR, configfile)))
 
         for file in configs:
             with open(file) as f:
                 for line in re.findall('^include \".*\";$', f.read(), re.M):
-                    path = line.replace('include ', '').replace('"', '').replace(';', '')
+                    path = line.replace('include ', '').replace(
+                        '"', '').replace(';', '')
                     if path not in Zone.NON_ZONE_FILES:
                         zonesfiles.append(path)
         zones = {}
@@ -49,7 +50,8 @@ class Zone:
                     if not domaindata:
                         continue
                     zones[domain] = domaindata
-                    zones[domain]['file'] = zones[domain]['file'].replace('"', '')
+                    zones[domain]['file'] = zones[
+                        domain]['file'].replace('"', '')
         return zones
 
     @staticmethod
@@ -57,12 +59,13 @@ class Zone:
         res = {}
         for k, v in Zone.getZones().items():
             try:
-                zone = dns.zone.from_file(v['file'], os.path.basename(v['file']), relativize=False)
+                zone = dns.zone.from_file(
+                    v['file'], os.path.basename(v['file']), relativize=False)
                 for (name, ttl, rdata) in zone.iterate_rdatas('A'):
                     key = name.to_text().rstrip('.')
                     val = res.get(key, [])
-                    if not {'ip':rdata.address, 'file':v['file']} in val:
-                        val.append({'ip':rdata.address, 'file':v['file']})
+                    if not {'ip': rdata.address, 'file': v['file']} in val:
+                        val.append({'ip': rdata.address, 'file': v['file']})
                     res[key] = val
             except NoSOA:
                 continue
@@ -73,19 +76,22 @@ class Zone:
         res = {}
         for k, v in Zone.getZones().items():
             try:
-                zone = dns.zone.from_file(v['file'], os.path.basename(v['file']), relativize=False)
+                zone = dns.zone.from_file(
+                    v['file'], os.path.basename(v['file']), relativize=False)
                 for (name, ttl, rdata) in zone.iterate_rdatas('A'):
                     value = res.get(rdata.address, [])
-                    value.append({ 'file':v['file'], 'domain':name.to_text().rstrip('.')})
+                    value.append(
+                        {'file': v['file'], 'domain': name.to_text().rstrip('.')})
                     res[rdata.address] = value
             except NoSOA:
                 continue
         return res
 
+
 class BindDNS(DNS):
 
     def __init__(self):
-        self.__jslocation__="j.sal.bind"
+        self.__jslocation__ = "j.sal.bind"
         self.logger = j.logger.get("j.sal.bind")
 
     @property
@@ -106,17 +112,20 @@ class BindDNS(DNS):
 
     def start(self):
         self.logger.info('STARTING BIND SERVICE')
-        _, out = j.sal.process.execute('service bind9 start', outputToStdout=True)
+        _, out = j.sal.process.execute(
+            'service bind9 start', outputToStdout=True)
         self.logger.info(out)
 
     def stop(self):
         self.logger.info('STOPPING BIND SERVICE')
-        _, out = j.sal.process.execute('service bind9 stop', outputToStdout=True)
+        _, out = j.sal.process.execute(
+            'service bind9 stop', outputToStdout=True)
         self.logger.info(out)
 
     def restart(self):
         self.logger.info('RESTSRTING BIND SERVICE')
-        _, out = j.sal.process.execute('service bind9 restart', outputToStdout=True)
+        _, out = j.sal.process.execute(
+            'service bind9 restart', outputToStdout=True)
         self.logger.info(out)
 
     def updateHostIp(self, host, ip):
@@ -128,7 +137,8 @@ class BindDNS(DNS):
         for r in record:
             file = r['file']
             old_ip = r['ip']
-            zone = dns.zone.from_file(file, os.path.basename(file),relativize=False)
+            zone = dns.zone.from_file(
+                file, os.path.basename(file), relativize=False)
             for k, v in zone.items():
                 for dataset in v.rdatasets:
                     for item in dataset.items:
@@ -139,13 +149,14 @@ class BindDNS(DNS):
 
     def addRecord(self, domain, host, ip, klass, type, ttl):
         host = "%s." % host
-        records  = [x for x in self.zones if x.domain == domain]
+        records = [x for x in self.zones if x.domain == domain]
         if not records:
             raise j.exceptions.RuntimeError("Invalid domain")
 
         record = records[0]
         file = record.file
-        zone = dns.zone.from_file(file, os.path.basename(file),relativize=False)
+        zone = dns.zone.from_file(
+            file, os.path.basename(file), relativize=False)
         node = zone.get_node(host, create=True)
 
         if type == "A":
@@ -180,7 +191,8 @@ class BindDNS(DNS):
         for r in record:
             file = r['file']
             old_ip = r['ip']
-            zone = dns.zone.from_file(file, os.path.basename(file),relativize=False)
+            zone = dns.zone.from_file(
+                file, os.path.basename(file), relativize=False)
             for k, v in zone.nodes.copy().items():
                 if k.to_text() == "%s." % host:
                     zone.delete_node(k)

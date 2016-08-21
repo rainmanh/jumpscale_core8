@@ -5,7 +5,8 @@ from MonitorTools import *
 
 
 class NodeBase(MonitorTools):
-    def __init__(self,ipaddr,sshport=22,role=None,name=""):
+
+    def __init__(self, ipaddr, sshport=22, role=None, name=""):
         """
         existing roles
         - vnas
@@ -13,7 +14,7 @@ class NodeBase(MonitorTools):
         - host
 
         """
-        if j.tools.perftesttools.monitorNodeIp==None:
+        if j.tools.perftesttools.monitorNodeIp == None:
             raise j.exceptions.RuntimeError("please do j.tools.perftesttools.init() before calling this")
 
         self.influx_host = j.tools.perftesttools.monitorNodeIp
@@ -28,30 +29,28 @@ class NodeBase(MonitorTools):
 
         self._redis = None
 
+        self.key = j.tools.perftesttools.sshkey
+        self.name = name
 
-        self.key=j.tools.perftesttools.sshkey
-        self.name=name
-
-        self.ipaddr=ipaddr
+        self.ipaddr = ipaddr
         self.sshport = sshport
 
-        self.debug=False
+        self.debug = False
 
-        print("ssh init %s"%self)
+        print("ssh init %s" % self)
         self.ssh = j.tools.cuisine.get(j.tools.executor.get(ipaddr, sshport))
         if self.key and self.key != '':
             self.fabric.env["key"] = self.key
         print("OK")
 
-        self.role=role
+        self.role = role
 
     @property
     def redis(self):
         if self._redis is not None:
             return self._redis
-        print("connect redis: %s:%s"%(j.tools.perftesttools.monitorNodeIp, 9999))
+        print("connect redis: %s:%s" % (j.tools.perftesttools.monitorNodeIp, 9999))
         self._redis = j.clients.redis.get(self.redis_host, self.redis_port)
-
 
     def setInfluxdb(self, host, port, login='root', password='root'):
         self.influx_host = host
@@ -65,14 +64,13 @@ class NodeBase(MonitorTools):
         self.redis_login = login
         self.redis_password = password
 
-
-    def startMonitor(self,cpu=1,disks=[],net=1):
+    def startMonitor(self, cpu=1, disks=[], net=1):
         if not j.data.types.list.check(disks):
             disks = [disks]
-        disks=[str(disk) for disk in disks]
-        self.prepareTmux("mon%s"%self.role,["monitor"])
-        env={}
-        if j.tools.perftesttools.monitorNodeIp==None:
+        disks = [str(disk) for disk in disks]
+        self.prepareTmux("mon%s" % self.role, ["monitor"])
+        env = {}
+        if j.tools.perftesttools.monitorNodeIp == None:
             raise j.exceptions.RuntimeError("please do j.tools.perftesttools.init() before calling this")
         env["redishost"] = self.redis_host
         env["redisport"] = self.redis_port
@@ -82,7 +80,7 @@ class NodeBase(MonitorTools):
         env["nodename"] = self.name
         self.executeInScreen("monitor", "js 'j.tools.perftesttools.monitor()'", env=env)
 
-    def execute(self,cmd, env={},dieOnError=True,report=True):
+    def execute(self, cmd, env={}, dieOnError=True, report=True):
         if report:
             print(cmd)
 
@@ -94,43 +92,43 @@ class NodeBase(MonitorTools):
 
         return res
 
-    def prepareTmux(self,session,screens=["default"],kill=True):
-        print("prepare tmux:%s %s %s"%(session,screens,kill))
-        if len(screens)<1:
+    def prepareTmux(self, session, screens=["default"], kill=True):
+        print("prepare tmux:%s %s %s" % (session, screens, kill))
+        if len(screens) < 1:
             raise j.exceptions.RuntimeError("there needs to be at least 1 screen specified")
         if kill:
-            self.execute("tmux kill-session -t %s"%session, dieOnError=False)
+            self.execute("tmux kill-session -t %s" % session, dieOnError=False)
 
-        self.execute("tmux new-session -d -s %s -n %s"%(session,screens[0]), dieOnError=True)
+        self.execute("tmux new-session -d -s %s -n %s" % (session, screens[0]), dieOnError=True)
 
         screens.pop(0)
 
         for screen in screens:
-            print("init tmux screen:%s"%screen)
-            self.execute("tmux new-window -t '%s' -n '%s'" %(session,screen))
+            print("init tmux screen:%s" % screen)
+            self.execute("tmux new-window -t '%s' -n '%s'" % (session, screen))
 
-    def executeInScreen(self,screenname,cmd,env={},session=""):
+    def executeInScreen(self, screenname, cmd, env={}, session=""):
         """
         gets executed in right screen for the disk
         """
-        envstr="export "
-        if env!={}:
-            #prepare export arguments
-            for key,val in env.items():
-                envstr+="export %s=%s;"%(key,val)
-            envstr=envstr.strip(";")
-        cmd1="cd /tmp;%s;%s"%(envstr,cmd)
-        cmd1=cmd1.replace("'","\"")
-        windowcmd=""
-        if session!="":
-            windowcmd="tmux select-window -t \"%s\";"%session
-        cmd2="%stmux send-keys -t '%s' '%s\n'"%(windowcmd,screenname,cmd1)
+        envstr = "export "
+        if env != {}:
+            # prepare export arguments
+            for key, val in env.items():
+                envstr += "export %s=%s;" % (key, val)
+            envstr = envstr.strip(";")
+        cmd1 = "cd /tmp;%s;%s" % (envstr, cmd)
+        cmd1 = cmd1.replace("'", "\"")
+        windowcmd = ""
+        if session != "":
+            windowcmd = "tmux select-window -t \"%s\";" % session
+        cmd2 = "%stmux send-keys -t '%s' '%s\n'" % (windowcmd, screenname, cmd1)
         # print cmd2
-        print("execute:'%s' on %s in screen:%s/%s"%(cmd1,self,session,screenname))
-        self.execute(cmd2,report=False)
+        print("execute:'%s' on %s in screen:%s/%s" % (cmd1, self, session, screenname))
+        self.execute(cmd2, report=False)
 
     def __str__(self):
-        return "node:%s"%self.ipaddr
+        return "node:%s" % self.ipaddr
 
     def __repr__(self):
         return self.__str__()

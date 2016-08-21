@@ -7,6 +7,7 @@ from JumpScale.clients.racktivity.energyswitch.modelfactory.models.common.BaseMo
 
 
 class Model(BaseModule):
+
     def __init__(self, parent):
         super(Model, self).__init__(parent)
 
@@ -46,101 +47,194 @@ class Model(BaseModule):
         ]
 
         self._guidTable.update({
-            1: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=1\nlength=1\nunit=''\nscale=0"),  # GeneralModuleStatus
-            2: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit=''\nscale=0"),  # SpecificModuleStatus
-            3: Value(u"type='TYPE_TIMESTAMP'\nsize=4\nlength=4\nunit='UNIX'\nscale=0"),  # CurrentTime
-            4: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='V'\nscale=2"),  # Voltage
-            11: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='C'\nscale=1"),  # Temperature
-            14: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),  # CurrentIP
-            17: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='A'\nscale=3"),  # TotalCurrent
-            18: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='W'\nscale=0"),  # TotalRealPower
-            34: Value(u"type='TYPE_SUBNETMASK'\nsize=4\nlength=4\nunit=''\nscale=0"),  # CurrentSubNetMask
-            35: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),  # CurrentDNSServer
-            36: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),  # CurrentDNSServer
-            41: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='A'\nscale=1"),  # HighCurrent(DC Current)
-            42: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=1\nlength=1\nunit=''\nscale=0"),  # UpsCommunicationStatus
-            43: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='kW'\nscale=2"),  # HighPower(DC Power)
-            44: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='A'\nscale=1"),  # TotalHighCurrent
-            45: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='kW'\nscale=2"),  # TotalHighPower
-            46: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=4\nlength=4\nunit='kWh'\nscale=3"),  # PositiveEnergy
-            47: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=4\nlength=4\nunit='kWh'\nscale=3"),  # NegativeEnergy
-            48: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=4\nlength=4\nunit='kWh'\nscale=3"),  # TotalPositiveEnergy
-            49: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=4\nlength=4\nunit='kWh'\nscale=3"),  # TotalNegativeEnergy
-            5004: Value(u"type='TYPE_UNSIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='V'\nscale=2"),  # Maxvoltage
-            5005: Value(u"type='TYPE_UNSIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='V'\nscale=2"),  # Minvoltage
-            5006: Value(u"type='TYPE_UNSIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='C'\nscale=1"),  # MinTemp.
-            5007: Value(u"type='TYPE_UNSIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='C'\nscale=1"),  # MaxTemp
-            5024: Value(u"type='TYPE_SIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='A'\nscale=1"),  # MinHighCurrent
-            5025: Value(u"type='TYPE_SIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='A'\nscale=1"),  # MaxHighCurrent
-            5026: Value(u"type='TYPE_SIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='kW'\nscale=2"),  # MinHighPower
-            5027: Value(u"type='TYPE_SIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='kW'\nscale=2"),  # MaxHighPower
-            5028: Value(u"type='TYPE_SIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='A'\nscale=1"),  # MinTotalHCur
-            5029: Value(u"type='TYPE_SIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='A'\nscale=1"),  # MaxTotalHCur
-            5030: Value(u"type='TYPE_SIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='kW'\nscale=2"),  # MinTotalHPow
-            5031: Value(u"type='TYPE_SIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='kW'\nscale=2"),  # MaxTotalHPow
-            10000: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=4\nlength=4\nunit=''\nscale=0"),  # Address
-            10001: Value(u"type='TYPE_STRING'\nsize=32\nlength=32\nunit=''\nscale=0"),  # ModuleName
-            10002: Value(u"type='TYPE_VERSION'\nsize=4\nlength=4\nunit=''\nscale=0"),  # FirmwareVersion
-            10003: Value(u"type='TYPE_VERSION'\nsize=4\nlength=4\nunit=''\nscale=0"),  # HardwareVersion
-            10004: Value(u"type='TYPE_STRING'\nsize=8\nlength=8\nunit=''\nscale=0"),  # FirmwareID
-            10005: Value(u"type='TYPE_STRING'\nsize=8\nlength=8\nunit=''\nscale=0"),  # HardwareID
-            10006: Value(u"type='TYPE_STRING'\nsize=32\nlength=32\nunit=''\nscale=0"),  # RackName
-            10007: Value(u"type='TYPE_STRING'\nsize=32\nlength=32\nunit=''\nscale=0"),  # RackPosition
-            10010: Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),  # TemperatureUnitSelector
-            10011: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),  # IPAddress
-            10012: Value(u"type='TYPE_SUBNETMASK'\nsize=4\nlength=4\nunit=''\nscale=0"),  # SubNetMask
-            10013: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),  # StdGateway
-            10014: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),  # DnsServer
-            10015: Value(u"type='TYPE_MAC'\nsize=6\nlength=6\nunit=''\nscale=0"),  # MAC
-            10016: Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),  # DHCPEnable
-            10017: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),  # NTPServer
-            10018: Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),  # UseDefaultNTPServer
-            10019: Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),  # UseNTP
-            10020: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),  # SNMPTrapRecvIP
-            10021: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit=''\nscale=0"),  # SNMPTrapRecvPort
-            10022: Value(u"type='TYPE_STRING'\nsize=16\nlength=16\nunit=''\nscale=0"),  # SNMPCommunityRead
-            10023: Value(u"type='TYPE_STRING'\nsize=16\nlength=16\nunit=''\nscale=0"),  # SNMPCommunityWrite
-            10024: Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),  # SNMPControl
-            10028: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),  # ECSServer
-            10029: Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),  # UseECSServer
-            10031: Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),  # DisplayLock
-            10032: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=1\nlength=1\nunit='min'\nscale=0"),  # DisplayTimeOn
-            10033: Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),  # DisplayRotation
+            # GeneralModuleStatus
+            1: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # SpecificModuleStatus
+            2: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit=''\nscale=0"),
+            # CurrentTime
+            3: Value(u"type='TYPE_TIMESTAMP'\nsize=4\nlength=4\nunit='UNIX'\nscale=0"),
+            # Voltage
+            4: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='V'\nscale=2"),
+            # Temperature
+            11: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='C'\nscale=1"),
+            # CurrentIP
+            14: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),
+            # TotalCurrent
+            17: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='A'\nscale=3"),
+            # TotalRealPower
+            18: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='W'\nscale=0"),
+            # CurrentSubNetMask
+            34: Value(u"type='TYPE_SUBNETMASK'\nsize=4\nlength=4\nunit=''\nscale=0"),
+            # CurrentDNSServer
+            35: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),
+            # CurrentDNSServer
+            36: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),
+            # HighCurrent(DC Current)
+            41: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='A'\nscale=1"),
+            # UpsCommunicationStatus
+            42: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # HighPower(DC Power)
+            43: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='kW'\nscale=2"),
+            # TotalHighCurrent
+            44: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='A'\nscale=1"),
+            # TotalHighPower
+            45: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='kW'\nscale=2"),
+            # PositiveEnergy
+            46: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=4\nlength=4\nunit='kWh'\nscale=3"),
+            # NegativeEnergy
+            47: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=4\nlength=4\nunit='kWh'\nscale=3"),
+            # TotalPositiveEnergy
+            48: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=4\nlength=4\nunit='kWh'\nscale=3"),
+            # TotalNegativeEnergy
+            49: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=4\nlength=4\nunit='kWh'\nscale=3"),
+            # Maxvoltage
+            5004: Value(u"type='TYPE_UNSIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='V'\nscale=2"),
+            # Minvoltage
+            5005: Value(u"type='TYPE_UNSIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='V'\nscale=2"),
+            # MinTemp.
+            5006: Value(u"type='TYPE_UNSIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='C'\nscale=1"),
+            # MaxTemp
+            5007: Value(u"type='TYPE_UNSIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='C'\nscale=1"),
+            # MinHighCurrent
+            5024: Value(u"type='TYPE_SIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='A'\nscale=1"),
+            # MaxHighCurrent
+            5025: Value(u"type='TYPE_SIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='A'\nscale=1"),
+            # MinHighPower
+            5026: Value(u"type='TYPE_SIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='kW'\nscale=2"),
+            # MaxHighPower
+            5027: Value(u"type='TYPE_SIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='kW'\nscale=2"),
+            # MinTotalHCur
+            5028: Value(u"type='TYPE_SIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='A'\nscale=1"),
+            # MaxTotalHCur
+            5029: Value(u"type='TYPE_SIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='A'\nscale=1"),
+            # MinTotalHPow
+            5030: Value(u"type='TYPE_SIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='kW'\nscale=2"),
+            # MaxTotalHPow
+            5031: Value(u"type='TYPE_SIGNED_NUMBER_WITH_TS'\nsize=6\nlength=6\nunit='kW'\nscale=2"),
+            # Address
+            10000: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=4\nlength=4\nunit=''\nscale=0"),
+            # ModuleName
+            10001: Value(u"type='TYPE_STRING'\nsize=32\nlength=32\nunit=''\nscale=0"),
+            # FirmwareVersion
+            10002: Value(u"type='TYPE_VERSION'\nsize=4\nlength=4\nunit=''\nscale=0"),
+            # HardwareVersion
+            10003: Value(u"type='TYPE_VERSION'\nsize=4\nlength=4\nunit=''\nscale=0"),
+            # FirmwareID
+            10004: Value(u"type='TYPE_STRING'\nsize=8\nlength=8\nunit=''\nscale=0"),
+            # HardwareID
+            10005: Value(u"type='TYPE_STRING'\nsize=8\nlength=8\nunit=''\nscale=0"),
+            # RackName
+            10006: Value(u"type='TYPE_STRING'\nsize=32\nlength=32\nunit=''\nscale=0"),
+            # RackPosition
+            10007: Value(u"type='TYPE_STRING'\nsize=32\nlength=32\nunit=''\nscale=0"),
+            # TemperatureUnitSelector
+            10010: Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # IPAddress
+            10011: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),
+            # SubNetMask
+            10012: Value(u"type='TYPE_SUBNETMASK'\nsize=4\nlength=4\nunit=''\nscale=0"),
+            # StdGateway
+            10013: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),
+            # DnsServer
+            10014: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),
+            # MAC
+            10015: Value(u"type='TYPE_MAC'\nsize=6\nlength=6\nunit=''\nscale=0"),
+            # DHCPEnable
+            10016: Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # NTPServer
+            10017: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),
+            # UseDefaultNTPServer
+            10018: Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # UseNTP
+            10019: Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # SNMPTrapRecvIP
+            10020: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),
+            # SNMPTrapRecvPort
+            10021: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit=''\nscale=0"),
+            # SNMPCommunityRead
+            10022: Value(u"type='TYPE_STRING'\nsize=16\nlength=16\nunit=''\nscale=0"),
+            # SNMPCommunityWrite
+            10023: Value(u"type='TYPE_STRING'\nsize=16\nlength=16\nunit=''\nscale=0"),
+            # SNMPControl
+            10024: Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # ECSServer
+            10028: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),
+            # UseECSServer
+            10029: Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # DisplayLock
+            10031: Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # DisplayTimeOn
+            10032: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=1\nlength=1\nunit='min'\nscale=0"),
+            # DisplayRotation
+            10033: Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),
             10039: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='A'\nscale=3"),
-            10047: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='V'\nscale=2"),  # MaxVoltageWarning
-            10049: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='V'\nscale=2"),  # MinVoltageWarning
-            10052: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='C'\nscale=1"),  # MinTemperatureWarning
-            10053: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='C'\nscale=1"),  # MaxTemperatureWarning
-            10073: Value(u"type='TYPE_STRING'\nsize=16\nlength=16\nunit=''\nscale=0"),  # SNMPTrapCommunity
-            10074: Value(u"type='TYPE_EVENTFLAGS'\nsize=1\nlength=1\nunit=''\nscale=0"),  # GeneralEventEnable
-            10075: Value(u"type='TYPE_STRING'\nsize=32\nlength=32\nunit=''\nscale=0"),  # SNMPSysContact
-            10078: Value(u"type='TYPE_EVENTFLAGS'\nsize=1\nlength=1\nunit=''\nscale=0"),  # CurrentWarningEvent
-            10080: Value(u"type='TYPE_EVENTFLAGS'\nsize=1\nlength=1\nunit=''\nscale=0"),  # PowerWarningEvent
-            10082: Value(u"type='TYPE_EVENTFLAGS'\nsize=1\nlength=1\nunit=''\nscale=0"),  # TotalCurrentWarningEvent
-            10084: Value(u"type='TYPE_EVENTFLAGS'\nsize=1\nlength=1\nunit=''\nscale=0"),  # TotalPowerWarningEvent
-            10086: Value(u"type='TYPE_EVENTFLAGS'\nsize=1\nlength=1\nunit=''\nscale=0"),  # VoltageWarningEvent
-            10087: Value(u"type='TYPE_EVENTFLAGS'\nsize=1\nlength=1\nunit=''\nscale=0"),  # TemperatureWarningEvent
-            10106: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit=''\nscale=0"),  # ECSServerPort
-            10109: Value(u"type='TYPE_STRING'\nsize=32\nlength=32\nunit=''\nscale=0"),  # ExternalSensorLabel
-            10127: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=1\nlength=1\nunit=''\nscale=0"),  # HttpsOnly
-            10128: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=1\nlength=1\nunit=''\nscale=0"),  # TelnetSsl
-            10130: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit=''\nscale=0"),  # CookieTimeToLive
-            10150: Value(u"type='TYPE_STRING'\nsize=8\nlength=8\nunit=''\nscale=0"),  # DeviceID
-            10151: Value(u"type='TYPE_VERSION'\nsize=4\nlength=4\nunit=''\nscale=0"),  # DeviceVersion
-            10152: Value(u"type='TYPE_STRING'\nsize=16\nlength=16\nunit=''\nscale=0"),  # SysName
-            10162: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),  # DebugIPAddress
-            10165: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='A'\nscale=1"),  # MaxHighCurrentWarning
-            10171: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='W'\nscale=0"),  # RecoveryPwrThresh
-            10176: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='A'\nscale=1"),  # MinHighCurrentWarning
-            10177: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='kW'\nscale=2"),  # MinHighPowerWarning
-            10178: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='kW'\nscale=2"),  # MaxHighPowerWarning
-            10179: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=1\nlength=1\nunit='kW'\nscale=0"),  # HeartbeatInterval
-            10180: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='A'\nscale=1"),  # MinTotalHCurrWarn
-            10181: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='A'\nscale=1"),  # MaxTotalHCurrWarn
-            10182: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='kW'\nscale=2"),  # MinTotalHPowerWarn
-            10183: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='kW'\nscale=2"),  # MaxTotalHPowerWarn
+            # MaxVoltageWarning
+            10047: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='V'\nscale=2"),
+            # MinVoltageWarning
+            10049: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='V'\nscale=2"),
+            # MinTemperatureWarning
+            10052: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='C'\nscale=1"),
+            # MaxTemperatureWarning
+            10053: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='C'\nscale=1"),
+            # SNMPTrapCommunity
+            10073: Value(u"type='TYPE_STRING'\nsize=16\nlength=16\nunit=''\nscale=0"),
+            # GeneralEventEnable
+            10074: Value(u"type='TYPE_EVENTFLAGS'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # SNMPSysContact
+            10075: Value(u"type='TYPE_STRING'\nsize=32\nlength=32\nunit=''\nscale=0"),
+            # CurrentWarningEvent
+            10078: Value(u"type='TYPE_EVENTFLAGS'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # PowerWarningEvent
+            10080: Value(u"type='TYPE_EVENTFLAGS'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # TotalCurrentWarningEvent
+            10082: Value(u"type='TYPE_EVENTFLAGS'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # TotalPowerWarningEvent
+            10084: Value(u"type='TYPE_EVENTFLAGS'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # VoltageWarningEvent
+            10086: Value(u"type='TYPE_EVENTFLAGS'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # TemperatureWarningEvent
+            10087: Value(u"type='TYPE_EVENTFLAGS'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # ECSServerPort
+            10106: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit=''\nscale=0"),
+            # ExternalSensorLabel
+            10109: Value(u"type='TYPE_STRING'\nsize=32\nlength=32\nunit=''\nscale=0"),
+            # HttpsOnly
+            10127: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # TelnetSsl
+            10128: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # CookieTimeToLive
+            10130: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit=''\nscale=0"),
+            # DeviceID
+            10150: Value(u"type='TYPE_STRING'\nsize=8\nlength=8\nunit=''\nscale=0"),
+            # DeviceVersion
+            10151: Value(u"type='TYPE_VERSION'\nsize=4\nlength=4\nunit=''\nscale=0"),
+            # SysName
+            10152: Value(u"type='TYPE_STRING'\nsize=16\nlength=16\nunit=''\nscale=0"),
+            # DebugIPAddress
+            10162: Value(u"type='TYPE_IP'\nsize=4\nlength=4\nunit=''\nscale=0"),
+            # MaxHighCurrentWarning
+            10165: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='A'\nscale=1"),
+            # RecoveryPwrThresh
+            10171: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='W'\nscale=0"),
+            # MinHighCurrentWarning
+            10176: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='A'\nscale=1"),
+            # MinHighPowerWarning
+            10177: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='kW'\nscale=2"),
+            # MaxHighPowerWarning
+            10178: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='kW'\nscale=2"),
+            # HeartbeatInterval
+            10179: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=1\nlength=1\nunit='kW'\nscale=0"),
+            # MinTotalHCurrWarn
+            10180: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='A'\nscale=1"),
+            # MaxTotalHCurrWarn
+            10181: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=2\nlength=2\nunit='A'\nscale=1"),
+            # MinTotalHPowerWarn
+            10182: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='kW'\nscale=2"),
+            # MaxTotalHPowerWarn
+            10183: Value(u"type='TYPE_SIGNED_NUMBER'\nsize=2\nlength=2\nunit='kW'\nscale=2"),
 
-            40000: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),  # JumpBoot
+            # JumpBoot
+            40000: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),
             40001: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),
             40002: Value(u"type='TYPE_COMMAND'\nsize=16\nlength=16\nunit=''\nscale=0"),
             40003: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),
@@ -148,7 +242,8 @@ class Model(BaseModule):
             40005: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),
             40006: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),
             40007: Value(u"type='TYPE_UNSIGNED_NUMBER'\nsize=1\nlength=1\nunit=''\nscale=0"),
-            40008: Value(u"type='TYPE_STRING'\nsize=26\nlength=26\nunit=''\nscale=0"),  # ModInfo
+            # ModInfo
+            40008: Value(u"type='TYPE_STRING'\nsize=26\nlength=26\nunit=''\nscale=0"),
             40009: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),
             40010: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),
             40011: Value(u"type='TYPE_ENUM'\nsize=1\nlength=1\nunit=''\nscale=0"),
@@ -156,11 +251,15 @@ class Model(BaseModule):
             40013: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),
             40014: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),
             40015: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),
-            40018: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),  # ModStatus
-            40026: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),  # ModuleManagement
-            40027: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),  # ModuleScan
+            # ModStatus
+            40018: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # ModuleManagement
+            40026: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),
+            # ModuleScan
+            40027: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0"),
             50000: Value(u"type='TYPE_POINTER'\nsize=1\nlength=1\nunit=''\nscale=0"),
-            50001: Value(u"type='TYPE_POINTER'\nsize=1\nlength=1\nunit=''\nscale=0"),  # Parameter
+            # Parameter
+            50001: Value(u"type='TYPE_POINTER'\nsize=1\nlength=1\nunit=''\nscale=0"),
             50011: Value(u"type='TYPE_RAW'\nsize=16\nlength=16\nunit=''\nscale=0"),
             60001: Value(u"type='TYPE_COMMAND'\nsize=1\nlength=1\nunit=''\nscale=0")
         })
@@ -171,7 +270,8 @@ class Model(BaseModule):
         length = 1
         moduleID = 'M1'
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setModuleName(self, value):
@@ -179,7 +279,8 @@ class Model(BaseModule):
         portnumber = 0
         moduleID = 'M1'
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     def getFirmwareVersion(self, moduleID='M1'):
@@ -187,7 +288,8 @@ class Model(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def getFirmwareVersionStr(self, moduleID='M1'):
@@ -196,7 +298,8 @@ class Model(BaseModule):
         length = 1
         valDef = copy(self._guidTable[guid])
         valDef.type = 'TYPE_VERSION_FULL'
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def getHardwareVersion(self, moduleID='M1'):
@@ -204,7 +307,8 @@ class Model(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'HardwareVersion' GUID  10003 Data type TYPE_VERSION_FULL
@@ -216,7 +320,8 @@ class Model(BaseModule):
         length = 1
         valDef = copy(self._guidTable[guid])
         valDef.type = 'TYPE_VERSION_FULL'
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'FirmwareID' GUID  10004 Data type TYPE_STRING
@@ -226,7 +331,8 @@ class Model(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Attribute 'HardwareID' GUID  10005 Data type TYPE_STRING
@@ -236,7 +342,8 @@ class Model(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def getPowerPointer(self):
@@ -252,7 +359,8 @@ class Model(BaseModule):
         guid = 4
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, feedNumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, feedNumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def getCurrent(self, portnumber):
@@ -263,7 +371,8 @@ class Model(BaseModule):
         guid = 41
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def getTotalCurrent(self, feedNumber):
@@ -271,7 +380,8 @@ class Model(BaseModule):
         guid = 44
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, feedNumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, feedNumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def getPower(self, portnumber):
@@ -282,7 +392,8 @@ class Model(BaseModule):
         guid = 43
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def getTotalPower(self, feedNumber):
@@ -290,7 +401,8 @@ class Model(BaseModule):
         guid = 45
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, feedNumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, feedNumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def getPositiveActiveEnergy(self, portnumber):
@@ -301,7 +413,8 @@ class Model(BaseModule):
         guid = 46
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def getTotalPositiveActiveEnergy(self, feedNumber):
@@ -309,7 +422,8 @@ class Model(BaseModule):
         guid = 48
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, feedNumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, feedNumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def getNegativeActiveEnergy(self, portnumber):
@@ -320,7 +434,8 @@ class Model(BaseModule):
         guid = 47
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def getTotalNegativeActiveEnergy(self, feedNumber):
@@ -328,7 +443,8 @@ class Model(BaseModule):
         guid = 49
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, feedNumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, feedNumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def getSNMPTrapRecvIP(self, portnumber):
@@ -336,14 +452,16 @@ class Model(BaseModule):
         moduleID = 'M1'
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setSNMPTrapRecvIP(self, value, portnumber):
         guid = 10020
         moduleID = 'M1'
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     def getSNMPTrapRecvPort(self, portnumber):
@@ -351,14 +469,16 @@ class Model(BaseModule):
         moduleID = 'M1'
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setSNMPTrapRecvPort(self, value, portnumber):
         guid = 10021
         moduleID = 'M1'
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # GeneralEventEnable
@@ -368,7 +488,8 @@ class Model(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setGeneralEventEnable(self, value):
@@ -376,20 +497,23 @@ class Model(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     def getExternalSensorLabel(self, moduleID, portnumber=1):
         guid = 10109
         valDef = self._guidTable[guid]
         length = 1
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setExternalSensorLabel(self, moduleID, value, portnumber=1):
         guid = 10109
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     def getMaxCurrentWarning(self, portnumber):
@@ -397,14 +521,16 @@ class Model(BaseModule):
         valDef = self._guidTable[guid]
         moduleID = 'M1'
         length = 1
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMaxCurrentWarning(self, value, portnumber):
         guid = 10165
         valDef = self._guidTable[guid]
         moduleID = 'M1'
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     def getMinCurrentWarning(self, portnumber):
@@ -412,14 +538,16 @@ class Model(BaseModule):
         valDef = self._guidTable[guid]
         moduleID = 'M1'
         length = 1
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMinCurrentWarning(self, value, portnumber):
         guid = 10176
         valDef = self._guidTable[guid]
         moduleID = 'M1'
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     def getMaxPowerWarning(self, portnumber):
@@ -427,14 +555,16 @@ class Model(BaseModule):
         valDef = self._guidTable[guid]
         moduleID = 'M1'
         length = 1
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMaxPowerWarning(self, value, portnumber):
         guid = 10178
         valDef = self._guidTable[guid]
         moduleID = 'M1'
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     def getMinPowerWarning(self, portnumber):
@@ -442,14 +572,16 @@ class Model(BaseModule):
         valDef = self._guidTable[guid]
         moduleID = 'M1'
         length = 1
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMinPowerWarning(self, value, portnumber):
         guid = 10177
         valDef = self._guidTable[guid]
         moduleID = 'M1'
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     def getMaxTemperatureWarning(self):
@@ -458,7 +590,8 @@ class Model(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         length = 1
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMaxTemperatureWarning(self, value):
@@ -466,7 +599,8 @@ class Model(BaseModule):
         valDef = self._guidTable[guid]
         moduleID = 'M1'
         portnumber = 0
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     def getMinTemperatureWarning(self):
@@ -475,7 +609,8 @@ class Model(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         length = 1
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMinTemperatureWarning(self, value):
@@ -483,7 +618,8 @@ class Model(BaseModule):
         valDef = self._guidTable[guid]
         moduleID = 'M1'
         portnumber = 0
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     def getMaxVoltageWarning(self, portnumber=1):
@@ -491,14 +627,16 @@ class Model(BaseModule):
         length = 1
         valDef = self._guidTable[guid]
         moduleID = 'M1'
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMaxVoltageWarning(self, value, portnumber=1):
         guid = 10047
         valDef = self._guidTable[guid]
         moduleID = 'M1'
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     def getMinVoltageWarning(self, portnumber=1):
@@ -506,14 +644,16 @@ class Model(BaseModule):
         length = 1
         valDef = self._guidTable[guid]
         moduleID = 'M1'
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setMinVoltageWarning(self, value, portnumber=1):
         guid = 10049
         valDef = self._guidTable[guid]
         moduleID = 'M1'
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # CurrentWarningEvent
@@ -525,7 +665,8 @@ class Model(BaseModule):
         moduleID = 'M1'
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setCurrentWarningEvent(self, portnumber, value):
@@ -535,7 +676,8 @@ class Model(BaseModule):
         guid = 10078
         moduleID = 'M1'
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # PowerWarningEvent
@@ -547,7 +689,8 @@ class Model(BaseModule):
         moduleID = 'M1'
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setPowerWarningEvent(self, portnumber, value):
@@ -557,7 +700,8 @@ class Model(BaseModule):
         guid = 10080
         moduleID = 'M1'
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # TemperatureWarningEvent
@@ -567,7 +711,8 @@ class Model(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setTemperatureWarningEvent(self, value):
@@ -575,23 +720,26 @@ class Model(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
-    #VoltageWarningEvent
+    # VoltageWarningEvent
     def getVoltageWarningEvent(self, portnumber=1):
         guid = 10086
         length = 1
         valDef = self._guidTable[guid]
         moduleID = 'M1'
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     def setVoltageWarningEvent(self, portnumber, value):
         guid = 10086
         valDef = self._guidTable[guid]
         moduleID = 'M1'
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Attribute 'ModInfo' GUID  40008 Data type TYPE_COMMAND
@@ -599,7 +747,8 @@ class Model(BaseModule):
         guid = 40008
         moduleID = 'M1'
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Returns modules statuses; the data returned can be used to see if the
@@ -610,7 +759,8 @@ class Model(BaseModule):
         portnumber = 1
         length = 32
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Sets management value for modules
@@ -619,7 +769,8 @@ class Model(BaseModule):
         guid = 40026
         moduleID = 'M1'
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)
 
     # Get  to request status of module scan.
@@ -630,7 +781,8 @@ class Model(BaseModule):
         portnumber = 0
         length = 1
         valDef = self._guidTable[guid]
-        data = self._parent.client.getAttribute(moduleID, guid, portnumber, length)
+        data = self._parent.client.getAttribute(
+            moduleID, guid, portnumber, length)
         return self._parent.getObjectFromData(data, valDef, count=length)
 
     # Set to 1 to start a new module scan.
@@ -639,5 +791,6 @@ class Model(BaseModule):
         moduleID = 'M1'
         portnumber = 0
         valDef = self._guidTable[guid]
-        data = self._parent.client.setAttribute(moduleID, guid, convert.value2bin(value, valDef), portnumber)
+        data = self._parent.client.setAttribute(
+            moduleID, guid, convert.value2bin(value, valDef), portnumber)
         return self._parent.getObjectFromData(data, valDef, setter=True)

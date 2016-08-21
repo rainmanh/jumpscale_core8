@@ -1,4 +1,4 @@
-## Update
+# Update
 
 The `update` command is for making sure you are working on most recent data.
 

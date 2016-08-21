@@ -1,4 +1,4 @@
-## Showproducers
+# Showproducers
 
 This command show the producers of a service instance. This is usefull to figure out the relations and dependencies of a service
 
@@ -10,5 +10,4 @@ Usage: ays showproducers [OPTIONS] ROLE INSTANCE
 
 Options:
   --help  Show this message and exit.
-
 ```

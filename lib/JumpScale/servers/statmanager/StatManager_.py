@@ -13,18 +13,18 @@ class StatManager:
         self._hourseconds = float(60 * 60)
         self._dayseconds = float(24 * 60 * 60)
         self._monthseconds = float(31 * self._dayseconds)
-        self.now=None
-        self.hourId=None
-        self.fiveMinuteId=None
+        self.now = None
+        self.hourId = None
+        self.fiveMinuteId = None
 
     def getFiveMinuteId(self):
-        if self.fiveMinuteId!=None:
+        if self.fiveMinuteId != None:
             return self.fiveMinuteId
         else:
             return j.data.time.get5MinuteId()
 
     def getHourId(self):
-        if self.hourId!=None:
+        if self.hourId != None:
             return self.hourId
         else:
             return self.base.time.getHourId()
@@ -44,7 +44,7 @@ class StatManager:
         # from IPython import embed
         # print "DEBUG NOW osis destroy"
         # embed()
-        
+
         self.historyObjs = {}
         self.historyObjsMod = {}
         self.historyObjsLastSave = {}
@@ -63,8 +63,8 @@ class StatManager:
             return nrItemsIn5MinRow, nrItemsInHourRow
 
     def save(self, force=False):
-        self.hourId=self.base.time.getHourId()
-        self.fiveMinuteId=j.data.time.get5MinuteId()
+        self.hourId = self.base.time.getHourId()
+        self.fiveMinuteId = j.data.time.get5MinuteId()
 
         ttime = self.getEpoch()
         now5min = j.portal.server.active.fiveMinuteId
@@ -105,7 +105,7 @@ class StatManager:
         self.historyObjsMod[key] = False
 
     def _serialize(self, key, obj):
-        #@todo needs to be implemented, go to dense binary format (use struct)
+        #TODO: needs to be implemented, go to dense binary format (use struct)
         return obj
 
     def _deserialize(self, data):
@@ -127,7 +127,7 @@ class StatManager:
             pass
 
     def getEpoch(self):
-        if self.now!=None:
+        if self.now != None:
             return self.now
         else:
             return j.data.time.getTimeEpoch()
@@ -139,7 +139,7 @@ class StatManager:
         # from IPython import embed
         # print "DEBUG NOW getmodel"
         # embed()
-        
+
         data = self.models.history.get(guid=id, createIfNeeded=True)
         obj = self._deserialize(data)
         # if obj.month_5min=={}:
@@ -209,7 +209,8 @@ class StatManager:
                 id, value = splitted
                 epoch = now
             else:
-                j.errorconditionhandler.raiseMonitoringError("Line '%s' not well constructed, cannot process monitoring stat info", id)
+                j.errorconditionhandler.raiseMonitoringError(
+                    "Line '%s' not well constructed, cannot process monitoring stat info", id)
                 continue
             id = str(id.lower())
             if value.find(".") != -1:
@@ -246,7 +247,7 @@ class StatManager:
         param:stop epoch
         param:maxvalues nr of values you want to return
         result list(list) 
-        
+
         """
         if id == None:
             id = ""
@@ -297,7 +298,7 @@ class StatManager:
         param:start epoch
         param:stop epoch
         result list with values
-        
+
         """
         obj = self.getHistoryObject(id)
         start2 = j.data.time.get5MinuteId(self.getTimeStamp(start))
@@ -317,7 +318,7 @@ class StatManager:
         param:start epoch
         param:stop epoch
         result dict() 
-        
+
         """
         pass
 
@@ -328,7 +329,7 @@ class StatManager:
         param:start epoch; 0 means all
         param:stop epoch; 0 means all
         result list(list)  [[epoch,value],[epoch,value],...]
-        
+
         """
         result = []
         obj = self.getHistoryObject(id)
@@ -357,6 +358,6 @@ class StatManager:
         param:start epoch; 0 means all
         param:stop epoch; 0 means all
         result list(list) 
-        
+
         """
         pass

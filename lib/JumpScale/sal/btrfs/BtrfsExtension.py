@@ -27,17 +27,21 @@ FACTOR = {None: 1,
 
 
 class BtrfsExtension:
+
     def __init__(self):
-        self.__jslocation__="j.sal.btrfs"        
-        self.__conspattern = re.compile("^(?P<key>[^:]+): total=(?P<total>[^,]+), used=(?P<used>.+)$", re.MULTILINE)
-        self.__listpattern = re.compile("^ID (?P<id>\d+).+?path (?P<name>.+)$", re.MULTILINE)
+        self.__jslocation__ = "j.sal.btrfs"
+        self.__conspattern = re.compile(
+            "^(?P<key>[^:]+): total=(?P<total>[^,]+), used=(?P<used>.+)$", re.MULTILINE)
+        self.__listpattern = re.compile(
+            "^ID (?P<id>\d+).+?path (?P<name>.+)$", re.MULTILINE)
         self._executor = j.tools.executor.getLocal()
 
-    def __btrfs(self, command, action,*args):
-        cmd = "%s %s %s %s" % (BASECMD, command, action, " ".join(['"%s"' % a for a in args]))
+    def __btrfs(self, command, action, *args):
+        cmd = "%s %s %s %s" % (BASECMD, command, action,
+                               " ".join(['"%s"' % a for a in args]))
         code, out, err = self._executor.execute(cmd, die=False)
 
-        if code>0:            
+        if code > 0:
             raise j.exceptions.RuntimeError(err)
 
         return out
@@ -66,20 +70,20 @@ class BtrfsExtension:
         if not self._executor.cuisine.core.dir_exists(path):
             return False
 
-        rc, res, err =self._executor.execute("btrfs subvolume list %s"%path  ,checkok=False,die=False)
+        rc, res, err = self._executor.execute(
+            "btrfs subvolume list %s" % path, checkok=False, die=False)
 
         if rc > 0:
-            if res.find("can't access")!=-1:
+            if res.find("can't access") != -1:
                 if self._executor.cuisine.core.dir_exists(path):
-                    raise j.exceptions.RuntimeError("Path %s exists put is not btrfs subvolume, cannot continue."%path)        
+                    raise j.exceptions.RuntimeError(
+                        "Path %s exists put is not btrfs subvolume, cannot continue." % path)
                 else:
                     return False
             else:
                 raise j.exceptions.RuntimeError("BUG:%s" % err)
 
         return True
-        
-
 
     def subvolumeList(self, path, filter=""):
         """
@@ -106,7 +110,7 @@ class BtrfsExtension:
         filter e.g. /docker/
         """
         for path2 in self.subvolumeList(path, filter=filter):
-            print ("delete:%s" % path2)
+            print("delete:%s" % path2)
             try:
                 self.subvolumeDelete(path2)
             except:
@@ -127,7 +131,8 @@ class BtrfsExtension:
     def __consumption2kb(self, word):
         m = re.match("(\d+.\d+)(\D{2})?", word)
         if not m:
-            raise ValueError("Invalid input '%s' should be in the form of 0.00XX" % word)
+            raise ValueError(
+                "Invalid input '%s' should be in the form of 0.00XX" % word)
 
         if m.group(2) is None:
             mm = ""
@@ -135,7 +140,7 @@ class BtrfsExtension:
             mm = m.group(2).upper()
 
         value = float(m.group(1)) * FACTOR[mm]
-        return value/1024/1024
+        return value / 1024 / 1024
 
     def getSpaceUsage(self, path="/"):
         """
@@ -166,4 +171,4 @@ class BtrfsExtension:
         @return percent as int
         """
         res = self.getSpaceUsage(path)
-        return int(res["data-single"]["used"]/res["data-single"]["total"]*100)
+        return int(res["data-single"]["used"] / res["data-single"]["total"] * 100)

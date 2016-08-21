@@ -1,5 +1,6 @@
 
 class Monitor:
+
     def __init__(self, controller, redis_address):
         self.controller = controller
         self.redis_address = redis_address

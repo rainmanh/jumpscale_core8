@@ -6,31 +6,33 @@ from CustomTypes import *
 from CollectionTypes import *
 from PrimitiveTypes import *
 
+
 class Types:
+
     def __init__(self):
         self.__jslocation__ = "j.data.types"
-        self.dict=Dictionary()
-        self.list=List()
-        self.guid=Guid()
-        self.path=Path()
-        self.bool=Boolean()
-        self.int=Integer()
-        self.float=Float()
-        self.string=String()
-        self.bytes=Bytes()
-        self.multiline=String()
-        self.set=Set()
-        self.ipaddr=IPAddress()
-        self.iprange=IPRange()
-        self.ipport=IPPort()
-        self.duration=Duration()
-        self.tel=Tel()
-        self.yaml=YAML()
-        self.json=JSON()
-        self.email=Email()
-        self.date=Date()
+        self.dict = Dictionary()
+        self.list = List()
+        self.guid = Guid()
+        self.path = Path()
+        self.bool = Boolean()
+        self.int = Integer()
+        self.float = Float()
+        self.string = String()
+        self.bytes = Bytes()
+        self.multiline = String()
+        self.set = Set()
+        self.ipaddr = IPAddress()
+        self.iprange = IPRange()
+        self.ipport = IPPort()
+        self.duration = Duration()
+        self.tel = Tel()
+        self.yaml = YAML()
+        self.json = JSON()
+        self.email = Email()
+        self.date = Date()
 
-    def getTypeClass(self,ttype):
+    def getTypeClass(self, ttype):
         """
         type is one of following
         - str, string
@@ -50,47 +52,47 @@ class Types:
         - guid
         - duration e.g. 1w, 1d, 1h, 1m, 1
         """
-        ttype=ttype.lower().strip()
-        if ttype in ["str","string"]:
+        ttype = ttype.lower().strip()
+        if ttype in ["str", "string"]:
             return self.string
-        elif ttype in ["int","integer"]:
+        elif ttype in ["int", "integer"]:
             return self.int
-        elif ttype =="float":
+        elif ttype == "float":
             return self.float
-        elif ttype in ["tel","mobile"]:
+        elif ttype in ["tel", "mobile"]:
             return self.tel
-        elif ttype in ["ipaddr","ipaddress"]:
+        elif ttype in ["ipaddr", "ipaddress"]:
             return self.ipaddr
-        elif ttype in ["iprange","ipaddressrange"]:
+        elif ttype in ["iprange", "ipaddressrange"]:
             return self.iprange
-        elif ttype in ["ipport","ipport"]:
+        elif ttype in ["ipport", "ipport"]:
             return self.ipport
-        elif ttype in ["bool","boolean"]:
+        elif ttype in ["bool", "boolean"]:
             return self.bool
-        elif ttype =="email":
+        elif ttype == "email":
             return self.email
-        elif ttype =="multiline":
+        elif ttype == "multiline":
             return self.multiline
-        elif ttype =="list":
+        elif ttype == "list":
             return self.list
-        elif ttype =="dict":
+        elif ttype == "dict":
             return self.dict
-        elif ttype =="yaml":
+        elif ttype == "yaml":
             return self.yaml
-        elif ttype =="json":
+        elif ttype == "json":
             return self.json
-        elif ttype =="set":
+        elif ttype == "set":
             return self.set
-        elif ttype =="guid":
+        elif ttype == "guid":
             return self.guid
-        elif ttype =="duration":
+        elif ttype == "duration":
             return self.duration
-        elif ttype =="date":
+        elif ttype == "date":
             return self.date
 
-        raise j.exceptions.RuntimeError("did not find type:'%s'"%ttype)
+        raise j.exceptions.RuntimeError("did not find type:'%s'" % ttype)
 
-    def get(self,ttype,val):
+    def get(self, ttype, val):
         """
         type is one of following
         - str, string
@@ -108,5 +110,5 @@ class Types:
         - guid
         - duration e.g. 1w, 1d, 1h, 1m, 1
         """
-        cl=self.getTypeClass(ttype)
+        cl = self.getTypeClass(ttype)
         return cl.get(val)

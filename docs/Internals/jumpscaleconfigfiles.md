@@ -1,8 +1,6 @@
 # Jumpscale Config Files
 
-Are in HRD format
-In this section we list the known config files (there should be no others).
-All other configurations are done in AYS hrd files
+Are in HRD format In this section we list the known config files (there should be no others). All other configurations are done in AYS hrd files
 
 all hrd config files are stored in /optvar/hrd/system
 
@@ -13,7 +11,6 @@ all hrd config files are stored in /optvar/hrd/system
 metadata.jumpscale =
     url:'https://github.com/Jumpscale/ays_jumpscale8',
     branch:'python3_unstable',
-
 ```
 
 ## system.hrd
@@ -37,6 +34,7 @@ paths.hrd=$(paths.base)/hrd
 system.logging = 1
 system.sandbox = 0
 ```
+
 if system.logging = 0 then there will no no logs send to redis or any other log target
 
 ## whoami.hrd
@@ -53,11 +51,10 @@ git.passwd              =
 ```
 redis.addr = 
 redis.port = 
-redis.passwd = 
+redis.passwd =
 ```
 
 can all be left empty, or file does not have to exist
-
 
 ## realitydb
 
@@ -65,11 +62,10 @@ can all be left empty, or file does not have to exist
 realitydb.addr = 
 realitydb.port = 
 realitydb.login =
-realitydb.passwd = 
+realitydb.passwd =
 ```
 
 can all be left empty, or file does not have to exist
-
 
 ## statsdb
 
@@ -80,7 +76,7 @@ statsdb.login =
 statsdb.passwd =
 statsdb.interval = 60
 ```
+
 interval is every how many sec aggregation is being done
 
 can all be left empty, or file does not have to exist
-

@@ -5,12 +5,13 @@ import time
 import uuid
 from random import randrange
 
+
 class Session:
 
     def __init__(self, id, organization, user, passwd, encrkey, netinfo, roles):
-        self.id = id #is unique session id
-        self.gid=j.application.whoAmI.gid
-        self.nid=j.application.whoAmI.nid
+        self.id = id  # is unique session id
+        self.gid = j.application.whoAmI.gid
+        self.nid = j.application.whoAmI.nid
         self.encrkey = encrkey
         self.user = user
         self.passwd = passwd
@@ -26,23 +27,25 @@ class Session:
 
 
 class SimpleClient:
+
     def __init__(self, client):
         self._client = client
 
 
 class DaemonClient:
 
-    def __init__(self, org="myorg", user="root", passwd="passwd", ssl=False, encrkey="", reset=False, roles=[], \
-        transport=None, defaultSerialization="j",id=None):
+    def __init__(self, org="myorg", user="root", passwd="passwd", ssl=False, encrkey="", reset=False, roles=[],
+                 transport=None, defaultSerialization="j", id=None):
         """
         @param encrkey (use for simple blowfish shared key encryption, better to use SSL though, will do the same but dynamically exchange the keys)
         """
-        if id!=None:
-            self._id=id
+        if id != None:
+            self._id = id
         else:
             end = 4294967295  # 4bytes max nr
             random = uuid.uuid4()
-            self._id="%s_%s_%s_%s"%(j.application.whoAmI.gid,j.application.whoAmI.nid,j.application.whoAmI.pid, random)
+            self._id = "%s_%s_%s_%s" % (j.application.whoAmI.gid, j.application.whoAmI.nid,
+                                        j.application.whoAmI.pid, random)
 
         self.retry = True
         self.blocksize = 8 * 1024 * 1024
@@ -52,15 +55,15 @@ class DaemonClient:
         self.passwd = passwd
         self.ssl = ssl
 
-        if roles==[] and j.application.config.exists("grid.node.roles"):
-            roles=j.application.config.get("grid.node.roles")
-            roles=[item.strip().lower() for item in roles]
+        if roles == [] and j.application.config.exists("grid.node.roles"):
+            roles = j.application.config.get("grid.node.roles")
+            roles = [item.strip().lower() for item in roles]
 
         # WARNING: Do not put this back this makes it impossible to register a node
-        #if j.application.whoAmI.gid==0 or j.application.whoAmI.nid==0:
+        # if j.application.whoAmI.gid==0 or j.application.whoAmI.nid==0:
         #    raise j.exceptions.RuntimeError("gid or nid cannot be 0, see grid.hrd file in main config of jumpscale hrd dir")
 
-        #WILL NOT LONGER ADD GID & NID
+        # WILL NOT LONGER ADD GID & NID
         # roles2=[]
         # for role in roles:
         #     role+=".%s.%s"%(j.application.whoAmI.gid,j.application.whoAmI.nid)
@@ -127,8 +130,8 @@ class DaemonClient:
         self.sendcmd(category="core", cmd="registersession", sessiondata=session.__dict__, ssl=ssl, returnformat="")
         #print("registered session")
 
-    def sendMsgOverCMDChannel(self, cmd, data,sendformat=None, returnformat=None, retry=0, maxretry=2, \
-        category=None,transporttimeout=5):
+    def sendMsgOverCMDChannel(self, cmd, data, sendformat=None, returnformat=None, retry=0, maxretry=2,
+                              category=None, transporttimeout=5):
         """
         cmd is command on server (is asci text)
         data is any to be serialized data
@@ -139,13 +142,13 @@ class DaemonClient:
         return is always multipart message [$resultcode(0=no error,1=autherror),$formatstr,$data]
 
         """
-        ##LOGGING FOR DEBUG
+        # LOGGING FOR DEBUG
         # try:
         #     dest=self.transport.url
         # except:
         #     dest="unknown"
         # print "###data send to %s\n%s\n#######"%(dest,data)
-        
+
         if sendformat == None:
             sendformat = self.defaultSerialization
         if returnformat == None:
@@ -154,17 +157,18 @@ class DaemonClient:
         if sendformat != "":
             ser = j.data.serializer.serializers.get(sendformat, key=self.key)
             data = ser.dumps(data)
-        
+
         # data = data.decode('utf-8', 'replace')
         # self.cmdchannel.send_multipart([cmd,sendformat,returnformat,data])
-        returncode, rreturnformat, returndata = self.transport.sendMsg(category, cmd, data, sendformat, returnformat,timeout=transporttimeout)
+        returncode, rreturnformat, returndata = self.transport.sendMsg(
+            category, cmd, data, sendformat, returnformat, timeout=transporttimeout)
         # print "return:%s"%returncode
         if returncode == returnCodes.AUTHERROR:
             if retry < maxretry:
                 #print("session lost")
                 self.initSession()
                 retry += 1
-                return self.sendMsgOverCMDChannel(cmd, rawdata, sendformat=sendformat, returnformat=returnformat, retry=retry, maxretry=maxretry, category=category,transporttimeout=transporttimeout)
+                return self.sendMsgOverCMDChannel(cmd, rawdata, sendformat=sendformat, returnformat=returnformat, retry=retry, maxretry=maxretry, category=category, transporttimeout=transporttimeout)
             else:
                 msg = "Authentication error on server.\n"
                 raise AuthenticationError(msg)
@@ -178,7 +182,8 @@ class DaemonClient:
             # print "*** error in client to zdaemon ***"
             ecodict = s.loads(returndata)
             if cmd == "logeco":
-                raise j.exceptions.RuntimeError("Could not forward errorcondition object to logserver, error was %s" % ecodict)
+                raise j.exceptions.RuntimeError(
+                    "Could not forward errorcondition object to logserver, error was %s" % ecodict)
             # for k, v in list(ecodict.items()):
             #     if isinstance(k, bytes):
             #         ecodict.pop(k)
@@ -186,9 +191,11 @@ class DaemonClient:
             #     if isinstance(v, bytes):
             #         v = v.decode('utf-8', 'ignore')
             #     ecodict[k] = v
-            if ecodict.get("errormessage").find("Authentication error")!=-1:
-                raise AuthenticationError("Could not authenticate to %s for user:%s"%(self.transport,self.user), ecodict)
-            raise RemoteException("Cannot execute cmd:%s/%s on server:'%s:%s' error:'%s' ((ECOID:%s))" %(category,cmd,ecodict["gid"],ecodict["nid"],ecodict["errormessage"],ecodict["guid"]), ecodict)
+            if ecodict.get("errormessage").find("Authentication error") != -1:
+                raise AuthenticationError("Could not authenticate to %s for user:%s" %
+                                          (self.transport, self.user), ecodict)
+            raise RemoteException("Cannot execute cmd:%s/%s on server:'%s:%s' error:'%s' ((ECOID:%s))" %
+                                  (category, cmd, ecodict["gid"], ecodict["nid"], ecodict["errormessage"], ecodict["guid"]), ecodict)
 
         if returnformat != "":
             # if isinstance(rreturnformat, bytes):
@@ -206,8 +213,7 @@ class DaemonClient:
         self.transport.close()
         self.transport.connect(self._id)
 
-
-    def getCmdClient(self, category,sendformat="j", returnformat="j"):
+    def getCmdClient(self, category, sendformat="j", returnformat="j"):
         if category == "*":
             categories = self.sendcmd(category='core', cmd='listCategories')
             cl = SimpleClient(self)
@@ -215,22 +221,21 @@ class DaemonClient:
                 setattr(cl, category, self._getCmdClient(category))
             return cl
         else:
-            return self._getCmdClient(category,sendformat,returnformat)
+            return self._getCmdClient(category, sendformat, returnformat)
 
-
-    def _getCmdClient(self, category,sendformat="j", returnformat="j"):
+    def _getCmdClient(self, category, sendformat="j", returnformat="j"):
         client = SimpleClient(self)
         methodspecs = self.sendcmd(category='core', cmd='introspect', cat=category)
         for key, spec in list(methodspecs.items()):
-        #     for k, v in list(spec.items()):
-        #         if isinstance(k, bytes):
-        #             spec.pop(k)
-        #             k = k.decode('utf-8', 'ignore')
-        #         if isinstance(v, bytes):
-        #             v = v.decode('utf-8', 'ignore')
-        #         spec[k] = v
+            #     for k, v in list(spec.items()):
+            #         if isinstance(k, bytes):
+            #             spec.pop(k)
+            #             k = k.decode('utf-8', 'ignore')
+            #         if isinstance(v, bytes):
+            #             v = v.decode('utf-8', 'ignore')
+            #         spec[k] = v
             # print "key:%s spec:%s"%(key,spec)
-        
+
             strmethod = """
 class Klass:
     def __init__(self, client, category):
@@ -241,8 +246,8 @@ class Klass:
         '''%s'''
         return self._client.sendcmd(cmd="%s", category=self._category, %s,sendformat="${sendformat}",returnformat="${returnformat}",transporttimeout=transporttimeout)
     """
-            strmethod=strmethod.replace("${sendformat}",sendformat)
-            strmethod=strmethod.replace("${returnformat}",returnformat)
+            strmethod = strmethod.replace("${sendformat}", sendformat)
+            strmethod = strmethod.replace("${returnformat}", returnformat)
             args = ["%s=%s" % (x, x) for x in spec['args'][0][1:]]
             params_spec = spec['args'][0]
             if spec['args'][3]:
@@ -259,13 +264,13 @@ class Klass:
             ns = dict()
             exec(compile(strmethod, '<string>', 'exec'), ns)
             # except Exception as e:
-                # raise j.exceptions.RuntimeError("could not exec the client method, error:%s, code was:%s"%(e,strmethod))
+            # raise j.exceptions.RuntimeError("could not exec the client method, error:%s, code was:%s"%(e,strmethod))
             klass = ns['Klass'](self, category)
             setattr(client, key, klass.method)
-                # print strmethod
+            # print strmethod
         return client
 
-    def sendcmd(self, cmd, sendformat=None, returnformat=None, category=None,transporttimeout=5,**args):
+    def sendcmd(self, cmd, sendformat=None, returnformat=None, category=None, transporttimeout=5, **args):
         """
         formatstring is right order of formats e.g. mc means messagepack & then compress
         formats see: j.data.serializer.serializers.get(?
@@ -273,8 +278,8 @@ class Klass:
         return is the deserialized data object
         """
         if "_agentid" not in args:
-            args["_agentid"]=0
-        return self.sendMsgOverCMDChannel(cmd, args, sendformat, returnformat, category=category,transporttimeout=transporttimeout)
+            args["_agentid"] = 0
+        return self.sendMsgOverCMDChannel(cmd, args, sendformat, returnformat, category=category, transporttimeout=transporttimeout)
 
     def perftest(self):
         start = time.time()
@@ -293,6 +298,7 @@ class Klass:
         stop = time.time()
         nritems = nr / (stop - start)
         #print(("nr items per sec: %s" % nritems))
+
 
 class Transport:
 

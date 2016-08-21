@@ -1,8 +1,10 @@
-#pylint: disable=W0201
+# pylint: disable=W0201
 class Value:
+
     def __init__(self, initStr=None, **kwargs):
-        #Initialize everything with None
-        self.fields = ("type", "size", "length", "unit", "version", "scale", "min", "max")
+        # Initialize everything with None
+        self.fields = ("type", "size", "length", "unit",
+                       "version", "scale", "min", "max")
         for field in self.fields:
             setattr(self, field, None)
 
@@ -16,7 +18,8 @@ class Value:
         r = ""
         for field in self.fields:
             val = getattr(self, field)
-            if val is None: continue
+            if val is None:
+                continue
 
             r += field + "=" + repr(val) + "\n"
         return r.strip()
@@ -26,8 +29,10 @@ class Value:
             (key, val) = line.split("=", 1)
             setattr(self, key, eval(val))
 
+
 class Functions:
-    #Variables
+    # Variables
+
     def __init__(self):
         self.guid = None
         self.name = None
@@ -2134,5 +2139,3 @@ func.write = 1
 func.valDef = Value()
 func.valDef.type = "TYPE_COMMAND"
 func.valDef.size = 1
-
-

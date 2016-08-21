@@ -18,18 +18,19 @@ class GitHubFactory:
 
     def __init__(self):
         self.__jslocation__ = "j.clients.github"
-        self._clients={}
+        self._clients = {}
 
     # def getRepoClient(self, account, reponame):
     #     return GitHubRepoClient(account, reponame)
 
     def getClient(self, secret):
         if secret not in self._clients:
-            self._clients[secret]= GitHubClient(secret)
+            self._clients[secret] = GitHubClient(secret)
         return self._clients[secret]
 
     def getIssueClass(self):
         return Issue
+
 
 class GitHubClient:
 
@@ -43,8 +44,8 @@ class GitHubClient:
         fullname e.g. incubaid/myrepo
         """
         if fullname not in self.repos:
-            r= GithubRepo(self, fullname)
-            self.repos[fullname]=r
+            r = GithubRepo(self, fullname)
+            self.repos[fullname] = r
         return self.repos[fullname]
 
     def getUserLogin(self, githubObj):

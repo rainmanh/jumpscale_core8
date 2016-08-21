@@ -17,4 +17,4 @@ default = $url
 
 j.application.stop()
 
-#@todo move to jscode
+#TODO: move to jscode

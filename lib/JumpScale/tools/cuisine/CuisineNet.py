@@ -3,22 +3,24 @@ from JumpScale import j
 import netaddr
 import re
 
-base=j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine._getBaseClass()
+
+
 class CuisineNet(base):
 
-    def __init__(self,executor,cuisine):
-        self.executor=executor
-        self.cuisine=cuisine
+    def __init__(self, executor, cuisine):
+        self._executor = executor
+        self._cuisine = cuisine
 
-    def netconfig(self,interface,ipaddr,cidr=24,gateway=None,dns="8.8.8.8",masquerading=False):
-        raise j.exceptions.RuntimeError("please implement using systemd") #@todo (*2*)
+    def netconfig(self, interface, ipaddr, cidr=24, gateway=None, dns="8.8.8.8", masquerading=False):
+        raise j.exceptions.RuntimeError("please implement using systemd")  # TODO: *2
 
-    def netconfig(self,interface):
-        raise j.exceptions.RuntimeError("please implement using systemd") #@todo (*2*)
+    def netconfig(self, interface):
+        raise j.exceptions.RuntimeError("please implement using systemd")  # TODO: *2
 
     @property
     def nics(self):
-        res=[]
+        res = []
         for item in self.get_info():
             if item["name"] not in ["lo"]:
                 res.append(item["name"])
@@ -26,7 +28,7 @@ class CuisineNet(base):
 
     @property
     def ips(self):
-        res=[]
+        res = []
         for item in self.get_info():
             if item["name"] not in ["lo"]:
                 for ip in item["ip"]:
@@ -36,48 +38,47 @@ class CuisineNet(base):
 
     @property
     def defaultgw(self):
-        return self.cuisine.core.run("ip r | grep 'default' | awk {'print $3'}")
+        return self._cuisine.core.run("ip r | grep 'default' | awk {'print $3'}")
 
     @defaultgw.setter
-    def defaultgw(self,val):
+    def defaultgw(self, val):
         raise j.exceptions.RuntimeError("not implemented")
 
-
-    def findnodes(self,range=None,ips=[]):
+    def findnodes(self, range=None, ips=[]):
         """
         @param range in format 192.168.0.0/24
         if range not specified then will take all ranges of local ip addresses (nics)
         find nodes which are active around
         """
-        if range==None:
-            res=self.cuisine.net.get_info()
+        if range == None:
+            res = self._cuisine.net.get_info()
             for item in res:
-                cidr=item['cidr']
+                cidr = item['cidr']
 
-                name=item['name']
+                name = item['name']
                 if not name.startswith("docker") and name not in ["lo"]:
-                    if len(item['ip'])>0:
-                        ip=item['ip'][0]
-                        ipn=netaddr.IPNetwork(ip+"/"+str(cidr))
-                        range=str(ipn.network)+"/%s"%cidr
-                        ips=self.findnodes(range,ips)
+                    if len(item['ip']) > 0:
+                        ip = item['ip'][0]
+                        ipn = netaddr.IPNetwork(ip + "/" + str(cidr))
+                        range = str(ipn.network) + "/%s" % cidr
+                        ips = self.findnodes(range, ips)
             return ips
         else:
             try:
-                _, out, _ = self.cuisine.core.run("nmap %s -n -sP | grep report | awk '{print $5}'"%range,showout=False)
+                _, out, _ = self._cuisine.core.run(
+                    "nmap %s -n -sP | grep report | awk '{print $5}'" % range, showout=False)
             except Exception as e:
-                if str(e).find("command not found")!=-1:
-                    self.cuisine.package.install("nmap")
-                    _, out, _ = self.cuisine.core.run("nmap %s -n -sP | grep report | awk '{print $5}'"%range,showout=False)
+                if str(e).find("command not found") != -1:
+                    self._cuisine.package.install("nmap")
+                    _, out, _ = self._cuisine.core.run(
+                        "nmap %s -n -sP | grep report | awk '{print $5}'" % range, showout=False)
             for line in out.splitlines():
-                ip=line.strip()
+                ip = line.strip()
                 if ip not in ips:
                     ips.append(ip)
             return ips
 
-
-
-    def get_info(self,device=None):
+    def get_info(self, device=None):
         """
         returns network info like
 
@@ -110,37 +111,37 @@ class CuisineNet(base):
                     for key, value in list(m.groupdict().items()):
                         result[key].append(value)
             if j.data.types.list.check(result['cidr']):
-                if len(result['cidr'])==0:
-                    result['cidr']=0
+                if len(result['cidr']) == 0:
+                    result['cidr'] = 0
                 else:
-                    result['cidr']=int(result['cidr'][0])
+                    result['cidr'] = int(result['cidr'][0])
             return result
 
         def getNetworkInfo():
-            _, output, _ = self.cuisine.core.run("ip a", showout=False)
+            _, output, _ = self._cuisine.core.run("ip a", showout=False)
             for m in IPBLOCKS.finditer(output):
                 block = m.group('block')
                 yield parseBlock(block)
 
-        res=[]
+        res = []
         for nic in getNetworkInfo():
             # print (nic["name"])
-            if nic["name"]==device:
+            if nic["name"] == device:
                 return nic
             res.append(nic)
 
-        if device!=None:
+        if device != None:
             raise j.exceptions.RuntimeError("could not find device")
         return res
 
-    def getNetObject(self,device):
-        n=self.get_info(device)
-        net=netaddr.IPNetwork(n["ip"][0]+"/"+str(n["cidr"]))
+    def getNetObject(self, device):
+        n = self.get_info(device)
+        net = netaddr.IPNetwork(n["ip"][0] + "/" + str(n["cidr"]))
         return net.cidr
 
-    def getNetRange(self,device,skipBegin=10,skipEnd=10):
+    def getNetRange(self, device, skipBegin=10, skipEnd=10):
         """
         return ($fromip,$topip) from range attached to device, skip the mentioned ip addresses
         """
-        n=self.getNetObject(device)
-        return(str(netaddr.IPAddress(n.first+skipBegin)),str(netaddr.IPAddress(n.last-skipEnd)))
+        n = self.getNetObject(device)
+        return(str(netaddr.IPAddress(n.first + skipBegin)), str(netaddr.IPAddress(n.last - skipEnd)))

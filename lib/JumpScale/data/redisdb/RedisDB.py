@@ -1,116 +1,124 @@
 from JumpScale import j
 import time
 
+
 class RedisDB:
+
     def __init__(self):
         self.__jslocation__ = "j.data.redisdb"
 
-    def get(self,path, expiration=None):
+    def get(self, path, expiration=None):
         """
         @param path in form of someting:something:...
 
-        @todo (*2*) please describe and give example
+        TODO: *2 please describe and give example
 
         """
         return RedisDBList(path, expiration)
 
     def _test(self):
-        llist=self.get("root1:child1")
-        
+        llist = self.get("root1:child1")
+
         llist.delete()
-        data={"a":"b"}
-        llist.set(data,"akey")
+        data = {"a": "b"}
+        llist.set(data, "akey")
 
         print("iterator:")
-        counter=0
+        counter = 0
         for item in llist:
-            counter+=1
+            counter += 1
             print(item)
-        print ("did you see 1 item")
-        
-        assert(counter==1)
+        print("did you see 1 item")
 
-        assert data==llist.get("akey").struct
-        assert llist.len()==1
-        llist.set(data,"akey")
+        assert(counter == 1)
 
-        assert llist.len()==1
-        llist.set(data,"akey2")
-        assert llist.len()==2
+        assert data == llist.get("akey").struct
+        assert llist.len() == 1
+        llist.set(data, "akey")
+
+        assert llist.len() == 1
+        llist.set(data, "akey2")
+        assert llist.len() == 2
         llist.delete()
-        #now tests around id
+        # now tests around id
         for i in range(10):
-            data={"a":"b","id":str(i),"aval":i}
-            llist.set(data,"akey%s"%i)
+            data = {"a": "b", "id": str(i), "aval": i}
+            llist.set(data, "akey%s" % i)
 
-        print (llist.get(id="5"))
+        print(llist.get(id="5"))
 
-        res=llist.find(id="5")
+        res = llist.find(id="5")
 
-        assert len(res)==1
+        assert len(res) == 1
 
-        res=llist.find(id="5")
-        assert res[0].struct["id"]=="5"
+        res = llist.find(id="5")
+        assert res[0].struct["id"] == "5"
 
-        res=llist.find(aval=5)
-        assert len(res)==1
+        res = llist.find(aval=5)
+        assert len(res) == 1
+
 
 class RedisDBObj:
-    def __init__(self,llist,path,id=""):
-        self._list=llist
-        self.db=j.core.db
-        self.path=path
-        self._struct={}
-        self._id=id
+
+    def __init__(self, llist, path, id=""):
+        self._list = llist
+        self.db = j.core.db
+        self.path = path
+        self._struct = {}
+        self._id = id
 
     @property
     def id(self):
-        if self._id=="":
-            self._id=self.struct["id"]
+        if self._id == "":
+            self._id = self.struct["id"]
         return self._id
 
     @property
     def struct(self):
-        data=self.db.hget(self.path,self.id)
-        if data==None:
-            raise j.exceptions.RuntimeError("could not find object %s:%s"%(self.path,self.id))
-        obj=j.data.serializer.json.loads(data)
+        data = self.db.hget(self.path, self.id)
+        if data == None:
+            raise j.exceptions.RuntimeError(
+                "could not find object %s:%s" % (self.path, self.id))
+        obj = j.data.serializer.json.loads(data)
         if "id" in obj:
-            self._id=obj["id"]
+            self._id = obj["id"]
         return obj
-    
+
     @struct.setter
-    def struct(self,val):
-        if j.data.types.dict.check(val)==False:
+    def struct(self, val):
+        if j.data.types.dict.check(val) == False:
             raise j.exceptions.RuntimeError("only dict supported")
-        self.db.hset(self.path,self.id,j.data.serializer.json.dumps(val, sort_keys=True))
+        self.db.hset(self.path, self.id,
+                     j.data.serializer.json.dumps(val, sort_keys=True))
         if self._list._expiration:
             self.db.expire(self.path, self._list._expiration)
         else:
-            self._list._list={} #will reload
+            self._list._list = {}  # will reload
 
     def __repr__(self):
         return j.data.serializer.json.dumps(self.struct, sort_keys=True, indent=True)
 
-    __str__=__repr__
+    __str__ = __repr__
+
 
 class RedisDBList:
-    def __init__(self,path, expiration=None):
-        self.db=j.core.db
-        self.path=path
-        self._list={}
+
+    def __init__(self, path, expiration=None):
+        self.db = j.core.db
+        self.path = path
+        self._list = {}
         self._expiration = expiration
 
     @property
     def list(self):
         if self._expiration or not self._list:
-            keys=self.db.hkeys(self.path)
+            keys = self.db.hkeys(self.path)
             keys.sort()
             for name in keys:
-                self._list[name]=RedisDBObj(self,self.path,name)
-        keys=list(self._list.keys())
+                self._list[name] = RedisDBObj(self, self.path, name)
+        keys = list(self._list.keys())
         keys.sort()
-        res=[]
+        res = []
         for key in keys:
             res.append(self._list[key])
         return res
@@ -119,25 +127,25 @@ class RedisDBList:
         return self.db.hexists(self.path, id)
 
     def get(self, id):
-        obj=RedisDBObj(self,self.path,id)
+        obj = RedisDBObj(self, self.path, id)
         return obj
 
-    def set(self,data,id=""):
-        if j.data.types.dict.check(data)==False:
+    def set(self, data, id=""):
+        if j.data.types.dict.check(data) == False:
             raise j.exceptions.RuntimeError("only dict supported")
         if not id:
             id = data['id']
         obj = RedisDBObj(self, self.path, id)
-        obj.struct=data
-        self._list={}
+        obj.struct = data
+        self._list = {}
         return obj
 
     def find(self, **filter):
-        res=[]
+        res = []
         for item in self.list:
             if id and item.id != id:
                 continue
-            found=True
+            found = True
             for key, val in filter.items():
                 if item.struct[key] != val:
                     found = False
@@ -148,7 +156,7 @@ class RedisDBList:
 
     def delete(self):
         self.db.delete(self.path)
-        self._list={}
+        self._list = {}
 
     def remove(self, id):
         self.db.hdel(self.path, id)
@@ -167,12 +175,11 @@ class RedisDBList:
         return self.len() != 0
 
     def __repr__(self):
-        out=""
+        out = ""
         for item in self.list:
-            out+="%s %s\n"%(self.path,item.id)
-        if out=="":
-            out="Empty list %s"%(self.path)
+            out += "%s %s\n" % (self.path, item.id)
+        if out == "":
+            out = "Empty list %s" % (self.path)
         return out
 
-    __str__=__repr__
-
+    __str__ = __repr__

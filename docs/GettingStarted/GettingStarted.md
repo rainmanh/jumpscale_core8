@@ -1,6 +1,6 @@
-## Getting Started
+# Getting Started
 
-### JumpScale interactive shell
+## JumpScale interactive shell
 
 The best place to get acquainted is in the JumpScale interactive shell, based on IPython.
 
@@ -12,7 +12,7 @@ Everything after `js` will be evalled in the JumpScale interactive shell session
 js 'j.do.loadSSHAgent()'
 ```
 
-### Installing JumpScale applications
+## Installing JumpScale applications
 
 In order to install JumpScale applications there is **AtYourService**, abbreviated as AYS.
 
@@ -24,7 +24,7 @@ To get acquanted with [AYS](/../AYS/AYS-introduction.md) type the following at t
 ays
 ```
 
-### SSH key management 
+## SSH key management
 
 SSH is used a lot when using the JumpScale framework. It's used do all remote system manangement, all interactions with GitHub, and more.
 
@@ -38,9 +38,11 @@ In the above command you will of course want to replace the keyname with somethi
 
 This single command will do the following for you:
 
-    - Check if you have `$homedir/.ssh/id_rsa` or `$homedir/.ssh/$keyname` key available
-    - If an existing key was found, it will be loaded into SSH Agent
-    - If not, a new one will first get created
+```
+- Check if you have `$homedir/.ssh/id_rsa` or `$homedir/.ssh/$keyname` key available
+- If an existing key was found, it will be loaded into SSH Agent
+- If not, a new one will first get created
+```
 
 As part of the SSH creation process you will be asked to enter a passphrase, which should be something that is private to you, and easy to remember.
 
@@ -52,7 +54,7 @@ Alternativelly you can also type:
 js 'j.do.loadSSHAgent()'
 ```
 
-This will start the SSH Agent if required and load all the keys it can find in ```$homedir/.ssh```
+This will start the SSH Agent if required and load all the keys it can find in `$homedir/.ssh`
 
 You only will need to do this once on a system. Once done the `.bashrc` file will make sure that in every new terminal you have access to your keys.
 
@@ -60,7 +62,6 @@ Remark: if this is the first time then your current session does not have access
 
 If you want to read more about key management see [tips & tricks about ssh keys & agents (e.g. how to create your keys)](../SSHSystemManagement/SSHKeysAgent.md)
 
+## Also see
 
-### Also see
-
-* [IPythonTricks](IPythonTricks.md)
+- [IPythonTricks](IPythonTricks.md)

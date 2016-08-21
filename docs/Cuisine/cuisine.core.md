@@ -1,4 +1,4 @@
-## cuisine.core
+# cuisine.core
 
 The `cuisine.core` module handles basic file system operations and command execution.
 
@@ -15,25 +15,25 @@ Examples for methods in `core`:
 - **isArch**, **isDocker**, **isMac**, **isLxc**, **isUbuntu**: check for the target os
 - **run**: run a command
 
-  ```py
+  ```python
   cuisine.run('ls')
   cuisine.run('false', die=False) //it won't raise an error
   ```
 
 - **run_script**: run a script
-  
-  ```py
+
+  ```python
   cuisine.run_script('cd /\npwd')
   ```
 
 - **sudo**: run a command using sudo
 
-  ```py
+  ```python
   cuisine.sudo('apt-get  install httpie')
   ```
 
 - **args_replace**: replace arguments inside commands and paths such as `$binDir`, `$hostname`, `$codeDir`, `$tmpDir`
-  
-  ```py
+
+  ```python
   cuisine.arg_replace('$binDir/python -c "print(1)"')
   ```

@@ -1,36 +1,39 @@
 from JumpScale import j
 
 from tools.cuisine.ActionDecorator import ActionDecorator
+
+
 class actionrun(ActionDecorator):
-    def __init__(self,*args,**kwargs):
-        ActionDecorator.__init__(self,*args,**kwargs)
-        self.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.avahi"
+
+    def __init__(self, *args, **kwargs):
+        ActionDecorator.__init__(self, *args, **kwargs)
+        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.avahi"
 
 
 class Avahi:
+
     def __init__(self):
         self.__jslocation__ = "j.tools.avahi"
-        self.cuisine=j.tools.cuisine.get()
-        self.executor=self.cuisine.executor
+        self._cuisine = j.tools.cuisine.get()
+        self.executor = self._cuisine._executor
 
-    def get(self,cuisine,executor):
-        b=Avahi()
-        b.cuisine=cuisine
-        b.executor=executor
+    def get(self, cuisine, executor):
+        b = Avahi()
+        b.cuisine = cuisine
+        b.executor = executor
         return b
 
-    @actionrun(action=True)
+    
     def install(self):
-        if self.cuisine.core.isUbuntu:
-            self.cuisine.package.install("avahi-daemon")
-            self.cuisine.package.install("avahi-utils")
-        if self.cuisine.core.isArch:
-            self.cuisine.package.install("avahi")
+        if self._cuisine.core.isUbuntu:
+            self._cuisine.package.install("avahi-daemon")
+            self._cuisine.package.install("avahi-utils")
+        if self._cuisine.core.isArch:
+            self._cuisine.package.install("avahi")
 
+        configfile = "/etc/avahi/avahi-daemon.conf"
 
-        configfile="/etc/avahi/avahi-daemon.conf"
-
-        C="""
+        C = """
         [server]
         host-name=$hostname
         domain-name=$domains
@@ -80,25 +83,26 @@ class Avahi:
         rlimit-stack=4194304
         rlimit-nproc=3
         """
-        domains="%s.%s"%(self.cuisine.grid,self.cuisine.domain)
-        C=C.replace("$hostname",self.cuisine.core.name)
-        C=C.replace("$domains",domains)
-        self.cuisine.core.file_write(configfile,C)
+        domains = "%s.%s" % (self._cuisine.grid, self._cuisine.domain)
+        C = C.replace("$hostname", self._cuisine.core.name)
+        C = C.replace("$domains", domains)
+        self._cuisine.core.file_write(configfile, C)
 
-        if self.cuisine.core.isUbuntu:
-            pre=""
+        if self._cuisine.core.isUbuntu:
+            pre = ""
         else:
-            pre="/usr"
-        self.cuisine.core.file_link(source="%s/lib/systemd/system/avahi-daemon.service", destination="/etc/systemd/system/multi-user.target.wants/avahi-daemon.service", symbolic=True, mode=None, owner=None, group=None)
-        self.cuisine.core.file_link(source="%s/lib/systemd/system/docker.socket", destination="/etc/systemd/system/sockets.target.wants/docker.socket", symbolic=True, mode=None, owner=None, group=None)
+            pre = "/usr"
+        self._cuisine.core.file_link(source="%s/lib/systemd/system/avahi-daemon.service",
+                                    destination="/etc/systemd/system/multi-user.target.wants/avahi-daemon.service", symbolic=True, mode=None, owner=None, group=None)
+        self._cuisine.core.file_link(source="%s/lib/systemd/system/docker.socket",
+                                    destination="/etc/systemd/system/sockets.target.wants/docker.socket", symbolic=True, mode=None, owner=None, group=None)
 
-        self.cuisine.systemd.start("avahi-daemon")
-
+        self._cuisine.systemd.start("avahi-daemon")
 
     def _servicePath(self, servicename):
         path = "/etc/avahi/services"
-        if not self.cuisine.core.dir_exists(path):
-            self.cuisine.core.dir_ensure(path)
+        if not self._cuisine.core.dir_exists(path):
+            self._cuisine.core.dir_ensure(path)
         service = '%s.service' % servicename
         return j.sal.fs.joinPaths(path, service)
 
@@ -121,26 +125,26 @@ class Avahi:
         content = content.replace("${port}", str(port))
         content = content.replace("${type}", type)
         path = self._servicePath(servicename)
-        self.cuisine.core.file_write(path, content)
+        self._cuisine.core.file_write(path, content)
 
         self.reload()
 
-    @actionrun(force=True)
+    
     def reload(self):
         cmd = "avahi-daemon --reload"
-        self.cuisine.core.run(cmd)
+        self._cuisine.core.run(cmd)
 
-    @actionrun(force=True)
+    
     def removeService(self, servicename):
         path = self._servicePath(servicename)
-        # if self.cuisine.core.dir_exists(path=path):
-        self.cuisine.core.dir_remove(path)
+        # if self._cuisine.core.dir_exists(path=path):
+        self._cuisine.core.dir_remove(path)
         self.reload()
 
-    @actionrun(force=True)
+    
     def getServices(self):
         cmd = "avahi-browse -a -r -t"
-        result, output, err = self.cuisine.core.run(cmd,die=False,force=True)
+        result, output, err = self._cuisine.core.run(cmd, die=False, force=True)
         if result > 0:
             raise j.exceptions.RuntimeError(
                 "cannot use avahi command line to find services, please check avahi is installed on system (ubunutu apt-get install avahi-utils)\nCmd Used:%s" % cmd)
@@ -161,14 +165,18 @@ class Avahi:
             if len(lineitemsout) < 2 or len(lineitemsout) > 3:
                 s.servicename = lineitemsout[0]
 
-            s.hostname = j.tools.code.regex.getINIAlikeVariableFromText(" *hostname *", item).replace("[", "").replace("]", "").strip()
-            s.address = j.tools.code.regex.getINIAlikeVariableFromText(" *address *", item).replace("[", "").replace("]", "").strip()
-            s.port = j.tools.code.regex.getINIAlikeVariableFromText(" *port *", item).replace("[", "").replace("]", "").strip()
-            s.txt = j.tools.code.regex.getINIAlikeVariableFromText(" *txt *", item).replace("[", "").replace("]", "").strip()
+            s.hostname = j.tools.code.regex.getINIAlikeVariableFromText(
+                " *hostname *", item).replace("[", "").replace("]", "").strip()
+            s.address = j.tools.code.regex.getINIAlikeVariableFromText(
+                " *address *", item).replace("[", "").replace("]", "").strip()
+            s.port = j.tools.code.regex.getINIAlikeVariableFromText(
+                " *port *", item).replace("[", "").replace("]", "").strip()
+            s.txt = j.tools.code.regex.getINIAlikeVariableFromText(
+                " *txt *", item).replace("[", "").replace("]", "").strip()
             avahiservices._add(s)
         return avahiservices
 
-    @actionrun()
+    
     def resolveAddress(self, ipAddress):
         """
         Resolve the ip address to its hostname
@@ -182,7 +190,7 @@ class Avahi:
         if not j.sal.nettools.validateIpAddress(ipAddress):
             raise ValueError('Invalid Ip Address')
         cmd = 'avahi-resolve-address %s'
-        rc, out, err = self.cuisine.core.run(cmd % ipAddress, die=False, showout=False)
+        rc, out, err = self._cuisine.core.run(cmd % ipAddress, die=False, showout=False)
         if rc or not out:  # if the ouput string is '' then something is wrong
             raise j.exceptions.RuntimeError('Cannot resolve the hostname of ipaddress: %s' % ipAddress)
         out = out.strip()
@@ -204,8 +212,8 @@ class AvahiServices:
         """
         @return True/False,resultOfServices   #avoids having to wait twice for avahi query
         """
-        res=self.find(hostname,partofname,partofdescription,port)
-        return (len(res)>0,res)
+        res = self.find(hostname, partofname, partofdescription, port)
+        return (len(res) > 0, res)
 
     def find(self, hostname="", partofname="", partofdescription="", port=0):
         def check1(service, hostname):

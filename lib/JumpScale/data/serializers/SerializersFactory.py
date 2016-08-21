@@ -1,5 +1,7 @@
 from JumpScale import j
 
+#TODO: can we make all of this lazy loading *2
+
 from JumpScale.data.serializers.SerializerInt import SerializerInt
 from JumpScale.data.serializers.SerializerTime import SerializerTime
 from JumpScale.data.serializers.SerializerBase64 import SerializerBase64
@@ -8,27 +10,33 @@ from JumpScale.data.serializers.SerializerDict import SerializerDict
 from JumpScale.data.serializers.SerializerBlowfish import SerializerBlowfish
 from JumpScale.data.serializers.SerializerUJson import SerializerUJson
 from JumpScale.data.serializers.SerializerYAML import SerializerYAML
-from JumpScale.data.serializers.SerializerTOML import SerializerTOML
+try:
+    from JumpScale.data.serializers.SerializerTOML import SerializerTOML
+except:
+    pass
 
 
 class SerializersFactory:
 
     def __init__(self):
         # self.__jslocation__ = "j.data.serializer.serializers"
-        #LETS SEE IF WE CAN IGNORE THIS ONE, CAN REMOVE LATER THEN
-        self.types={}
-        self._cache={}
+        # LETS SEE IF WE CAN IGNORE THIS ONE, CAN REMOVE LATER THEN
+        self.types = {}
+        self._cache = {}
         self.int = SerializerInt()
         self.time = SerializerTime()
         self.base64 = SerializerBase64()
         self.hrd = SerializerHRD()
         self.dict = SerializerDict()
         self.blowfish = SerializerBlowfish()
-        self.json=SerializerUJson()
-        self.yaml=SerializerYAML()
-        self.toml=SerializerTOML()
+        self.json = SerializerUJson()
+        self.yaml = SerializerYAML()
+        try:
+            self.toml = SerializerTOML()
+        except:
+            pass
 
-    def get(self,serializationstr,key=""):
+    def get(self, serializationstr, key=""):
         """
         serializationstr FORMATS SUPPORTED FOR NOW
             m=MESSAGEPACK 
@@ -47,11 +55,11 @@ class SerializersFactory:
 
         this method returns 
         """
-        k="%s_%s"%(serializationstr,key)
+        k = "%s_%s" % (serializationstr, key)
         if k not in self._cache:
-            if len(list(self._cache.keys()))>100:
-                self._cache={}
-            self._cache[k]= Serializer(serializationstr,key)
+            if len(list(self._cache.keys())) > 100:
+                self._cache = {}
+            self._cache[k] = Serializer(serializationstr, key)
         return self._cache[k]
 
     def getMessagePack(self):
@@ -60,7 +68,7 @@ class SerializersFactory:
     def getBlosc(self):
         return self.getSerializerType("c")
 
-    def getSerializerType(self,type,key=""):
+    def getSerializerType(self, type, key=""):
         """
         serializationstr FORMATS SUPPORTED FOR NOW
             m=MESSAGEPACK 
@@ -75,69 +83,69 @@ class SerializersFactory:
             l=log
         """
         if type not in self.types:
-            if type=="m":
+            if type == "m":
                 from JumpScale.data.serializers.SerializerMSGPack import SerializerMSGPack
                 j.data.serializer.serializers.msgpack = SerializerMSGPack()
-                self.types[type]=j.data.serializer.serializers.msgpack
-            elif type=="c":
+                self.types[type] = j.data.serializer.serializers.msgpack
+            elif type == "c":
                 from JumpScale.data.serializers.SerializerBlosc import SerializerBlosc
                 j.data.serializer.serializers.blosc = SerializerBlosc()
-                self.types[type]=j.data.serializer.serializers.blosc
+                self.types[type] = j.data.serializer.serializers.blosc
 
-            elif type=="b":
+            elif type == "b":
                 from SerializerBlowfish import SerializerBlowfish
-                self.types[type]=SerializerBlowfish(key)
+                self.types[type] = SerializerBlowfish(key)
 
-            elif type=="s":
+            elif type == "s":
                 from JumpScale.data.serializers.SerializerSnappy import SerializerSnappy
                 j.data.serializer.serializers.snappy = SerializerSnappy()
-                self.types[type]=j.data.serializer.serializers.snappy
+                self.types[type] = j.data.serializer.serializers.snappy
 
-            elif type=="j":
+            elif type == "j":
                 j.data.serializer.serializers.json = SerializerUJson()
-                self.types[type]=j.data.serializer.serializers.json
+                self.types[type] = j.data.serializer.serializers.json
 
-            elif type=="d":
+            elif type == "d":
                 j.data.serializer.serializers.dict = SerializerDict()
-                self.types[type]=j.data.serializer.serializers.dict
+                self.types[type] = j.data.serializer.serializers.dict
 
-            elif type=="l":
+            elif type == "l":
                 from JumpScale.data.serializers.SerializerLZMA import SerializerLZMA
                 j.data.serializer.serializers.lzma = SerializerLZMA()
-                self.types[type]=j.data.serializer.serializers.lzma
+                self.types[type] = j.data.serializer.serializers.lzma
 
-            elif type=="p":
+            elif type == "p":
                 from JumpScale.data.serializers.SerializerPickle import SerializerPickle
                 j.data.serializer.serializers.pickle = SerializerPickle()
-                self.types[type]=j.data.serializer.serializers.pickle
+                self.types[type] = j.data.serializer.serializers.pickle
 
-            elif type=="6":
-                self.types[type]=j.data.serializer.serializers.base64
+            elif type == "6":
+                self.types[type] = j.data.serializer.serializers.base64
 
         return self.types[type]
 
 
 class Serializer:
-    def __init__(self,serializationstr,key=""):
-        self.serializationstr=serializationstr
-        self.key=key
-        for k in self.serializationstr:
-            j.data.serializer.serializers.getSerializerType(k,self.key)
 
-    def dumps(self,val):
-        if self.serializationstr=="":
+    def __init__(self, serializationstr, key=""):
+        self.serializationstr = serializationstr
+        self.key = key
+        for k in self.serializationstr:
+            j.data.serializer.serializers.getSerializerType(k, self.key)
+
+    def dumps(self, val):
+        if self.serializationstr == "":
             return val
         for key in self.serializationstr:
             # print "dumps:%s"%key
-            val=j.data.serializer.serializers.types[key].dumps(val)
+            val = j.data.serializer.serializers.types[key].dumps(val)
         return val
 
-    def loads(self,data):
-        if self.serializationstr=="":
+    def loads(self, data):
+        if self.serializationstr == "":
             return data
 
         for key in reversed(self.serializationstr):
             # print "loads:%s"%key
-            data=j.data.serializer.serializers.types[key].loads(data)
+            data = j.data.serializer.serializers.types[key].loads(data)
         return data
-

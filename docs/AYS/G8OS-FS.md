@@ -1,21 +1,22 @@
-## G8OS FileSystem (G8OS FS)
+# G8OS FileSystem (G8OS FS)
 
 G8OS FS is a virtual file system that simplifies the distribution of files over the grids.
 
 It is written in Go which makes it really simple to deploy on bare metal machines in order to bootstrap an environment, install JumpsScale and the AYS services.
 
+## How it works
 
-### How it works
-
-#### Metadata and binary files
+### Metadata and binary files
 
 The G8OS FS uses two kinds of files to recreate a file system:
+
 - Metadata files
 - Binary files
 
 There is one metadata file for each AYS service template or AYS service instance.
 
 The following is an excerpt of the metadata files of the `jumpscale__base` services:
+
 ```
 /opt/jumpscale8/bin/jsnet|8a3e5e03a10ecc3601a1f14fbc371019|4857
 /opt/jumpscale8/bin/jsnode|793384b5bde2901461606146adbed382|5088
@@ -37,19 +38,19 @@ The binary content is stored in a directory structure with 3 levels:
 ```
 a
 ├── 0
-│   ├── a001d62d00fbeb0f1ef4e77e5d8c5e3d
-│   ├── a0237c980711ed468f39b5c178ccf875
-│   ├── a03e021c3623542e16c47df9799ff8a5
-│   ├── a043b3974df8701a8d3cf686690795f8
+│   ├── a001d62d00fbeb0f1ef4e77e5d8c5e3d
+│   ├── a0237c980711ed468f39b5c178ccf875
+│   ├── a03e021c3623542e16c47df9799ff8a5
+│   ├── a043b3974df8701a8d3cf686690795f8
 ├── 1
-│   ├── a12abc97671995529a05ae1fa73120c9
-│   ├── a134ce45aa49528684f9bbc6c2e8042c
-│   ├── a139377c7036f280449d8a6746501c18
-│   ├── a13bc16af414cc4bdfb9d554c50842d9
+│   ├── a12abc97671995529a05ae1fa73120c9
+│   ├── a134ce45aa49528684f9bbc6c2e8042c
+│   ├── a139377c7036f280449d8a6746501c18
+│   ├── a13bc16af414cc4bdfb9d554c50842d9
 ...
 ```
 
-### G8OS FS workflow
+## G8OS FS workflow
 
 When starting, the AYS file system
 

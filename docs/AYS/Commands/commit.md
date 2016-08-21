@@ -1,4 +1,4 @@
-## Commit
+# Commit
 
 It is a best practice to commit your changes back to the Git repository.
 

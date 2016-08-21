@@ -1,25 +1,24 @@
-## How to add a new SAL
+# How to add a new SAL
 
-### 1. Goto to the SAL directory
+## 1\. Goto to the SAL directory
 
 ```shell
 cd jumpscale_core8/lib/JumpScale/sal
 ```
 
-
-### 2. Create a package directory
+## 2\. Create a package directory
 
 ```shell
 mkdir hello
 ```
 
-### 3. Create the package files
+## 3\. Create the package files
 
 ```shell
 touch Hello.py __init__.py
 ```
 
-### 4. Edit Hello.py
+## 4\. Edit Hello.py
 
 Each SAL object is required to extend the base SALObject class.
 
@@ -34,10 +33,10 @@ class Hello:
         self.__jslocation__ = 'j.sal.hello'
         self.logger = j.logger.get('j.sal.hello')
         self.msg=''
-        
+
     def message(self, msg):
         self.msg = msg
-    
+
     def upper(self):
         return self.msg.upper()
 
@@ -48,18 +47,18 @@ class Hello:
         return (self.msg + " ")*n + "!!!"
 ```
 
-### 5. Force a re-read of the SALs directory
+## 5\. Force a re-read of the SALs directory
 
 In order to force a re-read of the SALs directory you will need to execute:
 
 ```python
 j.core.db.flushall()/j.core.db.flushdb()
-````
+`
+```
 
-### 6. (Re)start the `js` session
+## 6\. (Re)start the `js` session
 
-
-### 7. Use the new SAL
+## 7\. Use the new SAL
 
 ```python
 In [1]: j.sal.hello.upper()

@@ -1,4 +1,4 @@
-## Install
+# Install
 
 The 'install' command makes the service instances relatity, actually installing everything.
 

@@ -1,8 +1,8 @@
-## Test
+# Test
 
 The `test` command is used for controlling the AYS test suite.
 
-``` shell
+```shell
 ays test --help
 Usage: ays test [OPTIONS] CMD
 

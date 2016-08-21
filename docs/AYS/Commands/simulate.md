@@ -1,4 +1,4 @@
-## Simulate
+# Simulate
 
 The `simulate` command does do the same as `ays do`, except it does not execute, it only shows what result would be.
 

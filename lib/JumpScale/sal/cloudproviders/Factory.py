@@ -2,9 +2,8 @@ from amazon import AmazonProvider
 from digitalocean import DigitalOcean
 
 
-
 class Factory:
-    self.__jslocation__="j.sal.cloudproviders"   
+    self.__jslocation__ = "j.sal.cloudproviders"
 
     def get(self, provider):
         '''Gets an instance of the cloud provider class

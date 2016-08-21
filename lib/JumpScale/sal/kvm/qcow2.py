@@ -4,15 +4,14 @@ import os
 import subprocess
 
 
-class Qcow2():  
-    #object representing a qcow2, at this moment only readonly!
-
+class Qcow2():
+    # object representing a qcow2, at this moment only readonly!
 
     def __init__(self, filename):
         qcow2header = struct.Struct(">IIQIIQIIQQIIQ")
         data = self._read_data(filename, qcow2header.size)
         if (len(data) < qcow2header.size) or not data.startswith(b'QFI'):
-           raise 'Invalid header this is not a correct qcow2 file.'
+            raise 'Invalid header this is not a correct qcow2 file.'
         unpackeddata = qcow2header.unpack(data)
         self.path = filename
         self.magic = unpackeddata[0]
@@ -29,9 +28,9 @@ class Qcow2():
         self.nb_snapshots = unpackeddata[11]
         self.snapshots_offset = unpackeddata[12]
 
-        path = self._read_data(filename, self.backing_file_size, self.backing_file_offset)
+        path = self._read_data(
+            filename, self.backing_file_size, self.backing_file_offset)
         self.backing_file_path = path.decode()
-
 
     def _read_data(self, filename, size, offset=0):
         f = open(filename, 'rb')
@@ -45,17 +44,17 @@ class Qcow2():
             raise 'A error occured during reading of the file'
 
     def export(self, destination, outputtype='qcow2'):
-            subprocess.check_call(
-                    args=[
-                        'qemu-img',
-                        'convert',
-                        '-p',
-                        '-O',
-                         outputtype,
-                         self.path,
-                         destination,
-                        ]
-                   )
+        subprocess.check_call(
+            args=[
+                'qemu-img',
+                'convert',
+                '-p',
+                '-O',
+                outputtype,
+                self.path,
+                destination,
+            ]
+        )
 
     def get_parents(self):
         """
@@ -72,14 +71,3 @@ class Qcow2():
             parents.append(backingqcow2)
             backingfile = backingqcow2.backing_file_path
         return parents
-
-
-
-
-
-
-
-
-
-
-

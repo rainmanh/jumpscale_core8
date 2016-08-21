@@ -1,5 +1,6 @@
 import math
 
+
 def getTHD(harmonics, offset=1):
     """
     returns the thd as calculated from harmonics according to the formula:
@@ -9,7 +10,7 @@ def getTHD(harmonics, offset=1):
     """
     # Beware that the first value in the list is ignored because for some reason this is not the first harmonic value
     # most probably because of a firmware bug?
-    divideBy     = harmonics[offset]
+    divideBy = harmonics[offset]
     if divideBy == 0:
         return None
     harmonicVals = harmonics[offset + 1:offset + 40]

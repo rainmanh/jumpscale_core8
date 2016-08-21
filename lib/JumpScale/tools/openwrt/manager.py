@@ -2,7 +2,6 @@ import os
 from io import StringIO
 
 
-
 from uci import UCI
 from dns import DNS
 from dhcp import DHCP
@@ -18,8 +17,6 @@ WRITE_CHUNK_SIZE = 512
 
 class UCIError(Exception):
     pass
-
-
 
 
 class OpenWRTManager:
@@ -131,13 +128,15 @@ class OpenWRTManager:
 
 
 class OpenWRTFactory:
+
     def _getFactoryEnabledClasses(self):
-        return (("","UCI",UCI()),("","DNS",DNS()),("","DHCP",DHCP()),("","PureFTP",PureFTP()),("","Network",Network()),("","Firewall",Firewall()),("","OpenWRTManager",OpenWRTManager()))      
+        return (("", "UCI", UCI()), ("", "DNS", DNS()), ("", "DHCP", DHCP()), ("", "PureFTP", PureFTP()), ("", "Network", Network()), ("", "Firewall", Firewall()), ("", "OpenWRTManager", OpenWRTManager()))
+
     def get(self, connection=None):
         """
         Return disk manager for that cuisine connection.
         """
-        if connection==None:
-            connection=j.ssh.connection
+        if connection == None:
+            connection = j.ssh.connection
 
         return OpenWRTManager(connection)

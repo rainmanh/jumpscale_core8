@@ -41,12 +41,13 @@ def jsonrpc(func):
 
     return wrapper
 
+
 class GeventWSServer:
 
     def __init__(self, addr, port, sslorg=None, ssluser=None, sslkeyvaluestor=None):
         """
         @param handler is passed as a class
-        """        
+        """
         self.port = port
         self.addr = addr
         self.key = "1234"
@@ -54,26 +55,25 @@ class GeventWSServer:
         # self.jobhandler = JobHandler()
         self.daemon = j.servers.base.getDaemon(sslorg=sslorg, ssluser=ssluser, sslkeyvaluestor=sslkeyvaluestor)
         self.server = WSGIServer(('', self.port), self.rpcRequest)
-        
+
         self.type = "geventws"
 
         self.greenlets = {}
         self.now = 0
-        self.fiveMinuteId=0
-        self.hourId=0
-        self.dayId=0
+        self.fiveMinuteId = 0
+        self.hourId = 0
+        self.dayId = 0
 
-    def startClock(self,obj=None):
+    def startClock(self, obj=None):
 
         self.schedule("timer", self._timer)
         self.schedule("timer2", self._timer2)
 
-        if obj!=None:
-            obj.now=self.now
-            obj.fiveMinuteId=self.fiveMinuteId
-            obj.hourId=self.hourId
-            obj.dayId=self.dayId
-
+        if obj != None:
+            obj.now = self.now
+            obj.fiveMinuteId = self.fiveMinuteId
+            obj.hourId = self.hourId
+            obj.dayId = self.dayId
 
     def _timer(self):
         """
@@ -93,33 +93,33 @@ class GeventWSServer:
         # lfmid = 0
 
         while True:
-            self.fiveMinuteId=j.data.time.get5MinuteId(self.now )
-            self.hourId=j.data.time.getHourId(self.now )
-            self.dayId=j.data.time.getDayId(self.now )
+            self.fiveMinuteId = j.data.time.get5MinuteId(self.now)
+            self.hourId = j.data.time.getHourId(self.now)
+            self.dayId = j.data.time.getDayId(self.now)
             print("timer2")
-            gevent.sleep(200)            
+            gevent.sleep(200)
 
     def schedule(self, name, ffunction, *args, **kwargs):
         self.greenlets[name] = gevent.greenlet.Greenlet(ffunction, *args, **kwargs)
         self.greenlets[name].start()
         return self.greenlets[name]
 
-
-    def responseRaw(self,data,start_response):
+    def responseRaw(self, data, start_response):
         start_response('200 OK', [('Content-Type', 'text/plain')])
         return [data]
-    
-    def responseNotFound(self,start_response):
+
+    def responseNotFound(self, start_response):
         start_response('404 Not Found', [('Content-Type', 'text/html')])
         return ['<h1>Not Found</h1>']
 
     def rpcRequest(self, environ, start_response):
-        if environ["CONTENT_TYPE"]=='application/raw' and environ["REQUEST_METHOD"]=='POST':
-            data=environ["wsgi.input"].read()
+        if environ["CONTENT_TYPE"] == 'application/raw' and environ["REQUEST_METHOD"] == 'POST':
+            data = environ["wsgi.input"].read()
             category, cmd, data2, informat, returnformat, sessionid = j.servers.base._unserializeBinSend(data)
-            resultcode, returnformat, result = self.daemon.processRPCUnSerialized(cmd, informat, returnformat, data2, sessionid, category=category)
+            resultcode, returnformat, result = self.daemon.processRPCUnSerialized(
+                cmd, informat, returnformat, data2, sessionid, category=category)
             data3 = j.servers.base._serializeBinReturn(resultcode, returnformat, result)
-            return self.responseRaw(data3,start_response)
+            return self.responseRaw(data3, start_response)
         elif environ['CONTENT_TYPE'].startswith('application/json') and environ["REQUEST_METHOD"] == 'POST':
             return self.handleJSONRPC(environ, start_response)
         else:
@@ -156,5 +156,5 @@ class GeventWSServer:
         except KeyboardInterrupt:
             print("bye")
 
-    def addCMDsInterface(self, MyCommands, category="",proxy=False):
-        self.daemon.addCMDsInterface(MyCommands, category,proxy=proxy)
+    def addCMDsInterface(self, MyCommands, category="", proxy=False):
+        self.daemon.addCMDsInterface(MyCommands, category, proxy=proxy)

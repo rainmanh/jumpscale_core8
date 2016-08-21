@@ -1,68 +1,55 @@
 from JumpScale import j
 
 
-from ActionDecorator import ActionDecorator
+base = j.tools.cuisine._getBaseClass()
 
 
-"""
-please ensure that the start and build methods are separate and
-the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
-"""
-
-class actionrun(ActionDecorator):
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.controller"
-
-base=j.tools.cuisine.getBaseClass()
-class Controller(base):
+class CuisineController(base):
 
     def __init__(self, executor, cuisine):
-        self.executor = executor
-        self.cuisine = cuisine
+        self._executor = executor
+        self._cuisine = cuisine
 
-    @actionrun(action=True)
     def build(self, start=True, listen_addr=[]):
         """
         config: https://github.com/g8os/controller.git
         """
-        #deps
-        self.cuisine.apps.installdeps()
-        self.cuisine.apps.redis.build(start=False)
-        self.cuisine.apps.mongodb.build(start=False)
-        self.cuisine.apps.syncthing.build(start=False)
+        # deps
+        self._cuisine.apps.redis.build(start=False)
+        self._cuisine.apps.mongodb.build(start=False)
+        self._cuisine.apps.syncthing.build(start=False)
 
-
-        self.cuisine.processmanager.remove("agentcontroller8")
-        pm = self.cuisine.processmanager.get("tmux")
+        self._cuisine.processmanager.remove("agentcontroller8")
+        pm = self._cuisine.processmanager.get("tmux")
         pm.stop("syncthing")
 
-        self.cuisine.core.dir_ensure("$tmplsDir/cfg/controller", recursive=True)
+        self._cuisine.core.dir_ensure("$tmplsDir/cfg/controller", recursive=True)
 
-        #get repo
+        # get repo
         url = "github.com/g8os/controller"
-        self.cuisine.golang.clean_src_path()
-        self.cuisine.golang.godep(url)
+        self._cuisine.golang.clean_src_path()
+        self._cuisine.golang.godep(url)
 
         sourcepath = "$goDir/src/github.com/g8os/controller"
 
-        #do the actual building
-        self.cuisine.core.run("cd %s && go build ." % sourcepath, profile=True)
+        # do the actual building
+        self._cuisine.core.run("cd %s && go build ." % sourcepath, profile=True)
 
-        #move binary
-        self.cuisine.core.file_move("%s/controller" % sourcepath, "$binDir/controller")
+        # move binary
+        self._cuisine.core.file_move("%s/controller" % sourcepath, "$binDir/controller")
 
-
-        #file copy
-        self.cuisine.core.dir_remove("$tmplsDir/cfg/controller/extensions")
-        self.cuisine.core.file_copy("%s/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale" % self.cuisine.core.dir_paths["codeDir"], "$tmplsDir/cfg/controller/jumpscripts/", recursive=True)
-        self.cuisine.core.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/controller/extensions", recursive=True)
-        self.cuisine.core.file_copy("%s/agentcontroller.toml" % sourcepath, '$tmplsDir/cfg/controller/agentcontroller.toml')
+        # file copy
+        self._cuisine.core.dir_remove("$tmplsDir/cfg/controller/extensions")
+        self._cuisine.core.file_copy("%s/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale" %
+                                     self._cuisine.core.dir_paths["codeDir"], "$tmplsDir/cfg/controller/jumpscripts/", recursive=True)
+        self._cuisine.core.file_copy("%s/extensions" % sourcepath,
+                                     "$tmplsDir/cfg/controller/extensions", recursive=True)
+        self._cuisine.core.file_copy("%s/agentcontroller.toml" % sourcepath,
+                                     '$tmplsDir/cfg/controller/agentcontroller.toml')
 
         if start:
             self.start(listen_addr=listen_addr)
 
-    @actionrun(force=True)
     def start(self, listen_addr=[]):
         """
         @param listen_addr list of addresse on which the REST API of the controller should listen to
@@ -71,37 +58,41 @@ class Controller(base):
         import hashlib
         from xml.etree import ElementTree
 
-        self.cuisine.core.dir_ensure("$cfgDir/controller/")
-        self.cuisine.core.file_copy("$tmplsDir/cfg/controller", "$cfgDir/", recursive=True, overwrite=True)
+        self._cuisine.core.dir_ensure("$cfgDir/controller/")
+        self._cuisine.core.file_copy("$tmplsDir/cfg/controller", "$cfgDir/", recursive=True, overwrite=True)
 
         # edit config
-        C = self.cuisine.core.file_read('$cfgDir/controller/agentcontroller.toml')
+        C = self._cuisine.core.file_read('$cfgDir/controller/agentcontroller.toml')
         cfg = j.data.serializer.toml.loads(C)
 
         listen = cfg['listen']
         for addr in listen_addr:
             listen.append({'address': addr})
 
-        cfgDir = self.cuisine.core.dir_paths['cfgDir']
-        cfg["events"]["python_path"] = self.cuisine.core.joinpaths(cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
-        cfg["processor"]["python_path"] = self.cuisine.core.joinpaths(cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
-        cfg["jumpscripts"]["python_path"] = self.cuisine.core.joinpaths(cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
-        cfg["jumpscripts"]["settings"]["jumpscripts_path"] = self.cuisine.core.joinpaths(cfgDir, "/controller/jumpscripts")
+        cfgDir = self._cuisine.core.dir_paths['cfgDir']
+        cfg["events"]["python_path"] = self._cuisine.core.joinpaths(
+            cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
+        cfg["processor"]["python_path"] = self._cuisine.core.joinpaths(
+            cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
+        cfg["jumpscripts"]["python_path"] = self._cuisine.core.joinpaths(
+            cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
+        cfg["jumpscripts"]["settings"]["jumpscripts_path"] = self._cuisine.core.joinpaths(
+            cfgDir, "/controller/jumpscripts")
         C = j.data.serializer.toml.dumps(cfg)
 
-        self.cuisine.core.file_write('$cfgDir/controller/agentcontroller.toml', C, replaceArgs=True)
+        self._cuisine.core.file_write('$cfgDir/controller/agentcontroller.toml', C, replaceArgs=True)
 
         # expose syncthing and get api key
-        sync_cfg = ElementTree.fromstring(self.cuisine.core.file_read("$tmplsDir/cfg/syncthing/config.xml"))
+        sync_cfg = ElementTree.fromstring(self._cuisine.core.file_read("$tmplsDir/cfg/syncthing/config.xml"))
         sync_id = sync_cfg.find('device').get('id')
 
-        #set address
+        # set address
         sync_cfg.find("./gui/address").text = '127.0.0.1:18384'
 
         jumpscripts_id = "jumpscripts-%s" % hashlib.md5(sync_id.encode()).hexdigest()
-        jumpscripts_path = self.cuisine.core.args_replace("$cfgDir/controller/jumpscripts")
+        jumpscripts_path = self._cuisine.core.args_replace("$cfgDir/controller/jumpscripts")
 
-        #find folder element
+        # find folder element
         configured = False
         for folder in sync_cfg.findall('folder'):
             if folder.get('id') == jumpscripts_id:
@@ -130,14 +121,14 @@ class Controller(base):
         dump = ElementTree.tostring(sync_cfg, 'unicode')
         j.logger.log("SYNCTHING CONFIG", level=10)
         j.logger.log(dump, level=10)
-        self.cuisine.core.file_write("$cfgDir/syncthing/config.xml", dump)
+        self._cuisine.core.file_write("$cfgDir/syncthing/config.xml", dump)
 
         # start
-        self.cuisine.apps.syncthing.start()
-        self.cuisine.apps.mongodb.start()
-        self.cuisine.apps.redis.start()
+        self._cuisine.apps.syncthing.start()
+        self._cuisine.apps.mongodb.start()
+        self._cuisine.apps.redis.start()
         env = {}
-        env["TMPDIR"] = self.cuisine.core.dir_paths["tmpDir"]
+        env["TMPDIR"] = self._cuisine.core.dir_paths["tmpDir"]
         cmd = "$binDir/controller -c $cfgDir/controller/agentcontroller.toml"
-        pm = self.cuisine.processmanager.get("tmux")
+        pm = self._cuisine.processmanager.get("tmux")
         pm.ensure("controller", cmd=cmd, path="$cfgDir/controller/", env=env)

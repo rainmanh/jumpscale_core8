@@ -8,6 +8,7 @@ from Disk import *
 
 
 class NodeNas(NodeBase):
+
     def __init__(self, ipaddr, sshport=22, nrdisks=0, fstype="xfs", debugdisk="", name=""):
         """
         nbrdisk: if > 0, looks for default disks  at /dev/sdx
@@ -45,11 +46,11 @@ class NodeNas(NodeBase):
             self.prepareTmux("perftest", screens)
 
     def autoInitDisks(self):
-        if self.debug==False:
-            diskids="bcdefghijklmnopqrstuvwxyz"
+        if self.debug == False:
+            diskids = "bcdefghijklmnopqrstuvwxyz"
             for i in range(self.nrdisks):
-                diskname="/dev/vd%s"%diskids[i]
-                disk=Disk(diskname,node=self,disknr=i+1,screenname="ptest%s"%(i))
+                diskname = "/dev/vd%s" % diskids[i]
+                disk = Disk(diskname, node=self, disknr=i + 1, screenname="ptest%s" % (i))
                 self.disks.append(disk)
 
             # check mounts
@@ -79,8 +80,8 @@ class NodeNas(NodeBase):
             i = 0
             disk = Disk(self.debugdisk)
             self.disks.append(disk)
-            disk.screenname = "ptest%s"%i
-            disk.disknr = i+1
+            disk.screenname = "ptest%s" % i
+            disk.disknr = i + 1
             disk.mountpath = "/tmp/dummyperftest/%s" % i
             j.sal.fs.createDir(disk.mountpath)
             disk.node = self
@@ -129,8 +130,8 @@ class NodeNas(NodeBase):
 
         disk.initDisk(fs=self.fstype)
 
-    def findDisk(self,devname):
+    def findDisk(self, devname):
         for disk in self.disks:
-            if disk.devname==devname:
+            if disk.devname == devname:
                 return disk
         return None

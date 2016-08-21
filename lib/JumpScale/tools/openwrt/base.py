@@ -2,6 +2,7 @@ import functools
 
 
 class BaseService:
+
     def __init__(self, wrt):
         self._wrt = wrt
         self._package = None
@@ -15,6 +16,7 @@ class BaseService:
 
 
 class BaseServiceSection:
+
     def __new__(cls, *args, **kwargs):
         exposed_fields = cls.EXPOSED_FIELDS \
             if hasattr(cls, 'EXPOSED_FIELDS') else []

@@ -1,4 +1,4 @@
-## Parents & Children
+# Parents & Children
 
 A service can be a parent for other services.
 

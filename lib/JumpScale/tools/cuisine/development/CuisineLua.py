@@ -1,9 +1,8 @@
 from JumpScale import j
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
-
-class CuisineLua(base):
+class CuisineLua(app):
 
     NAME = "tarantool"
 

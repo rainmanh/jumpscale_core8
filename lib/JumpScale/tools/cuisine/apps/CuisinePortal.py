@@ -23,9 +23,9 @@ class CuisinePortal(base):
         """
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
         # if not self._cuisine.core.isMac:
-        if not self._cuisine.installer.jumpscale_installed():
+        if not self._cuisine.development.js8.jumpscale_installed():
             self._cuisine.installerdevelop.jumpscale8()
-        self._cuisine.pip.upgrade("pip")
+        self._cuisine.development.pip.packageUpgrade("pip")
         self.installDeps()
         self.getcode()
         self.linkCode()
@@ -129,10 +129,10 @@ class CuisinePortal(base):
         pillow
         """
         self._cuisine.package.install("libjpeg-dev")
-        self._cuisine.pip.multiInstall(deps)
+        self._cuisine.development.pip.packagesInstall(deps)
 
     def getcode(self):
-        self._cuisine.git.pullRepo("https://github.com/Jumpscale/jumpscale_portal8.git")
+        self._cuisine.development.git.pullRepo("https://github.com/Jumpscale/jumpscale_portal8.git")
 
     def linkCode(self):
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")

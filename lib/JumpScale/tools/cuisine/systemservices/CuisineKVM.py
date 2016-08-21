@@ -5,6 +5,10 @@ base = j.tools.cuisine._getBaseClass()
 
 # TODO: *1 implement & test & document (test on packet.net)
 
+# TODO: to implement this good first make sure there is a KVM SAL, then create jskvm just like ther eis a jsdocker
+# see how we did for docker, we need same approach, make sure that in sal
+# we expose all kvm/wemu properties e.g. limits from IOPS, ...
+
 
 class CuisineKVM(base):
     """

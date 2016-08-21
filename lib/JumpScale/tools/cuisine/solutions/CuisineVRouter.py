@@ -15,9 +15,9 @@ class CuisineVRouter(base):
         self._executor = executor
         self._cuisine = cuisine
 
-    def accesspoint(self, passphrase, name="", dns="8.8.8.8", interface="wlan0"):
+    def accesspointAllInOne(self, passphrase, name="", dns="8.8.8.8", interface="wlan0"):
         """
-        create an accesspoint
+        create an accesspoint with 1 script, do not use if you are using our smarter mitmproxy
         """
 
         # create_ap --no-virt -m bridge wlan1 eth0 kds10 kds007kds

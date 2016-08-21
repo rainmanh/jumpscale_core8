@@ -6,7 +6,7 @@ from JumpScale import j
 app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineGolang(base):
+class CuisineGolang(app):
     
     NAME = 'go'
 

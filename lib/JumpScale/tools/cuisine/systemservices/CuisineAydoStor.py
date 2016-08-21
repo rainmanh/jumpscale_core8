@@ -1,13 +1,15 @@
 from JumpScale import j
 
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 # TODO: is this still correct, maybe our docker approach better, need to check
 
 
-class CuisineAydoStor(base):
+class CuisineAydoStor(app):
 
+    NAME = 'stor'
+    
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
@@ -18,6 +20,8 @@ class CuisineAydoStor(base):
         @input addr, address and port on which the service need to listen. e.g. : 0.0.0.0:8090
         @input backend, directory where to save the data push to the store
         """
+        if self.isInstalled():
+            return 
         self._cuisine.core.dir_remove("%s/src" % self._cuisine.bash.environGet('GOPATH'))
         # self._cuisine.development.golang.install()
         self._cuisine.development.golang.get("github.com/g8os/stor")

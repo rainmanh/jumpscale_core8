@@ -5,6 +5,7 @@ app = j.tools.cuisine._getBaseAppClass()
 
 
 class CuisineVulcand(app):
+    NAME = "vulcand"
 
     def __init__(self, executor, cuisine):
         self._executor = executor

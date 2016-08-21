@@ -114,15 +114,17 @@ base = j.tools.cuisine._getBaseClass()
 
 
 class CuisineGeoDns(base):
-
+    NAME = "geodns"
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
-    def install(self):
+    def install(self, reset=False):
         """
         installs and builds geodns from github.com/abh/geodns
         """
+        if reset == False and self.isInstalled():
+            return
         # deps
         # self._cuisine.development.golang.install(force=False)
         self._cuisine.package.install("libgeoip-dev")

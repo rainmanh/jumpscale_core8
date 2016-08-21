@@ -35,6 +35,22 @@ class CuisineBase:
 
     __repr__ = __str__
 
+class CuisineApp(CuisineBase):
+
+    NAME = None
+    VERSION = None
+
+    def isInstalled(self):
+        """
+        Checks if a package is installed or not
+        You can ovveride it to use another way for checking
+        """
+        return not self._cuisine.core.run('PATH=$PATH:/opt/jumpscale8/bin which %s' % self.NAME, die=False, showout=False)[0]
+
+    def install(self):
+        if not self.isInstalled():
+            raise NotImplementedError()
+
 
 class CuisineBaseLoader:
 
@@ -62,6 +78,9 @@ class JSCuisineFactory:
 
     def _getBaseClass(self):
         return CuisineBase
+
+    def _getBaseAppClass(self):
+        return CuisineApp
 
     def _getBaseClassLoader(self):
         return CuisineBaseLoader

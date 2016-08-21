@@ -42,7 +42,7 @@ class CuisineSSHReflector(base):
 
         lpath = os.environ["HOME"] + "/.ssh/reflector"
         path = "/home/sshreflector/.ssh/reflector"
-        ftp = self._cuisine.core.executor.sshclient.getSFTP()
+        ftp = self._cuisine.core._executor.sshclient.getSFTP()
         if j.sal.fs.exists(lpath) and j.sal.fs.exists(lpath + ".pub"):
             print("UPLOAD EXISTING SSH KEYS")
             ftp.put(lpath, path)
@@ -119,7 +119,7 @@ class CuisineSSHReflector(base):
                 ftp.close()
 
             # upload to reflector client
-            ftp = self._cuisine.core.executor.sshclient.getSFTP()
+            ftp = self._cuisine.core._executor.sshclient.getSFTP()
             rpath = "/root/.ssh/reflector"
             ftp.put(lpath, rpath)
             ftp.put(lpath + ".pub", rpath + ".pub")

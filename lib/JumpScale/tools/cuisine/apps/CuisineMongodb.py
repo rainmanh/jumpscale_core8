@@ -49,9 +49,7 @@ class CuisineMongodb(base):
 
         self._cuisine.core.dir_ensure('$varDir/data/mongodb')
 
-    def build(self, start=True, dependencies=False):
-        if dependencies:
-            self._cuisine.installer.base()
+    def build(self, start=True):
         self._build()
         if start:
             self.start("mongod")

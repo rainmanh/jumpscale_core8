@@ -1,11 +1,11 @@
 from JumpScale import j
 
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineSkyDns(base):
-
+class CuisineSkyDns(app):
+    NAME = "skydns"
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine

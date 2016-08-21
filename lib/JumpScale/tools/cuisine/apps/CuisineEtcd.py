@@ -1,12 +1,12 @@
 from JumpScale import j
 
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineEtcd(base):
+class CuisineEtcd(app):
     NAME = "etcd"
-    def build(self, start=True, host=None, peers=[]):
+    def build(self, start=True, host=None, peers=[], reset=False):
         """
         Build and start etcd
 
@@ -14,6 +14,8 @@ class CuisineEtcd(base):
         @host, string. host of this node in the cluster e.g: http://etcd1.com
         @peer, list of string, list of all node in the cluster. [http://etcd1.com, http://etcd2.com, http://etcd3.com]
         """
+        if reset == False and self.isInstalled():
+            return
         self._cuisine.development.golang.install()
 
         C = """

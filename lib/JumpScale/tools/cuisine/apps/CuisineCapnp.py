@@ -32,4 +32,4 @@ class CuisineCapnp(app):
         """
         self._cuisine.core.run_script(script)
         # install python pacakge
-        self._cuisine.pip.multiInstall(['cython', 'setuptools', 'pycapnp'], upgrade=True)
+        self._cuisine.development.pip.multiInstall(['cython', 'setuptools', 'pycapnp'], upgrade=True)

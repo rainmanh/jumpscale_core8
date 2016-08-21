@@ -95,7 +95,7 @@ class JSCuisineFactory:
     @property
     def local(self):
         if self._local is None:
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             self._local = JSCuisine(j.tools.executor.getLocal())
         return self._local
 
@@ -164,7 +164,7 @@ class JSCuisineFactory:
 
         or if used without executor then will be the local one
         """
-        from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+        from JumpScale.tools.cuisine.JSCuisine import JSCuisine
         executor = j.tools.executor.get(executor)
         if executor.id in self._cuisines_instance:
             return self._cuisines_instance[executor.id]

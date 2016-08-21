@@ -24,6 +24,8 @@ class CuisineRedis(app):
         if reset == False and self.isInstalled():
             return
         if self._cuisine.core.isUbuntu:
+            self._cuisine.package.update()
+            self._cuisine.package.install("build-essential")
 
             # TODO: *1 is this newest redis, if not upgrade
 

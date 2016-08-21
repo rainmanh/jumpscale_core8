@@ -63,7 +63,7 @@ class CuisinePyFTPServer(base):
         # '''
 
         self._cuisine.installer.base()
-        self._cuisine.pip.install("pyftpdlib")
+        self._cuisine.development.pip.install("pyftpdlib")
 
         self._cuisine.btrfs.subvolumeCreate(root)
 

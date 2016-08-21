@@ -32,7 +32,7 @@ class TestCuisineFactory(unittest.TestCase):
         Test getting a local cuisine instance
         """
         with mock.patch("JumpScale.j") as j_mock:
-            with mock.patch("Cuisine2.JSCuisine") as jscuisine_mock:
+            with mock.patch("JSCuisine.JSCuisine") as jscuisine_mock:
                 from JumpScale import j
                 import JumpScale.tools.cuisine.CuisineFactory
                 JumpScale.tools.cuisine.CuisineFactory.j = j

@@ -37,7 +37,7 @@ class CuisineKVM(base):
         """
         # TODO: need to check and exit if required are met *1
         self._cuisine.package.install('libvirt-dev')
-        self._cuisine.pip.install("libvirt-python==1.3.2", upgrade=False)
+        self._cuisine.development.pip.install("libvirt-python==1.3.2", upgrade=False)
 
     def machineCreate(self, name="ubuntu1", image='http://fs.aydo.com/kvm/ub_small.img', pubkey=None):
         """

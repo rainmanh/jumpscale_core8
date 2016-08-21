@@ -3,24 +3,20 @@ from time import sleep
 
 base = j.tools.cuisine._getBaseClass()
 
+app = j.tools.cuisine._getBaseAppClass()
 # TODO: *1 check we are installing latest mongodb
 
 
-class CuisineMongodb(base):
+class CuisineMongodb(app):
+    NAME = 'mongod'   
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
     def _build(self):
-
-        exists = self._cuisine.core.command_check("mongod")
-
-        if exists:
-            cmd = self._cuisine.core.command_location("mongod")
-            dest = "%s/mongod" % self._cuisine.core.dir_paths["binDir"]
-            if j.sal.fs.pathClean(cmd) != j.sal.fs.pathClean(dest):
-                self._cuisine.core.file_copy(cmd, dest)
+        if self.isInstalled():
+            return 
         else:
             appbase = self._cuisine.core.dir_paths["binDir"]
 

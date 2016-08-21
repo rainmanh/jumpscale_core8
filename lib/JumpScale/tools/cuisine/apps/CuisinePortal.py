@@ -127,9 +127,14 @@ class CuisinePortal(base):
         wheel
         # zmq
         pillow
+        gevent
+        flask
+        Flask-Bootstrap
         """
-        self._cuisine.package.install("libjpeg-dev")
+        self._cuisine.package.multiInstall(['libjpeg-dev', 'libffi-dev'])
+        self._cuisine.development.pip.install()
         self._cuisine.development.pip.packagesInstall(deps)
+        self._cuisine.apps.mongodb.build()
 
     def getcode(self):
         self._cuisine.development.git.pullRepo("https://github.com/Jumpscale/jumpscale_portal8.git")

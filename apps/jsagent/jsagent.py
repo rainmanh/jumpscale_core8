@@ -14,6 +14,7 @@ import psutil
 import os
 import subprocess
 from JumpScale.tools import cmdutils
+from JumpScale.clients.redis.RedisQueue import RedisQueue
 import socket
 
 processes = list()
@@ -104,7 +105,8 @@ class Process():
 
 
 class ProcessManager():
-    def __init__(self, reset=False):
+    def __init__(self, opts):
+        self.opts = opts
 
         self.processes = list()
         self.services = list()
@@ -113,74 +115,24 @@ class ProcessManager():
         self.dir_hekadconfig = j.sal.fs.joinPaths(self.dir_data, "dir_hekadconfig")
         self.dir_actions = j.sal.fs.joinPaths(self.dir_data, "actions")
         j.sal.fs.createDir(self.dir_data)
-        if j.sal.nettools.tcpPortConnectionTest("localhost", 9999) == False:
-            redisServices = j.atyourservice.findServices('jumpscale', 'redis', 'system')
-            if len(redisServices) <= 0:
-                args = {'instance.param.port': 9999,
-                        'instance.param.disk': 0,
-                        'instance.param.mem': 40,
-                        'instance.param.ip': '127.0.0.1',
-                        'instance.param.passwd': '',
-                        'instance.param.unixsocket': 0}
-                redisService = j.atyourservice.new('jumpscale', 'redis', 'system', args=args)
-                redisService.install()
-            else:
-                redisService = redisServices[0]
-                redisService.start()
-            if j.sal.nettools.waitConnectionTest("localhost", 9999, 10) == False:
-                j.events.opserror_critical("could not start redis on port 9999 inside processmanager",
-                                           category="processmanager.redis.start")
-
-        self.redis_mem = j.clients.redis.getByInstance('system')
+        self.redis_mem = j.core.db
 
         self.redis_queues = {}
-        self.redis_queues["io"] = self.redis_mem.getQueue("workers:work:io")
-        self.redis_queues["hypervisor"] = self.redis_mem.getQueue("workers:work:hypervisor")
-        self.redis_queues["default"] = self.redis_mem.getQueue("workers:work:default")
-        self.redis_queues["process"] = self.redis_mem.getQueue("workers:work:process")
+        self.redis_queues["io"] = RedisQueue(self.redis_mem, "workers:work:io")
+        self.redis_queues["hypervisor"] = RedisQueue(self.redis_mem, "workers:work:hypervisor")
+        self.redis_queues["default"] = RedisQueue(self.redis_mem, "workers:work:default")
+        self.redis_queues["process"] = RedisQueue(self.redis_mem, "workers:work:process")
 
         j.processmanager = self
 
-        self.hrd = j.application.instanceconfig
-
-        acclientinstancename = self.hrd.get('instance.agentcontroller.connection')
-        acconfig = j.application.getAppInstanceHRD('agentcontroller_client', acclientinstancename)
-
-        acip = acconfig.get("instance.agentcontroller.client.addr", default="")
-
-        if "hekad" in self.services:
-            hekaServices = j.atyourservice.findservices("jumpscale", "hekad")
-            # if not ays.isInstalled(instance="0"):
-            if len(hekaServices) == 0:
-                hekad = j.atyourservice.new(name='hekad', instance='hekad')
-                hekad.install()
-                # ays.install(hrddata={},instance="hekad")
-
-            p = Process()
-            p.domain = "jumpscale"
-            p.name = "hekad"
-            p.instance = name
-            p.workingdir = "/opt/heka"
-            p.cmds = ["bin/hekad", "--config=%s" % self.dir_hekadconfig]
-            p.start()
-            self.processes.append(p)
-
-        if acip != "":
-
-            if j.application.config.exists("grid.id"):
-                if j.application.config.get("grid.id") == "" or j.application.config.getInt("grid.id") == 0:
-                    j.application.config.set("grid.id", self.hrd.get("instance.grid.id"))
-
-            acport = acconfig.getInt("instance.agentcontroller.client.port")
-            aclogin = acconfig.get("instance.agentcontroller.client.login", default="node")
-            acpasswd = acconfig.get("instance.agentcontroller.client.passwd", default="")
-
+        # self.hrd = j.application.instanceconfig
+        if opts.ip != "":
             # processmanager enabled
-            while j.sal.nettools.waitConnectionTest(acip, acport, 2) == False:
-                print("cannot connect to agentcontroller, will retry forever: '%s:%s'" % (acip, acport))
+            while j.sal.nettools.waitConnectionTest(opts.ip, opts.port, 2) == False:
+                print("cannot connect to agentcontroller, will retry forever: '%s:%s'" % (opts.ip, opts.port))
 
             # now register to agentcontroller
-            self.acclient = j.clients.agentcontroller.get(acip, login=aclogin, passwd=acpasswd, new=True)
+            self.acclient = j.clients.agentcontroller.get(opts.ip, port=opts.port, login="root", passwd=opts.password, new=True)
             res = self.acclient.registerNode(hostname=socket.gethostname(),
                                              machineguid=j.application.getUniqueMachineId())
 
@@ -194,7 +146,7 @@ class ProcessManager():
             j.application.loadConfig()
             j.application.initWhoAmI(True)
 
-            self.acclient = j.clients.agentcontroller.getByInstance(acclientinstancename)
+            self.acclient = j.clients.agentcontroller.get(opts.ip, port=opts.port, login="node", new=True)
         else:
             self.acclient = None
 
@@ -269,17 +221,21 @@ def kill_subprocesses():
 
 
 parser = cmdutils.ArgumentParser()
-parser.add_argument("-i", '--instance', default="0", help='jsagent instance', required=False)
-parser.add_argument("-r", '--reset', action='store_true', help='jsagent reset', required=False, default=False)
-parser.add_argument("-s", '--services', help='list of services to run e.g heka, agentcontroller,web', required=False,
+parser.add_argument('--grid-id', dest='gid', help='Grid id')
+parser.add_argument('--services', help='list of services to run e.g heka, agentcontroller,web', required=False,
                     default="")
+
+parser.add_argument('--controller-ip', dest='ip', help='Agent controller address')
+parser.add_argument('--controller-port', dest='port', type=int, default=4444, help='Agent controller port')
+parser.add_argument('--controller-login', dest='login', default='node', help='Agent controller login')
+parser.add_argument('--controller-password', dest='password', default='', help='Agent controller password')
 
 opts = parser.parse_args()
 
-j.application.instanceconfig = j.application.getAppInstanceHRD('jsagent', 'main')
+# j.application.instanceconfig = j.application.getAppInstanceHRD('jsagent', 'main')
 
 # first start processmanager with all required stuff
-pm = ProcessManager(reset=opts.reset)
+pm = ProcessManager(opts)
 processes = pm.processes
 pm.services = [item.strip().lower() for item in opts.services.split(",")]
 

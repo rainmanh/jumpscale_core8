@@ -1,15 +1,17 @@
 from JumpScale import j
 
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineInfluxdb(base):
+class CuisineInfluxdb(app):
+    NAME = "influxd"
 
-    def install(self, dependencies=False, start=False):
+    def install(self, dependencies=False, start=False, reset=False):
+        if reset == False and self.isInstalled():
+            return
 
         if dependencies:
-            self._cuisine.installer.base()
             self._cuisine.package.mdupdate()
 
         if self._cuisine.core.isMac:

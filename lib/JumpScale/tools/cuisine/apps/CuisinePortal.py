@@ -144,8 +144,9 @@ class CuisinePortal(base):
         _, destjslib, _ = self._cuisine.core.run(
             "js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'", showout=False)
 
-        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths[
-            "codeDir"], "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
+        if self._cuisine.core.file_exists("%s/portal" % destjslib):
+            self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths[
+                                         "codeDir"], "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" %
                                      self._cuisine.core.dir_paths["codeDir"], "%s/portal" % self._cuisine.core.dir_paths['jsLibDir'])
 

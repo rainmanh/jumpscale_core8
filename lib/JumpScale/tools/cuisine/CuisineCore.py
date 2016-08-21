@@ -509,8 +509,8 @@ class CuisineCore(base):
                 hostname = self.run("hostname")[1]
             else:
                 hostfile = "/etc/hostname"
-                hostname = self.run("cat %s" % hostfile, showout=False, replaceArgs=False,
-                                    force=False)[1].strip().split(".", 1)[0]
+                rc, out, err = self.run("cat %s" % hostfile, showout=False, replaceArgs=False)
+                hostname = out.strip().split(".", 1)[0]
             return hostname
         return self._cache.get("hostname", get)
 

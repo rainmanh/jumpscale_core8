@@ -18,6 +18,8 @@ import io
 import threading
 from threading import Thread, Lock
 import queue
+import os
+# import smtplib
 import re
 import inspect
 
@@ -25,7 +27,7 @@ if sys.platform != 'cygwin':
     import uvloop
 
 
-class InstallTools:
+class InstallTools():
 
     def __init__(self, debug=False):
 
@@ -102,7 +104,7 @@ class InstallTools:
     #     from IPython import embed
     #     print((44))
     #     embed()
-    #     #@todo not working yet
+    #     #TODO: not working yet
 
     def log(self, msg, level=None):
         if self.debug:
@@ -318,7 +320,7 @@ class InstallTools:
                         os.symlink(linkto, dstname)
                     except:
                         pass
-                        #@todo very ugly change
+                        # TODO: very ugly change
                 elif self.isDir(srcname):
                     # print "1:%s %s"%(srcname,dstname)
                     self.copyTree(srcname, dstname, keepsymlinks, deletefirst,
@@ -779,7 +781,7 @@ class InstallTools:
         Returns the parent of the path:
         /dir1/dir2/file_or_dir -> /dir1/dir2/
         /dir1/dir2/            -> /dir1/
-        @todo why do we have 2 implementations which are almost the same see getParentDirName()
+        TODO: why do we have 2 implementations which are almost the same see getParentDirName()
         """
         parts = path.split(os.sep)
         if parts[-1] == '':
@@ -1283,33 +1285,27 @@ class InstallTools:
             self._whoami = result.strip()
         return self._whoami
 
-    def addSSHAgentToBashProfile(self, path=None):
-        if path == None:
-            if "root" == self.whoami():
-                if not self.exists('/root/.bash_profile'):
-                    self.execute('touch /root/.bash_profile')
-                return self.addSSHAgentToBashProfile(path="/root/.bash_profile")
-            path = self.joinPaths(os.environ["HOME"], ".bash_profile")
-            self.createDir(path)
-            self.addSSHAgentToBashProfile(path=path)
-        else:
-            content = self.readFile(path)
-            out = ""
-            for line in content.split("\n"):
-                if line.find("#JSSSHAGENT") != -1:
-                    continue
-                if line.find("SSH_AUTH_SOCK") != -1:
-                    continue
+    def _addSSHAgentToBashProfile(self, path=None):
 
-                out += "%s\n" % line
+        bashprofile_path = os.path.expanduser("~/.bash_profile")
+        if not self.exists(bashprofile_path):
+            self.execute('touch %s' % bashprofile_path)
 
-            out += "\njs 'j.do.loadSSHAgent()' #JSSSHAGENT\n"
-            socketpath = "%s/sshagent_socket" % path.replace("/.bash_profile", "")
-            # out+="export SSH_AUTH_SOCK=%s \n"%socketpath
-            out += "if [ -v $SSH_AUTH_SOCK ]; then export SSH_AUTH_SOCK=%s ; fi\n" % socketpath
-            out = out.replace("\n\n\n", "\n\n")
-            out = out.replace("\n\n\n", "\n\n")
-            self.writeFile(path, out)
+        content = self.readFile(bashprofile_path)
+        out = ""
+        for line in content.split("\n"):
+            if line.find("#JSSSHAGENT") != -1:
+                continue
+            if line.find("SSH_AUTH_SOCK") != -1:
+                continue
+
+            out += "%s\n" % line
+
+        # out += "\njs 'j.do.loadSSHAgent()' #JSSSHAGENT\n"
+        out += "export SSH_AUTH_SOCK=%s" % self._getSSHSocketpath()
+        out = out.replace("\n\n\n", "\n\n")
+        out = out.replace("\n\n\n", "\n\n")
+        self.writeFile(bashprofile_path, out)
 
     def _initSSH_ENV(self, force=False):
         if force or "SSH_AUTH_SOCK" not in os.environ:
@@ -1324,53 +1320,70 @@ class InstallTools:
         socketpath = "%s/sshagent_socket" % os.environ["HOME"]
         return socketpath
 
+    def askItemsFromList(self, items, msg=""):
+        if len(items) == 0:
+            return []
+        if msg != "":
+            print(msg)
+        nr = 0
+        for item in items:
+            nr += 1
+            print(" - %s: %s" % (nr, item))
+        print("select item(s) from list (nr or comma separated list of nr, * is all)")
+        item = input()
+        if item.strip() == "*":
+            return items
+        elif item.find(",") != -1:
+            res = []
+            itemsselected = [item.strip() for item in item.split(",") if item.strip() != ""]
+            for item in itemsselected:
+                item = int(item) - 1
+                res.append(items[item])
+            return res
+        else:
+            item = int(item) - 1
+            return [items[item]]
+
     def loadSSHKeys(self, path=None, duration=3600 * 24, die=False):
         """
+        will see if ssh-agent has been started
+        will check keys in home dir
+        will ask which keys to load
+        will adjust .profile file to make sure that env param is set to allow ssh-agent to find the keys
         """
         # print "loadsshkeys"
 
-        if path != None:
+        self._addSSHAgentToBashProfile()
 
-            if "SSH_AUTH_SOCK" not in os.environ:
-                self._initSSH_ENV(True)
+        if path is None:
+            path = os.path.expanduser("~/.ssh")
+        self.createDir(path)
 
-            keysloaded = self.listSSHKeyFromAgent(keyIncluded=True)
+        if "SSH_AUTH_SOCK" not in os.environ:
+            self._initSSH_ENV(True)
 
-            keycontent = self.readFile(path + ".pub")
+        self._loadSSHAgent()
 
-            for path0, inmemcontent in keysloaded:
-                if keycontent.find(inmemcontent) != -1:
-                    # means key is already loaded
-                    return
+        keysloaded = [self.getBaseName(item) for item in self.listSSHKeyFromAgent()]
 
+        keysinfs = [self.getBaseName(item).replace(".pub", "") for item in self.listFilesInDir(
+            path, filter="*.pub") if self.exists(item.replace(".pub", ""))]
+
+        keysinfs = [item for item in keysinfs if item not in keysloaded]
+
+        res = self.askItemsFromList(
+            keysinfs, "select ssh keys to load, use comma separated list e.g. 1,4,3 and press enter.")
+
+        for item in res:
+            pathkey = "%s/%s" % (path, item)
             # timeout after 24 h
-            print("load sshkey: %s" % path)
-            cmd = "ssh-add -t %s %s " % (duration, path)
-            # print(cmd)
-            # rc,result,err=self.execute(cmd,die=False,showout=False, outputStderr=False)
+            print("load sshkey: %s" % pathkey)
+            cmd = "ssh-add -t %s %s " % (duration, pathkey)
             self.executeInteractive(cmd)
-            # if rc>0:
-            #     raise RuntimeError("Could not add key to sshagent, something went wrong,\nstdout:%s\nstderr:%s\n"%(result,err))
-        else:
-            # no path specified need to find key paths
-            if "root" == self.whoami():
-                path = "/root/.ssh"
-            else:
-                path = self.joinPaths(os.environ["HOME"], ".ssh")
-
-            keys = self.listFilesInDir(path, filter="*.pub")
-
-            keysloaded = self.listSSHKeyFromAgent()
-            for keypath in keys:
-                keypath = keypath[:-4]
-                if keypath not in keysloaded:
-                    self.loadSSHKeys(keypath)
-                # else:
-                #     print("SSHKEY no need to load:%s"%keypath)
 
     def getSSHKeyPathFromAgent(self, keyname, die=True):
         try:
-            #@todo why do we use subprocess here and not self.execute?
+            # TODO: why do we use subprocess here and not self.execute?
             out = subprocess.check_output(["ssh-add", "-L"])
         except:
             return None
@@ -1394,7 +1407,7 @@ class InstallTools:
 
     def getSSHKeyFromAgentPub(self, keyname, die=True):
         try:
-            #@todo why do we use subprocess here and not self.execute?
+            # TODO: why do we use subprocess here and not self.execute?
             out = subprocess.check_output(["ssh-add", "-L"])
         except:
             return None
@@ -1415,6 +1428,7 @@ class InstallTools:
         """
         if "SSH_AUTH_SOCK" not in os.environ:
             self._initSSH_ENV(True)
+        self._loadSSHAgent()
         cmd = "ssh-add -L"
         rc, out, err = self.execute(cmd, False, False, die=False)
         if rc:
@@ -1518,7 +1532,7 @@ class InstallTools:
             else:
                 print("ssh key was already authorized")
 
-    def loadSSHAgent(self, path=None, createkeys=False, keyname="id_rsa", killfirst=False):
+    def _loadSSHAgent(self, path=None, createkeys=False, killfirst=False):
         """
         check if ssh-agent is available & there is key loaded
 
@@ -1552,15 +1566,15 @@ class InstallTools:
             self.delete(socketpath)
             self.delete(self.joinPaths(self.TMP, "ssh-agent-pid"))
 
-        if path == None:
-            path2 = self.joinPaths(os.environ["HOME"], ".ssh", keyname)
-            if not self.exists(path2):
-                if createkeys:
-                    self.executeInteractive("ssh-keygen -t rsa -b 4096 -f %s" % path2)
-                    return self.loadSSHAgent(path=path2, createkeys=False)
-        else:
-            if not self.exists(path):
-                raise RuntimeError("Cannot find ssh key on %s" % path)
+        # if path == None:
+        #     path2 = self.joinPaths(os.environ["HOME"], ".ssh", keyname)
+        #     if not self.exists(path2):
+        #         if createkeys:
+        #             self.executeInteractive("ssh-keygen -t rsa -b 4096 -f %s" % path2)
+        #             return self._loadSSHAgent(path=path2, createkeys=False)
+        # else:
+        #     if not self.exists(path):
+        #         raise RuntimeError("Cannot find ssh key on %s" % path)
 
         if not self.exists(socketpath):
             # ssh-agent not loaded
@@ -1586,9 +1600,9 @@ class InstallTools:
                 self._initSSH_ENV(True)
                 pid = int(piditems[-1].split(" ")[-1].strip("; "))
                 self.writeFile(self.joinPaths(self.TMP, "ssh-agent-pid"), str(pid))
-                self.addSSHAgentToBashProfile()
+                self._addSSHAgentToBashProfile()
 
-                self.loadSSHKeys(path=path)
+                # self.loadSSHKeys(path=path)
 
         # ssh agent should be loaded because ssh-agent socket has been found
         # pid=int(self.readFile(self.joinPaths(self.TMP,"ssh-agent-pid")))
@@ -1607,9 +1621,13 @@ class InstallTools:
                 "Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n" % (result, err))
 
     def checkSSHAgentAvailable(self):
+        if not self.exists(self._getSSHSocketpath()):
+            return False
         if "SSH_AUTH_SOCK" not in os.environ:
             self._initSSH_ENV(True)
         rc, out, err = self.execute("ssh-add -l", showout=False, outputStderr=False, die=False)
+        if 'The agent has no identities.' in out:
+            return True
         if rc != 0:
             return False
         else:
@@ -1753,9 +1771,9 @@ class InstallTools:
                 if url.find("http") != -1:
                     print("http")
                     if branch != None:
-                        cmd = "cd %s;git pull origin %s" % (dest, branch)
+                        cmd = "cd %s;git -c http.sslVerify=false pull origin %s" % (dest, branch)
                     else:
-                        cmd = "cd %s;git pull" % dest
+                        cmd = "cd %s;git -c http.sslVerify=false pull" % dest
                 else:
                     if branch != None:
                         cmd = "cd %s; git fetch ; git reset --hard origin/%s" % (dest, branch)
@@ -1769,10 +1787,10 @@ class InstallTools:
                 extra = "--depth=%s" % depth
             if url.find("http") != -1:
                 if branch != None:
-                    cmd = "cd %s;git clone %s --single-branch -b %s %s %s" % (
+                    cmd = "cd %s;git -c http.sslVerify=false clone %s --single-branch -b %s %s %s" % (
                         self.getParent(dest), extra, branch, url, dest)
                 else:
-                    cmd = "cd %s;git clone %s  %s %s" % (self.getParent(dest), extra, url, dest)
+                    cmd = "cd %s;git -c http.sslVerify=false clone %s  %s %s" % (self.getParent(dest), extra, url, dest)
             else:
                 if branch != None:
                     cmd = "cd %s;git clone %s --single-branch -b %s %s %s" % (
@@ -1826,7 +1844,7 @@ class InstallTools:
         if not or more than 1 there will be error
         @param provider e.g. git, github
         """
-        #@todo make sure we use gitlab or github account if properly filled in
+        # TODO: make sure we use gitlab or github account if properly filled in
         repos = self.getGitReposListLocal(provider, account, name)
         for name, path in list(repos.items()):
             print(("push git repo:%s" % path))
@@ -2287,6 +2305,8 @@ eval "$(_JSDOCKER_COMPLETE=source jsdocker)"\n
 
         export PATH=$JSBASE/bin:$PATH
 
+        export LUA_PATH="/opt/jumpscale8/lib/lua/?.lua;./?.lua;/opt/jumpscale8/lib/lua/?/?.lua;/opt/jumpscale8/lib/lua/tarantool/?.lua;/opt/jumpscale8/lib/lua/?/init.lua"
+
         $pythonhome
         export PYTHONPATH=$pythonpath
 
@@ -2443,14 +2463,18 @@ exec python3 -q "$@"
             pip3 install ipython
             pip3 install redis
             pip3 install netaddr
+            pip3 install pycapnp
+            pip3 install path.py
+            pip3 install colored-traceback
+            pip3 install pudb
+            pip3 install colorlog
+            pip3 install msgpack-python
+            pip3 install pyblake2
             """
             do.executeCmds(cmds)
 
-            do.executeInteractive("pip3 install colored-traceback")
             #do.executeInteractive("pip3 install xonsh")
-            do.executeInteractive("pip3 install pudb")
-            do.executeInteractive("pip3 install tmuxp")
-            do.executeInteractive("pip3 install colorlog")
+            # do.executeInteractive("pip3 install tmuxp")
 
             if sys.platform.startswith('win'):
                 raise RuntimeError("Cannot find JSBASE, needs to be set as env var")

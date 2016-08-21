@@ -1,27 +1,11 @@
 from JumpScale import j
 import os
 
-from ActionDecorator import ActionDecorator
+base = j.tools.cuisine._getBaseClass()
 
 
-"""
-please ensure that the start and build methods are separate and
-the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
-"""
+class CuisineLedis(base):
 
-
-class actionrun(ActionDecorator):
-
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.ledis"
-
-base = j.tools.cuisine.getBaseClass()
-
-
-class Ledis(base):
-
-    
     def build(self, backend="leveldb"):
         # self._cuisine.installer.base()
         if self._cuisine.core.isUbuntu:
@@ -38,7 +22,7 @@ class Ledis(base):
             """
             self._cuisine.golang.install()
             self._cuisine.git.pullRepo("https://github.com/siddontang/ledisdb",
-                                      dest="$goDir/src/github.com/siddontang/ledisdb")
+                                       dest="$goDir/src/github.com/siddontang/ledisdb")
 
             # set the backend in the server config
             ledisdir = self._cuisine.core.args_replace("$goDir/src/github.com/siddontang/ledisdb")
@@ -70,7 +54,6 @@ class Ledis(base):
     def _preparerocksdb(self):
         raise NotImplementedError
 
-    
     def install(self, start=True):
         ledisdir = self._cuisine.core.args_replace("$goDir/src/github.com/siddontang/ledisdb")
 

@@ -3,7 +3,7 @@ import time
 import re
 
 # not using cuisine.tmux.executeInScreen
-base = j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine._getBaseClass()
 
 
 class ProcessManagerBase(base):

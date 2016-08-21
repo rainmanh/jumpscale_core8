@@ -1,31 +1,15 @@
 from JumpScale import j
 
 
-from ActionDecorator import ActionDecorator
+base = j.tools.cuisine._getBaseClass()
 
 
-"""
-please ensure that the start and build methods are separate and
-the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
-"""
-
-
-class actionrun(ActionDecorator):
-
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.controller"
-
-base = j.tools.cuisine.getBaseClass()
-
-
-class Controller(base):
+class CuisineController(base):
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
-    
     def build(self, start=True, listen_addr=[]):
         """
         config: https://github.com/g8os/controller.git
@@ -57,15 +41,15 @@ class Controller(base):
         # file copy
         self._cuisine.core.dir_remove("$tmplsDir/cfg/controller/extensions")
         self._cuisine.core.file_copy("%s/github/jumpscale/jumpscale_core8/apps/agentcontroller/jumpscripts/jumpscale" %
-                                    self._cuisine.core.dir_paths["codeDir"], "$tmplsDir/cfg/controller/jumpscripts/", recursive=True)
-        self._cuisine.core.file_copy("%s/extensions" % sourcepath, "$tmplsDir/cfg/controller/extensions", recursive=True)
+                                     self._cuisine.core.dir_paths["codeDir"], "$tmplsDir/cfg/controller/jumpscripts/", recursive=True)
+        self._cuisine.core.file_copy("%s/extensions" % sourcepath,
+                                     "$tmplsDir/cfg/controller/extensions", recursive=True)
         self._cuisine.core.file_copy("%s/agentcontroller.toml" % sourcepath,
-                                    '$tmplsDir/cfg/controller/agentcontroller.toml')
+                                     '$tmplsDir/cfg/controller/agentcontroller.toml')
 
         if start:
             self.start(listen_addr=listen_addr)
 
-    
     def start(self, listen_addr=[]):
         """
         @param listen_addr list of addresse on which the REST API of the controller should listen to
@@ -86,7 +70,8 @@ class Controller(base):
             listen.append({'address': addr})
 
         cfgDir = self._cuisine.core.dir_paths['cfgDir']
-        cfg["events"]["python_path"] = self._cuisine.core.joinpaths(cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
+        cfg["events"]["python_path"] = self._cuisine.core.joinpaths(
+            cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
         cfg["processor"]["python_path"] = self._cuisine.core.joinpaths(
             cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
         cfg["jumpscripts"]["python_path"] = self._cuisine.core.joinpaths(

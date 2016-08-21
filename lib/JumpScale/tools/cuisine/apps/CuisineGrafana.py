@@ -1,19 +1,9 @@
 from JumpScale import j
 
-
-from ActionDecorator import ActionDecorator
-
-
-"""
-please ensure that the start and build methods are separate and
-the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
-"""
+base = j.tools.cuisine._getBaseClass()
 
 
-base = j.tools.cuisine.getBaseClass()
-
-
-class Grafana(base):
+class CuisineGrafana(base):
 
     def install(self, start=True, influx_addr='127.0.0.1', influx_port=8086, port=3000):
 
@@ -31,44 +21,9 @@ class Grafana(base):
             # self._cuisine.core.pprint(C)
             self._cuisine.core.run_script(C, profile=True)
 
-        elif self._cuisine.core.isLinux:
-            dataDir = self._cuisine.core.args_replace("$varDir/data/grafana")
-
-            logDir = '%s/log' % (dataDir)
-
-            C = """
-            set -ex
-            cd $tmpDir
-            wget https://grafanarel.s3.amazonaws.com/builds/grafana-3.1.0-1468321182.linux-x64.tar.gz
-            tar -xvzf grafana-3.1.0-1468321182.linux-x64.tar.gz
-            cd grafana-3.1.0-1468321182
-
-            #wget https://grafanarel.s3.amazonaws.com/builds/grafana-2.6.0.linux-x64.tar.gz
-            #tar -xvzf grafana-2.6.0.linux-x64.tar.gz
-            #cd grafana-2.6.0
-
-            cp bin/grafana-server $binDir
-            cp bin/grafana-cli $binDir
-            mkdir -p $tmplsDir/cfg/grafana
-            cp -rn conf public vendor $tmplsDir/cfg/grafana
-            mkdir -p %s
-            """ % (logDir)
-
-            # C = self._cuisine.bash.replaceEnvironInText(j.data.text.strip(C))
-            # next is for debug purposes
-            self._cuisine.core.pprint(C)
-            self._cuisine.core.run_script(C, profile=True)
-            from IPython import embed
-            print("DEBUG NOW sdsd")
-            embed()
-            p
-
-            self._cuisine.core.run_script(C, profile=True)
-            self._cuisine.bash.addPath(self._cuisine.core.args_replace("$binDir"))
-            cfg = self._cuisine.core.file_read("$tmplsDir/cfg/grafana/conf/defaults.ini")
-            cfg = cfg.replace('data = data', 'data = %s' % (dataDir))
-            cfg = cfg.replace('logs = data/log', 'logs = %s' % (logDir))
-            self._cuisine.core.file_write("$tmplsDir/cfg/grafana/conf/defaults.ini", cfg)
+            # TODO: *1 move binaries to bin dir in /opt/...
+            # TODO: *1 move base dir of grafana to /opt/...
+            # TODO: *1 move example config file to $tmpldir
 
         else:
             raise RuntimeError("platform not supported")
@@ -117,6 +72,7 @@ class Grafana(base):
                 pass
 
     def scriptedAgent(self):
+        # TODO: *2 dont understand this please document
         scriptedagent = """
         /* global _ */
         /*

@@ -2,25 +2,10 @@ from JumpScale import j
 from time import sleep
 
 
-from ActionDecorator import ActionDecorator
+base = j.tools.cuisine._getBaseClass()
 
 
-"""
-please ensure that the start and build methods are separate and
-the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
-"""
-
-
-class actionrun(ActionDecorator):
-
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.alba"
-
-base = j.tools.cuisine.getBaseClass()
-
-
-class Alba(base):
+class CuisineAlba(base):
 
     def __init__(self, executor, cuisine):
         self._executor = executor
@@ -30,12 +15,10 @@ class Alba(base):
         self.ocaml_version = '4.02.3'
         self.opam_root = None
 
-    
     def build(self, start=True):
         self._install_deps()
         self._build()
 
-    
     def _install_deps_opam(self):
         self._cuisine.package.update()
         self._cuisine.package.upgrade(distupgrade=True)
@@ -75,7 +58,6 @@ class Alba(base):
         self._cuisine.core.run_script(
             'source $tmpDir/opam.env && opam update && opam install -y %s' % opam_deps, profile=True)
 
-    
     def _install_deps_intel_storage(self):
         url = 'https://01.org/sites/default/files/downloads/intelr-storage-acceleration-library-open-source-version/isa-l-2.14.0.tar.gz'
         self._cuisine.core.file_download(url, to='$tmpDir/isa-l-2.14.0.tar.gz')
@@ -93,7 +75,6 @@ class Alba(base):
         """
         return
 
-    
     def _install_deps_cpp(self):
         self._cuisine.package.multiInstall("libgtest-dev cmake", allow_unauthenticated=True)
         self._cuisine.core.run('cd /usr/src/gtest && cmake . && make && mv libg* /usr/lib/')
@@ -108,7 +89,6 @@ class Alba(base):
 
         return
 
-    
     def _install_deps_arakoon(self):
         aradest = self._cuisine.git.pullRepo(
             'https://github.com/openvstorage/arakoon.git', branch="1.9", depth=None, ssh=False)
@@ -135,7 +115,6 @@ class Alba(base):
         """
         return
 
-    
     def _install_deps_orocksdb(self):
         if self._cuisine.core.file_exists('$tmpDir/OPAM/4.02.3/lib/rocks/META'):
             print('rocks already found')
@@ -158,7 +137,6 @@ class Alba(base):
         """
         return
 
-    
     def _install_deps_etcd(self):
         url = 'https://github.com/coreos/etcd/releases/download/v2.2.4/etcd-v2.2.4-linux-amd64.tar.gz'
         self._cuisine.core.file_download(url, to='$tmpDir/etcd-v2.2.4-linux-amd64.tar.gz')
@@ -176,7 +154,6 @@ class Alba(base):
 
         return
 
-    
     def _install_deps(self):
         self._install_deps_opam()
         self._install_deps_intel_storage()
@@ -185,10 +162,9 @@ class Alba(base):
         self._install_deps_orocksdb()
         self._install_deps_etcd()
 
-    
     def _build(self):
         repo = self._cuisine.git.pullRepo('https://github.com/openvstorage/alba',
-                                         branch="ubuntu-16.04", depth=None, ssh=False)
+                                          branch="ubuntu-16.04", depth=None, ssh=False)
         self._cuisine.core.run_script('source $tmpDir/opam.env && cd %s; make' % repo, profile=True)
         self._cuisine.core.file_copy('%s/ocaml/alba.native' % repo, '$binDir/alba')
         self._cuisine.core.file_copy('%s/ocaml/albamgr_plugin.cmxs' % repo, '$binDir/albamgr_plugin.cmxs')

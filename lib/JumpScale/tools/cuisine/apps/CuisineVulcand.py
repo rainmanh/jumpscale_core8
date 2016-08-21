@@ -1,31 +1,15 @@
 from JumpScale import j
 
 
-from ActionDecorator import ActionDecorator
+base = j.tools.cuisine._getBaseClass()
 
 
-"""
-please ensure that the start and build methods are separate and
-the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
-"""
-
-
-class actionrun(ActionDecorator):
-
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.vulcand"
-
-base = j.tools.cuisine.getBaseClass()
-
-
-class Vulcand(base):
+class CuisineVulcand(base):
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
-    
     def build(self):
         C = '''
         #!/bin/bash

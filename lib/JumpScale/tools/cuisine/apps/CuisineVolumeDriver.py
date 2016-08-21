@@ -2,40 +2,23 @@ from JumpScale import j
 from time import sleep
 
 
-from ActionDecorator import ActionDecorator
+base = j.tools.cuisine._getBaseClass()
 
 
-"""
-please ensure that the start and build methods are separate and
-the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
-"""
-
-
-class actionrun(ActionDecorator):
-
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.volumedriver"
-
-base = j.tools.cuisine.getBaseClass()
-
-
-class VolumeDriver(base):
+class CuisineVolumeDriver(base):
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
         self.logger = j.logger.get("j.tools.cuisine.volumedriver")
 
-    
     def build(self, start=True):
         self._install_deps()
         self._build()
 
-    
     def _install_deps(self):
         self._cuisine.core.file_write('/etc/apt/sources.list.d/ovsaptrepo.list',
-                                     'deb http://apt.openvstorage.org unstable main')
+                                      'deb http://apt.openvstorage.org unstable main')
         self._cuisine.package.update()
         self._cuisine.package.upgrade(distupgrade=True)
 
@@ -62,7 +45,6 @@ class VolumeDriver(base):
         """
         self._cuisine.package.multiInstall(apt_deps, allow_unauthenticated=True)
 
-    
     def _build(self, version='6.0.0'):
         workspace = self._cuisine.core.args_replace("$tmpDir/volumedriver-workspace")
         self._cuisine.core.dir_ensure(workspace)
@@ -72,7 +54,8 @@ class VolumeDriver(base):
             'version': version,
         }
 
-        str_repl['volumedriver'] = self._cuisine.git.pullRepo('https://github.com/openvstorage/volumedriver', depth=None)
+        str_repl['volumedriver'] = self._cuisine.git.pullRepo(
+            'https://github.com/openvstorage/volumedriver', depth=None)
         str_repl['buildtools'] = self._cuisine.git.pullRepo(
             'https://github.com/openvstorage/volumedriver-buildtools', depth=None)
         self._cuisine.core.run('cd %(volumedriver)s;git checkout tags/%(version)s' % str_repl)

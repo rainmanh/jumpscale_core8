@@ -1,37 +1,56 @@
 from JumpScale import j
 
-from Cuisine2 import *
+import inspect
 
 
 class CuisineBase:
 
     def __init__(self, executor, cuisine):
+        self._p_cache = None
+        self.__classname = None
         self._executor = executor
         self._cuisine = cuisine
 
     @property
-    def classname(self):
-        if "_classname" not in self.__dict__:
-            self._classname = str(self.__class__).split(".")[-1].strip("'>")
-        return self._classname
+    def _classname(self):
+        if self.__classname == None:
+            self.__classname = str(self.__class__).split(".")[-1].strip("'>")
+        return self.__classname
 
-    def reset_actions(self, prefix=""):
-        prefix = "%s.%s" % (self.classname, prefix)
-        j.actions.reset(runid=self.id, prefix=prefix)
-
-    def reset(self):
-        j.actions.reset(self.id)
-        j.data.cache.reset(self.id)
+    def _reset(self):
+        j.data.cache.reset(self._id)
 
     @property
-    def id(self):
+    def _id(self):
         return self._executor.id
 
     @property
-    def cache(self):
-        if "_cache" not in self.__dict__:
-            self._cache = j.data.cache.get(self.id, self.classname, keepInMem=False, reset=False)
-        return self._cache
+    def _cache(self):
+        if self._p_cache is None:
+            self._p_cache = j.data.cache.get(self._id, self._classname, keepInMem=False, reset=False)
+        return self._p_cache
+
+    def __str__(self):
+        return "cuisine:%s:%s" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))
+
+    __repr__ = __str__
+
+
+class CuisineBaseLoader:
+
+    def __init__(self, executor, cuisine):
+        self._executor = executor
+        self._cuisine = cuisine
+        myClassName = str(self.__class__).split(".")[-1].split("'")[0]
+        localdir = j.sal.fs.getDirName(inspect.getsourcefile(self.__class__))
+        classes = [j.sal.fs.getBaseName(item)[7:-3] for item in j.sal.fs.listFilesInDir(localdir, filter="Cuisine*")]
+        for className in classes:
+            # import the class
+            exec("from JumpScale.tools.cuisine.%s.Cuisine%s import *" % (myClassName, className))
+            # attach the class to this class
+            do = "self.%s=Cuisine%s(self._executor,self._cuisine)" % (className.lower(), className)
+            # print(do)
+            exec(do)
 
 
 class JSCuisineFactory:
@@ -41,8 +60,11 @@ class JSCuisineFactory:
         self._local = None
         self._cuisines_instance = {}
 
-    def getBaseClass(self):
+    def _getBaseClass(self):
         return CuisineBase
+
+    def _getBaseClassLoader(self):
+        return CuisineBaseLoader
 
     def reset(self, cuisine):
         """
@@ -54,6 +76,7 @@ class JSCuisineFactory:
     @property
     def local(self):
         if self._local is None:
+            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
             self._local = JSCuisine(j.tools.executor.getLocal())
         return self._local
 
@@ -73,11 +96,12 @@ class JSCuisineFactory:
 
         executor = None
         if not passwd:
-            #TODO: fix *1,goal is to test if ssh works, get some weird paramiko issues or timeout is too long
+            # TODO: fix *1,goal is to test if ssh works, get some weird paramiko issues or timeout is too long
             res = j.clients.ssh.get(addr, port=port, login=login, passwd="", allow_agent=True,
                                     look_for_keys=True, timeout=0.5, key_filename=keyname, passphrase=passphrase, die=False)
             if res is not False:
-                executor = j.tools.executor.getSSHBased(addr=addr, port=port, login=login, pushkey=keyname, passphrase=passphrase)
+                executor = j.tools.executor.getSSHBased(
+                    addr=addr, port=port, login=login, pushkey=keyname, passphrase=passphrase)
             else:
                 passwd = j.tools.console.askPassword("please specify root passwd", False)
 
@@ -121,6 +145,7 @@ class JSCuisineFactory:
 
         or if used without executor then will be the local one
         """
+        from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
         executor = j.tools.executor.get(executor)
         if executor.id in self._cuisines_instance:
             return self._cuisines_instance[executor.id]

@@ -1,16 +1,7 @@
 from JumpScale import j
 
 
-from ActionDecorator import ActionDecorator
-
-
-class actionrun(ActionDecorator):
-
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.builder"
-
-base = j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine._getBaseClass()
 
 
 class CuisineBuilder(base):
@@ -19,8 +10,10 @@ class CuisineBuilder(base):
         self._executor = executor
         self._cuisine = cuisine
 
-    
+    # TODO: *3 seems to be some double functionality with cuisinsandbox class but lets leave for now
+
     def all(self, start=False, sandbox=False, stor_addr=None, stor_name=""):
+        # TODO: *1 all new names lets check & fix
         if self._cuisine.core.isMac and not stor_name:
             stor_name = "osx10.11"
         self._cuisine.installerdevelop.pip()
@@ -48,7 +41,6 @@ class CuisineBuilder(base):
                 raise j.exceptions.RuntimeError("Store address should be specified if sandboxing enable.")
             self.sandbox(stor_addr, stor_name)
 
-    
     def sandbox(self, stor_addr, stor_name, python=True):
         """
         stor_addr : addr to the store you want to populate. e.g.: https://stor.jumpscale.org/storx
@@ -62,12 +54,12 @@ class CuisineBuilder(base):
         self._cuisine.core.dir_ensure('%s' % self._cuisine.core.dir_paths['libDir'])
         if self._cuisine.core.isMac:
             self._cuisine.core.file_link('/usr/local/lib/python3.5/site-packages/JumpScale/',
-                                        '%s/JumpScale' % self._cuisine.core.dir_paths['libDir'])
+                                         '%s/JumpScale' % self._cuisine.core.dir_paths['libDir'])
         else:
             self._cuisine.core.file_link('/usr/local/lib/python3.5/dist-packages/JumpScale',
-                                        '%s/JumpScale' % self._cuisine.core.dir_paths['libDir'])
+                                         '%s/JumpScale' % self._cuisine.core.dir_paths['libDir'])
         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" %
-                                    self._cuisine.core.dir_paths["codeDir"], "%s/portal" % self._cuisine.core.dir_paths['jsLibDir'])
+                                     self._cuisine.core.dir_paths["codeDir"], "%s/portal" % self._cuisine.core.dir_paths['jsLibDir'])
 
         # start sandboxing
         cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], '%s' + 'js8_opt', '%s', sandbox_python=%s)" % (
@@ -77,7 +69,6 @@ class CuisineBuilder(base):
 
         return url_opt
 
-    
     def sandbox_python(self, python=True):
         print("START SANDBOX")
         if self._cuisine._executor.type != "local":
@@ -102,7 +93,8 @@ class CuisineBuilder(base):
 
             if not j.sal.fs.exists("%s/bin/python" % self._cuisine.core.dir_paths['base']):
                 if self.cusine.core.isMac:
-                    j.sal.fs.copyFile("/usr/local/bin/python3.5", "%s/bin/python" % self._cuisine.core.dir_paths['base'])
+                    j.sal.fs.copyFile("/usr/local/bin/python3.5", "%s/bin/python" %
+                                      self._cuisine.core.dir_paths['base'])
                 else:
                     j.sal.fs.copyFile("/usr/bin/python3.5", "%s/bin/python" % self._cuisine.core.dir_paths['base'])
 
@@ -110,7 +102,6 @@ class CuisineBuilder(base):
         j.tools.sandboxer.sandboxLibs("%s/bin" % self._cuisine.core.dir_paths['base'], recursive=True)
         print("SANDBOXING DONE, ALL OK IF TILL HERE, A Segfault can happen because we have overwritten ourselves.")
 
-    
     def dedupe(self, dedupe_path, namespace, store_addr, output_dir='/tmp/sandboxer', sandbox_python=True):
         if self._cuisine._executor.type != "local":
             raise j.exceptions.RuntimeError("only supports cuisine in local mode")

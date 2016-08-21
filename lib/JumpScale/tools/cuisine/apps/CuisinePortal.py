@@ -1,15 +1,10 @@
 from JumpScale import j
 import time
-from ActionDecorator import ActionDecorator
 
 
-class actionrun(ActionDecorator):
+base = j.tools.cuisine._getBaseClass()
 
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.portal"
-
-base = j.tools.cuisine.getBaseClass()
+# TODO: *1 is broken, fix
 
 
 class CuisinePortal(base):
@@ -20,7 +15,6 @@ class CuisinePortal(base):
         self.portal_dir = self._cuisine.core.args_replace('$appDir/portals/')
         self.main_portal_dir = j.sal.fs.joinPaths(self.portal_dir, 'main')
 
-    
     def _install(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
         """
         grafanaip and port should be the external ip of the machine
@@ -38,7 +32,6 @@ class CuisinePortal(base):
         self.serviceconnect(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip,
                             influxport=influxport, grafanaip=grafanaip, grafanaport=grafanaport)
 
-    
     def install(self, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086,
                 grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
         self._install(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip, influxport=influxport,
@@ -46,7 +39,6 @@ class CuisinePortal(base):
         if start:
             self.start()
 
-    
     def installDeps(self):
         """
         make sure new env arguments are understood on platform
@@ -139,20 +131,18 @@ class CuisinePortal(base):
         self._cuisine.package.install("libjpeg-dev")
         self._cuisine.pip.multiInstall(deps)
 
-    
     def getcode(self):
         self._cuisine.git.pullRepo("https://github.com/Jumpscale/jumpscale_portal8.git")
 
-    
     def linkCode(self):
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
         _, destjslib, _ = self._cuisine.core.run(
             "js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'", showout=False)
 
         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths[
-                                    "codeDir"], "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
+            "codeDir"], "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" %
-                                    self._cuisine.core.dir_paths["codeDir"], "%s/portal" % self._cuisine.core.dir_paths['jsLibDir'])
+                                     self._cuisine.core.dir_paths["codeDir"], "%s/portal" % self._cuisine.core.dir_paths['jsLibDir'])
 
         self._cuisine.core.run("js --quiet 'j.application.reload()'", showout=False, die=False)
 
@@ -160,16 +150,16 @@ class CuisinePortal(base):
             self.portal_dir += '/'
         self._cuisine.core.dir_ensure(self.portal_dir)
         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/jslib" %
-                                    self._cuisine.core.dir_paths["codeDir"], '%s/jslib' % self.portal_dir)
+                                     self._cuisine.core.dir_paths["codeDir"], '%s/jslib' % self.portal_dir)
         self._cuisine.core.dir_ensure(j.sal.fs.joinPaths(self.portal_dir, 'portalbase'))
         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/system" %
-                                    self._cuisine.core.dir_paths["codeDir"], '%s/portalbase/system' % self.portal_dir)
+                                     self._cuisine.core.dir_paths["codeDir"], '%s/portalbase/system' % self.portal_dir)
         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/wiki" %
-                                    self._cuisine.core.dir_paths["codeDir"], '%s/portalbase/wiki' % self.portal_dir)
+                                     self._cuisine.core.dir_paths["codeDir"], '%s/portalbase/wiki' % self.portal_dir)
         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/macros" %
-                                    self._cuisine.core.dir_paths["codeDir"], '%s/portalbase/macros' % self.portal_dir)
+                                     self._cuisine.core.dir_paths["codeDir"], '%s/portalbase/macros' % self.portal_dir)
         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/apps/portalbase/templates" %
-                                    self._cuisine.core.dir_paths["codeDir"], '%s/portalbase/templates' % self.portal_dir)
+                                     self._cuisine.core.dir_paths["codeDir"], '%s/portalbase/templates' % self.portal_dir)
 
         self._cuisine.core.dir_ensure(self.main_portal_dir)
 
@@ -178,33 +168,30 @@ class CuisinePortal(base):
 
         self._cuisine.core.dir_ensure('$tmplsDir/cfg/portal')
         self._cuisine.core.file_copy(j.sal.fs.joinPaths(self._cuisine.core.dir_paths[
-                                    "codeDir"], 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'), '$tmplsDir/cfg/portal/config.hrd')
+            "codeDir"], 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'), '$tmplsDir/cfg/portal/config.hrd')
 
         self._cuisine.core.file_copy(j.sal.fs.joinPaths(self._cuisine.core.dir_paths[
-                                    "codeDir"], 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'), self.main_portal_dir)
+            "codeDir"], 'github/jumpscale/jumpscale_portal8/apps/portalbase/portal_start.py'), self.main_portal_dir)
         content = self._cuisine.core.file_read(j.sal.fs.joinPaths(self._cuisine.core.dir_paths[
-                                              "codeDir"], 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'))
+            "codeDir"], 'github/jumpscale/jumpscale_portal8/apps/portalbase/config.hrd'))
         configHRD = j.data.hrd.get(content=content, prefixWithName=False)
         configHRD.set('param.cfg.appdir', j.sal.fs.joinPaths(self.portal_dir, 'portalbase'))
         self._cuisine.core.file_write(j.sal.fs.joinPaths(self.main_portal_dir, 'config.hrd'), content=str(configHRD))
         self._cuisine.core.file_copy("%s/jslib/old/images" % self.portal_dir,
-                                    "%s/jslib/old/elfinder" % self.portal_dir, recursive=True)
+                                     "%s/jslib/old/elfinder" % self.portal_dir, recursive=True)
 
-    
     def addSpace(self, spacepath):
         spacename = j.sal.fs.getBaseName(spacepath)
         dest_dir = j.sal.fs.joinPaths(self._cuisine.core.dir_paths[
                                       'varDir'], 'cfg', 'portals', 'main', 'base', spacename)
         self._cuisine.core.file_link(spacepath, dest_dir)
 
-    
     def addactor(self, actorpath):
         actorname = j.sal.fs.getBaseName(actorpath)
         dest_dir = j.sal.fs.joinPaths(self._cuisine.core.dir_paths[
                                       'varDir'], 'cfg', 'portals', 'main', 'base', actorname)
         self._cuisine.core.file_link(actorpath, dest_dir)
 
-    
     def serviceconnect(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, grafanaip="127.0.0.1", grafanaport=3000):
         dest = j.sal.fs.joinPaths(self._cuisine.core.dir_paths['varDir'], 'cfg', "portals")
         dest_cfg = j.sal.fs.joinPaths(dest, 'main', 'config.hrd')
@@ -219,7 +206,6 @@ class CuisinePortal(base):
         self._cuisine.core.file_write(dest_cfg, str(hrd))
         j.sal.fs.remove(tmp)
 
-    
     def start(self, passwd=None):
         """
         Start the portal
@@ -243,11 +229,9 @@ class CuisinePortal(base):
         if passwd is not None:
             self.set_admin_password(passwd)
 
-    
     def stop(self):
         self._cuisine.processmanager.stop('portal')
 
-    
     def set_admin_password(self, passwd):
         # wait for the admin user to be created by portal
         timeout = 60

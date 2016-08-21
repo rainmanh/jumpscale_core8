@@ -2,17 +2,7 @@
 from JumpScale import j
 import re
 
-from ActionDecorator import ActionDecorator
-
-
-class actionrun(ActionDecorator):
-
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.process"
-
-
-base = j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine._getBaseClass()
 
 
 class CuisineProcess(base):
@@ -103,7 +93,6 @@ class CuisineProcess(base):
 
         return result
 
-    
     def info_get(self, prefix=""):
         if prefix == "":
             return self._info_get()
@@ -113,7 +102,6 @@ class CuisineProcess(base):
                 res.append(item)
         return res
 
-    
     def find(self, name, exact=False):
         """Returns the pids of processes with the given name. If exact is `False`
         it will return the list of all processes that start with the given
@@ -146,7 +134,6 @@ class CuisineProcess(base):
                 res.append(pid)
         return res
 
-    
     def kill(self, name, signal=9, exact=False):
         """Kills the given processes with the given name. If exact is `False`
         it will return the list of all processes that start with the given

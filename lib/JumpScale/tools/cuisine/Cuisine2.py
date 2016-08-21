@@ -2,36 +2,26 @@
 from JumpScale import j
 
 
-from CuisineSandbox import CuisineSandbox
-from CuisineInstaller import CuisineInstaller
-from CuisineInstallerDevelop import CuisineInstallerDevelop
-from CuisinePackage import CuisinePackage
-from CuisineProcess import CuisineProcess
-from CuisinePIP import CuisinePIP
-from CuisineNet import CuisineNet
-from CuisineSSH import CuisineSSH
-from CuisineNS import CuisineNS
-from CuisineUser import CuisineUser
-from CuisineGit import CuisineGit
-from apps.CuisineApps import CuisineApps
-from CuisineBuilder import CuisineBuilder
-from CuisineGroup import CuisineGroup
-from CuisineGolang import CuisineGolang
-from CuisineUFW import CuisineUFW
-from CuisineFW import CuisineFW
-from CuisineDocker import CuisineDocker
-from ProcessManagerFactory import ProcessManagerFactory
-from CuisineSSHReflector import CuisineSSHReflector
-from CuisineProxy import CuisineProxy
-from CuisineBootMediaInstaller import CuisineBootMediaInstaller
-from CuisineVRouter import CuisineVRouter
-from CuisineTmux import CuisineTmux
-from CuisineGeoDns import CuisineGeoDns
-from CuisineCore import CuisineCore
-from CuisinePNode import CuisinePNode
-from CuisineStor import CuisineStor
-from CuisineLua import CuisineLua
-from CuisineCapnp import CuisineCapnp
+from JumpScale.tools.cuisine.CuisinePackage import CuisinePackage
+from JumpScale.tools.cuisine.CuisineProcess import CuisineProcess
+from JumpScale.tools.cuisine.CuisineNet import CuisineNet
+from JumpScale.tools.cuisine.CuisineSSH import CuisineSSH
+from JumpScale.tools.cuisine.CuisineNS import CuisineNS
+from JumpScale.tools.cuisine.CuisineUser import CuisineUser
+from JumpScale.tools.cuisine.CuisineBuilder import CuisineBuilder
+from JumpScale.tools.cuisine.CuisineGroup import CuisineGroup
+from JumpScale.tools.cuisine.ProcessManagerFactory import ProcessManagerFactory
+from JumpScale.tools.cuisine.CuisineTmux import CuisineTmux
+from JumpScale.tools.cuisine.CuisineCore import CuisineCore
+from JumpScale.tools.cuisine.CuisinePNode import CuisinePNode
+
+from JumpScale.tools.cuisine.apps.apps import apps
+from JumpScale.tools.cuisine.development.development import development
+from JumpScale.tools.cuisine.examples.examples import examples
+from JumpScale.tools.cuisine.solutions.solutions import solutions
+from JumpScale.tools.cuisine.systemservices.systemservices import systemservices
+from JumpScale.tools.cuisine.testscripts.testscripts import testscripts
+from JumpScale.tools.cuisine.tools.tools import tools
 
 
 class JSCuisine:
@@ -39,56 +29,77 @@ class JSCuisine:
     def __init__(self, executor):
 
         self._executor = executor
-        self.runid = self.id
 
-        self._installer = None
         self._platformtype = None
         self._id = None
         self._package = None
         self._processmanager = None
-        self._installerdevelop = None
         self._process = None
-        self._pip = None
         self._ns = None
         self._ssh = None
         self._net = None
         self._group = None
         self._user = None
-        self._git = None
-        self._apps = None
         self._bash = None
-        self._avahi = None
         self._tmux = None
-        self._golang = None
-        self._ufw = None
         self._cuisine = self
         self._fqn = ""
-        self._dnsmasq = None
-        self._docker = None
-        self._js8sb = None
-        self._geodns = None
         self._builder = None
-        self._capnp = None
+
+        self._apps = None
+        self._development = None
+        self._examples = None
+        self._solutions = None
+        self._systemservices = None
+        self._testscripts = None
+        self._tools = None
 
         self.core = CuisineCore(self._executor, self)
-
-        self.sshreflector = CuisineSSHReflector(self._executor, self)
-        self.proxy = CuisineProxy(self._executor, self)
-        self.bootmediaInstaller = CuisineBootMediaInstaller(self._executor, self)
-        self.vrouter = CuisineVRouter(self._executor, self)
-        self.tmux = CuisineTmux(self._executor, self)
-        self.lua = CuisineLua(self._executor, self)
         self.pnode = CuisinePNode(self._executor, self)
-        self.sandbox = CuisineSandbox(self._executor, self)
-        self.stor = CuisineStor(self._executor, self)
-        self.fw = CuisineFW(self._executor, self)
 
-        self.reset = self.core.reset
+        # self.reset = self.core.reset
 
-        self.done = []
+    @property
+    def apps(self):
+        if self._apps == None:
+            self._apps = apps(self._executor, self)
+        return self._apps
 
-    def reset_actions(self):
-        j.actions.reset(self.runid)
+    @property
+    def development(self):
+        if self._development == None:
+            self._development = development(self._executor, self)
+        return self._development
+
+    @property
+    def examples(self):
+        if self._examples == None:
+            self._examples = examples(self._executor, self)
+        return self._examples
+
+    @property
+    def solutions(self):
+        if self._solutions == None:
+            self._solutions = solutions(self._executor, self)
+        return self._solutions
+
+    @property
+    def systemservices(self):
+        if self._systemservices == None:
+            self._systemservices = systemservices(self._executor, self)
+        return self._systemservices
+
+    @property
+    def testscripts(self):
+        if self._testscripts == None:
+            self._testscripts = testscripts(self._executor, self)
+        return self._testscripts
+
+    @property
+    def tools(self):
+        if self._tools == None:
+            self._tools = tools(self._executor, self)
+        return self._tools
 
     @property
     def btrfs(self):
@@ -108,34 +119,10 @@ class JSCuisine:
         return self._process
 
     @property
-    def pip(self):
-        if self._pip == None:
-            self._pip = CuisinePIP(self._executor, self)
-        return self._pip
-
-    @property
-    def ufw(self):
-        if self._ufw == None:
-            self._ufw = CuisineUFW(self._executor, self)
-        return self._ufw
-
-    @property
-    def golang(self):
-        if self._golang == None:
-            self._golang = CuisineGolang(self._executor, self)
-        return self._golang
-
-    @property
-    def geodns(self):
-        if self._geodns == None:
-            self._geodns = CuisineGeoDns(self._executor, self)
-        return self._geodns
-
-    @property
-    def apps(self):
-        if self._apps == None:
-            self._apps = CuisineApps(self._executor, self)
-        return self._apps
+    def tmux(self):
+        if self._tmux == None:
+            self._tmux = CuisineTmux(self._executor, self)
+        return self._tmux
 
     @property
     def builder(self):
@@ -154,48 +141,16 @@ class JSCuisine:
         return self._platformtype
 
     @property
-    def installer(self):
-        if self._installer == None:
-            self._installer = CuisineInstaller(self._executor, self)
-        return self._installer
-
-    @property
-    def installerdevelop(self):
-        if self._installerdevelop == None:
-            self._installerdevelop = CuisineInstallerDevelop(self._executor, self)
-        return self._installerdevelop
-
-    @property
     def ns(self):
         if self._ns == None:
             self._ns = CuisineNS(self._executor, self)
         return self._ns
 
     @property
-    def docker(self):
-        if self._docker == None:
-            self._docker = CuisineDocker(self._executor, self)
-        return self._docker
-
-    @property
     def ssh(self):
         if self._ssh == None:
             self._ssh = CuisineSSH(self._executor, self)
         return self._ssh
-
-    @property
-    def avahi(self):
-        if self._avahi == None:
-            self._avahi = j.tools.avahi.get(self, self._executor)
-        return self._avahi
-
-    @property
-    def dnsmasq(self):
-        if self._dnsmasq == None:
-            self._dnsmasq = j.sal.dnsmasq
-            self._dnsmasq.cuisine = self
-            self._dnsmasq.executor = self._executor
-        return self._dnsmasq
 
     @property
     def bash(self):
@@ -222,22 +177,10 @@ class JSCuisine:
         return self._group
 
     @property
-    def git(self):
-        if self._git == None:
-            self._git = CuisineGit(self._executor, self)
-        return self._git
-
-    @property
     def processmanager(self):
         if self._processmanager == None:
             self._processmanager = ProcessManagerFactory(self).get()
         return self._processmanager
-
-    @property
-    def capnp(self):
-        if self._capnp is None:
-            self._capnp = CuisineCapnp(self._executor, self)
-        return self._capnp
 
     def __str__(self):
         return "cuisine:%s:%s" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))

@@ -1,31 +1,16 @@
 from JumpScale import j
 from time import sleep
 
+base = j.tools.cuisine._getBaseClass()
 
-from ActionDecorator import ActionDecorator
-
-
-"""
-please ensure that the start and build methods are separate and
-the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
-"""
+# TODO: *1 check we are installing latest mongodb
 
 
-class actionrun(ActionDecorator):
-
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.mongodb"
-
-base = j.tools.cuisine.getBaseClass()
-
-
-class Mongodb(base):
+class CuisineMongodb(base):
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
-
 
     def _build(self):
 
@@ -64,14 +49,12 @@ class Mongodb(base):
 
         self._cuisine.core.dir_ensure('$varDir/data/mongodb')
 
-
     def build(self, start=True, dependencies=False):
         if dependencies:
             self._cuisine.installer.base()
         self._build()
         if start:
             self.start("mongod")
-
 
     def start(self, name="mongod"):
         which = self._cuisine.core.command_location("mongod")
@@ -100,6 +83,8 @@ class Mongodb(base):
         cluster.start()
         return cluster
 
+
+# TODO: *1 isn't that duplicate code with the mongodb cluster code?, please fix & rearrange
 
 class Startable:
 
@@ -200,7 +185,7 @@ class MongoInstance(Startable):
     def execute(self, cmd):
         for i in range(5):
             rc, out, err = self._cuisine.core.run("LC_ALL=C $binDir/mongo --port %s --eval '%s'" %
-                                                 (self.private_port, cmd.replace("\\", "\\\\").replace("'", "\\'")), die=False)
+                                                  (self.private_port, cmd.replace("\\", "\\\\").replace("'", "\\'")), die=False)
             if not rc and out.find('errmsg') == -1:
                 print('command executed %s' % (cmd))
                 break

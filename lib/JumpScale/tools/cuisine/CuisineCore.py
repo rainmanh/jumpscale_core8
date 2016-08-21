@@ -7,7 +7,6 @@ import pygments.lexers
 from pygments.formatters import get_formatter_by_name
 
 
-from ActionDecorator import ActionDecorator
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Many ideas & lines of code have been taken from:
@@ -203,25 +202,17 @@ def text_strip_margin(text, margin="|"):
 #     return template.safe_substitute(variables)
 
 
-class actionrun(ActionDecorator):
-
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.core"
-
-base = j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine._getBaseClass()
 
 
 class CuisineCore(base):
 
     def __init__(self, executor, cuisine):
+        base.__init__(self, executor, cuisine)
         self.logger = j.logger.get("j.tools.cuisine.core", enable_only_me=True)
         # print ("***NEW CORE***")
-        self._executor = executor
-        self._cuisine = cuisine
         self.cd = "/"
         self.sudomode = False
-        self.runid = self.id
 
     def shell_safe(self, path):
         SHELL_ESCAPE = " '\";`|"
@@ -239,14 +230,14 @@ class CuisineCore(base):
                     val = val.strip().strip("'").strip("\"")
                     res[name] = val
             return res
-        return self.cache.get("getenv", get)
+        return self._cache.get("getenv", get)
 
     @property
     def isJS8Sandbox(self):
         def get():
             # TODO: need to implement when sandbox, what is the right check?
             return self.file_exists("/opt/jumpscale8/bin/libasn1.so.8")
-        return self.cache.get("isJS8Sandbox", get)
+        return self._cache.get("isJS8Sandbox", get)
 
     @property
     def dir_paths(self):
@@ -287,7 +278,7 @@ class CuisineCore(base):
             res["goDir"] = "%sgo/" % res["varDir"]
 
             return res
-        return self.cache.get("dir_paths", get)
+        return self._cache.get("dir_paths", get)
 
     # =============================================================================
     #
@@ -348,30 +339,6 @@ class CuisineCore(base):
         """Gets a machines UUID (Universally Unique Identifier)."""
         return self.sudo('dmidecode -s system-uuid | tr "[A-Z]" "[a-z]"')
 
-    # # =============================================================================
-    # #
-    # # RSYNC
-    # #
-    # # =============================================================================
-
-    # def rsync(self,local_path, remote_path, compress=True, progress=False, verbose=True, owner=None, group=None):
-    #     """Rsyncs local to remote, using the connection's host and user."""
-    #     options = "-a"
-    #     if compress: options += "z"
-    #     if verbose:  options += "v"
-    #     if progress: options += " --progress"
-    #     if owner or group:
-    #         assert owner and group or not owner
-    #         options += " --chown={0}{1}".format(owner or "", ":" + group if group else "")
-    #     with mode_local():
-    #         self.run("rsync {options} {local} {user}@{host}:{remote}".format(
-    #             options = options,
-    #             host    = host(),
-    #             user    = user(),
-    #             local   = local_path,
-    #             remote  = remote_path,
-    #         ))
-
     # =============================================================================
     #
     # LOCALE
@@ -393,15 +360,6 @@ class CuisineCore(base):
     # FILE OPERATIONS
     #
     # =============================================================================
-
-    # def file_local_read(self,location):
-    #     """Reads a *local* file from the given location, expanding '~' and
-    #     shell variables."""
-    #     p = os.path.expandvars(os.path.expanduser(location))
-    #     f = file(p, 'rb')
-    #     t = f.read()
-    #     f.close()
-    #     return t
 
     def file_backup(self, location, suffix=".orig", once=False):
         """Backups the file at the given location in the same directory, appending
@@ -554,7 +512,7 @@ class CuisineCore(base):
                 hostname = self.run("cat %s" % hostfile, showout=False, replaceArgs=False,
                                     force=False)[1].strip().split(".", 1)[0]
             return hostname
-        return self.cache.get("hostname", get)
+        return self._cache.get("hostname", get)
 
     @hostname.setter
     def hostname(self, val):
@@ -607,11 +565,11 @@ class CuisineCore(base):
                         fqn = name
                         return fqn
             raise j.exceptions.RuntimeError("fqn was never set, please use cuisine.setIDs()")
-        return self.cache.get("fqn", get)
+        return self._cache.get("fqn", get)
 
     @fqn.setter
     def fqn(self, val):
-        self.cache.set("fqn", val)
+        self._cache.set("fqn", val)
         self.name  # will do the splitting
         self.ns.hostfile_set_multiple([["127.0.1.1", self.fqn], ["127.0.1.1", self.name], [
                                       "127.0.1.1", self.name + "." + self.grid]], remove=["127.0.1.1"])
@@ -628,7 +586,7 @@ class CuisineCore(base):
             else:
                 hostfile = "/etc/hosts"
             return self.file_read(hostfile)
-        return self.cache.get("hostfile", get)
+        return self._cache.get("hostfile", get)
 
     @hostfile.setter
     def hostfile(self, val):
@@ -1087,8 +1045,6 @@ class CuisineCore(base):
 
         out = out.strip()
 
-        self.reset_actions()
-
         return rc, out, err
 
     def cd(self, path):
@@ -1131,7 +1087,7 @@ class CuisineCore(base):
         cmd = self.args_replace(cmd)
         if tmux:
             self._cuisine.tmux.executeInScreen("cmd", "cmd", cmd + " > /tmp/cmdout 2>&1",
-                                              wait=True, reset=True)
+                                               wait=True, reset=True)
             out = self.file_read("/tmp/cmdout")
             print(out)
             rc = 0
@@ -1255,7 +1211,7 @@ class CuisineCore(base):
             if self.isMac:
                 return ""
             return self.file_read("/proc/1/cgroup")
-        return self.cache.get("cgroup", get)
+        return self._cache.get("cgroup", get)
 
     @property
     def isDocker(self):

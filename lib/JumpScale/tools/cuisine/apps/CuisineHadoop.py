@@ -1,27 +1,12 @@
 from JumpScale import j
 
+base = j.tools.cuisine._getBaseClass()
 
-from ActionDecorator import ActionDecorator
-
-
-"""
-please ensure that the start and build methods are separate and
-the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
-"""
+# TODO: *4 unfinished but ok for now
 
 
-class actionrun(ActionDecorator):
+class CuisineHadoop(base):
 
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.hadoop"
-
-base = j.tools.cuisine.getBaseClass()
-
-
-class Hadoop(base):
-
-    
     def _build(self):
         self._cuisine.installer.base()
 
@@ -42,6 +27,5 @@ class Hadoop(base):
         else:
             raise NotImplementedError("unsupported platform")
 
-    
     def build(self):
         self._build()

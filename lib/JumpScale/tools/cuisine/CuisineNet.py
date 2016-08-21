@@ -3,7 +3,7 @@ from JumpScale import j
 import netaddr
 import re
 
-base = j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine._getBaseClass()
 
 
 class CuisineNet(base):

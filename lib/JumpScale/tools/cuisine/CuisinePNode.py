@@ -1,16 +1,7 @@
 from JumpScale import j
 
-from ActionDecorator import ActionDecorator
 
-
-class actionrun(ActionDecorator):
-
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.pnode"
-
-
-base = j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine._getBaseClass()
 
 
 class CuisinePNode(base):
@@ -55,7 +46,6 @@ class CuisinePNode(base):
 
         return device
 
-    
     def _getNeededPartitions(self):
         needed = []
 
@@ -81,7 +71,6 @@ class CuisinePNode(base):
 
         return final
 
-    
     def _getDisks(self):
         devices = self._cuisine.core.run('lsblk -n -l -o NAME,TYPE')[1].splitlines()
         disks = []
@@ -92,7 +81,6 @@ class CuisinePNode(base):
 
         return disks
 
-    
     def _getDisksWithExclude(self, disks, exclude):
         for disk in disks:
             for keep in exclude:
@@ -104,20 +92,17 @@ class CuisinePNode(base):
 
         return disks
 
-    
     def _eraseDisk(self, disk):
         disk = self._ensureDevName(disk)
 
         self._cuisine.core.run("dd if=/dev/zero of=%s bs=4M count=1" % disk)
 
-    
     def _getPartitionsOnDisk(self, disk):
         disk = self._ensureDevName(disk)
         partitions = self._cuisine.core.run('ls %s*' % disk)[1].splitlines()
 
         return partitions
 
-    
     def _unmountDisk(self, disk):
         """
         Unmount all partitions in disk
@@ -127,7 +112,6 @@ class CuisinePNode(base):
         for partition in partitions:
             self._cuisine.core.run('umount %s' % partition, die=False)
 
-    
     def erase(self, keepRoot=True):
         """
         if keepRoot == True:
@@ -153,7 +137,6 @@ class CuisinePNode(base):
         # commit changes to the kernel
         self._cuisine.core.run("partprobe")
 
-    
     def importRoot(self, source="/image.tar.gz", destination="/"):
         """
         Import and extract an archive to the filesystem
@@ -162,7 +145,6 @@ class CuisinePNode(base):
         cmd = 'tar -zpxf %s -C %s' % (source, destination)
         self._cuisine.core.run(cmd)
 
-    
     def exportRoot(self, source="/", destination="/image.tar.gz", excludes=["\.pyc", "__pycache__"]):
         """
         Create an archive of a remote file system
@@ -170,23 +152,20 @@ class CuisinePNode(base):
         """
         cmd = 'tar -zpcf %s --exclude=%s --one-file-system %s' % (destination, destination, source)
         self._cuisine.core.run(cmd)
-        #TODO: *1 implement excludes (does not have to be regex is other method more easy)
+        # TODO: *1 implement excludes (does not have to be regex is other method more easy)
 
-    
     def exportRootStor(self, storspace, plistname, source="/", excludes=["\.pyc", "__pycache__"], removetmpdir=True):
         """
         reason to do this is that we will use this to then make the step to g8os with g8osfs (will be very small step then)
 
         """
-        #TODO: *1 implement using CuisineStor space
+        # TODO: *1 implement using CuisineStor space
         pass
 
-    
     def importRootDedupe(self, storspace, plistname, destination="/mnt/", removetmpdir=True):
-        #TODO: *1 implement using CuisineStor space
+        # TODO: *1 implement using CuisineStor space
         pass
 
-    
     def formatStorage(self, keepRoot=True, mountpoint="/storage"):
         """
         use btrfs to format/mount the disks
@@ -224,20 +203,17 @@ class CuisinePNode(base):
             # check if no mounted btrfs partition yet and create if required
             self._cuisine.btrfs.subvolumeCreate(mountpoint)
 
-    
     def buildG8OSImage(self):
         """
 
         """
-        #TODO: cuisine enable https://github.com/g8os/builder
+        # TODO: cuisine enable https://github.com/g8os/builder
 
-    
     def buildArchImage(self):
         """
 
         """
 
-    
     def installArch(self, rootsize=5):
         """
         install arch on $rootsize GB root partition
@@ -247,7 +223,6 @@ class CuisinePNode(base):
         # manual partitioning
         # get tgz from url="https://stor.jumpscale.org/public/ubuntu....tgz"
 
-    
     def installG8OS(self, rootsize=5):
         """
         install g8os on $rootsize GB root partition

@@ -1,31 +1,15 @@
 from JumpScale import j
 
 
-from ActionDecorator import ActionDecorator
+base = j.tools.cuisine._getBaseClass()
 
 
-"""
-please ensure that the start and build methods are separate and
-the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
-"""
-
-
-class actionrun(ActionDecorator):
-
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.caddy"
-
-base = j.tools.cuisine.getBaseClass()
-
-
-class Caddy(base):
+class CuisineCaddy(base):
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
-    
     def install(self, ssl=False, start=True, dns=None):
         self._cuisine.core.file_download(
             'https://github.com/mholt/caddy/releases/download/v0.8.2/caddy_linux_amd64.tar.gz', '$tmpDir/caddy_linux_amd64.tar.gz')
@@ -58,7 +42,6 @@ class Caddy(base):
         if start:
             self.start(ssl)
 
-    
     def start(self, ssl):
         cpath = self._cuisine.core.args_replace("$cfgDir/caddy/caddyfile.conf")
         self._cuisine.core.file_copy("$tmplsDir/cfg/caddy", "$cfgDir/caddy", recursive=True)
@@ -95,7 +78,6 @@ class Caddy(base):
         cmd = self._cuisine.bash.cmdGetPath("caddy")
         self._cuisine.processmanager.ensure("caddy", '%s -conf=%s -email=info@greenitglobe.com' % (cmd, cpath))
 
-    
     def caddyConfig(self, sectionname, config):
         """
         config format see https://caddyserver.com/docs/caddyfile

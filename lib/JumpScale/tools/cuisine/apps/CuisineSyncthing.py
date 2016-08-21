@@ -1,31 +1,17 @@
 from JumpScale import j
 
 
-from ActionDecorator import ActionDecorator
+base = j.tools.cuisine._getBaseClass()
+
+# TODO: *1 check we are installing latest cuisine
 
 
-"""
-please ensure that the start and build methods are separate and
-the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
-"""
-
-
-class actionrun(ActionDecorator):
-
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.syncthing"
-
-base = j.tools.cuisine.getBaseClass()
-
-
-class Syncthing(base):
+class CuisineSyncthing(base):
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
-    
     def build(self, start=True):
         """
         build and setup syncthing to run on :8384 , this can be changed from the config file in /optvar/cfg/syncthing
@@ -106,7 +92,6 @@ class Syncthing(base):
         if start:
             self.start()
 
-    
     def start(self):
         self._cuisine.core.dir_ensure("$cfgDir")
         self._cuisine.core.file_copy("$tmplsDir/cfg/syncthing/", "$cfgDir", recursive=True)

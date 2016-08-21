@@ -1,27 +1,11 @@
 from JumpScale import j
 
 
-from ActionDecorator import ActionDecorator
+base = j.tools.cuisine._getBaseClass()
 
 
-"""
-please ensure that the start and build methods are separate and
-the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
-"""
+class CuisineEtcd(base):
 
-
-class actionrun(ActionDecorator):
-
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.etcd"
-
-base = j.tools.cuisine.getBaseClass()
-
-
-class Etcd(base):
-
-    
     def build(self, start=True, host=None, peers=[]):
         """
         Build and start etcd

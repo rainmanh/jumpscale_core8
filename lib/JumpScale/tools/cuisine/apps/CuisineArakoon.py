@@ -2,32 +2,16 @@ from JumpScale import j
 from time import sleep
 
 
-from ActionDecorator import ActionDecorator
+base = j.tools.cuisine._getBaseClass()
 
 
-"""
-please ensure that the start and build methods are separate and
-the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
-"""
-
-
-class actionrun(ActionDecorator):
-
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.arakoon"
-
-base = j.tools.cuisine.getBaseClass()
-
-
-class Arakoon(base):
+class CuisineArakoon(base):
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
         self.logger = j.logger.get("j.tools.cuisine.arakoon")
 
-    
     def _build(self):
         # self._cuisine.installer.base()
         exists = self._cuisine.core.command_check("arakoon")
@@ -52,7 +36,6 @@ class Arakoon(base):
 
         self._cuisine.core.dir_ensure('$varDir/data/arakoon')
 
-    
     def _install_ocaml(self):
         self.logger.info("download opam installer")
         self._cuisine.core.file_download(
@@ -105,12 +88,10 @@ class Arakoon(base):
         result""" % out
         self._cuisine.core.run_script(cmd, profile=True)
 
-    
     def _install_deps(self):
         apt_deps = "libev-dev libssl-dev libsnappy-dev libgmp3-dev ocaml ocaml-native-compilers camlp4-extra opam aspcud libbz2-dev protobuf-compiler m4 pkg-config"
         self._cuisine.package.multiInstall(apt_deps)
 
-    
     def build(self, start=True):
         self._install_deps()
         self._install_ocaml()
@@ -118,7 +99,6 @@ class Arakoon(base):
         if start:
             self.start("arakoon")
 
-    
     def start(self, name="arakoon"):
         which = self._cuisine.core.command_location("arakoon")
         self._cuisine.core.dir_ensure('$varDir/data/arakoon')
@@ -126,7 +106,6 @@ class Arakoon(base):
         self._cuisine.process.kill("arakoon")
         self._cuisine.processmanager.ensure("arakoon", cmd=cmd, env={}, path="")
 
-    
     def create_cluster(self, id):
         return ArakoonCluster(id, self._cuisine)
 

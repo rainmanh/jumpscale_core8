@@ -1,17 +1,7 @@
 
 from JumpScale import j
 
-
-from ActionDecorator import ActionDecorator
-
-
-class actionrun(ActionDecorator):
-
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.package"
-
-base = j.tools.cuisine.getBaseClass()
+base = j.tools.cuisine._getBaseClass()
 
 
 class CuisinePackage(base):
@@ -37,7 +27,6 @@ class CuisinePackage(base):
             result = self._cuisine.core.sudo(cmd)
         return result
 
-    
     def update(self, package=None):
         if self._cuisine.core.isUbuntu:
             if package == None:
@@ -49,7 +38,6 @@ class CuisinePackage(base):
         else:
             raise j.exceptions.RuntimeError("could not install:%s, platform not supported" % package)
 
-    
     def mdupdate(self):
         """
         update metadata of system
@@ -64,7 +52,6 @@ class CuisinePackage(base):
         elif self._cuisine.core.isArch:
             self._cuisine.core.run("pacman -Syy")
 
-    
     def upgrade(self, distupgrade=False):
         """
         upgrades system, distupgrade means ubuntu 14.04 will fo to e.g. 15.04
@@ -85,7 +72,6 @@ class CuisinePackage(base):
         else:
             raise j.exceptions.RuntimeError("could not upgrade, platform not supported")
 
-    
     def install(self, package, allow_unauthenticated=False):
 
         if self._cuisine.core.isUbuntu:
@@ -151,7 +137,6 @@ class CuisinePackage(base):
 
             return out
 
-    
     def multiInstall(self, packagelist, allow_unauthenticated=False):
         """
         @param packagelist is text file and each line is name of package
@@ -187,14 +172,12 @@ class CuisinePackage(base):
         finally:
             self._cuisine.core.sudomode = previous_sudo
 
-    
     def start(self, package):
         if self._cuisine.core.isArch or self._cuisine.core.isUbuntu or self._cuisine.core.isMac:
             self._cuisine.processmanager.start(package)
         else:
             raise j.exceptions.RuntimeError("could not install/ensure:%s, platform not supported" % package)
 
-    
     def ensure(self, package, update=False):
         """Ensure apt packages are installed"""
         if self._cuisine.core.isUbuntu:
@@ -227,7 +210,6 @@ class CuisinePackage(base):
 
         raise j.exceptions.RuntimeError("not supported platform")
 
-    
     def clean(self, package=None, agressive=False):
         """
         clean packaging system e.g. remove outdated packages & caching packages
@@ -280,7 +262,6 @@ class CuisinePackage(base):
         else:
             raise j.exceptions.RuntimeError("could not package clean:%s, platform not supported" % package)
 
-    
     def remove(self, package, autoclean=False):
         if self._cuisine.core.isUbuntu:
             self._apt_get('remove ' + package)

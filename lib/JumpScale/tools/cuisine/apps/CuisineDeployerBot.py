@@ -1,25 +1,10 @@
 from JumpScale import j
-from ActionDecorator import ActionDecorator
+
+base = j.tools.cuisine._getBaseClass()
 
 
-"""
-please ensure that the start and build methods are separate and
-the build doesnt place anyfile outside opt as it will be used in aysfs mounted system
-"""
+class CuisineDeployerBot(base):
 
-
-class actionrun(ActionDecorator):
-
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.apps.deployerbot"
-
-base = j.tools.cuisine.getBaseClass()
-
-
-class DeployerBot(base):
-
-    
     def build(self, start=True, token=None, g8_addresses=None, dns=None, oauth=None):
         """
         Build and Install deployerbot
@@ -37,7 +22,6 @@ class DeployerBot(base):
         if start:
             self.start(token=token, g8_addresses=g8_addresses, dns=dns, oauth=oauth)
 
-    
     def start(self, token=None, g8_addresses=None, dns=None, oauth=None):
         """
         token: telegram bot token received from @botfather
@@ -57,7 +41,6 @@ class DeployerBot(base):
         cwd = self._cuisine.core.args_replace('$appDir/deployer_bot')
         self._cuisine.processmanager.ensure('deployerbot', cmd=cmd, path=cwd)
 
-    
     def install_deps(self):
         deps = """
         flask
@@ -65,11 +48,9 @@ class DeployerBot(base):
         """
         self._cuisine.pip.multiInstall(deps, upgrade=True)
 
-    
     def link_code(self):
         self._cuisine.core.file_link('$codeDir/github/jumpscale/jscockpit/deploy_bot/', '$appDir/deployer_bot')
 
-    
     def create_config(self, token=None, g8_addresses=None, dns=None, oauth=None):
         """
         token: telegram bot token received from @botfather

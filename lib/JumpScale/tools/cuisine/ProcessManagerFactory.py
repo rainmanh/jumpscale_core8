@@ -1,5 +1,5 @@
 
-from CuisineProcessManager import CuisineRunit, CuisineTmuxec, CuisineSystemd
+from JumpScale.tools.cuisine.CuisineProcessManager import CuisineRunit, CuisineTmuxec, CuisineSystemd
 from JumpScale import j
 
 
@@ -32,7 +32,7 @@ class ProcessManagerFactory:
 
     def get(self, pm=None):
         """
-        pm is tmux, systemd or sv 
+        pm is tmux, systemd or sv
         (sv=runit)
         """
         if pm == None:

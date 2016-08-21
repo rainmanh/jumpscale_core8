@@ -110,10 +110,10 @@ class Domain:
         self._cuisine.core.file_write("$cfgDir/geodns/dns/%s.json" % self.name, config)
         return config
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineGeoDns(base):
+class CuisineGeoDns(app):
     NAME = "geodns"
     def __init__(self, executor, cuisine):
         self._executor = executor

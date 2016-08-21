@@ -30,8 +30,8 @@ class CuisineG8OSFs(base):
             login=""
             passwd=""
         """
-        # self._cuisine.golang.install()
-        self._cuisine.golang.godep("github.com/g8os/fs")
+        # self._cuisine.development.golang.install()
+        self._cuisine.development.golang.godep("github.com/g8os/fs")
         self._cuisine.core.run("cd %s && go build ." % "$goDir/src/github.com/g8os/fs", profile=True)
         self._cuisine.core.dir_ensure("$tmplsDir/cfg/fs")
         self._cuisine.core.file_copy("$goDir/src/github.com/g8os/fs/fs", "$base/bin")

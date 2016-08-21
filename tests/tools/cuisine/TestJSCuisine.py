@@ -117,7 +117,7 @@ class TestJSCuisine(unittest.TestCase):
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
-            self.assertIsNotNone(cuisine.golang)
+            self.assertIsNotNone(cuisine.development.golang)
 
     def test_create_cuisine2_geodns(self):
         """
@@ -356,7 +356,7 @@ class TestJSCuisine(unittest.TestCase):
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
-            self.assertIsNotNone(cuisine.git)
+            self.assertIsNotNone(cuisine.development.git)
 
     def test_create_cuisine2_processmanager(self):
         """

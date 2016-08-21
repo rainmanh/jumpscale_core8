@@ -21,7 +21,7 @@ class CuisineCockpit(base):
         #     self._cuisine.development.pip.upgrade("pip")
 
         self.install_deps()
-        self._cuisine.git.pullRepo('https://github.com/Jumpscale/jscockpit.git')
+        self._cuisine.development.git.pullRepo('https://github.com/Jumpscale/jscockpit.git')
         self.link_code()
 
         if start:

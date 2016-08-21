@@ -3,20 +3,25 @@ from JumpScale import j
 # import os
 
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
 class CuisineGolang(base):
+    
+    NAME = 'go'
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
-    def install(self, dependencies=False):
-        if dependencies:
-            self._cuisine.installer.base()
-        rc, out, err = self._cuisine.core.run("go version", die=False, showout=False)
+    def isInstalled(self):
+        rc, out, err = self._cuisine.core.run("go version", die=False, showout=False, profile=True)
         if rc > 0 or "1.6" not in out:
+            return False
+        return True
+
+    def install(self):
+        if self.isInstalled():
             if self._cuisine.core.isMac or self._cuisine.core.isArch:
                 self._cuisine.core.run(cmd="rm -rf /usr/local/go", die=False)
                 # if self._cuisine.core.isMac:
@@ -92,6 +97,6 @@ class CuisineGolang(base):
 
         pullurl = "git@%s.git" % url.replace('/', ':', 1)
 
-        dest = self._cuisine.git.pullRepo(pullurl, branch=branch, depth=depth,
+        dest = self._cuisine.development.git.pullRepo(pullurl, branch=branch, depth=depth,
                                           dest='%s/src/%s' % (GOPATH, url), ssh=False)
         self._cuisine.core.run('cd %s && godep restore' % dest, profile=True)

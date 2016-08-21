@@ -124,11 +124,11 @@ class CuisineGeoDns(base):
         installs and builds geodns from github.com/abh/geodns
         """
         # deps
-        # self._cuisine.golang.install(force=False)
+        # self._cuisine.development.golang.install(force=False)
         self._cuisine.package.install("libgeoip-dev")
 
         # build
-        self._cuisine.golang.get("github.com/abh/geodns")
+        self._cuisine.development.golang.get("github.com/abh/geodns")
 
         # moving files and creating config
         self._cuisine.core.file_copy("$goDir/bin/geodns", "$binDir")

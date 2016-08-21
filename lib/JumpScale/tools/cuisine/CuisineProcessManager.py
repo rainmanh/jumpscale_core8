@@ -24,7 +24,7 @@ class ProcessManagerBase(base):
         return self.restart()
 
     def get(self, pm=None):
-        from ProcessManagerFactory import ProcessManagerFactory
+        from .ProcessManagerFactory import ProcessManagerFactory
         return ProcessManagerFactory(self._cuisine).get(pm)
 
 

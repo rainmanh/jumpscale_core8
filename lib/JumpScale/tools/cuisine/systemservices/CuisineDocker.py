@@ -31,7 +31,7 @@ class CuisineDocker(base):
 
         # TODO: *2 test
 
-        dest = self._cuisine.git.pullRepo('https://github.com/Jumpscale/dockers.git', ssh=False)
+        dest = self._cuisine.development.git.pullRepo('https://github.com/Jumpscale/dockers.git', ssh=False)
         path = self._cuisine.core.joinpaths(dest, 'js8/x86_64/2_ubuntu1604')
 
         C = """

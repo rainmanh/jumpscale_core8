@@ -27,8 +27,8 @@ class CuisineController(base):
 
         # get repo
         url = "github.com/g8os/controller"
-        self._cuisine.golang.clean_src_path()
-        self._cuisine.golang.godep(url)
+        self._cuisine.development.golang.clean_src_path()
+        self._cuisine.development.golang.godep(url)
 
         sourcepath = "$goDir/src/github.com/g8os/controller"
 

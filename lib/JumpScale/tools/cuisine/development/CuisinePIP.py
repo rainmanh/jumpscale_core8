@@ -14,11 +14,11 @@ class CuisinePIP(base):
     # PIP PYTHON PACKAGE MANAGER
     # -----------------------------------------------------------------------------
 
-    def install(self, package):
-        self._cuisine.installer.base()
-        self.python()
+    def install(self):
         if self._cuisine.core.isMac:
             return
+        
+        self._cuisine.package.install('python3.5')
 
         C = """
             #important remove olf pkg_resources, will conflict with new pip
@@ -88,7 +88,6 @@ class CuisinePIP(base):
         previous_sudo = self._cuisine.core.sudomode
         try:
             self._cuisine.core.sudomode = True
-
             if j.data.types.string.check(packagelist):
                 packages = packagelist.split("\n")
             elif j.data.types.list.check(packagelist):
@@ -96,12 +95,12 @@ class CuisinePIP(base):
             else:
                 raise j.exceptions.Input('packagelist should be string or a list. received a %s' % type(packagelist))
 
-                for dep in packages:
-                    dep = dep.strip()
-                    if dep.strip() == "":
-                        continue
-                    if dep.strip()[0] == "#":
-                        continue
-                    self.install(dep)
+            for dep in packages:
+                dep = dep.strip()
+                if dep.strip() == "":
+                    continue
+                if dep.strip()[0] == "#":
+                    continue
+                self.packageInstall(dep)
         finally:
             self._cuisine.core.sudomode = previous_sudo

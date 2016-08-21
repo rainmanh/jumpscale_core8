@@ -127,8 +127,12 @@ class CuisinePortal(base):
         wheel
         # zmq
         pillow
+        gevent
+        flask
+        Flask-Bootstrap
         """
-        self._cuisine.package.install("libjpeg-dev")
+        self._cuisine.package.multiInstall(['libjpeg-dev', 'libffi-dev'])
+        self._cuisine.development.pip.install()
         self._cuisine.development.pip.packagesInstall(deps)
 
     def getcode(self):

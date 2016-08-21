@@ -229,8 +229,7 @@ class CuisineTmuxec(ProcessManagerBase):
         super().__init__(executor, cuisine)
 
     def list(self, prefix=""):
-        if not self._cuisine.core.command_check("tmux"):
-            self._cuisine.package.install('tmux')
+        self._cuisine.package.install('tmux')
 
         rc, result, err = self._cuisine.core.run("tmux lsw 2> /dev/null || true", profile=True, die=False)
         if err:

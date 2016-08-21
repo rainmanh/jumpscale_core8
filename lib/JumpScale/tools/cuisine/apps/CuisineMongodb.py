@@ -15,6 +15,7 @@ class CuisineMongodb(app):
 
     def _build(self):
         if self.isInstalled():
+            print('MongoDB is already installed.')
             return 
         else:
             appbase = self._cuisine.core.dir_paths["binDir"]
@@ -35,6 +36,7 @@ class CuisineMongodb(app):
                 return
 
             if url:
+                print('Downloading mongodb.')
                 self._cuisine.core.file_download(url, to="$tmpDir", overwrite=False, expand=True)
                 tarpath = self._cuisine.core.fs_find("$tmpDir", recursive=True, pattern="*mongodb*.tgz", type='f')[0]
                 self._cuisine.core.file_expand(tarpath, "$tmpDir")

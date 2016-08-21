@@ -1,9 +1,8 @@
 from JumpScale import j
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
-
-class CuisineCapnp(base):
+class CuisineCapnp(app):
 
     NAME = "capnp"
     def __init__(self, executor, cuisine):

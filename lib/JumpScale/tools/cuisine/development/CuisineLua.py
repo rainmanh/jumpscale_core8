@@ -5,6 +5,8 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisineLua(base):
 
+    NAME = "tarantool"
+
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
@@ -27,7 +29,10 @@ class CuisineLua(base):
     #
     #     self.package("luasocket")
 
-    def installLuajitTarantool(self):
+    def installLuajitTarantool(self, reset=False):
+        if reset == False and self.isInstalled():
+            return
+
         C = """
         set -ex
 

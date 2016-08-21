@@ -1,10 +1,9 @@
 from JumpScale import j
 import os
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
-
-class CuisineLedis(base):
+class CuisineLedis(app):
     NAME = "ledis-server"
     def build(self, backend="leveldb", reset=False):
         if reset == False and self.isInstalled():

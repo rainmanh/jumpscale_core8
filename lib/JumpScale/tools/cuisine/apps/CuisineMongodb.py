@@ -1,7 +1,6 @@
 from JumpScale import j
 from time import sleep
 
-base = j.tools.cuisine._getBaseClass()
 
 app = j.tools.cuisine._getBaseAppClass()
 # TODO: *1 check we are installing latest mongodb

@@ -5,7 +5,7 @@ base = j.tools.cuisine._getBaseClass()
 
 
 class CuisineLedis(base):
-
+    NAME = "ledis-server"
     def build(self, backend="leveldb", reset=False):
         if reset == False and self.isInstalled():
             return

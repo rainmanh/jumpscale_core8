@@ -1,7 +1,7 @@
 from JumpScale import j
 
 
-class ActionsBase:
+class ActionsBaseMgmt:
 
     def change_hrd_template(self, service, originalhrd):
         for methodname, obj in service.state.methods.items():
@@ -54,7 +54,6 @@ class ActionsBase:
             _, resp = data
             resp = j.data.serializer.json.loads(resp)
             if 'error' in resp:
-                raise j.exceptions.RuntimeError(
-                    'Unexpected error: %s' % resp['error'])
+                raise j.exceptions.RuntimeError('Unexpected error: %s' % resp['error'])
 
             return resp['response']

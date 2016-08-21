@@ -1,9 +1,9 @@
 from JumpScale import j
 
-ActionsBase = j.atyourservice.getActionsBaseClass()
+ActionsBaseMgmt = j.atyourservice.getActionsBaseClassMgmt()
 
 
-class Actions(ActionsBase):
+class ActionsMgmt(ActionsBaseMgmt):
     """
     implement methods of this class to change behavior of lifecycle management of service for mgmt class which runs locally
     """

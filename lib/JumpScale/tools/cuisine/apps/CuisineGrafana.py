@@ -47,7 +47,7 @@ class CuisineGrafana(base):
         self._cuisine.processmanager.ensure(
             "grafana-server", cmd=cmd, env={})
         grafanaclient = j.clients.grafana.get(
-            url='http://%s:%d' % (self._cuisine.core.executor.addr, port), username='admin', password='admin')
+            url='http://%s:%d' % (self._cuisine.core._executor.addr, port), username='admin', password='admin')
         data = {
             'type': 'influxdb',
             'access': 'proxy',

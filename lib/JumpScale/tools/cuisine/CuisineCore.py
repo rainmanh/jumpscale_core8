@@ -444,10 +444,12 @@ class CuisineCore(base):
             self.run(cmd)
         else:
             raise j.exceptions.RuntimeError("not supported yet")
+        
 
     def touch(self, path):
         path = self.args_replace(path)
         self.file_write(path, "")
+        
 
     def file_read(self, location, default=None):
         import base64
@@ -465,6 +467,10 @@ class CuisineCore(base):
         location = self.args_replace(location)
         cmd += ' %s' % location
         rc, out, err = self.run(cmd, showout=False, die=False)
+<<<<<<< Updated upstream
+=======
+        
+>>>>>>> Stashed changes
         return not rc
 
     def file_exists(self, location):
@@ -506,8 +512,12 @@ class CuisineCore(base):
                 hostname = self.run("hostname")[1]
             else:
                 hostfile = "/etc/hostname"
+<<<<<<< Updated upstream
                 rc, out, err = self.run("cat %s" % hostfile, showout=False, replaceArgs=False)
                 hostname = out.strip().split(".", 1)[0]
+=======
+                hostname = self.run("cat %s" % hostfile, showout=False, replaceArgs=False,)[1].strip().split(".", 1)[0]
+>>>>>>> Stashed changes
             return hostname
         return self._cache.get("hostname", get)
 
@@ -629,6 +639,8 @@ class CuisineCore(base):
 
         self.file_attribs(location, mode=mode, owner=owner, group=group)
 
+        
+
     def file_ensure(self, location, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         location."""
@@ -637,6 +649,8 @@ class CuisineCore(base):
             self.file_attribs(location, mode=mode, owner=owner, group=group)
         else:
             self.file_write(location, "", mode=mode, owner=owner, group=group)
+
+        
 
     def _file_stream(self, input, output):
         while True:
@@ -662,6 +676,8 @@ class CuisineCore(base):
             input = open(local, "rb")
             self._file_stream(input, output)
 
+        
+
     def file_upload_local(self, local, remote):
         """Uploads the local file to the remote location only if the remote location does not
         exists or the content are different."""
@@ -675,6 +691,8 @@ class CuisineCore(base):
         content = j.tools.path.get(local).text()
         with ftp.open(remote, mode='w+') as f:
             f.write(content)
+
+        
 
     def file_download_binary(self, local, remote):
         """Downloads (stream) the remote file to the local location"""
@@ -723,6 +741,9 @@ class CuisineCore(base):
             return False
         # assert type(new_content) in (str, unicode, fabric.operations._AttributeString), "Updater must be like (string)->string, got: %s() = %s" %  (updater, type(new_content))
         self.file_write(location, new_content)
+
+        
+
         return True
 
     def file_append(self, location, content, mode=None, owner=None, group=None):
@@ -734,10 +755,13 @@ class CuisineCore(base):
         self.run('echo "%s" | openssl base64 -A -d >> %s' % (content_base64, location), showout=False)
         self.file_attribs(location, mode=mode, owner=owner, group=group)
 
+        
+
     def file_unlink(self, path):
         path = self.args_replace(path)
         if self.file_exists(path):
             self.run("unlink %s" % (self.shell_safe(path)), showout=False)
+            
 
     def file_link(self, source, destination, symbolic=True, mode=None, owner=None, group=None):
         """Creates a (symbolic) link between source and destination on the remote host,
@@ -751,8 +775,10 @@ class CuisineCore(base):
             self.file_unlink(destination)
         if symbolic:
             self.run('ln -sf %s %s' % (self.shell_safe(source), self.shell_safe(destination)))
+            
         else:
             self.run('ln -f %s %s' % (self.shell_safe(source), self.shell_safe(destination)))
+            
         self.file_attribs(destination, mode, owner, group)
 
     def file_copy(self, source, dest, recursive=False, overwrite=True):
@@ -852,6 +878,10 @@ class CuisineCore(base):
 
     def dir_remove(self, location, recursive=True):
         """ Removes a directory """
+<<<<<<< Updated upstream
+=======
+        
+>>>>>>> Stashed changes
         location = self.args_replace(location)
         # print("dir remove:%s"%location)
         self.logger.debug("dir remove:%s" % location)
@@ -859,6 +889,10 @@ class CuisineCore(base):
         if recursive:
             flag = 'r'
         if self.dir_exists(location):
+<<<<<<< Updated upstream
+=======
+            
+>>>>>>> Stashed changes
             return self.run('rm -%sf %s && echo **OK** ; true' % (flag, location), showout=False)[1]
 
     def dir_ensure(self, location, recursive=True, mode=None, owner=None, group=None):
@@ -873,6 +907,10 @@ class CuisineCore(base):
             self.run('mkdir %s %s' % (recursive and "-p" or "", location), showout=False)
         if owner or group or mode:
             self.dir_attribs(location, owner=owner, group=group, mode=mode, recursive=recursive)
+
+        # make sure we redo these actions
+        
+        
 
     createDir = dir_ensure
 
@@ -1080,6 +1118,11 @@ class CuisineCore(base):
 
         return "\n".join(out.split("\n")[:-1])
 
+<<<<<<< Updated upstream
+=======
+        
+
+>>>>>>> Stashed changes
     # =============================================================================
     #
     # SHELL COMMANDS
@@ -1130,6 +1173,10 @@ class CuisineCore(base):
         cmd = "jspython %s" % path
         self.tmux.executeInScreen(sessionname, screenname, cmd)
         self.file_unlink(path)
+<<<<<<< Updated upstream
+=======
+        
+>>>>>>> Stashed changes
         return out
 
     def execute_jumpscript(self, script, print=True):
@@ -1148,6 +1195,10 @@ class CuisineCore(base):
         self.file_write(path, script)
         out = self.run("jspython %s" % path)[1]
         self.file_unlink(path)
+<<<<<<< Updated upstream
+=======
+        
+>>>>>>> Stashed changes
         return out
 
     def execute_python(self, script):
@@ -1168,6 +1219,8 @@ class CuisineCore(base):
 
         j.sal.fs.remove(path)
         self.file_unlink(path)
+        
+
         return out
 
     # SYSTEM IDENTIFICATION

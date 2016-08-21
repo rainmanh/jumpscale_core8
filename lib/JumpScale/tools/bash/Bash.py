@@ -2,14 +2,6 @@ from JumpScale import j
 import re
 from io import StringIO
 import os
-from JumpScale.tools.cuisine.ActionDecorator import ActionDecorator
-
-
-class actionrun(ActionDecorator):
-
-    def __init__(self, *args, **kwargs):
-        ActionDecorator.__init__(self, *args, **kwargs)
-        self.selfobjCode = "cuisine=j.tools.cuisine.getFromId('$id');selfobj=cuisine.bash"
 
 
 class Profile:

@@ -16,12 +16,13 @@ class CuisineJS8(base):
             return True
         return False
 
-    def install(self, reset=False):
+    def install(self, reset=False, deps=True):
 
         if reset == False and self.jumpscale_installed():
             return
 
-        self.installDeps()
+        if deps:
+            self.installDeps()
 
         if self._cuisine.core.isUbuntu or self._cuisine.core.isArch:
 
@@ -42,6 +43,7 @@ class CuisineJS8(base):
 
         self._cuisine.systemservices.base.install()
         self._cuisine.development.python.install()
+        self._cuisine.development.pip.install()
         self._cuisine.apps.redis.install()
         self._cuisine.apps.brotli.build()
 

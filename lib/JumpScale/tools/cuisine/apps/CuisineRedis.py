@@ -1,16 +1,11 @@
 from JumpScale import j
 
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineRedis(base):
-
-    def isInstalled(self, die=False):
-        rc1, out1, err = self._cuisine.core.run('which redis-server', die=False)
-        if (rc1 == 0 and out1):
-            return True
-        return False
+class CuisineRedis(app):
+    NAME = 'redis-server'
 
     def install(self, reset=False):
         if reset == False and self.isInstalled():

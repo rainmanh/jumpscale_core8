@@ -1,16 +1,18 @@
 from JumpScale import j
 
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineVulcand(base):
+class CuisineVulcand(app):
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
-    def build(self):
+    def build(self, reset=False):
+        if reset == False and self.isInstalled():
+            return
         C = '''
         #!/bin/bash
         set -e

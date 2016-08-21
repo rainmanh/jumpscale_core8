@@ -132,8 +132,8 @@ class CuisinePortal(base):
         Flask-Bootstrap
         """
         self._cuisine.package.multiInstall(['libjpeg-dev', 'libffi-dev'])
-        self._cuisine.development.pip.install()
-        self._cuisine.development.pip.packagesInstall(deps)
+        self._cuisine.development.pip.ensure()
+        self._cuisine.development.pip.multiInstall(deps)
         self._cuisine.apps.mongodb.build()
 
     def getcode(self):

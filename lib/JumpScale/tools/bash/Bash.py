@@ -101,13 +101,13 @@ class Bash:
         self._profilePath = ""
         self._profile = None
         self._cuisine = j.tools.cuisine.get()
-        self.executor = self._cuisine._executor
+        self._executor = self._cuisine._executor
         self.reset()
 
     def get(self, cuisine, executor):
         b = Bash()
-        b.cuisine = cuisine
-        b.executor = executor
+        b._cuisine = cuisine
+        b._executor = executor
         return b
 
     def reset(self):

@@ -21,7 +21,7 @@ class CuisineGolang(app):
         return True
 
     def install(self):
-        if self.isInstalled():
+        if not self.isInstalled():
             if self._cuisine.core.isMac or self._cuisine.core.isArch:
                 self._cuisine.core.run(cmd="rm -rf /usr/local/go", die=False)
                 # if self._cuisine.core.isMac:

@@ -65,3 +65,10 @@ class IDGenerator:
             p = self.generateRandomInt(0, l - 1)
             out += r[p]
         return out
+
+    def generateCapnpID(self):
+        """
+        Generates a valid id for a capnp schema.
+        """
+        # the bitwise is for validating the id check capnp/parser.c++
+        return hex(random.randint(0, 2 ** 64) | 1 << 63)

@@ -287,8 +287,7 @@ class HRDSchema:
             'float': 'Float32',
         }
         fid = 0
-        # the bitwise is for validating the id check capnp/parser.c++
-        schema_id = hex(random.randint(0, 2**64) | 1 << 63)
+        schema_id = j.data.idgenerator.generateCapnpID()
         serializeddata = ""
 
         for k, ttype in self.fieldsforcapnp.items():

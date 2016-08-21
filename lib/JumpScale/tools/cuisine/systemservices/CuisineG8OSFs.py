@@ -1,14 +1,18 @@
 from JumpScale import j
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineG8OSFs(base):
+class CuisineG8OSFs(app):
     """
     fuse based filesystem for our g8OS, but can be used in other context too
     """
+    NAME = 'fs'
 
     def build(self, start=False):
+        if self.isInstalled():
+            return 
+       
         content = """
         [[mount]]
             path="/opt"
@@ -30,6 +34,9 @@ class CuisineG8OSFs(base):
             login=""
             passwd=""
         """
+        #install golang 
+        self._cuisine.development.golang.install()
+
         # self._cuisine.development.golang.install()
         self._cuisine.development.golang.godep("github.com/g8os/fs")
         self._cuisine.core.run("cd %s && go build ." % "$goDir/src/github.com/g8os/fs", profile=True)

@@ -159,7 +159,7 @@ class PlatformType:
             if self._osname not in ["darwin"] and not self._osname.startswith("cygwin"):
 
                 rc, lsbcontent, err = self.executor.cuisine.core.run(
-                    "cat /etc/lsb-release", replaceArgs=False, action=False, showout=False, die=False)
+                    "cat /etc/lsb-release", replaceArgs=False, showout=False, die=False)
                 if rc == 0:
                     import re
                     try:
@@ -173,8 +173,7 @@ class PlatformType:
                     pkgman2dist = {
                         'pacman': 'arch', 'apt-get': 'ubuntu', 'yum': 'fedora', 'apk': 'alpine'}
                     for pkgman, dist in pkgman2dist.items():
-                        rc, _, err = self.executor.cuisine.core.run("which %s" % pkgman, showout=False, replaceArgs=False, die=False,
-                                                                    action=False)
+                        rc, _, err = self.executor.cuisine.core.run("which %s" % pkgman, showout=False, replaceArgs=False, die=False)
                         if rc == 0:
                             self._osname = pkgman2dist[pkgman]
 

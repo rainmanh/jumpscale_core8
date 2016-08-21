@@ -203,8 +203,7 @@ class Bash:
         """
         checks cmd Exists and returns the path
         """
-        rc, out, err = self._cuisine.core.run("which %s" % cmd, die=False, showout=False,
-                                              action=False, profile=True)
+        rc, out, err = self._cuisine.core.run("which %s" % cmd, die=False, showout=False, profile=True)
         if rc > 0:
             if die:
                 raise j.exceptions.RuntimeError("Did not find command: %s" % cmd)

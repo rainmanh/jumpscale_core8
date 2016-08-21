@@ -154,7 +154,7 @@ class JSCuisineFactory:
         self._cuisines_instance[executor.id] = cuisine
         return self._cuisines_instance[executor.id]
 
-    def get(self, executor=None):
+    def get(self, executor=None, usecache=True):
         """
         example:
         executor=j.tools.executor.getSSHBased(addr='localhost', port=22,login="root",passwd="1234",pushkey="ovh_install")
@@ -166,7 +166,8 @@ class JSCuisineFactory:
         """
         from JumpScale.tools.cuisine.JSCuisine import JSCuisine
         executor = j.tools.executor.get(executor)
-        if executor.id in self._cuisines_instance:
+
+        if usecache and  executor.id in self._cuisines_instance:
             return self._cuisines_instance[executor.id]
 
         cuisine = JSCuisine(executor)

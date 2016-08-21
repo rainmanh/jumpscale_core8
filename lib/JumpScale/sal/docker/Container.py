@@ -31,7 +31,7 @@ class Container:
     def sshclient(self):
         if self._sshclient is None:
             self.executor.sshclient.get(
-                addr=self.host, port=self.ssh_port, login='root', passwd="gig1234", timeout=10)
+                addr=self.host, port=self.ssh_port, login='root', passwd="gig1234", timeout=10, usecache=False)
             self._sshclient = self.executor.sshclient
         return self._sshclient
 
@@ -45,7 +45,7 @@ class Container:
     @property
     def cuisine(self):
         if self._cuisine is None:
-            self._cuisine = j.tools.cuisine.get(self.executor)
+            self._cuisine = j.tools.cuisine.get(self.executor, usecache=False)
         return self._cuisine
 
     def run(self, cmd):

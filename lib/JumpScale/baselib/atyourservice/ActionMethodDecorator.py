@@ -35,7 +35,8 @@ class ActionMethodDecorator:
             #     force=kwargs.pop("force")
             # else:
             #     force=self.force
-            # force=True #because we now have the aysrun so we know what to do and what not
+            # force=True #because we now have the aysrun so we know what to do
+            # and what not
 
             if "die" in kwargs:
                 die = kwargs.pop('die')
@@ -60,18 +61,23 @@ class ActionMethodDecorator:
                     else:
                         service = kwargs['service']
                         aysikey = service.gkey
-                        dargs['service'] = 'j.atyourservice.getService(\'%s\')' % aysikey
+                        dargs[
+                            'service'] = 'j.atyourservice.getService(\'%s\')' % aysikey
                     kwargs.pop('service')
             else:
-                raise j.exceptions.Input('service should be used as kwargs argument')
+                raise j.exceptions.Input(
+                    'service should be used as kwargs argument')
 
             state = service.state.getSet(self.name, default="INIT")
 
             if action:
 
-                # this is safe for e.g.gevent usage, should always return recipe which is alike for all
+                # this is safe for e.g.gevent usage, should always return actor
+                # which is alike for all
                 selfGeneratorCode = "service=j.atyourservice.getService('%s');selfobj=service.actions" % aysikey
 
+                j.actions.setRunId('ays_%s_%s_%s' % (
+                    service.aysrepo.name, service.templatename, service.instance))
                 action0 = j.actions.add(action=func, actionRecover=None, args=args, kwargs=kwargs, die=False, stdOutput=True,
                                         errorOutput=True, retry=0, executeNow=False, force=True, actionshow=actionshow, dynamicArguments=dargs, selfGeneratorCode=selfGeneratorCode)
 
@@ -79,8 +85,9 @@ class ActionMethodDecorator:
                     action0.hrd = service.hrd
                 action0._method = None
                 action0.save()
-                
-                service.logger.info("Execute Action:%s %s" % (service, func.__name__))
+
+                service.logger.info("Execute Action:%s %s" %
+                                    (service, func.__name__))
                 action0.execute()
 
                 service.state.set(self.name, action0.state)
@@ -99,7 +106,7 @@ class ActionMethodDecorator:
             else:
                 result = func(that, *args, **kwargs)
 
-                #@todo escalation does not happen well
+                #TODO: escalation does not happen well
                 # try:
                 #     result = func(that, *args, **kwargs)
                 # except Exception as e:

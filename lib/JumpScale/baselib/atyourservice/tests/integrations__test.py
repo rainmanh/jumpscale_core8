@@ -25,7 +25,7 @@ class AYSTestBase(unittest.TestCase):
         """
         self.tmp_dir = j.sal.fs.getTmpDirPath()
         self.services_dir = j.sal.fs.joinPaths(self.tmp_dir, 'services')
-        self.templates_dir = j.sal.fs.joinPaths(self.tmp_dir, 'servicetemplates')
+        self.templates_dir = j.sal.fs.joinPaths(self.tmp_dir, 'actorTemplates')
         self.domain = j.sal.fs.getBaseName(self.tmp_dir)
         # create ays directories
         j.sal.fs.createDir(self.tmp_dir)
@@ -42,7 +42,9 @@ class AYSTestBase(unittest.TestCase):
     def tearDownClass(self):
         if j.sal.fs.exists(path=self.tmp_dir):
             j.sal.fs.removeDirTree(self.tmp_dir)
-            j.sal.fs.changeDir("/opt")  # need to move in an existing folder otherwise unittest gives errors
+            # need to move in an existing folder otherwise unittest gives
+            # errors
+            j.sal.fs.changeDir("/opt")
 
         # reset ays status
         j.atyourservice.services = []

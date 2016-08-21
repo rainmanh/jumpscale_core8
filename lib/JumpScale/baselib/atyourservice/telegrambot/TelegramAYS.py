@@ -7,7 +7,8 @@ import re
 import sys
 
 import logging
-logging.basicConfig(level=logging.DEBUG, format='[+][%(levelname)s] %(name)s: %(message)s')
+logging.basicConfig(level=logging.DEBUG,
+                    format='[+][%(levelname)s] %(name)s: %(message)s')
 
 
 class TelegramAYS:
@@ -97,7 +98,8 @@ class TelegramAYS:
     #
     def executeProgressive(self, bot, update, command):
         print("[+] executing: %s" % command)
-        process = j.do.execute(command, showout=False, useShell=False, die=False, async=True)
+        process = j.do.execute(command, showout=False,
+                               useShell=False, die=False, async=True)
 
         prefixs = ['INIT:', 'RUN:', 'NO METHODS FOR:', 'OUT:', 'Exception:']
 
@@ -131,7 +133,8 @@ class TelegramAYS:
 
             if line == '':
                 if len(outbuffer) > 0:
-                    bot.sendMessage(chat_id=update.message.chat_id, text="Sorry, I saw these errors during the execution:")
+                    bot.sendMessage(chat_id=update.message.chat_id,
+                                    text="Sorry, I saw these errors during the execution:")
                     self.bulkSend(bot, update, "".join(outbuffer))
 
                 break
@@ -162,11 +165,14 @@ class TelegramAYS:
 
                 # not fit, sending current buffer then creating a new one
                 else:
-                    bot.sendMessage(chat_id=update.message.chat_id, text="```\n%s\n```" % buffer, parse_mode="Markdown")
+                    bot.sendMessage(chat_id=update.message.chat_id,
+                                    text="```\n%s\n```" % buffer, parse_mode="Markdown")
                     buffer = chunk
 
-        # chunked or not, we send buffer, if chunked, buffer will contains last chunk
-        bot.sendMessage(chat_id=update.message.chat_id, text="```\n%s\n```" % buffer, parse_mode="Markdown")
+        # chunked or not, we send buffer, if chunked, buffer will contains last
+        # chunk
+        bot.sendMessage(chat_id=update.message.chat_id,
+                        text="```\n%s\n```" % buffer, parse_mode="Markdown")
 
     #
     # repositories manager
@@ -189,7 +195,8 @@ class TelegramAYS:
 
     def _userCheck(self, bot, update):
         if not self.users.get(update.message.from_user.username):
-            bot.sendMessage(chat_id=update.message.chat_id, text='Hello buddy, please use /start at first.')
+            bot.sendMessage(chat_id=update.message.chat_id,
+                            text='Hello buddy, please use /start at first.')
             return False
 
         return True
@@ -204,7 +211,8 @@ class TelegramAYS:
             bot.sendMessage(chat_id=chatid, text="No project selected now.")
 
         else:
-            bot.sendMessage(chat_id=chatid, text="Current project: %s" % self._currentProject(username))
+            bot.sendMessage(chat_id=chatid, text="Current project: %s" %
+                            self._currentProject(username))
 
         # projects list
         if len(self._getProjects(username)) == 0:
@@ -212,7 +220,8 @@ class TelegramAYS:
             return bot.sendMessage(chat_id=chatid, text=message, parse_mode="Markdown")
 
         ln = len(self._getProjects(username))
-        projectsList = ["I have %d project%s for you:" % (ln, "s" if ln > 1 else "")]
+        projectsList = ["I have %d project%s for you:" %
+                        (ln, "s" if ln > 1 else "")]
 
         for project in self._getProjects(username):
             projectsList.append(" - %s" % project)
@@ -228,7 +237,8 @@ class TelegramAYS:
         for project in projects:
             if project not in self._getProjects(username):
                 message = "Sorry, I can't find any project named `%s` :/" % project
-                bot.sendMessage(chat_id=chatid, text=message, parse_mode="Markdown")
+                bot.sendMessage(chat_id=chatid, text=message,
+                                parse_mode="Markdown")
                 continue
 
             if project == self._currentProject(username):
@@ -241,7 +251,8 @@ class TelegramAYS:
             self.users[username]['projects'].remove(project)
 
             message = "Project `%s` removed" % project
-            bot.sendMessage(chat_id=chatid, text=message, parse_mode="Markdown")
+            bot.sendMessage(chat_id=chatid, text=message,
+                            parse_mode="Markdown")
 
     def _projectsCheckout(self, bot, update, project):
         print('[+] checking out project: %s' % project)
@@ -272,7 +283,8 @@ class TelegramAYS:
 
     def _blueprintsList(self, bot, update, project):
         username = update.message.from_user.username
-        blueprints = j.sal.fs.listFilesInDir(self._currentBlueprintsPath(username))
+        blueprints = j.sal.fs.listFilesInDir(
+            self._currentBlueprintsPath(username))
 
         bluelist = ["Blueprints for [%s]:" % project]
         for bluepath in blueprints:
@@ -280,9 +292,11 @@ class TelegramAYS:
             bluelist.append(' - %s' % blueprint)
 
         if len(bluelist) == 1:
-            bluelist = ["Sorry, this repository doesn't contains blueprint for now, upload me some of them !"]
+            bluelist = [
+                "Sorry, this repository doesn't contains blueprint for now, upload me some of them !"]
 
-        bot.sendMessage(chat_id=update.message.chat_id, text="\n".join(bluelist))
+        bot.sendMessage(chat_id=update.message.chat_id,
+                        text="\n".join(bluelist))
 
     def _blueprintsDelete(self, bot, update, project, names):
         username = update.message.from_user.username
@@ -293,38 +307,46 @@ class TelegramAYS:
 
         for name in names:
             if name == "*" or name == "all":
-                blueprints = j.sal.fs.listFilesInDir(self._currentBlueprintsPath(username))
+                blueprints = j.sal.fs.listFilesInDir(
+                    self._currentBlueprintsPath(username))
                 for blueprint in blueprints:
                     j.sal.fs.remove(blueprint)
 
                 ln = len(blueprints)
-                message = "%d blueprint%s removed" % (ln, "s" if ln > 1 else "")
+                message = "%d blueprint%s removed" % (
+                    ln, "s" if ln > 1 else "")
                 bot.sendMessage(chat_id=update.message.chat_id, text=message)
 
             else:
-                blueprint = '%s/%s' % (self._blueprintsPath(username, project), name)
+                blueprint = '%s/%s' % (self._blueprintsPath(username,
+                                                            project), name)
 
                 print('[+] deleting: %s' % blueprint)
 
                 if not j.sal.fs.exists(blueprint):
                     message = "Sorry, I don't find any blueprint named `%s`, you can list them with `/blueprint`" % name
-                    bot.sendMessage(chat_id=update.message.chat_id, text=message, parse_mode="Markdown")
+                    bot.sendMessage(chat_id=update.message.chat_id,
+                                    text=message, parse_mode="Markdown")
                     continue
 
                 j.sal.fs.remove(blueprint)
 
                 message = "Blueprint `%s` removed from `%s`" % (name, project)
-                bot.sendMessage(chat_id=update.message.chat_id, text=message, parse_mode="Markdown")
+                bot.sendMessage(chat_id=update.message.chat_id,
+                                text=message, parse_mode="Markdown")
 
         # cleaning
         j.sal.fs.removeDirTree('%s/alog' % self._currentProjectPath(username))
-        j.sal.fs.removeDirTree('%s/recipes' % self._currentProjectPath(username))
-        j.sal.fs.removeDirTree('%s/services' % self._currentProjectPath(username))
+        j.sal.fs.removeDirTree('%s/actors' %
+                               self._currentProjectPath(username))
+        j.sal.fs.removeDirTree('%s/services' %
+                               self._currentProjectPath(username))
         j.sal.fs.createDir('%s/services' % self._currentProjectPath(username))
 
     def _blueprintsDeletePrompt(self, bot, update, project):
         username = update.message.from_user.username
-        blueprints = j.sal.fs.listFilesInDir(self._currentBlueprintsPath(username))
+        blueprints = j.sal.fs.listFilesInDir(
+            self._currentBlueprintsPath(username))
 
         bluelist = []
 
@@ -338,11 +360,13 @@ class TelegramAYS:
         bluelist.append("I'm done")
 
         custom_keyboard = [bluelist]
-        reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
+        reply_markup = telegram.ReplyKeyboardMarkup(
+            custom_keyboard, resize_keyboard=True)
         return bot.sendMessage(chat_id=update.message.chat_id, text="Which blueprint do you want to delete ?", reply_markup=reply_markup)
 
     def _blueprintGetAll(self, bot, update, project):
-        files = j.sal.fs.listFilesInDir(self._blueprintsPath(username, project))
+        files = j.sal.fs.listFilesInDir(
+            self._blueprintsPath(username, project))
         print("[+] blueprints: %s" % files)
 
         for file in files:
@@ -369,7 +393,8 @@ class TelegramAYS:
         username = update.message.from_user.username
         doc = update.message.document
         item = bot.getFile(doc.file_id)
-        local = '%s/%s' % (self._currentBlueprintsPath(username), doc.file_name)
+        local = '%s/%s' % (self._currentBlueprintsPath(username),
+                           doc.file_name)
 
         if not self._currentProject(username):
             message = "Sorry, you are not working on a project currently, use `/project [name]` to create a new one"
@@ -381,10 +406,12 @@ class TelegramAYS:
         print("[+] document: %s -> %s" % (item.file_path, local))
         j.sal.nettools.download(item.file_path, local)
 
-        bot.sendMessage(chat_id=update.message.chat_id, text="File received: %s" % doc.file_name)
+        bot.sendMessage(chat_id=update.message.chat_id,
+                        text="File received: %s" % doc.file_name)
 
     def project(self, bot, update, args):
-        print('[+] project management for: %s' % update.message.from_user.username)
+        print('[+] project management for: %s' %
+              update.message.from_user.username)
         if not self._userCheck(bot, update):
             return
 
@@ -458,7 +485,8 @@ class TelegramAYS:
         previous = j.sal.fs.getcwd()
         j.sal.fs.changeDir(repopath)
 
-        bot.sendMessage(chat_id=update.message.chat_id, text='Executing command...')
+        bot.sendMessage(chat_id=update.message.chat_id,
+                        text='Executing command...')
 
         # using list for auto-escape
         ays = 'ays'
@@ -474,7 +502,8 @@ class TelegramAYS:
     @run_async
     def message(self, bot, update, **kwargs):
         username = update.message.from_user.username
-        print('[+] %s [%s]: %s' % (username, update.message.chat_id, update.message.text))
+        print('[+] %s [%s]: %s' %
+              (username, update.message.chat_id, update.message.text))
 
         if getattr(update.message, 'document', None):
             self.document(bot, update)
@@ -553,7 +582,8 @@ class TelegramAYS:
             "This message was given by `/help`, have fun with me !",
         ]
 
-        bot.sendMessage(chat_id=update.message.chat_id, text="\n".join(message), parse_mode="Markdown")
+        bot.sendMessage(chat_id=update.message.chat_id,
+                        text="\n".join(message), parse_mode="Markdown")
 
     # initialize
     def start(self, bot, update):
@@ -590,11 +620,13 @@ class TelegramAYS:
             "For more information, just type `/help` :)"
         ]
 
-        bot.sendMessage(chat_id=update.message.chat_id, text="\n".join(message), parse_mode="Markdown")
+        bot.sendMessage(chat_id=update.message.chat_id,
+                        text="\n".join(message), parse_mode="Markdown")
 
     # project manager
     def unknown(self, bot, update):
-        bot.sendMessage(chat_id=update.message.chat_id, text="Sorry, I didn't understand that command.")
+        bot.sendMessage(chat_id=update.message.chat_id,
+                        text="Sorry, I didn't understand that command.")
 
     #
     # management

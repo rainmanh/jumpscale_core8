@@ -50,7 +50,6 @@ class CuisineMongodb(base):
         self._cuisine.core.dir_ensure('$varDir/data/mongodb')
 
     def build(self, start=True):
-        import ipdb;ipdb.set_trace()
         self._build()
         if start:
             self.start("mongod")

@@ -1,10 +1,10 @@
 """
-Test Cuisine2  (core)
+Test JSCuisine  (core)
 """
 import unittest
 from unittest import mock
 
-class TestCuisine2(unittest.TestCase):
+class TestJSCuisine(unittest.TestCase):
 
     def setUp(self):
         pass
@@ -18,9 +18,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -40,9 +40,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -54,9 +54,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -68,9 +68,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -82,13 +82,13 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
-            self.assertIsNotNone(cuisine.pip)
+            self.assertIsNotNone(cuisine.development.pip)
 
 
     def test_create_cuisine2_fw(self):
@@ -97,9 +97,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -111,9 +111,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -125,9 +125,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -139,9 +139,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -153,9 +153,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -167,9 +167,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -181,9 +181,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -195,9 +195,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -209,9 +209,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -223,9 +223,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -237,9 +237,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -251,9 +251,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -265,9 +265,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -279,9 +279,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -293,9 +293,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -307,9 +307,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -321,9 +321,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -335,9 +335,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -350,9 +350,9 @@ class TestCuisine2(unittest.TestCase):
         """
         with mock.patch("JumpScale.j") as j_mock:
             from JumpScale import j
-            import JumpScale.tools.cuisine.Cuisine2
-            JumpScale.tools.cuisine.Cuisine2.j = j
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            import JumpScale.tools.cuisine.JSCuisine
+            JumpScale.tools.cuisine.JSCuisine.j = j
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             executor_mock = mock.MagicMock()
             j.tools.executor.getLocal.return_value = executor_mock
             cuisine = JSCuisine(j.tools.executor.getLocal())
@@ -366,10 +366,10 @@ class TestCuisine2(unittest.TestCase):
             with mock.patch("JumpScale.tools.cuisine.ProcessManagerFactory.ProcessManagerFactory") as process_manager_factory_mock:
                 from JumpScale.tools.cuisine.ProcessManagerFactory import ProcessManagerFactory
                 from JumpScale import j
-                import JumpScale.tools.cuisine.Cuisine2
-                JumpScale.tools.cuisine.Cuisine2.ProcessManagerFactory = ProcessManagerFactory
-                JumpScale.tools.cuisine.Cuisine2.j = j
-                from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+                import JumpScale.tools.cuisine.JSCuisine
+                JumpScale.tools.cuisine.JSCuisine.ProcessManagerFactory = ProcessManagerFactory
+                JumpScale.tools.cuisine.JSCuisine.j = j
+                from JumpScale.tools.cuisine.JSCuisine import JSCuisine
                 executor_mock = mock.MagicMock()
                 j.tools.executor.getLocal.return_value = executor_mock
                 cuisine = JSCuisine(j.tools.executor.getLocal())

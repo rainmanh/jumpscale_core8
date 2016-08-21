@@ -10,8 +10,6 @@ class CuisineBase(base):
     """
 
     def install(self):
-        self.clean()
-
         self._cuisine.bash.fixlocale()
 
         if self._cuisine.core.isMac:

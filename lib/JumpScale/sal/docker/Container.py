@@ -173,7 +173,7 @@ class Container:
         if key == None or key.strip() == "":
             raise j.exceptions.Input("ssh key cannot be empty (None)")
 
-        self._cuisine.ssh.authorize("root", key)
+        self.cuisine.ssh.authorize("root", key)
 
         return list(keys)
 

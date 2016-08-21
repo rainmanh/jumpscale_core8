@@ -47,8 +47,8 @@ class CuisineJS8(base):
         self._cuisine.apps.redis.install()
         self._cuisine.apps.brotli.build()
 
-        self._cuisine.pip.install('pytoml')
-        self._cuisine.pip.install('pygo')
+        self._cuisine.development.pip.install('pytoml')
+        self._cuisine.development.pip.install('pygo')
 
         # python etcd
         C = """

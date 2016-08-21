@@ -6,8 +6,10 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisineLedis(base):
 
-    def build(self, backend="leveldb"):
-        # self._cuisine.installer.base()
+    def build(self, backend="leveldb", reset=False):
+        if reset == False and self.isInstalled():
+            return
+
         if self._cuisine.core.isUbuntu:
 
             C = """

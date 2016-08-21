@@ -9,10 +9,14 @@ class CuisineCapnp(base):
         self._executor = executor
         self._cuisine = cuisine
 
-    def install(self):
+    def install(self, reset=False):
         """
         install capnp
         """
+
+        if reset == False and self.isInstalled():
+            return
+
         self._cuisine.package.mdupdate()
         self._cuisine.package.multiInstall(['curl', 'make', 'g++', 'python-dev'])
 

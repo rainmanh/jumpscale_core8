@@ -467,10 +467,6 @@ class CuisineCore(base):
         location = self.args_replace(location)
         cmd += ' %s' % location
         rc, out, err = self.run(cmd, showout=False, die=False)
-<<<<<<< Updated upstream
-=======
-        
->>>>>>> Stashed changes
         return not rc
 
     def file_exists(self, location):
@@ -512,12 +508,8 @@ class CuisineCore(base):
                 hostname = self.run("hostname")[1]
             else:
                 hostfile = "/etc/hostname"
-<<<<<<< Updated upstream
                 rc, out, err = self.run("cat %s" % hostfile, showout=False, replaceArgs=False)
                 hostname = out.strip().split(".", 1)[0]
-=======
-                hostname = self.run("cat %s" % hostfile, showout=False, replaceArgs=False,)[1].strip().split(".", 1)[0]
->>>>>>> Stashed changes
             return hostname
         return self._cache.get("hostname", get)
 
@@ -878,10 +870,6 @@ class CuisineCore(base):
 
     def dir_remove(self, location, recursive=True):
         """ Removes a directory """
-<<<<<<< Updated upstream
-=======
-        
->>>>>>> Stashed changes
         location = self.args_replace(location)
         # print("dir remove:%s"%location)
         self.logger.debug("dir remove:%s" % location)
@@ -889,10 +877,6 @@ class CuisineCore(base):
         if recursive:
             flag = 'r'
         if self.dir_exists(location):
-<<<<<<< Updated upstream
-=======
-            
->>>>>>> Stashed changes
             return self.run('rm -%sf %s && echo **OK** ; true' % (flag, location), showout=False)[1]
 
     def dir_ensure(self, location, recursive=True, mode=None, owner=None, group=None):
@@ -1118,11 +1102,6 @@ class CuisineCore(base):
 
         return "\n".join(out.split("\n")[:-1])
 
-<<<<<<< Updated upstream
-=======
-        
-
->>>>>>> Stashed changes
     # =============================================================================
     #
     # SHELL COMMANDS
@@ -1173,10 +1152,7 @@ class CuisineCore(base):
         cmd = "jspython %s" % path
         self.tmux.executeInScreen(sessionname, screenname, cmd)
         self.file_unlink(path)
-<<<<<<< Updated upstream
-=======
-        
->>>>>>> Stashed changes
+
         return out
 
     def execute_jumpscript(self, script, print=True):
@@ -1195,10 +1171,7 @@ class CuisineCore(base):
         self.file_write(path, script)
         out = self.run("jspython %s" % path)[1]
         self.file_unlink(path)
-<<<<<<< Updated upstream
-=======
-        
->>>>>>> Stashed changes
+
         return out
 
     def execute_python(self, script):

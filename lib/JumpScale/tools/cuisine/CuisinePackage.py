@@ -268,7 +268,7 @@ class CuisinePackage(base):
             if autoclean:
                 self._apt_get("autoclean")
         elif self.isMac:
-            self._cuisine.core.run("pacman -Rs %s" % package)
+            self._cuisine.core.run("brew remove %s" % package)
 
     def __repr__(self):
         return "cuisine.package:%s:%s" % (self._executor.addr, self._executor.port)

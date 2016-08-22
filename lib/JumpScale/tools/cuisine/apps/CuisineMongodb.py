@@ -42,13 +42,20 @@ class CuisineMongodb(app):
                 for file in self._cuisine.core.fs_find('%s/bin/' % extracted, type='f'):
                     self._cuisine.core.file_copy(file, appbase)
 
-        self._cuisine.core.dir_ensure('$varDir/data/mongodb')
 
-    def build(self, start=True):
-        self._build()
+    def install(self, start=True):
+        """
+        download, install, move files to appropriate places, and create relavent configs 
+        """
+        self._cuisine.core.dir_ensure('$varDir/data/mongodb')
         if start:
             self.start("mongod")
 
+    def build(self, start=True, install=True):
+        self._build()
+        if install:
+            self.install(start)
+    
     def start(self, name="mongod"):
         which = self._cuisine.core.command_location("mongod")
         self._cuisine.core.dir_ensure('$varDir/data/mongodb')

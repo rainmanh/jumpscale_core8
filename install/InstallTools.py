@@ -1460,6 +1460,15 @@ class InstallTools():
         # cmd="scp %s %s@%s:~/%s"%(keypath,login,remoteipaddr,self.getBaseName(keypath))
         # j.do.executeInteractive(cmd)
 
+        if not self.exists(keyname):
+            if login == "root":
+                rootpath = "/root/.ssh/"
+            else:
+                rootpath = "/home/%s/.ssh/"
+            fullpath = self.joinPaths(rootpath, keyname)
+            if self.exists(fullpath):
+                keyname = fullpath
+
         import paramiko
         paramiko.util.log_to_file("/tmp/paramiko.log")
         ssh = paramiko.SSHClient()
@@ -1468,6 +1477,8 @@ class InstallTools():
         print("ssh connect:%s %s" % (remoteipaddr, login))
         #
         # env.no_keys = True
+        if not self.listSSHKeyFromAgent(self.getBaseName(keyname)):
+            self.loadSSHKeys(self.getParent(keyname))
         ssh.connect(remoteipaddr, username=login, password=passwd, allow_agent=True, look_for_keys=False)
         print("ok")
 
@@ -1476,16 +1487,13 @@ class InstallTools():
         else:
             authkeypath = "/home/%s/.ssh/authorized_keys" % (login)
 
-        if not self.exists(keypathpub):
-            raise RuntimeError("Cannot find keypath:%s" % keypathpub)
-
         ftp = ssh.open_sftp()
 
         if login != "root":
-            basename = self.getBaseName(keypathpub)
+            basename = self.getBaseName(keyname)
             tmpfile = "/home/%s/.ssh/%s" % (login, basename)
             print("push key to /home/%s/.ssh/%s" % (login, basename))
-            ftp.put(keypathpub, tmpfile)
+            ftp.put(keyname, tmpfile)
 
             # cannot upload directly to root dir
             cmd = "ssh %s@%s 'cat %s | sudo tee -a %s '" % (login, remoteipaddr, tmpfile, authkeypath)
@@ -1512,7 +1520,7 @@ class InstallTools():
 
             C = self.readFile(tmppath)
             out = ""
-            Cnew = self.readFile(keypathpub)
+            Cnew = self.readFile(keyname)
             key = Cnew.split(" ")[1]
             if C.find(key) == -1:
                 C2 = "%s\n%s\n" % (C.strip(), Cnew)

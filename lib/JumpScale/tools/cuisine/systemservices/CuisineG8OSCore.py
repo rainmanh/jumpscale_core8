@@ -36,7 +36,7 @@ class CuisineG8OSCore(app):
         self._cuisine.development.golang.godep(url)
 
 
-        self._cuisine.core.run("cd $goDir/src/github.com/g8os/core/core && go build .", profile=True)
+        self._cuisine.core.run("cd $goDir/src/github.com/g8os/core && go build .", profile=True)
 
         if install:
             self.install(start, gid, nid)
@@ -60,7 +60,7 @@ class CuisineG8OSCore(app):
         if self._cuisine.core.isUbuntu:
             self._cuisine.core.file_copy("{0}sshd-ubuntu.toml".format(sourcepath+"/conf.extra/"), "$tmplsDir/cfg/core/conf/", recursive=True)
         self._cuisine.core.dir_ensure("$tmplsDir/cfg/core/extensions/syncthing")
-        self._cuisine.core.file_copy("$binDir/syncthing", "$tmplsDir/cfg/core/extensions/syncthing/")
+        self._cuisine.core.file_copy("$binDir/syncthing", "$tmplsDir/cfg/core/extensions/syncthing/", recursive=True)
 
 
         if start:

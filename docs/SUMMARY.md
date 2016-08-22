@@ -53,7 +53,7 @@
 
   - [cuisine.core](Cuisine/cuisine.core.md)
   - [cuisine.bash](Cuisine/cuisine.bash.md)
-  - [cuisine.pip](Cuisine/cuisine.pip.md)
+  - [cuisine.development.pip](Cuisine/cuisine.development.pip.md)
   - [cuisine.processmanager](Cuisine/cuisine.processmanager.md)
   - [cuisine.apps](Cuisine/cuisine.apps.md)
   - [cuisine.tmux](Cuisine/cuisine.tmux.md)

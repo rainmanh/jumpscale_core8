@@ -54,9 +54,9 @@ class CuisineVolumeDriver(base):
             'version': version,
         }
 
-        str_repl['volumedriver'] = self._cuisine.git.pullRepo(
+        str_repl['volumedriver'] = self._cuisine.development.git.pullRepo(
             'https://github.com/openvstorage/volumedriver', depth=None)
-        str_repl['buildtools'] = self._cuisine.git.pullRepo(
+        str_repl['buildtools'] = self._cuisine.development.git.pullRepo(
             'https://github.com/openvstorage/volumedriver-buildtools', depth=None)
         self._cuisine.core.run('cd %(volumedriver)s;git checkout tags/%(version)s' % str_repl)
 

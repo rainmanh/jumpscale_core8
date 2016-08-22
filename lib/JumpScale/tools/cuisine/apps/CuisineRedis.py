@@ -1,16 +1,11 @@
 from JumpScale import j
 
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineRedis(base):
-
-    def isInstalled(self, die=False):
-        rc1, out1, err = self._cuisine.core.run('which redis-server', die=False)
-        if (rc1 == 0 and out1):
-            return True
-        return False
+class CuisineRedis(app):
+    NAME = 'redis-server'
 
     def install(self, reset=False):
         if reset == False and self.isInstalled():
@@ -29,6 +24,8 @@ class CuisineRedis(base):
         if reset == False and self.isInstalled():
             return
         if self._cuisine.core.isUbuntu:
+            self._cuisine.package.update()
+            self._cuisine.package.install("build-essential")
 
             # TODO: *1 is this newest redis, if not upgrade
 

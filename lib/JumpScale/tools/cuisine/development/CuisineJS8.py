@@ -43,12 +43,12 @@ class CuisineJS8(base):
 
         self._cuisine.systemservices.base.install()
         self._cuisine.development.python.install()
-        self._cuisine.development.pip.install()
+        self._cuisine.development.pip.ensure()
         self._cuisine.apps.redis.install()
         self._cuisine.apps.brotli.build()
 
-        self._cuisine.pip.install('pytoml')
-        self._cuisine.pip.install('pygo')
+        self._cuisine.development.pip.install('pytoml')
+        self._cuisine.development.pip.install('pygo')
 
         # python etcd
         C = """
@@ -137,11 +137,11 @@ class CuisineJS8(base):
         gspread
         oauth2client
         """
-        self._cuisine.pip.multiInstall(C, upgrade=True)
+        self._cuisine.development.pip.multiInstall(C, upgrade=True)
 
         if self._cuisine.platformtype.osname != "debian":
             C = """
             blosc
             bcrypt
             """
-            self._cuisine.pip.multiInstall(C, upgrade=True)
+            self._cuisine.development.pip.multiInstall(C, upgrade=True)

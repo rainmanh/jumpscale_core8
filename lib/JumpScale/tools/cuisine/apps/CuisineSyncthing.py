@@ -1,13 +1,15 @@
 from JumpScale import j
 
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 # TODO: *1 check we are installing latest cuisine
 
 
-class CuisineSyncthing(base):
-
+class CuisineSyncthing(app):
+    
+    NAME = 'syncthing'
+    
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
@@ -16,8 +18,9 @@ class CuisineSyncthing(base):
         """
         build and setup syncthing to run on :8384 , this can be changed from the config file in /optvar/cfg/syncthing
         """
-        # self._cuisine.apps.installdeps()
-
+        if self.isInstalled():
+            return 
+        
         config = """
         <configuration version="11">
             <folder id="default" path="$homeDir/Sync" ro="false" rescanIntervalS="60" ignorePerms="false" autoNormalize="false">
@@ -69,6 +72,9 @@ class CuisineSyncthing(base):
             </options>
         </configuration>
         """
+        #install deps 
+        self._cuisine.development.golang.install() 
+        
         # create config file
         content = self._cuisine.core.args_replace(config)
         content = content.replace("$lclAddrs",  "0.0.0.0", 1)
@@ -80,9 +86,9 @@ class CuisineSyncthing(base):
         # build
         url = "https://github.com/syncthing/syncthing.git"
         self._cuisine.core.dir_remove('$goDir/src/github.com/syncthing/syncthing')
-        self._cuisine.golang.clean_src_path()
-        dest = self._cuisine.git.pullRepo(url, dest='$goDir/src/github.com/syncthing/syncthing', ssh=False, depth=1)
-        self._cuisine.golang.get("github.com/golang/lint/golint")
+        self._cuisine.development.golang.clean_src_path()
+        dest = self._cuisine.development.git.pullRepo(url, dest='$goDir/src/github.com/syncthing/syncthing', ssh=False, depth=1)
+        self._cuisine.development.golang.get("github.com/golang/lint/golint")
         self._cuisine.core.run("cd %s && go run build.go -version v0.11.25 -no-upgrade" % dest, profile=True)
 
         # copy bin

@@ -209,7 +209,7 @@ class CuisineCore(base):
 
     def __init__(self, executor, cuisine):
         base.__init__(self, executor, cuisine)
-        self.logger = j.logger.get("j.tools.cuisine.core", enable_only_me=True)
+        self.logger = j.logger.get("j.tools.cuisine.core")
         # print ("***NEW CORE***")
         self.cd = "/"
         self.sudomode = False
@@ -445,9 +445,11 @@ class CuisineCore(base):
         else:
             raise j.exceptions.RuntimeError("not supported yet")
 
+
     def touch(self, path):
         path = self.args_replace(path)
         self.file_write(path, "")
+
 
     def file_read(self, location, default=None):
         import base64
@@ -465,7 +467,6 @@ class CuisineCore(base):
         location = self.args_replace(location)
         cmd += ' %s' % location
         rc, out, err = self.run(cmd, showout=False, die=False)
-
         return not rc
 
     def file_exists(self, location):
@@ -507,8 +508,8 @@ class CuisineCore(base):
                 hostname = self.run("hostname")[1]
             else:
                 hostfile = "/etc/hostname"
-                hostname = self.run("cat %s" % hostfile, showout=False, replaceArgs=False,
-                                    force=False)[1].strip().split(".", 1)[0]
+                rc, out, err = self.run("cat %s" % hostfile, showout=False, replaceArgs=False)
+                hostname = out.strip().split(".", 1)[0]
             return hostname
         return self._cache.get("hostname", get)
 
@@ -630,6 +631,8 @@ class CuisineCore(base):
 
         self.file_attribs(location, mode=mode, owner=owner, group=group)
 
+
+
     def file_ensure(self, location, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
         location."""
@@ -638,6 +641,8 @@ class CuisineCore(base):
             self.file_attribs(location, mode=mode, owner=owner, group=group)
         else:
             self.file_write(location, "", mode=mode, owner=owner, group=group)
+
+
 
     def _file_stream(self, input, output):
         while True:
@@ -663,6 +668,8 @@ class CuisineCore(base):
             input = open(local, "rb")
             self._file_stream(input, output)
 
+
+
     def file_upload_local(self, local, remote):
         """Uploads the local file to the remote location only if the remote location does not
         exists or the content are different."""
@@ -676,6 +683,8 @@ class CuisineCore(base):
         content = j.tools.path.get(local).text()
         with ftp.open(remote, mode='w+') as f:
             f.write(content)
+
+
 
     def file_download_binary(self, local, remote):
         """Downloads (stream) the remote file to the local location"""
@@ -725,6 +734,8 @@ class CuisineCore(base):
         # assert type(new_content) in (str, unicode, fabric.operations._AttributeString), "Updater must be like (string)->string, got: %s() = %s" %  (updater, type(new_content))
         self.file_write(location, new_content)
 
+
+
         return True
 
     def file_append(self, location, content, mode=None, owner=None, group=None):
@@ -736,10 +747,13 @@ class CuisineCore(base):
         self.run('echo "%s" | openssl base64 -A -d >> %s' % (content_base64, location), showout=False)
         self.file_attribs(location, mode=mode, owner=owner, group=group)
 
+
+
     def file_unlink(self, path):
         path = self.args_replace(path)
         if self.file_exists(path):
             self.run("unlink %s" % (self.shell_safe(path)), showout=False)
+
 
     def file_link(self, source, destination, symbolic=True, mode=None, owner=None, group=None):
         """Creates a (symbolic) link between source and destination on the remote host,
@@ -856,7 +870,6 @@ class CuisineCore(base):
 
     def dir_remove(self, location, recursive=True):
         """ Removes a directory """
-
         location = self.args_replace(location)
         # print("dir remove:%s"%location)
         self.logger.debug("dir remove:%s" % location)
@@ -864,7 +877,6 @@ class CuisineCore(base):
         if recursive:
             flag = 'r'
         if self.dir_exists(location):
-
             return self.run('rm -%sf %s && echo **OK** ; true' % (flag, location), showout=False)[1]
 
     def dir_ensure(self, location, recursive=True, mode=None, owner=None, group=None):
@@ -881,6 +893,8 @@ class CuisineCore(base):
             self.dir_attribs(location, owner=owner, group=group, mode=mode, recursive=recursive)
 
         # make sure we redo these actions
+
+
 
     createDir = dir_ensure
 
@@ -1178,6 +1192,7 @@ class CuisineCore(base):
 
         j.sal.fs.remove(path)
         self.file_unlink(path)
+
 
         return out
 

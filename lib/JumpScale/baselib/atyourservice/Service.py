@@ -455,13 +455,16 @@ class Service:
             for ays in toConsume:
                 self.state.consume(aysi=ays)
 
-    def getProducersRecursive(self, producers=set(), callers=set(), action="", producerRoles="*"):
+    def getProducersRecursive(self, producers=None, callers=None, action="", producerRoles="*"):
+        producers = producers or set()
+        callers = callers or set()
         for role, producers2 in self.producers.items():
             for producer in producers2:
-                if action == "" or producer.getAction(action) != None:
-                    if producerRoles == "*" or producer.role in producerRoles:
-                        producers.add(producer)
-                producers = producer.getProducersRecursive(producers=producers, callers=callers, action=action, producerRoles=producerRoles)
+                if producer not in producers:
+                    if action == "" or producer.getAction(action) is not None:
+                        if producerRoles == "*" or producer.role in producerRoles:
+                            producers.add(producer)
+                    producers = producer.getProducersRecursive(producers=producers, callers=callers, action=action, producerRoles=producerRoles)
         return producers.symmetric_difference(callers)
 
     def printProducersRecursive(self, prefix=""):

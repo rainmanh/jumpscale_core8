@@ -1,19 +1,21 @@
 from JumpScale import j
 
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineController(base):
-
+class CuisineController(app):
+    NAME = "controller"
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
-    def build(self, start=True, listen_addr=[]):
+    def build(self, start=True, listen_addr=[], reset=False):
         """
         config: https://github.com/g8os/controller.git
         """
+        if reset == False and self.isInstalled():
+            return
         # deps
         self._cuisine.apps.redis.build(start=False)
         self._cuisine.apps.mongodb.build(start=False)
@@ -27,8 +29,8 @@ class CuisineController(base):
 
         # get repo
         url = "github.com/g8os/controller"
-        self._cuisine.golang.clean_src_path()
-        self._cuisine.golang.godep(url)
+        self._cuisine.development.golang.clean_src_path()
+        self._cuisine.development.golang.godep(url)
 
         sourcepath = "$goDir/src/github.com/g8os/controller"
 

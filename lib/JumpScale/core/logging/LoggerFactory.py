@@ -69,7 +69,7 @@ class LoggerFactory:
         logger = logging.getLogger(name)
         if enable_only_me:
             logger = JSLogger(name)
-            logger.enable_only_me
+            logger.enable_only_me()
         return logger
 
     def set_quiet(self, quiet):

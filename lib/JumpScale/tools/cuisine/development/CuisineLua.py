@@ -1,9 +1,10 @@
 from JumpScale import j
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
+class CuisineLua(app):
 
-class CuisineLua(base):
+    NAME = "tarantool"
 
     def __init__(self, executor, cuisine):
         self._executor = executor
@@ -27,7 +28,10 @@ class CuisineLua(base):
     #
     #     self.package("luasocket")
 
-    def installLuajitTarantool(self):
+    def installLuajitTarantool(self, reset=False):
+        if reset == False and self.isInstalled():
+            return
+
         C = """
         set -ex
 

@@ -1,13 +1,14 @@
 from JumpScale import j
 import os
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
+class CuisineLedis(app):
+    NAME = "ledis-server"
+    def build(self, backend="leveldb", reset=False):
+        if reset == False and self.isInstalled():
+            return
 
-class CuisineLedis(base):
-
-    def build(self, backend="leveldb"):
-        # self._cuisine.installer.base()
         if self._cuisine.core.isUbuntu:
 
             C = """
@@ -20,8 +21,8 @@ class CuisineLedis(base):
 
             make
             """
-            self._cuisine.golang.install()
-            self._cuisine.git.pullRepo("https://github.com/siddontang/ledisdb",
+            self._cuisine.development.golang.install()
+            self._cuisine.development.git.pullRepo("https://github.com/siddontang/ledisdb",
                                        dest="$goDir/src/github.com/siddontang/ledisdb")
 
             # set the backend in the server config

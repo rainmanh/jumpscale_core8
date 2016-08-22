@@ -35,6 +35,22 @@ class CuisineBase:
 
     __repr__ = __str__
 
+class CuisineApp(CuisineBase):
+
+    NAME = None
+    VERSION = None
+
+    def isInstalled(self):
+        """
+        Checks if a package is installed or not
+        You can ovveride it to use another way for checking
+        """
+        return not self._cuisine.core.run('PATH=$PATH:/opt/jumpscale8/bin which %s' % self.NAME, die=False, showout=False)[0]
+
+    def install(self):
+        if not self.isInstalled():
+            raise NotImplementedError()
+
 
 class CuisineBaseLoader:
 
@@ -63,6 +79,9 @@ class JSCuisineFactory:
     def _getBaseClass(self):
         return CuisineBase
 
+    def _getBaseAppClass(self):
+        return CuisineApp
+
     def _getBaseClassLoader(self):
         return CuisineBaseLoader
 
@@ -76,7 +95,7 @@ class JSCuisineFactory:
     @property
     def local(self):
         if self._local is None:
-            from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+            from JumpScale.tools.cuisine.JSCuisine import JSCuisine
             self._local = JSCuisine(j.tools.executor.getLocal())
         return self._local
 
@@ -137,7 +156,7 @@ class JSCuisineFactory:
         self._cuisines_instance[executor.id] = cuisine
         return self._cuisines_instance[executor.id]
 
-    def get(self, executor=None):
+    def get(self, executor=None, usecache=True):
         """
         example:
         executor=j.tools.executor.getSSHBased(addr='localhost', port=22,login="root",passwd="1234",pushkey="ovh_install")
@@ -147,9 +166,10 @@ class JSCuisineFactory:
 
         or if used without executor then will be the local one
         """
-        from JumpScale.tools.cuisine.Cuisine2 import JSCuisine
+        from JumpScale.tools.cuisine.JSCuisine import JSCuisine
         executor = j.tools.executor.get(executor)
-        if executor.id in self._cuisines_instance:
+
+        if usecache and  executor.id in self._cuisines_instance:
             return self._cuisines_instance[executor.id]
 
         cuisine = JSCuisine(executor)

@@ -22,7 +22,7 @@ class CuisineArakoon(base):
             if j.sal.fs.pathClean(cmd) != j.sal.fs.pathClean(dest):
                 self._cuisine.core.file_copy(cmd, dest)
         else:
-            dest = self._cuisine.git.pullRepo('https://github.com/openvstorage/arakoon.git')
+            dest = self._cuisine.development.git.pullRepo('https://github.com/openvstorage/arakoon.git')
             self._cuisine.core.run('cd %s && git pull && git checkout tags/1.9.7' % dest)
 
             opam_root = self._cuisine.core.args_replace('$tmpDir/OPAM')

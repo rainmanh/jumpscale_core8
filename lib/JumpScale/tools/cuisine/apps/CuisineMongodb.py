@@ -1,26 +1,22 @@
 from JumpScale import j
 from time import sleep
 
-base = j.tools.cuisine._getBaseClass()
 
+app = j.tools.cuisine._getBaseAppClass()
 # TODO: *1 check we are installing latest mongodb
 
 
-class CuisineMongodb(base):
+class CuisineMongodb(app):
+    NAME = 'mongod'   
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
     def _build(self):
-
-        exists = self._cuisine.core.command_check("mongod")
-
-        if exists:
-            cmd = self._cuisine.core.command_location("mongod")
-            dest = "%s/mongod" % self._cuisine.core.dir_paths["binDir"]
-            if j.sal.fs.pathClean(cmd) != j.sal.fs.pathClean(dest):
-                self._cuisine.core.file_copy(cmd, dest)
+        if self.isInstalled():
+            print('MongoDB is already installed.')
+            return 
         else:
             appbase = self._cuisine.core.dir_paths["binDir"]
 
@@ -40,6 +36,7 @@ class CuisineMongodb(base):
                 return
 
             if url:
+                print('Downloading mongodb.')
                 self._cuisine.core.file_download(url, to="$tmpDir", overwrite=False, expand=True)
                 tarpath = self._cuisine.core.fs_find("$tmpDir", recursive=True, pattern="*mongodb*.tgz", type='f')[0]
                 self._cuisine.core.file_expand(tarpath, "$tmpDir")
@@ -49,9 +46,7 @@ class CuisineMongodb(base):
 
         self._cuisine.core.dir_ensure('$varDir/data/mongodb')
 
-    def build(self, start=True, dependencies=False):
-        if dependencies:
-            self._cuisine.installer.base()
+    def build(self, start=True):
         self._build()
         if start:
             self.start("mongod")

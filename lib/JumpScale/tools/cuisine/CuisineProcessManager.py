@@ -24,7 +24,7 @@ class ProcessManagerBase(base):
         return self.restart()
 
     def get(self, pm=None):
-        from ProcessManagerFactory import ProcessManagerFactory
+        from .ProcessManagerFactory import ProcessManagerFactory
         return ProcessManagerFactory(self._cuisine).get(pm)
 
 
@@ -229,17 +229,16 @@ class CuisineTmuxec(ProcessManagerBase):
         super().__init__(executor, cuisine)
 
     def list(self, prefix=""):
-        if self._cuisine.core.command_check("tmux"):
-            rc, result, err = self._cuisine.core.run("tmux lsw 2> /dev/null || true", profile=True, die=False)
-            if err:
-                return []
-            res = result.splitlines()
-            res = [item.split("(")[0] for item in res]
-            res = [item.split(":")[1] for item in res]
-            res = [item.strip().rstrip("*-").strip() for item in res]
-            return res
-        else:
-            self.logger.error("tmux not installed")
+        self._cuisine.package.install('tmux')
+
+        rc, result, err = self._cuisine.core.run("tmux lsw 2> /dev/null || true", profile=True, die=False)
+        if err:
+            return []
+        res = result.splitlines()
+        res = [item.split("(")[0] for item in res]
+        res = [item.split(":")[1] for item in res]
+        res = [item.strip().rstrip("*-").strip() for item in res]
+        return res
 
     def ensure(self, name, cmd, env={}, path="", descr=""):
         """Ensures that the given upstart service is self.running, starting

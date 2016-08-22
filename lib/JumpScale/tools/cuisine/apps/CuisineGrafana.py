@@ -25,10 +25,11 @@ class CuisineGrafana(app):
             """
             # self._cuisine.core.pprint(C)
             self._cuisine.core.run_script(C, profile=True)
+            self._cuisine.core.file_copy("/usr/sbin/grafana*", dest="$binDir")
 
-            # TODO: *1 move binaries to bin dir in /opt/...
-            # TODO: *1 move base dir of grafana to /opt/...
-            # TODO: *1 move example config file to $tmpldir
+
+            self.cuisine.core.dir_ensure("$tmplsDir/cfg/grafana")
+            self._cuisine.core.file_copy("/etc/grafana/grafana.ini", dest="$tmplsDir/cfg/grafana/grafana.ini")
 
         else:
             raise RuntimeError("platform not supported")

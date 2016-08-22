@@ -1041,9 +1041,10 @@ class CuisineCore(base):
         passwd = self._executor.passwd if hasattr(self._executor, "passwd") else ''
         # Install sudo if sudo not installed
         rc, out, err = self._executor.execute("which '%s'" % command, die=False, showout=False)
-        if not rc:
+        if rc:
             cmd = 'apt-get install sudo && echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, command)
-        cmd = 'echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, command)
+        else:
+            cmd = 'echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, command)
         return cmd
 
     def cd(self, path):

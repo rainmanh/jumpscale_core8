@@ -14,7 +14,7 @@ class CuisineG8OSFs(app):
             return
 
         self._cuisine.development.golang.install()
-        self._cuisine.development.golang.godep("github.com/g8os/fs", action=True)
+        self._cuisine.development.golang.godep("github.com/g8os/fs")
         self._cuisine.core.run("cd %s && go build ." % "$goDir/src/github.com/g8os/fs", profile=True)
         
         if install:

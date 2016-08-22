@@ -27,8 +27,6 @@ class CuisineRedis(app):
             self._cuisine.package.update()
             self._cuisine.package.install("build-essential")
 
-            # TODO: *1 is this newest redis, if not upgrade
-
             C = """
             #!/bin/bash
             set -ex
@@ -37,8 +35,8 @@ class CuisineRedis(app):
 
             mkdir -p $tmpDir/build/redis
             cd $tmpDir/build/redis
-            wget http://download.redis.io/releases/redis-3.2.0.tar.gz
-            tar xzf redis-3.2.0.tar.gz
+            wget http://download.redis.io/redis-stable.tar.gz
+            tar xzf redis-stable.tar.gz
             cd redis-3.2.0
             make
 

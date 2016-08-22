@@ -38,7 +38,7 @@ class TestCuisineBuilder(unittest.TestCase):
             self.assertTrue(cuisine.development.js8.called)
             self.assertTrue(cuisine.apps.mongodb.build.called)
             self.assertTrue(cuisine.apps.portal.install.called)
-            self.assertTrue(cuisine.apps.redis.build.called)
+            self.assertTrue(cuisine.apps.redis.install.called)
             self.assertTrue(cuisine.apps.syncthing.build.called)
             self.assertTrue(cuisine.apps.controller.build.called)
             self.assertTrue(cuisine.apps.fs.build.called)

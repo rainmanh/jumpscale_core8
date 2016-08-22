@@ -7,16 +7,16 @@ app = j.tools.cuisine._getBaseAppClass()
 class CuisineRedis(app):
     NAME = 'redis-server'
 
-    def install(self, reset=False):
+    def build(self, reset=False):
         raise NotImplementedError()
         
 
-    def build(self, reset=False):
+    def install(self, reset=False):
         if reset == False and self.isInstalled():
             return
         if self._cuisine.core.isUbuntu:
             self._cuisine.package.update()
-            self._cuisine.package.install("build-essential")
+            self._cuisine.package.install("install-essential")
 
             C = """
             #!/bin/bash

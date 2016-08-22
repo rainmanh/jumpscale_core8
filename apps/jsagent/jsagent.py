@@ -132,21 +132,17 @@ class ProcessManager():
                 print("cannot connect to agentcontroller, will retry forever: '%s:%s'" % (opts.ip, opts.port))
 
             # now register to agentcontroller
-            self.acclient = j.clients.agentcontroller.get(opts.ip, port=opts.port, login="root", passwd=opts.password, new=True)
+            self.acclient = j.clients.legacycontroller.get(opts.ip, port=opts.port, login="root", passwd=opts.password, new=True)
             res = self.acclient.registerNode(hostname=socket.gethostname(),
                                              machineguid=j.application.getUniqueMachineId())
 
             nid = res["node"]["id"]
-            jsagentService = j.atyourservice.get('jumpscale', 'jsagent', parent=None)
-            jsagentService.hrd.set("grid.node.id", nid)
-            j.application.config.set('grid.node.id', nid)
+            hrd = j.data.hrd.get(j.sal.fs.joinPaths(j.dirs.hrd, 'grid.hrd'))
+            hrd.set('id', opts.gid)
+            hrd.set('node.id', nid)
+            j.application._initWhoAmI(reload=True)
 
-            jsagentService.hrd.set("grid.id", res["node"]["gid"])
-            jsagentService.hrd.set("grid.node.machineguid", j.application.getUniqueMachineId())
-            j.application.loadConfig()
-            j.application.initWhoAmI(True)
-
-            self.acclient = j.clients.agentcontroller.get(opts.ip, port=opts.port, login="node", new=True)
+            self.acclient = j.clients.legacycontroller.get(opts.ip, port=opts.port, login="node", new=True)
         else:
             self.acclient = None
 
@@ -225,7 +221,7 @@ parser.add_argument('--grid-id', dest='gid', help='Grid id')
 parser.add_argument('--services', help='list of services to run e.g heka, agentcontroller,web', required=False,
                     default="")
 
-parser.add_argument('--controller-ip', dest='ip', help='Agent controller address')
+parser.add_argument('--controller-ip', dest='ip', default='localhost', help='Agent controller address')
 parser.add_argument('--controller-port', dest='port', type=int, default=4444, help='Agent controller port')
 parser.add_argument('--controller-login', dest='login', default='node', help='Agent controller login')
 parser.add_argument('--controller-password', dest='password', default='', help='Agent controller password')

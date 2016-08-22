@@ -18,7 +18,7 @@ class CuisineController(app):
         if reset == False and self.isInstalled():
             return
         # deps
-        self._cuisine.apps.redis.build()
+        self._cuisine.apps.redis.install()
         self._cuisine.apps.redis.start()
         self._cuisine.apps.mongodb.build(start=False)
         self._cuisine.apps.syncthing.build(start=False)

@@ -22,7 +22,7 @@ class CuisineBuilder(base):
             self._cuisine.development.js8.install()
         self._cuisine.apps.mongodb.build(start=start)
         self._cuisine.apps.portal.install(start=start)
-        self._cuisine.apps.redis.build()
+        self._cuisine.apps.redis.install()
         self._cuisine.apps.redis.start()
         if not self._cuisine.core.isMac:
             self._cuisine.apps.core.build(start=start)

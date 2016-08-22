@@ -28,7 +28,7 @@ class CuisineRedis(app):
             cd $tmpDir/build/redis
             wget http://download.redis.io/redis-stable.tar.gz
             tar xzf redis-stable.tar.gz
-            cd redis-3.2.0
+            cd redis-stable
             make
 
             rm -f /usr/local/bin/redis-server

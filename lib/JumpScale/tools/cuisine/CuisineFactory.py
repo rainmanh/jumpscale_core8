@@ -80,12 +80,14 @@ class JSCuisineFactory:
             self._local = JSCuisine(j.tools.executor.getLocal())
         return self._local
 
-    def getPushKey(self, addr='localhost:22', login="root", passwd="", keyname="", pubkey="", passphrase=None):
+    def authorizeKey(self, addr='localhost:22', login="root", passwd="", keyname="", pubkey="", passphrase=None):
         """
         will try to login if not ok then will try to push key with passwd
         will push local key to remote, if not specified will list & you can select
+
         if passwd not specified will ask
-        @param pubkey is the pub key to use (is content of key)
+
+        @param pubkey is the pub key to use (is content of key), if this is specified then keyname not used & ssh-agent neither
         """
         if addr.find(":") != -1:
             addr, port = addr.split(":", 1)

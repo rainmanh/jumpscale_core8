@@ -1301,6 +1301,11 @@ class InstallTools():
 
             out += "%s\n" % line
 
+        if "SSH_AUTH_SOCK" in os.environ:
+            print("NO NEED TO ADD SSH_AUTH_SOCK to env")
+            self.writeFile(bashprofile_path, out)
+            return
+
         # out += "\njs 'j.do.loadSSHAgent()' #JSSSHAGENT\n"
         out += "export SSH_AUTH_SOCK=%s" % self._getSSHSocketpath()
         out = out.replace("\n\n\n", "\n\n")
@@ -1313,6 +1318,9 @@ class InstallTools():
             os.environ["SSH_AUTH_SOCK"] = self._getSSHSocketpath()
 
     def _getSSHSocketpath(self):
+
+        if "SSH_AUTH_SOCK" in os.environ:
+            return(os.environ["SSH_AUTH_SOCK"])
 
         # if "root"==self.whoami():
         #     socketpath="/root/sshagent_socket"
@@ -1441,16 +1449,10 @@ class InstallTools():
         else:
             return list(map(lambda key: key[2], keys))
 
-    def authorizeSSHKey(self, remoteipaddr, keyname=None, login="root", passwd=None, sshport=22, removeothers=False, keypathpub=None, allow_agent=True):
+    def authorizeSSHKey(self, remoteipaddr, keyname=None, login="root", passwd=None, sshport=22, removeothers=False):
         """
         this required ssh-agent to be loaded !!!
         the keyname is the name of the key as loaded in ssh-agent
-
-        or keypathpub needs to be used
-
-        if keyname==None and keypathpub==None:
-            keypathpub="/root/.ssh/id_rsa"
-
 
         if remoteothers==True: then other keys will be removed
         """
@@ -1466,19 +1468,8 @@ class InstallTools():
         print("ssh connect:%s %s" % (remoteipaddr, login))
         #
         # env.no_keys = True
-        ssh.connect(remoteipaddr, username=login, password=passwd, allow_agent=allow_agent, look_for_keys=False)
+        ssh.connect(remoteipaddr, username=login, password=passwd, allow_agent=True, look_for_keys=False)
         print("ok")
-
-        if keypathpub == None:
-            if keyname == None:
-                keypathpub = "/root/.ssh/id_rsa"
-            else:
-                # get from ssh-agent
-                rc, out, err = self.execute("ssh-add -L")
-                for line in out.split("\n"):
-                    if line.endswith(".ssh/%s" % keyname):
-                        keypathpub = self.getTmpPath(keyname)
-                        self.writeFile(keypathpub, line)
 
         if login == "root":
             authkeypath = "/root/.ssh/authorized_keys"

@@ -10,6 +10,7 @@ class CuisinePackage(base):
         self.logger = j.logger.get('j.tools.cuisine.package')
         self._executor = executor
         self._cuisine = cuisine
+        self.install('sudo')
 
     def _repository_ensure_apt(self, repository):
         self.ensure('python-software-properties')

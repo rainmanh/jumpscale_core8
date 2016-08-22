@@ -1063,7 +1063,7 @@ class InstallTools():
                 if not line:
                     break
 
-                _line = line.decode('UTF-8').strip()
+                _line = line.decode('UTF-8', errors='replace').strip()
                 if _showout:
                     print(_line)
                 if captureout:

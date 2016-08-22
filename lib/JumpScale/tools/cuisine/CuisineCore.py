@@ -461,8 +461,7 @@ class CuisineCore(base):
         elif not self.file_exists(location):
             return default
         frame = self.file_base64(location)
-        print(frame)
-        return base64.decodebytes(frame.encode()).decode()
+        return base64.decodebytes(frame.encode(errors='replace')).decode()
 
     def _check_is_ok(self, cmd, location):
         location = self.args_replace(location)

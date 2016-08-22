@@ -17,7 +17,7 @@ class CuisineG8OSCore(app):
         neither can be the int zero, can be ommited if start=False
         """
         # deps
-        self._cuisine.apps.installdeps()
+        self._cuisine.development.js8.installDeps()
         self._cuisine.apps.redis.install()
         self._cuisine.apps.redis.start()
         self._cuisine.apps.mongodb.build(start=False)

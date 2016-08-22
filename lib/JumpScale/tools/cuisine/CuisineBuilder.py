@@ -24,8 +24,8 @@ class CuisineBuilder(base):
         self._cuisine.apps.redis.install()
         self._cuisine.apps.redis.start()
         if not self._cuisine.core.isMac:
-            self._cuisine.apps.core.build(start=start)
-            self._cuisine.apps.fs.build(start=False)
+            self._cuisine.systemservices.g8oscore.build(start=start)
+            self._cuisine.systemservices.g8osfs.build(start=False)
         self._cuisine.apps.syncthing.build(start=start)
         self._cuisine.apps.controller.build(start=start)
         self._cuisine.apps.stor.build(start=start)

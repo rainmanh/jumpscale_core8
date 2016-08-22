@@ -10,7 +10,7 @@ class CuisineController(app):
         self._executor = executor
         self._cuisine = cuisine
 
-    def build(self, start=True, listen_addr=[]):
+    def build(self, start=True, listen_addr=[], reset=False):
         """
         config: https://github.com/g8os/controller.git
         """

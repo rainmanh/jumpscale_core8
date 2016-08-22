@@ -17,8 +17,8 @@ class CuisineBuilder(base):
         if self._cuisine.core.isMac and not stor_name:
             stor_name = "osx10.11"
         self._cuisine.development.python.install()
-        if not self._cuisine.installer.jumpscale_installed():
-            self._cuisine.development.js8.install()
+        if not self._cuisine.systemservices.js8_g8os.jumpscale_installed():
+            self._cuisine.systemservices.js8_g8os.jumpscale8()
         self._cuisine.apps.mongodb.build(start=start)
         self._cuisine.apps.portal.install(start=start)
         self._cuisine.apps.redis.install()

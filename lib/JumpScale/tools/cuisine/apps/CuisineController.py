@@ -41,15 +41,12 @@ class CuisineController(app):
         if install:
             self.install(start, listen_addr)
 
-    def installer(self, start=True, listen_addr=[]):
+    def install(self, start=True, listen_addr=[]):
         """
-        download, install, move files to appropriate places, and create relavent configs 
+        download, install, move files to appropriate places, and create relavent configs
         """
         sourcepath = "$goDir/src/github.com/g8os/controller"
         #move binary
-        self._cuisine.core.file_move("%s/controller" % sourcepath, "$binDir/controller")
-
-        # move binary
         self._cuisine.core.file_move("%s/controller" % sourcepath, "$binDir/controller")
 
         # file copy

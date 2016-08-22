@@ -17,7 +17,7 @@ class CuisineG8OSCore(app):
         neither can be the int zero, can be ommited if start=False
         """
         # deps
-        self._cuisine.apps.installdeps()
+        self._cuisine.development.js8.installDeps()
         self._cuisine.apps.redis.install()
         self._cuisine.apps.redis.start()
         self._cuisine.apps.mongodb.build(start=False)
@@ -44,7 +44,7 @@ class CuisineG8OSCore(app):
 
     def install(self, start=True, gid=None, nid=None):
         """
-        download, install, move files to appropriate places, and create relavent configs 
+        download, install, move files to appropriate places, and create relavent configs
         """
         sourcepath = "$goDir/src/github.com/g8os/core"
         self._cuisine.core.file_move("%s/core" % sourcepath, "$binDir/core")
@@ -58,7 +58,7 @@ class CuisineG8OSCore(app):
         if self._cuisine.core.isArch:
             self._cuisine.core.file_copy("{0}sshd-arch.toml".format(sourcepath+"/conf.extra/"), "$tmplsDir/cfg/core/conf/", recursive=True)
         if self._cuisine.core.isUbuntu:
-            self._cuisine.core.file_copy("{0}sshd-ubuntu.toml".format(sourcepath+"/conf.extra/"), "$tmplsDir/cfg/core/conf/", recursive=True)    
+            self._cuisine.core.file_copy("{0}sshd-ubuntu.toml".format(sourcepath+"/conf.extra/"), "$tmplsDir/cfg/core/conf/", recursive=True)
         self._cuisine.core.dir_ensure("$tmplsDir/cfg/core/extensions/syncthing")
         self._cuisine.core.file_copy("$binDir/syncthing", "$tmplsDir/cfg/core/extensions/syncthing/")
 

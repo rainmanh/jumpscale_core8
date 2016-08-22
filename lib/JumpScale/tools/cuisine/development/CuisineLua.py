@@ -28,7 +28,7 @@ class CuisineLua(app):
     #
     #     self.package("luasocket")
 
-    def installLuajitTarantool(self, reset=False):
+    def installLuaTarantool(self, reset=False):
         if reset == False and self.isInstalled():
             return
 

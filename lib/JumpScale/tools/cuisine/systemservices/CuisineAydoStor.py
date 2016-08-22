@@ -25,7 +25,7 @@ class CuisineAydoStor(app):
             
         self._cuisine.core.dir_remove("%s/src" % self._cuisine.bash.environGet('GOPATH'))
         self._cuisine.development.golang.install()
-        self._cuisine.development.golang.get("github.com/g8os/stor", action=True)
+        self._cuisine.development.golang.get("github.com/g8os/stor")
 
         if install:
             self.install(addr, backend, start)

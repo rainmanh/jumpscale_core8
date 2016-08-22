@@ -652,7 +652,7 @@
 		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/CuisineFactory.py",
 		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/executor/ExecutorSSH.py",
 		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/executor/ExecutorBase.py",
-		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/Cuisine2.py",
+		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/tools/cuisine_/JSCuisine.py",
 		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/baselib/atyourservice/Service.py",
 		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/baselib/atyourservice/ActionsBaseNode.py",
 		"/opt/code/github/jumpscale/jumpscale_core8/lib/JumpScale/baselib/atyourservice/AtYourServiceSandboxer.py",
@@ -1636,7 +1636,7 @@
 			],
 			[
 				"cuisine2",
-				"lib/JumpScale/tools/cuisine_/Cuisine2.py"
+				"lib/JumpScale/tools/cuisine_/JSCuisine.py"
 			],
 			[
 				"/jumpscale/data/models/models.py",
@@ -1720,7 +1720,7 @@
 			],
 			[
 				"cuisien2",
-				"lib/JumpScale/tools/cuisine_/Cuisine2.py"
+				"lib/JumpScale/tools/cuisine_/JSCuisine.py"
 			],
 			[
 				"jumpscaleinit",

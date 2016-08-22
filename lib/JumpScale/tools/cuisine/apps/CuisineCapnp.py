@@ -1,18 +1,22 @@
 from JumpScale import j
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
+class CuisineCapnp(app):
 
-class CuisineCapnp(base):
-
+    NAME = "capnp"
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
-    def install(self):
+    def install(self, reset=False):
         """
         install capnp
         """
+
+        if reset == False and self.isInstalled():
+            return
+
         self._cuisine.package.mdupdate()
         self._cuisine.package.multiInstall(['curl', 'make', 'g++', 'python-dev'])
 
@@ -28,4 +32,4 @@ class CuisineCapnp(base):
         """
         self._cuisine.core.run_script(script)
         # install python pacakge
-        self._cuisine.pip.multiInstall(['cython', 'setuptools', 'pycapnp'], upgrade=True)
+        self._cuisine.development.pip.multiInstall(['cython', 'setuptools', 'pycapnp'], upgrade=True)

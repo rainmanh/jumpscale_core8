@@ -127,9 +127,14 @@ class CuisinePortal(base):
         wheel
         # zmq
         pillow
+        gevent
+        flask
+        Flask-Bootstrap
         """
-        self._cuisine.package.install("libjpeg-dev")
-        self._cuisine.development.pip.packagesInstall(deps)
+        self._cuisine.package.multiInstall(['libjpeg-dev', 'libffi-dev'])
+        self._cuisine.development.pip.ensure()
+        self._cuisine.development.pip.multiInstall(deps)
+        self._cuisine.apps.mongodb.build()
 
     def getcode(self):
         self._cuisine.development.git.pullRepo("https://github.com/Jumpscale/jumpscale_portal8.git")
@@ -139,8 +144,9 @@ class CuisinePortal(base):
         _, destjslib, _ = self._cuisine.core.run(
             "js --quiet 'print(j.do.getPythonLibSystem(jumpscale=True))'", showout=False)
 
-        self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths[
-            "codeDir"], "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
+        if self._cuisine.core.file_exists("%s/portal" % destjslib):
+            self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self._cuisine.core.dir_paths[
+                                         "codeDir"], "%s/portal" % destjslib, symbolic=True, mode=None, owner=None, group=None)
         self._cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" %
                                      self._cuisine.core.dir_paths["codeDir"], "%s/portal" % self._cuisine.core.dir_paths['jsLibDir'])
 

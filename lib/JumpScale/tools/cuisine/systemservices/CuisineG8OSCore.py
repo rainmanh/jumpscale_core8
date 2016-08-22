@@ -32,7 +32,7 @@ class CuisineG8OSCore(base):
         self._cuisine.core.file_ensure("$tmplsDir/cfg/core/.mid")
 
         url = "github.com/g8os/core"
-        self._cuisine.golang.godep(url)
+        self._cuisine.development.golang.godep(url)
 
         sourcepath = "$goDir/src/github.com/g8os/core"
 

@@ -27,7 +27,7 @@ cuisine = j.tools.cuisine.get(executor)
 
 - [cuisine.core](cuisine.core.md)
 - [cuisine.bash](cuisine.bash.md)
-- [cuisine.pip](cuisine.pip.md)
+- [cuisine.development.pip](cuisine.development.pip.md)
 - [cuisine.processmanager](cuisine.processmanager.md)
 - [cuisine.apps](cuisine.apps.md)
 - [cuisine.tmux](cuisine.tmux.md)

@@ -24,7 +24,6 @@ class CuisineJS8_G8OS(base):
         import time
         if self.jumpscale_installed() and not reset:
             return
-        self.clean()
         self.base()
 
         C = """
@@ -87,8 +86,6 @@ class CuisineJS8_G8OS(base):
         print("* re-login into your shell to have access to js, because otherwise the env arguments are not set properly.")
 
     def base(self):
-        self.clean()
-
         self._cuisine.bash.fixlocale()
 
         if self._cuisine.core.isMac:

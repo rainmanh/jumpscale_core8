@@ -1,12 +1,17 @@
 from JumpScale import j
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineGrafana(base):
+class CuisineGrafana(app):
+
+    NAME = 'grafana-server'
 
     def install(self, start=True, influx_addr='127.0.0.1', influx_port=8086, port=3000):
-
+        
+        if self.isInstalled():
+            return 
+        
         # TODO: *1 influx_addr & port not implemented to change in config file
         # TODO: *2 need to test the isLinux one,
 

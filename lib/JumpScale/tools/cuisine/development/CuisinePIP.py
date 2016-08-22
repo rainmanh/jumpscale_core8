@@ -14,11 +14,12 @@ class CuisinePIP(base):
     # PIP PYTHON PACKAGE MANAGER
     # -----------------------------------------------------------------------------
 
-    def install(self, package):
-        self._cuisine.installer.base()
-        self.python()
+    def ensure(self):
         if self._cuisine.core.isMac:
             return
+
+        self._cuisine.package.install('python3.5')
+        self._cuisine.package.install('python3-pip')
 
         C = """
             #important remove olf pkg_resources, will conflict with new pip
@@ -40,7 +41,7 @@ class CuisinePIP(base):
         self._cuisine.core.set_sudomode()
         self._cuisine.core.run('pip3 install --upgrade %s' % (package))
 
-    def packageInstall(self, package=None, upgrade=False):
+    def install(self, package=None, upgrade=False):
         '''
         The "package" argument, defines the name of the package that will be installed.
         '''
@@ -66,7 +67,7 @@ class CuisinePIP(base):
         '''
         return self._cuisine.core.run('pip3 uninstall %s' % (package))
 
-    def packagesInstall(self, packagelist, upgrade=False):
+    def multiInstall(self, packagelist, upgrade=False):
         """
         @param packagelist is text file and each line is name of package
         can also be list
@@ -88,7 +89,6 @@ class CuisinePIP(base):
         previous_sudo = self._cuisine.core.sudomode
         try:
             self._cuisine.core.sudomode = True
-
             if j.data.types.string.check(packagelist):
                 packages = packagelist.split("\n")
             elif j.data.types.list.check(packagelist):
@@ -96,12 +96,12 @@ class CuisinePIP(base):
             else:
                 raise j.exceptions.Input('packagelist should be string or a list. received a %s' % type(packagelist))
 
-                for dep in packages:
-                    dep = dep.strip()
-                    if dep.strip() == "":
-                        continue
-                    if dep.strip()[0] == "#":
-                        continue
-                    self.install(dep)
+            for dep in packages:
+                dep = dep.strip()
+                if dep.strip() == "":
+                    continue
+                if dep.strip()[0] == "#":
+                    continue
+                self.install(dep)
         finally:
             self._cuisine.core.sudomode = previous_sudo

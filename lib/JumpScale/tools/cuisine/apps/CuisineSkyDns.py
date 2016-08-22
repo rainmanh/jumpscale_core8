@@ -1,18 +1,18 @@
 from JumpScale import j
 
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineSkyDns(base):
-
+class CuisineSkyDns(app):
+    NAME = "skydns"
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
 
     def build(self, start=True):
-        self._cuisine.golang.install()
-        self._cuisine.golang.get("github.com/skynetservices/skydns")
+        self._cuisine.development.golang.install()
+        self._cuisine.development.golang.get("github.com/skynetservices/skydns")
         self._cuisine.core.file_copy(self._cuisine.core.joinpaths('$goDir', 'bin', 'skydns'), '$binDir')
         self._cuisine.bash.addPath(self._cuisine.core.args_replace("$binDir"))
 

@@ -19,10 +19,11 @@ class CuisineBuilder(base):
         self._cuisine.installerdevelop.pip()
         self._cuisine.installerdevelop.python()
         if not self._cuisine.installer.jumpscale_installed():
-            self._cuisine.installerdevelop.jumpscale8()
+            self._cuisine.development.js8.install()
         self._cuisine.apps.mongodb.build(start=start)
         self._cuisine.apps.portal.install(start=start)
-        self._cuisine.apps.redis.build(start=start)
+        self._cuisine.apps.redis.build()
+        self._cuisine.apps.redis.start()
         if not self._cuisine.core.isMac:
             self._cuisine.apps.core.build(start=start)
             self._cuisine.apps.fs.build(start=False)

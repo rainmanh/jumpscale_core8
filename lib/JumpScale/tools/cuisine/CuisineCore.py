@@ -1019,8 +1019,8 @@ class CuisineCore(base):
 
         if self.sudomode:
             passwd = self._executor.passwd if hasattr(self._executor, "passwd") else ''
-            if self.command_check('sudo'):
-                cmd = 'apt-get install sudo && echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, cmd)
+            # if self.command_check('sudo'):
+                # cmd = 'apt-get install sudo && echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, cmd)
             cmd = 'echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, cmd)
         else:
             cmd = 'bash -c "%s"' % cmd

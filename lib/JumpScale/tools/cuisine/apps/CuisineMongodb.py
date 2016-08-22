@@ -3,8 +3,6 @@ from time import sleep
 
 
 app = j.tools.cuisine._getBaseAppClass()
-# TODO: *1 check we are installing latest mongodb
-
 
 class CuisineMongodb(app):
     NAME = 'mongod'   
@@ -22,7 +20,7 @@ class CuisineMongodb(app):
 
             url = None
             if self._cuisine.core.isUbuntu:
-                url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
+                url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-3.2.9.tgz'
             elif self._cuisine.core.isArch:
                 self._cuisine.package.install("mongodb")
             elif self._cuisine.core.isMac:  # TODO: better platform mgmt

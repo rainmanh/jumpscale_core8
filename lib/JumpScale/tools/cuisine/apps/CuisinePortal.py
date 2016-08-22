@@ -4,9 +4,6 @@ import time
 
 base = j.tools.cuisine._getBaseClass()
 
-# TODO: *1 is broken, fix
-
-
 class CuisinePortal(base):
 
     def __init__(self, executor, cuisine):

@@ -14,17 +14,26 @@ class CuisineAydoStor(app):
         self._executor = executor
         self._cuisine = cuisine
 
-    def build(self, addr='0.0.0.0:8090', backend="$varDir/aydostor", start=True):
+    def build(self, addr='0.0.0.0:8090', backend="$varDir/aydostor", start=True, install=True):
         """
         Build and Install aydostore
         @input addr, address and port on which the service need to listen. e.g. : 0.0.0.0:8090
         @input backend, directory where to save the data push to the store
         """
         if self.isInstalled():
-            return 
+            return
+            
         self._cuisine.core.dir_remove("%s/src" % self._cuisine.bash.environGet('GOPATH'))
-        # self._cuisine.development.golang.install()
-        self._cuisine.development.golang.get("github.com/g8os/stor")
+        self._cuisine.development.golang.install()
+        self._cuisine.development.golang.get("github.com/g8os/stor", action=True)
+
+        if install:
+            self.install(addr, backend, start)
+
+    def install(self, addr='0.0.0.0:8090', backend="$varDir/aydostor", start=True):
+        """
+        download, install, move files to appropriate places, and create relavent configs 
+        """
         self._cuisine.core.file_copy(self._cuisine.core.joinpaths(
             self._cuisine.core.dir_paths['goDir'], 'bin', 'stor'), '$base/bin', overwrite=True)
         self._cuisine.bash.addPath("$base/bin")

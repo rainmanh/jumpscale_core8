@@ -121,12 +121,12 @@ class GCC_Mgmt():
             self._installDockerApps(node, force=force)
 
     def _installHostApp(self, node, weave_peer, force=False):
-        node.cuisine.installerdevelop.jumpscale8(force=force)
+        node.cuisine.development.js8.install()
         node.cuisine.installer.docker(force=force)
         node.cuisine.apps.weave.build(start=True, peer=weave_peer, force=force)
 
     def _installDockerApps(self, node, force=False):
-        node.cuisine.installerdevelop.jumpscale8(force=force)
+        node.cuisine.development.js8.install()
 
         peers = ["http://%s" % node.addr for node in self.docker_nodes]
         node.cuisine.apps.etcd.build(start=True, host="http://%s" % node.addr, peers=peers, force=force)

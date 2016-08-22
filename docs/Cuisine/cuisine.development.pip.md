@@ -26,5 +26,5 @@ Examples for methods in `pip`:
 - **upgrade**: to upgrade a package
 
   ```python
-  cuisine.development.pip.upgrade('pygments')
+  cuisine.development.pip.packageUpgrade('pygments')
   ```

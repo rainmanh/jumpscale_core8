@@ -35,7 +35,7 @@ class TestCuisineBuilder(unittest.TestCase):
             cuisine_builder.all()
             self.assertTrue(cuisine.installerdevelop.pip.called)
             self.assertTrue(cuisine.installerdevelop.python.called)
-            self.assertTrue(cuisine.installerdevelop.jumpscale8.called)
+            self.assertTrue(cuisine.development.js8.called)
             self.assertTrue(cuisine.apps.mongodb.build.called)
             self.assertTrue(cuisine.apps.portal.install.called)
             self.assertTrue(cuisine.apps.redis.build.called)
@@ -45,7 +45,7 @@ class TestCuisineBuilder(unittest.TestCase):
             self.assertTrue(cuisine.apps.stor.build.called)
             self.assertTrue(cuisine.apps.etcd.build.called)
             self.assertTrue(cuisine.apps.caddy.install.called)
-            self.assertTrue(cuisine.apps.influxdb.build.called)
+            self.assertTrue(cuisine.apps.influxdb.install.called)
             self.assertTrue(cuisine.apps.weave.build.called)
 
 

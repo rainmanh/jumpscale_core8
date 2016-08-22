@@ -1,15 +1,19 @@
 from JumpScale import j
 
 
-base = j.tools.cuisine._getBaseClass()
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineXRDP(base):
-
-    def build(self):
+class CuisineXRDP(app):
+    NAME = "rdp.sh"
+    def build(self, reset=False):
         """
         builds a full xrdp, this can take a while
         """
+
+        if reset == False and self.isInstalled():
+            return
+
         C = """
         cd /root
         git clone https://github.com/scarygliders/X11RDP-o-Matic.git

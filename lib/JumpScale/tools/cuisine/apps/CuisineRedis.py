@@ -8,17 +8,8 @@ class CuisineRedis(app):
     NAME = 'redis-server'
 
     def install(self, reset=False):
-        if reset == False and self.isInstalled():
-            return
-        if self._cuisine.core.command_check("redis-server") == False:
-            if self._cuisine.core.isMac:
-                self._cuisine.package.install("redis")
-            else:
-                self._cuisine.package.install("redis-server")
-        cmd = self._cuisine.core.command_location("redis-server")
-        dest = "%s/redis-server" % self._cuisine.core.dir_paths["binDir"]
-        if cmd != dest:
-            self._cuisine.core.file_copy(cmd, dest)
+        raise NotImplementedError()
+        
 
     def build(self, reset=False):
         if reset == False and self.isInstalled():
@@ -47,6 +38,7 @@ class CuisineRedis(app):
             C = self._cuisine.bash.replaceEnvironInText(C)
             C = self._cuisine.core.args_replace(C)
             self._cuisine.core.run_script(C)
+            
             # move action
             C = """
             set -ex

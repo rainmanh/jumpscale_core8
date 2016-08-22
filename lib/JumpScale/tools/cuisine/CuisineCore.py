@@ -1017,13 +1017,7 @@ class CuisineCore(base):
         if "cygwin" in self._executor.execute("uname -a", showout=False)[1].lower():
             self.sudomode = False
 
-        if self.sudomode:
-            passwd = self._executor.passwd if hasattr(self._executor, "passwd") else ''
-            # if self.command_check('sudo'):
-                # cmd = 'apt-get install sudo && echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, cmd)
-            cmd = 'echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, cmd)
-        else:
-            cmd = 'bash -c "%s"' % cmd
+        cmd = self.sudo_cmd(cmd) if self.sudomode else 'bash -c "%s"' % cmd
 
         path = self._executor.execute("echo $PATH", showout=False)[1]
         if "/usr/local/bin" not in path:
@@ -1042,6 +1036,15 @@ class CuisineCore(base):
         out = out.strip()
 
         return rc, out, err
+
+    def sudo_cmd(self, command):
+        passwd = self._executor.passwd if hasattr(self._executor, "passwd") else ''
+        # Install sudo if sudo not installed
+        rc, out, err = self._executor.execute("which '%s'" % command, die=False, showout=False)
+        if not rc:
+            cmd = 'apt-get install sudo && echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, command)
+        cmd = 'echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, command)
+        return cmd
 
     def cd(self, path):
         path = self.args_replace(path)

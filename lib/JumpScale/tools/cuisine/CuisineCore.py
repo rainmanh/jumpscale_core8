@@ -461,6 +461,7 @@ class CuisineCore(base):
         elif not self.file_exists(location):
             return default
         frame = self.file_base64(location)
+        print(frame)
         return base64.decodebytes(frame.encode()).decode()
 
     def _check_is_ok(self, cmd, location):
@@ -1040,7 +1041,7 @@ class CuisineCore(base):
     def sudo_cmd(self, command):
         passwd = self._executor.passwd if hasattr(self._executor, "passwd") else ''
         # Install sudo if sudo not installed
-        rc, out, err = self._executor.execute("which '%s'" % command, die=False, showout=False)
+        rc, out, err = self._executor.execute("which sudo" , die=False, showout=False)
         if rc:
             cmd = 'apt-get install sudo && echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, command)
         else:

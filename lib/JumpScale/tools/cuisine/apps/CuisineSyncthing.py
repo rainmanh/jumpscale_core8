@@ -26,9 +26,8 @@ class CuisineSyncthing(app):
         # build
         url = "https://github.com/syncthing/syncthing.git"
         self._cuisine.core.dir_remove('$goDir/src/github.com/syncthing/syncthing')
-        self._cuisine.development.golang.clean_src_path()
-        dest = self._cuisine.development.git.pullRepo(url, dest='$goDir/src/github.com/syncthing/syncthing', ssh=False, depth=1)
         self._cuisine.development.golang.get("github.com/golang/lint/golint")
+        dest = self._cuisine.development.git.pullRepo(url, dest='$goDir/src/github.com/syncthing/syncthing', ssh=False, depth=1)
         self._cuisine.core.run("cd %s && go run build.go -version v0.11.25 -no-upgrade" % dest, profile=True)
 
 

@@ -18,7 +18,8 @@ class CuisineEtcd(app):
             return
         self._cuisine.development.golang.install()
 
-        C = """
+        # FYI, REPO_PATH: github.com/coreos/etcd
+        _script = """
         set -ex
         ORG_PATH="github.com/coreos"
         REPO_PATH="${ORG_PATH}/etcd"
@@ -35,12 +36,12 @@ class CuisineEtcd(app):
 
         go get -d .
 
-        CGO_ENABLED=0 go build $GO_BUILD_FLAGS -installsuffix cgo -ldflags "-s -X ${REPO_PATH}/cmd/vendor/${REPO_PATH}/version.GitSHA=${GIT_SHA}" -o $binDir/etcd ${REPO_PATH}/cmd
+        CGO_ENABLED=0 go build $GO_BUILD_FLAGS -installsuffix cgo -ldflags "-s -X ${REPO_PATH}/cmd/vendor/${REPO_PATH}/version.GitSHA=${GIT_SHA}" -o $binDir/etcd ${REPO_PATH}/cmd/etcd
         CGO_ENABLED=0 go build $GO_BUILD_FLAGS -installsuffix cgo -ldflags "-s" -o $binDir/etcdctl ${REPO_PATH}/cmd/etcdctl
         """
 
-        C = self._cuisine.bash.replaceEnvironInText(C)
-        self._cuisine.core.run_script(C, profile=True)
+        script = self._cuisine.bash.replaceEnvironInText(_script)
+        self._cuisine.core.run_script(script, profile=True)
         self._cuisine.bash.addPath("$base/bin")
 
         if start:

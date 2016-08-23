@@ -16,7 +16,7 @@ class CuisineRedis(app):
             return
         if self._cuisine.core.isUbuntu:
             self._cuisine.package.update()
-            self._cuisine.package.install("install-essential")
+            self._cuisine.package.install("build-essential")
 
             C = """
             #!/bin/bash
@@ -43,8 +43,8 @@ class CuisineRedis(app):
             C = """
             set -ex
             mkdir -p $base/bin/
-            cp -f $tmpDir/build/redis/redis-3.2.0/src/redis-server $base/bin/
-            cp -f $tmpDir/build/redis/redis-3.2.0/src/redis-cli $base/bin/
+            cp -f $tmpDir/build/redis/redis-stable/src/redis-server $base/bin/
+            cp -f $tmpDir/build/redis/redis-stable/src/redis-cli $base/bin/
 
             rm -rf $base/apps/redis
             """

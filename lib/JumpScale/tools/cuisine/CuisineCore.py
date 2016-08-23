@@ -58,31 +58,27 @@ STRINGIFY_MAXLISTSTRING = 20
 
 def stringify(value):
     """Turns the given value in a user-friendly string that can be displayed"""
-    if type(value) in (str, unicode, bytes) and len(value) > STRINGIFY_MAXSTRING:
-        return "{0}...".format(value[0:STRINGIFY_MAXSTRING])
-    elif type(value) in (list, tuple) and len(value) > 10:
-        return"[{0},...]".format(", ".join([stringify(_) for _ in value[0:STRINGIFY_MAXLISTSTRING]]))
-    else:
-        return str(value)
+    if isinstance(value, (str, bytes)) and len(value) > STRINGIFY_MAXSTRING:
+        return '{0}...'.format(value[0:STRINGIFY_MAXSTRING])
 
-
-# def is_ok( text ):
-#     """Tells if the given text ends with "OK", swallowing trailing blanks."""
-#     return text.find("**OK**")!=-1
+    if isinstance(value, (list, tuple)) and len(value) > 10:
+        return '[{0},...]'.format(', '.join([stringify(_) for _ in value[0:STRINGIFY_MAXLISTSTRING]]))
+    return str(value)
+    
 
 def text_detect_eol(text):
     MAC_EOL = "\n"
     UNIX_EOL = "\n"
     WINDOWS_EOL = "\r\n"
-    # FIXME: Should look at the first line
+
+    # TODO: Should look at the first line
     if text.find("\r\n") != -1:
         return WINDOWS_EOL
-    elif text.find("\n") != -1:
+    if text.find("\n") != -1:
         return UNIX_EOL
-    elif text.find("\r") != -1:
+    if text.find("\r") != -1:
         return MAC_EOL
-    else:
-        return "\n"
+    return "\n"
 
 
 def text_get_line(text, predicate):

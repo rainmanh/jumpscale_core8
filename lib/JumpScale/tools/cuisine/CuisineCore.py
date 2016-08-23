@@ -645,7 +645,7 @@ class CuisineCore(base):
         content_base64 = base64.b64encode(content2).decode()
 
         # if sig != self.file_md5(location):
-        cmd = 'bash -c \'set -ex\necho "%s" | openssl base64 -A -d > %s\'\n' % (content_base64, location)
+        cmd = 'set -ex && echo "%s" | openssl base64 -A -d > %s' % (content_base64, location)
 
         res = self.run(cmd, showout=True, shell=True)
 

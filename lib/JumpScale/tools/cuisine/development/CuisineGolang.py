@@ -88,12 +88,14 @@ class CuisineGolang(app):
         """
         e.g. url=github.com/tools/godep
         """
+        self.clean_src_path()
         self._cuisine.core.run('go get -v -u %s' % url, profile=True)
 
     def godep(self, url, branch=None, depth=1):
         """
         e.g. url=github.com/tools/godep
         """
+        self.clean_src_path()
         GOPATH = self._cuisine.bash.environ['GOPATH']
 
         pullurl = "git@%s.git" % url.replace('/', ':', 1)

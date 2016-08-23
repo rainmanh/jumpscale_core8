@@ -1,12 +1,3 @@
-from __future__ import with_statement
-import re
-from JumpScale import j
-import copy
-
-import pygments.lexers
-from pygments.formatters import get_formatter_by_name
-
-
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Many ideas & lines of code have been taken from:
@@ -28,21 +19,24 @@ from pygments.formatters import get_formatter_by_name
 #
 # modified by Jumpscale authors & repackaged, also lots of new modules in this directory & different approach
 
-
+from __future__ import with_statement
+import re
+import copy
 import base64
 import hashlib
 import os
-import re
 import string
 import tempfile
 import subprocess
 import types
 import threading
 import sys
-import tempfile
 import functools
 import platform
 
+from JumpScale import j
+import pygments.lexers
+from pygments.formatters import get_formatter_by_name
 
 NOTHING = base64
 
@@ -64,31 +58,27 @@ STRINGIFY_MAXLISTSTRING = 20
 
 def stringify(value):
     """Turns the given value in a user-friendly string that can be displayed"""
-    if type(value) in (str, unicode, bytes) and len(value) > STRINGIFY_MAXSTRING:
-        return "{0}...".format(value[0:STRINGIFY_MAXSTRING])
-    elif type(value) in (list, tuple) and len(value) > 10:
-        return"[{0},...]".format(", ".join([stringify(_) for _ in value[0:STRINGIFY_MAXLISTSTRING]]))
-    else:
-        return str(value)
+    if isinstance(value, (str, bytes)) and len(value) > STRINGIFY_MAXSTRING:
+        return '{0}...'.format(value[0:STRINGIFY_MAXSTRING])
 
+    if isinstance(value, (list, tuple)) and len(value) > 10:
+        return '[{0},...]'.format(', '.join([stringify(_) for _ in value[0:STRINGIFY_MAXLISTSTRING]]))
+    return str(value)
 
-# def is_ok( text ):
-#     """Tells if the given text ends with "OK", swallowing trailing blanks."""
-#     return text.find("**OK**")!=-1
 
 def text_detect_eol(text):
     MAC_EOL = "\n"
     UNIX_EOL = "\n"
     WINDOWS_EOL = "\r\n"
-    # FIXME: Should look at the first line
+
+    # TODO: Should look at the first line
     if text.find("\r\n") != -1:
         return WINDOWS_EOL
-    elif text.find("\n") != -1:
+    if text.find("\n") != -1:
         return UNIX_EOL
-    elif text.find("\r") != -1:
+    if text.find("\r") != -1:
         return MAC_EOL
-    else:
-        return "\n"
+    return "\n"
 
 
 def text_get_line(text, predicate):
@@ -729,7 +719,7 @@ class CuisineCore(base):
         assert self.file_exists(location), "File does not exists: " + location
         old_content = self.file_read(location)
         new_content = updater(old_content)
-        if (old_content == new_content):
+        if old_content == new_content:
             return False
         # assert type(new_content) in (str, unicode, fabric.operations._AttributeString), "Updater must be like (string)->string, got: %s() = %s" %  (updater, type(new_content))
         self.file_write(location, new_content)

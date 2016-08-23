@@ -20,19 +20,20 @@ class CuisineGolang(app):
             return False
         return True
 
-    def install(self):
-        if not self.isInstalled():
-            if self._cuisine.core.isMac or self._cuisine.core.isArch:
-                self._cuisine.core.run(cmd="rm -rf /usr/local/go", die=False)
-                # if self._cuisine.core.isMac:
-                #     self._cuisine.core.run("brew uninstall --force go")
-                self._cuisine.package.install("go")
-            elif "ubuntu" in self._cuisine.platformtype.platformtypes:
-                # self._cuisine.core.run("apt-get install golang -y --force-yes")
-                downl = "https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz"
-                self._cuisine.core.file_download(downl, "/usr/local", overwrite=False, retry=3, timeout=0, expand=True)
-            else:
-                raise j.exceptions.RuntimeError("platform not supported")
+    def install(self, reset=False):
+        if reset==False and  self.isInstalled():
+            return 
+        if self._cuisine.core.isMac or self._cuisine.core.isArch:
+            self._cuisine.core.run(cmd="rm -rf /usr/local/go", die=False)
+            # if self._cuisine.core.isMac:
+            #     self._cuisine.core.run("brew uninstall --force go")
+            self._cuisine.package.install("go")
+        elif "ubuntu" in self._cuisine.platformtype.platformtypes:
+            # self._cuisine.core.run("apt-get install golang -y --force-yes")
+            downl = "https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz"
+            self._cuisine.core.file_download(downl, "/usr/local", overwrite=False, retry=3, timeout=0, expand=True)
+        else:
+            raise j.exceptions.RuntimeError("platform not supported")
 
         # optdir = self._cuisine.core.dir_paths["optDir"]
         goDir = self._cuisine.core.dir_paths['goDir']

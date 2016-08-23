@@ -14,11 +14,13 @@ class CuisineSyncthing(app):
         self._executor = executor
         self._cuisine = cuisine
 
-    def build(self, start=True, install=True):
+    def build(self, start=True, install=True, reset=False):
         """
         build and setup syncthing to run on :8384 , this can be changed from the config file in /optvar/cfg/syncthing
         """
-        #install golang 
+        #install golang
+        if reset==False and self.isInstalled():
+            return
         self._cuisine.development.golang.install()
 
         # build
@@ -100,9 +102,7 @@ class CuisineSyncthing(app):
 
         self._cuisine.core.dir_ensure("$tmplsDir/cfg/syncthing/")
         self._cuisine.core.file_write("$tmplsDir/cfg/syncthing/config.xml", content)
-
-        self._cuisine.core.file_copy(self._cuisine.core.joinpaths('$goDir/src/github.com/syncthing/', 'syncthing'), "$goDir/bin/", recursive=True, overwrite=False)
-        self._cuisine.core.file_copy("$goDir/bin/syncthing", "$binDir", recursive=True, overwrite=False)
+        self._cuisine.core.file_copy("$goDir/src/github.com/syncthing/syncthing/bin/syncthing", "$binDir", recursive=True, overwrite=False)
 
         if start:
             self.start()
@@ -115,4 +115,4 @@ class CuisineSyncthing(app):
         env={}
         env["TMPDIR"]=self._cuisine.core.dir_paths["tmpDir"]
         pm = self._cuisine.processmanager.get("tmux")
-        pm.ensure(name="syncthing", cmd="./syncthing -home  $cfgDir/syncthing", path=self._cuisine.core.joinpaths(GOPATH, "bin"))
+        pm.ensure(name="syncthing", cmd="./syncthing -home  $cfgDir/syncthing", path="$binDir")

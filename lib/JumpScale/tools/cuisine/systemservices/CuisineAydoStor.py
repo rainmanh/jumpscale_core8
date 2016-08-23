@@ -14,15 +14,16 @@ class CuisineAydoStor(app):
         self._executor = executor
         self._cuisine = cuisine
 
-    def build(self, addr='0.0.0.0:8090', backend="$varDir/aydostor", start=True, install=True):
+    def build(self, addr='0.0.0.0:8090', backend="$varDir/aydostor", start=True, install=True, reset=False):
         """
         Build and Install aydostore
         @input addr, address and port on which the service need to listen. e.g. : 0.0.0.0:8090
         @input backend, directory where to save the data push to the store
         """
-        if self.isInstalled():
+        if self.isInstalled() and not reset:
+            print('Aydostor is already installed, pass reinstall=True parameter to reinstall')
             return
-            
+
         self._cuisine.core.dir_remove("%s/src" % self._cuisine.bash.environGet('GOPATH'))
         self._cuisine.development.golang.install()
         self._cuisine.development.golang.get("github.com/g8os/stor")
@@ -32,7 +33,7 @@ class CuisineAydoStor(app):
 
     def install(self, addr='0.0.0.0:8090', backend="$varDir/aydostor", start=True):
         """
-        download, install, move files to appropriate places, and create relavent configs 
+        download, install, move files to appropriate places, and create relavent configs
         """
         self._cuisine.core.file_copy(self._cuisine.core.joinpaths(
             self._cuisine.core.dir_paths['goDir'], 'bin', 'stor'), '$base/bin', overwrite=True)
@@ -48,6 +49,7 @@ class CuisineAydoStor(app):
             'store_root': backend,
         }
         content = j.data.serializer.toml.dumps(config)
+        self._cuisine.core.dir_ensure('$tmplsDir/cfg/stor', recursive=True)
         self._cuisine.core.file_write("$tmplsDir/cfg/stor/config.toml", content)
 
         if start:

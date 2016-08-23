@@ -1,12 +1,3 @@
-from __future__ import with_statement
-import re
-from JumpScale import j
-import copy
-
-import pygments.lexers
-from pygments.formatters import get_formatter_by_name
-
-
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Many ideas & lines of code have been taken from:
@@ -28,21 +19,24 @@ from pygments.formatters import get_formatter_by_name
 #
 # modified by Jumpscale authors & repackaged, also lots of new modules in this directory & different approach
 
-
+from __future__ import with_statement
+import re
+import copy
 import base64
 import hashlib
 import os
-import re
 import string
 import tempfile
 import subprocess
 import types
 import threading
 import sys
-import tempfile
 import functools
 import platform
 
+from JumpScale import j
+import pygments.lexers
+from pygments.formatters import get_formatter_by_name
 
 NOTHING = base64
 

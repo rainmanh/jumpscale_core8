@@ -3,8 +3,6 @@ from time import sleep
 
 
 app = j.tools.cuisine._getBaseAppClass()
-# TODO: *1 check we are installing latest mongodb
-
 
 class CuisineMongodb(app):
     NAME = 'mongod'   
@@ -22,7 +20,7 @@ class CuisineMongodb(app):
 
             url = None
             if self._cuisine.core.isUbuntu:
-                url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz'
+                url = 'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-3.2.9.tgz'
             elif self._cuisine.core.isArch:
                 self._cuisine.package.install("mongodb")
             elif self._cuisine.core.isMac:  # TODO: better platform mgmt
@@ -44,13 +42,20 @@ class CuisineMongodb(app):
                 for file in self._cuisine.core.fs_find('%s/bin/' % extracted, type='f'):
                     self._cuisine.core.file_copy(file, appbase)
 
-        self._cuisine.core.dir_ensure('$varDir/data/mongodb')
 
-    def build(self, start=True):
-        self._build()
+    def install(self, start=True):
+        """
+        download, install, move files to appropriate places, and create relavent configs 
+        """
+        self._cuisine.core.dir_ensure('$varDir/data/mongodb')
         if start:
             self.start("mongod")
 
+    def build(self, start=True, install=True):
+        self._build()
+        if install:
+            self.install(start)
+    
     def start(self, name="mongod"):
         which = self._cuisine.core.command_location("mongod")
         self._cuisine.core.dir_ensure('$varDir/data/mongodb')

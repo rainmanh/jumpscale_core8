@@ -7,27 +7,16 @@ app = j.tools.cuisine._getBaseAppClass()
 class CuisineRedis(app):
     NAME = 'redis-server'
 
-    def install(self, reset=False):
-        if reset == False and self.isInstalled():
-            return
-        if self._cuisine.core.command_check("redis-server") == False:
-            if self._cuisine.core.isMac:
-                self._cuisine.package.install("redis")
-            else:
-                self._cuisine.package.install("redis-server")
-        cmd = self._cuisine.core.command_location("redis-server")
-        dest = "%s/redis-server" % self._cuisine.core.dir_paths["binDir"]
-        if cmd != dest:
-            self._cuisine.core.file_copy(cmd, dest)
-
     def build(self, reset=False):
+        raise NotImplementedError()
+        
+
+    def install(self, reset=False):
         if reset == False and self.isInstalled():
             return
         if self._cuisine.core.isUbuntu:
             self._cuisine.package.update()
-            self._cuisine.package.install("build-essential")
-
-            # TODO: *1 is this newest redis, if not upgrade
+            self._cuisine.package.install("install-essential")
 
             C = """
             #!/bin/bash
@@ -37,9 +26,9 @@ class CuisineRedis(app):
 
             mkdir -p $tmpDir/build/redis
             cd $tmpDir/build/redis
-            wget http://download.redis.io/releases/redis-3.2.0.tar.gz
-            tar xzf redis-3.2.0.tar.gz
-            cd redis-3.2.0
+            wget http://download.redis.io/redis-stable.tar.gz
+            tar xzf redis-stable.tar.gz
+            cd redis-stable
             make
 
             rm -f /usr/local/bin/redis-server
@@ -49,6 +38,7 @@ class CuisineRedis(app):
             C = self._cuisine.bash.replaceEnvironInText(C)
             C = self._cuisine.core.args_replace(C)
             self._cuisine.core.run_script(C)
+            
             # move action
             C = """
             set -ex

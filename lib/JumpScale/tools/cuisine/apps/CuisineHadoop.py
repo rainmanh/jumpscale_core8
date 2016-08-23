@@ -7,8 +7,7 @@ base = j.tools.cuisine._getBaseClass()
 
 class CuisineHadoop(base):
 
-    def _build(self):
-        self._cuisine.installer.base()
+    def _install(self):
 
         if self._cuisine.core.isUbuntu:
             C = """\
@@ -27,5 +26,5 @@ class CuisineHadoop(base):
         else:
             raise NotImplementedError("unsupported platform")
 
-    def build(self):
-        self._build()
+    def install(self):
+        self._install()

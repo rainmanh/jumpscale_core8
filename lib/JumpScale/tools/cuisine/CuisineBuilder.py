@@ -16,24 +16,24 @@ class CuisineBuilder(base):
         # TODO: *1 all new names lets check & fix
         if self._cuisine.core.isMac and not stor_name:
             stor_name = "osx10.11"
-        self._cuisine.installerdevelop.pip()
-        self._cuisine.installerdevelop.python()
-        if not self._cuisine.installer.jumpscale_installed():
-            self._cuisine.installerdevelop.jumpscale8()
+        self._cuisine.development.python.install()
+        if not self._cuisine.systemservices.js8_g8os.jumpscale_installed():
+            self._cuisine.systemservices.js8_g8os.jumpscale8()
         self._cuisine.apps.mongodb.build(start=start)
         self._cuisine.apps.portal.install(start=start)
-        self._cuisine.apps.redis.build(start=start)
+        self._cuisine.apps.redis.install()
+        self._cuisine.apps.redis.start()
         if not self._cuisine.core.isMac:
-            self._cuisine.apps.core.build(start=start)
-            self._cuisine.apps.fs.build(start=False)
+            self._cuisine.systemservices.g8oscore.build(start=start)
+            self._cuisine.systemservices.g8osfs.build(start=False)
         self._cuisine.apps.syncthing.build(start=start)
         self._cuisine.apps.controller.build(start=start)
-        self._cuisine.apps.stor.build(start=start)
+        self._cuisine.systemservices.aydostor.build(start=start)
         self._cuisine.apps.etcd.build(start=start)
         self._cuisine.apps.caddy.install(start=start)
         # self._cuisine.apps.skydns(start=start)
         self._cuisine.apps.influxdb.build(start=start)
-        self._cuisine.apps.cockpit.build(start=False)
+        self._cuisine.solutions.cockpit.install(start=False)
         if not self._cuisine.core.isDocker and not self._cuisine.core.isLxc and not self._cuisine.core.isMac:
             self._cuisine.apps.weave.build(start=start)
         if sandbox:

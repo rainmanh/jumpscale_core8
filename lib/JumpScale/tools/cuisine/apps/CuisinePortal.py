@@ -4,9 +4,6 @@ import time
 
 base = j.tools.cuisine._getBaseClass()
 
-# TODO: *1 is broken, fix
-
-
 class CuisinePortal(base):
 
     def __init__(self, executor, cuisine):
@@ -24,7 +21,7 @@ class CuisinePortal(base):
         self._cuisine.bash.environSet("LC_ALL", "C.UTF-8")
         # if not self._cuisine.core.isMac:
         if not self._cuisine.development.js8.jumpscale_installed():
-            self._cuisine.installerdevelop.jumpscale8()
+            self._cuisine.development.js8.install()
         self._cuisine.development.pip.packageUpgrade("pip")
         self.installDeps()
         self.getcode()

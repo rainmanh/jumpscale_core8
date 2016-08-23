@@ -32,7 +32,7 @@ class CuisineBuilder(base):
         self._cuisine.apps.etcd.build(start=start)
         self._cuisine.apps.caddy.install(start=start)
         # self._cuisine.apps.skydns(start=start)
-        self._cuisine.apps.influxdb.build(start=start)
+        self._cuisine.apps.influxdb.install(start=start)
         self._cuisine.solutions.cockpit.install(start=False)
         if not self._cuisine.core.isDocker and not self._cuisine.core.isLxc and not self._cuisine.core.isMac:
             self._cuisine.apps.weave.build(start=start)

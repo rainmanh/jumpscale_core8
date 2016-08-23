@@ -21,7 +21,7 @@ class CuisineNet(base):
     @property
     def nics(self):
         res = []
-        for item in self.get_info():
+        for item in self.getInfo():
             if item["name"] not in ["lo"]:
                 res.append(item["name"])
         return res
@@ -29,7 +29,7 @@ class CuisineNet(base):
     @property
     def ips(self):
         res = []
-        for item in self.get_info():
+        for item in self.getInfo():
             if item["name"] not in ["lo"]:
                 for ip in item["ip"]:
                     if ip not in res:
@@ -38,20 +38,40 @@ class CuisineNet(base):
 
     @property
     def defaultgw(self):
-        return self._cuisine.core.run("ip r | grep 'default' | awk {'print $3'}")
+        out = self._cuisine.core.run("ip r | grep 'default'")[1]
+        return out.split(" ")[2]
+
+    @property
+    def defaultgwInterface(self):
+        """
+        returns device over which default gateway goes
+        """
+        out = self._cuisine.core.run("ip r | grep 'default'", showout=False)[1]
+        return out.split(" ")[4]
 
     @defaultgw.setter
     def defaultgw(self, val):
         raise j.exceptions.RuntimeError("not implemented")
 
-    def findnodes(self, range=None, ips=[]):
+    @property
+    def wirelessLanInterfaces(self):
+        """
+        find which wireless interfaces exist
+        """
+        cmd = "for i in /sys/class/net/*; do ls $i/wireless 2> /dev/null && basename $i; done"
+        out = self._cuisine.core.run(cmd, showout=False)[1]
+        return out.split("\n")
+
+    def findNodesSSH(self, range=None, ips=[]):
         """
         @param range in format 192.168.0.0/24
+
         if range not specified then will take all ranges of local ip addresses (nics)
-        find nodes which are active around
+        find nodes which are active around (answer on SSH)
+
         """
         if range == None:
-            res = self._cuisine.net.get_info()
+            res = self._cuisine.net.getInfo()
             for item in res:
                 cidr = item['cidr']
 
@@ -78,7 +98,7 @@ class CuisineNet(base):
                     ips.append(ip)
             return ips
 
-    def get_info(self, device=None):
+    def getInfo(self, device=None):
         """
         returns network info like
 
@@ -135,7 +155,7 @@ class CuisineNet(base):
         return res
 
     def getNetObject(self, device):
-        n = self.get_info(device)
+        n = self.getInfo(device)
         net = netaddr.IPNetwork(n["ip"][0] + "/" + str(n["cidr"]))
         return net.cidr
 

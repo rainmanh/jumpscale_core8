@@ -622,7 +622,8 @@ class CuisineCore(base):
         print("download remote:%s to local:%s" % (source, dest))
         self._executor.sshclient.rsync_down(source, dest)
 
-    def file_write(self, location, content, mode=None, owner=None, group=None, check=False, sudo=False, replaceArgs=False, strip=True, showout=True):
+    def file_write(self, location, content, mode=None, owner=None, group=None, check=False,
+                   sudo=False, replaceArgs=False, strip=True, showout=True):
 
         self.logger.info("write content in %s" % location)
         if strip:
@@ -644,11 +645,9 @@ class CuisineCore(base):
         content_base64 = base64.b64encode(content2).decode()
 
         # if sig != self.file_md5(location):
-        cmd = 'echo "%s" | openssl base64 -A -d > %s' % (content_base64, location)
-        if sudo:
-            cmd = "sudo %s" % cmd
+        cmd = 'bash -c \'set -ex\necho "%s" | openssl base64 -A -d > %s\'\n' % (content_base64, location)
 
-        self.run(cmd, showout=False)
+        res = self.run(cmd, showout=True, shell=True)
 
         if check:
             file_sig = self.file_md5(location)
@@ -962,7 +961,8 @@ class CuisineCore(base):
         finally:
             self.sudomode = sudomode
 
-    def run(self, cmd, die=True, debug=None, checkok=False, showout=True, profile=False, replaceArgs=True):
+    def run(self, cmd, die=True, debug=None, checkok=False, showout=True, profile=False, replaceArgs=True,
+            shell=False):
         """
         @param profile, execute the bash profile first
         """
@@ -991,7 +991,10 @@ class CuisineCore(base):
         if "cygwin" in self._executor.execute("uname -a", showout=False)[1].lower():
             self.sudomode = False
 
-        cmd = self.sudo_cmd(cmd) if self.sudomode else 'bash -c "%s"' % cmd
+        if self.sudomode:
+            cmd = self.sudo_cmd(cmd)
+        elif shell:  # only when shell is asked for
+            cmd = 'bash -c "%s"' % cmd
 
         path = self._executor.execute("echo $PATH", showout=False)[1]
         if "/usr/local/bin" not in path:

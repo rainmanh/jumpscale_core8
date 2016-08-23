@@ -49,6 +49,7 @@ class CuisineAydoStor(app):
             'store_root': backend,
         }
         content = j.data.serializer.toml.dumps(config)
+        self._cuisine.core.dir_ensure('$tmplsDir/cfg/stor', recursive=True)
         self._cuisine.core.file_write("$tmplsDir/cfg/stor/config.toml", content)
 
         if start:

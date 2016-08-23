@@ -18,7 +18,9 @@ class CuisineSyncthing(app):
         """
         build and setup syncthing to run on :8384 , this can be changed from the config file in /optvar/cfg/syncthing
         """
-        #install golang 
+        #install golang
+        if self.isInstalled():
+            return
         self._cuisine.development.golang.install()
 
         # build

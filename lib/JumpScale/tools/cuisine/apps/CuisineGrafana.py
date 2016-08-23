@@ -8,10 +8,9 @@ class CuisineGrafana(app):
     NAME = 'grafana-server'
 
     def install(self, start=True, influx_addr='127.0.0.1', influx_port=8086, port=3000):
-        
-        if self.isInstalled():
-            return 
-        
+        #if self.isInstalled():
+        #    return
+
         # TODO: *1 influx_addr & port not implemented to change in config file
         # TODO: *2 need to test the isLinux one,
 
@@ -24,12 +23,15 @@ class CuisineGrafana(app):
 
             """
             # self._cuisine.core.pprint(C)
+<<<<<<< Updated upstream
             self._cuisine.core.execute_bash(C, profile=True)
+=======
+            #self._cuisine.core.run_script(C, profile=True)
+>>>>>>> Stashed changes
             self._cuisine.core.file_copy("/usr/sbin/grafana*", dest="$binDir")
 
-
-            self.cuisine.core.dir_ensure("$tmplsDir/cfg/grafana")
-            self._cuisine.core.file_copy("/etc/grafana/grafana.ini", dest="$tmplsDir/cfg/grafana/grafana.ini")
+            self._cuisine.core.dir_ensure("$appDir/grafana")
+            self._cuisine.core.file_copy("/usr/share/grafana/", "$appDir/", recursive=True)
 
         else:
             raise RuntimeError("platform not supported")
@@ -46,7 +48,7 @@ class CuisineGrafana(app):
 
     def start(self, influx_addr='127.0.0.1', influx_port=8086, port=3000):
 
-        cmd = "cd $binDir;grafana-server --config=$cfgDir/grafana/grafana.ini\n"
+        cmd = "cd $appDir/grafana && $binDir/grafana-server --config=$cfgDir/grafana/grafana.ini\n"
         cmd = self._cuisine.core.args_replace(cmd)
         self._cuisine.core.file_write("/opt/jumpscale8/bin/start_grafana.sh", cmd, 777, replaceArgs=True)
         self._cuisine.process.kill("grafana-server")

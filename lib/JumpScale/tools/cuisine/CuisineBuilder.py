@@ -28,12 +28,12 @@ class CuisineBuilder(base):
             self._cuisine.systemservices.g8osfs.build(start=False)
         self._cuisine.apps.syncthing.build(start=start)
         self._cuisine.apps.controller.build(start=start)
-        self._cuisine.apps.stor.build(start=start)
+        self._cuisine.systemservices.aydostor.build(start=start)
         self._cuisine.apps.etcd.build(start=start)
         self._cuisine.apps.caddy.install(start=start)
         # self._cuisine.apps.skydns(start=start)
         self._cuisine.apps.influxdb.build(start=start)
-        self._cuisine.apps.cockpit.build(start=False)
+        self._cuisine.solutions.cockpit.install(start=False)
         if not self._cuisine.core.isDocker and not self._cuisine.core.isLxc and not self._cuisine.core.isMac:
             self._cuisine.apps.weave.build(start=start)
         if sandbox:

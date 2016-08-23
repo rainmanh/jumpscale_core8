@@ -290,7 +290,7 @@ class Faker(): pass\n
             self.classDocs[path] = ClassDoc(classobj, path)
         obj = self.classDocs[path]
 
-    def inspect(self, objectLocationPath="j.sal", recursive=True, parent=None, obj=None):
+    def inspect(self, objectLocationPath="j", recursive=True, parent=None, obj=None):
 
         """
         walk over objects in memory and create code completion api in jumpscale cfgDir under codecompletionapi
@@ -362,7 +362,7 @@ class Faker(): pass\n
             try:
                 objattribute = eval("obj.%s" % objattributename)
             except Exception as e:
-                self.logger.error(e)
+                self.logger.error(str(e))
                 self.raiseError("cannot eval %s" % objectLocationPath2)
                 continue
             if objattributename.upper() == objattributename:
@@ -400,7 +400,7 @@ class Faker(): pass\n
                         self.logger.log("SKIPPED:%s" % objectLocationPath2)
                         return
                 except Exception as e:
-                    self.logger.error(e)
+                    self.logger.error(str(e))
 
                 source, params = self._processMethod(objattributename, objattribute, objectLocationPath2, obj)
                 self.logger.debug("instancemethod: %s" % objectLocationPath2)
@@ -434,7 +434,7 @@ class Faker(): pass\n
                     if not isinstance(objattribute, (str, bool, int, float, dict, list, tuple)):
                         self.inspect(objectLocationPath2, parent=objattribute)
                 except Exception as e:
-                    self.logger.error(e)
+                    self.logger.error(str(e))
 
             else:
                 pass

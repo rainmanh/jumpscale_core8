@@ -6,8 +6,7 @@ monkey.patch_time()
 monkey.patch_ssl()
 from JumpScale import j
 from gevent.pywsgi import WSGIServer
-from servers.serverbase import returnCodes
-from servers.serverbase import returnCodes
+from JumpScale.servers.serverbase import returnCodes
 import time
 
 import gevent

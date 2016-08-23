@@ -29,7 +29,7 @@ class GeventWSFactory:
         daemon.start()
 
         """
-        from GeventWSServer import GeventWSServer
+        from servers.geventws.GeventWSServer import GeventWSServer
         return GeventWSServer('', port, ssluser=ssluser, sslorg=sslorg, sslkeyvaluestor=sslkeyvaluestor)
 
     def getClient(self, addr, port, category="core", org="myorg", user="root", passwd="passwd", ssl=False, roles=[], id=None, timeout=60):
@@ -43,7 +43,7 @@ class GeventWSFactory:
         if False and key in self.cache:
             cl = self.cache[key]
         else:
-            from GeventWSTransport import GeventWSTransport
+            from servers.geventws.GeventWSTransport import GeventWSTransport
             from servers.serverbase.DaemonClient import DaemonClient
             trans = GeventWSTransport(addr, port, timeout)
             cl = DaemonClient(org=org, user=user, passwd=passwd, ssl=ssl, transport=trans, id=id)

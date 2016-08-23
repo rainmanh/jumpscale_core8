@@ -106,7 +106,7 @@ if not all(x for x in range(10)):
     j.servers = Loader("j.servers")
     j.portal = Loader('j.portal')
     j.portal.tools = Loader('j.portal.tools')
-    
+    j.legacy = Loader("j.legacy")
     
     from .InstallTools import InstallTools, do, Installer
     j.do = do

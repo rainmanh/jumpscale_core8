@@ -9,7 +9,7 @@ except:
     import json
 
 from JumpScale.tools import cmdutils
-from redisworker import RedisWorkerFactory
+from JumpScale.legacy.redisworker.RedisWorker import RedisWorkerFactory
 
 import os
 
@@ -102,7 +102,7 @@ class Worker(object):
                                 if job.jscriptid:
                                     jscript = self.redisw.getJumpscriptFromId(job.jscriptid)
                                 if jscript is None:
-                                    msg = "cannot find jumpscript with id:%s cat:%s cmd:%s" % (
+                                    msg = "cannot find jumpscripts with id:%s cat:%s cmd:%s" % (
                                     job.jscriptid, job.category, job.cmd)
                                     self.log("ERROR:%s" % msg)
                                     eco = j.errorconditionhandler.raiseOperationalCritical(msg,

@@ -8,13 +8,8 @@ except:
 import time
 import inspect
 
-# if j.application.config.exists("agentcontroller.webdiskey"):
-import JumpScale.grid.jumpscripts
-from JumpScale.grid.jumpscripts import Jumpscript
-from JumpScale.clients.redis.Redis import Redis
+Jumpscript = j.legacy.jumpscripts.getJSClass()
 
-# else:
-# Jumpscript=None
 
 class Job(object):
     """
@@ -91,6 +86,8 @@ class RedisWorkerFactory(object):
     """
 
     def __init__(self):
+        self.__jslocation__ = "j.legacy.redisworker"
+
         random = j.data.idgenerator.generateGUID()
         self.sessionid = "%s_%s_%s_%s" % (
         j.application.whoAmI.gid, j.application.whoAmI.nid, j.application.whoAmI.pid, random)
@@ -100,16 +97,7 @@ class RedisWorkerFactory(object):
 
     @property
     def redis(self):
-        if self._redis is None:
-            self._redis = j.core.db
-            self._redis.delete("workers:sessions")
-            # local jumpscripts start at 10000
-            if not self._redis.exists("workers:jumpscriptlastid") or int(
-                    self._redis.get("workers:jumpscriptlastid")) < 1000000:
-                self._redis.set("workers:jumpscriptlastid", 1000000)
-            if self._redis.get("workers:joblastid") == None or int(self._redis.get("workers:joblastid")) > 500000:
-                self._redis.set("workers:joblastid", 1)
-        return self._redis
+        return j.core.db
 
     @property
     def queue(self):
@@ -339,11 +327,11 @@ def action%(argspec)s:
     def getJobLine(self, job=None, jobid=None):
         if jobid != None:
             job = self.getJob(jobid)
-        start = j.base.time.epoch2HRDateTime(job['timeStart'])
+        start = j.data.time.epoch2HRDateTime(job['timeStart'])
         if job['timeStop'] == 0:
             stop = "N/A"
         else:
-            stop = j.base.time.epoch2HRDateTime(job['timeStop'])
+            stop = j.data.time.epoch2HRDateTime(job['timeStop'])
         jobid = '[%s|/grid/job?id=%s]' % (job['id'], job['id'])
         line = "|%s|%s|%s|%s|%s|%s|%s|%s|" % (
         jobid, job['state'], job['queue'], job['category'], job['cmd'], job['jscriptid'], start, stop)

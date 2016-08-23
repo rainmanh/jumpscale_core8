@@ -14,7 +14,7 @@ import psutil
 import os
 import subprocess
 from JumpScale.tools import cmdutils
-from JumpScale.clients.redis.RedisQueue import RedisQueue
+from JumpScale.core.redis import RedisQueue
 import socket
 
 processes = list()
@@ -131,7 +131,7 @@ class ProcessManager():
                 print("cannot connect to agentcontroller, will retry forever: '%s:%s'" % (opts.ip, opts.port))
 
             # now register to agentcontroller
-            self.acclient = j.clients.legacycontroller.get(opts.ip, port=opts.port, login="root", passwd=opts.password, new=True)
+            self.acclient = j.legacy.agentcontroller.get(opts.ip, port=opts.port, login="root", passwd=opts.password, new=True)
             res = self.acclient.registerNode(hostname=socket.gethostname(),
                                              machineguid=j.application.getUniqueMachineId())
 
@@ -141,7 +141,7 @@ class ProcessManager():
             hrd.set('node.id', nid)
             j.application._initWhoAmI(reload=True)
 
-            self.acclient = j.clients.legacycontroller.get(opts.ip, port=opts.port, login="node", new=True)
+            self.acclient = j.legacy.agentcontroller.get(opts.ip, port=opts.port, login="node", new=True)
         else:
             self.acclient = None
 
@@ -154,7 +154,7 @@ class ProcessManager():
         self.mainloop()
 
     def _processManagerStart(self):
-        j.core.processmanager.start()
+        j.legacy.processmanager.start(self.acclient)
 
     def _workerStart(self):
         pwd = j.sal.fs.joinPaths(os.path.abspath(''), 'lib')

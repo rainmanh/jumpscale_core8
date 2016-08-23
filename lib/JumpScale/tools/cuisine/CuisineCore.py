@@ -64,7 +64,7 @@ def stringify(value):
     if isinstance(value, (list, tuple)) and len(value) > 10:
         return '[{0},...]'.format(', '.join([stringify(_) for _ in value[0:STRINGIFY_MAXLISTSTRING]]))
     return str(value)
-    
+
 
 def text_detect_eol(text):
     MAC_EOL = "\n"
@@ -719,7 +719,7 @@ class CuisineCore(base):
         assert self.file_exists(location), "File does not exists: " + location
         old_content = self.file_read(location)
         new_content = updater(old_content)
-        if (old_content == new_content):
+        if old_content == new_content:
             return False
         # assert type(new_content) in (str, unicode, fabric.operations._AttributeString), "Updater must be like (string)->string, got: %s() = %s" %  (updater, type(new_content))
         self.file_write(location, new_content)

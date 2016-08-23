@@ -50,7 +50,7 @@ class ExecutorFactory:
         return ExecutorLocal(debug=debug, checkok=debug)
 
     def getSSHBased(self, addr="localhost", port=22, login="root", passwd=None, debug=False, allow_agent=True,
-                    look_for_keys=True, pushkey=None, pubkey="", timeout=5, usecache=True, passphrase=None):
+                    look_for_keys=True, timeout=5, usecache=True, passphrase=None):
         """
         returns an ssh-based executor where:
         allow_agent: uses the ssh-agent to connect
@@ -70,8 +70,6 @@ class ExecutorFactory:
                                                allow_agent=allow_agent,
                                                look_for_keys=look_for_keys,
                                                timeout=timeout)
-            if pubkey or pushkey:
-                self._executors[key].authenticate(pubkey, pushkey, passphrase=passphrase)
         return self._executors[key]
 
     def getJSAgentBased(self, agentControllerClientKey, debug=False, checkok=False):

@@ -7,7 +7,8 @@ class ExecutorSSH(ExecutorBase):
 
     def __init__(self, addr, port, dest_prefixes={}, login="root",
                  passwd=None, debug=False, allow_agent=True,
-                 look_for_keys=True, pushkey=None, pubkey="", checkok=True, timeout=5):
+                 look_for_keys=True, checkok=True, timeout=5):
+        # DO NOT USE THIS TO PUSH A KEY!!!
         ExecutorBase.__init__(self, dest_prefixes=dest_prefixes, debug=debug, checkok=checkok)
         self.logger = j.logger.get("j.tools.executor.ssh")
         self.id = '%s:%s' % (addr, port)  # do not put login name in key,
@@ -20,8 +21,6 @@ class ExecutorSSH(ExecutorBase):
             allow_agent = False
         self.allow_agent = allow_agent
         self.look_for_keys = look_for_keys
-        self.pushkey = pushkey
-        self.pubkey = pubkey
         self._sshclient = None
         self.type = "ssh"
         self.timeout = timeout
@@ -70,40 +69,30 @@ class ExecutorSSH(ExecutorBase):
 
         return self._sshclient
 
-    def authenticate(self, pubkey=None, pushkey=None, passphrase=None):
+    def authorizeKey(self, pubkey=None, keyname=None, passphrase=None, login="root"):
         """
         This will authenticate the ssh client to access the target machine
         using the given pubkey, If pushkey is set, that key will be loaded,
         and used instead.
 
-        :param pubkey: Public key to authenticate with.
-        :param pushkey: Path to public key to use, path can be full path to a file
-                        or just a name of the key (without the .pub extension) and
-                        in that case the file will be loaded from $HOME/.ssh/<pushkey>.pub
+        :param pubkey: Public key to authenticate with (is the content)
+        :param pushkey: name to public key, will get from ssh-agent
         :return:
         """
-        path = pubkey
 
         if not pubkey:
-            if j.sal.fs.exists(pushkey):
-                path = pushkey
-            else:
-                if j.do.checkSSHAgentAvailable():
-                    path = j.do.getSSHKeyPathFromAgent(pushkey, die=False)
-                    path = '%s' % path
-                if not path:
-                    homedir = os.environ["HOME"]
-                    path = "%s/.ssh/%s" % (homedir, pushkey)
+            path = j.do.getSSHKeyPathFromAgent(keyname, die=True)
+            self._getSSHClient(path, passphrase)  # should be the correct client now
 
-        self._getSSHClient(path, passphrase)  # should be the correct client now
-        self._sshclient._cuisine = self.cuisine
+        self.sshclient._cuisine = self.cuisine
 
+        # was private key,need to add .pub to have public key
         path = '%s.pub' % path
         if j.sal.fs.exists(path):
             pubkey = j.sal.fs.fileGetContents(path)
         else:
             raise j.exceptions.RuntimeError("Could not find key:%s" % path)
-        self._sshclient.ssh_authorize("root", pubkey)
+        self._sshclient.ssh_authorize(login, pubkey)
 
     def execute(self, cmds, die=True, checkok=None, async=False, showout=True, timeout=0, env={}):
         """

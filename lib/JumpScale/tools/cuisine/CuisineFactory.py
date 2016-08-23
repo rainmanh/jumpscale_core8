@@ -35,6 +35,7 @@ class CuisineBase:
 
     __repr__ = __str__
 
+
 class CuisineApp(CuisineBase):
 
     NAME = None
@@ -108,6 +109,7 @@ class JSCuisineFactory:
 
         @param pubkey is the pub key to use (is content of key), if this is specified then keyname not used & ssh-agent neither
         """
+        from JumpScale.tools.cuisine.JSCuisine import JSCuisine
         if addr.find(":") != -1:
             addr, port = addr.split(":", 1)
             addr = addr.strip()
@@ -126,7 +128,7 @@ class JSCuisineFactory:
             else:
                 passwd = j.tools.console.askPassword("please specify root passwd", False)
 
-        if pubkey == "" and executor is None:
+        if pubkey == "":
             if keyname == "":
                 rc, out = j.sal.process.execute("ssh-add -l")
                 keys = []
@@ -139,22 +141,21 @@ class JSCuisineFactory:
                     except:
                         pass
                 key = j.tools.console.askChoice(keys, "please select key")
+                # key = j.sal.fs.getBaseName(key)
+                pubkey = j.sal.fs.fileGetContents(key + ".pub")
             else:
-                key = keyname
-        else:
-            key = None
+                key = j.do.getSSHKeyPathFromAgent(keyname)
+                pubkey = j.sal.fs.fileGetContents(key + ".pub")
+
+        j.clients.ssh.cache = {}
 
         if executor is None:
             executor = j.tools.executor.getSSHBased(
-                addr=addr, port=port, login=login, passwd=passwd, pushkey=key, pubkey=pubkey)
+                addr=addr, port=port, login=login, passwd=passwd)
 
-        j.clients.ssh.cache = {}
-        executor = j.tools.executor.getSSHBased(addr=addr, port=port, login=login,
-                                                pushkey=key)  # should now work with key only
+        executor.cuisine.ssh.authorize(login, pubkey)
 
-        cuisine = JSCuisine(executor)
-        self._cuisines_instance[executor.id] = cuisine
-        return self._cuisines_instance[executor.id]
+        executor.cuisine.core.run("chmod -r 700 /root/.ssh")
 
     def get(self, executor=None, usecache=True):
         """
@@ -169,7 +170,7 @@ class JSCuisineFactory:
         from JumpScale.tools.cuisine.JSCuisine import JSCuisine
         executor = j.tools.executor.get(executor)
 
-        if usecache and  executor.id in self._cuisines_instance:
+        if usecache and executor.id in self._cuisines_instance:
             return self._cuisines_instance[executor.id]
 
         cuisine = JSCuisine(executor)

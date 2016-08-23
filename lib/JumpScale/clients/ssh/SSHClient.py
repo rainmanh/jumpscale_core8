@@ -382,7 +382,7 @@ class SSHClient:
     def cuisine(self):
         if self._cuisine is None:
             executor = j.tools.executor.getSSHBased(self.addr, self.port, self.login, self.passwd, allow_agent=self.allow_agent,
-                                                    look_for_keys=self.look_for_keys, pushkey=self.key_filename, timeout=self.timeout,
+                                                    look_for_keys=self.look_for_keys, timeout=self.timeout,
                                                     usecache=False)
             self._cuisine = executor.cuisine
         return self._cuisine

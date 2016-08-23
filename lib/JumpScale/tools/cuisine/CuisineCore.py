@@ -623,38 +623,55 @@ class CuisineCore(base):
         self._executor.sshclient.rsync_down(source, dest)
 
     def file_write(self, location, content, mode=None, owner=None, group=None, check=False,
-                   sudo=False, replaceArgs=False, strip=True, showout=True):
-
-        self.logger.info("write content in %s" % location)
-        if strip:
+                   sudo=False, replaceArgs=False, strip=True, showout=True, append=False):
+        """
+        @param append if append then will add to file and check if each line exists, if not will remove
+        """
+        if append:
             content = j.data.text.strip(content)
+            C = self.file_read(location)
+            tocheck = [item.strip() for item in content.split("\n") if item.strip() != ""]
+            C2 = ""
+            for line in C.split("\n"):
+                if line.strip() in tocheck:
+                    continue
+                C2 += "%s\n" % line
+            C2 = C2.rstrip() + "\n"
+            C2 += content
+            self.file_write(location, C, mode, owner, group, check, sudo, replaceArgs, strip, showout)
 
-        location = self.args_replace(location)
-        if replaceArgs:
-            content = self.args_replace(content)
+        else:
 
-        # if showout:
-        #     print ("filewrite: %s"%location)
+            self.logger.info("write content in %s" % location)
+            if strip:
+                content = j.data.text.strip(content)
 
-        self.dir_ensure(j.sal.fs.getParent(location))
+            location = self.args_replace(location)
+            if replaceArgs:
+                content = self.args_replace(content)
 
-        content2 = content.encode('utf-8')
+            # if showout:
+            #     print ("filewrite: %s"%location)
 
-        sig = hashlib.md5(content2).hexdigest()
+            self.dir_ensure(j.sal.fs.getParent(location))
 
-        content_base64 = base64.b64encode(content2).decode()
+            content2 = content.encode('utf-8')
 
-        # if sig != self.file_md5(location):
-        cmd = 'bash -c \'set -ex\necho "%s" | openssl base64 -A -d > %s\'\n' % (content_base64, location)
+            sig = hashlib.md5(content2).hexdigest()
 
-        res = self.run(cmd, showout=True, shell=True)
+            content_base64 = base64.b64encode(content2).decode()
 
-        if check:
-            file_sig = self.file_md5(location)
-            assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (
-                location, repr(file_sig), repr(sig))
+            # if sig != self.file_md5(location):
+            cmd = 'bash -c \'set -ex\necho "%s" | openssl base64 -A -d > %s\'\n' % (content_base64, location)
 
-        self.file_attribs(location, mode=mode, owner=owner, group=group)
+            res = self.run(cmd, showout=False, shell=True)
+
+            if check:
+                file_sig = self.file_md5(location)
+                assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (
+                    location, repr(file_sig), repr(sig))
+
+            self.file_attribs(location, mode=mode, owner=owner, group=group)
 
     def file_ensure(self, location, mode=None, owner=None, group=None):
         """Updates the mode/owner/group for the remote file at the given
@@ -690,6 +707,20 @@ class CuisineCore(base):
 
     def file_download_local(self, remote, local):
         raise NotImplemented("please use download")
+
+    def file_remove_prefix(self, location, prefix, strip=True):
+        # look for each line which starts with prefix & remove
+        content = self.file_read(location)
+        out = ""
+        for l in content.split("\n"):
+            if strip:
+                l2 = l.strip()
+            else:
+                l2 = l
+            if l2.startswith(prefix):
+                continue
+            out += "%s\n" % l
+        self.file_write(location, out)
 
     def file_update(self, location, updater=lambda x: x):
         """Updates the content of the given by passing the existing

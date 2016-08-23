@@ -39,8 +39,10 @@ class CuisineFW(base):
         # TODO: *1 implement
         raise NotImplemented()
 
-    def flush(self):
+    def flush(self, permanent=False):
         self._cuisine.core.run("nft flush ruleset")
+        if permanent:
+            self.setRuleset("")
 
     def show(self):
         rc, out = self._cuisine.core.run("nft list ruleset")
@@ -50,6 +52,10 @@ class CuisineFW(base):
         return out
 
     def setRuleset(self, ruleset, pinghost="www.google.com"):
+        if not self._cuisine.net.ping(pinghost):
+            raise j.exceptions.Input(
+                message="Cannot set firewall ruleset if we cannot ping to the host we have to check against.", level=1, source="", tags="", msgpub="")
+
         pscript = """
         C='''
         $ruleset
@@ -62,19 +68,24 @@ class CuisineFW(base):
 
         #TODO: *1 check old ruleset exists
 
-        f = open('/tmp/firewallruleset', 'w')
+        f = open('/etc/nftables.conf', 'w')
         f.write(C)
 
         #now applying
-        rc=os.system("nft -f /tmp/firewallruleset")
-        if rc>0:
-            raise RuntimeError("Cannot apply firelwall ruleset")
+        print("applied ruleset")
+        rc=os.system("nft -f /etc/nftables.conf")
 
-        rc=os.system("ping -c 1 $pinghost")
+        rc2=os.system("ping -c 1 $pinghost")
 
-        if rc!=0:
+        if rc2!=0:
+            print ("could not apply, restore")
             #could not ping need to restore
-            os.system("nft -f /tmp/firelwallruleset_old")
+            os.system("cp /tmp/firelwallruleset_old /etc/nftables.conf")
+            rc=os.system("nft -f /etc/nftables.conf")
+
+        if rc>0 or rc2>0:
+            raise RuntimeError("Could not set interface file, something went wrong, previous situation restored.")
+
 
         """
         pscript = j.data.text.strip(pscript)

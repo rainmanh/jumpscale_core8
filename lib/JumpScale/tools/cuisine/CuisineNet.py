@@ -165,3 +165,60 @@ class CuisineNet(base):
         """
         n = self.getNetObject(device)
         return(str(netaddr.IPAddress(n.first + skipBegin)), str(netaddr.IPAddress(n.last - skipEnd)))
+
+    def ping(self, host):
+        rc, out, err = self._cuisine.core.run("ping -c 1 %s" % host, die=False, showout=False)
+        if rc != 0:
+            return False
+        return True
+
+    def setInterfaceFile(self, ifacefile, pinghost="www.google.com"):
+        """
+        will set interface file, if network access goes away then will restore previous one
+        """
+
+        if not self.ping(pinghost):
+            raise j.exceptions.Input(
+                message="Cannot set interface if we cannot ping to the host we have to check against.", level=1, source="", tags="", msgpub="")
+
+        pscript = """
+        C='''
+        $ifacefile
+        '''
+        import os
+
+        rc=os.system("cp /etc/network/interfaces /etc/network/interfaces_old")
+        if rc>0:
+            raise RuntimeError("Cannot make copy of interfaces file")
+
+        f = open('/etc/network/interfaces', 'w')
+        f.write(C)
+
+        # now applying
+        print ("restart network")
+        rc=os.system("/etc/init.d/networking restart")
+        rc=os.system("/etc/init.d/networking restart")
+        print ("restart network done")
+
+        rc=os.system("ping -c 1 $pinghost")
+        rc2=0
+
+        if rc!=0:
+            # could not ping need to restore
+            os.system("cp /etc/network/interfaces_old /etc/network/interfaces")
+
+            print ("restart network to recover")
+            rc2=os.system("/etc/init.d/networking restart")
+            rc2=os.system("/etc/init.d/networking restart")
+            print("restart done to recover")
+
+        if rc>0 or rc2>0:
+            raise RuntimeError("Could not set interface file, something went wrong, previous situation restored.")
+        """
+        pscript = j.data.text.strip(pscript)
+        pscript = pscript.replace("$ifacefile", ifacefile)
+        pscript = pscript.replace("$pinghost", pinghost)
+
+        print(pscript)
+
+        self._cuisine.core.execute_bash(content=pscript, die=True, interpreter="python3", tmux=True)

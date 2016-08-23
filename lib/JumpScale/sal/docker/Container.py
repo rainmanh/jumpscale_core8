@@ -146,6 +146,7 @@ class Container:
         keys = set()
 
         home = j.tools.cuisine.local.bash.home
+        username = j.tools.cuisine.local.user.getCurrent()
 
         if sshpubkey != "" and sshpubkey != None:
             key = sshpubkey
@@ -161,7 +162,7 @@ class Container:
                     dir = j.tools.path.get('%s/.ssh' % home)
                     if dir.listdir("docker_default.pub") == []:
                         # key does not exist, lets create one
-                        j.tools.cuisine.local.ssh.keygen(name="docker_default")
+                        j.tools.cuisine.local.ssh.keygen(user=username, name="docker_default")
                     key = j.sal.fs.readFile(
                         filename="%s/.ssh/docker_default.pub" % home)
                     # load the key

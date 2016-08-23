@@ -1306,7 +1306,7 @@ class InstallTools():
             self.writeFile(bashprofile_path, out)
             return
 
-        # out += "\njs 'j.do.loadSSHAgent()' #JSSSHAGENT\n"
+        # out += "\njs 'j.do._.loadSSHAgent()' #JSSSHAGENT\n"
         out += "export SSH_AUTH_SOCK=%s" % self._getSSHSocketpath()
         out = out.replace("\n\n\n", "\n\n")
         out = out.replace("\n\n\n", "\n\n")
@@ -1576,6 +1576,7 @@ class InstallTools():
         #         raise RuntimeError("Cannot find ssh key on %s" % path)
 
         if not self.exists(socketpath):
+            self.createDir(self.getParent(socketpath))
             # ssh-agent not loaded
             print("load ssh agent")
             rc, result, err = self.execute("ssh-agent -a %s" % socketpath, die=False, showout=False, outputStderr=False)

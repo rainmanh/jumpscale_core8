@@ -985,7 +985,7 @@ class CuisineCore(base):
             else:
                 self.logger.debug("PROFILECMD:%s" % cmd)
 
-        if '"' in cmd:
+        if shell and '"' in cmd:
             cmd = cmd.replace('"', '\\"')
 
         if "cygwin" in self._executor.execute("uname -a", showout=False)[1].lower():

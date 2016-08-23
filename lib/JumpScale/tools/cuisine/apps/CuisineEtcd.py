@@ -30,9 +30,6 @@ class CuisineEtcd(app):
 
         # first checkout master to prevent error if already in detached mode
         git checkout master
-        # TODO: this version ot etcd doesn't build correctly
-        # fallback to master for now.
-        # git checkout v3.0.1
 
         go get -d .
 

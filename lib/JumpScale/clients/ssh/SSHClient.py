@@ -189,7 +189,7 @@ class SSHClient:
                         self.pkey = paramiko.RSAKey.from_private_key_file(
                             self.key_filename, password=self.passphrase)
                         if not j.do.checkSSHAgentAvailable():
-                            j.do.loadSSHAgent()
+                            j.do._.loadSSHAgent()
                         if not j.do.getSSHKeyPathFromAgent(self.key_filename, die=False):
                             j.do.loadSSHKeys(self.key_filename)
 

@@ -151,7 +151,7 @@ class Container:
             key = sshpubkey
         else:
             if not j.do.checkSSHAgentAvailable():
-                j.do.loadSSHAgent()
+                j.do._loadSSHAgent()
 
             if keyname != "":
                 key = j.do.getSSHKeyFromAgentPub(keyname)

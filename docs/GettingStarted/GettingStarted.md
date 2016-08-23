@@ -9,7 +9,7 @@ In order to start the JumpScale interactive shell type `js` at the command line.
 Everything after `js` will be evalled in the JumpScale interactive shell session:
 
 ```
-js 'j.do.loadSSHAgent()'
+js 'j.do._.loadSSHAgent()'
 ```
 
 ## Installing JumpScale applications
@@ -31,7 +31,7 @@ SSH is used a lot when using the JumpScale framework. It's used do all remote sy
 In case you don't have SSH keys yet, you can create them using the JumpScale interactive shell, and immediattelly load then into the SSH Agent:
 
 ```shell
-js 'j.do.loadSSHAgent(createkeys=True,keyname="despiegk")'
+js 'j.do._.loadSSHAgent(createkeys=True,keyname="despiegk")'
 ```
 
 In the above command you will of course want to replace the keyname with something that is meaningfull to you.
@@ -51,7 +51,7 @@ As a result of the SSH key creation process the public key will be saved as `$ho
 Alternativelly you can also type:
 
 ```shell
-js 'j.do.loadSSHAgent()'
+js 'j.do._.loadSSHAgent()'
 ```
 
 This will start the SSH Agent if required and load all the keys it can find in `$homedir/.ssh`

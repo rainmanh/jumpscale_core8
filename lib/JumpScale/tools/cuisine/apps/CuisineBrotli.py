@@ -20,4 +20,4 @@ class CuisineBrotli(app):
         rm -rf /tmp/brotli
         """
         C = self._cuisine.core.args_replace(C)
-        self._cuisine.core.run_script(C)
+        self._cuisine.core.execute_bash(C)

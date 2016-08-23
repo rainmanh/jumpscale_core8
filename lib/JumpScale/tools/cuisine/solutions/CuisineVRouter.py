@@ -10,6 +10,8 @@ base = j.tools.cuisine._getBaseClass()
 
 
 class CuisineVRouter(base):
+    """
+    """
 
     def __init__(self, executor, cuisine):
         self._executor = executor
@@ -20,11 +22,17 @@ class CuisineVRouter(base):
         self.dnsServer()
 
     def prepare(self):
+        # will make sure jumpscale has been installed (&base)
+        c.development.js8.install()
         j.do.pullGitRepo("git@github.com:despiegk/smartproxy.git")
         self._cuisine.core.upload("$codeDir/github/jumpscale/smartproxy")
+        C = """
+        ln -s $codeDir/github/jumpscale/smartproxy /opt/dnsmasq-alt
+        """
+        self.cuisine.core.execute_bash(C)
 
     def dnsServer(self):
-        # TODO: *1 something wrong here, it doesn't create session, need to create if it doesn't exist otherwise no
+        # TODO: *1 something wrong in next line, it doesn't create session, need to create if it doesn't exist otherwise no
         # self._cuisine.tmux.createSession("ovsrouter",["dns"])
         self._cuisine.process.kill("dns-server")
         cmd = "jspython /opt/dnsmasq-alt/dns-server.py"
@@ -56,19 +64,19 @@ class CuisineVRouter(base):
 
         START1 = """
         [Unit]
-        Description=Create AP Service
-        Wants=network-online.target
-        After=network-online.target
+        Description = Create AP Service
+        Wants = network - online.target
+        After = network - online.target
 
         [Service]
-        Type=simple
-        ExecStart=$cmd
-        KillSignal=SIGINT
-        Restart=always
-        RestartSec=5
+        Type = simple
+        ExecStart =$cmd
+        KillSignal = SIGINT
+        Restart = always
+        RestartSec = 5
 
         [Install]
-        WantedBy=multi-user.target
+        WantedBy = multi - user.target
         """
         pm = self._cuisine.processmanager.get("systemd")
         pm.ensure("ap", cmd2, descr="accesspoint for local admin", systemdunit=START1)

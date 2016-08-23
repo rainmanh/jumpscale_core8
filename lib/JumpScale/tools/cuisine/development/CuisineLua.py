@@ -108,7 +108,7 @@ class CuisineLua(app):
 
         sudo luarocks install lightningmdb
         """
-        self._cuisine.core.run_script(C)
+        self._cuisine.core.execute_bash(C)
 
         # REQUIRED IN BASH
         # export LUA_PATH=$JSBASE/lib/lua/?.lua;./?.lua;$JSBASE/lib/lua/?/?.lua;$JSBASE/lib/lua/?/init.lua

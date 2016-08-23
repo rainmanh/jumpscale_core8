@@ -28,7 +28,7 @@ class CuisineInfluxdb(app):
             tar xvfz influxdb-0.13.0_linux_amd64.tar.gz
             cp influxdb-0.13.0-1/usr/bin/influxd $binDir
             cp influxdb-0.13.0-1/etc/influxdb/influxdb.conf $tmplsDir/cfg/influxdb/influxdb.conf"""
-            self._cuisine.core.run_script(C, profile=True)
+            self._cuisine.core.execute_bash(C, profile=True)
             self._cuisine.bash.addPath(self._cuisine.core.args_replace("$binDir"))
         else:
             raise RuntimeError("cannot install, unsuported platform")

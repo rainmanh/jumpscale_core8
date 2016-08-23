@@ -29,7 +29,7 @@ class CuisinePIP(base):
             wget --remote-encoding=utf-8 https://bootstrap.pypa.io/get-pip.py
             """
         C = self._cuisine.core.args_replace(C)
-        self._cuisine.core.run_script(C)
+        self._cuisine.core.execute_bash(C)
         C = "cd $tmpDir/;python3 get-pip.py"
         C = self._cuisine.core.args_replace(C)
         self._cuisine.core.run(C)

@@ -68,7 +68,7 @@ class CuisineGolang(app):
         cd $GOPATH/src/github.com/Jumpscale/go-raml
         sh build.sh
         '''
-        self._cuisine.core.run_script(C, profile=True)
+        self._cuisine.core.execute_bash(C, profile=True)
 
     @property
     def GOPATH(self):

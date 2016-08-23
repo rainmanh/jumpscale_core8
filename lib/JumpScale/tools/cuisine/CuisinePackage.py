@@ -236,7 +236,7 @@ class CuisinePackage(base):
             mkdir -p /var/tmp
 
             """
-            self._cuisine.core.run_script(C)
+            self._cuisine.core.execute_bash(C)
 
         elif self._cuisine.core.isArch:
             cmd = "pacman -Sc"

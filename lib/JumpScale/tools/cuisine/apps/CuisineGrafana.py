@@ -24,7 +24,7 @@ class CuisineGrafana(app):
 
             """
             # self._cuisine.core.pprint(C)
-            self._cuisine.core.run_script(C, profile=True)
+            self._cuisine.core.execute_bash(C, profile=True)
             self._cuisine.core.file_copy("/usr/sbin/grafana*", dest="$binDir")
 
 

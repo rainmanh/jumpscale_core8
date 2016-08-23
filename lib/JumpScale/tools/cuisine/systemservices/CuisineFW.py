@@ -81,4 +81,4 @@ class CuisineFW(base):
         pscript = pscript.replace("$ruleset", ruleset)
         pscript = pscript.replace("$pinghost", pinghost)
 
-        self._cuisine.core.run_script(content=pscript, die=True, interpreter="python3", tmux=True)
+        self._cuisine.core.execute_bash(content=pscript, die=True, interpreter="python3", tmux=True)

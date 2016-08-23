@@ -28,4 +28,4 @@ class CuisineXRDP(app):
         echo '#!/bin/sh -xe\nrm -rf /tmp/* /var/run/xrdp/* && service xrdp start && startx' > /bin/rdp.sh
         chmod +x /bin/rdp.sh
         """
-        self._cuisine.core.run_script(C)
+        self._cuisine.core.execute_bash(C)

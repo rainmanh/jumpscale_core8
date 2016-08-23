@@ -30,7 +30,7 @@ class CuisineArakoon(base):
             rc, out, err = self._cuisine.core.run(cmd, die=False, profile=True)
 
             cmd = 'cd %s && eval `%s` && make' % (dest, out)
-            self._cuisine.core.run_script(cmd, profile=True)
+            self._cuisine.core.execute_bash(cmd, profile=True)
 
             self._cuisine.core.file_copy('%s/arakoon.native' % dest, "$binDir/arakoon", overwrite=True)
 
@@ -86,7 +86,7 @@ class CuisineArakoon(base):
         redis \
         uri.1.9.1 \
         result""" % out
-        self._cuisine.core.run_script(cmd, profile=True)
+        self._cuisine.core.execute_bash(cmd, profile=True)
 
     def _install_deps(self):
         apt_deps = "libev-dev libssl-dev libsnappy-dev libgmp3-dev ocaml ocaml-native-compilers camlp4-extra opam aspcud libbz2-dev protobuf-compiler m4 pkg-config"

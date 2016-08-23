@@ -16,13 +16,13 @@ class CuisineDocker(app):
                 C = """
                 wget -qO- https://get.docker.com/ | sh
                 """
-                self._cuisine.core.run_script(C)
+                self._cuisine.core.execute_bash(C)
             if not self._cuisine.core.command_check('docker-compose'):
                 C = """
                 curl -L https://github.com/docker/compose/releases/download/1.8.0-rc1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
                 chmod +x /usr/local/bin/docker-compose
                 """
-                self._cuisine.core.run_script(C)
+                self._cuisine.core.execute_bash(C)
         if self._cuisine.core.isArch:
             self._cuisine.package.install("docker")
             self._cuisine.package.install("docker-compose")
@@ -39,7 +39,7 @@ class CuisineDocker(app):
         cd %s
         docker build -t jumpscale/ubuntu1604 --no-cache .
         """ % path
-        self._cuisine.core.run_script(C)
+        self._cuisine.core.execute_bash(C)
 
         if push:
             C = """
@@ -47,7 +47,7 @@ class CuisineDocker(app):
             cd %s
             docker push jumpscale/ubuntu1604
             """ % path
-            self._cuisine.core.run_script(C)
+            self._cuisine.core.execute_bash(C)
 
     def resetPasswd(self, dockerCuisineObject):
         # change passwd
@@ -145,4 +145,4 @@ class CuisineDocker(app):
 #     cd $tmpDir/docker
 #     docker build -t arch .
 #     """
-#     self._cuisine.core.run_script(C)
+#     self._cuisine.core.execute_bash(C)

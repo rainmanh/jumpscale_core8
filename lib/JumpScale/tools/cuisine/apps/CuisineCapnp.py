@@ -30,6 +30,6 @@ class CuisineCapnp(app):
         make -j6 check
         sudo make install
         """
-        self._cuisine.core.run_script(script)
+        self._cuisine.core.execute_bash(script)
         # install python pacakge
         self._cuisine.development.pip.multiInstall(['cython', 'setuptools', 'pycapnp'], upgrade=True)

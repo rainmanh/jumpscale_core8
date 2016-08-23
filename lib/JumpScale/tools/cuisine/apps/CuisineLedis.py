@@ -42,7 +42,7 @@ class CuisineLedis(app):
             self._cuisine.core.file_write("/tmp/ledisconfig.toml", configcontent)
 
             script = C.format(ledisdir=ledisdir)
-            out = self._cuisine.core.run_script(script, profile=True)
+            out = self._cuisine.core.execute_bash(script, profile=True)
 
     def _prepareleveldb(self):
         # execute the build script in tools/build_leveldb.sh

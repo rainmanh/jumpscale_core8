@@ -93,7 +93,7 @@ class CuisineUFW(base):
         iptables --table nat --delete-chain
         iptables --table filter --delete-chain
         """
-        self._cuisine.core.run_script(C)
+        self._cuisine.core.execute_bash(C)
 
     def show(self):
         a = self.ufw_rules_allow

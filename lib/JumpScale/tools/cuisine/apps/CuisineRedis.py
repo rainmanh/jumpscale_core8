@@ -37,7 +37,7 @@ class CuisineRedis(app):
             """
             C = self._cuisine.bash.replaceEnvironInText(C)
             C = self._cuisine.core.args_replace(C)
-            self._cuisine.core.run_script(C)
+            self._cuisine.core.execute_bash(C)
             
             # move action
             C = """
@@ -50,7 +50,7 @@ class CuisineRedis(app):
             """
             C = self._cuisine.bash.replaceEnvironInText(C)
             C = self._cuisine.core.args_replace(C)
-            self._cuisine.core.run_script(C)
+            self._cuisine.core.execute_bash(C)
         else:
             raise j.exceptions.NotImplemented(
                 message="only ubuntu supported for building redis", level=1, source="", tags="", msgpub="")

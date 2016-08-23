@@ -41,7 +41,7 @@ class CuisineEtcd(app):
         """
 
         script = self._cuisine.bash.replaceEnvironInText(_script)
-        self._cuisine.core.run_script(script, profile=True)
+        self._cuisine.core.execute_bash(script, profile=True)
         self._cuisine.bash.addPath("$base/bin")
 
         if start:

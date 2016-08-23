@@ -91,7 +91,7 @@ class CuisineSandbox(base):
         cd /opt;find . -name '*.log' -delete
         cd /opt;find . -name '__pycache__' -delete
         """
-        self._cuisine.core.run_script(C)
+        self._cuisine.core.execute_bash(C)
 
         if aggressive:
             C = """
@@ -125,7 +125,7 @@ class CuisineSandbox(base):
 
             rm -rf /usr/bin/python*
             """
-            self._cuisine.core.run_script(C)
+            self._cuisine.core.execute_bash(C)
 
         # TODO: *1 check if no doubles with above
         self._cuisine.core.dir_ensure(self._cuisine.core.dir_paths["tmpDir"])

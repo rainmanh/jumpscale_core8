@@ -58,13 +58,13 @@ class CuisineJS8(base):
         python3 setup.py install
         """
         C = self._cuisine.core.args_replace(C)
-        self._cuisine.core.run_script(C)
+        self._cuisine.core.execute_bash(C)
 
         # gevent
         C = """
         pip3 install 'cython>=0.23.4' git+git://github.com/gevent/gevent.git#egg=gevent
         """
-        self._cuisine.core.run_script(C)
+        self._cuisine.core.execute_bash(C)
 
         C = """
         # cffi==1.5.2

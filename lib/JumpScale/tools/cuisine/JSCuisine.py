@@ -8,7 +8,7 @@ from JumpScale.tools.cuisine.CuisineNet import CuisineNet
 from JumpScale.tools.cuisine.CuisineSSH import CuisineSSH
 from JumpScale.tools.cuisine.CuisineNS import CuisineNS
 from JumpScale.tools.cuisine.CuisineUser import CuisineUser
-from JumpScale.tools.cuisine.CuisineBuilder import CuisineBuilder
+# from JumpScale.tools.cuisine.CuisineBuilder import CuisineBuilder
 from JumpScale.tools.cuisine.CuisineGroup import CuisineGroup
 from JumpScale.tools.cuisine.ProcessManagerFactory import ProcessManagerFactory
 from JumpScale.tools.cuisine.CuisineTmux import CuisineTmux

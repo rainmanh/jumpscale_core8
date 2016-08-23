@@ -89,18 +89,28 @@ class Dirs:
     def replaceTxtDirVars(self, txt, additionalArgs={}):
         """
         replace $base,$vardir,$cfgDir,$bindir,$codedir,$tmpdir,$logdir,$appdir with props of this class
+        also the Dir... get replaces e.g. varDir
         """
         txt = txt.replace("$base", self.base)
         txt = txt.replace("$appdir", self.appDir)
+        txt = txt.replace("$appDir", self.appDir)
         txt = txt.replace("$tmplsDir", self.tmplsDir)
+        txt = txt.replace("$tmplsdir", self.tmplsDir)
         txt = txt.replace("$codedir", self.codeDir)
+        txt = txt.replace("$codeDir", self.codeDir)
         txt = txt.replace("$vardir", self.varDir)
+        txt = txt.replace("$varDir", self.varDir)
+        txt = txt.replace("$cfgdir", self.cfgDir)
         txt = txt.replace("$cfgDir", self.cfgDir)
         txt = txt.replace("$hrdDir", self.hrd)
         txt = txt.replace("$bindir", self.binDir)
+        txt = txt.replace("$binDir", self.binDir)
         txt = txt.replace("$logdir", self.logDir)
+        txt = txt.replace("$logDir", self.logDir)
         txt = txt.replace("$tmpdir", self.tmpDir)
+        txt = txt.replace("$tmpDir", self.tmpDir)
         txt = txt.replace("$libdir", self.libDir)
+        txt = txt.replace("$libDir", self.libDir)
         txt = txt.replace("$jslibextdir", self.libExtDir)
         txt = txt.replace("$jsbindir", self.binDir)
         txt = txt.replace("$nodeid", str(j.application.whoAmI.nid))

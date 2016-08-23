@@ -387,11 +387,12 @@ class SystemFS:
 
     def copyDirTree(self, src, dst, keepsymlinks=False, deletefirst=False,
                     overwriteFiles=True, ignoredir=[".egg-info", ".dist-info"], ignorefiles=[".egg-info"], rsync=True,
-                    ssh=False, sshport=22, recursive=True, rsyncdelete=False, createdir=False, applyHrdOnDestPaths=None):
+                    ssh=False, sshport=22, recursive=True, rsyncdelete=True, createdir=False, applyHrdOnDestPaths=None):
         """Recursively copy an entire directory tree rooted at src.
         The dst directory may already exist; if not,
         it will be created as well as missing parent directories
         @param src: string (source of directory tree to be copied)
+        @param rsyncdelete will remove files on dest which are not on source (default)
         @param dst: string (path directory to be copied to...should not already exist)
         @param keepsymlinks: bool (True keeps symlinks instead of copying the content of the file)
         @param deletefirst: bool (Set to True if you want to erase destination first, be carefull, this can erase directories)

@@ -10,6 +10,8 @@ class CuisineBase:
         self.__classname = None
         self._executor = executor
         self._cuisine = cuisine
+        # maybe best to still show the cuisine, is easier
+        self.cuisine = cuisine
 
     @property
     def _classname(self):

@@ -15,14 +15,21 @@ class CuisineVRouter(base):
         self._executor = executor
         self._cuisine = cuisine
 
+    def runsolution(self):
+        self.prepare()
+        self.dnsServer()
+
     def prepare(self):
-        #TODO not implemented
-        pass 
-    
+        j.do.pullGitRepo("git@github.com:despiegk/smartproxy.git")
+        self._cuisine.core.upload("$codeDir/github/jumpscale/smartproxy")
+
     def dnsServer(self):
-        #TODO not implemented
-        pass 
-    
+        # TODO: *1 something wrong here, it doesn't create session, need to create if it doesn't exist otherwise no
+        # self._cuisine.tmux.createSession("ovsrouter",["dns"])
+        self._cuisine.process.kill("dns-server")
+        cmd = "jspython /opt/dnsmasq-alt/dns-server.py"
+        self._cuisine.tmux.executeInScreen('ovsrouter', 'dns', cmd)
+
     def accesspointAllInOne(self, passphrase, name="", dns="8.8.8.8", interface="wlan0"):
         """
         create an accesspoint with 1 script, do not use if you are using our smarter mitmproxy

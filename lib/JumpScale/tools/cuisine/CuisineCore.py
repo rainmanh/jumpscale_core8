@@ -658,6 +658,8 @@ class CuisineCore(base):
             content2 = content.encode('utf-8')
 
             sig = hashlib.md5(content2).hexdigest()
+            # if sig != self.file_md5(location):
+            # cmd = 'set -ex && echo "%s" | openssl base64 -A -d > %s' % (content_base64, location)
 
             content_base64 = base64.b64encode(content2).decode()
 
@@ -1016,7 +1018,7 @@ class CuisineCore(base):
             else:
                 self.logger.debug("PROFILECMD:%s" % cmd)
 
-        if '"' in cmd:
+        if shell and '"' in cmd:
             cmd = cmd.replace('"', '\\"')
 
         if "cygwin" in self._executor.execute("uname -a", showout=False)[1].lower():

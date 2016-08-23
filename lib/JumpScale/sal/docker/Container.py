@@ -146,7 +146,9 @@ class Container:
         keys = set()
 
         home = j.tools.cuisine.local.bash.home
-        username = j.tools.cuisine.local.user.getCurrent()
+        user_info = [j.tools.cuisine.local.user.check(user) for user in j.tools.cuisine.local.user.list()]
+        user = [i['name'] for i in user_info if i['home'] == home]
+        user = user[0] if user else 'root'
 
         if sshpubkey != "" and sshpubkey != None:
             key = sshpubkey

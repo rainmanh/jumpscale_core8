@@ -139,7 +139,3 @@ class CuisineUser(base):
         users = [j.sal.fs.getBaseName(item) for item in users if (item.strip() != "" and item.strip("/") != "home")]
         users = [x for x in users if self.check(x)]
         return users
-
-    def getCurrent(self):
-        rc, out, err = self._cuisine.core.run('whoami')
-        return out

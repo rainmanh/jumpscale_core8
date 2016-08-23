@@ -1,12 +1,4 @@
 from JumpScale import j
-from servers.gridhealthchecker.gridhealthchecker import GridHealthChecker
-
-
-# class ZCoreModelsFactory:
-
-#     def getModelObject(self, ddict={}):
-#         return ModelObject(ddict)
-
 
 class GridFactory:
 
@@ -22,14 +14,9 @@ class GridFactory:
 
     @property
     def healthchecker(self):
-        if not self._healthchecker:
-            self._healthchecker = GridHealthChecker()
-        return self._healthchecker
+        return None
 
     def _loadConfig(self, test=True):
-        if "config" not in j.application.__dict__:
-            raise RuntimeWarning(
-                "Grid/Broker is not configured please run configureBroker/configureNode first and restart jshell")
         self.config = j.application.config
 
         if self.config == None:
@@ -40,7 +27,6 @@ class GridFactory:
         self.nid = j.application.whoAmI.nid
 
         if test:
-
             if self.id == 0:
                 j.errorconditionhandler.raiseInputError(
                     msgpub="Grid needs grid id to be filled in in grid config file", message="", category="", die=True)

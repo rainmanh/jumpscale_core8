@@ -24,7 +24,6 @@ class Process():
     def __init__(self):
         self.name = "unknown"
         self.domain = ""
-        self.instance = "0"
         self.pid = 0
         self.workingdir = None
         self.cmds = []
@@ -60,13 +59,13 @@ class Process():
             self.p.kill()
 
     def is_running(self):
-        rss, vms = self.p.get_memory_info()
-        return vms != 0
+        mem = self.p.memory_info()
+        return mem.vms != 0
 
     def _spawnProcess(self):
         if self.logpath == None:
             self.logpath = j.sal.fs.joinPaths(j.dirs.logDir, "processmanager", "logs",
-                                                 "%s_%s_%s.log" % (self.domain, self.name, self.instance))
+                                                 "%s_%s.log" % (self.domain, self.name))
             j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.logDir, "processmanager", "logs"))
             stdout = open(self.logpath, 'w')
         else:
@@ -75,7 +74,7 @@ class Process():
         stdin = subprocess.PIPE
         stdout = sys.stdout
         stderr = sys.stderr
-        self.cmds.extend(['-lp', self.logpath])
+        self.cmds.extend(['-l', self.logpath])
 
         try:
             self.p = psutil.Popen(self.cmds, env=self.env, cwd=self.workingdir, stdin=stdin, stdout=stdout,
@@ -147,8 +146,6 @@ class ProcessManager():
             self.acclient = None
 
     def start(self):
-
-        # self._webserverStart()        
         self._workerStart()
 
         j.core.grid.init()
@@ -156,33 +153,18 @@ class ProcessManager():
 
         self.mainloop()
 
-    def _webserverStart(self):
-        # start webserver
-        server = PMWSServer()
-        server.pm = self
-
-        p = Process()
-        p.domain = "jumpscale"
-        p.name = "web"
-        p.instance = "main"
-        p.workingdir = "/"
-        p.pythonObj = server
-        p.pythonCode = "self.pythonObj.start()"
-        p.start()
-        self.processes.append(p)
-
     def _processManagerStart(self):
         j.core.processmanager.start()
 
     def _workerStart(self):
-        pwd = '/opt/jumpscale7/apps/jsagent/lib'
+        pwd = j.sal.fs.joinPaths(os.path.abspath(''), 'lib')
         for qname in ["default", "io", "process", "hypervisor"]:
             p = Process()
             p.domain = 'workers'
             p.name = '%s' % qname
-            p.instance = 'main'
             p.workingdir = pwd
-            p.cmds = ['python', 'worker.py', '-qn', qname, '-i', opts.instance]
+            p.env = os.environ
+            p.cmds = ['python3.5', 'worker.py', '-q', qname]
             p.restart = True
             p.start()
             self.processes.append(p)
@@ -209,13 +191,6 @@ class ProcessManager():
                 print("no more children")
                 # return
 
-
-@atexit.register
-def kill_subprocesses():
-    for p in processes:
-        p.kill()
-
-
 parser = cmdutils.ArgumentParser()
 parser.add_argument('--grid-id', dest='gid', help='Grid id')
 parser.add_argument('--services', help='list of services to run e.g heka, agentcontroller,web', required=False,
@@ -232,15 +207,12 @@ opts = parser.parse_args()
 
 # first start processmanager with all required stuff
 pm = ProcessManager(opts)
-processes = pm.processes
+@atexit.register
+def kill_subprocesses():
+    for p in pm.processes:
+        p.kill()
+
 pm.services = [item.strip().lower() for item in opts.services.split(",")]
-
-from lib.worker import Worker
-
-# I had to do this in mother process otherwise weird issues caused by gevent !!!!!!!
-j.core.osis.client = j.clients.osis.getByInstance()
-
-from gevent.pywsgi import WSGIServer
 
 try:
     pm.start()

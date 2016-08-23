@@ -7,14 +7,9 @@ try:
     import ujson as json
 except:
     import json
-import psutil
-import JumpScale.baselib.taskletengine
+
 from JumpScale.tools import cmdutils
-
-# Preload libraries
-j.system.platform.psutil = psutil
-
-from JumpScale.baselib.redisworker.RedisWorker import RedisWorkerFactory
+from redisworker import RedisWorkerFactory
 
 import os
 
@@ -41,7 +36,7 @@ class Worker(object):
         self.logpath = logpath
         self.logFile = None
         if self.logpath:
-            self.logFile = open(self.logpath, 'w', 0)
+            self.logFile = open(self.logpath, 'w')
 
     def getClient(self, job):
         ipaddr = getattr(job, 'achost', None)
@@ -57,7 +52,7 @@ class Worker(object):
         return client
 
     def init(self):
-        j.system.fs.createDir(j.system.fs.joinPaths(j.dirs.tmpDir, "jumpscripts"))
+        j.sal.fs.createDir(j.sal.fs.joinPaths(j.dirs.tmpDir, "jumpscripts"))
         self.redisw.redis.delete("workers:action:%s" % self.queuename)
 
     def processAction(self, action):
@@ -239,7 +234,7 @@ class Worker(object):
 
     def log(self, message, category='', level=5, time=None):
         if time is None:
-            time = j.base.time.getLocalTimeHR()
+            time = j.data.time.getLocalTimeHR()
         msg = "%s:worker:%s:%s" % (time, self.queuename, message)
         try:
             print(msg)
@@ -252,15 +247,10 @@ class Worker(object):
 
 if __name__ == '__main__':
     parser = cmdutils.ArgumentParser()
-    parser.add_argument("-qn", '--queuename', help='Queue name', required=True)
-    parser.add_argument("-i", '--instance', help='JSAgent instance', required=True)
-    parser.add_argument("-lp", '--logpath', help='Logging file path', required=False, default=None)
+    parser.add_argument("-q", '--queuename', help='Queue name', required=True)
+    parser.add_argument("-l", '--logpath', help='Logging file path', required=False, default=None)
 
     opts = parser.parse_args()
-
-    j.application.instanceconfig = j.application.getAppInstanceHRD(name="jsagent", instance=opts.instance)
-
-    j.core.osis.client = j.clients.osis.getByInstance(die=False)
 
     j.application.start("jumpscale:worker:%s" % opts.queuename)
 

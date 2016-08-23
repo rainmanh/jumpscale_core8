@@ -1,73 +1,9 @@
 from JumpScale import j
 import redis
 # from JumpScale.baselib.credis.CRedis import CRedis
-from RedisQueue import RedisQueue
+
+from JumpScale.core.redis import Redis, RedisQueue
 import itertools
-
-
-class RedisDict(dict):
-
-    def __init__(self, client, key):
-        self._key = key
-        self._client = client
-
-    def __getitem__(self, key):
-        value = self._client.hget(self._key, key)
-        return j.data.serializer.json.loads(value)
-
-    def __setitem__(self, key, value):
-        value = j.data.serializer.json.dumps(value)
-        self._client.hset(self._key, key, value)
-
-    def __contains__(self, key):
-        return self._client.hexists(self._key, key)
-
-    def __repr__(self):
-        return repr(self._client.hgetall(self._key))
-
-    def copy(self):
-        result = dict()
-        allkeys = self._client.hgetalldict(self._key)
-        for key, value in list(allkeys.items()):
-            result[key] = j.data.serializer.json.loads(value)
-        return result
-
-    def pop(self, key):
-        value = self._client.hget(self._key, key)
-        self._client.hdel(self._key, key)
-        return j.data.serializer.json.loads(value)
-
-    def keys(self):
-        return self._client.hkeys(self._key)
-
-    def iteritems(self):
-        allkeys = self._client.hgetalldict(self._key)
-        for key, value in list(allkeys.items()):
-            yield key, j.data.serializer.json.loads(value)
-
-
-class Redis(redis.Redis):
-    hgetalldict = redis.Redis.hgetall
-
-    def getDict(self, key):
-        return RedisDict(self, key)
-
-    def getQueue(self, name, namespace="queues", newconnection=False):
-        if not newconnection:
-            return RedisQueue(self, name, namespace=namespace)
-        else:
-            client = redis.Redis(**self.connection_pool.connection_kwargs)
-            return RedisQueue(client, name, namespace=namespace)
-
-    def createStoredProcedure(self, path):
-        if not j.sal.fs.exists(path, followlinks=True):
-            path0 = j.sal.fs.joinPaths(j.sal.fs.getcwd(), path)
-        if not j.sal.fs.exists(path0, followlinks=True):
-            j.exceptions.Input(message="cannot find stored procedure on path:%s" %
-                               path, level=1, source="", tags="", msgpub="")
-        lua = j.sal.fs.fileGetContents(path)
-        return self.register_script(lua)
-
 
 class RedisFactory:
 

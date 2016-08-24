@@ -1,6 +1,5 @@
 from JumpScale import j
-import time
-import importlib as imp
+import imp
 import linecache
 import inspect
 import multiprocessing
@@ -48,7 +47,7 @@ from JumpScale import j
 
     def load(self):
         self._loaded = True
-        md5sum = j.tools.hash.md5_string(self.path)
+        md5sum = j.data.hash.md5_string(self.path)
         modulename = 'JumpScale.jumpscript_%s' % md5sum
         linecache.checkcache(self.path)
         self.module = imp.load_source(modulename, self.path)
@@ -237,7 +236,7 @@ class JumpscriptFactory:
         for tarinfo in tar:
             if tarinfo.isfile():
                 name = j.sal.fs.pathClean(tarinfo.name)
-                if tarinfo.name.find("jumpscripts/") == 0:
+                if tarinfo.name.startswith("jumpscripts/"):
                     print(name)
                     tar.extract(tarinfo.name, self.basedir)
 

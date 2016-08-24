@@ -1,33 +1,33 @@
 from JumpScale import j
-import JumpScale.grid.agentcontroller
-import JumpScale.baselib.redisworker
 import gevent
 import time
-from gevent import Timeout
-from JumpScale.grid.serverbase import returnCodes
+from JumpScale.servers.serverbase import returnCodes
+
 
 class AgentCmds():
     ORDER = 20
 
-    def __init__(self,daemon=None):
-        self._name="agent"
+    def __init__(self, daemon=None):
+        self._name = "agent"
 
-        if daemon==None:
+        if daemon == None:
             return
-        self.daemon=daemon
-        self._adminAuth=daemon._adminAuth
+        self.daemon = daemon
 
-        self.redis = j.clients.redis.getByInstance('system')
+        self.redis = j.core.db
 
     def _init(self):
         self.init()
 
     def log(self, msg):
-        print "processmanager:%s" % msg
+        print("processmanager:%s" % msg)
+
+    def _adminAuth(self, user, password):
+        raise NotImplemented
 
     def init(self, session=None):
-        if session<>None:
-            self._adminAuth(session.user,session.passwd)
+        if session is not None:
+            self._adminAuth(session.user, session.passwd)
 
         self._killGreenLets()
         acinstance = j.application.instanceconfig.get('instance.agentcontroller.connection')
@@ -42,8 +42,8 @@ class AgentCmds():
                 client = j.clients.agentcontroller.get(acip, **config)
                 client.register()
                 return client
-            except Exception:
-                self.log("Failed to connect to agentcontroller %s" % acip)
+            except Exception as e:
+                self.log("Failed to connect to agent controller %s: %s" % (acip, e))
                 gevent.sleep(5)
 
     def loop(self, acip, config):
@@ -70,28 +70,33 @@ class AgentCmds():
 
                 job['achost'] = client.ipaddr
                 job['nid'] = j.application.whoAmI.nid
-                if job["queue"]=="internal":
-                    #cmd needs to be executed internally (is for proxy functionality)
+                if job["queue"] == "internal":
+                    # cmd needs to be executed internally (is for proxy functionality)
 
                     if self.daemon.cmdsInterfaces.has_key(job["category"]):
-                        job["resultcode"],returnformat,job["result"]=self.daemon.processRPC(job["cmd"], data=job["args"], returnformat="m", session=None, category=job["category"])
-                        if job["resultcode"]==returnCodes.OK:
-                            job["state"]="OK"
+                        job["resultcode"], returnformat, job["result"] = self.daemon.processRPC(job["cmd"],
+                                                                                                data=job["args"],
+                                                                                                returnformat="m",
+                                                                                                session=None,
+                                                                                                category=job[
+                                                                                                    "category"])
+                        if job["resultcode"] == returnCodes.OK:
+                            job["state"] = "OK"
                         else:
-                            job["state"]="ERROR"
+                            job["state"] = "ERROR"
                     else:
-                        job["resultcode"]=returnCodes.METHOD_NOT_FOUND
-                        job["state"]="ERROR"
-                        job["result"]="Could not find cmd category:%s"%job["category"]
+                        job["resultcode"] = returnCodes.METHOD_NOT_FOUND
+                        job["state"] = "ERROR"
+                        job["result"] = "Could not find cmd category:%s" % job["category"]
                     client.notifyWorkCompleted(job)
                     continue
 
-                if job["jscriptid"]==None:
+                if job["jscriptid"] == None:
                     raise RuntimeError("jscript id needs to be filled in")
 
                 jscriptkey = "%(category)s_%(cmd)s" % job
-                if jscriptkey not in  j.core.processmanager.cmds.jumpscripts.jumpscripts:
-                    msg = "could not find jumpscript %s on processmanager"%jscriptkey
+                if jscriptkey not in j.core.processmanager.cmds.jumpscripts.jumpscripts:
+                    msg = "could not find jumpscript %s on processmanager" % jscriptkey
                     job['state'] = 'ERROR'
                     job['result'] = msg
                     client.notifyWorkCompleted(job)
@@ -113,21 +118,21 @@ class AgentCmds():
                             client.notifyWorkCompleted(localjob)
                         finally:
                             timeout.cancel()
+
                     gevent.spawn(run, job)
-            except Exception, e:
+            except Exception as e:
                 j.errorconditionhandler.processPythonExceptionObject(e)
 
-
-    def _killGreenLets(self,session=None):
+    def _killGreenLets(self, session=None):
         """
         make sure all running greenlets stop
         """
-        if session<>None:
-            self._adminAuth(session.user,session.passwd)
-        todelete=[]
+        if session is not None:
+            self._adminAuth(session.user, session.passwd)
+        todelete = []
 
-        for key,greenlet in j.core.processmanager.daemon.greenlets.iteritems():
-            if key.find("agent")==0:
+        for key, greenlet in j.core.processmanager.daemon.greenlets.iteritems():
+            if key.find("agent") == 0:
                 greenlet.kill()
                 todelete.append(key)
         for key in todelete:

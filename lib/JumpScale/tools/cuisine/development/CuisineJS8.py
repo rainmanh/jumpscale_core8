@@ -136,6 +136,7 @@ class CuisineJS8(base):
         packet-python
         gspread
         oauth2client
+        crontab
         """
         self._cuisine.development.pip.multiInstall(C, upgrade=True)
 

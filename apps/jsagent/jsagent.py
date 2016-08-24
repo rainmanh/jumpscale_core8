@@ -145,6 +145,14 @@ class ProcessManager():
         else:
             self.acclient = None
 
+        self._monkey_patch()
+
+    def _monkey_patch(self):
+        def getter(*args, **kwargs):
+            return self.acclient
+
+        j.clients.agentcontroller.getByInstance = getter
+
     def start(self):
         self._workerStart()
 

@@ -29,7 +29,7 @@ class ProcessmanagerFactory:
         self.__jslocation__ = "j.legacy.processmanager"
 
         self.daemon = DummyDaemon()
-        self.basedir = j.sal.fs.joinPaths(j.dirs.base, 'apps', 'processmanager')
+        self.basedir = j.sal.fs.joinPaths(j.dirs.base, 'apps', 'jsagent')
         self.redis = j.core.db
 
     def start(self, acl):
@@ -63,7 +63,7 @@ class ProcessmanagerFactory:
 
     def restartWorkers(self):
         for queuename in ('default', 'io', 'hypervisor', 'process'):
-            j.clients.redisworker.redis.lpush("workers:action:%s" % queuename, "RESTART")
+            j.legacy.redisworker.redis.lpush("workers:action:%s" % queuename, "RESTART")
 
     def getCmdsObject(self, category):
         if self.cmds.has_key(category):
@@ -74,12 +74,12 @@ class ProcessmanagerFactory:
     def loadCmds(self):
         if self.basedir not in sys.path:
             sys.path.insert(0, self.basedir)
-        cmds = j.sal.fs.listFilesInDir(j.sal.fs.joinPaths(self.basedir, "processmanagercmds"), filter="*.py")
+        cmds = j.sal.fs.listFilesInDir(j.sal.fs.joinPaths(self.basedir, "cmds"), filter="*.py")
         cmds.sort()
         for item in cmds:
             name = j.sal.fs.getBaseName(item).replace(".py", "")
             if name[0] != "_":
-                module = importlib.import_module('processmanagercmds.%s' % name)
+                module = importlib.import_module('cmds.%s' % name)
                 classs = getattr(module, name)
                 print ("load cmds object:%s" % name)
                 tmp = classs(daemon=self.daemon)
@@ -93,26 +93,11 @@ class ProcessmanagerFactory:
             key, cmd = item
             return getattr(cmd, 'ORDER', 10000)
 
-        for key, cmd in sorted(self.daemon.daemon.cmdsInterfaces.iteritems(), key=sort):
-
+        for key, cmd in sorted(self.daemon.daemon.cmdsInterfaces.items(), key=sort):
             self.cmds.__dict__[key] = cmd
             if hasattr(self.cmds.__dict__[key], "_init"):
                 print ("### INIT ###:%s" % key)
                 self.cmds.__dict__[key]._init()
-
-    # def loadMonitorObjectTypes(self):
-    #     if self.basedir not in sys.path:
-    #         sys.path.insert(0, self.basedir)
-    #     self.monObjects = Dummy()
-    #     for item in j.sal.fs.listFilesInDir(j.sal.fs.joinPaths(self.basedir, "monitoringobjects"), filter="*.py"):
-    #         name = j.sal.fs.getBaseName(item).replace(".py", "")
-    #         if name[0] != "_":
-    #             monmodule = importlib.import_module('monitoringobjects.%s' % name)
-    #             classs = getattr(monmodule, name)
-    #             print
-    #             "load monitoring object:%s" % name
-    #             factory = getattr(monmodule, '%sFactory' % name)(self, classs)
-    #             self.monObjects.__dict__[name.lower()] = factory
 
     def getStartupTime(self):
         val = self.redis.get("processmanager:startuptime")

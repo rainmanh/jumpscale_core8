@@ -12,6 +12,9 @@ class ExecutorLocal(ExecutorBase):
         self.id = 'localhost'
         self.addr = 'localhost'
 
+    def executeRaw(self, cmd, die=True, showout=False):
+        return self.execute(cmd, die=die, showout=showout)
+
     def execute(self, cmds, die=True, checkok=None, async=False, showout=True, outputStderr=False, timeout=0, env={}):
         if env:
             self.env.update(env)

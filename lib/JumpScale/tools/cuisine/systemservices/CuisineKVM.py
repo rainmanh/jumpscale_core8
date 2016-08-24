@@ -80,7 +80,7 @@ class CuisineKVM(base):
         # check openvswitch properly configured
 
     def install(self):
-        if self._cuisine.core.isUbuntu:
+        if self._cuisine.core.isUbuntu and self._cuisine.core.osversion == '16.04':
             # TODO: check is ubuntu 16.04
             raise NotImplemented
         else:

@@ -120,8 +120,7 @@ class CuisineVRouter(base):
 
     def dnsServer(self):
         self.check()
-        # TODO: *1 something wrong in next line, it doesn't create session, need to create if it doesn't exist otherwise no
-        # self._cuisine.tmux.createSession("ovsrouter",["dns"])
+        self._cuisine.tmux.createSession("ovsrouter",["dns"], returnifexists=True, killifexists=False)
         self._cuisine.process.kill("dns-server")
         cmd = "jspython /opt/dnsmasq-alt/dns-server.py"
         self.cuisine.tmux.executeInScreen('ovsrouter', 'dns', cmd)

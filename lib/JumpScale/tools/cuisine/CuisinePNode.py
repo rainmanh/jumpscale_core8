@@ -150,9 +150,9 @@ class CuisinePNode(base):
         Create an archive of a remote file system
         @param excludes is list of regex matches not to include while doing export
         """
-        cmd = 'tar -zpcf %s --exclude=%s --one-file-system %s' % (destination, destination, source)
+        excludes_string = " ".join(["--exclude='%s'"%x for x in excludes])
+        cmd = 'tar -zpcf %s --exclude=%s --one-file-system %s' % (destination, excludes_string, source)
         self._cuisine.core.run(cmd)
-        # TODO: *1 implement excludes (does not have to be regex is other method more easy)
 
     def exportRootStor(self, storspace, plistname, source="/", excludes=["\.pyc", "__pycache__"], removetmpdir=True):
         """

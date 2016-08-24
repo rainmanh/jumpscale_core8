@@ -11,7 +11,7 @@ class CuisineTmux(base):
         self._executor = executor
         self._cuisine = cuisine
 
-    def createSession(self, sessionname, screens, user=None):
+    def createSession(self, sessionname, screens, user=None, killifexists=True, returnifexists=True):
         """
         @param name is name of session
         @screens is list with nr of screens required in session and their names (is [$screenname,...])
@@ -25,8 +25,12 @@ class CuisineTmux(base):
         #     embed()
         #     raise RuntimeError("stop debug here")
         #     raise j.exceptions.RuntimeError(message="only support ubuntu", level=1, source="", tags="", msgpub="")
+        if returnifexists:
+            return
+        if killifexists:
+            self.killSession(sessionname)
 
-        self.killSession(sessionname)
+
         if len(screens) < 1:
             raise j.exceptions.RuntimeError(
                 "Cannot create screens, need at least 1 screen specified")

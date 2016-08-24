@@ -61,43 +61,43 @@ class JSCuisine:
 
     @property
     def apps(self):
-        if self._apps == None:
+        if self._apps is None:
             self._apps = apps(self._executor, self)
         return self._apps
 
     @property
     def development(self):
-        if self._development == None:
+        if self._development is None:
             self._development = development(self._executor, self)
         return self._development
 
     @property
     def examples(self):
-        if self._examples == None:
+        if self._examples is None:
             self._examples = examples(self._executor, self)
         return self._examples
 
     @property
     def solutions(self):
-        if self._solutions == None:
+        if self._solutions is None:
             self._solutions = solutions(self._executor, self)
         return self._solutions
 
     @property
     def systemservices(self):
-        if self._systemservices == None:
+        if self._systemservices is None:
             self._systemservices = systemservices(self._executor, self)
         return self._systemservices
 
     @property
     def testscripts(self):
-        if self._testscripts == None:
+        if self._testscripts is None:
             self._testscripts = testscripts(self._executor, self)
         return self._testscripts
 
     @property
     def tools(self):
-        if self._tools == None:
+        if self._tools is None:
             self._tools = tools(self._executor, self)
         return self._tools
 
@@ -108,25 +108,25 @@ class JSCuisine:
 
     @property
     def package(self):
-        if self._package == None:
+        if self._package is None:
             self._package = CuisinePackage(self._executor, self)
         return self._package
 
     @property
     def process(self):
-        if self._process == None:
+        if self._process is None:
             self._process = CuisineProcess(self._executor, self)
         return self._process
 
     @property
     def tmux(self):
-        if self._tmux == None:
+        if self._tmux is None:
             self._tmux = CuisineTmux(self._executor, self)
         return self._tmux
 
     @property
     def builder(self):
-        if self._builder == None:
+        if self._builder is None:
             self._builder = CuisineBuilder(self._executor, self)
         return self._builder
 
@@ -136,49 +136,49 @@ class JSCuisine:
 
     @property
     def platformtype(self):
-        if self._platformtype == None:
+        if self._platformtype is None:
             self._platformtype = j.core.platformtype.get(self._executor)
         return self._platformtype
 
     @property
     def ns(self):
-        if self._ns == None:
+        if self._ns is None:
             self._ns = CuisineNS(self._executor, self)
         return self._ns
 
     @property
     def ssh(self):
-        if self._ssh == None:
+        if self._ssh is None:
             self._ssh = CuisineSSH(self._executor, self)
         return self._ssh
 
     @property
     def bash(self):
-        if self._bash == None:
+        if self._bash is None:
             self._bash = j.tools.bash.get(self, self._executor)
         return self._bash
 
     @property
     def net(self):
-        if self._net == None:
+        if self._net is None:
             self._net = CuisineNet(self._executor, self)
         return self._net
 
     @property
     def user(self):
-        if self._user == None:
+        if self._user is None:
             self._user = CuisineUser(self._executor, self)
         return self._user
 
     @property
     def group(self):
-        if self._group == None:
+        if self._group is None:
             self._group = CuisineGroup(self._executor, self)
         return self._group
 
     @property
     def processmanager(self):
-        if self._processmanager == None:
+        if self._processmanager is None:
             self._processmanager = ProcessManagerFactory(self).get()
         return self._processmanager
 

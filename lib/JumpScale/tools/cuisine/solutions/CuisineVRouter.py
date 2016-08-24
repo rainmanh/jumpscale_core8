@@ -78,7 +78,12 @@ class CuisineVRouter(base):
         create bridge which has accesspoint interface in it (wireless)
         """
         ipaddr = "%s.254" % self.freeNetworkRangeDMZ
-        # TODO: *1 check if ipaddr is already set, if yet nothing to do (on br0)
+
+        try:
+            if ipaddr in self.cuisine.net.getInfo("br0")["ip"]:
+                return
+        except:
+            pass
 
         C = """
         auto br0

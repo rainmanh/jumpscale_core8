@@ -82,7 +82,10 @@ class Worker(object):
                     # create queue
                     self.log("could not find queue")
                 else:
-                    j.events.opserror("Could not get work from redis, is redis running?", "workers.getwork", e)
+                    # TODO: restore the ops error call
+                    # j.events.opserror("Could not get work from redis, is redis running?", "workers.getwork", e)
+                    print("Could not get work from redis, is redis running?", "workers.getwork", e)
+
                 time.sleep(10)
                 continue
             if jtype == "action":

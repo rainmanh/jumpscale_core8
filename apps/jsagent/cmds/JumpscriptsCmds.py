@@ -67,7 +67,12 @@ class JumpscriptsCmds():
         jumpscripts = self.agentcontroller_client.listJumpscripts()
         iddict = {(org, name): jsid for jsid, org, name, role in jumpscripts}
         for jscriptpath in j.sal.fs.listFilesInDir(path=path, recursive=True, filter="*.py", followSymlinks=True):
-            js = Jumpscript(path=jscriptpath)
+            try:
+                js = Jumpscript(path=jscriptpath)
+            except Exception as e:
+                print('Failed to load jumpscript [%s]: %s' % (jscriptpath, e))
+                continue
+
             js.id = iddict.get((js.organization, js.name))
             # print "from local:",
             self._processJumpscript(js, self.startatboot)
@@ -111,7 +116,7 @@ class JumpscriptsCmds():
             self._adminAuth(session.user, session.passwd)
         todelete = []
 
-        for key, greenlet in j.core.processmanager.daemon.greenlets.iteritems():
+        for key, greenlet in j.legacy.processmanager.daemon.greenlets.items():
             if key.find("loop") == 0:
                 greenlet.kill()
                 todelete.append(key)
@@ -133,7 +138,7 @@ class JumpscriptsCmds():
 
     def _loop(self, period):
         redisw = RedisWorkerFactory()
-        if isinstance(period, basestring):
+        if isinstance(period, str):
             wait = crontab.CronTab(period).next
         else:
             wait = lambda: period

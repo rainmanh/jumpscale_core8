@@ -30,27 +30,23 @@ class AgentCmds():
             self._adminAuth(session.user, session.passwd)
 
         self._killGreenLets()
-        acinstance = j.application.instanceconfig.get('instance.agentcontroller.connection')
-        config = j.clients.agentcontroller.getInstanceConfig(acinstance)
-        ipaddr = config.pop('addr')
-        for acip in ipaddr.split(','):
-            j.core.processmanager.daemon.schedule("agent", self.loop, acip, config)
+        j.legacy.processmanager.daemon.schedule("agent", self.loop)
 
-    def reconnect(self, acip, config):
+    def reconnect(self):
         while True:
             try:
-                client = j.clients.agentcontroller.get(acip, **config)
+                client = j.clients.agentcontroller.getByInstance()
                 client.register()
                 return client
             except Exception as e:
-                self.log("Failed to connect to agent controller %s: %s" % (acip, e))
+                self.log("Failed to connect to agent controller: %s" % e)
                 gevent.sleep(5)
 
-    def loop(self, acip, config):
+    def loop(self):
         """
         fetch work from agentcontroller & put on redis queue
         """
-        client = self.reconnect(acip, config)
+        client = self.reconnect()
         gevent.sleep(2)
         self.log("start loop to fetch work")
         while True:
@@ -131,7 +127,7 @@ class AgentCmds():
             self._adminAuth(session.user, session.passwd)
         todelete = []
 
-        for key, greenlet in j.core.processmanager.daemon.greenlets.iteritems():
+        for key, greenlet in j.legacy.processmanager.daemon.greenlets.items():
             if key.find("agent") == 0:
                 greenlet.kill()
                 todelete.append(key)

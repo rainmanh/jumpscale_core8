@@ -46,21 +46,27 @@ class CuisineTmux(base):
                     cmd = "sudo -u %s -i %s" % (user, cmd)
                 self._executor.execute(cmd, showout=False)
 
-    def executeInScreen(self, sessionname, screenname, cmd, wait=0, cwd=None, env=None, user="root", tmuxuser=None, reset=False, replaceArgs=False):
+    def executeInScreen(self, sessionname, screenname, cmd, wait=10, cwd=None, env=None, user="root",
+                        tmuxuser=None, reset=False, replaceArgs=True, resetAfter=False, die=True, async=False):
         """
+
+        execute command in tmux & wait till error or till ok, default 10 sec
+        we will wait X seconds as specified in argument wait.
+
+        if async then we will wait 1 second to see if cmd got started succesfully and the exit
+        we do this by checking the error code after 1 second
+
         @param sessionname Name of the tmux session
-        @type sessionname str
         @param screenname Name of the window in the session
-        @type screenname str
         @param cmd command to execute
-        @type cmd str
-        @param wait time to wait for output
-        @type wait int
         @param cwd workingdir for command only in new screen see newscr
-        @type cwd str
-        @param env environment variables for cmd onlt in new screen see newscr
-        @type env dict
+        @param env environment variables for cmd only in new screen see newscr (dict)
+        @param async, if async will fire & forget
+        @param resetAfter if True, will remove the tmux session after execution (error or not)
+
+        will return rc,out
         """
+        cmdorg = cmd
         env = env or dict()
         envstr = ""
         for name, value in list(env.items()):
@@ -75,36 +81,104 @@ class CuisineTmux(base):
         if reset:
             self.killWindow(sessionname, screenname)
 
-        if cmd.strip():
-            self.createWindow(sessionname, screenname, cmd=cmd, user=tmuxuser)
-            pane = self._getPane(sessionname, screenname, user=tmuxuser)
-            env = os.environ.copy()
-            env.pop('TMUX', None)
+        if cmd.strip() is "":
+            raise j.exceptions.Input(message="cmd cannot be empty", level=1, source="", tags="", msgpub="")
 
-            if envstr != "":
-                cmd2 = "tmux send-keys -t '%s' '%s\n'" % (pane, envstr)
-                if tmuxuser is not None:
-                    cmd2 = "sudo -u %s -i %s" % (tmuxuser, cmd2)
-                self._executor.execute(cmd2, showout=False)
+        self.createWindow(sessionname, screenname, cmd=cmd, user=tmuxuser)
+        pane = self._getPane(sessionname, screenname, user=tmuxuser)
+        env = os.environ.copy()
+        env.pop('TMUX', None)
 
-            if cwd:
-                cwd = "cd %s;" % cwd
-                cmd = "%s %s" % (cwd, cmd)
-            if user != "root":
-                sudocmd = "su -c \"%s\" %s" % (cmd, user)
-                cmd2 = "tmux send-keys -t '%s' '%s' ENTER" % (pane, sudocmd)
-            else:
-                # if cmd.find("'") != -1:
-                #     cmd=cmd.replace("'","\\\'")
-                if cmd.find("$") != -1:
-                    cmd = cmd.replace("$", "\\$")
-                cmd2 = "tmux send-keys -t '%s' \"%s\" ENTER" % (pane, cmd)
+        # set environment if not empty
+        if envstr != "":
+            cmd2 = "tmux send-keys -t '%s' '%s\n'" % (pane, envstr)
             if tmuxuser is not None:
                 cmd2 = "sudo -u %s -i %s" % (tmuxuser, cmd2)
-            # j.sal.process.run(cmd2, env=env)
-            self._executor.execute(cmd2, showout=False)
+            self._executor.executeRaw(cmd2, die=True)
 
-            time.sleep(wait)
+        # if path to go on, set it
+        if cwd:
+            cwd = "cd %s;" % cwd
+            cmd = "%s %s" % (cwd, cmd)
+
+        # catch if error
+        cmd = "echo **START**;%s && echo **OK** || echo **ERROR**" % cmd
+
+        if user != "root":
+            cmd = "su -c \"%s\" %s" % (cmd, user)
+
+        if cmd.find("$") != -1:
+            cmd = cmd.replace("$", "\\$")
+
+        cmd = cmd.strip()
+
+        # now send the string to the session
+        cmd2 = "tmux send-keys -t '%s' \"%s\" ENTER" % (pane, cmd)
+        if tmuxuser is not None:
+            cmd2 = "sudo -u %s -i %s" % (tmuxuser, cmd2)
+
+        rc, out, err = self._executor.executeRaw(cmd2, showout=False, die=False)
+
+        def checkOutput(die, async=False):
+            out = ""
+            counter = 0
+            ffound = -1
+            while ffound:
+                rc, out, err = self._executor.executeRaw("tmux capture-pane -pS -5000", showout=False)
+                # initial command needs to go
+                out = out.split("echo **OK** || echo **ERROR**\n")[-1]
+                ffound = out.find("**START**")
+                if ffound == -1:
+                    time.sleep(0.1)
+                    print("reread from tmux, cmd did not start yet")
+                counter += 1
+                if counter > 10:
+                    raise RuntimeError("cannot read pane from tmux, did not find started cmd")
+
+            out = out.split("**START**")[-1]
+            if out.find("**ERROR**") != -1:
+                out = out.replace("**OK**", "")
+                out = out.split("**ERROR**")[-2]
+                out = out.replace("**ERROR**", "")
+                out = out.strip() + "\n"
+                msg = "Could not execute cmd:%s\n" % cmdorg
+                msg += "Out/Err:\n%s\n" % out
+                if die:
+                    raise j.exceptions.RuntimeError(msg)
+                else:
+                    return 1, msg
+            elif out.find("**OK**") != -1:
+                out = out.split("**OK**")[0]
+                out = out.replace("**OK**", "")
+                out = out.strip()
+                if out.find("\n") != -1:
+                    out += "\n"
+                return 0, out
+            return 999, out
+
+        if rc == 0:
+            if async:
+                # we want to check to see if command really executed
+                time.sleep(1)
+                rc, out = checkOutput(die, async=async)
+            elif wait == 0:
+                rc, out = checkOutput(die)
+            else:
+                end = j.data.time.getTimeEpoch() + wait + 1
+                while j.data.time.getTimeEpoch() < end:
+                    rc, out = checkOutput(die)
+                    if rc == 999:
+                        rc = 0
+                    elif rc > 0 or rc == 0:
+                        break
+
+        if resetAfter:
+            self.killWindow(sessionname, screenname)
+
+        if die and rc > 0:
+            raise j.exceptions.RuntimeError(out)
+
+        return rc, out
 
     def getSessions(self, user=None):
         cmd = 'tmux list-sessions -F "#{session_name}"'
@@ -150,6 +224,7 @@ class CuisineTmux(base):
             cmd = "tmux new-window -t '%s:' -n '%s'" % (session, name)
             if user:
                 cmd = "sudo -u %s -i %s" % (user, cmd)
+            time.sleep(0.2)
             self._executor.execute(cmd, showout=False)
 
     def logWindow(self, session, name, filename, user=None):

@@ -641,8 +641,8 @@ class CuisineCore(base):
             self.file_write(location, C, mode, owner, group, check, sudo, replaceArgs, strip, showout)
 
         else:
-
-            self.logger.info("write content in %s" % location)
+            if showout:
+                self.logger.info("write content in %s" % location)
             if strip:
                 content = j.data.text.strip(content)
 
@@ -664,10 +664,9 @@ class CuisineCore(base):
             content_base64 = base64.b64encode(content2).decode()
 
             # if sig != self.file_md5(location):
-            cmd = 'bash -c \'set -ex\necho "%s" | openssl base64 -A -d > %s\'\n' % (content_base64, location)
+            cmd = 'bash -c \'echo "%s" | openssl base64 -A -d > %s\'\n' % (content_base64, location)
 
-            res = self.run(cmd, showout=False, shell=True)
-
+            res = self._executor.executeRaw(cmd, showout=False)
             if check:
                 file_sig = self.file_md5(location)
                 assert sig == file_sig, "File content does not matches file: %s, got %s, expects %s" % (
@@ -1064,28 +1063,43 @@ class CuisineCore(base):
     def pwd(self):
         return self.cd
 
-    def execute_bash(self, content, die=True, profile=False, interpreter="bash", tmux=False):
+    def execute_script(self, content, die=True, profile=False, interpreter="bash", tmux=True,
+                       args_replace=True, showout=True):
+        """
+        generic exection of script, default interpreter is bash
+
+        """
         self.logger.info("RUN SCRIPT:")
 
-        if print:
-            self._cuisine.core.pprint(content)
+        self._cuisine.core.pprint(content)
 
-        content = self.args_replace(content)
+        if args_replace:
+            content = self.args_replace(content)
         content = j.data.text.strip(content)
-        self.logger.info(content)
 
         if content[-1] != "\n":
             content += "\n"
+
         if profile:
             ppath = self._cuisine.bash.profilePath
             if ppath:
                 content = ". %s\n%s\n" % (ppath, content)
-        if interpreter == "bash":
-            content += "\necho **DONE**\n"
-        elif interpreter.startswith("python"):
-            content += "\nprint('**DONE**\\n')\n"
 
-        path = "$tmpDir/%s.sh" % j.data.idgenerator.generateRandomInt(0, 10000)
+        if interpreter == "bash":
+            content += "\necho **OK**\n"
+        elif interpreter.startswith("python"):
+            content += "\nprint('**OK**\\n')\n"
+
+        ext = "sh"
+        if interpreter.startswith("python"):
+            ext = "py"
+        elif interpreter.startswith("lua"):
+            ext = "lua"
+
+        rnr = j.data.idgenerator.generateRandomInt(0, 10000)
+        path = "$tmpDir/%s.%s" % (rnr, ext)
+        path = self.args_replace(path)
+
         if self.isMac:
             self.file_write(location=path, content=content, mode=0o770, showout=False)
         elif self.isCygwin:
@@ -1095,28 +1109,66 @@ class CuisineCore(base):
 
         cmd = "cd $tmpDir;%s %s" % (interpreter, path)
         cmd = self.args_replace(cmd)
+
         if tmux:
-            self._cuisine.tmux.executeInScreen("cmd", "cmd", cmd + " > /tmp/cmdout 2>&1",
-                                               wait=True, reset=True)
-            out = self.file_read("/tmp/cmdout")
-            print(out)
-            rc = 0
-            err = ""
+            rc, out = self._cuisine.tmux.executeInScreen("cmd", "cmd", cmd, wait=True, die=False)
+            if showout:
+                print(out)
         else:
-            rc, out, err = self.run(cmd, showout=True, die=False)
+            # outfile = "$tmpDir/%s.out" % (rnr)
+            # outfile = self.cuisine.core.args_replace(outfile)
+            # cmd = cmd + " 2>&1 || echo **ERROR** | tee %s" % outfile
+            cmd = cmd + " 2>&1 || echo **ERROR**"
+            rc, out, err = self._executor.executeRaw(cmd, showout=showout, die=False)
+            out = out.rstrip().rstrip("\t")
+            lastline = out.split("\n")[-1]
+            if lastline.find("**ERROR**") != -1:
+                if rc == 0:
+                    rc = 1
+            elif lastline.find("**OK**") != -1:
+                rc = 0
+            else:
+                print(out)
+                raise RuntimeError("wrong output of cmd")
+            # out = self.file_read(outfile)
             out = self._clean(out)
+            # self.file_unlink(outfile)
+            out = out.replace("**OK**", "")
+            out = out.replace("**ERROR**", "")
+            out = out.strip()
 
         self.file_unlink(path)
 
-        # print ("SCRIPT")
-        # print (path)
-        # print(content)
+        if rc > 0:
+            msg = "Could not execute script:\n%s\n" % content
+            msg += "Out/Err:\n%s\n" % out
+            out = msg
 
-        lastline = out.split("\n")[-1]
-        if (rc > 0 or out.find("**DONE**") == -1) and die:
-            raise Exception("Could not execute bash script **NOSTACK** .\n%s\n" % (content))
+            if die:
+                raise j.exceptions.RuntimeError(out)
 
-        return "\n".join(out.split("\n")[:-1])
+        return rc, out
+
+    def execute_bash(self, script, die=True, profile=False, tmux=False, args_replace=True, showout=True):
+        return self.execute_script(script, die=die, profile=profile, interpreter="bash", tmux=tmux,
+                                   args_replace=args_replace, showout=showout)
+
+    def execute_python(self, script, die=True, profile=False, tmux=False, args_replace=True, showout=True):
+        return self.execute_script(script, die=die, profile=profile, interpreter="python3", tmux=tmux,
+                                   args_replace=args_replace, showout=showout)
+
+    def execute_jumpscript(self, script, die=True, profile=False, tmux=False, args_replace=True, showout=True):
+        """
+        execute a jumpscript(script as content) in a remote tmux command, the stdout will be returned
+        """
+        script = self.args_replace(script)
+        script = j.data.text.strip(script)
+
+        if script.find("from JumpScale import j") == -1:
+            script = "from JumpScale import j\n\n%s" % script
+        # TODO: *1 need to check this
+        return self.execute_script(script, die=die, profile=profile, interpreter="jspython", tmux=tmux,
+                                   args_replace=args_replace, showout=showout)
 
     # =============================================================================
     #
@@ -1148,68 +1200,6 @@ class CuisineCore(base):
             self._cuisine.package.install(package)
         assert self.command_check(command), \
             "Command was not installed, check for errors: %s" % (command)
-
-    # =============================================================================
-    #
-    # TMUX
-    #
-    # =============================================================================
-
-    def tmux_execute_jumpscript(self, script, sessionname="ssh", screenname="js"):
-        """
-        execute a jumpscript(script as content) in a remote tmux command, the stdout will be returned
-        """
-        script = self.args_replace(script)
-        script = j.data.text.strip(script)
-        if script.find("from JumpScale import j") == -1:
-            script = "from JumpScale import j\n\n%s" % script
-        path = "$tmpDir/jumpscript_temp_%s.py" % j.data.idgenerator.generateRandomInt(1, 10000)
-        self.file_write(path, script)
-        cmd = "jspython %s" % path
-        self.tmux.executeInScreen(sessionname, screenname, cmd)
-        self.file_unlink(path)
-
-        return out
-
-    def execute_jumpscript(self, script, print=True):
-        """
-        execute a jumpscript(script as content) in a remote tmux command, the stdout will be returned
-        """
-        script = self.args_replace(script)
-        script = j.data.text.strip(script)
-
-        if print:
-            self._cuisine.core.pprint(script)
-
-        if script.find("from JumpScale import j") == -1:
-            script = "from JumpScale import j\n\n%s" % script
-        path = "$tmpDir/jumpscript_temp_%s.py" % j.data.idgenerator.generateRandomInt(1, 10000)
-        self.file_write(path, script)
-        out = self.run("jspython %s" % path)[1]
-        self.file_unlink(path)
-
-        return out
-
-    def execute_python(self, script):
-        """
-        execute a python script(script as content) in a remote tmux command, the stdout will be returned
-        """
-        script = self.args_replace(script)
-        script = j.data.text.strip(script)
-
-        path = "$tmpDir/pyscript_temp_%s.py" % j.data.idgenerator.generateRandomInt(1, 10000)
-        path = self.args_replace(path)
-
-        # saving locally, uploading, removing locally
-        j.sal.fs.writeFile(path, script)
-        self.file_upload_binary(path, path)
-
-        out = self.run("python %s" % path)[1]
-
-        j.sal.fs.remove(path)
-        self.file_unlink(path)
-
-        return out
 
     # SYSTEM IDENTIFICATION
     @property

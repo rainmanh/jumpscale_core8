@@ -94,6 +94,9 @@ class ExecutorSSH(ExecutorBase):
             raise j.exceptions.RuntimeError("Could not find key:%s" % path)
         self._sshclient.ssh_authorize(login, pubkey)
 
+    def executeRaw(self, cmd, die=True, showout=False):
+        return self.sshclient.execute(cmd, die=die, showout=showout)
+
     def execute(self, cmds, die=True, checkok=None, async=False, showout=True, timeout=0, env={}):
         """
         @param naked means will not manipulate cmd's to show output in different way

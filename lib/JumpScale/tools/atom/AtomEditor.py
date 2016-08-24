@@ -137,20 +137,14 @@ class AtomEditor:
         content = cson.dumps(merged, indent=4, sort_keys=True)
         j.sal.fs.writeFile(os.path.expanduser("~/.atom/config.cson"), content)
 
-    def generateJumpscaleAutocompletion(self, dest='/tmp/tempd/jedicomp.txt'):
-        raise NotImplemented
-        # TODO: *1 completely not clear how this works?
-        # TODO: *1 there should be generation from jumpscale to api which can be used inside atom
-        apifile = "/tmp/tempd/jumpscale.api"
-        jedicomp = "/tmp/tempd/jedi.comp"
-        names = ""
-        import re
-        with open(apifile) as f:
+    def generateJumpscaleAutocompletion(self, dest="/usr/local/lib/python3.5/dist-packages/jscompl.py"):
+        # 1- generate the docs & the pickled js8 api.
+        j.tools.objectinspector.generateDocs(dest="/tmp")
+        # 2- generate the stub (jscompl.py) from the pickled file.
+        j.tools.js8stub.generateStub(pickledfile='/tmp/out.pickled')
 
-            with open(jedicomp, "w") as jedout:
-                for x in re.finditer("(\w.+)\?", f.read()):
-                    name = x.group(0).strip("?")
-                    jedout.write(name + "= None \n")
+        # 3- move the stub to dist-packages
+        j.sal.fs.moveFile("/tmp/jscompl.py", dest)
 
     def installPythonExtensions(self):
         """

@@ -23,11 +23,8 @@ class CuisineGrafana(app):
 
             """
             # self._cuisine.core.pprint(C)
-<<<<<<< Updated upstream
             self._cuisine.core.execute_bash(C, profile=True)
-=======
-            #self._cuisine.core.run_script(C, profile=True)
->>>>>>> Stashed changes
+
             self._cuisine.core.file_copy("/usr/sbin/grafana*", dest="$binDir")
 
             self._cuisine.core.dir_ensure("$appDir/grafana")

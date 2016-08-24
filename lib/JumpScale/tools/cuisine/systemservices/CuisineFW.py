@@ -54,6 +54,10 @@ class CuisineFW(base):
         if not self._cuisine.net.ping(pinghost):
             raise j.exceptions.Input(
                 message="Cannot set firewall ruleset if we cannot ping to the host we have to check against.", level=1, source="", tags="", msgpub="")
+        rc, currentruleset, err = self._cuisine.core.run("ntf list ruleset")
+        if ruleset in currentruleset:
+            return
+
 
         pscript = """
         C='''

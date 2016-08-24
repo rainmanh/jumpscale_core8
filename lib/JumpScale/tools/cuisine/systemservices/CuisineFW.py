@@ -51,7 +51,7 @@ class CuisineFW(base):
         rc, out, err = self._cuisine.core.run("nft list ruleset", showout=False)
         return out
 
-    def setRuleset(self, ruleset, pinghost="www.google.com"):
+    def setRuleset(self, ruleset, pinghost="8.8.8.8"):
         if not self._cuisine.net.ping(pinghost):
             raise j.exceptions.Input(
                 message="Cannot set firewall ruleset if we cannot ping to the host we have to check against.", level=1, source="", tags="", msgpub="")
@@ -61,6 +61,7 @@ class CuisineFW(base):
         $ruleset
         '''
         import os
+        import time
 
         rc=os.system("nft list ruleset > /tmp/firelwallruleset_old")
         if rc>0:
@@ -74,6 +75,8 @@ class CuisineFW(base):
         #now applying
         print("applied ruleset")
         rc=os.system("nft -f /etc/nftables.conf")
+        rc=os.system("nft -f /etc/nftables.conf")
+        time.sleep(1)
 
         rc2=os.system("ping -c 1 $pinghost")
 

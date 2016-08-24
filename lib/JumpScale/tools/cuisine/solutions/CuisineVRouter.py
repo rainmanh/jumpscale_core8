@@ -255,7 +255,7 @@ class CuisineVRouter(base):
         path = "$codeDir/github/jumpscale/smartproxy/nftables.conf"
         # needs to be from local file
         C = j.sal.fs.readFile(j.dirs.replaceTxtDirVars(path))
-        C = C.replace("$waniface", self.wirelessInterfaceNonDefGW)
+        C = C.replace("$waniface", self.defgwInterface)
         C = C.replace("$range", self.freeNetworkRangeDMZ)
         self.cuisine.systemservices.fw.setRuleset(C)
 

@@ -1086,7 +1086,7 @@ class CuisineCore(base):
 
         if interpreter == "bash":
             content += "\necho **OK**\n"
-        elif interpreter.startswith("python"):
+        elif interpreter.startswith("python") or interpreter.startswith("jspython"):
             content += "\nprint('**OK**\\n')\n"
 
         ext = "sh"
@@ -1165,7 +1165,7 @@ class CuisineCore(base):
 
         if script.find("from JumpScale import j") == -1:
             script = "from JumpScale import j\n\n%s" % script
-        # TODO: *1 need to check this
+
         return self.execute_script(script, die=die, profile=profile, interpreter="jspython", tmux=tmux,
                                    args_replace=args_replace, showout=showout)
 

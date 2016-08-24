@@ -16,8 +16,14 @@ class CuisineBrotli(app):
         cd /tmp/brotli/
         ./configure
         make bro
+        """
+        C = self._cuisine.core.args_replace(C)
+        self._cuisine.core.execute_bash(C)
+
+
+    def install(self):
+        C = """
         cp /tmp/brotli/bin/bro /usr/local/bin/
         rm -rf /tmp/brotli
         """
-        C = self._cuisine.core.args_replace(C)
         self._cuisine.core.execute_bash(C)

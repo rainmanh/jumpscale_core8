@@ -36,7 +36,7 @@ class ProcessmanagerFactory:
 
         j.legacy.jumpscripts.loadFromAC(acl)
 
-        self.daemon = j.servers.geventws.getServer(port=4446)  # @todo no longer needed I think, it should not longer be a socket server, lets check first
+        self.daemon = j.servers.geventws.getServer(port=4446)
 
         # clean old stuff from redis
         j.legacy.redisworker.deleteProcessQueue()

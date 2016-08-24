@@ -14,18 +14,18 @@ import base64
 class Jumpscript(object):
     def __init__(self, ddict=None, path=None):
         self._loaded = False
-        self.name=""
-        self.organization=""
+        self.name = ""
+        self.organization = ""
         self.period = 0
         self.category = ""
         self.lastrun = 0
-        self.source=""
+        self.source = ""
         self.debug = False
-        self.path=path
+        self.path = path
         self.id = None
         self.startatboot = False
         self.path = path
-        self.debug=False
+        self.debug = False
         self.timeout = None
         if ddict:
             ddict.pop('path', None)
@@ -36,10 +36,10 @@ class Jumpscript(object):
 
     def write(self):
         if not self.path:
-            jscriptdir = j.sal.fs.joinPaths(j.dirs.tmpDir,"jumpscripts")
+            jscriptdir = j.sal.fs.joinPaths(j.dirs.tmpDir, "jumpscripts")
             j.sal.fs.createDir(jscriptdir)
-            self.path=j.sal.fs.joinPaths(jscriptdir, "%s_%s.py" % (self.organization, self.name))
-        content="""
+            self.path = j.sal.fs.joinPaths(jscriptdir, "%s_%s.py" % (self.organization, self.name))
+        content = """
 from JumpScale import j
 
 """
@@ -52,41 +52,43 @@ from JumpScale import j
         modulename = 'JumpScale.jumpscript_%s' % md5sum
         linecache.checkcache(self.path)
         self.module = imp.load_source(modulename, self.path)
-        if self.source.find("DEBUG NOW")!=-1:
-            self.debug=True
+        if self.source.find("DEBUG NOW") != -1:
+            self.debug = True
 
     def getDict(self):
         result = dict()
-        for attrib in ('name', 'author', 'organization', 'category', 'license', 'version', 'roles', 'source', 'path', 'descr', 'queue', 'async', 'period', 'order', 'log', 'enable', 'startatboot', 'gid', 'id','timeout'):
+        for attrib in (
+        'name', 'author', 'organization', 'category', 'license', 'version', 'roles', 'source', 'path', 'descr', 'queue',
+        'async', 'period', 'order', 'log', 'enable', 'startatboot', 'gid', 'id', 'timeout'):
             result[attrib] = getattr(self, attrib)
         return result
 
     def loadAttributes(self):
         name = getattr(self.module, 'name', "")
-        if name=="":
-            name=j.sal.fs.getBaseName(self.path)
-            name=name.replace(".py","").lower()
+        if name == "":
+            name = j.sal.fs.getBaseName(self.path)
+            name = name.replace(".py", "").lower()
 
         source = inspect.getsource(self.module)
-        self.name=name
-        self.author=getattr(self.module, 'author', "unknown")
-        self.organization=getattr(self.module, 'organization', "unknown")
-        self.category=getattr(self.module, 'category', "unknown")
-        self.license=getattr(self.module, 'license', "unknown")
-        self.version=getattr(self.module, 'version', "1.0")
-        self.debug=getattr(self.module, 'debug', False)
-        self.roles=getattr(self.module, 'roles', [])
-        self.source=source
-        self.descr=self.module.descr
-        self.queue=getattr(self.module, 'queue', "")
-        self.timeout=getattr(self.module, 'timeout', None)
-        self.async = getattr(self.module, 'async',False)
-        self.period=getattr(self.module, 'period',0)
-        self.order=getattr(self.module, 'order', 1)
-        self.log=getattr(self.module, 'log', True)
-        self.enable=getattr(self.module, 'enable', True)
-        self.startatboot=getattr(self.module, 'startatboot', False)
-        self.gid=getattr(self.module, 'gid', j.application.whoAmI.gid)
+        self.name = name
+        self.author = getattr(self.module, 'author', "unknown")
+        self.organization = getattr(self.module, 'organization', "unknown")
+        self.category = getattr(self.module, 'category', "unknown")
+        self.license = getattr(self.module, 'license', "unknown")
+        self.version = getattr(self.module, 'version', "1.0")
+        self.debug = getattr(self.module, 'debug', False)
+        self.roles = getattr(self.module, 'roles', [])
+        self.source = source
+        self.descr = self.module.descr
+        self.queue = getattr(self.module, 'queue', "")
+        self.timeout = getattr(self.module, 'timeout', None)
+        self.async = getattr(self.module, 'async', False)
+        self.period = getattr(self.module, 'period', 0)
+        self.order = getattr(self.module, 'order', 1)
+        self.log = getattr(self.module, 'log', True)
+        self.enable = getattr(self.module, 'enable', True)
+        self.startatboot = getattr(self.module, 'startatboot', False)
+        self.gid = getattr(self.module, 'gid', j.application.whoAmI.gid)
 
     def getKey(self):
         return "%s_%s" % (self.organization, self.name)
@@ -131,12 +133,14 @@ from JumpScale import j
     def _getECO(self, e):
         eco = j.errorconditionhandler.parsePythonErrorObject(e)
         eco.tb = None
-        eco.errormessage='Exec error procmgr jumpscr:%s_%s on node:%s_%s %s'%(self.organization,self.name, \
-                j.application.whoAmI.gid, j.application.whoAmI.nid,eco.errormessage)
-        eco.tags="jscategory:%s"%self.category
+        eco.errormessage = 'Exec error procmgr jumpscr:%s_%s on node:%s_%s %s' % (self.organization, self.name, \
+                                                                                  j.application.whoAmI.gid,
+                                                                                  j.application.whoAmI.nid,
+                                                                                  eco.errormessage)
+        eco.tags = "jscategory:%s" % self.category
         eco.jid = j.application.jid
-        eco.tags+=" jsorganization:%s"%self.organization
-        eco.tags+=" jsname:%s"%self.name
+        eco.tags += " jsorganization:%s" % self.organization
+        eco.tags += " jsname:%s" % self.name
         return eco
 
     def executeInProcess(self, *args, **kwargs):
@@ -146,10 +150,9 @@ from JumpScale import j
             print("error in jumpscripts factory: execute in process.")
             eco = self._getECO(e)
             print(eco)
-            j.errorconditionhandler.raiseOperationalCritical(eco=eco,die=False)
+            j.errorconditionhandler.raiseOperationalCritical(eco=eco, die=False)
             print(eco)
             return False, eco
-
 
     def execute(self, *args, **kwargs):
         """
@@ -166,13 +169,14 @@ from JumpScale import j
                 eco.type = str(eco.type)
                 result[1] = eco.__dict__
         else:
-            #make sure this gets executed by worker
-            queue = getattr(self, 'queue', 'default') #fall back to default queue if none specified
-            result=redisw.execJumpscript(jumpscript=self,_timeout=self.timeout,_queue=queue,_log=self.log,_sync=False)
+            # make sure this gets executed by worker
+            queue = getattr(self, 'queue', 'default')  # fall back to default queue if none specified
+            result = redisw.execJumpscript(jumpscript=self, _timeout=self.timeout, _queue=queue, _log=self.log,
+                                           _sync=False)
 
         self.lastrun = time.time()
-        if result!=None:
-            print("ok:%s"%self.name)
+        if result != None:
+            print("ok:%s" % self.name)
         return result
 
 
@@ -183,14 +187,15 @@ LuaJumpscript = collections.namedtuple('LuaJumpscript', field_names=(
     'name', 'path', 'organization', 'queue', 'log', 'id', 'enable',
 ))
 
-class JumpscriptFactory:
 
+class JumpscriptFactory:
     """
     """
+
     def __init__(self):
         self.__jslocation__ = "j.legacy.jumpscripts"
-        
-        self.basedir = j.sal.fs.joinPaths(j.dirs.base, 'apps', 'processmanager')
+
+        self.basedir = j.sal.fs.joinPaths(j.dirs.base, 'apps', 'jsagent')
 
     def getJSClass(self):
         return Jumpscript
@@ -210,7 +215,7 @@ class JumpscriptFactory:
                 parent_path = '%s/apps/agentcontroller/%s' % (j.dirs.baseDir, jumpscript_type)
                 for allowed_filename_extension in ('py', 'lua'):
                     for file_path in j.sal.fs.walkExtended(parent_path, recurse=1, dirs=False,
-                                                              filePattern='*.' + allowed_filename_extension):
+                                                           filePattern='*.' + allowed_filename_extension):
                         path_in_archive = jumpscript_type + '/' + file_path.split(parent_path)[1]
                         tar.add(file_path, path_in_archive)
         return fp.getvalue()
@@ -220,7 +225,8 @@ class JumpscriptFactory:
         self.loadFromTar(tar, 'bz2')
 
     def loadFromTar(self, tarcontent, type):
-        j.sal.fs.removeDirTree(self.basedir)
+        base = j.sal.fs.joinPaths(self.basedir, 'jumpscripts')
+        j.sal.fs.removeDirTree(base)
         import tarfile
         fp = BytesIO()
         fp.write(tarcontent)
@@ -230,10 +236,9 @@ class JumpscriptFactory:
 
         for tarinfo in tar:
             if tarinfo.isfile():
-                print(tarinfo.name)
-                if tarinfo.name.find("processmanager/")==0:
-                    tar.extract(tarinfo.name, j.sal.fs.getParent(self.basedir))
-                if tarinfo.name.find("jumpscripts/")==0:
+                name = j.sal.fs.pathClean(tarinfo.name)
+                if tarinfo.name.find("jumpscripts/") == 0:
+                    print(name)
                     tar.extract(tarinfo.name, self.basedir)
 
     @staticmethod
@@ -253,7 +258,7 @@ class JumpscriptFactory:
         if not os.path.exists(path):
             raise IOError(path + ' does not exist')
 
-        relative_path = path.split('agentcontroller/')[1]    # Remove the string "^.*agentcontroller/"
+        relative_path = path.split('agentcontroller/')[1]  # Remove the string "^.*agentcontroller/"
 
         # The Lua Jumpscript metadata is inferred conventionally using the jumpscripts file's relative path as follows:
         # luajumpscripts/ORGANIZATION[/IRRELEVANT_SUBPATH]/JUMPSCRIPT_NAME.lua

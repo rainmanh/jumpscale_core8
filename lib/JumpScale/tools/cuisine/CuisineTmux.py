@@ -223,7 +223,7 @@ class CuisineTmux(base):
 
     def createWindow(self, session, name, user=None, cmd=None):
         if session not in self.getSessions(user=user):
-            return self.createSession(session, [name], user=user)
+            return self.createSession(session, [name], user=user, returnifexists=False)
         windows = self.getWindows(session, user=user)
         if name not in list(windows.values()):
             cmd = "tmux new-window -t '%s:' -n '%s'" % (session, name)

@@ -107,6 +107,7 @@ class Process():
 class ProcessManager():
     def __init__(self, opts):
         self.opts = opts
+        self.log = j.logger.get('ProcessManager')
 
         self.processes = list()
         self.services = list()
@@ -132,7 +133,7 @@ class ProcessManager():
                 self.log.info("cannot connect to agentcontroller, will retry forever: '%s:%s'" % (opts.ip, opts.port))
 
             # now register to agentcontroller
-            self.acclient = self._getClient()
+            self.acclient = j.legacy.agentcontroller.get(opts.ip, port=opts.port, login='root', passwd=opts.password, new=True)
             res = self.acclient.registerNode(hostname=socket.gethostname(),
                                              machineguid=j.application.getUniqueMachineId())
 
@@ -149,7 +150,7 @@ class ProcessManager():
         self._monkey_patch()
 
     def _getClient(self, *args, **kwargs):
-        return j.legacy.agentcontroller.get(opts.ip, port=opts.port, login="root", passwd=opts.password, new=True)
+        return j.legacy.agentcontroller.get(opts.ip, port=opts.port, login="node", passwd=opts.password, new=True)
 
     def _monkey_patch(self):
         j.clients.agentcontroller.getByInstance = self._getClient
@@ -173,7 +174,7 @@ class ProcessManager():
             p.name = '%s' % qname
             p.workingdir = pwd
             p.env = os.environ
-            p.cmds = ['python3.5', 'worker.py', '-q', qname]
+            p.cmds = ['python3.5', 'worker.py', '-q', qname, '--controller-ip', self.opts.ip, '--controller-port', str(self.opts.port)]
             p.restart = True
             p.start()
             self.processes.append(p)

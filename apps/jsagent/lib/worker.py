@@ -10,6 +10,7 @@ except:
 
 from JumpScale.tools import cmdutils
 from JumpScale.legacy.redisworker.RedisWorker import RedisWorkerFactory
+from logging import FileHandler
 
 import os
 
@@ -25,30 +26,27 @@ def restart_program():
 
 
 class Worker(object):
-    def __init__(self, queuename, logpath):
+    def __init__(self, opts):
+        self.opts = opts
         self.log = j.logger.get('Worker')
         self.actions = {}
         self.clients = dict()
         self.acclient = None
         self.redisw = RedisWorkerFactory()
-        self.queuename = queuename
+        self.queuename = opts.queuename
         self.init()
         self.starttime = time.time()
-        self.logpath = logpath
-        self.logFile = None
-        if self.logpath:
-            self.logFile = open(self.logpath, 'w')
 
     def getClient(self, job):
         ipaddr = getattr(job, 'achost', None)
         client = self.clients.get(ipaddr)
         if not client:
             if ipaddr:
-                client = j.clients.agentcontroller.get(ipaddr, login='node')
+                client = j.legacy.agentcontroller.get(ipaddr, login='node')
                 self.clients[ipaddr] = client
             else:
                 if self.acclient == None:
-                    self.acclient = j.clients.agentcontroller.getByInstance()
+                    self.acclient = j.legacy.agentcontroller.get(opts.ip, port=opts.port, login='node')
                 return self.acclient
         return client
 
@@ -76,9 +74,10 @@ class Worker(object):
                 restart_program()
 
             try:
-                self.log.info("check if work")
+                self.log.info("check if work %s", self.queuename)
                 jtype, job = self.redisw._getWork(self.queuename, timeout=10)
             except Exception as e:
+                self.log.exception(e)
                 if str(e).find("Could not find queue to execute job") != -1:
                     # create queue
                     self.log.info("could not find queue")
@@ -170,19 +169,19 @@ class Worker(object):
                             eco.code = jscript.source
                             eco.category = "workers.executejob"
 
-                            out = ""
-                            tocheck = ["\"worker.py\"", "jscript.executeInWorker", "return self.module.action",
-                                       "JumpscriptFactory.py"]
-                            for line in eco.backtrace.split("\n"):
-                                found = False
-                                for check in tocheck:
-                                    if line.find(check) != -1:
-                                        found = True
-                                        break
-                                if found == False:
-                                    out += "%s\n" % line
-
-                            eco.backtrace = out
+                            # out = ""
+                            # tocheck = ["\"worker.py\"", "jscript.executeInWorker", "return self.module.action",
+                            #            "JumpscriptFactory.py"]
+                            # for line in eco.backtrace.split("\n"):
+                            #     found = False
+                            #     for check in tocheck:
+                            #         if line.find(check) != -1:
+                            #             found = True
+                            #             break
+                            #     if found == False:
+                            #         out += "%s\n" % line
+                            #
+                            # eco.backtrace = out
 
                             if job.id < 1000000:
                                 eco.process()
@@ -204,7 +203,7 @@ class Worker(object):
     def notifyWorkCompleted(self, job):
         job.timeStop = int(time.time())
 
-        if job.internal:
+        if hasattr(job, 'internal') and job.internal:
             # means is internal job
             self.redisw.redis.set("workers:jobs:%s" % job.id, json.dumps(job.__dict__), ex=60)
             self.redisw.redis.rpush("workers:return:%s" % job.id, time.time())
@@ -212,8 +211,7 @@ class Worker(object):
         try:
             acclient = self.getClient(job)
         except Exception as e:
-            j.events.opserror("could not report job in error to agentcontroller", category='workers.errorreporting',
-                              e=e)
+            j.events.error("could not report job in error to agentcontroller: %s" % e)
             return
 
         def reportJob():
@@ -240,6 +238,9 @@ if __name__ == '__main__':
     parser.add_argument("-q", '--queuename', help='Queue name', required=True)
     parser.add_argument("-l", '--logpath', help='Logging file path', required=False, default=None)
 
+    parser.add_argument('--controller-ip', dest='ip', default='localhost', help='Agent controller address')
+    parser.add_argument('--controller-port', dest='port', type=int, default=4444, help='Agent controller port')
+
     opts = parser.parse_args()
 
     j.application.start("jumpscale:worker:%s" % opts.queuename)
@@ -247,8 +248,12 @@ if __name__ == '__main__':
     if j.application.config.exists("grid.id"):
         j.application.initGrid()
 
+    logger = j.logger.get(j.logger.root_logger_name)
+    handler = FileHandler(opts.logpath, mode='w')
+    logger.addHandler(handler)
+
     j.logger.consoleloglevel = 2
     j.logger.maxlevel = 7
 
-    worker = Worker(opts.queuename, opts.logpath)
+    worker = Worker(opts)
     worker.run()

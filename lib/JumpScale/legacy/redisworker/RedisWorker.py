@@ -88,6 +88,7 @@ class RedisWorkerFactory(object):
     """
 
     def __init__(self):
+        self.log = j.logger.get('redisworkerfactory')
         self.__jslocation__ = "j.legacy.redisworker"
 
         random = j.data.idgenerator.generateGUID()
@@ -319,8 +320,9 @@ def action%(argspec)s:
         queue = self.queue[qname]
 
         # if not self.jobExistsInQueue(qname,job):
-        self.redis.set("workers:jobs:%s" % job.id, json.dumps(job.__dict__))
-        queue.put(job)
+        data = json.dumps(job.__dict__)
+        self.redis.set("workers:jobs:%s" % job.id, data)
+        queue.put(data)
 
     def scheduleJob(self, job):
         jobobj = Job(ddict=job)

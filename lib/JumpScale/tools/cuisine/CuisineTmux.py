@@ -51,7 +51,7 @@ class CuisineTmux(base):
                 self._executor.execute(cmd, showout=False)
 
     def executeInScreen(self, sessionname, screenname, cmd, wait=10, cwd=None, env=None, user="root",
-                        tmuxuser=None, reset=False, replaceArgs=True, resetAfter=False, die=True, async=False):
+                        tmuxuser=None, reset=False, replaceArgs=True, resetAfter=False, die=True, async=False, checkoutput=True):
         """
 
         execute command in tmux & wait till error or till ok, default 10 sec
@@ -161,20 +161,21 @@ class CuisineTmux(base):
             return 999, out
 
         if rc == 0:
-            if async:
-                # we want to check to see if command really executed
-                time.sleep(1)
-                rc, out = checkOutput(die, async=async)
-            elif wait == 0:
-                rc, out = checkOutput(die)
-            else:
-                end = j.data.time.getTimeEpoch() + wait + 1
-                while j.data.time.getTimeEpoch() < end:
+            if checkoutput:
+                if async:
+                    # we want to check to see if command really executed
+                    time.sleep(1)
+                    rc, out = checkOutput(die, async=async)
+                elif wait == 0:
                     rc, out = checkOutput(die)
-                    if rc == 999:
-                        rc = 0
-                    elif rc > 0 or rc == 0:
-                        break
+                else:
+                    end = j.data.time.getTimeEpoch() + wait + 1
+                    while j.data.time.getTimeEpoch() < end:
+                        rc, out = checkOutput(die)
+                        if rc == 999:
+                            rc = 0
+                        elif rc > 0 or rc == 0:
+                            break
 
         if resetAfter:
             self.killWindow(sessionname, screenname)

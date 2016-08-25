@@ -63,8 +63,8 @@ class CuisineRedis(app):
                                     snapshot=snapshot, slave=slave, ismaster=ismaster, passwd=passwd, unixsocket=False)
         dpath, cpath = j.clients.redis._getPaths(name)
         cmd = "$binDir/redis-server %s" % cpath
-        self._cuisine.processmanager.ensure(name="redis_%s" % name, cmd=cmd, env={}, path='$binDir')
+        self._cuisine.processmanager.ensure(name="redis_%s" % name, cmd=cmd, env={}, path='$binDir', checkoutput=False)
 
         # Checking if redis is started correctly with port specified
-        if not redis_cli.isRunning(port=port):
+        if not redis_cli.isRunning(ip_address=ip, port=port):
             raise j.exceptions.RuntimeError('Redis is failed to start correctly')

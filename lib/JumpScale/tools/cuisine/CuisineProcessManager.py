@@ -240,7 +240,7 @@ class CuisineTmuxec(ProcessManagerBase):
         res = [item.strip().rstrip("*-").strip() for item in res]
         return res
 
-    def ensure(self, name, cmd, env={}, path="", descr=""):
+    def ensure(self, name, cmd, env={}, path="", descr="", checkoutput=True):
         """Ensures that the given upstart service is self.running, starting
         it if necessary."""
         self.stop(name=name)
@@ -257,7 +257,7 @@ class CuisineTmuxec(ProcessManagerBase):
         if envstr != "":
             cmd = "%s%s" % (envstr, cmd)
 
-        self._cuisine.tmux.executeInScreen("main", name, cmd)
+        self._cuisine.tmux.executeInScreen("main", name, cmd, checkoutput=checkoutput)
 
     def start(self, name):
         raise j.exceptions.RuntimeError("cannot do start of name in tmux session, use ensure")

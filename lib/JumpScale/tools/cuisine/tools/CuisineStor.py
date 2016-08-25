@@ -435,7 +435,7 @@ class StorSpace(object):
 
         # be sur that remote directory exists
         self._cuisine.core.dir_ensure(path)
-        self._cuisine.core.file_upload_binary(source, filepath)
+        self._cuisine.core.upload(source, filepath)
 
         metadata = self.metadata(expiration, tags)
         if metadata:
@@ -456,7 +456,7 @@ class StorSpace(object):
         storpath = storpath.replace('../', '')
 
         filepath = j.sal.fs.joinPaths(self.path, storpath)
-        self._cuisine.core.file_download_binary(dest, filepath)
+        self._cuisine.core.download(dest, filepath)
 
         if chmod:
             j.sal.fs.chmod(dest, chmod)
@@ -567,7 +567,7 @@ class StorSpace(object):
             return False
 
         localfile = '/tmp/jstor-response-%s.gz' % j.sal.fs.getBaseName(remote)
-        self._cuisine.core.file_download_binary(localfile, remote)
+        self._cuisine.core.download(localfile, remote)
         self._cuisine.core.file_unlink(remote)
 
         with open(localfile, 'rb') as f:

@@ -103,10 +103,6 @@ class CuisineDocker(app):
         cuisinedockerobj = j.tools.cuisine.get(connstr)
 
         # TODO: *1 implement weave integration
-
-        # TODO: *1 create ssh portforward from this cuisine to localhost to allow access to port used by this docker
-
-
         # NEED TO MAKE SURE WE CAN GET ACCESS TO THIS DOCKER WITHOUT OPENING PORTS
         # ON DOCKER HOST (which is current cuisine)
 

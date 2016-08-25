@@ -287,13 +287,13 @@ class AtYourServiceFactory:
     def getService(self, key, die=True):
         if key.count("!") != 2:
             raise j.exceptions.Input("key:%s needs to be $reponame!$role!$instance" % key)
-        reponame, role, instance = key.split("!", 2)
-        if not self.exist(path=reponame):
+        repo_path, role, instance = key.split("!", 2)
+        if not self.exist(path=repo_path):
             if die:
                 raise j.exceptions.Input("service repo %s does not exist, could not retrieve ays service:%s" % (reponame, key))
             else:
                 return None
-        repo = self.get(name=reponame)
+        repo = self.get(path=repo_path)
         return repo.getService(role=role, instance=instance, die=die)
 
     def getTemplate(self, name, die=True):

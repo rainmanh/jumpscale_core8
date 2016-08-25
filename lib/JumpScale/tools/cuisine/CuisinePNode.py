@@ -159,12 +159,8 @@ class CuisinePNode(base):
         reason to do this is that we will use this to then make the step to g8os with g8osfs (will be very small step then)
 
         """
-        # TODO: *1 implement using CuisineStor space
-        pass
+        storspace.upload(plistname, source=source, excludes=excludes, removetmpdir=removetmpdir)
 
-    def importRootDedupe(self, storspace, plistname, destination="/mnt/", removetmpdir=True):
-        # TODO: *1 implement using CuisineStor space
-        pass
 
     def formatStorage(self, keepRoot=True, mountpoint="/storage"):
         """

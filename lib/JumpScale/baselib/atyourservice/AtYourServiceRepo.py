@@ -178,6 +178,7 @@ class AtYourServiceRepo():
         if self._services == {}:
             services_path = j.sal.fs.joinPaths(self.basepath, "services")
             if not j.sal.fs.exists(services_path):
+                self.lock.release()
                 return {}
             for hrd_path in j.sal.fs.listFilesInDir(services_path, recursive=True, filter="state.yaml",
                                                     case_sensitivity='os', followSymlinks=True, listSymlinks=False):

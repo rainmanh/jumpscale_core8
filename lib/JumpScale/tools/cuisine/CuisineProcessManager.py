@@ -257,7 +257,7 @@ class CuisineTmuxec(ProcessManagerBase):
         if envstr != "":
             cmd = "%s%s" % (envstr, cmd)
 
-        self._cuisine.tmux.executeInScreen("main", name, cmd, checkoutput=checkoutput)
+        self._cuisine.tmux.executeInScreen("main", name, cmd)
 
     def stop(self, name):
         """Ensures that the given upstart service is stopped."""

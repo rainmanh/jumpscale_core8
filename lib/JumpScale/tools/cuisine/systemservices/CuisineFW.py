@@ -54,7 +54,7 @@ class CuisineFW(base):
         if not self._cuisine.net.ping(pinghost):
             raise j.exceptions.Input(
                 message="Cannot set firewall ruleset if we cannot ping to the host we have to check against.", level=1, source="", tags="", msgpub="")
-        rc, currentruleset, err = self._cuisine.core.run("ntf list ruleset")
+        rc, currentruleset, err = self._cuisine.core.run("nft list ruleset")
         if ruleset in currentruleset:
             return
 
@@ -70,14 +70,11 @@ class CuisineFW(base):
         if rc>0:
             raise RuntimeError("Cannot export firelwall ruleset")
 
-        #TODO: *1 check old ruleset exists
-
         f = open('/etc/nftables.conf', 'w')
         f.write(C)
 
         #now applying
         print("applied ruleset")
-        rc=os.system("nft -f /etc/nftables.conf")
         rc=os.system("nft -f /etc/nftables.conf")
         time.sleep(1)
 

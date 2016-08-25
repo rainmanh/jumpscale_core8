@@ -12,16 +12,16 @@ class StorScripts():
     def initTree(self, root):
         return """
         import os
-        
+
         root = "%s"
         for a in range(0, 256):
             lvl1 = os.path.join(root, format(a, '02x'))
             os.mkdir(lvl1)
-            
+
             for b in range(0, 256):
                 lvl2 = os.path.join(lvl1, format(b, '02x'))
                 os.mkdir(lvl2)
-        
+
         """ % root
 
     # check if a set of keys exists
@@ -29,19 +29,19 @@ class StorScripts():
         return """
         import os
         import json
-        
+
         root = "%s"
         keys = json.loads('''%s''')
         data = {}
-        
+
         def hashPath(root, hash):
             return os.path.join(root, hash[:2], hash[2:4], hash)
-        
+
         for key in keys:
             data[key] = os.path.isfile(hashPath(root, key))
-        
+
         print(json.dumps(data))
-        
+
         """ % (root, j.data.serializer.json.dumps(keys))
 
     # check consistancy and expirations of files
@@ -51,11 +51,11 @@ class StorScripts():
         import json
         import hashlib
         import time
-        
+
         root = "%s"
         keys = json.loads('''%s''')
         data = {}
-        
+
         def hashfile(filename, blocksize=65536):
             afile = open(filename, 'rb')
             hasher = hashlib.md5()
@@ -63,67 +63,67 @@ class StorScripts():
             while len(buf) > 0:
                 hasher.update(buf)
                 buf = afile.read(blocksize)
-            
+
             afile.close()
             return hasher.hexdigest()
-        
+
         def loadMetadata(metafile):
             with open(metafile, 'r') as f:
                 data = f.read()
-            
+
             return json.loads(data)
-                
+
         def checkMeta(fullpath):
             metafile = fullpath + ".meta"
             metadata = loadMetadata(metafile)
-            
+
             if time.time() >= metadata["expiration"]:
                 # os.unlink(fullpath)
                 # os.unlink(metafile)
                 return "expired"
-            
+
             return True
-        
+
         def checkFile(dirname, filename):
             fullpath = os.path.join(dirname, filename)
-            
+
             if not os.path.isfile(fullpath):
                 return "not found"
-            
+
             if hashfile(fullpath) != os.path.basename(filename):
                 # os.unlink(fullpath)
                 # delete metafile if exists ?
                 return "corrupted"
-            
+
             if os.path.isfile(fullpath + ".meta"):
                 return checkMeta(fullpath)
-            
+
             return True
-        
+
         def checkContent(root):
             for dirname, dirnames, filenames in os.walk(root):
                 for filename in filenames:
                     if filename.endswith(".meta"):
                         continue
-                    
+
                     data[filename] = checkFile(dirname, filename)
-        
+
         # check the whole storagespace
         if len(keys) == 0:
             for a in range(0, 256):
                 lvl1 = os.path.join(root, format(a, '02x'))
-                
+
                 for b in range(0, 256):
                     checkContent(os.path.join(lvl1, format(b, '02x')))
-        
+
         # check for specific keys
         else:
             for key in keys:
                 path = os.path.join(key[:2], key[2:4], key)
                 data[key] = checkFile(root, path)
-        
+
         print(json.dumps(data))
-        
+
         """ % (root, j.data.serializer.json.dumps(keys))
 
     # get metadata of a set of keys
@@ -133,37 +133,37 @@ class StorScripts():
         import json
         import gzip
         import random
-        
+
         root = "%s"
         keys = json.loads('''%s''')
         data = {}
-        
+
         def loadMetadata(metafile):
             with open(metafile, 'r') as f:
                 data = f.read()
-            
+
             return json.loads(data)
-        
+
         def getMetadata(dirname, filename, key):
             fullpath = os.path.join(dirname, filename)
             metapath = fullpath + ".meta"
-            
+
             if os.path.isfile(metapath):
                 data[key] = loadMetadata(metapath)
-        
+
         for key in keys:
             path = os.path.join(key[:2], key[2:4], key)
             getMetadata(root, path, key)
-        
+
         output = json.dumps(data)
         content = gzip.compress(bytes(output, 'utf-8'))
         tmpfile = '/tmp/md-gzip-' + str(random.randrange(1, 10000000)) + '.gz'
-        
+
         with open(tmpfile, 'w+b') as f:
             f.write(content)
-        
+
         print(tmpfile)
-            
+
         """ % (root, j.data.serializer.json.dumps(keys))
 
     # set metadata for a set of keys
@@ -172,27 +172,27 @@ class StorScripts():
         import os
         import json
         import gzip
-        
+
         root = "%s"
         keys = json.loads('''%s''')
         meta = '''%s'''
         data = {}
-        
+
         def setMetadata(dirname, filename, key, meta):
             fullpath = os.path.join(dirname, filename)
             metafile = fullpath + ".meta"
-            
+
             with open(metafile, 'w') as f:
                 f.write(meta)
-            
+
             data[key] = True
-        
+
         for key in keys:
             path = os.path.join(key[:2], key[2:4], key)
             setMetadata(root, path, key, meta)
-        
+
         print(json.dumps(data))
-            
+
         """ % (root, j.data.serializer.json.dumps(keys), j.data.serializer.json.dumps(metadata))
 
     def tarball(self, root, keys, target):
@@ -200,26 +200,26 @@ class StorScripts():
         import os
         import json
         import subprocess
-        
+
         root = "%s"
         keys = json.loads('''%s''')
         targ = '''%s'''
         item = targ + '.list'
-        
+
         os.chdir(root)
-        
+
         if os.path.isfile(targ):
             os.unlink(targ)
-        
+
         with open(item, 'w') as f:
             for key in keys:
                 f.write(os.path.join(key[:2], key[2:4], key) + "\\n")
 
         subprocess.call(['tar', '-cT', item, '-f', targ])
         os.unlink(item)
-        
+
         print(targ)
-        
+
         """ % (root, j.data.serializer.json.dumps(keys), target)
 
 base = j.tools.cuisine._getBaseClass()
@@ -239,7 +239,7 @@ class CuisineStor(base):
 
     def help(self):
         C = """
-        #to change root: 
+        #to change root:
         j.tools.cuisine.local.stor.root="/someroot"
         sp=j.tools.cuisine.local.stor.getStorageSpace("main")
         #get the file list, it creates the hashes and shows what it has found
@@ -333,8 +333,8 @@ class StorSpace(object):
     """
 
     def __init__(self, stor, name, public=True):
-        self._cuisine = stor.cuisine
-        self._executor = stor.executor
+        self._cuisine = stor._cuisine
+        self._executor = stor._executor
         self.stor = stor
 
         self.path = j.sal.fs.joinPaths(stor.root, name)
@@ -499,7 +499,7 @@ class StorSpace(object):
         Check if a set of keys exists. Returns a list which contains hash and bool
         """
         script = self.stor.scripts.exists(self.path, keys)
-        data = self._cuisine.core.execute_python(script)
+        data = self._cuisine.core.execute_python(script)[1]
         return j.data.serializer.json.loads(data)
 
     def get(self, key, dest, chmod=None, chown=None):
@@ -539,7 +539,7 @@ class StorSpace(object):
         Check consistancy and validity of a set of keys in the storagespace
         """
         script = self.stor.scripts.check(self.path, keys)
-        data = self._cuisine.core.execute_python(script)
+        data = self._cuisine.core.execute_python(script)[1]
 
         return j.data.serializer.json.loads(data)
 
@@ -548,7 +548,7 @@ class StorSpace(object):
         Get metadata content for a set of keys from the storagespace
         """
         script = self.stor.scripts.getMetadata(self.path, keys)
-        data = self._cuisine.core.execute_python(script)
+        data = self._cuisine.core.execute_python(script)[1]
 
         return j.data.serializer.json.loads(self.getResponse(data))
 
@@ -752,7 +752,7 @@ class StorSpace(object):
         """
         #TODO: maxim, the original format was not a dict, this is not ideal, if you have a big directory this will explode ! it needs to go back to original text format & processing on disk directly not in mem
         flist = {}
-
+        import pudb; pu.db
         for file in j.sal.fs.walk(path, recurse=True):
             stat = j.sal.fs.statPath(file)
             hash = j.data.hash.md5(file)

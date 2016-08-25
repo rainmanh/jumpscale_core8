@@ -174,7 +174,7 @@ class CuisinePackage(base):
 
     def start(self, package):
         if self._cuisine.core.isArch or self._cuisine.core.isUbuntu or self._cuisine.core.isMac:
-            self._cuisine.processmanager.start(package)
+            self._cuisine.processmanager.ensure(package)
         else:
             raise j.exceptions.RuntimeError("could not install/ensure:%s, platform not supported" % package)
 

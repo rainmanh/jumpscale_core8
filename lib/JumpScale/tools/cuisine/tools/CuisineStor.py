@@ -752,7 +752,6 @@ class StorSpace(object):
         """
         #TODO: maxim, the original format was not a dict, this is not ideal, if you have a big directory this will explode ! it needs to go back to original text format & processing on disk directly not in mem
         flist = {}
-        import pudb; pu.db
         for file in j.sal.fs.walk(path, recurse=True):
             stat = j.sal.fs.statPath(file)
             hash = j.data.hash.md5(file)

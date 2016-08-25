@@ -73,8 +73,12 @@ class CuisineDocker(app):
         @param ports e.g. 2022,2023
         @param volumes e.g. format: "/var/insidemachine:/var/inhost # /var/1:/var/1
         @param ports e.g. format "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
+        @param weave If weave is available on node, weave will be used by default. To make sure weave is available, set to True
 
         """
+        if weave:
+            self._cuisine.systemservices.weave.install(start=True)
+
         # TODO: *1 test
         self._init()
         if not '22:' in ports:
@@ -102,7 +106,6 @@ class CuisineDocker(app):
 
         cuisinedockerobj = j.tools.cuisine.get(connstr)
 
-        # TODO: *1 implement weave integration
         # NEED TO MAKE SURE WE CAN GET ACCESS TO THIS DOCKER WITHOUT OPENING PORTS
         # ON DOCKER HOST (which is current cuisine)
 

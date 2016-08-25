@@ -85,7 +85,11 @@ def createBridge(name):
     r, s, e = doexec(cmd.split())
     if r:
         raise j.exceptions.RuntimeError("Problem with creation of bridge %s, err was: %s" % (name, e))
-
+    if name == "public":
+        cmd = '%s set Bridge %s stp_enable=true' % (vsctl,name)
+        r, s, e = doexec(cmd.split())
+        if r:
+            raise j.exceptions.RuntimeError("Problem setting STP on bridge %s, err was: %s" % (name, e))
 
 def destroyBridge(name):
     cmd = '%s --if-exists del-br %s' % (vsctl, name)

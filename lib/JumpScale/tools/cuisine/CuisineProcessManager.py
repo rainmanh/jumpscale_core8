@@ -240,7 +240,7 @@ class CuisineTmuxec(ProcessManagerBase):
         res = [item.strip().rstrip("*-").strip() for item in res]
         return res
 
-    def ensure(self, name, cmd, env={}, path="", descr="", checkoutput=True):
+    def ensure(self, name, cmd, env={}, path="", descr=""):
         """Ensures that the given upstart service is self.running, starting
         it if necessary."""
         self.stop(name=name)

@@ -230,7 +230,7 @@ class Worker(object):
             if job.log or job.wait:
                 reportJob()
             # we don't have to keep status of local job result, has been forwarded to AC
-            if not job.internal:
+            if not hasattr(job, 'internal') or not job.internal:
                 self.redisw.redis.delete("workers:jobs:%s" % job.id)
 
 if __name__ == '__main__':

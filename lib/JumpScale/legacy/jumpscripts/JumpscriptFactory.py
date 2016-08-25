@@ -13,6 +13,8 @@ import time
 
 class Jumpscript(object):
     def __init__(self, ddict=None, path=None):
+        self.logger = j.logger.get('Jumpscript')
+
         self._loaded = False
         self.name = ""
         self.organization = ""
@@ -131,7 +133,7 @@ from JumpScale import j
                 return False, result
 
     def _getECO(self, e):
-        eco = j.errorconditionhandler.parsePythonErrorObject(e)
+        eco = j.errorconditionhandler.parsePythonExceptionObject(e)
         eco.tb = None
         eco.errormessage = 'Exec error procmgr jumpscr:%s_%s on node:%s_%s %s' % (self.organization, self.name, \
                                                                                   j.application.whoAmI.gid,
@@ -147,11 +149,9 @@ from JumpScale import j
         try:
             return True, self.module.action(*args, **kwargs)
         except Exception as e:
-            print("error in jumpscripts factory: execute in process.")
+            self.logger.error("error in jumpscripts factory: execute in process.")
             eco = self._getECO(e)
-            print(eco)
-            j.errorconditionhandler.raiseOperationalCritical(eco=eco, die=False)
-            print(eco)
+            self.logger.error(eco)
             return False, eco
 
     def execute(self, *args, **kwargs):

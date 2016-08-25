@@ -22,6 +22,7 @@ processes = list()
 
 class Process():
     def __init__(self):
+        self.log = j.logger.get('Process')
         self.name = "unknown"
         self.domain = ""
         self.pid = 0
@@ -81,17 +82,17 @@ class Process():
                                   stderr=stderr, bufsize=0, shell=False)  # f was: subprocess.PIPE
             self.pid = self.p.pid
         except Exception as e:
-            print("could not execute:%s\nError:\n%s" % (self, e))
+            self.log.error("could not execute:%s\nError:\n%s" % (self, e))
 
         time.sleep(0.1)
         if self.is_running() == False:
-            print("could not execute:%s\n" % (self))
+            self.log.warning("could not execute:%s\n" % (self))
             if j.sal.fs.exists(path=self.logpath):
                 log = j.sal.fs.fileGetContents(self.logpath)
-                print("log:\n%s" % log)
+                self.log.error(log)
 
     def do(self):
-        print('A new child %s' % self.name, os.getpid())
+        self.log.info('A new child %s' % self.name, os.getpid())
         if self.pythonCode != None:
             exec(self.pythonCode)
 
@@ -128,7 +129,7 @@ class ProcessManager():
         if opts.ip != "":
             # processmanager enabled
             while j.sal.nettools.waitConnectionTest(opts.ip, opts.port, 2) == False:
-                print("cannot connect to agentcontroller, will retry forever: '%s:%s'" % (opts.ip, opts.port))
+                self.log.info("cannot connect to agentcontroller, will retry forever: '%s:%s'" % (opts.ip, opts.port))
 
             # now register to agentcontroller
             self.acclient = self._getClient()
@@ -181,26 +182,26 @@ class ProcessManager():
         i = 0
         while True:
             i += 1
-            # print "NEXT:%s\n"%i    
+            # self.log.info "NEXT:%s\n"%i    
             for p in self.processes[:]:
                 # p.refresh()        
                 if p.p != None:
                     if not p.is_running():
                         if p.restart:
-                            print("%s:%s was stopped restarting" % (p.domain, p.name))
+                            self.log.info("%s:%s was stopped restarting" % (p.domain, p.name))
                             p.start()
                         else:
-                            print("Process %s has stopped" % p)
+                            self.log.info("Process %s has stopped" % p)
                             p.kill()
                             self.processes.remove(p)
 
             time.sleep(1)
             if len(self.processes) == 0:
-                print("no more children")
+                self.log.info("no more children")
                 # return
 
 parser = cmdutils.ArgumentParser()
-parser.add_argument('--grid-id', dest='gid', help='Grid id')
+parser.add_argument('--grid-id', dest='gid', type=int, default='1', help='Grid id')
 parser.add_argument('--services', help='list of services to run e.g heka, agentcontroller,web', required=False,
                     default="")
 
@@ -225,6 +226,6 @@ pm.services = [item.strip().lower() for item in opts.services.split(",")]
 try:
     pm.start()
 except KeyboardInterrupt:
-    print("Bye")
+    j.logger.log("Bye")
 
 j.application.stop()

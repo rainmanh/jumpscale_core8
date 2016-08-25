@@ -10,6 +10,7 @@ from JumpScale.legacy.jumpscripts.JumpscriptFactory import Jumpscript
 
 class JumpscriptsCmds():
     def __init__(self, daemon=None):
+        self.log = j.logger.get('JumpscriptsCmds')
         self.ORDER = 1
         self._name = "jumpscripts"
 
@@ -32,7 +33,7 @@ class JumpscriptsCmds():
         raise NotImplemented
 
     def loadJumpscripts(self, path="jumpscripts", session=None, init=False):
-        print ("LOAD JUMPSCRIPTS")
+        self.log.info("LOAD JUMPSCRIPTS")
         if session is not None:
             self._adminAuth(session.user, session.passwd)
 
@@ -70,11 +71,11 @@ class JumpscriptsCmds():
             try:
                 js = Jumpscript(path=jscriptpath)
             except Exception as e:
-                print('Failed to load jumpscript [%s]: %s' % (jscriptpath, e))
+                self.log.error('Failed to load jumpscript [%s]: %s' % (jscriptpath, e))
                 continue
 
             js.id = iddict.get((js.organization, js.name))
-            # print "from local:",
+            # self.log.info "from local:",
             self._processJumpscript(js, self.startatboot)
 
     def _processJumpscript(self, jumpscript, startatboot):
@@ -86,15 +87,14 @@ class JumpscriptsCmds():
             name = jumpscript.name
             self.jumpscripts["%s_%s" % (organization, name)] = jumpscript
 
-            print
-            "found jumpscript:%s " % ("%s_%s" % (organization, name))
+            self.log.info ("found jumpscript:%s_%s " % (organization, name))
             # self.jumpscripts["%s_%s" % (organization, name)] = jumpscript
             period = jumpscript.period
             if period is not None:
                 if period:
                     if period not in self.jumpscriptsByPeriod:
                         self.jumpscriptsByPeriod[period] = []
-                    print ("schedule jumpscript %s on period:%s" % (jumpscript.name, period))
+                    self.log.info("schedule jumpscript %s on period:%s" % (jumpscript.name, period))
                     self.jumpscriptsByPeriod[period].append(jumpscript)
 
             if jumpscript.startatboot:
@@ -132,7 +132,7 @@ class JumpscriptsCmds():
             for period in self.jumpscriptsByPeriod.keys():
                 self._run(period)
 
-        if self.jumpscriptsByPeriod.has_key(period):
+        if period in self.jumpscriptsByPeriod:
             for action in self.jumpscriptsByPeriod[period]:
                 action.execute(_redisw=redisw)
 

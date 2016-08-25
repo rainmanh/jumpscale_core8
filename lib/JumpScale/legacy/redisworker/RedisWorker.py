@@ -42,7 +42,7 @@ class Job(object):
             self.state = "SCHEDULED"  # SCHEDULED,STARTED,ERROR,OK,NOWORK
             self.timeStop = 0
             self.timeStart = 0
-            self.timeCreate = j.base.time.getTimeEpoch()
+            self.timeCreate = j.data.time.getTimeEpoch()
             self.log = log
             self.internal = internal
 
@@ -66,8 +66,7 @@ class Job(object):
         """
         self.gid = int(self.gid)
         self.id = int(self.id)
-        self.guid = j.base.byteprocessor.hashTiger160(
-            self.getContentKey())  # need to make sure roles & source cannot be changed
+        self.guid = j.data.hash.sha256_string(self.getContentKey())  # need to make sure roles & source cannot be changed
 
         return self.guid
 
@@ -78,7 +77,10 @@ class Job(object):
         # out=""
         # for item in ["cmd","category","args","source"]:
         #     out+=str(self.__dict__[item])
-        return j.tools.hash.md5_string(str(self.__dict__))
+        return j.data.hash.md5_string(str(self.__dict__))
+
+    def load(self, ddict):
+        self.__dict__ = ddict
 
 
 class RedisWorkerFactory(object):
@@ -183,7 +185,7 @@ def action%(argspec)s:
         js.source = source
         js.organization = _organization
         js.name = method.__name__
-        key = j.tools.hash.md5_string(source)
+        key = j.data.hash.md5_string(source)
 
         if self.redis.hexists("workers:jumpscripthashes", key):
             js.id = self.redis.hget("workers:jumpscripthashes", key)
@@ -366,14 +368,14 @@ def action%(argspec)s:
                 jobs.remove(job)
 
         if hoursago:
-            epochago = j.base.time.getEpochAgo(str(hoursago))
+            epochago = j.data.time.getEpochAgo(str(hoursago))
             for job in jobs:
                 if job['timeStart'] <= epochago:
                     jobs.remove(job)
         return jobs
 
     def removeJobs(self, hoursago=48, failed=False):
-        epochago = j.base.time.getEpochAgo(hoursago)
+        epochago = j.data.time.getEpochAgo(hoursago)
         for q in ('io', 'hypervisor', 'default'):
             jobs = dict()
             jobsjson = self.redis.hgetall('queues:workers:work:%s' % q)

@@ -26,6 +26,7 @@ def restart_program():
 
 class Worker(object):
     def __init__(self, queuename, logpath):
+        self.log = j.logger.get('Worker')
         self.actions = {}
         self.clients = dict()
         self.acclient = None
@@ -58,33 +59,33 @@ class Worker(object):
     def processAction(self, action):
         self.redisw.redis.delete("workers:action:%s" % self.queuename)
         if action == "RESTART":
-            self.log("RESTART ASKED")
+            self.log.info("RESTART ASKED")
             j.application.stop(0, True)
             restart_program()
 
         if action == "RELOAD":
-            self.log("RELOAD ASKED")
+            self.log.info("RELOAD ASKED")
             self.actions = {}
 
     def run(self):
-        self.log("STARTED")
+        self.log.info("STARTED")
         while True:
             self.redisw.redis.hset("workers:heartbeat", self.queuename, int(time.time()))
             if self.starttime + RUNTIME < time.time():
-                self.log("Running for %s seconds restarting" % RUNTIME)
+                self.log.info("Running for %s seconds restarting" % RUNTIME)
                 restart_program()
 
             try:
-                self.log("check if work")
+                self.log.info("check if work")
                 jtype, job = self.redisw._getWork(self.queuename, timeout=10)
             except Exception as e:
                 if str(e).find("Could not find queue to execute job") != -1:
                     # create queue
-                    self.log("could not find queue")
+                    self.log.info("could not find queue")
                 else:
                     # TODO: restore the ops error call
                     # j.events.opserror("Could not get work from redis, is redis running?", "workers.getwork", e)
-                    print("Could not get work from redis, is redis running?", "workers.getwork", e)
+                    self.log.error("Could not get work from redis, is redis running?: %s" % e)
 
                 time.sleep(10)
                 continue
@@ -97,7 +98,7 @@ class Worker(object):
                 try:
                     jscript = self.actions.get(jskey)
                     if jscript is None:
-                        self.log("JSCRIPT CACHEMISS")
+                        self.log.info("JSCRIPT CACHEMISS")
                         try:
                             jscript = self.redisw.getJumpscriptFromName(job.category, job.cmd)
                             if jscript is None:
@@ -107,7 +108,7 @@ class Worker(object):
                                 if jscript is None:
                                     msg = "cannot find jumpscripts with id:%s cat:%s cmd:%s" % (
                                     job.jscriptid, job.category, job.cmd)
-                                    self.log("ERROR:%s" % msg)
+                                    self.log.error(msg)
                                     eco = j.errorconditionhandler.raiseOperationalCritical(msg,
                                                                                            category="worker.jscript.notfound",
                                                                                            die=False)
@@ -144,8 +145,7 @@ class Worker(object):
 
                         self.actions[job.jscriptid] = jscript
 
-                    self.log(
-                        "Job started:%s script:%s %s/%s" % (job.id, jscript.id, jscript.organization, jscript.name))
+                    self.log.info("Job started:%s script:%s %s/%s" % (job.id, jscript.id, jscript.organization, jscript.name))
 
                     j.logger.enabled = job.log
 
@@ -187,7 +187,7 @@ class Worker(object):
                             if job.id < 1000000:
                                 eco.process()
                             else:
-                                self.log(eco)
+                                self.log.error(eco)
                             # j.events.bug_warning(msg,category="worker.jscript.notexecute")
                             # self.loghandler.logECO(eco)
                             job.state = "ERROR"
@@ -234,19 +234,6 @@ class Worker(object):
             # we don't have to keep status of local job result, has been forwarded to AC
             if not job.internal:
                 self.redisw.redis.delete("workers:jobs:%s" % job.id)
-
-    def log(self, message, category='', level=5, time=None):
-        if time is None:
-            time = j.data.time.getLocalTimeHR()
-        msg = "%s:worker:%s:%s" % (time, self.queuename, message)
-        try:
-            print(msg)
-        except IOError:
-            pass
-        if self.logFile != None:
-            msg = msg + "\n"
-            self.logFile.write(msg)
-
 
 if __name__ == '__main__':
     parser = cmdutils.ArgumentParser()

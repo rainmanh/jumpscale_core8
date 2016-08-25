@@ -8,6 +8,7 @@ from io import BytesIO
 import collections
 import os
 import base64
+import time
 
 
 class Jumpscript(object):
@@ -157,7 +158,7 @@ from JumpScale import j
         """
         """
         result = None, None
-        redisw = kwargs.pop('_redisw', j.clients.redisworker)
+        redisw = kwargs.pop('_redisw', j.legacy.redisworker)
 
         if not self.enable:
             return

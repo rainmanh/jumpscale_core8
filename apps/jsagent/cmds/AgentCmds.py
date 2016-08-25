@@ -9,7 +9,7 @@ class AgentCmds():
 
     def __init__(self, daemon=None):
         self._name = "agent"
-
+        self.log = j.logger.get('AgentCmds')
         if daemon == None:
             return
         self.daemon = daemon
@@ -18,9 +18,6 @@ class AgentCmds():
 
     def _init(self):
         self.init()
-
-    def log(self, msg):
-        print("processmanager:%s" % msg)
 
     def _adminAuth(self, user, password):
         raise NotImplemented
@@ -39,7 +36,7 @@ class AgentCmds():
                 client.register()
                 return client
             except Exception as e:
-                self.log("Failed to connect to agent controller: %s" % e)
+                self.log.error("Failed to connect to agent controller: %s" % e)
                 gevent.sleep(5)
 
     def loop(self):
@@ -48,20 +45,20 @@ class AgentCmds():
         """
         client = self.reconnect()
         gevent.sleep(2)
-        self.log("start loop to fetch work")
+        self.log.info("start loop to fetch work")
         while True:
             try:
                 try:
-                    self.log("check if work")
+                    self.log.info("check if work")
                     job = client.getWork(transporttimeout=65)
                     if job is not None:
-                        self.log("WORK FOUND: jobid:%(id)s cmd:%(cmd)s" % job)
+                        self.log.info("WORK FOUND: jobid:%(id)s cmd:%(cmd)s" % job)
                     else:
                         continue
                 except Exception as e:
-                    self.log('In exception %s' % e)
+                    self.log.error(e)
                     j.errorconditionhandler.processPythonExceptionObject(e)
-                    client = self.reconnect(acip, config)
+                    client = self.reconnect()
                     continue
 
                 job['achost'] = client.ipaddr
@@ -69,7 +66,7 @@ class AgentCmds():
                 if job["queue"] == "internal":
                     # cmd needs to be executed internally (is for proxy functionality)
 
-                    if self.daemon.cmdsInterfaces.has_key(job["category"]):
+                    if job["category"] in self.daemon.cmdsInterfaces:
                         job["resultcode"], returnformat, job["result"] = self.daemon.processRPC(job["cmd"],
                                                                                                 data=job["args"],
                                                                                                 returnformat="m",
@@ -91,16 +88,16 @@ class AgentCmds():
                     raise RuntimeError("jscript id needs to be filled in")
 
                 jscriptkey = "%(category)s_%(cmd)s" % job
-                if jscriptkey not in j.core.processmanager.cmds.jumpscripts.jumpscripts:
+                if jscriptkey not in j.legacy.processmanager.cmds.jumpscripts.jumpscripts:
                     msg = "could not find jumpscript %s on processmanager" % jscriptkey
                     job['state'] = 'ERROR'
                     job['result'] = msg
                     client.notifyWorkCompleted(job)
                     j.events.bug_critical(msg, "jumpscript.notfound")
 
-                jscript = j.core.processmanager.cmds.jumpscripts.jumpscripts[jscriptkey]
+                jscript = j.legacy.processmanager.cmds.jumpscripts.jumpscripts[jscriptkey]
                 if (jscript.async or job['queue']) and jscript.debug == False:
-                    j.clients.redisworker.execJobAsync(job)
+                    j.legacy.redisworker.execJobAsync(job)
                 else:
                     def run(localjob):
                         timeout = gevent.Timeout(localjob['timeout'])
@@ -117,7 +114,9 @@ class AgentCmds():
 
                     gevent.spawn(run, job)
             except Exception as e:
-                j.errorconditionhandler.processPythonExceptionObject(e)
+                self.log.error(e)
+                # TODO: process python exception
+                # j.errorconditionhandler.processPythonExceptionObject(e)
 
     def _killGreenLets(self, session=None):
         """
@@ -132,16 +131,18 @@ class AgentCmds():
                 greenlet.kill()
                 todelete.append(key)
         for key in todelete:
-            j.core.processmanager.daemon.greenlets.pop(key)
+            j.legacy.processmanager.daemon.greenlets.pop(key)
 
     def checkRedisStatus(self, session=None):
-        notrunning = list()
-        for redisinstance in ['redisac', 'redisp', 'redisc']:
-            if not j.clients.redis.getProcessPids(redisinstance):
-                notrunning.append(redisinstance)
-        if not notrunning:
-            return True
-        return notrunning
+        for redisinstance in [j.core.db]:
+            running = True
+            try:
+                running = redisinstance.pint()
+            except:
+                running = False
+            if not running:
+                return False
+        return True
 
     def checkRedisSize(self, session=None):
         redisinfo = j.clients.redisworker.redis.info().split('\r\n')

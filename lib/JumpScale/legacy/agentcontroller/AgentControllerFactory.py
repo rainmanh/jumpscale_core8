@@ -92,7 +92,7 @@ class AgentControllerClient:
                 eco, organization, name, role, result["id"])
 
                 if errorreport:
-                    print(msg)
+                    j.logger.log(msg)
 
                 if dieOnFailure:
                     j.errorconditionhandler.halt(msg)

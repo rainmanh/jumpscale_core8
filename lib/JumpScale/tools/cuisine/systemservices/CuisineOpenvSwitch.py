@@ -32,7 +32,7 @@ class CuisineOpenvSwitch(base):
     def install(self):
         if self._cuisine.core.isUbuntu:
             # TODO: check is ubuntu 16.04
-            raise NotImplemented
+            raise NotImplemented()
         else:
             raise RuntimeError("only support ubuntu")
         # do checks if openvswitch installed & configured properly if not install
@@ -43,9 +43,13 @@ class CuisineOpenvSwitch(base):
         """
         # TODO: *1 spec
         # is a name relevant???, how do we identify a vnic
+        raise NotImplemented()
 
-    def vnicDelete(..)
+    def vnicDelete(**kwargs):
+        raise NotImplemented()
 
-    def vnicQOS(self, ...):
+    def vnicQOS(self, **kwargs):
         # TODO: *1 spec what is relevant for a vnic from QOS perspective, what can we do
         # goal is we can do this at runtime
+
+        raise NotImplemented()

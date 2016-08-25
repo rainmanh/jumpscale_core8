@@ -32,6 +32,7 @@ class CuisineKVMMachineObj():
     @property
     def mem(self):
         # get from reality
+        raise NotImplemented()
 
     @property
     def path(self):
@@ -39,23 +40,27 @@ class CuisineKVMMachineObj():
 
     def start(self):
         # TODO:
+        raise NotImplemented()
 
     def stop(self):
         # TODO:
+        raise NotImplemented()
 
     def restart(self):
         # TODO:
+        raise NotImplemented()
 
     @property
     def cuisine(self):
         # TODO: get cuisine connection into VM
+        raise NotImplemented()
 
-    def qos(self, ...):
+    def qos(self, **kwargs):
         """
         set vmachine QOS settings at runtime e.g. pinning to core?
         """
-
-    # TODO: spec further
+        # TODO: spec further
+        raise NotImplemented()
 
 
 class CuisineKVM(base):
@@ -82,7 +87,7 @@ class CuisineKVM(base):
     def install(self):
         if self._cuisine.core.isUbuntu and self._cuisine.core.osversion == '16.04':
             # TODO: check is ubuntu 16.04
-            raise NotImplemented
+            raise NotImplemented()
         else:
             raise RuntimeError("only support ubuntu")
         self._libvirt()
@@ -94,8 +99,8 @@ class CuisineKVM(base):
         if self._path == None:
             # look for btrfs fs kvm, is where all vm & disk info will be
             # TODO *1
-            j.sal.fs.createDir(j.sal.fs.joinPaths(self._path, "vm")
-            j.sal.fs.createDir(j.sal.fs.joinPaths(self._path, "disk")
+            j.sal.fs.createDir(j.sal.fs.joinPaths(self._path, "vm"))
+            j.sal.fs.createDir(j.sal.fs.joinPaths(self._path, "disk"))
         return self._path
 
     def vmGetPath(self, name):
@@ -120,18 +125,24 @@ class CuisineKVM(base):
         @param size in GB
         """
         # create an empty disk we can attach
+        raise NotImplemented()
 
     def vdiskDelete(self, name):
+        raise NotImplemented()
 
     def vdisksList(self):
+        raise NotImplemented()
 
     def vnicCreate(self, name):
         # TODO: how to specify a virtual nic
+        raise NotImplemented()
 
     def vnicDelete(self, name):
         # TODO: how to specify a virtual nic
+        raise NotImplemented()
 
-    def vnicsList(...):
+    def vnicsList(**kwargs):
+        raise NotImplemented()
 
 
     def machineCreate(self, name, disks, nics, mem, pubkey=None):
@@ -153,14 +164,16 @@ class CuisineKVM(base):
         # NEED TO MAKE SURE WE CAN GET ACCESS TO THIS KVM WITHOUT OPENING PORTS
         # ON KVM HOST (which is current cuisine)
 
-        return KVMMachineObj...
+        return KVMMachineObj
 
-    def vnicQOS(self, name...):
+    def vnicQOS(self, name, **kwargs):
         """
         set vnic QOS settings at runtime
         """
+        raise NotImplemented()
 
-    def vdiskQOS(self, name...):
+    def vdiskQOS(self, name, **kwargs):
         """
         set vdisk QOS settings at runtime
         """
+        raise NotImplemented()

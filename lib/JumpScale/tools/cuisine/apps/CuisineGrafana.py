@@ -7,12 +7,10 @@ class CuisineGrafana(app):
 
     NAME = 'grafana-server'
 
-    def install(self, start=True, influx_addr='127.0.0.1', influx_port=8086, port=3000):
-        #if self.isInstalled():
-        #    return
+    def build(self, reset=False):
 
-        # TODO: *1 influx_addr & port not implemented to change in config file
-        # TODO: *2 need to test the isLinux one,
+        if reset == False and self.isInstalled():
+            return
 
         if self._cuisine.core.isUbuntu:
             C = """
@@ -22,16 +20,16 @@ class CuisineGrafana(app):
             sudo dpkg -i grafana_3.1.1-1470047149_amd64.deb
 
             """
-            # self._cuisine.core.pprint(C)
             self._cuisine.core.execute_bash(C, profile=True)
-
-            self._cuisine.core.file_copy("/usr/sbin/grafana*", dest="$binDir")
-
-            self._cuisine.core.dir_ensure("$appDir/grafana")
-            self._cuisine.core.file_copy("/usr/share/grafana/", "$appDir/", recursive=True)
-
         else:
             raise RuntimeError("platform not supported")
+
+    def install(self, start=False, influx_addr='127.0.0.1', influx_port=8086, port=3000):
+
+        self._cuisine.core.file_copy("/usr/sbin/grafana*", dest="$binDir")
+
+        self._cuisine.core.dir_ensure("$appDir/grafana")
+        self._cuisine.core.file_copy("/usr/share/grafana/", "$appDir/", recursive=True)
 
         if self._cuisine.core.file_exists("/usr/share/grafana/conf/defaults.ini"):
             cfg = self._cuisine.core.file_read("/usr/share/grafana/conf/defaults.ini")
@@ -39,9 +37,8 @@ class CuisineGrafana(app):
             cfg = self._cuisine.core.file_read('$tmpDir/cfg/grafana/conf/defaults.ini')
         self._cuisine.core.file_write('$cfgDir/grafana/grafana.ini', cfg)
 
-    # def build(self, start=True, influx_addr='127.0.0.1', influx_port=8086, port=3000):
-    #     if start:
-    #         self.start(influx_addr=influx_addr, influx_port=influx_port, port=port)
+        if start:
+            self.start(influx_addr, influx_port, port)
 
     def start(self, influx_addr='127.0.0.1', influx_port=8086, port=3000):
 
@@ -232,5 +229,5 @@ class CuisineGrafana(app):
         return dashboard;
 
         """
-
+        
         self._cuisine.core.file_write('$tmplsDir/cfg/grafana/public/dashboards/scriptedagent.js', scriptedagent)

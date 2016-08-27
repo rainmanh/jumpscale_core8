@@ -78,7 +78,12 @@ class CuisineVRouter(base):
         create bridge which has accesspoint interface in it (wireless)
         """
         ipaddr = "%s.254" % self.freeNetworkRangeDMZ
-        # TODO: *1 check if ipaddr is already set, if yet nothing to do (on br0)
+
+        try:
+            if ipaddr in self.cuisine.net.getInfo("br0")["ip"]:
+                return
+        except:
+            pass
 
         C = """
         auto br0
@@ -115,8 +120,7 @@ class CuisineVRouter(base):
 
     def dnsServer(self):
         self.check()
-        # TODO: *1 something wrong in next line, it doesn't create session, need to create if it doesn't exist otherwise no
-        # self._cuisine.tmux.createSession("ovsrouter",["dns"])
+        self._cuisine.tmux.createSession("ovsrouter",["dns"], returnifexists=True, killifexists=False)
         self._cuisine.process.kill("dns-server")
         cmd = "jspython /opt/dnsmasq-alt/dns-server.py"
         self.cuisine.tmux.executeInScreen('ovsrouter', 'dns', cmd)

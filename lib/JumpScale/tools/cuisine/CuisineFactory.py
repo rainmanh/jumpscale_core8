@@ -78,6 +78,7 @@ class JSCuisineFactory:
         self.__jslocation__ = "j.tools.cuisine"
         self._local = None
         self._cuisines_instance = {}
+        self.logger = j.logger.get("j.tools.cuisine")
 
     def _getBaseClass(self):
         return CuisineBase
@@ -122,13 +123,16 @@ class JSCuisineFactory:
         executor = None
         if not passwd:
             # TODO: fix *1,goal is to test if ssh works, get some weird paramiko issues or timeout is too long
-            res = j.clients.ssh.get(addr, port=port, login=login, passwd="", allow_agent=True,
-                                    look_for_keys=True, timeout=0.5, key_filename=keyname, passphrase=passphrase, die=False)
-            if res is not False:
+            try:
+                res = j.clients.ssh.get(addr, port=port, login=login, passwd="", allow_agent=True,
+                                        look_for_keys=True, timeout=0.5, key_filename=keyname, passphrase=passphrase, die=True)
+                res.execute('hostname')
+            except Exception as e: # must check what error is
+                self.logger.error(e)
+                passwd = j.tools.console.askPassword("please specify root passwd", False)
+            else:
                 executor = j.tools.executor.getSSHBased(
                     addr=addr, port=port, login=login, pushkey=keyname, passphrase=passphrase)
-            else:
-                passwd = j.tools.console.askPassword("please specify root passwd", False)
 
         if pubkey == "":
             if keyname == "":

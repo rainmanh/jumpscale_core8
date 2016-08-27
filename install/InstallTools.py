@@ -1046,12 +1046,14 @@ class InstallTools():
         if executor:
             return executor.execute(command, die=die, checkok=False, async=async,  showout=True, timeout=timeout)
 
+        executable = '/bin/bash' if useShell else None
+
         if async:
             os.environ["PYTHONUNBUFFERED"] = "1"
             ON_POSIX = 'posix' in sys.builtin_module_names
 
             proc = Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=ON_POSIX,
-                         shell=useShell, env=os.environ, universal_newlines=True, cwd=cwd, bufsize=0)
+                         shell=useShell, env=os.environ, universal_newlines=True, cwd=cwd, bufsize=0, executable=executable)
             return proc
 
         @asyncio.coroutine
@@ -1076,7 +1078,8 @@ class InstallTools():
             proc = yield from asyncio.create_subprocess_shell(cmd,
                                                               stdout=asyncio.subprocess.PIPE,
                                                               stderr=asyncio.subprocess.PIPE,
-                                                              close_fds=True)
+                                                              close_fds=True,
+                                                              executable=executable)
 
             out = yield from _read_stream(showout, proc.stdout)
             err = yield from _read_stream(outputStderr, proc.stderr)

@@ -30,14 +30,13 @@ class CuisineFW(base):
         """as alternative on ufw"""
         if self._cuisine.core.isMac:
             return
-        raise NotImplemented()
-        # TODO: *1 implement
+        self._cuisine.core.run("nft add rule filter input {protocol} dport {port} log accept".format(protocol=protocl, port=port))
 
     def denyIncoming(self, port):
         if self._cuisine.core.isMac:
             return
-        # TODO: *1 implement
-        raise NotImplemented()
+        self._cuisine.core.run("nft add rule filter input {protocol} dport {port} log reject".format(protocol=protocl, port=port))
+
 
     def flush(self, permanent=False):
         self._cuisine.core.run("nft flush ruleset")
@@ -55,6 +54,10 @@ class CuisineFW(base):
         if not self._cuisine.net.ping(pinghost):
             raise j.exceptions.Input(
                 message="Cannot set firewall ruleset if we cannot ping to the host we have to check against.", level=1, source="", tags="", msgpub="")
+        rc, currentruleset, err = self._cuisine.core.run("nft list ruleset")
+        if ruleset in currentruleset:
+            return
+
 
         pscript = """
         C='''
@@ -67,14 +70,11 @@ class CuisineFW(base):
         if rc>0:
             raise RuntimeError("Cannot export firelwall ruleset")
 
-        #TODO: *1 check old ruleset exists
-
         f = open('/etc/nftables.conf', 'w')
         f.write(C)
 
         #now applying
         print("applied ruleset")
-        rc=os.system("nft -f /etc/nftables.conf")
         rc=os.system("nft -f /etc/nftables.conf")
         time.sleep(1)
 

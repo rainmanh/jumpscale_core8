@@ -2,7 +2,7 @@ import requests
 from client_utils import build_query_string
 import client_lower
 from JumpScale import j
-
+from JumpScale.portal.portal.exceptions import exceptions_factory
 
 class Client:
     """
@@ -32,9 +32,12 @@ class Client:
                 errormsg = resp.json()['error']
             except:
                 errormsg = resp.text
-            raise j.exceptions.RuntimeError(errormsg)
+            raise exceptions_factory(resp.status_code, errormsg)
+
+        # 204 no-content, don't try to return anything
         if code == 204:
             return
+
         return resp.json()
 
     def updateCockpit(self, headers=None, query_params=None):
@@ -385,8 +388,7 @@ class Client:
         Get an aysrun
         It is method for GET /ays/repository/{repository}/aysrun/{aysrun}
         """
-        resp = self._client.getRun(
-            aysrun=aysrun, repository=repository, headers=headers, query_params=query_params)
+        resp = self._client.getRun(aysrun=aysrun, repository=repository, headers=headers, query_params=query_params)
         self._assert_response(resp)
         return resp.json()
 

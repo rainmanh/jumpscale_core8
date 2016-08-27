@@ -7,7 +7,6 @@ import socket
 
 import threading
 import queue
-import inspect
 
 
 class SSHClientFactory:
@@ -150,15 +149,6 @@ class SSHClient:
     @property
     def transport(self):
         if self.client is None:
-            curframe = inspect.currentframe()
-            calframes = inspect.getouterframes(curframe, 8)
-            stack = ['FILE:%s, LINE:%s, NAME: %s' % (calframe[1], calframe[2], calframe[
-                                                     3]) for calframe in calframes]
-            self.logger.error(
-                '''\t ERROR WAS:
-            %s
-            ''' % '\n\t'.join(stack))
-
             raise j.exceptions.RuntimeError(
                 "Could not connect to %s:%s" % (self.addr, self.port))
         return self.client.get_transport()
@@ -198,28 +188,12 @@ class SSHClient:
                                          timeout=2.0, banner_timeout=3.0)
                     break
                 except (BadHostKeyException, AuthenticationException) as e:
-                    curframe = inspect.currentframe()
-                    calframes = inspect.getouterframes(curframe, 8)
-                    stack = ['FILE:%s, LINE:%s, NAME: %s' % (calframe[1], calframe[2], calframe[
-                                                             3]) for calframe in calframes]
-                    self.logger.error(
-                        '''\t ERROR WAS:
-                    %s
-                    ''' % '\n\t'.join(stack))
                     self.logger.error(
                         "Authentification error. Aborting connection")
                     self.logger.error(e)
                     raise j.exceptions.RuntimeError(str(e))
 
                 except (SSHException, socket.error) as e:
-                    curframe = inspect.currentframe()
-                    calframes = inspect.getouterframes(curframe, 8)
-                    stack = ['FILE:%s, LINE:%s, NAME: %s' % (calframe[1], calframe[2], calframe[
-                                                             3]) for calframe in calframes]
-                    self.logger.error(
-                        '''\t ERROR WAS:
-                    %s
-                    ''' % '\n\t'.join(stack))
                     self.logger.error(
                         "Unexpected error in socket connection for ssh. Aborting connection and try again.")
                     self.logger.error(e)

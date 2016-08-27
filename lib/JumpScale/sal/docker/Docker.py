@@ -21,6 +21,8 @@ class Docker:
 
         if 'DOCKER_HOST' not in os.environ or os.environ['DOCKER_HOST'] == "":
             self.base_url = 'unix://var/run/docker.sock'
+        elif self.weaveIsActive:
+            self.base_url = self.weavesocket
         else:
             self.base_url = os.environ['DOCKER_HOST']
         self.client = docker.Client(base_url=self.base_url, timeout=120)

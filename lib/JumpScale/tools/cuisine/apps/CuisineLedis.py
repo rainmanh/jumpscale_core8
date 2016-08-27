@@ -5,7 +5,7 @@ app = j.tools.cuisine._getBaseAppClass()
 
 class CuisineLedis(app):
     NAME = "ledis-server"
-    def build(self, backend="leveldb", reset=False):
+    def build(self, backend="leveldb", install=True, start=True, reset=False):
         if reset == False and self.isInstalled():
             return
 
@@ -44,6 +44,9 @@ class CuisineLedis(app):
             script = C.format(ledisdir=ledisdir)
             out = self._cuisine.core.execute_bash(script, profile=True)
 
+            if install:
+                self.install(start=True)
+
     def _prepareleveldb(self):
         # execute the build script in tools/build_leveldb.sh
         # it will install snappy/leveldb in /usr/local{snappy/leveldb} directories
@@ -59,6 +62,7 @@ class CuisineLedis(app):
         ledisdir = self._cuisine.core.args_replace("$goDir/src/github.com/siddontang/ledisdb")
 
         #rc, out, err = self._cuisine.core.run("cd {ledisdir} && source dev.sh && make install".format(ledisdir=ledisdir), profile=True)
+        self._cuisine.core.dir_ensure("$tmplsDir/cfg")  
         self._cuisine.core.file_copy("/tmp/ledisconfig.toml", dest="$tmplsDir/cfg/ledisconfig.toml")
         self._cuisine.core.file_copy("{ledisdir}/bin/*".format(ledisdir=ledisdir), dest="$binDir")
         self._cuisine.core.file_copy("{ledisdir}/dev.sh".format(ledisdir=ledisdir), dest="$tmplsDir/ledisdev.sh")
@@ -68,4 +72,5 @@ class CuisineLedis(app):
 
     def start(self):
         cmd = "source $tmplsDir/ledisdev.sh && $binDir/ledis-server -config $tmplsDir/cfg/ledisconfig.toml"
-        self._cuisine.processmanager.ensure(name='ledis', cmd=cmd)
+        pm = self._cuisine.processmanager.get("tmux")
+        pm.ensure(name='ledis', cmd=cmd)

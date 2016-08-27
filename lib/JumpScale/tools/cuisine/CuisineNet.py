@@ -13,10 +13,18 @@ class CuisineNet(base):
         self._cuisine = cuisine
 
     def netconfig(self, interface, ipaddr, cidr=24, gateway=None, dns="8.8.8.8", masquerading=False):
-        raise j.exceptions.RuntimeError("please implement using systemd")  # TODO: *2
+        conf = """
+[Match]
+Name={interface}
 
-    def netconfig(self, interface):
-        raise j.exceptions.RuntimeError("please implement using systemd")  # TODO: *2
+[Network]
+DNS={dns}
+Address={ipaddr}/{cidr}
+Gateway={gateway}
+        """.format(ipaddr=ipaddr, dns=dns, cidr=cidr, gateway=gateway)
+
+        targetfile='/etc/systemd/network/{interface}.network'.format(interface=interface)
+        self._cuisine.core.write_file(targetfile, content=conf)
 
     @property
     def nics(self):

@@ -9,10 +9,11 @@ class CuisineRedis(app):
 
     def build(self, reset=False):
         raise NotImplementedError()
-        
+
 
     def install(self, reset=False):
         if reset == False and self.isInstalled():
+            print('Redis is already installed, pass reset=True to reinstall.')
             return
         if self._cuisine.core.isUbuntu:
             self._cuisine.package.update()
@@ -38,7 +39,7 @@ class CuisineRedis(app):
             C = self._cuisine.bash.replaceEnvironInText(C)
             C = self._cuisine.core.args_replace(C)
             self._cuisine.core.execute_bash(C)
-            
+
             # move action
             C = """
             set -ex
@@ -57,10 +58,13 @@ class CuisineRedis(app):
 
     def start(self, name="main", ip="localhost", port=6379, maxram=200, appendonly=True,
               snapshot=False, slave=(), ismaster=False, passwd=None, unixsocket=True, start=True):
-        # TODO: *1 lets carefully check this
         redis_cli = j.clients.redis.getInstance(self._cuisine)
         redis_cli.configureInstance(name, ip, port, maxram=maxram, appendonly=appendonly,
                                     snapshot=snapshot, slave=slave, ismaster=ismaster, passwd=passwd, unixsocket=False)
         dpath, cpath = j.clients.redis._getPaths(name)
         cmd = "$binDir/redis-server %s" % cpath
         self._cuisine.processmanager.ensure(name="redis_%s" % name, cmd=cmd, env={}, path='$binDir')
+
+        # Checking if redis is started correctly with port specified
+        if not redis_cli.isRunning(ip_address=ip, port=port):
+            raise j.exceptions.RuntimeError('Redis is failed to start correctly')

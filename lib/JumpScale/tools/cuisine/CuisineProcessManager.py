@@ -259,9 +259,6 @@ class CuisineTmuxec(ProcessManagerBase):
 
         self._cuisine.tmux.executeInScreen("main", name, cmd)
 
-    def start(self, name):
-        raise j.exceptions.RuntimeError("cannot do start of name in tmux session, use ensure")
-
     def stop(self, name):
         """Ensures that the given upstart service is stopped."""
         if name in self.list():

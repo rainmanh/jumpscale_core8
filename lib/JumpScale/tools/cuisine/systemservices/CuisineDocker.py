@@ -9,9 +9,21 @@ class CuisineDocker(app):
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
+    
+    def _init(self):
+        try:
+            self._cuisine.core.run("service docker start")
+        except Exception as e:
+            if 'cgroup is already mounted' in e.__str__():
+                return
+            raise e
 
-    def install(self):
+    def install(self, reset=False):
+        if reset==False and self.isInstalled():
+            return
         if self._cuisine.core.isUbuntu:
+            self._cuisine.bash.EnvironSet('LC_ALL', 'C.UTF-8')
+            self._cuisine.bash.EnvironSet('LANG', 'C.UTF-8')
             if not self._cuisine.core.command_check('docker'):
                 C = """
                 wget -qO- https://get.docker.com/ | sh
@@ -26,13 +38,14 @@ class CuisineDocker(app):
         if self._cuisine.core.isArch:
             self._cuisine.package.install("docker")
             self._cuisine.package.install("docker-compose")
+        self._init()
 
     def ubuntuBuild(self, push=False):
 
         # TODO: *2 test
-
+        self._init()
         dest = self._cuisine.development.git.pullRepo('https://github.com/Jumpscale/dockers.git', ssh=False)
-        path = self._cuisine.core.joinpaths(dest, 'js8/x86_64/2_ubuntu1604')
+        path = self._cuisine.core.joinpaths(dest, 'js8/x86_64/01_ubuntu1604')
 
         C = """
         set -ex
@@ -53,16 +66,23 @@ class CuisineDocker(app):
         # change passwd
         dockerCuisineObject.user.passwd("root", j.data.idgenerator.generateGUID())
 
-    def dockerStart(self, name="ubuntu1", image='jumpscale/ubuntu1604_all', ports=None, volumes=None, pubkey=None, weave=False):
+    def dockerStart(self, name="ubuntu1", image='jumpscale/ubuntu1604_all', ports='', volumes=None, pubkey=None, weave=False):
         """
         will return dockerCuisineObj: is again a cuisine obj on which all kinds of actions can be executed
 
         @param ports e.g. 2022,2023
         @param volumes e.g. format: "/var/insidemachine:/var/inhost # /var/1:/var/1
         @param ports e.g. format "22:8022 80:8080"  the first arg e.g. 22 is the port in the container
+        @param weave If weave is available on node, weave will be used by default. To make sure weave is available, set to True
 
         """
+        if weave:
+            self._cuisine.systemservices.weave.install(start=True)
+
         # TODO: *1 test
+        self._init()
+        if not '22:' in ports:
+            ports += '22:2202'
         cmd = "jsdocker create --name {name} --image {image}".format(name=name, image=image)
         if pubkey:
             cmd += " --pubkey '%s'" % pubkey
@@ -85,10 +105,6 @@ class CuisineDocker(app):
             connstr = "%s:%s" % (self._executor.addr, port)
 
         cuisinedockerobj = j.tools.cuisine.get(connstr)
-
-        # TODO: *1 implement weave integration
-
-        # TODO: *1 create ssh portforward from this cuisine to localhost to allow access to port used by this docker
 
         # NEED TO MAKE SURE WE CAN GET ACCESS TO THIS DOCKER WITHOUT OPENING PORTS
         # ON DOCKER HOST (which is current cuisine)

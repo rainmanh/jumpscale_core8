@@ -139,15 +139,23 @@ class CuisineSandbox(base):
                 rm -rf /overlay/js_work
                 rm -rf /optrw
                 js8 stop
-                pskill js8
+                pkill js8
                 umount -f /opt
                 echo "OK"
                 """
-        else:
+        if self._cuisine.core.isMac:
+            C = """
+                set +ex
+                js8 stop
+                pkill js8
+                echo "OK"
+                """
+        if self._cuisine.core.isCygwin:
             C = """
                 set +ex
                 js8 stop
                 pskill js8
                 echo "OK"
                 """
+
         self._cuisine.core.execute_bash(C)

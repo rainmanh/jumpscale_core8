@@ -128,16 +128,20 @@ class CuisineTmux(base):
             counter = 0
             ffound = -1
             while ffound:
+                # TODO: does not work if I'm opening js from a tmux.
+                # out returned is not rubbish
                 rc, out, err = self._executor.executeRaw("tmux capture-pane -pS -5000", showout=False)
                 # initial command needs to go
-                out = out.split("echo **OK** || echo **ERROR**\n")[-1]
-                ffound = out.find("**START**")
+                out = out.split('%s\n' % cmd)[-1]
+                ffound = '**START**' in out
                 if ffound == -1:
                     time.sleep(0.1)
                     print("reread from tmux, cmd did not start yet")
                 counter += 1
+                if out.find("**ERROR**") != -1:
+                    break
                 if counter > 10:
-                    raise RuntimeError("cannot read pane from tmux, did not find started cmd")
+                    break
 
             out = out.split("**START**")[-1]
             if out.find("**ERROR**") != -1:
@@ -158,6 +162,10 @@ class CuisineTmux(base):
                 if out.find("\n") != -1:
                     out += "\n"
                 return 0, out
+            else:
+                # Assumption here is if it's timedout and there's error or ok then it's hanging
+                # Or like in case of redis it's a long running process or has output redirection
+                return 0, 'Warning: It\'s either hanging or running until explicitly closed'
             return 999, out
 
         if rc == 0:

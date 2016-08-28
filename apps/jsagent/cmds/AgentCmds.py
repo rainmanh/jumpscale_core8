@@ -60,7 +60,6 @@ class AgentCmds():
                     j.errorconditionhandler.processPythonExceptionObject(e)
                     client = self.reconnect()
                     continue
-
                 job['achost'] = client.ipaddr
                 job['nid'] = j.application.whoAmI.nid
                 if job["queue"] == "internal":

@@ -8,6 +8,7 @@ class CuisineWeave(app):
     virtual network services for docker
     """
     NAME = "weave"
+
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine

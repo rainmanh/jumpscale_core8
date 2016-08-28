@@ -30,7 +30,6 @@ class CuisineTmux(base):
         if killifexists:
             self.killSession(sessionname)
 
-
         if len(screens) < 1:
             raise j.exceptions.RuntimeError(
                 "Cannot create screens, need at least 1 screen specified")
@@ -126,15 +125,15 @@ class CuisineTmux(base):
         def checkOutput(die, async=False):
             out = ""
             counter = 0
-            ffound = -1
-            while ffound:
+            ffound = False
+            while not ffound:
                 # TODO: does not work if I'm opening js from a tmux.
                 # out returned is not rubbish
                 rc, out, err = self._executor.executeRaw("tmux capture-pane -pS -5000", showout=False)
                 # initial command needs to go
                 out = out.split('%s\n' % cmd)[-1]
                 ffound = '**START**' in out
-                if ffound == -1:
+                if not ffound:
                     time.sleep(0.1)
                     print("reread from tmux, cmd did not start yet")
                 counter += 1

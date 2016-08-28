@@ -89,7 +89,7 @@ class CuisineG8OSCore(base):
             cfgdir, "/core/extensions/jumpscript")
         cfg["extension"]["js_daemon"]["cwd"] = self._cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscript")
         cfg["extension"]["js_daemon"]["env"][
-            "JUMPSCRIPTS_HOME"] = self._cuisine.core.joinpaths(cfgdir, "/core/jumpscript/")
+            "JUMPSCRIPTS_HOME"] = self._cuisine.core.joinpaths(cfgdir, "/core/jumpscripts/")
         cfg["logging"]["db"]["address"] = self._cuisine.core.joinpaths(cfgdir, "/core/logs")
         C = j.data.serializer.toml.dumps(cfg)
 

@@ -48,7 +48,7 @@ class CuisineApp(CuisineBase):
         Checks if a package is installed or not
         You can ovveride it to use another way for checking
         """
-        return not self._cuisine.core.command_check(self.NAME)
+        return self._cuisine.core.command_check(self.NAME)
 
     def install(self):
         if not self.isInstalled():

@@ -5,7 +5,7 @@ from time import sleep
 app = j.tools.cuisine._getBaseAppClass()
 
 class CuisineMongodb(app):
-    NAME = 'mongod'   
+    NAME = 'mongod'
 
     def __init__(self, executor, cuisine):
         self._executor = executor
@@ -14,9 +14,10 @@ class CuisineMongodb(app):
     def _build(self):
         if self.isInstalled():
             print('MongoDB is already installed.')
-            return 
+            return
         else:
-            appbase = self._cuisine.core.dir_paths["binDir"]
+            appbase = "%s/" % self._cuisine.core.dir_paths["binDir"]
+            self._cuisine.core.dir_ensure(appbase)
 
             url = None
             if self._cuisine.core.isUbuntu:
@@ -45,7 +46,7 @@ class CuisineMongodb(app):
 
     def install(self, start=True):
         """
-        download, install, move files to appropriate places, and create relavent configs 
+        download, install, move files to appropriate places, and create relavent configs
         """
         self._cuisine.core.dir_ensure('$varDir/data/mongodb')
         if start:
@@ -55,7 +56,7 @@ class CuisineMongodb(app):
         self._build()
         if install:
             self.install(start)
-    
+
     def start(self, name="mongod"):
         which = self._cuisine.core.command_location("mongod")
         self._cuisine.core.dir_ensure('$varDir/data/mongodb')

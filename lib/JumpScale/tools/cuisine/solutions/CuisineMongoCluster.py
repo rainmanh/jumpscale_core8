@@ -1,11 +1,10 @@
 from JumpScale import j
 from time import sleep
 
-# TODO: *2 should be properly documented
-
-
 class Startable:
-
+    """
+    This class to ensure that things get installed and started only once
+    """
     def __init__(self):
         self.installed = False
         self.started = False
@@ -46,12 +45,14 @@ class Startable:
 
 
 class MongoInstance(Startable):
-
+    """
+    This class represents a mongo instance
+    """
     def __init__(self, cuisine, addr=None, private_port=27021, public_port=None, type_="shard", replica='', configdb='', dbdir=None):
         super().__init__()
         self._cuisine = cuisine
         if not addr:
-            self.addr = cuisine.core.executor.addr
+            self.addr = cuisine._executor.addr
         else:
             self.addr = addr
         self.private_port = private_port
@@ -119,6 +120,9 @@ class MongoInstance(Startable):
 
 
 class MongoSInstance(Startable):
+    """
+    This class represents a mongos instance
+    """
 
     def __init__(self, nodes, configdb):
         super().__init__()
@@ -143,6 +147,9 @@ class MongoSInstance(Startable):
 
 
 class MongoCluster(Startable):
+    """
+    This class represents the cluster itself
+    """
 
     def __init__(self, nodes, configdb, shards, unique=""):
         super().__init__()
@@ -169,6 +176,9 @@ class MongoCluster(Startable):
 
 
 class MongoReplica(Startable):
+    """
+    This class represents a replica set
+    """
 
     def __init__(self, nodes, primary=None, name="", configsvr=False):
         super().__init__()
@@ -189,7 +199,7 @@ class MongoReplica(Startable):
 
     def _prepare_json_all(self):
         reprs = [repr(i) for i in self.all]
-        return ", ".join(["{ _id: %s, host: \"%s\" , priority: %f}" % (i, k, 1.0 / i) for i, k in enumerate(reprs)])
+        return ", ".join(["{ _id: %s, host: \"%s\" , priority: %f}" % (i, k, 1.0 / (i + 1)) for i, k in enumerate(reprs)])
 
     def _prepare_init(self):
         cfg = "configsvr: true,version:1," if self.configsvr else ""
@@ -213,6 +223,9 @@ class MongoReplica(Startable):
 
 
 class MongoConfigSvr(Startable):
+    """
+    This class represents the config server
+    """
 
     def __init__(self, nodes, primary=None, name=""):
         super().__init__()
@@ -229,47 +242,77 @@ class MongoConfigSvr(Startable):
 
     __str__ = __repr__
 
-
-# TODO: *1 way too complex, please simplify & document
-# goal is to run this in dockers so no need to speficy port nr's can all be predifned
-
-def mongoCluster(shards_nodes, config_nodes, mongos_nodes, shards_replica_set_counts=1, unique=""):
-    args = []
-    for i in [shards_nodes, config_nodes, mongos_nodes]:
-        cuisines = []
-        for k in i:
-            cuisines.append(MongoInstance(j.tools.cuisine.get(k['executor']), addr=k.get('addr', None), private_port=k['private_port'],
-                                          public_port=k.get('public_port'), dbdir=k.get('dbdir')))
-        args.append(cuisines)
-    return _mongoCluster(args[0], args[1], args[2], shards_replica_set_counts=shards_replica_set_counts, unique=unique)
-
-
-def _mongoCluster(shards_css, config_css, mongos_css, shards_replica_set_counts=1, unique=""):
-    shards_replicas = [shards_css[i:i + shards_replica_set_counts]
-                       for i in range(0, len(shards_css), shards_replica_set_counts)]
-    shards = [MongoReplica(i, name="%s_sh_%d" % (unique, num)) for num, i in enumerate(shards_replicas)]
-    cfg = MongoConfigSvr(config_css, name="%s_cfg" % (unique))
-    cluster = MongoCluster(mongos_css, cfg, shards)
-    cluster.install()
-    cluster.start()
-    return cluster
-
-
 base = j.tools.cuisine._getBaseClass()
 
 
 class CuisineMongoCluster(base):
 
-    def createCluster(self, executors):
+    def mongoCluster(self, shards_nodes, config_nodes, mongos_nodes, shards_replica_set_counts=1):
+        """
+        shards_nodes: a list of executors of the shards
+        config_nodes: a list of executors of the config servers
+        mongos_nodes: a list of executors of the mongos instanses
+        shards_replica_set_count: the number of nodes in a replica set in the shards
+        you can find more info here https://docs.mongodb.com/manual/tutorial/deploy-shard-cluster/
+        """
+        def construct_dict(node):
+            return {
+                'executor': node,
+                'private_port': 27017,
+                'public_port': 27017,
+                'dbdir': None
+            }
+        return self._mongoCluster(map(construct_dict, shards_nodes),
+            map(construct_dict, config_nodes),
+            map(construct_dict, mongos_nodes),
+            shards_replica_set_counts)
+
+
+    def _mongoCluster(self, shards_nodes, config_nodes, mongos_nodes, shards_replica_set_counts=1, unique=""):
+        args = []
+        for i in [shards_nodes, config_nodes, mongos_nodes]:
+            cuisines = []
+            for k in i:
+                cuisines.append(MongoInstance(j.tools.cuisine.get(k['executor']), addr=k.get('addr', None), private_port=k['private_port'],
+                                              public_port=k.get('public_port'), dbdir=k.get('dbdir')))
+            args.append(cuisines)
+        return self.__mongoCluster(args[0], args[1], args[2], shards_replica_set_counts=shards_replica_set_counts, unique=unique)
+
+
+    def __mongoCluster(self, shards_css, config_css, mongos_css, shards_replica_set_counts=1, unique=""):
+        shards_replicas = [shards_css[i:i + shards_replica_set_counts]
+                           for i in range(0, len(shards_css), shards_replica_set_counts)]
+        shards = [MongoReplica(i, name="%s_sh_%d" % (unique, num)) for num, i in enumerate(shards_replicas)]
+        cfg = MongoConfigSvr(config_css, name="%s_cfg" % (unique))
+        cluster = MongoCluster(mongos_css, cfg, shards)
+        cluster.install()
+        cluster.start()
+        return cluster
+
+    def createCluster(self, executors, numbers=None):
         """
         @param executors
 
         e.g.
-        e1=j.tools.executor.getSSHBased(addr="10.0.3.194", port=22, login="root", passwd="rooter")
-        e2=j.tools.executor.getSSHBased(addr="10.0.3.194", port=22, login="root", passwd="rooter")
+        e1=j.tools.executor.getSSHBased(addr="10.0.3.65", port=22, login="root", passwd="rooter")
+        e2=j.tools.executor.getSSHBased(addr="10.0.3.254", port=22, login="root", passwd="rooter")
         e3=j.tools.executor.getSSHBased(addr="10.0.3.194", port=22, login="root", passwd="rooter")
         executors=[e1,e2,e3]
-        """
-        # TODO: *1 implement in more easy way & test
 
-        return mongoCluster()
+        @param numbers
+        a tuple containing the number of shards, config servers, mongos instances
+        and nodes per shards' replica set
+        >>> numbers=(4, 2, 1, 2)
+        means 4 hards with two replica sets, 2 config servers, 1 mongos instance
+        if not passed it will be (len(executors) - 2, 1, 1, 1)
+        """
+
+        numbers = numbers or (len(executors) - 2, 1, 1, 1)
+
+        return self.mongoCluster(
+            executors[:numbers[0]],
+            executors[numbers[0]:numbers[0] + numbers[1]],
+            executors[numbers[0] + numbers[1]:numbers[0] + numbers[1] + numbers[2]],
+            numbers[3]
+        )
+

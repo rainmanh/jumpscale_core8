@@ -127,7 +127,6 @@ class CuisineSandbox(base):
             """
             self._cuisine.core.execute_bash(C)
 
-        # TODO: *1 check if no doubles with above
         self._cuisine.core.dir_ensure(self._cuisine.core.dir_paths["tmpDir"])
         if not self._cuisine.core.isMac and not self._cuisine.core.isCygwin:
             C = """
@@ -142,6 +141,7 @@ class CuisineSandbox(base):
                 js8 stop
                 pskill js8
                 umount -f /opt
+                echo "OK"
                 """
         else:
             C = """
@@ -150,3 +150,4 @@ class CuisineSandbox(base):
                 pskill js8
                 echo "OK"
                 """
+        self._cuisine.core.execute_bash(C)

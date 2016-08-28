@@ -230,7 +230,6 @@ class SSHClient:
 
         if self.forward_agent:
             paramiko.agent.AgentRequestHandler(ch)
-
         class StreamReader(threading.Thread):
 
             def __init__(self, stream, queue, flag):

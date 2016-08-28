@@ -113,6 +113,7 @@ class JSCuisineFactory:
         @param pubkey is the pub key to use (is content of key), if this is specified then keyname not used & ssh-agent neither
         """
         from JumpScale.tools.cuisine.JSCuisine import JSCuisine
+
         if addr.find(":") != -1:
             addr, port = addr.split(":", 1)
             addr = addr.strip()
@@ -120,20 +121,7 @@ class JSCuisineFactory:
         else:
             port = 22
 
-        executor = None
-        if not passwd:
-            # TODO: fix *1,goal is to test if ssh works, get some weird paramiko issues or timeout is too long
-            try:
-                res = j.clients.ssh.get(addr, port=port, login=login, passwd="", allow_agent=True,
-                                        look_for_keys=True, timeout=0.5, key_filename=keyname, passphrase=passphrase, die=True)
-                res.execute('hostname')
-            except Exception as e: # must check what error is
-                self.logger.error(e)
-                passwd = j.tools.console.askPassword("please specify root passwd", False)
-            else:
-                executor = j.tools.executor.getSSHBased(
-                    addr=addr, port=port, login=login, pushkey=keyname, passphrase=passphrase)
-
+        # Generate pubkey
         if pubkey == "":
             if keyname == "":
                 rc, out = j.sal.process.execute("ssh-add -l")
@@ -155,13 +143,20 @@ class JSCuisineFactory:
 
         j.clients.ssh.cache = {}
 
-        if executor is None:
-            executor = j.tools.executor.getSSHBased(
-                addr=addr, port=port, login=login, passwd=passwd)
+        if not passwd and passphrase is not None:
+            executor = j.tools.executor.getSSHBased(addr=addr,
+                                                    port=port,
+                                                    login=login,
+                                                    passphrase=passphrase)
+        else:
+            passwd = passwd if passwd else j.tools.console.askPassword("please specify root passwd", False)
+            executor = j.tools.executor.getSSHBased(addr=addr,
+                                                    port=port,
+                                                    login=login,
+                                                    passwd=passwd)
 
         executor.cuisine.ssh.authorize(login, pubkey)
-
-        executor.cuisine.core.run("chmod -r 700 /root/.ssh")
+        executor.cuisine.core.run("chmod -R 700 /root/.ssh")
 
     def get(self, executor=None, usecache=True):
         """

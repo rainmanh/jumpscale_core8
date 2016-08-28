@@ -133,7 +133,6 @@ class CuisineSSH(base):
             raise j.exceptions.Input("key cannot be empty")
         sudomode = self._cuisine.core.sudomode
         self._cuisine.core.sudomode = True
-
         user = user.strip()
         d = self._cuisine.user.check(user, need_passwd=False)
         if d is None:

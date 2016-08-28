@@ -16,7 +16,7 @@ class ExecutorSSH(ExecutorBase):
         self._port = int(port)
         self._login = login
         self._passwd = passwd
-        if passwd != None:
+        if passwd is not None:
             look_for_keys = False
             allow_agent = False
         self.allow_agent = allow_agent
@@ -40,7 +40,7 @@ class ExecutorSSH(ExecutorBase):
 
     @passwd.setter
     def passwd(self, passwd):
-        if passwd != None:
+        if passwd is not None:
             self.look_for_keys = False
             self.allow_agent = False
         self._passwd = passwd
@@ -72,11 +72,9 @@ class ExecutorSSH(ExecutorBase):
     def authorizeKey(self, pubkey=None, keyname=None, passphrase=None, login="root"):
         """
         This will authenticate the ssh client to access the target machine
-        using the given pubkey, If pushkey is set, that key will be loaded,
-        and used instead.
+        using the given pubkey.
 
         :param pubkey: Public key to authenticate with (is the content)
-        :param pushkey: name to public key, will get from ssh-agent
         :return:
         """
 

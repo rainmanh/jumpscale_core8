@@ -5,6 +5,9 @@ from collections import OrderedDict
 import json
 from JumpScale import j
 
+
+
+
 # api codes
 # 4 function with params
 # 7 ???
@@ -85,12 +88,15 @@ class MethodDoc:
         Markdown representation of the method and its arguments
         """
         out = ""
-        out += "#### def %s \n\n" % (self.name)
-        out += "##### arguments\n\n"
-        if self.params != []:
-            for param in self.params:
-                out += str(param)
-            out += "\n"
+        param_s = ", ".join([str(arg.name) + "=" + str(arg.defaultvalue) if arg.defaultvalue else arg.name for  arg in self.params])
+        param_s = "*%s*"%param_s
+        out += "#### %s(%s) \n\n" % (self.name, param_s)
+        # out += "##### arguments\n\n"
+        #
+        # if self.params != []:
+        #     for param in self.params:
+        #         out += str(param)
+        #     out += "\n"
 
         if self.comments != None and self.comments.strip() != "":
             out += "##### comments\n\n"
@@ -194,12 +200,6 @@ class ObjectInspector:
         self.root = None
         self.manager = None
         self.logger = j.logger.get('j.tools.objectinspector')
-
-        level=0
-        self.compl2 = """
-
-"""
-
 
         self.jstree = OrderedDict() # jstree['j.sal']={'unix': unixobject, 'fs': fsobject}
 

@@ -80,7 +80,6 @@ class CuisineDocker(app):
         if weave:
             self._cuisine.systemservices.weave.install(start=True)
 
-        # TODO: *1 test
         self._init()
 
         if not '22:' in ports:
@@ -110,7 +109,7 @@ class CuisineDocker(app):
         dockerexecutor = Cuisinedockerobj(name, host, "22", self._cuisine)
         cuisinedockerobj = j.tools.cuisine.get(dockerexecutor)
 
-        # NEED TO MAKE SURE WE CAN GET ACCESS TO THIS DOCKER WITHOUT OPENING PORTS
+        # NEED TO MAKE SURE WE CAN GET ACCESS TO THIS DOCKER WITHOUT OPENING PORTS; we know can using docker exec 
         # ON DOCKER HOST (which is current cuisine)
 
         return cuisinedockerobj

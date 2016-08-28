@@ -69,7 +69,7 @@ class TestAtYourServiceFactory(unittest.TestCase):
                 from JumpScale import j
                 from JumpScale.baselib.atyourservice.AtYourServiceRepo import AtYourServiceRepo
                 import JumpScale.baselib.atyourservice.AtYourServiceFactory
-                from JumpScale.core.errorhandling import OurExceptions
+                from JumpScale.core.errorhandling import JSExceptions
                 JumpScale.baselib.atyourservice.AtYourServiceFactory.j = j
                 JumpScale.baselib.atyourservice.AtYourServiceFactory.AtYourServiceRepo = AtYourServiceRepo
                 from JumpScale.baselib.atyourservice.AtYourServiceFactory import AtYourServiceFactory
@@ -81,8 +81,8 @@ class TestAtYourServiceFactory(unittest.TestCase):
                 repo2.name = 'test'
                 repo2.bsasepath = 'path2'
                 ays_factory._repos = {'path1': repo1, 'path2': repo2}
-                j.exceptions.RuntimeError = OurExceptions.RuntimeError
-                self.assertRaises(OurExceptions.RuntimeError, ays_factory.get, 'test')
+                j.exceptions.RuntimeError = JSExceptions.RuntimeError
+                self.assertRaises(JSExceptions.RuntimeError, ays_factory.get, 'test')
 
     def test_get_with_no_name(self):
         """
@@ -93,7 +93,7 @@ class TestAtYourServiceFactory(unittest.TestCase):
                 from JumpScale import j
                 from JumpScale.baselib.atyourservice.AtYourServiceRepo import AtYourServiceRepo
                 import JumpScale.baselib.atyourservice.AtYourServiceFactory
-                from JumpScale.core.errorhandling import OurExceptions
+                from JumpScale.core.errorhandling import JSExceptions
                 JumpScale.baselib.atyourservice.AtYourServiceFactory.j = j
                 JumpScale.baselib.atyourservice.AtYourServiceFactory.AtYourServiceRepo = AtYourServiceRepo
                 from JumpScale.baselib.atyourservice.AtYourServiceFactory import AtYourServiceFactory

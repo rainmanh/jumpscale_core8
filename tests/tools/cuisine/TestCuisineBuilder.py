@@ -79,7 +79,7 @@
 #             import JumpScale.tools.cuisine.CuisineBuilder
 #             JumpScale.tools.cuisine.CuisineBuilder.j = j
 #             from JumpScale.tools.cuisine.CuisineBuilder import CuisineBuilder
-#             from JumpScale.core.errorhandling import OurExceptions
+#             from JumpScale.core.errorhandling import JSExceptions
 #             executor_mock = mock.MagicMock()
 #             j.tools.executor.getLocal.return_value = executor_mock
 #             executor = j.tools.executor.getLocal()
@@ -89,8 +89,8 @@
 #             cuisine.core.isDocker = False
 #             cuisine.core.isLxc = False
 #             cuisine_builder.sandbox = mock.MagicMock()
-#             j.exceptions.RuntimeError = OurExceptions.RuntimeError
-#             self.assertRaises(OurExceptions.RuntimeError, cuisine_builder.all, sandbox=True)
+#             j.exceptions.RuntimeError = JSExceptions.RuntimeError
+#             self.assertRaises(JSExceptions.RuntimeError, cuisine_builder.all, sandbox=True)
 
 
 #     def test_sandbox(self):

@@ -24,8 +24,8 @@ from JumpScale.core.errorhandling.ErrorConditionObject import ErrorConditionObje
 
 #     __repr__ = __str__
 
-from OurExceptions import *
-import OurExceptions
+from JSExceptions import *
+import JSExceptions
 
 
 class ErrorConditionHandler:
@@ -38,8 +38,8 @@ class ErrorConditionHandler:
         self.setExceptHook()
         self.lastEco = None
         self.escalateToRedis = None
-        self.exceptions = OurExceptions
-        j.exceptions = OurExceptions
+        self.exceptions = JSExceptions
+        j.exceptions = JSExceptions
 
     def _send2Redis(self, eco):
         if self.escalateToRedis is None:

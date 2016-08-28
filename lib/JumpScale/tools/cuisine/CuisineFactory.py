@@ -48,7 +48,7 @@ class CuisineApp(CuisineBase):
         Checks if a package is installed or not
         You can ovveride it to use another way for checking
         """
-        return not self._cuisine.core.run('PATH=$PATH:/opt/jumpscale8/bin which %s' % self.NAME, die=False, showout=False)[0]
+        return not self._cuisine.core.command_check(self.NAME)
 
     def install(self):
         if not self.isInstalled():

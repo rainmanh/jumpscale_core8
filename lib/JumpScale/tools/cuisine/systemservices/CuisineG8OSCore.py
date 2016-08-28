@@ -84,12 +84,12 @@ class CuisineG8OSCore(base):
         cfg["main"].pop("network")
         cfg["controllers"] = {"main": {"url": controller_url}}
         cfg["extension"]["sync"]["cwd"] = self._cuisine.core.joinpaths(cfgdir, "/core/extensions")
-        cfg["extension"]["jumpscripts"]["cwd"] = self._cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscripts")
+        cfg["extension"]["jumpscript"]["cwd"] = self._cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscript")
         cfg["extension"]["jumpscript_content"]["cwd"] = self._cuisine.core.joinpaths(
-            cfgdir, "/core/extensions/jumpscripts")
-        cfg["extension"]["js_daemon"]["cwd"] = self._cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscripts")
+            cfgdir, "/core/extensions/jumpscript")
+        cfg["extension"]["js_daemon"]["cwd"] = self._cuisine.core.joinpaths(cfgdir, "/core/extensions/jumpscript")
         cfg["extension"]["js_daemon"]["env"][
-            "JUMPSCRIPTS_HOME"] = self._cuisine.core.joinpaths(cfgdir, "/core/jumpscripts/")
+            "JUMPSCRIPTS_HOME"] = self._cuisine.core.joinpaths(cfgdir, "/core/jumpscript/")
         cfg["logging"]["db"]["address"] = self._cuisine.core.joinpaths(cfgdir, "/core/logs")
         C = j.data.serializer.toml.dumps(cfg)
 

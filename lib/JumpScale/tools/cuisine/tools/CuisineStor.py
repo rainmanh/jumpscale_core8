@@ -303,7 +303,7 @@ class CuisineStor(base):
         self.stop()
         self.start()
 
-    def start(self):
+    def start(self, ssl=False):
         for key, stor in self.storagespaces.items():
             #... create rsync & caddy config file & send to remote server
             pass
@@ -311,8 +311,7 @@ class CuisineStor(base):
         if "httpserver" in self.config:
             if self.config["httpserver"]["running"] == False:
                 # start caddy in tmux, there should be cuisine extension for this
-                pass
-                #TODO: *1 has not been implemented
+                self._cuisine.apps.caddy.start(ssl)
 
         if "rsyncserver" in self.config:
             if self.config["rsyncserver"]["running"] == False:

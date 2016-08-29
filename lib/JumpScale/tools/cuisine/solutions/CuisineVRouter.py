@@ -57,21 +57,17 @@ class CuisineVRouter(base):
         """
         self.cuisine.core.execute_bash(C)
 
-        return
-
-        # remove premature exit of rc.local
-        self.cuisine.core.file_remove_prefix("/etc/rc.local", "exit")
-
         C = """
-        echo 1 > /proc/sys/net/ipv4/ip_forward
-        nft -f /etc/nftables.conf
+        net.ipv4.ip_forward=1
         """
-        # append will make sure this content does not get in here 2x
-        self.cuisine.core.file_write("/etc/rc.local", C, append=True)
         # make sure it works at runtime
-        self.cuisine.core.run("echo 1 > /proc/sys/net/ipv4/ip_forward", shell=True)
+        self.cuisine.core.file_write("/etc/sysctl.d/90-ipforward.conf", C)
+        self.cuisine.core.run("sysctl --system", shell=True)
+        self.cuisine.core.run("systemd enable nftables", shell=True)
+        self.cuisine.core.run("systemd start nftables", shell=True)
 
         # firewall is now empty
+        return
 
     def bridge(self):
         """

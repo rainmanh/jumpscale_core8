@@ -99,7 +99,7 @@ class MethodDoc:
         #     out += "\n"
 
         if self.comments != None and self.comments.strip() != "":
-            out += "##### comments\n\n"
+            #out += "##### comments\n\n"
             out += "```\n" + self.comments + "\n```\n\n"
 
         return out

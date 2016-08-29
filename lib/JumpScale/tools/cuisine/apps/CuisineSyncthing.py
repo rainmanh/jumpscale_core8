@@ -1,6 +1,5 @@
 from JumpScale import j
 
-
 app = j.tools.cuisine._getBaseAppClass()
 
 # TODO: *1 check we are installing latest cuisine

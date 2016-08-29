@@ -23,6 +23,7 @@ class CuisineVolumeDriver(app):
     def _install_deps(self):
         self._cuisine.core.file_write('/etc/apt/sources.list.d/ovsaptrepo.list',
                                       'deb http://apt.openvstorage.org unstable main')
+        self._cuisine.core.run('echo "deb http://us.archive.ubuntu.com/ubuntu xenial main universe" >> /etc/apt/sources.list')
         self._cuisine.package.update()
         self._cuisine.package.upgrade(distupgrade=True)
 

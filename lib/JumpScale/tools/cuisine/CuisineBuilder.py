@@ -13,7 +13,6 @@
 #     # TODO: *3 seems to be some double functionality with cuisinsandbox class but lets leave for now
 #
 #     def all(self, start=False, sandbox=False, stor_addr=None, stor_name=""):
-#         # TODO: *1 all new names lets check & fix
 #         if self._cuisine.core.isMac and not stor_name:
 #             stor_name = "osx10.11"
 #         self._cuisine.development.python.install()

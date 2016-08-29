@@ -1,5 +1,6 @@
 
 from JumpScale import j
+import random
 
 app = j.tools.cuisine._getBaseAppClass()
 
@@ -9,7 +10,7 @@ class CuisineDocker(app):
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
-    
+
     def _init(self):
         try:
             self._cuisine.core.run("service docker start")
@@ -22,8 +23,8 @@ class CuisineDocker(app):
         if reset==False and self.isInstalled():
             return
         if self._cuisine.core.isUbuntu:
-            self._cuisine.bash.EnvironSet('LC_ALL', 'C.UTF-8')
-            self._cuisine.bash.EnvironSet('LANG', 'C.UTF-8')
+            self._cuisine.bash.environSet('LC_ALL', 'C.UTF-8')
+            self._cuisine.bash.environSet('LANG', 'C.UTF-8')
             if not self._cuisine.core.command_check('docker'):
                 C = """
                 wget -qO- https://get.docker.com/ | sh
@@ -79,10 +80,14 @@ class CuisineDocker(app):
         if weave:
             self._cuisine.systemservices.weave.install(start=True)
 
-        # TODO: *1 test
         self._init()
+
         if not '22:' in ports:
-            ports += '22:2202'
+            port = "2202"
+            while port in ports:
+                port = random.randint(1000, 9999)
+            ports += '22:%s' % port
+
         cmd = "jsdocker create --name {name} --image {image}".format(name=name, image=image)
         if pubkey:
             cmd += " --pubkey '%s'" % pubkey
@@ -98,18 +103,35 @@ class CuisineDocker(app):
         info = j.data.serializer.json.loads(out)
 
         port = info[0]["port"]
-        if 'host' in info[0]:
-            host = info[0]['host']
-            connstr = "%s:%s" % (host, port)
-        else:
-            connstr = "%s:%s" % (self._executor.addr, port)
+        _, out, _ = self._cuisine.core.run("docker inspect ahah | grep \"IPAddress\"|  cut -d '\"' -f 4 ")
+        host = out.splitlines()[0]
 
-        cuisinedockerobj = j.tools.cuisine.get(connstr)
+        dockerexecutor = Cuisinedockerobj(name, host, "22", self._cuisine)
+        cuisinedockerobj = j.tools.cuisine.get(dockerexecutor)
 
-        # NEED TO MAKE SURE WE CAN GET ACCESS TO THIS DOCKER WITHOUT OPENING PORTS
+        # NEED TO MAKE SURE WE CAN GET ACCESS TO THIS DOCKER WITHOUT OPENING PORTS; we know can using docker exec 
         # ON DOCKER HOST (which is current cuisine)
 
         return cuisinedockerobj
+
+    def getDocker(self, name):
+        pass
+
+
+
+class Cuisinedockerobj:
+    def __init__(self, name, addr, port, cuisineDockerHost):
+        self.id = addr
+        self.port = port
+        self.name = name
+        self._cuisineDockerHost = cuisineDockerHost
+
+    def execute(self, cmds, die=True, checkok=None, async=False, showout=True, timeout=0, env={}):
+        return self._cuisineDockerHost.core.run("docker exec %s  %s" % (self.name, cmds))
+
+# def archBuild(self):
+#     C = """
+#     FROM base/archlinux:latest
 
 #
 # def archBuild(self):

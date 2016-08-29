@@ -1,19 +1,22 @@
-
-from JumpScale import j
 import os
+import inspect
+import types
+from collections import OrderedDict
+import json
+from JumpScale import j
+
+
+
 
 # api codes
 # 4 function with params
 # 7 ???
 # 8 property
 
-import inspect
-
-
-
-
 class Arg:
-
+    """
+        Wrapper for argument
+    """
     def __init__(self, name, defaultvalue):
         self.name = name
         self.defaultvalue = defaultvalue
@@ -31,9 +34,15 @@ class Arg:
 
 
 def attrib(name, type, doc=None, objectpath=None, filepath=None, extra=None):
+    """
+    Helper function for codecompletion tree.
+    """
     return (name, type, doc, objectpath, filepath, extra)
 
 class MethodDoc:
+    """
+    Method documentation
+    """
 
     def __init__(self, method, name, classdoc):
         self.classdoc = classdoc
@@ -75,17 +84,22 @@ class MethodDoc:
         # self.methodline=inspect.getsourcelines(method)[0][0].strip().replace("self, ","").replace("self,","").replace("self","").replace(":","")
 
     def __str__(self):
-
+        """
+        Markdown representation of the method and its arguments
+        """
         out = ""
-        out += "#### def %s \n\n" % (self.name)
-        out += "##### arguments\n\n"
-        if self.params != []:
-            for param in self.params:
-                out += str(param)
-            out += "\n"
+        param_s = ", ".join([str(arg.name) + "=" + str(arg.defaultvalue) if arg.defaultvalue else arg.name for  arg in self.params])
+        param_s = "*%s*"%param_s
+        out += "#### %s(%s) \n\n" % (self.name, param_s)
+        # out += "##### arguments\n\n"
+        #
+        # if self.params != []:
+        #     for param in self.params:
+        #         out += str(param)
+        #     out += "\n"
 
         if self.comments != None and self.comments.strip() != "":
-            out += "##### comments\n\n"
+            #out += "##### comments\n\n"
             out += "```\n" + self.comments + "\n```\n\n"
 
         return out
@@ -165,18 +179,16 @@ class ClassDoc:
             method = self.methods[key]
             C2 = str(method)
             C += C2
-            # C+=j.data.text.prefix("    ",C2)
-
         return C
 
     def __repr__(self):
         return self.__str__()
 
-
 class ObjectInspector:
 
     """
-    functionality to inspect objectr structure and generate apifile
+    functionality to inspect object structure and generate apifile
+    and pickled ordereddict for codecompletion
     """
 
     def __init__(self):
@@ -188,21 +200,7 @@ class ObjectInspector:
         self.root = None
         self.manager = None
         self.logger = j.logger.get('j.tools.objectinspector')
-        self.compl = """
-import abc
 
-class MyNewClass(object):
-    __metaclass__ = abc.ABCMeta
-
-
-class Faker(): pass\n
-"""
-        level=0
-        self.compl2 = """
-
-
-"""
-        from collections import OrderedDict
         self.jstree = OrderedDict() # jstree['j.sal']={'unix': unixobject, 'fs': fsobject}
 
     def importAllLibs(self, ignore=[], base="%s/lib/JumpScale/" % j.dirs.base):
@@ -240,14 +238,8 @@ class Faker(): pass\n
         self.errors = self.importAllLibs(ignore=ignore)
         #self.errors = ''
         objectLocationPath = objpath
-        if objectLocationPath.count(".") > 0:
-            # write its parts in self.compl file first
-            parts = objectLocationPath.split(".")
-            readsofar = parts[0]
-            for idx, part in enumerate(parts):
-                self.compl += readsofar + " = Faker()\n"
-                if idx<len(parts)-1:
-                    readsofar += "." + parts[idx+1]
+
+        #extract the object name (j.sal.unix ) -> unix to make a stub out of it.
         objname = ''
         filepath = ''
         if '.' in objpath:
@@ -267,7 +259,7 @@ class Faker(): pass\n
                     return
         except: pass
 
-
+        #add the root object to the tree (self.jstree) as its first element (order maintained by ordereddict/pickle)
         self.jstree[objectLocationPath]=attrib(objname, "class", 'emptydocs', objectLocationPath)
         self.inspect(objectLocationPath)
         j.sal.fs.createDir(dest)
@@ -298,12 +290,8 @@ class Faker(): pass\n
         @param objectLocationPath is full location name in object tree e.g. j.sal.fs , no need to fill in
         """
         self.logger.debug(objectLocationPath)
-        # if parent is None:
-        #     self.visited = []
-
         if obj == None:
             try:
-                # objectNew = eval("%s" % objectLocationPath2)
                 obj = eval(objectLocationPath)
             except:
                 self.raiseError("could not eval:%s" % objectLocationPath)
@@ -312,7 +300,7 @@ class Faker(): pass\n
         try:
             if "__file__" in dir(obj):
                 filepath = inspect.getabsfile(obj.__file__)
-                filepath = os.path.normpath(filepath)
+                filepath = os.path.normpath(filepath) #normalize path
                 if not filepath.startswith(self.base):
                     return
             else:
@@ -330,13 +318,6 @@ class Faker(): pass\n
             return
         attrs = dir(obj)
 
-        # try:
-        #     for item in obj._getAttributeNames():
-        #         if item not in attrs:
-        #             attrs.append(item)
-        # except:
-        #     pass
-
         ignore = ["constructor_args", "NOTHING", "template_class", "redirect_cache"]
 
         def check(item):
@@ -352,9 +333,7 @@ class Faker(): pass\n
 
         # if objectLocationPath == 'j.actions.logger.disabled':
 
-
         attrs = [item for item in attrs if check(item)]
-
 
         for objattributename in attrs:
             filepath = None
@@ -369,7 +348,6 @@ class Faker(): pass\n
                 # is special type or constant
                 self.logger.debug("special type: %s" % objectLocationPath2)
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?7\n" % objectLocationPath2, True)
-                self.compl +=objectLocationPath2 + " = Faker()\n"
                 self.jstree[objectLocationPath2]=attrib(objattributename, "const", '', objectLocationPath2, filepath)
 
             elif objattributename == "_getFactoryEnabledClasses":
@@ -386,18 +364,15 @@ class Faker(): pass\n
                 except Exception as e:
                     self.logger.error("the _getFactoryEnabledClasses gives error")
                     import ipdb
-            elif str(type(objattribute)).find("method") != -1 or str(type(objattribute)).find(
-                    "'instancemethod'") != -1 or str(type(objattribute)).find("'function'") != -1 \
-                    or str(type(objattribute)).find("'staticmethod'") != -1 or str(type(objattribute)).find(
-                "'classmethod'") != -1:
-                # is instancemethod
+            elif inspect.isfunction(objattribute) or inspect.ismethod(objattribute) or inspect.isbuiltin(objattribute) or inspect.isgenerator(objattribute):
+                #isinstance(objattribute, (types.BuiltinMethodType, types.BuiltinFunctionType, types.MethodType, types.FunctionType)):
                 try:
                     methodpath = inspect.getabsfile(objattribute)
                     methodargs = ", ".join(objattribute.__code__.co_varnames)
                     filepath = methodpath
                     if not methodpath.startswith(self.base):
                         self.classDocs.pop(objectLocationPath2, "")
-                        self.logger.log("SKIPPED:%s" % objectLocationPath2)
+                        self.logger.info("SKIPPED:%s" % objectLocationPath2)
                         return
                 except Exception as e:
                     self.logger.error(str(e))
@@ -405,43 +380,34 @@ class Faker(): pass\n
                 source, params = self._processMethod(objattributename, objattribute, objectLocationPath2, obj)
                 self.logger.debug("instancemethod: %s" % objectLocationPath2)
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?4(%s)\n" % (objectLocationPath2, params), True)
-                self.compl += "%s = lambda *args, **kwargs: None\n"%(objectLocationPath2)
-                self.compl += "%s.__doc__ = '''%s'''\n" % (objectLocationPath2, objattribute.__doc__)
                 self.jstree[objectLocationPath2]=attrib(objattributename, "method", objattribute.__doc__, objectLocationPath2, filepath, methodargs)
 
-            elif str(type(objattribute)).find("'str'") != -1 or str(type(objattribute)).find("'list'") != -1\
-                or str(type(objattribute)).find("'bool'") != -1 or str(type(objattribute)).find("'int'") != -1 or str(type(objattribute)).find("'NoneType'") != -1\
-                    or str(type(objattribute)).find("'dict'") != -1 or str(type(objattribute)).find("'property'") != -1 or str(type(objattribute)).find("'tuple'") != -1:
-                # is instancemethod
+            elif isinstance(objattribute, (str, bool, int, float, list, tuple, dict, property)) or objattribute is None:
                 self.logger.debug("property: %s" % objectLocationPath2)
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?8\n" % objectLocationPath2, True)
-                self.compl +="%s = Faker()\n"%(objectLocationPath2)
                 self.jstree[objectLocationPath2]=attrib(objattributename, "property",
                                                                objattribute.__doc__, objectLocationPath2)
 
-
-            elif str(type(objattribute)).find("type") != -1 or str(type(objattribute)).find("<class") != -1 or str(type(objattribute)).find("'instance'") != -1 or str(type(objattribute)).find("'classobj'") != -1:
+            elif type(objattribute.__class__) == type :
                 j.sal.fs.writeFile(self.apiFileLocation, "%s?8\n" % objectLocationPath2, True)
-                self.compl +="%s = Faker() \n"%objectLocationPath2
                 self.logger.debug("class or instance: %s" % objectLocationPath2)
-                self.compl += "%s.__doc__ = '''%s'''\n" % (objectLocationPath2, objattribute.__doc__)
                 try:
                     filepath = inspect.getfile(objattribute.__class__)
                 except: pass
                 self.jstree[objectLocationPath2]=attrib(objattributename, "class",
                                                                             objattribute.__doc__, objectLocationPath2, filepath)
                 try:
-                    if not isinstance(objattribute, (str, bool, int, float, dict, list, tuple)):
+                    if not isinstance(objattribute, (str, bool, int, float, dict, list, tuple)) or objattribute is not None:
                         self.inspect(objectLocationPath2, parent=objattribute)
                 except Exception as e:
                     self.logger.error(str(e))
-
             else:
                 pass
-                # print((str(type(objattribute)) + " " + objectLocationPath2))
 
     def writeDocs(self, path):
-        #print(self.compl)
+        """
+        Writes the documentation on a specified path.
+        """
         todelete = []
         summary = {}
         for key, doc in list(self.classDocs.items()):
@@ -465,8 +431,7 @@ class Faker(): pass\n
 
         j.sal.fs.writeFile(filename="%s/SUMMARY.md" % (self.dest), contents=summarytxt)
 
-        j.sal.fs.writeFile(filename="%s/compl.py"%self.dest, contents=self.compl)
-        import json
+
         with open("%s/out.pickled"%self.dest, 'wb') as f:
             import pickle
             pickle.dump(self.jstree, f)

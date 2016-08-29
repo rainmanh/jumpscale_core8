@@ -14,7 +14,7 @@
         """
   'execute':
         'prefix':'execute'
-        'body':'rc,out=j.sal.process.execute($1, die=True, outputToStdout=False, ignoreErrorOutput=False)'
+        'body':'rc, out = j.sal.process.execute($1, die=True, outputToStdout=False, ignoreErrorOutput=False)'
   'createdir':
         'prefix':'createdir'
         'body':'j.sal.fs.createDir($1)'
@@ -23,7 +23,7 @@
         'body':'j.sal.fs.exists($1, followlinks=True)'
   'readfile':
         'prefix':'readfile'
-        'body':'c=j.sal.fs.fileGetContents($1)'
+        'body':'c = j.sal.fs.fileGetContents($1)'
   'writefile':
         'prefix':'writefile'
         'body':'j.sal.fs.writeFile(filename=$1, contents=$2, append=False)'
@@ -32,6 +32,6 @@
         'body':'raise j.exceptions.Input(message=$1, level=1, source="", tags="", msgpub="")'
   'joinpaths':
         'prefix':'joinpaths'
-        'body':'j.sal.fs.joinPaths($1,$2)'
+        'body':'j.sal.fs.joinPaths($1, $2)'
 
 #

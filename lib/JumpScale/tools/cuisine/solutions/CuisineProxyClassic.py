@@ -360,7 +360,6 @@ class CuisineProxyClassic(base):
             self._cuisine.core.file_write("/etc/apt/apt.conf", f)
         else:
             raise RuntimeError("not implemented yet")
-        j.application.break_into_jshell("DEBUG NOW configure client")
 
     def __str__(self):
         return "cuisine.proxy:%s:%s" % (getattr(self._executor, 'addr', 'local'), getattr(self._executor, 'port', ''))

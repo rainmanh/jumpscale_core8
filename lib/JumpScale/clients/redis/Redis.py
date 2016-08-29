@@ -125,9 +125,9 @@ class RedisFactory:
         raise j.exceptions.RuntimeError(
             "Could not find redis port in config file %s" % cpath)
 
-    def isRunning(self, name='', ip_address='localhost', port=6379):
+    def isRunning(self, name='', ip_address='localhost', port=6379, path='$binDir'):
         if not name:
-            ping_cmd = 'redis-cli -h %s -p %s ping' % (ip_address, port)
+            ping_cmd = '%s/redis-cli -h %s -p %s ping' % (path, ip_address, port)
             rc, out, err = self._cuisine.core.run(ping_cmd, die=False)
             return not rc and out == 'PONG'
 

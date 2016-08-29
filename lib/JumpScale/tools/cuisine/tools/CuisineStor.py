@@ -251,18 +251,20 @@ class CuisineStor(base):
 
     @property
     def config(self):
-        if self._config == None:
-            # read j.sal.fs.joinPaths(self.root,"config.yaml")
-            # is dict, deserialize and store in self._config
-            pass
+        if self._config is None:
+            path = j.sal.fs.joinPaths(self.root,"config.yaml")
+            if self._cuisine.core.file_exists(path):
+                self._config = j.data.serializer.yaml.load(self._cuisine.file_read(self.root,"config.yaml"))
 
         return self._config
 
     @config.setter
-    def config(self, val):
-        # check dict
-        # store in config also remote serialized !!!
-        pass
+    def config(self, key, value):
+        self.config #populate if it doesn't exist
+        self._config[key] = value
+        serialized = j.data.serializer.dumps(self._config)
+        path = j.sal.fs.joinPaths(self.root,"config.yaml")
+        self._cuisine.core.file_write(path, serialized)
 
     def enableServerHTTP(self):
         self.config["httpserver"] = {"running": False}
@@ -309,16 +311,14 @@ class CuisineStor(base):
             pass
 
         if "httpserver" in self.config:
-            if self.config["httpserver"]["running"] == False:
+            if self.config["httpserver"]["running"] is False:
                 # start caddy in tmux, there should be cuisine extension for this
-                pass
-                #TODO: *1 has not been implemented
+                self._cuisine.apps.caddy.start(self.config['httpserver']['ssl'])
 
         if "rsyncserver" in self.config:
-            if self.config["rsyncserver"]["running"] == False:
+            if self.config["rsyncserver"]["running"] is False:
                 # start rsync in tmux, there should be cuisine extension for this
-                pass
-                #TODO: *1 has not been implemented
+                j.sal.rsync.getServer(self.config['rsyncserver']['name']).start()
 
 
 class StorSpace(object):

@@ -22,8 +22,7 @@ class SSHClientFactory:
         self.cache = {}
 
     def get(self, addr='', port=22, login="root", passwd=None, stdout=True, forward_agent=True, allow_agent=True,
-            look_for_keys=True,
-            timeout=5, key_filename=None, passphrase=None, die=True, usecache=True):
+            look_for_keys=True, timeout=5, key_filename=None, passphrase=None, die=True, usecache=True):
         """
         gets an ssh client.
         @param addr: the server to connect to
@@ -230,7 +229,6 @@ class SSHClient:
 
         if self.forward_agent:
             paramiko.agent.AgentRequestHandler(ch)
-
         class StreamReader(threading.Thread):
 
             def __init__(self, stream, queue, flag):

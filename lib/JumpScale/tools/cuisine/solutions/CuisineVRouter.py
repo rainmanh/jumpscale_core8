@@ -21,14 +21,14 @@ class CuisineVRouter(base):
         self._check = False
 
     def check(self):
-        if self._check == False:
+        if self._check is False:
             if not self.cuisine.platformtype.myplatform.startswith("ubuntu"):
                 raise j.exceptions.Input(message="only support ubuntu for now", level=1, source="", tags="", msgpub="")
         self._check = "OK"
 
     @property
     def defgwInterface(self):
-        if self._defgwInterface == None:
+        if self._defgwInterface is None:
             self._defgwInterface = self.cuisine.net.defaultgwInterface
         return self._defgwInterface
 
@@ -43,13 +43,17 @@ class CuisineVRouter(base):
         self.proxy()
 
     def prepare(self):
+        self.cuisine.package.install('inetutils-ping')
+        self.cuisine.package.install('nftables')
         self.check()
         self.cuisine.systemservices.fw.flush(permanent=True)
 
         # will make sure jumpscale has been installed (&base)
         self.cuisine.development.js8.install()
 
-        j.do.pullGitRepo("git@github.com:despiegk/smartproxy.git")
+        dest = self._cuisine.core.args_replace('$codeDir/github/jumpscale/smartproxy')
+        j.do.pullGitRepo("git@github.com:despiegk/smartproxy.git", dest=dest)
+
         self._cuisine.core.upload("$codeDir/github/jumpscale/smartproxy")
         C = """
         rm -rf /opt/dnsmasq-alt
@@ -57,20 +61,13 @@ class CuisineVRouter(base):
         """
         self.cuisine.core.execute_bash(C)
 
-        return
-
-        # remove premature exit of rc.local
-        self.cuisine.core.file_remove_prefix("/etc/rc.local", "exit")
-
-        C = """
-        echo 1 > /proc/sys/net/ipv4/ip_forward
-        nft -f /etc/nftables.conf
+        config = """
+        net.ipv4.ip_forward=1
         """
-        # append will make sure this content does not get in here 2x
-        self.cuisine.core.file_write("/etc/rc.local", C, append=True)
         # make sure it works at runtime
-        self.cuisine.core.run("echo 1 > /proc/sys/net/ipv4/ip_forward", shell=True)
-
+        self.cuisine.core.file_write("/etc/sysctl.d/90-ipforward.conf", config)
+        self.cuisine.core.run("sysctl --system")
+        self.cuisine.core.run("nft -f /etc/nftables.conf")
         # firewall is now empty
 
     def bridge(self):
@@ -114,13 +111,13 @@ class CuisineVRouter(base):
         OUT += C
         self.cuisine.net.setInterfaceFile(OUT)
 
-        if not ipaddr in self.cuisine.net.getInfo("br0")["ip"]:
+        if ipaddr not in self.cuisine.net.getInfo("br0")["ip"]:
             raise j.exceptions.RuntimeError(
                 "could not set bridge, something went wrong, could not find ip addr:%s" % ipaddr)
 
     def dnsServer(self):
         self.check()
-        self._cuisine.tmux.createSession("ovsrouter",["dns"], returnifexists=True, killifexists=False)
+        self._cuisine.tmux.createSession("ovsrouter", ["dns"], returnifexists=True, killifexists=False)
         self._cuisine.process.kill("dns-server")
         cmd = "jspython /opt/dnsmasq-alt/dns-server.py"
         self.cuisine.tmux.executeInScreen('ovsrouter', 'dns', cmd)

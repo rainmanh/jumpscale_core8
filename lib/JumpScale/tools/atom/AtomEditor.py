@@ -118,22 +118,17 @@ class AtomEditor:
     def installConfig(self):
         print("install atom config")
         merged = {}
-        snippets_existing = j.sal.fs.fileGetContents(os.path.expanduser("~/.atom/config.cson"))
-        merged = cson.loads(snippets_existing)
-        snippets_new_path = os.path.join(os.path.dirname(inspect.getfile(self.__class__)), "config.cson")
-        snippets_new = j.sal.fs.fileGetContents(snippets_new_path)
-        snippets_new_cson = cson.loads(snippets_new)
+        current_config = j.sal.fs.fileGetContents(os.path.expanduser("~/.atom/config.cson"))
+        merged = cson.loads(current_config)
+        new_config_path = os.path.join(os.path.dirname(inspect.getfile(self.__class__)), "config.cson")
+        new_config_content = j.sal.fs.fileGetContents(new_config_path)
+        new_config = cson.loads(new_config_content)
 
-        for k0, v0 in snippets_new_cson.items():
-            if k0 not in merged:
-                merged[k0] = snippets_existing[k0]
-            if j.data.types.dict.check(snippets_new_cson[k0]):
-                for k1, v1 in snippets_new_cson[k0].items():
-                    if k1 not in merged[k0]:
-                        merged[k0][k1] = snippets_new_cson[k0][k1]
-                    else:
-                        merged[k0][k1].update(snippets_new_cson[k0][k1])
-
+        for k,v in new_config.items():
+            if k in merged:
+                merged[k].update(new_config[k])
+            else:
+                merged[k]=v
         content = cson.dumps(merged, indent=4, sort_keys=True)
         j.sal.fs.writeFile(os.path.expanduser("~/.atom/config.cson"), content)
 

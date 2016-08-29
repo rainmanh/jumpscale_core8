@@ -16,13 +16,15 @@ class CuisineSandbox(base):
         TODO: specify what comes in /out
 
         """
-
+        self._cuisine.development.js8.install()
         self._cuisine.package.mdupdate()
 
         self._cuisine.core.file_copy('/usr/local/bin/jspython', '$binDir')
 
         sandbox_script = """
         cuisine = j.tools.cuisine.local
+        cuisine.apps.brotli.build()
+        cuisine.apps.brotli.install()
         paths = []
         paths.append("/usr/lib/python3/dist-packages")
         paths.append("/usr/lib/python3.5/")
@@ -127,7 +129,6 @@ class CuisineSandbox(base):
             """
             self._cuisine.core.execute_bash(C)
 
-        # TODO: *1 check if no doubles with above
         self._cuisine.core.dir_ensure(self._cuisine.core.dir_paths["tmpDir"])
         if not self._cuisine.core.isMac and not self._cuisine.core.isCygwin:
             C = """
@@ -140,13 +141,23 @@ class CuisineSandbox(base):
                 rm -rf /overlay/js_work
                 rm -rf /optrw
                 js8 stop
-                pskill js8
+                pkill js8
                 umount -f /opt
+                echo "OK"
                 """
-        else:
+        if self._cuisine.core.isMac:
+            C = """
+                set +ex
+                js8 stop
+                pkill js8
+                echo "OK"
+                """
+        if self._cuisine.core.isCygwin:
             C = """
                 set +ex
                 js8 stop
                 pskill js8
                 echo "OK"
                 """
+
+        self._cuisine.core.execute_bash(C)

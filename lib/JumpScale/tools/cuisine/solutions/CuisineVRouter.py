@@ -21,14 +21,14 @@ class CuisineVRouter(base):
         self._check = False
 
     def check(self):
-        if self._check == False:
+        if self._check is False:
             if not self.cuisine.platformtype.myplatform.startswith("ubuntu"):
                 raise j.exceptions.Input(message="only support ubuntu for now", level=1, source="", tags="", msgpub="")
         self._check = "OK"
 
     @property
     def defgwInterface(self):
-        if self._defgwInterface == None:
+        if self._defgwInterface is None:
             self._defgwInterface = self.cuisine.net.defaultgwInterface
         return self._defgwInterface
 
@@ -110,13 +110,13 @@ class CuisineVRouter(base):
         OUT += C
         self.cuisine.net.setInterfaceFile(OUT)
 
-        if not ipaddr in self.cuisine.net.getInfo("br0")["ip"]:
+        if ipaddr not in self.cuisine.net.getInfo("br0")["ip"]:
             raise j.exceptions.RuntimeError(
                 "could not set bridge, something went wrong, could not find ip addr:%s" % ipaddr)
 
     def dnsServer(self):
         self.check()
-        self._cuisine.tmux.createSession("ovsrouter",["dns"], returnifexists=True, killifexists=False)
+        self._cuisine.tmux.createSession("ovsrouter", ["dns"], returnifexists=True, killifexists=False)
         self._cuisine.process.kill("dns-server")
         cmd = "jspython /opt/dnsmasq-alt/dns-server.py"
         self.cuisine.tmux.executeInScreen('ovsrouter', 'dns', cmd)

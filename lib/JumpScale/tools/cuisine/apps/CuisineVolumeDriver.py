@@ -2,17 +2,21 @@ from JumpScale import j
 from time import sleep
 
 
-base = j.tools.cuisine._getBaseClass()
+
+app = j.tools.cuisine._getBaseAppClass()
 
 
-class CuisineVolumeDriver(base):
+class CuisineVolumeDriver(app):
+    NAME = "volumedriver"
 
     def __init__(self, executor, cuisine):
         self._executor = executor
         self._cuisine = cuisine
         self.logger = j.logger.get("j.tools.cuisine.volumedriver")
 
-    def build(self, start=True):
+    def build(self, reset=False):
+        if reset == False and self.isInstalled():
+            return
         self._install_deps()
         self._build()
 

@@ -930,7 +930,7 @@ class CuisineCore(base):
         """
         path = self.args_replace(path)
         cmd = "find %s" % path
-        if recursive == False:
+        if recursive is False:
             cmd += " -maxdepth 1"
         # if contentsearch=="" and extendinfo==False:
         #     cmd+=" -print"

@@ -16,7 +16,7 @@ class CuisineSandbox(base):
         TODO: specify what comes in /out
 
         """
-
+        self._cuisine.development.js8.install()
         self._cuisine.package.mdupdate()
 
         self._cuisine.core.file_copy('/usr/local/bin/jspython', '$binDir')

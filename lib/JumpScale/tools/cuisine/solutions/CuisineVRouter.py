@@ -44,12 +44,15 @@ class CuisineVRouter(base):
 
     def prepare(self):
         self.check()
+        self.cuisine.package.install('nftables')
         self.cuisine.systemservices.fw.flush(permanent=True)
 
         # will make sure jumpscale has been installed (&base)
         self.cuisine.development.js8.install()
 
-        j.do.pullGitRepo("git@github.com:despiegk/smartproxy.git")
+        dest = self._cuisine.core.args_replace('$codeDir/github/jumpscale/smartproxy')
+        j.do.pullGitRepo("git@github.com:despiegk/smartproxy.git", dest=dest)
+
         self._cuisine.core.upload("$codeDir/github/jumpscale/smartproxy")
         C = """
         rm -rf /opt/dnsmasq-alt
@@ -57,17 +60,14 @@ class CuisineVRouter(base):
         """
         self.cuisine.core.execute_bash(C)
 
-        C = """
+        config = """
         net.ipv4.ip_forward=1
         """
         # make sure it works at runtime
-        self.cuisine.core.file_write("/etc/sysctl.d/90-ipforward.conf", C)
-        self.cuisine.core.run("sysctl --system", shell=True)
-        self.cuisine.core.run("systemd enable nftables", shell=True)
-        self.cuisine.core.run("systemd start nftables", shell=True)
-
+        self.cuisine.core.file_write("/etc/sysctl.d/90-ipforward.conf", config)
+        self.cuisine.core.run("sysctl --system")
+        self.cuisine.core.run("nft -f /etc/nftables.conf")
         # firewall is now empty
-        return
 
     def bridge(self):
         """

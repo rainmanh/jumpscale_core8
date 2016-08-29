@@ -393,7 +393,7 @@ class CuisineCore(base):
 
             self.createDir(j.sal.fs.getDirName(to))
 
-            if multithread == False:
+            if multithread is False:
                 minspeed = 0
                 if minspeed != 0:
                     minsp = "-y %s -Y 600" % (minspeed * 1024)

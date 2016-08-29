@@ -37,8 +37,8 @@ class CuisineUFW(base):
                 self._cuisine.core.run("echo \"y\" | ufw enable")
                 self._fw_enabled = True
                 return True
-        raise j.exceptions.Input(message="cannot enable ufw, not supported or ",
-                                 level=1, source="", tags="", msgpub="")
+            raise j.exceptions.Input(message="cannot enable ufw, not supported or ",
+                                     level=1, source="", tags="", msgpub="")
         return True
 
     @property

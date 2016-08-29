@@ -2,8 +2,6 @@ from JumpScale import j
 
 app = j.tools.cuisine._getBaseAppClass()
 
-# TODO: *1 check we are installing latest cuisine
-
 
 class CuisineSyncthing(app):
 
@@ -30,7 +28,7 @@ class CuisineSyncthing(app):
                                                       dest='$goDir/src/github.com/syncthing/syncthing',
                                                       ssh=False,
                                                       depth=1)
-        self._cuisine.core.run("cd %s && go run build.go -version v0.11.25 -no-upgrade" % dest, profile=True)
+        self._cuisine.core.run("cd %s && go run build.go" % dest, profile=True)
 
         if install:
             self.install(start)

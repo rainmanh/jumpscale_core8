@@ -252,17 +252,19 @@ class CuisineStor(base):
     @property
     def config(self):
         if self._config is None:
-            # read j.sal.fs.joinPaths(self.root,"config.yaml")
-            # is dict, deserialize and store in self._config
-            pass
+            path = j.sal.fs.joinPaths(self.root,"config.yaml")
+            if self._cuisine.core.file_exists(path):
+                self._config = j.data.serializer.yaml.load(self._cuisine.file_read(self.root,"config.yaml"))
 
         return self._config
 
     @config.setter
-    def config(self, val):
-        # check dict
-        # store in config also remote serialized !!!
-        pass
+    def config(self, key, value):
+        self.config #populate if it doesn't exist
+        self._config[key] = value
+        serialized = j.data.serializer.dumps(self._config)
+        path = j.sal.fs.joinPaths(self.root,"config.yaml")
+        self._cuisine.core.file_write(path, serialized)
 
     def enableServerHTTP(self):
         self.config["httpserver"] = {"running": False}

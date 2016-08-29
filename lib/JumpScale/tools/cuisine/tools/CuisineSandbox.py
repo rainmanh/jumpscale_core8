@@ -23,6 +23,8 @@ class CuisineSandbox(base):
 
         sandbox_script = """
         cuisine = j.tools.cuisine.local
+        cuisine.apps.brotli.build()
+        cuisine.apps.brotli.install()
         paths = []
         paths.append("/usr/lib/python3/dist-packages")
         paths.append("/usr/lib/python3.5/")

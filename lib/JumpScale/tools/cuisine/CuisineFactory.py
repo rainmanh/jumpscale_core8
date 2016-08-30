@@ -103,6 +103,46 @@ class JSCuisineFactory:
             self._local = JSCuisine(j.tools.executor.getLocal())
         return self._local
 
+    def _generate_pubkey(self, keyname):
+        if not j.do.checkSSHAgentAvailable():
+            j.do._loadSSHAgent()
+        rc, out = j.sal.process.execute("ssh-add -l")
+        keys = []
+        for line in out.split("\n"):
+            try:
+                # TODO: ugly needs to be done better
+                item = line.split(" ", 2)[2]
+                keyname = item.split("(", 1)[0].strip()
+                keys.append(keyname)
+            except:
+                pass
+        key = j.tools.console.askChoice(keys, "please select key")
+        # key = j.sal.fs.getBaseName(key)
+        return j.sal.fs.fileGetContents(key + ".pub")
+
+    def get_pubkey(self, pubkey='', keyname=''):
+        # Get pubkey if empty
+        if pubkey == '':
+            if keyname == '':
+                return self._generate_pubkey(keyname=keyname)
+            else:
+                key = j.do.getSSHKeyPathFromAgent(keyname)
+                return j.sal.fs.fileGetContents(key + '.pub')
+
+    def _get_ssh_executor(self, addr, port, login, passphrase, passwd):
+        if not passwd and passphrase is not None:
+            return j.tools.executor.getSSHBased(addr=addr,
+                                                port=port,
+                                                login=login,
+                                                passphrase=passphrase)
+        else:
+            passwd = passwd if passwd else j.tools.console.askPassword("please specify root passwd", False)
+            return j.tools.executor.getSSHBased(addr=addr,
+                                                port=port,
+                                                login=login,
+                                                passwd=passwd)
+
+    # UNUSED METHOD ANYWHERE
     def authorizeKey(self, addr='localhost:22', login="root", passwd="", keyname="", pubkey="", passphrase=None):
         """
         will try to login if not ok then will try to push key with passwd
@@ -112,8 +152,6 @@ class JSCuisineFactory:
 
         @param pubkey is the pub key to use (is content of key), if this is specified then keyname not used & ssh-agent neither
         """
-        from JumpScale.tools.cuisine.JSCuisine import JSCuisine
-
         if addr.find(":") != -1:
             addr, port = addr.split(":", 1)
             addr = addr.strip()
@@ -121,40 +159,10 @@ class JSCuisineFactory:
         else:
             port = 22
 
-        # Generate pubkey
-        if pubkey == "":
-            if keyname == "":
-                rc, out = j.sal.process.execute("ssh-add -l")
-                keys = []
-                for line in out.split("\n"):
-                    try:
-                        # ugly needs to be done better
-                        item = line.split(" ", 2)[2]
-                        keyname = item.split("(", 1)[0].strip()
-                        keys.append(keyname)
-                    except:
-                        pass
-                key = j.tools.console.askChoice(keys, "please select key")
-                # key = j.sal.fs.getBaseName(key)
-                pubkey = j.sal.fs.fileGetContents(key + ".pub")
-            else:
-                key = j.do.getSSHKeyPathFromAgent(keyname)
-                pubkey = j.sal.fs.fileGetContents(key + ".pub")
+        j.clients.ssh.cache = {}  # Empty the cache
 
-        j.clients.ssh.cache = {}
-
-        if not passwd and passphrase is not None:
-            executor = j.tools.executor.getSSHBased(addr=addr,
-                                                    port=port,
-                                                    login=login,
-                                                    passphrase=passphrase)
-        else:
-            passwd = passwd if passwd else j.tools.console.askPassword("please specify root passwd", False)
-            executor = j.tools.executor.getSSHBased(addr=addr,
-                                                    port=port,
-                                                    login=login,
-                                                    passwd=passwd)
-
+        pubkey = self.get_pubkey(pubkey=pubkey, keyname=keyname)
+        executor = self._get_ssh_executor(addr, port, login, passphrase, passwd)
         executor.cuisine.ssh.authorize(login, pubkey)
         executor.cuisine.core.run("chmod -R 700 /root/.ssh")
 

@@ -1,0 +1,6 @@
+<interface type='bridge'>
+    <source bridge='{{bridge}}'/>
+    <virtualport type='openvswitch'>
+    <parameters profileid='{{name}}'/>
+    </virtualport>
+</interface>

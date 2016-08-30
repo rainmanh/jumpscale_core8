@@ -15,7 +15,7 @@ class Network:
         self.controller.connection.networkDefineXML(self.to_xml())
 
     def to_xml(self):
-        networkxml = self.controller.env.get_template('network.xml').render({'networkname': self.name, 'bridge': self.name})
+        networkxml = self.controller.env.get_template('network.xml').render(networkname=self.name, bridge=self.name)
         return networkxml
 
     def destroy(self):
@@ -23,11 +23,16 @@ class Network:
 
 
 class Interface:
-    def __init__(self, name):
+    def __init__(self, controller, name, bridge):
+        self.controller = controller
         self.name = name
+        self.bridge = bridge
 
-    def create(self):
-        pass
+    def create(self, source):
+        j.sal.openvswitch.netcl.connectIfToBridge(self.bridge, self.interface)
+        return self.to_xml()
 
     def to_xml(self):
-        pass
+        Interfacexml = self.controller.env.get_template('interface.xml').render(bridge=self.bridge.name, name=self.name)
+        return networkxml
+    

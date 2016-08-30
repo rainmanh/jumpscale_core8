@@ -213,7 +213,8 @@ class CuisineCore(base):
     def getenv(self, refresh=False):
         def get():
             res = {}
-            for line in self._cuisine.core.run("printenv", profile=False, showout=False, replaceArgs=False)[1].splitlines():
+            rc, out, err = self._cuisine.core.run("printenv", profile=False, showout=False, replaceArgs=False)
+            for line in out.splitlines():
                 if '=' in line:
                     name, val = line.split("=", 1)
                     name = name.strip()
@@ -455,7 +456,7 @@ class CuisineCore(base):
         location = self.args_replace(location)
         cmd += ' %s' % location
         rc, out, err = self.run(cmd, showout=False, die=False)
-        return not rc
+        return not rc and not err
 
     def file_exists(self, location):
         """Tests if there is a *remote* file at the given location."""
@@ -811,7 +812,9 @@ class CuisineCore(base):
     def file_base64(self, location):
         """Returns the base64 - encoded content of the file at the given location."""
         location = self.args_replace(location)
-        return self.run("cat {0} | base64".format(self.shell_safe((location))), debug=False, checkok=False, showout=False)[1]
+        cmd = "cat {0} | base64".format(self.shell_safe((location)))
+        rc, out, err = self.run(cmd, debug=False, checkok=False, showout=False)
+        return out
 
     def file_sha256(self, location):
         """Returns the SHA - 256 sum (as a hex string) for the remote file at the given location."""
@@ -836,11 +839,10 @@ class CuisineCore(base):
         # if cuisine_env[OPTION_HASH] == "python":
         location = self.args_replace(location)
         if self.file_exists(location):
-            return self.run("md5sum {0} | cut -f 1 -d ' '".format(self.shell_safe((location))), debug=False, checkok=False, showout=False)[1]
-        else:
-            return None
-        # else:
-        #     return self.run('openssl dgst -md5 %s' % (location)).split("\n")[-1].split(")= ",1)[-1].strip()
+            cmd = "md5sum {0} | cut -f 1 -d ' '".format(self.shell_safe((location)))
+            rc, out, err = self.run(cmd, debug=False, checkok=False, showout=False)
+            return out
+        # return self.run('openssl dgst -md5 %s' % (location)).split("\n")[-1].split(")= ",1)[-1].strip()
 
     # =============================================================================
     #
@@ -953,7 +955,7 @@ class CuisineCore(base):
         self.logger.debug(cmd)
 
         paths = [item.strip() for item in out.split("\n") if item.strip() != ""]
-        paths = [item for item in paths if item.startswith("+ find") == False]
+        paths = [item for item in paths if item.startswith("+ find") is False]
 
         # print cmd
 

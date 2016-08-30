@@ -41,25 +41,6 @@ class TestAtYourServiceFactory(unittest.TestCase):
                 actual_result = ays_factory.findAYSRepos()
                 self.assertEquals(len(list(actual_result)), 2)
 
-
-    def test_repos(self):
-        """
-        Test accessing the repos properties
-        """
-        with mock.patch("JumpScale.j") as j_mock:
-            with mock.patch("JumpScale.baselib.atyourservice.AtYourServiceRepo.AtYourServiceRepo") as ays_repo_mock:
-                from JumpScale import j
-                from JumpScale.baselib.atyourservice.AtYourServiceRepo import AtYourServiceRepo
-                import JumpScale.baselib.atyourservice.AtYourServiceFactory
-                JumpScale.baselib.atyourservice.AtYourServiceFactory.j = j
-                JumpScale.baselib.atyourservice.AtYourServiceFactory.AtYourServiceRepo = AtYourServiceRepo
-                from JumpScale.baselib.atyourservice.AtYourServiceFactory import AtYourServiceFactory
-                ays_factory = AtYourServiceFactory()
-                j.atyourservice.findAYSRepos.return_value = ['/opt/code/test1/test', '/opt/code/test2/test']
-                j.sal.fs.getBaseName.side_effect = ['test', 'test']
-                actual_result = ays_factory.repos
-                self.assertEquals(len(actual_result), 2)
-
     def test_get(self):
         """
         Test getting repo by name while multiple repos with the same name exists

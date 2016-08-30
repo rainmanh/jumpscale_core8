@@ -4,48 +4,38 @@ Test module for CuisineFactory
 
 import unittest
 from unittest import mock
+from JumpScale import j
 
 
 class TestCuisineFactory(unittest.TestCase):
     def setUp(self):
-        from JumpScale import j
         self.factory = j.tools.cuisine
 
     def tearDown(self):
         pass
 
-
     def test_create_factory(self):
         """
         Test creating a factory instance
         """
-        with mock.patch("JumpScale.j") as j_mock:
-            from JumpScale import j
-            import JumpScale.tools.cuisine.CuisineFactory
-            JumpScale.tools.cuisine.CuisineFactory.j = j
-            from JumpScale.tools.cuisine.CuisineFactory import JSCuisineFactory
-            factory = JSCuisineFactory()
-
+        import JumpScale.tools.cuisine.CuisineFactory
+        JumpScale.tools.cuisine.CuisineFactory.j = j
+        from JumpScale.tools.cuisine.CuisineFactory import JSCuisineFactory
+        factory = JSCuisineFactory()
 
     def test_get_local(self):
         """
         Test getting a local cuisine instance
         """
-        with mock.patch("JumpScale.j") as j_mock:
-            with mock.patch("JSCuisine.JSCuisine") as jscuisine_mock:
-                from JumpScale import j
-                import JumpScale.tools.cuisine.CuisineFactory
-                JumpScale.tools.cuisine.CuisineFactory.j = j
-                from JumpScale.tools.cuisine.CuisineFactory import JSCuisineFactory
-                factory = JSCuisineFactory()
-                old_local = factory.local
-                new_local = factory.local
-                self.assertEqual(old_local, new_local)
-                old_local = factory.local
-                factory._local = None
-                new_local = factory.local
-                self.assertNotEqual(old_local, new_local)
+        old_local = self.factory.local
+        new_local = self.factory.local
+        self.assertEqual(old_local, new_local)
+        old_local = self.factory.local
+        self.factory._local = None
+        new_local = self.factory.local
+        self.assertNotEqual(old_local, new_local)
 
+    @unittest.skip("No longer represent the method")
     @mock.patch('JumpScale.j.clients.ssh')
     @mock.patch('JumpScale.j.tools.console')
     @mock.patch('JumpScale.j.tools.executor')
@@ -59,6 +49,8 @@ class TestCuisineFactory(unittest.TestCase):
         self.assertTrue(mock_executor.getSSHBased.called)
         self.assertFalse(mock_console.askPassword.called)
 
+
+    @unittest.skip("No longer represent the method")
     @mock.patch('JumpScale.j.clients.ssh')
     @mock.patch('JumpScale.j.sal.process')
     @mock.patch('JumpScale.j.tools.console')

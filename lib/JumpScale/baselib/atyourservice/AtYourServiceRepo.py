@@ -15,8 +15,7 @@ colored_traceback.add_hook(always=True)
 
 
 class AtYourServiceRepo():
-
-    def __init__(self, name, path="",keephistory=True):
+    def __init__(self, name, path="", keephistory=True):
         self._init = False
         self.lock = threading.RLock()
         # self._justinstalled = []

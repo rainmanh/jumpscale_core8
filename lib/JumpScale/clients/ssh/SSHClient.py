@@ -163,7 +163,6 @@ class SSHClient:
                 self.logger.error("Cannot connect to ssh server %s:%s with login:%s and using sshkey:%s" % (
                     self.addr, self.port, self.login, self.key_filename))
                 return None
-
             start = j.data.time.getTimeEpoch()
             while start + self.timeout > j.data.time.getTimeEpoch():
                 j.tools.console.hideOutput()
@@ -181,7 +180,6 @@ class SSHClient:
                             j.do._.loadSSHAgent()
                         if not j.do.getSSHKeyPathFromAgent(self.key_filename, die=False):
                             j.do.loadSSHKeys(self.key_filename)
-
                     self._client.connect(self.addr, self.port, username=self.login, password=self.passwd,
                                          pkey=self.pkey, allow_agent=self.allow_agent, look_for_keys=self.look_for_keys,
                                          timeout=2.0, banner_timeout=3.0)
@@ -226,7 +224,6 @@ class SSHClient:
         return: (retcode,out_err)
         """
         ch = self.transport.open_session()
-
         if self.forward_agent:
             paramiko.agent.AgentRequestHandler(ch)
         class StreamReader(threading.Thread):

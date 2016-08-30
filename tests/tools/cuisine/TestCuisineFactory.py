@@ -10,18 +10,11 @@ from JumpScale import j
 class TestCuisineFactory(unittest.TestCase):
     def setUp(self):
         self.factory = j.tools.cuisine
+        self.ssh_add_l_output = (0, '2048 SHA256:C7QPiMG99B+2XP/WV6Uwqdi/VIGf7Mglq74FPVHlvw0 abdelrahman@abdelrahman-work (RSA)')
+
 
     def tearDown(self):
         pass
-
-    def test_create_factory(self):
-        """
-        Test creating a factory instance
-        """
-        import JumpScale.tools.cuisine.CuisineFactory
-        JumpScale.tools.cuisine.CuisineFactory.j = j
-        from JumpScale.tools.cuisine.CuisineFactory import JSCuisineFactory
-        factory = JSCuisineFactory()
 
     def test_get_local(self):
         """
@@ -35,6 +28,50 @@ class TestCuisineFactory(unittest.TestCase):
         new_local = self.factory.local
         self.assertNotEqual(old_local, new_local)
 
+    @mock.patch('JumpScale.j.tools.console')
+    @mock.patch('JumpScale.j.sal.fs')
+    @mock.patch('JumpScale.j.do')
+    @mock.patch('JumpScale.j.sal.process')
+    def test_generate_pubkey_loads_ssh_agent_if_none_found(self, mock_process, mock_do, mock_fs, mock_console):
+        """
+        Happy Path. If checkSSHAgentAvailable returns False
+        """
+        # Mocking
+        mock_do.checkSSHAgentAvailable.return_value = False
+        mock_process.execute.return_value = self.ssh_add_l_output
+        mock_console.askChoice.return_value = 'abdelrahman@abdelrahman-work'
+        mock_fs.fileGetContents.return_value = 'random key'
+        # Calling the method
+        self.factory._generate_pubkey()
+        # Assertions
+        mock_do.checkSSHAgentAvailable.assert_called_once_with()
+        mock_do._loadSSHAgent.assert_called_once_with()
+        mock_process.execute.assert_called_once_with('ssh-add -l')
+        mock_console.askChoice.assert_called_once_with(['abdelrahman@abdelrahman-work'], 'please select key')
+        mock_fs.fileGetContents.assert_called_once_with('abdelrahman@abdelrahman-work.pub')
+
+    @mock.patch('JumpScale.j.tools.console')
+    @mock.patch('JumpScale.j.sal.fs')
+    @mock.patch('JumpScale.j.do')
+    @mock.patch('JumpScale.j.sal.process')
+    def test_generate_pubkey_loads_ssh_agent_is_found(self, mock_process, mock_do, mock_fs, mock_console):
+        """
+        Happy Path. If checkSSHAgentAvailable returns True
+        """
+        # Mocking
+        mock_do.checkSSHAgentAvailable.return_value = True
+        mock_process.execute.return_value = self.ssh_add_l_output
+        mock_console.askChoice.return_value = 'abdelrahman@abdelrahman-work'
+        mock_fs.fileGetContents.return_value = 'random key'
+        # Calling the method
+        self.factory._generate_pubkey()
+        # Assertions
+        mock_do.checkSSHAgentAvailable.assert_called_once_with()
+        mock_do._loadSSHAgent.assert_not_called()
+        mock_process.execute.assert_called_once_with('ssh-add -l')
+        mock_console.askChoice.assert_called_once_with(['abdelrahman@abdelrahman-work'], 'please select key')
+        mock_fs.fileGetContents.assert_called_once_with('abdelrahman@abdelrahman-work.pub')
+
     @unittest.skip("No longer represent the method")
     @mock.patch('JumpScale.j.clients.ssh')
     @mock.patch('JumpScale.j.tools.console')
@@ -45,10 +82,9 @@ class TestCuisineFactory(unittest.TestCase):
         """
         # check the path where the password is not set
         mock_ssh.get.return_value = True
-        self.factory.getPushKey()
+        self.factory.authorizeKey()
         self.assertTrue(mock_executor.getSSHBased.called)
         self.assertFalse(mock_console.askPassword.called)
-
 
     @unittest.skip("No longer represent the method")
     @mock.patch('JumpScale.j.clients.ssh')
@@ -59,8 +95,7 @@ class TestCuisineFactory(unittest.TestCase):
         Test getting ssh executor
         """
         mock_ssh.get.return_value = False
-        ssh_add_l_output = (0, '2048 SHA256:C7QPiMG99B+2XP/WV6Uwqdi/VIGf7Mglq74FPVHlvw0 abdelrahman@abdelrahman-work (RSA)')
-        mock_process.execute.return_value = ssh_add_l_output
+        mock_process.execute.return_value = self.ssh_add_l_output
         self.factory.getPushKey()
         self.assertTrue(mock_console.askPassword.called)
         self.assertTrue(mock_console.askChoice.called)

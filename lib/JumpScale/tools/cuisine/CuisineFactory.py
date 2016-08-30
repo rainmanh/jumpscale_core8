@@ -15,7 +15,7 @@ class CuisineBase:
 
     @property
     def _classname(self):
-        if self.__classname == None:
+        if self.__classname is None:
             self.__classname = str(self.__class__).split(".")[-1].strip("'>")
         return self.__classname
 
@@ -103,7 +103,7 @@ class JSCuisineFactory:
             self._local = JSCuisine(j.tools.executor.getLocal())
         return self._local
 
-    def _generate_pubkey(self, keyname):
+    def _generate_pubkey(self):
         if not j.do.checkSSHAgentAvailable():
             j.do._loadSSHAgent()
         rc, out = j.sal.process.execute("ssh-add -l")
@@ -120,14 +120,12 @@ class JSCuisineFactory:
         # key = j.sal.fs.getBaseName(key)
         return j.sal.fs.fileGetContents(key + ".pub")
 
-    def get_pubkey(self, pubkey='', keyname=''):
-        # Get pubkey if empty
-        if pubkey == '':
-            if keyname == '':
-                return self._generate_pubkey(keyname=keyname)
-            else:
-                key = j.do.getSSHKeyPathFromAgent(keyname)
-                return j.sal.fs.fileGetContents(key + '.pub')
+    def get_pubkey(self, keyname=''):
+        if keyname == '':
+            return self._generate_pubkey()
+
+        key = j.do.getSSHKeyPathFromAgent(keyname)
+        return j.sal.fs.fileGetContents(key + '.pub')
 
     def _get_ssh_executor(self, addr, port, login, passphrase, passwd):
         if not passwd and passphrase is not None:
@@ -142,7 +140,7 @@ class JSCuisineFactory:
                                                 login=login,
                                                 passwd=passwd)
 
-    # UNUSED METHOD ANYWHERE
+    # UNUSED METHOD
     def authorizeKey(self, addr='localhost:22', login="root", passwd="", keyname="", pubkey="", passphrase=None):
         """
         will try to login if not ok then will try to push key with passwd
@@ -161,9 +159,9 @@ class JSCuisineFactory:
 
         j.clients.ssh.cache = {}  # Empty the cache
 
-        pubkey = self.get_pubkey(pubkey=pubkey, keyname=keyname)
+        _pubkey = pubkey if pubkey else self.get_pubkey(keyname=keyname)
         executor = self._get_ssh_executor(addr, port, login, passphrase, passwd)
-        executor.cuisine.ssh.authorize(login, pubkey)
+        executor.cuisine.ssh.authorize(login, _pubkey)
         executor.cuisine.core.run("chmod -R 700 /root/.ssh")
 
     def get(self, executor=None, usecache=True):

@@ -16,7 +16,7 @@ local c = ""
 local stat
 local prev = redis.call('GET', statekey)
 
-local now_short_m = math.floor(now / 60) * 60
+local now_short_m = math.floor(now / 300) * 300
 local now_short_h = math.floor(now / 3600) * 3600
 
 local differential = type == "D"
@@ -41,7 +41,7 @@ if prev then
     -- Check if we can flush the previous aggregated values.
 
     if v.m_epoch < now_short_m then
-        -- 1 min aggregation
+        -- 5 min aggregation
         local row = string.format("%s|%s|%u|%f|%f|%f",
             node, key, v.m_epoch, stat, v.m_avg, v.m_max)
 

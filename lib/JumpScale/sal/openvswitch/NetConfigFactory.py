@@ -15,6 +15,7 @@ class NetConfigFactory:
         self._layout = None
         self.PHYSMTU = 2000  # will fit all switches
         self._executor = j.tools.executor.getLocal()
+        self.netcl = netcl
 
     def getConfigFromSystem(self, reload=False):
         """
@@ -80,12 +81,23 @@ class NetConfigFactory:
 
     def newBridge(self, name, interface=None):
         """
-        @param interface interface where to connect this bridge to
+        @param interface ['interface'] can take multiple interfaces where to connect this bridge 
         """
         br = netcl.Bridge(name)
         br.create()
         if interface is not None:
             br.connect(interface)
+    def vnicQOS(self, limit, interface, burst_limit=None):
+        """
+        @param limit apply Qos policing to limit the rate throught a
+        @param burst_limit most the maximum amount of data (in Kb) that 
+               this interface can send beyond the policing rate.default to 10% of rate
+        """
+        if not burst_limit:
+            burst_limit = 0.1 * limit
+        netcl.limit_interface_rate(limit, interface, burst_limit)
+
+
 
     def newVlanBridge(self, name, parentbridge, vlanid, mtu=None):
         addVlanPatch(parentbridge, name, vlanid, mtu=mtu)

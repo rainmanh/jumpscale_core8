@@ -20,7 +20,7 @@ class CuisineDocker(app):
             raise e
 
     def install(self, reset=False):
-        if reset==False and self.isInstalled():
+        if reset is False and self.isInstalled():
             return
         if self._cuisine.core.isUbuntu:
             self._cuisine.bash.environSet('LC_ALL', 'C.UTF-8')

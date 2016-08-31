@@ -42,8 +42,6 @@ class CuisineDocker(app):
         self._init()
 
     def ubuntuBuild(self, push=False):
-
-        # TODO: *2 test
         self._init()
         dest = self._cuisine.development.git.pullRepo('https://github.com/Jumpscale/dockers.git', ssh=False)
         path = self._cuisine.core.joinpaths(dest, 'js8/x86_64/01_ubuntu1604')
@@ -109,7 +107,7 @@ class CuisineDocker(app):
         dockerexecutor = Cuisinedockerobj(name, host, "22", self._cuisine)
         cuisinedockerobj = j.tools.cuisine.get(dockerexecutor)
 
-        # NEED TO MAKE SURE WE CAN GET ACCESS TO THIS DOCKER WITHOUT OPENING PORTS; we know can using docker exec 
+        # NEED TO MAKE SURE WE CAN GET ACCESS TO THIS DOCKER WITHOUT OPENING PORTS; we know can using docker exec
         # ON DOCKER HOST (which is current cuisine)
 
         return cuisinedockerobj

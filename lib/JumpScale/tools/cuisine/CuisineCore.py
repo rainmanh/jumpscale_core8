@@ -24,19 +24,10 @@ import re
 import copy
 import base64
 import hashlib
-import os
-import string
-import tempfile
-import subprocess
-import types
-import threading
 import sys
-import functools
-import platform
 
 from JumpScale import j
-import pygments.lexers
-from pygments.formatters import get_formatter_by_name
+import pygments
 
 NOTHING = base64
 
@@ -418,7 +409,7 @@ class CuisineCore(base):
                         url, to, user, minsp, retry, timeout)
                     rc, out, err = self.run(cmd, die=False)
                 if rc > 0:
-                    raise j.exceptions.RuntimeError("Could not download:{}.\nErrorcode: {}".format(url, rc))
+                    raise j.exceptions.RuntimeError("Could not download:{}.\nErrorcode: {}.\n".format(url, rc))
                 else:
                     self.touch("%s.downloadok" % to)
             else:
@@ -1036,7 +1027,6 @@ class CuisineCore(base):
 
         out = self._clean(out)
 
-        # If command fails and die is true, raise error
         if rc and die:
             raise j.exceptions.RuntimeError('%s, %s' % (cmd, err))
 
@@ -1051,7 +1041,7 @@ class CuisineCore(base):
         passwd = self._executor.passwd if hasattr(self._executor, "passwd") else ''
         # Install sudo if sudo not installed
         rc, out, err = self._executor.execute("which sudo", die=False, showout=False)
-        if rc:
+        if rc or out.strip() == '**OK**':  # Work around: SSH executor adds **OK** for some reason
             cmd = 'apt-get install sudo && echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, command)
         else:
             cmd = 'echo %s | sudo -SE -p "" bash -c "%s"' % (passwd, command)
@@ -1110,7 +1100,6 @@ class CuisineCore(base):
 
         cmd = "cd $tmpDir;%s %s" % (interpreter, path)
         cmd = self.args_replace(cmd)
-
         if tmux:
             rc, out = self._cuisine.tmux.executeInScreen("cmd", "cmd", cmd, wait=True, die=False)
             if showout:

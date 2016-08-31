@@ -29,7 +29,7 @@ class CuisinePackage(base):
 
     def update(self, package=None):
         if self._cuisine.core.isUbuntu:
-            if package == None:
+            if package is None:
                 return self._apt_get("-q --yes update")
             else:
                 if type(package) in (list, tuple):
@@ -125,7 +125,7 @@ class CuisinePackage(base):
             rc, out, err = self._cuisine.core.run(cmd, die=False)
 
             if rc > 0:
-                if mdupdate == True:
+                if mdupdate is True:
                     raise j.exceptions.RuntimeError("Could not install:'%s' \n%s" % (package, out))
 
                 if out.find("not found") != -1 or out.find("failed to retrieve some files") != -1:
@@ -133,7 +133,7 @@ class CuisinePackage(base):
                     mdupdate = True
                     continue
 
-                raise j.exceptions.RuntimeError("Could not install:%s %s" % (package, out))
+                raise j.exceptions.RuntimeError("Could not install:%s %s" % (package, err))
 
             return out
 

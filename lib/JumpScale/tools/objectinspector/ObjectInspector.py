@@ -5,9 +5,6 @@ from collections import OrderedDict
 import json
 from JumpScale import j
 
-
-
-
 # api codes
 # 4 function with params
 # 7 ???
@@ -231,6 +228,13 @@ class ObjectInspector:
         j.sal.fs.writeFile(filename="%s/errors.md" % self.dest, contents=errormsg, append=True)
 
     def generateDocs(self, dest, ignore=[], objpath="j"):
+        """
+        Generates documentation of objpath in destination direcotry dest
+        @param dest: destination directory to write documentation.
+        @param objpath: object path
+        @param ignore: modules list to be ignored during the import.
+
+        """
         self.dest = dest
         self.apiFileLocation = "%s/jumpscale.api" % self.dest
         j.sal.fs.writeFile("%s/errors.md" % dest, "")

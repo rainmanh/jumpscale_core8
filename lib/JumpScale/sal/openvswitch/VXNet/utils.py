@@ -1,5 +1,5 @@
 __author__ = 'delandtj'
-
+from JumpScale import j
 import os
 import os.path
 import subprocess
@@ -107,6 +107,12 @@ def destroyBridge(name):
     if r:
         raise j.exceptions.RuntimeError("Problem with destruction of bridge %s, err was: %s" % (name, e))
 
+def listBridgePorts(name):
+    cmd = '%s list-ports %s' % (vsctl, name)
+    r, s, e = doexec(cmd.split())
+    if r:
+        raise j.exception.RuntimeError("Problem with listing of bridge %s's ports , err was: %s " %(name, e))
+    return s.read()
 
 def VlanPatch(parentbridge, vlanbridge, vlanid):
     parentpatchport = '%s-%s' % (vlanbridge, str(vlanid))
@@ -251,7 +257,7 @@ def connectIfToBridge(bridge, interfaces):
         r, s, e = doexec(cmd.split())
         if r:
             raise j.exceptions.RuntimeError('Error adding port %s to bridge %s' % (interface, bridge))
-            
+
 def removeIfFromBridge(bridge, interfaces):
     for interface in interfaces:
         cmd = '%s --if-exists del-port %s %s' % (vsctl, bridge, interface)

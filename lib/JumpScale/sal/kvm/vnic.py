@@ -8,8 +8,14 @@ class Network:
     def __init__(self, controller, name, bridge,  interfaces):
         self.name = name
         self.bridge = bridge
-        self.interfaces = interfaces
+        self._interfaces = interfaces
         self.controller = controller
+
+    @property
+    def interfaces(self):
+        if self._interface is None:
+            j.sal.openvswitch.netcl.listBridgePorts(self.bridge)
+        
 
     def create(self, autostart=True, start=True):
         '''
@@ -29,6 +35,14 @@ class Network:
         networkxml = self.controller.env.get_template(
             'network.xml').render(networkname=self.name, bridge=self.bridge)
         return networkxml
+    
+    @classmethod
+    def from_xml(cls, controller, source):
+        network = ElementTreefromstring(source)
+        name = network.findtext('name')
+        bridge = netwrok.findall('bridge')[0].get('name')
+        return cls(controller, name, bridge, None)
+
 
     def from_xml(self, source):
         network = Et.fromstring(source)
@@ -62,7 +76,8 @@ class Interface:
         self.mac = generate_mac()
 
     def from_xml(self, source):
-        interface =  Et.fromstring(source)
+
+        interface =  ElementTreefromstring(source)
         self.name = interface.findall('paramaters')[0].get('profileid')
         self.bridge = interface.findall('source')[0].get('bridge')
         bandwidth = interface.findall('bandwidth')
@@ -73,6 +88,6 @@ class Interface:
 
     def to_xml(self):
         Interfacexml = self.controller.env.get_template('interface.xml').render(
-            macaddress=self.mac, bridge=self.bridge.name, qos=self.qos, rate=self.interface_rate, burst name=self.name
+            macaddress=self.mac, bridge=self.bridge.name, qos=self.qos, rate=self.interface_rate, burst=burst, name=self.name
         )
         return networkxml

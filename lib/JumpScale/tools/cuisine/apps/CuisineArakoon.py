@@ -25,7 +25,7 @@ class CuisineArakoon(base):
 
             opam_root = self._cuisine.core.args_replace('$tmpDir/OPAM')
             cmd = "opam config env --root=%s --dot-profile %s" % (opam_root, self._cuisine.bash.profilePath)
-            _, out, _ = self._cuisine.core.run(cmdprofile=True)
+            _, out, _ = self._cuisine.core.run(cmd, profile=True)
 
             cmd = 'cd %s && eval `%s` && make' % (dest, out)
             self._cuisine.core.run(cmd, profile=True)
@@ -84,7 +84,7 @@ class CuisineArakoon(base):
 
         self.logger.info("start installation of ocaml pacakges")
         cmd = 'opam update && opam install -y {}'.format(' '.join(opam_deps))
-        rc, out, err = self._cuisine.core.run(cmd, profile=True, die=False)
+        self._cuisine.core.run(cmd, profile=True, die=False)
 
     def _install_deps(self):
         # apt_deps = "curl libev-dev libssl-dev libsnappy-dev libgmp3-dev ocaml ocaml-native-compilers camlp4-extra aspcud libbz2-dev protobuf-compiler m4 pkg-config"

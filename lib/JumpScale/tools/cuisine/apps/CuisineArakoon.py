@@ -1,6 +1,4 @@
 from JumpScale import j
-from time import sleep
-
 
 base = j.tools.cuisine._getBaseClass()
 
@@ -23,14 +21,14 @@ class CuisineArakoon(base):
                 self._cuisine.core.file_copy(cmd, dest)
         else:
             dest = self._cuisine.development.git.pullRepo('https://github.com/openvstorage/arakoon.git')
-            self._cuisine.core.run('cd %s && git pull && git checkout tags/1.9.7' % dest)
+            self._cuisine.core.run('cd %s && git pull && git fetch --tags && git checkout tags/1.9.7' % dest)
 
             opam_root = self._cuisine.core.args_replace('$tmpDir/OPAM')
-            cmd = "$opam config env --root=%s --dot-profile %s" % (opam_root, self._cuisine.bash.profilePath)
-            rc, out, err = self._cuisine.core.run(cmd, die=False, profile=True)
+            cmd = "opam config env --root=%s --dot-profile %s" % (opam_root, self._cuisine.bash.profilePath)
+            _, out, _ = self._cuisine.core.run(cmdprofile=True)
 
             cmd = 'cd %s && eval `%s` && make' % (dest, out)
-            self._cuisine.core.execute_bash(cmd, profile=True)
+            self._cuisine.core.run(cmd, profile=True)
 
             self._cuisine.core.file_copy('%s/arakoon.native' % dest, "$binDir/arakoon", overwrite=True)
 
@@ -43,7 +41,7 @@ class CuisineArakoon(base):
         self.logger.info("install opam")
         self._cuisine.core.run('chmod +x $tmpDir/opam_installer.sh')
         ocaml_version = '4.02.3'
-        cmd = '$tmpDir/opam_installer.sh $binDir %s' % ocaml_version
+        cmd = 'yes | $tmpDir/opam_installer.sh $binDir %s' % ocaml_version
         self._cuisine.core.run(cmd, profile=True)
 
         self.logger.info("initialize opam")
@@ -54,42 +52,43 @@ class CuisineArakoon(base):
         self._cuisine.core.run(cmd, profile=True)
 
         cmd = "opam config env --root=%s --dot-profile %s" % (opam_root, self._cuisine.bash.profilePath)
-        rc, out, err = self._cuisine.core.run(cmd, die=False, profile=True)
+        self._cuisine.core.run(cmd, profile=True)
+
+        opam_deps = (
+            'ocamlfind',
+            'ssl',
+            'camlbz2',
+            'snappy',
+            'sexplib',
+            'bisect',
+            'lwt.2.5.1',
+            'camltc',
+            'cstruct',
+            'ctypes-foreign',
+            'uuidm',
+            'zarith',
+            'mirage-no-xen.1',
+            'quickcheck.1.0.2',
+            'cmdliner',
+            'conf-libev',
+            'depext',
+            'tiny_json',
+            'ppx_deriving.3.1',
+            'ppx_deriving_yojson',
+            'core.113.00.00',
+            'redis',
+            'uri.1.9.1',
+            'result',
+            'ocplib-endian'
+        )
 
         self.logger.info("start installation of ocaml pacakges")
-        cmd = """eval `%s` && \
-    opam update && \
-    opam install -y -q \
-        ocamlfind \
-        ssl.0.5.2 \
-        camlbz2 \
-        snappy \
-        sexplib \
-        bisect \
-        lwt.2.5.1 \
-        camltc \
-        cstruct \
-        ctypes \
-        ctypes-foreign \
-        uuidm \
-        zarith \
-        mirage-no-xen.1 \
-        quickcheck.1.0.2 \
-        cmdliner \
-        conf-libev \
-        depext \
-        kinetic-client \
-        tiny_json \
-        ppx_deriving.3.1 \
-        ppx_deriving_yojson \
-        core.113.00.00 \
-        redis \
-        uri.1.9.1 \
-        result""" % out
-        self._cuisine.core.execute_bash(cmd, profile=True)
+        cmd = 'opam update && opam install -y {}'.format(' '.join(opam_deps))
+        rc, out, err = self._cuisine.core.run(cmd, profile=True, die=False)
 
     def _install_deps(self):
-        apt_deps = "libev-dev libssl-dev libsnappy-dev libgmp3-dev ocaml ocaml-native-compilers camlp4-extra opam aspcud libbz2-dev protobuf-compiler m4 pkg-config"
+        # apt_deps = "curl libev-dev libssl-dev libsnappy-dev libgmp3-dev ocaml ocaml-native-compilers camlp4-extra aspcud libbz2-dev protobuf-compiler m4 pkg-config"
+        apt_deps = 'curl make m4 gcc patch unzip git pkg-config libprotobuf9v5 libprotoc9v5 protobuf-compiler libsnappy-dev libssl-dev libssl-doc zlib1g-dev bzip2-doc libbz2-dev libncurses5-dev libtinfo-dev libgmp-dev libgmpxx4ldbl libev-dev libev4'
         self._cuisine.package.multiInstall(apt_deps)
 
     def build(self, start=True):
